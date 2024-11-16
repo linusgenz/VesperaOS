@@ -18,7 +18,9 @@
 #include "../../drivers/io/io.h"
 #include "../../drivers/input/mouse.h"
 #include "../acpi/acpi.h"
-#include "../pci/pci.h"
+#include "../../drivers/pci/pci.h"
+#include "../../kernel/memory/heap.h"
+#include "ScrollManager.h"
 
 struct BootInfo {
 	Framebuffer* framebuffer;
@@ -32,10 +34,6 @@ struct BootInfo {
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
-struct KernelInfo {
-	PageTableManager* page_table_manager;
-};
-
-KernelInfo initialize_kernel(BootInfo* BootInfo);
+void initialize_kernel(BootInfo* BootInfo);
 
 #endif //KERNEL_UTILS_H

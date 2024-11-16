@@ -6,8 +6,7 @@ legacy
 .vscode
 
 
-
-PonchoOS
+build
 gnu-efi/*
 !gnu-efi/bootloader
 

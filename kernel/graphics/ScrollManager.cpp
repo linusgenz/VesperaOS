@@ -1,0 +1,207 @@
+//
+// Created by linus on 16.11.2024.
+//
+
+#include "../include/ScrollManager.h"
+
+ScrollManager* scroll_manager;
+
+ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb)
+{
+    top_buffer = {buffer_top, 0, 0, 0};
+    bottom_buffer = {buffer_bottom, 0, 0, 0};
+    max_lines_in_buffer = fb->height * 5;
+    framebuffer = fb;
+    framebuffer_base = (uint32_t*)fb->base_address;
+    bytes_per_scanline = fb->pixels_per_scanline * sizeof(uint32_t);
+}
+
+void ScrollManager::setup_new_line()
+{
+    global_renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
+
+    // scroll to the actual bottom, of the actual window
+    while (bottom_buffer.lines_in_buffer > 0)
+    {
+        scroll_down();
+    }
+
+    save_top_lines_to_buffer();
+
+    shift_lines_up();
+
+    clear_last_line();
+
+    // Update scroll state
+    scroll_available.down = false;
+    scroll_available.up = true;
+
+    global_renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+}
+
+void ScrollManager::scroll_down()
+{
+    if (bottom_buffer.lines_in_buffer <= 0)
+    {
+        scroll_available.down = false;
+        return;
+    }
+
+    global_renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
+
+    restore_line_from_bottom_buffer();
+
+    save_top_lines_to_buffer();
+
+    shift_lines_up();
+
+    global_renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+}
+
+void ScrollManager::scroll_up()
+{
+    if (top_buffer.lines_in_buffer <= 0)
+    {
+        scroll_available.up = false;
+        return;
+    }
+
+    global_renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
+
+    restore_line_from_top_buffer();
+
+    save_bottom_line_to_buffer();
+
+    shift_lines_down();
+
+    global_renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+}
+
+// Helper Functions
+void ScrollManager::restore_line_from_bottom_buffer()
+{
+    uint32_t screen_width = framebuffer->width;
+    uint32_t screen_height = framebuffer->height;
+
+    bottom_buffer.pos =
+        (bottom_buffer.start - 16 + max_lines_in_buffer) % max_lines_in_buffer;
+
+    uint32_t* bottom_line_addr = framebuffer_base + screen_width * (screen_height - 16);
+    memcpy(bottom_line_addr,
+           &bottom_buffer.buffer[bottom_buffer.pos * screen_width],
+           bytes_per_scanline * 16);
+
+    bottom_buffer.start = bottom_buffer.pos;
+    bottom_buffer.lines_in_buffer--;
+    scroll_available.down = bottom_buffer.lines_in_buffer > 0;
+}
+
+void ScrollManager::restore_line_from_top_buffer()
+{
+    uint32_t screen_width = framebuffer->width;
+
+    top_buffer.pos =
+        (top_buffer.start - 16 + max_lines_in_buffer) % max_lines_in_buffer;
+
+    memcpy(framebuffer_base,
+           &top_buffer.buffer[top_buffer.pos * screen_width],
+           bytes_per_scanline * 16);
+
+    top_buffer.start = top_buffer.pos;
+    top_buffer.lines_in_buffer--;
+}
+
+void ScrollManager::save_bottom_line_to_buffer()
+{
+    uint32_t screen_width = framebuffer->width;
+    uint32_t screen_height = framebuffer->height;
+
+    for (uint32_t i = 0; i < 16; i++)
+    {
+        uint32_t bottom_line_index = screen_height - 16 + i;
+        bottom_buffer.pos =
+            (bottom_buffer.start + i) % max_lines_in_buffer;
+
+        memcpy(&bottom_buffer.buffer[bottom_buffer.pos * screen_width],
+               framebuffer_base + bottom_line_index * screen_width,
+               bytes_per_scanline);
+    }
+
+    bottom_buffer.start = (bottom_buffer.start + 16) % max_lines_in_buffer;
+    bottom_buffer.lines_in_buffer++;
+}
+
+void ScrollManager::save_top_lines_to_buffer()
+{
+    uint32_t screen_width = framebuffer->width;
+
+    for (uint32_t i = 0; i < 16; i++)
+    {
+        uint32_t top_buffer_index =
+            (top_buffer.start + i) % max_lines_in_buffer;
+
+        memcpy(&top_buffer.buffer[top_buffer_index * screen_width],
+               framebuffer_base + i * screen_width,
+               bytes_per_scanline);
+    }
+
+    top_buffer.lines_in_buffer++;
+    top_buffer.start = (top_buffer.start + 16) % max_lines_in_buffer;
+}
+
+void ScrollManager::shift_lines_up()
+{
+    uint32_t screen_width = framebuffer->width;
+    uint32_t screen_height = framebuffer->height;
+
+    for (uint32_t y = 0; y < screen_height - 16; y++)
+    {
+        uint32_t* src_offset = framebuffer_base + (y + 16) * screen_width;
+        uint32_t* dest_offset = framebuffer_base + y * screen_width;
+
+        memcpy(dest_offset, src_offset, bytes_per_scanline);
+    }
+}
+
+void ScrollManager::shift_lines_down()
+{
+    uint32_t screen_width = framebuffer->width;
+    uint32_t screen_height = framebuffer->height;
+
+    for (int64_t y = screen_height - 1; y >= 16; y--)
+    {
+        uint32_t* src_offset = framebuffer_base + (y - 16) * screen_width;
+        uint32_t* dest_offset = framebuffer_base + y * screen_width;
+
+        memcpy(dest_offset, src_offset, bytes_per_scanline);
+    }
+}
+
+void ScrollManager::clear_last_line()
+{
+    uint32_t screen_width = framebuffer->width;
+    uint32_t screen_height = framebuffer->height;
+
+    uint32_t* clear_line_addr = framebuffer_base + screen_width * (screen_height - 16);
+    memset(clear_line_addr, 0, bytes_per_scanline * 16);
+}
+
+bool ScrollManager::can_scroll_up() const
+{
+    return scroll_available.up;
+}
+
+bool ScrollManager::can_scroll_down() const
+{
+    return scroll_available.down;
+}
+
+void ScrollManager::set_scroll_up(bool flag)
+{
+    scroll_available.up = flag;
+}
+
+void ScrollManager::set_scroll_down(bool flag)
+{
+    scroll_available.down = flag;
+}

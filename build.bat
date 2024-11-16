@@ -1,0 +1,1 @@
+qemu-system-x86_64 -cdrom "build/LuminOS.iso" -m 256m -machine q35 -accel tcg  -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" -net none -drive file=blank.img -device qemu-xhci,id=xhci -device usb-mouse

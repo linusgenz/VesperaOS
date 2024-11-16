@@ -8,6 +8,7 @@
 #include "../io/io.h"
 #include "../../include/graphics.h"
 #include "../../kernel/include/basic_renderer.h"
+#include "../../kernel/include/ScrollManager.h"
 
 #define PS2LeftButton 0b00000001
 #define PS2MiddleButton 0b00000100

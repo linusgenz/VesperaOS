@@ -1,7 +1,12 @@
 
 #ifndef BASIC_RENDERER_H
-#include "../../include/graphics.h"
 #define BASIC_RENDERER_H
+#include "../../include/graphics.h"
+#include "../../include/utils.h"
+#include "../include/memory.h"
+#include "../memory/heap.h"
+#include "ScrollManager.h"
+
 class BasicRenderer{
     public:
     BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font);
@@ -12,26 +17,58 @@ class BasicRenderer{
     void put_char(char chr);
     void put_pixel(uint32_t x, uint32_t y, Colour colour);
     Colour get_pixel(uint32_t x, uint32_t y);
-    void set_cursorX(int32_t x);
-    void set_cursorY(int32_t y);
-    void set_cursor(Point point);
-    void set_colour(Colour colour);
-    void set_clear_color(Colour colour);
-    void increment_cursorX(int32_t x);
-    void increment_cursorY(int32_t y);
+    inline void set_cursorX(int32_t x);
+    inline void set_cursorY(int32_t y);
+    inline void set_cursor(Point pt);
+    inline void set_colour(Colour colour);
+    inline void set_clear_color(Colour colour);
+    inline void increment_cursorX(int32_t x);
+    inline void increment_cursorY(int32_t y);
     void new_line();
     void clear();
     void clear_char();
     void draw_overlay_mouse_cursor(uint8_t* mouse_cursor, Point position, Colour colour);
+    void draw_cursor() const;
+    void clear_cursor() const;
     void clear_mouse_cursor(uint8_t* mouse_cursor, Point position);
     Colour mouse_cursor_buffer[16 * 16];
     Colour mouse_cursor_buffer_after[16 * 16];
+    bool cursor_visible;
     private:
     Point cursor_position;
-    uint32_t colour;
-    uint32_t clear_colour;
+    Colour colour;
+    Colour clear_colour;
     bool mouse_drawn;
 };
+
+inline void BasicRenderer::set_cursorX(int32_t x) {
+    cursor_position.X = x;
+}
+
+inline void BasicRenderer::set_cursorY(int32_t y) {
+    cursor_position.Y = y;
+}
+
+inline void BasicRenderer::set_cursor(Point pt) {
+    cursor_position.X = pt.X;
+    cursor_position.Y = pt.Y;
+}
+
+inline void BasicRenderer::increment_cursorX(int32_t x) {
+    cursor_position.X += x;
+}
+
+inline void BasicRenderer::increment_cursorY(int32_t y) {
+    cursor_position.Y += y;
+}
+
+inline void BasicRenderer::set_colour(Colour new_colour) {
+    colour = new_colour;
+}
+
+inline void BasicRenderer::set_clear_color(Colour new_colour) {
+    clear_colour = new_colour;
+}
 
 extern BasicRenderer* global_renderer;
 

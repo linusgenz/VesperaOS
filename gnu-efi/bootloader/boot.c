@@ -213,16 +213,6 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 		Print(L"Font found. char size = %d\n\r", font->psf1_header->charsize);
 	}
 
-	EFI_MEMORY_DESCRIPTOR* Map = NULL;
-	UINTN MapSize, MapKey;
-	UINTN DescriptorSize;
-	UINT32 DescriptorVersion;
-	{
-		SysTbl->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-		SysTbl->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
-		SysTbl->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-	}
-
 	EFI_CONFIGURATION_TABLE* config_table = ST->ConfigurationTable;
 	VOID* rsdp = NULL;
 	EFI_GUID Acpi2TableGuid = ACPI_20_TABLE_GUID;
@@ -236,9 +226,21 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 		config_table++;
 	}
 
+	
+
 	void (*kernel_start)(BootInfo*) = ((__attribute__((sysv_abi)) void (*)(BootInfo*))header.e_entry);
 
 	BootInfo bootInfo;
+	EFI_MEMORY_DESCRIPTOR* Map = NULL;
+	UINTN MapSize, MapKey;
+	UINTN DescriptorSize;
+	UINT32 DescriptorVersion;
+	{
+		SysTbl->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+		SysTbl->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
+		SysTbl->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	}
+
 	bootInfo.framebuffer = &framebuffer;
 	bootInfo.psf1_font = font;
 	bootInfo.mMap = Map;
@@ -246,6 +248,8 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 	bootInfo.mMapDescriptorSize = DescriptorSize;
 	bootInfo.rsdp = rsdp;
 	// https://www.youtube.com/watch?v=wbsfyRY_Yoc comment
+
+	Print(L"Entry: %p", header.e_entry);
 
 	SysTbl->BootServices->ExitBootServices(ImageHandle, MapKey);
 

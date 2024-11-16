@@ -23,6 +23,72 @@ const char* to_string(uint64_t value){
     return uintTo_StringOutput;
 }
 
+char uintTo_StringOutput16[128];
+const char* to_string(uint16_t value){
+    uint8_t size;
+    uint16_t sizeTest = value;
+    while (sizeTest / 10 > 0){
+        sizeTest /= 10;
+        size++;
+    }
+
+    uint8_t index = 0;
+    while(value / 10 > 0){
+        uint8_t remainder = value % 10;
+        value /= 10;
+        uintTo_StringOutput16[size - index] = remainder + '0';
+        index++;
+    }
+    uint8_t remainder = value % 10;
+    uintTo_StringOutput16[size - index] = remainder + '0';
+    uintTo_StringOutput16[size + 1] = 0; 
+    return uintTo_StringOutput16;
+}
+
+char uintTo_StringOutput8[128];
+const char* to_string(uint8_t value){
+    uint8_t size;
+    uint16_t sizeTest = value;
+    while (sizeTest / 10 > 0){
+        sizeTest /= 10;
+        size++;
+    }
+
+    uint8_t index = 0;
+    while(value / 10 > 0){
+        uint8_t remainder = value % 10;
+        value /= 10;
+        uintTo_StringOutput8[size - index] = remainder + '0';
+        index++;
+    }
+    uint8_t remainder = value % 10;
+    uintTo_StringOutput8[size - index] = remainder + '0';
+    uintTo_StringOutput8[size + 1] = 0; 
+    return uintTo_StringOutput8;
+}
+
+char uintTo_StringOutput32[128];
+const char* to_string(uint32_t value){
+    uint8_t size;
+    uint16_t sizeTest = value;
+    while (sizeTest / 10 > 0){
+        sizeTest /= 10;
+        size++;
+    }
+
+    uint8_t index = 0;
+    while(value / 10 > 0){
+        uint8_t remainder = value % 10;
+        value /= 10;
+        uintTo_StringOutput32[size - index] = remainder + '0';
+        index++;
+    }
+    uint8_t remainder = value % 10;
+    uintTo_StringOutput32[size - index] = remainder + '0';
+    uintTo_StringOutput32[size + 1] = 0; 
+    return uintTo_StringOutput32;
+}
+
 char hexTo_StringOutput[128];
 const char* to_hstring(uint64_t value){
     uint64_t* valPtr = &value;
@@ -164,4 +230,12 @@ size_t strlen(const char *s) {
         ++s;
     }
     return s - start;
+}
+
+uint64_t strcmp(const char* a, const char* b) {
+    while (*a && (*a == *b)) {
+        a++;
+        b++;
+    }
+    return (*a == *b) ? 1 : 0;
 }

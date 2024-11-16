@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "keyboard_buffer.h"
 #include "../../kernel/include/basic_renderer.h"
 
 bool is_left_shift_pressed;
@@ -11,7 +12,6 @@ void handle_keyboard(uint8_t scancode) {
         case left_shift:
             is_left_shift_pressed = true;
             return;
-        
         case left_shift + 0x80:
             is_left_shift_pressed = false;
             return;
@@ -19,16 +19,18 @@ void handle_keyboard(uint8_t scancode) {
             is_right_shift_pressed = true;
             return;
         case enter:
-            global_renderer->new_line();
+            keyboard_buffer_write('\0');  // Null-terminate to indicate end of command
             return;
         case spacebar:
-            global_renderer->put_char(' ');
-            return;
+            ascii = ' ';
+            break;
         case back_space:
-            global_renderer->clear_char();
-            return;
+            keyboard_buffer_write('\b');
+        default:
+            break;
     };
+
     if (ascii != 0) {
-        global_renderer->put_char(ascii);
+        keyboard_buffer_write(ascii);
     }
 }

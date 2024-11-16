@@ -23,7 +23,7 @@ EFI_DIR = mnt/EFI/BOOT
 IMG_SIZE = 131072
 
 # Make all target
-all: bootloader $(ISO) test clean
+all: bootloader $(ISO) clean
 
 # Compile the bootloader using the separate makefile in gnu-efi/bootloader
 bootloader:
@@ -35,7 +35,7 @@ bootloader:
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Compile the ASM files into _asm.o object files
+# Compile the asm files into _asm.o object files
 %_asm.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
@@ -64,10 +64,13 @@ $(ISO): $(DISK_IMG)
 
 # Test the ISO image with QEMU
 test: $(ISO)
-	qemu-system-x86_64 -cdrom $(ISO) -m 32G -machine q35 -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" -net none
+	qemu-system-x86_64 -cdrom $(ISO) -m 256m -machine q35 -enable-kvm -cpu host -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" -net none \
+    -drive file=blank.img \
+    -device qemu-xhci,id=xhci \
+	-device usb-mouse \
 
 # Clean up build artifacts
 clean:
 	$(MAKE) -C gnu-efi/bootloader clean
-	rm -f $(OBJS) $(KERNEL_ELF) $(DISK_IMG) $(ISO)
+	rm -f $(OBJS) $(KERNEL_ELF) $(DISK_IMG)
 	rm -f -r mnt

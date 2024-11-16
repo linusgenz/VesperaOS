@@ -19,3 +19,11 @@ void memset(void* dest, uint8_t val, uint64_t num) {
         *(uint8_t*)((uint64_t)dest + i) = val;
     }
 }
+
+void *memcpy (void *dest, const void *src, size_t len) {
+    char *d = (char*)dest;
+    const char *s = (char*)src;
+    while (len--)
+        *d++ = *s++;
+    return dest;
+}

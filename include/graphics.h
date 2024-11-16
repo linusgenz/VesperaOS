@@ -47,10 +47,4 @@ typedef struct {
 	void* glyphBuffer;
 } PSF1_FONT;
 
-void swap_buffers();
-
-extern Framebuffer* fb;
-extern PSF1_FONT* psf1_font;
-
-
 #endif //GRAHICS_H

@@ -10,7 +10,7 @@ PageTableManager::PageTableManager(PageTable* PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::MapMemory(void* virtual_memory, void* physical_memory) {
+void PageTableManager::map_memory(void* virtual_memory, void* physical_memory) {
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtual_memory);
     PageDirectoryEntry PDE;
 

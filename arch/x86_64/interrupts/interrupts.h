@@ -24,6 +24,8 @@ __attribute__((interrupt)) void double_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame); // General protection fault
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame);
+__attribute__((interrupt)) void pit_int_handler(interrupt_frame* frame);
+
 
 void remap_pic();
 void pic_end_master();

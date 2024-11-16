@@ -2,6 +2,7 @@
 #include "../../../kernel/utils/panic.h"
 #include "../../../drivers/io/io.h"
 #include "../../../drivers/input/keyboard.h"
+#include "../../../kernel/scheduling/pit/pit.h"
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame* frame) {
     panic("Page fault detected");
@@ -28,6 +29,21 @@ __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame) {
     uint8_t mouse_data = inb(0x60);
     handle_ps2_mouse(mouse_data);
     pic_end_slave();
+}
+
+__attribute__((interrupt)) void pit_int_handler(interrupt_frame* frame) {
+    PIT::tick();
+    pic_end_master();
+}
+
+__attribute__((interrupt)) void cursor_int_handler(interrupt_frame* frame) {
+    global_renderer->cursor_visible = !global_renderer->cursor_visible;
+
+    if (global_renderer->cursor_visible) {
+        global_renderer->draw_cursor();
+    } else {
+        global_renderer->clear_cursor();
+    }
 }
 
 void pic_end_master() {

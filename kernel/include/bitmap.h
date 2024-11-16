@@ -13,6 +13,8 @@ class Bitmap{
     uint8_t* buffer;
     bool operator[](uint64_t index);
     bool set(uint64_t index, bool value);
+    bool get(uint64_t index);
+
 };
 
 #endif //BITMAP_H

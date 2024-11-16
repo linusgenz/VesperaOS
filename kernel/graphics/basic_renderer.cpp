@@ -1,22 +1,20 @@
 #include "../include/basic_renderer.h"
-
 BasicRenderer* global_renderer;
 
-BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font)
-{
+BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font) {
     TargetFramebuffer = targetFramebuffer;
     PSF1_Font = psf1_Font;
     colour = Colour::WHITE;
+    clear_colour = Colour::BLACK;
     cursor_position = {0, 0};
+    cursor_visible = true;
 }
 
-void BasicRenderer::print(const char* str)
-{
-    
+void BasicRenderer::print(const char* str) {
     char* chr = (char*)str;
     while(*chr != 0){
         put_char(*chr, cursor_position.X, cursor_position.Y);
-        cursor_position.X+=8;
+        increment_cursorX(8);
         if(cursor_position.X + 8 > TargetFramebuffer->width)
         {
             new_line();
@@ -29,7 +27,6 @@ void BasicRenderer::clear() {
     uint64_t fb_base = (uint64_t)TargetFramebuffer->base_address;
     uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
     uint64_t fb_height = TargetFramebuffer->height;
-    uint64_t fb_size = TargetFramebuffer->buffer_size;
 
     for (int y = 0; y < fb_height; y ++){
         uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
@@ -37,6 +34,9 @@ void BasicRenderer::clear() {
             *pix_ptr = clear_colour;
         }
     }
+    scroll_manager->set_scroll_up(false);
+    scroll_manager->set_scroll_down(false);
+    set_cursor({0,0});
 }
 
 void BasicRenderer::put_pixel(uint32_t x, uint32_t y, Colour colour) {
@@ -121,9 +121,8 @@ void BasicRenderer::clear_char() {
     }
 }
 
-void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff)
-{
-    uint32_t* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
+void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff) {
+    auto* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
     char* font_ptr = (char*)PSF1_Font->glyphBuffer + (chr * PSF1_Font->psf1_header->charsize);
     for (unsigned long y = yOff; y < yOff + 16; y++){
         for (unsigned long x = xOff; x < xOff+8; x++){
@@ -136,46 +135,49 @@ void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff)
     }
 }
 
-void BasicRenderer::put_char(char chr)
-{
+void BasicRenderer::put_char(char chr) {
+    clear_cursor();
     put_char(chr, cursor_position.X, cursor_position.Y);
     cursor_position.X += 8;
     if (cursor_position.X + 8 > TargetFramebuffer->width) {
-        cursor_position.X = 0;
-        cursor_position.Y += 16;
+        new_line();
+    }
+    draw_cursor();
+}
+
+void BasicRenderer::draw_cursor() const {
+    uint32_t* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
+
+    uint64_t max_y = min(cursor_position.Y + 16, TargetFramebuffer->height);
+    uint64_t max_x = min(cursor_position.X + 8, TargetFramebuffer->width);
+
+    for (uint64_t y = cursor_position.Y; y < max_y; y++) {
+        for (uint64_t x = cursor_position.X; x < max_x; x++) {
+            *(uint32_t*)(pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = Colour::WHITE;
+        }
     }
 }
 
-void BasicRenderer::set_cursorX(int32_t x) {
-    cursor_position.X = x;
+void BasicRenderer::clear_cursor() const {
+    uint32_t* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
+
+    uint64_t max_y = min(cursor_position.Y + 16, TargetFramebuffer->height);
+    uint64_t max_x = min(cursor_position.X + 8, TargetFramebuffer->width);
+
+    for (uint64_t y = cursor_position.Y; y < max_y; y++) {
+        for (uint64_t x = cursor_position.X; x < max_x; x++) {
+            *(uint32_t*)(pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = Colour::BLACK;
+        }
+    }
 }
 
-void BasicRenderer::set_cursorY(int32_t y) {
-    cursor_position.Y = y;
-}
-
-void BasicRenderer::set_cursor(Point pt) {
-    cursor_position.X = pt.X;
-    cursor_position.Y = pt.Y;
-}
-
-void BasicRenderer::increment_cursorX(int32_t x) {
-    cursor_position.X += x;
-}
-
-void BasicRenderer::increment_cursorY(int32_t y) {
-    cursor_position.Y += y;
-}
-
+// Scroll screen approach
 void BasicRenderer::new_line() {
     cursor_position.X = 0;
     cursor_position.Y += 16;
-}
 
-void BasicRenderer::set_colour(Colour new_colour) {
-    colour = new_colour;
-}
-
-void BasicRenderer::set_clear_color(Colour new_colour) {
-    clear_colour = new_colour;
+    if (cursor_position.Y + 16 >= TargetFramebuffer->height) {
+        scroll_manager->setup_new_line();
+        cursor_position.Y -= 16;
+    }
 }

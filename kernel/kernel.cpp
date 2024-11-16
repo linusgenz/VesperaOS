@@ -1,14 +1,31 @@
 #include "./include/kernel_utils.h"
+#include "./scheduling/pit/pit.h"
+#include "./cpu/cpu.h"
+#include "../interface/shell.h"
 
 extern "C" void kernel_main(BootInfo* boot_info){
     
-   KernelInfo kernel_info = initialize_kernel(boot_info);
-   PageTableManager* page_table_manager = kernel_info.page_table_manager;
+    PIT::set_divisor(65535);
 
+    initialize_kernel(boot_info);
+
+    char vendor[13];
+    get_cpu_vendor(vendor);
+    global_renderer->print("CPU Vendor: ");
+    global_renderer->print(vendor);
+    global_renderer->new_line();
+    char brand[49];
+    get_cpu_brand(brand);
+    global_renderer->print("CPU Brand: ");
+    global_renderer->print(brand);
+    global_renderer->new_line();
     global_renderer->print("Kernel initialized successfully");
 
-    global_renderer->new_line();
-    global_renderer->print(to_hstring((uint64_t)boot_info->rsdp));
+    PIT::sleep(2000);
+    global_renderer->clear();
 
-    while (true);
+    while (true) {
+        shell_loop();
+    };
+
 }
