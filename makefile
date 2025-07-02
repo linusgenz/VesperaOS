@@ -8,24 +8,23 @@ OBJS += $(ASM_SRC:.asm=_asm.o)
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 BOOTLOADER_EFI = gnu-efi/bootloader/boot.efi
 DISK_IMG = $(BUILD_DIR)/boot.img
+ISO = $(BUILD_DIR)/LuminOS.iso
+USB_DEV := /dev/sdc
 
 LDS = linker.ld
 ASM = nasm
 CC = gcc
 LD = ld
-CFLAGS = -ffreestanding -mno-red-zone -fshort-wchar -fno-exceptions -pedantic -g -O0
+CFLAGS = -ffreestanding -mno-red-zone -fshort-wchar -fno-exceptions -pedantic -g  # -O0 optimierung nur für prod
 ASMFLAGS = -f elf64
 LDFLAGS = -T $(LDS) -Bsymbolic -nostdlib -g
 
-ISO = $(BUILD_DIR)/LuminOS.iso
 MKFS_FAT = mkfs.fat
 EFI_DIR = mnt/EFI/BOOT
 IMG_SIZE = 131072
 
-# Make all target
-all: bootloader $(ISO) clean
+all: bootloader $(DISK_IMG) $(ISO)
 
-# Compile the bootloader using the separate makefile in gnu-efi/bootloader
 bootloader:
 	$(MAKE) -C gnu-efi/bootloader
 
@@ -35,15 +34,15 @@ bootloader:
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Compile the asm files into _asm.o object files
 %_asm.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-# Link all object files into the final ELF binary
 $(KERNEL_ELF): $(OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
-# Create the FAT32 EFI System Partition image
+# Create boot.img for QEMU (FAT32 EFI image)
+img: $(DISK_IMG)
+
 $(DISK_IMG): bootloader $(KERNEL_ELF)
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
@@ -58,19 +57,84 @@ $(DISK_IMG): bootloader $(KERNEL_ELF)
 	sudo umount mnt
 	$(RM) -r mnt
 
-# Create the ISO image with the FAT32 EFI partition
-$(ISO): $(DISK_IMG)
-	dd if=$(DISK_IMG) of=$(ISO) bs=4M
+# Create ISO for VirtualBox (UEFI bootable)
+iso: $(ISO)
 
-# Test the ISO image with QEMU
-test: $(ISO)
-	qemu-system-x86_64 -cdrom $(ISO) -m 256m -machine q35 -enable-kvm -cpu host -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" -net none \
-    -drive file=blank.img \
-    -device qemu-xhci,id=xhci \
-	-device usb-mouse \
+$(ISO): bootloader $(KERNEL_ELF)
+	mkdir -p build/esp/EFI/BOOT
+	cp $(BOOTLOADER_EFI) build/esp/EFI/BOOT/BOOTX64.EFI
+	cp $(KERNEL_ELF) build/esp/EFI/BOOT/kernel.elf
+	cp build/zap-light16.psf build/esp/
+	cp $(BUILD_DIR)/startup.nsh build/esp/
 
-# Clean up build artifacts
+	truncate -s 64M build/efi.img
+	$(MKFS_FAT) -F 32 build/efi.img
+	mmd -i build/efi.img ::/EFI
+	mmd -i build/efi.img ::/EFI/BOOT
+	mcopy -i build/efi.img build/esp/EFI/BOOT/BOOTX64.EFI ::/EFI/BOOT/
+	mcopy -i build/efi.img build/esp/EFI/BOOT/kernel.elf ::/EFI/BOOT/
+	mcopy -i build/efi.img build/esp/zap-light16.psf ::/
+	mcopy -i build/efi.img build/esp/startup.nsh ::/
+
+	mkdir -p build/iso_root
+	cp build/efi.img build/iso_root/
+
+	xorriso -as mkisofs \
+		-iso-level 3 \
+		-V "UEFI_BOOT" \
+		-o $(ISO) \
+		-e efi.img \
+		-no-emul-boot \
+		-isohybrid-gpt-basdat \
+		build/iso_root
+
+	rm -rf build/esp build/iso_root
+
+flash: $(DISK_IMG)
+	@echo "!!! WARNUNG: USB-Stick $(USB_DEV) wird komplett überschrieben !!!"
+	#@read -p "Fortfahren? (y/N): " ans; \
+	#if [ "$$ans" != "y" ]; then echo "Abgebrochen."; exit 1; fi
+
+	# 1. Stick komplett löschen
+	sudo wipefs -a $(USB_DEV)
+	sudo dd if=/dev/zero of=$(USB_DEV) bs=1M count=10 status=progress conv=fsync
+
+	# 2. GPT anlegen
+	sudo parted $(USB_DEV) --script mklabel gpt
+
+	# 3. Partition anlegen (Größe passend zu efi.img)
+	IMG_SIZE_BYTES=$$(stat -c %s $(DISK_IMG)); \
+	SECTOR_SIZE=512; \
+	SECTORS=$$(((IMG_SIZE_BYTES + SECTOR_SIZE - 1) / SECTOR_SIZE)); \
+	END_SECTOR=$$((2048 + SECTORS - 1)); \
+	END_MB=$$(((END_SECTOR * SECTOR_SIZE) / 1024 / 1024)); \
+	echo "Partition von 1MiB bis $${END_MB}MiB anlegen..."; \
+	sudo parted $(USB_DEV) --script mkpart ESP fat32 1MiB $${END_MB}MiB; \
+	sudo parted $(USB_DEV) --script set 1 boot on; \
+	sudo parted $(USB_DEV) --script set 1 esp on
+
+	# 4. efi.img in Partition schreiben
+	sudo dd if=$(DISK_IMG) of=$(USB_DEV)1 bs=4M status=progress conv=fsync
+
+	# 5. Partitionstabelle neu laden
+	sudo partprobe $(USB_DEV)
+
+	@echo "Fertig. USB-Stick $(USB_DEV) ist bereit zum Booten."
+
+# QEMU Test (optional target)
+test: $(DISK_IMG)
+	qemu-system-x86_64 -drive file=$(DISK_IMG) -m 256m -machine q35 -enable-kvm -cpu host \
+	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
+	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd",readonly=on \
+	-net none -drive file=blank.img -device qemu-xhci,id=xhci -device usb-mouse
+
+debug:
+	qemu-system-x86_64 -drive file=$(DISK_IMG) -m 500m -machine q35 -enable-kvm -cpu host \
+	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
+	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
+	-net none -drive file=blank.img -device qemu-xhci,id=xhci -device usb-mouse -s -S -no-reboot -no-shutdown
+
 clean:
 	$(MAKE) -C gnu-efi/bootloader clean
-	rm -f $(OBJS) $(KERNEL_ELF) $(DISK_IMG)
-	rm -f -r mnt
+	rm -f $(OBJS) $(KERNEL_ELF) $(DISK_IMG) $(ISO)
+	rm -rf mnt isofiles

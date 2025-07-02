@@ -18,7 +18,8 @@ uint8_t mouse_pointer[] = {
     0b00000011, 0b00000000,
     0b00000001, 0b00000000,
 };
-
+Point mouse_position;
+/*
 void mouse_wait() {
     uint64_t timeout = 100000;
     while (timeout--) {    
@@ -126,6 +127,10 @@ void process_mouse_packet() {
         if (wheel_movement > 0) {
             if (scroll_manager->can_scroll_down()) {
                 scroll_manager->scroll_down();
+                if (!scroll_manager->can_scroll_down())
+                {
+                    global_renderer->draw_cursor();
+                }
             }
         } else if (wheel_movement < 0) {
             if (scroll_manager->can_scroll_up()) {
@@ -177,3 +182,4 @@ void initialize_ps2_mouse() {
     mouse_write(0xF3);
     mouse_write(80);
 }
+*/

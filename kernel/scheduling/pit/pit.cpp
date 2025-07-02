@@ -13,6 +13,21 @@ namespace PIT {
         }
     }
 
+    void pit_wait_ms(uint32_t ms) {
+        uint32_t ticks = (base_frequency * ms) / 1000;
+        asm volatile ("cli");
+        outb(PIT_COMMAND, 0x34);            // Channel 0, mode 2, binary
+        outb(PIT_CHANNEL0, ticks & 0xFF);
+        outb(PIT_CHANNEL0, (ticks >> 8) & 0xFF);
+        asm volatile("sti");
+
+        for (;;) {
+            uint8_t status = inb(0x61);
+            if (status & 0x20) break;
+        }
+    }
+
+
     void sleep(uint64_t milliseconds) {
         sleepd((double)milliseconds / 1000);
     }
@@ -20,9 +35,9 @@ namespace PIT {
     void set_divisor(uint16_t _divisor) {
         if (divisor < 100) _divisor = 100;
         divisor = _divisor;
-        outb(0x40, (uint8_t)(divisor & 0x00ff));
+        outb(PIT_CHANNEL0, (uint8_t)(divisor & 0x00ff));
         io_wait();
-        outb(0x40, (uint8_t)((divisor & 0xff00) >> 8));
+        outb(PIT_CHANNEL0, (uint8_t)((divisor & 0xff00) >> 8));
     }
 
     uint64_t get_frequency() {

@@ -23,7 +23,8 @@ void shell_loop() {
         while (true) {
             // Read from keyboard buffer if there is input
             if (keyboard_buffer_read(&ch)) {
-                global_renderer->clear_cursor();
+                Point pos = global_renderer->get_cursor_pos();
+                global_renderer->clear_cursor(pos.X, pos.Y);
                 if (ch == '\0') {
                     // Check if buffer is empty
                     if (command_index == 0) {

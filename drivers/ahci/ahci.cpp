@@ -194,10 +194,10 @@ namespace AHCI{
             memset(port->buffer, 0, 0x1000);
 
             port->Read(0, 4, port->buffer);
-            /*for (int t = 0; t < 1024; t++){
+            for (int t = 0; t < 1024; t++){
                 global_renderer->put_char(port->buffer[t]);
             }
-            global_renderer->new_line();*/
+            global_renderer->new_line();
         }
     }
 

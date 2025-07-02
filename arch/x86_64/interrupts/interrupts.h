@@ -24,11 +24,13 @@ __attribute__((interrupt)) void double_fault_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame); // General protection fault
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame);
-__attribute__((interrupt)) void pit_int_handler(interrupt_frame* frame);
+__attribute__((interrupt)) void apic_timer_int_handler(interrupt_frame* frame);
+__attribute__((interrupt)) void spurious_int_handler(interrupt_frame* frame);
 
-
+void pic_init();
 void remap_pic();
 void pic_end_master();
 void pic_end_slave();
+void pic_disable();
 
 #endif //INTERRUPTS_H

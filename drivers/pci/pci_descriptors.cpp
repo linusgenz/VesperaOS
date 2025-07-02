@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "../../include/string.h"
+#include "pci_devices.h"
 
 namespace PCI {
     const char* DeviceClasses[] {
@@ -27,33 +28,31 @@ namespace PCI {
 
     const char* get_vendor_name(uint16_t vendor_id) {
         switch (vendor_id) {
-        case 0x8086:
-            return "Intel Corporation";
-        case 0x1022:
-            return "AMD";
-        case 0x10DE:
-            return "Nvidia Corporation";
+            case 0x8086:
+                return "Intel Corporation";
+            case 0x1022:
+                return "Advanced Micro Devices, Inc. [AMD/ATI]";
+            case 0x1002:
+                return "Advanced Micro Devices, Inc. [AMD/ATI]";
+            case 0x10DE:
+                return "Nvidia Corporation";
+            case 0x144D:
+                return "Samsung Electronics Co Ltd";
+            case 0x10EC:
+                return "Realtek Semiconductor Co., Ltd.";
+            case 0x1B21:
+                return "ASMedia Technology Inc.";
         }
 
         return to_hstring(vendor_id);
     }
 
     const char* get_device_name(uint16_t vendor_id, uint16_t device_id) {
-        switch (vendor_id) {
-        case 0x8086: // intel
-            switch (device_id) {
-            case 0x29C0:
-                return "Express DRAM Controller";
-                break;
-            case 0x2918:
-                return "LPC Interface Controller";
-            case 0x2922:
-                return "6 port SATA Controller [AHCI mode]";
-            case 0x2930:
-                return "SMBus Controller";
+        for (unsigned int i = 0; i < sizeof(pci_devices) / sizeof(pci_devices[0]); ++i) {
+            if (pci_devices[i].vendor_id == vendor_id && pci_devices[i].device_id == device_id) {
+                return pci_devices[i].name;
             }
         }
-
         return to_hstring(device_id);
     }
 
@@ -97,15 +96,15 @@ namespace PCI {
             case 0x04:
                 return "Fibre Channel";
             case 0x05:
-                return "SMBus";
+                return "SMBus Controller";
             case 0x06:
-                return "Infiniband";
+                return "Infiniband Controller";
             case 0x07:
                 return "IPMI Interface";
             case 0x08:
                 return "SERCOS Interface (IEC 61491)";
             case 0x09:
-                return "CANbus";
+                return "CANbus Controller";
             case 0x80:
                 return "SerialBusController - Other";
         }
@@ -171,10 +170,18 @@ namespace PCI {
                             case 0x00:
                                 return "Vendor Specific Interface";
                             case 0x01:
-                                return "AHCI 1.0";
+                                    return "AHCI 1.0";
                             case 0x02:
-                                return "Serial Storage Bus";
+                                    return "Serial Storage Bus";
                         }
+                    case 0x8:
+                        switch (prog_if) {
+                            case 0x1:
+                                    return "NVMHCI";
+                            case 0x2:
+                                    return "NVM Express";
+                        }
+
                 }
             case 0x03:
                 switch (subclass_code) {
@@ -203,7 +210,7 @@ namespace PCI {
                             case 0xFE:
                                 return "USB Device (Not a Host Controller)";
                         }
-                }    
+                }
         }
 
         return to_hstring(prog_if);

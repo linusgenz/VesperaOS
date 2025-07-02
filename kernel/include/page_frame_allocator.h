@@ -10,8 +10,14 @@
 
 class PageFrameAllocator {
     public:
+    PageFrameAllocator() :
+    free_memory(0),
+    reserved_memory(0),
+    used_memory(0),
+    initialized(false)
+    {}
     void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapSize, size_t mMapDescSize);
-    Bitmap page_bitmap;
+    Bitmap page_bitmap{};
     void free_page(void* address);
     void free_pages(void* address, uint64_t page_count);
     void lock_page(void* address);
@@ -26,8 +32,12 @@ class PageFrameAllocator {
     void init_bitmap(size_t bitmap_size, void* buffer_address);
     void reserve_page(void* address);
     void reserve_pages(void* address, uint64_t page_count);
-    void unreserve_page(void* address);
-    void unreserve_pages(void* address, uint64_t page_count);
+    void unreserve_page(uint64_t address);
+    void unreserve_pages(uint64_t address, uint64_t page_count);
+    uint64_t free_memory;
+    uint64_t reserved_memory;
+    uint64_t used_memory;
+    bool initialized;
 
 };
 

@@ -15,9 +15,14 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory) {
     PageDirectoryEntry PDE;
 
     PDE = PML4->entries[indexer.PDP_i];
+
     PageTable* PDP;
     if (!PDE.get_flag(PT_Flag::Present)) {
         PDP = (PageTable*)global_allocator.request_page();
+        if (PDP == nullptr) {
+            // nicht genug phy memory
+            return;
+        }
         memset(PDP, 0, 0x1000);
         PDE.set_address((uint64_t)PDP >> 12);
         PDE.set_flag(PT_Flag::Present, true);

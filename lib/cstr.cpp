@@ -89,6 +89,20 @@ const char* to_string(uint32_t value){
     return uintTo_StringOutput32;
 }
 
+char hexTo_StringOutputVoid[128];
+const char* to_hstring(void* ptr) {
+    uintptr_t value = reinterpret_cast<uintptr_t>(ptr);
+    uint8_t size = sizeof(value) * 2;
+
+    for (uint8_t i = 0; i < size; i++) {
+        uint8_t nibble = (value >> ((size - i - 1) * 4)) & 0xF;
+        hexTo_StringOutputVoid[i] = nibble + (nibble > 9 ? 'A' - 10 : '0');
+    }
+
+    hexTo_StringOutputVoid[size] = '\0';
+    return hexTo_StringOutputVoid;
+}
+
 char hexTo_StringOutput[128];
 const char* to_hstring(uint64_t value){
     uint64_t* valPtr = &value;

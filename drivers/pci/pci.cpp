@@ -13,10 +13,18 @@ namespace PCI {
 
         PCI::PCIDeviceHeader* pci_device_header = (PCIDeviceHeader*)function_address;
 
+
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-
+        global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
+        global_renderer->print(" ");
+        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
+        global_renderer->print(" ");
+        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
+        global_renderer->print(" ");
+        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
+        global_renderer->new_line();
 
         switch (pci_device_header->_class) {
             case 0x01: // mass storage controller
@@ -45,15 +53,17 @@ namespace PCI {
                                 break;
                         }
                 }
-            case 0x03:
-                        global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
-        global_renderer->print(" ");
-        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
-        global_renderer->print(" ");
-        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
-        global_renderer->print(" ");
-        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
-        global_renderer->new_line();
+         //   case 0x03:
+/*
+                *         global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
+                        global_renderer->print(" ");
+                        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
+                        global_renderer->print(" ");
+                        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
+                        global_renderer->print(" ");
+                        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
+                        global_renderer->new_line();
+ */
         }
 
     }

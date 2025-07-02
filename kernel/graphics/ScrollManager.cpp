@@ -39,45 +39,55 @@ void ScrollManager::setup_new_line()
     global_renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
 }
 
+// TODO make this better
 void ScrollManager::scroll_down()
 {
     if (bottom_buffer.lines_in_buffer <= 0)
     {
-        scroll_available.down = false;
         return;
     }
+    scroll_available.up = true;
 
     global_renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
-
-    restore_line_from_bottom_buffer();
 
     save_top_lines_to_buffer();
 
     shift_lines_up();
 
+    restore_line_from_bottom_buffer();
+
     global_renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+    if (bottom_buffer.lines_in_buffer <= 0)
+    {
+        scroll_available.down = false;
+    }
 }
 
 void ScrollManager::scroll_up()
 {
+    Point pos = global_renderer->get_cursor_pos();
+    if (bottom_buffer.lines_in_buffer == 0)
+    {
+        global_renderer->clear_cursor(pos.X, pos.Y);
+    }
     if (top_buffer.lines_in_buffer <= 0)
     {
         scroll_available.up = false;
         return;
     }
+    scroll_available.down = true;
 
     global_renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
-
-    restore_line_from_top_buffer();
 
     save_bottom_line_to_buffer();
 
     shift_lines_down();
 
+    restore_line_from_top_buffer();
+
     global_renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
 }
 
-// Helper Functions
 void ScrollManager::restore_line_from_bottom_buffer()
 {
     uint32_t screen_width = framebuffer->width;
@@ -93,7 +103,6 @@ void ScrollManager::restore_line_from_bottom_buffer()
 
     bottom_buffer.start = bottom_buffer.pos;
     bottom_buffer.lines_in_buffer--;
-    scroll_available.down = bottom_buffer.lines_in_buffer > 0;
 }
 
 void ScrollManager::restore_line_from_top_buffer()
@@ -149,7 +158,7 @@ void ScrollManager::save_top_lines_to_buffer()
     top_buffer.start = (top_buffer.start + 16) % max_lines_in_buffer;
 }
 
-void ScrollManager::shift_lines_up()
+void ScrollManager::shift_lines_up() const
 {
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
@@ -163,7 +172,7 @@ void ScrollManager::shift_lines_up()
     }
 }
 
-void ScrollManager::shift_lines_down()
+void ScrollManager::shift_lines_down() const
 {
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
@@ -177,7 +186,7 @@ void ScrollManager::shift_lines_down()
     }
 }
 
-void ScrollManager::clear_last_line()
+void ScrollManager::clear_last_line() const
 {
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
@@ -205,3 +214,5 @@ void ScrollManager::set_scroll_down(bool flag)
 {
     scroll_available.down = flag;
 }
+
+// TODO fix bug where when bottom buffer restored remainder blacks half of the line

@@ -6,10 +6,13 @@
 #define EFI_MEMORY_H
 #include <stdint.h>
 
+typedef unsigned long EFI_PHYSICAL_ADDRESS;
+typedef unsigned long EFI_VIRTUAL_ADDRESS;
+
 struct EFI_MEMORY_DESCRIPTOR {
     uint32_t type;
-    void* phys_addr;
-    void* virt_addr; 
+    EFI_PHYSICAL_ADDRESS phys_addr;
+    EFI_VIRTUAL_ADDRESS virt_addr;
     uint64_t num_pages;
     uint64_t attribs;
 };

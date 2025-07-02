@@ -8,6 +8,8 @@
 
 namespace PIT {
     extern double time_since_boot;
+    #define PIT_CHANNEL0    0x40
+    #define PIT_COMMAND     0x43
     const uint64_t base_frequency = 1193182;
 
     void sleepd(double seconds);
@@ -17,6 +19,8 @@ namespace PIT {
     uint64_t get_frequency();
     void set_frequency(uint64_t frequency);
     void tick();
+
+    void pit_wait_ms(uint32_t ms);
 }
 
 #endif //PIT_H

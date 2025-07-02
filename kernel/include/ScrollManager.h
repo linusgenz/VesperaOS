@@ -27,18 +27,18 @@ class ScrollManager {
             bool down;
          };
 
-        ScrollBuffer top_buffer;
-        ScrollBuffer bottom_buffer;
-        Scroll scroll_available;
+        ScrollBuffer top_buffer{};
+        ScrollBuffer bottom_buffer{};
+        Scroll scroll_available{};
         uint32_t max_lines_in_buffer;
         Framebuffer* framebuffer;
         uint32_t* framebuffer_base;
         uint32_t bytes_per_scanline;
         void save_top_lines_to_buffer();
         void save_bottom_line_to_buffer();
-        void shift_lines_up();
-        void shift_lines_down();
-        void clear_last_line();
+        void shift_lines_up() const;
+        void shift_lines_down() const;
+        void clear_last_line() const;
         void restore_line_from_bottom_buffer();
         void restore_line_from_top_buffer();
     public:
