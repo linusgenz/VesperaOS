@@ -11,4 +11,5 @@
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);
 void memset(void* dest, uint8_t val, uint64_t num);
 void *memcpy (void *dest, const void *src, size_t len);
+int memcmp(const void* ptr1, const void* ptr2, size_t num);
 #endif //MEMORY_H

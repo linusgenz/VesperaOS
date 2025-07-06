@@ -23,6 +23,9 @@ class PageFrameAllocator {
     void lock_page(void* address);
     void lock_pages(void* address, uint64_t page_count);
     void* request_page();
+
+    void *request_pages(size_t pageCount);
+
     uint64_t get_free_ram();
     uint64_t get_used_ram();
     uint64_t get_reserved_ram();

@@ -36,7 +36,7 @@ EFI_FILE* LoadFile(EFI_FILE* Directory, CHAR16* Path, EFI_HANDLE ImageHandle, EF
 
 }
 
-int memcmp(const void* aptr, const void* bptr, size_t n){
+int memcmp(const void *aptr, const unsigned char *bptr, size_t n){
 	const unsigned char* a = aptr, *b = bptr;
 	for (size_t i = 0; i < n; i++){
 		if (a[i] < b[i]) return -1;

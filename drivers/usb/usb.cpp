@@ -4,6 +4,7 @@
 #include "../../kernel/include/page_frame_allocator.h"
 #include "../../kernel/scheduling/pit/pit.h"
 #include "../../kernel/include/memory.h"
+#include "../../kernel/time/timer.h"
 
 namespace USB {
     xHCIDriver::xHCIDriver(PCI::PCIDeviceHeader* pci_base_address) {
@@ -11,9 +12,9 @@ namespace USB {
         global_renderer->print("xHCI Driver instance initialized");
         global_renderer->new_line();
 
-        uint64_t bar0 = ((PCI::PCIHeader0*)pci_base_address)->BAR0 & ~0xF;
-        uint64_t bar1 = ((PCI::PCIHeader0*)pci_base_address)->BAR1;
-        bar = (xHCICapabilityRegisters*)((bar1 << 32) | bar0);
+        uint64_t bar0 = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address)->BAR0 & ~0xF;
+        uint64_t bar1 = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address)->BAR1;
+        bar = reinterpret_cast<xHCICapabilityRegisters *>((bar1 << 32) | bar0);
         global_page_table_manager.map_memory(bar, bar);
 
         op_regs = (xHCIOperationalRegisters*)((uint64_t)bar + bar->caplength);
@@ -79,14 +80,13 @@ namespace USB {
             global_renderer->print("Host Controller is halted. Check command execution.");
         }
 
-        // Assuming there's an error register you can check
         if (op_regs->usbsts.HCE) {  // Check for Host Controller Error
             global_renderer->print("Host Controller Error detected.");
         }
 
         uint64_t port_regs_base_address = bar->caplength + PORT_REGISTER_OFFSET;
         uint64_t port_regs_size = hcs_params1.max_ports * 0x10;  // each port takes 0x10 bytes
-        global_page_table_manager.map_memory((void*)port_regs_base_address, (void*)(port_regs_base_address + port_regs_size));
+        global_page_table_manager.map_memory((void*)port_regs_base_address, (void*)(port_regs_base_address));
 
         ports = new xHCIPortRegisters[hcs_params1.max_ports];
         for (uint32_t port_num = 0; port_num < hcs_params1.max_ports; port_num++) {
@@ -110,6 +110,8 @@ namespace USB {
         }
 
         initialize_port(0);
+
+        global_renderer->print("TEST");
     }
 
     void xHCIDriver::enumerate_devices(uint32_t max_ports) {
@@ -242,20 +244,20 @@ namespace USB {
     void xHCIDriver::stop(){
         if(op_regs->usbcmd.RS == 1){
             op_regs->usbcmd.RS = 0;
-            PIT::sleep(10);
+            kernel::time::sleep_ms(10);
             while(op_regs->usbsts.HCH==0);
         }
     }
 
     void xHCIDriver::reset(){
         op_regs->usbcmd.HCR = 1;
-        PIT::sleep(10);
+        kernel::time::sleep_ms(10);
         while(op_regs->usbcmd.HCR==1);
     }
 
     void xHCIDriver::wait_controller_ready(){
         while(op_regs->usbsts.CNR) {
-            PIT::sleep(10);
+            kernel::time::sleep_ms(10);
         }
     }
 
@@ -273,7 +275,7 @@ namespace USB {
 
     void xHCIDriver::initialize_dcbaa() {
         void* page_address = global_allocator.request_page();
-
+        global_page_table_manager.map_memory(page_address, page_address);
         if (page_address) {
             // Align the address to a 64-byte boundary
             page_address = (void*)(((uintptr_t)(page_address) + 0x3F) & ~0x3F);

@@ -67,6 +67,31 @@ void* PageFrameAllocator::request_page(){
     return nullptr; // Page Frame Swap to file
 }
 
+void* PageFrameAllocator::request_pages(size_t pageCount) {
+    size_t maxPages = page_bitmap.size * 8;
+
+    for (uint64_t i = 0; i < maxPages; i++) {
+        // Prüfen, ob pageCount zusammenhängende Seiten frei sind
+        bool blockFree = true;
+        for (size_t j = 0; j < pageCount; j++) {
+            if ((i + j) >= maxPages || page_bitmap[i + j]) {
+                blockFree = false;
+                i += j; // nächster Versuch fängt dort an, wo's aufgehört hat
+                break;
+            }
+        }
+
+        if (blockFree) {
+            for (size_t j = 0; j < pageCount; j++) {
+                lock_page((void*)((i + j) * 4096));
+            }
+            return (void*)(i * 4096);
+        }
+    }
+
+    return nullptr; // nichts gefunden
+}
+
 void PageFrameAllocator::free_page(void* address){
     uint64_t index = (uint64_t)address / 4096;
     if (page_bitmap[index] == false) return;

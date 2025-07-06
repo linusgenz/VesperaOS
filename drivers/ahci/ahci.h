@@ -2,12 +2,14 @@
 #define AHCI_H
 #include <stdint.h>
 #include "../pci/pci.h"
+#include "../../kernel/include/dev/blockdevice.h"
 
 namespace AHCI {
 
     #define ATA_DEV_BUSY 0x80
     #define ATA_DEV_DRQ 0x08
     #define ATA_CMD_READ_DMA_EX 0x25
+    #define ATA_CMD_WRITE_DMA_EX 0x35
 
     #define HBA_PxIS_TFES (1 << 30)
 
@@ -136,17 +138,30 @@ namespace AHCI {
         uint8_t rsv1[4];
     };
 
-    class Port {
-        public:
-            HBAPort* hbaPort;
-            PortType portType;
-            uint8_t* buffer;
-            uint8_t portNumber;
-            void Configure();
-            void StartCMD();
-            void StopCMD();
-            bool Read(uint64_t sector, uint32_t sectorCount, void* buffer);
+    class Port : public BlockDevice {
+    public:
+        HBAPort* hbaPort;
+        PortType portType;
+        uint8_t* buffer;
+        uint8_t portNumber;
+
+        void Configure();
+        void StartCMD();
+        void StopCMD();
+
+        bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override {
+            return Read(lba, sectorCount, buffer);
+        }
+
+        bool write(uint64_t sector, uint32_t sectorCount, void *buffer) const override {
+            return Write(sector, sectorCount, buffer);
+        }
+
+        bool Read(uint64_t sector, uint32_t sectorCount, void* buffer);
+
+        bool Write(uint64_t sector, uint32_t sectorCount, void *buffer) const;
     };
+
 
     class AHCIDriver{
         public:

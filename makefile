@@ -15,7 +15,7 @@ LDS = linker.ld
 ASM = nasm
 CC = gcc
 LD = ld
-CFLAGS = -ffreestanding -mno-red-zone -fshort-wchar -fno-exceptions -pedantic -g  # -O0 optimierung nur für prod
+CFLAGS = -ffreestanding -mno-red-zone -fshort-wchar -fno-exceptions -pedantic -g -fno-rtti  # -O0 optimierung nur für prod
 ASMFLAGS = -f elf64
 LDFLAGS = -T $(LDS) -Bsymbolic -nostdlib -g
 
@@ -50,6 +50,7 @@ $(DISK_IMG): bootloader $(KERNEL_ELF)
 	mkdir -p $(EFI_DIR)
 	sudo mount -o loop $@ mnt
 	sudo mkdir -p $(EFI_DIR)
+	sudo cp build/t.txt mnt/t.txt
 	sudo cp $(BOOTLOADER_EFI) $(EFI_DIR)/BOOTX64.EFI
 	sudo cp $(KERNEL_ELF) $(EFI_DIR)/kernel.elf
 	sudo cp build/zap-light16.psf mnt/zap-light16.psf
@@ -123,13 +124,13 @@ flash: $(DISK_IMG)
 
 # QEMU Test (optional target)
 test: $(DISK_IMG)
-	qemu-system-x86_64 -drive file=$(DISK_IMG) -m 256m -machine q35 -enable-kvm -cpu host \
+	qemu-system-x86_64 -drive file=$(DISK_IMG),format=raw -m 256m -machine q35 -enable-kvm -cpu host \
 	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
 	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd",readonly=on \
-	-net none -drive file=blank.img -device qemu-xhci,id=xhci -device usb-mouse
+	-net none -device qemu-xhci,id=xhci -device usb-mouse
 
 debug:
-	qemu-system-x86_64 -drive file=$(DISK_IMG) -m 500m -machine q35 -enable-kvm -cpu host \
+	qemu-system-x86_64 -drive file=$(DISK_IMG),format=raw -m 500m -machine q35 -enable-kvm -cpu host \
 	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
 	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
 	-net none -drive file=blank.img -device qemu-xhci,id=xhci -device usb-mouse -s -S -no-reboot -no-shutdown

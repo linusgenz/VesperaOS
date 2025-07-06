@@ -52,9 +52,9 @@ extern "C" void kernel_main(BootInfo* boot_info){
     global_renderer->print("Kernel initialized successfully");
 
     while (true) {
-        kernel::time::sleep_ms(2000);
-        global_renderer->new_line();
-        global_renderer->print("heartbeat");
+  //      kernel::time::sleep_ms(2000);
+  //      global_renderer->new_line();
+  //      global_renderer->print("heartbeat");
       //  shell_loop();
     };
 

@@ -21,6 +21,10 @@ const char* to_string(double value, uint8_t decimalPlaces);
 const char* to_string(double value);
 
 size_t strlen(const char *str);
-uint64_t strcmp(const char* a, const char* b);
+int strcmp(const char* a, const char* b);
+int strncmp(const char *a, const char *b, size_t n);
+char *strncpy(char *dest, const char *src, size_t n);
+char *strrchr (register const char *s, int c);
+char to_upper(char c);
 
 #endif //STRING_H

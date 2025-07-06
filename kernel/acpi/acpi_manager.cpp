@@ -19,7 +19,6 @@ namespace ACPI {
     int table_count = 0;
 
     SDTHeader* find_table(const char* signature) {
-        global_renderer->print(to_hstring(xsdt_ptr));
         int entries = (xsdt_ptr->length - sizeof(SDTHeader)) / 8;
 
         for (int t = 0; t < entries; t++) {
@@ -37,8 +36,6 @@ namespace ACPI {
     void TableManager::init(SDTHeader *xsdt) {
         xsdt_ptr = xsdt;
         table_count = 0;
-        global_renderer->print("ACPI: TableManager initialisiert");
-        global_renderer->new_line();
     }
 
     void TableManager::register_madt() {

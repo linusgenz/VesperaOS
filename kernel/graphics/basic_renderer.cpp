@@ -12,12 +12,15 @@ BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Fon
 
 void BasicRenderer::print(const char* str) {
     char* chr = (char*)str;
-    while(*chr != 0){
-        put_char(*chr, cursor_position.X, cursor_position.Y);
-        increment_cursorX(8);
-        if(cursor_position.X + 8 > TargetFramebuffer->width)
-        {
+    while (*chr != 0) {
+        if (*chr == '\n') {
             new_line();
+        } else {
+            put_char(*chr, cursor_position.X, cursor_position.Y);
+            increment_cursorX(8);
+            if (cursor_position.X + 8 > TargetFramebuffer->width) {
+                new_line();
+            }
         }
         chr++;
     }
@@ -122,6 +125,7 @@ void BasicRenderer::clear_char() {
 }
 
 void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff) {
+    if (chr == '\0') return; // TODO
     auto* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
     char* font_ptr = (char*)PSF1_Font->glyphBuffer + (chr * PSF1_Font->psf1_header->charsize);
     for (unsigned long y = yOff; y < yOff + 16; y++){
@@ -129,7 +133,6 @@ void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff) {
             if ((*font_ptr & (0b10000000 >> (x - xOff))) > 0){
                     *(uint32_t*)(pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = colour;
                 }
-
         }
         font_ptr++;
     }

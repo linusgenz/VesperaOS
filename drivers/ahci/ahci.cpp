@@ -109,7 +109,7 @@ namespace AHCI{
     }
 
     void Port::StartCMD(){
-        while (hbaPort->cmdSts & HBA_PxCMD_CR);
+        while (hbaPort->cmdSts & HBA_PxCMD_CR) {}
 
         hbaPort->cmdSts |= HBA_PxCMD_FRE;
         hbaPort->cmdSts |= HBA_PxCMD_ST;
@@ -131,7 +131,7 @@ namespace AHCI{
 
         commandTable->prdtEntry[0].dataBaseAddress = (uint32_t)(uint64_t)buffer;
         commandTable->prdtEntry[0].dataBaseAddressUpper = (uint32_t)((uint64_t)buffer >> 32);
-        commandTable->prdtEntry[0].byteCount = (sectorCount<<9)-1; // 512 bytes per sector
+        commandTable->prdtEntry[0].byteCount = sectorCount * 512 - 1; // (sectorCount<<9)-1; // 512 bytes per sector
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
 
         FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->commandFIS);
@@ -143,9 +143,9 @@ namespace AHCI{
         cmdFIS->lba0 = (uint8_t)sectorL;
         cmdFIS->lba1 = (uint8_t)(sectorL >> 8);
         cmdFIS->lba2 = (uint8_t)(sectorL >> 16);
-        cmdFIS->lba3 = (uint8_t)sectorH;
-        cmdFIS->lba4 = (uint8_t)(sectorH >> 8);
-        cmdFIS->lba4 = (uint8_t)(sectorH >> 16);
+        cmdFIS->lba3 = (uint8_t)(sectorL >> 24);
+        cmdFIS->lba4 = (uint8_t)(sectorH & 0xFF);
+        cmdFIS->lba5 = (uint8_t)((sectorH >> 8) & 0xFF);
 
         cmdFIS->deviceRegister = 1<<6; //LBA mode
 
@@ -158,22 +158,94 @@ namespace AHCI{
             spin ++;
         }
         if (spin == 1000000) {
+            global_renderer->print("Port is hung\n");
             return false;
         }
 
-        hbaPort->commandIssue = 1;
+        hbaPort->commandIssue = 1 << 0;
 
         while (true){
 
             if((hbaPort->commandIssue == 0)) break;
             if(hbaPort->interruptStatus & HBA_PxIS_TFES)
             {
+                global_renderer->print("read disk error");
                 return false;
             }
         }
 
+        if (hbaPort->interruptStatus & HBA_PxIS_TFES) {
+            global_renderer->print("read disk error");
+            return false;
+        }
+
         return true;
     }
+
+    bool Port::Write(uint64_t sector, uint32_t sectorCount, void* buffer) const{
+    uint32_t sectorL = (uint32_t) sector;
+    uint32_t sectorH = (uint32_t) (sector >> 32);
+
+    hbaPort->interruptStatus = (uint32_t)-1; // clear interrupts
+
+    HBACommandHeader* cmdHeader = (HBACommandHeader*)hbaPort->commandListBase;
+    cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
+    cmdHeader->write = 1;
+    cmdHeader->prdtLength = 1;
+
+    HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->commandTableBaseAddress);
+    memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
+
+    commandTable->prdtEntry[0].dataBaseAddress = (uint32_t)(uint64_t)buffer;
+    commandTable->prdtEntry[0].dataBaseAddressUpper = (uint32_t)((uint64_t)buffer >> 32);
+    commandTable->prdtEntry[0].byteCount = (sectorCount * 512) - 1;
+    commandTable->prdtEntry[0].interruptOnCompletion = 1;
+
+    FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->commandFIS);
+    cmdFIS->fisType = FIS_TYPE_REG_H2D;
+    cmdFIS->commandControl = 1;
+    cmdFIS->command = ATA_CMD_WRITE_DMA_EX;
+
+    cmdFIS->lba0 = (uint8_t)sectorL;
+    cmdFIS->lba1 = (uint8_t)(sectorL >> 8);
+    cmdFIS->lba2 = (uint8_t)(sectorL >> 16);
+    cmdFIS->lba3 = (uint8_t)(sectorL >> 24);
+    cmdFIS->lba4 = (uint8_t)(sectorH & 0xFF);
+    cmdFIS->lba5 = (uint8_t)((sectorH >> 8) & 0xFF);
+
+    cmdFIS->deviceRegister = 1 << 6; // LBA mode
+
+    cmdFIS->countLow = sectorCount & 0xFF;
+    cmdFIS->countHigh = (sectorCount >> 8) & 0xFF;
+
+    // wait until not busy
+    uint64_t spin = 0;
+    while ((hbaPort->taskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000){
+        spin++;
+    }
+    if (spin == 1000000) {
+        global_renderer->print("write timeout\n");
+        return false;
+    }
+
+    hbaPort->commandIssue = 1 << 0;
+
+    while (true){
+        if ((hbaPort->commandIssue & (1 << 0)) == 0) break;
+        if (hbaPort->interruptStatus & HBA_PxIS_TFES){
+            global_renderer->print("write disk error\n");
+            return false;
+        }
+    }
+
+    if (hbaPort->interruptStatus & HBA_PxIS_TFES){
+        global_renderer->print("write disk error\n");
+        return false;
+    }
+
+    return true;
+}
+
 
     AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress){
         this->PCIBaseAddress = pciBaseAddress;
@@ -190,13 +262,9 @@ namespace AHCI{
 
             port->Configure();
 
-            port->buffer = (uint8_t*)global_allocator.request_page();
+            port->buffer = static_cast<uint8_t *>(global_allocator.request_page());
             memset(port->buffer, 0, 0x1000);
 
-            port->Read(0, 4, port->buffer);
-            for (int t = 0; t < 1024; t++){
-                global_renderer->put_char(port->buffer[t]);
-            }
             global_renderer->new_line();
         }
     }

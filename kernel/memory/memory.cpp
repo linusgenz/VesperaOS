@@ -28,3 +28,13 @@ void *memcpy (void *dest, const void *src, size_t len) {
         *d++ = *s++;
     return dest;
 }
+
+int memcmp(const void* ptr1, const void* ptr2, size_t num) {
+    const uint8_t* a = (const uint8_t*)ptr1;
+    const uint8_t* b = (const uint8_t*)ptr2;
+    for (size_t i = 0; i < num; i++) {
+        if (a[i] != b[i])
+            return (a[i] < b[i]) ? -1 : 1;
+    }
+    return 0;
+}

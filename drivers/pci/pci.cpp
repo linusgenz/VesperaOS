@@ -2,6 +2,8 @@
 #include "../ahci/ahci.h"
 #include "../../kernel/memory/heap.h"
 #include "../usb/usb.h"
+#include "../../filesystem/fat32.h"
+#include "../../include/encoding.h"
 
 namespace PCI {
 
@@ -32,7 +34,46 @@ namespace PCI {
                     case 0x06: // serial ATA
                         switch (pci_device_header->prog_if) {
                             case 0x01: // AHCI 1.0 device
-                                new AHCI::AHCIDriver(pci_device_header);
+                                auto x = new AHCI::AHCIDriver(pci_device_header);
+                                AHCI::Port* p = x->ports[0];
+                                auto* dev = static_cast<BlockDevice*>(p);
+                                FAT32::FileSystem fs(p);
+                                size_t entryCount = 0;
+                               FAT32::FileEntry* entries = fs.ReadDirectory("/EFI/BOOT", entryCount);
+
+                                if (entries == nullptr) {
+                                    // Fehler beim Lesen
+                                    global_renderer->print("Verzeichnis konnte nicht gelesen werden.\n");
+                                } else {
+                                    for (size_t i = 0; i < entryCount; i++) {
+                                        global_renderer->print("Name: ");
+                                        global_renderer->print(entries[i].GetName());
+                                        global_renderer->print(" isDir: ");
+                                        global_renderer->print(entries[i].isDir() ? "True" : "False");
+                                        global_renderer->new_line();
+                                    }
+                                    free(entries);
+                                }
+
+                                char buffer[4096];  // Beispiel: 4 KB
+                                size_t size = 0;
+                                if (bool ok = fs.ReadFile("t.txt", buffer, sizeof(buffer), size)) {
+                                    global_renderer->print(buffer);
+                                } else {
+                                    global_renderer->print("Fehler beim Lesen der Datei\n");
+                                }
+                                global_renderer->new_line();
+                                if (fs.is_valid()) {
+                                    global_renderer->print("FAT32 erkannt.");
+                                    global_renderer->new_line();
+                                } else {
+                                    global_renderer->print("Kein FAT32 auf Gerät.");
+                                    global_renderer->new_line();
+                                }
+
+                                fs.CreateDirectory("TESTDIR");
+                                auto s =fs.CreateFile("testfile.txt");
+                                global_renderer->print(s ? "true" : "false");
                         }
                 }
             case 0x0C:
@@ -46,7 +87,7 @@ namespace PCI {
                             case 0x20:
                                
                             case 0x30:
-                            //  new USB::xHCIDriver(pci_device_header);
+                    //          new USB::xHCIDriver(pci_device_header);
                             case 0x80:
                                
                             case 0xFE:

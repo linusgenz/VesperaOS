@@ -63,6 +63,22 @@ void* malloc(size_t size) {
     return malloc(size);
 }
 
+void* realloc(void* oldPtr, size_t oldSize, size_t newSize) {
+    if (newSize == 0) {
+        free(oldPtr);
+        return nullptr;
+    }
+
+    void* newPtr = malloc(newSize);
+    if (!newPtr) return nullptr;
+
+    size_t copySize = oldSize < newSize ? oldSize : newSize;
+    memcpy(newPtr, oldPtr, copySize);
+
+    free(oldPtr);
+    return newPtr;
+}
+
 
 HeapSegHdr* HeapSegHdr::split(size_t split_length) {
     if (split_length < 0x10) return NULL;

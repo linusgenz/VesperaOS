@@ -1,5 +1,6 @@
 #include "../include/string.h"
 #include "stddef.h"
+#include "../kernel/include/basic_renderer.h"
 
 char uintTo_StringOutput[128];
 const char* to_string(uint64_t value){
@@ -246,10 +247,45 @@ size_t strlen(const char *s) {
     return s - start;
 }
 
-uint64_t strcmp(const char* a, const char* b) {
+int strcmp(const char* a, const char* b) {
     while (*a && (*a == *b)) {
         a++;
         b++;
     }
-    return (*a == *b) ? 1 : 0;
+    return (*a == *b) ? 0 : 1;
+}
+
+int strncmp(const char *a, const char *b, size_t n) {
+    while (n != 0 && *a != '\0' && *b != '\0'  && *a == *b) {
+        a++;
+        b++;
+        n--;
+    }
+    return n == 0 ? 0 : (*a - *b);
+}
+
+char *strncpy(char *dest, const char *src, size_t n) {
+    size_t i;
+    for (i = 0; i < n && src[i] != '\0'; i++) {
+        dest[i] = src[i];
+    }
+    for (; i < n; i++) {
+        dest[i] = '\0';
+    }
+    return dest;
+}
+
+char *strrchr (register const char *s, int c) {
+    char *rtnval = 0;
+
+    do {
+        if (*s == c)
+            rtnval = (char*) s;
+    } while (*s++);
+    return (rtnval);
+}
+
+char to_upper(char c) {
+    if (c >= 'a' && c <= 'z') return c - 32;
+    return c;
 }

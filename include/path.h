@@ -1,0 +1,10 @@
+//
+// Created by linus on 06.07.25.
+//
+
+#ifndef PATH_H
+#define PATH_H
+
+size_t SplitPath(const char* path, char components[][32], size_t maxComponents);
+
+#endif //PATH_H

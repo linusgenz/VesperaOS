@@ -111,7 +111,7 @@ void prepare_acpi(BootInfo* boot_info) {
     ACPI::TableManager::register_fadr();
 
     MADT::parse_madt(ACPI::TableManager::get_madt());
-    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+
 }
 
 ScrollManager s = ScrollManager(NULL, NULL, NULL);
@@ -135,6 +135,8 @@ void initialize_kernel(BootInfo* bootInfo){
 
     pic_init();
     lapic_init();
+
+    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
     global_renderer->print("free mem: ");
     global_renderer->print(to_string(global_allocator.get_free_ram() / 1024 / 1024));
