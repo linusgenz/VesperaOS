@@ -28,6 +28,7 @@ void expand_heap(size_t length);
 
 inline void* operator new(size_t size) {return malloc(size);}
 inline void* operator new[](size_t size) {return malloc(size);}
+inline void* operator new(size_t size, void* ptr) noexcept {return ptr;}
 inline void operator delete(void* p) {return free(p);}
 inline void operator delete(void* ptr, size_t size) {free(ptr);}
 

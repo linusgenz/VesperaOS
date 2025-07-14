@@ -1,10 +1,10 @@
 #include "apic.h"
-
+#include "../../../include/log.h"
 #include "../../../include/string.h"
 #include "../../../kernel/acpi/acpi_manager.h"
-#include "../../../kernel/include/basic_renderer.h"
-#include "../../../kernel/scheduling/pit/pit.h"
-
+#include "../../../kernel/scheduling/pit_legacy/pit.h"
+#include "../../../drivers/io/io.h"
+#include "../../../kernel/utils/panic.h"
 
 uint32_t LAPIC_ADDRESS = 0;
 
@@ -16,6 +16,13 @@ uint32_t lapic_read(uint32_t offset) {
 void lapic_write(uint32_t offset, uint32_t value) {
     volatile uint32_t* reg = reinterpret_cast<volatile uint32_t *>(LAPIC_ADDRESS + offset);
     *reg = value;
+}
+
+void wait_for_delivery() {
+    // Wait for delivery to complete
+    while (lapic_read(LAPIC_ICRLO) & ICR_DELIVS) {
+        asm volatile("pause");
+    }
 }
 
 void lapic_init()
@@ -30,13 +37,13 @@ void lapic_init()
     // Configure Spurious Interrupt Vector Register
     lapic_write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
 
-    global_renderer->print("LAPIC initialized");
+    Log::Ok("LAPIC initialized");
 
     lapic_write(LAPIC_TDCR, 0x3); // Divide by 16
     lapic_write(LAPIC_TICR, 0xFFFFFFFF);
    // lapic_write(LAPIC_TIMER, IRQ_TIMER | 0x00b);
 
-    pmt_delay(10000); // TODO eventuell auf 1ms gehen, für mehr präzision
+    pmt_delay(10000); // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
   //  lapic_write(LAPIC_TDCR, 0x10000);     // 0x10000 = masked, sdm
     uint32_t calibration = 0xffffffff - lapic_read(LAPIC_TCCR);
@@ -51,7 +58,8 @@ void pmt_delay(const size_t us){
 
     if(fadt->pm_timer_length != 4){
 
-        global_renderer->print("ACPI Timer unavailable"); // panic for now
+        Log::Error("ACPI Timer unavailable"); // panic for now
+        panic("ACPI Timer unavailable");
     }
 
     const uint64_t count = inl(fadt->pm_timer_block);
@@ -85,30 +93,23 @@ void sleep(uint64_t ms) {
     }
 }
 
-// cant remove this shit, when i do i get a page fault lol, idk why
-void sleep_ms(uint32_t ms) {
-    // Umrechnung auf PIT-Ticks (1.193182 MHz) → 1 ms ≈ 1193 Ticks
-    uint16_t count = (1193182 * ms);
 
-    if (count == 0)
-        count = 1;
 
-    // PIT Channel 2: Mode 0 (interrupt on terminal count), binary, lobyte/hibyte
-    outb(0x43, 0b10110000); // Channel 2, Mode 0, 16-bit binary, lobyte/hibyte
-    outb(0x42, count & 0xFF);         // Low byte
-    outb(0x42, (count >> 8) & 0xFF);  // High byte
-
-    // Gate aktivieren (Port 0x61, Bit 0 = 1)
-    uint8_t tmp = inb(0x61);
-    outb(0x61, (tmp & 0xFC) | 1);
-    outb(0x61, tmp | 1);
-
-    // Warte auf OUT-Pin (Bit 5 von Port 0x61) → high = fertig
-    while (!(inb(0x61) & 0x20)) {
-        asm volatile("pause");
-    }
+void lapic_init_ap()
+{
+    // Minimal LAPIC initialization for AP
+    // Clear task priority to enable all interrupts
+    lapic_write(LAPIC_TPR, 0);
+    
+    // Logical Destination Mode
+    lapic_write(LAPIC_DFR, 0xffffffff);   // Flat mode
+    lapic_write(LAPIC_LDR, 0x01000000);   // All cpus use logical id 1
+    
+    // Configure Spurious Interrupt Vector Register
+    lapic_write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
+    
+    // Don't initialize timer for AP - only BSP handles timing
 }
-
 
 void lapic_eoi(void) {
     lapic_write(LAPIC_EOI, 0);

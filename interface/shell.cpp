@@ -2,12 +2,14 @@
 #include "../kernel/include/basic_renderer.h"
 #include "../include/string.h"
 #include "shell.h"
+#include "../include/log.h"
 
 void shell_loop() {
-    char command_buffer[BUFFER_SIZE];
+  /*  char command_buffer[BUFFER_SIZE];
     int command_index = 0;
     char ch;
 
+    global_renderer->print(SHELL_PREFIX_STRING);
     global_renderer->print(SHELL_PREFIX_STRING);
     global_renderer->print("Welcome to ");
     global_renderer->set_colour(Colour::BLUE);
@@ -50,11 +52,11 @@ void shell_loop() {
                 global_renderer->draw_cursor();
             }
         }
-    }
+    }*/
 }
 
 void process_command(const char *command) {
-    if (strcmp(command, "help") == 1) {
+   /* if (strcmp(command, "help") == 1) {
         global_renderer->print("Available commands:\n");
         global_renderer->print(" - help: Show this help message\n");
         global_renderer->print(" - clear: Clear the screen\n");
@@ -65,5 +67,5 @@ void process_command(const char *command) {
         global_renderer->print("Unknown command: ");
         global_renderer->print(command);
         global_renderer->new_line();
-    }
+    }*/
 }

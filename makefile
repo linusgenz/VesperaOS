@@ -1,5 +1,6 @@
 BUILD_DIR = ./build
-ASM_SRC = $(shell find ./ -name '*.asm' ! -path './gnu-efi/*')
+ASM_SRC_ALL = $(shell find ./ -name '*.asm' ! -path './gnu-efi/*')
+ASM_SRC = $(filter-out ./kernel/cpu/ap_trampoline.asm, $(ASM_SRC_ALL))
 KERNEL_SRC = $(shell find ./ -name '*.cpp*' ! -path './gnu-efi/*')
 
 OBJS = $(KERNEL_SRC:.cpp=.o)
@@ -13,9 +14,9 @@ USB_DEV := /dev/sdc
 
 LDS = linker.ld
 ASM = nasm
-CC = gcc
+CC = g++
 LD = ld
-CFLAGS = -ffreestanding -mno-red-zone -fshort-wchar -fno-exceptions -pedantic -g -fno-rtti  # -O0 optimierung nur für prod
+CFLAGS = -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -pedantic -g -fno-rtti   # -O0 optimierung nur für prod
 ASMFLAGS = -f elf64
 LDFLAGS = -T $(LDS) -Bsymbolic -nostdlib -g
 
@@ -37,13 +38,23 @@ bootloader:
 %_asm.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-$(KERNEL_ELF): $(OBJS)
+kernel/cpu/ap_trampoline.bin: kernel/cpu/ap_trampoline.asm
+	$(ASM) -f bin $< -o $@
+
+kernel/cpu/ap_trampoline.h: kernel/cpu/ap_trampoline.bin
+	xxd -i $< > $@
+
+$(KERNEL_ELF): kernel/cpu/ap_trampoline.h $(OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
-# Create boot.img for QEMU (FAT32 EFI image)
+
+
+version:
+	bash generate_version_header.sh
+
 img: $(DISK_IMG)
 
-$(DISK_IMG): bootloader $(KERNEL_ELF)
+$(DISK_IMG): bootloader version $(KERNEL_ELF)
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
 	$(MKFS_FAT) -F 32 -n "LuminOS" $@
@@ -58,7 +69,6 @@ $(DISK_IMG): bootloader $(KERNEL_ELF)
 	sudo umount mnt
 	$(RM) -r mnt
 
-# Create ISO for VirtualBox (UEFI bootable)
 iso: $(ISO)
 
 $(ISO): bootloader $(KERNEL_ELF)
@@ -91,51 +101,51 @@ $(ISO): bootloader $(KERNEL_ELF)
 
 	rm -rf build/esp build/iso_root
 
-flash: $(DISK_IMG)
-	@echo "!!! WARNUNG: USB-Stick $(USB_DEV) wird komplett überschrieben !!!"
-	#@read -p "Fortfahren? (y/N): " ans; \
-	#if [ "$$ans" != "y" ]; then echo "Abgebrochen."; exit 1; fi
-
-	# 1. Stick komplett löschen
-	sudo wipefs -a $(USB_DEV)
-	sudo dd if=/dev/zero of=$(USB_DEV) bs=1M count=10 status=progress conv=fsync
-
-	# 2. GPT anlegen
-	sudo parted $(USB_DEV) --script mklabel gpt
-
-	# 3. Partition anlegen (Größe passend zu efi.img)
-	IMG_SIZE_BYTES=$$(stat -c %s $(DISK_IMG)); \
-	SECTOR_SIZE=512; \
-	SECTORS=$$(((IMG_SIZE_BYTES + SECTOR_SIZE - 1) / SECTOR_SIZE)); \
-	END_SECTOR=$$((2048 + SECTORS - 1)); \
-	END_MB=$$(((END_SECTOR * SECTOR_SIZE) / 1024 / 1024)); \
-	echo "Partition von 1MiB bis $${END_MB}MiB anlegen..."; \
-	sudo parted $(USB_DEV) --script mkpart ESP fat32 1MiB $${END_MB}MiB; \
-	sudo parted $(USB_DEV) --script set 1 boot on; \
-	sudo parted $(USB_DEV) --script set 1 esp on
-
-	# 4. efi.img in Partition schreiben
-	sudo dd if=$(DISK_IMG) of=$(USB_DEV)1 bs=4M status=progress conv=fsync
-
-	# 5. Partitionstabelle neu laden
-	sudo partprobe $(USB_DEV)
-
-	@echo "Fertig. USB-Stick $(USB_DEV) ist bereit zum Booten."
-
 # QEMU Test (optional target)
-test: $(DISK_IMG)
-	qemu-system-x86_64 -drive file=$(DISK_IMG),format=raw -m 256m -machine q35 -enable-kvm -cpu host \
+test: clean $(DISK_IMG)
+	qemu-system-x86_64 -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
+	-smp cores=8 \
+	-m 256m \
+	-machine q35 \
+	-enable-kvm \
+	-cpu host \
 	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
 	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd",readonly=on \
-	-net none -device qemu-xhci,id=xhci -device usb-mouse
+	-net none \
+	-device qemu-xhci,id=xhci \
+	-device usb-mouse \
+	-device nvme,drive=host0,serial=deadbeef \
+	-debugcon stdio \
+	-no-reboot \
+	-no-shutdown
+
+
+
 
 debug:
-	qemu-system-x86_64 -drive file=$(DISK_IMG),format=raw -m 500m -machine q35 -enable-kvm -cpu host \
-	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
-	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
-	-net none -drive file=blank.img -device qemu-xhci,id=xhci -device usb-mouse -s -S -no-reboot -no-shutdown
+	qemu-system-x86_64 \
+	  -m 500M \
+	  -machine q35 \
+	  -enable-kvm \
+	  -cpu host \
+	  -smp cores=8 \
+	  -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
+	  -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
+	  -drive file=$(DISK_IMG),format=raw \
+	  -drive file=nvme.img,if=none,id=nvme0,format=raw \
+	  -device pcie-root-port,id=rp0,port=0x10,chassis=1 \
+	  -device nvme,drive=nvme0,serial=deadbeef,bus=rp0 \
+	  -net none \
+	  -device qemu-xhci,id=xhci \
+	  -device usb-mouse \
+	  -s -S \
+	  -no-reboot \
+	  -no-shutdown
+
 
 clean:
 	$(MAKE) -C gnu-efi/bootloader clean
 	rm -f $(OBJS) $(KERNEL_ELF) $(DISK_IMG) $(ISO)
+	rm -f ./kernel/cpu/ap_trampoline.bin
+	rm -f ./kernel/cpu/ap_trampoline.h
 	rm -rf mnt isofiles

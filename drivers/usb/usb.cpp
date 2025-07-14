@@ -2,12 +2,12 @@
 #include "../../kernel/include/basic_renderer.h"
 #include "../../kernel/include/page_table_manager.h"
 #include "../../kernel/include/page_frame_allocator.h"
-#include "../../kernel/scheduling/pit/pit.h"
+#include "../../kernel/scheduling/pit_legacy/pit.h"
 #include "../../kernel/include/memory.h"
-#include "../../kernel/time/timer.h"
+#include "../../kernel/time/time.h"
 
 namespace USB {
-    xHCIDriver::xHCIDriver(PCI::PCIDeviceHeader* pci_base_address) {
+    /*xHCIDriver::xHCIDriver(PCI::PCIDeviceHeader* pci_base_address) {
         this->PCIBaseAddress = pci_base_address;
         global_renderer->print("xHCI Driver instance initialized");
         global_renderer->new_line();
@@ -15,13 +15,13 @@ namespace USB {
         uint64_t bar0 = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address)->BAR0 & ~0xF;
         uint64_t bar1 = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address)->BAR1;
         bar = reinterpret_cast<xHCICapabilityRegisters *>((bar1 << 32) | bar0);
-        global_page_table_manager.map_memory(bar, bar);
+        global_page_table_manager.map_memory(bar, bar, false);
 
         op_regs = (xHCIOperationalRegisters*)((uint64_t)bar + bar->caplength);
-        global_page_table_manager.map_memory(op_regs, op_regs);
+        global_page_table_manager.map_memory(op_regs, op_regs, false);
 
         runtime_regs = (xHCIRuntimeRegisters*)((uint64_t)bar + bar->rts_off);
-        global_page_table_manager.map_memory(runtime_regs, runtime_regs);
+        global_page_table_manager.map_memory(runtime_regs, runtime_regs, false);
 
         global_renderer->print("ADDRESS: ");
         global_renderer->print(to_hstring((uint64_t)bar));
@@ -86,7 +86,7 @@ namespace USB {
 
         uint64_t port_regs_base_address = bar->caplength + PORT_REGISTER_OFFSET;
         uint64_t port_regs_size = hcs_params1.max_ports * 0x10;  // each port takes 0x10 bytes
-        global_page_table_manager.map_memory((void*)port_regs_base_address, (void*)(port_regs_base_address));
+        global_page_table_manager.map_memory((void*)port_regs_base_address, (void*)(port_regs_base_address), false);
 
         ports = new xHCIPortRegisters[hcs_params1.max_ports];
         for (uint32_t port_num = 0; port_num < hcs_params1.max_ports; port_num++) {
@@ -275,7 +275,7 @@ namespace USB {
 
     void xHCIDriver::initialize_dcbaa() {
         void* page_address = global_allocator.request_page();
-        global_page_table_manager.map_memory(page_address, page_address);
+        global_page_table_manager.map_memory(page_address, page_address, false);
         if (page_address) {
             // Align the address to a 64-byte boundary
             page_address = (void*)(((uintptr_t)(page_address) + 0x3F) & ~0x3F);
@@ -303,7 +303,7 @@ namespace USB {
 
         uint64_t doorbell_array_base = ((uint64_t)bar + db_offset) & ~0x3; // Align to DWORD (4-byte) boundary
 
-        global_page_table_manager.map_memory((void*)doorbell_array_base, (void*)(doorbell_array_base + (max_slots * sizeof(Doorbell))));
+        global_page_table_manager.map_memory((void*)doorbell_array_base, (void*)(doorbell_array_base + (max_slots * sizeof(Doorbell))), false);
 
         for (uint32_t i = 0; i < max_slots; ++i) {
             *(volatile uint32_t*)(doorbell_array_base + (i * sizeof(Doorbell))) = 0; // Clear each doorbell register
@@ -312,5 +312,5 @@ namespace USB {
         global_renderer->print("Doorbell Registers initialized at: ");
         global_renderer->print(to_hstring(doorbell_array_base));
         global_renderer->new_line();
-    }
+    }*/
 }

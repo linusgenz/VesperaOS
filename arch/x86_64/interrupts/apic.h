@@ -6,7 +6,6 @@
 #define APIC_H
 #include <stdint.h>
 #include <stddef.h>
-#include "../../../kernel/acpi/acpi.h"
 
 extern uint32_t LAPIC_ADDRESS;
 
@@ -38,10 +37,23 @@ extern uint32_t LAPIC_ADDRESS;
 #define LAPIC_TCCR                      0x0390  // Current Count (for Timer)
 #define LAPIC_TDCR                      0x03e0  // Divide Configuration (for Timer)
 
+// ICR bits
+#define ICR_INIT       0x00000500   // INIT IPI
+#define ICR_SIPI       0x00000600   // SIPI
+#define ICR_DELIVS     0x00001000   // Delivery status
+#define ICR_ASSERT     0x00004000   // Assert interrupt (vs deassert)
+#define ICR_DEASSERT   0x00000000   // Deassert
+#define ICR_LEVEL      0x00008000   // Level triggered
+#define ICR_BCAST      0x00080000   // Send to all APICs
+#define ICR_BUSY       0x00001000   // Delivery status bit
+#define ICR_FIXED      0x00000000   // Fixed delivery mode
+
+
 #define IRQ_SPURIOUS         0xFF
 #define IRQ_TIMER            0x20
 #define IRQ_ERROR            0xFE
 #define IRQ_BASE             0x20
+#define IRQ_AP_ENTRY         0x30  // AP Entry Point Vector
 
 #define LAPIC_PERIODIC 0x20000
 
@@ -52,6 +64,12 @@ extern uint32_t LAPIC_ADDRESS;
 void lapic_eoi();
 void apic_timer_tick();
 void lapic_init();
+void lapic_init_ap();
+void wait_for_delivery();
+
+uint32_t LocalApicGetId();
+void lapic_write(uint32_t offset, uint32_t value);
+uint32_t lapic_read(uint32_t offset);
 
 void pmt_delay(size_t us);
 

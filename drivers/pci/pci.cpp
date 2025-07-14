@@ -1,32 +1,28 @@
 #include "pci.h"
 #include "../ahci/ahci.h"
-#include "../../kernel/memory/heap.h"
-#include "../usb/usb.h"
+#include "../../include/log.h"
+#include "../nvme/nvme.h"
 #include "../../filesystem/fat32.h"
-#include "../../include/encoding.h"
 
 namespace PCI {
-
     void enumerate_function(uint64_t device_address, uint64_t function) {
         uint64_t offset = function << 12;
 
         uint64_t function_address = device_address + offset;
-        global_page_table_manager.map_memory((void*)function_address, (void*)function_address);
+        global_page_table_manager.map_memory(reinterpret_cast<void *>(function_address),
+                                             reinterpret_cast<void *>(function_address), true);
 
-        PCI::PCIDeviceHeader* pci_device_header = (PCIDeviceHeader*)function_address;
+        auto *pci_device_header = reinterpret_cast<PCIDeviceHeader *>(function_address);
 
 
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-        global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
-        global_renderer->print(" ");
-        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
-        global_renderer->print(" ");
-        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
-        global_renderer->print(" ");
-        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
-        global_renderer->new_line();
+        Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
+                    get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
+                    get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
+                    get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
+                                     pci_device_header->prog_if));
 
         switch (pci_device_header->_class) {
             case 0x01: // mass storage controller
@@ -35,45 +31,90 @@ namespace PCI {
                         switch (pci_device_header->prog_if) {
                             case 0x01: // AHCI 1.0 device
                                 auto x = new AHCI::AHCIDriver(pci_device_header);
-                                AHCI::Port* p = x->ports[0];
-                                auto* dev = static_cast<BlockDevice*>(p);
+                                AHCI::Port *p = x->ports[0];
+                                auto *dev = static_cast<BlockDevice *>(p);
                                 FAT32::FileSystem fs(p);
+                           //     auto s =fs.CreateDirectory("TESTDIR");
+                           //     Log::LogMsg("File created? %s", s ? "true" : "false");
+                                /*    size_t entryCount = 0;
+                                  FAT32::FileEntry* entries = fs.ReadDirectory("/EFI/BOOT", entryCount);
+
+                                   if (entries == nullptr) {
+                                       // Fehler beim Lesen
+                                       global_renderer->print("Verzeichnis konnte nicht gelesen werden.\n");
+                                   } else {
+                                       for (size_t i = 0; i < entryCount; i++) {
+                                           global_renderer->print("Name: ");
+                                           global_renderer->print(entries[i].GetName());
+                                           global_renderer->print(" isDir: ");
+                                           global_renderer->print(entries[i].isDir() ? "True" : "False");
+                                           global_renderer->new_line();
+                                       }
+                                       free(entries);
+                                   }
+
+                                   char buffer[4096];  // Beispiel: 4 KB
+                                   size_t size = 0;
+                                   if (bool ok = fs.ReadFile("t.txt", buffer, sizeof(buffer), size)) {
+                                       global_renderer->print(buffer);
+                                   } else {
+                                       global_renderer->print("Fehler beim Lesen der Datei\n");
+                                   }
+                                   global_renderer->new_line();
+                                   if (fs.is_valid()) {
+                                       global_renderer->print("FAT32 erkannt.");
+                                       global_renderer->new_line();
+                                   } else {
+                                       global_renderer->print("Kein FAT32 auf Gerät.");
+                                       global_renderer->new_line();
+                                   }
+
+                                   fs.CreateDirectory("TESTDIR");
+                                   auto s =fs.CreateFile("testfile.txt");
+                                   global_renderer->print(s ? "true" : "false");*/
+                        }
+                    case 0x08:
+                        switch (pci_device_header->prog_if) {
+                            case 0x02:
+                                uint16_t command_register = pci_device_header->command;
+
+                                command_register |= (1 << 2); // 0x0004
+                                command_register |= (1 << 1);
+                                pci_device_header->command = command_register;
+
+                                auto driver = new NVMe::NvmeDriver(pci_device_header);
+                                auto dev = static_cast<BlockDevice *>(driver->get_namespaces()[0]);
+                                FAT32::FileSystem fs(dev);
+                                if (fs.is_valid()) {
+                                    Log::Info("FAT32 erkannt.");
+                                } else {
+                                    Log::Info("Kein FAT32 auf Geraet.");
+                                }
+
                                 size_t entryCount = 0;
-                               FAT32::FileEntry* entries = fs.ReadDirectory("/EFI/BOOT", entryCount);
+                                FAT32::FileEntry *entries = fs.ReadDirectory("/", entryCount);
 
                                 if (entries == nullptr) {
                                     // Fehler beim Lesen
-                                    global_renderer->print("Verzeichnis konnte nicht gelesen werden.\n");
+                                    Log::Warning("Verzeichnis konnte nicht gelesen werden.");
                                 } else {
                                     for (size_t i = 0; i < entryCount; i++) {
-                                        global_renderer->print("Name: ");
-                                        global_renderer->print(entries[i].GetName());
-                                        global_renderer->print(" isDir: ");
-                                        global_renderer->print(entries[i].isDir() ? "True" : "False");
-                                        global_renderer->new_line();
+                                        Log::LogMsg("Name: %s isDir: %s", entries[i].GetName(), entries[i].isDir() ? "true" : "false");
                                     }
                                     free(entries);
                                 }
 
-                                char buffer[4096];  // Beispiel: 4 KB
+                                char buffer[4096]; // Beispiel: 4 KB
                                 size_t size = 0;
                                 if (bool ok = fs.ReadFile("t.txt", buffer, sizeof(buffer), size)) {
-                                    global_renderer->print(buffer);
+                                    Log::LogMsg(buffer);
                                 } else {
-                                    global_renderer->print("Fehler beim Lesen der Datei\n");
+                                    Log::Warning("Fehler beim Lesen der Datei");
                                 }
-                                global_renderer->new_line();
-                                if (fs.is_valid()) {
-                                    global_renderer->print("FAT32 erkannt.");
-                                    global_renderer->new_line();
-                                } else {
-                                    global_renderer->print("Kein FAT32 auf Gerät.");
-                                    global_renderer->new_line();
-                                }
-
-                                fs.CreateDirectory("TESTDIR");
-                                auto s =fs.CreateFile("testfile.txt");
-                                global_renderer->print(s ? "true" : "false");
+                            //
+                        //        fs.CreateDirectory("TESTDIR");
+                        //        auto s = fs.CreateFile("testfileNVME.txt");
+                        //        Log::LogMsg("TestDir created? %s", s ? "true" : "false");
                         }
                 }
             case 0x0C:
@@ -81,41 +122,40 @@ namespace PCI {
                     case 0x03:
                         switch (pci_device_header->prog_if) {
                             case 0x00:
-                                
+
                             case 0x10:
-                                
+
                             case 0x20:
-                               
+
                             case 0x30:
-                    //          new USB::xHCIDriver(pci_device_header);
+                            //          new USB::xHCIDriver(pci_device_header);
                             case 0x80:
-                               
+
                             case 0xFE:
                                 break;
                         }
                 }
-         //   case 0x03:
-/*
-                *         global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
-                        global_renderer->print(" ");
-                        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
-                        global_renderer->print(" ");
-                        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
-                        global_renderer->print(" ");
-                        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
-                        global_renderer->new_line();
- */
+                //   case 0x03:
+                /*
+                                *         global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
+                                        global_renderer->print(" ");
+                                        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
+                                        global_renderer->print(" ");
+                                        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
+                                        global_renderer->print(" ");
+                                        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
+                                        global_renderer->new_line();
+                 */
         }
-
     }
 
     void enumerate_device(uint64_t bus_address, uint64_t device) {
         uint64_t offset = device << 15;
 
         uint64_t device_address = bus_address + offset;
-        global_page_table_manager.map_memory((void*)device_address, (void*)device_address);
+        global_page_table_manager.map_memory((void *) device_address, (void *) device_address, false);
 
-        PCI::PCIDeviceHeader* pci_device_header = (PCIDeviceHeader*)device_address;
+        PCI::PCIDeviceHeader *pci_device_header = (PCIDeviceHeader *) device_address;
 
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
@@ -129,9 +169,9 @@ namespace PCI {
         uint64_t offset = bus << 20;
 
         uint64_t bus_address = base_address + offset;
-        global_page_table_manager.map_memory((void*)bus_address, (void*)bus_address);
+        global_page_table_manager.map_memory((void *) bus_address, (void *) bus_address, false);
 
-        PCI::PCIDeviceHeader* pci_device_header = (PCIDeviceHeader*)bus_address;
+        PCI::PCIDeviceHeader *pci_device_header = (PCIDeviceHeader *) bus_address;
 
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
@@ -141,15 +181,15 @@ namespace PCI {
         }
     }
 
-    void enumerate_pci(ACPI::MCFGHeader* mcfg) {
+    void enumerate_pci(ACPI::MCFGHeader *mcfg) {
         int entries = ((mcfg->header.length) - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
 
         for (int t = 0; t < entries; t++) {
-            ACPI::DeviceConfig* new_device_config = (ACPI::DeviceConfig*)((uint64_t)mcfg + sizeof(ACPI::MCFGHeader) + (sizeof(ACPI::DeviceConfig) * t));
+            ACPI::DeviceConfig *new_device_config = (ACPI::DeviceConfig *) (
+                (uint64_t) mcfg + sizeof(ACPI::MCFGHeader) + (sizeof(ACPI::DeviceConfig) * t));
             for (uint64_t bus = new_device_config->start_bus; bus < new_device_config->end_bus; bus++) {
                 enumerate_bus(new_device_config->base_address, bus);
             }
         }
     }
-
 }

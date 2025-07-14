@@ -5,6 +5,7 @@
 #ifndef GDT_H
 #define GDT_H
 #include <stdint.h>
+#include "../tss.h"
 
 struct GDTDescriptor {
     uint16_t size;
@@ -27,7 +28,11 @@ struct GDT {
     GDTEntry UserNull; 
     GDTEntry UserCode;
     GDTEntry UserData;
+ //   GDTEntry TSS_Low;
+ //   GDTEntry TSS_High;
 }__attribute__((packed)) __attribute__((aligned(0x1000)));
+
+void gdt_set_tss(TSS* tss);
 
 extern GDT default_gdt;
 

@@ -4,13 +4,13 @@
 #include "../include/memory.h"
 #include <stdint.h>
 
-PageTableManager global_page_table_manager = NULL;
+PageTableManager global_page_table_manager = nullptr;
 
 PageTableManager::PageTableManager(PageTable* PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::map_memory(void* virtual_memory, void* physical_memory) {
+void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, bool is_dma_buffer) {
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtual_memory);
     PageDirectoryEntry PDE;
 
@@ -62,5 +62,87 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory) {
     PDE.set_address((uint64_t)physical_memory >> 12);
     PDE.set_flag(PT_Flag::Present, true);
     PDE.set_flag(PT_Flag::ReadWrite, true);
+
+    if (is_dma_buffer) {
+        PDE.set_flag(PT_Flag::CacheDisabled, true);
+        PDE.set_flag(PT_Flag::WriteThrough, true);
+    }
+
     PT->entries[indexer.P_i] = PDE;
+}
+
+void PageTableManager::unmap_memory(void* virtual_memory) {
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtual_memory);
+
+    PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
+    if (!PDE.get_flag(PT_Flag::Present)) {
+        return;
+    }
+    
+    PageTable* PDP = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    
+    PDE = PDP->entries[indexer.PD_i];
+    if (!PDE.get_flag(PT_Flag::Present)) {
+        return;
+    }
+    
+    PageTable* PD = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    
+    PDE = PD->entries[indexer.PT_i];
+    if (!PDE.get_flag(PT_Flag::Present)) {
+        return;
+    }
+    
+    PageTable* PT = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    
+    PageDirectoryEntry* page_entry = &PT->entries[indexer.P_i];
+    if (page_entry->get_flag(PT_Flag::Present)) {
+        page_entry->Value = 0;
+        
+        asm volatile("invlpg (%0)" : : "r" (virtual_memory) : "memory");
+    }
+    
+    // TODO: Optional - Prüfe ob ganze Page Tables leer sind und gebe frei
+}
+
+bool PageTableManager::is_mapped(void* virtual_memory) {
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtual_memory);
+    
+    PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return false;
+    
+    PageTable* PDP = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    PDE = PDP->entries[indexer.PD_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return false;
+    
+    PageTable* PD = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    PDE = PD->entries[indexer.PT_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return false;
+    
+    PageTable* PT = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    PDE = PT->entries[indexer.P_i];
+    return PDE.get_flag(PT_Flag::Present);
+}
+
+uint64_t PageTableManager::get_physical_address(void* virtual_memory) {
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtual_memory);
+    
+    PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    
+    PageTable* PDP = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    PDE = PDP->entries[indexer.PD_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    
+    PageTable* PD = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    PDE = PD->entries[indexer.PT_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    
+    PageTable* PT = (PageTable*)((uint64_t)PDE.get_address() << 12);
+    PDE = PT->entries[indexer.P_i];
+    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    
+    uint64_t phys_base = PDE.get_address() << 12;
+    uint64_t offset = (uint64_t)virtual_memory & 0xFFF;
+    return (phys_base + offset);
 }

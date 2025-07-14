@@ -1,6 +1,7 @@
 #include "../include/page_frame_allocator.h"
 #include "../include/basic_renderer.h"
 #include "../../include/string.h"
+#include "../../include/log.h"
 
 
 PageFrameAllocator global_allocator;
@@ -25,11 +26,9 @@ void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* mMap, size_t
         }
     }
     uint64_t memory_size = get_memory_size(mMap, mMapEntries, mMapDescSize);
-    global_renderer->new_line();
-    global_renderer->print("MEMORY size:" );
-    global_renderer->print(to_string(memory_size / 1024 / 1024));
-    global_renderer->print("MB");
-    global_renderer->new_line();
+
+    Log::Info("Total RAM: %u mb", memory_size / 1024 / 1024);
+
     free_memory = memory_size;
     reserved_memory = 0;
     used_memory = 0;

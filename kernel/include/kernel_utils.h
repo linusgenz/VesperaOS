@@ -34,6 +34,8 @@ struct BootInfo {
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
+extern Framebuffer *TargetFramebuffer;
+
 void initialize_kernel(BootInfo* BootInfo);
 
 #endif //KERNEL_UTILS_H

@@ -1,8 +1,10 @@
 #include "./include/kernel_utils.h"
-#include "./scheduling/pit/pit.h"
+#include "./scheduling/pit_legacy/pit.h"
 #include "./cpu/cpu.h"
 #include "../interface/shell.h"
-#include "time/timer.h"
+#include "time/time.h"
+#include "version.h"
+#include "../include/log.h"
 
 static inline bool are_interrupts_enabled()
 {
@@ -16,41 +18,18 @@ static inline bool are_interrupts_enabled()
 extern "C" void kernel_main(BootInfo* boot_info){
     initialize_kernel(boot_info);
 
-/*
-    uint64_t mMapEntries = boot_info->mMapSize / boot_info->mMapDescSize;
-
-    for (int i = 0; i < mMapEntries; i++) {
-        EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)boot_info->mMap + (i * boot_info->mMapDescSize));
-        global_renderer->print(EFI_MEMORY_TYPE_STRINGS[desc->type]);
-        global_renderer->print(" ");
-        global_renderer->set_colour(CYAN);
-        global_renderer->print(to_string(desc->num_pages * 4096 / 1024));
-        global_renderer->print(" ");
-        global_renderer->print("kb");
-        global_renderer->print(" (");
-        global_renderer->print(to_string(desc->num_pages * 4096 / 1024 / 1024));
-        global_renderer->print(" ");
-        global_renderer->print("mb)");
-        global_renderer->new_line();
-        global_renderer->set_colour(WHITE);
-    }
-*/
-    global_renderer->print("INTERRUPTS:");
-    global_renderer->print(are_interrupts_enabled() ? " ENABLED" : " DISABLED");
-    global_renderer->new_line();
+    Log::LogMsg("INTERRUPTS: %s", are_interrupts_enabled() ? "ENABLED" : "DISABLED");
 
     char vendor[13];
     get_cpu_vendor(vendor);
-    global_renderer->print("CPU Vendor: ");
-    global_renderer->print(vendor);
-    global_renderer->new_line();
+    Log::Info("CPU Vendor: %s", vendor);
+
     char brand[49];
     get_cpu_brand(brand);
-    global_renderer->print("CPU Brand: ");
-    global_renderer->print(brand);
-    global_renderer->new_line();
-    global_renderer->print("Kernel initialized successfully");
-
+    Log::Info("CPU Brand: %s", brand);
+    Log::Ok("Kernel initialized successfully");
+    Log::Info("Kernel version: %s", get_os_version());
+    kernel::time::print_current_time();
     while (true) {
   //      kernel::time::sleep_ms(2000);
   //      global_renderer->new_line();

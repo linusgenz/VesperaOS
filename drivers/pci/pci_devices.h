@@ -39,6 +39,7 @@ static constexpr PCIDevice pci_devices[] = {
     {0x8086, 0x15C0, "JHL6240 Thunderbolt 3 Bridge (Low Power) [Alpine Ridge LP 2016]"},
     {0x8086, 0x15bf, "JHL6240 Thunderbolt 3 NHI (Low Power) [Alpine Ridge LP 2016]"},
     {0x8086, 0x9D23, "Ethernet Connection (4) I219-LM"},
+    {0x8086, 0x9D71, "Sunrise Point-LP HD Audio"},
     {0x1022, 0x43F5, "600 Series Chipset PCIe Switch Downstream Port"},
     {0x1022, 0x43F4, "600 Series Chipset PCIe Switch Upstream Port"},
     {0x1022, 0x43F7, "600 Series Chipset USB 3.2 Controller"},
@@ -48,11 +49,10 @@ static constexpr PCIDevice pci_devices[] = {
     {0x1B21, 0x0612, "ASM1062 Serial ATA Controller"},
     {0x10EC, 0x8125, "RTL8125 2.5GbE Controller"},
     {0x144D, 0xA80A, "NVMe SSD Controller PM9A1/PM9A3/980PRO"},
+    {0x144D, 0xA808, "NVMe SSD Controller SM981/PM981"},
     {0x1002, 0x164E, "Raphael"},
     {0x1002, 0x1640, "Rembrandt Radeon High Definition Audio Controller"},
     {0x1002, 0x1649, "VanGogh PSP/CCP"},
-
-
 
 
 };

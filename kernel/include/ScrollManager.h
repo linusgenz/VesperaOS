@@ -7,12 +7,13 @@
 #include <stdint.h>
 #include "../../include/graphics.h"
 #include "../include/memory.h"
-#include "basic_renderer.h"
 #include "../../drivers/input/mouse.h"
+
+class BasicRenderer;
 
 class ScrollManager {
     public:
-        ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb);
+        ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer* r);
 
     private:
         struct ScrollBuffer {
@@ -26,6 +27,8 @@ class ScrollManager {
             bool up;
             bool down;
          };
+
+        BasicRenderer* renderer;
 
         ScrollBuffer top_buffer{};
         ScrollBuffer bottom_buffer{};

@@ -1,6 +1,7 @@
 #include "panic.h"
 #include "../include/basic_renderer.h"
 #include "../../include/string.h"
+#include "../include/kernel_utils.h"
 /*
 void panic(const char* panic_msg) {
     global_renderer->set_clear_color(Colour::BLACK);
@@ -132,19 +133,15 @@ void put_string(Framebuffer* fb, const char* str, uint32_t x, uint32_t y, uint32
 }
 
 void panic(const char* msg) {
-    Framebuffer* fb = global_renderer ? global_renderer->TargetFramebuffer : nullptr;
-    if (!fb || !fb->base_address) {
-        while (true) asm volatile("hlt");
-    }
-
+    auto fb = TargetFramebuffer;
 
     // Bildschirm klar machen mit Blau
-    for (uint32_t y = 0; y < fb->height; y++) {
+  /*  for (uint32_t y = 0; y < fb->height; y++) {
         for (uint32_t x = 0; x < fb->width; x++) {
             put_pixel(fb, x, y, Colour::RED);
         }
     }
-
+*/
     // Text zentrieren, approx.
     uint32_t text_width_1 = 8 * 12; // "KERNEL PANIC"
     uint32_t text_width_2 = 8 * strlen(msg);

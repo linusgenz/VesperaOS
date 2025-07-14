@@ -3,6 +3,8 @@
 //
 
 #include "fat32.h"
+
+#include "../include/log.h"
 #include "../kernel/include/memory.h"
 #include "../kernel/memory/heap.h"
 #include "../include/string.h"
@@ -32,6 +34,15 @@ namespace FAT32 {
 
         this->valid = true;
     }
+
+    uint8_t* AllocClusterBuffer(uint32_t clusterBytes) {
+        return (uint8_t*)global_allocator.request_pages((clusterBytes + 0xFFF) / 0x1000);
+    }
+
+    void FreeClusterBuffer(uint8_t* ptr, uint32_t clusterBytes) {
+        global_allocator.free_pages(ptr, (clusterBytes + 0xFFF) / 0x1000);
+    }
+
 
     bool FileSystem::is_valid() const {
         return valid;
@@ -119,12 +130,7 @@ namespace FAT32 {
 
         uint8_t clusterBuffer[bpb.bytesPerSector * bpb.sectorsPerCluster];
 
-        // temp
-        const uint32_t sector = ClusterToSector(cluster);
-        auto x = device->read(sector, bpb.sectorsPerCluster, clusterBuffer);
-
-        if (!x) {
-            //  if (!ReadCluster(cluster, clusterBuffer)) {
+        if (!ReadCluster(cluster, clusterBuffer)) {
             free(entries);
             outCount = 0;
             return nullptr;
@@ -335,7 +341,7 @@ namespace FAT32 {
         size_t chainCount = 0;
         uint32_t *chain = GetClusterChain(dirCluster, chainCount);
         if (!chain) {
-            global_renderer->print("GetClusterChain failed\n");
+            Log::Error("GetClusterChain failed\n");
             return false;
         }
 
@@ -360,19 +366,19 @@ namespace FAT32 {
         uint32_t lastCluster = chain[chainCount - 1];
         uint32_t newCluster = FindFreeCluster();
         if (newCluster == 0) {
-            global_renderer->print("No free cluster to expand directory\n");
+            Log::Error("No free cluster to expand directory");
             free(chain);
             return false;
         }
 
         if (!WriteFATEntry(lastCluster, newCluster)) {
-            global_renderer->print("Failed to link new cluster in FAT\n");
+            Log::Error("Failed to link new cluster in FAT");
             free(chain);
             return false;
         }
 
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) {
-            global_renderer->print("Failed to terminate FAT chain\n");
+            Log::Error("Failed to terminate FAT chain");
             free(chain);
             return false;
         }
@@ -385,7 +391,7 @@ namespace FAT32 {
         memcpy(first, entryRaw, sizeof(DirectoryEntry));
         device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer);
 
-        global_renderer->print("Expanded directory with new cluster\n");
+        Log::Error("Expanded directory with new cluster");
 
         free(chain);
         return true;
@@ -397,8 +403,12 @@ namespace FAT32 {
         if (newCluster == 0) return false;
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
-        uint8_t zero[bytesPerCluster()];
-        memset(zero, 0, sizeof(zero));
+        uint32_t clusterSize = bytesPerCluster();
+        uint8_t* zero = AllocClusterBuffer(clusterSize);
+        if (!zero) return false;
+
+        memset(zero, 0, clusterSize);
+
         device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
 
         DirectoryEntry *dir = reinterpret_cast<DirectoryEntry *>(zero);
@@ -429,6 +439,7 @@ namespace FAT32 {
         newEntry.firstClusterHigh = (newCluster >> 16) & 0xFFFF;
         newEntry.fileSize = 0;
 
+        FreeClusterBuffer(zero, clusterSize);
         return WriteDirectoryEntry(GetRootCluster(), &newEntry);
     }
 
@@ -437,8 +448,11 @@ namespace FAT32 {
         if (newCluster == 0) return false;
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
-        uint8_t zero[bytesPerCluster()];
-        memset(zero, 0, sizeof(zero));
+        uint32_t clusterSize = bytesPerCluster();
+        uint8_t* zero = AllocClusterBuffer(clusterSize);
+        if (!zero) return false;
+
+        memset(zero, 0, clusterSize);
         device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
 
         DirectoryEntry newEntry = {};
@@ -452,6 +466,7 @@ namespace FAT32 {
         newEntry.firstClusterHigh = (newCluster >> 16) & 0xFFFF;
         newEntry.fileSize = 0;
 
+        FreeClusterBuffer(zero, clusterSize);
         return WriteDirectoryEntry(GetRootCluster(), &newEntry);
     }
 

@@ -1,5 +1,4 @@
 #include "../include/basic_renderer.h"
-BasicRenderer* global_renderer;
 
 BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font) {
     TargetFramebuffer = targetFramebuffer;
@@ -146,7 +145,7 @@ void BasicRenderer::put_char(char chr)
     if (cursor_position.X + 8 > TargetFramebuffer->width) {
         new_line();
     }
-    draw_cursor();
+   // draw_cursor();
 }
 
 void BasicRenderer::draw_cursor() const

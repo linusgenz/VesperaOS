@@ -14,8 +14,8 @@ namespace PCI {
     struct PCIDeviceHeader {
         uint16_t vendor_id;
         uint16_t device_id;
-        uint16_t command;
-        uint16_t status;
+        volatile uint16_t command;
+        volatile uint16_t status;
         uint8_t revision_id;
         uint8_t prog_if;
         uint8_t subclass;
