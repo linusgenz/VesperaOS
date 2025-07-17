@@ -1,6 +1,5 @@
 BUILD_DIR = ./build
-ASM_SRC_ALL = $(shell find ./ -name '*.asm' ! -path './gnu-efi/*')
-ASM_SRC = $(filter-out ./kernel/cpu/ap_trampoline.asm, $(ASM_SRC_ALL))
+ASM_SRC = $(shell find ./ -name '*.asm' ! -path './gnu-efi/*')
 KERNEL_SRC = $(shell find ./ -name '*.cpp*' ! -path './gnu-efi/*')
 
 OBJS = $(KERNEL_SRC:.cpp=.o)
@@ -38,13 +37,13 @@ bootloader:
 %_asm.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-kernel/cpu/ap_trampoline.bin: kernel/cpu/ap_trampoline.asm
-	$(ASM) -f bin $< -o $@
+#kernel/cpu/ap_trampoline.bin: kernel/cpu/ap_trampoline.asm
+#	$(ASM) -f bin $< -o $@
 
-kernel/cpu/ap_trampoline.h: kernel/cpu/ap_trampoline.bin
-	xxd -i $< > $@
+#kernel/cpu/ap_trampoline.h: kernel/cpu/ap_trampoline.bin
+#	xxd -i $< > $@
 
-$(KERNEL_ELF): kernel/cpu/ap_trampoline.h $(OBJS)
+$(KERNEL_ELF): $(OBJS) #kernel/cpu/ap_trampoline.h
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
 
@@ -54,7 +53,7 @@ version:
 
 img: $(DISK_IMG)
 
-$(DISK_IMG): bootloader version $(KERNEL_ELF)
+$(DISK_IMG): clean bootloader version $(KERNEL_ELF)
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
 	$(MKFS_FAT) -F 32 -n "LuminOS" $@
@@ -68,6 +67,8 @@ $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	sudo cp $(BUILD_DIR)/startup.nsh mnt/
 	sudo umount mnt
 	$(RM) -r mnt
+
+	sudo dd if=./build/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
 
 iso: $(ISO)
 
@@ -102,7 +103,7 @@ $(ISO): bootloader $(KERNEL_ELF)
 	rm -rf build/esp build/iso_root
 
 # QEMU Test (optional target)
-test: clean $(DISK_IMG)
+test: $(DISK_IMG)
 	qemu-system-x86_64 -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
 	-smp cores=8 \
 	-m 256m \
@@ -115,12 +116,8 @@ test: clean $(DISK_IMG)
 	-device qemu-xhci,id=xhci \
 	-device usb-mouse \
 	-device nvme,drive=host0,serial=deadbeef \
-	-debugcon stdio \
-	-no-reboot \
-	-no-shutdown
-
-
-
+	-monitor stdio \
+#-d int,guest_errors,cpu_reset \
 
 debug:
 	qemu-system-x86_64 \
@@ -148,4 +145,4 @@ clean:
 	rm -f $(OBJS) $(KERNEL_ELF) $(DISK_IMG) $(ISO)
 	rm -f ./kernel/cpu/ap_trampoline.bin
 	rm -f ./kernel/cpu/ap_trampoline.h
-	rm -rf mnt isofiles
+	rm -f -rf mnt isofiles

@@ -8,7 +8,7 @@
 #include "../include/log.h"
 #include "memory/stack_manager.h"
 #include "cpu/cpu_manager.h"
-#include "cpu/ap_trampoline.h"
+
 
 void prepare_memory(BootInfo* bootInfo){
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -29,9 +29,7 @@ void prepare_memory(BootInfo* bootInfo){
 
     global_page_table_manager = PageTableManager(PML4);
 
-  /*  for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
-        global_page_table_manager.map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
-    }*/
+
     // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob
     for (int i = 0; i < mMapEntries; i++) {
         EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)bootInfo->mMap + (i * bootInfo->mMapDescSize));
@@ -41,6 +39,16 @@ void prepare_memory(BootInfo* bootInfo){
             global_page_table_manager.map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr), false);
         }
     }
+
+    for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
+        global_page_table_manager.map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr), false);
+    }
+
+    global_page_table_manager.map_memory((void*)0x8000, (void*)0x8000, true);
+    global_page_table_manager.map_memory((void*)0x7000, (void*)0x7000, true);
+    global_page_table_manager.map_memory((void*)0x6000, (void*)0x6000, true);
+    global_page_table_manager.map_memory((void*)0x1000, (void*)0x1000, true);
+    global_page_table_manager.map_memory((void*)0x2000, (void*)0x2000, true);
 
     uint64_t fb_base = (uint64_t)bootInfo->framebuffer->base_address;
     uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
@@ -63,8 +71,8 @@ void set_idt_gate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_
 }
 
 
-void prepare_interrupts() {
-    global_page_table_manager.map_memory((void*)LAPIC_ADDRESS, (void*)LAPIC_ADDRESS, false);
+void* prepare_interrupts() {
+    global_page_table_manager.map_memory((void*)g_localApicAddr, (void*)g_localApicAddr, true);
 
     void* idt_page = global_allocator.request_page();
     memset(idt_page, 0, 0x1000);
@@ -94,10 +102,12 @@ void prepare_interrupts() {
     set_idt_gate((void*)spurious_int_handler, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
 
     // AP Entry Handler für Vector IRQ_AP_ENTRY
-    set_idt_gate((void*)ap_entry_int_handler, IRQ_AP_ENTRY, IDT_TA_InterruptGate, 0x08);
+  //  set_idt_gate((void*)ap_entry_int_handler, IRQ_AP_ENTRY, IDT_TA_InterruptGate, 0x08);
     
     asm ("lidt %0" : : "m" (idtr));
     asm ("sti");
+
+    return idt_page;
 }
 
 uint32_t* scroll_buffer_top = nullptr;
@@ -135,14 +145,14 @@ void prepare_acpi(BootInfo* boot_info) {
 
 }
 
-void prepare_ap_trampoline(uint64_t pml4_phys) {
-    constexpr uint64_t trampoline_phys_addr = 0x8000; // SIPI-Adresse (IRQ_AP_ENTRY << 12)
-    constexpr size_t pml4_ptr_offset = 0x200;  // muss mit Trampolin übereinstimmen
-    constexpr size_t stack_ptr_offset = 0x208; // dito
+void prepare_ap_trampoline(uint64_t pml4_phys, uint64_t idt_ptr) {
+    constexpr uint64_t trampoline_phys_addr = AP_STARTUP_CODE_BASE; // SIPI-Adresse (IRQ_AP_ENTRY << 12)
 
-    memcpy((void*)trampoline_phys_addr, kernel_cpu_ap_trampoline_bin, kernel_cpu_ap_trampoline_bin_len);
-
-    for (uint32_t i = 0; i < CPUManager::get_available_cpu_count(); i++) {
+   // memcpy((void*)trampoline_phys_addr, kernel_cpu_ap_trampoline_bin, kernel_cpu_ap_trampoline_bin_len);
+    *(volatile uint64_t*)0x2000 = pml4_phys;
+    *(volatile uint64_t*)0x1000 = (uint64_t)&idtr;
+    __asm__ volatile("wbinvd" ::: "memory");
+  /*  for (uint32_t i = 0; i < CPUManager::get_available_cpu_count(); i++) {
         auto& cpu = CPUManager::cpu_infos[i];
         if (cpu.is_bsp) continue;
 
@@ -151,7 +161,7 @@ void prepare_ap_trampoline(uint64_t pml4_phys) {
 
         *(volatile uint64_t*)(trampoline_phys_addr + pml4_ptr_offset)  = pml4_phys;
         *(volatile uint64_t*)(trampoline_phys_addr + stack_ptr_offset) = stack_phys;
-    }
+    }*/
 }
 
 extern uint8_t __bss_start[];
@@ -163,6 +173,7 @@ void zero_bss() {
         *bss++ = 0;
     }
 }
+
 
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
 static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
@@ -185,24 +196,24 @@ void initialize_kernel(BootInfo* bootInfo){
 
     prepare_acpi(bootInfo);
 
-    prepare_interrupts();
+   void* idt_ptr = prepare_interrupts();
+
 
     pic_init();
     lapic_init();
 
-  //  setup_scroll_buffer(bootInfo->framebuffer);
- //   s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
- //   scroll_manager = &s;
+    setup_scroll_buffer(bootInfo->framebuffer);
+    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
+    scroll_manager = &s;
 
     CPUManager::initialize();
-    
-    // Zeige CPU-Informationen
-    CPUManager::print_cpu_info();
 
     uint64_t pml4_phys = global_page_table_manager.get_physical_address(global_page_table_manager.PML4);
-    prepare_ap_trampoline(pml4_phys);
+    prepare_ap_trampoline(pml4_phys, (uint64_t)idt_ptr);
 
-    CPUManager::start_all_aps();
+    CPUManager::smp_init();
+  //  CPUManager::start_all_aps();
+    CPUManager::print_cpu_info();
   //  StackManager::print_stack_info();
 
  //   PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
@@ -211,25 +222,6 @@ void initialize_kernel(BootInfo* bootInfo){
     Log::Info("Reserved RAM: %u mb", global_allocator.get_reserved_ram() / 1024 / 1024);
     Log::Info("Used RAM: %u mb", global_allocator.get_used_ram() / 1024 / 1024);
 
-   /* uint32_t svr_test = lapic_read(LAPIC_SVR);
-    if (!(svr_test & 0x100 | IRQ_SPURIOUS)) {
-        global_renderer->print("LAPIC NICHT AKTIVIERT");
-    }
-    else {
-        global_renderer->print("LAPIC AKTIVIERT");
-    }
-    global_renderer->new_line();
-
-    if ((LAPIC_ADDRESS & (1 << 11)) != 0) {
-        global_renderer->print("APIC Aktiviert");
-    }
-    else {
-        global_renderer->print("APIC Deaktiviert");
-    }*/
-
-   //
-
-   // initialize_ps2_mouse();
 
     // TODO THIS CAUSES A SYSTEM ERROR WHEN MEM IS ABOVE 760m
    // outb(PIC1_DATA, 0b11111000);

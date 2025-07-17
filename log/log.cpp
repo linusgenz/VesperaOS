@@ -4,11 +4,14 @@
 
 #include "../include/log.h"
 #include "../include/string.h"
+
 BasicRenderer *Log::renderer = nullptr;
 
 void Log::SetRenderer(BasicRenderer *r) {
     renderer = r;
 }
+
+spinlock_t Log::log_lock = {};
 
 
 void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = false) {
@@ -102,7 +105,7 @@ void Log::Error(const char *fmt, ...) {
     renderer->print("\n");
 }
 
-void Log::LogMsg(const char* fmt, ...) {
+void Log::LogMsg(const char *fmt, ...) {
     Colour old = renderer->get_colour();
     renderer->print("[   ");
     renderer->set_colour(Colour::GRAY);
@@ -119,6 +122,7 @@ void Log::LogMsg(const char* fmt, ...) {
 }
 
 void Log::PrintLn(const char *fmt, ...) {
+    spinlock_guard g(log_lock);
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     PrintFormatted(fmt, args);
@@ -126,15 +130,37 @@ void Log::PrintLn(const char *fmt, ...) {
 
     renderer->print("\n");
 }
+
+void Log::Print(const char *fmt, ...) {
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
+    PrintFormatted(fmt, args);
+    __builtin_va_end(args);
+}
+
 void Log::PrintFormatted(const char *fmt, __builtin_va_list args) {
     char chr;
     while ((chr = *fmt++) != 0) {
         if (chr == '%') {
-            // Format-Modifikatoren erkennen
+            // Flags & Width
             bool long_long = false;
             bool long_flag = false;
+            char pad_char = ' ';
+            int min_width = 0;
 
-            // Mehrere Zeichen prüfen
+            // Padding: z. B. %02x → '0' erkannt
+            if (*fmt == '0') {
+                pad_char = '0';
+                fmt++;
+            }
+
+            // Breite (z. B. 2, 4, 8, etc.)
+            while (*fmt >= '0' && *fmt <= '9') {
+                min_width = min_width * 10 + (*fmt - '0');
+                fmt++;
+            }
+
+            // Länge: l / ll
             if (*fmt == 'l') {
                 fmt++;
                 if (*fmt == 'l') {
@@ -150,47 +176,48 @@ void Log::PrintFormatted(const char *fmt, __builtin_va_list args) {
 
             switch (specifier) {
                 case 's': {
-                    const char* str = __builtin_va_arg(args, const char*);
+                    const char *str = __builtin_va_arg(args, const char*);
                     renderer->print(str ? str : "<null>");
                     break;
                 }
-                case 'u': {
-                    uint64_t val;
-                    if (long_long || long_flag)
-                        val = __builtin_va_arg(args, uint64_t);
-                    else
-                        val = __builtin_va_arg(args, uint32_t);
-                    UIntToStr(val, buffer, 10);
-                    renderer->print(buffer);
-                    break;
-                }
+                case 'u':
                 case 'x': {
-                    uint64_t val;
-                    if (long_long || long_flag)
-                        val = __builtin_va_arg(args, uint64_t);
-                    else
-                        val = __builtin_va_arg(args, uint32_t);
-                    UIntToStr(val, buffer, 16);
+                    uint64_t val = (long_long || long_flag)
+                                       ? __builtin_va_arg(args, uint64_t)
+                                       : __builtin_va_arg(args, uint32_t);
+                    int base = (specifier == 'x') ? 16 : 10;
+                    UIntToStr(val, buffer, base);
+
+                    // Padding manuell
+                    int len = strlen(buffer);
+                    for (int i = len; i < min_width; i++)
+                        renderer->put_char(pad_char);
+
                     renderer->print(buffer);
                     break;
                 }
                 case 'd': {
-                    int64_t val;
-                    if (long_long || long_flag)
-                        val = __builtin_va_arg(args, int64_t);
-                    else
-                        val = __builtin_va_arg(args, int32_t);
+                    int64_t val = (long_long || long_flag)
+                                      ? __builtin_va_arg(args, int64_t)
+                                      : __builtin_va_arg(args, int32_t);
                     if (val < 0) {
-                        renderer->print("-");
+                        renderer->put_char('-');
                         val = -val;
                     }
-                    UIntToStr(static_cast<uint64_t>(val), buffer, 10);
+                    UIntToStr((uint64_t) val, buffer, 10);
+                    int len = strlen(buffer);
+                    for (int i = len; i < min_width; i++)
+                        renderer->put_char(pad_char);
                     renderer->print(buffer);
                     break;
                 }
                 case 'p': {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);
-                    UIntToStr(val, buffer, 16, true);
+                    renderer->print("0x");
+                    UIntToStr(val, buffer, 16);
+                    int len = strlen(buffer);
+                    for (int i = len; i < min_width; i++)
+                        renderer->put_char('0');
                     renderer->print(buffer);
                     break;
                 }
@@ -207,4 +234,3 @@ void Log::PrintFormatted(const char *fmt, __builtin_va_list args) {
         }
     }
 }
-

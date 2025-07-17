@@ -3,6 +3,15 @@ ENTRY(kernel_main)
 
 SECTIONS
 {
+    g_localApicAddr = 0x00006000;
+    .cpu_startup_reports 0x00007000 :
+    {
+        KEEP(*(.cpu_startup_reports))
+    }
+    .ap_trampoline 0x00008000 : ALIGN(0x1000)
+    {
+        KEEP(*(.text.ap_trampoline))
+    }
     . = 0x100000;
 	_KernelStart = .;
 	.text : ALIGN(0x1000)

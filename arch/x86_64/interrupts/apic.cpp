@@ -6,22 +6,20 @@
 #include "../../../drivers/io/io.h"
 #include "../../../kernel/utils/panic.h"
 
-uint32_t LAPIC_ADDRESS = 0;
-
 uint32_t lapic_read(uint32_t offset) {
-    volatile uint32_t* reg = reinterpret_cast<volatile uint32_t *>(LAPIC_ADDRESS + offset);
+    volatile uint32_t* reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
     return *reg;
 }
 
 void lapic_write(uint32_t offset, uint32_t value) {
-    volatile uint32_t* reg = reinterpret_cast<volatile uint32_t *>(LAPIC_ADDRESS + offset);
+    volatile uint32_t* reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
     *reg = value;
 }
 
 void wait_for_delivery() {
     // Wait for delivery to complete
     while (lapic_read(LAPIC_ICRLO) & ICR_DELIVS) {
-        asm volatile("pause");
+    //    asm volatile("pause"); // TODO
     }
 }
 
@@ -72,11 +70,10 @@ void pmt_delay(const size_t us){
 
 }
 
-uint32_t LocalApicGetId()
+uint32_t local_apic_get_id()
 {
     return lapic_read(LAPIC_ID) >> 24;
 }
-
 
 volatile uint64_t apic_ticks = 0;
 
@@ -91,24 +88,6 @@ void sleep(uint64_t ms) {
     while (apic_ticks < target) {
         asm volatile("hlt");
     }
-}
-
-
-
-void lapic_init_ap()
-{
-    // Minimal LAPIC initialization for AP
-    // Clear task priority to enable all interrupts
-    lapic_write(LAPIC_TPR, 0);
-    
-    // Logical Destination Mode
-    lapic_write(LAPIC_DFR, 0xffffffff);   // Flat mode
-    lapic_write(LAPIC_LDR, 0x01000000);   // All cpus use logical id 1
-    
-    // Configure Spurious Interrupt Vector Register
-    lapic_write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
-    
-    // Don't initialize timer for AP - only BSP handles timing
 }
 
 void lapic_eoi(void) {

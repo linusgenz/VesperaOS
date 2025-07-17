@@ -1,7 +1,6 @@
 #include "interrupts.h"
 #include "../../../kernel/utils/panic.h"
 #include "../../../drivers/io/io.h"
-#include "../../../kernel/cpu/cpu_manager.h"
 #include "apic.h"
 #include "../../../include/log.h"
 
@@ -164,27 +163,6 @@ __attribute__((interrupt))
 void spurious_int_handler(interrupt_frame* frame) {
     lapic_eoi();
 }
-
-__attribute__((interrupt))
-void ap_entry_int_handler(interrupt_frame* frame) {
-    lapic_eoi();
-
- //   lapic_init_ap();
-
-  /*  uint32_t apic_id = LocalApicGetId();
-
-    for (uint32_t i = 0; i < CPUManager::total_cpus; i++) {
-        if (CPUManager::cpu_infos[i].apic_id == apic_id) {
-            CPUManager::cpu_infos[i].state = CPUManager::CPU_STATE_ONLINE;
-            break;
-        }
-    }
-*/
-    while (true) {
-        asm volatile("hlt");
-    }
-}
-
 
 __attribute__((interrupt)) void cursor_int_handler(interrupt_frame* frame) {
     /*global_renderer->cursor_visible = !global_renderer->cursor_visible;

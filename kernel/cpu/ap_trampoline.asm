@@ -1,138 +1,134 @@
-; AP Trampoline for transitioning from 16-bit to 64-bit mode
-; Gets loaded at 0x7000 (physical memory)
+section .text.ap_trampoline
+global ap_trampoline_entry
+
+%define kernel_stacks               0x00020000
+%define idt                         0x1000
+%define vm_pml4                     0x2000
+
+%define local_apic_address          0x6000
+%define cpu_startup_report_addr     0x7000
+%define loader_base                 0x8000
+%define boot_sector_base            0x7c00
+%define IRQ_AP_ENTRY                0x30
+
 [BITS 16]
-[ORG 0x0000]
 
-start:
-    cli
-    cld
+ap_trampoline_entry:
+        lgdt [gdt32.desc]
 
-    mov al, 'X'
-    out 0xE9, al
+        mov eax, cr0
+        or al, 0x01
+        mov cr0, eax
 
-    mov ax, 0x0000
-    mov ds, ax
-    lgdt [gdt_desc]
+        jmp gdt32.code:ap32         ; Jump to 32-bit code
 
-    ; Enable protected mode
-    mov eax, cr0
-    or eax, 1
-    mov cr0, eax
+; 64-bit GDT
+gdt64:
+        dq 0x0000000000000000       ; Null Descriptor
+.code equ $ - gdt64                 ; Code segment
+        dq 0x0020980000000000
+.data equ $ - gdt64                 ; Data segment
+        dq 0x0000920000000000
 
-        mov al, 'Y'
-        out 0xE9, al
+.desc:
+        dw $ - gdt64 - 1            ; 16-bit Size (Limit)
+        dq gdt64                    ; 64-bit Base Address
+
+; -------------------------------------------------------------------------------------------------
+; 32-bit GDT
+gdt32:
+        dq 0x0000000000000000       ; Null Descriptor
+.code equ $ - gdt32                 ; Code segment
+        dq 0x00cf9a000000ffff
+.data equ $ - gdt32                 ; Data segment
+        dq 0x00cf92000000ffff
+
+.desc:
+        dw $ - gdt32 - 1            ; 16-bit Size (Limit)
+        dd gdt32                    ; 32-bit Base Address
 
 
-    jmp 0x08:protected_mode
-
-; ---------------------
-; Protected Mode (32-bit)
-; ---------------------
 [BITS 32]
-protected_mode:
-    mov al, 'P'
-    out 0xE9, al
+ap32:
+        mov eax, gdt32.data
+        mov ds, ax
+        mov es, ax
+        mov fs, ax
+        mov gs, ax
+        mov ss, ax
+        mov esp, boot_sector_base
 
-    ; Set up segment registers
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
+        lgdt [gdt64.desc]
 
-    ; Load PML4 address
-    mov eax, [pml4_ptr]
-    mov cr3, eax
+     ;   mov eax, 0x000000a0         ; Set PAE and PGE
+     ;   mov cr4, eax
 
-    mov al, 'Q'
-    out 0xE9, al
+        mov eax, cr4
+        or eax, (1 << 5)            ; PAE
+        or eax, (1 << 7)            ; PGE
+        mov cr4, eax
 
-    ; Enable PAE
-    mov eax, cr4
-    or eax, (1 << 5)        ; PAE bit
-    mov cr4, eax
+        mov eax, [vm_pml4]            ; Assign PML4
+        mov cr3, eax
 
-    ; Enable Long Mode in EFER
-    mov ecx, 0xC0000080     ; IA32_EFER MSR
-    rdmsr
-    or eax, (1 << 8)        ; LME (Long Mode Enable)
-    wrmsr
+        mov ecx, 0xc0000080         ; Read from EFER MSR
+        rdmsr
 
-    mov al, 'R'
-    out 0xE9, al
+        or eax, 0x00000100          ; Set LME
+        wrmsr
 
-    ; Enable paging (this activates long mode)
-    mov eax, cr0
-    or eax, (1 << 31)       ; PG bit
-    mov cr0, eax
+        mov eax, cr0                ; Activate paging
+        or eax, 0x80000000
+        mov cr0, eax
 
-    ; Serialize execution
-    jmp flush_pipeline
-flush_pipeline:
+        jmp gdt64.code:ap64         ; Jump to 64-bit code
 
-    mov al, 'S'
-    out 0xE9, al
 
-    ; Far jump to 64-bit code segment
-    jmp 0x08:long_mode
-
-; ---------------------
-; Long Mode (64-bit)
-; ---------------------
 [BITS 64]
-long_mode:
-    mov al, 'L'
-    out 0xE9, al
+ap64:
 
-    ; Set up 64-bit segment registers
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
+        xor rax, rax
+        mov ds, ax
+        mov es, ax
+        mov fs, ax
+        mov gs, ax
+        mov ss, ax
 
-    ; Load stack pointer
-    mov rsp, [stack_ptr]
+        ; Get next kernel stack
+        mov rsp, 0x1000
+        lock xadd [next_sp], rsp
 
-    ; Align stack to 16 bytes (required for x86-64 ABI)
-    and rsp, 0xFFFFFFFFFFFFFFF0
+     ;   lidt [idt]
 
-    mov al, 'M'
-    out 0xE9, al
+    ;    mov rsi, [local_apic_address]
+     ;   add rsi, 0x00f0             ; Spurious Interrupt Vector
+      ;  mov rdi, rsi
+      ;  lodsd
+      ;  or eax, 0x100
+      ;  stosd
 
-    ; Call your AP entry point via interrupt
-    int 0x30
+       ; sti
 
-halt:
-    hlt
-    jmp halt
+        mov eax, 1
+        cpuid
+        shr ebx, 24                 ; Initial APIC ID in bits 31:24
+        mov ecx, ebx
 
-; ---------------------------------------
-; GDT Structure
-; ---------------------------------------
+        ; calc address for CpuStartupReport for the core
+        mov rdi, 0x7000             ; rdi = base address of cpu_startup_reports
+        mov rax, 24                 ; sizeof(CpuStartupReport) = 24 bytes
+        mul ecx                     ; rax = offset for apic_id
+        add rdi, rax                ; rdi = &cpu_startup_reports[apic_id]
 
+        mov dword [rdi], ecx        ; apic_id (offset 0)
+        mov [rdi + 8], rsp          ; stack_pointer (offset 4)
+        mov byte [rdi + 16], 1      ; ready (offset 12)
 
-align 8
-gdt_desc:
-    dw gdt_end - gdt - 1
-    dd 0x7210
+        extern ap_main
+        mov edi, ecx          ; ap_main(uint32_t apic_id)
+        call ap_main
 
-; Pad to offset 0x200
-times 0x200 - ($ - $$) db 0
+        hlt
+        jmp $ ; idle
 
-pml4_ptr:   dq 0                ; BSP writes PML4 physical address here
-stack_ptr:  dq 0                ; BSP writes stack physical address here
-gdt:
-    ; Null descriptor
-    dq 0x0000000000000000
-
-    ; 32-bit Code Segment for Protected Mode transition
-    ; Base=0, Limit=0xFFFFF, Granularity=4KB, Size=32bit, Present=1, DPL=0
-    dq 0x00CF9A000000FFFF
-
-    ; 32-bit Data Segment
-    ; Base=0, Limit=0xFFFFF, Granularity=4KB, Size=32bit, Present=1, DPL=0
-    dq 0x00CF92000000FFFF
-gdt_end:
+next_sp:    dq kernel_stacks

@@ -7,8 +7,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-extern uint32_t LAPIC_ADDRESS;
-
 // ------------------------------------------------------------------------------------------------
 // Local APIC Registers
 #define LAPIC_ID                        0x0020  // Local APIC ID
@@ -38,8 +36,7 @@ extern uint32_t LAPIC_ADDRESS;
 #define LAPIC_TDCR                      0x03e0  // Divide Configuration (for Timer)
 
 // ICR bits
-#define ICR_INIT       0x00000500   // INIT IPI
-#define ICR_SIPI       0x00000600   // SIPI
+
 #define ICR_DELIVS     0x00001000   // Delivery status
 #define ICR_ASSERT     0x00004000   // Assert interrupt (vs deassert)
 #define ICR_DEASSERT   0x00000000   // Deassert
@@ -47,13 +44,21 @@ extern uint32_t LAPIC_ADDRESS;
 #define ICR_BCAST      0x00080000   // Send to all APICs
 #define ICR_BUSY       0x00001000   // Delivery status bit
 #define ICR_FIXED      0x00000000   // Fixed delivery mode
-
+#define ICR_NO_SHORTHAND                0x00000000
+#define ICR_EDGE                        0x00000000
+#define ICR_LEVEL                       0x00008000
+#define APIC_REGISTER_INT_COMMAND_LOW 0x300
+#define APIC_REGISTER_INT_COMMAND_HIGH 0x310
+#define APIC_ICR_SMI (2 << 8)
+#define APIC_ICR_INIT (5 << 8)
+#define APIC_ICR_SIPI (6 << 8)
+#define APIC_ICR_LEVEL_ASSERT (1 << 14)
 
 #define IRQ_SPURIOUS         0xFF
 #define IRQ_TIMER            0x20
 #define IRQ_ERROR            0xFE
 #define IRQ_BASE             0x20
-#define IRQ_AP_ENTRY         0x30  // AP Entry Point Vector
+#define IRQ_AP_ENTRY         0x30
 
 #define LAPIC_PERIODIC 0x20000
 
@@ -64,12 +69,15 @@ extern uint32_t LAPIC_ADDRESS;
 void lapic_eoi();
 void apic_timer_tick();
 void lapic_init();
-void lapic_init_ap();
 void wait_for_delivery();
 
-uint32_t LocalApicGetId();
+uint32_t local_apic_get_id();
 void lapic_write(uint32_t offset, uint32_t value);
 uint32_t lapic_read(uint32_t offset);
+extern uint8_t *g_localApicAddr;
+
+void LocalApicSendStartup(uint32_t apic_id, uint8_t vector);
+void LocalApicSendInit(uint32_t apic_id);
 
 void pmt_delay(size_t us);
 

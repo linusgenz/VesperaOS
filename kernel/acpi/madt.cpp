@@ -24,7 +24,9 @@ namespace MADT {
             Log::Info("No Pic detected");
         }
 
-        LAPIC_ADDRESS = madt->lapic_address;
+        g_localApicAddr = (uint8_t *)(uintptr_t)madt->lapic_address;
+        Log::Info("LAPIC Address: 0x%llx", g_localApicAddr);
+        *(volatile uint64_t*)0x6000 = (uint64_t)madt->lapic_address;
 
         uint8_t* entries = (uint8_t*)madt + sizeof(ACPI::MADTHeader);
         uint8_t* end = (uint8_t*)madt + madt->header.length;
@@ -61,6 +63,7 @@ namespace MADT {
                     break;
                 }
                 case ACPI::MADTEntryType::X2APIC: {
+                    Log::Info("X2APIC entry detected");
                     auto* entry = (ACPI::X2APICEntry*)entries;
                     
                     if ((entry->flags & 0x1) || (entry->flags & 0x2)) {

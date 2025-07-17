@@ -6,7 +6,23 @@
 #include "../acpi/madt.h"
 #include "../memory/stack_manager.h"
 
+
 #define AP_STARTUP_CODE_BASE 0x8000  // Real-Mode Code für AP-Startup
+#define CPU_ID_REG 0x6008
+#define CPU_READY_REG 0x600C
+#define SIPI_VECTOR 0x8
+extern volatile uint8_t g_activeCpuCount;
+
+struct CpuStartupReport {
+    uint32_t apic_id;
+    uint32_t rsv0;
+    uint64_t stack_pointer;
+    uint8_t ready;
+    uint8_t rsv1[7];
+};
+
+#define cpu_startup_reports ((volatile CpuStartupReport*)0x7000)
+
 
 namespace CPUManager {
     
@@ -21,7 +37,8 @@ namespace CPUManager {
         uint32_t apic_id;
         uint32_t cpu_id;
         CPUState state;
-        StackManager::StackInfo* kernel_stack;
+       // StackManager::StackInfo* kernel_stack;
+        uintptr_t kernel_stack;
         uint64_t total_cycles;
         uint64_t idle_cycles;
         uint32_t current_task_id;
@@ -30,9 +47,9 @@ namespace CPUManager {
     
     void initialize();
 
-    void start_all_aps();
-    
-    bool start_ap(uint32_t apic_id);
+    void smp_init();
+    void init_core(CPUInfo *cpu);
+
     
     CPUInfo* get_cpu_info(uint32_t apic_id);
 
@@ -44,8 +61,6 @@ namespace CPUManager {
     
     void halt_cpu(uint32_t apic_id);
 
-    void send_ipi(uint32_t target_apic_id, uint32_t vector);
-    
     void send_ipi_to_all_aps(uint32_t vector);
     
     void print_cpu_info();

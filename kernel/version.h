@@ -5,7 +5,7 @@
 #define VERSION_MINOR "1"
 #define VERSION_PATCH "0"
 #define VERSION_STAGE "dev"
-#define VERSION_BUILD "20250714-g24619da"
+#define VERSION_BUILD "20250717-g3e2b9e6"
 
 #define VERSION_STRING "LuminOS (dev) x86_64 " \
                        VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH \
