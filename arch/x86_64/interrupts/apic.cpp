@@ -4,6 +4,10 @@
 #include "../../../kernel/acpi/acpi_manager.h"
 #include "../../../kernel/scheduling/pit_legacy/pit.h"
 #include "../../../drivers/io/io.h"
+#include "../../../kernel/acpi/madt.h"
+#include "../../../kernel/cpu/cpu_manager.h"
+#include "../../../kernel/include/page_frame_allocator.h"
+#include "../../../kernel/scheduling/scheduler.h"
 #include "../../../kernel/utils/panic.h"
 
 uint32_t lapic_read(uint32_t offset) {
@@ -23,7 +27,7 @@ void wait_for_delivery() {
     }
 }
 
-void lapic_init()
+void lapic_init(uint8_t cpu_id)
 {
     // Clear task priority to enable all interrupts
     lapic_write(LAPIC_TPR, 0);
@@ -35,7 +39,7 @@ void lapic_init()
     // Configure Spurious Interrupt Vector Register
     lapic_write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
 
-    Log::Ok("LAPIC initialized");
+    Log::Ok("LAPIC initialized for core %u", cpu_id);
 
     lapic_write(LAPIC_TDCR, 0x3); // Divide by 16
     lapic_write(LAPIC_TICR, 0xFFFFFFFF);
@@ -75,20 +79,60 @@ uint32_t local_apic_get_id()
     return lapic_read(LAPIC_ID) >> 24;
 }
 
-volatile uint64_t apic_ticks = 0;
+volatile uint64_t apic_ticks[MAX_CPU_CORES] = {0};
 
 void apic_timer_tick() {
-    apic_ticks++;
+    uint32_t cpu = CPUManager::get_current_cpu_id();
+    apic_ticks[cpu]++;
+
+    kernel::scheduling::cpu_scheduler_t* cpu_sched = &kernel::scheduling::global_scheduler.cpus[cpu];
+    kernel::scheduling::lock(&cpu_sched->lock);
+
+    kthread_t* prev = nullptr;
+    kthread_t* thread = cpu_sched->blocked_queue_head;
+
+    while (thread) {
+        if (apic_ticks[cpu] >= thread->wakeup_tick) {
+            // Wecke Thread
+            kthread_t* to_wake = thread;
+            if (prev) {
+                prev->next = thread->next;
+            } else {
+                cpu_sched->blocked_queue_head = thread->next;
+            }
+            thread = thread->next;
+
+            to_wake->state = THREAD_READY;
+            to_wake->next = nullptr;
+
+            // In ready queue einfügen
+            if (cpu_sched->ready_queue_tail) {
+                cpu_sched->ready_queue_tail->next = to_wake;
+                cpu_sched->ready_queue_tail = to_wake;
+            } else {
+                cpu_sched->ready_queue_head = to_wake;
+                cpu_sched->ready_queue_tail = to_wake;
+            }
+        } else {
+            prev = thread;
+            thread = thread->next;
+        }
+    }
+
+    kernel::scheduling::unlock(&cpu_sched->lock);
 }
+
 
 void sleep(uint64_t ms) {
     uint64_t ticks_to_wait = (ms + 9) / 10;
-    uint64_t target = apic_ticks + ticks_to_wait;
+    uint32_t cpu = CPUManager::get_current_cpu_id();
+    uint64_t target = apic_ticks[cpu] + ticks_to_wait;
 
-    while (apic_ticks < target) {
+    while (apic_ticks[cpu] < target) {
         asm volatile("hlt");
     }
 }
+
 
 void lapic_eoi(void) {
     lapic_write(LAPIC_EOI, 0);

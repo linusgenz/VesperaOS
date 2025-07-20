@@ -42,6 +42,8 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
 }
 
 void Log::Info(const char *fmt, ...) {
+    spinlock_guard g(log_lock);
+
     Colour old = renderer->get_colour();
     renderer->print("[  ");
     renderer->set_colour(Colour::BLUE);
@@ -58,6 +60,8 @@ void Log::Info(const char *fmt, ...) {
 }
 
 void Log::Ok(const char *fmt, ...) {
+    spinlock_guard g(log_lock);
+
     Colour old = renderer->get_colour();
     renderer->print("[   ");
     renderer->set_colour(Colour::GREEN);
@@ -74,6 +78,8 @@ void Log::Ok(const char *fmt, ...) {
 }
 
 void Log::Warning(const char *fmt, ...) {
+    spinlock_guard g(log_lock);
+
     Colour old = renderer->get_colour();
     renderer->print("[ ");
     renderer->set_colour(Colour::YELLOW);
@@ -90,6 +96,8 @@ void Log::Warning(const char *fmt, ...) {
 }
 
 void Log::Error(const char *fmt, ...) {
+    spinlock_guard g(log_lock);
+
     Colour old = renderer->get_colour();
     renderer->print("[  ");
     renderer->set_colour(Colour::RED);
@@ -106,6 +114,8 @@ void Log::Error(const char *fmt, ...) {
 }
 
 void Log::LogMsg(const char *fmt, ...) {
+    spinlock_guard g(log_lock);
+
     Colour old = renderer->get_colour();
     renderer->print("[   ");
     renderer->set_colour(Colour::GRAY);

@@ -8,6 +8,7 @@
 #include "../include/log.h"
 #include "memory/stack_manager.h"
 #include "cpu/cpu_manager.h"
+#include "scheduling/scheduler.h"
 
 
 void prepare_memory(BootInfo* bootInfo){
@@ -23,6 +24,9 @@ void prepare_memory(BootInfo* bootInfo){
     const uint64_t kernelPages = kernelSize / 4096 + 1;
 
     global_allocator.lock_pages(&_KernelStart, kernelPages);
+
+    global_allocator.lock_pages(nullptr, 256);
+
 
     PageTable* PML4 = (PageTable*)global_allocator.request_page();
     memset(PML4, 0, 0x1000);
@@ -42,6 +46,11 @@ void prepare_memory(BootInfo* bootInfo){
 
     for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
         global_page_table_manager.map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr), false);
+    }
+
+    for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
+        void* stack_addr = (void*)(KERNEL_STACK_BASE + i * KERNEL_STACK_SIZE);
+        global_page_table_manager.map_memory(stack_addr, stack_addr, true);
     }
 
     global_page_table_manager.map_memory((void*)0x8000, (void*)0x8000, true);
@@ -70,8 +79,7 @@ void set_idt_gate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_
     interrupt->ignore = 0;
 }
 
-
-void* prepare_interrupts() {
+void prepare_interrupts() {
     global_page_table_manager.map_memory((void*)g_localApicAddr, (void*)g_localApicAddr, true);
 
     void* idt_page = global_allocator.request_page();
@@ -106,8 +114,6 @@ void* prepare_interrupts() {
     
     asm ("lidt %0" : : "m" (idtr));
     asm ("sti");
-
-    return idt_page;
 }
 
 uint32_t* scroll_buffer_top = nullptr;
@@ -145,12 +151,11 @@ void prepare_acpi(BootInfo* boot_info) {
 
 }
 
-void prepare_ap_trampoline(uint64_t pml4_phys, uint64_t idt_ptr) {
-    constexpr uint64_t trampoline_phys_addr = AP_STARTUP_CODE_BASE; // SIPI-Adresse (IRQ_AP_ENTRY << 12)
+void prepare_ap_trampoline(uint64_t pml4_phys) {
 
    // memcpy((void*)trampoline_phys_addr, kernel_cpu_ap_trampoline_bin, kernel_cpu_ap_trampoline_bin_len);
     *(volatile uint64_t*)0x2000 = pml4_phys;
-    *(volatile uint64_t*)0x1000 = (uint64_t)&idtr;
+    *(IDTR*)0x1000 = idtr;
     __asm__ volatile("wbinvd" ::: "memory");
   /*  for (uint32_t i = 0; i < CPUManager::get_available_cpu_count(); i++) {
         auto& cpu = CPUManager::cpu_infos[i];
@@ -196,24 +201,25 @@ void initialize_kernel(BootInfo* bootInfo){
 
     prepare_acpi(bootInfo);
 
-   void* idt_ptr = prepare_interrupts();
+   prepare_interrupts();
 
 
     pic_init();
-    lapic_init();
+    lapic_init(0);
 
     setup_scroll_buffer(bootInfo->framebuffer);
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
     CPUManager::initialize();
+    kernel::scheduling::init(CPUManager::total_cpus);
 
     uint64_t pml4_phys = global_page_table_manager.get_physical_address(global_page_table_manager.PML4);
-    prepare_ap_trampoline(pml4_phys, (uint64_t)idt_ptr);
+    prepare_ap_trampoline(pml4_phys);
 
     CPUManager::smp_init();
-  //  CPUManager::start_all_aps();
-    CPUManager::print_cpu_info();
+    //CPUManager::print_cpu_info();
+
   //  StackManager::print_stack_info();
 
  //   PCI::enumerate_pci(ACPI::TableManager::get_mcfg());

@@ -2,6 +2,8 @@
 #include "../../../kernel/utils/panic.h"
 #include "../../../drivers/io/io.h"
 #include "apic.h"
+#include "../../../kernel/scheduling/scheduler.h"
+#include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../include/log.h"
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame* frame) {
@@ -11,23 +13,23 @@ __attribute__((interrupt)) void page_fault_handler(interrupt_frame* frame) {
     
     // Hole Error Code
     uint64_t error_code = frame->error_code;
-    
-    Log::Error("PAGE FAULT: addr=0x%llx, error=0x%llx, rip=0x%llx", 
+
+    Log::Error("PAGE FAULT: addr=0x%llx, error=0x%llx, rip=0x%llx",
                fault_addr, error_code, frame->rip);
-    
+
     // Dekodiere Error Code
     Log::Error("  Present: %s, Write: %s, User: %s, Reserved: %s",
                (error_code & 1) ? "Yes" : "No",
-               (error_code & 2) ? "Yes" : "No", 
+               (error_code & 2) ? "Yes" : "No",
                (error_code & 4) ? "Yes" : "No",
                (error_code & 8) ? "Yes" : "No");
-    
+
     panic("Page fault detected");
     while (true);
 }
 
 __attribute__((interrupt)) void double_fault_handler(interrupt_frame* frame) {
-    Log::Error("DOUBLE FAULT: rip=0x%llx, error=0x%llx", 
+    Log::Error("DOUBLE FAULT: rip=0x%llx, error=0x%llx",
                frame->rip, frame->error_code);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
@@ -36,12 +38,12 @@ __attribute__((interrupt)) void double_fault_handler(interrupt_frame* frame) {
 }
 
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame) {
-    Log::Error("GENERAL PROTECTION FAULT: rip=0x%llx, error=0x%llx", 
+    Log::Error("GENERAL PROTECTION FAULT: rip=0x%llx, error=0x%llx",
                frame->rip, frame->error_code);
     
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
-    
+
     if (frame->error_code & 0x1) {
         Log::Error("  External event caused fault");
     }
@@ -52,10 +54,10 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame* frame) {
     } else {
         Log::Error("  GDT referenced");
     }
-    
+
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Selector: 0x%x", selector);
-    
+
     panic("General protection fault detected");
     while (true);
 }
@@ -77,11 +79,11 @@ __attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame* frame) {
 
 // Stack Segment Fault (Vector 12)
 __attribute__((interrupt)) void stack_fault_handler(interrupt_frame* frame) {
-    Log::Error("STACK FAULT: rip=0x%llx, error=0x%llx", 
+    Log::Error("STACK FAULT: rip=0x%llx, error=0x%llx",
                frame->rip, frame->error_code);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
-    
+
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Stack selector: 0x%x", selector);
     
@@ -95,10 +97,10 @@ __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame* fra
                frame->rip, frame->error_code);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
-    
+
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Missing segment selector: 0x%x", selector);
-    
+
     if (frame->error_code & 0x2) {
         Log::Error("  IDT referenced");
     } else if (frame->error_code & 0x4) {
@@ -106,7 +108,7 @@ __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame* fra
     } else {
         Log::Error("  GDT referenced");
     }
-    
+
     panic("Segment not present");
     while (true);
 }
@@ -156,6 +158,7 @@ __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame) {
 __attribute__((interrupt))
 void apic_timer_int_handler(interrupt_frame* frame) {
     apic_timer_tick();
+    kernel::scheduling::tick();
     lapic_eoi();
 }
 

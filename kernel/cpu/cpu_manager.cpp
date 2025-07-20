@@ -85,7 +85,7 @@ namespace CPUManager {
                 timeout_counter++;
             }
             if (timeout_counter == 20) continue;
-
+            online_cpus++;
             cpu_infos[i].kernel_stack = report->stack_pointer;
             cpu_infos[i].state = CPU_STATE_ONLINE;
         }
@@ -167,6 +167,7 @@ namespace CPUManager {
         lapic_write(LAPIC_ICRLO, 0xC0000 | vector); // All except self, vector
     }
 
+    // this shit is disabling interrupts idk how but it does
     void print_cpu_info() {
         if (!is_initialized) {
             Log::Info("CPU Manager not initialized");

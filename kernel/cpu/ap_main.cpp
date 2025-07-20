@@ -5,23 +5,21 @@
 #include "stdint.h"
 #include "../scheduling/scheduler.h"
 #include "../utils/panic.h"
+#include "../../arch/x86_64/interrupts/apic.h"
 #include "../../include/log.h"
 
 extern "C" void ap_main(uint32_t apic_id) {
 
-    uint32_t cpu_id = -1;
-    for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
-        if (CPUManager::cpu_infos[i].apic_id == apic_id) {
-            cpu_id = CPUManager::cpu_infos[i].cpu_id;
-            break;
-        }
-    }
+    const uint32_t cpu_id = CPUManager::get_current_cpu_id();
+
+    lapic_init(cpu_id);
 
     if (!cpu_id) {
         panic("Failed to find CPU ID");
     }
 
-    scheduler_init_cpu(cpu_id);
+    kernel::scheduling::enable_on_cpu(cpu_id);
+    kernel::scheduling::yield();
 
     panic("AP core returned from context switch");
 }

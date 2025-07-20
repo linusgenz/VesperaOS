@@ -106,7 +106,7 @@ $(ISO): bootloader $(KERNEL_ELF)
 test: $(DISK_IMG)
 	qemu-system-x86_64 -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
 	-smp cores=8 \
-	-m 256m \
+	-m 4G \
 	-machine q35 \
 	-enable-kvm \
 	-cpu host \
@@ -117,6 +117,7 @@ test: $(DISK_IMG)
 	-device usb-mouse \
 	-device nvme,drive=host0,serial=deadbeef \
 	-monitor stdio \
+
 #-d int,guest_errors,cpu_reset \
 
 debug:

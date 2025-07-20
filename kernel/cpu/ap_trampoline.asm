@@ -98,16 +98,16 @@ ap64:
         mov rsp, 0x1000
         lock xadd [next_sp], rsp
 
-     ;   lidt [idt]
+        lidt [idt]
 
-    ;    mov rsi, [local_apic_address]
+      ;  mov rsi, [local_apic_address]
      ;   add rsi, 0x00f0             ; Spurious Interrupt Vector
       ;  mov rdi, rsi
       ;  lodsd
       ;  or eax, 0x100
       ;  stosd
 
-       ; sti
+        sti
 
         mov eax, 1
         cpuid

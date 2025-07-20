@@ -11,6 +11,7 @@
 
 namespace kernel::time {
     void sleep_ms(uint64_t ms);
+    void thread_sleep_ms(uint64_t ms);
     uint64_t get_ticks();
     uint64_t get_uptime_ms();
 

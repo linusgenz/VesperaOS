@@ -68,7 +68,7 @@
 
 void lapic_eoi();
 void apic_timer_tick();
-void lapic_init();
+void lapic_init(uint8_t cpu_id);
 void wait_for_delivery();
 
 uint32_t local_apic_get_id();

@@ -6,8 +6,8 @@
 #include "../acpi/madt.h"
 #include "../memory/stack_manager.h"
 
-
-#define AP_STARTUP_CODE_BASE 0x8000  // Real-Mode Code für AP-Startup
+#define KERNEL_STACK_BASE 0x20000
+#define KERNEL_STACK_SIZE 0x1000
 #define CPU_ID_REG 0x6008
 #define CPU_READY_REG 0x600C
 #define SIPI_VECTOR 0x8
