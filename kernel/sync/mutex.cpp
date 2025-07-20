@@ -1,0 +1,42 @@
+//
+// Created by Linus on 20.07.25.
+//
+
+#include "mutex.h"
+
+#include "../../include/log.h"
+#include "../scheduling/scheduler.h"
+
+namespace kernel {
+
+    void mutex_init(mutex_t* m) {
+        m->locked = false;
+        m->waiters = nullptr;
+    }
+
+    void mutex_lock(mutex_t* m) {
+        while (__sync_lock_test_and_set(&m->locked, true)) {
+            kthread_t* current = scheduling::get_current_thread();
+            current->state = THREAD_BLOCKED;
+
+            // In Warteliste einfügen
+            current->next = m->waiters;
+            m->waiters = current;
+
+            scheduling::yield(); // Blockiere diesen Thread
+        }
+    }
+
+    void mutex_unlock(mutex_t* m) {
+        m->locked = false;
+
+        if (m->waiters) {
+            kthread_t* to_wake = m->waiters;
+            m->waiters = m->waiters->next;
+
+            to_wake->state = THREAD_READY;
+            scheduling::add_thread(to_wake);
+        }
+    }
+
+}

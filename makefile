@@ -53,7 +53,7 @@ version:
 
 img: $(DISK_IMG)
 
-$(DISK_IMG): clean bootloader version $(KERNEL_ELF)
+$(DISK_IMG): bootloader version $(KERNEL_ELF)
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
 	$(MKFS_FAT) -F 32 -n "LuminOS" $@

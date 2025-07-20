@@ -6,13 +6,18 @@
 #include "../include/string.h"
 
 BasicRenderer *Log::renderer = nullptr;
+spinlock_t Log::log_spin = {};
+kernel::mutex_t Log::log_mutex = {};
+bool Log::initialized = false;
+
+void Log::init() {
+    initialized = true;
+    kernel::mutex_init(&log_mutex);
+}
 
 void Log::SetRenderer(BasicRenderer *r) {
     renderer = r;
 }
-
-spinlock_t Log::log_lock = {};
-
 
 void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = false) {
     char *digits = "0123456789ABCDEF";
@@ -42,7 +47,11 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
 }
 
 void Log::Info(const char *fmt, ...) {
-    spinlock_guard g(log_lock);
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -53,14 +62,22 @@ void Log::Info(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
 
     renderer->print("\n");
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
 void Log::Ok(const char *fmt, ...) {
-    spinlock_guard g(log_lock);
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
 
     Colour old = renderer->get_colour();
     renderer->print("[   ");
@@ -71,14 +88,22 @@ void Log::Ok(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
 
     renderer->print("\n");
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
 void Log::Warning(const char *fmt, ...) {
-    spinlock_guard g(log_lock);
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
 
     Colour old = renderer->get_colour();
     renderer->print("[ ");
@@ -89,14 +114,22 @@ void Log::Warning(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
 
     renderer->print("\n");
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
 void Log::Error(const char *fmt, ...) {
-    spinlock_guard g(log_lock);
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -107,14 +140,22 @@ void Log::Error(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
 
     renderer->print("\n");
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
 void Log::LogMsg(const char *fmt, ...) {
-    spinlock_guard g(log_lock);
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
 
     Colour old = renderer->get_colour();
     renderer->print("[   ");
@@ -125,30 +166,53 @@ void Log::LogMsg(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
 
     renderer->print("\n");
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
 void Log::PrintLn(const char *fmt, ...) {
-    spinlock_guard g(log_lock);
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
+
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
 
     renderer->print("\n");
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
 void Log::Print(const char *fmt, ...) {
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
+
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    PrintFormatted(fmt, args);
+    print_formatted(fmt, args);
     __builtin_va_end(args);
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
 }
 
-void Log::PrintFormatted(const char *fmt, __builtin_va_list args) {
+void Log::print_formatted(const char *fmt, __builtin_va_list args) {
     char chr;
     while ((chr = *fmt++) != 0) {
         if (chr == '%') {

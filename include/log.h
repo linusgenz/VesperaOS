@@ -2,7 +2,8 @@
 #define LOG_H
 
 #include "../kernel/include/basic_renderer.h"
-#include "../kernel/scheduling/spinlock.h"
+#include "../kernel/sync/spinlock.h"
+#include "../kernel/sync/mutex.h"
 #include "graphics.h"
 
 class Log {
@@ -18,10 +19,16 @@ public:
     static void PrintLn(const char *fmt, ...);
     static void Print(const char *fmt, ...);
 
+    static void init();
+
 private:
     static BasicRenderer* renderer;
-    static void PrintFormatted(const char *fmt, __builtin_va_list args);
+    static void print_formatted(const char *fmt, __builtin_va_list args);
     static spinlock_t log_lock;
+
+    static spinlock_t log_spin;
+    static kernel::mutex_t log_mutex;
+    static bool initialized;
 };
 
 #endif // LOG_H

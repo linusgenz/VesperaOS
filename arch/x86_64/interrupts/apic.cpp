@@ -29,7 +29,6 @@ void wait_for_delivery() {
 
 void lapic_init(uint8_t cpu_id)
 {
-    // Clear task priority to enable all interrupts
     lapic_write(LAPIC_TPR, 0);
 
     // Logical Destination Mode
@@ -43,24 +42,20 @@ void lapic_init(uint8_t cpu_id)
 
     lapic_write(LAPIC_TDCR, 0x3); // Divide by 16
     lapic_write(LAPIC_TICR, 0xFFFFFFFF);
-   // lapic_write(LAPIC_TIMER, IRQ_TIMER | 0x00b);
 
     pmt_delay(10000); // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
-  //  lapic_write(LAPIC_TDCR, 0x10000);     // 0x10000 = masked, sdm
     uint32_t calibration = 0xffffffff - lapic_read(LAPIC_TCCR);
     lapic_write(LAPIC_TIMER, 32 | LAPIC_PERIODIC);
     lapic_write( LAPIC_TDCR, 0x3);         // 16
     lapic_write( LAPIC_TICR, calibration);
-  //  lapic_write(LAPIC_TICR, 1000000); // 128/16 = Faktor 8
 }
+
 
 void pmt_delay(const size_t us){
     ACPI::FADT* fadt = ACPI::TableManager::get_fadt();
 
     if(fadt->pm_timer_length != 4){
-
-        Log::Error("ACPI Timer unavailable"); // panic for now
         panic("ACPI Timer unavailable");
     }
 
@@ -85,41 +80,12 @@ void apic_timer_tick() {
     uint32_t cpu = CPUManager::get_current_cpu_id();
     apic_ticks[cpu]++;
 
-    kernel::scheduling::cpu_scheduler_t* cpu_sched = &kernel::scheduling::global_scheduler.cpus[cpu];
-    kernel::scheduling::lock(&cpu_sched->lock);
 
-    kthread_t* prev = nullptr;
-    kthread_t* thread = cpu_sched->blocked_queue_head;
+    if (!kernel::scheduling::is_initialized()) return;
 
-    while (thread) {
-        if (apic_ticks[cpu] >= thread->wakeup_tick) {
-            // Wecke Thread
-            kthread_t* to_wake = thread;
-            if (prev) {
-                prev->next = thread->next;
-            } else {
-                cpu_sched->blocked_queue_head = thread->next;
-            }
-            thread = thread->next;
+    kernel::scheduling::cpu_scheduler::wake_sleeping_threads(cpu, apic_ticks[cpu]);
 
-            to_wake->state = THREAD_READY;
-            to_wake->next = nullptr;
-
-            // In ready queue einfügen
-            if (cpu_sched->ready_queue_tail) {
-                cpu_sched->ready_queue_tail->next = to_wake;
-                cpu_sched->ready_queue_tail = to_wake;
-            } else {
-                cpu_sched->ready_queue_head = to_wake;
-                cpu_sched->ready_queue_tail = to_wake;
-            }
-        } else {
-            prev = thread;
-            thread = thread->next;
-        }
-    }
-
-    kernel::scheduling::unlock(&cpu_sched->lock);
+    kernel::scheduling::cpu_scheduler::tick_cpu(cpu);
 }
 
 

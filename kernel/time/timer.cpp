@@ -14,34 +14,12 @@ extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
 namespace kernel::time {
     void thread_sleep_ms(uint64_t ms) {
         uint32_t cpu_id = CPUManager::get_current_cpu_id();
-        kernel::scheduling::cpu_scheduler_t *cpu = &kernel::scheduling::global_scheduler.cpus[cpu_id];
+        kthread_t* current = kernel::scheduling::cpu_scheduler::get_current_thread_on_cpu(cpu_id);
+        if (!current || current->is_idle_thread) return;
 
-        kernel::scheduling::lock(&cpu->lock);
-
-        kthread_t *current = cpu->current_thread;
-        if (!current) {
-            kernel::scheduling::unlock(&cpu->lock);
-            return;
-        }
 
         current->wakeup_tick = apic_ticks[cpu_id] + (ms + 9) / 10;
-        current->state = THREAD_BLOCKED;
-
-        if (!cpu->blocked_queue_head) {
-            cpu->blocked_queue_head = current;
-            current->next = nullptr;
-        } else {
-            kthread_t *iter = cpu->blocked_queue_head;
-            while (iter->next && iter->next->wakeup_tick <= current->wakeup_tick) {
-                iter = iter->next;
-            }
-
-            current->next = iter->next;
-            iter->next = current;
-
-        }
-
-        kernel::scheduling::unlock(&cpu->lock);
+        kernel::scheduling::cpu_scheduler::add_blocked_thread(current, cpu_id);
         kernel::scheduling::yield();
     }
 

@@ -57,10 +57,6 @@ static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_
     thread->is_idle_thread = false;
     thread->next = nullptr;
 
-    if (next_thread_id == 2) {
-        Log::PrintLn("top stack: %p", thread->stack_pointer);
-    }
-
     if (add_to_scheduler) {
         kernel::scheduling::add_thread(thread);
     }

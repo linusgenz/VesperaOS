@@ -152,21 +152,9 @@ void prepare_acpi(BootInfo* boot_info) {
 }
 
 void prepare_ap_trampoline(uint64_t pml4_phys) {
-
-   // memcpy((void*)trampoline_phys_addr, kernel_cpu_ap_trampoline_bin, kernel_cpu_ap_trampoline_bin_len);
     *(volatile uint64_t*)0x2000 = pml4_phys;
     *(IDTR*)0x1000 = idtr;
-    __asm__ volatile("wbinvd" ::: "memory");
-  /*  for (uint32_t i = 0; i < CPUManager::get_available_cpu_count(); i++) {
-        auto& cpu = CPUManager::cpu_infos[i];
-        if (cpu.is_bsp) continue;
-
-        void* stack_top = cpu.kernel_stack->stack_top;
-        uint64_t stack_phys = global_page_table_manager.get_physical_address(stack_top); // Diese Funktion brauchst du
-
-        *(volatile uint64_t*)(trampoline_phys_addr + pml4_ptr_offset)  = pml4_phys;
-        *(volatile uint64_t*)(trampoline_phys_addr + stack_ptr_offset) = stack_phys;
-    }*/
+ //   __asm__ volatile("wbinvd" ::: "memory");
 }
 
 extern uint8_t __bss_start[];
@@ -203,9 +191,8 @@ void initialize_kernel(BootInfo* bootInfo){
 
    prepare_interrupts();
 
-
-    pic_init();
     lapic_init(0);
+    pic_init();
 
     setup_scroll_buffer(bootInfo->framebuffer);
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
@@ -213,11 +200,11 @@ void initialize_kernel(BootInfo* bootInfo){
 
     CPUManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
-
+    Log::init(); // threads are possible -> switch to mutex
     uint64_t pml4_phys = global_page_table_manager.get_physical_address(global_page_table_manager.PML4);
     prepare_ap_trampoline(pml4_phys);
-
     CPUManager::smp_init();
+
     //CPUManager::print_cpu_info();
 
   //  StackManager::print_stack_info();
