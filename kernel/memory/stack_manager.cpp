@@ -1,6 +1,4 @@
 #include "stack_manager.h"
-#include "../include/page_frame_allocator.h"
-#include "../include/page_table_manager.h"
 #include "../include/memory.h"
 #include "../../include/log.h"
 #include "heap.h"
@@ -47,7 +45,7 @@ namespace StackManager {
         
         size_t pages_needed = (KERNEL_STACK_SIZE + 0xFFF) / 0x1000;
         
-        void* stack_base = global_allocator.request_pages(pages_needed);
+        void* stack_base = kernel::memory::request_pages(pages_needed);
         if (!stack_base) {
             Log::Error("Failed to allocate memory for kernel stack");
             return nullptr;
@@ -56,7 +54,7 @@ namespace StackManager {
         for (size_t i = 0; i < pages_needed; i++) {
             void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
             void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            global_page_table_manager.map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+            kernel::memory::map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
         }
         
         // Initialisiere Stack-Info
@@ -95,7 +93,7 @@ namespace StackManager {
         size_t pages_needed = stack_size / 0x1000;
         
         // Allokiere Pages für den Stack
-        void* stack_base = global_allocator.request_pages(pages_needed);
+        void* stack_base = kernel::memory::request_pages(pages_needed);
         if (!stack_base) {
             Log::Error("Failed to allocate memory for user stack");
             return nullptr;
@@ -105,7 +103,7 @@ namespace StackManager {
         for (size_t i = 0; i < pages_needed; i++) {
             void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
             void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            global_page_table_manager.map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+            kernel::memory::map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
         }
         
         // Initialisiere Stack-Info
@@ -144,7 +142,7 @@ namespace StackManager {
         // }
         
         // Gebe Pages frei
-        global_allocator.free_pages(stack_info->stack_base, pages_needed);
+        kernel::memory::free_pages(stack_info->stack_base, pages_needed);
         
         // Markiere Stack als frei
         stack_info->stack_base = nullptr;
@@ -186,14 +184,14 @@ namespace StackManager {
         void* guard_page = (void*)((uint64_t)stack_info->stack_base - 0x1000);
         
         // Allokiere eine Page für den Guard
-        void* guard_phys = global_allocator.request_page();
+        void* guard_phys = kernel::memory::request_page();
         if (!guard_phys) {
             Log::Warning("Failed to allocate guard page");
             return;
         }
         
         // Mappe die Guard-Page als read-only (keine write-permission)
-        global_page_table_manager.map_memory(guard_page, guard_phys);
+        kernel::memory::map_memory(guard_page, guard_phys);
         
         Log::Info("Setup stack guard page at 0x%p", guard_page);
     }

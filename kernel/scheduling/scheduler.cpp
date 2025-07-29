@@ -2,10 +2,11 @@
 // Created by Linus on 17.07.25.
 //
 
-#include "scheduler.h"
+#include "../include/scheduler.h"
 #include "cpu_scheduler.h"
 #include "thread_manager.h"
 #include "../cpu/cpu_manager.h"
+#include "thread.h"
 
 namespace kernel::scheduling {
 
@@ -18,6 +19,10 @@ namespace kernel::scheduling {
         for (uint32_t i = 0; i < num_cpus; i++) {
             cpu_scheduler::init_cpu(i);
         }
+    }
+
+    kthread_t* create_kthread(void (*func)(void*), void* arg, uint8_t cpu_id) {
+        return ::create_kthread(func, arg, cpu_id);
     }
 
     void add_thread(kthread_t* thread) {

@@ -6,7 +6,6 @@
 #define PCI_H
 #include <stdint.h>
 #include "../../kernel/acpi/acpi.h"
-#include "../../kernel/include/page_table_manager.h"
 #include "../../kernel/include/basic_renderer.h"
 #include "../../include/string.h"
 

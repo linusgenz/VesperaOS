@@ -1,9 +1,7 @@
 #include "ahci.h"
 #include "../../kernel/include/basic_renderer.h"
-#include "../../kernel/include/page_table_manager.h"
-#include "../../kernel/include/page_frame_allocator.h"
-#include "../../kernel/memory/heap.h"
 #include "../../include/log.h"
+#include "../../kernel/include/memory.h"
 
 namespace AHCI {
 #define HBA_PORT_DEV_PRESENT 0x3
@@ -65,12 +63,12 @@ namespace AHCI {
     void Port::Configure() {
         StopCMD();
 
-        void *newBase = global_allocator.request_page();
+        void *newBase = kernel::memory::request_page();
         hbaPort->commandListBase = (uint32_t) (uint64_t) newBase;
         hbaPort->commandListBaseUpper = (uint32_t) ((uint64_t) newBase >> 32);
         memset((void *) (hbaPort->commandListBase), 0, 1024);
 
-        void *fisBase = global_allocator.request_page();
+        void *fisBase = kernel::memory::request_page();
         hbaPort->fisBaseAddress = (uint32_t) (uint64_t) fisBase;
         hbaPort->fisBaseAddressUpper = (uint32_t) ((uint64_t) fisBase >> 32);
         memset(fisBase, 0, 256);
@@ -81,7 +79,7 @@ namespace AHCI {
         for (int i = 0; i < 32; i++) {
             cmdHeader[i].prdtLength = 8;
 
-            void *cmdTableAddress = global_allocator.request_page();
+            void *cmdTableAddress = kernel::memory::request_page();
             uint64_t address = (uint64_t) cmdTableAddress + (i << 8);
             cmdHeader[i].commandTableBaseAddress = (uint32_t) (uint64_t) address;
             cmdHeader[i].commandTableBaseAddressUpper = (uint32_t) ((uint64_t) address >> 32);
@@ -247,7 +245,7 @@ namespace AHCI {
 
         ABAR = (HBAMemory *) ((PCI::PCIHeader0 *) pciBaseAddress)->BAR5;
 
-        global_page_table_manager.map_memory(ABAR, ABAR);
+        kernel::memory::map_memory(ABAR, ABAR);
         ProbePorts();
 
         for (int i = 0; i < portCount; i++) {
@@ -255,9 +253,8 @@ namespace AHCI {
 
             port->Configure();
 
-            port->buffer = static_cast<uint8_t *>(global_allocator.request_page());
+            port->buffer = static_cast<uint8_t *>(kernel::memory::request_page());
             memset(port->buffer, 0, 0x1000);
-
         }
     }
 

@@ -8,31 +8,24 @@
 #include "../include/log.h"
 #include "memory/stack_manager.h"
 #include "cpu/cpu_manager.h"
-#include "scheduling/scheduler.h"
+#include "include/scheduler.h"
 #include "../arch/x86_64/interrupts/ioapic.h"
 
 void prepare_memory(BootInfo* bootInfo){
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
-    global_allocator = PageFrameAllocator();
-
-    global_allocator.read_efi_memory_map(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+    kernel::memory::initialize_page_frame_allocator(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
     const uint64_t kernelStart = reinterpret_cast<uint64_t>(&_KernelStart);
     const uint64_t kernelEnd = reinterpret_cast<uint64_t>(&_KernelEnd);
     const uint64_t kernelSize = kernelEnd - kernelStart;
     const uint64_t kernelPages = kernelSize / 4096 + 1;
 
-    global_allocator.lock_pages(&_KernelStart, kernelPages);
+    kernel::memory::lock_pages(&_KernelStart, kernelPages);
+    kernel::memory::lock_pages(nullptr, 256);
 
-    global_allocator.lock_pages(nullptr, 256);
 
-
-    PageTable* PML4 = (PageTable*)global_allocator.request_page();
-    memset(PML4, 0, 0x1000);
-
-    global_page_table_manager = PageTableManager(PML4);
-
+    kernel::memory::initialize_page_table_manager();
 
     // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob
     for (int i = 0; i < mMapEntries; i++) {
@@ -40,40 +33,40 @@ void prepare_memory(BootInfo* bootInfo){
       //  if (desc->type != 7) continue; // Nur EfiConventionalMemory
 
         for (uint64_t addr = desc->phys_addr; addr < desc->phys_addr + desc->num_pages * 0x1000; addr += 0x1000) {
-            global_page_table_manager.map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
+            kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
         }
     }
 
     for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
-        global_page_table_manager.map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
+        kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
     }
 
     for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
         void* stack_addr = (void*)(KERNEL_STACK_BASE + i * KERNEL_STACK_SIZE);
-        global_page_table_manager.map_memory(stack_addr, stack_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(stack_addr, stack_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
     }
 
-    global_page_table_manager.map_memory((void*)0x8000, (void*)0x8000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    global_page_table_manager.map_memory((void*)0x7000, (void*)0x7000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    global_page_table_manager.map_memory((void*)0x6000, (void*)0x6000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    global_page_table_manager.map_memory((void*)0x1000, (void*)0x1000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    global_page_table_manager.map_memory((void*)0x2000, (void*)0x2000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)0x8000, (void*)0x8000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)0x7000, (void*)0x7000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)0x6000, (void*)0x6000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)0x1000, (void*)0x1000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)0x2000, (void*)0x2000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
     uint64_t fb_base = (uint64_t)bootInfo->framebuffer->base_address;
     uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
-    global_allocator.lock_pages((void*)fb_base, fb_size/ 0x1000 + 1);
+    kernel::memory::lock_pages((void*)fb_base, fb_size/ 0x1000 + 1);
     for (uint64_t t = fb_base; t < fb_base + fb_size; t += 0x1000){
-        global_page_table_manager.map_memory((void*)t, (void*)t);
+        kernel::memory::map_memory((void*)t, (void*)t);
     }
 
-    asm ("mov %0, %%cr3" : : "r" (PML4));
+    asm ("mov %0, %%cr3" : : "r" (kernel::memory::get_pagetable_address()));
 }
 
 extern "C" void irq_stub_0x30();
 void prepare_interrupts() {
-    global_page_table_manager.map_memory((void*)g_localApicAddr, (void*)g_localApicAddr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)g_localApicAddr, (void*)g_localApicAddr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
-    void* idt_page = global_allocator.request_page();
+    void* idt_page = kernel::memory::request_page();
     memset(idt_page, 0, 0x1000);
 
     idtr.limit = 0x0FFF;
@@ -179,7 +172,7 @@ void initialize_kernel(BootInfo* bootInfo){
     load_GDT(&gdt_descriptor);
 
     prepare_memory(bootInfo);
-    initialize_heap((void*)0x0000100000000000, 0x500);
+    kernel::memory::initialize_heap((void*)0x0000100000000000, 0x500);
 
     prepare_acpi(bootInfo);
     MADT::parse_madt(ACPI::TableManager::get_madt());
@@ -188,8 +181,6 @@ void initialize_kernel(BootInfo* bootInfo){
 
     initialize_ps2_mouse();
 
-    outb(PIC1_DATA, 0b11111001); // = 0xFD → IRQ1 (keyboard) activated
-    outb(PIC2_DATA, 0b11101111); // = 0xEF → IRQ12 (mouse) activated
     asm ("sti");
 
     lapic_init(0);
@@ -201,12 +192,12 @@ void initialize_kernel(BootInfo* bootInfo){
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
-//    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
     CPUManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
     Log::init(); // threads are possible -> switch to mutex
-    uint64_t pml4_phys = global_page_table_manager.get_physical_address(global_page_table_manager.PML4);
+    uint64_t pml4_phys = kernel::memory::get_pagetable_address();
     prepare_ap_trampoline(pml4_phys);
 
     CPUManager::smp_init();
@@ -216,8 +207,10 @@ void initialize_kernel(BootInfo* bootInfo){
   //  StackManager::print_stack_info();
 
 
-    Log::Info("Free RAM: %u mb", global_allocator.get_free_ram() / 1024 / 1024);
-    Log::Info("Reserved RAM: %u mb", global_allocator.get_reserved_ram() / 1024 / 1024);
-    Log::Info("Used RAM: %u mb", global_allocator.get_used_ram() / 1024 / 1024);
+    Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
+    Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
+    Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
+    outb(PIC1_DATA, 0b11111001); // = 0xFD → IRQ1 (keyboard) activated
+    outb(PIC2_DATA, 0b11101111); // = 0xEF → IRQ12 (mouse) activated
 }

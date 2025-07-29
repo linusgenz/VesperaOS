@@ -3,10 +3,10 @@
 //
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
-#include "efi_memory.h"
+#include "../include/efi_memory.h"
 #include <stdint.h>
-#include "bitmap.h"
-#include "memory.h"
+#include "../include/bitmap.h"
+#include "../include/memory.h"
 
 class PageFrameAllocator {
     public:
@@ -43,7 +43,5 @@ class PageFrameAllocator {
     bool initialized;
 
 };
-
-extern PageFrameAllocator global_allocator;
 
 #endif // PAGE_FRAME_ALLOCATOR_H

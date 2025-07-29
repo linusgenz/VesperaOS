@@ -1,12 +1,10 @@
 #include "cpu_manager.h"
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../include/page_table_manager.h"
-#include "../include/page_frame_allocator.h"
 #include "../include/memory.h"
 #include "../../include/log.h"
 #include "../acpi/madt.h"
 #include "../time/time.h"
-#include "../scheduling/scheduler.h"
+#include "../include/scheduler.h"
 
 namespace CPUManager {
     // Globale Variablen

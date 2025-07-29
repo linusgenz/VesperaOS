@@ -3,10 +3,8 @@
 //
 #include "time.h"
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../../include/log.h"
 #include "../cpu/cpu_manager.h"
-#include "../include/page_frame_allocator.h"
-#include "../scheduling/scheduler.h"
+#include "../include/scheduler.h"
 #include "../scheduling/thread.h"
 
 extern volatile uint64_t apic_ticks[MAX_CPU_CORES];

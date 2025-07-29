@@ -6,10 +6,8 @@
 
 #include "../include/log.h"
 #include "../kernel/include/memory.h"
-#include "../kernel/memory/heap.h"
 #include "../include/string.h"
 #include "../kernel/include/basic_renderer.h"
-#include "../kernel/include/page_frame_allocator.h"
 #include "../include/path.h"
 
 namespace FAT32 {
@@ -36,11 +34,11 @@ namespace FAT32 {
     }
 
     uint8_t* AllocClusterBuffer(uint32_t clusterBytes) {
-        return (uint8_t*)global_allocator.request_pages((clusterBytes + 0xFFF) / 0x1000);
+        return (uint8_t*)kernel::memory::request_pages((clusterBytes + 0xFFF) / 0x1000);
     }
 
     void FreeClusterBuffer(uint8_t* ptr, uint32_t clusterBytes) {
-        global_allocator.free_pages(ptr, (clusterBytes + 0xFFF) / 0x1000);
+        kernel::memory::free_pages(ptr, (clusterBytes + 0xFFF) / 0x1000);
     }
 
 
@@ -241,7 +239,7 @@ namespace FAT32 {
 
         uint32_t clusterSize = bytesPerCluster();
         size_t pagesNeeded = (clusterSize + 4095) / 4096;
-        uint8_t *clusterBuffer = static_cast<uint8_t *>(global_allocator.request_pages(pagesNeeded));
+        uint8_t *clusterBuffer = static_cast<uint8_t *>(kernel::memory::request_pages(pagesNeeded));
         if (!clusterBuffer) {
             free(clusters);
             free(entries);

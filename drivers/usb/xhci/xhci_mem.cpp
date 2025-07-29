@@ -24,12 +24,10 @@
 #include <stdint.h>
 
 #include "../../../kernel/include/memory.h"
-#include "../../../kernel/include/page_frame_allocator.h"
-#include "../../../kernel/include/page_table_manager.h"
 #include "../../../include/log.h"
 
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
-    global_page_table_manager.map_range(pci_bar_address, pci_bar_address, bar_size, PT_Flag::CacheDisabled);
+    kernel::memory::map_range((void*)pci_bar_address, (void*)pci_bar_address, bar_size, PT_Flag::CacheDisabled);
 
     return pci_bar_address;
 }
@@ -40,7 +38,7 @@ void *alloc_xhci_memory(size_t size, size_t alignment, size_t boundary) {
         Log::Error("Invalid memory alignment");
     }
 
-    void *memblock = alloc_aligned(alignment, size, boundary);
+    void *memblock = kernel::memory::alloc_aligned(alignment, size, boundary);
 
     if (!memblock) {
         Log::Error("Failed to allocate memory");
@@ -52,9 +50,9 @@ void *alloc_xhci_memory(size_t size, size_t alignment, size_t boundary) {
 }
 
 void free_xhci_memory(void *ptr) {
-    free_aligned(ptr);
+    kernel::memory::free_aligned(ptr);
 }
 
 uintptr_t xhci_get_physical_addr(void *virt) {
-    return global_page_table_manager.get_physical_address(virt);
+    return kernel::memory::get_physical_address(virt);
 }

@@ -23,7 +23,6 @@
 
 #include "ioapic.h"
 #include "../../../include/log.h"
-#include "../../../kernel/include/page_table_manager.h"
 
 static MADT::IoApic* find_ioapic_for_gsi(uint32_t gsi) {
     MADT::IoApic *apics = MADT::get_ioapics();
@@ -57,7 +56,7 @@ static uint16_t get_flags_for_irq(uint8_t irq) {
 }
 
 static volatile uint32_t *map_ioapic(uintptr_t address) {
-    global_page_table_manager.map_memory ((void*)address, (void*)address);
+    kernel::memory::map_memory ((void*)address, (void*)address);
     return reinterpret_cast<volatile uint32_t*>(address);
 }
 

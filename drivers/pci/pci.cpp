@@ -13,7 +13,7 @@ namespace PCI {
         uint64_t offset = function << 12;
 
         uint64_t function_address = device_address + offset;
-        global_page_table_manager.map_memory(reinterpret_cast<void *>(function_address),
+        kernel::memory::map_memory(reinterpret_cast<void *>(function_address),
                                              reinterpret_cast<void *>(function_address));
 
         auto *pci_device_header = reinterpret_cast<PCIDeviceHeader *>(function_address);
@@ -157,7 +157,7 @@ namespace PCI {
         uint64_t offset = device << 15;
 
         uint64_t device_address = bus_address + offset;
-        global_page_table_manager.map_memory((void *) device_address, (void *) device_address);
+        kernel::memory::map_memory((void *) device_address, (void *) device_address);
 
         PCI::PCIDeviceHeader *pci_device_header = (PCIDeviceHeader *) device_address;
 
@@ -173,7 +173,7 @@ namespace PCI {
         uint64_t offset = bus << 20;
 
         uint64_t bus_address = base_address + offset;
-        global_page_table_manager.map_memory((void *) bus_address, (void *) bus_address);
+        kernel::memory::map_memory((void *) bus_address, (void *) bus_address);
 
         PCI::PCIDeviceHeader *pci_device_header = (PCIDeviceHeader *) bus_address;
 

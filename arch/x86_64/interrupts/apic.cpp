@@ -6,8 +6,7 @@
 #include "../../../drivers/io/io.h"
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/include/page_frame_allocator.h"
-#include "../../../kernel/scheduling/scheduler.h"
+#include "../../../kernel/include/scheduler.h"
 #include "../../../kernel/utils/panic.h"
 #include "../interrupts/interrupts.h"
 

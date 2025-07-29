@@ -4,18 +4,17 @@
 
 #include "nvme.h"
 #include "../../include/log.h"
-#include "../../kernel/include/page_frame_allocator.h"
 #include "../../kernel/time/time.h"
 
 namespace NVMe {
     NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader *pciBaseAddress) {
         const PCI::PCIHeader0 *pci = reinterpret_cast<const PCI::PCIHeader0 *>(pciBaseAddress);
         auto mmio = (((uint64_t) pci->BAR1 << 32) | (pci->BAR0 & 0xFFFFFFF0));
-        c_regs = reinterpret_cast<Registers *>(global_allocator.request_pages(4));
+        c_regs = reinterpret_cast<Registers *>(kernel::memory::request_pages(4));
         for (int i = 0; i < 4; i++) {
             auto virt = reinterpret_cast<void *>((uintptr_t) c_regs + i * 0x1000);
             auto phys = reinterpret_cast<void *>(mmio + i * 0x1000);
-            global_page_table_manager.map_memory(virt, phys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+            kernel::memory::map_memory(virt, phys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
         }
 
         Log::Info("[NVMe] Initializing Controller...");
@@ -35,22 +34,22 @@ namespace NVMe {
 
         c_regs->config |= NVME_CFG_DEFAULT_IOCQES | NVME_CFG_DEFAULT_IOSQES;
 
-        void *admCQPhysPage = global_allocator.request_page();
-        void *admSQPhysPage = global_allocator.request_page();
+        void *admCQPhysPage = kernel::memory::request_page();
+        void *admSQPhysPage = kernel::memory::request_page();
         if (!admCQPhysPage || !admSQPhysPage) {
             Log::Error("[NVMe] No physical pages for admin queues");
             return;
         }
 
-        void *admCQVirtPage = global_allocator.request_page();
-        void *admSQVirtPage = global_allocator.request_page();
+        void *admCQVirtPage = kernel::memory::request_page();
+        void *admSQVirtPage = kernel::memory::request_page();
         if (!admCQVirtPage || !admSQVirtPage) {
             Log::Error("[NVMe] No virtual pages for admin queues");
             return;
         }
 
-        global_page_table_manager.map_memory(admCQVirtPage, admCQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-        global_page_table_manager.map_memory(admSQVirtPage, admSQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(admCQVirtPage, admCQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(admSQVirtPage, admSQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
         memset(admCQVirtPage, 0, PAGE_SIZE_4K);
         memset(admSQVirtPage, 0, PAGE_SIZE_4K);
@@ -105,7 +104,7 @@ namespace NVMe {
         for (int i = 0; i < namespaceIDs.size(); i++) {
             Log::LogMsg("[NVMe] Namespace ID %u", namespaceIDs[i]);
 
-            void* physBuffer = global_allocator.request_page();
+            void* physBuffer = kernel::memory::request_page();
             NvmeCompletion completion{};
             NvmeCommand identifyNsCmd = {};
             identifyNsCmd.opcode = AdminCmdIdentify;
@@ -131,19 +130,19 @@ namespace NVMe {
     }
 
     long NvmeDriver::IdentifyController() {
-        controller_identity_phys = reinterpret_cast<uintptr_t>(global_allocator.request_page());
+        controller_identity_phys = reinterpret_cast<uintptr_t>(kernel::memory::request_page());
         if (!controller_identity_phys) {
             Log::Error("[NVMe] No physical memory for controller identifiy");
             return -1;
         }
 
-        controller_identity = (ControllerIdentity *) global_allocator.request_page();
+        controller_identity = (ControllerIdentity *) kernel::memory::request_page();
         if (!controller_identity) {
             Log::Error("[NVMe] No virtual memory for controller identify");
             return -1;
         }
 
-        global_page_table_manager.map_memory(controller_identity, reinterpret_cast<void *>(controller_identity_phys),
+        kernel::memory::map_memory(controller_identity, reinterpret_cast<void *>(controller_identity_phys),
                                              true);
 
         NvmeCommand identifyCommand{};
@@ -185,8 +184,8 @@ namespace NVMe {
     }
 
     long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespaceIDs) {
-        uint32_t *namespaceList = reinterpret_cast<uint32_t *>(global_allocator.request_page());
-        global_page_table_manager.map_memory(namespaceList, namespaceList, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        uint32_t *namespaceList = reinterpret_cast<uint32_t *>(kernel::memory::request_page());
+        kernel::memory::map_memory(namespaceList, namespaceList, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
         NvmeCommand identifyNsList;
         memset(&identifyNsList, 0, sizeof(NvmeCommand));
@@ -209,28 +208,28 @@ namespace NVMe {
             namespaceIDs->push_back(*namespaceList++);
         }
 
-        global_allocator.free_page(namespaceList);
+        kernel::memory::free_page(namespaceList);
 
         return 0;
     }
 
     long NvmeDriver::CreateIOQueue(NvmeQueue *queue_ptr) {
-        void *sqPhys = global_allocator.request_page();
-        void *cqPhys = global_allocator.request_page();
+        void *sqPhys = kernel::memory::request_page();
+        void *cqPhys = kernel::memory::request_page();
         if (!sqPhys || !cqPhys) {
             Log::Error("[NVMe] Failed to allocate physical pages for IO queue");
             return -1;
         }
 
-        void *sqVirt = global_allocator.request_page();
-        void *cqVirt = global_allocator.request_page();
+        void *sqVirt = kernel::memory::request_page();
+        void *cqVirt = kernel::memory::request_page();
         if (!sqVirt || !cqVirt) {
             Log::Error("[NVMe] Failed to allocate virtual pages for IO queue");
             return -1;
         }
 
-        global_page_table_manager.map_memory(sqVirt, sqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-        global_page_table_manager.map_memory(cqVirt, cqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(sqVirt, sqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(cqVirt, cqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
         uint16_t queueID = AllocateQueueID();
 

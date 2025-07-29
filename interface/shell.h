@@ -7,6 +7,6 @@
 
 #define SHELL_PREFIX_STRING " > "
 void process_command(const char *command);
-void shell_loop();
+void shell_loop(void* arg);
 
 #endif //SHELL_H

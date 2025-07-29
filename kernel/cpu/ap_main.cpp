@@ -3,7 +3,7 @@
 //
 #include "cpu_manager.h"
 #include "stdint.h"
-#include "../scheduling/scheduler.h"
+#include "../include/scheduler.h"
 #include "../utils/panic.h"
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../../include/log.h"

@@ -1,18 +1,15 @@
-#include "../include/page_table_manager.h"
-#include "../include/page_map_indexer.h"
-#include "../include/page_frame_allocator.h"
+#include "../memory/page_table_manager.h"
+#include "../memory/page_map_indexer.h"
 #include "../include/memory.h"
 #include "stdint.h"
-
-PageTableManager global_page_table_manager = nullptr;
 
 PageTableManager::PageTableManager(PageTable* PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::map_range(uintptr_t virt_start, uintptr_t phys_start, size_t size, uint64_t flags) {
+void PageTableManager::map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags) {
     for (size_t offset = 0; offset < size; offset += 0x1000) {
-        map_memory((void*)(virt_start + offset), (void*)(phys_start + offset), flags);
+        map_memory(virt_start + offset, phys_start + offset, flags);
     }
 }
 
@@ -24,7 +21,7 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, u
 
     PageTable* PDP;
     if (!PDE.get_flag(PT_Flag::Present)) {
-        PDP = (PageTable*)global_allocator.request_page();
+        PDP = (PageTable*)kernel::memory::request_page();
         if (PDP == nullptr) {
             // nicht genug phy memory
             return;
@@ -41,7 +38,7 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, u
     PDE = PDP->entries[indexer.PD_i];
     PageTable* PD;
     if (!PDE.get_flag(PT_Flag::Present)) {
-        PD = (PageTable*)global_allocator.request_page();
+        PD = (PageTable*)kernel::memory::request_page();
         memset(PD, 0, 0x1000);
         PDE.set_address((uint64_t)PD >> 12);
         PDE.set_flag(PT_Flag::Present, true);
@@ -54,7 +51,7 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, u
     PDE = PD->entries[indexer.PT_i];
     PageTable* PT;
     if (!PDE.get_flag(PT_Flag::Present)) {
-        PT = (PageTable*)global_allocator.request_page();
+        PT = (PageTable*)kernel::memory::request_page();
         memset(PT, 0, 0x1000);
         PDE.set_address((uint64_t)PT >> 12);
         PDE.set_flag(PT_Flag::Present, true);

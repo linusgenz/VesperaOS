@@ -2,7 +2,7 @@
 #include "../../../kernel/utils/panic.h"
 #include "../../../drivers/io/io.h"
 #include "apic.h"
-#include "../../../kernel/scheduling/scheduler.h"
+#include "../../../kernel/include/scheduler.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../include/log.h"
 #include "../../../drivers/input/keyboard.h"

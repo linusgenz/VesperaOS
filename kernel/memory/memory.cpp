@@ -1,5 +1,6 @@
 #include "../include/memory.h"
-
+#include "page_frame_allocator.h"
+#include "page_table_manager.h"
 #include "../include/basic_renderer.h"
 
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize) {
@@ -38,3 +39,114 @@ int memcmp(const void* ptr1, const void* ptr2, size_t num) {
     }
     return 0;
 }
+
+namespace kernel::memory {
+
+    static PageFrameAllocator page_frame_allocator;
+    static PageTableManager page_table_manager = nullptr;
+
+    // Page Table Manager
+    void initialize_page_table_manager() {
+        auto* PML4 = (PageTable*)request_page();
+        memset(PML4, 0, 0x1000);
+        page_table_manager = PageTableManager(PML4);
+    }
+    void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags) {
+        page_table_manager.map_memory(virtual_addr, physical_addr, flags);
+    }
+
+    void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags) {
+        page_table_manager.map_range(virt_start, phys_start, size, flags);
+    }
+
+    void unmap_memory(void* virtual_addr) {
+        page_table_manager.unmap_memory(virtual_addr);
+    }
+    bool is_mapped(void* virtual_addr) {
+        return page_table_manager.is_mapped(virtual_addr);
+    }
+    uintptr_t get_pagetable_address() {
+        return reinterpret_cast<uintptr_t>(page_table_manager.PML4);
+    }
+    uint64_t get_physical_address(void* virtual_addr) {
+        return page_table_manager.get_physical_address(virtual_addr);
+    }
+
+    // Page Frame Allocator
+    void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size) {
+        page_frame_allocator.read_efi_memory_map((EFI_MEMORY_DESCRIPTOR*)efi_memory_map, map_size, desc_size);
+    }
+
+    void lock_page(void* virtual_addr) {
+        page_frame_allocator.lock_page(virtual_addr);
+    }
+
+    void lock_pages(void* virtual_addr, uint64_t page_count) {
+        page_frame_allocator.lock_pages(virtual_addr, page_count);
+    }
+
+    void *request_pages(size_t pageCount) {
+        return page_frame_allocator.request_pages(pageCount);
+    }
+
+    void* request_page() {
+        return page_frame_allocator.request_page();
+    }
+
+    void free_page(void* address) {
+        page_frame_allocator.free_page(address);
+    }
+
+    void free_pages(void* address, uint64_t page_count) {
+        page_frame_allocator.free_pages(address, page_count);
+    }
+
+    uint64_t get_free_ram() {
+        return page_frame_allocator.get_free_ram();
+    }
+
+    uint64_t get_used_ram() {
+        return page_frame_allocator.get_used_ram();
+    }
+
+    uint64_t get_reserved_ram() {
+        return page_frame_allocator.get_reserved_ram();
+    }
+
+    // Heap
+    static bool heap_initialized = false;
+
+    void initialize_heap(void* heap_start, size_t page_count) {
+        ::initialize_heap(heap_start, page_count);
+        heap_initialized = true;
+    }
+
+    void* malloc(size_t size) {
+        if (!heap_initialized) return nullptr;
+        return ::malloc(size);
+    }
+
+    void free(void* ptr) {
+        if (!heap_initialized) return;
+        ::free(ptr);
+    }
+
+    void *alloc_aligned(size_t alignment, size_t size, size_t boundary) {
+        if (!heap_initialized) return nullptr;
+        return ::alloc_aligned(alignment, size, boundary);
+    }
+
+
+    void free_aligned(void *aligned_ptr) {
+        if (!heap_initialized) return;
+        return ::free_aligned(aligned_ptr);
+    }
+
+
+
+    void* realloc(void* old_ptr, size_t old_size, size_t new_size) {
+        if (!heap_initialized) return nullptr;
+        return ::realloc(old_ptr, old_size, new_size);
+    }
+
+} // namespace kernel::memory

@@ -4,7 +4,7 @@
 #include "shell.h"
 #include "../include/log.h"
 
-void shell_loop() {
+void shell_loop(void* arg) {
     char command_buffer[BUFFER_SIZE];
     int command_index = 0;
     char ch;

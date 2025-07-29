@@ -1,7 +1,5 @@
 #include "heap.h"
-#include "../include/page_table_manager.h"
-#include "../include/page_frame_allocator.h"
-
+#include "../include/memory.h"
 void* heap_start;
 void* heap_end;
 HeapSegHdr* last_hdr;
@@ -10,7 +8,7 @@ void initialize_heap(void* heap_address, size_t page_count) {
     void* pos = heap_address;
 
     for (size_t i = 0; i < page_count; i++) {
-        global_page_table_manager.map_memory(pos, global_allocator.request_page());
+        kernel::memory::map_memory(pos, kernel::memory::request_page());
         pos = (void*)((size_t)pos + 0x1000);
     }
 
@@ -176,7 +174,7 @@ void expand_heap(size_t length) {
     size_t page_count = length / 0x1000;
     HeapSegHdr* new_segment = (HeapSegHdr*)heap_end;
     for (size_t i = 0; i < page_count; i++) {
-        global_page_table_manager.map_memory(heap_end, global_allocator.request_page());
+        kernel::memory::map_memory(heap_end, kernel::memory::request_page());
         heap_end = (void*)((size_t)heap_end + 0x1000);
     }
 

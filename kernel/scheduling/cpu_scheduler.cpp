@@ -1,6 +1,6 @@
 #include "cpu_scheduler.h"
 
-#include "scheduler.h"
+#include "../include/scheduler.h"
 #include "../cpu/cpu_manager.h"
 #include "thread_manager.h"
 

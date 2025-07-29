@@ -3,12 +3,9 @@
 //
 
 #include "thread.h"
-#include "scheduler.h"
+#include "../include/scheduler.h"
 #include "../../include/log.h"
 #include <stddef.h>
-
-#include "../include/page_frame_allocator.h"
-#include "../include/page_table_manager.h"
 
 static uint64_t next_thread_id = 1;
 
@@ -25,12 +22,12 @@ void dump_stack(uintptr_t* sp) {
 static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_t cpu_id, bool add_to_scheduler) {
     const size_t STACK_SIZE = 4096 * 2;
 
-    void* stack = global_allocator.request_pages(2);
+    void* stack = kernel::memory::request_pages(2);
     if (!stack) return nullptr;
 
     for (size_t offset = 0; offset < STACK_SIZE; offset += 0x1000) {
         void* addr = (void*)((uintptr_t)stack + offset);
-        global_page_table_manager.map_memory(addr, addr);
+        kernel::memory::map_memory(addr, addr);
     }
 
     uintptr_t stack_top = (uintptr_t)stack + STACK_SIZE;
@@ -45,8 +42,8 @@ static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_
     *(--sp) = 0;             // RBX
     *(--sp) = 0;             // RBP
 
-    auto thread = (kthread_t*)global_allocator.request_page();
-    global_page_table_manager.map_memory(thread, thread);
+    auto thread = (kthread_t*)kernel::memory::request_page();
+    kernel::memory::map_memory(thread, thread);
     thread->id = next_thread_id++;
     thread->state = THREAD_READY;
     thread->stack = stack;

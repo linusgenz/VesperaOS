@@ -6,7 +6,6 @@
 #include "cpu_scheduler.h"
 #include "../cpu/cpu_manager.h"
 #include "../../include/log.h"
-#include "../include/page_frame_allocator.h"
 
 namespace kernel::scheduling::thread_manager {
 
@@ -40,8 +39,8 @@ namespace kernel::scheduling::thread_manager {
     void cleanup_thread(kthread_t* thread) {
         if (!thread || thread->is_idle_thread) return;
 
-        global_allocator.free_pages(thread->stack, 2);
-        global_allocator.free_page(thread);
+        kernel::memory::free_pages(thread->stack, 2);
+        kernel::memory::free_page(thread);
     }
 
     kthread_t* get_current_thread() {

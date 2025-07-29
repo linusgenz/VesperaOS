@@ -11,15 +11,10 @@
 #include "efi_memory.h"
 #include "memory.h"
 #include "bitmap.h"
-#include "page_frame_allocator.h"
-#include "page_map_indexer.h"
-#include "paging.h"
-#include "page_table_manager.h"
 #include "../../drivers/io/io.h"
 #include "../../drivers/input/mouse.h"
 #include "../acpi/acpi.h"
 #include "../../drivers/pci/pci.h"
-#include "../../kernel/memory/heap.h"
 #include "ScrollManager.h"
 
 struct BootInfo {
