@@ -247,12 +247,12 @@ size_t strlen(const char *s) {
     return s - start;
 }
 
-int strcmp(const char* a, const char* b) {
+int strcmp(const char *a, const char *b) {
     while (*a && (*a == *b)) {
         a++;
         b++;
     }
-    return (*a == *b) ? 0 : 1;
+    return (unsigned char)*a - (unsigned char)*b;
 }
 
 int strncmp(const char *a, const char *b, size_t n) {

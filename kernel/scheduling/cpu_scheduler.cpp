@@ -20,7 +20,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->blocked_queue_head = nullptr;
         cpu->current_thread = nullptr;
         cpu->idle_thread = nullptr;
-        cpu->quantum_ticks = SCHEDULER_QUANTUM_MS / SCHEDULER_TICK_MS;
+        cpu->quantum_ticks = SCHEDULER_TICKS;
         cpu->ticks_remaining = cpu->quantum_ticks;
         cpu->scheduler_enabled = false;
         cpu->ready_queue_lock = 0;

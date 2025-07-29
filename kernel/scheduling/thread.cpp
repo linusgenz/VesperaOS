@@ -30,7 +30,7 @@ static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_
 
     for (size_t offset = 0; offset < STACK_SIZE; offset += 0x1000) {
         void* addr = (void*)((uintptr_t)stack + offset);
-        global_page_table_manager.map_memory(addr, addr, false);
+        global_page_table_manager.map_memory(addr, addr);
     }
 
     uintptr_t stack_top = (uintptr_t)stack + STACK_SIZE;
@@ -46,7 +46,7 @@ static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_
     *(--sp) = 0;             // RBP
 
     auto thread = (kthread_t*)global_allocator.request_page();
-    global_page_table_manager.map_memory(thread, thread, false);
+    global_page_table_manager.map_memory(thread, thread);
     thread->id = next_thread_id++;
     thread->state = THREAD_READY;
     thread->stack = stack;

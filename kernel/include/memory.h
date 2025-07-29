@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include "efi_memory.h"
 
+#define PAGE_SIZE 4096
+
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);
 void memset(void* dest, uint8_t val, uint64_t num);
 void *memcpy (void *dest, const void *src, size_t len);

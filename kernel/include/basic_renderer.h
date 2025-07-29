@@ -14,10 +14,10 @@ class BasicRenderer{
     Framebuffer* TargetFramebuffer;
     PSF1_FONT* PSF1_Font;
     void print(const char* str);
-    void put_char(char chr, uint32_t xOff, uint32_t yOff);
-    void put_char(char chr);
     void put_pixel(uint32_t x, uint32_t y, Colour colour) const;
     Colour get_pixel(uint32_t x, uint32_t y) const;
+    void put_char(char chr, uint32_t xOff, uint32_t yOff);
+    void put_char(char chr);
     inline void set_cursorX(int32_t x);
     inline void set_cursorY(int32_t y);
     inline void set_cursor(Point pt);
@@ -76,5 +76,7 @@ inline Colour BasicRenderer::get_colour() const {
 inline void BasicRenderer::set_clear_color(Colour new_colour) {
     clear_colour = new_colour;
 }
+
+extern BasicRenderer* global_renderer;
 
 #endif //BASIC_RENDERER_H

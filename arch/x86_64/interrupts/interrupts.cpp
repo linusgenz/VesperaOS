@@ -5,6 +5,37 @@
 #include "../../../kernel/scheduling/scheduler.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../include/log.h"
+#include "../../../drivers/input/keyboard.h"
+#include "../../../drivers/usb/xhci/xhci.h"
+
+void set_idt_gate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector) {
+    IDTDescEntry* interrupt = (IDTDescEntry*)(idtr.offset + entry_offset * sizeof(IDTDescEntry));
+    interrupt->set_offset((uint64_t)handler);
+    interrupt->selector = selector;
+    interrupt->ist = 0;
+    interrupt->type_attr = type_attr;
+    interrupt->ignore = 0;
+}
+
+bool register_irq_handler(uint8_t irqno, irq_handler_t handler, void* cookie) {
+    if (irqno >= IRQ_MAX) return false;
+    if (irq_handler_table[irqno].handler != nullptr) return false; // Schon vergeben
+    irq_handler_table[irqno].handler = handler;
+    irq_handler_table[irqno].cookie = cookie;
+    return true;
+}
+
+extern "C" void irq_common_stub_handler(uint8_t irqno) {
+    if (irqno >= IRQ_MAX) return; // Fehlerbehandlung
+
+    irq_desc& desc = irq_handler_table[irqno];
+
+    if (desc.handler) {
+        desc.handler(desc.cookie);
+    }
+
+    lapic_eoi();
+}
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame* frame) {
     // Hole CR2 Register (Page Fault Address)
@@ -145,13 +176,13 @@ __attribute__((interrupt)) void unhandled_interrupt_handler(interrupt_frame* fra
 
 __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame* frame) {
     uint8_t scancode = inb(0x60);
-   // handle_keyboard(scancode);
+    handle_keyboard(scancode);
     pic_end_master();
 }
 
 __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame) {
     uint8_t mouse_data = inb(0x60);
-  //  handle_ps2_mouse(mouse_data);
+    handle_ps2_mouse(mouse_data);
     pic_end_slave();
 }
 
@@ -164,8 +195,10 @@ void apic_timer_int_handler(interrupt_frame* frame) {
 
 __attribute__((interrupt))
 void spurious_int_handler(interrupt_frame* frame) {
+    Log::Ok("SPURIOUS INTERRUPT");
     lapic_eoi();
 }
+
 
 __attribute__((interrupt)) void cursor_int_handler(interrupt_frame* frame) {
     /*global_renderer->cursor_visible = !global_renderer->cursor_visible;
@@ -196,6 +229,11 @@ void pic_init()
     outb(PIC2_DATA, ICW4_8086);
 
     // OCW1: Disable all IRQs
+    outb(PIC1_DATA, 0xff);
+    outb(PIC2_DATA, 0xff);
+}
+
+void pic_disable() {
     outb(PIC1_DATA, 0xff);
     outb(PIC2_DATA, 0xff);
 }

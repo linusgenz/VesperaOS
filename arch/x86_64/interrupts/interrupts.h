@@ -5,6 +5,7 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 #include <stdint.h>
+#include "idt.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -15,6 +16,19 @@
 #define ICW1_INIT 0x10
 #define ICW1_ICW4 0x01
 #define ICW4_8086 0x01
+
+
+#define IRQ_XHCI_VECTOR      0x30
+#define IRQ_SPURIOUS         0xFF
+#define IRQ_TIMER            0x20
+#define IRQ_ERROR            0xFE
+#define IRQ_BASE             0x20
+#define IRQ_COMMON_STUB      0x31
+
+inline IDTR idtr;
+void set_idt_gate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
+bool register_irq_handler(uint8_t irqno, irq_handler_t handler, void* cookie);
+extern "C" void irq_common_stub(uint8_t irqno);
 
 // x86_64 Interrupt Frame Structure
 struct interrupt_frame {

@@ -15,7 +15,13 @@ namespace MADT {
     CPUCore cpu_cores[MAX_CPU_CORES];
     volatile uint32_t cpu_count;
     uint32_t bsp_apic_id = 0;
-    
+
+    IoApic ioapics[MAX_IOAPICS];
+    uint32_t ioapic_count = 0;
+
+    InterruptOverride overrides[MAX_OVERRIDES];
+    uint32_t override_count = 0;
+
     void parse_madt(ACPI::MADTHeader* madt) {
         bool has_legacy_pic = (madt->flags  & 0x1) != 0;
         if (has_legacy_pic) {
@@ -25,8 +31,6 @@ namespace MADT {
         }
 
         g_localApicAddr = (uint8_t *)(uintptr_t)madt->lapic_address;
-        Log::Info("LAPIC Address: 0x%llx", g_localApicAddr);
-        *(volatile uint64_t*)0x6000 = (uint64_t)madt->lapic_address;
 
         uint8_t* entries = (uint8_t*)madt + sizeof(ACPI::MADTHeader);
         uint8_t* end = (uint8_t*)madt + madt->header.length;
@@ -51,12 +55,12 @@ namespace MADT {
                                 bsp_apic_id = entry->apic_id;
                             }
                             
-                            Log::Info("CPU %u: APIC ID %u, %s, %s", 
+                      /*      Log::Info("CPU %u: APIC ID %u, %s, %s",
                                      cpu_count, 
                                      entry->apic_id,
                                      cpu_cores[cpu_count].is_bsp ? "BSP" : "AP",
                                      cpu_cores[cpu_count].is_online ? "Online" : "Offline");
-                            
+                            */
                             cpu_count++;
                         }
                     }
@@ -91,12 +95,31 @@ namespace MADT {
                 }
                 case ACPI::MADTEntryType::IO_APIC: {
                     auto* entry = (ACPI::IOAPICEntry*)entries;
-                    // IO APIC Adresse, GSI base etc. speichern
+
+                    if (ioapic_count < MAX_IOAPICS) {
+                        ioapics[ioapic_count].id = entry->ioapic_id;
+                        ioapics[ioapic_count].address = (uintptr_t)entry->ioapic_address;
+                        ioapics[ioapic_count].gsi_base = entry->gsi_base;
+                        ioapic_count++;
+                    } else {
+                        Log::Error("Too many IOAPICs detected (limit: %u)", MAX_IOAPICS);
+                    }
                     break;
                 }
                 case ACPI::MADTEntryType::INTERRUPT_OVERRIDE: {
                     auto* entry = (ACPI::InterruptOverrideEntry*)entries;
-                    // IRQ → GSI mapping merken
+
+                    if (override_count < MAX_OVERRIDES) {
+                        overrides[override_count].bus = entry->bus;
+                        overrides[override_count].source_irq = entry->irq_source;
+                        overrides[override_count].gsi = entry->gsi;
+                        overrides[override_count].flags = entry->flags;
+
+                        Log::debug("IRQ Override: IRQ %u -> GSI %u (flags 0x%x)",
+                                  entry->irq_source, entry->gsi, entry->flags);
+
+                        override_count++;
+                    }
                     break;
                 }
                 default:
@@ -114,17 +137,34 @@ namespace MADT {
         
         Log::Info("Detected %u CPU cores", cpu_count);
     }
-    
+
     uint32_t get_cpu_count() {
         return cpu_count;
     }
-    
+
     CPUCore* get_cpu_cores() {
         return cpu_cores;
     }
-    
+
     uint32_t get_bsp_apic_id() {
         return bsp_apic_id;
     }
+
+    IoApic* get_ioapics() {
+        return ioapics;
+    }
+
+    uint32_t get_ioapic_count() {
+        return ioapic_count;
+    }
+
+    InterruptOverride* get_overrides() {
+        return overrides;
+    }
+
+    uint32_t get_override_count() {
+        return override_count;
+    }
+
 
 }

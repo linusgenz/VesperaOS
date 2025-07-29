@@ -16,10 +16,14 @@ public:
     static void Error(const char* fmt, ...);
     static void LogMsg(const char* fmt, ...);
 
+    static void debug(const char *fmt, ...);
+
     static void PrintLn(const char *fmt, ...);
     static void Print(const char *fmt, ...);
 
     static void init();
+
+    static void enableDebug();
 
 private:
     static BasicRenderer* renderer;
@@ -29,6 +33,7 @@ private:
     static spinlock_t log_spin;
     static kernel::mutex_t log_mutex;
     static bool initialized;
+    static bool is_debug;
 };
 
 #endif // LOG_H

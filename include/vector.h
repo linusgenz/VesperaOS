@@ -20,7 +20,13 @@ public:
         free(data);
     }
 
-    void add_back(const T& value) {
+    void clear() {
+        for (size_t i = 0; i < length; ++i)
+            data[i].~T();
+        length = 0;
+    }
+
+    void push_back(const T& value) {
         if (length >= capacity)
             resize(capacity * 2);
         new (&data[length]) T(value); // placement new

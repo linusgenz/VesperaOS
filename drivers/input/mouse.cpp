@@ -1,4 +1,5 @@
 #include "mouse.h"
+#include "../../include/log.h"
 
 uint8_t mouse_pointer[] = {
     0b10000000, 0b00000000,
@@ -19,7 +20,7 @@ uint8_t mouse_pointer[] = {
     0b00000001, 0b00000000,
 };
 Point mouse_position;
-/*
+
 void mouse_wait() {
     uint64_t timeout = 100000;
     while (timeout--) {    
@@ -53,7 +54,6 @@ uint8_t mouse_read() {
 uint8_t mouse_cycle = 0;
 uint8_t mouse_packet[4];
 bool mouse_packet_ready = false;
-Point mouse_position;
 Point mouse_position_old;
 void handle_ps2_mouse(uint8_t data) {
 
@@ -159,6 +159,7 @@ void initialize_ps2_mouse() {
     outb(0x64, 0xA8); // enabling he auxiliary device - mouse
 
     mouse_wait();
+
     outb(0x64, 0x20);
     mouse_wait_input();
     uint8_t status = inb(0x60);
@@ -182,4 +183,3 @@ void initialize_ps2_mouse() {
     mouse_write(0xF3);
     mouse_write(80);
 }
-*/

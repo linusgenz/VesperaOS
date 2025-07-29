@@ -56,7 +56,7 @@ namespace StackManager {
         for (size_t i = 0; i < pages_needed; i++) {
             void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
             void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            global_page_table_manager.map_memory(virt_addr, phys_addr, true);
+            global_page_table_manager.map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
         }
         
         // Initialisiere Stack-Info
@@ -105,7 +105,7 @@ namespace StackManager {
         for (size_t i = 0; i < pages_needed; i++) {
             void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
             void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            global_page_table_manager.map_memory(virt_addr, phys_addr, true);
+            global_page_table_manager.map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
         }
         
         // Initialisiere Stack-Info
@@ -193,7 +193,7 @@ namespace StackManager {
         }
         
         // Mappe die Guard-Page als read-only (keine write-permission)
-        global_page_table_manager.map_memory(guard_page, guard_phys, false);
+        global_page_table_manager.map_memory(guard_page, guard_phys);
         
         Log::Info("Setup stack guard page at 0x%p", guard_page);
     }

@@ -52,6 +52,7 @@ version:
 	bash generate_version_header.sh
 
 img: $(DISK_IMG)
+	sudo dd if=./build/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
 
 $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	$(RM) $@
@@ -68,7 +69,6 @@ $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	sudo umount mnt
 	$(RM) -r mnt
 
-	sudo dd if=./build/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
 
 iso: $(ISO)
 
@@ -113,11 +113,19 @@ test: $(DISK_IMG)
 	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
 	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd",readonly=on \
 	-net none \
-	-device qemu-xhci,id=xhci \
-	-device usb-mouse \
+    -monitor stdio \
+    -device qemu-xhci,id=xhci,msi=on,msix=on \
 	-device nvme,drive=host0,serial=deadbeef \
-	-monitor stdio \
-
+	-trace *pci* \
+    -trace *msix* \
+    -trace *mmio* \
+    -D /tmp/trace-qemu.log \
+    -no-reboot \
+    -no-shutdown  \
+#    -qmp tcp:localhost:4444,server,nowait
+#	-device usb-mouse,bus=xhci.0,port=1 \
+#	-device usb-kbd,bus=xhci.0,port=2 \
+# 	-trace usb_xhci_* -D /tmp/trace-qemu-xhci.log \
 #-d int,guest_errors,cpu_reset \
 
 debug:
@@ -125,8 +133,7 @@ debug:
 	  -m 500M \
 	  -machine q35 \
 	  -enable-kvm \
-	  -cpu host \
-	  -smp cores=8 \
+	  -cpu qemu64 \
 	  -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
 	  -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
 	  -drive file=$(DISK_IMG),format=raw \

@@ -247,7 +247,7 @@ namespace AHCI {
 
         ABAR = (HBAMemory *) ((PCI::PCIHeader0 *) pciBaseAddress)->BAR5;
 
-        global_page_table_manager.map_memory(ABAR, ABAR, false);
+        global_page_table_manager.map_memory(ABAR, ABAR);
         ProbePorts();
 
         for (int i = 0; i < portCount; i++) {

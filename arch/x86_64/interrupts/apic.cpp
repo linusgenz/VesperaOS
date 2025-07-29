@@ -9,6 +9,7 @@
 #include "../../../kernel/include/page_frame_allocator.h"
 #include "../../../kernel/scheduling/scheduler.h"
 #include "../../../kernel/utils/panic.h"
+#include "../interrupts/interrupts.h"
 
 uint32_t lapic_read(uint32_t offset) {
     volatile uint32_t* reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
@@ -23,7 +24,7 @@ void lapic_write(uint32_t offset, uint32_t value) {
 void wait_for_delivery() {
     // Wait for delivery to complete
     while (lapic_read(LAPIC_ICRLO) & ICR_DELIVS) {
-    //    asm volatile("pause"); // TODO
+        asm volatile("pause"); // TODO
     }
 }
 
@@ -33,7 +34,7 @@ void lapic_init(uint8_t cpu_id)
 
     // Logical Destination Mode
     lapic_write(LAPIC_DFR, 0xffffffff);   // Flat mode
-    lapic_write(LAPIC_LDR, 0x01000000);   // All cpus use logical id 1
+    lapic_write(LAPIC_LDR, 0x0); // 0x01000000   // All cpus use logical id 1
 
     // Configure Spurious Interrupt Vector Register
     lapic_write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
@@ -49,6 +50,9 @@ void lapic_init(uint8_t cpu_id)
     lapic_write(LAPIC_TIMER, 32 | LAPIC_PERIODIC);
     lapic_write( LAPIC_TDCR, 0x3);         // 16
     lapic_write( LAPIC_TICR, calibration);
+
+    lapic_write(LAPIC_ICRLO, 0x0); // zero this shit
+    lapic_write(LAPIC_ICRHI, 0x0);
 }
 
 

@@ -1,0 +1,60 @@
+// xhci_mem.cpp
+//
+// LuminOS - operating system for the x86_64 architecture
+// 
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// 
+// Created by Linus Genz on 21.07.25.
+//
+// This file is part of LuminOS.
+// 
+// LuminOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// LuminOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <stdint.h>
+
+#include "../../../kernel/include/memory.h"
+#include "../../../kernel/include/page_frame_allocator.h"
+#include "../../../kernel/include/page_table_manager.h"
+#include "../../../include/log.h"
+
+uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
+    global_page_table_manager.map_range(pci_bar_address, pci_bar_address, bar_size, PT_Flag::CacheDisabled);
+
+    return pci_bar_address;
+}
+
+
+void *alloc_xhci_memory(size_t size, size_t alignment, size_t boundary) {
+    if (size == 0 || alignment == 0 || boundary == 0) {
+        Log::Error("Invalid memory alignment");
+    }
+
+    void *memblock = alloc_aligned(alignment, size, boundary);
+
+    if (!memblock) {
+        Log::Error("Failed to allocate memory");
+        while (true);
+    }
+
+    memset(memblock, 0, size);
+    return memblock;
+}
+
+void free_xhci_memory(void *ptr) {
+    free_aligned(ptr);
+}
+
+uintptr_t xhci_get_physical_addr(void *virt) {
+    return global_page_table_manager.get_physical_address(virt);
+}

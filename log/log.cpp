@@ -9,6 +9,7 @@ BasicRenderer *Log::renderer = nullptr;
 spinlock_t Log::log_spin = {};
 kernel::mutex_t Log::log_mutex = {};
 bool Log::initialized = false;
+bool Log::is_debug = false;
 
 void Log::init() {
     initialized = true;
@@ -18,6 +19,11 @@ void Log::init() {
 void Log::SetRenderer(BasicRenderer *r) {
     renderer = r;
 }
+
+void Log::enableDebug() {
+    is_debug = true;
+}
+
 
 void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = false) {
     char *digits = "0123456789ABCDEF";
@@ -206,6 +212,33 @@ void Log::Print(const char *fmt, ...) {
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
+
+    if (initialized) {
+        kernel::mutex_unlock(&log_mutex);
+    }
+}
+
+void Log::debug(const char *fmt, ...) {
+    if (!is_debug) return;
+    if (!initialized) {
+        spinlock_guard g(log_spin);
+    } else {
+        kernel::mutex_lock(&log_mutex);
+    }
+
+    Colour old = renderer->get_colour();
+    renderer->print("[  ");
+    renderer->set_colour(Colour::ORANGE);
+    renderer->print("DEBUG");
+    renderer->set_colour(old);
+    renderer->print("  ] ");
+
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
+    print_formatted(fmt, args);
+    __builtin_va_end(args);
+
+    renderer->print("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);

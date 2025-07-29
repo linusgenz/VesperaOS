@@ -20,6 +20,8 @@ typedef struct HeapSegHdr {
 
 void initialize_heap(void* heap_address, size_t page_count);
 
+void* alloc_aligned(size_t alignment, size_t size, size_t boundary = 0);
+void free_aligned(void* aligned_ptr);
 void* malloc(size_t size);
 void free(void* addr);
 void* realloc(void* oldPtr, size_t oldSize, size_t newSize);

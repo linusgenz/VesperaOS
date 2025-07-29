@@ -27,4 +27,16 @@ struct IDTR {
     uint64_t offset;
 }__attribute((packed));
 
+typedef int irqreturn_t;
+constexpr irqreturn_t IRQ_HANDLED = 1;
+using irq_handler_t = irqreturn_t (*)(void* cookie);
+struct irq_desc {
+    irq_handler_t handler = nullptr;
+    void* cookie = nullptr;
+};
+
+constexpr int IRQ_MAX = 256;
+inline irq_desc irq_handler_table[IRQ_MAX];
+
+
 #endif //IDT_H

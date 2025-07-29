@@ -47,19 +47,59 @@ namespace PCI {
         uint8_t min_grant;
         uint8_t max_latency;
     };
-    
 
-    void enumerate_pci(ACPI::MCFGHeader* mcfg);
 
-    extern const char* DeviceClasses[];
+    inline uint8_t pci_read8(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
+        volatile uint8_t *ptr = reinterpret_cast<uint8_t *>(hdr) + offset;
+        return *ptr;
+    }
 
-    const char* get_vendor_name(uint16_t vendor_id);
+    inline void pci_write8(PCI::PCIDeviceHeader *hdr, uint8_t offset, uint8_t value) {
+        volatile uint8_t *ptr = reinterpret_cast<uint8_t *>(hdr) + offset;
+        *ptr = value;
+    }
 
-    const char* get_device_name(uint16_t vendor_id, uint16_t device_id);
+    inline uint16_t pci_read16(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
+        volatile auto *ptr = reinterpret_cast<volatile uint16_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
+        return *ptr;
+    }
 
-    const char* get_subclass_name(uint8_t class_code, uint8_t subclass_code);
+    inline void pci_write16(PCI::PCIDeviceHeader *hdr, uint8_t offset, uint16_t value) {
+        volatile auto *ptr = reinterpret_cast<volatile uint16_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
+        *ptr = value;
+    }
 
-    const char* get_prog_if_Name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
+    inline uint32_t pci_read32(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
+        volatile auto *ptr = reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
+        return *ptr;
+    }
+
+    inline void pci_write32(PCI::PCIDeviceHeader *hdr, uint8_t offset, uint32_t value) {
+        volatile auto *ptr = reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
+        *ptr = value;
+    }
+
+
+    inline uint32_t pci_config_address(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
+        return (uint32_t) (1U << 31) // enable bit
+               | ((uint32_t) bus << 16)
+               | ((uint32_t) device << 11)
+               | ((uint32_t) function << 8)
+               | (offset & 0xFC);
+    }
+
+
+    void enumerate_pci(ACPI::MCFGHeader *mcfg);
+
+    extern const char *DeviceClasses[];
+
+    const char *get_vendor_name(uint16_t vendor_id);
+
+    const char *get_device_name(uint16_t vendor_id, uint16_t device_id);
+
+    const char *get_subclass_name(uint8_t class_code, uint8_t subclass_code);
+
+    const char *get_prog_if_Name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
 }
 
 #endif //PCI_H

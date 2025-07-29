@@ -5,21 +5,15 @@
 #include "../include/log.h"
 
 void shell_loop() {
-  /*  char command_buffer[BUFFER_SIZE];
+    char command_buffer[BUFFER_SIZE];
     int command_index = 0;
     char ch;
 
-    global_renderer->print(SHELL_PREFIX_STRING);
-    global_renderer->print(SHELL_PREFIX_STRING);
-    global_renderer->print("Welcome to ");
-    global_renderer->set_colour(Colour::BLUE);
-    global_renderer->print("LuminOS");
-    global_renderer->set_colour(Colour::WHITE);
-    global_renderer->new_line();
+    Log::PrintLn("%sWelcome to LuminOS",SHELL_PREFIX_STRING);
 
     while (true) {
         keyboard_buffer_init();
-        global_renderer->print(SHELL_PREFIX_STRING);
+        Log::Print(SHELL_PREFIX_STRING);
         global_renderer->draw_cursor();
 
         while (true) {
@@ -52,20 +46,18 @@ void shell_loop() {
                 global_renderer->draw_cursor();
             }
         }
-    }*/
+    }
 }
 
 void process_command(const char *command) {
-   /* if (strcmp(command, "help") == 1) {
-        global_renderer->print("Available commands:\n");
-        global_renderer->print(" - help: Show this help message\n");
-        global_renderer->print(" - clear: Clear the screen\n");
-        global_renderer->new_line();
-    } else if (strcmp(command, "clear") == 1) {
+    if (strcmp(command, "help") == 0) {
+        Log::PrintLn("Available commands:");
+        Log::PrintLn(" - help: Show this help message");
+        Log::PrintLn(" - clear: Clear the screen");
+        Log::PrintLn("");
+    } else if (strcmp(command, "clear") == 0) {
         global_renderer->clear();
     } else {
-        global_renderer->print("Unknown command: ");
-        global_renderer->print(command);
-        global_renderer->new_line();
-    }*/
+        Log::PrintLn("Unknown command: %s", command);
+    }
 }

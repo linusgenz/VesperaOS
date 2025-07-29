@@ -2,7 +2,7 @@
 #include "../include/page_map_indexer.h"
 #include "../include/page_frame_allocator.h"
 #include "../include/memory.h"
-#include <stdint.h>
+#include "stdint.h"
 
 PageTableManager global_page_table_manager = nullptr;
 
@@ -10,7 +10,13 @@ PageTableManager::PageTableManager(PageTable* PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, bool is_dma_buffer) {
+void PageTableManager::map_range(uintptr_t virt_start, uintptr_t phys_start, size_t size, uint64_t flags) {
+    for (size_t offset = 0; offset < size; offset += 0x1000) {
+        map_memory((void*)(virt_start + offset), (void*)(phys_start + offset), flags);
+    }
+}
+
+void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, uint64_t flags) {
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtual_memory);
     PageDirectoryEntry PDE;
 
@@ -63,9 +69,10 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, b
     PDE.set_flag(PT_Flag::Present, true);
     PDE.set_flag(PT_Flag::ReadWrite, true);
 
-    if (is_dma_buffer) {
-        PDE.set_flag(PT_Flag::CacheDisabled, true);
-        PDE.set_flag(PT_Flag::WriteThrough, true);
+    for (int i = 0; i < 64; i++) {
+        if ((flags >> i) & 1) {
+            PDE.set_flag((PT_Flag)i, true);
+        }
     }
 
     PT->entries[indexer.P_i] = PDE;

@@ -3,6 +3,10 @@
 #include "../../include/log.h"
 #include "../nvme/nvme.h"
 #include "../../filesystem/fat32.h"
+#include "../usb/xhci/xhci.h"
+#include "../../arch/x86_64/interrupts/interrupts.h"
+#include "msix.h"
+#include "../../kernel/time/time.h"
 
 namespace PCI {
     void enumerate_function(uint64_t device_address, uint64_t function) {
@@ -10,7 +14,7 @@ namespace PCI {
 
         uint64_t function_address = device_address + offset;
         global_page_table_manager.map_memory(reinterpret_cast<void *>(function_address),
-                                             reinterpret_cast<void *>(function_address), true);
+                                             reinterpret_cast<void *>(function_address));
 
         auto *pci_device_header = reinterpret_cast<PCIDeviceHeader *>(function_address);
 
@@ -29,14 +33,14 @@ namespace PCI {
                 switch (pci_device_header->subclass) {
                     case 0x06: // serial ATA
                         switch (pci_device_header->prog_if) {
-                            case 0x01: // AHCI 1.0 device
-                                auto x = new AHCI::AHCIDriver(pci_device_header);
+                           /*   case 0x01: // AHCI 1.0 device
+                               auto x = new AHCI::AHCIDriver(pci_device_header);
                                 AHCI::Port *p = x->ports[0];
                                 auto *dev = static_cast<BlockDevice *>(p);
                                 FAT32::FileSystem fs(p);
                            //     auto s =fs.CreateDirectory("TESTDIR");
                            //     Log::LogMsg("File created? %s", s ? "true" : "false");
-                                /*    size_t entryCount = 0;
+                                   size_t entryCount = 0;
                                   FAT32::FileEntry* entries = fs.ReadDirectory("/EFI/BOOT", entryCount);
 
                                    if (entries == nullptr) {
@@ -75,12 +79,12 @@ namespace PCI {
                         }
                     case 0x08:
                         switch (pci_device_header->prog_if) {
-                            case 0x02:
-                                uint16_t command_register = pci_device_header->command;
+                            /* case 0x02:
+                               uint16_t command_register = pci_device_header->command;
 
-                                command_register |= (1 << 2); // 0x0004
-                                command_register |= (1 << 1);
-                                pci_device_header->command = command_register;
+                                uint16_t command = pci_read16(pci_device_header, 0x04);
+                                command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+                                pci_write16(pci_device_header, 0x04, command);
 
                                 auto driver = new NVMe::NvmeDriver(pci_device_header);
                                 auto dev = static_cast<BlockDevice *>(driver->get_namespaces()[0]);
@@ -110,7 +114,7 @@ namespace PCI {
                                     Log::LogMsg(buffer);
                                 } else {
                                     Log::Warning("Fehler beim Lesen der Datei");
-                                }
+                                }*/
                             //
                         //        fs.CreateDirectory("TESTDIR");
                         //        auto s = fs.CreateFile("testfileNVME.txt");
@@ -127,8 +131,18 @@ namespace PCI {
 
                             case 0x20:
 
-                            case 0x30:
-                            //          new USB::xHCIDriver(pci_device_header);
+                            case 0x30: {
+                                uint16_t command = pci_read16(pci_device_header, 0x04);
+                                command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+                                pci_write16(pci_device_header, 0x04, command);
+                                enable_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header), IRQ_XHCI_VECTOR);
+                                auto usb_driver = new USB::xhciDriver();
+                                if (!usb_driver->init_device(pci_device_header)) {
+                                    Log::Error("Could not initalize xhci driver");
+                                    return;
+                                }
+                                usb_driver->start_device();
+                            }
                             case 0x80:
 
                             case 0xFE:
@@ -136,16 +150,6 @@ namespace PCI {
                         }
                 }
                 //   case 0x03:
-                /*
-                                *         global_renderer->print(get_vendor_name(pci_device_header->vendor_id));
-                                        global_renderer->print(" ");
-                                        global_renderer->print(get_device_name(pci_device_header->vendor_id, pci_device_header->device_id));
-                                        global_renderer->print(" ");
-                                        global_renderer->print(get_subclass_name(pci_device_header->_class, pci_device_header->subclass));
-                                        global_renderer->print(" ");
-                                        global_renderer->print(get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass, pci_device_header->prog_if));
-                                        global_renderer->new_line();
-                 */
         }
     }
 
@@ -153,7 +157,7 @@ namespace PCI {
         uint64_t offset = device << 15;
 
         uint64_t device_address = bus_address + offset;
-        global_page_table_manager.map_memory((void *) device_address, (void *) device_address, false);
+        global_page_table_manager.map_memory((void *) device_address, (void *) device_address);
 
         PCI::PCIDeviceHeader *pci_device_header = (PCIDeviceHeader *) device_address;
 
@@ -169,7 +173,7 @@ namespace PCI {
         uint64_t offset = bus << 20;
 
         uint64_t bus_address = base_address + offset;
-        global_page_table_manager.map_memory((void *) bus_address, (void *) bus_address, false);
+        global_page_table_manager.map_memory((void *) bus_address, (void *) bus_address);
 
         PCI::PCIDeviceHeader *pci_device_header = (PCIDeviceHeader *) bus_address;
 

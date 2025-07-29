@@ -8,6 +8,8 @@
 #include <stdint.h>
 
 #define MAX_CPU_CORES 64
+#define MAX_IOAPICS 4
+#define MAX_OVERRIDES 32
 
 namespace MADT {
     struct CPUCore {
@@ -16,13 +18,30 @@ namespace MADT {
         bool is_bsp;        // Bootstrap Processor
         bool is_online;
         bool is_enabled;
-        void* stack_ptr;    // Stack für diesen Core
+        void* stack_ptr;    // Stack for this Core
         uint64_t current_task_id;
+    };
+
+    struct IoApic {
+        uint8_t id;
+        uintptr_t address;
+        uint32_t gsi_base;
+    };
+
+    struct InterruptOverride {
+        uint8_t bus;
+        uint8_t source_irq;
+        uint32_t gsi;
+        uint16_t flags;
     };
     
     void parse_madt(ACPI::MADTHeader* madt);
     uint32_t get_cpu_count();
     CPUCore* get_cpu_cores();
     uint32_t get_bsp_apic_id();
+    IoApic* get_ioapics();
+    uint32_t get_ioapic_count();
+    InterruptOverride* get_overrides();
+    uint32_t get_override_count();
 }
 #endif //MADT_H

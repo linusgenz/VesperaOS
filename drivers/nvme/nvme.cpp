@@ -15,7 +15,7 @@ namespace NVMe {
         for (int i = 0; i < 4; i++) {
             auto virt = reinterpret_cast<void *>((uintptr_t) c_regs + i * 0x1000);
             auto phys = reinterpret_cast<void *>(mmio + i * 0x1000);
-            global_page_table_manager.map_memory(virt, phys, true);
+            global_page_table_manager.map_memory(virt, phys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
         }
 
         Log::Info("[NVMe] Initializing Controller...");
@@ -49,8 +49,8 @@ namespace NVMe {
             return;
         }
 
-        global_page_table_manager.map_memory(admCQVirtPage, admCQPhysPage, true);
-        global_page_table_manager.map_memory(admSQVirtPage, admSQPhysPage, true);
+        global_page_table_manager.map_memory(admCQVirtPage, admCQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        global_page_table_manager.map_memory(admSQVirtPage, admSQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
         memset(admCQVirtPage, 0, PAGE_SIZE_4K);
         memset(admSQVirtPage, 0, PAGE_SIZE_4K);
@@ -121,11 +121,10 @@ namespace NVMe {
             uint8_t lbads = nsIdentify->lba_formats[lbaFormatIndex].lba_data_size;
             uint32_t lbaSize = 1 << lbads;
 
-            Log::LogMsg("lbaSize: %u", lbaSize);
-            Log::LogMsg("namespaceSize: %u", nsIdentify->namespace_size);
+            Log::debug("namespaceSize: %u", nsIdentify->namespace_size);
 
             auto* ns = new NvmeNamespace(namespaceIDs[i], &io_queue, lbaSize);
-            namespaces.add_back(ns);
+            namespaces.push_back(ns);
         }
 
         Log::Ok("[NVMe] Controller initialized");
@@ -187,7 +186,7 @@ namespace NVMe {
 
     long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespaceIDs) {
         uint32_t *namespaceList = reinterpret_cast<uint32_t *>(global_allocator.request_page());
-        global_page_table_manager.map_memory(namespaceList, namespaceList, true);
+        global_page_table_manager.map_memory(namespaceList, namespaceList, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
         NvmeCommand identifyNsList;
         memset(&identifyNsList, 0, sizeof(NvmeCommand));
@@ -207,7 +206,7 @@ namespace NVMe {
 
         uint32_t *namespaceListEnd = namespaceList + (PAGE_SIZE_4K / sizeof(uint32_t));
         while (*namespaceList && namespaceList < namespaceListEnd) {
-            namespaceIDs->add_back(*namespaceList++);
+            namespaceIDs->push_back(*namespaceList++);
         }
 
         global_allocator.free_page(namespaceList);
@@ -230,8 +229,8 @@ namespace NVMe {
             return -1;
         }
 
-        global_page_table_manager.map_memory(sqVirt, sqPhys, true);
-        global_page_table_manager.map_memory(cqVirt, cqPhys, true);
+        global_page_table_manager.map_memory(sqVirt, sqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        global_page_table_manager.map_memory(cqVirt, cqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
         uint16_t queueID = AllocateQueueID();
 

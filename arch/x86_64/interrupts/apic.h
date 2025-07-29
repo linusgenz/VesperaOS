@@ -54,12 +54,6 @@
 #define APIC_ICR_SIPI (6 << 8)
 #define APIC_ICR_LEVEL_ASSERT (1 << 14)
 
-#define IRQ_SPURIOUS         0xFF
-#define IRQ_TIMER            0x20
-#define IRQ_ERROR            0xFE
-#define IRQ_BASE             0x20
-#define IRQ_AP_ENTRY         0x30
-
 #define LAPIC_PERIODIC 0x20000
 
 #define APIC_LVT_MASKED       (1 << 16)

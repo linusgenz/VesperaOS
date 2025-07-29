@@ -8,9 +8,9 @@
 #include "thread.h"
 #include "../acpi/madt.h"
 
-#define SCHEDULER_QUANTUM_MS 5   // Time slice in milliseconds
+#define SCHEDULER_QUANTUM_MS 10   // Time slice in milliseconds
 #define SCHEDULER_TICK_MS    10  // Interrupt frequency
-
+#define SCHEDULER_TICKS (SCHEDULER_QUANTUM_MS / SCHEDULER_TICK_MS)
 namespace kernel::scheduling::cpu_scheduler {
 
     struct cpu_scheduler_t {
