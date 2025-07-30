@@ -8,7 +8,7 @@ OBJS += $(ASM_SRC:.asm=_asm.o)
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 BOOTLOADER_EFI = gnu-efi/bootloader/boot.efi
 DISK_IMG = $(BUILD_DIR)/boot.img
-ISO = $(BUILD_DIR)/LuminOS.iso
+ISO = $(BUILD_DIR)/VesperaOS.iso
 USB_DEV := /dev/sdc
 
 LDS = linker.ld
@@ -57,7 +57,7 @@ img: $(DISK_IMG)
 $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
-	$(MKFS_FAT) -F 32 -n "LuminOS" $@
+	$(MKFS_FAT) -F 32 -n "VesperaOS" $@
 	mkdir -p $(EFI_DIR)
 	sudo mount -o loop $@ mnt
 	sudo mkdir -p $(EFI_DIR)

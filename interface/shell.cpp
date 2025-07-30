@@ -9,7 +9,7 @@ void shell_loop(void* arg) {
     int command_index = 0;
     char ch;
 
-    Log::PrintLn("%sWelcome to LuminOS",SHELL_PREFIX_STRING);
+    Log::PrintLn("%sWelcome to VesperaOS",SHELL_PREFIX_STRING);
 
     while (true) {
         keyboard_buffer_init();

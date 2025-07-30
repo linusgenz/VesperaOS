@@ -1,5 +1,5 @@
-#ifndef LUMINOS_VERSION_HPP
-#define LUMINOS_VERSION_HPP
+#ifndef VESPERAOS_VERSION_HPP
+#define VESPERAOS_VERSION_HPP
 
 #define VERSION_MAJOR "0"
 #define VERSION_MINOR "3"
@@ -7,7 +7,7 @@
 #define VERSION_STAGE "dev"
 #define VERSION_BUILD "20250730-g8142b49"
 
-#define VERSION_STRING "LuminOS (dev) x86_64 " \
+#define VERSION_STRING "VesperaOS (dev) x86_64 " \
                        VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH \
                        "-" VERSION_STAGE "+" VERSION_BUILD
 
@@ -15,4 +15,4 @@ inline const char* get_os_version() {
     return VERSION_STRING;
 };
 
-#endif // LUMINOS_VERSION_HPP
+#endif // VESPERAOS_VERSION_HPP
