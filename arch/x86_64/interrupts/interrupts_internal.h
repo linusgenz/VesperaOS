@@ -2,33 +2,14 @@
 // Created by linus on 05.10.24.
 //
 
-#ifndef INTERRUPTS_H
-#define INTERRUPTS_H
+#ifndef INTERRUPTS_INTERNAL_H
+#define INTERRUPTS_INTERNAL_H
 #include <stdint.h>
-#include "idt.h"
 
-#define PIC1_COMMAND 0x20
-#define PIC1_DATA 0x21
-#define PIC2_COMMAND 0xA0
-#define PIC2_DATA 0xA1
-#define PIC_EOI 0x20
-
-#define ICW1_INIT 0x10
-#define ICW1_ICW4 0x01
-#define ICW4_8086 0x01
-
-
-#define IRQ_XHCI_VECTOR      0x30
 #define IRQ_SPURIOUS         0xFF
 #define IRQ_TIMER            0x20
 #define IRQ_ERROR            0xFE
-#define IRQ_BASE             0x20
 #define IRQ_COMMON_STUB      0x31
-
-inline IDTR idtr;
-void set_idt_gate(void* handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
-bool register_irq_handler(uint8_t irqno, irq_handler_t handler, void* cookie);
-extern "C" void irq_common_stub(uint8_t irqno);
 
 // x86_64 Interrupt Frame Structure
 struct interrupt_frame {
@@ -56,11 +37,5 @@ __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void apic_timer_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void spurious_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void ap_entry_int_handler(interrupt_frame* frame);
-
-void pic_init();
-void remap_pic();
-void pic_end_master();
-void pic_end_slave();
-void pic_disable();
 
 #endif //INTERRUPTS_H

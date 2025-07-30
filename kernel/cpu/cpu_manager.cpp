@@ -3,6 +3,7 @@
 #include "../include/memory.h"
 #include "../../include/log.h"
 #include "../acpi/madt.h"
+#include "../include/interrupts.h"
 #include "../time/time.h"
 #include "../include/scheduler.h"
 
@@ -66,8 +67,7 @@ namespace CPUManager {
 
         for (uint32_t i = 0; i < total_cpus; ++i) {
             if (cpu_infos[i].is_bsp) continue;
-                init_core(&cpu_infos[i]);
-
+            init_core(&cpu_infos[i]);
         }
 
 
@@ -90,30 +90,29 @@ namespace CPUManager {
     }
 
 
-
     void init_core(CPUInfo *cpu) {
         uint32_t vectorValue = 0x8;
 
         // Send INIT
-        lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
-        lapic_write(APIC_REGISTER_INT_COMMAND_LOW, APIC_ICR_INIT | APIC_ICR_LEVEL_ASSERT);
-        wait_for_delivery();
+        kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
+        kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, APIC_ICR_INIT | APIC_ICR_LEVEL_ASSERT);
+        kernel::interrupts::lapic_wait_for_delivery();
 
         kernel::time::sleep_ms(10);
 
-        lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
-        lapic_write(APIC_REGISTER_INT_COMMAND_LOW,
-                    APIC_ICR_INIT | ICR_DEASSERT);
-        wait_for_delivery();
+        kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
+        kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW,
+                                        APIC_ICR_INIT | ICR_DEASSERT);
+        kernel::interrupts::lapic_wait_for_delivery();
 
         kernel::time::sleep_ms(10);
-        lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
-        lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vectorValue | APIC_ICR_SIPI);
+        kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
+        kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vectorValue | APIC_ICR_SIPI);
 
         kernel::time::sleep_ms(10);
 
-       // lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
-      //  lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vectorValue | APIC_ICR_SIPI);
+        // kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
+        //  kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vectorValue | APIC_ICR_SIPI);
 
         kernel::time::sleep_ms(10);
     }
@@ -132,7 +131,7 @@ namespace CPUManager {
     uint32_t get_current_cpu_id() {
         if (!is_initialized) return 0;
 
-        uint32_t current_apic_id = local_apic_get_id();
+        uint32_t current_apic_id = kernel::interrupts::lapic_get_id();
 
         for (uint32_t i = 0; i < total_cpus; i++) {
             if (cpu_infos[i].apic_id == current_apic_id) {
@@ -161,8 +160,8 @@ namespace CPUManager {
 
     void send_ipi_to_all_aps(uint32_t vector) {
         // Broadcast IPI an alle APs (außer BSP)
-        lapic_write(LAPIC_ICRHI, 0);
-        lapic_write(LAPIC_ICRLO, 0xC0000 | vector); // All except self, vector
+        kernel::interrupts::lapic_write(LAPIC_ICRHI, 0);
+        kernel::interrupts::lapic_write(LAPIC_ICRLO, 0xC0000 | vector); // All except self, vector
     }
 
     // this shit is disabling interrupts idk how but it does

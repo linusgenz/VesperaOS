@@ -5,7 +5,7 @@
 #define PAGING_H
 #include <stdint.h>
 
-#include "memory.h"
+#include "../include/memory.h"
 
 struct PageDirectoryEntry {
     uint64_t Value;

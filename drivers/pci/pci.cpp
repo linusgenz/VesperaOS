@@ -4,7 +4,7 @@
 #include "../nvme/nvme.h"
 #include "../../filesystem/fat32.h"
 #include "../usb/xhci/xhci.h"
-#include "../../arch/x86_64/interrupts/interrupts.h"
+#include "../../kernel/include/interrupts.h"
 #include "msix.h"
 #include "../../kernel/time/time.h"
 
@@ -135,8 +135,8 @@ namespace PCI {
                                 uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                                 pci_write16(pci_device_header, 0x04, command);
-                                enable_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header), IRQ_XHCI_VECTOR);
-                                auto usb_driver = new USB::xhciDriver();
+                                if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header), IRQ_XHCI_VECTOR)) Log::debug("enabled msi(x)");
+                                    auto usb_driver = new USB::xhciDriver();
                                 if (!usb_driver->init_device(pci_device_header)) {
                                     Log::Error("Could not initalize xhci driver");
                                     return;
@@ -195,5 +195,71 @@ namespace PCI {
                 enumerate_bus(new_device_config->base_address, bus);
             }
         }
+    }
+
+    /**
+ * Prüft ob eine BAR 64-bit ist
+ * @param bar_value Der Wert der BAR (z.B. header->BAR0)
+ * @return true wenn 64-bit BAR, false wenn 32-bit BAR oder I/O BAR
+ */
+    bool is_bar_64bit(uint32_t bar_value) {
+        // Erstmal prüfen ob es eine Memory BAR ist (Bit 0 = 0)
+        if (bar_value & PCI_BAR_MEMORY_MASK) {
+            // I/O BAR - niemals 64-bit
+            return false;
+        }
+
+        // Bits 2:1 prüfen für Memory BAR Type
+        uint32_t bar_type = (bar_value >> 1) & 0x3;
+        return (bar_type == 0x2); // 0x2 = 64-bit Memory BAR
+    }
+
+
+
+    BarInfo get_bar_info(PCIHeader0 *header, uint8_t bar_index) {
+        BarInfo info = {0};
+
+        if (bar_index > 5) {
+            return info; // is_valid = false
+        }
+
+        uint32_t bar_values[6] = {
+            header->BAR0, header->BAR1, header->BAR2,
+            header->BAR3, header->BAR4, header->BAR5
+        };
+
+        uint32_t bar_value = bar_values[bar_index];
+
+        if (bar_value == 0) {
+            return info; // BAR not implemented
+        }
+
+        info.is_valid = true;
+        info.is_memory = !(bar_value & PCI_BAR_MEMORY_MASK);
+
+        if (!info.is_memory) {
+            // I/O BAR
+            info.address = bar_value & ~0x3ULL;
+            info.is_64bit = false;
+            info.is_prefetchable = false;
+        } else {
+            // Memory BAR
+            info.is_64bit = is_bar_64bit(bar_value);
+            info.is_prefetchable = (bar_value >> 3) & 1;
+
+            if (info.is_64bit) {
+                if (bar_index >= 5) {
+                    info.is_valid = false;
+                    return info;
+                }
+
+                uint32_t bar_high = bar_values[bar_index + 1];
+                info.address = ((uint64_t) bar_high << 32) | (bar_value & ~0xFULL);
+            } else {
+                info.address = bar_value & ~0xFULL;
+            }
+        }
+
+        return info;
     }
 }

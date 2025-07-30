@@ -5,8 +5,7 @@
 #include "../../../include/vector.h"
 #include "../../../kernel/time/time.h"
 #include "../../pci/pci.h"
-#include "../../../arch/x86_64/interrupts/interrupts.h"
-#include "../../../arch/x86_64/interrupts/apic.h"
+#include "../../../kernel/include/interrupts.h"
 
 namespace USB {
     xhciDriver::xhciDriver() {
@@ -59,7 +58,7 @@ namespace USB {
         configure_operational_registers();
         //   log_operational_registers();
 
-        register_irq_handler(IRQ_XHCI_VECTOR, reinterpret_cast<irq_handler_t>(xhci_irq_handler), this);
+       kernel::interrupts::register_irq(IRQ_XHCI_VECTOR, reinterpret_cast<irq_handler_t>(xhci_irq_handler), this);
 
         // Setup runtime registers
         configure_runtime_registers();

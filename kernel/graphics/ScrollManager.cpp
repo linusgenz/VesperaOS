@@ -3,7 +3,8 @@
 //
 
 #include "../include/ScrollManager.h"
-
+#include "../../drivers/input/ps2/mouse/mouse.h"
+#include "../include/basic_renderer.h"
 ScrollManager* scroll_manager;
 
 ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer *r)
@@ -19,7 +20,7 @@ ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Fram
 
 void ScrollManager::setup_new_line()
 {
-    renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
+    global_renderer->clear_mouse_cursor(input::mouse::pointer, input::mouse::get_position());
 
     // scroll to the actual bottom, of the actual window
     while (bottom_buffer.lines_in_buffer > 0)
@@ -37,7 +38,7 @@ void ScrollManager::setup_new_line()
     scroll_available.down = false;
     scroll_available.up = true;
 
-    renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+    renderer->draw_overlay_mouse_cursor(input::mouse::pointer, input::mouse::get_position(), Colour::WHITE);
 }
 
 // TODO make this better
@@ -49,7 +50,7 @@ void ScrollManager::scroll_down()
     }
     scroll_available.up = true;
 
-    renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
+    renderer->clear_mouse_cursor(input::mouse::pointer, input::mouse::get_position());
 
     save_top_lines_to_buffer();
 
@@ -57,7 +58,7 @@ void ScrollManager::scroll_down()
 
     restore_line_from_bottom_buffer();
 
-    renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+    renderer->draw_overlay_mouse_cursor(input::mouse::pointer, input::mouse::get_position(), Colour::WHITE);
     if (bottom_buffer.lines_in_buffer <= 0)
     {
         scroll_available.down = false;
@@ -78,7 +79,7 @@ void ScrollManager::scroll_up()
     }
     scroll_available.down = true;
 
-    renderer->clear_mouse_cursor(mouse_pointer, mouse_position);
+    renderer->clear_mouse_cursor(input::mouse::pointer, input::mouse::get_position());
 
     save_bottom_line_to_buffer();
 
@@ -86,7 +87,7 @@ void ScrollManager::scroll_up()
 
     restore_line_from_top_buffer();
 
-    renderer->draw_overlay_mouse_cursor(mouse_pointer, mouse_position, Colour::WHITE);
+    renderer->draw_overlay_mouse_cursor(input::mouse::pointer, input::mouse::get_position(), Colour::WHITE);
 }
 
 void ScrollManager::restore_line_from_bottom_buffer()

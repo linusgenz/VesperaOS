@@ -7,12 +7,13 @@
 #include "../utils/panic.h"
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../../include/log.h"
+#include "../include/interrupts.h"
 
 extern "C" void ap_main(uint32_t apic_id) {
 
     const uint32_t cpu_id = CPUManager::get_current_cpu_id();
 
-    lapic_init(cpu_id);
+    kernel::interrupts::lapic_init(cpu_id);
 
     if (!cpu_id) {
         panic("Failed to find CPU ID");

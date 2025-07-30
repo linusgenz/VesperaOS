@@ -1,24 +1,27 @@
-#include "../drivers/input/keyboard_buffer.h"
+#include "../drivers/input/ps2/keyboard/keyboard.h"
 #include "../kernel/include/basic_renderer.h"
 #include "../include/string.h"
 #include "shell.h"
+
+#include "../drivers/input/ps2/keyboard/buffer.h"
+#include "../drivers/input/ps2/keyboard/ps2_keyboard.h"
 #include "../include/log.h"
 
 void shell_loop(void* arg) {
-    char command_buffer[BUFFER_SIZE];
+    char command_buffer[input::keyboard::BUFFER_SIZE];
     int command_index = 0;
     char ch;
 
     Log::PrintLn("%sWelcome to VesperaOS",SHELL_PREFIX_STRING);
 
     while (true) {
-        keyboard_buffer_init();
+        input::keyboard::init();
         Log::Print(SHELL_PREFIX_STRING);
         global_renderer->draw_cursor();
 
         while (true) {
             // Read from keyboard buffer if there is input
-            if (keyboard_buffer_read(&ch)) {
+            if (input::keyboard::read_char(ch)) {
                 Point pos = global_renderer->get_cursor_pos();
                 global_renderer->clear_cursor(pos.X, pos.Y);
                 if (ch == '\0') {
@@ -38,7 +41,7 @@ void shell_loop(void* arg) {
                         global_renderer->clear_char();
                     }
                 } else {
-                    if (command_index < BUFFER_SIZE - 1) {
+                    if (command_index < input::keyboard::BUFFER_SIZE - 1) {
                         command_buffer[command_index++] = ch;
                         global_renderer->put_char(ch);
                     }

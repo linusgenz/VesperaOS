@@ -47,6 +47,18 @@ namespace PCI {
         uint8_t max_latency;
     };
 
+#define PCI_BAR_TYPE_32BIT    0x0
+#define PCI_BAR_TYPE_64BIT    0x4
+#define PCI_BAR_TYPE_MASK     0x6
+#define PCI_BAR_MEMORY_MASK   0x1
+
+    struct BarInfo {
+        uint64_t address;
+        bool is_64bit;
+        bool is_memory;
+        bool is_prefetchable;
+        bool is_valid;
+    };
 
     inline uint8_t pci_read8(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
         volatile uint8_t *ptr = reinterpret_cast<uint8_t *>(hdr) + offset;
@@ -99,6 +111,8 @@ namespace PCI {
     const char *get_subclass_name(uint8_t class_code, uint8_t subclass_code);
 
     const char *get_prog_if_Name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
+
+    BarInfo get_bar_info(PCIHeader0 *header, uint8_t bar_index);
 }
 
 #endif //PCI_H

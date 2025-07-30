@@ -1,15 +1,15 @@
 #include "./include/kernel_utils.h"
 #include "../arch/x86_64/gdt/gdt.h"
-#include "../arch/x86_64/interrupts/idt.h"
-#include "../arch/x86_64/interrupts/interrupts.h"
-#include "../arch/x86_64/interrupts/apic.h"
+#include "../drivers/input/ps2/keyboard/ps2_keyboard.h"
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
 #include "../include/log.h"
 #include "memory/stack_manager.h"
 #include "cpu/cpu_manager.h"
 #include "include/scheduler.h"
-#include "../arch/x86_64/interrupts/ioapic.h"
+#include "include/interrupts.h"
+#include "../drivers/input/ps2/mouse/mouse.h"
+#include "../drivers/input/ps2/mouse/ps2_mouse.h"
 
 void prepare_memory(BootInfo* bootInfo){
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -62,46 +62,9 @@ void prepare_memory(BootInfo* bootInfo){
     asm ("mov %0, %%cr3" : : "r" (kernel::memory::get_pagetable_address()));
 }
 
-extern "C" void irq_stub_0x30();
+
 void prepare_interrupts() {
-    kernel::memory::map_memory((void*)g_localApicAddr, (void*)g_localApicAddr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
 
-    void* idt_page = kernel::memory::request_page();
-    memset(idt_page, 0, 0x1000);
-
-    idtr.limit = 0x0FFF;
-    idtr.offset = reinterpret_cast<uint64_t>(idt_page);
-
-    // Standard Exception Handlers
-    set_idt_gate((void*)divide_error_handler, 0x00, IDT_TA_InterruptGate, 0x08);          // Divide by Zero
-    set_idt_gate((void*)invalid_opcode_handler, 0x06, IDT_TA_InterruptGate, 0x08);       // Invalid Opcode
-    set_idt_gate((void*)double_fault_handler, 0x08, IDT_TA_InterruptGate, 0x08);         // Double Fault
-    set_idt_gate((void*)segment_not_present_handler, 0x0B, IDT_TA_InterruptGate, 0x08);  // Segment Not Present
-    set_idt_gate((void*)stack_fault_handler, 0x0C, IDT_TA_InterruptGate, 0x08);          // Stack Fault
-    set_idt_gate((void*)gp_fault_handler, 0x0D, IDT_TA_InterruptGate, 0x08);             // General Protection
-    set_idt_gate((void*)page_fault_handler, 0x0E, IDT_TA_InterruptGate, 0x08);           // Page Fault
-    set_idt_gate((void*)machine_check_handler, 0x12, IDT_TA_InterruptGate, 0x08);        // Machine Check
-    set_idt_gate((void*)irq_stub_0x30, IRQ_XHCI_VECTOR, IDT_TA_InterruptGate, 0x08);
-    // Catch-all for unhandled interrupts (fill some common vectors)
-  //  for (int i = 0x20; i <= 0x2F; i++) {
-   //     if (i != IRQ_TIMER && i != IRQ_AP_ENTRY) {
-   //         set_idt_gate((void*)unhandled_interrupt_handler, i, IDT_TA_InterruptGate, 0x08);
-   //     }
-   // }
-
-    set_idt_gate((void*)keyboard_int_handler, 0x21, IDT_TA_InterruptGate, 0x08);
-    set_idt_gate((void*)mouse_int_handler, 0x2C, IDT_TA_InterruptGate, 0x08);
-    set_idt_gate((void*)apic_timer_int_handler, IRQ_TIMER, IDT_TA_InterruptGate, 0x08);
-    set_idt_gate((void*)spurious_int_handler, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
-
-
-    // AP Entry Handler für Vector IRQ_AP_ENTRY
-  //  set_idt_gate((void*)ap_entry_int_handler, IRQ_AP_ENTRY, IDT_TA_InterruptGate, 0x08);
-
-
-    asm ("lidt %0" : : "m" (idtr));
-    asm ("cli");
-    remap_pic();
 }
 
 uint32_t* scroll_buffer_top = nullptr;
@@ -136,15 +99,14 @@ void prepare_acpi(BootInfo* boot_info) {
     ACPI::TableManager::register_fadr();
 }
 
-void prepare_ap_trampoline(uint64_t pml4_phys) {
-    *(volatile uint64_t*)0x2000 = pml4_phys;
-    *(IDTR*)0x1000 = idtr;
+void prepare_ap_trampoline() {
+    *(volatile uint64_t*)0x2000 = kernel::memory::get_pagetable_address();
+    *(arch::x86_64::interrupts::idt::IDTR*)0x1000 = *kernel::interrupts::get_idtr_address();
  //   __asm__ volatile("wbinvd" ::: "memory");
 }
 
 extern uint8_t __bss_start[];
 extern uint8_t __bss_end[];
-
 void zero_bss() {
     uint8_t* bss = __bss_start;
     while (bss < __bss_end) {
@@ -177,16 +139,11 @@ void initialize_kernel(BootInfo* bootInfo){
     prepare_acpi(bootInfo);
     MADT::parse_madt(ACPI::TableManager::get_madt());
 
-    prepare_interrupts();
+    kernel::interrupts::initialize();
 
-    initialize_ps2_mouse();
+    ps2::mouse::init();
 
     asm ("sti");
-
-    lapic_init(0);
-  //  pic_disable();
-   // IOAPIC::init();
-
 
     setup_scroll_buffer(bootInfo->framebuffer);
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
@@ -197,8 +154,7 @@ void initialize_kernel(BootInfo* bootInfo){
     CPUManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
     Log::init(); // threads are possible -> switch to mutex
-    uint64_t pml4_phys = kernel::memory::get_pagetable_address();
-    prepare_ap_trampoline(pml4_phys);
+    prepare_ap_trampoline();
 
     CPUManager::smp_init();
 
@@ -211,6 +167,5 @@ void initialize_kernel(BootInfo* bootInfo){
     Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
     Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
-    outb(PIC1_DATA, 0b11111001); // = 0xFD → IRQ1 (keyboard) activated
-    outb(PIC2_DATA, 0b11101111); // = 0xEF → IRQ12 (mouse) activated
+    kernel::interrupts::mask_pic();
 }

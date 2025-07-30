@@ -24,6 +24,7 @@
 #ifndef MSI_H
 #define MSI_H
 #include "stdint.h"
+#include "pci.h"
 
 namespace PCI {
     constexpr uint16_t MSI_DELIVERY_MODE_FIXED = (0 << 8);
@@ -103,5 +104,7 @@ namespace PCI {
     } __attribute__((packed));
 
     static_assert(sizeof(pci_msi_capability) == 24);
+
+    bool enable_msi(PCIHeader0* header, uint8_t irq_vector);
 }
 #endif //MSI_H

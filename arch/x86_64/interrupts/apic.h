@@ -6,8 +6,12 @@
 #define APIC_H
 #include <stdint.h>
 #include <stddef.h>
+#include "../../../kernel/acpi/madt.h"
 
-// ------------------------------------------------------------------------------------------------
+extern uint8_t *g_localApicAddr;
+
+namespace arch::x86_64::interrupts::apic {
+    // ------------------------------------------------------------------------------------------------
 // Local APIC Registers
 #define LAPIC_ID                        0x0020  // Local APIC ID
 #define LAPIC_VER                       0x0030  // Local APIC Version
@@ -36,44 +40,31 @@
 #define LAPIC_TDCR                      0x03e0  // Divide Configuration (for Timer)
 
 // ICR bits
-
 #define ICR_DELIVS     0x00001000   // Delivery status
-#define ICR_ASSERT     0x00004000   // Assert interrupt (vs deassert)
 #define ICR_DEASSERT   0x00000000   // Deassert
 #define ICR_LEVEL      0x00008000   // Level triggered
-#define ICR_BCAST      0x00080000   // Send to all APICs
-#define ICR_BUSY       0x00001000   // Delivery status bit
-#define ICR_FIXED      0x00000000   // Fixed delivery mode
-#define ICR_NO_SHORTHAND                0x00000000
-#define ICR_EDGE                        0x00000000
-#define ICR_LEVEL                       0x00008000
 #define APIC_REGISTER_INT_COMMAND_LOW 0x300
 #define APIC_REGISTER_INT_COMMAND_HIGH 0x310
-#define APIC_ICR_SMI (2 << 8)
 #define APIC_ICR_INIT (5 << 8)
 #define APIC_ICR_SIPI (6 << 8)
 #define APIC_ICR_LEVEL_ASSERT (1 << 14)
 
 #define LAPIC_PERIODIC 0x20000
-
-#define APIC_LVT_MASKED       (1 << 16)
-
 #define PMT_TIMER_RATE 3579545 // 3.57 MHz
 
-void lapic_eoi();
-void apic_timer_tick();
-void lapic_init(uint8_t cpu_id);
+void send_eoi();
+void timer_tick();
+void init(uint8_t cpu_id);
 void wait_for_delivery();
 
-uint32_t local_apic_get_id();
-void lapic_write(uint32_t offset, uint32_t value);
-uint32_t lapic_read(uint32_t offset);
-extern uint8_t *g_localApicAddr;
+inline volatile uint64_t apic_ticks[MAX_CPU_CORES] = {0};
 
-void LocalApicSendStartup(uint32_t apic_id, uint8_t vector);
-void LocalApicSendInit(uint32_t apic_id);
+uint32_t local_apic_get_id();
+void write(uint32_t offset, uint32_t value);
+uint32_t read(uint32_t offset);
 
 void pmt_delay(size_t us);
+}
 
 
 #endif //APIC_H

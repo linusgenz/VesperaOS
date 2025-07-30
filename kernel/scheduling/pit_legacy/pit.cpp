@@ -1,5 +1,5 @@
 #include "pit.h"
-#include "../../../drivers/io/io.h"
+#include "../../cpu/io.h"
 
 namespace PIT {
     double time_since_boot = 0;

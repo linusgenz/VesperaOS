@@ -1,4 +1,4 @@
-#include "../include/paging.h"
+#include "paging.h"
 
 void PageDirectoryEntry::set_flag(PT_Flag flag, bool enabled) {
     uint64_t bit_selector = (uint64_t)1 << flag;

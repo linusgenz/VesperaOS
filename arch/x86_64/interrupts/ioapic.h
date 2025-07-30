@@ -25,9 +25,9 @@
 #define IOAPIC_H
 #include "../../../kernel/acpi/madt.h"
 
+namespace arch::x86_64::interrupts::ioapic {
 #define IOAPIC_REGSEL 0x00
 #define IOAPIC_WINDOW 0x10
-namespace IOAPIC {
 
     void init();
 
