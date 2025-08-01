@@ -1,5 +1,6 @@
 #include "./include/kernel_utils.h"
 #include "../arch/x86_64/gdt/gdt.h"
+#include "../arch/x86_64/syscalls/syscall.h"
 #include "../drivers/input/ps2/keyboard/ps2_keyboard.h"
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
@@ -10,6 +11,7 @@
 #include "include/interrupts.h"
 #include "../drivers/input/ps2/mouse/mouse.h"
 #include "../drivers/input/ps2/mouse/ps2_mouse.h"
+#include "sys/syscall_interface.h"
 
 void prepare_memory(BootInfo* bootInfo){
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -43,14 +45,14 @@ void prepare_memory(BootInfo* bootInfo){
 
     for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
         void* stack_addr = (void*)(KERNEL_STACK_BASE + i * KERNEL_STACK_SIZE);
-        kernel::memory::map_memory(stack_addr, stack_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(stack_addr, stack_addr, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
     }
 
-    kernel::memory::map_memory((void*)0x8000, (void*)0x8000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    kernel::memory::map_memory((void*)0x7000, (void*)0x7000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    kernel::memory::map_memory((void*)0x6000, (void*)0x6000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    kernel::memory::map_memory((void*)0x1000, (void*)0x1000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-    kernel::memory::map_memory((void*)0x2000, (void*)0x2000, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+    kernel::memory::map_memory((void*)0x8000, (void*)0x8000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void*)0x7000, (void*)0x7000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void*)0x6000, (void*)0x6000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void*)0x1000, (void*)0x1000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void*)0x2000, (void*)0x2000, (1ULL << PT_Flag::CacheDisabled));
 
     uint64_t fb_base = (uint64_t)bootInfo->framebuffer->base_address;
     uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
@@ -60,11 +62,6 @@ void prepare_memory(BootInfo* bootInfo){
     }
 
     asm ("mov %0, %%cr3" : : "r" (kernel::memory::get_pagetable_address()));
-}
-
-
-void prepare_interrupts() {
-
 }
 
 uint32_t* scroll_buffer_top = nullptr;
@@ -128,10 +125,15 @@ void initialize_kernel(BootInfo* bootInfo){
     TargetFramebuffer = bootInfo->framebuffer;
     Log::enableDebug();
 
+    /*
     GDTDescriptor gdt_descriptor;
     gdt_descriptor.size = sizeof(GDT) - 1;
     gdt_descriptor.offset = (uint64_t)&default_gdt;
     load_GDT(&gdt_descriptor);
+*/
+
+
+    gdt_install();
 
     prepare_memory(bootInfo);
     kernel::memory::initialize_heap((void*)0x0000100000000000, 0x500);
@@ -149,7 +151,7 @@ void initialize_kernel(BootInfo* bootInfo){
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
-    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+  //  PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
     CPUManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
@@ -162,6 +164,8 @@ void initialize_kernel(BootInfo* bootInfo){
 
   //  StackManager::print_stack_info();
 
+    syscall_init();
+    install_syscalls();
 
     Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
     Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);

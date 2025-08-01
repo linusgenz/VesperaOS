@@ -54,7 +54,7 @@ namespace StackManager {
         for (size_t i = 0; i < pages_needed; i++) {
             void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
             void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            kernel::memory::map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+            kernel::memory::map_memory(virt_addr, phys_addr, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
         }
         
         // Initialisiere Stack-Info
@@ -103,7 +103,7 @@ namespace StackManager {
         for (size_t i = 0; i < pages_needed; i++) {
             void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
             void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            kernel::memory::map_memory(virt_addr, phys_addr, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+            kernel::memory::map_memory(virt_addr, phys_addr, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
         }
         
         // Initialisiere Stack-Info

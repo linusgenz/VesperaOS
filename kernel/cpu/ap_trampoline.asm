@@ -1,7 +1,7 @@
 section .text.ap_trampoline
 global ap_trampoline_entry
 
-%define kernel_stacks               0x00020000
+%define kernel_stacks               0x00021000
 %define idt                         0x1000
 %define vm_pml4                     0x2000
 

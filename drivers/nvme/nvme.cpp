@@ -14,7 +14,7 @@ namespace NVMe {
         for (int i = 0; i < 4; i++) {
             auto virt = reinterpret_cast<void *>((uintptr_t) c_regs + i * 0x1000);
             auto phys = reinterpret_cast<void *>(mmio + i * 0x1000);
-            kernel::memory::map_memory(virt, phys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+            kernel::memory::map_memory(virt, phys, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
         }
 
         Log::Info("[NVMe] Initializing Controller...");
@@ -48,8 +48,8 @@ namespace NVMe {
             return;
         }
 
-        kernel::memory::map_memory(admCQVirtPage, admCQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-        kernel::memory::map_memory(admSQVirtPage, admSQPhysPage, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(admCQVirtPage, admCQPhysPage, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+        kernel::memory::map_memory(admSQVirtPage, admSQPhysPage, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
         memset(admCQVirtPage, 0, PAGE_SIZE_4K);
         memset(admSQVirtPage, 0, PAGE_SIZE_4K);
@@ -185,7 +185,7 @@ namespace NVMe {
 
     long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespaceIDs) {
         uint32_t *namespaceList = reinterpret_cast<uint32_t *>(kernel::memory::request_page());
-        kernel::memory::map_memory(namespaceList, namespaceList, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(namespaceList, namespaceList, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
         NvmeCommand identifyNsList;
         memset(&identifyNsList, 0, sizeof(NvmeCommand));
@@ -228,8 +228,8 @@ namespace NVMe {
             return -1;
         }
 
-        kernel::memory::map_memory(sqVirt, sqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
-        kernel::memory::map_memory(cqVirt, cqPhys, PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+        kernel::memory::map_memory(sqVirt, sqPhys, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+        kernel::memory::map_memory(cqVirt, cqPhys, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
         uint16_t queueID = AllocateQueueID();
 

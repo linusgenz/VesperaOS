@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION_MAJOR=0
-VERSION_MINOR=3
+VERSION_MINOR=4
 VERSION_PATCH=1
 VERSION_STAGE="dev"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

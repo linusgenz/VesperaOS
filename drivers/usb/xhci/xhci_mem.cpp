@@ -27,7 +27,7 @@
 #include "../../../include/log.h"
 
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
-    kernel::memory::map_range((void*)pci_bar_address, (void*)pci_bar_address, bar_size, PT_Flag::CacheDisabled);
+    kernel::memory::map_range((void*)pci_bar_address, (void*)pci_bar_address, bar_size, (1ULL << PT_Flag::CacheDisabled));
 
     return pci_bar_address;
 }

@@ -68,7 +68,7 @@ namespace PCI {
                 uint64_t bar_phys = bar_info.address;
 
                 kernel::memory::map_range((void*)bar_phys, (void*)bar_phys, 0x4000,
-                                                    PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+                                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
 
                 void *table_base = reinterpret_cast<void *>(bar_phys + table_offset);

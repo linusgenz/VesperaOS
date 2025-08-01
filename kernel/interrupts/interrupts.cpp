@@ -34,7 +34,7 @@ namespace kernel::interrupts {
     void initialize() {
         kernel::memory::map_memory(g_localApicAddr,
                                    g_localApicAddr,
-                                   PT_Flag::WriteThrough | PT_Flag::CacheDisabled);
+                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
         arch::x86_64::interrupts::idt::load_default_idt();
         arch::x86_64::interrupts::pic::remap();
