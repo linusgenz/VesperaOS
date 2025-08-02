@@ -1,10 +1,10 @@
-// syscall.h
+// sys_read.cpp
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 02.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,21 +21,21 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#include "../FileDescriptor.h"
 #include "cstdint"
+#include "../../../include/log.h"
 
+int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    int64_t fd         = static_cast<int>(arg0);
+    void* buf   = reinterpret_cast<void*>(arg1);
+    size_t count   = static_cast<size_t>(arg2);
 
-void syscall_init();
+    FileDescriptor *desc = kernel::get_fd(fd);
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
+    if (!desc || !desc->node || !desc->node->ops || !desc->node->ops->read) return -1;
 
-#endif //SYSCALL_H
+    size_t bytes = desc->node->ops->read(desc->node, desc->offset, count, buf);
+    desc->offset += bytes;
+
+    return bytes;
+}

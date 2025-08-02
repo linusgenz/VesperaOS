@@ -6,7 +6,7 @@
 #define NVME_H
 #include "../pci/pci.h"
 #include "../../include/vector.h"
-#include "../../kernel/include/dev/blockdevice.h"
+#include "../../kernel/devices/blockdevice.h"
 #include "nvme_defs.h"
 
 namespace NVMe {

@@ -2,10 +2,11 @@
 #include "../ahci/ahci.h"
 #include "../../include/log.h"
 #include "../nvme/nvme.h"
-#include "../../filesystem/fat32.h"
+#include "../../filesystem/fat32/fat32.h"
 #include "../usb/xhci/xhci.h"
 #include "../../kernel/include/interrupts.h"
 #include "msix.h"
+#include "../../kernel/devices/device_manager.h"
 #include "../../kernel/time/time.h"
 
 namespace PCI {
@@ -33,53 +34,25 @@ namespace PCI {
                 switch (pci_device_header->subclass) {
                     case 0x06: // serial ATA
                         switch (pci_device_header->prog_if) {
-                           /*   case 0x01: // AHCI 1.0 device
-                               auto x = new AHCI::AHCIDriver(pci_device_header);
-                                AHCI::Port *p = x->ports[0];
-                                auto *dev = static_cast<BlockDevice *>(p);
-                                FAT32::FileSystem fs(p);
-                           //     auto s =fs.CreateDirectory("TESTDIR");
-                           //     Log::LogMsg("File created? %s", s ? "true" : "false");
-                                   size_t entryCount = 0;
-                                  FAT32::FileEntry* entries = fs.ReadDirectory("/EFI/BOOT", entryCount);
+                              case 0x01:
+                                break;// AHCI 1.0 device
+                          /*     auto ahci = new AHCI::AHCIDriver(pci_device_header);
+                                if (!ahci->HasActivePorts()) {
+                                    delete ahci;
+                                    break;
+                                }
 
-                                   if (entries == nullptr) {
-                                       // Fehler beim Lesen
-                                       global_renderer->print("Verzeichnis konnte nicht gelesen werden.\n");
-                                   } else {
-                                       for (size_t i = 0; i < entryCount; i++) {
-                                           global_renderer->print("Name: ");
-                                           global_renderer->print(entries[i].GetName());
-                                           global_renderer->print(" isDir: ");
-                                           global_renderer->print(entries[i].isDir() ? "True" : "False");
-                                           global_renderer->new_line();
-                                       }
-                                       free(entries);
-                                   }
+                                for (int i = 0; i < ahci->portCount; ++i) {
+                                    auto* port = ahci->ports[i];
+                                    if (!port) continue;
 
-                                   char buffer[4096];  // Beispiel: 4 KB
-                                   size_t size = 0;
-                                   if (bool ok = fs.ReadFile("t.txt", buffer, sizeof(buffer), size)) {
-                                       global_renderer->print(buffer);
-                                   } else {
-                                       global_renderer->print("Fehler beim Lesen der Datei\n");
-                                   }
-                                   global_renderer->new_line();
-                                   if (fs.is_valid()) {
-                                       global_renderer->print("FAT32 erkannt.");
-                                       global_renderer->new_line();
-                                   } else {
-                                       global_renderer->print("Kein FAT32 auf Gerät.");
-                                       global_renderer->new_line();
-                                   }
-
-                                   fs.CreateDirectory("TESTDIR");
-                                   auto s =fs.CreateFile("testfile.txt");
-                                   global_renderer->print(s ? "true" : "false");*/
+                                    Log::debug("added device: %u", i);
+                                    kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(port));
+                                }*/
                         }
                     case 0x08:
                         switch (pci_device_header->prog_if) {
-                            /* case 0x02:
+                             case 0x02:
                                uint16_t command_register = pci_device_header->command;
 
                                 uint16_t command = pci_read16(pci_device_header, 0x04);
@@ -87,38 +60,18 @@ namespace PCI {
                                 pci_write16(pci_device_header, 0x04, command);
 
                                 auto driver = new NVMe::NvmeDriver(pci_device_header);
-                                auto dev = static_cast<BlockDevice *>(driver->get_namespaces()[0]);
-                                FAT32::FileSystem fs(dev);
-                                if (fs.is_valid()) {
-                                    Log::Info("FAT32 erkannt.");
-                                } else {
-                                    Log::Info("Kein FAT32 auf Geraet.");
+                                auto ns_list = driver->get_namespaces();
+                                Log::debug("namespaces: %u",ns_list.size());
+                                if (ns_list.size() < 0) {
+                                    Log::debug("[Nvme] Namespaces not found");
+                                    delete driver;
+                                    break;
                                 }
 
-                                size_t entryCount = 0;
-                                FAT32::FileEntry *entries = fs.ReadDirectory("/", entryCount);
-
-                                if (entries == nullptr) {
-                                    // Fehler beim Lesen
-                                    Log::Warning("Verzeichnis konnte nicht gelesen werden.");
-                                } else {
-                                    for (size_t i = 0; i < entryCount; i++) {
-                                        Log::LogMsg("Name: %s isDir: %s", entries[i].GetName(), entries[i].isDir() ? "true" : "false");
-                                    }
-                                    free(entries);
+                                for (size_t i = 0; i < ns_list.size(); ++i) {
+                                    Log::debug("added device: %u", i);
+                                    kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(ns_list[i]));
                                 }
-
-                                char buffer[4096]; // Beispiel: 4 KB
-                                size_t size = 0;
-                                if (bool ok = fs.ReadFile("t.txt", buffer, sizeof(buffer), size)) {
-                                    Log::LogMsg(buffer);
-                                } else {
-                                    Log::Warning("Fehler beim Lesen der Datei");
-                                }*/
-                            //
-                        //        fs.CreateDirectory("TESTDIR");
-                        //        auto s = fs.CreateFile("testfileNVME.txt");
-                        //        Log::LogMsg("TestDir created? %s", s ? "true" : "false");
                         }
                 }
             case 0x0C:
@@ -132,7 +85,7 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-                                uint16_t command = pci_read16(pci_device_header, 0x04);
+                      /*          uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                                 pci_write16(pci_device_header, 0x04, command);
                                 if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header), IRQ_XHCI_VECTOR)) Log::debug("enabled msi(x)");
@@ -141,7 +94,7 @@ namespace PCI {
                                     Log::Error("Could not initalize xhci driver");
                                     return;
                                 }
-                                usb_driver->start_device();
+                                usb_driver->start_device();*/
                             }
                             case 0x80:
 

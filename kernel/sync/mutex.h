@@ -8,7 +8,7 @@
 #include "../scheduling/thread.h"
 
 namespace kernel {
-
+    inline bool scheduling_started = false;
     struct mutex_t {
         volatile bool locked;
         kthread_t* waiters;

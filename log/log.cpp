@@ -219,12 +219,12 @@ void Log::Print(const char *fmt, ...) {
 }
 
 void Log::debug(const char *fmt, ...) {
-    if (!is_debug) return;
+  /*  if (!is_debug) return;
     if (!initialized) {
         spinlock_guard g(log_spin);
     } else {
         kernel::mutex_lock(&log_mutex);
-    }
+    }*/
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -240,9 +240,9 @@ void Log::debug(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
+ //   if (initialized) {
+ //       kernel::mutex_unlock(&log_mutex);
+ //   }
 }
 
 void Log::print_formatted(const char *fmt, __builtin_va_list args) {

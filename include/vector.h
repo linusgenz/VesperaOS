@@ -5,19 +5,19 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 #include "../kernel/memory/heap.h"
-
+#include "../kernel/include/memory.h"
 template<typename T>
 class Vector {
 public:
     Vector(size_t initial_capacity = 4)
         : capacity(initial_capacity), length(0) {
-        data = static_cast<T*>(malloc(sizeof(T) * capacity));
+        data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * capacity));
     }
 
     ~Vector() {
         for (size_t i = 0; i < length; ++i)
             data[i].~T();
-        free(data);
+        kernel::memory::free(data);
     }
 
     void clear() {
@@ -51,12 +51,12 @@ private:
     size_t length;
 
     void resize(size_t new_capacity) {
-        T* new_data = static_cast<T*>(malloc(sizeof(T) * new_capacity));
+        T* new_data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
         for (size_t i = 0; i < length; ++i)
             new (&new_data[i]) T(data[i]); // copy-construct
         for (size_t i = 0; i < length; ++i)
             data[i].~T();
-        free(data);
+        kernel::memory::free(data);
         data = new_data;
         capacity = new_capacity;
     }

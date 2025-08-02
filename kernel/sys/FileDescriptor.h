@@ -1,10 +1,10 @@
-// syscall.h
+// FileDescriptor.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 02.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,21 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#ifndef FILEDESCRIPTOR_H
+#define FILEDESCRIPTOR_H
+
+#include "../../filesystem/vfs/vfs_node.h"
 #include "cstdint"
 
+struct FileDescriptor {
+    VfsNode* node = nullptr;
+    size_t offset = 0;
+    bool used = false;
+};
 
-void syscall_init();
+#define MAX_FDS 256
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
+namespace kernel {
+    inline FileDescriptor fd_table[MAX_FDS]; // max 256 open files TODO change this when we have processes
 
-#endif //SYSCALL_H
+    int64_t alloc_fd(VfsNode* node);
+    FileDescriptor* get_fd(int64_t fd);
+    void free_fd(int64_t fd);
+}
+
+#endif //FILEDESCRIPTOR_H

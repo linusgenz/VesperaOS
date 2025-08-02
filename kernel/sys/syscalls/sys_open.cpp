@@ -1,10 +1,10 @@
-// syscall.h
+// sys_open.cpp
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 02.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,21 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
-#include "cstdint"
+#include "../../../filesystem/vfs/vfs_node.h"
+#include "../FileDescriptor.h"
+#include "../../../filesystem/vfs/vfs.h"
+#include "../../../include/log.h"
 
+int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    const char* path = reinterpret_cast<const char*>(arg0);
 
-void syscall_init();
+    VfsNode *node = vfs_open(path);
+    if (!node) return -1;
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
-
-#endif //SYSCALL_H
+    return kernel::alloc_fd(node);
+}

@@ -3,6 +3,7 @@
 //
 #include "time.h"
 #include "../../arch/x86_64/interrupts/apic.h"
+#include "../../include/log.h"
 #include "../cpu/cpu_manager.h"
 #include "../include/interrupts.h"
 #include "../include/scheduler.h"
@@ -25,6 +26,10 @@ namespace kernel::time {
     void sleep_ms(uint64_t ms) {
         uint32_t cpu = CPUManager::get_current_cpu_id();
         uint64_t target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
+
+        if (interrupts::lapic_get_ticks(cpu) > 50) {
+            Log::debug("target %u current: %u", target, interrupts::lapic_get_ticks(cpu));
+        }
         while (interrupts::lapic_get_ticks(cpu) < target) {
             asm volatile("hlt");
         }

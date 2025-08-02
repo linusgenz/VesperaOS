@@ -77,6 +77,7 @@ namespace arch::x86_64::interrupts::apic {
 
     void timer_tick() {
         uint32_t cpu = CPUManager::get_current_cpu_id();
+
         apic_ticks[cpu]++;
 
 

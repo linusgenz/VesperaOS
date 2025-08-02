@@ -27,4 +27,6 @@ char *strncpy(char *dest, const char *src, size_t n);
 char *strrchr (register const char *s, int c);
 char to_upper(char c);
 
+int snprintf(char *buffer, size_t size, const char *format, ...);
+
 #endif //STRING_H

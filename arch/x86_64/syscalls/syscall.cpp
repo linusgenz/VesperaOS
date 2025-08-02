@@ -55,14 +55,14 @@ void syscall_init() {
 
     write_msr(MSR_LSTAR, reinterpret_cast<uint64_t>(&syscall_entry));
 
-    write_msr(MSR_FMASK, 0xFFFFFFFFFFFFFFFD);
+    write_msr(MSR_FMASK, 0x0000000000000000); // TEMP not secure. mask everything later TODO
 
     uint64_t efer = read_msr(MSR_EFER);
     efer |= EFER_SCE;
     write_msr(MSR_EFER, efer); // enable syscalls
 }
 
-uint64_t syscall(
+int64_t syscall(
     uint64_t num,
     uint64_t arg0,
     uint64_t arg1,
@@ -71,7 +71,7 @@ uint64_t syscall(
     uint64_t arg4,
     uint64_t arg5
 ) {
-    uint64_t ret;
+    int64_t ret;
 
     register uint64_t r10_ asm("r10") = arg3;
     register uint64_t r8_  asm("r8")  = arg4;

@@ -51,5 +51,7 @@ syscall_entry:
     pop rcx          ; user RIP -> RCX
     pop r11          ; user RFLAGS -> R11
 
+    or r11, 0x200
+
     swapgs
     o64 sysret

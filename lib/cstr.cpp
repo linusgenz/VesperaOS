@@ -289,3 +289,153 @@ char to_upper(char c) {
     if (c >= 'a' && c <= 'z') return c - 32;
     return c;
 }
+
+// Helper function to reverse a string in place
+static void reverse_string(char *str, int length) {
+    int start = 0;
+    int end = length - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+// Helper function to convert integer to string
+static int int_to_string(int num, char *str, int base) {
+    int i = 0;
+    int is_negative = 0;
+
+    if (num == 0) {
+        str[i++] = '0';
+        str[i] = '\0';
+        return i;
+    }
+
+    if (num < 0 && base == 10) {
+        is_negative = 1;
+        num = -num;
+    }
+
+    while (num != 0) {
+        int rem = num % base;
+        str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+        num = num / base;
+    }
+
+    if (is_negative) {
+        str[i++] = '-';
+    }
+
+    str[i] = '\0';
+    reverse_string(str, i);
+
+    return i;
+}
+
+// Helper function to get string length
+static int str_len(const char *str) {
+    int len = 0;
+    while (str[len] != '\0') {
+        len++;
+    }
+    return len;
+}
+
+int snprintf(char *buffer, size_t size, const char *format, ...) {
+    if (!buffer || !format || size == 0) {
+        return -1;
+    }
+
+    __builtin_va_list args;
+    __builtin_va_start(args, format);
+
+    size_t buf_pos = 0;
+    int written = 0;
+
+    for (int i = 0; format[i] != '\0'; i++) {
+        if (format[i] == '%' && format[i + 1] != '\0') {
+            i++; // Skip '%'
+
+            switch (format[i]) {
+                case 'd': {
+                    int val = __builtin_va_arg(args, int);
+                    char temp[32];
+                    int len = int_to_string(val, temp, 10);
+
+                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                        buffer[buf_pos++] = temp[j];
+                    }
+                    written += len;
+                    break;
+                }
+
+                case 'x': {
+                    int val = __builtin_va_arg(args, int);
+                    char temp[32];
+                    int len = int_to_string(val, temp, 16);
+
+                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                        buffer[buf_pos++] = temp[j];
+                    }
+                    written += len;
+                    break;
+                }
+
+                case 's': {
+                    char *str = __builtin_va_arg(args, char*);
+                    if (str) {
+                        int len = str_len(str);
+                        for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                            buffer[buf_pos++] = str[j];
+                        }
+                        written += len;
+                    }
+                    break;
+                }
+
+                case 'c': {
+                    char ch = (char)__builtin_va_arg(args, int);
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = ch;
+                    }
+                    written++;
+                    break;
+                }
+
+                case '%': {
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = '%';
+                    }
+                    written++;
+                    break;
+                }
+
+                default:
+                    // Unknown format specifier, just copy it
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = '%';
+                    }
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = format[i];
+                    }
+                    written += 2;
+                    break;
+            }
+        } else {
+            // Regular character
+            if (buf_pos < size - 1) {
+                buffer[buf_pos++] = format[i];
+            }
+            written++;
+        }
+    }
+
+    // Null terminate
+    buffer[buf_pos] = '\0';
+
+    __builtin_va_end(args);
+    return written;
+}

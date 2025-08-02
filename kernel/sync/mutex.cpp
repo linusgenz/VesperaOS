@@ -15,6 +15,13 @@ namespace kernel {
     }
 
     void mutex_lock(mutex_t* m) {
+        if (!scheduling_started) {
+            // Nur spinlock, nicht blockieren!
+            while (__sync_lock_test_and_set(&m->locked, true)) {
+                // Busy wait, kein Threadwechsel!
+            }
+            return;
+        }
         while (__sync_lock_test_and_set(&m->locked, true)) {
             kthread_t* current = scheduling::get_current_thread();
             current->state = THREAD_BLOCKED;

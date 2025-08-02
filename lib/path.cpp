@@ -5,7 +5,7 @@
 #include "stddef.h"
 
 //  "/foo/bar/baz" -> "foo", "bar", "baz"
-size_t SplitPath(const char* path, char components[][32], size_t maxComponents) { // TODO components arr might be to small for some dir names
+size_t split_path(const char* path, char components[][32], size_t maxComponents) { // TODO components arr might be to small for some dir names
     size_t count = 0;
     size_t pos = 0;
 

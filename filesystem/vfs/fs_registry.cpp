@@ -1,6 +1,6 @@
-// sys_exit.cpp
+// fs_registry.cpp
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
@@ -21,12 +21,23 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
-#include "../../include/log.h"
+#include "fs_registry.h"
+#include "../../include/string.h"
 
-uint64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-    Log::PrintLn("[SYS_EXIT] Code: %llu", code);
-    // Prozess beenden, Scheduler aufrufen etc.
-    while (true) {
-    } // placeholder
+static FileSystemDriver* fs_drivers[MAX_MOUNTS];
+static size_t driver_count = 0;
+
+void register_fs_driver(FileSystemDriver* driver) {
+    if (driver_count >= MAX_MOUNTS) return;
+
+    fs_drivers[driver_count++] = driver;
+}
+
+FileSystemDriver* find_fs_driver(const char* name) {
+    for (size_t i = 0; i < driver_count; ++i) {
+        if (strcmp(fs_drivers[i]->name, name) == 0) {
+            return fs_drivers[i];
+        }
+    }
+    return nullptr;
 }

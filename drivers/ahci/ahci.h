@@ -2,7 +2,7 @@
 #define AHCI_H
 #include <stdint.h>
 #include "../pci/pci.h"
-#include "../../kernel/include/dev/blockdevice.h"
+#include "../../kernel/devices/blockdevice.h"
 
 namespace AHCI {
 
@@ -167,6 +167,7 @@ namespace AHCI {
         public:
         AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress);
         ~AHCIDriver();
+        bool HasActivePorts() const;
         PCI::PCIDeviceHeader* PCIBaseAddress;
         HBAMemory* ABAR;
         void ProbePorts();

@@ -1,6 +1,6 @@
-// syscall.h
+// vfs.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
@@ -21,21 +21,21 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
-#include "cstdint"
+#ifndef VFS_H
+#define VFS_H
+#include "vfs_node.h"
+#include "../../kernel/devices/blockdevice.h"
 
+struct MountPoint {
+    char path[64];
+    VfsNode* root;
+};
 
-void syscall_init();
+void vfs_init();
+int vfs_mount(BlockDevice* dev, const char* path, const char* fs_name);
+VfsNode* vfs_open(const char* path);
+size_t vfs_read(VfsNode* file, size_t offset, size_t size, void* buffer);
+int vfs_readdir(VfsNode* node, size_t index, char* out_name, size_t max_len);
+void vfs_close(VfsNode* node);
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
-
-#endif //SYSCALL_H
+#endif //VFS_H

@@ -5,6 +5,6 @@
 #ifndef PATH_H
 #define PATH_H
 
-size_t SplitPath(const char* path, char components[][32], size_t maxComponents);
+size_t split_path(const char* path, char components[][32], size_t maxComponents);
 
 #endif //PATH_H

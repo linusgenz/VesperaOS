@@ -1,10 +1,10 @@
-// syscall.h
+// sys_close.cpp
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 02.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,21 +21,20 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
 #include "cstdint"
+#include "../FileDescriptor.h"
 
+int64_t sys_close(uint64_t fd, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    if (fd >= MAX_FDS) return -1;
 
-void syscall_init();
+    FileDescriptor *desc = kernel::get_fd(fd);
+    if (!desc) return -1;
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
+    if (desc->node && desc->node->ops->close) {
+        desc->node->ops->close(desc->node);
+    }
 
-#endif //SYSCALL_H
+    kernel::free_fd(fd);
+
+    return 0;
+}

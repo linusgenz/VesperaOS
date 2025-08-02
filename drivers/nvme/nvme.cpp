@@ -4,6 +4,8 @@
 
 #include "nvme.h"
 #include "../../include/log.h"
+#include "../../kernel/cpu/cpu_manager.h"
+#include "../../kernel/include/interrupts.h"
 #include "../../kernel/time/time.h"
 
 namespace NVMe {

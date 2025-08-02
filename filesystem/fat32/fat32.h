@@ -6,9 +6,9 @@
 #define FAT32_CPP_H
 #include <stdint.h>
 #include <stddef.h>
-#include "../include/string.h"
-#include "../kernel/include/basic_renderer.h"
-#include "../kernel/include/dev/blockdevice.h"
+#include "../../include/string.h"
+#include "../../kernel/include/basic_renderer.h"
+#include "../../kernel/devices/blockdevice.h"
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
 namespace FAT32 {

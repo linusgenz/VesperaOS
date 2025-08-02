@@ -61,7 +61,7 @@ $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	mkdir -p $(EFI_DIR)
 	sudo mount -o loop $@ mnt
 	sudo mkdir -p $(EFI_DIR)
-	sudo cp build/t.txt mnt/t.txt
+	sudo cp build/t.txt $(EFI_DIR)/t.txt
 	sudo cp $(BOOTLOADER_EFI) $(EFI_DIR)/BOOTX64.EFI
 	sudo cp $(KERNEL_ELF) $(EFI_DIR)/kernel.elf
 	sudo cp build/zap-light16.psf mnt/zap-light16.psf
@@ -136,10 +136,9 @@ debug:
 	  -cpu qemu64 \
 	  -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
 	  -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
-	  -drive file=$(DISK_IMG),format=raw \
-	  -drive file=nvme.img,if=none,id=nvme0,format=raw \
+	  -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
 	  -device pcie-root-port,id=rp0,port=0x10,chassis=1 \
-	  -device nvme,drive=nvme0,serial=deadbeef,bus=rp0 \
+	  -device nvme,drive=host0,serial=deadbeef,bus=rp0 \
 	  -net none \
 	  -device qemu-xhci,id=xhci \
 	  -device usb-mouse \

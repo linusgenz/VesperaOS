@@ -11,6 +11,11 @@
 #include "include/interrupts.h"
 #include "../drivers/input/ps2/mouse/mouse.h"
 #include "../drivers/input/ps2/mouse/ps2_mouse.h"
+#include "../filesystem/fat32/fat32.h"
+#include "../filesystem/fat32/fat32_vfs_adapter.h"
+#include "../filesystem/vfs/fs_registry.h"
+#include "../filesystem/vfs/vfs.h"
+#include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
 
 void prepare_memory(BootInfo* bootInfo){
@@ -111,6 +116,40 @@ void zero_bss() {
     }
 }
 
+extern FileSystemDriver fat32_driver;
+void vfs_system_init() {
+    vfs_init();
+
+    register_fs_driver(&fat32_driver);
+
+    auto devices = kernel::DeviceManager::GetDevices();
+    size_t device_count = kernel::DeviceManager::GetDeviceCount();
+
+    Log::debug("device count: %d", device_count);
+
+    int mount_index = 0;
+    for (size_t i = 0; i < device_count; ++i) {
+        BlockDevice* dev = devices[i];
+        if (!dev) continue;
+
+        char mount_path[32];
+        snprintf(mount_path, sizeof(mount_path), "/mnt/sd%d", mount_index++);
+
+        // Nutze das VFS-Treiber-System, nicht manuell FAT32 aufrufen!
+        int result = vfs_mount(dev, mount_path, "fat32");
+
+        if (result == 0) {
+            Log::Info("Mounted FAT32 at %s", mount_path);
+        } else {
+            Log::Warning("Failed to mount FAT32 at %s (code %d)", mount_path, result);
+        }
+    }
+
+    if (mount_index == 0) {
+        Log::Warning("No FAT32 volumes found.");
+    }
+}
+
 
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
 static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
@@ -124,14 +163,6 @@ void initialize_kernel(BootInfo* bootInfo){
 
     TargetFramebuffer = bootInfo->framebuffer;
     Log::enableDebug();
-
-    /*
-    GDTDescriptor gdt_descriptor;
-    gdt_descriptor.size = sizeof(GDT) - 1;
-    gdt_descriptor.offset = (uint64_t)&default_gdt;
-    load_GDT(&gdt_descriptor);
-*/
-
 
     gdt_install();
 
@@ -151,25 +182,29 @@ void initialize_kernel(BootInfo* bootInfo){
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
-  //  PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+    kernel::DeviceManager::Init();
+
+    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
     CPUManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
     Log::init(); // threads are possible -> switch to mutex
     prepare_ap_trampoline();
 
-    CPUManager::smp_init();
+ //   CPUManager::smp_init();
 
-    CPUManager::print_cpu_info();
+  //  CPUManager::print_cpu_info();
 
   //  StackManager::print_stack_info();
 
     syscall_init();
     install_syscalls();
 
-    Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
-    Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
-    Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
+    vfs_system_init();
+
+ //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
+ //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
+ //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
     kernel::interrupts::mask_pic();
 }

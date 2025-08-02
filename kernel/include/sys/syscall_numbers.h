@@ -1,10 +1,10 @@
-// syscall.h
+// syscall_numbers.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 02.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,21 +21,15 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
-#include "cstdint"
+#ifndef SYSCALL_NUMBERS_H
+#define SYSCALL_NUMBERS_H
 
+enum SyscallNumbers {
+    SYSCALL_READ = 0,
+    SYSCALL_WRITE = 1,
+    SYSCALL_OPEN = 2,
+    SYSCALL_CLOSE = 3,
+    SYSCALL_EXIT = 60,
+};
 
-void syscall_init();
-
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
-
-#endif //SYSCALL_H
+#endif //SYSCALL_NUMBERS_H

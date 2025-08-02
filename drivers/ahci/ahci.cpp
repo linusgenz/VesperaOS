@@ -238,8 +238,7 @@ namespace AHCI {
         return true;
     }
 
-
-    AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader *pciBaseAddress) {
+    AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader *pciBaseAddress): portCount(0) {
         this->PCIBaseAddress = pciBaseAddress;
         Log::Ok("[ AHCI ] AHCI Driver instance initialized");
 
@@ -256,6 +255,11 @@ namespace AHCI {
             port->buffer = static_cast<uint8_t *>(kernel::memory::request_page());
             memset(port->buffer, 0, 0x1000);
         }
+    }
+
+    bool AHCIDriver::HasActivePorts() const {
+        Log::debug("portCount: %d", portCount);
+        return portCount > 0;
     }
 
     AHCIDriver::~AHCIDriver() {

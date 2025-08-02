@@ -4,11 +4,11 @@
 
 #include "fat32.h"
 
-#include "../include/log.h"
-#include "../kernel/include/memory.h"
-#include "../include/string.h"
-#include "../kernel/include/basic_renderer.h"
-#include "../include/path.h"
+#include "../../include/log.h"
+#include "../../kernel/include/memory.h"
+#include "../../include/string.h"
+#include "../../kernel/include/basic_renderer.h"
+#include "../../include/path.h"
 
 namespace FAT32 {
     FileSystem::FileSystem(BlockDevice *device) {
@@ -33,11 +33,11 @@ namespace FAT32 {
         this->valid = true;
     }
 
-    uint8_t* AllocClusterBuffer(uint32_t clusterBytes) {
-        return (uint8_t*)kernel::memory::request_pages((clusterBytes + 0xFFF) / 0x1000);
+    uint8_t *AllocClusterBuffer(uint32_t clusterBytes) {
+        return (uint8_t *) kernel::memory::request_pages((clusterBytes + 0xFFF) / 0x1000);
     }
 
-    void FreeClusterBuffer(uint8_t* ptr, uint32_t clusterBytes) {
+    void FreeClusterBuffer(uint8_t *ptr, uint32_t clusterBytes) {
         kernel::memory::free_pages(ptr, (clusterBytes + 0xFFF) / 0x1000);
     }
 
@@ -91,7 +91,7 @@ namespace FAT32 {
                 uint32_t *newChain = static_cast<uint32_t *>(realloc(chain, size, sizeof(uint32_t) * capacity));
                 size = sizeof(uint32_t) * capacity;
                 if (!newChain) {
-                    free(chain);
+                    kernel::memory::free(chain);
                     outCount = 0;
                     return nullptr;
                 }
@@ -104,10 +104,10 @@ namespace FAT32 {
         }
 
         outCount = count;
-        return chain; // Caller muss free() machen
+        return chain; // Caller muss kernel::memory::free() machen
     }
 
-    FileEntry* FileSystem::ReadDirectory(const char* path, size_t& outCount) const {
+    FileEntry *FileSystem::ReadDirectory(const char *path, size_t &outCount) const {
         outCount = 0;
 
         uint32_t cluster = ResolvePathToCluster(path);
@@ -129,7 +129,7 @@ namespace FAT32 {
         uint8_t clusterBuffer[bpb.bytesPerSector * bpb.sectorsPerCluster];
 
         if (!ReadCluster(cluster, clusterBuffer)) {
-            free(entries);
+            kernel::memory::free(entries);
             outCount = 0;
             return nullptr;
         }
@@ -201,82 +201,80 @@ namespace FAT32 {
         return entries;
     }
 
-    bool FileSystem::ReadFile(const char *filename, char *buffer, const size_t bufferSize, size_t &outFileSize) const {
-        size_t entryCount = 0;
-        const auto entries = ReadDirectory(GetRootCluster(), entryCount);
-        if (!entries) {
-            return false;
-        }
+    bool FileSystem::ReadFile(const char *path, char *buffer, const size_t bufferSize, size_t &outFileSize) const {
+        char components[16][32]; // Maximal 16 Pfadkomponenten à 31 Zeichen
+        size_t count = split_path(path, components, 16);
 
-        const FileEntry *fileEntry = nullptr;
-        for (size_t i = 0; i < entryCount; i++) {
-            if (strcmp(entries[i].GetLongName(), filename) == 0 && !entries[i].isDir()) {
-                fileEntry = &entries[i];
-                break;
+        if (count == 0) return false;
+
+        uint32_t currentCluster = GetRootCluster();
+        FileEntry entry;
+
+        for (size_t i = 0; i < count; ++i) {
+            size_t entryCount = 0;
+            auto entries = ReadDirectory(currentCluster, entryCount);
+            if (!entries) return false;
+
+            bool found = false;
+
+            for (size_t j = 0; j < entryCount; ++j) {
+                if (strcmp(entries[j].GetName(), components[i]) == 0) {
+                    entry = entries[j];
+                    currentCluster = entry.GetFirstCluster();
+                    found = true;
+                    break;
+                }
             }
+
+            kernel::memory::free(entries);
+
+            if (!found) return false;
+
+            // Nur letzte Komponente darf Datei sein
+            if (i < count - 1 && !entry.isDir()) return false;
         }
 
-        if (!fileEntry) {
-            free(entries);
-            return false;
-        }
+        if (entry.isDir()) return false;
 
-        const uint32_t startCluster = fileEntry->GetFirstCluster();
-        const size_t fileSize = fileEntry->GetFileSize();
-
-        if (fileSize > bufferSize) {
-            // Buffer zu klein
-            free(entries);
-            return false;
-        }
+        const size_t fileSize = entry.GetFileSize();
+        if (fileSize > bufferSize) return false;
 
         size_t clusterCount = 0;
-        uint32_t *clusters = GetClusterChain(startCluster, clusterCount);
-        if (!clusters) {
-            free(entries);
-            return false;
-        }
+        uint32_t *clusters = GetClusterChain(entry.GetFirstCluster(), clusterCount);
+        if (!clusters) return false;
 
-        uint32_t clusterSize = bytesPerCluster();
-        size_t pagesNeeded = (clusterSize + 4095) / 4096;
-        uint8_t *clusterBuffer = static_cast<uint8_t *>(kernel::memory::request_pages(pagesNeeded));
+        size_t clusterSize = bytesPerCluster();
+        uint32_t page_count = (clusterSize + 4095) / 4096;
+        uint8_t *clusterBuffer = static_cast<uint8_t *>(kernel::memory::request_pages(page_count));
         if (!clusterBuffer) {
-            free(clusters);
-            free(entries);
+            kernel::memory::free(clusters);
             return false;
         }
 
         size_t bytesRead = 0;
-        for (size_t i = 0; i < clusterCount && bytesRead < fileSize; i++) {
+        for (size_t i = 0; i < clusterCount && bytesRead < fileSize; ++i) {
             if (!ReadCluster(clusters[i], clusterBuffer)) {
-                free(clusterBuffer);
-                free(clusters);
-                free(entries);
+                kernel::memory::free_pages(clusterBuffer, page_count);
+                kernel::memory::free(clusters);
                 return false;
             }
 
             size_t toCopy = clusterSize;
-            if (bytesRead + toCopy > fileSize) {
+            if (bytesRead + toCopy > fileSize)
                 toCopy = fileSize - bytesRead;
-            }
 
             memcpy(buffer + bytesRead, clusterBuffer, toCopy);
             bytesRead += toCopy;
         }
 
-        if (bytesRead < bufferSize) {
-            buffer[bytesRead] = '\0';
-        } else if (bufferSize > 0) {
-            buffer[bufferSize - 1] = '\0';
-        }
-
+        buffer[min(bytesRead, bufferSize - 1)] = '\0';
         outFileSize = bytesRead;
-        free(clusterBuffer);
-        free(clusters);
-        free(entries);
+
+        kernel::memory::free_pages(clusterBuffer, page_count);
+        kernel::memory::free(clusters);
+
         return true;
     }
-
 
     bool CopyLFNPart(const LongFileName *lfn, char *buffer, size_t &pos, const size_t maxLen) {
         auto copyChars = [&](const uint16_t *src, const size_t count) {
@@ -354,7 +352,7 @@ namespace FAT32 {
                 if (ent->name[0] == 0x00 || ent->name[0] == 0xE5) {
                     memcpy(ent, entryRaw, sizeof(DirectoryEntry));
                     device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
-                    free(chain);
+                    kernel::memory::free(chain);
                     return true;
                 }
             }
@@ -365,19 +363,19 @@ namespace FAT32 {
         uint32_t newCluster = FindFreeCluster();
         if (newCluster == 0) {
             Log::Error("No free cluster to expand directory");
-            free(chain);
+            kernel::memory::free(chain);
             return false;
         }
 
         if (!WriteFATEntry(lastCluster, newCluster)) {
             Log::Error("Failed to link new cluster in FAT");
-            free(chain);
+            kernel::memory::free(chain);
             return false;
         }
 
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) {
             Log::Error("Failed to terminate FAT chain");
-            free(chain);
+            kernel::memory::free(chain);
             return false;
         }
 
@@ -391,7 +389,7 @@ namespace FAT32 {
 
         Log::Error("Expanded directory with new cluster");
 
-        free(chain);
+        kernel::memory::free(chain);
         return true;
     }
 
@@ -402,7 +400,7 @@ namespace FAT32 {
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
         uint32_t clusterSize = bytesPerCluster();
-        uint8_t* zero = AllocClusterBuffer(clusterSize);
+        uint8_t *zero = AllocClusterBuffer(clusterSize);
         if (!zero) return false;
 
         memset(zero, 0, clusterSize);
@@ -447,7 +445,7 @@ namespace FAT32 {
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
         uint32_t clusterSize = bytesPerCluster();
-        uint8_t* zero = AllocClusterBuffer(clusterSize);
+        uint8_t *zero = AllocClusterBuffer(clusterSize);
         if (!zero) return false;
 
         memset(zero, 0, clusterSize);
@@ -555,12 +553,12 @@ namespace FAT32 {
         return true;
     }
 
-    uint32_t FileSystem::ResolvePathToCluster(const char* path) const {
+    uint32_t FileSystem::ResolvePathToCluster(const char *path) const {
         if (path[0] != '/') return 0; // Nur absolute Pfade
         uint32_t currentCluster = GetRootCluster();
 
         char components[16][32]; // max 16 items, max 31 char + '\0' per item
-        size_t compCount = SplitPath(path, components, 16);
+        size_t compCount = split_path(path, components, 16);
 
         for (size_t i = 0; i < compCount; i++) {
             uint32_t nextCluster = FindEntryCluster(currentCluster, components[i]);
@@ -571,22 +569,22 @@ namespace FAT32 {
         return currentCluster;
     }
 
-    uint32_t FileSystem::FindEntryCluster(uint32_t dirCluster, const char* givenName) const {
+    uint32_t FileSystem::FindEntryCluster(uint32_t dirCluster, const char *givenName) const {
         size_t entryCount = 0;
-        FileEntry* entries = ReadDirectory(dirCluster, entryCount);
+        FileEntry *entries = ReadDirectory(dirCluster, entryCount);
         if (!entries) return 0;
 
         for (size_t i = 0; i < entryCount; i++) {
-            const char* entryName = entries[i].GetName();
+            const char *entryName = entries[i].GetName();
 
             if (strcmp(entryName, givenName) == 0) {
                 uint32_t cluster = entries[i].GetFirstCluster();
-                free(entries);
+                kernel::memory::free(entries);
                 return cluster;
             }
         }
 
-        free(entries);
+        kernel::memory::free(entries);
         return 0;
     }
 
@@ -611,5 +609,4 @@ namespace FAT32 {
             formattedShortName[nameLen] = '\0';
         }
     }
-
 }

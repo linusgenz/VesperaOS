@@ -14,10 +14,10 @@ switch_to_user_mode:
 	mov fs, ax
 	mov gs, ax ; SS is handled by iret
 
-	; set up the stack frame iret expects
 	push (4 * 8) | 3 ; data selector
 	push rdi
 	pushfq ; eflags
 	push (3 * 8) | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
-	push rsi ; instruction address to return to
+	push rsi
+
 	iretq

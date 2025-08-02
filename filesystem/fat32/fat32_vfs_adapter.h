@@ -1,6 +1,6 @@
-// syscall.h
+// fat32_vfs_adapter.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
@@ -21,21 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
-#include "cstdint"
+#ifndef FAT32_VFS_ADAPTER_H
+#define FAT32_VFS_ADAPTER_H
 
 
-void syscall_init();
-
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
-
-#endif //SYSCALL_H
+#endif //FAT32_VFS_ADAPTER_H

@@ -1,6 +1,6 @@
-// sys_write.cpp
+// fs_registry.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
@@ -21,13 +21,23 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "syscall_interface.h"
-#include "../../include/log.h"
+#ifndef FS_REGISTRY_H
+#define FS_REGISTRY_H
 
-uint64_t sys_write(uint64_t fd, uint64_t buf, uint64_t size, uint64_t, uint64_t, uint64_t) {
-    if (fd != 1) return -1; // only stdout (for now)
+#include "../../kernel/devices/blockdevice.h"
+#include "vfs_node.h"
 
-    const char* user_buf = reinterpret_cast<const char*>(buf);
-    global_renderer->print(user_buf);
-    return size;
-}
+#define MAX_MOUNTS 8
+
+struct FileSystemDriver {
+    const char* name;
+    int (*probe)(BlockDevice* dev); // 1 = valid
+    VfsNode* (*mount)(BlockDevice* dev);
+};
+
+void register_fs_driver(FileSystemDriver* driver);
+FileSystemDriver* find_fs_driver(const char* name);
+VfsNode* try_mount(BlockDevice* dev);
+
+
+#endif //FS_REGISTRY_H

@@ -1,6 +1,6 @@
-// syscall.h
+// vfs_node.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
@@ -21,21 +21,31 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
-#include "cstdint"
+#ifndef VFS_NODE_H
+#define VFS_NODE_H
+#include "stddef.h"
 
+enum class VfsNodeType {
+    File,
+    Directory,
+    Device
+};
 
-void syscall_init();
+struct VfsNode;
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
+struct VfsNodeOps {
+    size_t (*read)(VfsNode* node, size_t offset, size_t size, void* buffer);
+    size_t (*write)(VfsNode* node, size_t offset, size_t size, const void* buffer);
+    VfsNode* (*find)(VfsNode* dir, const char* name);
+    int (*readdir)(VfsNode* dir, size_t index, char* out_name, size_t max_len);
+    void (*close)(VfsNode* node);
+};
 
-#endif //SYSCALL_H
+struct VfsNode {
+    const char* name;
+    VfsNodeType type;
+    void* internal_data;
+    VfsNodeOps* ops;
+};
+
+#endif //VFS_NODE_H
