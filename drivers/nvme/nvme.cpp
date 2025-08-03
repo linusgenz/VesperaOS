@@ -334,7 +334,7 @@ namespace NVMe {
 
         auto start = 0;
         while (completion_cycle_state == !completion_queue[cq_head].phase_tag) {
-            if (start > 500) {
+            if (start > 50) {
                 complet.status = 32767;
                 return;
             }

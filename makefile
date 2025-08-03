@@ -60,6 +60,7 @@ $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	$(MKFS_FAT) -F 32 -n "VesperaOS" $@
 	mkdir -p $(EFI_DIR)
 	sudo mount -o loop $@ mnt
+	sudo mkdir -p mnt/TESTDIR
 	sudo mkdir -p $(EFI_DIR)
 	sudo cp build/t.txt $(EFI_DIR)/t.txt
 	sudo cp $(BOOTLOADER_EFI) $(EFI_DIR)/BOOTX64.EFI
@@ -130,7 +131,7 @@ test: $(DISK_IMG)
 
 debug:
 	qemu-system-x86_64 \
-	  -m 500M \
+	  -m 4G \
 	  -machine q35 \
 	  -enable-kvm \
 	  -cpu qemu64 \

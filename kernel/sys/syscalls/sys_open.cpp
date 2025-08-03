@@ -24,13 +24,20 @@
 #include "../../../filesystem/vfs/vfs_node.h"
 #include "../FileDescriptor.h"
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/log.h"
+#include "../../include/errno.h"
 
-int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-    const char* path = reinterpret_cast<const char*>(arg0);
+namespace syscalls::internal {
+    int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        const char* path = reinterpret_cast<const char*>(arg0);
+        if (!path || path[0] == '\0') return -EINVAL;
 
-    VfsNode *node = vfs_open(path);
-    if (!node) return -1;
+        VfsNode* node = vfs_open(path);
+        if (!node) return -ENOENT;  // file not found
 
-    return kernel::alloc_fd(node);
+        int fd = kernel::alloc_fd(node);
+        if (fd < 0) return -EMFILE; // no fd available
+
+        return fd;
+    }
+
 }

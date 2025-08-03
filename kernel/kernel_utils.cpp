@@ -17,8 +17,9 @@
 #include "../filesystem/vfs/vfs.h"
 #include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
+#include "time/time.h"
 
-void prepare_memory(BootInfo* bootInfo){
+void prepare_memory(BootInfo *bootInfo) {
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
     kernel::memory::initialize_page_frame_allocator(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
@@ -36,8 +37,9 @@ void prepare_memory(BootInfo* bootInfo){
 
     // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob
     for (int i = 0; i < mMapEntries; i++) {
-        EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)bootInfo->mMap + (i * bootInfo->mMapDescSize));
-      //  if (desc->type != 7) continue; // Nur EfiConventionalMemory
+        EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR *) (
+            (uint64_t) bootInfo->mMap + (i * bootInfo->mMapDescSize));
+        //  if (desc->type != 7) continue; // Nur EfiConventionalMemory
 
         for (uint64_t addr = desc->phys_addr; addr < desc->phys_addr + desc->num_pages * 0x1000; addr += 0x1000) {
             kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
@@ -49,32 +51,37 @@ void prepare_memory(BootInfo* bootInfo){
     }
 
     for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
-        void* stack_addr = (void*)(KERNEL_STACK_BASE + i * KERNEL_STACK_SIZE);
-        kernel::memory::map_memory(stack_addr, stack_addr, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+        void *stack_addr = (void *) (KERNEL_STACK_BASE + i * KERNEL_STACK_SIZE);
+        kernel::memory::map_memory(stack_addr, stack_addr,
+                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
     }
 
-    kernel::memory::map_memory((void*)0x8000, (void*)0x8000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void*)0x7000, (void*)0x7000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void*)0x6000, (void*)0x6000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void*)0x1000, (void*)0x1000, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void*)0x2000, (void*)0x2000, (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void *) 0x8000, (void *) 0x8000,
+                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void *) 0x7000, (void *) 0x7000,
+                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void *) 0x6000, (void *) 0x6000,
+                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void *) 0x1000, (void *) 0x1000,
+                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_memory((void *) 0x2000, (void *) 0x2000, (1ULL << PT_Flag::CacheDisabled));
 
-    uint64_t fb_base = (uint64_t)bootInfo->framebuffer->base_address;
+    uint64_t fb_base = (uint64_t) bootInfo->framebuffer->base_address;
     uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
-    kernel::memory::lock_pages((void*)fb_base, fb_size/ 0x1000 + 1);
-    for (uint64_t t = fb_base; t < fb_base + fb_size; t += 0x1000){
-        kernel::memory::map_memory((void*)t, (void*)t);
+    kernel::memory::lock_pages((void *) fb_base, fb_size / 0x1000 + 1);
+    for (uint64_t t = fb_base; t < fb_base + fb_size; t += 0x1000) {
+        kernel::memory::map_memory((void *) t, (void *) t);
     }
 
     asm ("mov %0, %%cr3" : : "r" (kernel::memory::get_pagetable_address()));
 }
 
-uint32_t* scroll_buffer_top = nullptr;
-uint32_t* scroll_buffer_bottom = nullptr;
-void setup_scroll_buffer(Framebuffer *buffer)
-{
+uint32_t *scroll_buffer_top = nullptr;
+uint32_t *scroll_buffer_bottom = nullptr;
+
+void setup_scroll_buffer(Framebuffer *buffer) {
     uint64_t buffer_size = buffer->width * buffer->height * sizeof(uint32_t) * 10;
-    scroll_buffer_top = (uint32_t*)malloc(buffer_size);
+    scroll_buffer_top = (uint32_t *) malloc(buffer_size);
     if (!scroll_buffer_top) {
         Log::Error("Failed to allocate scroll buffer (top)\n");
         asm ("hlt");
@@ -82,7 +89,7 @@ void setup_scroll_buffer(Framebuffer *buffer)
     memset(scroll_buffer_top, 0, buffer_size);
 
 
-    scroll_buffer_bottom = (uint32_t*)malloc(buffer_size);
+    scroll_buffer_bottom = (uint32_t *) malloc(buffer_size);
     if (!scroll_buffer_bottom) {
         Log::Error("Failed to allocate scroll buffer (bot)\n");
         asm ("hlt");
@@ -90,9 +97,9 @@ void setup_scroll_buffer(Framebuffer *buffer)
     memset(scroll_buffer_bottom, 0, buffer_size);
 }
 
-void prepare_acpi(BootInfo* boot_info) {
-    ACPI::SDTHeader* xsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->xsdt_address);
-    ACPI::SDTHeader* rsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->rsdt_address);
+void prepare_acpi(BootInfo *boot_info) {
+    ACPI::SDTHeader *xsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->xsdt_address);
+    ACPI::SDTHeader *rsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->rsdt_address);
 
     ACPI::TableManager::init(xsdt);
 
@@ -102,21 +109,23 @@ void prepare_acpi(BootInfo* boot_info) {
 }
 
 void prepare_ap_trampoline() {
-    *(volatile uint64_t*)0x2000 = kernel::memory::get_pagetable_address();
-    *(arch::x86_64::interrupts::idt::IDTR*)0x1000 = *kernel::interrupts::get_idtr_address();
- //   __asm__ volatile("wbinvd" ::: "memory");
+    *(volatile uint64_t *) 0x2000 = kernel::memory::get_pagetable_address();
+    *(arch::x86_64::interrupts::idt::IDTR *) 0x1000 = *kernel::interrupts::get_idtr_address();
+    //   __asm__ volatile("wbinvd" ::: "memory");
 }
 
 extern uint8_t __bss_start[];
 extern uint8_t __bss_end[];
+
 void zero_bss() {
-    uint8_t* bss = __bss_start;
+    uint8_t *bss = __bss_start;
     while (bss < __bss_end) {
         *bss++ = 0;
     }
 }
 
 extern FileSystemDriver fat32_driver;
+
 void vfs_system_init() {
     vfs_init();
 
@@ -129,7 +138,7 @@ void vfs_system_init() {
 
     int mount_index = 0;
     for (size_t i = 0; i < device_count; ++i) {
-        BlockDevice* dev = devices[i];
+        BlockDevice *dev = devices[i];
         if (!dev) continue;
 
         char mount_path[32];
@@ -150,11 +159,11 @@ void vfs_system_init() {
     }
 }
 
-
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
 static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
 Framebuffer *TargetFramebuffer = nullptr;
-void initialize_kernel(BootInfo* bootInfo){
+
+void initialize_kernel(BootInfo *bootInfo) {
     zero_bss();
     renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->psf1_font);
     Log::SetRenderer(&renderer);
@@ -167,7 +176,7 @@ void initialize_kernel(BootInfo* bootInfo){
     gdt_install();
 
     prepare_memory(bootInfo);
-    kernel::memory::initialize_heap((void*)0x0000100000000000, 0x500);
+    kernel::memory::initialize_heap((void *) 0x0000100000000000, 0x500);
 
     prepare_acpi(bootInfo);
     MADT::parse_madt(ACPI::TableManager::get_madt());
@@ -191,20 +200,38 @@ void initialize_kernel(BootInfo* bootInfo){
     Log::init(); // threads are possible -> switch to mutex
     prepare_ap_trampoline();
 
- //   CPUManager::smp_init();
+    CPUManager::smp_init();
 
-  //  CPUManager::print_cpu_info();
+    //  CPUManager::print_cpu_info();
 
-  //  StackManager::print_stack_info();
+    //  StackManager::print_stack_info();
 
     syscall_init();
     install_syscalls();
 
     vfs_system_init();
 
- //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
- //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
- //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
+ //   int sts1 = vfs_rmdir("/mnt/sd0/EFI");
+  //  Log::PrintLn("STATUS rmdir: %d", sts1);
+/*
+    int sts = vfs_rmdir("/mnt/sd0/hellodir");
+    Log::PrintLn("STATUS rmdir: %u", sts);
+
+
+    auto dir = vfs_open("/mnt/sd0/");
+
+        char name[128];
+        while (vfs_readdir(dir, name, sizeof(name)) == 1) {
+            Log::PrintLn("Eintrag: %s", name);
+        }
+
+        vfs_close(dir);
+*/
+
+    //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
+    //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
+    //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
     kernel::interrupts::mask_pic();
 }
+

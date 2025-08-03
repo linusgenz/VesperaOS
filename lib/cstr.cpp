@@ -285,6 +285,61 @@ char *strrchr (register const char *s, int c) {
     return (rtnval);
 }
 
+char* strncat(char* dest, const char* src, size_t max) {
+    if (!dest || !src || max == 0) return dest;
+
+    size_t dlen = 0;
+    while (dlen < max && dest[dlen] != '\0') {
+        dlen++;
+    }
+
+    if (dlen == max) return dest;
+
+    size_t i = 0;
+    while (i + dlen < max - 1 && src[i] != '\0') {
+        dest[dlen + i] = src[i];
+        i++;
+    }
+
+    dest[dlen + i] = '\0';
+    return dest;
+}
+
+char* strtok(char* str, char delim) {
+    static char* next = NULL;
+    if (str) next = str;
+    if (!next) return NULL;
+
+    char* start = next;
+    while (*next && *next != delim) next++;
+
+    if (*next) {
+        *next = '\0';
+        next++;
+    } else {
+        next = NULL;
+    }
+    return start;
+}
+
+int strcasecmp(const char* s1, const char* s2) {
+    while (*s1 && *s2) {
+        char c1 = *s1;
+        char c2 = *s2;
+
+        // Großbuchstaben in Kleinbuchstaben umwandeln
+        if (c1 >= 'A' && c1 <= 'Z') c1 += 'a' - 'A';
+        if (c2 >= 'A' && c2 <= 'Z') c2 += 'a' - 'A';
+
+        if (c1 != c2) return (int)(unsigned char)c1 - (int)(unsigned char)c2;
+
+        s1++;
+        s2++;
+    }
+    return (int)(unsigned char)*s1 - (int)(unsigned char)*s2;
+}
+
+
 char to_upper(char c) {
     if (c >= 'a' && c <= 'z') return c - 32;
     return c;

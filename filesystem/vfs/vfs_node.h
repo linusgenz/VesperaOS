@@ -37,8 +37,12 @@ struct VfsNodeOps {
     size_t (*read)(VfsNode* node, size_t offset, size_t size, void* buffer);
     size_t (*write)(VfsNode* node, size_t offset, size_t size, const void* buffer);
     VfsNode* (*find)(VfsNode* dir, const char* name);
-    int (*readdir)(VfsNode* dir, size_t index, char* out_name, size_t max_len);
+    int (*readdir)(VfsNode* dir, char* out_name, size_t max_len);
     void (*close)(VfsNode* node);
+
+    int (*mkdir)(VfsNode*, const char*);
+    int (*rmdir)(VfsNode*, const char*);
+    int (*unlink)(VfsNode*, const char*);
 };
 
 struct VfsNode {
@@ -46,6 +50,7 @@ struct VfsNode {
     VfsNodeType type;
     void* internal_data;
     VfsNodeOps* ops;
+    bool permanent;
 };
 
 #endif //VFS_NODE_H

@@ -125,81 +125,82 @@ namespace FAT32 {
         }
 
         outCount = 0;
-
-        uint8_t clusterBuffer[bpb.bytesPerSector * bpb.sectorsPerCluster];
-
-        if (!ReadCluster(cluster, clusterBuffer)) {
+        size_t chainCount = 0;
+        uint32_t *chain = GetClusterChain(cluster, chainCount);
+        if (!chain) {
             kernel::memory::free(entries);
-            outCount = 0;
             return nullptr;
         }
-
-        size_t entryCountInCluster = (bpb.bytesPerSector * bpb.sectorsPerCluster) / sizeof(DirectoryEntry);
 
         LFNBufferEntry lfnBuffer[20];
         size_t lfnCount = 0;
 
-        for (size_t i = 0; i < entryCountInCluster; i++) {
-            const auto entry = reinterpret_cast<DirectoryEntry *>(clusterBuffer + i * sizeof(DirectoryEntry));
+        for (size_t ci = 0; ci < chainCount; ++ci) {
+            uint8_t clusterBuffer[bytesPerCluster()];
+            if (!ReadCluster(chain[ci], clusterBuffer)) continue;
 
-            if (entry->name[0] == 0x00) break; // Ende des Verzeichnisses
-            if (entry->name[0] == 0xE5) continue; // deleted entry
-            if (entry->attr == ATTR_VOLUME_ID) continue; // skip volume label
+            size_t entryCountInCluster = bytesPerCluster() / sizeof(DirectoryEntry);
+            for (size_t i = 0; i < entryCountInCluster; i++) {
+                const auto entry = reinterpret_cast<DirectoryEntry *>(clusterBuffer + i * sizeof(DirectoryEntry));
+
+                if (entry->name[0] == 0x00) break;
+                if (entry->name[0] == 0xE5) continue;
+                if (entry->attr == ATTR_VOLUME_ID) continue;
 
 
-            if (entry->attr == ATTR_LONG_NAME) {
-                if (lfnCount < 20) {
-                    lfnBuffer[lfnCount++].lfnEntry = *reinterpret_cast<LongFileName *>(entry);
+                if (entry->attr == ATTR_LONG_NAME) {
+                    if (lfnCount < 20) {
+                        lfnBuffer[lfnCount++].lfnEntry = *reinterpret_cast<LongFileName *>(entry);
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            // set isDir flag
-            entries[outCount].SetIsDir((entry->attr & ATTR_DIRECTORY) != 0);
+                entries[outCount].SetIsDir((entry->attr & ATTR_DIRECTORY) != 0);
 
-            // Hier eventuell weitere Filter für versteckte/Systemdateien, falls gewünscht
-
-
-            if (lfnCount > 0) {
-                for (size_t j = 0; j < lfnCount - 1; j++) {
-                    for (size_t k = 0; k < lfnCount - 1 - j; k++) {
-                        if ((lfnBuffer[k].lfnEntry.order & 0x3F) > (lfnBuffer[k + 1].lfnEntry.order & 0x3F)) {
-                            const auto tmp = lfnBuffer[k];
-                            lfnBuffer[k] = lfnBuffer[k + 1];
-                            lfnBuffer[k + 1] = tmp;
+                if (lfnCount > 0) {
+                    for (size_t j = 0; j < lfnCount - 1; j++) {
+                        for (size_t k = 0; k < lfnCount - 1 - j; k++) {
+                            if ((lfnBuffer[k].lfnEntry.order & 0x3F) > (lfnBuffer[k + 1].lfnEntry.order & 0x3F)) {
+                                const auto tmp = lfnBuffer[k];
+                                lfnBuffer[k] = lfnBuffer[k + 1];
+                                lfnBuffer[k + 1] = tmp;
+                            }
                         }
                     }
+
+                    char nameBuffer[256];
+                    size_t pos = 0;
+                    for (size_t j = 0; j < lfnCount; j++) {
+                        CopyLFNPart(&lfnBuffer[j].lfnEntry, nameBuffer, pos, sizeof(nameBuffer));
+                    }
+                    nameBuffer[pos] = '\0';
+                    entries[outCount].SetLongName(nameBuffer);
+                    lfnCount = 0;
+                } else {
+                    entries[outCount].SetLongName(nullptr);
+                    lfnCount = 0;
                 }
 
-                char nameBuffer[256];
-                size_t pos = 0;
-                for (size_t j = 0; j < lfnCount; j++) {
-                    CopyLFNPart(&lfnBuffer[j].lfnEntry, nameBuffer, pos, sizeof(nameBuffer));
-                }
-                nameBuffer[pos] = '\0';
+                char shortName[13];
+                ExtractShortName(entry->name, shortName, sizeof(shortName));
+                entries[outCount].SetShortName(shortName);
+                entries[outCount].SetDirectoryEntry(*entry);
 
-                //   strncpy(entries[outCount].longName, nameBuffer, sizeof(entries[outCount].longName));
-                entries[outCount].SetLongName(nameBuffer);
-                lfnCount = 0;
-            } else {
-                entries[outCount].SetLongName(nullptr);
-                lfnCount = 0;
+                outCount++;
+                if (outCount >= READ_DIR_MAX_ENTRIES) {
+                    // TODO when more entries then MAX_ENTRIES go out. have to look into this later
+                    break;
+                };
             }
-
-            char shortName[13];
-            ExtractShortName(entry->name, shortName, sizeof(shortName));
-            entries[outCount].SetShortName(shortName);
-
-            entries[outCount].SetDirectoryEntry(*entry);
-            outCount++;
             if (outCount >= READ_DIR_MAX_ENTRIES) {
-                // cap cuz we would need to realloc. TODO only shows READ_DIR_MAX_ENTRIES. if more we break out
                 break;
-            }
+            };
         }
 
+        kernel::memory::free(chain);
         return entries;
     }
+
 
     bool FileSystem::ReadFile(const char *path, char *buffer, const size_t bufferSize, size_t &outFileSize) const {
         char components[16][32]; // Maximal 16 Pfadkomponenten à 31 Zeichen
@@ -292,7 +293,7 @@ namespace FAT32 {
         return true;
     }
 
-    void ExtractShortName(const char *rawName, char *shortNameBuffer, const size_t bufferSize) {
+    void ExtractShortName(const unsigned char *rawName, char *shortNameBuffer, const size_t bufferSize) {
         if (bufferSize < 13) return; // 8+3 + null
         memcpy(shortNameBuffer, rawName, 11);
         for (int i = 10; i >= 0; i--) {
@@ -318,20 +319,28 @@ namespace FAT32 {
 
     uint32_t FileSystem::FindFreeCluster() {
         uint8_t sectorData[512];
-        for (uint32_t cluster = 2; cluster < bpb.FATSize32 * bpb.bytesPerSector / 4; cluster++) {
-            uint32_t fatOffset = cluster * 4;
-            uint32_t sector = fatStart + (fatOffset / bpb.bytesPerSector);
-            uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
 
+        uint32_t totalClusters = bpb.FATSize32 * bpb.bytesPerSector / 4;
+        uint32_t sectorsInFAT = bpb.FATSize32;
+
+        for (uint32_t sector = fatStart; sector < fatStart + sectorsInFAT; sector++) {
             if (!device->read(sector, 1, sectorData)) return 0;
 
-            uint32_t entry = *reinterpret_cast<uint32_t *>(sectorData + offsetInSector);
-            if ((entry & 0x0FFFFFFF) == 0) {
-                return cluster;
+            // per Sector 128 entries (512 Bytes / 4 Bytes per entry)
+            for (uint32_t i = 0; i < 128; i++) {
+                uint32_t cluster = (sector - fatStart) * 128 + i;
+                if (cluster < 2) continue; // Cluster 0 and 1 reserved
+                if (cluster >= totalClusters) break;
+
+                uint32_t entry = *reinterpret_cast<uint32_t *>(sectorData + i * 4);
+                if ((entry & 0x0FFFFFFF) == 0) {
+                    return cluster;
+                }
             }
         }
-        return 0;
+        return 0; // no free cluster :/
     }
+
 
     bool FileSystem::WriteDirectoryEntry(uint32_t dirCluster, const void *entryRaw) {
         size_t chainCount = 0;
@@ -394,20 +403,24 @@ namespace FAT32 {
     }
 
 
-    bool FileSystem::CreateDirectory(const char *name) {
+    bool FileSystem::CreateDirectory(Fat32Node *parentDir, const char *name) {
+        if (!parentDir || !name || name[0] == '\0') return false;
+
+        const uint32_t parentCluster = parentDir->cluster;
+
+        // Neuen Cluster finden und reservieren
         uint32_t newCluster = FindFreeCluster();
         if (newCluster == 0) return false;
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
-        uint32_t clusterSize = bytesPerCluster();
+        const uint32_t clusterSize = bytesPerCluster();
         uint8_t *zero = AllocClusterBuffer(clusterSize);
         if (!zero) return false;
 
         memset(zero, 0, clusterSize);
 
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
-
         DirectoryEntry *dir = reinterpret_cast<DirectoryEntry *>(zero);
+
         memset(dir, 0, sizeof(DirectoryEntry));
         memcpy(dir->name, ".          ", 11);
         dir->attr = ATTR_DIRECTORY;
@@ -418,25 +431,26 @@ namespace FAT32 {
         memset(dir, 0, sizeof(DirectoryEntry));
         memcpy(dir->name, "..         ", 11);
         dir->attr = ATTR_DIRECTORY;
-        dir->firstClusterLow = GetRootCluster() & 0xFFFF;
-        dir->firstClusterHigh = (GetRootCluster() >> 16) & 0xFFFF;
+        dir->firstClusterLow = parentCluster & 0xFFFF;
+        dir->firstClusterHigh = (parentCluster >> 16) & 0xFFFF;
 
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
+        bool writeOk = device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
+        FreeClusterBuffer(zero, clusterSize);
+        if (!writeOk) return false;
 
-        DirectoryEntry newEntry = {};
         char shortName[11];
         if (!MakeShortName(name, shortName)) return false;
 
-        WriteLFNEntries(name, shortName, GetRootCluster());
+        WriteLFNEntries(name, shortName, parentCluster);
 
+        DirectoryEntry newEntry = {};
         memcpy(newEntry.name, shortName, 11);
         newEntry.attr = ATTR_DIRECTORY;
         newEntry.firstClusterLow = newCluster & 0xFFFF;
         newEntry.firstClusterHigh = (newCluster >> 16) & 0xFFFF;
         newEntry.fileSize = 0;
 
-        FreeClusterBuffer(zero, clusterSize);
-        return WriteDirectoryEntry(GetRootCluster(), &newEntry);
+        return WriteDirectoryEntry(parentCluster, &newEntry);
     }
 
     bool FileSystem::CreateFile(const char *name) {
@@ -465,6 +479,162 @@ namespace FAT32 {
         FreeClusterBuffer(zero, clusterSize);
         return WriteDirectoryEntry(GetRootCluster(), &newEntry);
     }
+
+    bool FileSystem::DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name) {
+        Log::debug("DeleteDirectoryEntryInDirectory");
+        size_t chainCount = 0;
+        uint32_t *chain = GetClusterChain(dirCluster, chainCount);
+        if (!chain) {
+            return false;
+        }
+
+        bool deleted = false;
+
+        for (size_t i = 0; i < chainCount; ++i) {
+            uint8_t buffer[bytesPerCluster()];
+            if (!ReadCluster(chain[i], buffer)) {
+                continue;
+            }
+
+            DirectoryEntry *entries = reinterpret_cast<DirectoryEntry *>(buffer);
+            size_t entryCount = bytesPerCluster() / sizeof(DirectoryEntry);
+
+            LFNBufferEntry lfnBuffer[20];
+            size_t lfnCount = 0;
+
+            for (size_t j = 0; j < entryCount; ++j) {
+                if (entries[j].name[0] == 0x00) break; // Ende des Verzeichnisses
+                if (entries[j].name[0] == 0xE5) continue;
+                if (entries[j].attr == ATTR_VOLUME_ID) continue;
+
+                if (entries[j].attr == ATTR_LONG_NAME) {
+                    if (lfnCount < 20) {
+                        lfnBuffer[lfnCount++].lfnEntry = *reinterpret_cast<LongFileName *>(&entries[j]);
+                    }
+                    continue;
+                }
+
+                // LFN zusammensetzen (falls vorhanden)
+                char fullName[256];
+                fullName[0] = '\0';
+
+                if (lfnCount > 0) {
+                    // Sortieren
+                    for (size_t a = 0; a < lfnCount - 1; a++) {
+                        for (size_t b = 0; b < lfnCount - 1 - a; b++) {
+                            if ((lfnBuffer[b].lfnEntry.order & 0x3F) > (lfnBuffer[b + 1].lfnEntry.order & 0x3F)) {
+                                auto tmp = lfnBuffer[b];
+                                lfnBuffer[b] = lfnBuffer[b + 1];
+                                lfnBuffer[b + 1] = tmp;
+                            }
+                        }
+                    }
+
+                    size_t pos = 0;
+                    for (size_t l = 0; l < lfnCount; ++l)
+                        CopyLFNPart(&lfnBuffer[l].lfnEntry, fullName, pos, sizeof(fullName));
+
+                    fullName[pos] = '\0';
+                    lfnCount = 0;
+                } else {
+                    // Falls keine LFN, verwende Kurzname
+                    ExtractShortName(entries[j].name, fullName, sizeof(fullName));
+                }
+
+                if (strcmp(fullName, name) == 0) {
+                    entries[j].name[0] = 0xE5; // markiere als gelöscht
+
+                    // LFN davor löschen
+                    for (int k = (int) j - 1; k >= 0; --k) {
+                        if ((entries[k].attr & ATTR_LONG_NAME) != ATTR_LONG_NAME) break;
+                        entries[k].name[0] = 0xE5;
+                    }
+
+                    bool writeOK = device->write(ClusterToSector(chain[i]), bpb.sectorsPerCluster, buffer);
+
+                    deleted = true;
+                    break;
+                }
+            }
+
+            if (deleted) break;
+        }
+
+        kernel::memory::free(chain);
+        return deleted;
+    }
+
+
+    bool FileSystem::DeleteFile(Fat32Node *parentDir, const char *name) {
+        uint32_t parentCluster = parentDir->cluster; // Cluster des Verzeichnisses
+
+        size_t entryCount = 0;
+        FileEntry *entries = ReadDirectory(parentCluster, entryCount);
+
+
+        if (!entries) return false;
+
+        for (size_t i = 0; i < entryCount; ++i) {
+            if (strcmp(entries[i].GetName(), name) == 0 && !entries[i].isDir()) {
+                uint32_t start = entries[i].GetFirstCluster();
+
+                size_t count = 0;
+                uint32_t *chain = GetClusterChain(start, count);
+                if (chain) {
+                    for (size_t j = 0; j < count; ++j)
+                        WriteFATEntry(chain[j], 0);
+                    kernel::memory::free(chain);
+                }
+
+                kernel::memory::free(entries);
+
+                return DeleteDirectoryEntryInDirectory(parentCluster, name);
+            }
+        }
+
+        kernel::memory::free(entries);
+        return false;
+    }
+
+    bool FileSystem::RemoveDirectory(Fat32Node *parentDir, const char *name) {
+        uint32_t parentCluster = parentDir->cluster; // korrekt initialisiert
+
+        size_t entryCount = 0;
+        FileEntry *entries = ReadDirectory(parentCluster, entryCount);
+        if (!entries) return false;
+
+        for (size_t i = 0; i < entryCount; ++i) {
+            if (strcmp(entries[i].GetName(), name) == 0 && entries[i].isDir()) {
+                uint32_t target = entries[i].GetFirstCluster();
+
+                // Check if directory is empty (only "." and ".." allowed)
+                size_t dirEntryCount = 0;
+                FileEntry *dirEntries = ReadDirectory(target, dirEntryCount);
+                if (!dirEntries || dirEntryCount > 2) {
+                    kernel::memory::free(dirEntries);
+                    kernel::memory::free(entries);
+                    return false; // Not empty
+                }
+
+                // Free cluster chain
+                size_t count = 0;
+                uint32_t *chain = GetClusterChain(target, count);
+                if (chain) {
+                    for (size_t j = 0; j < count; ++j)
+                        WriteFATEntry(chain[j], 0);
+                    kernel::memory::free(chain);
+                }
+
+                kernel::memory::free(dirEntries);
+                kernel::memory::free(entries);
+                return DeleteDirectoryEntryInDirectory(parentCluster, name);
+            }
+        }
+
+        kernel::memory::free(entries);
+        return false;
+    }
+
 
     bool MakeShortName(const char *input, char *output11) {
         memset(output11, ' ', 11);
@@ -552,6 +722,15 @@ namespace FAT32 {
 
         return true;
     }
+
+    bool FileSystem::IsDir(uint32_t cluster) {
+        size_t entryCount = 0;
+        FAT32::FileEntry *entries = ReadDirectory(cluster, entryCount);
+        if (!entries) return false;
+        kernel::memory::free(entries);
+        return true;
+    }
+
 
     uint32_t FileSystem::ResolvePathToCluster(const char *path) const {
         if (path[0] != '/') return 0; // Nur absolute Pfade

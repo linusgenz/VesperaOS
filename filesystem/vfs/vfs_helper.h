@@ -1,4 +1,4 @@
-// syscall_numbers.h
+// vfs_helper.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
@@ -21,18 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_NUMBERS_H
-#define SYSCALL_NUMBERS_H
+#ifndef VFS_HELPER_H
+#define VFS_HELPER_H
+#include "vfs_node.h"
+bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
 
-enum SyscallNumbers {
-    SYSCALL_READ = 0,
-    SYSCALL_WRITE = 1,
-    SYSCALL_OPEN = 2,
-    SYSCALL_CLOSE = 3,
-    SYSCALL_EXIT = 60,
-    SYSCALL_MKDIR = 83,
-    SYSCALL_RMDIR = 84,
-    SYSCALL_UNLINK = 87,
-};
-
-#endif //SYSCALL_NUMBERS_H
+#endif //VFS_HELPER_H

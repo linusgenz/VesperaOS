@@ -26,6 +26,7 @@
 #include "vfs.h"
 #include "fs_registry.h"
 #include "../../include/log.h"
+#include "vfs_helper.h"
 
 static MountPoint mounts[MAX_MOUNTS];
 static size_t mount_count = 0;
@@ -34,13 +35,13 @@ void vfs_init() {
     mount_count = 0;
 }
 
-int vfs_mount(BlockDevice* dev, const char* path, const char* fs_name) {
+int vfs_mount(BlockDevice *dev, const char *path, const char *fs_name) {
     if (mount_count >= MAX_MOUNTS) return -1;
 
-    FileSystemDriver* driver = find_fs_driver(fs_name);
+    FileSystemDriver *driver = find_fs_driver(fs_name);
     if (!driver) return -2;
 
-    VfsNode* root = driver->mount(dev);
+    VfsNode *root = driver->mount(dev);
     if (!root) return -3;
 
     strncpy(mounts[mount_count].path, path, sizeof(mounts[mount_count].path) - 1);
@@ -51,24 +52,22 @@ int vfs_mount(BlockDevice* dev, const char* path, const char* fs_name) {
     return 0;
 }
 
-VfsNode* vfs_open(const char* path) {
+VfsNode *vfs_open(const char *path) {
     if (!path || path[0] != '/') return 0;
 
-    // Kandidat für spätere Pfadkomponenten (z.B. ["mnt", "usb", "file.txt"])
     char components[16][32];
     size_t componentCount = split_path(path, components, 16);
     if (componentCount == 0) return 0;
 
     // Mountpoint suchen
     for (size_t i = 0; i < mount_count; i++) {
-        const char* mpath = mounts[i].path;
+        const char *mpath = mounts[i].path;
         size_t mountLen = strlen(mpath);
 
         // Prüfen, ob path unter dem Mountpoint liegt
         if (strncmp(path, mpath, mountLen) == 0 &&
             (path[mountLen] == '/' || path[mountLen] == '\0')) {
-
-            VfsNode* current = mounts[i].root;
+            VfsNode *current = mounts[i].root;
 
             // z.B. bei /mnt/usb/foo/bar.txt → überspringe die Komponenten ["mnt", "usb"]
             size_t skip = 0;
@@ -84,23 +83,50 @@ VfsNode* vfs_open(const char* path) {
             }
 
             return current;
-            }
+        }
     }
 
     return 0; // Kein Mountpoint gefunden
 }
 
-size_t vfs_read(VfsNode* node, size_t offset, size_t size, void* buffer) {
+size_t vfs_read(VfsNode *node, size_t offset, size_t size, void *buffer) {
     if (!node || !node->ops || !node->ops->read) return 0;
     return node->ops->read(node, offset, size, buffer);
 }
 
-int vfs_readdir(VfsNode* node, size_t index, char* out_name, size_t max_len) {
+int vfs_readdir(VfsNode *node, char *out_name, size_t max_len) {
     if (!node || !node->ops || !node->ops->readdir) return -1;
-    return node->ops->readdir(node, index, out_name, max_len);
+    return node->ops->readdir(node, out_name, max_len);
 }
 
-void vfs_close(VfsNode* node) {
-    if (!node || !node->ops || !node->ops->close) return;
+void vfs_close(VfsNode *node) {
+    if (!node || !node->ops || !node->ops->close || node->permanent) return;
     node->ops->close(node);
+}
+
+int vfs_mkdir(const char *path) {
+    VfsNode *parent;
+    char name[64];
+    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+
+    if (!parent->ops || !parent->ops->mkdir) return -2;
+    return parent->ops->mkdir(parent, name);
+}
+
+int vfs_rmdir(const char *path) {
+    VfsNode *parent;
+    char name[64];
+    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+
+    if (!parent->ops || !parent->ops->rmdir) return -2;
+    return parent->ops->rmdir(parent, name);
+}
+
+int vfs_unlink(const char *path) {
+    VfsNode *parent;
+    char name[64];
+    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+
+    if (!parent->ops || !parent->ops->unlink) return -2;
+    return parent->ops->unlink(parent, name);
 }

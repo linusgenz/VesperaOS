@@ -23,19 +23,23 @@
 
 #include "../FileDescriptor.h"
 #include "cstdint"
-#include "../../../include/log.h"
+#include "../../include/errno.h"
 
-int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-    int64_t fd         = static_cast<int>(arg0);
-    void* buf   = reinterpret_cast<void*>(arg1);
-    size_t count   = static_cast<size_t>(arg2);
+namespace syscalls::internal {
+    int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+        int64_t fd = static_cast<int>(arg0);
+        void* buf = reinterpret_cast<void*>(arg1);
+        size_t count = static_cast<size_t>(arg2);
 
-    FileDescriptor *desc = kernel::get_fd(fd);
+        if (fd < 0 || fd >= MAX_FDS) return -EBADF;
+        if (!buf || count == 0) return -EINVAL;
 
-    if (!desc || !desc->node || !desc->node->ops || !desc->node->ops->read) return -1;
+        FileDescriptor *desc = kernel::get_fd(fd);
+        if (!desc || !desc->node || !desc->node->ops || !desc->node->ops->read) return -EBADF;
 
-    size_t bytes = desc->node->ops->read(desc->node, desc->offset, count, buf);
-    desc->offset += bytes;
+        size_t bytes = desc->node->ops->read(desc->node, desc->offset, count, buf);
+        desc->offset += bytes;
 
-    return bytes;
+        return bytes;
+    }
 }

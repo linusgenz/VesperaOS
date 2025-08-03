@@ -71,7 +71,7 @@ int64_t syscall(
     uint64_t arg4,
     uint64_t arg5
 ) {
-    int64_t ret;
+    int64_t ret = -1;
 
     register uint64_t r10_ asm("r10") = arg3;
     register uint64_t r8_  asm("r8")  = arg4;

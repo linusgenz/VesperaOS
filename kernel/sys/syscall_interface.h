@@ -26,13 +26,25 @@
 
 #include <stdint.h>
 
-using syscall_fn = int64_t(*)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+namespace syscalls::internal {
+    using syscall_fn = int64_t(*)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
-int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
-int64_t sys_exit(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
-int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
-int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
-int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_exit(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_mkdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_rmdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+    int64_t sys_unlink(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+}
 
 void install_syscalls();
 

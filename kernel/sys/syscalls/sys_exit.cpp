@@ -24,9 +24,11 @@
 #include "cstdint"
 #include "../../../include/log.h"
 
-uint64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-    Log::PrintLn("[SYS_EXIT] Code: %llu", code);
-    // Prozess beenden, Scheduler aufrufen etc.
-    while (true) {
-    } // placeholder
+namespace syscalls::internal {
+    uint64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        Log::PrintLn("[SYS_EXIT] Code: %llu", code);
+        // Prozess beenden, Scheduler aufrufen etc.
+        while (true) {
+        } // placeholder
+    }
 }

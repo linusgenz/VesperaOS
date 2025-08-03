@@ -23,18 +23,20 @@
 
 #include "cstdint"
 #include "../FileDescriptor.h"
+#include "../../include/errno.h"
 
-int64_t sys_close(uint64_t fd, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-    if (fd >= MAX_FDS) return -1;
+namespace syscalls::internal {
+    int64_t sys_close(uint64_t fd, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        if (fd >= MAX_FDS) return -EBADF;
 
-    FileDescriptor *desc = kernel::get_fd(fd);
-    if (!desc) return -1;
+        FileDescriptor *desc = kernel::get_fd(fd);
+        if (!desc) return -EBADF;
 
-    if (desc->node && desc->node->ops->close) {
-        desc->node->ops->close(desc->node);
+        if (desc->node && desc->node->ops && desc->node->ops->close) {
+            desc->node->ops->close(desc->node);
+        }
+
+        kernel::free_fd(fd);
+        return SUCCESS_CODE;
     }
-
-    kernel::free_fd(fd);
-
-    return 0;
 }

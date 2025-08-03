@@ -25,6 +25,9 @@ int strcmp(const char* a, const char* b);
 int strncmp(const char *a, const char *b, size_t n);
 char *strncpy(char *dest, const char *src, size_t n);
 char *strrchr (register const char *s, int c);
+char* strncat(char* dest, const char* src, size_t max);
+char* strtok(char* str, char delim);
+int strcasecmp(const char* s1, const char* s2);
 char to_upper(char c);
 
 int snprintf(char *buffer, size_t size, const char *format, ...);

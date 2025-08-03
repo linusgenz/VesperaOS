@@ -27,9 +27,6 @@ namespace kernel::time {
         uint32_t cpu = CPUManager::get_current_cpu_id();
         uint64_t target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
 
-        if (interrupts::lapic_get_ticks(cpu) > 50) {
-            Log::debug("target %u current: %u", target, interrupts::lapic_get_ticks(cpu));
-        }
         while (interrupts::lapic_get_ticks(cpu) < target) {
             asm volatile("hlt");
         }

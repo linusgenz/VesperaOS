@@ -1,4 +1,4 @@
-// syscall_numbers.h
+// mkdir.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
@@ -21,18 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_NUMBERS_H
-#define SYSCALL_NUMBERS_H
+#include "cstdint"
+#include "../../../filesystem/vfs/vfs.h"
+#include "../../include/errno.h"
 
-enum SyscallNumbers {
-    SYSCALL_READ = 0,
-    SYSCALL_WRITE = 1,
-    SYSCALL_OPEN = 2,
-    SYSCALL_CLOSE = 3,
-    SYSCALL_EXIT = 60,
-    SYSCALL_MKDIR = 83,
-    SYSCALL_RMDIR = 84,
-    SYSCALL_UNLINK = 87,
-};
+namespace syscalls::internal {
+    int64_t sys_mkdir(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        const char* path = reinterpret_cast<const char*>(path_ptr);
+        if (!path) return -EINVAL;
 
-#endif //SYSCALL_NUMBERS_H
+        int result = vfs_mkdir(path);
+        return result < 0 ? -result : 0; // Negative result already uses errno codes
+    }
+
+}

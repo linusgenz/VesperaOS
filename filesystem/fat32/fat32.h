@@ -20,6 +20,20 @@ namespace FAT32 {
 #define ATTR_ARCHIVE 0x20
 #define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
 
+    class FileSystem;
+    class FileEntry;
+
+    struct Fat32Node {
+        FAT32::FileSystem *fs;
+        char path[256]; // absoluter Pfad, z. B. "/EFI/BOOT"
+        uint32_t cluster;
+        bool isDir;
+
+        FAT32::FileEntry* entries = nullptr;
+        size_t entryCount = 0;
+        size_t currentIndex = 0;
+    };
+
 #define READ_DIR_MAX_ENTRIES 256
 
     struct BPB_FAT32 {
@@ -56,7 +70,7 @@ namespace FAT32 {
 
     //  Section 6: Directory Structure FAT spec
     struct DirectoryEntry {
-        char name[11];           // 8 + 3 Bytes
+        unsigned char name[11]; // 8 + 3 Bytes
         uint8_t attr;
         uint8_t reserved;
         uint8_t creationTimeTenths;
@@ -78,7 +92,7 @@ namespace FAT32 {
         bool _isDir = false;
 
     public:
-        void SetLongName(const char* name) {
+        void SetLongName(const char *name) {
             if (!name || name[0] == '\0') {
                 longName[0] = '\0';
             } else {
@@ -86,11 +100,11 @@ namespace FAT32 {
             }
         }
 
-        void SetShortName(const char* name) {
+        void SetShortName(const char *name) {
             strncpy(shortName, name, sizeof(shortName));
         }
 
-        void SetDirectoryEntry(const DirectoryEntry& entry) {
+        void SetDirectoryEntry(const DirectoryEntry &entry) {
             dirEntry = entry;
             FormatShortName();
         }
@@ -103,16 +117,16 @@ namespace FAT32 {
             return _isDir;
         }
 
-        const char* GetLongName() const {
+        const char *GetLongName() const {
             return longName;
         }
 
-        const char* GetName() const {
+        const char *GetName() const {
             if (longName[0] != '\0') return longName;
             return formattedShortName;
         }
 
-        const char* GetFormattedShortName() const {
+        const char *GetFormattedShortName() const {
             return formattedShortName;
         }
 
@@ -144,18 +158,34 @@ namespace FAT32 {
 
     class FileSystem {
     public:
-        explicit FileSystem(BlockDevice* device);
+        explicit FileSystem(BlockDevice *device);
 
         bool is_valid() const;
 
-        bool ReadFile(const char* filename, char* buffer, size_t bufferSize, size_t& outFileSize) const;
+        uint32_t GetRootCluster() const;
+
+        bool IsDir(uint32_t cluster);
+
+        uint32_t ResolvePathToCluster(const char *path) const;
+
+        bool ReadFile(const char *filename, char *buffer, size_t bufferSize, size_t &outFileSize) const;
+
         FileEntry *ReadDirectory(const char *path, size_t &outCount) const;
 
-        bool CreateDirectory(const char* name);
-        bool CreateFile(const char* name);
+        bool CreateDirectory(const char *name);
+
+        bool CreateFile(const char *name);
+
+        bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name);
+
+        bool CreateDirectory(Fat32Node *parentDir, const char *name);
+
+        bool RemoveDirectory(Fat32Node *parentDir, const char *name);
+
+        bool DeleteFile(Fat32Node *parentDir, const char *name);
 
     private:
-        BlockDevice* device;
+        BlockDevice *device;
         BPB_FAT32 bpb;
         bool valid;
 
@@ -163,30 +193,36 @@ namespace FAT32 {
         uint32_t fatSize;
         uint32_t dataStart;
 
-        FileEntry* ReadDirectory(uint32_t cluster, size_t& outCount) const;
+        FileEntry *ReadDirectory(uint32_t cluster, size_t &outCount) const;
 
-        uint32_t GetRootCluster() const;
         uint32_t ClusterToSector(uint32_t cluster) const;
-        bool ReadCluster(uint32_t cluster, void* buffer) const;
+
+        bool ReadCluster(uint32_t cluster, void *buffer) const;
+
         uint32_t bytesPerCluster() const;
 
         uint32_t GetFATEntry(uint32_t cluster) const;
+
         bool WriteFATEntry(uint32_t cluster, uint32_t value);
+
         uint32_t FindFreeCluster();
-        uint32_t* GetClusterChain(uint32_t startCluster, size_t& outCount) const;
 
+        uint32_t *GetClusterChain(uint32_t startCluster, size_t &outCount) const;
 
-        bool WriteDirectoryEntry(uint32_t dirCluster, const void* entry);
-        bool WriteLFNEntries(const char* longName, const char* shortName, uint32_t dirCluster);
+        bool WriteDirectoryEntry(uint32_t dirCluster, const void *entry);
+
+        bool WriteLFNEntries(const char *longName, const char *shortName, uint32_t dirCluster);
 
         uint32_t FindEntryCluster(uint32_t dirCluster, const char *givenName) const;
-        uint32_t ResolvePathToCluster(const char* path) const;
+
     };
 
 
-    bool CopyLFNPart(const LongFileName* lfn, char* buffer, size_t& pos, size_t maxLen);
-    void ExtractShortName(const char* rawName, char* shortNameBuffer, size_t bufferSize);
-    bool MakeShortName(const char* input, char* output11);
+    bool CopyLFNPart(const LongFileName *lfn, char *buffer, size_t &pos, size_t maxLen);
+
+    void ExtractShortName(const unsigned char *rawName, char *shortNameBuffer, size_t bufferSize);
+
+    bool MakeShortName(const char *input, char *output11);
 }
 
 #endif //FAT32_CPP_H

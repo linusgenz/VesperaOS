@@ -1,10 +1,10 @@
-// syscall_numbers.h
+// syscalls.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 03.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,18 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_NUMBERS_H
-#define SYSCALL_NUMBERS_H
+#ifndef SYSCALLS_H
+#define SYSCALLS_H
 
-enum SyscallNumbers {
-    SYSCALL_READ = 0,
-    SYSCALL_WRITE = 1,
-    SYSCALL_OPEN = 2,
-    SYSCALL_CLOSE = 3,
-    SYSCALL_EXIT = 60,
-    SYSCALL_MKDIR = 83,
-    SYSCALL_RMDIR = 84,
-    SYSCALL_UNLINK = 87,
-};
+int64_t sys_write(int fd, const void* buf, size_t size);
+int64_t sys_read(int fd, void* buf, size_t size);
+int64_t sys_open(const char* path);
+int64_t sys_close(int fd);
+int64_t sys_exit(int code);
+int64_t sys_mkdir(const char* path);
+int64_t sys_rmdir(const char* path);
+int64_t sys_unlink(const char* path);
 
-#endif //SYSCALL_NUMBERS_H
+#endif //SYSCALLS_H

@@ -21,13 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include "../../include/errno.h"
 #include "../syscall_interface.h"
 #include "../../../include/log.h"
 
-int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-    if (arg0 != 1) return -1; // only stdout (for now)
+namespace syscalls::internal {
+    int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+        if (arg0 != 1) return -EBADF;  // Only stdout supported
 
-    const char *user_buf = reinterpret_cast<const char *>(arg1);
-    global_renderer->print(user_buf);
-    return arg2;
+        const char *user_buf = reinterpret_cast<const char *>(arg1);
+        if (!user_buf) return -EINVAL;
+
+        global_renderer->print(user_buf);
+        return arg2;
+    }
 }

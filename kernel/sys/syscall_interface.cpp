@@ -25,18 +25,21 @@
 #include "../include/sys/syscall_numbers.h"
 
 constexpr int MAX_SYSCALLS = 256;
-static syscall_fn syscall_table[MAX_SYSCALLS];
+static syscalls::internal::syscall_fn syscall_table[MAX_SYSCALLS];
 
 void install_syscalls() {
     for (int i = 0; i < MAX_SYSCALLS; i++) {
         syscall_table[i] = nullptr;
     }
 
-    syscall_table[SYSCALL_WRITE] = sys_write;
-    syscall_table[SYSCALL_EXIT]  = sys_exit;
-    syscall_table[SYSCALL_READ]  = sys_read;
-    syscall_table[SYSCALL_CLOSE] = sys_close;
-    syscall_table[SYSCALL_OPEN]  = sys_open;
+    syscall_table[SYSCALL_WRITE] = syscalls::internal::sys_write;
+    syscall_table[SYSCALL_EXIT]  = syscalls::internal::sys_exit;
+    syscall_table[SYSCALL_READ]  = syscalls::internal::sys_read;
+    syscall_table[SYSCALL_CLOSE] = syscalls::internal::sys_close;
+    syscall_table[SYSCALL_OPEN]  = syscalls::internal::sys_open;
+    syscall_table[SYSCALL_MKDIR]  = syscalls::internal::sys_mkdir;
+    syscall_table[SYSCALL_RMDIR]  = syscalls::internal::sys_rmdir;
+    syscall_table[SYSCALL_UNLINK] = syscalls::internal::sys_unlink;
 }
 
 extern "C" void syscall_handler(
