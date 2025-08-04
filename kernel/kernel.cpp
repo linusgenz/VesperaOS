@@ -24,11 +24,23 @@ extern "C" void usermode_write_test() {
        syscall(SYSCALL_WRITE, 1, (uint64_t) buf, strlen(buf));
        syscall(SYSCALL_CLOSE, fd);
    */
-    const char *dir = "/mnt/sd0/EFI";
+ /*   const char *dir = "/mnt/sd0/EFI";
     int64_t res = sys_rmdir(dir);
     char buf[64];
     snprintf(buf, sizeof(buf), "Return: %s\n", to_string(res));
-    sys_write(1, buf, strlen(buf));
+    sys_write(1, buf, strlen(buf));*/
+
+    sys_create("/mnt/sd0/testfilexd.txt");
+   // sys_rename("/mnt/sd0/startup.nsh", "/mnt/sd0/chaname.nsh");
+ //   auto t = sys_rename("/mnt/sd0/EFI", "/mnt/sd0/testEFI");
+   // char buf[64];
+  //  snprintf(buf, sizeof(buf), "Return: %s\n", to_string(t));
+   // sys_write(1, buf, strlen(buf));
+  //  auto t = sys_rename("/mnt/sd0/EFI", "/mnt/sd0/testEFI");
+   // char buf[64];
+   // snprintf(buf, sizeof(buf), "Return: %s\n", to_string(t));
+   // sys_write(1, buf, strlen(buf));
+
 
     sys_exit(0);
 }

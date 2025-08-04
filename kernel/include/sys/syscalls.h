@@ -29,6 +29,8 @@ int64_t sys_read(int fd, void* buf, size_t size);
 int64_t sys_open(const char* path);
 int64_t sys_close(int fd);
 int64_t sys_exit(int code);
+int64_t sys_create(const char* path);
+int64_t sys_rename(const char *old_path, const char *new_path);
 int64_t sys_mkdir(const char* path);
 int64_t sys_rmdir(const char* path);
 int64_t sys_unlink(const char* path);

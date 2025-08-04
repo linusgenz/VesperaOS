@@ -1,10 +1,10 @@
-// filesystem.cpp
+// sys_create.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 03.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -20,3 +20,17 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include "../../../filesystem/vfs/vfs.h"
+#include "../../include/errno.h"
+
+namespace syscalls::internal {
+    int64_t sys_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        const char* path = reinterpret_cast<const char*>(arg0);
+        if (!path) return -EINVAL;
+
+        int result = vfs_create(path);
+        return result < 0 ? -result : 0;
+    }
+
+}

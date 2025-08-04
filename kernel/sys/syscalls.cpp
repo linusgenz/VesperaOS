@@ -26,7 +26,7 @@
 #include "cstddef"
 
 /**
- * Write to a file descriptor.
+ * @brief Write to a file descriptor.
  *
  * @param fd  The file descriptor. Currently only 1 (stdout) is supported.
  * @param buf Pointer to the data buffer to write.
@@ -43,7 +43,7 @@ int64_t sys_write(int fd, const void *buf, size_t size) {
 }
 
 /**
- * Read from a file descriptor.
+ * @brief Read from a file descriptor.
  *
  * @param fd    File descriptor to read from.
  * @param buf   Buffer to store read data.
@@ -60,7 +60,7 @@ int64_t sys_read(int fd, void *buf, size_t size) {
 }
 
 /**
- * Open a file.
+ * @brief Open a file.
  *
  * @param path Absolute path to the file.
  * @return File descriptor (non-negative) on success, or -1 on error.
@@ -76,7 +76,7 @@ int64_t sys_open(const char *path) {
 }
 
 /**
- * Close a file descriptor.
+ * @brief Close a file descriptor.
  *
  * @param fd File descriptor to close.
  * @return 0 on success, or -1 on error.
@@ -89,7 +89,7 @@ int64_t sys_close(int fd) {
 }
 
 /**
- * Exit the current process.
+ * @brief Exit the current process.
  *
  * @param code Exit status code.
  * @return Does not return.
@@ -102,7 +102,50 @@ int64_t sys_exit(int code) {
 }
 
 /**
- * Create a directory.
+ * @brief Create a file.
+ *
+ * @param path Absolute path of the file to create.
+ * @return 0 on success, or negative errno on failure.
+ *
+ * Possible errors:
+ *  - EEXIST: File already exists.
+ *  - EINVAL: Invalid path or parent does not exist.
+ *  - ENOMEM: Internal allocation failure.
+ */
+int64_t sys_create(const char *path) {
+    return syscall(SYSCALL_CREATE, (uint64_t) path);
+}
+
+/**
+ * @brief Rename a file or directory.
+ *
+ * Attempts to rename the file or directory specified by `old_path` to `new_path`.
+ * If `new_path` exists, behavior is implementation-defined — for LuminOS, it may
+ * fail or overwrite non-directory files depending on later implementation.
+ *
+ * This call works for both regular files and directories.
+ *
+ * @param old_path The existing path of the file or directory to rename.
+ * @param new_path The new desired path for the file or directory.
+ * @return On success, returns 0.
+ *         On failure, returns -1 and sets errno (or returns a negative error code).
+ *
+ * Error codes:
+ *  - `ENOENT`     if the `old_path` does not exist.
+ *  - `EEXIST`     if `new_path` already exists and cannot be replaced.
+ *  - `ENOTDIR`    if a path component in either path is not a directory.
+ *  - `EINVAL`     if either path is invalid.
+ *  - `EROFS`      if the filesystem is read-only.
+ *  - `ENOTEMPTY`  if renaming a directory over a non-empty directory.
+ *  - `EACCES`     if permission is denied.
+ *  - `ENOSYS`     if the operation is not supported by the filesystem.
+ */
+int64_t sys_rename(const char *old_path, const char *new_path) {
+    return syscall(SYSCALL_RENAME, (uint64_t) old_path, (uint64_t) new_path);
+}
+
+/**
+ * @brief Create a directory.
  *
  * @param path Absolute path of the directory to create.
  * @return 0 on success, or negative errno on failure.
@@ -117,7 +160,7 @@ int64_t sys_mkdir(const char *path) {
 }
 
 /**
- * Remove a directory.
+ * @brief Remove a directory.
  *
  * @param path Absolute path of the directory to remove.
  * @return 0 on success, or negative errno on failure.
@@ -133,7 +176,7 @@ int64_t sys_rmdir(const char *path) {
 }
 
 /**
- * Unlink (delete) a file.
+ * @brief Unlink (delete) a file.
  *
  * @param path Absolute path of the file to delete.
  * @return 0 on success, or negative errno on failure.

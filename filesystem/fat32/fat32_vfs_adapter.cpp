@@ -24,12 +24,12 @@
 #include "../vfs/fs_registry.h"
 #include "fat32.h"
 #include "../../include/log.h"
+#include "../../kernel/include/errno.h"
 
 using namespace FAT32;
 
 
-
-bool fat32_resolve_path(FAT32::FileSystem* fs, const char* path, Fat32Node* outNode) {
+bool fat32_resolve_path(FAT32::FileSystem *fs, const char *path, Fat32Node *outNode) {
     uint32_t cluster = fs->ResolvePathToCluster(path);
     if (cluster == 0) return false;
 
@@ -91,11 +91,16 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
             childData->isDir = entries[i].isDir();
 
             // neuen Pfad bauen: "/EFI/BOOT" + "/" + "foo.txt"
-            snprintf(childData->path, sizeof(childData->path), "%s/%s", dir->path, name);
+            snprintf(childData->path, sizeof(childData->path),
+                     "%s%s%s",
+                     dir->path,
+                     strcmp(dir->path, "/") == 0 ? "" : "/",
+                     name);
+
             childData->cluster = entries[i].GetFirstCluster();
 
             VfsNode *child = (VfsNode *) malloc(sizeof(VfsNode));
-            child->name = entries[i].GetName(); // Achtung: ggf. strdup()
+            child->name = entries[i].GetName();
             child->type = childData->isDir ? VfsNodeType::Directory : VfsNodeType::File;
             child->internal_data = childData;
             child->ops = node->ops;
@@ -109,6 +114,7 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
     return nullptr;
 }
 
+/*
 static int fat32_readdir(VfsNode *node, char *out_name, size_t max_len) {
     Fat32Node *dir = (Fat32Node *) node->internal_data;
     if (!dir || !dir->isDir) return -1;
@@ -122,14 +128,14 @@ static int fat32_readdir(VfsNode *node, char *out_name, size_t max_len) {
     if (!dir->entries || dir->currentIndex >= dir->entryCount)
         return 0;
 
-    const char* name = dir->entries[dir->currentIndex].GetName();
+    const char *name = dir->entries[dir->currentIndex].GetName();
     strncpy(out_name, name, max_len - 1);
     out_name[max_len - 1] = '\0';
 
     dir->currentIndex++;
     return 1;
 }
-
+*/
 
 static void fat32_close(VfsNode *node) {
     if (!node) return;
@@ -143,31 +149,46 @@ static void fat32_close(VfsNode *node) {
     kernel::memory::free(node);
 }
 
+static int fat32_create(VfsNode *node, const char *name) {
+    Fat32Node *dir = (Fat32Node *) node->internal_data;
+    return dir->fs->CreateFile(dir, name) ? 0 : -1;
+}
 
+static int fat32_rename(VfsNode *node, const char *oldName, const char *newName) {
+    Fat32Node *dir = (Fat32Node *) node->internal_data;
+    if (!dir || !oldName || !newName) return -EINVAL;
 
-static int fat32_mkdir(VfsNode* node, const char* name) {
-    Fat32Node* dir = (Fat32Node*) node->internal_data;
+    if (!dir->fs->Rename(dir, oldName, newName)) {
+        return -EIO; // Could not rename entry
+    }
+
+    return 0;
+}
+
+static int fat32_mkdir(VfsNode *node, const char *name) {
+    Fat32Node *dir = (Fat32Node *) node->internal_data;
     return dir->fs->CreateDirectory(dir, name) ? 0 : -1;
 }
 
-static int fat32_rmdir(VfsNode* node, const char* name) {
-    Fat32Node* dir = (Fat32Node*) node->internal_data;
+static int fat32_rmdir(VfsNode *node, const char *name) {
+    Fat32Node *dir = (Fat32Node *) node->internal_data;
     return dir->fs->RemoveDirectory(dir, name) ? 0 : -1;
 }
 
-static int fat32_unlink(VfsNode* node, const char* name) {
-    Fat32Node* dir = (Fat32Node*) node->internal_data;
+static int fat32_unlink(VfsNode *node, const char *name) {
+    Fat32Node *dir = (Fat32Node *) node->internal_data;
     return dir->fs->DeleteFile(dir, name) ? 0 : -1;
 }
-
 
 
 static VfsNodeOps fat32_ops = {
     .read = fat32_read,
     .write = nullptr, // TODO
     .find = fat32_find,
-    .readdir = fat32_readdir,
     .close = fat32_close,
+    .create = fat32_create,
+    .rename = fat32_rename,
+  //  .readdir = fat32_readdir,
     .mkdir = fat32_mkdir,
     .rmdir = fat32_rmdir,
     .unlink = fat32_unlink

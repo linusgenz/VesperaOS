@@ -33,12 +33,14 @@ void install_syscalls() {
     }
 
     syscall_table[SYSCALL_WRITE] = syscalls::internal::sys_write;
-    syscall_table[SYSCALL_EXIT]  = syscalls::internal::sys_exit;
-    syscall_table[SYSCALL_READ]  = syscalls::internal::sys_read;
+    syscall_table[SYSCALL_EXIT] = syscalls::internal::sys_exit;
+    syscall_table[SYSCALL_READ] = syscalls::internal::sys_read;
     syscall_table[SYSCALL_CLOSE] = syscalls::internal::sys_close;
-    syscall_table[SYSCALL_OPEN]  = syscalls::internal::sys_open;
-    syscall_table[SYSCALL_MKDIR]  = syscalls::internal::sys_mkdir;
-    syscall_table[SYSCALL_RMDIR]  = syscalls::internal::sys_rmdir;
+    syscall_table[SYSCALL_OPEN] = syscalls::internal::sys_open;
+    syscall_table[SYSCALL_CREATE] = syscalls::internal::sys_create;
+    syscall_table[SYSCALL_RENAME] = syscalls::internal::sys_rename;
+    syscall_table[SYSCALL_MKDIR] = syscalls::internal::sys_mkdir;
+    syscall_table[SYSCALL_RMDIR] = syscalls::internal::sys_rmdir;
     syscall_table[SYSCALL_UNLINK] = syscalls::internal::sys_unlink;
 }
 

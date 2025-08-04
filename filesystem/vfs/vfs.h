@@ -25,19 +25,31 @@
 #define VFS_H
 #include "vfs_node.h"
 #include "../../kernel/devices/blockdevice.h"
+#include "../fat32/fat32.h"
 
 struct MountPoint {
     char path[64];
     VfsNode* root;
 };
 
+struct VfsDir {
+    VfsNode *node;
+    size_t currentIndex;
+    FAT32::FileEntry *entries;
+    size_t entryCount;
+};
+
+
 void vfs_init();
 int vfs_mount(BlockDevice* dev, const char* path, const char* fs_name);
 VfsNode* vfs_open(const char* path);
+VfsDir* vfs_opendir(const char *path);
 size_t vfs_read(VfsNode* file, size_t offset, size_t size, void* buffer);
-int vfs_readdir(VfsNode* node, char* out_name, size_t max_len);
+int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len);
 void vfs_close(VfsNode* node);
-
+void vfs_closedir(VfsDir *dir);
+int vfs_create(const char *path);
+int vfs_rename(const char *old_path, const char *new_path);
 int vfs_mkdir(const char* path);
 int vfs_rmdir(const char* path);
 int vfs_unlink(const char* path);

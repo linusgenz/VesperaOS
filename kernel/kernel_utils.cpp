@@ -211,22 +211,49 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     vfs_system_init();
 
- //   int sts1 = vfs_rmdir("/mnt/sd0/EFI");
-  //  Log::PrintLn("STATUS rmdir: %d", sts1);
-/*
-    int sts = vfs_rmdir("/mnt/sd0/hellodir");
-    Log::PrintLn("STATUS rmdir: %u", sts);
+    auto ts = vfs_mkdir("/mnt/sd0/test");
+    Log::debug("vfs_create: %d", ts);
+
+    vfs_rename("/mnt/sd0/startup.nsh", "/mnt/sd0/testfilename.nsh");
+
+    auto t = vfs_create("/mnt/sd0/maintestfile.cpp");
+    Log::debug("vfs_create: %d", t);
 
 
-    auto dir = vfs_open("/mnt/sd0/");
+    auto dir = vfs_opendir("/mnt/sd0/");
 
-        char name[128];
-        while (vfs_readdir(dir, name, sizeof(name)) == 1) {
-            Log::PrintLn("Eintrag: %s", name);
-        }
+    char name[128];
+    while (vfs_readdir(dir, name, sizeof(name)) == 1) {
+        Log::PrintLn("Eintrag: %s", name);
+    }
 
-        vfs_close(dir);
-*/
+    vfs_closedir(dir);
+
+    auto ts2 = vfs_create("/mnt/sd0/test/testfile.css");
+    Log::debug("vfs_create test: %d", ts2);
+
+    auto dir1 = vfs_opendir("/mnt/sd0/test");
+    char name1[128];
+
+    while (vfs_readdir(dir1, name1, sizeof(name1)) == 1) {
+        Log::PrintLn("Eintrag1: %s", name1);
+    }
+
+    vfs_closedir(dir1);
+
+    vfs_rename("/mnt/sd0/EFI", "/mnt/sd0/testEFI");
+
+    auto dir21 = vfs_opendir("/mnt/sd0/");
+
+    char name21[128];
+    while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
+        Log::PrintLn("Eintrag2: %s", name21);
+    }
+
+    vfs_closedir(dir21);
+
+
+    kernel::time::sleep_ms(100);
 
     //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
     //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
