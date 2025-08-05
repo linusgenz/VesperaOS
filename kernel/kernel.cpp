@@ -1,3 +1,4 @@
+#include "elf.h"
 #include "./include/kernel_utils.h"
 #include "./cpu/cpu.h"
 #include "../interface/shell.h"
@@ -59,7 +60,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     Log::Info("Kernel version: %s", get_os_version());
     kernel::time::print_current_time();
 
-
     //  create_kthread(shell_loop, nullptr, 1);
     //  kernel::scheduling::enable_on_cpu(0);
     //  kernel::scheduling::yield();
@@ -74,14 +74,16 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     kernel::memory::map_memory((void *) user_stack_phys, user_stack_phys, (1ULL << PT_Flag::UserSuper));
     void *user_stack_top = (void *) (user_stack_phys + 0x1000);
 
-    //  Log::PrintLn("addr func: %p, stack: %p", (void *) &usermode_write_test, user_stack_top);
+    uint64_t entry;
+    void* start_addr = load_elf_binary("/mnt/sd0/bin/shell.elf", &entry);
 
-
-    //  auto fd = vfs_open("/mnt/sd0/EFI/BOOT/t.txt");
-    //   Log::PrintLn("fd: %p", fd);
-    //  vfs_close(fd);
-
-    switch_to_user_mode(user_stack_top, (void *) &usermode_write_test);
+    if (start_addr) {
+        Log::Info("Jumping to ELF entry point at %p", entry);
+    switch_to_user_mode(user_stack_top,  (void*)entry);
+    }
+    else {
+        Log::Warning("not able to load elf. %p %p", start_addr, entry);
+    }
 
     while (true);
 }

@@ -22,6 +22,9 @@ struct kthread_t {
     void (*entry)(void*);
     void* arg;
     uint8_t cpu_id;
+    bool is_user_thread;
+    void* user_stack_top;
+    void* user_entry;
     bool is_idle_thread;
     kthread_t* next;
 };

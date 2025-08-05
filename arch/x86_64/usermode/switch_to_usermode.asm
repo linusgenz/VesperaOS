@@ -1,5 +1,4 @@
 global switch_to_user_mode
-extern usermode_write_test
 section .text
 bits 64
 

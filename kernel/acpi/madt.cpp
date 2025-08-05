@@ -11,7 +11,6 @@
 #include "madt.h"
 
 namespace MADT {
-    // Globale Arrays für CPU-Kern-Verwaltung
     CPUCore cpu_cores[MAX_CPU_CORES];
     volatile uint32_t cpu_count;
     uint32_t bsp_apic_id = 0;

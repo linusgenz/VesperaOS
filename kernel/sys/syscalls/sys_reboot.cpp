@@ -1,10 +1,10 @@
-// syscall_numbers.h
+// sys_reboot.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 05.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,22 +21,33 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_NUMBERS_H
-#define SYSCALL_NUMBERS_H
+#include "../../acpi/acpi.h"
+#define REBOOT_MAGIC1 0xfee1dead
+#define REBOOT_MAGIC2 672274793
 
-enum SyscallNumbers {
-    SYSCALL_READ = 0,
-    SYSCALL_WRITE = 1,
-    SYSCALL_OPEN = 2,
-    SYSCALL_CLOSE = 3,
-    SYSCALL_STAT = 4,
-    SYSCALL_CREATE = 11,
-    SYSCALL_EXIT = 60,
-    SYSCALL_RENAME = 82,
-    SYSCALL_MKDIR = 83,
-    SYSCALL_RMDIR = 84,
-    SYSCALL_UNLINK = 87,
-    SYSCALL_REBOOT = 169
+enum RebootCmd {
+    REBOOT_RESTART = 0,
+    REBOOT_POWER_OFF = 1,
+    REBOOT_HALT = 2
 };
 
-#endif //SYSCALL_NUMBERS_H
+namespace syscalls::internal {
+    int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uint64_t, uint64_t) {
+        if (magic1 != REBOOT_MAGIC1 || magic2 != REBOOT_MAGIC2) {
+            return -1;
+        }
+
+        switch (cmd) {
+            case REBOOT_RESTART:
+                ACPI::acpi_reboot();
+                break;
+            case REBOOT_POWER_OFF:
+                ACPI::acpi_power_off();
+                break;
+            default:
+                return -1;
+        }
+
+        return 0;
+    }
+}

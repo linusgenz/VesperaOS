@@ -1,10 +1,10 @@
-// syscall.h
+// elf.h
 //
-// LuminOS - operating system for the x86_64 architecture
+// VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 05.08.25.
 //
 // This file is part of LuminOS.
 // 
@@ -21,21 +21,36 @@
 // You should have received a copy of the GNU General Public License
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
-#include "stdint.h"
+#ifndef ELF_H
+#define ELF_H
+#include "cstdint"
 
+struct Elf64_Ehdr {
+    unsigned char e_ident[16];
+    uint16_t e_type;
+    uint16_t e_machine;
+    uint32_t e_version;
+    uint64_t e_entry;
+    uint64_t e_phoff;
+    uint64_t e_shoff;
+    uint32_t e_flags;
+    uint16_t e_ehsize;
+    uint16_t e_phentsize;
+    uint16_t e_phnum;
+    // ...
+};
 
-void syscall_init();
+struct Elf64_Phdr {
+    uint32_t p_type;
+    uint32_t p_flags;
+    uint64_t p_offset;
+    uint64_t p_vaddr;
+    uint64_t p_paddr;
+    uint64_t p_filesz;
+    uint64_t p_memsz;
+    uint64_t p_align;
+};
 
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
+void *load_elf_binary(const char *path, uint64_t *entry_out);
 
-#endif //SYSCALL_H
+#endif //ELF_H

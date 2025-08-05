@@ -46,6 +46,7 @@ VfsNode* vfs_open(const char* path);
 VfsDir* vfs_opendir(const char *path);
 size_t vfs_read(VfsNode* file, size_t offset, size_t size, void* buffer);
 int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len);
+size_t vfs_file_size(VfsNode* file);
 void vfs_close(VfsNode* node);
 void vfs_closedir(VfsDir *dir);
 int vfs_create(const char *path);

@@ -136,6 +136,12 @@ int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len) {
     return 1;
 }
 
+size_t vfs_file_size(VfsNode* file) {
+    if (!file) return -EINVAL;
+
+    return file->ops->file_size(file);
+}
+
 
 void vfs_close(VfsNode *node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;

@@ -30,6 +30,7 @@ namespace FAT32 {
         char path[256];
         uint32_t cluster;
         bool isDir;
+        size_t fileSize;
 
         FAT32::FileEntry *entries = nullptr;
         size_t entryCount = 0;
@@ -174,7 +175,7 @@ namespace FAT32 {
 
         uint32_t ResolvePathToCluster(const char *path) const;
 
-        bool ReadFile(const char *filename, char *buffer, size_t bufferSize, size_t &outFileSize) const;
+        bool ReadFile(Fat32Node* node, char* buffer, const size_t bufferSize, size_t &outFileSize) const;
 
         FileEntry *ReadDirectory(const char *path, size_t &outCount) const;
         FileEntry *ReadDirectory(uint32_t cluster, size_t &outCount) const;

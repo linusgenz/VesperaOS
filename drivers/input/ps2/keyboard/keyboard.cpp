@@ -52,7 +52,7 @@ namespace input::keyboard {
             return;
         }
         if (scancode == ENTER) {
-            write_char('\0'); // Kommandoende
+            write_char('\n'); // Kommandoende
             return;
         }
 

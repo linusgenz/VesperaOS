@@ -39,6 +39,7 @@ struct VfsNodeOps {
     VfsNode* (*find)(VfsNode* dir, const char* name);
     void (*close)(VfsNode* node);
 
+    size_t (*file_size)(VfsNode*);
     int (*create)(VfsNode*, const char*);
     int (*rename)(VfsNode*, const char*, const char*);
    // int (*readdir)(VfsNode* dir, char* out_name, size_t max_len);

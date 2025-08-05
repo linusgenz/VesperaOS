@@ -23,6 +23,9 @@
 
 #include "../FileDescriptor.h"
 #include "cstdint"
+#include "../../../drivers/input/ps2/keyboard/buffer.h"
+#include "../../../drivers/input/ps2/keyboard/keyboard.h"
+#include "../../../include/log.h"
 #include "../../include/errno.h"
 
 namespace syscalls::internal {
@@ -33,6 +36,35 @@ namespace syscalls::internal {
 
         if (fd < 0 || fd >= MAX_FDS) return -EBADF;
         if (!buf || count == 0) return -EINVAL;
+
+        if (fd == 0) {
+            // stdin (Keyboard)
+            size_t read = 0;
+            char* out = reinterpret_cast<char*>(buf);
+
+            while (read < count) {
+                char c;
+                if (!input::keyboard::read_char(c)) {
+                    // TODO yield pause etc
+                    continue;
+                }
+
+                if (c == '\b') {
+                    global_renderer->clear_char();
+                } else if (c != '\n') {
+                    global_renderer->put_char(c);
+                }
+
+                out[read++] = c;
+
+                if (c == '\n') {
+                    global_renderer->new_line();
+                    break;
+                };
+            }
+
+            return read;
+        }
 
         FileDescriptor *desc = kernel::get_fd(fd);
         if (!desc || !desc->node || !desc->node->ops || !desc->node->ops->read) return -EBADF;

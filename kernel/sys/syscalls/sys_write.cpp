@@ -27,12 +27,15 @@
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+
         if (arg0 != 1) return -EBADF;  // Only stdout supported
 
         const char *user_buf = reinterpret_cast<const char *>(arg1);
+        size_t user_size = arg2;
+
         if (!user_buf) return -EINVAL;
 
-        global_renderer->print(user_buf);
-        return arg2;
+        global_renderer->print(user_buf, user_size);
+        return user_size;
     }
 }

@@ -49,7 +49,7 @@ static size_t fat32_read(VfsNode *node, size_t offset, size_t size, void *buffer
 
     size_t actual = 0;
 
-    bool ok = fnode->fs->ReadFile(fnode->path, temp, size, actual);
+    bool ok = fnode->fs->ReadFile(fnode, temp, size, actual);
 
     if (!ok) {
         kernel::memory::free(temp);
@@ -89,6 +89,7 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
 
             childData->fs = dir->fs;
             childData->isDir = entries[i].isDir();
+            childData->fileSize = entries[i].GetFileSize();
 
             // neuen Pfad bauen: "/EFI/BOOT" + "/" + "foo.txt"
             snprintf(childData->path, sizeof(childData->path),
@@ -180,12 +181,17 @@ static int fat32_unlink(VfsNode *node, const char *name) {
     return dir->fs->DeleteFile(dir, name) ? 0 : -1;
 }
 
+static size_t fat32_file_size(VfsNode *node) {
+    Fat32Node *file = (Fat32Node *) node->internal_data;
+    return file->fileSize;
+}
 
 static VfsNodeOps fat32_ops = {
     .read = fat32_read,
     .write = nullptr, // TODO
     .find = fat32_find,
     .close = fat32_close,
+    .file_size = fat32_file_size,
     .create = fat32_create,
     .rename = fat32_rename,
   //  .readdir = fat32_readdir,

@@ -194,6 +194,10 @@ namespace ACPI {
     } __attribute__((packed));
 
     void* find_table(SDTHeader* sdt_header, char* signature);
+
+    void acpi_reboot();
+    void acpi_power_off();
+    void parse_fadt();
 }
 
 #endif //ACPI_H

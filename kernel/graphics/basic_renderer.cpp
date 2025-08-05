@@ -1,5 +1,7 @@
 #include "../include/basic_renderer.h"
 
+#include "../../include/string.h"
+
 BasicRenderer* global_renderer;
 
 BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font) {
@@ -26,6 +28,21 @@ void BasicRenderer::print(const char* str) {
         chr++;
     }
 }
+
+void BasicRenderer::print(const char* str, size_t length) {
+    for (size_t i = 0; i < length; i++) {
+        if (str[i] == '\n') {
+            new_line();
+        } else {
+            put_char(str[i], cursor_position.X, cursor_position.Y);
+            increment_cursorX(8);
+            if (cursor_position.X + 8 > TargetFramebuffer->width) {
+                new_line();
+            }
+        }
+    }
+}
+
 
 void BasicRenderer::clear() {
     const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);

@@ -65,6 +65,7 @@ namespace FAT32 {
     uint32_t FileSystem::GetFATEntry(const uint32_t cluster) const {
         // FAT-Entry: 4 byte, fatStart in sector, 512 byte/sector
         const uint32_t fatOffset = cluster * 4;
+
         const uint32_t sector = fatStart + (fatOffset / bpb.bytesPerSector);
         const uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
 
@@ -205,51 +206,19 @@ namespace FAT32 {
     }
 
 
-    bool FileSystem::ReadFile(const char *path, char *buffer, const size_t bufferSize, size_t &outFileSize) const {
-        char components[16][32]; // Maximal 16 Pfadkomponenten à 31 Zeichen
-        size_t count = split_path(path, components, 16);
+    bool FileSystem::ReadFile(Fat32Node* node, char* buffer, const size_t bufferSize, size_t &outFileSize) const {
+        if (!node || !buffer) return false;
 
-        if (count == 0) return false;
-
-        uint32_t currentCluster = GetRootCluster();
-        FileEntry entry;
-
-        for (size_t i = 0; i < count; ++i) {
-            size_t entryCount = 0;
-            auto entries = ReadDirectory(currentCluster, entryCount);
-            if (!entries) return false;
-
-            bool found = false;
-
-            for (size_t j = 0; j < entryCount; ++j) {
-                if (strcmp(entries[j].GetName(), components[i]) == 0) {
-                    entry = entries[j];
-                    currentCluster = entry.GetFirstCluster();
-                    found = true;
-                    break;
-                }
-            }
-
-            kernel::memory::free(entries);
-
-            if (!found) return false;
-
-            // Nur letzte Komponente darf Datei sein
-            if (i < count - 1 && !entry.isDir()) return false;
-        }
-
-        if (entry.isDir()) return false;
-
-        const size_t fileSize = entry.GetFileSize();
+        const size_t fileSize = node->fileSize;
         if (fileSize > bufferSize) return false;
 
         size_t clusterCount = 0;
-        uint32_t *clusters = GetClusterChain(entry.GetFirstCluster(), clusterCount);
+        uint32_t* clusters = GetClusterChain(node->cluster, clusterCount);
         if (!clusters) return false;
 
         size_t clusterSize = bytesPerCluster();
         uint32_t page_count = (clusterSize + 4095) / 4096;
-        uint8_t *clusterBuffer = static_cast<uint8_t *>(kernel::memory::request_pages(page_count));
+        uint8_t* clusterBuffer = static_cast<uint8_t*>(kernel::memory::request_pages(page_count));
         if (!clusterBuffer) {
             kernel::memory::free(clusters);
             return false;
@@ -279,6 +248,7 @@ namespace FAT32 {
 
         return true;
     }
+
 
     bool CopyLFNPart(const LongFileName *lfn, char *buffer, size_t &pos, const size_t maxLen) {
         auto copyChars = [&](const uint16_t *src, const size_t count) {
@@ -598,7 +568,6 @@ namespace FAT32 {
 
         return WriteDirectoryEntryWithLFN(dirCluster, longName, shortName, shortEntry);
     }
-
 
     bool FileSystem::DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name) {
         size_t chainCount = 0;

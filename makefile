@@ -1,5 +1,5 @@
 BUILD_DIR = ./build
-ASM_SRC = $(shell find ./ -name '*.asm' ! -path './gnu-efi/*')
+ASM_SRC = $(shell find ./ -name '*.asm' ! -path './gnu-efi/*' ! -path './bin/*')
 KERNEL_SRC = $(shell find ./ -name '*.cpp*' ! -path './gnu-efi/*')
 
 OBJS = $(KERNEL_SRC:.cpp=.o)
@@ -34,16 +34,18 @@ bootloader:
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
+bin/%_asm.o:
+	@echo "Skipping build of $@"
+
+
 %_asm.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-#kernel/cpu/ap_trampoline.bin: kernel/cpu/ap_trampoline.asm
-#	$(ASM) -f bin $< -o $@
-
-#kernel/cpu/ap_trampoline.h: kernel/cpu/ap_trampoline.bin
-#	xxd -i $< > $@
-
-$(KERNEL_ELF): $(OBJS) #kernel/cpu/ap_trampoline.h
+$(KERNEL_ELF): $(OBJS)
+	nasm -f elf64 bin/shell.asm -o bin/shell.o
+	nasm -f elf64 bin/strncmp.asm -o bin/strncmp.o
+	ld -o bin/shell.elf bin/shell.o bin/strncmp.o
+#	nasm -f bin -o bin/shell.bin bin/shell.asm
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
 
 
@@ -61,7 +63,10 @@ $(DISK_IMG): bootloader version $(KERNEL_ELF)
 	mkdir -p $(EFI_DIR)
 	sudo mount -o loop $@ mnt
 	sudo mkdir -p mnt/testDIR
+	sudo mkdir -p mnt/bin
 	sudo mkdir -p $(EFI_DIR)
+	sudo cp bin/shell.elf mnt/bin/shell.elf
+#	sudo cp bin/test_userprog.elf mnt/bin/test_userprog.elf
 	sudo cp build/t.txt $(EFI_DIR)/t.txt
 	sudo cp $(BOOTLOADER_EFI) $(EFI_DIR)/BOOTX64.EFI
 	sudo cp $(KERNEL_ELF) $(EFI_DIR)/kernel.elf
@@ -104,7 +109,7 @@ $(ISO): bootloader $(KERNEL_ELF)
 	rm -rf build/esp build/iso_root
 
 # QEMU Test (optional target)
-test: $(DISK_IMG)
+test: clean $(DISK_IMG)
 	qemu-system-x86_64 -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
 	-smp cores=8 \
 	-m 4G \
