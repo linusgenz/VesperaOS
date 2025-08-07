@@ -41,13 +41,17 @@ bin/%_asm.o:
 %_asm.o: %.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
+splash.h:
+	xxd -i splash.raw > splash.h
+
+
 $(KERNEL_ELF): $(OBJS)
-	nasm -f elf64 bin/shell.asm -o bin/shell.o
-	nasm -f elf64 bin/strncmp.asm -o bin/strncmp.o
-	ld -o bin/shell.elf bin/shell.o bin/strncmp.o
+#	nasm -f elf64 bin/shell.asm -o bin/shell.o
+#	nasm -f elf64 bin/strncmp.asm -o bin/strncmp.o
+#	ld -o bin/shell.elf bin/shell.o bin/strncmp.o
+	gcc -nostdlib -ffreestanding -fno-stack-protector -o bin/shell.elf bin/shell.c
 #	nasm -f bin -o bin/shell.bin bin/shell.asm
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
-
 
 
 version:
@@ -56,7 +60,7 @@ version:
 img: $(DISK_IMG)
 	sudo dd if=./build/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
 
-$(DISK_IMG): bootloader version $(KERNEL_ELF)
+$(DISK_IMG): bootloader version splash.h
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
 	$(MKFS_FAT) -F 32 -n "VesperaOS" $@
@@ -69,7 +73,7 @@ $(DISK_IMG): bootloader version $(KERNEL_ELF)
 #	sudo cp bin/test_userprog.elf mnt/bin/test_userprog.elf
 	sudo cp build/t.txt $(EFI_DIR)/t.txt
 	sudo cp $(BOOTLOADER_EFI) $(EFI_DIR)/BOOTX64.EFI
-	sudo cp $(KERNEL_ELF) $(EFI_DIR)/kernel.elf
+	sudo cp cmake-build/kernel.elf $(EFI_DIR)/kernel.elf
 	sudo cp build/zap-light16.psf mnt/zap-light16.psf
 	sudo cp $(BUILD_DIR)/startup.nsh mnt/
 	sudo umount mnt
@@ -109,32 +113,30 @@ $(ISO): bootloader $(KERNEL_ELF)
 	rm -rf build/esp build/iso_root
 
 # QEMU Test (optional target)
-test: clean $(DISK_IMG)
-	qemu-system-x86_64 -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
-	-smp cores=8 \
-	-m 4G \
-	-machine q35 \
-	-enable-kvm \
-	-cpu host \
-	-drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
-	-drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd",readonly=on \
-	-net none \
-    -monitor stdio \
-    -device qemu-xhci,id=xhci,msi=on,msix=on \
-	-device nvme,drive=host0,serial=deadbeef \
-	-trace *pci* \
-    -trace *msix* \
-    -trace *mmio* \
-    -D /tmp/trace-qemu.log \
-    -no-reboot \
-    -no-shutdown  \
+test: $(DISK_IMG)
+	qemu-system-x86_64 \
+	  -m 4G \
+	  -smp cores=8 \
+	  -machine q35 \
+	  -enable-kvm \
+	  -cpu host \
+	  -drive file=$(DISK_IMG),if=none,id=host0,format=raw \
+	  -device nvme,drive=host0,serial=deadbeef \
+	  -drive if=pflash,format=raw,unit=0,file="OVMF/OVMF_CODE-pure-efi.fd",readonly=on \
+	  -drive if=pflash,format=raw,unit=1,file="OVMF/OVMF_VARS-pure-efi.fd" \
+	  -net none \
+	  -monitor stdio \
+	  -device qemu-xhci,id=xhci,msi=on,msix=on \
+	  -no-reboot \
+	  -no-shutdown
+
 #    -qmp tcp:localhost:4444,server,nowait
 #	-device usb-mouse,bus=xhci.0,port=1 \
 #	-device usb-kbd,bus=xhci.0,port=2 \
 # 	-trace usb_xhci_* -D /tmp/trace-qemu-xhci.log \
 #-d int,guest_errors,cpu_reset \
 
-debug:
+debug: clean $(DISK_IMG)
 	qemu-system-x86_64 \
 	  -m 4G \
 	  -machine q35 \
@@ -151,6 +153,10 @@ debug:
 	  -s -S \
 	  -no-reboot \
 	  -no-shutdown
+
+cmake:
+	mkdir -p cmake-build
+	cd cmake-build && cmake .. && make
 
 
 clean:

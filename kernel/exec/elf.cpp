@@ -22,7 +22,7 @@
 // along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "elf.h"
-#include "../filesystem/vfs/vfs.h"
+#include "../../filesystem/vfs/vfs.h"
 
 void *load_elf_binary(const char *path, uint64_t *entry_out) {
     VfsNode *file = vfs_open(path);

@@ -18,6 +18,7 @@
 #include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
 #include "time/time.h"
+#include "../Splash_VesperaOS.h"
 
 void prepare_memory(BootInfo *bootInfo) {
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -159,6 +160,58 @@ void vfs_system_init() {
     }
 }
 
+
+typedef enum {
+    PIXEL_FORMAT_RGB,
+    PIXEL_FORMAT_BGR
+} PixelFormat;
+
+void render_image_rgba8888_centered(
+    const Framebuffer* fb,
+    const uint8_t* img_data,
+    uint32_t img_width,
+    uint32_t img_height,
+    PixelFormat format
+) {
+    if (!fb || !img_data) return;
+
+    uint32_t x_offset = (fb->width - img_width) / 2;
+    uint32_t y_offset = (fb->height - img_height) / 2;
+
+    uint32_t* framebuffer = (uint32_t*)fb->base_address;
+
+    for (uint32_t y = 0; y < img_height; y++) {
+        if (y + y_offset >= fb->height) break;
+
+        for (uint32_t x = 0; x < img_width; x++) {
+            if (x + x_offset >= fb->width) break;
+
+            uint32_t img_index = (y * img_width + x) * 4;
+
+            uint8_t r = img_data[img_index + 0];
+            uint8_t g = img_data[img_index + 1];
+            uint8_t b = img_data[img_index + 2];
+            // uint8_t a = img_data[img_index + 3]; // Ignorieren
+
+            uint32_t pixel_value;
+            if (format == PIXEL_FORMAT_RGB) {
+                pixel_value = (r << 16) | (g << 8) | b;
+            } else { // PIXEL_FORMAT_BGR
+                pixel_value = (b << 16) | (g << 8) | r;
+            }
+
+            uint32_t fb_x = x + x_offset;
+            uint32_t fb_y = y + y_offset;
+            uint32_t fb_index = fb_y * fb->pixels_per_scanline + fb_x;
+
+            framebuffer[fb_index] = pixel_value;
+        }
+    }
+}
+
+extern uint8_t Splash_VesperaOS_raw[];     // Aus xxd -i
+extern unsigned int Splash_VesperaOS_raw_len;
+
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
 static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
 Framebuffer *TargetFramebuffer = nullptr;
@@ -171,6 +224,30 @@ void initialize_kernel(BootInfo *bootInfo) {
     memset(bootInfo->framebuffer->base_address, 0, bootInfo->framebuffer->buffer_size);
 
     TargetFramebuffer = bootInfo->framebuffer;
+
+ uint32_t* framebuffer = (uint32_t*)TargetFramebuffer->base_address;
+    size_t width = TargetFramebuffer->width-1;
+    size_t height = TargetFramebuffer->height-1;
+
+    const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
+    const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
+    const uint64_t fb_height = TargetFramebuffer->height;
+
+    for (int y = 0; y < fb_height; y ++){
+        uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
+        for (uint32_t* pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base); pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr ++){
+            *pix_ptr = 0x00061220;
+        }
+    }
+
+    render_image_rgba8888_centered(
+        TargetFramebuffer,
+        Splash_VesperaOS_raw,
+        1024,
+        1024,
+        PIXEL_FORMAT_RGB
+    );
+
     Log::enableDebug();
 
     gdt_install();
