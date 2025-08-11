@@ -225,7 +225,7 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     TargetFramebuffer = bootInfo->framebuffer;
 
- uint32_t* framebuffer = (uint32_t*)TargetFramebuffer->base_address;
+    uint32_t* framebuffer = (uint32_t*)TargetFramebuffer->base_address;
     size_t width = TargetFramebuffer->width-1;
     size_t height = TargetFramebuffer->height-1;
 
@@ -240,13 +240,13 @@ void initialize_kernel(BootInfo *bootInfo) {
         }
     }
 
-    render_image_rgba8888_centered(
+/*    render_image_rgba8888_centered(
         TargetFramebuffer,
         Splash_VesperaOS_raw,
         1024,
         1024,
         PIXEL_FORMAT_RGB
-    );
+    );*/
 
     Log::enableDebug();
 
@@ -274,20 +274,20 @@ void initialize_kernel(BootInfo *bootInfo) {
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
     CPUManager::initialize();
-    kernel::scheduling::init(CPUManager::total_cpus);
     Log::init(); // threads are possible -> switch to mutex
     prepare_ap_trampoline();
 
-    CPUManager::smp_init();
+ //   CPUManager::smp_init();
 
     //  CPUManager::print_cpu_info();
 
     //  StackManager::print_stack_info();
+    vfs_system_init();
 
+    kernel::scheduling::init(CPUManager::total_cpus);
     syscall_init();
     install_syscalls();
 
-    vfs_system_init();
 
     //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
     //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);

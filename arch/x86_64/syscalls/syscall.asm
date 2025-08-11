@@ -4,8 +4,18 @@ extern syscall_handler
 section .text
 bits 64
 
+%define SAVED_USER_RSP 0x40
+%define STACK_POINTER 0x20
+
 syscall_entry:
     swapgs                        ; GS.base = Kernel GS
+
+    cli
+
+ ;   mov r15, qword [gs:0]      ; current thread pointer (kthread_t*)
+ ;   mov [r15 + SAVED_USER_RSP], rsp
+
+  ;  mov rsp, qword [r15 + STACK_POINTER]
 
     push r11                      ; Save user RFLAGS
     push rcx                      ; Save user RIP (sysret will pop into RCX)
@@ -50,6 +60,9 @@ syscall_entry:
 
     pop rcx          ; user RIP -> RCX
     pop r11          ; user RFLAGS -> R11
+
+
+ ;   mov rsp, qword [r15 + SAVED_USER_RSP]
 
     or r11, 0x200
 

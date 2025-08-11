@@ -45,13 +45,18 @@ splash.h:
 	xxd -i splash.raw > splash.h
 
 
-$(KERNEL_ELF): $(OBJS)
+elfs:
 #	nasm -f elf64 bin/shell.asm -o bin/shell.o
 #	nasm -f elf64 bin/strncmp.asm -o bin/strncmp.o
 #	ld -o bin/shell.elf bin/shell.o bin/strncmp.o
-	gcc -nostdlib -ffreestanding -fno-stack-protector -o bin/shell.elf bin/shell.c
-#	nasm -f bin -o bin/shell.bin bin/shell.asm
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	gcc -nostdlib -ffreestanding -fno-stack-protector \
+		-fPIE -pie\
+		-o bin/shell.elf bin/shell.c
+
+	gcc -nostdlib -ffreestanding -fno-stack-protector \
+		-fPIE -pie\
+		-o bin/shell1.elf bin/shell1.c
+    #	nasm -f bin -o bin/shell.bin bin/shell.asm
 
 
 version:
@@ -60,7 +65,7 @@ version:
 img: $(DISK_IMG)
 	sudo dd if=./build/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
 
-$(DISK_IMG): bootloader version splash.h
+$(DISK_IMG): cmake elfs bootloader version splash.h
 	$(RM) $@
 	dd if=/dev/zero of=$@ bs=512 count=$(IMG_SIZE)
 	$(MKFS_FAT) -F 32 -n "VesperaOS" $@
@@ -70,6 +75,7 @@ $(DISK_IMG): bootloader version splash.h
 	sudo mkdir -p mnt/bin
 	sudo mkdir -p $(EFI_DIR)
 	sudo cp bin/shell.elf mnt/bin/shell.elf
+	sudo cp bin/shell1.elf mnt/bin/shell1.elf
 #	sudo cp bin/test_userprog.elf mnt/bin/test_userprog.elf
 	sudo cp build/t.txt $(EFI_DIR)/t.txt
 	sudo cp $(BOOTLOADER_EFI) $(EFI_DIR)/BOOTX64.EFI
@@ -116,7 +122,6 @@ $(ISO): bootloader $(KERNEL_ELF)
 test: $(DISK_IMG)
 	qemu-system-x86_64 \
 	  -m 4G \
-	  -smp cores=8 \
 	  -machine q35 \
 	  -enable-kvm \
 	  -cpu host \
@@ -129,7 +134,7 @@ test: $(DISK_IMG)
 	  -device qemu-xhci,id=xhci,msi=on,msix=on \
 	  -no-reboot \
 	  -no-shutdown
-
+#	  -smp cores=8 \
 #    -qmp tcp:localhost:4444,server,nowait
 #	-device usb-mouse,bus=xhci.0,port=1 \
 #	-device usb-kbd,bus=xhci.0,port=2 \
@@ -155,8 +160,11 @@ debug: clean $(DISK_IMG)
 	  -no-shutdown
 
 cmake:
+	rm -rf cmake-build
 	mkdir -p cmake-build
 	cd cmake-build && cmake .. && make
+
+	gcc -nostdlib -ffreestanding -fno-stack-protector -o bin/shell.elf bin/shell.c
 
 
 clean:

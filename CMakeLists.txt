@@ -24,12 +24,6 @@ file(GLOB_RECURSE CPP_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp
 )
 
-set(FILTERED_CPP_SOURCES "")
-foreach(file ${ALL_CPP_SOURCES})
-    if (NOT file MATCHES "/gnu%-efi/" AND NOT file MATCHES "/bin/")
-        list(APPEND FILTERED_CPP_SOURCES ${file})
-    endif()
-endforeach()
 
 file(GLOB_RECURSE ASM_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm
@@ -46,7 +40,8 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-mno-red-zone -mgeneral-regs-only -ffreestanding"
 )
 
-add_executable(kernel.elf ${FILTERED_CPP_SOURCES} ${ASM_SOURCES} ${C_SOURCES})
+message(STATUS "Sources: ${CPP_SOURCES}")
+add_executable(kernel.elf ${CPP_SOURCES} ${ASM_SOURCES})
 
 set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -nostdlib -static"

@@ -5,6 +5,11 @@
 #include "../../../kernel/include/interrupts.h"
 #include "../../../kernel/include/memory.h"
 
+GDTEntry gdt[GDT_ENTRIES];
+TSSDescriptor tss_desc;
+TSS tss __attribute__((aligned(4096)));
+GDTPtr gdt_ptr;
+
 static void set_gdt_entry(int idx, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
     gdt[idx].limit_low = limit & 0xFFFF;
     gdt[idx].base_low = base & 0xFFFF;
@@ -56,7 +61,10 @@ void gdt_install() {
     // Initialize TSS rsp0 stack pointer (z.B. kernel stack)
     // TODO cpu manager muss init sein damit wir fetchen können
   //  uintptr_t kernel_stack_top = CPUManager::get_cpu_info(kernel::interrupts::lapic_get_id())->kernel_stack_top;
-    tss.rsp0 = 0x20000; // kernel_stack_top; TODO
+    int rsp0_addr = 0x20000;
+    kernel::memory::map_memory((void*)rsp0_addr, (void*)rsp0_addr);
+    tss.rsp0 = rsp0_addr; // kernel_stack_top; TODO
+    tss.rsp1 = 0xDEADBEEF;
 
     //Log::PrintLn("stack top: %p", kernel_stack_top);
 

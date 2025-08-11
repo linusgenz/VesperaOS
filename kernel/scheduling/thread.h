@@ -6,6 +6,8 @@
 #define THREAD_H
 #include "stdint.h"
 
+#define THREAD_KERNEL_STACK_SIZE (0x1000 * 2)
+
 enum ThreadState {
     THREAD_READY,
     THREAD_RUNNING,
@@ -23,6 +25,7 @@ struct kthread_t {
     void* arg;
     uint8_t cpu_id;
     bool is_user_thread;
+    uint64_t saved_user_rsp;
     void* user_stack_top;
     void* user_entry;
     bool is_idle_thread;
@@ -39,5 +42,6 @@ inline sleeping_thread_t* sleeping_list = nullptr;
 
 kthread_t* create_kthread(void (*func)(void*), void* arg, uint8_t cpu_id);
 kthread_t* create_idle_kthread(void (*func)(void*), uint8_t cpu_id);
+kthread_t* create_user_thread(void* user_entry, void* user_stack_top);
 
 #endif //THREAD_H

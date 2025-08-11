@@ -13,6 +13,8 @@ extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
 
 namespace kernel::time {
     void thread_sleep_ms(uint64_t ms) {
+        Log::debug("yield through sleep");
+
         uint32_t cpu_id = CPUManager::get_current_cpu_id();
         kthread_t *current = kernel::scheduling::cpu_scheduler::get_current_thread_on_cpu(cpu_id);
         if (!current || current->is_idle_thread) return;
@@ -23,12 +25,22 @@ namespace kernel::time {
         kernel::scheduling::yield();
     }
 
-    void sleep_ms(uint64_t ms) {
+    void sleep_internal(uint64_t ms) {
         uint32_t cpu = CPUManager::get_current_cpu_id();
         uint64_t target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
 
         while (interrupts::lapic_get_ticks(cpu) < target) {
             asm volatile("hlt");
+        }
+    }
+
+    void sleep_ms(uint64_t ms) {
+        uint32_t cpu_id = CPUManager::get_current_cpu_id();
+        kthread_t *current = kernel::scheduling::cpu_scheduler::get_current_thread_on_cpu(cpu_id);
+        if (kernel::scheduling::is_initialized() && current) {
+            thread_sleep_ms(ms);
+        } else {
+            sleep_internal(ms);
         }
     }
 

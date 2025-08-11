@@ -6,27 +6,28 @@
 // 
 // Created by Linus Genz on 02.08.25.
 //
-// This file is part of LuminOS.
+// This file is part of VesperaOS.
 // 
-// LuminOS is free software: you can redistribute it and/or modify
+// VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
-// LuminOS is distributed in the hope that it will be useful,
+// VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "FileDescriptor.h"
 #include "cstdint"
+#include "../../include/log.h"
 
 namespace kernel {
     int64_t alloc_fd(VfsNode* node) {
-        for (int i = 0; i < 256; ++i) {
+        for (int i = 5; i < 261; ++i) {
             if (!kernel::fd_table[i].used) {
                 kernel::fd_table[i].node = node;
                 kernel::fd_table[i].offset = 0;

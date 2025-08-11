@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "../../../kernel/acpi/madt.h"
+#include "interrupts_internal.h"
 
 extern uint8_t *g_localApicAddr;
 
@@ -53,7 +54,7 @@ namespace arch::x86_64::interrupts::apic {
 #define PMT_TIMER_RATE 3579545 // 3.57 MHz
 
 void send_eoi();
-void timer_tick();
+void timer_tick(interrupt_frame *frame);
 void init(uint8_t cpu_id);
 void wait_for_delivery();
 

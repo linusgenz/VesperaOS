@@ -23,11 +23,16 @@
 
 #include "cstdint"
 #include "../../../include/log.h"
+#include "../../include/scheduler.h"
+#include "../../scheduling/thread_manager.h"
 
 namespace syscalls::internal {
     uint64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        Log::PrintLn("[SYS_EXIT] Code: %llu", code);
+      //  Log::PrintLn("[SYS_EXIT] Code: %llu", code);
         // Prozess beenden, Scheduler aufrufen etc.
+
+        kernel::scheduling::thread_manager::terminate_current_thread();
+
         while (true) {
         } // placeholder
     }

@@ -57,9 +57,10 @@ extern "C" void syscall_handler(
     uint64_t ret = -1;
 
     if (num < MAX_SYSCALLS && syscall_table[num]) {
+        asm volatile("sti");
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {
-        Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
+      //  Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
     }
 
   //  Log::debug("[SYSCALL] Return: %d", ret);

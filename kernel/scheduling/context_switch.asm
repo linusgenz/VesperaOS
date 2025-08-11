@@ -14,26 +14,44 @@
 ; +16: RBX
 ; +8:  RBP
 ; +0:  Return address (RIP)
-
-[BITS 64]
-section .text
-
 global context_switch
-global context_switch_fast
-
 context_switch:
     ; Disable interrupts during context switch
 
  ;   pushfq                  ; Save current RFLAGS
     cli                     ; Disable interrupts
-    
+
     ; Check if we need to save current context
     test    rdi, rdi
     jz      .restore_only
 
+    test    rcx, rcx
+    jnz     .skip_push_resume
+
     lea     rax, [rel .resume_context]
 
     push rax        ;
+
+    .skip_push_resume:
+
+    test r8, r8
+    jz .no_frame
+
+    mov rax, [r8+32]   ; SS
+    push rax
+
+    mov rax, [r8+24]   ; RSP
+    push rax
+
+    mov rax, [r8+16]   ; RFLAGS
+    push rax
+
+    mov rax, [r8+8]    ; CS
+    push rax
+
+    mov rax, [r8+0]    ; RIP
+    push rax
+    .no_frame:
     pushfq
     push r15
     push r14
@@ -42,10 +60,10 @@ context_switch:
     push rbx
     push rbp        ;
 
-
     mov     [rdi], rsp
 
     .restore_only:
+
     ; Restore new context
     mov     rsp, rsi
 
@@ -56,8 +74,27 @@ context_switch:
     pop     r14
     pop     r15
     popfq
-    ret
 
+    test    rdx, rdx
+    jz      .kernel_return
+
+	mov ax, 0x23 ; ring 3 data with bottom 2 bits set for ring 3
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax ; SS is handled by iret
+
+    sti
+    iretq
+    hlt
+    jmp $           ; shouldn't reach here
+
+.kernel_return:
+    cli
+    hlt
+    jmp $
+    sti
+    ret
 
 .resume_context:
     ; Ausführung geht hier weiter, wenn dieser Thread wieder eingeplant wird
@@ -92,4 +129,3 @@ context_switch_fast:
     pop     rbx
     pop     rbp
     ret
-

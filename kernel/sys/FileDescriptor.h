@@ -6,20 +6,20 @@
 // 
 // Created by Linus Genz on 02.08.25.
 //
-// This file is part of LuminOS.
+// This file is part of VesperaOS.
 // 
-// LuminOS is free software: you can redistribute it and/or modify
+// VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
-// LuminOS is distributed in the hope that it will be useful,
+// VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #ifndef FILEDESCRIPTOR_H
 #define FILEDESCRIPTOR_H
@@ -36,7 +36,7 @@ struct FileDescriptor {
 #define MAX_FDS 256
 
 namespace kernel {
-    inline FileDescriptor fd_table[MAX_FDS]; // max 256 open files TODO change this when we have processes
+    inline FileDescriptor fd_table[MAX_FDS+5]; // max 256 open files TODO change this when we have processes
 
     int64_t alloc_fd(VfsNode* node);
     FileDescriptor* get_fd(int64_t fd);

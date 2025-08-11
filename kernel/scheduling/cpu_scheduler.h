@@ -7,6 +7,7 @@
 #include "stddef.h"
 #include "thread.h"
 #include "../acpi/madt.h"
+#include "../../arch/x86_64/interrupts/interrupts_internal.h"
 
 #define SCHEDULER_QUANTUM_MS 10   // Time slice in milliseconds
 #define SCHEDULER_TICK_MS    10  // Interrupt frequency
@@ -37,8 +38,8 @@ namespace kernel::scheduling::cpu_scheduler {
     void remove_thread_from_cpu(kthread_t* thread, uint8_t cpu_id);
 
     // Context switching and execution
-    void yield_cpu(uint8_t cpu_id);
-    void tick_cpu(uint8_t cpu_id);
+    void yield_cpu(uint8_t cpu_id, interrupt_frame *frame = nullptr);
+    void tick_cpu(uint8_t cpu_id, interrupt_frame *frame);
 
     cpu_scheduler_t* get_cpu_data(uint8_t cpu_id);
 

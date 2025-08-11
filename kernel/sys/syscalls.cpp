@@ -6,20 +6,20 @@
 // 
 // Created by Linus Genz on 03.08.25.
 //
-// This file is part of LuminOS.
+// This file is part of VesperaOS.
 // 
-// LuminOS is free software: you can redistribute it and/or modify
+// VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
-// LuminOS is distributed in the hope that it will be useful,
+// VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with LuminOS. If not, see <https://www.gnu.org/licenses/>.
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../arch/x86_64/syscalls/syscall.h"
 #include "../include/sys/syscall_numbers.h"
@@ -38,7 +38,7 @@
  *  - EINVAL: Buffer is null or size is zero.
  *  - ENOSYS: Unsupported file descriptor (only stdout allowed).
  */
-int64_t sys_write(int fd, const void *buf, size_t size) {
+int64_t sys_write(int64_t fd, const void *buf, size_t size) {
     return syscall(SYSCALL_WRITE, fd, (uint64_t) buf, size);
 }
 
@@ -55,7 +55,7 @@ int64_t sys_write(int fd, const void *buf, size_t size) {
  *  - EFAULT: Invalid buffer pointer.
  *  - EINVAL: Buffer is null or size is zero.
  */
-int64_t sys_read(int fd, void *buf, size_t size) {
+int64_t sys_read(int64_t fd, void *buf, size_t size) {
     return syscall(SYSCALL_READ, fd, (uint64_t) buf, size);
 }
 
@@ -84,7 +84,7 @@ int64_t sys_open(const char *path) {
  * Possible errors:
  *  - EBADF: Invalid file descriptor.
  */
-int64_t sys_close(int fd) {
+int64_t sys_close(int64_t fd) {
     return syscall(SYSCALL_CLOSE, fd);
 }
 
@@ -97,7 +97,7 @@ int64_t sys_close(int fd) {
  * Notes:
  *  - This will terminate the current userspace thread/process.
  */
-int64_t sys_exit(int code) {
+int64_t sys_exit(int64_t code) {
     return syscall(SYSCALL_EXIT, code);
 }
 
@@ -120,7 +120,7 @@ int64_t sys_create(const char *path) {
  * @brief Rename a file or directory.
  *
  * Attempts to rename the file or directory specified by `old_path` to `new_path`.
- * If `new_path` exists, behavior is implementation-defined — for LuminOS, it may
+ * If `new_path` exists, behavior is implementation-defined — for VesperaOS, it may
  * fail or overwrite non-directory files depending on later implementation.
  *
  * This call works for both regular files and directories.

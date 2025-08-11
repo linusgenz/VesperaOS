@@ -10,7 +10,6 @@
 #include "../interrupts/interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::apic {
-    
     uint32_t read(uint32_t offset) {
         volatile uint32_t *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
         return *reg;
@@ -75,17 +74,16 @@ namespace arch::x86_64::interrupts::apic {
         return read(LAPIC_ID) >> 24;
     }
 
-    void timer_tick() {
+    void timer_tick(interrupt_frame *frame) {
         uint32_t cpu = CPUManager::get_current_cpu_id();
 
         apic_ticks[cpu]++;
-
 
         if (!kernel::scheduling::is_initialized()) return;
 
         kernel::scheduling::cpu_scheduler::wake_sleeping_threads(cpu, apic_ticks[cpu]);
 
-        kernel::scheduling::cpu_scheduler::tick_cpu(cpu);
+        kernel::scheduling::cpu_scheduler::tick_cpu(cpu, frame);
     }
 
 

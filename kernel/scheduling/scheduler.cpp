@@ -48,10 +48,10 @@ namespace kernel::scheduling {
         cpu_scheduler::yield_cpu(cpu_id);
     }
 
-    void tick() {
+/*    void tick() {
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         cpu_scheduler::tick_cpu(cpu_id);
-    }
+    }*/
 
     void enable_on_cpu(uint8_t cpu_id) {
         if (cpu_id >= global_scheduler.num_cpus) return;

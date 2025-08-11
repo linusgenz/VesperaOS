@@ -16,11 +16,11 @@ namespace kernel::scheduling {
     };
 
     extern global_scheduler_t global_scheduler;
-
+    
     // Global scheduler operations
     void init(uint32_t num_cpus);
     void yield();
-    void tick();
+ //   void tick();
 
     // Global thread management
     void add_thread(kthread_t* thread);

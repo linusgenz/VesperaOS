@@ -9,6 +9,8 @@
 #include "../../../drivers/input/ps2/keyboard/ps2_keyboard.h"
 #include "../../../drivers/input/ps2/mouse/mouse.h"
 #include "../../../drivers/input/ps2/mouse/ps2_mouse.h"
+#include "../../../kernel/cpu/cpu_manager.h"
+#include "../../../kernel/time/time.h"
 
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
@@ -162,8 +164,7 @@ __attribute__((interrupt)) void mouse_int_handler(interrupt_frame *frame) {
 
 __attribute__((interrupt))
 void apic_timer_int_handler(interrupt_frame *frame) {
-    arch::x86_64::interrupts::apic::timer_tick();
-    kernel::scheduling::tick();
+    arch::x86_64::interrupts::apic::timer_tick(frame);
     arch::x86_64::interrupts::apic::send_eoi();
 }
 

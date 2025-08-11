@@ -27,6 +27,7 @@
 #include "../../arch/x86_64/interrupts/ioapic.h"
 #include "../../arch/x86_64/interrupts/idt.h"
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
+#include "../../include/log.h"
 #include "../include/memory.h"
 #include "../cpu/io.h"
 
