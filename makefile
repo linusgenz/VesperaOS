@@ -141,7 +141,7 @@ test: $(DISK_IMG)
 # 	-trace usb_xhci_* -D /tmp/trace-qemu-xhci.log \
 #-d int,guest_errors,cpu_reset \
 
-debug: clean $(DISK_IMG)
+debug: $(DISK_IMG)
 	qemu-system-x86_64 \
 	  -m 4G \
 	  -machine q35 \
@@ -157,10 +157,10 @@ debug: clean $(DISK_IMG)
 	  -device usb-mouse \
 	  -s -S \
 	  -no-reboot \
-	  -no-shutdown
+	  -no-shutdown \
+	  	  -monitor stdio \
 
 cmake:
-	rm -rf cmake-build
 	mkdir -p cmake-build
 	cd cmake-build && cmake .. && make
 

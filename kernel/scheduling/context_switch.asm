@@ -16,11 +16,7 @@
 ; +0:  Return address (RIP)
 global context_switch
 context_switch:
-    ; Disable interrupts during context switch
-
- ;   pushfq                  ; Save current RFLAGS
-    cli                     ; Disable interrupts
-
+    cli
     ; Check if we need to save current context
     test    rdi, rdi
     jz      .restore_only
@@ -51,6 +47,7 @@ context_switch:
 
     mov rax, [r8+0]    ; RIP
     push rax
+
     .no_frame:
     pushfq
     push r15
@@ -90,10 +87,6 @@ context_switch:
     jmp $           ; shouldn't reach here
 
 .kernel_return:
-    cli
-    hlt
-    jmp $
-    sti
     ret
 
 .resume_context:

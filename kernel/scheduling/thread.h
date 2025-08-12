@@ -5,7 +5,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 #include "stdint.h"
-
+#include "../proc/process.h"
 #define THREAD_KERNEL_STACK_SIZE (0x1000 * 2)
 
 enum ThreadState {
@@ -29,7 +29,10 @@ struct kthread_t {
     void* user_stack_top;
     void* user_entry;
     bool is_idle_thread;
+    int64_t exit_code;
+
     kthread_t* next;
+    kprocess_t* process;
 };
 
 struct sleeping_thread_t {

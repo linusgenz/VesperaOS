@@ -23,17 +23,36 @@
 
 #include "cstdint"
 #include "../../../include/log.h"
+#include "../../cpu/cpu_manager.h"
 #include "../../include/scheduler.h"
 #include "../../scheduling/thread_manager.h"
 
 namespace syscalls::internal {
-    uint64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-      //  Log::PrintLn("[SYS_EXIT] Code: %llu", code);
-        // Prozess beenden, Scheduler aufrufen etc.
+    int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        //  Log::PrintLn("[SYS_EXIT] Code: %llu", code);
+        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        kthread_t *current = kernel::scheduling::get_current_thread();
+        kprocess_t *proc = current->process;
 
-        kernel::scheduling::thread_manager::terminate_current_thread();
+        current->exit_code = (int64_t) code;
+        current->state = THREAD_TERMINATED;
+
+        if (all_threads_terminated(proc)) {
+            proc->exit_code = (int64_t) code;
+            proc->state = PROCESS_TERMINATED;
+
+            cleanup_process(proc);
+        }
+        else {
+            kernel::scheduling::thread_manager::cleanup_thread(current);
+        }
+
+        kernel::scheduling::cpu_scheduler::cpu_scheduler_t *cpu = kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
+        cpu->current_thread = nullptr;
+
+        kernel::scheduling::cpu_scheduler::yield_cpu(cpu_id);
 
         while (true) {
-        } // placeholder
+        }
     }
 }

@@ -43,6 +43,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_RMDIR] = syscalls::internal::sys_rmdir;
     syscall_table[SYSCALL_UNLINK] = syscalls::internal::sys_unlink;
     syscall_table[SYSCALL_REBOOT] = syscalls::internal::sys_reboot;
+    syscall_table[SYSCALL_GETPID] = syscalls::internal::sys_getpid;
 }
 
 extern "C" void syscall_handler(

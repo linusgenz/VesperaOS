@@ -10,16 +10,8 @@
 
 namespace kernel::scheduling::thread_manager {
     extern "C" [[noreturn]] void idle_thread_func(void *arg) {
-        Log::Info("entered IDLE thread");
-        uint32_t cpu_id = CPUManager::get_current_cpu_id();
-
         while (true) {
-            __asm__ volatile ("pause");
-
-            cpu_scheduler::cpu_scheduler_t *cpu = cpu_scheduler::get_cpu_data(cpu_id);
-            if (cpu->ready_queue_head) {
-                cpu_scheduler::yield_cpu(cpu_id);
-            }
+            __asm__ volatile ("sti; hlt");
         }
     }
 
@@ -58,25 +50,28 @@ namespace kernel::scheduling::thread_manager {
 #define MSR_KERNEL_GS_BASE 0xC0000102
 #define MSR_GS_BASE 0xC0000101
 
-    void switch_to_thread(kthread_t *from, kthread_t *to, interrupt_frame *frame) {
+    [[noreturn]] void switch_to_thread(kthread_t *from, kthread_t *to, interrupt_frame *frame) {
         int to_is_user = to->is_user_thread ? 1 : 0;
 
-        int from_is_user = from->is_user_thread ? 1 : 0;
+        int from_is_user = (from != nullptr && from->is_user_thread) ? 1 : 0;
+
         if (to_is_user) {
-            //wrmsr(MSR_GS_BASE, 0);
-            //wrmsr(MSR_KERNEL_GS_BASE, (uint64_t) &to);
+            // wrmsr(MSR_GS_BASE, 0);
+            // wrmsr(MSR_KERNEL_GS_BASE, (uint64_t)&to);
         }
 
-
-        if (from != nullptr && from->state == THREAD_TERMINATED) {
-            cleanup_thread(from);
-            context_switch(nullptr, to->stack_pointer, to_is_user, 0, frame);
+        if (to->is_user_thread) {
+            uint64_t cr3 = (uint64_t) to->process->pml4;
+            asm volatile("mov %0, %%cr3" :: "r"(cr3));
         } else {
-            auto ptr1 = from ? &from->stack_pointer : nullptr;
-
-            context_switch(ptr1, to->stack_pointer, to_is_user, from_is_user, frame);
+            asm volatile("mov %0, %%cr3" :: "r"(memory::get_pagetable_address()));
         }
+
+        context_switch(from ? &from->stack_pointer : nullptr, to->stack_pointer, to_is_user, from_is_user, frame);
+
+        __builtin_unreachable();
     }
+
 
     [[noreturn]] void terminate_current_thread() {
         asm volatile("cli");

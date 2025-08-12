@@ -117,9 +117,19 @@ namespace kernel::scheduling::cpu_scheduler {
             next_thread = cpu->idle_thread;
         }
 
-        bool current_terminated = (current && current->state == THREAD_TERMINATED);
-        bool current_blocked = (current && current->state == THREAD_BLOCKED);
-        bool current_should_continue = (current && !current_terminated && !current_blocked &&
+        // if current got terminated continue with next
+        if (current == nullptr) {
+            next_thread->state = THREAD_RUNNING;
+            cpu->current_thread = next_thread;
+            cpu->ticks_remaining = cpu->quantum_ticks;
+
+            __sync_lock_release(&cpu->scheduler_lock);
+            thread_manager::switch_to_thread(nullptr, next_thread, frame);
+        }
+
+        bool current_terminated = (current->state == THREAD_TERMINATED);
+        bool current_blocked = (current->state == THREAD_BLOCKED);
+        bool current_should_continue = ( !current_terminated && !current_blocked &&
                                         !current->is_idle_thread && current->state == THREAD_RUNNING);
 
         // If current thread is the only thread on the core

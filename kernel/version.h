@@ -5,7 +5,7 @@
 #define VERSION_MINOR "4"
 #define VERSION_PATCH "1"
 #define VERSION_STAGE "dev"
-#define VERSION_BUILD "20250811-g3cbd664"
+#define VERSION_BUILD "20250812-g5dde99c"
 
 #define VERSION_STRING "VesperaOS (dev) x86_64 " \
                        VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH \

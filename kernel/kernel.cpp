@@ -91,34 +91,38 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     kernel::memory::map_memory((void *) user_stack_phys2, user_stack_phys2, (1ULL << PT_Flag::UserSuper));
     void *user_stack_top2 = (void *) (user_stack_phys2 + 0x1000);
 
-    uint64_t entry;
-    void *start_addr = load_elf_binary("/mnt/sd0/bin/shell.elf", &entry, 0x400000); // z.B. 4MB
+   // uint64_t entry;
+   // void *start_addr = load_elf_binary("/mnt/sd0/bin/shell.elf", &entry, 0x400000);
 
-    uint64_t entry1;
-    void *start_addr1 = load_elf_binary("/mnt/sd0/bin/shell1.elf", &entry1, 0x500000);
+ //   uint64_t entry1;
+ //   void *start_addr1 = load_elf_binary("/mnt/sd0/bin/shell1.elf", &entry1, 0x500000);
 
-    if (start_addr && start_addr1) {
-        Log::Info("Jumping to ELF entry point at %p", entry);
-        auto shell = create_user_thread((void *) entry, user_stack_top);
-        auto write_test = create_user_thread((void*)entry1, user_stack_top2);
-        kernel::scheduling::add_thread(shell);
-        kernel::scheduling::add_thread(write_test);
+  //  if (start_addr) {
+  //      Log::Info("Jumping to ELF entry point at %p", entry);
+   //     auto shell = create_user_thread((void *) entry, user_stack_top);
+     //   auto write_test = create_user_thread((void*)entry1, user_stack_top2);
+      //  kernel::scheduling::add_thread(shell);
+     //   kernel::scheduling::add_thread(write_test);
         //   create_kthread(kernel_thread, nullptr, 0);
 
-        Log::debug("thread shell: ptr: %p id=%u is_user=%u user_entry=%p user_stack_top=%p kstack=%p ksp=%p", shell,
-           shell->id, shell->is_user_thread, shell->user_entry, shell->user_stack_top,
-           shell->stack, shell->stack_pointer);
-        Log::debug("thread write_test: ptr: %p id=%u is_user=%u user_entry=%p user_stack_top=%p kstack=%p ksp=%p",
+    //    Log::debug("thread shell: ptr: %p id=%u is_user=%u user_entry=%p user_stack_top=%p kstack=%p ksp=%p", shell,
+    //       shell->id, shell->is_user_thread, shell->user_entry, shell->user_stack_top,
+    ////       shell->stack, shell->stack_pointer);
+      /*  Log::debug("thread write_test: ptr: %p id=%u is_user=%u user_entry=%p user_stack_top=%p kstack=%p ksp=%p",
                    write_test,write_test->id, write_test->is_user_thread, write_test->user_entry, write_test->user_stack_top,
-                   write_test->stack, write_test->stack_pointer);
+                   write_test->stack, write_test->stack_pointer);*/
 
-
+    kprocess_t* shell_proc = create_process_from_elf("shell", "/mnt/sd0/bin/shell.elf");
+    shell_proc->state = PROCESS_READY;
+    shell_proc->main_thread->state = THREAD_READY;
+    Log::debug("shell proc. %p", shell_proc->main_thread->entry);
+        kernel::scheduling::add_thread(shell_proc->main_thread);
         kernel::scheduling::enable_on_cpu(0);
         kernel::scheduling::yield();
         // switch_to_user_mode(user_stack_top, (void *) &usermode_write_test);
-    } else {
-        Log::Warning("not able to load elf. %p %p", start_addr, entry);
-    }
+ //   } else {
+ //       Log::Warning("not able to load elf. %p %p", start_addr, entry);
+//    }
 
     while (true);
 }

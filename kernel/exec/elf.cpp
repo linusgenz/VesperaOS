@@ -72,6 +72,7 @@ void *load_elf_binary(const char *path, uint64_t *entry_out, uintptr_t USER_BASE
         }
     }
 
+    free(file_data);
     *entry_out = USER_BASE + header->e_entry;
     return reinterpret_cast<void *>(header->e_entry);
 }

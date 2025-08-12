@@ -33,7 +33,6 @@ void prepare_memory(BootInfo *bootInfo) {
     kernel::memory::lock_pages(&_KernelStart, kernelPages);
     kernel::memory::lock_pages(nullptr, 256);
 
-
     kernel::memory::initialize_page_table_manager();
 
     // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob

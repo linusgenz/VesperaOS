@@ -10,6 +10,8 @@
 
 #define PAGE_SIZE 4096
 
+struct PageTable;
+
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);
 void memset(void* dest, uint8_t val, uint64_t num);
 void *memcpy (void *dest, const void *src, size_t len);
@@ -41,6 +43,8 @@ namespace kernel::memory {
     bool is_mapped(void* virtual_addr);
     uintptr_t get_pagetable_address();
     uint64_t get_physical_address(void* virtual_addr);
+    PageTable* create_user_pagetable();
+    void free_user_pagetable(PageTable *pml4);
 
     // Page Frame Allocator
     void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size);

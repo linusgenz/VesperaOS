@@ -1,12 +1,12 @@
-// syscall_numbers.h
+// sys_getpid.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 12.08.25.
 //
-// This file is part of VesperaOS.
+// This file is part of LuminOS.
 // 
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,25 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_NUMBERS_H
-#define SYSCALL_NUMBERS_H
+#include "cstdint"
+#include "../../scheduling/thread.h"
+#include "../../include/scheduler.h"
 
-enum SyscallNumbers {
-    SYSCALL_READ = 0,
-    SYSCALL_WRITE = 1,
-    SYSCALL_OPEN = 2,
-    SYSCALL_CLOSE = 3,
-    SYSCALL_STAT = 4,
-    SYSCALL_CREATE = 11,
-    SYSCALL_GETPID = 39,
-    SYSCALL_EXIT = 60,
-    SYSCALL_GETCWD = 79,
-    SYSCALL_CHDIR = 80,
-    SYSCALL_RENAME = 82,
-    SYSCALL_MKDIR = 83,
-    SYSCALL_RMDIR = 84,
-    SYSCALL_UNLINK = 87,
-    SYSCALL_REBOOT = 169
-};
 
-#endif //SYSCALL_NUMBERS_H
+namespace syscalls::internal {
+    int64_t sys_getpid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        kthread_t* current_thread = kernel::scheduling::get_current_thread();
+        if (!current_thread || !current_thread->process) {
+            return 0; // That shouldn't happen, but I wouldn't be surprised if it did.
+        }
+        return current_thread->process->pid;
+    }
+}

@@ -26,7 +26,7 @@ namespace kernel::scheduling::thread_manager {
     extern "C" [[noreturn]] void idle_thread_func(void* arg);
 
     // Internal thread operations
-    void switch_to_thread(kthread_t* from, kthread_t* to, interrupt_frame *frame);
+    [[noreturn]] void switch_to_thread(kthread_t* from, kthread_t* to, interrupt_frame *frame);
     void setup_idle_thread(uint8_t cpu_id);
 
 } // namespace kernel::scheduling::thread_manager

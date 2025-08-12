@@ -72,6 +72,14 @@ namespace kernel::memory {
         return page_table_manager.get_physical_address(virtual_addr);
     }
 
+    PageTable* create_user_pagetable() {
+        return page_table_manager.create_user_pagetable();
+    }
+
+    void free_user_pagetable(PageTable *pml4) {
+        page_table_manager.free_user_pagetable(pml4);
+    }
+
     // Page Frame Allocator
     void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size) {
         page_frame_allocator.read_efi_memory_map((EFI_MEMORY_DESCRIPTOR*)efi_memory_map, map_size, desc_size);

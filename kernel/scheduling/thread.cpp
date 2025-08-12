@@ -65,6 +65,8 @@ kthread_t* create_kthread(void (*func)(void*), void* arg, uint8_t cpu_id) {
     *(--sp) = 0;                            // R12
     *(--sp) = 0;                            // RBX
     *(--sp) = 0;                            // RBP
+
+    t->stack_pointer = sp;
     return t;
 }
 
@@ -72,7 +74,7 @@ kthread_t* create_idle_kthread(void (*func)(void*), uint8_t cpu_id) {
     auto t = create_kthread_internal(func, nullptr, cpu_id);
 
     auto* sp = (uintptr_t*)((uint8_t*)t->stack_pointer);
-    *(--sp) = (uintptr_t)thread_trampoline; // Return RIP
+    *(--sp) = (uintptr_t)func;              // Return RIP
     *(--sp) = 0x202;                        // RFLAGS
     *(--sp) = 0;                            // R15
     *(--sp) = 0;                            // R14
@@ -81,6 +83,7 @@ kthread_t* create_idle_kthread(void (*func)(void*), uint8_t cpu_id) {
     *(--sp) = 0;                            // RBX
     *(--sp) = 0;                            // RBP
 
+    t->stack_pointer = sp;
     t->is_idle_thread = true;
     return t;
 }
