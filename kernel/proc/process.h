@@ -6,7 +6,7 @@
 // 
 // Created by Linus Genz on 11.08.25.
 //
-// This file is part of LuminOS.
+// This file is part of VesperaOS.
 // 
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #ifndef PROCESS_H
 #define PROCESS_H
-#include "cstdint"
+#include <cstdint>
 #include "../memory/page_table_manager.h"
 struct kthread_t; // forward
 
@@ -34,6 +34,12 @@ enum ProcessState {
     PROCESS_TERMINATED
 };
 
+struct user_page {
+    void* phys_addr;
+    user_page* next;
+};
+
+
 struct kprocess_t {
     uint64_t pid;
     char name[32];
@@ -42,6 +48,7 @@ struct kprocess_t {
 
     // Memory
     PageTable* pml4;         // Root page table for the process
+    user_page* user_pages_head;
     uint64_t user_stack_top; // Virtual top of user stack
     uint64_t heap_start;     // Start of heap
     uint64_t heap_end;       // Current end of heap

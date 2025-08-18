@@ -1,4 +1,6 @@
 #include "./include/kernel_utils.h"
+
+#include "throbber.h"
 #include "../arch/x86_64/gdt/gdt.h"
 #include "../arch/x86_64/syscalls/syscall.h"
 #include "../drivers/input/ps2/keyboard/ps2_keyboard.h"
@@ -7,7 +9,7 @@
 #include "../include/log.h"
 #include "memory/stack_manager.h"
 #include "cpu/cpu_manager.h"
-#include "include/scheduler.h"
+#include <scheduling.h>
 #include "include/interrupts.h"
 #include "../drivers/input/ps2/mouse/mouse.h"
 #include "../drivers/input/ps2/mouse/ps2_mouse.h"
@@ -19,6 +21,8 @@
 #include "sys/syscall_interface.h"
 #include "time/time.h"
 #include "../Splash_VesperaOS.h"
+#include "include/sys/syscalls.h"
+#include "scheduling/thread_manager.h"
 
 void prepare_memory(BootInfo *bootInfo) {
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -124,50 +128,14 @@ void zero_bss() {
     }
 }
 
-extern FileSystemDriver fat32_driver;
-
-void vfs_system_init() {
-    vfs_init();
-
-    register_fs_driver(&fat32_driver);
-
-    auto devices = kernel::DeviceManager::GetDevices();
-    size_t device_count = kernel::DeviceManager::GetDeviceCount();
-
-    Log::debug("device count: %d", device_count);
-
-    int mount_index = 0;
-    for (size_t i = 0; i < device_count; ++i) {
-        BlockDevice *dev = devices[i];
-        if (!dev) continue;
-
-        char mount_path[32];
-        snprintf(mount_path, sizeof(mount_path), "/mnt/sd%d", mount_index++);
-
-        // Nutze das VFS-Treiber-System, nicht manuell FAT32 aufrufen!
-        int result = vfs_mount(dev, mount_path, "fat32");
-
-        if (result == 0) {
-            Log::Info("Mounted FAT32 at %s", mount_path);
-        } else {
-            Log::Warning("Failed to mount FAT32 at %s (code %d)", mount_path, result);
-        }
-    }
-
-    if (mount_index == 0) {
-        Log::Warning("No FAT32 volumes found.");
-    }
-}
-
-
 typedef enum {
     PIXEL_FORMAT_RGB,
     PIXEL_FORMAT_BGR
 } PixelFormat;
 
 void render_image_rgba8888_centered(
-    const Framebuffer* fb,
-    const uint8_t* img_data,
+    const Framebuffer *fb,
+    const uint8_t *img_data,
     uint32_t img_width,
     uint32_t img_height,
     PixelFormat format
@@ -177,7 +145,7 @@ void render_image_rgba8888_centered(
     uint32_t x_offset = (fb->width - img_width) / 2;
     uint32_t y_offset = (fb->height - img_height) / 2;
 
-    uint32_t* framebuffer = (uint32_t*)fb->base_address;
+    uint32_t *framebuffer = (uint32_t *) fb->base_address;
 
     for (uint32_t y = 0; y < img_height; y++) {
         if (y + y_offset >= fb->height) break;
@@ -195,7 +163,8 @@ void render_image_rgba8888_centered(
             uint32_t pixel_value;
             if (format == PIXEL_FORMAT_RGB) {
                 pixel_value = (r << 16) | (g << 8) | b;
-            } else { // PIXEL_FORMAT_BGR
+            } else {
+                // PIXEL_FORMAT_BGR
                 pixel_value = (b << 16) | (g << 8) | r;
             }
 
@@ -208,7 +177,8 @@ void render_image_rgba8888_centered(
     }
 }
 
-extern uint8_t Splash_VesperaOS_raw[];     // Aus xxd -i
+
+extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
 
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
@@ -224,28 +194,31 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     TargetFramebuffer = bootInfo->framebuffer;
 
-    uint32_t* framebuffer = (uint32_t*)TargetFramebuffer->base_address;
-    size_t width = TargetFramebuffer->width-1;
-    size_t height = TargetFramebuffer->height-1;
+    uint32_t *framebuffer = (uint32_t *) TargetFramebuffer->base_address;
+    size_t width = TargetFramebuffer->width - 1;
+    size_t height = TargetFramebuffer->height - 1;
 
     const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
     const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
     const uint64_t fb_height = TargetFramebuffer->height;
 
-    for (int y = 0; y < fb_height; y ++){
+    global_renderer->set_clear_color(Colour::BG_COLOUR);
+    for (int y = 0; y < fb_height; y++) {
         uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
-        for (uint32_t* pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base); pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr ++){
+        for (uint32_t *pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base);
+             pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr++) {
             *pix_ptr = 0x00061220;
         }
     }
 
-/*    render_image_rgba8888_centered(
+    render_image_rgba8888_centered(
         TargetFramebuffer,
         Splash_VesperaOS_raw,
         1024,
         1024,
         PIXEL_FORMAT_RGB
-    );*/
+    );
+    generate_throbber();
 
     Log::enableDebug();
 
@@ -276,17 +249,23 @@ void initialize_kernel(BootInfo *bootInfo) {
     Log::init(); // threads are possible -> switch to mutex
     prepare_ap_trampoline();
 
- //   CPUManager::smp_init();
-
-    //  CPUManager::print_cpu_info();
-
-    //  StackManager::print_stack_info();
-    vfs_system_init();
 
     kernel::scheduling::init(CPUManager::total_cpus);
+
+    void *user_stack_phys2 = kernel::memory::request_page();
+    kernel::memory::map_range((void *) user_stack_phys2, user_stack_phys2, 0x1000, (1ULL << PT_Flag::UserSuper));
+    void *user_stack_top2 = (void *) (user_stack_phys2 + 0x1000);
+
+    kthread_t* t = create_kthread(render_throbber, nullptr, 1);
+    Log::debug("throbber: %p - %p", t->stack, t->stack_pointer);
+    kernel::scheduling::add_thread(t);
+
+    CPUManager::smp_init();
+
+    vfs_system_init();
+
     syscall_init();
     install_syscalls();
-
 
     //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
     //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
@@ -294,4 +273,3 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     kernel::interrupts::mask_pic();
 }
-

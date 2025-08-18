@@ -14,6 +14,11 @@
 ; +16: RBX
 ; +8:  RBP
 ; +0:  Return address (RIP)
+%define FROM_SYSCALL 0x59
+%define SAVED_USER_RSP 0x40
+%define SYSCALL_RETURN_RSP 0x60
+%define STACK_POINTER 0x20
+
 global context_switch
 context_switch:
     cli
@@ -22,7 +27,7 @@ context_switch:
     jz      .restore_only
 
     test    rcx, rcx
-    jnz     .skip_push_resume
+    jnz     .no_frame
 
     lea     rax, [rel .resume_context]
 
@@ -30,23 +35,23 @@ context_switch:
 
     .skip_push_resume:
 
-    test r8, r8
-    jz .no_frame
+ ;   test r8, r8
+ ;   jnz .restore_only
 
-    mov rax, [r8+32]   ; SS
-    push rax
+;    mov rax, [r8+32]   ; SS
+;    push rax
 
-    mov rax, [r8+24]   ; RSP
-    push rax
+;    mov rax, [r8+24]   ; RSP
+;    push rax
 
-    mov rax, [r8+16]   ; RFLAGS
-    push rax
+;    mov rax, [r8+16]   ; RFLAGS
+;    push rax
 
-    mov rax, [r8+8]    ; CS
-    push rax
+;    mov rax, [r8+8]    ; CS
+;    push rax
 
-    mov rax, [r8+0]    ; RIP
-    push rax
+;    mov rax, [r8+0]    ; RIP
+;    push rax
 
     .no_frame:
     pushfq
@@ -55,7 +60,7 @@ context_switch:
     push r13
     push r12
     push rbx
-    push rbp        ;
+    push rbp
 
     mov     [rdi], rsp
 
@@ -64,6 +69,27 @@ context_switch:
     ; Restore new context
     mov     rsp, rsi
 
+
+    test    rdx, rdx
+    jz      .kernel_return
+ ;   test    r8, r8
+  ;  jnz      .halt
+
+        mov ax, 0x23 ; ring 3 data with bottom 2 bits set for ring 3
+        mov ds, ax
+        mov es, ax
+        mov fs, ax
+        mov gs, ax ; SS is handled by iret
+
+        sti
+        iretq
+        hlt
+        jmp $           ; shouldn't reach here
+
+.halt:
+jmp $
+hlt
+.kernel_return:
     pop     rbp
     pop     rbx
     pop     r12
@@ -72,21 +98,6 @@ context_switch:
     pop     r15
     popfq
 
-    test    rdx, rdx
-    jz      .kernel_return
-
-	mov ax, 0x23 ; ring 3 data with bottom 2 bits set for ring 3
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax ; SS is handled by iret
-
-    sti
-    iretq
-    hlt
-    jmp $           ; shouldn't reach here
-
-.kernel_return:
     ret
 
 .resume_context:

@@ -51,12 +51,12 @@ namespace kernel::memory {
         memset(PML4, 0, 0x1000);
         page_table_manager = PageTableManager(PML4);
     }
-    void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags) {
-        page_table_manager.map_memory(virtual_addr, physical_addr, flags);
+    void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags, kprocess_t* proc) {
+        page_table_manager.map_memory(virtual_addr, physical_addr, flags, proc);
     }
 
-    void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags) {
-        page_table_manager.map_range(virt_start, phys_start, size, flags);
+    void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags, kprocess_t* proc) {
+        page_table_manager.map_range(virt_start, phys_start, size, flags, proc);
     }
 
     void unmap_memory(void* virtual_addr) {
@@ -74,10 +74,6 @@ namespace kernel::memory {
 
     PageTable* create_user_pagetable() {
         return page_table_manager.create_user_pagetable();
-    }
-
-    void free_user_pagetable(PageTable *pml4) {
-        page_table_manager.free_user_pagetable(pml4);
     }
 
     // Page Frame Allocator
@@ -99,6 +95,10 @@ namespace kernel::memory {
 
     void* request_page() {
         return page_frame_allocator.request_page();
+    }
+
+    void free_user_pages(kprocess_t* proc) {
+        page_frame_allocator.free_user_pages(proc);
     }
 
     void free_page(void* address) {

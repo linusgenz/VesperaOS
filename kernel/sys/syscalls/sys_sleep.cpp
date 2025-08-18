@@ -1,10 +1,10 @@
-// syscalls.h
+// sys_sleep.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 03.08.25.
+// Created by Linus Genz on 13.08.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,18 +21,21 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALLS_H
-#define SYSCALLS_H
+#include "cstdint"
+#include "../../../include/log.h"
+#include "../../include/errno.h"
+#include "../../include/scheduling.h"
+#include "../../time/time.h"
 
-int64_t sys_write(int64_t fd, const void* buf, size_t size);
-int64_t sys_read(int64_t fd, void* buf, size_t size);
-int64_t sys_open(const char* path);
-int64_t sys_close(int64_t fd);
-int64_t sys_exit(int64_t code);
-int64_t sys_create(const char* path);
-int64_t sys_rename(const char *old_path, const char *new_path);
-int64_t sys_mkdir(const char* path);
-int64_t sys_rmdir(const char* path);
-int64_t sys_unlink(const char* path);
-int64_t sys_sleep(uint64_t ms);
-#endif //SYSCALLS_H
+namespace syscalls::internal {
+    int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+        kthread_t* current = kernel::scheduling::get_current_thread();
+
+
+        void* saved_rsp = current->stack_pointer;
+        kernel::time::internal::thread_sleep_ms(arg0);
+        current->stack_pointer = saved_rsp;
+
+        return SUCCESS_CODE;
+    }
+}

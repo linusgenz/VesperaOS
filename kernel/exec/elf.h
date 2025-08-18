@@ -23,7 +23,13 @@
 
 #ifndef ELF_H
 #define ELF_H
-#include "cstdint"
+#include <cstdint>
+
+#define PF_X  (1 << 0)   
+#define PF_W  (1 << 1)  
+#define PF_R  (1 << 2)   
+
+struct kprocess_t;
 
 struct Elf64_Ehdr {
     unsigned char e_ident[16];
@@ -51,6 +57,6 @@ struct Elf64_Phdr {
     uint64_t p_align;
 };
 
-void *load_elf_binary(const char *path, uint64_t *entry_out, uintptr_t USERBASE);
+void *load_elf_binary(const char *path, uint64_t *entry_out, uintptr_t USERBASE, kprocess_t* proc);
 
 #endif //ELF_H

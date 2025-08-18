@@ -1,10 +1,10 @@
-// syscalls.h
+// throbber.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 03.08.25.
+// Created by Linus Genz on 16.08.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,18 +21,32 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALLS_H
-#define SYSCALLS_H
+#ifndef VESPERAOS_THROBBER_H
+#define VESPERAOS_THROBBER_H
 
-int64_t sys_write(int64_t fd, const void* buf, size_t size);
-int64_t sys_read(int64_t fd, void* buf, size_t size);
-int64_t sys_open(const char* path);
-int64_t sys_close(int64_t fd);
-int64_t sys_exit(int64_t code);
-int64_t sys_create(const char* path);
-int64_t sys_rename(const char *old_path, const char *new_path);
-int64_t sys_mkdir(const char* path);
-int64_t sys_rmdir(const char* path);
-int64_t sys_unlink(const char* path);
-int64_t sys_sleep(uint64_t ms);
-#endif //SYSCALLS_H
+#include "cstdint"
+
+#define THROBBER_SIZE       64
+#define THROBBER_FRAMES     8
+#define THROBBER_SEGMENTS   8
+#define THROBBER_RADIUS     14
+#define THROBBER_THICKNESS  4
+
+#define SEGMENT_COUNT 64
+#define TRAIL_LENGTH 16
+
+
+
+#define M_PI 3.14159265358979323846
+#define M_PI_2 1.57079632679489661923
+#define M_PI_4_P_0273	1.05839816339744830962
+
+inline uint32_t throbber_frames[SEGMENT_COUNT][THROBBER_SIZE * THROBBER_SIZE];
+inline uint8_t segment_map[THROBBER_SIZE * THROBBER_SIZE];
+inline uint8_t mask_map[THROBBER_SIZE * THROBBER_SIZE];
+inline bool system_initialized = false;
+
+void generate_throbber();
+void render_throbber(void *arg);
+
+#endif //VESPERAOS_THROBBER_H

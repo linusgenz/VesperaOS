@@ -6,7 +6,7 @@
 // 
 // Created by Linus Genz on 11.08.25.
 //
-// This file is part of LuminOS.
+// This file is part of VesperaOS.
 // 
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,11 +23,15 @@
 
 #include "process.h"
 
+#include <scheduling.h>
+
 #include "../../include/log.h"
 #include "../../include/string.h"
+#include "../cpu/cpu_manager.h"
 #include "../scheduling/thread.h"
 #include "../exec/elf.h"
 #include "../include/memory.h"
+#include "../scheduling/thread_manager.h"
 
 void add_process_to_list(kprocess_t* proc) {
     if (!process_list_head) {
@@ -101,30 +105,34 @@ kprocess_t* create_process(const char* name, void* entry_point, void* user_stack
     proc->heap_start = 0x400000; // example: start after code
     proc->heap_end = proc->heap_start;
 
-    // Create main thread bound to this process
     proc->main_thread = create_user_thread(entry_point, user_stack_top);
-    proc->main_thread->process = proc; // requires adding `process` pointer to kthread_t
+    proc->main_thread->process = proc;
 
     proc->thread_list = proc->main_thread;
+
+    add_process_to_list(proc);
+
+    kernel::scheduling::add_thread(proc->main_thread);
 
     return proc;
 }
 
 kprocess_t* create_process_from_elf(const char* name, const char* path) {
+    kprocess_t* proc = (kprocess_t*)kernel::memory::request_page();
+    memset(proc, 0, sizeof(kprocess_t));
+
     uint64_t entry;
-    void* base_addr = load_elf_binary(path, &entry, 0x400000);
+    void* base_addr = load_elf_binary(path, &entry, 0x400000, proc);
     if (!base_addr) {
         Log::Error("Failed to load ELF: %s", path);
         return nullptr;
     }
-    Log::debug("base address: %p entry: %p", base_addr, entry);
 
     void* phys = kernel::memory::request_pages(4);
-    kernel::memory::map_range(phys, phys, 0x4000, PT_Flag::UserSuper);
+    kernel::memory::map_range(phys, phys, 0x4000,  (1ULL << PT_Flag::UserSuper), proc);
     void* user_stack_top = phys + 0x4000;
 
-    kprocess_t* proc = (kprocess_t*)kernel::memory::request_page();
-    memset(proc, 0, sizeof(kprocess_t));
+
 
     proc->pid = next_pid++;
     strncpy(proc->name, name, sizeof(proc->name)-1);
@@ -145,14 +153,15 @@ void cleanup_process(kprocess_t *proc) {
     kthread_t *t = proc->thread_list;
     while (t) {
         kthread_t *next = t->next;
-        kernel::memory::free_page(t);
+        kernel::scheduling::remove_thread(t);
+        kernel::scheduling::thread_manager::cleanup_thread(t);
         t = next;
     }
     proc->thread_list = nullptr;
 
     remove_process_from_list(proc);
 
-    kernel::memory::free_user_pagetable(proc->pml4);
+    kernel::memory::free_user_pages(proc);
 
     kernel::memory::free_page(proc->pml4);
 

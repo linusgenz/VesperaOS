@@ -1,7 +1,7 @@
 #include "interrupts_internal.h"
 #include "../../../kernel/utils/panic.h"
 #include "apic.h"
-#include "../../../kernel/include/scheduler.h"
+#include "../../../kernel/include/scheduling.h"
 #include "../../../include/log.h"
 #include "../../../kernel/cpu/io.h"
 #include "pic.h"
@@ -164,8 +164,9 @@ __attribute__((interrupt)) void mouse_int_handler(interrupt_frame *frame) {
 
 __attribute__((interrupt))
 void apic_timer_int_handler(interrupt_frame *frame) {
-    arch::x86_64::interrupts::apic::timer_tick(frame);
+    arch::x86_64::interrupts::apic::timer_accounting();
     arch::x86_64::interrupts::apic::send_eoi();
+    arch::x86_64::interrupts::apic::timer_tick(frame);
 }
 
 __attribute__((interrupt))

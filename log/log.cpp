@@ -245,6 +245,36 @@ void Log::debug(const char *fmt, ...) {
     }
 }
 
+static void float_to_str(float val, char *buf, int precision) {
+    if (val < 0) {
+        *buf++ = '-';
+        val = -val;
+    }
+
+    // Ganzzahlteil
+    uint32_t int_part = (uint32_t)val;
+    float frac_part = val - (float)int_part;
+
+    char int_buf[32];
+    UIntToStr(int_part, int_buf, 10);
+    char *p = int_buf;
+    while (*p) {
+        *buf++ = *p++;
+    }
+
+    *buf++ = '.';
+
+    // Nachkommateil
+    for (int i = 0; i < precision; i++) {
+        frac_part *= 10.0f;
+        int digit = (int)frac_part;
+        *buf++ = '0' + digit;
+        frac_part -= digit;
+    }
+
+    *buf = '\0';
+}
+
 void Log::print_formatted(const char *fmt, __builtin_va_list args) {
     char chr;
     while ((chr = *fmt++) != 0) {
@@ -312,6 +342,15 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                         val = -val;
                     }
                     UIntToStr((uint64_t) val, buffer, 10);
+                    int len = strlen(buffer);
+                    for (int i = len; i < min_width; i++)
+                        renderer->put_char(pad_char);
+                    renderer->print(buffer);
+                    break;
+                }
+                case 'f': {  // Neuer Float-Support
+                    double val = __builtin_va_arg(args, double);
+                    float_to_str((float)val, buffer, 6); // 6 Nachkommastellen Standard
                     int len = strlen(buffer);
                     for (int i = len; i < min_width; i++)
                         renderer->put_char(pad_char);

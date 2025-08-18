@@ -49,27 +49,64 @@ namespace kernel::scheduling::thread_manager {
 
 #define MSR_KERNEL_GS_BASE 0xC0000102
 #define MSR_GS_BASE 0xC0000101
-
-    [[noreturn]] void switch_to_thread(kthread_t *from, kthread_t *to, interrupt_frame *frame) {
-        int to_is_user = to->is_user_thread ? 1 : 0;
-
-        int from_is_user = (from != nullptr && from->is_user_thread) ? 1 : 0;
-
-        if (to_is_user) {
-            // wrmsr(MSR_GS_BASE, 0);
-            // wrmsr(MSR_KERNEL_GS_BASE, (uint64_t)&to);
-        }
+int t = 0;
+    void switch_to_thread(kthread_t *from, kthread_t *to, interrupt_frame *frame) {
+        const bool to_is_user = to->is_user_thread;
+        const bool from_syscall = from && from->from_syscall;
+        const bool from_is_user = from && from->is_user_thread;
+        const bool to_syscall = to->from_syscall;
 
         if (to->is_user_thread) {
-            uint64_t cr3 = (uint64_t) to->process->pml4;
-            asm volatile("mov %0, %%cr3" :: "r"(cr3));
+            wrmsr(MSR_GS_BASE, 0);
+            wrmsr(MSR_KERNEL_GS_BASE, (uint64_t) &to);
+            if (to->process) {
+                uint64_t cr3 = (uint64_t) to->process->pml4;
+                asm volatile("mov %0, %%cr3" :: "r"(cr3));
+            }
         } else {
             asm volatile("mov %0, %%cr3" :: "r"(memory::get_pagetable_address()));
         }
 
-        context_switch(from ? &from->stack_pointer : nullptr, to->stack_pointer, to_is_user, from_is_user, frame);
+        void **rdi_save_addr = nullptr;
+        void *rsp_to_load = nullptr;
+        uint64_t should_iretq = 0;
+        uint64_t save_iretq = 0;
+        int frame_ptr = 0;
 
-        __builtin_unreachable();
+        if (from_syscall) {
+            rdi_save_addr = &from->stack_pointer;
+            frame_ptr = 0;
+        } else if (from) {
+            rdi_save_addr = &from->stack_pointer;
+           // frame_ptr = frame;
+            if (from_is_user) {
+                save_iretq = 1;
+                rdi_save_addr = nullptr;
+                from->stack_pointer = frame;
+            }
+        }
+
+
+        if (to_syscall) {
+            asm volatile("swapgs");
+            // todo, when a sleep thread gets waken up the gs points to the user gs for some reason. swap to kernel gs so we dont mess up things
+            rsp_to_load = (void *) to->stack_pointer;
+            frame_ptr = 0;
+            should_iretq = 0;
+        } else {
+            rsp_to_load = to->stack_pointer;
+            if (to_is_user) {
+              //  frame_ptr = frame;
+                should_iretq = 1;
+                    frame_ptr =0;
+                if (t == 1) {
+                    frame_ptr = 1;
+                }
+                t = 1;
+            }
+        }
+
+        context_switch(rdi_save_addr, rsp_to_load, should_iretq, save_iretq, frame_ptr);
     }
 
 
@@ -95,24 +132,12 @@ namespace kernel::scheduling::thread_manager {
         }
     }
 
-    extern "C" void switch_to_user_mode(void *user_stack_top, void *user_code_virt);
-
     extern "C" void thread_trampoline() {
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         kthread_t *current = cpu_scheduler::get_current_thread_on_cpu(cpu_id);
 
-        asm volatile("sti");
-
-        if (current->is_user_thread) {
-            //      current->user_entry();
-
-            //    switch_to_user_mode(current->user_stack_top, current->user_entry);
-            //      __builtin_unreachable();
-        }
-
         current->entry(current->arg);
 
-        Log::LogMsg("exiting thread %u", current->id);
         terminate_current_thread();
     }
 

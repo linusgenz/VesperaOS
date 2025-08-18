@@ -18,8 +18,9 @@ struct interrupt_frame {
     uint64_t rflags;     // CPU Flags
     uint64_t rsp;        // Stack Pointer
     uint64_t ss;         // Stack Segment
-    uint64_t error_code; // Error Code (nur bei bestimmten Exceptions)
+    uint64_t error_code; // Error Code
 };
+
 // Standard Exception Handlers
 __attribute__((interrupt)) void divide_error_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame* frame);

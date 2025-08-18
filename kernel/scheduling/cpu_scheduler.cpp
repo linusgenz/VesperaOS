@@ -1,6 +1,6 @@
 #include "cpu_scheduler.h"
 
-#include "../include/scheduler.h"
+#include <scheduling.h>
 #include "../cpu/cpu_manager.h"
 #include "thread_manager.h"
 #include "../../arch/x86_64/gdt/gdt.h"
@@ -114,6 +114,10 @@ namespace kernel::scheduling::cpu_scheduler {
         unlock_ready_queue(cpu_id);
 
         if (!next_thread) {
+            if (current->is_idle_thread) {
+                __sync_lock_release(&cpu->scheduler_lock);
+                return;
+            }
             next_thread = cpu->idle_thread;
         }
 
@@ -125,6 +129,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
             __sync_lock_release(&cpu->scheduler_lock);
             thread_manager::switch_to_thread(nullptr, next_thread, frame);
+            return;
         }
 
         bool current_terminated = (current->state == THREAD_TERMINATED);
@@ -142,6 +147,7 @@ namespace kernel::scheduling::cpu_scheduler {
                 return;
             }
         }
+
 
         // Re-queue current thread if it should continue (separate lock)
         if (current_should_continue) {
@@ -166,7 +172,6 @@ namespace kernel::scheduling::cpu_scheduler {
             cpu->ticks_remaining = cpu->quantum_ticks;
 
             __sync_lock_release(&cpu->scheduler_lock);
-
             // Delegate actual context switch to thread_manager
             thread_manager::switch_to_thread(current, next_thread, frame);
         } else {
@@ -183,6 +188,10 @@ namespace kernel::scheduling::cpu_scheduler {
         if (cpu->ticks_remaining > 0) {
             cpu->ticks_remaining = __sync_sub_and_fetch(&cpu->ticks_remaining, 1);
             should_yield = (cpu->ticks_remaining == 0);
+        }
+
+        if (__sync_lock_test_and_set(&cpu->need_resched, false)) {
+            should_yield = true;
         }
 
         if (should_yield) {
@@ -244,6 +253,8 @@ namespace kernel::scheduling::cpu_scheduler {
                     cpu->ready_queue_tail = to_wake;
                 }
                 unlock_ready_queue(cpu_id);
+
+                cpu->need_resched = true;
 
                 lock_blocked_queue(cpu_id);
                 // Restart from beginning since we released the lock

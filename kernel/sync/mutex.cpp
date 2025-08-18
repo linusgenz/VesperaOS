@@ -5,7 +5,7 @@
 #include "mutex.h"
 
 #include "../../include/log.h"
-#include "../include/scheduler.h"
+#include <scheduling.h>
 
 namespace kernel {
 

@@ -27,12 +27,48 @@
 #include "fs_registry.h"
 #include "../../kernel/include/errno.h"
 #include "vfs_helper.h"
+#include "../../kernel/devices/device_manager.h"
 
 static MountPoint mounts[MAX_MOUNTS];
 static size_t mount_count = 0;
 
 void vfs_init() {
     mount_count = 0;
+}
+
+extern FileSystemDriver fat32_driver;
+
+void vfs_system_init() {
+    vfs_init();
+
+    register_fs_driver(&fat32_driver);
+
+    auto devices = kernel::DeviceManager::GetDevices();
+    size_t device_count = kernel::DeviceManager::GetDeviceCount();
+
+    Log::debug("device count: %d", device_count);
+
+    int mount_index = 0;
+    for (size_t i = 0; i < device_count; ++i) {
+        BlockDevice *dev = devices[i];
+        if (!dev) continue;
+
+        char mount_path[32];
+        snprintf(mount_path, sizeof(mount_path), "/mnt/sd%d", mount_index++);
+
+        // Nutze das VFS-Treiber-System, nicht manuell FAT32 aufrufen!
+        int result = vfs_mount(dev, mount_path, "fat32");
+
+        if (result == 0) {
+            Log::Info("Mounted FAT32 at %s", mount_path);
+        } else {
+            Log::Warning("Failed to mount FAT32 at %s (code %d)", mount_path, result);
+        }
+    }
+
+    if (mount_index == 0) {
+        Log::Warning("No FAT32 volumes found.");
+    }
 }
 
 int vfs_mount(BlockDevice *dev, const char *path, const char *fs_name) {

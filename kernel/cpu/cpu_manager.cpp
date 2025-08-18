@@ -5,7 +5,7 @@
 #include "../acpi/madt.h"
 #include "../include/interrupts.h"
 #include "../time/time.h"
-#include "../include/scheduler.h"
+#include <scheduling.h>
 
 namespace CPUManager {
     // Globale Variablen

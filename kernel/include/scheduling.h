@@ -25,6 +25,7 @@ namespace kernel::scheduling {
     // Global thread management
     void add_thread(kthread_t* thread);
     void remove_thread(kthread_t* thread);
+    void thread_exit();
 
     // CPU management
     void enable_on_cpu(uint8_t cpu_id);

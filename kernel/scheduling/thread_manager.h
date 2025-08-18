@@ -8,7 +8,7 @@
 #include "stdint.h"
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
 
-extern "C" void context_switch(void** old_sp, void* new_sp, int to_is_user, int from_is_user, void* frame);
+extern "C" void context_switch(void** old_sp, void* new_sp, uint32_t to_is_user, uint32_t from_is_user, int frame);
 
 namespace kernel::scheduling::thread_manager {
 
@@ -26,7 +26,7 @@ namespace kernel::scheduling::thread_manager {
     extern "C" [[noreturn]] void idle_thread_func(void* arg);
 
     // Internal thread operations
-    [[noreturn]] void switch_to_thread(kthread_t* from, kthread_t* to, interrupt_frame *frame);
+    void switch_to_thread(kthread_t* from, kthread_t* to, interrupt_frame *frame);
     void setup_idle_thread(uint8_t cpu_id);
 
 } // namespace kernel::scheduling::thread_manager

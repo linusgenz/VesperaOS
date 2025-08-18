@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "../include/bitmap.h"
 #include "../include/memory.h"
+#include "../proc/process.h"
 
 class PageFrameAllocator {
     public:
@@ -20,6 +21,7 @@ class PageFrameAllocator {
     Bitmap page_bitmap{};
     void free_page(void* address);
     void free_pages(void* address, uint64_t page_count);
+    void free_user_pages(kprocess_t* proc);
     void lock_page(void* address);
     void lock_pages(void* address, uint64_t page_count);
     void* request_page();

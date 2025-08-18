@@ -5,7 +5,7 @@
 #include "../../../kernel/cpu/io.h"
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/include/scheduler.h"
+#include "../../../kernel/include/scheduling.h"
 #include "../../../kernel/utils/panic.h"
 #include "../interrupts/interrupts_internal.h"
 
@@ -74,12 +74,15 @@ namespace arch::x86_64::interrupts::apic {
         return read(LAPIC_ID) >> 24;
     }
 
-    void timer_tick(interrupt_frame *frame) {
+    void timer_accounting() {
         uint32_t cpu = CPUManager::get_current_cpu_id();
-
         apic_ticks[cpu]++;
+    }
+
+    void timer_tick(interrupt_frame *frame) {
 
         if (!kernel::scheduling::is_initialized()) return;
+        uint32_t cpu = CPUManager::get_current_cpu_id();
 
         kernel::scheduling::cpu_scheduler::wake_sleeping_threads(cpu, apic_ticks[cpu]);
 
@@ -96,7 +99,6 @@ namespace arch::x86_64::interrupts::apic {
             asm volatile("hlt");
         }
     }
-
 
     void send_eoi() {
         write(LAPIC_EOI, 0);

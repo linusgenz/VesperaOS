@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 #include "syscall_interface.h"
 #include "../../include/log.h"
+#include <scheduling.h>
 #include "../include/sys/syscall_numbers.h"
 
 constexpr int MAX_SYSCALLS = 256;
@@ -44,6 +45,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_UNLINK] = syscalls::internal::sys_unlink;
     syscall_table[SYSCALL_REBOOT] = syscalls::internal::sys_reboot;
     syscall_table[SYSCALL_GETPID] = syscalls::internal::sys_getpid;
+    syscall_table[SYSCALL_SLEEP] = syscalls::internal::sys_sleep;
 }
 
 extern "C" void syscall_handler(
@@ -63,8 +65,6 @@ extern "C" void syscall_handler(
     } else {
       //  Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
     }
-
-  //  Log::debug("[SYSCALL] Return: %d", ret);
 
     asm volatile ("mov %0, %%rax" :: "r"(ret));
 }

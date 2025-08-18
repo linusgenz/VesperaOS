@@ -17,7 +17,8 @@ typedef enum {
     CYAN    = 0x0000FFFF,
     MAGENTA = 0x00FF00FF,
     ORANGE  = 0x0000A5FF,
-    GRAY    = 0x00808080
+    GRAY    = 0x00808080,
+	BG_COLOUR = 0x00061220,
 } Colour;
 
 typedef struct {

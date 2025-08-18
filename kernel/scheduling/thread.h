@@ -4,7 +4,7 @@
 
 #ifndef THREAD_H
 #define THREAD_H
-#include "stdint.h"
+#include <cstdint>
 #include "../proc/process.h"
 #define THREAD_KERNEL_STACK_SIZE (0x1000 * 2)
 
@@ -25,10 +25,13 @@ struct kthread_t {
     void* arg;
     uint8_t cpu_id;
     bool is_user_thread;
-    uint64_t saved_user_rsp;
+    void* saved_user_rsp;
     void* user_stack_top;
     void* user_entry;
     bool is_idle_thread;
+    bool from_syscall;
+    void* kernel_rsp_after_sleep;
+    void* kernel_rsp_after_syscall;
     int64_t exit_code;
 
     kthread_t* next;

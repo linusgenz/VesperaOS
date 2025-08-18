@@ -189,3 +189,20 @@ int64_t sys_rmdir(const char *path) {
 int64_t sys_unlink(const char *path) {
     return syscall(SYSCALL_UNLINK, (uint64_t) path);
 }
+
+/**
+ * @brief Sleep the current thread for a specified number of milliseconds.
+ *
+ * This syscall blocks the calling thread for at least `ms` milliseconds. The
+ * scheduler will switch to another thread while this thread is sleeping.
+ *
+ * @param ms Number of milliseconds to sleep.
+ * @return 0 on success.
+ *
+ * Possible errors: None (the function always succeeds for valid threads).
+ * Note: Calling sleep from the idle thread or before scheduler initialization
+ * will return immediately.
+ */
+int64_t sys_sleep(uint64_t ms) {
+    return syscall(SYSCALL_SLEEP, ms);
+}

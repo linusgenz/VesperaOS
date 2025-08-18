@@ -3,7 +3,7 @@
 //
 
 #include "thread.h"
-#include "../include/scheduler.h"
+#include <scheduling.h>
 #include "../../include/log.h"
 #include <stddef.h>
 
@@ -12,10 +12,7 @@
 static uint64_t next_thread_id = 1;
 
 extern "C" void thread_trampoline();
-extern "C" void usermode_entry_trampoline();
 
-
-// Helper: Allocate and map stack memory
 static void* allocate_and_map_stack(size_t pages = 2) {
     void* stack = kernel::memory::request_pages(pages);
     if (!stack) return nullptr;
@@ -27,7 +24,6 @@ static void* allocate_and_map_stack(size_t pages = 2) {
     return stack;
 }
 
-// Internal base thread creation
 static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_t cpu_id) {
     void* stack = allocate_and_map_stack();
     if (!stack) return nullptr;
@@ -49,6 +45,7 @@ static kthread_t* create_kthread_internal(void (*func)(void*), void* arg, uint8_
     thread->is_user_thread = false;
     thread->user_entry = nullptr;
     thread->user_stack_top = nullptr;
+    thread->from_syscall = false;
     thread->next = nullptr;
 
     return thread;
@@ -101,17 +98,16 @@ kthread_t* create_user_thread(void* user_entry, void* user_stack_top) {
     *(--sp) = (uintptr_t)user_entry; // RIP
 
   //  *(--sp) = 0;                            // Return RIP
-    *(--sp) = 0x202;                        // RFLAGS
+  /*  *(--sp) = 0x202;                        // RFLAGS
     *(--sp) = 0;                            // R15
     *(--sp) = 0;                            // R14
     *(--sp) = 0;                            // R13
     *(--sp) = 0;                            // R12
     *(--sp) = 0;                            // RBX
-    *(--sp) = 0;                            // RBP
+    *(--sp) = 0;              */              // RBP
 
 
     t->stack_pointer = sp;
-
     t->is_user_thread = true;
     t->user_entry = user_entry;
     t->user_stack_top = user_stack_top;

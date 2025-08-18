@@ -23,6 +23,7 @@ namespace kernel::scheduling::cpu_scheduler {
         uint32_t quantum_ticks;
         uint32_t ticks_remaining;
         bool scheduler_enabled;
+        bool need_resched;
         uint32_t ready_queue_lock;    // Lock for ready queue operations
         uint32_t blocked_queue_lock;  // Lock for blocked queue operations
         uint32_t scheduler_lock;  // Simple spinlock for SMP safety

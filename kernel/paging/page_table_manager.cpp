@@ -8,48 +8,48 @@ PageTableManager::PageTableManager(PageTable *PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::map_range(void *virt_start, void *phys_start, size_t size, uint64_t flags) {
+void PageTableManager::map_range(void *virt_start, void *phys_start, size_t size, uint64_t flags, kprocess_t* proc) {
     for (size_t offset = 0; offset < size; offset += 0x1000) {
-        map_memory(virt_start + offset, phys_start + offset, flags);
+        map_memory(virt_start + offset, phys_start + offset, flags, proc);
     }
 }
 
-void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, uint64_t flags) {
-    PageMapIndexer indexer((uint64_t)virtual_memory);
+void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, uint64_t flags, kprocess_t* proc) {
+    PageMapIndexer indexer((uint64_t) virtual_memory);
 
-    auto ensure_table = [&](PageTable* parent, uint16_t index, uint64_t flags) -> PageTable* {
-        PageDirectoryEntry& entry = parent->entries[index];
+    auto ensure_table = [&](PageTable *parent, uint16_t index) -> PageTable * {
+        PageDirectoryEntry &entry = parent->entries[index];
 
         if (!entry.get_flag(PT_Flag::Present)) {
-            PageTable* new_table = (PageTable*)kernel::memory::request_page();
+            PageTable *new_table = (PageTable *) kernel::memory::request_page();
             if (!new_table) return nullptr;
 
             memset(new_table, 0, 0x1000);
-            entry.set_address((uint64_t)new_table >> 12);
+            entry.set_address((uint64_t) new_table >> 12);
             entry.set_flag(PT_Flag::Present, true);
             entry.set_flag(PT_Flag::ReadWrite, true);
             entry.set_flag(PT_Flag::UserSuper, true);
         } else if (flags & (1ULL << PT_Flag::UserSuper)) {
-            entry.set_flag(PT_Flag::UserSuper, true); // Sicherheitsbedingung
+            entry.set_flag(PT_Flag::UserSuper, true);
         }
 
-        return (PageTable*)((uint64_t)entry.get_address() << 12);
+        return (PageTable *) ((uint64_t) entry.get_address() << 12);
     };
 
-    PageTable* PDP = ensure_table(PML4, indexer.PDP_i, flags);
+    PageTable *PDP = ensure_table(PML4, indexer.PDP_i);
     if (!PDP) return;
 
-    PageTable* PD = ensure_table(PDP, indexer.PD_i, flags);
+    PageTable *PD = ensure_table(PDP, indexer.PD_i);
     if (!PD) return;
 
-    PageTable* PT = ensure_table(PD, indexer.PT_i, flags);
+    PageTable *PT = ensure_table(PD, indexer.PT_i);
     if (!PT) return;
 
-    PageDirectoryEntry& final_entry = PT->entries[indexer.P_i];
-    final_entry.set_address((uint64_t)physical_memory >> 12);
+    PageDirectoryEntry &final_entry = PT->entries[indexer.P_i];
+    final_entry.set_address((uint64_t) physical_memory >> 12);
 
     // default flags
-    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper); // TODO temp
+    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite);
 
     for (int bit = 0; bit < 64; ++bit) {
         if (flags & (1ULL << bit)) {
@@ -58,6 +58,13 @@ void PageTableManager::map_memory(void* virtual_memory, void* physical_memory, u
     }
 
     PT->entries[indexer.P_i] = final_entry;
+
+    if ((flags & PT_Flag::UserSuper) && proc) {
+        user_page* page = (user_page*) kernel::memory::request_page();
+        page->phys_addr = physical_memory;
+        page->next = proc->user_pages_head;
+        proc->user_pages_head = page;
+    }
 }
 
 
@@ -137,45 +144,13 @@ uint64_t PageTableManager::get_physical_address(void *virtual_memory) {
     return (phys_base + offset);
 }
 
-PageTable* PageTableManager::create_user_pagetable() {
-    auto* user_pml4 = (PageTable*)kernel::memory::request_page();
+PageTable *PageTableManager::create_user_pagetable() {
+    auto *user_pml4 = (PageTable *) kernel::memory::request_page();
 
-    map_memory(user_pml4, user_pml4);
+    kernel::memory::map_memory(user_pml4, user_pml4);
     memset(user_pml4, 0, 0x1000);
 
     user_pml4->entries[0] = PML4->entries[0];
 
     return user_pml4;
-}
-
-void PageTableManager::free_user_pagetable(PageTable *pml4) {
-    for (int pml4_i = 0; pml4_i < 512; pml4_i++) {
-        if (!(pml4->entries[pml4_i].get_flag(PT_Flag::Present)))
-            continue;
-        if (!(pml4->entries[pml4_i].get_flag(PT_Flag::UserSuper)))
-            continue; // Kernel-Seiten nicht anfassen!
-
-        PageTable *pdpt = (PageTable*)(pml4->entries[pml4_i].get_address());
-        for (int pdpt_i = 0; pdpt_i < 512; pdpt_i++) {
-            if (!pdpt->entries[pdpt_i].get_flag(PT_Flag::Present))
-                continue;
-
-            PageTable *pd = (PageTable*)(pdpt->entries[pdpt_i].get_address());
-            for (int pd_i = 0; pd_i < 512; pd_i++) {
-                if (!pd->entries[pd_i].get_flag(PT_Flag::Present))
-                    continue;
-
-                PageTable *pt = (PageTable*)(pd->entries[pd_i].get_address());
-                for (int pt_i = 0; pt_i < 512; pt_i++) {
-                    if (!pt->entries[pt_i].get_flag(PT_Flag::Present))
-                        continue;
-
-                    void *phys_addr = (void*)(pt->entries[pt_i].get_address());
-                    kernel::memory::free_page(phys_addr);
-                }
-                kernel::memory::free_page(pd);
-            }
-            kernel::memory::free_page(pdpt);
-        }
-    }
 }

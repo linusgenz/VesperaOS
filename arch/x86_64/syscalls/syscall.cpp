@@ -23,8 +23,10 @@
 
 #include "syscall.h"
 #include <stdint.h>
+#include <sys/syscall_numbers.h>
+
 #include "../../../include/log.h"
-#include "../../../kernel/include/scheduler.h"
+#include "../../../kernel/include/scheduling.h"
 
 extern "C" void syscall_entry();
 
@@ -32,7 +34,7 @@ extern "C" void syscall_entry();
 #define MSR_STAR  0xC0000081
 #define MSR_LSTAR 0xC0000082
 #define MSR_FMASK 0xC0000084
-#define EFER_SCE  1;
+#define EFER_SCE  1
 
 static void write_msr(uint32_t msr, uint64_t value) {
     uint32_t low = value & 0xFFFFFFFF;
@@ -51,7 +53,7 @@ static inline uint64_t read_msr(uint32_t msr) {
 }
 
 void syscall_init() {
-    uint64_t star = ((uint64_t) 0x13 << 48) | ((uint64_t) 0x08 << 32);
+    uint64_t star = ((uint64_t) 0x1B << 48) | ((uint64_t) 0x08 << 32);
     write_msr(MSR_STAR, star);
 
     write_msr(MSR_LSTAR, reinterpret_cast<uint64_t>(&syscall_entry));
@@ -78,14 +80,14 @@ int64_t syscall(
     int64_t ret = -1;
 
     register uint64_t r10_ asm("r10") = arg3;
-    register uint64_t r8_  asm("r8")  = arg4;
-    register uint64_t r9_  asm("r9")  = arg5;
+    register uint64_t r8_ asm("r8") = arg4;
+    register uint64_t r9_ asm("r9") = arg5;
 
     asm volatile (
         "syscall"
         : "=a"(ret)
         : "a"(num), "D"(arg0), "S"(arg1), "d"(arg2),
-          "r"(r10_), "r"(r8_), "r"(r9_)
+        "r"(r10_), "r"(r8_), "r"(r9_)
         : "rcx", "r11", "memory"
     );
 

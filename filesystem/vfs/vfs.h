@@ -41,6 +41,7 @@ struct VfsDir {
 
 
 void vfs_init();
+void vfs_system_init();
 int vfs_mount(BlockDevice* dev, const char* path, const char* fs_name);
 VfsNode* vfs_open(const char* path);
 VfsDir* vfs_opendir(const char *path);

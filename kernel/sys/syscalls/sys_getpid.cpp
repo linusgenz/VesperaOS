@@ -6,7 +6,7 @@
 // 
 // Created by Linus Genz on 12.08.25.
 //
-// This file is part of LuminOS.
+// This file is part of VesperaOS.
 // 
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include "cstdint"
 #include "../../scheduling/thread.h"
-#include "../../include/scheduler.h"
+#include <scheduling.h>
 
 
 namespace syscalls::internal {

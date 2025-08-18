@@ -5,7 +5,7 @@ kernel/.idea
 legacy
 .vscode
 
-
+cmake-build-debug
 build
 gnu-efi/*
 !gnu-efi/bootloader

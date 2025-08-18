@@ -31,6 +31,7 @@ enum SyscallNumbers {
     SYSCALL_CLOSE = 3,
     SYSCALL_STAT = 4,
     SYSCALL_CREATE = 11,
+    SYSCALL_SLEEP = 35,
     SYSCALL_GETPID = 39,
     SYSCALL_EXIT = 60,
     SYSCALL_GETCWD = 79,

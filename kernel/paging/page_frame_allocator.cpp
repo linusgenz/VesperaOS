@@ -2,6 +2,7 @@
 #include "../include/basic_renderer.h"
 #include "../../include/string.h"
 #include "../../include/log.h"
+#include "../proc/process.h"
 
 
 PageFrameAllocator global_allocator;
@@ -106,6 +107,18 @@ void PageFrameAllocator::free_pages(void* address, uint64_t page_count){
         free_page((void*)((uint64_t)address + (t * 4096)));
     }
 }
+
+void PageFrameAllocator::free_user_pages(kprocess_t* proc) {
+    user_page* cur = proc->user_pages_head;
+    while(cur) {
+        user_page* next = cur->next;
+        kernel::memory::free_page(cur->phys_addr);
+        kernel::memory::free_page(cur);
+        cur = next;
+    }
+    proc->user_pages_head = nullptr;
+}
+
 
 void PageFrameAllocator::lock_page(void* address){
     uint64_t index = (uint64_t)address / 4096;

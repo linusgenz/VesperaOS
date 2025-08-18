@@ -53,18 +53,19 @@ namespace arch::x86_64::interrupts::apic {
 #define LAPIC_PERIODIC 0x20000
 #define PMT_TIMER_RATE 3579545 // 3.57 MHz
 
-void send_eoi();
-void timer_tick(interrupt_frame *frame);
-void init(uint8_t cpu_id);
-void wait_for_delivery();
+    void send_eoi();
+    void timer_accounting();
+    void timer_tick(interrupt_frame *frame);
+    void init(uint8_t cpu_id);
+    void wait_for_delivery();
 
-inline volatile uint64_t apic_ticks[MAX_CPU_CORES] = {0};
+    inline volatile uint64_t apic_ticks[MAX_CPU_CORES] = {0};
 
-uint32_t local_apic_get_id();
-void write(uint32_t offset, uint32_t value);
-uint32_t read(uint32_t offset);
+    uint32_t local_apic_get_id();
+    void write(uint32_t offset, uint32_t value);
+    uint32_t read(uint32_t offset);
 
-void pmt_delay(size_t us);
+    void pmt_delay(size_t us);
 }
 
 

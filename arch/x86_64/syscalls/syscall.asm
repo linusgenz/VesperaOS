@@ -6,19 +6,27 @@ bits 64
 
 %define SAVED_USER_RSP 0x40
 %define STACK_POINTER 0x20
+%define SYSCALL_RETURN_RSP 0x60
+%define KERNEL_RSP_AFTER_SYSCALL 0x68
+%define FROM_SYSCALL_BOOL 0x59
 
 syscall_entry:
     swapgs                        ; GS.base = Kernel GS
 
     cli
 
- ;   mov r15, qword [gs:0]      ; current thread pointer (kthread_t*)
- ;   mov [r15 + SAVED_USER_RSP], rsp
+    mov r15, qword [gs:0]      ; current thread pointer (kthread_t*)
+    mov [r15 + SAVED_USER_RSP], rsp
 
-  ;  mov rsp, qword [r15 + STACK_POINTER]
+    mov byte [r15 + FROM_SYSCALL_BOOL], 1
+
+    mov rsp, qword [r15 + STACK_POINTER]
+
 
     push r11                      ; Save user RFLAGS
     push rcx                      ; Save user RIP (sysret will pop into RCX)
+
+    mov [r15 + KERNEL_RSP_AFTER_SYSCALL], rsp ; SYSCALL_RETURN_RSP
 
     ; rax  = syscall number
     ; rdi  =  (num)
@@ -62,9 +70,11 @@ syscall_entry:
     pop r11          ; user RFLAGS -> R11
 
 
- ;   mov rsp, qword [r15 + SAVED_USER_RSP]
+    mov byte [r15 + FROM_SYSCALL_BOOL], 0
+    mov rsp, qword [r15 + SAVED_USER_RSP]
 
     or r11, 0x200
 
     swapgs
+
     o64 sysret

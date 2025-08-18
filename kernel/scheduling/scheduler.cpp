@@ -2,7 +2,10 @@
 // Created by Linus on 17.07.25.
 //
 
-#include "../include/scheduler.h"
+#include <scheduling.h>
+
+#include <log.h>
+
 #include "cpu_scheduler.h"
 #include "thread_manager.h"
 #include "../cpu/cpu_manager.h"
@@ -32,6 +35,15 @@ namespace kernel::scheduling {
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         thread_manager::add_thread(thread);
+    }
+
+    void thread_exit() {
+        if (!global_scheduler.initialized) return;
+
+        kthread_t* thread = get_current_thread();
+        remove_thread(thread);
+        thread_manager::cleanup_thread(thread);
+
     }
 
     void remove_thread(kthread_t* thread) {

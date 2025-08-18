@@ -25,7 +25,7 @@
 #include "../../filesystem/vfs/vfs.h"
 
 
-void *load_elf_binary(const char *path, uint64_t *entry_out, uintptr_t USER_BASE) {
+void *load_elf_binary(const char *path, uint64_t *entry_out, uintptr_t USER_BASE, kprocess_t* proc) {
     VfsNode *file = vfs_open(path);
     if (!file) {
         Log::Error("Failed to open file %s", path);
@@ -58,9 +58,24 @@ void *load_elf_binary(const char *path, uint64_t *entry_out, uintptr_t USER_BASE
         size_t filesz = ph.p_filesz;
         size_t memsz = ph.p_memsz;
 
-        Log::debug("Mapping segment: vaddr = %p, filesz = %d, memsz = %d", seg_vaddr, filesz, memsz);
+    //    Log::debug("Mapping segment: vaddr = %p, filesz = %d, memsz = %d", seg_vaddr, filesz, memsz);
 
-        kernel::memory::map_range(seg_vaddr, seg_vaddr, memsz, ph.p_flags); // flags = R/W/X
+        uint64_t flags = 0;
+        flags |= (1ULL << PT_Flag::Present); // immer present for mapped pages
+
+        if (ph.p_flags & PF_W) {
+            flags |= (1ULL << PT_Flag::ReadWrite);
+        }
+
+        if (!(ph.p_flags & PF_X)) {
+            flags |= (1ULL << PT_Flag::NX);
+        }
+
+        flags |= (1ULL << PT_Flag::UserSuper);
+
+        uintptr_t start = (uintptr_t)seg_vaddr & ~0xFFFULL;
+        uintptr_t end   = ((uintptr_t)seg_vaddr + memsz + 0xFFF) & ~0xFFFULL;
+        kernel::memory::map_range((void*)start, (void*)start, end - start, flags, proc);
 
         memcpy(seg_vaddr,
                reinterpret_cast<uint8_t *>(file_data) + ph.p_offset,

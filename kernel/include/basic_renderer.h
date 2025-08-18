@@ -26,6 +26,7 @@ class BasicRenderer{
     inline void set_cursor(Point pt);
     inline void set_colour(Colour colour);
     inline Colour get_colour() const;
+    Colour get_clear_color() const;
     inline void set_clear_color(Colour colour);
     inline void increment_cursorX(int32_t x);
     inline void increment_cursorY(int32_t y);
@@ -74,6 +75,10 @@ inline void BasicRenderer::set_colour(Colour new_colour) {
 
 inline Colour BasicRenderer::get_colour() const {
     return colour;
+}
+
+inline Colour BasicRenderer::get_clear_color() const {
+    return clear_colour;
 }
 
 inline void BasicRenderer::set_clear_color(Colour new_colour) {
