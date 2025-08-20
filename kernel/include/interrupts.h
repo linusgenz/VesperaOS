@@ -24,7 +24,7 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include "stdint.h"
+#include <cstdint>
 #include "../../arch/x86_64/interrupts/idt.h"
 
 #define IRQ_XHCI_VECTOR      0x30

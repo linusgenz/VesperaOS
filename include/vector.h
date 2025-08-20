@@ -11,34 +11,42 @@ class Vector {
 public:
     Vector(size_t initial_capacity = 4)
         : capacity(initial_capacity), length(0) {
-        data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * capacity));
+        _data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * capacity));
     }
 
     ~Vector() {
         for (size_t i = 0; i < length; ++i)
-            data[i].~T();
-        kernel::memory::free(data);
+            _data[i].~T();
+        kernel::memory::free(_data);
     }
 
     void clear() {
         for (size_t i = 0; i < length; ++i)
-            data[i].~T();
+            _data[i].~T();
         length = 0;
     }
 
     void push_back(const T& value) {
         if (length >= capacity)
             resize(capacity * 2);
-        new (&data[length]) T(value); // placement new
+        new (&_data[length]) T(value); // placement new
         length++;
     }
 
+    T* data() {
+        return _data;
+    }
+
+    const T* data() const {
+        return _data;
+    }
+
     T& operator[](size_t index) {
-        return data[index];
+        return _data[index];
     }
 
     const T& operator[](size_t index) const {
-        return data[index];
+        return _data[index];
     }
 
     size_t size() const {
@@ -46,18 +54,18 @@ public:
     }
 
 private:
-    T* data;
+    T* _data;
     size_t capacity;
     size_t length;
 
     void resize(size_t new_capacity) {
         T* new_data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
         for (size_t i = 0; i < length; ++i)
-            new (&new_data[i]) T(data[i]); // copy-construct
+            new (&new_data[i]) T(_data[i]); // copy-construct
         for (size_t i = 0; i < length; ++i)
-            data[i].~T();
-        kernel::memory::free(data);
-        data = new_data;
+            _data[i].~T();
+        kernel::memory::free(_data);
+        _data = new_data;
         capacity = new_capacity;
     }
 };

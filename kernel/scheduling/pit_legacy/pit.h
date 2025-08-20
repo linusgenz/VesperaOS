@@ -4,7 +4,7 @@
 
 #ifndef PIT_H
 #define PIT_H
-#include <stdint.h>
+#include <cstdint>
 
 namespace PIT {
     extern double time_since_boot;

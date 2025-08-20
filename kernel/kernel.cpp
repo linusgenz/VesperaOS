@@ -32,7 +32,9 @@
 #include "include/scheduling.h"
 #include "sync/mutex.h"
 
+
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
+    system_initialized = false;
     initialize_kernel(boot_info);
     kernel::scheduling_started = true;
     char vendor[13];
@@ -46,14 +48,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     Log::Info("Kernel version: %s", get_os_version());
     kernel::time::print_current_time();
 
-    kprocess_t *shell_proc = create_process_from_elf("shell", "/mnt/sd0/bin/shell.elf");
-    shell_proc->state = PROCESS_READY;
-    shell_proc->main_thread->state = THREAD_READY;
-    kernel::scheduling::add_thread(shell_proc->main_thread);
-    kernel::scheduling::enable_on_cpu(0);
+  //  kprocess_t *shell_proc = create_process_from_elf("shell", "/mnt/fat32_0/bin/shell.elf");
+ //   shell_proc->state = PROCESS_READY;
+ //   shell_proc->main_thread->state = THREAD_READY;
+ //   kernel::scheduling::add_thread(shell_proc->main_thread);
 
     system_initialized = true;
-    kernel::scheduling::yield();
+    kernel::scheduling::enable_on_cpu(0);
 
     while (true);
 }

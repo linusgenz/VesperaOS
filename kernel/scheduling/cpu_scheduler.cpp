@@ -16,26 +16,27 @@ namespace kernel::scheduling::cpu_scheduler {
     void init_cpu(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
+        // Setup idle thread for this CPU
+        thread_manager::setup_idle_thread(cpu_id);
+
         cpu->ready_queue_head = nullptr;
         cpu->ready_queue_tail = nullptr;
         cpu->blocked_queue_head = nullptr;
-        cpu->current_thread = nullptr;
-        cpu->idle_thread = nullptr;
+        cpu->current_thread = cpu->idle_thread;
         cpu->quantum_ticks = SCHEDULER_TICKS;
         cpu->ticks_remaining = cpu->quantum_ticks;
         cpu->scheduler_enabled = false;
         cpu->ready_queue_lock = 0;
         cpu->blocked_queue_lock = 0;
         cpu->scheduler_lock = 0;
-
-        // Setup idle thread for this CPU
-        thread_manager::setup_idle_thread(cpu_id);
     }
 
     void enable_cpu(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         cpu->scheduler_enabled = true;
         cpu->ticks_remaining = cpu->quantum_ticks;
+
+        thread_manager::switch_to_thread(nullptr, cpu->idle_thread, nullptr);
     }
 
     void disable_cpu(uint8_t cpu_id) {

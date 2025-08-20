@@ -28,6 +28,7 @@
 #include "vfs_node.h"
 
 #define MAX_MOUNTS 8
+#define MAX_FS_DRIVERS MAX_MOUNTS
 
 struct FileSystemDriver {
     const char* name;
@@ -35,6 +36,8 @@ struct FileSystemDriver {
     VfsNode* (*mount)(BlockDevice* dev);
 };
 
+FileSystemDriver* fs_driver_at(size_t i);
+size_t fs_driver_count();
 void register_fs_driver(FileSystemDriver* driver);
 FileSystemDriver* find_fs_driver(const char* name);
 VfsNode* try_mount(BlockDevice* dev);

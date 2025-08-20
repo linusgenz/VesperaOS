@@ -23,9 +23,12 @@
 
 #ifndef VFS_H
 #define VFS_H
+
 #include "vfs_node.h"
 #include "../../kernel/devices/blockdevice.h"
 #include "../fat32/fat32.h"
+
+struct FilesystemInfo;
 
 struct MountPoint {
     char path[64];
@@ -33,16 +36,26 @@ struct MountPoint {
 };
 
 struct VfsDir {
-    VfsNode *node;
-    size_t currentIndex;
-    FAT32::FileEntry *entries;
-    size_t entryCount;
+    VfsNode* node;
+    void* handle;
 };
 
 
+struct VfsStats {
+    size_t total_devices;           // Total number of storage devices found
+    size_t mounted_devices;         // Number of successfully mounted devices
+    size_t supported_filesystems;   // Number of supported filesystem types
+};
+
 void vfs_init();
-void vfs_system_init();
-int vfs_mount(BlockDevice* dev, const char* path, const char* fs_name);
+VfsNode* vfs_mount(BlockDevice* device, const char* mount_path = nullptr); // Manual mount
+bool vfs_probe(BlockDevice* device, FilesystemInfo* info);                 // Probe filesystem
+void vfs_list_devices();                            // List all detected devices
+bool vfs_supports(const char* fs_type);             // Check if filesystem type is supported
+void vfs_remount_all();                             // Remount all devices (for testing)
+void vfs_get_stats(VfsStats* stats);                // Get mount statistics
+
+
 VfsNode* vfs_open(const char* path);
 VfsDir* vfs_opendir(const char *path);
 size_t vfs_read(VfsNode* file, size_t offset, size_t size, void* buffer);

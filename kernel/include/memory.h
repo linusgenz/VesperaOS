@@ -4,8 +4,8 @@
 
 #ifndef MEMORY_H
 #define MEMORY_H
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 #include "efi_memory.h"
 
 #define PAGE_SIZE 4096

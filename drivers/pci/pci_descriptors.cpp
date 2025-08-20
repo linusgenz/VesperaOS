@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <cstdint>
 #include "../../include/string.h"
 #include "pci_devices.h"
 

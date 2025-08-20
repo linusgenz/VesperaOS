@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_THROBBER_H
 #define VESPERAOS_THROBBER_H
 
-#include "cstdint"
+#include <cstdint>
 
 #define THROBBER_SIZE       64
 #define THROBBER_FRAMES     8
@@ -44,7 +44,7 @@
 inline uint32_t throbber_frames[SEGMENT_COUNT][THROBBER_SIZE * THROBBER_SIZE];
 inline uint8_t segment_map[THROBBER_SIZE * THROBBER_SIZE];
 inline uint8_t mask_map[THROBBER_SIZE * THROBBER_SIZE];
-inline bool system_initialized = false;
+inline bool system_initialized;
 
 void generate_throbber();
 void render_throbber(void *arg);

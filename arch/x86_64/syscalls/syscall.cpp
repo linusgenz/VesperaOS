@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "syscall.h"
-#include <stdint.h>
+#include <cstdint>
 #include <sys/syscall_numbers.h>
 
 #include "../../../include/log.h"

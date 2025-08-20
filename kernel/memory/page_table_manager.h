@@ -3,8 +3,8 @@
 //
 #ifndef PAGE_TABLE_MANAGER_H
 #define PAGE_TABLE_MANAGER_H
-#include <stdint.h>
-#include "stddef.h"
+#include <cstdint>
+#include <cstddef>
 #include "../paging/paging.h"
 
 class PageTableManager {

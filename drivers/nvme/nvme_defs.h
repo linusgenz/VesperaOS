@@ -5,7 +5,7 @@
 #ifndef NVME_DEFS_H
 #define NVME_DEFS_H
 
-#include "stdint.h"
+#include <cstdint>
 
 namespace NVMe {
 #define NVME_CAP_CMBS (1 << 57) // Controller memory buffer supported

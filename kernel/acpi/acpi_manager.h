@@ -5,7 +5,7 @@
 #ifndef ACPI_MANAGER_H
 #define ACPI_MANAGER_H
 #include "acpi.h"
-#include <stdint.h>
+#include <cstdint>
 namespace ACPI {
 
     class TableManager {

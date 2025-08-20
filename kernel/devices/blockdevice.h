@@ -5,7 +5,7 @@
 #ifndef BLOCKDEVICE_H
 #define BLOCKDEVICE_H
 
-#include <stdint.h>
+#include <cstdint>
 
 class BlockDevice {
 public:

@@ -27,83 +27,60 @@
 #include "fs_registry.h"
 #include "../../kernel/include/errno.h"
 #include "vfs_helper.h"
+#include "../fat32/fat32_vfs_adapter.h"
 #include "../../kernel/devices/device_manager.h"
-
-static MountPoint mounts[MAX_MOUNTS];
-static size_t mount_count = 0;
+#include "fs_detection.h"
 
 void vfs_init() {
-    mount_count = 0;
+    Log::Info("[VFS] Starting enhanced VFS initialization...");
+
+    FilesystemDetector::Init();
+
+    FilesystemDetector::RegisterAllDrivers();
+
+    FilesystemDetector::ScanAndMountAll();
+
+    FilesystemDetector::PrintDetectedFilesystems();
+
+    Log::Info("[VFS] Enhanced VFS initialization complete");
 }
 
-extern FileSystemDriver fat32_driver;
-
-void vfs_system_init() {
-    vfs_init();
-
-    register_fs_driver(&fat32_driver);
-
-    auto devices = kernel::DeviceManager::GetDevices();
-    size_t device_count = kernel::DeviceManager::GetDeviceCount();
-
-    Log::debug("device count: %d", device_count);
-
-    int mount_index = 0;
-    for (size_t i = 0; i < device_count; ++i) {
-        BlockDevice *dev = devices[i];
-        if (!dev) continue;
-
-        char mount_path[32];
-        snprintf(mount_path, sizeof(mount_path), "/mnt/sd%d", mount_index++);
-
-        // Nutze das VFS-Treiber-System, nicht manuell FAT32 aufrufen!
-        int result = vfs_mount(dev, mount_path, "fat32");
-
-        if (result == 0) {
-            Log::Info("Mounted FAT32 at %s", mount_path);
-        } else {
-            Log::Warning("Failed to mount FAT32 at %s (code %d)", mount_path, result);
-        }
+VfsNode* vfs_mount(BlockDevice* device, const char* mount_path) {
+    if (!device) {
+        Log::Error("[VFS] Cannot mount: Invalid device");
+        return nullptr;
     }
 
-    if (mount_index == 0) {
-        Log::Warning("No FAT32 volumes found.");
+    VfsNode* result = FilesystemDetector::TryMount(device, mount_path);
+    if (result) {
+        Log::Info("[VFS] Manual mount successful");
+    } else {
+        Log::Warning("[VFS] Manual mount failed");
     }
-}
 
-int vfs_mount(BlockDevice *dev, const char *path, const char *fs_name) {
-    if (mount_count >= MAX_MOUNTS) return -1;
-
-    FileSystemDriver *driver = find_fs_driver(fs_name);
-    if (!driver) return -2;
-
-    VfsNode *root = driver->mount(dev);
-    if (!root) return -3;
-
-    strncpy(mounts[mount_count].path, path, sizeof(mounts[mount_count].path) - 1);
-    mounts[mount_count].path[sizeof(mounts[mount_count].path) - 1] = '\0';
-
-    mounts[mount_count].root = root;
-    mount_count++;
-    return SUCCESS_CODE;
+    return result;
 }
 
 VfsNode *vfs_open(const char *path) {
-    if (!path || path[0] != '/') return 0;
+    if (!path || path[0] != '/') return nullptr;
 
     char components[16][32];
     size_t componentCount = split_path(path, components, 16);
-    if (componentCount == 0) return 0;
+    if (componentCount == 0) return nullptr;
 
-    // Mountpoint suchen
-    for (size_t i = 0; i < mount_count; i++) {
-        const char *mpath = mounts[i].path;
+    size_t device_count;
+    DeviceDescriptor* devices = FilesystemDetector::GetDetectedDevices(device_count);
+
+    for (size_t i = 0; i < device_count; i++) {
+        VfsNode* root = devices[i].fs_info.mount_point;
+        const char* mpath = devices[i].fs_info.mount_path;
+        if (!root || !mpath) continue;
         size_t mountLen = strlen(mpath);
 
-        // Prüfen, ob path unter dem Mountpoint liegt
+
         if (strncmp(path, mpath, mountLen) == 0 &&
             (path[mountLen] == '/' || path[mountLen] == '\0')) {
-            VfsNode *current = mounts[i].root;
+            VfsNode *current = root;
 
             // z.B. bei /mnt/usb/foo/bar.txt → überspringe die Komponenten ["mnt", "usb"]
             size_t skip = 0;
@@ -112,64 +89,55 @@ VfsNode *vfs_open(const char *path) {
             skip = mparts;
 
             for (size_t j = skip; j < componentCount; j++) {
-                if (!current || !current->ops || !current->ops->find) return 0;
+                if (!current->ops || !current->ops->find) return nullptr;
 
                 current = current->ops->find(current, components[j]);
-                if (!current) return 0;
+                if (!current) return nullptr;
             }
 
             return current;
         }
     }
 
-    return 0; // Kein Mountpoint gefunden
+    return nullptr;
 }
 
-VfsDir *vfs_opendir(const char *path) {
-    VfsNode *node = vfs_open(path);
+VfsDir* vfs_opendir(const char* path) {
+    VfsNode* node = vfs_open(path);
     if (!node || node->type != VfsNodeType::Directory) return nullptr;
+    if (!node->ops || !node->ops->opendir) return nullptr;
 
-    FAT32::Fat32Node *fatNode = (FAT32::Fat32Node *)node->internal_data;
-    FAT32::FileEntry *entries = fatNode->fs->ReadDirectory(fatNode->cluster, fatNode->entryCount);
-    if (!entries) {
+    Log::debug("opendir: %s", path);
+    void* handle = node->ops->opendir(node);
+    if (!handle) {
         vfs_close(node);
         return nullptr;
     }
 
-    auto *dir = (VfsDir *)malloc(sizeof(VfsDir));
+    auto* dir = (VfsDir*)malloc(sizeof(VfsDir));
     dir->node = node;
-    dir->currentIndex = 0;
-    dir->entries = entries;
-    dir->entryCount = fatNode->entryCount;
-
+    dir->handle = handle;
     return dir;
 }
 
-void vfs_closedir(VfsDir *dir) {
-    if (!dir) return;
 
-    if (dir->entries) free(dir->entries);
+int vfs_readdir(VfsDir* dir, char* out_name, size_t max_len) {
+    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return 0;
+    return dir->node->ops->readdir(dir->handle, out_name, max_len);
+}
+
+void vfs_closedir(VfsDir* dir) {
+    if (!dir) return;
+    if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) {
+        dir->node->ops->closedir(dir->handle);
+    }
     if (dir->node) vfs_close(dir->node);
     free(dir);
 }
 
-
 size_t vfs_read(VfsNode *node, size_t offset, size_t size, void *buffer) {
     if (!node || !node->ops || !node->ops->read) return 0;
     return node->ops->read(node, offset, size, buffer);
-}
-
-int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len) {
-    if (!dir || dir->currentIndex >= dir->entryCount) return 0;
-
-    const char *name = dir->entries[dir->currentIndex].GetName();
-    if (!name) return 0;
-
-    strncpy(out_name, name, max_len - 1);
-    out_name[max_len - 1] = '\0';
-    dir->currentIndex++;
-
-    return 1;
 }
 
 size_t vfs_file_size(VfsNode* file) {
@@ -177,7 +145,6 @@ size_t vfs_file_size(VfsNode* file) {
 
     return file->ops->file_size(file);
 }
-
 
 void vfs_close(VfsNode *node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;
@@ -272,4 +239,63 @@ int vfs_unlink(const char *path) {
     int result = parent->ops->unlink(parent, name);
     vfs_close(parent);
     return result;
+}
+
+VfsNode* vfs_mount_device(BlockDevice* device, const char* mount_path) {
+    if (!device) {
+        Log::Error("[VFS] Cannot mount: Invalid device");
+        return nullptr;
+    }
+    
+    VfsNode* result = FilesystemDetector::TryMount(device, mount_path);
+    if (result) {
+        Log::Info("[VFS] Manual mount successful");
+    } else {
+        Log::Warning("[VFS] Manual mount failed");
+    }
+    
+    return result;
+}
+
+bool vfs_probe_filesystem(BlockDevice* device) {
+    FilesystemInfo info;
+    return FilesystemDetector::DetectFilesystem(device, &info);
+}
+
+void vfs_list_devices() {
+    FilesystemDetector::PrintDetectedFilesystems();
+}
+
+void vfs_remount_all() {
+    Log::Info("[VFS] Remounting all detected devices...");
+    
+    // Clear existing state
+    FilesystemDetector::Init();
+    FilesystemDetector::RegisterAllDrivers();
+    
+    // Scan and mount again
+    FilesystemDetector::ScanAndMountAll();
+    FilesystemDetector::PrintDetectedFilesystems();
+}
+
+void vfs_get_stats(VfsStats* stats) {
+    if (!stats) return;
+
+    stats->total_devices = kernel::DeviceManager::GetDeviceCount();
+    stats->mounted_devices = 0;
+    stats->supported_filesystems = 0;
+
+    // Count mounted devices (this is a simplified count)
+    auto devices = kernel::DeviceManager::GetDevices();
+    for (size_t i = 0; i < stats->total_devices; i++) {
+        FilesystemInfo info;
+        if (FilesystemDetector::DetectFilesystem(devices[i], &info) && info.mounted) {
+            stats->mounted_devices++;
+        }
+    }
+
+    // Count supported filesystem types
+    // For now, just count the registered drivers
+    stats->supported_filesystems = 1; // FAT32 is always supported
+    // TODO: Add count of other registered drivers when implemented
 }

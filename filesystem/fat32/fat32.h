@@ -4,14 +4,15 @@
 
 #ifndef FAT32_CPP_H
 #define FAT32_CPP_H
-#include <stdint.h>
-#include <stddef.h>
-
+#include <cstdint>
+#include <cstddef>
 #include "../../include/log.h"
 #include "../../include/string.h"
 #include "../../kernel/include/basic_renderer.h"
 #include "../../kernel/devices/blockdevice.h"
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
+
+struct Fat32Node;
 
 namespace FAT32 {
 #define ATTR_READ_ONLY 0x01
@@ -21,21 +22,6 @@ namespace FAT32 {
 #define ATTR_DIRECTORY 0x10
 #define ATTR_ARCHIVE 0x20
 #define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
-
-    class FileSystem;
-    class FileEntry;
-
-    struct Fat32Node {
-        FAT32::FileSystem *fs;
-        char path[256];
-        uint32_t cluster;
-        bool isDir;
-        size_t fileSize;
-
-        FAT32::FileEntry *entries = nullptr;
-        size_t entryCount = 0;
-        size_t currentIndex = 0;
-    };
 
 #define READ_DIR_MAX_ENTRIES 256
 

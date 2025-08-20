@@ -23,7 +23,7 @@
 
 #ifndef VFS_NODE_H
 #define VFS_NODE_H
-#include "stddef.h"
+#include <cstddef>
 
 enum class VfsNodeType {
     File,
@@ -40,9 +40,12 @@ struct VfsNodeOps {
     void (*close)(VfsNode* node);
 
     size_t (*file_size)(VfsNode*);
+    void*  (*opendir)(VfsNode* dir);
+    int    (*readdir)(void* dir_handle, char* out_name, size_t max_len);
+    void   (*closedir)(void* dir_handle);
+
     int (*create)(VfsNode*, const char*);
     int (*rename)(VfsNode*, const char*, const char*);
-   // int (*readdir)(VfsNode* dir, char* out_name, size_t max_len);
     int (*mkdir)(VfsNode*, const char*);
     int (*rmdir)(VfsNode*, const char*);
     int (*unlink)(VfsNode*, const char*);

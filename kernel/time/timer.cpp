@@ -3,7 +3,6 @@
 //
 #include "time.h"
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../../include/log.h"
 #include "../cpu/cpu_manager.h"
 #include "../include/interrupts.h"
 #include <scheduling.h>

@@ -1,5 +1,5 @@
 #include "../include/string.h"
-#include "stddef.h"
+#include <cstddef>
 #include "../kernel/include/basic_renderer.h"
 
 char uintTo_StringOutput[128];

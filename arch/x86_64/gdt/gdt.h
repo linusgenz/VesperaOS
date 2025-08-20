@@ -4,7 +4,7 @@
 
 #ifndef GDT_H
 #define GDT_H
-#include <stdint.h>
+#include <cstdint>
 
 struct GDTDescriptor {
     uint16_t size;

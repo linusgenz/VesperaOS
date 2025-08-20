@@ -5,7 +5,7 @@
 #include "thread.h"
 #include <scheduling.h>
 #include "../../include/log.h"
-#include <stddef.h>
+#include <cstddef>
 
 #include "../cpu/cpu_manager.h"
 

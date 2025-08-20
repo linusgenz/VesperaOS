@@ -4,7 +4,7 @@
 
 #ifndef PCI_H
 #define PCI_H
-#include <stdint.h>
+#include <cstdint>
 #include "../../kernel/acpi/acpi.h"
 #include "../../kernel/include/basic_renderer.h"
 #include "../../include/string.h"

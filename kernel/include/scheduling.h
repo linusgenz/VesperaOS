@@ -4,7 +4,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
-#include "stdint.h"
+#include <cstdint>
 #include "../scheduling/cpu_scheduler.h"
 
 namespace kernel::scheduling {

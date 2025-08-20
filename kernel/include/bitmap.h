@@ -3,8 +3,8 @@
 //
 
 #ifndef BITMAP_H
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #define BITMAP_H
 
 class Bitmap{

@@ -23,7 +23,7 @@
 
 #ifndef QWERTY_H
 #define QWERTY_H
-#include <stdint.h>
+#include <cstdint>
 
 namespace input::keyboard::qwerty {
 

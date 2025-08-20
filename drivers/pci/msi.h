@@ -23,7 +23,7 @@
 
 #ifndef MSI_H
 #define MSI_H
-#include "stdint.h"
+#include <cstdint>
 #include "pci.h"
 
 namespace PCI {

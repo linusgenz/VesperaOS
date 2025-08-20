@@ -3,7 +3,7 @@
 //
 
 #include "fat32.h"
-
+#include "fat32_vfs_adapter.h"
 #include "../../include/log.h"
 #include "../../kernel/include/memory.h"
 #include "../../include/string.h"

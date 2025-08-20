@@ -1,6 +1,6 @@
 #ifndef AHCI_H
 #define AHCI_H
-#include <stdint.h>
+#include <cstdint>
 #include "../pci/pci.h"
 #include "../../kernel/devices/blockdevice.h"
 

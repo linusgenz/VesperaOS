@@ -2,7 +2,7 @@
 // Created by Linus on 17.07.25.
 //
 #include "cpu_manager.h"
-#include "stdint.h"
+#include <cstdint>
 #include <scheduling.h>
 #include "../utils/panic.h"
 #include "../../arch/x86_64/interrupts/apic.h"
@@ -20,7 +20,6 @@ extern "C" void ap_main(uint32_t apic_id) {
     }
 
     kernel::scheduling::enable_on_cpu(cpu_id);
-    kernel::scheduling::yield();
 
     panic("AP core returned from context switch");
 }

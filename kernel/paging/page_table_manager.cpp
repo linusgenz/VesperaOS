@@ -1,7 +1,7 @@
 #include "../memory/page_table_manager.h"
 #include "../memory/page_map_indexer.h"
 #include "../include/memory.h"
-#include "stdint.h"
+#include <cstdint>
 #include "../../include/log.h"
 
 PageTableManager::PageTableManager(PageTable *PML4Address) {

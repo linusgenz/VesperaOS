@@ -4,7 +4,7 @@
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
 #include "../include/efi_memory.h"
-#include <stdint.h>
+#include <cstdint>
 #include "../include/bitmap.h"
 #include "../include/memory.h"
 #include "../proc/process.h"

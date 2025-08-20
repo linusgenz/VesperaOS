@@ -15,7 +15,7 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include
 )
 
-file(GLOB_RECURSE CPP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
+file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
 file(GLOB_RECURSE ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
 
 set_source_files_properties(
@@ -96,16 +96,22 @@ add_custom_target(disk_image
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
+add_custom_target(img
+    COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
+    DEPENDS disk_image
+)
+
 # QEMU run
 add_custom_target(test
         COMMAND qemu-system-x86_64
         -m 4G
-        -smp 8
         -machine q35
         -enable-kvm
         -cpu host
-        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,id=host0,format=raw
+        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -device nvme,drive=host0,serial=deadbeef
+        -drive file=${CMAKE_SOURCE_DIR}/ext4.img,if=none,format=raw,id=nvme1
+        -device nvme,drive=nvme1,serial=beefdead
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
         -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
         -net none
@@ -124,9 +130,10 @@ add_custom_target(debug
         -cpu qemu64
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
         -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
-        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,id=host0,format=raw
-        -device pcie-root-port,id=rp0,port=0x10,chassis=1
-        -device nvme,drive=host0,serial=deadbeef,bus=rp0
+        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
+        -device nvme,drive=host0,serial=deadbeef
+        -drive file=${CMAKE_SOURCE_DIR}/ext4.img,if=none,format=raw,id=nvme1
+        -device nvme,drive=nvme1,serial=beefdead
         -net none
         -device qemu-xhci,id=xhci
         -device usb-mouse

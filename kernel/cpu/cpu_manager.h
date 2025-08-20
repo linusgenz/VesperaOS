@@ -1,8 +1,8 @@
 #ifndef CPU_MANAGER_H
 #define CPU_MANAGER_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 #include "../acpi/madt.h"
 #include "../memory/stack_manager.h"
 

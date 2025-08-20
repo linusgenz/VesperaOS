@@ -21,8 +21,10 @@
 #include "sys/syscall_interface.h"
 #include "time/time.h"
 #include "../Splash_VesperaOS.h"
+#include "../filesystem/vfs/vfs.h"
 #include "include/sys/syscalls.h"
 #include "scheduling/thread_manager.h"
+
 
 void prepare_memory(BootInfo *bootInfo) {
     const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -249,20 +251,23 @@ void initialize_kernel(BootInfo *bootInfo) {
     Log::init(); // threads are possible -> switch to mutex
     prepare_ap_trampoline();
 
-
     kernel::scheduling::init(CPUManager::total_cpus);
 
-    void *user_stack_phys2 = kernel::memory::request_page();
-    kernel::memory::map_range((void *) user_stack_phys2, user_stack_phys2, 0x1000, (1ULL << PT_Flag::UserSuper));
-    void *user_stack_top2 = (void *) (user_stack_phys2 + 0x1000);
-
-    kthread_t* t = create_kthread(render_throbber, nullptr, 1);
-    Log::debug("throbber: %p - %p", t->stack, t->stack_pointer);
+    kthread_t* t = create_kthread(render_throbber, nullptr, 2);
     kernel::scheduling::add_thread(t);
 
     CPUManager::smp_init();
 
-    vfs_system_init();
+    vfs_init();
+
+    auto dir21 = vfs_opendir("/mnt/ext4_1/");
+    Log::debug("vfs_opendir: %d", dir21);
+    char name21[128];
+    while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
+        Log::PrintLn("Eintrag2: %s", name21);
+    }
+
+    vfs_closedir(dir21);
 
     syscall_init();
     install_syscalls();

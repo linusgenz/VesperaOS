@@ -1,10 +1,10 @@
-// mouse.h
+// ext4_vfs_adapter.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 30.07.25.
+// Created by Linus Genz on 20.08.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,40 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef MOUSE_H
-#define MOUSE_H
+#ifndef VESPERAOS_EXT4_VFS_ADAPTER_H
+#define VESPERAOS_EXT4_VFS_ADAPTER_H
+#include "ext4.h"
 
-#include <cstdint>
-#include "../../../../include/graphics.h"
+struct Ext4Node {
+    EXT4::FileSystem* fs;
+    char path[256];
+    uint32_t inode;
+    bool isDir;
+    size_t fileSize;
+    void* entries; // EXT struct TODO
+    size_t entryCount;
+    size_t currentIndex;
+};
 
-namespace input::mouse {
-#define PS2LeftButton 0b00000001
-#define PS2MiddleButton 0b00000100
-#define PS2RightButton 0b00000010
+struct Ext4DirHandle {
+    EXT4::FileEntry* entries;
+    size_t count;
+    size_t index;
+};
 
-#define PS2XSign 0b00010000
-#define PS2YSign 0b00100000
-#define PS2XOverflow 0b001000000
-#define PS2YOverflow 0b100000000
 
-    extern uint8_t pointer[];
-
-    struct MousePacket {
-        int dx;
-        int dy;
-        int wheel;
-        bool left;
-        bool right;
-        bool middle;
-    };
-
-    void init();
-    void handle_byte(uint8_t data);
-    bool read_packet(MousePacket& out);
-
-    Point get_position();
-
-    void process_mouse_packet();
-}
-
-#endif //MOUSE_H
+#endif //VESPERAOS_EXT4_VFS_ADAPTER_H

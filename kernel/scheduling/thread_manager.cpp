@@ -49,7 +49,6 @@ namespace kernel::scheduling::thread_manager {
 
 #define MSR_KERNEL_GS_BASE 0xC0000102
 #define MSR_GS_BASE 0xC0000101
-int t = 0;
     void switch_to_thread(kthread_t *from, kthread_t *to, interrupt_frame *frame) {
         const bool to_is_user = to->is_user_thread;
         const bool from_syscall = from && from->from_syscall;
@@ -98,11 +97,7 @@ int t = 0;
             if (to_is_user) {
               //  frame_ptr = frame;
                 should_iretq = 1;
-                    frame_ptr =0;
-                if (t == 1) {
-                    frame_ptr = 1;
-                }
-                t = 1;
+                frame_ptr =0;
             }
         }
 

@@ -250,7 +250,6 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 	// https://www.youtube.com/watch?v=wbsfyRY_Yoc comment
 
 	Print(L"Entry: %p\n", header.e_entry);
-	Print(L"LAST PRINT STATEMENT 2.0");
 	SysTbl->BootServices->ExitBootServices(ImageHandle, MapKey);
 
 	kernel_start(&bootInfo);

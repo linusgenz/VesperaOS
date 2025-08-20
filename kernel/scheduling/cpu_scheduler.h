@@ -4,7 +4,7 @@
 #ifndef CPU_SCHEDULER_H
 #define CPU_SCHEDULER_H
 
-#include "stddef.h"
+#include <cstddef>
 #include "thread.h"
 #include "../acpi/madt.h"
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"

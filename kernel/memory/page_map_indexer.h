@@ -3,7 +3,7 @@
 //
 #ifndef PAGE_MAP_INDEXER_H
 #define PAGE_MAP_INDEXER_H
-#include <stdint.h>
+#include <cstdint>
 class PageMapIndexer
 {
 private:

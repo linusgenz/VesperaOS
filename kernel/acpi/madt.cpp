@@ -114,8 +114,8 @@ namespace MADT {
                         overrides[override_count].gsi = entry->gsi;
                         overrides[override_count].flags = entry->flags;
 
-                        Log::debug("IRQ Override: IRQ %u -> GSI %u (flags 0x%x)",
-                                   entry->irq_source, entry->gsi, entry->flags);
+                   //     Log::debug("IRQ Override: IRQ %u -> GSI %u (flags 0x%x)",
+                    //               entry->irq_source, entry->gsi, entry->flags);
 
                         override_count++;
                     }

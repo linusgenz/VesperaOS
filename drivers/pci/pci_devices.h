@@ -4,7 +4,7 @@
 
 #ifndef PCI_DEVICES_H
 #define PCI_DEVICES_H
-#include <stdint.h>
+#include <cstdint>
 
 struct PCIDevice {
     uint16_t vendor_id;

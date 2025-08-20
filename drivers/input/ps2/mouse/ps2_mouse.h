@@ -24,7 +24,7 @@
 #ifndef PS2_MOUSE_H
 #define PS2_MOUSE_H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace ps2::mouse {
 

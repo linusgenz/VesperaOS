@@ -24,7 +24,7 @@
 #ifndef PS2_KEYBOARD_H
 #define PS2_KEYBOARD_H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace ps2::keyboard {
     void handle_byte(uint8_t scancode);

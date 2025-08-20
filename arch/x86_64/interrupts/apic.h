@@ -4,8 +4,8 @@
 
 #ifndef APIC_H
 #define APIC_H
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 #include "../../../kernel/acpi/madt.h"
 #include "interrupts_internal.h"
 

@@ -4,8 +4,8 @@
 
 #ifndef KERNEL_UTILS_H
 #define KERNEL_UTILS_H
-#include <stddef.h> // rm
-#include <stdint.h>
+#include <cstddef> // rm
+#include <cstdint>
 #include "basic_renderer.h"
 #include "../../include/string.h"
 #include "efi_memory.h"

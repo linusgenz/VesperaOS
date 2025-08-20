@@ -4,7 +4,7 @@
 
 #ifndef INTERRUPTS_INTERNAL_H
 #define INTERRUPTS_INTERNAL_H
-#include <stdint.h>
+#include <cstdint>
 
 #define IRQ_SPURIOUS         0xFF
 #define IRQ_TIMER            0x20

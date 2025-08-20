@@ -24,11 +24,11 @@
 #include "fs_registry.h"
 #include "../../include/string.h"
 
-static FileSystemDriver* fs_drivers[MAX_MOUNTS];
+static FileSystemDriver* fs_drivers[MAX_FS_DRIVERS];
 static size_t driver_count = 0;
 
 void register_fs_driver(FileSystemDriver* driver) {
-    if (driver_count >= MAX_MOUNTS) return;
+    if (driver_count >= MAX_FS_DRIVERS) return;
 
     fs_drivers[driver_count++] = driver;
 }
@@ -40,4 +40,13 @@ FileSystemDriver* find_fs_driver(const char* name) {
         }
     }
     return nullptr;
+}
+
+size_t fs_driver_count() {
+    return driver_count;
+}
+
+FileSystemDriver* fs_driver_at(size_t i) {
+    if (i >= driver_count) return nullptr;
+    return fs_drivers[i];
 }

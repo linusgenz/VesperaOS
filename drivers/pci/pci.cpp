@@ -1,13 +1,8 @@
 #include "pci.h"
-#include "../ahci/ahci.h"
 #include "../../include/log.h"
 #include "../nvme/nvme.h"
-#include "../../filesystem/fat32/fat32.h"
 #include "../usb/xhci/xhci.h"
-#include "../../kernel/include/interrupts.h"
-#include "msix.h"
 #include "../../kernel/devices/device_manager.h"
-#include "../../kernel/time/time.h"
 
 namespace PCI {
     void enumerate_function(uint64_t device_address, uint64_t function) {
@@ -23,11 +18,11 @@ namespace PCI {
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-        Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
+   /*     Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
                     get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
                     get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
                     get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
-                                     pci_device_header->prog_if));
+                                     pci_device_header->prog_if));*/
 
         switch (pci_device_header->_class) {
             case 0x01: // mass storage controller

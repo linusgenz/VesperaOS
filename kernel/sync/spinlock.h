@@ -4,7 +4,7 @@
 
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
-#include "stdint.h"
+#include <cstdint>
 
 struct spinlock_t {
     volatile uint32_t locked;

@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "stdint.h"
+#include <cstdint>
 #include "../../arch/x86_64/interrupts/pic.h"
 #include  "../../arch/x86_64/interrupts/apic.h"
 #include "../../arch/x86_64/interrupts/ioapic.h"
@@ -33,6 +33,8 @@
 
 namespace kernel::interrupts {
     void initialize() {
+        arch::x86_64::interrupts::apic::apic_ticks[MAX_CPU_CORES-1] = 0;
+
         kernel::memory::map_memory(g_localApicAddr,
                                    g_localApicAddr,
                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));

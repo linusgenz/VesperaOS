@@ -24,5 +24,34 @@
 #ifndef FAT32_VFS_ADAPTER_H
 #define FAT32_VFS_ADAPTER_H
 
+#include "../vfs/vfs.h"
+#include "../vfs/fs_registry.h"
+#include "fat32.h"
+
+    struct Fat32Node {
+        FAT32::FileSystem *fs;
+        char path[256];
+        uint32_t cluster;
+        bool isDir;
+        size_t fileSize;
+        FAT32::FileEntry *entries;
+        size_t entryCount;
+        size_t currentIndex;
+    };
+
+    struct Fat32DirHandle {
+        FAT32::FileEntry* entries;
+        size_t count;
+        size_t index;
+    };
+
+    bool fat32_resolve_path(FAT32::FileSystem *fs, const char *path, Fat32Node *outNode);
+
+    VfsNode *wrap_fat32_root(FAT32::FileSystem * fs);
+
+
+    int fat32_probe(BlockDevice *dev);
+
+    VfsNode *fat32_mount(BlockDevice *dev);
 
 #endif //FAT32_VFS_ADAPTER_H

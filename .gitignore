@@ -5,6 +5,8 @@ kernel/.idea
 legacy
 .vscode
 
+OVMF
+
 cmake-build-debug
 build
 gnu-efi/*

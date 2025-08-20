@@ -4,7 +4,7 @@
 
 #ifndef EFI_MEMORY_H
 #define EFI_MEMORY_H
-#include <stdint.h>
+#include <cstdint>
 
 typedef unsigned long EFI_PHYSICAL_ADDRESS;
 typedef unsigned long EFI_VIRTUAL_ADDRESS;

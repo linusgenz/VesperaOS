@@ -24,7 +24,7 @@
 #ifndef SYSCALL_INTERFACE_H
 #define SYSCALL_INTERFACE_H
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace syscalls::internal {
     using syscall_fn = int64_t(*)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);

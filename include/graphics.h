@@ -4,8 +4,8 @@
 
 #ifndef GRAHICS_H
 #define GRAHICS_H
-#include <stddef.h>
 #include <stdint.h>
+#include <stddef.h>
 
 typedef enum {
     BLACK   = 0x00000000,

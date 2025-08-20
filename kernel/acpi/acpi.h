@@ -4,7 +4,7 @@
 
 #ifndef ACPI_H
 #define ACPI_H
-#include <stdint.h>
+#include <cstdint>
 
 namespace ACPI {
     struct RSDP2 {

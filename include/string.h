@@ -4,8 +4,8 @@
 
 #ifndef STRING_H
 #define STRING_H
-#include <stdint.h>
-#include "stddef.h"
+#include <cstdint>
+#include <cstddef>
 
 const char* to_string(uint64_t value);
 const char* to_string(uint8_t value);

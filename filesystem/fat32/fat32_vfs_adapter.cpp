@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../vfs/fs_registry.h"
+#include "fat32_vfs_adapter.h"
 #include "fat32.h"
 #include "../../include/log.h"
 #include "../../kernel/include/errno.h"
@@ -115,6 +116,37 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
     return nullptr;
 }
 
+void* fat32_opendir(VfsNode* dir) {
+    auto* fatNode = (Fat32Node*)dir->internal_data;
+    auto* handle = new Fat32DirHandle();
+    handle->entries = fatNode->fs->ReadDirectory(fatNode->cluster, handle->count);
+    handle->index = 0;
+    return handle;
+}
+
+int fat32_readdir(void* h, char* out_name, size_t max_len) {
+    auto* handle = (Fat32DirHandle*)h;
+    if (!handle || handle->index >= handle->count) return 0;
+
+    const char* name = handle->entries[handle->index].GetName();
+    if (!name) return 0;
+
+    strncpy(out_name, name, max_len - 1);
+    out_name[max_len - 1] = '\0';
+
+    handle->index++;
+    return 1;
+}
+
+void fat32_closedir(void* h) {
+    auto* handle = (Fat32DirHandle*)h;
+    if (!handle) return;
+
+    if (handle->entries) {
+        free(handle->entries);
+    }
+    delete handle;
+}
 /*
 static int fat32_readdir(VfsNode *node, char *out_name, size_t max_len) {
     Fat32Node *dir = (Fat32Node *) node->internal_data;
@@ -192,9 +224,11 @@ static VfsNodeOps fat32_ops = {
     .find = fat32_find,
     .close = fat32_close,
     .file_size = fat32_file_size,
+    .opendir = fat32_opendir,
+    .readdir = fat32_readdir,
+    .closedir = fat32_closedir,
     .create = fat32_create,
     .rename = fat32_rename,
-  //  .readdir = fat32_readdir,
     .mkdir = fat32_mkdir,
     .rmdir = fat32_rmdir,
     .unlink = fat32_unlink
@@ -220,14 +254,14 @@ VfsNode *wrap_fat32_root(FileSystem *fs) {
     return node;
 }
 
-// Adapter-Registrierung
-static int fat32_probe(BlockDevice *dev) {
+int fat32_probe(BlockDevice *dev) {
     FileSystem fs(dev);
     return fs.is_valid();
 }
 
-static VfsNode *fat32_mount(BlockDevice *dev) {
-    FileSystem *fs = new FileSystem(dev); // oder malloc + placement new
+VfsNode *fat32_mount(BlockDevice *dev) {
+    FileSystem *fs = new FileSystem(dev);
+    Log::debug("fat32_mount valid? : %u", fs->is_valid());
     if (!fs->is_valid()) return nullptr;
     return wrap_fat32_root(fs);
 }

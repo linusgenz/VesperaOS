@@ -4,7 +4,7 @@
 
 #ifndef IDT_H
 #define IDT_H
-#include <stdint.h>
+#include <cstdint>
 
 typedef int irqreturn_t;
 constexpr irqreturn_t IRQ_HANDLED = 1;

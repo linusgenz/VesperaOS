@@ -1,8 +1,8 @@
 //
 // Created by linus on 03.07.25.
 //
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
 typedef char16_t utf16_t;
 typedef uint8_t  utf8_t;
 typedef uint32_t codepoint_t;
