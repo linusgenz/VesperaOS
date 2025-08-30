@@ -1,10 +1,14 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <vector.h>
+
 #include "../kernel/include/basic_renderer.h"
 #include "../kernel/sync/spinlock.h"
 #include "../kernel/sync/mutex.h"
 #include "graphics.h"
+
+struct LogEntry;
 
 class Log {
 public:
@@ -23,17 +27,20 @@ public:
 
     static void init();
 
+    static void flush();
     static void enableDebug();
 
 private:
     static BasicRenderer* renderer;
-    static void print_formatted(const char *fmt, __builtin_va_list args);
+    static void queue_log_formatted(const char* fmt, __builtin_va_list args, Colour colour = Colour::WHITE);
+    static void queue_log(const char* text, Colour colour = Colour::WHITE);
     static spinlock_t log_lock;
 
     static spinlock_t log_spin;
     static kernel::mutex_t log_mutex;
     static bool initialized;
     static bool is_debug;
+    static Vector<LogEntry> *log_queue;
 };
 
 #endif // LOG_H

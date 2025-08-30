@@ -8,7 +8,7 @@ set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -Wall")
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
 
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -17,6 +17,7 @@ include_directories(
 
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
 file(GLOB_RECURSE ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
+list(FILTER CPP_SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
 
 set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
@@ -92,31 +93,35 @@ add_custom_target(disk_image
         COMMAND sudo umount mnt
         COMMAND sudo ${CMAKE_COMMAND} -E rm -rf mnt
 
-        DEPENDS kernel.elf elfs bootloader version splash_header
+        DEPENDS kernel.elf elfs bootloader version
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 add_custom_target(img
-    COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
-    DEPENDS disk_image
+        COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
+        DEPENDS disk_image
 )
 
 # QEMU run
 add_custom_target(test
         COMMAND qemu-system-x86_64
-        -m 4G
+        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
+        -smp cores=8
+        -m 16G
         -machine q35
         -enable-kvm
         -cpu host
-        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
-        -device nvme,drive=host0,serial=deadbeef
-        -drive file=${CMAKE_SOURCE_DIR}/ext4.img,if=none,format=raw,id=nvme1
-        -device nvme,drive=nvme1,serial=beefdead
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
-        -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
+        -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd,readonly=on
         -net none
         -monitor stdio
-        -device qemu-xhci,id=xhci,msi=on,msix=on
+        -device qemu-xhci,id=xhci
+        -device nvme,drive=host0,serial=deadbeef
+        -device usb-mouse
+        -device usb-storage,drive=stick
+        -drive id=stick,file=${CMAKE_SOURCE_DIR}/ext4.img,format=raw,if=none
+        -trace *xhci*
+        -D /tmp/qemu.log
         -no-reboot
         -no-shutdown
         DEPENDS disk_image
@@ -124,7 +129,7 @@ add_custom_target(test
 
 add_custom_target(debug
         COMMAND qemu-system-x86_64
-        -m 4G
+        -m 16G
         -machine q35
         -enable-kvm
         -cpu qemu64

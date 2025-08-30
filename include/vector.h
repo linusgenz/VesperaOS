@@ -6,6 +6,8 @@
 #define VECTOR_H
 #include "../kernel/memory/heap.h"
 #include "../kernel/include/memory.h"
+#include "../kernel/utils/panic.h"
+
 template<typename T>
 class Vector {
 public:
@@ -24,6 +26,20 @@ public:
         for (size_t i = 0; i < length; ++i)
             _data[i].~T();
         length = 0;
+    }
+
+    T& back() {
+        if (length == 0) {
+            panic("back() called on empty vector");
+        }
+        return _data[length - 1];
+    }
+
+    const T& back() const {
+        if (length == 0) {
+            panic("back() called on empty vector");
+        }
+        return _data[length - 1];
     }
 
     void push_back(const T& value) {
@@ -52,6 +68,19 @@ public:
     size_t size() const {
         return length;
     }
+
+    [[nodiscard]] bool empty() const {
+        return length == 0;
+    }
+
+    T* begin() { return _data; }
+    T* end()   { return _data + length; }
+
+    const T* begin() const { return _data; }
+    const T* end()   const { return _data + length; }
+
+    const T* cbegin() const { return _data; }
+    const T* cend()   const { return _data + length; }
 
 private:
     T* _data;

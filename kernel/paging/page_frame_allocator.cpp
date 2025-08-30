@@ -28,8 +28,7 @@ void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* mMap, size_t
     }
     uint64_t memory_size = get_memory_size(mMap, mMapEntries, mMapDescSize);
 
-    Log::Info("Total RAM: %u mb", memory_size / 1024 / 1024);
-
+    total_memory = memory_size;
     free_memory = memory_size;
     reserved_memory = 0;
     used_memory = 0;
@@ -164,6 +163,10 @@ void PageFrameAllocator::reserve_pages(void* address, uint64_t page_count){
     for (int t = 0; t < page_count; t++){
         reserve_page((void*)((uint64_t)address + (t * 4096)));
     }
+}
+
+uint64_t PageFrameAllocator::get_total_ram() {
+    return total_memory;
 }
 
 uint64_t PageFrameAllocator::get_free_ram(){

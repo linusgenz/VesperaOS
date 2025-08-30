@@ -12,6 +12,7 @@
 class PageFrameAllocator {
     public:
     PageFrameAllocator() :
+    total_memory(0),
     free_memory(0),
     reserved_memory(0),
     used_memory(0),
@@ -28,6 +29,7 @@ class PageFrameAllocator {
 
     void *request_pages(size_t pageCount);
 
+    uint64_t get_total_ram();
     uint64_t get_free_ram();
     uint64_t get_used_ram();
     uint64_t get_reserved_ram();
@@ -39,6 +41,7 @@ class PageFrameAllocator {
     void reserve_pages(void* address, uint64_t page_count);
     void unreserve_page(uint64_t address);
     void unreserve_pages(uint64_t address, uint64_t page_count);
+    uint64_t total_memory;
     uint64_t free_memory;
     uint64_t reserved_memory;
     uint64_t used_memory;

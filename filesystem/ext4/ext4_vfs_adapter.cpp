@@ -35,18 +35,23 @@ int ext4_probe(BlockDevice *dev) {
     return fs.is_valid();
 }
 
-static VfsNode* ext4_find(VfsNode* node, const char* name) {
-    auto* dir = reinterpret_cast<Ext4Node*>(node->internal_data);
+static VfsNode *ext4_find(VfsNode *node, const char *name) {
+    Log::debug("ext4_find: %s", name);
+    auto *dir = reinterpret_cast<Ext4Node *>(node->internal_data);
     if (!dir || !dir->isDir) return nullptr;
 
-    size_t entryCount = 0;
-    FileEntry* entries = dir->fs->read_directory(dir->inode, entryCount);
+    FileEntry *entries = (FileEntry *) malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES);
+    size_t entryCount = dir->fs->read_directory(dir->inode, entries);
+    Log::debug("entryCount: %d", entryCount);
+    for (int i = 0; i < entryCount; i++) {
+        Log::debug("ext4_find: read %s", entries[i].GetName());
+    }
     if (!entries) return nullptr;
 
     for (size_t i = 0; i < entryCount; i++) {
-        const char* entryName = entries[i].GetName();
+        const char *entryName = entries[i].GetName();
         if (strcmp(entryName, name) == 0) {
-            Ext4Node* childData = (Ext4Node*)kernel::memory::malloc(sizeof(Ext4Node));
+            Ext4Node *childData = (Ext4Node *) kernel::memory::malloc(sizeof(Ext4Node));
             if (!childData) {
                 free(entries);
                 return nullptr;
@@ -64,7 +69,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
                      strcmp(dir->path, "/") == 0 ? "" : "/",
                      name);
 
-            VfsNode* child = (VfsNode*)malloc(sizeof(VfsNode));
+            VfsNode *child = (VfsNode *) malloc(sizeof(VfsNode));
             if (!child) {
                 kernel::memory::free(childData);
                 free(entries);
@@ -86,27 +91,31 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
 }
 
 
-void* ext4_opendir(VfsNode* dir) {
-    auto* node = reinterpret_cast<Ext4Node*>(dir->internal_data);
+void *ext4_opendir(VfsNode *dir) {
+    auto *node = reinterpret_cast<Ext4Node *>(dir->internal_data);
     if (!node) return nullptr;
 
-    size_t count = 0;
-    FileEntry* entries = node->fs->read_directory(node->inode, count);
-    Log::debug("dir->fs->read_directory: %d entries", count);
-    if (!entries) return nullptr;
+    auto *handle = (Ext4DirHandle *) malloc(sizeof(Ext4DirHandle));
+    if (!handle) return nullptr;
 
-    auto* handle = (Ext4DirHandle*)malloc(sizeof(Ext4DirHandle));
-    handle->entries = entries;
-    handle->count = count;
+    handle->entries = (FileEntry *) malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES);
+    if (!handle->entries) {
+        free(handle);
+        return nullptr;
+    }
+
+    handle->count = node->fs->read_directory(node->inode, handle->entries);
     handle->index = 0;
+
     return handle;
 }
 
-int ext4_readdir(void* dir_handle, char* out_name, size_t max_len) {
-    auto* h = reinterpret_cast<Ext4DirHandle*>(dir_handle);
+
+int ext4_readdir(void *dir_handle, char *out_name, size_t max_len) {
+    auto *h = reinterpret_cast<Ext4DirHandle *>(dir_handle);
     if (!h || h->index >= h->count) return 0; // nichts mehr
 
-    FileEntry& fe = h->entries[h->index++];
+    FileEntry &fe = h->entries[h->index++];
     size_t len = strlen(fe.GetName());
     if (len >= max_len) len = max_len - 1;
     memcpy(out_name, fe.GetName(), len);
@@ -115,8 +124,8 @@ int ext4_readdir(void* dir_handle, char* out_name, size_t max_len) {
     return 1;
 }
 
-void ext4_closedir(void* dir_handle) {
-    auto* h = reinterpret_cast<Ext4DirHandle*>(dir_handle);
+void ext4_closedir(void *dir_handle) {
+    auto *h = reinterpret_cast<Ext4DirHandle *>(dir_handle);
     if (!h) return;
     free(h->entries);
     free(h);
@@ -138,10 +147,10 @@ static VfsNodeOps ext4_ops = {
     .unlink = nullptr
 };
 
-VfsNode* wrap_ext4_root(FileSystem *fs) {
+VfsNode *wrap_ext4_root(FileSystem *fs) {
     if (!fs) return nullptr;
 
-    Ext4Node* root = (Ext4Node*) kernel::memory::malloc(sizeof(Ext4Node));
+    Ext4Node *root = (Ext4Node *) kernel::memory::malloc(sizeof(Ext4Node));
     root->fs = fs;
     root->isDir = true;
     root->inode = 2; // Root Inode EXT
@@ -152,7 +161,7 @@ VfsNode* wrap_ext4_root(FileSystem *fs) {
     root->entryCount = 0;
     root->currentIndex = 0;
 
-    VfsNode* node = (VfsNode*) kernel::memory::malloc(sizeof(VfsNode));
+    VfsNode *node = (VfsNode *) kernel::memory::malloc(sizeof(VfsNode));
     node->name = "/";
     node->type = VfsNodeType::Directory;
     node->internal_data = root;
@@ -168,8 +177,8 @@ VfsNode *ext4_mount(BlockDevice *dev) {
     Log::debug("ext4_mount valid? : %u", fs->is_valid());
     if (!fs->is_valid()) {
         delete fs;
-return nullptr;
-}
+        return nullptr;
+    }
     return wrap_ext4_root(fs);
 }
 
@@ -178,4 +187,3 @@ FileSystemDriver ext4_driver = {
     .probe = ext4_probe,
     .mount = ext4_mount
 };
-

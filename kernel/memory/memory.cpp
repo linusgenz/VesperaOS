@@ -121,6 +121,10 @@ namespace kernel::memory {
         return page_frame_allocator.get_reserved_ram();
     }
 
+    uint64_t get_total_ram() {
+        return page_frame_allocator.get_total_ram();
+    }
+
     // Heap
     static bool heap_initialized = false;
 

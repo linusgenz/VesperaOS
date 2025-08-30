@@ -33,7 +33,8 @@
 
 namespace kernel::interrupts {
     void initialize() {
-        arch::x86_64::interrupts::apic::apic_ticks[MAX_CPU_CORES-1] = 0;
+        arch::x86_64::interrupts::apic::apic_ticks[MAX_CPU_CORES - 1] = 0;
+        memset(arch::x86_64::interrupts::idt::irq_handler_table, 0, sizeof(arch::x86_64::interrupts::idt::irq_handler_table));
 
         kernel::memory::map_memory(g_localApicAddr,
                                    g_localApicAddr,
@@ -45,15 +46,15 @@ namespace kernel::interrupts {
         arch::x86_64::interrupts::apic::init(0); // bsp
     }
 
-    void register_irq(uint8_t irq, irq_handler_t handler, void *cookie) {
-        arch::x86_64::interrupts::idt::register_irq_handler(IRQ_BASE + irq, handler, cookie);
+    bool register_irq(uint8_t irq, irq_handler_t handler, void *cookie) {
+        return arch::x86_64::interrupts::idt::register_irq_handler(irq, handler, cookie);
     }
 
     void set_vector(uint8_t vector, void *handler) {
         arch::x86_64::interrupts::idt::set_idt_gate(handler, vector, IDT_TA_InterruptGate, 0x08);
     }
 
-    arch::x86_64::interrupts::idt::IDTR* get_idtr_address() {
+    arch::x86_64::interrupts::idt::IDTR *get_idtr_address() {
         return arch::x86_64::interrupts::idt::get_idtr_address();
     }
 

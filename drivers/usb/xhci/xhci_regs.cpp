@@ -56,3 +56,13 @@ void xhci_extended_capability::read_next_ext_caps() {
         m_next = new xhci_extended_capability(next_cap_ptr);
     }
 }
+
+void xhci_port_register_manager::read_portsc_reg(xhci_portsc_register& reg) const {
+    uint64_t portsc_address = m_base + m_portsc_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(portsc_address);
+}
+
+void xhci_port_register_manager::write_portsc_reg(xhci_portsc_register& reg) const {
+    uint64_t portsc_address = m_base + m_portsc_offset;
+    *reinterpret_cast<volatile uint32_t*>(portsc_address) = reg.raw;
+}

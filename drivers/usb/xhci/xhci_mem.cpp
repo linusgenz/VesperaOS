@@ -32,7 +32,6 @@ uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
     return pci_bar_address;
 }
 
-
 void *alloc_xhci_memory(size_t size, size_t alignment, size_t boundary) {
     if (size == 0 || alignment == 0 || boundary == 0) {
         Log::Error("Invalid memory alignment");

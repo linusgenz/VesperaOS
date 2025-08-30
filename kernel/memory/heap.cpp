@@ -38,7 +38,7 @@ void* malloc(size_t size) {
         size += 0x10;
     }
 
-    if (size == 0) return NULL;
+    if (size == 0) return nullptr;
 
     HeapSegHdr* current_seg = (HeapSegHdr*) heap_start;
     while (true)
@@ -54,7 +54,7 @@ void* malloc(size_t size) {
                 return (void*)((uint64_t)current_seg + sizeof(HeapSegHdr));
             }
         }
-        if (current_seg->next == NULL) break;
+        if (current_seg->next == nullptr) break;
         current_seg = current_seg->next;
     }
     expand_heap(size);
@@ -73,7 +73,6 @@ void* alloc_aligned(size_t alignment, size_t size, size_t boundary) {
         size += 0x10;
     }
 
-    // Wenn keine Boundary angegeben, einfach Standard-Alloc
     if (boundary == 0) {
         size_t total_size = size + alignment - 1 + sizeof(void*);
         void* raw_ptr = malloc(total_size);
@@ -88,10 +87,8 @@ void* alloc_aligned(size_t alignment, size_t size, size_t boundary) {
         return (void*)aligned_addr;
     }
 
-    // Boundary muss Potenz von 2 sein
     if ((boundary & (boundary - 1)) != 0) return nullptr;
 
-    // Wir erhöhen Größe um Alignment + Boundary, um Spielraum zu haben
     size_t total_size = size + alignment - 1 + sizeof(void*) + boundary - 1;
     void* raw_ptr = malloc(total_size);
     if (!raw_ptr) return nullptr;
@@ -99,12 +96,10 @@ void* alloc_aligned(size_t alignment, size_t size, size_t boundary) {
     uintptr_t raw_addr = (uintptr_t)raw_ptr;
     uintptr_t end_addr = raw_addr + total_size;
 
-    // Wir suchen eine passende Adresse innerhalb des Bereichs
     for (uintptr_t candidate = (raw_addr + sizeof(void*) + alignment - 1) & ~(alignment - 1);
          candidate + size <= end_addr;
          candidate += alignment) {
 
-        // Prüfe, ob der Bereich innerhalb der boundary bleibt:
         uintptr_t start_boundary = candidate & ~(boundary - 1);
         uintptr_t end_boundary = (candidate + size - 1) & ~(boundary - 1);
 
@@ -115,7 +110,6 @@ void* alloc_aligned(size_t alignment, size_t size, size_t boundary) {
         }
          }
 
-    // Sollte eigentlich nie passieren
     free(raw_ptr);
     return nullptr;
 }

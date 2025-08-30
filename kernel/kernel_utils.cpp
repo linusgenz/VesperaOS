@@ -20,7 +20,7 @@
 #include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
 #include "time/time.h"
-#include "../Splash_VesperaOS.h"
+//#include "../Splash_VesperaOS.h"
 #include "../filesystem/vfs/vfs.h"
 #include "include/sys/syscalls.h"
 #include "scheduling/thread_manager.h"
@@ -180,39 +180,27 @@ void render_image_rgba8888_centered(
 }
 
 
-extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
-extern unsigned int Splash_VesperaOS_raw_len;
+//extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
+//extern unsigned int Splash_VesperaOS_raw_len;
 
-ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
-static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
 Framebuffer *TargetFramebuffer = nullptr;
-
 void initialize_kernel(BootInfo *bootInfo) {
     zero_bss();
-    renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->psf1_font);
-    Log::SetRenderer(&renderer);
-    global_renderer = &renderer;
-    memset(bootInfo->framebuffer->base_address, 0, bootInfo->framebuffer->buffer_size);
-
-    TargetFramebuffer = bootInfo->framebuffer;
-
-    uint32_t *framebuffer = (uint32_t *) TargetFramebuffer->base_address;
-    size_t width = TargetFramebuffer->width - 1;
-    size_t height = TargetFramebuffer->height - 1;
+   TargetFramebuffer = bootInfo->framebuffer;
 
     const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
     const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
     const uint64_t fb_height = TargetFramebuffer->height;
-
-    global_renderer->set_clear_color(Colour::BG_COLOUR);
-    for (int y = 0; y < fb_height; y++) {
+ //   memset(TargetFramebuffer->base_address, 0xFF, fb_height * bytes_per_scanline);
+ //   global_renderer->set_clear_color(Colour::BG_COLOUR);
+   /* for (int y = 0; y < fb_height; y++) {
         uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
         for (uint32_t *pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base);
              pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr++) {
             *pix_ptr = 0x00061220;
         }
-    }
-
+    }*/
+/*
     render_image_rgba8888_centered(
         TargetFramebuffer,
         Splash_VesperaOS_raw,
@@ -220,14 +208,22 @@ void initialize_kernel(BootInfo *bootInfo) {
         1024,
         PIXEL_FORMAT_RGB
     );
-    generate_throbber();
-
+    generate_throbber();*/
     Log::enableDebug();
 
     gdt_install();
 
     prepare_memory(bootInfo);
     kernel::memory::initialize_heap((void *) 0x0000100000000000, 0x500);
+
+    Log::init();
+
+    global_renderer = new BasicRenderer(bootInfo->framebuffer, bootInfo->psf1_font);
+    global_renderer->setup_buffer();
+    Log::SetRenderer(global_renderer);
+    global_renderer->clear_screen();
+
+    Log::Info("Total RAM: %u mb", kernel::memory::get_total_ram() / 1024 / 1024);
 
     prepare_acpi(bootInfo);
     MADT::parse_madt(ACPI::TableManager::get_madt());
@@ -239,17 +235,15 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     asm ("sti");
 
-    setup_scroll_buffer(bootInfo->framebuffer);
-    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
-    scroll_manager = &s;
-
-    kernel::DeviceManager::Init();
+  //  setup_scroll_buffer(bootInfo->framebuffer);
+//    scroll_manager = new ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, global_renderer);
+  //  kernel::DeviceManager::Init();
 
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
-    CPUManager::initialize();
-    Log::init(); // threads are possible -> switch to mutex
-    prepare_ap_trampoline();
+  //  CPUManager::initialize();
+ //   Log::init(); // threads are possible -> switch to mutex
+  /*  prepare_ap_trampoline();
 
     kernel::scheduling::init(CPUManager::total_cpus);
 
@@ -257,18 +251,18 @@ void initialize_kernel(BootInfo *bootInfo) {
     kernel::scheduling::add_thread(t);
 
     CPUManager::smp_init();
+*/
+   /* vfs_init();
 
-    vfs_init();
-
-    auto dir21 = vfs_opendir("/mnt/ext4_1/");
+    auto dir21 = vfs_opendir("/mnt/ext4_1/fs/");
     Log::debug("vfs_opendir: %d", dir21);
-    char name21[128];
+    char name21[200];
     while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
         Log::PrintLn("Eintrag2: %s", name21);
     }
 
     vfs_closedir(dir21);
-
+*/
     syscall_init();
     install_syscalls();
 
@@ -276,5 +270,5 @@ void initialize_kernel(BootInfo *bootInfo) {
     //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
     //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
-    kernel::interrupts::mask_pic();
+  //  kernel::interrupts::mask_pic();
 }

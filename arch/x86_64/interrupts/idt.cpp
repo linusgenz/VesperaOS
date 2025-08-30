@@ -1,5 +1,7 @@
 #include "idt.h"
 
+#include <log.h>
+
 #include "../../../kernel/include/memory.h"
 #include "interrupts_internal.h"
 #include "../../../kernel/include/interrupts.h"
@@ -31,14 +33,14 @@ namespace arch::x86_64::interrupts::idt {
 
     bool register_irq_handler(uint8_t irqno, irq_handler_t handler, void* cookie) {
         if (irqno >= IRQ_MAX) return false;
-        if (irq_handler_table[irqno].handler != nullptr) return false; // Schon vergeben
+        if (irq_handler_table[irqno].handler != nullptr) return false;
         irq_handler_table[irqno].handler = handler;
         irq_handler_table[irqno].cookie = cookie;
         return true;
     }
 
     extern "C" void irq_common_stub_handler(uint8_t irqno) {
-        if (irqno >= IRQ_MAX) return; // Fehlerbehandlung
+        if (irqno >= IRQ_MAX) return;
 
         irq_desc& desc = irq_handler_table[irqno];
 

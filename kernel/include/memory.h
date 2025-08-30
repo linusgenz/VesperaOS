@@ -56,6 +56,7 @@ namespace kernel::memory {
     void* request_page();
     void *request_pages(size_t pageCount);
 
+    uint64_t get_total_ram();
     uint64_t get_free_ram();
     uint64_t get_used_ram();
     uint64_t get_reserved_ram();

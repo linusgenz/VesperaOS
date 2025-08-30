@@ -3,6 +3,9 @@
 //
 
 #include "../include/log.h"
+
+#include <vector.h>
+
 #include "../include/string.h"
 
 BasicRenderer *Log::renderer = nullptr;
@@ -10,9 +13,17 @@ spinlock_t Log::log_spin = {};
 kernel::mutex_t Log::log_mutex = {};
 bool Log::initialized = false;
 bool Log::is_debug = false;
+Vector<LogEntry>* Log::log_queue = nullptr;
+
+struct LogEntry {
+    char text[256];
+    Colour colour;
+    size_t length;
+};
 
 void Log::init() {
     initialized = true;
+    Log::log_queue = new Vector<LogEntry>;
     kernel::mutex_init(&log_mutex);
 }
 
@@ -23,7 +34,6 @@ void Log::SetRenderer(BasicRenderer *r) {
 void Log::enableDebug() {
     is_debug = true;
 }
-
 
 void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = false) {
     char *digits = "0123456789ABCDEF";
@@ -52,6 +62,39 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
     buffer[j] = '\0';
 }
 
+void Log::queue_log(const char *text, Colour col) {
+    LogEntry entry{};
+    size_t len = strlen(text);
+    if (len > sizeof(entry.text) - 1) len = sizeof(entry.text) - 1;
+    memcpy(entry.text, text, len);
+    entry.text[len] = '\0';
+    entry.length = len;
+    entry.colour = col;
+
+    log_queue->push_back(entry);
+}
+
+
+void Log::flush() {
+    if (!renderer || !log_queue) return;
+
+    if (!log_queue->empty()) {
+      //  kernel::mutex_lock(&log_mutex);
+
+        for (size_t i = 0; i < log_queue->size(); ++i) {
+            LogEntry &entry = (*log_queue)[i];
+            Colour old = renderer->get_colour();
+            renderer->set_colour(entry.colour);
+            renderer->print(entry.text, entry.length);
+            renderer->set_colour(old);
+        }
+
+        log_queue->clear();
+        renderer->present();
+     //   kernel::mutex_unlock(&log_mutex);
+    }
+}
+
 void Log::Info(const char *fmt, ...) {
     if (!initialized) {
         spinlock_guard g(log_spin);
@@ -59,19 +102,16 @@ void Log::Info(const char *fmt, ...) {
         kernel::mutex_lock(&log_mutex);
     }
 
-    Colour old = renderer->get_colour();
-    renderer->print("[  ");
-    renderer->set_colour(Colour::BLUE);
-    renderer->print("INFO");
-    renderer->set_colour(old);
-    renderer->print("   ] ");
+    queue_log("[  ");
+    queue_log("INFO", Colour::BLUE);
+    queue_log("   ] ");
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
@@ -85,19 +125,16 @@ void Log::Ok(const char *fmt, ...) {
         kernel::mutex_lock(&log_mutex);
     }
 
-    Colour old = renderer->get_colour();
-    renderer->print("[   ");
-    renderer->set_colour(Colour::GREEN);
-    renderer->print("OK");
-    renderer->set_colour(old);
-    renderer->print("    ] ");
+    queue_log("[   ");
+    queue_log("OK", Colour::GREEN);
+    queue_log("    ] ");
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
@@ -111,19 +148,16 @@ void Log::Warning(const char *fmt, ...) {
         kernel::mutex_lock(&log_mutex);
     }
 
-    Colour old = renderer->get_colour();
-    renderer->print("[ ");
-    renderer->set_colour(Colour::YELLOW);
-    renderer->print("WARNING");
-    renderer->set_colour(old);
-    renderer->print(" ] ");
+    queue_log("[ ");
+    queue_log("WARNING", Colour::YELLOW);
+    queue_log(" ] ");
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
@@ -137,19 +171,16 @@ void Log::Error(const char *fmt, ...) {
         kernel::mutex_lock(&log_mutex);
     }
 
-    Colour old = renderer->get_colour();
-    renderer->print("[  ");
-    renderer->set_colour(Colour::RED);
-    renderer->print("ERROR");
-    renderer->set_colour(old);
-    renderer->print("  ] ");
+    queue_log("[  ");
+    queue_log("ERROR", Colour::RED);
+    queue_log("  ] ");
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
@@ -163,19 +194,16 @@ void Log::LogMsg(const char *fmt, ...) {
         kernel::mutex_lock(&log_mutex);
     }
 
-    Colour old = renderer->get_colour();
-    renderer->print("[   ");
-    renderer->set_colour(Colour::GRAY);
-    renderer->print("LOG");
-    renderer->set_colour(old);
-    renderer->print("   ] ");
+    queue_log("[   ");
+    queue_log("LOG", Colour::GRAY);
+    queue_log("   ] ");
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
@@ -191,10 +219,10 @@ void Log::PrintLn(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
@@ -210,7 +238,7 @@ void Log::Print(const char *fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
     if (initialized) {
@@ -226,24 +254,22 @@ void Log::debug(const char *fmt, ...) {
         kernel::mutex_lock(&log_mutex);
     }
 
-    Colour old = renderer->get_colour();
-    renderer->print("[  ");
-    renderer->set_colour(Colour::ORANGE);
-    renderer->print("DEBUG");
-    renderer->set_colour(old);
-    renderer->print("  ] ");
+    queue_log("[  ");
+    queue_log("DEBUG", Colour::ORANGE);
+    queue_log("  ] ");
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
-    print_formatted(fmt, args);
+    queue_log_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    queue_log("\n");
 
     if (initialized) {
         kernel::mutex_unlock(&log_mutex);
     }
 }
+
 
 static void float_to_str(float val, char *buf, int precision) {
     if (val < 0) {
@@ -252,8 +278,8 @@ static void float_to_str(float val, char *buf, int precision) {
     }
 
     // Ganzzahlteil
-    uint32_t int_part = (uint32_t)val;
-    float frac_part = val - (float)int_part;
+    uint32_t int_part = (uint32_t) val;
+    float frac_part = val - (float) int_part;
 
     char int_buf[32];
     UIntToStr(int_part, int_buf, 10);
@@ -267,7 +293,7 @@ static void float_to_str(float val, char *buf, int precision) {
     // Nachkommateil
     for (int i = 0; i < precision; i++) {
         frac_part *= 10.0f;
-        int digit = (int)frac_part;
+        int digit = (int) frac_part;
         *buf++ = '0' + digit;
         frac_part -= digit;
     }
@@ -275,108 +301,89 @@ static void float_to_str(float val, char *buf, int precision) {
     *buf = '\0';
 }
 
-void Log::print_formatted(const char *fmt, __builtin_va_list args) {
+void Log::queue_log_formatted(const char *fmt, __builtin_va_list args, Colour colour) {
+    char buffer[256];
+
+    size_t pos = 0;
+    auto write_char = [&](char c) {
+        if (pos < sizeof(buffer) - 1) buffer[pos++] = c;
+    };
+
     char chr;
-    while ((chr = *fmt++) != 0) {
+    const char *p = fmt;
+    while ((chr = *p++) != 0) {
         if (chr == '%') {
-            // Flags & Width
             bool long_long = false;
             bool long_flag = false;
             char pad_char = ' ';
             int min_width = 0;
 
-            // Padding: z. B. %02x → '0' erkannt
-            if (*fmt == '0') {
+            if (*p == '0') {
                 pad_char = '0';
-                fmt++;
+                p++;
             }
-
-            // Breite (z. B. 2, 4, 8, etc.)
-            while (*fmt >= '0' && *fmt <= '9') {
-                min_width = min_width * 10 + (*fmt - '0');
-                fmt++;
+            while (*p >= '0' && *p <= '9') {
+                min_width = min_width * 10 + (*p - '0');
+                p++;
             }
-
-            // Länge: l / ll
-            if (*fmt == 'l') {
-                fmt++;
-                if (*fmt == 'l') {
+            if (*p == 'l') {
+                p++;
+                if (*p == 'l') {
                     long_long = true;
-                    fmt++;
-                } else {
-                    long_flag = true;
-                }
+                    p++;
+                } else long_flag = true;
             }
 
-            char specifier = *fmt++;
-            char buffer[64];
+            char specifier = *p++;
+            char numbuf[64];
 
             switch (specifier) {
                 case 's': {
-                    const char *str = __builtin_va_arg(args, const char*);
-                    renderer->print(str ? str : "<null>");
+                    const char *s = __builtin_va_arg(args, const char*);
+                    if (!s) s = "<null>";
+                    while (*s) write_char(*s++);
                     break;
                 }
+                case 'd':
                 case 'u':
                 case 'x': {
                     uint64_t val = (long_long || long_flag)
                                        ? __builtin_va_arg(args, uint64_t)
                                        : __builtin_va_arg(args, uint32_t);
                     int base = (specifier == 'x') ? 16 : 10;
-                    UIntToStr(val, buffer, base);
-
-                    // Padding manuell
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
-                        renderer->put_char(pad_char);
-
-                    renderer->print(buffer);
+                    UIntToStr(val, numbuf, base);
+                    for (char *c = numbuf; *c; ++c) write_char(*c);
                     break;
                 }
-                case 'd': {
-                    int64_t val = (long_long || long_flag)
-                                      ? __builtin_va_arg(args, int64_t)
-                                      : __builtin_va_arg(args, int32_t);
-                    if (val < 0) {
-                        renderer->put_char('-');
-                        val = -val;
-                    }
-                    UIntToStr((uint64_t) val, buffer, 10);
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
-                        renderer->put_char(pad_char);
-                    renderer->print(buffer);
-                    break;
-                }
-                case 'f': {  // Neuer Float-Support
+                case 'f': {
                     double val = __builtin_va_arg(args, double);
-                    float_to_str((float)val, buffer, 6); // 6 Nachkommastellen Standard
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
-                        renderer->put_char(pad_char);
-                    renderer->print(buffer);
+                    float_to_str((float) val, numbuf, 6);
+                    for (char *c = numbuf; *c; ++c) write_char(*c);
                     break;
                 }
                 case 'p': {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);
-                    renderer->print("0x");
-                    UIntToStr(val, buffer, 16);
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
-                        renderer->put_char('0');
-                    renderer->print(buffer);
+                    write_char('0');
+                    write_char('x');
+                    UIntToStr(val, numbuf, 16);
+                    for (char *c = numbuf; *c; ++c) write_char(*c);
                     break;
                 }
-                case '%':
-                    renderer->put_char('%');
+                case '%': write_char('%');
                     break;
-                default:
-                    renderer->put_char('%');
-                    renderer->put_char(specifier);
+                default: write_char('%');
+                    write_char(specifier);
                     break;
             }
         } else {
-            renderer->put_char(chr);
+            write_char(chr);
         }
     }
+
+    buffer[pos] = '\0';
+    LogEntry entry{};
+    entry.colour = colour;
+    memcpy(entry.text, buffer, pos + 1);
+    entry.length = pos;
+    log_queue->push_back(entry);
 }

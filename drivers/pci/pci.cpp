@@ -2,7 +2,9 @@
 #include "../../include/log.h"
 #include "../nvme/nvme.h"
 #include "../usb/xhci/xhci.h"
+#include "msix.h"
 #include "../../kernel/devices/device_manager.h"
+#include <interrupts.h>
 
 namespace PCI {
     void enumerate_function(uint64_t device_address, uint64_t function) {
@@ -18,7 +20,7 @@ namespace PCI {
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-   /*     Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
+     /*   Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
                     get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
                     get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
                     get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
@@ -48,7 +50,8 @@ namespace PCI {
                     case 0x08:
                         switch (pci_device_header->prog_if) {
                              case 0x02:
-                               uint16_t command_register = pci_device_header->command;
+                                break;
+                           /*    uint16_t command_register = pci_device_header->command;
 
                                 uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
@@ -66,7 +69,7 @@ namespace PCI {
                                 for (size_t i = 0; i < ns_list.size(); ++i) {
                                     Log::debug("added device: %u", i);
                                     kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(ns_list[i]));
-                                }
+                                }*/
                         }
                 }
             case 0x0C:
@@ -80,7 +83,7 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-                      /*          uint16_t command = pci_read16(pci_device_header, 0x04);
+                                uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                                 pci_write16(pci_device_header, 0x04, command);
                                 if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header), IRQ_XHCI_VECTOR)) Log::debug("enabled msi(x)");
@@ -89,7 +92,7 @@ namespace PCI {
                                     Log::Error("Could not initalize xhci driver");
                                     return;
                                 }
-                                usb_driver->start_device();*/
+                                usb_driver->start_device();
                             }
                             case 0x80:
 

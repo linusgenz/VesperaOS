@@ -30,7 +30,7 @@ __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
                (error_code & 2) ? "Yes" : "No",
                (error_code & 4) ? "Yes" : "No",
                (error_code & 8) ? "Yes" : "No");
-
+    Log::flush();
     panic("Page fault detected");
     while (true);
 }
@@ -40,6 +40,7 @@ __attribute__((interrupt)) void double_fault_handler(interrupt_frame *frame) {
                frame->rip, frame->error_code);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
+    Log::flush();
     panic("Double fault detected");
     while (true);
 }
@@ -64,7 +65,7 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
 
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Selector: 0x%x", selector);
-
+    Log::flush();
     panic("General protection fault detected");
     while (true);
 }
@@ -79,7 +80,7 @@ __attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame *frame) {
     uint8_t *opcode_ptr = (uint8_t *) frame->rip;
     Log::Error("  Opcode bytes: %02x %02x %02x %02x",
                opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
-
+    Log::flush();
     panic("Invalid opcode detected");
     while (true);
 }
@@ -93,7 +94,7 @@ __attribute__((interrupt)) void stack_fault_handler(interrupt_frame *frame) {
 
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Stack selector: 0x%x", selector);
-
+    Log::flush();
     panic("Stack fault detected");
     while (true);
 }
@@ -115,7 +116,7 @@ __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame *fra
     } else {
         Log::Error("  GDT referenced");
     }
-
+    Log::flush();
     panic("Segment not present");
     while (true);
 }
@@ -125,6 +126,7 @@ __attribute__((interrupt)) void divide_error_handler(interrupt_frame *frame) {
     Log::Error("DIVIDE BY ZERO: rip=0x%llx", frame->rip);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
+    Log::flush();
 
     panic("Divide by zero");
     while (true);
@@ -135,7 +137,7 @@ __attribute__((interrupt)) void machine_check_handler(interrupt_frame *frame) {
     Log::Error("MACHINE CHECK EXCEPTION: rip=0x%llx", frame->rip);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
-
+    Log::flush();
     panic("Machine check exception");
     while (true);
 }
@@ -166,6 +168,7 @@ __attribute__((interrupt))
 void apic_timer_int_handler(interrupt_frame *frame) {
     arch::x86_64::interrupts::apic::timer_accounting();
     arch::x86_64::interrupts::apic::send_eoi();
+    Log::flush();
     arch::x86_64::interrupts::apic::timer_tick(frame);
 }
 

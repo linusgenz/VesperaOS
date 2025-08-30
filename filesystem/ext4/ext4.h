@@ -26,6 +26,7 @@
 
 #include "../../kernel/devices/blockdevice.h"
 #include <cstdint>
+#include <log.h>
 #include <vector.h>
 
 namespace EXT4 {
@@ -81,6 +82,23 @@ namespace EXT4 {
         uint8_t s_uuid[16];
         uint8_t s_volume_name[16];
         uint8_t s_last_mounted[64];
+
+        uint32_t s_algorithm_usage_bitmap;
+
+        // ext4_dyn_rev
+        uint8_t  s_prealloc_blocks;
+        uint8_t  s_prealloc_dir_blocks;
+        uint16_t s_reserved_gdt_blocks;
+
+        uint8_t  s_journal_uuid[16];
+        uint32_t s_journal_inum;
+        uint32_t s_journal_dev;
+        uint32_t s_last_orphan;
+
+        uint32_t s_hash_seed[4];
+        uint8_t  s_def_hash_version;
+        uint8_t  s_jnl_backup_type;
+        uint16_t s_desc_size;
     } __attribute__((packed));
 
     struct GroupDesc {
@@ -96,7 +114,20 @@ namespace EXT4 {
         uint16_t bg_inode_bitmap_csum_lo;
         uint16_t bg_itable_unused_lo;
         uint16_t bg_checksum;
+
+        uint32_t bg_block_bitmap_hi;
+        uint32_t bg_inode_bitmap_hi;
+        uint32_t bg_inode_table_hi;
+        uint16_t bg_free_blocks_count_hi;
+        uint16_t bg_free_inodes_count_hi;
+        uint16_t bg_used_dirs_count_hi;
+        uint16_t bg_itable_unused_hi;
+        uint32_t bg_exclude_bitmap_hi;
+        uint16_t bg_block_bitmap_csum_hi;
+        uint16_t bg_inode_bitmap_csum_hi;
+        uint32_t bg_reserved;
     } __attribute__((packed));
+
 
 
     // on-disk inode (base portion - we only read relevant fields)
@@ -211,7 +242,7 @@ namespace EXT4 {
 
         bool is_valid() const { return valid; }
 
-        FileEntry *read_directory(uint32_t inodeNumber, size_t &outCount);
+        size_t read_directory(uint32_t inodeNumber, FileEntry* outEntries);
 
         ~FileSystem();
 

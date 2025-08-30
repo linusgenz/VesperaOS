@@ -86,6 +86,7 @@ namespace PCI {
                 msix_cap->enable_bit = 1;
                 msix_cap->message_control = msix_cap->message_control; // trigger write
 
+                Log::debug("MSIX enabled");
                 return true;
             }
 

@@ -1,6 +1,8 @@
 //
 // Created by linus on 02.07.25.
 //
+#include <log.h>
+
 #include "time.h"
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../cpu/cpu_manager.h"
@@ -28,7 +30,7 @@ namespace kernel::time {
             uint64_t target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
 
             while (interrupts::lapic_get_ticks(cpu) < target) {
-                asm volatile("hlt");
+                asm volatile("sti; hlt");
             }
         }
     }
