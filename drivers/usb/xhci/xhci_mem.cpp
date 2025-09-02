@@ -38,7 +38,7 @@ void *alloc_xhci_memory(size_t size, size_t alignment, size_t boundary) {
         Log::Error("Invalid memory alignment");
     }
 
-    void *memblock = kernel::memory::alloc_aligned(alignment, size, boundary);
+    void *memblock = kernel::memory::alloc_aligned(size, alignment, boundary);
 
     if (!memblock) {
         Log::Error("Failed to allocate memory");

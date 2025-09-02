@@ -371,7 +371,7 @@ namespace NVMe {
         return true;
     }
 
-    bool NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer) const {
+    bool NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer) {
         NvmeCommand write_cmd = {};
         write_cmd.opcode = NVME_OPCODE_WRITE; // NVM Write
         write_cmd.ns_id = nsID;

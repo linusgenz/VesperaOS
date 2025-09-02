@@ -72,4 +72,32 @@ private:
     xhci_trb_t* _dequeue_trb();
 };
 
+class xhciTransferRing {
+public:
+    static xhciTransferRing *allocate(uint8_t slot_id);
+
+    xhciTransferRing(size_t max_trbs, uint8_t doorbell_id);
+
+    ~xhciTransferRing() = default;
+
+    inline xhci_trb_t *get_virtual_base() const { return m_trbs; }
+    inline uintptr_t get_physical_base() const { return m_physical_base; }
+    inline uint8_t get_cycle_bit() const { return m_rcs_bit; }
+    inline uint8_t get_doorbell_id() const { return m_doorbell_id; }
+
+    uintptr_t get_physical_dequeue_pointer_base() const;
+
+    void enqueue(xhci_trb_t *trb);
+
+private:
+    size_t m_max_trb_count; // Number of valid TRBs in the ring including the LINK_TRB
+    size_t m_dequeue_ptr; // Transfer ring consumer dequeue pointer
+    size_t m_enqueue_ptr; // Transfer ring producer enqueue pointer
+    xhci_trb_t *m_trbs; // Base address of the ring buffer
+    uintptr_t m_physical_base;
+    uint8_t m_rcs_bit; // Dequeue cycle state
+    uint8_t m_doorbell_id; // ID of the doorbell associated with the ring
+};
+
+
 #endif // XHCI_RINGS_H

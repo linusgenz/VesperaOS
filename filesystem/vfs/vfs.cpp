@@ -32,7 +32,7 @@
 #include "fs_detection.h"
 
 void vfs_init() {
-    Log::Info("[VFS] Starting enhanced VFS initialization...");
+ //   Log::Info("[VFS] Starting enhanced VFS initialization...");
 
     FilesystemDetector::Init();
 
@@ -258,7 +258,7 @@ VfsNode* vfs_mount_device(BlockDevice* device, const char* mount_path) {
 }
 
 bool vfs_probe_filesystem(BlockDevice* device) {
-    FilesystemInfo info;
+    FilesystemInfo info{};
     return FilesystemDetector::DetectFilesystem(device, &info);
 }
 

@@ -34,6 +34,7 @@
 namespace kernel::interrupts {
     void initialize() {
         arch::x86_64::interrupts::apic::apic_ticks[MAX_CPU_CORES-1] = 0;
+        memset(arch::x86_64::interrupts::idt::irq_handler_table, 0, sizeof(arch::x86_64::interrupts::idt::irq_handler_table));
 
         kernel::memory::map_memory(g_localApicAddr,
                                    g_localApicAddr,
@@ -46,7 +47,7 @@ namespace kernel::interrupts {
     }
 
     void register_irq(uint8_t irq, irq_handler_t handler, void *cookie) {
-        arch::x86_64::interrupts::idt::register_irq_handler(IRQ_BASE + irq, handler, cookie);
+        arch::x86_64::interrupts::idt::register_irq_handler(irq, handler, cookie);
     }
 
     void set_vector(uint8_t vector, void *handler) {

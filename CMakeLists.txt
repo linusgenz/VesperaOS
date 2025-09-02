@@ -17,6 +17,7 @@ include_directories(
 
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
 file(GLOB_RECURSE ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
+list(FILTER CPP_SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
 
 set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
@@ -103,20 +104,23 @@ add_custom_target(img
 
 # QEMU run
 add_custom_target(test
-        COMMAND qemu-system-x86_64
+        COMMAND /home/Linus/Dokumente/qemu/build/qemu-system-x86_64-debug
         -m 4G
         -machine q35
         -enable-kvm
         -cpu host
         -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -device nvme,drive=host0,serial=deadbeef
-        -drive file=${CMAKE_SOURCE_DIR}/ext4.img,if=none,format=raw,id=nvme1
-        -device nvme,drive=nvme1,serial=beefdead
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
         -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
         -net none
         -monitor stdio
-        -device qemu-xhci,id=xhci,msi=on,msix=on
+        -device qemu-xhci
+      -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
+      -device usb-storage,drive=usbstick
+        -device usb-kbd
+        -trace *xhci*
+        -D /tmp/qemu.log
         -no-reboot
         -no-shutdown
         DEPENDS disk_image
@@ -127,20 +131,21 @@ add_custom_target(debug
         -m 4G
         -machine q35
         -enable-kvm
-        -cpu qemu64
-        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
-        -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
+        -cpu host
         -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -device nvme,drive=host0,serial=deadbeef
-        -drive file=${CMAKE_SOURCE_DIR}/ext4.img,if=none,format=raw,id=nvme1
-        -device nvme,drive=nvme1,serial=beefdead
+        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
+        -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
         -net none
-        -device qemu-xhci,id=xhci
-        -device usb-mouse
-        -S -s
+        -monitor stdio
+        -device qemu-xhci
+        -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
+        -device usb-storage,drive=usbstick
+        -device usb-kbd
+        -trace *xhci*
+        -D /tmp/qemu.log
         -no-reboot
         -no-shutdown
-        -monitor stdio
         DEPENDS disk_image
 )
 

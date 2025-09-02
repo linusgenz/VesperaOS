@@ -153,7 +153,7 @@ namespace AHCI {
             return Read(lba, sectorCount, buffer);
         }
 
-        bool write(uint64_t sector, uint32_t sectorCount, void *buffer) const override {
+        bool write(uint64_t sector, uint32_t sectorCount, void *buffer) override {
             return Write(sector, sectorCount, buffer);
         }
 

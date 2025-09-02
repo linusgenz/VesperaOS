@@ -153,6 +153,8 @@ namespace FAT32 {
     public:
         explicit FileSystem(BlockDevice *device);
 
+        ~FileSystem();
+
         bool is_valid() const;
 
         uint32_t GetRootCluster() const;

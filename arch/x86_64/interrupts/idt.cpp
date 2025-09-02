@@ -1,5 +1,7 @@
 #include "idt.h"
 
+#include <log.h>
+
 #include "../../../kernel/include/memory.h"
 #include "interrupts_internal.h"
 #include "../../../kernel/include/interrupts.h"
@@ -38,7 +40,7 @@ namespace arch::x86_64::interrupts::idt {
     }
 
     extern "C" void irq_common_stub_handler(uint8_t irqno) {
-        if (irqno >= IRQ_MAX) return; // Fehlerbehandlung
+        if (irqno >= IRQ_MAX) return;
 
         irq_desc& desc = irq_handler_table[irqno];
 

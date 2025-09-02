@@ -1,10 +1,10 @@
-// interrupts.h
+// xhci_hid_driver.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 30.07.25.
+// Created by Linus Genz on 01.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,27 +21,25 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef INTERRUPTS_H
-#define INTERRUPTS_H
+#ifndef VESPERAOS_XHCI_HID_DRIVER_H
+#define VESPERAOS_XHCI_HID_DRIVER_H
 
+#include "xhci_usb_device_driver.h"
 #include <cstdint>
-#include "../../arch/x86_64/interrupts/idt.h"
 
-#define IRQ_XHCI_VECTOR      0x30
+class xhciHidDriver : public xhciUsbDeviceDriver {
+public:
+    xhciHidDriver() = default;
+    ~xhciHidDriver() = default;
 
-namespace kernel::interrupts {
-    void initialize();  // sets IDT, APIC, IOAPIC, PIC
-    bool register_irq(uint8_t irq, irq_handler_t handler, void* cookie = nullptr);
-    arch::x86_64::interrupts::idt::IDTR* get_idtr_address();
-    void lapic_send_eoi();
-    void lapic_init(uint32_t cpu_id);
-    void lapic_write(uint32_t offset, uint32_t value);
-    uint32_t lapic_read(uint32_t offset);
-    void lapic_wait_for_delivery();
-    uint64_t lapic_get_ticks(uint32_t cpu_id);
-    uint32_t lapic_get_id();
-    void set_vector(uint8_t vector, void *handler);
-    void mask_pic();
-}
+    virtual void on_device_init() = 0;
+    virtual void on_device_event(uint8_t* data) = 0;
 
-#endif //INTERRUPTS_H
+    void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) override;
+    void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
+
+private:
+    void request_hid_report(USB::xhciDriver* hcd, xhciDevice* dev);
+};
+
+#endif //VESPERAOS_XHCI_HID_DRIVER_H

@@ -1,10 +1,10 @@
-// interrupts.h
+// xhci_usb_interface.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 30.07.25.
+// Created by Linus Genz on 29.08.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,27 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef INTERRUPTS_H
-#define INTERRUPTS_H
+#include "xhci_usb_interface.h"
 
-#include <cstdint>
-#include "../../arch/x86_64/interrupts/idt.h"
-
-#define IRQ_XHCI_VECTOR      0x30
-
-namespace kernel::interrupts {
-    void initialize();  // sets IDT, APIC, IOAPIC, PIC
-    bool register_irq(uint8_t irq, irq_handler_t handler, void* cookie = nullptr);
-    arch::x86_64::interrupts::idt::IDTR* get_idtr_address();
-    void lapic_send_eoi();
-    void lapic_init(uint32_t cpu_id);
-    void lapic_write(uint32_t offset, uint32_t value);
-    uint32_t lapic_read(uint32_t offset);
-    void lapic_wait_for_delivery();
-    uint64_t lapic_get_ticks(uint32_t cpu_id);
-    uint32_t lapic_get_id();
-    void set_vector(uint8_t vector, void *handler);
-    void mask_pic();
+xhciUsbInterface::xhciUsbInterface(uint8_t dev_slot_id, const usb_interface_descriptor* desc) : m_dev_slot_id(dev_slot_id) {
+    this->descriptor = *desc;
 }
 
-#endif //INTERRUPTS_H
+void xhciUsbInterface::setup_add_endpoint(const usb_endpoint_descriptor* ep_desc) {
+    const auto ep = new xhciEndpoint(m_dev_slot_id, ep_desc);
+    endpoints.push_back(ep);
+}

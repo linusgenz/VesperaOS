@@ -28,7 +28,7 @@ void ScrollManager::setup_new_line()
         scroll_down();
     }
 
-    save_top_lines_to_buffer();
+  //  save_top_lines_to_buffer();
 
     shift_lines_up();
 

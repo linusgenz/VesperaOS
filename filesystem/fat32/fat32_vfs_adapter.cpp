@@ -255,12 +255,12 @@ VfsNode *wrap_fat32_root(FileSystem *fs) {
 }
 
 int fat32_probe(BlockDevice *dev) {
-    FileSystem fs(dev);
+    const FileSystem fs(dev);
     return fs.is_valid();
 }
 
 VfsNode *fat32_mount(BlockDevice *dev) {
-    FileSystem *fs = new FileSystem(dev);
+    auto *fs = new FileSystem(dev);
     Log::debug("fat32_mount valid? : %u", fs->is_valid());
     if (!fs->is_valid()) return nullptr;
     return wrap_fat32_root(fs);

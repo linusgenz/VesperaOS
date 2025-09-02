@@ -42,17 +42,26 @@ namespace kernel {
         mutex_unlock(&device_manager_mutex);
     }
 
-    Vector<BlockDevice *> DeviceManager::GetDevices() {
-        mutex_lock(&device_manager_mutex);
-        auto copy = devices;
-        mutex_unlock(&device_manager_mutex);
-        return *copy;
+    Vector<BlockDevice*> copy_devices(const Vector<BlockDevice*>& src) {
+        Vector<BlockDevice*> out(src.size());
+        for (auto i : src) {
+            out.push_back(i);
+        }
+        return out;
     }
+
+    Vector<BlockDevice*> DeviceManager::GetDevices() {
+        mutex_lock(&device_manager_mutex);
+        auto result = copy_devices(*devices);
+        mutex_unlock(&device_manager_mutex);
+        return result;
+    }
+
 
     uint32_t DeviceManager::GetDeviceCount() {
         mutex_lock(&device_manager_mutex);
-        auto copy = devices->size();
+        auto result = copy_devices(*devices);
         mutex_unlock(&device_manager_mutex);
-        return copy;
+        return result.size();
     }
 }

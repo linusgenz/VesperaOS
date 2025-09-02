@@ -333,6 +333,11 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     renderer->print(buffer);
                     break;
                 }
+                case 'c': {
+                    int val = __builtin_va_arg(args, int);
+                    renderer->put_char((char)val);
+                    break;
+                }
                 case 'd': {
                     int64_t val = (long_long || long_flag)
                                       ? __builtin_va_arg(args, int64_t)

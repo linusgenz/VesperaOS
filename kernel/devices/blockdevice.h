@@ -10,7 +10,7 @@
 class BlockDevice {
 public:
     virtual bool read(uint64_t lba, uint32_t sectorCount, void* buffer) = 0;
-    virtual bool write(uint64_t sector, uint32_t sectorCount, void *buffer) const = 0;
+    virtual bool write(uint64_t sector, uint32_t sectorCount, void *buffer) = 0;
     virtual uint32_t get_sector_size() { return 512; } // Default 512 Bytes
     virtual ~BlockDevice() = default;
 };

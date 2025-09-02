@@ -91,6 +91,7 @@ bool xhciEventRing::has_unprocessed_events() {
     return (m_trbs[m_dequeue_ptr].cycle_bit == m_rcs_bit);
 }
 
+/*
 void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
     // Process each event TRB
     while (has_unprocessed_events()) {
@@ -110,12 +111,32 @@ void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
     uint64_t dequeue_address = m_physical_base + (m_dequeue_ptr * sizeof(xhci_trb_t));
     dequeue_address |= XHCI_ERDP_EHB; // Event Handler Busy Bit setzen
     m_interrupter_regs->erdp = dequeue_address;
+}*/
+
+void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
+
+    while (has_unprocessed_events()) {
+        xhci_trb_t* trb = _dequeue_trb();
+        if (!trb) {
+            break;
+        }
+
+        trbs.push_back(trb);
+    }
+
+    // Update the ERDP register
+    _update_erdp();
+
+    // Clear the EHB (Event Handler Busy) bit
+    uint64_t dequeue_address = m_physical_base + (m_dequeue_ptr * sizeof(xhci_trb_t));
+    dequeue_address |= XHCI_ERDP_EHB; // Event Handler Busy Bit setzen
+    m_interrupter_regs->erdp = dequeue_address;
 }
 
 void xhciEventRing::flush_unprocessed_events() {
-    Vector<xhci_trb_t*> events;
-    dequeue_events(events);
-    events.clear();
+  //  Vector<xhci_trb_t*> events;
+  //  dequeue_events(events, TODO, TODO);
+  //  events.clear();
 }
 
 void xhciEventRing::_update_erdp() {
@@ -143,4 +164,55 @@ xhci_trb_t* xhciEventRing::_dequeue_trb() {
 
 uint64_t xhciEventRing::get_current_dequeue_physical() {
     return m_dequeue_ptr;
+}
+
+
+xhciTransferRing *xhciTransferRing::allocate(uint8_t slot_id) {
+    return new xhciTransferRing(XHCI_TRANSFER_RING_TRB_COUNT, slot_id);
+}
+
+xhciTransferRing::xhciTransferRing(size_t max_trbs, uint8_t doorbell_id) {
+    m_max_trb_count = max_trbs;
+    m_rcs_bit = 1;
+    m_dequeue_ptr = 0;
+    m_enqueue_ptr = 0;
+    m_doorbell_id = doorbell_id;
+
+    const uint64_t ring_size = max_trbs * sizeof(xhci_trb_t);
+
+    // Create the transfer ring memory block
+    m_trbs = (xhci_trb_t*)alloc_xhci_memory(
+        ring_size,
+        XHCI_TRANSFER_RING_SEGMENTS_ALIGNMENT,
+        XHCI_TRANSFER_RING_SEGMENTS_BOUNDARY
+    );
+
+    m_physical_base = xhci_get_physical_addr(m_trbs);
+
+    // Set the last TRB as a link TRB to point back to the first TRB
+    m_trbs[m_max_trb_count - 1].parameter = m_physical_base;
+    m_trbs[m_max_trb_count - 1].control = (XHCI_TRB_TYPE_LINK << XHCI_TRB_TYPE_SHIFT) | XHCI_LINK_TRB_TC_BIT | m_rcs_bit;
+}
+
+uintptr_t xhciTransferRing::get_physical_dequeue_pointer_base() const {
+    return xhci_get_physical_addr(&m_trbs[m_enqueue_ptr]);
+}
+
+void xhciTransferRing::enqueue(xhci_trb_t* trb) {
+    // Adjust the TRB's cycle bit to the current DCS
+    trb->cycle_bit = m_rcs_bit;
+
+    // Insert the TRB into the ring
+    m_trbs[m_enqueue_ptr] = *trb;
+
+    // Advance and possibly wrap the enqueue pointer if needed.
+    // maxTrbCount - 1 accounts for the LINK_TRB.
+    if (++m_enqueue_ptr == m_max_trb_count - 1) {
+        // Only now update the Link TRB, syncing its cycle bit and setting the TC flag.
+        m_trbs[m_max_trb_count - 1].control =
+            (XHCI_TRB_TYPE_LINK << XHCI_TRB_TYPE_SHIFT) | XHCI_LINK_TRB_TC_BIT | m_rcs_bit;
+
+        m_enqueue_ptr = 0;
+        m_rcs_bit = !m_rcs_bit;
+    }
 }

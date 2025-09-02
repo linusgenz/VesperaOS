@@ -29,6 +29,7 @@
 #include "version.h"
 #include "include/sys/syscalls.h"
 #include "../include/log.h"
+#include "acpi/acpi_manager.h"
 #include "include/scheduling.h"
 #include "sync/mutex.h"
 
@@ -39,14 +40,14 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     kernel::scheduling_started = true;
     char vendor[13];
     get_cpu_vendor(vendor);
-    Log::Info("CPU Vendor: %s", vendor);
+  //  Log::Info("CPU Vendor: %s", vendor);
 
     char brand[49];
     get_cpu_brand(brand);
-    Log::Info("CPU Brand: %s", brand);
+  //  Log::Info("CPU Brand: %s", brand);
     Log::Ok("Kernel initialized successfully");
-    Log::Info("Kernel version: %s", get_os_version());
-    kernel::time::print_current_time();
+  //  Log::Info("Kernel version: %s", get_os_version());
+  //  kernel::time::print_current_time();
 
   //  kprocess_t *shell_proc = create_process_from_elf("shell", "/mnt/fat32_0/bin/shell.elf");
  //   shell_proc->state = PROCESS_READY;
@@ -54,7 +55,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
  //   kernel::scheduling::add_thread(shell_proc->main_thread);
 
     system_initialized = true;
-    kernel::scheduling::enable_on_cpu(0);
+  //  kernel::scheduling::enable_on_cpu(0);
 
     while (true);
 }

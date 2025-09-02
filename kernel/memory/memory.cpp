@@ -139,9 +139,9 @@ namespace kernel::memory {
         ::free(ptr);
     }
 
-    void *alloc_aligned(size_t alignment, size_t size, size_t boundary) {
+    void *alloc_aligned(size_t size, size_t alignment, size_t boundary) {
         if (!heap_initialized) return nullptr;
-        return ::alloc_aligned(alignment, size, boundary);
+        return ::alloc_aligned(size, alignment, boundary);
     }
 
 
@@ -150,7 +150,9 @@ namespace kernel::memory {
         return ::free_aligned(aligned_ptr);
     }
 
-
+    void print_heap_stats() {
+        ::print_heap_stats();
+    }
 
     void* realloc(void* old_ptr, size_t old_size, size_t new_size) {
         if (!heap_initialized) return nullptr;

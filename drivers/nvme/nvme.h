@@ -17,7 +17,7 @@ namespace NVMe {
             : nsID(nsid), queue(ioQueue), sectorSize(lbaSize) {}
 
         bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
-        bool write(uint64_t lba, uint32_t sectorCount, void* buffer) const override;
+        bool write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
 
         uint32_t get_sector_size() override {
             return sectorSize;

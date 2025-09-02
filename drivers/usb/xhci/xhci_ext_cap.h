@@ -23,7 +23,7 @@
 
 #ifndef XHCI_EXT_CAP_H
 #define XHCI_EXT_CAP_H
-#include <cstdint>
+#include "stdint.h"
 
 /*
 // xHci Spec Section 7.2 (page 521)

@@ -33,6 +33,10 @@ namespace FAT32 {
         this->valid = true;
     }
 
+    FileSystem::~FileSystem() {
+
+    }
+
     uint8_t *AllocClusterBuffer(uint32_t clusterBytes) {
         return (uint8_t *) kernel::memory::request_pages((clusterBytes + 0xFFF) / 0x1000);
     }
@@ -111,7 +115,6 @@ namespace FAT32 {
         outCount = 0;
 
         uint32_t cluster = ResolvePathToCluster(path);
-
         if (cluster == 0) return nullptr;
 
         return ReadDirectory(cluster, outCount);
@@ -119,7 +122,7 @@ namespace FAT32 {
 
 
     FileEntry *FileSystem::ReadDirectory(uint32_t cluster, size_t &outCount) const {
-        FileEntry *entries = static_cast<FileEntry *>(malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
+        auto *entries = static_cast<FileEntry *>(malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
         if (!entries) {
             outCount = 0;
             return nullptr;

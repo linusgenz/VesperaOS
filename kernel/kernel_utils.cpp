@@ -20,7 +20,6 @@
 #include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
 #include "time/time.h"
-#include "../Splash_VesperaOS.h"
 #include "../filesystem/vfs/vfs.h"
 #include "include/sys/syscalls.h"
 #include "scheduling/thread_manager.h"
@@ -182,7 +181,6 @@ void render_image_rgba8888_centered(
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
-
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
 static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
 Framebuffer *TargetFramebuffer = nullptr;
@@ -192,7 +190,6 @@ void initialize_kernel(BootInfo *bootInfo) {
     renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->psf1_font);
     Log::SetRenderer(&renderer);
     global_renderer = &renderer;
-    memset(bootInfo->framebuffer->base_address, 0, bootInfo->framebuffer->buffer_size);
 
     TargetFramebuffer = bootInfo->framebuffer;
 
@@ -203,24 +200,16 @@ void initialize_kernel(BootInfo *bootInfo) {
     const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
     const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
     const uint64_t fb_height = TargetFramebuffer->height;
+    global_renderer->clear();
 
-    global_renderer->set_clear_color(Colour::BG_COLOUR);
-    for (int y = 0; y < fb_height; y++) {
-        uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
-        for (uint32_t *pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base);
-             pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr++) {
-            *pix_ptr = 0x00061220;
-        }
-    }
-
-    render_image_rgba8888_centered(
+  /*  render_image_rgba8888_centered(
         TargetFramebuffer,
         Splash_VesperaOS_raw,
         1024,
         1024,
         PIXEL_FORMAT_RGB
     );
-    generate_throbber();
+    generate_throbber();*/
 
     Log::enableDebug();
 
@@ -239,28 +228,28 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     asm ("sti");
 
-    setup_scroll_buffer(bootInfo->framebuffer);
+
+ //   setup_scroll_buffer(bootInfo->framebuffer);
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
     kernel::DeviceManager::Init();
-
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+    vfs_init();
 
-    CPUManager::initialize();
+   // CPUManager::initialize();
     Log::init(); // threads are possible -> switch to mutex
-    prepare_ap_trampoline();
+  //  prepare_ap_trampoline();
 
-    kernel::scheduling::init(CPUManager::total_cpus);
+   // kernel::scheduling::init(CPUManager::total_cpus);
 
-    kthread_t* t = create_kthread(render_throbber, nullptr, 2);
+ /*   kthread_t* t = create_kthread(render_throbber, nullptr, 2);
     kernel::scheduling::add_thread(t);
 
     CPUManager::smp_init();
+*/
 
-    vfs_init();
-
-    auto dir21 = vfs_opendir("/mnt/ext4_1/");
+    auto dir21 = vfs_opendir("/mnt/fat32_0/");
     Log::debug("vfs_opendir: %d", dir21);
     char name21[128];
     while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
@@ -276,5 +265,5 @@ void initialize_kernel(BootInfo *bootInfo) {
     //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
     //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
-    kernel::interrupts::mask_pic();
+  //  kernel::interrupts::mask_pic();
 }
