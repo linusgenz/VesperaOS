@@ -4,12 +4,9 @@
 
 #ifndef FAT32_CPP_H
 #define FAT32_CPP_H
-#include <cstdint>
-#include <cstddef>
-#include "../../include/log.h"
 #include "../../include/string.h"
-#include "../../kernel/include/basic_renderer.h"
 #include "../../kernel/devices/blockdevice.h"
+#include <cstdint>
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
 struct Fat32Node;
@@ -26,35 +23,35 @@ namespace FAT32 {
 #define READ_DIR_MAX_ENTRIES 256
 
     struct BPB_FAT32 {
-        uint8_t jumpBoot[3];
-        uint8_t oemName[8];
-        uint16_t bytesPerSector;
-        uint8_t sectorsPerCluster;
-        uint16_t reservedSectorCount;
-        uint8_t tableCount;
-        uint16_t rootEntryCount;
-        uint16_t totalSectors16;
-        uint8_t mediaType;
-        uint16_t tableSize16;
-        uint16_t sectorsPerTrack;
-        uint16_t headSideCount;
-        uint32_t hiddenSectors;
-        uint32_t totalSectors32;
+        uint8_t jmpBoot[3]; // 0x00
+        uint8_t OEMName[8]; // 0x03
+        uint16_t bytesPerSector; // 0x0B
+        uint8_t sectorsPerCluster; // 0x0D
+        uint16_t reservedSectorCount; // 0x0E
+        uint8_t tableCount; // 0x10
+        uint16_t rootEntryCount; // 0x11
+        uint16_t totalSectors16; // 0x13
+        uint8_t mediaType; // 0x15
+        uint16_t FATSize16; // 0x16
+        uint16_t sectorsPerTrack; // 0x18
+        uint16_t headSideCount; // 0x1A
+        uint32_t hiddenSectors; // 0x1C
+        uint32_t totalSectors32; // 0x20
 
-        // FAT32 Extended BIOS Parameter Block (EBPB) Felder
-        uint32_t FATSize32;
-        uint16_t extFlags;
-        uint16_t fatVersion;
-        uint32_t rootCluster;
-        uint16_t fsInfo;
-        uint16_t backupBootSector;
-        uint8_t reserved[12];
-        uint8_t driveNumber;
-        uint8_t reserved1;
-        uint8_t bootSignature;
-        uint32_t volumeID;
-        uint8_t volumeLabel[11];
-        uint8_t fsType[8];
+        // FAT32 Extended BIOS Parameter Block
+        uint32_t FATSize32; // 0x24
+        uint16_t extFlags; // 0x28
+        uint16_t FSVersion; // 0x2A
+        uint32_t rootCluster; // 0x2C
+        uint16_t FSInfo; // 0x30
+        uint16_t backupBootSector; // 0x32
+        uint8_t reserved[12]; // 0x34
+        uint8_t driveNumber; // 0x40
+        uint8_t reserved1; // 0x41
+        uint8_t bootSignature; // 0x42
+        uint32_t volumeID; // 0x43
+        uint8_t volumeLabel[11]; // 0x47
+        uint8_t fsType[8]; // 0x52
     }__attribute__((packed));
 
     //  Section 6: Directory Structure FAT spec
@@ -102,32 +99,32 @@ namespace FAT32 {
             _isDir = value;
         }
 
-        bool isDir() const {
+        [[nodiscard]] bool isDir() const {
             return _isDir;
         }
 
-        const char *GetLongName() const {
+        [[nodiscard]] const char *GetLongName() const {
             return longName;
         }
 
-        const char *GetName() const {
+        [[nodiscard]] const char *GetName() const {
             if (longName[0] != '\0') return longName;
             return formattedShortName;
         }
 
-        const char *GetFormattedShortName() const {
+        [[nodiscard]] const char *GetFormattedShortName() const {
             return formattedShortName;
         }
 
-        DirectoryEntry GetDirectoryEntry() const {
+        [[nodiscard]] DirectoryEntry GetDirectoryEntry() const {
             return dirEntry;
         }
 
-        uint32_t GetFirstCluster() const {
+        [[nodiscard]] uint32_t GetFirstCluster() const {
             return (static_cast<uint32_t>(dirEntry.firstClusterHigh) << 16) | dirEntry.firstClusterLow;
         }
 
-        uint32_t GetFileSize() const {
+        [[nodiscard]] uint32_t GetFileSize() const {
             return dirEntry.fileSize;
         }
 
@@ -155,17 +152,18 @@ namespace FAT32 {
 
         ~FileSystem();
 
-        bool is_valid() const;
+        [[nodiscard]] bool is_valid() const;
 
-        uint32_t GetRootCluster() const;
+        [[nodiscard]] uint32_t GetRootCluster() const;
 
         bool IsDir(uint32_t cluster);
 
         uint32_t ResolvePathToCluster(const char *path) const;
 
-        bool ReadFile(Fat32Node* node, char* buffer, const size_t bufferSize, size_t &outFileSize) const;
+        bool ReadFile(Fat32Node *node, char *buffer, size_t bufferSize, size_t &outFileSize) const;
 
         FileEntry *ReadDirectory(const char *path, size_t &outCount) const;
+
         FileEntry *ReadDirectory(uint32_t cluster, size_t &outCount) const;
 
         bool CreateFile(Fat32Node *parentDir, const char *name);
@@ -188,17 +186,18 @@ namespace FAT32 {
         BPB_FAT32 bpb;
         bool valid;
 
+        uint32_t sectorSize;
         uint32_t fatStart;
         uint32_t fatSize;
         uint32_t dataStart;
 
-        uint32_t ClusterToSector(uint32_t cluster) const;
+        [[nodiscard]] uint32_t ClusterToSector(uint32_t cluster) const;
 
         bool ReadCluster(uint32_t cluster, void *buffer) const;
 
-        uint32_t bytesPerCluster() const;
+        [[nodiscard]] uint32_t bytesPerCluster() const;
 
-        uint32_t GetFATEntry(uint32_t cluster) const;
+        [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
 
         bool WriteFATEntry(uint32_t cluster, uint32_t value);
 

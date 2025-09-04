@@ -88,9 +88,13 @@ private:
 
         void* data_buffer;
         uint32_t data_length;
+        uint32_t actual_length;
         bool is_input;
 
         xhciEndpoint* endpoint;
+
+        bool done;
+        int status;
     };
 
     MassStorageTransfer* current_transfer;
@@ -109,6 +113,8 @@ private:
         Completed
     };
 
+    bool init_done = false;
+    int  init_status = -1;
     InitPhase init_phase = InitPhase::TestUnitReady;
 
     uint32_t current_tag;

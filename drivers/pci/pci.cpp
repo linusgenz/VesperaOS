@@ -14,7 +14,7 @@ namespace PCI {
 
         uint64_t function_address = device_address + offset;
         kernel::memory::map_memory(reinterpret_cast<void *>(function_address),
-                                             reinterpret_cast<void *>(function_address));
+                                   reinterpret_cast<void *>(function_address));
 
         auto *pci_device_header = reinterpret_cast<PCIDeviceHeader *>(function_address);
 
@@ -22,55 +22,55 @@ namespace PCI {
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-   /*     Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
-                    get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
-                    get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
-                    get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
-                                     pci_device_header->prog_if));*/
+        /*     Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
+                         get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
+                         get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
+                         get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
+                                          pci_device_header->prog_if));*/
 
         switch (pci_device_header->_class) {
             case 0x01: // mass storage controller
                 switch (pci_device_header->subclass) {
                     case 0x06: // serial ATA
                         switch (pci_device_header->prog_if) {
-                              case 0x01:
-                                break;// AHCI 1.0 device
-                          /*     auto ahci = new AHCI::AHCIDriver(pci_device_header);
-                                if (!ahci->HasActivePorts()) {
-                                    delete ahci;
-                                    break;
-                                }
+                            case 0x01:
+                                break; // AHCI 1.0 device
+                                /*     auto ahci = new AHCI::AHCIDriver(pci_device_header);
+                                      if (!ahci->HasActivePorts()) {
+                                          delete ahci;
+                                          break;
+                                      }
 
-                                for (int i = 0; i < ahci->portCount; ++i) {
-                                    auto* port = ahci->ports[i];
-                                    if (!port) continue;
+                                      for (int i = 0; i < ahci->portCount; ++i) {
+                                          auto* port = ahci->ports[i];
+                                          if (!port) continue;
 
-                                    Log::debug("added device: %u", i);
-                                    kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(port));
-                                }*/
+                                          Log::debug("added device: %u", i);
+                                          kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(port));
+                                      }*/
                         }
                     case 0x08:
                         switch (pci_device_header->prog_if) {
-                             case 0x02:
+                            case 0x02:
                                 break;
-                            /*   uint16_t command_register = pci_device_header->command;
+                            /*    uint16_t command_register = pci_device_header->command;
 
                                 uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                                 pci_write16(pci_device_header, 0x04, command);
 
                                 auto driver = new NVMe::NvmeDriver(pci_device_header);
-                                auto ns_list = driver->get_namespaces();
-                                Log::debug("namespaces: %u",ns_list.size());
-                                if (ns_list.size() < 0) {
+                                Log::debug("namespaces: %u", driver->get_namespaces().size());
+                                if (driver->get_namespaces().size() < 0) {
                                     Log::debug("[Nvme] Namespaces not found");
                                     delete driver;
                                     break;
                                 }
 
-                                for (size_t i = 0; i < ns_list.size(); ++i) {
+                                for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
                                     Log::debug("added device: %u", i);
-                                    kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(ns_list[i]));
+                                    kernel::DeviceManager::AddDevice(
+                                        static_cast<BlockDevice *>(driver->get_namespaces()[i]));
                                 }*/
                         }
                 }
@@ -88,7 +88,8 @@ namespace PCI {
                                 uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                                 pci_write16(pci_device_header, 0x04, command);
-                                if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header), IRQ_XHCI_VECTOR)) {
+                                if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
+                                                           IRQ_XHCI_VECTOR)) {
                                     auto usb_driver = new USB::xhciDriver();
                                     if (!usb_driver->init_device(pci_device_header)) {
                                         Log::Error("Could not initalize xhci driver");
@@ -96,7 +97,6 @@ namespace PCI {
                                     }
                                     usb_driver->start_device();
                                 }
-
                             }
                             case 0x80:
 
@@ -168,7 +168,6 @@ namespace PCI {
         uint32_t bar_type = (bar_value >> 1) & 0x3;
         return (bar_type == 0x2); // 0x2 = 64-bit Memory BAR
     }
-
 
 
     BarInfo get_bar_info(PCIHeader0 *header, uint8_t bar_index) {

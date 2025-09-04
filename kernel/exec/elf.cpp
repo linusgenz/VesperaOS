@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "elf.h"
+#include <log.h>
 #include "../../filesystem/vfs/vfs.h"
 
 

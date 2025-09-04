@@ -14,15 +14,16 @@ namespace FAT32 {
     FileSystem::FileSystem(BlockDevice *device) {
         this->device = device;
         this->valid = false;
+        sectorSize = device->get_sector_size();
 
         uint8_t sector[512];
         if (!device->read(0, 1, sector)) {
+            Log::Error("[FAT32] Failed to read first sector");
             return;
         }
 
         memcpy(&bpb, sector, sizeof(BPB_FAT32));
 
-        if (bpb.bytesPerSector != 512) return;
         if (bpb.tableCount < 1 || bpb.sectorsPerCluster == 0) return;
         if (memcmp(bpb.fsType, "FAT32   ", 8) != 0) return;
 

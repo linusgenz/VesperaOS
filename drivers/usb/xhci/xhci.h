@@ -20,9 +20,9 @@ namespace USB {
 
         bool start_device();
 
-        bool shutdown_device();
+        static bool shutdown_device();
 
-        void ring_doorbell(uint8_t slot, uint8_t ep);
+        void ring_doorbell(uint8_t slot, uint8_t ep) const;
 
         xhciDevice* m_connected_devices[64]{};
 
@@ -93,18 +93,18 @@ namespace USB {
 
         bool reset_port(uint8_t port_num);
 
-        uint16_t get_max_initial_packet_size(uint8_t port_speed);
+        static uint16_t get_max_initial_packet_size(uint8_t port_speed);
 
         [[nodiscard]] bool create_device_context(uint8_t slot_id) const;
 
         static void configure_control_ep_input_context(xhciDevice *dev, uint16_t max_packet_size);
 
-        void configure_ep_input_context(xhciDevice *dev, xhciEndpoint *endpoint);
+        static void configure_ep_input_context(xhciDevice *dev, xhciEndpoint *endpoint);
 
         bool send_usb_request_packet(xhciDevice *device, xhci_device_request_packet &req, void *output_buffer,
                                      uint32_t length);
 
-        bool send_usb_no_data_request_packet(xhciDevice *dev, xhci_device_request_packet &req);
+        bool send_usb_no_data_request_packet(const xhciDevice *dev, const xhci_device_request_packet &req);
 
         xhci_transfer_completion_trb_t *start_control_endpoint_transfer(const xhciTransferRing *transfer_ring);
 
@@ -119,16 +119,16 @@ namespace USB {
 
         bool get_configuration_descriptor(xhciDevice *device, usb_configuration_descriptor *desc);
 
-        bool set_device_configuration(xhciDevice *device, uint16_t configuration_value);
+        bool set_device_configuration(const xhciDevice *device, uint16_t configuration_value);
 
         bool get_hid_report_descriptor(xhciDevice *device, uint8_t interface_number, uint8_t descriptor_index,
                                        uint8_t *report_buffer, uint16_t report_length);
 
-        bool configure_endpoint(xhciDevice *device);
+        bool configure_endpoint(const xhciDevice *device);
 
         bool setup_device(uint8_t port, xhci_portsc_register portsc);
 
-        bool address_device_command(xhciDevice *dev, bool bsr);
+        bool address_device_command(const xhciDevice *dev, bool bsr);
 
         uint8_t assign_slot();
 
@@ -140,7 +140,7 @@ namespace USB {
 
         void log_operational_registers();
 
-        void log_usbsts();
+        void log_usbsts() const;
 
         static void claim_legacy_ownership(xhci_legacy_support_capability *legacy);
 
@@ -150,7 +150,7 @@ namespace USB {
 
         bool crcr_is_running();
 
-        bool start_host_controller();
+        bool start_host_controller() const;
 
         void configure_operational_registers();
 
@@ -158,7 +158,7 @@ namespace USB {
 
         void configure_runtime_registers();
 
-        void acknowledge_irq(uint8_t interrupter);
+        void acknowledge_irq(uint8_t interrupter) const;
 
         static irqreturn_t xhci_irq_handler(xhciDriver *driver);
 

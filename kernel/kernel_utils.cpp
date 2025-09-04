@@ -233,12 +233,12 @@ void initialize_kernel(BootInfo *bootInfo) {
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
+    Log::init(); // threads are possible -> switch to mutex
     kernel::DeviceManager::Init();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
     vfs_init();
 
    // CPUManager::initialize();
-    Log::init(); // threads are possible -> switch to mutex
   //  prepare_ap_trampoline();
 
    // kernel::scheduling::init(CPUManager::total_cpus);

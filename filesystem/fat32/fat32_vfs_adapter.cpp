@@ -261,7 +261,6 @@ int fat32_probe(BlockDevice *dev) {
 
 VfsNode *fat32_mount(BlockDevice *dev) {
     auto *fs = new FileSystem(dev);
-    Log::debug("fat32_mount valid? : %u", fs->is_valid());
     if (!fs->is_valid()) return nullptr;
     return wrap_fat32_root(fs);
 }

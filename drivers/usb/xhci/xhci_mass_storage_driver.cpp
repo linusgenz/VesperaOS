@@ -33,8 +33,22 @@ void xhciMassStorageDriver::on_startup(USB::xhciDriver* hcd, xhciDevice* dev) {
     this->hcd = hcd;
     this->device = dev;
 
+    init_done = false;
+    init_status = -1;
     init_phase = InitPhase::TestUnitReady;
+
     initialize_device();
+
+    while (!init_done) {
+        asm volatile("pause");
+    }
+
+    if (init_status == 0) {
+        Log::Ok("USB Mass Storage initialized: %u sectors, %u bytes/sector",
+                     total_sectors, sector_size);
+    } else {
+        Log::Error("Mass storage initialization failed");
+    }
 }
 
 
@@ -108,7 +122,7 @@ void xhciMassStorageDriver::on_event(USB::xhciDriver* hcd, xhciDevice* dev) {
 
 
 void xhciMassStorageDriver::initialize_device() {
-    // Bulk-Endpunkte suchen
+    Log::debug("init dev mass storage");
     for (auto& ep : m_interface->endpoints) {
         if ((ep->usb_endpoint_attributes & 0x03) == 0x02) {
             if (ep->usb_endpoint_addr & 0x80)
@@ -123,7 +137,6 @@ void xhciMassStorageDriver::initialize_device() {
         return;
     }
 
-    // initialization start: Test Unit Ready
     scsi_test_unit_ready();
 }
 
@@ -151,13 +164,24 @@ void xhciMassStorageDriver::handle_completed_transfer() {
         current_transfer = nullptr;
         init_phase = InitPhase::Completed;
 
-        Log::PrintLn("USB Mass Storage initialized: %llu sectors, %u bytes/sector",
-                     total_sectors, sector_size);
+        init_done = true;
+        init_status = 0;
+
         kernel::DeviceManager::AddDevice(this);
     }
     else {
-        // normal RW-Transfers
+        current_transfer->actual_length = current_transfer->cbw.data_length -
+                                  current_transfer->csw.data_residue;
+
+        if (current_transfer->phase == MassStorageTransfer::Phase::Completed) {
+            current_transfer->status = 0;
+        } else {
+            current_transfer->status = -1;
+        }
+
+        current_transfer->done = true;
         current_transfer = nullptr;
+
     }
 }
 
@@ -271,7 +295,11 @@ bool xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* buffe
 
     start_bulk_transfer(&transfer);
 
-    return true;
+    while (!transfer.done) {
+         asm volatile ("pause");
+    }
+
+    return (transfer.status == 0 && transfer.actual_length == transfer.data_length);
 }
 
 
@@ -301,6 +329,10 @@ bool xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buff
 
     start_bulk_transfer(&transfer);
 
-    return true;
-}
+    while (!transfer.done) {
+        asm volatile ("pause");
+    }
 
+    return (transfer.status == 0 && transfer.actual_length == transfer.data_length);}
+
+// TODO später scheduler FIFO queue beachten falls schon gelesen wird etc.

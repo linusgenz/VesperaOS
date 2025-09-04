@@ -40,7 +40,7 @@ namespace USB {
         pci_hdr->BAR1 = original_bar1;
 
         // 5. Größe berechnen
-        uint64_t mask = ((uint64_t) size_mask_hi << 32) | (size_mask_lo & ~0xF);
+        uint64_t mask = (static_cast<uint64_t>(size_mask_hi) << 32) | (size_mask_lo & ~0xF);
         if (mask == 0) {
             return false;
         }
@@ -133,7 +133,7 @@ namespace USB {
     }
 
     void xhciDriver::parse_extended_capabilities() {
-        volatile uint32_t *head_cap_ptr = reinterpret_cast<volatile uint32_t *>(
+        volatile auto *head_cap_ptr = reinterpret_cast<volatile uint32_t *>(
             m_xhc_base + m_extended_capabilities_offset);
 
         extended_capabilities_head = new xhci_extended_capability(head_cap_ptr);
@@ -164,7 +164,7 @@ namespace USB {
     }
 
     void xhciDriver::log_capability_registers() {
-        Log::PrintLn("===== Xhci Capability Registers (0x%llx) =====", (uint64_t) m_cap_regs);
+        Log::PrintLn("===== Xhci Capability Registers (0x%llx) =====", reinterpret_cast<uint64_t>(m_cap_regs));
         Log::PrintLn("    Length                : %u", m_capability_regs_length);
         Log::PrintLn("    Max Device Slots      : %u", m_max_device_slots);
         Log::PrintLn("    Max Interrupters      : %u", m_max_interrupters);
@@ -182,7 +182,7 @@ namespace USB {
     }
 
     void xhciDriver::log_operational_registers() {
-        Log::PrintLn("===== Xhci Operational Registers (0x%llx) =====", (uint64_t) m_op_regs);
+        Log::PrintLn("===== Xhci Operational Registers (0x%llx) =====", reinterpret_cast<uint64_t>(m_op_regs));
         Log::PrintLn("    usbcmd     : 0x%x", m_op_regs->usbcmd);
         Log::PrintLn("    usbsts     : 0x%x", m_op_regs->usbsts);
         Log::PrintLn("    pagesize   : 0x%x", m_op_regs->pagesize);
@@ -193,7 +193,7 @@ namespace USB {
         Log::PrintLn("");
     }
 
-    void xhciDriver::log_usbsts() {
+    void xhciDriver::log_usbsts() const {
         uint32_t status = m_op_regs->usbsts;
         Log::PrintLn("===== USBSTS =====");
         if (status & XHCI_USBSTS_HCH) Log::PrintLn("    Host Controlled Halted");
@@ -209,7 +209,7 @@ namespace USB {
     }
 
 
-    void xhciDriver::ring_doorbell(uint8_t slot, uint8_t ep) {
+    void xhciDriver::ring_doorbell(uint8_t slot, uint8_t ep) const {
         m_doorbell_manager->ring_doorbell(slot, ep);
     }
 
@@ -238,8 +238,8 @@ namespace USB {
     }
 
     bool xhciDriver::is_usb3_port(uint8_t port_num) {
-        for (size_t i = 0; i < m_usb3_ports.size(); i++) {
-            if (m_usb3_ports[i] == port_num) {
+        for (const unsigned char m_usb3_port : m_usb3_ports) {
+            if (m_usb3_port == port_num) {
                 return true;
             }
         }
@@ -313,7 +313,7 @@ namespace USB {
         // Setup device context base address array and scratchpad buffers
         setup_dcbaa();
 
-        // Setup the command ring and write CRCR
+        // Set up the command ring and write CRCR
         m_command_ring = new xhciCommandRing(XHCI_COMMAND_RING_TRB_COUNT);
 
         kernel::time::sleep_ms(100);
@@ -330,7 +330,7 @@ namespace USB {
         m_dcbaa_virtual_addresses = new uint64_t[m_max_device_slots + 1];
 
         if (m_max_scratchpad_buffers > 0) {
-            uint64_t *scratchpad_array = reinterpret_cast<uint64_t *>(
+            auto *scratchpad_array = static_cast<uint64_t *>(
                 alloc_xhci_memory(
                     m_max_scratchpad_buffers * sizeof(uint64_t),
                     XHCI_DEVICE_CONTEXT_ALIGNMENT,
@@ -362,7 +362,7 @@ namespace USB {
         m_op_regs->dcbaap = xhci_get_physical_addr(m_dcbaa);
     }
 
-    void xhciDriver::acknowledge_irq(uint8_t interrupter) {
+    void xhciDriver::acknowledge_irq(uint8_t interrupter) const {
         // Get the interrupter registers
         volatile xhci_interrupter_registers *interrupter_regs = &m_runtime_regs->ir[interrupter];
 
@@ -435,7 +435,7 @@ namespace USB {
         interrupter_regs->iman = XHCI_IMAN_INTERRUPT_PENDING | XHCI_IMAN_INTERRUPT_ENABLE;
     }
 
-    bool xhciDriver::start_host_controller() {
+    bool xhciDriver::start_host_controller() const {
         m_op_regs->usbcmd |= XHCI_USBCMD_INTERRUPTER_ENABLE;
 
         m_op_regs->usbcmd |= XHCI_USBCMD_HOSTSYS_ERROR_ENABLE;
@@ -487,16 +487,16 @@ namespace USB {
                 case XHCI_TRB_TYPE_CMD_COMPLETION_EVENT: {
                     command_completion_status = 1;
                     m_command_completion_events.push_back(
-                        (xhci_command_completion_trb_t *) event
+                        reinterpret_cast<xhci_command_completion_trb_t *>(event)
                     );
                     break;
                 }
                 case XHCI_TRB_TYPE_TRANSFER_EVENT: {
                     transfer_completion_status = 1;
-                    auto transfer_event = (xhci_transfer_completion_trb_t *) event;
+                    auto transfer_event = reinterpret_cast<xhci_transfer_completion_trb_t *>(event);
 
                     m_transfer_completion_events.push_back(transfer_event);
-                    auto device = m_connected_devices[transfer_event->slot_id];
+                    const auto device = m_connected_devices[transfer_event->slot_id];
                     if (!device) {
                         break;
                     }
@@ -745,9 +745,9 @@ namespace USB {
                                              uint32_t length) {
         xhciTransferRing *transfer_ring = device->get_control_transfer_ring();
 
-        auto *transfer_status_buffer = reinterpret_cast<uint32_t *>(alloc_xhci_memory(sizeof(uint32_t), 16, 16));
-        auto *descriptor_buffer = reinterpret_cast<uint8_t *>(alloc_xhci_memory(length, 256, 65536));
-        // TODO mit boundaries außeinandersetzten. außerdem eventuell #defines festlegen
+        auto *transfer_status_buffer = static_cast<uint32_t *>(alloc_xhci_memory(sizeof(uint32_t), 16, 16));
+        auto *descriptor_buffer = static_cast<uint8_t *>(alloc_xhci_memory(length, 256, 65536));
+        // TODO mit boundaries auseinandersetzten. außerdem eventuell #defines festlegen
 
         xhci_setup_stage_trb_t setup_stage{};
         setup_stage.trb_type = XHCI_TRB_TYPE_SETUP_STAGE;
@@ -834,7 +834,7 @@ namespace USB {
         return true;
     }
 
-    bool xhciDriver::send_usb_no_data_request_packet(xhciDevice *dev, xhci_device_request_packet &req) {
+    bool xhciDriver::send_usb_no_data_request_packet(const xhciDevice *dev, const xhci_device_request_packet &req) {
         xhciTransferRing *transfer_ring = dev->get_control_transfer_ring();
         if (!transfer_ring) {
             Log::Error("No control transfer ring allocated.");
@@ -1061,7 +1061,7 @@ namespace USB {
     }
 
 
-    bool xhciDriver::set_device_configuration(xhciDevice *device, uint16_t configuration_value) {
+    bool xhciDriver::set_device_configuration(const xhciDevice *device, uint16_t configuration_value) {
         xhci_device_request_packet setup_packet{};
         memset(&setup_packet, 0, sizeof(xhci_device_request_packet));
         setup_packet.bRequestType = 0x00; // Host to Device, Standard, Device
@@ -1100,7 +1100,7 @@ namespace USB {
     }
 
 
-    bool xhciDriver::configure_endpoint(xhciDevice *device) {
+    bool xhciDriver::configure_endpoint(const xhciDevice *device) {
         xhci_configure_endpoint_command_trb_t configure_ep_trb{};
         configure_ep_trb.trb_type = XHCI_TRB_TYPE_CONFIGURE_ENDPOINT_CMD;
         configure_ep_trb.input_context_physical_base = device->get_input_context_phys();
@@ -1155,8 +1155,6 @@ namespace USB {
         configure_control_ep_input_context(device, device_descriptor->bMaxPacketSize0);
 
         if (device_descriptor->bMaxPacketSize0 != max_packet_size) {
-            max_packet_size = device_descriptor->bMaxPacketSize0;
-
             if (!evaluate_context(device)) {
                 return false;
             }
@@ -1195,17 +1193,17 @@ namespace USB {
         }
         uint16_t lang_id = string_language_descriptor.lang_ids[0];
 
-        usb_string_descriptor *product_name = new usb_string_descriptor();
+        auto *product_name = new usb_string_descriptor();
         if (!get_string_descriptor(device, device_descriptor->iProduct, lang_id, product_name)) {
             return false;
         }
 
-        usb_string_descriptor *manufacturer_name = new usb_string_descriptor();
+        auto *manufacturer_name = new usb_string_descriptor();
         if (!get_string_descriptor(device, device_descriptor->iManufacturer, lang_id, manufacturer_name)) {
             return false;
         }
 
-        usb_string_descriptor *serial_number_string = new usb_string_descriptor();
+        auto *serial_number_string = new usb_string_descriptor();
         if (!get_string_descriptor(device, device_descriptor->iSerialNumber, lang_id, serial_number_string)) {
             return false;
         }
@@ -1258,11 +1256,11 @@ namespace USB {
 
 
         while (index < total_length) {
-            usb_descriptor_header *header = reinterpret_cast<usb_descriptor_header *>(&buffer[index]);
+            auto *header = reinterpret_cast<usb_descriptor_header *>(&buffer[index]);
 
             switch (header->bDescriptorType) {
                 case USB_DESCRIPTOR_INTERFACE: {
-                    usb_interface_descriptor *iface_desc = reinterpret_cast<usb_interface_descriptor *>(header);
+                    auto *iface_desc = reinterpret_cast<usb_interface_descriptor *>(header);
                     device->setup_add_interface(iface_desc);
                     break;
                 }
@@ -1377,7 +1375,7 @@ namespace USB {
         return true;
     }
 
-    bool xhciDriver::address_device_command(xhciDevice *dev, bool bsr) {
+    bool xhciDriver::address_device_command(const xhciDevice *dev, bool bsr) {
         uint64_t input_ctx_phys = dev->get_input_context_phys();
 
         xhci_address_device_command_trb_t address_device_trb{};
@@ -1392,7 +1390,7 @@ namespace USB {
                 send_command(reinterpret_cast<xhci_trb_t *>(&address_device_trb), 200);
 
         if (!completion_trb) {
-            Log::Error("[xhci] Failed to address device with BSR=%u", (int) bsr);
+            Log::Error("[xhci] Failed to address device with BSR=%u", static_cast<int>(bsr));
             return false;
         }
 

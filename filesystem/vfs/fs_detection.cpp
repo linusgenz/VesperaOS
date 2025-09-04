@@ -146,17 +146,6 @@ VfsNode *FilesystemDetector::TryMount(BlockDevice *device, const char *mount_pat
         final_mount_path = generated_path;
     }
 
-    // Register the mount in VFS
-    /*  int result = vfs_mount(device, final_mount_path, fs_info.type_name);
-      if (result != 0) {
-          Log::Error("[FS] VFS mount failed with code %d", result);
-          // Cleanup root node if mount failed
-          if (root->ops && root->ops->close) {
-              root->ops->close(root);
-          }
-          return nullptr;
-      }*/
-
     Log::Info("[FS] Successfully mounted %s at %s", fs_info.type_name, final_mount_path);
     return root;
 }
@@ -191,8 +180,7 @@ void FilesystemDetector::ScanAndMountAll() {
         if (DetectFilesystem(device, &detected_devices[device_count].fs_info)) {
             detected_devices[device_count].is_recognized = true;
 
-            VfsNode *mount_point = TryMount(device);
-            if (mount_point) {
+            if (VfsNode *mount_point = TryMount(device)) {
                 GenerateMountPath(detected_devices[device_count].fs_info.type_name, i,
                                   detected_devices[device_count].fs_info.mount_path,
                                   sizeof(detected_devices[device_count].fs_info.mount_path));
