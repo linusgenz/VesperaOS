@@ -88,6 +88,7 @@ ap32:
 ap64:
 
         xor rax, rax
+        mov ax, 0x10
         mov ds, ax
         mov es, ax
         mov fs, ax
@@ -106,6 +107,62 @@ ap64:
       ;  lodsd
       ;  or eax, 0x100
       ;  stosd
+
+     ;   sti
+
+
+        mov     eax, 1
+        cpuid
+        mov     r11d, ecx        ; save ECX bitflags (r11d will hold CPUID ECX)
+
+        ; -------------------------
+        ; CR0: clear EM (bit2), set MP (bit1)
+        ; -------------------------
+        mov     rax, cr0
+        ; clear EM (bit 2)
+        and     rax, ~(1 << 2)
+        ; set MP (bit 1)
+        or      rax,  (1 << 1)
+        mov     cr0, rax
+
+        ; -------------------------
+        ; CR4: set OSFXSR (bit9) and OSXMMEXCPT (bit10)
+        ; if CPUID said OSXSAVE supported, also set OSXSAVE (bit18)
+        ; -------------------------
+        mov     rax, cr4
+        or      rax, (1 << 9)     ; OSFXSR
+        or      rax, (1 << 10)    ; OSXMMEXCPT
+        test    r11d, (1 << 27)
+        jz      .skip_set_osxsave
+        or      rax, (1 << 18)    ; OSXSAVE
+.skip_set_osxsave:
+        mov     cr4, rax
+
+        ; -------------------------
+        ; If OSXSAVE supported -> set XCR0 = 0b11 (x87 + SSE) via xsetbv
+        ; (CR4.OSXSAVE already gesetzt above if supported)
+        ; -------------------------
+        test    r11d, (1 << 27)
+        jz      .skip_xsetbv
+
+        xor     edx, edx
+        mov     eax, 3            ; XCR0 = 0b11
+        xor     ecx, ecx          ; xcr index = 0
+        xsetbv
+
+.skip_xsetbv:
+
+        ; -------------------------
+        ; Initialize FPU / MXCSR (optional but recommended)
+        ; Use a small stack slot for the ldmxcsr operand
+        ; -------------------------
+        sub     rsp, 16
+        mov     dword [rsp], 0x00001F80  ; default MXCSR
+        ldmxcsr [rsp]
+        add     rsp, 16
+
+        ; fninit resets x87 FPU state
+        fninit
 
         sti
 
@@ -129,6 +186,6 @@ ap64:
         call ap_main
 
         hlt
-        jmp $ ; idle
+        jmp $ ; shouldn't reach here
 
 next_sp:    dq kernel_stacks

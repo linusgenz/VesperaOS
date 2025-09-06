@@ -1,12 +1,33 @@
 #include "pci.h"
 
 #include <interrupts.h>
+#include <scheduling.h>
 
 #include "../../include/log.h"
 #include "../nvme/nvme.h"
 #include "../usb/xhci/xhci.h"
 #include "msix.h"
+#include "../../kernel/cpu/cpu_manager.h"
 #include "../../kernel/devices/device_manager.h"
+
+void usb_enable(void *arg) {
+    auto pci_device_header = static_cast<PCI::PCIDeviceHeader *>(arg);
+    uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
+    command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+    PCI::pci_write16(pci_device_header, 0x04, command);
+    if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
+                               IRQ_XHCI_VECTOR)) {
+        auto usb_driver = new USB::xhciDriver();
+        if (!usb_driver->init_device(pci_device_header)) {
+            Log::Error("Could not initalize xhci driver");
+            return;
+        }
+        usb_driver->start_device();
+    }
+    Log::Info("USB ende");
+}
+
+extern bool i;
 
 namespace PCI {
     void enumerate_function(uint64_t device_address, uint64_t function) {
@@ -53,25 +74,25 @@ namespace PCI {
                         switch (pci_device_header->prog_if) {
                             case 0x02:
                                 break;
-                            /*    uint16_t command_register = pci_device_header->command;
+                                /*    uint16_t command_register = pci_device_header->command;
 
-                                uint16_t command = pci_read16(pci_device_header, 0x04);
-                                command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
-                                pci_write16(pci_device_header, 0x04, command);
+                                    uint16_t command = pci_read16(pci_device_header, 0x04);
+                                    command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+                                    pci_write16(pci_device_header, 0x04, command);
 
-                                auto driver = new NVMe::NvmeDriver(pci_device_header);
-                                Log::debug("namespaces: %u", driver->get_namespaces().size());
-                                if (driver->get_namespaces().size() < 0) {
-                                    Log::debug("[Nvme] Namespaces not found");
-                                    delete driver;
-                                    break;
-                                }
+                                    auto driver = new NVMe::NvmeDriver(pci_device_header);
+                                    Log::debug("namespaces: %u", driver->get_namespaces().size());
+                                    if (driver->get_namespaces().size() < 0) {
+                                        Log::debug("[Nvme] Namespaces not found");
+                                        delete driver;
+                                        break;
+                                    }
 
-                                for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
-                                    Log::debug("added device: %u", i);
-                                    kernel::DeviceManager::AddDevice(
-                                        static_cast<BlockDevice *>(driver->get_namespaces()[i]));
-                                }*/
+                                    for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
+                                        Log::debug("added device: %u", i);
+                                        kernel::DeviceManager::AddDevice(
+                                            static_cast<BlockDevice *>(driver->get_namespaces()[i]));
+                                    }*/
                         }
                 }
             case 0x0C:
@@ -85,18 +106,10 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-                                uint16_t command = pci_read16(pci_device_header, 0x04);
-                                command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
-                                pci_write16(pci_device_header, 0x04, command);
-                                if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
-                                                           IRQ_XHCI_VECTOR)) {
-                                    auto usb_driver = new USB::xhciDriver();
-                                    if (!usb_driver->init_device(pci_device_header)) {
-                                        Log::Error("Could not initalize xhci driver");
-                                        return;
-                                    }
-                                    usb_driver->start_device();
-                                }
+                                    if (i) return;
+                                      i = true;
+                                auto t = create_kthread(usb_enable, pci_device_header, 2);
+                                kernel::scheduling::add_thread(t);
                             }
                             case 0x80:
 

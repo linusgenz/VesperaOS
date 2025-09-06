@@ -7,7 +7,6 @@
 #include "../../include/log.h"
 
 namespace kernel::scheduling::cpu_scheduler {
-    extern cpu_scheduler_t *cpu_data_array;
 
     cpu_scheduler_t *get_cpu_data(uint8_t cpu_id) {
         return &global_scheduler.cpus[cpu_id];

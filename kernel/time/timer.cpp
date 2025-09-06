@@ -1,6 +1,8 @@
 //
 // Created by linus on 02.07.25.
 //
+#include <log.h>
+
 #include "time.h"
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../cpu/cpu_manager.h"

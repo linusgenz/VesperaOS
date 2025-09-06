@@ -56,3 +56,63 @@ void xhci_extended_capability::read_next_ext_caps() {
         m_next = new xhci_extended_capability(next_cap_ptr);
     }
 }
+
+void xhciPortRegisterManager::read_portsc_reg(xhci_portsc_register& reg) const {
+    uint64_t portsc_address = m_base + m_portsc_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(portsc_address);
+}
+
+void xhciPortRegisterManager::write_portsc_reg(xhci_portsc_register& reg) const {
+    uint64_t portsc_address = m_base + m_portsc_offset;
+    *reinterpret_cast<volatile uint32_t*>(portsc_address) = reg.raw;
+}
+
+void xhciPortRegisterManager::read_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const {
+    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(portpmsc_address);
+}
+
+void xhciPortRegisterManager::write_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const {
+    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+    *reinterpret_cast<volatile uint32_t*>(portpmsc_address) = reg.raw;
+}
+
+void xhciPortRegisterManager::read_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const {
+    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(portpmsc_address);
+}
+
+void xhciPortRegisterManager::write_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const {
+    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+    *reinterpret_cast<volatile uint32_t*>(portpmsc_address) = reg.raw;
+}
+
+void xhciPortRegisterManager::read_portli_reg(xhci_portli_register& reg) const {
+    uint64_t portli_address = m_base + m_portli_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(portli_address);
+}
+
+void xhciPortRegisterManager::write_portli_reg(xhci_portli_register& reg) const {
+    uint64_t portli_address = m_base + m_portli_offset;
+    *reinterpret_cast<volatile uint32_t*>(portli_address) = reg.raw;
+}
+
+void xhciPortRegisterManager::read_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const {
+    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(porthlpm_address);
+}
+
+void xhciPortRegisterManager::write_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const {
+    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+    *reinterpret_cast<volatile uint32_t*>(porthlpm_address) = reg.raw;
+}
+
+void xhciPortRegisterManager::read_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const {
+    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+    reg.raw = *reinterpret_cast<volatile uint32_t*>(porthlpm_address);
+}
+
+void xhciPortRegisterManager::write_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const {
+    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+    *reinterpret_cast<volatile uint32_t*>(porthlpm_address) = reg.raw;
+}

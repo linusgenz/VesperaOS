@@ -72,7 +72,7 @@ namespace USB {
         return true;
     }
 
-    bool xhciDriver::start_device() {
+    [[noreturn]] bool xhciDriver::start_device() {
         if (!start_host_controller()) {
             Log::PrintLn("Failed to start the host controller");
             return false;
@@ -81,17 +81,53 @@ namespace USB {
 
         Log::PrintLn("Controller started!");
 
-        for (uint8_t i = 0; i < m_max_ports; i++) {
-            xhci_portsc_register portsc = read_portsc_reg(i);
+        if (true) {
+            for (uint8_t i = 0; i < m_max_ports; i++) {
+                xhciPortRegisterManager regman = get_port_register_set(i);
+                xhci_portsc_register portsc{};
+                regman.read_portsc_reg(portsc);
 
-            if (portsc.csc && portsc.ccs) {
-                if (reset_port(i)) {
-                    Log::Info("Device connected on port %u - %s", i, usb_speed_to_string(portsc.port_speed));
-                    setup_device(i, portsc);
-                } else {
-                    Log::Warning("Failed to reset port %u after connection detection", i);
+                if (portsc.csc && portsc.ccs) {
+                    xhci_port_connection_event conn_evt{};
+                    conn_evt.port_id = i + 1;
+                    conn_evt.device_connected = (portsc.ccs == 1);
+                    m_port_connection_events.push_back(conn_evt);
                 }
             }
+        }
+
+        while (true) {
+            kernel::time::sleep_ms(100);
+
+            if (m_port_connection_events.empty()) {
+                continue;
+            }
+
+            for (auto event: m_port_connection_events) {
+                const uint8_t port = event.port_id;
+                const uint8_t port_reg_idx = port - 1;
+
+                xhciPortRegisterManager regman = get_port_register_set(port_reg_idx);
+                xhci_portsc_register portsc{};
+                regman.read_portsc_reg(portsc);
+
+                if (event.device_connected) {
+                    const bool reset_successful = reset_port(port_reg_idx);
+                    kernel::time::sleep_ms(100);
+
+                    if (reset_successful) {
+                        Log::Info("Device connected on port %u - %s", port, usb_speed_to_string(portsc.port_speed));
+                        setup_device(port_reg_idx);
+                    } else {
+                        Log::Warning("Failed to reset port %u after connection detection", port);
+                    }
+                } else {
+                    Log::Info("Device disconnected from port %u", port);
+                    clear_port(port_reg_idx);
+                }
+            }
+
+            m_port_connection_events.clear();
         }
 
         return true;
@@ -230,7 +266,7 @@ namespace USB {
         }
 
         if (legacy->usblegsup.bios_owned != 1) {
-        //    Log::PrintLn("BIOS released ownership after %d ms", waited);
+            //    Log::PrintLn("BIOS released ownership after %d ms", waited);
         }
 
         // Clear SMI bits: bits 29–31 (RW1C)
@@ -238,13 +274,27 @@ namespace USB {
     }
 
     bool xhciDriver::is_usb3_port(uint8_t port_num) {
-        for (const unsigned char m_usb3_port : m_usb3_ports) {
+        for (const unsigned char m_usb3_port: m_usb3_ports) {
             if (m_usb3_port == port_num) {
                 return true;
             }
         }
         return false;
     }
+
+    xhciPortRegisterManager xhciDriver::get_port_register_set(uint8_t port_num) {
+        uint64_t base = reinterpret_cast<uint64_t>(m_op_regs) + (0x400 + (0x10 * port_num));
+        return xhciPortRegisterManager(base);
+    }
+
+    uint8_t xhciDriver::get_port_speed(uint8_t port) {
+        auto port_register_set = get_port_register_set(port);
+        xhci_portsc_register portsc{};
+        port_register_set.read_portsc_reg(portsc);
+
+        return static_cast<uint8_t>(portsc.port_speed);
+    }
+
 
     bool xhciDriver::reset_host_controller() const {
         // Make sure we clear the Run/Stop bit
@@ -439,7 +489,7 @@ namespace USB {
         m_op_regs->usbcmd |= XHCI_USBCMD_INTERRUPTER_ENABLE;
 
         m_op_regs->usbcmd |= XHCI_USBCMD_HOSTSYS_ERROR_ENABLE;
-        asm volatile ("" ::: "memory");
+        //     asm volatile ("" ::: "memory");
 
         m_op_regs->usbcmd |= XHCI_USBCMD_RUN_STOP;
 
@@ -448,7 +498,7 @@ namespace USB {
         int retries = 0;
         while (m_op_regs->usbsts & XHCI_USBSTS_HCH) {
             if (retries++ >= max_retries) {
-                Log::Error("Controller failed to start within timeout");
+                //  Log::Error("Controller failed to start within timeout");
                 return false;
             }
             kernel::time::sleep_ms(10);
@@ -456,18 +506,16 @@ namespace USB {
 
         // Verify CNR bit is clear
         if (m_op_regs->usbsts & XHCI_USBSTS_CNR) {
-            Log::Error("Controller Not Ready after start");
+            //      Log::Error("Controller Not Ready after start");
             return false;
         }
 
         return true;
     }
 
-    // 4. Enhanced interrupt handler with debugging
     irqreturn_t xhciDriver::xhci_irq_handler(xhciDriver *driver) {
         driver->process_events();
         driver->acknowledge_irq(0);
-
 
         return IRQ_HANDLED;
     }
@@ -484,6 +532,22 @@ namespace USB {
 
         for (auto event: events) {
             switch (event->trb_type) {
+                case XHCI_TRB_TYPE_PORT_STATUS_CHANGE_EVENT: {
+                    auto port_evt = reinterpret_cast<xhci_port_status_change_trb_t *>(event);
+                    m_port_status_change_events.push_back(port_evt);
+
+                    xhciPortRegisterManager regman = get_port_register_set(port_evt->port_id - 1);
+                    xhci_portsc_register portsc{};
+                    regman.read_portsc_reg(portsc);
+
+                    if (portsc.csc) {
+                        xhci_port_connection_event conn_evt{};
+                        conn_evt.port_id = port_evt->port_id;
+                        conn_evt.device_connected = (portsc.ccs == 1);
+                        m_port_connection_events.push_back(conn_evt);
+                    }
+                    break;
+                }
                 case XHCI_TRB_TYPE_CMD_COMPLETION_EVENT: {
                     command_completion_status = 1;
                     m_command_completion_events.push_back(
@@ -544,6 +608,15 @@ namespace USB {
         *reinterpret_cast<volatile uint32_t *>(reg_base) = reg.raw;
     }
 
+    void xhciDriver::clear_port(uint8_t port_num) {
+        xhci_portsc_register portsc = read_portsc_reg(port_num);
+        portsc.csc = 1; // clear connect status change
+        portsc.pec = 1;
+        portsc.prc = 1;
+        portsc.wrc = 1;
+        write_portsc_reg(portsc, port_num);
+    }
+
     bool xhciDriver::reset_port(uint8_t port_num) {
         xhci_portsc_register portsc = read_portsc_reg(port_num);
 
@@ -577,7 +650,7 @@ namespace USB {
         write_portsc_reg(portsc, port_num);
 
         // Wait for the reset to complete
-        int timeout = 10;
+        int timeout = 50;
         while (timeout > 0) {
             portsc = read_portsc_reg(port_num);
 
@@ -590,7 +663,7 @@ namespace USB {
         }
 
         if (timeout == 0) {
-            Log::Warning("Port %u: Port reset timed out\n", port_num);
+            Log::Warning("Port %u: Port reset timed out", port_num);
             return false;
         }
 
@@ -1110,12 +1183,12 @@ namespace USB {
                 send_command(reinterpret_cast<xhci_trb_t *>(&configure_ep_trb), 200);
 
         if (!completion_trb) {
-            Log::Error("Failed to send Configure Endpoint command\n");
+            Log::Error("Failed to send Configure Endpoint command");
             return false;
         }
 
         if (completion_trb->completion_code != XHCI_TRB_COMPLETION_CODE_SUCCESS) {
-            Log::Error("Configure Endpoint command failed with completion code: %s\n",
+            Log::Error("Configure Endpoint command failed with completion code: %s",
                        trb_completion_code_to_string(completion_trb->completion_code));
             return false;
         }
@@ -1123,9 +1196,10 @@ namespace USB {
         return true;
     }
 
-    bool xhciDriver::setup_device(uint8_t port, xhci_portsc_register portsc) {
+    bool xhciDriver::setup_device(uint8_t port) {
         uint8_t port_id = port + 1;
-        uint16_t max_packet_size = get_max_initial_packet_size(portsc.port_speed);
+        uint8_t port_speed = get_port_speed(port);
+        uint16_t max_packet_size = get_max_initial_packet_size(port_speed);
 
         uint8_t slot_id = assign_slot();
         if (!slot_id) {
@@ -1138,7 +1212,7 @@ namespace USB {
             return false;
         }
 
-        auto *device = new xhciDevice(slot_id, port_id, portsc.port_speed, m_64byte_context_size);
+        auto *device = new xhciDevice(slot_id, port_id, port_speed, m_64byte_context_size);
 
         configure_control_ep_input_context(device, max_packet_size);
 

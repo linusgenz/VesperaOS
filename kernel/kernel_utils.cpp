@@ -178,6 +178,7 @@ void render_image_rgba8888_centered(
     }
 }
 
+bool i;
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
@@ -235,19 +236,20 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     Log::init(); // threads are possible -> switch to mutex
     kernel::DeviceManager::Init();
-    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
     vfs_init();
 
-   // CPUManager::initialize();
-  //  prepare_ap_trampoline();
+    CPUManager::initialize();
+    kernel::scheduling::init(CPUManager::total_cpus);
+    prepare_ap_trampoline();
+    CPUManager::smp_init();
 
-   // kernel::scheduling::init(CPUManager::total_cpus);
+    i = false;
+    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
  /*   kthread_t* t = create_kthread(render_throbber, nullptr, 2);
     kernel::scheduling::add_thread(t);
-
-    CPUManager::smp_init();
 */
+
 
     auto dir21 = vfs_opendir("/mnt/fat32_0/");
     Log::debug("vfs_opendir: %d", dir21);

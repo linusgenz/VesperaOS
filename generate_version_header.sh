@@ -2,7 +2,7 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=7
-VERSION_PATCH=1
+VERSION_PATCH=2
 VERSION_STAGE="dev"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
 

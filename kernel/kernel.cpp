@@ -55,7 +55,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
  //   kernel::scheduling::add_thread(shell_proc->main_thread);
 
     system_initialized = true;
-  //  kernel::scheduling::enable_on_cpu(0);
+    kernel::scheduling::enable_on_cpu(0);
 
     while (true);
 }

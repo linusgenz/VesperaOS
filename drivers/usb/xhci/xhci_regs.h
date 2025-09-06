@@ -290,4 +290,114 @@ private:
     void read_next_ext_caps();
 };
 
+// For USB2.0 this register is reserved and preserved
+struct xhci_portli_register {
+    union {
+        struct {
+            uint32_t link_error_count   : 16;
+            uint32_t rx_lane_count      : 4;
+            uint32_t tx_lane_count      : 4;
+            uint32_t rsvd               : 8;
+        } __attribute__((packed));
+
+        // Must be accessed using 32-bit dwords
+        uint32_t raw;
+    };
+} __attribute__((packed));
+static_assert(sizeof(xhci_portli_register) == sizeof(uint32_t));
+
+struct xhci_portpmsc_register_usb2 {
+    union {
+        struct {
+            uint32_t l1status                       : 3;
+            uint32_t remote_wake_enable             : 1;
+            uint32_t host_initiated_resume_duration : 4;
+            uint32_t l1device_slot                  : 8;
+            uint32_t hardware_lpm_enable            : 1;
+            uint32_t rsvd                           : 11;
+            uint32_t portTestControl                : 4;
+        } __attribute__((packed));
+
+        // Must be accessed using 32-bit dwords
+        uint32_t raw;
+    };
+} __attribute__((packed));
+static_assert(sizeof(xhci_portpmsc_register_usb2) == sizeof(uint32_t));
+
+struct xhci_portpmsc_register_usb3 {
+    union {
+        struct {
+            uint32_t u1timeout              : 8;
+            uint32_t u2timeout              : 8;
+            uint32_t force_link_pm_accept   : 1;
+            uint32_t rsvd                   : 15;
+        } __attribute__((packed));
+
+        // Must be accessed using 32-bit dwords
+        uint32_t raw;
+    };
+} __attribute__((packed));
+static_assert(sizeof(xhci_portpmsc_register_usb3) == sizeof(uint32_t));
+
+// Port Hardware LPM Control Register
+struct xhci_porthlpmc_register_usb2 {
+    union {
+        struct {
+            uint32_t hirdm      : 2;
+            uint32_t l1timeout  : 8;
+            uint32_t besld      : 4;
+            uint32_t rsvd       : 18;
+        } __attribute__((packed));
+
+        // Must be accessed using 32-bit dwords
+        uint32_t raw;
+    };
+} __attribute__((packed));
+static_assert(sizeof(xhci_porthlpmc_register_usb2) == sizeof(uint32_t));
+
+struct xhci_porthlpmc_register_usb3 {
+    union {
+        struct {
+            uint16_t link_soft_error_count;
+            uint16_t rsvd;
+        } __attribute__((packed));
+
+        // Must be accessed using 32-bit dwords
+        uint32_t raw;
+    };
+} __attribute__((packed));
+static_assert(sizeof(xhci_porthlpmc_register_usb3) == sizeof(uint32_t));
+
+class xhciPortRegisterManager {
+public:
+    explicit xhciPortRegisterManager(uintptr_t base) : m_base(base) {}
+
+    void read_portsc_reg(xhci_portsc_register& reg) const;
+    void write_portsc_reg(xhci_portsc_register& reg) const;
+
+    void read_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const;
+    void write_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const;
+
+    void read_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const;
+    void write_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const;
+
+    void read_portli_reg(xhci_portli_register& reg) const;
+    void write_portli_reg(xhci_portli_register& reg) const;
+
+    void read_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const;
+    void write_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const;
+
+    void read_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const;
+    void write_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const;
+
+private:
+    uintptr_t m_base;
+
+    const size_t m_portsc_offset     = 0x00;
+    const size_t m_portpmsc_offset   = 0x04;
+    const size_t m_portli_offset     = 0x08;
+    const size_t m_porthlpmc_offset  = 0x0C;
+};
+
+
 #endif // XHCI_REGS_H

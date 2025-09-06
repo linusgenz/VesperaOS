@@ -122,8 +122,7 @@ void xhciMassStorageDriver::on_event(USB::xhciDriver* hcd, xhciDevice* dev) {
 
 
 void xhciMassStorageDriver::initialize_device() {
-    Log::debug("init dev mass storage");
-    for (auto& ep : m_interface->endpoints) {
+    for (const auto& ep : m_interface->endpoints) {
         if ((ep->usb_endpoint_attributes & 0x03) == 0x02) {
             if (ep->usb_endpoint_addr & 0x80)
                 bulk_in_endpoint = ep;

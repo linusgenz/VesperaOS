@@ -104,15 +104,15 @@ add_custom_target(img
 
 # QEMU run
 add_custom_target(test
-        COMMAND /home/Linus/Dokumente/qemu/build/qemu-system-x86_64-debug
+        COMMAND qemu-system-x86_64
         -m 4G
+        -smp 8
         -machine q35
         -enable-kvm
         -cpu host
         -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -device nvme,drive=host0,serial=deadbeef
-        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
-        -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
+        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio
         -device qemu-xhci
@@ -127,23 +127,22 @@ add_custom_target(test
 add_custom_target(debug
         COMMAND qemu-system-x86_64
         -m 4G
+        -smp 8
         -machine q35
         -enable-kvm
         -cpu host
         -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -device nvme,drive=host0,serial=deadbeef
-        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd,readonly=on
-        -drive if=pflash,format=raw,unit=1,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
         -net none
         -monitor stdio
         -device qemu-xhci
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
         -device usb-storage,drive=usbstick
         -device usb-kbd
-        -trace *xhci*
-        -D /tmp/qemu.log
+        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -no-reboot
         -no-shutdown
+        -s -S
         DEPENDS disk_image
 )
 

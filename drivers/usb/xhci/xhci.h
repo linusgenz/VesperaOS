@@ -18,7 +18,7 @@ namespace USB {
 
         bool init_device(PCI::PCIDeviceHeader *pci_base_address);
 
-        bool start_device();
+        [[noreturn]] bool start_device();
 
         static bool shutdown_device();
 
@@ -76,6 +76,13 @@ namespace USB {
         // Command completion events
         Vector<xhci_command_completion_trb_t *> m_command_completion_events;
         Vector<xhci_transfer_completion_trb_t*> m_transfer_completion_events;
+        Vector<xhci_port_status_change_trb_t*> m_port_status_change_events;
+
+        struct xhci_port_connection_event {
+            uint8_t port_id;        // 1-based
+            bool device_connected;
+        };
+        Vector<xhci_port_connection_event> m_port_connection_events;
 
         // Flag indicating we have a command completion event
         volatile uint8_t m_command_irq_completed = 0;
@@ -90,6 +97,8 @@ namespace USB {
         xhci_portsc_register read_portsc_reg(uint8_t port_num);
 
         void write_portsc_reg(xhci_portsc_register reg, uint8_t port_num);
+
+        void clear_port(uint8_t port_num);
 
         bool reset_port(uint8_t port_num);
 
@@ -126,7 +135,7 @@ namespace USB {
 
         bool configure_endpoint(const xhciDevice *device);
 
-        bool setup_device(uint8_t port, xhci_portsc_register portsc);
+        bool setup_device(uint8_t port);
 
         bool address_device_command(const xhciDevice *dev, bool bsr);
 
@@ -145,6 +154,10 @@ namespace USB {
         static void claim_legacy_ownership(xhci_legacy_support_capability *legacy);
 
         bool is_usb3_port(uint8_t port_num);
+
+        xhciPortRegisterManager get_port_register_set(uint8_t port_num);
+
+        uint8_t get_port_speed(uint8_t port);
 
         bool reset_host_controller() const;
 

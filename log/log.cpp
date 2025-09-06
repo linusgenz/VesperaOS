@@ -53,11 +53,11 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
 }
 
 void Log::Info(const char *fmt, ...) {
-    if (!initialized) {
+   /* if (!initialized) {
         spinlock_guard g(log_spin);
     } else {
         kernel::mutex_lock(&log_mutex);
-    }
+    }*/
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -73,9 +73,9 @@ void Log::Info(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
+    /*if (initialized) {
         kernel::mutex_unlock(&log_mutex);
-    }
+    }*/
 }
 
 void Log::Ok(const char *fmt, ...) {
@@ -105,11 +105,11 @@ void Log::Ok(const char *fmt, ...) {
 }
 
 void Log::Warning(const char *fmt, ...) {
-    if (!initialized) {
+    /*if (!initialized) {
         spinlock_guard g(log_spin);
     } else {
         kernel::mutex_lock(&log_mutex);
-    }
+    }*/
 
     Colour old = renderer->get_colour();
     renderer->print("[ ");
@@ -125,9 +125,9 @@ void Log::Warning(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
+    /*if (initialized) {
         kernel::mutex_unlock(&log_mutex);
-    }
+    }*/
 }
 
 void Log::Error(const char *fmt, ...) {
