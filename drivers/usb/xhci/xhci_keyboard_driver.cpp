@@ -125,3 +125,7 @@ void xhciKeyboardDriver::process_input_report(
     // Update previous keys buffer
     memcpy(m_prev_keys, current_keys, MAX_KEYS);
 }
+
+void xhciKeyboardDriver::detach() {
+
+}

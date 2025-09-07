@@ -36,6 +36,8 @@ namespace kernel::interrupts {
         arch::x86_64::interrupts::apic::apic_ticks[MAX_CPU_CORES-1] = 0;
         memset(arch::x86_64::interrupts::idt::irq_handler_table, 0, sizeof(arch::x86_64::interrupts::idt::irq_handler_table));
 
+        arch::x86_64::interrupts::idt::init_irq_table();
+
         kernel::memory::map_memory(g_localApicAddr,
                                    g_localApicAddr,
                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
@@ -46,8 +48,16 @@ namespace kernel::interrupts {
         arch::x86_64::interrupts::apic::init(0); // bsp
     }
 
-    void register_irq(uint8_t irq, irq_handler_t handler, void *cookie) {
-        arch::x86_64::interrupts::idt::register_irq_handler(irq, handler, cookie);
+    void allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie) {
+        arch::x86_64::interrupts::idt::allocate_vector(vector, handler, cookie);
+    }
+
+    void free_vector(uint8_t vec) {
+        arch::x86_64::interrupts::idt::free_vector(vec);
+    }
+
+    uint8_t get_free_vector() {
+        return arch::x86_64::interrupts::idt::get_free_vector();
     }
 
     void set_vector(uint8_t vector, void *handler) {

@@ -35,7 +35,9 @@ public:
                               sector_size(512), total_sectors(0), max_lun(0), current_tag(1) {
     };
 
-    ~xhciMassStorageDriver() = default;
+    ~xhciMassStorageDriver() override = default;
+
+    void detach() override;
 
     void on_startup(USB::xhciDriver *hcd, xhciDevice *dev) override;
 

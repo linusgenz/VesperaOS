@@ -15,16 +15,18 @@ void usb_enable(void *arg) {
     uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
     command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
     PCI::pci_write16(pci_device_header, 0x04, command);
+
+    uint8_t vector = kernel::interrupts::get_free_vector();
+    Log::debug("alloc vector no %u", vector);
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
-                               IRQ_XHCI_VECTOR)) {
-        auto usb_driver = new USB::xhciDriver();
+                               vector)) {
+        auto usb_driver = new USB::xhciDriver(vector);
         if (!usb_driver->init_device(pci_device_header)) {
             Log::Error("Could not initalize xhci driver");
             return;
         }
         usb_driver->start_device();
     }
-    Log::Info("USB ende");
 }
 
 extern bool i;
@@ -106,9 +108,7 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-                                    if (i) return;
-                                      i = true;
-                                auto t = create_kthread(usb_enable, pci_device_header, 2);
+                                auto t = create_kthread(usb_enable, pci_device_header, 5);
                                 kernel::scheduling::add_thread(t);
                             }
                             case 0x80:

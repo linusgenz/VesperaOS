@@ -39,6 +39,11 @@ void xhciHidDriver::on_event(USB::xhciDriver* hcd, xhciDevice* dev) {
     request_hid_report(hcd, dev);
 }
 
+void xhciHidDriver::detach() {
+    this.d
+}
+
+
 void xhciHidDriver::request_hid_report(USB::xhciDriver* hcd, xhciDevice* dev) {
     auto endpoint = m_interface->endpoints[0];
     auto transfer_ring = endpoint->get_transfer_ring();

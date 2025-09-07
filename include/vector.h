@@ -87,6 +87,38 @@ public:
         return _data[index];
     }
 
+    void erase(size_t index) {
+        if (index >= length) {
+            panic("Vector::erase() index out of range");
+        }
+
+        if constexpr (!std::is_trivially_destructible<T>::value) {
+            _data[index].~T();
+        }
+
+        for (size_t i = index; i < length - 1; ++i) {
+            if constexpr (std::is_trivially_copyable<T>::value) {
+                _data[i] = _data[i + 1];
+            } else {
+                new (&_data[i]) T(_data[i + 1]);
+                _data[i + 1].~T();
+            }
+        }
+
+        --length;
+    }
+
+    bool erase_value(const T& value) {
+        for (size_t i = 0; i < length; ++i) {
+            if (_data[i] == value) {
+                erase(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     T& back() {
         if (length == 0) panic("Vector::back() called on empty vector");
         return _data[length - 1];

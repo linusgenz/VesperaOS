@@ -335,3 +335,20 @@ bool xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buff
     return (transfer.status == 0 && transfer.actual_length == transfer.data_length);}
 
 // TODO später scheduler FIFO queue beachten falls schon gelesen wird etc.
+
+void xhciMassStorageDriver::detach() {
+    current_transfer = nullptr;
+
+    bulk_in_endpoint = nullptr;
+    bulk_out_endpoint = nullptr;
+
+    kernel::DeviceManager::RemoveDevice(this);
+
+    hcd = nullptr;
+    device = nullptr;
+
+    // Flags zurücksetzen
+    init_done = false;
+    init_status = -1;
+    init_phase = InitPhase::Completed;
+}

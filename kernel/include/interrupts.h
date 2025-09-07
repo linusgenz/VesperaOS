@@ -27,11 +27,11 @@
 #include <cstdint>
 #include "../../arch/x86_64/interrupts/idt.h"
 
-#define IRQ_XHCI_VECTOR      0x30
-
 namespace kernel::interrupts {
     void initialize();  // sets IDT, APIC, IOAPIC, PIC
-    bool register_irq(uint8_t irq, irq_handler_t handler, void* cookie = nullptr);
+    bool allocate_vector(uint8_t vector, irq_handler_t handler, void* cookie = nullptr);
+    uint8_t get_free_vector();
+    void free_vector(uint8_t irqno);
     arch::x86_64::interrupts::idt::IDTR* get_idtr_address();
     void lapic_send_eoi();
     void lapic_init(uint32_t cpu_id);

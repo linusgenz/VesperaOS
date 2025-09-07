@@ -12,9 +12,12 @@
 #include "xhci_device.h"
 #include "xhci_keyboard_driver.h"
 #include "xhci_mass_storage_driver.h"
+#include "../../../kernel/devices/device_manager.h"
 
 namespace USB {
-    xhciDriver::xhciDriver() = default;
+    xhciDriver::xhciDriver(uint8_t vector) {
+        vector_num = vector;
+    }
 
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
         auto *pci_hdr = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address);
@@ -63,7 +66,8 @@ namespace USB {
         configure_operational_registers();
         //   log_operational_registers();
 
-        kernel::interrupts::register_irq(IRQ_XHCI_VECTOR, reinterpret_cast<irq_handler_t>(xhci_irq_handler), this);
+
+        kernel::interrupts::allocate_vector(vector_num, reinterpret_cast<irq_handler_t>(xhci_irq_handler), this);
 
         // Setup runtime registers
         configure_runtime_registers();
@@ -123,6 +127,26 @@ namespace USB {
                     }
                 } else {
                     Log::Info("Device disconnected from port %u", port);
+
+                    uint8_t slot_id = m_port_to_slot[port];
+                    if (slot_id != 0) {
+                        xhciDevice *dev = m_connected_devices[slot_id];
+                        if (dev) {
+                            for (auto *iface: dev->interfaces) {
+                                if (iface->driver) {
+                                    iface->driver->detach();
+                                    delete iface->driver;
+                                    iface->driver = nullptr;
+                                }
+                            }
+
+                            delete dev;
+                            m_connected_devices[slot_id] = nullptr;
+                        }
+
+                        m_port_to_slot[port] = 0;
+                    }
+
                     clear_port(port_reg_idx);
                 }
             }
@@ -1439,7 +1463,7 @@ namespace USB {
         );
 
         m_connected_devices[device->get_slot_id()] = device;
-
+        m_port_to_slot[port_id] = slot_id;
         Log::PrintLn("Device setup complete");
 
         if (device->interfaces[0]->driver) {

@@ -34,10 +34,11 @@ class xhciDevice;
 class xhciUsbDeviceDriver {
 public:
     xhciUsbDeviceDriver() = default;
-    ~xhciUsbDeviceDriver() = default;
+    virtual ~xhciUsbDeviceDriver() = default;
 
     void attach_interface(xhciUsbInterface* interface);
 
+    virtual void detach() = 0;
     virtual void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) = 0;
     virtual void on_event(USB::xhciDriver* hcd, xhciDevice* dev) = 0;
 

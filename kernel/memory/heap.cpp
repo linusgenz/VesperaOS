@@ -11,7 +11,6 @@ size_t total_allocated = 0;
 size_t total_freed = 0;
 size_t peak_usage = 0;
 
-// HeapSegHdr method implementations
 bool HeapSegHdr::is_valid() const {
     return (magic == HEAP_MAGIC_FREE || magic == HEAP_MAGIC_USED) &&
            length > 0 && length < 0x100000000ULL; // Reasonable size limit

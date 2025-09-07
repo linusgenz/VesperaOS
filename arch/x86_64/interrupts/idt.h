@@ -11,6 +11,8 @@ constexpr irqreturn_t IRQ_HANDLED = 1;
 using irq_handler_t = irqreturn_t (*)(void *cookie);
 
 namespace arch::x86_64::interrupts::idt {
+    constexpr uint8_t VECTOR_MIN = 0x23;
+    constexpr uint8_t VECTOR_MAX = 0xEF;
 
 #define IDT_TA_InterruptGate 0b10001110
 #define IDT_TA_CallGate 0b10001100
@@ -38,18 +40,27 @@ namespace arch::x86_64::interrupts::idt {
     struct irq_desc {
         irq_handler_t handler = nullptr;
         void *cookie = nullptr;
+        bool free = true;
     };
 
     constexpr int IRQ_MAX = 256;
-    inline irq_desc irq_handler_table[IRQ_MAX];
+    inline  irq_desc irq_handler_table[IRQ_MAX];
+
+    void init_irq_table();
 
     inline IDTR idtr;
-    IDTR* get_idtr_address();
+
+    IDTR *get_idtr_address();
 
     void load_default_idt();
+
     void set_idt_gate(void *handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
 
-    bool register_irq_handler(uint8_t irqno, irq_handler_t handler, void *cookie);
+    bool allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie);
+
+    void free_vector(uint8_t vec);
+
+    uint8_t get_free_vector();
 
     extern "C" void irq_common_stub(uint8_t irqno);
 }

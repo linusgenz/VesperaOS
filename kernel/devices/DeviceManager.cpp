@@ -42,6 +42,13 @@ namespace kernel {
         mutex_unlock(&device_manager_mutex);
     }
 
+    void DeviceManager::RemoveDevice(BlockDevice *device) {
+        mutex_lock(&device_manager_mutex);
+        devices->erase_value(device);
+        mutex_unlock(&device_manager_mutex);
+
+    }
+
     Vector<BlockDevice*> copy_devices(const Vector<BlockDevice*>& src) {
         Vector<BlockDevice*> out(src.size());
         for (auto i : src) {

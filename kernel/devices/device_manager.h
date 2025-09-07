@@ -35,6 +35,7 @@ namespace kernel {
         static void Init();
 
         static void AddDevice(BlockDevice* device);
+        static void RemoveDevice(BlockDevice* device);
         static Vector<BlockDevice*> GetDevices();
         static uint32_t GetDeviceCount();
 

@@ -12,7 +12,7 @@
 namespace USB {
     class xhciDriver {
     public:
-        xhciDriver();
+        explicit xhciDriver(uint8_t vector_num);
 
         ~xhciDriver() = default;
 
@@ -27,6 +27,8 @@ namespace USB {
         xhciDevice* m_connected_devices[64]{};
 
     private:
+        uint8_t vector_num;
+
         uintptr_t m_xhc_base{};
 
         volatile xhci_capability_registers *m_cap_regs{};
@@ -87,6 +89,8 @@ namespace USB {
         // Flag indicating we have a command completion event
         volatile uint8_t m_command_irq_completed = 0;
         volatile uint8_t m_transfer_irq_completed = 0;
+
+        uint8_t m_port_to_slot[256];
 
         Vector<uint8_t> m_usb3_ports;
 

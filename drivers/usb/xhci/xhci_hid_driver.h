@@ -35,6 +35,7 @@ public:
     virtual void on_device_init() = 0;
     virtual void on_device_event(uint8_t* data) = 0;
 
+    void detach() override;
     void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) override;
     void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
 

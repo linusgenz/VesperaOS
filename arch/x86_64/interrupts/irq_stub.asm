@@ -28,13 +28,25 @@ irq_stub_%1:
     jmp irq_common_stub
 %endmacro
 
-IRQ_STUB 0x30    ; xhci int
+%assign i 0
+%rep 256
+    IRQ_STUB i
+%assign i i+1
+%endrep
 
 global irq_common_stub
-
 extern irq_common_stub_handler
 
 irq_common_stub:
-    pop rdi                  ; load irqno in rdi (1. arg)
+    pop rdi              ; irqno → 1. arg
     call irq_common_stub_handler
     iretq
+
+section .data
+global irq_stub_table
+irq_stub_table:
+%assign i 0
+%rep 256
+    dq irq_stub_%+i
+%assign i i+1
+%endrep

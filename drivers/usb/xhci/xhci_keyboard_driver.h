@@ -47,6 +47,8 @@ public:
     void on_device_init() override;
     void on_device_event(uint8_t* data) override;
 
+    void detach() override;
+
 private:
     struct input_data_layout {
         uint16_t buttons_offset;
