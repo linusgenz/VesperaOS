@@ -6,7 +6,7 @@
 #include "../../include/log.h"
 #include "../../kernel/cpu/cpu_manager.h"
 #include "../../kernel/include/interrupts.h"
-#include "../../kernel/time/time.h"
+#include "../../kernel/include/time.h"
 
 namespace NVMe {
     NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader *pciBaseAddress) {

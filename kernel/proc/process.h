@@ -25,12 +25,13 @@
 #define PROCESS_H
 #include <cstdint>
 #include "../memory/page_table_manager.h"
-struct kthread_t; // forward
 
 enum ProcessState {
+    PROCESS_NEW = 0,
     PROCESS_READY,
     PROCESS_RUNNING,
     PROCESS_BLOCKED,
+    PROCESS_ZOMBIE,
     PROCESS_TERMINATED
 };
 
@@ -39,43 +40,52 @@ struct user_page {
     user_page* next;
 };
 
-
 struct kprocess_t {
     uint64_t pid;
-    char name[32];
-
+    char name[64];
     ProcessState state;
 
-    // Memory
-    PageTable* pml4;         // Root page table for the process
+    // Memory management
+    PageTable *pml4;
+    uint64_t user_stack_top;
+    uint64_t heap_start;
+    uint64_t heap_end;
+    uint64_t heap_size;
+    uint64_t memory_usage;
+
+    // Page management
     user_page* user_pages_head;
-    uint64_t user_stack_top; // Virtual top of user stack
-    uint64_t heap_start;     // Start of heap
-    uint64_t heap_end;       // Current end of heap
 
-    // Thread list
-    kthread_t* main_thread;
-    kthread_t* thread_list; // Linked list of threads belonging to this process
+    // Thread management
+    struct kthread_t *main_thread;
+    struct kthread_t *thread_list;
+    uint32_t thread_count;
 
-    // Open files / resources
-    void* file_table; // placeholder
+    // Process tree
+    struct kprocess_t *parent;
+    struct kprocess_t *first_child;
+    struct kprocess_t *next_sibling;
 
-    // Scheduling
-    uint8_t priority;
-    uint8_t cpu_affinity;
+    // Linked list for global process management
+    struct kprocess_t *next;
 
-    int64_t exit_code;
+    // Statistics and monitoring
+    uint64_t creation_time;
+    uint64_t cpu_time;
+    uint64_t cpu_time_user;
+    uint64_t cpu_time_kernel;
+    uint32_t context_switches;
 
-    kprocess_t* next;
-};
+    // Exit information
+    int exit_code;
+    bool is_kernel_process;
 
-inline kprocess_t* process_list_head = nullptr;
-inline uint64_t next_pid = 1;
+    // File descriptors (for future implementation)
+    void *fd_table;
 
-void add_process_to_list(kprocess_t* proc);
-kprocess_t* find_process_by_pid(uint64_t pid);
-kprocess_t* create_process(const char* name, void* entry_point, void* user_stack_top);
-kprocess_t* create_process_from_elf(const char* name, const char* path);
-void cleanup_process(kprocess_t *proc);
-bool all_threads_terminated(kprocess_t *proc);
+    // Signals (for future implementation)
+    uint64_t signal_mask;
+    void *signal_handlers;
+} __attribute__((packed));
+
 #endif //PROCESS_H

@@ -39,6 +39,7 @@ namespace kernel::memory {
     // Page Table Management
     void initialize_page_table_manager();
     void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags = 0, kprocess_t* proc = nullptr);
+    void set_user_flags(void* virtual_memory, size_t size);
     void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags = 0, kprocess_t* proc = nullptr);
     void unmap_memory(void* virtual_addr);
     bool is_mapped(void* virtual_addr);
@@ -50,7 +51,6 @@ namespace kernel::memory {
     void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size);
     void free_page(void* address);
     void free_pages(void* address, uint64_t page_count);
-    void free_user_pages(kprocess_t* proc);
     void lock_page(void* address);
     void lock_pages(void* address, uint64_t page_count);
     void* request_page();

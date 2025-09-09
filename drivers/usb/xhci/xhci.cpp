@@ -5,7 +5,7 @@
 #include "xhci_ext_cap.h"
 #include "../../../include/log.h"
 #include "../../../include/vector.h"
-#include "../../../kernel/time/time.h"
+#include "../../../kernel/include/time.h"
 #include "../../pci/pci.h"
 #include "../../../kernel/include/interrupts.h"
 #include "xhci_device_ctx.h"
@@ -72,7 +72,6 @@ namespace USB {
         // Setup runtime registers
         configure_runtime_registers();
 
-        Log::Info("XHCI initialized");
         return true;
     }
 
@@ -83,9 +82,9 @@ namespace USB {
         }
 
 
-        Log::PrintLn("Controller started!");
+        Log::PrintLn("[xhci] Controller started!");
 
-        if (true) {
+        if (false) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
                 xhci_portsc_register portsc{};

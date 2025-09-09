@@ -37,7 +37,7 @@ namespace arch::x86_64::interrupts::apic {
         // Configure Spurious Interrupt Vector Register
         write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
 
-        Log::Ok("LAPIC initialized for core %u", cpu_id);
+      //  Log::Ok("LAPIC initialized for core %u", cpu_id);
 
         write(LAPIC_TDCR, 0x3); // Divide by 16
         write(LAPIC_TICR, 0xFFFFFFFF);

@@ -4,7 +4,7 @@
 #ifndef THREAD_MANAGER_H
 #define THREAD_MANAGER_H
 
-#include "thread.h"
+#include "../threading/thread.h"
 #include <cstdint>
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
 

@@ -10,7 +10,7 @@
 #include "../../../drivers/input/ps2/mouse/mouse.h"
 #include "../../../drivers/input/ps2/mouse/ps2_mouse.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/time/time.h"
+#include "../../../kernel/include/time.h"
 
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
@@ -157,6 +157,7 @@ __attribute__((interrupt)) void keyboard_int_handler(interrupt_frame *frame) {
 }
 
 __attribute__((interrupt)) void mouse_int_handler(interrupt_frame *frame) {
+    global_renderer->print("mouse_int_handler");
     uint8_t data = inb(0x60);
     input::mouse::handle_byte(data);
     arch::x86_64::interrupts::pic::end_slave();

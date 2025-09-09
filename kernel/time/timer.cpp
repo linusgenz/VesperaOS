@@ -1,14 +1,13 @@
 //
 // Created by linus on 02.07.25.
 //
-#include <log.h>
 
-#include "time.h"
+#include <time.h>
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../cpu/cpu_manager.h"
 #include "../include/interrupts.h"
 #include <scheduling.h>
-#include "../scheduling/thread.h"
+#include "../threading/thread.h"
 
 extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
 

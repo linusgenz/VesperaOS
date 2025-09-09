@@ -5,7 +5,7 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-#include "../scheduling/thread.h"
+#include "../threading/thread.h"
 
 namespace kernel {
     inline bool scheduling_started = false;

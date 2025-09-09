@@ -19,9 +19,10 @@
 #include "../filesystem/vfs/vfs.h"
 #include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
-#include "time/time.h"
+#include "include/time.h"
 #include "../filesystem/vfs/vfs.h"
 #include "include/sys/syscalls.h"
+#include "proc/process_manager.h"
 #include "scheduling/thread_manager.h"
 
 
@@ -209,8 +210,8 @@ void initialize_kernel(BootInfo *bootInfo) {
         1024,
         1024,
         PIXEL_FORMAT_RGB
-    );
-    generate_throbber();*/
+    );*/
+   // generate_throbber();
 
     Log::enableDebug();
 
@@ -225,40 +226,38 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     kernel::interrupts::initialize();
 
-    ps2::mouse::init();
+  //  ps2::mouse::init();
 
     asm ("sti");
 
-
- //   setup_scroll_buffer(bootInfo->framebuffer);
+  //  setup_scroll_buffer(bootInfo->framebuffer);
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
     Log::init(); // threads are possible -> switch to mutex
     kernel::DeviceManager::Init();
-    vfs_init();
+
 
     CPUManager::initialize();
+    kernel::process::Manager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
     prepare_ap_trampoline();
     CPUManager::smp_init();
 
-    i = false;
+  /*  kernel::process::ProcessCreateOptions options = {
+        .name = "throbber",
+        .cpu_id = 2,
+        .heap_start = 0,
+        .heap_size = 0,
+        .stack_size = 0x1000,
+        .is_kernel_process = true,
+        .custom_pml4 = nullptr
+    };
+
+    PROCESS_MANAGER::create_kernel_process(options, render_throbber, nullptr);*/
+
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
- /*   kthread_t* t = create_kthread(render_throbber, nullptr, 2);
-    kernel::scheduling::add_thread(t);
-*/
-
-
-    auto dir21 = vfs_opendir("/mnt/fat32_0/");
-    Log::debug("vfs_opendir: %d", dir21);
-    char name21[128];
-    while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
-        Log::PrintLn("Eintrag2: %s", name21);
-    }
-
-    vfs_closedir(dir21);
 
     syscall_init();
     install_syscalls();
@@ -267,5 +266,5 @@ void initialize_kernel(BootInfo *bootInfo) {
     //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
     //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
-  //  kernel::interrupts::mask_pic();
+    kernel::interrupts::mask_pic();
 }

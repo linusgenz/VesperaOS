@@ -9,8 +9,9 @@
 #include "cpu_scheduler.h"
 #include "thread_manager.h"
 #include "../cpu/cpu_manager.h"
-#include "thread.h"
+#include "../threading/thread.h"
 
+static sleeping_thread_t* sleeping_list = nullptr;
 namespace kernel::scheduling {
 
     global_scheduler_t global_scheduler = {{}};
@@ -22,10 +23,6 @@ namespace kernel::scheduling {
         for (uint32_t i = 0; i < num_cpus; i++) {
             cpu_scheduler::init_cpu(i);
         }
-    }
-
-    kthread_t* create_kthread(void (*func)(void*), void* arg, uint8_t cpu_id) {
-        return ::create_kthread(func, arg, cpu_id);
     }
 
     void add_thread(kthread_t* thread) {

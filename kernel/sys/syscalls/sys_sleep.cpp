@@ -25,7 +25,7 @@
 #include "../../../include/log.h"
 #include "../../include/errno.h"
 #include "../../include/scheduling.h"
-#include "../../time/time.h"
+#include "../../include/time.h"
 
 namespace syscalls::internal {
     int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {

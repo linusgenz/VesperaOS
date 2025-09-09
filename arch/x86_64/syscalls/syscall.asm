@@ -4,11 +4,10 @@ extern syscall_handler
 section .text
 bits 64
 
-%define SAVED_USER_RSP 0x40
-%define STACK_POINTER 0x20
-%define SYSCALL_RETURN_RSP 0x60
-%define KERNEL_RSP_AFTER_SYSCALL 0x68
-%define FROM_SYSCALL_BOOL 0x59
+%define SAVED_USER_RSP 0x98
+%define STACK_POINTER 0x68
+%define KERNEL_RSP_AFTER_SYSCALL 0xC0
+%define FROM_SYSCALL_BOOL 0xB1
 
 syscall_entry:
     swapgs                        ; GS.base = Kernel GS
@@ -26,7 +25,7 @@ syscall_entry:
     push r11                      ; Save user RFLAGS
     push rcx                      ; Save user RIP (sysret will pop into RCX)
 
-    mov [r15 + KERNEL_RSP_AFTER_SYSCALL], rsp ; SYSCALL_RETURN_RSP
+    mov [r15 + KERNEL_RSP_AFTER_SYSCALL], rsp
 
     ; rax  = syscall number
     ; rdi  =  (num)

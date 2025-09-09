@@ -28,9 +28,6 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
             entry.set_address((uint64_t) new_table >> 12);
             entry.set_flag(PT_Flag::Present, true);
             entry.set_flag(PT_Flag::ReadWrite, true);
-            entry.set_flag(PT_Flag::UserSuper, true);
-        } else if (flags & (1ULL << PT_Flag::UserSuper)) {
-            entry.set_flag(PT_Flag::UserSuper, true);
         }
 
         return (PageTable *) ((uint64_t) entry.get_address() << 12);
@@ -58,15 +55,30 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
     }
 
     PT->entries[indexer.P_i] = final_entry;
-
-    if ((flags & PT_Flag::UserSuper) && proc) {
-        user_page* page = (user_page*) kernel::memory::request_page();
-        page->phys_addr = physical_memory;
-        page->next = proc->user_pages_head;
-        proc->user_pages_head = page;
-    }
 }
 
+void PageTableManager::set_user_flags(void* virtual_memory, size_t size) const {
+    uintptr_t start = (uintptr_t)virtual_memory & ~0xFFFULL;
+    uintptr_t end = start + size;
+
+    for (uintptr_t addr = start; addr < end; addr += 0x1000) {
+        PageMapIndexer indexer(addr);
+
+        PageTable *PDP = (PageTable *)((uint64_t)PML4->entries[indexer.PDP_i].get_address() << 12);
+        if (!PDP) continue;
+
+        PageTable *PD = (PageTable *)((uint64_t)PDP->entries[indexer.PD_i].get_address() << 12);
+        if (!PD) continue;
+
+        PageTable *PT = (PageTable *)((uint64_t)PD->entries[indexer.PT_i].get_address() << 12);
+        if (!PT) continue;
+
+        PML4->entries[indexer.PDP_i].set_flag(PT_Flag::UserSuper, true);
+        PDP->entries[indexer.PD_i].set_flag(PT_Flag::UserSuper, true);
+        PD->entries[indexer.PT_i].set_flag(PT_Flag::UserSuper, true);
+        PT->entries[indexer.P_i].set_flag(PT_Flag::UserSuper, true);
+    }
+}
 
 void PageTableManager::unmap_memory(void *virtual_memory) {
     PageMapIndexer indexer = PageMapIndexer((uint64_t) virtual_memory);

@@ -9,6 +9,7 @@
 #include "msix.h"
 #include "../../kernel/cpu/cpu_manager.h"
 #include "../../kernel/devices/device_manager.h"
+#include "../../kernel/proc/process_manager.h"
 
 void usb_enable(void *arg) {
     auto pci_device_header = static_cast<PCI::PCIDeviceHeader *>(arg);
@@ -17,7 +18,6 @@ void usb_enable(void *arg) {
     PCI::pci_write16(pci_device_header, 0x04, command);
 
     uint8_t vector = kernel::interrupts::get_free_vector();
-    Log::debug("alloc vector no %u", vector);
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
                                vector)) {
         auto usb_driver = new USB::xhciDriver(vector);
@@ -75,26 +75,25 @@ namespace PCI {
                     case 0x08:
                         switch (pci_device_header->prog_if) {
                             case 0x02:
-                                break;
-                                /*    uint16_t command_register = pci_device_header->command;
+                                uint16_t command_register = pci_device_header->command;
 
-                                    uint16_t command = pci_read16(pci_device_header, 0x04);
-                                    command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
-                                    pci_write16(pci_device_header, 0x04, command);
+                                uint16_t command = pci_read16(pci_device_header, 0x04);
+                                command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+                                pci_write16(pci_device_header, 0x04, command);
 
-                                    auto driver = new NVMe::NvmeDriver(pci_device_header);
-                                    Log::debug("namespaces: %u", driver->get_namespaces().size());
-                                    if (driver->get_namespaces().size() < 0) {
-                                        Log::debug("[Nvme] Namespaces not found");
-                                        delete driver;
-                                        break;
-                                    }
+                                auto driver = new NVMe::NvmeDriver(pci_device_header);
+                                Log::debug("namespaces: %u", driver->get_namespaces().size());
+                                if (driver->get_namespaces().size() < 0) {
+                                    Log::debug("[Nvme] Namespaces not found");
+                                    delete driver;
+                                    break;
+                                }
 
-                                    for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
-                                        Log::debug("added device: %u", i);
-                                        kernel::DeviceManager::AddDevice(
-                                            static_cast<BlockDevice *>(driver->get_namespaces()[i]));
-                                    }*/
+                                for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
+                                    Log::debug("added device: %u", i);
+                                    kernel::DeviceManager::AddDevice(
+                                        static_cast<BlockDevice *>(driver->get_namespaces()[i]));
+                                }
                         }
                 }
             case 0x0C:
@@ -108,8 +107,21 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-                                auto t = create_kthread(usb_enable, pci_device_header, 5);
-                                kernel::scheduling::add_thread(t);
+                                // auto t = create_kthread(usb_enable, pci_device_header, 5);
+                                //  kernel::scheduling::add_thread(t);
+
+                                kernel::process::ProcessCreateOptions options = {
+                                    .name = "usb_driver",
+                                    .cpu_id = 5,
+                                    .heap_start = 0,
+                                    .heap_size = 0,
+                                    .stack_size = 0x4000,
+                                    .is_kernel_process = true,
+                                    .custom_pml4 = nullptr // is using kernel pml
+                                };
+
+                                auto usb_proc = PROCESS_MANAGER::create_kernel_process(
+                                    options, usb_enable, pci_device_header);
                             }
                             case 0x80:
 

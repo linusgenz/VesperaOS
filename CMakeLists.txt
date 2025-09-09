@@ -119,7 +119,6 @@ add_custom_target(test
         -device qemu-xhci,id=xhci1
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
         -device usb-storage,drive=usbstick,bus=xhci1.0
-        -device usb-kbd,bus=xhci1.0
         -trace *xhci*
         -D /tmp/qemu.log
         -no-reboot

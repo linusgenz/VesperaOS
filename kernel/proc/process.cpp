@@ -21,149 +21,600 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "process.h"
 
 #include <scheduling.h>
-
-#include "../../include/log.h"
 #include "../../include/string.h"
-#include "../cpu/cpu_manager.h"
-#include "../scheduling/thread.h"
 #include "../exec/elf.h"
-#include "../include/memory.h"
 #include "../scheduling/thread_manager.h"
+#include "process.h"
+#include "process_manager.h"
+#include <log.h>
 
-void add_process_to_list(kprocess_t* proc) {
-    if (!process_list_head) {
-        process_list_head = proc;
-        proc->next = nullptr;
-        return;
-    }
-    kprocess_t* cur = process_list_head;
-    while (cur->next) {
-        cur = cur->next;
-    }
-    cur->next = proc;
-    proc->next = nullptr;
-}
+#include "../cpu/cpu_manager.h"
+#include "../threading/threading.h"
+#include "../include/time.h"
+#include "process_memory_manager.h"
 
-void remove_process_from_list(kprocess_t *proc) {
-    if (!proc || !process_list_head) return;
+namespace kernel::process {
 
-    if (process_list_head == proc) {
-        process_list_head = proc->next;
-        proc->next = nullptr;
-        return;
-    }
+    // Static member definitions
+    bool Manager::initialized = false;
+    ProcessStatistics Manager::stats = {};
+    uint64_t Manager::next_pid = 1;
+    kprocess_t* Manager::process_list_head = nullptr;
 
-    kprocess_t *cur = process_list_head;
-    while (cur->next && cur->next != proc) {
-        cur = cur->next;
-    }
+    // ProcessIterator implementation
+    ProcessIterator::ProcessIterator(kprocess_t* start) : current_process(start) {}
 
-    if (cur->next == proc) {
-        cur->next = proc->next;
-        proc->next = nullptr;
-    }
-}
-
-
-
-kprocess_t* find_process_by_pid(uint64_t pid) {
-    kprocess_t* cur = process_list_head;
-    while (cur) {
-        if (cur->pid == pid) return cur;
-        cur = cur->next;
-    }
-    return nullptr;
-}
-
-bool all_threads_terminated(kprocess_t *proc) {
-    kthread_t *t = proc->thread_list;
-    while (t) {
-        if (t->state != THREAD_TERMINATED) {
-            return false;
+    ProcessIterator& ProcessIterator::operator++() {
+        if (current_process) {
+            current_process = current_process->next;
         }
-        t = t->next;
+        return *this;
     }
-    return true;
-}
 
+    ProcessInfo ProcessIterator::operator*() const {
+        ProcessInfo info = {};
+        if (current_process) {
+            info.pid = current_process->pid;
+            strncpy(info.name, current_process->name, sizeof(info.name) - 1);
+            info.state = current_process->state;
+            info.is_kernel_process = (current_process->pml4 ==
+                (PageTable*)kernel::memory::get_pagetable_address());
 
-kprocess_t* create_process(const char* name, void* entry_point, void* user_stack_top) {
-    kprocess_t* proc = (kprocess_t*)kernel::memory::request_page();
-    memset(proc, 0, sizeof(kprocess_t));
+            kthread_t* t = current_process->thread_list;
+            while (t) {
+                info.thread_count++;
+                t = t->next_in_process;
+            }
 
-    proc->pid = next_pid++;
-    strncpy(proc->name, name, sizeof(proc->name) - 1);
-    proc->state = PROCESS_READY;
+            info.memory_usage = Manager::get_process_memory_usage(current_process->pid);
+            info.cpu_time = current_process->cpu_time;
+            info.creation_time = current_process->creation_time;
+        }
+        return info;
+    }
 
-    // Create user-space PML4
-    proc->pml4 = kernel::memory::create_user_pagetable();
+    bool ProcessIterator::operator!=(const ProcessIterator& other) const {
+        return current_process != other.current_process;
+    }
 
-    proc->user_stack_top = (uint64_t)user_stack_top;
-    proc->heap_start = 0x400000; // example: start after code
-    proc->heap_end = proc->heap_start;
+    // ThreadIterator implementation
+    ThreadIterator::ThreadIterator(kprocess_t* proc, kthread_t* thread)
+        : current_process(proc), current_thread(thread) {
+        if (!current_thread && current_process) {
+            current_thread = current_process->thread_list;
+        }
+    }
 
-    proc->main_thread = create_user_thread(entry_point, user_stack_top);
-    proc->main_thread->process = proc;
+    ThreadIterator& ThreadIterator::operator++() {
+        if (current_thread) {
+            current_thread = current_thread->next_in_process;
+            if (!current_thread && current_process) {
+                current_process = current_process->next;
+                if (current_process) {
+                    current_thread = current_process->thread_list;
+                }
+            }
+        }
+        return *this;
+    }
 
-    proc->thread_list = proc->main_thread;
+    ThreadInfo ThreadIterator::operator*() const {
+        ThreadInfo info = {};
+        if (current_thread) {
+            info.tid = current_thread->tid;
+            info.pid = current_thread->process->pid;
+            info.state = current_thread->state;
+            info.cpu_id = current_thread->cpu_id;
+            info.priority = current_thread->priority;
+            info.stack_usage = current_thread->stack_size;
+        }
+        return info;
+    }
 
-    add_process_to_list(proc);
+    bool ThreadIterator::operator!=(const ThreadIterator& other) const {
+        return current_thread != other.current_thread ||
+               current_process != other.current_process;
+    }
 
-    kernel::scheduling::add_thread(proc->main_thread);
+    void Manager::initialize() {
+        if (initialized) return;
 
-    return proc;
-}
+        threading::ThreadFactory::initialize();
 
-kprocess_t* create_process_from_elf(const char* name, const char* path) {
-    kprocess_t* proc = (kprocess_t*)kernel::memory::request_page();
-    memset(proc, 0, sizeof(kprocess_t));
+        memset(&stats, 0, sizeof(ProcessStatistics));
+        next_pid = 1;
+        process_list_head = nullptr;
+        initialized = true;
+    }
 
-    uint64_t entry;
-    void* base_addr = load_elf_binary(path, &entry, 0x400000, proc);
-    if (!base_addr) {
-        Log::Error("Failed to load ELF: %s", path);
+    bool Manager::is_initialized() {
+        return initialized;
+    }
+
+    kprocess_t* Manager::create_process(const ProcessCreateOptions& options,
+                                      void* entry_point, void* user_stack_top) {
+        if (!initialized) return nullptr;
+
+        auto* proc = (kprocess_t*)memory::request_page();
+        if (!proc) return nullptr;
+
+        memset(proc, 0, sizeof(kprocess_t));
+
+        proc->pid = next_pid++;
+        strncpy(proc->name, options.name, sizeof(proc->name) - 1);
+        proc->state = PROCESS_READY;
+        proc->creation_time = kernel::time::get_uptime_ms();
+        proc->is_kernel_process = options.is_kernel_process;
+
+        // Create page table
+        if (options.custom_pml4) {
+            proc->pml4 = (PageTable*)options.custom_pml4;
+        } else if (options.is_kernel_process) {
+            proc->pml4 = (PageTable*)kernel::memory::get_pagetable_address();
+        } else {
+            proc->pml4 = kernel::memory::create_user_pagetable();
+        }
+
+        proc->user_stack_top = (uint64_t)user_stack_top;
+        proc->heap_start = options.heap_start ? options.heap_start : 0x400000;
+        proc->heap_end = proc->heap_start;
+        proc->heap_size = options.heap_size;
+
+        const kernel::threading::ThreadCreateParams thread_params = {
+            .name = "main_thread",
+            .priority = options.priority,
+            .cpu_id = options.cpu_id,
+            .stack_size = options.stack_size ? options.stack_size : THREAD_STACK_SIZE,
+            .custom_stack = nullptr,
+            .is_idle_thread = false,
+            .is_user_thread = !options.is_kernel_process,
+            .process = proc,
+        };
+
+        // Create main thread
+        if (options.is_kernel_process) {
+            proc->main_thread = threading::ThreadFactory::create_kernel_thread(thread_params, (void(*)(void*))entry_point, nullptr);
+        } else {
+            proc->main_thread = threading::ThreadFactory::create_user_thread(thread_params, entry_point, user_stack_top);
+        }
+
+        if (!proc->main_thread) {
+            memory::free_page(proc);
+            return nullptr;
+        }
+
+        proc->thread_list = proc->main_thread;
+        proc->main_thread->next_in_process = nullptr;
+
+        add_process_to_list(proc);
+        update_process_statistics(proc, true);
+        update_thread_statistics(proc->main_thread, true);
+
+        scheduling::add_thread(proc->main_thread);
+
+        Log::Info("Created process PID=%llu (%s)", proc->pid, proc->name);
+        return proc;
+    }
+
+    kprocess_t* Manager::create_process_from_elf(const ProcessCreateOptions& options,
+                                               const char* elf_path) {
+        if (!initialized) return nullptr;
+
+        kprocess_t* proc = (kprocess_t*)kernel::memory::request_page();
+        if (!proc) return nullptr;
+
+        memset(proc, 0, sizeof(kprocess_t));
+        ProcessMemoryManager mem_manager(proc);
+
+        ElfLoader loader;
+        auto result = loader.load_elf_binary(elf_path, 0x400000, mem_manager);
+        if (!result.success) {
+            Log::Error("Failed to load ELF: %s - %s", elf_path, result.error_message);
+            kernel::memory::free_page(proc);
+            return nullptr;
+        }
+
+        // Allocate stack
+        uint64_t stack_size = options.stack_size ? options.stack_size : 0x4000;
+        void* phys = kernel::memory::request_pages(stack_size / 0x1000);
+        if (!phys) {
+            kernel::memory::free_page(proc);
+            return nullptr;
+        }
+
+     //   kernel::memory::map_range(phys, phys, stack_size, (1ULL << PT_Flag::UserSuper), proc);
+        mem_manager.map_and_track_range(phys, phys, stack_size, (1ULL << PT_Flag::UserSuper));
+        void* user_stack_top = (char*)phys + stack_size;
+
+        proc->pid = next_pid++;
+        strncpy(proc->name, options.name, sizeof(proc->name) - 1);
+        proc->state = PROCESS_READY;
+        proc->creation_time = time::get_uptime_ms();
+        proc->is_kernel_process = false;
+
+        proc->pml4 = memory::create_user_pagetable();
+        proc->user_stack_top = (uint64_t)user_stack_top;
+        proc->heap_start = options.heap_start ? options.heap_start : 0x400000;
+        proc->heap_end = proc->heap_start;
+        proc->heap_size = options.heap_size;
+
+        const threading::ThreadCreateParams thread_params = {
+            .name = "main_thread",
+            .priority = options.priority,
+            .cpu_id = options.cpu_id,
+            .stack_size = options.stack_size ? options.stack_size : THREAD_STACK_SIZE,
+            .custom_stack = nullptr,
+            .is_idle_thread = false,
+            .is_user_thread = true,
+            .process = proc,
+        };
+
+        proc->main_thread = threading::ThreadFactory::create_user_thread(thread_params, (void*)result.entry_point, user_stack_top);
+        if (!proc->main_thread) {
+            kernel::memory::free_page(proc->pml4);
+            kernel::memory::free_page(proc);
+            return nullptr;
+        }
+
+        proc->main_thread->next_in_process = nullptr;
+        proc->thread_list = proc->main_thread;
+
+        add_process_to_list(proc);
+        update_process_statistics(proc, true);
+        update_thread_statistics(proc->main_thread, true);
+
+        scheduling::add_thread(proc->main_thread);
+
+        Log::Info("Created ELF process PID=%llu (%s) from %s", proc->pid, proc->name, elf_path);
+        return proc;
+    }
+
+    kprocess_t* Manager::create_kernel_process(const ProcessCreateOptions& options,
+                                             void(*entry_point)(void*), void* arg) {
+        if (!initialized) return nullptr;
+
+        auto* proc = (kprocess_t*)memory::request_page();
+        if (!proc) return nullptr;
+
+        memset(proc, 0, sizeof(kprocess_t));
+
+        proc->pid = next_pid++;
+        strncpy(proc->name, options.name, sizeof(proc->name) - 1);
+        proc->state = PROCESS_READY;
+        proc->creation_time = time::get_uptime_ms();
+        proc->is_kernel_process = true;
+
+        proc->pml4 = (PageTable*)memory::get_pagetable_address(); // kernel pml4
+
+        proc->heap_start = 0;
+        proc->heap_end = 0;
+        proc->heap_size = 0;
+
+        const kernel::threading::ThreadCreateParams thread_params = {
+            .name = "main_thread",
+            .priority = options.priority,
+            .cpu_id = options.cpu_id,
+            .stack_size = options.stack_size ? options.stack_size : THREAD_STACK_SIZE,
+            .custom_stack = nullptr,
+            .is_idle_thread = false,
+            .is_user_thread = false,
+            .process = proc,
+        };
+
+        proc->main_thread = threading::ThreadFactory::create_kernel_thread(
+            thread_params, entry_point, arg);
+        if (!proc->main_thread) {
+            memory::free_page(proc);
+            return nullptr;
+        }
+
+        proc->main_thread->next_in_process = nullptr;
+        proc->thread_list = proc->main_thread;
+
+        add_process_to_list(proc);
+        update_process_statistics(proc, true);
+        update_thread_statistics(proc->main_thread, true);
+
+        scheduling::add_thread(proc->main_thread);
+
+        Log::Info("Created kernel process PID=%llu (%s)", proc->pid, proc->name);
+        return proc;
+    }
+
+    bool Manager::terminate_process(uint64_t pid, int exit_code) {
+        kprocess_t* proc = find_process(pid);
+        if (!proc) return false;
+
+        Log::Info("Terminating process PID=%llu (%s) with exit code %d",
+                 proc->pid, proc->name, exit_code);
+
+        proc->exit_code = exit_code;
+        proc->state = PROCESS_ZOMBIE;
+
+        // Terminate all threads
+        kthread_t* thread = proc->thread_list;
+        while (thread) {
+            thread->state = THREAD_TERMINATED;
+            kernel::scheduling::remove_thread(thread);
+            thread = thread->next;
+        }
+
+        update_statistics();
+        return true;
+    }
+
+    bool Manager::kill_process(uint64_t pid) {
+        kprocess_t* proc = find_process(pid);
+        if (!proc) return false;
+
+        Log::Info("Killing process PID=%llu (%s)", proc->pid, proc->name);
+        cleanup_process_internal(proc);
+        return true;
+    }
+
+    void Manager::cleanup_process(kprocess_t* proc) {
+        cleanup_process_internal(proc);
+    }
+
+    kprocess_t* Manager::find_process(uint64_t pid) {
+        kprocess_t* cur = process_list_head;
+        while (cur) {
+            if (cur->pid == pid) return cur;
+            cur = cur->next;
+        }
         return nullptr;
     }
 
-    void* phys = kernel::memory::request_pages(4);
-    kernel::memory::map_range(phys, phys, 0x4000,  (1ULL << PT_Flag::UserSuper), proc);
-    void* user_stack_top = phys + 0x4000;
-
-
-
-    proc->pid = next_pid++;
-    strncpy(proc->name, name, sizeof(proc->name)-1);
-    proc->state = PROCESS_READY;
-
-    proc->pml4 = kernel::memory::create_user_pagetable();
-    proc->main_thread = create_user_thread((void*)entry, user_stack_top);
-    proc->main_thread->process = proc;
-    proc->thread_list = proc->main_thread;
-
-    add_process_to_list(proc);
-    return proc;
-}
-
-void cleanup_process(kprocess_t *proc) {
-    Log::Info("Cleaning up process PID=%d (%s)", proc->pid, proc->name);
-
-    kthread_t *t = proc->thread_list;
-    while (t) {
-        kthread_t *next = t->next;
-        kernel::scheduling::remove_thread(t);
-        kernel::scheduling::thread_manager::cleanup_thread(t);
-        t = next;
+    kthread_t* Manager::find_thread(uint64_t tid) {
+        kprocess_t* proc = process_list_head;
+        while (proc) {
+            kthread_t* thread = proc->thread_list;
+            while (thread) {
+                if (thread->tid == tid) return thread;
+                thread = thread->next_in_process;
+            }
+            proc = proc->next;
+        }
+        return nullptr;
     }
-    proc->thread_list = nullptr;
 
-    remove_process_from_list(proc);
+    ProcessStatistics Manager::get_statistics() {
+        update_statistics();
+        return stats;
+    }
 
-    kernel::memory::free_user_pages(proc);
+    void Manager::update_statistics() {
+        uint64_t total_processes_created_temp = stats.total_processes_created;
+        uint64_t total_threads_created_temp = stats.total_threads_created;
+        memset(&stats, 0, sizeof(ProcessStatistics));
+        stats.total_processes_created = total_processes_created_temp;
+        stats.total_threads_created = total_threads_created_temp;
 
-    kernel::memory::free_page(proc->pml4);
+        kprocess_t* proc = process_list_head;
+        while (proc) {
+            stats.active_processes++;
 
-    kernel::memory::free_page(proc);
-}
+            if (proc->is_kernel_process) {
+                stats.kernel_processes++;
+            } else {
+                stats.user_processes++;
+            }
+
+            if (proc->state == PROCESS_ZOMBIE) {
+                stats.zombie_processes++;
+            }
+
+            stats.memory_used_by_processes += get_process_memory_usage(proc->pid);
+            stats.cpu_time_total += proc->cpu_time;
+
+            // Count threads
+            kthread_t* thread = proc->thread_list;
+            while (thread) {
+                stats.active_threads++;
+
+                switch (thread->state) {
+                    case THREAD_RUNNING:
+                        stats.running_threads++;
+                        break;
+                    case THREAD_READY:
+                        stats.ready_threads++;
+                        break;
+                    case THREAD_BLOCKED:
+                        stats.blocked_threads++;
+                        break;
+                    case THREAD_TERMINATED:
+                        stats.terminated_threads++;
+                        break;
+                    default: ;
+                }
+
+                thread = thread->next_in_process;
+            }
+
+            proc = proc->next;
+        }
+    }
+
+    ProcessIterator Manager::begin_processes() {
+        return ProcessIterator(process_list_head);
+    }
+
+    ProcessIterator Manager::end_processes() {
+        return ProcessIterator(nullptr);
+    }
+
+    ThreadIterator Manager::begin_threads() {
+        return ThreadIterator(process_list_head, nullptr);
+    }
+
+    ThreadIterator Manager::end_threads() {
+        return ThreadIterator(nullptr, nullptr);
+    }
+
+    void Manager::cleanup_zombie_processes() {
+        kprocess_t* proc = process_list_head;
+        kprocess_t* next;
+
+        while (proc) {
+            next = proc->next;
+            if (proc->state == PROCESS_ZOMBIE && all_threads_from_proc_terminated(proc)) {
+                cleanup_process_internal(proc);
+            }
+            proc = next;
+        }
+    }
+
+    // Private helper functions
+    void Manager::add_process_to_list(kprocess_t* proc) {
+        if (!process_list_head) {
+            process_list_head = proc;
+            proc->next = nullptr;
+            return;
+        }
+        kprocess_t* cur = process_list_head;
+        while (cur->next) {
+            cur = cur->next;
+        }
+        cur->next = proc;
+        proc->next = nullptr;
+    }
+
+    bool Manager::all_threads_from_proc_terminated(kprocess_t *proc) {
+        kthread_t *t = proc->thread_list;
+        while (t) {
+            if (t->state != THREAD_TERMINATED) {
+                return false;
+            }
+            t = t->next;
+        }
+        return true;
+    }
+
+    void Manager::remove_process_from_list(kprocess_t *proc) {
+        if (!proc || !process_list_head) return;
+
+        if (process_list_head == proc) {
+            process_list_head = proc->next;
+            proc->next = nullptr;
+            return;
+        }
+
+        kprocess_t *cur = process_list_head;
+        while (cur->next && cur->next != proc) {
+            cur = cur->next;
+        }
+
+        if (cur->next == proc) {
+            cur->next = proc->next;
+            proc->next = nullptr;
+        }
+    }
+/*
+    void Manager::free_process_user_pages(kprocess_t* proc) {
+        if (!proc || proc->is_kernel_process) return;
+
+        user_page* cur = proc->user_pages_head;
+        while (cur) {
+            user_page* next = cur->next;
+            kernel::memory::free_page(cur->phys_addr);
+            kernel::memory::free_page(cur);
+            cur = next;
+        }
+        proc->user_pages_head = nullptr;
+
+        // Update memory statistics
+        stats.memory_used_by_processes -= proc->memory_usage;
+        proc->memory_usage = 0;
+    }*/
+
+    void Manager::cleanup_process_internal(kprocess_t *proc) {
+        Log::Info("Cleaning up process PID=%llu (%s)", proc->pid, proc->name);
+
+        update_process_statistics(proc, false);
+
+        kthread_t *t = proc->thread_list;
+        while (t) {
+            kthread_t *next = t->next;
+            kernel::scheduling::remove_thread(t);
+            kernel::scheduling::thread_manager::cleanup_thread(t);
+            update_thread_statistics(t, false);
+            t = next;
+        }
+        proc->thread_list = nullptr;
+
+        remove_process_from_list(proc);
+
+        if (!proc->is_kernel_process) {
+         //   kernel::memory::free_user_pages(proc);
+            kernel::memory::free_page(proc->pml4);
+        }
+
+        kernel::memory::free_page(proc);
+    }
+
+    void Manager::update_process_statistics(kprocess_t* proc, bool increment) {
+        if (increment) {
+            stats.total_processes_created++;
+        }
+    }
+
+    void Manager::update_thread_statistics(kthread_t* thread, bool increment) {
+        if (increment) {
+            stats.total_threads_created++;
+        }
+    }
+
+    uint64_t Manager::get_process_memory_usage(uint64_t pid) {
+        kprocess_t* proc = find_process(pid);
+        if (!proc) return 0;
+
+        uint64_t total = 0;
+        kthread_t* thread = proc->thread_list;
+        while (thread) {
+
+            total += thread->stack_size;
+
+            thread = thread->next_in_process;
+        }
+
+        total += proc->heap_end - proc->heap_start;
+        return total; // heap + stack estimate
+    }
+
+    namespace util {
+        ProcessStatistics get_system_stats() {
+            return Manager::get_statistics();
+        }
+
+        void print_process_list() {
+            Log::Info("=== Process List ===");
+            for (auto it = Manager::begin_processes(); it != Manager::end_processes(); ++it) {
+                ProcessInfo info = *it;
+                Log::Info("PID: %llu, Name: %s, State: %d, Threads: %llu, Memory: %llu KB",
+                         info.pid, info.name, info.state, info.thread_count, info.memory_usage / 1024);
+            }
+        }
+
+        void print_thread_list() {
+            Log::Info("=== Thread List ===");
+            for (auto it = Manager::begin_threads(); it != Manager::end_threads(); ++it) {
+                ThreadInfo info = *it;
+                Log::Info("TID: %llu, PID: %llu, State: %d, CPU: %d, Priority: %d",
+                         info.tid, info.pid, info.state, info.cpu_id, info.priority);
+            }
+        }
+
+        double get_cpu_usage_percent() {
+            ProcessStatistics stats = get_system_stats();
+            if (stats.active_threads == 0) return 0.0;
+            return (double)stats.running_threads / stats.active_threads * 100.0;
+        }
+
+        uint64_t get_total_memory_usage() {
+            return get_system_stats().memory_used_by_processes;
+        }
+    }
+
+} // namespace kernel::process

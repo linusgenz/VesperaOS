@@ -25,7 +25,10 @@
 #include "../../../include/log.h"
 #include "../../cpu/cpu_manager.h"
 #include <scheduling.h>
+
+#include "../../proc/process_manager.h"
 #include "../../scheduling/thread_manager.h"
+#include "../../threading/threading.h"
 
 namespace syscalls::internal {
     int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
@@ -38,15 +41,16 @@ namespace syscalls::internal {
 
         asm volatile("mov %0, %%cr3" :: "r"(kernel::memory::get_pagetable_address()));
 
-        if (all_threads_terminated(proc)) {
+        if (kernel::process::Manager::all_threads_from_proc_terminated(proc)) {
             proc->exit_code = (int64_t) code;
             proc->state = PROCESS_TERMINATED;
 
-            cleanup_process(proc);
+            kernel::process::Manager::cleanup_process(proc);
         }
         else {
             kernel::scheduling::remove_thread(current);
-            kernel::scheduling::thread_manager::cleanup_thread(current);
+            kernel::threading::ThreadFactory::cleanup_thread_resources(current);
+            // later release tid of thread
         }
 
 

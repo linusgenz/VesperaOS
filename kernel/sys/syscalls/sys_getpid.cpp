@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "cstdint"
-#include "../../scheduling/thread.h"
+#include "../threading/thread.h"
 #include <scheduling.h>
 
 

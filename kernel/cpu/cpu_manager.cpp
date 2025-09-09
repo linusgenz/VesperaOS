@@ -4,14 +4,14 @@
 #include "../../include/log.h"
 #include "../acpi/madt.h"
 #include "../include/interrupts.h"
-#include "../time/time.h"
+#include "../include/time.h"
 #include <scheduling.h>
 
 namespace CPUManager {
     // Globale Variablen
     CPUInfo cpu_infos[MAX_CPU_CORES];
-    uint32_t total_cpus;
-    static uint32_t online_cpus;
+    uint8_t total_cpus;
+    static uint8_t online_cpus;
     static bool is_initialized = false;
     static uint32_t bsp_apic_id;
 
@@ -128,12 +128,12 @@ namespace CPUManager {
         return nullptr;
     }
 
-    uint32_t get_current_cpu_id() {
+    uint8_t get_current_cpu_id() {
         if (!is_initialized) return 0;
 
         uint32_t current_apic_id = kernel::interrupts::lapic_get_id();
 
-        for (uint32_t i = 0; i < total_cpus; i++) {
+        for (uint8_t i = 0; i < total_cpus; i++) {
             if (cpu_infos[i].apic_id == current_apic_id) {
                 return cpu_infos[i].cpu_id;
             }
@@ -142,11 +142,11 @@ namespace CPUManager {
         return 0; // Default BSP
     }
 
-    uint32_t get_online_cpu_count() {
+    uint8_t get_online_cpu_count() {
         return online_cpus;
     }
 
-    uint32_t get_available_cpu_count() {
+    uint8_t get_available_cpu_count() {
         return total_cpus;
     }
 

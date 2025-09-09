@@ -61,7 +61,7 @@ void FilesystemDetector::RegisterAllDrivers() {
      //   Log::Info("[FS] Registered EXT4 driver");
     }
 
-    Log::Info("[FS] Registered %d filesystem drivers", fs_driver_count());
+ //   Log::Info("[FS] Registered %d filesystem drivers", fs_driver_count());
 }
 
 bool FilesystemDetector::DetectFilesystem(BlockDevice *device, FilesystemInfo *info) {
@@ -89,7 +89,7 @@ bool FilesystemDetector::DetectFilesystem(BlockDevice *device, FilesystemInfo *i
                 info->description = "Unknown Filesystem";
             }
 
-            Log::Info("[FS] Detected filesystem: %s (%s)", info->type_name, info->description);
+         //   Log::Info("[FS] Detected filesystem: %s (%s)", info->type_name, info->description);
             return true;
         }
     }

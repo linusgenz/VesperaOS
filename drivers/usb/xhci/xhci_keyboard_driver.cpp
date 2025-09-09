@@ -98,7 +98,7 @@ void xhciKeyboardDriver::process_input_report(
         if (!was_previously_pressed) {
             char sdata1 = translate_hid_usage_to_ascii(key, modifiers);
             Log::Print("%c",  sdata1);
-       //     emit_key_event(key, input::KBD_EVT_KEY_PRESSED, modifiers);
+       //
         }
     }
 
@@ -116,7 +116,7 @@ void xhciKeyboardDriver::process_input_report(
         }
 
         if (!is_still_pressed) {
-         //   emit_key_event(key, input::KBD_EVT_KEY_RELEASED, modifiers);
+         //
         }
     }
 

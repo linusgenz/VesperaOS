@@ -12,6 +12,9 @@ class PageTableManager {
     PageTableManager(PageTable* PML4Address);
     PageTable* PML4;
     void map_memory(void* virtualMemory, void* physicalMemory, uint64_t flags, kprocess_t* proc);
+
+    void set_user_flags(void *virtual_memory, size_t size) const;
+
     void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags, kprocess_t* proc);
     void unmap_memory(void* virtualMemory);
     bool is_mapped(void* virtualMemory);

@@ -29,7 +29,7 @@
 #include <sys/syscalls.h>
 
 #include "scheduling/cpu_scheduler.h"
-#include "time/time.h"
+#include "include/time.h"
 
 static inline float abs(float v) {
     return v < 0.0f ? -v : v;

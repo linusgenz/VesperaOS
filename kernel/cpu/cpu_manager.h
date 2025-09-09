@@ -53,11 +53,11 @@ namespace CPUManager {
     
     CPUInfo* get_cpu_info(uint32_t apic_id);
 
-    uint32_t get_current_cpu_id();
+    uint8_t get_current_cpu_id();
     
-    uint32_t get_online_cpu_count();
+    uint8_t get_online_cpu_count();
     
-    uint32_t get_available_cpu_count();
+    uint8_t get_available_cpu_count();
     
     void halt_cpu(uint32_t apic_id);
 
@@ -70,7 +70,7 @@ namespace CPUManager {
     
     // Externe Zugriffe für Interrupt Handler
     extern CPUInfo cpu_infos[];
-    extern uint32_t total_cpus;
+    extern uint8_t total_cpus;
 }
 
 #endif // CPU_MANAGER_H

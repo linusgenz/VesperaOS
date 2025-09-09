@@ -55,6 +55,10 @@ namespace kernel::memory {
         page_table_manager.map_memory(virtual_addr, physical_addr, flags, proc);
     }
 
+    void set_user_flags(void* virtual_memory, size_t size) {
+        page_table_manager.set_user_flags(virtual_memory, size);
+    }
+
     void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags, kprocess_t* proc) {
         page_table_manager.map_range(virt_start, phys_start, size, flags, proc);
     }
@@ -95,10 +99,6 @@ namespace kernel::memory {
 
     void* request_page() {
         return page_frame_allocator.request_page();
-    }
-
-    void free_user_pages(kprocess_t* proc) {
-        page_frame_allocator.free_user_pages(proc);
     }
 
     void free_page(void* address) {

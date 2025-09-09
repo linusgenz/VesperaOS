@@ -7,6 +7,7 @@
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../cpu/cpu_manager.h"
 #include "../../include/log.h"
+#include "../threading/threading.h"
 
 namespace kernel::scheduling::thread_manager {
     extern "C" [[noreturn]] void idle_thread_func(void *arg) {
@@ -139,6 +140,17 @@ namespace kernel::scheduling::thread_manager {
 
     void setup_idle_thread(uint8_t cpu_id) {
         cpu_scheduler::cpu_scheduler_t *cpu = cpu_scheduler::get_cpu_data(cpu_id);
-        cpu->idle_thread = create_idle_kthread(idle_thread_func, cpu_id);
+
+        const kernel::threading::ThreadCreateParams thread_params = {
+            .name = "idle_thread",
+            .priority = 0,
+            .cpu_id = cpu_id,
+            .stack_size = THREAD_STACK_SIZE,
+            .custom_stack = nullptr,
+            .is_idle_thread = true,
+            .is_user_thread = false,
+            .process = nullptr,
+        };
+        cpu->idle_thread = kernel::threading::ThreadFactory::create_kernel_thread(thread_params, idle_thread_func);
     }
 } // namespace kernel::scheduling::thread_manager

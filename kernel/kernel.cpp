@@ -25,14 +25,16 @@
 #include "exec/elf.h"
 #include "./include/kernel_utils.h"
 #include "./cpu/cpu.h"
-#include "time/time.h"
+#include "include/time.h"
 #include "version.h"
 #include "include/sys/syscalls.h"
 #include "../include/log.h"
 #include "acpi/acpi_manager.h"
 #include "include/scheduling.h"
+#include "proc/process_manager.h"
 #include "sync/mutex.h"
 
+#include "../filesystem/vfs/vfs.h"
 
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     system_initialized = false;
@@ -40,21 +42,44 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     kernel::scheduling_started = true;
     char vendor[13];
     get_cpu_vendor(vendor);
-  //  Log::Info("CPU Vendor: %s", vendor);
+    //  Log::Info("CPU Vendor: %s", vendor);
 
     char brand[49];
     get_cpu_brand(brand);
-  //  Log::Info("CPU Brand: %s", brand);
+    //  Log::Info("CPU Brand: %s", brand);
     Log::Ok("Kernel initialized successfully");
-  //  Log::Info("Kernel version: %s", get_os_version());
-  //  kernel::time::print_current_time();
+    //  Log::Info("Kernel version: %s", get_os_version());
+    //  kernel::time::print_current_time();
 
-  //  kprocess_t *shell_proc = create_process_from_elf("shell", "/mnt/fat32_0/bin/shell.elf");
- //   shell_proc->state = PROCESS_READY;
- //   shell_proc->main_thread->state = THREAD_READY;
- //   kernel::scheduling::add_thread(shell_proc->main_thread);
+    kernel::time::internal::sleep(1000);
 
-    system_initialized = true;
+    vfs_init();
+
+
+    auto dir21 = vfs_opendir("/mnt/fat32_0/");
+    Log::debug("vfs_opendir: %d", dir21);
+    char name21[128];
+    while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
+        Log::PrintLn("Eintrag2: %s", name21);
+    }
+
+    vfs_closedir(dir21);
+
+    kernel::process::ProcessCreateOptions options = {
+        .name = "shell",
+        .cpu_id = 0,
+        .heap_start = 0,
+        .heap_size = 0,
+        .stack_size = 0x3000,
+        .is_kernel_process = false,
+    };
+    kprocess_t *shell_proc = PROCESS_MANAGER::create_process_from_elf(options, "/mnt/fat32_0/bin/shell.elf");
+
+//    kernel::process::util::print_process_list();
+//    kernel::process::util::print_thread_list();
+
+
+      system_initialized = true;
     kernel::scheduling::enable_on_cpu(0);
 
     while (true);

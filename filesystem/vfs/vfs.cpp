@@ -40,9 +40,9 @@ void vfs_init() {
 
     FilesystemDetector::ScanAndMountAll();
 
-    FilesystemDetector::PrintDetectedFilesystems();
+//    FilesystemDetector::PrintDetectedFilesystems();
 
-    Log::Info("[VFS] Enhanced VFS initialization complete");
+ //   Log::Info("[VFS] Enhanced VFS initialization complete");
 }
 
 VfsNode* vfs_mount(BlockDevice* device, const char* mount_path) {

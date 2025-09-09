@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include "../scheduling/cpu_scheduler.h"
+#include "../threading/thread.h"
 
 namespace kernel::scheduling {
 
@@ -35,8 +36,6 @@ namespace kernel::scheduling {
     kthread_t* get_current_thread();
     bool is_initialized();
     uint32_t get_num_cpus();
-
-    kthread_t* create_kthread(void (*func)(void*), void* arg, uint8_t cpu_id);
 
 } // namespace kernel::scheduling::scheduler
 

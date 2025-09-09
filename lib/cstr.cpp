@@ -390,6 +390,31 @@ static int int_to_string(int num, char *str, int base) {
     return i;
 }
 
+static int uint64_to_string(unsigned long long value, char* buffer, int base) {
+    char temp[32];
+    int pos = 0;
+
+    if (value == 0) {
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return 1;
+    }
+
+    while (value > 0) {
+        unsigned digit = value % base;
+        temp[pos++] = (digit < 10) ? '0' + digit : 'a' + (digit - 10);
+        value /= base;
+    }
+
+    // reverse
+    for (int i = 0; i < pos; i++) {
+        buffer[i] = temp[pos - i - 1];
+    }
+    buffer[pos] = '\0';
+    return pos;
+}
+
+
 // Helper function to get string length
 static int str_len(const char *str) {
     int len = 0;
@@ -457,6 +482,24 @@ int snprintf(char *buffer, size_t size, const char *format, ...) {
                         buffer[buf_pos++] = ch;
                     }
                     written++;
+                    break;
+                }
+
+                case 'l': {
+                    if (format[i + 1] == 'l') {
+                        i++;
+                        if (format[i + 1] == 'u') {
+                            i++;
+                            unsigned long long val = __builtin_va_arg(args, unsigned long long);
+                            char temp[32];
+                            int len = uint64_to_string(val, temp, 10);
+
+                            for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                                buffer[buf_pos++] = temp[j];
+                            }
+                            written += len;
+                        }
+                    }
                     break;
                 }
 
