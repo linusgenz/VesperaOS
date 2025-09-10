@@ -23,12 +23,13 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
         if (!entry.get_flag(PT_Flag::Present)) {
             PageTable *new_table = (PageTable *) kernel::memory::request_page();
             if (!new_table) return nullptr;
-
             memset(new_table, 0, 0x1000);
             entry.set_address((uint64_t) new_table >> 12);
-            entry.set_flag(PT_Flag::Present, true);
-            entry.set_flag(PT_Flag::ReadWrite, true);
         }
+        // Immer die Flags korrekt setzen
+        entry.set_flag(PT_Flag::Present, true);
+        entry.set_flag(PT_Flag::ReadWrite, true);
+        if (flags & (1ULL << PT_Flag::UserSuper)) entry.set_flag(PT_Flag::UserSuper, true);
 
         return (PageTable *) ((uint64_t) entry.get_address() << 12);
     };
@@ -45,8 +46,8 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
     PageDirectoryEntry &final_entry = PT->entries[indexer.P_i];
     final_entry.set_address((uint64_t) physical_memory >> 12);
 
-    // default flags
-    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite);
+    // Default Flags (immer present + rw)
+    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite)  | (1ULL << PT_Flag::UserSuper);
 
     for (int bit = 0; bit < 64; ++bit) {
         if (flags & (1ULL << bit)) {
@@ -56,6 +57,47 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
 
     PT->entries[indexer.P_i] = final_entry;
 }
+
+PageFlags PageTableManager::get_page_flags(void *virtual_memory) {
+    PageMapIndexer indexer((uint64_t) virtual_memory);
+    PageFlags flags;
+
+    auto read_entry = [&](PageTable *table, uint16_t idx) -> PageDirectoryEntry* {
+        if (!table) return nullptr;
+        PageDirectoryEntry &entry = table->entries[idx];
+        if (!entry.get_flag(PT_Flag::Present)) return nullptr;
+        return &entry;
+    };
+
+    PageDirectoryEntry *entry = read_entry(PML4, indexer.PD_i);
+    if (!entry) return flags;
+
+    PageTable *PDP = (PageTable *)((uint64_t) entry->get_address() << 12);
+    entry = read_entry(PDP, indexer.PDP_i);
+    if (!entry) return flags;
+
+    PageTable *PD = (PageTable *)((uint64_t) entry->get_address() << 12);
+    entry = read_entry(PD, indexer.PD_i);
+    if (!entry) return flags;
+
+    PageTable *PT = (PageTable *)((uint64_t) entry->get_address() << 12);
+    entry = read_entry(PT, indexer.PT_i);
+    if (!entry) return flags;
+
+    // Flags aus dem finalen Eintrag setzen
+    flags.present = entry->get_flag(PT_Flag::Present);
+    flags.read_write = entry->get_flag(PT_Flag::ReadWrite);
+    flags.user_super = entry->get_flag(PT_Flag::UserSuper);
+    flags.write_through = entry->get_flag(PT_Flag::WriteThrough);
+    flags.cache_disabled = entry->get_flag(PT_Flag::CacheDisabled);
+    flags.accessed = entry->get_flag(PT_Flag::Accessed);
+    flags.dirty = entry->get_flag(PT_Flag::Dirty);
+    flags.global = entry->get_flag(PT_Flag::Global);
+    flags.execute_disable = entry->get_flag(PT_Flag::NX);
+
+    return flags;
+}
+
 
 void PageTableManager::set_user_flags(void* virtual_memory, size_t size) const {
     uintptr_t start = (uintptr_t)virtual_memory & ~0xFFFULL;

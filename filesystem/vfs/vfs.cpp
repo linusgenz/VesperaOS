@@ -53,9 +53,9 @@ VfsNode* vfs_mount(BlockDevice* device, const char* mount_path) {
 
     VfsNode* result = FilesystemDetector::TryMount(device, mount_path);
     if (result) {
-        Log::Info("[VFS] Manual mount successful");
+       // Log::Info("[VFS] Manual mount successful");
     } else {
-        Log::Warning("[VFS] Manual mount failed");
+     //   Log::Warning("[VFS] Manual mount failed");
     }
 
     return result;

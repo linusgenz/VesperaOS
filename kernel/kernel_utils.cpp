@@ -22,8 +22,11 @@
 #include "include/time.h"
 #include "../filesystem/vfs/vfs.h"
 #include "include/sys/syscalls.h"
+#include "input/input_manager.h"
 #include "proc/process_manager.h"
 #include "scheduling/thread_manager.h"
+#include "threading/threading.h"
+#include "tty/tty.h"
 
 
 void prepare_memory(BootInfo *bootInfo) {
@@ -53,7 +56,7 @@ void prepare_memory(BootInfo *bootInfo) {
     }
 
     for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
-        kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
+        kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr),  (1ULL << PT_Flag::UserSuper));
     }
 
     for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
@@ -179,7 +182,16 @@ void render_image_rgba8888_centered(
     }
 }
 
-bool i;
+void input_poll_thread(void *arg) {
+    kernel::input::InputEvent ev;
+    memset(&ev, 0, sizeof(ev));
+   while (true) {
+        while (kernel::input::InputManager::pop_event(ev)) {
+            kernel::tty::tty_handle_input(ev);
+        }
+      //  kernel::scheduling::yield(); // CPU an andere Threads
+    }
+}
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
@@ -204,14 +216,17 @@ void initialize_kernel(BootInfo *bootInfo) {
     const uint64_t fb_height = TargetFramebuffer->height;
     global_renderer->clear();
 
-  /*  render_image_rgba8888_centered(
-        TargetFramebuffer,
-        Splash_VesperaOS_raw,
-        1024,
-        1024,
-        PIXEL_FORMAT_RGB
-    );*/
-   // generate_throbber();
+    kernel::tty::tty_init();
+    kernel::input::InputManager::init();
+
+    /*  render_image_rgba8888_centered(
+          TargetFramebuffer,
+          Splash_VesperaOS_raw,
+          1024,
+          1024,
+          PIXEL_FORMAT_RGB
+      );*/
+    // generate_throbber();
 
     Log::enableDebug();
 
@@ -226,11 +241,11 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     kernel::interrupts::initialize();
 
-  //  ps2::mouse::init();
+    //  ps2::mouse::init();
 
     asm ("sti");
 
-  //  setup_scroll_buffer(bootInfo->framebuffer);
+    //  setup_scroll_buffer(bootInfo->framebuffer);
     s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
     scroll_manager = &s;
 
@@ -241,22 +256,35 @@ void initialize_kernel(BootInfo *bootInfo) {
     CPUManager::initialize();
     kernel::process::Manager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
-    prepare_ap_trampoline();
-    CPUManager::smp_init();
 
-  /*  kernel::process::ProcessCreateOptions options = {
-        .name = "throbber",
+    kernel::process::ProcessCreateOptions options = {
+        .name = "input_poll_process",
         .cpu_id = 2,
         .heap_start = 0,
         .heap_size = 0,
-        .stack_size = 0x1000,
+        .stack_size = THREAD_STACK_SIZE,
         .is_kernel_process = true,
-        .custom_pml4 = nullptr
     };
+    kprocess_t *shell_proc = PROCESS_MANAGER::create_kernel_process(options, input_poll_thread, nullptr);
 
-    PROCESS_MANAGER::create_kernel_process(options, render_throbber, nullptr);*/
+    prepare_ap_trampoline();
+    CPUManager::smp_init();
 
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+
+
+    /*  kernel::process::ProcessCreateOptions options = {
+          .name = "throbber",
+          .cpu_id = 2,
+          .heap_start = 0,
+          .heap_size = 0,
+          .stack_size = 0x1000,
+          .is_kernel_process = true,
+          .custom_pml4 = nullptr
+      };
+
+      PROCESS_MANAGER::create_kernel_process(options, render_throbber, nullptr);*/
+
 
 
     syscall_init();

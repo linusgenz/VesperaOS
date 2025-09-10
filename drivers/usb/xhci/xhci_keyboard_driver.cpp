@@ -27,6 +27,8 @@
 #include <log.h>
 #include <memory.h>
 
+#include "../../../kernel/input/input_manager.h"
+
 constexpr size_t MAX_KEYS = 6;
 
 struct hid_keymap_entry {
@@ -96,9 +98,18 @@ void xhciKeyboardDriver::process_input_report(
         }
 
         if (!was_previously_pressed) {
-            char sdata1 = translate_hid_usage_to_ascii(key, modifiers);
-            Log::Print("%c",  sdata1);
-       //
+            char ascii = translate_hid_usage_to_ascii(key, modifiers);
+
+            alignas(16) uint8_t ev_buffer[sizeof(kernel::input::InputEvent)];
+            auto* ev = new(ev_buffer) kernel::input::InputEvent{
+                .device = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode = key,
+                .modifiers = modifiers,
+                .action = kernel::input::KeyAction::PRESS,
+                .ascii = ascii
+            };
+
+            kernel::input::InputManager::push_event(*ev);
         }
     }
 
@@ -116,7 +127,18 @@ void xhciKeyboardDriver::process_input_report(
         }
 
         if (!is_still_pressed) {
-         //
+            char ascii = translate_hid_usage_to_ascii(key, modifiers);
+
+            alignas(16) uint8_t ev_buffer[sizeof(kernel::input::InputEvent)];
+            auto* ev = new(ev_buffer) kernel::input::InputEvent{
+                .device = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode = key,
+                .modifiers = modifiers,
+                .action = kernel::input::KeyAction::RELEASE,
+                .ascii = ascii
+            };
+
+            kernel::input::InputManager::push_event(*ev);
         }
     }
 

@@ -151,7 +151,7 @@ VfsNode *FilesystemDetector::TryMount(BlockDevice *device, const char *mount_pat
 }
 
 void FilesystemDetector::ScanAndMountAll() {
-    Log::Info("[FS] Starting automatic filesystem detection and mounting...");
+  //  Log::Info("[FS] Starting automatic filesystem detection and mounting...");
 
     auto devices = kernel::DeviceManager::GetDevices();
     size_t device_count_actual = kernel::DeviceManager::GetDeviceCount();
@@ -169,7 +169,7 @@ void FilesystemDetector::ScanAndMountAll() {
         BlockDevice *device = devices[i];
         if (!device) continue;
 
-        Log::Info("[FS] Processing device %d", i);
+       // Log::Info("[FS] Processing device %d", i);
 
         // Store device information
         detected_devices[device_count].device = device;
@@ -199,8 +199,8 @@ void FilesystemDetector::ScanAndMountAll() {
         device_count++;
     }
 
-    Log::Info("[FS] Filesystem detection complete: %d/%d devices mounted successfully",
-              successful_mounts, device_count_actual);
+  //  Log::Info("[FS] Filesystem detection complete: %d/%d devices mounted successfully",
+   //           successful_mounts, device_count_actual);
 
     if (successful_mounts == 0) {
         Log::Warning("[FS] No filesystems could be mounted automatically");

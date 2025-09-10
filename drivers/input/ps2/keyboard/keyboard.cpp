@@ -24,6 +24,7 @@
 #include "keyboard.h"
 #include "buffer.h"
 #include "qwerty.h"
+#include "../../../../kernel/input/input_manager.h"
 
 namespace input::keyboard {
 
@@ -48,17 +49,39 @@ namespace input::keyboard {
         bool shift = shift_left || shift_right;
 
         if (scancode == BACKSPACE) {
-            write_char('\b');
+            kernel::input::InputEvent ev {
+                .device = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode = scancode,
+                .modifiers = static_cast<uint32_t>(shift ? 1 : 0),
+                .action = kernel::input::KeyAction::PRESS,
+                .ascii = '\b'
+            };
+            kernel::input::InputManager::push_event(ev);
             return;
         }
+
         if (scancode == ENTER) {
-            write_char('\n'); // Kommandoende
+            kernel::input::InputEvent ev {
+                .device = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode = scancode,
+                .modifiers = static_cast<uint32_t>(shift ? 1 : 0),
+                .action = kernel::input::KeyAction::PRESS,
+                .ascii = '\n'
+            };
+            kernel::input::InputManager::push_event(ev);
             return;
         }
 
         char c = translate(scancode, shift);
         if (c != 0) {
-            write_char(c);
+            kernel::input::InputEvent ev {
+                .device = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode = scancode,
+                .modifiers = static_cast<uint32_t>(shift ? 1 : 0),
+                .action = kernel::input::KeyAction::PRESS,
+                .ascii = c
+            };
+            kernel::input::InputManager::push_event(ev);
         }
     }
 

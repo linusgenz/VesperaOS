@@ -25,6 +25,9 @@
 #include <log.h>
 #include "../../filesystem/vfs/vfs.h"
 
+static inline uintptr_t align_down(uintptr_t v) { return v & ~(PAGE_SIZE - 1); }
+static inline uintptr_t align_up(uintptr_t v) { return (v + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1); }
+
 
 bool ElfLoader::validate_elf_header(const Elf64_Ehdr *header) {
     return header->e_ident[0] == 0x7F &&
@@ -78,54 +81,96 @@ Vector<ElfLoader::ElfSegment> ElfLoader::parse_segments(const void *file_data,
     return segments;
 }
 
-ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(const char *path, uintptr_t USERBASE, ProcessMemoryManager& mem_manager) {
+/*
+ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(const char *path,
+                                                    uintptr_t offset) {
     VfsNode *file = vfs_open(path);
-    if (!file) {
-        return {0, false, "Failed to open file"};
-    }
+    if (!file) return {0, false, "Failed to open file"};
 
     size_t size = vfs_file_size(file);
     void *file_data = kernel::memory::malloc(size);
-    if (!file_data) {
-        vfs_close(file);
-        return {0, false, "Failed to allocate memory for file"};
-    }
-
     vfs_read(file, 0, size, file_data);
     vfs_close(file);
 
     auto *header = reinterpret_cast<const Elf64_Ehdr *>(file_data);
-
     if (!validate_elf_header(header)) {
         kernel::memory::free(file_data);
-        return {0, false, "Invalid ELF file"};
+        return {0, false, "Invalid ELF"};
     }
 
-    auto segments = parse_segments(file_data, header, USERBASE);
+    auto segments = parse_segments(file_data, header, offset);
 
-    // Load alle Segmente
-    for (const auto &segment: segments) {
-        uintptr_t start = (uintptr_t) segment.vaddr & ~0xFFFULL;
-        uintptr_t end = ((uintptr_t) segment.vaddr + segment.memory_size + 0xFFF) & ~0xFFFULL;
+    for (auto &seg: segments) {
+        uintptr_t start = align_down((uintptr_t) seg.vaddr);
+        uintptr_t end = align_up((uintptr_t) seg.vaddr + seg.memory_size);
         size_t map_size = end - start;
 
-        if (!mem_manager.map_and_track_range((void*)start, (void*)start,
-                                             map_size, segment.flags)) {
+        // 1. Physische Frames holen
+        void *phys = kernel::memory::request_pages(map_size / PAGE_SIZE);
+        if (!phys) {
             kernel::memory::free(file_data);
-            return {0, false, "Failed to map segment"};
-                                             }
+            return {0, false, "Out of memory"};
+        }
 
-        memcpy(segment.vaddr, segment.data_ptr, segment.file_size);
+        Log::LogMsg("start %p", start);
+        Log::LogMsg("phys %p", phys);
+        kernel::memory::map_range((void *) start, phys, map_size, seg.flags);
 
-        // Zero BSS
-        if (segment.memory_size > segment.file_size) {
-            memset(reinterpret_cast<uint8_t *>(segment.vaddr) + segment.file_size,
-                   0, segment.memory_size - segment.file_size);
+        // 3. ELF-Inhalt kopieren (in virt==phys)
+        memcpy(phys, seg.data_ptr, seg.file_size);
+
+        if (seg.memory_size > seg.file_size) {
+            memset((uint8_t *) phys + seg.file_size, 0,
+                   seg.memory_size - seg.file_size);
         }
     }
 
-    uint64_t entry_point = USERBASE + header->e_entry;
+    uint64_t entry_point = offset + header->e_entry; // direkt aus ELF
     kernel::memory::free(file_data);
-
     return {entry_point, true, nullptr};
+}*/
+
+ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(const char *path, uintptr_t USER_BASE) {
+    VfsNode *file = vfs_open(path);
+    if (!file) {
+        return {0, false, "Failed to open file"};
+    };
+
+    size_t size = vfs_file_size(file);
+    void *file_data = kernel::memory::malloc(size);
+    vfs_read(file, 0, size, file_data);
+
+    auto *header = reinterpret_cast<Elf64_Ehdr *>(file_data);
+
+    if (header->e_ident[0] != 0x7F || header->e_ident[1] != 'E' ||
+        header->e_ident[2] != 'L' || header->e_ident[3] != 'F') {
+        return {0, false, "Invalid ELF file"};
+    }
+
+    auto *phdrs = reinterpret_cast<Elf64_Phdr *>(
+        reinterpret_cast<uint8_t *>(file_data) + header->e_phoff
+    );
+
+    for (int i = 0; i < header->e_phnum; ++i) {
+        Elf64_Phdr &ph = phdrs[i];
+
+        if (ph.p_type != 1) continue; // PT_LOAD
+
+        // 3. Zieladresse im Virtuellen Speicher
+        void *seg_vaddr = reinterpret_cast<void *>(USER_BASE + ph.p_vaddr);
+        size_t filesz = ph.p_filesz;
+        size_t memsz = ph.p_memsz;
+
+        kernel::memory::map_range(seg_vaddr, seg_vaddr, memsz, ph.p_flags); // flags = R/W/X
+
+        memcpy(seg_vaddr,
+               reinterpret_cast<uint8_t *>(file_data) + ph.p_offset,
+               filesz);
+
+        //  zeroing bss
+        if (memsz > filesz) {
+            memset(reinterpret_cast<uint8_t *>(seg_vaddr) + filesz, 0, memsz - filesz);
+        }
+    }
+    return {USER_BASE + header->e_entry, true, nullptr};
 }

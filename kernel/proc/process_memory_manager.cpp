@@ -43,7 +43,7 @@ bool ProcessMemoryManager::map_and_track_memory(void* virtual_addr,
                                                 uint64_t flags) {
     // Erst mappen (ohne Process-Tracking)
     kernel::memory::map_range(virtual_addr, physical_addr, size,
-                              flags & ~(1ULL << PT_Flag::UserSuper), nullptr);
+                              flags & ~(1ULL << PT_Flag::UserSuper), process);
 
     // Dann User-Flags setzen falls nötig
     if (flags & (1ULL << PT_Flag::UserSuper)) {

@@ -18,7 +18,7 @@ namespace USB {
 
         bool init_device(PCI::PCIDeviceHeader *pci_base_address);
 
-        [[noreturn]] bool start_device();
+        bool start_device();
 
         static bool shutdown_device();
 

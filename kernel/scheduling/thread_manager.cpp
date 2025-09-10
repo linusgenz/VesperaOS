@@ -133,7 +133,7 @@ namespace kernel::scheduling::thread_manager {
         kthread_t *current = cpu_scheduler::get_current_thread_on_cpu(cpu_id);
 
         current->entry(current->arg);
-
+        Log::debug("thread end %u", current->tid);
         terminate_current_thread();
     }
 

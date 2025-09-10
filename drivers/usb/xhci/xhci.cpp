@@ -75,7 +75,7 @@ namespace USB {
         return true;
     }
 
-    [[noreturn]] bool xhciDriver::start_device() {
+    bool xhciDriver::start_device() {
         if (!start_host_controller()) {
             Log::PrintLn("Failed to start the host controller");
             return false;
@@ -84,6 +84,7 @@ namespace USB {
 
         Log::PrintLn("[xhci] Controller started!");
 
+        // qemu
         if (false) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
@@ -512,16 +513,17 @@ namespace USB {
         m_op_regs->usbcmd |= XHCI_USBCMD_INTERRUPTER_ENABLE;
 
         m_op_regs->usbcmd |= XHCI_USBCMD_HOSTSYS_ERROR_ENABLE;
-        //     asm volatile ("" ::: "memory");
+             asm volatile ("" ::: "memory");
 
         m_op_regs->usbcmd |= XHCI_USBCMD_RUN_STOP;
 
         // Wait for controller to start
         constexpr int max_retries = 100;
         int retries = 0;
+        global_renderer->print("starting host controller");
         while (m_op_regs->usbsts & XHCI_USBSTS_HCH) {
             if (retries++ >= max_retries) {
-                //  Log::Error("Controller failed to start within timeout");
+                Log::Error("Controller failed to start within timeout");
                 return false;
             }
             kernel::time::sleep_ms(10);
@@ -529,7 +531,7 @@ namespace USB {
 
         // Verify CNR bit is clear
         if (m_op_regs->usbsts & XHCI_USBSTS_CNR) {
-            //      Log::Error("Controller Not Ready after start");
+            Log::Error("Controller Not Ready after start");
             return false;
         }
 
@@ -1319,10 +1321,10 @@ namespace USB {
         }
 
 
-        Log::PrintLn("---- USB Device Info ----");
-        Log::PrintLn("  Product Name    : %s", product);
-        Log::PrintLn("  Manufacturer    : %s", manufacturer);
-        Log::PrintLn("  Serial Number   : %s", serial_number);
+        /* Log::PrintLn("---- USB Device Info ----");
+         Log::PrintLn("  Product Name    : %s", product);
+         Log::PrintLn("  Manufacturer    : %s", manufacturer);
+         Log::PrintLn("  Serial Number   : %s", serial_number);*/
 
         auto *configuration_descriptor = new usb_configuration_descriptor();
         if (!get_configuration_descriptor(device, configuration_descriptor)) {

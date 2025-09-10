@@ -12,6 +12,7 @@
 
 struct PageTable;
 struct kprocess_t;
+struct PageFlags;
 
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);
 void memset(void* dest, uint8_t val, uint64_t num);
@@ -46,6 +47,7 @@ namespace kernel::memory {
     uintptr_t get_pagetable_address();
     uint64_t get_physical_address(void* virtual_addr);
     PageTable* create_user_pagetable();
+    PageFlags get_page_flags(void *virtual_memory);
 
     // Page Frame Allocator
     void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size);

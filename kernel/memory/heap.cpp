@@ -197,11 +197,21 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
         return nullptr;
     }
 
-    // Split segment if necessary
-    if (seg->length > size + sizeof(HeapSegHdr) + MIN_ALLOC_SIZE) {
-        seg->split(size);
+    HeapSegHdr* new_seg = nullptr;
+
+    // Prüfe, ob ein Split sinnvoll ist
+    if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE + 1) {
+        // +1 für Guard-Byte
+        new_seg = seg->split(size);
+
+        if (!new_seg) {
+            Log::Warning("Segment too small to split, allocating entire segment of size %u", seg->length);
+        }
+    } else if (seg->length > size) {
+      //  Log::Warning("Segment slightly larger than requested, cannot split: seg=%u, requested=%u", seg->length, size);
     }
 
+    // Markiere Segment als benutzt
     seg->free = false;
     seg->magic = HEAP_MAGIC_USED;
     seg->set_guard_bytes();
@@ -213,6 +223,7 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
 
     return seg->get_data_ptr();
 }
+
 
 void* malloc(size_t size) {
     if (!heap_initialized || size == 0) {

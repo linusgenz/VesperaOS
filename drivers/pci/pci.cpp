@@ -75,7 +75,8 @@ namespace PCI {
                     case 0x08:
                         switch (pci_device_header->prog_if) {
                             case 0x02:
-                                uint16_t command_register = pci_device_header->command;
+                                break;
+                            /*    uint16_t command_register = pci_device_header->command;
 
                                 uint16_t command = pci_read16(pci_device_header, 0x04);
                                 command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
@@ -93,7 +94,7 @@ namespace PCI {
                                     Log::debug("added device: %u", i);
                                     kernel::DeviceManager::AddDevice(
                                         static_cast<BlockDevice *>(driver->get_namespaces()[i]));
-                                }
+                                }*/
                         }
                 }
             case 0x0C:

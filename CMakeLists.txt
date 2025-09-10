@@ -115,10 +115,9 @@ add_custom_target(test
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio
-        -device qemu-xhci,id=xhci0
         -device qemu-xhci,id=xhci1
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
-        -device usb-storage,drive=usbstick,bus=xhci1.0
+        -device usb-storage,drive=usbstick
         -trace *xhci*
         -D /tmp/qemu.log
         -no-reboot

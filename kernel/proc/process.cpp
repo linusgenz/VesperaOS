@@ -206,15 +206,22 @@ namespace kernel::process {
         if (!proc) return nullptr;
 
         memset(proc, 0, sizeof(kprocess_t));
+
+        proc->pml4 = memory::create_user_pagetable();
+        proc->heap_start = options.heap_start ? options.heap_start : 0x400000;
+        proc->heap_end = proc->heap_start;
+        proc->heap_size = options.heap_size;
+
         ProcessMemoryManager mem_manager(proc);
 
         ElfLoader loader;
-        auto result = loader.load_elf_binary(elf_path, 0x400000, mem_manager);
+        auto result = loader.load_elf_binary(elf_path, 0x200000);
         if (!result.success) {
             Log::Error("Failed to load ELF: %s - %s", elf_path, result.error_message);
             kernel::memory::free_page(proc);
             return nullptr;
         }
+        Log::LogMsg("entry: %p", result.entry_point);
 
         // Allocate stack
         uint64_t stack_size = options.stack_size ? options.stack_size : 0x4000;
@@ -231,14 +238,9 @@ namespace kernel::process {
         proc->pid = next_pid++;
         strncpy(proc->name, options.name, sizeof(proc->name) - 1);
         proc->state = PROCESS_READY;
+        proc->user_stack_top = (uint64_t)user_stack_top;
         proc->creation_time = time::get_uptime_ms();
         proc->is_kernel_process = false;
-
-        proc->pml4 = memory::create_user_pagetable();
-        proc->user_stack_top = (uint64_t)user_stack_top;
-        proc->heap_start = options.heap_start ? options.heap_start : 0x400000;
-        proc->heap_end = proc->heap_start;
-        proc->heap_size = options.heap_size;
 
         const threading::ThreadCreateParams thread_params = {
             .name = "main_thread",

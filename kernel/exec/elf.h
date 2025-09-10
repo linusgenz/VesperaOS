@@ -99,6 +99,8 @@ private:
     Vector<ElfSegment> parse_segments(const void* file_data,
                                            const Elf64_Ehdr* header,
                                            uintptr_t base_addr);
+
+
     uint64_t convert_elf_flags_to_page_flags(uint32_t elf_flags);
 
 public:
@@ -108,7 +110,7 @@ public:
         const char* error_message;
     };
 
-    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE, ProcessMemoryManager& mem_manager);
+    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE);
 };
 
 #endif //ELF_H
