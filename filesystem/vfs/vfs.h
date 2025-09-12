@@ -24,6 +24,9 @@
 #ifndef VFS_H
 #define VFS_H
 
+#include <vector.h>
+
+#include "fs_detection.h"
 #include "vfs_node.h"
 #include "../../kernel/devices/blockdevice.h"
 #include "../fat32/fat32.h"
@@ -33,7 +36,17 @@ struct FilesystemInfo;
 struct MountPoint {
     char path[64];
     VfsNode* root;
+    DeviceDescriptor* device; // null when virtual
+    bool is_virtual;
+
+    MountPoint(const MountPoint& other)
+    : root(other.root), device(other.device), is_virtual(other.is_virtual) {
+        strncpy(path, other.path, sizeof(path));
+    }
+
+    MountPoint() = default;
 };
+
 
 struct VfsDir {
     VfsNode* node;
@@ -49,6 +62,7 @@ struct VfsStats {
 
 void vfs_init();
 VfsNode* vfs_mount(BlockDevice* device, const char* mount_path = nullptr); // Manual mount
+VfsNode* vfs_mount_virtual(VfsNode* root, const char* mount_path);
 bool vfs_probe(BlockDevice* device, FilesystemInfo* info);                 // Probe filesystem
 void vfs_list_devices();                            // List all detected devices
 bool vfs_supports(const char* fs_type);             // Check if filesystem type is supported
@@ -68,5 +82,7 @@ int vfs_rename(const char *old_path, const char *new_path);
 int vfs_mkdir(const char* path);
 int vfs_rmdir(const char* path);
 int vfs_unlink(const char* path);
+
+extern Vector<MountPoint> *mount_points;
 
 #endif //VFS_H

@@ -32,8 +32,6 @@ struct FilesystemInfo {
     const char *type_name;
     const char *description;
     bool mounted;
-    VfsNode *mount_point;
-    char mount_path[64];
 };
 
 struct DeviceDescriptor {
@@ -57,14 +55,8 @@ public:
 
     static void PrintDetectedFilesystems();
 
-    static DeviceDescriptor *GetDetectedDevices(size_t &out_count) {
-        out_count = device_count;
-        return detected_devices;
-    }
-
 private:
     static size_t driver_count;
-    static DeviceDescriptor detected_devices[MAX_MOUNTS];
     static size_t device_count;
 
     static void GenerateMountPath(const char* fs_type, int index, char* out_path, size_t size);

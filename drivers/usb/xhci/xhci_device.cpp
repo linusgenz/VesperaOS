@@ -30,13 +30,16 @@
 #include "xhci_usb_interface.h"
 
 xhciDevice::xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64byte_ctx)
-    : slot_id(slot_id), port_num(port_num), speed(speed), use64byte_ctx(use_64byte_ctx) {
+    : use64byte_ctx(use_64byte_ctx) {
+    info.port_num = port_num;
+    info.slot_id = slot_id;
+    info.speed = speed;
     allocate_input_context();
     allocate_control_ep_ring();
 }
 
 void xhciDevice::allocate_control_ep_ring() {
-    m_control_transfer_ring = xhciTransferRing::allocate(slot_id);
+    m_control_transfer_ring = xhciTransferRing::allocate(info.slot_id);
 }
 
 void xhciDevice::allocate_input_context() {
@@ -94,7 +97,7 @@ xhci_endpoint_context32* xhciDevice::get_input_ep_ctx(uint8_t endpoint_num) {
 }
 
 void xhciDevice::setup_add_interface(const usb_interface_descriptor* desc) {
-    auto iface = new xhciUsbInterface(slot_id, desc);
+    auto iface = new xhciUsbInterface(info.slot_id, desc);
     interfaces.push_back(iface);
 }
 

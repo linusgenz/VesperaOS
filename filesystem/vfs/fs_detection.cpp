@@ -29,7 +29,6 @@
 #include "vfs.h"
 
 size_t FilesystemDetector::driver_count = 0;
-DeviceDescriptor FilesystemDetector::detected_devices[MAX_MOUNTS];
 size_t FilesystemDetector::device_count = 0;
 
 extern FileSystemDriver fat32_driver;
@@ -40,10 +39,6 @@ extern FileSystemDriver ext4_driver;
 
 void FilesystemDetector::Init() {
     device_count = 0;
-
-    for (int i = 0; i < MAX_MOUNTS; i++) {
-        detected_devices[i] = {};
-    }
 
   //  Log::Info("[FS] Filesystem detector initialized");
 }
@@ -71,8 +66,6 @@ bool FilesystemDetector::DetectFilesystem(BlockDevice *device, FilesystemInfo *i
     info->type_name = nullptr;
     info->description = nullptr;
     info->mounted = false;
-    info->mount_point = nullptr;
-    info->mount_path[0] = '\0';
 
     for (size_t i = 0; i < fs_driver_count(); i++) {
         FileSystemDriver *drv = fs_driver_at(i);
@@ -113,7 +106,7 @@ void FilesystemDetector::GenerateMountPath(const char *fs_type, int index, char 
 VfsNode *FilesystemDetector::TryMount(BlockDevice *device, const char *mount_path) {
     if (!device) return nullptr;
 
-    FilesystemInfo fs_info;
+    FilesystemInfo fs_info{};
     if (!DetectFilesystem(device, &fs_info)) {
         Log::Warning("[FS] Cannot mount: No supported filesystem detected");
         return nullptr;
@@ -151,8 +144,6 @@ VfsNode *FilesystemDetector::TryMount(BlockDevice *device, const char *mount_pat
 }
 
 void FilesystemDetector::ScanAndMountAll() {
-  //  Log::Info("[FS] Starting automatic filesystem detection and mounting...");
-
     auto devices = kernel::DeviceManager::GetDevices();
     size_t device_count_actual = kernel::DeviceManager::GetDeviceCount();
 
@@ -165,68 +156,78 @@ void FilesystemDetector::ScanAndMountAll() {
 
     int successful_mounts = 0;
 
-    for (size_t i = 0; i < device_count_actual && i < MAX_MOUNTS; i++) {
-        BlockDevice *device = devices[i];
+    for (size_t i = 0; i < device_count_actual; i++) {
+        BlockDevice* device = devices[i];
         if (!device) continue;
 
-       // Log::Info("[FS] Processing device %d", i);
+        DeviceDescriptor desc{};
+        desc.device = device;
+        desc.device_size = 0; // TODO: echte Größe abfragen
+        desc.is_recognized = false;
+        desc.fs_info = {};
 
-        // Store device information
-        detected_devices[device_count].device = device;
-        detected_devices[device_count].device_size = 0; // TODO: Get actual device size
-        detected_devices[device_count].is_recognized = false;
+        if (DetectFilesystem(device, &desc.fs_info)) {
+            desc.is_recognized = true;
 
-        // Try to detect and mount
-        if (DetectFilesystem(device, &detected_devices[device_count].fs_info)) {
-            detected_devices[device_count].is_recognized = true;
+            VfsNode* root = TryMount(device);
+            if (root) {
+                // Mountpoint-Path erzeugen
+                char mount_path[64];
+                GenerateMountPath(desc.fs_info.type_name, i, mount_path, sizeof(mount_path));
 
-            if (VfsNode *mount_point = TryMount(device)) {
-                GenerateMountPath(detected_devices[device_count].fs_info.type_name, i,
-                                  detected_devices[device_count].fs_info.mount_path,
-                                  sizeof(detected_devices[device_count].fs_info.mount_path));
+                desc.fs_info.mounted = true;
 
-                detected_devices[device_count].fs_info.mounted = true;
-                detected_devices[device_count].fs_info.mount_point = mount_point;
+                MountPoint mp{};
+                strncpy(mp.path, mount_path, sizeof(mp.path) - 1);
+                mp.root = root;
+                mp.device = new DeviceDescriptor(desc); // copy desc into heap
+                mp.is_virtual = false;
+
+                mount_points->push_back(mp);
+
+                Log::Info("[FS] Successfully mounted %s at %s",
+                          desc.fs_info.type_name, mp.path);
+
                 successful_mounts++;
             } else {
                 Log::Warning("[FS] Failed to mount detected %s filesystem",
-                             detected_devices[device_count].fs_info.type_name);
+                             desc.fs_info.type_name);
             }
         } else {
             Log::Info("[FS] Device %d: Unknown or unsupported filesystem", i);
         }
-
-        device_count++;
     }
-
-  //  Log::Info("[FS] Filesystem detection complete: %d/%d devices mounted successfully",
-   //           successful_mounts, device_count_actual);
 
     if (successful_mounts == 0) {
         Log::Warning("[FS] No filesystems could be mounted automatically");
     }
 }
 
+
 void FilesystemDetector::PrintDetectedFilesystems() {
     Log::Info("[FS] === Detected Storage Devices ===");
 
-    if (device_count == 0) {
+    if (mount_points->empty()) {
         Log::Info("[FS] No devices detected");
         return;
     }
 
-    for (size_t i = 0; i < device_count; i++) {
-        const auto &dev = detected_devices[i];
+    int dev_index = 0;
+    for (auto mp : (*mount_points)) {
+        if (mp.is_virtual) continue;
 
-        Log::Info("[FS] Device %d:", i);
+        const DeviceDescriptor* dev = mp.device;
+        if (!dev) continue;
 
-        if (dev.is_recognized) {
+        Log::Info("[FS] Device %d:", dev_index++);
+
+        if (dev->is_recognized) {
             Log::Info("[FS]   Type: %s (%s)",
-                      dev.fs_info.type_name,
-                      dev.fs_info.description);
+                      dev->fs_info.type_name,
+                      dev->fs_info.description);
 
-            if (dev.fs_info.mounted) {
-                Log::Info("[FS]   Status: Mounted at %s", dev.fs_info.mount_path);
+            if (dev->fs_info.mounted) {
+                Log::Info("[FS]   Status: Mounted at %s", mp.path);
             } else {
                 Log::Info("[FS]   Status: Detected but not mounted");
             }

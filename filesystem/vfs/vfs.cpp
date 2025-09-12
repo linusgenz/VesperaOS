@@ -31,8 +31,10 @@
 #include "../../kernel/devices/device_manager.h"
 #include "fs_detection.h"
 
+Vector<MountPoint> *mount_points;
+
 void vfs_init() {
- //   Log::Info("[VFS] Starting enhanced VFS initialization...");
+    mount_points = new Vector<MountPoint>();
 
     FilesystemDetector::Init();
 
@@ -40,93 +42,103 @@ void vfs_init() {
 
     FilesystemDetector::ScanAndMountAll();
 
-//    FilesystemDetector::PrintDetectedFilesystems();
+    //    FilesystemDetector::PrintDetectedFilesystems();
 
- //   Log::Info("[VFS] Enhanced VFS initialization complete");
+    //   Log::Info("[VFS] Initialization complete");
 }
 
-VfsNode* vfs_mount(BlockDevice* device, const char* mount_path) {
+VfsNode *vfs_mount(BlockDevice *device, const char *mount_path) {
     if (!device) {
         Log::Error("[VFS] Cannot mount: Invalid device");
         return nullptr;
     }
 
-    VfsNode* result = FilesystemDetector::TryMount(device, mount_path);
+    VfsNode *result = FilesystemDetector::TryMount(device, mount_path);
     if (result) {
-       // Log::Info("[VFS] Manual mount successful");
+        // Log::Info("[VFS] Manual mount successful");
     } else {
-     //   Log::Warning("[VFS] Manual mount failed");
+        //   Log::Warning("[VFS] Manual mount failed");
     }
 
     return result;
 }
 
-VfsNode *vfs_open(const char *path) {
-    if (!path || path[0] != '/') return nullptr;
+VfsNode *vfs_mount_virtual(VfsNode *root, const char *mount_path) {
+    if (!root || !mount_path) return nullptr;
 
-    char components[16][32];
-    size_t componentCount = split_path(path, components, 16);
-    if (componentCount == 0) return nullptr;
+    // Neuen MountPoint eintragen
+    MountPoint mp{};
+    strncpy(mp.path, mount_path, sizeof(mp.path) - 1);
+    mp.is_virtual = true;
+    mp.path[sizeof(mp.path) - 1] = '\0';
+    mp.root = root;
 
-    size_t device_count;
-    DeviceDescriptor* devices = FilesystemDetector::GetDetectedDevices(device_count);
+    mount_points->push_back(mp);
 
-    for (size_t i = 0; i < device_count; i++) {
-        VfsNode* root = devices[i].fs_info.mount_point;
-        const char* mpath = devices[i].fs_info.mount_path;
-        if (!root || !mpath) continue;
-        size_t mountLen = strlen(mpath);
-
-
-        if (strncmp(path, mpath, mountLen) == 0 &&
-            (path[mountLen] == '/' || path[mountLen] == '\0')) {
-            VfsNode *current = root;
-
-            // z.B. bei /mnt/usb/foo/bar.txt → überspringe die Komponenten ["mnt", "usb"]
-            size_t skip = 0;
-            char mount_parts[16][32];
-            size_t mparts = split_path(mpath, mount_parts, 16);
-            skip = mparts;
-
-            for (size_t j = skip; j < componentCount; j++) {
-                if (!current->ops || !current->ops->find) return nullptr;
-
-                current = current->ops->find(current, components[j]);
-                if (!current) return nullptr;
-            }
-
-            return current;
-        }
-    }
-
-    return nullptr;
+    return root;
 }
 
-VfsDir* vfs_opendir(const char* path) {
-    VfsNode* node = vfs_open(path);
+
+VfsNode *vfs_open(const char *path) {
+    MountPoint* best_match = nullptr;
+    size_t best_len = 0;
+
+    for (size_t i = 0; i < mount_points->size(); i++) {
+        MountPoint& mp = (*mount_points)[i];
+        size_t len = strlen(mp.path);
+
+        if (strncmp(path, mp.path, len) == 0 &&
+            (path[len] == '/' || path[len] == '\0') &&
+            len > best_len) {
+            best_match = &mp;
+            best_len = len;
+            }
+    }
+
+    if (!best_match) return nullptr;
+
+    const char* sub_path = path + best_len;
+    if (*sub_path == '/') sub_path++;
+
+    if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
+
+    VfsNode* current = best_match->root;
+
+    char components[16][32];
+    size_t count = split_path(sub_path, components, 16);
+    for (size_t i = 0; i < count; i++) {
+        current = current->ops->find(current, components[i]);
+        if (!current) return nullptr;
+    }
+
+    return current;
+}
+
+VfsDir *vfs_opendir(const char *path) {
+    VfsNode *node = vfs_open(path);
     if (!node || node->type != VfsNodeType::Directory) return nullptr;
     if (!node->ops || !node->ops->opendir) return nullptr;
 
     Log::debug("opendir: %s", path);
-    void* handle = node->ops->opendir(node);
+    void *handle = node->ops->opendir(node);
     if (!handle) {
         vfs_close(node);
         return nullptr;
     }
 
-    auto* dir = (VfsDir*)malloc(sizeof(VfsDir));
+    auto *dir = (VfsDir *) malloc(sizeof(VfsDir));
     dir->node = node;
     dir->handle = handle;
     return dir;
 }
 
 
-int vfs_readdir(VfsDir* dir, char* out_name, size_t max_len) {
+int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len) {
     if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return 0;
     return dir->node->ops->readdir(dir->handle, out_name, max_len);
 }
 
-void vfs_closedir(VfsDir* dir) {
+void vfs_closedir(VfsDir *dir) {
     if (!dir) return;
     if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) {
         dir->node->ops->closedir(dir->handle);
@@ -140,7 +152,7 @@ size_t vfs_read(VfsNode *node, size_t offset, size_t size, void *buffer) {
     return node->ops->read(node, offset, size, buffer);
 }
 
-size_t vfs_file_size(VfsNode* file) {
+size_t vfs_file_size(VfsNode *file) {
     if (!file) return -EINVAL;
 
     return file->ops->file_size(file);
@@ -151,11 +163,11 @@ void vfs_close(VfsNode *node) {
     node->ops->close(node);
 }
 
-int vfs_rename(const char* oldPath, const char* newPath) {
+int vfs_rename(const char *oldPath, const char *newPath) {
     if (!oldPath || !newPath) return -EINVAL;
 
-    VfsNode* oldParent;
-    VfsNode* newParent;
+    VfsNode *oldParent;
+    VfsNode *newParent;
     char oldName[64];
     char newName[64];
 
@@ -241,23 +253,23 @@ int vfs_unlink(const char *path) {
     return result;
 }
 
-VfsNode* vfs_mount_device(BlockDevice* device, const char* mount_path) {
+VfsNode *vfs_mount_device(BlockDevice *device, const char *mount_path) {
     if (!device) {
         Log::Error("[VFS] Cannot mount: Invalid device");
         return nullptr;
     }
-    
-    VfsNode* result = FilesystemDetector::TryMount(device, mount_path);
+
+    VfsNode *result = FilesystemDetector::TryMount(device, mount_path);
     if (result) {
         Log::Info("[VFS] Manual mount successful");
     } else {
         Log::Warning("[VFS] Manual mount failed");
     }
-    
+
     return result;
 }
 
-bool vfs_probe_filesystem(BlockDevice* device) {
+bool vfs_probe_filesystem(BlockDevice *device) {
     FilesystemInfo info{};
     return FilesystemDetector::DetectFilesystem(device, &info);
 }
@@ -268,17 +280,17 @@ void vfs_list_devices() {
 
 void vfs_remount_all() {
     Log::Info("[VFS] Remounting all detected devices...");
-    
+
     // Clear existing state
     FilesystemDetector::Init();
     FilesystemDetector::RegisterAllDrivers();
-    
+
     // Scan and mount again
     FilesystemDetector::ScanAndMountAll();
     FilesystemDetector::PrintDetectedFilesystems();
 }
 
-void vfs_get_stats(VfsStats* stats) {
+void vfs_get_stats(VfsStats *stats) {
     if (!stats) return;
 
     stats->total_devices = kernel::DeviceManager::GetDeviceCount();

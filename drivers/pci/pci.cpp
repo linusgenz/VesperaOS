@@ -11,6 +11,8 @@
 #include "../../kernel/devices/device_manager.h"
 #include "../../kernel/proc/process_manager.h"
 
+static uint8_t next_usb_bus_number;
+
 void usb_enable(void *arg) {
     auto pci_device_header = static_cast<PCI::PCIDeviceHeader *>(arg);
     uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
@@ -20,7 +22,11 @@ void usb_enable(void *arg) {
     uint8_t vector = kernel::interrupts::get_free_vector();
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
                                vector)) {
-        auto usb_driver = new USB::xhciDriver(vector);
+
+        const char* dev_name = DevFS::alloc_unique_name("xhci");
+
+        Log::debug("bus num: %u", next_usb_bus_number);
+        auto usb_driver = new USB::xhciDriver(vector, dev_name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header)) {
             Log::Error("Could not initalize xhci driver");
             return;
@@ -29,7 +35,6 @@ void usb_enable(void *arg) {
     }
 }
 
-extern bool i;
 
 namespace PCI {
     void enumerate_function(uint64_t device_address, uint64_t function) {
@@ -167,6 +172,7 @@ namespace PCI {
     }
 
     void enumerate_pci(ACPI::MCFGHeader *mcfg) {
+        next_usb_bus_number = 1;
         int entries = ((mcfg->header.length) - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
 
         for (int t = 0; t < entries; t++) {

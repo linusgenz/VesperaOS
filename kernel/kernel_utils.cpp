@@ -13,6 +13,7 @@
 #include "include/interrupts.h"
 #include "../drivers/input/ps2/mouse/mouse.h"
 #include "../drivers/input/ps2/mouse/ps2_mouse.h"
+#include "../filesystem/devfs/devfs.h"
 #include "../filesystem/fat32/fat32.h"
 #include "../filesystem/fat32/fat32_vfs_adapter.h"
 #include "../filesystem/vfs/fs_registry.h"
@@ -56,7 +57,8 @@ void prepare_memory(BootInfo *bootInfo) {
     }
 
     for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
-        kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr),  (1ULL << PT_Flag::UserSuper));
+        kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr),
+                                   (1ULL << PT_Flag::UserSuper));
     }
 
     for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
@@ -185,11 +187,11 @@ void render_image_rgba8888_centered(
 void input_poll_thread(void *arg) {
     kernel::input::InputEvent ev;
     memset(&ev, 0, sizeof(ev));
-   while (true) {
+    while (true) {
         while (kernel::input::InputManager::pop_event(ev)) {
             kernel::tty::tty_handle_input(ev);
         }
-      //  kernel::scheduling::yield(); // CPU an andere Threads
+        //  kernel::scheduling::yield(); // CPU an andere Threads
     }
 }
 
@@ -258,7 +260,7 @@ void initialize_kernel(BootInfo *bootInfo) {
     kernel::scheduling::init(CPUManager::total_cpus);
 
     kernel::process::ProcessCreateOptions options = {
-        .name = "input_poll_process",
+        .name = "input_bus",
         .cpu_id = 3,
         .heap_start = 0,
         .heap_size = 0,
@@ -271,7 +273,62 @@ void initialize_kernel(BootInfo *bootInfo) {
     CPUManager::smp_init();
 
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+    // TODO when device recognition is async need completion_t here
 
+    vfs_init();
+    DevFS::init();
+
+    kernel::time::internal::sleep(3000);
+
+    struct xhci_device_stat {
+        uint8_t slot_id;
+        uint8_t port_num;
+        uint8_t speed;
+        uint8_t bus_number;
+        uint16_t vendor_id;
+        uint16_t product_id;
+        char product[64];
+        char manufacturer[64];
+        char serial_number[64];
+    };
+
+    VfsNode *node = vfs_open("/dev/xhci0");
+    if (!node) {
+        Log::Info("xhci0 not found");
+        return;
+    }
+
+    // Open DevFS device
+    if (DevFS::open(node) != 0) {
+        Log::Info("Failed to open xhci1");
+        vfs_close(node);
+        return;
+    }
+
+    char buffer[256];
+    size_t offset = 0;
+    size_t bytes;
+
+    while (true) {
+        bytes = DevFS::read(node, offset, sizeof(buffer), buffer);
+        if (bytes == 0) break;
+
+        size_t entries = bytes / sizeof(xhci_device_stat);
+        auto *stats = (xhci_device_stat *) buffer;
+
+        for (size_t i = 0; i < entries; i++) {
+            Log::PrintLn("Bus %d, Slot %d, Port %d, Speed %d ID %04x:%04x %s %s",
+                         stats[i].bus_number,
+                         stats[i].slot_id,
+                         stats[i].port_num,
+                         stats[i].speed, stats[i].vendor_id, stats[i].product_id, stats[i].manufacturer,
+                         stats[i].product);
+        }
+
+        offset += entries; // Offset für nächsten read
+    }
+
+    vfs_close(node);
 
     /*  kernel::process::ProcessCreateOptions options = {
           .name = "throbber",
@@ -284,7 +341,6 @@ void initialize_kernel(BootInfo *bootInfo) {
       };
 
       PROCESS_MANAGER::create_kernel_process(options, render_throbber, nullptr);*/
-
 
 
     syscall_init();

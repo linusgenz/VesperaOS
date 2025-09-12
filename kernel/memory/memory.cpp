@@ -76,10 +76,6 @@ namespace kernel::memory {
         return page_table_manager.get_physical_address(virtual_addr);
     }
 
-    PageFlags get_page_flags(void *virtual_memory) {
-        return page_table_manager.get_page_flags(virtual_memory);
-    }
-
     PageTable* create_user_pagetable() {
         return page_table_manager.create_user_pagetable();
     }

@@ -12,8 +12,6 @@
 #include <cstdint>
 #include <log.h>
 
-extern bool flag;
-
 template<typename T>
 class Vector {
 public:

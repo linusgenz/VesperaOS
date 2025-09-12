@@ -8,13 +8,18 @@
 #include "../../pci/pci.h"
 #include "../../../arch/x86_64/interrupts/idt.h"
 #include "xhci_ext_cap.h"
+#include "../../../kernel/devices/chardevice.h"
 
 namespace USB {
-    class xhciDriver {
+    class xhciDriver : public CharDevice {
     public:
-        explicit xhciDriver(uint8_t vector_num);
+        explicit xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number) : CharDevice(_name) {
+            vector_num = _vector_num;
+            name = _name;
+            bus_number = _bus_number;
+        }
 
-        ~xhciDriver() = default;
+        ~xhciDriver() override = default;
 
         bool init_device(PCI::PCIDeviceHeader *pci_base_address);
 
@@ -24,10 +29,19 @@ namespace USB {
 
         void ring_doorbell(uint8_t slot, uint8_t ep) const;
 
-        xhciDevice* m_connected_devices[64]{};
+        xhciDevice *m_connected_devices[64]{};
+
+        // Char device
+
+        int open(CharFile** out_cf) override;
+        int release(CharFile* cf) override;
+
+        size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+        size_t write(CharFile* cf, const void* buffer, size_t count) override;
 
     private:
-        uint8_t vector_num;
+        uint8_t bus_number;
+        uint8_t vector_num{};
 
         uintptr_t m_xhc_base{};
 
@@ -77,20 +91,21 @@ namespace USB {
 
         // Command completion events
         Vector<xhci_command_completion_trb_t *> m_command_completion_events;
-        Vector<xhci_transfer_completion_trb_t*> m_transfer_completion_events;
-        Vector<xhci_port_status_change_trb_t*> m_port_status_change_events;
+        Vector<xhci_transfer_completion_trb_t *> m_transfer_completion_events;
+        Vector<xhci_port_status_change_trb_t *> m_port_status_change_events;
 
         struct xhci_port_connection_event {
-            uint8_t port_id;        // 1-based
+            uint8_t port_id; // 1-based
             bool device_connected;
         };
+
         Vector<xhci_port_connection_event> m_port_connection_events;
 
         // Flag indicating we have a command completion event
         volatile uint8_t m_command_irq_completed = 0;
         volatile uint8_t m_transfer_irq_completed = 0;
 
-        uint8_t m_port_to_slot[256];
+        uint8_t m_port_to_slot[256]{};
 
         Vector<uint8_t> m_usb3_ports;
 

@@ -29,38 +29,55 @@
 #include "xhci_device_ctx.h"
 #include "xhci_usb_interface.h"
 
+struct xhci_device_stat {
+    uint8_t slot_id;
+    uint8_t port_num;
+    uint8_t speed;
+    uint8_t bus_number;
+    uint16_t vendor_id;
+    uint16_t product_id;
+    char product[64];
+    char manufacturer[64];
+    char serial_number[64];
+};
+
+
 class xhciDevice {
 public:
     explicit xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64bit_context);
 
     void allocate_control_ep_ring();
 
-    inline uint8_t get_slot_id() const { return slot_id; }
-    inline uint8_t get_port_id() const { return port_num; }
-    inline uint8_t get_speed() const { return speed; }
+    inline uint8_t get_slot_id() const { return info.slot_id; }
+    inline uint8_t get_port_id() const { return info.port_num; }
+    inline uint8_t get_speed() const { return info.speed; }
     inline uintptr_t get_input_context_phys() const { return m_input_context_phys; }
-    inline xhciTransferRing* get_control_transfer_ring() const { return m_control_transfer_ring; }
+    inline xhciTransferRing *get_control_transfer_ring() const { return m_control_transfer_ring; }
 
-    xhci_input_control_context32*   get_input_control_ctx();
-    xhci_slot_context32*            get_input_slot_ctx();
-    xhci_endpoint_context32*        get_input_control_ep_ctx();
-    xhci_endpoint_context32*        get_input_ep_ctx(uint8_t endpoint_num);
+    xhci_input_control_context32 *get_input_control_ctx();
 
-    void setup_add_interface(const usb_interface_descriptor* desc);
+    xhci_slot_context32 *get_input_slot_ctx();
+
+    xhci_endpoint_context32 *get_input_control_ep_ctx();
+
+    xhci_endpoint_context32 *get_input_ep_ctx(uint8_t endpoint_num);
+
+    void setup_add_interface(const usb_interface_descriptor *desc);
 
     void sync_input_ctx(void *out_ctx);
 
-    Vector<xhciUsbInterface*> interfaces;
+    Vector<xhciUsbInterface *> interfaces;
+
+    xhci_device_stat info;
 
 private:
-    uint8_t slot_id;
-    uint8_t port_num;
-    uint8_t speed;
     bool use64byte_ctx;
 
-    void* m_input_context;
+    void *m_input_context;
     uintptr_t m_input_context_phys;
-    xhciTransferRing* m_control_transfer_ring;
+    xhciTransferRing *m_control_transfer_ring;
+
+
 
     void allocate_contexts();
 

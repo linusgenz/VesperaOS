@@ -15,10 +15,6 @@
 #include "../../../kernel/devices/device_manager.h"
 
 namespace USB {
-    xhciDriver::xhciDriver(uint8_t vector) {
-        vector_num = vector;
-    }
-
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
         auto *pci_hdr = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address);
         uint64_t bar0 = pci_hdr->BAR0 & ~0xF;
@@ -513,7 +509,7 @@ namespace USB {
         m_op_regs->usbcmd |= XHCI_USBCMD_INTERRUPTER_ENABLE;
 
         m_op_regs->usbcmd |= XHCI_USBCMD_HOSTSYS_ERROR_ENABLE;
-             asm volatile ("" ::: "memory");
+        asm volatile ("" ::: "memory");
 
         m_op_regs->usbcmd |= XHCI_USBCMD_RUN_STOP;
 
@@ -1238,6 +1234,7 @@ namespace USB {
         }
 
         auto *device = new xhciDevice(slot_id, port_id, port_speed, m_64byte_context_size);
+        device->info.bus_number = bus_number;
 
         configure_control_ep_input_context(device, max_packet_size);
 
@@ -1269,6 +1266,9 @@ namespace USB {
             Log::Error("Failed to get full device descriptor");
             return false;
         }
+
+        device->info.vendor_id = device_descriptor->idVendor;
+        device->info.product_id = device_descriptor->idProduct;
 
 #if 0
         Log::Info("USB Device Descriptor:");
@@ -1307,15 +1307,15 @@ namespace USB {
             return false;
         }
 
-        char product[255] = {0};
-        char manufacturer[255] = {0};
-        char serial_number[255] = {0};
 
-        utf16_to_utf8(product_name->unicode_string, sizeof(product_name->unicode_string), product);
-        utf16_to_utf8(manufacturer_name->unicode_string, sizeof(manufacturer_name->unicode_string), manufacturer);
-        utf16_to_utf8(serial_number_string->unicode_string, sizeof(manufacturer_name->unicode_string), serial_number);
+        utf16_to_utf8(product_name->unicode_string, sizeof(product_name->unicode_string), device->info.product);
+        utf16_to_utf8(manufacturer_name->unicode_string, sizeof(manufacturer_name->unicode_string),
+                      device->info.manufacturer);
+        utf16_to_utf8(serial_number_string->unicode_string, sizeof(manufacturer_name->unicode_string),
+                      device->info.serial_number);
 
-        if (product[0] == '?' && manufacturer[0] == '?' && serial_number[0] == '?') {
+        if (device->info.product[0] == '?' && device->info.manufacturer[0] == '?' && device->info.serial_number[0] ==
+            '?') {
             Log::LogMsg("Unknown USB device, canceling setup...");
             return false;
         }
@@ -1527,5 +1527,48 @@ namespace USB {
 
 
         return cce->slot_id & 0xFF;
+    }
+
+    int xhciDriver::open(CharFile **out_cf) {
+        return 0;
+    }
+
+    int xhciDriver::release(CharFile *cf) {
+        return 0;
+    }
+
+    size_t xhciDriver::read(CharFile *cf, void *buffer, size_t count, size_t offset) {
+        if (!cf || !buffer) return 0;
+        auto *buf = (uint8_t *) buffer;
+        size_t written = 0;
+        constexpr size_t stat_size = sizeof(xhci_device_stat);
+
+        uint8_t total_devices = 0;
+        for (const auto &m_connected_device: m_connected_devices) {
+            if (m_connected_device) total_devices++;
+        }
+
+        if (total_devices == 0 || offset >= total_devices) return 0;
+
+        size_t dev_index = 0;
+        for (size_t i = 0; i < 64 && written + stat_size <= count; i++) {
+            xhciDevice *dev = m_connected_devices[i];
+            if (!dev) continue;
+
+            if (dev_index < offset) {
+                dev_index++;
+                continue;
+            }
+
+            memcpy(buf + written, &dev->info, stat_size);
+            written += stat_size;
+            dev_index++;
+        }
+
+        return written;
+    }
+
+    size_t xhciDriver::write(CharFile *cf, const void *buffer, size_t count) {
+        return 0;
     }
 } // namespace USB

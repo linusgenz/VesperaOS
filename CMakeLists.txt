@@ -116,6 +116,7 @@ add_custom_target(test
         -net none
         -monitor file:qemu-monitor.log
         -device qemu-xhci,id=xhci1
+        -device qemu-xhci,id=xhci2
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
         -device usb-storage,drive=usbstick
         -trace *xhci*

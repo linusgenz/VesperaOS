@@ -20,8 +20,6 @@ class PageTableManager {
     bool is_mapped(void* virtualMemory);
     uint64_t get_physical_address(void* virtualMemory);
 
-    PageFlags get_page_flags(void *virtual_memory);
-
     PageTable *create_user_pagetable();
 };
 

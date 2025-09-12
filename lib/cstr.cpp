@@ -275,6 +275,14 @@ char *strncpy(char *dest, const char *src, size_t n) {
     return dest;
 }
 
+char* strdup(const char* src) {
+    size_t len = strlen(src) + 1;
+    char* dst = (char*) kernel::memory::malloc(len);
+    if (!dst) return nullptr;
+    strncpy(dst, src, len);
+    return dst;
+}
+
 char *strrchr (register const char *s, int c) {
     char *rtnval = 0;
 

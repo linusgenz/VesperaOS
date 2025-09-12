@@ -23,7 +23,11 @@
 
 #ifndef VESPERAOS_PROCESS_MEMORY_MANAGER_H
 #define VESPERAOS_PROCESS_MEMORY_MANAGER_H
-#include "process.h"
+
+#include "cstdint"
+#include "cstddef"
+struct kprocess_t;
+struct user_page;
 
 class ProcessMemoryManager {
 private:
