@@ -27,7 +27,6 @@
 #include <scheduling.h>
 
 #include "../../proc/process_manager.h"
-#include "../../scheduling/thread_manager.h"
 #include "../../threading/threading.h"
 
 namespace syscalls::internal {

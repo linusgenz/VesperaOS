@@ -26,44 +26,64 @@
 #include <memory.h>
 #include "process.h"
 
-void ProcessMemoryManager::track_user_page(void* phys_addr) {
+void ProcessMemoryManager::track_user_page(void *phys_addr, void *virt_addr) {
     if (!process) return;
 
-    user_page* page = (user_page*)kernel::memory::request_page();
+    auto *page = static_cast<user_page *>(kernel::memory::malloc(sizeof(user_page)));
     if (!page) return;
 
     page->phys_addr = phys_addr;
-    page->next = process->user_pages_head;
-    process->user_pages_head = page;
+    page->virt_addr = virt_addr;
+    page->next = user_pages_head;
+    user_pages_head = page;
 }
 
-bool ProcessMemoryManager::map_and_track_memory(void* virtual_addr,
-                                                void* physical_addr,
-                                                size_t size,
-                                                uint64_t flags) {
-    // Erst mappen (ohne Process-Tracking)
+bool ProcessMemoryManager::map_and_track_memory(void *virtual_addr, void *physical_addr, const uint64_t flags) {
+    if (!virtual_addr || !physical_addr || !process) return false;
+    kernel::memory::map_memory(virtual_addr, physical_addr, flags);
+
+    track_user_page(physical_addr, virtual_addr);
+
+    return true;
+}
+
+bool ProcessMemoryManager::map_and_track_range(void *virtual_addr,
+                                               void *physical_addr,
+                                               const size_t size,
+                                               const uint64_t flags) {
+    if (!virtual_addr || !physical_addr || !process) return false;
+
     kernel::memory::map_range(virtual_addr, physical_addr, size,
-                              flags & ~(1ULL << PT_Flag::UserSuper), process);
+                              flags, process);
 
-    // Dann User-Flags setzen falls nötig
-    if (flags & (1ULL << PT_Flag::UserSuper)) {
-        kernel::memory::set_user_flags(virtual_addr, size);
-
-        // Pages für den Process tracken
-        uintptr_t start = (uintptr_t)physical_addr;
-        uintptr_t end = start + size;
-
-        for (uintptr_t addr = start; addr < end; addr += 0x1000) {
-            track_user_page((void*)addr);
-        }
+    auto ps = reinterpret_cast<uintptr_t>(physical_addr);
+    auto vs = reinterpret_cast<uintptr_t>(virtual_addr);
+    for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
+        track_user_page(reinterpret_cast<void *>(ps + offset), reinterpret_cast<void *>(vs + offset));
     }
 
     return true;
 }
 
-bool ProcessMemoryManager::map_and_track_range(void* virtual_addr,
-                                               void* physical_addr,
-                                               size_t size,
-                                               uint64_t flags) {
-    return map_and_track_memory(virtual_addr, physical_addr, size, flags);
+void ProcessMemoryManager::cleanup_process_pages() {
+    if (!process) return;
+
+    auto *current = user_pages_head;
+    while (current) {
+        auto *next = current->next;
+
+        if (current->virt_addr) {
+            kernel::memory::unmap_memory(current->virt_addr);
+        }
+
+        if (current->phys_addr) {
+            kernel::memory::free_page(current->phys_addr);
+        }
+
+        kernel::memory::free(current);
+
+        current = next;
+    }
+
+    user_pages_head = nullptr;
 }

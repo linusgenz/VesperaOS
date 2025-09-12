@@ -7,19 +7,6 @@
 #include <cstddef>
 #include "../paging/paging.h"
 
-struct PageFlags {
-    bool present = false;
-    bool read_write = false;
-    bool user_super = false;
-    bool write_through = false;
-    bool cache_disabled = false;
-    bool accessed = false;
-    bool dirty = false;
-    bool huge_page = false;
-    bool global = false;
-    bool execute_disable = false;
-};
-
 class PageTableManager {
     public:
     PageTableManager(PageTable* PML4Address);

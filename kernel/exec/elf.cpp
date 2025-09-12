@@ -27,7 +27,7 @@
 
 static inline uintptr_t align_down(uintptr_t v) { return v & ~(PAGE_SIZE - 1); }
 static inline uintptr_t align_up(uintptr_t v) { return (v + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1); }
-
+inline size_t pages_for(size_t bytes) { return (bytes + PAGE_SIZE - 1) / PAGE_SIZE; }
 
 bool ElfLoader::validate_elf_header(const Elf64_Ehdr *header) {
     return header->e_ident[0] == 0x7F &&
@@ -36,25 +36,110 @@ bool ElfLoader::validate_elf_header(const Elf64_Ehdr *header) {
            header->e_ident[3] == 'F';
 }
 
-uint64_t ElfLoader::convert_elf_flags_to_page_flags(uint32_t elf_flags) {
-    uint64_t flags = (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::UserSuper);
-
-    if (elf_flags & PF_W) {
-        flags |= (1ULL << PT_Flag::ReadWrite);
+ElfLoader::ElfFileData ElfLoader::load_file_from_vfs(const char *path) {
+    VfsNode *file = vfs_open(path);
+    if (!file) {
+        return {nullptr, 0, "Failed to open file"};
     }
 
-    if (!(elf_flags & PF_X)) {
-        flags |= (1ULL << PT_Flag::NX);
+    size_t size = vfs_file_size(file);
+    void *file_data = kernel::memory::malloc(size);
+
+    if (!file_data) {
+        vfs_close(file);
+        return {nullptr, 0, "Failed to allocate memory for file"};
     }
 
-    return flags;
+    vfs_read(file, 0, size, file_data);
+    vfs_close(file);
+
+    return {file_data, size, nullptr};
 }
 
-Vector<ElfLoader::ElfSegment> ElfLoader::parse_segments(const void *file_data,
-                                                        const Elf64_Ehdr *header,
-                                                        uintptr_t base_addr) {
-    Vector<ElfSegment> segments;
+ElfLoader::ElfLoadResult ElfLoader::validate_elf_file(void *file_data) {
+    auto *header = reinterpret_cast<Elf64_Ehdr *>(file_data);
 
+    if (!validate_elf_header(header)) {
+        return {0, false, "Invalid ELF file"};
+    }
+
+    if (header->e_type != ET_EXEC && header->e_type != ET_DYN) {
+        return {0, false, "ELF file is not executable"};
+    }
+
+    if (header->e_machine != EM_X86_64) {
+        return {0, false, "ELF file is not for x86_64 architecture"};
+    }
+
+    return {0, true, nullptr};
+}
+
+ElfLoader::SegmentMapping ElfLoader::calculate_segment_mapping(const Elf64_Phdr &ph, uintptr_t base_addr) {
+    uintptr_t seg_vaddr = base_addr + ph.p_vaddr;
+    uintptr_t page_start = align_down(seg_vaddr);
+    size_t page_offset = static_cast<size_t>(seg_vaddr - page_start);
+
+    size_t filesz = static_cast<size_t>(ph.p_filesz);
+    size_t memsz = static_cast<size_t>(ph.p_memsz);
+
+    size_t total_needed = page_offset + memsz;
+    size_t map_size = align_up(total_needed);
+
+    return {
+        .page_start = page_start,
+        .page_offset = page_offset,
+        .map_size = map_size,
+        .file_size = filesz,
+        .memory_size = memsz
+    };
+}
+
+ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
+    const Elf64_Phdr &ph,
+    const void *file_data,
+    uintptr_t base_addr,
+    ProcessMemoryManager *mem
+) {
+    SegmentMapping mapping = calculate_segment_mapping(ph, base_addr);
+
+
+    // Physische Seiten anfordern
+    void *phys = kernel::memory::request_pages(mapping.map_size);
+    if (!phys) {
+        return {0, false, "Failed to allocate physical memory for segment"};
+    }
+
+    uint64_t flags = ph.p_flags;
+    flags |= (1ULL << PT_Flag::UserSuper);
+
+
+    mem->map_and_track_range(reinterpret_cast<void *>(mapping.page_start),
+                            phys,
+                            mapping.map_size,
+                            flags);
+
+    // Daten kopieren
+    void *dest = reinterpret_cast<uint8_t *>(mapping.page_start) + mapping.page_offset;
+    memcpy(dest,
+           reinterpret_cast<const uint8_t *>(file_data) + ph.p_offset,
+           mapping.file_size);
+
+    // BSS-Bereich nullen (falls memory_size > file_size)
+    if (mapping.memory_size > mapping.file_size) {
+        memset(reinterpret_cast<uint8_t *>(dest) + mapping.file_size,
+               0,
+               mapping.memory_size - mapping.file_size);
+    }
+
+    return {0, true, nullptr};
+}
+
+ElfLoader::ElfLoadResult ElfLoader::process_loadable_segments(
+    const void *file_data,
+    const Elf64_Ehdr *header,
+    uintptr_t base_addr,
+    ProcessMemoryManager *mem
+) {
     auto *phdrs = reinterpret_cast<const Elf64_Phdr *>(
         reinterpret_cast<const uint8_t *>(file_data) + header->e_phoff
     );
@@ -64,113 +149,41 @@ Vector<ElfLoader::ElfSegment> ElfLoader::parse_segments(const void *file_data,
 
         if (ph.p_type != PT_LOAD) continue;
 
-        ElfSegment segment = {
-            .vaddr = reinterpret_cast<void *>(base_addr + ph.p_vaddr),
-            .data_ptr = reinterpret_cast<void *>(
-                const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(file_data))
-                + ph.p_offset
-            ),
-            .file_size = ph.p_filesz,
-            .memory_size = ph.p_memsz,
-            .flags = convert_elf_flags_to_page_flags(ph.p_flags)
-        };
-
-        segments.push_back(segment);
+        ElfLoadResult segment_result = map_and_load_segment(ph, file_data, base_addr, mem);
+        if (!segment_result.success) {
+            return segment_result;
+        }
     }
 
-    return segments;
+    return {0, true, nullptr};
 }
 
-/*
-ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(const char *path,
-                                                    uintptr_t offset) {
-    VfsNode *file = vfs_open(path);
-    if (!file) return {0, false, "Failed to open file"};
-
-    size_t size = vfs_file_size(file);
-    void *file_data = kernel::memory::malloc(size);
-    vfs_read(file, 0, size, file_data);
-    vfs_close(file);
-
-    auto *header = reinterpret_cast<const Elf64_Ehdr *>(file_data);
-    if (!validate_elf_header(header)) {
-        kernel::memory::free(file_data);
-        return {0, false, "Invalid ELF"};
+ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(
+    const char *path,
+    uintptr_t USER_BASE,
+    ProcessMemoryManager *mem
+) {
+    ElfFileData file_data = load_file_from_vfs(path);
+    if (!file_data.data) {
+        return {0, false, file_data.error_message};
     }
 
-    auto segments = parse_segments(file_data, header, offset);
-
-    for (auto &seg: segments) {
-        uintptr_t start = align_down((uintptr_t) seg.vaddr);
-        uintptr_t end = align_up((uintptr_t) seg.vaddr + seg.memory_size);
-        size_t map_size = end - start;
-
-        // 1. Physische Frames holen
-        void *phys = kernel::memory::request_pages(map_size / PAGE_SIZE);
-        if (!phys) {
-            kernel::memory::free(file_data);
-            return {0, false, "Out of memory"};
-        }
-
-        Log::LogMsg("start %p", start);
-        Log::LogMsg("phys %p", phys);
-        kernel::memory::map_range((void *) start, phys, map_size, seg.flags);
-
-        // 3. ELF-Inhalt kopieren (in virt==phys)
-        memcpy(phys, seg.data_ptr, seg.file_size);
-
-        if (seg.memory_size > seg.file_size) {
-            memset((uint8_t *) phys + seg.file_size, 0,
-                   seg.memory_size - seg.file_size);
-        }
+    ElfLoadResult validation_result = validate_elf_file(file_data.data);
+    if (!validation_result.success) {
+        kernel::memory::free(file_data.data);
+        return validation_result;
     }
 
-    uint64_t entry_point = offset + header->e_entry; // direkt aus ELF
-    kernel::memory::free(file_data);
+    const auto *header = reinterpret_cast<Elf64_Ehdr *>(file_data.data);
+
+    ElfLoadResult load_result = process_loadable_segments(file_data.data, header, USER_BASE, mem);
+    if (!load_result.success) {
+        kernel::memory::free(file_data.data);
+        return load_result;
+    }
+
+    uintptr_t entry_point = USER_BASE + header->e_entry;
+    kernel::memory::free(file_data.data);
+
     return {entry_point, true, nullptr};
-}*/
-
-ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(const char *path, uintptr_t USER_BASE) {
-    VfsNode *file = vfs_open(path);
-    if (!file) {
-        return {0, false, "Failed to open file"};
-    };
-
-    size_t size = vfs_file_size(file);
-    void *file_data = kernel::memory::malloc(size);
-    vfs_read(file, 0, size, file_data);
-
-    auto *header = reinterpret_cast<Elf64_Ehdr *>(file_data);
-
-    if (header->e_ident[0] != 0x7F || header->e_ident[1] != 'E' ||
-        header->e_ident[2] != 'L' || header->e_ident[3] != 'F') {
-        return {0, false, "Invalid ELF file"};
-    }
-
-    auto *phdrs = reinterpret_cast<Elf64_Phdr *>(
-        reinterpret_cast<uint8_t *>(file_data) + header->e_phoff
-    );
-
-    for (int i = 0; i < header->e_phnum; ++i) {
-        Elf64_Phdr &ph = phdrs[i];
-
-        if (ph.p_type != 1) continue; // PT_LOAD
-
-        // 3. Zieladresse im Virtuellen Speicher
-        void *seg_vaddr = reinterpret_cast<void *>(USER_BASE + ph.p_vaddr);
-        size_t filesz = ph.p_filesz;
-        size_t memsz = ph.p_memsz;
-
-        kernel::memory::map_range(seg_vaddr, seg_vaddr, memsz, ph.p_flags); // flags = R/W/X
-
-        memcpy(seg_vaddr,
-               reinterpret_cast<uint8_t *>(file_data) + ph.p_offset,
-               filesz);
-
-        //  zeroing bss
-        if (memsz > filesz) {
-            memset(reinterpret_cast<uint8_t *>(seg_vaddr) + filesz, 0, memsz - filesz);
-        }
-    }
-    return {USER_BASE + header->e_entry, true, nullptr};
 }

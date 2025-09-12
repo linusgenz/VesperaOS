@@ -30,9 +30,11 @@
 struct kprocess_t;
 #include "../proc/process_memory_manager.h"
 
-#define PF_R		0x4
-#define PF_W		0x2
-#define PF_X		0x1
+/* These constants define the permissions on sections in the program
+   header, p_flags. */
+#define PF_R 0x4
+#define PF_W 0x2
+#define PF_X 0x1
 
 #define	PT_NULL		0		/* Program header table entry unused */
 #define PT_LOAD		1		/* Loadable program segment */
@@ -57,6 +59,51 @@ struct kprocess_t;
 #define PT_LOPROC	0x70000000	/* Start of processor-specific */
 #define PT_HIPROC	0x7fffffff	/* End of processor-specific */
 
+/* These constants define the various ELF target machines */
+#define EM_NONE             0
+#define EM_M32              1
+#define EM_SPARC            2
+#define EM_386              3
+#define EM_68K              4
+#define EM_88K              5
+#define EM_486              6   /* Perhaps disused */
+#define EM_860              7
+
+#define EM_MIPS             8   /* MIPS R3000 (officially, big-endian only) */
+#define EM_MIPS_RS4_BE      10  /* MIPS R4000 big-endian */
+#define EM_PARISC           15  /* HPPA */
+#define EM_SPARC32PLUS      18  /* Sun's "v8plus" */
+#define EM_PPC              20  /* PowerPC */
+#define EM_PPC64            21  /* PowerPC64 */
+#define EM_ARM              40  /* ARM */
+#define EM_SH               42  /* SuperH */
+#define EM_SPARCV9          43  /* SPARC v9 64-bit */
+#define EM_TRICORE          44  /* Infineon TriCore */
+#define EM_IA_64            50  /* HP/Intel IA-64 */
+#define EM_X86_64           62  /* AMD x86-64 */
+#define EM_S390             22  /* IBM S/390 */
+#define EM_CRIS             76  /* Axis Communications 32-bit embedded processor */
+#define EM_AVR              83  /* AVR 8-bit microcontroller */
+#define EM_V850             87  /* NEC v850 */
+#define EM_H8_300H          47  /* Hitachi H8/300H */
+#define EM_H8S              48  /* Hitachi H8S     */
+#define EM_LATTICEMICO32    138 /* LatticeMico32 */
+#define EM_OPENRISC         92  /* OpenCores OpenRISC */
+#define EM_HEXAGON          164 /* Qualcomm Hexagon */
+#define EM_RX               173 /* Renesas RX family */
+#define EM_RISCV            243 /* RISC-V */
+#define EM_NANOMIPS         249 /* Wave Computing nanoMIPS */
+#define EM_LOONGARCH        258 /* LoongArch */
+
+
+/* These constants define the different elf file types */
+#define ET_NONE   0
+#define ET_REL    1
+#define ET_EXEC   2
+#define ET_DYN    3
+#define ET_CORE   4
+#define ET_LOPROC 0xff00
+#define ET_HIPROC 0xffff
 
 
 struct Elf64_Ehdr {
@@ -86,31 +133,52 @@ struct Elf64_Phdr {
 };
 
 class ElfLoader {
+public:
+    struct ElfLoadResult {
+        uint64_t entry_point;
+        bool success;
+        const char *error_message;
+    };
+
+    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE, ProcessMemoryManager *mem);
+
 private:
     struct ElfSegment {
-        void* vaddr;
-        void* data_ptr;
+        void *vaddr;
+        void *data_ptr;
         size_t file_size;
         size_t memory_size;
         uint64_t flags;
     };
 
-    bool validate_elf_header(const Elf64_Ehdr* header);
-    Vector<ElfSegment> parse_segments(const void* file_data,
-                                           const Elf64_Ehdr* header,
-                                           uintptr_t base_addr);
-
-
-    uint64_t convert_elf_flags_to_page_flags(uint32_t elf_flags);
-
-public:
-    struct ElfLoadResult {
-        uint64_t entry_point;
-        bool success;
-        const char* error_message;
+    struct ElfFileData {
+        void *data;
+        size_t size;
+        const char *error_message;
     };
 
-    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE);
+    struct SegmentMapping {
+        uintptr_t page_start;
+        size_t page_offset;
+        size_t map_size;
+        size_t file_size;
+        size_t memory_size;
+    };
+
+    static bool validate_elf_header(const Elf64_Ehdr *header);
+
+    static ElfFileData load_file_from_vfs(const char *path);
+
+    static ElfLoadResult validate_elf_file(void *file_data);
+
+    static SegmentMapping calculate_segment_mapping(const Elf64_Phdr &ph, uintptr_t base_addr);
+
+    static ElfLoadResult map_and_load_segment(const Elf64_Phdr &ph, const void *file_data, uintptr_t base_addr,
+                                              ProcessMemoryManager *mem);
+
+    static ElfLoadResult
+    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr,
+                              ProcessMemoryManager *mem);
 };
 
 #endif //ELF_H

@@ -27,21 +27,21 @@
 
 class ProcessMemoryManager {
 private:
-    kprocess_t* process;
+    kprocess_t *process;
+    user_page* user_pages_head;
 
 public:
-    explicit ProcessMemoryManager(kprocess_t* proc) : process(proc) {}
+    explicit ProcessMemoryManager(kprocess_t *proc) : process(proc) {
+    }
 
-    // Tracks a physical page as belonging to this process
-    void track_user_page(void* phys_addr);
+    void track_user_page(void *phys_addr, void *virt_addr);
 
-    // Maps memory and tracks it for the process
-    bool map_and_track_memory(void* virtual_addr, void* physical_addr,
-                              size_t size, uint64_t flags);
+    bool map_and_track_memory(void *virtual_addr, void *physical_addr, uint64_t flags);
 
-    // Maps a range and tracks all pages
-    bool map_and_track_range(void* virtual_addr, void* physical_addr,
+    bool map_and_track_range(void *virtual_addr, void *physical_addr,
                              size_t size, uint64_t flags);
+
+    void cleanup_process_pages();
 };
 
 #endif //VESPERAOS_PROCESS_MEMORY_MANAGER_H

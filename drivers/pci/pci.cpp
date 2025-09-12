@@ -113,7 +113,7 @@ namespace PCI {
 
                                 kernel::process::ProcessCreateOptions options = {
                                     .name = "usb_driver",
-                                    .cpu_id = 5,
+                                    .cpu_id = 3,
                                     .heap_start = 0,
                                     .heap_size = 0,
                                     .stack_size = 0x4000,

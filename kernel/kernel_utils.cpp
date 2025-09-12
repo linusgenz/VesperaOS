@@ -259,7 +259,7 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     kernel::process::ProcessCreateOptions options = {
         .name = "input_poll_process",
-        .cpu_id = 2,
+        .cpu_id = 3,
         .heap_start = 0,
         .heap_size = 0,
         .stack_size = THREAD_STACK_SIZE,

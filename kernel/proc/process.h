@@ -24,6 +24,8 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 #include <cstdint>
+
+#include "process_memory_manager.h"
 #include "../memory/page_table_manager.h"
 
 enum ProcessState {
@@ -37,6 +39,7 @@ enum ProcessState {
 
 struct user_page {
     void* phys_addr;
+    void* virt_addr;
     user_page* next;
 };
 
@@ -54,7 +57,7 @@ struct kprocess_t {
     uint64_t memory_usage;
 
     // Page management
-    user_page* user_pages_head;
+    ProcessMemoryManager* memory_manager;
 
     // Thread management
     struct kthread_t *main_thread;

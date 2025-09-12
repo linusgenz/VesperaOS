@@ -114,7 +114,7 @@ add_custom_target(test
         -device nvme,drive=host0,serial=deadbeef
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
-        -monitor stdio
+        -monitor file:qemu-monitor.log
         -device qemu-xhci,id=xhci1
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
         -device usb-storage,drive=usbstick

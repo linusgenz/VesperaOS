@@ -36,17 +36,17 @@
 #include "process_memory_manager.h"
 
 namespace kernel::process {
-
     // Static member definitions
     bool Manager::initialized = false;
     ProcessStatistics Manager::stats = {};
     uint64_t Manager::next_pid = 1;
-    kprocess_t* Manager::process_list_head = nullptr;
+    kprocess_t *Manager::process_list_head = nullptr;
 
     // ProcessIterator implementation
-    ProcessIterator::ProcessIterator(kprocess_t* start) : current_process(start) {}
+    ProcessIterator::ProcessIterator(kprocess_t *start) : current_process(start) {
+    }
 
-    ProcessIterator& ProcessIterator::operator++() {
+    ProcessIterator &ProcessIterator::operator++() {
         if (current_process) {
             current_process = current_process->next;
         }
@@ -60,9 +60,9 @@ namespace kernel::process {
             strncpy(info.name, current_process->name, sizeof(info.name) - 1);
             info.state = current_process->state;
             info.is_kernel_process = (current_process->pml4 ==
-                (PageTable*)kernel::memory::get_pagetable_address());
+                                      (PageTable *) kernel::memory::get_pagetable_address());
 
-            kthread_t* t = current_process->thread_list;
+            kthread_t *t = current_process->thread_list;
             while (t) {
                 info.thread_count++;
                 t = t->next_in_process;
@@ -75,19 +75,19 @@ namespace kernel::process {
         return info;
     }
 
-    bool ProcessIterator::operator!=(const ProcessIterator& other) const {
+    bool ProcessIterator::operator!=(const ProcessIterator &other) const {
         return current_process != other.current_process;
     }
 
     // ThreadIterator implementation
-    ThreadIterator::ThreadIterator(kprocess_t* proc, kthread_t* thread)
+    ThreadIterator::ThreadIterator(kprocess_t *proc, kthread_t *thread)
         : current_process(proc), current_thread(thread) {
         if (!current_thread && current_process) {
             current_thread = current_process->thread_list;
         }
     }
 
-    ThreadIterator& ThreadIterator::operator++() {
+    ThreadIterator &ThreadIterator::operator++() {
         if (current_thread) {
             current_thread = current_thread->next_in_process;
             if (!current_thread && current_process) {
@@ -113,7 +113,7 @@ namespace kernel::process {
         return info;
     }
 
-    bool ThreadIterator::operator!=(const ThreadIterator& other) const {
+    bool ThreadIterator::operator!=(const ThreadIterator &other) const {
         return current_thread != other.current_thread ||
                current_process != other.current_process;
     }
@@ -133,11 +133,11 @@ namespace kernel::process {
         return initialized;
     }
 
-    kprocess_t* Manager::create_process(const ProcessCreateOptions& options,
-                                      void* entry_point, void* user_stack_top) {
+    kprocess_t *Manager::create_process(const ProcessCreateOptions &options,
+                                        void *entry_point, void *user_stack_top) {
         if (!initialized) return nullptr;
 
-        auto* proc = (kprocess_t*)memory::request_page();
+        auto *proc = (kprocess_t *) memory::request_page();
         if (!proc) return nullptr;
 
         memset(proc, 0, sizeof(kprocess_t));
@@ -150,14 +150,14 @@ namespace kernel::process {
 
         // Create page table
         if (options.custom_pml4) {
-            proc->pml4 = (PageTable*)options.custom_pml4;
+            proc->pml4 = (PageTable *) options.custom_pml4;
         } else if (options.is_kernel_process) {
-            proc->pml4 = (PageTable*)kernel::memory::get_pagetable_address();
+            proc->pml4 = (PageTable *) kernel::memory::get_pagetable_address();
         } else {
             proc->pml4 = kernel::memory::create_user_pagetable();
         }
 
-        proc->user_stack_top = (uint64_t)user_stack_top;
+        proc->user_stack_top = (uint64_t) user_stack_top;
         proc->heap_start = options.heap_start ? options.heap_start : 0x400000;
         proc->heap_end = proc->heap_start;
         proc->heap_size = options.heap_size;
@@ -175,9 +175,11 @@ namespace kernel::process {
 
         // Create main thread
         if (options.is_kernel_process) {
-            proc->main_thread = threading::ThreadFactory::create_kernel_thread(thread_params, (void(*)(void*))entry_point, nullptr);
+            proc->main_thread = threading::ThreadFactory::create_kernel_thread(
+                thread_params, (void(*)(void *)) entry_point, nullptr);
         } else {
-            proc->main_thread = threading::ThreadFactory::create_user_thread(thread_params, entry_point, user_stack_top);
+            proc->main_thread =
+                    threading::ThreadFactory::create_user_thread(thread_params, entry_point, user_stack_top);
         }
 
         if (!proc->main_thread) {
@@ -198,11 +200,11 @@ namespace kernel::process {
         return proc;
     }
 
-    kprocess_t* Manager::create_process_from_elf(const ProcessCreateOptions& options,
-                                               const char* elf_path) {
+    kprocess_t *Manager::create_process_from_elf(const ProcessCreateOptions &options,
+                                                 const char *elf_path) {
         if (!initialized) return nullptr;
 
-        kprocess_t* proc = (kprocess_t*)kernel::memory::request_page();
+        auto *proc = (kprocess_t *) kernel::memory::request_page();
         if (!proc) return nullptr;
 
         memset(proc, 0, sizeof(kprocess_t));
@@ -213,9 +215,10 @@ namespace kernel::process {
         proc->heap_size = options.heap_size;
 
         ProcessMemoryManager mem_manager(proc);
+        proc->memory_manager = &mem_manager;
 
         ElfLoader loader;
-        auto result = loader.load_elf_binary(elf_path, 0x200000);
+        auto result = loader.load_elf_binary(elf_path, 0x400000, proc->memory_manager);
         if (!result.success) {
             Log::Error("Failed to load ELF: %s - %s", elf_path, result.error_message);
             kernel::memory::free_page(proc);
@@ -225,20 +228,19 @@ namespace kernel::process {
 
         // Allocate stack
         uint64_t stack_size = options.stack_size ? options.stack_size : 0x4000;
-        void* phys = kernel::memory::request_pages(stack_size / 0x1000);
+        void *phys = kernel::memory::request_pages(stack_size / PAGE_SIZE);
         if (!phys) {
             kernel::memory::free_page(proc);
             return nullptr;
         }
 
-     //   kernel::memory::map_range(phys, phys, stack_size, (1ULL << PT_Flag::UserSuper), proc);
-        mem_manager.map_and_track_range(phys, phys, stack_size, (1ULL << PT_Flag::UserSuper));
-        void* user_stack_top = (char*)phys + stack_size;
+        kernel::memory::map_range(phys, phys, stack_size, (1ULL << PT_Flag::UserSuper), proc);
+        void *user_stack_top = (char *) phys + stack_size;
 
         proc->pid = next_pid++;
         strncpy(proc->name, options.name, sizeof(proc->name) - 1);
         proc->state = PROCESS_READY;
-        proc->user_stack_top = (uint64_t)user_stack_top;
+        proc->user_stack_top = (uint64_t) user_stack_top;
         proc->creation_time = time::get_uptime_ms();
         proc->is_kernel_process = false;
 
@@ -253,7 +255,8 @@ namespace kernel::process {
             .process = proc,
         };
 
-        proc->main_thread = threading::ThreadFactory::create_user_thread(thread_params, (void*)result.entry_point, user_stack_top);
+        proc->main_thread = threading::ThreadFactory::create_user_thread(
+            thread_params, (void *) result.entry_point, user_stack_top);
         if (!proc->main_thread) {
             kernel::memory::free_page(proc->pml4);
             kernel::memory::free_page(proc);
@@ -273,11 +276,11 @@ namespace kernel::process {
         return proc;
     }
 
-    kprocess_t* Manager::create_kernel_process(const ProcessCreateOptions& options,
-                                             void(*entry_point)(void*), void* arg) {
+    kprocess_t *Manager::create_kernel_process(const ProcessCreateOptions &options,
+                                               void (*entry_point)(void *), void *arg) {
         if (!initialized) return nullptr;
 
-        auto* proc = (kprocess_t*)memory::request_page();
+        auto *proc = (kprocess_t *) memory::request_page();
         if (!proc) return nullptr;
 
         memset(proc, 0, sizeof(kprocess_t));
@@ -288,7 +291,7 @@ namespace kernel::process {
         proc->creation_time = time::get_uptime_ms();
         proc->is_kernel_process = true;
 
-        proc->pml4 = (PageTable*)memory::get_pagetable_address(); // kernel pml4
+        proc->pml4 = (PageTable *) memory::get_pagetable_address(); // kernel pml4
 
         proc->heap_start = 0;
         proc->heap_end = 0;
@@ -326,17 +329,17 @@ namespace kernel::process {
     }
 
     bool Manager::terminate_process(uint64_t pid, int exit_code) {
-        kprocess_t* proc = find_process(pid);
+        kprocess_t *proc = find_process(pid);
         if (!proc) return false;
 
         Log::Info("Terminating process PID=%llu (%s) with exit code %d",
-                 proc->pid, proc->name, exit_code);
+                  proc->pid, proc->name, exit_code);
 
         proc->exit_code = exit_code;
         proc->state = PROCESS_ZOMBIE;
 
         // Terminate all threads
-        kthread_t* thread = proc->thread_list;
+        kthread_t *thread = proc->thread_list;
         while (thread) {
             thread->state = THREAD_TERMINATED;
             kernel::scheduling::remove_thread(thread);
@@ -348,7 +351,7 @@ namespace kernel::process {
     }
 
     bool Manager::kill_process(uint64_t pid) {
-        kprocess_t* proc = find_process(pid);
+        kprocess_t *proc = find_process(pid);
         if (!proc) return false;
 
         Log::Info("Killing process PID=%llu (%s)", proc->pid, proc->name);
@@ -356,12 +359,12 @@ namespace kernel::process {
         return true;
     }
 
-    void Manager::cleanup_process(kprocess_t* proc) {
+    void Manager::cleanup_process(kprocess_t *proc) {
         cleanup_process_internal(proc);
     }
 
-    kprocess_t* Manager::find_process(uint64_t pid) {
-        kprocess_t* cur = process_list_head;
+    kprocess_t *Manager::find_process(uint64_t pid) {
+        kprocess_t *cur = process_list_head;
         while (cur) {
             if (cur->pid == pid) return cur;
             cur = cur->next;
@@ -369,10 +372,10 @@ namespace kernel::process {
         return nullptr;
     }
 
-    kthread_t* Manager::find_thread(uint64_t tid) {
-        kprocess_t* proc = process_list_head;
+    kthread_t *Manager::find_thread(uint64_t tid) {
+        kprocess_t *proc = process_list_head;
         while (proc) {
-            kthread_t* thread = proc->thread_list;
+            kthread_t *thread = proc->thread_list;
             while (thread) {
                 if (thread->tid == tid) return thread;
                 thread = thread->next_in_process;
@@ -394,7 +397,7 @@ namespace kernel::process {
         stats.total_processes_created = total_processes_created_temp;
         stats.total_threads_created = total_threads_created_temp;
 
-        kprocess_t* proc = process_list_head;
+        kprocess_t *proc = process_list_head;
         while (proc) {
             stats.active_processes++;
 
@@ -412,7 +415,7 @@ namespace kernel::process {
             stats.cpu_time_total += proc->cpu_time;
 
             // Count threads
-            kthread_t* thread = proc->thread_list;
+            kthread_t *thread = proc->thread_list;
             while (thread) {
                 stats.active_threads++;
 
@@ -456,8 +459,8 @@ namespace kernel::process {
     }
 
     void Manager::cleanup_zombie_processes() {
-        kprocess_t* proc = process_list_head;
-        kprocess_t* next;
+        kprocess_t *proc = process_list_head;
+        kprocess_t *next;
 
         while (proc) {
             next = proc->next;
@@ -469,13 +472,13 @@ namespace kernel::process {
     }
 
     // Private helper functions
-    void Manager::add_process_to_list(kprocess_t* proc) {
+    void Manager::add_process_to_list(kprocess_t *proc) {
         if (!process_list_head) {
             process_list_head = proc;
             proc->next = nullptr;
             return;
         }
-        kprocess_t* cur = process_list_head;
+        kprocess_t *cur = process_list_head;
         while (cur->next) {
             cur = cur->next;
         }
@@ -513,23 +516,6 @@ namespace kernel::process {
             proc->next = nullptr;
         }
     }
-/*
-    void Manager::free_process_user_pages(kprocess_t* proc) {
-        if (!proc || proc->is_kernel_process) return;
-
-        user_page* cur = proc->user_pages_head;
-        while (cur) {
-            user_page* next = cur->next;
-            kernel::memory::free_page(cur->phys_addr);
-            kernel::memory::free_page(cur);
-            cur = next;
-        }
-        proc->user_pages_head = nullptr;
-
-        // Update memory statistics
-        stats.memory_used_by_processes -= proc->memory_usage;
-        proc->memory_usage = 0;
-    }*/
 
     void Manager::cleanup_process_internal(kprocess_t *proc) {
         Log::Info("Cleaning up process PID=%llu (%s)", proc->pid, proc->name);
@@ -549,33 +535,33 @@ namespace kernel::process {
         remove_process_from_list(proc);
 
         if (!proc->is_kernel_process) {
-         //   kernel::memory::free_user_pages(proc);
+            proc->memory_manager->cleanup_process_pages();
             kernel::memory::free_page(proc->pml4);
         }
 
+        stats.memory_used_by_processes -= proc->memory_usage;
         kernel::memory::free_page(proc);
     }
 
-    void Manager::update_process_statistics(kprocess_t* proc, bool increment) {
+    void Manager::update_process_statistics(kprocess_t *proc, bool increment) {
         if (increment) {
             stats.total_processes_created++;
         }
     }
 
-    void Manager::update_thread_statistics(kthread_t* thread, bool increment) {
+    void Manager::update_thread_statistics(kthread_t *thread, bool increment) {
         if (increment) {
             stats.total_threads_created++;
         }
     }
 
     uint64_t Manager::get_process_memory_usage(uint64_t pid) {
-        kprocess_t* proc = find_process(pid);
+        kprocess_t *proc = find_process(pid);
         if (!proc) return 0;
 
         uint64_t total = 0;
-        kthread_t* thread = proc->thread_list;
+        kthread_t *thread = proc->thread_list;
         while (thread) {
-
             total += thread->stack_size;
 
             thread = thread->next_in_process;
@@ -595,7 +581,7 @@ namespace kernel::process {
             for (auto it = Manager::begin_processes(); it != Manager::end_processes(); ++it) {
                 ProcessInfo info = *it;
                 Log::Info("PID: %llu, Name: %s, State: %d, Threads: %llu, Memory: %llu KB",
-                         info.pid, info.name, info.state, info.thread_count, info.memory_usage / 1024);
+                          info.pid, info.name, info.state, info.thread_count, info.memory_usage / 1024);
             }
         }
 
@@ -604,19 +590,18 @@ namespace kernel::process {
             for (auto it = Manager::begin_threads(); it != Manager::end_threads(); ++it) {
                 ThreadInfo info = *it;
                 Log::Info("TID: %llu, PID: %llu, State: %d, CPU: %d, Priority: %d",
-                         info.tid, info.pid, info.state, info.cpu_id, info.priority);
+                          info.tid, info.pid, info.state, info.cpu_id, info.priority);
             }
         }
 
         double get_cpu_usage_percent() {
             ProcessStatistics stats = get_system_stats();
             if (stats.active_threads == 0) return 0.0;
-            return (double)stats.running_threads / stats.active_threads * 100.0;
+            return (double) stats.running_threads / stats.active_threads * 100.0;
         }
 
         uint64_t get_total_memory_usage() {
             return get_system_stats().memory_used_by_processes;
         }
     }
-
 } // namespace kernel::process
