@@ -26,7 +26,8 @@
 
 #include "../../filesystem/vfs/vfs_node.h"
 #include "../../filesystem/devfs/devfs.h"
-#include "cstddef"
+#include <cstddef>
+#include <cstdint>
 
 struct CharFile;
 
@@ -57,7 +58,7 @@ public:
     virtual size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) = 0;
     virtual size_t write(CharFile* cf, const void* buffer, size_t count) = 0;
 
-    virtual int ioctl(CharFile* cf, unsigned long req, void* arg) { return -1; }
+    virtual int ioctl(CharFile* cf, uint32_t cmd, void* arg) { return -ENOTTY; }
 
     virtual int poll(CharFile* cf) { return 0; }
 

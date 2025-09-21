@@ -1,10 +1,10 @@
-// sys_getpid.cpp
+// console_backend.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 12.08.25.
+// Created by Linus Genz on 20.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,25 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
-#include "../threading/thread.h"
-#include <scheduling.h>
+#ifndef VESPERAOS_CONSOLE_BACKEND_H
+#define VESPERAOS_CONSOLE_BACKEND_H
 
+#include "../tty/tty.h"
+#include "../types/handle.h"
+#include <errno.h>
+#include "../include/basic_renderer.h"
 
-namespace syscalls::internal {
-    int64_t sys_getpid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        kthread_t* current_thread = kernel::scheduling::get_current_thread();
-        if (!current_thread || !current_thread->process) {
-            return 0; // That shouldn't happen, but I wouldn't be surprised if it did.
-        }
-        return current_thread->process->pid;
+class ConsoleDevice {
+public:
+    size_t read(void *buffer, size_t size) {
+        return kernel::tty::tty_read(reinterpret_cast<char *>(buffer), size);
     }
-}
+
+    int write(const void *buffer, size_t size) {
+        if (!global_renderer) return -EIO;
+        global_renderer->print((const char *) buffer, size);
+        return (ssize_t) size;
+    }
+};
+
+#endif //VESPERAOS_CONSOLE_BACKEND_H

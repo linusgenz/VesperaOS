@@ -23,8 +23,8 @@ namespace kernel {
             return;
         }
         while (__sync_lock_test_and_set(&m->locked, true)) {
-            kthread_t* current = scheduling::get_current_thread();
-            current->state = THREAD_BLOCKED;
+            Unit* current = scheduling::get_current_unit();
+            current->state = UNIT_BLOCKED;
 
             // In Warteliste einfügen
             current->next = m->waiters;
@@ -38,11 +38,11 @@ namespace kernel {
         m->locked = false;
 
         if (m->waiters) {
-            kthread_t* to_wake = m->waiters;
+            Unit* to_wake = m->waiters;
             m->waiters = m->waiters->next;
 
-            to_wake->state = THREAD_READY;
-            scheduling::add_thread(to_wake);
+            to_wake->state = UNIT_READY;
+            scheduling::add_unit(to_wake);
         }
     }
 

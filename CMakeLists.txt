@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20) # 4.0 gibt es nicht bei CMake
+cmake_minimum_required(VERSION 3.20)
 project(VesperaOS C CXX ASM_NASM)
 
 enable_language(ASM_NASM)
@@ -37,6 +37,7 @@ add_custom_target(bootloader
 )
 
 # splash.h
+add_executable(shell.elf ${CMAKE_CURRENT_SOURCE_DIR}/bin/shell.c)
 add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/splash.h
         COMMAND xxd -i ${CMAKE_SOURCE_DIR}/Splash_VesperaOS.raw > ${CMAKE_SOURCE_DIR}/splash.h
@@ -52,15 +53,9 @@ add_custom_command(
         -o ${CMAKE_SOURCE_DIR}/bin/shell.elf ${CMAKE_SOURCE_DIR}/bin/shell.c
         DEPENDS ${CMAKE_SOURCE_DIR}/bin/shell.c
 )
-add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/bin/shell1.elf
-        COMMAND gcc -nostdlib -ffreestanding -fno-stack-protector -fPIE -pie
-        -o ${CMAKE_SOURCE_DIR}/bin/shell1.elf ${CMAKE_SOURCE_DIR}/bin/shell1.c
-        DEPENDS ${CMAKE_SOURCE_DIR}/bin/shell1.c
-)
+
 add_custom_target(elfs DEPENDS
         ${CMAKE_SOURCE_DIR}/bin/shell.elf
-        ${CMAKE_SOURCE_DIR}/bin/shell1.elf
 )
 
 # version
@@ -85,7 +80,6 @@ add_custom_target(disk_image
         COMMAND sudo mount -o loop ${CMAKE_BINARY_DIR}/boot.img mnt
         COMMAND sudo mkdir -p mnt/bin ${EFI_DIR}
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/bin/shell.elf mnt/bin/shell.elf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/bin/shell1.elf mnt/bin/shell1.elf
         COMMAND sudo cp ${BOOTLOADER_EFI} ${EFI_DIR}/BOOTX64.EFI
         COMMAND sudo cp ${CMAKE_BINARY_DIR}/kernel.elf ${EFI_DIR}/kernel.elf
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light16.psf mnt/zap-light16.psf
@@ -110,14 +104,14 @@ add_custom_target(test
         -machine q35
         -enable-kvm
         -cpu host
-        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
-        -device nvme,drive=host0,serial=deadbeef
+     #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
+      #  -device nvme,drive=host0,serial=deadbeef
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
-        -monitor file:qemu-monitor.log
+        -monitor stdio
         -device qemu-xhci,id=xhci1
         -device qemu-xhci,id=xhci2
-        -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
+        -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -device usb-storage,drive=usbstick
         -trace *xhci*
         -D /tmp/qemu.log

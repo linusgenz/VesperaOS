@@ -2,7 +2,6 @@
 #include "../include/basic_renderer.h"
 #include "../../include/string.h"
 #include "../../include/log.h"
-#include "../proc/process.h"
 
 
 PageFrameAllocator global_allocator;

@@ -13,6 +13,7 @@
 #include "xhci_keyboard_driver.h"
 #include "xhci_mass_storage_driver.h"
 #include "../../../kernel/devices/device_manager.h"
+#include <dev/usb_xhci_ioctl.h>
 
 namespace USB {
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
@@ -71,6 +72,16 @@ namespace USB {
         return true;
     }
 
+    xhciDevice* xhciDriver::find_by_slot(uint8_t slot_id) {
+        for (auto* dev : m_connected_devices) {
+            if (dev && dev->info.slot_id == slot_id) {
+                return dev;
+            }
+        }
+        return nullptr;
+    }
+
+
     bool xhciDriver::start_device() {
         if (!start_host_controller()) {
             Log::PrintLn("Failed to start the host controller");
@@ -81,7 +92,7 @@ namespace USB {
         Log::PrintLn("[xhci] Controller started!");
 
         // qemu
-        if (false) {
+        if (true) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
                 xhci_portsc_register portsc{};
@@ -124,10 +135,9 @@ namespace USB {
                 } else {
                     Log::Info("Device disconnected from port %u", port);
 
-                    uint8_t slot_id = m_port_to_slot[port];
-                    if (slot_id != 0) {
-                        xhciDevice *dev = m_connected_devices[slot_id];
-                        if (dev) {
+                    for (size_t i = 0; i < m_connected_devices.size(); i++) {
+                        auto* dev = m_connected_devices[i];
+                        if (dev && dev->info.port_num == port) {
                             for (auto *iface: dev->interfaces) {
                                 if (iface->driver) {
                                     iface->driver->detach();
@@ -137,10 +147,9 @@ namespace USB {
                             }
 
                             delete dev;
-                            m_connected_devices[slot_id] = nullptr;
+                            m_connected_devices.erase(i);
+                            break;
                         }
-
-                        m_port_to_slot[port] = 0;
                     }
 
                     clear_port(port_reg_idx);
@@ -581,7 +590,7 @@ namespace USB {
                     auto transfer_event = reinterpret_cast<xhci_transfer_completion_trb_t *>(event);
 
                     m_transfer_completion_events.push_back(transfer_event);
-                    const auto device = m_connected_devices[transfer_event->slot_id];
+                    const auto device = find_by_slot(transfer_event->slot_id);
                     if (!device) {
                         break;
                     }
@@ -1463,8 +1472,7 @@ namespace USB {
             reinterpret_cast<void *>(m_dcbaa_virtual_addresses[device->get_slot_id()])
         );
 
-        m_connected_devices[device->get_slot_id()] = device;
-        m_port_to_slot[port_id] = slot_id;
+        m_connected_devices.push_back(device);
         Log::PrintLn("Device setup complete");
 
         if (device->interfaces[0]->driver) {
@@ -1536,6 +1544,38 @@ namespace USB {
     int xhciDriver::release(CharFile *cf) {
         return 0;
     }
+
+    int xhciDriver::ioctl(CharFile *cf, uint32_t cmd, void *arg) {
+        if (!arg) return -EINVAL;
+
+        switch (cmd) {
+            case XHCI_IOCTL_GET_COUNT: {
+                size_t *out = reinterpret_cast<size_t *>(arg);
+                size_t count = 0;
+                for (auto dev : m_connected_devices) {
+                    if (dev) count++;
+                }
+                *out = count;
+                return 0;
+            }
+
+            case XHCI_IOCTL_GET_DEVICE: {
+                auto *stat = reinterpret_cast<xhci_device_stat *>(arg);
+                if (stat->slot_id >= m_connected_devices.size())
+                    return -EINVAL;
+
+                xhciDevice *dev = find_by_slot(stat->slot_id);
+                if (!dev) return -ENOENT;
+
+                *stat = dev->info;
+                return 0;
+            }
+
+            default:
+                return -ENOTTY;
+        }
+    }
+
 
     size_t xhciDriver::read(CharFile *cf, void *buffer, size_t count, size_t offset) {
         if (!cf || !buffer) return 0;

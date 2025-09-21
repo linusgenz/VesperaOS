@@ -1,13 +1,11 @@
 #include "cpu_scheduler.h"
 
 #include <scheduling.h>
-#include "../cpu/cpu_manager.h"
-#include "thread_manager.h"
-#include "../../arch/x86_64/gdt/gdt.h"
+
+#include "schedule_manager.h"
 #include "../../include/log.h"
 
 namespace kernel::scheduling::cpu_scheduler {
-
     cpu_scheduler_t *get_cpu_data(uint8_t cpu_id) {
         return &global_scheduler.cpus[cpu_id];
     }
@@ -15,13 +13,13 @@ namespace kernel::scheduling::cpu_scheduler {
     void init_cpu(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        // Setup idle thread for this CPU
-        thread_manager::setup_idle_thread(cpu_id);
+        // Setup idle unit für diesen CPU
+        cpu->idle_unit = manager::setup_idle_unit(cpu_id);
 
         cpu->ready_queue_head = nullptr;
         cpu->ready_queue_tail = nullptr;
         cpu->blocked_queue_head = nullptr;
-        cpu->current_thread = cpu->idle_thread;
+        cpu->current_unit = cpu->idle_unit;
         cpu->quantum_ticks = SCHEDULER_TICKS;
         cpu->ticks_remaining = cpu->quantum_ticks;
         cpu->scheduler_enabled = false;
@@ -30,61 +28,61 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->scheduler_lock = 0;
     }
 
-    void enable_cpu(uint8_t cpu_id) {
+
+    void enable_cpu(const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         cpu->scheduler_enabled = true;
         cpu->ticks_remaining = cpu->quantum_ticks;
 
-        thread_manager::switch_to_thread(nullptr, cpu->idle_thread, nullptr);
+        manager::switch_to_unit(nullptr, cpu->idle_unit, nullptr);
     }
 
-    void disable_cpu(uint8_t cpu_id) {
+    void disable_cpu(const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         cpu->scheduler_enabled = false;
     }
 
-    void add_thread_to_cpu(kthread_t *thread, uint8_t cpu_id) {
+    void add_unit_to_cpu(Unit *unit, const uint8_t cpu_id) {
         lock_ready_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        thread->state = THREAD_READY;
-        thread->next = nullptr;
+        unit->state = UNIT_READY;
+        unit->next = nullptr;
 
         if (cpu->ready_queue_tail) {
-            cpu->ready_queue_tail->next = thread;
-            cpu->ready_queue_tail = thread;
+            cpu->ready_queue_tail->next = unit; // cast auf Thread für queue
+            cpu->ready_queue_tail = unit;
         } else {
-            cpu->ready_queue_head = thread;
-            cpu->ready_queue_tail = thread;
+            cpu->ready_queue_head = unit;
+            cpu->ready_queue_tail = unit;
         }
 
         unlock_ready_queue(cpu_id);
     }
 
-    void remove_thread_from_cpu(kthread_t *thread, uint8_t cpu_id) {
+    void remove_unit_from_cpu(Unit *unit, const uint8_t cpu_id) {
         lock_ready_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        if (cpu->ready_queue_head == thread) {
-            cpu->ready_queue_head = thread->next;
-            if (cpu->ready_queue_tail == thread) {
-                cpu->ready_queue_tail = nullptr;
-            }
-        } else {
-            kthread_t *prev = cpu->ready_queue_head;
-            while (prev && prev->next != thread) {
-                prev = prev->next;
-            }
-            if (prev) {
-                prev->next = thread->next;
-                if (cpu->ready_queue_tail == thread) {
-                    cpu->ready_queue_tail = prev;
-                }
-            }
+        Unit *prev = nullptr;
+        Unit *cur = cpu->ready_queue_head;
+        while (cur && cur != unit) {
+            prev = cur;
+            cur = cur->next;
         }
 
-        thread->state = THREAD_TERMINATED;
-        thread->next = nullptr;
+        if (!cur) {
+            unlock_ready_queue(cpu_id);
+            return;
+        }
+
+        if (prev) prev->next = cur->next;
+        else cpu->ready_queue_head = cur->next;
+
+        if (cpu->ready_queue_tail == cur) cpu->ready_queue_tail = prev;
+
+        unit->state = UNIT_TERMINATED;
+        unit->next = nullptr;
 
         unlock_ready_queue(cpu_id);
     }
@@ -98,49 +96,49 @@ namespace kernel::scheduling::cpu_scheduler {
             asm volatile ("pause");
         }
 
-        kthread_t *current = cpu->current_thread;
-        kthread_t *next_thread = nullptr;
+        Unit *current = cpu->current_unit;
+        Unit *next_unit = nullptr;
 
         // Get next thread from ready queue (separate lock)
         lock_ready_queue(cpu_id);
         if (cpu->ready_queue_head) {
-            next_thread = cpu->ready_queue_head;
-            cpu->ready_queue_head = next_thread->next;
-            if (cpu->ready_queue_tail == next_thread) {
+            next_unit = cpu->ready_queue_head;
+            cpu->ready_queue_head = next_unit->next;
+            if (cpu->ready_queue_tail == next_unit) {
                 cpu->ready_queue_tail = nullptr;
             }
-            next_thread->next = nullptr;
+            next_unit->next = nullptr;
         }
         unlock_ready_queue(cpu_id);
 
-        if (!next_thread) {
-            if (current->is_idle_thread) {
+        if (!next_unit) {
+            if (current->is_idle) {
                 __sync_lock_release(&cpu->scheduler_lock);
                 return;
             }
-            next_thread = cpu->idle_thread;
+            next_unit = cpu->idle_unit;
         }
 
         // if current got terminated continue with next
         if (current == nullptr) {
-            next_thread->state = THREAD_RUNNING;
-            cpu->current_thread = next_thread;
+            next_unit->state = UNIT_RUNNING;
+            cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
 
             __sync_lock_release(&cpu->scheduler_lock);
-            thread_manager::switch_to_thread(nullptr, next_thread, frame);
+            manager::switch_to_unit(nullptr, next_unit, frame);
             return;
         }
 
-        bool current_terminated = (current->state == THREAD_TERMINATED);
-        bool current_blocked = (current->state == THREAD_BLOCKED);
-        bool current_should_continue = ( !current_terminated && !current_blocked &&
-                                        !current->is_idle_thread && current->state == THREAD_RUNNING);
+        bool current_terminated = (current->state == UNIT_TERMINATED);
+        bool current_blocked = (current->state == UNIT_BLOCKED);
+        bool current_should_continue = (!current_terminated && !current_blocked &&
+                                        !current->is_idle && current->state == UNIT_RUNNING);
 
         // If current thread is the only thread on the core
-        if (!next_thread || next_thread->is_idle_thread) {
+        if (!next_unit || next_unit->is_idle) {
             if (!current || current_terminated || current_blocked) {
-                next_thread = cpu->idle_thread;
+                next_unit = cpu->idle_unit;
             } else {
                 cpu->ticks_remaining = cpu->quantum_ticks;
                 __sync_lock_release(&cpu->scheduler_lock);
@@ -151,7 +149,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
         // Re-queue current thread if it should continue (separate lock)
         if (current_should_continue) {
-            current->state = THREAD_READY;
+            current->state = UNIT_READY;
             current->next = nullptr;
 
             lock_ready_queue(cpu_id);
@@ -166,14 +164,16 @@ namespace kernel::scheduling::cpu_scheduler {
         }
 
         // Switch to next thread
-        if (next_thread && next_thread != current) {
-            next_thread->state = THREAD_RUNNING;
-            cpu->current_thread = next_thread;
+        if (next_unit && next_unit != current) {
+            current->state = UNIT_READY;
+
+            next_unit->state = UNIT_RUNNING;
+            cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
 
             __sync_lock_release(&cpu->scheduler_lock);
             // Delegate actual context switch to thread_manager
-            thread_manager::switch_to_thread(current, next_thread, frame);
+            manager::switch_to_unit(current, next_unit, frame);
         } else {
             __sync_lock_release(&cpu->scheduler_lock);
         }
@@ -199,46 +199,46 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    kthread_t *get_current_thread_on_cpu(uint8_t cpu_id) {
+    Unit *get_current_unit_on_cpu(const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
-        return cpu->current_thread;
+        return cpu->current_unit;
     }
 
-    bool is_cpu_enabled(uint8_t cpu_id) {
+    bool is_cpu_enabled(const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         return cpu->scheduler_enabled;
     }
 
-    void add_blocked_thread(kthread_t *thread, uint8_t cpu_id) {
+    void add_blocked_unit(Unit *unit, const uint8_t cpu_id) {
         lock_blocked_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        thread->state = THREAD_BLOCKED;
-        thread->next = cpu->blocked_queue_head;
-        cpu->blocked_queue_head = thread;
+        unit->state = UNIT_BLOCKED;
+        unit->next = cpu->blocked_queue_head;
+        cpu->blocked_queue_head = unit;
 
         unlock_blocked_queue(cpu_id);
     }
 
-    void wake_sleeping_threads(uint8_t cpu_id, uint64_t current_tick) {
+    void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick) {
         lock_blocked_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        kthread_t *prev = nullptr;
-        kthread_t *thread = cpu->blocked_queue_head;
+        Unit *prev = nullptr;
+        Unit *unit = cpu->blocked_queue_head;
 
-        while (thread) {
-            if (current_tick >= thread->wakeup_tick) {
+        while (unit) {
+            if (current_tick >= unit->sleep_context.wakeup_tick) {
                 // Remove from blocked queue
-                kthread_t *to_wake = thread;
+                Unit *to_wake = unit;
                 if (prev) {
-                    prev->next = thread->next;
+                    prev->next = unit->next;
                 } else {
-                    cpu->blocked_queue_head = thread->next;
+                    cpu->blocked_queue_head = unit->next;
                 }
-                thread = thread->next;
+                unit = unit->next;
 
-                to_wake->state = THREAD_READY;
+                to_wake->state = UNIT_READY;
                 to_wake->next = nullptr;
 
                 unlock_blocked_queue(cpu_id);
@@ -259,10 +259,10 @@ namespace kernel::scheduling::cpu_scheduler {
                 lock_blocked_queue(cpu_id);
                 // Restart from beginning since we released the lock
                 prev = nullptr;
-                thread = cpu->blocked_queue_head;
+                unit = cpu->blocked_queue_head;
             } else {
-                prev = thread;
-                thread = thread->next;
+                prev = unit;
+                unit = unit->next;
             }
         }
 

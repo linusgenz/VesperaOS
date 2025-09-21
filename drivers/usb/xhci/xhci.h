@@ -23,18 +23,22 @@ namespace USB {
 
         bool init_device(PCI::PCIDeviceHeader *pci_base_address);
 
+        xhciDevice *find_by_slot(uint8_t slot_id);
+
         bool start_device();
 
         static bool shutdown_device();
 
         void ring_doorbell(uint8_t slot, uint8_t ep) const;
 
-        xhciDevice *m_connected_devices[64]{};
+        Vector<xhciDevice*> m_connected_devices;
 
         // Char device
 
         int open(CharFile** out_cf) override;
         int release(CharFile* cf) override;
+
+        int ioctl(CharFile* cf, uint32_t cmd, void* arg) override;
 
         size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
         size_t write(CharFile* cf, const void* buffer, size_t count) override;
@@ -104,8 +108,6 @@ namespace USB {
         // Flag indicating we have a command completion event
         volatile uint8_t m_command_irq_completed = 0;
         volatile uint8_t m_transfer_irq_completed = 0;
-
-        uint8_t m_port_to_slot[256]{};
 
         Vector<uint8_t> m_usb3_ports;
 

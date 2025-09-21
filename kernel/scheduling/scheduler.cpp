@@ -7,13 +7,11 @@
 #include <log.h>
 
 #include "cpu_scheduler.h"
-#include "thread_manager.h"
+#include "schedule_manager.h"
 #include "../cpu/cpu_manager.h"
-#include "../threading/thread.h"
 
-static sleeping_thread_t* sleeping_list = nullptr;
+
 namespace kernel::scheduling {
-
     global_scheduler_t global_scheduler = {{}};
 
     void init(uint32_t num_cpus) {
@@ -25,31 +23,22 @@ namespace kernel::scheduling {
         }
     }
 
-    void add_thread(kthread_t* thread) {
-        if (!thread || !global_scheduler.initialized) return;
+    void add_unit(Unit *unit) {
+        if (!unit || !global_scheduler.initialized) return;
 
-        uint8_t cpu_id = thread->cpu_id;
+        const uint8_t cpu_id = unit->cpu_id;
         if (cpu_id >= global_scheduler.num_cpus) return;
 
-        thread_manager::add_thread(thread);
+        cpu_scheduler::add_unit_to_cpu(unit, cpu_id);
     }
 
-    void thread_exit() {
-        if (!global_scheduler.initialized) return;
+    void remove_unit(Unit *unit) {
+        if (!unit || !global_scheduler.initialized) return;
 
-        kthread_t* thread = get_current_thread();
-        remove_thread(thread);
-        thread_manager::cleanup_thread(thread);
-
-    }
-
-    void remove_thread(kthread_t* thread) {
-        if (!thread || !global_scheduler.initialized) return;
-
-        uint8_t cpu_id = thread->cpu_id;
+        uint8_t cpu_id = unit->cpu_id;
         if (cpu_id >= global_scheduler.num_cpus) return;
 
-        thread_manager::remove_thread(thread);
+        cpu_scheduler::remove_unit_from_cpu(unit, cpu_id);
     }
 
     void yield() {
@@ -57,10 +46,10 @@ namespace kernel::scheduling {
         cpu_scheduler::yield_cpu(cpu_id);
     }
 
-/*    void tick() {
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
-        cpu_scheduler::tick_cpu(cpu_id);
-    }*/
+    /*    void tick() {
+            uint8_t cpu_id = CPUManager::get_current_cpu_id();
+            cpu_scheduler::tick_cpu(cpu_id);
+        }*/
 
     void enable_on_cpu(uint8_t cpu_id) {
         if (cpu_id >= global_scheduler.num_cpus) return;
@@ -74,8 +63,10 @@ namespace kernel::scheduling {
         cpu_scheduler::disable_cpu(cpu_id);
     }
 
-    kthread_t* get_current_thread() {
-        return thread_manager::get_current_thread();
+    Unit *get_current_unit() {
+        const uint32_t cpu_id = CPUManager::get_current_cpu_id();
+        if (!global_scheduler.cpus[cpu_id].scheduler_enabled) return nullptr;
+        return cpu_scheduler::get_current_unit_on_cpu(cpu_id);
     }
 
     bool is_initialized() {
@@ -85,5 +76,4 @@ namespace kernel::scheduling {
     uint32_t get_num_cpus() {
         return global_scheduler.num_cpus;
     }
-
 } // namespace kernel::scheduling::scheduler

@@ -82,7 +82,7 @@ namespace arch::x86_64::interrupts::apic {
         if (!kernel::scheduling::is_initialized()) return;
         uint32_t cpu = CPUManager::get_current_cpu_id();
 
-        kernel::scheduling::cpu_scheduler::wake_sleeping_threads(cpu, apic_ticks[cpu]);
+        kernel::scheduling::cpu_scheduler::wake_sleeping_units(cpu, apic_ticks[cpu]);
 
         kernel::scheduling::cpu_scheduler::tick_cpu(cpu, frame);
     }

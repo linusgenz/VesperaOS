@@ -25,6 +25,7 @@
 #define VESPERAOS_TTY_H
 
 #include "../input/input_event.h"
+#include <cstddef>
 
 namespace kernel::tty {
 

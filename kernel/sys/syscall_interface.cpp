@@ -29,8 +29,8 @@ constexpr int MAX_SYSCALLS = 256;
 static syscalls::internal::syscall_fn syscall_table[MAX_SYSCALLS];
 
 void install_syscalls() {
-    for (int i = 0; i < MAX_SYSCALLS; i++) {
-        syscall_table[i] = nullptr;
+    for (auto & i : syscall_table) {
+        i = nullptr;
     }
 
     syscall_table[SYSCALL_READ] = syscalls::internal::sys_read;
@@ -44,8 +44,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_RMDIR] = syscalls::internal::sys_rmdir;
     syscall_table[SYSCALL_UNLINK] = syscalls::internal::sys_unlink;
     syscall_table[SYSCALL_REBOOT] = syscalls::internal::sys_reboot;
-    syscall_table[SYSCALL_GETPID] = syscalls::internal::sys_getpid;
     syscall_table[SYSCALL_SLEEP] = syscalls::internal::sys_sleep;
+    syscall_table[SYSCALL_IOCTL] = syscalls::internal::sys_ioctl;
 }
 
 extern "C" void syscall_handler(

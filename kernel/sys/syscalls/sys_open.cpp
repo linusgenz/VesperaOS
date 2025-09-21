@@ -21,23 +21,104 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <scheduling.h>
+
 #include "../../../filesystem/vfs/vfs_node.h"
 #include "../FileDescriptor.h"
 #include "../../../filesystem/vfs/vfs.h"
 #include "../../include/errno.h"
+#include "../../realm/realm_manager.h"
+#include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
-    int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* path = reinterpret_cast<const char*>(arg0);
-        if (!path || path[0] == '\0') return -EINVAL;
+    int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+        const char *user_path = reinterpret_cast<const char *>(arg0);
+        uint32_t flags = static_cast<uint32_t>(arg1);
 
-        VfsNode* node = vfs_open(path);
-        if (!node) return -ENOENT;  // file not found
+        if (!user_path || user_path[0] == '\0') return -EINVAL;
 
-        int64_t fd = kernel::alloc_fd(node);
-        if (fd < 0) return -EMFILE; // no fd available
+        Unit *current_unit = kernel::scheduling::get_current_unit();
+        if (!current_unit) return -EINVAL;
 
-        return fd;
+        Realm *realm = RealmManager::get(current_unit->rid);
+        if (!realm) return -EINVAL;
+
+
+        VfsNode *node = vfs_open(user_path);
+        if (!node) {
+            return -ENOENT;
+        }
+
+        CapabilitySet required_caps = CAP_NONE;
+
+        switch (flags & 0x3) {  // nur die unteren 2 Bits (O_RDONLY/O_WRONLY/O_RDWR)
+            case O_RDONLY:
+                required_caps |= CAP_READ;
+                break;
+            case O_WRONLY:
+                required_caps |= CAP_WRITE;
+                break;
+            case O_RDWR:
+                required_caps |= CAP_READ | CAP_WRITE;
+                break;
+            default:
+                return -EINVAL; // ungültige Kombination
+        }
+
+        switch (node->type) {
+            case VfsNodeType::Device:
+                required_caps |= CAP_DEVICE_ACCESS;
+            case VfsNodeType::File:
+            case VfsNodeType::Directory:
+                break;
+            default:
+                vfs_close(node);
+                return -EINVAL;
+        }
+
+        if ((realm->capabilities & required_caps) != required_caps) {
+            vfs_close(node);
+            return -EACCES;
+        }
+
+        // 4. VfsHandle wrapper erstellen
+        auto *vh = new VfsHandle(node, flags, required_caps);
+        if (!vh) {
+            vfs_close(node);
+            return -ENOMEM;
+        }
+
+        uint64_t handle_type;
+        switch (node->type) {
+            case VfsNodeType::Device:
+                handle_type = HANDLE_TYPE_DEVICE;
+                break;
+            case VfsNodeType::File:
+                handle_type = HANDLE_TYPE_FILE;
+                break;
+            case VfsNodeType::Directory:
+                handle_type = HANDLE_TYPE_FILE; // Directories als Files behandeln
+                break;
+            default:
+                delete vh;
+                return -EINVAL;
+        }
+
+        HandleID file_handle;
+        ErrorCode err = realm->add_handle(
+            handle_type,
+            vh,
+            required_caps,
+            true,
+            vfs_handle_destructor,
+            &file_handle
+        );
+
+        if (err != MOD_SUCCESS) {
+            delete vh;
+            return -err;
+        }
+
+        return file_handle;
     }
-
 }

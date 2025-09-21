@@ -1,10 +1,10 @@
-// sys_sleep.cpp
+// realm.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 13.08.25.
+// Created by Linus Genz on 21.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,21 +21,31 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
-#include "../../../include/log.h"
-#include "../../include/errno.h"
-#include "../../include/scheduling.h"
-#include "../../include/time.h"
+#include "realm.h"
+#include <log.h>
+/*
+handle_entry_t* Realm::lookup_handle(HandleID hid) {
+    Log::PrintLn("Looking up handle: 0x%llx\n", hid);
 
-namespace syscalls::internal {
-    int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        Unit* current = kernel::scheduling::get_current_unit();
+    uint64_t raw = (uint64_t)(hid & HANDLE_ID_MASK);
+    Log::PrintLn("Raw slot: %llu\n", raw);
 
-
-        void* saved_rsp = current->context.stack_pointer;
-        kernel::time::internal::thread_sleep_ms(arg0);
-        current->context.stack_pointer = saved_rsp;
-
-        return SUCCESS_CODE;
+    if (raw >= MAX_HANDLES_PER_REALM) {
+        Log::PrintLn("Slot too large: %llu >= %llu\n", raw, MAX_HANDLES_PER_REALM);
+        return nullptr;
     }
-}
+
+    if (!test_bit(raw)) {
+        Log::PrintLn("Bit not set for slot %llu\n", raw);
+        return nullptr;
+    }
+
+    handle_entry_t &he = handle_table.entries[raw];
+    Log::PrintLn("Found entry with hid: 0x%llx, expected: 0x%llx\n", he.hid, hid);
+
+    if (he.hid != hid) {
+        Log::PrintLn("Handle ID mismatch!\n");
+        return nullptr;
+    }
+    return &he;
+}*/

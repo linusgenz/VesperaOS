@@ -7,7 +7,6 @@
 #include <cstdint>
 #include "../include/bitmap.h"
 #include "../include/memory.h"
-#include "../proc/process.h"
 
 class PageFrameAllocator {
     public:

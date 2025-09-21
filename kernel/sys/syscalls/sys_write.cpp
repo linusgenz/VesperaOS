@@ -21,21 +21,52 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <scheduling.h>
+
 #include "../../include/errno.h"
 #include "../syscall_interface.h"
 #include "../../../include/log.h"
+#include "../../realm/realm_manager.h"
+#include "../graphics/console_backend.h"
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+        const HandleID hid = arg0;
+        Unit* u = kernel::scheduling::get_current_unit();
+        if (!u) return -EINVAL;
 
-        if (arg0 != 1) return -EBADF;  // Only stdout supported
+        Realm* realm = RealmManager::get(u->rid);
 
-        const char *user_buf = reinterpret_cast<const char *>(arg1);
-        size_t user_size = arg2;
 
-        if (!user_buf) return -EINVAL;
+        if (!realm || !u->active) return -EBADF;
 
-        global_renderer->print(user_buf, user_size);
-        return user_size;
+        handle_entry_t* he = realm->lookup_handle(hid);
+        if (!he || !he->resource) return -EBADF;
+
+        const char* user_buf = reinterpret_cast<const char*>(arg1);
+        if (!user_buf || arg2 == 0) return -EINVAL;
+
+        if (!(he->capabilities & CAP_WRITE)) {
+            return -EACCES;
+        }
+
+        switch (he->type) {
+            case HANDLE_TYPE_CONSOLE: {
+                ConsoleDevice* cons = static_cast<ConsoleDevice*>(he->resource);
+                return cons->write(user_buf, arg2);
+            }
+            case HANDLE_TYPE_FILE: {
+             /*   FileNode* node = static_cast<FileNode*>(he->resource);
+                FileDescriptor* desc = kernel::get_fd(hid); // optional, wenn du FileDescriptors nutzt
+                if (!desc || !desc->node->ops || !desc->node->ops->write) return -EBADF;
+
+                size_t bytes = desc->node->ops->write(desc->node, desc->offset, arg2, user_buf);
+                desc->offset += bytes;
+                return bytes;*/
+                return 0;
+            }
+            default:
+                return -EBADF;
+        }
     }
 }

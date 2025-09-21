@@ -6,7 +6,6 @@
 
 #include <cstdint>
 #include "../scheduling/cpu_scheduler.h"
-#include "../threading/thread.h"
 
 namespace kernel::scheduling {
 
@@ -24,16 +23,15 @@ namespace kernel::scheduling {
  //   void tick();
 
     // Global thread management
-    void add_thread(kthread_t* thread);
-    void remove_thread(kthread_t* thread);
-    void thread_exit();
+    void add_unit(Unit* thread);
+    void remove_unit(Unit* thread);
 
     // CPU management
     void enable_on_cpu(uint8_t cpu_id);
     void disable_on_cpu(uint8_t cpu_id);
 
     // Query functions
-    kthread_t* get_current_thread();
+    Unit* get_current_unit();
     bool is_initialized();
     uint32_t get_num_cpus();
 

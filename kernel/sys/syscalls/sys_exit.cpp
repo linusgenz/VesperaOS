@@ -26,12 +26,10 @@
 #include "../../cpu/cpu_manager.h"
 #include <scheduling.h>
 
-#include "../../proc/process_manager.h"
-#include "../../threading/threading.h"
-
 namespace syscalls::internal {
     int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        Log::PrintLn("SYS EXIT IS NOT BUILD");
+       /* uint8_t cpu_id = CPUManager::get_current_cpu_id();
         kthread_t *current = kernel::scheduling::get_current_thread();
         kprocess_t *proc = current->process;
 
@@ -58,6 +56,6 @@ namespace syscalls::internal {
 
         kernel::scheduling::cpu_scheduler::yield_cpu(cpu_id);
 
-        for (;;) { asm volatile("hlt"); }
+        for (;;) { asm volatile("hlt"); }*/
     }
 }

@@ -28,19 +28,7 @@
 #include "xhci_rings.h"
 #include "xhci_device_ctx.h"
 #include "xhci_usb_interface.h"
-
-struct xhci_device_stat {
-    uint8_t slot_id;
-    uint8_t port_num;
-    uint8_t speed;
-    uint8_t bus_number;
-    uint16_t vendor_id;
-    uint16_t product_id;
-    char product[64];
-    char manufacturer[64];
-    char serial_number[64];
-};
-
+#include <dev/usb_xhci_ioctl.h>
 
 class xhciDevice {
 public:

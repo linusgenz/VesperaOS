@@ -53,7 +53,7 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
     final_entry.set_address((uint64_t) physical_memory >> 12);
 
     // Default Flags (immer present + rw)
-    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite);
+    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper);
 
     for (int bit = 0; bit < 64; ++bit) {
         if (flags & (1ULL << bit)) {

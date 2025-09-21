@@ -24,10 +24,12 @@
 #include "../filesystem/vfs/vfs.h"
 #include "include/sys/syscalls.h"
 #include "input/input_manager.h"
-#include "proc/process_manager.h"
-#include "scheduling/thread_manager.h"
-#include "threading/threading.h"
+#include "realm/realm.h"
+#include "realm/realm_manager.h"
 #include "tty/tty.h"
+#include "types/types.h"
+#include "units/unit.h"
+#include "units/unit_manager.h"
 
 
 void prepare_memory(BootInfo *bootInfo) {
@@ -256,30 +258,58 @@ void initialize_kernel(BootInfo *bootInfo) {
 
 
     CPUManager::initialize();
-    kernel::process::Manager::initialize();
+    RealmManager::initialize();
+
+    RealmConfig realm_config_sys = {
+        .name = "system_realm",
+        .memory_limit = 0,
+        .max_units = 32,
+    };
+    Realm *sys_realm = RealmManager::create(&realm_config_sys);
+
+    RealmConfig realm_config_drv = {
+        .name = "driver_realm",
+        .memory_limit = 0,
+        .max_units = 32,
+    };
+    RealmManager::create(&realm_config_drv);
+
+    UnitManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
 
-    kernel::process::ProcessCreateOptions options = {
+
+    UnitConfig uc = {
         .name = "input_bus",
         .cpu_id = 3,
-        .heap_start = 0,
-        .heap_size = 0,
-        .stack_size = THREAD_STACK_SIZE,
-        .is_kernel_process = true,
+        .priority = 5,
+        .stack_size = DEFAULT_UNIT_STACK_SIZE,
+        .initial_handles = nullptr,
+        .initial_handle_count = 0,
+        .is_idle = false,
+        .is_user = false,
+        .user_stack_size = 0
     };
-    kprocess_t *shell_proc = PROCESS_MANAGER::create_kernel_process(options, input_poll_thread, nullptr);
+    Unit *input_unit = UnitManager::create(KERNEL_REALM_SYSTEM, (void *) input_poll_thread, nullptr, &uc);
+
+    //  RealmManager::list();
+
+    //   UnitManager::list();
 
     prepare_ap_trampoline();
     CPUManager::smp_init();
 
+
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
     // TODO when device recognition is async need completion_t here
+
 
     vfs_init();
     DevFS::init();
 
     kernel::time::internal::sleep(3000);
 
+    vfs_remount_all();
+/*
     struct xhci_device_stat {
         uint8_t slot_id;
         uint8_t port_num;
@@ -292,7 +322,7 @@ void initialize_kernel(BootInfo *bootInfo) {
         char serial_number[64];
     };
 
-    VfsNode *node = vfs_open("/dev/xhci0");
+    VfsNode *node = vfs_open("/dev/xhci1");
     if (!node) {
         Log::Info("xhci0 not found");
         return;
@@ -329,18 +359,21 @@ void initialize_kernel(BootInfo *bootInfo) {
     }
 
     vfs_close(node);
-
-    /*  kernel::process::ProcessCreateOptions options = {
-          .name = "throbber",
-          .cpu_id = 2,
-          .heap_start = 0,
-          .heap_size = 0,
-          .stack_size = 0x1000,
-          .is_kernel_process = true,
-          .custom_pml4 = nullptr
-      };
-
-      PROCESS_MANAGER::create_kernel_process(options, render_throbber, nullptr);*/
+*/
+    /*
+        UnitConfig throbber_uc = {
+            .name = "throbber",
+            .cpu_id = 2,
+            .priority = 5,
+            .stack_size = THREAD_STACK_SIZE,
+            .initial_handles = nullptr,
+            .initial_handle_count = 0,
+            .is_idle = false,
+            .is_user = false,
+            .user_stack_size = 0
+        };
+        Unit *throbber_unit = UnitManager::create(sys_realm->id, (void *) render_throbber, nullptr, &throbber_uc);
+    */
 
 
     syscall_init();

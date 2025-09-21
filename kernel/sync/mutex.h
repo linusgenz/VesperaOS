@@ -5,13 +5,13 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-#include "../threading/thread.h"
+#include "../units/unit.h"
 
 namespace kernel {
     inline bool scheduling_started = false;
     struct mutex_t {
         volatile bool locked;
-        kthread_t* waiters;
+        Unit* waiters;
     };
 
     void mutex_init(mutex_t* m);

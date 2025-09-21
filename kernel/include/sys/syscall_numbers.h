@@ -24,23 +24,46 @@
 #ifndef SYSCALL_NUMBERS_H
 #define SYSCALL_NUMBERS_H
 
-enum SyscallNumbers {
-    SYSCALL_READ = 0,
-    SYSCALL_WRITE = 1,
-    SYSCALL_OPEN = 2,
-    SYSCALL_CLOSE = 3,
-    SYSCALL_STAT = 4,
-    SYSCALL_CREATE = 11,
-    SYSCALL_SLEEP = 35,
-    SYSCALL_GETPID = 39,
-    SYSCALL_EXIT = 60,
-    SYSCALL_GETCWD = 79,
-    SYSCALL_CHDIR = 80,
-    SYSCALL_RENAME = 82,
-    SYSCALL_MKDIR = 83,
-    SYSCALL_RMDIR = 84,
-    SYSCALL_UNLINK = 87,
-    SYSCALL_REBOOT = 169
-};
+#define SYSCALL_READ      0
+#define SYSCALL_WRITE     1
+#define SYSCALL_OPEN      2
+#define SYSCALL_CLOSE     3
+#define SYSCALL_STAT      4
+#define SYSCALL_CREATE    11
+#define SYSCALL_IOCTL     16
+#define SYSCALL_SLEEP     35
+//#define SYSCALL_GETPID    39
+#define SYSCALL_EXIT      60
+#define SYSCALL_GETCWD    79
+#define SYSCALL_CHDIR     80
+#define SYSCALL_RENAME    82
+#define SYSCALL_MKDIR     83
+#define SYSCALL_RMDIR     84
+#define SYSCALL_UNLINK    87
+#define SYSCALL_REBOOT    169
+
+// new
+
+#define SYS_UNIT_SPAWN       100
+#define SYS_UNIT_TERMINATE   101
+#define SYS_UNIT_AWAIT       102
+#define SYS_UNIT_SLEEP       103
+
+#define SYS_REALM_CREATE     110
+#define SYS_REALM_DESTROY    111
+#define SYS_REALM_GET_INFO   112
+
+#define SYS_HANDLE_TRANSFER  120
+#define SYS_HANDLE_CLOSE     121
+#define SYS_HANDLE_DUPLICATE 122
+#define SYS_HANDLE_GET_INFO  123
+
+#define SYS_CHANNEL_CREATE   130
+#define SYS_CHANNEL_SEND     131
+#define SYS_CHANNEL_RECEIVE  132
+
+#define SYS_FILE_OPEN 140
+#define SYS_FILE_READ 141
+#define SYS_FILE_WRITE 142
 
 #endif //SYSCALL_NUMBERS_H

@@ -48,7 +48,9 @@ static VfsNodeOps devfs_ops = {
     .rename = nullptr,
     .mkdir = nullptr,
     .rmdir = nullptr,
-    .unlink = nullptr
+    .unlink = nullptr,
+
+    .ioctl = DevFS::ioctl,
 };
 
 void DevFS::init() {
@@ -218,7 +220,19 @@ size_t DevFS::write(VfsNode* node, size_t offset, size_t size, const void* buffe
     return entry->dev->write(entry->cf, buffer, size);
 }
 
+size_t DevFS::ioctl(VfsNode* node, uint32_t cmd, void* arg) {
+    if (!node) return 0;
+    auto* entry = (DevfsEntry*) node->internal_data;
+    if (!entry || !entry->dev) return 0;
 
+    spinlock_guard guard(lock);
+
+    if (!entry->cf) {
+        open(node);
+    }
+
+    return entry->dev->ioctl(entry->cf, cmd, arg);
+}
 
 
 VfsNode *DevFS::find(VfsNode *dir, const char *name) {

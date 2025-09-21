@@ -192,5 +192,5 @@ void render_throbber(void *arg) {
         kernel::time::sleep_ms(30);
     }
 
-    kernel::scheduling::thread_exit();
+ //   kernel::scheduling::thread_exit();
 }

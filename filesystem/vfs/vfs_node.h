@@ -24,6 +24,7 @@
 #ifndef VFS_NODE_H
 #define VFS_NODE_H
 #include <cstddef>
+#include <cstdint>
 
 enum class VfsNodeType {
     File,
@@ -49,6 +50,9 @@ struct VfsNodeOps {
     int (*mkdir)(VfsNode*, const char*);
     int (*rmdir)(VfsNode*, const char*);
     int (*unlink)(VfsNode*, const char*);
+
+    size_t (*ioctl)(VfsNode* node, uint32_t cmd, void* arg);
+
 };
 
 struct VfsNode {

@@ -1,10 +1,10 @@
-// process_memory_manager.h
+// realm_manager.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 19.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,31 +21,28 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_PROCESS_MEMORY_MANAGER_H
-#define VESPERAOS_PROCESS_MEMORY_MANAGER_H
+#ifndef VESPERAOS_REALM_MANAGER_H
+#define VESPERAOS_REALM_MANAGER_H
 
-#include "cstdint"
-#include "cstddef"
-struct kprocess_t;
-struct user_page;
+#include "realm.h"
+#include "../types/types.h"
+#include <cstddef>
+#include "../sync/spinlock.h"
 
-class ProcessMemoryManager {
-private:
-    kprocess_t *process;
-    user_page* user_pages_head;
-
+class RealmManager {
 public:
-    explicit ProcessMemoryManager(kprocess_t *proc) : process(proc) {
-    }
+    static void initialize();
+    static bool is_initialized();
+    static Realm* create(const RealmConfig* cfg);
+    static Realm* get(RealmID id);
+    static bool destroy(RealmID id);
+    static void list(); // optional Debug
 
-    void track_user_page(void *phys_addr, void *virt_addr);
-
-    bool map_and_track_memory(void *virtual_addr, void *physical_addr, uint64_t flags);
-
-    bool map_and_track_range(void *virtual_addr, void *physical_addr,
-                             size_t size, uint64_t flags);
-
-    void cleanup_process_pages();
+private:
+    static constexpr size_t MAX_REALMS = 64;
+    static Realm realms[MAX_REALMS];
+    static spinlock_t global_lock;
+    static RealmID next_id;
 };
 
-#endif //VESPERAOS_PROCESS_MEMORY_MANAGER_H
+#endif //VESPERAOS_REALM_MANAGER_H

@@ -1,10 +1,10 @@
-// sys_sleep.cpp
+// usb_xhci_ioctl.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 13.08.25.
+// Created by Linus Genz on 21.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,21 +21,24 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
-#include "../../../include/log.h"
-#include "../../include/errno.h"
-#include "../../include/scheduling.h"
-#include "../../include/time.h"
+#ifndef VESPERAOS_USB_XHCI_IOCTL_H
+#define VESPERAOS_USB_XHCI_IOCTL_H
 
-namespace syscalls::internal {
-    int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        Unit* current = kernel::scheduling::get_current_unit();
+#include <cstdint>
 
+typedef struct {
+    uint8_t slot_id;
+    uint8_t port_num;
+    uint8_t speed;
+    uint8_t bus_number;
+    uint16_t vendor_id;
+    uint16_t product_id;
+    char product[64];
+    char manufacturer[64];
+    char serial_number[64];
+} xhci_device_stat;
 
-        void* saved_rsp = current->context.stack_pointer;
-        kernel::time::internal::thread_sleep_ms(arg0);
-        current->context.stack_pointer = saved_rsp;
+#define XHCI_IOCTL_GET_COUNT   1
+#define XHCI_IOCTL_GET_DEVICE  2
 
-        return SUCCESS_CODE;
-    }
-}
+#endif //VESPERAOS_USB_XHCI_IOCTL_H

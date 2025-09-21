@@ -27,8 +27,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector.h>
-struct kprocess_t;
-#include "../proc/process_memory_manager.h"
 
 /* These constants define the permissions on sections in the program
    header, p_flags. */
@@ -140,7 +138,7 @@ public:
         const char *error_message;
     };
 
-    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE, ProcessMemoryManager *mem);
+    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE);
 
 private:
     struct ElfSegment {
@@ -173,12 +171,10 @@ private:
 
     static SegmentMapping calculate_segment_mapping(const Elf64_Phdr &ph, uintptr_t base_addr);
 
-    static ElfLoadResult map_and_load_segment(const Elf64_Phdr &ph, const void *file_data, uintptr_t base_addr,
-                                              ProcessMemoryManager *mem);
+    static ElfLoadResult map_and_load_segment(const Elf64_Phdr &ph, const void *file_data, uintptr_t base_addr);
 
     static ElfLoadResult
-    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr,
-                              ProcessMemoryManager *mem);
+    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr);
 };
 
 #endif //ELF_H

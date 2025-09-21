@@ -9,7 +9,7 @@
 #include "msix.h"
 #include "../../kernel/cpu/cpu_manager.h"
 #include "../../kernel/devices/device_manager.h"
-#include "../../kernel/proc/process_manager.h"
+#include "../../kernel/units/unit_manager.h"
 
 static uint8_t next_usb_bus_number;
 
@@ -25,7 +25,6 @@ void usb_enable(void *arg) {
 
         const char* dev_name = DevFS::alloc_unique_name("xhci");
 
-        Log::debug("bus num: %u", next_usb_bus_number);
         auto usb_driver = new USB::xhciDriver(vector, dev_name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header)) {
             Log::Error("Could not initalize xhci driver");
@@ -34,7 +33,6 @@ void usb_enable(void *arg) {
         usb_driver->start_device();
     }
 }
-
 
 namespace PCI {
     void enumerate_function(uint64_t device_address, uint64_t function) {
@@ -113,21 +111,27 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-                                // auto t = create_kthread(usb_enable, pci_device_header, 5);
-                                //  kernel::scheduling::add_thread(t);
 
-                                kernel::process::ProcessCreateOptions options = {
-                                    .name = "usb_driver",
+                                char unit_name[32];
+                                snprintf(unit_name, sizeof(unit_name), "xhci%u", next_usb_bus_number);
+
+                                UnitConfig config = {
+                                    .name = unit_name,
                                     .cpu_id = 3,
-                                    .heap_start = 0,
-                                    .heap_size = 0,
+                                    .priority = 5,
                                     .stack_size = 0x4000,
-                                    .is_kernel_process = true,
-                                    .custom_pml4 = nullptr // is using kernel pml
+                                    .initial_handles =  nullptr,
+                                    .initial_handle_count = 0,
+                                    .is_idle = false,
+                                    .is_user = false,
+                                    .user_stack_size = 0
                                 };
 
-                                auto usb_proc = PROCESS_MANAGER::create_kernel_process(
-                                    options, usb_enable, pci_device_header);
+                                Unit* usb_unit = UnitManager::create(KERNEL_REALM_DRIVER, (void*)usb_enable, pci_device_header, &config);
+                                if (!usb_unit) {
+                                    Log::Error("Failed to create XHCI unit");
+                                    return;
+                                }
                             }
                             case 0x80:
 

@@ -21,31 +21,54 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <scheduling.h>
+
 #include "../FileDescriptor.h"
+#include "../../../filesystem/vfs/vfs.h"
 #include "../tty/tty.h"
 #include "../../../include/log.h"
 #include "../../include/errno.h"
+#include "../../realm/realm_manager.h"
+#include "../types/types.h"
+#include "../graphics/console_backend.h"
+#include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
     int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        const uint64_t fd = arg0;
-        void* buf = reinterpret_cast<void*>(arg1);
+        HandleID hid = arg0;
+        void *buf = reinterpret_cast<void *>(arg1);
         size_t count = static_cast<size_t>(arg2);
 
-        if (fd >= MAX_FDS) return -EBADF;
         if (!buf || count == 0) return -EINVAL;
 
-        if (fd == 0) {
-            // stdin (Keyboard)
-            return kernel::tty::tty_read(reinterpret_cast<char*>(buf), count);
+        Unit *u = kernel::scheduling::get_current_unit();
+        if (!u || !u->active) return -EINVAL;
+
+        Realm *realm = RealmManager::get(u->rid);
+        if (!realm) return -EBADF;
+
+        handle_entry_t *he = realm->lookup_handle(hid);
+        if (!he) return -EBADF;
+
+        if (!(he->capabilities & CAP_READ)) {
+            return -EACCES;
         }
 
-        FileDescriptor *desc = kernel::get_fd(fd);
-        if (!desc || !desc->node || !desc->node->ops || !desc->node->ops->read) return -EBADF;
-
-        size_t bytes = desc->node->ops->read(desc->node, desc->offset, count, buf);
-        desc->offset += bytes;
-
-        return bytes;
+        switch (he->type & HANDLE_TYPE_MASK) {
+            case HANDLE_TYPE_CONSOLE: {
+                ConsoleDevice *cons = static_cast<ConsoleDevice *>(he->resource);
+                return cons->read(reinterpret_cast<char *>(buf), count);
+            }
+            case HANDLE_TYPE_DEVICE:
+            case HANDLE_TYPE_FILE: {
+                VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADF;
+                size_t bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
+                vh->context->position += bytes;
+                return bytes;
+            }
+            default:
+                return -EBADF;
+        }
     }
 }

@@ -33,7 +33,9 @@
 
 namespace kernel::interrupts {
     void initialize() {
-        arch::x86_64::interrupts::apic::apic_ticks[MAX_CPU_CORES-1] = 0;
+        for (int i = 0; i < MAX_CPU_CORES; i++) {
+            arch::x86_64::interrupts::apic::apic_ticks[i] = 0;
+        }
         memset(arch::x86_64::interrupts::idt::irq_handler_table, 0, sizeof(arch::x86_64::interrupts::idt::irq_handler_table));
 
         arch::x86_64::interrupts::idt::init_irq_table();
