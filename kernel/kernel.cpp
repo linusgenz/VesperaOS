@@ -90,8 +90,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .user_stack_size = 0
     };
     Unit *shell = UnitManager::create(shell_realm->id, (void *) result.entry_point, nullptr, &uc);
-
-    Log::PrintLn("entry point: %p", result.entry_point);
+    shell->context.initialized = true;
 
     system_initialized = true;
     kernel::scheduling::enable_on_cpu(0);

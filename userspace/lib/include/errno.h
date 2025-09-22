@@ -4,7 +4,7 @@
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 03.08.25.
+// Created by Linus Genz on 22.09.25.
 //
 // This file is part of VesperaOS.
 // 

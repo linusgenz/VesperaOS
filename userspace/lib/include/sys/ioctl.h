@@ -1,10 +1,10 @@
-// sys_close.cpp
+// ioctl.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 22.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,29 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#ifndef VESPERAOS_IOCTL_H
+#define VESPERAOS_IOCTL_H
 
-#include "cstdint"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
-#include "../../types/types.h"
+typedef uint64_t ioctl_request_t;
 
-namespace syscalls::internal {
-    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = static_cast<HandleID>(arg0);
+/**
+ *
+ * @param hid Handle ID of the device.
+ * @param request Request code.
+ * @param arg Pointer to request-specific argument.
+ * @return 0 on success, negative error code on failure.
+ */
+int64_t ioctl(uint64_t hid, ioctl_request_t request, void* arg);
 
-        Unit *current_unit = kernel::scheduling::get_current_unit();
-        if (!current_unit) return -EINVAL;
-
-        Realm *realm = RealmManager::get(current_unit->rid);
-        if (!realm) return -EINVAL;
-
-        handle_entry_t *he = realm->lookup_handle(hid);
-        if (!he) return -EBADH;  // invalid handle
-
-
-        realm->release_handle(hid);
-
-        return SUCCESS_CODE;
-    }
-}
+#endif //VESPERAOS_IOCTL_H

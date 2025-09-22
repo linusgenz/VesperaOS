@@ -132,7 +132,7 @@ void put_string(Framebuffer* fb, const char* str, uint32_t x, uint32_t y, uint32
     }
 }
 
-void panic(const char* msg) {
+[[noreturn]] void panic(const char* msg) {
     auto fb = TargetFramebuffer;
 
     // Bildschirm klar machen mit Blau

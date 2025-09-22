@@ -10,11 +10,6 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -Wall")
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
 
-include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/kernel/include
-)
-
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
 file(GLOB_RECURSE ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
 list(FILTER CPP_SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
@@ -24,9 +19,15 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-mno-red-zone -mgeneral-regs-only -ffreestanding"
 )
 
-add_executable(kernel.elf ${CPP_SOURCES} ${ASM_SOURCES})
+
+add_executable(kernel.elf ${CPP_SOURCES} ${ASM_SOURCES}
+        userspace/lib/include/string.h)
 set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -nostdlib -static"
+)
+target_include_directories(kernel.elf PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/kernel/include
 )
 
 # Bootloader
@@ -37,7 +38,6 @@ add_custom_target(bootloader
 )
 
 # splash.h
-add_executable(shell.elf ${CMAKE_CURRENT_SOURCE_DIR}/bin/shell.c)
 add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/splash.h
         COMMAND xxd -i ${CMAKE_SOURCE_DIR}/Splash_VesperaOS.raw > ${CMAKE_SOURCE_DIR}/splash.h
@@ -46,17 +46,33 @@ add_custom_command(
 )
 add_custom_target(splash_header DEPENDS ${CMAKE_SOURCE_DIR}/splash.h)
 
-# elfs
-add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/bin/shell.elf
-        COMMAND gcc -nostdlib -ffreestanding -fno-stack-protector -fPIE -pie
-        -o ${CMAKE_SOURCE_DIR}/bin/shell.elf ${CMAKE_SOURCE_DIR}/bin/shell.c
-        DEPENDS ${CMAKE_SOURCE_DIR}/bin/shell.c
+
+# User-Lib
+file(GLOB_RECURSE USERLIB_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/userspace/lib/src/*.c)
+add_library(userlib STATIC ${USERLIB_SOURCES})
+target_include_directories(userlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/userspace/lib/include)
+set_target_properties(userlib PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
 )
 
-add_custom_target(elfs DEPENDS
-        ${CMAKE_SOURCE_DIR}/bin/shell.elf
+
+# elfs
+add_executable(shell.elf ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/shell.c)
+target_link_libraries(shell.elf PRIVATE userlib)
+set_target_properties(shell.elf PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
+        LINK_FLAGS "-nostdlib -ffreestanding -fno-stack-protector -fPIE -pie"
 )
+
+# lsusb
+add_executable(lsusb.elf ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/lsusb.c)
+target_link_libraries(lsusb.elf PRIVATE userlib)
+set_target_properties(lsusb.elf PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
+        LINK_FLAGS "-nostdlib -ffreestanding -fno-stack-protector -fPIE -pie"
+)
+
+add_custom_target(elfs DEPENDS shell.elf lsusb.elf)
 
 # version
 add_custom_command(
@@ -79,7 +95,8 @@ add_custom_target(disk_image
         COMMAND sudo mkdir -p mnt ${EFI_DIR}
         COMMAND sudo mount -o loop ${CMAKE_BINARY_DIR}/boot.img mnt
         COMMAND sudo mkdir -p mnt/bin ${EFI_DIR}
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/bin/shell.elf mnt/bin/shell.elf
+        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/shell.elf mnt/bin/shell.elf
+        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/lsusb.elf mnt/bin/lsusb.elf
         COMMAND sudo cp ${BOOTLOADER_EFI} ${EFI_DIR}/BOOTX64.EFI
         COMMAND sudo cp ${CMAKE_BINARY_DIR}/kernel.elf ${EFI_DIR}/kernel.elf
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light16.psf mnt/zap-light16.psf
@@ -127,12 +144,11 @@ add_custom_target(debug
         -machine q35
         -enable-kvm
         -cpu host
-        -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
-        -device nvme,drive=host0,serial=deadbeef
+
         -net none
         -monitor stdio
         -device qemu-xhci
-        -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot1.img,if=none,format=raw
+        -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -device usb-storage,drive=usbstick
         -device usb-kbd
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd

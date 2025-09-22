@@ -1,10 +1,10 @@
-// sys_close.cpp
+// lsusb.c
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 21.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,29 +21,20 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#include <realm.h>
+#include <stdio.h>
 
-#include "cstdint"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
-#include "../../types/types.h"
+#include "stddef.h"
+#include "stdint.h"
 
-namespace syscalls::internal {
-    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = static_cast<HandleID>(arg0);
+#define MAX_INPUT 256
 
-        Unit *current_unit = kernel::scheduling::get_current_unit();
-        if (!current_unit) return -EINVAL;
+void _start(int argc, char **argv) {
+    puts("LSUSB: ");
+    printf("%s", argv[0]);
 
-        Realm *realm = RealmManager::get(current_unit->rid);
-        if (!realm) return -EINVAL;
-
-        handle_entry_t *he = realm->lookup_handle(hid);
-        if (!he) return -EBADH;  // invalid handle
-
-
-        realm->release_handle(hid);
-
-        return SUCCESS_CODE;
-    }
+    char buf[MAX_INPUT];
+    int n = fread(HANDLE_STDIN, buf, MAX_INPUT - 1);
+    printf("%d", n);
+    exit(0);
 }

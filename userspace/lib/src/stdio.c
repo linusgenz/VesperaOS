@@ -1,0 +1,178 @@
+// stdio.c
+//
+// VesperaOS - operating system for the x86_64 architecture
+// 
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// 
+// Created by Linus Genz on 22.09.25.
+//
+// This file is part of VesperaOS.
+// 
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <sysstd.h>
+#include <stdio.h>
+#include <string.h>
+#include <internal.h>
+
+int putchar(int c) {
+    char ch = (char) c;
+    return (int) sys_write(HANDLE_STDOUT, (uint64_t) &ch, 1, 0, 0, 0);
+}
+
+int puts(const char *s) {
+    if (!s) return -1;
+    size_t len = 0;
+    while (s[len]) len++;
+    int ret = (int) sys_write(HANDLE_STDOUT, (uint64_t) s, len, 0, 0, 0);
+    return ret;
+}
+
+int getchar(void) {
+    char ch;
+    int ret = (int) sys_read(HANDLE_STDIN, (uint64_t) &ch, 1, 0, 0, 0);
+    if (ret <= 0) return -1;
+    return (int) ch;
+}
+
+void printf(const char *fmt, ...) {
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
+    char chr;
+    while ((chr = *fmt++) != 0) {
+        if (chr == '%') {
+            // Flags & Width
+            bool long_long = false;
+            bool long_flag = false;
+            char pad_char = ' ';
+            int min_width = 0;
+
+            // Padding: z. B. %02x → '0' erkannt
+            if (*fmt == '0') {
+                pad_char = '0';
+                fmt++;
+            }
+
+            // Breite (z. B. 2, 4, 8, etc.)
+            while (*fmt >= '0' && *fmt <= '9') {
+                min_width = min_width * 10 + (*fmt - '0');
+                fmt++;
+            }
+
+            // Länge: l / ll
+            if (*fmt == 'l') {
+                fmt++;
+                if (*fmt == 'l') {
+                    long_long = true;
+                    fmt++;
+                } else {
+                    long_flag = true;
+                }
+            }
+
+            char specifier = *fmt++;
+            char buffer[64];
+
+            switch (specifier) {
+                case 's': {
+                    const char *str = __builtin_va_arg(args, const char*);
+                    puts(str ? str : "<null>");
+                    break;
+                }
+                case 'u':
+                case 'x': {
+                    uint64_t val = (long_long || long_flag)
+                                       ? __builtin_va_arg(args, uint64_t)
+                                       : __builtin_va_arg(args, uint32_t);
+                    int base = (specifier == 'x') ? 16 : 10;
+                    uint_to_str(val, buffer, base, false);
+
+                    // Padding manuell
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
+                        putchar(pad_char);
+
+                    puts(buffer);
+                    break;
+                }
+                case 'c': {
+                    int val = __builtin_va_arg(args, int);
+                    putchar((char) val);
+                    break;
+                }
+                case 'd': {
+                    int64_t val = (long_long || long_flag)
+                                      ? __builtin_va_arg(args, int64_t)
+                                      : __builtin_va_arg(args, int32_t);
+                    if (val < 0) {
+                        putchar('-');
+                        val = -val;
+                    }
+                    uint_to_str((uint64_t) val, buffer, 10, false);
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
+                        putchar(pad_char);
+                    puts(buffer);
+                    break;
+                }
+                case 'f': {
+                    // Neuer Float-Support
+                    double val = __builtin_va_arg(args, double);
+                    float_to_str((float) val, buffer, 6); // 6 Nachkommastellen Standard
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
+                        putchar(pad_char);
+                    puts(buffer);
+                    break;
+                }
+                case 'p': {
+                    uintptr_t val = __builtin_va_arg(args, uintptr_t);
+                    puts("0x");
+                    uint_to_str(val, buffer, 16, false);
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
+                        putchar('0');
+                    puts(buffer);
+                    break;
+                }
+                case '%':
+                    putchar('%');
+                    break;
+                default:
+                    putchar('%');
+                    putchar(specifier);
+                    break;
+            }
+        } else {
+            putchar(chr);
+        }
+    }
+    __builtin_va_end(args);
+}
+
+FILE_HANDLE fopen(const char *path, int flags) {
+    return sys_open((uint64_t) path, flags, 0, 0, 0, 0);
+}
+
+int fclose(FILE_HANDLE handle) {
+    return sys_close(handle, 0, 0, 0, 0, 0);
+}
+
+ssize_t fread(FILE_HANDLE handle, void *buf, size_t count) {
+    return sys_read(handle, (uint64_t) buf, count, 0, 0, 0);
+}
+
+ssize_t fwrite(FILE_HANDLE handle, const void *buf, size_t count) {
+    return sys_write(handle, (uint64_t) buf, count, 0, 0, 0);
+}

@@ -24,6 +24,8 @@
 #include "realm_manager.h"
 #include <log.h>
 
+#include "../units/unit_manager.h"
+
 Realm RealmManager::realms[MAX_REALMS];
 spinlock_t RealmManager::global_lock;
 RealmID RealmManager::next_id = 1;
@@ -37,10 +39,6 @@ void RealmManager::initialize() {
         realm.unit_count = 0;
     }
     next_id = 1;
-}
-
-bool RealmManager::is_initialized() {
-    return true; // TODO
 }
 
 Realm* RealmManager::create(const RealmConfig* cfg) {
@@ -70,7 +68,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
     return nullptr; // kein Platz
 }
 
-Realm* RealmManager::get(RealmID id) {
+Realm* RealmManager::get(const RealmID id) {
     spinlock_guard g(global_lock);
     for (size_t i = 0; i < MAX_REALMS; i++) {
         if (realms[i].active && realms[i].id == id) {
@@ -80,19 +78,29 @@ Realm* RealmManager::get(RealmID id) {
     return nullptr;
 }
 
-bool RealmManager::destroy(RealmID id) {
+bool RealmManager::destroy(const RealmID id) {
     spinlock_guard g(global_lock);
-    for (size_t i = 0; i < MAX_REALMS; i++) {
-        if (realms[i].active && realms[i].id == id) {
-            // TODO: Units freigeben, falls vorhanden
-            realms[i].active = false;
-            realms[i].unit_list = nullptr;
-            realms[i].unit_count = 0;
+    for (auto & realm : realms) {
+        if (realm.active && realm.id == id) {
+            Unit* u = realm.unit_list;
+            while (u) {
+                Unit* next = u->next;
+                UnitManager::destroy(u->id);
+                u = next;
+            }
+            realm.unit_list = nullptr;
+            realm.unit_count = 0;
+
+            realm.clear_handle_table();
+
+            realm.active = false;
+            realm.id = 0;
             return true;
         }
     }
     return false;
 }
+
 
 void RealmManager::list() {
     spinlock_guard g(global_lock);

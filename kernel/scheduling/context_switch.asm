@@ -72,14 +72,31 @@ context_switch:
 
     test    rdx, rdx
     jz      .kernel_return
- ;   test    r8, r8
-  ;  jnz      .halt
 
         mov ax, 0x23 ; ring 3 data with bottom 2 bits set for ring 3
         mov ds, ax
         mov es, ax
         mov fs, ax
         mov gs, ax ; SS is handled by iret
+
+        test    r8, r8
+        jz      .skip_args
+
+            ; arg_registers_t
+            mov rax, [r8 + 0]   ; rdi
+            mov rdi, rax
+            mov rax, [r8 + 8]   ; rsi
+            mov rsi, rax
+            mov rax, [r8 + 16]  ; rdx
+            mov rdx, rax
+            mov rax, [r8 + 24]  ; rcx
+            mov rcx, rax
+            mov rax, [r8 + 32]  ; r8
+            mov r8, rax
+            mov rax, [r8 + 40]  ; r9
+            mov r8, rax
+
+        .skip_args:
 
         sti
         iretq

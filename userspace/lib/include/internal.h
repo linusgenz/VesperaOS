@@ -1,10 +1,10 @@
-// sys_close.cpp
+// internal.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 22.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,29 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#ifndef VESPERAOS_INTERNAL_H
+#define VESPERAOS_INTERNAL_H
 
-#include "cstdint"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
-#include "../../types/types.h"
+void float_to_str(float val, char *buf, int precision);
 
-namespace syscalls::internal {
-    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = static_cast<HandleID>(arg0);
+void uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix);
 
-        Unit *current_unit = kernel::scheduling::get_current_unit();
-        if (!current_unit) return -EINVAL;
-
-        Realm *realm = RealmManager::get(current_unit->rid);
-        if (!realm) return -EINVAL;
-
-        handle_entry_t *he = realm->lookup_handle(hid);
-        if (!he) return -EBADH;  // invalid handle
-
-
-        realm->release_handle(hid);
-
-        return SUCCESS_CODE;
-    }
-}
+#endif //VESPERAOS_INTERNAL_H

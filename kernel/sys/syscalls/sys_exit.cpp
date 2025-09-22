@@ -26,36 +26,39 @@
 #include "../../cpu/cpu_manager.h"
 #include <scheduling.h>
 
+#include "../../realm/realm_manager.h"
+#include "../../units/unit_manager.h"
+#include "../../utils/panic.h"
+
 namespace syscalls::internal {
     int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        Log::PrintLn("SYS EXIT IS NOT BUILD");
-       /* uint8_t cpu_id = CPUManager::get_current_cpu_id();
-        kthread_t *current = kernel::scheduling::get_current_thread();
-        kprocess_t *proc = current->process;
-
-        current->exit_code = (int64_t) code;
-        current->state = THREAD_TERMINATED;
-
-        asm volatile("mov %0, %%cr3" :: "r"(kernel::memory::get_pagetable_address()));
-
-        if (kernel::process::Manager::all_threads_from_proc_terminated(proc)) {
-            proc->exit_code = (int64_t) code;
-            proc->state = PROCESS_TERMINATED;
-
-            kernel::process::Manager::cleanup_process(proc);
-        }
-        else {
-            kernel::scheduling::remove_thread(current);
-            kernel::threading::ThreadFactory::cleanup_thread_resources(current);
-            // later release tid of thread
+        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        Unit* current = kernel::scheduling::get_current_unit();
+        if (!current) {
+            panic("Attempt to exit a unit that no longer exists");
         }
 
+        current->exit_code = (int) code;
+        current->state = UNIT_TERMINATED;
+        current->active = false;
+        current->handle_count = 0;
 
-        kernel::scheduling::cpu_scheduler::cpu_scheduler_t *cpu = kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
-        cpu->current_thread = nullptr;
+        UnitManager::destroy(current->id);
+
+        // Realm-Bookkeeping
+        if (Realm* realm = RealmManager::get(current->rid)) {
+            realm->unit_count--;
+            if (realm->unit_count == 0) {
+                RealmManager::destroy(realm->id);
+            }
+        }
+
+        kernel::scheduling::cpu_scheduler::cpu_scheduler_t* cpu =
+            kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
+        cpu->current_unit = nullptr;
 
         kernel::scheduling::cpu_scheduler::yield_cpu(cpu_id);
 
-        for (;;) { asm volatile("hlt"); }*/
+        for (;;) { asm volatile("hlt"); }
     }
 }

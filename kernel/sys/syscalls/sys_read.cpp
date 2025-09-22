@@ -23,7 +23,6 @@
 
 #include <scheduling.h>
 
-#include "../FileDescriptor.h"
 #include "../../../filesystem/vfs/vfs.h"
 #include "../tty/tty.h"
 #include "../../../include/log.h"
@@ -34,7 +33,13 @@
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
+    static Unit* reader_owner = nullptr;
     int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+        if (reader_owner != nullptr && reader_owner != kernel::scheduling::get_current_unit()) {
+            return -EAGAIN;
+        }
+        reader_owner = kernel::scheduling::get_current_unit();
+
         HandleID hid = arg0;
         void *buf = reinterpret_cast<void *>(arg1);
         size_t count = static_cast<size_t>(arg2);
@@ -45,10 +50,10 @@ namespace syscalls::internal {
         if (!u || !u->active) return -EINVAL;
 
         Realm *realm = RealmManager::get(u->rid);
-        if (!realm) return -EBADF;
+        if (!realm) return -EUNKNOWN;
 
         handle_entry_t *he = realm->lookup_handle(hid);
-        if (!he) return -EBADF;
+        if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) {
             return -EACCES;
@@ -62,13 +67,13 @@ namespace syscalls::internal {
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
-                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADF;
+                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
                 size_t bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
                 vh->context->position += bytes;
                 return bytes;
             }
             default:
-                return -EBADF;
+                return -EBADH;
         }
     }
 }

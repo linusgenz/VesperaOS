@@ -47,7 +47,7 @@ private:
     static UnitID allocate_id();
 
     static void setup_kernel_unit_stack(Unit* u);
-    static void setup_user_unit_stack(Unit *u, void *entry, void *user_stack_top);
+    static void setup_user_unit_stack(Unit *u);
 };
 
 

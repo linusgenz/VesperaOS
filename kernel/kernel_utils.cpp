@@ -290,7 +290,7 @@ void initialize_kernel(BootInfo *bootInfo) {
         .user_stack_size = 0
     };
     Unit *input_unit = UnitManager::create(KERNEL_REALM_SYSTEM, (void *) input_poll_thread, nullptr, &uc);
-
+    auto t = kernel::memory::request_page();
     //  RealmManager::list();
 
     //   UnitManager::list();

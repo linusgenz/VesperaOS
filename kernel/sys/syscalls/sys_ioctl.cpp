@@ -39,10 +39,10 @@ namespace syscalls::internal {
         if (!u || !u->active) return -EINVAL;
 
         Realm* realm = RealmManager::get(u->rid);
-        if (!realm) return -EBADF;
+        if (!realm) return -EUNKNOWN;
 
         handle_entry_t* he = realm->lookup_handle(hid);
-        if (!he) return -EBADF;
+        if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_DEVICE_ACCESS)) {
             return -EACCES;
@@ -58,7 +58,7 @@ namespace syscalls::internal {
             case HANDLE_TYPE_FILE:
                 return -ENOTTY;
             default:
-                return -EBADF;
+                return -EBADH;
         }
     }
 }

@@ -38,10 +38,10 @@ namespace syscalls::internal {
         Realm* realm = RealmManager::get(u->rid);
 
 
-        if (!realm || !u->active) return -EBADF;
+        if (!realm || !u->active) return -EUNKNOWN;
 
         handle_entry_t* he = realm->lookup_handle(hid);
-        if (!he || !he->resource) return -EBADF;
+        if (!he || !he->resource) return -EBADH;
 
         const char* user_buf = reinterpret_cast<const char*>(arg1);
         if (!user_buf || arg2 == 0) return -EINVAL;
@@ -66,7 +66,7 @@ namespace syscalls::internal {
                 return 0;
             }
             default:
-                return -EBADF;
+                return -EBADH;
         }
     }
 }

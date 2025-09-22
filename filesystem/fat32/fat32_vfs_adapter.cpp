@@ -82,7 +82,8 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
     for (size_t i = 0; i < entryCount; i++) {
         const char *entryName = entries[i].GetName();
         if (strcmp(entryName, name) == 0) {
-            Fat32Node *childData = (Fat32Node *) kernel::memory::malloc(sizeof(Fat32Node));
+            auto *childData = static_cast<Fat32Node *>(kernel::memory::malloc(sizeof(Fat32Node)));
+            memset(childData, 0, sizeof(Fat32Node));
             if (!childData) {
                 kernel::memory::free(entries);
                 return nullptr;
@@ -173,7 +174,7 @@ static int fat32_readdir(VfsNode *node, char *out_name, size_t max_len) {
 static void fat32_close(VfsNode *node) {
     if (!node) return;
 
-    Fat32Node *data = (Fat32Node *) node->internal_data;
+    auto *data = (Fat32Node *) node->internal_data;
     if (data) {
         if (data->entries) kernel::memory::free(data->entries);
         kernel::memory::free(data);

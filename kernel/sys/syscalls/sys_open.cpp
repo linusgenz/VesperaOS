@@ -24,7 +24,6 @@
 #include <scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_node.h"
-#include "../FileDescriptor.h"
 #include "../../../filesystem/vfs/vfs.h"
 #include "../../include/errno.h"
 #include "../../realm/realm_manager.h"
@@ -33,7 +32,7 @@
 namespace syscalls::internal {
     int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
         const char *user_path = reinterpret_cast<const char *>(arg0);
-        uint32_t flags = static_cast<uint32_t>(arg1);
+        auto flags = static_cast<uint32_t>(arg1);
 
         if (!user_path || user_path[0] == '\0') return -EINVAL;
 

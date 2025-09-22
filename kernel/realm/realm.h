@@ -191,6 +191,18 @@ public:
         }
     }
 
+    void clear_handle_table() {
+        for (size_t i = 0; i < MAX_HANDLES_PER_REALM; ++i) {
+            if (test_bit(i)) {
+                handle_entry_t &he = handle_table.entries[i];
+                if (he.destroy && he.resource) he.destroy(he.resource);
+                clear_bit(i);
+                memset(&he, 0, sizeof(handle_entry_t));
+            }
+        }
+
+    }
+
 private:
     bool test_bit(size_t i) const {
         return (handle_table.bitmap[i >> 3] >> (i & 7)) & 1;

@@ -16,6 +16,9 @@ class PageTableManager {
     void set_user_flags(void *virtual_memory, size_t size) const;
 
     void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags, kprocess_t* proc);
+
+    void unmap_range(void *virt_start,size_t size);
+
     void unmap_memory(void* virtualMemory);
     bool is_mapped(void* virtualMemory);
     uint64_t get_physical_address(void* virtualMemory);

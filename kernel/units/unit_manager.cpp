@@ -44,10 +44,6 @@ void UnitManager::initialize() {
     next_id = 1;
 }
 
-bool UnitManager::is_initialized() {
-    return true; // TODO
-}
-
 UnitID UnitManager::allocate_id() {
     return next_id++;
 }
@@ -84,22 +80,22 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
             u->context.entry = (void(*)(void *)) entry_point;
             u->context.arg = arg;
 
-            uint64_t stack_size = cfg->stack_size;
+            uint64_t stack_size = cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE;
 
 
             if (u->is_user) {
                 uint64_t user_stack_size = cfg->user_stack_size
                                                ? cfg->user_stack_size
                                                : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
-                u->context.stack = kernel::memory::request_pages((user_stack_size + 0xFFF) / 0x1000);
-                if (!u->context.stack) {
+                u->context.user_stack = kernel::memory::request_pages((user_stack_size + 0xFFF) / 0x1000);
+                if (!u->context.user_stack) {
                     u->active = false;
                     return nullptr;
                 }
-                kernel::memory::map_range(u->context.stack, u->context.stack, user_stack_size,
+                kernel::memory::map_range(u->context.user_stack, u->context.user_stack, user_stack_size,
                                           (1ULL << PT_Flag::UserSuper));
                 u->context.user_stack_size = user_stack_size;
-                u->context.user_stack_top = (void *) ((uintptr_t) u->context.stack + stack_size);
+                u->context.user_stack_top = (void *) ((uintptr_t) u->context.user_stack + stack_size);
                 u->context.user_stack_pointer = u->context.user_stack_top;
             }
 
@@ -116,7 +112,7 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
             if (u->is_idle || u->is_kernel) {
                 setup_kernel_unit_stack(u);
             } else if (u->is_user) {
-                setup_user_unit_stack(u, entry_point, u->context.user_stack_top);
+                setup_user_unit_stack(u);
             }
 
             if (cfg->initial_handles && cfg->initial_handle_count > 0) {
@@ -132,7 +128,6 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
 
             kernel::scheduling::add_unit(u);
 
-            // In Realm einhängen
             spinlock_guard rg(realm->lock);
             u->next = realm->unit_list;
             realm->unit_list = u;
@@ -157,24 +152,15 @@ Unit *UnitManager::get(const UnitID id) {
 
 bool UnitManager::destroy(const UnitID id) {
     spinlock_guard g(global_lock);
+
     for (auto &i: units) {
         if (i.active && i.id == id) {
-            Unit *u = &i;
+            Unit* u = &i;
 
-
-            // TODO
-            // Thread killen
-            /*if (u->thread) {
-                kernel::scheduling::remove_thread(u->thread);
-                kernel::threading::ThreadFactory::cleanup_thread_resources(u->thread);
-                u->thread = nullptr;
-            }*/
-
-            // Aus Realm austragen
-            Realm *r = RealmManager::get(u->rid);
+            Realm* r = RealmManager::get(u->rid);
             if (r) {
                 spinlock_guard rg(r->lock);
-                Unit **prev = &r->unit_list;
+                Unit** prev = &r->unit_list;
                 while (*prev) {
                     if (*prev == u) {
                         *prev = u->next;
@@ -185,11 +171,43 @@ bool UnitManager::destroy(const UnitID id) {
                 }
             }
 
+            u->detach_all_handles();
+
+            if (u->context.stack) {
+                size_t pages = (u->context.stack_size + 0xFFF) / 0x1000;
+                kernel::memory::unmap_range(u->context.stack, u->context.stack_size);
+                kernel::memory::free_pages(u->context.stack, pages);
+                u->context.stack = nullptr;
+            }
+
+            if (u->is_user && u->context.user_stack) {
+                size_t user_pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
+                kernel::memory::unmap_range(u->context.user_stack, u->context.user_stack_size);
+                kernel::memory::free_pages(u->context.user_stack, user_pages);
+                u->context.user_stack = nullptr;
+            }
+
+            kernel::scheduling::remove_unit(u);
+
             u->active = false;
             u->id = 0;
+            u->rid = 0;
+            u->name = nullptr;
+            u->state = UNIT_NEW;
+            u->priority = 0;
+            u->cpu_id = 0;
+            u->exit_code = 0;
+            u->is_user = false;
+            u->is_kernel = false;
+            u->is_idle = false;
+            u->context = {};
+            u->sleep_context = {};
+            u->next = nullptr;
+
             return true;
         }
     }
+
     return false;
 }
 
@@ -222,14 +240,14 @@ void UnitManager::setup_kernel_unit_stack(Unit *u) {
     u->context.stack_pointer = sp;
 }
 
-void UnitManager::setup_user_unit_stack(Unit *u, void *entry, void *user_stack_top) {
+void UnitManager::setup_user_unit_stack(Unit *u) {
     auto *sp = static_cast<uintptr_t *>(u->context.stack_pointer);
 
     *(--sp) = 0x23;
-    *(--sp) = reinterpret_cast<uintptr_t>(user_stack_top);
+    *(--sp) = reinterpret_cast<uintptr_t>(u->context.user_stack_top);
     *(--sp) = 0x202;
     *(--sp) = 0x1B;
-    *(--sp) = reinterpret_cast<uintptr_t>(entry);
+    *(--sp) = reinterpret_cast<uintptr_t>(u->context.entry);
 
     u->context.stack_pointer = sp;
 }

@@ -1,10 +1,10 @@
-// sys_close.cpp
+// string.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 22.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,29 +21,28 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#ifndef VESPERAOS_STRING_H
+#define VESPERAOS_STRING_H
 
-#include "cstdint"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
-#include "../../types/types.h"
+#include <stdint.h>
+#include <stddef.h>
 
-namespace syscalls::internal {
-    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = static_cast<HandleID>(arg0);
+size_t strlen(const char *s);
 
-        Unit *current_unit = kernel::scheduling::get_current_unit();
-        if (!current_unit) return -EINVAL;
+void strcpy(char *dest, const char *src);
 
-        Realm *realm = RealmManager::get(current_unit->rid);
-        if (!realm) return -EINVAL;
+char *strncpy(char *dest, const char *src, size_t n);
 
-        handle_entry_t *he = realm->lookup_handle(hid);
-        if (!he) return -EBADH;  // invalid handle
+void strcat(char *dest, const char *src);
 
+char* strncat(char* dest, const char* src, size_t max);
 
-        realm->release_handle(hid);
+int strcmp(const char *a, const char *b);
 
-        return SUCCESS_CODE;
-    }
-}
+void memset(void* dest, uint8_t val, uint64_t num);
+
+void *memcpy (void *dest, const void *src, size_t len);
+
+int memcmp(const void* ptr1, const void* ptr2, size_t num);
+
+#endif //VESPERAOS_STRING_H

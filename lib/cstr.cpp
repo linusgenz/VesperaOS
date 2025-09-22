@@ -335,7 +335,6 @@ int strcasecmp(const char* s1, const char* s2) {
         char c1 = *s1;
         char c2 = *s2;
 
-        // Großbuchstaben in Kleinbuchstaben umwandeln
         if (c1 >= 'A' && c1 <= 'Z') c1 += 'a' - 'A';
         if (c2 >= 'A' && c2 <= 'Z') c2 += 'a' - 'A';
 
@@ -423,14 +422,6 @@ static int uint64_to_string(unsigned long long value, char* buffer, int base) {
 }
 
 
-// Helper function to get string length
-static int str_len(const char *str) {
-    int len = 0;
-    while (str[len] != '\0') {
-        len++;
-    }
-    return len;
-}
 
 int snprintf(char *buffer, size_t size, const char *format, ...) {
     if (!buffer || !format || size == 0) {
@@ -475,7 +466,7 @@ int snprintf(char *buffer, size_t size, const char *format, ...) {
                 case 's': {
                     char *str = __builtin_va_arg(args, char*);
                     if (str) {
-                        int len = str_len(str);
+                        int len = strlen(str);
                         for (int j = 0; j < len && buf_pos < size - 1; j++) {
                             buffer[buf_pos++] = str[j];
                         }

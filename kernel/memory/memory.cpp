@@ -66,6 +66,11 @@ namespace kernel::memory {
     void unmap_memory(void* virtual_addr) {
         page_table_manager.unmap_memory(virtual_addr);
     }
+
+    void unmap_range(void* virt_start, size_t size) {
+        page_table_manager.unmap_range(virt_start, size);
+    }
+
     bool is_mapped(void* virtual_addr) {
         return page_table_manager.is_mapped(virtual_addr);
     }

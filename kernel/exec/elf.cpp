@@ -102,8 +102,7 @@ ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
     SegmentMapping mapping = calculate_segment_mapping(ph, base_addr);
 
 
-    // Physische Seiten anfordern
-    void *phys = kernel::memory::request_pages(mapping.map_size);
+    void *phys = kernel::memory::request_pages(mapping.map_size / PAGE_SIZE);
     if (!phys) {
         return {0, false, "Failed to allocate physical memory for segment"};
     }
@@ -112,10 +111,10 @@ ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
     flags |= (1ULL << PT_Flag::UserSuper);
 
 
-     kernel::memory::map_range(reinterpret_cast<void *>(mapping.page_start),
-                            phys,
-                            mapping.map_size,
-                            flags);
+    kernel::memory::map_range(reinterpret_cast<void *>(mapping.page_start),
+                              phys,
+                              mapping.map_size,
+                              flags);
 
     // Daten kopieren
     void *dest = reinterpret_cast<uint8_t *>(mapping.page_start) + mapping.page_offset;

@@ -46,6 +46,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_REBOOT] = syscalls::internal::sys_reboot;
     syscall_table[SYSCALL_SLEEP] = syscalls::internal::sys_sleep;
     syscall_table[SYSCALL_IOCTL] = syscalls::internal::sys_ioctl;
+    syscall_table[SYSCALL_SPAWN] = syscalls::internal::sys_spawn;
 }
 
 extern "C" void syscall_handler(

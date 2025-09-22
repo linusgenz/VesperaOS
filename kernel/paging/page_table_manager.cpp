@@ -97,6 +97,13 @@ static bool is_table_empty(PageTable* table) {
     return true;
 }
 
+void PageTableManager::unmap_range(void *virt_start,size_t size) {
+    auto vs = reinterpret_cast<uintptr_t>(virt_start);
+    for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
+        unmap_memory(reinterpret_cast<void*>(vs + offset));
+    }
+}
+
 void PageTableManager::unmap_memory(void *virtual_memory) {
     PageMapIndexer indexer((uint64_t) virtual_memory);
 

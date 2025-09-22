@@ -38,6 +38,12 @@ typedef enum {
     UNIT_TERMINATED
 } UnitState;
 
+typedef struct arg_registers {
+    uint64_t rdi, rsi, rdx, rcx, r8, r9;
+} arg_registers_t;
+
+
+// WARINING when changing this struct syscall might break as offsets are hardcoded!
 typedef struct execution_context {
     uint64_t stack_size;
     void *stack;
@@ -49,6 +55,10 @@ typedef struct execution_context {
     void *user_stack_pointer;
 
     void (*entry)(void *);
+
+   arg_registers_t regs;
+
+    bool initialized;
 
     void *arg;
     void *saved_user_rsp;
@@ -65,6 +75,7 @@ typedef struct sleep_context {
 class Unit {
 private:
     unit_handle_table_t handle_table;
+
 public:
     UnitID id;
     RealmID rid;
@@ -132,6 +143,21 @@ public:
         }
         handle_table.lock.unlock();
         return MOD_ERR_INVALID_HANDLE;
+    }
+
+    ErrorCode detach_all_handles() {
+        handle_table.lock.lock();
+        for (uint64_t & slot : handle_table.slots) {
+            HandleID h = slot;
+            if (h != 0) {
+                slot = 0;
+            }
+        }
+        handle_table.count = 0;
+        handle_count = 0;
+
+        handle_table.lock.unlock();
+        return MOD_SUCCESS;
     }
 
     [[nodiscard]] int find_handle_slot(HandleID h) const {

@@ -41,6 +41,7 @@ namespace kernel::memory {
     void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags = 0, kprocess_t* proc = nullptr);
     void set_user_flags(void* virtual_memory, size_t size);
     void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags = 0, kprocess_t* proc = nullptr);
+    void unmap_range(void* virt_start, size_t size);
     void unmap_memory(void* virtual_addr);
     bool is_mapped(void* virtual_addr);
     uintptr_t get_pagetable_address();

@@ -7,14 +7,14 @@ bits 64
 %define SAVED_USER_RSP 0x50
 %define STACK_POINTER 0x18
 %define KERNEL_RSP_AFTER_SYSCALL 0x68
-%define FROM_SYSCALL_BOOL 0x60
+%define FROM_SYSCALL_BOOL 0x98
 
 syscall_entry:
     swapgs                        ; GS.base = Kernel GS
 
     cli
 
-    mov r15, qword [gs:0]      ; current unit pointer (Unit*)
+    mov r15, qword [gs:0]      ; current context pointer (execution_context_t*)
 
     mov [r15 + SAVED_USER_RSP], rsp
 

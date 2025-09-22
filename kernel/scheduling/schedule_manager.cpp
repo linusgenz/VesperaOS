@@ -32,14 +32,15 @@ namespace kernel::scheduling::manager {
             wrmsr(MSR_GS_BASE, 0);
             auto *ctx_ptr = &to->context;
             wrmsr(MSR_KERNEL_GS_BASE, (uint64_t) &ctx_ptr);
-          /*  if (to->process) {
-                uint64_t cr3 = (uint64_t) to->process->pml4;
-                asm volatile("mov %0, %%cr3" :: "r"(cr3));
-            }*/
+            /*  if (to->process) {
+                  uint64_t cr3 = (uint64_t) to->process->pml4;
+                  asm volatile("mov %0, %%cr3" :: "r"(cr3));
+              }*/
         } else {
             asm volatile("mov %0, %%cr3" :: "r"(memory::get_pagetable_address()));
         }
 
+        arg_registers_t *push_args = nullptr;
         void **rdi_save_addr = nullptr;
         void *rsp_to_load = nullptr;
         uint64_t should_iretq = 0;
@@ -51,7 +52,7 @@ namespace kernel::scheduling::manager {
             frame_ptr = 0;
         } else if (from) {
             rdi_save_addr = &from->context.stack_pointer;
-           // frame_ptr = frame;
+            // frame_ptr = frame;
             if (from->is_user) {
                 save_iretq = 1;
                 rdi_save_addr = nullptr;
@@ -69,18 +70,19 @@ namespace kernel::scheduling::manager {
         } else {
             rsp_to_load = to->context.stack_pointer;
             if (to->is_user) {
-              //  frame_ptr = frame;
+                //  frame_ptr = frame;
                 should_iretq = 1;
-                frame_ptr =0;
+                frame_ptr = 0;
             }
         }
 
-if (should_iretq) {
-    Log::PrintLn("%p %p %u %u %u", rdi_save_addr, rsp_to_load, frame_ptr, should_iretq, frame_ptr);
-}
-        context_switch(rdi_save_addr, rsp_to_load, should_iretq, save_iretq, frame_ptr);
-    }
+        if (to->is_user && !to->context.initialized) {
+            to->context.initialized = true;
+            push_args = &to->context.regs;
+        }
 
+        context_switch(rdi_save_addr, rsp_to_load, should_iretq, save_iretq, push_args);
+    }
 
     [[noreturn]] void terminate_current_thread() {
         asm volatile("cli");
@@ -127,6 +129,6 @@ if (should_iretq) {
             .user_stack_size = 0,
         };
 
-        return UnitManager::create(KERNEL_REALM_SYSTEM, (void*)idle_unit_func, nullptr, &unit_config);
+        return UnitManager::create(KERNEL_REALM_SYSTEM, (void *) idle_unit_func, nullptr, &unit_config);
     }
 } // namespace kernel::scheduling::manager
