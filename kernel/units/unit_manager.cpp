@@ -80,6 +80,8 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
             u->context.entry = (void(*)(void *)) entry_point;
             u->context.arg = arg;
 
+            u->context.regs.rdx = reinterpret_cast<uint64_t>(realm->envp); // 3rd arg for entry
+
             uint64_t stack_size = cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE;
 
 

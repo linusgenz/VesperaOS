@@ -65,14 +65,14 @@ set_target_properties(shell.elf PROPERTIES
 )
 
 # lsusb
-add_executable(lsusb.elf ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/lsusb.c)
-target_link_libraries(lsusb.elf PRIVATE userlib)
-set_target_properties(lsusb.elf PROPERTIES
+add_executable(lsusb ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/lsusb.c)
+target_link_libraries(lsusb PRIVATE userlib)
+set_target_properties(lsusb PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
         LINK_FLAGS "-nostdlib -ffreestanding -fno-stack-protector -fPIE -pie"
 )
 
-add_custom_target(elfs DEPENDS shell.elf lsusb.elf)
+add_custom_target(elfs DEPENDS shell.elf lsusb)
 
 # version
 add_custom_command(
@@ -96,7 +96,7 @@ add_custom_target(disk_image
         COMMAND sudo mount -o loop ${CMAKE_BINARY_DIR}/boot.img mnt
         COMMAND sudo mkdir -p mnt/bin ${EFI_DIR}
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/shell.elf mnt/bin/shell.elf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/lsusb.elf mnt/bin/lsusb.elf
+        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/lsusb mnt/bin/lsusb
         COMMAND sudo cp ${BOOTLOADER_EFI} ${EFI_DIR}/BOOTX64.EFI
         COMMAND sudo cp ${CMAKE_BINARY_DIR}/kernel.elf ${EFI_DIR}/kernel.elf
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light16.psf mnt/zap-light16.psf

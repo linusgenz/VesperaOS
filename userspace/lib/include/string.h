@@ -27,22 +27,60 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/**
+ * @brief Return the length of S.
+ */
 size_t strlen(const char *s);
 
+/**
+ * @brief Copy SRC to DEST.
+ */
 void strcpy(char *dest, const char *src);
 
+/**
+ * @brief Copy no more than N characters of SRC to DEST.
+ */
 char *strncpy(char *dest, const char *src, size_t n);
 
+/**
+ * @brief Append SRC onto DEST.
+ */
 void strcat(char *dest, const char *src);
 
+/**
+ * @brief Append no more than N characters from SRC onto DEST.
+ */
 char* strncat(char* dest, const char* src, size_t max);
 
+/**
+ * @brief Compare A and B.
+ */
 int strcmp(const char *a, const char *b);
 
-void memset(void* dest, uint8_t val, uint64_t num);
+/**
+ * @brief Compare N characters of A and B.
+ */
+int strncmp(const char *a, const char *b, size_t n);
 
+/**
+ * @brief Find the first occurrence of C in S.
+ */
+char *strchr(const char *s, unsigned char c);
+
+/**
+ * @brief Set N bytes of DEST to C.
+ */
+void memset(void* dest, uint8_t c, uint64_t n);
+
+/**
+ * @brief Copy N bytes of SRC to DEST.
+ */
 void *memcpy (void *dest, const void *src, size_t len);
 
-int memcmp(const void* ptr1, const void* ptr2, size_t num);
+/**
+ * @brief Compare N bytes of S1 and S2.
+ */
+int memcmp(const void* s1, const void* s2, size_t n);
+
 
 #endif //VESPERAOS_STRING_H

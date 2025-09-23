@@ -22,7 +22,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <sysstd.h>
-#include <fstab.h>
 
 #define SYSCALL_READ      0
 #define SYSCALL_WRITE     1
@@ -100,8 +99,8 @@ int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t
     return syscall(SYSCALL_EXIT, code, 0, 0, 0, 0, 0);
 }
 
-int64_t sys_spawn(uint64_t path_ptr, uint64_t argc, uint64_t argv_ptr, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_SPAWN, path_ptr, argc, argv_ptr, 0, 0, 0);
+int64_t sys_spawn(uint64_t path_ptr, uint64_t argc, uint64_t argv_ptr, uint64_t envp, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SPAWN, path_ptr, argc, argv_ptr, envp, 0, 0);
 }
 
 int64_t sys_rename(uint64_t oldPath_ptr, uint64_t newPath_ptr, uint64_t, uint64_t, uint64_t, uint64_t) {

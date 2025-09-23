@@ -85,9 +85,30 @@ int strcmp(const char *a, const char *b) {
     return *a - *b;
 }
 
-void memset(void* dest, uint8_t val, uint64_t num) {
+int strncmp(const char *a, const char *b, size_t n) {
+    while (n != 0 && *a != '\0' && *b != '\0'  && *a == *b) {
+        a++;
+        b++;
+        n--;
+    }
+    return n == 0 ? 0 : (*a - *b);
+}
+
+char *strchr(const char *s, unsigned char c) {
+    while (*s) {
+        if ((unsigned char)*s == c) {
+            return (char *)s;
+        }
+        ++s;
+    }
+
+    if (c == '\0') return (char *)s;
+    return nullptr;
+}
+
+void memset(void* dest, uint8_t c, uint64_t num) {
     for (uint64_t i = 0; i < num; i++) {
-        *(uint8_t*)((uint64_t)dest + i) = val;
+        *(uint8_t*)((uint64_t)dest + i) = c;
     }
 }
 
@@ -99,10 +120,10 @@ void *memcpy (void *dest, const void *src, size_t len) {
     return dest;
 }
 
-int memcmp(const void* ptr1, const void* ptr2, size_t num) {
-    const uint8_t* a = (const uint8_t*)ptr1;
-    const uint8_t* b = (const uint8_t*)ptr2;
-    for (size_t i = 0; i < num; i++) {
+int memcmp(const void* s1, const void* s2, size_t n) {
+    const uint8_t* a = (const uint8_t*)s1;
+    const uint8_t* b = (const uint8_t*)s2;
+    for (size_t i = 0; i < n; i++) {
         if (a[i] != b[i])
             return (a[i] < b[i]) ? -1 : 1;
     }

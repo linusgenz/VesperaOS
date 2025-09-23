@@ -32,8 +32,10 @@
 #include "stddef.h"
 #include "stdint.h"
 #include <realm.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <dev/usb_xhci_ioctl.h>
+#include <exec.h>
 
 
 typedef struct {
@@ -213,7 +215,8 @@ void show_prompt(void) {
     printf("]$ ");
 }
 
-void shell_main() {
+
+void shell_main(char **envp) {
     char buf[MAX_INPUT];
     command_t cmd;
 
@@ -224,7 +227,7 @@ void shell_main() {
 
 
     auto handleID = fopen("/dev/xhci1/", O_RDONLY);
-    printf("Handle ID: %u", handleID);
+    printf("Handle ID: %ld", handleID);
 
     size_t devices = 0;
     memset(&devices, 0, sizeof(devices));
@@ -234,9 +237,18 @@ void shell_main() {
         printf("error: ioctl: %lld", ret);
         //    close(fd);
     }
-    const char *argv[] = {"lsusb", NULL};
-    auto rid = spawn_realm("/mnt/fat32_0/bin/lsusb.elf", 1, argv);
-    printf("spawn rid: %d", rid);
+    //  setenv("PATH", "/mnt/fat32_0/bin:/mnt/fat32_0/sbin", 1);
+
+    const char *prog = find_executable("lsusb", envp);
+    int64_t rid = 0;
+    if (prog) {
+        const char *argv[] = {"lsusb", nullptr};
+        rid = spawn_realm(prog, 1, argv, envp);
+    } else {
+        printf("Programm nicht gefunden!\n");
+    }
+
+    printf("spawn rid: %ld", rid);
 
     while (1) {
         show_prompt();
@@ -269,7 +281,8 @@ void shell_main() {
     }
 }
 
-void _start() {
-    shell_main();
+void _start(int argc, char **argv, char **envp) {
+    printf("envp: %s\n", envp[0]);
+    shell_main(envp);
     exit(0);
 }

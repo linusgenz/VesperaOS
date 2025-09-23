@@ -1,4 +1,4 @@
-// realm.c
+// file.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
@@ -21,28 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <sysstd.h>
-#include <errno.h>
+#ifndef VESPERAOS_FILE_H
+#define VESPERAOS_FILE_H
 
-#include <stdlib.h>
-#include "stdint.h"
+#include <stdbool.h>
 
-int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp) {
-    return sys_spawn((uint64_t)path_ptr, argc, (uint64_t)argv, (uint64_t)envp, 0, 0);
-}
+/**
+ * @brief Check if a file exists at the given path.
+ *
+ * @param path Path to check.
+ * @return true if the file exists, false otherwise.
+ */
+bool file_exists(const char* path);
 
-int64_t spawn_unit(uint64_t realm_id, uint64_t entry_point, uint64_t arg_ptr) {
-    return -ENOSYS;
-    //   return syscall(SYSCALL_UNIT_SPAWN, realm_id, entry_point, arg_ptr, 0, 0, 0);
-}
-
-__attribute__((noreturn))
-void exit(uint64_t code) {
-    sys_exit(code, 0, 0, 0, 0, 0);
-    __builtin_unreachable();
-}
-
-int64_t exit_realm(uint64_t realm_id, uint64_t code) {
-    return -ENOSYS;
-    //  return syscall(SYSCALL_REALM_EXIT, realm_id, code, 0, 0, 0, 0);
-}
+#endif //VESPERAOS_FILE_H

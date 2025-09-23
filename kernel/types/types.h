@@ -101,6 +101,7 @@ typedef struct {
     uint64_t memory_limit;
     CapabilitySet capabilities;
     uint64_t max_units;
+    const char** envp;
 } RealmConfig;
 
 

@@ -29,10 +29,11 @@
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {
-    int64_t sys_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    int64_t sys_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
         auto user_path = reinterpret_cast<const char*>(arg0);
-        auto argc = static_cast<uint32_t>(arg1);
+        const auto argc = static_cast<uint32_t>(arg1);
         auto argv = reinterpret_cast<const char**>(arg2);
+        auto envp = reinterpret_cast<const char**>(arg3);
 
         if (!user_path) return -EINVAL;
 
@@ -67,7 +68,7 @@ namespace syscalls::internal {
 
         u->context.regs.rdi = static_cast<uint64_t>(argc);
         u->context.regs.rsi = reinterpret_cast<uint64_t>(argv);
-        u->context.regs.rdx = 0;
+        u->context.regs.rdx = reinterpret_cast<uint64_t>(envp);
         u->context.regs.rcx = 0;
         u->context.regs.r8  = 0;
         u->context.regs.r9  = 0;

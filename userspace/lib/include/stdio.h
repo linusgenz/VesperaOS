@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "unistdio.h"
+
 #define HANDLE_TYPE_CONSOLE 0x1000000000000000ULL
 #define HANDLE_TYPE_FILE    0x2000000000000000ULL
 #define HANDLE_TYPE_CHANNEL 0x3000000000000000ULL

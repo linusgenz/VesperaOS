@@ -39,6 +39,8 @@
 #include "tty/tty.h"
 #include "units/unit_manager.h"
 
+static const char* envp0[] = {"PATH=/mnt/fat32_0/bin"};
+
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     system_initialized = false;
     initialize_kernel(boot_info);
@@ -73,6 +75,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .memory_limit = 0,
         .capabilities = CAP_DEVICE_ACCESS | CAP_RW,
         .max_units = 16,
+        .envp = envp0,
     };
     Realm *shell_realm = RealmManager::create(&realm_config_shell);
     auto console_dev = new ConsoleDevice();
@@ -90,7 +93,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .user_stack_size = 0
     };
     Unit *shell = UnitManager::create(shell_realm->id, (void *) result.entry_point, nullptr, &uc);
-    shell->context.initialized = true;
 
     system_initialized = true;
     kernel::scheduling::enable_on_cpu(0);

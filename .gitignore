@@ -5,7 +5,8 @@ kernel/.idea
 legacy
 .vscode
 
-OVMF
+OVMF/*
+OVMF/OVMF.fd
 
 cmake-build-debug
 build

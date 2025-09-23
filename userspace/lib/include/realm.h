@@ -37,7 +37,7 @@
  * @param argv_ptr Pointer to an array of argument strings.
  * @return Realm ID on success, negative error code on failure.
  */
-int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv);
+int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp);
 
 /**
  * @brief Spawn a new unit (thread) inside an existing realm.

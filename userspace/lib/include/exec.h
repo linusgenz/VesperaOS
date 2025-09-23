@@ -1,10 +1,10 @@
-// realm.c
+// exec.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 22.09.25.
+// Created by Linus Genz on 23.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,28 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <sysstd.h>
-#include <errno.h>
+#ifndef VESPERAOS_EXEC_H
+#define VESPERAOS_EXEC_H
 
-#include <stdlib.h>
-#include "stdint.h"
+/**
+ * @brief Find the absolute path of an executable using PATH.
+ *
+ * @param name Program name (e.g., "lsusb").
+ * @return Pointer to a static buffer containing the path,
+ *         or NULL if not found.
+ */
+const char *find_executable(const char *name, char **envp);
 
-int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp) {
-    return sys_spawn((uint64_t)path_ptr, argc, (uint64_t)argv, (uint64_t)envp, 0, 0);
-}
 
-int64_t spawn_unit(uint64_t realm_id, uint64_t entry_point, uint64_t arg_ptr) {
-    return -ENOSYS;
-    //   return syscall(SYSCALL_UNIT_SPAWN, realm_id, entry_point, arg_ptr, 0, 0, 0);
-}
-
-__attribute__((noreturn))
-void exit(uint64_t code) {
-    sys_exit(code, 0, 0, 0, 0, 0);
-    __builtin_unreachable();
-}
-
-int64_t exit_realm(uint64_t realm_id, uint64_t code) {
-    return -ENOSYS;
-    //  return syscall(SYSCALL_REALM_EXIT, realm_id, code, 0, 0, 0, 0);
-}
+#endif //VESPERAOS_EXEC_H

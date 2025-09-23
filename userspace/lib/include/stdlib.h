@@ -1,10 +1,10 @@
-// realm.c
+// stdlib.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 22.09.25.
+// Created by Linus Genz on 23.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,28 +21,33 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <sysstd.h>
-#include <errno.h>
+#ifndef VESPERAOS_STDLIB_H
+#define VESPERAOS_STDLIB_H
 
-#include <stdlib.h>
-#include "stdint.h"
+/**
+ * @brief Get the value of an environment variable.
+ *
+ * @param name Variable name (null-terminated string).
+ * @return Pointer to the value string, or NULL if not found.
+ */
+char* getenv(const char* name, char** envp);
 
-int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp) {
-    return sys_spawn((uint64_t)path_ptr, argc, (uint64_t)argv, (uint64_t)envp, 0, 0);
-}
+/**
+ * @brief Set an environment variable.
+ *
+ * @param name Variable name.
+ * @param value Value to set.
+ * @param overwrite If 0, existing variables are not overwritten.
+ * @return 0 on success, -1 on failure.
+ */
+int setenv(const char* name, const char* value, int overwrite);
 
-int64_t spawn_unit(uint64_t realm_id, uint64_t entry_point, uint64_t arg_ptr) {
-    return -ENOSYS;
-    //   return syscall(SYSCALL_UNIT_SPAWN, realm_id, entry_point, arg_ptr, 0, 0, 0);
-}
+/**
+ * @brief Unset an environment variable.
+ *
+ * @param name Variable name.
+ * @return 0 on success, -1 if not found.
+ */
+int unsetenv(const char* name);
 
-__attribute__((noreturn))
-void exit(uint64_t code) {
-    sys_exit(code, 0, 0, 0, 0, 0);
-    __builtin_unreachable();
-}
-
-int64_t exit_realm(uint64_t realm_id, uint64_t code) {
-    return -ENOSYS;
-    //  return syscall(SYSCALL_REALM_EXIT, realm_id, code, 0, 0, 0, 0);
-}
+#endif //VESPERAOS_STDLIB_H
