@@ -102,13 +102,16 @@ $(document).ready(function(){initNavTree('usb__xhci__ioctl_8h.html',''); initRes
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structxhci__device__stat.html">xhci_device_stat</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents the status and identifying information of a single xHCI USB device.  <a href="structxhci__device__stat.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a627de9a074a97fafc4dad2059cfa1a53" id="r_a627de9a074a97fafc4dad2059cfa1a53"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="usb__xhci__ioctl_8h.html#a627de9a074a97fafc4dad2059cfa1a53">XHCI_IOCTL_GET_COUNT</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memdesc:a627de9a074a97fafc4dad2059cfa1a53"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to get the number of devices currently connected to the xHCI controller.  <br /></td></tr>
 <tr class="separator:a627de9a074a97fafc4dad2059cfa1a53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbb704d92e350100d923137b68daf220" id="r_adbb704d92e350100d923137b68daf220"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="usb__xhci__ioctl_8h.html#adbb704d92e350100d923137b68daf220">XHCI_IOCTL_GET_DEVICE</a>&#160;&#160;&#160;2</td></tr>
+<tr class="memdesc:adbb704d92e350100d923137b68daf220"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to get information about a single device by index.  <br /></td></tr>
 <tr class="separator:adbb704d92e350100d923137b68daf220"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
@@ -124,6 +127,8 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>IOCTL code to get the number of devices currently connected to the xHCI controller. </p>
+
 </div>
 </div>
 <a id="adbb704d92e350100d923137b68daf220" name="adbb704d92e350100d923137b68daf220"></a>
@@ -137,6 +142,9 @@ Macros</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>IOCTL code to get information about a single device by index. </p>
+<p>Use this in combination with <a class="el" href="structxhci__device__stat.html" title="Represents the status and identifying information of a single xHCI USB device.">xhci_device_stat</a> struct to retrieve device info. </p>
 
 </div>
 </div>

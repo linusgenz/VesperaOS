@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['success_5fcode_0',['SUCCESS_CODE',['../errno_8h.html#af552599b46244712be9567e1c81b099b',1,'errno.h']]]
+  ['reboot_5fhalt_0',['REBOOT_HALT',['../sysstd_8h.html#ac779db2e507c6285951e657e47e3b748',1,'sysstd.h']]],
+  ['reboot_5fmagic1_1',['REBOOT_MAGIC1',['../sysstd_8h.html#a4b30f7b8597967276b4245daee628589',1,'sysstd.h']]],
+  ['reboot_5fmagic2_2',['REBOOT_MAGIC2',['../sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c',1,'sysstd.h']]],
+  ['reboot_5fpower_5foff_3',['REBOOT_POWER_OFF',['../sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad',1,'sysstd.h']]],
+  ['reboot_5frestart_4',['REBOOT_RESTART',['../sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8',1,'sysstd.h']]]
 ];

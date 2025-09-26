@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['xhci_5fdevice_5fstat_0',['xhci_device_stat',['../structxhci__device__stat.html',1,'']]]
+  ['cpu_5finfo_0',['cpu_info',['../structcpu__info.html',1,'']]]
 ];

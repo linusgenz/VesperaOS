@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['o_5fcreat_0',['O_CREAT',['../fflags_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc',1,'fflags.h']]],
-  ['o_5frdonly_1',['O_RDONLY',['../fflags_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b',1,'fflags.h']]],
-  ['o_5frdwr_2',['O_RDWR',['../fflags_8h.html#abb0586253488ee61072b73557eeb873b',1,'fflags.h']]],
-  ['o_5fwronly_3',['O_WRONLY',['../fflags_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fflags.h']]]
+  ['internal_2eh_0',['internal.h',['../internal_8h.html',1,'']]],
+  ['ioctl_1',['ioctl',['../ioctl_8h.html#a9405d8d3763a7eaefe4eae694b9f8ea0',1,'ioctl.h']]],
+  ['ioctl_2eh_2',['ioctl.h',['../ioctl_8h.html',1,'']]],
+  ['ioctl_5frequest_5ft_3',['ioctl_request_t',['../ioctl_8h.html#ad9edf266656ca64984f397c280c111af',1,'ioctl.h']]]
 ];

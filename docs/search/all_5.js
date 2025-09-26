@@ -1,12 +1,14 @@
 var searchData=
 [
-  ['handle_5fstderr_0',['HANDLE_STDERR',['../stdio_8h.html#a20f587d71e5bfe98fd92929ab61bde41',1,'stdio.h']]],
-  ['handle_5fstdin_1',['HANDLE_STDIN',['../stdio_8h.html#aa8bdf33a8a477a7f84782d4075cac16e',1,'stdio.h']]],
-  ['handle_5fstdout_2',['HANDLE_STDOUT',['../stdio_8h.html#ab713aac387c884999067ab2eb12eb2a3',1,'stdio.h']]],
-  ['handle_5ftype_5fchannel_3',['HANDLE_TYPE_CHANNEL',['../stdio_8h.html#a57fb96e74a11842469c4d71f9a38734a',1,'stdio.h']]],
-  ['handle_5ftype_5fconsole_4',['HANDLE_TYPE_CONSOLE',['../stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7',1,'stdio.h']]],
-  ['handle_5ftype_5fdevice_5',['HANDLE_TYPE_DEVICE',['../stdio_8h.html#a7320acad67c37ee34fa6f28cab733f7c',1,'stdio.h']]],
-  ['handle_5ftype_5ffile_6',['HANDLE_TYPE_FILE',['../stdio_8h.html#aef864574e77d6a0d5653dfae187c57e4',1,'stdio.h']]],
-  ['handle_5ftype_5frealm_7',['HANDLE_TYPE_REALM',['../stdio_8h.html#a99fc691f8add17b3b3a7834779d7e641',1,'stdio.h']]],
-  ['handle_5ftype_5funit_8',['HANDLE_TYPE_UNIT',['../stdio_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'stdio.h']]]
+  ['fclose_0',['fclose',['../stdio_8h.html#abead4fc4fe2480561857ffd16c1fdc24',1,'stdio.h']]],
+  ['features_1',['features',['../structcpu__info.html#aeac8d8efb615531a37df263f38a52cbd',1,'cpu_info']]],
+  ['fflags_2eh_2',['fflags.h',['../fflags_8h.html',1,'']]],
+  ['file_2eh_3',['file.h',['../file_8h.html',1,'']]],
+  ['file_5fexists_4',['file_exists',['../file_8h.html#aba2db2f17a82cb9f949de86a2f783ce6',1,'file.h']]],
+  ['file_5fhandle_5',['FILE_HANDLE',['../stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976',1,'stdio.h']]],
+  ['find_5fexecutable_6',['find_executable',['../exec_8h.html#a9afb977f90591c1ae7e727e165bf05bb',1,'exec.h']]],
+  ['float_5fto_5fstr_7',['float_to_str',['../internal_8h.html#a143301671278635e0a17d4ee41f780f3',1,'internal.h']]],
+  ['fopen_8',['fopen',['../stdio_8h.html#a82f772624397cd590af87a316fe3b29f',1,'stdio.h']]],
+  ['fread_9',['fread',['../stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7',1,'stdio.h']]],
+  ['fwrite_10',['fwrite',['../stdio_8h.html#a0521008fe2a792026bcd8f31234818a3',1,'stdio.h']]]
 ];

@@ -90,6 +90,7 @@ $(document).ready(function(){initNavTree('sysstd_8h.html',''); initResizable(); 
 
 <div class="header">
   <div class="summary">
+<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">sysstd.h File Reference</div></div>
 </div><!--header-->
@@ -98,6 +99,19 @@ $(document).ready(function(){initNavTree('sysstd_8h.html',''); initResizable(); 
 </div>
 <p><a href="sysstd_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a4b30f7b8597967276b4245daee628589" id="r_a4b30f7b8597967276b4245daee628589"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a4b30f7b8597967276b4245daee628589">REBOOT_MAGIC1</a>&#160;&#160;&#160;0xfee1dead</td></tr>
+<tr class="separator:a4b30f7b8597967276b4245daee628589"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59c1425822fef417ede5d64684abfc7c" id="r_a59c1425822fef417ede5d64684abfc7c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c">REBOOT_MAGIC2</a>&#160;&#160;&#160;672274793</td></tr>
+<tr class="separator:a59c1425822fef417ede5d64684abfc7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47c987441c44c83f5d16e7f9db91fcd8" id="r_a47c987441c44c83f5d16e7f9db91fcd8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8">REBOOT_RESTART</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:a47c987441c44c83f5d16e7f9db91fcd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae46bc0140bec37fa6157b9e9c43f7cad" id="r_ae46bc0140bec37fa6157b9e9c43f7cad"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad">REBOOT_POWER_OFF</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:ae46bc0140bec37fa6157b9e9c43f7cad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac779db2e507c6285951e657e47e3b748" id="r_ac779db2e507c6285951e657e47e3b748"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ac779db2e507c6285951e657e47e3b748">REBOOT_HALT</a>&#160;&#160;&#160;2</td></tr>
+<tr class="separator:ac779db2e507c6285951e657e47e3b748"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aff9a410b13d7a1edb28b24a8510fba0c" id="r_aff9a410b13d7a1edb28b24a8510fba0c"><td class="memItemLeft" align="right" valign="top">static int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#aff9a410b13d7a1edb28b24a8510fba0c">syscall</a> (uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5)</td></tr>
@@ -144,7 +158,84 @@ Functions</h2></td></tr>
 <tr class="memitem:ac0d25831cf3cd6d29e7ea92633d26dfa" id="r_ac0d25831cf3cd6d29e7ea92633d26dfa"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa">sys_write</a> (uint64_t hid, uint64_t buf_ptr, uint64_t count, uint64_t, uint64_t, uint64_t)</td></tr>
 <tr class="memdesc:ac0d25831cf3cd6d29e7ea92633d26dfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to a handle.  <br /></td></tr>
 <tr class="separator:ac0d25831cf3cd6d29e7ea92633d26dfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3d45b4fd7c9c7ef1b9a6a66dcf99198" id="r_af3d45b4fd7c9c7ef1b9a6a66dcf99198"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#af3d45b4fd7c9c7ef1b9a6a66dcf99198">sys_readdir</a> (uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t)</td></tr>
+<tr class="memdesc:af3d45b4fd7c9c7ef1b9a6a66dcf99198"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the next entry in an open directory.  <br /></td></tr>
+<tr class="separator:af3d45b4fd7c9c7ef1b9a6a66dcf99198"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdc475f51b903fd0dabea0dc3281aee8" id="r_afdc475f51b903fd0dabea0dc3281aee8"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8">sys_wait</a> (uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t)</td></tr>
+<tr class="memdesc:afdc475f51b903fd0dabea0dc3281aee8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Blocks the calling unit until the target realm has finished execution.  <br /></td></tr>
+<tr class="separator:afdc475f51b903fd0dabea0dc3281aee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ac779db2e507c6285951e657e47e3b748" name="ac779db2e507c6285951e657e47e3b748"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac779db2e507c6285951e657e47e3b748">&#9670;&#160;</a></span>REBOOT_HALT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define REBOOT_HALT&#160;&#160;&#160;2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b30f7b8597967276b4245daee628589" name="a4b30f7b8597967276b4245daee628589"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b30f7b8597967276b4245daee628589">&#9670;&#160;</a></span>REBOOT_MAGIC1</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define REBOOT_MAGIC1&#160;&#160;&#160;0xfee1dead</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a59c1425822fef417ede5d64684abfc7c" name="a59c1425822fef417ede5d64684abfc7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59c1425822fef417ede5d64684abfc7c">&#9670;&#160;</a></span>REBOOT_MAGIC2</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define REBOOT_MAGIC2&#160;&#160;&#160;672274793</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae46bc0140bec37fa6157b9e9c43f7cad" name="ae46bc0140bec37fa6157b9e9c43f7cad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae46bc0140bec37fa6157b9e9c43f7cad">&#9670;&#160;</a></span>REBOOT_POWER_OFF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define REBOOT_POWER_OFF&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a47c987441c44c83f5d16e7f9db91fcd8" name="a47c987441c44c83f5d16e7f9db91fcd8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47c987441c44c83f5d16e7f9db91fcd8">&#9670;&#160;</a></span>REBOOT_RESTART</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define REBOOT_RESTART&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aba1a18094b538aa055e144f694578315" name="aba1a18094b538aa055e144f694578315"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aba1a18094b538aa055e144f694578315">&#9670;&#160;</a></span>sys_close()</h2>
@@ -578,6 +669,69 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="af3d45b4fd7c9c7ef1b9a6a66dcf99198" name="af3d45b4fd7c9c7ef1b9a6a66dcf99198"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3d45b4fd7c9c7ef1b9a6a66dcf99198">&#9670;&#160;</a></span>sys_readdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t sys_readdir </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads the next entry in an open directory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>Handle ID of the directory (returned by sys_open) </td></tr>
+    <tr><td class="paramname">arg1</td><td>Pointer to a user-space buffer where the entry name will be copied </td></tr>
+    <tr><td class="paramname">arg2</td><td>Size of the user-space buffer in bytes</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns the number of bytes written to the buffer (always &gt; 0 if an entry exists). Returns 0 if there are no more entries. Returns negative errno on error: -EINVAL : Invalid parameters or buffer -EBADH : Invalid handle -EACCES : Insufficient capabilities </dd></dl>
+
+</div>
+</div>
 <a id="a7760fa106444c95639e69e852f60d6f9" name="a7760fa106444c95639e69e852f60d6f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7760fa106444c95639e69e852f60d6f9">&#9670;&#160;</a></span>sys_reboot()</h2>
 
@@ -946,6 +1100,68 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success, or negative error code (e.g., -ENOENT). </dd></dl>
+
+</div>
+</div>
+<a id="afdc475f51b903fd0dabea0dc3281aee8" name="afdc475f51b903fd0dabea0dc3281aee8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdc475f51b903fd0dabea0dc3281aee8">&#9670;&#160;</a></span>sys_wait()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t sys_wait </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Blocks the calling unit until the target realm has finished execution. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>RealmID of the realm to wait for </td></tr>
+    <tr><td class="paramname">arg1</td><td>Pointer to an int where the exit status will be stored (optional; can be 0) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success. Negative errno on error: -EINVAL : Invalid parameters or no current unit -ECHILD : Target realm does not exist </dd></dl>
 
 </div>
 </div>
