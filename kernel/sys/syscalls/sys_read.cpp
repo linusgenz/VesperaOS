@@ -29,20 +29,19 @@
 #include "../../include/errno.h"
 #include "../../realm/realm_manager.h"
 #include "../types/types.h"
-#include "../graphics/console_backend.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
-    static Unit* reader_owner = nullptr;
+   // static Unit* reader_owner = nullptr;
     int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        if (reader_owner != nullptr && reader_owner != kernel::scheduling::get_current_unit()) {
-            return -EAGAIN;
-        }
-        reader_owner = kernel::scheduling::get_current_unit();
+       // if (reader_owner != nullptr && reader_owner != kernel::scheduling::get_current_unit()) {
+       //     return -EAGAIN;
+      //  }
+      //  reader_owner = kernel::scheduling::get_current_unit();
 
         HandleID hid = arg0;
         void *buf = reinterpret_cast<void *>(arg1);
-        size_t count = static_cast<size_t>(arg2);
+        size_t count = arg2;
 
         if (!buf || count == 0) return -EINVAL;
 
@@ -60,9 +59,9 @@ namespace syscalls::internal {
         }
 
         switch (he->type & HANDLE_TYPE_MASK) {
-            case HANDLE_TYPE_CONSOLE: {
-                ConsoleDevice *cons = static_cast<ConsoleDevice *>(he->resource);
-                return cons->read(reinterpret_cast<char *>(buf), count);
+            case HANDLE_TYPE_TTY: {
+                auto* tty_dev = static_cast<TTYDevice*>(he->resource);
+                return tty_dev->read(nullptr, buf, count, 0);
             }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {

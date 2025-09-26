@@ -22,6 +22,14 @@
 #include "sys/syscall_interface.h"
 #include "include/time.h"
 #include "../filesystem/vfs/vfs.h"
+#include "devices/misc/cpuinfo.h"
+#include "devices/misc/full.h"
+#include "devices/misc/zero.h"
+#include "devices/misc/null.h"
+#include "devices/misc/rtc.h"
+#include "devices/misc/uptime.h"
+#include "devices/misc/urandom.h"
+#include "devices/misc/version.h"
 #include "include/sys/syscalls.h"
 #include "input/input_manager.h"
 #include "realm/realm.h"
@@ -193,9 +201,30 @@ void input_poll_thread(void *arg) {
         while (kernel::input::InputManager::pop_event(ev)) {
             kernel::tty::tty_handle_input(ev);
         }
+        kernel::time::sleep_ms(10); // temp sync issues in input manager
         //  kernel::scheduling::yield(); // CPU an andere Threads
     }
 }
+
+
+void init_ttys() {
+    kernel::tty::active_tty = &kernel::tty::tty_instances[0];
+    for (int i = 0; i < 6; i++) {
+        kernel::tty::tty_init(&kernel::tty::tty_instances[i]);
+        const char* name = DevFS::alloc_unique_name("tty");
+        kernel::tty::tty_devices[i] = new TTYDevice(name, &kernel::tty::tty_instances[i]);
+        kernel::tty::tty_devices[i]->register_device();
+    }
+}
+
+static ZeroDevice* zero_dev = nullptr;
+static NullDevice* null_dev = nullptr;
+static URandomDevice* urand_dev = nullptr;
+static FullDevice* full_dev = nullptr;
+static RTCDevice* rtc_dev = nullptr;
+static UptimeDevice* uptime_dev = nullptr;
+static VersionDevice* version_dev = nullptr;
+static CPUInfoDevice* cpuinfo_dev = nullptr;
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
@@ -220,7 +249,6 @@ void initialize_kernel(BootInfo *bootInfo) {
     const uint64_t fb_height = TargetFramebuffer->height;
     global_renderer->clear();
 
-    kernel::tty::tty_init();
     kernel::input::InputManager::init();
 
     /*  render_image_rgba8888_centered(
@@ -256,7 +284,6 @@ void initialize_kernel(BootInfo *bootInfo) {
     Log::init(); // threads are possible -> switch to mutex
     kernel::DeviceManager::Init();
 
-
     CPUManager::initialize();
     RealmManager::initialize();
 
@@ -290,7 +317,6 @@ void initialize_kernel(BootInfo *bootInfo) {
         .user_stack_size = 0
     };
     Unit *input_unit = UnitManager::create(KERNEL_REALM_SYSTEM, (void *) input_poll_thread, nullptr, &uc);
-    auto t = kernel::memory::request_page();
     //  RealmManager::list();
 
     //   UnitManager::list();
@@ -305,6 +331,15 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     vfs_init();
     DevFS::init();
+    init_ttys();
+    zero_dev = new ZeroDevice("zero");
+    null_dev = new NullDevice("null");
+    urand_dev = new URandomDevice("urandom");
+    full_dev = new FullDevice("full");
+    rtc_dev = new RTCDevice("rtc");
+    uptime_dev = new UptimeDevice("uptime");
+    version_dev = new VersionDevice("version");
+    cpuinfo_dev = new CPUInfoDevice("cpuinfo");
 
     kernel::time::internal::sleep(3000);
 

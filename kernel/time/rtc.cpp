@@ -7,7 +7,6 @@
 #include "../../include/log.h"
 
 namespace kernel::time {
-    // Lies CMOS-Register
     uint8_t cmos_read(uint8_t reg) {
         asm volatile ("outb %0, %1" : : "a"(reg), "Nd"(CMOS_ADDRESS));
         uint8_t value;

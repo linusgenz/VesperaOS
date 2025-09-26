@@ -40,16 +40,17 @@ typedef uint64_t RealmID;
 #define HANDLE_ID_MASK      0x0000FFFFFFFFFFFFULL
 
 
-#define HANDLE_TYPE_CONSOLE 0x1000000000000000ULL
+#define HANDLE_TYPE_TTY 0x1000000000000000ULL
 #define HANDLE_TYPE_FILE    0x2000000000000000ULL
-#define HANDLE_TYPE_CHANNEL 0x3000000000000000ULL
-#define HANDLE_TYPE_UNIT    0x4000000000000000ULL
-#define HANDLE_TYPE_REALM   0x5000000000000000ULL
-#define HANDLE_TYPE_DEVICE  0x6000000000000000ULL
+#define HANDLE_TYPE_DIRECTORY 0x3000000000000000ULL
+#define HANDLE_TYPE_CHANNEL 0x4000000000000000ULL
+#define HANDLE_TYPE_UNIT    0x5000000000000000ULL
+#define HANDLE_TYPE_REALM   0x6000000000000000ULL
+#define HANDLE_TYPE_DEVICE  0x7000000000000000ULL
 
-#define HANDLE_STDIN   (HANDLE_TYPE_CONSOLE | 0x0000000000000000ULL)
-#define HANDLE_STDOUT  (HANDLE_TYPE_CONSOLE | 0x0000000000000001ULL)
-#define HANDLE_STDERR  (HANDLE_TYPE_CONSOLE | 0x0000000000000002ULL)
+#define HANDLE_STDIN   (HANDLE_TYPE_TTY | 0x0000000000000000ULL)
+#define HANDLE_STDOUT  (HANDLE_TYPE_TTY | 0x0000000000000001ULL)
+#define HANDLE_STDERR  (HANDLE_TYPE_TTY | 0x0000000000000002ULL)
 
 // Capabilities
 typedef uint64_t CapabilitySet;
@@ -85,11 +86,11 @@ typedef enum {
 #define PRIORITY_NONE 0
 
 typedef struct {
-    const char* name;
+    const char *name;
     uint8_t cpu_id;
     uint8_t priority;
     uint64_t stack_size;
-    HandleID* initial_handles;
+    HandleID *initial_handles;
     uint64_t initial_handle_count;
     bool is_idle;
     bool is_user;
@@ -97,11 +98,11 @@ typedef struct {
 } UnitConfig;
 
 typedef struct {
-    const char* name;
+    const char *name;
     uint64_t memory_limit;
     CapabilitySet capabilities;
     uint64_t max_units;
-    const char** envp;
+    const char **envp;
 } RealmConfig;
 
 

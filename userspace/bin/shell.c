@@ -35,7 +35,10 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <dev/usb_xhci_ioctl.h>
+#include <dev/cpuinfo.h>
+#include <dev/rtc.h>
 #include <exec.h>
+#include <sysstd.h>
 
 
 typedef struct {
@@ -163,13 +166,39 @@ void cmd_clear(command_t *cmd) {
     printf("\033[2J\033[H"); // ANSI escape codes
 }
 
-int execute_command(command_t *cmd) {
+void cmd_ls(command_t *cmd) {
+    auto path = cmd->args[1] ? cmd->args[1] : current_dir;
+    FILE_HANDLE hdl = fopen(path, O_RDONLY);
+    if (hdl < 0) {
+        if (hdl == -2) {
+            printf("ls: Cannot open '%s': File or directory not found\n", path);
+            return;
+        }
+        printf("ls: Cannot open '%s' due to an unknown error\n", path);
+        return;
+    }
+
+    char buf[128] = {0};
+
+    while ((sys_readdir(hdl, (uint64_t) buf, sizeof(buf), 0, 0, 0)) > 0) {
+        printf("%s ", buf);
+    }
+
+    putchar('\n');
+
+    fclose(hdl);
+}
+
+
+int execute_command(command_t *cmd, char **envp) {
     if (cmd->argc == 0) return 0;
 
     const char *command = cmd->args[0];
 
     if (strcmp(command, "help") == 0) {
         cmd_help(cmd);
+    } else if (strcmp(command, "ls") == 0) {
+        cmd_ls(cmd);
     } else if (strcmp(command, "hello") == 0) {
         cmd_hello(cmd);
     } else if (strcmp(command, "echo") == 0) {
@@ -182,13 +211,29 @@ int execute_command(command_t *cmd) {
         cmd_history(cmd);
     } else if (strcmp(command, "clear") == 0) {
         cmd_clear(cmd);
+    } else if (strcmp(command, "shutdown") == 0) {
+        sys_reboot(REBOOT_MAGIC1, REBOOT_MAGIC2,REBOOT_POWER_OFF, 0, 0, 0);
     } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
         return -1; // Signal to exit
     } else {
-        printf("Unknown command: ");
-        printf(command);
-        printf("\n");
-        printf("Type 'help' for available commands.\n");
+        const char *prog = find_executable(command, envp);
+        if (prog) {
+            int64_t rid = 0;
+            // const char *argv[] = {"lsusb", nullptr};
+            rid = spawn_realm(prog, 1, nullptr, envp);
+            if ((int64_t) rid < 0) {
+                printf("spawn failed: %d\n", (int32_t) rid);
+            } else {
+                int status;
+                sys_wait(rid, (uint64_t) &status, 0, 0, 0, 0);
+                if (status != 0) {
+                    printf("realm exited with status %d", status);
+                }
+            }
+        } else {
+            printf("Unknown command: %s\n", command);
+            printf("Type 'help' for available commands.\n");
+        }
     }
 
     return 0;
@@ -217,49 +262,40 @@ void show_prompt(void) {
 
 
 void shell_main(char **envp) {
-    char buf[MAX_INPUT];
+    char buf[MAX_INPUT] = {0};
     command_t cmd;
 
     // Clear screen and show welcome
-    cmd_clear(nullptr);
+    //cmd_clear(nullptr);
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
 
-
-    auto handleID = fopen("/dev/xhci1/", O_RDONLY);
-    printf("Handle ID: %ld", handleID);
-
-    size_t devices = 0;
-    memset(&devices, 0, sizeof(devices));
-
-    long ret = ioctl(handleID, XHCI_IOCTL_GET_COUNT, &devices);
-    if (ret < 0) {
-        printf("error: ioctl: %lld", ret);
-        //    close(fd);
-    }
-    //  setenv("PATH", "/mnt/fat32_0/bin:/mnt/fat32_0/sbin", 1);
-
-    const char *prog = find_executable("lsusb", envp);
-    int64_t rid = 0;
-    if (prog) {
-        const char *argv[] = {"lsusb", nullptr};
-        rid = spawn_realm(prog, 1, argv, envp);
-    } else {
-        printf("Programm nicht gefunden!\n");
+    FILE_HANDLE fd = fopen("/dev/cpuinfo", O_RDONLY);
+    if (fd < 0) {
+        printf("Failed to open /dev/rtc\n");
     }
 
-    printf("spawn rid: %ld", rid);
+    cpu_info info;
+    ssize_t n = fread(fd, &info, sizeof(info));
+    if (n != sizeof(info)) {
+        printf("Failed to read version\n");
+        fclose(fd);
+    }
 
+    fclose(fd);
+
+    printf("Brand: %s, Vendor %s Features: %lu\n", info.brand, info.vendor, info.features);
     while (1) {
         show_prompt();
 
-        int n = fread(HANDLE_STDIN, buf, MAX_INPUT - 1);
+        FILE_HANDLE n = fread(HANDLE_STDIN, buf, MAX_INPUT - 1);
+        putchar('\n');
         if (n <= 0) continue;
 
         buf[n] = '\0';
 
-        // Strip newline
-        if (n > 0 && buf[n - 1] == '\n') {
+        // Strip trailing newline(s)
+        while (n > 0 && (buf[n - 1] == '\n' || buf[n - 1] == '\r')) {
             buf[n - 1] = '\0';
             n--;
         }
@@ -273,7 +309,7 @@ void shell_main(char **envp) {
 
         // Parse and execute command
         if (parse_command(trimmed, &cmd) > 0) {
-            if (execute_command(&cmd) < 0) {
+            if (execute_command(&cmd, envp) < 0) {
                 printf("Goodbye!\n");
                 break;
             }

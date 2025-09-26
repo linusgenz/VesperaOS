@@ -24,6 +24,8 @@
 #ifndef VESPERAOS_STDLIB_H
 #define VESPERAOS_STDLIB_H
 
+typedef long int ssize_t;
+
 /**
  * @brief Get the value of an environment variable.
  *

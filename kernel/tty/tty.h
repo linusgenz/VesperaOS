@@ -27,22 +27,47 @@
 #include "../input/input_event.h"
 #include <cstddef>
 
+class TTYDevice;
+
 namespace kernel::tty {
+    enum class EscapeState {
+        NONE,
+        ESC_RECEIVED,
+        CSI_RECEIVED
+    };
 
     struct TTY {
         static constexpr size_t BUFFER_SIZE = 1024;
-        char buffer[BUFFER_SIZE];
-        size_t head = 0;
-        size_t tail = 0;
+
+        char canon_buffer[BUFFER_SIZE];
+        size_t canon_len = 0;
+        bool line_ready = false;
+
         bool canonical = true;
+
+        // Escape-Sequenz Parser
+        EscapeState esc_state = EscapeState::NONE;
+        int esc_param = 0;
+
+        size_t cursor_x = 0;
+        size_t cursor_y = 0;
     };
 
-    extern TTY* active_tty;
+    extern TTY tty_instances[6];
+    extern TTYDevice *tty_devices[6];
+    extern TTY *active_tty;
 
-    void tty_init();
-    void tty_handle_input(const kernel::input::InputEvent& ev);
-    size_t tty_read(char* buf, size_t count);
+    void tty_init(TTY *tty);
 
+    void tty_handle_input(const kernel::input::InputEvent &ev);
+
+    void tty_process_output(TTY *tty, char c);
+
+    void tty_handle_char(TTY *tty, char c);
+
+    void tty_clear(TTY *tty);
+
+    size_t tty_read(char *buf, size_t count);
 }
 
 #endif //VESPERAOS_TTY_H

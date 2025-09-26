@@ -5,7 +5,7 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-#include "../units/unit.h"
+class Unit;
 
 namespace kernel {
     inline bool scheduling_started = false;

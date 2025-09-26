@@ -1,10 +1,10 @@
-// input_manager.h
+// null.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 26.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,35 +21,25 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INPUT_MANAGER_H
-#define VESPERAOS_INPUT_MANAGER_H
+#include "null.h"
 
-#include "input_event.h"
-#include <cstddef>
+NullDevice::NullDevice(const char* name)
+    : CharDevice(name, BusType::VIRTUAL) {}
 
-#include "../sync/spinlock.h"
-
-namespace kernel::input {
-
-    class InputManager {
-    public:
-        static constexpr size_t BUFFER_SIZE = 256;
-
-        static void push_event(const InputEvent& ev);
-        static bool pop_event(InputEvent& ev);
-        static bool is_empty();
-
-        static bool is_empty_locked() ;
-
-        static void init();
-
-    private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-
-    };
-
+int NullDevice::open(CharFile** out_cf) {
+    *out_cf = nullptr;
+    return 0;
 }
 
-#endif //VESPERAOS_INPUT_MANAGER_H
+int NullDevice::release(CharFile*) {
+    return 0;
+}
+
+size_t NullDevice::read(CharFile*, void* buffer, size_t, size_t) {
+    return 0;
+}
+
+size_t NullDevice::write(CharFile*, const void* buffer, size_t count) {
+    // alles verwerfen
+    return count;
+}

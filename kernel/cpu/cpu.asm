@@ -23,22 +23,22 @@ check_cpu_features:
     cpuid
 
     bt edx, 25
-    adc qword [cpu_features], 0x1
+    adc rax, 0x1        ; SSE
     bt edx, 26
-    adc qword [cpu_features], 0x2
+    adc rax, 0x2        ; SSE2
     bt edx, 28
-    adc qword [cpu_features], 0x80
+    adc rax, 0x80       ; HTT
 
     bt ecx, 0
-    adc qword [cpu_features], 0x8
+    adc rax, 0x8        ; SSE3
     bt ecx, 9
-    adc qword [cpu_features], 0x10
+    adc rax, 0x10       ; SSSE3
     bt ecx, 19
-    adc qword [cpu_features], 0x20
+    adc rax, 0x20       ; SSE4.1
     bt ecx, 20
-    adc qword [cpu_features], 0x40
+    adc rax, 0x40       ; SSE4.2
     bt ecx, 28
-    adc qword [cpu_features], 0x4
+    adc rax, 0x4        ; AVX
     ret
 
 GLOBAL check_cpu_features

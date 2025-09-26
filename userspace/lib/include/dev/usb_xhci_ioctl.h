@@ -26,19 +26,31 @@
 
 #include <stdint.h>
 
+/**
+ * @brief Represents the status and identifying information of a single xHCI USB device.
+ */
 typedef struct {
-    uint8_t slot_id;
-    uint8_t port_num;
-    uint8_t speed;
-    uint8_t bus_number;
-    uint16_t vendor_id;
-    uint16_t product_id;
-    char product[64];
-    char manufacturer[64];
-    char serial_number[64];
+    uint8_t slot_id;           ///< USB slot ID assigned by the xHCI controller
+    uint8_t port_num;          ///< Physical port number the device is connected to
+    uint8_t speed;             ///< Device speed (e.g., 0=Low, 1=Full, 2=High, 3=Super)
+    uint8_t bus_number;        ///< Bus number of the device
+    uint16_t vendor_id;        ///< USB Vendor ID
+    uint16_t product_id;       ///< USB Product ID
+    char product[64];          ///< Product string (null-terminated)
+    char manufacturer[64];     ///< Manufacturer string (null-terminated)
+    char serial_number[64];    ///< Serial number string (null-terminated)
 } xhci_device_stat;
 
+/**
+ * @brief IOCTL code to get the number of devices currently connected to the xHCI controller.
+ */
 #define XHCI_IOCTL_GET_COUNT   1
+
+/**
+ * @brief IOCTL code to get information about a single device by index.
+ *
+ * Use this in combination with xhci_device_stat struct to retrieve device info.
+ */
 #define XHCI_IOCTL_GET_DEVICE  2
 
 #endif //VESPERAOS_USB_XHCI_IOCTL_H

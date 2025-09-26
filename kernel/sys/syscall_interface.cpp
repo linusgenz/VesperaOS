@@ -47,6 +47,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_SLEEP] = syscalls::internal::sys_sleep;
     syscall_table[SYSCALL_IOCTL] = syscalls::internal::sys_ioctl;
     syscall_table[SYSCALL_SPAWN] = syscalls::internal::sys_spawn;
+    syscall_table[SYSCALL_READDIR] = syscalls::internal::sys_readdir;
+    syscall_table[SYSCALL_WAIT] = syscalls::internal::sys_wait;
 }
 
 extern "C" void syscall_handler(
@@ -64,7 +66,7 @@ extern "C" void syscall_handler(
         asm volatile("sti");
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {
-      //  Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
+        Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
     }
 
     asm volatile ("mov %0, %%rax" :: "r"(ret));

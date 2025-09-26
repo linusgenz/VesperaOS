@@ -32,6 +32,7 @@
 #define SYSCALL_IOCTL     16
 #define SYSCALL_SLEEP     35
 #define SYSCALL_EXIT      60
+#define SYSCALL_WAIT      61
 #define SYSCALL_SPAWN     69
 #define SYSCALL_GETCWD    79
 #define SYSCALL_CHDIR     80
@@ -40,6 +41,7 @@
 #define SYSCALL_RMDIR     84
 #define SYSCALL_UNLINK    87
 #define SYSCALL_REBOOT    169
+#define SYSCALL_READDIR   217
 
 static int64_t syscall(
     uint64_t num,
@@ -121,4 +123,12 @@ int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, ui
 
 int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_REBOOT, magic1, magic2, cmd, 0, 0, 0);
+}
+
+int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_READDIR, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_WAIT, arg0, arg1, 0, 0, 0, 0);
 }

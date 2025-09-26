@@ -35,6 +35,7 @@ typedef enum {
     UNIT_READY,
     UNIT_RUNNING,
     UNIT_BLOCKED,
+    UNIT_ZOMBIE,
     UNIT_TERMINATED
 } UnitState;
 

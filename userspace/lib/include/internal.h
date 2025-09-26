@@ -26,6 +26,6 @@
 
 void float_to_str(float val, char *buf, int precision);
 
-void uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix);
+size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix);
 
 #endif //VESPERAOS_INTERNAL_H

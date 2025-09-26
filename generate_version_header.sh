@@ -8,23 +8,24 @@ VERSION_NAME="slingshot"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
 
 
-cat <<EOF > kernel/version.h
-#ifndef VESPERAOS_VERSION_HPP
-#define VESPERAOS_VERSION_HPP
+cat <<EOF > kernel/kversion.h
+#ifndef VESPERAOS_VERSION_H
+#define VESPERAOS_VERSION_H
 
 #define VERSION_MAJOR "${VERSION_MAJOR}"
 #define VERSION_MINOR "${VERSION_MINOR}"
 #define VERSION_PATCH "${VERSION_PATCH}"
 #define VERSION_STAGE "${VERSION_STAGE}"
 #define VERSION_BUILD "${VERSION_BUILD}"
+#define VERSION_NAME "${VERSION_NAME}"
 
-#define VERSION_STRING "VesperaOS version ${VERSION_NAME} (${VERSION_STAGE}) x86_64 " \\
+#define VERSION_STRING "Vespera " VERSION_NAME " (${VERSION_STAGE}) x86_64 " \\
                        VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH \\
                        "-" VERSION_STAGE "+" VERSION_BUILD
 
-inline const char* get_os_version() {
+inline const char* get_kernel_version() {
     return VERSION_STRING;
 };
 
-#endif // VESPERAOS_VERSION_HPP
+#endif // VESPERAOS_VERSION_H
 EOF

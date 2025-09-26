@@ -27,6 +27,13 @@
 
 #include <stdint.h>
 
+#define REBOOT_MAGIC1 0xfee1dead
+#define REBOOT_MAGIC2 672274793
+
+#define REBOOT_RESTART  0
+#define REBOOT_POWER_OFF  1
+#define REBOOT_HALT  2
+
 static int64_t syscall(uint64_t num,
                 uint64_t arg0,
                 uint64_t arg1,
@@ -159,5 +166,32 @@ int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, ui
  */
 int64_t sys_write(uint64_t hid, uint64_t buf_ptr, uint64_t count, uint64_t, uint64_t, uint64_t);
 
+/**
+ * @brief Reads the next entry in an open directory.
+ *
+ * @param arg0 Handle ID of the directory (returned by sys_open)
+ * @param arg1 Pointer to a user-space buffer where the entry name will be copied
+ * @param arg2 Size of the user-space buffer in bytes
+ *
+ * @return On success, returns the number of bytes written to the buffer (always > 0 if an entry exists).
+ *         Returns 0 if there are no more entries.
+ *         Returns negative errno on error:
+ *           -EINVAL : Invalid parameters or buffer
+ *           -EBADH  : Invalid handle
+ *           -EACCES : Insufficient capabilities
+ */
+int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
 
+/**
+ * @brief Blocks the calling unit until the target realm has finished execution.
+ *
+ *
+ * @param arg0 RealmID of the realm to wait for
+ * @param arg1 Pointer to an int where the exit status will be stored (optional; can be 0)
+ * @return 0 on success.
+ *         Negative errno on error:
+ *           -EINVAL : Invalid parameters or no current unit
+ *           -ECHILD : Target realm does not exist
+ */
+int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 #endif //SYSSTD_H

@@ -28,9 +28,9 @@
 #include "../../kernel/devices/chardevice.h"
 #include "../vfs/vfs.h"
 
-Vector<CharDevice*>* DevFS::devices = nullptr;
-Vector<DevfsEntry*>* DevFS::nodes = nullptr;
-VfsNode* DevFS::root = nullptr;
+Vector<CharDevice *> *DevFS::devices = nullptr;
+Vector<DevfsEntry *> *DevFS::nodes = nullptr;
+VfsNode *DevFS::root = nullptr;
 spinlock_t DevFS::lock;
 
 static VfsNodeOps devfs_ops = {
@@ -55,8 +55,8 @@ static VfsNodeOps devfs_ops = {
 
 void DevFS::init() {
     lock.init();
-    devices = new Vector<CharDevice*>(8);
-    nodes   = new Vector<DevfsEntry*>(16);
+    devices = new Vector<CharDevice *>(8);
+    nodes = new Vector<DevfsEntry *>(16);
 
     root = (VfsNode *) kernel::memory::malloc(sizeof(VfsNode));
     root->name = "dev";
@@ -68,9 +68,39 @@ void DevFS::init() {
     vfs_mount_virtual(root, "/dev");
 }
 
-CharDevice* DevFS::lookup(const char* name) {
+VfsNode *DevFS::ensure_bus_dir(BusType bus) {
+    const char *bus_name = bus_to_str(bus);
+
+    if (bus == BusType::BUS_NONE || bus == BusType::VIRTUAL) return root;
+
+    for (auto *e: *nodes) {
+        if (e->is_bus_dir && strcmp(e->node->name, bus_name) == 0) {
+            return e->node;
+        }
+    }
+
+    auto *dir = (VfsNode *) kernel::memory::malloc(sizeof(VfsNode));
+    dir->name = strdup(bus_name);
+    dir->type = VfsNodeType::Directory;
+    dir->ops = &devfs_ops;
+    dir->internal_data = nullptr;
+
+    auto *entry = (DevfsEntry *) kernel::memory::malloc(sizeof(DevfsEntry));
+    entry->dev = nullptr;
+    entry->node = dir;
+    entry->cf = nullptr;
+    entry->is_bus_dir = true;
+    entry->bus_type = bus;
+    entry->parent = root;
+
+    nodes->push_back(entry);
+    return dir;
+}
+
+
+CharDevice *DevFS::lookup(const char *name) {
     for (size_t i = 0; i < devices->size(); i++) {
-        CharDevice* dev = (*devices)[i];
+        CharDevice *dev = (*devices)[i];
         if (strcmp(dev->name, name) == 0) {
             return dev;
         }
@@ -86,7 +116,9 @@ int DevFS::register_device(CharDevice *dev) {
 
     devices->push_back(dev);
 
-    VfsNode* node = create_node(dev->name);
+    VfsNode *bus_dir = ensure_bus_dir(dev->bus_type);
+
+    VfsNode *node = create_node(dev->name, bus_dir);
     if (!node) return -ENOMEM;
 
     return SUCCESS_CODE;
@@ -96,7 +128,7 @@ int DevFS::unregister_device(const char *name) {
     spinlock_guard guard(lock);
 
     for (size_t i = 0; i < devices->size(); i++) {
-        CharDevice* dev = (*devices)[i];
+        CharDevice *dev = (*devices)[i];
         if (strcmp(dev->name, name) == 0) {
             devices->erase(i);
             remove_node(dev->name);
@@ -108,7 +140,7 @@ int DevFS::unregister_device(const char *name) {
 }
 
 
-VfsNode *DevFS::create_node(const char *dev_name) {
+VfsNode *DevFS::create_node(const char *dev_name, VfsNode* parent) {
     CharDevice *d = lookup(dev_name);
     if (!d) return nullptr;
 
@@ -120,10 +152,14 @@ VfsNode *DevFS::create_node(const char *dev_name) {
     e->dev = d;
     e->node = n;
     e->cf = nullptr;
+    e->is_bus_dir = false;
+    e->bus_type = d->bus_type;
 
     n->internal_data = e;
     n->ops = &devfs_ops;
     n->permanent = false;
+
+    e->parent = parent;
 
     // register in /dev
     nodes->push_back(e);
@@ -151,12 +187,12 @@ int DevFS::remove_node(const char *dev_name) {
     return -ENOENT;
 }
 
-const char* DevFS::alloc_unique_name(const char* base) {
+const char *DevFS::alloc_unique_name(const char *base) {
     spinlock_guard guard(lock);
 
     static char buffer[64];
-    strncpy(buffer, base, sizeof(buffer)-1);
-    buffer[sizeof(buffer)-1] = '\0';
+    strncpy(buffer, base, sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';
 
     snprintf(buffer, sizeof(buffer), "%s0", base);
 
@@ -165,19 +201,17 @@ const char* DevFS::alloc_unique_name(const char* base) {
         snprintf(buffer, sizeof(buffer), "%s%d", base, counter++);
     }
 
-    size_t len = strlen(buffer)+1;
-    char* result = (char*) kernel::memory::malloc(len);
+    size_t len = strlen(buffer) + 1;
+    char *result = (char *) kernel::memory::malloc(len);
     strncpy(result, buffer, len);
     return result;
 }
 
-int DevFS::open(VfsNode* node) {
+int DevFS::open(VfsNode *node) {
     if (!node) return -1;
 
-    DevfsEntry* entry = (DevfsEntry*) node->internal_data;
+    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
     if (!entry || !entry->dev) return -1;
-
-    spinlock_guard guard(lock);
 
     if (!entry->cf) {
         entry->cf = new CharFile();
@@ -188,10 +222,10 @@ int DevFS::open(VfsNode* node) {
     return 0;
 }
 
-size_t DevFS::read(VfsNode* node, size_t offset, size_t size, void* buffer) {
+size_t DevFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
     if (!node) return 0;
 
-    DevfsEntry* entry = (DevfsEntry*) node->internal_data;
+    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
     if (!entry || !entry->dev) return 0;
 
     spinlock_guard guard(lock);
@@ -199,16 +233,14 @@ size_t DevFS::read(VfsNode* node, size_t offset, size_t size, void* buffer) {
     if (!entry->cf) {
         open(node);
     }
-
     return entry->dev->read(entry->cf, buffer, size, offset);
 }
 
 
-
-size_t DevFS::write(VfsNode* node, size_t offset, size_t size, const void* buffer) {
+size_t DevFS::write(VfsNode *node, size_t offset, size_t size, const void *buffer) {
     if (!node) return 0;
 
-    DevfsEntry* entry = (DevfsEntry*) node->internal_data;
+    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
     if (!entry || !entry->dev) return 0;
 
     spinlock_guard guard(lock);
@@ -220,9 +252,9 @@ size_t DevFS::write(VfsNode* node, size_t offset, size_t size, const void* buffe
     return entry->dev->write(entry->cf, buffer, size);
 }
 
-size_t DevFS::ioctl(VfsNode* node, uint32_t cmd, void* arg) {
+size_t DevFS::ioctl(VfsNode *node, uint32_t cmd, void *arg) {
     if (!node) return 0;
-    auto* entry = (DevfsEntry*) node->internal_data;
+    auto *entry = (DevfsEntry *) node->internal_data;
     if (!entry || !entry->dev) return 0;
 
     spinlock_guard guard(lock);
@@ -234,10 +266,10 @@ size_t DevFS::ioctl(VfsNode* node, uint32_t cmd, void* arg) {
     return entry->dev->ioctl(entry->cf, cmd, arg);
 }
 
-
 VfsNode *DevFS::find(VfsNode *dir, const char *name) {
-    if (dir != root) return nullptr;
-    for (const auto & node : *nodes) {
+    if (!dir || !name) return nullptr;
+    for (const auto &node: *nodes) {
+        if (node->parent != dir) continue;
         if (strcmp(node->node->name, name) == 0) {
             return node->node;
         }
@@ -245,10 +277,10 @@ VfsNode *DevFS::find(VfsNode *dir, const char *name) {
     return nullptr;
 }
 
-void DevFS::close(VfsNode* node) {
+void DevFS::close(VfsNode *node) {
     if (!node) return;
 
-    DevfsEntry* entry = (DevfsEntry*) node->internal_data;
+    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
     if (!entry || !entry->dev || !entry->cf) return;
 
     spinlock_guard guard(lock);
@@ -257,26 +289,43 @@ void DevFS::close(VfsNode* node) {
     entry->cf = nullptr;
 }
 
-
-
 struct DevfsDirHandle {
     size_t index;
+    VfsNode *dir_node;
 };
 
 void *DevFS::open_dir(VfsNode *dir) {
+    Log::debug("open dir %s", dir->name);
     if (dir != root) return nullptr;
-    DevfsDirHandle *h = (DevfsDirHandle *) kernel::memory::malloc(sizeof(DevfsDirHandle));
+    auto *h = (DevfsDirHandle *) kernel::memory::malloc(sizeof(DevfsDirHandle));
     h->index = 0;
+    h->dir_node = dir;
     return h;
 }
 
 int DevFS::read_dir(void *dir_handle, char *out_name, size_t max_len) {
-    auto *h = (DevfsDirHandle *) dir_handle;
-    if (h->index >= nodes->size()) return 0;
-    strncpy(out_name, (*nodes)[h->index]->node->name, max_len - 1);
-    out_name[max_len - 1] = '\0';
-    h->index++;
-    return 1;
+    auto* h = (DevfsDirHandle*) dir_handle;
+    VfsNode* dir = h->dir_node;
+
+    size_t count = 0;
+    for (auto* e : *nodes) {
+        if (dir == root) {
+            if (!e->is_bus_dir) continue;
+        } else {
+            // Child-Geräte zum Bus-Verzeichnis
+            if (e->is_bus_dir) continue;
+        }
+
+        if (count == h->index) {
+            strncpy(out_name, e->node->name, max_len - 1);
+            out_name[max_len - 1] = '\0';
+            h->index++;
+            return 1;
+        }
+        count++;
+    }
+
+    return 0;
 }
 
 void DevFS::close_dir(void *dir_handle) {

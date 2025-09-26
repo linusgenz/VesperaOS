@@ -1,10 +1,10 @@
-// input_manager.h
+// zero.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 25.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,35 +21,29 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INPUT_MANAGER_H
-#define VESPERAOS_INPUT_MANAGER_H
+#include "zero.h"
+#include <string.h>
+#include <memory.h>
+#include "../chardevice.h"
 
-#include "input_event.h"
-#include <cstddef>
-
-#include "../sync/spinlock.h"
-
-namespace kernel::input {
-
-    class InputManager {
-    public:
-        static constexpr size_t BUFFER_SIZE = 256;
-
-        static void push_event(const InputEvent& ev);
-        static bool pop_event(InputEvent& ev);
-        static bool is_empty();
-
-        static bool is_empty_locked() ;
-
-        static void init();
-
-    private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-
-    };
-
+ZeroDevice::ZeroDevice(const char* name)
+    : CharDevice(name, BusType::VIRTUAL) {
 }
 
-#endif //VESPERAOS_INPUT_MANAGER_H
+int ZeroDevice::open(CharFile** out_cf) {
+    *out_cf = nullptr;
+    return 0;
+}
+
+int ZeroDevice::release(CharFile* cf) {
+    return 0;
+}
+
+size_t ZeroDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    memset(buffer, 0, count);
+    return count;
+}
+
+size_t ZeroDevice::write(CharFile*, const void* buffer, size_t count) {
+    return count;
+}

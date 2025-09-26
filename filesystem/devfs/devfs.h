@@ -26,20 +26,33 @@
 
 #include <cstddef>
 #include <vector.h>
-
 #include "../vfs/vfs_node.h"
 #define DEVFS_NAME_MAX 64
 
-class CharDevice;
 struct CharFile;
+class CharDevice;
 
-typedef int   (*dev_open_t)(CharFile **out_cf);
-typedef int   (*dev_release_t)(CharFile *cf);
+enum BusType {
+    VIRTUAL = 0,
+    BUS_NONE,
+    BUS_XHCI,
+    BUS_TTY,
+    BUS_I2C,
+    BUS_SPI,
+    BUS_PCI,
+    BUS_MAX
+};
+
+typedef int (*dev_open_t)(CharFile **out_cf);
+
+typedef int (*dev_release_t)(CharFile *cf);
+
 typedef size_t (*dev_read_t)(CharFile *cf, void *buf, size_t count); // non-positional
 typedef size_t (*dev_write_t)(CharFile *cf, const void *buf, size_t count);
-typedef int   (*dev_ioctl_t)(CharFile *cf, unsigned long req, void *arg);
-typedef int   (*dev_poll_t)(CharFile *cf); // returns POLLIN/POLLOUT mask-ish
 
+typedef int (*dev_ioctl_t)(CharFile *cf, unsigned long req, void *arg);
+
+typedef int (*dev_poll_t)(CharFile *cf); // returns POLLIN/POLLOUT mask-ish
 
 
 // handle for device drivers
@@ -49,44 +62,65 @@ struct CharFile {
 
 // Registry-Entry
 struct DevfsEntry {
-    CharDevice* dev;
-    VfsNode*    node;
-    CharFile* cf;
+    CharDevice *dev;
+    VfsNode *node;
+    CharFile *cf;
+    BusType bus_type;
+    bool is_bus_dir;
+    VfsNode *parent;
 };
 
 class DevFS {
 public:
     static void init();
-    static int register_device(CharDevice* dev);
-    static int unregister_device(const char* name);
 
-    static VfsNode* create_node(const char* dev_name);
-    static int remove_node(const char* path);
+    static VfsNode *ensure_bus_dir(BusType bus);
+
+    static int register_device(CharDevice *dev);
+
+    static int unregister_device(const char *name);
+
+    static VfsNode *create_node(const char *dev_name, VfsNode *parent);
+
+    static int remove_node(const char *path);
 
     static const char *alloc_unique_name(const char *base);
 
     static int open(VfsNode *node);
 
     // VFS-Hooks
-    static size_t read(VfsNode* node, size_t offset, size_t size, void* buffer);
-    static size_t write(VfsNode* node, size_t offset, size_t size, const void* buffer);
+    static size_t read(VfsNode *node, size_t offset, size_t size, void *buffer);
+
+    static size_t write(VfsNode *node, size_t offset, size_t size, const void *buffer);
 
     static size_t ioctl(VfsNode *node, uint32_t cmd, void *arg);
 
-    static VfsNode* find(VfsNode* dir, const char* name);
-    static void close(VfsNode* node);
+    static VfsNode *find(VfsNode *dir, const char *name);
 
-    static void* open_dir(VfsNode* dir);
-    static int read_dir(void* dir_handle, char* out_name, size_t max_len);
-    static void close_dir(void* dir_handle);
+    static void close(VfsNode *node);
+
+    static void *open_dir(VfsNode *dir);
+
+    static int read_dir(void *dir_handle, char *out_name, size_t max_len);
+
+    static void close_dir(void *dir_handle);
 
 private:
-    static Vector<CharDevice*>* devices;
-    static Vector<DevfsEntry*>* nodes;
-    static VfsNode* root;
+    static Vector<CharDevice *> *devices;
+    static Vector<DevfsEntry *> *nodes;
+    static VfsNode *root;
     static spinlock_t lock;
 
-    static CharDevice* lookup(const char* name);
+    static CharDevice *lookup(const char *name);
+
+    static const char *bus_to_str(BusType bus) {
+        switch (bus) {
+            case BUS_XHCI: return "xhci";
+            case BUS_I2C: return "i2c";
+            case BUS_SPI: return "spi";
+            default: return "unknown";
+        }
+    }
 };
 
 #endif //VESPERAOS_DEVFS_H

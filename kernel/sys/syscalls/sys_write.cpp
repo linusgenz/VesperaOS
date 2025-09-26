@@ -27,7 +27,6 @@
 #include "../syscall_interface.h"
 #include "../../../include/log.h"
 #include "../../realm/realm_manager.h"
-#include "../graphics/console_backend.h"
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
@@ -36,7 +35,6 @@ namespace syscalls::internal {
         if (!u) return -EINVAL;
 
         Realm* realm = RealmManager::get(u->rid);
-
 
         if (!realm || !u->active) return -EUNKNOWN;
 
@@ -51,9 +49,9 @@ namespace syscalls::internal {
         }
 
         switch (he->type) {
-            case HANDLE_TYPE_CONSOLE: {
-                ConsoleDevice* cons = static_cast<ConsoleDevice*>(he->resource);
-                return cons->write(user_buf, arg2);
+            case HANDLE_TYPE_TTY: {
+                auto* tty_dev = static_cast<TTYDevice*>(he->resource);
+                return tty_dev->write(nullptr, user_buf, arg2);
             }
             case HANDLE_TYPE_FILE: {
              /*   FileNode* node = static_cast<FileNode*>(he->resource);

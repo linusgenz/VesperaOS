@@ -1,10 +1,10 @@
-// input_manager.h
+// cpuinfo.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 26.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,35 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INPUT_MANAGER_H
-#define VESPERAOS_INPUT_MANAGER_H
+#ifndef VESPERAOS_CPUINFO_H
+#define VESPERAOS_CPUINFO_H
 
-#include "input_event.h"
-#include <cstddef>
+#include "../chardevice.h"
 
-#include "../sync/spinlock.h"
+class CPUInfoDevice : public CharDevice {
+public:
+    explicit CPUInfoDevice(const char* name);
 
-namespace kernel::input {
-
-    class InputManager {
-    public:
-        static constexpr size_t BUFFER_SIZE = 256;
-
-        static void push_event(const InputEvent& ev);
-        static bool pop_event(InputEvent& ev);
-        static bool is_empty();
-
-        static bool is_empty_locked() ;
-
-        static void init();
+    int open(CharFile** out_cf) override;
+    int release(CharFile* cf) override;
+    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+    size_t write(CharFile* cf, const void* buffer, size_t count) override;
 
     private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-
+    struct CpuInfo {
+        char vendor[13];
+        char brand[49];
+        uint64_t features;
     };
+};
 
-}
-
-#endif //VESPERAOS_INPUT_MANAGER_H
+#endif //VESPERAOS_CPUINFO_H

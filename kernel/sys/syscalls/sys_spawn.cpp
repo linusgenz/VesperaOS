@@ -26,6 +26,7 @@
 
 #include "../../exec/elf.h"
 #include "../../realm/realm_manager.h"
+#include "../../tty/tty.h"
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {
@@ -44,8 +45,8 @@ namespace syscalls::internal {
 
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
-        auto console_dev = new ConsoleDevice();
-        new_realm->setup_standard_handles(console_dev);
+        TTYDevice* tty_dev = kernel::tty::tty_devices[0];
+        new_realm->setup_standard_handles(tty_dev);
 
         ElfLoader loader;
         ElfLoader::ElfLoadResult elf = loader.load_elf_binary(user_path, 0x500000);

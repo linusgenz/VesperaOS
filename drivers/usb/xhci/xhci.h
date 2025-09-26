@@ -13,7 +13,7 @@
 namespace USB {
     class xhciDriver : public CharDevice {
     public:
-        explicit xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number) : CharDevice(_name) {
+        explicit xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number) : CharDevice(_name, BUS_XHCI) {
             vector_num = _vector_num;
             name = _name;
             bus_number = _bus_number;

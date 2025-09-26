@@ -24,11 +24,9 @@
 #ifndef VESPERAOS_STDIO_H
 #define VESPERAOS_STDIO_H
 
-#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include "unistdio.h"
+#include <stdlib.h>
 
 #define HANDLE_TYPE_CONSOLE 0x1000000000000000ULL
 #define HANDLE_TYPE_FILE    0x2000000000000000ULL
@@ -42,7 +40,6 @@
 #define HANDLE_STDERR  (HANDLE_TYPE_CONSOLE | 0x0000000000000002ULL)
 
 typedef int64_t FILE_HANDLE;
-typedef long long ssize_t;
 
 /**
  * @brief Write a single character to stdout.
@@ -77,6 +74,8 @@ int getchar(void);
  * @return Number of characters written.
  */
 void printf(const char *fmt, ...);
+
+size_t snprintf(char *buffer, size_t size, const char *format, ...);
 
 /**
  * @brief Opens a file.

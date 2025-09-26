@@ -85,7 +85,7 @@ void BasicRenderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point 
             int32_t byte = bit / 8;
             if ((mouse_cursor[byte] & (0b10000000 >> (x % 8)))) {
                 if (get_pixel(position.X + x, position.Y + y) == mouse_cursor_buffer_after[x + y * 16]) {
-                    put_pixel(position.X + x, position.Y + y, mouse_cursor_buffer[x + y * 16]); 
+                    put_pixel(position.X + x, position.Y + y, mouse_cursor_buffer[x + y * 16]);
                 }
             }
         }

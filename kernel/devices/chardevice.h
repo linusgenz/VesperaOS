@@ -28,6 +28,7 @@
 #include "../../filesystem/devfs/devfs.h"
 #include <cstddef>
 #include <cstdint>
+#include <errno.h>
 
 struct CharFile;
 
@@ -40,8 +41,9 @@ enum PollMask : int {
 class CharDevice {
 public:
     const char* name;
+    BusType bus_type;
 
-    explicit CharDevice(const char* name) : name(name) {
+    explicit CharDevice(const char* name, BusType bus_type) : name(name), bus_type(bus_type) {
         DevFS::register_device(this);
     }
 

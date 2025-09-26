@@ -21,10 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <stddef.h>
 #include <stdint.h>
 
-void uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
-    char *digits = "0123456789ABCDEF";
+
+size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
+    const char *digits = "0123456789ABCDEF";
     char temp[32];
     int i = 0;
 
@@ -48,6 +50,8 @@ void uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
     }
 
     buffer[j] = '\0';
+
+    return j;
 }
 
 void float_to_str(float val, char *buf, int precision) {

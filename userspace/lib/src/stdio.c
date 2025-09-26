@@ -161,6 +161,121 @@ void printf(const char *fmt, ...) {
     __builtin_va_end(args);
 }
 
+
+size_t snprintf(char *buffer, size_t size, const char *format, ...) {
+    if (!buffer || !format || size == 0) {
+        return -1;
+    }
+
+    __builtin_va_list args;
+    __builtin_va_start(args, format);
+
+    size_t buf_pos = 0;
+    size_t written = 0;
+
+    for (int i = 0; format[i] != '\0'; i++) {
+        if (format[i] == '%' && format[i + 1] != '\0') {
+            i++; // Skip '%'
+
+            switch (format[i]) {
+                case 'd': {
+                    int val = __builtin_va_arg(args, int);
+                    char temp[32];
+                    size_t len = uint_to_str(val, temp, 10, false);
+
+                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                        buffer[buf_pos++] = temp[j];
+                    }
+                    written += len;
+                    break;
+                }
+
+                case 'x': {
+                    int val = __builtin_va_arg(args, int);
+                    char temp[32];
+                    const size_t len = uint_to_str(val, temp, 16, false);
+
+                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                        buffer[buf_pos++] = temp[j];
+                    }
+                    written += len;
+                    break;
+                }
+
+                case 's': {
+                    char *str = __builtin_va_arg(args, char*);
+                    if (str) {
+                        const size_t len = strlen(str);
+                        for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                            buffer[buf_pos++] = str[j];
+                        }
+                        written += len;
+                    }
+                    break;
+                }
+
+                case 'c': {
+                    char ch = (char)__builtin_va_arg(args, int);
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = ch;
+                    }
+                    written++;
+                    break;
+                }
+
+                case 'l': {
+                    if (format[i + 1] == 'l') {
+                        i++;
+                        if (format[i + 1] == 'u') {
+                            i++;
+                            unsigned long long val = __builtin_va_arg(args, unsigned long long);
+                            char temp[32];
+                            const size_t len = uint_to_str(val, temp, 10, false);
+
+                            for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                                buffer[buf_pos++] = temp[j];
+                            }
+                            written += len;
+                        }
+                    }
+                    break;
+                }
+
+                case '%': {
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = '%';
+                    }
+                    written++;
+                    break;
+                }
+
+                default:
+                    // Unknown format specifier, just copy it
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = '%';
+                    }
+                    if (buf_pos < size - 1) {
+                        buffer[buf_pos++] = format[i];
+                    }
+                    written += 2;
+                    break;
+            }
+        } else {
+            // Regular character
+            if (buf_pos < size - 1) {
+                buffer[buf_pos++] = format[i];
+            }
+            written++;
+        }
+    }
+
+    // Null terminate
+    buffer[buf_pos] = '\0';
+
+    __builtin_va_end(args);
+    return written;
+}
+
 FILE_HANDLE fopen(const char *path, int flags) {
     return sys_open((uint64_t) path, flags, 0, 0, 0, 0);
 }

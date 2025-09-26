@@ -1561,8 +1561,8 @@ namespace USB {
 
             case XHCI_IOCTL_GET_DEVICE: {
                 auto *stat = reinterpret_cast<xhci_device_stat *>(arg);
-                if (stat->slot_id >= m_connected_devices.size())
-                    return -EINVAL;
+            //    if (stat->slot_id >= m_connected_devices.size())
+            //        return -EINVAL;
 
                 xhciDevice *dev = find_by_slot(stat->slot_id);
                 if (!dev) return -ENOENT;

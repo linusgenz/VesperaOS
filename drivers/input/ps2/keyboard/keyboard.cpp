@@ -22,6 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "keyboard.h"
+
+#include <log.h>
+
 #include "buffer.h"
 #include "qwerty.h"
 #include "../../../../kernel/input/input_manager.h"

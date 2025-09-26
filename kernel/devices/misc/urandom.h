@@ -1,10 +1,10 @@
-// input_manager.h
+// urandom.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 26.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,35 +21,28 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INPUT_MANAGER_H
-#define VESPERAOS_INPUT_MANAGER_H
+#ifndef VESPERAOS_URANDOM_H
+#define VESPERAOS_URANDOM_H
 
-#include "input_event.h"
-#include <cstddef>
+#include "../chardevice.h"
 
-#include "../sync/spinlock.h"
+class URandomDevice : public CharDevice {
 
-namespace kernel::input {
+public:
+    URandomDevice(const char* name, uint64_t seed = 881723468263953272ull);
 
-    class InputManager {
-    public:
-        static constexpr size_t BUFFER_SIZE = 256;
+    int open(CharFile** out_cf) override;
+    int release(CharFile*) override;
+    size_t read(CharFile*, void* buffer, size_t count, size_t offset) override;
+    size_t write(CharFile*, const void* buffer, size_t count) override;
 
-        static void push_event(const InputEvent& ev);
-        static bool pop_event(InputEvent& ev);
-        static bool is_empty();
+private:
+    void refill();
+    uint8_t next();
+    uint64_t state;
+    uint8_t buffer[8];
+    size_t buffer_index = 8;
+};
 
-        static bool is_empty_locked() ;
 
-        static void init();
-
-    private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-
-    };
-
-}
-
-#endif //VESPERAOS_INPUT_MANAGER_H
+#endif //VESPERAOS_URANDOM_H

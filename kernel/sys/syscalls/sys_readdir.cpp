@@ -1,0 +1,50 @@
+// sys_readdir.cpp
+//
+// VesperaOS - operating system for the x86_64 architecture
+// 
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// 
+// Created by Linus Genz on 23.09.25.
+//
+// This file is part of VesperaOS.
+// 
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <cstdint>
+#include <scheduling.h>
+
+#include "../../../filesystem/vfs/vfs_handle.h"
+#include "../../realm/realm_manager.h"
+#include "../../types/types.h"
+#include "../../units/unit.h"
+
+namespace syscalls::internal {
+    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+        HandleID hid = arg0;
+        char* buf = reinterpret_cast<char*>(arg1);
+        size_t max_len = static_cast<size_t>(arg2);
+
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
+        handle_entry_t* he = realm->lookup_handle(hid);
+        if (!he) return -EBADH;
+
+        if (!(he->capabilities & CAP_READ)) return -EACCES;
+        if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_DIRECTORY) return -EINVAL;
+
+        VfsHandle* vh = static_cast<VfsHandle*>(he->resource);
+        size_t res = DevFS::read_dir(vh->context, buf, max_len);
+        return res;
+    }
+}

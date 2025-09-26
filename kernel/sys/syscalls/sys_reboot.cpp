@@ -25,11 +25,10 @@
 #define REBOOT_MAGIC1 0xfee1dead
 #define REBOOT_MAGIC2 672274793
 
-enum RebootCmd {
-    REBOOT_RESTART = 0,
-    REBOOT_POWER_OFF = 1,
-    REBOOT_HALT = 2
-};
+#define REBOOT_RESTART  0
+#define REBOOT_POWER_OFF  1
+#define REBOOT_HALT  2
+
 
 namespace syscalls::internal {
     int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uint64_t, uint64_t) {
@@ -38,10 +37,12 @@ namespace syscalls::internal {
         }
 
         switch (cmd) {
-            case REBOOT_RESTART:
+            case REBOOT_RESTART
+            :
                 ACPI::acpi_reboot();
                 break;
-            case REBOOT_POWER_OFF:
+            case REBOOT_POWER_OFF
+            :
                 ACPI::acpi_power_off();
                 break;
             default:

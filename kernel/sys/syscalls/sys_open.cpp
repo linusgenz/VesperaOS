@@ -42,7 +42,6 @@ namespace syscalls::internal {
         Realm *realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
-
         VfsNode *node = vfs_open(user_path);
         if (!node) {
             return -ENOENT;
@@ -96,7 +95,7 @@ namespace syscalls::internal {
                 handle_type = HANDLE_TYPE_FILE;
                 break;
             case VfsNodeType::Directory:
-                handle_type = HANDLE_TYPE_FILE; // Directories als Files behandeln
+                handle_type = HANDLE_TYPE_DIRECTORY;
                 break;
             default:
                 delete vh;

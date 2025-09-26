@@ -1,10 +1,10 @@
-// input_manager.h
+// rtc.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 26.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,35 +21,22 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INPUT_MANAGER_H
-#define VESPERAOS_INPUT_MANAGER_H
+#ifndef VESPERAOS_RTC_H
+#define VESPERAOS_RTC_H
 
-#include "input_event.h"
-#include <cstddef>
+/**
+ * @brief Structure representing the current date and time from the RTC device.
+ *
+ * This structure is returned when reading from `/dev/rtc`.
+ * All fields use binary encoding (not BCD).
+ */
+typedef struct {
+    uint8_t sec;   ///< Seconds (0–59)
+    uint8_t min;   ///< Minutes (0–59)
+    uint8_t hour;  ///< Hours (0–23, 24h format)
+    uint8_t day;   ///< Day of the month (1–31)
+    uint8_t month; ///< Month (1–12)
+    uint8_t year;  ///< Year offset from 2000
+} rtc_data;
 
-#include "../sync/spinlock.h"
-
-namespace kernel::input {
-
-    class InputManager {
-    public:
-        static constexpr size_t BUFFER_SIZE = 256;
-
-        static void push_event(const InputEvent& ev);
-        static bool pop_event(InputEvent& ev);
-        static bool is_empty();
-
-        static bool is_empty_locked() ;
-
-        static void init();
-
-    private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-
-    };
-
-}
-
-#endif //VESPERAOS_INPUT_MANAGER_H
+#endif //VESPERAOS_RTC_H

@@ -26,10 +26,10 @@
 
 #include <cstdint>
 
-#include "../graphics/console_backend.h"
 #include "../types/types.h"
 #include "../sync/spinlock.h"
 #include "../types/handle.h"
+#include "../tty/tty_device.h"
 
 class Unit;
 
@@ -127,11 +127,11 @@ public:
         return MOD_SUCCESS;
     }
 
-    ErrorCode setup_standard_handles(ConsoleDevice* console_device) {
+    ErrorCode setup_standard_handles(TTYDevice* tty_dev) {
         ErrorCode err = add_handle_with_id(
             HANDLE_STDIN,
-            HANDLE_TYPE_CONSOLE,
-            console_device,
+            HANDLE_TYPE_TTY,
+            tty_dev,
             CAP_READ,
             false,
             nullptr
@@ -140,8 +140,8 @@ public:
 
         err = add_handle_with_id(
             HANDLE_STDOUT,
-            HANDLE_TYPE_CONSOLE,
-            console_device,
+            HANDLE_TYPE_TTY,
+            tty_dev,
             CAP_WRITE,
             false,
             nullptr
@@ -150,8 +150,8 @@ public:
 
         err = add_handle_with_id(
             HANDLE_STDERR,
-            HANDLE_TYPE_CONSOLE,
-            console_device,
+            HANDLE_TYPE_TTY,
+            tty_dev,
             CAP_WRITE,
             false,
             nullptr

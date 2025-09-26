@@ -34,6 +34,7 @@
 #define SYSCALL_SLEEP     35
 //#define SYSCALL_GETPID    39
 #define SYSCALL_EXIT      60
+#define SYSCALL_WAIT      61
 #define SYSCALL_SPAWN     69
 #define SYSCALL_GETCWD    79
 #define SYSCALL_CHDIR     80
@@ -42,6 +43,7 @@
 #define SYSCALL_RMDIR     84
 #define SYSCALL_UNLINK    87
 #define SYSCALL_REBOOT    169
+#define SYSCALL_READDIR   217
 
 // new
 

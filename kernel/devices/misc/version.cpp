@@ -1,10 +1,10 @@
-// input_manager.h
+// version.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 09.09.25.
+// Created by Linus Genz on 26.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,35 +21,31 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INPUT_MANAGER_H
-#define VESPERAOS_INPUT_MANAGER_H
+#include "version.h"
+#include <string.h>
 
-#include "input_event.h"
-#include <cstddef>
+#include "../../kversion.h"
 
-#include "../sync/spinlock.h"
+VersionDevice::VersionDevice(const char* name)
+    : CharDevice(name, BusType::VIRTUAL) {}
 
-namespace kernel::input {
-
-    class InputManager {
-    public:
-        static constexpr size_t BUFFER_SIZE = 256;
-
-        static void push_event(const InputEvent& ev);
-        static bool pop_event(InputEvent& ev);
-        static bool is_empty();
-
-        static bool is_empty_locked() ;
-
-        static void init();
-
-    private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-
-    };
-
+int VersionDevice::open(CharFile** out_cf) {
+    *out_cf = nullptr;
+    return 0;
 }
 
-#endif //VESPERAOS_INPUT_MANAGER_H
+int VersionDevice::release(CharFile*) {
+    return 0;
+}
+
+size_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    const char* ver = get_kernel_version();
+    size_t len = strlen(ver);
+    if (count < len) len = count;
+    memcpy(buffer, ver, len);
+    return len;
+}
+
+size_t VersionDevice::write(CharFile*, const void*, size_t count) {
+    return count;
+}

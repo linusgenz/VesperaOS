@@ -25,22 +25,19 @@
 #include "exec/elf.h"
 #include "./include/kernel_utils.h"
 #include "./cpu/cpu.h"
-#include "include/time.h"
-#include "version.h"
-#include "include/sys/syscalls.h"
+#include "kversion.h"
 #include "../include/log.h"
 #include "acpi/acpi_manager.h"
 #include "include/scheduling.h"
 #include "sync/mutex.h"
 #include "../filesystem/vfs/vfs.h"
-#include "graphics/console_backend.h"
 #include "input/input_manager.h"
 #include "realm/realm_manager.h"
+#include "tty/tty.h"
 #include "tty/tty.h"
 #include "units/unit_manager.h"
 
 static const char* envp0[] = {"PATH=/mnt/fat32_0/bin"};
-
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     system_initialized = false;
     initialize_kernel(boot_info);
@@ -53,7 +50,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     get_cpu_brand(brand);
     //  Log::Info("CPU Brand: %s", brand);
     Log::Ok("Kernel initialized successfully");
-    Log::Info("Kernel version: %s", get_os_version());
+    Log::Info("Kernel version: %s", get_kernel_version());
     //  kernel::time::print_current_time();
     // kernel::time::internal::sleep(5000);
 
@@ -69,6 +66,9 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
 
     ElfLoader elf_loader;
     ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/mnt/fat32_0/bin/shell.elf", 0x400000);
+    if (!result.success) {
+        Log::Error("Failed to load elf binary");
+    }
 
     RealmConfig realm_config_shell = {
         .name = "shell_realm",
@@ -78,8 +78,8 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .envp = envp0,
     };
     Realm *shell_realm = RealmManager::create(&realm_config_shell);
-    auto console_dev = new ConsoleDevice();
-    shell_realm->setup_standard_handles(console_dev);
+    TTYDevice* tty_dev = kernel::tty::tty_devices[0];
+    shell_realm->setup_standard_handles(tty_dev);
 
     UnitConfig uc = {
         .name = "shell",

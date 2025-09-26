@@ -80,11 +80,11 @@ VfsNode *vfs_mount_virtual(VfsNode *root, const char *mount_path) {
 
 
 VfsNode *vfs_open(const char *path) {
-    MountPoint* best_match = nullptr;
+    MountPoint *best_match = nullptr;
     size_t best_len = 0;
 
     for (size_t i = 0; i < mount_points->size(); i++) {
-        MountPoint& mp = (*mount_points)[i];
+        MountPoint &mp = (*mount_points)[i];
         size_t len = strlen(mp.path);
 
         if (strncmp(path, mp.path, len) == 0 &&
@@ -92,17 +92,17 @@ VfsNode *vfs_open(const char *path) {
             len > best_len) {
             best_match = &mp;
             best_len = len;
-            }
+        }
     }
 
     if (!best_match) return nullptr;
 
-    const char* sub_path = path + best_len;
+    const char *sub_path = path + best_len;
     if (*sub_path == '/') sub_path++;
 
     if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
 
-    VfsNode* current = best_match->root;
+    VfsNode *current = best_match->root;
 
     char components[16][32];
     size_t count = split_path(sub_path, components, 16);
@@ -119,7 +119,6 @@ VfsDir *vfs_opendir(const char *path) {
     if (!node || node->type != VfsNodeType::Directory) return nullptr;
     if (!node->ops || !node->ops->opendir) return nullptr;
 
-    Log::debug("opendir: %s", path);
     void *handle = node->ops->opendir(node);
     if (!handle) {
         vfs_close(node);
