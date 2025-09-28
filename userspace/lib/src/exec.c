@@ -28,7 +28,7 @@
 
 static char path_buf[256];
 
-const char *find_executable(const char *name, char **envp) {
+const char *find_executable(const char *name) {
     if (!name || !*name) return nullptr;
 
     if (name[0] == '/') {
@@ -36,7 +36,7 @@ const char *find_executable(const char *name, char **envp) {
         return nullptr;
     }
 
-    const char *path = getenv("PATH", envp);
+    const char *path = getenv("PATH", environ);
     if (!path) return nullptr;
 
     const char *start = path;

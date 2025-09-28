@@ -30,21 +30,28 @@
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
-    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                        uint64_t, uint64_t, uint64_t) {
         HandleID hid = arg0;
-        char* buf = reinterpret_cast<char*>(arg1);
+        char *buf = reinterpret_cast<char *>(arg1);
         size_t max_len = static_cast<size_t>(arg2);
 
-        Unit* u = kernel::scheduling::get_current_unit();
-        Realm* realm = RealmManager::get(u->rid);
-        handle_entry_t* he = realm->lookup_handle(hid);
+        if (!buf || max_len == 0) return -EINVAL;
+
+        Unit *u = kernel::scheduling::get_current_unit();
+        Realm *realm = RealmManager::get(u->rid);
+        handle_entry_t *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) return -EACCES;
         if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_DIRECTORY) return -EINVAL;
 
-        VfsHandle* vh = static_cast<VfsHandle*>(he->resource);
-        size_t res = DevFS::read_dir(vh->context, buf, max_len);
-        return res;
+        VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+        if (!vh->context || !vh->context->type_specific_data) return -EINVAL;
+
+        void *dir_handle = vh->context->type_specific_data;
+        if (!vh->node->ops || !vh->node->ops->readdir) return -EINVAL;
+
+        return vh->node->ops->readdir(dir_handle, buf, max_len);
     }
 }

@@ -27,17 +27,17 @@
 #include "vfs.h"
 
 struct VfsHandleContext {
-    uint32_t open_flags;        // O_RDONLY, O_WRONLY, O_RDWR
-    size_t position;            // used for offset
+    uint32_t open_flags; // O_RDONLY, O_WRONLY, O_RDWR
+    size_t position; // used for offset
     CapabilitySet required_caps;
-    void* type_specific_data;
+    void *type_specific_data;
 };
 
 struct VfsHandle {
-    VfsNode* node;
-    VfsHandleContext* context;
+    VfsNode *node;
+    VfsHandleContext *context;
 
-    VfsHandle(VfsNode* n, uint32_t flags, CapabilitySet caps) : node(n) {
+    VfsHandle(VfsNode *n, uint32_t flags, CapabilitySet caps) : node(n) {
         context = new VfsHandleContext();
         context->open_flags = flags;
         context->position = 0;
@@ -51,16 +51,21 @@ struct VfsHandle {
 
     ~VfsHandle() {
         if (node) {
+            if (node->type == VfsNodeType::Directory &&
+                context && context->type_specific_data &&
+                node->ops && node->ops->closedir) {
+                node->ops->closedir(context->type_specific_data);
+                context->type_specific_data = nullptr;
+            }
+
             vfs_close(node);
         }
-        if (context) {
-            delete context;
-        }
+        delete context;
     }
 };
 
-static void vfs_handle_destructor(void* resource) {
-    auto* vh = static_cast<VfsHandle*>(resource);
+static void vfs_handle_destructor(void *resource) {
+    const auto *vh = static_cast<VfsHandle *>(resource);
     delete vh;
 }
 

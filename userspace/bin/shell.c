@@ -190,7 +190,7 @@ void cmd_ls(command_t *cmd) {
 }
 
 
-int execute_command(command_t *cmd, char **envp) {
+int execute_command(command_t *cmd) {
     if (cmd->argc == 0) return 0;
 
     const char *command = cmd->args[0];
@@ -216,11 +216,11 @@ int execute_command(command_t *cmd, char **envp) {
     } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
         return -1; // Signal to exit
     } else {
-        const char *prog = find_executable(command, envp);
+        const char *prog = find_executable(command);
         if (prog) {
             int64_t rid = 0;
             // const char *argv[] = {"lsusb", nullptr};
-            rid = spawn_realm(prog, 1, nullptr, envp);
+            rid = spawn_realm(prog, 1, nullptr, environ);
             if ((int64_t) rid < 0) {
                 printf("spawn failed: %d\n", (int32_t) rid);
             } else {
@@ -261,7 +261,7 @@ void show_prompt(void) {
 }
 
 
-void shell_main(char **envp) {
+void shell_main() {
     char buf[MAX_INPUT] = {0};
     command_t cmd;
 
@@ -269,6 +269,10 @@ void shell_main(char **envp) {
     //cmd_clear(nullptr);
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
+
+
+    void* address = malloc(100);
+    printf("malloc address: %p", address);
 
     FILE_HANDLE fd = fopen("/dev/cpuinfo", O_RDONLY);
     if (fd < 0) {
@@ -309,7 +313,7 @@ void shell_main(char **envp) {
 
         // Parse and execute command
         if (parse_command(trimmed, &cmd) > 0) {
-            if (execute_command(&cmd, envp) < 0) {
+            if (execute_command(&cmd) < 0) {
                 printf("Goodbye!\n");
                 break;
             }
@@ -317,8 +321,8 @@ void shell_main(char **envp) {
     }
 }
 
-void _start(int argc, char **argv, char **envp) {
-    printf("envp: %s\n", envp[0]);
-    shell_main(envp);
-    exit(0);
+int main(int argc, char **argv) {
+    printf("envp exiz %s", environ[0]);
+    shell_main();
+    return 0;
 }

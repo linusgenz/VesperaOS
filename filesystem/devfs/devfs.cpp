@@ -295,8 +295,6 @@ struct DevfsDirHandle {
 };
 
 void *DevFS::open_dir(VfsNode *dir) {
-    Log::debug("open dir %s", dir->name);
-    if (dir != root) return nullptr;
     auto *h = (DevfsDirHandle *) kernel::memory::malloc(sizeof(DevfsDirHandle));
     h->index = 0;
     h->dir_node = dir;
@@ -309,24 +307,20 @@ int DevFS::read_dir(void *dir_handle, char *out_name, size_t max_len) {
 
     size_t count = 0;
     for (auto* e : *nodes) {
-        if (dir == root) {
-            if (!e->is_bus_dir) continue;
-        } else {
-            // Child-Geräte zum Bus-Verzeichnis
-            if (e->is_bus_dir) continue;
-        }
+        if (e->parent != dir) continue;
 
         if (count == h->index) {
             strncpy(out_name, e->node->name, max_len - 1);
             out_name[max_len - 1] = '\0';
             h->index++;
-            return 1;
+            return strlen(out_name);
         }
         count++;
     }
 
     return 0;
 }
+
 
 void DevFS::close_dir(void *dir_handle) {
     kernel::memory::free(dir_handle);

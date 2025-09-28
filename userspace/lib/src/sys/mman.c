@@ -1,10 +1,10 @@
-// exec.h
+// mman.c
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 23.09.25.
+// Created by Linus Genz on 27.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_EXEC_H
-#define VESPERAOS_EXEC_H
+#include <stddef.h>
+#include <sysstd.h>
 
-/**
- * @brief Find the absolute path of an executable using PATH.
- *
- * @param name Program name (e.g., "lsusb").
- * @return Pointer to a static buffer containing the path,
- *         or NULL if not found.
- */
-const char *find_executable(const char *name);
+void* mmap(void* addr, size_t length, int prot, int flags, int handle, size_t offset) {
+	return (void*)sys_mmap((uint64_t)addr, length, prot, flags, handle, offset);
+}
 
-
-#endif //VESPERAOS_EXEC_H
+int munmap(void* addr, size_t length) {
+	return sys_munmap((uint64_t)addr, length, 0, 0, 0);
+}

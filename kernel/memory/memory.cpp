@@ -51,16 +51,16 @@ namespace kernel::memory {
         memset(PML4, 0, 0x1000);
         page_table_manager = PageTableManager(PML4);
     }
-    void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags, kprocess_t* proc) {
-        page_table_manager.map_memory(virtual_addr, physical_addr, flags, proc);
+    void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags) {
+        page_table_manager.map_memory(virtual_addr, physical_addr, flags);
     }
 
     void set_user_flags(void* virtual_memory, size_t size) {
         page_table_manager.set_user_flags(virtual_memory, size);
     }
 
-    void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags, kprocess_t* proc) {
-        page_table_manager.map_range(virt_start, phys_start, size, flags, proc);
+    void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags) {
+        page_table_manager.map_range(virt_start, phys_start, size, flags);
     }
 
     void unmap_memory(void* virtual_addr) {

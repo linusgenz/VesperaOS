@@ -1,10 +1,10 @@
-// exec.h
+// crt0.c
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 23.09.25.
+// Created by Linus Genz on 27.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_EXEC_H
-#define VESPERAOS_EXEC_H
+#include <stdlib.h>
 
-/**
- * @brief Find the absolute path of an executable using PATH.
- *
- * @param name Program name (e.g., "lsusb").
- * @return Pointer to a static buffer containing the path,
- *         or NULL if not found.
- */
-const char *find_executable(const char *name);
+extern int main(int argc, char **argv);
 
+// entry which gets called by the kernel
+void _start(long argc, char **argv, char **envp) {
+    environ = envp;
 
-#endif //VESPERAOS_EXEC_H
+    int ret = main((int)argc, argv);
+
+    sys_exit(ret, 0,0,0,0,0);
+
+    __builtin_unreachable();
+}

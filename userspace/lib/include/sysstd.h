@@ -194,4 +194,52 @@ int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint6
  *           -ECHILD : Target realm does not exist
  */
 int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+
+/**
+ * @brief Maps memory pages into the virtual address space of the calling unit.
+ *
+ * This syscall provides anonymous or file-backed memory regions to user programs.
+ * It is the low-level primitive used to implement dynamic memory allocators
+ * (e.g., malloc/free).
+ *
+ * @param arg0 Desired start address (or 0 for automatic placement).
+ * @param arg1 Length of mapping in bytes (will be page-aligned).
+ * @param arg2 Protection flags (PROT_READ, PROT_WRITE, etc.).
+ * @param arg3 Mapping flags (MAP_ANONYMOUS, MAP_PRIVATE, etc.).
+ * @param arg4 Handle for file-backed mappings (ignored if MAP_ANONYMOUS).
+ * @param arg5 File offset in bytes (must be page-aligned).
+ *
+ * @return On success: starting virtual address of the new mapping.
+ *         On error: negative errno value:
+ *           -EINVAL       : Invalid arguments (length=0 or bad alignment)
+ *           -EUNSUPPORTED : Unsupported flags or features
+ *           -EACCES       : Not allowed in current context (e.g. kernel-only)
+ *           -ENOMEM       : Out of memory (physical pages not available)
+ */
+int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                 uint64_t arg3, uint64_t arg4, uint64_t arg5);
+
+
+/**
+ * @todo create doc
+ * @param arg0
+ * @param arg1
+ * @return
+ */
+int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Adjust the program break (end of heap) for the current unit.
+ *
+ * This syscall sets the end of the user heap to the specified address.
+ * If addr is 0, it simply returns the current break.
+ *
+ * @param arg0 New desired end of heap (0 to query current break)
+ * @return On success, returns the new program break.
+ *         On error, returns negative errno:
+ *           -EINVAL : addr is below heap start or exceeds limit
+ *           -ENOMEM : not enough memory to expand
+ */
+int64_t sys_brk(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 #endif //SYSSTD_H

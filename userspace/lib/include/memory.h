@@ -1,10 +1,10 @@
-// exec.h
+// memory.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 23.09.25.
+// Created by Linus Genz on 27.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,28 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_EXEC_H
-#define VESPERAOS_EXEC_H
+#ifndef VESPERAOS_MEMORY_H
+#define VESPERAOS_MEMORY_H
+#include <stddef.h>
+
 
 /**
- * @brief Find the absolute path of an executable using PATH.
+ * @brief Header for a heap segment.
  *
- * @param name Program name (e.g., "lsusb").
- * @return Pointer to a static buffer containing the path,
- *         or NULL if not found.
+ * Stored in front of each allocated or free block in the user heap.
  */
-const char *find_executable(const char *name);
+typedef struct heap_seg {
+    size_t length;
+    int free;
+    uint32_t magic;
+    struct heap_seg* next;
+    struct heap_seg* prev;
+} heap_seg;
 
+typedef struct large_seg {
+    void* addr;
+    size_t size;
+    struct large_seg* next;
+} large_seg;
 
-#endif //VESPERAOS_EXEC_H
+#endif //VESPERAOS_MEMORY_H

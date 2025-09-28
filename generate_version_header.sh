@@ -2,15 +2,15 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=10
-VERSION_PATCH=1
+VERSION_PATCH=3
 VERSION_STAGE="dev"
 VERSION_NAME="slingshot"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
 
 
 cat <<EOF > kernel/kversion.h
-#ifndef VESPERAOS_VERSION_H
-#define VESPERAOS_VERSION_H
+#ifndef VESPERAOS_KVERSION_H
+#define VESPERAOS_KVERSION_H
 
 #define VERSION_MAJOR "${VERSION_MAJOR}"
 #define VERSION_MINOR "${VERSION_MINOR}"
@@ -27,5 +27,5 @@ inline const char* get_kernel_version() {
     return VERSION_STRING;
 };
 
-#endif // VESPERAOS_VERSION_H
+#endif // VESPERAOS_KVERSION_H
 EOF

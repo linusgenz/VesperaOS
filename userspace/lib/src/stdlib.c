@@ -25,10 +25,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define MAX_ENV_VARS 64
-
-static char* environ[MAX_ENV_VARS];
-static size_t env_count = 0;
+char **environ = nullptr;
 
 char* getenv(const char* name, char** envp) {
     if (!name) return nullptr;

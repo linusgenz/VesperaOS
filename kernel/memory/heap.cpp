@@ -47,35 +47,47 @@ HeapSegHdr* HeapSegHdr::split(size_t split_length) {
         Log::Error("Split failed: invalid segment header at %p", this);
         return nullptr;
     }
+    if (!free) {
+        Log::Error("Split failed: can only split free segments");
+        return nullptr;
+    }
     if (split_length < MIN_ALLOC_SIZE) {
-        Log::Error("Split failed: split length %u too small (min: %u)", split_length, MIN_ALLOC_SIZE);
+        Log::Error("Split failed: split length %zu too small (min: %u)", split_length, MIN_ALLOC_SIZE);
         return nullptr;
     }
 
-    size_t remaining_length = length - split_length - HEAP_HEADER_SIZE - 1; // -1 for guard
+    size_t total_here = HEAP_HEADER_SIZE + length + 1;
+    size_t needed_for_split = HEAP_HEADER_SIZE + split_length + 1 + MIN_ALLOC_SIZE + HEAP_HEADER_SIZE; // conservative
+    if (length < split_length + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE + 1) {
+        Log::debug("Split not possible: remaining would be too small (seg len=%zu, req=%zu)", length, split_length);
+        return nullptr;
+    }
+
+    // compute address of new segment header
+    uintptr_t new_seg_addr = (uintptr_t)this + HEAP_HEADER_SIZE + split_length + 1;
+    HeapSegHdr* new_seg = reinterpret_cast<HeapSegHdr*>(new_seg_addr);
+
+    // remaining length for new seg (user-data)
+    size_t remaining_length = this->length - split_length - HEAP_HEADER_SIZE - 1;
     if (remaining_length < MIN_ALLOC_SIZE) {
-        Log::Error("Split failed: remaining length %u too small after split", remaining_length);
+        Log::Error("Split failed: remaining length %zu too small after split", remaining_length);
         return nullptr;
     }
 
-    // Create new segment
-    HeapSegHdr* new_seg = (HeapSegHdr*)((uintptr_t)this + HEAP_HEADER_SIZE + split_length + 1);
-    new_seg->magic = free ? HEAP_MAGIC_FREE : HEAP_MAGIC_USED;
+    new_seg->magic = HEAP_MAGIC_FREE;
     new_seg->length = remaining_length;
-    new_seg->free = free;
+    new_seg->free = true;
     new_seg->last = this;
-    new_seg->next = next;
+    new_seg->next = this->next;
     new_seg->set_guard_bytes();
 
-    // Update links
-    if (next) {
-        next->last = new_seg;
+    if (new_seg->next) {
+        new_seg->next->last = new_seg;
     }
-    next = new_seg;
 
-    // Update current segment
-    length = split_length;
-    set_guard_bytes();
+    this->length = split_length;
+    this->next = new_seg;
+    this->set_guard_bytes();
 
     if (last_hdr == this) {
         last_hdr = new_seg;
@@ -84,7 +96,9 @@ HeapSegHdr* HeapSegHdr::split(size_t split_length) {
     return new_seg;
 }
 
+
 void HeapSegHdr::combine_forward() {
+    // combine this and next if both free and valid
     if (!next || !next->free || !is_valid() || !next->is_valid()) {
         return;
     }
@@ -93,24 +107,23 @@ void HeapSegHdr::combine_forward() {
         last_hdr = this;
     }
 
-    // Update length
-    length += next->length + HEAP_HEADER_SIZE + 1; // +1 for guard byte
+    this->length += HEAP_HEADER_SIZE + 1 + next->length;
 
-    // Update links
-    HeapSegHdr* next_next = next->next;
-    if (next_next) {
-        next_next->last = this;
+    HeapSegHdr* after = next->next;
+    this->next = after;
+    if (after) {
+        after->last = this;
     }
-    next = next_next;
 
-    set_guard_bytes();
+    this->set_guard_bytes();
 }
 
-void HeapSegHdr::combine_backward() {
+void HeapSegHdr::combine_backward() const {
     if (last && last->free && last->is_valid()) {
         last->combine_forward();
     }
 }
+
 
 // Core heap function implementations
 bool initialize_heap(void* heap_address, size_t page_count) {
@@ -197,21 +210,13 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
         return nullptr;
     }
 
-    HeapSegHdr* new_seg = nullptr;
-
-    // Prüfe, ob ein Split sinnvoll ist
     if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE + 1) {
-        // +1 für Guard-Byte
-        new_seg = seg->split(size);
-
+        HeapSegHdr* new_seg = seg->split(size);
         if (!new_seg) {
-            Log::Warning("Segment too small to split, allocating entire segment of size %u", seg->length);
+            Log::Warning("Split failed, taking whole segment");
         }
-    } else if (seg->length > size) {
-      //  Log::Warning("Segment slightly larger than requested, cannot split: seg=%u, requested=%u", seg->length, size);
     }
 
-    // Markiere Segment als benutzt
     seg->free = false;
     seg->magic = HEAP_MAGIC_USED;
     seg->set_guard_bytes();
@@ -223,6 +228,7 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
 
     return seg->get_data_ptr();
 }
+
 
 
 void* malloc(size_t size) {
@@ -337,15 +343,13 @@ void free(void* ptr) {
 
     HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
 
-    // Validate segment
     if (!seg->is_valid() || seg->magic != HEAP_MAGIC_USED || seg->free) {
-        Log::Error("Invalid free or double free");
+        Log::Error("Invalid free or double free at %p", ptr);
         return;
     }
 
-    // Check guard bytes
     if (!seg->check_guard_bytes()) {
-        Log::Error("Buffer overflow");
+        Log::Error("Buffer overflow detected at %p", ptr);
         return;
     }
 
@@ -353,7 +357,6 @@ void free(void* ptr) {
     seg->magic = HEAP_MAGIC_FREE;
     total_freed += seg->length;
 
-    // Combine with adjacent free segments
     seg->combine_forward();
     seg->combine_backward();
 }

@@ -8,11 +8,11 @@ PageTableManager::PageTableManager(PageTable *PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::map_range(void *virt_start, void *phys_start, size_t size, uint64_t flags, kprocess_t* proc) {
+void PageTableManager::map_range(void *virt_start, void *phys_start, size_t size, uint64_t flags) {
     auto vs = reinterpret_cast<uintptr_t>(virt_start);
     auto ps = reinterpret_cast<uintptr_t>(phys_start);
     for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
-        map_memory(reinterpret_cast<void*>(vs + offset), reinterpret_cast<void*>(ps + offset), flags, proc);
+        map_memory(reinterpret_cast<void*>(vs + offset), reinterpret_cast<void*>(ps + offset), flags);
     }
 }
 
@@ -20,7 +20,7 @@ static inline void invlpg(void* addr) {
     asm volatile("invlpg (%0)" : : "r"(addr) : "memory");
 }
 
-void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, uint64_t flags, kprocess_t* proc) {
+void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, uint64_t flags) {
     PageMapIndexer indexer((uint64_t) virtual_memory);
 
     auto ensure_table = [&](PageTable *parent, uint16_t index) -> PageTable * {

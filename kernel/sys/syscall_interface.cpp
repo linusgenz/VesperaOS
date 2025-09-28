@@ -49,6 +49,9 @@ void install_syscalls() {
     syscall_table[SYSCALL_SPAWN] = syscalls::internal::sys_spawn;
     syscall_table[SYSCALL_READDIR] = syscalls::internal::sys_readdir;
     syscall_table[SYSCALL_WAIT] = syscalls::internal::sys_wait;
+    syscall_table[SYSCALL_MMAP] = syscalls::internal::sys_mmap;
+    syscall_table[SYSCALL_MUNMAP] = syscalls::internal::sys_munmap;
+    syscall_table[SYSCALL_BRK] = syscalls::internal::sys_brk;
 }
 
 extern "C" void syscall_handler(
@@ -60,7 +63,7 @@ extern "C" void syscall_handler(
     uint64_t arg4,
     uint64_t arg5
 ) {
-    uint64_t ret = -1;
+    uint64_t ret = 0;
 
     if (num < MAX_SYSCALLS && syscall_table[num]) {
         asm volatile("sti");

@@ -30,7 +30,7 @@ struct HeapSegHdr {
     // Methods
     HeapSegHdr* split(size_t split_length);
     void combine_forward();
-    void combine_backward();
+    void combine_backward() const;
     bool is_valid() const;
     void set_guard_bytes();
     bool check_guard_bytes() const;

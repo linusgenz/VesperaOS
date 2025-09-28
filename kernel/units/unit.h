@@ -73,10 +73,22 @@ typedef struct sleep_context {
     void *kernel_rsp_after_sleep;
 } sleep_context_t;
 
+struct VmArea {
+    uintptr_t start;
+    size_t length;
+    uint64_t prot;
+    uint64_t flags;
+    uintptr_t file_off;
+    HandleID handle;
+
+    VmArea* next;
+};
+
+
 class Unit {
 private:
     unit_handle_table_t handle_table;
-
+    VmArea* vma_list;
 public:
     UnitID id;
     RealmID rid;
@@ -97,6 +109,8 @@ public:
     bool is_user;
     bool is_kernel;
 
+    uint64_t heap_end;
+
     uint64_t handle_count;
 
     execution_context_t context;
@@ -110,6 +124,37 @@ public:
              handle_count(0) {
         memset(&handle_table, 0, sizeof(handle_table));
         handle_table.lock.init();
+    }
+
+    void add_vma(VmArea* vma) {
+        vma->next = vma_list;
+        vma_list = vma;
+    }
+
+    VmArea* find_vma(uintptr_t addr, size_t len) {
+        for (VmArea* v = vma_list; v; v = v->next) {
+            if (addr >= v->start && (addr + len) <= (v->start + v->length)) {
+                return v;
+            }
+        }
+        return nullptr;
+    }
+
+    bool remove_vma(uintptr_t addr, size_t len) {
+        VmArea* prev = nullptr;
+        VmArea* cur  = vma_list;
+
+        while (cur) {
+            if (cur->start == addr && cur->length == len) {
+                if (prev) prev->next = cur->next;
+                else vma_list = cur->next;
+                delete cur; // Achtung: später evtl. eigener Allocator
+                return true;
+            }
+            prev = cur;
+            cur = cur->next;
+        }
+        return false;
     }
 
     ErrorCode attach_handle(HandleID h) {

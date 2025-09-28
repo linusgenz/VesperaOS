@@ -29,7 +29,10 @@
 #define SYSCALL_OPEN      2
 #define SYSCALL_CLOSE     3
 #define SYSCALL_STAT      4
-#define SYSCALL_CREATE    11
+#define SYSCALL_MMAP      9
+#define SYSCALL_MUNMAP    11
+#define SYSCALL_BRK      12
+#define SYSCALL_CREATE    13
 #define SYSCALL_IOCTL     16
 #define SYSCALL_SLEEP     35
 //#define SYSCALL_GETPID    39

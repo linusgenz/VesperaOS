@@ -8,7 +8,7 @@ set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -Wall")
-set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
 
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
 file(GLOB_RECURSE ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
@@ -49,7 +49,9 @@ add_custom_target(splash_header DEPENDS ${CMAKE_SOURCE_DIR}/splash.h)
 
 # User-Lib
 file(GLOB_RECURSE USERLIB_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/userspace/lib/src/*.c)
-add_library(userlib STATIC ${USERLIB_SOURCES})
+add_library(userlib STATIC ${USERLIB_SOURCES}
+        userspace/lib/src/malloc.c
+        userspace/lib/src/crt0.c)
 target_include_directories(userlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/userspace/lib/include)
 set_target_properties(userlib PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -57,7 +59,9 @@ set_target_properties(userlib PROPERTIES
 
 
 # elfs
-add_executable(shell.elf ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/shell.c)
+add_executable(shell.elf
+        ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/shell.c
+)
 target_link_libraries(shell.elf PRIVATE userlib)
 set_target_properties(shell.elf PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
@@ -65,7 +69,9 @@ set_target_properties(shell.elf PROPERTIES
 )
 
 # lsusb
-add_executable(lsusb ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/lsusb.c)
+add_executable(lsusb
+        ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/lsusb.c
+)
 target_link_libraries(lsusb PRIVATE userlib)
 set_target_properties(lsusb PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
@@ -76,11 +82,11 @@ add_custom_target(elfs DEPENDS shell.elf lsusb)
 
 # version
 add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/kernel/version.h
+        OUTPUT ${CMAKE_SOURCE_DIR}/kernel/kversion.h
         COMMAND bash ${CMAKE_SOURCE_DIR}/generate_version_header.sh
         DEPENDS ${CMAKE_SOURCE_DIR}/generate_version_header.sh
 )
-add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/version.h)
+add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 
 # Disk image
 set(BOOTLOADER_EFI ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.efi)
@@ -109,8 +115,8 @@ add_custom_target(disk_image
 )
 
 add_custom_target(img
-    COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
-    DEPENDS disk_image
+        COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
+        DEPENDS disk_image
 )
 
 # QEMU run
@@ -121,8 +127,8 @@ add_custom_target(test
         -machine q35
         -enable-kvm
         -cpu host
-     #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
-      #  -device nvme,drive=host0,serial=deadbeef
+        #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
+        #  -device nvme,drive=host0,serial=deadbeef
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio

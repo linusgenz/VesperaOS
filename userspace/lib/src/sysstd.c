@@ -28,7 +28,10 @@
 #define SYSCALL_OPEN      2
 #define SYSCALL_CLOSE     3
 #define SYSCALL_STAT      4
-#define SYSCALL_CREATE    11
+#define SYSCALL_MMAP      9
+#define SYSCALL_MUNMAP    11
+#define SYSCALL_BRK      12
+#define SYSCALL_CREATE    13
 #define SYSCALL_IOCTL     16
 #define SYSCALL_SLEEP     35
 #define SYSCALL_EXIT      60
@@ -131,4 +134,17 @@ int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint6
 
 int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_WAIT, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2,
+                 uint64_t arg3, uint64_t arg4, uint64_t arg5) {
+    return syscall(SYSCALL_MMAP, arg0, arg1, arg2, arg3, arg4, arg5);
+}
+
+int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MUNMAP, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_brk(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_BRK, arg0, 0, 0, 0, 0, 0);
 }
