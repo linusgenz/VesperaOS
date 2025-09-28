@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['year_0',['year',['../structrtc__data.html#ae1f6e8da2c753702a452d6be44dbc5e5',1,'rtc_data']]]
+  ['next_0',['next',['../structheap__seg.html#a628682b06341bbbd876a6e42656815c5',1,'heap_seg::next'],['../structlarge__seg.html#aedc3113af2d8caa0195a871a5cb0aa89',1,'large_seg::next']]]
 ];

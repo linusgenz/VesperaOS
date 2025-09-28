@@ -1,5 +1,12 @@
 var searchData=
 [
-  ['vendor_0',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info']]],
-  ['vendor_5fid_1',['vendor_id',['../structxhci__device__stat.html#a515718791dccd4d50e68ec911c475100',1,'xhci_device_stat']]]
+  ['realloc_0',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
+  ['realm_2eh_1',['realm.h',['../realm_8h.html',1,'']]],
+  ['reboot_5fhalt_2',['REBOOT_HALT',['../sysstd_8h.html#ac779db2e507c6285951e657e47e3b748',1,'sysstd.h']]],
+  ['reboot_5fmagic1_3',['REBOOT_MAGIC1',['../sysstd_8h.html#a4b30f7b8597967276b4245daee628589',1,'sysstd.h']]],
+  ['reboot_5fmagic2_4',['REBOOT_MAGIC2',['../sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c',1,'sysstd.h']]],
+  ['reboot_5fpower_5foff_5',['REBOOT_POWER_OFF',['../sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad',1,'sysstd.h']]],
+  ['reboot_5frestart_6',['REBOOT_RESTART',['../sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8',1,'sysstd.h']]],
+  ['rtc_2eh_7',['rtc.h',['../rtc_8h.html',1,'']]],
+  ['rtc_5fdata_8',['rtc_data',['../structrtc__data.html',1,'']]]
 ];

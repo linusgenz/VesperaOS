@@ -1,9 +1,7 @@
 var searchData=
 [
-  ['manufacturer_0',['manufacturer',['../structxhci__device__stat.html#ae0a011a7b97a3a013be94cdff227a242',1,'xhci_device_stat']]],
-  ['memcmp_1',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
-  ['memcpy_2',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
-  ['memset_3',['memset',['../string_8h.html#a7b790200c268c08dc4429094ad149853',1,'string.h']]],
-  ['min_4',['min',['../structrtc__data.html#afb1985b369bafba67c3c376d2120fef4',1,'rtc_data']]],
-  ['month_5',['month',['../structrtc__data.html#af7d5c74fbf9a5b85c7ce89863d3cb9f1',1,'rtc_data']]]
+  ['internal_2eh_0',['internal.h',['../internal_8h.html',1,'']]],
+  ['ioctl_1',['ioctl',['../ioctl_8h.html#a9405d8d3763a7eaefe4eae694b9f8ea0',1,'ioctl.h']]],
+  ['ioctl_2eh_2',['ioctl.h',['../ioctl_8h.html',1,'']]],
+  ['ioctl_5frequest_5ft_3',['ioctl_request_t',['../ioctl_8h.html#ad9edf266656ca64984f397c280c111af',1,'ioctl.h']]]
 ];

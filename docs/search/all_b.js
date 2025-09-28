@@ -1,9 +1,20 @@
 var searchData=
 [
-  ['port_5fnum_0',['port_num',['../structxhci__device__stat.html#a28736c64ed1e6121af9764a45d6fe558',1,'xhci_device_stat']]],
-  ['printf_1',['printf',['../stdio_8h.html#a0aff7311d684a0e0ef33125616a73385',1,'stdio.h']]],
-  ['product_2',['product',['../structxhci__device__stat.html#a8e18b92b92445be1e3b909204d70d663',1,'xhci_device_stat']]],
-  ['product_5fid_3',['product_id',['../structxhci__device__stat.html#ac94de7315999b16e4807c7c234311822',1,'xhci_device_stat']]],
-  ['putchar_4',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
-  ['puts_5',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
+  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg']]],
+  ['malloc_1',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
+  ['manufacturer_2',['manufacturer',['../structxhci__device__stat.html#ae0a011a7b97a3a013be94cdff227a242',1,'xhci_device_stat']]],
+  ['map_5fanonymous_3',['MAP_ANONYMOUS',['../mman_8h.html#ae4f86bff73414c5fc08c058f957212f0',1,'mman.h']]],
+  ['map_5ffailed_4',['MAP_FAILED',['../mman_8h.html#a8523dcf952f6ff059a3bed717e4f1296',1,'mman.h']]],
+  ['map_5ffixed_5',['MAP_FIXED',['../mman_8h.html#a387ec707b30c5e78cf20a14517a63b96',1,'mman.h']]],
+  ['map_5fprivate_6',['MAP_PRIVATE',['../mman_8h.html#a398ef47a991a44389aa9818c98a28d24',1,'mman.h']]],
+  ['map_5fshared_7',['MAP_SHARED',['../mman_8h.html#a57028962c2a7c0c802ca6613492f2ef3',1,'mman.h']]],
+  ['memcmp_8',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
+  ['memcpy_9',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
+  ['memory_2eh_10',['memory.h',['../memory_8h.html',1,'']]],
+  ['memset_11',['memset',['../string_8h.html#a7b790200c268c08dc4429094ad149853',1,'string.h']]],
+  ['min_12',['min',['../structrtc__data.html#afb1985b369bafba67c3c376d2120fef4',1,'rtc_data']]],
+  ['mman_2eh_13',['mman.h',['../mman_8h.html',1,'']]],
+  ['mmap_14',['mmap',['../mman_8h.html#adce60d6da219bfd77ddbe177533942e8',1,'mman.h']]],
+  ['month_15',['month',['../structrtc__data.html#af7d5c74fbf9a5b85c7ce89863d3cb9f1',1,'rtc_data']]],
+  ['munmap_16',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

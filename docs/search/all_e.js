@@ -1,9 +1,14 @@
 var searchData=
 [
-  ['uint_5fto_5fstr_0',['uint_to_str',['../internal_8h.html#ab72bae8e2e38262d4e342ea762149f3a',1,'internal.h']]],
-  ['unsetenv_1',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
-  ['urandom_2eh_2',['urandom.h',['../urandom_8h.html',1,'']]],
-  ['urandom_5fu32_3',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
-  ['urandom_5fu64_4',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
-  ['usb_5fxhci_5fioctl_2eh_5',['usb_xhci_ioctl.h',['../usb__xhci__ioctl_8h.html',1,'']]]
+  ['port_5fnum_0',['port_num',['../structxhci__device__stat.html#a28736c64ed1e6121af9764a45d6fe558',1,'xhci_device_stat']]],
+  ['prev_1',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
+  ['printf_2',['printf',['../stdio_8h.html#a0aff7311d684a0e0ef33125616a73385',1,'stdio.h']]],
+  ['product_3',['product',['../structxhci__device__stat.html#a8e18b92b92445be1e3b909204d70d663',1,'xhci_device_stat']]],
+  ['product_5fid_4',['product_id',['../structxhci__device__stat.html#ac94de7315999b16e4807c7c234311822',1,'xhci_device_stat']]],
+  ['prot_5fexec_5',['PROT_EXEC',['../mman_8h.html#a77848f068638e916c72cd543f5ecb815',1,'mman.h']]],
+  ['prot_5fnone_6',['PROT_NONE',['../mman_8h.html#a6a982b48b8d3eb8eccd17e0d54ee5379',1,'mman.h']]],
+  ['prot_5fread_7',['PROT_READ',['../mman_8h.html#a15bf68ce8b590838b3a5c0b639d8d519',1,'mman.h']]],
+  ['prot_5fwrite_8',['PROT_WRITE',['../mman_8h.html#a2a79c8ceefb8fc25a940ae07a3d94429',1,'mman.h']]],
+  ['putchar_9',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
+  ['puts_10',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
 ];

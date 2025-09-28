@@ -164,6 +164,14 @@ Functions</h2></td></tr>
 <tr class="memitem:afdc475f51b903fd0dabea0dc3281aee8" id="r_afdc475f51b903fd0dabea0dc3281aee8"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8">sys_wait</a> (uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t)</td></tr>
 <tr class="memdesc:afdc475f51b903fd0dabea0dc3281aee8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Blocks the calling unit until the target realm has finished execution.  <br /></td></tr>
 <tr class="separator:afdc475f51b903fd0dabea0dc3281aee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90df8bbe76fb71b09d4f11a26d731aa4" id="r_a90df8bbe76fb71b09d4f11a26d731aa4"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a90df8bbe76fb71b09d4f11a26d731aa4">sys_mmap</a> (uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5)</td></tr>
+<tr class="memdesc:a90df8bbe76fb71b09d4f11a26d731aa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps memory pages into the virtual address space of the calling unit.  <br /></td></tr>
+<tr class="separator:a90df8bbe76fb71b09d4f11a26d731aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b4571041296a4972a34098c18b802fc" id="r_a0b4571041296a4972a34098c18b802fc"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a0b4571041296a4972a34098c18b802fc">sys_munmap</a> (uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t)</td></tr>
+<tr class="separator:a0b4571041296a4972a34098c18b802fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3cf90fbca8a7077eff9721ab4f93630" id="r_ae3cf90fbca8a7077eff9721ab4f93630"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ae3cf90fbca8a7077eff9721ab4f93630">sys_brk</a> (uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)</td></tr>
+<tr class="memdesc:ae3cf90fbca8a7077eff9721ab4f93630"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adjust the program break (end of heap) for the current unit.  <br /></td></tr>
+<tr class="separator:ae3cf90fbca8a7077eff9721ab4f93630"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ac779db2e507c6285951e657e47e3b748" name="ac779db2e507c6285951e657e47e3b748"></a>
@@ -237,6 +245,68 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ae3cf90fbca8a7077eff9721ab4f93630" name="ae3cf90fbca8a7077eff9721ab4f93630"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3cf90fbca8a7077eff9721ab4f93630">&#9670;&#160;</a></span>sys_brk()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t sys_brk </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Adjust the program break (end of heap) for the current unit. </p>
+<p>This syscall sets the end of the user heap to the specified address. If addr is 0, it simply returns the current break.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>New desired end of heap (0 to query current break) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns the new program break. On error, returns negative errno: -EINVAL : addr is below heap start or exceeds limit -ENOMEM : not enough memory to expand </dd></dl>
+
+</div>
+</div>
 <a id="aba1a18094b538aa055e144f694578315" name="aba1a18094b538aa055e144f694578315"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aba1a18094b538aa055e144f694578315">&#9670;&#160;</a></span>sys_close()</h2>
 
@@ -541,6 +611,128 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success, or negative error code (e.g., -EEXIST, -EINVAL). </dd></dl>
+
+</div>
+</div>
+<a id="a90df8bbe76fb71b09d4f11a26d731aa4" name="a90df8bbe76fb71b09d4f11a26d731aa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90df8bbe76fb71b09d4f11a26d731aa4">&#9670;&#160;</a></span>sys_mmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t sys_mmap </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg3</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg4</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg5</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Maps memory pages into the virtual address space of the calling unit. </p>
+<p>This syscall provides anonymous or file-backed memory regions to user programs. It is the low-level primitive used to implement dynamic memory allocators (e.g., malloc/free).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>Desired start address (or 0 for automatic placement). </td></tr>
+    <tr><td class="paramname">arg1</td><td>Length of mapping in bytes (will be page-aligned). </td></tr>
+    <tr><td class="paramname">arg2</td><td>Protection flags (PROT_READ, PROT_WRITE, etc.). </td></tr>
+    <tr><td class="paramname">arg3</td><td>Mapping flags (MAP_ANONYMOUS, MAP_PRIVATE, etc.). </td></tr>
+    <tr><td class="paramname">arg4</td><td>Handle for file-backed mappings (ignored if MAP_ANONYMOUS). </td></tr>
+    <tr><td class="paramname">arg5</td><td>File offset in bytes (must be page-aligned).</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success: starting virtual address of the new mapping. On error: negative errno value: -EINVAL : Invalid arguments (length=0 or bad alignment) -EUNSUPPORTED : Unsupported flags or features -EACCES : Not allowed in current context (e.g. kernel-only) -ENOMEM : Out of memory (physical pages not available) </dd></dl>
+
+</div>
+</div>
+<a id="a0b4571041296a4972a34098c18b802fc" name="a0b4571041296a4972a34098c18b802fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b4571041296a4972a34098c18b802fc">&#9670;&#160;</a></span>sys_munmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t sys_munmap </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd>create doc </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td></td></tr>
+    <tr><td class="paramname">arg1</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>

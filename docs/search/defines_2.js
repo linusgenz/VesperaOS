@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['o_5fcreat_0',['O_CREAT',['../fflags_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc',1,'fflags.h']]],
-  ['o_5frdonly_1',['O_RDONLY',['../fflags_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b',1,'fflags.h']]],
-  ['o_5frdwr_2',['O_RDWR',['../fflags_8h.html#abb0586253488ee61072b73557eeb873b',1,'fflags.h']]],
-  ['o_5fwronly_3',['O_WRONLY',['../fflags_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fflags.h']]]
+  ['map_5fanonymous_0',['MAP_ANONYMOUS',['../mman_8h.html#ae4f86bff73414c5fc08c058f957212f0',1,'mman.h']]],
+  ['map_5ffailed_1',['MAP_FAILED',['../mman_8h.html#a8523dcf952f6ff059a3bed717e4f1296',1,'mman.h']]],
+  ['map_5ffixed_2',['MAP_FIXED',['../mman_8h.html#a387ec707b30c5e78cf20a14517a63b96',1,'mman.h']]],
+  ['map_5fprivate_3',['MAP_PRIVATE',['../mman_8h.html#a398ef47a991a44389aa9818c98a28d24',1,'mman.h']]],
+  ['map_5fshared_4',['MAP_SHARED',['../mman_8h.html#a57028962c2a7c0c802ca6613492f2ef3',1,'mman.h']]]
 ];

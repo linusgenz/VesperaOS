@@ -91,11 +91,15 @@ $(document).ready(function(){initNavTree('stdlib_8h.html',''); initResizable(); 
 <div class="header">
   <div class="summary">
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">stdlib.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &lt;<a class="el" href="sysstd_8h_source.html">sysstd.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="mman_8h_source.html">sys/mman.h</a>&gt;</code><br />
+</div>
 <p><a href="stdlib_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
@@ -114,6 +118,23 @@ Functions</h2></td></tr>
 <tr class="memitem:a17a3a11d20a551951a4acbc3872b280c" id="r_a17a3a11d20a551951a4acbc3872b280c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c">unsetenv</a> (const char *name)</td></tr>
 <tr class="memdesc:a17a3a11d20a551951a4acbc3872b280c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unset an environment variable.  <br /></td></tr>
 <tr class="separator:a17a3a11d20a551951a4acbc3872b280c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c36d0fe3ec4675cbffdc9b52f5fb399" id="r_a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399">malloc</a> (size_t size)</td></tr>
+<tr class="memdesc:a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a block of memory of the specified size.  <br /></td></tr>
+<tr class="separator:a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbedc913aa4651b3c3b4b3aecd9b4711" id="r_afbedc913aa4651b3c3b4b3aecd9b4711"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711">free</a> (void *ptr)</td></tr>
+<tr class="memdesc:afbedc913aa4651b3c3b4b3aecd9b4711"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases a block of memory previously allocated by <a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399" title="Allocates a block of memory of the specified size.">malloc()</a>.  <br /></td></tr>
+<tr class="separator:afbedc913aa4651b3c3b4b3aecd9b4711"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f723f009d0b6f246530cbbac3ec1dd4" id="r_a0f723f009d0b6f246530cbbac3ec1dd4"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4">realloc</a> (void *ptr, size_t new_size)</td></tr>
+<tr class="memdesc:a0f723f009d0b6f246530cbbac3ec1dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reallocates a memory block to a new size.  <br /></td></tr>
+<tr class="separator:a0f723f009d0b6f246530cbbac3ec1dd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2807e26a012717736641384f91ab2563" id="r_a2807e26a012717736641384f91ab2563"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2807e26a012717736641384f91ab2563">calloc</a> (size_t nmemb, size_t size)</td></tr>
+<tr class="memdesc:a2807e26a012717736641384f91ab2563"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates zero-initialized memory for an array.  <br /></td></tr>
+<tr class="separator:a2807e26a012717736641384f91ab2563"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:aa006daaf11f1e2e45a6ababaf463212b" id="r_aa006daaf11f1e2e45a6ababaf463212b"><td class="memItemLeft" align="right" valign="top">char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b">environ</a></td></tr>
+<tr class="separator:aa006daaf11f1e2e45a6ababaf463212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a725ad8f32fd52878db75ae0efa60c3a1" name="a725ad8f32fd52878db75ae0efa60c3a1"></a>
@@ -131,6 +152,72 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a2807e26a012717736641384f91ab2563" name="a2807e26a012717736641384f91ab2563"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2807e26a012717736641384f91ab2563">&#9670;&#160;</a></span>calloc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * calloc </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>nmemb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Allocates zero-initialized memory for an array. </p>
+<p>Equivalent to malloc(nmemb * size) followed by memset to zero.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">nmemb</td><td>Number of array elements. </td></tr>
+    <tr><td class="paramname">size</td><td>Size of each element. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to zero-initialized memory, or NULL on failure. </dd></dl>
+
+</div>
+</div>
+<a id="afbedc913aa4651b3c3b4b3aecd9b4711" name="afbedc913aa4651b3c3b4b3aecd9b4711"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbedc913aa4651b3c3b4b3aecd9b4711">&#9670;&#160;</a></span>free()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void free </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ptr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Releases a block of memory previously allocated by <a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399" title="Allocates a block of memory of the specified size.">malloc()</a>. </p>
+<p>The memory is unmapped using the kernel's sys_munmap. Since this allocator uses mmap per allocation, the entire block is released.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ptr</td><td>Pointer to the memory block to free. If NULL, no action is taken. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a4874ebd55b272ba72e2613dbf2ec8df9" name="a4874ebd55b272ba72e2613dbf2ec8df9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4874ebd55b272ba72e2613dbf2ec8df9">&#9670;&#160;</a></span>getenv()</h2>
 
@@ -165,6 +252,73 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to the value string, or NULL if not found. </dd></dl>
+
+</div>
+</div>
+<a id="a9c36d0fe3ec4675cbffdc9b52f5fb399" name="a9c36d0fe3ec4675cbffdc9b52f5fb399"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c36d0fe3ec4675cbffdc9b52f5fb399">&#9670;&#160;</a></span>malloc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * malloc </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Allocates a block of memory of the specified size. </p>
+<p>The memory is allocated using the kernel's memory mapping syscall (mmap). This is a very basic allocator and does not reuse freed blocks or implement advanced heap management.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">size</td><td>Number of bytes to allocate. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to allocated memory on success, or NULL if allocation failed. </dd></dl>
+
+</div>
+</div>
+<a id="a0f723f009d0b6f246530cbbac3ec1dd4" name="a0f723f009d0b6f246530cbbac3ec1dd4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f723f009d0b6f246530cbbac3ec1dd4">&#9670;&#160;</a></span>realloc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * realloc </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>new_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reallocates a memory block to a new size. </p>
+<p>A new block is allocated with <a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399" title="Allocates a block of memory of the specified size.">malloc()</a>, the old contents are copied, and the old block is freed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ptr</td><td>Pointer to the memory block to resize (may be NULL). </td></tr>
+    <tr><td class="paramname">new_size</td><td>New size in bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to the new memory block on success, or NULL if allocation failed (old block is not freed in this case). </dd></dl>
 
 </div>
 </div>
@@ -237,6 +391,29 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success, -1 if not found. </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="aa006daaf11f1e2e45a6ababaf463212b" name="aa006daaf11f1e2e45a6ababaf463212b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa006daaf11f1e2e45a6ababaf463212b">&#9670;&#160;</a></span>environ</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char** environ</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">extern</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

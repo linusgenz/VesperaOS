@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['o_5fcreat_0',['O_CREAT',['../fflags_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc',1,'fflags.h']]],
-  ['o_5frdonly_1',['O_RDONLY',['../fflags_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b',1,'fflags.h']]],
-  ['o_5frdwr_2',['O_RDWR',['../fflags_8h.html#abb0586253488ee61072b73557eeb873b',1,'fflags.h']]],
-  ['o_5fwronly_3',['O_WRONLY',['../fflags_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fflags.h']]]
+  ['large_5fseg_0',['large_seg',['../structlarge__seg.html',1,'large_seg'],['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'large_seg:&#160;memory.h']]],
+  ['length_1',['length',['../structheap__seg.html#a0e65284fbc1c0e7c7a8f0a0037ed0a7f',1,'heap_seg']]],
+  ['list_2',['Todo List',['../todo.html',1,'']]]
 ];
