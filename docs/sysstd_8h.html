@@ -158,9 +158,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ac0d25831cf3cd6d29e7ea92633d26dfa" id="r_ac0d25831cf3cd6d29e7ea92633d26dfa"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa">sys_write</a> (uint64_t hid, uint64_t buf_ptr, uint64_t count, uint64_t, uint64_t, uint64_t)</td></tr>
 <tr class="memdesc:ac0d25831cf3cd6d29e7ea92633d26dfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to a handle.  <br /></td></tr>
 <tr class="separator:ac0d25831cf3cd6d29e7ea92633d26dfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3d45b4fd7c9c7ef1b9a6a66dcf99198" id="r_af3d45b4fd7c9c7ef1b9a6a66dcf99198"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#af3d45b4fd7c9c7ef1b9a6a66dcf99198">sys_readdir</a> (uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t)</td></tr>
-<tr class="memdesc:af3d45b4fd7c9c7ef1b9a6a66dcf99198"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the next entry in an open directory.  <br /></td></tr>
-<tr class="separator:af3d45b4fd7c9c7ef1b9a6a66dcf99198"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ca4b3eb6d4c4bbc6e96de71899035d2" id="r_a1ca4b3eb6d4c4bbc6e96de71899035d2"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a1ca4b3eb6d4c4bbc6e96de71899035d2">sys_readdir</a> (uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t)</td></tr>
+<tr class="memdesc:a1ca4b3eb6d4c4bbc6e96de71899035d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the next entry in an open directory.  <br /></td></tr>
+<tr class="separator:a1ca4b3eb6d4c4bbc6e96de71899035d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afdc475f51b903fd0dabea0dc3281aee8" id="r_afdc475f51b903fd0dabea0dc3281aee8"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8">sys_wait</a> (uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t)</td></tr>
 <tr class="memdesc:afdc475f51b903fd0dabea0dc3281aee8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Blocks the calling unit until the target realm has finished execution.  <br /></td></tr>
 <tr class="separator:afdc475f51b903fd0dabea0dc3281aee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -168,6 +168,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:a90df8bbe76fb71b09d4f11a26d731aa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps memory pages into the virtual address space of the calling unit.  <br /></td></tr>
 <tr class="separator:a90df8bbe76fb71b09d4f11a26d731aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b4571041296a4972a34098c18b802fc" id="r_a0b4571041296a4972a34098c18b802fc"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a0b4571041296a4972a34098c18b802fc">sys_munmap</a> (uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t)</td></tr>
+<tr class="memdesc:a0b4571041296a4972a34098c18b802fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unmaps memory pages from the virtual address space of the calling unit.  <br /></td></tr>
 <tr class="separator:a0b4571041296a4972a34098c18b802fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3cf90fbca8a7077eff9721ab4f93630" id="r_ae3cf90fbca8a7077eff9721ab4f93630"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ae3cf90fbca8a7077eff9721ab4f93630">sys_brk</a> (uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)</td></tr>
 <tr class="memdesc:ae3cf90fbca8a7077eff9721ab4f93630"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adjust the program break (end of heap) for the current unit.  <br /></td></tr>
@@ -724,15 +725,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd>create doc </dd></dl>
+
+<p>Unmaps memory pages from the virtual address space of the calling unit. </p>
+<p>This syscall removes a previously established mapping created by <a class="el" href="sysstd_8h.html#a90df8bbe76fb71b09d4f11a26d731aa4" title="Maps memory pages into the virtual address space of the calling unit.">sys_mmap</a>. The specified range of virtual addresses is released, and future accesses to the region will trigger a page fault.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">arg0</td><td></td></tr>
-    <tr><td class="paramname">arg1</td><td></td></tr>
+    <tr><td class="paramname">arg0</td><td>Starting virtual address of the mapping to remove (must be page-aligned). </td></tr>
+    <tr><td class="paramname">arg1</td><td>Length of the region to unmap in bytes (will be page-aligned).</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>On success: 0. On error: negative errno value: -EINVAL : Invalid arguments (unaligned address/length, or not mapped) -EACCES : Region cannot be unmapped (e.g., kernel-only mapping) </dd></dl>
 
 </div>
 </div>
@@ -861,8 +864,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af3d45b4fd7c9c7ef1b9a6a66dcf99198" name="af3d45b4fd7c9c7ef1b9a6a66dcf99198"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3d45b4fd7c9c7ef1b9a6a66dcf99198">&#9670;&#160;</a></span>sys_readdir()</h2>
+<a id="a1ca4b3eb6d4c4bbc6e96de71899035d2" name="a1ca4b3eb6d4c4bbc6e96de71899035d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ca4b3eb6d4c4bbc6e96de71899035d2">&#9670;&#160;</a></span>sys_readdir()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -883,7 +886,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>arg2</em>, </td>
+          <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -914,13 +917,12 @@ Functions</h2></td></tr>
 <p>Reads the next entry in an open directory. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">arg0</td><td>Handle ID of the directory (returned by sys_open) </td></tr>
-    <tr><td class="paramname">arg1</td><td>Pointer to a user-space buffer where the entry name will be copied </td></tr>
-    <tr><td class="paramname">arg2</td><td>Size of the user-space buffer in bytes</td></tr>
+    <tr><td class="paramname">arg0</td><td>Handle ID of the directory (returned by sys_open). </td></tr>
+    <tr><td class="paramname">arg1</td><td>Pointer to a user-space buffer where the <a class="el" href="structdirent__t.html" title="Structure representing a directory entry.">dirent_t</a> will be copied. Must be at least sizeof(dirent_t) bytes.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, returns the number of bytes written to the buffer (always &gt; 0 if an entry exists). Returns 0 if there are no more entries. Returns negative errno on error: -EINVAL : Invalid parameters or buffer -EBADH : Invalid handle -EACCES : Insufficient capabilities </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns 1 (entry was read). Returns 0 if there are no more entries. Returns negative errno on error: -EINVAL : Invalid parameters or buffer -EBADH : Invalid handle -EACCES : Insufficient capabilities </dd></dl>
 
 </div>
 </div>

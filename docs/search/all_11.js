@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['todo_20list_0',['Todo List',['../todo.html',1,'']]]
+  ['type_0',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t']]]
 ];

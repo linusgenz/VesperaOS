@@ -32,7 +32,7 @@ var searchData=
   ['sys_5fmunmap_29',['sys_munmap',['../sysstd_8h.html#a0b4571041296a4972a34098c18b802fc',1,'sysstd.h']]],
   ['sys_5fopen_30',['sys_open',['../sysstd_8h.html#aec8842c92992b9470ba675d7109b419c',1,'sysstd.h']]],
   ['sys_5fread_31',['sys_read',['../sysstd_8h.html#a7166a7249135d5c8db774be86fc02286',1,'sysstd.h']]],
-  ['sys_5freaddir_32',['sys_readdir',['../sysstd_8h.html#af3d45b4fd7c9c7ef1b9a6a66dcf99198',1,'sysstd.h']]],
+  ['sys_5freaddir_32',['sys_readdir',['../sysstd_8h.html#a1ca4b3eb6d4c4bbc6e96de71899035d2',1,'sysstd.h']]],
   ['sys_5freboot_33',['sys_reboot',['../sysstd_8h.html#a7760fa106444c95639e69e852f60d6f9',1,'sysstd.h']]],
   ['sys_5frename_34',['sys_rename',['../sysstd_8h.html#addf800dce49c6303609ee01d5b277c7a',1,'sysstd.h']]],
   ['sys_5frmdir_35',['sys_rmdir',['../sysstd_8h.html#a98a4a38800fb99619b72783c1ed307a5',1,'sysstd.h']]],

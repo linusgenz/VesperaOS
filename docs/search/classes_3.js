@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rtc_5fdata_0',['rtc_data',['../structrtc__data.html',1,'']]]
+  ['large_5fseg_0',['large_seg',['../structlarge__seg.html',1,'']]]
 ];

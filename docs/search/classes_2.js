@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['large_5fseg_0',['large_seg',['../structlarge__seg.html',1,'']]]
+  ['heap_5fseg_0',['heap_seg',['../structheap__seg.html',1,'']]]
 ];
