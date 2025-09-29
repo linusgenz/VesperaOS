@@ -4,9 +4,9 @@
 
 BasicRenderer *global_renderer;
 
-BasicRenderer::BasicRenderer(Framebuffer *targetFramebuffer, PSF1_FONT *psf1_Font) {
+BasicRenderer::BasicRenderer(Framebuffer *targetFramebuffer, FONT *font) {
     TargetFramebuffer = targetFramebuffer;
-    PSF1_Font = psf1_Font;
+    PSF_Font = font;
     colour = Colour::WHITE;
     bg_colour = Colour::BLACK;
     cursor_position = {0, 0};
@@ -20,7 +20,7 @@ void BasicRenderer::print(const char *str) {
             new_line();
         } else {
             put_char(*chr, cursor_position.X, cursor_position.Y);
-            increment_cursorX(8);
+            increment_cursorX(PSF_Font->width);
             if (cursor_position.X + 8 > TargetFramebuffer->width) {
                 new_line();
             }
@@ -35,8 +35,8 @@ void BasicRenderer::print(const char *str, size_t length) {
             new_line();
         } else {
             put_char(str[i], cursor_position.X, cursor_position.Y);
-            increment_cursorX(8);
-            if (cursor_position.X + 8 > TargetFramebuffer->width) {
+            increment_cursorX(PSF_Font->width);
+            if (cursor_position.X + PSF_Font->width > TargetFramebuffer->width) {
                 new_line();
             }
         }
@@ -122,7 +122,7 @@ void BasicRenderer::draw_overlay_mouse_cursor(const uint8_t *mouse_cursor, const
 void BasicRenderer::clear_char() {
     if (cursor_position.X == 0) {
         cursor_position.X = TargetFramebuffer->width;
-        cursor_position.Y -= 16;
+        cursor_position.Y -= PSF_Font->height;
         if (cursor_position.Y < 0) cursor_position.Y = 0;
     }
 
@@ -130,8 +130,8 @@ void BasicRenderer::clear_char() {
     uint32_t y_off = cursor_position.Y;
 
     uint32_t *pixPtr = (uint32_t *) TargetFramebuffer->base_address;
-    for (unsigned long y = y_off; y < y_off + 16; y++) {
-        for (unsigned long x = x_off - 8; x < x_off; x++) {
+    for (unsigned long y = y_off; y < y_off + PSF_Font->height; y++) {
+        for (unsigned long x = x_off - PSF_Font->width; x < x_off; x++) {
             *(uint32_t *) (pixPtr + x + (y * TargetFramebuffer->pixels_per_scanline)) = bg_colour;
         }
     }
@@ -140,7 +140,7 @@ void BasicRenderer::clear_char() {
 
     if (cursor_position.X < 0) {
         cursor_position.X = TargetFramebuffer->width;
-        cursor_position.Y -= 16;
+        cursor_position.Y -= PSF_Font->height;
         if (cursor_position.Y < 0) cursor_position.Y = 0;
     }
 }
@@ -148,21 +148,26 @@ void BasicRenderer::clear_char() {
 void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff) {
     if (chr == '\0') return;
     auto *pix_ptr = (uint32_t *) TargetFramebuffer->base_address;
-    const char *font_ptr = (char *) PSF1_Font->glyphBuffer + (chr * PSF1_Font->psf1_header->charsize);
-    for (unsigned long y = 0; y < 16; y++) {
-        for (unsigned long x = 0; x < 8; x++) {
-            const uint32_t color_to_draw = ((*font_ptr & (0b10000000 >> x)) != 0) ? colour : bg_colour;
-            *(pix_ptr + (xOff + x) + (yOff + y) * TargetFramebuffer->pixels_per_scanline) = color_to_draw;
+    const char *glyph = (char *) PSF_Font->glyphBuffer + (chr * PSF_Font->charsize);
+    for (uint32_t y = 0; y < PSF_Font->height; y++) {
+        uint32_t row = 0;
+        for (uint32_t bx = 0; bx < (PSF_Font->width + 7) / 8; bx++) {
+            uint8_t byte = glyph[y * ((PSF_Font->width + 7) / 8) + bx];
+            for (uint32_t bit = 0; bit < 8; bit++) {
+                uint32_t x = bx * 8 + bit;
+                if (x >= PSF_Font->width) break;
+                uint32_t color_to_draw = (byte & (0x80 >> bit)) ? colour : bg_colour;
+                *(pix_ptr + (xOff + x) + (yOff + y) * TargetFramebuffer->pixels_per_scanline) = color_to_draw;
+            }
         }
-        font_ptr++;
     }
 }
 
 void BasicRenderer::put_char(char chr) {
     clear_cursor(cursor_position.X, cursor_position.Y);
     put_char(chr, cursor_position.X, cursor_position.Y);
-    cursor_position.X += 8;
-    if (cursor_position.X + 8 > TargetFramebuffer->width) {
+    cursor_position.X += PSF_Font->width;
+    if (cursor_position.X + PSF_Font->width > TargetFramebuffer->width) {
         new_line();
     }
     // draw_cursor();
@@ -171,8 +176,8 @@ void BasicRenderer::put_char(char chr) {
 void BasicRenderer::draw_cursor() const {
     uint32_t *pix_ptr = (uint32_t *) TargetFramebuffer->base_address;
 
-    uint64_t max_y = min(cursor_position.Y + 16, TargetFramebuffer->height);
-    uint64_t max_x = min(cursor_position.X + 8, TargetFramebuffer->width);
+    uint64_t max_y = min(cursor_position.Y + PSF_Font->height, TargetFramebuffer->height);
+    uint64_t max_x = min(cursor_position.X + PSF_Font->width, TargetFramebuffer->width);
 
     for (uint64_t y = cursor_position.Y; y < max_y; y++) {
         for (uint64_t x = cursor_position.X; x < max_x; x++) {
@@ -184,8 +189,8 @@ void BasicRenderer::draw_cursor() const {
 void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const {
     uint32_t *pix_ptr = (uint32_t *) TargetFramebuffer->base_address;
 
-    uint64_t max_y = min(y_pos + 16, TargetFramebuffer->height);
-    uint64_t max_x = min(x_pos + 8, TargetFramebuffer->width);
+    uint64_t max_y = min(y_pos + PSF_Font->height, TargetFramebuffer->height);
+    uint64_t max_x = min(x_pos + PSF_Font->width, TargetFramebuffer->width);
 
     for (uint64_t y = y_pos; y < max_y; y++) {
         for (uint64_t x = x_pos; x < max_x; x++) {
@@ -196,11 +201,11 @@ void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const {
 
 void BasicRenderer::new_line() {
     cursor_position.X = 0;
-    cursor_position.Y += 16;
+    cursor_position.Y += PSF_Font->height;
 
-    if (cursor_position.Y + 16 >= TargetFramebuffer->height) {
+    if (cursor_position.Y + PSF_Font->height >= TargetFramebuffer->height) {
         scroll_manager->setup_new_line();
-        cursor_position.Y -= 16;
+        cursor_position.Y -= PSF_Font->height;
     }
 }
 

@@ -9,10 +9,10 @@
 
 class BasicRenderer{
     public:
-    BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font);
+    BasicRenderer(Framebuffer* targetFramebuffer, FONT* font);
 
     Framebuffer* TargetFramebuffer;
-    PSF1_FONT* PSF1_Font;
+    FONT* PSF_Font;
     void print(const char* str);
 
     void print(const char *str, size_t length);

@@ -34,7 +34,7 @@
 #define REBOOT_POWER_OFF  1
 #define REBOOT_HALT  2
 
-static int64_t syscall(uint64_t num,
+int64_t syscall(uint64_t num,
                 uint64_t arg0,
                 uint64_t arg1,
                 uint64_t arg2,

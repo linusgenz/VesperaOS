@@ -228,13 +228,14 @@ static CPUInfoDevice* cpuinfo_dev = nullptr;
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
-ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr);
+ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
 static BasicRenderer renderer = BasicRenderer(nullptr, nullptr);
 Framebuffer *TargetFramebuffer = nullptr;
 
 void initialize_kernel(BootInfo *bootInfo) {
     zero_bss();
-    renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->psf1_font);
+
+    renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->font);
     Log::SetRenderer(&renderer);
     global_renderer = &renderer;
 
@@ -278,7 +279,7 @@ void initialize_kernel(BootInfo *bootInfo) {
     asm ("sti");
 
     //  setup_scroll_buffer(bootInfo->framebuffer);
-    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer);
+    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer, bootInfo->font->height);
     scroll_manager = &s;
 
     Log::init(); // threads are possible -> switch to mutex

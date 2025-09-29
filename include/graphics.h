@@ -44,8 +44,26 @@ typedef struct {
 } PSF1_HEADER;
 
 typedef struct {
-	PSF1_HEADER* psf1_header;
+	void* header;       // PSF1_HEADER* or PSF2_HEADER*
 	void* glyphBuffer;
-} PSF1_FONT;
+	uint32_t type;      // 1 = PSF1, 2 = PSF2
+	uint32_t width;
+	uint32_t height;
+	uint32_t charsize;
+} FONT;
+
+#define PSF2_MAGIC 0x864ab572
+
+typedef struct {
+	uint32_t magic;        // 0x864ab572
+	uint32_t version;      // 0
+	uint32_t headersize;   // offset of bitmaps in file
+	uint32_t flags;        // 0 = keine Unicode Tabelle
+	uint32_t length;       // Anzahl der Glyphen
+	uint32_t charsize;     // Bytes pro Glyph
+	uint32_t height;       // Pixelhöhe
+	uint32_t width;        // Pixelbreite
+} PSF2_HEADER;
+
 
 #endif //GRAHICS_H

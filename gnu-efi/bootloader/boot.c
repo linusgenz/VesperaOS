@@ -1,11 +1,11 @@
-#include <efi.h>
-#include <efilib.h>
+#include "../inc/efi.h"
+#include "../inc/efilib.h"
 #include <elf.h>
 #include "../../include/graphics.h"
 
 typedef struct {
 	Framebuffer* framebuffer;
-	PSF1_FONT* psf1_font;
+	FONT* psf_font;
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	UINTN mMapSize;
 	UINTN mMapDescriptorSize;
@@ -100,37 +100,65 @@ Framebuffer* InitializeGOP(){
 	return &framebuffer;
 }
 
-PSF1_FONT* LoadPSF1Font(EFI_FILE* Directory, CHAR16* Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SysTbl) {
-	EFI_FILE* font = LoadFile(Directory, Path, ImageHandle, SysTbl);
-	if (font == NULL) return NULL;
+FONT* LoadFont(EFI_FILE* Directory, CHAR16* Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SysTbl) {
+    EFI_FILE* fontFile = LoadFile(Directory, Path, ImageHandle, SysTbl);
+    if (!fontFile) return NULL;
 
-	PSF1_HEADER* fontHeader;
-	SysTbl->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_HEADER), (void**)&fontHeader);
-	UINTN size = sizeof(PSF1_HEADER);
-	font->Read(font, &size, fontHeader);
+    // Erstmal Magic lesen
+    uint32_t magic;
+    UINTN magicSize = sizeof(magic);
+    fontFile->Read(fontFile, &magicSize, &magic);
 
-	if (fontHeader->magic[0] != PSF1_MAGIC0 || fontHeader->magic[1] != PSF1_MAGIC1) {
-		return NULL;
-	}
+    FONT* loadedFont;
+    SysTbl->BootServices->AllocatePool(EfiLoaderData, sizeof(FONT), (void**)&loadedFont);
 
-	UINTN glyphBufferSize = fontHeader->charsize * 256;
-	if (fontHeader->mode == 1) { // 512 glyph mode
-		glyphBufferSize = fontHeader->charsize * 512;
-	}
+    if ((magic & 0xFFFF) == ((PSF1_MAGIC1 << 8) | PSF1_MAGIC0)) {
+        // --- PSF1 ---
+        fontFile->SetPosition(fontFile, 0);
+        PSF1_HEADER* hdr;
+        SysTbl->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_HEADER), (void**)&hdr);
+        UINTN hdrSize = sizeof(PSF1_HEADER);
+        fontFile->Read(fontFile, &hdrSize, hdr);
 
-	void* glyphBuffer;
-	{
-		font->SetPosition(font, sizeof(PSF1_HEADER));
-		SysTbl->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void**)&glyphBuffer);
-		font->Read(font, &glyphBufferSize, glyphBuffer);
-	}
+        UINTN glyphBufferSize = hdr->charsize * ((hdr->mode == 1) ? 512 : 256);
+        void* glyphBuffer;
+        fontFile->SetPosition(fontFile, sizeof(PSF1_HEADER));
+        SysTbl->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void**)&glyphBuffer);
+        fontFile->Read(fontFile, &glyphBufferSize, glyphBuffer);
 
-	PSF1_FONT* loadedFont;
-	SysTbl->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_FONT), (void**)&loadedFont);
-	loadedFont->psf1_header = fontHeader;
-	loadedFont->glyphBuffer = glyphBuffer;
-	return loadedFont;
+        loadedFont->header = hdr;
+        loadedFont->glyphBuffer = glyphBuffer;
+        loadedFont->type = 1;
+        loadedFont->width = 8;
+        loadedFont->height = hdr->charsize;
+        loadedFont->charsize = hdr->charsize;
 
+    } else if (magic == PSF2_MAGIC) {
+        // --- PSF2 ---
+        fontFile->SetPosition(fontFile, 0);
+        PSF2_HEADER* hdr;
+        SysTbl->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF2_HEADER), (void**)&hdr);
+        UINTN hdrSize = sizeof(PSF2_HEADER);
+        fontFile->Read(fontFile, &hdrSize, hdr);
+
+        UINTN glyphBufferSize = hdr->charsize * hdr->length;
+        void* glyphBuffer;
+        fontFile->SetPosition(fontFile, hdr->headersize);
+        SysTbl->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void**)&glyphBuffer);
+        fontFile->Read(fontFile, &glyphBufferSize, glyphBuffer);
+
+        loadedFont->header = hdr;
+        loadedFont->glyphBuffer = glyphBuffer;
+        loadedFont->type = 2;
+        loadedFont->width = hdr->width;
+        loadedFont->height = hdr->height;
+        loadedFont->charsize = hdr->charsize;
+
+    } else {
+        return NULL;
+    }
+
+    return loadedFont;
 }
 
 EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
@@ -206,11 +234,16 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 
     InitializeGOP();
 
-	PSF1_FONT* font = LoadPSF1Font(NULL, L"zap-light16.psf", ImageHandle, SysTbl);
+	FONT* font = LoadFont(NULL, L"zap-light24.psf", ImageHandle, SysTbl);
 	if (font == NULL) {
 		Print(L"Font invalid or not found");
 	} else {
-		Print(L"Font found. char size = %d\n\r", font->psf1_header->charsize);
+		if (font->type == 1) {
+			Print(L"PSF1 Font found. char size = %d width: %u height: %u\n\r", font->charsize, font->height, font->width);
+		}
+		else if (font->type == 2) {
+			Print(L"PSF2 Font found. char size = %d width: %u height: %u\n\r", font->charsize, font->height, font->width);
+		}
 	}
 
 	EFI_CONFIGURATION_TABLE* config_table = ST->ConfigurationTable;
@@ -242,7 +275,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 	}
 
 	bootInfo.framebuffer = &framebuffer;
-	bootInfo.psf1_font = font;
+	bootInfo.psf_font = font;
 	bootInfo.mMap = Map;
 	bootInfo.mMapSize = MapSize;
 	bootInfo.mMapDescriptorSize = DescriptorSize;

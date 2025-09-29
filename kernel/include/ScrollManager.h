@@ -13,7 +13,7 @@ class BasicRenderer;
 
 class ScrollManager {
     public:
-        ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer* r);
+        ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer* r, uint32_t font_height);
 
     private:
         struct ScrollBuffer {
@@ -27,6 +27,8 @@ class ScrollManager {
             bool up;
             bool down;
          };
+
+        uint32_t f_height;
 
         BasicRenderer* renderer;
 

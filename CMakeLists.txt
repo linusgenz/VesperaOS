@@ -31,6 +31,13 @@ target_include_directories(kernel.elf PRIVATE
 )
 
 # Bootloader
+add_library(bootloader-lint STATIC
+        ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.c
+)
+
+set_target_properties(bootloader-lint PROPERTIES
+        LINKER_LANGUAGE C
+)
 add_custom_target(bootloader
         COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -106,6 +113,9 @@ add_custom_target(disk_image
         COMMAND sudo cp ${BOOTLOADER_EFI} ${EFI_DIR}/BOOTX64.EFI
         COMMAND sudo cp ${CMAKE_BINARY_DIR}/kernel.elf ${EFI_DIR}/kernel.elf
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light16.psf mnt/zap-light16.psf
+        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-vga16.psf mnt/zap-vga16.psf
+        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light32.psf mnt/zap-light32.psf
+        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light24.psf mnt/zap-light24.psf
         COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/startup.nsh mnt/
         COMMAND sudo umount mnt
         COMMAND sudo ${CMAKE_COMMAND} -E rm -rf mnt

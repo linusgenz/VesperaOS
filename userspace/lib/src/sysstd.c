@@ -46,7 +46,7 @@
 #define SYSCALL_REBOOT    169
 #define SYSCALL_READDIR   217
 
-static int64_t syscall(
+int64_t syscall(
     uint64_t num,
     uint64_t arg0,
     uint64_t arg1,

@@ -3,11 +3,13 @@
  * @section intro_sec Introduction
  *
  * This is the documentation for the **VesperaOS Standard Library**.
+ *
  * It provides basic functions and abstractions:
  *more to come
  *
  * @section contact_sec Contact
  *
- * Projekt: https://github.com/dein-repo
- * Lizenz: MIT
+ * Project: https://github.com/linusgenz/VesperaOS
+ *
+ * License: MIT
  */

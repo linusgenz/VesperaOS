@@ -7,7 +7,7 @@
 #include "../include/basic_renderer.h"
 ScrollManager* scroll_manager;
 
-ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer *r)
+ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer *r, uint32_t font_height)
 {
     top_buffer = {buffer_top, 0, 0, 0};
     bottom_buffer = {buffer_bottom, 0, 0, 0};
@@ -16,6 +16,8 @@ ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Fram
     framebuffer_base = (uint32_t*)fb->base_address;
     bytes_per_scanline = fb->pixels_per_scanline * sizeof(uint32_t);
     renderer = r;
+    f_height = font_height;
+
 }
 
 void ScrollManager::setup_new_line()
@@ -96,12 +98,12 @@ void ScrollManager::restore_line_from_bottom_buffer()
     uint32_t screen_height = framebuffer->height;
 
     bottom_buffer.pos =
-        (bottom_buffer.start - 16 + max_lines_in_buffer) % max_lines_in_buffer;
+        (bottom_buffer.start - f_height + max_lines_in_buffer) % max_lines_in_buffer;
 
-    uint32_t* bottom_line_addr = framebuffer_base + screen_width * (screen_height - 16);
+    uint32_t* bottom_line_addr = framebuffer_base + screen_width * (screen_height - f_height);
     memcpy(bottom_line_addr,
            &bottom_buffer.buffer[bottom_buffer.pos * screen_width],
-           bytes_per_scanline * 16);
+           bytes_per_scanline * f_height);
 
     bottom_buffer.start = bottom_buffer.pos;
     bottom_buffer.lines_in_buffer--;
@@ -112,11 +114,11 @@ void ScrollManager::restore_line_from_top_buffer()
     uint32_t screen_width = framebuffer->width;
 
     top_buffer.pos =
-        (top_buffer.start - 16 + max_lines_in_buffer) % max_lines_in_buffer;
+        (top_buffer.start - f_height + max_lines_in_buffer) % max_lines_in_buffer;
 
     memcpy(framebuffer_base,
            &top_buffer.buffer[top_buffer.pos * screen_width],
-           bytes_per_scanline * 16);
+           bytes_per_scanline * f_height);
 
     top_buffer.start = top_buffer.pos;
     top_buffer.lines_in_buffer--;
@@ -127,9 +129,9 @@ void ScrollManager::save_bottom_line_to_buffer()
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
 
-    for (uint32_t i = 0; i < 16; i++)
+    for (uint32_t i = 0; i < f_height; i++)
     {
-        uint32_t bottom_line_index = screen_height - 16 + i;
+        uint32_t bottom_line_index = screen_height - f_height + i;
         bottom_buffer.pos =
             (bottom_buffer.start + i) % max_lines_in_buffer;
 
@@ -138,7 +140,7 @@ void ScrollManager::save_bottom_line_to_buffer()
                bytes_per_scanline);
     }
 
-    bottom_buffer.start = (bottom_buffer.start + 16) % max_lines_in_buffer;
+    bottom_buffer.start = (bottom_buffer.start + f_height) % max_lines_in_buffer;
     bottom_buffer.lines_in_buffer++;
 }
 
@@ -146,7 +148,7 @@ void ScrollManager::save_top_lines_to_buffer()
 {
     uint32_t screen_width = framebuffer->width;
 
-    for (uint32_t i = 0; i < 16; i++)
+    for (uint32_t i = 0; i < f_height; i++)
     {
         uint32_t top_buffer_index =
             (top_buffer.start + i) % max_lines_in_buffer;
@@ -157,7 +159,7 @@ void ScrollManager::save_top_lines_to_buffer()
     }
 
     top_buffer.lines_in_buffer++;
-    top_buffer.start = (top_buffer.start + 16) % max_lines_in_buffer;
+    top_buffer.start = (top_buffer.start + f_height) % max_lines_in_buffer;
 }
 
 void ScrollManager::shift_lines_up() const
@@ -165,9 +167,9 @@ void ScrollManager::shift_lines_up() const
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
 
-    for (uint32_t y = 0; y < screen_height - 16; y++)
+    for (uint32_t y = 0; y < screen_height - f_height; y++)
     {
-        uint32_t* src_offset = framebuffer_base + (y + 16) * screen_width;
+        uint32_t* src_offset = framebuffer_base + (y + f_height) * screen_width;
         uint32_t* dest_offset = framebuffer_base + y * screen_width;
 
         memcpy(dest_offset, src_offset, bytes_per_scanline);
@@ -179,9 +181,9 @@ void ScrollManager::shift_lines_down() const
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
 
-    for (int64_t y = screen_height - 1; y >= 16; y--)
+    for (int64_t y = screen_height - 1; y >= f_height; y--)
     {
-        uint32_t* src_offset = framebuffer_base + (y - 16) * screen_width;
+        uint32_t* src_offset = framebuffer_base + (y - f_height) * screen_width;
         uint32_t* dest_offset = framebuffer_base + y * screen_width;
 
         memcpy(dest_offset, src_offset, bytes_per_scanline);
@@ -193,8 +195,8 @@ void ScrollManager::clear_last_line() const
     uint32_t screen_width = framebuffer->width;
     uint32_t screen_height = framebuffer->height;
 
-    uint32_t* clear_line_addr = framebuffer_base + screen_width * (screen_height - 16);
-    memset(clear_line_addr, 0, bytes_per_scanline * 16);
+    uint32_t* clear_line_addr = framebuffer_base + screen_width * (screen_height - f_height);
+    memset(clear_line_addr, 0, bytes_per_scanline * f_height);
 }
 
 bool ScrollManager::can_scroll_up() const
