@@ -33,7 +33,7 @@ namespace input::keyboard::qwerty {
     constexpr uint8_t BACKSPACE   = 0x0E;
     constexpr uint8_t SPACEBAR    = 0x39;
 
-    char translate(uint8_t scancode, bool uppercase);
+    char translate(uint8_t usage_id, bool shift);
 
 }
 

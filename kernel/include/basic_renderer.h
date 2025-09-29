@@ -25,9 +25,9 @@ class BasicRenderer{
     inline void set_cursorY(int32_t y);
     inline void set_cursor(Point pt);
     inline void set_colour(Colour colour);
-    inline Colour get_colour() const;
-    Colour get_clear_color() const;
-    inline void set_clear_color(Colour colour);
+    [[nodiscard]] inline Colour get_colour() const;
+    [[nodiscard]] inline Colour get_bg_colour() const;
+    inline void set_bg_colour(Colour colour);
     inline void increment_cursorX(int32_t x);
     inline void increment_cursorY(int32_t y);
     void new_line();
@@ -44,7 +44,7 @@ class BasicRenderer{
     private:
     Point cursor_position;
     Colour colour;
-    Colour clear_colour;
+    Colour bg_colour;
     bool mouse_drawn;
 };
 
@@ -77,12 +77,12 @@ inline Colour BasicRenderer::get_colour() const {
     return colour;
 }
 
-inline Colour BasicRenderer::get_clear_color() const {
-    return clear_colour;
+inline Colour BasicRenderer::get_bg_colour() const {
+    return bg_colour;
 }
 
-inline void BasicRenderer::set_clear_color(Colour new_colour) {
-    clear_colour = new_colour;
+inline void BasicRenderer::set_bg_colour(Colour new_colour) {
+    bg_colour = new_colour;
 }
 
 extern BasicRenderer* global_renderer;

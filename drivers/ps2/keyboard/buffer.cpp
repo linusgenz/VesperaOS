@@ -1,4 +1,4 @@
-// qwerty.cpp
+// buffer.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
@@ -21,33 +21,38 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "qwerty.h"
+#include "buffer.h"
+#include "keyboard.h"
+#include "../../../include/log.h"
 
-namespace input::keyboard::qwerty {
+namespace input::keyboard {
 
-    const char ascii_table[] = {
-        0 ,  0 , '1', '2',
-       '3', '4', '5', '6',
-       '7', '8', '9', '0',
-       '-', '=',  0 ,  0 ,
-       'q', 'w', 'e', 'r',
-       't', 'y', 'u', 'i',
-       'o', 'p', '[', ']',
-        0 ,  0 , 'a', 's',
-       'd', 'f', 'g', 'h',
-       'j', 'k', 'l', ';',
-       '\'', '`', 0 , '\\',
-       'z', 'x', 'c', 'v',
-       'b', 'n', 'm', ',',
-       '.', '/', 0 , '*',
-        0 , ' '
-   };
+    static char buffer[BUFFER_SIZE];
+    static int head = 0;
+    static int tail = 0;
 
-    char translate(uint8_t scancode, bool uppercase) {
-        if (scancode > sizeof(ascii_table)) return 0;
-        char c = ascii_table[scancode];
-        if (uppercase && c >= 'a' && c <= 'z') c -= 32;
-        return c;
+    void init_buffer() {
+        head = 0;
+        tail = 0;
+    }
+
+    bool buffer_read_char(char& c) {
+        if (head == tail) return false;
+        c = buffer[tail];
+        tail = (tail + 1) % BUFFER_SIZE;
+        return true;
+    }
+
+    void write_char(char c) {
+        int next = (head + 1) % BUFFER_SIZE;
+        if (next != tail) {
+            buffer[head] = c;
+            head = next;
+        }
+    }
+
+    bool is_empty() {
+        return head == tail;
     }
 
 }

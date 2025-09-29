@@ -301,7 +301,7 @@ void *DevFS::open_dir(VfsNode *dir) {
     return h;
 }
 
-int DevFS::read_dir(void *dir_handle, char *out_name, size_t max_len) {
+int DevFS::read_dir(void *dir_handle, dirent_t *out) {
     auto* h = (DevfsDirHandle*) dir_handle;
     VfsNode* dir = h->dir_node;
 
@@ -310,16 +310,28 @@ int DevFS::read_dir(void *dir_handle, char *out_name, size_t max_len) {
         if (e->parent != dir) continue;
 
         if (count == h->index) {
-            strncpy(out_name, e->node->name, max_len - 1);
-            out_name[max_len - 1] = '\0';
+            strncpy(out->name, e->node->name, sizeof(out->name) - 1);
+            out->name[sizeof(out->name) - 1] = '\0';
+
+            if (e->node->type == VfsNodeType::Directory) {
+                out->type = DT_DIR;
+            } else if (e->node->type == VfsNodeType::Device) {
+                out->type = DT_CHARDEV;
+            } else if (e->node->type == VfsNodeType::Device) {
+                out->type = DT_BLOCKDEV;
+            } else {
+                out->type = DT_FILE;
+            }
+
             h->index++;
-            return strlen(out_name);
+            return 1;
         }
         count++;
     }
 
     return 0;
 }
+
 
 
 void DevFS::close_dir(void *dir_handle) {

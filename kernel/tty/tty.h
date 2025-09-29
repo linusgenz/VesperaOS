@@ -38,20 +38,25 @@ namespace kernel::tty {
 
     struct TTY {
         static constexpr size_t BUFFER_SIZE = 1024;
+        static constexpr size_t MAX_PARAMS = 16;
 
         char canon_buffer[BUFFER_SIZE];
         size_t canon_len = 0;
         bool line_ready = false;
-
         bool canonical = true;
 
-        // Escape-Sequenz Parser
         EscapeState esc_state = EscapeState::NONE;
         int esc_param = 0;
+        int esc_params[MAX_PARAMS] = {0};
+        int esc_param_count = 0;
 
         size_t cursor_x = 0;
         size_t cursor_y = 0;
+
+        Colour fg = WHITE;
+        Colour bg = BLACK;
     };
+
 
     extern TTY tty_instances[6];
     extern TTYDevice *tty_devices[6];
@@ -62,8 +67,6 @@ namespace kernel::tty {
     void tty_handle_input(const kernel::input::InputEvent &ev);
 
     void tty_process_output(TTY *tty, char c);
-
-    void tty_handle_char(TTY *tty, char c);
 
     void tty_clear(TTY *tty);
 

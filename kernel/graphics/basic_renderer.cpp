@@ -2,19 +2,19 @@
 
 #include "../../include/string.h"
 
-BasicRenderer* global_renderer;
+BasicRenderer *global_renderer;
 
-BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, PSF1_FONT* psf1_Font) {
+BasicRenderer::BasicRenderer(Framebuffer *targetFramebuffer, PSF1_FONT *psf1_Font) {
     TargetFramebuffer = targetFramebuffer;
     PSF1_Font = psf1_Font;
     colour = Colour::WHITE;
-    clear_colour = Colour::BLACK;
+    bg_colour = Colour::BLACK;
     cursor_position = {0, 0};
     cursor_visible = true;
 }
 
-void BasicRenderer::print(const char* str) {
-    char* chr = (char*)str;
+void BasicRenderer::print(const char *str) {
+    char *chr = (char *) str;
     while (*chr != 0) {
         if (*chr == '\n') {
             new_line();
@@ -29,7 +29,7 @@ void BasicRenderer::print(const char* str) {
     }
 }
 
-void BasicRenderer::print(const char* str, size_t length) {
+void BasicRenderer::print(const char *str, size_t length) {
     for (size_t i = 0; i < length; i++) {
         if (str[i] == '\n') {
             new_line();
@@ -49,26 +49,29 @@ void BasicRenderer::clear() {
     const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
     const uint64_t fb_height = TargetFramebuffer->height;
 
-    for (int y = 0; y < fb_height; y ++){
+    for (int y = 0; y < fb_height; y++) {
         uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
-        for (uint32_t* pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base); pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr ++){
-            *pix_ptr = clear_colour;
+        for (uint32_t *pix_ptr = reinterpret_cast<uint32_t *>(pix_ptr_base);
+             pix_ptr < reinterpret_cast<uint32_t *>(pix_ptr_base + bytes_per_scanline); pix_ptr++) {
+            *pix_ptr = bg_colour;
         }
     }
     scroll_manager->set_scroll_up(false);
     scroll_manager->set_scroll_down(false);
-    set_cursor({0,0});
+    set_cursor({0, 0});
 }
 
 void BasicRenderer::put_pixel(const uint32_t x, const uint32_t y, const Colour colour) const {
-    *(uint32_t*)((uint64_t)TargetFramebuffer->base_address + (x*4) + (y * TargetFramebuffer->pixels_per_scanline * 4)) = colour;
+    *(uint32_t *) ((uint64_t) TargetFramebuffer->base_address + (x * 4) + (
+                       y * TargetFramebuffer->pixels_per_scanline * 4)) = colour;
 }
 
 Colour BasicRenderer::get_pixel(const uint32_t x, const uint32_t y) const {
-    return *(Colour*)((uint64_t)TargetFramebuffer->base_address + (x*4) + (y * TargetFramebuffer->pixels_per_scanline * 4));
+    return *(Colour *) ((uint64_t) TargetFramebuffer->base_address + (x * 4) + (
+                            y * TargetFramebuffer->pixels_per_scanline * 4));
 }
 
-void BasicRenderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point position) const {
+void BasicRenderer::clear_mouse_cursor(const uint8_t *mouse_cursor, const Point position) const {
     if (!mouse_drawn) return;
 
     int32_t x_max = 16;
@@ -92,7 +95,7 @@ void BasicRenderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point 
     }
 }
 
-void BasicRenderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const Colour colour) {
+void BasicRenderer::draw_overlay_mouse_cursor(const uint8_t *mouse_cursor, const Point position, const Colour colour) {
     int32_t x_max = 16;
     int32_t y_max = 16;
     int32_t diffrence_x = TargetFramebuffer->width - position.X;
@@ -126,10 +129,10 @@ void BasicRenderer::clear_char() {
     uint32_t x_off = cursor_position.X;
     uint32_t y_off = cursor_position.Y;
 
-    uint32_t* pixPtr = (uint32_t*)TargetFramebuffer->base_address;
-    for (unsigned long y = y_off; y < y_off + 16; y++){
-        for (unsigned long x = x_off - 8; x < x_off; x++){
-            *(uint32_t*)(pixPtr + x + (y * TargetFramebuffer->pixels_per_scanline)) = clear_colour;
+    uint32_t *pixPtr = (uint32_t *) TargetFramebuffer->base_address;
+    for (unsigned long y = y_off; y < y_off + 16; y++) {
+        for (unsigned long x = x_off - 8; x < x_off; x++) {
+            *(uint32_t *) (pixPtr + x + (y * TargetFramebuffer->pixels_per_scanline)) = bg_colour;
         }
     }
 
@@ -143,60 +146,55 @@ void BasicRenderer::clear_char() {
 }
 
 void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff) {
-    if (chr == '\0') return; // TODO
-    auto* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
-    char* font_ptr = (char*)PSF1_Font->glyphBuffer + (chr * PSF1_Font->psf1_header->charsize);
-    for (unsigned long y = yOff; y < yOff + 16; y++){
-        for (unsigned long x = xOff; x < xOff+8; x++){
-            if ((*font_ptr & (0b10000000 >> (x - xOff))) > 0){
-                    *(uint32_t*)(pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = colour;
-                }
+    if (chr == '\0') return;
+    auto *pix_ptr = (uint32_t *) TargetFramebuffer->base_address;
+    const char *font_ptr = (char *) PSF1_Font->glyphBuffer + (chr * PSF1_Font->psf1_header->charsize);
+    for (unsigned long y = 0; y < 16; y++) {
+        for (unsigned long x = 0; x < 8; x++) {
+            const uint32_t color_to_draw = ((*font_ptr & (0b10000000 >> x)) != 0) ? colour : bg_colour;
+            *(pix_ptr + (xOff + x) + (yOff + y) * TargetFramebuffer->pixels_per_scanline) = color_to_draw;
         }
         font_ptr++;
     }
 }
 
-void BasicRenderer::put_char(char chr)
-{
+void BasicRenderer::put_char(char chr) {
     clear_cursor(cursor_position.X, cursor_position.Y);
     put_char(chr, cursor_position.X, cursor_position.Y);
     cursor_position.X += 8;
     if (cursor_position.X + 8 > TargetFramebuffer->width) {
         new_line();
     }
-   // draw_cursor();
+    // draw_cursor();
 }
 
-void BasicRenderer::draw_cursor() const
-{
-    uint32_t* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
+void BasicRenderer::draw_cursor() const {
+    uint32_t *pix_ptr = (uint32_t *) TargetFramebuffer->base_address;
 
     uint64_t max_y = min(cursor_position.Y + 16, TargetFramebuffer->height);
     uint64_t max_x = min(cursor_position.X + 8, TargetFramebuffer->width);
 
     for (uint64_t y = cursor_position.Y; y < max_y; y++) {
         for (uint64_t x = cursor_position.X; x < max_x; x++) {
-            *(uint32_t*)(pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = Colour::WHITE;
+            *(uint32_t *) (pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = Colour::WHITE;
         }
     }
 }
 
-void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
-{
-    uint32_t* pix_ptr = (uint32_t*)TargetFramebuffer->base_address;
+void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const {
+    uint32_t *pix_ptr = (uint32_t *) TargetFramebuffer->base_address;
 
     uint64_t max_y = min(y_pos + 16, TargetFramebuffer->height);
     uint64_t max_x = min(x_pos + 8, TargetFramebuffer->width);
 
     for (uint64_t y = y_pos; y < max_y; y++) {
         for (uint64_t x = x_pos; x < max_x; x++) {
-            *(uint32_t*)(pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = Colour::BLACK;
+            *(uint32_t *) (pix_ptr + x + (y * TargetFramebuffer->pixels_per_scanline)) = Colour::BLACK;
         }
     }
 }
 
-void BasicRenderer::new_line()
-{
+void BasicRenderer::new_line() {
     cursor_position.X = 0;
     cursor_position.Y += 16;
 
@@ -206,7 +204,6 @@ void BasicRenderer::new_line()
     }
 }
 
-Point BasicRenderer::get_cursor_pos() const
-{
+Point BasicRenderer::get_cursor_pos() const {
     return cursor_position;
 }

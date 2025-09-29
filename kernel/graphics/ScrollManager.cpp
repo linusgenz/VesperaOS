@@ -3,7 +3,7 @@
 //
 
 #include "../include/ScrollManager.h"
-#include "../../drivers/input/ps2/mouse/mouse.h"
+#include "../../drivers/ps2/mouse/mouse.h"
 #include "../include/basic_renderer.h"
 ScrollManager* scroll_manager;
 

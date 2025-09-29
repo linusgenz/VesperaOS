@@ -25,7 +25,7 @@
 #define MOUSE_H
 
 #include <cstdint>
-#include "../../../../include/graphics.h"
+#include "../../../include/graphics.h"
 
 namespace input::mouse {
 #define PS2LeftButton 0b00000001

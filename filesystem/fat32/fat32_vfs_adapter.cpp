@@ -125,19 +125,30 @@ void* fat32_opendir(VfsNode* dir) {
     return handle;
 }
 
-int fat32_readdir(void* h, char* out_name, size_t max_len) {
+int fat32_readdir(void *h, dirent_t *out) {
     auto* handle = (Fat32DirHandle*)h;
     if (!handle || handle->index >= handle->count) return 0;
 
-    const char* name = handle->entries[handle->index].GetName();
+    auto& entry = handle->entries[handle->index];
+    const char* name = entry.GetName();
     if (!name) return 0;
 
-    strncpy(out_name, name, max_len - 1);
-    out_name[max_len - 1] = '\0';
+    strncpy(out->name, name, sizeof(out->name) - 1);
+    out->name[sizeof(out->name) - 1] = '\0';
+
+    // FAT32 attribute byte
+    if (entry.isDir()) {
+        out->type = DT_DIR;
+    } /*else if (attr & 0x08) {
+        out->type = DT_EXEC; // optional: Volume Label / System
+    }*/ else {
+        out->type = DT_FILE;
+    }
 
     handle->index++;
     return 1;
 }
+
 
 void fat32_closedir(void* h) {
     auto* handle = (Fat32DirHandle*)h;

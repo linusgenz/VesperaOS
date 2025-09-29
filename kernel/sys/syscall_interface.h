@@ -57,7 +57,7 @@ namespace syscalls::internal {
 
     int64_t sys_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg4, uint64_t, uint64_t);
 
-    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
     int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 

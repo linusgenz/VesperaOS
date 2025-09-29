@@ -102,16 +102,15 @@ void* ext4_opendir(VfsNode* dir) {
     return handle;
 }
 
-int ext4_readdir(void* dir_handle, char* out_name, size_t max_len) {
+int ext4_readdir(void *dir_handle, dirent_t *out) {
     auto* h = reinterpret_cast<Ext4DirHandle*>(dir_handle);
-    if (!h || h->index >= h->count) return 0; // nichts mehr
-
+    if (!h || h->index >= h->count) return 0;
+/*
     FileEntry& fe = h->entries[h->index++];
     size_t len = strlen(fe.GetName());
-    if (len >= max_len) len = max_len - 1;
-    memcpy(out_name, fe.GetName(), len);
-    out_name[len] = '\0';
-
+    memcpy(entry, fe.GetName(), len);
+    entry[len] = '\0';
+*/
     return 1;
 }
 

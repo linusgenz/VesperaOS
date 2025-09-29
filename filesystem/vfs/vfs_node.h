@@ -25,6 +25,7 @@
 #define VFS_NODE_H
 #include <cstddef>
 #include <cstdint>
+#include "../dirent.h"
 
 enum class VfsNodeType {
     File,
@@ -35,31 +36,40 @@ enum class VfsNodeType {
 struct VfsNode;
 
 struct VfsNodeOps {
-    size_t (*read)(VfsNode* node, size_t offset, size_t size, void* buffer);
-    size_t (*write)(VfsNode* node, size_t offset, size_t size, const void* buffer);
-    VfsNode* (*find)(VfsNode* dir, const char* name);
-    void (*close)(VfsNode* node);
+    size_t (*read)(VfsNode *node, size_t offset, size_t size, void *buffer);
 
-    size_t (*file_size)(VfsNode*);
-    void*  (*opendir)(VfsNode* dir);
-    int    (*readdir)(void* dir_handle, char* out_name, size_t max_len);
-    void   (*closedir)(void* dir_handle);
+    size_t (*write)(VfsNode *node, size_t offset, size_t size, const void *buffer);
 
-    int (*create)(VfsNode*, const char*);
-    int (*rename)(VfsNode*, const char*, const char*);
-    int (*mkdir)(VfsNode*, const char*);
-    int (*rmdir)(VfsNode*, const char*);
-    int (*unlink)(VfsNode*, const char*);
+    VfsNode * (*find)(VfsNode *dir, const char *name);
 
-    size_t (*ioctl)(VfsNode* node, uint32_t cmd, void* arg);
+    void (*close)(VfsNode *node);
 
+    size_t (*file_size)(VfsNode *);
+
+    void * (*opendir)(VfsNode *dir);
+
+    int (*readdir)(void *dir_handle, dirent_t *out_name);
+
+    void (*closedir)(void *dir_handle);
+
+    int (*create)(VfsNode *, const char *);
+
+    int (*rename)(VfsNode *, const char *, const char *);
+
+    int (*mkdir)(VfsNode *, const char *);
+
+    int (*rmdir)(VfsNode *, const char *);
+
+    int (*unlink)(VfsNode *, const char *);
+
+    size_t (*ioctl)(VfsNode *node, uint32_t cmd, void *arg);
 };
 
 struct VfsNode {
-    const char* name;
+    const char *name;
     VfsNodeType type;
-    void* internal_data;
-    VfsNodeOps* ops;
+    void *internal_data;
+    VfsNodeOps *ops;
     bool permanent;
 };
 

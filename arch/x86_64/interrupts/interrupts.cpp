@@ -5,10 +5,9 @@
 #include "../../../include/log.h"
 #include "../../../kernel/cpu/io.h"
 #include "pic.h"
-#include "../../../drivers/input/ps2/keyboard/buffer.h"
-#include "../../../drivers/input/ps2/keyboard/ps2_keyboard.h"
-#include "../../../drivers/input/ps2/mouse/mouse.h"
-#include "../../../drivers/input/ps2/mouse/ps2_mouse.h"
+#include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
+#include "../../../drivers/ps2/mouse/mouse.h"
+#include "../../../drivers/ps2/mouse/ps2_mouse.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/include/time.h"
 

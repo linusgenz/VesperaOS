@@ -39,6 +39,7 @@
 #include <dev/rtc.h>
 #include <exec.h>
 #include <sysstd.h>
+#include <dirent.h>
 
 
 typedef struct {
@@ -178,16 +179,24 @@ void cmd_ls(command_t *cmd) {
         return;
     }
 
-    char buf[128] = {0};
-
-    while ((sys_readdir(hdl, (uint64_t) buf, sizeof(buf), 0, 0, 0)) > 0) {
-        printf("%s ", buf);
+    dirent_t ent;
+    while (sys_readdir(hdl, (uint64_t)&ent, sizeof(ent), 0, 0, 0) > 0) {
+        const char *color = "\033[0m"; // reset
+        switch (ent.type) {
+            case DT_DIR:    color = "\033[38;2;66;117;245m"; break; // blau
+            case DT_EXEC:   color = "\033[38;2;66;245;81"; break; // grün
+            case DT_SYMLINK:color = "\033[1;36m"; break; // cyan
+            case DT_CHARDEV:
+            case DT_BLOCKDEV: color = "\033[38;2;245;212;66m"; break;
+            default:        color = "\033[0m";    break;
+        }
+        printf("%s%s\033[0m ", color, ent.name);
     }
 
     putchar('\n');
-
     fclose(hdl);
 }
+
 
 
 int execute_command(command_t *cmd) {
@@ -264,6 +273,29 @@ void show_prompt(void) {
 void shell_main() {
     char buf[MAX_INPUT] = {0};
     command_t cmd;
+    cmd_clear(nullptr);
+    printf("\033[31mRed\033[0m Normal\n");
+    printf("\033[38;2;255;0;0mHello\033[0m\n");
+
+    printf("\033[38;2;255;0;0mRED TEXT\033[0m\n");
+
+    // Grün
+    printf("\033[38;2;0;255;0mGREEN TEXT\033[0m\n");
+
+    // Blau
+    printf("\033[38;2;0;0;255mBLUE TEXT\n");
+
+    // Hintergrundfarbe
+    printf("\033[48;2;255;255;0mBLACK ON YELLOW BG\033[0m\n");
+
+    for (int r = 0; r <= 255; r += 51) {
+        for (int g = 0; g <= 255; g += 51) {
+            for (int b = 0; b <= 255; b += 51) {
+                printf("\033[38;2;%d;%d;%dm#", r, g, b);
+            }
+            printf("\033[0m\n");
+        }
+    }
 
     // Clear screen and show welcome
     //cmd_clear(nullptr);

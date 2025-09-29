@@ -27,7 +27,7 @@
 
 #include "buffer.h"
 #include "qwerty.h"
-#include "../../../../kernel/input/input_manager.h"
+#include "../../../kernel/input/input_manager.h"
 
 namespace input::keyboard {
 

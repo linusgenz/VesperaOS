@@ -1,10 +1,10 @@
-// buffer.cpp
+// dirent.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 30.07.25.
+// Created by Linus Genz on 29.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,38 +21,24 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "buffer.h"
-#include "keyboard.h"
-#include "../../../../include/log.h"
+#ifndef VESPERAOS_DIRENT_H
+#define VESPERAOS_DIRENT_H
 
-namespace input::keyboard {
+typedef enum {
+    DT_UNKNOWN = 0,
+    DT_FILE,
+    DT_DIR,
+    DT_SYMLINK,
+    DT_CHARDEV,
+    DT_BLOCKDEV,
+    DT_FIFO,
+    DT_SOCKET,
+    DT_EXEC
+} dirent_type_t;
 
-    static char buffer[BUFFER_SIZE];
-    static int head = 0;
-    static int tail = 0;
+typedef struct {
+    char name[128];
+    dirent_type_t type;
+} dirent_t;
 
-    void init_buffer() {
-        head = 0;
-        tail = 0;
-    }
-
-    bool buffer_read_char(char& c) {
-        if (head == tail) return false;
-        c = buffer[tail];
-        tail = (tail + 1) % BUFFER_SIZE;
-        return true;
-    }
-
-    void write_char(char c) {
-        int next = (head + 1) % BUFFER_SIZE;
-        if (next != tail) {
-            buffer[head] = c;
-            head = next;
-        }
-    }
-
-    bool is_empty() {
-        return head == tail;
-    }
-
-}
+#endif //VESPERAOS_DIRENT_H

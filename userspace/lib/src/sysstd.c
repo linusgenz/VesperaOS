@@ -128,8 +128,8 @@ int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uin
     return syscall(SYSCALL_REBOOT, magic1, magic2, cmd, 0, 0, 0);
 }
 
-int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_READDIR, arg0, arg1, arg2, 0, 0, 0);
+int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_READDIR, arg0, arg1, 0, 0, 0, 0);
 }
 
 int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {

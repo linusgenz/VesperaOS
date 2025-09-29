@@ -28,15 +28,15 @@
 #include "../../realm/realm_manager.h"
 #include "../../types/types.h"
 #include "../../units/unit.h"
+#include "../filesystem/dirent.h"
 
 namespace syscalls::internal {
-    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2,
+    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t,
                         uint64_t, uint64_t, uint64_t) {
         HandleID hid = arg0;
-        char *buf = reinterpret_cast<char *>(arg1);
-        size_t max_len = static_cast<size_t>(arg2);
+    dirent_t *ent = reinterpret_cast<dirent_t *>(arg1);
 
-        if (!buf || max_len == 0) return -EINVAL;
+        if (!ent) return -EINVAL;
 
         Unit *u = kernel::scheduling::get_current_unit();
         Realm *realm = RealmManager::get(u->rid);
@@ -52,6 +52,6 @@ namespace syscalls::internal {
         void *dir_handle = vh->context->type_specific_data;
         if (!vh->node->ops || !vh->node->ops->readdir) return -EINVAL;
 
-        return vh->node->ops->readdir(dir_handle, buf, max_len);
+        return vh->node->ops->readdir(dir_handle, ent);
     }
 }

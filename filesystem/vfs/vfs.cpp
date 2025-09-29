@@ -30,6 +30,7 @@
 #include "../fat32/fat32_vfs_adapter.h"
 #include "../../kernel/devices/device_manager.h"
 #include "fs_detection.h"
+#include "../dirent.h"
 
 Vector<MountPoint> *mount_points;
 
@@ -132,10 +133,12 @@ VfsDir *vfs_opendir(const char *path) {
 }
 
 
-int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len) {
-    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return 0;
-    return dir->node->ops->readdir(dir->handle, out_name, max_len);
+int vfs_readdir(VfsDir *dir, dirent_t *out) {
+    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir)
+        return 0;
+    return dir->node->ops->readdir(dir->handle, out);
 }
+
 
 void vfs_closedir(VfsDir *dir) {
     if (!dir) return;

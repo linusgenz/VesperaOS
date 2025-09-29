@@ -101,7 +101,7 @@ public:
 
     static void *open_dir(VfsNode *dir);
 
-    static int read_dir(void *dir_handle, char *out_name, size_t max_len);
+    static int read_dir(void *dir_handle, dirent_t *out);
 
     static void close_dir(void *dir_handle);
 
@@ -118,6 +118,8 @@ private:
             case BUS_XHCI: return "xhci";
             case BUS_I2C: return "i2c";
             case BUS_SPI: return "spi";
+            case BUS_PCI: return "pci";
+            case BUS_TTY: return "tty";
             default: return "unknown";
         }
     }

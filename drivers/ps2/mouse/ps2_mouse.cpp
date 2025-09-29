@@ -23,7 +23,7 @@
 
 #include "ps2_mouse.h"
 #include "mouse.h"
-#include "../../../../kernel/cpu/io.h"
+#include "../../../kernel/cpu/io.h"
 
 namespace ps2::mouse {
 

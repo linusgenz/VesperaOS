@@ -147,7 +147,7 @@ void generate_throbber() {
 
 void clear_throbber(uint32_t x, uint32_t y) {
     Framebuffer* fb = global_renderer->TargetFramebuffer;
-    uint32_t bg_color = global_renderer->get_clear_color();
+    uint32_t bg_color = global_renderer->get_bg_colour();
 
     for (uint32_t row = 0; row < THROBBER_SIZE; row++) {
         uint32_t* fb_row = (uint32_t*)((uint8_t*)fb->base_address + (y + row) * fb->pixels_per_scanline * 4);

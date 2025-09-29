@@ -169,18 +169,18 @@ int64_t sys_write(uint64_t hid, uint64_t buf_ptr, uint64_t count, uint64_t, uint
 /**
  * @brief Reads the next entry in an open directory.
  *
- * @param arg0 Handle ID of the directory (returned by sys_open)
- * @param arg1 Pointer to a user-space buffer where the entry name will be copied
- * @param arg2 Size of the user-space buffer in bytes
+ * @param arg0 Handle ID of the directory (returned by sys_open).
+ * @param arg1 Pointer to a user-space buffer where the dirent_t will be copied.
+ *             Must be at least sizeof(dirent_t) bytes.
  *
- * @return On success, returns the number of bytes written to the buffer (always > 0 if an entry exists).
+ * @return On success, returns 1 (entry was read).
  *         Returns 0 if there are no more entries.
  *         Returns negative errno on error:
  *           -EINVAL : Invalid parameters or buffer
  *           -EBADH  : Invalid handle
  *           -EACCES : Insufficient capabilities
  */
-int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
 /**
  * @brief Blocks the calling unit until the target realm has finished execution.
@@ -222,12 +222,22 @@ int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2,
 
 
 /**
- * @todo create doc
- * @param arg0
- * @param arg1
- * @return
+ * @brief Unmaps memory pages from the virtual address space of the calling unit.
+ *
+ * This syscall removes a previously established mapping created by ::sys_mmap.
+ * The specified range of virtual addresses is released, and future accesses
+ * to the region will trigger a page fault.
+ *
+ * @param arg0 Starting virtual address of the mapping to remove (must be page-aligned).
+ * @param arg1 Length of the region to unmap in bytes (will be page-aligned).
+ *
+ * @return On success: 0.
+ *         On error: negative errno value:
+ *           -EINVAL : Invalid arguments (unaligned address/length, or not mapped)
+ *           -EACCES : Region cannot be unmapped (e.g., kernel-only mapping)
  */
 int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t);
+
 
 /**
  * @brief Adjust the program break (end of heap) for the current unit.
