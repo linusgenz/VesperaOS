@@ -24,7 +24,8 @@
 */
 var NAVTREE =
 [
-  [ "VesperaOS stdlib", "index.html", [
+  [ "VesperaOS Standard Library", "index.html", [
+    [ "VesperaOS Standard Library (stdlib)", "index.html", "index" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
