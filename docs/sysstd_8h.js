@@ -24,5 +24,5 @@ var sysstd_8h =
     [ "sys_unlink", "sysstd_8h.html#a7195de760b75f180c04c5a41dd5a5960", null ],
     [ "sys_wait", "sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8", null ],
     [ "sys_write", "sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa", null ],
-    [ "syscall", "sysstd_8h.html#aff9a410b13d7a1edb28b24a8510fba0c", null ]
+    [ "syscall", "sysstd_8h.html#a470cf057765ab491541502bb6b47717d", null ]
 ];

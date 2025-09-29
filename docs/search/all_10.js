@@ -43,6 +43,6 @@ var searchData=
   ['sys_5funlink_40',['sys_unlink',['../sysstd_8h.html#a7195de760b75f180c04c5a41dd5a5960',1,'sysstd.h']]],
   ['sys_5fwait_41',['sys_wait',['../sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8',1,'sysstd.h']]],
   ['sys_5fwrite_42',['sys_write',['../sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa',1,'sysstd.h']]],
-  ['syscall_43',['syscall',['../sysstd_8h.html#aff9a410b13d7a1edb28b24a8510fba0c',1,'sysstd.h']]],
+  ['syscall_43',['syscall',['../sysstd_8h.html#a470cf057765ab491541502bb6b47717d',1,'sysstd.h']]],
   ['sysstd_2eh_44',['sysstd.h',['../sysstd_8h.html',1,'']]]
 ];
