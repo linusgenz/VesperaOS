@@ -48,22 +48,6 @@ void vfs_init() {
     //   Log::Info("[VFS] Initialization complete");
 }
 
-VfsNode *vfs_mount(BlockDevice *device, const char *mount_path) {
-    if (!device) {
-        Log::Error("[VFS] Cannot mount: Invalid device");
-        return nullptr;
-    }
-
-    VfsNode *result = FilesystemDetector::TryMount(device, mount_path);
-    if (result) {
-        // Log::Info("[VFS] Manual mount successful");
-    } else {
-        //   Log::Warning("[VFS] Manual mount failed");
-    }
-
-    return result;
-}
-
 VfsNode *vfs_mount_virtual(VfsNode *root, const char *mount_path) {
     if (!root || !mount_path) return nullptr;
 
@@ -89,7 +73,7 @@ VfsNode *vfs_open(const char *path) {
         size_t len = strlen(mp.path);
 
         if (strncmp(path, mp.path, len) == 0 &&
-            (path[len] == '/' || path[len] == '\0') &&
+            (strcmp(mp.path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
             len > best_len) {
             best_match = &mp;
             best_len = len;
@@ -214,7 +198,6 @@ int vfs_mkdir(const char *path) {
     VfsNode *parent;
     char name[64];
     if (!vfs_resolve_parent(path, &parent, name)) return -1;
-
     if (!parent->ops || !parent->ops->mkdir) {
         vfs_close(parent);
         return -2;
@@ -252,22 +235,6 @@ int vfs_unlink(const char *path) {
 
     int result = parent->ops->unlink(parent, name);
     vfs_close(parent);
-    return result;
-}
-
-VfsNode *vfs_mount_device(BlockDevice *device, const char *mount_path) {
-    if (!device) {
-        Log::Error("[VFS] Cannot mount: Invalid device");
-        return nullptr;
-    }
-
-    VfsNode *result = FilesystemDetector::TryMount(device, mount_path);
-    if (result) {
-        Log::Info("[VFS] Manual mount successful");
-    } else {
-        Log::Warning("[VFS] Manual mount failed");
-    }
-
     return result;
 }
 

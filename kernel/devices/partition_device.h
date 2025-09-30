@@ -1,10 +1,10 @@
-// vfs_helper.h
+// partition_device.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 30.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,9 +21,27 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VFS_HELPER_H
-#define VFS_HELPER_H
-#include "vfs_node.h"
-bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
-void ensure_path_exists(const char* path);
-#endif //VFS_HELPER_H
+#ifndef VESPERAOS_PARTION_DEVICE_H
+#define VESPERAOS_PARTION_DEVICE_H
+
+#include "blockdevice.h"
+#include <cstdint>
+
+class PartitionDevice : public BlockDevice {
+public:
+    PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba);
+    ~PartitionDevice() override = default;
+
+    bool read(uint64_t lba, uint32_t count, void* buf) override;
+    bool write(uint64_t lba, uint32_t count, void* buf) override;
+
+    uint64_t get_start_lba() const { return start_lba; }
+    uint64_t get_length_lba() const { return length_lba; }
+
+private:
+    BlockDevice* parent;
+    uint64_t start_lba;
+    uint64_t length_lba;
+};
+
+#endif //VESPERAOS_PARTION_DEVICE_H

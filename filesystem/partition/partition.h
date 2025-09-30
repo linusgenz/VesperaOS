@@ -1,10 +1,10 @@
-// vfs_helper.h
+// partition.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 30.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,9 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VFS_HELPER_H
-#define VFS_HELPER_H
-#include "vfs_node.h"
-bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
-void ensure_path_exists(const char* path);
-#endif //VFS_HELPER_H
+#ifndef VESPERAOS_PARTITION_H
+#define VESPERAOS_PARTITION_H
+
+#define PARTITION_MAX_ENTRIES 128
+
+typedef struct {
+    uint64_t start_lba;
+    uint64_t length_lba;
+    uint8_t  mbr_type;        // for MBR partitions (0 == unused). For GPT may be 0.
+    char     name[72];        // GPT name (in utf-8)
+} PartitionEntry;
+
+size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_entries);
+
+#endif //VESPERAOS_PARTITION_H

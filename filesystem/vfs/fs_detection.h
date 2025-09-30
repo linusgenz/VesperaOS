@@ -24,9 +24,13 @@
 #ifndef ENHANCED_FS_DETECTION_H
 #define ENHANCED_FS_DETECTION_H
 
+#include <vector.h>
+
 #include "fs_registry.h"
 #include "../../kernel/devices/blockdevice.h"
 #include "../../include/log.h"
+
+struct PendingMount;
 
 struct FilesystemInfo {
     const char *type_name;
@@ -49,8 +53,6 @@ public:
 
     static bool DetectFilesystem(BlockDevice *device, FilesystemInfo *info);
 
-    static VfsNode *TryMount(BlockDevice *device, const char *mount_path = nullptr);
-
     static void ScanAndMountAll();
 
     static void PrintDetectedFilesystems();
@@ -60,6 +62,11 @@ private:
     static size_t device_count;
 
     static void GenerateMountPath(const char* fs_type, int index, char* out_path, size_t size);
+
+    static VfsNode *MountFilesystem(BlockDevice *device, FilesystemInfo *fs_info);
+
+    static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size);
+
     static bool IsValidFilesystemType(const char* type);
 };
 
@@ -80,5 +87,8 @@ namespace FilesystemProbes {
 
     bool ProbeISO9660(BlockDevice *device);
 }
+
+extern Vector<PendingMount>* pending_mounts;
+
 
 #endif //ENHANCED_FS_DETECTION_H

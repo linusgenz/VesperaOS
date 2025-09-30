@@ -58,3 +58,28 @@ bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) 
     name_out[31] = '\0';
     return true;
 }
+
+
+void ensure_path_exists(const char* path) {
+    if (!path || path[0] != '/') return;
+
+    // Normaler Fall (wie bei dir)
+    char temp[256];
+    strncpy(temp, path, sizeof(temp)-1);
+    temp[sizeof(temp)-1] = '\0';
+
+    char components[16][32];
+    size_t count = split_path(temp, components, 16);
+
+    char current[256] = "/";
+    for (size_t i = 0; i < count; i++) {
+        if (strlen(current) > 1) strcat(current, "/");
+        strcat(current, components[i]);
+
+        VfsNode* node = vfs_open(current);
+        if (!node) {
+           auto s = vfs_mkdir(current);
+            Log::debug("status mkdir: %d", s);
+        }
+    }
+}

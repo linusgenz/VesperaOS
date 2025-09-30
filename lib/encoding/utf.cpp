@@ -55,7 +55,7 @@ static size_t calculate_utf8_len(codepoint_t cp) {
 
 // utf16 -> codepoint
 
-codepoint_t decode_utf16(utf16_t* utf16, size_t len, size_t* index) {
+codepoint_t decode_utf16(const utf16_t* utf16, size_t len, size_t* index) {
     utf16_t high = utf16[*index];
 
     if ((high & GENERIC_SURROGATE_MASK) != GENERIC_SURROGATE_VALUE)
@@ -104,7 +104,7 @@ size_t encode_utf8(codepoint_t cp, utf8_t* utf8, size_t utf8_len, size_t index) 
 
 // utf16 buf -> utf8 buf
 
-size_t utf16_to_utf8(utf16_t *utf16, size_t utf16_len,
+size_t utf16_to_utf8(const utf16_t *utf16, size_t utf16_len,
                      utf8_t *utf8, size_t utf8_len) {
     size_t utf16_index = 0;
     size_t utf8_index = 0;
@@ -132,7 +132,7 @@ size_t utf16_to_utf8(utf16_t *utf16, size_t utf16_len,
     return utf8_index;
 }
 
-size_t utf16_to_utf8(utf16_t* in, size_t in_len,
+size_t utf16_to_utf8(const utf16_t* in, size_t in_len,
                              char* out, size_t out_len) {
     if (out_len == 0) return 0;
     size_t written = ::utf16_to_utf8(in, in_len, (utf8_t*)out, out_len - 1);

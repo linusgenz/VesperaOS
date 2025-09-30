@@ -20,6 +20,8 @@ void *memcpy(void *dest, const void *src, size_t len);
 
 int memcmp(const void *ptr1, const void *ptr2, size_t num);
 
+void *memmove(void *dest, const void *src, size_t len);
+
 enum PT_Flag {
     Present = 0,
     ReadWrite = 1,

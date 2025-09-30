@@ -40,10 +40,16 @@ namespace kernel::tty {
         static constexpr size_t BUFFER_SIZE = 1024;
         static constexpr size_t MAX_PARAMS = 16;
 
+        // Canonical
         char canon_buffer[BUFFER_SIZE];
         size_t canon_len = 0;
         bool line_ready = false;
-        bool canonical = true;
+
+        // Non-canonical
+        char raw_buffer[BUFFER_SIZE];
+        size_t raw_len = 0;
+
+        bool canonical = false;
 
         EscapeState esc_state = EscapeState::NONE;
         int esc_param = 0;

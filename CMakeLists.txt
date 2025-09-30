@@ -97,32 +97,20 @@ add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 
 # Disk image
 set(BOOTLOADER_EFI ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.efi)
-set(IMG_SIZE 131072)
+set(IMG_SIZE 400000)
 set(EFI_DIR mnt/EFI/BOOT)
 
 add_custom_target(disk_image
-        COMMAND ${CMAKE_COMMAND} -E echo "Creating disk image..."
-        COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_BINARY_DIR}/boot.img
-        COMMAND dd if=/dev/zero of=${CMAKE_BINARY_DIR}/boot.img bs=512 count=${IMG_SIZE}
-        COMMAND sudo mkfs.fat -F 32 -n "VesperaOS" ${CMAKE_BINARY_DIR}/boot.img
-        COMMAND sudo mkdir -p mnt ${EFI_DIR}
-        COMMAND sudo mount -o loop ${CMAKE_BINARY_DIR}/boot.img mnt
-        COMMAND sudo mkdir -p mnt/bin ${EFI_DIR}
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/shell.elf mnt/bin/shell.elf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/userspace/bin/lsusb mnt/bin/lsusb
-        COMMAND sudo cp ${BOOTLOADER_EFI} ${EFI_DIR}/BOOTX64.EFI
-        COMMAND sudo cp ${CMAKE_BINARY_DIR}/kernel.elf ${EFI_DIR}/kernel.elf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light16.psf mnt/zap-light16.psf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-vga16.psf mnt/zap-vga16.psf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light32.psf mnt/zap-light32.psf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/zap-light24.psf mnt/zap-light24.psf
-        COMMAND sudo cp ${CMAKE_SOURCE_DIR}/build/startup.nsh mnt/
-        COMMAND sudo umount mnt
-        COMMAND sudo ${CMAKE_COMMAND} -E rm -rf mnt
-
+        COMMAND ${CMAKE_COMMAND} -E echo "Creating partitioned disk image..."
+        COMMAND bash ${CMAKE_SOURCE_DIR}/make_disk.sh
+        ${CMAKE_BINARY_DIR}/boot.img
+        ${BOOTLOADER_EFI}
+        ${CMAKE_BINARY_DIR}/kernel.elf
+        ${CMAKE_SOURCE_DIR}
         DEPENDS kernel.elf elfs bootloader version splash_header
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
 
 add_custom_target(img
         COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
@@ -145,7 +133,9 @@ add_custom_target(test
         -device qemu-xhci,id=xhci1
         -device qemu-xhci,id=xhci2
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
+        -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
+        -device usb-storage,drive=usbstick2
         -trace *xhci*
         -D /tmp/qemu.log
         -no-reboot

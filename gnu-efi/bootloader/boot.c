@@ -12,7 +12,7 @@ typedef struct {
 	VOID* rsdp;
 } BootInfo;
 
-#define KERNEL_PATH L"\\EFI\\BOOT\\kernel.elf"
+#define KERNEL_PATH L"\\kernel.elf"
 Framebuffer framebuffer;
 
 EFI_FILE* LoadFile(EFI_FILE* Directory, CHAR16* Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SysTbl){
@@ -172,7 +172,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SysTbl) {
 	else{
 		Print(L"Kernel Loaded Successfully \n\r");
 	}
-	
+
 	Elf64_Ehdr header;
 	{
 		UINTN FileInfoSize;

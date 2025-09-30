@@ -30,7 +30,8 @@ char* strncat(char* dest, const char* src, size_t max);
 char* strtok(char* str, char delim);
 int strcasecmp(const char* s1, const char* s2);
 char to_upper(char c);
-
+char *strchr(const char *s, unsigned char c);
+char *strcat (char *dst, const char *src);
 int snprintf(char *buffer, size_t size, const char *format, ...);
 
 #endif //STRING_H

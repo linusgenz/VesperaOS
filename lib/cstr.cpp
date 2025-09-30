@@ -293,6 +293,18 @@ char *strrchr (register const char *s, int c) {
     return (rtnval);
 }
 
+char *strchr(const char *s, unsigned char c) {
+    while (*s) {
+        if ((unsigned char)*s == c) {
+            return (char *)s;
+        }
+        ++s;
+    }
+
+    if (c == '\0') return (char *)s;
+    return nullptr;
+}
+
 char* strncat(char* dest, const char* src, size_t max) {
     if (!dest || !src || max == 0) return dest;
 
@@ -311,6 +323,16 @@ char* strncat(char* dest, const char* src, size_t max) {
 
     dest[dlen + i] = '\0';
     return dest;
+}
+
+char *strcat (char *dst, const char *src)
+{
+    char *p = dst;
+    while (*p)
+        p++;
+    while ((*p++ = *src++))
+        ;
+    return dst;
 }
 
 char* strtok(char* str, char delim) {

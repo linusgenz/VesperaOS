@@ -47,6 +47,13 @@ struct MountPoint {
     MountPoint() = default;
 };
 
+struct PendingMount {
+    char path[64];
+    BlockDevice* device;
+    size_t device_size;
+    bool is_partition;
+};
+
 
 struct VfsDir {
     VfsNode* node;
@@ -61,7 +68,6 @@ struct VfsStats {
 };
 
 void vfs_init();
-VfsNode* vfs_mount(BlockDevice* device, const char* mount_path = nullptr); // Manual mount
 VfsNode* vfs_mount_virtual(VfsNode* root, const char* mount_path);
 bool vfs_probe(BlockDevice* device, FilesystemInfo* info);                 // Probe filesystem
 void vfs_list_devices();                            // List all detected devices

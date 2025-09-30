@@ -21,6 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <time.h>
+
 #include "throbber.h"
 #include "exec/elf.h"
 #include "./include/kernel_utils.h"
@@ -37,7 +39,7 @@
 #include "tty/tty.h"
 #include "units/unit_manager.h"
 
-static const char* envp0[] = {"PATH=/mnt/fat32_0/bin"};
+static const char* envp0[] = {"PATH=/bin"};
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     system_initialized = false;
     initialize_kernel(boot_info);
@@ -65,7 +67,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
      vfs_closedir(dir21);*/
 
     ElfLoader elf_loader;
-    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/mnt/fat32_0/bin/shell.elf", 0x400000);
+    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/bin/shell.elf", 0x400000);
     if (!result.success) {
         Log::Error("Failed to load elf binary");
     }

@@ -46,33 +46,40 @@ namespace kernel::tty {
         char c = ev.ascii;
         if (!c) return;
 
-        // Backspace
         if (c == '\b') {
-            if (active_tty->canon_len > 0 && !active_tty->line_ready) {
-                active_tty->canon_len--;
-                global_renderer->clear_char();
+            if (active_tty->canonical) {
+                if (active_tty->canon_len > 0 && !active_tty->line_ready) {
+                    active_tty->canon_len--;
+                    global_renderer->clear_char();
+                }
+            } else {
+                if (active_tty->raw_len > 0) {
+                    active_tty->raw_len--;
+                    global_renderer->clear_char();
+                }
             }
             return;
         }
 
-        // Prüfe Escape-Sequenz
-        if (active_tty->esc_state != EscapeState::NONE || c == 0x1B) {
-            Log::debug("TTY HANDLE CHAR");
-            //  tty_handle_char(active_tty, c);
-            return;
-        }
-
-        // Normales Zeichen
-        if (c == '\n') {
-            if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
-                active_tty->canon_buffer[active_tty->canon_len++] = '\n';
-                active_tty->canon_buffer[active_tty->canon_len] = '\0';
-                active_tty->line_ready = true;
+        if (active_tty->canonical) {
+            // Canonical Mode
+            if (c == '\n') {
+                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
+                    active_tty->canon_buffer[active_tty->canon_len++] = '\n';
+                    active_tty->canon_buffer[active_tty->canon_len] = '\0';
+                    active_tty->line_ready = true;
+                }
+            } else {
+                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
+                    active_tty->canon_buffer[active_tty->canon_len++] = c;
+                    global_renderer->put_char(c);
+                }
             }
         } else {
-            if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
-                active_tty->canon_buffer[active_tty->canon_len++] = c;
-                global_renderer->put_char(c);
+            // Non-canonical Mode
+            if (active_tty->raw_len < TTY::BUFFER_SIZE - 1) {
+                active_tty->raw_buffer[active_tty->raw_len++] = c;
+                global_renderer->put_char(c); // Echo
             }
         }
     }
@@ -247,22 +254,34 @@ namespace kernel::tty {
     size_t tty_read(char *buf, size_t count) {
         size_t read = 0;
 
-        while (true) {
-            if (!active_tty->line_ready) {
-                //    kernel::scheduling::yield();
-                continue;
+        if (active_tty->canonical) {
+            // Zeilenmodus
+            while (!active_tty->line_ready) {
+              //  kernel::scheduling::yield();
+                asm volatile("pause");
             }
 
             size_t to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
-            for (size_t i = 0; i < to_copy; i++) {
-                buf[i] = active_tty->canon_buffer[i];
-            }
+            memcpy(buf, active_tty->canon_buffer, to_copy);
             read = to_copy;
 
             active_tty->canon_len = 0;
             active_tty->line_ready = false;
             memset(active_tty->canon_buffer, 0, TTY::BUFFER_SIZE);
-            break;
+        } else {
+            // Non-Canonical (charweise)
+            while (active_tty->raw_len == 0) {
+            //    kernel::scheduling::yield();
+                asm volatile("pause");
+            }
+
+            size_t to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
+            memcpy(buf, active_tty->raw_buffer, to_copy);
+            read = to_copy;
+
+            memmove(active_tty->raw_buffer, active_tty->raw_buffer + to_copy,
+                    active_tty->raw_len - to_copy);
+            active_tty->raw_len -= to_copy;
         }
 
         return read;

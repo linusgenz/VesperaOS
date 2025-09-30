@@ -65,6 +65,7 @@ namespace kernel {
     }
 
 
+    // 1-based -> 1 == 1 device, zero == 0 devices
     uint32_t DeviceManager::GetDeviceCount() {
         mutex_lock(&device_manager_mutex);
         auto result = copy_devices(*devices);

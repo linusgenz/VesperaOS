@@ -27,6 +27,9 @@
 #include "../../kernel/devices/device_manager.h"
 #include "../fat32/fat32_vfs_adapter.h"
 #include "vfs.h"
+#include "../partition/partition.h"
+#include <../devices/partition_device.h>
+#include "vfs_helper.h"
 
 size_t FilesystemDetector::driver_count = 0;
 size_t FilesystemDetector::device_count = 0;
@@ -37,26 +40,29 @@ extern FileSystemDriver ext4_driver;
 // extern FileSystemDriver ext4_driver;
 // extern FileSystemDriver ntfs_driver;
 
+Vector<PendingMount>* pending_mounts = nullptr;
+
 void FilesystemDetector::Init() {
     device_count = 0;
+    pending_mounts = new Vector<PendingMount>();
 
-  //  Log::Info("[FS] Filesystem detector initialized");
+    Log::Info("[FS] Filesystem detector initialized");
 }
 
 void FilesystemDetector::RegisterAllDrivers() {
     // FAT32 driver
     if (fs_driver_count() < MAX_FS_DRIVERS) {
         register_fs_driver(&fat32_driver);
-   //     Log::Info("[FS] Registered FAT32 driver");
+        //     Log::Info("[FS] Registered FAT32 driver");
     }
 
     // EXT4 driver
     if (fs_driver_count() < MAX_FS_DRIVERS) {
         register_fs_driver(&ext4_driver);
-     //   Log::Info("[FS] Registered EXT4 driver");
+        //   Log::Info("[FS] Registered EXT4 driver");
     }
 
- //   Log::Info("[FS] Registered %d filesystem drivers", fs_driver_count());
+    //   Log::Info("[FS] Registered %d filesystem drivers", fs_driver_count());
 }
 
 bool FilesystemDetector::DetectFilesystem(BlockDevice *device, FilesystemInfo *info) {
@@ -82,12 +88,12 @@ bool FilesystemDetector::DetectFilesystem(BlockDevice *device, FilesystemInfo *i
                 info->description = "Unknown Filesystem";
             }
 
-         //   Log::Info("[FS] Detected filesystem: %s (%s)", info->type_name, info->description);
+            //   Log::Info("[FS] Detected filesystem: %s (%s)", info->type_name, info->description);
             return true;
         }
     }
 
-    Log::Warning("[FS] No supported filesystem detected on device");
+    Log::Warning("[FS] No supported filesystem detected");
     return false;
 }
 
@@ -103,45 +109,51 @@ void FilesystemDetector::GenerateMountPath(const char *fs_type, int index, char 
     }
 }
 
-VfsNode *FilesystemDetector::TryMount(BlockDevice *device, const char *mount_path) {
-    if (!device) return nullptr;
+VfsNode *FilesystemDetector::MountFilesystem(BlockDevice *device, FilesystemInfo *fs_info) {
+    if (!device || !fs_info) return nullptr;
 
+    FileSystemDriver *driver = find_fs_driver(fs_info->type_name);
+    if (!driver || !driver->mount) {
+        Log::Error("[FS] No driver for %s", fs_info->type_name);
+        return nullptr;
+    }
+
+    return driver->mount(device);
+}
+
+bool FilesystemDetector::mount_device(BlockDevice *device, const char *suggested_path, bool is_partition,
+                                      size_t device_size) {
     FilesystemInfo fs_info{};
     if (!DetectFilesystem(device, &fs_info)) {
-        Log::Warning("[FS] Cannot mount: No supported filesystem detected");
-        return nullptr;
+        Log::Warning("[FS] No supported filesystem detected on %s", suggested_path);
+        return false;
     }
 
-    FileSystemDriver *driver = find_fs_driver(fs_info.type_name);
-    if (!driver || !driver->mount) {
-        Log::Error("[FS] No driver available to mount filesystem: %s",
-                   fs_info.type_name ? fs_info.type_name : "<unknown>");
-        return nullptr;
+    VfsNode *root = MountFilesystem(device, &fs_info);
+    if (!root) return false;
+
+    if (strcmp(suggested_path, "/") != 0) {
+        ensure_path_exists(suggested_path);
     }
 
-    // Try to mount
-    VfsNode *root = driver->mount(device);
-    if (!root) {
-        Log::Error("[FS] Failed to mount %s filesystem", fs_info.type_name);
-        return nullptr;
-    }
+    fs_info.mounted = true;
 
-    // Generate mount path if not provided
-    char *final_mount_path;
-    static char generated_path[64];
+    DeviceDescriptor desc{};
+    desc.device = device;
+    desc.device_size = device_size;
+    desc.is_recognized = true;
+    desc.fs_info = fs_info;
 
-    if (mount_path) {
-        final_mount_path = (char *) mount_path;
-    } else {
-        static int mount_index = 0;
-        snprintf(generated_path, sizeof(generated_path), "/mnt/%s_%d",
-                 fs_info.type_name, mount_index++);
-        final_mount_path = generated_path;
-    }
+    MountPoint mp{};
+    strncpy(mp.path, suggested_path, sizeof(mp.path) - 1);
+    mp.root = root;
+    mp.device = new DeviceDescriptor(desc);
+    mp.is_virtual = false;
 
-    Log::Info("[FS] Successfully mounted %s at %s", fs_info.type_name, final_mount_path);
-    return root;
+    mount_points->push_back(mp);
+    return true;
 }
+
 
 void FilesystemDetector::ScanAndMountAll() {
     auto devices = kernel::DeviceManager::GetDevices();
@@ -152,56 +164,121 @@ void FilesystemDetector::ScanAndMountAll() {
         return;
     }
 
-    Log::Info("[FS] Found %d storage devices", device_count_actual);
-
     int successful_mounts = 0;
+    static bool root_assigned = false;
 
     for (size_t i = 0; i < device_count_actual; i++) {
-        BlockDevice* device = devices[i];
+        BlockDevice *device = devices[i];
         if (!device) continue;
 
-        DeviceDescriptor desc{};
-        desc.device = device;
-        desc.device_size = 0; // TODO: echte Größe abfragen
-        desc.is_recognized = false;
-        desc.fs_info = {};
+        PartitionEntry parts[16];
+        size_t pcount = parse_partitions(device, parts, 16);
 
-        if (DetectFilesystem(device, &desc.fs_info)) {
-            desc.is_recognized = true;
-
-            VfsNode* root = TryMount(device);
-            if (root) {
-                // Mountpoint-Path erzeugen
-                char mount_path[64];
-                GenerateMountPath(desc.fs_info.type_name, i, mount_path, sizeof(mount_path));
-
-                desc.fs_info.mounted = true;
-
-                MountPoint mp{};
-                strncpy(mp.path, mount_path, sizeof(mp.path) - 1);
-                mp.root = root;
-                mp.device = new DeviceDescriptor(desc); // copy desc into heap
-                mp.is_virtual = false;
-
-                mount_points->push_back(mp);
-
-                Log::Info("[FS] Successfully mounted %s at %s",
-                          desc.fs_info.type_name, mp.path);
-
-                successful_mounts++;
+        if (pcount == 0) {
+            char mount_path[64];
+            if (!root_assigned) {
+                snprintf(mount_path, sizeof(mount_path), "/");
+                if (mount_device(device, mount_path, false, 0)) {
+                    root_assigned = true;
+                    successful_mounts++;
+                }
             } else {
-                Log::Warning("[FS] Failed to mount detected %s filesystem",
-                             desc.fs_info.type_name);
+                snprintf(mount_path, sizeof(mount_path), "/mnt/dev%d", i);
+                if (root_assigned) {
+                    ensure_path_exists(mount_path);
+                    if (mount_device(device, mount_path, false, 0)) {
+                        successful_mounts++;
+                    }
+                } else {
+                    // vormerken
+                    PendingMount pm{};
+                    strncpy(pm.path, mount_path, sizeof(pm.path)-1);
+                    pm.device = device;
+                    pm.device_size = 0;
+                    pm.is_partition = false;
+                    pending_mounts->push_back(pm);
+                }
             }
-        } else {
-            Log::Info("[FS] Device %d: Unknown or unsupported filesystem", i);
+            continue;
         }
+
+        for (size_t pi = 0; pi < pcount; ++pi) {
+            PartitionEntry &pe = parts[pi];
+            PartitionDevice *pdev = new PartitionDevice(device, pe.start_lba, pe.length_lba);
+
+            // Heuristik: EFI-Partition?
+            char mount_path[64];
+            bool looks_like_esp = false;
+            {
+                FilesystemInfo fs_info{};
+                if (DetectFilesystem(pdev, &fs_info)) {
+                    VfsNode *probe_root = MountFilesystem(pdev, &fs_info);
+                    if (probe_root && probe_root->ops && probe_root->ops->find) {
+                        VfsNode *efi = probe_root->ops->find(probe_root, "EFI");
+                        if (efi) {
+                            VfsNode *boot = efi->ops ? efi->ops->find(efi, "BOOT") : nullptr;
+                            if (boot) {
+                                VfsNode *bootx64 = boot->ops ? boot->ops->find(boot, "BOOTX64.EFI") : nullptr;
+                                if (bootx64) looks_like_esp = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (looks_like_esp) {
+                snprintf(mount_path, sizeof(mount_path), "/efi");
+            } else if (!root_assigned) {
+                snprintf(mount_path, sizeof(mount_path), "/");
+            } else {
+                snprintf(mount_path, sizeof(mount_path), "/mnt/dev%dp%d", i, pi);
+            }
+
+            if (!root_assigned && strcmp(mount_path, "/") == 0) {
+                // Root sofort mounten
+                if (mount_device(pdev, mount_path, true, pe.length_lba)) {
+                    root_assigned = true;
+                    successful_mounts++;
+                } else {
+                    delete pdev;
+                }
+            } else if (root_assigned) {
+                // Root existiert -> direkt mounten
+                ensure_path_exists(mount_path);
+                if (mount_device(pdev, mount_path, true, pe.length_lba)) {
+                    successful_mounts++;
+                } else {
+                    delete pdev;
+                }
+            } else {
+                // Root noch nicht existiert -> vormerken
+                PendingMount pm{};
+                strncpy(pm.path, mount_path, sizeof(pm.path)-1);
+                pm.device = pdev;
+                pm.device_size = pe.length_lba;
+                pm.is_partition = true;
+                pending_mounts->push_back(pm);
+                Log::debug("[FS] Queued mount %s until root is ready", mount_path);
+            }
+        }
+    }
+
+    // Root gefunden? -> nachtragen
+    if (root_assigned && pending_mounts->size() > 0) {
+        for (auto& pm : *pending_mounts) {
+            ensure_path_exists(pm.path);
+            if (mount_device(pm.device, pm.path, pm.is_partition, pm.device_size)) {
+                successful_mounts++;
+            }
+        }
+        pending_mounts->clear();
     }
 
     if (successful_mounts == 0) {
         Log::Warning("[FS] No filesystems could be mounted automatically");
     }
 }
+
 
 
 void FilesystemDetector::PrintDetectedFilesystems() {
@@ -213,10 +290,10 @@ void FilesystemDetector::PrintDetectedFilesystems() {
     }
 
     int dev_index = 0;
-    for (auto mp : (*mount_points)) {
+    for (auto mp: (*mount_points)) {
         if (mp.is_virtual) continue;
 
-        const DeviceDescriptor* dev = mp.device;
+        const DeviceDescriptor *dev = mp.device;
         if (!dev) continue;
 
         Log::Info("[FS] Device %d:", dev_index++);
@@ -238,73 +315,4 @@ void FilesystemDetector::PrintDetectedFilesystems() {
     }
 
     Log::Info("[FS] === End of Device List ===");
-}
-
-bool FilesystemDetector::IsValidFilesystemType(const char *type) {
-    if (!type) return false;
-    return find_fs_driver(type) != nullptr;
-}
-
-// Filesystem probe implementations
-namespace FilesystemProbes {
-    bool ProbeFAT12(BlockDevice *device) {
-        // TODO: Implement FAT12-specific detection
-        return false;
-    }
-
-    bool ProbeFAT16(BlockDevice *device) {
-        // TODO: Implement FAT16-specific detection
-        return false;
-    }
-
-    bool ProbeFAT32(BlockDevice *device) {
-        // Use existing FAT32 detection from fat32_driver
-        return fat32_driver.probe(device);
-    }
-
-    bool ProbeEXT2(BlockDevice *device) {
-        // TODO: Implement EXT2 detection
-        // Check for EXT2 magic number (0xEF53) at offset 1080
-        uint8_t buffer[512];
-        if (!device->read(2, 1, buffer)) {
-            return false;
-        }
-
-        // EXT2/3/4 magic number at offset 56 within the superblock
-        uint16_t *magic = (uint16_t *) (buffer + 56);
-        return (*magic == 0xEF53);
-    }
-
-    bool ProbeEXT3(BlockDevice *device) {
-        // EXT3 is EXT2 with journaling, same magic number
-        // TODO: Add journal detection
-        return ProbeEXT2(device);
-    }
-
-    bool ProbeEXT4(BlockDevice *device) {
-        // TODO: Implement proper EXT4 detection
-        return ProbeEXT2(device);
-    }
-
-    bool ProbeNTFS(BlockDevice *device) {
-        // TODO: Implement NTFS detection
-        // Check for NTFS magic "NTFS    " at offset 3
-        uint8_t buffer[512];
-        if (!device->read(0, 1, buffer)) {
-            return false;
-        }
-
-        return (memcmp(buffer + 3, "NTFS    ", 8) == 0);
-    }
-
-    bool ProbeISO9660(BlockDevice *device) {
-        // TODO: Implement ISO9660 detection
-        // Check for ISO9660 magic at sector 16
-        uint8_t buffer[512];
-        if (!device->read(16, 1, buffer)) {
-            return false;
-        }
-
-        return (memcmp(buffer + 1, "CD001", 5) == 0);
-    }
 }

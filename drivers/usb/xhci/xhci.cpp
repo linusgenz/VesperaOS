@@ -88,9 +88,6 @@ namespace USB {
             return false;
         }
 
-
-        Log::PrintLn("[xhci] Controller started!");
-
         // qemu
         if (true) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
@@ -525,7 +522,7 @@ namespace USB {
         // Wait for controller to start
         constexpr int max_retries = 100;
         int retries = 0;
-        global_renderer->print("starting host controller1");
+
         while (m_op_regs->usbsts & XHCI_USBSTS_HCH) {
             if (retries++ >= max_retries) {
                 Log::Error("Controller failed to start within timeout");
