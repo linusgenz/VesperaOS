@@ -222,7 +222,7 @@ int DevFS::open(VfsNode *node) {
     return 0;
 }
 
-size_t DevFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
+ssize_t DevFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
     if (!node) return 0;
 
     DevfsEntry *entry = (DevfsEntry *) node->internal_data;
@@ -237,7 +237,7 @@ size_t DevFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
 }
 
 
-size_t DevFS::write(VfsNode *node, size_t offset, size_t size, const void *buffer) {
+ssize_t DevFS::write(VfsNode *node, size_t offset, size_t size, const void *buffer) {
     if (!node) return 0;
 
     DevfsEntry *entry = (DevfsEntry *) node->internal_data;
@@ -252,7 +252,7 @@ size_t DevFS::write(VfsNode *node, size_t offset, size_t size, const void *buffe
     return entry->dev->write(entry->cf, buffer, size);
 }
 
-size_t DevFS::ioctl(VfsNode *node, uint32_t cmd, void *arg) {
+ssize_t DevFS::ioctl(VfsNode *node, uint32_t cmd, void *arg) {
     if (!node) return 0;
     auto *entry = (DevfsEntry *) node->internal_data;
     if (!entry || !entry->dev) return 0;

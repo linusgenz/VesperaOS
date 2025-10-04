@@ -25,43 +25,43 @@
 
 #include "../../include/errno.h"
 #include "../syscall_interface.h"
+#include "../../../filesystem/vfs/vfs_handle.h"
 #include "../../../include/log.h"
 #include "../../realm/realm_manager.h"
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
         const HandleID hid = arg0;
-        Unit* u = kernel::scheduling::get_current_unit();
+        auto buf = (void *) arg1;
+        size_t count = arg2;
+        Unit *u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
 
-        Realm* realm = RealmManager::get(u->rid);
+        Realm *realm = RealmManager::get(u->rid);
 
         if (!realm || !u->active) return -EUNKNOWN;
 
-        handle_entry_t* he = realm->lookup_handle(hid);
+        handle_entry_t *he = realm->lookup_handle(hid);
         if (!he || !he->resource) return -EBADH;
 
-        const char* user_buf = reinterpret_cast<const char*>(arg1);
+        const char *user_buf = reinterpret_cast<const char *>(arg1);
         if (!user_buf || arg2 == 0) return -EINVAL;
 
         if (!(he->capabilities & CAP_WRITE)) {
             return -EACCES;
         }
-
         switch (he->type) {
             case HANDLE_TYPE_TTY: {
-                auto* tty_dev = static_cast<TTYDevice*>(he->resource);
+                auto *tty_dev = static_cast<TTYDevice *>(he->resource);
                 return tty_dev->write(nullptr, user_buf, arg2);
             }
+            case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-             /*   FileNode* node = static_cast<FileNode*>(he->resource);
-                FileDescriptor* desc = kernel::get_fd(hid); // optional, wenn du FileDescriptors nutzt
-                if (!desc || !desc->node->ops || !desc->node->ops->write) return -EBADF;
-
-                size_t bytes = desc->node->ops->write(desc->node, desc->offset, arg2, user_buf);
-                desc->offset += bytes;
-                return bytes;*/
-                return 0;
+                VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
+                ssize_t bytes = vh->node->ops->write(vh->node, vh->context->position, count, buf);
+                vh->context->position += bytes;
+                return bytes;
             }
             default:
                 return -EBADH;

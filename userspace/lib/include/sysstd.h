@@ -252,4 +252,80 @@ int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t);
  *           -ENOMEM : not enough memory to expand
  */
 int64_t sys_brk(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Create a new channel with the given capacity.
+ *
+ * This syscall allocates a channel buffer and returns a handle
+ * representing the channel in the current realm.
+ *
+ * @param arg0 Desired capacity of the channel buffer. If 0, a default
+ *        capacity of 4096 bytes is used.
+ * @return On success, returns a positive handle ID representing the channel.
+ *         On error, returns negative errno:
+ *           -EINVAL : invalid current unit or realm
+ *           -ENOMEM : not enough memory to allocate channel
+ */
+int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Receive data from a channel.
+ *
+ * Copies up to `len` bytes from the channel associated with the handle
+ * into the provided buffer. This call may fail if the channel is empty.
+ *
+ * @param arg0 Handle ID of the channel to receive from.
+ * @param arg1 Pointer to the user buffer to store received data.
+ * @param arg2 Maximum number of bytes to receive.
+ * @return On success, returns the number of bytes received.
+ *         On error, returns negative errno:
+ *           -EINVAL : invalid channel handle or resource
+ *           -EBADH  : handle not found
+ *           -EACCES : read capability missing
+ *           -EAGAIN : channel is empty, try again later
+ */
+int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Send data to a channel.
+ *
+ * Copies up to `len` bytes from the user buffer into the channel
+ * associated with the handle. This call may fail if the channel is full.
+ *
+ * @param arg0 Handle ID of the channel to send to.
+ * @param arg1 Pointer to the user buffer containing data to send.
+ * @param arg2 Number of bytes to send.
+ * @return On success, returns the number of bytes written to the channel.
+ *         On error, returns negative errno:
+ *           -EINVAL : invalid channel handle or resource
+ *           -EBADH  : handle not found
+ *           -EACCES : write capability missing
+ *           -EAGAIN : channel is full, try again later
+ */
+int64_t sys_channel_send(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+
+/**
+ * @brief Reposition the file offset for a file or device handle.
+ *
+ * Changes the current position within a file or device for subsequent
+ * read/write operations. The new position is calculated based on the
+ * whence parameter:
+ *   - SEEK_SET (0): Set position to offset bytes from the beginning
+ *   - SEEK_CUR (1): Set position to current position + offset
+ *   - SEEK_END (2): Set position to file size + offset
+ *
+ * This operation is not supported for directories or TTY devices.
+ *
+ * @param arg0 Handle ID of the file or device to seek within.
+ * @param arg1 Offset value (signed 64-bit integer).
+ * @param arg2 Whence parameter (SEEK_SET, SEEK_CUR, or SEEK_END).
+ * @return On success, returns the new absolute position from the beginning
+ *         of the file. On error, returns negative errno:
+ *           -EINVAL  : invalid handle, negative position, or invalid whence
+ *           -EBADH   : handle not found or invalid resource
+ *           -ESPIPE  : handle refers to a TTY or directory
+ *           -EUNKNOWN: realm not found
+ */
+int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
 #endif //SYSSTD_H

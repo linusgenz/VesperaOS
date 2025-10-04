@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <cstdint>
 #include "../dirent.h"
+#include "../../kernel/types/types.h"
 
 enum class VfsNodeType {
     File,
@@ -36,9 +37,9 @@ enum class VfsNodeType {
 struct VfsNode;
 
 struct VfsNodeOps {
-    size_t (*read)(VfsNode *node, size_t offset, size_t size, void *buffer);
+    ssize_t (*read)(VfsNode *node, size_t offset, size_t size, void *buffer);
 
-    size_t (*write)(VfsNode *node, size_t offset, size_t size, const void *buffer);
+    ssize_t (*write)(VfsNode *node, size_t offset, size_t size, const void *buffer);
 
     VfsNode * (*find)(VfsNode *dir, const char *name);
 
@@ -62,11 +63,12 @@ struct VfsNodeOps {
 
     int (*unlink)(VfsNode *, const char *);
 
-    size_t (*ioctl)(VfsNode *node, uint32_t cmd, void *arg);
+    ssize_t (*ioctl)(VfsNode *node, uint32_t cmd, void *arg);
 };
 
 struct VfsNode {
     const char *name;
+    size_t size;
     VfsNodeType type;
     void *internal_data;
     VfsNodeOps *ops;

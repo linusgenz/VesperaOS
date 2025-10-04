@@ -43,6 +43,7 @@ struct DeviceDescriptor {
     size_t device_size;
     FilesystemInfo fs_info;
     bool is_recognized;
+    const char* partition_table_type;
 };
 
 class FilesystemDetector {
@@ -65,7 +66,7 @@ private:
 
     static VfsNode *MountFilesystem(BlockDevice *device, FilesystemInfo *fs_info);
 
-    static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size);
+    static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size, const char* table_type, bool is_root_device = false);
 
     static bool IsValidFilesystemType(const char* type);
 };

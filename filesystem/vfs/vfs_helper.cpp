@@ -63,7 +63,6 @@ bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) 
 void ensure_path_exists(const char* path) {
     if (!path || path[0] != '/') return;
 
-    // Normaler Fall (wie bei dir)
     char temp[256];
     strncpy(temp, path, sizeof(temp)-1);
     temp[sizeof(temp)-1] = '\0';
@@ -78,8 +77,7 @@ void ensure_path_exists(const char* path) {
 
         VfsNode* node = vfs_open(current);
         if (!node) {
-           auto s = vfs_mkdir(current);
-            Log::debug("status mkdir: %d", s);
+           vfs_mkdir(current);
         }
     }
 }

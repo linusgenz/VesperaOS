@@ -89,11 +89,11 @@ public:
     static int open(VfsNode *node);
 
     // VFS-Hooks
-    static size_t read(VfsNode *node, size_t offset, size_t size, void *buffer);
+    static ssize_t read(VfsNode *node, size_t offset, size_t size, void *buffer);
 
-    static size_t write(VfsNode *node, size_t offset, size_t size, const void *buffer);
+    static ssize_t write(VfsNode *node, size_t offset, size_t size, const void *buffer);
 
-    static size_t ioctl(VfsNode *node, uint32_t cmd, void *arg);
+    static ssize_t ioctl(VfsNode *node, uint32_t cmd, void *arg);
 
     static VfsNode *find(VfsNode *dir, const char *name);
 

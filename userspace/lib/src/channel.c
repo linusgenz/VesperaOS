@@ -1,10 +1,10 @@
-// sys_rmdir.cpp
+// channel.c
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 01.10.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,24 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/log.h"
-#include "../../../include/string.h"
-#include "../../include/errno.h"
+#include <channel.h>
 
-namespace syscalls::internal {
-    int64_t sys_rmdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* user_path = reinterpret_cast<const char*>(arg0);
-        if (!user_path) return -1;
+CHANNEL_HANDLE channel_create(size_t capacity) {
+    return sys_channel_create(capacity, 0,0,0,0,0);
+}
 
-        char path_buf[256];
-        strncpy(path_buf, user_path, sizeof(path_buf) - 1);
-        path_buf[sizeof(path_buf) - 1] = '\0';
+ssize_t channel_recv(CHANNEL_HANDLE hid, void* buf, size_t len) {
+    return sys_channel_recv(hid, (uint64_t)buf, len,0,0,0);
+}
 
-        int status = vfs_rmdir(path_buf);
-
-        if (status < 0) return -ENOTEMPTY;
-
-        return SUCCESS_CODE;
-    }
+ssize_t channel_send(CHANNEL_HANDLE hid, const void* data, size_t len) {
+    return sys_channel_send(hid, (uint64_t)data, len,0,0,0);
 }

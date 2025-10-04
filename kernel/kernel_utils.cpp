@@ -22,6 +22,7 @@
 #include "sys/syscall_interface.h"
 #include "include/time.h"
 #include "../filesystem/vfs/vfs.h"
+#include "devices/log_device.h"
 #include "devices/misc/cpuinfo.h"
 #include "devices/misc/full.h"
 #include "devices/misc/zero.h"
@@ -226,6 +227,8 @@ static UptimeDevice* uptime_dev = nullptr;
 static VersionDevice* version_dev = nullptr;
 static CPUInfoDevice* cpuinfo_dev = nullptr;
 
+static LogDevice* log_dev = nullptr;
+
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
@@ -342,6 +345,8 @@ void initialize_kernel(BootInfo *bootInfo) {
     version_dev = new VersionDevice("version");
     cpuinfo_dev = new CPUInfoDevice("cpuinfo");
 
+    Channel* kernel_log_channel = Channel::create(32 * 1024);
+    log_dev = new LogDevice(kernel_log_channel);
     kernel::time::internal::sleep(3000);
 
     vfs_remount_all();

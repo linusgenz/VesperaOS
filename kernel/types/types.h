@@ -31,6 +31,8 @@
 #define KERNEL_REALM_DRIVER 2
 #include <cstdint>
 
+typedef long int ssize_t;
+
 typedef uint64_t HandleID;
 typedef uint64_t UnitID;
 typedef uint64_t RealmID;

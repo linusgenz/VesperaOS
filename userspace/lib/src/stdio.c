@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <fflags.h>
 #include <sysstd.h>
 #include <stdio.h>
 #include <string.h>
@@ -290,4 +291,24 @@ ssize_t fread(FILE_HANDLE handle, void *buf, size_t count) {
 
 ssize_t fwrite(FILE_HANDLE handle, const void *buf, size_t count) {
     return sys_write(handle, (uint64_t) buf, count, 0, 0, 0);
+}
+
+HANDLE_ID open(const char *path, int flags) {
+    return sys_open((uint64_t) path, flags, 0, 0, 0, 0);
+}
+
+int close(HANDLE_ID handle) {
+    return sys_close(handle, 0, 0, 0, 0, 0);
+}
+
+ssize_t fseek(FILE_HANDLE stream, long offset, int whence) {
+    return sys_seek(stream, offset, whence, 0, 0, 0);
+}
+
+ssize_t ftell(FILE_HANDLE stream) {
+    return sys_seek(stream, 0, SEEK_CUR, 0, 0, 0);
+}
+
+int rewind(FILE_HANDLE stream) {
+    return (int)sys_seek(stream, 0, SEEK_SET, 0, 0, 0);
 }

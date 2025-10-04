@@ -31,12 +31,14 @@
     struct Fat32Node {
         FAT32::FileSystem *fs;
         char path[256];
+        uint32_t parentCluster;
         uint32_t cluster;
         bool isDir;
         size_t fileSize;
-        FAT32::FileEntry *entries;
         size_t entryCount;
+        size_t firstLFNIndex;
         size_t currentIndex;
+        FAT32::DirectoryEntry dirEntry;
     };
 
     struct Fat32DirHandle {

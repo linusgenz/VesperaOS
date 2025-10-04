@@ -273,7 +273,7 @@ void shell_main() {
     char buf[MAX_INPUT] = {0};
     command_t cmd;
     cmd_clear(nullptr);
-    printf("\033[31mRed\033[0m Normal\n");
+  /*  printf("\033[31mRed\033[0m Normal\n");
     printf("\033[38;2;255;0;0mHello\033[0m\n");
 
     printf("\033[38;2;255;0;0mRED TEXT\033[0m\n");
@@ -295,7 +295,25 @@ void shell_main() {
             printf("\033[0m\n");
         }
     }
+*/
 
+    char *path = "/textfile.txt";
+    auto t = sys_create((uint64_t) path, 0, 0, 0, 0, 0);
+    printf("sys create status: %ld", t);
+
+    FILE_HANDLE hdl = fopen(path, O_RDWR);
+    char* buffer = "hello, this is text written via fat32";
+    auto w = fwrite(hdl, buffer, strlen(buffer));
+    printf("fwrite status: %ld\n", w);
+
+    char rbuf[100];
+
+    auto s = fseek(hdl, 0, SEEK_SET);
+    printf("Seek status: %ld\n", s);
+
+    auto r = fread(hdl, rbuf, sizeof(rbuf));
+    printf("fread status: %ld\n", r);
+    printf("buffer: %s\n", rbuf);
     // Clear screen and show welcome
     //cmd_clear(nullptr);
     printf("Welcome to VesperaOS Shell!\n");

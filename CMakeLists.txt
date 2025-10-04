@@ -85,7 +85,17 @@ set_target_properties(lsusb PROPERTIES
         LINK_FLAGS "-nostdlib -ffreestanding -fno-stack-protector -fPIE -pie"
 )
 
-add_custom_target(elfs DEPENDS shell.elf lsusb)
+#logd
+add_executable(logd
+        ${CMAKE_CURRENT_SOURCE_DIR}/userspace/bin/logd.c
+)
+target_link_libraries(logd PRIVATE userlib)
+set_target_properties(logd PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
+        LINK_FLAGS "-nostdlib -ffreestanding -fno-stack-protector -fPIE -pie"
+)
+
+add_custom_target(elfs DEPENDS shell.elf logd)
 
 # version
 add_custom_command(

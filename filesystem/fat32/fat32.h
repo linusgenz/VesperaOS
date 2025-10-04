@@ -116,7 +116,7 @@ namespace FAT32 {
             return formattedShortName;
         }
 
-        [[nodiscard]] DirectoryEntry GetDirectoryEntry() const {
+        [[nodiscard]] const DirectoryEntry GetDirectoryEntry() const {
             return dirEntry;
         }
 
@@ -126,6 +126,10 @@ namespace FAT32 {
 
         [[nodiscard]] uint32_t GetFileSize() const {
             return dirEntry.fileSize;
+        }
+
+        void SetFileSize(uint32_t size) {
+            dirEntry.fileSize = size;
         }
 
         void FormatShortName();
@@ -160,7 +164,9 @@ namespace FAT32 {
 
         uint32_t ResolvePathToCluster(const char *path) const;
 
-        bool ReadFile(Fat32Node *node, char *buffer, size_t bufferSize, size_t &outFileSize) const;
+        bool ReadFile(Fat32Node *node, void *buffer, size_t len, size_t &outActual, size_t offset = 0) const;
+
+        bool WriteFile(Fat32Node *node, const void *buffer, size_t len);
 
         FileEntry *ReadDirectory(const char *path, size_t &outCount) const;
 
@@ -181,6 +187,7 @@ namespace FAT32 {
 
         bool DeleteFile(Fat32Node *parentDir, const char *name);
 
+        static size_t FindFirstLFNIndex(const FAT32::FileEntry *entries, size_t shortNameIndex);
     private:
         BlockDevice *device;
         BPB_FAT32 bpb;
@@ -195,6 +202,8 @@ namespace FAT32 {
 
         bool ReadCluster(uint32_t cluster, void *buffer) const;
 
+        bool WriteCluster(uint32_t cluster, const void *data, size_t len, size_t offset) const;
+
         [[nodiscard]] uint32_t bytesPerCluster() const;
 
         [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
@@ -207,9 +216,13 @@ namespace FAT32 {
 
         bool WriteDirectoryEntry(uint32_t dirCluster, const void *entry);
 
-        bool OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex, const DirectoryEntry *newEntry);
+        bool UpdateDirectoryEntryWithLFN(uint32_t parentCluster, size_t firstLFNIndex,
+                                         const char *longName, const char *shortName, const DirectoryEntry *shortEntry) const;
+
+        bool OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex, const DirectoryEntry *newEntry) const;
 
         uint32_t FindEntryCluster(uint32_t dirCluster, const char *givenName) const;
+
     };
 
 

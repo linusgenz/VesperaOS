@@ -81,6 +81,7 @@ int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
             break;
 
         case VfsNodeType::File:
+
             vh = new VfsHandle(node, flags, required_caps);
             if (!vh) {
                 vfs_close(node);

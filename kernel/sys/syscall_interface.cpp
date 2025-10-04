@@ -52,6 +52,10 @@ void install_syscalls() {
     syscall_table[SYSCALL_MMAP] = syscalls::internal::sys_mmap;
     syscall_table[SYSCALL_MUNMAP] = syscalls::internal::sys_munmap;
     syscall_table[SYSCALL_BRK] = syscalls::internal::sys_brk;
+    syscall_table[SYSCALL_CHANNEL_CREATE] = syscalls::internal::sys_channel_create;
+    syscall_table[SYSCALL_CHANNEL_SEND] = syscalls::internal::sys_channel_send;
+    syscall_table[SYSCALL_CHANNEL_RECEIVE] = syscalls::internal::sys_channel_recv;
+    syscall_table[SYSCALL_SEEK] = syscalls::internal::sys_seek;
 }
 
 extern "C" void syscall_handler(

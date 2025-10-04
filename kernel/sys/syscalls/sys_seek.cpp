@@ -1,10 +1,10 @@
-// sys_read.cpp
+// sys_seek.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 04.10.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,29 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstdint>
 #include <scheduling.h>
 
-#include "../../../filesystem/vfs/vfs.h"
-#include "../tty/tty.h"
-#include "../../../include/log.h"
-#include "../../include/errno.h"
+#include "../../../filesystem/vfs/vfs_handle.h"
 #include "../../realm/realm_manager.h"
-#include "../types/types.h"
-#include "../filesystem/vfs/vfs_handle.h"
+#include "../../units/unit.h"
 
 namespace syscalls::internal {
-   // static Unit* reader_owner = nullptr;
-    int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-       // if (reader_owner != nullptr && reader_owner != kernel::scheduling::get_current_unit()) {
-       //     return -EAGAIN;
-      //  }
-      //  reader_owner = kernel::scheduling::get_current_unit();
-
+    int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
         HandleID hid = arg0;
-        void *buf = reinterpret_cast<void *>(arg1);
-        size_t count = arg2;
-
-        if (!buf || count == 0) return -EINVAL;
+        int64_t offset = static_cast<int64_t>(arg1);
+        int whence = static_cast<int>(arg2);
 
         Unit *u = kernel::scheduling::get_current_unit();
         if (!u || !u->active) return -EINVAL;
@@ -54,25 +43,43 @@ namespace syscalls::internal {
         handle_entry_t *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
-        if (!(he->capabilities & CAP_READ)) {
-            return -EACCES;
-        }
-
         switch (he->type & HANDLE_TYPE_MASK) {
-            case HANDLE_TYPE_TTY: {
-                auto* tty_dev = static_cast<TTYDevice*>(he->resource);
-                return tty_dev->read(nullptr, buf, count, 0);
-            }
+            case HANDLE_TYPE_DIRECTORY:
+            case HANDLE_TYPE_TTY:
+                return -ESPIPE; // Illegal seek
+
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
-                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
-                ssize_t bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
-                if (bytes > 0) {
-                    vh->context->position += bytes;
+                if (!vh || !vh->node) return -EBADH;
+
+                int64_t new_pos;
+
+                switch (whence) {
+                    case SEEK_SET:
+                        new_pos = offset;
+                        break;
+
+                    case SEEK_CUR:
+                        new_pos = vh->context->position + offset;
+                        break;
+
+                    case SEEK_END: {
+                        new_pos = vh->node->size + offset;
+                        break;
+                    }
+
+                    default:
+                        return -EINVAL;
                 }
-                return bytes;
+
+                // negative seek is invalid
+                if (new_pos < 0) return -EINVAL;
+
+                vh->context->position = new_pos;
+                return new_pos;
             }
+
             default:
                 return -EBADH;
         }

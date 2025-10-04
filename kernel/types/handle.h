@@ -25,7 +25,7 @@
 #define VESPERAOS_HANDLE_H
 #include <memory.h>
 
-typedef long long ssize_t;
+typedef long int ssize_t;
 
 #define MAX_HANDLES_PER_REALM 100
 #define MAX_UNIT_HANDLE_SLOTS 64

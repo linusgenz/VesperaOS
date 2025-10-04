@@ -1,10 +1,10 @@
-// sys_rmdir.cpp
+// log_device.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 01.10.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,24 +21,38 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/log.h"
-#include "../../../include/string.h"
-#include "../../include/errno.h"
+#ifndef VESPERAOS_LOG_DEVICE_H
+#define VESPERAOS_LOG_DEVICE_H
 
-namespace syscalls::internal {
-    int64_t sys_rmdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* user_path = reinterpret_cast<const char*>(arg0);
-        if (!user_path) return -1;
+#include "chardevice.h"
+#include "../ipc/channel.h"
+#include "../realm/realm.h"
+#include "../realm/realm_manager.h"
 
-        char path_buf[256];
-        strncpy(path_buf, user_path, sizeof(path_buf) - 1);
-        path_buf[sizeof(path_buf) - 1] = '\0';
 
-        int status = vfs_rmdir(path_buf);
+class LogDevice : public CharDevice {
+private:
+    Channel* global_channel;
 
-        if (status < 0) return -ENOTEMPTY;
+public:
 
-        return SUCCESS_CODE;
+    explicit LogDevice(Channel* ch)
+        : CharDevice("log", BusType::VIRTUAL), global_channel(ch) {}
+
+    ~LogDevice() override {
+        Channel::destroy(global_channel);
     }
-}
+
+    int open(CharFile** out_cf) override;
+
+    int release(CharFile* cf) override;
+
+    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+
+    size_t write(CharFile* cf, const void* buffer, size_t count) override;
+
+    int poll(CharFile* cf) override;
+};
+
+
+#endif //VESPERAOS_LOG_DEVICE_H

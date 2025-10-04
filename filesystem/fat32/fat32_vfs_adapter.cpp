@@ -26,6 +26,7 @@
 #include "fat32.h"
 #include "../../include/log.h"
 #include "../../kernel/include/errno.h"
+#include "../../kernel/types/types.h"
 
 using namespace FAT32;
 
@@ -41,25 +42,26 @@ bool fat32_resolve_path(FAT32::FileSystem *fs, const char *path, Fat32Node *outN
     return true;
 }
 
-static size_t fat32_read(VfsNode *node, size_t offset, size_t size, void *buffer) {
+static ssize_t fat32_read(VfsNode *node, size_t offset, size_t size, void *buffer) {
+    if (!node || !buffer) return -EFAULT;
+    if (size == 0) return 0;
+
     Fat32Node *fnode = (Fat32Node *) node->internal_data;
-    if (!fnode || !buffer || size == 0) return 0;
+    if (!fnode) return -EBADH;
 
     char *temp = (char *) kernel::memory::malloc(size);
-    if (!temp) return 0;
+    if (!temp) return -ENOMEM;
 
     size_t actual = 0;
-
-    bool ok = fnode->fs->ReadFile(fnode, temp, size, actual);
-
+    bool ok = fnode->fs->ReadFile(fnode, temp, size, actual, offset);
     if (!ok) {
         kernel::memory::free(temp);
-        return 0;
+        return -EIO;
     }
 
     if (offset >= actual) {
         kernel::memory::free(temp);
-        return 0;
+        return 0; // EOF
     }
 
     size_t copySize = actual - offset;
@@ -67,9 +69,49 @@ static size_t fat32_read(VfsNode *node, size_t offset, size_t size, void *buffer
 
     memcpy(buffer, temp + offset, copySize);
     kernel::memory::free(temp);
-    return copySize;
+    return static_cast<ssize_t>(copySize);
 }
 
+static ssize_t fat32_write(VfsNode *node, size_t offset, size_t size, const void *buffer) {
+    if (!node || !buffer) return -EFAULT;
+    if (size == 0) return 0;
+
+    Fat32Node *fnode = (Fat32Node *) node->internal_data;
+    if (!fnode) return -EBADH;
+
+    if (offset > fnode->fileSize) {
+        Log::debug("fat32_write: offset beyond file size (hole not supported)");
+        return -EINVAL;
+    }
+
+    size_t newSize = offset + size;
+
+    char *tmp = reinterpret_cast<char *>(kernel::memory::malloc(newSize));
+    if (!tmp) return -ENOMEM;
+
+    size_t oldSize = fnode->fileSize;
+    if (oldSize > 0) {
+        size_t readBytes = 0;
+        if (!fnode->fs->ReadFile(fnode, tmp, oldSize, readBytes)) {
+            kernel::memory::free(tmp);
+            return -EIO;
+        }
+    }
+
+    if (offset > oldSize) {
+        memset(tmp + oldSize, 0, offset - oldSize);
+    }
+
+    memcpy(tmp + offset, buffer, size);
+
+    bool ok = fnode->fs->WriteFile(fnode, tmp, newSize);
+    kernel::memory::free(tmp);
+
+    if (!ok) return -EIO;
+
+    fnode->fileSize = newSize;
+    return static_cast<ssize_t>(size);
+}
 
 static VfsNode *fat32_find(VfsNode *node, const char *name) {
     Fat32Node *dir = (Fat32Node *) node->internal_data;
@@ -90,8 +132,13 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
             }
 
             childData->fs = dir->fs;
+            childData->currentIndex = i;
+            childData->entryCount = entryCount;
+            childData->parentCluster = dir->cluster;
             childData->isDir = entries[i].isDir();
             childData->fileSize = entries[i].GetFileSize();
+            childData->dirEntry = entries[i].GetDirectoryEntry();
+            childData->firstLFNIndex = FileSystem::FindFirstLFNIndex(entries, i);
 
             // neuen Pfad bauen: "/EFI/BOOT" + "/" + "foo.txt"
             snprintf(childData->path, sizeof(childData->path),
@@ -107,6 +154,7 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
             child->type = childData->isDir ? VfsNodeType::Directory : VfsNodeType::File;
             child->internal_data = childData;
             child->ops = node->ops;
+            child->size = entries[i].GetFileSize();
 
             free(entries);
             return child;
@@ -117,20 +165,20 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
     return nullptr;
 }
 
-void* fat32_opendir(VfsNode* dir) {
-    auto* fatNode = (Fat32Node*)dir->internal_data;
-    auto* handle = new Fat32DirHandle();
+void *fat32_opendir(VfsNode *dir) {
+    auto *fatNode = (Fat32Node *) dir->internal_data;
+    auto *handle = new Fat32DirHandle();
     handle->entries = fatNode->fs->ReadDirectory(fatNode->cluster, handle->count);
     handle->index = 0;
     return handle;
 }
 
 int fat32_readdir(void *h, dirent_t *out) {
-    auto* handle = (Fat32DirHandle*)h;
+    auto *handle = (Fat32DirHandle *) h;
     if (!handle || handle->index >= handle->count) return 0;
 
-    auto& entry = handle->entries[handle->index];
-    const char* name = entry.GetName();
+    auto &entry = handle->entries[handle->index];
+    const char *name = entry.GetName();
     if (!name) return 0;
 
     strncpy(out->name, name, sizeof(out->name) - 1);
@@ -150,8 +198,8 @@ int fat32_readdir(void *h, dirent_t *out) {
 }
 
 
-void fat32_closedir(void* h) {
-    auto* handle = (Fat32DirHandle*)h;
+void fat32_closedir(void *h) {
+    auto *handle = (Fat32DirHandle *) h;
     if (!handle) return;
 
     if (handle->entries) {
@@ -159,35 +207,13 @@ void fat32_closedir(void* h) {
     }
     delete handle;
 }
-/*
-static int fat32_readdir(VfsNode *node, char *out_name, size_t max_len) {
-    Fat32Node *dir = (Fat32Node *) node->internal_data;
-    if (!dir || !dir->isDir) return -1;
-
-    // Lazy load
-    if (!dir->entries) {
-        dir->entries = dir->fs->ReadDirectory(dir->path, dir->entryCount);
-        dir->currentIndex = 0;
-    }
-
-    if (!dir->entries || dir->currentIndex >= dir->entryCount)
-        return 0;
-
-    const char *name = dir->entries[dir->currentIndex].GetName();
-    strncpy(out_name, name, max_len - 1);
-    out_name[max_len - 1] = '\0';
-
-    dir->currentIndex++;
-    return 1;
-}
-*/
 
 static void fat32_close(VfsNode *node) {
     if (!node) return;
 
     auto *data = (Fat32Node *) node->internal_data;
     if (data) {
-        if (data->entries) kernel::memory::free(data->entries);
+     //   if (data->entries) kernel::memory::free(data->entries);
         kernel::memory::free(data);
     }
 
@@ -232,7 +258,7 @@ static size_t fat32_file_size(VfsNode *node) {
 
 static VfsNodeOps fat32_ops = {
     .read = fat32_read,
-    .write = nullptr, // TODO
+    .write = fat32_write, // TODO
     .find = fat32_find,
     .close = fat32_close,
     .file_size = fat32_file_size,

@@ -49,9 +49,10 @@ sudo umount "$EFI_MNT"
 # RootFS Partition mounten und Dateien kopieren
 sudo mkdir -p "$ROOT_MNT"
 sudo mount ${LOOPDEV}p2 "$ROOT_MNT"
-sudo mkdir -p "$ROOT_MNT/bin" "$ROOT_MNT/lib" "$ROOT_MNT/etc" "$ROOT_MNT/tmp" "$ROOT_MNT/mnt"
+sudo mkdir -p "$ROOT_MNT/bin" "$ROOT_MNT/lib" "$ROOT_MNT/etc" "$ROOT_MNT/tmp" "$ROOT_MNT/mnt" "$ROOT_MNT/var" "$ROOT_MNT/var/log"
 sudo cp "$SRC_DIR/userspace/bin/shell.elf" "$ROOT_MNT/bin/shell.elf"
 sudo cp "$SRC_DIR/userspace/bin/lsusb" "$ROOT_MNT/bin/lsusb"
+sudo cp "$SRC_DIR/userspace/bin/logd" "$ROOT_MNT/bin/logd"
 
 sudo umount "$ROOT_MNT"
 

@@ -28,6 +28,7 @@
 #define SYSCALL_OPEN      2
 #define SYSCALL_CLOSE     3
 #define SYSCALL_STAT      4
+#define SYSCALL_SEEK      8
 #define SYSCALL_MMAP      9
 #define SYSCALL_MUNMAP    11
 #define SYSCALL_BRK      12
@@ -45,6 +46,10 @@
 #define SYSCALL_UNLINK    87
 #define SYSCALL_REBOOT    169
 #define SYSCALL_READDIR   217
+
+#define SYSCALL_CHANNEL_CREATE   130
+#define SYSCALL_CHANNEL_SEND     131
+#define SYSCALL_CHANNEL_RECEIVE  132
 
 int64_t syscall(
     uint64_t num,
@@ -147,4 +152,20 @@ int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t) {
 
 int64_t sys_brk(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_BRK, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHANNEL_CREATE, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHANNEL_RECEIVE, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_channel_send(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHANNEL_SEND, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SEEK, arg0, arg1, arg2, 0, 0, 0);
 }

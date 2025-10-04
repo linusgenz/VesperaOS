@@ -39,6 +39,9 @@ struct MountPoint {
     DeviceDescriptor* device; // null when virtual
     bool is_virtual;
 
+    bool is_root_device = false;
+    bool is_partition = false;
+
     MountPoint(const MountPoint& other)
     : root(other.root), device(other.device), is_virtual(other.is_virtual) {
         strncpy(path, other.path, sizeof(path));
@@ -52,6 +55,7 @@ struct PendingMount {
     BlockDevice* device;
     size_t device_size;
     bool is_partition;
+    const char* table_type;
 };
 
 
