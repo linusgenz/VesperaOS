@@ -7,5 +7,7 @@ var searchData=
   ['fopen_4',['fopen',['../stdio_8h.html#a82f772624397cd590af87a316fe3b29f',1,'stdio.h']]],
   ['fread_5',['fread',['../stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7',1,'stdio.h']]],
   ['free_6',['free',['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'stdlib.h']]],
-  ['fwrite_7',['fwrite',['../stdio_8h.html#a0521008fe2a792026bcd8f31234818a3',1,'stdio.h']]]
+  ['fseek_7',['fseek',['../stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b',1,'stdio.h']]],
+  ['ftell_8',['ftell',['../stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9',1,'stdio.h']]],
+  ['fwrite_9',['fwrite',['../stdio_8h.html#a0521008fe2a792026bcd8f31234818a3',1,'stdio.h']]]
 ];

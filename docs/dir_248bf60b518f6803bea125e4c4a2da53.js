@@ -2,6 +2,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
 [
     [ "dev", "dir_7386e92f7ad4f15f5aea0d0cd8b337c4.html", "dir_7386e92f7ad4f15f5aea0d0cd8b337c4" ],
     [ "sys", "dir_699c0620a471c520d0efc35d8d04f138.html", "dir_699c0620a471c520d0efc35d8d04f138" ],
+    [ "channel.h", "channel_8h.html", "channel_8h" ],
     [ "dirent.h", "dirent_8h.html", "dirent_8h" ],
     [ "errno.h", "errno_8h.html", "errno_8h" ],
     [ "exec.h", "exec_8h.html", "exec_8h" ],

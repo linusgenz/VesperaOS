@@ -128,6 +128,10 @@ Macros</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:a3ee5b18ee064f2825435983e23ebf976" id="r_a3ee5b18ee064f2825435983e23ebf976"><td class="memItemLeft" align="right" valign="top">typedef int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a></td></tr>
 <tr class="separator:a3ee5b18ee064f2825435983e23ebf976"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0152d4a089ae45980c7fb1a636edeea" id="r_ac0152d4a089ae45980c7fb1a636edeea"><td class="memItemLeft" align="right" valign="top">typedef int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a></td></tr>
+<tr class="separator:ac0152d4a089ae45980c7fb1a636edeea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67d004f8f1d32d54134a4d5417db3667" id="r_a67d004f8f1d32d54134a4d5417db3667"><td class="memItemLeft" align="right" valign="top">typedef int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a67d004f8f1d32d54134a4d5417db3667">CHANNEL_HANDLE</a></td></tr>
+<tr class="separator:a67d004f8f1d32d54134a4d5417db3667"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -157,6 +161,19 @@ Functions</h2></td></tr>
 <tr class="memitem:a0521008fe2a792026bcd8f31234818a3" id="r_a0521008fe2a792026bcd8f31234818a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0521008fe2a792026bcd8f31234818a3">fwrite</a> (<a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a> handle, const void *buf, size_t count)</td></tr>
 <tr class="memdesc:a0521008fe2a792026bcd8f31234818a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes data to a handle.  <br /></td></tr>
 <tr class="separator:a0521008fe2a792026bcd8f31234818a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c7c5fe31e34ed16c61ff40bb0d3d49c" id="r_a8c7c5fe31e34ed16c61ff40bb0d3d49c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a8c7c5fe31e34ed16c61ff40bb0d3d49c">open</a> (const char *path, int flags)</td></tr>
+<tr class="separator:a8c7c5fe31e34ed16c61ff40bb0d3d49c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9b674c850414b323b9779559542c153" id="r_ae9b674c850414b323b9779559542c153"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ae9b674c850414b323b9779559542c153">close</a> (<a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a> handle)</td></tr>
+<tr class="separator:ae9b674c850414b323b9779559542c153"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80e78c532ed8ab399eeb65dc038a7e9b" id="r_a80e78c532ed8ab399eeb65dc038a7e9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b">fseek</a> (<a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a> stream, long offset, int whence)</td></tr>
+<tr class="memdesc:a80e78c532ed8ab399eeb65dc038a7e9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition stream position indicator.  <br /></td></tr>
+<tr class="separator:a80e78c532ed8ab399eeb65dc038a7e9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae59138fe11b4a9c00f858c3287f549e9" id="r_ae59138fe11b4a9c00f858c3287f549e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9">ftell</a> (<a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a> stream)</td></tr>
+<tr class="memdesc:ae59138fe11b4a9c00f858c3287f549e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current position in stream.  <br /></td></tr>
+<tr class="separator:ae59138fe11b4a9c00f858c3287f549e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5ff712c81d4fa6c2bab64f231247934" id="r_af5ff712c81d4fa6c2bab64f231247934"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934">rewind</a> (<a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a> stream)</td></tr>
+<tr class="memdesc:af5ff712c81d4fa6c2bab64f231247934"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset file position to the beginning.  <br /></td></tr>
+<tr class="separator:af5ff712c81d4fa6c2bab64f231247934"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a20f587d71e5bfe98fd92929ab61bde41" name="a20f587d71e5bfe98fd92929ab61bde41"></a>
@@ -286,6 +303,20 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="a67d004f8f1d32d54134a4d5417db3667" name="a67d004f8f1d32d54134a4d5417db3667"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67d004f8f1d32d54134a4d5417db3667">&#9670;&#160;</a></span>CHANNEL_HANDLE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int64_t <a class="el" href="stdio_8h.html#a67d004f8f1d32d54134a4d5417db3667">CHANNEL_HANDLE</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a3ee5b18ee064f2825435983e23ebf976" name="a3ee5b18ee064f2825435983e23ebf976"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3ee5b18ee064f2825435983e23ebf976">&#9670;&#160;</a></span>FILE_HANDLE</h2>
 
@@ -300,7 +331,39 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ac0152d4a089ae45980c7fb1a636edeea" name="ac0152d4a089ae45980c7fb1a636edeea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0152d4a089ae45980c7fb1a636edeea">&#9670;&#160;</a></span>HANDLE_ID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int64_t <a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ae9b674c850414b323b9779559542c153" name="ae9b674c850414b323b9779559542c153"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9b674c850414b323b9779559542c153">&#9670;&#160;</a></span>close()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int close </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a>&#160;</td>
+          <td class="paramname"><em>handle</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="abead4fc4fe2480561857ffd16c1fdc24" name="abead4fc4fe2480561857ffd16c1fdc24"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abead4fc4fe2480561857ffd16c1fdc24">&#9670;&#160;</a></span>fclose()</h2>
 
@@ -411,6 +474,79 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a80e78c532ed8ab399eeb65dc038a7e9b" name="a80e78c532ed8ab399eeb65dc038a7e9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80e78c532ed8ab399eeb65dc038a7e9b">&#9670;&#160;</a></span>fseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a> fseek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a>&#160;</td>
+          <td class="paramname"><em>stream</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>whence</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reposition stream position indicator. </p>
+<p>Sets the file position indicator for the stream pointed to by stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stream</td><td>File handle returned by <a class="el" href="stdio_8h.html#a82f772624397cd590af87a316fe3b29f" title="Opens a file.">fopen()</a>. </td></tr>
+    <tr><td class="paramname">offset</td><td>Number of bytes to offset. </td></tr>
+    <tr><td class="paramname">whence</td><td>Seek mode (SEEK_SET, SEEK_CUR, or SEEK_END). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns the new absolute position from the beginning On error, returns negative errno: -EINVAL : invalid handle, negative position, or invalid whence -EBADH : handle not found or invalid resource -ESPIPE : handle refers to a TTY or directory -EUNKNOWN: realm not found </dd></dl>
+
+</div>
+</div>
+<a id="ae59138fe11b4a9c00f858c3287f549e9" name="ae59138fe11b4a9c00f858c3287f549e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae59138fe11b4a9c00f858c3287f549e9">&#9670;&#160;</a></span>ftell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a> ftell </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a>&#160;</td>
+          <td class="paramname"><em>stream</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get current position in stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stream</td><td>File handle returned by <a class="el" href="stdio_8h.html#a82f772624397cd590af87a316fe3b29f" title="Opens a file.">fopen()</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns the new absolute position from the beginning On error, returns negative errno: -EINVAL : invalid handle -EBADH : handle not found or invalid resource -ESPIPE : handle refers to a TTY or directory -EUNKNOWN: realm not found </dd></dl>
+
+</div>
+</div>
 <a id="a0521008fe2a792026bcd8f31234818a3" name="a0521008fe2a792026bcd8f31234818a3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0521008fe2a792026bcd8f31234818a3">&#9670;&#160;</a></span>fwrite()</h2>
 
@@ -474,6 +610,34 @@ Functions</h2></td></tr>
 
 <p>Read a single character from stdin. </p>
 <dl class="section return"><dt>Returns</dt><dd>Character read, or negative on error. </dd></dl>
+
+</div>
+</div>
+<a id="a8c7c5fe31e34ed16c61ff40bb0d3d49c" name="a8c7c5fe31e34ed16c61ff40bb0d3d49c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c7c5fe31e34ed16c61ff40bb0d3d49c">&#9670;&#160;</a></span>open()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a> open </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -567,6 +731,33 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Number of characters written, or negative on error. </dd></dl>
+
+</div>
+</div>
+<a id="af5ff712c81d4fa6c2bab64f231247934" name="af5ff712c81d4fa6c2bab64f231247934"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5ff712c81d4fa6c2bab64f231247934">&#9670;&#160;</a></span>rewind()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int rewind </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a>&#160;</td>
+          <td class="paramname"><em>stream</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reset file position to the beginning. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stream</td><td>File handle returned by <a class="el" href="stdio_8h.html#a82f772624397cd590af87a316fe3b29f" title="Opens a file.">fopen()</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success returns 0 On error, returns negative errno: -EINVAL : invalid handle -EBADH : handle not found or invalid resource -ESPIPE : handle refers to a TTY or directory -EUNKNOWN: realm not found </dd></dl>
 
 </div>
 </div>

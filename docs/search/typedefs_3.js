@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['large_5fseg_0',['large_seg',['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'memory.h']]]
+  ['ioctl_5frequest_5ft_0',['ioctl_request_t',['../ioctl_8h.html#ad9edf266656ca64984f397c280c111af',1,'ioctl.h']]]
 ];

@@ -11,5 +11,7 @@ var searchData=
   ['fopen_8',['fopen',['../stdio_8h.html#a82f772624397cd590af87a316fe3b29f',1,'stdio.h']]],
   ['fread_9',['fread',['../stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7',1,'stdio.h']]],
   ['free_10',['free',['../structheap__seg.html#a5e1d84ac164308cd5c60cfa0fa114e50',1,'heap_seg::free'],['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'free(void *ptr):&#160;stdlib.h']]],
-  ['fwrite_11',['fwrite',['../stdio_8h.html#a0521008fe2a792026bcd8f31234818a3',1,'stdio.h']]]
+  ['fseek_11',['fseek',['../stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b',1,'stdio.h']]],
+  ['ftell_12',['ftell',['../stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9',1,'stdio.h']]],
+  ['fwrite_13',['fwrite',['../stdio_8h.html#a0521008fe2a792026bcd8f31234818a3',1,'stdio.h']]]
 ];
