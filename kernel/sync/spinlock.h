@@ -20,11 +20,11 @@ struct spinlock_t {
     }
 
     void unlock() {
-        locked = 0;
+        __atomic_store_n(&locked, 0, __ATOMIC_RELEASE);
     }
 
 private:
-    uint32_t xchg(volatile uint32_t* ptr, uint32_t val) {
+    uint32_t xchg(volatile uint32_t *ptr, uint32_t val) {
         uint32_t old;
         __asm__ volatile (
             "lock xchg %0, %1"
@@ -37,9 +37,9 @@ private:
 };
 
 struct spinlock_guard {
-    spinlock_t& lock_ref;
+    spinlock_t &lock_ref;
 
-    explicit spinlock_guard(spinlock_t& lock) : lock_ref(lock) {
+    explicit spinlock_guard(spinlock_t &lock) : lock_ref(lock) {
         lock_ref.lock();
     }
 
@@ -47,8 +47,9 @@ struct spinlock_guard {
         lock_ref.unlock();
     }
 
-    spinlock_guard(const spinlock_guard&) = delete;
-    spinlock_guard& operator=(const spinlock_guard&) = delete;
+    spinlock_guard(const spinlock_guard &) = delete;
+
+    spinlock_guard &operator=(const spinlock_guard &) = delete;
 };
 
 

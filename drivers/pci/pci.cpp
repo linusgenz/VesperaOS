@@ -10,6 +10,7 @@
 #include "../../kernel/cpu/cpu_manager.h"
 #include "../../kernel/devices/device_manager.h"
 #include "../../kernel/units/unit_manager.h"
+#include "../usb/usb_manager.h"
 
 static uint8_t next_usb_bus_number;
 
@@ -22,8 +23,7 @@ void usb_enable(void *arg) {
     uint8_t vector = kernel::interrupts::get_free_vector();
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0 *>(pci_device_header),
                                vector)) {
-
-        const char* dev_name = DevFS::alloc_unique_name("xhci");
+        const char *dev_name = DevFS::alloc_unique_name("xhci");
 
         auto usb_driver = new USB::xhciDriver(vector, dev_name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header)) {
@@ -79,25 +79,25 @@ namespace PCI {
                         switch (pci_device_header->prog_if) {
                             case 0x02:
                                 break;
-                            /*    uint16_t command_register = pci_device_header->command;
+                                /*    uint16_t command_register = pci_device_header->command;
 
-                                uint16_t command = pci_read16(pci_device_header, 0x04);
-                                command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
-                                pci_write16(pci_device_header, 0x04, command);
+                                    uint16_t command = pci_read16(pci_device_header, 0x04);
+                                    command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+                                    pci_write16(pci_device_header, 0x04, command);
 
-                                auto driver = new NVMe::NvmeDriver(pci_device_header);
-                                Log::debug("namespaces: %u", driver->get_namespaces().size());
-                                if (driver->get_namespaces().size() < 0) {
-                                    Log::debug("[Nvme] Namespaces not found");
-                                    delete driver;
-                                    break;
-                                }
+                                    auto driver = new NVMe::NvmeDriver(pci_device_header);
+                                    Log::debug("namespaces: %u", driver->get_namespaces().size());
+                                    if (driver->get_namespaces().size() < 0) {
+                                        Log::debug("[Nvme] Namespaces not found");
+                                        delete driver;
+                                        break;
+                                    }
 
-                                for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
-                                    Log::debug("added device: %u", i);
-                                    kernel::DeviceManager::AddDevice(
-                                        static_cast<BlockDevice *>(driver->get_namespaces()[i]));
-                                }*/
+                                    for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
+                                        Log::debug("added device: %u", i);
+                                        kernel::DeviceManager::AddDevice(
+                                            static_cast<BlockDevice *>(driver->get_namespaces()[i]));
+                                    }*/
                         }
                 }
             case 0x0C:
@@ -111,7 +111,7 @@ namespace PCI {
                             case 0x20:
 
                             case 0x30: {
-
+                                USBManager::increment_expected_count();
                                 char unit_name[32];
                                 snprintf(unit_name, sizeof(unit_name), "xhci%u", next_usb_bus_number);
 
@@ -120,18 +120,20 @@ namespace PCI {
                                     .cpu_id = 3,
                                     .priority = 5,
                                     .stack_size = 0x4000,
-                                    .initial_handles =  nullptr,
+                                    .initial_handles = nullptr,
                                     .initial_handle_count = 0,
                                     .is_idle = false,
                                     .is_user = false,
                                     .user_stack_size = 0
                                 };
 
-                                Unit* usb_unit = UnitManager::create(KERNEL_REALM_DRIVER, (void*)usb_enable, pci_device_header, &config);
+                                Unit *usb_unit = UnitManager::create(
+                                    KERNEL_REALM_DRIVER, (void *) usb_enable, pci_device_header, &config);
                                 if (!usb_unit) {
                                     Log::Error("Failed to create XHCI unit");
-                                    return;
+                                    USBManager::notify_controller_ready();
                                 }
+                                break;
                             }
                             case 0x80:
 
@@ -179,12 +181,19 @@ namespace PCI {
         next_usb_bus_number = 1;
         int entries = ((mcfg->header.length) - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
 
+        USBManager::init();
+
         for (int t = 0; t < entries; t++) {
             ACPI::DeviceConfig *new_device_config = (ACPI::DeviceConfig *) (
                 (uint64_t) mcfg + sizeof(ACPI::MCFGHeader) + (sizeof(ACPI::DeviceConfig) * t));
             for (uint64_t bus = new_device_config->start_bus; bus < new_device_config->end_bus; bus++) {
                 enumerate_bus(new_device_config->base_address, bus);
             }
+        }
+
+        uint8_t count = USBManager::get_expected_count();
+        if (count > 0) {
+            Log::Info("Found %u XHCI controller(s)", count);
         }
     }
 

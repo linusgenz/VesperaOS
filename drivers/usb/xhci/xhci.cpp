@@ -15,6 +15,8 @@
 #include "../../../kernel/devices/device_manager.h"
 #include <dev/usb_xhci_ioctl.h>
 
+#include "../usb_manager.h"
+
 namespace USB {
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
         auto *pci_hdr = reinterpret_cast<PCI::PCIHeader0 *>(pci_base_address);
@@ -85,11 +87,14 @@ namespace USB {
     bool xhciDriver::start_device() {
         if (!start_host_controller()) {
             Log::PrintLn("Failed to start the host controller");
+            USBManager::notify_controller_ready();
             return false;
         }
 
+        kernel::time::sleep_ms(100);
+
         // qemu
-        if (true) {
+        if (false) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
                 xhci_portsc_register portsc{};
@@ -103,6 +108,29 @@ namespace USB {
                 }
             }
         }
+
+        if (!m_port_connection_events.empty()) {
+            for (auto event: m_port_connection_events) {
+                if (event.device_connected) {
+                    const uint8_t port_reg_idx = event.port_id - 1;
+
+                    const bool reset_successful = reset_port(port_reg_idx);
+                    kernel::time::sleep_ms(100);
+
+                    if (reset_successful) {
+                        xhciPortRegisterManager regman = get_port_register_set(port_reg_idx);
+                        xhci_portsc_register portsc{};
+                        regman.read_portsc_reg(portsc);
+
+                        Log::Info("Device on port %u - %s", event.port_id, usb_speed_to_string(portsc.port_speed));
+                        setup_device(port_reg_idx);
+                    }
+                }
+            }
+            m_port_connection_events.clear();
+        }
+
+        USBManager::notify_controller_ready();
 
         while (true) {
             kernel::time::sleep_ms(100);

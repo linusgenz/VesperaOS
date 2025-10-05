@@ -13,6 +13,7 @@
 #include "include/interrupts.h"
 #include "../drivers/ps2/mouse/mouse.h"
 #include "../drivers/ps2/mouse/ps2_mouse.h"
+#include "../drivers/usb/usb_manager.h"
 #include "../filesystem/devfs/devfs.h"
 #include "../filesystem/fat32/fat32.h"
 #include "../filesystem/fat32/fat32_vfs_adapter.h"
@@ -212,22 +213,22 @@ void init_ttys() {
     kernel::tty::active_tty = &kernel::tty::tty_instances[0];
     for (int i = 0; i < 6; i++) {
         kernel::tty::tty_init(&kernel::tty::tty_instances[i]);
-        const char* name = DevFS::alloc_unique_name("tty");
+        const char *name = DevFS::alloc_unique_name("tty");
         kernel::tty::tty_devices[i] = new TTYDevice(name, &kernel::tty::tty_instances[i]);
         kernel::tty::tty_devices[i]->register_device();
     }
 }
 
-static ZeroDevice* zero_dev = nullptr;
-static NullDevice* null_dev = nullptr;
-static URandomDevice* urand_dev = nullptr;
-static FullDevice* full_dev = nullptr;
-static RTCDevice* rtc_dev = nullptr;
-static UptimeDevice* uptime_dev = nullptr;
-static VersionDevice* version_dev = nullptr;
-static CPUInfoDevice* cpuinfo_dev = nullptr;
+static ZeroDevice *zero_dev = nullptr;
+static NullDevice *null_dev = nullptr;
+static URandomDevice *urand_dev = nullptr;
+static FullDevice *full_dev = nullptr;
+static RTCDevice *rtc_dev = nullptr;
+static UptimeDevice *uptime_dev = nullptr;
+static VersionDevice *version_dev = nullptr;
+static CPUInfoDevice *cpuinfo_dev = nullptr;
 
-static LogDevice* log_dev = nullptr;
+static LogDevice *log_dev = nullptr;
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
@@ -282,7 +283,8 @@ void initialize_kernel(BootInfo *bootInfo) {
     asm ("sti");
 
     //  setup_scroll_buffer(bootInfo->framebuffer);
-    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer, bootInfo->font->height);
+    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer,
+                      bootInfo->font->height);
     scroll_manager = &s;
 
     Log::init(); // threads are possible -> switch to mutex
@@ -328,13 +330,19 @@ void initialize_kernel(BootInfo *bootInfo) {
     prepare_ap_trampoline();
     CPUManager::smp_init();
 
-
-    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
-    // TODO when device recognition is async need completion_t here
-
-
     vfs_init();
     DevFS::init();
+    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+
+    if (USBManager::wait_for_all_controllers(10000)) {
+        Log::Info("All USB controllers ready");
+    } else {
+        Log::Warning("Timeout waiting for USB controllers (%u/%u ready)",
+                     USBManager::get_initialized_count(),
+                     USBManager::get_initialized_count());
+    }
+
+
     init_ttys();
     zero_dev = new ZeroDevice("zero");
     null_dev = new NullDevice("null");
@@ -345,62 +353,61 @@ void initialize_kernel(BootInfo *bootInfo) {
     version_dev = new VersionDevice("version");
     cpuinfo_dev = new CPUInfoDevice("cpuinfo");
 
-    Channel* kernel_log_channel = Channel::create(32 * 1024);
+    Channel *kernel_log_channel = Channel::create(32 * 1024);
     log_dev = new LogDevice(kernel_log_channel);
-    kernel::time::internal::sleep(3000);
 
     vfs_remount_all();
-/*
-    struct xhci_device_stat {
-        uint8_t slot_id;
-        uint8_t port_num;
-        uint8_t speed;
-        uint8_t bus_number;
-        uint16_t vendor_id;
-        uint16_t product_id;
-        char product[64];
-        char manufacturer[64];
-        char serial_number[64];
-    };
+    /*
+        struct xhci_device_stat {
+            uint8_t slot_id;
+            uint8_t port_num;
+            uint8_t speed;
+            uint8_t bus_number;
+            uint16_t vendor_id;
+            uint16_t product_id;
+            char product[64];
+            char manufacturer[64];
+            char serial_number[64];
+        };
 
-    VfsNode *node = vfs_open("/dev/xhci1");
-    if (!node) {
-        Log::Info("xhci0 not found");
-        return;
-    }
-
-    // Open DevFS device
-    if (DevFS::open(node) != 0) {
-        Log::Info("Failed to open xhci1");
-        vfs_close(node);
-        return;
-    }
-
-    char buffer[256];
-    size_t offset = 0;
-    size_t bytes;
-
-    while (true) {
-        bytes = DevFS::read(node, offset, sizeof(buffer), buffer);
-        if (bytes == 0) break;
-
-        size_t entries = bytes / sizeof(xhci_device_stat);
-        auto *stats = (xhci_device_stat *) buffer;
-
-        for (size_t i = 0; i < entries; i++) {
-            Log::PrintLn("Bus %d, Slot %d, Port %d, Speed %d ID %04x:%04x %s %s",
-                         stats[i].bus_number,
-                         stats[i].slot_id,
-                         stats[i].port_num,
-                         stats[i].speed, stats[i].vendor_id, stats[i].product_id, stats[i].manufacturer,
-                         stats[i].product);
+        VfsNode *node = vfs_open("/dev/xhci1");
+        if (!node) {
+            Log::Info("xhci0 not found");
+            return;
         }
 
-        offset += entries; // Offset für nächsten read
-    }
+        // Open DevFS device
+        if (DevFS::open(node) != 0) {
+            Log::Info("Failed to open xhci1");
+            vfs_close(node);
+            return;
+        }
 
-    vfs_close(node);
-*/
+        char buffer[256];
+        size_t offset = 0;
+        size_t bytes;
+
+        while (true) {
+            bytes = DevFS::read(node, offset, sizeof(buffer), buffer);
+            if (bytes == 0) break;
+
+            size_t entries = bytes / sizeof(xhci_device_stat);
+            auto *stats = (xhci_device_stat *) buffer;
+
+            for (size_t i = 0; i < entries; i++) {
+                Log::PrintLn("Bus %d, Slot %d, Port %d, Speed %d ID %04x:%04x %s %s",
+                             stats[i].bus_number,
+                             stats[i].slot_id,
+                             stats[i].port_num,
+                             stats[i].speed, stats[i].vendor_id, stats[i].product_id, stats[i].manufacturer,
+                             stats[i].product);
+            }
+
+            offset += entries; // Offset für nächsten read
+        }
+
+        vfs_close(node);
+    */
     /*
         UnitConfig throbber_uc = {
             .name = "throbber",

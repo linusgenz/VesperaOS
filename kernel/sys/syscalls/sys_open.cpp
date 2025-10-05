@@ -43,8 +43,26 @@ int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
     if (!realm) return -EINVAL;
 
     VfsNode *node = vfs_open(user_path);
+
     if (!node) {
-        return -ENOENT;
+        if (flags & O_CREAT) {
+            int result = vfs_create(user_path);
+            if (result != 0) {
+                return result;
+            }
+
+            node = vfs_open(user_path);
+            if (!node) {
+                return -ENOENT;
+            }
+        } else {
+            return -ENOENT;
+        }
+    } else {
+        if ((flags & O_CREAT) && (flags & O_EXCL)) {
+            vfs_close(node);
+            return -EEXIST;
+        }
     }
 
     CapabilitySet required_caps = CAP_NONE;

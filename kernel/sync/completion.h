@@ -1,0 +1,64 @@
+// completion.h
+//
+// VesperaOS - operating system for the x86_64 architecture
+// 
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// 
+// Created by Linus Genz on 05.10.25.
+//
+// This file is part of VesperaOS.
+// 
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef VESPERAOS_COMPLETION_H
+#define VESPERAOS_COMPLETION_H
+
+#include <cstdint>
+#include <time.h>
+#include "spinlock.h"
+
+struct completion_t {
+    volatile bool completed{};
+    spinlock_t lock{};
+
+    void init() {
+        completed = false;
+        lock.init();
+    }
+
+    void wait() {
+        while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
+            kernel::time::sleep_ms(10);
+        }
+    }
+
+    bool wait_timeout(uint64_t timeout_ms) {
+        uint64_t start = kernel::time::get_ticks();
+        while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
+            uint64_t elapsed = kernel::time::get_ticks() - start;
+            if (elapsed > timeout_ms * 10) { // ticks sind 10ms
+                return false;
+            }
+            kernel::time::sleep_ms(10);
+        }
+        return true;
+    }
+
+    void complete() {
+        spinlock_guard guard(lock);
+        __atomic_store_n(&completed, true, __ATOMIC_RELEASE);
+    }
+};
+
+#endif //VESPERAOS_COMPLETION_H

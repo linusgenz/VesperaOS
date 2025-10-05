@@ -41,7 +41,7 @@ void vfs_init() {
 
     FilesystemDetector::RegisterAllDrivers();
 
-    FilesystemDetector::ScanAndMountAll();
+  //  FilesystemDetector::ScanAndMountAll();
 
     //    FilesystemDetector::PrintDetectedFilesystems();
 
