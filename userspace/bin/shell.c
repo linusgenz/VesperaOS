@@ -39,6 +39,7 @@
 #include <exec.h>
 #include <sysstd.h>
 #include <dirent.h>
+#include <errno.h>
 
 
 typedef struct {
@@ -105,6 +106,7 @@ void cmd_help(command_t *cmd) {
     printf("  help      - Show this help message\n");
     printf("  hello     - Print greeting\n");
     printf("  echo      - Echo arguments\n");
+    printf("  cat       - Display file contents\n");
     printf("  pwd       - Print working directory\n");
     printf("  cd        - Change directory\n");
     printf("  pid       - Show process ID\n");
@@ -179,15 +181,20 @@ void cmd_ls(command_t *cmd) {
     }
 
     dirent_t ent;
-    while (sys_readdir(hdl, (uint64_t)&ent, sizeof(ent), 0, 0, 0) > 0) {
+    while (sys_readdir(hdl, (uint64_t) &ent, sizeof(ent), 0, 0, 0) > 0) {
         const char *color = "\033[0m"; // reset
         switch (ent.type) {
-            case DT_DIR:    color = "\033[38;2;66;117;245m"; break; // blau
-            case DT_EXEC:   color = "\033[38;2;66;245;81"; break; // grün
-            case DT_SYMLINK:color = "\033[1;36m"; break; // cyan
+            case DT_DIR: color = "\033[38;2;66;117;245m";
+                break; // blau
+            case DT_EXEC: color = "\033[38;2;66;245;81";
+                break; // grün
+            case DT_SYMLINK: color = "\033[1;36m";
+                break; // cyan
             case DT_CHARDEV:
-            case DT_BLOCKDEV: color = "\033[38;2;245;212;66m"; break;
-            default:        color = "\033[0m";    break;
+            case DT_BLOCKDEV: color = "\033[38;2;245;212;66m";
+                break;
+            default: color = "\033[0m";
+                break;
         }
         printf("%s%s\033[0m ", color, ent.name);
     }
@@ -196,6 +203,136 @@ void cmd_ls(command_t *cmd) {
     fclose(hdl);
 }
 
+void cmd_cat(command_t *cmd) {
+    if (cmd->argc < 2) {
+        printf("Usage: cat <file>\n");
+        return;
+    }
+
+    const char *path = cmd->args[1];
+    FILE_HANDLE fd = fopen(path, O_RDONLY);
+
+    if (fd < 0) {
+        if (fd == -ENOENT) {
+            printf("cat: %s: No such file or directory\n", path);
+        } else if (fd == -EISDIR) {
+            printf("cat: %s: Is a directory\n", path);
+        } else {
+            printf("cat: %s: Cannot open file (error %ld)\n", path, fd);
+        }
+        return;
+    }
+
+    char buffer[1024];
+    ssize_t bytes_read;
+
+    printf("reading from '%s'\n", path);
+    while ((bytes_read = fread(fd, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[bytes_read] = '\0';
+        printf("%s", buffer);
+    }
+
+    if (bytes_read < 0) {
+        printf("\ncat: Error reading file\n");
+    }
+
+    fclose(fd);
+}
+
+void cmd_mkdir(command_t *cmd) {
+    if (cmd->argc < 2) {
+        printf("Usage: mkdir <directory>\n");
+        return;
+    }
+
+    const char *path = cmd->args[1];
+    int64_t res = sys_mkdir((uint64_t) path, 0, 0, 0, 0, 0);
+
+    if (res < 0) {
+        switch ((int) res) {
+            case -EEXIST:
+                printf("mkdir: cannot create directory '%s': File exists\n", path);
+                break;
+            case -EACCES:
+                printf("mkdir: cannot create directory '%s': Permission denied\n", path);
+                break;
+            case -EROFS:
+                printf("mkdir: cannot create directory '%s': Read-only filesystem\n", path);
+                break;
+            case -ENOSPC:
+                printf("mkdir: cannot create directory '%s': No space left on device\n", path);
+                break;
+            default:
+                printf("mkdir: cannot create directory '%s' (error %ld)\n", path, res);
+                break;
+        }
+        return;
+    }
+
+    printf("Directory '%s' created successfully.\n", path);
+}
+
+void cmd_rmdir(command_t *cmd) {
+    if (cmd->argc < 2) {
+        printf("Usage: rmdir <directory>\n");
+        return;
+    }
+
+    const char *path = cmd->args[1];
+    int64_t res = sys_rmdir((uint64_t) path, 0, 0, 0, 0, 0);
+
+    if (res < 0) {
+        switch ((int) res) {
+            case -ENOENT:
+                printf("rmdir: failed to remove '%s': No such file or directory\n", path);
+                break;
+            case -ENOTDIR:
+                printf("rmdir: failed to remove '%s': Not a directory\n", path);
+                break;
+            case -ENOTEMPTY:
+                printf("rmdir: failed to remove '%s': Directory not empty\n", path);
+                break;
+            case -EACCES:
+                printf("rmdir: failed to remove '%s': Permission denied\n", path);
+                break;
+            default:
+                printf("rmdir: failed to remove '%s' (error %ld)\n", path, res);
+                break;
+        }
+        return;
+    }
+
+    printf("Directory '%s' removed successfully.\n", path);
+}
+
+void cmd_touch(command_t *cmd) {
+    if (cmd->argc < 2) {
+        printf("Usage: touch <file>\n");
+        return;
+    }
+
+    const char *path = cmd->args[1];
+    FILE_HANDLE fd = fopen(path, O_CREAT | O_RDWR);
+
+    if (fd < 0) {
+        switch ((int) fd) {
+            case -EACCES:
+                printf("touch: cannot create file '%s': Permission denied\n", path);
+                break;
+            case -EROFS:
+                printf("touch: cannot create file '%s': Read-only filesystem\n", path);
+                break;
+            default:
+                printf("touch: cannot create file '%s' (error %ld)\n", path, fd);
+                break;
+        }
+        return;
+    }
+
+    // Datei existiert -> eventuell Zeitstempel aktualisieren (optional)
+    fclose(fd);
+    printf("File '%s' created or updated successfully.\n", path);
+}
 
 
 int execute_command(command_t *cmd) {
@@ -211,6 +348,8 @@ int execute_command(command_t *cmd) {
         cmd_hello(cmd);
     } else if (strcmp(command, "echo") == 0) {
         cmd_echo(cmd);
+    } else if (strcmp(command, "cat") == 0) {
+        cmd_cat(cmd);
     } else if (strcmp(command, "pwd") == 0) {
         cmd_pwd(cmd);
     } else if (strcmp(command, "cd") == 0) {
@@ -219,6 +358,12 @@ int execute_command(command_t *cmd) {
         cmd_history(cmd);
     } else if (strcmp(command, "clear") == 0) {
         cmd_clear(cmd);
+    } else if (strcmp(command, "mkdir") == 0) {
+        cmd_mkdir(cmd);
+    } else if (strcmp(command, "rmdir") == 0) {
+        cmd_rmdir(cmd);
+    } else if (strcmp(command, "touch") == 0) {
+        cmd_touch(cmd);
     } else if (strcmp(command, "shutdown") == 0) {
         sys_reboot(REBOOT_MAGIC1, REBOOT_MAGIC2,REBOOT_POWER_OFF, 0, 0, 0);
     } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
@@ -273,54 +418,36 @@ void shell_main() {
     char buf[MAX_INPUT] = {0};
     command_t cmd;
     cmd_clear(nullptr);
-  /*  printf("\033[31mRed\033[0m Normal\n");
-    printf("\033[38;2;255;0;0mHello\033[0m\n");
+    /*  printf("\033[31mRed\033[0m Normal\n");
+      printf("\033[38;2;255;0;0mHello\033[0m\n");
 
-    printf("\033[38;2;255;0;0mRED TEXT\033[0m\n");
+      printf("\033[38;2;255;0;0mRED TEXT\033[0m\n");
 
-    // Grün
-    printf("\033[38;2;0;255;0mGREEN TEXT\033[0m\n");
+      // Grün
+      printf("\033[38;2;0;255;0mGREEN TEXT\033[0m\n");
 
-    // Blau
-    printf("\033[38;2;0;0;255mBLUE TEXT\n");
+      // Blau
+      printf("\033[38;2;0;0;255mBLUE TEXT\n");
 
-    // Hintergrundfarbe
-    printf("\033[48;2;255;255;0mBLACK ON YELLOW BG\033[0m\n");
+      // Hintergrundfarbe
+      printf("\033[48;2;255;255;0mBLACK ON YELLOW BG\033[0m\n");
 
-    for (int r = 0; r <= 255; r += 51) {
-        for (int g = 0; g <= 255; g += 51) {
-            for (int b = 0; b <= 255; b += 51) {
-                printf("\033[38;2;%d;%d;%dm#", r, g, b);
-            }
-            printf("\033[0m\n");
-        }
-    }
-*/
+      for (int r = 0; r <= 255; r += 51) {
+          for (int g = 0; g <= 255; g += 51) {
+              for (int b = 0; b <= 255; b += 51) {
+                  printf("\033[38;2;%d;%d;%dm#", r, g, b);
+              }
+              printf("\033[0m\n");
+          }
+      }
+  */
 
-    char *path = "/textfile.txt";
-    auto t = sys_create((uint64_t) path, 0, 0, 0, 0, 0);
-    printf("sys create status: %ld", t);
-
-    FILE_HANDLE hdl = fopen(path, O_RDWR);
-    char* buffer = "hello, this is text written via fat32";
-    auto w = fwrite(hdl, buffer, strlen(buffer));
-    printf("fwrite status: %ld\n", w);
-
-    char rbuf[100];
-
-    auto s = fseek(hdl, 0, SEEK_SET);
-    printf("Seek status: %ld\n", s);
-
-    auto r = fread(hdl, rbuf, sizeof(rbuf));
-    printf("fread status: %ld\n", r);
-    printf("buffer: %s\n", rbuf);
-    // Clear screen and show welcome
     //cmd_clear(nullptr);
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
 
 
-    void* address = malloc(100);
+    void *address = malloc(100);
     printf("malloc address: %p", address);
 
     FILE_HANDLE fd = fopen("/dev/cpuinfo", O_RDONLY);

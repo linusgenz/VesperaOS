@@ -26,6 +26,7 @@
 
 #include <cstdint>
 
+#include "../../filesystem/vfs/vfs.h"
 #include "../types/types.h"
 #include "../sync/spinlock.h"
 #include "../types/handle.h"
@@ -41,6 +42,9 @@ public:
     uint64_t memory_limit;
     uint64_t max_units;
     uint64_t unit_count;
+
+    VfsNode* cwd;
+    char cwd_path[256];
 
     Unit* unit_list;
 
@@ -59,6 +63,8 @@ public:
           unit_list(nullptr),
           active(false), sched_priority(0), cpu_time_accumulated(0)
     {
+        const auto path = "/";
+        memcpy(cwd_path, path, strlen(path));
         lock.init();
         memset(&handle_table, 0, sizeof(handle_table));
         handle_table.lock.init();

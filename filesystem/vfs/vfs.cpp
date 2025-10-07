@@ -24,6 +24,9 @@
 #include "../../include/path.h"
 #include "../../include/string.h"
 #include "vfs.h"
+
+#include <scheduling.h>
+
 #include "fs_registry.h"
 #include "../../kernel/include/errno.h"
 #include "vfs_helper.h"
@@ -31,6 +34,7 @@
 #include "../../kernel/devices/device_manager.h"
 #include "fs_detection.h"
 #include "../dirent.h"
+#include "../../kernel/realm/realm_manager.h"
 
 Vector<MountPoint> *mount_points;
 
@@ -63,8 +67,24 @@ VfsNode *vfs_mount_virtual(VfsNode *root, const char *mount_path) {
     return root;
 }
 
-
 VfsNode *vfs_open(const char *path) {
+    if (!path || !*path) return nullptr;
+
+    char abs_path[256];
+
+    // Relativer Pfad → prepend current_dir
+    if (path[0] != '/') {
+        const RealmID rid = kernel::scheduling::get_current_unit()->rid;
+        const Realm *realm = RealmManager::get(rid);
+        if (const char *cwd = realm->cwd_path; strcmp(cwd, "/") == 0)
+            snprintf(abs_path, sizeof(abs_path), "/%s", path);
+        else
+            snprintf(abs_path, sizeof(abs_path), "%s/%s", cwd, path);
+
+        path = abs_path;
+    }
+
+    // --- Mountpoint-Suche ---
     MountPoint *best_match = nullptr;
     size_t best_len = 0;
 
@@ -77,7 +97,7 @@ VfsNode *vfs_open(const char *path) {
             len > best_len) {
             best_match = &mp;
             best_len = len;
-        }
+            }
     }
 
     if (!best_match) return nullptr;
@@ -85,12 +105,14 @@ VfsNode *vfs_open(const char *path) {
     const char *sub_path = path + best_len;
     if (*sub_path == '/') sub_path++;
 
-    if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
+    if (!best_match->root->ops || !best_match->root->ops->find)
+        return nullptr;
 
     VfsNode *current = best_match->root;
 
     char components[16][32];
     size_t count = split_path(sub_path, components, 16);
+
     for (size_t i = 0; i < count; i++) {
         current = current->ops->find(current, components[i]);
         if (!current) return nullptr;

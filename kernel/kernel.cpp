@@ -67,7 +67,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
      vfs_closedir(dir21);*/
 
     ElfLoader elf_loader;
-    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/bin/logd", 0x400000);
+    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/bin/shell", 0x400000);
     if (!result.success) {
         Log::Error("Failed to load elf binary");
     }

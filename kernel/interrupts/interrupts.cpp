@@ -101,6 +101,6 @@ namespace kernel::interrupts {
 
     void mask_pic() {
         outb(PIC1_DATA, 0b11111001); // = 0xFD → IRQ1 (keyboard) activated
-        outb(PIC2_DATA, 0b11101111); // = 0xEF → IRQ12 (mouse) activated
+        outb(PIC2_DATA, 0b11111111); // = 0xEF → IRQ12 (mouse) activated, demask 4th bit to enable mouse
     }
 }
