@@ -27,12 +27,18 @@
 #include <sysstd.h>
 #include <sys/mman.h>
 
+typedef int64_t FILE_HANDLE;
+
 #ifdef __cplusplus
 extern "C" {
+
 
 #endif
 
 extern char **environ;
+extern FILE_HANDLE stdin;
+extern FILE_HANDLE stdout;
+extern FILE_HANDLE stderr;
 
 #ifdef __cplusplus
 }

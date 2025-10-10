@@ -1,10 +1,10 @@
 #!/bin/bash
 
 VERSION_MAJOR=0
-VERSION_MINOR=10
-VERSION_PATCH=5
+VERSION_MINOR=11
+VERSION_PATCH=1
 VERSION_STAGE="dev"
-VERSION_NAME="slingshot"
+VERSION_NAME="jumping squirrel"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
 
 

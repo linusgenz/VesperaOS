@@ -132,7 +132,7 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
             }
 
             childData->fs = dir->fs;
-            childData->currentIndex = i;
+            childData->currentIndex = entries[i].GetIndexInCluster();
             childData->entryCount = entryCount;
             childData->parentCluster = dir->cluster;
             childData->isDir = entries[i].isDir();
@@ -213,7 +213,7 @@ static void fat32_close(VfsNode *node) {
 
     auto *data = (Fat32Node *) node->internal_data;
     if (data) {
-     //   if (data->entries) kernel::memory::free(data->entries);
+        //   if (data->entries) kernel::memory::free(data->entries);
         kernel::memory::free(data);
     }
 
@@ -258,7 +258,7 @@ static size_t fat32_file_size(VfsNode *node) {
 
 static VfsNodeOps fat32_ops = {
     .read = fat32_read,
-    .write = fat32_write, // TODO
+    .write = fat32_write,
     .find = fat32_find,
     .close = fat32_close,
     .file_size = fat32_file_size,

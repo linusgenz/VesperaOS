@@ -56,7 +56,7 @@ namespace kernel::memory {
 
     uintptr_t get_pagetable_address();
 
-    uint64_t get_physical_address(void *virtual_addr);
+    void* get_physical_address(void *virtual_addr);
 
     PageTable *create_user_pagetable();
 

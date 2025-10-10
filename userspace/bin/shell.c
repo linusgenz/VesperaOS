@@ -45,6 +45,9 @@
 typedef struct {
     char *args[MAX_ARGS];
     int argc;
+    char *input_file;
+    char *output_file;
+    bool append_output;
 } command_t;
 
 static char history[HISTORY_SIZE][MAX_INPUT];
@@ -82,12 +85,46 @@ int parse_command(char *input, command_t *cmd) {
     if (!input || !cmd) return -1;
 
     cmd->argc = 0;
+    cmd->input_file = nullptr;
+    cmd->output_file = nullptr;
+    cmd->append_output = false;
+
     char *token = input;
 
     while (*token && cmd->argc < MAX_ARGS - 1) {
         // Skip whitespace
         while (*token == ' ' || *token == '\t') token++;
         if (*token == '\0') break;
+
+        if (*token == '<') {
+            // Input redirect
+            token++;
+            while (*token == ' ' || *token == '\t') token++;
+            cmd->input_file = token;
+
+            while (*token && *token != ' ' && *token != '\t' &&
+                   *token != '>' && *token != '<') token++;
+            if (*token) *token++ = '\0';
+            continue;
+        }
+
+        if (*token == '>') {
+            // Output redirect
+            token++;
+
+            if (*token == '>') {
+                cmd->append_output = true;
+                token++;
+            }
+
+            while (*token == ' ' || *token == '\t') token++;
+            cmd->output_file = token;
+
+            while (*token && *token != ' ' && *token != '\t' &&
+                   *token != '>' && *token != '<') token++;
+            if (*token) *token++ = '\0';
+            continue;
+        }
 
         cmd->args[cmd->argc++] = token;
 
@@ -334,16 +371,98 @@ void cmd_touch(command_t *cmd) {
     printf("File '%s' created or updated successfully.\n", path);
 }
 
+void cmd_cp(command_t *cmd) {
+    if (cmd->argc < 3) {
+        printf("Usage: cp <source> <dest>\n");
+        return;
+    }
+
+    FILE_HANDLE src = fopen(cmd->args[1], O_RDONLY);
+    if (src < 0) {
+        printf("cp: cannot open '%s'\n", cmd->args[1]);
+        return;
+    }
+
+    FILE_HANDLE dst = fopen(cmd->args[2], O_WRONLY | O_CREAT | O_TRUNC);
+    if (dst < 0) {
+        printf("cp: cannot create '%s'\n", cmd->args[2]);
+        fclose(src);
+        return;
+    }
+
+    char buffer[4096];
+    ssize_t bytes;
+    while ((bytes = fread(src, buffer, sizeof(buffer))) > 0) {
+        if (fwrite(dst, buffer, bytes) != bytes) {
+            printf("cp: write error\n");
+            break;
+        }
+    }
+
+    fclose(src);
+    fclose(dst);
+}
+
+void cmd_rm(command_t *cmd) {
+    if (cmd->argc < 2) {
+        printf("Usage: rm <file>\n");
+        return;
+    }
+
+    if (sys_unlink((uint64_t) cmd->args[1], 0, 0, 0, 0, 0) == 0) {
+        printf("Removed '%s'\n", cmd->args[1]);
+    } else {
+        printf("rm: cannot remove '%s'\n", cmd->args[1]);
+    }
+}
 
 int execute_command(command_t *cmd) {
     if (cmd->argc == 0) return 0;
 
     const char *command = cmd->args[0];
 
+    FILE_HANDLE saved_stdin = stdin;
+    FILE_HANDLE saved_stdout = stdout;
+    FILE_HANDLE redirect_in = -1;
+    FILE_HANDLE redirect_out = -1;
+
+    if (cmd->input_file) {
+        redirect_in = fopen(cmd->input_file, O_RDONLY);
+        if (redirect_in < 0) {
+            printf("Cannot open input file '%s'\n", cmd->input_file);
+            return 0;
+        }
+        stdin = redirect_in;
+    }
+
+    if (cmd->output_file) {
+        int flags = O_WRONLY | O_CREAT;
+        if (cmd->append_output) {
+            flags |= O_APPEND;
+        } else {
+            flags |= O_TRUNC;
+        }
+
+        redirect_out = fopen(cmd->output_file, flags);
+        if (redirect_out < 0) {
+            printf("Cannot open output file '%s'\n", cmd->output_file);
+            if (redirect_in >= 0) {
+                fclose(redirect_in);
+                stdin = saved_stdin;
+            }
+            return 0;
+        }
+        stdout = redirect_out;
+    }
+
     if (strcmp(command, "help") == 0) {
         cmd_help(cmd);
     } else if (strcmp(command, "ls") == 0) {
         cmd_ls(cmd);
+    } else if (strcmp(command, "cp") == 0) {
+        cmd_cp(cmd);
+    } else if (strcmp(command, "rm") == 0) {
+        cmd_rm(cmd);
     } else if (strcmp(command, "hello") == 0) {
         cmd_hello(cmd);
     } else if (strcmp(command, "echo") == 0) {
@@ -366,6 +485,9 @@ int execute_command(command_t *cmd) {
         cmd_touch(cmd);
     } else if (strcmp(command, "shutdown") == 0) {
         sys_reboot(REBOOT_MAGIC1, REBOOT_MAGIC2,REBOOT_POWER_OFF, 0, 0, 0);
+    } else if (strcmp(command, "reboot") == 0) {
+        puts("Rebooting...\n");
+        sys_reboot(REBOOT_MAGIC1, REBOOT_MAGIC2, REBOOT_RESTART, 0, 0, 0);
     } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
         return -1; // Signal to exit
     } else {
@@ -388,6 +510,17 @@ int execute_command(command_t *cmd) {
             printf("Type 'help' for available commands.\n");
         }
     }
+
+    if (redirect_in >= 0) {
+        fclose(redirect_in);
+        stdin = saved_stdin;
+    }
+
+    if (redirect_out >= 0) {
+        fclose(redirect_out);
+        stdout = saved_stdout;
+    }
+
 
     return 0;
 }

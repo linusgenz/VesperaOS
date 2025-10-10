@@ -38,7 +38,9 @@ namespace FAT32 {
     }
 
     uint8_t *AllocClusterBuffer(uint32_t clusterBytes) {
-        return (uint8_t *) kernel::memory::request_pages((clusterBytes + 0xFFF) / 0x1000);
+        auto page = (uint8_t *) kernel::memory::request_pages((clusterBytes + 0xFFF) / 0x1000);
+        memset(page, 0, (clusterBytes + 0xFFF) / 0x1000);
+        return page;
     }
 
     void FreeClusterBuffer(uint8_t *ptr, uint32_t clusterBytes) {
@@ -219,8 +221,10 @@ namespace FAT32 {
 
                 //          Log::debug("readdir: %s : %s", shortName, entry->name);
 
-                entries[outCount].SetShortName(shortName);
                 entries[outCount].SetDirectoryEntry(*entry);
+                entries[outCount].SetShortName(shortName);
+
+                entries[outCount].SetIndexInCluster(ci * entryCountInCluster + 1);
 
                 outCount++;
                 if (outCount >= READ_DIR_MAX_ENTRIES) {
@@ -228,9 +232,6 @@ namespace FAT32 {
                     break;
                 };
             }
-            if (outCount >= READ_DIR_MAX_ENTRIES) {
-                break;
-            };
         }
 
         kernel::memory::free(chain);
@@ -356,28 +357,11 @@ namespace FAT32 {
 
         // update directory entry
         node->fileSize = len;
-        if (node->currentIndex < node->entryCount) {
-            node->dirEntry.fileSize = static_cast<uint32_t>(len);
-            node->dirEntry.firstClusterLow = static_cast<uint16_t>(startCluster & 0xFFFF);
-            node->dirEntry.firstClusterHigh = static_cast<uint16_t>((startCluster >> 16) & 0xFFFF);
+        node->dirEntry.fileSize = static_cast<uint32_t>(len);
+        node->dirEntry.firstClusterLow = static_cast<uint16_t>(startCluster & 0xFFFF);
+        node->dirEntry.firstClusterHigh = static_cast<uint16_t>((startCluster >> 16) & 0xFFFF);
 
-            // Extrahiere den langen Namen aus node->path
-            const char *longName = strrchr(node->path, '/');
-            longName = longName ? longName + 1 : node->path;
-
-            char shortName[11];
-            memcpy(shortName, node->dirEntry.name, 11);
-
-            return UpdateDirectoryEntryWithLFN(
-                node->parentCluster,
-                node->firstLFNIndex,
-                longName,
-                shortName,
-                &node->dirEntry
-            );
-        }
-
-        return true;
+        return OverwriteDirectoryEntry(node->parentCluster, node->currentIndex, &node->dirEntry);
     }
 
     bool CopyLFNPart(const LongFileName *lfn, char *buffer, size_t &pos, const size_t maxLen) {
@@ -505,9 +489,12 @@ namespace FAT32 {
         return true;
     }
 
-    bool FileSystem::UpdateDirectoryEntryWithLFN(uint32_t parentCluster, size_t firstLFNIndex,
-                                                 const char *longName, const char *shortName,
-                                                 const DirectoryEntry *shortEntry) const {
+    bool FileSystem::UpdateDirectoryEntryWithLFN(
+        uint32_t parentCluster,
+        size_t firstLFNIndex,
+        const char *longName,
+        const char *shortName,
+        const DirectoryEntry *shortEntry) const {
         const size_t nameLen = strlen(longName);
         const size_t entriesNeeded = (nameLen + 12) / 13;
         const size_t totalNeeded = entriesNeeded + 1;
@@ -536,17 +523,15 @@ namespace FAT32 {
 
         DirectoryEntry *entries = reinterpret_cast<DirectoryEntry *>(buffer);
 
-        // UTF-16 Name vorbereiten
         uint16_t nameBuffer[256] = {};
         for (size_t j = 0; j < nameLen; ++j)
             nameBuffer[j] = (uint8_t) longName[j];
 
         uint8_t checksum = LFNChecksum(shortName);
 
-        // LFN-Einträge schreiben (an FESTER Position)
         for (int lfnIndex = (int) entriesNeeded - 1; lfnIndex >= 0; --lfnIndex) {
             LongFileName lfn = {};
-            lfn.order = lfnIndex + 1;
+            lfn.order = (uint8_t) (lfnIndex + 1);
             if (lfnIndex == (int) entriesNeeded - 1)
                 lfn.order |= 0x40;
             lfn.attr = ATTR_LONG_NAME;
@@ -554,28 +539,28 @@ namespace FAT32 {
             lfn.checksum = checksum;
             lfn.firstClusterLow = 0;
 
-            size_t offset = lfnIndex * 13;
-            auto copy = [&](uint16_t *dest, int count, size_t &off) {
+            size_t namePos = (size_t) lfnIndex * 13;
+
+            auto copy_from_name = [&](uint16_t *dest, int count) {
                 for (int c = 0; c < count; ++c) {
-                    if (off < nameLen) {
-                        dest[c] = nameBuffer[off++];
-                    } else if (off == nameLen) {
+                    if (namePos < nameLen) {
+                        dest[c] = nameBuffer[namePos++];
+                    } else if (namePos == nameLen) {
                         dest[c] = 0x0000;
-                        off++;
+                        namePos++;
                     } else {
                         dest[c] = 0xFFFF;
                     }
                 }
             };
 
-            copy(lfn.name1, 5, offset);
-            copy(lfn.name2, 6, offset);
-            copy(lfn.name3, 2, offset);
+            copy_from_name(lfn.name1, 5);
+            copy_from_name(lfn.name2, 6);
+            copy_from_name(lfn.name3, 2);
 
             memcpy(&entries[offsetInCluster + lfnIndex], &lfn, sizeof(LongFileName));
         }
 
-        // Short Name Entry schreiben
         memcpy(&entries[offsetInCluster + entriesNeeded], shortEntry, sizeof(DirectoryEntry));
 
         bool ok = device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
@@ -731,10 +716,8 @@ namespace FAT32 {
                     if (freeCount == 0) startIndex = i;
                     freeCount++;
                     if (freeCount >= totalNeeded) {
-                        // genug Platz
-
-                        // UTF-16 Name vorbereiten
-                        uint16_t nameBuffer[256] = {};
+                        // ==== LFN korrekt schreiben ====
+                        uint16_t nameBuffer[256];
                         for (size_t j = 0; j < nameLen; ++j)
                             nameBuffer[j] = (uint8_t) longName[j];
 
@@ -742,7 +725,7 @@ namespace FAT32 {
 
                         for (int lfnIndex = (int) entriesNeeded - 1; lfnIndex >= 0; --lfnIndex) {
                             LongFileName lfn = {};
-                            lfn.order = lfnIndex + 1;
+                            lfn.order = (uint8_t) (lfnIndex + 1);
                             if (lfnIndex == (int) entriesNeeded - 1)
                                 lfn.order |= 0x40;
                             lfn.attr = ATTR_LONG_NAME;
@@ -750,37 +733,33 @@ namespace FAT32 {
                             lfn.checksum = checksum;
                             lfn.firstClusterLow = 0;
 
-                            size_t offset = lfnIndex * 13;
-                            auto copy = [&](uint16_t *dest, int count, size_t &off) {
+                            size_t namePos = (size_t) lfnIndex * 13;
+
+                            auto copy_from_name = [&](uint16_t *dest, int count) {
                                 for (int c = 0; c < count; ++c) {
-                                    if (off < nameLen) {
-                                        dest[c] = nameBuffer[off++];
-                                    } else if (off == nameLen) {
-                                        dest[c] = 0x0000; // null-terminator
-                                        off++;
+                                    if (namePos < nameLen) {
+                                        dest[c] = nameBuffer[namePos++];
+                                    } else if (namePos == nameLen) {
+                                        dest[c] = 0x0000;
+                                        namePos++;
                                     } else {
-                                        dest[c] = 0xFFFF; // padding
+                                        dest[c] = 0xFFFF;
                                     }
                                 }
                             };
 
-
-                            copy(lfn.name1, 5, offset);
-                            copy(lfn.name2, 6, offset);
-                            copy(lfn.name3, 2, offset);
+                            copy_from_name(lfn.name1, 5);
+                            copy_from_name(lfn.name2, 6);
+                            copy_from_name(lfn.name3, 2);
 
                             memcpy(&entries[startIndex + lfnIndex], &lfn, sizeof(LongFileName));
                         }
 
                         memcpy(&entries[startIndex + entriesNeeded], shortEntry, sizeof(DirectoryEntry));
 
-                        if (!device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer)) {
-                            kernel::memory::free(chain);
-                            return false;
-                        }
-
+                        bool ok = device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
                         kernel::memory::free(chain);
-                        return true;
+                        return ok;
                     }
                 } else {
                     freeCount = 0;
@@ -788,7 +767,6 @@ namespace FAT32 {
             }
         }
 
-        // Kein Platz gefunden → Cluster erweitern und rekursiv nochmal versuchen
         uint32_t lastCluster = chain[clusterCount - 1];
         kernel::memory::free(chain);
 
@@ -799,11 +777,12 @@ namespace FAT32 {
         if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
         uint8_t zero[clusterSize];
-        memset(zero, 0, sizeof(zero));
+        memset(zero, 0, clusterSize);
         device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
 
         return WriteDirectoryEntryWithLFN(dirCluster, longName, shortName, shortEntry);
     }
+
 
     bool FileSystem::DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name) {
         size_t chainCount = 0;

@@ -64,8 +64,7 @@ namespace syscalls::internal {
                 return -ENOMEM;
             }
             void* vaddr = (void*)(base + i * PAGE_SIZE);
-            // Flags hier vereinfachen: RW + User
-            kernel::memory::map_memory(vaddr, phys, PT_Flag::UserSuper);
+            kernel::memory::map_memory(vaddr, phys, (1ULL << PT_Flag::UserSuper));
         }
 
         VmArea* area = (VmArea*)kernel::memory::malloc(sizeof(VmArea));

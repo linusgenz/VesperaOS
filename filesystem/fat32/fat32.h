@@ -76,6 +76,7 @@ namespace FAT32 {
         char formattedShortName[13] = {};
         DirectoryEntry dirEntry = {};
         bool _isDir = false;
+        size_t indexInCluster = 0;
 
     public:
         void SetLongName(const char *name) {
@@ -88,6 +89,7 @@ namespace FAT32 {
 
         void SetShortName(const char *name) {
             strncpy(shortName, name, sizeof(shortName));
+            FormatShortName();
         }
 
         void SetDirectoryEntry(const DirectoryEntry &entry) {
@@ -130,6 +132,14 @@ namespace FAT32 {
 
         void SetFileSize(uint32_t size) {
             dirEntry.fileSize = size;
+        }
+
+        void SetIndexInCluster(size_t index) {
+            indexInCluster = index;
+        }
+
+        [[nodiscard]] size_t GetIndexInCluster() const {
+            return indexInCluster;
         }
 
         void FormatShortName();
@@ -188,6 +198,7 @@ namespace FAT32 {
         bool DeleteFile(Fat32Node *parentDir, const char *name);
 
         static size_t FindFirstLFNIndex(const FAT32::FileEntry *entries, size_t shortNameIndex);
+
     private:
         BlockDevice *device;
         BPB_FAT32 bpb;
@@ -217,12 +228,12 @@ namespace FAT32 {
         bool WriteDirectoryEntry(uint32_t dirCluster, const void *entry);
 
         bool UpdateDirectoryEntryWithLFN(uint32_t parentCluster, size_t firstLFNIndex,
-                                         const char *longName, const char *shortName, const DirectoryEntry *shortEntry) const;
+                                         const char *longName, const char *shortName,
+                                         const DirectoryEntry *shortEntry) const;
 
         bool OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex, const DirectoryEntry *newEntry) const;
 
         uint32_t FindEntryCluster(uint32_t dirCluster, const char *givenName) const;
-
     };
 
 

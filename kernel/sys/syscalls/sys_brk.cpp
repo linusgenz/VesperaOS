@@ -25,48 +25,48 @@
 #include <scheduling.h>
 
 static constexpr uintptr_t USER_HEAP_START = 0x40000000;
-static constexpr uintptr_t USER_HEAP_MAX   = 0x50000000;
+static constexpr uintptr_t USER_HEAP_MAX = 0x50000000;
 
 namespace syscalls::internal {
     int64_t sys_brk(uint64_t addr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        Unit* cur = kernel::scheduling::get_current_unit();
+        Unit *cur = kernel::scheduling::get_current_unit();
         if (!cur || !cur->is_user) return -EACCES;
 
-        // initialize brk if first call
         if (cur->heap_end == 0) {
             cur->heap_end = USER_HEAP_START;
+
+            void *page = kernel::memory::request_page();
+            if (!page) return -ENOMEM;
+            kernel::memory::map_memory((void *) USER_HEAP_START, page, (1ULL << PT_Flag::UserSuper));
         }
 
-        if (addr == 0) {
-            return cur->heap_end;
-        }
+        if (addr == 0) return cur->heap_end;
 
-        if (addr < USER_HEAP_START || addr > USER_HEAP_MAX) {
-            return -EINVAL;
-        }
-
+        if (addr < USER_HEAP_START || addr > USER_HEAP_MAX) return -EINVAL;
 
         if (addr > cur->heap_end) {
-            // grow heap
-            uintptr_t current = cur->heap_end;
-            size_t npages = (addr - current + 0xFFF) / 0x1000;
+            uintptr_t start = (cur->heap_end + 0xFFF) & ~0xFFF;
+            uintptr_t end = (addr + 0xFFF) & ~0xFFF;
 
-            for (size_t i = 0; i < npages; i++) {
-                void* page = kernel::memory::request_page();
+            for (uintptr_t a = start; a < end; a += 0x1000) {
+                void *page = kernel::memory::request_page();
                 if (!page) return -ENOMEM;
-                kernel::memory::map_memory((void*)(current + i*0x1000), page, 0x7);
+                kernel::memory::map_memory((void *) a, page, (1ULL << PT_Flag::UserSuper));
             }
         } else if (addr < cur->heap_end) {
-            uintptr_t current = cur->heap_end;
-            size_t npages = (current - addr + 0xFFF) / 0x1000;
-            for (size_t i = 0; i < npages; i++) {
-                uintptr_t vaddr = current - (i+1)*0x1000;
-                kernel::memory::unmap_memory((void*)vaddr);
-                kernel::memory::free_page((void*)addr);
+            uintptr_t start = (addr + 0xFFF) & ~0xFFF;
+            uintptr_t end = (cur->heap_end + 0xFFF) & ~0xFFF;
+
+            for (uintptr_t a = start; a < end; a += 0x1000) {
+                void *page = kernel::memory::get_physical_address((void *) a);
+                if (page) {
+                    kernel::memory::unmap_memory((void *) a);
+                    kernel::memory::free_page(page);
+                }
             }
         }
 
         cur->heap_end = addr;
         return addr;
     }
-}
+} // namespace syscalls::internal

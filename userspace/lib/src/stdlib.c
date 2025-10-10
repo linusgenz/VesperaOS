@@ -24,8 +24,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
+
 
 char **environ = nullptr;
+FILE_HANDLE stdin;
+FILE_HANDLE stdout;
+FILE_HANDLE stderr;
 
 char* getenv(const char* name, char** envp) {
     if (!name) return nullptr;

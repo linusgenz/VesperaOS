@@ -180,7 +180,10 @@ int vfs_rename(const char *oldPath, const char *newPath) {
     char newName[64];
 
     if (!vfs_resolve_parent(oldPath, &oldParent, oldName)) return -ENOENT;
-    if (!vfs_resolve_parent(newPath, &newParent, newName)) return -ENOENT;
+    if (!vfs_resolve_parent(newPath, &newParent, newName)) {
+        vfs_close(oldParent);
+        return -ENOENT;
+    }
 
     if (oldParent != newParent) {
         vfs_close(oldParent);
@@ -201,13 +204,15 @@ int vfs_rename(const char *oldPath, const char *newPath) {
 }
 
 int vfs_create(const char *path) {
+    if (!path) return -EINVAL;
+
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->create) {
         vfs_close(parent);
-        return -2;
+        return -ENOSYS;
     }
 
     int result = parent->ops->create(parent, name);
@@ -215,14 +220,16 @@ int vfs_create(const char *path) {
     return result;
 }
 
-
 int vfs_mkdir(const char *path) {
+    if (!path) return -EINVAL;
+
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
+
     if (!parent->ops || !parent->ops->mkdir) {
         vfs_close(parent);
-        return -2;
+        return -ENOSYS;
     }
 
     int result = parent->ops->mkdir(parent, name);
@@ -230,30 +237,41 @@ int vfs_mkdir(const char *path) {
     return result;
 }
 
-
 int vfs_rmdir(const char *path) {
+    if (!path) return -EINVAL;
+
+    for (size_t i = 0; i < mount_points->size(); i++) {
+        MountPoint &mp = (*mount_points)[i];
+        if (strcmp(mp.path, path) == 0) {
+            return -EPERM;
+        }
+    }
+
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->rmdir) {
         vfs_close(parent);
-        return -2;
-    };
+        return -ENOSYS;
+    }
+
     int result = parent->ops->rmdir(parent, name);
     vfs_close(parent);
     return result;
 }
 
 int vfs_unlink(const char *path) {
+    if (!path) return -EINVAL;
+
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -1;
+    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->unlink) {
         vfs_close(parent);
-        return -2;
-    };
+        return -ENOSYS;
+    }
 
     int result = parent->ops->unlink(parent, name);
     vfs_close(parent);

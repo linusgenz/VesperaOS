@@ -37,7 +37,7 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
         entry.set_flag(PT_Flag::ReadWrite, true);
         entry.set_flag(PT_Flag::UserSuper, true);
 
-        return (PageTable *) ((uint64_t) entry.get_address() << 12);
+        return reinterpret_cast<PageTable *>(entry.get_address() << 12);
     };
 
     PageTable *PDP = ensure_table(PML4, indexer.PDP_i);
@@ -53,7 +53,7 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
     final_entry.set_address((uint64_t) physical_memory >> 12);
 
     // Default Flags (immer present + rw)
-    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper);
+    flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite);
 
     for (int bit = 0; bit < 64; ++bit) {
         if (flags & (1ULL << bit)) {
@@ -67,19 +67,19 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
 }
 
 void PageTableManager::set_user_flags(void* virtual_memory, size_t size) const {
-    uintptr_t start = (uintptr_t)virtual_memory & ~0xFFFULL;
-    uintptr_t end = start + size;
+    const uintptr_t start = reinterpret_cast<uintptr_t>(virtual_memory) & ~0xFFFULL;
+    const uintptr_t end = start + size;
 
     for (uintptr_t addr = start; addr < end; addr += 0x1000) {
-        PageMapIndexer indexer(addr);
+        const PageMapIndexer indexer(addr);
 
-        PageTable *PDP = (PageTable *)((uint64_t)PML4->entries[indexer.PDP_i].get_address() << 12);
+        auto *PDP = reinterpret_cast<PageTable *>(PML4->entries[indexer.PDP_i].get_address() << 12);
         if (!PDP) continue;
 
-        PageTable *PD = (PageTable *)((uint64_t)PDP->entries[indexer.PD_i].get_address() << 12);
+        auto *PD = reinterpret_cast<PageTable *>(PDP->entries[indexer.PD_i].get_address() << 12);
         if (!PD) continue;
 
-        PageTable *PT = (PageTable *)((uint64_t)PD->entries[indexer.PT_i].get_address() << 12);
+        auto *PT = reinterpret_cast<PageTable *>(PD->entries[indexer.PT_i].get_address() << 12);
         if (!PT) continue;
 
         PML4->entries[indexer.PDP_i].set_flag(PT_Flag::UserSuper, true);
@@ -91,8 +91,8 @@ void PageTableManager::set_user_flags(void* virtual_memory, size_t size) const {
 
 static bool is_table_empty(PageTable* table) {
     if (!table) return true;
-    for (int i = 0; i < 512; ++i) {
-        if (table->entries[i].get_flag(PT_Flag::Present)) return false;
+    for (auto & entrie : table->entries) {
+        if (entrie.get_flag(PT_Flag::Present)) return false;
     }
     return true;
 }
@@ -107,35 +107,30 @@ void PageTableManager::unmap_range(void *virt_start,size_t size) {
 void PageTableManager::unmap_memory(void *virtual_memory) {
     PageMapIndexer indexer((uint64_t) virtual_memory);
 
-    // --- Schritt 1: Holen der Tabellen-Referenzen (Referenzen, keine Kopien) ---
     PageDirectoryEntry &pml4_entry = PML4->entries[indexer.PDP_i];
     if (!pml4_entry.get_flag(PT_Flag::Present)) {
         return;
     }
-    PageTable *PDP = reinterpret_cast<PageTable *>((uint64_t)pml4_entry.get_address() << 12);
+    auto *PDP = reinterpret_cast<PageTable *>(pml4_entry.get_address() << 12);
 
     PageDirectoryEntry &pdp_entry = PDP->entries[indexer.PD_i];
     if (!pdp_entry.get_flag(PT_Flag::Present)) {
         return;
     }
-    PageTable *PD = reinterpret_cast<PageTable *>((uint64_t)pdp_entry.get_address() << 12);
+    auto *PD = reinterpret_cast<PageTable *>(pdp_entry.get_address() << 12);
 
     PageDirectoryEntry &pd_entry = PD->entries[indexer.PT_i];
     if (!pd_entry.get_flag(PT_Flag::Present)) {
         return;
     }
-    PageTable *PT = reinterpret_cast<PageTable *>((uint64_t)pd_entry.get_address() << 12);
+    auto *PT = reinterpret_cast<PageTable *>(pd_entry.get_address() << 12);
 
-    // --- Schritt 2: Entferne den PTE (Page Table Entry) ---
     PageDirectoryEntry &page_entry = PT->entries[indexer.P_i];
     if (page_entry.get_flag(PT_Flag::Present)) {
-        // lösche Eintrag
         page_entry.Value = 0;
 
-        // invaldiere TLB-Eintrag
         asm volatile("invlpg (%0)" : : "r" (virtual_memory) : "memory");
     } else {
-        // nichts zu tun
         return;
     }
 
@@ -165,45 +160,45 @@ void PageTableManager::unmap_memory(void *virtual_memory) {
 
 
 bool PageTableManager::is_mapped(void *virtual_memory) {
-    PageMapIndexer indexer = PageMapIndexer((uint64_t) virtual_memory);
+    auto indexer = PageMapIndexer(reinterpret_cast<uint64_t>(virtual_memory));
 
     PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
     if (!PDE.get_flag(PT_Flag::Present)) return false;
 
-    PageTable *PDP = (PageTable *) ((uint64_t) PDE.get_address() << 12);
+    const auto *PDP = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PDP->entries[indexer.PD_i];
     if (!PDE.get_flag(PT_Flag::Present)) return false;
 
-    PageTable *PD = (PageTable *) ((uint64_t) PDE.get_address() << 12);
+    const auto *PD = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PD->entries[indexer.PT_i];
     if (!PDE.get_flag(PT_Flag::Present)) return false;
 
-    PageTable *PT = (PageTable *) ((uint64_t) PDE.get_address() << 12);
+    const auto *PT = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PT->entries[indexer.P_i];
     return PDE.get_flag(PT_Flag::Present);
 }
 
-uint64_t PageTableManager::get_physical_address(void *virtual_memory) {
-    PageMapIndexer indexer = PageMapIndexer((uint64_t) virtual_memory);
+void* PageTableManager::get_physical_address(void *virtual_memory) {
+    const auto indexer = PageMapIndexer(reinterpret_cast<uint64_t>(virtual_memory));
 
     PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
     if (!PDE.get_flag(PT_Flag::Present)) return 0;
 
-    PageTable *PDP = (PageTable *) ((uint64_t) PDE.get_address() << 12);
+    auto *PDP = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PDP->entries[indexer.PD_i];
     if (!PDE.get_flag(PT_Flag::Present)) return 0;
 
-    PageTable *PD = (PageTable *) ((uint64_t) PDE.get_address() << 12);
+    auto *PD = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PD->entries[indexer.PT_i];
     if (!PDE.get_flag(PT_Flag::Present)) return 0;
 
-    PageTable *PT = (PageTable *) ((uint64_t) PDE.get_address() << 12);
+    auto *PT = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PT->entries[indexer.P_i];
     if (!PDE.get_flag(PT_Flag::Present)) return 0;
 
     uint64_t phys_base = PDE.get_address() << 12;
     uint64_t offset = (uint64_t) virtual_memory & 0xFFF;
-    return (phys_base + offset);
+    return (void*)(phys_base + offset);
 }
 
 PageTable *PageTableManager::create_user_pagetable() {

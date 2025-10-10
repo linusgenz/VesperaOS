@@ -22,12 +22,17 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
+#include <stdio.h>
 
 extern int main(int argc, char **argv);
 
 // entry which gets called by the kernel
 void _start(long argc, char **argv, char **envp) {
     environ = envp;
+
+    stdin = HANDLE_STDIN;
+    stdout = HANDLE_STDOUT;
+    stderr = HANDLE_STDERR;
 
     int ret = main((int)argc, argv);
 

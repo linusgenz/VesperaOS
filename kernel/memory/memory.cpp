@@ -95,7 +95,7 @@ namespace kernel::memory {
         return reinterpret_cast<uintptr_t>(page_table_manager.PML4);
     }
 
-    uint64_t get_physical_address(void *virtual_addr) {
+    void* get_physical_address(void *virtual_addr) {
         return page_table_manager.get_physical_address(virtual_addr);
     }
 

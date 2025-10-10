@@ -29,20 +29,20 @@
 
 int putchar(int c) {
     char ch = (char) c;
-    return (int) sys_write(HANDLE_STDOUT, (uint64_t) &ch, 1, 0, 0, 0);
+    return (int) sys_write(stdout, (uint64_t) &ch, 1, 0, 0, 0);
 }
 
 int puts(const char *s) {
     if (!s) return -1;
     size_t len = 0;
     while (s[len]) len++;
-    int ret = (int) sys_write(HANDLE_STDOUT, (uint64_t) s, len, 0, 0, 0);
+    int ret = (int) sys_write(stdout, (uint64_t) s, len, 0, 0, 0);
     return ret;
 }
 
 int getchar(void) {
     char ch;
-    int ret = (int) sys_read(HANDLE_STDIN, (uint64_t) &ch, 1, 0, 0, 0);
+    int ret = (int) sys_read(stdin, (uint64_t) &ch, 1, 0, 0, 0);
     if (ret <= 0) return -1;
     return (int) ch;
 }

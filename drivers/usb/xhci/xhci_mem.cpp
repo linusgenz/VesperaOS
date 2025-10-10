@@ -54,5 +54,5 @@ void free_xhci_memory(void *ptr) {
 }
 
 uintptr_t xhci_get_physical_addr(void *virt) {
-    return kernel::memory::get_physical_address(virt);
+    return (uintptr_t)kernel::memory::get_physical_address(virt);
 }

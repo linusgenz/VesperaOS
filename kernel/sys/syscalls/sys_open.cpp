@@ -144,6 +144,12 @@ int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
         return -EACCES;
     }
 
+    if (flags & O_APPEND) {
+        if (node->type == VfsNodeType::File) {
+            vh->context->position = node->size;
+        }
+    }
+
     // Handle registrieren
     HandleID file_handle;
     ErrorCode err = realm->add_handle(
