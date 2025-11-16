@@ -2,6 +2,7 @@ var fflags_8h =
 [
     [ "O_APPEND", "fflags_8h.html#ae036f789407d21f07b211552d67b3214", null ],
     [ "O_CREAT", "fflags_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc", null ],
+    [ "O_DIRECTORY", "fflags_8h.html#a6afd3dd2f570069804b40e6aa24fc966", null ],
     [ "O_EXCL", "fflags_8h.html#a9f5acfe79fafe14b6694447bd0e9f10b", null ],
     [ "O_RDONLY", "fflags_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b", null ],
     [ "O_RDWR", "fflags_8h.html#abb0586253488ee61072b73557eeb873b", null ],

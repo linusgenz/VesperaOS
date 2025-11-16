@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['handle_5fid_0',['HANDLE_ID',['../stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea',1,'stdio.h']]],
-  ['heap_5fseg_1',['heap_seg',['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'memory.h']]]
+  ['file_5fhandle_0',['file_handle',['../stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb',1,'FILE_HANDLE:&#160;stdio.h'],['../stdlib_8h.html#a3ee5b18ee064f2825435983e23ebf976',1,'FILE_HANDLE:&#160;stdlib.h']]]
 ];
