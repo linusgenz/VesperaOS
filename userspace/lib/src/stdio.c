@@ -312,3 +312,7 @@ ssize_t ftell(FILE_HANDLE stream) {
 int rewind(FILE_HANDLE stream) {
     return (int)sys_seek(stream, 0, SEEK_SET, 0, 0, 0);
 }
+
+DIR_HANDLE opendir(const char *path) {
+    return sys_open((uint64_t) path, O_DIRECTORY, 0, 0, 0, 0);
+}

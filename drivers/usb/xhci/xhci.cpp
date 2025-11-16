@@ -16,6 +16,7 @@
 #include <dev/usb_xhci_ioctl.h>
 
 #include "../usb_manager.h"
+#include "../../../kernel/system/system_manager.h"
 
 namespace USB {
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
@@ -74,15 +75,14 @@ namespace USB {
         return true;
     }
 
-    xhciDevice* xhciDriver::find_by_slot(uint8_t slot_id) {
-        for (auto* dev : m_connected_devices) {
+    xhciDevice *xhciDriver::find_by_slot(uint8_t slot_id) {
+        for (auto *dev: m_connected_devices) {
             if (dev && dev->info.slot_id == slot_id) {
                 return dev;
             }
         }
         return nullptr;
     }
-
 
     bool xhciDriver::start_device() {
         if (!start_host_controller()) {
@@ -93,7 +93,6 @@ namespace USB {
 
         kernel::time::sleep_ms(100);
 
-        // qemu
         if (true) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
@@ -121,6 +120,7 @@ namespace USB {
                         xhciPortRegisterManager regman = get_port_register_set(port_reg_idx);
                         xhci_portsc_register portsc{};
                         regman.read_portsc_reg(portsc);
+
 
                         Log::Info("Device on port %u - %s", event.port_id, usb_speed_to_string(portsc.port_speed));
                         setup_device(port_reg_idx);
@@ -161,7 +161,10 @@ namespace USB {
                     Log::Info("Device disconnected from port %u", port);
 
                     for (size_t i = 0; i < m_connected_devices.size(); i++) {
-                        auto* dev = m_connected_devices[i];
+                        auto *dev = m_connected_devices[i];
+
+                        SYS_EVENT_DEVICE_REMOVED(dev->info.product, port);
+
                         if (dev && dev->info.port_num == port) {
                             for (auto *iface: dev->interfaces) {
                                 if (iface->driver) {
@@ -1500,6 +1503,8 @@ namespace USB {
         m_connected_devices.push_back(device);
         Log::PrintLn("Device setup complete");
 
+        SYS_EVENT_DEVICE_REGISTERED(device->info.product, port_id);
+
         if (device->interfaces[0]->driver) {
             device->interfaces[0]->driver->on_startup(this, device);
         }
@@ -1577,7 +1582,7 @@ namespace USB {
             case XHCI_IOCTL_GET_COUNT: {
                 size_t *out = reinterpret_cast<size_t *>(arg);
                 size_t count = 0;
-                for (auto dev : m_connected_devices) {
+                for (auto dev: m_connected_devices) {
                     if (dev) count++;
                 }
                 *out = count;
@@ -1586,8 +1591,8 @@ namespace USB {
 
             case XHCI_IOCTL_GET_DEVICE: {
                 auto *stat = reinterpret_cast<xhci_device_stat *>(arg);
-            //    if (stat->slot_id >= m_connected_devices.size())
-            //        return -EINVAL;
+                //    if (stat->slot_id >= m_connected_devices.size())
+                //        return -EINVAL;
 
                 xhciDevice *dev = find_by_slot(stat->slot_id);
                 if (!dev) return -ENOENT;

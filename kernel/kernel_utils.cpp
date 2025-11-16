@@ -1,9 +1,10 @@
 #include "./include/kernel_utils.h"
 
+#include <memory.h>
+
 #include "throbber.h"
 #include "../arch/x86_64/gdt/gdt.h"
 #include "../arch/x86_64/syscalls/syscall.h"
-#include "../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
 #include "../include/log.h"
@@ -11,93 +12,23 @@
 #include "cpu/cpu_manager.h"
 #include <scheduling.h>
 #include "include/interrupts.h"
-#include "../drivers/ps2/mouse/mouse.h"
-#include "../drivers/ps2/mouse/ps2_mouse.h"
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/devfs/devfs.h"
-#include "../filesystem/fat32/fat32.h"
-#include "../filesystem/fat32/fat32_vfs_adapter.h"
-#include "../filesystem/vfs/fs_registry.h"
 #include "../filesystem/vfs/vfs.h"
 #include "devices/device_manager.h"
 #include "sys/syscall_interface.h"
-#include "include/time.h"
-#include "../filesystem/vfs/vfs.h"
-#include "devices/log_device.h"
-#include "devices/misc/cpuinfo.h"
-#include "devices/misc/full.h"
-#include "devices/misc/zero.h"
-#include "devices/misc/null.h"
-#include "devices/misc/rtc.h"
-#include "devices/misc/uptime.h"
-#include "devices/misc/urandom.h"
-#include "devices/misc/version.h"
-#include "include/sys/syscalls.h"
 #include "input/input_manager.h"
 #include "realm/realm.h"
 #include "realm/realm_manager.h"
-#include "tty/tty.h"
+#include "system/log_writer.h"
 #include "types/types.h"
-#include "units/unit.h"
 #include "units/unit_manager.h"
-
-
-void prepare_memory(BootInfo *bootInfo) {
-    const uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
-
-    kernel::memory::initialize_page_frame_allocator(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
-
-    const uint64_t kernelStart = reinterpret_cast<uint64_t>(&_KernelStart);
-    const uint64_t kernelEnd = reinterpret_cast<uint64_t>(&_KernelEnd);
-    const uint64_t kernelSize = kernelEnd - kernelStart;
-    const uint64_t kernelPages = kernelSize / 4096 + 1;
-
-    kernel::memory::lock_pages(&_KernelStart, kernelPages);
-    kernel::memory::lock_pages(nullptr, 256);
-
-    kernel::memory::initialize_page_table_manager();
-
-    // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob
-    for (int i = 0; i < mMapEntries; i++) {
-        EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR *) (
-            (uint64_t) bootInfo->mMap + (i * bootInfo->mMapDescSize));
-        //  if (desc->type != 7) continue; // Nur EfiConventionalMemory
-
-        for (uint64_t addr = desc->phys_addr; addr < desc->phys_addr + desc->num_pages * 0x1000; addr += 0x1000) {
-            kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr));
-        }
-    }
-
-    for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000) {
-        kernel::memory::map_memory(reinterpret_cast<void *>(addr), reinterpret_cast<void *>(addr),
-                                   (1ULL << PT_Flag::UserSuper));
-    }
-
-    for (uint32_t i = 0; i < CPUManager::total_cpus; ++i) {
-        void *stack_addr = (void *) (KERNEL_STACK_BASE + i * KERNEL_STACK_SIZE);
-        kernel::memory::map_memory(stack_addr, stack_addr,
-                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    }
-
-    kernel::memory::map_memory((void *) 0x8000, (void *) 0x8000,
-                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void *) 0x7000, (void *) 0x7000,
-                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void *) 0x6000, (void *) 0x6000,
-                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void *) 0x1000, (void *) 0x1000,
-                               (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-    kernel::memory::map_memory((void *) 0x2000, (void *) 0x2000, (1ULL << PT_Flag::CacheDisabled));
-
-    uint64_t fb_base = (uint64_t) bootInfo->framebuffer->base_address;
-    uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
-    kernel::memory::lock_pages((void *) fb_base, fb_size / 0x1000 + 1);
-    for (uint64_t t = fb_base; t < fb_base + fb_size; t += 0x1000) {
-        kernel::memory::map_memory((void *) t, (void *) t);
-    }
-
-    asm ("mov %0, %%cr3" : : "r" (kernel::memory::get_pagetable_address()));
-}
+#include "system/system_manager.h"
+#include "input/worker.h"
+#include "../arch/x86_64/boot/bss.h"
+#include "../arch/x86_64/smp/prepare_ap_trampoline.h"
+#include "devices/init.h"
+#include "tty/init.h"
 
 uint32_t *scroll_buffer_top = nullptr;
 uint32_t *scroll_buffer_bottom = nullptr;
@@ -129,22 +60,6 @@ void prepare_acpi(BootInfo *boot_info) {
     ACPI::TableManager::register_madt();
     ACPI::TableManager::register_mcfg();
     ACPI::TableManager::register_fadr();
-}
-
-void prepare_ap_trampoline() {
-    *(volatile uint64_t *) 0x2000 = kernel::memory::get_pagetable_address();
-    *(arch::x86_64::interrupts::idt::IDTR *) 0x1000 = *kernel::interrupts::get_idtr_address();
-    //   __asm__ volatile("wbinvd" ::: "memory");
-}
-
-extern uint8_t __bss_start[];
-extern uint8_t __bss_end[];
-
-void zero_bss() {
-    uint8_t *bss = __bss_start;
-    while (bss < __bss_end) {
-        *bss++ = 0;
-    }
 }
 
 typedef enum {
@@ -196,40 +111,6 @@ void render_image_rgba8888_centered(
     }
 }
 
-void input_poll_thread(void *arg) {
-    kernel::input::InputEvent ev;
-    memset(&ev, 0, sizeof(ev));
-    while (true) {
-        while (kernel::input::InputManager::pop_event(ev)) {
-            kernel::tty::tty_handle_input(ev);
-        }
-        kernel::time::sleep_ms(10); // temp sync issues in input manager
-        //  kernel::scheduling::yield(); // CPU an andere Threads
-    }
-}
-
-
-void init_ttys() {
-    kernel::tty::active_tty = &kernel::tty::tty_instances[0];
-    for (int i = 0; i < 6; i++) {
-        kernel::tty::tty_init(&kernel::tty::tty_instances[i]);
-        const char *name = DevFS::alloc_unique_name("tty");
-        kernel::tty::tty_devices[i] = new TTYDevice(name, &kernel::tty::tty_instances[i]);
-        kernel::tty::tty_devices[i]->register_device();
-    }
-}
-
-static ZeroDevice *zero_dev = nullptr;
-static NullDevice *null_dev = nullptr;
-static URandomDevice *urand_dev = nullptr;
-static FullDevice *full_dev = nullptr;
-static RTCDevice *rtc_dev = nullptr;
-static UptimeDevice *uptime_dev = nullptr;
-static VersionDevice *version_dev = nullptr;
-static CPUInfoDevice *cpuinfo_dev = nullptr;
-
-static LogDevice *log_dev = nullptr;
-
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
@@ -269,8 +150,9 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     gdt_install();
 
-    prepare_memory(bootInfo);
+    kernel::memory::initialize_memory(bootInfo);
     kernel::memory::initialize_heap((void *) 0x0000100000000000, 0x500);
+
 
     prepare_acpi(bootInfo);
     MADT::parse_madt(ACPI::TableManager::get_madt());
@@ -290,6 +172,8 @@ void initialize_kernel(BootInfo *bootInfo) {
     Log::init(); // threads are possible -> switch to mutex
     kernel::DeviceManager::Init();
 
+    kernel::SystemManager::initialize();
+
     CPUManager::initialize();
     RealmManager::initialize();
 
@@ -297,6 +181,7 @@ void initialize_kernel(BootInfo *bootInfo) {
         .name = "system_realm",
         .memory_limit = 0,
         .max_units = 32,
+        .is_user = false,
     };
     Realm *sys_realm = RealmManager::create(&realm_config_sys);
 
@@ -304,25 +189,15 @@ void initialize_kernel(BootInfo *bootInfo) {
         .name = "driver_realm",
         .memory_limit = 0,
         .max_units = 32,
+        .is_user = false,
     };
     RealmManager::create(&realm_config_drv);
 
     UnitManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
 
+    initialize_input_bus();
 
-    UnitConfig uc = {
-        .name = "input_bus",
-        .cpu_id = 3,
-        .priority = 5,
-        .stack_size = DEFAULT_UNIT_STACK_SIZE,
-        .initial_handles = nullptr,
-        .initial_handle_count = 0,
-        .is_idle = false,
-        .is_user = false,
-        .user_stack_size = 0
-    };
-    Unit *input_unit = UnitManager::create(KERNEL_REALM_SYSTEM, (void *) input_poll_thread, nullptr, &uc);
     //  RealmManager::list();
 
     //   UnitManager::list();
@@ -338,98 +213,20 @@ void initialize_kernel(BootInfo *bootInfo) {
         Log::Info("All USB controllers ready");
     } else {
         Log::Warning("Timeout waiting for USB controllers (%u/%u ready)",
-                     USBManager::get_initialized_count(),
+                     USBManager::get_expected_count(),
                      USBManager::get_initialized_count());
     }
-
-
-    init_ttys();
-    zero_dev = new ZeroDevice("zero");
-    null_dev = new NullDevice("null");
-    urand_dev = new URandomDevice("urandom");
-    full_dev = new FullDevice("full");
-    rtc_dev = new RTCDevice("rtc");
-    uptime_dev = new UptimeDevice("uptime");
-    version_dev = new VersionDevice("version");
-    cpuinfo_dev = new CPUInfoDevice("cpuinfo");
-
-    Channel *kernel_log_channel = Channel::create(32 * 1024);
-    log_dev = new LogDevice(kernel_log_channel);
+    kernel::tty::initialize_ttys();
+    initialize_devices();
 
     vfs_remount_all();
-    /*
-        struct xhci_device_stat {
-            uint8_t slot_id;
-            uint8_t port_num;
-            uint8_t speed;
-            uint8_t bus_number;
-            uint16_t vendor_id;
-            uint16_t product_id;
-            char product[64];
-            char manufacturer[64];
-            char serial_number[64];
-        };
 
-        VfsNode *node = vfs_open("/dev/xhci1");
-        if (!node) {
-            Log::Info("xhci0 not found");
-            return;
-        }
-
-        // Open DevFS device
-        if (DevFS::open(node) != 0) {
-            Log::Info("Failed to open xhci1");
-            vfs_close(node);
-            return;
-        }
-
-        char buffer[256];
-        size_t offset = 0;
-        size_t bytes;
-
-        while (true) {
-            bytes = DevFS::read(node, offset, sizeof(buffer), buffer);
-            if (bytes == 0) break;
-
-            size_t entries = bytes / sizeof(xhci_device_stat);
-            auto *stats = (xhci_device_stat *) buffer;
-
-            for (size_t i = 0; i < entries; i++) {
-                Log::PrintLn("Bus %d, Slot %d, Port %d, Speed %d ID %04x:%04x %s %s",
-                             stats[i].bus_number,
-                             stats[i].slot_id,
-                             stats[i].port_num,
-                             stats[i].speed, stats[i].vendor_id, stats[i].product_id, stats[i].manufacturer,
-                             stats[i].product);
-            }
-
-            offset += entries; // Offset für nächsten read
-        }
-
-        vfs_close(node);
-    */
-    /*
-        UnitConfig throbber_uc = {
-            .name = "throbber",
-            .cpu_id = 2,
-            .priority = 5,
-            .stack_size = THREAD_STACK_SIZE,
-            .initial_handles = nullptr,
-            .initial_handle_count = 0,
-            .is_idle = false,
-            .is_user = false,
-            .user_stack_size = 0
-        };
-        Unit *throbber_unit = UnitManager::create(sys_realm->id, (void *) render_throbber, nullptr, &throbber_uc);
-    */
-
+    FileLogWriter* fw = new FileLogWriter("/var/log/system.log");
+    kernel::SystemManager::register_log_writer(fw);
+    kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();
-
-    //   Log::Info("Free RAM: %u mb", kernel::memory::get_free_ram() / 1024 / 1024);
-    //   Log::Info("Reserved RAM: %u mb", kernel::memory::get_reserved_ram() / 1024 / 1024);
-    //   Log::Info("Used RAM: %u mb", kernel::memory::get_used_ram() / 1024 / 1024);
 
     kernel::interrupts::mask_pic();
 }

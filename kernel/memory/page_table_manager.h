@@ -22,8 +22,6 @@ class PageTableManager {
     void unmap_memory(void* virtualMemory);
     bool is_mapped(void* virtualMemory);
     void* get_physical_address(void* virtualMemory);
-
-    PageTable *create_user_pagetable();
 };
 
 #endif // PAGE_TABLE_MANAGER_H

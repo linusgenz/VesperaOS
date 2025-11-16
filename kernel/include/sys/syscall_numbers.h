@@ -32,7 +32,7 @@
 #define SYSCALL_SEEK      8
 #define SYSCALL_MMAP      9
 #define SYSCALL_MUNMAP    11
-#define SYSCALL_BRK      12
+#define SYSCALL_BRK       12
 #define SYSCALL_CREATE    13
 #define SYSCALL_IOCTL     16
 #define SYSCALL_SLEEP     35
@@ -48,8 +48,6 @@
 #define SYSCALL_UNLINK    87
 #define SYSCALL_REBOOT    169
 #define SYSCALL_READDIR   217
-
-// new
 
 #define SYS_UNIT_SPAWN       100
 #define SYS_UNIT_TERMINATE   101

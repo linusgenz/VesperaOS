@@ -1,4 +1,7 @@
 #include "../include/memory.h"
+
+#include <log.h>
+
 #include "page_frame_allocator.h"
 #include "page_table_manager.h"
 #include "../include/basic_renderer.h"
@@ -99,10 +102,6 @@ namespace kernel::memory {
         return page_table_manager.get_physical_address(virtual_addr);
     }
 
-    PageTable *create_user_pagetable() {
-        return page_table_manager.create_user_pagetable();
-    }
-
     // Page Frame Allocator
     void initialize_page_frame_allocator(void *efi_memory_map, size_t map_size, size_t desc_size) {
         page_frame_allocator.read_efi_memory_map((EFI_MEMORY_DESCRIPTOR *) efi_memory_map, map_size, desc_size);
@@ -130,6 +129,11 @@ namespace kernel::memory {
 
     void free_pages(void *address, uint64_t page_count) {
         page_frame_allocator.free_pages(address, page_count);
+    }
+
+
+    uint64_t get_total_ram() {
+        return page_frame_allocator.get_total_ram();
     }
 
     uint64_t get_free_ram() {

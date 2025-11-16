@@ -22,8 +22,11 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "realm_manager.h"
-#include <log.h>
 
+#include <kernel_utils.h>
+#include <log.h>
+#include "../memory/page_table_manager.h"
+#include "../system/system_manager.h"
 #include "../units/unit_manager.h"
 
 Realm RealmManager::realms[MAX_REALMS];
@@ -41,15 +44,25 @@ void RealmManager::initialize() {
     next_id = 1;
 }
 
+static void clone_kernel_low_half(PageTable* dest, PageTable* kernel, uint64_t start, uint64_t end) {
+    // alle PML4-Einträge durchgehen
+    for (size_t i = 0; i < 512; i++) {
+        uint64_t base = i * (1ULL << 39); // 512 GiB pro PML4-Eintrag
+        if (base + (1ULL << 39) < start || base > end) continue;
+
+        dest->entries[i] = kernel->entries[i];
+    }
+}
+
+
 Realm* RealmManager::create(const RealmConfig* cfg) {
     if (!cfg) return nullptr;
 
     spinlock_guard g(global_lock);
 
-    // freien Slot suchen
-    for (size_t i = 0; i < MAX_REALMS; i++) {
-        if (!realms[i].active) {
-            Realm* r = &realms[i];
+    for (auto & realm : realms) {
+        if (!realm.active) {
+            Realm* r = &realm;
             r->id = next_id++;
             r->name = cfg->name;
             r->memory_limit = cfg->memory_limit;
@@ -63,6 +76,20 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->envp = cfg->envp;
 
             r->init_handle_table();
+
+            if (cfg->is_user) {
+                auto* kernel_pml4 = reinterpret_cast<PageTable *>(kernel::memory::get_pagetable_address());
+
+                PageTable* new_pml4 = (PageTable*) kernel::memory::request_page();
+                memset(new_pml4, 0, 0x1000);
+                new_pml4->entries[0] = kernel_pml4->entries[0];
+
+                r->pml4 = new_pml4;
+
+                r->page_table = new PageTableManager(new_pml4);
+            }
+
+            SYS_EVENT_REALM_CREATED(r->id, r->name);
 
             return r;
         }
@@ -84,6 +111,9 @@ bool RealmManager::destroy(const RealmID id) {
     spinlock_guard g(global_lock);
     for (auto & realm : realms) {
         if (realm.active && realm.id == id) {
+
+            SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
+
             Unit* u = realm.unit_list;
             while (u) {
                 Unit* next = u->next;
@@ -97,6 +127,8 @@ bool RealmManager::destroy(const RealmID id) {
 
             realm.active = false;
             realm.id = 0;
+
+
             return true;
         }
     }

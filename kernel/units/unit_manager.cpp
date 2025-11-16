@@ -28,6 +28,7 @@
 
 #include "../realm/realm_manager.h"
 #include "../scheduling/schedule_manager.h"
+#include "../system/system_manager.h"
 
 Unit UnitManager::units[MAX_UNITS];
 spinlock_t UnitManager::global_lock;
@@ -47,6 +48,83 @@ void UnitManager::initialize() {
 UnitID UnitManager::allocate_id() {
     return next_id++;
 }
+
+// Schreibe Pointer direkt in den Userstack
+static void write_user_ptr(Unit *u, uintptr_t addr, uintptr_t val) {
+    uintptr_t offset = addr - (uintptr_t) u->context.user_stack;
+    if (offset + sizeof(uintptr_t) > u->context.user_stack_size) {
+        return;
+    }
+    *(uintptr_t*)(u->context.user_stack + offset) = val;
+}
+
+// Kopiere Daten direkt in User-Stack
+static void memcpy_to_user(Unit *u, void *dest, const void *src, size_t len) {
+    uintptr_t offset = (uintptr_t)dest - (uintptr_t)u->context.user_stack;
+    if (offset + len > u->context.user_stack_size) return; // Fehlercheck
+    memcpy((uint8_t*)u->context.user_stack + offset, src, len);
+}
+
+// TODO integrate
+uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
+    uintptr_t sp = (uintptr_t) u->context.user_stack_top;
+
+    const char *argv_user[16];
+    const char *envp_user[16];
+
+    // --- envp ---
+    size_t envc = 0;
+    while (envp && envp[envc]) envc++;
+
+    for (ssize_t i = envc - 1; i >= 0; i--) {
+        size_t len = strlen(envp[i]) + 1;
+        sp -= len;
+        sp &= ~0xF; // 16-byte alignment
+        memcpy_to_user(u, (void*)sp, envp[i], len);
+        envp_user[i] = (const char*) sp;
+    }
+
+    sp -= sizeof(uintptr_t);
+    write_user_ptr(u, sp, 0);
+
+    for (ssize_t i = envc - 1; i >= 0; i--) {
+        sp -= sizeof(uintptr_t);
+        write_user_ptr(u, sp, (uintptr_t) envp_user[i]);
+    }
+    uintptr_t envp_ptr = sp;
+
+    // --- argv ---
+    size_t argc = 0;
+    while (argv && argv[argc]) argc++;
+
+    for (ssize_t i = argc - 1; i >= 0; i--) {
+        size_t len = strlen(argv[i]) + 1;
+        sp -= len;
+        sp &= ~0xF;
+        memcpy_to_user(u, (void*)sp, argv[i], len);
+        argv_user[i] = (const char*) sp;
+    }
+
+    sp -= sizeof(uintptr_t);
+    write_user_ptr(u, sp, 0);
+
+    for (ssize_t i = argc - 1; i >= 0; i--) {
+        sp -= sizeof(uintptr_t);
+        write_user_ptr(u, sp, (uintptr_t) argv_user[i]);
+    }
+    uintptr_t argv_ptr = sp;
+
+    sp -= sizeof(uintptr_t);
+    write_user_ptr(u, sp, argc);
+
+    u->context.regs.rdi = argc;
+    u->context.regs.rsi = argv_ptr;
+    u->context.regs.rdx = envp_ptr;
+    u->context.user_stack_pointer = (void*)sp;
+
+    return sp;
+}
+
 
 Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const UnitConfig *cfg) {
     if (!cfg || !entry_point) return nullptr;
@@ -135,6 +213,8 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
             realm->unit_list = u;
             realm->unit_count++;
 
+            SYS_EVENT_UNIT_CREATED(u->id, u->rid);
+
             return u;
         }
     }
@@ -190,6 +270,8 @@ bool UnitManager::destroy(const UnitID id) {
             }
 
             kernel::scheduling::remove_unit(u);
+
+            SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
 
             u->active = false;
             u->id = 0;

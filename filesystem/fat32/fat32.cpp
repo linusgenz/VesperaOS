@@ -115,7 +115,8 @@ namespace FAT32 {
         size_t capacity = 16;
         size_t count = 0;
         size_t size = sizeof(uint32_t) * capacity;
-        uint32_t *chain = (uint32_t *) malloc(size);
+        auto *chain = (uint32_t *) kernel::memory::malloc(size);
+        //Log::debug("chain addr: %p", chain);
 
         uint32_t cluster = startCluster;
 
@@ -123,14 +124,16 @@ namespace FAT32 {
             if (count == capacity) {
                 // double size
                 capacity *= 2;
-                uint32_t *newChain = static_cast<uint32_t *>(realloc(chain, size, sizeof(uint32_t) * capacity));
-                size = sizeof(uint32_t) * capacity;
+                size_t newSize = sizeof(uint32_t) * capacity;
+                auto *newChain = static_cast<uint32_t *>(kernel::memory::realloc(
+                    chain, count * sizeof(uint32_t), newSize));
                 if (!newChain) {
                     kernel::memory::free(chain);
                     outCount = 0;
                     return nullptr;
                 }
                 chain = newChain;
+                size = newSize;
             }
 
             chain[count++] = cluster;
@@ -224,7 +227,7 @@ namespace FAT32 {
                 entries[outCount].SetDirectoryEntry(*entry);
                 entries[outCount].SetShortName(shortName);
 
-                entries[outCount].SetIndexInCluster(ci * entryCountInCluster + 1);
+                entries[outCount].SetIndexInCluster(ci * entryCountInCluster + i);
 
                 outCount++;
                 if (outCount >= READ_DIR_MAX_ENTRIES) {
@@ -271,7 +274,7 @@ namespace FAT32 {
             return true;
         }
 
-        uint8_t *dest = reinterpret_cast<uint8_t *>(buffer);
+        auto *dest = reinterpret_cast<uint8_t *>(buffer);
         size_t bytesRead = 0;
 
         for (size_t i = clusterIndex; i < clusterCount && bytesRead < toRead; i++) {
@@ -353,7 +356,9 @@ namespace FAT32 {
             remaining -= toWrite;
         }
 
-        kernel::memory::free(clusterChain);
+        if (clusterChain) {
+            kernel::memory::free(clusterChain);
+        }
 
         // update directory entry
         node->fileSize = len;

@@ -30,6 +30,7 @@
 
 #include "scheduling/cpu_scheduler.h"
 #include "include/time.h"
+#include "system/system_manager.h"
 
 static inline float abs(float v) {
     return v < 0.0f ? -v : v;
@@ -176,7 +177,7 @@ void render_throbber(void *arg) {
     uint32_t draw_y = ((global_renderer->TargetFramebuffer->height * 3) / 4) - (THROBBER_SIZE / 2);
 
     while (true) {
-        if (system_initialized) {
+        if (kernel::SystemManager::is_system_initialized()) {
             clear_throbber(draw_x, draw_y);
             break;
         }

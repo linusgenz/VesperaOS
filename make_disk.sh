@@ -53,7 +53,7 @@ sudo mkdir -p "$ROOT_MNT/bin" "$ROOT_MNT/lib" "$ROOT_MNT/etc" "$ROOT_MNT/tmp" "$
 sudo cp "$SRC_DIR/userspace/bin/shell" "$ROOT_MNT/bin/shell"
 sudo cp "$SRC_DIR/userspace/bin/lsusb" "$ROOT_MNT/bin/lsusb"
 sudo cp "$SRC_DIR/userspace/bin/logd" "$ROOT_MNT/bin/logd"
-
+sudo cp "$SRC_DIR/build/out.elf" "$ROOT_MNT/bin/out"
 sudo umount "$ROOT_MNT"
 
 # Loopdevice trennen

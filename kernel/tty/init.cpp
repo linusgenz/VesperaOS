@@ -1,10 +1,10 @@
-// console_backend.h
+// init.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 20.09.25.
+// Created by Linus Genz on 15.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,25 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_CONSOLE_BACKEND_H
-#define VESPERAOS_CONSOLE_BACKEND_H
+#include "tty_device.h"
+#include "init.h"
 
-#include "../tty/tty.h"
-#include "../types/handle.h"
-#include <errno.h>
-#include "../include/basic_renderer.h"
-
-class ConsoleDevice {
-public:
-    size_t read(void *buffer, size_t size) {
-        return kernel::tty::tty_read(reinterpret_cast<char *>(buffer), size);
+namespace kernel::tty {
+    void initialize_ttys() {
+        active_tty = &tty_instances[0];
+        for (int i = 0; i < 6; i++) {
+            tty_init(&tty_instances[i]);
+            const char *name = DevFS::alloc_unique_name("tty");
+            tty_devices[i] = new TTYDevice(name, &tty_instances[i]);
+            tty_devices[i]->register_device();
+        }
     }
-
-    int write(const void *buffer, size_t size) {
-        if (!global_renderer) return -EIO;
-        global_renderer->print((const char *) buffer, size);
-        return (ssize_t) size;
-    }
-};
-
-#endif //VESPERAOS_CONSOLE_BACKEND_H
+}

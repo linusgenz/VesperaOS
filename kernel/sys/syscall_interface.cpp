@@ -24,6 +24,7 @@
 #include "../../include/log.h"
 #include <scheduling.h>
 #include "../include/sys/syscall_numbers.h"
+#include "../realm/realm_manager.h"
 
 constexpr int MAX_SYSCALLS = 256;
 static syscalls::internal::syscall_fn syscall_table[MAX_SYSCALLS];
@@ -69,12 +70,18 @@ extern "C" void syscall_handler(
 ) {
     uint64_t ret = 0;
 
+    asm volatile("mov %0, %%cr3" :: "r"(kernel::memory::get_pagetable_address()));
+
     if (num < MAX_SYSCALLS && syscall_table[num]) {
         asm volatile("sti");
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {
         Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
     }
+
+    Realm *r = RealmManager::get(kernel::scheduling::get_current_unit()->rid);
+    uint64_t cr3 = (uint64_t) r->pml4;
+    asm volatile("mov %0, %%cr3" :: "r"(cr3));
 
     asm volatile ("mov %0, %%rax" :: "r"(ret));
 }

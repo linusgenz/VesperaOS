@@ -200,14 +200,3 @@ void* PageTableManager::get_physical_address(void *virtual_memory) {
     uint64_t offset = (uint64_t) virtual_memory & 0xFFF;
     return (void*)(phys_base + offset);
 }
-
-PageTable *PageTableManager::create_user_pagetable() {
-    auto *user_pml4 = (PageTable *) kernel::memory::request_page();
-
-    kernel::memory::map_memory(user_pml4, user_pml4);
-    memset(user_pml4, 0, 0x1000);
-
-    user_pml4->entries[0] = PML4->entries[0];
-
-    return user_pml4;
-}

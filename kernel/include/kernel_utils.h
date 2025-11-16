@@ -4,6 +4,7 @@
 
 #ifndef KERNEL_UTILS_H
 #define KERNEL_UTILS_H
+#include <boot.h>
 #include <cstddef> // rm
 #include <cstdint>
 #include "basic_renderer.h"
@@ -15,15 +16,6 @@
 #include "../acpi/acpi.h"
 #include "../../drivers/pci/pci.h"
 #include "ScrollManager.h"
-
-struct BootInfo {
-	Framebuffer* framebuffer;
-	FONT* font;
-	EFI_MEMORY_DESCRIPTOR* mMap;
-	uint64_t mMapSize;
-	uint64_t mMapDescSize;
-	ACPI::RSDP2* rsdp;
-};
 
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;

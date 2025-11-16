@@ -68,7 +68,7 @@ struct VfsNodeOps {
 
 struct VfsNode {
     const char *name;
-    size_t size;
+    size_t size; // size of the file is equal to fileSize field in internal_data
     VfsNodeType type;
     void *internal_data;
     VfsNodeOps *ops;

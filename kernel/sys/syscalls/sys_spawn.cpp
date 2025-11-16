@@ -40,7 +40,8 @@ namespace syscalls::internal {
 
         RealmConfig cfg = {
             .name = user_path,
-            .capabilities = CAP_RW | CAP_DEVICE_ACCESS
+            .capabilities = CAP_RW | CAP_DEVICE_ACCESS,
+            .is_user = true
         };
 
         Realm* new_realm = RealmManager::create(&cfg);
@@ -49,7 +50,7 @@ namespace syscalls::internal {
         new_realm->setup_standard_handles(tty_dev);
 
         ElfLoader loader;
-        ElfLoader::ElfLoadResult elf = loader.load_elf_binary(user_path, 0x500000);
+        ElfLoader::ElfLoadResult elf = loader.load_elf_binary(user_path, 0x500000, new_realm);
         if (!elf.success) {
             RealmManager::destroy(new_realm->id);
             return -ENOEXEC;
@@ -67,9 +68,9 @@ namespace syscalls::internal {
             return -EFAULT;
         }
 
-        u->context.regs.rdi = static_cast<uint64_t>(argc);
-        u->context.regs.rsi = reinterpret_cast<uint64_t>(argv);
-        u->context.regs.rdx = reinterpret_cast<uint64_t>(envp);
+      //  u->context.regs.rdi = static_cast<uint64_t>(argc);
+      //  u->context.regs.rsi = reinterpret_cast<uint64_t>(argv);
+      //  u->context.regs.rdx = reinterpret_cast<uint64_t>(envp);
         u->context.regs.rcx = 0;
         u->context.regs.r8  = 0;
         u->context.regs.r9  = 0;

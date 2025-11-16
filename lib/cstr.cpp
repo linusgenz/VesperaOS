@@ -443,6 +443,51 @@ static int uint64_to_string(unsigned long long value, char* buffer, int base) {
     return pos;
 }
 
+static int int64_to_string(long long value, char* buffer, int base) {
+    char temp[32];
+    int pos = 0;
+    int is_negative = 0;
+
+    // Basis prüfen
+    if (base < 2 || base > 16) {
+        buffer[0] = '\0';
+        return 0;
+    }
+
+    if (value == 0) {
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return 1;
+    }
+
+    if (value < 0 && base == 10) {
+        is_negative = 1;
+        unsigned long long abs_value = (unsigned long long)(-(value + 1)) + 1;
+        while (abs_value > 0) {
+            unsigned digit = abs_value % base;
+            temp[pos++] = (digit < 10) ? '0' + digit : 'a' + (digit - 10);
+            abs_value /= base;
+        }
+    } else {
+        unsigned long long abs_value = (value < 0) ? -value : value;
+        while (abs_value > 0) {
+            unsigned digit = abs_value % base;
+            temp[pos++] = (digit < 10) ? '0' + digit : 'a' + (digit - 10);
+            abs_value /= base;
+        }
+    }
+
+    if (is_negative) {
+        temp[pos++] = '-';
+    }
+
+    for (int i = 0; i < pos; i++) {
+        buffer[i] = temp[pos - i - 1];
+    }
+
+    buffer[pos] = '\0';
+    return pos;
+}
 
 
 int snprintf(char *buffer, size_t size, const char *format, ...) {
@@ -461,6 +506,17 @@ int snprintf(char *buffer, size_t size, const char *format, ...) {
             i++; // Skip '%'
 
             switch (format[i]) {
+                case 'u': {
+                    unsigned int val = __builtin_va_arg(args, unsigned int);
+                    char temp[32];
+                    int len = uint64_to_string((unsigned long long)val, temp, 10);
+
+                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
+                        buffer[buf_pos++] = temp[j];
+                    }
+                    written += len;
+                    break;
+                }
                 case 'd': {
                     int val = __builtin_va_arg(args, int);
                     char temp[32];
@@ -514,15 +570,27 @@ int snprintf(char *buffer, size_t size, const char *format, ...) {
                             unsigned long long val = __builtin_va_arg(args, unsigned long long);
                             char temp[32];
                             int len = uint64_to_string(val, temp, 10);
-
-                            for (int j = 0; j < len && buf_pos < size - 1; j++) {
-                                buffer[buf_pos++] = temp[j];
-                            }
+                            for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
+                            written += len;
+                        } else if (format[i + 1] == 'd') {
+                            i++;
+                            long long val = __builtin_va_arg(args, long long);
+                            char temp[32];
+                            int len = int64_to_string(val, temp, 10);
+                            for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
                             written += len;
                         }
+                    } else if (format[i + 1] == 'u') {
+                        i++;
+                        unsigned long val = __builtin_va_arg(args, unsigned long);
+                        char temp[32];
+                        int len = uint64_to_string(val, temp, 10);
+                        for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
+                        written += len;
                     }
                     break;
                 }
+
 
                 case '%': {
                     if (buf_pos < size - 1) {

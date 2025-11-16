@@ -7,6 +7,7 @@
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../cpu/cpu_manager.h"
 #include "../../include/log.h"
+#include "../realm/realm_manager.h"
 #include "../units/unit_manager.h"
 
 namespace kernel::scheduling::manager {
@@ -32,10 +33,11 @@ namespace kernel::scheduling::manager {
             wrmsr(MSR_GS_BASE, 0);
             auto *ctx_ptr = &to->context;
             wrmsr(MSR_KERNEL_GS_BASE, (uint64_t) &ctx_ptr);
-            /*  if (to->process) {
-                  uint64_t cr3 = (uint64_t) to->process->pml4;
-                  asm volatile("mov %0, %%cr3" :: "r"(cr3));
-              }*/
+            if (to->rid) {
+                Realm *r = RealmManager::get(to->rid);
+                uint64_t cr3 = (uint64_t) r->pml4;
+                asm volatile("mov %0, %%cr3" :: "r"(cr3));
+            }
         } else {
             asm volatile("mov %0, %%cr3" :: "r"(memory::get_pagetable_address()));
         }

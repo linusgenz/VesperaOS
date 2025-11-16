@@ -104,6 +104,8 @@
 #define ET_HIPROC 0xffff
 
 
+class Realm;
+
 struct Elf64_Ehdr {
     unsigned char e_ident[16];
     uint16_t e_type;
@@ -138,7 +140,7 @@ public:
         const char *error_message;
     };
 
-    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE);
+    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE, Realm *r);
 
 private:
     struct ElfSegment {
@@ -171,10 +173,11 @@ private:
 
     static SegmentMapping calculate_segment_mapping(const Elf64_Phdr &ph, uintptr_t base_addr);
 
-    static ElfLoadResult map_and_load_segment(const Elf64_Phdr &ph, const void *file_data, uintptr_t base_addr);
+    static ElfLoadResult map_and_load_segment(const Elf64_Phdr &ph, const void *file_data, uintptr_t base_addr,
+                                              Realm *r);
 
     static ElfLoadResult
-    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr);
+    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr, Realm *r);
 };
 
 #endif //ELF_H

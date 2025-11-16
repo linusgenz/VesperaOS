@@ -206,8 +206,8 @@ void cmd_clear(command_t *cmd) {
 }
 
 void cmd_ls(command_t *cmd) {
-    auto path = cmd->args[1] ? cmd->args[1] : current_dir;
-    FILE_HANDLE hdl = fopen(path, O_RDONLY);
+    const auto path = cmd->args[1] ? cmd->args[1] : current_dir;
+    DIR_HANDLE hdl = opendir(path);
     if (hdl < 0) {
         if (hdl == -2) {
             printf("ls: Cannot open '%s': File or directory not found\n", path);
@@ -576,12 +576,9 @@ void shell_main() {
   */
 
     //cmd_clear(nullptr);
+        printf("envp exiz %s", environ[0]);
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
-
-
-    void *address = malloc(100);
-    printf("malloc address: %p", address);
 
     FILE_HANDLE fd = fopen("/dev/cpuinfo", O_RDONLY);
     if (fd < 0) {
@@ -631,7 +628,6 @@ void shell_main() {
 }
 
 int main(int argc, char **argv) {
-    printf("envp exiz %s", environ[0]);
     shell_main();
     return 0;
 }

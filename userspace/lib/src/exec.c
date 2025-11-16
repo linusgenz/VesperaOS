@@ -36,7 +36,7 @@ const char *find_executable(const char *name) {
         return nullptr;
     }
 
-    const char *path = getenv("PATH", environ);
+    const char *path = "/bin"; // getenv("PATH", environ); TODO fix this
     if (!path) return nullptr;
 
     const char *start = path;

@@ -31,6 +31,7 @@
 #include "../sync/spinlock.h"
 #include "../types/handle.h"
 #include "../tty/tty_device.h"
+#include "../memory/page_table_manager.h"
 
 class Unit;
 
@@ -43,7 +44,9 @@ public:
     uint64_t max_units;
     uint64_t unit_count;
 
-    VfsNode* cwd;
+    PageTable* pml4;
+    PageTableManager* page_table;
+
     char cwd_path[256];
 
     Unit* unit_list;

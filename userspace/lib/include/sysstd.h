@@ -87,7 +87,7 @@ int64_t sys_mkdir(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uin
 /**
  * @brief Open a file or device.
  *
- * @param path Path of the file/device.
+ * @param path_ptr pointer to the path of the file/device.
  * @param flags Open flags (O_RDONLY, O_WRONLY, O_RDWR).
  * @return Handle ID on success, or negative error code.
  */

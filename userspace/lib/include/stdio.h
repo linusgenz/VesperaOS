@@ -39,9 +39,11 @@
 #define HANDLE_STDOUT  (HANDLE_TYPE_CONSOLE | 0x0000000000000001ULL)
 #define HANDLE_STDERR  (HANDLE_TYPE_CONSOLE | 0x0000000000000002ULL)
 
-typedef int64_t FILE_HANDLE;
 typedef int64_t HANDLE_ID;
-typedef int64_t CHANNEL_HANDLE;
+typedef HANDLE_ID FILE_HANDLE;
+typedef HANDLE_ID CHANNEL_HANDLE;
+typedef HANDLE_ID DIR_HANDLE;
+
 
 /**
  * @brief Write a single character to stdout.
@@ -159,5 +161,13 @@ ssize_t ftell(FILE_HANDLE stream);
  *           -EUNKNOWN: realm not found
  */
 int rewind(FILE_HANDLE stream);
+
+/**
+ * @brief Opens a directory.
+ * @param path Path to the directory
+ * @return Handle or negative error code
+ */
+DIR_HANDLE opendir(const char *path);
+
 
 #endif //VESPERAOS_STDIO_H

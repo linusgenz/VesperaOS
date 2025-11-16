@@ -1,9 +1,9 @@
 #include "heap.h"
 #include "../include/memory.h"
 #include <log.h>
-void* heap_start = nullptr;
-void* heap_end = nullptr;
-HeapSegHdr* last_hdr = nullptr;
+void *heap_start = nullptr;
+void *heap_end = nullptr;
+HeapSegHdr *last_hdr = nullptr;
 bool heap_initialized = false;
 
 // Statistics
@@ -19,30 +19,31 @@ bool HeapSegHdr::is_valid() const {
 void HeapSegHdr::set_guard_bytes() {
     guard_start = HEAP_GUARD_PATTERN;
     // Set guard byte at end of user data
-    uint8_t* end_guard = (uint8_t*)((uintptr_t)this + HEAP_HEADER_SIZE + length);
-    if ((uintptr_t)end_guard < (uintptr_t)heap_end) {
+    uint8_t *end_guard = (uint8_t *) ((uintptr_t) this + HEAP_HEADER_SIZE + length);
+    if ((uintptr_t) end_guard < (uintptr_t) heap_end) {
         *end_guard = HEAP_GUARD_PATTERN;
     }
 
     // Calculate simple checksum for corruption detection
-    checksum = magic ^ (uint32_t)length ^ (uint32_t)((uintptr_t)next >> 32) ^ (uint32_t)(uintptr_t)next;
+    checksum = magic ^ (uint32_t) length ^ (uint32_t) ((uintptr_t) next >> 32) ^ (uint32_t) (uintptr_t) next;
 }
 
 bool HeapSegHdr::check_guard_bytes() const {
     if (guard_start != HEAP_GUARD_PATTERN) return false;
 
     // Verify checksum
-    uint32_t expected_checksum = magic ^ (uint32_t)length ^ (uint32_t)((uintptr_t)next >> 32) ^ (uint32_t)(uintptr_t)next;
+    uint32_t expected_checksum = magic ^ (uint32_t) length ^ (uint32_t) ((uintptr_t) next >> 32) ^ (uint32_t) (
+                                     uintptr_t) next;
     if (checksum != expected_checksum) return false;
 
-    uint8_t* end_guard = (uint8_t*)((uintptr_t)this + HEAP_HEADER_SIZE + length);
-    if ((uintptr_t)end_guard < (uintptr_t)heap_end) {
+    uint8_t *end_guard = (uint8_t *) ((uintptr_t) this + HEAP_HEADER_SIZE + length);
+    if ((uintptr_t) end_guard < (uintptr_t) heap_end) {
         return *end_guard == HEAP_GUARD_PATTERN;
     }
     return true;
 }
 
-HeapSegHdr* HeapSegHdr::split(size_t split_length) {
+HeapSegHdr *HeapSegHdr::split(size_t split_length) {
     if (!is_valid()) {
         Log::Error("Split failed: invalid segment header at %p", this);
         return nullptr;
@@ -64,8 +65,8 @@ HeapSegHdr* HeapSegHdr::split(size_t split_length) {
     }
 
     // compute address of new segment header
-    uintptr_t new_seg_addr = (uintptr_t)this + HEAP_HEADER_SIZE + split_length + 1;
-    HeapSegHdr* new_seg = reinterpret_cast<HeapSegHdr*>(new_seg_addr);
+    uintptr_t new_seg_addr = (uintptr_t) this + HEAP_HEADER_SIZE + split_length + 1;
+    auto *new_seg = reinterpret_cast<HeapSegHdr *>(new_seg_addr);
 
     // remaining length for new seg (user-data)
     size_t remaining_length = this->length - split_length - HEAP_HEADER_SIZE - 1;
@@ -109,7 +110,7 @@ void HeapSegHdr::combine_forward() {
 
     this->length += HEAP_HEADER_SIZE + 1 + next->length;
 
-    HeapSegHdr* after = next->next;
+    HeapSegHdr *after = next->next;
     this->next = after;
     if (after) {
         after->last = this;
@@ -126,7 +127,7 @@ void HeapSegHdr::combine_backward() const {
 
 
 // Core heap function implementations
-bool initialize_heap(void* heap_address, size_t page_count) {
+bool initialize_heap(void *heap_address, size_t page_count) {
     if (heap_initialized) {
         Log::Error("Heap already initialized");
         return false;
@@ -140,21 +141,22 @@ bool initialize_heap(void* heap_address, size_t page_count) {
         return false;
     }
 
-    void* pos = heap_address;
+    void *pos = heap_address;
 
     // Map pages
     for (size_t i = 0; i < page_count; i++) {
         kernel::memory::map_memory(pos, kernel::memory::request_page());
-        pos = (void*)((size_t)pos + 0x1000);
+        memset(pos, 0, PAGE_SIZE);
+        pos = (void *) ((size_t) pos + 0x1000);
     }
 
     size_t heap_length = page_count * 0x1000;
 
     heap_start = heap_address;
-    heap_end = (void*)((size_t)heap_start + heap_length);
+    heap_end = (void *) ((size_t) heap_start + heap_length);
 
     // Initialize first segment
-    HeapSegHdr* start_seg = (HeapSegHdr*)heap_address;
+    HeapSegHdr *start_seg = (HeapSegHdr *) heap_address;
     start_seg->magic = HEAP_MAGIC_FREE;
     start_seg->length = heap_length - HEAP_HEADER_SIZE - 1; // -1 for end guard
     start_seg->next = nullptr;
@@ -183,15 +185,16 @@ size_t align_size(size_t size) {
     return size < MIN_ALLOC_SIZE ? MIN_ALLOC_SIZE : size;
 }
 
-HeapSegHdr* find_free_segment(size_t size) {
+HeapSegHdr *find_free_segment(size_t size) {
     if (!heap_initialized) return nullptr;
 
-    HeapSegHdr* current_seg = (HeapSegHdr*)heap_start;
+    auto *current_seg = (HeapSegHdr *) heap_start;
 
     while (current_seg) {
         if (!current_seg->is_valid()) {
             // Heap corruption detected
             Log::Error("Heap segment is not valid");
+            asm volatile("cli; hlt");
             return nullptr;
         }
 
@@ -205,13 +208,13 @@ HeapSegHdr* find_free_segment(size_t size) {
     return nullptr;
 }
 
-void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
+void *allocate_from_segment(HeapSegHdr *seg, size_t size) {
     if (!seg || !seg->free || seg->length < size) {
         return nullptr;
     }
 
     if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE + 1) {
-        HeapSegHdr* new_seg = seg->split(size);
+        HeapSegHdr *new_seg = seg->split(size);
         if (!new_seg) {
             Log::Warning("Split failed, taking whole segment");
         }
@@ -230,17 +233,17 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
 }
 
 
-
-void* malloc(size_t size) {
+void *malloc(size_t size) {
     if (!heap_initialized || size == 0) {
         return nullptr;
     }
 
     size = align_size(size);
 
-    HeapSegHdr* seg = find_free_segment(size);
+    HeapSegHdr *seg = find_free_segment(size);
     if (seg) {
-        return allocate_from_segment(seg, size);
+        auto x = allocate_from_segment(seg, size);
+        return x;
     }
 
     // Need to expand heap
@@ -253,7 +256,7 @@ void* malloc(size_t size) {
     return nullptr;
 }
 
-void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
+void *alloc_aligned(size_t size, size_t alignment, size_t boundary) {
     if (!heap_initialized || size == 0 || alignment == 0) {
         return nullptr;
     }
@@ -286,16 +289,16 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
     }
 
     // Allocate raw memory
-    void* raw_ptr = malloc(total_size);
+    void *raw_ptr = malloc(total_size);
     if (!raw_ptr) {
         Log::Error("Aligned alloc failed: could not allocate %u bytes for aligned allocation", total_size);
         return nullptr;
     }
 
-    HeapSegHdr* raw_seg = HeapSegHdr::from_data_ptr(raw_ptr);
+    HeapSegHdr *raw_seg = HeapSegHdr::from_data_ptr(raw_ptr);
 
     // Calculate aligned address
-    uintptr_t raw_addr = (uintptr_t)raw_ptr;
+    uintptr_t raw_addr = (uintptr_t) raw_ptr;
     uintptr_t aligned_addr = (raw_addr + header_size + alignment - 1) & ~(alignment - 1);
 
     // Handle boundary constraint
@@ -307,7 +310,6 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
         for (uintptr_t candidate = aligned_addr;
              candidate + size <= end_addr;
              candidate += alignment) {
-
             uintptr_t start_boundary = candidate & ~(boundary - 1);
             uintptr_t end_boundary = (candidate + size - 1) & ~(boundary - 1);
 
@@ -326,22 +328,22 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
     }
 
     // Setup aligned header
-    AlignedSegHdr* aligned_hdr = (AlignedSegHdr*)(aligned_addr - sizeof(AlignedSegHdr));
+    AlignedSegHdr *aligned_hdr = (AlignedSegHdr *) (aligned_addr - sizeof(AlignedSegHdr));
     aligned_hdr->magic = HEAP_MAGIC_ALIGNED;
     aligned_hdr->raw_segment = raw_seg;
     aligned_hdr->user_size = size;
     aligned_hdr->alignment = alignment;
     aligned_hdr->set_guard_bytes();
 
-    return (void*)aligned_addr;
+    return (void *) aligned_addr;
 }
 
-void free(void* ptr) {
+void free(void *ptr) {
     if (!ptr || !heap_initialized) {
         return;
     }
 
-    HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
+    HeapSegHdr *seg = HeapSegHdr::from_data_ptr(ptr);
 
     if (!seg->is_valid() || seg->magic != HEAP_MAGIC_USED || seg->free) {
         Log::Error("Invalid free or double free at %p", ptr);
@@ -361,12 +363,12 @@ void free(void* ptr) {
     seg->combine_backward();
 }
 
-void free_aligned(void* ptr) {
+void free_aligned(void *ptr) {
     if (!ptr || !heap_initialized) {
         return;
     }
 
-    AlignedSegHdr* aligned_hdr = (AlignedSegHdr*)((uintptr_t)ptr - sizeof(AlignedSegHdr));
+    AlignedSegHdr *aligned_hdr = (AlignedSegHdr *) ((uintptr_t) ptr - sizeof(AlignedSegHdr));
 
     // Validate aligned header
     if (!aligned_hdr->is_valid()) {
@@ -375,11 +377,11 @@ void free_aligned(void* ptr) {
     }
 
     // Free the raw segment
-    void* raw_ptr = aligned_hdr->raw_segment->get_data_ptr();
+    void *raw_ptr = aligned_hdr->raw_segment->get_data_ptr();
     free(raw_ptr);
 }
 
-void* realloc(void* ptr, size_t old_size, size_t new_size) {
+void *realloc(void *ptr, size_t old_size, size_t new_size) {
     if (!heap_initialized) {
         return nullptr;
     }
@@ -394,7 +396,7 @@ void* realloc(void* ptr, size_t old_size, size_t new_size) {
     }
 
     new_size = align_size(new_size);
-    HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
+    HeapSegHdr *seg = HeapSegHdr::from_data_ptr(ptr);
 
     if (!seg->is_valid() || seg->magic != HEAP_MAGIC_USED || seg->free) {
         return nullptr;
@@ -406,7 +408,7 @@ void* realloc(void* ptr, size_t old_size, size_t new_size) {
     }
 
     // Allocate new memory
-    void* new_ptr = malloc(new_size);
+    void *new_ptr = malloc(new_size);
     if (!new_ptr) {
         Log::Error("Realloc failed: could not allocate %u bytes", new_size);
         return nullptr;
@@ -434,12 +436,12 @@ void expand_heap(size_t length) {
     }
 
     size_t page_count = length / 0x1000;
-    HeapSegHdr* new_segment = (HeapSegHdr*)heap_end;
+    HeapSegHdr *new_segment = (HeapSegHdr *) heap_end;
 
     // Map new pages
     for (size_t i = 0; i < page_count; i++) {
         kernel::memory::map_memory(heap_end, kernel::memory::request_page());
-        heap_end = (void*)((size_t)heap_end + 0x1000);
+        heap_end = (void *) ((size_t) heap_end + 0x1000);
     }
 
     // Initialize new segment
@@ -465,7 +467,7 @@ void expand_heap(size_t length) {
 bool validate_heap() {
     if (!heap_initialized) return false;
 
-    HeapSegHdr* current = (HeapSegHdr*)heap_start;
+    HeapSegHdr *current = (HeapSegHdr *) heap_start;
     size_t segment_count = 0;
 
     while (current) {
@@ -497,15 +499,15 @@ bool validate_heap() {
     return true;
 }
 
-bool is_valid_pointer(void* ptr) {
+bool is_valid_pointer(void *ptr) {
     if (!ptr || !heap_initialized) return false;
 
-    uintptr_t addr = (uintptr_t)ptr;
-    if (addr < (uintptr_t)heap_start || addr >= (uintptr_t)heap_end) {
+    uintptr_t addr = (uintptr_t) ptr;
+    if (addr < (uintptr_t) heap_start || addr >= (uintptr_t) heap_end) {
         return false;
     }
 
-    HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
+    HeapSegHdr *seg = HeapSegHdr::from_data_ptr(ptr);
     return seg->is_valid() && seg->magic == HEAP_MAGIC_USED && !seg->free;
 }
 
@@ -517,7 +519,7 @@ size_t get_free_space() {
     if (!heap_initialized) return 0;
 
     size_t free_space = 0;
-    HeapSegHdr* current = (HeapSegHdr*)heap_start;
+    HeapSegHdr *current = (HeapSegHdr *) heap_start;
 
     while (current) {
         if (current->free) {
@@ -539,5 +541,4 @@ void print_heap_stats() {
     Log::PrintLn("Peak Usage: %u bytes", peak_usage);
     Log::PrintLn("Free Space: %u bytes", get_free_space());
     Log::PrintLn("Heap Range: %p - %p", heap_start, heap_end);
-
 }

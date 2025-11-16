@@ -75,6 +75,8 @@ typedef uint64_t CapabilitySet;
 #define O_TRUNC     0x0200
 #define O_APPEND    0x0400
 
+#define O_DIRECTORY 0x2000
+
 // Seek-Konstanten
 #define SEEK_SET    0
 #define SEEK_CUR    1
@@ -109,6 +111,7 @@ typedef struct {
     CapabilitySet capabilities;
     uint64_t max_units;
     const char **envp;
+    bool is_user;
 } RealmConfig;
 
 

@@ -50,5 +50,6 @@ private:
     static void setup_user_unit_stack(Unit *u);
 };
 
+uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp);
 
 #endif //VESPERAOS_UNIT_MANAGER_H

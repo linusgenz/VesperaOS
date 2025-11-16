@@ -36,7 +36,7 @@ public:
     static Realm* create(const RealmConfig* cfg);
     static Realm* get(RealmID id);
     static bool destroy(RealmID id);
-    static void list(); // optional Debug
+    static void list();
 
 private:
     static constexpr size_t MAX_REALMS = 64;

@@ -110,6 +110,7 @@ static ssize_t fat32_write(VfsNode *node, size_t offset, size_t size, const void
     if (!ok) return -EIO;
 
     fnode->fileSize = newSize;
+    node->size = newSize;
     return static_cast<ssize_t>(size);
 }
 

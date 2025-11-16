@@ -24,6 +24,7 @@
 #include "elf.h"
 #include <log.h>
 #include "../../filesystem/vfs/vfs.h"
+#include "../realm/realm.h"
 
 static inline uintptr_t align_down(uintptr_t v) { return v & ~(PAGE_SIZE - 1); }
 static inline uintptr_t align_up(uintptr_t v) { return (v + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1); }
@@ -97,7 +98,8 @@ ElfLoader::SegmentMapping ElfLoader::calculate_segment_mapping(const Elf64_Phdr 
 ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
     const Elf64_Phdr &ph,
     const void *file_data,
-    uintptr_t base_addr
+    uintptr_t base_addr,
+    Realm *r
 ) {
     SegmentMapping mapping = calculate_segment_mapping(ph, base_addr);
 
@@ -111,7 +113,7 @@ ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
     flags |= (1ULL << PT_Flag::UserSuper);
 
 
-    kernel::memory::map_range(reinterpret_cast<void *>(mapping.page_start),
+     r->page_table->map_range(reinterpret_cast<void *>(mapping.page_start),
                               phys,
                               mapping.map_size,
                               flags);
@@ -135,7 +137,8 @@ ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
 ElfLoader::ElfLoadResult ElfLoader::process_loadable_segments(
     const void *file_data,
     const Elf64_Ehdr *header,
-    uintptr_t base_addr
+    uintptr_t base_addr,
+    Realm *r
 ) {
     auto *phdrs = reinterpret_cast<const Elf64_Phdr *>(
         reinterpret_cast<const uint8_t *>(file_data) + header->e_phoff
@@ -146,7 +149,7 @@ ElfLoader::ElfLoadResult ElfLoader::process_loadable_segments(
 
         if (ph.p_type != PT_LOAD) continue;
 
-        ElfLoadResult segment_result = map_and_load_segment(ph, file_data, base_addr);
+        ElfLoadResult segment_result = map_and_load_segment(ph, file_data, base_addr, r);
         if (!segment_result.success) {
             return segment_result;
         }
@@ -157,7 +160,7 @@ ElfLoader::ElfLoadResult ElfLoader::process_loadable_segments(
 
 ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(
     const char *path,
-    uintptr_t USER_BASE
+    uintptr_t USER_BASE, Realm *r
 ) {
     ElfFileData file_data = load_file_from_vfs(path);
     if (!file_data.data) {
@@ -172,7 +175,7 @@ ElfLoader::ElfLoadResult ElfLoader::load_elf_binary(
 
     const auto *header = reinterpret_cast<Elf64_Ehdr *>(file_data.data);
 
-    ElfLoadResult load_result = process_loadable_segments(file_data.data, header, USER_BASE);
+    ElfLoadResult load_result = process_loadable_segments(file_data.data, header, USER_BASE, r);
     if (!load_result.success) {
         kernel::memory::free(file_data.data);
         return load_result;

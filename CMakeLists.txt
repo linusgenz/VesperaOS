@@ -21,7 +21,15 @@ set_source_files_properties(
 
 
 add_executable(kernel.elf ${CPP_SOURCES} ${ASM_SOURCES}
-        userspace/lib/include/string.h)
+        userspace/lib/include/string.h
+        kernel/input/worker.cpp
+        kernel/input/worker.h
+        kernel/memory/init.cpp
+        kernel/tty/init.cpp
+        kernel/tty/init.h
+        kernel/devices/init.cpp
+        kernel/devices/init.h
+)
 set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -nostdlib -static"
 )
@@ -33,6 +41,11 @@ target_include_directories(kernel.elf PRIVATE
 # Bootloader
 add_library(bootloader-lint STATIC
         ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.c
+        arch/x86_64/boot/bss.cpp
+        arch/x86_64/boot/bss.h
+        arch/x86_64/smp/prepare_ap_trampoline.cpp
+        arch/x86_64/smp/prepare_ap_trampoline.h
+        include/boot.h
 )
 
 set_target_properties(bootloader-lint PROPERTIES
@@ -121,7 +134,6 @@ add_custom_target(disk_image
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
-
 add_custom_target(img
         COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
         DEPENDS disk_image
@@ -160,14 +172,19 @@ add_custom_target(debug
         -machine q35
         -enable-kvm
         -cpu host
-
+        #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
+        #  -device nvme,drive=host0,serial=deadbeef
+        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio
-        -device qemu-xhci
+        -device qemu-xhci,id=xhci1
+        -device qemu-xhci,id=xhci2
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
+        -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
-        -device usb-kbd
-        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
+        -device usb-storage,drive=usbstick2
+        -trace *xhci*
+        -D /tmp/qemu.log
         -no-reboot
         -no-shutdown
         -s -S

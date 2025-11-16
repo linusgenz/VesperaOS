@@ -30,6 +30,7 @@
 #include "../partition/partition.h"
 #include <../devices/partition_device.h>
 #include "vfs_helper.h"
+#include "../../kernel/system/system_manager.h"
 
 size_t FilesystemDetector::driver_count = 0;
 size_t FilesystemDetector::device_count = 0;
@@ -152,6 +153,8 @@ bool FilesystemDetector::mount_device(BlockDevice *device, const char *suggested
     mp.is_virtual = false;
     mp.is_partition = is_partition;
     mp.is_root_device = is_root_device;
+
+    SYS_EVENT_FILESYSTEM_MOUNT(mp.path, fs_info.type_name);
 
     mount_points->push_back(mp);
     return true;

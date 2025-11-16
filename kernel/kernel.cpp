@@ -35,13 +35,13 @@
 #include "../filesystem/vfs/vfs.h"
 #include "input/input_manager.h"
 #include "realm/realm_manager.h"
+#include "system/system_manager.h"
 #include "tty/tty.h"
 #include "tty/tty.h"
 #include "units/unit_manager.h"
 
 static const char* envp0[] = {"PATH=/bin"};
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
-    system_initialized = false;
     initialize_kernel(boot_info);
     kernel::scheduling_started = true;
     char vendor[13];
@@ -66,11 +66,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
 
      vfs_closedir(dir21);*/
 
-    ElfLoader elf_loader;
-    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/bin/shell", 0x400000);
-    if (!result.success) {
-        Log::Error("Failed to load elf binary");
-    }
+
 
     RealmConfig realm_config_shell = {
         .name = "shell_realm",
@@ -78,10 +74,18 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .capabilities = CAP_DEVICE_ACCESS | CAP_RW,
         .max_units = 16,
         .envp = envp0,
+        .is_user = true,
     };
     Realm *shell_realm = RealmManager::create(&realm_config_shell);
     TTYDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
+
+    ElfLoader elf_loader;
+    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/bin/shell", 0x400000, shell_realm);
+    Log::Ok("Elf load result: %p", result.entry_point);
+    if (!result.success) {
+        Log::Error("Failed to load elf binary");
+    }
 
     UnitConfig uc = {
         .name = "shell",
@@ -92,11 +96,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .initial_handle_count = 0,
         .is_idle = false,
         .is_user = true,
-        .user_stack_size = 0
+        .user_stack_size = 0,
     };
     Unit *shell = UnitManager::create(shell_realm->id, (void *) result.entry_point, nullptr, &uc);
+    SetupUserArgsAndEnv(shell, nullptr, envp0);
+    Log::Ok("PF: %p %p", envp0, *envp0);
 
-    system_initialized = true;
+    kernel::SystemManager::set_system_initialized();
     kernel::scheduling::enable_on_cpu(0);
 
     while (true);

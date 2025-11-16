@@ -136,7 +136,7 @@ void BasicRenderer::clear_char() {
         }
     }
 
-    cursor_position.X -= 8;
+    cursor_position.X -= PSF_Font->width;
 
     if (cursor_position.X < 0) {
         cursor_position.X = TargetFramebuffer->width;

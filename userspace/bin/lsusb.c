@@ -44,6 +44,8 @@ void main(int argc, char **argv) {
     char entry[128];
     char devname[128];
 
+    printf("lsusb: lsusb started\n");
+
     while (sys_readdir(bus_hdl, (uint64_t) devname, sizeof(devname), 0, 0, 0) > 0) {
         // build controller path e.g. /dev/xhci/xhci0
         char ctrl_path[256];
@@ -59,8 +61,6 @@ void main(int argc, char **argv) {
         size_t dev_count = 0;
         int rc = ioctl(ctrl_hdl, XHCI_IOCTL_GET_COUNT, &dev_count);
         if (rc != 0) {
-            // controller might not support ioctl or no devices
-            // try read fallback (optional) or just note it
             printf("%s: ioctl(GET_COUNT) failed (%d)\n", ctrl_path, rc);
             fclose(ctrl_hdl);
             continue;

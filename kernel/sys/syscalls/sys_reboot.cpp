@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../acpi/acpi.h"
+#include "../../system/system_manager.h"
 #define REBOOT_MAGIC1 0xfee1dead
 #define REBOOT_MAGIC2 672274793
 
@@ -39,11 +40,11 @@ namespace syscalls::internal {
         switch (cmd) {
             case REBOOT_RESTART
             :
-                ACPI::acpi_reboot();
+                kernel::SystemManager::initiate_shutdown(nullptr, true);
                 break;
             case REBOOT_POWER_OFF
             :
-                ACPI::acpi_power_off();
+                kernel::SystemManager::initiate_shutdown(nullptr, false);
                 break;
             default:
                 return -1;
