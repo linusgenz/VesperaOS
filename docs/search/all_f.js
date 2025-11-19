@@ -7,7 +7,8 @@ var searchData=
   ['reboot_5fmagic2_4',['REBOOT_MAGIC2',['../sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c',1,'sysstd.h']]],
   ['reboot_5fpower_5foff_5',['REBOOT_POWER_OFF',['../sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad',1,'sysstd.h']]],
   ['reboot_5frestart_6',['REBOOT_RESTART',['../sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8',1,'sysstd.h']]],
-  ['rewind_7',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
-  ['rtc_2eh_8',['rtc.h',['../rtc_8h.html',1,'']]],
-  ['rtc_5fdata_9',['rtc_data',['../structrtc__data.html',1,'']]]
+  ['reserved_5fram_7',['reserved_ram',['../structmeminfo__t.html#a944f672d0f1bad28dbbbc5494cc656f2',1,'meminfo_t']]],
+  ['rewind_8',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
+  ['rtc_2eh_9',['rtc.h',['../rtc_8h.html',1,'']]],
+  ['rtc_5fdata_10',['rtc_data',['../structrtc__data.html',1,'']]]
 ];

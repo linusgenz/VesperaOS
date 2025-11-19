@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rtc_5fdata_0',['rtc_data',['../structrtc__data.html',1,'']]]
+  ['meminfo_5ft_0',['meminfo_t',['../structmeminfo__t.html',1,'']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['year_0',['year',['../structrtc__data.html#ae1f6e8da2c753702a452d6be44dbc5e5',1,'rtc_data']]]
+  ['used_5fram_0',['used_ram',['../structmeminfo__t.html#afe3c8841983450c6aedf3cc2e9cbca0a',1,'meminfo_t']]]
 ];

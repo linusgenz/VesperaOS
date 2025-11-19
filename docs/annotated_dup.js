@@ -4,6 +4,7 @@ var annotated_dup =
     [ "dirent_t", "structdirent__t.html", "structdirent__t" ],
     [ "heap_seg", "structheap__seg.html", "structheap__seg" ],
     [ "large_seg", "structlarge__seg.html", "structlarge__seg" ],
+    [ "meminfo_t", "structmeminfo__t.html", "structmeminfo__t" ],
     [ "rtc_data", "structrtc__data.html", "structrtc__data" ],
     [ "xhci_device_stat", "structxhci__device__stat.html", "structxhci__device__stat" ]
 ];

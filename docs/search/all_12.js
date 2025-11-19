@@ -5,5 +5,6 @@ var searchData=
   ['urandom_2eh_2',['urandom.h',['../urandom_8h.html',1,'']]],
   ['urandom_5fu32_3',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
   ['urandom_5fu64_4',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
-  ['usb_5fxhci_5fioctl_2eh_5',['usb_xhci_ioctl.h',['../usb__xhci__ioctl_8h.html',1,'']]]
+  ['usb_5fxhci_5fioctl_2eh_5',['usb_xhci_ioctl.h',['../usb__xhci__ioctl_8h.html',1,'']]],
+  ['used_5fram_6',['used_ram',['../structmeminfo__t.html#afe3c8841983450c6aedf3cc2e9cbca0a',1,'meminfo_t']]]
 ];
