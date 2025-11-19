@@ -28,6 +28,7 @@
 namespace kernel::input {
 
     void InputManager::init() {
+        s_lock.init();
         s_head = 0;
         s_tail = 0;
         InputEvent s_buffer[BUFFER_SIZE] = {};
@@ -35,6 +36,7 @@ namespace kernel::input {
 
 
     void InputManager::push_event(const InputEvent& ev) {
+        spinlock_guard g(s_lock);
         size_t next = (s_head + 1) % BUFFER_SIZE;
         if (next != s_tail) {
             s_buffer[s_head] = ev;
@@ -43,6 +45,7 @@ namespace kernel::input {
     }
 
     bool InputManager::pop_event(InputEvent& ev) {
+        spinlock_guard g(s_lock);
         if (s_head == s_tail) return false;
         ev = s_buffer[s_tail];
         s_tail = (s_tail + 1) % BUFFER_SIZE;
@@ -50,6 +53,7 @@ namespace kernel::input {
     }
 
     bool InputManager::is_empty() {
+        spinlock_guard g(s_lock);
         return s_head == s_tail;
     }
 

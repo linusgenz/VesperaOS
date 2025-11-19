@@ -1,10 +1,10 @@
-// sys_unlink.cpp
+// meminfo.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 17.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,23 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
-#include "../../../filesystem/vfs/vfs.h"
-#include "../../include/errno.h"
+#ifndef VESPERAOS_MEMINFO_H
+#define VESPERAOS_MEMINFO_H
 
-namespace syscalls::internal {
-    int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* path = reinterpret_cast<const char*>(path_ptr);
-        if (!path) return -EINVAL;
+#include <stdint.h>
 
-        int result = VFS::unlink(path);
-        return result < 0 ? -ENOENT : 0;
-    }
+/**
+ * @brief Memory information provided by the meminfo device.
+ *
+ * This struct mirrors the binary data returned by the kernel meminfo device.
+ * All fields represent raw byte counts and are guaranteed to be consistent
+ * at the moment of the read call.
+ */
+typedef struct {
+    uint64_t total_ram;    ///< Total RAM in bytes
+    uint64_t used_ram;     ///< Used RAM in bytes
+    uint64_t free_ram;     ///< Free RAM in bytes
+    uint64_t reserved_ram; ///< Reserved RAM in bytes by the System
+} meminfo_t;
 
-}
+#endif // VESPERAOS_MEMINFO_H

@@ -25,16 +25,16 @@
 #include "../../filesystem/vfs/vfs.h"
 
 FileLogWriter::FileLogWriter(const char *p) : file_handle(nullptr), path(p) {
-    file_handle = vfs_open(path);
+    file_handle = VFS::open(path);
     if (!file_handle) {
-        vfs_create(path);
-        file_handle = vfs_open(path);
+        VFS::create(path);
+        file_handle = VFS::open(path);
     }
 }
 
 FileLogWriter::~FileLogWriter() {
     if (file_handle) {
-        vfs_close(file_handle);
+        VFS::close(file_handle);
     }
 }
 

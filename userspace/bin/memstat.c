@@ -1,10 +1,10 @@
-// sys_unlink.cpp
+// memstat.c
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 17.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,32 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
-#include "../../../filesystem/vfs/vfs.h"
-#include "../../include/errno.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <sysstd.h>
+#include <dev/meminfo.h>
 
-namespace syscalls::internal {
-    int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* path = reinterpret_cast<const char*>(path_ptr);
-        if (!path) return -EINVAL;
-
-        int result = VFS::unlink(path);
-        return result < 0 ? -ENOENT : 0;
+int main(int argc, char **argv) {
+    FILE_HANDLE hdl = fopen("/dev/meminfo", O_RDONLY);
+    if (hdl < 0) {
+        printf("memstat: cannot open /dev/meminfo (hdl=%lld)\n", (long long) hdl);
+        return -1;
     }
 
+    meminfo_t info;
+    ssize_t r = read(hdl, &info, sizeof(info));
+
+    fclose(hdl);
+
+    if (r != sizeof(info)) {
+        printf("memstat: failed to read meminfo (bytes=%lld)\n", (long long) r);
+        return -1;
+    }
+
+    printf("Memory Statistics:\n");
+    printf("  Total: %llu MB\n", info.total_ram / 1024 / 1024);
+    printf("  Used : %llu MB\n", info.used_ram  / 1024 / 1024);
+    printf("  Free : %llu MB\n", info.free_ram  / 1024 / 1024);
+
+    return 0;
 }

@@ -47,7 +47,7 @@ namespace kernel::input {
         static inline InputEvent s_buffer[BUFFER_SIZE];
         static volatile inline size_t s_head = 0;
         static volatile inline size_t s_tail = 0;
-
+        static inline spinlock_t s_lock{};
     };
 
 }

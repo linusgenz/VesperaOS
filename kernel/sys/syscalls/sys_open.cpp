@@ -42,16 +42,16 @@ namespace syscalls::internal {
         Realm *realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
-        VfsNode *node = vfs_open(user_path);
+        VfsNode *node = VFS::open(user_path);
 
         if (!node) {
             if (flags & O_CREAT) {
-                int result = vfs_create(user_path);
+                int result = VFS::create(user_path);
                 if (result != 0) {
                     return result;
                 }
 
-                node = vfs_open(user_path);
+                node = VFS::open(user_path);
                 if (!node) {
                     return -ENOENT;
                 }
@@ -60,7 +60,7 @@ namespace syscalls::internal {
             }
         } else {
             if ((flags & O_CREAT) && (flags & O_EXCL)) {
-                vfs_close(node);
+                VFS::close(node);
                 return -EEXIST;
             }
         }
@@ -79,20 +79,20 @@ namespace syscalls::internal {
                 required_caps |= CAP_READ | CAP_WRITE;
                 break;
             default:
-                vfs_close(node);
+                VFS::close(node);
                 return -EINVAL;
         }
 
         if (node->type == VfsNodeType::Directory) {
             // User did not want a directory → EISDIR
             if (!(flags & O_DIRECTORY)) {
-                vfs_close(node);
+                VFS::close(node);
                 return -EISDIR;
             }
         } else {
             // User WANTS a directory, but the target is not one
             if (flags & O_DIRECTORY) {
-                vfs_close(node);
+                VFS::close(node);
                 return -ENOTDIR;
             }
         }
@@ -106,7 +106,7 @@ namespace syscalls::internal {
                 required_caps |= CAP_DEVICE_ACCESS;
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
-                    vfs_close(node);
+                    VFS::close(node);
                     return -ENOMEM;
                 }
                 handle_type = HANDLE_TYPE_DEVICE;
@@ -116,7 +116,7 @@ namespace syscalls::internal {
 
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
-                    vfs_close(node);
+                    VFS::close(node);
                     return -ENOMEM;
                 }
                 handle_type = HANDLE_TYPE_FILE;
@@ -124,19 +124,19 @@ namespace syscalls::internal {
 
             case VfsNodeType::Directory: {
                 if (!node->ops || !node->ops->opendir) {
-                    vfs_close(node);
+                    VFS::close(node);
                     return -ENOTDIR;
                 }
                 void *dir_handle = node->ops->opendir(node);
                 if (!dir_handle) {
-                    vfs_close(node);
+                    VFS::close(node);
                     return -ENOMEM;
                 }
 
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
                     node->ops->closedir(dir_handle);
-                    vfs_close(node);
+                    VFS::close(node);
                     return -ENOMEM;
                 }
 
@@ -147,14 +147,14 @@ namespace syscalls::internal {
 
 
             default:
-                vfs_close(node);
+                VFS::close(node);
                 return -EINVAL;
         }
 
         // Capability-Check
         if ((realm->capabilities & required_caps) != required_caps) {
             delete vh;
-            vfs_close(node);
+            VFS::close(node);
             return -EACCES;
         }
 

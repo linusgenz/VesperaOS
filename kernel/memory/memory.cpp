@@ -150,30 +150,36 @@ namespace kernel::memory {
 
     // Heap
     static bool heap_initialized = false;
+    static spinlock_t heap_lock;
 
     void initialize_heap(void *heap_start, size_t page_count) {
         ::initialize_heap(heap_start, page_count);
+        heap_lock.init();
         heap_initialized = true;
     }
 
     void *malloc(size_t size) {
         if (!heap_initialized) return nullptr;
+        spinlock_guard guard(heap_lock);
         return ::malloc(size);
     }
 
     void free(void *ptr) {
         if (!heap_initialized) return;
+        spinlock_guard guard(heap_lock);
         ::free(ptr);
     }
 
     void *alloc_aligned(size_t size, size_t alignment, size_t boundary) {
         if (!heap_initialized) return nullptr;
+        spinlock_guard guard(heap_lock);
         return ::alloc_aligned(size, alignment, boundary);
     }
 
 
     void free_aligned(void *aligned_ptr) {
         if (!heap_initialized) return;
+        spinlock_guard guard(heap_lock);
         return ::free_aligned(aligned_ptr);
     }
 
@@ -183,6 +189,7 @@ namespace kernel::memory {
 
     void *realloc(void *old_ptr, size_t old_size, size_t new_size) {
         if (!heap_initialized) return nullptr;
+        spinlock_guard guard(heap_lock);
         return ::realloc(old_ptr, old_size, new_size);
     }
 } // namespace kernel::memory

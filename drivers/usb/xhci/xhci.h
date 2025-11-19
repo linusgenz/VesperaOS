@@ -9,6 +9,7 @@
 #include "../../../arch/x86_64/interrupts/idt.h"
 #include "xhci_ext_cap.h"
 #include "../../../kernel/devices/chardevice.h"
+#include "../../kernel/sync/atomic.h"
 
 namespace USB {
     class xhciDriver : public CharDevice {
@@ -17,6 +18,12 @@ namespace USB {
             vector_num = _vector_num;
             name = _name;
             bus_number = _bus_number;
+            m_devices_lock.init();
+            m_command_lock.init();
+            m_transfer_lock.init();
+            m_port_connection_lock.init();
+            m_command_irq_completed.init();
+            m_transfer_irq_completed.init();
         }
 
         ~xhciDriver() override = default;
@@ -44,6 +51,11 @@ namespace USB {
         size_t write(CharFile* cf, const void* buffer, size_t count) override;
 
     private:
+        spinlock_t m_devices_lock{};
+        spinlock_t m_command_lock{};
+        spinlock_t m_transfer_lock{};
+        spinlock_t m_port_connection_lock{};
+
         uint8_t bus_number;
         uint8_t vector_num{};
 
@@ -105,9 +117,8 @@ namespace USB {
 
         Vector<xhci_port_connection_event> m_port_connection_events;
 
-        // Flag indicating we have a command completion event
-        volatile uint8_t m_command_irq_completed = 0;
-        volatile uint8_t m_transfer_irq_completed = 0;
+        atomic_u8_t m_command_irq_completed;
+        atomic_u8_t m_transfer_irq_completed;
 
         Vector<uint8_t> m_usb3_ports;
 

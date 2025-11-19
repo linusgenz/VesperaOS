@@ -30,7 +30,7 @@ namespace syscalls::internal {
         const char* path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 
-        int result = vfs_mkdir(path);
+        int result = VFS::mkdir(path);
         return result < 0 ? -result : 0; // Negative result already uses errno codes
     }
 

@@ -43,7 +43,7 @@ struct DeviceDescriptor {
     size_t device_size;
     FilesystemInfo fs_info;
     bool is_recognized;
-    const char* partition_table_type;
+    const char *partition_table_type;
 };
 
 class FilesystemDetector {
@@ -59,16 +59,19 @@ public:
     static void PrintDetectedFilesystems();
 
 private:
+    static Vector<PendingMount> *pending_mounts;
+
     static size_t driver_count;
     static size_t device_count;
 
-    static void GenerateMountPath(const char* fs_type, int index, char* out_path, size_t size);
+    static void GenerateMountPath(const char *fs_type, int index, char *out_path, size_t size);
 
     static VfsNode *MountFilesystem(BlockDevice *device, FilesystemInfo *fs_info);
 
-    static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size, const char* table_type, bool is_root_device = false);
+    static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size,
+                             const char *table_type, bool is_root_device = false);
 
-    static bool IsValidFilesystemType(const char* type);
+    static bool IsValidFilesystemType(const char *type);
 };
 
 namespace FilesystemProbes {
@@ -88,8 +91,5 @@ namespace FilesystemProbes {
 
     bool ProbeISO9660(BlockDevice *device);
 }
-
-extern Vector<PendingMount>* pending_mounts;
-
 
 #endif //ENHANCED_FS_DETECTION_H

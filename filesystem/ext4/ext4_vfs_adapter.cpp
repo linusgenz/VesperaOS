@@ -126,7 +126,6 @@ static VfsNodeOps ext4_ops = {
     .write = nullptr, // TODO
     .find = ext4_find,
     .close = nullptr,
-    .file_size = nullptr,
     .opendir = ext4_opendir,
     .readdir = ext4_readdir,
     .closedir = ext4_closedir,

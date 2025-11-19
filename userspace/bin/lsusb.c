@@ -34,7 +34,7 @@
 #define MAX_INPUT 256
 
 void main(int argc, char **argv) {
-    FILE_HANDLE bus_hdl = fopen("/dev/xhci/", O_RDONLY);
+    FILE_HANDLE bus_hdl = opendir("/dev/xhci/");
     if (bus_hdl < 0) {
         printf("lsusb: cannot open /dev/xhci/ (hdl=%lld)\n", (long long) bus_hdl);
         exit(-1);

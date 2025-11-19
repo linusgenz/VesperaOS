@@ -38,21 +38,21 @@ bool ElfLoader::validate_elf_header(const Elf64_Ehdr *header) {
 }
 
 ElfLoader::ElfFileData ElfLoader::load_file_from_vfs(const char *path) {
-    VfsNode *file = vfs_open(path);
+    VfsNode *file = VFS::open(path);
     if (!file) {
         return {nullptr, 0, "Failed to open file"};
     }
 
-    size_t size = vfs_file_size(file);
+    size_t size = file->size;
     void *file_data = kernel::memory::malloc(size);
 
     if (!file_data) {
-        vfs_close(file);
+        VFS::close(file);
         return {nullptr, 0, "Failed to allocate memory for file"};
     }
 
-    vfs_read(file, 0, size, file_data);
-    vfs_close(file);
+    VFS::read(file, 0, size, file_data);
+    VFS::close(file);
 
     return {file_data, size, nullptr};
 }

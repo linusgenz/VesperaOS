@@ -49,6 +49,19 @@ public:
         return *this;
     }
 
+    Vector copy() const {
+        Vector<T> result(length);
+        for (size_t i = 0; i < length; ++i) {
+            if constexpr (std::is_trivially_copyable<T>::value) {
+                result._data[i] = _data[i];
+            } else {
+                new(&result._data[i]) T(_data[i]);
+            }
+        }
+        result.length = length;
+        return result;
+    }
+
     ~Vector() {
         destroy();
     }

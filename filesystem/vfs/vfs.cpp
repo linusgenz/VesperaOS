@@ -26,6 +26,7 @@
 #include "vfs.h"
 
 #include <scheduling.h>
+#include <time.h>
 
 #include "fs_registry.h"
 #include "../../kernel/include/errno.h"
@@ -36,38 +37,42 @@
 #include "../dirent.h"
 #include "../../kernel/realm/realm_manager.h"
 
-Vector<MountPoint> *mount_points;
+Vector<MountPoint> *VFS::mount_points = nullptr;
+spinlock_t VFS::mount_points_lock;
 
-void vfs_init() {
+
+void VFS::init() {
     mount_points = new Vector<MountPoint>();
+    mount_points_lock.init();
 
     FilesystemDetector::Init();
 
     FilesystemDetector::RegisterAllDrivers();
 
-  //  FilesystemDetector::ScanAndMountAll();
+   // FilesystemDetector::ScanAndMountAll();
 
-    //    FilesystemDetector::PrintDetectedFilesystems();
+   // FilesystemDetector::PrintDetectedFilesystems();
 
-    //   Log::Info("[VFS] Initialization complete");
+    Log::Info("[VFS] Initialization complete");
 }
 
-VfsNode *vfs_mount_virtual(VfsNode *root, const char *mount_path) {
+VfsNode *VFS::mount_virtual(VfsNode *root, const char *mount_path) {
     if (!root || !mount_path) return nullptr;
 
-    // Neuen MountPoint eintragen
     MountPoint mp{};
     strncpy(mp.path, mount_path, sizeof(mp.path) - 1);
-    mp.is_virtual = true;
     mp.path[sizeof(mp.path) - 1] = '\0';
+    mp.is_virtual = true;
     mp.root = root;
 
-    mount_points->push_back(mp);
-
+    {
+        spinlock_guard g(mount_points_lock);
+        mount_points->push_back(mp);
+    }
     return root;
 }
 
-VfsNode *vfs_open(const char *path) {
+VfsNode *VFS::open(const char *path) {
     if (!path || !*path) return nullptr;
 
     char abs_path[256];
@@ -88,16 +93,18 @@ VfsNode *vfs_open(const char *path) {
     MountPoint *best_match = nullptr;
     size_t best_len = 0;
 
-    for (size_t i = 0; i < mount_points->size(); i++) {
-        MountPoint &mp = (*mount_points)[i];
-        size_t len = strlen(mp.path);
+    {
+        spinlock_guard g(mount_points_lock);
+        for (auto & mp : *mount_points) {
+            size_t len = strlen(mp.path);
 
-        if (strncmp(path, mp.path, len) == 0 &&
-            (strcmp(mp.path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
-            len > best_len) {
-            best_match = &mp;
-            best_len = len;
-            }
+            if (strncmp(path, mp.path, len) == 0 &&
+                (strcmp(mp.path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
+                len > best_len) {
+                best_match = &mp;
+                best_len = len;
+                }
+        }
     }
 
     if (!best_match) return nullptr;
@@ -121,14 +128,14 @@ VfsNode *vfs_open(const char *path) {
     return current;
 }
 
-VfsDir *vfs_opendir(const char *path) {
-    VfsNode *node = vfs_open(path);
+VfsDir *VFS::opendir(const char *path) {
+    VfsNode *node = open(path);
     if (!node || node->type != VfsNodeType::Directory) return nullptr;
     if (!node->ops || !node->ops->opendir) return nullptr;
 
     void *handle = node->ops->opendir(node);
     if (!handle) {
-        vfs_close(node);
+        close(node);
         return nullptr;
     }
 
@@ -139,71 +146,32 @@ VfsDir *vfs_opendir(const char *path) {
 }
 
 
-int vfs_readdir(VfsDir *dir, dirent_t *out) {
+int VFS::readdir(VfsDir *dir, dirent_t *out) {
     if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir)
         return 0;
     return dir->node->ops->readdir(dir->handle, out);
 }
 
-
-void vfs_closedir(VfsDir *dir) {
-    if (!dir) return;
-    if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) {
-        dir->node->ops->closedir(dir->handle);
-    }
-    if (dir->node) vfs_close(dir->node);
-    free(dir);
-}
-
-size_t vfs_read(VfsNode *node, size_t offset, size_t size, void *buffer) {
-    if (!node || !node->ops || !node->ops->read) return 0;
-    return node->ops->read(node, offset, size, buffer);
-}
-
-size_t vfs_file_size(VfsNode *file) {
-    if (!file) return -EINVAL;
-
-    return file->ops->file_size(file);
-}
-
-void vfs_close(VfsNode *node) {
+void VFS::close(VfsNode *node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;
     node->ops->close(node);
 }
 
-int vfs_rename(const char *oldPath, const char *newPath) {
-    if (!oldPath || !newPath) return -EINVAL;
-
-    VfsNode *oldParent;
-    VfsNode *newParent;
-    char oldName[64];
-    char newName[64];
-
-    if (!vfs_resolve_parent(oldPath, &oldParent, oldName)) return -ENOENT;
-    if (!vfs_resolve_parent(newPath, &newParent, newName)) {
-        vfs_close(oldParent);
-        return -ENOENT;
+void VFS::closedir(VfsDir *dir) {
+    if (!dir) return;
+    if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) {
+        dir->node->ops->closedir(dir->handle);
     }
-
-    if (oldParent != newParent) {
-        vfs_close(oldParent);
-        vfs_close(newParent);
-        return -EXDEV; // Cross-directory renaming not supported
-    }
-
-    if (!oldParent->ops || !oldParent->ops->rename) {
-        vfs_close(oldParent);
-        vfs_close(newParent);
-        return -ENOSYS;
-    }
-
-    int status = oldParent->ops->rename(oldParent, oldName, newName);
-    vfs_close(oldParent);
-    vfs_close(newParent);
-    return status;
+    if (dir->node) close(dir->node);
+    free(dir);
 }
 
-int vfs_create(const char *path) {
+size_t VFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
+    if (!node || !node->ops || !node->ops->read) return 0;
+    return node->ops->read(node, offset, size, buffer);
+}
+
+int VFS::create(const char *path) {
     if (!path) return -EINVAL;
 
     VfsNode *parent;
@@ -211,16 +179,46 @@ int vfs_create(const char *path) {
     if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->create) {
-        vfs_close(parent);
+        close(parent);
         return -ENOSYS;
     }
 
     int result = parent->ops->create(parent, name);
-    vfs_close(parent);
+    close(parent);
     return result;
 }
 
-int vfs_mkdir(const char *path) {
+int VFS::rename(const char *oldPath, const char *newPath) {
+    if (!oldPath || !newPath) return -EINVAL;
+
+    VfsNode *oldParent, *newParent;
+    char oldName[64], newName[64];
+
+    if (!vfs_resolve_parent(oldPath, &oldParent, oldName)) return -ENOENT;
+    if (!vfs_resolve_parent(newPath, &newParent, newName)) {
+        close(oldParent);
+        return -ENOENT;
+    }
+
+    if (oldParent != newParent) {
+        close(oldParent);
+        close(newParent);
+        return -EXDEV;
+    }
+
+    if (!oldParent->ops || !oldParent->ops->rename) {
+        close(oldParent);
+        close(newParent);
+        return -ENOSYS;
+    }
+
+    int status = oldParent->ops->rename(oldParent, oldName, newName);
+    close(oldParent);
+    close(newParent);
+    return status;
+}
+
+int VFS::mkdir(const char *path) {
     if (!path) return -EINVAL;
 
     VfsNode *parent;
@@ -228,22 +226,22 @@ int vfs_mkdir(const char *path) {
     if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->mkdir) {
-        vfs_close(parent);
+        close(parent);
         return -ENOSYS;
     }
 
     int result = parent->ops->mkdir(parent, name);
-    vfs_close(parent);
+    close(parent);
     return result;
 }
 
-int vfs_rmdir(const char *path) {
+int VFS::rmdir(const char *path) {
     if (!path) return -EINVAL;
 
-    for (size_t i = 0; i < mount_points->size(); i++) {
-        MountPoint &mp = (*mount_points)[i];
-        if (strcmp(mp.path, path) == 0) {
-            return -EPERM;
+    {
+        spinlock_guard guard(mount_points_lock);
+        for (const auto & mp : *mount_points) {
+            if (strcmp(mp.path, path) == 0) return -EPERM;
         }
     }
 
@@ -252,16 +250,16 @@ int vfs_rmdir(const char *path) {
     if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->rmdir) {
-        vfs_close(parent);
+        close(parent);
         return -ENOSYS;
     }
 
     int result = parent->ops->rmdir(parent, name);
-    vfs_close(parent);
+    close(parent);
     return result;
 }
 
-int vfs_unlink(const char *path) {
+int VFS::unlink(const char *path) {
     if (!path) return -EINVAL;
 
     VfsNode *parent;
@@ -269,44 +267,39 @@ int vfs_unlink(const char *path) {
     if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->unlink) {
-        vfs_close(parent);
+        close(parent);
         return -ENOSYS;
     }
 
     int result = parent->ops->unlink(parent, name);
-    vfs_close(parent);
+    close(parent);
     return result;
 }
 
-bool vfs_probe_filesystem(BlockDevice *device) {
+bool VFS::probe_filesystem(BlockDevice *device) {
     FilesystemInfo info{};
     return FilesystemDetector::DetectFilesystem(device, &info);
 }
 
-void vfs_list_devices() {
+void VFS::list_devices() {
     FilesystemDetector::PrintDetectedFilesystems();
 }
 
-void vfs_remount_all() {
+void VFS::remount_all() {
     Log::Info("[VFS] Remounting all detected devices...");
-
-    // Clear existing state
     FilesystemDetector::Init();
     FilesystemDetector::RegisterAllDrivers();
-
-    // Scan and mount again
     FilesystemDetector::ScanAndMountAll();
     FilesystemDetector::PrintDetectedFilesystems();
 }
 
-void vfs_get_stats(VfsStats *stats) {
+void VFS::get_stats(VfsStats *stats) {
     if (!stats) return;
 
     stats->total_devices = kernel::DeviceManager::GetDeviceCount();
     stats->mounted_devices = 0;
     stats->supported_filesystems = 0;
 
-    // Count mounted devices (this is a simplified count)
     auto devices = kernel::DeviceManager::GetDevices();
     for (size_t i = 0; i < stats->total_devices; i++) {
         FilesystemInfo info;
@@ -319,4 +312,14 @@ void vfs_get_stats(VfsStats *stats) {
     // For now, just count the registered drivers
     stats->supported_filesystems = 1; // FAT32 is always supported
     // TODO: Add count of other registered drivers when implemented
+}
+
+void VFS::add_mount_point(const MountPoint& mp) {
+    spinlock_guard g(mount_points_lock);
+    mount_points->push_back(mp);
+}
+
+size_t VFS::mount_points_count() {
+    spinlock_guard g(mount_points_lock);
+    return mount_points->size();
 }

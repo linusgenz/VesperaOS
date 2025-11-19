@@ -39,7 +39,6 @@ static VfsNodeOps devfs_ops = {
     .find = DevFS::find,
     .close = DevFS::close,
 
-    .file_size = nullptr,
     .opendir = DevFS::open_dir,
     .readdir = DevFS::read_dir,
     .closedir = DevFS::close_dir,
@@ -65,7 +64,7 @@ void DevFS::init() {
     root->permanent = true;
     root->ops = &devfs_ops;
 
-    vfs_mount_virtual(root, "/dev");
+    VFS::mount_virtual(root, "/dev");
 }
 
 VfsNode *DevFS::ensure_bus_dir(BusType bus) {

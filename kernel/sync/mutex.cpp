@@ -7,6 +7,8 @@
 #include "../../include/log.h"
 #include <scheduling.h>
 
+#include "../cpu/cpu_manager.h"
+
 namespace kernel {
 
     void mutex_init(mutex_t* m) {
@@ -15,7 +17,7 @@ namespace kernel {
     }
 
     void mutex_lock(mutex_t* m) {
-        if (!scheduling_started) {
+        if (!scheduling::cpu_scheduler::get_cpu_data(CPUManager::get_current_cpu_id())->scheduler_enabled) {
             // Nur spinlock, nicht blockieren!
             while (__sync_lock_test_and_set(&m->locked, true)) {
                 // Busy wait, kein Threadwechsel!

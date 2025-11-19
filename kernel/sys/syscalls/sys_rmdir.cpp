@@ -35,7 +35,7 @@ namespace syscalls::internal {
         strncpy(path_buf, user_path, sizeof(path_buf) - 1);
         path_buf[sizeof(path_buf) - 1] = '\0';
 
-        int status = vfs_rmdir(path_buf);
+        int status = VFS::rmdir(path_buf);
 
         if (status < 0) return -ENOTEMPTY;
 

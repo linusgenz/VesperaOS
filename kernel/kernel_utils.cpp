@@ -205,7 +205,7 @@ void initialize_kernel(BootInfo *bootInfo) {
     prepare_ap_trampoline();
     CPUManager::smp_init();
 
-    vfs_init();
+    VFS::init();
     DevFS::init();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
@@ -219,7 +219,7 @@ void initialize_kernel(BootInfo *bootInfo) {
     kernel::tty::initialize_ttys();
     initialize_devices();
 
-    vfs_remount_all();
+    VFS::remount_all();
 
     FileLogWriter* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);

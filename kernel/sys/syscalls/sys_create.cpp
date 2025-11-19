@@ -29,12 +29,12 @@ namespace syscalls::internal {
         const char* path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 
-        VfsNode* node = vfs_open(path);
+        VfsNode* node = VFS::open(path);
         if (node) {
             return -EEXIST;
         }
 
-        int result = vfs_create(path);
+        int result = VFS::create(path);
         return result < 0 ? -result : 0;
     }
 

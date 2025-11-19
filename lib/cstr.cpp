@@ -283,7 +283,7 @@ char* strdup(const char* src) {
     return dst;
 }
 
-char *strrchr (register const char *s, int c) {
+char *strrchr (const char *s, int c) {
     char *rtnval = 0;
 
     do {

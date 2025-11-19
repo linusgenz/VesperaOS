@@ -29,6 +29,6 @@ namespace syscalls::internal {
     int64_t sys_rename(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
         const char* oldPath = reinterpret_cast<const char*>(arg0);
         const char* newPath = reinterpret_cast<const char*>(arg1);
-        return vfs_rename(oldPath, newPath);
+        return VFS::rename(oldPath, newPath);
     }
 }

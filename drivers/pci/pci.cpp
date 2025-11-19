@@ -12,7 +12,7 @@
 #include "../../kernel/units/unit_manager.h"
 #include "../usb/usb_manager.h"
 
-static uint8_t next_usb_bus_number;
+static atomic_u8 next_usb_bus_number;
 
 void usb_enable(void *arg) {
     auto pci_device_header = static_cast<PCI::PCIDeviceHeader *>(arg);
@@ -178,7 +178,7 @@ namespace PCI {
     }
 
     void enumerate_pci(ACPI::MCFGHeader *mcfg) {
-        next_usb_bus_number = 1;
+        next_usb_bus_number.init(1);
         int entries = ((mcfg->header.length) - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
 
         USBManager::init();

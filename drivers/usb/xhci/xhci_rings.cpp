@@ -3,6 +3,8 @@
 #include "../../../include/vector.h"
 
 xhciCommandRing::xhciCommandRing(size_t max_trbs) {
+    m_lock.init();
+
     m_max_trb_count = max_trbs;
     m_rcs_bit = XHCI_CRCR_RING_CYCLE_STATE;
     m_enqueue_ptr = 0;
@@ -24,6 +26,8 @@ xhciCommandRing::xhciCommandRing(size_t max_trbs) {
 }
 
 void xhciCommandRing::enqueue(xhci_trb_t* trb) {
+    spinlock_guard_irq guard(m_lock);
+
     // Adjust the TRB's cycle bit to the current RCS
     trb->cycle_bit = m_rcs_bit;
 
@@ -43,6 +47,8 @@ xhciEventRing::xhciEventRing(
     size_t max_trbs,
     volatile xhci_interrupter_registers* interrupter
 ) {
+    m_lock.init();
+
     m_interrupter_regs = interrupter;
     m_segment_trb_count = max_trbs;
     m_rcs_bit = XHCI_CRCR_RING_CYCLE_STATE;
@@ -114,6 +120,7 @@ void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
 }*/
 
 void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
+    spinlock_guard_irq guard(m_lock);
 
     while (has_unprocessed_events()) {
         xhci_trb_t* trb = _dequeue_trb();
@@ -172,6 +179,8 @@ xhciTransferRing *xhciTransferRing::allocate(uint8_t slot_id) {
 }
 
 xhciTransferRing::xhciTransferRing(size_t max_trbs, uint8_t doorbell_id) {
+    m_lock.init();
+
     m_max_trb_count = max_trbs;
     m_rcs_bit = 1;
     m_dequeue_ptr = 0;
@@ -199,6 +208,8 @@ uintptr_t xhciTransferRing::get_physical_dequeue_pointer_base() const {
 }
 
 void xhciTransferRing::enqueue(xhci_trb_t* trb) {
+    spinlock_guard_irq guard(m_lock);
+
     // Adjust the TRB's cycle bit to the current DCS
     trb->cycle_bit = m_rcs_bit;
 

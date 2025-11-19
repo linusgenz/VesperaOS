@@ -35,15 +35,15 @@ struct FilesystemInfo;
 
 struct MountPoint {
     char path[64];
-    VfsNode* root;
-    DeviceDescriptor* device; // null when virtual
+    VfsNode *root;
+    DeviceDescriptor *device; // null when virtual
     bool is_virtual;
 
     bool is_root_device = false;
     bool is_partition = false;
 
-    MountPoint(const MountPoint& other)
-    : root(other.root), device(other.device), is_virtual(other.is_virtual) {
+    MountPoint(const MountPoint &other)
+        : root(other.root), device(other.device), is_virtual(other.is_virtual) {
         strncpy(path, other.path, sizeof(path));
     }
 
@@ -52,47 +52,74 @@ struct MountPoint {
 
 struct PendingMount {
     char path[64];
-    BlockDevice* device;
+    BlockDevice *device;
     size_t device_size;
     bool is_partition;
-    const char* table_type;
+    const char *table_type;
 };
 
 
 struct VfsDir {
-    VfsNode* node;
-    void* handle;
+    VfsNode *node;
+    void *handle;
 };
 
 
 struct VfsStats {
-    size_t total_devices;           // Total number of storage devices found
-    size_t mounted_devices;         // Number of successfully mounted devices
-    size_t supported_filesystems;   // Number of supported filesystem types
+    size_t total_devices; // Total number of storage devices found
+    size_t mounted_devices; // Number of successfully mounted devices
+    size_t supported_filesystems; // Number of supported filesystem types
 };
 
-void vfs_init();
-VfsNode* vfs_mount_virtual(VfsNode* root, const char* mount_path);
-bool vfs_probe(BlockDevice* device, FilesystemInfo* info);                 // Probe filesystem
-void vfs_list_devices();                            // List all detected devices
-bool vfs_supports(const char* fs_type);             // Check if filesystem type is supported
-void vfs_remount_all();                             // Remount all devices (for testing)
-void vfs_get_stats(VfsStats* stats);                // Get mount statistics
 
+class VFS {
+public:
+    static void init();
 
-VfsNode* vfs_open(const char* path);
-VfsDir* vfs_opendir(const char *path);
-size_t vfs_read(VfsNode* file, size_t offset, size_t size, void* buffer);
-int vfs_readdir(VfsDir *dir, char *out_name, size_t max_len);
-size_t vfs_file_size(VfsNode* file);
-void vfs_close(VfsNode* node);
-void vfs_closedir(VfsDir *dir);
-int vfs_create(const char *path);
-int vfs_rename(const char *old_path, const char *new_path);
-int vfs_mkdir(const char* path);
-int vfs_rmdir(const char* path);
-int vfs_unlink(const char* path);
+    static VfsNode *mount_virtual(VfsNode *root, const char *mount_path);
 
-extern Vector<MountPoint> *mount_points;
+    static VfsNode *open(const char *path);
+
+    static VfsDir *opendir(const char *path);
+
+    static size_t read(VfsNode *node, size_t offset, size_t size, void *buffer);
+
+    static int readdir(VfsDir *dir, dirent_t *out);
+
+    static void close(VfsNode *node);
+
+    static void closedir(VfsDir *dir);
+
+    static int create(const char *path);
+
+    static int rename(const char *oldPath, const char *newPath);
+
+    static int mkdir(const char *path);
+
+    static int rmdir(const char *path);
+
+    static int unlink(const char *path);
+
+    static bool probe_filesystem(BlockDevice *device);
+
+    static void list_devices();
+
+    static void remount_all();
+
+    static void get_stats(VfsStats *stats);
+
+    static void add_mount_point(const MountPoint &mp);
+
+    static size_t mount_points_count();
+
+    static Vector<MountPoint> get_mount_points_snapshot() {
+        spinlock_guard g(mount_points_lock);
+        return mount_points->copy();
+    }
+
+private:
+    static spinlock_t mount_points_lock;
+    static Vector<MountPoint> *mount_points;
+};
 
 #endif //VFS_H

@@ -45,8 +45,6 @@ struct VfsNodeOps {
 
     void (*close)(VfsNode *node);
 
-    size_t (*file_size)(VfsNode *);
-
     void * (*opendir)(VfsNode *dir);
 
     int (*readdir)(void *dir_handle, dirent_t *out_name);

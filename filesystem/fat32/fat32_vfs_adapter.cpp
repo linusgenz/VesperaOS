@@ -252,17 +252,11 @@ static int fat32_unlink(VfsNode *node, const char *name) {
     return dir->fs->DeleteFile(dir, name) ? 0 : -1;
 }
 
-static size_t fat32_file_size(VfsNode *node) {
-    Fat32Node *file = (Fat32Node *) node->internal_data;
-    return file->fileSize;
-}
-
 static VfsNodeOps fat32_ops = {
     .read = fat32_read,
     .write = fat32_write,
     .find = fat32_find,
     .close = fat32_close,
-    .file_size = fat32_file_size,
     .opendir = fat32_opendir,
     .readdir = fat32_readdir,
     .closedir = fat32_closedir,

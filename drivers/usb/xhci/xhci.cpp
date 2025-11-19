@@ -76,6 +76,7 @@ namespace USB {
     }
 
     xhciDevice *xhciDriver::find_by_slot(uint8_t slot_id) {
+        spinlock_guard_irq guard(m_devices_lock);
         for (auto *dev: m_connected_devices) {
             if (dev && dev->info.slot_id == slot_id) {
                 return dev;
@@ -93,7 +94,7 @@ namespace USB {
 
         kernel::time::sleep_ms(100);
 
-        if (true) {
+        if (false) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
                 xhci_portsc_register portsc{};
@@ -160,23 +161,26 @@ namespace USB {
                 } else {
                     Log::Info("Device disconnected from port %u", port);
 
-                    for (size_t i = 0; i < m_connected_devices.size(); i++) {
-                        auto *dev = m_connected_devices[i];
+                    {
+                        spinlock_guard_irq guard(m_devices_lock);
+                        for (size_t i = 0; i < m_connected_devices.size(); i++) {
+                            auto *dev = m_connected_devices[i];
 
-                        SYS_EVENT_DEVICE_REMOVED(dev->info.product, port);
+                            SYS_EVENT_DEVICE_REMOVED(dev->info.product, port);
 
-                        if (dev && dev->info.port_num == port) {
-                            for (auto *iface: dev->interfaces) {
-                                if (iface->driver) {
-                                    iface->driver->detach();
-                                    delete iface->driver;
-                                    iface->driver = nullptr;
+                            if (dev && dev->info.port_num == port) {
+                                for (auto *iface: dev->interfaces) {
+                                    if (iface->driver) {
+                                        iface->driver->detach();
+                                        delete iface->driver;
+                                        iface->driver = nullptr;
+                                    }
                                 }
-                            }
 
-                            delete dev;
-                            m_connected_devices.erase(i);
-                            break;
+                                delete dev;
+                                m_connected_devices.erase(i);
+                                break;
+                            }
                         }
                     }
 
@@ -493,7 +497,7 @@ namespace USB {
 
         // Wait for the IRQ and let the host controller process the command
         uint64_t sleep_passed = 0;
-        while (!m_command_irq_completed) {
+        while (!m_command_irq_completed.load()) {
             kernel::time::sleep_ms(10);
             sleep_passed += 10;
 
@@ -502,13 +506,16 @@ namespace USB {
             }
         }
 
-        //  - Only one command is being sent to the controller at a time
-        xhci_command_completion_trb_t *completion_trb =
-                !m_command_completion_events.empty() ? m_command_completion_events[0] : nullptr;
+        xhci_command_completion_trb_t *completion_trb = nullptr; {
+            spinlock_guard_irq guard(m_command_lock);
+            //  - Only one command is being sent to the controller at a time
+            completion_trb =
+                    !m_command_completion_events.empty() ? m_command_completion_events[0] : nullptr;
 
-        // Reset the irq flag and clear out the command completion event queue
-        m_command_completion_events.clear();
-        m_command_irq_completed = 0;
+            // Reset the irq flag and clear out the command completion event queue
+            m_command_completion_events.clear();
+        }
+        m_command_irq_completed.store(0);
 
         if (!completion_trb) {
             Log::Error("Failed to find completion TRB for command %u", cmd_trb->trb_type);
@@ -607,17 +614,21 @@ namespace USB {
                     break;
                 }
                 case XHCI_TRB_TYPE_CMD_COMPLETION_EVENT: {
-                    command_completion_status = 1;
-                    m_command_completion_events.push_back(
-                        reinterpret_cast<xhci_command_completion_trb_t *>(event)
-                    );
+                    command_completion_status = 1; {
+                        spinlock_guard_irq guard(m_command_lock);
+                        m_command_completion_events.push_back(
+                            reinterpret_cast<xhci_command_completion_trb_t *>(event)
+                        );
+                    }
                     break;
                 }
                 case XHCI_TRB_TYPE_TRANSFER_EVENT: {
                     transfer_completion_status = 1;
-                    auto transfer_event = reinterpret_cast<xhci_transfer_completion_trb_t *>(event);
+                    auto transfer_event = reinterpret_cast<xhci_transfer_completion_trb_t *>(event); {
+                        spinlock_guard_irq guard(m_transfer_lock);
+                        m_transfer_completion_events.push_back(transfer_event);
+                    }
 
-                    m_transfer_completion_events.push_back(transfer_event);
                     const auto device = find_by_slot(transfer_event->slot_id);
                     if (!device) {
                         break;
@@ -634,8 +645,8 @@ namespace USB {
             }
         }
 
-        m_command_irq_completed = command_completion_status;
-        m_transfer_irq_completed = transfer_completion_status;
+        m_command_irq_completed.store(command_completion_status);
+        m_transfer_irq_completed.store(transfer_completion_status);
     }
 
     const char *xhciDriver::usb_speed_to_string(uint8_t speed) {
@@ -1013,7 +1024,7 @@ namespace USB {
         constexpr uint64_t timeout_ms = 400;
         uint64_t sleep_passed = 0;
 
-        while (!m_transfer_irq_completed) {
+        while (!m_transfer_irq_completed.load()) {
             kernel::time::sleep_ms(10);
             sleep_passed += 10;
 
@@ -1022,12 +1033,15 @@ namespace USB {
             }
         }
 
-        xhci_transfer_completion_trb_t *completion_trb =
-                !m_transfer_completion_events.empty() ? m_transfer_completion_events[0] : nullptr;
+        xhci_transfer_completion_trb_t *completion_trb = nullptr; {
+            spinlock_guard_irq guard(m_transfer_lock);
+            completion_trb =
+                    !m_transfer_completion_events.empty() ? m_transfer_completion_events[0] : nullptr;
 
-        // Reset the irq flag and clear out the command completion event queue
-        m_transfer_completion_events.clear();
-        m_transfer_irq_completed = 0;
+            // Reset the irq flag and clear out the command completion event queue
+            m_transfer_completion_events.clear();
+        }
+        m_transfer_irq_completed.store(0);
 
         if (!completion_trb) {
             Log::Warning("Failed to find transfer completion TRB");
@@ -1581,9 +1595,11 @@ namespace USB {
         switch (cmd) {
             case XHCI_IOCTL_GET_COUNT: {
                 size_t *out = reinterpret_cast<size_t *>(arg);
-                size_t count = 0;
-                for (auto dev: m_connected_devices) {
-                    if (dev) count++;
+                size_t count = 0; {
+                    spinlock_guard_irq guard(m_devices_lock);
+                    for (auto dev: m_connected_devices) {
+                        if (dev) count++;
+                    }
                 }
                 *out = count;
                 return 0;
@@ -1614,6 +1630,9 @@ namespace USB {
         constexpr size_t stat_size = sizeof(xhci_device_stat);
 
         uint8_t total_devices = 0;
+
+        spinlock_guard_irq guard(m_devices_lock);
+
         for (const auto &m_connected_device: m_connected_devices) {
             if (m_connected_device) total_devices++;
         }

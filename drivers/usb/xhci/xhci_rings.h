@@ -17,6 +17,8 @@ public:
     void enqueue(xhci_trb_t* trb);
 
 private:
+    spinlock_t          m_lock{};
+
     size_t              m_max_trb_count;     // Number of valid TRBs in the ring including the LINK_TRB
     size_t              m_enqueue_ptr;       // Index in the ring where to enqueue next TRB
     xhci_trb_t*         m_trbs;              // Base address of the ring buffer
@@ -55,6 +57,8 @@ public:
 
     uint64_t get_current_dequeue_physical();
 private:
+    spinlock_t          m_lock{};
+
     volatile xhci_interrupter_registers* m_interrupter_regs;
 
     size_t             m_segment_trb_count;     // Max TRBs allowed on the segment
@@ -90,6 +94,8 @@ public:
     void enqueue(xhci_trb_t *trb);
 
 private:
+    spinlock_t          m_lock{};
+
     size_t m_max_trb_count; // Number of valid TRBs in the ring including the LINK_TRB
     size_t m_dequeue_ptr; // Transfer ring consumer dequeue pointer
     size_t m_enqueue_ptr; // Transfer ring producer enqueue pointer

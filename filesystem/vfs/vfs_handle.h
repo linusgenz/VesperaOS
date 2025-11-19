@@ -23,6 +23,9 @@
 
 #ifndef VESPERAOS_VFS_HANDLE_H
 #define VESPERAOS_VFS_HANDLE_H
+
+#include <cstdint>
+
 #include "../devfs/devfs.h"
 #include "vfs.h"
 
@@ -58,7 +61,7 @@ struct VfsHandle {
                 context->type_specific_data = nullptr;
             }
 
-            vfs_close(node);
+            VFS::close(node);
         }
         delete context;
     }
