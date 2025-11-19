@@ -25,45 +25,46 @@
 
 #include <cstdint>
 
+#include "../../kernel/sync/atomic.h"
 #include "../../kernel/sync/spinlock.h"
 #include "../../kernel/sync/completion.h"
 
 completion_t USBManager::all_controllers_ready;
-uint8_t USBManager::expected_controllers = 0;
-uint8_t USBManager::initialized_controllers = 0;
+atomic_u8 USBManager::expected_controllers;
+atomic_u8 USBManager::initialized_controllers;
 spinlock_t USBManager::lock;
 
 void USBManager::init() {
     all_controllers_ready.init();
-    __atomic_store_n(&expected_controllers, 0, __ATOMIC_RELEASE);
-    __atomic_store_n(&initialized_controllers, 0, __ATOMIC_RELEASE);
+    expected_controllers.init();
+    initialized_controllers.init();
     lock.init();
 }
 
 void USBManager::increment_expected_count() {
-    __atomic_fetch_add(&expected_controllers, 1, __ATOMIC_ACQ_REL);
+    expected_controllers.fetch_add(1);
 }
 
 void USBManager::notify_controller_ready() {
     spinlock_guard guard(lock);
-    initialized_controllers++;
+    ++initialized_controllers;
 
-    if (initialized_controllers >= expected_controllers) {
+    if (initialized_controllers.load() >= expected_controllers.load()) {
         all_controllers_ready.complete();
     }
 }
 
 bool USBManager::wait_for_all_controllers(uint64_t timeout_ms) {
-    uint8_t expected = __atomic_load_n(&expected_controllers, __ATOMIC_ACQUIRE);
+    uint8_t expected = expected_controllers.load();
 
     if (expected == 0) return true;
     return all_controllers_ready.wait_timeout(timeout_ms);
 }
 
 uint8_t USBManager::get_initialized_count() {
-    return __atomic_load_n(&initialized_controllers, __ATOMIC_ACQUIRE);
+    return initialized_controllers.load();
 }
 
 uint8_t USBManager::get_expected_count() {
-    return __atomic_load_n(&expected_controllers, __ATOMIC_ACQUIRE);
+    return expected_controllers.load();
 }

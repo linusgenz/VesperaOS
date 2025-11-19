@@ -84,10 +84,9 @@ public:
                          CapabilitySet caps, bool transferable,
                          void (*destroy)(void*), HandleID* out_h)
     {
-        lock.lock();
+        spinlock_guard guard(lock);
         int slot = find_free_slot();
         if (slot < 0) {
-            lock.unlock();
             return MOD_ERR_OUT_OF_MEMORY;
         }
 
@@ -102,7 +101,6 @@ public:
         he.destroy = destroy;
 
         *out_h = he.hid;
-        lock.unlock();
         return MOD_SUCCESS;
     }
 
@@ -115,10 +113,9 @@ public:
             return MOD_ERR_INVALID_HANDLE;
         }
 
-        lock.lock();
+        spinlock_guard guard(lock);
 
         if (test_bit(slot)) {
-            lock.unlock();
             return MOD_ERR_INVALID_HANDLE;
         }
 
@@ -132,7 +129,6 @@ public:
         he.transferable = transferable;
         he.destroy = destroy;
 
-        lock.unlock();
         return MOD_SUCCESS;
     }
 
@@ -193,12 +189,11 @@ public:
 
         uint64_t v = __sync_sub_and_fetch(&he->refcount, 1);
         if (v == 0) {
-            lock.lock();
+            spinlock_guard guard(lock);
             auto raw = (uint64_t)(he->hid & HANDLE_ID_MASK);
             if (he->destroy && he->resource) he->destroy(he->resource);
             memset(he, 0, sizeof(handle_entry_t));
             clear_bit(raw);
-            lock.unlock();
         }
     }
 

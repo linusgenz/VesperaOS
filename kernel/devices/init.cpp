@@ -34,5 +34,6 @@ void initialize_devices() {
     uptime_dev = new UptimeDevice("uptime");
     version_dev = new VersionDevice("version");
     cpuinfo_dev = new CPUInfoDevice("cpuinfo");
+    meminfo_dev = new MemInfoDevice("meminfo");
     log_dev = new LogDevice(kernel_log_channel);
 }

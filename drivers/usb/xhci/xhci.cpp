@@ -94,7 +94,7 @@ namespace USB {
 
         kernel::time::sleep_ms(100);
 
-        if (false) {
+        if (true) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
                 xhci_portsc_register portsc{};

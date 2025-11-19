@@ -1,10 +1,10 @@
-// usb_manager.h
+// meminfo.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 05.10.25.
+// Created by Linus Genz on 19.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,28 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_USB_MANAGER_H
-#define VESPERAOS_USB_MANAGER_H
+#ifndef VESPERAOS_MEMINFO_H
+#define VESPERAOS_MEMINFO_H
 
-#include <cstdint>
+#include "../chardevice.h"
 
-#include "../../kernel/sync/completion.h"
-#include "../../kernel/sync/spinlock.h"
-#include "../../kernel/sync/atomic.h"
+typedef struct {
+    uint64_t total_ram;
+    uint64_t used_ram;
+    uint64_t free_ram;
+    uint64_t reserved_ram;
+} meminfo_t;
 
-class USBManager {
-private:
-    static completion_t all_controllers_ready;
-    static atomic_u8 expected_controllers;
-    static atomic_u8 initialized_controllers;
-    static spinlock_t lock;
+class MemInfoDevice : public CharDevice {
 public:
-    static void init();
-    static void notify_controller_ready();
-    static bool wait_for_all_controllers(uint64_t timeout_ms = 10000);
-    static uint8_t get_initialized_count();
-    static uint8_t get_expected_count();
-    static void increment_expected_count();
+    explicit MemInfoDevice(const char* name);
+
+    int open(CharFile** out_cf) override;
+    int release(CharFile* cf) override;
+    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+    size_t write(CharFile* cf, const void* buffer, size_t count) override;
 };
 
-#endif //VESPERAOS_USB_MANAGER_H
+#endif //VESPERAOS_MEMINFO_H

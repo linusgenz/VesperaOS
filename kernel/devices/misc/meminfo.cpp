@@ -1,0 +1,60 @@
+// meminfo.cpp
+//
+// VesperaOS - operating system for the x86_64 architecture
+// 
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// 
+// Created by Linus Genz on 19.11.25.
+//
+// This file is part of VesperaOS.
+// 
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include "meminfo.h"
+#include "../kernel/system/system_manager.h"
+
+MemInfoDevice::MemInfoDevice(const char* name)
+    : CharDevice(name, BusType::VIRTUAL) {}
+
+int MemInfoDevice::open(CharFile** out_cf) {
+    *out_cf = nullptr;
+    return 0;
+}
+
+int MemInfoDevice::release(CharFile* cf) {
+    (void)cf;
+    return 0;
+}
+
+size_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    if (count < sizeof(meminfo_t))
+        return 0;
+
+    kernel::SystemManager::update_system_stats();
+    const kernel::SystemStats stats = kernel::SystemManager::get_system_stats();
+
+    meminfo_t info{};
+    info.total_ram    = stats.total_memory;
+    info.used_ram     = stats.used_memory;
+    info.free_ram     = stats.free_memory;
+    info.reserved_ram = stats.reserved_memory;
+
+    memcpy(buffer, &info, sizeof(meminfo_t));
+    return sizeof(meminfo_t);
+}
+
+size_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count) {
+    (void)buffer;
+    return count;
+}

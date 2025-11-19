@@ -33,6 +33,7 @@
 #include "../devices/misc/urandom.h"
 #include "../devices/misc/version.h"
 #include "../devices/log_device.h"
+#include "misc/meminfo.h"
 
 static ZeroDevice *zero_dev = nullptr;
 static NullDevice *null_dev = nullptr;
@@ -42,6 +43,7 @@ static RTCDevice *rtc_dev = nullptr;
 static UptimeDevice *uptime_dev = nullptr;
 static VersionDevice *version_dev = nullptr;
 static CPUInfoDevice *cpuinfo_dev = nullptr;
+static MemInfoDevice *meminfo_dev = nullptr;
 static LogDevice *log_dev = nullptr;
 
 void initialize_devices();
