@@ -40,7 +40,8 @@
 #include "tty/tty.h"
 #include "units/unit_manager.h"
 
-static const char* envp0[] = {"PATH=/bin"};
+static const char *envp0[] = {"PATH=/bin"};
+
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     initialize_kernel(boot_info);
     kernel::scheduling_started = true;
@@ -67,7 +68,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
      vfs_closedir(dir21);*/
 
 
-
     RealmConfig realm_config_shell = {
         .name = "shell_realm",
         .memory_limit = 0,
@@ -77,7 +77,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .is_user = true,
     };
     Realm *shell_realm = RealmManager::create(&realm_config_shell);
-    TTYDevice* tty_dev = kernel::tty::tty_devices[0];
+    TTYDevice *tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
     ElfLoader elf_loader;

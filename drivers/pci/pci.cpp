@@ -117,7 +117,7 @@ namespace PCI {
 
                                 UnitConfig config = {
                                     .name = unit_name,
-                                    .cpu_id = 3,
+                                    .cpu_id = 1,
                                     .priority = 5,
                                     .stack_size = 0x4000,
                                     .initial_handles = nullptr,

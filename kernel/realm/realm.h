@@ -38,18 +38,18 @@ class Unit;
 class Realm {
 public:
     RealmID id;
-    const char* name;
+    const char *name;
     CapabilitySet capabilities;
     uint64_t memory_limit;
     uint64_t max_units;
     uint64_t unit_count;
 
-    PageTable* pml4;
-    PageTableManager* page_table;
+    PageTable *pml4;
+    PageTableManager *page_table;
 
     char cwd_path[256];
 
-    Unit* unit_list;
+    Unit *unit_list;
 
     handle_table_t handle_table;
 
@@ -64,12 +64,17 @@ public:
         : id(0), name(nullptr), capabilities(CAP_NONE),
           memory_limit(0), max_units(0), unit_count(0),
           unit_list(nullptr),
-          active(false), sched_priority(0), cpu_time_accumulated(0)
-    {
+          active(false), sched_priority(0), cpu_time_accumulated(0) {
         const auto path = "/";
         memcpy(cwd_path, path, strlen(path));
         lock.init();
+        char buf[50];
+        snprintf(buf, sizeof(buf), "realm_%s:%u_lock", name, id);
+        char buf2[100];
+        snprintf(buf2, sizeof(buf), "realm_%s:%u_handle_table_lock", name, id); // TODO absichern
+        lock_debug_register(&lock, buf);
         memset(&handle_table, 0, sizeof(handle_table));
+        lock_debug_register(&handle_table.lock, buf);
         handle_table.lock.init();
     }
 
@@ -80,10 +85,9 @@ public:
     }
 
 
-    ErrorCode add_handle(uint64_t type, void* resource,
+    ErrorCode add_handle(uint64_t type, void *resource,
                          CapabilitySet caps, bool transferable,
-                         void (*destroy)(void*), HandleID* out_h)
-    {
+                         void (*destroy)(void *), HandleID *out_h) {
         spinlock_guard guard(lock);
         int slot = find_free_slot();
         if (slot < 0) {
@@ -92,7 +96,7 @@ public:
 
         set_bit(slot);
         handle_entry_t &he = handle_table.entries[slot];
-        he.hid = ((HandleID) type) | (HandleID)(slot & HANDLE_ID_MASK);
+        he.hid = ((HandleID) type) | (HandleID) (slot & HANDLE_ID_MASK);
         he.type = type;
         he.resource = resource;
         he.capabilities = caps;
@@ -104,10 +108,9 @@ public:
         return MOD_SUCCESS;
     }
 
-    ErrorCode add_handle_with_id(HandleID fixed_id, uint64_t type, void* resource,
-                            CapabilitySet caps, bool transferable,
-                            void (*destroy)(void*)) {
-
+    ErrorCode add_handle_with_id(HandleID fixed_id, uint64_t type, void *resource,
+                                 CapabilitySet caps, bool transferable,
+                                 void (*destroy)(void *)) {
         uint64_t slot = fixed_id & HANDLE_ID_MASK;
         if (slot >= MAX_HANDLES_PER_REALM) {
             return MOD_ERR_INVALID_HANDLE;
@@ -132,7 +135,7 @@ public:
         return MOD_SUCCESS;
     }
 
-    ErrorCode setup_standard_handles(TTYDevice* tty_dev) {
+    ErrorCode setup_standard_handles(TTYDevice *tty_dev) {
         ErrorCode err = add_handle_with_id(
             HANDLE_STDIN,
             HANDLE_TYPE_TTY,
@@ -166,8 +169,8 @@ public:
         return MOD_SUCCESS;
     }
 
-    handle_entry_t* lookup_handle(HandleID hid) {
-        uint64_t raw = (uint64_t)(hid & HANDLE_ID_MASK);
+    handle_entry_t *lookup_handle(HandleID hid) {
+        uint64_t raw = (uint64_t) (hid & HANDLE_ID_MASK);
 
         if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
         if (!test_bit(raw)) return nullptr;
@@ -184,13 +187,13 @@ public:
     }
 
     void release_handle(HandleID hid) {
-        handle_entry_t* he = lookup_handle(hid);
+        handle_entry_t *he = lookup_handle(hid);
         if (!he) return;
 
         uint64_t v = __sync_sub_and_fetch(&he->refcount, 1);
         if (v == 0) {
             spinlock_guard guard(lock);
-            auto raw = (uint64_t)(he->hid & HANDLE_ID_MASK);
+            auto raw = (uint64_t) (he->hid & HANDLE_ID_MASK);
             if (he->destroy && he->resource) he->destroy(he->resource);
             memset(he, 0, sizeof(handle_entry_t));
             clear_bit(raw);
@@ -206,7 +209,6 @@ public:
                 memset(&he, 0, sizeof(handle_entry_t));
             }
         }
-
     }
 
 private:
@@ -224,7 +226,7 @@ private:
 
     int find_free_slot() const {
         for (size_t i = 3; i < MAX_HANDLES_PER_REALM; ++i) {
-            if (!test_bit(i)) return (int)i;
+            if (!test_bit(i)) return (int) i;
         }
         return -1;
     }

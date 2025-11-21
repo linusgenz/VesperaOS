@@ -44,6 +44,7 @@ namespace syscalls::internal {
             .is_user = true
         };
 
+        Log::debug("sys_spawn1");
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
         TTYDevice* tty_dev = kernel::tty::tty_devices[0];
@@ -55,6 +56,7 @@ namespace syscalls::internal {
             RealmManager::destroy(new_realm->id);
             return -ENOEXEC;
         }
+        Log::debug("sys_spawn2");
 
         UnitConfig ucfg = {
             .name = "unnamed_unit",
@@ -67,13 +69,18 @@ namespace syscalls::internal {
             RealmManager::destroy(new_realm->id);
             return -EFAULT;
         }
+        Log::debug("sys_spawn3");
 
-      //  u->context.regs.rdi = static_cast<uint64_t>(argc);
-      //  u->context.regs.rsi = reinterpret_cast<uint64_t>(argv);
-      //  u->context.regs.rdx = reinterpret_cast<uint64_t>(envp);
-        u->context.regs.rcx = 0;
-        u->context.regs.r8  = 0;
-        u->context.regs.r9  = 0;
+        uintptr_t user_sp = SetupUserArgsAndEnv(u, argv, envp);
+        if (user_sp == 0) {
+            // cleanup
+            UnitManager::destroy(u->id);
+            RealmManager::destroy(new_realm->id);
+            return -EFAULT;
+        }
+
+        u->context.user_stack_pointer = (void*)user_sp;
+        Log::debug("sys_spawn4");
 
         return new_realm->id;
     }

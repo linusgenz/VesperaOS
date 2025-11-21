@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include "../scheduling/cpu_scheduler.h"
+#include "../units/unit.h"
 
 namespace kernel::scheduling {
 

@@ -44,8 +44,6 @@ void main(int argc, char **argv) {
     char entry[128];
     char devname[128];
 
-    printf("lsusb: lsusb started\n");
-
     while (sys_readdir(bus_hdl, (uint64_t) devname, sizeof(devname), 0, 0, 0) > 0) {
         // build controller path e.g. /dev/xhci/xhci0
         char ctrl_path[256];

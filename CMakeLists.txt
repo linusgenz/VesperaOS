@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
 
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)

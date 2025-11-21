@@ -1,10 +1,10 @@
-// realm_manager.h
+// trace.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 19.09.25.
+// Created by Linus Genz on 20.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,31 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_REALM_MANAGER_H
-#define VESPERAOS_REALM_MANAGER_H
+#ifndef VESPERAOS_TRACE_H
+#define VESPERAOS_TRACE_H
 
-#include "realm.h"
-#include "../types/types.h"
-#include <cstddef>
+#include <cstdint>
 
-#include "../sync/atomic.h"
-#include "../sync/spinlock.h"
+void debug_capture_current_stack(uint64_t* out, uint8_t* out_len, uint8_t max_depth);
 
-class RealmManager {
-public:
-    static void initialize();
-    static bool is_initialized();
-    static Realm* create(const RealmConfig* cfg);
-    static Realm* get(RealmID id);
-    static bool destroy(RealmID id);
-    static void list();
-
-private:
-    static constexpr size_t MAX_REALMS = 64;
-    static Realm realms[MAX_REALMS];
-    static spinlock_t global_lock;
-    static RealmID next_id;
-    static atomic_u8_t seq;
-};
-
-#endif //VESPERAOS_REALM_MANAGER_H
+#endif //VESPERAOS_TRACE_H

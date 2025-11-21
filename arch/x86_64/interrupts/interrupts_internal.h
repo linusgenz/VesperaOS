@@ -8,7 +8,7 @@
 
 #define IRQ_SPURIOUS         0xFF
 #define IRQ_TIMER            0x20
-#define IRQ_ERROR            0xFE
+#define IRQ_PANIC            0xFE
 #define IRQ_COMMON_STUB      0x31
 
 // x86_64 Interrupt Frame Structure
@@ -38,5 +38,7 @@ __attribute__((interrupt)) void mouse_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void apic_timer_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void spurious_int_handler(interrupt_frame* frame);
 __attribute__((interrupt)) void ap_entry_int_handler(interrupt_frame* frame);
+
+[[noreturn]] __attribute__((interrupt)) void panic_ipi_handler(interrupt_frame* frame);
 
 #endif //INTERRUPTS_H

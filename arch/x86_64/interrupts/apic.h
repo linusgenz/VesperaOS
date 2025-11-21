@@ -57,6 +57,8 @@ namespace arch::x86_64::interrupts::apic {
     void timer_accounting();
     void timer_tick(interrupt_frame *frame);
     void init(uint8_t cpu_id);
+    void send_ipi(uint32_t apic_id, uint8_t vector);
+    void broadcast_ipi(uint8_t vector);
     void wait_for_delivery();
 
     inline volatile uint64_t apic_ticks[MAX_CPU_CORES] = {0};

@@ -1,10 +1,10 @@
-// realm_manager.h
+// deadlock_detector.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 19.09.25.
+// Created by Linus Genz on 20.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,31 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_REALM_MANAGER_H
-#define VESPERAOS_REALM_MANAGER_H
+#ifndef VESPERAOS_DEADLOCK_DETECTOR_H
+#define VESPERAOS_DEADLOCK_DETECTOR_H
 
-#include "realm.h"
-#include "../types/types.h"
-#include <cstddef>
+void deadlock_detector_init();
+void deadlock_detector_tick();
 
-#include "../sync/atomic.h"
-#include "../sync/spinlock.h"
-
-class RealmManager {
-public:
-    static void initialize();
-    static bool is_initialized();
-    static Realm* create(const RealmConfig* cfg);
-    static Realm* get(RealmID id);
-    static bool destroy(RealmID id);
-    static void list();
-
-private:
-    static constexpr size_t MAX_REALMS = 64;
-    static Realm realms[MAX_REALMS];
-    static spinlock_t global_lock;
-    static RealmID next_id;
-    static atomic_u8_t seq;
-};
-
-#endif //VESPERAOS_REALM_MANAGER_H
+#endif //VESPERAOS_DEADLOCK_DETECTOR_H

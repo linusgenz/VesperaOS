@@ -45,7 +45,7 @@
 void initialize_input_bus() {
     UnitConfig uc = {
         .name = "input_bus",
-        .cpu_id = 3,
+        .cpu_id = 1,
         .priority = 5,
         .stack_size = DEFAULT_UNIT_STACK_SIZE,
         .initial_handles = nullptr,

@@ -26,15 +26,21 @@
 #include <kernel_utils.h>
 #include <log.h>
 #include "../memory/page_table_manager.h"
+#include "../sync/atomic.h"
 #include "../system/system_manager.h"
 #include "../units/unit_manager.h"
 
 Realm RealmManager::realms[MAX_REALMS];
 spinlock_t RealmManager::global_lock;
 RealmID RealmManager::next_id = 1;
+atomic_u8_t RealmManager::seq;
 
 void RealmManager::initialize() {
     global_lock.init();
+    lock_debug_register(&global_lock, "realm_manager_lock");
+
+    seq.init(0);
+
     for (auto & realm : realms) {
         realm.active = false;
         realm.id = 0;
@@ -54,13 +60,16 @@ static void clone_kernel_low_half(PageTable* dest, PageTable* kernel, uint64_t s
     }
 }
 
-
 Realm* RealmManager::create(const RealmConfig* cfg) {
     if (!cfg) return nullptr;
 
     spinlock_guard g(global_lock);
 
-    for (auto & realm : realms) {
+    seq.fetch_add(1);   // begin write section (odd)
+
+    Realm* result = nullptr;
+
+    for (auto& realm : realms) {
         if (!realm.active) {
             Realm* r = &realm;
             r->id = next_id++;
@@ -72,44 +81,60 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->active = true;
             r->lock.init();
             r->capabilities = cfg->capabilities;
-
             r->envp = cfg->envp;
-
             r->init_handle_table();
 
             if (cfg->is_user) {
-                auto* kernel_pml4 = reinterpret_cast<PageTable *>(kernel::memory::get_pagetable_address());
+                auto* kernel_pml4 = reinterpret_cast<PageTable*>(kernel::memory::get_pagetable_address());
 
                 PageTable* new_pml4 = (PageTable*) kernel::memory::request_page();
                 memset(new_pml4, 0, 0x1000);
                 new_pml4->entries[0] = kernel_pml4->entries[0];
 
                 r->pml4 = new_pml4;
-
                 r->page_table = new PageTableManager(new_pml4);
             }
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);
-
-            return r;
+            result = r;
+            break;
         }
     }
-    return nullptr; // kein Platz
+
+    seq.fetch_add(1);   // end write section (even)
+
+    return result;
 }
 
 Realm* RealmManager::get(const RealmID id) {
-    spinlock_guard g(global_lock);
-    for (size_t i = 0; i < MAX_REALMS; i++) {
-        if (realms[i].active && realms[i].id == id) {
-            return &realms[i];
+    while (true) {
+        uint8_t begin = seq.load();
+        if (begin & 1)           // Writer aktiv → retry
+            continue;
+
+        Realm* result = nullptr;
+
+        for (auto & realm : realms) {
+            if (realm.active && realm.id == id) {
+                result = &realm;
+                break;
+            }
         }
+
+        uint8_t end = seq.load();
+        if (begin == end)
+            return result;
     }
-    return nullptr;
 }
+
 
 bool RealmManager::destroy(const RealmID id) {
     spinlock_guard g(global_lock);
-    for (auto & realm : realms) {
+
+    seq.fetch_add(1);   // writer begin
+
+    bool ok = false;
+    for (auto& realm : realms) {
         if (realm.active && realm.id == id) {
 
             SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
@@ -120,6 +145,7 @@ bool RealmManager::destroy(const RealmID id) {
                 UnitManager::destroy(u->id);
                 u = next;
             }
+
             realm.unit_list = nullptr;
             realm.unit_count = 0;
 
@@ -128,23 +154,35 @@ bool RealmManager::destroy(const RealmID id) {
             realm.active = false;
             realm.id = 0;
 
-
-            return true;
+            ok = true;
+            break;
         }
     }
-    return false;
-}
 
+    seq.fetch_add(1);   // writer end
+
+    return ok;
+}
 
 void RealmManager::list() {
-    spinlock_guard g(global_lock);
-    for (size_t i = 0; i < MAX_REALMS; i++) {
-        if (realms[i].active) {
-            Log::PrintLn("Realm %u: name=%s, units=%llu/%llu",
-                realms[i].id,
-                realms[i].name,
-                (unsigned long long)realms[i].unit_count,
-                (unsigned long long)realms[i].max_units);
+    while (true) {
+        uint8_t begin = seq.load();
+        if (begin & 1)          // Writer aktiv
+            continue;
+
+        for (size_t i = 0; i < MAX_REALMS; i++) {
+            if (realms[i].active) {
+                Log::PrintLn("Realm %u: name=%s, units=%llu/%llu",
+                    realms[i].id,
+                    realms[i].name,
+                    (uint64_t)realms[i].unit_count,
+                    (uint64_t)realms[i].max_units);
+            }
         }
+
+        uint8_t end = seq.load();
+        if (begin == end)       // konsistent gelesen?
+            return;
     }
 }
+

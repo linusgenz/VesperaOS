@@ -172,5 +172,11 @@ void apic_timer_int_handler(interrupt_frame *frame) {
 __attribute__((interrupt))
 void spurious_int_handler(interrupt_frame *frame) {
     Log::Ok("SPURIOUS INTERRUPT");
-    arch::x86_64::interrupts::apic::send_eoi();
+}
+
+__attribute__((interrupt))
+[[noreturn]] void panic_ipi_handler(interrupt_frame* frame) {
+    uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
+    CPUManager::halt_cpu(apic_id);
+    while(true) asm volatile("cli; hlt");
 }

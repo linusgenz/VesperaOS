@@ -32,6 +32,7 @@
 Channel::Channel(size_t cap) : capacity(cap), head(0), tail(0), used(0), refcount(1) {
     buf = reinterpret_cast<uint8_t *>(kernel::memory::malloc(cap));
     lock.init();
+    lock_debug_register(&lock, "channel_lock");
 }
 
 Channel *Channel::create(size_t cap) {

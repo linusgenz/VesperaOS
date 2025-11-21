@@ -5,6 +5,7 @@
 #include "../../../kernel/cpu/io.h"
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
+#include "../../../kernel/debug/deadlock_detector.h"
 #include "../../../kernel/include/scheduling.h"
 #include "../../../kernel/utils/panic.h"
 #include "../interrupts/interrupts_internal.h"
@@ -32,7 +33,7 @@ namespace arch::x86_64::interrupts::apic {
 
         // Logical Destination Mode
         write(LAPIC_DFR, 0xffffffff); // Flat mode
-        write(LAPIC_LDR, 0x0); // 0x01000000   // All cpus use logical id 1
+        write(LAPIC_LDR, cpu_id << 24); // 0x01000000   // All cpus use logical id 1
 
         // Configure Spurious Interrupt Vector Register
         write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
@@ -43,13 +44,39 @@ namespace arch::x86_64::interrupts::apic {
         pmt_delay(10000); // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
         uint32_t calibration = 0xffffffff - read(LAPIC_TCCR);
-        write(LAPIC_TIMER, 32 | LAPIC_PERIODIC);
+        write(LAPIC_TIMER, IRQ_TIMER | LAPIC_PERIODIC);
         write(LAPIC_TDCR, 0x3); // 16
         write(LAPIC_TICR, calibration);
 
         write(LAPIC_ICRLO, 0x0); // zero this shit
         write(LAPIC_ICRHI, 0x0);
     }
+
+    void send_ipi(uint32_t apic_id, uint8_t vector) {
+        // Set destination
+        write(LAPIC_ICRHI, apic_id << 24);
+
+        uint32_t icr_lo = (uint32_t)vector | APIC_ICR_LEVEL_ASSERT;
+
+        write(LAPIC_ICRLO, icr_lo);
+
+        wait_for_delivery();
+    }
+
+    void broadcast_ipi(uint8_t vector) {
+        uint32_t self_apic_id = local_apic_get_id();
+
+        for (uint32_t i = 0; i < CPUManager::total_cpus && i < MAX_CPU_CORES; i++) {
+
+            const auto& cpu = CPUManager::cpu_infos[i];
+
+            if (cpu.apic_id == self_apic_id)
+                continue;
+
+            send_ipi(cpu.apic_id, vector);
+        }
+    }
+
 
 
     void pmt_delay(const size_t us) {
@@ -78,6 +105,8 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void timer_tick(interrupt_frame *frame) {
+
+        deadlock_detector_tick();
 
         if (!kernel::scheduling::is_initialized()) return;
         uint32_t cpu = CPUManager::get_current_cpu_id();

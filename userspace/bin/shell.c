@@ -496,10 +496,11 @@ int execute_command(command_t *cmd) {
             int64_t rid = 0;
             // const char *argv[] = {"lsusb", nullptr};
             rid = spawn_realm(prog, 1, nullptr, environ);
-            if ((int64_t) rid < 0) {
+            if (rid < 0) {
                 printf("spawn failed: %d\n", (int32_t) rid);
             } else {
                 int status;
+                printf("Spawned '%s'\n", prog);
                 sys_wait(rid, (uint64_t) &status, 0, 0, 0, 0);
                 if (status != 0) {
                     printf("realm exited with status %d", status);

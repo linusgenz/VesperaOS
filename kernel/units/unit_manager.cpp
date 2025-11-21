@@ -36,6 +36,7 @@ UnitID UnitManager::next_id = 1;
 
 void UnitManager::initialize() {
     global_lock.init();
+    lock_debug_register(&global_lock, "unit_manager_lock");
     for (auto &unit: units) {
         unit.active = false;
         unit.id = 0;
@@ -175,7 +176,7 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
                 kernel::memory::map_range(u->context.user_stack, u->context.user_stack, user_stack_size,
                                           (1ULL << PT_Flag::UserSuper));
                 u->context.user_stack_size = user_stack_size;
-                u->context.user_stack_top = (void *) ((uintptr_t) u->context.user_stack + stack_size);
+                u->context.user_stack_top = (void *) ((uintptr_t) u->context.user_stack + user_stack_size);
                 u->context.user_stack_pointer = u->context.user_stack_top;
             }
 

@@ -54,6 +54,7 @@ static VfsNodeOps devfs_ops = {
 
 void DevFS::init() {
     lock.init();
+    lock_debug_register(&lock, "devfs_lock");
     devices = new Vector<CharDevice *>(8);
     nodes = new Vector<DevfsEntry *>(16);
 

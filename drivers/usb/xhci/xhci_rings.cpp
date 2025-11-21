@@ -4,6 +4,7 @@
 
 xhciCommandRing::xhciCommandRing(size_t max_trbs) {
     m_lock.init();
+    lock_debug_register(&m_lock, "xhci_command_ring_lock");
 
     m_max_trb_count = max_trbs;
     m_rcs_bit = XHCI_CRCR_RING_CYCLE_STATE;
@@ -48,6 +49,7 @@ xhciEventRing::xhciEventRing(
     volatile xhci_interrupter_registers* interrupter
 ) {
     m_lock.init();
+    lock_debug_register(&m_lock, "xhci_event_ring_lock");
 
     m_interrupter_regs = interrupter;
     m_segment_trb_count = max_trbs;
@@ -180,6 +182,7 @@ xhciTransferRing *xhciTransferRing::allocate(uint8_t slot_id) {
 
 xhciTransferRing::xhciTransferRing(size_t max_trbs, uint8_t doorbell_id) {
     m_lock.init();
+    lock_debug_register(&m_lock, "xhci_transfer_ring_lock");
 
     m_max_trb_count = max_trbs;
     m_rcs_bit = 1;

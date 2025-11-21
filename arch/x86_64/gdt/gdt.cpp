@@ -55,7 +55,6 @@ void gdt_install() {
     // TSS Descriptor (uses 2 GDT entries: 5 and 6)
 
     set_tss_descriptor(&tss);
-    // Kopiere TSS Descriptor in GDT (gdt[5] und gdt[6])
     memcpy(&gdt[5], &tss_desc, sizeof(TSSDescriptor));
 
     // Initialize TSS rsp0 stack pointer (z.B. kernel stack)
@@ -73,9 +72,7 @@ void gdt_install() {
     gdt_ptr.limit = sizeof(gdt) - 1;
     gdt_ptr.base = (uint64_t) &gdt;
 
-    // Lade GDT in CPU
     load_GDT(&gdt_ptr);
 
-    // Lade TSS
     asm volatile ("ltr %w0" : : "r" (5 << 3)); // Selector: Index 5 (TSS), RPL=0
 }

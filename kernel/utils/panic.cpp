@@ -1,6 +1,9 @@
 #include "panic.h"
+
+#include "../../arch/x86_64/interrupts/apic.h"
 #include "../include/basic_renderer.h"
 #include "../../include/string.h"
+#include "../cpu/cpu_manager.h"
 #include "../include/kernel_utils.h"
 /*
 void panic(const char* panic_msg) {
@@ -135,6 +138,11 @@ void put_string(Framebuffer* fb, const char* str, uint32_t x, uint32_t y, uint32
 [[noreturn]] void panic(const char* msg) {
     auto fb = TargetFramebuffer;
 
+    uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
+    CPUManager::halt_cpu(apic_id);
+
+    arch::x86_64::interrupts::apic::broadcast_ipi(IRQ_PANIC);
+
     // Bildschirm klar machen mit Blau
   /*  for (uint32_t y = 0; y < fb->height; y++) {
         for (uint32_t x = 0; x < fb->width; x++) {
@@ -154,5 +162,5 @@ void put_string(Framebuffer* fb, const char* str, uint32_t x, uint32_t y, uint32
     put_string(fb, "KERNEL PANIC", x1, y1, Colour::WHITE);
     put_string(fb, msg, x2, y2, Colour::WHITE);
 
-    while (true) asm volatile("hlt");
+    while (true) asm volatile("cli; hlt");
 }

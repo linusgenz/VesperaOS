@@ -6,6 +6,8 @@
 #define SPINLOCK_H
 #include <cstdint>
 
+#include "../debug/lock_debug.h"
+
 struct spinlock_t {
     volatile uint32_t locked;
 
@@ -13,15 +15,9 @@ struct spinlock_t {
         locked = 0;
     }
 
-    void lock() {
-        while (xchg(&locked, 1)) {
-            asm volatile("pause");
-        }
-    }
+    void lock();
 
-    void unlock() {
-        __atomic_store_n(&locked, 0, __ATOMIC_RELEASE);
-    }
+    void unlock();
 
     void lock_irqsave(uint64_t &flags) {
         flags = irq_save();

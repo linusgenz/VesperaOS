@@ -44,6 +44,7 @@ spinlock_t VFS::mount_points_lock;
 void VFS::init() {
     mount_points = new Vector<MountPoint>();
     mount_points_lock.init();
+    lock_debug_register(&mount_points_lock, "mount_points_lock");
 
     FilesystemDetector::Init();
 

@@ -27,7 +27,6 @@
 
 typedef long int ssize_t;
 
-#define MAX_HANDLES_PER_REALM 100
 #define MAX_UNIT_HANDLE_SLOTS 64
 
 #include <cstdint>

@@ -9,7 +9,7 @@
 #include "cpu_scheduler.h"
 #include "schedule_manager.h"
 #include "../cpu/cpu_manager.h"
-
+#include "../units/unit.h"
 
 namespace kernel::scheduling {
     global_scheduler_t global_scheduler = {{}};

@@ -27,6 +27,7 @@
 #include "input/worker.h"
 #include "../arch/x86_64/boot/bss.h"
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
+#include "debug/deadlock_detector.h"
 #include "devices/init.h"
 #include "tty/init.h"
 
@@ -119,6 +120,9 @@ Framebuffer *TargetFramebuffer = nullptr;
 
 void initialize_kernel(BootInfo *bootInfo) {
     zero_bss();
+
+    lock_debug_init();
+    deadlock_detector_init();
 
     renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->font);
     Log::SetRenderer(&renderer);

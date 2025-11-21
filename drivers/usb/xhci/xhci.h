@@ -24,6 +24,10 @@ namespace USB {
             m_port_connection_lock.init();
             m_command_irq_completed.init();
             m_transfer_irq_completed.init();
+            lock_debug_register(&m_devices_lock, "xhci_device_lock");
+            lock_debug_register(&m_command_lock, "xhci_command_lock");
+            lock_debug_register(&m_transfer_lock, "xhci_transfer_lock");
+
         }
 
         ~xhciDriver() override = default;

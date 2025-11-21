@@ -106,6 +106,8 @@ namespace arch::x86_64::interrupts::idt {
         set_idt_gate((void *) apic_timer_int_handler, IRQ_TIMER, IDT_TA_InterruptGate, 0x08);
         set_idt_gate((void *) spurious_int_handler, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
 
+        set_idt_gate((void*) panic_ipi_handler, IRQ_PANIC, IDT_TA_InterruptGate, 0x08);
+
         asm ("lidt %0" : : "m" (idtr));
         asm ("cli");
     }

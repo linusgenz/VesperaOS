@@ -1,10 +1,10 @@
-// realm_manager.h
+// trace.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 19.09.25.
+// Created by Linus Genz on 20.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,31 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_REALM_MANAGER_H
-#define VESPERAOS_REALM_MANAGER_H
+#include "trace.h"
+#include <cstdint>
 
-#include "realm.h"
-#include "../types/types.h"
-#include <cstddef>
-
-#include "../sync/atomic.h"
-#include "../sync/spinlock.h"
-
-class RealmManager {
-public:
-    static void initialize();
-    static bool is_initialized();
-    static Realm* create(const RealmConfig* cfg);
-    static Realm* get(RealmID id);
-    static bool destroy(RealmID id);
-    static void list();
-
-private:
-    static constexpr size_t MAX_REALMS = 64;
-    static Realm realms[MAX_REALMS];
-    static spinlock_t global_lock;
-    static RealmID next_id;
-    static atomic_u8_t seq;
-};
-
-#endif //VESPERAOS_REALM_MANAGER_H
+void debug_capture_current_stack(uint64_t* out, uint8_t* out_len, uint8_t max_depth) {
+    uint64_t *rbp;
+    asm volatile ("mov %%rbp, %0" : "=r" (rbp));
+    uint8_t cnt = 0;
+    while (rbp && cnt < max_depth) {
+        uint64_t ret = *(rbp + 1);
+        if (!ret) break;
+        out[cnt++] = ret;
+        rbp = (uint64_t*)(*rbp);
+    }
+    *out_len = cnt;
+}
