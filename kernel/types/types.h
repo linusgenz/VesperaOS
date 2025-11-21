@@ -92,27 +92,28 @@ typedef enum {
 } ErrorCode;
 
 #define PRIORITY_NONE 0
+#define DEFAULT_UNIT_STACK_SIZE 0x2000
 
-typedef struct {
-    const char *name;
-    uint8_t cpu_id;
-    uint8_t priority;
-    uint64_t stack_size;
-    HandleID *initial_handles;
-    uint64_t initial_handle_count;
-    bool is_idle;
-    bool is_user;
-    uint64_t user_stack_size;
-} UnitConfig;
+struct UnitConfig {
+    const char *name = "unnamed_unit";
+    uint8_t cpu_id = 0;
+    uint8_t priority = 0;
+    uint64_t stack_size = DEFAULT_UNIT_STACK_SIZE;
+    HandleID *initial_handles = nullptr;
+    uint64_t initial_handle_count = 0;
+    bool is_idle = false;
+    bool is_user = false;
+    uint64_t user_stack_size = 0;
+};
 
-typedef struct {
+struct RealmConfig {
     const char *name;
     uint64_t memory_limit;
     CapabilitySet capabilities;
     uint64_t max_units;
     const char **envp;
     bool is_user;
-} RealmConfig;
+};
 
 
 #endif //VESPERAOS_TYPES_H

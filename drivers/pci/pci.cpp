@@ -129,6 +129,7 @@ namespace PCI {
 
                                 Unit *usb_unit = UnitManager::create(
                                     KERNEL_REALM_DRIVER, (void *) usb_enable, pci_device_header, &config);
+                                Log::debug("USB XHCI UNIT: %u", usb_unit->id);
                                 if (!usb_unit) {
                                     Log::Error("Failed to create XHCI unit");
                                     USBManager::notify_controller_ready();

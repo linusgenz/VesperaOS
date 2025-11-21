@@ -56,14 +56,14 @@ static void write_user_ptr(Unit *u, uintptr_t addr, uintptr_t val) {
     if (offset + sizeof(uintptr_t) > u->context.user_stack_size) {
         return;
     }
-    *(uintptr_t*)(u->context.user_stack + offset) = val;
+    *(uintptr_t *) (u->context.user_stack + offset) = val;
 }
 
 // Kopiere Daten direkt in User-Stack
 static void memcpy_to_user(Unit *u, void *dest, const void *src, size_t len) {
-    uintptr_t offset = (uintptr_t)dest - (uintptr_t)u->context.user_stack;
+    uintptr_t offset = (uintptr_t) dest - (uintptr_t) u->context.user_stack;
     if (offset + len > u->context.user_stack_size) return; // Fehlercheck
-    memcpy((uint8_t*)u->context.user_stack + offset, src, len);
+    memcpy((uint8_t *) u->context.user_stack + offset, src, len);
 }
 
 // TODO integrate
@@ -81,8 +81,8 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
         size_t len = strlen(envp[i]) + 1;
         sp -= len;
         sp &= ~0xF; // 16-byte alignment
-        memcpy_to_user(u, (void*)sp, envp[i], len);
-        envp_user[i] = (const char*) sp;
+        memcpy_to_user(u, (void *) sp, envp[i], len);
+        envp_user[i] = (const char *) sp;
     }
 
     sp -= sizeof(uintptr_t);
@@ -102,8 +102,8 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
         size_t len = strlen(argv[i]) + 1;
         sp -= len;
         sp &= ~0xF;
-        memcpy_to_user(u, (void*)sp, argv[i], len);
-        argv_user[i] = (const char*) sp;
+        memcpy_to_user(u, (void *) sp, argv[i], len);
+        argv_user[i] = (const char *) sp;
     }
 
     sp -= sizeof(uintptr_t);
@@ -121,7 +121,7 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
     u->context.regs.rdi = argc;
     u->context.regs.rsi = argv_ptr;
     u->context.regs.rdx = envp_ptr;
-    u->context.user_stack_pointer = (void*)sp;
+    u->context.user_stack_pointer = (void *) sp;
 
     return sp;
 }
@@ -141,7 +141,7 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
 
             u->id = allocate_id();
             u->rid = realm_id;
-            u->name = cfg->name ? cfg->name : "unnamed_unit";
+            u->name = cfg->name;
             u->exit_code = 0;
             u->active = true;
             u->next = nullptr;
@@ -238,12 +238,12 @@ bool UnitManager::destroy(const UnitID id) {
 
     for (auto &i: units) {
         if (i.active && i.id == id) {
-            Unit* u = &i;
+            Unit *u = &i;
 
-            Realm* r = RealmManager::get(u->rid);
+            Realm *r = RealmManager::get(u->rid);
             if (r) {
                 spinlock_guard rg(r->lock);
-                Unit** prev = &r->unit_list;
+                Unit **prev = &r->unit_list;
                 while (*prev) {
                     if (*prev == u) {
                         *prev = u->next;

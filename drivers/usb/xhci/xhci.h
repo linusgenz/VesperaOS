@@ -27,7 +27,6 @@ namespace USB {
             lock_debug_register(&m_devices_lock, "xhci_device_lock");
             lock_debug_register(&m_command_lock, "xhci_command_lock");
             lock_debug_register(&m_transfer_lock, "xhci_transfer_lock");
-
         }
 
         ~xhciDriver() override = default;

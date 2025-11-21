@@ -27,7 +27,6 @@
 #include "unit.h"
 #include "../sync/spinlock.h"
 #include "../types/types.h"
-#define DEFAULT_UNIT_STACK_SIZE 0x2000
 
 class UnitManager {
 public:

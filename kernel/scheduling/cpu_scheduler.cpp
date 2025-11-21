@@ -1,6 +1,7 @@
 #include "cpu_scheduler.h"
 
 #include <scheduling.h>
+#include <time.h>
 
 #include "schedule_manager.h"
 #include "../../include/log.h"
@@ -55,6 +56,10 @@ namespace kernel::scheduling::cpu_scheduler {
         } else {
             cpu->ready_queue_head = unit;
             cpu->ready_queue_tail = unit;
+        }
+
+        if (cpu->scheduler_enabled && cpu->current_unit == cpu->idle_unit) {
+            cpu->need_resched = true;
         }
 
         unlock_ready_queue(cpu_id);
@@ -221,51 +226,63 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
     void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick) {
-        lock_blocked_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
+        Unit *to_add_head = nullptr;
+        Unit *to_add_tail = nullptr;
+
+        lock_blocked_queue(cpu_id);
         Unit *prev = nullptr;
         Unit *unit = cpu->blocked_queue_head;
 
         while (unit) {
             if (current_tick >= unit->sleep_context.wakeup_tick) {
-                // Remove from blocked queue
                 Unit *to_wake = unit;
+
+                // remove from blocked queue
                 if (prev) {
                     prev->next = unit->next;
                 } else {
                     cpu->blocked_queue_head = unit->next;
                 }
-                unit = unit->next;
+
+                unit = unit->next; // move iterator
 
                 to_wake->state = UNIT_READY;
                 to_wake->next = nullptr;
 
-                unlock_blocked_queue(cpu_id);
-
-                // Add to ready queue (separate lock)
-                lock_ready_queue(cpu_id);
-                if (cpu->ready_queue_tail) {
-                    cpu->ready_queue_tail->next = to_wake;
-                    cpu->ready_queue_tail = to_wake;
+                // append to temporary list
+                if (to_add_tail) {
+                    to_add_tail->next = to_wake;
+                    to_add_tail = to_wake;
                 } else {
-                    cpu->ready_queue_head = to_wake;
-                    cpu->ready_queue_tail = to_wake;
+                    to_add_head = to_add_tail = to_wake;
                 }
-                unlock_ready_queue(cpu_id);
 
                 cpu->need_resched = true;
-
-                lock_blocked_queue(cpu_id);
-                // Restart from beginning since we released the lock
-                prev = nullptr;
-                unit = cpu->blocked_queue_head;
             } else {
                 prev = unit;
                 unit = unit->next;
             }
         }
-
         unlock_blocked_queue(cpu_id);
+
+        Unit *tmp = to_add_head;
+        while (tmp) {
+            Unit *next = tmp->next;
+
+            lock_ready_queue(cpu_id);
+            if (cpu->ready_queue_tail) {
+                cpu->ready_queue_tail->next = tmp;
+                cpu->ready_queue_tail = tmp;
+            } else {
+                cpu->ready_queue_head = tmp;
+                cpu->ready_queue_tail = tmp;
+            }
+            unlock_ready_queue(cpu_id);
+
+            tmp = next;
+        }
     }
+
 }
