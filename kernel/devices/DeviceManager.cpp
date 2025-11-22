@@ -28,39 +28,35 @@
 
 namespace kernel {
     Vector<BlockDevice *> *DeviceManager::devices;
-    mutex_t DeviceManager::device_manager_mutex;
+    spinlock_t DeviceManager::lock;
 
     void DeviceManager::Init() {
         devices = new Vector<BlockDevice *>();
-        mutex_init(&device_manager_mutex);
+        lock.init();
         devices->clear();
     }
 
     void DeviceManager::AddDevice(BlockDevice *device) {
-        mutex_lock(&device_manager_mutex);
+        spinlock_guard guard(lock);
         devices->push_back(device);
-        mutex_unlock(&device_manager_mutex);
     }
 
     void DeviceManager::RemoveDevice(BlockDevice *device) {
-        mutex_lock(&device_manager_mutex);
+        spinlock_guard guard(lock);
         devices->erase_value(device);
-        mutex_unlock(&device_manager_mutex);
     }
 
     Vector<BlockDevice *> DeviceManager::GetDevices() {
-        mutex_lock(&device_manager_mutex);
+        spinlock_guard guard(lock);
         Vector<BlockDevice *> snapshot = devices->copy();
-        mutex_unlock(&device_manager_mutex);
         return snapshot;
     }
 
 
     // 1-based -> 1 == 1 device, zero == 0 devices
     uint32_t DeviceManager::GetDeviceCount() {
-        mutex_lock(&device_manager_mutex);
+        spinlock_guard guard(lock);
         auto result = devices->size();
-        mutex_unlock(&device_manager_mutex);
         return result;
     }
 }

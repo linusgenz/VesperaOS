@@ -41,7 +41,7 @@ namespace kernel {
 
     private:
         static Vector<BlockDevice *> *devices;
-        static mutex_t device_manager_mutex;
+        static spinlock_t lock;
     };
 
 }

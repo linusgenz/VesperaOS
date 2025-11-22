@@ -12,8 +12,9 @@ bool Log::initialized = false;
 bool Log::is_debug = false;
 
 void Log::init() {
-    initialized = true;
-    kernel::mutex_init(&log_mutex);
+  //  initialized = true;
+  //  kernel::mutex_init(&log_mutex);
+   // log_spin.init();
 }
 
 void Log::SetRenderer(BasicRenderer *r) {
@@ -53,11 +54,7 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
 }
 
 void Log::Info(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -73,17 +70,10 @@ void Log::Info(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::Ok(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     Colour old = renderer->get_colour();
     renderer->print("[   ");
@@ -99,17 +89,10 @@ void Log::Ok(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::Warning(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     Colour old = renderer->get_colour();
     renderer->print("[ ");
@@ -124,18 +107,10 @@ void Log::Warning(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::Error(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -150,18 +125,10 @@ void Log::Error(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::LogMsg(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     Colour old = renderer->get_colour();
     renderer->print("[   ");
@@ -177,17 +144,10 @@ void Log::LogMsg(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::PrintLn(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
@@ -196,35 +156,21 @@ void Log::PrintLn(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::Print(const char *fmt, ...) {
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 void Log::debug(const char *fmt, ...) {
     if (!is_debug) return;
-    if (!initialized) {
-        spinlock_guard g(log_spin);
-    } else {
-        kernel::mutex_lock(&log_mutex);
-    }
+    spinlock_guard g(log_spin);
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
@@ -240,9 +186,6 @@ void Log::debug(const char *fmt, ...) {
 
     renderer->print("\n");
 
-    if (initialized) {
-        kernel::mutex_unlock(&log_mutex);
-    }
 }
 
 static void float_to_str(float val, char *buf, int precision) {

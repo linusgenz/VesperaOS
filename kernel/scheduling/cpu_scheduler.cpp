@@ -14,21 +14,16 @@ namespace kernel::scheduling::cpu_scheduler {
     void init_cpu(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        // Setup idle unit für diesen CPU
+        // Setup idle unit für this CPU
         cpu->idle_unit = manager::setup_idle_unit(cpu_id);
 
-        // cpu->ready_queue_head = nullptr;
-        //  cpu->ready_queue_tail = nullptr;
-        // cpu->blocked_queue_head = nullptr;
         cpu->ready_queue.clear();
         cpu->blocked_queue.clear();
-        cpu->current_unit = cpu->idle_unit;
+        cpu->current_unit = nullptr;
         cpu->quantum_ticks = SCHEDULER_TICKS;
         cpu->ticks_remaining = cpu->quantum_ticks;
         cpu->scheduler_enabled = false;
-        //  cpu->ready_queue_lock = 0;
-        //  cpu->blocked_queue_lock = 0;
-        cpu->scheduler_lock = 0;
+        cpu->lock.init();
     }
 
 
@@ -37,7 +32,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->scheduler_enabled = true;
         cpu->ticks_remaining = cpu->quantum_ticks;
 
-        manager::switch_to_unit(nullptr, cpu->idle_unit, nullptr);
+        yield_cpu(cpu_id);
     }
 
     void disable_cpu(const uint8_t cpu_id) {
@@ -49,7 +44,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
         unit->state = UNIT_READY;
-        unit->next = nullptr;
+        unit->next = nullptr; // Sicher, da wir gelockt haben
 
         cpu->ready_queue.push(unit);
 
@@ -59,102 +54,139 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
     void remove_unit_from_cpu(Unit *unit, const uint8_t cpu_id) {
-        /* lock_ready_queue(cpu_id);
 
          cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-         Unit *prev = nullptr;
-         Unit *cur = cpu->ready_queue_head;
-         while (cur && cur != unit) {
-             prev = cur;
-             cur = cur->next;
-         }
-
-         if (!cur) {
-             unlock_ready_queue(cpu_id);
-             return;
-         }
-
-         if (prev) prev->next = cur->next;
-         else cpu->ready_queue_head = cur->next;
-
-         if (cpu->ready_queue_tail == cur) cpu->ready_queue_tail = prev;
+         cpu->ready_queue.remove(unit);
 
          unit->state = UNIT_TERMINATED;
          unit->next = nullptr;
 
-         unlock_ready_queue(cpu_id);*/
     }
+
 
     void yield_cpu(uint8_t cpu_id, interrupt_frame *frame) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
-        // cpu->ready_queue.validate();
 
-        // Lock scheduler state first
-        while (__sync_lock_test_and_set(&cpu->scheduler_lock, 1)) {
-            asm volatile ("pause");
-        }
+        uint64_t flags;
+        cpu->lock.lock_irqsave(flags);
 
         Unit *current = cpu->current_unit;
-        Unit *next_unit = cpu->ready_queue.pop();
 
-        if (!next_unit) {
-            if (current->is_idle) {
-                __sync_lock_release(&cpu->scheduler_lock);
-                return;
-            }
-            next_unit = cpu->idle_unit;
-        }
-
-        // if current got terminated continue with next
+        // Special case: no current thread
         if (current == nullptr) {
+            Unit *next_unit = cpu->ready_queue.pop();
+            if (!next_unit) {
+                next_unit = cpu->idle_unit;
+            }
             next_unit->state = UNIT_RUNNING;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-
-            __sync_lock_release(&cpu->scheduler_lock);
+            cpu->lock.unlock_irqrestore(flags);
             manager::switch_to_unit(nullptr, next_unit, frame);
             return;
         }
 
         bool current_terminated = (current->state == UNIT_TERMINATED);
         bool current_blocked = (current->state == UNIT_BLOCKED);
-        bool current_should_continue = (!current_terminated && !current_blocked &&
-                                        !current->is_idle && current->state == UNIT_RUNNING);
+        bool current_is_idle = current->is_idle;
+        bool current_can_continue = (!current_terminated && !current_blocked &&
+                                     current->state == UNIT_RUNNING);
 
-        // If current thread is the only thread on the core
-        if (!next_unit || next_unit->is_idle) {
-            if (!current || current_terminated || current_blocked) {
-                next_unit = cpu->idle_unit;
-            } else {
-                cpu->ticks_remaining = cpu->quantum_ticks;
-                __sync_lock_release(&cpu->scheduler_lock);
-                return;
-            }
-        }
+        // Get next thread from ready queue
+        Unit *next_unit = cpu->ready_queue.pop();
 
-        if (current_should_continue) {
+        // Case 1: Idle is running and nothing to do
+        if (!next_unit && current_is_idle) {
             cpu->ticks_remaining = cpu->quantum_ticks;
-            __sync_lock_release(&cpu->scheduler_lock);
+            cpu->lock.unlock_irqrestore(flags);
             return;
         }
 
+        // Case 2: Current is terminated or blocked -> MUST switch
+        if (current_terminated || current_blocked) {
+            if (!next_unit) {
+                next_unit = cpu->idle_unit;
+            }
+            next_unit->state = UNIT_RUNNING;
+            cpu->current_unit = next_unit;
+            cpu->ticks_remaining = cpu->quantum_ticks;
+            cpu->lock.unlock_irqrestore(flags);
+            manager::switch_to_unit(current, next_unit, frame);
+            return;
+        }
 
-        // Switch to next thread
+        // Case 3: Current is idle and we have a real thread waiting
+        if (current_is_idle && next_unit && !next_unit->is_idle) {
+            next_unit->state = UNIT_RUNNING;
+            cpu->current_unit = next_unit;
+            cpu->ticks_remaining = cpu->quantum_ticks;
+            cpu->lock.unlock_irqrestore(flags);
+            manager::switch_to_unit(current, next_unit, frame);
+            return;
+        }
+
+        // Case 4: No next thread available
+        if (!next_unit) {
+            // Current continues running
+            if (current_can_continue) {
+                cpu->ticks_remaining = cpu->quantum_ticks;
+                cpu->lock.unlock_irqrestore(flags);
+                return;
+            }
+
+            // Current can't continue -> go to idle
+            next_unit = cpu->idle_unit;
+            next_unit->state = UNIT_RUNNING;
+            cpu->current_unit = next_unit;
+            cpu->ticks_remaining = cpu->quantum_ticks;
+            cpu->lock.unlock_irqrestore(flags);
+            manager::switch_to_unit(current, next_unit, frame);
+            return;
+        }
+
+        // Case 5: Next is idle thread but current can continue
+        if (next_unit->is_idle) {
+            // Push idle back
+            cpu->ready_queue.push(next_unit);
+
+            if (current_can_continue) {
+                cpu->ticks_remaining = cpu->quantum_ticks;
+                cpu->lock.unlock_irqrestore(flags);
+                return;
+            }
+
+            // Current can't continue -> switch to idle
+            next_unit = cpu->idle_unit;
+            next_unit->state = UNIT_RUNNING;
+            cpu->current_unit = next_unit;
+            cpu->ticks_remaining = cpu->quantum_ticks;
+            cpu->lock.unlock_irqrestore(flags);
+            manager::switch_to_unit(current, next_unit, frame);
+            return;
+        }
+
+        // Case 6: We have a real next thread -> ALWAYS switch
+        // This is the normal case for yield() and time slice expiration
         if (next_unit && next_unit != current) {
-            current->state = UNIT_READY;
+            // Re-queue current if it can continue
+            if (current_can_continue && !current_is_idle) {
+                current->state = UNIT_READY;
+                cpu->ready_queue.push(current);
+            }
 
             next_unit->state = UNIT_RUNNING;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-
-            __sync_lock_release(&cpu->scheduler_lock);
-            // Delegate actual context switch to thread_manager
+            cpu->lock.unlock_irqrestore(flags);
             manager::switch_to_unit(current, next_unit, frame);
-        } else {
-            __sync_lock_release(&cpu->scheduler_lock);
+            return;
         }
+
+        // Fallback: continue with current
+        cpu->ticks_remaining = cpu->quantum_ticks;
+        cpu->lock.unlock_irqrestore(flags);
     }
 
     void tick_cpu(uint8_t cpu_id, interrupt_frame *frame) {
@@ -163,11 +195,13 @@ namespace kernel::scheduling::cpu_scheduler {
 
         // Use atomic operations for tick counting to avoid locks
         bool should_yield = false;
+
         if (cpu->ticks_remaining > 0) {
-            cpu->ticks_remaining = __sync_sub_and_fetch(&cpu->ticks_remaining, 1);
-            should_yield = (cpu->ticks_remaining == 0);
+            uint32_t old_ticks = __sync_fetch_and_sub(&cpu->ticks_remaining, 1);
+            should_yield = (old_ticks == 1); // Was 1, now 0
         }
 
+        // Check reschedule flag - use 0 instead of false
         if (__sync_lock_test_and_set(&cpu->need_resched, false)) {
             should_yield = true;
         }
@@ -190,12 +224,16 @@ namespace kernel::scheduling::cpu_scheduler {
     void add_blocked_unit(Unit *unit, const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        cpu->ready_queue.remove(unit);
+        cpu->ready_queue.remove(unit); // current unit shouldn't be in ready_queue but just in case remove it anyways
 
         unit->next = nullptr;
         unit->state = UNIT_BLOCKED;
 
         cpu->blocked_queue.push(unit);
+
+        if (unit == cpu->current_unit) {
+            cpu->need_resched = true;
+        }
     }
 
     void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick) {

@@ -19,20 +19,15 @@ class Unit;
 
 namespace kernel::scheduling::cpu_scheduler {
     struct cpu_scheduler_t {
-       // Unit *ready_queue_head;
-       // Unit *ready_queue_tail;
-        intrusive_queue_t<Unit> ready_queue;
+        intrusive_queue_t<Unit, queue_lock_irq> ready_queue;
         intrusive_queue_t<Unit, queue_lock_irq> blocked_queue;
-     //   Unit *blocked_queue_head;
         Unit *current_unit;
         Unit *idle_unit;
         uint32_t quantum_ticks;
         uint32_t ticks_remaining;
         bool scheduler_enabled;
         bool need_resched;
-      //  uint32_t ready_queue_lock; // Lock for ready queue operations
-      //  uint32_t blocked_queue_lock; // Lock for blocked queue operations
-        uint32_t scheduler_lock; // Simple spinlock for SMP safety
+        spinlock_t lock;
     };
 
     // Per-CPU operations

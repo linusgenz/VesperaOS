@@ -34,8 +34,6 @@ namespace kernel::time {
         }
     }
 
-
-
     void sleep_ms(uint64_t ms) {
         Unit *current = kernel::scheduling::get_current_unit();
         if (kernel::scheduling::is_initialized() && current) {

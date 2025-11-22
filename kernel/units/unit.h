@@ -96,6 +96,7 @@ public:
     const char *name;
 
     Unit *next;
+    Unit *realm_next;
 
     UnitState state;
     uint64_t creation_time;

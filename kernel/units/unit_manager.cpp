@@ -207,10 +207,12 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
                 }
             }
 
-            kernel::scheduling::add_unit(u);
+            if (!u->is_idle) {
+                kernel::scheduling::add_unit(u);
+            }
 
             spinlock_guard rg(realm->lock);
-            u->next = realm->unit_list;
+            u->realm_next = realm->unit_list;
             realm->unit_list = u;
             realm->unit_count++;
 
@@ -246,11 +248,11 @@ bool UnitManager::destroy(const UnitID id) {
                 Unit **prev = &r->unit_list;
                 while (*prev) {
                     if (*prev == u) {
-                        *prev = u->next;
+                        *prev = u->realm_next;
                         r->unit_count--;
                         break;
                     }
-                    prev = &(*prev)->next;
+                    prev = &(*prev)->realm_next;
                 }
             }
 
@@ -288,6 +290,7 @@ bool UnitManager::destroy(const UnitID id) {
             u->context = {};
             u->sleep_context = {};
             u->next = nullptr;
+            u->realm_next = nullptr;
 
             return true;
         }

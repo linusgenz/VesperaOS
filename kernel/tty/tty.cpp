@@ -257,8 +257,7 @@ namespace kernel::tty {
         if (active_tty->canonical) {
             // Zeilenmodus
             while (!active_tty->line_ready) {
-              //  kernel::scheduling::yield();
-                asm volatile("pause");
+                kernel::scheduling::yield();
             }
 
             size_t to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
@@ -271,8 +270,7 @@ namespace kernel::tty {
         } else {
             // Non-Canonical (charweise)
             while (active_tty->raw_len == 0) {
-            //    kernel::scheduling::yield();
-                asm volatile("pause");
+                kernel::scheduling::yield();
             }
 
             size_t to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
