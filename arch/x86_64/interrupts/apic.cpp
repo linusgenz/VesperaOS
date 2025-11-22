@@ -11,13 +11,13 @@
 #include "../interrupts/interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::apic {
-    uint32_t read(uint32_t offset) {
-        volatile uint32_t *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
+    uint32_t read(const uint32_t offset) {
+        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
         return *reg;
     }
 
-    void write(uint32_t offset, uint32_t value) {
-        volatile uint32_t *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
+    void write(const uint32_t offset, const uint32_t value) {
+        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
         *reg = value;
     }
 

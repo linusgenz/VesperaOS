@@ -198,9 +198,8 @@ void initialize_kernel(BootInfo *bootInfo) {
     RealmManager::create(&realm_config_drv);
 
     UnitManager::initialize();
-    kernel::scheduling::init(CPUManager::total_cpus);
+    kernel::scheduling::init(CPUManager::total_cpus); // cannot create units before the scheduler inits, this is a feature not a bug
 
-    initialize_input_bus();
 
     //  RealmManager::list();
 
@@ -211,6 +210,7 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     VFS::init();
     DevFS::init();
+    initialize_input_bus();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
     if (USBManager::wait_for_all_controllers(10000)) {

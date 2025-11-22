@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <memory.h>
+#include <scheduling.h>
 #include <time.h>
 
 #include "input_manager.h"
@@ -37,15 +38,14 @@
         while (kernel::input::InputManager::pop_event(ev)) {
             kernel::tty::tty_handle_input(ev);
         }
-        kernel::time::sleep_ms(10); // temp sync issues in input manager
-        //  kernel::scheduling::yield(); // CPU an andere Threads
+        kernel::scheduling::yield();
     }
 }
 
 void initialize_input_bus() {
     UnitConfig uc = {
         .name = "input_bus",
-        .cpu_id = 1,
+        .cpu_id = 3,
         .priority = 5,
         .stack_size = DEFAULT_UNIT_STACK_SIZE,
         .initial_handles = nullptr,

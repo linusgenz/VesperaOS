@@ -27,6 +27,7 @@
 #include <concepts>
 #include <log.h>
 
+#include "../kernel/cpu/cpu_manager.h"
 #include "../kernel/sync/spinlock.h"
 #include "../kernel/utils/panic.h"
 
@@ -49,46 +50,57 @@ struct intrusive_queue_t {
     using guard_t = typename LockPolicy::guard_t;
 
 private:
-
     spinlock_t lock{};
+    IntrusiveNode *head = nullptr;
+    IntrusiveNode *tail = nullptr;
 
 public:
     intrusive_queue_t() {
         lock.init();
+        head = nullptr;
+        tail = nullptr;
     }
-    IntrusiveNode *head = nullptr;
-    IntrusiveNode *tail = nullptr;
+
+
     intrusive_queue_t(const intrusive_queue_t &) = delete;
+
     intrusive_queue_t &operator=(const intrusive_queue_t &) = delete;
 
     // FIFO
-    void push(IntrusiveNode* element) {
+    void push(IntrusiveNode *element) {
         guard_t g(lock);
 
-        element->next = nullptr;
+        if (element->cpu_id == 5) {
+           // Log::debug("ADDED: %u %u cpu: %u", element->is_idle, element->id, element->cpu_id);
+        }
+
         if (!head) {
             head = tail = element;
+            element->next = nullptr;
         } else {
             tail->next = element;
             tail = element;
+            element->next = nullptr;
         }
     }
 
     // LIFO
-    void push_front(IntrusiveNode* element) {
+    void push_front(IntrusiveNode *element) {
         guard_t g(lock);
-
+        if (element->cpu_id == 5) {
+        //    Log::debug("ADDED: %u %u cpu: %u", element->is_idle, element->id, element->cpu_id);
+        }
         element->next = head;
         head = element;
         if (!tail) tail = element;
     }
 
     // FIFO
-    IntrusiveNode* pop() {
+    IntrusiveNode *pop() {
         guard_t g(lock);
         if (!head) return nullptr;
 
-        IntrusiveNode* element = head;
+        IntrusiveNode *element = head;
         head = head->next;
         if (!head) tail = nullptr;
         element->next = nullptr;
@@ -96,7 +108,7 @@ public:
     }
 
     // Remove specific element
-    bool remove(IntrusiveNode* target) {
+    bool remove(IntrusiveNode *target) {
         guard_t g(lock);
         if (!head) return false;
 
@@ -107,8 +119,8 @@ public:
             return true;
         }
 
-        IntrusiveNode* prev = head;
-        IntrusiveNode* cur = head->next;
+        IntrusiveNode *prev = head;
+        IntrusiveNode *cur = head->next;
         while (cur) {
             if (cur == target) {
                 prev->next = cur->next;
@@ -123,17 +135,17 @@ public:
     }
 
     template<typename Predicate>
-    IntrusiveNode* extract_if(Predicate&& pred, IntrusiveNode** out_tail = nullptr) {
+    IntrusiveNode *extract_if(Predicate &&pred, IntrusiveNode **out_tail = nullptr) {
         guard_t g(lock);
 
-        IntrusiveNode* result_head = nullptr;
-        IntrusiveNode* result_tail = nullptr;
+        IntrusiveNode *result_head = nullptr;
+        IntrusiveNode *result_tail = nullptr;
 
-        IntrusiveNode* prev = nullptr;
-        IntrusiveNode* cur = head;
+        IntrusiveNode *prev = nullptr;
+        IntrusiveNode *cur = head;
 
         while (cur) {
-            IntrusiveNode* next = cur->next;
+            IntrusiveNode *next = cur->next;
             if (pred(cur)) {
                 // Entferne aus Queue
                 if (prev) prev->next = next;
@@ -163,7 +175,7 @@ public:
 
         guard_t g(lock);
 
-        IntrusiveNode* tmp = list_head;
+        IntrusiveNode *tmp = list_head;
         while (tmp) {
             tmp = tmp->next;
         }
@@ -178,7 +190,6 @@ public:
             SET_NEXT(tail, list_head);
             tail = list_tail;
         }
-
     }
 
     [[nodiscard]] bool empty() const {

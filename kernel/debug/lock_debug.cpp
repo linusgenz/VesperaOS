@@ -28,7 +28,7 @@
 
 #include "../utils/panic.h"
 
-#define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL * 1000ULL)
+#define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL * 10000ULL)
 
 static lock_debug_info lock_table[MAX_DEBUG_LOCKS];
 static uint32_t lock_table_count = 0;
@@ -178,7 +178,7 @@ bool lock_debug_detect_deadlocks_and_report() {
         }
     }
 
-    uint64_t now = rdtsc();
+   /* uint64_t now = rdtsc();
 
     for (uint32_t i = 0; i < lock_table_count; ++i) {
         lock_debug_info &L = lock_table[i];
@@ -192,7 +192,7 @@ bool lock_debug_detect_deadlocks_and_report() {
                 return true;
             }
         }
-    }
+    }*/
 
     return false;
 }
