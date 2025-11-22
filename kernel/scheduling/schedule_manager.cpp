@@ -86,7 +86,7 @@ namespace kernel::scheduling::manager {
         context_switch(rdi_save_addr, rsp_to_load, should_iretq, save_iretq, push_args);
     }
 
-    [[noreturn]] void terminate_current_thread() {
+    [[noreturn]] void terminate_current_unit() {
         asm volatile("cli");
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         cpu_scheduler::cpu_scheduler_t *cpu = cpu_scheduler::get_cpu_data(cpu_id);
@@ -97,9 +97,7 @@ namespace kernel::scheduling::manager {
             }
         }
 
-        cpu_scheduler::lock_ready_queue(cpu_id);
         cpu->current_unit->state = UNIT_TERMINATED;
-        cpu_scheduler::unlock_ready_queue(cpu_id);
 
         cpu_scheduler::yield_cpu(cpu_id);
 
@@ -114,7 +112,7 @@ namespace kernel::scheduling::manager {
 
         current->context.entry(current->context.arg);
         Log::debug("kUnit end %u", current->id);
-        terminate_current_thread();
+        terminate_current_unit();
     }
 
 

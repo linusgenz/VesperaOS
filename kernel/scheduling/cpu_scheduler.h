@@ -7,6 +7,7 @@
 #include <cstddef>
 #include "../acpi/madt.h"
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
+#include <intrusive_queue.h>
 
 #define READY_SCAN_LIMIT 16
 
@@ -18,17 +19,19 @@ class Unit;
 
 namespace kernel::scheduling::cpu_scheduler {
     struct cpu_scheduler_t {
-        Unit *ready_queue_head;
-        Unit *ready_queue_tail;
-        Unit *blocked_queue_head;
+       // Unit *ready_queue_head;
+       // Unit *ready_queue_tail;
+        intrusive_queue_t<Unit> ready_queue;
+        intrusive_queue_t<Unit, queue_lock_irq> blocked_queue;
+     //   Unit *blocked_queue_head;
         Unit *current_unit;
         Unit *idle_unit;
         uint32_t quantum_ticks;
         uint32_t ticks_remaining;
         bool scheduler_enabled;
         bool need_resched;
-        uint32_t ready_queue_lock; // Lock for ready queue operations
-        uint32_t blocked_queue_lock; // Lock for blocked queue operations
+      //  uint32_t ready_queue_lock; // Lock for ready queue operations
+      //  uint32_t blocked_queue_lock; // Lock for blocked queue operations
         uint32_t scheduler_lock; // Simple spinlock for SMP safety
     };
 
@@ -60,7 +63,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
     void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick);
 
-    static inline void lock_ready_queue(uint8_t cpu_id) {
+  /*  static inline void lock_ready_queue(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         while (__sync_lock_test_and_set(&cpu->ready_queue_lock, 1)) {
             asm volatile ("pause");
@@ -70,8 +73,8 @@ namespace kernel::scheduling::cpu_scheduler {
     static inline void unlock_ready_queue(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         __sync_lock_release(&cpu->ready_queue_lock);
-    }
-
+    }*/
+/*
     static inline void lock_blocked_queue(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         while (__sync_lock_test_and_set(&cpu->blocked_queue_lock, 1)) {
@@ -82,7 +85,7 @@ namespace kernel::scheduling::cpu_scheduler {
     static inline void unlock_blocked_queue(uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         __sync_lock_release(&cpu->blocked_queue_lock);
-    }
+    }*/
 } // namespace kernel::scheduling::cpu_scheduler
 
 #endif // CPU_SCHEDULER_H

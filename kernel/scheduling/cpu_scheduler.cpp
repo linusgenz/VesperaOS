@@ -17,15 +17,17 @@ namespace kernel::scheduling::cpu_scheduler {
         // Setup idle unit für diesen CPU
         cpu->idle_unit = manager::setup_idle_unit(cpu_id);
 
-        cpu->ready_queue_head = nullptr;
-        cpu->ready_queue_tail = nullptr;
-        cpu->blocked_queue_head = nullptr;
+        // cpu->ready_queue_head = nullptr;
+        //  cpu->ready_queue_tail = nullptr;
+        // cpu->blocked_queue_head = nullptr;
+        cpu->ready_queue.clear();
+        cpu->blocked_queue.clear();
         cpu->current_unit = cpu->idle_unit;
         cpu->quantum_ticks = SCHEDULER_TICKS;
         cpu->ticks_remaining = cpu->quantum_ticks;
         cpu->scheduler_enabled = false;
-        cpu->ready_queue_lock = 0;
-        cpu->blocked_queue_lock = 0;
+        //  cpu->ready_queue_lock = 0;
+        //  cpu->blocked_queue_lock = 0;
         cpu->scheduler_lock = 0;
     }
 
@@ -44,57 +46,50 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
     void add_unit_to_cpu(Unit *unit, const uint8_t cpu_id) {
-        lock_ready_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
         unit->state = UNIT_READY;
         unit->next = nullptr;
 
-        if (cpu->ready_queue_tail) {
-            cpu->ready_queue_tail->next = unit; // cast auf Thread für queue
-            cpu->ready_queue_tail = unit;
-        } else {
-            cpu->ready_queue_head = unit;
-            cpu->ready_queue_tail = unit;
-        }
+        cpu->ready_queue.push(unit);
 
         if (cpu->scheduler_enabled && cpu->current_unit == cpu->idle_unit) {
             cpu->need_resched = true;
         }
-
-        unlock_ready_queue(cpu_id);
     }
 
     void remove_unit_from_cpu(Unit *unit, const uint8_t cpu_id) {
-        lock_ready_queue(cpu_id);
-        cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
+        /* lock_ready_queue(cpu_id);
 
-        Unit *prev = nullptr;
-        Unit *cur = cpu->ready_queue_head;
-        while (cur && cur != unit) {
-            prev = cur;
-            cur = cur->next;
-        }
+         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        if (!cur) {
-            unlock_ready_queue(cpu_id);
-            return;
-        }
+         Unit *prev = nullptr;
+         Unit *cur = cpu->ready_queue_head;
+         while (cur && cur != unit) {
+             prev = cur;
+             cur = cur->next;
+         }
 
-        if (prev) prev->next = cur->next;
-        else cpu->ready_queue_head = cur->next;
+         if (!cur) {
+             unlock_ready_queue(cpu_id);
+             return;
+         }
 
-        if (cpu->ready_queue_tail == cur) cpu->ready_queue_tail = prev;
+         if (prev) prev->next = cur->next;
+         else cpu->ready_queue_head = cur->next;
 
-        unit->state = UNIT_TERMINATED;
-        unit->next = nullptr;
+         if (cpu->ready_queue_tail == cur) cpu->ready_queue_tail = prev;
 
-        unlock_ready_queue(cpu_id);
+         unit->state = UNIT_TERMINATED;
+         unit->next = nullptr;
+
+         unlock_ready_queue(cpu_id);*/
     }
 
     void yield_cpu(uint8_t cpu_id, interrupt_frame *frame) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
+        // cpu->ready_queue.validate();
 
         // Lock scheduler state first
         while (__sync_lock_test_and_set(&cpu->scheduler_lock, 1)) {
@@ -102,19 +97,7 @@ namespace kernel::scheduling::cpu_scheduler {
         }
 
         Unit *current = cpu->current_unit;
-        Unit *next_unit = nullptr;
-
-        // Get next thread from ready queue (separate lock)
-        lock_ready_queue(cpu_id);
-        if (cpu->ready_queue_head) {
-            next_unit = cpu->ready_queue_head;
-            cpu->ready_queue_head = next_unit->next;
-            if (cpu->ready_queue_tail == next_unit) {
-                cpu->ready_queue_tail = nullptr;
-            }
-            next_unit->next = nullptr;
-        }
-        unlock_ready_queue(cpu_id);
+        Unit *next_unit = cpu->ready_queue.pop();
 
         if (!next_unit) {
             if (current->is_idle) {
@@ -151,22 +134,12 @@ namespace kernel::scheduling::cpu_scheduler {
             }
         }
 
-
-        // Re-queue current thread if it should continue (separate lock)
         if (current_should_continue) {
-            current->state = UNIT_READY;
-            current->next = nullptr;
-
-            lock_ready_queue(cpu_id);
-            if (cpu->ready_queue_tail) {
-                cpu->ready_queue_tail->next = current;
-                cpu->ready_queue_tail = current;
-            } else {
-                cpu->ready_queue_head = current;
-                cpu->ready_queue_tail = current;
-            }
-            unlock_ready_queue(cpu_id);
+            cpu->ticks_remaining = cpu->quantum_ticks;
+            __sync_lock_release(&cpu->scheduler_lock);
+            return;
         }
+
 
         // Switch to next thread
         if (next_unit && next_unit != current) {
@@ -215,74 +188,29 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
     void add_blocked_unit(Unit *unit, const uint8_t cpu_id) {
-        lock_blocked_queue(cpu_id);
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        unit->state = UNIT_BLOCKED;
-        unit->next = cpu->blocked_queue_head;
-        cpu->blocked_queue_head = unit;
+        cpu->ready_queue.remove(unit);
 
-        unlock_blocked_queue(cpu_id);
+        unit->next = nullptr;
+        unit->state = UNIT_BLOCKED;
+
+        cpu->blocked_queue.push(unit);
     }
 
     void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        Unit *to_add_head = nullptr;
-        Unit *to_add_tail = nullptr;
-
-        lock_blocked_queue(cpu_id);
-        Unit *prev = nullptr;
-        Unit *unit = cpu->blocked_queue_head;
-
-        while (unit) {
-            if (current_tick >= unit->sleep_context.wakeup_tick) {
-                Unit *to_wake = unit;
-
-                // remove from blocked queue
-                if (prev) {
-                    prev->next = unit->next;
-                } else {
-                    cpu->blocked_queue_head = unit->next;
-                }
-
-                unit = unit->next; // move iterator
-
-                to_wake->state = UNIT_READY;
-                to_wake->next = nullptr;
-
-                // append to temporary list
-                if (to_add_tail) {
-                    to_add_tail->next = to_wake;
-                    to_add_tail = to_wake;
-                } else {
-                    to_add_head = to_add_tail = to_wake;
-                }
-
-                cpu->need_resched = true;
-            } else {
-                prev = unit;
-                unit = unit->next;
+        Unit *woken = cpu->blocked_queue.extract_if(
+            [&](Unit *unit) -> bool {
+                return current_tick >= unit->sleep_context.wakeup_tick;
             }
-        }
-        unlock_blocked_queue(cpu_id);
+        );
 
-        Unit *tmp = to_add_head;
-        while (tmp) {
-            Unit *next = tmp->next;
-
-            lock_ready_queue(cpu_id);
-            if (cpu->ready_queue_tail) {
-                cpu->ready_queue_tail->next = tmp;
-                cpu->ready_queue_tail = tmp;
-            } else {
-                cpu->ready_queue_head = tmp;
-                cpu->ready_queue_tail = tmp;
-            }
-            unlock_ready_queue(cpu_id);
-
-            tmp = next;
+        while (woken) {
+            Unit *next = (Unit *) woken->next;
+            add_unit_to_cpu(woken, cpu_id);
+            woken = next;
         }
     }
-
 }

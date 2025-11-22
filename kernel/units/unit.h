@@ -57,7 +57,7 @@ typedef struct execution_context {
 
     void (*entry)(void *);
 
-   arg_registers_t regs;
+    arg_registers_t regs;
 
     bool initialized;
 
@@ -81,14 +81,15 @@ struct VmArea {
     uintptr_t file_off;
     HandleID handle;
 
-    VmArea* next;
+    VmArea *next;
 };
 
 
 class Unit {
 private:
     unit_handle_table_t handle_table;
-    VmArea* vma_list;
+    VmArea *vma_list;
+
 public:
     UnitID id;
     RealmID rid;
@@ -126,13 +127,13 @@ public:
         handle_table.lock.init();
     }
 
-    void add_vma(VmArea* vma) {
+    void add_vma(VmArea *vma) {
         vma->next = vma_list;
         vma_list = vma;
     }
 
-    VmArea* find_vma(uintptr_t addr, size_t len) {
-        for (VmArea* v = vma_list; v; v = v->next) {
+    VmArea *find_vma(uintptr_t addr, size_t len) {
+        for (VmArea *v = vma_list; v; v = v->next) {
             if (addr >= v->start && (addr + len) <= (v->start + v->length)) {
                 return v;
             }
@@ -141,8 +142,8 @@ public:
     }
 
     bool remove_vma(uintptr_t addr, size_t len) {
-        VmArea* prev = nullptr;
-        VmArea* cur  = vma_list;
+        VmArea *prev = nullptr;
+        VmArea *cur = vma_list;
 
         while (cur) {
             if (cur->start == addr && cur->length == len) {
@@ -193,7 +194,7 @@ public:
 
     ErrorCode detach_all_handles() {
         handle_table.lock.lock();
-        for (uint64_t & slot : handle_table.slots) {
+        for (uint64_t &slot: handle_table.slots) {
             HandleID h = slot;
             if (h != 0) {
                 slot = 0;

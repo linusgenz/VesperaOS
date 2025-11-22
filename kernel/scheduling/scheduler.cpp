@@ -7,7 +7,6 @@
 #include <log.h>
 
 #include "cpu_scheduler.h"
-#include "schedule_manager.h"
 #include "../cpu/cpu_manager.h"
 #include "../units/unit.h"
 
