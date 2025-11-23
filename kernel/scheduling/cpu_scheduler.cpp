@@ -44,7 +44,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
         unit->state = UNIT_READY;
-        unit->next = nullptr; // Sicher, da wir gelockt haben
+        unit->next = nullptr;
 
         cpu->ready_queue.push(unit);
 
@@ -88,13 +88,13 @@ namespace kernel::scheduling::cpu_scheduler {
             return;
         }
 
-        bool current_terminated = (current->state == UNIT_TERMINATED);
-        bool current_blocked = (current->state == UNIT_BLOCKED);
-        bool current_is_idle = current->is_idle;
-        bool current_can_continue = (!current_terminated && !current_blocked &&
+        const bool current_terminated = (current->state == UNIT_TERMINATED);
+        const bool current_blocked = (current->state == UNIT_BLOCKED);
+        const bool current_is_idle = current->is_idle;
+        const bool current_can_continue = (!current_terminated && !current_blocked &&
                                      current->state == UNIT_RUNNING);
 
-        // Get next thread from ready queue
+        // Get next unit from ready queue
         Unit *next_unit = cpu->ready_queue.pop();
 
         // Case 1: Idle is running and nothing to do
@@ -147,10 +147,7 @@ namespace kernel::scheduling::cpu_scheduler {
         }
 
         // Case 5: Next is idle thread but current can continue
-        if (next_unit->is_idle) {
-            // Push idle back
-            cpu->ready_queue.push(next_unit);
-
+       /* if (next_unit->is_idle) {
             if (current_can_continue) {
                 cpu->ticks_remaining = cpu->quantum_ticks;
                 cpu->lock.unlock_irqrestore(flags);
@@ -165,7 +162,7 @@ namespace kernel::scheduling::cpu_scheduler {
             cpu->lock.unlock_irqrestore(flags);
             manager::switch_to_unit(current, next_unit, frame);
             return;
-        }
+        }*/
 
         // Case 6: We have a real next thread -> ALWAYS switch
         // This is the normal case for yield() and time slice expiration
@@ -224,7 +221,7 @@ namespace kernel::scheduling::cpu_scheduler {
     void add_blocked_unit(Unit *unit, const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
-        cpu->ready_queue.remove(unit); // current unit shouldn't be in ready_queue but just in case remove it anyways
+        cpu->ready_queue.remove(unit); // current unit shouldn't be in ready_queue but just in case remove it anyway
 
         unit->next = nullptr;
         unit->state = UNIT_BLOCKED;

@@ -495,7 +495,7 @@ int execute_command(command_t *cmd) {
         if (prog) {
             int64_t rid = 0;
             // const char *argv[] = {"lsusb", nullptr};
-            rid = spawn_realm(prog, 1, nullptr, environ);
+            rid = spawn_realm(prog, 1, nullptr, nullptr);
             if (rid < 0) {
                 printf("spawn failed: %d\n", (int32_t) rid);
             } else {

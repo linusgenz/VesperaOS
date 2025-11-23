@@ -24,7 +24,11 @@
 #include <log.h>
 
 #include "deadlock_detector.h"
+
+#include <kerrno.h>
+
 #include "lock_debug.h"
+#include "../system/system_manager.h"
 #include "../utils/panic.h"
 
 static bool enabled = false;
@@ -38,6 +42,6 @@ void deadlock_detector_tick() {
     bool found = lock_debug_detect_deadlocks_and_report();
     if (found) {
         Log::PrintLn("Deadlock(s) detected. See dump above.");
-        panic("DEADLOCK DETECTED");
+        kernel::SystemManager::system_panic("DEADLOCK DETECTED", -EDEADLK);
     }
 }

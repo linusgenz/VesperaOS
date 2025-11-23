@@ -1,4 +1,7 @@
 #include "apic.h"
+
+#include <kerrno.h>
+
 #include "../../../include/log.h"
 #include "../../../include/string.h"
 #include "../../../kernel/acpi/acpi_manager.h"
@@ -7,6 +10,7 @@
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/debug/deadlock_detector.h"
 #include "../../../kernel/include/scheduling.h"
+#include "../../../kernel/system/system_manager.h"
 #include "../../../kernel/utils/panic.h"
 #include "../interrupts/interrupts_internal.h"
 
@@ -83,7 +87,7 @@ namespace arch::x86_64::interrupts::apic {
         ACPI::FADT *fadt = ACPI::TableManager::get_fadt();
 
         if (fadt->pm_timer_length != 4) {
-            panic("ACPI Timer unavailable");
+            kernel::SystemManager::system_panic("ACPI Timer unavailable", -ENOACPI);
         }
 
         const uint64_t count = inl(fadt->pm_timer_block);

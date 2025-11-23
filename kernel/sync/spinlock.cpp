@@ -23,7 +23,10 @@
 
 #include "spinlock.h"
 
+#include <kerrno.h>
 #include <scheduling.h>
+
+#include "../system/system_manager.h"
 
 void spinlock_t::lock() {
     uint32_t uid = kernel::scheduling::get_current_unit()->id;
@@ -33,7 +36,7 @@ void spinlock_t::lock() {
     if (info && uid != 0 && info->owner_unit == uid) {
         Log::PrintLn("*** SELF-DEADLOCK: unit %u tried to relock %s", uid, info->name);
         lock_debug_report_deadlock(info, uid);
-        panic("SELF-DEADLOCK");
+        kernel::SystemManager::system_panic("SELF-DEADLOCK", -ESELFDEADLK);
     }
 
     lock_debug_before_acquire(this, uid);

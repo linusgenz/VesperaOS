@@ -1,3 +1,5 @@
+#include <kerrno.h>
+
 #include "interrupts_internal.h"
 #include "../../../kernel/utils/panic.h"
 #include "apic.h"
@@ -10,6 +12,7 @@
 #include "../../../drivers/ps2/mouse/ps2_mouse.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/include/time.h"
+#include "../../../kernel/system/system_manager.h"
 
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
@@ -30,8 +33,7 @@ __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
                (error_code & 4) ? "Yes" : "No",
                (error_code & 8) ? "Yes" : "No");
 
-    panic("Page fault detected");
-    while (true);
+    kernel::SystemManager::system_panic("Page fault detected", -EPAGEFAULT);
 }
 
 __attribute__((interrupt)) void double_fault_handler(interrupt_frame *frame) {
@@ -39,8 +41,7 @@ __attribute__((interrupt)) void double_fault_handler(interrupt_frame *frame) {
                frame->rip, frame->error_code);
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
-    panic("Double fault detected");
-    while (true);
+    kernel::SystemManager::system_panic("Double fault detected", -EDOUBLEFAULT);
 }
 
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
@@ -64,8 +65,7 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Selector: 0x%x", selector);
 
-    panic("General protection fault detected");
-    while (true);
+    kernel::SystemManager::system_panic("General protection fault detected", -EGPF);
 }
 
 // Invalid Opcode Fault (Vector 6)
@@ -79,7 +79,7 @@ __attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame *frame) {
     Log::Error("  Opcode bytes: %02x %02x %02x %02x",
                opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
 
-    panic("Invalid opcode detected");
+    kernel::SystemManager::system_panic("Invalid opcode detected", -EINVOP);
     while (true);
 }
 
@@ -93,7 +93,7 @@ __attribute__((interrupt)) void stack_fault_handler(interrupt_frame *frame) {
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Stack selector: 0x%x", selector);
 
-    panic("Stack fault detected");
+    kernel::SystemManager::system_panic("Stack fault detected", -ESTACKFAULT);
     while (true);
 }
 
@@ -115,7 +115,7 @@ __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame *fra
         Log::Error("  GDT referenced");
     }
 
-    panic("Segment not present");
+    kernel::SystemManager::system_panic("Segment not present", -ESEGNOTPRES);
     while (true);
 }
 
@@ -125,7 +125,7 @@ __attribute__((interrupt)) void divide_error_handler(interrupt_frame *frame) {
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
 
-    panic("Divide by zero");
+    kernel::SystemManager::system_panic("Divide by zero", -EDIVZERO);
     while (true);
 }
 
@@ -135,7 +135,7 @@ __attribute__((interrupt)) void machine_check_handler(interrupt_frame *frame) {
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
 
-    panic("Machine check exception");
+    kernel::SystemManager::system_panic("Machine check exception", -EMACHCHECK);
     while (true);
 }
 
@@ -145,7 +145,7 @@ __attribute__((interrupt)) void unhandled_interrupt_handler(interrupt_frame *fra
     Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
                frame->cs, frame->rsp, frame->rflags);
 
-    panic("Unhandled interrupt");
+    kernel::SystemManager::system_panic("Unhandled interrupt", -EUNHANDLED);
     while (true);
 }
 

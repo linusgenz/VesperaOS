@@ -40,7 +40,7 @@
 #include "tty/tty.h"
 #include "units/unit_manager.h"
 
-static const char *envp0[] = {"PATH=/bin"};
+static const char *envp0[] = {"PATH=/bin", nullptr};
 
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     initialize_kernel(boot_info);

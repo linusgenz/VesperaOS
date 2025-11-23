@@ -27,6 +27,7 @@
 #include <scheduling.h>
 
 #include "../../realm/realm_manager.h"
+#include "../../system/system_manager.h"
 #include "../../units/unit_manager.h"
 #include "../../utils/panic.h"
 
@@ -35,7 +36,7 @@ namespace syscalls::internal {
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) {
-            panic("Attempt to exit a unit that no longer exists");
+            kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -ENOUNIT);
         }
 
         current->exit_code = (int) code;

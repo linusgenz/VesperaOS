@@ -75,7 +75,7 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
 
     // --- envp ---
     size_t envc = 0;
-    while (envp && envp[envc]) envc++;
+    while (envp && envp[envc] && envc < 16) envc++;
 
     for (ssize_t i = envc - 1; i >= 0; i--) {
         size_t len = strlen(envp[i]) + 1;
@@ -96,7 +96,7 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
 
     // --- argv ---
     size_t argc = 0;
-    while (argv && argv[argc]) argc++;
+    while (argv && argv[argc] && argc < 16) argc++;
 
     for (ssize_t i = argc - 1; i >= 0; i--) {
         size_t len = strlen(argv[i]) + 1;

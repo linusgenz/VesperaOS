@@ -131,7 +131,7 @@ namespace kernel {
         static Channel* get_system_channel(const char* name);
 
         static void initiate_shutdown(const char* reason, bool reboot);
-        static void system_panic(const char* message, uint32_t error_code);
+        [[noreturn]] static void system_panic(const char* message, int32_t error_code);
 
         // Debug/Monitoring Funktionen
         static void list_system_channels();

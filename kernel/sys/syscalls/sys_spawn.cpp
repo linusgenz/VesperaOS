@@ -35,6 +35,7 @@ namespace syscalls::internal {
         const auto argc = static_cast<uint32_t>(arg1);
         auto argv = reinterpret_cast<const char**>(arg2);
         auto envp = reinterpret_cast<const char**>(arg3);
+        envp = nullptr;
 
         if (!user_path) return -EINVAL;
 

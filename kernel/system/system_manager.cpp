@@ -294,7 +294,7 @@ namespace kernel {
         }
     }
 
-    void SystemManager::system_panic(const char *message, uint32_t error_code) {
+    [[noreturn]] void SystemManager::system_panic(const char *message, int32_t error_code) {
         SystemEvent panic_event = {};
         panic_event.type = SystemEventType::SYSTEM_PANIC;
         panic_event.timestamp = get_current_timestamp();
