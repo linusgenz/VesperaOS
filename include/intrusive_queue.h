@@ -25,11 +25,7 @@
 #define VESPERAOS_INTRUSIVE_QUEUE_H
 
 #include <concepts>
-#include <log.h>
-
-#include "../kernel/cpu/cpu_manager.h"
 #include "../kernel/sync/spinlock.h"
-#include "../kernel/utils/panic.h"
 
 template<typename T>
 concept IntrusiveNode = requires(T t)
@@ -168,28 +164,6 @@ public:
 
         if (out_tail) *out_tail = result_tail;
         return result_head;
-    }
-
-    void append_list(IntrusiveNode *list_head, IntrusiveNode *list_tail) {
-        if (!list_head) return;
-
-        guard_t g(lock);
-
-        IntrusiveNode *tmp = list_head;
-        while (tmp) {
-            tmp = tmp->next;
-        }
-
-        // ensure detached
-        SET_NEXT(list_tail, nullptr);
-
-        if (!head) {
-            head = list_head;
-            tail = list_tail;
-        } else {
-            SET_NEXT(tail, list_head);
-            tail = list_tail;
-        }
     }
 
     [[nodiscard]] bool empty() const {

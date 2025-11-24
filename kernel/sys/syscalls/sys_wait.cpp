@@ -33,6 +33,8 @@ namespace syscalls::internal {
         RealmID child_rid = static_cast<RealmID>(arg0);
         int64_t status_user_ptr = static_cast<int64_t>(arg1);
 
+        Log::debug("wait1");
+
         Unit *current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;
 
@@ -41,17 +43,19 @@ namespace syscalls::internal {
             return -ECHILD;
         }
 
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
-
-        while (true) {
-            Realm *r = RealmManager::get(child_rid);
-            if (!r) break;
-            if (r->unit_count == 0) break;
-
-         //   kernel::scheduling::cpu_scheduler::yield_cpu(cpu_id);
-            asm volatile("pause");
-
+        if (target->unit_count == 0) {
+            if (status_user_ptr != 0) {
+                int status_val = 0;
+                (*(int *)status_user_ptr) = status_val;
+            }
+            return 0;
         }
+
+        target->wait_queue.add_wait(current);
+
+        kernel::scheduling::yield();
+
+        Log::debug("wait3");
 
         if (status_user_ptr != 0) {
             int status_val = 0;

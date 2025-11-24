@@ -26,6 +26,8 @@
 #define MAX_PATH 256
 #define HISTORY_SIZE 32
 
+#define BUFSIZ 8192
+
 #include <string.h>
 #include <stdio.h>
 #include <fflags.h>
@@ -260,7 +262,7 @@ void cmd_cat(command_t *cmd) {
         return;
     }
 
-    char buffer[1024];
+    char buffer[BUFSIZ];
     ssize_t bytes_read;
 
     printf("reading from '%s'\n", path);

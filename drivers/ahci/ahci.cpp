@@ -110,6 +110,8 @@ namespace AHCI {
     }
 
     bool Port::Read(uint64_t sector, uint32_t sectorCount, void *buffer) {
+        kernel::mutex_guard guard(portMutex);
+
         uint32_t sectorL = (uint32_t) sector;
         uint32_t sectorH = (uint32_t) (sector >> 32);
 
@@ -174,7 +176,9 @@ namespace AHCI {
         return true;
     }
 
-    bool Port::Write(uint64_t sector, uint32_t sectorCount, void *buffer) const {
+    bool Port::Write(uint64_t sector, uint32_t sectorCount, void *buffer) {
+        kernel::mutex_guard guard(portMutex);
+
         uint32_t sectorL = (uint32_t) sector;
         uint32_t sectorH = (uint32_t) (sector >> 32);
 

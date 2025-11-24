@@ -13,43 +13,42 @@
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/include/time.h"
 #include "../../../kernel/system/system_manager.h"
+#include "../../../kernel/debug/fault_logger.h"
 
+using kernel::debug::FaultContext;
+using kernel::debug::FaultType;
+
+
+static FaultContext make_fault_context(const interrupt_frame* frame) {
+    FaultContext ctx{};
+    ctx.rip        = frame->rip;
+    ctx.cs         = frame->cs;
+    ctx.rsp        = frame->rsp;
+    ctx.rflags     = frame->rflags;
+    ctx.error_code = frame->error_code;
+    return ctx;
+}
 
 __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
-    // Hole CR2 Register (Page Fault Address)
     uint64_t fault_addr;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-    // Hole Error Code
-    uint64_t error_code = frame->error_code;
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_page_fault_detail(fault_addr, ctx.error_code, ctx);
 
-    Log::Error("PAGE FAULT: addr=0x%llx, error=0x%llx, rip=0x%llx",
-               fault_addr, error_code, frame->rip);
-
-    // Dekodiere Error Code
-    Log::Error("  Present: %s, Write: %s, User: %s, Reserved: %s",
-               (error_code & 1) ? "Yes" : "No",
-               (error_code & 2) ? "Yes" : "No",
-               (error_code & 4) ? "Yes" : "No",
-               (error_code & 8) ? "Yes" : "No");
-
-    kernel::SystemManager::system_panic("Page fault detected", -EPAGEFAULT);
+    panic("Page fault");
+   // kernel::SystemManager::system_panic("Page fault detected", -EPAGEFAULT);
 }
 
 __attribute__((interrupt)) void double_fault_handler(interrupt_frame *frame) {
-    Log::Error("DOUBLE FAULT: rip=0x%llx, error=0x%llx",
-               frame->rip, frame->error_code);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::DoubleFault, ctx, "Double fault detected");
     kernel::SystemManager::system_panic("Double fault detected", -EDOUBLEFAULT);
 }
 
 __attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
-    Log::Error("GENERAL PROTECTION FAULT: rip=0x%llx, error=0x%llx",
-               frame->rip, frame->error_code);
-
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
 
     if (frame->error_code & 0x1) {
         Log::Error("  External event caused fault");
@@ -70,14 +69,8 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
 
 // Invalid Opcode Fault (Vector 6)
 __attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame *frame) {
-    Log::Error("INVALID OPCODE: rip=0x%llx", frame->rip);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
-
-    // Zeige die Bytes an der fehlerhaften Adresse
-    uint8_t *opcode_ptr = (uint8_t *) frame->rip;
-    Log::Error("  Opcode bytes: %02x %02x %02x %02x",
-               opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
 
     kernel::SystemManager::system_panic("Invalid opcode detected", -EINVOP);
     while (true);
@@ -85,10 +78,8 @@ __attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame *frame) {
 
 // Stack Segment Fault (Vector 12)
 __attribute__((interrupt)) void stack_fault_handler(interrupt_frame *frame) {
-    Log::Error("STACK FAULT: rip=0x%llx, error=0x%llx",
-               frame->rip, frame->error_code);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
 
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Stack selector: 0x%x", selector);
@@ -99,10 +90,8 @@ __attribute__((interrupt)) void stack_fault_handler(interrupt_frame *frame) {
 
 // Segment Not Present (Vector 11)
 __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame *frame) {
-    Log::Error("SEGMENT NOT PRESENT: rip=0x%llx, error=0x%llx",
-               frame->rip, frame->error_code);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
 
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Missing segment selector: 0x%x", selector);
@@ -121,9 +110,8 @@ __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame *fra
 
 // Divide by Zero (Vector 0)
 __attribute__((interrupt)) void divide_error_handler(interrupt_frame *frame) {
-    Log::Error("DIVIDE BY ZERO: rip=0x%llx", frame->rip);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
 
     kernel::SystemManager::system_panic("Divide by zero", -EDIVZERO);
     while (true);
@@ -131,9 +119,8 @@ __attribute__((interrupt)) void divide_error_handler(interrupt_frame *frame) {
 
 // Machine Check Exception (Vector 18)
 __attribute__((interrupt)) void machine_check_handler(interrupt_frame *frame) {
-    Log::Error("MACHINE CHECK EXCEPTION: rip=0x%llx", frame->rip);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::MachineCheck, ctx, "Machine check exception");
 
     kernel::SystemManager::system_panic("Machine check exception", -EMACHCHECK);
     while (true);
@@ -141,9 +128,8 @@ __attribute__((interrupt)) void machine_check_handler(interrupt_frame *frame) {
 
 // Generic unhandled interrupt handler
 __attribute__((interrupt)) void unhandled_interrupt_handler(interrupt_frame *frame) {
-    Log::Error("UNHANDLED INTERRUPT: rip=0x%llx", frame->rip);
-    Log::Error("  CS=0x%llx, RSP=0x%llx, RFLAGS=0x%llx",
-               frame->cs, frame->rsp, frame->rflags);
+    FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::UnhandledInterrupt, ctx, "Unhandled interrupt");
 
     kernel::SystemManager::system_panic("Unhandled interrupt", -EUNHANDLED);
     while (true);

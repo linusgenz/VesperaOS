@@ -58,10 +58,7 @@ namespace kernel::scheduling::cpu_scheduler {
          cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
          cpu->ready_queue.remove(unit);
-
-         unit->state = UNIT_TERMINATED;
          unit->next = nullptr;
-
     }
 
 
@@ -218,6 +215,7 @@ namespace kernel::scheduling::cpu_scheduler {
         return cpu->scheduler_enabled;
     }
 
+    // this declaration is irritating, as only units which should get waken up at a known time can be added here, using sleep_context.wakeup_tick
     void add_blocked_unit(Unit *unit, const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 

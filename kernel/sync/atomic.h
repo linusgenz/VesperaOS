@@ -28,7 +28,7 @@
 // Atomic uint8_t
 // ---------------------------
 typedef struct atomic_u8 {
-    volatile uint8_t value;
+    volatile uint8_t value{};
 
     void init(uint8_t v = 0) {
         value = v;
@@ -82,7 +82,7 @@ typedef struct atomic_u8 {
 // Atomic uint16_t
 // ---------------------------
 typedef struct atomic_u16 {
-    volatile uint16_t value;
+    volatile uint16_t value{};
 
     void init(uint16_t v = 0) {
         value = v;
@@ -135,7 +135,7 @@ typedef struct atomic_u16 {
 // Atomic uint32_t
 // ---------------------------
 typedef struct atomic_u32 {
-    volatile uint32_t value;
+    volatile uint32_t value{};
 
     void init(uint32_t v = 0) {
         value = v;
@@ -189,7 +189,7 @@ typedef struct atomic_u32 {
 // Atomic uint64_t
 // ---------------------------
 typedef struct atomic_u64 {
-    volatile uint64_t value;
+    volatile uint64_t value{};
 
     void init(uint64_t v = 0) {
         value = v;
@@ -243,27 +243,53 @@ typedef struct atomic_u64 {
 // ---------------------------
 
 typedef struct atomic_flag {
-    uint32_t value;
+    volatile uint8_t value{};
 
-    void init() {
-        __atomic_store_n(&value, 0, __ATOMIC_RELEASE);
+    void init(bool v = false) {
+        value = v ? 1 : 0;
     }
 
-    void set() {
-        __atomic_store_n(&value, 1, __ATOMIC_RELEASE);
+    bool test_and_set() {
+        uint8_t old = 1;
+        asm volatile("xchg %0, %1"
+                     : "+r"(old), "+m"(value)
+                     :
+                     : "memory");
+        return old != 0;
+    }
+
+    void set(bool v = true) {
+        asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
     void clear() {
-        __atomic_store_n(&value, 0, __ATOMIC_RELEASE);
+        uint8_t v = 0;
+        asm volatile("xchg %0, %1"
+                     : "+r"(v), "+m"(value)
+                     :
+                     : "memory");
     }
 
-    [[nodiscard]] uint32_t test() const {
-        return __atomic_load_n(&value, __ATOMIC_ACQUIRE);
+    bool load() const {
+        uint8_t v;
+        asm volatile("movb %1, %0"
+                     : "=r"(v)
+                     : "m"(value)
+                     : "memory");
+        return v != 0;
     }
 
-    atomic_flag(const atomic_flag&) = delete;
-    atomic_flag& operator=(const atomic_flag&) = delete;
-    atomic_flag() = default;
+    bool compare_exchange(bool *expected, bool desired) {
+        uint8_t exp = *expected ? 1 : 0;
+        uint8_t des = desired ? 1 : 0;
+        uint8_t old = exp;
+        asm volatile("lock cmpxchgb %2, %1"
+                     : "=a"(old), "+m"(value)
+                     : "r"(des), "0"(old)
+                     : "memory");
+        *expected = (old != 0);
+        return old == exp;
+    }
 } atomic_flag_t;
 
 #endif //VESPERAOS_ATOMIC_H

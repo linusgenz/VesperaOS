@@ -4,48 +4,56 @@
 
 #include "mutex.h"
 
-#include "../../include/log.h"
 #include <scheduling.h>
 
-#include "../cpu/cpu_manager.h"
+#include "atomic.h"
 
 namespace kernel {
+    inline bool scheduling_started = false;
 
-    void mutex_init(mutex_t* m) {
-        m->locked = false;
-        m->waiters = nullptr;
+
+    void mutex_t::init() {
+        locked.init(false);
     }
 
-    void mutex_lock(mutex_t* m) {
-        if (!scheduling::cpu_scheduler::get_cpu_data(CPUManager::get_current_cpu_id())->scheduler_enabled) {
-            // Nur spinlock, nicht blockieren!
-            while (__sync_lock_test_and_set(&m->locked, true)) {
-                // Busy wait, kein Threadwechsel!
+    void mutex_t::lock() {
+        if (!scheduling::is_curent_cpu_enabled()) {
+            while (locked.test_and_set()) {
+                __asm__ volatile("pause");
             }
             return;
         }
-        while (__sync_lock_test_and_set(&m->locked, true)) {
-            Unit* current = scheduling::get_current_unit();
+
+        // Versuche Lock zu erwerben
+        while (locked.test_and_set()) {
+            Unit *current = scheduling::get_current_unit();
+            scheduling::remove_unit(current);
+
             current->state = UNIT_BLOCKED;
 
-            // In Warteliste einfügen
-            current->next = m->waiters;
-            m->waiters = current;
+            waiters.push(current);
 
-            scheduling::yield(); // Blockiere diesen Thread
+            scheduling::yield();
         }
     }
 
-    void mutex_unlock(mutex_t* m) {
-        m->locked = false;
+    void mutex_t::unlock() {
+        Unit *to_wake = waiters.pop();
 
-        if (m->waiters) {
-            Unit* to_wake = m->waiters;
-            m->waiters = m->waiters->next;
+        locked.clear();
 
+        if (to_wake) {
             to_wake->state = UNIT_READY;
             scheduling::add_unit(to_wake);
         }
     }
 
+    bool mutex_t::try_lock() {
+        return !locked.test_and_set();
+    }
+
+
+    bool mutex_t::is_locked() const {
+        return locked.load();
+    }
 }

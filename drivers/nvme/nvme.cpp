@@ -50,8 +50,10 @@ namespace NVMe {
             return;
         }
 
-        kernel::memory::map_memory(admCQVirtPage, admCQPhysPage, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
-        kernel::memory::map_memory(admSQVirtPage, admSQPhysPage, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+        kernel::memory::map_memory(admCQVirtPage, admCQPhysPage,
+                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+        kernel::memory::map_memory(admSQVirtPage, admSQPhysPage,
+                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
         memset(admCQVirtPage, 0, PAGE_SIZE_4K);
         memset(admSQVirtPage, 0, PAGE_SIZE_4K);
@@ -59,9 +61,10 @@ namespace NVMe {
         c_regs->admin_completion_q = (uintptr_t) admCQPhysPage;
         c_regs->admin_submission_q = (uintptr_t) admSQPhysPage;
 
-        admin_queue = NVMe::NvmeQueue(0, (uintptr_t) admCQPhysPage, (uintptr_t) admSQPhysPage,
-                                      admCQVirtPage, admSQVirtPage, GetCompletionDoorbell(0), GetSubmissionDoorbell(0),
-                                      PAGE_SIZE_4K, PAGE_SIZE_4K);
+        new(&admin_queue) NVMe::NvmeQueue(0, (uintptr_t) admCQPhysPage, (uintptr_t) admSQPhysPage,
+                                          admCQVirtPage, admSQVirtPage, GetCompletionDoorbell(0),
+                                          GetSubmissionDoorbell(0),
+                                          PAGE_SIZE_4K, PAGE_SIZE_4K);
 
         c_regs->admin_q_attr = 0;
         SetAdminCompletionQueueSize(admin_queue.CQSize());
@@ -106,7 +109,7 @@ namespace NVMe {
         for (int i = 0; i < namespaceIDs.size(); i++) {
             Log::LogMsg("[NVMe] Namespace ID %u", namespaceIDs[i]);
 
-            void* physBuffer = kernel::memory::request_page();
+            void *physBuffer = kernel::memory::request_page();
             NvmeCompletion completion{};
             NvmeCommand identifyNsCmd = {};
             identifyNsCmd.opcode = AdminCmdIdentify;
@@ -124,7 +127,7 @@ namespace NVMe {
 
             Log::debug("namespaceSize: %u", nsIdentify->namespace_size);
 
-            auto* ns = new NvmeNamespace(namespaceIDs[i], &io_queue, lbaSize);
+            auto *ns = new NvmeNamespace(namespaceIDs[i], &io_queue, lbaSize);
             namespaces.push_back(ns);
         }
 
@@ -145,7 +148,7 @@ namespace NVMe {
         }
 
         kernel::memory::map_memory(controller_identity, reinterpret_cast<void *>(controller_identity_phys),
-                                             true);
+                                   true);
 
         NvmeCommand identifyCommand{};
         memset(&identifyCommand, 0, sizeof(NvmeCommand));
@@ -187,7 +190,8 @@ namespace NVMe {
 
     long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespaceIDs) {
         uint32_t *namespaceList = reinterpret_cast<uint32_t *>(kernel::memory::request_page());
-        kernel::memory::map_memory(namespaceList, namespaceList, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+        kernel::memory::map_memory(namespaceList, namespaceList,
+                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
         NvmeCommand identifyNsList;
         memset(&identifyNsList, 0, sizeof(NvmeCommand));
@@ -237,15 +241,17 @@ namespace NVMe {
 
         NvmeCompletion completion{};
 
-        *queue_ptr = NvmeQueue(queueID,
-                               reinterpret_cast<uintptr_t>(cqPhys),
-                               reinterpret_cast<uintptr_t>(sqPhys),
-                               cqVirt,
-                               sqVirt,
-                               GetCompletionDoorbell(queueID),
-                               GetSubmissionDoorbell(queueID),
-                               PAGE_SIZE_4K,
-                               PAGE_SIZE_4K);
+        queue_ptr->~NvmeQueue();
+
+        new(queue_ptr) NvmeQueue(queueID,
+                                 reinterpret_cast<uintptr_t>(cqPhys),
+                                 reinterpret_cast<uintptr_t>(sqPhys),
+                                 cqVirt,
+                                 sqVirt,
+                                 GetCompletionDoorbell(queueID),
+                                 GetSubmissionDoorbell(queueID),
+                                 PAGE_SIZE_4K,
+                                 PAGE_SIZE_4K);
 
         NvmeCommand createCq{};
         createCq.opcode = AdminCmdCreateIOCompletionQueue;
@@ -284,8 +290,8 @@ namespace NVMe {
         completion_base = cqBase;
         submission_base = sqBase;
 
-        completion_queue = reinterpret_cast<NvmeCompletion *>(cq);
-        submission_queue = reinterpret_cast<NvmeCommand *>(sq);
+        completion_queue = static_cast<NvmeCompletion *>(cq);
+        submission_queue = static_cast<NvmeCommand *>(sq);
 
         memset(completion_queue, 0, csz);
         memset(submission_queue, 0, ssz);
@@ -297,6 +303,8 @@ namespace NVMe {
         cq_count = csz / sizeof(NvmeCompletion);
         s_queue_size = ssz;
         sq_count = ssz / sizeof(NvmeCommand);
+
+        queue_mutex.init();
     }
 
     long NvmeQueue::Consume(NvmeCommand &cmd) { return 0; }
@@ -318,6 +326,8 @@ namespace NVMe {
     }
 
     void NvmeQueue::SubmitWait(NvmeCommand &cmd, NvmeCompletion &complet) {
+        kernel::mutex_guard guard(queue_mutex);
+
         cmd.command_id = next_command_id++;
         if (next_command_id == 0xffff) {
             next_command_id = 0;
@@ -352,7 +362,7 @@ namespace NVMe {
     }
 
 
-    bool NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void* buffer) {
+    bool NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void *buffer) {
         NvmeCommand read_cmd = {};
         read_cmd.opcode = NVME_OPCODE_READ; // NVM Read
         read_cmd.ns_id = nsID;
@@ -371,7 +381,7 @@ namespace NVMe {
         return true;
     }
 
-    bool NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer) {
+    bool NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void *buffer) {
         NvmeCommand write_cmd = {};
         write_cmd.opcode = NVME_OPCODE_WRITE; // NVM Write
         write_cmd.ns_id = nsID;
@@ -389,5 +399,4 @@ namespace NVMe {
 
         return true;
     }
-
 } // namespace NVMe

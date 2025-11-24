@@ -31,6 +31,7 @@
 #include "../devices/device_manager.h"
 #include "../../include/log.h"
 #include "../../include/string.h"
+#include "../utils/panic.h"
 
 namespace kernel {
     bool SystemManager::manager_initialized = false;
@@ -313,7 +314,7 @@ namespace kernel {
 
         internal_publish_event(panic_event);
 
-        Log::Error("KERNEL PANIC: %s (Error Code: %u)",
+        Log::Error("KERNEL PANIC: %s (Error Code: %d)",
                    message ? message : "Unknown", error_code);
 
         panic(message);

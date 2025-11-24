@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "../pci/pci.h"
 #include "../../kernel/devices/blockdevice.h"
+#include "../../kernel/sync/mutex.h"
 
 namespace AHCI {
 
@@ -139,6 +140,8 @@ namespace AHCI {
     };
 
     class Port : public BlockDevice {
+    private:
+         kernel::mutex_t portMutex;
     public:
         HBAPort* hbaPort;
         PortType portType;
@@ -159,7 +162,7 @@ namespace AHCI {
 
         bool Read(uint64_t sector, uint32_t sectorCount, void* buffer);
 
-        bool Write(uint64_t sector, uint32_t sectorCount, void *buffer) const;
+        bool Write(uint64_t sector, uint32_t sectorCount, void *buffer);
     };
 
 

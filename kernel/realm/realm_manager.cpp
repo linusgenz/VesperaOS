@@ -151,6 +151,8 @@ bool RealmManager::destroy(const RealmID id) {
 
             realm.clear_handle_table();
 
+            realm.wait_queue.wake_all();
+
             realm.active = false;
             realm.id = 0;
 

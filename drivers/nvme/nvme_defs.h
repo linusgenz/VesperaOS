@@ -216,14 +216,14 @@ namespace NVMe {
     class NvmeQueue {
         uint16_t queue_id = 0;
 
-        uintptr_t completion_base;
-        uintptr_t submission_base;
+        uintptr_t completion_base{};
+        uintptr_t submission_base{};
 
-        NvmeCompletion *completion_queue;
-        NvmeCommand *submission_queue;
+        NvmeCompletion *completion_queue{};
+        NvmeCommand *submission_queue{};
 
-        volatile uint32_t *completion_db;
-        volatile uint32_t *submission_db;
+        volatile uint32_t *completion_db{};
+        volatile uint32_t *submission_db{};
 
         uint16_t c_queue_size = 0;
         uint16_t s_queue_size = 0;
@@ -233,6 +233,8 @@ namespace NVMe {
 
         uint16_t next_command_id = 0;
 
+        kernel::mutex_t queue_mutex{};
+
     public:
         bool completion_cycle_state = true;
         uint16_t cq_head = 0;
@@ -240,6 +242,8 @@ namespace NVMe {
 
         NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void *cq, void *sq, uint32_t *cq_db,
                   uint32_t *sq_db, uint16_t csz, uint16_t ssz);
+
+        ~NvmeQueue() = default;
 
         NvmeQueue() = default;
 

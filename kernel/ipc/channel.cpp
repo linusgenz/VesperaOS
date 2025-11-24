@@ -29,7 +29,7 @@
 
 #include <log.h>
 
-Channel::Channel(size_t cap) : capacity(cap), head(0), tail(0), used(0), refcount(1) {
+Channel::Channel(size_t cap) : head(0), tail(0), refcount(1), used(0), capacity(cap) {
     buf = reinterpret_cast<uint8_t *>(kernel::memory::malloc(cap));
     lock.init();
     lock_debug_register(&lock, "channel_lock");
@@ -44,8 +44,8 @@ Channel *Channel::create(size_t cap) {
     return ch;
 }
 
-void Channel::destroy(void* res) {
-    const auto* c = static_cast<Channel*>(res);
+void Channel::destroy(void *res) {
+    const auto *c = static_cast<Channel *>(res);
     delete c;
 }
 

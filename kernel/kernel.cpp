@@ -44,7 +44,6 @@ static const char *envp0[] = {"PATH=/bin", nullptr};
 
 extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
     initialize_kernel(boot_info);
-    kernel::scheduling_started = true;
     char vendor[13];
     get_cpu_vendor(vendor);
     //  Log::Info("CPU Vendor: %s", vendor);
@@ -91,7 +90,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .name = "shell",
         .cpu_id = 0,
         .priority = 10,
-        .stack_size = DEFAULT_UNIT_STACK_SIZE,
+        .stack_size = 0x4000,
         .initial_handles = nullptr,
         .initial_handle_count = 0,
         .is_idle = false,

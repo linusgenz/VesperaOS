@@ -32,6 +32,7 @@
 #include "../types/handle.h"
 #include "../tty/tty_device.h"
 #include "../memory/page_table_manager.h"
+#include "../sync/wait_queue.h"
 
 class Unit;
 
@@ -50,6 +51,8 @@ public:
     char cwd_path[256];
 
     Unit *unit_list;
+
+    wait_queue_t wait_queue;
 
     handle_table_t handle_table;
 

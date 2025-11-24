@@ -120,8 +120,8 @@ namespace USB {
 
         Vector<xhci_port_connection_event> m_port_connection_events;
 
-        atomic_u8_t m_command_irq_completed;
-        atomic_u8_t m_transfer_irq_completed;
+        atomic_flag_t m_command_irq_completed;
+        atomic_flag_t m_transfer_irq_completed;
 
         Vector<uint8_t> m_usb3_ports;
 

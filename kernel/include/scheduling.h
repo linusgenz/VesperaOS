@@ -31,6 +31,8 @@ namespace kernel::scheduling {
     void enable_on_cpu(uint8_t cpu_id);
     void disable_on_cpu(uint8_t cpu_id);
 
+    bool is_curent_cpu_enabled();
+
     // Query functions
     Unit* get_current_unit();
     bool is_initialized();

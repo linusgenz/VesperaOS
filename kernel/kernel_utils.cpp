@@ -112,6 +112,30 @@ void render_image_rgba8888_centered(
     }
 }
 
+
+
+[[noreturn]] void sys_log_writer(void *arg) {
+    while (true) {
+        kernel::SystemManager::process_events_to_logs(128);
+        kernel::time::sleep_ms(1000);
+    }
+}
+
+void init_sys_log_writer() {
+    UnitConfig uc = {
+        .name = "system_log",
+        .cpu_id = 7,
+        .priority = 0,
+        .stack_size = DEFAULT_UNIT_STACK_SIZE,
+        .initial_handles = nullptr,
+        .initial_handle_count = 0,
+        .is_idle = false,
+        .is_user = false,
+        .user_stack_size = 0
+    };
+    UnitManager::create(KERNEL_REALM_SYSTEM, (void *) sys_log_writer, nullptr, &uc);
+}
+
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
 ScrollManager s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
@@ -227,10 +251,12 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     FileLogWriter* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
-    kernel::SystemManager::process_events_to_logs(128);
+    init_sys_log_writer();
+ //   kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();
 
     kernel::interrupts::mask_pic();
 }
+

@@ -62,6 +62,11 @@ namespace kernel::scheduling {
         cpu_scheduler::disable_cpu(cpu_id);
     }
 
+    bool is_curent_cpu_enabled() {
+        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        return cpu_scheduler::is_cpu_enabled(cpu_id);
+    }
+
     Unit *get_current_unit() {
         const uint32_t cpu_id = CPUManager::get_current_cpu_id();
         if (!global_scheduler.cpus[cpu_id].scheduler_enabled) return nullptr;

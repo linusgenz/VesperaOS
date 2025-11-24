@@ -58,6 +58,8 @@ private:
     xhciEndpoint *bulk_in_endpoint;
     xhciEndpoint *bulk_out_endpoint;
 
+    kernel::mutex_t io_mutex;
+
     uint32_t sector_size;
     uint64_t total_sectors;
     uint32_t max_lun; // Logical Unit Number

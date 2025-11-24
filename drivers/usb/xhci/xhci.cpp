@@ -515,7 +515,7 @@ namespace USB {
             // Reset the irq flag and clear out the command completion event queue
             m_command_completion_events.clear();
         }
-        m_command_irq_completed.store(0);
+        m_command_irq_completed.clear();
 
         if (!completion_trb) {
             Log::Error("Failed to find completion TRB for command %u", cmd_trb->trb_type);
@@ -645,8 +645,8 @@ namespace USB {
             }
         }
 
-        m_command_irq_completed.store(command_completion_status);
-        m_transfer_irq_completed.store(transfer_completion_status);
+        m_command_irq_completed.set(command_completion_status);
+        m_transfer_irq_completed.set(transfer_completion_status);
     }
 
     const char *xhciDriver::usb_speed_to_string(uint8_t speed) {
@@ -1041,7 +1041,7 @@ namespace USB {
             // Reset the irq flag and clear out the command completion event queue
             m_transfer_completion_events.clear();
         }
-        m_transfer_irq_completed.store(0);
+        m_transfer_irq_completed.clear();
 
         if (!completion_trb) {
             Log::Warning("Failed to find transfer completion TRB");
