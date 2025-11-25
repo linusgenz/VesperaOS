@@ -23,6 +23,7 @@
 
 #include <cstdint>
 #include <errno.h>
+#include <scheduling.h>
 
 #include "../../exec/elf.h"
 #include "../../realm/realm_manager.h"
@@ -45,7 +46,6 @@ namespace syscalls::internal {
             .is_user = true
         };
 
-        Log::debug("sys_spawn1");
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
         TTYDevice* tty_dev = kernel::tty::tty_devices[0];
@@ -57,20 +57,19 @@ namespace syscalls::internal {
             RealmManager::destroy(new_realm->id);
             return -ENOEXEC;
         }
-        Log::debug("sys_spawn2");
 
         UnitConfig ucfg = {
-            .name = "unnamed_unit",
+            .name = "main_unit",
             .cpu_id = 0,
             .priority = 5,
             .is_user = true,
+            .auto_schedule = false,
         };
         Unit* u = UnitManager::create(new_realm->id, (void*)elf.entry_point, (void*)arg1, &ucfg);
         if (!u) {
             RealmManager::destroy(new_realm->id);
             return -EFAULT;
         }
-        Log::debug("sys_spawn3");
 
         uintptr_t user_sp = SetupUserArgsAndEnv(u, argv, envp);
         if (user_sp == 0) {
@@ -81,7 +80,7 @@ namespace syscalls::internal {
         }
 
         u->context.user_stack_pointer = (void*)user_sp;
-        Log::debug("sys_spawn4");
+        kernel::scheduling::add_unit(u);
 
         return new_realm->id;
     }

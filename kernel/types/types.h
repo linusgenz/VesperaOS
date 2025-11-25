@@ -104,6 +104,7 @@ struct UnitConfig {
     bool is_idle = false;
     bool is_user = false;
     uint64_t user_stack_size = 0;
+    bool auto_schedule = true;
 };
 
 struct RealmConfig {

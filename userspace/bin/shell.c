@@ -496,7 +496,7 @@ int execute_command(command_t *cmd) {
         const char *prog = find_executable(command);
         if (prog) {
             int64_t rid = 0;
-            // const char *argv[] = {"lsusb", nullptr};
+            // TODO const char *argv[] = {"lsusb", nullptr};
             rid = spawn_realm(prog, 1, nullptr, nullptr);
             if (rid < 0) {
                 printf("spawn failed: %d\n", (int32_t) rid);

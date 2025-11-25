@@ -34,4 +34,22 @@ char *strchr(const char *s, unsigned char c);
 char *strcat (char *dst, const char *src);
 int snprintf(char *buffer, size_t size, const char *format, ...);
 
+
+static inline int isdigit(int c) {
+    return (c >= '0' && c <= '9');
+}
+
+static inline int isxdigit(int c) {
+    return ( (c >= '0' && c <= '9') ||
+             (c >= 'a' && c <= 'f') ||
+             (c >= 'A' && c <= 'F') );
+}
+
+static inline int tolower(int c) {
+    if (c >= 'A' && c <= 'Z')
+        return c + ('a' - 'A');
+    return c;
+}
+
+
 #endif //STRING_H

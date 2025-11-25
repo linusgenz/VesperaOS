@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
 
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
@@ -19,8 +19,16 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-mno-red-zone -mgeneral-regs-only -ffreestanding"
 )
 
+set(BOILERPLATE_HEADER "${CMAKE_BINARY_DIR}/kernel_symbols.h")
 
-add_executable(kernel.elf ${CPP_SOURCES} ${ASM_SOURCES}
+if(NOT EXISTS ${BOILERPLATE_HEADER})
+    file(WRITE ${BOILERPLATE_HEADER} "unsigned char kernel_map[] = {};\nunsigned int kernel_map_len = 0;\n")
+endif()
+
+
+add_executable(kernel_stage1
+        ${CPP_SOURCES}
+        ${ASM_SOURCES}
         userspace/lib/include/string.h
         kernel/input/worker.cpp
         kernel/input/worker.h
@@ -30,13 +38,77 @@ add_executable(kernel.elf ${CPP_SOURCES} ${ASM_SOURCES}
         kernel/devices/init.cpp
         kernel/devices/init.h
 )
+
+set_target_properties(kernel_stage1 PROPERTIES
+        OUTPUT_NAME "kernel_stage1"
+        LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -nostdlib -static"
+)
+
+target_include_directories(kernel_stage1 PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/kernel/include
+        ${CMAKE_BINARY_DIR}
+)
+
+add_custom_command(
+        OUTPUT ${CMAKE_BINARY_DIR}/kernel_symbols.h
+        COMMAND xxd -i ${CMAKE_BINARY_DIR}/kernel.map |
+        sed 's/unsigned char .*\\[/inline unsigned char kernel_map[/' |
+        sed 's/unsigned int .*_len/inline unsigned int kernel_map_len/'
+        > ${CMAKE_BINARY_DIR}/kernel_symbols.h
+        DEPENDS ${CMAKE_BINARY_DIR}/kernel.map
+        COMMENT "Embedding kernel.map as kernel_symbols.h"
+)
+
+add_custom_target(kernel_symbols_header
+        DEPENDS ${CMAKE_BINARY_DIR}/kernel_symbols.h
+)
+
+add_custom_command(
+        OUTPUT ${CMAKE_BINARY_DIR}/kernel.map
+        COMMAND nm -n $<TARGET_FILE:kernel_stage1> | grep " [Tt] " > ${CMAKE_BINARY_DIR}/kernel.map
+        DEPENDS kernel_stage1
+        COMMENT "Generating kernel.map from kernel_stage1"
+)
+
+add_custom_target(kernel_map
+        DEPENDS ${CMAKE_BINARY_DIR}/kernel.map
+)
+
+
+set_source_files_properties(
+        ${CPP_SOURCES}
+        PROPERTIES
+        OBJECT_DEPENDS ${CMAKE_BINARY_DIR}/kernel_symbols.h
+)
+
+add_executable(kernel.elf
+        ${CPP_SOURCES}
+        ${ASM_SOURCES}
+        ${CMAKE_BINARY_DIR}/kernel_symbols.h
+        userspace/lib/include/string.h
+        kernel/input/worker.cpp
+        kernel/input/worker.h
+        kernel/memory/init.cpp
+        kernel/tty/init.cpp
+        kernel/tty/init.h
+        kernel/devices/init.cpp
+        kernel/devices/init.h
+)
+
 set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -nostdlib -static"
 )
+
 target_include_directories(kernel.elf PRIVATE
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/kernel/include
+        ${CMAKE_BINARY_DIR}
 )
+
+# Finaler Kernel hängt von Symbols ab
+add_dependencies(kernel.elf kernel_symbols_header)
+
 
 # Bootloader
 add_library(bootloader-lint STATIC

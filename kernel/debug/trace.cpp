@@ -23,16 +23,59 @@
 
 #include "trace.h"
 #include <cstdint>
+#include <log.h>
+#include "disasm.h"
+#include "symbols.h"
 
-void debug_capture_current_stack(uint64_t* out, uint8_t* out_len, uint8_t max_depth) {
+void debug_capture_current_stack(uint64_t *out, uint8_t *out_len, uint8_t max_depth) {
     uint64_t *rbp;
     asm volatile ("mov %%rbp, %0" : "=r" (rbp));
     uint8_t cnt = 0;
     while (rbp && cnt < max_depth) {
+        if ((uintptr_t) rbp & 0xF) break;
         uint64_t ret = *(rbp + 1);
         if (!ret) break;
         out[cnt++] = ret;
-        rbp = (uint64_t*)(*rbp);
+
+        uint64_t next_rbp = *rbp;
+        if (next_rbp <= (uintptr_t) rbp) break;
+        rbp = (uint64_t *) next_rbp;
     }
     *out_len = cnt;
+}
+
+void disassemble_frame(uint64_t addr, size_t bytes) {
+    const uint8_t* ptr = reinterpret_cast<const uint8_t*>(addr);
+    size_t offset = 0;
+
+    while (offset < bytes) {
+        Instruction ins = disasm_next(ptr + offset, bytes - offset);
+        Log::PrintLn("    %p: %s", ptr + offset, ins.mnemonic);
+        offset += ins.size;
+    }
+}
+
+void backtrace() {
+    uint64_t frames[32];
+    uint8_t count = 0;
+
+    debug_capture_current_stack(frames, &count, 32);
+
+    Log::PrintLn("Backtrace (frames: %u, most recent call last)", count);
+
+    for (uint8_t i = 0; i < count; i++) {
+        Symbol s = lookup_symbol(frames[i]);
+        uint64_t offset = frames[i] - s.addr;
+
+        Log::PrintLn("  #%u  %p  <%.*s+0x%llx>",
+                     i,
+                     (void *) frames[i],
+                     (int) s.len,
+                     s.name,
+                     offset);
+
+        if (i == 0) {
+            disassemble_frame(frames[i], 16);
+        }
+    }
 }

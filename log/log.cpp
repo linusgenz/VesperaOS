@@ -227,17 +227,33 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
             bool long_flag = false;
             char pad_char = ' ';
             int min_width = 0;
+            int precision = -1;
 
-            // Padding: z. B. %02x → '0' erkannt
+            // Padding: z. B. %02x → '0' erkannt
             if (*fmt == '0') {
                 pad_char = '0';
                 fmt++;
             }
 
-            // Breite (z. B. 2, 4, 8, etc.)
+            // Breite (z. B. 2, 4, 8, etc.)
             while (*fmt >= '0' && *fmt <= '9') {
                 min_width = min_width * 10 + (*fmt - '0');
                 fmt++;
+            }
+
+            // Precision: .* oder .n
+            if (*fmt == '.') {
+                fmt++;
+                if (*fmt == '*') {
+                    precision = __builtin_va_arg(args, int);
+                    fmt++;
+                } else {
+                    precision = 0;
+                    while (*fmt >= '0' && *fmt <= '9') {
+                        precision = precision * 10 + (*fmt - '0');
+                        fmt++;
+                    }
+                }
             }
 
             // Länge: l / ll
@@ -257,7 +273,18 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
             switch (specifier) {
                 case 's': {
                     const char *str = __builtin_va_arg(args, const char*);
-                    renderer->print(str ? str : "<null>");
+                    if (!str) str = "<null>";
+
+                    if (precision >= 0) {
+                        // Maximal precision Zeichen ausgeben
+                        int count = 0;
+                        while (str[count] && count < precision) {
+                            renderer->put_char(str[count]);
+                            count++;
+                        }
+                    } else {
+                        renderer->print(str);
+                    }
                     break;
                 }
                 case 'u':
@@ -296,9 +323,10 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     renderer->print(buffer);
                     break;
                 }
-                case 'f': {  // Neuer Float-Support
+                case 'f': {  // Float-Support
                     double val = __builtin_va_arg(args, double);
-                    float_to_str((float)val, buffer, 6); // 6 Nachkommastellen Standard
+                    int frac_digits = (precision >= 0) ? precision : 6;
+                    float_to_str((float)val, buffer, frac_digits);
                     int len = strlen(buffer);
                     for (int i = len; i < min_width; i++)
                         renderer->put_char(pad_char);

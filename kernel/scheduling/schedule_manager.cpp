@@ -27,6 +27,9 @@ namespace kernel::scheduling::manager {
 #define MSR_GS_BASE 0xC0000101
 
     void switch_to_unit(Unit *from, Unit *to, interrupt_frame *frame) {
+        if (to->is_user && !to->context.initialized) {
+            Log::debug("switch to user %u", to->id);
+        }
         const bool from_syscall = from && from->context.from_syscall;
 
         if (to->is_user) {
@@ -81,6 +84,7 @@ namespace kernel::scheduling::manager {
         if (to->is_user && !to->context.initialized) {
             to->context.initialized = true;
             push_args = &to->context.regs;
+            Log::debug("init unit %u", to->id);
         }
 
         context_switch(rdi_save_addr, rsp_to_load, should_iretq, save_iretq, push_args);

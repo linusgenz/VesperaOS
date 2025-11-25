@@ -207,7 +207,7 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
                 }
             }
 
-            if (!u->is_idle) {
+            if (!u->is_idle && cfg->auto_schedule) {
                 kernel::scheduling::add_unit(u);
             }
 

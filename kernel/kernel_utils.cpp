@@ -133,7 +133,7 @@ void init_sys_log_writer() {
         .is_user = false,
         .user_stack_size = 0
     };
-    UnitManager::create(KERNEL_REALM_SYSTEM, (void *) sys_log_writer, nullptr, &uc);
+  //  UnitManager::create(KERNEL_REALM_SYSTEM, (void *) sys_log_writer, nullptr, &uc);
 }
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
@@ -251,7 +251,7 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     FileLogWriter* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
-    init_sys_log_writer();
+ //   init_sys_log_writer();
  //   kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
