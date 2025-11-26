@@ -87,7 +87,7 @@ namespace arch::x86_64::interrupts::apic {
         ACPI::FADT *fadt = ACPI::TableManager::get_fadt();
 
         if (fadt->pm_timer_length != 4) {
-            kernel::SystemManager::system_panic("ACPI Timer unavailable", -ENOACPI);
+            kernel::SystemManager::system_panic("ACPI Timer unavailable", -KENOACPI);
         }
 
         const uint64_t count = inl(fadt->pm_timer_block);

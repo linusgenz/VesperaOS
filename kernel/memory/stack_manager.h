@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <cstddef>
-
+/*
 #define KERNEL_STACK_SIZE 16384  // 16KB per stack
 #define MAX_STACKS 64            // max 64 stacks (max 64 cores)
 
@@ -37,5 +37,5 @@ namespace StackManager {
     void print_stack_info();
     size_t get_stack_usage(StackInfo* stack_info);
 }
-
+*/
 #endif // STACK_MANAGER_H

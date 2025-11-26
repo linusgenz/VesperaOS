@@ -2,7 +2,7 @@
 #include "../include/memory.h"
 #include "../../include/log.h"
 #include "heap.h"
-
+/*
 namespace StackManager {
     
     static StackInfo stacks[MAX_STACKS];
@@ -237,3 +237,4 @@ namespace StackManager {
         return stack_info->stack_size - unused_bytes;
     }
 }
+*/

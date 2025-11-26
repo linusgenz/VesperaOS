@@ -19,7 +19,7 @@ namespace CPUManager {
         if (is_initialized) return;
 
         // Initialisiere Stack Manager
-        StackManager::initialize();
+       // StackManager::initialize();
 
         // Hole CPU-Informationen von MADT
         MADT::CPUCore *madt_cores = MADT::get_cpu_cores();

@@ -36,7 +36,7 @@ namespace syscalls::internal {
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) {
-            kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -ENOUNIT);
+            kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -KENOUNIT);
         }
 
         current->exit_code = (int) code;

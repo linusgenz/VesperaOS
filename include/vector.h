@@ -22,7 +22,7 @@ public:
         _data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * capacity));
 
         if (!_data) {
-            kernel::SystemManager::system_panic("Vector malloc failed", -EVECALLOC);
+            kernel::SystemManager::system_panic("Vector malloc failed", -KEVECALLOC);
         }
     }
 
@@ -100,7 +100,7 @@ public:
 
     void erase(size_t index) {
         if (index >= length) {
-            kernel::SystemManager::system_panic("Vector::erase() index out of range", -ERANGE);
+            kernel::SystemManager::system_panic("Vector::erase() index out of range", -KERANGE);
         }
 
         if constexpr (!std::is_trivially_destructible<T>::value) {
@@ -131,12 +131,12 @@ public:
 
 
     T& back() {
-        if (length == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -EEMPTY);
+        if (length == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -KEEMPTY);
         return _data[length - 1];
     }
 
     const T& back() const {
-        if (length == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -EEMPTY);
+        if (length == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -KEEMPTY);
         return _data[length - 1];
     }
 
@@ -159,7 +159,7 @@ private:
     void resize(size_t new_capacity) {
         if (new_capacity <= capacity) return;
         T* new_data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
-        if (!new_data) kernel::SystemManager::system_panic("Vector resize malloc failed", -EVECRESIZE);
+        if (!new_data) kernel::SystemManager::system_panic("Vector resize malloc failed", -KEVECRESIZE);
 
         if constexpr (std::is_trivially_copyable<T>::value) {
             // triviale Typen: einfache Zuweisung

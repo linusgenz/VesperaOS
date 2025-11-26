@@ -42,6 +42,6 @@ void deadlock_detector_tick() {
     bool found = lock_debug_detect_deadlocks_and_report();
     if (found) {
         Log::PrintLn("Deadlock(s) detected. See dump above.");
-        kernel::SystemManager::system_panic("DEADLOCK DETECTED", -EDEADLK);
+        kernel::SystemManager::system_panic("DEADLOCK DETECTED", -KEDEADLK);
     }
 }

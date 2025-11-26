@@ -36,7 +36,7 @@ void spinlock_t::lock() {
     if (info && uid != 0 && info->owner_unit == uid) {
         Log::PrintLn("*** SELF-DEADLOCK: unit %u tried to relock %s", uid, info->name);
         lock_debug_report_deadlock(info, uid);
-        kernel::SystemManager::system_panic("SELF-DEADLOCK", -ESELFDEADLK);
+        kernel::SystemManager::system_panic("SELF-DEADLOCK", -KESELFDEADLK);
     }
 
     lock_debug_before_acquire(this, uid);
