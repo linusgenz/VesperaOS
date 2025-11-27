@@ -19,17 +19,19 @@ using kernel::debug::FaultContext;
 using kernel::debug::FaultType;
 
 
-static FaultContext make_fault_context(const interrupt_frame* frame) {
+static FaultContext make_fault_context(const trap_frame* frame) {
     FaultContext ctx{};
     ctx.rip        = frame->rip;
     ctx.cs         = frame->cs;
     ctx.rsp        = frame->rsp;
+    ctx.rbp        = frame->rbp;
     ctx.rflags     = frame->rflags;
     ctx.error_code = frame->error_code;
     return ctx;
 }
 
-__attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
+
+void page_fault_handler(trap_frame *frame) {
     uint64_t fault_addr;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
@@ -40,13 +42,13 @@ __attribute__((interrupt)) void page_fault_handler(interrupt_frame *frame) {
    // kernel::SystemManager::system_panic("Page fault detected", -EPAGEFAULT);
 }
 
-__attribute__((interrupt)) void double_fault_handler(interrupt_frame *frame) {
+void double_fault_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DoubleFault, ctx, "Double fault detected");
-    kernel::SystemManager::system_panic("Double fault detected", -EDOUBLEFAULT);
+    kernel::SystemManager::system_panic("Double fault detected", -KEDOUBLEFAULT);
 }
 
-__attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
+void gp_fault_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
 
@@ -64,32 +66,32 @@ __attribute__((interrupt)) void gp_fault_handler(interrupt_frame *frame) {
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Selector: 0x%x", selector);
 
-    kernel::SystemManager::system_panic("General protection fault detected", -EGPF);
+    kernel::SystemManager::system_panic("General protection fault detected", -KEGPF);
 }
 
 // Invalid Opcode Fault (Vector 6)
-__attribute__((interrupt)) void invalid_opcode_handler(interrupt_frame *frame) {
+extern "C"  void invalid_opcode_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
 
-    kernel::SystemManager::system_panic("Invalid opcode detected", -EINVOP);
+    kernel::SystemManager::system_panic("Invalid opcode detected", -KEINVOP);
     while (true);
 }
 
 // Stack Segment Fault (Vector 12)
-__attribute__((interrupt)) void stack_fault_handler(interrupt_frame *frame) {
+void stack_fault_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
 
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Stack selector: 0x%x", selector);
 
-    kernel::SystemManager::system_panic("Stack fault detected", -ESTACKFAULT);
+    kernel::SystemManager::system_panic("Stack fault detected", -KESTACKFAULT);
     while (true);
 }
 
 // Segment Not Present (Vector 11)
-__attribute__((interrupt)) void segment_not_present_handler(interrupt_frame *frame) {
+void segment_not_present_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
 
@@ -104,64 +106,63 @@ __attribute__((interrupt)) void segment_not_present_handler(interrupt_frame *fra
         Log::Error("  GDT referenced");
     }
 
-    kernel::SystemManager::system_panic("Segment not present", -ESEGNOTPRES);
+    kernel::SystemManager::system_panic("Segment not present", -KESEGNOTPRES);
     while (true);
 }
 
 // Divide by Zero (Vector 0)
-__attribute__((interrupt)) void divide_error_handler(interrupt_frame *frame) {
+void divide_error_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
 
-    kernel::SystemManager::system_panic("Divide by zero", -EDIVZERO);
+    kernel::SystemManager::system_panic("Divide by zero", -KEDIVZERO);
     while (true);
 }
 
 // Machine Check Exception (Vector 18)
-__attribute__((interrupt)) void machine_check_handler(interrupt_frame *frame) {
+void machine_check_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::MachineCheck, ctx, "Machine check exception");
 
-    kernel::SystemManager::system_panic("Machine check exception", -EMACHCHECK);
+    kernel::SystemManager::system_panic("Machine check exception", -KEMACHCHECK);
     while (true);
 }
 
 // Generic unhandled interrupt handler
-__attribute__((interrupt)) void unhandled_interrupt_handler(interrupt_frame *frame) {
+void unhandled_interrupt_handler(trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::UnhandledInterrupt, ctx, "Unhandled interrupt");
 
-    kernel::SystemManager::system_panic("Unhandled interrupt", -EUNHANDLED);
+    kernel::SystemManager::system_panic("Unhandled interrupt", -KEUNHANDLED);
     while (true);
 }
 
-__attribute__((interrupt)) void keyboard_int_handler(interrupt_frame *frame) {
+void keyboard_int_handler(trap_frame *frame) {
     uint8_t scancode = inb(0x60);
     ps2::keyboard::handle_byte(scancode);
     arch::x86_64::interrupts::pic::end_master();
 }
 
-__attribute__((interrupt)) void mouse_int_handler(interrupt_frame *frame) {
+void mouse_int_handler(trap_frame *frame) {
     global_renderer->print("mouse_int_handler");
     uint8_t data = inb(0x60);
     input::mouse::handle_byte(data);
     arch::x86_64::interrupts::pic::end_slave();
 }
 
-__attribute__((interrupt))
-void apic_timer_int_handler(interrupt_frame *frame) {
+
+void apic_timer_int_handler(trap_frame *frame) {
     arch::x86_64::interrupts::apic::timer_accounting();
     arch::x86_64::interrupts::apic::send_eoi();
     arch::x86_64::interrupts::apic::timer_tick(frame);
 }
 
-__attribute__((interrupt))
-void spurious_int_handler(interrupt_frame *frame) {
+
+void spurious_int_handler(trap_frame *frame) {
     Log::Ok("SPURIOUS INTERRUPT");
 }
 
-__attribute__((interrupt))
-[[noreturn]] void panic_ipi_handler(interrupt_frame* frame) {
+[[noreturn]] void panic_ipi_handler(trap_frame* frame) {
     uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
     CPUManager::halt_cpu(apic_id);
     while(true) asm volatile("cli; hlt");

@@ -13,6 +13,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}   -ffreestanding -fno-stack-protector -mno-r
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp)
 file(GLOB_RECURSE ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/arch/**/*.asm ${CMAKE_CURRENT_SOURCE_DIR}/kernel/**/*.asm)
 list(FILTER CPP_SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
+list(FILTER ASM_SOURCES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
 
 set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
@@ -66,7 +67,7 @@ add_custom_target(kernel_symbols_header
 
 add_custom_command(
         OUTPUT ${CMAKE_BINARY_DIR}/kernel.map
-        COMMAND nm -n $<TARGET_FILE:kernel_stage1> | grep " [Tt] " > ${CMAKE_BINARY_DIR}/kernel.map
+        COMMAND nm -n $<TARGET_FILE:kernel_stage1> > ${CMAKE_BINARY_DIR}/kernel.map
         DEPENDS kernel_stage1
         COMMENT "Generating kernel.map from kernel_stage1"
 )

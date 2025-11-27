@@ -26,7 +26,7 @@ namespace kernel::scheduling::manager {
 #define MSR_KERNEL_GS_BASE 0xC0000102
 #define MSR_GS_BASE 0xC0000101
 
-    void switch_to_unit(Unit *from, Unit *to, interrupt_frame *frame) {
+    void switch_to_unit(Unit *from, Unit *to, trap_frame *frame) {
         if (to->is_user && !to->context.initialized) {
             Log::debug("switch to user %u", to->id);
         }

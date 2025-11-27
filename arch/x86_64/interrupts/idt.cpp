@@ -83,7 +83,6 @@ namespace arch::x86_64::interrupts::idt {
     }
 
     extern "C" void irq_stub_0x30();
-
     void load_default_idt() {
         void *idt_page = kernel::memory::request_page();
         memset(idt_page, 0, 0x1000);
@@ -92,21 +91,20 @@ namespace arch::x86_64::interrupts::idt {
         idtr.offset = reinterpret_cast<uint64_t>(idt_page);
 
         // Standard Exception Handlers
-        set_idt_gate((void *) divide_error_handler, 0x00, IDT_TA_InterruptGate, 0x08); // Divide by Zero
-        set_idt_gate((void *) invalid_opcode_handler, 0x06, IDT_TA_InterruptGate, 0x08); // Invalid Opcode
-        set_idt_gate((void *) double_fault_handler, 0x08, IDT_TA_InterruptGate, 0x08); // Double Fault
-        set_idt_gate((void *) segment_not_present_handler, 0x0B, IDT_TA_InterruptGate, 0x08); // Segment Not Present
-        set_idt_gate((void *) stack_fault_handler, 0x0C, IDT_TA_InterruptGate, 0x08); // Stack Fault
-        set_idt_gate((void *) gp_fault_handler, 0x0D, IDT_TA_InterruptGate, 0x08); // General Protection
-        set_idt_gate((void *) page_fault_handler, 0x0E, IDT_TA_InterruptGate, 0x08); // Page Fault
-        set_idt_gate((void *) machine_check_handler, 0x12, IDT_TA_InterruptGate, 0x08); // Machine Check
+        set_idt_gate((void*)isr_divide_error, 0x00, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_invalid_opcode, 0x06, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_double_fault, 0x08, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_segment_not_present, 0x0B, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_stack_fault, 0x0C, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_gp_fault, 0x0D, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_page_fault, 0x0E, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_machine_check, 0x12, IDT_TA_InterruptGate, 0x08);
 
-        set_idt_gate((void *) keyboard_int_handler, 0x21, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate((void *) mouse_int_handler, 0x22, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate((void *) apic_timer_int_handler, IRQ_TIMER, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate((void *) spurious_int_handler, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
-
-        set_idt_gate((void*) panic_ipi_handler, IRQ_PANIC, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_keyboard_int, 0x21, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_mouse_int, 0x22, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_apic_timer_int, IRQ_TIMER, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_spurious_int, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate((void*)isr_panic_ipi, IRQ_PANIC, IDT_TA_InterruptGate, 0x08);
 
         asm ("lidt %0" : : "m" (idtr));
         asm ("cli");

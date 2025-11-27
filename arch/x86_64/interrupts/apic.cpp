@@ -108,7 +108,7 @@ namespace arch::x86_64::interrupts::apic {
         apic_ticks[cpu]++;
     }
 
-    void timer_tick(interrupt_frame *frame) {
+    void timer_tick(trap_frame *frame) {
 
         deadlock_detector_tick();
 

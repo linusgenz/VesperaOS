@@ -62,7 +62,7 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
 
-    void yield_cpu(uint8_t cpu_id, interrupt_frame *frame) {
+    void yield_cpu(uint8_t cpu_id, trap_frame *frame) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
 
@@ -183,7 +183,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->lock.unlock_irqrestore(flags);
     }
 
-    void tick_cpu(uint8_t cpu_id, interrupt_frame *frame) {
+    void tick_cpu(uint8_t cpu_id, trap_frame *frame) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
 

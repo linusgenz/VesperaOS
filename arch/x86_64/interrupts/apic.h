@@ -55,7 +55,7 @@ namespace arch::x86_64::interrupts::apic {
 
     void send_eoi();
     void timer_accounting();
-    void timer_tick(interrupt_frame *frame);
+    void timer_tick(trap_frame *frame);
     void init(uint8_t cpu_id);
     void send_ipi(uint32_t apic_id, uint8_t vector);
     void broadcast_ipi(uint8_t vector);

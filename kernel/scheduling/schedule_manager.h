@@ -23,7 +23,7 @@ namespace kernel::scheduling::manager {
   //  extern "C" [[noreturn]] void idle_unit_func(void* arg);
 
     // Internal thread operations
-    void switch_to_unit(Unit* from, Unit* to, interrupt_frame *frame);
+    void switch_to_unit(Unit* from, Unit* to, trap_frame *frame);
 
     Unit *setup_idle_unit(uint8_t cpu_id);
 
