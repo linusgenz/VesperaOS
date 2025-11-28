@@ -103,7 +103,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
 
     kernel::SystemManager::set_system_initialized();
 
-    __asm__ volatile ("ud2");
+   // __asm__ volatile ("ud2");
 
     kernel::scheduling::enable_on_cpu(0);
 

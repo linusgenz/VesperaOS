@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <internal.h>
+#include <stdbool.h>
 
 int putchar(int c) {
     char ch = (char) c;

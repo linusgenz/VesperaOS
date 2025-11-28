@@ -1,10 +1,10 @@
-// internal.h
+// stddef.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 22.09.25.
+// Created by Linus Genz on 27.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,13 +21,32 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INTERNAL_H
-#define VESPERAOS_INTERNAL_H
+#ifndef VESPERAOS_STDDEF_H
+#define VESPERAOS_STDDEF_H
 
-#include <stdbool.h>
+/* Signed type for pointer differences */
+typedef long ptrdiff_t;
 
-void float_to_str(float val, char *buf, int precision);
+/* Unsigned type for sizes */
+typedef unsigned long size_t;
 
-size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix);
+/* Wide character type */
+typedef int wchar_t;
 
-#endif //VESPERAOS_INTERNAL_H
+/* Wide integer type */
+typedef unsigned int wint_t;
+
+/* Null pointer */
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
+/* Offset of member MEMBER in struct TYPE */
+#define offsetof(TYPE, MEMBER) __builtin_offsetof(TYPE, MEMBER)
+
+#ifdef __cplusplus
+#else
+static const void* const nullptr = NULL;
+#endif
+
+#endif //VESPERAOS_STDDEF_H

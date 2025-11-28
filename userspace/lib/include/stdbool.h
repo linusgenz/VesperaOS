@@ -1,10 +1,10 @@
-// internal.h
+// stdbool.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 22.09.25.
+// Created by Linus Genz on 27.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,13 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_INTERNAL_H
-#define VESPERAOS_INTERNAL_H
+#ifndef VESPERAOS_STDBOOL_H
+#define VESPERAOS_STDBOOL_H
 
-#include <stdbool.h>
+/* Only for C, not C++ */
+#ifndef __cplusplus
+typedef _Bool bool;
+#define true  1
+#define false 0
+#else
+typedef bool _Bool;
+#endif
 
-void float_to_str(float val, char *buf, int precision);
+#define __bool_true_false_are_defined 1
 
-size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix);
-
-#endif //VESPERAOS_INTERNAL_H
+#endif //VESPERAOS_STDBOOL_H

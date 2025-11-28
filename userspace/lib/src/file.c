@@ -26,6 +26,7 @@
 #include <fflags.h>
 
 #include "stdint.h"
+#include "file.h"
 
 bool file_exists(const char* path) {
     int64_t hdl = sys_open((uint64_t)path, O_RDONLY, 0, 0, 0, 0);

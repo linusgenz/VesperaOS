@@ -1,25 +1,27 @@
 cmake_minimum_required(VERSION 4.1)
-project(VesperaLib C)
+project(vesplib C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_EXTENSIONS ON)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-file(GLOB LIB_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+file(GLOB_RECURSE LIB_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
 )
 
-add_library(vespera STATIC ${LIB_SOURCES})
+add_library(vesplib STATIC ${LIB_SOURCES})
 
-target_compile_options(vespera PRIVATE
-    -ffreestanding
-    -fno-stack-protector
-    -fno-builtin
-    -nostdinc
-    -Wall -Wextra -O2
+set_target_properties(vesplib PROPERTIES POSITION_INDEPENDENT_CODE ON
+        OUTPUT_NAME "vesplib")
+
+target_include_directories(vesplib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_compile_options(vesplib PRIVATE
+        -ffreestanding
+        -fno-stack-protector
+        -fno-builtin
+        -nostdinc
+        -Wall -Wextra
+        -O2
+        -fPIC
 )
-
-set_target_properties(vespera PROPERTIES OUTPUT_NAME "vespera")
-
