@@ -9,6 +9,7 @@ var searchData=
   ['prot_5fnone_6',['PROT_NONE',['../mman_8h.html#a6a982b48b8d3eb8eccd17e0d54ee5379',1,'mman.h']]],
   ['prot_5fread_7',['PROT_READ',['../mman_8h.html#a15bf68ce8b590838b3a5c0b639d8d519',1,'mman.h']]],
   ['prot_5fwrite_8',['PROT_WRITE',['../mman_8h.html#a2a79c8ceefb8fc25a940ae07a3d94429',1,'mman.h']]],
-  ['putchar_9',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
-  ['puts_10',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
+  ['ptrdiff_5ft_9',['ptrdiff_t',['../stddef_8h.html#a1391029fd5d5d35fab28d7423c8cca9b',1,'stddef.h']]],
+  ['putchar_10',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
+  ['puts_11',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
 ];

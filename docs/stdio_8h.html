@@ -97,8 +97,8 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
   <div class="headertitle"><div class="title">stdio.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
-<code>#include &lt;stdint.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdlib_8h_source.html">stdlib.h</a>&gt;</code><br />
 </div>
 <p><a href="stdio_8h_source.html">Go to the source code of this file.</a></p>
@@ -126,7 +126,7 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ac0152d4a089ae45980c7fb1a636edeea" id="r_ac0152d4a089ae45980c7fb1a636edeea"><td class="memItemLeft" align="right" valign="top">typedef int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a></td></tr>
+<tr class="memitem:ac0152d4a089ae45980c7fb1a636edeea" id="r_ac0152d4a089ae45980c7fb1a636edeea"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a></td></tr>
 <tr class="separator:ac0152d4a089ae45980c7fb1a636edeea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0deb59b52e8cdf4e9acb583b8a148ebb" id="r_a0deb59b52e8cdf4e9acb583b8a148ebb"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a></td></tr>
 <tr class="separator:a0deb59b52e8cdf4e9acb583b8a148ebb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -149,7 +149,7 @@ Functions</h2></td></tr>
 <tr class="memitem:a0aff7311d684a0e0ef33125616a73385" id="r_a0aff7311d684a0e0ef33125616a73385"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0aff7311d684a0e0ef33125616a73385">printf</a> (const char *fmt,...)</td></tr>
 <tr class="memdesc:a0aff7311d684a0e0ef33125616a73385"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to stdout.  <br /></td></tr>
 <tr class="separator:a0aff7311d684a0e0ef33125616a73385"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a304ea6ce0f310fd8ed15648139819680" id="r_a304ea6ce0f310fd8ed15648139819680"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a304ea6ce0f310fd8ed15648139819680">snprintf</a> (char *buffer, size_t size, const char *format,...)</td></tr>
+<tr class="memitem:a304ea6ce0f310fd8ed15648139819680" id="r_a304ea6ce0f310fd8ed15648139819680"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a304ea6ce0f310fd8ed15648139819680">snprintf</a> (char *buffer, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, const char *format,...)</td></tr>
 <tr class="separator:a304ea6ce0f310fd8ed15648139819680"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82f772624397cd590af87a316fe3b29f" id="r_a82f772624397cd590af87a316fe3b29f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a82f772624397cd590af87a316fe3b29f">fopen</a> (const char *path, int flags)</td></tr>
 <tr class="memdesc:a82f772624397cd590af87a316fe3b29f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens a file.  <br /></td></tr>
@@ -157,10 +157,10 @@ Functions</h2></td></tr>
 <tr class="memitem:abead4fc4fe2480561857ffd16c1fdc24" id="r_abead4fc4fe2480561857ffd16c1fdc24"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#abead4fc4fe2480561857ffd16c1fdc24">fclose</a> (<a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a> handle)</td></tr>
 <tr class="memdesc:abead4fc4fe2480561857ffd16c1fdc24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Closes a file.  <br /></td></tr>
 <tr class="separator:abead4fc4fe2480561857ffd16c1fdc24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c1fd03e6ae417425681ad4acc778ef7" id="r_a2c1fd03e6ae417425681ad4acc778ef7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7">fread</a> (<a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a> handle, void *buf, size_t count)</td></tr>
+<tr class="memitem:a2c1fd03e6ae417425681ad4acc778ef7" id="r_a2c1fd03e6ae417425681ad4acc778ef7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7">fread</a> (<a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a> handle, void *buf, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
 <tr class="memdesc:a2c1fd03e6ae417425681ad4acc778ef7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads data from a handle.  <br /></td></tr>
 <tr class="separator:a2c1fd03e6ae417425681ad4acc778ef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0521008fe2a792026bcd8f31234818a3" id="r_a0521008fe2a792026bcd8f31234818a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0521008fe2a792026bcd8f31234818a3">fwrite</a> (<a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a> handle, const void *buf, size_t count)</td></tr>
+<tr class="memitem:a0521008fe2a792026bcd8f31234818a3" id="r_a0521008fe2a792026bcd8f31234818a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0521008fe2a792026bcd8f31234818a3">fwrite</a> (<a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a> handle, const void *buf, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
 <tr class="memdesc:a0521008fe2a792026bcd8f31234818a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes data to a handle.  <br /></td></tr>
 <tr class="separator:a0521008fe2a792026bcd8f31234818a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c7c5fe31e34ed16c61ff40bb0d3d49c" id="r_a8c7c5fe31e34ed16c61ff40bb0d3d49c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a8c7c5fe31e34ed16c61ff40bb0d3d49c">open</a> (const char *path, int flags)</td></tr>
@@ -357,7 +357,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef int64_t <a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> <a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -469,7 +469,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>count</em>&#160;</td>
         </tr>
         <tr>
@@ -587,7 +587,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>count</em>&#160;</td>
         </tr>
         <tr>
@@ -814,7 +814,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">size_t snprintf </td>
+          <td class="memname"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> snprintf </td>
           <td>(</td>
           <td class="paramtype">char *&#160;</td>
           <td class="paramname"><em>buffer</em>, </td>
@@ -822,7 +822,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>size</em>, </td>
         </tr>
         <tr>

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['ioctl_5frequest_5ft_0',['ioctl_request_t',['../ioctl_8h.html#ad9edf266656ca64984f397c280c111af',1,'ioctl.h']]]
+  ['handle_5fid_0',['HANDLE_ID',['../stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea',1,'stdio.h']]],
+  ['heap_5fseg_1',['heap_seg',['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'memory.h']]]
 ];

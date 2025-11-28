@@ -1,11 +1,12 @@
 var searchData=
 [
-  ['o_5fappend_0',['O_APPEND',['../fflags_8h.html#ae036f789407d21f07b211552d67b3214',1,'fflags.h']]],
-  ['o_5fcreat_1',['O_CREAT',['../fflags_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc',1,'fflags.h']]],
-  ['o_5fdirectory_2',['O_DIRECTORY',['../fflags_8h.html#a6afd3dd2f570069804b40e6aa24fc966',1,'fflags.h']]],
-  ['o_5fexcl_3',['O_EXCL',['../fflags_8h.html#a9f5acfe79fafe14b6694447bd0e9f10b',1,'fflags.h']]],
-  ['o_5frdonly_4',['O_RDONLY',['../fflags_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b',1,'fflags.h']]],
-  ['o_5frdwr_5',['O_RDWR',['../fflags_8h.html#abb0586253488ee61072b73557eeb873b',1,'fflags.h']]],
-  ['o_5ftrunc_6',['O_TRUNC',['../fflags_8h.html#ad1d67e453fb3031f40f8cd3403773813',1,'fflags.h']]],
-  ['o_5fwronly_7',['O_WRONLY',['../fflags_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fflags.h']]]
+  ['handle_5fstderr_0',['HANDLE_STDERR',['../stdio_8h.html#a20f587d71e5bfe98fd92929ab61bde41',1,'stdio.h']]],
+  ['handle_5fstdin_1',['HANDLE_STDIN',['../stdio_8h.html#aa8bdf33a8a477a7f84782d4075cac16e',1,'stdio.h']]],
+  ['handle_5fstdout_2',['HANDLE_STDOUT',['../stdio_8h.html#ab713aac387c884999067ab2eb12eb2a3',1,'stdio.h']]],
+  ['handle_5ftype_5fchannel_3',['HANDLE_TYPE_CHANNEL',['../stdio_8h.html#a57fb96e74a11842469c4d71f9a38734a',1,'stdio.h']]],
+  ['handle_5ftype_5fconsole_4',['HANDLE_TYPE_CONSOLE',['../stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7',1,'stdio.h']]],
+  ['handle_5ftype_5fdevice_5',['HANDLE_TYPE_DEVICE',['../stdio_8h.html#a7320acad67c37ee34fa6f28cab733f7c',1,'stdio.h']]],
+  ['handle_5ftype_5ffile_6',['HANDLE_TYPE_FILE',['../stdio_8h.html#aef864574e77d6a0d5653dfae187c57e4',1,'stdio.h']]],
+  ['handle_5ftype_5frealm_7',['HANDLE_TYPE_REALM',['../stdio_8h.html#a99fc691f8add17b3b3a7834779d7e641',1,'stdio.h']]],
+  ['handle_5ftype_5funit_8',['HANDLE_TYPE_UNIT',['../stdio_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'stdio.h']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['file_5fhandle_0',['file_handle',['../stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb',1,'FILE_HANDLE:&#160;stdio.h'],['../stdlib_8h.html#a3ee5b18ee064f2825435983e23ebf976',1,'FILE_HANDLE:&#160;stdlib.h']]]
+  ['dir_5fhandle_0',['DIR_HANDLE',['../stdio_8h.html#af4072c4c1cb0b8441d6ce257461cccb0',1,'stdio.h']]]
 ];

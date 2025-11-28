@@ -95,23 +95,23 @@ $(document).ready(function(){initNavTree('realm_8h.html',''); initResizable(); }
   <div class="headertitle"><div class="title">realm.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
-<code>#include &lt;stddef.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 </div>
 <p><a href="realm_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a19d4c4015f83847d24028ee979de35cf" id="r_a19d4c4015f83847d24028ee979de35cf"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a19d4c4015f83847d24028ee979de35cf">spawn_realm</a> (const char *path_ptr, uint32_t argc, const char **argv, char **envp)</td></tr>
+<tr class="memitem:a19d4c4015f83847d24028ee979de35cf" id="r_a19d4c4015f83847d24028ee979de35cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a19d4c4015f83847d24028ee979de35cf">spawn_realm</a> (const char *path_ptr, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> argc, const char **argv, char **envp)</td></tr>
 <tr class="memdesc:a19d4c4015f83847d24028ee979de35cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new realm (isolated execution context).  <br /></td></tr>
 <tr class="separator:a19d4c4015f83847d24028ee979de35cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6727cb31c2eb87b6dfa6e3ce281cb986" id="r_a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a6727cb31c2eb87b6dfa6e3ce281cb986">spawn_unit</a> (uint64_t realm_id, uint64_t entry_point, uint64_t arg_ptr)</td></tr>
+<tr class="memitem:a6727cb31c2eb87b6dfa6e3ce281cb986" id="r_a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a6727cb31c2eb87b6dfa6e3ce281cb986">spawn_unit</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> entry_point, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg_ptr)</td></tr>
 <tr class="memdesc:a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new unit (thread) inside an existing realm.  <br /></td></tr>
 <tr class="separator:a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fbb78b7e72ea7263d5f0ca3bb21bdd2" id="r_a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">__attribute__</a> ((noreturn)) void exit(uint64_t code)</td></tr>
+<tr class="memitem:a8fbb78b7e72ea7263d5f0ca3bb21bdd2" id="r_a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">__attribute__</a> ((noreturn)) void exit(<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
 <tr class="memdesc:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
 <tr class="separator:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace9c7b6f0943ed9bdbb7ead39ce40387" id="r_ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#ace9c7b6f0943ed9bdbb7ead39ce40387">exit_realm</a> (uint64_t realm_id, uint64_t code)</td></tr>
+<tr class="memitem:ace9c7b6f0943ed9bdbb7ead39ce40387" id="r_ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#ace9c7b6f0943ed9bdbb7ead39ce40387">exit_realm</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
 <tr class="memdesc:ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate an entire realm and all its units.  <br /></td></tr>
 <tr class="separator:ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -151,15 +151,15 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int64_t exit_realm </td>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> exit_realm </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>realm_id</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>code</em>&#160;</td>
         </tr>
         <tr>
@@ -189,7 +189,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int64_t spawn_realm </td>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> spawn_realm </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>path_ptr</em>, </td>
@@ -197,7 +197,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td>
           <td class="paramname"><em>argc</em>, </td>
         </tr>
         <tr>
@@ -241,21 +241,21 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int64_t spawn_unit </td>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> spawn_unit </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>realm_id</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>entry_point</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>arg_ptr</em>&#160;</td>
         </tr>
         <tr>

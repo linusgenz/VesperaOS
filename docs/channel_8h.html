@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('channel_8h.html',''); initResizable();
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1c2bb722aefc71e77414183049de2922" id="r_a1c2bb722aefc71e77414183049de2922"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="channel_8h.html#a1c2bb722aefc71e77414183049de2922">channel_create</a> (size_t capacity)</td></tr>
+<tr class="memitem:a1c2bb722aefc71e77414183049de2922" id="r_a1c2bb722aefc71e77414183049de2922"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="channel_8h.html#a1c2bb722aefc71e77414183049de2922">channel_create</a> (<a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> capacity)</td></tr>
 <tr class="memdesc:a1c2bb722aefc71e77414183049de2922"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new channel with the specified capacity.  <br /></td></tr>
 <tr class="separator:a1c2bb722aefc71e77414183049de2922"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27367d39e205bf5664047cf9f2575d12" id="r_a27367d39e205bf5664047cf9f2575d12"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="channel_8h.html#a27367d39e205bf5664047cf9f2575d12">channel_recv</a> (<a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a> hid, void *buf, size_t len)</td></tr>
+<tr class="memitem:a27367d39e205bf5664047cf9f2575d12" id="r_a27367d39e205bf5664047cf9f2575d12"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="channel_8h.html#a27367d39e205bf5664047cf9f2575d12">channel_recv</a> (<a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a> hid, void *buf, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
 <tr class="memdesc:a27367d39e205bf5664047cf9f2575d12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receive data from a channel.  <br /></td></tr>
 <tr class="separator:a27367d39e205bf5664047cf9f2575d12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2b9bb58c6dab6a292168791513911d6" id="r_ab2b9bb58c6dab6a292168791513911d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="channel_8h.html#ab2b9bb58c6dab6a292168791513911d6">channel_send</a> (<a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a> hid, const void *data, size_t len)</td></tr>
+<tr class="memitem:ab2b9bb58c6dab6a292168791513911d6" id="r_ab2b9bb58c6dab6a292168791513911d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="channel_8h.html#ab2b9bb58c6dab6a292168791513911d6">channel_send</a> (<a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a> hid, const void *data, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
 <tr class="memdesc:ab2b9bb58c6dab6a292168791513911d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send data to a channel.  <br /></td></tr>
 <tr class="separator:ab2b9bb58c6dab6a292168791513911d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -121,7 +121,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="stdio_8h.html#ac8130077a0bd17c8715973440371d953">CHANNEL_HANDLE</a> channel_create </td>
           <td>(</td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>capacity</em></td><td>)</td>
           <td></td>
         </tr>
@@ -161,7 +161,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>len</em>&#160;</td>
         </tr>
         <tr>
@@ -207,7 +207,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>len</em>&#160;</td>
         </tr>
         <tr>
