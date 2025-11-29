@@ -21,13 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 
-#include <kernel_utils.h>
 #include <log.h>
-#include "../memory/page_table_manager.h"
-#include "../sync/atomic.h"
-#include "../system/system_manager.h"
+#include "../paging/page_table_manager.h"
+#include "../../include/kernel/sync/atomic.h"
+#include <kernel/system/system_manager.h>
 #include "../units/unit_manager.h"
 
 Realm RealmManager::realms[MAX_REALMS];
@@ -48,16 +47,6 @@ void RealmManager::initialize() {
         realm.unit_count = 0;
     }
     next_id = 1;
-}
-
-static void clone_kernel_low_half(PageTable* dest, PageTable* kernel, uint64_t start, uint64_t end) {
-    // alle PML4-Einträge durchgehen
-    for (size_t i = 0; i < 512; i++) {
-        uint64_t base = i * (1ULL << 39); // 512 GiB pro PML4-Eintrag
-        if (base + (1ULL << 39) < start || base > end) continue;
-
-        dest->entries[i] = kernel->entries[i];
-    }
 }
 
 Realm* RealmManager::create(const RealmConfig* cfg) {
@@ -87,7 +76,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             if (cfg->is_user) {
                 auto* kernel_pml4 = reinterpret_cast<PageTable*>(kernel::memory::get_pagetable_address());
 
-                PageTable* new_pml4 = (PageTable*) kernel::memory::request_page();
+                auto* new_pml4 = static_cast<PageTable*>(kernel::memory::request_page());
                 memset(new_pml4, 0, 0x1000);
                 new_pml4->entries[0] = kernel_pml4->entries[0];
 
@@ -172,13 +161,13 @@ void RealmManager::list() {
         if (begin & 1)          // Writer aktiv
             continue;
 
-        for (size_t i = 0; i < MAX_REALMS; i++) {
-            if (realms[i].active) {
+        for (const auto & realm : realms) {
+            if (realm.active) {
                 Log::PrintLn("Realm %u: name=%s, units=%llu/%llu",
-                    realms[i].id,
-                    realms[i].name,
-                    (uint64_t)realms[i].unit_count,
-                    (uint64_t)realms[i].max_units);
+                    realm.id,
+                    realm.name,
+                    static_cast<uint64_t>(realm.unit_count),
+                    static_cast<uint64_t>(realm.max_units));
             }
         }
 

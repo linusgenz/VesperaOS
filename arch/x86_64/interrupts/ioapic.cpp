@@ -23,6 +23,7 @@
 
 #include "ioapic.h"
 #include "../../../include/log.h"
+#include <kernel/memory.h>
 
 namespace arch::x86_64::interrupts::ioapic {
     static MADT::IoApic *find_ioapic_for_gsi(uint32_t gsi) {
@@ -57,7 +58,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static volatile uint32_t *map_ioapic(uintptr_t address) {
-        kernel::memory::map_memory((void *) address, (void *) address);
+        kernel::memory::map_memory(reinterpret_cast<void*>(address), reinterpret_cast<void*>(address));
         return reinterpret_cast<volatile uint32_t *>(address);
     }
 
@@ -66,11 +67,11 @@ namespace arch::x86_64::interrupts::ioapic {
         base[IOAPIC_WINDOW] = val;
     }
 
-    static void ioapic_set_redirect(MADT::IoApic *ioapic, uint32_t gsi, uint8_t vector, uint8_t dest_apic_id,
+    static void ioapic_set_redirect(const MADT::IoApic *ioapic, uint32_t gsi, uint8_t vector, uint8_t dest_apic_id,
                                     uint16_t flags) {
         volatile uint32_t *mmio = map_ioapic(ioapic->address);
-        uint32_t index = gsi - ioapic->gsi_base;
-        uint8_t reg = 0x10 + (index * 2);
+        const uint32_t index = gsi - ioapic->gsi_base;
+        const uint8_t reg = 0x10 + (index * 2);
 
         uint32_t low = vector;
         low |= 0 << 8; // delivery mode fixed

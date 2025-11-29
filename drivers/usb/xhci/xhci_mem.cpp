@@ -23,11 +23,11 @@
 
 #include <cstdint>
 
-#include "../../../kernel/include/memory.h"
-#include "../../../include/log.h"
+#include <kernel/memory.h>
+#include <log.h>
 
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
-    kernel::memory::map_range((void*)pci_bar_address, (void*)pci_bar_address, bar_size, (1ULL << PT_Flag::CacheDisabled));
+    kernel::memory::map_range((void*)pci_bar_address, (void*)pci_bar_address, bar_size, (1ULL << CacheDisabled));
 
     return pci_bar_address;
 }

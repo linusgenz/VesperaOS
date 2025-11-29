@@ -23,14 +23,14 @@
 
 #include "cstdint"
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../include/errno.h"
+#include "../../../include/errno.h"
 
 namespace syscalls::internal {
     int64_t sys_mkdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* path = reinterpret_cast<const char*>(arg0);
+        const auto path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 
-        int result = VFS::mkdir(path);
+        const int result = VFS::mkdir(path);
         return result < 0 ? -result : 0; // Negative result already uses errno codes
     }
 

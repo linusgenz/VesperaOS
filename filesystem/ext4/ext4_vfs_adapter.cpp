@@ -21,12 +21,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../vfs/fs_registry.h"
-#include "../vfs/vfs_node.h"
-#include "ext4.h"
 #include "ext4_vfs_adapter.h"
 #include <log.h>
 #include <string.h>
+#include <kernel/memory.h>
+
+#include "ext4.h"
+#include "../vfs/fs_registry.h"
+#include "../vfs/vfs_node.h"
 
 using namespace EXT4;
 
@@ -46,7 +48,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
     for (size_t i = 0; i < entryCount; i++) {
         const char* entryName = entries[i].GetName();
         if (strcmp(entryName, name) == 0) {
-            Ext4Node* childData = (Ext4Node*)kernel::memory::malloc(sizeof(Ext4Node));
+            auto* childData = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
             if (!childData) {
                 free(entries);
                 return nullptr;
@@ -64,7 +66,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
                      strcmp(dir->path, "/") == 0 ? "" : "/",
                      name);
 
-            VfsNode* child = (VfsNode*)malloc(sizeof(VfsNode));
+            auto* child = static_cast<VfsNode*>(malloc(sizeof(VfsNode)));
             if (!child) {
                 kernel::memory::free(childData);
                 free(entries);
@@ -139,7 +141,7 @@ static VfsNodeOps ext4_ops = {
 VfsNode* wrap_ext4_root(FileSystem *fs) {
     if (!fs) return nullptr;
 
-    Ext4Node* root = (Ext4Node*) kernel::memory::malloc(sizeof(Ext4Node));
+    auto* root = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
     root->fs = fs;
     root->isDir = true;
     root->inode = 2; // Root Inode EXT
@@ -150,7 +152,7 @@ VfsNode* wrap_ext4_root(FileSystem *fs) {
     root->entryCount = 0;
     root->currentIndex = 0;
 
-    VfsNode* node = (VfsNode*) kernel::memory::malloc(sizeof(VfsNode));
+    auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = "/";
     node->type = VfsNodeType::Directory;
     node->internal_data = root;
@@ -162,7 +164,7 @@ VfsNode* wrap_ext4_root(FileSystem *fs) {
 
 
 VfsNode *ext4_mount(BlockDevice *dev) {
-    FileSystem *fs = new FileSystem(dev);
+    auto *fs = new FileSystem(dev);
     Log::debug("ext4_mount valid? : %u", fs->is_valid());
     if (!fs->is_valid()) {
         delete fs;

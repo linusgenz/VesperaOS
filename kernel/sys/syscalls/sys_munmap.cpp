@@ -23,8 +23,8 @@
 
 #include <errno.h>
 #include <cstdint>
-#include <memory.h>
-#include <scheduling.h>
+#include <kernel/memory.h>
+#include <kernel/scheduling.h>
 
 namespace syscalls::internal {
     int64_t sys_munmap(uint64_t addr, uint64_t length, uint64_t, uint64_t, uint64_t, uint64_t) {

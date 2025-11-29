@@ -4,7 +4,7 @@
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 21.09.25.
+// Created by Linus Genz on 28.11.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,31 +21,176 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "realm.h"
-#include <log.h>
-/*
+#include <kernel/realm/realm.h>
+
+Realm::Realm()
+    : id(0), name(nullptr), capabilities(CAP_NONE),
+      memory_limit(0), max_units(0), unit_count(0),
+      unit_list(nullptr),
+      active(false), sched_priority(0), cpu_time_accumulated(0)
+{
+    const auto path = "/";
+    memcpy(cwd_path, path, strlen(path));
+    lock.init();
+    char buf[50];
+    snprintf(buf, sizeof(buf), "realm_%s:%u_lock", name, id);
+    char buf2[100];
+    snprintf(buf2, sizeof(buf), "realm_%s:%u_handle_table_lock", name, id); // TODO absichern
+    lock_debug_register(&lock, buf);
+    memset(&handle_table, 0, sizeof(handle_table));
+    lock_debug_register(&handle_table.lock, buf);
+    handle_table.lock.init();
+}
+
+ErrorCode Realm::init_handle_table() {
+    memset(&handle_table, 0, sizeof(handle_table_t));
+    handle_table.owner_realm = id;
+    return MOD_SUCCESS;
+}
+
+ErrorCode Realm::add_handle(uint64_t type, void *resource,
+                            CapabilitySet caps, bool transferable,
+                            void (*destroy)(void *), HandleID *out_h)
+{
+    spinlock_guard guard(lock);
+    int slot = find_free_slot();
+    if (slot < 0) {
+        return MOD_ERR_OUT_OF_MEMORY;
+    }
+
+    set_bit(slot);
+    handle_entry_t &he = handle_table.entries[slot];
+    he.hid = type | (HandleID) (slot & HANDLE_ID_MASK);
+    he.type = type;
+    he.resource = resource;
+    he.capabilities = caps;
+    he.refcount = 1;
+    he.transferable = transferable;
+    he.destroy = destroy;
+
+    *out_h = he.hid;
+    return MOD_SUCCESS;
+}
+
+ErrorCode Realm::add_handle_with_id(HandleID fixed_id, uint64_t type, void *resource,
+                                    CapabilitySet caps, bool transferable,
+                                    void (*destroy)(void *))
+{
+    uint64_t slot = fixed_id & HANDLE_ID_MASK;
+    if (slot >= MAX_HANDLES_PER_REALM) {
+        return MOD_ERR_INVALID_HANDLE;
+    }
+
+    spinlock_guard guard(lock);
+
+    if (test_bit(slot)) {
+        return MOD_ERR_INVALID_HANDLE;
+    }
+
+    set_bit(slot);
+    handle_entry_t &he = handle_table.entries[slot];
+    he.hid = fixed_id;
+    he.type = type;
+    he.resource = resource;
+    he.capabilities = caps;
+    he.refcount = 1;
+    he.transferable = transferable;
+    he.destroy = destroy;
+
+    return MOD_SUCCESS;
+}
+
+ErrorCode Realm::setup_standard_handles(TTYDevice *tty_dev) {
+    ErrorCode err = add_handle_with_id(
+        HANDLE_STDIN,
+        HANDLE_TYPE_TTY,
+        tty_dev,
+        CAP_READ,
+        false,
+        nullptr
+    );
+    if (err != MOD_SUCCESS) return err;
+
+    err = add_handle_with_id(
+        HANDLE_STDOUT,
+        HANDLE_TYPE_TTY,
+        tty_dev,
+        CAP_WRITE,
+        false,
+        nullptr
+    );
+    if (err != MOD_SUCCESS) return err;
+
+    err = add_handle_with_id(
+        HANDLE_STDERR,
+        HANDLE_TYPE_TTY,
+        tty_dev,
+        CAP_WRITE,
+        false,
+        nullptr
+    );
+    if (err != MOD_SUCCESS) return err;
+
+    return MOD_SUCCESS;
+}
+
 handle_entry_t* Realm::lookup_handle(HandleID hid) {
-    Log::PrintLn("Looking up handle: 0x%llx\n", hid);
+    uint64_t raw = hid & HANDLE_ID_MASK;
 
-    uint64_t raw = (uint64_t)(hid & HANDLE_ID_MASK);
-    Log::PrintLn("Raw slot: %llu\n", raw);
-
-    if (raw >= MAX_HANDLES_PER_REALM) {
-        Log::PrintLn("Slot too large: %llu >= %llu\n", raw, MAX_HANDLES_PER_REALM);
-        return nullptr;
-    }
-
-    if (!test_bit(raw)) {
-        Log::PrintLn("Bit not set for slot %llu\n", raw);
-        return nullptr;
-    }
+    if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
+    if (!test_bit(raw)) return nullptr;
 
     handle_entry_t &he = handle_table.entries[raw];
-    Log::PrintLn("Found entry with hid: 0x%llx, expected: 0x%llx\n", he.hid, hid);
-
-    if (he.hid != hid) {
-        Log::PrintLn("Handle ID mismatch!\n");
-        return nullptr;
-    }
+    if (he.hid != hid) return nullptr;
     return &he;
-}*/
+}
+
+void Realm::acquire_handle(HandleID hid) {
+    if (auto he = lookup_handle(hid)) {
+        __sync_add_and_fetch(&he->refcount, 1);
+    }
+}
+
+void Realm::release_handle(HandleID hid) {
+    handle_entry_t *he = lookup_handle(hid);
+    if (!he) return;
+
+    uint64_t v = __sync_sub_and_fetch(&he->refcount, 1);
+    if (v == 0) {
+        spinlock_guard guard(lock);
+        auto raw = (uint64_t) (he->hid & HANDLE_ID_MASK);
+        if (he->destroy && he->resource) he->destroy(he->resource);
+        memset(he, 0, sizeof(handle_entry_t));
+        clear_bit(raw);
+    }
+}
+
+void Realm::clear_handle_table() {
+    for (size_t i = 0; i < MAX_HANDLES_PER_REALM; ++i) {
+        if (test_bit(i)) {
+            handle_entry_t &he = handle_table.entries[i];
+            if (he.destroy && he.resource) he.destroy(he.resource);
+            clear_bit(i);
+            memset(&he, 0, sizeof(handle_entry_t));
+        }
+    }
+}
+
+bool Realm::test_bit(size_t i) const {
+    return (handle_table.bitmap[i >> 3] >> (i & 7)) & 1;
+}
+
+void Realm::set_bit(size_t i) {
+    handle_table.bitmap[i >> 3] |= (1 << (i & 7));
+}
+
+void Realm::clear_bit(size_t i) {
+    handle_table.bitmap[i >> 3] &= ~(1 << (i & 7));
+}
+
+int Realm::find_free_slot() const {
+    for (size_t i = 3; i < MAX_HANDLES_PER_REALM; ++i) {
+        if (!test_bit(i)) return (int) i;
+    }
+    return -1;
+}

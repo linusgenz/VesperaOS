@@ -6,7 +6,7 @@
 #define SPINLOCK_H
 #include <cstdint>
 
-#include "../debug/lock_debug.h"
+#include "../../../kernel/debug/lock_debug.h"
 
 struct spinlock_t {
     volatile uint32_t locked;

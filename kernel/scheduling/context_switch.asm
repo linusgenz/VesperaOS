@@ -118,6 +118,7 @@ hlt
     ret
 
 .resume_context:
+
     ; Ausführung geht hier weiter, wenn dieser Thread wieder eingeplant wird
     sti
     ret

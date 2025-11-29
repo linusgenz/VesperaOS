@@ -23,7 +23,8 @@
 
 #ifndef VESPERAOS_REENTRANT_SPINLOCK_H
 #define VESPERAOS_REENTRANT_SPINLOCK_H
-#include <basic_renderer.h>
+#include <kernel/basic_renderer.h>
+
 
 struct reentrant_spinlock_t {
     volatile uint32_t locked = 0;       // atomic lock

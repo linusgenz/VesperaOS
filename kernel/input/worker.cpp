@@ -21,19 +21,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <memory.h>
-#include <scheduling.h>
-#include <time.h>
+#include <kernel/scheduling.h>
 
-#include "input_manager.h"
-#include "../tty/tty.h"
-#include "../units/unit.h"
+#include <kernel/input/input_manager.h>
+#include <kernel/tty/tty.h>
 #include "../units/unit_manager.h"
 
 
 [[noreturn]] void input_poll_thread(void *arg) {
-    kernel::input::InputEvent ev;
-    memset(&ev, 0, sizeof(ev));
+    kernel::input::InputEvent ev{};
     while (true) {
         while (kernel::input::InputManager::pop_event(ev)) {
             kernel::tty::tty_handle_input(ev);
@@ -43,7 +39,7 @@
 }
 
 void initialize_input_bus() {
-    UnitConfig uc = {
+    constexpr UnitConfig uc = {
         .name = "input_bus",
         .cpu_id = 3,
         .priority = 5,
@@ -54,5 +50,5 @@ void initialize_input_bus() {
         .is_user = false,
         .user_stack_size = 0
     };
-    UnitManager::create(KERNEL_REALM_SYSTEM, (void *) input_poll_thread, nullptr, &uc);
+    UnitManager::create(KERNEL_REALM_SYSTEM, input_poll_thread, nullptr, &uc);
 }

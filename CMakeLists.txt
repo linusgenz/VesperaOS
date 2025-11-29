@@ -1,24 +1,14 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 4.0.2)
 project(VesperaOS C CXX ASM_NASM)
 
 enable_language(ASM_NASM)
 set(CMAKE_BUILD_TYPE Debug)
 
-# Compiler flags (kern- bzw. userspace-spezifische Flags werden in Unterverzeichnissen ergänzt)
-set(PROJECT_CXX_FLAGS "-ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall")
-set(PROJECT_C_FLAGS "-ffreestanding -fno-stack-protector -mno-red-zone -fshort-wchar -fno-exceptions -g -O0 -Wall")
-
-
-# Make the flags available to subdirs
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PROJECT_CXX_FLAGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PROJECT_C_FLAGS}")
-
 # Subdirectories
 add_subdirectory(kernel)
 add_subdirectory(userspace)
 
-
-# Bootloader (bleibt im Top-level)
+# Bootloader
 add_library(bootloader-lint STATIC
         ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.c
         arch/x86_64/boot/bss.cpp
@@ -35,7 +25,6 @@ add_custom_target(bootloader
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Building bootloader"
 )
-
 
 # splash.h
 add_custom_command(
@@ -56,7 +45,7 @@ add_custom_command(
 add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 
 
-# Disk image target (hängt jetzt nur noch von Zielen in kernel/ und userspace/ ab)
+# Disk image target
 set(BOOTLOADER_EFI ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.efi)
 set(IMG_SIZE 400000)
 set(EFI_DIR mnt/EFI/BOOT)
@@ -86,7 +75,7 @@ add_custom_target(test
         -smp 8
         -machine q35
         -enable-kvm
-        -cpu host
+        -cpu qemu64
         #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         #  -device nvme,drive=host0,serial=deadbeef
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd

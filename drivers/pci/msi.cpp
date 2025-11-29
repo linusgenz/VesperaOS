@@ -21,16 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <kernel/interrupts.h>
+
 #include "msi.h"
 #include "../../include/log.h"
-#include "../../arch/x86_64/interrupts/apic.h"
-#include "../../kernel/include/interrupts.h"
 #include "pci.h"
 
 namespace PCI {
 
     bool enable_msi(PCIHeader0* header, uint8_t irq_vector) {
-        uint8_t* config_space = reinterpret_cast<uint8_t*>(&header->header);
+        auto* config_space = reinterpret_cast<uint8_t*>(&header->header);
 
         if (!(header->header.status & (1 << 4))) {
             Log::Error("PCI: No capabilities present");
@@ -43,8 +43,8 @@ namespace PCI {
             uint8_t cap_id = config_space[cap_ptr];
             uint8_t next_ptr = config_space[cap_ptr + 1];
 
-            if (cap_id == PCI::MSI_CAPABILITY_ID) {
-                volatile pci_msi_capability* msi_cap =
+            if (cap_id == MSI_CAPABILITY_ID) {
+                volatile auto* msi_cap =
                     reinterpret_cast<volatile pci_msi_capability*>(&config_space[cap_ptr]);
 
                 uint16_t control = msi_cap->message_control;

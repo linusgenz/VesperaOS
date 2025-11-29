@@ -1,4 +1,4 @@
-#include "../memory/page_map_indexer.h"
+#include "page_map_indexer.h"
 
 PageMapIndexer::PageMapIndexer(uint64_t virtualAddress) {
     virtualAddress >>= 12;

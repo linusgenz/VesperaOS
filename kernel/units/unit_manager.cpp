@@ -24,20 +24,22 @@
 #include "unit_manager.h"
 
 #include <log.h>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 #include "../scheduling/schedule_manager.h"
-#include "../system/system_manager.h"
+#include <kernel/system/system_manager.h>
 
 Unit UnitManager::units[MAX_UNITS];
 spinlock_t UnitManager::global_lock;
 UnitID UnitManager::next_id = 1;
 
-void UnitManager::initialize() {
+void UnitManager::initialize()
+{
     global_lock.init();
     lock_debug_register(&global_lock, "unit_manager_lock");
-    for (auto &unit: units) {
+    for (auto& unit : units)
+    {
         unit.active = false;
         unit.id = 0;
         unit.rid = 0;
@@ -46,51 +48,61 @@ void UnitManager::initialize() {
     next_id = 1;
 }
 
-UnitID UnitManager::allocate_id() {
+UnitID UnitManager::allocate_id()
+{
     return next_id++;
 }
 
 // Schreibe Pointer direkt in den Userstack
-static void write_user_ptr(Unit *u, uintptr_t addr, uintptr_t val) {
-    uintptr_t offset = addr - (uintptr_t) u->context.user_stack;
-    if (offset + sizeof(uintptr_t) > u->context.user_stack_size) {
+static void write_user_ptr(Unit* u, uintptr_t addr, uintptr_t val)
+{
+    uintptr_t offset = addr - reinterpret_cast<uintptr_t>(u->context.user_stack);
+    if (offset + sizeof(uintptr_t) > u->context.user_stack_size)
+    {
         return;
     }
-    *(uintptr_t *) (u->context.user_stack + offset) = val;
+    *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(u->context.user_stack) + offset) = val;
 }
 
 // Kopiere Daten direkt in User-Stack
-static void memcpy_to_user(Unit *u, void *dest, const void *src, size_t len) {
-    uintptr_t offset = (uintptr_t) dest - (uintptr_t) u->context.user_stack;
-    if (offset + len > u->context.user_stack_size) return; // Fehlercheck
-    memcpy((uint8_t *) u->context.user_stack + offset, src, len);
+static void memcpy_to_user(Unit* u, void* dest, const void* src, size_t len)
+{
+    uintptr_t offset = reinterpret_cast<uintptr_t>(dest) - reinterpret_cast<uintptr_t>(u->context.user_stack);
+    if (offset + len > u->context.user_stack_size) return;
+    memcpy(static_cast<uint8_t*>(u->context.user_stack) + offset, src, len);
 }
 
 // TODO integrate
-uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
-    uintptr_t sp = (uintptr_t) u->context.user_stack_top;
+uintptr_t SetupUserArgsAndEnv(Unit* u, const char** argv, const char** envp)
+{
+    auto sp = reinterpret_cast<uintptr_t>(u->context.user_stack_top);
 
-    const char *argv_user[16];
-    const char *envp_user[16];
+    const char* argv_user[16];
+    const char* envp_user[16];
 
     // --- envp ---
     size_t envc = 0;
     while (envp && envp[envc] && envc < 16) envc++;
 
-    for (ssize_t i = envc - 1; i >= 0; i--) {
-        size_t len = strlen(envp[i]) + 1;
+    for (size_t i = envc; i > 0; i--)
+    {
+        const size_t idx = i - 1;
+        const size_t len = strlen(envp[idx]) + 1;
         sp -= len;
-        sp &= ~0xF; // 16-byte alignment
-        memcpy_to_user(u, (void *) sp, envp[i], len);
-        envp_user[i] = (const char *) sp;
+        sp &= ~0xF;
+        memcpy_to_user(u, reinterpret_cast<void*>(sp), envp[idx], len);
+        envp_user[idx] = reinterpret_cast<const char*>(sp);
     }
+
 
     sp -= sizeof(uintptr_t);
     write_user_ptr(u, sp, 0);
 
-    for (ssize_t i = envc - 1; i >= 0; i--) {
+    for (size_t i = envc; i > 0; i--)
+    {
+        const size_t idx = i - 1;
         sp -= sizeof(uintptr_t);
-        write_user_ptr(u, sp, (uintptr_t) envp_user[i]);
+        write_user_ptr(u, sp, reinterpret_cast<uintptr_t>(envp_user[idx]));
     }
     uintptr_t envp_ptr = sp;
 
@@ -98,20 +110,24 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
     size_t argc = 0;
     while (argv && argv[argc] && argc < 16) argc++;
 
-    for (ssize_t i = argc - 1; i >= 0; i--) {
-        size_t len = strlen(argv[i]) + 1;
+    for (size_t i = argc; i > 0; i--)
+    {
+        const size_t idx = i - 1;
+        size_t len = strlen(argv[idx]) + 1;
         sp -= len;
         sp &= ~0xF;
-        memcpy_to_user(u, (void *) sp, argv[i], len);
-        argv_user[i] = (const char *) sp;
+        memcpy_to_user(u, reinterpret_cast<void*>(sp), argv[idx], len);
+        argv_user[idx] = reinterpret_cast<const char*>(sp);
     }
 
     sp -= sizeof(uintptr_t);
     write_user_ptr(u, sp, 0);
 
-    for (ssize_t i = argc - 1; i >= 0; i--) {
+    for (size_t i = argc; i > 0; i--)
+    {
+        const size_t idx = i - 1;
         sp -= sizeof(uintptr_t);
-        write_user_ptr(u, sp, (uintptr_t) argv_user[i]);
+        write_user_ptr(u, sp, reinterpret_cast<uintptr_t>(argv_user[idx]));
     }
     uintptr_t argv_ptr = sp;
 
@@ -121,23 +137,26 @@ uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp) {
     u->context.regs.rdi = argc;
     u->context.regs.rsi = argv_ptr;
     u->context.regs.rdx = envp_ptr;
-    u->context.user_stack_pointer = (void *) sp;
+    u->context.user_stack_pointer = reinterpret_cast<void*>(sp);
 
     return sp;
 }
 
 
-Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const UnitConfig *cfg) {
+Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, const UnitConfig* cfg)
+{
     if (!cfg || !entry_point) return nullptr;
 
-    Realm *realm = RealmManager::get(realm_id);
+    Realm* realm = RealmManager::get(realm_id);
     if (!realm || !realm->active) return nullptr;
 
     spinlock_guard g(global_lock);
 
-    for (auto &i: units) {
-        if (!i.active) {
-            Unit *u = &i;
+    for (auto& i : units)
+    {
+        if (!i.active)
+        {
+            Unit* u = &i;
 
             u->id = allocate_id();
             u->rid = realm_id;
@@ -156,7 +175,7 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
             u->handle_count = cfg->initial_handle_count;
 
             // ExecutionContext
-            u->context.entry = (void(*)(void *)) entry_point;
+            u->context.entry = entry_point;
             u->context.arg = arg;
 
             u->context.regs.rdx = reinterpret_cast<uint64_t>(realm->envp); // 3rd arg for entry
@@ -164,50 +183,60 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
             uint64_t stack_size = cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE;
 
 
-            if (u->is_user) {
+            if (u->is_user)
+            {
                 uint64_t user_stack_size = cfg->user_stack_size
                                                ? cfg->user_stack_size
                                                : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
                 u->context.user_stack = kernel::memory::request_pages((user_stack_size + 0xFFF) / 0x1000);
-                if (!u->context.user_stack) {
+                if (!u->context.user_stack)
+                {
                     u->active = false;
                     return nullptr;
                 }
                 kernel::memory::map_range(u->context.user_stack, u->context.user_stack, user_stack_size,
                                           (1ULL << PT_Flag::UserSuper));
                 u->context.user_stack_size = user_stack_size;
-                u->context.user_stack_top = (void *) ((uintptr_t) u->context.user_stack + user_stack_size);
+                u->context.user_stack_top = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(u->context.user_stack) +
+                    user_stack_size);
                 u->context.user_stack_pointer = u->context.user_stack_top;
             }
 
             u->context.stack = kernel::memory::request_pages((stack_size + 0xFFF) / 0x1000);
-            if (!u->context.stack) {
+            if (!u->context.stack)
+            {
                 u->active = false;
                 return nullptr;
             }
             kernel::memory::map_range(u->context.stack, u->context.stack, stack_size);
             u->context.stack_size = stack_size;
-            u->context.stack_top = (void *) ((uintptr_t) u->context.stack + stack_size);
+            u->context.stack_top = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(u->context.stack) + stack_size);
             u->context.stack_pointer = u->context.stack_top;
 
-            if (u->is_idle || u->is_kernel) {
+            if (u->is_idle || u->is_kernel)
+            {
                 setup_kernel_unit_stack(u);
-            } else if (u->is_user) {
+            }
+            else if (u->is_user)
+            {
                 setup_user_unit_stack(u);
             }
 
-            if (cfg->initial_handles && cfg->initial_handle_count > 0) {
-                for (uint64_t j = 0; j < cfg->initial_handle_count; ++j) {
+            if (cfg->initial_handles && cfg->initial_handle_count > 0)
+            {
+                for (uint64_t j = 0; j < cfg->initial_handle_count; ++j)
+                {
                     HandleID h = cfg->initial_handles[j];
                     // Validate: handle exists in realm handle table & capability checks can be applied
-                    if (const handle_entry_t *he = realm->lookup_handle(h); !he) continue; // skip invalid handle
+                    if (const handle_entry_t* he = realm->lookup_handle(h); !he) continue; // skip invalid handle
 
                     u->attach_handle(h);
                     realm->acquire_handle(h);
                 }
             }
 
-            if (!u->is_idle && cfg->auto_schedule) {
+            if (!u->is_idle && cfg->auto_schedule)
+            {
                 kernel::scheduling::add_unit(u);
             }
 
@@ -225,29 +254,38 @@ Unit *UnitManager::create(RealmID realm_id, void *entry_point, void *arg, const 
     return nullptr; // kein freier Slot
 }
 
-Unit *UnitManager::get(const UnitID id) {
+Unit* UnitManager::get(const UnitID id)
+{
     spinlock_guard g(global_lock);
-    for (auto &unit: units) {
-        if (unit.active && unit.id == id) {
+    for (auto& unit : units)
+    {
+        if (unit.active && unit.id == id)
+        {
             return &unit;
         }
     }
     return nullptr;
 }
 
-bool UnitManager::destroy(const UnitID id) {
+bool UnitManager::destroy(const UnitID id)
+{
     spinlock_guard g(global_lock);
 
-    for (auto &i: units) {
-        if (i.active && i.id == id) {
-            Unit *u = &i;
+    for (auto& i : units)
+    {
+        if (i.active && i.id == id)
+        {
+            Unit* u = &i;
 
-            Realm *r = RealmManager::get(u->rid);
-            if (r) {
+            Realm* r = RealmManager::get(u->rid);
+            if (r)
+            {
                 spinlock_guard rg(r->lock);
-                Unit **prev = &r->unit_list;
-                while (*prev) {
-                    if (*prev == u) {
+                Unit** prev = &r->unit_list;
+                while (*prev)
+                {
+                    if (*prev == u)
+                    {
                         *prev = u->realm_next;
                         r->unit_count--;
                         break;
@@ -258,14 +296,16 @@ bool UnitManager::destroy(const UnitID id) {
 
             u->detach_all_handles();
 
-            if (u->context.stack) {
+            if (u->context.stack)
+            {
                 size_t pages = (u->context.stack_size + 0xFFF) / 0x1000;
                 kernel::memory::unmap_range(u->context.stack, u->context.stack_size);
                 kernel::memory::free_pages(u->context.stack, pages);
                 u->context.stack = nullptr;
             }
 
-            if (u->is_user && u->context.user_stack) {
+            if (u->is_user && u->context.user_stack)
+            {
                 size_t user_pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
                 kernel::memory::unmap_range(u->context.user_stack, u->context.user_stack_size);
                 kernel::memory::free_pages(u->context.user_stack, user_pages);
@@ -299,10 +339,13 @@ bool UnitManager::destroy(const UnitID id) {
     return false;
 }
 
-void UnitManager::list() {
+void UnitManager::list()
+{
     spinlock_guard g(global_lock);
-    for (const auto &unit: units) {
-        if (unit.active) {
+    for (const auto& unit : units)
+    {
+        if (unit.active)
+        {
             Log::PrintLn("Unit %u (Realm %u): name=%s",
                          unit.id,
                          unit.rid,
@@ -312,8 +355,12 @@ void UnitManager::list() {
 }
 
 
-void UnitManager::setup_kernel_unit_stack(Unit *u) {
-    auto *sp = static_cast<uintptr_t *>(u->context.stack_pointer);
+void UnitManager::setup_kernel_unit_stack(Unit* u)
+{
+    auto sp_val = reinterpret_cast<uintptr_t>(u->context.stack_top);
+
+    sp_val = (sp_val & ~0xF) - 8; // we have to do this, so when we enter the actual unit, the stack is 16 byte aligned
+    auto* sp = reinterpret_cast<uintptr_t*>(sp_val);
 
     // Setup stack for context switching
     *(--sp) = reinterpret_cast<uintptr_t>(kernel::scheduling::manager::unit_trampoline); // Return RIP
@@ -323,13 +370,14 @@ void UnitManager::setup_kernel_unit_stack(Unit *u) {
     *(--sp) = 0; // R13
     *(--sp) = 0; // R12
     *(--sp) = 0; // RBX
-    *(--sp) = 0; // RBP
+    *(--sp) = reinterpret_cast<uintptr_t>(u->context.stack_pointer); // RBP
 
     u->context.stack_pointer = sp;
 }
 
-void UnitManager::setup_user_unit_stack(Unit *u) {
-    auto *sp = static_cast<uintptr_t *>(u->context.stack_pointer);
+void UnitManager::setup_user_unit_stack(Unit* u)
+{
+    auto* sp = static_cast<uintptr_t*>(u->context.stack_pointer);
 
     *(--sp) = 0x23;
     *(--sp) = reinterpret_cast<uintptr_t>(u->context.user_stack_top);

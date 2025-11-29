@@ -22,13 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "cstdint"
-#include "../../include/errno.h"
+#include "../../../include/errno.h"
 #include "../../../filesystem/vfs/vfs.h"
 
 namespace syscalls::internal {
     int64_t sys_rename(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* oldPath = reinterpret_cast<const char*>(arg0);
-        const char* newPath = reinterpret_cast<const char*>(arg1);
+        const auto oldPath = reinterpret_cast<const char*>(arg0);
+        const auto newPath = reinterpret_cast<const char*>(arg1);
         return VFS::rename(oldPath, newPath);
     }
 }

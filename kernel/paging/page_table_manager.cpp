@@ -1,7 +1,8 @@
-#include "../memory/page_table_manager.h"
-#include "../memory/page_map_indexer.h"
-#include "../include/memory.h"
+#include "page_table_manager.h"
+#include "page_map_indexer.h"
 #include <cstdint>
+#include <kernel/memory.h>
+
 #include "../../include/log.h"
 
 PageTableManager::PageTableManager(PageTable *PML4Address) {
@@ -16,7 +17,7 @@ void PageTableManager::map_range(void *virt_start, void *phys_start, size_t size
     }
 }
 
-static inline void invlpg(void* addr) {
+static void invlpg(void* addr) {
     asm volatile("invlpg (%0)" : : "r"(addr) : "memory");
 }
 
@@ -27,10 +28,10 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
         PageDirectoryEntry &entry = parent->entries[index];
 
         if (!entry.get_flag(PT_Flag::Present)) {
-            PageTable *new_table = (PageTable *) kernel::memory::request_page();
+            auto *new_table = static_cast<PageTable*>(kernel::memory::request_page());
             if (!new_table) return nullptr;
             memset(new_table, 0, 0x1000);
-            entry.set_address((uint64_t) new_table >> 12);
+            entry.set_address(reinterpret_cast<uint64_t>(new_table) >> 12);
         }
         // Immer die Flags korrekt setzen
         entry.set_flag(PT_Flag::Present, true);

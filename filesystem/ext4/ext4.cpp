@@ -24,9 +24,8 @@
 #include "ext4.h"
 
 #include <log.h>
-#include <memory.h>
-#include <string.h>
 #include <vector.h>
+#include <kernel/memory.h>
 
 namespace EXT4 {
     FileSystem::FileSystem(BlockDevice *device) {
@@ -71,9 +70,9 @@ namespace EXT4 {
             gd_table_block = 1;
         }
 
-        uint64_t gd_offset_bytes = (uint64_t) gd_table_block * bsize + (uint64_t) group * sizeof(GroupDesc);
-        uint64_t startSector = gd_offset_bytes / sectorSize;
-        uint32_t cnt = (sizeof(GroupDesc) + sectorSize - 1) / sectorSize;
+        const uint64_t gd_offset_bytes = gd_table_block * bsize + static_cast<uint64_t>(group) * sizeof(GroupDesc);
+        const uint64_t startSector = gd_offset_bytes / sectorSize;
+        const uint32_t cnt = (sizeof(GroupDesc) + sectorSize - 1) / sectorSize;
 
         Log::debug("[ext4] read_group_desc: group=%u bsize=%u gd_table_block=%llu",
                    group, bsize, (unsigned long long) gd_table_block);
@@ -82,7 +81,7 @@ namespace EXT4 {
                    (unsigned long long) startSector,
                    cnt);
 
-        uint8_t *buf = (uint8_t *) kernel::memory::malloc(cnt * sectorSize);
+        auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(cnt * sectorSize));
         if (!buf) {
             Log::debug("[ext4] read_group_desc: malloc failed (cnt=%u, sectorSize=%u)", cnt, sectorSize);
             return false;
@@ -117,7 +116,7 @@ namespace EXT4 {
         Log::debug("[ext4] read_inode: inode_no=%u inodes_per_group=%u group=%u index=%u",
                    inode_no, inodes_per_group, group, index);
 
-        GroupDesc gd;
+        GroupDesc gd{};
         if (!read_group_desc(group, gd)) {
             Log::debug("[ext4] read_inode: read_group_desc failed for group=%u", group);
             return false;
@@ -131,14 +130,14 @@ namespace EXT4 {
             Log::debug("[ext4] read_inode: using fallback inode_table_block=%llu", inode_table_block);
         }
 
-        uint32_t inode_size = (superblock.s_inode_size == 0) ? 128 : superblock.s_inode_size;
-        uint64_t inode_table_offset = (uint64_t) inode_table_block * get_block_size();
-        uint64_t inode_offset = inode_table_offset + (uint64_t) index * inode_size;
+        const uint32_t inode_size = (superblock.s_inode_size == 0) ? 128 : superblock.s_inode_size;
+        const uint64_t inode_table_offset = inode_table_block * get_block_size();
+        const uint64_t inode_offset = inode_table_offset + static_cast<uint64_t>(index) * inode_size;
 
         uint64_t startSector = inode_offset / sectorSize;
         uint32_t count = (inode_size + sectorSize - 1) / sectorSize;
 
-        uint8_t *buf = (uint8_t *) kernel::memory::malloc(count * sectorSize);
+        auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(count * sectorSize));
         if (!buf) return false;
 
         if (!device->read(startSector, count, buf)) {
@@ -158,19 +157,19 @@ namespace EXT4 {
 
 
     bool FileSystem::parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &outExtents) {
-        ExtentHeader eh;
+        ExtentHeader eh{};
         memcpy(&eh, &inode.i_block[0], sizeof(ExtentHeader));
         if (eh.eh_magic != EXT4_EXTENT_MAGIC) return false;
 
         // if depth != 0 we would have to walk tree via index nodes (not implemented here)
         if (eh.eh_depth != 0) return false;
 
-        uint8_t *base = (uint8_t *) &inode.i_block[0] + sizeof(ExtentHeader);
+        const uint8_t *base = reinterpret_cast<uint8_t*>(&inode.i_block[0]) + sizeof(ExtentHeader);
         for (int i = 0; i < eh.eh_entries; ++i) {
-            Extent ex;
+            Extent ex{};
             memcpy(&ex, base + i * sizeof(Extent), sizeof(Extent));
-            uint64_t start = ((uint64_t) ex.ee_start_hi << 32) | ex.ee_start_lo;
-            uint32_t len = ex.ee_len & 0xFFFF;
+            const uint64_t start = (static_cast<uint64_t>(ex.ee_start_hi) << 32) | ex.ee_start_lo;
+            const uint32_t len = ex.ee_len & 0xFFFF;
             outExtents.push_back({len, start});
         }
         return true;
@@ -179,17 +178,17 @@ namespace EXT4 {
     bool FileSystem::map_logical_to_physical(Inode &inode, uint32_t lblock, uint64_t &out_pblock) {
         Vector<Ext4ExtentMap> exts;
         if (parse_extents_from_inode(inode, exts)) {
-            ExtentHeader eh;
+            ExtentHeader eh{};
             memcpy(&eh, &inode.i_block[0], sizeof(ExtentHeader));
             if (eh.eh_depth != 0) return false; // not handling interior nodes
-            uint8_t *ptr = (uint8_t *) &inode.i_block[0] + sizeof(ExtentHeader);
+            uint8_t *ptr = reinterpret_cast<uint8_t*>(&inode.i_block[0]) + sizeof(ExtentHeader);
             uint32_t cur_log = 0;
             for (int i = 0; i < eh.eh_entries; ++i) {
-                Extent ex;
+                Extent ex{};
                 memcpy(&ex, ptr + i * sizeof(Extent), sizeof(Extent));
                 uint32_t ee_block = ex.ee_block;
                 uint32_t len = ex.ee_len & 0xFFFF;
-                uint64_t start = ((uint64_t) ex.ee_start_hi << 32) | ex.ee_start_lo;
+                uint64_t start = (static_cast<uint64_t>(ex.ee_start_hi) << 32) | ex.ee_start_lo;
                 // extent maps logical blocks starting at ee_block for len blocks to phys start
                 if (lblock >= ee_block && lblock < ee_block + len) {
                     uint64_t offset = lblock - ee_block;
@@ -216,7 +215,7 @@ namespace EXT4 {
 
         Log::debug("[ext4] read_directory: inodeNumber=%u", inodeNumber);
 
-        Inode dirInode;
+        Inode dirInode{};
         if (!read_inode(inodeNumber, dirInode)) {
             Log::debug("[ext4] read_inode failed for inode %u", inodeNumber);
             return nullptr;
@@ -227,7 +226,7 @@ namespace EXT4 {
             return nullptr;
         }
 
-        FileEntry* entries = static_cast<FileEntry*>(malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
+        auto* entries = static_cast<FileEntry*>(malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
         if (!entries) {
             Log::debug("[ext4] malloc failed for directory entries");
             return nullptr;
@@ -251,7 +250,7 @@ namespace EXT4 {
 
             size_t offset = 0;
             while (offset + sizeof(DirEntry) <= get_block_size() && outCount < READ_DIR_MAX_ENTRIES) {
-                auto* de = reinterpret_cast<DirEntry*>(buf.data() + offset);
+                const auto* de = reinterpret_cast<DirEntry*>(buf.data() + offset);
                 if (de->inode == 0 || de->rec_len == 0) break;
 
                 FileEntry& fe = entries[outCount++];
@@ -269,6 +268,5 @@ namespace EXT4 {
 
 
 
-    FileSystem::~FileSystem() {
-    }
+    FileSystem::~FileSystem() = default;
 }

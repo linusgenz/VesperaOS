@@ -26,13 +26,13 @@
 PartitionDevice::PartitionDevice(BlockDevice* parent_, uint64_t start_lba_, uint64_t length_lba_)
     : parent(parent_), start_lba(start_lba_), length_lba(length_lba_) { }
 
-bool PartitionDevice::read(uint64_t lba, uint32_t count, void* buf) {
+bool PartitionDevice::read(const uint64_t lba, const uint32_t count, void* buf) {
     if (!parent) return false;
     if (lba + count > length_lba) return false;
     return parent->read(start_lba + lba, count, buf);
 }
 
-bool PartitionDevice::write(uint64_t lba, uint32_t count, void* buf) {
+bool PartitionDevice::write(const uint64_t lba, const uint32_t count, void* buf) {
     if (!parent) return false;
     if (lba + count > length_lba) return false;
     return parent->write(start_lba + lba, count, buf);}

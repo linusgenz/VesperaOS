@@ -25,10 +25,13 @@
 
 #include "../../cpu/cpu_manager.h"
 #include "cpuinfo.h"
-#include "../cpu/cpu.h"
+
+#include <kernel/memory.h>
+
+#include "../../cpu/cpu.h"
 
 CPUInfoDevice::CPUInfoDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, VIRTUAL) {}
 
 int CPUInfoDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;
@@ -37,10 +40,6 @@ int CPUInfoDevice::open(CharFile** out_cf) {
 
 int CPUInfoDevice::release(CharFile*) {
     return 0;
-}
-
-void test(char* brand) {
-    while (1);
 }
 
 size_t CPUInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {

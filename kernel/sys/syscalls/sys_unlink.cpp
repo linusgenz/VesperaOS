@@ -23,14 +23,14 @@
 
 #include "cstdint"
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../include/errno.h"
+#include "../../../include/errno.h"
 
 namespace syscalls::internal {
     int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* path = reinterpret_cast<const char*>(path_ptr);
+        const auto path = reinterpret_cast<const char*>(path_ptr);
         if (!path) return -EINVAL;
 
-        int result = VFS::unlink(path);
+        const int result = VFS::unlink(path);
         return result < 0 ? -ENOENT : 0;
     }
 

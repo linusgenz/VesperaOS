@@ -1,10 +1,10 @@
-#include "../include/memory.h"
+#include <kernel/memory.h>
 
 #include <log.h>
 
-#include "page_frame_allocator.h"
-#include "page_table_manager.h"
-#include "../include/basic_renderer.h"
+#include "../paging/page_frame_allocator.h"
+#include "../paging/page_table_manager.h"
+#include <kernel/basic_renderer.h>
 
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR *mMap, uint64_t mMapEntries, uint64_t mMapDescSize) {
     uint64_t memory_size_bytes = 0; // static
@@ -22,21 +22,21 @@ uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR *mMap, uint64_t mMapEntries, uint
 
 void memset(void *dest, uint8_t val, uint64_t num) {
     for (uint64_t i = 0; i < num; i++) {
-        *(uint8_t *) ((uint64_t) dest + i) = val;
+        *reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(dest) + i) = val;
     }
 }
 
 void *memcpy(void *dest, const void *src, size_t len) {
-    char *d = (char *) dest;
-    const char *s = (char *) src;
+    auto *d = static_cast<char*>(dest);
+    auto *s = static_cast<const char*>(src);
     while (len--)
         *d++ = *s++;
     return dest;
 }
 
-int memcmp(const void *ptr1, const void *ptr2, size_t num) {
-    const uint8_t *a = (const uint8_t *) ptr1;
-    const uint8_t *b = (const uint8_t *) ptr2;
+int memcmp(const void *ptr1, const void *ptr2, const size_t num) {
+    const auto *a = static_cast<const uint8_t*>(ptr1);
+    const auto *b = static_cast<const uint8_t*>(ptr2);
     for (size_t i = 0; i < num; i++) {
         if (a[i] != b[i])
             return (a[i] < b[i]) ? -1 : 1;
@@ -45,14 +45,13 @@ int memcmp(const void *ptr1, const void *ptr2, size_t num) {
 }
 
 void *memmove(void *dest, const void *src, size_t len) {
-    char *d = (char *) dest;
-    const char *s = (char *) src;
-    if (d < s)
+    auto *d = static_cast<char*>(dest);
+    if (auto s = static_cast<const char*>(src); d < s)
         while (len--)
             *d++ = *s++;
     else {
-        char *lasts = (char *) (s + (len - 1));
-        char *lastd = (char *) (d + (len - 1));
+        auto lasts = const_cast<char*>(s + (len - 1));
+        auto *lastd = d + (len - 1);
         while (len--)
             *lastd-- = *lasts--;
     }
@@ -65,20 +64,20 @@ namespace kernel::memory {
 
     // Page Table Manager
     void initialize_page_table_manager() {
-        auto *PML4 = (PageTable *) request_page();
+        auto *PML4 = static_cast<PageTable*>(request_page());
         memset(PML4, 0, 0x1000);
         page_table_manager = PageTableManager(PML4);
     }
 
-    void map_memory(void *virtual_addr, void *physical_addr, uint64_t flags) {
+    void map_memory(void *virtual_addr, void *physical_addr, const uint64_t flags) {
         page_table_manager.map_memory(virtual_addr, physical_addr, flags);
     }
 
-    void set_user_flags(void *virtual_memory, size_t size) {
+    void set_user_flags(void *virtual_memory, const size_t size) {
         page_table_manager.set_user_flags(virtual_memory, size);
     }
 
-    void map_range(void *virt_start, void *phys_start, size_t size, uint64_t flags) {
+    void map_range(void *virt_start, void *phys_start, const size_t size, const uint64_t flags) {
         page_table_manager.map_range(virt_start, phys_start, size, flags);
     }
 
@@ -86,7 +85,7 @@ namespace kernel::memory {
         page_table_manager.unmap_memory(virtual_addr);
     }
 
-    void unmap_range(void *virt_start, size_t size) {
+    void unmap_range(void *virt_start, const size_t size) {
         page_table_manager.unmap_range(virt_start, size);
     }
 
@@ -103,8 +102,8 @@ namespace kernel::memory {
     }
 
     // Page Frame Allocator
-    void initialize_page_frame_allocator(void *efi_memory_map, size_t map_size, size_t desc_size) {
-        page_frame_allocator.read_efi_memory_map((EFI_MEMORY_DESCRIPTOR *) efi_memory_map, map_size, desc_size);
+    void initialize_page_frame_allocator(void *efi_memory_map, const size_t map_size, const size_t desc_size) {
+        page_frame_allocator.read_efi_memory_map(static_cast<EFI_MEMORY_DESCRIPTOR*>(efi_memory_map), map_size, desc_size);
     }
 
     void lock_page(void *virtual_addr) {
@@ -123,12 +122,12 @@ namespace kernel::memory {
         return page_frame_allocator.request_page();
     }
 
-    void free_page(void *address) {
-        page_frame_allocator.free_page(address);
+    void free_page(void *virtual_addr) {
+        page_frame_allocator.free_page(virtual_addr);
     }
 
-    void free_pages(void *address, uint64_t page_count) {
-        page_frame_allocator.free_pages(address, page_count);
+    void free_pages(void *virtual_addr, const uint64_t page_count) {
+        page_frame_allocator.free_pages(virtual_addr, page_count);
     }
 
 
@@ -159,19 +158,19 @@ namespace kernel::memory {
         heap_initialized = true;
     }
 
-    void *malloc(size_t size) {
+    void *malloc(const size_t size) {
         if (!heap_initialized) return nullptr;
         spinlock_guard guard(heap_lock);
         return ::malloc(size);
     }
 
-    void free(void *ptr) {
+    void free(void *addr) {
         if (!heap_initialized) return;
         spinlock_guard guard(heap_lock);
-        ::free(ptr);
+        ::free(addr);
     }
 
-    void *alloc_aligned(size_t size, size_t alignment, size_t boundary) {
+    void *alloc_aligned(const size_t size, const size_t alignment, const size_t boundary) {
         if (!heap_initialized) return nullptr;
         spinlock_guard guard(heap_lock);
         return ::alloc_aligned(size, alignment, boundary);
@@ -188,7 +187,7 @@ namespace kernel::memory {
         ::print_heap_stats();
     }
 
-    void *realloc(void *old_ptr, size_t old_size, size_t new_size) {
+    void *realloc(void *old_ptr, const size_t old_size, const size_t new_size) {
         if (!heap_initialized) return nullptr;
         spinlock_guard guard(heap_lock);
         return ::realloc(old_ptr, old_size, new_size);

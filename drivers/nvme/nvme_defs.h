@@ -247,7 +247,7 @@ namespace NVMe {
 
         NvmeQueue() = default;
 
-        long Consume(NvmeCommand &cmd);
+        static long Consume(NvmeCommand &cmd);
 
         void Submit(NvmeCommand &cmd);
 

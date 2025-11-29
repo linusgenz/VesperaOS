@@ -22,20 +22,20 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 #include "../../types/types.h"
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
     int64_t sys_ioctl(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
         HandleID hid   = arg0;
-        uint64_t req = static_cast<unsigned long>(arg1);
-        void* arg      = reinterpret_cast<void*>(arg2);
+        uint64_t req = arg1;
+        auto arg      = reinterpret_cast<void*>(arg2);
 
-        Unit* u = kernel::scheduling::get_current_unit();
+        const Unit* u = kernel::scheduling::get_current_unit();
         if (!u || !u->active) return -EINVAL;
 
         Realm* realm = RealmManager::get(u->rid);
@@ -50,7 +50,7 @@ namespace syscalls::internal {
 
         switch (he->type & HANDLE_TYPE_MASK) {
             case HANDLE_TYPE_DEVICE: {
-                VfsHandle* vh = static_cast<VfsHandle*>(he->resource);
+                const auto* vh = static_cast<VfsHandle*>(he->resource);
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->ioctl)
                     return -ENOTTY;
                 return vh->node->ops->ioctl(vh->node, req, arg);

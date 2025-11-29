@@ -23,6 +23,8 @@
 
 #include "log_device.h"
 
+#include <errno.h>
+
 int LogDevice::open(CharFile** out_cf) {
     if (!out_cf) return -EINVAL;
     auto* cf = new CharFile();
@@ -60,7 +62,7 @@ size_t LogDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset) 
 }
 
 
-int LogDevice::LogDevice::poll(CharFile* cf) {
+int LogDevice::poll(CharFile* cf) {
     if (!cf) return 0;
     auto* channel = static_cast<Channel*>(cf->driver_private);
     int mask = 0;

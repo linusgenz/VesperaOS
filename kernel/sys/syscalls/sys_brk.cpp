@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 static constexpr uintptr_t USER_HEAP_START = 0x40000000;
 static constexpr uintptr_t USER_HEAP_MAX = 0x50000000;

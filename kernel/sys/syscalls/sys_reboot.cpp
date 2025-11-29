@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../acpi/acpi.h"
-#include "../../system/system_manager.h"
+#include <kernel/system/system_manager.h>
 #define REBOOT_MAGIC1 0xfee1dead
 #define REBOOT_MAGIC2 672274793
 

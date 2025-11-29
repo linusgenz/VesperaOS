@@ -25,9 +25,9 @@
 
 #include <cstdint>
 
-#include "../../kernel/sync/atomic.h"
-#include "../../kernel/sync/spinlock.h"
-#include "../../kernel/sync/completion.h"
+#include <kernel/sync/atomic.h>
+#include <kernel/sync/spinlock.h>
+#include <kernel/sync/completion.h>
 
 completion_t USBManager::all_controllers_ready;
 atomic_u8 USBManager::expected_controllers;

@@ -25,17 +25,14 @@
 #include "../../include/string.h"
 #include "vfs.h"
 
-#include <scheduling.h>
-#include <time.h>
+#include <kernel/scheduling.h>
 
-#include "fs_registry.h"
-#include "../../kernel/include/errno.h"
+#include <errno.h>
 #include "vfs_helper.h"
-#include "../fat32/fat32_vfs_adapter.h"
-#include "../../kernel/devices/device_manager.h"
+#include "../kernel/devices/device_manager.h"
 #include "fs_detection.h"
 #include "../dirent.h"
-#include "../../kernel/realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 
 Vector<MountPoint> *VFS::mount_points = nullptr;
 spinlock_t VFS::mount_points_lock;

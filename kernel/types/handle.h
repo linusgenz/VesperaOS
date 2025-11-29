@@ -23,14 +23,14 @@
 
 #ifndef VESPERAOS_HANDLE_H
 #define VESPERAOS_HANDLE_H
-#include <memory.h>
+#include <kernel/memory.h>
 
 typedef long int ssize_t;
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
 #include <cstdint>
-#include "../sync/spinlock.h"
+#include <kernel/sync/spinlock.h>
 #include "../types/types.h"
 
 typedef struct handle_entry {

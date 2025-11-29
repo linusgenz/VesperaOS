@@ -48,7 +48,7 @@ namespace CPUManager {
     void initialize();
 
     void smp_init();
-    void init_core(CPUInfo *cpu);
+    void init_core(const CPUInfo *cpu);
 
     
     CPUInfo* get_cpu_info(uint32_t apic_id);

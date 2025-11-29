@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_TTY_H
 #define VESPERAOS_TTY_H
 
-#include "../input/input_event.h"
+#include <kernel/input/input_event.h>
 #include <cstddef>
 
 class TTYDevice;

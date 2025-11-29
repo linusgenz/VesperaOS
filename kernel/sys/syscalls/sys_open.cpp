@@ -21,22 +21,22 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_node.h"
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
+#include "../../../include/errno.h"
+#include <kernel/realm/realm_manager.h>
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
     int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char *user_path = reinterpret_cast<const char *>(arg0);
-        auto flags = static_cast<uint32_t>(arg1);
+        const auto user_path = reinterpret_cast<const char *>(arg0);
+        const auto flags = static_cast<uint32_t>(arg1);
 
         if (!user_path || user_path[0] == '\0') return -EINVAL;
 
-        Unit *current_unit = kernel::scheduling::get_current_unit();
+        const Unit *current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
 
         Realm *realm = RealmManager::get(current_unit->rid);

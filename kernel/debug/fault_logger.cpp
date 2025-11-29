@@ -6,12 +6,12 @@
 //
 #include "fault_logger.h"
 
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "trace.h"
 #include "../../include/log.h"
 #include "../cpu/cpu_manager.h"
-#include "../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 
 namespace kernel::debug {
     static const char *fault_type_to_string(FaultType type) {
@@ -51,10 +51,10 @@ namespace kernel::debug {
     void log_page_fault_detail(uint64_t fault_addr, uint64_t error_code, const FaultContext &ctx) {
         log_fault(FaultType::PageFault, ctx, "Page fault detected");
 
-        Unit *u = kernel::scheduling::get_current_unit();
+        Unit *u = scheduling::get_current_unit();
         Realm *r = RealmManager::get(u->rid);
 
-        Log::Error("pml4 kernel: %p current unit pml4: %p", kernel::memory::get_pagetable_address(), r->pml4);
+        Log::Error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->pml4);
         Log::Error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);
         Log::Error("  Present: %s, Write: %s, User: %s, Reserved: %s",
                    (error_code & 1) ? "Yes" : "No",
@@ -68,7 +68,7 @@ namespace kernel::debug {
 
         // Vorsicht: wir greifen direkt auf den Code-Speicher zu – im Fehlerfall ist das
         // ohnehin eine best-effort Debug-Ausgabe.
-        const uint8_t *opcode_ptr = reinterpret_cast<const uint8_t *>(rip);
+        const auto opcode_ptr = reinterpret_cast<const uint8_t *>(rip);
         Log::Error("  Opcode bytes: %02x %02x %02x %02x",
                    opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
     }

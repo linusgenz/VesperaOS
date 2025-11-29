@@ -2,11 +2,11 @@
 // Created by Linus on 20.07.25.
 //
 
-#include "mutex.h"
+#include "../../include/kernel/sync/mutex.h"
 
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "atomic.h"
+#include <kernel/sync/atomic.h>
 
 namespace kernel {
     inline bool scheduling_started = false;

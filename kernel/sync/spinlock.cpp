@@ -21,12 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "spinlock.h"
+#include <kernel/sync/spinlock.h>
 
-#include <kerrno.h>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "../system/system_manager.h"
+#include <kernel/system/system_manager.h>
 
 void spinlock_t::lock() {
     uint32_t uid = kernel::scheduling::get_current_unit()->id;

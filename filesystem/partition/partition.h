@@ -24,6 +24,8 @@
 #ifndef VESPERAOS_PARTITION_H
 #define VESPERAOS_PARTITION_H
 
+#include <cstddef>
+
 #define PARTITION_MAX_ENTRIES 128
 
 typedef struct {

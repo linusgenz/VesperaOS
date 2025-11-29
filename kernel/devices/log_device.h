@@ -25,10 +25,8 @@
 #define VESPERAOS_LOG_DEVICE_H
 
 #include "chardevice.h"
-#include "../ipc/channel.h"
-#include "../realm/realm.h"
-#include "../realm/realm_manager.h"
-
+#include <kernel/ipc/channel.h>
+#include <kernel/realm/realm.h>
 
 class LogDevice : public CharDevice {
 private:

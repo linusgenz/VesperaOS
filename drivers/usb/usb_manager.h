@@ -25,10 +25,9 @@
 #define VESPERAOS_USB_MANAGER_H
 
 #include <cstdint>
-
-#include "../../kernel/sync/completion.h"
-#include "../../kernel/sync/spinlock.h"
-#include "../../kernel/sync/atomic.h"
+#include <kernel/sync/atomic.h>
+#include <kernel/sync/completion.h>
+#include <kernel/sync/spinlock.h>
 
 class USBManager {
 private:

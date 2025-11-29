@@ -1,13 +1,12 @@
 #include "cpu_manager.h"
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../include/memory.h"
 #include "../../include/log.h"
 #include "../acpi/madt.h"
-#include "../include/interrupts.h"
-#include "../include/time.h"
-#include <scheduling.h>
+#include <kernel/time.h>
+#include <kernel/interrupts.h>
 
-namespace CPUManager {
+namespace CPUManager
+{
     // Globale Variablen
     CPUInfo cpu_infos[MAX_CPU_CORES];
     uint8_t total_cpus;
@@ -15,24 +14,27 @@ namespace CPUManager {
     static bool is_initialized = false;
     static uint32_t bsp_apic_id;
 
-    void initialize() {
+    void initialize()
+    {
         if (is_initialized) return;
 
         // Initialisiere Stack Manager
-       // StackManager::initialize();
+        // StackManager::initialize();
 
         // Hole CPU-Informationen von MADT
-        MADT::CPUCore *madt_cores = MADT::get_cpu_cores();
+        MADT::CPUCore* madt_cores = MADT::get_cpu_cores();
         uint32_t madt_cpu_count = MADT::get_cpu_count();
         bsp_apic_id = MADT::get_bsp_apic_id();
 
-        if (madt_cpu_count == 0) {
+        if (madt_cpu_count == 0)
+        {
             Log::Error("No CPUs found in MADT");
             return;
         }
 
         // Initialisiere CPU-Infos
-        for (uint32_t i = 0; i < madt_cpu_count && i < MAX_CPU_CORES; i++) {
+        for (uint32_t i = 0; i < madt_cpu_count && i < MAX_CPU_CORES; i++)
+        {
             cpu_infos[i].apic_id = madt_cores[i].apic_id;
             cpu_infos[i].cpu_id = i;
             cpu_infos[i].state = CPU_STATE_OFFLINE;
@@ -50,7 +52,8 @@ namespace CPUManager {
             //}
 
             // BSP ist bereits online
-            if (cpu_infos[i].is_bsp) {
+            if (cpu_infos[i].is_bsp)
+            {
                 cpu_infos[i].state = CPU_STATE_ONLINE;
                 online_cpus++;
             }
@@ -62,23 +65,27 @@ namespace CPUManager {
         Log::Ok("CPU Manager initialized - %u CPUs detected, %u online", total_cpus, online_cpus);
     }
 
-    void smp_init() {
+    void smp_init()
+    {
         // Send Startup to all cpus except self
 
-        for (uint32_t i = 0; i < total_cpus; ++i) {
+        for (uint32_t i = 0; i < total_cpus; ++i)
+        {
             if (cpu_infos[i].is_bsp) continue;
             init_core(&cpu_infos[i]);
         }
 
 
-        for (int i = 0; i < total_cpus; ++i) {
+        for (int i = 0; i < total_cpus; ++i)
+        {
             if (cpu_infos[i].is_bsp) continue;
             uint32_t apic_id = cpu_infos[i].apic_id;
-            volatile CpuStartupReport *report = &cpu_startup_reports[apic_id];
+            volatile CpuStartupReport* report = &cpu_startup_reports[apic_id];
 
             int timeout_counter = 0;
-            const int timeout_limit = 20;
-            while (!report->ready && timeout_counter < timeout_limit) {
+            constexpr int timeout_limit = 20;
+            while (!report->ready && timeout_counter < timeout_limit)
+            {
                 kernel::time::sleep_ms(100);
                 timeout_counter++;
             }
@@ -90,7 +97,8 @@ namespace CPUManager {
     }
 
 
-    void init_core(CPUInfo *cpu) {
+    void init_core(const CPUInfo* cpu)
+    {
         uint32_t vectorValue = 0x8;
 
         // Send INIT
@@ -117,24 +125,30 @@ namespace CPUManager {
         kernel::time::internal::sleep(10);
     }
 
-    CPUInfo *get_cpu_info(uint32_t apic_id) {
+    CPUInfo* get_cpu_info(uint32_t apic_id)
+    {
         if (!is_initialized) return nullptr;
 
-        for (uint32_t i = 0; i < total_cpus; i++) {
-            if (cpu_infos[i].apic_id == apic_id) {
+        for (uint32_t i = 0; i < total_cpus; i++)
+        {
+            if (cpu_infos[i].apic_id == apic_id)
+            {
                 return &cpu_infos[i];
             }
         }
         return nullptr;
     }
 
-    uint8_t get_current_cpu_id() {
+    uint8_t get_current_cpu_id()
+    {
         if (!is_initialized) return 0;
 
         uint32_t current_apic_id = kernel::interrupts::lapic_get_id();
 
-        for (uint8_t i = 0; i < total_cpus; i++) {
-            if (cpu_infos[i].apic_id == current_apic_id) {
+        for (uint8_t i = 0; i < total_cpus; i++)
+        {
+            if (cpu_infos[i].apic_id == current_apic_id)
+            {
                 return cpu_infos[i].cpu_id;
             }
         }
@@ -142,31 +156,37 @@ namespace CPUManager {
         return 0; // Default BSP
     }
 
-    uint8_t get_online_cpu_count() {
+    uint8_t get_online_cpu_count()
+    {
         return online_cpus;
     }
 
-    uint8_t get_available_cpu_count() {
+    uint8_t get_available_cpu_count()
+    {
         return total_cpus;
     }
 
-    void halt_cpu(uint32_t apic_id) {
-        CPUInfo *cpu_info = get_cpu_info(apic_id);
-        if (cpu_info) {
+    void halt_cpu(uint32_t apic_id)
+    {
+        if (CPUInfo* cpu_info = get_cpu_info(apic_id))
+        {
             cpu_info->state = CPU_STATE_HALTED;
         }
     }
 
 
-    void send_ipi_to_all_aps(uint32_t vector) {
+    void send_ipi_to_all_aps(uint32_t vector)
+    {
         // Broadcast IPI an alle APs (außer BSP)
         kernel::interrupts::lapic_write(LAPIC_ICRHI, 0);
         kernel::interrupts::lapic_write(LAPIC_ICRLO, 0xC0000 | vector); // All except self, vector
     }
 
     // this shit is disabling interrupts idk how but it does
-    void print_cpu_info() {
-        if (!is_initialized) {
+    void print_cpu_info()
+    {
+        if (!is_initialized)
+        {
             Log::Info("CPU Manager not initialized");
             return;
         }
@@ -175,19 +195,21 @@ namespace CPUManager {
         Log::Info("Total CPUs: %u, Online: %u", total_cpus, online_cpus);
         Log::Info("BSP APIC ID: %u", bsp_apic_id);
 
-        for (uint32_t i = 0; i < total_cpus; i++) {
-            const char *state_str;
-            switch (cpu_infos[i].state) {
-                case CPU_STATE_OFFLINE: state_str = "OFFLINE";
-                    break;
-                case CPU_STATE_STARTING: state_str = "STARTING";
-                    break;
-                case CPU_STATE_ONLINE: state_str = "ONLINE";
-                    break;
-                case CPU_STATE_HALTED: state_str = "HALTED";
-                    break;
-                default: state_str = "UNKNOWN";
-                    break;
+        for (uint32_t i = 0; i < total_cpus; i++)
+        {
+            const char* state_str;
+            switch (cpu_infos[i].state)
+            {
+            case CPU_STATE_OFFLINE: state_str = "OFFLINE";
+                break;
+            case CPU_STATE_STARTING: state_str = "STARTING";
+                break;
+            case CPU_STATE_ONLINE: state_str = "ONLINE";
+                break;
+            case CPU_STATE_HALTED: state_str = "HALTED";
+                break;
+            default: state_str = "UNKNOWN";
+                break;
             }
 
             Log::Info("CPU %u: APIC ID %u, %s, %s, Stack: %p",
@@ -199,21 +221,24 @@ namespace CPUManager {
         }
     }
 
-    void update_cpu_stats(uint32_t apic_id, uint64_t cycles, uint64_t idle_cycles) {
-        CPUInfo *cpu_info = get_cpu_info(apic_id);
-        if (cpu_info) {
+    void update_cpu_stats(uint32_t apic_id, uint64_t cycles, uint64_t idle_cycles)
+    {
+        if (CPUInfo* cpu_info = get_cpu_info(apic_id))
+        {
             cpu_info->total_cycles = cycles;
             cpu_info->idle_cycles = idle_cycles;
         }
     }
 
-    double get_cpu_usage(uint32_t apic_id) {
-        CPUInfo *cpu_info = get_cpu_info(apic_id);
-        if (!cpu_info || cpu_info->total_cycles == 0) {
+    double get_cpu_usage(uint32_t apic_id)
+    {
+        CPUInfo* cpu_info = get_cpu_info(apic_id);
+        if (!cpu_info || cpu_info->total_cycles == 0)
+        {
             return 0.0;
         }
 
         uint64_t active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
-        return ((double) active_cycles / (double) cpu_info->total_cycles) * 100.0;
+        return (static_cast<double>(active_cycles) / static_cast<double>(cpu_info->total_cycles)) * 100.0;
     }
 }

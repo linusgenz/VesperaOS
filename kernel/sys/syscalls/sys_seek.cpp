@@ -22,10 +22,10 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
@@ -50,7 +50,7 @@ namespace syscalls::internal {
 
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-                VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+                const VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node) return -EBADH;
 
                 int64_t new_pos;

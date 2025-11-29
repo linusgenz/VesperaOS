@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
 # Set C++ specific flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall")
+set(CMAKE_CXX_FLAGS "-ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall")
 
 set(KERNEL_DIR ${CMAKE_SOURCE_DIR})
 set(KERNEL_SRC_DIR ${KERNEL_DIR}/kernel)
@@ -95,9 +95,8 @@ set_target_properties(kernel_stage1 PROPERTIES
         LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
 )
 
-target_include_directories(kernel_stage1 PRIVATE
+target_include_directories(kernel_stage1 PUBLIC
         ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/kernel/include
         ${CMAKE_BINARY_DIR}
 )
 
@@ -137,9 +136,8 @@ set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
 )
 
-target_include_directories(kernel.elf PRIVATE
+target_include_directories(kernel.elf PUBLIC
         ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/kernel/include
         ${CMAKE_BINARY_DIR}
 )
 

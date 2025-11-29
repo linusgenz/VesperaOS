@@ -22,15 +22,15 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../cpu/cpu_manager.h"
-#include "../../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
     int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-        RealmID child_rid = static_cast<RealmID>(arg0);
+        RealmID child_rid = arg0;
         int64_t status_user_ptr = static_cast<int64_t>(arg1);
 
         Log::debug("wait1");

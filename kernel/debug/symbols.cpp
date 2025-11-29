@@ -39,11 +39,11 @@ static bool parse_hex_u64(const char* s, uint64_t* out)
 
 Symbol lookup_symbol(uint64_t addr)
 {
-    const char* best = "???";
+    auto best = "???";
     size_t best_len = 3;
     uint64_t best_addr = 0;
 
-    const char* p = reinterpret_cast<const char*>(kernel_map);
+    auto p = reinterpret_cast<const char*>(kernel_map);
     const char* end = p + kernel_map_len;
 
     while (p < end) {

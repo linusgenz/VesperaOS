@@ -25,8 +25,8 @@
 #define VESPERAOS_COMPLETION_H
 
 #include <cstdint>
-#include <time.h>
-#include "spinlock.h"
+#include <kernel/time.h>
+#include <kernel/sync/spinlock.h>
 
 struct completion_t {
     volatile bool completed{};

@@ -4,12 +4,12 @@
 #include "xhci_device.h"
 #include "xhci_regs.h"
 #include "xhci_rings.h"
-#include "../../../include/vector.h"
+#include <vector.h>
 #include "../../pci/pci.h"
 #include "../../../arch/x86_64/interrupts/idt.h"
 #include "xhci_ext_cap.h"
 #include "../../../kernel/devices/chardevice.h"
-#include "../../kernel/sync/atomic.h"
+#include "../../../include/kernel/sync/atomic.h"
 
 namespace USB {
     class xhciDriver : public CharDevice {

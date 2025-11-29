@@ -1,18 +1,16 @@
-#include <kerrno.h>
+#include <kernel/interrupts.h>
+#include <kernel/kerrno.h>
 
 #include "interrupts_internal.h"
 #include "../../../kernel/utils/panic.h"
 #include "apic.h"
-#include "../../../kernel/include/scheduling.h"
 #include "../../../include/log.h"
 #include "../../../kernel/cpu/io.h"
 #include "pic.h"
 #include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../../../drivers/ps2/mouse/mouse.h"
-#include "../../../drivers/ps2/mouse/ps2_mouse.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/include/time.h"
-#include "../../../kernel/system/system_manager.h"
+#include <kernel/system/system_manager.h>
 #include "../../../kernel/debug/fault_logger.h"
 
 using kernel::debug::FaultContext;
@@ -42,13 +40,13 @@ void page_fault_handler(trap_frame *frame) {
    // kernel::SystemManager::system_panic("Page fault detected", -EPAGEFAULT);
 }
 
-void double_fault_handler(trap_frame *frame) {
-    FaultContext ctx = make_fault_context(frame);
+void double_fault_handler(const trap_frame *frame) {
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DoubleFault, ctx, "Double fault detected");
     kernel::SystemManager::system_panic("Double fault detected", -KEDOUBLEFAULT);
 }
 
-void gp_fault_handler(trap_frame *frame) {
+void gp_fault_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
 
@@ -70,28 +68,26 @@ void gp_fault_handler(trap_frame *frame) {
 }
 
 // Invalid Opcode Fault (Vector 6)
-extern "C"  void invalid_opcode_handler(trap_frame *frame) {
+extern "C"  void invalid_opcode_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
 
     kernel::SystemManager::system_panic("Invalid opcode detected", -KEINVOP);
-    while (true);
 }
 
 // Stack Segment Fault (Vector 12)
-void stack_fault_handler(trap_frame *frame) {
+void stack_fault_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
 
-    uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
+    const uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Stack selector: 0x%x", selector);
 
     kernel::SystemManager::system_panic("Stack fault detected", -KESTACKFAULT);
-    while (true);
 }
 
 // Segment Not Present (Vector 11)
-void segment_not_present_handler(trap_frame *frame) {
+void segment_not_present_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
 
@@ -107,34 +103,30 @@ void segment_not_present_handler(trap_frame *frame) {
     }
 
     kernel::SystemManager::system_panic("Segment not present", -KESEGNOTPRES);
-    while (true);
 }
 
 // Divide by Zero (Vector 0)
-void divide_error_handler(trap_frame *frame) {
+void divide_error_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
 
     kernel::SystemManager::system_panic("Divide by zero", -KEDIVZERO);
-    while (true);
 }
 
 // Machine Check Exception (Vector 18)
-void machine_check_handler(trap_frame *frame) {
+void machine_check_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::MachineCheck, ctx, "Machine check exception");
 
     kernel::SystemManager::system_panic("Machine check exception", -KEMACHCHECK);
-    while (true);
 }
 
 // Generic unhandled interrupt handler
-void unhandled_interrupt_handler(trap_frame *frame) {
+void unhandled_interrupt_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::UnhandledInterrupt, ctx, "Unhandled interrupt");
 
     kernel::SystemManager::system_panic("Unhandled interrupt", -KEUNHANDLED);
-    while (true);
 }
 
 void keyboard_int_handler(trap_frame *frame) {

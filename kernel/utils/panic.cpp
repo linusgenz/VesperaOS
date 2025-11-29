@@ -1,10 +1,11 @@
 #include "panic.h"
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../include/basic_renderer.h"
+#include <kernel/kernel_utils.h>
+
 #include "../../include/string.h"
 #include "../cpu/cpu_manager.h"
-#include "../include/kernel_utils.h"
+
 /*
 void panic(const char* panic_msg) {
     global_renderer->set_clear_color(Colour::BLACK);
@@ -93,14 +94,14 @@ static const uint8_t simple_font[27][16] = {
     {0x7E,0x02,0x04,0x08,0x10,0x20,0x40,0x40,0x7E,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
 };
 
-void put_pixel(Framebuffer* fb, uint32_t x, uint32_t y, uint32_t color) {
+void put_pixel(const Framebuffer* fb, uint32_t x, uint32_t y, uint32_t color) {
     if (x >= fb->width || y >= fb->height) return;
-    uint32_t* pixel_ptr = (uint32_t*)(fb->base_address);
+    auto* pixel_ptr = static_cast<uint32_t*>(fb->base_address);
     pixel_ptr[y * fb->pixels_per_scanline + x] = color;
 }
 
 
-void put_char(Framebuffer* fb, char c, uint32_t x, uint32_t y, uint32_t color) {
+void put_char(const Framebuffer* fb, const unsigned char c, const uint32_t x, const uint32_t y, const uint32_t color) {
     if (c == ' ') {
         //space
         return;
@@ -118,12 +119,12 @@ void put_char(Framebuffer* fb, char c, uint32_t x, uint32_t y, uint32_t color) {
     }
 }
 
-void put_string(Framebuffer* fb, const char* str, uint32_t x, uint32_t y, uint32_t color) {
+void put_string(const Framebuffer* fb, const char* str, const uint32_t x, const uint32_t y, uint32_t color) {
     uint32_t cursor_x = x;
     uint32_t cursor_y = y;
     while (*str) {
-        char c = *str;
-        if (c >= 'a' && c <= 'z') c = c - 'a' + 'A'; // Kleinbuchstaben zu Großbuchstaben
+        unsigned char c = *str;
+        if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
         if (c == '\n') {
             cursor_x = x;
             cursor_y += 16;

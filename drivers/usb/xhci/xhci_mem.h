@@ -23,8 +23,7 @@
  
 #ifndef XHCI_MEM_H
 #define XHCI_MEM_H
-#include "../../../kernel/include/memory.h"
-#include "xhci_common.h"
+#include <kernel/memory.h>
 
 // Memory Alignment and Boundary Definitions
 #define XHCI_DEVICE_CONTEXT_INDEX_MAX_SIZE      2048

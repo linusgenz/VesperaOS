@@ -24,9 +24,8 @@
 #ifndef DEVICE_MANAGER_H
 #define DEVICE_MANAGER_H
 
-#include "../../include/vector.h"
+#include <vector.h>
 #include "blockdevice.h"
-#include "../sync/mutex.h"
 
 namespace kernel {
 

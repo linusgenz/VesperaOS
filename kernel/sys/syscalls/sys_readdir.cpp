@@ -22,10 +22,10 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 #include "../../types/types.h"
 #include "../../units/unit.h"
 #include "../filesystem/dirent.h"
@@ -34,7 +34,7 @@ namespace syscalls::internal {
     int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t,
                         uint64_t, uint64_t, uint64_t) {
         HandleID hid = arg0;
-    dirent_t *ent = reinterpret_cast<dirent_t *>(arg1);
+    auto *ent = reinterpret_cast<dirent_t *>(arg1);
 
         if (!ent) return -EINVAL;
 
@@ -46,7 +46,7 @@ namespace syscalls::internal {
         if (!(he->capabilities & CAP_READ)) return -EACCES;
         if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_DIRECTORY) return -EINVAL;
 
-        VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+        const auto *vh = static_cast<VfsHandle *>(he->resource);
         if (!vh->context || !vh->context->type_specific_data) return -EINVAL;
 
         void *dir_handle = vh->context->type_specific_data;

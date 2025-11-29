@@ -25,10 +25,10 @@
 
 #include "deadlock_detector.h"
 
-#include <kerrno.h>
+#include <kernel/kerrno.h>
 
 #include "lock_debug.h"
-#include "../system/system_manager.h"
+#include <kernel/system/system_manager.h>
 #include "../utils/panic.h"
 
 static bool enabled = false;

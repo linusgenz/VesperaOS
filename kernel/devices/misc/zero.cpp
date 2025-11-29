@@ -22,12 +22,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "zero.h"
-#include <string.h>
-#include <memory.h>
+#include <kernel/memory.h>
+
 #include "../chardevice.h"
 
 ZeroDevice::ZeroDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+    : CharDevice(name, VIRTUAL) {
 }
 
 int ZeroDevice::open(CharFile** out_cf) {

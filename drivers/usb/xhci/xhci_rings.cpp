@@ -1,6 +1,6 @@
 #include "xhci_rings.h"
 #include "../../../include/log.h"
-#include "../../../include/vector.h"
+#include <vector.h>
 
 xhciCommandRing::xhciCommandRing(size_t max_trbs) {
     m_lock.init();
@@ -12,11 +12,11 @@ xhciCommandRing::xhciCommandRing(size_t max_trbs) {
 
     const uint64_t ring_size = max_trbs * sizeof(xhci_trb_t);
 
-    m_trbs = (xhci_trb_t*)alloc_xhci_memory(
+    m_trbs = static_cast<xhci_trb_t*>(alloc_xhci_memory(
         ring_size,
         XHCI_COMMAND_RING_SEGMENTS_ALIGNMENT,
         XHCI_COMMAND_RING_SEGMENTS_BOUNDARY
-    );
+    ));
 
     m_physical_base = xhci_get_physical_addr(m_trbs);
 
@@ -56,29 +56,29 @@ xhciEventRing::xhciEventRing(
     m_rcs_bit = XHCI_CRCR_RING_CYCLE_STATE;
     m_dequeue_ptr = 0;
 
-    const uint64_t segment_count = 1; // TODO use more seg's later
+    constexpr uint64_t segment_count = 1; // TODO use more seg's later
 
     const uint64_t segment_size = max_trbs * sizeof(xhci_trb_t);
-    const uint64_t segment_table_size = segment_count * sizeof(xhci_erst_entry);
+    constexpr uint64_t segment_table_size = segment_count * sizeof(xhci_erst_entry);
 
-    m_trbs = (xhci_trb_t*)alloc_xhci_memory(
+    m_trbs = static_cast<xhci_trb_t*>(alloc_xhci_memory(
         segment_size,
         XHCI_EVENT_RING_SEGMENTS_ALIGNMENT,
         XHCI_EVENT_RING_SEGMENTS_BOUNDARY
-    );
+    ));
 
     // Store the physical DMA base
     m_physical_base = xhci_get_physical_addr(m_trbs);
 
     // Create the event ring segment table
-    m_segment_table = (xhci_erst_entry*)alloc_xhci_memory(
+    m_segment_table = static_cast<xhci_erst_entry*>(alloc_xhci_memory(
         segment_table_size,
         XHCI_EVENT_RING_SEGMENT_TABLE_ALIGNMENT,
         XHCI_EVENT_RING_SEGMENT_TABLE_BOUNDARY
-    );
+    ));
 
     // Construct the segment table entry
-    xhci_erst_entry entry;
+    xhci_erst_entry entry{};
     entry.ring_segment_base_address = m_physical_base;
     entry.ring_segment_size = m_segment_trb_count;
     entry.rsvd = 0;
@@ -95,7 +95,8 @@ xhciEventRing::xhciEventRing(
     m_interrupter_regs->erstba = xhci_get_physical_addr(m_segment_table);
 }
 
-bool xhciEventRing::has_unprocessed_events() {
+bool xhciEventRing::has_unprocessed_events() const
+{
     return (m_trbs[m_dequeue_ptr].cycle_bit == m_rcs_bit);
 }
 
@@ -142,13 +143,8 @@ void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
     m_interrupter_regs->erdp = dequeue_address;
 }
 
-void xhciEventRing::flush_unprocessed_events() {
-  //  Vector<xhci_trb_t*> events;
-  //  dequeue_events(events, TODO, TODO);
-  //  events.clear();
-}
-
-void xhciEventRing::_update_erdp() {
+void xhciEventRing::_update_erdp() const
+{
     uint64_t dequeue_address = m_physical_base + (m_dequeue_ptr * sizeof(xhci_trb_t));
     m_interrupter_regs->erdp = dequeue_address;
 }
@@ -171,7 +167,7 @@ xhci_trb_t* xhciEventRing::_dequeue_trb() {
     return ret;
 }
 
-uint64_t xhciEventRing::get_current_dequeue_physical() {
+uint64_t xhciEventRing::get_current_dequeue_physical() const {
     return m_dequeue_ptr;
 }
 
@@ -193,11 +189,11 @@ xhciTransferRing::xhciTransferRing(size_t max_trbs, uint8_t doorbell_id) {
     const uint64_t ring_size = max_trbs * sizeof(xhci_trb_t);
 
     // Create the transfer ring memory block
-    m_trbs = (xhci_trb_t*)alloc_xhci_memory(
+    m_trbs = static_cast<xhci_trb_t*>(alloc_xhci_memory(
         ring_size,
         XHCI_TRANSFER_RING_SEGMENTS_ALIGNMENT,
         XHCI_TRANSFER_RING_SEGMENTS_BOUNDARY
-    );
+    ));
 
     m_physical_base = xhci_get_physical_addr(m_trbs);
 

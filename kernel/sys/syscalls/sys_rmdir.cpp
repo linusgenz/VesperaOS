@@ -24,20 +24,18 @@
 #include "../../../filesystem/vfs/vfs.h"
 #include "../../../include/log.h"
 #include "../../../include/string.h"
-#include "../../include/errno.h"
+#include "../../../include/errno.h"
 
 namespace syscalls::internal {
     int64_t sys_rmdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* user_path = reinterpret_cast<const char*>(arg0);
+        const auto user_path = reinterpret_cast<const char*>(arg0);
         if (!user_path) return -1;
 
         char path_buf[256];
         strncpy(path_buf, user_path, sizeof(path_buf) - 1);
         path_buf[sizeof(path_buf) - 1] = '\0';
 
-        int status = VFS::rmdir(path_buf);
-
-        if (status < 0) return -ENOTEMPTY;
+        if (const int status = VFS::rmdir(path_buf); status < 0) return -ENOTEMPTY;
 
         return SUCCESS_CODE;
     }

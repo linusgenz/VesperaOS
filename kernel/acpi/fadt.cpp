@@ -21,11 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "cstdint"
 #include "acpi_manager.h"
-#include "../../include/log.h"
+#include <log.h>
 #include "../cpu/io.h"
-#include "../include/memory.h"
+#include <kernel/memory.h>
 
 namespace ACPI {
 
@@ -61,7 +60,7 @@ namespace ACPI {
         if (dsdt_phys == 0) return;
 
         kernel::memory::map_memory((void*)dsdt_phys, (void*)dsdt_phys);
-        SDTHeader* header = reinterpret_cast<SDTHeader*>(dsdt_phys);
+        auto* header = reinterpret_cast<SDTHeader*>(dsdt_phys);
         auto* dsdt = reinterpret_cast<uint8_t*>(dsdt_phys);
         size_t length = header->length;
 

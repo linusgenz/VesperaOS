@@ -21,13 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "../../include/errno.h"
+#include "../../../include/errno.h"
 #include "../syscall_interface.h"
 #include "../../../filesystem/vfs/vfs_handle.h"
 #include "../../../include/log.h"
-#include "../../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
@@ -44,7 +44,7 @@ namespace syscalls::internal {
         handle_entry_t *he = realm->lookup_handle(hid);
         if (!he || !he->resource) return -EBADH;
 
-        const char *user_buf = reinterpret_cast<const char *>(arg1);
+        const auto user_buf = reinterpret_cast<const char *>(arg1);
         if (!user_buf || arg2 == 0) return -EINVAL;
 
         if (!(he->capabilities & CAP_WRITE)) {
@@ -57,9 +57,9 @@ namespace syscalls::internal {
             }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-                VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+                const auto *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
-                ssize_t bytes = vh->node->ops->write(vh->node, vh->context->position, count, buf);
+                const ssize_t bytes = vh->node->ops->write(vh->node, vh->context->position, count, buf);
                 vh->context->position += bytes;
                 return bytes;
             }

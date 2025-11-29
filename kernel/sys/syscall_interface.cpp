@@ -21,10 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 #include "syscall_interface.h"
+
+#include <kernel/memory.h>
+
 #include "../../include/log.h"
-#include <scheduling.h>
-#include "../include/sys/syscall_numbers.h"
-#include "../realm/realm_manager.h"
+#include <kernel/scheduling.h>
+#include <kernel/sys/syscall_numbers.h>
+#include <kernel/realm/realm_manager.h>
 
 constexpr int MAX_SYSCALLS = 256;
 static syscalls::internal::syscall_fn syscall_table[MAX_SYSCALLS];

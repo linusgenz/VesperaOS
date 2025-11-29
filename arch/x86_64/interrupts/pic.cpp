@@ -63,11 +63,9 @@ namespace arch::x86_64::interrupts::pic {
     }
 
     void remap() {
-        uint8_t a1, a2;
-
-        a1 = inb(PIC1_DATA);
+        const uint8_t a1 = inb(PIC1_DATA);
         io_wait();
-        a2 = inb(PIC2_DATA);
+        const uint8_t a2 = inb(PIC2_DATA);
         io_wait();
 
         outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);

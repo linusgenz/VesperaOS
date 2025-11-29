@@ -3,11 +3,14 @@
 //
 
 #include "schedule_manager.h"
+
+#include <kernel/memory.h>
+
 #include "cpu_scheduler.h"
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../cpu/cpu_manager.h"
 #include "../../include/log.h"
-#include "../realm/realm_manager.h"
+#include <kernel/realm/realm_manager.h>
 #include "../units/unit_manager.h"
 
 namespace kernel::scheduling::manager {
@@ -17,9 +20,9 @@ namespace kernel::scheduling::manager {
         }
     }
 
-    static inline void wrmsr(uint32_t msr, uint64_t value) {
-        uint32_t low = (uint32_t) (value & 0xFFFFFFFF);
-        uint32_t high = (uint32_t) (value >> 32);
+    static void wrmsr(uint32_t msr, uint64_t value) {
+        auto low = static_cast<uint32_t>(value & 0xFFFFFFFF);
+        auto high = static_cast<uint32_t>(value >> 32);
         asm volatile ("wrmsr" :: "c"(msr), "a"(low), "d"(high));
     }
 
@@ -69,7 +72,7 @@ namespace kernel::scheduling::manager {
         if (to->context.from_syscall) {
             asm volatile("swapgs");
             // todo, when a sleep thread gets waken up the gs points to the user gs for some reason. swap to kernel gs so we dont mess up things
-            rsp_to_load = (void *) to->context.stack_pointer;
+            rsp_to_load = to->context.stack_pointer;
             frame_ptr = 0;
             should_iretq = 0;
         } else {
@@ -133,6 +136,6 @@ namespace kernel::scheduling::manager {
             .user_stack_size = 0,
         };
 
-        return UnitManager::create(KERNEL_REALM_SYSTEM, (void *) idle_unit_func, nullptr, &unit_config);
+        return UnitManager::create(KERNEL_REALM_SYSTEM, idle_unit_func, nullptr, &unit_config);
     }
 } // namespace kernel::scheduling::manager

@@ -1,9 +1,7 @@
 #include "gdt.h"
 
 #include "../../../include/log.h"
-#include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/include/interrupts.h"
-#include "../../../kernel/include/memory.h"
+#include <kernel/memory.h>
 
 GDTEntry gdt[GDT_ENTRIES];
 TSSDescriptor tss_desc;

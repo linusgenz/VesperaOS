@@ -24,10 +24,10 @@
 #include "cstdint"
 #include "../../../include/log.h"
 #include "../../cpu/cpu_manager.h"
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "../../realm/realm_manager.h"
-#include "../../system/system_manager.h"
+#include <kernel/realm/realm_manager.h>
+#include <kernel/system/system_manager.h>
 #include "../../units/unit_manager.h"
 #include "../../utils/panic.h"
 
@@ -55,10 +55,10 @@ namespace syscalls::internal {
         }
 
         kernel::scheduling::cpu_scheduler::cpu_scheduler_t* cpu =
-            kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
+            kernel::scheduling::get_cpu_data(cpu_id);
         cpu->current_unit = nullptr;
 
-        kernel::scheduling::cpu_scheduler::yield_cpu(cpu_id);
+        kernel::scheduling::yield();
 
         for (;;) { asm volatile("hlt"); }
     }

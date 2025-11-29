@@ -3,10 +3,9 @@
 //
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
-#include "../include/efi_memory.h"
 #include <cstdint>
-#include "../include/bitmap.h"
-#include "../include/memory.h"
+#include "bitmap.h"
+#include <kernel/efi_memory.h>
 
 class PageFrameAllocator {
 public:
@@ -31,7 +30,7 @@ public:
 
     void *request_page();
 
-    void *request_pages(size_t pageCount);
+    void *request_pages(size_t page_count);
 
     [[nodiscard]] uint64_t get_free_ram() const;
 

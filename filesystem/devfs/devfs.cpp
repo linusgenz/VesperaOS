@@ -24,6 +24,7 @@
 #include "devfs.h"
 #include <errno.h>
 #include <string.h>
+#include <kernel/memory.h>
 
 #include "../../kernel/devices/chardevice.h"
 #include "../vfs/vfs.h"
@@ -71,7 +72,7 @@ void DevFS::init() {
 VfsNode *DevFS::ensure_bus_dir(BusType bus) {
     const char *bus_name = bus_to_str(bus);
 
-    if (bus == BusType::BUS_NONE || bus == BusType::VIRTUAL) return root;
+    if (bus == BUS_NONE || bus == VIRTUAL) return root;
 
     for (auto *e: *nodes) {
         if (e->is_bus_dir && strcmp(e->node->name, bus_name) == 0) {
@@ -99,8 +100,7 @@ VfsNode *DevFS::ensure_bus_dir(BusType bus) {
 
 
 CharDevice *DevFS::lookup(const char *name) {
-    for (size_t i = 0; i < devices->size(); i++) {
-        CharDevice *dev = (*devices)[i];
+    for (const auto dev : *devices) {
         if (strcmp(dev->name, name) == 0) {
             return dev;
         }
@@ -128,8 +128,7 @@ int DevFS::unregister_device(const char *name) {
     spinlock_guard guard(lock);
 
     for (size_t i = 0; i < devices->size(); i++) {
-        CharDevice *dev = (*devices)[i];
-        if (strcmp(dev->name, name) == 0) {
+        if (const CharDevice *dev = (*devices)[i]; strcmp(dev->name, name) == 0) {
             devices->erase(i);
             remove_node(dev->name);
             return SUCCESS_CODE;
@@ -144,11 +143,11 @@ VfsNode *DevFS::create_node(const char *dev_name, VfsNode* parent) {
     CharDevice *d = lookup(dev_name);
     if (!d) return nullptr;
 
-    VfsNode *n = (VfsNode *) kernel::memory::malloc(sizeof(VfsNode));
-    n->name = strdup(dev_name);
+    auto *n = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+    n->name = dev_name;
     n->type = VfsNodeType::Device;
 
-    DevfsEntry *e = (DevfsEntry *) kernel::memory::malloc(sizeof(DevfsEntry));
+    auto *e = static_cast<DevfsEntry*>(kernel::memory::malloc(sizeof(DevfsEntry)));
     e->dev = d;
     e->node = n;
     e->cf = nullptr;
@@ -174,9 +173,6 @@ int DevFS::remove_node(const char *dev_name) {
         if (strcmp(e->node->name, dev_name) == 0) {
             nodes->erase(i);
 
-            if (e->node->name) {
-                kernel::memory::free((void *) e->node->name);
-            }
             kernel::memory::free(e->node);
             kernel::memory::free(e);
 
@@ -201,16 +197,16 @@ const char *DevFS::alloc_unique_name(const char *base) {
         snprintf(buffer, sizeof(buffer), "%s%d", base, counter++);
     }
 
-    size_t len = strlen(buffer) + 1;
-    char *result = (char *) kernel::memory::malloc(len);
+    const size_t len = strlen(buffer) + 1;
+    const auto result = static_cast<char*>(kernel::memory::malloc(len));
     strncpy(result, buffer, len);
     return result;
 }
 
-int DevFS::open(VfsNode *node) {
+int DevFS::open(const VfsNode *node) {
     if (!node) return -1;
 
-    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
+    auto *entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->dev) return -1;
 
     if (!entry->cf) {
@@ -222,10 +218,10 @@ int DevFS::open(VfsNode *node) {
     return 0;
 }
 
-ssize_t DevFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
+ssize_t DevFS::read(const VfsNode *node, const size_t offset, const size_t size, void *buffer) {
     if (!node) return 0;
 
-    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
+    const auto *entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->dev) return 0;
 
     spinlock_guard guard(lock);
@@ -237,10 +233,10 @@ ssize_t DevFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
 }
 
 
-ssize_t DevFS::write(VfsNode *node, size_t offset, size_t size, const void *buffer) {
+ssize_t DevFS::write(VfsNode *node, size_t offset, const size_t size, const void *buffer) {
     if (!node) return 0;
 
-    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
+    const auto *entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->dev) return 0;
 
     spinlock_guard guard(lock);
@@ -254,7 +250,7 @@ ssize_t DevFS::write(VfsNode *node, size_t offset, size_t size, const void *buff
 
 ssize_t DevFS::ioctl(VfsNode *node, uint32_t cmd, void *arg) {
     if (!node) return 0;
-    auto *entry = (DevfsEntry *) node->internal_data;
+    const auto *entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->dev) return 0;
 
     spinlock_guard guard(lock);
@@ -280,7 +276,7 @@ VfsNode *DevFS::find(VfsNode *dir, const char *name) {
 void DevFS::close(VfsNode *node) {
     if (!node) return;
 
-    DevfsEntry *entry = (DevfsEntry *) node->internal_data;
+    auto *entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->dev || !entry->cf) return;
 
     spinlock_guard guard(lock);
@@ -306,7 +302,7 @@ int DevFS::read_dir(void *dir_handle, dirent_t *out) {
     VfsNode* dir = h->dir_node;
 
     size_t count = 0;
-    for (auto* e : *nodes) {
+    for (const auto* e : *nodes) {
         if (e->parent != dir) continue;
 
         if (count == h->index) {

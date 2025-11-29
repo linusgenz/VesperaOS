@@ -21,14 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../tty/tty.h"
-#include "../../../include/log.h"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
-#include "../types/types.h"
+#include <log.h>
+#include "../../../include/errno.h"
+#include <kernel/realm/realm_manager.h>
+#include "../../types/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
@@ -40,7 +39,7 @@ namespace syscalls::internal {
       //  reader_owner = kernel::scheduling::get_current_unit();
 
         HandleID hid = arg0;
-        void *buf = reinterpret_cast<void *>(arg1);
+        const auto buf = reinterpret_cast<void *>(arg1);
         size_t count = arg2;
 
         if (!buf || count == 0) return -EINVAL;
@@ -65,9 +64,9 @@ namespace syscalls::internal {
             }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-                VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+                const auto *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
-                ssize_t bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
+                const ssize_t bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
                 if (bytes > 0) {
                     vh->context->position += bytes;
                 }

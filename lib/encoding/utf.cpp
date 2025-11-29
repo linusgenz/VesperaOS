@@ -135,7 +135,7 @@ size_t utf16_to_utf8(const utf16_t *utf16, size_t utf16_len,
 size_t utf16_to_utf8(const utf16_t* in, size_t in_len,
                              char* out, size_t out_len) {
     if (out_len == 0) return 0;
-    size_t written = ::utf16_to_utf8(in, in_len, (utf8_t*)out, out_len - 1);
+    const size_t written = utf16_to_utf8(in, in_len, reinterpret_cast<utf8_t*>(out), out_len - 1);
     out[written] = '\0';
     return written;
 }

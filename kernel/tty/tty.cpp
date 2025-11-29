@@ -21,11 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <basic_renderer.h>
-#include "tty.h"
+#include <kernel/basic_renderer.h>
+#include <kernel/tty/tty.h>
 
 #include <log.h>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
+#include <kernel/memory.h>
 
 namespace kernel::tty {
     TTY *active_tty;
@@ -43,7 +44,7 @@ namespace kernel::tty {
         if (ev.device != kernel::input::InputDeviceType::KEYBOARD) return;
         if (ev.action != kernel::input::KeyAction::PRESS) return;
 
-        char c = ev.ascii;
+        const char c = ev.ascii;
         if (!c) return;
 
         if (c == '\b') {
@@ -85,53 +86,51 @@ namespace kernel::tty {
     }
 
     // reference: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-    static Colour ansi_to_colour(int code, bool is_bg, bool bright = false) {
+    static Colour ansi_to_colour(const int code, bool is_bg, const bool bright = false) {
         switch (code) {
             case 30:
-            case 40: return bright ? (Colour) 0x00808080 : BLACK; // gray for bright black
+            case 40: return bright ? static_cast<Colour>(0x00808080) : BLACK; // gray for bright black
             case 31:
-            case 41: return bright ? (Colour) 0x00FF6060 : RED;
+            case 41: return bright ? static_cast<Colour>(0x00FF6060) : RED;
             case 32:
-            case 42: return bright ? (Colour) 0x0060FF60 : GREEN;
+            case 42: return bright ? static_cast<Colour>(0x0060FF60) : GREEN;
             case 33:
-            case 43: return bright ? (Colour) 0x00FFFF60 : YELLOW;
+            case 43: return bright ? static_cast<Colour>(0x00FFFF60) : YELLOW;
             case 34:
-            case 44: return bright ? (Colour) 0x0060A0FF : BLUE;
+            case 44: return bright ? static_cast<Colour>(0x0060A0FF) : BLUE;
             case 35:
-            case 45: return bright ? (Colour) 0x00FF60FF : MAGENTA;
+            case 45: return bright ? static_cast<Colour>(0x00FF60FF) : MAGENTA;
             case 36:
-            case 46: return bright ? (Colour) 0x0060FFFF : CYAN;
+            case 46: return bright ? static_cast<Colour>(0x0060FFFF) : CYAN;
             case 37:
-            case 47: return bright ? (Colour) 0x00FFFFFF : WHITE;
+            case 47: return bright ? static_cast<Colour>(0x00FFFFFF) : WHITE;
 
             case 90:
-            case 100: return (Colour) 0x00808080; // Bright Black (→ Gray)
+            case 100: return static_cast<Colour>(0x00808080); // Bright Black (→ Gray)
             case 91:
-            case 101: return (Colour) 0x00FF6060; // Bright Red
+            case 101: return static_cast<Colour>(0x00FF6060); // Bright Red
             case 92:
-            case 102: return (Colour) 0x0060FF60; // Bright Green
+            case 102: return static_cast<Colour>(0x0060FF60); // Bright Green
             case 93:
-            case 103: return (Colour) 0x00FFFF60; // Bright Yellow
+            case 103: return static_cast<Colour>(0x00FFFF60); // Bright Yellow
             case 94:
-            case 104: return (Colour) 0x0060A0FF; // Bright Blue
+            case 104: return static_cast<Colour>(0x0060A0FF); // Bright Blue
             case 95:
-            case 105: return (Colour) 0x00FF60FF; // Bright Magenta
+            case 105: return static_cast<Colour>(0x00FF60FF); // Bright Magenta
             case 96:
-            case 106: return (Colour) 0x0060FFFF; // Bright Cyan
+            case 106: return static_cast<Colour>(0x0060FFFF); // Bright Cyan
             case 97:
-            case 107: return (Colour) 0x00FFFFFF; // Bright White
+            case 107: return static_cast<Colour>(0x00FFFFFF); // Bright White
 
             default:
-                return bright ? WHITE : WHITE; // fallback
+                return WHITE; // fallback
         }
     }
 
     static void tty_apply_sgr(TTY *tty) {
         int i = 0;
         while (i < tty->esc_param_count) {
-            int code = tty->esc_params[i++];
-
-            switch (code) {
+            switch (const int code = tty->esc_params[i++]) {
                 case 0: // Reset
                     tty->fg = WHITE;
                     tty->bg = BLACK;
@@ -153,10 +152,10 @@ namespace kernel::tty {
 
                 case 38: // Extended FG
                     if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
-                        int r = tty->esc_params[i + 1];
-                        int g = tty->esc_params[i + 2];
-                        int b = tty->esc_params[i + 3];
-                        tty->fg = (Colour) ((r << 16) | (g << 8) | b);
+                        const int r = tty->esc_params[i + 1];
+                        const int g = tty->esc_params[i + 2];
+                        const int b = tty->esc_params[i + 3];
+                        tty->fg = static_cast<Colour>((r << 16) | (g << 8) | b);
                         i += 4;
                     }
                     break;
@@ -166,7 +165,7 @@ namespace kernel::tty {
                         int r = tty->esc_params[i + 1];
                         int g = tty->esc_params[i + 2];
                         int b = tty->esc_params[i + 3];
-                        tty->bg = (Colour) ((r << 16) | (g << 8) | b);
+                        tty->bg = static_cast<Colour>((r << 16) | (g << 8) | b);
                         i += 4;
                     }
                     break;
@@ -180,7 +179,7 @@ namespace kernel::tty {
         global_renderer->set_bg_colour(tty->bg);
     }
 
-    void tty_process_output(TTY *tty, char c) {
+    void tty_process_output(TTY *tty, const char c) {
         switch (tty->esc_state) {
             case EscapeState::NONE:
                 if (c == 0x1B) {
@@ -260,7 +259,7 @@ namespace kernel::tty {
                 kernel::scheduling::yield();
             }
 
-            size_t to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
+            const size_t to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
             memcpy(buf, active_tty->canon_buffer, to_copy);
             read = to_copy;
 
@@ -273,7 +272,7 @@ namespace kernel::tty {
                 kernel::scheduling::yield();
             }
 
-            size_t to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
+            const size_t to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
             memcpy(buf, active_tty->raw_buffer, to_copy);
             read = to_copy;
 

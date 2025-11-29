@@ -21,11 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <time.h>
 #include "uptime.h"
 
+#include <kernel/memory.h>
+#include <kernel/time.h>
+
 UptimeDevice::UptimeDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, VIRTUAL) {}
 
 int UptimeDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_BOOT_H
 #define VESPERAOS_BOOT_H
 
-#include <efi_memory.h>
+#include <kernel/efi_memory.h>
 #include <graphics.h>
 #include "../kernel/acpi/acpi.h"
 

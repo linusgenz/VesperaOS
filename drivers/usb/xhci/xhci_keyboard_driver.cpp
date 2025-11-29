@@ -25,9 +25,9 @@
 #include <cstdint>
 #include <cstddef>
 #include <log.h>
-#include <memory.h>
+#include <kernel/memory.h>
 
-#include "../../../kernel/input/input_manager.h"
+#include <kernel/input/input_manager.h>
 
 constexpr size_t MAX_KEYS = 6;
 
@@ -82,7 +82,7 @@ void xhciKeyboardDriver::on_device_event(uint8_t* data) {
 void xhciKeyboardDriver::process_input_report(
     const uint8_t* current_keys, uint8_t modifier_byte
 ) {
-    uint32_t modifiers = static_cast<uint32_t>(modifier_byte);
+    uint32_t modifiers = modifier_byte;
 
     // --- Handle Key Presses ---
     for (size_t i = 0; i < MAX_KEYS; ++i) {

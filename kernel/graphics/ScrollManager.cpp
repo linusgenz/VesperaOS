@@ -2,22 +2,25 @@
 // Created by linus on 16.11.2024.
 //
 
-#include "../include/ScrollManager.h"
+#include <kernel/ScrollManager.h>
+
 #include "../../drivers/ps2/mouse/mouse.h"
-#include "../include/basic_renderer.h"
+#include <kernel/basic_renderer.h>
+#include <kernel/memory.h>
+
 ScrollManager* scroll_manager;
 
-ScrollManager::ScrollManager(uint32_t* buffer_top, uint32_t* buffer_bottom, Framebuffer* fb, BasicRenderer *r, uint32_t font_height)
+ScrollManager::ScrollManager(uint64_t* buffer_top, uint64_t* buffer_bottom, Framebuffer* fb, BasicRenderer* r,
+                             uint32_t font_height)
 {
     top_buffer = {buffer_top, 0, 0, 0};
     bottom_buffer = {buffer_bottom, 0, 0, 0};
     max_lines_in_buffer = fb->height * 5;
     framebuffer = fb;
-    framebuffer_base = (uint32_t*)fb->base_address;
+    framebuffer_base = static_cast<uint32_t*>(fb->base_address);
     bytes_per_scanline = fb->pixels_per_scanline * sizeof(uint32_t);
     renderer = r;
     f_height = font_height;
-
 }
 
 void ScrollManager::setup_new_line()
@@ -30,7 +33,7 @@ void ScrollManager::setup_new_line()
         scroll_down();
     }
 
-  //  save_top_lines_to_buffer();
+    //  save_top_lines_to_buffer();
 
     shift_lines_up();
 

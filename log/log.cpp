@@ -27,7 +27,6 @@ void Log::enableDebug() {
 
 
 void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = false) {
-    char *digits = "0123456789ABCDEF";
     char temp[32];
     int i = 0;
 
@@ -35,6 +34,7 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
         temp[i++] = '0';
     } else {
         while (value > 0) {
+            const auto digits = "0123456789ABCDEF";
             temp[i++] = digits[value % base];
             value /= base;
         }
@@ -58,7 +58,7 @@ void Log::Info(const char *fmt, ...) {
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
-    renderer->set_colour(Colour::BLUE);
+    renderer->set_colour(BLUE);
     renderer->print("INFO");
     renderer->set_colour(old);
     renderer->print("   ] ");
@@ -77,7 +77,7 @@ void Log::Ok(const char *fmt, ...) {
 
     Colour old = renderer->get_colour();
     renderer->print("[   ");
-    renderer->set_colour(Colour::GREEN);
+    renderer->set_colour(GREEN);
     renderer->print("OK");
     renderer->set_colour(old);
     renderer->print("    ] ");
@@ -96,7 +96,7 @@ void Log::Warning(const char *fmt, ...) {
 
     Colour old = renderer->get_colour();
     renderer->print("[ ");
-    renderer->set_colour(Colour::YELLOW);
+    renderer->set_colour(YELLOW);
     renderer->print("WARNING");
     renderer->set_colour(old);
     renderer->print(" ] ");
@@ -114,7 +114,7 @@ void Log::Error(const char *fmt, ...) {
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
-    renderer->set_colour(Colour::RED);
+    renderer->set_colour(RED);
     renderer->print("ERROR");
     renderer->set_colour(old);
     renderer->print("  ] ");
@@ -132,7 +132,7 @@ void Log::LogMsg(const char *fmt, ...) {
 
     Colour old = renderer->get_colour();
     renderer->print("[   ");
-    renderer->set_colour(Colour::GRAY);
+    renderer->set_colour(GRAY);
     renderer->print("LOG");
     renderer->set_colour(old);
     renderer->print("   ] ");
@@ -174,7 +174,7 @@ void Log::debug(const char *fmt, ...) {
 
     Colour old = renderer->get_colour();
     renderer->print("[  ");
-    renderer->set_colour(Colour::ORANGE);
+    renderer->set_colour(ORANGE);
     renderer->print("DEBUG");
     renderer->set_colour(old);
     renderer->print("  ] ");
@@ -195,8 +195,8 @@ static void float_to_str(float val, char *buf, int precision) {
     }
 
     // Ganzzahlteil
-    uint32_t int_part = (uint32_t)val;
-    float frac_part = val - (float)int_part;
+    const auto int_part = static_cast<uint32_t>(val);
+    float frac_part = val - static_cast<float>(int_part);
 
     char int_buf[32];
     UIntToStr(int_part, int_buf, 10);
@@ -210,9 +210,9 @@ static void float_to_str(float val, char *buf, int precision) {
     // Nachkommateil
     for (int i = 0; i < precision; i++) {
         frac_part *= 10.0f;
-        int digit = (int)frac_part;
-        *buf++ = '0' + digit;
-        frac_part -= digit;
+        int digit = static_cast<int>(frac_part);
+        *buf++ = static_cast<char>('0' + digit);
+        frac_part -= static_cast<float>(digit);
     }
 
     *buf = '\0';
@@ -296,8 +296,8 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     UIntToStr(val, buffer, base);
 
                     // Padding manuell
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
+                    const size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
                         renderer->put_char(pad_char);
 
                     renderer->print(buffer);
@@ -305,7 +305,7 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                 }
                 case 'c': {
                     int val = __builtin_va_arg(args, int);
-                    renderer->put_char((char)val);
+                    renderer->put_char(static_cast<char>(val));
                     break;
                 }
                 case 'd': {
@@ -316,9 +316,9 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                         renderer->put_char('-');
                         val = -val;
                     }
-                    UIntToStr((uint64_t) val, buffer, 10);
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
+                    UIntToStr(static_cast<uint64_t>(val), buffer, 10);
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
                         renderer->put_char(pad_char);
                     renderer->print(buffer);
                     break;
@@ -326,9 +326,9 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                 case 'f': {  // Float-Support
                     double val = __builtin_va_arg(args, double);
                     int frac_digits = (precision >= 0) ? precision : 6;
-                    float_to_str((float)val, buffer, frac_digits);
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
+                    float_to_str(static_cast<float>(val), buffer, frac_digits);
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
                         renderer->put_char(pad_char);
                     renderer->print(buffer);
                     break;
@@ -337,8 +337,8 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);
                     renderer->print("0x");
                     UIntToStr(val, buffer, 16);
-                    int len = strlen(buffer);
-                    for (int i = len; i < min_width; i++)
+                    size_t len = strlen(buffer);
+                    for (size_t i = len; i < min_width; i++)
                         renderer->put_char('0');
                     renderer->print(buffer);
                     break;

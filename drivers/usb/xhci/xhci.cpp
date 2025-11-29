@@ -1,22 +1,20 @@
 #include "xhci.h"
 
 #include <encoding.h>
+#include <kernel/time.h>
+#include <kernel/interrupts.h>
 
 #include "xhci_ext_cap.h"
 #include "../../../include/log.h"
-#include "../../../include/vector.h"
-#include "../../../kernel/include/time.h"
+#include <vector.h>
 #include "../../pci/pci.h"
-#include "../../../kernel/include/interrupts.h"
 #include "xhci_device_ctx.h"
 #include "xhci_device.h"
 #include "xhci_keyboard_driver.h"
 #include "xhci_mass_storage_driver.h"
-#include "../../../kernel/devices/device_manager.h"
 #include <dev/usb_xhci_ioctl.h>
-
 #include "../usb_manager.h"
-#include "../../../kernel/system/system_manager.h"
+#include <kernel/system/system_manager.h>
 
 namespace USB {
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
@@ -190,8 +188,6 @@ namespace USB {
 
             m_port_connection_events.clear();
         }
-
-        return true;
     }
 
     bool xhciDriver::shutdown_device() {
@@ -344,7 +340,7 @@ namespace USB {
     }
 
     xhciPortRegisterManager xhciDriver::get_port_register_set(uint8_t port_num) {
-        uint64_t base = reinterpret_cast<uint64_t>(m_op_regs) + (0x400 + (0x10 * port_num));
+        const uint64_t base = reinterpret_cast<uint64_t>(m_op_regs) + (0x400 + (0x10 * port_num));
         return xhciPortRegisterManager(base);
     }
 
@@ -1175,7 +1171,7 @@ namespace USB {
 
         req.wLength = desc->header.wTotalLength;
 
-        uint8_t *temp_buffer = new uint8_t[desc->header.wTotalLength];
+        auto *temp_buffer = new uint8_t[desc->header.wTotalLength];
         if (!temp_buffer) {
             Log::Error("Failed to allocate temporary buffer for configuration descriptor");
             if (desc->data) {
@@ -1594,7 +1590,7 @@ namespace USB {
 
         switch (cmd) {
             case XHCI_IOCTL_GET_COUNT: {
-                size_t *out = reinterpret_cast<size_t *>(arg);
+                auto *out = static_cast<size_t *>(arg);
                 size_t count = 0; {
                     spinlock_guard_irq guard(m_devices_lock);
                     for (auto dev: m_connected_devices) {

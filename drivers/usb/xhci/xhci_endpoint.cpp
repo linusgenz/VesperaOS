@@ -68,7 +68,7 @@ xhciEndpoint::xhciEndpoint(uint8_t xhc_slot_id, const usb_endpoint_descriptor* d
     allocate_internal_data_buffer();
 }
 
-static inline size_t next_power_of_two(size_t x) {
+static size_t next_power_of_two(size_t x) {
     if (x <= 1) return 1;
     --x;
     x |= x >> 1;

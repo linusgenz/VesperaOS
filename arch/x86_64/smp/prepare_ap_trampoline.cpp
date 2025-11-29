@@ -22,14 +22,14 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-
-#include <memory.h>
-#include <interrupts.h>
-
+/*
+#include <kernel/memory.h>
+#include <kernel/interrupts.h>
+*/
 #include "../interrupts/idt.h"
 
 void prepare_ap_trampoline() {
-    *(volatile uint64_t *) 0x2000 = kernel::memory::get_pagetable_address();
-    *(arch::x86_64::interrupts::idt::IDTR *) 0x1000 = *kernel::interrupts::get_idtr_address();
+   // *(volatile uint64_t *) 0x2000 = kernel::memory::get_pagetable_address();
+   // *(arch::x86_64::interrupts::idt::IDTR *) 0x1000 = *kernel::interrupts::get_idtr_address();
     //   __asm__ volatile("wbinvd" ::: "memory");
 }

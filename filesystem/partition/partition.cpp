@@ -22,13 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <memory.h>
 
 #include "../kernel/devices/blockdevice.h"
 #include "partition.h"
 
 #include <encoding.h>
 #include <string.h>
+#include <kernel/memory.h>
 
 inline uint16_t rd16(const void *p) {
     return *(const uint16_t*)p;
@@ -96,7 +96,7 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
                 out[added].length_lba = (end >= start) ? (end - start + 1) : 0;
                 out[added].mbr_type = 0;
 
-                const utf16_t *utf16_name = reinterpret_cast<const utf16_t*>(entry + 56);
+                const auto *utf16_name = reinterpret_cast<const utf16_t*>(entry + 56);
                 char name_buf[72];
                 utf16_to_utf8(utf16_name, 36, name_buf);
 

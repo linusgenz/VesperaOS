@@ -24,7 +24,6 @@
 #ifndef VESPERAOS_XHCI_DEVICE_H
 #define VESPERAOS_XHCI_DEVICE_H
 
-#include <cstdint>
 #include "xhci_rings.h"
 #include "xhci_device_ctx.h"
 #include "xhci_usb_interface.h"
@@ -32,38 +31,38 @@
 
 class xhciDevice {
 public:
-    explicit xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64bit_context);
+    explicit xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64byte_ctx);
 
     void allocate_control_ep_ring();
 
-    inline uint8_t get_slot_id() const { return info.slot_id; }
-    inline uint8_t get_port_id() const { return info.port_num; }
-    inline uint8_t get_speed() const { return info.speed; }
-    inline uintptr_t get_input_context_phys() const { return m_input_context_phys; }
-    inline xhciTransferRing *get_control_transfer_ring() const { return m_control_transfer_ring; }
+    [[nodiscard]] uint8_t get_slot_id() const { return info.slot_id; }
+    [[nodiscard]] uint8_t get_port_id() const { return info.port_num; }
+    [[nodiscard]] uint8_t get_speed() const { return info.speed; }
+    [[nodiscard]] uintptr_t get_input_context_phys() const { return m_input_context_phys; }
+    [[nodiscard]] xhciTransferRing *get_control_transfer_ring() const { return m_control_transfer_ring; }
 
-    xhci_input_control_context32 *get_input_control_ctx();
+    [[nodiscard]] xhci_input_control_context32 *get_input_control_ctx() const;
 
-    xhci_slot_context32 *get_input_slot_ctx();
+    [[nodiscard]] xhci_slot_context32 *get_input_slot_ctx() const;
 
-    xhci_endpoint_context32 *get_input_control_ep_ctx();
+    [[nodiscard]] xhci_endpoint_context32 *get_input_control_ep_ctx() const;
 
-    xhci_endpoint_context32 *get_input_ep_ctx(uint8_t endpoint_num);
+    [[nodiscard]] xhci_endpoint_context32 *get_input_ep_ctx(uint8_t endpoint_num) const;
 
     void setup_add_interface(const usb_interface_descriptor *desc);
 
-    void sync_input_ctx(void *out_ctx);
+    void sync_input_ctx(const void *out_ctx) const;
 
     Vector<xhciUsbInterface *> interfaces;
 
-    xhci_device_stat info;
+    xhci_device_stat info{};
 
 private:
     bool use64byte_ctx;
 
-    void *m_input_context;
-    uintptr_t m_input_context_phys;
-    xhciTransferRing *m_control_transfer_ring;
+    void *m_input_context{};
+    uintptr_t m_input_context_phys{};
+    xhciTransferRing *m_control_transfer_ring{};
 
 
 

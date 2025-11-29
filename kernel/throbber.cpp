@@ -23,24 +23,20 @@
 
 #include "throbber.h"
 
-#include <basic_renderer.h>
+#include <kernel/basic_renderer.h>
 #include <log.h>
-#include <scheduling.h>
-#include <sys/syscalls.h>
 
-#include "scheduling/cpu_scheduler.h"
-#include "include/time.h"
-#include "system/system_manager.h"
+#include <kernel/time.h>
+#include <kernel/system/system_manager.h>
 
-static inline float abs(float v) {
+static float abs(float v) {
     return v < 0.0f ? -v : v;
 }
 
 double atan2(double y,double x)
 {
-    double absx, absy;
-    absy = abs(y);
-    absx = abs(x);
+    double absy = abs(y);
+    double absx = abs(x);
     short octant = ((x<0) << 2) + ((y<0) << 1 ) + (absx <= absy);
     switch (octant) {
         case 0: {
@@ -110,7 +106,7 @@ void generate_throbber() {
             }
             mask_map[y*THROBBER_SIZE + x] = 1;
 
-            double angle = atan2((double)dy, (double)dx);
+            double angle = atan2(dy, dx);
             if (angle < 0) angle += 2*M_PI;
             uint8_t ang = (uint8_t)(angle * 255.0 / (2*M_PI));
             segment_map[y*THROBBER_SIZE + x] = (ang * SEGMENT_COUNT) / 256;
@@ -151,7 +147,7 @@ void clear_throbber(uint32_t x, uint32_t y) {
     uint32_t bg_color = global_renderer->get_bg_colour();
 
     for (uint32_t row = 0; row < THROBBER_SIZE; row++) {
-        uint32_t* fb_row = (uint32_t*)((uint8_t*)fb->base_address + (y + row) * fb->pixels_per_scanline * 4);
+        auto* fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) * fb->pixels_per_scanline * 4);
         for (uint32_t col = 0; col < THROBBER_SIZE; col++) {
             fb_row[x + col] = bg_color;
         }
@@ -160,7 +156,7 @@ void clear_throbber(uint32_t x, uint32_t y) {
 
 void draw_bitmap(Framebuffer *fb, uint32_t *bitmap, uint32_t w, uint32_t h, uint32_t x, uint32_t y) {
     for (uint32_t row = 0; row < h; row++) {
-        uint32_t *fb_row = (uint32_t *) ((uint8_t *) fb->base_address + (y + row) * fb->pixels_per_scanline * 4);
+        auto *fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) * fb->pixels_per_scanline * 4);
         for (uint32_t col = 0; col < w; col++) {
             uint32_t px = bitmap[row * w + col];
             if (px >> 24) {

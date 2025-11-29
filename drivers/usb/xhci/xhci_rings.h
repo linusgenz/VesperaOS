@@ -4,7 +4,7 @@
 #include "xhci_mem.h"
 #include "xhci_trb.h"
 #include "xhci_regs.h"
-#include "../../../include/vector.h"
+#include <vector.h>
 
 class xhciCommandRing {
 public:
@@ -50,12 +50,10 @@ public:
     inline uintptr_t get_physical_base() const { return m_physical_base; }
     inline uint8_t  get_cycle_bit() const { return m_rcs_bit; }
 
-    bool has_unprocessed_events();
+    bool has_unprocessed_events() const;
     void dequeue_events(Vector<xhci_trb_t*>& trbs);
 
-    void flush_unprocessed_events();
-
-    uint64_t get_current_dequeue_physical();
+    uint64_t get_current_dequeue_physical() const;
 private:
     spinlock_t          m_lock{};
 
@@ -72,7 +70,7 @@ private:
     uint8_t            m_rcs_bit;               // Ring cycle state
 
 private:
-    void _update_erdp();
+    void _update_erdp() const;
     xhci_trb_t* _dequeue_trb();
 };
 

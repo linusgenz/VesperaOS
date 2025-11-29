@@ -170,7 +170,7 @@ namespace FAT32 {
 
         [[nodiscard]] uint32_t GetRootCluster() const;
 
-        bool IsDir(uint32_t cluster);
+        bool IsDir(uint32_t cluster) const;
 
         uint32_t ResolvePathToCluster(const char *path) const;
 
@@ -201,7 +201,7 @@ namespace FAT32 {
 
     private:
         BlockDevice *device;
-        BPB_FAT32 bpb;
+        BPB_FAT32 bpb{};
         bool valid;
 
         uint32_t sectorSize;

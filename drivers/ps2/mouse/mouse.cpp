@@ -23,7 +23,8 @@
 
 #include "mouse.h"
 #include "../../../kernel/cpu/io.h"
-#include "../../../kernel/include/basic_renderer.h"
+#include <kernel/basic_renderer.h>
+#include <kernel/ScrollManager.h>
 
 namespace input::mouse {
     uint8_t pointer[] = {
@@ -112,6 +113,7 @@ namespace input::mouse {
                 mouse_packet_ready = true;
                 mouse_cycle = 0;
                 break;
+            default: ;
         }
 
         if (mouse_packet_ready) {
@@ -173,7 +175,7 @@ namespace input::mouse {
         }
 
         global_renderer->clear_mouse_cursor(pointer, mouse_position_old);
-        global_renderer->draw_overlay_mouse_cursor(pointer, position, Colour::WHITE);
+        global_renderer->draw_overlay_mouse_cursor(pointer, position, WHITE);
 
         if (mouse_packet[0] & PS2LeftButton) {
         }

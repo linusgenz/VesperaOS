@@ -24,7 +24,7 @@
 #include "null.h"
 
 NullDevice::NullDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, VIRTUAL) {}
 
 int NullDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

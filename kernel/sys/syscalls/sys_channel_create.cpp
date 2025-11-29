@@ -22,34 +22,36 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <cstddef>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "../../ipc/channel.h"
-#include "../../realm/realm_manager.h"
-#include "../units/unit.h"
+#include <kernel/ipc/channel.h>
+#include <kernel/realm/realm_manager.h>
+#include "../../units/unit.h"
 
 
-namespace syscalls::internal {
-    int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        size_t capacity = static_cast<size_t>(arg0);
+namespace syscalls::internal
+{
+    int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)
+    {
+        size_t capacity = arg0;
         if (capacity == 0) capacity = 4096; // default size
 
-        Unit* current_unit = kernel::scheduling::get_current_unit();
+        const Unit* current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
         Realm* realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
         Channel* ch = Channel::create(capacity);
-        if (!ch)  return -ENOMEM;
+        if (!ch) return -ENOMEM;
 
         // set required caps for channels: read+write for owner
         CapabilitySet caps = CAP_READ | CAP_WRITE;
 
         HandleID hid;
-        ErrorCode err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
 
-        if (err != MOD_SUCCESS) {
+        if (const ErrorCode err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid); err !=
+            MOD_SUCCESS)
+        {
             Channel::destroy(ch);
             return -err;
         }

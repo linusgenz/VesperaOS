@@ -23,14 +23,14 @@
 #ifndef VESPERAOS_SYSTEM_MANAGER_H
 #define VESPERAOS_SYSTEM_MANAGER_H
 
-#include "../ipc/channel.h"
-#include "../sync/spinlock.h"
-#include "../sync/mutex.h"
-#include "../types/types.h"
+#include <kernel/ipc/channel.h>
+#include <kernel/sync/spinlock.h>
+#include <kernel/sync/mutex.h>
+#include "../../../kernel/types/types.h"
 #include <cstdint>
 #include <cstddef>
 
-#include "../acpi/madt.h"
+#include "../../../kernel/acpi/madt.h"
 
 namespace kernel {
 

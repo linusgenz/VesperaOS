@@ -44,14 +44,14 @@ extern "C" void isr_spurious_int();
 extern "C" void isr_panic_ipi();
 
 // C++ Handler
-extern "C" void divide_error_handler(trap_frame* frame);
-extern "C" void invalid_opcode_handler(trap_frame* frame);
-extern "C" void double_fault_handler(trap_frame* frame);
-extern "C" void segment_not_present_handler(trap_frame* frame);
-extern "C" void stack_fault_handler(trap_frame* frame);
-extern "C" void gp_fault_handler(trap_frame* frame);
+extern "C" void divide_error_handler(const trap_frame* frame);
+extern "C" void invalid_opcode_handler(const trap_frame* frame);
+extern "C" void double_fault_handler(const trap_frame* frame);
+extern "C" void segment_not_present_handler(const trap_frame* frame);
+extern "C" void stack_fault_handler(const trap_frame* frame);
+extern "C" void gp_fault_handler(const trap_frame* frame);
 extern "C" void page_fault_handler(trap_frame* frame);
-extern "C" void machine_check_handler(trap_frame* frame);
+extern "C" void machine_check_handler(const trap_frame* frame);
 extern "C" void keyboard_int_handler(trap_frame* frame);
 extern "C" void mouse_int_handler(trap_frame* frame);
 extern "C" void apic_timer_int_handler(trap_frame* frame);

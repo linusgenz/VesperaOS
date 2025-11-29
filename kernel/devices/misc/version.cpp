@@ -23,11 +23,12 @@
 
 #include "version.h"
 #include <string.h>
+#include <kernel/memory.h>
 
 #include "../../kversion.h"
 
 VersionDevice::VersionDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, VIRTUAL) {}
 
 int VersionDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

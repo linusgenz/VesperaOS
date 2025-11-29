@@ -24,8 +24,6 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include <cstdint>
-#include <cstddef>
 #include <vector.h>
 
 /* These constants define the permissions on sections in the program
@@ -132,15 +130,17 @@ struct Elf64_Phdr {
     uint64_t p_align;
 };
 
+using UnitEntry = void(*)(void*);
+
 class ElfLoader {
 public:
     struct ElfLoadResult {
-        uint64_t entry_point;
+        UnitEntry entry_point;
         bool success;
         const char *error_message;
     };
 
-    ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE, Realm *r);
+    static ElfLoadResult load_elf_binary(const char *path, uintptr_t USERBASE, const Realm *r);
 
 private:
     struct ElfSegment {
@@ -158,11 +158,11 @@ private:
     };
 
     struct SegmentMapping {
-        uintptr_t page_start;
-        size_t page_offset;
-        size_t map_size;
-        size_t file_size;
-        size_t memory_size;
+        const uintptr_t page_start;
+        const size_t page_offset;
+        const size_t map_size;
+        const size_t file_size;
+        const size_t memory_size;
     };
 
     static bool validate_elf_header(const Elf64_Ehdr *header);
@@ -174,10 +174,10 @@ private:
     static SegmentMapping calculate_segment_mapping(const Elf64_Phdr &ph, uintptr_t base_addr);
 
     static ElfLoadResult map_and_load_segment(const Elf64_Phdr &ph, const void *file_data, uintptr_t base_addr,
-                                              Realm *r);
+                                              const Realm *r);
 
     static ElfLoadResult
-    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr, Realm *r);
+    process_loadable_segments(const void *file_data, const Elf64_Ehdr *header, uintptr_t base_addr, const Realm *r);
 };
 
 #endif //ELF_H

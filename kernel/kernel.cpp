@@ -21,28 +21,22 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <time.h>
 
-#include "throbber.h"
 #include "exec/elf.h"
-#include "./include/kernel_utils.h"
+#include "../include/kernel/kernel_utils.h"
 #include "./cpu/cpu.h"
 #include "kversion.h"
-#include "../include/log.h"
-#include "acpi/acpi_manager.h"
-#include "include/scheduling.h"
-#include "sync/mutex.h"
-#include "../filesystem/vfs/vfs.h"
-#include "input/input_manager.h"
-#include "realm/realm_manager.h"
-#include "system/system_manager.h"
-#include "tty/tty.h"
-#include "tty/tty.h"
+#include <log.h>
+#include "kernel/scheduling.h"
+#include <kernel/realm/realm_manager.h>
+#include <kernel/system/system_manager.h>
+#include <kernel/tty/tty.h>
 #include "units/unit_manager.h"
 
-static const char *envp0[] = {"PATH=/bin", nullptr};
+static const char* envp0[] = {"PATH=/bin", nullptr};
 
-extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
+extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
+{
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
@@ -75,14 +69,14 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .envp = envp0,
         .is_user = true,
     };
-    Realm *shell_realm = RealmManager::create(&realm_config_shell);
-    TTYDevice *tty_dev = kernel::tty::tty_devices[0];
+    Realm* shell_realm = RealmManager::create(&realm_config_shell);
+    TTYDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
-    ElfLoader elf_loader;
-    ElfLoader::ElfLoadResult result = elf_loader.load_elf_binary("/bin/shell", 0x400000, shell_realm);
+    ElfLoader::ElfLoadResult result = ElfLoader::load_elf_binary("/bin/shell", 0x400000, shell_realm);
     Log::Ok("Elf load result: %p", result.entry_point);
-    if (!result.success) {
+    if (!result.success)
+    {
         Log::Error("Failed to load elf binary");
     }
 
@@ -97,13 +91,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo *boot_info) {
         .is_user = true,
         .user_stack_size = 0,
     };
-    Unit *shell = UnitManager::create(shell_realm->id, (void *) result.entry_point, nullptr, &uc);
+    Unit* shell = UnitManager::create(shell_realm->id, result.entry_point, nullptr, &uc);
     SetupUserArgsAndEnv(shell, nullptr, envp0);
     Log::Ok("PF: %p %p", envp0, *envp0);
 
     kernel::SystemManager::set_system_initialized();
 
-   // __asm__ volatile ("ud2");
+    __asm__ volatile ("ud2");
 
     kernel::scheduling::enable_on_cpu(0);
 

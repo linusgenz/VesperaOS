@@ -25,14 +25,16 @@
 #define VESPERAOS_UNIT_MANAGER_H
 
 #include "unit.h"
-#include "../sync/spinlock.h"
+#include <kernel/sync/spinlock.h>
 #include "../types/types.h"
+
+using UnitEntry = void(*)(void*);
 
 class UnitManager {
 public:
     static void initialize();
     static bool is_initialized();
-    static Unit* create(RealmID realm_id, void* entry_point, void* arg, const UnitConfig* cfg);
+    static Unit* create(RealmID realm_id, UnitEntry entry_point, void* arg, const UnitConfig* cfg);
     static Unit* get(UnitID id);
     static bool destroy(UnitID id);
     static void list();

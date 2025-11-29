@@ -3,8 +3,8 @@
 //
 
 
-#include "../include/time.h"
-#include "../../include/log.h"
+#include <kernel/time.h>
+#include <log.h>
 
 namespace kernel::time {
     uint8_t cmos_read(uint8_t reg) {

@@ -37,7 +37,7 @@ enum class VfsNodeType {
 struct VfsNode;
 
 struct VfsNodeOps {
-    ssize_t (*read)(VfsNode *node, size_t offset, size_t size, void *buffer);
+    ssize_t (*read)(const VfsNode *node, size_t offset, size_t size, void *buffer);
 
     ssize_t (*write)(VfsNode *node, size_t offset, size_t size, const void *buffer);
 

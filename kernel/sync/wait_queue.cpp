@@ -21,9 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "wait_queue.h"
+#include "../../include/kernel/sync/wait_queue.h"
 #include "../units/unit.h"
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 void wait_queue_t::add_wait(Unit *u) {
     auto *entry = new wait_queue_entry_t();
@@ -41,7 +41,7 @@ void wait_queue_t::add_wait(Unit *u) {
         }
     }
 
-    u->state = UnitState::UNIT_BLOCKED;
+    u->state = UNIT_BLOCKED;
 
     kernel::scheduling::remove_unit(u);
 }
@@ -52,7 +52,7 @@ void wait_queue_t::wake_all() {
     wait_queue_entry_t *entry = head;
     while (entry) {
         if (entry->unit) {
-            entry->unit->state = UnitState::UNIT_READY;
+            entry->unit->state = UNIT_READY;
 
             kernel::scheduling::add_unit(entry->unit);
         }
@@ -75,14 +75,14 @@ void wait_queue_t::wake_one() {
     if (!head) tail = nullptr;
 
     if (entry->unit) {
-        entry->unit->state = UnitState::UNIT_READY;
+        entry->unit->state = UNIT_READY;
         kernel::scheduling::add_unit(entry->unit);
     }
 
     delete entry;
 }
 
-bool wait_queue_t::remove(Unit *u) {
+bool wait_queue_t::remove(const Unit *u) {
     spinlock_guard guard(lock);
 
     if (!head) return false;

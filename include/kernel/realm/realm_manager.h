@@ -1,10 +1,10 @@
-// syscalls.h
+// realm_manager.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 03.08.25.
+// Created by Linus Genz on 19.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,18 +21,31 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALLS_H
-#define SYSCALLS_H
+#ifndef VESPERAOS_REALM_MANAGER_H
+#define VESPERAOS_REALM_MANAGER_H
 
-int64_t sys_write(int64_t fd, const void* buf, size_t size);
-int64_t sys_read(int64_t fd, void* buf, size_t size);
-int64_t sys_open(const char* path);
-int64_t sys_close(int64_t fd);
-int64_t sys_exit(int64_t code);
-int64_t sys_create(const char* path);
-int64_t sys_rename(const char *old_path, const char *new_path);
-int64_t sys_mkdir(const char* path);
-int64_t sys_rmdir(const char* path);
-int64_t sys_unlink(const char* path);
-int64_t sys_sleep(uint64_t ms);
-#endif //SYSCALLS_H
+#include <kernel/realm/realm.h>
+#include "../../../kernel/types/types.h"
+#include <cstddef>
+
+#include <kernel/sync/atomic.h>
+#include <kernel/sync/spinlock.h>
+
+class RealmManager {
+public:
+    static void initialize();
+    static bool is_initialized();
+    static Realm* create(const RealmConfig* cfg);
+    static Realm* get(RealmID id);
+    static bool destroy(RealmID id);
+    static void list();
+
+private:
+    static constexpr size_t MAX_REALMS = 64;
+    static Realm realms[MAX_REALMS];
+    static spinlock_t global_lock;
+    static RealmID next_id;
+    static atomic_u8_t seq;
+};
+
+#endif //VESPERAOS_REALM_MANAGER_H

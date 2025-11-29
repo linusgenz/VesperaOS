@@ -1,9 +1,9 @@
 #ifndef AHCI_H
 #define AHCI_H
-#include <cstdint>
+
 #include "../pci/pci.h"
 #include "../../kernel/devices/blockdevice.h"
-#include "../../kernel/sync/mutex.h"
+#include "../../include/kernel/sync/mutex.h"
 
 namespace AHCI {
 
@@ -145,12 +145,11 @@ namespace AHCI {
     public:
         HBAPort* hbaPort;
         PortType portType;
-        uint8_t* buffer;
         uint8_t portNumber;
 
-        void Configure();
-        void StartCMD();
-        void StopCMD();
+        void Configure() const;
+         void StopCMD() const;
+         void StartCMD() const;
 
         bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override {
             return Read(lba, sectorCount, buffer);
@@ -168,13 +167,13 @@ namespace AHCI {
 
     class AHCIDriver{
         public:
-        AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress);
+        explicit AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress);
         ~AHCIDriver();
-        bool HasActivePorts() const;
+        [[nodiscard]] bool HasActivePorts() const;
         PCI::PCIDeviceHeader* PCIBaseAddress;
         HBAMemory* ABAR;
         void ProbePorts();
-        Port* ports[32];
+        Port* ports[32]{};
         uint8_t portCount;
     };
 }

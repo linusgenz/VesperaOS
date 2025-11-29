@@ -22,15 +22,15 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "xhci.h"
-#include "xhci_trb.h"
-#include <cstdint>
 #include "xhci_device.h"
-#include <log.h>
+#include <kernel/memory.h>
+
 #include "xhci_device_ctx.h"
 #include "xhci_usb_interface.h"
 
-xhciDevice::xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64byte_ctx)
-    : use64byte_ctx(use_64byte_ctx) {
+xhciDevice::xhciDevice(const uint8_t slot_id, const uint8_t port_num, const uint8_t speed, const bool use_64byte_ctx)
+    : use64byte_ctx(use_64byte_ctx)
+{
     info.port_num = port_num;
     info.slot_id = slot_id;
     info.speed = speed;
@@ -38,12 +38,14 @@ xhciDevice::xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool us
     allocate_control_ep_ring();
 }
 
-void xhciDevice::allocate_control_ep_ring() {
+void xhciDevice::allocate_control_ep_ring()
+{
     m_control_transfer_ring = xhciTransferRing::allocate(info.slot_id);
 }
 
-void xhciDevice::allocate_input_context() {
-    uint64_t input_context_size = use64byte_ctx ? sizeof(xhci_input_context64) : sizeof(xhci_input_context32);
+void xhciDevice::allocate_input_context()
+{
+    const uint64_t input_context_size = use64byte_ctx ? sizeof(xhci_input_context64) : sizeof(xhci_input_context32);
     m_input_context = alloc_xhci_memory(
         input_context_size,
         XHCI_INPUT_CONTROL_CONTEXT_ALIGNMENT,
@@ -54,59 +56,68 @@ void xhciDevice::allocate_input_context() {
     m_input_context_phys = xhci_get_physical_addr(m_input_context);
 }
 
-xhci_input_control_context32* xhciDevice::get_input_control_ctx() {
-    if (use64byte_ctx) {
+xhci_input_control_context32* xhciDevice::get_input_control_ctx() const
+{
+    if (use64byte_ctx)
+    {
         auto* input_ctx = static_cast<xhci_input_context64*>(m_input_context);
         return reinterpret_cast<xhci_input_control_context32*>(&input_ctx->control_context);
-    } else {
-        auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
-        return &input_ctx->control_context;
     }
+    auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
+    return &input_ctx->control_context;
 }
 
-xhci_slot_context32* xhciDevice::get_input_slot_ctx() {
-    if (use64byte_ctx) {
+xhci_slot_context32* xhciDevice::get_input_slot_ctx() const
+{
+    if (use64byte_ctx)
+    {
         auto* input_ctx = static_cast<xhci_input_context64*>(m_input_context);
         return reinterpret_cast<xhci_slot_context32*>(&input_ctx->device_context.slot_context);
-    } else {
-        auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
-        return &input_ctx->device_context.slot_context;
     }
+    auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
+    return &input_ctx->device_context.slot_context;
 }
 
-xhci_endpoint_context32* xhciDevice::get_input_control_ep_ctx() {
-    if (use64byte_ctx) {
+xhci_endpoint_context32* xhciDevice::get_input_control_ep_ctx() const
+{
+    if (use64byte_ctx)
+    {
         auto* input_ctx = static_cast<xhci_input_context64*>(m_input_context);
         return reinterpret_cast<xhci_endpoint_context32*>(&input_ctx->device_context.control_ep_context);
-    } else {
-        auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
-        return &input_ctx->device_context.control_ep_context;
     }
+    auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
+    return &input_ctx->device_context.control_ep_context;
 }
 
-xhci_endpoint_context32* xhciDevice::get_input_ep_ctx(uint8_t endpoint_num) {
-    uint8_t endpoint_index = endpoint_num - 2;
+xhci_endpoint_context32* xhciDevice::get_input_ep_ctx(uint8_t endpoint_num) const
+{
+    const uint8_t endpoint_index = endpoint_num - 2;
 
-    if (use64byte_ctx) {
-        xhci_input_context64* input_ctx = static_cast<xhci_input_context64*>(m_input_context);
+    if (use64byte_ctx)
+    {
+        auto* input_ctx = static_cast<xhci_input_context64*>(m_input_context);
         return reinterpret_cast<xhci_endpoint_context32*>(&input_ctx->device_context.ep[endpoint_index]);
-    } else {
-        xhci_input_context32* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
-        return &input_ctx->device_context.ep[endpoint_index];
     }
+    auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
+    return &input_ctx->device_context.ep[endpoint_index];
 }
 
-void xhciDevice::setup_add_interface(const usb_interface_descriptor* desc) {
-    auto iface = new xhciUsbInterface(info.slot_id, desc);
+void xhciDevice::setup_add_interface(const usb_interface_descriptor* desc)
+{
+    const auto iface = new xhciUsbInterface(info.slot_id, desc);
     interfaces.push_back(iface);
 }
 
-void xhciDevice::sync_input_ctx(void* out_ctx) {
-    if (use64byte_ctx) {
+void xhciDevice::sync_input_ctx(const void* out_ctx) const
+{
+    if (use64byte_ctx)
+    {
         auto* input_ctx = static_cast<xhci_input_context64*>(m_input_context);
         xhci_device_context64* input_device_ctx = &input_ctx->device_context;
         memcpy(input_device_ctx, out_ctx, sizeof(xhci_device_context64));
-    } else {
+    }
+    else
+    {
         auto* input_ctx = static_cast<xhci_input_context32*>(m_input_context);
         xhci_device_context32* input_device_ctx = &input_ctx->device_context;
         memcpy(input_device_ctx, out_ctx, sizeof(xhci_device_context32));

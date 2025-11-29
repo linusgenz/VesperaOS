@@ -22,20 +22,20 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
-#include "../../ipc/channel.h"
-#include "../../realm/realm_manager.h"
+#include <kernel/ipc/channel.h>
+#include <kernel/realm/realm_manager.h>
 #include "../../types/types.h"
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
     int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        const auto hid = (HandleID) arg0;
-        void *buf = reinterpret_cast<void *>(arg1);
-        const auto len = (size_t) arg2;
+        const auto hid = arg0;
+        auto buf = reinterpret_cast<void *>(arg1);
+        const auto len = arg2;
 
-        Unit *u = kernel::scheduling::get_current_unit();
+        const Unit *u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
         Realm *realm = RealmManager::get(u->rid);
         if (!realm) return -EINVAL;

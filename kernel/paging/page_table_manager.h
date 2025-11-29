@@ -5,7 +5,7 @@
 #define PAGE_TABLE_MANAGER_H
 #include <cstdint>
 #include <cstddef>
-#include "../paging/paging.h"
+#include "paging.h"
 
 class PageTableManager {
     public:

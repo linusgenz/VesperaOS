@@ -21,9 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#include <kernel/sync/reentrant_spinlock.h>
 
-#include "reentrant_spinlock.h"
+#include <cstdint>
+#include <kernel/scheduling.h>
 
 void reentrant_spinlock_t::lock() {
 

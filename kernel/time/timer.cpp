@@ -3,11 +3,11 @@
 //
 
 #include <log.h>
-#include <time.h>
+#include <kernel/time.h>
+#include <kernel/interrupts.h>
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../cpu/cpu_manager.h"
-#include "../include/interrupts.h"
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
 
@@ -20,7 +20,7 @@ namespace kernel::time {
             if (!current || current->is_idle) return;
 
             current->sleep_context.wakeup_tick = interrupts::lapic_get_ticks(cpu_id) + (ms + 9) / 10;
-            kernel::scheduling::cpu_scheduler::add_blocked_unit(current, cpu_id);
+            kernel::scheduling::add_blocked_unit(current, cpu_id);
             kernel::scheduling::yield();
         }
 

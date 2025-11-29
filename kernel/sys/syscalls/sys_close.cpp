@@ -21,11 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "cstdint"
-#include "../../include/errno.h"
-#include "../../realm/realm_manager.h"
+#include "../../../include/errno.h"
+#include <kernel/realm/realm_manager.h>
 #include "../../types/types.h"
 
 namespace syscalls::internal {

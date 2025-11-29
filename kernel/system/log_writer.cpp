@@ -41,5 +41,5 @@ FileLogWriter::~FileLogWriter() {
 bool FileLogWriter::append_line(const char *line, size_t len) {
     if (!file_handle) return false;
     ssize_t w = file_handle->ops->write(file_handle, file_handle->size, len, line);
-    return (w == (ssize_t) len);
+    return (w == static_cast<ssize_t>(len));
 }

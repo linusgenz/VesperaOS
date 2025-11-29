@@ -27,7 +27,7 @@
 
 #include "buffer.h"
 #include "qwerty.h"
-#include "../../../kernel/input/input_manager.h"
+#include <kernel/input/input_manager.h>
 
 namespace input::keyboard {
 
@@ -47,6 +47,7 @@ namespace input::keyboard {
             case RIGHT_SHIFT: shift_right = true; return;
             case LEFT_SHIFT + 0x80:  shift_left = false; return;
             case RIGHT_SHIFT + 0x80: shift_right = false; return;
+        default: ;
         }
 
         bool shift = shift_left || shift_right;

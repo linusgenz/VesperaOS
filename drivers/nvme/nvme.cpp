@@ -5,16 +5,16 @@
 #include "nvme.h"
 #include "../../include/log.h"
 #include "../../kernel/cpu/cpu_manager.h"
-#include "../../kernel/include/interrupts.h"
-#include "../../kernel/include/time.h"
+#include <kernel/memory.h>
+#include <kernel/time.h>
 
 namespace NVMe {
-    NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader *pciBaseAddress) {
-        const PCI::PCIHeader0 *pci = reinterpret_cast<const PCI::PCIHeader0 *>(pciBaseAddress);
-        auto mmio = (((uint64_t) pci->BAR1 << 32) | (pci->BAR0 & 0xFFFFFFF0));
-        c_regs = reinterpret_cast<Registers *>(kernel::memory::request_pages(4));
+    NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader *pci_base_address) {
+        const auto *pci = reinterpret_cast<const PCI::PCIHeader0 *>(pci_base_address);
+        auto mmio = ((static_cast<uint64_t>(pci->BAR1) << 32) | (pci->BAR0 & 0xFFFFFFF0));
+        c_regs = static_cast<Registers *>(kernel::memory::request_pages(4));
         for (int i = 0; i < 4; i++) {
-            auto virt = reinterpret_cast<void *>((uintptr_t) c_regs + i * 0x1000);
+            auto virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(c_regs) + i * 0x1000);
             auto phys = reinterpret_cast<void *>(mmio + i * 0x1000);
             kernel::memory::map_memory(virt, phys, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
         }
@@ -58,10 +58,10 @@ namespace NVMe {
         memset(admCQVirtPage, 0, PAGE_SIZE_4K);
         memset(admSQVirtPage, 0, PAGE_SIZE_4K);
 
-        c_regs->admin_completion_q = (uintptr_t) admCQPhysPage;
-        c_regs->admin_submission_q = (uintptr_t) admSQPhysPage;
+        c_regs->admin_completion_q = reinterpret_cast<uintptr_t>(admCQPhysPage);
+        c_regs->admin_submission_q = reinterpret_cast<uintptr_t>(admSQPhysPage);
 
-        new(&admin_queue) NVMe::NvmeQueue(0, (uintptr_t) admCQPhysPage, (uintptr_t) admSQPhysPage,
+        new(&admin_queue) NVMe::NvmeQueue(0, reinterpret_cast<uintptr_t>(admCQPhysPage), reinterpret_cast<uintptr_t>(admSQPhysPage),
                                           admCQVirtPage, admSQVirtPage, GetCompletionDoorbell(0),
                                           GetSubmissionDoorbell(0),
                                           PAGE_SIZE_4K, PAGE_SIZE_4K);
@@ -106,20 +106,20 @@ namespace NVMe {
             Log::Error("Failed to create IO Queue");
         }
 
-        for (int i = 0; i < namespaceIDs.size(); i++) {
-            Log::LogMsg("[NVMe] Namespace ID %u", namespaceIDs[i]);
+        for (uint32_t namespaceID : namespaceIDs) {
+            Log::LogMsg("[NVMe] Namespace ID %u", namespaceID);
 
             void *physBuffer = kernel::memory::request_page();
             NvmeCompletion completion{};
             NvmeCommand identifyNsCmd = {};
             identifyNsCmd.opcode = AdminCmdIdentify;
-            identifyNsCmd.prp1 = (uintptr_t) physBuffer;
-            identifyNsCmd.ns_id = namespaceIDs[i];
+            identifyNsCmd.prp1 = reinterpret_cast<uintptr_t>(physBuffer);
+            identifyNsCmd.ns_id = namespaceID;
             identifyNsCmd.identify.cns = NvmeIdentifyCommand::CnsNamespace;
 
             admin_queue.SubmitWait(identifyNsCmd, completion);
 
-            auto nsIdentify = reinterpret_cast<NamespaceIdentity *>(physBuffer);
+            auto nsIdentify = static_cast<NamespaceIdentity *>(physBuffer);
 
             uint8_t lbaFormatIndex = nsIdentify->fmt_lba_size & 0x0F;
             uint8_t lbads = nsIdentify->lba_formats[lbaFormatIndex].lba_data_size;
@@ -127,7 +127,7 @@ namespace NVMe {
 
             Log::debug("namespaceSize: %u", nsIdentify->namespace_size);
 
-            auto *ns = new NvmeNamespace(namespaceIDs[i], &io_queue, lbaSize);
+            auto *ns = new NvmeNamespace(namespaceID, &io_queue, lbaSize);
             namespaces.push_back(ns);
         }
 
@@ -141,7 +141,7 @@ namespace NVMe {
             return -1;
         }
 
-        controller_identity = (ControllerIdentity *) kernel::memory::request_page();
+        controller_identity = static_cast<ControllerIdentity*>(kernel::memory::request_page());
         if (!controller_identity) {
             Log::Error("[NVMe] No virtual memory for controller identify");
             return -1;
@@ -154,7 +154,7 @@ namespace NVMe {
         memset(&identifyCommand, 0, sizeof(NvmeCommand));
 
         identifyCommand.opcode = AdminCmdIdentify;
-        identifyCommand.prp1 = (uintptr_t) controller_identity_phys;
+        identifyCommand.prp1 = controller_identity_phys;
         identifyCommand.identify.cns = NvmeIdentifyCommand::CnsController;
 
         NvmeCompletion completion{};
@@ -165,19 +165,19 @@ namespace NVMe {
             return completion.status;
         }
 
-        char serial[21] = {0};
+        char serial[21] = {};
         memcpy(serial, controller_identity->serial_number, 20);
 
         for (int i = 19; i >= 0 && serial[i] == ' '; --i) {
             serial[i] = 0;
         }
 
-        char model[41] = {0};
+        char model[41] = {};
         memcpy(model, controller_identity->model_number, 40);
 
         for (int i = 39; i >= 0 && model[i] == ' '; --i) model[i] = 0;
 
-        char fw[9] = {0};
+        char fw[9] = {};
         memcpy(fw, controller_identity->firmware_revision, 8);
         for (int i = 7; i >= 0 && fw[i] == ' '; --i) fw[i] = 0;
 
@@ -189,11 +189,11 @@ namespace NVMe {
     }
 
     long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespaceIDs) {
-        uint32_t *namespaceList = reinterpret_cast<uint32_t *>(kernel::memory::request_page());
+        auto *namespaceList = static_cast<uint32_t *>(kernel::memory::request_page());
         kernel::memory::map_memory(namespaceList, namespaceList,
                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
-        NvmeCommand identifyNsList;
+        NvmeCommand identifyNsList{};
         memset(&identifyNsList, 0, sizeof(NvmeCommand));
 
         identifyNsList.opcode = AdminCmdIdentify;
@@ -202,7 +202,7 @@ namespace NVMe {
         identifyNsList.identify.cns = NvmeIdentifyCommand::CnsNamespaceList;
         identifyNsList.ns_id = 0;
 
-        NvmeCompletion completion;
+        NvmeCompletion completion{};
         admin_queue.SubmitWait(identifyNsList, completion);
 
         if (completion.status > 0) {

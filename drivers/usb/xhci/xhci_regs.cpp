@@ -22,6 +22,8 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "xhci_regs.h"
+
+#include "xhci_common.h"
 #include "../../../include/log.h"
 
 xhci_doorbell_manager::xhci_doorbell_manager(uintptr_t base) {

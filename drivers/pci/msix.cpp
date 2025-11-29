@@ -21,17 +21,18 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <kernel/interrupts.h>
+#include <kernel/memory.h>
+#include <log.h>
+
 #include "msix.h"
 #include "msi.h"
 #include "pci.h"
-#include "../../include/log.h"
-#include "../../arch/x86_64/interrupts/apic.h"
-#include "../../kernel/include/interrupts.h"
 
 namespace PCI {
 
     bool enable_msix(PCIHeader0 *header, uint8_t irq_vector) {
-        uint8_t *config_space = reinterpret_cast<uint8_t *>(&header->header);
+        auto *config_space = reinterpret_cast<uint8_t *>(&header->header);
 
         if (!(header->header.status & (1 << 4))) {
             Log::Error("PCI: No capabilities present");
@@ -44,8 +45,8 @@ namespace PCI {
             uint8_t cap_id = config_space[cap_ptr];
             uint8_t next_ptr = config_space[cap_ptr + 1];
 
-            if (cap_id == PCI::MSIX_CAPABILITY_ID) {
-                volatile pci_msix_capability *msix_cap =
+            if (cap_id == MSIX_CAPABILITY_ID) {
+                volatile auto *msix_cap =
                         reinterpret_cast<volatile pci_msix_capability *>(&config_space[cap_ptr]);
 
                 uint32_t table_raw = *reinterpret_cast<volatile uint32_t *>(&config_space[cap_ptr + 4]);
@@ -68,10 +69,10 @@ namespace PCI {
                 uint64_t bar_phys = bar_info.address;
 
                 kernel::memory::map_range((void*)bar_phys, (void*)bar_phys, 0x4000,
-                                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+                                                    (1ULL << WriteThrough) | (1ULL << CacheDisabled));
 
 
-                void *table_base = reinterpret_cast<void *>(bar_phys + table_offset);
+                auto table_base = reinterpret_cast<void *>(bar_phys + table_offset);
 
                 // Entry schreiben
                 msix_table_entry entry;

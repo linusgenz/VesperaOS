@@ -21,16 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "system_manager.h"
+#include <kernel/system/system_manager.h>
 #include "../cpu/cpu_manager.h"
-#include "../memory/heap.h"
-#include <time.h>
-#include "../sync/spinlock.h"
-#include "../units/unit_manager.h"
-#include "../realm/realm_manager.h"
+#include <kernel/time.h>
+#include <kernel/sync/spinlock.h>
 #include "../devices/device_manager.h"
-#include "../../include/log.h"
-#include "../../include/string.h"
+#include <log.h>
+#include <string.h>
 #include "../utils/panic.h"
 
 namespace kernel {
@@ -46,7 +43,7 @@ namespace kernel {
     SystemManager::SystemChannel SystemManager::system_channels[MAX_SYSTEM_CHANNELS];
     size_t SystemManager::channel_count = 0;
 
-    SystemStats SystemManager::current_stats = {0};
+    SystemStats SystemManager::current_stats = {};
     uint64_t SystemManager::boot_timestamp = 0;
     bool SystemManager::event_logging_enabled = true;
 

@@ -22,11 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "syscall.h"
-#include <cstdint>
-#include <sys/syscall_numbers.h>
+
 
 #include "../../../include/log.h"
-#include "../../../kernel/include/scheduling.h"
 
 extern "C" void syscall_entry();
 
@@ -42,7 +40,7 @@ static void write_msr(uint32_t msr, uint64_t value) {
     asm volatile ("wrmsr" :: "c"(msr), "a"(low), "d"(high));
 }
 
-static inline uint64_t read_msr(uint32_t msr) {
+static uint64_t read_msr(uint32_t msr) {
     uint32_t low, high;
     asm volatile (
         "rdmsr"

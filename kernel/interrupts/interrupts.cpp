@@ -22,13 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
+#include <kernel/memory.h>
+
 #include "../../arch/x86_64/interrupts/pic.h"
 #include  "../../arch/x86_64/interrupts/apic.h"
 #include "../../arch/x86_64/interrupts/ioapic.h"
 #include "../../arch/x86_64/interrupts/idt.h"
-#include "../../arch/x86_64/interrupts/interrupts_internal.h"
 #include "../../include/log.h"
-#include "../include/memory.h"
 #include "../cpu/io.h"
 
 namespace kernel::interrupts {
@@ -40,9 +40,9 @@ namespace kernel::interrupts {
 
         arch::x86_64::interrupts::idt::init_irq_table();
 
-        kernel::memory::map_memory(g_localApicAddr,
+        memory::map_memory(g_localApicAddr,
                                    g_localApicAddr,
-                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+                                   (1ULL << WriteThrough) | (1ULL << CacheDisabled));
 
         arch::x86_64::interrupts::idt::load_default_idt();
         arch::x86_64::interrupts::pic::remap();
@@ -62,15 +62,11 @@ namespace kernel::interrupts {
         return arch::x86_64::interrupts::idt::get_free_vector();
     }
 
-    void set_vector(uint8_t vector, void *handler) {
-        arch::x86_64::interrupts::idt::set_idt_gate(handler, vector, IDT_TA_InterruptGate, 0x08);
-    }
-
     arch::x86_64::interrupts::idt::IDTR* get_idtr_address() {
         return arch::x86_64::interrupts::idt::get_idtr_address();
     }
 
-    void lapic_init(uint32_t cpu_id) {
+    void lapic_init(const uint32_t cpu_id) {
         arch::x86_64::interrupts::apic::init(cpu_id);
     }
 

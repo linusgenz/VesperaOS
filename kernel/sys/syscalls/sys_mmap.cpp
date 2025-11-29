@@ -23,11 +23,9 @@
 
 #include <cstdint>
 #include <errno.h>
-#include <memory.h>
-#include <scheduling.h>
-#include "../include/sys/mman.h"
-
-#include "../units/unit.h"
+#include <kernel/memory.h>
+#include <kernel/scheduling.h>
+#include <kernel/sys/mman.h>
 
 namespace syscalls::internal {
     int64_t sys_mmap(uint64_t addr, uint64_t length, uint64_t prot,
@@ -58,20 +56,20 @@ namespace syscalls::internal {
             void* phys = kernel::memory::request_page();
             if (!phys) {
                 for (size_t j = 0; j < i; j++) {
-                    void* vaddr = (void*)(base + j * PAGE_SIZE);
+                    const auto vaddr = reinterpret_cast<void*>(base + j * PAGE_SIZE);
                     kernel::memory::unmap_memory(vaddr);
                 }
                 return -ENOMEM;
             }
-            void* vaddr = (void*)(base + i * PAGE_SIZE);
+            const auto vaddr = reinterpret_cast<void*>(base + i * PAGE_SIZE);
             kernel::memory::map_memory(vaddr, phys, (1ULL << PT_Flag::UserSuper));
         }
 
-        VmArea* area = (VmArea*)kernel::memory::malloc(sizeof(VmArea));
+        auto* area = static_cast<VmArea*>(kernel::memory::malloc(sizeof(VmArea)));
         if (!area) {
             // rollback
             for (size_t i = 0; i < npages; i++) {
-                void* vaddr = (void*)(base + i * PAGE_SIZE);
+                const auto vaddr = reinterpret_cast<void*>(base + i * PAGE_SIZE);
                 kernel::memory::unmap_memory(vaddr);
             }
             return -ENOMEM;

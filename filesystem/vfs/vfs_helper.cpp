@@ -42,7 +42,7 @@ bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) 
     }
 
     // Reconstruct parent path, e.g. "/mnt/sd0/foo/bar" → parent: "/mnt/sd0/foo", name: "bar"
-    char parent_path[256] = {0};
+    char parent_path[256] = {};
     parent_path[0] = '/';
 
     for (size_t i = 0; i < count - 1; i++) {

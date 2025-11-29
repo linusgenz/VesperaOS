@@ -6,7 +6,7 @@
 #define PCI_H
 #include <cstdint>
 #include "../../kernel/acpi/acpi.h"
-#include "../../kernel/include/basic_renderer.h"
+#include <kernel/basic_renderer.h>
 #include "../../include/string.h"
 
 namespace PCI {
@@ -112,7 +112,7 @@ namespace PCI {
 
     const char *get_prog_if_Name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
 
-    BarInfo get_bar_info(PCIHeader0 *header, uint8_t bar_index);
+    BarInfo get_bar_info(const PCIHeader0 *header, uint8_t bar_index);
 }
 
 #endif //PCI_H

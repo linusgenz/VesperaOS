@@ -66,7 +66,7 @@ private:
 
     static void GenerateMountPath(const char *fs_type, int index, char *out_path, size_t size);
 
-    static VfsNode *MountFilesystem(BlockDevice *device, FilesystemInfo *fs_info);
+    static VfsNode *MountFilesystem(BlockDevice *device, const FilesystemInfo *fs_info);
 
     static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size,
                              const char *table_type, bool is_root_device = false);

@@ -1,4 +1,4 @@
-#include "../include/efi_memory.h"
+#include "kernel/efi_memory.h"
 
 const char* EFI_MEMORY_TYPE_STRINGS[] {
 

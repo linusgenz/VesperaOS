@@ -4,13 +4,12 @@
 
 #ifndef VECTOR_H
 #define VECTOR_H
-#include "../kernel/memory/heap.h"
-#include "../kernel/include/memory.h"
+#include <kernel/memory.h>
 #include <cstddef>
 #include <type_traits>
 #include <cstdint>
-#include <kerrno.h>
-#include "../kernel/system/system_manager.h"
+#include <kernel/kerrno.h>
+#include <kernel/system/system_manager.h>
 
 template<typename T>
 class Vector {

@@ -21,9 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "input_manager.h"
-
+#include <kernel/input/input_manager.h>
 #include <log.h>
+#include <kernel/memory.h>
+#include <kernel/input/input_event.h>
 
 namespace kernel::input {
 

@@ -5,7 +5,7 @@
 #ifndef NVME_H
 #define NVME_H
 #include "../pci/pci.h"
-#include "../../include/vector.h"
+#include <vector.h>
 #include "../../kernel/devices/blockdevice.h"
 #include "nvme_defs.h"
 

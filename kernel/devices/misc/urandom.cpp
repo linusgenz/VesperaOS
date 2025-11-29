@@ -37,7 +37,7 @@ int URandomDevice::release(CharFile*) {
 }
 
 size_t URandomDevice::read(CharFile*, void* buffer, size_t count, size_t) {
-    uint8_t* out = reinterpret_cast<uint8_t*>(buffer);
+    auto* out = static_cast<uint8_t*>(buffer);
     for (size_t i = 0; i < count; i++) {
         out[i] = next();
     }

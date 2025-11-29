@@ -30,12 +30,13 @@ LOOPDEV=$(sudo losetup -fP --show "$IMG_FILE")
 echo "[make_disk] Using loop device: $LOOPDEV"
 
 # Partitionen formatieren
-sudo mkfs.fat -F 32 -n "VesperaEFI" ${LOOPDEV}p1
+sudo mkfs.fat -F 32 -n "VesperaEFI" "${LOOPDEV}"p1
+# shellcheck disable=SC2086
 sudo mkfs.fat -F 32 -n "VesperaRoot" ${LOOPDEV}p2
 
 # EFI Partition mounten und Dateien kopieren
 sudo mkdir -p "$EFI_MNT"
-sudo mount ${LOOPDEV}p1 "$EFI_MNT"
+sudo mount "${LOOPDEV}"p1 "$EFI_MNT"
 sudo mkdir -p "$EFI_MNT/EFI/BOOT"
 sudo cp "$BOOTLOADER_EFI" "$EFI_MNT/EFI/BOOT/BOOTX64.EFI"
 sudo cp "$KERNEL_ELF" "$EFI_MNT/kernel.elf"
@@ -48,13 +49,13 @@ sudo umount "$EFI_MNT"
 
 # RootFS Partition mounten und Dateien kopieren
 sudo mkdir -p "$ROOT_MNT"
-sudo mount ${LOOPDEV}p2 "$ROOT_MNT"
+sudo mount "${LOOPDEV}"p2 "$ROOT_MNT"
 sudo mkdir -p "$ROOT_MNT/bin" "$ROOT_MNT/lib" "$ROOT_MNT/etc" "$ROOT_MNT/tmp" "$ROOT_MNT/mnt" "$ROOT_MNT/var" "$ROOT_MNT/var/log"
 sudo cp "$SRC_DIR/userspace/bin/shell" "$ROOT_MNT/bin/shell"
 sudo cp "$SRC_DIR/userspace/bin/lsusb" "$ROOT_MNT/bin/lsusb"
 sudo cp "$SRC_DIR/userspace/bin/memstat" "$ROOT_MNT/bin/memstat"
 sudo cp "$SRC_DIR/userspace/bin/logd" "$ROOT_MNT/bin/logd"
-sudo cp "$SRC_DIR/build/out.elf" "$ROOT_MNT/bin/out"
+#sudo cp "$SRC_DIR/build/out.elf" "$ROOT_MNT/bin/out"
 sudo umount "$ROOT_MNT"
 
 # Loopdevice trennen

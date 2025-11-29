@@ -30,8 +30,8 @@ typedef struct {
 } Framebuffer;
 
 typedef struct {
-    uint64_t X;
-    uint64_t Y;
+    uint32_t X;
+    uint32_t Y;
 } Point;
 
 #define PSF1_MAGIC0 0x36

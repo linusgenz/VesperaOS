@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_WAIT_QUEUE_H
 #define VESPERAOS_WAIT_QUEUE_H
 
-#include "../sync/spinlock.h"
+#include <kernel/sync/spinlock.h>
 
 class Unit;
 
@@ -49,7 +49,7 @@ public:
     void add_wait(Unit *u);
     void wake_all();
     void wake_one();
-    bool remove(Unit *u);
+    bool remove(const Unit *u);
 };
 
 #endif //VESPERAOS_WAIT_QUEUE_H

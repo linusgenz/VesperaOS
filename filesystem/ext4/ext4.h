@@ -217,7 +217,7 @@ namespace EXT4 {
 
     private:
         BlockDevice *device;
-        Ext4Superblock superblock;
+        Ext4Superblock superblock{};
         uint32_t sectorSize;
         bool valid;
 
@@ -241,7 +241,7 @@ namespace EXT4 {
 
         bool read_inode(uint32_t inode_no, Inode &outInode);
 
-        bool parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &outExtents);
+        static bool parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &outExtents);
 
         bool map_logical_to_physical(Inode &inode, uint32_t lblock, uint64_t &out_pblock);
     };

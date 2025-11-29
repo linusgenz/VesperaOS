@@ -4,8 +4,7 @@
 #ifndef PAGING_H
 #define PAGING_H
 #include <cstdint>
-
-#include "../include/memory.h"
+#include <kernel/memory.h>
 
 struct PageDirectoryEntry {
     uint64_t Value;

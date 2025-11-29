@@ -24,9 +24,8 @@
 #include "lock_debug.h"
 
 #include <log.h>
-#include <memory.h>
-
-#include "../utils/panic.h"
+#include <kernel/memory.h>
+#include <string.h>
 
 #define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL * 10000ULL)
 
@@ -68,7 +67,7 @@ static uint8_t capture_stack_trace(uint64_t* out_buf, uint8_t max_depth) {
         uint64_t ret = *(rbp + 1);
         if (!ret) break;
         out_buf[cnt++] = ret;
-        rbp = (uint64_t*)(*rbp);
+        rbp = reinterpret_cast<uint64_t*>(*rbp);
     }
     return cnt;
 }
@@ -94,7 +93,7 @@ void lock_debug_before_acquire(void* lockptr, uint32_t current_unit) {
 inline uint64_t rdtsc() {
     uint32_t lo, hi;
     asm volatile ("rdtsc" : "=a"(lo), "=d"(hi));
-    return ((uint64_t)hi << 32) | lo;
+    return (static_cast<uint64_t>(hi) << 32) | lo;
 }
 
 
@@ -208,7 +207,7 @@ void lock_debug_report_deadlock(lock_debug_info* L, uint32_t start_unit) {
         if (L->owner_trace_len) {
             Log::PrintLn("Owner stack (%u frames):", L->owner_trace_len);
             for (uint8_t i = 0; i < L->owner_trace_len; ++i)
-                Log::PrintLn(" %p", (void*)L->owner_trace[i]);
+                Log::PrintLn(" %p", reinterpret_cast<void*>(L->owner_trace[i]));
         }
     }
 
@@ -216,7 +215,7 @@ void lock_debug_report_deadlock(lock_debug_info* L, uint32_t start_unit) {
     if (L->waiter_trace_len) {
         Log::PrintLn("Waiter stack (%u frames):", L->waiter_trace_len);
         for (uint8_t i = 0; i < L->waiter_trace_len; ++i)
-            Log::PrintLn(" %p", (void*)L->waiter_trace[i]);
+            Log::PrintLn(" %p", reinterpret_cast<void*>(L->waiter_trace[i]));
     }
 
     // Optional: wie lange Lock gehalten wird

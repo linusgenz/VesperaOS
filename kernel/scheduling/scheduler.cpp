@@ -2,15 +2,14 @@
 // Created by Linus on 17.07.25.
 //
 
-#include <scheduling.h>
-
-#include <log.h>
+#include <kernel/scheduling.h>
 
 #include "cpu_scheduler.h"
 #include "../cpu/cpu_manager.h"
 #include "../units/unit.h"
 
 namespace kernel::scheduling {
+
     global_scheduler_t global_scheduler = {{}};
 
     void init(uint32_t num_cpus) {
@@ -62,6 +61,11 @@ namespace kernel::scheduling {
         cpu_scheduler::disable_cpu(cpu_id);
     }
 
+    void add_blocked_unit(Unit *unit, uint8_t cpu_id)
+    {
+        cpu_scheduler::add_blocked_unit(unit, cpu_id);
+    }
+
     bool is_curent_cpu_enabled() {
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         return cpu_scheduler::is_cpu_enabled(cpu_id);
@@ -79,5 +83,20 @@ namespace kernel::scheduling {
 
     uint32_t get_num_cpus() {
         return global_scheduler.num_cpus;
+    }
+
+    cpu_scheduler::cpu_scheduler_t *get_cpu_data(uint8_t cpu_id)
+    {
+        return cpu_scheduler::get_cpu_data(cpu_id);
+    }
+
+    void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick)
+    {
+        cpu_scheduler::wake_sleeping_units(cpu_id, current_tick);
+    }
+
+    void tick_cpu(uint8_t cpu_id, trap_frame *frame)
+    {
+        cpu_scheduler::tick_cpu(cpu_id, frame);
     }
 } // namespace kernel::scheduling::scheduler

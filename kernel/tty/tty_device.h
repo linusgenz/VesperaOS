@@ -26,7 +26,7 @@
 
 #include <cstdint>
 #include "../devices/chardevice.h"
-#include "tty.h"
+#include <kernel/tty/tty.h>
 
 class TTYDevice : public CharDevice {
 public:

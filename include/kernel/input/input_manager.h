@@ -1,10 +1,10 @@
-// realm_manager.h
+// input_manager.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 19.09.25.
+// Created by Linus Genz on 09.09.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,31 +21,35 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_REALM_MANAGER_H
-#define VESPERAOS_REALM_MANAGER_H
+#ifndef VESPERAOS_INPUT_MANAGER_H
+#define VESPERAOS_INPUT_MANAGER_H
 
-#include "realm.h"
-#include "../types/types.h"
+#include <kernel/input/input_event.h>
 #include <cstddef>
 
-#include "../sync/atomic.h"
-#include "../sync/spinlock.h"
+#include <kernel/sync/spinlock.h>
 
-class RealmManager {
-public:
-    static void initialize();
-    static bool is_initialized();
-    static Realm* create(const RealmConfig* cfg);
-    static Realm* get(RealmID id);
-    static bool destroy(RealmID id);
-    static void list();
+namespace kernel::input {
 
-private:
-    static constexpr size_t MAX_REALMS = 64;
-    static Realm realms[MAX_REALMS];
-    static spinlock_t global_lock;
-    static RealmID next_id;
-    static atomic_u8_t seq;
-};
+    class InputManager {
+    public:
+        static constexpr size_t BUFFER_SIZE = 256;
 
-#endif //VESPERAOS_REALM_MANAGER_H
+        static void push_event(const InputEvent& ev);
+        static bool pop_event(InputEvent& ev);
+        static bool is_empty();
+
+        static bool is_empty_locked() ;
+
+        static void init();
+
+    private:
+        static inline InputEvent s_buffer[BUFFER_SIZE];
+        static volatile inline size_t s_head = 0;
+        static volatile inline size_t s_tail = 0;
+        static inline spinlock_t s_lock{};
+    };
+
+}
+
+#endif //VESPERAOS_INPUT_MANAGER_H

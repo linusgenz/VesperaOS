@@ -24,7 +24,6 @@
 #ifndef VESPERAOS_DEVFS_H
 #define VESPERAOS_DEVFS_H
 
-#include <cstddef>
 #include <vector.h>
 #include "../vfs/vfs_node.h"
 #define DEVFS_NAME_MAX 64
@@ -86,10 +85,10 @@ public:
 
     static const char *alloc_unique_name(const char *base);
 
-    static int open(VfsNode *node);
+    static int open(const VfsNode *node);
 
     // VFS-Hooks
-    static ssize_t read(VfsNode *node, size_t offset, size_t size, void *buffer);
+    static ssize_t read(const VfsNode *node, size_t offset, size_t size, void *buffer);
 
     static ssize_t write(VfsNode *node, size_t offset, size_t size, const void *buffer);
 

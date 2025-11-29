@@ -23,11 +23,11 @@
 
 #include <cstdint>
 #include <errno.h>
-#include <scheduling.h>
+#include <kernel/scheduling.h>
 
 #include "../../exec/elf.h"
-#include "../../realm/realm_manager.h"
-#include "../../tty/tty.h"
+#include <kernel/realm/realm_manager.h>
+#include <kernel/tty/tty.h>
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {
@@ -51,8 +51,7 @@ namespace syscalls::internal {
         TTYDevice* tty_dev = kernel::tty::tty_devices[0];
         new_realm->setup_standard_handles(tty_dev);
 
-        ElfLoader loader;
-        ElfLoader::ElfLoadResult elf = loader.load_elf_binary(user_path, 0x500000, new_realm);
+        const ElfLoader::ElfLoadResult elf = ElfLoader::load_elf_binary(user_path, 0x500000, new_realm);
         if (!elf.success) {
             RealmManager::destroy(new_realm->id);
             return -ENOEXEC;
@@ -65,7 +64,7 @@ namespace syscalls::internal {
             .is_user = true,
             .auto_schedule = false,
         };
-        Unit* u = UnitManager::create(new_realm->id, (void*)elf.entry_point, (void*)arg1, &ucfg);
+        Unit* u = UnitManager::create(new_realm->id, elf.entry_point, reinterpret_cast<void*>(arg1), &ucfg);
         if (!u) {
             RealmManager::destroy(new_realm->id);
             return -EFAULT;
@@ -79,7 +78,7 @@ namespace syscalls::internal {
             return -EFAULT;
         }
 
-        u->context.user_stack_pointer = (void*)user_sp;
+        u->context.user_stack_pointer = reinterpret_cast<void*>(user_sp);
         kernel::scheduling::add_unit(u);
 
         return new_realm->id;

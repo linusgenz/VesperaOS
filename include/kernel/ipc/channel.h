@@ -27,8 +27,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "../types/types.h"
-#include "../sync/spinlock.h"
+#include "../../../kernel/types/types.h"
+#include <kernel/sync/spinlock.h>
 
 class Channel {
     spinlock_t lock{};
@@ -47,10 +47,10 @@ public:
     static void destroy(void* res);
 
     // return: bytes written (>=0) or negative errno
-    int send(const void* data, size_t len);
+    ssize_t send(const void* data, size_t len);
 
     // return: bytes read (>=0) or negative errno, 0 if empty
-    int recv(void* out, size_t len);
+    ssize_t recv(void* out, size_t len);
 };
 
 #endif //VESPERAOS_CHANNEL_H

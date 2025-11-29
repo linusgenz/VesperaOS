@@ -22,19 +22,18 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../include/errno.h"
+#include "../../../include/errno.h"
 
 namespace syscalls::internal {
     int64_t sys_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const char* path = reinterpret_cast<const char*>(arg0);
+        const auto path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 
-        VfsNode* node = VFS::open(path);
-        if (node) {
+        if (VFS::open(path)) {
             return -EEXIST;
         }
 
-        int result = VFS::create(path);
+        const int result = VFS::create(path);
         return result < 0 ? -result : 0;
     }
 

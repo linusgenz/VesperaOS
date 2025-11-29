@@ -1,13 +1,14 @@
 #include "cpu_scheduler.h"
 
-#include <scheduling.h>
-#include <time.h>
+
 
 #include "schedule_manager.h"
-#include "../../include/log.h"
+#include <log.h>
+#include <kernel/scheduling.h>
 
 namespace kernel::scheduling::cpu_scheduler {
-    cpu_scheduler_t *get_cpu_data(uint8_t cpu_id) {
+    cpu_scheduler_t *get_cpu_data(uint8_t cpu_id)
+    {
         return &global_scheduler.cpus[cpu_id];
     }
 
@@ -235,13 +236,13 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
         Unit *woken = cpu->blocked_queue.extract_if(
-            [&](Unit *unit) -> bool {
+            [&](const Unit *unit) -> bool {
                 return current_tick >= unit->sleep_context.wakeup_tick;
             }
         );
 
         while (woken) {
-            Unit *next = (Unit *) woken->next;
+            Unit *next = woken->next;
             add_unit_to_cpu(woken, cpu_id);
             woken = next;
         }

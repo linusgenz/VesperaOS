@@ -24,8 +24,10 @@
 #include <errno.h>
 #include "full.h"
 
+#include <kernel/memory.h>
+
 FullDevice::FullDevice(const char *name)
-    : CharDevice(name, BusType::VIRTUAL) {
+    : CharDevice(name, VIRTUAL) {
 }
 
 int FullDevice::open(CharFile **out_cf) {

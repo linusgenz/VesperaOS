@@ -25,7 +25,7 @@
 #define VESPERAOS_INTRUSIVE_QUEUE_H
 
 #include <concepts>
-#include "../kernel/sync/spinlock.h"
+#include <kernel/sync/spinlock.h>
 
 template<typename T>
 concept IntrusiveNode = requires(T t)

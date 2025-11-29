@@ -21,9 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../include/vector.h"
+#include <vector.h>
 #include "blockdevice.h"
-#include "../sync/mutex.h"
 #include "device_manager.h"
 
 namespace kernel {

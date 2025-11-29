@@ -29,7 +29,7 @@ namespace arch::x86_64::interrupts::idt {
 
         void set_offset(uint64_t offset);
 
-        uint64_t get_offset();
+        uint64_t get_offset() const;
     };
 
     struct IDTR {
@@ -54,7 +54,8 @@ namespace arch::x86_64::interrupts::idt {
 
     void load_default_idt();
 
-    void set_idt_gate(void *handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
+    using ISRHandler = void(*)();
+    void set_idt_gate(ISRHandler handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
 
     bool allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie);
 

@@ -1,6 +1,6 @@
 #include "apic.h"
 
-#include <kerrno.h>
+#include <kernel/kerrno.h>
 
 #include "../../../include/log.h"
 #include "../../../include/string.h"
@@ -9,10 +9,9 @@
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/debug/deadlock_detector.h"
-#include "../../../kernel/include/scheduling.h"
-#include "../../../kernel/system/system_manager.h"
-#include "../../../kernel/utils/panic.h"
-#include "../interrupts/interrupts_internal.h"
+#include <kernel/scheduling.h>
+#include <kernel/system/system_manager.h>
+#include "interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::apic {
     uint32_t read(const uint32_t offset) {
@@ -60,7 +59,7 @@ namespace arch::x86_64::interrupts::apic {
         // Set destination
         write(LAPIC_ICRHI, apic_id << 24);
 
-        uint32_t icr_lo = (uint32_t)vector | APIC_ICR_LEVEL_ASSERT;
+        const uint32_t icr_lo = static_cast<uint32_t>(vector) | APIC_ICR_LEVEL_ASSERT;
 
         write(LAPIC_ICRLO, icr_lo);
 
@@ -115,9 +114,9 @@ namespace arch::x86_64::interrupts::apic {
         if (!kernel::scheduling::is_initialized()) return;
         uint32_t cpu = CPUManager::get_current_cpu_id();
 
-        kernel::scheduling::cpu_scheduler::wake_sleeping_units(cpu, apic_ticks[cpu]);
+        kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
 
-        kernel::scheduling::cpu_scheduler::tick_cpu(cpu, frame);
+        kernel::scheduling::tick_cpu(cpu, frame);
     }
 
 

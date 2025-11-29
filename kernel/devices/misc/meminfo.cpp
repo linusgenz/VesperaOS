@@ -22,10 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "meminfo.h"
-#include "../kernel/system/system_manager.h"
+
+#include <kernel/memory.h>
+
+#include <kernel/system/system_manager.h>
 
 MemInfoDevice::MemInfoDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, VIRTUAL) {}
 
 int MemInfoDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;
