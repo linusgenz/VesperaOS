@@ -125,7 +125,7 @@ namespace CPUManager
         kernel::time::internal::sleep(10);
     }
 
-    CPUInfo* get_cpu_info(uint32_t apic_id)
+    CPUInfo* get_cpu_info(const uint32_t apic_id)
     {
         if (!is_initialized) return nullptr;
 
@@ -166,7 +166,7 @@ namespace CPUManager
         return total_cpus;
     }
 
-    void halt_cpu(uint32_t apic_id)
+    void halt_cpu(const uint32_t apic_id)
     {
         if (CPUInfo* cpu_info = get_cpu_info(apic_id))
         {
@@ -175,7 +175,7 @@ namespace CPUManager
     }
 
 
-    void send_ipi_to_all_aps(uint32_t vector)
+    void send_ipi_to_all_aps(const uint32_t vector)
     {
         // Broadcast IPI an alle APs (außer BSP)
         kernel::interrupts::lapic_write(LAPIC_ICRHI, 0);
@@ -221,7 +221,7 @@ namespace CPUManager
         }
     }
 
-    void update_cpu_stats(uint32_t apic_id, uint64_t cycles, uint64_t idle_cycles)
+    void update_cpu_stats(const uint32_t apic_id, const uint64_t cycles, const uint64_t idle_cycles)
     {
         if (CPUInfo* cpu_info = get_cpu_info(apic_id))
         {
@@ -230,7 +230,7 @@ namespace CPUManager
         }
     }
 
-    double get_cpu_usage(uint32_t apic_id)
+    double get_cpu_usage(const uint32_t apic_id)
     {
         CPUInfo* cpu_info = get_cpu_info(apic_id);
         if (!cpu_info || cpu_info->total_cycles == 0)

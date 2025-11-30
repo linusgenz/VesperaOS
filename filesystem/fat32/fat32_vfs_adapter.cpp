@@ -75,11 +75,11 @@ static ssize_t fat32_read(const VfsNode *node, const size_t offset, const size_t
     return static_cast<ssize_t>(copySize);
 }
 
-static ssize_t fat32_write(VfsNode *node, size_t offset, size_t size, const void *buffer) {
+static ssize_t fat32_write(VfsNode *node, const size_t offset, const size_t size, const void *buffer) {
     if (!node || !buffer) return -EFAULT;
     if (size == 0) return 0;
 
-    auto *fnode = (Fat32Node *) node->internal_data;
+    auto *fnode = static_cast<Fat32Node*>(node->internal_data);
     if (!fnode) return -EBADH;
 
     if (offset > fnode->fileSize) {
@@ -116,8 +116,8 @@ static ssize_t fat32_write(VfsNode *node, size_t offset, size_t size, const void
     return static_cast<ssize_t>(size);
 }
 
-static VfsNode *fat32_find(VfsNode *node, const char *name) {
-    auto *dir = (Fat32Node *) node->internal_data;
+static VfsNode *fat32_find(const VfsNode *node, const char *name) {
+    auto *dir = static_cast<Fat32Node*>(node->internal_data);
     if (!dir || !dir->isDir) return nullptr;
 
     size_t entryCount = 0;
@@ -152,7 +152,7 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
 
             childData->cluster = entries[i].GetFirstCluster();
 
-            auto *child = (VfsNode *) malloc(sizeof(VfsNode));
+            auto *child = static_cast<VfsNode*>(malloc(sizeof(VfsNode)));
             child->name = entries[i].GetName();
             child->type = childData->isDir ? VfsNodeType::Directory : VfsNodeType::File;
             child->internal_data = childData;
@@ -168,8 +168,8 @@ static VfsNode *fat32_find(VfsNode *node, const char *name) {
     return nullptr;
 }
 
-void *fat32_opendir(VfsNode *dir) {
-    auto *fatNode = (Fat32Node *) dir->internal_data;
+void *fat32_opendir(const VfsNode *dir) {
+    auto *fatNode = static_cast<Fat32Node*>(dir->internal_data);
     auto *handle = new Fat32DirHandle();
     handle->entries = fatNode->fs->ReadDirectory(fatNode->cluster, handle->count);
     handle->index = 0;
@@ -177,7 +177,7 @@ void *fat32_opendir(VfsNode *dir) {
 }
 
 int fat32_readdir(void *h, dirent_t *out) {
-    auto *handle = (Fat32DirHandle *) h;
+    auto *handle = static_cast<Fat32DirHandle*>(h);
     if (!handle || handle->index >= handle->count) return 0;
 
     auto &entry = handle->entries[handle->index];
@@ -202,7 +202,7 @@ int fat32_readdir(void *h, dirent_t *out) {
 
 
 void fat32_closedir(void *h) {
-    auto *handle = (Fat32DirHandle *) h;
+    auto *handle = static_cast<Fat32DirHandle*>(h);
     if (!handle) return;
 
     if (handle->entries) {
@@ -214,7 +214,7 @@ void fat32_closedir(void *h) {
 static void fat32_close(VfsNode *node) {
     if (!node) return;
 
-    auto *data = (Fat32Node *) node->internal_data;
+    auto *data = static_cast<Fat32Node*>(node->internal_data);
     if (data) {
         //   if (data->entries) kernel::memory::free(data->entries);
         kernel::memory::free(data);
@@ -223,34 +223,34 @@ static void fat32_close(VfsNode *node) {
     kernel::memory::free(node);
 }
 
-static int fat32_create(VfsNode *node, const char *name) {
-    auto *dir = (Fat32Node *) node->internal_data;
+static int fat32_create(const VfsNode *node, const char *name) {
+    auto *dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->CreateFile(dir, name) ? 0 : -1;
 }
 
-static int fat32_rename(VfsNode *node, const char *oldName, const char *newName) {
-    auto *dir = (Fat32Node *) node->internal_data;
-    if (!dir || !oldName || !newName) return -EINVAL;
+static int fat32_rename(const VfsNode *node, const char *old_name, const char *new_name) {
+    auto *dir = static_cast<Fat32Node*>(node->internal_data);
+    if (!dir || !old_name || !new_name) return -EINVAL;
 
-    if (!dir->fs->Rename(dir, oldName, newName)) {
+    if (!dir->fs->Rename(dir, old_name, new_name)) {
         return -EIO; // Could not rename entry
     }
 
     return 0;
 }
 
-static int fat32_mkdir(VfsNode *node, const char *name) {
-    auto *dir = (Fat32Node *) node->internal_data;
+static int fat32_mkdir(const VfsNode *node, const char *name) {
+    auto *dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->CreateDirectory(dir, name) ? 0 : -1;
 }
 
-static int fat32_rmdir(VfsNode *node, const char *name) {
-    auto *dir = (Fat32Node *) node->internal_data;
+static int fat32_rmdir(const VfsNode *node, const char *name) {
+    auto *dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->RemoveDirectory(dir, name) ? 0 : -1;
 }
 
-static int fat32_unlink(VfsNode *node, const char *name) {
-    auto *dir = (Fat32Node *) node->internal_data;
+static int fat32_unlink(const VfsNode *node, const char *name) {
+    auto *dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->DeleteFile(dir, name) ? 0 : -1;
 }
 
@@ -279,7 +279,7 @@ VfsNode *wrap_fat32_root(FileSystem *fs) {
     root->path[1] = '\0';
     root->cluster = fs->GetRootCluster();
 
-    auto *node = (VfsNode *) kernel::memory::malloc(sizeof(VfsNode));
+    auto *node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = "/";
     node->type = VfsNodeType::Directory;
     node->internal_data = root;

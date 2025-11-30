@@ -1,7 +1,10 @@
+#if DEBUG_SPINLOCK
+#include "debug/deadlock_detector.h"
+#include "debug/lock_debug.h"
+#endif
+
 #include "../include/kernel/kernel_utils.h"
-
 #include <kernel/memory.h>
-
 #include "../arch/x86_64/gdt/gdt.h"
 #include "../arch/x86_64/syscalls/syscall.h"
 #include "acpi/acpi_manager.h"
@@ -10,7 +13,6 @@
 #include "cpu/cpu_manager.h"
 #include <kernel/scheduling.h>
 #include <kernel/ScrollManager.h>
-
 #include "kernel/interrupts.h"
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/devfs/devfs.h"
@@ -27,33 +29,36 @@
 #include "../arch/x86_64/boot/bss.h"
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
 #include "../drivers/pci/msi.h"
-#include "debug/deadlock_detector.h"
 #include "devices/init.h"
 #include "tty/init.h"
 
-uint64_t *scroll_buffer_top = nullptr;
-uint64_t *scroll_buffer_bottom = nullptr;
+uint64_t* scroll_buffer_top = nullptr;
+uint64_t* scroll_buffer_bottom = nullptr;
 
-void setup_scroll_buffer(Framebuffer *buffer) {
+void setup_scroll_buffer(Framebuffer* buffer)
+{
     uint64_t buffer_size = buffer->width * buffer->height * sizeof(uint32_t) * 10;
     scroll_buffer_top = static_cast<uint64_t*>(malloc(buffer_size));
-    if (!scroll_buffer_top) {
+    if (!scroll_buffer_top)
+    {
         Log::Error("Failed to allocate scroll buffer (top)\n");
         asm ("hlt");
     }
     memset(scroll_buffer_top, 0, buffer_size);
 
     scroll_buffer_bottom = static_cast<uint64_t*>(malloc(buffer_size));
-    if (!scroll_buffer_bottom) {
+    if (!scroll_buffer_bottom)
+    {
         Log::Error("Failed to allocate scroll buffer (bot)\n");
         asm ("hlt");
     }
     memset(scroll_buffer_bottom, 0, buffer_size);
 }
 
-void prepare_acpi(const BootInfo *boot_info) {
-    auto *xsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->xsdt_address);
-   // auto *rsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->rsdt_address);
+void prepare_acpi(const BootInfo* boot_info)
+{
+    auto* xsdt = reinterpret_cast<ACPI::SDTHeader*>(boot_info->rsdp->xsdt_address);
+    // auto *rsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->rsdt_address);
 
     ACPI::TableManager::init(xsdt);
 
@@ -62,14 +67,17 @@ void prepare_acpi(const BootInfo *boot_info) {
     ACPI::TableManager::register_fadr();
 }
 
-[[noreturn]] void sys_log_writer(void *arg) {
-    while (true) {
+[[noreturn]] void sys_log_writer(void* arg)
+{
+    while (true)
+    {
         kernel::SystemManager::process_events_to_logs(128);
         kernel::time::sleep_ms(1000);
     }
 }
 
-void init_sys_log_writer() {
+void init_sys_log_writer()
+{
     UnitConfig uc = {
         .name = "system_log",
         .cpu_id = 7,
@@ -88,13 +96,16 @@ extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
 auto s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
 static auto renderer = BasicRenderer(nullptr, nullptr);
-Framebuffer *TargetFramebuffer = nullptr;
+Framebuffer* TargetFramebuffer = nullptr;
 
-void initialize_kernel(BootInfo *bootInfo) {
+void initialize_kernel(BootInfo* bootInfo)
+{
     zero_bss();
 
+#if DEBUG_SPINLOCK
     lock_debug_init();
     deadlock_detector_init();
+#endif
 
     renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->font);
     Log::SetRenderer(&renderer);
@@ -157,7 +168,8 @@ void initialize_kernel(BootInfo *bootInfo) {
     RealmManager::create(&realm_config_drv);
 
     UnitManager::initialize();
-    kernel::scheduling::init(CPUManager::total_cpus); // cannot create units before the scheduler inits, this is a feature not a bug
+    kernel::scheduling::init(CPUManager::total_cpus);
+    // cannot create units before the scheduler inits, this is a feature not a bug
 
 
     //  RealmManager::list();
@@ -172,9 +184,12 @@ void initialize_kernel(BootInfo *bootInfo) {
     initialize_input_bus();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
-    if (USBManager::wait_for_all_controllers(10000)) {
+    if (USBManager::wait_for_all_controllers(10000))
+    {
         Log::Info("All USB controllers ready");
-    } else {
+    }
+    else
+    {
         Log::Warning("Timeout waiting for USB controllers (%u/%u ready)",
                      USBManager::get_expected_count(),
                      USBManager::get_initialized_count());
@@ -187,12 +202,11 @@ void initialize_kernel(BootInfo *bootInfo) {
 
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
- //   init_sys_log_writer();
- //   kernel::SystemManager::process_events_to_logs(128);
+    //   init_sys_log_writer();
+    //   kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();
 
     kernel::interrupts::mask_pic();
 }
-

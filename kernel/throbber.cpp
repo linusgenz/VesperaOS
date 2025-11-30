@@ -154,7 +154,7 @@ void clear_throbber(uint32_t x, uint32_t y) {
     }
 }
 
-void draw_bitmap(Framebuffer *fb, uint32_t *bitmap, uint32_t w, uint32_t h, uint32_t x, uint32_t y) {
+void draw_bitmap(const Framebuffer *fb, const uint32_t *bitmap, uint32_t w, uint32_t h, uint32_t x, uint32_t y) {
     for (uint32_t row = 0; row < h; row++) {
         auto *fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) * fb->pixels_per_scanline * 4);
         for (uint32_t col = 0; col < w; col++) {

@@ -38,8 +38,7 @@ void USBManager::init() {
     all_controllers_ready.init();
     expected_controllers.init();
     initialized_controllers.init();
-    lock.init();
-    lock_debug_register(&lock, "usb_manager_lock");
+    lock.init("usb_manager_lock");
 }
 
 void USBManager::increment_expected_count() {

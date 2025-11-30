@@ -31,15 +31,14 @@ Realm::Realm()
 {
     const auto path = "/";
     memcpy(cwd_path, path, strlen(path));
-    lock.init();
     char buf[50];
     snprintf(buf, sizeof(buf), "realm_%s:%u_lock", name, id);
+    lock.init(buf);
+
     char buf2[100];
     snprintf(buf2, sizeof(buf), "realm_%s:%u_handle_table_lock", name, id); // TODO absichern
-    lock_debug_register(&lock, buf);
     memset(&handle_table, 0, sizeof(handle_table));
-    lock_debug_register(&handle_table.lock, buf);
-    handle_table.lock.init();
+    handle_table.lock.init(buf2);
 }
 
 ErrorCode Realm::init_handle_table() {

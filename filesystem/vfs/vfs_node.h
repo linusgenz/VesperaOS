@@ -41,27 +41,27 @@ struct VfsNodeOps {
 
     ssize_t (*write)(VfsNode *node, size_t offset, size_t size, const void *buffer);
 
-    VfsNode * (*find)(VfsNode *dir, const char *name);
+    VfsNode * (*find)(const VfsNode *dir, const char *name);
 
     void (*close)(VfsNode *node);
 
-    void * (*opendir)(VfsNode *dir);
+    void * (*opendir)(const VfsNode *dir);
 
     int (*readdir)(void *dir_handle, dirent_t *out_name);
 
     void (*closedir)(void *dir_handle);
 
-    int (*create)(VfsNode *, const char *);
+    int (*create)(const VfsNode *node, const char *name);
 
-    int (*rename)(VfsNode *, const char *, const char *);
+    int (*rename)(const VfsNode *, const char *old_name, const char *new_name);
 
-    int (*mkdir)(VfsNode *, const char *);
+    int (*mkdir)(const VfsNode *node, const char *name);
 
-    int (*rmdir)(VfsNode *, const char *);
+    int (*rmdir)(const VfsNode *node, const char *name);
 
-    int (*unlink)(VfsNode *, const char *);
+    int (*unlink)(const VfsNode *node, const char *name);
 
-    ssize_t (*ioctl)(VfsNode *node, uint32_t cmd, void *arg);
+    ssize_t (*ioctl)(const VfsNode *node, uint32_t cmd, void *arg);
 };
 
 struct VfsNode {

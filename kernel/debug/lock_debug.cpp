@@ -32,7 +32,7 @@
 static lock_debug_info lock_table[MAX_DEBUG_LOCKS];
 static uint32_t lock_table_count = 0;
 
-lock_debug_info* lock_debug_find(void* lockptr) {
+lock_debug_info* lock_debug_find(const void* lockptr) {
     for (uint32_t i = 0; i < lock_table_count; ++i) {
         if (lock_table[i].lock_ptr == lockptr) return &lock_table[i];
     }
@@ -221,9 +221,4 @@ void lock_debug_report_deadlock(lock_debug_info* L, uint32_t start_unit) {
     // Optional: wie lange Lock gehalten wird
     if (L->acquired_tsc)
         Log::PrintLn("Lock held for: %llu cycles", rdtsc() - L->acquired_tsc);
-}
-
-
-void lock_debug_register_named(void* lockptr, const char* name) {
-    lock_debug_register(lockptr, name);
 }

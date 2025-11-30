@@ -92,13 +92,13 @@ public:
 
     static ssize_t write(VfsNode *node, size_t offset, size_t size, const void *buffer);
 
-    static ssize_t ioctl(VfsNode *node, uint32_t cmd, void *arg);
+    static ssize_t ioctl(const VfsNode *node, uint32_t cmd, void *arg);
 
-    static VfsNode *find(VfsNode *dir, const char *name);
+    static VfsNode *find(const VfsNode *dir, const char *name);
 
     static void close(VfsNode *node);
 
-    static void *open_dir(VfsNode *dir);
+    static void *open_dir(const VfsNode *dir);
 
     static int read_dir(void *dir_handle, dirent_t *out);
 

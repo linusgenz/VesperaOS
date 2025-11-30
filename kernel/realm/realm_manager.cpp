@@ -35,8 +35,7 @@ RealmID RealmManager::next_id = 1;
 atomic_u8_t RealmManager::seq;
 
 void RealmManager::initialize() {
-    global_lock.init();
-    lock_debug_register(&global_lock, "realm_manager_lock");
+    global_lock.init("realm_manager_lock");
 
     seq.init(0);
 

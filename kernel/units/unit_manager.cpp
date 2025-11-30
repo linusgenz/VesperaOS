@@ -36,8 +36,7 @@ UnitID UnitManager::next_id = 1;
 
 void UnitManager::initialize()
 {
-    global_lock.init();
-    lock_debug_register(&global_lock, "unit_manager_lock");
+    global_lock.init("unit_manager_lock");
     for (auto& unit : units)
     {
         unit.active = false;

@@ -174,7 +174,7 @@ namespace FAT32 {
 
         uint32_t ResolvePathToCluster(const char *path) const;
 
-        bool ReadFile(Fat32Node *node, void *buffer, size_t len, size_t &outActual, size_t offset = 0) const;
+        bool ReadFile(const Fat32Node *node, void *buffer, size_t len, size_t &outActual, size_t offset = 0) const;
 
         bool WriteFile(Fat32Node *node, const void *buffer, size_t len);
 
@@ -182,20 +182,20 @@ namespace FAT32 {
 
         FileEntry *ReadDirectory(uint32_t cluster, size_t &outCount) const;
 
-        bool CreateFile(Fat32Node *parentDir, const char *name);
+        bool CreateFile(const Fat32Node *parentDir, const char *name);
 
         bool WriteDirectoryEntryWithLFN(uint32_t dirCluster, const char *longName, const char *shortName,
                                         const DirectoryEntry *shortEntry);
 
         bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name);
 
-        bool CreateDirectory(Fat32Node *parentDir, const char *name);
+        bool CreateDirectory(const Fat32Node *parentDir, const char *name);
 
-        bool RemoveDirectory(Fat32Node *parentDir, const char *name);
+        bool RemoveDirectory(const Fat32Node *parentDir, const char *name);
 
         bool Rename(Fat32Node *parentDir, const char *oldName, const char *newName);
 
-        bool DeleteFile(Fat32Node *parentDir, const char *name);
+        bool DeleteFile(const Fat32Node *parentDir, const char *name);
 
         static size_t FindFirstLFNIndex(const FAT32::FileEntry *entries, size_t shortNameIndex);
 

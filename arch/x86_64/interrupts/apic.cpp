@@ -1,14 +1,15 @@
+#if DEBUG_SPINLOCK
+#include "../../../kernel/debug/deadlock_detector.h"
+#endif
+
 #include "apic.h"
-
 #include <kernel/kerrno.h>
-
 #include "../../../include/log.h"
 #include "../../../include/string.h"
 #include "../../../kernel/acpi/acpi_manager.h"
 #include "../../../kernel/cpu/io.h"
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/debug/deadlock_detector.h"
 #include <kernel/scheduling.h>
 #include <kernel/system/system_manager.h>
 #include "interrupts_internal.h"
@@ -31,7 +32,7 @@ namespace arch::x86_64::interrupts::apic {
         }
     }
 
-    void init(uint8_t cpu_id) {
+    void init(const uint8_t cpu_id) {
         write(LAPIC_TPR, 0);
 
         // Logical Destination Mode
@@ -55,7 +56,7 @@ namespace arch::x86_64::interrupts::apic {
         write(LAPIC_ICRHI, 0x0);
     }
 
-    void send_ipi(uint32_t apic_id, uint8_t vector) {
+    void send_ipi(const uint32_t apic_id, const uint8_t vector) {
         // Set destination
         write(LAPIC_ICRHI, apic_id << 24);
 
@@ -66,7 +67,7 @@ namespace arch::x86_64::interrupts::apic {
         wait_for_delivery();
     }
 
-    void broadcast_ipi(uint8_t vector) {
+    void broadcast_ipi(const uint8_t vector) {
         uint32_t self_apic_id = local_apic_get_id();
 
         for (uint32_t i = 0; i < CPUManager::total_cpus && i < MAX_CPU_CORES; i++) {
@@ -109,7 +110,9 @@ namespace arch::x86_64::interrupts::apic {
 
     void timer_tick(trap_frame *frame) {
 
+#if DEBUG_SPINLOCK
         deadlock_detector_tick();
+#endif
 
         if (!kernel::scheduling::is_initialized()) return;
         uint32_t cpu = CPUManager::get_current_cpu_id();

@@ -43,7 +43,7 @@ namespace input::keyboard {
         return true;
     }
 
-    void write_char(char c) {
+    void write_char(const char c) {
         int next = (head + 1) % BUFFER_SIZE;
         if (next != tail) {
             buffer[head] = c;

@@ -40,10 +40,10 @@ struct HeapSegHdr {
 
     bool check_guard_bytes() const;
 
-    void *get_data_ptr() { return (void *) ((uintptr_t) this + HEAP_HEADER_SIZE); }
+    void *get_data_ptr() { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE); }
 
     static HeapSegHdr *from_data_ptr(void *ptr) {
-        return (HeapSegHdr *) ((uintptr_t) ptr - HEAP_HEADER_SIZE);
+        return reinterpret_cast<HeapSegHdr*>(reinterpret_cast<uintptr_t>(ptr) - HEAP_HEADER_SIZE);
     }
 };
 

@@ -153,8 +153,7 @@ namespace kernel::memory {
 
     void initialize_heap(void *heap_start, size_t page_count) {
         ::initialize_heap(heap_start, page_count);
-        heap_lock.init();
-        lock_debug_register(&heap_lock, "kernel_heap_lock");
+        heap_lock.init("kernel_heap_lock");
         heap_initialized = true;
     }
 

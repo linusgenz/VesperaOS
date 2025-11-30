@@ -28,13 +28,12 @@
 #include <log.h>
 #include <kernel/memory.h>
 
-Channel::Channel(size_t cap) : head(0), tail(0), refcount(1), used(0), capacity(cap) {
+Channel::Channel(const size_t cap) : head(0), tail(0), refcount(1), used(0), capacity(cap) {
     buf = static_cast<uint8_t *>(kernel::memory::malloc(cap));
-    lock.init();
-    lock_debug_register(&lock, "channel_lock");
+    lock.init("channel_lock");
 }
 
-Channel *Channel::create(size_t cap) {
+Channel *Channel::create(const size_t cap) {
     auto *ch = new Channel(cap);
     if (!ch->buf) {
         delete ch;

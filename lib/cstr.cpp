@@ -4,7 +4,7 @@
 
 
 template <typename T>
-char* itohex(T value, char* buffer, size_t buffer_size)
+char* itohex(T value, char* buffer, const size_t buffer_size)
 {
     constexpr size_t required_size = sizeof(T) * 2 + 1;
 
@@ -116,7 +116,7 @@ int strncmp(const char* a, const char* b, size_t n)
         static_cast<int>(static_cast<unsigned char>(*b));
 }
 
-char* strncpy(char* dest, const char* src, size_t n)
+char* strncpy(char* dest, const char* src, const size_t n)
 {
     size_t i;
     for (i = 0; i < n && src[i] != '\0'; i++)
@@ -361,7 +361,7 @@ static int uint64_to_string(unsigned long long value, char* buffer, const int ba
     return pos;
 }
 
-static int int64_to_string(long long value, char* buffer, int base)
+static int int64_to_string(const long long value, char* buffer, int base)
 {
     char temp[32];
     int pos = 0;

@@ -7,12 +7,12 @@
 #include <kernel/scheduling.h>
 
 namespace kernel::scheduling::cpu_scheduler {
-    cpu_scheduler_t *get_cpu_data(uint8_t cpu_id)
+    cpu_scheduler_t *get_cpu_data(const uint8_t cpu_id)
     {
         return &global_scheduler.cpus[cpu_id];
     }
 
-    void init_cpu(uint8_t cpu_id) {
+    void init_cpu(const uint8_t cpu_id) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
         // Setup idle unit für this CPU
@@ -63,7 +63,7 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
 
-    void yield_cpu(uint8_t cpu_id, trap_frame *frame) {
+    void yield_cpu(const uint8_t cpu_id, trap_frame *frame) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
 
@@ -184,7 +184,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->lock.unlock_irqrestore(flags);
     }
 
-    void tick_cpu(uint8_t cpu_id, trap_frame *frame) {
+    void tick_cpu(const uint8_t cpu_id, trap_frame *frame) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
 
@@ -232,7 +232,7 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick) {
+    void wake_sleeping_units(const uint8_t cpu_id, const uint64_t current_tick) {
         cpu_scheduler_t *cpu = get_cpu_data(cpu_id);
 
         Unit *woken = cpu->blocked_queue.extract_if(

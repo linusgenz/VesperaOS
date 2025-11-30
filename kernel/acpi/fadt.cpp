@@ -31,7 +31,7 @@ namespace ACPI {
     static uint8_t slp_typa = 0;
     static uint8_t slp_typb = 0;
 
-    void parse_s5(uint8_t* dsdt, size_t length) {
+    void parse_s5(const uint8_t* dsdt, size_t length) {
         for (size_t i = 0; i < length - 6; i++) {
             if (dsdt[i] == '_' && dsdt[i+1] == 'S' && dsdt[i+2] == '5' && dsdt[i+3] == '_') {
                 // Expect AML: NameOp (0x08), PkgOp (0x12)

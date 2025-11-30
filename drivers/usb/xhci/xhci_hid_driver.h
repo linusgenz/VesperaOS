@@ -39,7 +39,7 @@ public:
     void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
 
 private:
-    void request_hid_report(USB::xhciDriver* hcd, xhciDevice* dev);
+    void request_hid_report(const USB::xhciDriver* hcd, const xhciDevice* dev) const;
 };
 
 #endif //VESPERAOS_XHCI_HID_DRIVER_H

@@ -82,9 +82,9 @@ public:
 
     static VfsDir *opendir(const char *path);
 
-    static size_t read(VfsNode *node, size_t offset, size_t size, void *buffer);
+    static size_t read(const VfsNode *node, size_t offset, size_t size, void *buffer);
 
-    static int readdir(VfsDir *dir, dirent_t *out);
+    static int readdir(const VfsDir *dir, dirent_t *out);
 
     static void close(VfsNode *node);
 

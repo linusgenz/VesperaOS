@@ -373,22 +373,22 @@ public:
     explicit xhciPortRegisterManager(uintptr_t base) : m_base(base) {}
 
     void read_portsc_reg(xhci_portsc_register& reg) const;
-    void write_portsc_reg(xhci_portsc_register& reg) const;
+    void write_portsc_reg(const xhci_portsc_register& reg) const;
 
     void read_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const;
-    void write_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const;
+    void write_portpmsc_reg_usb2(const xhci_portpmsc_register_usb2& reg) const;
 
     void read_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const;
-    void write_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const;
+    void write_portpmsc_reg_usb3(const xhci_portpmsc_register_usb3& reg) const;
 
     void read_portli_reg(xhci_portli_register& reg) const;
-    void write_portli_reg(xhci_portli_register& reg) const;
+    void write_portli_reg(const xhci_portli_register& reg) const;
 
     void read_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const;
-    void write_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const;
+    void write_porthlpmc_reg_usb2(const xhci_porthlpmc_register_usb2& reg) const;
 
     void read_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const;
-    void write_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const;
+    void write_porthlpmc_reg_usb3(const xhci_porthlpmc_register_usb3& reg) const;
 
 private:
     uintptr_t m_base;

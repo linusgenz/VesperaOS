@@ -38,17 +38,17 @@ char *strcat (char *dst, const char *src);
 int snprintf(char *buffer, size_t size, const char *format, ...);
 
 
-static int isdigit(int c) {
+inline int isdigit(const int c) {
     return (c >= '0' && c <= '9');
 }
 
-static int isxdigit(int c) {
+inline int isxdigit(const int c) {
     return ( (c >= '0' && c <= '9') ||
              (c >= 'a' && c <= 'f') ||
              (c >= 'A' && c <= 'F') );
 }
 
-static int tolower(int c) {
+inline int tolower(const int c) {
     if (c >= 'A' && c <= 'Z')
         return c + ('a' - 'A');
     return c;

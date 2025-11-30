@@ -278,7 +278,7 @@ namespace FAT32
     }
 
 
-    bool FileSystem::ReadFile(Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset) const
+    bool FileSystem::ReadFile(const Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset) const
     {
         if (!node || !buffer || len == 0) return false;
 
@@ -314,7 +314,7 @@ namespace FAT32
             return true;
         }
 
-        auto* dest = reinterpret_cast<uint8_t*>(buffer);
+        auto* dest = static_cast<uint8_t*>(buffer);
         size_t bytesRead = 0;
 
         for (size_t i = clusterIndex; i < clusterCount && bytesRead < toRead; i++)
@@ -695,7 +695,7 @@ namespace FAT32
     }
 
 
-    bool FileSystem::CreateDirectory(Fat32Node* parentDir, const char* name)
+    bool FileSystem::CreateDirectory(const Fat32Node* parentDir, const char* name)
     {
         if (!parentDir || !name || name[0] == '\0') return false;
 
@@ -749,7 +749,7 @@ namespace FAT32
         return WriteDirectoryEntryWithLFN(parentCluster, name, shortName, &newEntry);
     }
 
-    bool FileSystem::CreateFile(Fat32Node* parentDir, const char* name)
+    bool FileSystem::CreateFile(const Fat32Node* parentDir, const char* name)
     {
         if (!parentDir || !name || name[0] == '\0') return false;
 
@@ -989,7 +989,7 @@ namespace FAT32
     }
 
 
-    bool FileSystem::DeleteFile(Fat32Node* parentDir, const char* name)
+    bool FileSystem::DeleteFile(const Fat32Node* parentDir, const char* name)
     {
         uint32_t parentCluster = parentDir->cluster; // Cluster des Verzeichnisses
 
@@ -1024,7 +1024,7 @@ namespace FAT32
         return false;
     }
 
-    bool FileSystem::RemoveDirectory(Fat32Node* parentDir, const char* name)
+    bool FileSystem::RemoveDirectory(const Fat32Node* parentDir, const char* name)
     {
         uint32_t parentCluster = parentDir->cluster; // korrekt initialisiert
 

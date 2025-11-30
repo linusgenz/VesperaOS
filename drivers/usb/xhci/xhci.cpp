@@ -73,7 +73,7 @@ namespace USB {
         return true;
     }
 
-    xhciDevice *xhciDriver::find_by_slot(uint8_t slot_id) {
+    xhciDevice *xhciDriver::find_by_slot(const uint8_t slot_id) {
         spinlock_guard_irq guard(m_devices_lock);
         for (auto *dev: m_connected_devices) {
             if (dev && dev->info.slot_id == slot_id) {
@@ -801,7 +801,7 @@ namespace USB {
         return true;
     }
 
-    void xhciDriver::configure_control_ep_input_context(xhciDevice *dev, uint16_t max_packet_size) {
+    void xhciDriver::configure_control_ep_input_context(const xhciDevice *dev, uint16_t max_packet_size) {
         xhci_input_control_context32 *input_control_context = dev->get_input_control_ctx();
         xhci_slot_context32 *slot_context = dev->get_input_slot_ctx();
         xhci_endpoint_context32 *control_ep_context = dev->get_input_control_ep_ctx();
@@ -831,7 +831,7 @@ namespace USB {
         control_ep_context->average_trb_length = 8;
     }
 
-    void xhciDriver::configure_ep_input_context(xhciDevice *dev, xhciEndpoint *endpoint) {
+    void xhciDriver::configure_ep_input_context(const xhciDevice *dev, xhciEndpoint *endpoint) {
         xhci_input_control_context32 *input_control_context = dev->get_input_control_ctx();
         xhci_slot_context32 *slot_context = dev->get_input_slot_ctx();
 

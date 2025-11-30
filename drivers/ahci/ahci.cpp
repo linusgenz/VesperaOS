@@ -207,7 +207,7 @@ namespace AHCI
         return true;
     }
 
-    bool Port::Write(const uint64_t sector, uint32_t sectorCount, void* buffer)
+    bool Port::Write(const uint64_t sector, const uint32_t sectorCount, void* buffer)
     {
         kernel::mutex_guard guard(portMutex);
 

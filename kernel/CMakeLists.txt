@@ -4,7 +4,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
-# Set C++ specific flags
 set(CMAKE_CXX_FLAGS "-ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall")
 
 set(KERNEL_DIR ${CMAKE_SOURCE_DIR})
@@ -15,6 +14,21 @@ set(FS_SRC_DIR ${KERNEL_DIR}/filesystem)
 set(LIB_SRC_DIR ${KERNEL_DIR}/lib)
 set(LOG_SRC_DIR ${KERNEL_DIR}/log)
 set(INCLUDE_SRC_DIR ${KERNEL_DIR}/include)
+
+option(ENABLE_DEBUG_FAULT "Enable fault/callstack debugger" ON)
+option(ENABLE_DEBUG_SPINLOCK "Enable spinlock/deadlock debugger" ON)
+
+if(ENABLE_DEBUG_FAULT)
+    add_compile_definitions(DEBUG_FAULT=1)
+else()
+    add_compile_definitions(DEBUG_FAULT=0)
+endif()
+
+if(ENABLE_DEBUG_SPINLOCK)
+    add_compile_definitions(DEBUG_SPINLOCK=1)
+else()
+    add_compile_definitions(DEBUG_SPINLOCK=0)
+endif()
 
 function(collect_cpp OUT_VAR)
     set(ALL_CPP_FILES "")
@@ -55,82 +69,96 @@ collect_asm(KERNEL_ASM_SOURCES
         ${ARCH_SRC_DIR}
 )
 
-# Kernel C++ Dateien
-message(STATUS "Kernel C++ files:")
-foreach (file_path IN LISTS KERNEL_CPP_SOURCES)
-    message(STATUS "  ${file_path}")
-endforeach ()
+# REMOVE debug source files when disabled
+if(NOT ENABLE_DEBUG_SPINLOCK)
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/lock_debug.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/deadlock_detector.cpp")
+endif()
 
-# Kernel ASM Dateien
-message(STATUS "Kernel ASM files:")
-foreach (file_path IN LISTS KERNEL_ASM_SOURCES)
-    message(STATUS "  ${file_path}")
-endforeach ()
-
-list(LENGTH KERNEL_CPP_SOURCES NUM_CPP)
-message(STATUS "Number of Kernel C++ files: ${NUM_CPP}")
-
-list(LENGTH KERNEL_ASM_SOURCES NUM_ASM)
-message(STATUS "Number of Kernel ASM files: ${NUM_ASM}")
-
+if(NOT ENABLE_DEBUG_FAULT)
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/disasm.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/trace.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/symbols.cpp")
+endif()
 
 set_source_files_properties(
         ${CMAKE_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
         PROPERTIES COMPILE_FLAGS "-mno-red-zone -mgeneral-regs-only -ffreestanding"
 )
 
-set(BOILERPLATE_HEADER "${CMAKE_BINARY_DIR}/kernel_symbols.h")
+#
+# ────────────────────────────────────────────────────────────────
+#   CONDITIONAL KERNEL SYMBOLS GENERATION  (ONLY IF DEBUG_FAULT)
+# ────────────────────────────────────────────────────────────────
+#
 
-if (NOT EXISTS ${BOILERPLATE_HEADER})
-    file(WRITE ${BOILERPLATE_HEADER} "unsigned char kernel_map[] = {};\nunsigned int kernel_map_len = 0;\n")
-endif ()
+if(ENABLE_DEBUG_FAULT)
 
-# kernel_stage1 (used for generating kernel map)
-add_executable(kernel_stage1
-        ${KERNEL_CPP_SOURCES}
-        ${KERNEL_ASM_SOURCES}
-)
-set_target_properties(kernel_stage1 PROPERTIES
-        OUTPUT_NAME "kernel_stage1"
-        LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
-)
+    set(BOILERPLATE_HEADER "${CMAKE_BINARY_DIR}/kernel_symbols.h")
 
-target_include_directories(kernel_stage1 PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_BINARY_DIR}
-)
+    if (NOT EXISTS ${BOILERPLATE_HEADER})
+        file(WRITE ${BOILERPLATE_HEADER}
+                "unsigned char kernel_map[] = {};\nunsigned int kernel_map_len = 0;\n")
+    endif()
 
-# Kernel symbols embedding
-add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/kernel_symbols.h
-        COMMAND xxd -i ${CMAKE_BINARY_DIR}/kernel.map |
-        sed 's/unsigned char .*\\[/inline unsigned char kernel_map[/' |
-        sed 's/unsigned int .*_len/inline unsigned int kernel_map_len/'
-        > ${CMAKE_BINARY_DIR}/kernel_symbols.h
-        DEPENDS ${CMAKE_BINARY_DIR}/kernel.map
-        COMMENT "Embedding kernel.map as kernel_symbols.h"
-)
-add_custom_target(kernel_symbols_header
-        DEPENDS ${CMAKE_BINARY_DIR}/kernel_symbols.h
-)
+    # Stage1 kernel
+    add_executable(kernel_stage1
+            ${KERNEL_CPP_SOURCES}
+            ${KERNEL_ASM_SOURCES}
+    )
+    set_target_properties(kernel_stage1 PROPERTIES
+            OUTPUT_NAME "kernel_stage1"
+            LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
+    )
 
+    target_include_directories(kernel_stage1 PUBLIC
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_BINARY_DIR}
+    )
 
-add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/kernel.map
-        COMMAND ${CMAKE_NM} -n $<TARGET_FILE:kernel_stage1> > ${CMAKE_BINARY_DIR}/kernel.map
-        DEPENDS kernel_stage1
-        COMMENT "Generating kernel.map from kernel_stage1"
-)
-add_custom_target(kernel_map
-        DEPENDS ${CMAKE_BINARY_DIR}/kernel.map
-)
+    # generate kernel.map
+    add_custom_command(
+            OUTPUT ${CMAKE_BINARY_DIR}/kernel.map
+            COMMAND ${CMAKE_NM} -n $<TARGET_FILE:kernel_stage1> > ${CMAKE_BINARY_DIR}/kernel.map
+            DEPENDS kernel_stage1
+            COMMENT "Generating kernel.map"
+    )
+    add_custom_target(kernel_map DEPENDS ${CMAKE_BINARY_DIR}/kernel.map)
 
-# Final kernel
+    # embed kernel.map → kernel_symbols.h
+    add_custom_command(
+            OUTPUT ${CMAKE_BINARY_DIR}/kernel_symbols.h
+            COMMAND xxd -i ${CMAKE_BINARY_DIR}/kernel.map |
+            sed 's/unsigned char .*\\[/inline unsigned char kernel_map[/' |
+            sed 's/unsigned int .*_len/inline unsigned int kernel_map_len/'
+            > ${CMAKE_BINARY_DIR}/kernel_symbols.h
+            DEPENDS ${CMAKE_BINARY_DIR}/kernel.map
+            COMMENT "Embedding kernel.map"
+    )
+    add_custom_target(kernel_symbols_header
+            DEPENDS ${CMAKE_BINARY_DIR}/kernel_symbols.h
+    )
+
+endif()
+
+#
+# ────────────────────────────────────────────────────────────────
+#   FINAL KERNEL
+# ────────────────────────────────────────────────────────────────
+#
+
+if(ENABLE_DEBUG_FAULT)
+    set(KERNEL_EXTRA ${CMAKE_BINARY_DIR}/kernel_symbols.h)
+else()
+    set(KERNEL_EXTRA "")
+endif()
+
 add_executable(kernel.elf
         ${KERNEL_CPP_SOURCES}
         ${KERNEL_ASM_SOURCES}
-        ${CMAKE_BINARY_DIR}/kernel_symbols.h
+        ${KERNEL_EXTRA}
 )
+
 set_target_properties(kernel.elf PROPERTIES
         OUTPUT_NAME "kernel.elf"
         LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
@@ -141,4 +169,7 @@ target_include_directories(kernel.elf PUBLIC
         ${CMAKE_BINARY_DIR}
 )
 
-add_dependencies(kernel.elf kernel_symbols_header)
+# kernel.elf depends on symbols only when they exist
+if(ENABLE_DEBUG_FAULT)
+    add_dependencies(kernel.elf kernel_symbols_header)
+endif()

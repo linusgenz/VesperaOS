@@ -6,14 +6,11 @@
 #define SPINLOCK_H
 #include <cstdint>
 
-#include "../../../kernel/debug/lock_debug.h"
 
 struct spinlock_t {
     volatile uint32_t locked;
 
-    void init() {
-        locked = 0;
-    }
+    void init(const char* name = "unnamed_lock");
 
     void lock();
 
@@ -24,7 +21,7 @@ struct spinlock_t {
         lock();
     }
 
-    void unlock_irqrestore(uint64_t flags) {
+    void unlock_irqrestore(const uint64_t flags) {
         unlock();
         irq_restore(flags);
     }
@@ -41,7 +38,7 @@ private:
         return old;
     }
 
-    static inline uint64_t irq_save() {
+    static uint64_t irq_save() {
         uint64_t flags;
         asm volatile(
             "pushfq\n\t"
@@ -54,7 +51,7 @@ private:
         return flags;
     }
 
-    static inline void irq_restore(uint64_t flags) {
+    static void irq_restore(uint64_t flags) {
         asm volatile(
             "pushq %0\n\t"
             "popfq"

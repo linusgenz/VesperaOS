@@ -37,8 +37,8 @@ int ext4_probe(BlockDevice *dev) {
     return fs.is_valid();
 }
 
-static VfsNode* ext4_find(VfsNode* node, const char* name) {
-    auto* dir = reinterpret_cast<Ext4Node*>(node->internal_data);
+static VfsNode* ext4_find(const VfsNode* node, const char* name) {
+    auto* dir = static_cast<Ext4Node*>(node->internal_data);
     if (!dir || !dir->isDir) return nullptr;
 
     size_t entryCount = 0;
@@ -46,8 +46,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
     if (!entries) return nullptr;
 
     for (size_t i = 0; i < entryCount; i++) {
-        const char* entryName = entries[i].GetName();
-        if (strcmp(entryName, name) == 0) {
+        if (const char* entryName = entries[i].GetName(); strcmp(entryName, name) == 0) {
             auto* childData = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
             if (!childData) {
                 free(entries);
@@ -88,8 +87,8 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
 }
 
 
-void* ext4_opendir(VfsNode* dir) {
-    auto* node = reinterpret_cast<Ext4Node*>(dir->internal_data);
+void* ext4_opendir(const VfsNode* dir) {
+    const auto* node = static_cast<Ext4Node*>(dir->internal_data);
     if (!node) return nullptr;
 
     size_t count = 0;
@@ -97,7 +96,7 @@ void* ext4_opendir(VfsNode* dir) {
     Log::debug("dir->fs->read_directory: %d entries", count);
     if (!entries) return nullptr;
 
-    auto* handle = (Ext4DirHandle*)malloc(sizeof(Ext4DirHandle));
+    auto* handle = static_cast<Ext4DirHandle*>(malloc(sizeof(Ext4DirHandle)));
     handle->entries = entries;
     handle->count = count;
     handle->index = 0;
@@ -105,8 +104,7 @@ void* ext4_opendir(VfsNode* dir) {
 }
 
 int ext4_readdir(void *dir_handle, dirent_t *out) {
-    auto* h = reinterpret_cast<Ext4DirHandle*>(dir_handle);
-    if (!h || h->index >= h->count) return 0;
+    if (const auto* h = static_cast<Ext4DirHandle*>(dir_handle); !h || h->index >= h->count) return 0;
 /*
     FileEntry& fe = h->entries[h->index++];
     size_t len = strlen(fe.GetName());

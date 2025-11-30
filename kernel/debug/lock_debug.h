@@ -56,10 +56,7 @@ struct lock_debug_info {
 
 void lock_debug_init();
 
-
-// register a lock pointer with a human readable name
 lock_debug_info* lock_debug_register(void* lockptr, const char* name);
-
 
 // called by instrumented lock code before attempting acquire
 void lock_debug_before_acquire(void* lockptr, uint32_t current_unit);
@@ -79,6 +76,6 @@ bool lock_debug_detect_deadlocks_and_report();
 
 void lock_debug_report_deadlock(lock_debug_info* L, uint32_t start_unit);
 
-lock_debug_info* lock_debug_find(void* lockptr);
+lock_debug_info* lock_debug_find(const void* lockptr);
 
 #endif //VESPERAOS_LOCK_DEBUG_H

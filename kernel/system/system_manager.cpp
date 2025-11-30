@@ -50,8 +50,7 @@ namespace kernel {
     ILogWriter *SystemManager::log_writer = nullptr;
 
     void SystemManager::initialize() {
-        global_lock.init();
-        lock_debug_register(&global_lock, "system_manager_lock");
+        global_lock.init("system_manager_lock");
         global_lock.lock();
 
         if (manager_initialized) {

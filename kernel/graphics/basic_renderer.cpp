@@ -37,7 +37,7 @@ void BasicRenderer::print(const char* str)
     }
 }
 
-void BasicRenderer::print(const char* str, size_t length)
+void BasicRenderer::print(const char* str, const size_t length)
 {
     for (size_t i = 0; i < length; i++)
     {
@@ -174,7 +174,7 @@ void BasicRenderer::clear_char()
     }
 }
 
-void BasicRenderer::put_char(char chr, uint32_t xOff, uint32_t yOff) const
+void BasicRenderer::put_char(const char chr, const uint32_t xOff, const uint32_t yOff) const
 {
     if (chr == '\0') return;
     auto* pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);

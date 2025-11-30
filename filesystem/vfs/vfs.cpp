@@ -40,8 +40,7 @@ spinlock_t VFS::mount_points_lock;
 
 void VFS::init() {
     mount_points = new Vector<MountPoint>();
-    mount_points_lock.init();
-    lock_debug_register(&mount_points_lock, "mount_points_lock");
+    mount_points_lock.init("mount_points_lock");
 
     FilesystemDetector::Init();
 
@@ -144,7 +143,7 @@ VfsDir *VFS::opendir(const char *path) {
 }
 
 
-int VFS::readdir(VfsDir *dir, dirent_t *out) {
+int VFS::readdir(const VfsDir *dir, dirent_t *out) {
     if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir)
         return 0;
     return dir->node->ops->readdir(dir->handle, out);
@@ -164,7 +163,7 @@ void VFS::closedir(VfsDir *dir) {
     free(dir);
 }
 
-size_t VFS::read(VfsNode *node, size_t offset, size_t size, void *buffer) {
+size_t VFS::read(const VfsNode *node, size_t offset, size_t size, void *buffer) {
     if (!node || !node->ops || !node->ops->read) return 0;
     return node->ops->read(node, offset, size, buffer);
 }

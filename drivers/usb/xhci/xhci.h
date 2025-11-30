@@ -18,15 +18,12 @@ namespace USB {
             vector_num = _vector_num;
             name = _name;
             bus_number = _bus_number;
-            m_devices_lock.init();
-            m_command_lock.init();
-            m_transfer_lock.init();
+            m_devices_lock.init("xhci_device_lock");
+            m_command_lock.init("xhci_command_lock");
+            m_transfer_lock.init("xhci_transfer_lock");
             m_port_connection_lock.init();
             m_command_irq_completed.init();
             m_transfer_irq_completed.init();
-            lock_debug_register(&m_devices_lock, "xhci_device_lock");
-            lock_debug_register(&m_command_lock, "xhci_command_lock");
-            lock_debug_register(&m_transfer_lock, "xhci_transfer_lock");
         }
 
         ~xhciDriver() override = default;
@@ -141,9 +138,9 @@ namespace USB {
 
         [[nodiscard]] bool create_device_context(uint8_t slot_id) const;
 
-        static void configure_control_ep_input_context(xhciDevice *dev, uint16_t max_packet_size);
+        static void configure_control_ep_input_context(const xhciDevice *dev, uint16_t max_packet_size);
 
-        static void configure_ep_input_context(xhciDevice *dev, xhciEndpoint *endpoint);
+        static void configure_ep_input_context(const xhciDevice *dev, xhciEndpoint *endpoint);
 
         bool send_usb_request_packet(xhciDevice *device, xhci_device_request_packet &req, void *output_buffer,
                                      uint32_t length);

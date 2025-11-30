@@ -42,7 +42,7 @@ int CPUInfoDevice::release(CharFile*) {
     return 0;
 }
 
-size_t CPUInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+size_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
     if (!buffer || count < sizeof(CpuInfo)) return 0;
 
     CpuInfo info{};
@@ -63,6 +63,6 @@ size_t CPUInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
 
 
 
-size_t CPUInfoDevice::write(CharFile*, const void*, size_t count) {
+size_t CPUInfoDevice::write(CharFile*, const void*, const size_t count) {
     return count;
 }
