@@ -4,7 +4,7 @@
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 27.11.25.
+// Created by Linus Genz on 02.12.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -19,7 +19,7 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.#ifndef VESPERAOS_STDDEF_H
 
 #ifndef VESPERAOS_STDDEF_H
 #define VESPERAOS_STDDEF_H

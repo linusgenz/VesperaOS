@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
     const char *digits = "0123456789ABCDEF";
     char temp[32];

@@ -1,13 +1,13 @@
 // shell.c
 //
 // VesperaOS - operating system for the x86_64 architecture
-//
+// 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-//
+// 
 // Created by Linus Genz on 05.08.25.
 //
 // This file is part of VesperaOS.
-//
+// 
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-//
+// 
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -43,6 +43,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdbool.h>
+
 
 typedef struct {
     char *args[MAX_ARGS];
@@ -208,7 +209,7 @@ void cmd_clear(command_t *cmd) {
 }
 
 void cmd_ls(command_t *cmd) {
-    const char *path = (cmd->argc > 1) ? cmd->args[1] : current_dir;
+    const char* path = cmd->args[1] ? cmd->args[1] : current_dir;
     DIR_HANDLE hdl = opendir(path);
     if (hdl < 0) {
         if (hdl == -2) {

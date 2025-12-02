@@ -1,10 +1,10 @@
-// file.c
+// interrupts.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 // 
-// Created by Linus Genz on 22.09.25.
+// Created by Linus Genz on 30.07.25.
 //
 // This file is part of VesperaOS.
 // 
@@ -21,17 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <sysstd.h>
-#include <errno.h>
-#include <fflags.h>
-#include <stdbool.h>
-#include "stdint.h"
+#ifndef INTERRUPTS_H
+#define INTERRUPTS_H
 
-bool file_exists(const char* path) {
-    int64_t hdl = sys_open((uint64_t)path, O_RDONLY, 0, 0, 0, 0);
-    if (hdl < 0) {
-        return false;
-    }
-    sys_close(hdl, 0,0,0,0,0);
-    return true;
+#include <cstdint>
+#include "../../arch/x86_64/interrupts/idt.h"
+
+namespace kernel::interrupts {
+    void initialize();  // sets IDT, APIC, IOAPIC, PIC
+    bool allocate_vector(uint8_t vector, irq_handler_t handler, void* cookie = nullptr);
+    uint8_t get_free_vector();
+    void free_vector(uint8_t irqno);
+    arch::x86_64::interrupts::idt::IDTR* get_idtr_address();
+    void lapic_send_eoi();
+    void lapic_init(uint32_t cpu_id);
+    void lapic_write(uint32_t offset, uint32_t value);
+    uint32_t lapic_read(uint32_t offset);
+    void lapic_wait_for_delivery();
+    uint64_t lapic_get_ticks(uint32_t cpu_id);
+    uint32_t lapic_get_id();
+    void mask_pic();
 }
+
+#endif //INTERRUPTS_H

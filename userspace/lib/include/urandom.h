@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 /**
- * @brief Read random bytes from `/dev/urandom` into the provided buffer.
+ * @brief Read random bytes from /dev/urandom into the provided buffer.
  *
  * This function attempts to open `/dev/urandom` and fill `buf` with `buflen`
  * random bytes. The read is performed in a loop to tolerate partial reads
