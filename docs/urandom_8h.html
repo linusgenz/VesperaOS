@@ -105,7 +105,7 @@ $(document).ready(function(){initNavTree('urandom_8h.html',''); initResizable();
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ac3ee34b29e34805718dfa1b127cf3250" id="r_ac3ee34b29e34805718dfa1b127cf3250"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="urandom_8h.html#ac3ee34b29e34805718dfa1b127cf3250">getrandom</a> (void *buf, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> buflen)</td></tr>
-<tr class="memdesc:ac3ee34b29e34805718dfa1b127cf3250"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read random bytes from <code>/dev/urandom</code> into the provided buffer.  <br /></td></tr>
+<tr class="memdesc:ac3ee34b29e34805718dfa1b127cf3250"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read random bytes from /dev/urandom into the provided buffer.  <br /></td></tr>
 <tr class="separator:ac3ee34b29e34805718dfa1b127cf3250"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90caf0e9b86196efaca3f7f772742ef5" id="r_a90caf0e9b86196efaca3f7f772742ef5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a32f2e37ee053cf2ce8ca28d1f74630e5">int32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5">urandom_u32</a> (void)</td></tr>
 <tr class="memdesc:a90caf0e9b86196efaca3f7f772742ef5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a 32-bit random unsigned integer.  <br /></td></tr>
@@ -141,7 +141,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Read random bytes from <code>/dev/urandom</code> into the provided buffer. </p>
+<p>Read random bytes from /dev/urandom into the provided buffer. </p>
 <p>This function attempts to open <code>/dev/urandom</code> and fill <code>buf</code> with <code>buflen</code> random bytes. The read is performed in a loop to tolerate partial reads until the buffer is full or an error occurs.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
