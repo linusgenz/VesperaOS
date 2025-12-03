@@ -160,7 +160,7 @@ namespace input::mouse {
         if (position.Y > global_renderer->TargetFramebuffer->height - 1)
             position.Y = global_renderer->TargetFramebuffer->height - 1;
 
-        int8_t wheel_movement = (int8_t) mouse_packet[3];
+        int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]);
         if (wheel_movement > 0) {
             if (scroll_manager->can_scroll_down()) {
                 scroll_manager->scroll_down();

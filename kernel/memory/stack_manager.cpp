@@ -1,7 +1,5 @@
 #include "stack_manager.h"
-#include <kernel/memory.h>
-#include "../../include/log.h"
-#include "heap.h"
+
 /*
 namespace StackManager {
     

@@ -39,7 +39,7 @@ enum kbd_mod_mask : uint32_t {
     KBD_MOD_RGUI    = 1 << 7,
 };
 
-class xhciKeyboardDriver : public xhciHidDriver {
+class xhciKeyboardDriver final : public xhciHidDriver {
 public:
     xhciKeyboardDriver() = default;
     ~xhciKeyboardDriver() = default;

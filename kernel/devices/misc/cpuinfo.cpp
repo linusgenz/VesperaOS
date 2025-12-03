@@ -23,7 +23,6 @@
 
 #include <string.h>
 
-#include "../../cpu/cpu_manager.h"
 #include "cpuinfo.h"
 
 #include <kernel/memory.h>

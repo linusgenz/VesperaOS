@@ -98,7 +98,7 @@ auto s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
 static auto renderer = BasicRenderer(nullptr, nullptr);
 Framebuffer* TargetFramebuffer = nullptr;
 
-void initialize_kernel(BootInfo* bootInfo)
+void initialize_kernel(BootInfo* boot_info)
 {
     zero_bss();
 

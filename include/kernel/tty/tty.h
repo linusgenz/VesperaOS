@@ -25,7 +25,6 @@
 #define VESPERAOS_TTY_H
 
 #include <kernel/input/input_event.h>
-#include <cstddef>
 
 class TTYDevice;
 
@@ -53,7 +52,7 @@ namespace kernel::tty {
 
         EscapeState esc_state = EscapeState::NONE;
         int esc_param = 0;
-        int esc_params[MAX_PARAMS] = {0};
+        int esc_params[MAX_PARAMS] = {};
         int esc_param_count = 0;
 
         size_t cursor_x = 0;
@@ -70,7 +69,7 @@ namespace kernel::tty {
 
     void tty_init(TTY *tty);
 
-    void tty_handle_input(const kernel::input::InputEvent &ev);
+    void tty_handle_input(const input::InputEvent &ev);
 
     void tty_process_output(TTY *tty, char c);
 

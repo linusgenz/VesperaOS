@@ -7,7 +7,6 @@
 #include <kernel/memory.h>
 #include <cstddef>
 #include <type_traits>
-#include <cstdint>
 #include <kernel/kerrno.h>
 #include <kernel/system/system_manager.h>
 
@@ -49,9 +48,9 @@ public:
     }
 
     Vector copy() const {
-        Vector<T> result(length);
+        Vector result(length);
         for (size_t i = 0; i < length; ++i) {
-            if constexpr (std::is_trivially_copyable<T>::value) {
+            if constexpr (std::is_trivially_copyable_v<T>) {
                 result._data[i] = _data[i];
             } else {
                 new(&result._data[i]) T(_data[i]);
@@ -66,7 +65,7 @@ public:
     }
 
     void clear() {
-        if constexpr (!std::is_trivially_destructible<T>::value) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
             for (size_t i = 0; i < length; ++i) {
                 _data[i].~T();
             }
@@ -79,7 +78,7 @@ public:
             resize(capacity ? capacity * 2 : 4);
         }
 
-        if constexpr (std::is_trivially_copyable<T>::value) {
+        if constexpr (std::is_trivially_copyable_v<T>) {
             _data[length] = value;
         } else {
             new (&_data[length]) T(value);
@@ -102,12 +101,12 @@ public:
             kernel::SystemManager::system_panic("Vector::erase() index out of range", -KERANGE);
         }
 
-        if constexpr (!std::is_trivially_destructible<T>::value) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
             _data[index].~T();
         }
 
         for (size_t i = index; i < length - 1; ++i) {
-            if constexpr (std::is_trivially_copyable<T>::value) {
+            if constexpr (std::is_trivially_copyable_v<T>) {
                 _data[i] = _data[i + 1];
             } else {
                 new (&_data[i]) T(_data[i + 1]);
@@ -139,8 +138,8 @@ public:
         return _data[length - 1];
     }
 
-    size_t size() const { return length; }
-    bool empty() const { return length == 0; }
+    [[nodiscard]] size_t size() const { return length; }
+    [[nodiscard]] bool empty() const { return length == 0; }
 
     // Iterator support (raw pointers)
     T* begin() { return _data; }
@@ -160,7 +159,7 @@ private:
         T* new_data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
         if (!new_data) kernel::SystemManager::system_panic("Vector resize malloc failed", -KEVECRESIZE);
 
-        if constexpr (std::is_trivially_copyable<T>::value) {
+        if constexpr (std::is_trivially_copyable_v<T>) {
             // triviale Typen: einfache Zuweisung
             for (size_t i = 0; i < length; ++i) {
                 new_data[i] = _data[i];
@@ -181,7 +180,7 @@ private:
 
     void destroy() {
         if (!_data) return;
-        if constexpr (!std::is_trivially_destructible<T>::value) {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
             for (size_t i = 0; i < length; ++i) {
                 _data[i].~T();
             }

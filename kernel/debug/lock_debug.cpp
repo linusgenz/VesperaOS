@@ -72,7 +72,7 @@ static uint8_t capture_stack_trace(uint64_t* out_buf, uint8_t max_depth) {
     return cnt;
 }
 
-void lock_debug_before_acquire(void* lockptr, uint32_t current_unit) {
+void lock_debug_before_acquire(const void* lockptr, const uint32_t current_unit) {
     if (current_unit == 0) return;
     if (!lockptr) return;
     if (auto *e = lock_debug_find(lockptr)) {
@@ -97,7 +97,7 @@ inline uint64_t rdtsc() {
 }
 
 
-void lock_debug_after_acquire(void* lockptr, uint32_t current_unit) {
+void lock_debug_after_acquire(const void* lockptr, const uint32_t current_unit) {
     if (current_unit == 0) return;
     if (!lockptr) return;
     if (auto *e = lock_debug_find(lockptr)) {
@@ -117,7 +117,7 @@ void lock_debug_after_acquire(void* lockptr, uint32_t current_unit) {
     }
 }
 
-void lock_debug_release(void* lockptr, uint32_t current_unit) {
+void lock_debug_release(const void* lockptr, const uint32_t current_unit) {
     if (current_unit == 0) return;
     if (!lockptr) return;
     if (auto *e = lock_debug_find(lockptr)) {

@@ -26,7 +26,7 @@
 
 #include "../chardevice.h"
 
-class RTCDevice : public CharDevice {
+class RTCDevice final : public CharDevice {
 public:
     explicit RTCDevice(const char* name);
 

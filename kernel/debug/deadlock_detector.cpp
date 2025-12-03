@@ -29,7 +29,6 @@
 
 #include "lock_debug.h"
 #include <kernel/system/system_manager.h>
-#include "../utils/panic.h"
 
 static bool enabled = false;
 

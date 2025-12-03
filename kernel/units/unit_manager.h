@@ -44,6 +44,7 @@ private:
     static Unit units[MAX_UNITS];
     static spinlock_t global_lock;
     static UnitID next_id;
+    static bool initialized;
 
     static UnitID allocate_id();
 

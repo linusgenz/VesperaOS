@@ -26,12 +26,14 @@
 #include <kernel/basic_renderer.h>
 
 
-struct reentrant_spinlock_t {
-    volatile uint32_t locked = 0;       // atomic lock
-    uint32_t owner_unit = 0;            // Unit, die den Lock hält
-    uint32_t recursion = 0;             // Rekursionszähler
+struct reentrant_spinlock_t
+{
+    volatile uint32_t locked = 0; // atomic lock
+    uint32_t owner_unit = 0; // Unit, die den Lock hält
+    uint32_t recursion = 0; // Rekursionszähler
 
-    void init() {
+    void init()
+    {
         locked = 0;
         owner_unit = 0;
         recursion = 0;
@@ -41,18 +43,21 @@ struct reentrant_spinlock_t {
 
     void unlock();
 
-    void lock_irqsave(uint64_t &flags) {
+    void lock_irqsave(uint64_t& flags)
+    {
         flags = irq_save();
         lock();
     }
 
-    void unlock_irqrestore(uint64_t flags) {
+    void unlock_irqrestore(uint64_t flags)
+    {
         unlock();
         irq_restore(flags);
     }
 
 private:
-    uint32_t xchg(volatile uint32_t *ptr, uint32_t val) {
+    uint32_t xchg(volatile uint32_t* ptr, uint32_t val)
+    {
         uint32_t old;
         __asm__ volatile (
             "lock xchg %0, %1"
@@ -63,7 +68,8 @@ private:
         return old;
     }
 
-    static inline uint64_t irq_save() {
+    uint64_t irq_save()
+    {
         uint64_t flags;
         asm volatile(
             "pushfq\n\t"
@@ -76,7 +82,8 @@ private:
         return flags;
     }
 
-    static inline void irq_restore(uint64_t flags) {
+    void irq_restore(uint64_t flags)
+    {
         asm volatile(
             "pushq %0\n\t"
             "popfq"
@@ -87,35 +94,41 @@ private:
     }
 };
 
-struct reentrant_spinlock_guard {
-    reentrant_spinlock_t &lock_ref;
+struct reentrant_spinlock_guard
+{
+    reentrant_spinlock_t& lock_ref;
 
-    explicit reentrant_spinlock_guard(reentrant_spinlock_t &lock) : lock_ref(lock) {
+    explicit reentrant_spinlock_guard(reentrant_spinlock_t& lock) : lock_ref(lock)
+    {
         lock_ref.lock();
     }
 
-    ~reentrant_spinlock_guard() {
+    ~reentrant_spinlock_guard()
+    {
         lock_ref.unlock();
     }
 
-    reentrant_spinlock_guard(const reentrant_spinlock_guard &) = delete;
-    reentrant_spinlock_guard &operator=(const reentrant_spinlock_guard &) = delete;
+    reentrant_spinlock_guard(const reentrant_spinlock_guard&) = delete;
+    reentrant_spinlock_guard& operator=(const reentrant_spinlock_guard&) = delete;
 };
 
-struct reentrant_spinlock_guard_irq {
-    reentrant_spinlock_t &lock_ref;
+struct reentrant_spinlock_guard_irq
+{
+    reentrant_spinlock_t& lock_ref;
     uint64_t flags{};
 
-    explicit reentrant_spinlock_guard_irq(reentrant_spinlock_t &lock) : lock_ref(lock) {
+    explicit reentrant_spinlock_guard_irq(reentrant_spinlock_t& lock) : lock_ref(lock)
+    {
         lock_ref.lock_irqsave(flags);
     }
 
-    ~reentrant_spinlock_guard_irq() {
+    ~reentrant_spinlock_guard_irq()
+    {
         lock_ref.unlock_irqrestore(flags);
     }
 
-    reentrant_spinlock_guard_irq(const reentrant_spinlock_guard_irq &) = delete;
-    reentrant_spinlock_guard_irq &operator=(const reentrant_spinlock_guard_irq &) = delete;
+    reentrant_spinlock_guard_irq(const reentrant_spinlock_guard_irq&) = delete;
+    reentrant_spinlock_guard_irq& operator=(const reentrant_spinlock_guard_irq&) = delete;
 };
 
 #endif //VESPERAOS_REENTRANT_SPINLOCK_H

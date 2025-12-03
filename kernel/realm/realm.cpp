@@ -25,8 +25,8 @@
 
 Realm::Realm()
     : id(0), name(nullptr), capabilities(CAP_NONE),
-      memory_limit(0), max_units(0), unit_count(0),
-      unit_list(nullptr),
+      memory_limit(0), max_units(0), unit_count(0), pml4(nullptr), page_table(nullptr),
+      unit_list(nullptr), envp(nullptr),
       active(false), sched_priority(0), cpu_time_accumulated(0)
 {
     const auto path = "/";
@@ -41,25 +41,27 @@ Realm::Realm()
     handle_table.lock.init(buf2);
 }
 
-ErrorCode Realm::init_handle_table() {
+ErrorCode Realm::init_handle_table()
+{
     memset(&handle_table, 0, sizeof(handle_table_t));
     handle_table.owner_realm = id;
     return MOD_SUCCESS;
 }
 
-ErrorCode Realm::add_handle(uint64_t type, void *resource,
+ErrorCode Realm::add_handle(uint64_t type, void* resource,
                             CapabilitySet caps, bool transferable,
-                            void (*destroy)(void *), HandleID *out_h)
+                            void (*destroy)(void*), HandleID* out_h)
 {
     spinlock_guard guard(lock);
     int slot = find_free_slot();
-    if (slot < 0) {
+    if (slot < 0)
+    {
         return MOD_ERR_OUT_OF_MEMORY;
     }
 
     set_bit(slot);
-    handle_entry_t &he = handle_table.entries[slot];
-    he.hid = type | (HandleID) (slot & HANDLE_ID_MASK);
+    handle_entry_t& he = handle_table.entries[slot];
+    he.hid = type | static_cast<HandleID>(slot & HANDLE_ID_MASK);
     he.type = type;
     he.resource = resource;
     he.capabilities = caps;
@@ -71,23 +73,25 @@ ErrorCode Realm::add_handle(uint64_t type, void *resource,
     return MOD_SUCCESS;
 }
 
-ErrorCode Realm::add_handle_with_id(HandleID fixed_id, uint64_t type, void *resource,
+ErrorCode Realm::add_handle_with_id(HandleID fixed_id, uint64_t type, void* resource,
                                     CapabilitySet caps, bool transferable,
-                                    void (*destroy)(void *))
+                                    void (*destroy)(void*))
 {
     uint64_t slot = fixed_id & HANDLE_ID_MASK;
-    if (slot >= MAX_HANDLES_PER_REALM) {
+    if (slot >= MAX_HANDLES_PER_REALM)
+    {
         return MOD_ERR_INVALID_HANDLE;
     }
 
     spinlock_guard guard(lock);
 
-    if (test_bit(slot)) {
+    if (test_bit(slot))
+    {
         return MOD_ERR_INVALID_HANDLE;
     }
 
     set_bit(slot);
-    handle_entry_t &he = handle_table.entries[slot];
+    handle_entry_t& he = handle_table.entries[slot];
     he.hid = fixed_id;
     he.type = type;
     he.resource = resource;
@@ -99,7 +103,8 @@ ErrorCode Realm::add_handle_with_id(HandleID fixed_id, uint64_t type, void *reso
     return MOD_SUCCESS;
 }
 
-ErrorCode Realm::setup_standard_handles(TTYDevice *tty_dev) {
+ErrorCode Realm::setup_standard_handles(TTYDevice* tty_dev)
+{
     ErrorCode err = add_handle_with_id(
         HANDLE_STDIN,
         HANDLE_TYPE_TTY,
@@ -133,41 +138,49 @@ ErrorCode Realm::setup_standard_handles(TTYDevice *tty_dev) {
     return MOD_SUCCESS;
 }
 
-handle_entry_t* Realm::lookup_handle(HandleID hid) {
+handle_entry_t* Realm::lookup_handle(HandleID hid)
+{
     uint64_t raw = hid & HANDLE_ID_MASK;
 
     if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
     if (!test_bit(raw)) return nullptr;
 
-    handle_entry_t &he = handle_table.entries[raw];
+    handle_entry_t& he = handle_table.entries[raw];
     if (he.hid != hid) return nullptr;
     return &he;
 }
 
-void Realm::acquire_handle(HandleID hid) {
-    if (auto he = lookup_handle(hid)) {
+void Realm::acquire_handle(HandleID hid)
+{
+    if (auto he = lookup_handle(hid))
+    {
         __sync_add_and_fetch(&he->refcount, 1);
     }
 }
 
-void Realm::release_handle(HandleID hid) {
-    handle_entry_t *he = lookup_handle(hid);
+void Realm::release_handle(HandleID hid)
+{
+    handle_entry_t* he = lookup_handle(hid);
     if (!he) return;
 
     uint64_t v = __sync_sub_and_fetch(&he->refcount, 1);
-    if (v == 0) {
+    if (v == 0)
+    {
         spinlock_guard guard(lock);
-        auto raw = (uint64_t) (he->hid & HANDLE_ID_MASK);
+        auto raw = static_cast<uint64_t>(he->hid & HANDLE_ID_MASK);
         if (he->destroy && he->resource) he->destroy(he->resource);
         memset(he, 0, sizeof(handle_entry_t));
         clear_bit(raw);
     }
 }
 
-void Realm::clear_handle_table() {
-    for (size_t i = 0; i < MAX_HANDLES_PER_REALM; ++i) {
-        if (test_bit(i)) {
-            handle_entry_t &he = handle_table.entries[i];
+void Realm::clear_handle_table()
+{
+    for (size_t i = 0; i < MAX_HANDLES_PER_REALM; ++i)
+    {
+        if (test_bit(i))
+        {
+            handle_entry_t& he = handle_table.entries[i];
             if (he.destroy && he.resource) he.destroy(he.resource);
             clear_bit(i);
             memset(&he, 0, sizeof(handle_entry_t));
@@ -175,21 +188,26 @@ void Realm::clear_handle_table() {
     }
 }
 
-bool Realm::test_bit(size_t i) const {
+bool Realm::test_bit(size_t i) const
+{
     return (handle_table.bitmap[i >> 3] >> (i & 7)) & 1;
 }
 
-void Realm::set_bit(size_t i) {
+void Realm::set_bit(size_t i)
+{
     handle_table.bitmap[i >> 3] |= (1 << (i & 7));
 }
 
-void Realm::clear_bit(size_t i) {
+void Realm::clear_bit(size_t i)
+{
     handle_table.bitmap[i >> 3] &= ~(1 << (i & 7));
 }
 
-int Realm::find_free_slot() const {
-    for (size_t i = 3; i < MAX_HANDLES_PER_REALM; ++i) {
-        if (!test_bit(i)) return (int) i;
+int Realm::find_free_slot() const
+{
+    for (size_t i = 3; i < MAX_HANDLES_PER_REALM; ++i)
+    {
+        if (!test_bit(i)) return static_cast<int>(i);
     }
     return -1;
 }

@@ -46,6 +46,7 @@ private:
     static spinlock_t global_lock;
     static RealmID next_id;
     static atomic_u8_t seq;
+    static bool initialized;
 };
 
 #endif //VESPERAOS_REALM_MANAGER_H

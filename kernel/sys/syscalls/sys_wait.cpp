@@ -21,12 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
 #include <kernel/scheduling.h>
-
-#include "../../cpu/cpu_manager.h"
 #include <kernel/realm/realm_manager.h>
+#include <log.h>
+
 #include "../../units/unit.h"
+
 
 namespace syscalls::internal {
     int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
@@ -45,8 +45,8 @@ namespace syscalls::internal {
 
         if (target->unit_count == 0) {
             if (status_user_ptr != 0) {
-                int status_val = 0;
-                (*(int *)status_user_ptr) = status_val;
+                const int status_val = 0;
+                (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
             }
             return 0;
         }
@@ -59,7 +59,7 @@ namespace syscalls::internal {
 
         if (status_user_ptr != 0) {
             int status_val = 0;
-            (*(int *)status_user_ptr) = status_val;
+            (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
         }
 
         return 0;

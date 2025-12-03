@@ -25,7 +25,6 @@
 #define VESPERAOS_EXT4_H
 
 #include "../../kernel/devices/blockdevice.h"
-#include <cstdint>
 #include <vector.h>
 
 namespace EXT4 {
@@ -235,9 +234,9 @@ namespace EXT4 {
 
         bool read_superblock();
 
-        bool read_block(uint64_t block, void *outBuf);
+        bool read_block(uint64_t block, void *outBuf) const;
 
-        bool read_group_desc(uint32_t group, GroupDesc &gd);
+        bool read_group_desc(uint32_t group, GroupDesc &gd) const;
 
         bool read_inode(uint32_t inode_no, Inode &outInode);
 

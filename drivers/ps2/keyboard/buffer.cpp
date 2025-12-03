@@ -23,7 +23,6 @@
 
 #include "buffer.h"
 #include "keyboard.h"
-#include "../../../include/log.h"
 
 namespace input::keyboard {
 

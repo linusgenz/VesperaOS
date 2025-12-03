@@ -31,7 +31,8 @@
 struct CharFile;
 class CharDevice;
 
-enum BusType {
+enum BusType
+{
     VIRTUAL = 0,
     BUS_NONE,
     BUS_XHCI,
@@ -42,84 +43,89 @@ enum BusType {
     BUS_MAX
 };
 
-typedef int (*dev_open_t)(CharFile **out_cf);
+typedef int (*dev_open_t)(CharFile** out_cf);
 
-typedef int (*dev_release_t)(CharFile *cf);
+typedef int (*dev_release_t)(CharFile* cf);
 
-typedef size_t (*dev_read_t)(CharFile *cf, void *buf, size_t count); // non-positional
-typedef size_t (*dev_write_t)(CharFile *cf, const void *buf, size_t count);
+typedef size_t (*dev_read_t)(CharFile* cf, void* buf, size_t count); // non-positional
+typedef size_t (*dev_write_t)(CharFile* cf, const void* buf, size_t count);
 
-typedef int (*dev_ioctl_t)(CharFile *cf, unsigned long req, void *arg);
+typedef int (*dev_ioctl_t)(CharFile* cf, unsigned long req, void* arg);
 
-typedef int (*dev_poll_t)(CharFile *cf); // returns POLLIN/POLLOUT mask-ish
+typedef int (*dev_poll_t)(CharFile* cf); // returns POLLIN/POLLOUT mask-ish
 
 
 // handle for device drivers
-struct CharFile {
-    void *driver_private;
+struct CharFile
+{
+    void* driver_private;
 };
 
 // Registry-Entry
-struct DevfsEntry {
-    CharDevice *dev;
-    VfsNode *node;
-    CharFile *cf;
+struct DevfsEntry
+{
+    CharDevice* dev;
+    VfsNode* node;
+    CharFile* cf;
     BusType bus_type;
     bool is_bus_dir;
-    VfsNode *parent;
+    VfsNode* parent;
 };
 
-class DevFS {
+class DevFS
+{
 public:
     static void init();
 
-    static VfsNode *ensure_bus_dir(BusType bus);
+    static VfsNode* ensure_bus_dir(BusType bus);
 
-    static int register_device(CharDevice *dev);
+    static int register_device(CharDevice* dev);
 
-    static int unregister_device(const char *name);
+    static int unregister_device(const char* name);
 
-    static VfsNode *create_node(const char *dev_name, VfsNode *parent);
+    static VfsNode* create_node(const char* dev_name, VfsNode* parent);
 
-    static int remove_node(const char *path);
+    static int remove_node(const char* dev_name);
 
-    static const char *alloc_unique_name(const char *base);
+    static const char* alloc_unique_name(const char* base);
 
-    static int open(const VfsNode *node);
+    static int open(const VfsNode* node);
 
     // VFS-Hooks
-    static ssize_t read(const VfsNode *node, size_t offset, size_t size, void *buffer);
+    static ssize_t read(const VfsNode* node, size_t offset, size_t size, void* buffer);
 
-    static ssize_t write(VfsNode *node, size_t offset, size_t size, const void *buffer);
+    static ssize_t write(const VfsNode* node, size_t offset, size_t size, const void* buffer);
 
-    static ssize_t ioctl(const VfsNode *node, uint32_t cmd, void *arg);
+    static ssize_t ioctl(const VfsNode* node, uint32_t cmd, void* arg);
 
-    static VfsNode *find(const VfsNode *dir, const char *name);
+    static VfsNode* find(const VfsNode* dir, const char* name);
 
-    static void close(VfsNode *node);
+    static void close(const VfsNode* node);
 
-    static void *open_dir(const VfsNode *dir);
+    static void* open_dir(const VfsNode* dir);
 
-    static int read_dir(void *dir_handle, dirent_t *out);
+    static int read_dir(void* dir_handle, dirent_t* out);
 
-    static void close_dir(void *dir_handle);
+    static void close_dir(void* dir_handle);
 
 private:
-    static Vector<CharDevice *> *devices;
-    static Vector<DevfsEntry *> *nodes;
-    static VfsNode *root;
+    static Vector<CharDevice*>* devices;
+    static Vector<DevfsEntry*>* nodes;
+    static VfsNode* root;
     static spinlock_t lock;
 
-    static CharDevice *lookup(const char *name);
+    static CharDevice* lookup(const char* name);
 
-    static const char *bus_to_str(BusType bus) {
-        switch (bus) {
-            case BUS_XHCI: return "xhci";
-            case BUS_I2C: return "i2c";
-            case BUS_SPI: return "spi";
-            case BUS_PCI: return "pci";
-            case BUS_TTY: return "tty";
-            default: return "unknown";
+    static const char* bus_to_str(BusType bus)
+    {
+        switch (bus)
+        {
+        case BUS_XHCI: return "xhci";
+        case BUS_I2C: return "i2c";
+        case BUS_SPI: return "spi";
+        case BUS_PCI: return "pci";
+        case BUS_TTY: return "tty";
+        default: return "unknown";
         }
     }
 };

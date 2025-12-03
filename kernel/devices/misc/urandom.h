@@ -26,10 +26,10 @@
 
 #include "../chardevice.h"
 
-class URandomDevice : public CharDevice {
+class URandomDevice final : public CharDevice {
 
 public:
-    URandomDevice(const char* name, uint64_t seed = 881723468263953272ull);
+    explicit URandomDevice(const char* name, uint64_t seed = 881723468263953272ull);
 
     int open(CharFile** out_cf) override;
     int release(CharFile*) override;
@@ -40,7 +40,7 @@ private:
     void refill();
     uint8_t next();
     uint64_t state;
-    uint8_t buffer[8];
+    uint8_t dev_buffer[8]{};
     size_t buffer_index = 8;
 };
 

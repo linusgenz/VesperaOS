@@ -26,7 +26,7 @@
 
 #include "../chardevice.h"
 
-class VersionDevice : public CharDevice {
+class VersionDevice final : public CharDevice {
 public:
     explicit VersionDevice(const char* name);
 

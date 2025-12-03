@@ -108,7 +108,7 @@ void generate_throbber() {
 
             double angle = atan2(dy, dx);
             if (angle < 0) angle += 2*M_PI;
-            uint8_t ang = (uint8_t)(angle * 255.0 / (2*M_PI));
+            uint8_t ang = static_cast<uint8_t>(angle * 255.0 / (2 * M_PI));
             segment_map[y*THROBBER_SIZE + x] = (ang * SEGMENT_COUNT) / 256;
         }
     }

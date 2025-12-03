@@ -4,7 +4,6 @@
 #include <kernel/basic_renderer.h>
 #include <kernel/sync/spinlock.h>
 #include <kernel/sync/mutex.h>
-#include "graphics.h"
 
 class Log {
 public:

@@ -52,7 +52,8 @@ namespace EXT4 {
         return superblock.s_magic == EXT4_MAGIC;
     }
 
-    bool FileSystem::read_block(uint64_t block, void *outBuf) {
+    bool FileSystem::read_block(uint64_t block, void *outBuf) const
+    {
         uint64_t bsize = get_block_size();
         uint64_t startByte = block * bsize;
         uint64_t startSector = startByte / sectorSize;
@@ -61,7 +62,8 @@ namespace EXT4 {
     }
 
 
-    bool FileSystem::read_group_desc(uint32_t group, GroupDesc &gd) {
+    bool FileSystem::read_group_desc(uint32_t group, GroupDesc &gd) const
+    {
         uint32_t bsize = get_block_size();
         uint64_t gd_table_block;
         if (bsize == 1024) {
@@ -75,10 +77,10 @@ namespace EXT4 {
         const uint32_t cnt = (sizeof(GroupDesc) + sectorSize - 1) / sectorSize;
 
         Log::debug("[ext4] read_group_desc: group=%u bsize=%u gd_table_block=%llu",
-                   group, bsize, (unsigned long long) gd_table_block);
+                   group, bsize, static_cast<uint64_t>(gd_table_block));
         Log::debug("[ext4]   -> gd_offset_bytes=%llu startSector=%llu cnt=%u",
-                   (unsigned long long) gd_offset_bytes,
-                   (unsigned long long) startSector,
+                   static_cast<uint64_t>(gd_offset_bytes),
+                   static_cast<uint64_t>(startSector),
                    cnt);
 
         auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(cnt * sectorSize));

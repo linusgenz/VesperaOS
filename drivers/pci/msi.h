@@ -23,7 +23,7 @@
 
 #ifndef MSI_H
 #define MSI_H
-#include <cstdint>
+
 #include "pci.h"
 
 namespace PCI {
@@ -41,7 +41,7 @@ namespace PCI {
         // Place APIC ID in bits [19..12].
         uint32_t addr_lo = MSI_ADDRESS_BASE | (static_cast<uint32_t>(cpu_apic_id) << 12);
         // For 32-bit addresses, the high part is 0.
-        return static_cast<uint64_t>(addr_lo);
+        return addr_lo;
     }
 
     /**

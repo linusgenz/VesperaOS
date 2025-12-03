@@ -38,7 +38,7 @@ typedef struct atomic_u8 {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    uint8_t load() const {
+    [[nodiscard]] uint8_t load() const {
         uint8_t v;
         asm volatile("movb %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
@@ -54,7 +54,7 @@ typedef struct atomic_u8 {
     }
 
     uint8_t fetch_sub(uint8_t dec) {
-        return fetch_add((uint8_t)-dec);
+        return fetch_add(static_cast<uint8_t>(-dec));
     }
 
     bool compare_exchange(uint8_t *expected, uint8_t desired) {
@@ -92,7 +92,7 @@ typedef struct atomic_u16 {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    uint16_t load() const {
+    [[nodiscard]] uint16_t load() const {
         uint16_t v;
         asm volatile("movw %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
@@ -108,7 +108,7 @@ typedef struct atomic_u16 {
     }
 
     uint16_t fetch_sub(uint16_t dec) {
-        return fetch_add((uint16_t)-dec);
+        return fetch_add(static_cast<uint16_t>(-dec));
     }
 
     bool compare_exchange(uint16_t *expected, uint16_t desired) {
@@ -145,7 +145,7 @@ typedef struct atomic_u32 {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    uint32_t load() const {
+    [[nodiscard]] uint32_t load() const {
         uint32_t v;
         asm volatile("movl %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
@@ -161,7 +161,7 @@ typedef struct atomic_u32 {
     }
 
     uint32_t fetch_sub(uint32_t dec) {
-        return fetch_add((uint32_t)-dec);
+        return fetch_add(-dec);
     }
 
     bool compare_exchange(uint32_t *expected, uint32_t desired) {
@@ -215,7 +215,7 @@ typedef struct atomic_u64 {
     }
 
     uint64_t fetch_sub(uint64_t dec) {
-        return fetch_add((uint64_t)-dec);
+        return fetch_add(-dec);
     }
 
     bool compare_exchange(uint64_t *expected, uint64_t desired) {
@@ -270,7 +270,7 @@ typedef struct atomic_flag {
                      : "memory");
     }
 
-    bool load() const {
+    [[nodiscard]] bool load() const {
         uint8_t v;
         asm volatile("movb %1, %0"
                      : "=r"(v)

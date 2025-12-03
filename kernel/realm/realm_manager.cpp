@@ -33,6 +33,7 @@ Realm RealmManager::realms[MAX_REALMS];
 spinlock_t RealmManager::global_lock;
 RealmID RealmManager::next_id = 1;
 atomic_u8_t RealmManager::seq;
+bool RealmManager::initialized = false;
 
 void RealmManager::initialize() {
     global_lock.init("realm_manager_lock");
@@ -46,7 +47,14 @@ void RealmManager::initialize() {
         realm.unit_count = 0;
     }
     next_id = 1;
+    initialized = true;
 }
+
+bool RealmManager::is_initialized()
+{
+    return initialized;
+}
+
 
 Realm* RealmManager::create(const RealmConfig* cfg) {
     if (!cfg) return nullptr;

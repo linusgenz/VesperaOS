@@ -4,7 +4,6 @@
 
 #ifndef SCROLLMANAGER_H
 #define SCROLLMANAGER_H
-#include <cstdint>
 #include "../../include/graphics.h"
 
 

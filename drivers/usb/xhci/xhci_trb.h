@@ -2,6 +2,7 @@
 #define XHCI_TRB_H
 
 #include "xhci_common.h"
+#include <cstdint>
 
 /*
 // xHci Spec Section 4.11 Figure 4-13: TRB Template (page 188)
@@ -361,7 +362,7 @@ typedef struct xhci_normal_request_block {
 static_assert(sizeof(xhci_normal_trb_t) == sizeof(uint32_t) * 4);
 
 
-static inline const char* trb_completion_code_to_string(uint8_t completion_code) {
+inline const char* trb_completion_code_to_string(const uint8_t completion_code) {
     switch (completion_code) {
     case XHCI_TRB_COMPLETION_CODE_INVALID:
         return "INVALID";
@@ -428,7 +429,7 @@ static inline const char* trb_completion_code_to_string(uint8_t completion_code)
     }
 }
 
-static inline const char* trb_type_to_string(uint8_t trb_type) {
+inline const char* trb_type_to_string(const uint8_t trb_type) {
     switch (trb_type) {
     case XHCI_TRB_TYPE_RESERVED: return "XHCI_TRB_TYPE_RESERVED";
     case XHCI_TRB_TYPE_NORMAL: return "XHCI_TRB_TYPE_NORMAL";

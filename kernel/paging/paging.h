@@ -3,13 +3,13 @@
 //
 #ifndef PAGING_H
 #define PAGING_H
-#include <cstdint>
+
 #include <kernel/memory.h>
 
 struct PageDirectoryEntry {
     uint64_t Value;
     void set_flag(PT_Flag flag, bool enabled);
-    bool get_flag(PT_Flag flag);
+    bool get_flag(PT_Flag flag) const;
     void set_address(uint64_t address);
     uint64_t get_address();
 };

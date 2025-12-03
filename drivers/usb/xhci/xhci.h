@@ -12,7 +12,7 @@
 #include "../../../include/kernel/sync/atomic.h"
 
 namespace USB {
-    class xhciDriver : public CharDevice {
+    class xhciDriver final : public CharDevice {
     public:
         explicit xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number) : CharDevice(_name, BUS_XHCI) {
             vector_num = _vector_num;
@@ -191,11 +191,9 @@ namespace USB {
 
         uint8_t get_port_speed(uint8_t port);
 
-        bool reset_host_controller() const;
+        [[nodiscard]] bool reset_host_controller() const;
 
-        bool crcr_is_running();
-
-        bool start_host_controller() const;
+        [[nodiscard]] bool start_host_controller() const;
 
         void configure_operational_registers();
 

@@ -21,7 +21,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
 #include <kernel/scheduling.h>
 #include <kernel/time.h>
 

@@ -23,8 +23,8 @@
 
 #include "partition_device.h"
 
-PartitionDevice::PartitionDevice(BlockDevice* parent_, uint64_t start_lba_, uint64_t length_lba_)
-    : parent(parent_), start_lba(start_lba_), length_lba(length_lba_) { }
+PartitionDevice::PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba)
+    : parent(parent), start_lba(start_lba), length_lba(length_lba) { }
 
 bool PartitionDevice::read(const uint64_t lba, const uint32_t count, void* buf) {
     if (!parent) return false;

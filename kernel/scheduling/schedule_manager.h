@@ -5,7 +5,6 @@
 #define THREAD_MANAGER_H
 
 #include "../units/unit.h"
-#include <cstdint>
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
 
 extern "C" void context_switch(void** old_sp, void* new_sp, uint32_t to_is_user, uint32_t from_is_user, arg_registers_t* args);

@@ -59,15 +59,15 @@ void lock_debug_init();
 lock_debug_info* lock_debug_register(void* lockptr, const char* name);
 
 // called by instrumented lock code before attempting acquire
-void lock_debug_before_acquire(void* lockptr, uint32_t current_unit);
+void lock_debug_before_acquire(const void* lockptr, uint32_t current_unit);
 
 
 // called by instrumented lock code after successful acquire
-void lock_debug_after_acquire(void* lockptr, uint32_t current_unit);
+void lock_debug_after_acquire(const void* lockptr, uint32_t current_unit);
 
 
 // called by instrumented unlock
-void lock_debug_release(void* lockptr, uint32_t current_unit);
+void lock_debug_release(const void* lockptr, uint32_t current_unit);
 
 
 // run cycle detection and print a report if cycle found

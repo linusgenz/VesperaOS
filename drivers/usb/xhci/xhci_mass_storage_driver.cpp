@@ -27,6 +27,7 @@
 #include "../../../filesystem/fat32/fat32.h"
 #include "../../../filesystem/fat32/fat32_vfs_adapter.h"
 #include "../../../kernel/devices/device_manager.h"
+#include <log.h>
 
 
 void xhciMassStorageDriver::on_startup(USB::xhciDriver *hcd, xhciDevice *dev) {

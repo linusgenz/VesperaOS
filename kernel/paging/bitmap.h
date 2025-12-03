@@ -3,9 +3,10 @@
 //
 
 #ifndef BITMAP_H
+#define BITMAP_H
+
 #include <cstddef>
 #include <cstdint>
-#define BITMAP_H
 
 class Bitmap{
     public:

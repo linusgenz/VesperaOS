@@ -26,7 +26,7 @@
 
 #include "../chardevice.h"
 
-class CPUInfoDevice : public CharDevice {
+class CPUInfoDevice final : public CharDevice {
 public:
     explicit CPUInfoDevice(const char* name);
 

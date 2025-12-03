@@ -31,6 +31,7 @@
 #include "../kernel/devices/partition_device.h"
 #include "vfs_helper.h"
 #include <kernel/system/system_manager.h>
+#include <log.h>
 
 size_t FilesystemDetector::driver_count = 0;
 size_t FilesystemDetector::device_count = 0;

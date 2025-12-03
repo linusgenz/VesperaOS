@@ -24,7 +24,6 @@
 #ifndef VESPERAOS_XHCI_ENDPOINT_H
 #define VESPERAOS_XHCI_ENDPOINT_H
 
-#include <cstdint>
 #include "xhci_rings.h"
 #include "../usb_descriptors.h"
 
@@ -40,10 +39,11 @@ public:
     uint8_t     xhc_endpoint_type;
     uint8_t     xhc_endpoint_num;
 
-    inline uint8_t* get_data_buffer() { return m_data_buffer; }
-    inline uintptr_t get_data_buffer_dma() { return m_data_buffer_dma_addr; }
+    [[nodiscard]] uint8_t* get_data_buffer() const { return m_data_buffer; }
+    [[nodiscard]] uintptr_t get_data_buffer_dma() const { return m_data_buffer_dma_addr; }
 
-    inline xhciTransferRing* get_transfer_ring() {
+    [[nodiscard]] xhciTransferRing* get_transfer_ring() const
+    {
         return m_transfer_ring;
     }
 

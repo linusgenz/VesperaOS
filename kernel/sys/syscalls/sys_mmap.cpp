@@ -27,6 +27,8 @@
 #include <kernel/scheduling.h>
 #include <kernel/sys/mman.h>
 
+#include <log.h>
+
 namespace syscalls::internal {
     int64_t sys_mmap(uint64_t addr, uint64_t length, uint64_t prot,
                      uint64_t flags, uint64_t handle, uint64_t offset) {
@@ -62,7 +64,7 @@ namespace syscalls::internal {
                 return -ENOMEM;
             }
             const auto vaddr = reinterpret_cast<void*>(base + i * PAGE_SIZE);
-            kernel::memory::map_memory(vaddr, phys, (1ULL << PT_Flag::UserSuper));
+            kernel::memory::map_memory(vaddr, phys, (1ULL << UserSuper));
         }
 
         auto* area = static_cast<VmArea*>(kernel::memory::malloc(sizeof(VmArea)));

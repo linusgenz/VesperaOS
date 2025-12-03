@@ -139,13 +139,13 @@ namespace AHCI {
         uint8_t rsv1[4];
     };
 
-    class Port : public BlockDevice {
+    class Port final : public BlockDevice {
     private:
          kernel::mutex_t portMutex;
     public:
-        HBAPort* hbaPort;
+        HBAPort* hbaPort{};
         PortType portType;
-        uint8_t portNumber;
+        uint8_t portNumber{};
 
         void Configure() const;
          void StopCMD() const;

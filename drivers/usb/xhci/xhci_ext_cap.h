@@ -23,7 +23,6 @@
 
 #ifndef XHCI_EXT_CAP_H
 #define XHCI_EXT_CAP_H
-#include "stdint.h"
 
 /*
 // xHci Spec Section 7.2 (page 521)
@@ -72,7 +71,7 @@ struct xhci_usb_supported_protocol_capability {
 
     xhci_usb_supported_protocol_capability() = default;
 
-    xhci_usb_supported_protocol_capability(volatile uint32_t *cap) {
+    explicit xhci_usb_supported_protocol_capability(const volatile uint32_t *cap) {
         dword0 = cap[0];
         dword1 = cap[1];
         dword2 = cap[2];
@@ -112,7 +111,7 @@ struct xhci_legacy_support_capability {
 
     xhci_legacy_support_capability() = default;
 
-    xhci_legacy_support_capability(volatile uint32_t *cap) {
+    explicit xhci_legacy_support_capability(const volatile uint32_t *cap) {
         usblegsup.raw = cap[0];
         usblegctlsts.raw = cap[1];
     }

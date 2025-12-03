@@ -33,6 +33,7 @@
 Unit UnitManager::units[MAX_UNITS];
 spinlock_t UnitManager::global_lock;
 UnitID UnitManager::next_id = 1;
+bool UnitManager::initialized = false;
 
 void UnitManager::initialize()
 {
@@ -45,6 +46,11 @@ void UnitManager::initialize()
         unit.next = nullptr;
     }
     next_id = 1;
+}
+
+bool UnitManager::is_initialized()
+{
+    return initialized;
 }
 
 UnitID UnitManager::allocate_id()

@@ -21,8 +21,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
-
 #include "../kernel/devices/blockdevice.h"
 #include "partition.h"
 
@@ -31,15 +29,15 @@
 #include <kernel/memory.h>
 
 inline uint16_t rd16(const void *p) {
-    return *(const uint16_t*)p;
+    return *static_cast<const uint16_t*>(p);
 }
 
 inline uint32_t rd32(const void *p) {
-    return *(const uint32_t*)p;
+    return *static_cast<const uint32_t*>(p);
 }
 
 inline uint64_t rd64(const void *p) {
-    return *(const uint64_t*)p;
+    return *static_cast<const uint64_t*>(p);
 }
 
 
@@ -60,7 +58,7 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
             uint8_t entrybuf[512];
 
             for (uint32_t i = 0; i < part_count && added < max_entries; ++i) {
-                uint64_t entry_index = (uint64_t)i * part_size;
+                uint64_t entry_index = static_cast<uint64_t>(i) * part_size;
                 uint64_t sector_idx = part_lba + (entry_index / 512);
                 uint32_t offset_in_sector = entry_index % 512;
 

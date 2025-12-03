@@ -453,7 +453,7 @@ namespace FAT32
         shortNameBuffer[12] = '\0';
     }
 
-    bool FileSystem::WriteFATEntry(uint32_t cluster, uint32_t value)
+    bool FileSystem::WriteFATEntry(uint32_t cluster, uint32_t value) const
     {
         uint32_t fatOffset = cluster * 4;
         uint32_t sector = fatStart + (fatOffset / bpb.bytesPerSector);
@@ -467,7 +467,7 @@ namespace FAT32
         return device->write(sector, 1, sectorData);
     }
 
-    uint32_t FileSystem::FindFreeCluster()
+    uint32_t FileSystem::FindFreeCluster() const
     {
         uint8_t sectorData[512];
 
@@ -496,7 +496,7 @@ namespace FAT32
     }
 
 
-    bool FileSystem::WriteDirectoryEntry(uint32_t dirCluster, const void* entryRaw)
+    bool FileSystem::WriteDirectoryEntry(uint32_t dirCluster, const void* entry)
     {
         size_t chainCount = 0;
         uint32_t* chain = GetClusterChain(dirCluster, chainCount);
@@ -518,7 +518,7 @@ namespace FAT32
                 if (auto* ent = reinterpret_cast<DirectoryEntry*>(buffer + j * sizeof(DirectoryEntry)); ent->name[0] ==
                     0x00 || ent->name[0] == 0xE5)
                 {
-                    memcpy(ent, entryRaw, sizeof(DirectoryEntry));
+                    memcpy(ent, entry, sizeof(DirectoryEntry));
                     device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
                     kernel::memory::free(chain);
                     return true;
@@ -555,7 +555,7 @@ namespace FAT32
         device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer);
 
         auto* first = reinterpret_cast<DirectoryEntry*>(zeroBuffer);
-        memcpy(first, entryRaw, sizeof(DirectoryEntry));
+        memcpy(first, entry, sizeof(DirectoryEntry));
         device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer);
 
         Log::Error("Expanded directory with new cluster");
@@ -655,11 +655,11 @@ namespace FAT32
         return ok;
     }
 
-    bool FileSystem::OverwriteDirectoryEntry(uint32_t parentCluster, size_t entryIndex,
+    bool FileSystem::OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex,
                                              const DirectoryEntry* newEntry) const
     {
         size_t clusterCount = 0;
-        uint32_t* clusters = GetClusterChain(parentCluster, clusterCount);
+        uint32_t* clusters = GetClusterChain(cluster, clusterCount);
         if (!clusters) return false;
 
         const size_t entriesPerCluster = bytesPerCluster() / sizeof(DirectoryEntry);
@@ -786,7 +786,7 @@ namespace FAT32
         const size_t entriesNeeded = (nameLen + 12) / 13;
         const size_t totalNeeded = entriesNeeded + 1;
 
-        const size_t entrySize = sizeof(DirectoryEntry);
+        constexpr size_t entrySize = sizeof(DirectoryEntry);
         const size_t clusterSize = bytesPerCluster();
         const size_t entriesPerCluster = clusterSize / entrySize;
 
@@ -890,7 +890,7 @@ namespace FAT32
     }
 
 
-    bool FileSystem::DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char* name)
+    bool FileSystem::DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char* name) const
     {
         size_t chainCount = 0;
         uint32_t* chain = GetClusterChain(dirCluster, chainCount);
@@ -1097,7 +1097,7 @@ namespace FAT32
         {
             if (entries[i].GetName() && strcmp(entries[i].GetName(), oldName) == 0)
             {
-                foundIndex = (int)i;
+                foundIndex = static_cast<int>(i);
                 break;
             }
         }

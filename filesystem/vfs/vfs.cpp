@@ -33,6 +33,7 @@
 #include "fs_detection.h"
 #include "../dirent.h"
 #include <kernel/realm/realm_manager.h>
+#include <log.h>
 
 Vector<MountPoint> *VFS::mount_points = nullptr;
 spinlock_t VFS::mount_points_lock;
@@ -136,7 +137,7 @@ VfsDir *VFS::opendir(const char *path) {
         return nullptr;
     }
 
-    auto *dir = (VfsDir *) malloc(sizeof(VfsDir));
+    auto *dir = static_cast<VfsDir*>(malloc(sizeof(VfsDir)));
     dir->node = node;
     dir->handle = handle;
     return dir;

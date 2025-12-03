@@ -27,7 +27,7 @@
 #include <kernel/time.h>
 
 RTCDevice::RTCDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, VIRTUAL) {}
 
 int RTCDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

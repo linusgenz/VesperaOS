@@ -16,7 +16,7 @@ namespace NVMe {
         for (int i = 0; i < 4; i++) {
             auto virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(c_regs) + i * 0x1000);
             auto phys = reinterpret_cast<void *>(mmio + i * 0x1000);
-            kernel::memory::map_memory(virt, phys, (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+            kernel::memory::map_memory(virt, phys, (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         }
 
         Log::Info("[NVMe] Initializing Controller...");
@@ -30,7 +30,7 @@ namespace NVMe {
 
         if (spin <= 0) {
             Log::Error("[NVMe] Controller not deactivated, abort...");
-            d_status = DriverStatus::ControllerError;
+            d_status = ControllerError;
             return;
         }
 
@@ -51,9 +51,9 @@ namespace NVMe {
         }
 
         kernel::memory::map_memory(admCQVirtPage, admCQPhysPage,
-                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+                                   (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         kernel::memory::map_memory(admSQVirtPage, admSQPhysPage,
-                                   (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
+                                   (1ULL << WriteThrough) | (1ULL << CacheDisabled));
 
         memset(admCQVirtPage, 0, PAGE_SIZE_4K);
         memset(admSQVirtPage, 0, PAGE_SIZE_4K);
@@ -188,7 +188,7 @@ namespace NVMe {
         return 0;
     }
 
-    long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespaceIDs) {
+    long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespace_ids) {
         auto *namespaceList = static_cast<uint32_t *>(kernel::memory::request_page());
         kernel::memory::map_memory(namespaceList, namespaceList,
                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
@@ -211,7 +211,7 @@ namespace NVMe {
 
         uint32_t *namespaceListEnd = namespaceList + (PAGE_SIZE_4K / sizeof(uint32_t));
         while (*namespaceList && namespaceList < namespaceListEnd) {
-            namespaceIDs->push_back(*namespaceList++);
+            namespace_ids->push_back(*namespaceList++);
         }
 
         kernel::memory::free_page(namespaceList);
@@ -283,12 +283,12 @@ namespace NVMe {
         return 0;
     }
 
-    NvmeQueue::NvmeQueue(uint16_t qid, uintptr_t cqBase, uintptr_t sqBase, void *cq, void *sq, uint32_t *cqDB,
-                         uint32_t *sqDB, uint16_t csz, uint16_t ssz) {
+    NvmeQueue::NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void *cq, void *sq, uint32_t *cq_db,
+                         uint32_t *sq_db, uint16_t csz, uint16_t ssz) {
         queue_id = qid;
 
-        completion_base = cqBase;
-        submission_base = sqBase;
+        completion_base = cq_base;
+        submission_base = sq_base;
 
         completion_queue = static_cast<NvmeCompletion *>(cq);
         submission_queue = static_cast<NvmeCommand *>(sq);
@@ -296,8 +296,8 @@ namespace NVMe {
         memset(completion_queue, 0, csz);
         memset(submission_queue, 0, ssz);
 
-        completion_db = cqDB;
-        submission_db = sqDB;
+        completion_db = cq_db;
+        submission_db = sq_db;
 
         c_queue_size = csz;
         cq_count = csz / sizeof(NvmeCompletion);

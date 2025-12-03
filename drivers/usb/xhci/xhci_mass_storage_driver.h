@@ -26,46 +26,46 @@
 #include "../../../kernel/devices/blockdevice.h"
 
 
-
-
-class xhciMassStorageDriver : public xhciUsbDeviceDriver, public BlockDevice {
+class xhciMassStorageDriver final : public xhciUsbDeviceDriver, public BlockDevice
+{
 public:
-    xhciMassStorageDriver() : hcd(nullptr), device(nullptr),
-                              bulk_in_endpoint(nullptr), bulk_out_endpoint(nullptr),
-                              sector_size(512), total_sectors(0), max_lun(0), current_tag(1) {
-    };
+    xhciMassStorageDriver() :
+        sector_size(512), total_sectors(0), max_lun(0), current_tag(1)
+    {
+    }
 
     ~xhciMassStorageDriver() override = default;
 
     void detach() override;
 
-    void on_startup(USB::xhciDriver *hcd, xhciDevice *dev) override;
+    void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) override;
 
-    void on_event(USB::xhciDriver *hcd, xhciDevice *dev) override;
+    void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
 
     // BlockDevice interface
-    bool read(uint64_t lba, uint32_t sectorCount, void *buffer) override;
+    bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
 
-    bool write(uint64_t sector, uint32_t sectorCount, void *buffer) override;
+    bool write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
 
     uint32_t get_sector_size() override { return sector_size; }
 
     [[nodiscard]] uint64_t get_total_sectors() const { return total_sectors; }
 
 private:
-    USB::xhciDriver *hcd;
-    xhciDevice *device;
-    xhciEndpoint *bulk_in_endpoint;
-    xhciEndpoint *bulk_out_endpoint;
+    USB::xhciDriver* hcd{};
+    xhciDevice* device{};
+    xhciEndpoint* bulk_in_endpoint{};
+    xhciEndpoint* bulk_out_endpoint{};
 
-    kernel::mutex_t io_mutex;
+    kernel::mutex_t io_mutex{};
 
     uint32_t sector_size;
     uint64_t total_sectors;
     uint32_t max_lun; // Logical Unit Number
 
     // SCSI Command structures
-    struct CBW {
+    struct CBW
+    {
         // Command Block Wrapper
         uint32_t signature; // 0x43425355 ("USBC")
         uint32_t tag;
@@ -76,7 +76,8 @@ private:
         uint8_t cb[16]; // Command Block
     } __attribute__((packed));
 
-    struct CSW {
+    struct CSW
+    {
         // Command Status Wrapper
         uint32_t signature; // 0x53425355 ("USBS")
         uint32_t tag;
@@ -84,33 +85,35 @@ private:
         uint8_t status; // 0=Success, 1=Failed, 2=Phase Error
     } __attribute__((packed));
 
-    struct MassStorageTransfer {
-        enum class Phase { Idle, SentCBW, DataPhase, ReceivedCSW, Completed, Error } phase;
+    struct MassStorageTransfer
+    {
+        enum class Phase { Idle, SentCBW, DataPhase, ReceivedCSW, Completed, Error } phase = Phase::Idle;
 
-        CBW cbw;
-        CSW csw;
+        CBW cbw{};
+        CSW csw{};
 
-        void* data_buffer;
-        uint32_t data_length;
-        uint32_t actual_length;
-        bool is_input;
+        void* data_buffer{};
+        uint32_t data_length{};
+        uint32_t actual_length{};
+        bool is_input{};
 
-        xhciEndpoint* endpoint;
+        xhciEndpoint* endpoint{};
 
-        bool done;
-        int status;
+        bool done{};
+        int status{};
     };
 
-    MassStorageTransfer* current_transfer;
-    uint8_t inquiry_buffer[36];
-    uint8_t capacity_buffer[8];
+    MassStorageTransfer* current_transfer{};
+    uint8_t inquiry_buffer[36]{};
+    uint8_t capacity_buffer[8]{};
 
     MassStorageTransfer transfer_test_unit_ready;
     MassStorageTransfer transfer_inquiry;
     MassStorageTransfer transfer_capacity;
     MassStorageTransfer transfer_rw;
 
-    enum class InitPhase {
+    enum class InitPhase
+    {
         TestUnitReady,
         Inquiry,
         ReadCapacity,
@@ -118,14 +121,10 @@ private:
     };
 
     bool init_done = false;
-    int  init_status = -1;
+    int init_status = -1;
     InitPhase init_phase = InitPhase::TestUnitReady;
 
     uint32_t current_tag;
-
-    bool send_cbw(const CBW &cbw);
-
-    bool receive_csw(CSW &csw);
 
     void scsi_inquiry();
 

@@ -128,7 +128,7 @@ ElfLoader::ElfLoadResult ElfLoader::map_and_load_segment(
     }
 
     uint64_t flags = ph.p_flags;
-    flags |= (1ULL << PT_Flag::UserSuper);
+    flags |= (1ULL << UserSuper);
 
 
     r->page_table->map_range(reinterpret_cast<void*>(page_start),

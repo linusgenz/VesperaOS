@@ -43,7 +43,7 @@ struct queue_lock_irq {
 
 template<typename IntrusiveNode, typename LockPolicy = queue_lock_normal>
 struct intrusive_queue_t {
-    using guard_t = typename LockPolicy::guard_t;
+    using guard_t = LockPolicy::guard_t;
 
 private:
     spinlock_t lock{};

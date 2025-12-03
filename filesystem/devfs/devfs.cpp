@@ -232,7 +232,7 @@ ssize_t DevFS::read(const VfsNode *node, const size_t offset, const size_t size,
 }
 
 
-ssize_t DevFS::write(VfsNode *node, size_t offset, const size_t size, const void *buffer) {
+ssize_t DevFS::write(const VfsNode *node, size_t offset, const size_t size, const void *buffer) {
     if (!node) return 0;
 
     const auto *entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -272,7 +272,7 @@ VfsNode *DevFS::find(const VfsNode *dir, const char *name) {
     return nullptr;
 }
 
-void DevFS::close(VfsNode *node) {
+void DevFS::close(const VfsNode *node) {
     if (!node) return;
 
     auto *entry = static_cast<DevfsEntry*>(node->internal_data);

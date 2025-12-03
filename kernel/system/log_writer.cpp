@@ -24,7 +24,7 @@
 #include "log_writer.h"
 #include "../../filesystem/vfs/vfs.h"
 
-FileLogWriter::FileLogWriter(const char *p) : file_handle(nullptr), path(p) {
+FileLogWriter::FileLogWriter(const char *file_path) : file_handle(nullptr), path(file_path) {
     file_handle = VFS::open(path);
     if (!file_handle) {
         VFS::create(path);

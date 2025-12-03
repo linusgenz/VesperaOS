@@ -7,7 +7,6 @@
 #include <kernel/memory.h>
 
 #include "cpu_scheduler.h"
-#include "../../arch/x86_64/gdt/gdt.h"
 #include "../cpu/cpu_manager.h"
 #include "../../include/log.h"
 #include <kernel/realm/realm_manager.h>
@@ -38,10 +37,10 @@ namespace kernel::scheduling::manager {
         if (to->is_user) {
             wrmsr(MSR_GS_BASE, 0);
             auto *ctx_ptr = &to->context;
-            wrmsr(MSR_KERNEL_GS_BASE, (uint64_t) &ctx_ptr);
+            wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<uint64_t>(&ctx_ptr));
             if (to->rid) {
                 Realm *r = RealmManager::get(to->rid);
-                uint64_t cr3 = (uint64_t) r->pml4;
+                uint64_t cr3 = reinterpret_cast<uint64_t>(r->pml4);
                 asm volatile("mov %0, %%cr3" :: "r"(cr3));
             }
         } else {

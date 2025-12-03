@@ -58,7 +58,7 @@ struct __attribute__((packed)) GDTPtr {
 
 // GDT Entries
 #define GDT_ENTRIES 7
-extern struct GDTEntry gdt[GDT_ENTRIES];
+extern GDTEntry gdt[GDT_ENTRIES];
 extern TSSDescriptor tss_desc;
 extern TSS tss;
 extern GDTPtr gdt_ptr;

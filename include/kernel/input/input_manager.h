@@ -29,18 +29,16 @@
 
 #include <kernel/sync/spinlock.h>
 
-namespace kernel::input {
-
-    class InputManager {
+namespace kernel::input
+{
+    class InputManager
+    {
     public:
         static constexpr size_t BUFFER_SIZE = 256;
 
         static void push_event(const InputEvent& ev);
         static bool pop_event(InputEvent& ev);
         static bool is_empty();
-
-        static bool is_empty_locked() ;
-
         static void init();
 
     private:
@@ -49,7 +47,6 @@ namespace kernel::input {
         static volatile inline size_t s_tail = 0;
         static inline spinlock_t s_lock{};
     };
-
 }
 
 #endif //VESPERAOS_INPUT_MANAGER_H

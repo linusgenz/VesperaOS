@@ -11,6 +11,6 @@ extern uint64_t _KernelEnd;
 
 extern Framebuffer *TargetFramebuffer;
 
-void initialize_kernel(BootInfo* BootInfo);
+void initialize_kernel(BootInfo* boot_info);
 
 #endif //KERNEL_UTILS_H

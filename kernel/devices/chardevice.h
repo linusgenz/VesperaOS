@@ -24,10 +24,7 @@
 #ifndef VESPERAOS_CHAR_DEVICE_BASE_H
 #define VESPERAOS_CHAR_DEVICE_BASE_H
 
-#include "../../filesystem/vfs/vfs_node.h"
 #include "../../filesystem/devfs/devfs.h"
-#include <cstddef>
-#include <cstdint>
 #include <errno.h>
 
 struct CharFile;
@@ -70,7 +67,7 @@ public:
 
     [[nodiscard]] int unregister_device() const {
         return DevFS::unregister_device(name);
-    };
+    }
 
     // Nicht-kopierbar
     CharDevice(const CharDevice&) = delete;

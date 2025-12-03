@@ -29,15 +29,15 @@ namespace PIT {
 
 
     void sleep(uint64_t milliseconds) {
-        sleepd((double)milliseconds / 1000);
+        sleepd(static_cast<double>(milliseconds) / 1000);
     }
 
     void set_divisor(uint16_t _divisor) {
         if (divisor < 100) _divisor = 100;
         divisor = _divisor;
-        outb(PIT_CHANNEL0, (uint8_t)(divisor & 0x00ff));
+        outb(PIT_CHANNEL0, static_cast<uint8_t>(divisor & 0x00ff));
         io_wait();
-        outb(PIT_CHANNEL0, (uint8_t)((divisor & 0xff00) >> 8));
+        outb(PIT_CHANNEL0, static_cast<uint8_t>((divisor & 0xff00) >> 8));
     }
 
     uint64_t get_frequency() {
@@ -49,6 +49,6 @@ namespace PIT {
     }
 
     void tick() {
-        time_since_boot += 1 / (double)get_frequency();
+        time_since_boot += 1 / static_cast<double>(get_frequency());
     }
 }

@@ -22,8 +22,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "xhci_keyboard_driver.h"
-#include <cstdint>
-#include <cstddef>
 #include <log.h>
 #include <kernel/memory.h>
 

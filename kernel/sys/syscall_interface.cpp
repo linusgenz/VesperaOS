@@ -83,7 +83,7 @@ extern "C" void syscall_handler(
     }
 
     Realm *r = RealmManager::get(kernel::scheduling::get_current_unit()->rid);
-    uint64_t cr3 = (uint64_t) r->pml4;
+    uint64_t cr3 = reinterpret_cast<uint64_t>(r->pml4);
     asm volatile("mov %0, %%cr3" :: "r"(cr3));
 
     asm volatile ("mov %0, %%rax" :: "r"(ret));

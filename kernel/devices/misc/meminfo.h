@@ -33,7 +33,7 @@ typedef struct {
     uint64_t reserved_ram;
 } meminfo_t;
 
-class MemInfoDevice : public CharDevice {
+class MemInfoDevice final : public CharDevice {
 public:
     explicit MemInfoDevice(const char* name);
 

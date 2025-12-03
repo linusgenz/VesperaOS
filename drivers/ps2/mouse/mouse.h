@@ -24,7 +24,6 @@
 #ifndef MOUSE_H
 #define MOUSE_H
 
-#include <cstdint>
 #include "../../../include/graphics.h"
 
 namespace input::mouse {

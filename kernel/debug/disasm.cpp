@@ -27,6 +27,8 @@
 #include <log.h>
 #include <string.h>
 
+#include "kernel/memory.h"
+
 struct OpcodeEntry
 {
     uint8_t opcode;
@@ -131,9 +133,9 @@ size_t decode_rm_operand(const uint8_t* code, size_t offset, size_t max_len,
     auto fmt_disp = [](char* buf, size_t buf_size, int64_t disp)
     {
         if (disp > 0)
-            snprintf(buf, buf_size, "+0x%llx", (uint64_t)disp);
+            snprintf(buf, buf_size, "+0x%llx", static_cast<uint64_t>(disp));
         else if (disp < 0)
-            snprintf(buf, buf_size, "-0x%llx", (uint64_t)(-disp));
+            snprintf(buf, buf_size, "-0x%llx", static_cast<uint64_t>(-disp));
         else
             buf[0] = '\0';
     };
@@ -150,9 +152,11 @@ size_t decode_rm_operand(const uint8_t* code, size_t offset, size_t max_len,
                 return 0;
             }
 
-            int32_t disp = *(int32_t*)(code + offset);
-            uint64_t rip = instr_addr + instr_len;
-            uint64_t target = rip + disp;
+            int32_t disp = 0;
+            memcpy(&disp, code + offset + 1, sizeof(int32_t));
+
+            const uint64_t rip = instr_addr + instr_len;
+            const uint64_t target = rip + disp;
 
             char disp_str[32];
             fmt_disp(disp_str, sizeof(disp_str), disp);
@@ -161,7 +165,7 @@ size_t decode_rm_operand(const uint8_t* code, size_t offset, size_t max_len,
             const uint64_t l_offset = target - addr;
 
             snprintf(output, output_size, "%s[rip%s] -> 0x%llx <%.*s+0x%llx>",
-                     size_prefix, disp_str, target, (int)len, name, l_offset);
+                     size_prefix, disp_str, target, static_cast<int>(len), name, l_offset);
             return 4;
         }
 
@@ -182,7 +186,7 @@ size_t decode_rm_operand(const uint8_t* code, size_t offset, size_t max_len,
             char disp_str[32] = "";
             if ((sib & 7) == 5)
             {
-                disp = *(int32_t*)(code + offset + 1);
+                memcpy(&disp, code + offset + 1, sizeof(int32_t));
                 fmt_disp(disp_str, sizeof(disp_str), disp);
                 if (index == 4)
                     snprintf(output, output_size, "%s[%s]", size_prefix, disp_str);
@@ -226,9 +230,19 @@ size_t decode_rm_operand(const uint8_t* code, size_t offset, size_t max_len,
             uint8_t index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
             uint8_t base = (sib & 7) | (rex.b ? 8 : 0);
 
-            int64_t disp = (disp_bytes == 1)
-                               ? *(int8_t*)(code + offset + 1)
-                               : *(int32_t*)(code + offset + 1);
+            int64_t disp = 0;
+            if (disp_bytes == 1)
+            {
+                int8_t raw;
+                memcpy(&raw, code + offset + 1, sizeof(raw));
+                disp = static_cast<uint8_t>(raw);
+            }
+            else
+            {
+                int32_t raw;
+                memcpy(&raw, code + offset + 1, sizeof(raw));
+                disp = static_cast<int64_t>(raw);
+            }
 
             char disp_str[32] = "";
             fmt_disp(disp_str, sizeof(disp_str), disp);
@@ -245,9 +259,20 @@ size_t decode_rm_operand(const uint8_t* code, size_t offset, size_t max_len,
         }
 
         // simple reg + disp
-        int64_t disp = (disp_bytes == 1)
-                           ? *(int8_t*)(code + offset)
-                           : *(int32_t*)(code + offset);
+        int64_t disp = 0;
+        if (disp_bytes == 1)
+        {
+            int8_t raw;
+            memcpy(&raw, code + offset + 1, sizeof(raw));
+            disp = static_cast<uint8_t>(raw);
+        }
+        else
+        {
+            int32_t raw;
+            memcpy(&raw, code + offset + 1, sizeof(raw));
+            disp = static_cast<int64_t>(raw);
+        }
+
         char disp_str[32] = "";
         fmt_disp(disp_str, sizeof(disp_str), disp);
 
@@ -399,7 +424,9 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
                 result.size = offset;
                 return result;
             }
-            int32_t rel = *(int32_t*)(code + offset);
+            int32_t rel = 0;
+            memcpy(&rel, code + offset, sizeof(rel));
+
             offset += 4;
             const char* jcc[] = {
                 "jo", "jno", "jb", "jae", "je", "jne", "jbe", "ja",
@@ -508,9 +535,8 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
     if (opcode >= 0xB0 && opcode <= 0xBF)
     {
         uint8_t reg = (opcode & 0x7) | (rex.b ? 8 : 0);
-        bool is_8bit = (opcode < 0xB8);
 
-        if (is_8bit)
+        if ((opcode < 0xB8)) // is 8 bit?
         {
             if (offset < max_len)
             {
@@ -529,7 +555,8 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
             {
                 if (offset + 8 <= max_len)
                 {
-                    uint64_t imm = *(uint64_t*)(code + offset);
+                    uint64_t imm = 0;
+                    memcpy(&imm, code + offset, sizeof(imm));
                     offset += 8;
                     snprintf(result.mnemonic, sizeof(result.mnemonic), "mov %s, 0x%lx",
                              get_reg_name(reg, 8), imm);
@@ -543,7 +570,8 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
             {
                 if (offset + 4 <= max_len)
                 {
-                    uint32_t imm = *(uint32_t*)(code + offset);
+                    uint32_t imm = 0;
+                    memcpy(&imm, code + offset, sizeof(imm));
                     offset += 4;
                     snprintf(result.mnemonic, sizeof(result.mnemonic), "mov %s, 0x%x",
                              get_reg_name(reg, 4), imm);
@@ -582,13 +610,13 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
             {
                 snprintf(result.mnemonic, sizeof(result.mnemonic),
                          "%s 0x%llx -> <%.*s>", (opcode == 0xE8) ? "call" : "jmp",
-                         target, (int)len, name);
+                         target, static_cast<int>(len), name);
             }
             else
             {
                 snprintf(result.mnemonic, sizeof(result.mnemonic),
                          "%s 0x%llx -> <%.*s+0x%llx>",
-                         (opcode == 0xE8) ? "call" : "jmp", target, (int)len, name,
+                         (opcode == 0xE8) ? "call" : "jmp", target, static_cast<int>(len), name,
                          l_offset);
             }
         }
@@ -606,7 +634,8 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
     {
         if (offset < max_len)
         {
-            int8_t rel = *(int8_t*)(code + offset++);
+            int8_t rel = 0;
+            memcpy(&rel, code + offset++, sizeof(rel));
             uint64_t target = instr_addr + offset + rel; // absolute Adresse berechnen
 
             auto [name, len, addr] = lookup_symbol(target);
@@ -615,13 +644,13 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
             {
                 snprintf(result.mnemonic, sizeof(result.mnemonic),
                          "%s 0x%llx -> <%.*s>", (opcode == 0xE8) ? "call" : "jmp",
-                         target, (int)len, name);
+                         target, static_cast<int>(len), name);
             }
             else
             {
                 snprintf(result.mnemonic, sizeof(result.mnemonic),
                          "%s 0x%llx -> <%.*s+0x%llx>",
-                         (opcode == 0xE8) ? "call" : "jmp", target, (int)len, name,
+                         (opcode == 0xE8) ? "call" : "jmp", target, static_cast<int>(len), name,
                          l_offset);
             }
         }
@@ -639,7 +668,6 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
     const char* base_mnemonic = nullptr;
     int operand_size = default_size;
     bool is_group = false;
-    bool single_operand = false;
 
     switch (opcode)
     {
@@ -730,6 +758,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
 
     if (needs_modrm)
     {
+        bool single_operand = false;
         if (offset >= max_len)
         {
             snprintf(result.mnemonic, sizeof(result.mnemonic),
@@ -836,7 +865,8 @@ Instruction disasm_next(const uint8_t* code, size_t max_len,
         }
         else if ((opcode == 0x81 || opcode == 0xC7) && offset + 4 <= max_len)
         {
-            uint32_t imm = *(uint32_t*)(code + offset);
+            uint32_t imm = 0;
+            memcpy(&imm, code + offset, sizeof(imm));
             offset += 4;
             snprintf(result.mnemonic + strlen(result.mnemonic),
                      sizeof(result.mnemonic) - strlen(result.mnemonic), ", 0x%x",

@@ -30,7 +30,7 @@ static bool parse_hex_u64(const char* s, uint64_t* out)
     uint64_t v = 0;
     while (*s && isxdigit(*s)) {
         v = (v << 4)
-            | (uint64_t)(isdigit(*s) ? (*s - '0') : (tolower(*s) - 'a' + 1 + 9));
+            | static_cast<uint64_t>(isdigit(*s) ? (*s - '0') : (tolower(*s) - 'a' + 1 + 9));
         s++;
     }
     *out = v;
@@ -72,7 +72,7 @@ Symbol lookup_symbol(uint64_t addr)
 
         const char* name = type + 2;
         const char* line_end = strchr(name, '\n');
-        size_t len = line_end ? (size_t)(line_end - name) : (size_t)(end - name);
+        size_t len = line_end ? static_cast<size_t>(line_end - name) : static_cast<size_t>(end - name);
 
         if (sym_addr <= addr && sym_addr > best_addr) {
             best_addr = sym_addr;

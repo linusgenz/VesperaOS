@@ -25,8 +25,6 @@
 
 #include <kernel/scheduling.h>
 
-#include <kernel/system/system_manager.h>
-
 #if DEBUG_SPINLOCK
 #include "../../kernel/debug/lock_debug.h"
 #endif

@@ -1,6 +1,5 @@
 #include "page_table_manager.h"
 #include "page_map_indexer.h"
-#include <cstdint>
 #include <kernel/memory.h>
 
 #include "../../include/log.h"
@@ -9,7 +8,7 @@ PageTableManager::PageTableManager(PageTable *PML4Address) {
     this->PML4 = PML4Address;
 }
 
-void PageTableManager::map_range(void *virt_start, void *phys_start, size_t size, uint64_t flags) {
+void PageTableManager::map_range(void *virt_start, void *phys_start, const size_t size, const uint64_t flags) const {
     auto vs = reinterpret_cast<uintptr_t>(virt_start);
     auto ps = reinterpret_cast<uintptr_t>(phys_start);
     for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
@@ -21,8 +20,8 @@ static void invlpg(void* addr) {
     asm volatile("invlpg (%0)" : : "r"(addr) : "memory");
 }
 
-void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, uint64_t flags) {
-    PageMapIndexer indexer((uint64_t) virtual_memory);
+void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, uint64_t flags) const {
+    PageMapIndexer indexer(reinterpret_cast<uint64_t>(virtual_memory));
 
     auto ensure_table = [&](PageTable *parent, uint16_t index) -> PageTable * {
         PageDirectoryEntry &entry = parent->entries[index];
@@ -51,7 +50,7 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
     if (!PT) return;
 
     PageDirectoryEntry &final_entry = PT->entries[indexer.P_i];
-    final_entry.set_address((uint64_t) physical_memory >> 12);
+    final_entry.set_address(reinterpret_cast<uint64_t>(physical_memory) >> 12);
 
     // Default Flags (immer present + rw)
     flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite);
@@ -98,15 +97,15 @@ static bool is_table_empty(PageTable* table) {
     return true;
 }
 
-void PageTableManager::unmap_range(void *virt_start,size_t size) {
+void PageTableManager::unmap_range(void *virt_start,size_t size) const {
     auto vs = reinterpret_cast<uintptr_t>(virt_start);
     for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
         unmap_memory(reinterpret_cast<void*>(vs + offset));
     }
 }
 
-void PageTableManager::unmap_memory(void *virtual_memory) {
-    PageMapIndexer indexer((uint64_t) virtual_memory);
+void PageTableManager::unmap_memory(void *virtual_memory) const {
+    PageMapIndexer indexer(reinterpret_cast<uint64_t>(virtual_memory));
 
     PageDirectoryEntry &pml4_entry = PML4->entries[indexer.PDP_i];
     if (!pml4_entry.get_flag(PT_Flag::Present)) {
@@ -160,7 +159,7 @@ void PageTableManager::unmap_memory(void *virtual_memory) {
 }
 
 
-bool PageTableManager::is_mapped(void *virtual_memory) {
+bool PageTableManager::is_mapped(void *virtual_memory) const {
     auto indexer = PageMapIndexer(reinterpret_cast<uint64_t>(virtual_memory));
 
     PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
@@ -179,25 +178,25 @@ bool PageTableManager::is_mapped(void *virtual_memory) {
     return PDE.get_flag(PT_Flag::Present);
 }
 
-void* PageTableManager::get_physical_address(void *virtual_memory) {
+void* PageTableManager::get_physical_address(void *virtual_memory) const {
     const auto indexer = PageMapIndexer(reinterpret_cast<uint64_t>(virtual_memory));
 
     PageDirectoryEntry PDE = PML4->entries[indexer.PDP_i];
-    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    if (!PDE.get_flag(PT_Flag::Present)) return nullptr;
 
     auto *PDP = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PDP->entries[indexer.PD_i];
-    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    if (!PDE.get_flag(PT_Flag::Present)) return nullptr;
 
     auto *PD = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PD->entries[indexer.PT_i];
-    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    if (!PDE.get_flag(PT_Flag::Present)) return nullptr;
 
     auto *PT = reinterpret_cast<PageTable *>(PDE.get_address() << 12);
     PDE = PT->entries[indexer.P_i];
-    if (!PDE.get_flag(PT_Flag::Present)) return 0;
+    if (!PDE.get_flag(PT_Flag::Present)) return nullptr;
 
     uint64_t phys_base = PDE.get_address() << 12;
-    uint64_t offset = (uint64_t) virtual_memory & 0xFFF;
-    return (void*)(phys_base + offset);
+    uint64_t offset = reinterpret_cast<uint64_t>(virtual_memory) & 0xFFF;
+    return reinterpret_cast<void*>(phys_base + offset);
 }

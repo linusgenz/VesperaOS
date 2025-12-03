@@ -32,7 +32,7 @@
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
         const HandleID hid = arg0;
-        auto buf = (void *) arg1;
+        auto buf = reinterpret_cast<void*>(arg1);
         size_t count = arg2;
         Unit *u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;

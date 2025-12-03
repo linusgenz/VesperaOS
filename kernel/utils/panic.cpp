@@ -136,7 +136,7 @@ void put_string(const Framebuffer* fb, const char* str, const uint32_t x, const 
     }
 }
 
-[[noreturn]] void panic(const char* msg) {
+[[noreturn]] void panic(const char* panic_msg) {
     auto fb = TargetFramebuffer;
 
     uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
@@ -153,15 +153,15 @@ void put_string(const Framebuffer* fb, const char* str, const uint32_t x, const 
 */
     // Text zentrieren, approx.
     uint32_t text_width_1 = 8 * 12; // "KERNEL PANIC"
-    uint32_t text_width_2 = 8 * strlen(msg);
+    uint32_t text_width_2 = 8 * strlen(panic_msg);
 
     uint32_t x1 = (fb->width - text_width_1) / 2;
     uint32_t x2 = (fb->width - text_width_2) / 2;
     uint32_t y1 = fb->height / 2 - 16;
     uint32_t y2 = y1 + 32;
 
-    put_string(fb, "KERNEL PANIC", x1, y1, Colour::WHITE);
-    put_string(fb, msg, x2, y2, Colour::WHITE);
+    put_string(fb, "KERNEL PANIC", x1, y1, WHITE);
+    put_string(fb, panic_msg, x2, y2, WHITE);
 
     while (true) asm volatile("cli; hlt");
 }

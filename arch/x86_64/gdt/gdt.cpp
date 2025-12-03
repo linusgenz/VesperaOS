@@ -18,7 +18,7 @@ static void set_gdt_entry(int idx, uint32_t base, uint32_t limit, uint8_t access
 }
 
 static void set_tss_descriptor(TSS *tss_ptr) {
-    uint64_t base = (uint64_t) tss_ptr;
+    uint64_t base = reinterpret_cast<uint64_t>(tss_ptr);
     uint32_t limit = sizeof(TSS) - 1;
 
     tss_desc.limit_low = limit & 0xFFFF;
@@ -68,7 +68,7 @@ void gdt_install() {
     // Set IO Map base beyond TSS size (kein IO Bitmap)
     tss.iomap_base = sizeof(TSS);
     gdt_ptr.limit = sizeof(gdt) - 1;
-    gdt_ptr.base = (uint64_t) &gdt;
+    gdt_ptr.base = reinterpret_cast<uint64_t>(&gdt);
 
     load_GDT(&gdt_ptr);
 

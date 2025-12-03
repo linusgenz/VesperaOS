@@ -23,7 +23,6 @@
 
 #ifndef VESPERAOS_HANDLE_H
 #define VESPERAOS_HANDLE_H
-#include <kernel/memory.h>
 
 typedef long int ssize_t;
 

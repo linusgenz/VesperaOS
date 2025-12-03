@@ -47,11 +47,11 @@ static uint64_t read_msr(uint32_t msr) {
         : "=a"(low), "=d"(high)
         : "c"(msr)
     );
-    return ((uint64_t) high << 32) | low;
+    return (static_cast<uint64_t>(high) << 32) | low;
 }
 
 void syscall_init() {
-    uint64_t star = ((uint64_t) 0x1B << 48) | ((uint64_t) 0x08 << 32);
+    uint64_t star = (static_cast<uint64_t>(0x1B) << 48) | (static_cast<uint64_t>(0x08) << 32);
     write_msr(MSR_STAR, star);
 
     write_msr(MSR_LSTAR, reinterpret_cast<uint64_t>(&syscall_entry));
@@ -77,9 +77,9 @@ int64_t syscall(
 ) {
     int64_t ret = -1;
 
-    register uint64_t r10_ asm("r10") = arg3;
-    register uint64_t r8_ asm("r8") = arg4;
-    register uint64_t r9_ asm("r9") = arg5;
+    uint64_t r10_ asm("r10") = arg3;
+    uint64_t r8_ asm("r8") = arg4;
+    uint64_t r9_ asm("r9") = arg5;
 
     asm volatile (
         "syscall"

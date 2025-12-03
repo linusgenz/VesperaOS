@@ -40,8 +40,8 @@ namespace kernel::scheduling {
  //   void tick();
 
     // Global thread management
-    void add_unit(Unit* thread);
-    void remove_unit(Unit* thread);
+    void add_unit(Unit* unit);
+    void remove_unit(Unit* unit);
     void add_blocked_unit(Unit *unit, uint8_t cpu_id);
 
     // CPU management

@@ -4,10 +4,8 @@
 #ifndef CPU_SCHEDULER_H
 #define CPU_SCHEDULER_H
 
-#include <cstddef>
-#include "../acpi/madt.h"
+
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
-#include <intrusive_queue.h>
 #include <kernel/scheduling.h>
 
 #define READY_SCAN_LIMIT 16

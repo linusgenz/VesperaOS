@@ -21,7 +21,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
 #include <kernel/scheduling.h>
 
 static constexpr uintptr_t USER_HEAP_START = 0x40000000;
@@ -37,7 +36,7 @@ namespace syscalls::internal {
 
             void *page = kernel::memory::request_page();
             if (!page) return -ENOMEM;
-            kernel::memory::map_memory((void *) USER_HEAP_START, page, (1ULL << PT_Flag::UserSuper));
+            kernel::memory::map_memory(reinterpret_cast<void*>(USER_HEAP_START), page, (1ULL << UserSuper));
         }
 
         if (addr == 0) return cur->heap_end;
@@ -51,7 +50,7 @@ namespace syscalls::internal {
             for (uintptr_t a = start; a < end; a += 0x1000) {
                 void *page = kernel::memory::request_page();
                 if (!page) return -ENOMEM;
-                kernel::memory::map_memory((void *) a, page, (1ULL << PT_Flag::UserSuper));
+                kernel::memory::map_memory(reinterpret_cast<void*>(a), page, (1ULL << UserSuper));
             }
         } else if (addr < cur->heap_end) {
             uintptr_t start = (addr + 0xFFF) & ~0xFFF;

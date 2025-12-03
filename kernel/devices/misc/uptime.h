@@ -26,7 +26,7 @@
 
 #include "../chardevice.h"
 
-class UptimeDevice : public CharDevice {
+class UptimeDevice final : public CharDevice {
 public:
     explicit UptimeDevice(const char* name);
 

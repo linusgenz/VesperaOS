@@ -61,7 +61,7 @@ namespace arch::x86_64::interrupts::apic {
     void broadcast_ipi(uint8_t vector);
     void wait_for_delivery();
 
-    inline volatile uint64_t apic_ticks[MAX_CPU_CORES] = {0};
+    inline volatile uint64_t apic_ticks[MAX_CPU_CORES] = {};
 
     uint32_t local_apic_get_id();
     void write(uint32_t offset, uint32_t value);

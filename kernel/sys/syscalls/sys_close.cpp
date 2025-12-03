@@ -23,7 +23,6 @@
 
 #include <kernel/scheduling.h>
 
-#include "cstdint"
 #include "../../../include/errno.h"
 #include <kernel/realm/realm_manager.h>
 #include "../../types/types.h"

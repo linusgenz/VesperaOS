@@ -24,16 +24,15 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
-#include <cstdint>
 #include "../devices/chardevice.h"
 #include <kernel/tty/tty.h>
 
-class TTYDevice : public CharDevice {
+class TTYDevice final : public CharDevice {
 public:
     kernel::tty::TTY* tty;
 
     explicit TTYDevice(const char* name, kernel::tty::TTY* tty_ptr)
-        : CharDevice(name, BusType::BUS_TTY), tty(tty_ptr) {}
+        : CharDevice(name, BUS_TTY), tty(tty_ptr) {}
 
     int open(CharFile** out_cf) override {
         *out_cf = new CharFile(this);

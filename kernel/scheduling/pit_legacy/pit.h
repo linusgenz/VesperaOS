@@ -10,7 +10,7 @@ namespace PIT {
     extern double time_since_boot;
     #define PIT_CHANNEL0    0x40
     #define PIT_COMMAND     0x43
-    const uint64_t base_frequency = 1193182;
+    constexpr uint64_t base_frequency = 1193182;
 
     void sleepd(double seconds);
     void sleep(uint64_t milliseconds);

@@ -1,7 +1,6 @@
 //
 // Created by linus on 03.07.25.
 //
-#include <cstdint>
 #include <cstddef>
 #include <encoding.h>
 
@@ -36,7 +35,7 @@ typedef struct {
     utf8_t value;
 } utf8_pattern;
 
-static const utf8_pattern utf8_leading_bytes[] = {
+static constexpr utf8_pattern utf8_leading_bytes[] = {
     { 0x80, 0x00 }, // 0xxxxxxx
     { 0xE0, 0xC0 }, // 110xxxxx
     { 0xF0, 0xE0 }, // 1110xxxx

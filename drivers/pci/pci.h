@@ -6,8 +6,6 @@
 #define PCI_H
 #include <cstdint>
 #include "../../kernel/acpi/acpi.h"
-#include <kernel/basic_renderer.h>
-#include "../../include/string.h"
 
 namespace PCI {
     struct PCIDeviceHeader {
@@ -92,10 +90,10 @@ namespace PCI {
 
 
     inline uint32_t pci_config_address(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
-        return (uint32_t) (1U << 31) // enable bit
-               | ((uint32_t) bus << 16)
-               | ((uint32_t) device << 11)
-               | ((uint32_t) function << 8)
+        return 1U << 31 // enable bit
+               | (static_cast<uint32_t>(bus) << 16)
+               | (static_cast<uint32_t>(device) << 11)
+               | (static_cast<uint32_t>(function) << 8)
                | (offset & 0xFC);
     }
 

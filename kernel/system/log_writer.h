@@ -27,9 +27,10 @@
 #include <kernel/system/system_manager.h>
 #include "../../filesystem/vfs/vfs.h"
 
-class FileLogWriter : public kernel::ILogWriter {
+class FileLogWriter final : public kernel::ILogWriter
+{
 public:
-    FileLogWriter(const char* path);
+    explicit FileLogWriter(const char* file_path);
     ~FileLogWriter();
 
     bool append_line(const char* line, size_t len) override;
@@ -38,7 +39,5 @@ private:
     VfsNode* file_handle;
     const char* path;
 };
-
-
 
 #endif //VESPERAOS_LOG_WRITER_H

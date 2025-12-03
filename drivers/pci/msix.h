@@ -144,7 +144,7 @@ namespace PCI {
     inline uint64_t build_msix_address(uint8_t cpu_apic_id) {
         // Same as MSI: place the APIC ID in bits [19..12].
         uint32_t addr_lo = MSIX_ADDRESS_BASE | (static_cast<uint32_t>(cpu_apic_id) << 12);
-        return static_cast<uint64_t>(addr_lo);
+        return addr_lo;
     }
 
     /**
@@ -175,9 +175,9 @@ namespace PCI {
     inline msix_table_entry read_msix_vector_entry(void* base_address, size_t vector_index) {
         uint8_t* entry_addr = reinterpret_cast<uint8_t*>(base_address) + (vector_index * sizeof(msix_table_entry));
 
-        volatile uint32_t* data = reinterpret_cast<volatile uint32_t*>(entry_addr);
+        volatile auto* data = reinterpret_cast<volatile uint32_t*>(entry_addr);
 
-        msix_table_entry result;
+        msix_table_entry result{};
         result.message_address = static_cast<uint64_t>(data[1]) << 32 | data[0];
         result.message_data    = data[2];
         result.vector_control  = data[3];
@@ -194,8 +194,8 @@ namespace PCI {
      * @param entry The msix_table_entry to write to the table.
      */
     inline void write_msix_vector_entry(void* base_address, size_t vector_index, const msix_table_entry& entry) {
-        volatile uint32_t* entry_addr = reinterpret_cast<volatile uint32_t*>(
-            reinterpret_cast<uint8_t*>(base_address) + vector_index * sizeof(msix_table_entry)
+        volatile auto* entry_addr = reinterpret_cast<volatile uint32_t*>(
+            static_cast<uint8_t*>(base_address) + vector_index * sizeof(msix_table_entry)
         );
 
         entry_addr[0] = static_cast<uint32_t>(entry.message_address);          // Address Low

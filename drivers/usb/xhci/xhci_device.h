@@ -64,13 +64,7 @@ private:
     uintptr_t m_input_context_phys{};
     xhciTransferRing *m_control_transfer_ring{};
 
-
-
-    void allocate_contexts();
-
     void allocate_input_context();
-
-    void prepare_input_context();
 };
 
 #endif //VESPERAOS_XHCI_DEVICE_H

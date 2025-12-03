@@ -9,8 +9,8 @@ BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, FONT* font)
 {
     TargetFramebuffer = targetFramebuffer;
     PSF_Font = font;
-    colour = Colour::WHITE;
-    bg_colour = Colour::BLACK;
+    colour = WHITE;
+    bg_colour = BLACK;
     cursor_position = {0, 0};
     cursor_visible = true;
 }
@@ -218,7 +218,7 @@ void BasicRenderer::draw_cursor() const
     {
         for (uint64_t x = cursor_position.X; x < max_x; x++)
         {
-            *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = Colour::WHITE;
+            *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = WHITE;
         }
     }
 }
@@ -234,7 +234,7 @@ void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
     {
         for (uint64_t x = x_pos; x < max_x; x++)
         {
-            *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = Colour::BLACK;
+            *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = BLACK;
         }
     }
 }

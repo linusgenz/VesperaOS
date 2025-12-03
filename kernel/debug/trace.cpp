@@ -22,7 +22,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "trace.h"
-#include <cstdint>
 #include <log.h>
 #include "disasm.h"
 #include "symbols.h"
@@ -39,12 +38,12 @@ void debug_capture_stack(uint64_t rbp, uint64_t rip,
 
         if (rbp & 0xF) break;
 
-        uint64_t ret = *(uint64_t *)(rbp + 8);
+        uint64_t ret = *reinterpret_cast<uint64_t*>(rbp + 8);
         if (!ret) break;
 
         out[cnt++] = ret;
 
-        uint64_t next_rbp = *(uint64_t *)rbp;
+        uint64_t next_rbp = *reinterpret_cast<uint64_t*>(rbp);
         if (next_rbp <= rbp) break; 
 
         rbp = next_rbp;
@@ -67,8 +66,8 @@ void backtrace(uint64_t rbp_start, uint64_t rip_start) {
 
         Log::PrintLn("  #%u  %p  <%.*s+0x%llx>",
                      i,
-                     (void *) frames[i],
-                     (int) s.len,
+                     reinterpret_cast<void*>(frames[i]),
+                     static_cast<int>(s.len),
                      s.name,
                      offset);
 

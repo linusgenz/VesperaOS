@@ -25,7 +25,6 @@
 #define FAT32_VFS_ADAPTER_H
 
 #include "../vfs/vfs.h"
-#include "../vfs/fs_registry.h"
 #include "fat32.h"
 
     struct Fat32Node {

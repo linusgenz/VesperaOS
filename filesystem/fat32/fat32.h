@@ -118,7 +118,8 @@ namespace FAT32 {
             return formattedShortName;
         }
 
-        [[nodiscard]] const DirectoryEntry GetDirectoryEntry() const {
+        [[nodiscard]] DirectoryEntry GetDirectoryEntry() const
+        {
             return dirEntry;
         }
 
@@ -187,7 +188,7 @@ namespace FAT32 {
         bool WriteDirectoryEntryWithLFN(uint32_t dirCluster, const char *longName, const char *shortName,
                                         const DirectoryEntry *shortEntry);
 
-        bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name);
+        bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char *name) const;
 
         bool CreateDirectory(const Fat32Node *parentDir, const char *name);
 
@@ -197,7 +198,7 @@ namespace FAT32 {
 
         bool DeleteFile(const Fat32Node *parentDir, const char *name);
 
-        static size_t FindFirstLFNIndex(const FAT32::FileEntry *entries, size_t shortNameIndex);
+        static size_t FindFirstLFNIndex(const FileEntry *entries, size_t shortNameIndex);
 
     private:
         BlockDevice *device;
@@ -219,9 +220,9 @@ namespace FAT32 {
 
         [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
 
-        bool WriteFATEntry(uint32_t cluster, uint32_t value);
+        bool WriteFATEntry(uint32_t cluster, uint32_t value) const;
 
-        uint32_t FindFreeCluster();
+        uint32_t FindFreeCluster() const;
 
         uint32_t *GetClusterChain(uint32_t startCluster, size_t &outCount) const;
 

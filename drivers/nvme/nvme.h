@@ -11,7 +11,7 @@
 
 namespace NVMe {
 
-    class NvmeNamespace : public BlockDevice {
+    class NvmeNamespace final : public BlockDevice {
     public:
         NvmeNamespace(uint32_t nsid, NvmeQueue* ioQueue, uint32_t lbaSize)
             : nsID(nsid), queue(ioQueue), sectorSize(lbaSize) {}

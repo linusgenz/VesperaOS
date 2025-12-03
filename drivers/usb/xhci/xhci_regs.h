@@ -132,13 +132,13 @@ struct xhci_doorbell_register {
 
 class xhci_doorbell_manager {
 public:
-    xhci_doorbell_manager(uintptr_t base);
+    explicit xhci_doorbell_manager(uintptr_t base);
 
     // TargeValue = 2 + (ZeroBasedEndpoint * 2) + (isOutEp ? 0 : 1)
-    void ring_doorbell(uint8_t doorbell, uint8_t target);
+    void ring_doorbell(uint8_t doorbell, uint8_t target) const;
 
-    void ring_command_doorbell();
-    void ring_control_endpoint_doorbell(uint8_t doorbell);
+    void ring_command_doorbell() const;
+    void ring_control_endpoint_doorbell(uint8_t doorbell) const;
 
 private:
     xhci_doorbell_register* m_doorbell_registers;
@@ -273,17 +273,17 @@ enum class xhci_extended_capability_code {
 
 class xhci_extended_capability {
 public:
-    xhci_extended_capability(volatile uint32_t* cap_ptr);
+    explicit xhci_extended_capability(volatile uint32_t* cap_ptr);
 
-    inline volatile uint32_t* base() const {return m_base;}
+    [[nodiscard]] volatile uint32_t* base() const {return m_base;}
 
-    inline  xhci_extended_capability_code id() const {
+    [[nodiscard]]  xhci_extended_capability_code id() const {
         return static_cast<xhci_extended_capability_code>(m_entry.id);
-    };
-    inline xhci_extended_capability* next() const {return m_next;};
+    }
+    [[nodiscard]] xhci_extended_capability* next() const {return m_next;}
 private:
     volatile uint32_t* m_base;
-    xhci_extended_capability_entry m_entry;
+    xhci_extended_capability_entry m_entry{};
 
     xhci_extended_capability* m_next;
 

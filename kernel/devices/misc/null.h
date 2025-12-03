@@ -26,7 +26,7 @@
 
 #include "../chardevice.h"
 
-class NullDevice : public CharDevice {
+class NullDevice final : public CharDevice {
 public:
     explicit NullDevice(const char* name);
 

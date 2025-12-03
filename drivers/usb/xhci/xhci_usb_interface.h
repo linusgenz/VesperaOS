@@ -27,7 +27,6 @@
 #include "../usb_descriptors.h"
 #include "xhci_endpoint.h"
 #include "xhci_usb_device_driver.h"
-#include <cstdint>
 #include <vector.h>
 
 class xhciUsbInterface {

@@ -28,7 +28,6 @@
 
 #include "fs_registry.h"
 #include "../../kernel/devices/blockdevice.h"
-#include "../../include/log.h"
 
 struct PendingMount;
 
@@ -71,7 +70,6 @@ private:
     static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size,
                              const char *table_type, bool is_root_device = false);
 
-    static bool IsValidFilesystemType(const char *type);
 };
 
 namespace FilesystemProbes {

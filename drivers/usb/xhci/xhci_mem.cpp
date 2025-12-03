@@ -21,13 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
-
 #include <kernel/memory.h>
 #include <log.h>
 
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
-    kernel::memory::map_range((void*)pci_bar_address, (void*)pci_bar_address, bar_size, (1ULL << CacheDisabled));
+    kernel::memory::map_range(reinterpret_cast<void*>(pci_bar_address), reinterpret_cast<void*>(pci_bar_address), bar_size, (1ULL << CacheDisabled));
 
     return pci_bar_address;
 }
@@ -54,5 +52,5 @@ void free_xhci_memory(void *ptr) {
 }
 
 uintptr_t xhci_get_physical_addr(void *virt) {
-    return (uintptr_t)kernel::memory::get_physical_address(virt);
+    return reinterpret_cast<uintptr_t>(kernel::memory::get_physical_address(virt));
 }

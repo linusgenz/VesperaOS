@@ -7,7 +7,8 @@
 
 #include <cstdint>
 
-namespace NVMe {
+namespace NVMe
+{
 #define NVME_CAP_CMBS (1 << 57) // Controller memory buffer supported
 #define NVME_CAP_PMRS (1 << 56) // Persistent memory region supported
 #define NVME_CAP_BPS (1 << 45) // Boot partition support
@@ -16,8 +17,8 @@ namespace NVMe {
 #define NVME_CAP_CQR (1 << 16) // Contiguous Queues Required
 
 #define NVME_CAP_MPS_MASK 0xfU
-#define NVME_CAP_MPSMAX(x) ((x >> 52) & NVME_CAP_MPS_MASK) // Max supported memory page size (2 ^ (12 + MPSMAX))
-#define NVME_CAP_MPSMIN(x) ((x >> 48) & NVME_CAP_MPS_MASK) // Min supported memory page size (2 ^ (12 + MPSMIN))
+#define NVME_CAP_MPSMAX(x) (((x) >> 52) & NVME_CAP_MPS_MASK) // Max supported memory page size (2 ^ (12 + MPSMAX))
+#define NVME_CAP_MPSMIN(x) (((x) >> 48) & NVME_CAP_MPS_MASK) // Min supported memory page size (2 ^ (12 + MPSMIN))
 
 #define NVME_CAP_DSTRD_MASK 0xfU
 #define NVME_CAP_DSTRD(x) (((x) >> 32) & NVME_CAP_DSTRD_MASK) // Doorbell stride (2 ^ (2 + DSTRD)) bytes
@@ -49,7 +50,8 @@ namespace NVMe {
 
 #define PAGE_SIZE_4K 0x1000
 
-    struct Registers {
+    struct Registers
+    {
         uint64_t cap;
         uint32_t version;
         uint32_t int_mask;
@@ -71,69 +73,83 @@ namespace NVMe {
         uint32_t controller_memory_buffer_status;
     } __attribute__((packed));
 
-    enum DriverStatus {
+    enum DriverStatus
+    {
         ControllerNotReady,
         ControllerError,
         ControllerReady,
     };
 
-    struct NvmeCreateIoCompletionQueueCommand {
-        struct {
-            uint32_t queue_id: 16;
-            uint32_t queue_size: 16;
+    struct NvmeCreateIoCompletionQueueCommand
+    {
+        struct
+        {
+            uint32_t queue_id : 16;
+            uint32_t queue_size : 16;
         } __attribute__((packed));
 
-        struct {
-            uint32_t contiguous: 1;
-            uint32_t int_enable: 1;
-            uint32_t reserved: 14;
-            uint32_t int_vector: 16;
-        } __attribute__((packed));
-    };
-
-    struct NvmeCreateIoSubmissionQueueCommand {
-        struct {
-            uint32_t queue_id: 16;
-            uint32_t queue_size: 16;
-        } __attribute__((packed));
-
-        struct {
-            uint32_t contiguous: 1;
-            uint32_t priority: 2;
-            uint32_t reserved: 13;
-            uint32_t cq_id: 16;
+        struct
+        {
+            uint32_t contiguous : 1;
+            uint32_t int_enable : 1;
+            uint32_t reserved : 14;
+            uint32_t int_vector : 16;
         } __attribute__((packed));
     };
 
-    struct NvmeIdentifyCommand {
-        enum {
+    struct NvmeCreateIoSubmissionQueueCommand
+    {
+        struct
+        {
+            uint32_t queue_id : 16;
+            uint32_t queue_size : 16;
+        } __attribute__((packed));
+
+        struct
+        {
+            uint32_t contiguous : 1;
+            uint32_t priority : 2;
+            uint32_t reserved : 13;
+            uint32_t cq_id : 16;
+        } __attribute__((packed));
+    };
+
+    struct NvmeIdentifyCommand
+    {
+        enum
+        {
             CnsNamespace = 0,
             CnsController = 1,
             CnsNamespaceList = 2,
         };
 
-        struct {
-            uint32_t cns: 8;
-            uint32_t reserved: 8;
-            uint32_t cnt_id: 16;
+        struct
+        {
+            uint32_t cns : 8;
+            uint32_t reserved : 8;
+            uint32_t cnt_id : 16;
         } __attribute__((packed));
 
         uint32_t nvm_set_id;
     };
 
-    struct NvmeDeleteIoQueueCommand {
+    struct NvmeDeleteIoQueueCommand
+    {
         uint32_t queue_id;
     };
 
-    struct NvmeSetFeaturesCommand {
-        enum {
+    struct NvmeSetFeaturesCommand
+    {
+        enum
+        {
             FeatureIdNumberOfQueues = 0x7,
         };
 
-        struct {
-            uint32_t feature_id: 8;
-            uint32_t reserved: 23;
-            uint32_t save: 1;
+        struct
+        {
+            uint32_t feature_id : 8;
+            uint32_t reserved : 23;
+            uint32_t save : 1;
         } __attribute__((packed));
 
         uint32_t dw11;
@@ -141,39 +157,45 @@ namespace NVMe {
         uint32_t dw13;
     };
 
-    struct NvmeReadCommand {
+    struct NvmeReadCommand
+    {
         uint64_t start_lba;
 
-        struct {
-            uint32_t block_num: 16;
-            uint32_t reserved: 10;
-            uint32_t pr_info: 4;
-            uint32_t force_unit_access: 1;
-            uint32_t limited_retry: 1;
+        struct
+        {
+            uint32_t block_num : 16;
+            uint32_t reserved : 10;
+            uint32_t pr_info : 4;
+            uint32_t force_unit_access : 1;
+            uint32_t limited_retry : 1;
         } __attribute__((packed));
     };
 
-    struct NvmeWriteCommand {
+    struct NvmeWriteCommand
+    {
         uint64_t start_lba;
 
-        struct {
-            uint32_t block_num: 16;
-            uint32_t reserved2: 4;
-            uint32_t directive_type: 4;
-            uint32_t reserved: 2;
-            uint32_t pr_info: 4;
-            uint32_t force_unit_access: 1;
-            uint32_t limited_retry: 1;
+        struct
+        {
+            uint32_t block_num : 16;
+            uint32_t reserved2 : 4;
+            uint32_t directive_type : 4;
+            uint32_t reserved : 2;
+            uint32_t pr_info : 4;
+            uint32_t force_unit_access : 1;
+            uint32_t limited_retry : 1;
         } __attribute__((packed));
     };
 
-    struct NvmeCommand {
-        struct {
-            uint32_t opcode: 8;
-            uint32_t fuse: 2;
-            uint32_t reserved: 4;
-            uint32_t psdt: 2;
-            uint32_t command_id: 16;
+    struct NvmeCommand
+    {
+        struct
+        {
+            uint32_t opcode : 8;
+            uint32_t fuse : 2;
+            uint32_t reserved : 4;
+            uint32_t psdt : 2;
+            uint32_t command_id : 16;
         } __attribute__((packed));
 
         uint32_t ns_id;
@@ -182,8 +204,10 @@ namespace NVMe {
         uint64_t prp1;
         uint64_t prp2;
 
-        union {
-            struct {
+        union
+        {
+            struct
+            {
                 uint32_t cmd_dwords[6];
             };
 
@@ -197,33 +221,37 @@ namespace NVMe {
         };
     };
 
-    struct NvmeCompletion {
+    struct NvmeCompletion
+    {
         uint32_t dw0;
         uint32_t reserved;
 
-        struct {
-            uint32_t sq_head: 16;
-            uint32_t sq_id: 16;
+        struct
+        {
+            uint32_t sq_head : 16;
+            uint32_t sq_id : 16;
         } __attribute__((packed));
 
-        struct {
-            uint32_t command_id: 16;
-            uint32_t phase_tag: 1;
-            uint32_t status: 15;
+        struct
+        {
+            uint32_t command_id : 16;
+            uint32_t phase_tag : 1;
+            uint32_t status : 15;
         } __attribute__((packed));
     };
 
-    class NvmeQueue {
+    class NvmeQueue
+    {
         uint16_t queue_id = 0;
 
         uintptr_t completion_base{};
         uintptr_t submission_base{};
 
-        NvmeCompletion *completion_queue{};
-        NvmeCommand *submission_queue{};
+        NvmeCompletion* completion_queue{};
+        NvmeCommand* submission_queue{};
 
-        volatile uint32_t *completion_db{};
-        volatile uint32_t *submission_db{};
+        volatile uint32_t* completion_db{};
+        volatile uint32_t* submission_db{};
 
         uint16_t c_queue_size = 0;
         uint16_t s_queue_size = 0;
@@ -240,26 +268,27 @@ namespace NVMe {
         uint16_t cq_head = 0;
         uint16_t sq_tail = 0;
 
-        NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void *cq, void *sq, uint32_t *cq_db,
-                  uint32_t *sq_db, uint16_t csz, uint16_t ssz);
+        NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void* cq, void* sq, uint32_t* cq_db,
+                  uint32_t* sq_db, uint16_t csz, uint16_t ssz);
 
         ~NvmeQueue() = default;
 
         NvmeQueue() = default;
 
-        static long Consume(NvmeCommand &cmd);
+        static long Consume(NvmeCommand& cmd);
 
-        void Submit(NvmeCommand &cmd);
+        void Submit(NvmeCommand& cmd);
 
-        void SubmitWait(NvmeCommand &cmd, NvmeCompletion &complet);
+        void SubmitWait(NvmeCommand& cmd, NvmeCompletion& complet);
 
-        __attribute__((always_inline)) uint16_t CQSize() { return cq_count; }
-        __attribute__((always_inline)) uint16_t SQSize() { return sq_count; }
-        __attribute__((always_inline)) uintptr_t CQBase() { return completion_base; }
-        __attribute__((always_inline)) uintptr_t SQBase() { return submission_base; }
+        [[nodiscard]] uint16_t CQSize() const { return cq_count; }
+        [[nodiscard]] uint16_t SQSize() const { return sq_count; }
+        [[nodiscard]] uintptr_t CQBase() const { return completion_base; }
+        [[nodiscard]] uintptr_t SQBase() const { return submission_base; }
     };
 
-    struct ControllerIdentity {
+    struct ControllerIdentity
+    {
         uint16_t vendor_id;
         uint16_t subsystem_vendor_id;
         char serial_number[20];
@@ -306,7 +335,8 @@ namespace NVMe {
 
     static_assert(sizeof(ControllerIdentity) == 4096);
 
-    enum AdminCommands {
+    enum AdminCommands
+    {
         AdminCmdDeleteIOSubmissionQueue = 0x0,
         AdminCmdCreateIOSubmissionQueue = 0x1,
         AdminCmdGetLogPage = 0x2,
@@ -316,18 +346,21 @@ namespace NVMe {
         AdminCmdSetFeatures = 0x9,
     };
 
-    union NvmeLbaFormat {
+    union NvmeLbaFormat
+    {
         uint32_t dw;
 
-        struct {
-            uint32_t metadata_size: 16;
-            uint32_t lba_data_size: 8;
-            uint32_t relative_performance: 2;
-            uint32_t reserved: 6;
+        struct
+        {
+            uint32_t metadata_size : 16;
+            uint32_t lba_data_size : 8;
+            uint32_t relative_performance : 2;
+            uint32_t reserved : 6;
         } __attribute__((packed));
     };
 
-    struct NamespaceIdentity {
+    struct NamespaceIdentity
+    {
         uint64_t namespace_size;
         uint64_t ns_cap;
         uint64_t ns_use;

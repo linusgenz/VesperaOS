@@ -24,10 +24,10 @@ class BasicRenderer{
     void decrement_cursorY(int32_t y);
     inline void increment_cursorX(uint32_t x);
     inline void increment_cursorY(uint32_t y);
-    inline void set_colour(Colour colour);
+    inline void set_colour(Colour new_colour);
     [[nodiscard]] inline Colour get_colour() const;
     [[nodiscard]] inline Colour get_bg_colour() const;
-    inline void set_bg_colour(Colour colour);
+    inline void set_bg_colour(Colour new_colour);
     void new_line();
     void clear();
     void clear_char();

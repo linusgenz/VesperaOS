@@ -26,9 +26,9 @@
 
 #include "../chardevice.h"
 
-class ZeroDevice : public CharDevice {
+class ZeroDevice final : public CharDevice {
 public:
-    ZeroDevice(const char* name);
+    explicit ZeroDevice(const char* name);
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

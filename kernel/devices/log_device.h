@@ -28,14 +28,14 @@
 #include <kernel/ipc/channel.h>
 #include <kernel/realm/realm.h>
 
-class LogDevice : public CharDevice {
+class LogDevice final : public CharDevice {
 private:
     Channel* global_channel;
 
 public:
 
     explicit LogDevice(Channel* ch)
-        : CharDevice("log", BusType::VIRTUAL), global_channel(ch) {}
+        : CharDevice("log", VIRTUAL), global_channel(ch) {}
 
     ~LogDevice() override {
         Channel::destroy(global_channel);

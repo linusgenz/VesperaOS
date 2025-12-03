@@ -15,6 +15,7 @@
 #include <dev/usb_xhci_ioctl.h>
 #include "../usb_manager.h"
 #include <kernel/system/system_manager.h>
+#include "xhci_common.h"
 
 namespace USB {
     bool xhciDriver::init_device(PCI::PCIDeviceHeader *pci_base_address) {
@@ -1621,7 +1622,7 @@ namespace USB {
 
     size_t xhciDriver::read(CharFile *cf, void *buffer, size_t count, size_t offset) {
         if (!cf || !buffer) return 0;
-        auto *buf = (uint8_t *) buffer;
+        auto *buf = static_cast<uint8_t*>(buffer);
         size_t written = 0;
         constexpr size_t stat_size = sizeof(xhci_device_stat);
 

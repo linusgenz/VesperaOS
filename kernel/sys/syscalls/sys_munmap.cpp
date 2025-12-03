@@ -31,6 +31,7 @@ namespace syscalls::internal {
         if (length == 0 || addr % PAGE_SIZE != 0) {
             return -EINVAL;
         }
+        return 0;
 // see sysstd reference on error codes for future impl.
 /*
         // Page align
