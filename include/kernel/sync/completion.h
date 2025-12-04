@@ -25,40 +25,20 @@
 #define VESPERAOS_COMPLETION_H
 
 #include <cstdint>
-#include <kernel/time.h>
 #include <kernel/sync/spinlock.h>
 
-struct completion_t {
+struct completion_t
+{
     volatile bool completed{};
     spinlock_t lock{};
 
-    void init() {
-        completed = false;
-        lock.init();
-    }
+    void init();
 
-    void wait() const {
-        while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
-            kernel::time::sleep_ms(10);
-        }
-    }
+    void wait() const;
 
-    [[nodiscard]] bool wait_timeout(uint64_t timeout_ms) const {
-        uint64_t start = kernel::time::get_ticks();
-        while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
-            uint64_t elapsed = kernel::time::get_ticks() - start;
-            if (elapsed > timeout_ms / 10) { // ticks sind 10ms
-                return false;
-            }
-            kernel::time::sleep_ms(10);
-        }
-        return true;
-    }
+    [[nodiscard]] bool wait_timeout(uint64_t timeout_ms) const;
 
-    void complete() {
-        spinlock_guard guard(lock);
-        __atomic_store_n(&completed, true, __ATOMIC_RELEASE);
-    }
+    void complete();
 };
 
 #endif //VESPERAOS_COMPLETION_H

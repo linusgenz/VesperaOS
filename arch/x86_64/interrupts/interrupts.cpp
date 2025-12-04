@@ -64,6 +64,7 @@ void gp_fault_handler(const trap_frame *frame) {
     uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
     Log::Error("  Selector: 0x%x", selector);
 
+    panic("General protection fault detected");
     kernel::SystemManager::system_panic("General protection fault detected", -KEGPF);
 }
 

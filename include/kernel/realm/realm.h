@@ -46,17 +46,17 @@ public:
     PageTable *pml4;
     PageTableManager *page_table;
 
-    char cwd_path[256]{};
+    char cwd_path[256];
 
     Unit *unit_list;
 
     wait_queue_t wait_queue;
 
-    handle_table_t handle_table{};
+    handle_table_t handle_table;
 
     const char **envp;
 
-    spinlock_t lock{};
+    spinlock_t lock;
     bool active;
     uint8_t sched_priority;
     uint64_t cpu_time_accumulated;

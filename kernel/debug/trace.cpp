@@ -71,7 +71,7 @@ void backtrace(uint64_t rbp_start, uint64_t rip_start) {
                      s.name,
                      offset);
 
-        if (i == 0)
-            disassemble_frame(frames[i], 60);
+      //  if (i == 0)
+      //      disassemble_frame(frames[i], 60);
     }
 }

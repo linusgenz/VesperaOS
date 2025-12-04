@@ -6,10 +6,7 @@
 #define GDT_H
 #include <cstdint>
 
-struct GDTDescriptor {
-    uint16_t size;
-    uint64_t offset;
-}__attribute__((packed));
+#include "../../../kernel/acpi/madt.h"
 
 struct __attribute__((packed)) GDTEntry {
     uint16_t limit_low; // Limit bits 0-15
@@ -58,13 +55,13 @@ struct __attribute__((packed)) GDTPtr {
 
 // GDT Entries
 #define GDT_ENTRIES 7
-extern GDTEntry gdt[GDT_ENTRIES];
+extern GDTEntry gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
 extern TSSDescriptor tss_desc;
-extern TSS tss;
+extern TSS tss[MAX_CPU_CORES];
 extern GDTPtr gdt_ptr;
 
 
-void gdt_set_tss(TSS *tss);
+void setup_cpu_tss(uint32_t cpu_id);
 
 void gdt_install();
 

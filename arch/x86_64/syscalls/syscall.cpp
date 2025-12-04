@@ -64,30 +64,3 @@ void syscall_init() {
 }
 
 #define MSR_GS_BASE 0xC0000101
-
-
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0,
-    uint64_t arg1,
-    uint64_t arg2,
-    uint64_t arg3,
-    uint64_t arg4,
-    uint64_t arg5
-) {
-    int64_t ret = -1;
-
-    uint64_t r10_ asm("r10") = arg3;
-    uint64_t r8_ asm("r8") = arg4;
-    uint64_t r9_ asm("r9") = arg5;
-
-    asm volatile (
-        "syscall"
-        : "=a"(ret)
-        : "a"(num), "D"(arg0), "S"(arg1), "d"(arg2),
-        "r"(r10_), "r"(r8_), "r"(r9_)
-        : "rcx", "r11", "memory"
-    );
-
-    return ret;
-}

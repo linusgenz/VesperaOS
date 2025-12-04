@@ -59,7 +59,7 @@ namespace syscalls::internal {
 
         UnitConfig ucfg = {
             .name = "main_unit",
-            .cpu_id = 0,
+            .cpu_id = 6,
             .priority = 5,
             .is_user = true,
             .auto_schedule = false,

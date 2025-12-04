@@ -30,6 +30,9 @@
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
 #include "../drivers/pci/msi.h"
 #include "devices/init.h"
+#include <kernel/time.h>
+
+#include <kernel/basic_renderer.h>
 #include "tty/init.h"
 
 uint64_t* scroll_buffer_top = nullptr;
@@ -38,7 +41,7 @@ uint64_t* scroll_buffer_bottom = nullptr;
 void setup_scroll_buffer(Framebuffer* buffer)
 {
     uint64_t buffer_size = buffer->width * buffer->height * sizeof(uint32_t) * 10;
-    scroll_buffer_top = static_cast<uint64_t*>(malloc(buffer_size));
+    scroll_buffer_top = static_cast<uint64_t*>(kernel::memory::malloc(buffer_size));
     if (!scroll_buffer_top)
     {
         Log::Error("Failed to allocate scroll buffer (top)\n");
@@ -46,7 +49,7 @@ void setup_scroll_buffer(Framebuffer* buffer)
     }
     memset(scroll_buffer_top, 0, buffer_size);
 
-    scroll_buffer_bottom = static_cast<uint64_t*>(malloc(buffer_size));
+    scroll_buffer_bottom = static_cast<uint64_t*>(kernel::memory::malloc(buffer_size));
     if (!scroll_buffer_bottom)
     {
         Log::Error("Failed to allocate scroll buffer (bot)\n");
@@ -107,11 +110,11 @@ void initialize_kernel(BootInfo* boot_info)
     deadlock_detector_init();
 #endif
 
-    renderer = BasicRenderer(bootInfo->framebuffer, bootInfo->font);
+    renderer = BasicRenderer(boot_info->framebuffer, boot_info->font);
     Log::SetRenderer(&renderer);
     global_renderer = &renderer;
 
-    TargetFramebuffer = bootInfo->framebuffer;
+    TargetFramebuffer = boot_info->framebuffer;
 
 
     global_renderer->clear();
@@ -124,11 +127,11 @@ void initialize_kernel(BootInfo* boot_info)
 
     gdt_install();
 
-    kernel::memory::initialize_memory(bootInfo);
+    kernel::memory::initialize_memory(boot_info);
     kernel::memory::initialize_heap(reinterpret_cast<void*>(0x0000100000000000), 0x500);
 
 
-    prepare_acpi(bootInfo);
+    prepare_acpi(boot_info);
     MADT::parse_madt(ACPI::TableManager::get_madt());
     ACPI::parse_fadt();
 
@@ -138,17 +141,17 @@ void initialize_kernel(BootInfo* boot_info)
 
     asm ("sti");
 
-    //  setup_scroll_buffer(bootInfo->framebuffer);
-    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, bootInfo->framebuffer, &renderer,
-                      bootInfo->font->height);
+    //  setup_scroll_buffer(boot_info->framebuffer);
+    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, boot_info->framebuffer, &renderer,
+                      boot_info->font->height);
     scroll_manager = &s;
 
-    Log::init(); // threads are possible -> switch to mutex
     kernel::DeviceManager::Init();
 
     kernel::SystemManager::initialize();
 
     CPUManager::initialize();
+    setup_cpu_tss(0);
     RealmManager::initialize();
 
     RealmConfig realm_config_sys = {
@@ -178,6 +181,7 @@ void initialize_kernel(BootInfo* boot_info)
 
     prepare_ap_trampoline();
     CPUManager::smp_init();
+    Log::init(); // threads are possible -> switch to mutex
 
     VFS::init();
     DevFS::init();

@@ -178,8 +178,12 @@ ap64:
         add rdi, rax                ; rdi = &cpu_startup_reports[apic_id]
 
         mov dword [rdi], ecx        ; apic_id (offset 0)
-        mov [rdi + 8], rsp          ; stack_pointer (offset 4)
-        mov byte [rdi + 16], 1      ; ready (offset 12)
+        mov [rdi + 8], rsp          ; stack_pointer (offset 8)
+        mov byte [rdi + 16], 1      ; ready (offset 16)
+
+        .wait_for_go:
+            cmp byte [rdi + 17], 1   ; go?
+            jne .wait_for_go
 
         extern ap_main
         mov edi, ecx          ; ap_main(uint32_t apic_id)

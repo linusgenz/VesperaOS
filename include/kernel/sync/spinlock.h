@@ -8,6 +8,8 @@
 
 
 struct spinlock_t {
+    spinlock_t() : locked(0) {}
+
     volatile uint32_t locked;
 
     void init(const char* name = "unnamed_lock");

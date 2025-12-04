@@ -9,7 +9,7 @@
 class PageTableManager
 {
 public:
-    explicit PageTableManager(PageTable* PML4Address);
+    PageTableManager(PageTable* PML4Address);
     PageTable* PML4;
     void map_memory(void* virtual_memory, void* physical_memory, uint64_t flags) const;
 

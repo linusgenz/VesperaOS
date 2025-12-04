@@ -10,6 +10,8 @@
 #include "../cpu/cpu_manager.h"
 #include "../../include/log.h"
 #include <kernel/realm/realm_manager.h>
+
+#include "../../arch/x86_64/gdt/gdt.h"
 #include "../units/unit_manager.h"
 
 namespace kernel::scheduling::manager {
@@ -35,6 +37,9 @@ namespace kernel::scheduling::manager {
         const bool from_syscall = from && from->context.from_syscall;
 
         if (to->is_user) {
+            uint32_t cpu_id = CPUManager::get_current_cpu_id();
+            tss[cpu_id].rsp0 = reinterpret_cast<uintptr_t>(to->context.stack_top);
+
             wrmsr(MSR_GS_BASE, 0);
             auto *ctx_ptr = &to->context;
             wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<uint64_t>(&ctx_ptr));
@@ -47,7 +52,7 @@ namespace kernel::scheduling::manager {
             asm volatile("mov %0, %%cr3" :: "r"(memory::get_pagetable_address()));
         }
 
-        arg_registers_t *push_args = nullptr;
+        void *push_args = nullptr;
         void **rdi_save_addr = nullptr;
         void *rsp_to_load = nullptr;
         uint64_t should_iretq = 0;

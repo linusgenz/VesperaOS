@@ -5,6 +5,8 @@
 #include <kernel/time.h>
 #include <kernel/interrupts.h>
 
+#include "kernel/memory.h"
+
 namespace CPUManager
 {
     // Globale Variablen
@@ -18,9 +20,6 @@ namespace CPUManager
     {
         if (is_initialized) return;
 
-        // Initialisiere Stack Manager
-        // StackManager::initialize();
-
         // Hole CPU-Informationen von MADT
         MADT::CPUCore* madt_cores = MADT::get_cpu_cores();
         uint32_t madt_cpu_count = MADT::get_cpu_count();
@@ -31,6 +30,15 @@ namespace CPUManager
             Log::Error("No CPUs found in MADT");
             return;
         }
+
+        // init location for cpu startup reports
+        for (uint32_t i = 0; i < total_cpus; ++i)
+        {
+            cpu_startup_reports[i].apic_id = 0;
+            cpu_startup_reports[i].stack_pointer = 0;
+            cpu_startup_reports[i].ready = false;
+        }
+
 
         // Initialisiere CPU-Infos
         for (uint32_t i = 0; i < madt_cpu_count && i < MAX_CPU_CORES; i++)
@@ -44,18 +52,16 @@ namespace CPUManager
             cpu_infos[i].current_task_id = 0;
             cpu_infos[i].is_bsp = madt_cores[i].is_bsp;
 
-            // Allokiere Kernel-Stack für jeden CPU
-            //    cpu_infos[i].kernel_stack = StackManager::allocate_kernel_stack(i);
-            //  if (!cpu_infos[i].kernel_stack) {
-            //    Log::Error("Failed to allocate kernel stack for CPU %u", i);
-            //  continue;
-            //}
-
             // BSP ist bereits online
             if (cpu_infos[i].is_bsp)
             {
                 cpu_infos[i].state = CPU_STATE_ONLINE;
+                cpu_infos[i].kernel_stack = KERNEL_STACK_BASE;
+                cpu_infos[i].kernel_stack_top = KERNEL_STACK_BASE + KERNEL_STACK_SIZE;
                 online_cpus++;
+
+                kernel::memory::map_memory(reinterpret_cast<void*>(KERNEL_STACK_BASE),
+                                           reinterpret_cast<void*>(KERNEL_STACK_BASE));
             }
 
             total_cpus++;
@@ -83,19 +89,24 @@ namespace CPUManager
             volatile CpuStartupReport* report = &cpu_startup_reports[apic_id];
 
             int timeout_counter = 0;
-            constexpr int timeout_limit = 20;
+            constexpr int timeout_limit = 100;
             while (!report->ready && timeout_counter < timeout_limit)
             {
-                kernel::time::sleep_ms(100);
+                kernel::time::sleep_ms(10);
                 timeout_counter++;
             }
-            if (timeout_counter == 20) continue;
+            if (timeout_counter == 100) continue;
+
+            kernel::memory::map_memory(reinterpret_cast<void*>(report->stack_pointer),
+                                       reinterpret_cast<void*>(report->stack_pointer));
+
             online_cpus++;
             cpu_infos[i].kernel_stack = report->stack_pointer;
+            cpu_infos[i].kernel_stack_top = report->stack_pointer + KERNEL_STACK_SIZE;
             cpu_infos[i].state = CPU_STATE_ONLINE;
+            report->go = true;
         }
     }
-
 
     void init_core(const CPUInfo* cpu)
     {
@@ -116,11 +127,6 @@ namespace CPUManager
         kernel::time::internal::sleep(10);
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vectorValue | APIC_ICR_SIPI);
-
-        kernel::time::internal::sleep(10);
-
-        // kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
-        //  kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vectorValue | APIC_ICR_SIPI);
 
         kernel::time::internal::sleep(10);
     }

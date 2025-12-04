@@ -5,6 +5,7 @@
 #include <cstddef>
 #include "../acpi/madt.h"
 #include "../memory/stack_manager.h"
+#include "kernel/sync/completion.h"
 
 #define KERNEL_STACK_BASE 0x20000
 #define KERNEL_STACK_SIZE 0x1000
@@ -13,15 +14,17 @@
 #define SIPI_VECTOR 0x8
 extern volatile uint8_t g_activeCpuCount;
 
-struct CpuStartupReport {
+struct __attribute__((packed)) CpuStartupReport
+{
     uint32_t apic_id;
     uint32_t rsv0;
     uint64_t stack_pointer;
-    uint8_t ready;
-    uint8_t rsv1[7];
+    bool  ready;
+    bool  go;
+    uint8_t rsv1[6];
 };
 
-#define cpu_startup_reports ((volatile CpuStartupReport*)0x7000)
+#define cpu_startup_reports ((CpuStartupReport*)0x7000)
 
 
 namespace CPUManager {
@@ -39,6 +42,7 @@ namespace CPUManager {
         CPUState state;
        // StackManager::StackInfo* kernel_stack;
         uintptr_t kernel_stack;
+        uintptr_t kernel_stack_top;
         uint64_t total_cycles;
         uint64_t idle_cycles;
         uint32_t current_task_id;

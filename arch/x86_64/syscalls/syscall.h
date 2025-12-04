@@ -25,17 +25,6 @@
 #define SYSCALL_H
 #include <cstdint>
 
-
 void syscall_init();
-
-int64_t syscall(
-    uint64_t num,
-    uint64_t arg0 = 0,
-    uint64_t arg1 = 0,
-    uint64_t arg2 = 0,
-    uint64_t arg3 = 0,
-    uint64_t arg4 = 0,
-    uint64_t arg5 = 0
-);
 
 #endif //SYSCALL_H

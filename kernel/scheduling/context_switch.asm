@@ -83,18 +83,16 @@ context_switch:
         jz      .skip_args
 
             ; arg_registers_t
-            mov rax, [r8 + 0]   ; rdi
-            mov rdi, rax
-            mov rax, [r8 + 8]   ; rsi
-            mov rsi, rax
-            mov rax, [r8 + 16]  ; rdx
-            mov rdx, rax
-            mov rax, [r8 + 24]  ; rcx
-            mov rcx, rax
-            mov rax, [r8 + 32]  ; r8
-            mov r8, rax
-            mov rax, [r8 + 40]  ; r9
-            mov r8, rax
+            push r8
+
+            mov rdi, [r8 + 0]
+            mov rsi, [r8 + 8]
+            mov rdx, [r8 + 16]
+            mov rcx, [r8 + 24]
+
+            pop rax
+            mov r8,  [rax + 32]
+            mov r9,  [rax + 40]
 
         .skip_args:
 
