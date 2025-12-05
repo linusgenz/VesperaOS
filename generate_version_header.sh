@@ -2,7 +2,7 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=16
-VERSION_PATCH=5
+VERSION_PATCH=6
 VERSION_STAGE="dev"
 VERSION_NAME="spicy chicken"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
@@ -19,7 +19,7 @@ cat <<EOF > kernel/kversion.h
 #define VERSION_BUILD "${VERSION_BUILD}"
 #define VERSION_NAME "${VERSION_NAME}"
 
-#define VERSION_STRING "Vespera " VERSION_NAME " (${VERSION_STAGE}) x86_64 " \\
+#define VERSION_STRING "Vespera '" VERSION_NAME "' (${VERSION_STAGE}) x86_64 " \\
                        VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH \\
                        "-" VERSION_STAGE "+" VERSION_BUILD
 

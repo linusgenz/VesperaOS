@@ -27,21 +27,21 @@
 #include <stdio.h>
 
 
-char **environ = nullptr;
+char **environ = NULL;
 FILE_HANDLE stdin;
 FILE_HANDLE stdout;
 FILE_HANDLE stderr;
 
-char* getenv(const char* name, char** envp) {
-    if (!name) return nullptr;
+char* getenv(const char* name) {
+    if (!name || !environ) return NULL;
     size_t name_len = strlen(name);
 
-    for (size_t i = 0; i < 1; i++) {
-        if (strncmp(envp[i], name, name_len) == 0 && envp[i][name_len] == '=') {
-            return envp[i] + name_len + 1;
+    for (size_t i = 0; environ[i]; i++) {
+        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=') {
+            return environ[i] + name_len + 1;
         }
     }
-    return nullptr;
+    return NULL;
 }
 /*
 int setenv(const char* name, const char* value, int overwrite) {
@@ -92,4 +92,5 @@ int unsetenv(const char* name) {
         }
     }
     return -1;
-}*/
+}
+*/

@@ -26,7 +26,7 @@
 Realm::Realm()
     : id(0), name(nullptr), capabilities(CAP_NONE),
       memory_limit(0), max_units(0), unit_count(0), pml4(nullptr), page_table(nullptr),
-      unit_list(nullptr), envp(nullptr),
+      unit_list(nullptr),
       active(false), sched_priority(0), cpu_time_accumulated(0)
 {
     const auto path = "/";

@@ -66,7 +66,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         .memory_limit = 0,
         .capabilities = CAP_DEVICE_ACCESS | CAP_RW,
         .max_units = 16,
-        .envp = envp0,
         .is_user = true,
     };
     Realm* shell_realm = RealmManager::create(&realm_config_shell);
@@ -80,6 +79,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         Log::Error("Failed to load elf binary");
     }
 
+    const char *argv_example[] = {
+        "shell",
+        "-v",
+        "--config=config.txt",
+        nullptr
+    };
+
     UnitConfig uc = {
         .name = "shell",
         .cpu_id = 0,
@@ -90,14 +96,14 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         .is_idle = false,
         .is_user = true,
         .user_stack_size = 0,
+        .argv = argv_example,
+        .envp = envp0
     };
     Unit* shell = UnitManager::create(shell_realm->id, result.entry_point, nullptr, &uc);
-    SetupUserArgsAndEnv(shell, nullptr, envp0);
+
     Log::Ok("PF: %p %p", envp0, *envp0);
 
     kernel::SystemManager::set_system_initialized();
-
-    //__asm__ volatile ("ud2");
 
     kernel::scheduling::enable_on_cpu(0);
 

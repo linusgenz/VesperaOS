@@ -31,8 +31,6 @@ typedef int64_t FILE_HANDLE;
 
 #ifdef __cplusplus
 extern "C" {
-
-
 #endif
 
 extern char **environ;
@@ -52,7 +50,7 @@ typedef long int ssize_t;
  * @param name Variable name (null-terminated string).
  * @return Pointer to the value string, or NULL if not found.
  */
-char *getenv(const char *name, char **envp);
+char* getenv(const char* name);
 
 /**
  * @brief Set an environment variable.

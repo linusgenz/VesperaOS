@@ -77,7 +77,6 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->active = true;
             r->lock.init();
             r->capabilities = cfg->capabilities;
-            r->envp = cfg->envp;
             r->init_handle_table();
 
             if (cfg->is_user) {

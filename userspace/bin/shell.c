@@ -550,10 +550,10 @@ void show_prompt(void) {
 }
 
 
-void shell_main() {
+void shell_main(int argc, char **argv) {
     char buf[MAX_INPUT] = {0};
     command_t cmd;
-    cmd_clear(nullptr);
+    cmd_clear(NULL);
     /*  printf("\033[31mRed\033[0m Normal\n");
       printf("\033[38;2;255;0;0mHello\033[0m\n");
 
@@ -579,7 +579,10 @@ void shell_main() {
   */
 
     //cmd_clear(nullptr);
-        printf("envp exiz %s", environ[0]);
+    printf("environ[0]    = %p (%s)\n", environ[0], environ[0]);
+    for (int i = 0; i < argc; i++) {
+        printf("argv[%d] = %s\n", i, argv[i]);
+    }
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
 
@@ -631,6 +634,6 @@ void shell_main() {
 }
 
 int main(int argc, char **argv) {
-    shell_main();
+    shell_main(argc, argv);
     return 0;
 }

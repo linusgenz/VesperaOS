@@ -105,6 +105,8 @@ struct UnitConfig {
     bool is_user = false;
     uint64_t user_stack_size = 0;
     bool auto_schedule = true;
+    const char** argv;
+    const char** envp;
 };
 
 struct RealmConfig {
@@ -112,7 +114,6 @@ struct RealmConfig {
     uint64_t memory_limit;
     CapabilitySet capabilities;
     uint64_t max_units;
-    const char **envp;
     bool is_user;
 };
 

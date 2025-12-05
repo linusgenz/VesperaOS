@@ -72,7 +72,7 @@ namespace syscalls::internal {
             return -EFAULT;
         }
 
-        uintptr_t user_sp = SetupUserArgsAndEnv(u, argv, envp);
+       /* uintptr_t user_sp = SetupUserArgsAndEnv(u, argv, envp);
         if (user_sp == 0) {
             // cleanup
             UnitManager::destroy(u->id);
@@ -80,7 +80,7 @@ namespace syscalls::internal {
             return -EFAULT;
         }
 
-        u->context.user_stack_pointer = reinterpret_cast<void*>(user_sp);
+        u->context.user_stack_pointer = reinterpret_cast<void*>(user_sp);*/
         kernel::scheduling::add_unit(u);
 
         return new_realm->id;

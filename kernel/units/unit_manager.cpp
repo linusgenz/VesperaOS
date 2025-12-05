@@ -58,7 +58,6 @@ UnitID UnitManager::allocate_id()
     return next_id++;
 }
 
-// Schreibe Pointer direkt in den Userstack
 static void write_user_ptr(Unit* u, uintptr_t addr, uintptr_t val)
 {
     uintptr_t offset = addr - reinterpret_cast<uintptr_t>(u->context.user_stack);
@@ -69,7 +68,6 @@ static void write_user_ptr(Unit* u, uintptr_t addr, uintptr_t val)
     *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(u->context.user_stack) + offset) = val;
 }
 
-// Kopiere Daten direkt in User-Stack
 static void memcpy_to_user(Unit* u, void* dest, const void* src, size_t len)
 {
     uintptr_t offset = reinterpret_cast<uintptr_t>(dest) - reinterpret_cast<uintptr_t>(u->context.user_stack);
@@ -184,8 +182,6 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
             u->context.entry = entry_point;
             u->context.arg = arg;
 
-            u->context.regs.rdx = reinterpret_cast<uint64_t>(realm->envp); // 3rd arg for entry
-
             uint64_t stack_size = cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE;
 
 
@@ -229,6 +225,7 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
             }
             else if (u->is_user)
             {
+                SetupUserArgsAndEnv(u, cfg->argv, cfg->envp);
                 setup_user_unit_stack(u);
             }
 
@@ -380,7 +377,7 @@ void UnitManager::setup_user_unit_stack(Unit* u)
     auto* sp = reinterpret_cast<uintptr_t*>(sp_val);
 
     *(--sp) = 0x23;
-    *(--sp) = reinterpret_cast<uintptr_t>(u->context.user_stack_top);
+    *(--sp) = reinterpret_cast<uintptr_t>(u->context.user_stack_pointer);
     *(--sp) = 0x202;
     *(--sp) = 0x1B;
     *(--sp) = reinterpret_cast<uintptr_t>(u->context.entry);

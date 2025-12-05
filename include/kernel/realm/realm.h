@@ -54,8 +54,6 @@ public:
 
     handle_table_t handle_table;
 
-    const char **envp;
-
     spinlock_t lock;
     bool active;
     uint8_t sched_priority;
