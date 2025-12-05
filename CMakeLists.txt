@@ -87,7 +87,7 @@ add_custom_target(test
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
         -device usb-storage,drive=usbstick2
-        -device usb-kbd
+      #  -device usb-kbd
         -trace *xhci*
         -D /tmp/qemu.log
         -no-reboot

@@ -27,7 +27,8 @@
 #include <cstdint>
 
 namespace ps2::keyboard {
-    void handle_byte(uint8_t scancode);
+    void init();
+    void handle_scancode(uint8_t scancode);
 }
 
 #endif //PS2_KEYBOARD_H

@@ -162,6 +162,7 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
         if (!i.active)
         {
             Unit* u = &i;
+            memset(u, 0, sizeof(*u));
 
             u->id = allocate_id();
             u->rid = realm_id;
@@ -199,6 +200,8 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
                     u->active = false;
                     return nullptr;
                 }
+                memset(u->context.user_stack, 0, u->context.user_stack_size);
+
                 kernel::memory::map_range(u->context.user_stack, u->context.user_stack, user_stack_size,
                                           (1ULL << PT_Flag::UserSuper));
                 u->context.user_stack_size = user_stack_size;
@@ -213,6 +216,8 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
                 u->active = false;
                 return nullptr;
             }
+            memset(u->context.stack, 0, u->context.stack_size);
+
             kernel::memory::map_range(u->context.stack, u->context.stack, stack_size);
             u->context.stack_size = stack_size;
             u->context.stack_top = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(u->context.stack) + stack_size);
@@ -281,6 +286,7 @@ bool UnitManager::destroy(const UnitID id)
         if (i.active && i.id == id)
         {
             Unit* u = &i;
+            kernel::scheduling::remove_unit(u);
 
             Realm* r = RealmManager::get(u->rid);
             if (r)
@@ -317,25 +323,10 @@ bool UnitManager::destroy(const UnitID id)
                 u->context.user_stack = nullptr;
             }
 
-            kernel::scheduling::remove_unit(u);
-
             SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
 
-            u->active = false;
-            u->id = 0;
-            u->rid = 0;
-            u->name = nullptr;
-            u->state = UNIT_NEW;
-            u->priority = 0;
-            u->cpu_id = 0;
-            u->exit_code = 0;
-            u->is_user = false;
-            u->is_kernel = false;
-            u->is_idle = false;
-            u->context = {};
-            u->sleep_context = {};
-            u->next = nullptr;
-            u->realm_next = nullptr;
+            memset(u, 0, sizeof(*u));
+            memset(&u->context, 0, sizeof(u->context));
 
             return true;
         }
@@ -382,7 +373,11 @@ void UnitManager::setup_kernel_unit_stack(Unit* u)
 
 void UnitManager::setup_user_unit_stack(Unit* u)
 {
-    auto* sp = static_cast<uintptr_t*>(u->context.stack_pointer);
+    auto sp_val = reinterpret_cast<uintptr_t>(u->context.stack_top);
+
+    sp_val &= ~0xF;
+    sp_val -= 8;
+    auto* sp = reinterpret_cast<uintptr_t*>(sp_val);
 
     *(--sp) = 0x23;
     *(--sp) = reinterpret_cast<uintptr_t>(u->context.user_stack_top);

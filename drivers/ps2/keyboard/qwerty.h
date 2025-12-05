@@ -25,7 +25,7 @@
 #define QWERTY_H
 #include <cstdint>
 
-namespace input::keyboard::qwerty {
+namespace ps2::keyboard::qwerty {
 
     constexpr uint8_t LEFT_SHIFT  = 0x2A;
     constexpr uint8_t RIGHT_SHIFT = 0x36;

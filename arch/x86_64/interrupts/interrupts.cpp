@@ -72,7 +72,7 @@ void gp_fault_handler(const trap_frame *frame) {
 extern "C"  void invalid_opcode_handler(const trap_frame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
-
+    panic("Invalid opcode detected");
     kernel::SystemManager::system_panic("Invalid opcode detected", -KEINVOP);
 }
 
@@ -132,7 +132,7 @@ void unhandled_interrupt_handler(const trap_frame *frame) {
 
 void keyboard_int_handler(trap_frame *frame) {
     uint8_t scancode = inb(0x60);
-    ps2::keyboard::handle_byte(scancode);
+    ps2::keyboard::handle_scancode(scancode);
     arch::x86_64::interrupts::pic::end_master();
 }
 

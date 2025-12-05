@@ -28,6 +28,8 @@
 #include "../../exec/elf.h"
 #include <kernel/realm/realm_manager.h>
 #include <kernel/tty/tty.h>
+
+#include "log.h"
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {

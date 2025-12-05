@@ -33,6 +33,8 @@
 #include <kernel/time.h>
 
 #include <kernel/basic_renderer.h>
+
+#include "../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "tty/init.h"
 
 uint64_t* scroll_buffer_top = nullptr;
@@ -138,6 +140,7 @@ void initialize_kernel(BootInfo* boot_info)
     kernel::interrupts::initialize();
 
     //  ps2::mouse::init();
+    ps2::keyboard::init();
 
     asm ("sti");
 

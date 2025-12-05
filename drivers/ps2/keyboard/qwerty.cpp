@@ -23,7 +23,7 @@
 
 #include "qwerty.h"
 
-namespace input::keyboard::qwerty {
+namespace ps2::keyboard::qwerty {
 
     struct ps2_keymap_entry {
         uint8_t scancode;

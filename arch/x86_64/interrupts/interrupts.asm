@@ -16,6 +16,7 @@ extern panic_ipi_handler
 global isr_%1
 isr_%1:
     cli
+    push qword 0        ; rsv
     push qword 0        ; Dummy for error code
     push r15
     push r14
@@ -33,7 +34,7 @@ isr_%1:
     push rbx
     push rax
 
-    mov rdi, rsp        ; trap_frame* als 1. Argument
+    mov rdi, rsp        ; trap_frame* as 1. argument
     call %1_handler
 
     ; Restore registers
@@ -53,6 +54,7 @@ isr_%1:
     pop r14
     pop r15
     add rsp, 8          ; Skip error code
+    add rsp, 8          ; rsv cleanup
     iretq
 %endmacro
 
@@ -60,6 +62,7 @@ isr_%1:
 global isr_%1
 isr_%1:
     cli
+    push qword 0 ; rsv
     push r15
     push r14
     push r13
@@ -96,6 +99,7 @@ isr_%1:
     pop r14
     pop r15
     add rsp, 8          ; Skip error code
+    add rsp, 8          ; rsv cleanup
     iretq
 %endmacro
 

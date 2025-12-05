@@ -66,10 +66,6 @@ public:
     void push(IntrusiveNode *element) {
         guard_t g(lock);
 
-        if (element->cpu_id == 5) {
-           // Log::debug("ADDED: %u %u cpu: %u", element->is_idle, element->id, element->cpu_id);
-        }
-
         if (!head) {
             head = tail = element;
             element->next = nullptr;

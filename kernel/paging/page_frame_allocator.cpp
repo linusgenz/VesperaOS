@@ -75,7 +75,7 @@ void* PageFrameAllocator::request_pages(const size_t page_count) {
     const size_t maxPages = page_bitmap.size * 8;
 
     for (uint64_t i = 0; i < maxPages; i++) {
-        // check for continous memory
+        // check for continuous memory
         bool blockFree = true;
         for (size_t j = 0; j < page_count; j++) {
             if ((i + j) >= maxPages || page_bitmap[i + j]) {

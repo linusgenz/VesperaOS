@@ -97,6 +97,11 @@ namespace kernel::scheduling::cpu_scheduler {
 
         // Case 1: Idle is running and nothing to do
         if (!next_unit && current_is_idle) {
+            if (next_unit->id == 14)
+            {
+                Log::debug("UNIT IN YIELD IS 14 1");
+                while (true) {}
+            }
             cpu->ticks_remaining = cpu->quantum_ticks;
             cpu->lock.unlock_irqrestore(flags);
             return;
@@ -104,6 +109,11 @@ namespace kernel::scheduling::cpu_scheduler {
 
         // Case 2: Current is terminated or blocked -> MUST switch
         if (current_terminated || current_blocked) {
+            if (next_unit->id == 14)
+            {
+                Log::debug("UNIT IN YIELD IS 14 2");
+                while (true) {}
+            }
             if (!next_unit) {
                 next_unit = cpu->idle_unit;
             }

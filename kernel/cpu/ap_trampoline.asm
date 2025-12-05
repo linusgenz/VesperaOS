@@ -97,9 +97,9 @@ ap64:
 
         ; Get next kernel stack
         mov rsp, 0x1000
-        lock xadd [next_sp], rsp
+        lock xadd [abs next_sp], rsp
 
-        lidt [idt]
+        lidt [abs idt]
 
       ;  mov rsi, [local_apic_address]
      ;   add rsi, 0x00f0             ; Spurious Interrupt Vector

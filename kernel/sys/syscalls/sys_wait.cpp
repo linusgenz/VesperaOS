@@ -33,8 +33,6 @@ namespace syscalls::internal {
         RealmID child_rid = arg0;
         int64_t status_user_ptr = static_cast<int64_t>(arg1);
 
-        Log::debug("wait1");
-
         Unit *current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;
 
@@ -54,8 +52,6 @@ namespace syscalls::internal {
         target->wait_queue.add_wait(current);
 
         kernel::scheduling::yield();
-
-        Log::debug("wait3");
 
         if (status_user_ptr != 0) {
             int status_val = 0;
