@@ -376,10 +376,10 @@ void UnitManager::setup_user_unit_stack(Unit* u)
     sp_val -= 8;
     auto* sp = reinterpret_cast<uintptr_t*>(sp_val);
 
-    *(--sp) = 0x23;
+    *(--sp) = 0x1b;
     *(--sp) = reinterpret_cast<uintptr_t>(u->context.user_stack_pointer);
     *(--sp) = 0x202;
-    *(--sp) = 0x1B;
+    *(--sp) = 0x23;
     *(--sp) = reinterpret_cast<uintptr_t>(u->context.entry);
 
     u->context.stack_pointer = sp;

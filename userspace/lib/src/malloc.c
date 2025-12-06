@@ -26,16 +26,18 @@
 #include <string.h>
 #include <sys/mman.h>
 
+#include "stdio.h"
+
 #define HEAP_MAGIC 0xDEADBEEF
 #define MIN_ALLOC_SIZE 16
 
 #define LARGE_ALLOC_THRESHOLD (64*1024)
 
-static heap_seg *heap_head = nullptr;
+static heap_seg *heap_head = NULL;
 static uintptr_t heap_base = 0;
 static uintptr_t heap_end = 0;
 
-static large_seg* large_alloc_list = nullptr;
+static large_seg* large_alloc_list = NULL;
 
 static heap_seg *find_free_segment(size_t size) {
     heap_seg *seg = heap_head;
@@ -43,7 +45,7 @@ static heap_seg *find_free_segment(size_t size) {
         if (seg->free && seg->length >= size) return seg;
         seg = seg->next;
     }
-    return nullptr;
+    return NULL;
 }
 
 static void split_segment(heap_seg *seg, size_t size) {
@@ -78,27 +80,30 @@ static void combine_segments(heap_seg *seg) {
 void heap_lazy_init() {
     if (heap_head) return;
 
+    // Get current break (sollte die Heap-Basis zurückgeben)
     heap_base = sys_brk(0, 0, 0, 0, 0, 0);
-    heap_end = heap_base;
+    heap_end = heap_base + 0x1000; // every unit has a standard heap size of 0x1000 bytes
 
-    // initialize first segment
-    heap_head = (heap_seg *) heap_end;
-    heap_head->length = 0;
+    heap_head = (heap_seg *) heap_base;
+    heap_head->length = 0x1000 - sizeof(heap_seg);
     heap_head->free = 1;
     heap_head->magic = HEAP_MAGIC;
-    heap_head->next = nullptr;
-    heap_head->prev = nullptr;
+    heap_head->next = NULL;
+    heap_head->prev = NULL;
 }
 
 void *malloc(size_t size) {
-    if (size == 0) return nullptr;
+    if (size == 0) return NULL;
 
     if (size >= LARGE_ALLOC_THRESHOLD) {
-        void* addr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS, 0, 0);
-        if (!addr) return nullptr;
+        void* addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS, 0, 0);
+        if (!addr) return NULL;
 
-        large_seg* lb = (large_seg*)malloc(sizeof(large_seg));
-        if (!lb) return nullptr;
+        large_seg* lb = malloc(sizeof(large_seg));
+        if (!lb) {
+            munmap(addr, size);
+            return NULL;
+        }
         lb->addr = addr;
         lb->size = size;
         lb->next = large_alloc_list;
@@ -106,34 +111,33 @@ void *malloc(size_t size) {
 
         return addr;
     }
-    
+
     heap_lazy_init();
-    
+
     size = (size + 7) & ~7; // align to 8 bytes
     heap_seg *seg = find_free_segment(size);
 
     if (!seg) {
         // grow heap
-        uintptr_t new_brk = heap_end + sizeof(heap_seg) + size;
-        if (sys_brk(new_brk, 0, 0, 0, 0, 0) != new_brk) return nullptr; // failed
-        seg = (heap_seg *) heap_end;
-        seg->length = size;
-        seg->free = 0;
-        seg->magic = HEAP_MAGIC;
-        seg->next = nullptr;
-        seg->prev = nullptr;
+        size_t grow_size = size > 4096 ? size : 4096;
+        const uintptr_t new_brk = heap_end + sizeof(heap_seg) + grow_size;
+        if (sys_brk(new_brk, 0, 0, 0, 0, 0) != new_brk) return NULL; // failed
 
-        if (heap_head) {
-            heap_seg *last = heap_head;
-            while (last->next) last = last->next;
-            last->next = seg;
-            seg->prev = last;
-        } else {
-            heap_head = seg;
-        }
+        seg = (heap_seg *) heap_end;
+        seg->length = grow_size;
+        seg->free = 1;
+        seg->magic = HEAP_MAGIC;
+        seg->next = NULL;
+        seg->prev = NULL;
+
+        heap_seg *last = heap_head;
+        while (last->next) last = last->next;
+        last->next = seg;
+        seg->prev = last;
 
         heap_end = new_brk;
-        return (char *) seg + sizeof(heap_seg);
+
+        combine_segments(seg);
     }
 
     split_segment(seg, size);
@@ -144,6 +148,9 @@ void *malloc(size_t size) {
 void heap_free(void *ptr) {
     if (!ptr) return;
     heap_seg *seg = (heap_seg *) ((char *) ptr - sizeof(heap_seg));
+
+    if (seg->magic != HEAP_MAGIC) return;
+
     seg->free = 1;
     combine_segments(seg);
 }
@@ -174,14 +181,14 @@ void *realloc(void *ptr, size_t new_size) {
     if (!ptr) return malloc(new_size);
     if (new_size == 0) {
         free(ptr);
-        return nullptr;
+        return NULL;
     }
 
     heap_seg *seg = (heap_seg *) ((char *) ptr - sizeof(heap_seg));
     if (seg->length >= new_size) return ptr;
 
     void *new_ptr = malloc(new_size);
-    if (!new_ptr) return nullptr;
+    if (!new_ptr) return NULL;
 
     memcpy(new_ptr, ptr, seg->length);
     free(ptr);

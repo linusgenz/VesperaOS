@@ -579,7 +579,13 @@ void shell_main(int argc, char **argv) {
   */
 
     //cmd_clear(nullptr);
+    setenv("CORES", "8", 0);
     printf("environ[0]    = %p (%s)\n", environ[0], environ[0]);
+    printf("environ[0]    = %p (%s)\n", environ[1], environ[1]);
+    unsetenv("CORES");
+    printf("environ[0]    = %p (%s)\n", environ[0], environ[0]);
+    printf("environ[1]    = %p (%s)\n", environ[1], environ[1]);
+
     for (int i = 0; i < argc; i++) {
         printf("argv[%d] = %s\n", i, argv[i]);
     }

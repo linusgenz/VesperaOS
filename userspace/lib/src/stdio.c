@@ -317,3 +317,7 @@ int rewind(FILE_HANDLE stream) {
 DIR_HANDLE opendir(const char *path) {
     return sys_open((uint64_t) path, O_DIRECTORY, 0, 0, 0, 0);
 }
+
+int closedir(DIR_HANDLE handle) {
+    return sys_close(handle, 0, 0, 0, 0, 0);
+}

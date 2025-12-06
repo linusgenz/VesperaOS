@@ -51,7 +51,9 @@ static uint64_t read_msr(uint32_t msr) {
 }
 
 void syscall_init() {
-    uint64_t star = (static_cast<uint64_t>(0x1B) << 48) | (static_cast<uint64_t>(0x08) << 32);
+    constexpr uint64_t user_cs = 0x23;
+    constexpr uint64_t kernel_cs = 0x08;
+    constexpr uint64_t star = ((user_cs - 0x10) << 48) | (kernel_cs << 32);
     write_msr(MSR_STAR, star);
 
     write_msr(MSR_LSTAR, reinterpret_cast<uint64_t>(&syscall_entry));

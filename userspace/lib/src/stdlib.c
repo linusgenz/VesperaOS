@@ -27,70 +27,115 @@
 #include <stdio.h>
 
 
-char **environ = NULL;
+char** environ = NULL;
+size_t env_count = 0;
+size_t env_capacity = 0;
+
 FILE_HANDLE stdin;
 FILE_HANDLE stdout;
 FILE_HANDLE stderr;
 
-char* getenv(const char* name) {
+void init_environ(char** envp)
+{
+    size_t count = 0;
+    while (envp[count]) count++;
+
+    env_capacity = count + 16; // more space for variables by default
+    environ = malloc(env_capacity * sizeof(char*));
+    if (!environ) return;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        size_t len = strlen(envp[i]) + 1;
+        environ[i] = malloc(len);
+        if (!environ[i]) return;
+        memcpy(environ[i], envp[i], len);
+    }
+
+    environ[count] = NULL;
+    env_count = count;
+}
+
+char* getenv(const char* name)
+{
     if (!name || !environ) return NULL;
     size_t name_len = strlen(name);
 
-    for (size_t i = 0; environ[i]; i++) {
-        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=') {
+    for (size_t i = 0; environ[i]; i++)
+    {
+        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=')
+        {
             return environ[i] + name_len + 1;
         }
     }
     return NULL;
 }
-/*
-int setenv(const char* name, const char* value, int overwrite) {
-    if (!name || !value) return -1;
+
+int setenv(const char* name, const char* value, int overwrite)
+{
+    if (!name || !value || strchr(name, '=')) return -1;
     size_t name_len = strlen(name);
 
-
-    for (size_t i = 0; i < env_count; i++) {
-        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=') {
+    for (size_t i = 0; i < env_count; i++)
+    {
+        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=')
+        {
             if (!overwrite) return 0;
 
             size_t new_len = name_len + 1 + strlen(value) + 1;
             char* new_entry = malloc(new_len);
             if (!new_entry) return -1;
-            strcpy(new_entry, name);
-            strcat(new_entry, "=");
-            strcat(new_entry, value);
 
+            snprintf(new_entry, new_len, "%s=%s", name, value);
+
+            free(environ[i]);
             environ[i] = new_entry;
             return 0;
         }
     }
 
-    if (env_count >= MAX_ENV_VARS) return -1;
+    if (env_count + 1 >= env_capacity)
+    {
+        env_capacity = env_capacity * 2;
+        char** new_environ = realloc(environ, env_capacity * sizeof(char*));
+        if (!new_environ) return -1;
+        environ = new_environ;
+    }
+
     size_t new_len = name_len + 1 + strlen(value) + 1;
     char* new_entry = malloc(new_len);
     if (!new_entry) return -1;
-    strcpy(new_entry, name);
-    strcat(new_entry, "=");
-    strcat(new_entry, value);
 
-    environ[env_count++] = new_entry;
+    snprintf(new_entry, new_len, "%s=%s", name, value);
+
+    environ[env_count] = new_entry;
+    env_count++;
+    environ[env_count] = NULL; // environ must be null-terminated
+
     return 0;
 }
 
-int unsetenv(const char* name) {
-    if (!name) return -1;
+int unsetenv(const char* name)
+{
+    if (!name || strchr(name, '=')) return -1;
     size_t name_len = strlen(name);
 
-    for (size_t i = 0; i < env_count; i++) {
-        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=') {
-            // Löschen, Rest nach vorne schieben
-            for (size_t j = i; j < env_count - 1; j++) {
+    for (size_t i = 0; i < env_count; i++)
+    {
+        if (strncmp(environ[i], name, name_len) == 0 && environ[i][name_len] == '=')
+        {
+            free(environ[i]);
+
+            for (size_t j = i; j < env_count - 1; j++)
+            {
                 environ[j] = environ[j + 1];
             }
+
             env_count--;
+            environ[env_count] = NULL;
+
             return 0;
         }
     }
     return -1;
 }
-*/

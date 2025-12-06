@@ -67,11 +67,11 @@ void gdt_install() {
     // Kernel data segment
     set_gdt_entry(2, 0, 0xFFFFF, 0x92, 0xA0);
 
-    // User code segment
-    set_gdt_entry(3, 0, 0xFFFFF, 0xFA, 0xA0);
-
     // User data segment
-    set_gdt_entry(4, 0, 0xFFFFF, 0xF2, 0xA0);
+    set_gdt_entry(3, 0, 0xFFFFF, 0xF2, 0xA0);
+
+    // User code segment
+    set_gdt_entry(4, 0, 0xFFFFF, 0xFA, 0xA0);
 
     gdt_ptr.limit = sizeof(gdt) - 1;
     gdt_ptr.base = reinterpret_cast<uint64_t>(&gdt);

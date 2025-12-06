@@ -1,6 +1,6 @@
 global _start
 extern main
-extern environ
+extern init_environ
 extern stdin
 extern stdout
 extern stderr
@@ -14,9 +14,14 @@ extern sys_exit
 section .text
 
 _start:
-    mov  rax, rdx           ; rdx = envp
-    lea  rcx, [rel environ]
-    mov  [rcx], rax
+    push rdi
+    push rsi
+
+    mov rdi, rdx            ; rdx = envp
+    call init_environ
+
+    pop rsi
+    pop rdi
 
     mov  rcx, HANDLE_STDIN
     lea  rax, [rel stdin]

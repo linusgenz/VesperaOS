@@ -25,50 +25,89 @@
 #define VESPERAOS_STDLIB_H
 #include <stddef.h>
 #include <sysstd.h>
-#include <sys/mman.h>
 
 typedef int64_t FILE_HANDLE;
 
 #ifdef __cplusplus
 extern "C" {
+
+
+
 #endif
 
-extern char **environ;
+/**
+ * @brief Array of environment variables in "NAME=VALUE" format.
+ *
+ * The array is NULL-terminated. Should not be modified directly;
+ * use setenv(), unsetenv(), or putenv() instead.
+ *
+ * @see setenv()
+ * @see unsetenv()
+ * @see putenv()
+ */
+extern char** environ;
+
+/**
+ * @brief Standard input file handle.
+ */
 extern FILE_HANDLE stdin;
-extern FILE_HANDLE stdout;
-extern FILE_HANDLE stderr;
 
-#ifdef __cplusplus
-}
-#endif
+/**
+ * @brief Standard output file handle.
+ */
+extern FILE_HANDLE stdout;
+
+/**
+ * @brief Standard error file handle.
+ */
+extern FILE_HANDLE stderr;
 
 typedef long int ssize_t;
 
 /**
  * @brief Get the value of an environment variable.
  *
- * @param name Variable name (null-terminated string).
- * @return Pointer to the value string, or NULL if not found.
+ * Searches the environment list for a variable with the given name and
+ * returns a pointer to its value (the part after the '=' character).
+ * The returned pointer points to internal memory and must not be modified.
+ *
+ * @param name Variable name (null-terminated string, must not contain '=').
+ * @return Pointer to the value string, or @c NULL if not found.
+ *
+ * @see setenv()
+ * @see unsetenv()
  */
 char* getenv(const char* name);
 
 /**
- * @brief Set an environment variable.
+ * @brief Set or modify an environment variable.
  *
- * @param name Variable name.
- * @param value Value to set.
- * @param overwrite If 0, existing variables are not overwritten.
- * @return 0 on success, -1 on failure.
+ * Adds a new environment variable or modifies an existing one. The function
+ * makes internal copies of both the name and value strings.
+ *
+ * @param name Variable name (must not contain '=').
+ * @param value Value to set (null-terminated string).
+ * @param overwrite If @c 0, existing variables are not modified. If non-zero, overwrite.
+ * @return @c 0 on success, @c -1 on failure.
+ *
+ * @see getenv()
+ * @see unsetenv()
  */
-int setenv(const char *name, const char *value, int overwrite);
+int setenv(const char* name, const char* value, int overwrite);
 
 /**
- * @brief Unset an environment variable.
+ * @brief Remove an environment variable.
  *
- * @param name Variable name.
- * @return 0 on success, -1 if not found.
+ * Removes the variable with the given name from the environment.
+ * Returns @c 0 even if the variable doesn't exist (POSIX behavior).
+ *
+ * @param name Variable name (must not contain '=').
+ * @return @c 0 on success, @c -1 on failure (invalid parameters).
+ *
+ * @see getenv()
+ * @see setenv()
  */
-int unsetenv(const char *name);
+int unsetenv(const char* name);
 
 /**
  * @brief Allocates a block of memory of the specified size.
@@ -81,7 +120,7 @@ int unsetenv(const char *name);
  * @return Pointer to allocated memory on success,
  *         or NULL if allocation failed.
  */
-void *malloc(size_t size);
+void* malloc(size_t size);
 
 /**
  * @brief Releases a block of memory previously allocated by malloc().
@@ -91,7 +130,7 @@ void *malloc(size_t size);
  *
  * @param ptr Pointer to the memory block to free. If NULL, no action is taken.
  */
-void free(void *ptr);
+void free(void* ptr);
 
 /**
  * @brief Reallocates a memory block to a new size.
@@ -104,7 +143,7 @@ void free(void *ptr);
  * @return Pointer to the new memory block on success,
  *         or NULL if allocation failed (old block is not freed in this case).
  */
-void *realloc(void *ptr, size_t new_size);
+void* realloc(void* ptr, size_t new_size);
 
 /**
  * @brief Allocates zero-initialized memory for an array.
@@ -115,6 +154,10 @@ void *realloc(void *ptr, size_t new_size);
  * @param size Size of each element.
  * @return Pointer to zero-initialized memory, or NULL on failure.
  */
-void *calloc(size_t nmemb, size_t size);
+void* calloc(size_t nmemb, size_t size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //VESPERAOS_STDLIB_H

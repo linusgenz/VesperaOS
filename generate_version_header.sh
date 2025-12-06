@@ -2,7 +2,7 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=16
-VERSION_PATCH=6
+VERSION_PATCH=7
 VERSION_STAGE="dev"
 VERSION_NAME="spicy chicken"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

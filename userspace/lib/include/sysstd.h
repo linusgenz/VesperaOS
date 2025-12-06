@@ -248,6 +248,7 @@ int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t);
  * @param arg0 New desired end of heap (0 to query current break)
  * @return On success, returns the new program break.
  *         On error, returns negative errno:
+ *           -EACCES : when unit is no user unit (this error should never be thrown)
  *           -EINVAL : addr is below heap start or exceeds limit
  *           -ENOMEM : not enough memory to expand
  */
