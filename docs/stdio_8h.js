@@ -14,6 +14,7 @@ var stdio_8h =
     [ "FILE_HANDLE", "stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb", null ],
     [ "HANDLE_ID", "stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea", null ],
     [ "close", "stdio_8h.html#ae9b674c850414b323b9779559542c153", null ],
+    [ "closedir", "stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0", null ],
     [ "fclose", "stdio_8h.html#abead4fc4fe2480561857ffd16c1fdc24", null ],
     [ "fopen", "stdio_8h.html#a82f772624397cd590af87a316fe3b29f", null ],
     [ "fread", "stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7", null ],

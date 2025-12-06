@@ -318,7 +318,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, returns the new program break. On error, returns negative errno: -EINVAL : addr is below heap start or exceeds limit -ENOMEM : not enough memory to expand </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns the new program break. On error, returns negative errno: -EACCES : when unit is no user unit (this error should never be thrown) -EINVAL : addr is below heap start or exceeds limit -ENOMEM : not enough memory to expand </dd></dl>
 
 </div>
 </div>

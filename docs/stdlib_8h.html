@@ -100,7 +100,6 @@ $(document).ready(function(){initNavTree('stdlib_8h.html',''); initResizable(); 
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="sysstd_8h_source.html">sysstd.h</a>&gt;</code><br />
-<code>#include &lt;<a class="el" href="mman_8h_source.html">sys/mman.h</a>&gt;</code><br />
 </div>
 <p><a href="stdlib_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -117,10 +116,10 @@ Functions</h2></td></tr>
 <tr class="memdesc:ab1ec8cf93b9478de49bb3e77465ab4af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value of an environment variable.  <br /></td></tr>
 <tr class="separator:ab1ec8cf93b9478de49bb3e77465ab4af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c8b16a3abcb4dc450a0a62b42c554dd" id="r_a1c8b16a3abcb4dc450a0a62b42c554dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd">setenv</a> (const char *name, const char *value, int overwrite)</td></tr>
-<tr class="memdesc:a1c8b16a3abcb4dc450a0a62b42c554dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an environment variable.  <br /></td></tr>
+<tr class="memdesc:a1c8b16a3abcb4dc450a0a62b42c554dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set or modify an environment variable.  <br /></td></tr>
 <tr class="separator:a1c8b16a3abcb4dc450a0a62b42c554dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17a3a11d20a551951a4acbc3872b280c" id="r_a17a3a11d20a551951a4acbc3872b280c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c">unsetenv</a> (const char *name)</td></tr>
-<tr class="memdesc:a17a3a11d20a551951a4acbc3872b280c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unset an environment variable.  <br /></td></tr>
+<tr class="memdesc:a17a3a11d20a551951a4acbc3872b280c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove an environment variable.  <br /></td></tr>
 <tr class="separator:a17a3a11d20a551951a4acbc3872b280c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c36d0fe3ec4675cbffdc9b52f5fb399" id="r_a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399">malloc</a> (<a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
 <tr class="memdesc:a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a block of memory of the specified size.  <br /></td></tr>
@@ -138,12 +137,16 @@ Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:aa006daaf11f1e2e45a6ababaf463212b" id="r_aa006daaf11f1e2e45a6ababaf463212b"><td class="memItemLeft" align="right" valign="top">char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b">environ</a></td></tr>
+<tr class="memdesc:aa006daaf11f1e2e45a6ababaf463212b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of environment variables in "NAME=VALUE" format.  <br /></td></tr>
 <tr class="separator:aa006daaf11f1e2e45a6ababaf463212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad7e0a39be21b2491dd86fed4fdac3a9" id="r_aad7e0a39be21b2491dd86fed4fdac3a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aad7e0a39be21b2491dd86fed4fdac3a9">stdin</a></td></tr>
+<tr class="memdesc:aad7e0a39be21b2491dd86fed4fdac3a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard input file handle.  <br /></td></tr>
 <tr class="separator:aad7e0a39be21b2491dd86fed4fdac3a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1e629f812b37fb991dabc7f62c3232d" id="r_ae1e629f812b37fb991dabc7f62c3232d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#ae1e629f812b37fb991dabc7f62c3232d">stdout</a></td></tr>
+<tr class="memdesc:ae1e629f812b37fb991dabc7f62c3232d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard output file handle.  <br /></td></tr>
 <tr class="separator:ae1e629f812b37fb991dabc7f62c3232d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68d8bb041a7c69667bcd076557b84de1" id="r_a68d8bb041a7c69667bcd076557b84de1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#a0deb59b52e8cdf4e9acb583b8a148ebb">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a68d8bb041a7c69667bcd076557b84de1">stderr</a></td></tr>
+<tr class="memdesc:a68d8bb041a7c69667bcd076557b84de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard error file handle.  <br /></td></tr>
 <tr class="separator:a68d8bb041a7c69667bcd076557b84de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
@@ -259,13 +262,17 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the value of an environment variable. </p>
+<p>Searches the environment list for a variable with the given name and returns a pointer to its value (the part after the '=' character). The returned pointer points to internal memory and must not be modified.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">name</td><td>Variable name (null-terminated string). </td></tr>
+    <tr><td class="paramname">name</td><td>Variable name (null-terminated string, must not contain '='). </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Pointer to the value string, or NULL if not found. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to the value string, or <code>NULL</code> if not found.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd" title="Set or modify an environment variable.">setenv()</a> </dd>
+<dd>
+<a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c" title="Remove an environment variable.">unsetenv()</a> </dd></dl>
 
 </div>
 </div>
@@ -368,16 +375,20 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set an environment variable. </p>
+<p>Set or modify an environment variable. </p>
+<p>Adds a new environment variable or modifies an existing one. The function makes internal copies of both the name and value strings.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">name</td><td>Variable name. </td></tr>
-    <tr><td class="paramname">value</td><td>Value to set. </td></tr>
-    <tr><td class="paramname">overwrite</td><td>If 0, existing variables are not overwritten. </td></tr>
+    <tr><td class="paramname">name</td><td>Variable name (must not contain '='). </td></tr>
+    <tr><td class="paramname">value</td><td>Value to set (null-terminated string). </td></tr>
+    <tr><td class="paramname">overwrite</td><td>If <code>0</code>, existing variables are not modified. If non-zero, overwrite. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success, -1 on failure. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, <code>-1</code> on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdlib_8h.html#ab1ec8cf93b9478de49bb3e77465ab4af" title="Get the value of an environment variable.">getenv()</a> </dd>
+<dd>
+<a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c" title="Remove an environment variable.">unsetenv()</a> </dd></dl>
 
 </div>
 </div>
@@ -397,14 +408,18 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Unset an environment variable. </p>
+<p>Remove an environment variable. </p>
+<p>Removes the variable with the given name from the environment. Returns <code>0</code> even if the variable doesn't exist (POSIX behavior).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">name</td><td>Variable name. </td></tr>
+    <tr><td class="paramname">name</td><td>Variable name (must not contain '='). </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success, -1 if not found. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, <code>-1</code> on failure (invalid parameters).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdlib_8h.html#ab1ec8cf93b9478de49bb3e77465ab4af" title="Get the value of an environment variable.">getenv()</a> </dd>
+<dd>
+<a class="el" href="stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd" title="Set or modify an environment variable.">setenv()</a> </dd></dl>
 
 </div>
 </div>
@@ -429,6 +444,14 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Array of environment variables in "NAME=VALUE" format. </p>
+<p>The array is NULL-terminated. Should not be modified directly; use <a class="el" href="stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd" title="Set or modify an environment variable.">setenv()</a>, <a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c" title="Remove an environment variable.">unsetenv()</a>, or putenv() instead.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd" title="Set or modify an environment variable.">setenv()</a> </dd>
+<dd>
+<a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c" title="Remove an environment variable.">unsetenv()</a> </dd>
+<dd>
+putenv() </dd></dl>
+
 </div>
 </div>
 <a id="a68d8bb041a7c69667bcd076557b84de1" name="a68d8bb041a7c69667bcd076557b84de1"></a>
@@ -450,6 +473,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Standard error file handle. </p>
 
 </div>
 </div>
@@ -473,6 +498,8 @@ Variables</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Standard input file handle. </p>
+
 </div>
 </div>
 <a id="ae1e629f812b37fb991dabc7f62c3232d" name="ae1e629f812b37fb991dabc7f62c3232d"></a>
@@ -494,6 +521,8 @@ Variables</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Standard output file handle. </p>
 
 </div>
 </div>
