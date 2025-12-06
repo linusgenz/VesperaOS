@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="logo_docs.png"/></td>
   <td id="projectalign">
-   <div id="projectname">vesplib<span id="projectnumber">&#160;1.1</span>
+   <div id="projectname">vesplib<span id="projectnumber">&#160;1.2</span>
    </div>
    <div id="projectbrief">VesperaOS Standard Library</div>
   </td>
@@ -117,6 +117,10 @@ Macros</h2></td></tr>
 <tr class="separator:ae036f789407d21f07b211552d67b3214"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6afd3dd2f570069804b40e6aa24fc966" id="r_a6afd3dd2f570069804b40e6aa24fc966"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fflags_8h.html#a6afd3dd2f570069804b40e6aa24fc966">O_DIRECTORY</a>&#160;&#160;&#160;0x2000</td></tr>
 <tr class="separator:a6afd3dd2f570069804b40e6aa24fc966"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06df2208247096abdd71b9d673d05198" id="r_a06df2208247096abdd71b9d673d05198"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fflags_8h.html#a06df2208247096abdd71b9d673d05198">C_FILE</a>&#160;&#160;&#160;0x00</td></tr>
+<tr class="separator:a06df2208247096abdd71b9d673d05198"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25f6c486bbaf73d1927017276f6038a3" id="r_a25f6c486bbaf73d1927017276f6038a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fflags_8h.html#a25f6c486bbaf73d1927017276f6038a3">C_DIR</a>&#160;&#160;&#160;0x01</td></tr>
+<tr class="separator:a25f6c486bbaf73d1927017276f6038a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d112bae8fd35be772185b6ec6bcbe64" id="r_a0d112bae8fd35be772185b6ec6bcbe64"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fflags_8h.html#a0d112bae8fd35be772185b6ec6bcbe64">SEEK_SET</a>&#160;&#160;&#160;0</td></tr>
 <tr class="separator:a0d112bae8fd35be772185b6ec6bcbe64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c8d0b76b470ba65a43ca46a88320f39" id="r_a4c8d0b76b470ba65a43ca46a88320f39"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fflags_8h.html#a4c8d0b76b470ba65a43ca46a88320f39">SEEK_CUR</a>&#160;&#160;&#160;1</td></tr>
@@ -124,7 +128,45 @@ Macros</h2></td></tr>
 <tr class="memitem:ad2a2e6c114780c3071efd24f16c7f7d8" id="r_ad2a2e6c114780c3071efd24f16c7f7d8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="fflags_8h.html#ad2a2e6c114780c3071efd24f16c7f7d8">SEEK_END</a>&#160;&#160;&#160;2</td></tr>
 <tr class="separator:ad2a2e6c114780c3071efd24f16c7f7d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>VesperaOS - operating system for the x86_64 architecture</p>
+<p>Copyright (c) 2025 Linus Genz <a href="#" onclick="location.href='mai'+'lto:'+'mai'+'l@'+'lin'+'us'+'gen'+'z.'+'dev'; return false;">mail@<span class="obfuscator">.nosp@m.</span>linu<span class="obfuscator">.nosp@m.</span>sgenz<span class="obfuscator">.nosp@m.</span>.dev</a></p>
+<p>Created by Linus Genz on 22.09.25.</p>
+<p>This file is part of VesperaOS.</p>
+<p>VesperaOS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+<p>VesperaOS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
+<p>You should have received a copy of the GNU General Public License along with VesperaOS. If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>. </p>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a25f6c486bbaf73d1927017276f6038a3" name="a25f6c486bbaf73d1927017276f6038a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25f6c486bbaf73d1927017276f6038a3">&#9670;&#160;</a></span>C_DIR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define C_DIR&#160;&#160;&#160;0x01</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The target should be a directory </p>
+
+</div>
+</div>
+<a id="a06df2208247096abdd71b9d673d05198" name="a06df2208247096abdd71b9d673d05198"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06df2208247096abdd71b9d673d05198">&#9670;&#160;</a></span>C_FILE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define C_FILE&#160;&#160;&#160;0x00</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The target should be a file </p>
+
+</div>
+</div>
 <a id="ae036f789407d21f07b211552d67b3214" name="ae036f789407d21f07b211552d67b3214"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae036f789407d21f07b211552d67b3214">&#9670;&#160;</a></span>O_APPEND</h2>
 

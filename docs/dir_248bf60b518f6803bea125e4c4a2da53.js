@@ -11,6 +11,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "internal.h", "internal_8h.html", "internal_8h" ],
     [ "memory.h", "memory_8h.html", "memory_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],
+    [ "reboot.h", "reboot_8h.html", "reboot_8h" ],
     [ "stdbool.h", "stdbool_8h.html", "stdbool_8h" ],
     [ "stddef.h", "stddef_8h.html", "stddef_8h" ],
     [ "stdint.h", "stdint_8h.html", "stdint_8h" ],

@@ -5,6 +5,5 @@ var stddef_8h =
     [ "ptrdiff_t", "stddef_8h.html#a1391029fd5d5d35fab28d7423c8cca9b", null ],
     [ "size_t", "stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984", null ],
     [ "wchar_t", "stddef_8h.html#a9c277a3fd853029cc853c877bcd32e8e", null ],
-    [ "wint_t", "stddef_8h.html#aae8fec8a77257a9718887040067a3f09", null ],
-    [ "nullptr", "stddef_8h.html#a613e101daafbd85dda7ecfcca8220f6b", null ]
+    [ "wint_t", "stddef_8h.html#aae8fec8a77257a9718887040067a3f09", null ]
 ];

@@ -15,6 +15,8 @@ var stdio_8h =
     [ "HANDLE_ID", "stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea", null ],
     [ "close", "stdio_8h.html#ae9b674c850414b323b9779559542c153", null ],
     [ "closedir", "stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0", null ],
+    [ "creat", "stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc", null ],
+    [ "create", "stdio_8h.html#a887a2f711e90813cae7a78d79e3748bf", null ],
     [ "fclose", "stdio_8h.html#abead4fc4fe2480561857ffd16c1fdc24", null ],
     [ "fopen", "stdio_8h.html#a82f772624397cd590af87a316fe3b29f", null ],
     [ "fread", "stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7", null ],
@@ -22,11 +24,15 @@ var stdio_8h =
     [ "ftell", "stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9", null ],
     [ "fwrite", "stdio_8h.html#a0521008fe2a792026bcd8f31234818a3", null ],
     [ "getchar", "stdio_8h.html#a3e29caa20f7cffe18f410f01278905a8", null ],
+    [ "mkdir", "stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e", null ],
     [ "open", "stdio_8h.html#a8c7c5fe31e34ed16c61ff40bb0d3d49c", null ],
     [ "opendir", "stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346", null ],
     [ "printf", "stdio_8h.html#a0aff7311d684a0e0ef33125616a73385", null ],
     [ "putchar", "stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a", null ],
     [ "puts", "stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f", null ],
+    [ "readdir", "stdio_8h.html#a644846453a50f8941bb85d96a9c8d887", null ],
     [ "rewind", "stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934", null ],
-    [ "snprintf", "stdio_8h.html#a304ea6ce0f310fd8ed15648139819680", null ]
+    [ "rmdir", "stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce", null ],
+    [ "snprintf", "stdio_8h.html#a304ea6ce0f310fd8ed15648139819680", null ],
+    [ "unlink", "stdio_8h.html#a28af9471bbdf262321af663e02899a47", null ]
 ];

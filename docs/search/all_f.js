@@ -1,14 +1,21 @@
 var searchData=
 [
-  ['realloc_0',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
-  ['realm_2eh_1',['realm.h',['../realm_8h.html',1,'']]],
-  ['reboot_5fhalt_2',['REBOOT_HALT',['../sysstd_8h.html#ac779db2e507c6285951e657e47e3b748',1,'sysstd.h']]],
-  ['reboot_5fmagic1_3',['REBOOT_MAGIC1',['../sysstd_8h.html#a4b30f7b8597967276b4245daee628589',1,'sysstd.h']]],
-  ['reboot_5fmagic2_4',['REBOOT_MAGIC2',['../sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c',1,'sysstd.h']]],
-  ['reboot_5fpower_5foff_5',['REBOOT_POWER_OFF',['../sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad',1,'sysstd.h']]],
-  ['reboot_5frestart_6',['REBOOT_RESTART',['../sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8',1,'sysstd.h']]],
-  ['reserved_5fram_7',['reserved_ram',['../structmeminfo__t.html#a944f672d0f1bad28dbbbc5494cc656f2',1,'meminfo_t']]],
-  ['rewind_8',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
-  ['rtc_2eh_9',['rtc.h',['../rtc_8h.html',1,'']]],
-  ['rtc_5fdata_10',['rtc_data',['../structrtc__data.html',1,'']]]
+  ['readdir_0',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
+  ['realloc_1',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
+  ['realm_2eh_2',['realm.h',['../realm_8h.html',1,'']]],
+  ['realmid_3',['RealmID',['../realm_8h.html#ab0585566306fc83efde7a4789d0869eb',1,'realm.h']]],
+  ['reboot_4',['reboot',['../reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5',1,'reboot.h']]],
+  ['reboot_2eh_5',['reboot.h',['../reboot_8h.html',1,'']]],
+  ['reboot_5fhalt_6',['reboot_halt',['../reboot_8h.html#a6f95ffcf13be063c8af8e67ab7973e26',1,'reboot.h']]],
+  ['reboot_5fmode_5fhalt_7',['REBOOT_MODE_HALT',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4',1,'reboot.h']]],
+  ['reboot_5fmode_5fpower_5foff_8',['REBOOT_MODE_POWER_OFF',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491',1,'reboot.h']]],
+  ['reboot_5fmode_5frestart_9',['REBOOT_MODE_RESTART',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50',1,'reboot.h']]],
+  ['reboot_5fmode_5ft_10',['reboot_mode_t',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38',1,'reboot.h']]],
+  ['reboot_5fpoweroff_11',['reboot_poweroff',['../reboot_8h.html#a3d2e382d1acf7eb5fe273f1b69050209',1,'reboot.h']]],
+  ['reboot_5frestart_12',['reboot_restart',['../reboot_8h.html#aa1843d7f616e462b9cf039ab14629f95',1,'reboot.h']]],
+  ['reserved_5fram_13',['reserved_ram',['../structmeminfo__t.html#a944f672d0f1bad28dbbbc5494cc656f2',1,'meminfo_t']]],
+  ['rewind_14',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
+  ['rmdir_15',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]],
+  ['rtc_2eh_16',['rtc.h',['../rtc_8h.html',1,'']]],
+  ['rtc_5fdata_17',['rtc_data',['../structrtc__data.html',1,'']]]
 ];

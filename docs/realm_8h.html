@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="logo_docs.png"/></td>
   <td id="projectalign">
-   <div id="projectname">vesplib<span id="projectnumber">&#160;1.1</span>
+   <div id="projectname">vesplib<span id="projectnumber">&#160;1.2</span>
    </div>
    <div id="projectbrief">VesperaOS Standard Library</div>
   </td>
@@ -92,6 +92,7 @@ $(document).ready(function(){initNavTree('realm_8h.html',''); initResizable(); }
 
 <div class="header">
   <div class="summary">
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">realm.h File Reference</div></div>
 </div><!--header-->
@@ -101,21 +102,66 @@ $(document).ready(function(){initNavTree('realm_8h.html',''); initResizable(); }
 </div>
 <p><a href="realm_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ab0585566306fc83efde7a4789d0869eb" id="r_ab0585566306fc83efde7a4789d0869eb"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a></td></tr>
+<tr class="memdesc:ab0585566306fc83efde7a4789d0869eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">type representing a realm identifier  <br /></td></tr>
+<tr class="separator:ab0585566306fc83efde7a4789d0869eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4a7e3111654c8366cd31c6c5580883c" id="r_ad4a7e3111654c8366cd31c6c5580883c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c">UnitID</a></td></tr>
+<tr class="memdesc:ad4a7e3111654c8366cd31c6c5580883c"><td class="mdescLeft">&#160;</td><td class="mdescRight">type representing a unit (thread) identifier  <br /></td></tr>
+<tr class="separator:ad4a7e3111654c8366cd31c6c5580883c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a19d4c4015f83847d24028ee979de35cf" id="r_a19d4c4015f83847d24028ee979de35cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a19d4c4015f83847d24028ee979de35cf">spawn_realm</a> (const char *path_ptr, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> argc, const char **argv, char **envp)</td></tr>
-<tr class="memdesc:a19d4c4015f83847d24028ee979de35cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new realm (isolated execution context).  <br /></td></tr>
-<tr class="separator:a19d4c4015f83847d24028ee979de35cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6727cb31c2eb87b6dfa6e3ce281cb986" id="r_a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a6727cb31c2eb87b6dfa6e3ce281cb986">spawn_unit</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> entry_point, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg_ptr)</td></tr>
-<tr class="memdesc:a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new unit (thread) inside an existing realm.  <br /></td></tr>
-<tr class="separator:a6727cb31c2eb87b6dfa6e3ce281cb986"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fd325d702bccc2940cc3de76c0b4281" id="r_a6fd325d702bccc2940cc3de76c0b4281"><td class="memItemLeft" align="right" valign="top"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a6fd325d702bccc2940cc3de76c0b4281">spawn_realm</a> (const char *path_ptr, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> argc, const char **argv, char **envp)</td></tr>
+<tr class="memdesc:a6fd325d702bccc2940cc3de76c0b4281"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new realm (isolated execution context).  <br /></td></tr>
+<tr class="separator:a6fd325d702bccc2940cc3de76c0b4281"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa709d08cf793b0c97ec0c870bf2ea314" id="r_aa709d08cf793b0c97ec0c870bf2ea314"><td class="memItemLeft" align="right" valign="top"><a class="el" href="realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c">UnitID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#aa709d08cf793b0c97ec0c870bf2ea314">spawn_unit</a> (<a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> entry_point, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg_ptr)</td></tr>
+<tr class="memdesc:aa709d08cf793b0c97ec0c870bf2ea314"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new unit (thread) inside an existing realm.  <br /></td></tr>
+<tr class="separator:aa709d08cf793b0c97ec0c870bf2ea314"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fbb78b7e72ea7263d5f0ca3bb21bdd2" id="r_a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">__attribute__</a> ((noreturn)) void exit(<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
 <tr class="memdesc:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
 <tr class="separator:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace9c7b6f0943ed9bdbb7ead39ce40387" id="r_ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#ace9c7b6f0943ed9bdbb7ead39ce40387">exit_realm</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
-<tr class="memdesc:ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate an entire realm and all its units.  <br /></td></tr>
-<tr class="separator:ace9c7b6f0943ed9bdbb7ead39ce40387"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b8dc6ae1b2916b40057461c81ccf686" id="r_a9b8dc6ae1b2916b40057461c81ccf686"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686">exit_realm</a> (<a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
+<tr class="memdesc:a9b8dc6ae1b2916b40057461c81ccf686"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate an entire realm and all its units.  <br /></td></tr>
+<tr class="separator:a9b8dc6ae1b2916b40057461c81ccf686"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59f606471b07976be9904777066defbc" id="r_a59f606471b07976be9904777066defbc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a59f606471b07976be9904777066defbc">wait_realm</a> (<a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> realm_id, int *status)</td></tr>
+<tr class="memdesc:a59f606471b07976be9904777066defbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for a realm to finish execution.  <br /></td></tr>
+<tr class="separator:a59f606471b07976be9904777066defbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="ab0585566306fc83efde7a4789d0869eb" name="ab0585566306fc83efde7a4789d0869eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0585566306fc83efde7a4789d0869eb">&#9670;&#160;</a></span>RealmID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>type representing a realm identifier </p>
+
+</div>
+</div>
+<a id="ad4a7e3111654c8366cd31c6c5580883c" name="ad4a7e3111654c8366cd31c6c5580883c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4a7e3111654c8366cd31c6c5580883c">&#9670;&#160;</a></span>UnitID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c">UnitID</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>type representing a unit (thread) identifier </p>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a8fbb78b7e72ea7263d5f0ca3bb21bdd2" name="a8fbb78b7e72ea7263d5f0ca3bb21bdd2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">&#9670;&#160;</a></span>__attribute__()</h2>
@@ -145,8 +191,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ace9c7b6f0943ed9bdbb7ead39ce40387" name="ace9c7b6f0943ed9bdbb7ead39ce40387"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ace9c7b6f0943ed9bdbb7ead39ce40387">&#9670;&#160;</a></span>exit_realm()</h2>
+<a id="a9b8dc6ae1b2916b40057461c81ccf686" name="a9b8dc6ae1b2916b40057461c81ccf686"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b8dc6ae1b2916b40057461c81ccf686">&#9670;&#160;</a></span>exit_realm()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -154,7 +200,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> exit_realm </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
           <td class="paramname"><em>realm_id</em>, </td>
         </tr>
         <tr>
@@ -183,14 +229,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a19d4c4015f83847d24028ee979de35cf" name="a19d4c4015f83847d24028ee979de35cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19d4c4015f83847d24028ee979de35cf">&#9670;&#160;</a></span>spawn_realm()</h2>
+<a id="a6fd325d702bccc2940cc3de76c0b4281" name="a6fd325d702bccc2940cc3de76c0b4281"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fd325d702bccc2940cc3de76c0b4281">&#9670;&#160;</a></span>spawn_realm()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> spawn_realm </td>
+          <td class="memname"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> spawn_realm </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>path_ptr</em>, </td>
@@ -227,7 +273,8 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">path_ptr</td><td>Pointer to the path of the executable binary. </td></tr>
     <tr><td class="paramname">argc</td><td>Number of arguments. </td></tr>
-    <tr><td class="paramname">argv_ptr</td><td>Pointer to an array of argument strings. </td></tr>
+    <tr><td class="paramname">argv</td><td>Pointer to an array of argument strings. </td></tr>
+    <tr><td class="paramname">envp</td><td>Pointer to a NULL-terminated array of strings representing the environment variables for the new realm. Can be <code>NULL</code> if no environment variables are needed. </td></tr>
   </table>
   </dd>
 </dl>
@@ -235,16 +282,16 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6727cb31c2eb87b6dfa6e3ce281cb986" name="a6727cb31c2eb87b6dfa6e3ce281cb986"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6727cb31c2eb87b6dfa6e3ce281cb986">&#9670;&#160;</a></span>spawn_unit()</h2>
+<a id="aa709d08cf793b0c97ec0c870bf2ea314" name="aa709d08cf793b0c97ec0c870bf2ea314"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa709d08cf793b0c97ec0c870bf2ea314">&#9670;&#160;</a></span>spawn_unit()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> spawn_unit </td>
+          <td class="memname"><a class="el" href="realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c">UnitID</a> spawn_unit </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
           <td class="paramname"><em>realm_id</em>, </td>
         </tr>
         <tr>
@@ -277,6 +324,45 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Unit ID on success, negative error code on failure. </dd></dl>
+
+</div>
+</div>
+<a id="a59f606471b07976be9904777066defbc" name="a59f606471b07976be9904777066defbc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59f606471b07976be9904777066defbc">&#9670;&#160;</a></span>wait_realm()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int wait_realm </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
+          <td class="paramname"><em>realm_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>status</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wait for a realm to finish execution. </p>
+<p>Blocks the current process until the realm with ID <code>realm_id</code> has completed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">realm_id</td><td>The ID of the realm to wait for. </td></tr>
+    <tr><td class="paramname">status</td><td>Pointer to an int to store the exit status, or <code>NULL</code> if unused. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, or a negative error code on failure (e.g., -ECHILD). </dd></dl>
 
 </div>
 </div>

@@ -16,8 +16,9 @@ var searchData=
   ['memory_2eh_13',['memory.h',['../memory_8h.html',1,'']]],
   ['memset_14',['memset',['../string_8h.html#a7b790200c268c08dc4429094ad149853',1,'string.h']]],
   ['min_15',['min',['../structrtc__data.html#afb1985b369bafba67c3c376d2120fef4',1,'rtc_data']]],
-  ['mman_2eh_16',['mman.h',['../mman_8h.html',1,'']]],
-  ['mmap_17',['mmap',['../mman_8h.html#adce60d6da219bfd77ddbe177533942e8',1,'mman.h']]],
-  ['month_18',['month',['../structrtc__data.html#af7d5c74fbf9a5b85c7ce89863d3cb9f1',1,'rtc_data']]],
-  ['munmap_19',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
+  ['mkdir_16',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
+  ['mman_2eh_17',['mman.h',['../mman_8h.html',1,'']]],
+  ['mmap_18',['mmap',['../mman_8h.html#adce60d6da219bfd77ddbe177533942e8',1,'mman.h']]],
+  ['month_19',['month',['../structrtc__data.html#af7d5c74fbf9a5b85c7ce89863d3cb9f1',1,'rtc_data']]],
+  ['munmap_20',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

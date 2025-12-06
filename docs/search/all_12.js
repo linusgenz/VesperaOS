@@ -15,10 +15,12 @@ var searchData=
   ['uint_5fto_5fstr_12',['uint_to_str',['../internal_8h.html#ab72bae8e2e38262d4e342ea762149f3a',1,'internal.h']]],
   ['uintmax_5ft_13',['uintmax_t',['../stdint_8h.html#a2ba5f6c0633401558d277b2c0e4f758d',1,'stdint.h']]],
   ['uintptr_5ft_14',['uintptr_t',['../stdint_8h.html#a83242de74310b4aec3fc506bc3644211',1,'stdint.h']]],
-  ['unsetenv_15',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
-  ['urandom_2eh_16',['urandom.h',['../urandom_8h.html',1,'']]],
-  ['urandom_5fu32_17',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
-  ['urandom_5fu64_18',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
-  ['usb_5fxhci_5fioctl_2eh_19',['usb_xhci_ioctl.h',['../usb__xhci__ioctl_8h.html',1,'']]],
-  ['used_5fram_20',['used_ram',['../structmeminfo__t.html#afe3c8841983450c6aedf3cc2e9cbca0a',1,'meminfo_t']]]
+  ['unitid_15',['UnitID',['../realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c',1,'realm.h']]],
+  ['unlink_16',['unlink',['../stdio_8h.html#a28af9471bbdf262321af663e02899a47',1,'stdio.h']]],
+  ['unsetenv_17',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
+  ['urandom_2eh_18',['urandom.h',['../urandom_8h.html',1,'']]],
+  ['urandom_5fu32_19',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
+  ['urandom_5fu64_20',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
+  ['usb_5fxhci_5fioctl_2eh_21',['usb_xhci_ioctl.h',['../usb__xhci__ioctl_8h.html',1,'']]],
+  ['used_5fram_22',['used_ram',['../structmeminfo__t.html#afe3c8841983450c6aedf3cc2e9cbca0a',1,'meminfo_t']]]
 ];

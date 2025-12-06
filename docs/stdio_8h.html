@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="logo_docs.png"/></td>
   <td id="projectalign">
-   <div id="projectname">vesplib<span id="projectnumber">&#160;1.1</span>
+   <div id="projectname">vesplib<span id="projectnumber">&#160;1.2</span>
    </div>
    <div id="projectbrief">VesperaOS Standard Library</div>
   </td>
@@ -101,6 +101,7 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
 <div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdlib_8h_source.html">stdlib.h</a>&gt;</code><br />
+<code>#include &quot;<a class="el" href="dirent_8h_source.html">dirent.h</a>&quot;</code><br />
 </div>
 <p><a href="stdio_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -180,12 +181,30 @@ Functions</h2></td></tr>
 <tr class="memitem:af6cfb473a0f84c34b91c072e50e71af0" id="r_af6cfb473a0f84c34b91c072e50e71af0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0">closedir</a> (<a class="el" href="stdio_8h.html#af4072c4c1cb0b8441d6ce257461cccb0">DIR_HANDLE</a> handle)</td></tr>
 <tr class="memdesc:af6cfb473a0f84c34b91c072e50e71af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a directory.  <br /></td></tr>
 <tr class="separator:af6cfb473a0f84c34b91c072e50e71af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a644846453a50f8941bb85d96a9c8d887" id="r_a644846453a50f8941bb85d96a9c8d887"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a644846453a50f8941bb85d96a9c8d887">readdir</a> (<a class="el" href="stdio_8h.html#af4072c4c1cb0b8441d6ce257461cccb0">DIR_HANDLE</a> handle, <a class="el" href="structdirent__t.html">dirent_t</a> *entry)</td></tr>
+<tr class="memdesc:a644846453a50f8941bb85d96a9c8d887"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a directory entry.  <br /></td></tr>
+<tr class="separator:a644846453a50f8941bb85d96a9c8d887"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c7c5fe31e34ed16c61ff40bb0d3d49c" id="r_a8c7c5fe31e34ed16c61ff40bb0d3d49c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a8c7c5fe31e34ed16c61ff40bb0d3d49c">open</a> (const char *path, int flags)</td></tr>
 <tr class="memdesc:a8c7c5fe31e34ed16c61ff40bb0d3d49c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a resource (generic handle).  <br /></td></tr>
 <tr class="separator:a8c7c5fe31e34ed16c61ff40bb0d3d49c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9b674c850414b323b9779559542c153" id="r_ae9b674c850414b323b9779559542c153"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ae9b674c850414b323b9779559542c153">close</a> (<a class="el" href="stdio_8h.html#ac0152d4a089ae45980c7fb1a636edeea">HANDLE_ID</a> handle)</td></tr>
 <tr class="memdesc:ae9b674c850414b323b9779559542c153"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a generic handle.  <br /></td></tr>
 <tr class="separator:ae9b674c850414b323b9779559542c153"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a6f985cc61227f641f7cc75927b06fc" id="r_a6a6f985cc61227f641f7cc75927b06fc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc">creat</a> (const char *path)</td></tr>
+<tr class="memdesc:a6a6f985cc61227f641f7cc75927b06fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file.  <br /></td></tr>
+<tr class="separator:a6a6f985cc61227f641f7cc75927b06fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeb6cbc06f4dc89199e2c33561b2f77e" id="r_afeb6cbc06f4dc89199e2c33561b2f77e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e">mkdir</a> (const char *path)</td></tr>
+<tr class="memdesc:afeb6cbc06f4dc89199e2c33561b2f77e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new directory.  <br /></td></tr>
+<tr class="separator:afeb6cbc06f4dc89199e2c33561b2f77e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28af9471bbdf262321af663e02899a47" id="r_a28af9471bbdf262321af663e02899a47"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47">unlink</a> (const char *path)</td></tr>
+<tr class="memdesc:a28af9471bbdf262321af663e02899a47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a file.  <br /></td></tr>
+<tr class="separator:a28af9471bbdf262321af663e02899a47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2df76f2c62ae012c2e417813b5fe8ce" id="r_ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce">rmdir</a> (const char *path)</td></tr>
+<tr class="memdesc:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a directory.  <br /></td></tr>
+<tr class="separator:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a887a2f711e90813cae7a78d79e3748bf" id="r_a887a2f711e90813cae7a78d79e3748bf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a887a2f711e90813cae7a78d79e3748bf">create</a> (const char *path, int flags)</td></tr>
+<tr class="memdesc:a887a2f711e90813cae7a78d79e3748bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file or directory.  <br /></td></tr>
+<tr class="separator:a887a2f711e90813cae7a78d79e3748bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a20f587d71e5bfe98fd92929ab61bde41" name="a20f587d71e5bfe98fd92929ab61bde41"></a>
@@ -431,6 +450,79 @@ Functions</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#ae9b674c850414b323b9779559542c153" title="Close a generic handle.">close()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a6a6f985cc61227f641f7cc75927b06fc" name="a6a6f985cc61227f641f7cc75927b06fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a6f985cc61227f641f7cc75927b06fc">&#9670;&#160;</a></span>creat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int creat </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a new file. </p>
+<p>Creates a new empty file at <code>path</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path where the file should be created. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a82f772624397cd590af87a316fe3b29f" title="Open a file.">fopen()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a887a2f711e90813cae7a78d79e3748bf" name="a887a2f711e90813cae7a78d79e3748bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a887a2f711e90813cae7a78d79e3748bf">&#9670;&#160;</a></span>create()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int create </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a new file or directory. </p>
+<p>Creates a new file or directory at <code>path</code>. The type is determined by flags.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path where the file/directory should be created. </td></tr>
+    <tr><td class="paramname">flags</td><td>Creation flags . </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a82f772624397cd590af87a316fe3b29f" title="Open a file.">fopen()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd></dl>
 
 </div>
 </div>
@@ -707,6 +799,37 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="afeb6cbc06f4dc89199e2c33561b2f77e" name="afeb6cbc06f4dc89199e2c33561b2f77e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afeb6cbc06f4dc89199e2c33561b2f77e">&#9670;&#160;</a></span>mkdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mkdir </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a new directory. </p>
+<p>Creates a new directory at <code>path</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path where the directory should be created. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new file.">creat()</a> </dd></dl>
+
+</div>
+</div>
 <a id="a8c7c5fe31e34ed16c61ff40bb0d3d49c" name="a8c7c5fe31e34ed16c61ff40bb0d3d49c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c7c5fe31e34ed16c61ff40bb0d3d49c">&#9670;&#160;</a></span>open()</h2>
 
@@ -738,7 +861,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path to the resource (null-terminated string). </td></tr>
-    <tr><td class="paramname">flags</td><td>Open flags (bitwise OR of O_* constants). </td></tr>
+    <tr><td class="paramname">flags</td><td>Open flags (bitwise OR of O_* constants, see <a class="el" href="fflags_8h.html">fflags.h</a>). </td></tr>
   </table>
   </dd>
 </dl>
@@ -876,6 +999,48 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a644846453a50f8941bb85d96a9c8d887" name="a644846453a50f8941bb85d96a9c8d887"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a644846453a50f8941bb85d96a9c8d887">&#9670;&#160;</a></span>readdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a> readdir </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#af4072c4c1cb0b8441d6ce257461cccb0">DIR_HANDLE</a>&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdirent__t.html">dirent_t</a> *&#160;</td>
+          <td class="paramname"><em>entry</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Read a directory entry. </p>
+<p>Reads the next directory entry from <code>handle</code> into <code>entry</code>. Returns <code>0</code> when no more entries are available.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">handle</td><td>Directory handle returned by <a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a>. </td></tr>
+    <tr><td class="paramname">entry</td><td>Pointer to <a class="el" href="structdirent__t.html" title="Structure representing a directory entry.">dirent_t</a> structure to fill. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Positive value on success, <code>0</code> at end of directory, or negative error code on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0" title="Close a directory.">closedir()</a> </dd></dl>
+
+</div>
+</div>
 <a id="af5ff712c81d4fa6c2bab64f231247934" name="af5ff712c81d4fa6c2bab64f231247934"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af5ff712c81d4fa6c2bab64f231247934">&#9670;&#160;</a></span>rewind()</h2>
 
@@ -904,6 +1069,37 @@ Functions</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b" title="Reposition stream position indicator.">fseek()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9" title="Get current position in stream.">ftell()</a> </dd></dl>
+
+</div>
+</div>
+<a id="ab2df76f2c62ae012c2e417813b5fe8ce" name="ab2df76f2c62ae012c2e417813b5fe8ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2df76f2c62ae012c2e417813b5fe8ce">&#9670;&#160;</a></span>rmdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int rmdir </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Remove a directory. </p>
+<p>Removes (deletes) the directory at <code>path</code>. The directory must be empty.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to the directory to remove. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd></dl>
 
 </div>
 </div>
@@ -958,6 +1154,37 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Total number of characters that would have been written (excluding null), or <code>-1</code> on error.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a0aff7311d684a0e0ef33125616a73385" title="Formatted output to stdout.">printf()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a28af9471bbdf262321af663e02899a47" name="a28af9471bbdf262321af663e02899a47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28af9471bbdf262321af663e02899a47">&#9670;&#160;</a></span>unlink()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int unlink </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Remove a file. </p>
+<p>Removes (deletes) the file at <code>path</code>. The file must not be open.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to the file to remove. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new file.">creat()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
 
 </div>
 </div>

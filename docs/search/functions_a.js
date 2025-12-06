@@ -2,8 +2,8 @@ var searchData=
 [
   ['setenv_0',['setenv',['../stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd',1,'stdlib.h']]],
   ['snprintf_1',['snprintf',['../stdio_8h.html#a304ea6ce0f310fd8ed15648139819680',1,'stdio.h']]],
-  ['spawn_5frealm_2',['spawn_realm',['../realm_8h.html#a19d4c4015f83847d24028ee979de35cf',1,'realm.h']]],
-  ['spawn_5funit_3',['spawn_unit',['../realm_8h.html#a6727cb31c2eb87b6dfa6e3ce281cb986',1,'realm.h']]],
+  ['spawn_5frealm_2',['spawn_realm',['../realm_8h.html#a6fd325d702bccc2940cc3de76c0b4281',1,'realm.h']]],
+  ['spawn_5funit_3',['spawn_unit',['../realm_8h.html#aa709d08cf793b0c97ec0c870bf2ea314',1,'realm.h']]],
   ['strcat_4',['strcat',['../string_8h.html#ab51518e1ff8475f3f16d911d24c65aee',1,'string.h']]],
   ['strchr_5',['strchr',['../string_8h.html#a6b6f97d145465b0670cf9fc83ea55d0a',1,'string.h']]],
   ['strcmp_6',['strcmp',['../string_8h.html#a14e6581584b7433c4440fdc7ecf86aea',1,'string.h']]],

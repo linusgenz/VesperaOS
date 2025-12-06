@@ -1,10 +1,5 @@
 var sysstd_8h =
 [
-    [ "REBOOT_HALT", "sysstd_8h.html#ac779db2e507c6285951e657e47e3b748", null ],
-    [ "REBOOT_MAGIC1", "sysstd_8h.html#a4b30f7b8597967276b4245daee628589", null ],
-    [ "REBOOT_MAGIC2", "sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c", null ],
-    [ "REBOOT_POWER_OFF", "sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad", null ],
-    [ "REBOOT_RESTART", "sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8", null ],
     [ "sys_brk", "sysstd_8h.html#ae3cf90fbca8a7077eff9721ab4f93630", null ],
     [ "sys_channel_create", "sysstd_8h.html#af35de5fb7cb766ae6c84d95832fad90a", null ],
     [ "sys_channel_recv", "sysstd_8h.html#a25a050125489b789a9ff0572061cd23c", null ],

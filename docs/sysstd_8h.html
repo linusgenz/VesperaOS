@@ -26,7 +26,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="logo_docs.png"/></td>
   <td id="projectalign">
-   <div id="projectname">vesplib<span id="projectnumber">&#160;1.1</span>
+   <div id="projectname">vesplib<span id="projectnumber">&#160;1.2</span>
    </div>
    <div id="projectbrief">VesperaOS Standard Library</div>
   </td>
@@ -92,7 +92,6 @@ $(document).ready(function(){initNavTree('sysstd_8h.html',''); initResizable(); 
 
 <div class="header">
   <div class="summary">
-<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">sysstd.h File Reference</div></div>
 </div><!--header-->
@@ -101,19 +100,6 @@ $(document).ready(function(){initNavTree('sysstd_8h.html',''); initResizable(); 
 </div>
 <p><a href="sysstd_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:a4b30f7b8597967276b4245daee628589" id="r_a4b30f7b8597967276b4245daee628589"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a4b30f7b8597967276b4245daee628589">REBOOT_MAGIC1</a>&#160;&#160;&#160;0xfee1dead</td></tr>
-<tr class="separator:a4b30f7b8597967276b4245daee628589"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59c1425822fef417ede5d64684abfc7c" id="r_a59c1425822fef417ede5d64684abfc7c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a59c1425822fef417ede5d64684abfc7c">REBOOT_MAGIC2</a>&#160;&#160;&#160;672274793</td></tr>
-<tr class="separator:a59c1425822fef417ede5d64684abfc7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47c987441c44c83f5d16e7f9db91fcd8" id="r_a47c987441c44c83f5d16e7f9db91fcd8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a47c987441c44c83f5d16e7f9db91fcd8">REBOOT_RESTART</a>&#160;&#160;&#160;0</td></tr>
-<tr class="separator:a47c987441c44c83f5d16e7f9db91fcd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae46bc0140bec37fa6157b9e9c43f7cad" id="r_ae46bc0140bec37fa6157b9e9c43f7cad"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ae46bc0140bec37fa6157b9e9c43f7cad">REBOOT_POWER_OFF</a>&#160;&#160;&#160;1</td></tr>
-<tr class="separator:ae46bc0140bec37fa6157b9e9c43f7cad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac779db2e507c6285951e657e47e3b748" id="r_ac779db2e507c6285951e657e47e3b748"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#ac779db2e507c6285951e657e47e3b748">REBOOT_HALT</a>&#160;&#160;&#160;2</td></tr>
-<tr class="separator:ac779db2e507c6285951e657e47e3b748"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a470cf057765ab491541502bb6b47717d" id="r_a470cf057765ab491541502bb6b47717d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a470cf057765ab491541502bb6b47717d">syscall</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> num, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg2, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg3, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg4, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg5)</td></tr>
@@ -188,77 +174,6 @@ Functions</h2></td></tr>
 <tr class="memdesc:abcef91f070ba25d57c74fc1695184270"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition the file offset for a file or device handle.  <br /></td></tr>
 <tr class="separator:abcef91f070ba25d57c74fc1695184270"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="ac779db2e507c6285951e657e47e3b748" name="ac779db2e507c6285951e657e47e3b748"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac779db2e507c6285951e657e47e3b748">&#9670;&#160;</a></span>REBOOT_HALT</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define REBOOT_HALT&#160;&#160;&#160;2</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4b30f7b8597967276b4245daee628589" name="a4b30f7b8597967276b4245daee628589"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b30f7b8597967276b4245daee628589">&#9670;&#160;</a></span>REBOOT_MAGIC1</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define REBOOT_MAGIC1&#160;&#160;&#160;0xfee1dead</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a59c1425822fef417ede5d64684abfc7c" name="a59c1425822fef417ede5d64684abfc7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59c1425822fef417ede5d64684abfc7c">&#9670;&#160;</a></span>REBOOT_MAGIC2</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define REBOOT_MAGIC2&#160;&#160;&#160;672274793</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae46bc0140bec37fa6157b9e9c43f7cad" name="ae46bc0140bec37fa6157b9e9c43f7cad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae46bc0140bec37fa6157b9e9c43f7cad">&#9670;&#160;</a></span>REBOOT_POWER_OFF</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define REBOOT_POWER_OFF&#160;&#160;&#160;1</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a47c987441c44c83f5d16e7f9db91fcd8" name="a47c987441c44c83f5d16e7f9db91fcd8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47c987441c44c83f5d16e7f9db91fcd8">&#9670;&#160;</a></span>REBOOT_RESTART</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define REBOOT_RESTART&#160;&#160;&#160;0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ae3cf90fbca8a7077eff9721ab4f93630" name="ae3cf90fbca8a7077eff9721ab4f93630"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3cf90fbca8a7077eff9721ab4f93630">&#9670;&#160;</a></span>sys_brk()</h2>
