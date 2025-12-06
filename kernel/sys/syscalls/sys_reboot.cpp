@@ -30,23 +30,29 @@
 #define REBOOT_HALT  2
 
 
-namespace syscalls::internal {
-    int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uint64_t, uint64_t) {
-        if (magic1 != REBOOT_MAGIC1 || magic2 != REBOOT_MAGIC2) {
+namespace syscalls::internal
+{
+    int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uint64_t, uint64_t)
+    {
+        if (magic1 != REBOOT_MAGIC1 || magic2 != REBOOT_MAGIC2)
+        {
             return -1;
         }
 
-        switch (cmd) {
-            case REBOOT_RESTART
-            :
-                kernel::SystemManager::initiate_shutdown(nullptr, true);
-                break;
-            case REBOOT_POWER_OFF
-            :
-                kernel::SystemManager::initiate_shutdown(nullptr, false);
-                break;
-            default:
-                return -1;
+        switch (cmd)
+        {
+        case REBOOT_RESTART
+        :
+            kernel::SystemManager::initiate_shutdown(nullptr, true);
+            break;
+        case REBOOT_POWER_OFF
+        :
+            kernel::SystemManager::initiate_shutdown(nullptr, false);
+            break;
+        case REBOOT_HALT:
+            asm volatile("cli; hlt");
+        default:
+            return -1;
         }
 
         return 0;

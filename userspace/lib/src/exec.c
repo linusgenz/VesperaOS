@@ -29,15 +29,15 @@
 static char path_buf[256];
 
 const char *find_executable(const char *name) {
-    if (!name || !*name) return nullptr;
+    if (!name || !*name) return NULL;
 
     if (name[0] == '/') {
         if (file_exists(name)) return name;
-        return nullptr;
+        return NULL;
     }
 
-    const char *path = "/bin"; // getenv("PATH", environ); TODO fix this
-    if (!path) return nullptr;
+    const char *path = getenv("PATH");
+    if (!path) return NULL;
 
     const char *start = path;
     const char *end;
@@ -47,7 +47,7 @@ const char *find_executable(const char *name) {
         size_t dir_len = end ? (size_t) (end - start) : strlen(start);
 
         if (dir_len + 1 + strlen(name) + 1 > sizeof(path_buf)) {
-            return nullptr;
+            return NULL;
         }
 
         memcpy(path_buf, start, dir_len);
@@ -62,5 +62,5 @@ const char *find_executable(const char *name) {
         start = end + 1;
     }
 
-    return nullptr;
+    return NULL;
 }

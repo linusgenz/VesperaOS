@@ -28,6 +28,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "dirent.h"
+
 /* Handle type definitions */
 #define HANDLE_TYPE_CONSOLE 0x1000000000000000ULL
 #define HANDLE_TYPE_FILE    0x2000000000000000ULL
@@ -255,12 +257,28 @@ DIR_HANDLE opendir(const char* path);
 int closedir(DIR_HANDLE handle);
 
 /**
+ * @brief Read a directory entry.
+ *
+ * Reads the next directory entry from @p handle into @p entry.
+ * Returns @c 0 when no more entries are available.
+ *
+ * @param handle Directory handle returned by opendir().
+ * @param entry Pointer to dirent_t structure to fill.
+ * @return Positive value on success, @c 0 at end of directory,
+ *         or negative error code on failure.
+ *
+ * @see opendir()
+ * @see closedir()
+ */
+ssize_t readdir(DIR_HANDLE handle, dirent_t* entry);
+
+/**
 * @brief Open a resource (generic handle).
 *
 * Lower-level version of fopen() that returns a generic handle.
 *
 * @param path Path to the resource (null-terminated string).
-* @param flags Open flags (bitwise OR of O_* constants).
+* @param flags Open flags (bitwise OR of O_* constants, see @ref fflags.h).
 * @return Handle on success, or negative error code on failure.
 *
 * @see close()
@@ -281,6 +299,73 @@ HANDLE_ID open(const char* path, int flags);
  */
 int close(HANDLE_ID handle);
 
+/**
+* @brief Create a new file.
+*
+* Creates a new empty file at @p path.
+*
+* @param path Path where the file should be created.
+* @return @c 0 on success, or negative error code on failure.
+*
+* @see fopen()
+* @see mkdir()
+*/
+int creat(const char* path);
+
+/**
+ * @brief Create a new directory.
+ *
+ * Creates a new directory at @p path.
+ *
+ * @param path Path where the directory should be created.
+ * @return @c 0 on success, or negative error code on failure.
+ *
+ * @see opendir()
+ * @see creat()
+ */
+int mkdir(const char* path);
+
+
+/**
+ * @brief Remove a file.
+ *
+ * Removes (deletes) the file at @p path. The file must not be open.
+ *
+ * @param path Path to the file to remove.
+ * @return @c 0 on success, or negative error code on failure.
+ *
+ * @see creat()
+ * @see rmdir()
+ */
+int unlink(const char* path);
+
+/**
+ * @brief Remove a directory.
+ *
+ * Removes (deletes) the directory at @p path. The directory must be empty.
+ *
+ * @param path Path to the directory to remove.
+ * @return @c 0 on success, or negative error code on failure.
+ *
+ * @see mkdir()
+ * @see unlink()
+ */
+int rmdir(const char* path);
+
+
+/**
+* @brief Create a new file or directory.
+*
+* Creates a new file or directory at @p path. The type is determined by flags.
+*
+* @param path Path where the file/directory should be created.
+* @param flags Creation flags .
+* @return @c 0 on success, or negative error code on failure.
+*
+* @see fopen()
+* @see opendir()
+*/
+int create(const char* path, int flags);
 
 #ifdef __cplusplus
 }

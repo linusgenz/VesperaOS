@@ -302,6 +302,29 @@ int close(HANDLE_ID handle) {
     return sys_close(handle, 0, 0, 0, 0, 0);
 }
 
+int create(const char *path, int type) {
+    if (type == C_DIR) {
+        return (int)sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
+    }
+    return (int)sys_create((uint64_t)path, 0, 0, 0, 0, 0);
+}
+
+int creat(const char *path) {
+    return (int)sys_create((uint64_t)path, 0, 0, 0, 0, 0);
+}
+
+int unlink(const char *path) {
+    return (int)sys_unlink((uint64_t)path, 0, 0, 0, 0, 0);
+}
+
+int mkdir(const char *path) {
+    return (int)sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
+}
+
+int rmdir(const char *path) {
+    return (int)sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
+}
+
 ssize_t fseek(FILE_HANDLE stream, long offset, int whence) {
     return sys_seek(stream, offset, whence, 0, 0, 0);
 }
@@ -320,4 +343,9 @@ DIR_HANDLE opendir(const char *path) {
 
 int closedir(DIR_HANDLE handle) {
     return sys_close(handle, 0, 0, 0, 0, 0);
+}
+
+ssize_t readdir(DIR_HANDLE handle, dirent_t *entry) {
+    if (!entry) return -1;
+    return sys_readdir(handle, (uint64_t)entry, sizeof(dirent_t), 0, 0, 0);
 }

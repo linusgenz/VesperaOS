@@ -35,16 +35,6 @@ add_custom_command(
 )
 add_custom_target(splash_header DEPENDS ${CMAKE_SOURCE_DIR}/splash.h)
 
-
-# version header
-add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/kernel/kversion.h
-        COMMAND bash ${CMAKE_SOURCE_DIR}/generate_version_header.sh
-        DEPENDS ${CMAKE_SOURCE_DIR}/generate_version_header.sh
-)
-add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
-
-
 # Disk image target
 set(BOOTLOADER_EFI ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.efi)
 set(IMG_SIZE 400000)
@@ -119,4 +109,12 @@ add_custom_target(debug
         -no-shutdown
         -s -S
         DEPENDS disk_image
+)
+
+add_custom_target(clean-all
+        COMMAND ${CMAKE_COMMAND} -E echo "Cleaning all build artifacts..."
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/*
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_SOURCE_DIR}/splash.h
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_SOURCE_DIR}/kernel/kversion.h
+        COMMAND ${CMAKE_COMMAND} -E echo "Clean complete."
 )

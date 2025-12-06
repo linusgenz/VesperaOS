@@ -45,8 +45,7 @@ typedef enum {
 /**
  * @brief Structure representing a directory entry.
  *
- * Returned by `sys_readdir()` in user space. Each call fills this structure
- * with the name and type of the next entry in an open directory stream.
+ * Contains information about a single directory entry.
  */
 typedef struct {
     char name[128];      ///< Null-terminated entry name (up to 127 characters)

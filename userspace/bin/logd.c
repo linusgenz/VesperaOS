@@ -42,7 +42,7 @@ int main() {
     char* buf = "LogD initialized. starting logger...";
     fwrite(log_fd, buf, strlen(buf));
 
-    sys_create((uint64_t) LOG_FILE, 0, 0, 0, 0, 0);
+    create(LOG_FILE, C_FILE);
 
     FILE_HANDLE log_file = fopen(LOG_FILE, O_WRONLY);
     if (!log_file) {

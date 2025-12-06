@@ -27,13 +27,6 @@
 
 #include <stdint.h>
 
-#define REBOOT_MAGIC1 0xfee1dead
-#define REBOOT_MAGIC2 672274793
-
-#define REBOOT_RESTART  0
-#define REBOOT_POWER_OFF  1
-#define REBOOT_HALT  2
-
 int64_t syscall(uint64_t num,
                 uint64_t arg0,
                 uint64_t arg1,

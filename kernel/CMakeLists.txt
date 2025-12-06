@@ -86,6 +86,14 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-mno-red-zone -mgeneral-regs-only -ffreestanding"
 )
 
+# version header
+add_custom_command(
+        OUTPUT ${CMAKE_SOURCE_DIR}/kernel/kversion.h
+        COMMAND bash ${CMAKE_SOURCE_DIR}/generate_version_header.sh
+        DEPENDS ${CMAKE_SOURCE_DIR}/generate_version_header.sh
+)
+add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
+
 #
 # ────────────────────────────────────────────────────────────────
 #   CONDITIONAL KERNEL SYMBOLS GENERATION  (ONLY IF DEBUG_FAULT)
@@ -171,5 +179,5 @@ target_include_directories(kernel.elf PUBLIC
 
 # kernel.elf depends on symbols only when they exist
 if(ENABLE_DEBUG_FAULT)
-    add_dependencies(kernel.elf kernel_symbols_header)
+    add_dependencies(kernel.elf kernel_symbols_header version)
 endif()

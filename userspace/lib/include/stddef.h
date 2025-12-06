@@ -44,9 +44,4 @@ typedef unsigned int wint_t;
 /* Offset of member MEMBER in struct TYPE */
 #define offsetof(TYPE, MEMBER) __builtin_offsetof(TYPE, MEMBER)
 
-#ifdef __cplusplus
-#else
-static const void* const nullptr = NULL;
-#endif
-
 #endif //VESPERAOS_STDDEF_H

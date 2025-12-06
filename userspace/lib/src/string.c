@@ -103,7 +103,7 @@ char *strchr(const char *s, unsigned char c) {
     }
 
     if (c == '\0') return (char *)s;
-    return nullptr;
+    return NULL;
 }
 
 void memset(void* dest, uint8_t c, uint64_t num) {

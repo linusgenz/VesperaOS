@@ -27,6 +27,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef uint64_t RealmID; ///< type representing a realm identifier
+typedef uint64_t UnitID; ///< type representing a unit (thread) identifier
+
 /**
  * @brief Spawn a new realm (isolated execution context).
  *
@@ -34,10 +37,12 @@
  *
  * @param path_ptr Pointer to the path of the executable binary.
  * @param argc Number of arguments.
- * @param argv_ptr Pointer to an array of argument strings.
+ * @param argv Pointer to an array of argument strings.
+ * @param envp Pointer to a NULL-terminated array of strings representing the environment variables for the new realm.
+ * Can be @c NULL if no environment variables are needed.
  * @return Realm ID on success, negative error code on failure.
  */
-int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp);
+RealmID spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp);
 
 /**
  * @brief Spawn a new unit (thread) inside an existing realm.
@@ -47,7 +52,7 @@ int64_t spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char
  * @param arg_ptr Pointer to argument data for the unit.
  * @return Unit ID on success, negative error code on failure.
  */
-int64_t spawn_unit(uint64_t realm_id, uint64_t entry_point, uint64_t arg_ptr);
+UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr);
 
 /**
  * @brief Terminate the current unit.
@@ -67,7 +72,17 @@ void exit(uint64_t code);
  * @param code Exit code for the realm.
  * @return 0 on success, negative error code on failure.
  */
-int64_t exit_realm(uint64_t realm_id, uint64_t code);
+int64_t exit_realm(RealmID realm_id, uint64_t code);
 
+/**
+ * @brief Wait for a realm to finish execution.
+ *
+ * Blocks the current process until the realm with ID @p realm_id has completed.
+ *
+ * @param realm_id The ID of the realm to wait for.
+ * @param status Pointer to an int to store the exit status, or @c NULL if unused.
+ * @return 0 on success, or a negative error code on failure (e.g., -ECHILD).
+ */
+int wait_realm(RealmID realm_id, int* status);
 
 #endif //VESPERAOS_REALM_H
