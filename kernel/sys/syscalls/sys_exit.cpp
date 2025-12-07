@@ -32,6 +32,8 @@
 namespace syscalls::internal {
     int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        kernel::scheduling::cpu_scheduler::cpu_scheduler_t* cpu =
+    kernel::scheduling::get_cpu_data(cpu_id);
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) {
             kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -KENOUNIT);
@@ -39,21 +41,16 @@ namespace syscalls::internal {
 
         current->exit_code = static_cast<int>(code);
         current->state = UNIT_TERMINATED;
-        current->active = false;
-        current->handle_count = 0;
 
-        UnitManager::destroy(current->id);
+        cpu->reaper.enqueue(current);
 
-        // Realm-Bookkeeping
         if (Realm* realm = RealmManager::get(current->rid)) {
-            realm->unit_count--;
-            if (realm->unit_count == 0) {
-                RealmManager::destroy(realm->id);
+            if (realm->unit_count == 1) {
+                realm->wait_queue.wake_all();
             }
         }
 
-        kernel::scheduling::cpu_scheduler::cpu_scheduler_t* cpu =
-            kernel::scheduling::get_cpu_data(cpu_id);
+
         cpu->current_unit = nullptr;
 
         kernel::scheduling::yield();

@@ -305,7 +305,7 @@ bool UnitManager::destroy(const UnitID id)
             u->detach_all_handles();
 
             if (u->context.stack)
-            {
+            { // TODO fix and set to page table of unit
                 size_t pages = (u->context.stack_size + 0xFFF) / 0x1000;
                 kernel::memory::unmap_range(u->context.stack, u->context.stack_size);
                 kernel::memory::free_pages(u->context.stack, pages);

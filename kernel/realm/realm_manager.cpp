@@ -141,12 +141,13 @@ bool RealmManager::destroy(const RealmID id) {
                 u = next;
             }
 
+            kernel::memory::free_page(realm.pml4);
+            delete realm.page_table;
+
             realm.unit_list = nullptr;
             realm.unit_count = 0;
 
             realm.clear_handle_table();
-
-            realm.wait_queue.wake_all();
 
             realm.active = false;
             realm.id = 0;

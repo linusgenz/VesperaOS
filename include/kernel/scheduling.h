@@ -5,6 +5,8 @@
 #define SCHEDULER_H
 
 #include <cstdint>
+
+#include "../../kernel/scheduling/reaper.h"
 #include "../kernel/units/unit.h"
 
 struct trap_frame;
@@ -14,6 +16,7 @@ namespace kernel::scheduling::cpu_scheduler
     struct cpu_scheduler_t {
         intrusive_queue_t<Unit, queue_lock_irq> ready_queue;
         intrusive_queue_t<Unit, queue_lock_irq> blocked_queue;
+        Reaper reaper;
         Unit *current_unit;
         Unit *idle_unit;
         uint32_t quantum_ticks;
