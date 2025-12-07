@@ -55,7 +55,7 @@ sudo cp "$SRC_DIR/userspace/bin/shell" "$ROOT_MNT/bin/shell"
 sudo cp "$SRC_DIR/userspace/bin/lsusb" "$ROOT_MNT/bin/lsusb"
 sudo cp "$SRC_DIR/userspace/bin/memstat" "$ROOT_MNT/bin/memstat"
 sudo cp "$SRC_DIR/userspace/bin/logd" "$ROOT_MNT/bin/logd"
-#sudo cp "$SRC_DIR/build/out.elf" "$ROOT_MNT/bin/out"
+sudo cp "$SRC_DIR/userspace/bin/uptime" "$ROOT_MNT/bin/uptime"
 sudo umount "$ROOT_MNT"
 
 # Loopdevice trennen

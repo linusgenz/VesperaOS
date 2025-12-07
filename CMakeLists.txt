@@ -111,10 +111,22 @@ add_custom_target(debug
         DEPENDS disk_image
 )
 
+file(GLOB USERSPACE_BINS
+        "${CMAKE_SOURCE_DIR}/userspace/bin/*"
+)
+set(FINAL_BINS "")
+foreach(f ${USERSPACE_BINS})
+    get_filename_component(ext ${f} EXT)
+    if(NOT ext STREQUAL ".c" AND NOT ext STREQUAL ".h")
+        list(APPEND FINAL_BINS ${f})
+    endif()
+endforeach()
+
 add_custom_target(clean-all
         COMMAND ${CMAKE_COMMAND} -E echo "Cleaning all build artifacts..."
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/*
         COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_SOURCE_DIR}/splash.h
         COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_SOURCE_DIR}/kernel/kversion.h
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${FINAL_BINS}
         COMMAND ${CMAKE_COMMAND} -E echo "Clean complete."
 )

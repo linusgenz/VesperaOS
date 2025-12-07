@@ -16,8 +16,10 @@ set(USER_LD_FLAGS
 add_executable(shell ${CMAKE_SOURCE_DIR}/userspace/bin/shell.c)
 add_executable(lsusb ${CMAKE_SOURCE_DIR}/userspace/bin/lsusb.c)
 add_executable(logd ${CMAKE_SOURCE_DIR}/userspace/bin/logd.c)
+add_executable(uptime ${CMAKE_SOURCE_DIR}/userspace/bin/uptime.c)
+add_executable(memstat ${CMAKE_SOURCE_DIR}/userspace/bin/memstat.c)
 
-foreach(bin IN ITEMS shell lsusb logd)
+foreach(bin IN ITEMS shell lsusb logd uptime memstat)
     target_link_libraries(${bin} PRIVATE vesplib)
 
     set_target_properties(${bin} PROPERTIES
@@ -26,4 +28,4 @@ foreach(bin IN ITEMS shell lsusb logd)
     )
 endforeach()
 
-add_custom_target(elfs DEPENDS shell lsusb logd)
+add_custom_target(elfs DEPENDS shell lsusb logd uptime memstat)

@@ -300,6 +300,36 @@ HANDLE_ID open(const char* path, int flags);
 int close(HANDLE_ID handle);
 
 /**
+* @brief Read data from a generic handle.
+*
+* Lower-level version of fread() for generic handles.
+*
+* @param handle File handle returned by open().
+* @param buf Buffer to store read data.
+* @param count Maximum number of bytes to read.
+* @return Number of bytes read on success, or negative error code on failure.
+*
+* @see write()
+* @see open()
+*/
+ssize_t read(HANDLE_ID handle, void* buf, size_t count);
+
+/**
+* @brief Write data to a generic handle.
+*
+* Lower-level version of fwrite() for generic handles.
+*
+* @param handle File handle returned by open().
+* @param buf Buffer containing data to write.
+* @param count Number of bytes to write.
+* @return Number of bytes written on success, or negative error code on failure.
+*
+* @see read()
+* @see open()
+*/
+ssize_t write(FILE_HANDLE handle, const void* buf, size_t count);
+
+/**
 * @brief Create a new file.
 *
 * Creates a new empty file at @p path.

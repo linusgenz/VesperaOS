@@ -606,7 +606,7 @@ int execute_command(command_t* cmd)
         {
             int64_t rid = 0;
             const char* argv[] = {"lsusb", NULL};
-            rid = spawn_realm(prog, 1, argv, environ);
+            rid = spawn_realm(prog, 1, argv, NULL);
             if (rid < 0)
             {
                 printf("spawn failed: %d\n", (int32_t)rid);
@@ -701,12 +701,6 @@ void shell_main(int argc, char** argv)
   */
 
     //cmd_clear(NULL);
-    setenv("CORES", "8", 0);
-    printf("environ[0]    = %p (%s)\n", environ[0], environ[0]);
-    printf("environ[0]    = %p (%s)\n", environ[1], environ[1]);
-    unsetenv("CORES");
-    printf("environ[0]    = %p (%s)\n", environ[0], environ[0]);
-    printf("environ[1]    = %p (%s)\n", environ[1], environ[1]);
 
     for (int i = 0; i < argc; i++)
     {

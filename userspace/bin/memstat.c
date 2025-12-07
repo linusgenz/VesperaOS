@@ -21,9 +21,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <fflags.h>
+#include <realm.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <sysstd.h>
+#include <dev/usb_xhci_ioctl.h>
+#include <sys/ioctl.h>
+
+#include "stddef.h"
+#include "stdint.h"
 #include <dev/meminfo.h>
 
 int main(int argc, char **argv) {

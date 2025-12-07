@@ -302,6 +302,14 @@ int close(HANDLE_ID handle) {
     return sys_close(handle, 0, 0, 0, 0, 0);
 }
 
+ssize_t read(HANDLE_ID handle, void *buf, size_t count) {
+    return sys_read(handle, (uint64_t) buf, count, 0, 0, 0);
+}
+
+ssize_t write(HANDLE_ID handle, const void *buf, size_t count) {
+    return sys_write(handle, (uint64_t) buf, count, 0, 0, 0);
+}
+
 int create(const char *path, int type) {
     if (type == C_DIR) {
         return (int)sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
