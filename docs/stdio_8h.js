@@ -30,9 +30,11 @@ var stdio_8h =
     [ "printf", "stdio_8h.html#a0aff7311d684a0e0ef33125616a73385", null ],
     [ "putchar", "stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a", null ],
     [ "puts", "stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f", null ],
+    [ "read", "stdio_8h.html#adfc1191239c8d27c437814805e284d9e", null ],
     [ "readdir", "stdio_8h.html#a644846453a50f8941bb85d96a9c8d887", null ],
     [ "rewind", "stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934", null ],
     [ "rmdir", "stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce", null ],
     [ "snprintf", "stdio_8h.html#a304ea6ce0f310fd8ed15648139819680", null ],
-    [ "unlink", "stdio_8h.html#a28af9471bbdf262321af663e02899a47", null ]
+    [ "unlink", "stdio_8h.html#a28af9471bbdf262321af663e02899a47", null ],
+    [ "write", "stdio_8h.html#ac6f86db0433cd874276007d41ccaae37", null ]
 ];
