@@ -29,6 +29,7 @@
 #include "fs_registry.h"
 #include "../../kernel/devices/blockdevice.h"
 
+struct MountPoint;
 struct PendingMount;
 
 struct FilesystemInfo {
@@ -55,6 +56,8 @@ public:
 
     static void ScanAndMountAll();
 
+    static void UnmountAll();
+
     static void PrintDetectedFilesystems();
 
 private:
@@ -64,11 +67,12 @@ private:
     static size_t device_count;
 
     static void GenerateMountPath(const char *fs_type, int index, char *out_path, size_t size);
+    static bool Unmount(MountPoint* mp);
 
     static VfsNode *MountFilesystem(BlockDevice *device, const FilesystemInfo *fs_info);
 
     static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition, size_t device_size,
-                             const char *table_type, bool is_root_device = false);
+                             const char *table_type, bool is_root_device);
 
 };
 

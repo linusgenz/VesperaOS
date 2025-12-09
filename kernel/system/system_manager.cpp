@@ -29,6 +29,7 @@
 #include <log.h>
 #include <string.h>
 #include "../utils/panic.h"
+#include "kernel/scheduling.h"
 
 namespace kernel {
     bool SystemManager::manager_initialized = false;
@@ -283,6 +284,10 @@ namespace kernel {
         shutdown_event.data.log_event.error_code = 0;
 
         publish_event(shutdown_event);
+
+
+        FilesystemDetector::UnmountAll();
+
 
         if (reboot) {
             ACPI::acpi_reboot();

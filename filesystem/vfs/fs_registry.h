@@ -34,6 +34,7 @@ struct FileSystemDriver {
     const char* name;
     int (*probe)(BlockDevice* dev); // 1 = valid
     VfsNode* (*mount)(BlockDevice* dev);
+    bool (*unmount)(VfsNode* root);
 };
 
 FileSystemDriver* fs_driver_at(size_t i);

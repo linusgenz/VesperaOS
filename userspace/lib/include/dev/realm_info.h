@@ -30,8 +30,8 @@
 /**
  * @brief Structure representing information about a Realm.
  *
- * This structure is used when querying the state of a Realm, e.g., via
- * SysFS or status API calls. It contains runtime and configuration
+ * This structure is used when querying the state of a Realm, via
+ * RealmFS. It contains runtime and configuration
  * information about the Realm, including resource limits, capabilities,
  * scheduling, and working directory.
  */

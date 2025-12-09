@@ -163,7 +163,7 @@ void initialize_kernel(BootInfo* boot_info)
     SysFS::init();
 
     RealmConfig realm_config_sys = {
-        .name = "system_realm",
+        .name = "systemv",
         .memory_limit = 0,
         .max_units = 32,
         .is_user = false,
@@ -171,7 +171,7 @@ void initialize_kernel(BootInfo* boot_info)
     RealmManager::create(&realm_config_sys);
 
     RealmConfig realm_config_drv = {
-        .name = "driver_realm",
+        .name = "driverv",
         .memory_limit = 0,
         .max_units = 32,
         .is_user = false,

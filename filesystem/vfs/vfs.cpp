@@ -35,12 +35,12 @@
 #include <kernel/realm/realm_manager.h>
 #include <log.h>
 
-Vector<MountPoint> *VFS::mount_points = nullptr;
+Vector<MountPoint*> *VFS::mount_points = nullptr;
 spinlock_t VFS::mount_points_lock;
 
 
 void VFS::init() {
-    mount_points = new Vector<MountPoint>();
+    mount_points = new Vector<MountPoint*>();
     mount_points_lock.init("mount_points_lock");
 
     FilesystemDetector::Init();
@@ -57,21 +57,16 @@ void VFS::init() {
 VfsNode *VFS::mount_virtual(VfsNode *root, const char *mount_path) {
     if (!root || !mount_path) return nullptr;
 
-    MountPoint mp{};
-    strncpy(mp.path, mount_path, sizeof(mp.path) - 1);
-    mp.path[sizeof(mp.path) - 1] = '\0';
-    mp.is_virtual = true;
-    mp.root = root;
+    auto* mp = new MountPoint();
+    strncpy(mp->path, mount_path, sizeof(mp->path) - 1);
+    mp->path[sizeof(mp->path) - 1] = '\0';
+    mp->is_virtual = true;
+    mp->root = root;
 
     {
         spinlock_guard g(mount_points_lock);
         mount_points->push_back(mp);
     }
-
-    auto t = mkdir(mp.path);
-    Log::Info("[VFS] Mounted path: %s sts: %d", mount_path, t);
-
-   // while (1);
 
     return root;
 }
@@ -100,12 +95,12 @@ VfsNode *VFS::open(const char *path) {
     {
         spinlock_guard g(mount_points_lock);
         for (auto & mp : *mount_points) {
-            size_t len = strlen(mp.path);
+            size_t len = strlen(mp->path);
 
-            if (strncmp(path, mp.path, len) == 0 &&
-                (strcmp(mp.path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
+            if (strncmp(path, mp->path, len) == 0 &&
+                (strcmp(mp->path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
                 len > best_len) {
-                best_match = &mp;
+                best_match = mp;
                 best_len = len;
                 }
         }
@@ -245,7 +240,7 @@ int VFS::rmdir(const char *path) {
     {
         spinlock_guard guard(mount_points_lock);
         for (const auto & mp : *mount_points) {
-            if (strcmp(mp.path, path) == 0) return -EPERM;
+            if (strcmp(mp->path, path) == 0) return -EPERM;
         }
     }
 
@@ -318,7 +313,7 @@ void VFS::get_stats(VfsStats *stats) {
     // TODO: Add count of other registered drivers when implemented
 }
 
-void VFS::add_mount_point(const MountPoint& mp) {
+void VFS::add_mount_point(MountPoint* mp) {
     spinlock_guard g(mount_points_lock);
     mount_points->push_back(mp);
 }
@@ -326,4 +321,40 @@ void VFS::add_mount_point(const MountPoint& mp) {
 size_t VFS::mount_points_count() {
     spinlock_guard g(mount_points_lock);
     return mount_points->size();
+}
+
+MountPoint* VFS::find_mount_point(const char* path)
+{
+    if (!path) return nullptr;
+
+    spinlock_guard g(mount_points_lock);
+
+    for (auto & mp : *mount_points) {
+        if (strcmp(mp->path, path) == 0) {
+            return mp;
+        }
+    }
+
+    return nullptr; // not found
+}
+
+
+bool VFS::remove_mount_point(MountPoint* mp)
+{
+    if (!mp) return false;
+    spinlock_guard g(mount_points_lock);
+
+    for (size_t i = 0; i < mount_points->size(); ++i) {
+        MountPoint* mp_iter = (*mount_points)[i];
+
+        if (mp_iter == mp) {
+            if (mp_iter->device) {
+                delete mp_iter->device;
+                mp_iter->device = nullptr;
+            }
+            mount_points->erase(i);
+            return true;
+        }
+    }
+    return false; // Not found
 }
