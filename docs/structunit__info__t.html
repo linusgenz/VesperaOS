@@ -98,34 +98,51 @@ $(document).ready(function(){initNavTree('structunit__info__t.html',''); initRes
 </div><!--header-->
 <div class="contents">
 
+<p>Structure representing information about a Unit.  
+ <a href="structunit__info__t.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="unit__info_8h_source.html">unit_info.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a230440798faa38ef767977e628697272" id="r_a230440798faa38ef767977e628697272"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a230440798faa38ef767977e628697272">id</a></td></tr>
+<tr class="memdesc:a230440798faa38ef767977e628697272"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique identifier of the Unit.  <br /></td></tr>
 <tr class="separator:a230440798faa38ef767977e628697272"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a789a9b234568fd6eb2b21980204d25c2" id="r_a789a9b234568fd6eb2b21980204d25c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a789a9b234568fd6eb2b21980204d25c2">realm_id</a></td></tr>
+<tr class="memdesc:a789a9b234568fd6eb2b21980204d25c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identifier of the Realm this Unit belongs to.  <br /></td></tr>
 <tr class="separator:a789a9b234568fd6eb2b21980204d25c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae97136fcf1c928a5c44c696020d3d9ac" id="r_ae97136fcf1c928a5c44c696020d3d9ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#ae97136fcf1c928a5c44c696020d3d9ac">state</a></td></tr>
-<tr class="separator:ae97136fcf1c928a5c44c696020d3d9ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a857d87537d67eaedda6f209aa92e3074" id="r_a857d87537d67eaedda6f209aa92e3074"><td class="memItemLeft" align="right" valign="top"><a class="el" href="unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544">UnitState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a857d87537d67eaedda6f209aa92e3074">state</a></td></tr>
+<tr class="memdesc:a857d87537d67eaedda6f209aa92e3074"><td class="mdescLeft">&#160;</td><td class="mdescRight">Current state of the Unit (e.g., running, blocked, terminated)  <br /></td></tr>
+<tr class="separator:a857d87537d67eaedda6f209aa92e3074"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a853167f13ba3f2d40ff77634247cb51b" id="r_a853167f13ba3f2d40ff77634247cb51b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a853167f13ba3f2d40ff77634247cb51b">priority</a></td></tr>
+<tr class="memdesc:a853167f13ba3f2d40ff77634247cb51b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scheduling priority of the Unit.  <br /></td></tr>
 <tr class="separator:a853167f13ba3f2d40ff77634247cb51b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58a0a5f6581e5dd7fb54dcc64a3ec58e" id="r_a58a0a5f6581e5dd7fb54dcc64a3ec58e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a58a0a5f6581e5dd7fb54dcc64a3ec58e">cpu_id</a></td></tr>
+<tr class="memdesc:a58a0a5f6581e5dd7fb54dcc64a3ec58e"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the CPU the Unit is currently running on.  <br /></td></tr>
 <tr class="separator:a58a0a5f6581e5dd7fb54dcc64a3ec58e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1baa7dbd06610a3576bf1762e9c26d84" id="r_a1baa7dbd06610a3576bf1762e9c26d84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a32f2e37ee053cf2ce8ca28d1f74630e5">int32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a1baa7dbd06610a3576bf1762e9c26d84">exit_code</a></td></tr>
+<tr class="memdesc:a1baa7dbd06610a3576bf1762e9c26d84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exit code if the Unit has terminated.  <br /></td></tr>
 <tr class="separator:a1baa7dbd06610a3576bf1762e9c26d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31f6c188b3a83e1a3929fab8726006a2" id="r_a31f6c188b3a83e1a3929fab8726006a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a31f6c188b3a83e1a3929fab8726006a2">handle_count</a></td></tr>
+<tr class="memdesc:a31f6c188b3a83e1a3929fab8726006a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of handles/resources currently held by the Unit.  <br /></td></tr>
 <tr class="separator:a31f6c188b3a83e1a3929fab8726006a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab11ff6d7ff9aedb241fd48f87c6d2836" id="r_ab11ff6d7ff9aedb241fd48f87c6d2836"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#ab11ff6d7ff9aedb241fd48f87c6d2836">kernel_stack_start</a></td></tr>
+<tr class="memdesc:ab11ff6d7ff9aedb241fd48f87c6d2836"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start address of the Unit's kernel stack.  <br /></td></tr>
 <tr class="separator:ab11ff6d7ff9aedb241fd48f87c6d2836"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab019615cae3d4af9fe2f7073c7086891" id="r_ab019615cae3d4af9fe2f7073c7086891"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#ab019615cae3d4af9fe2f7073c7086891">kernel_stack_end</a></td></tr>
+<tr class="memdesc:ab019615cae3d4af9fe2f7073c7086891"><td class="mdescLeft">&#160;</td><td class="mdescRight">End address of the Unit's kernel stack.  <br /></td></tr>
 <tr class="separator:ab019615cae3d4af9fe2f7073c7086891"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ce00d1ea244ad54544c6b522fcbd8f4" id="r_a3ce00d1ea244ad54544c6b522fcbd8f4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a3ce00d1ea244ad54544c6b522fcbd8f4">user_stack_start</a></td></tr>
-<tr class="separator:a3ce00d1ea244ad54544c6b522fcbd8f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad28e69f2300158a164612756ba7a52d3" id="r_ad28e69f2300158a164612756ba7a52d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#ad28e69f2300158a164612756ba7a52d3">user_stack_end</a></td></tr>
-<tr class="separator:ad28e69f2300158a164612756ba7a52d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c8b2c18d93a84b70b4f7de8b178e48d" id="r_a0c8b2c18d93a84b70b4f7de8b178e48d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a0c8b2c18d93a84b70b4f7de8b178e48d">stack_start</a></td></tr>
+<tr class="memdesc:a0c8b2c18d93a84b70b4f7de8b178e48d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start address of the Unit's user stack.  <br /></td></tr>
+<tr class="separator:a0c8b2c18d93a84b70b4f7de8b178e48d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a206fc2e619022308ed01a9be204de2b6" id="r_a206fc2e619022308ed01a9be204de2b6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structunit__info__t.html#a206fc2e619022308ed01a9be204de2b6">stack_end</a></td></tr>
+<tr class="memdesc:a206fc2e619022308ed01a9be204de2b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">End address of the Unit's user stack.  <br /></td></tr>
+<tr class="separator:a206fc2e619022308ed01a9be204de2b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Structure representing information about a Unit. </p>
+<p>This structure is used when querying the state of a Unit within a Realm. A Unit is conceptually similar to a thread, running inside a Realm (which acts like a process). It contains runtime and scheduling information, resource handles, stack layout, and termination state. </p>
+</div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a58a0a5f6581e5dd7fb54dcc64a3ec58e" name="a58a0a5f6581e5dd7fb54dcc64a3ec58e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a58a0a5f6581e5dd7fb54dcc64a3ec58e">&#9670;&#160;</a></span>cpu_id</h2>
 
@@ -137,6 +154,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>ID of the CPU the Unit is currently running on. </p>
 
 </div>
 </div>
@@ -152,6 +171,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Exit code if the Unit has terminated. </p>
+
 </div>
 </div>
 <a id="a31f6c188b3a83e1a3929fab8726006a2" name="a31f6c188b3a83e1a3929fab8726006a2"></a>
@@ -165,6 +186,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of handles/resources currently held by the Unit. </p>
 
 </div>
 </div>
@@ -180,6 +203,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Unique identifier of the Unit. </p>
+
 </div>
 </div>
 <a id="ab019615cae3d4af9fe2f7073c7086891" name="ab019615cae3d4af9fe2f7073c7086891"></a>
@@ -193,6 +218,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>End address of the Unit's kernel stack. </p>
 
 </div>
 </div>
@@ -208,6 +235,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Start address of the Unit's kernel stack. </p>
+
 </div>
 </div>
 <a id="a853167f13ba3f2d40ff77634247cb51b" name="a853167f13ba3f2d40ff77634247cb51b"></a>
@@ -221,6 +250,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Scheduling priority of the Unit. </p>
 
 </div>
 </div>
@@ -236,47 +267,55 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Identifier of the Realm this Unit belongs to. </p>
+
 </div>
 </div>
-<a id="ae97136fcf1c928a5c44c696020d3d9ac" name="ae97136fcf1c928a5c44c696020d3d9ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae97136fcf1c928a5c44c696020d3d9ac">&#9670;&#160;</a></span>state</h2>
+<a id="a206fc2e619022308ed01a9be204de2b6" name="a206fc2e619022308ed01a9be204de2b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a206fc2e619022308ed01a9be204de2b6">&#9670;&#160;</a></span>stack_end</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> unit_info_t::state</td>
+          <td class="memname"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> unit_info_t::stack_end</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>End address of the Unit's user stack. </p>
+
 </div>
 </div>
-<a id="ad28e69f2300158a164612756ba7a52d3" name="ad28e69f2300158a164612756ba7a52d3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad28e69f2300158a164612756ba7a52d3">&#9670;&#160;</a></span>user_stack_end</h2>
+<a id="a0c8b2c18d93a84b70b4f7de8b178e48d" name="a0c8b2c18d93a84b70b4f7de8b178e48d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c8b2c18d93a84b70b4f7de8b178e48d">&#9670;&#160;</a></span>stack_start</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> unit_info_t::user_stack_end</td>
+          <td class="memname"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> unit_info_t::stack_start</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>Start address of the Unit's user stack. </p>
+
 </div>
 </div>
-<a id="a3ce00d1ea244ad54544c6b522fcbd8f4" name="a3ce00d1ea244ad54544c6b522fcbd8f4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ce00d1ea244ad54544c6b522fcbd8f4">&#9670;&#160;</a></span>user_stack_start</h2>
+<a id="a857d87537d67eaedda6f209aa92e3074" name="a857d87537d67eaedda6f209aa92e3074"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a857d87537d67eaedda6f209aa92e3074">&#9670;&#160;</a></span>state</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> unit_info_t::user_stack_start</td>
+          <td class="memname"><a class="el" href="unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544">UnitState</a> unit_info_t::state</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Current state of the Unit (e.g., running, blocked, terminated) </p>
 
 </div>
 </div>

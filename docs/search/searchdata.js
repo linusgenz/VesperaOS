@@ -6,8 +6,8 @@ var indexSectionsWithContent =
   3: "_cefgimoprsuw",
   4: "abcdefhiklmnprstuvy",
   5: "bcdfhilprsuw",
-  6: "dr",
-  7: "dr",
+  6: "dru",
+  7: "dru",
   8: "_cefhmnoprstx",
   9: "lsv"
 };
