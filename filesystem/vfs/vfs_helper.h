@@ -25,5 +25,6 @@
 #define VFS_HELPER_H
 #include "vfs_node.h"
 bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
+dirent_type_t vfsnode_type_to_dirent_type(VfsNodeType type);
 void ensure_path_exists(const char* path);
 #endif //VFS_HELPER_H

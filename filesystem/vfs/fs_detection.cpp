@@ -247,7 +247,7 @@ void FilesystemDetector::ScanAndMountAll()
                 }
                 else
                 {
-                    // vormerken
+                    // remember
                     PendingMount pm{};
                     strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
                     pm.device = device;
@@ -279,7 +279,8 @@ void FilesystemDetector::ScanAndMountAll()
                         {
                             if (VfsNode* boot = efi->ops ? efi->ops->find(efi, "BOOT") : nullptr)
                             {
-                                if (VfsNode* bootx64 = boot->ops ? boot->ops->find(boot, "BOOTX64.EFI") : nullptr) looks_like_esp = true;
+                                if (VfsNode* bootx64 = boot->ops ? boot->ops->find(boot, "BOOTX64.EFI") : nullptr)
+                                    looks_like_esp = true;
                             }
                         }
                     }
@@ -339,18 +340,31 @@ void FilesystemDetector::ScanAndMountAll()
     }
 
     // Root gefunden? -> nachtragen
-    if (root_assigned && !pending_mounts->empty())
+    if (root_assigned)
     {
-        for (auto& [path, device, device_size, is_partition, table_type_pm] : *pending_mounts)
+        if (!pending_mounts->empty())
         {
-            ensure_path_exists(path);
-            if (mount_device(device, path, is_partition, device_size, table_type_pm))
+            for (auto& [path, device, device_size, is_partition, table_type_pm] : *pending_mounts)
             {
-                successful_mounts++;
+                ensure_path_exists(path);
+                if (mount_device(device, path, is_partition, device_size, table_type_pm))
+                {
+                    successful_mounts++;
+                }
+            }
+            pending_mounts->clear();
+        }
+
+        // virtual mount points have no dir, so when root is assigned create "dummy" dir for virtual
+        for (const MountPoint& mount : VFS::get_mount_points_snapshot())
+        {
+            if (mount.is_virtual)
+            {
+                VFS::mkdir(mount.path);
             }
         }
-        pending_mounts->clear();
     }
+
 
     if (successful_mounts == 0)
     {

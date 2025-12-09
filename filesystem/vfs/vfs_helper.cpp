@@ -59,6 +59,14 @@ bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) 
     return true;
 }
 
+dirent_type_t vfsnode_type_to_dirent_type(VfsNodeType type) {
+    switch (type) {
+    case VfsNodeType::File:      return DT_FILE;
+    case VfsNodeType::Directory: return DT_DIR;
+    case VfsNodeType::Device:    return DT_CHARDEV;
+    default:                     return DT_UNKNOWN;
+    }
+}
 
 void ensure_path_exists(const char* path) {
     if (!path || path[0] != '/') return;

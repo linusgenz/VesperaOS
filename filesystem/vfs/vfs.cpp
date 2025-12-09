@@ -67,6 +67,12 @@ VfsNode *VFS::mount_virtual(VfsNode *root, const char *mount_path) {
         spinlock_guard g(mount_points_lock);
         mount_points->push_back(mp);
     }
+
+    auto t = mkdir(mp.path);
+    Log::Info("[VFS] Mounted path: %s sts: %d", mount_path, t);
+
+   // while (1);
+
     return root;
 }
 
