@@ -1,15 +1,14 @@
 var searchData=
 [
-  ['port_5fnum_0',['port_num',['../structxhci__device__stat.html#a28736c64ed1e6121af9764a45d6fe558',1,'xhci_device_stat']]],
-  ['prev_1',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
-  ['printf_2',['printf',['../stdio_8h.html#a0aff7311d684a0e0ef33125616a73385',1,'stdio.h']]],
-  ['product_3',['product',['../structxhci__device__stat.html#a8e18b92b92445be1e3b909204d70d663',1,'xhci_device_stat']]],
-  ['product_5fid_4',['product_id',['../structxhci__device__stat.html#ac94de7315999b16e4807c7c234311822',1,'xhci_device_stat']]],
-  ['prot_5fexec_5',['PROT_EXEC',['../mman_8h.html#a77848f068638e916c72cd543f5ecb815',1,'mman.h']]],
-  ['prot_5fnone_6',['PROT_NONE',['../mman_8h.html#a6a982b48b8d3eb8eccd17e0d54ee5379',1,'mman.h']]],
-  ['prot_5fread_7',['PROT_READ',['../mman_8h.html#a15bf68ce8b590838b3a5c0b639d8d519',1,'mman.h']]],
-  ['prot_5fwrite_8',['PROT_WRITE',['../mman_8h.html#a2a79c8ceefb8fc25a940ae07a3d94429',1,'mman.h']]],
-  ['ptrdiff_5ft_9',['ptrdiff_t',['../stddef_8h.html#a1391029fd5d5d35fab28d7423c8cca9b',1,'stddef.h']]],
-  ['putchar_10',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
-  ['puts_11',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
+  ['o_5fappend_0',['O_APPEND',['../fflags_8h.html#ae036f789407d21f07b211552d67b3214',1,'fflags.h']]],
+  ['o_5fcreat_1',['O_CREAT',['../fflags_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc',1,'fflags.h']]],
+  ['o_5fdirectory_2',['O_DIRECTORY',['../fflags_8h.html#a6afd3dd2f570069804b40e6aa24fc966',1,'fflags.h']]],
+  ['o_5fexcl_3',['O_EXCL',['../fflags_8h.html#a9f5acfe79fafe14b6694447bd0e9f10b',1,'fflags.h']]],
+  ['o_5frdonly_4',['O_RDONLY',['../fflags_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b',1,'fflags.h']]],
+  ['o_5frdwr_5',['O_RDWR',['../fflags_8h.html#abb0586253488ee61072b73557eeb873b',1,'fflags.h']]],
+  ['o_5ftrunc_6',['O_TRUNC',['../fflags_8h.html#ad1d67e453fb3031f40f8cd3403773813',1,'fflags.h']]],
+  ['o_5fwronly_7',['O_WRONLY',['../fflags_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fflags.h']]],
+  ['offsetof_8',['offsetof',['../stddef_8h.html#a276e8a32e0bbf024aadd9420b8f2d3b3',1,'stddef.h']]],
+  ['open_9',['open',['../stdio_8h.html#a8c7c5fe31e34ed16c61ff40bb0d3d49c',1,'stdio.h']]],
+  ['opendir_10',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]]
 ];

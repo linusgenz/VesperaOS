@@ -1,26 +1,6 @@
 var searchData=
 [
-  ['uint16_5ft_0',['uint16_t',['../stdint_8h.html#a273cf69d639a59973b6019625df33e30',1,'stdint.h']]],
-  ['uint32_5ft_1',['uint32_t',['../stdint_8h.html#a435d1572bf3f880d55459d9805097f62',1,'stdint.h']]],
-  ['uint64_5ft_2',['uint64_t',['../stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad',1,'stdint.h']]],
-  ['uint8_5ft_3',['uint8_t',['../stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5',1,'stdint.h']]],
-  ['uint_5ffast16_5ft_4',['uint_fast16_t',['../stdint_8h.html#a6ed085329b153773ff76afa0702cf897',1,'stdint.h']]],
-  ['uint_5ffast32_5ft_5',['uint_fast32_t',['../stdint_8h.html#a8f075c759c74e109e8184306c663809d',1,'stdint.h']]],
-  ['uint_5ffast64_5ft_6',['uint_fast64_t',['../stdint_8h.html#a6fd055dddb7d91fab0635146851af8d5',1,'stdint.h']]],
-  ['uint_5ffast8_5ft_7',['uint_fast8_t',['../stdint_8h.html#ad0fca8b15c218d2c687f8c373a71d228',1,'stdint.h']]],
-  ['uint_5fleast16_5ft_8',['uint_least16_t',['../stdint_8h.html#a4f3f6e6631cb4aaeadf1c59ff597b2fb',1,'stdint.h']]],
-  ['uint_5fleast32_5ft_9',['uint_least32_t',['../stdint_8h.html#ac0af81082969e5e3f4d939b1de7002ac',1,'stdint.h']]],
-  ['uint_5fleast64_5ft_10',['uint_least64_t',['../stdint_8h.html#ab604f73dd823867b43702ae88b4f4445',1,'stdint.h']]],
-  ['uint_5fleast8_5ft_11',['uint_least8_t',['../stdint_8h.html#ac76e2383debd5a3b100514044828961a',1,'stdint.h']]],
-  ['uint_5fto_5fstr_12',['uint_to_str',['../internal_8h.html#ab72bae8e2e38262d4e342ea762149f3a',1,'internal.h']]],
-  ['uintmax_5ft_13',['uintmax_t',['../stdint_8h.html#a2ba5f6c0633401558d277b2c0e4f758d',1,'stdint.h']]],
-  ['uintptr_5ft_14',['uintptr_t',['../stdint_8h.html#a83242de74310b4aec3fc506bc3644211',1,'stdint.h']]],
-  ['unitid_15',['UnitID',['../realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c',1,'realm.h']]],
-  ['unlink_16',['unlink',['../stdio_8h.html#a28af9471bbdf262321af663e02899a47',1,'stdio.h']]],
-  ['unsetenv_17',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
-  ['urandom_2eh_18',['urandom.h',['../urandom_8h.html',1,'']]],
-  ['urandom_5fu32_19',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
-  ['urandom_5fu64_20',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
-  ['usb_5fxhci_5fioctl_2eh_21',['usb_xhci_ioctl.h',['../usb__xhci__ioctl_8h.html',1,'']]],
-  ['used_5fram_22',['used_ram',['../structmeminfo__t.html#afe3c8841983450c6aedf3cc2e9cbca0a',1,'meminfo_t']]]
+  ['total_5fram_0',['total_ram',['../structmeminfo__t.html#aaf3af1b93cc3aced8770ad503f4069b6',1,'meminfo_t']]],
+  ['true_1',['true',['../stdbool_8h.html#a41f9c5fb8b08eb5dc3edce4dcb37fee7',1,'stdbool.h']]],
+  ['type_2',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t']]]
 ];

@@ -10,5 +10,6 @@ var string_8h =
     [ "strlen", "string_8h.html#aa383452fe445bfae989358c9d7d96f4f", null ],
     [ "strncat", "string_8h.html#af4eafd6e1198841f898f0aa61ef86e2a", null ],
     [ "strncmp", "string_8h.html#a617eed2430471abc2c2ac192bd280869", null ],
-    [ "strncpy", "string_8h.html#a9380f4a95b2c4e3d979b1634d3a8bcc9", null ]
+    [ "strncpy", "string_8h.html#a9380f4a95b2c4e3d979b1634d3a8bcc9", null ],
+    [ "strtok", "string_8h.html#a493c478d061f31856b22410b0c1b7b8d", null ]
 ];
