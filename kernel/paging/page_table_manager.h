@@ -12,6 +12,7 @@ public:
     PageTableManager(PageTable* PML4Address);
     PageTable* PML4;
     void map_memory(void* virtual_memory, void* physical_memory, uint64_t flags) const;
+    void map_kernel_page(void* phys_addr, uint64_t flags) const;
 
     void set_user_flags(void* virtual_memory, size_t size) const;
 

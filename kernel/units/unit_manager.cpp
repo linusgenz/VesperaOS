@@ -30,6 +30,9 @@
 #include "../scheduling/schedule_manager.h"
 #include <kernel/system/system_manager.h>
 
+#include "../../filesystem/realmfs/realmfs.h"
+#include "dev/unit_info.h"
+
 Unit UnitManager::units[MAX_UNITS];
 spinlock_t UnitManager::global_lock;
 UnitID UnitManager::next_id = 1;
@@ -253,7 +256,7 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
             realm->unit_count++;
 
             SYS_EVENT_UNIT_CREATED(u->id, u->rid);
-
+            SysFS::register_unit(u->id, u->name, u, realm->name);
             return u;
         }
     }
@@ -321,6 +324,12 @@ bool UnitManager::destroy(const UnitID id)
             }
 
             SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
+            SysFS::unregister_unit(id);
+
+            if (r && r->unit_count == 0)
+            {
+                RealmManager::destroy(r->id);
+            }
 
             memset(u, 0, sizeof(*u));
             memset(&u->context, 0, sizeof(u->context));
@@ -345,6 +354,31 @@ void UnitManager::list()
                          unit.name);
         }
     }
+}
+
+ssize_t UnitManager::get_status(void* manager_ref, void* buffer, size_t size, size_t offset)
+{
+    if (!manager_ref || !buffer || size < sizeof(unit_info_t))
+        return -EINVAL;
+
+    Unit* u = static_cast<Unit*>(manager_ref);
+    unit_info_t status;
+
+    status.id = u->id;
+    status.realm_id = u->rid;
+    status.state = static_cast<uint8_t>(u->state);
+    status.priority = u->priority;
+    status.cpu_id = u->cpu_id;
+    status.exit_code = u->exit_code;
+    status.handle_count = u->handle_count;
+
+    status.kernel_stack_start = reinterpret_cast<uint64_t>(u->context.stack);
+    status.kernel_stack_end = reinterpret_cast<uint64_t>(u->context.stack_top);
+    status.user_stack_start = reinterpret_cast<uint64_t>(u->context.user_stack);
+    status.user_stack_end = reinterpret_cast<uint64_t>(u->context.user_stack_top);
+
+    memcpy(buffer, &status, sizeof(unit_info_t));
+    return sizeof(unit_info_t);
 }
 
 

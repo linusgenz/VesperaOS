@@ -28,19 +28,10 @@ SECTIONS
 	}
 	.bss : ALIGN(0x1000)
 	{
-    __bss_start = .;
-    *(COMMON)
-    *(.bss)
-    __bss_end = .;
+        __bss_start = .;
+        *(COMMON)
+        *(.bss)
+        __bss_end = .;
 	}
 	_KernelEnd = .;
-
-    . = 0x00400000;
-    _UserCodeStart = .;
-    .user : ALIGN(0x1000)
-    {
-        *(.user)
-    }
-    _UserCodeEnd = .;
-
 }

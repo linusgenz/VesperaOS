@@ -172,7 +172,7 @@ void gp_fault_handler(const trap_frame *frame) {
     Log::Error("  Selector: 0x%x", selector);
 
 
-    debug_check();
+  //  debug_check();
 
     panic("General protection fault detected");
     kernel::SystemManager::system_panic("General protection fault detected", -KEGPF);

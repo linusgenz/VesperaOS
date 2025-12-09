@@ -10,16 +10,19 @@
 #include <kernel/kerrno.h>
 #include <kernel/system/system_manager.h>
 
-template<typename T>
-class Vector {
+template <typename T>
+class Vector
+{
 public:
     explicit Vector(size_t initial_capacity = 4)
-        : _data(nullptr), capacity(0), length(0) {
+        : _data(nullptr), capacity(0), length(0)
+    {
         if (initial_capacity == 0) initial_capacity = 4;
         capacity = initial_capacity;
         _data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * capacity));
 
-        if (!_data) {
+        if (!_data)
+        {
             kernel::SystemManager::system_panic("Vector malloc failed", -KEVECALLOC);
         }
     }
@@ -28,14 +31,17 @@ public:
     Vector& operator=(const Vector&) = delete;
 
     Vector(Vector&& other) noexcept
-        : _data(other._data), capacity(other.capacity), length(other.length) {
+        : _data(other._data), capacity(other.capacity), length(other.length)
+    {
         other._data = nullptr;
         other.capacity = 0;
         other.length = 0;
     }
 
-    Vector& operator=(Vector&& other) noexcept {
-        if (this != &other) {
+    Vector& operator=(Vector&& other) noexcept
+    {
+        if (this != &other)
+        {
             destroy();
             _data = other._data;
             capacity = other.capacity;
@@ -47,12 +53,17 @@ public:
         return *this;
     }
 
-    Vector copy() const {
+    Vector copy() const
+    {
         Vector result(length);
-        for (size_t i = 0; i < length; ++i) {
-            if constexpr (std::is_trivially_copyable_v<T>) {
+        for (size_t i = 0; i < length; ++i)
+        {
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
                 result._data[i] = _data[i];
-            } else {
+            }
+            else
+            {
                 new(&result._data[i]) T(_data[i]);
             }
         }
@@ -60,28 +71,37 @@ public:
         return result;
     }
 
-    ~Vector() {
+    ~Vector()
+    {
         destroy();
     }
 
-    void clear() {
-        if constexpr (!std::is_trivially_destructible_v<T>) {
-            for (size_t i = 0; i < length; ++i) {
+    void clear()
+    {
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            for (size_t i = 0; i < length; ++i)
+            {
                 _data[i].~T();
             }
         }
         length = 0;
     }
 
-    void push_back(const T& value) {
-        if (length >= capacity) {
+    void push_back(const T& value)
+    {
+        if (length >= capacity)
+        {
             resize(capacity ? capacity * 2 : 4);
         }
 
-        if constexpr (std::is_trivially_copyable_v<T>) {
+        if constexpr (std::is_trivially_copyable_v<T>)
+        {
             _data[length] = value;
-        } else {
-            new (&_data[length]) T(value);
+        }
+        else
+        {
+            new(&_data[length]) T(value);
         }
         ++length;
     }
@@ -89,27 +109,37 @@ public:
     T* data() { return _data; }
     const T* data() const { return _data; }
 
-    T& operator[](size_t index) {
-        return _data[index];
-    }
-    const T& operator[](size_t index) const {
+    T& operator[](size_t index)
+    {
         return _data[index];
     }
 
-    void erase(size_t index) {
-        if (index >= length) {
+    const T& operator[](size_t index) const
+    {
+        return _data[index];
+    }
+
+    void erase(size_t index)
+    {
+        if (index >= length)
+        {
             kernel::SystemManager::system_panic("Vector::erase() index out of range", -KERANGE);
         }
 
-        if constexpr (!std::is_trivially_destructible_v<T>) {
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
             _data[index].~T();
         }
 
-        for (size_t i = index; i < length - 1; ++i) {
-            if constexpr (std::is_trivially_copyable_v<T>) {
+        for (size_t i = index; i < length - 1; ++i)
+        {
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
                 _data[i] = _data[i + 1];
-            } else {
-                new (&_data[i]) T(_data[i + 1]);
+            }
+            else
+            {
+                new(&_data[i]) T(_data[i + 1]);
                 _data[i + 1].~T();
             }
         }
@@ -117,9 +147,12 @@ public:
         --length;
     }
 
-    bool erase_value(const T& value) {
-        for (size_t i = 0; i < length; ++i) {
-            if (_data[i] == value) {
+    bool erase_value(const T& value)
+    {
+        for (size_t i = 0; i < length; ++i)
+        {
+            if (_data[i] == value)
+            {
                 erase(i);
                 return true;
             }
@@ -127,13 +160,46 @@ public:
         return false;
     }
 
+    void pop()
+    {
+        if (length == 0)
+        {
+            kernel::SystemManager::system_panic("Vector::pop() called on empty vector", -KEEMPTY);
+        }
+        --length;
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            _data[length].~T();
+        }
+    }
 
-    T& back() {
+    T pop_back()
+    {
+        if (length == 0)
+        {
+            kernel::SystemManager::system_panic("Vector::pop_back() called on empty vector", -KEEMPTY);
+        }
+        --length;
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            T value = _data[length];
+            _data[length].~T();
+            return value;
+        }
+        else
+        {
+            return _data[length];
+        }
+    }
+
+    T& back()
+    {
         if (length == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -KEEMPTY);
         return _data[length - 1];
     }
 
-    const T& back() const {
+    const T& back() const
+    {
         if (length == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -KEEMPTY);
         return _data[length - 1];
     }
@@ -143,32 +209,39 @@ public:
 
     // Iterator support (raw pointers)
     T* begin() { return _data; }
-    T* end()   { return _data + length; }
+    T* end() { return _data + length; }
     const T* begin() const { return _data; }
-    const T* end()   const { return _data + length; }
+    const T* end() const { return _data + length; }
     const T* cbegin() const { return _data; }
-    const T* cend()   const { return _data + length; }
+    const T* cend() const { return _data + length; }
 
 private:
     T* _data;
     size_t capacity;
     size_t length;
 
-    void resize(size_t new_capacity) {
+    void resize(size_t new_capacity)
+    {
         if (new_capacity <= capacity) return;
         T* new_data = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
         if (!new_data) kernel::SystemManager::system_panic("Vector resize malloc failed", -KEVECRESIZE);
 
-        if constexpr (std::is_trivially_copyable_v<T>) {
+        if constexpr (std::is_trivially_copyable_v<T>)
+        {
             // triviale Typen: einfache Zuweisung
-            for (size_t i = 0; i < length; ++i) {
+            for (size_t i = 0; i < length; ++i)
+            {
                 new_data[i] = _data[i];
             }
-        } else {
-            for (size_t i = 0; i < length; ++i) {
-                new (&new_data[i]) T(_data[i]); // copy-construct
+        }
+        else
+        {
+            for (size_t i = 0; i < length; ++i)
+            {
+                new(&new_data[i]) T(_data[i]); // copy-construct
             }
-            for (size_t i = 0; i < length; ++i) {
+            for (size_t i = 0; i < length; ++i)
+            {
                 _data[i].~T();
             }
         }
@@ -178,10 +251,13 @@ private:
         capacity = new_capacity;
     }
 
-    void destroy() {
+    void destroy()
+    {
         if (!_data) return;
-        if constexpr (!std::is_trivially_destructible_v<T>) {
-            for (size_t i = 0; i < length; ++i) {
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            for (size_t i = 0; i < length; ++i)
+            {
                 _data[i].~T();
             }
         }

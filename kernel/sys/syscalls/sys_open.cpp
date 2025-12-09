@@ -27,6 +27,8 @@
 #include "../../../filesystem/vfs/vfs.h"
 #include "../../../include/errno.h"
 #include <kernel/realm/realm_manager.h>
+
+#include "log.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
@@ -67,7 +69,6 @@ namespace syscalls::internal {
 
         CapabilitySet required_caps = CAP_NONE;
 
-        // Flags prüfen → READ/WRITE Rechte
         switch (flags & 0x3) {
             case O_RDONLY:
                 required_caps |= CAP_READ;
@@ -100,7 +101,6 @@ namespace syscalls::internal {
         VfsHandle *vh = nullptr;
         uint64_t handle_type = 0;
 
-        // Node-Typ auswerten
         switch (node->type) {
             case VfsNodeType::Device:
                 required_caps |= CAP_DEVICE_ACCESS;

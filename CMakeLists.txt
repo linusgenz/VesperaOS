@@ -78,7 +78,7 @@ add_custom_target(test
         -device usb-storage,drive=usbstick
         -device usb-storage,drive=usbstick2
       #  -device usb-kbd
-        -trace *xhci*
+        -trace *msi*
         -D /tmp/qemu.log
         -no-reboot
         -no-shutdown

@@ -51,6 +51,34 @@ char *strncpy(char *dest, const char *src, size_t n) {
     return dest;
 }
 
+char* strtok(char* s, const char delim)
+{
+    static char* next = NULL;
+
+    if (s != NULL)
+        next = s;
+
+    if (next == NULL)
+        return NULL;
+
+    char* start = next;
+
+    while (*next != '\0' && *next != delim)
+        ++next;
+
+    if (*next == delim)
+    {
+        *next = '\0';
+        ++next;
+    }
+    else
+    {
+        next = NULL;
+    }
+
+    return start;
+}
+
 void strcat(char *dest, const char *src) {
     if (!dest || !src) return;
     while (*dest) dest++;

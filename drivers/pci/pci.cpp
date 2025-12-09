@@ -15,13 +15,14 @@ void usb_enable(void* arg)
     const auto pci_device_header = static_cast<PCI::PCIDeviceHeader*>(arg);
     uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
     command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+    command |= (1 << 10); // Disable INTx
     PCI::pci_write16(pci_device_header, 0x04, command);
 
     uint8_t vector = kernel::interrupts::get_free_vector();
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header),
                                vector))
     {
-        const char* dev_name = DevFS::alloc_unique_name("xhci");
+        const char* dev_name = DevFS::alloc_unique_name("xhci", BUS_XHCI);
 
         auto usb_driver = new USB::xhciDriver(vector, dev_name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header))
@@ -240,7 +241,7 @@ namespace PCI
     }
 
 
-    BarInfo get_bar_info(const PCIHeader0* header, uint8_t bar_index)
+    BarInfo get_bar_info(PCIHeader0* header, uint8_t bar_index)
     {
         BarInfo info = {};
 
@@ -249,12 +250,8 @@ namespace PCI
             return info; // is_valid = false
         }
 
-        uint32_t bar_values[6] = {
-            header->BAR0, header->BAR1, header->BAR2,
-            header->BAR3, header->BAR4, header->BAR5
-        };
-
-        uint32_t bar_value = bar_values[bar_index];
+        volatile uint32_t* bar_registers = &header->BAR0;
+        uint32_t bar_value = bar_registers[bar_index];
 
         if (bar_value == 0)
         {
@@ -270,6 +267,13 @@ namespace PCI
             info.address = bar_value & ~0x3ULL;
             info.is_64bit = false;
             info.is_prefetchable = false;
+
+            // Calculate I/O BAR size
+            uint32_t original = bar_registers[bar_index];
+            bar_registers[bar_index] = 0xFFFFFFFF;
+            uint32_t size_mask = bar_registers[bar_index] & ~0x3;
+            bar_registers[bar_index] = original;
+            info.size = ~size_mask + 1;
         }
         else
         {
@@ -285,12 +289,35 @@ namespace PCI
                     return info;
                 }
 
-                uint32_t bar_high = bar_values[bar_index + 1];
+                uint32_t bar_high = bar_registers[bar_index + 1];
                 info.address = (static_cast<uint64_t>(bar_high) << 32) | (bar_value & ~0xFULL);
+
+                // Calculate 64-bit BAR size
+                uint32_t original_low = bar_registers[bar_index];
+                uint32_t original_high = bar_registers[bar_index + 1];
+
+                bar_registers[bar_index] = 0xFFFFFFFF;
+                bar_registers[bar_index + 1] = 0xFFFFFFFF;
+
+                uint32_t size_low = bar_registers[bar_index] & ~0xF;
+                uint32_t size_high = bar_registers[bar_index + 1];
+
+                bar_registers[bar_index] = original_low;
+                bar_registers[bar_index + 1] = original_high;
+
+                uint64_t size_mask = (static_cast<uint64_t>(size_high) << 32) | size_low;
+                info.size = ~size_mask + 1;
             }
             else
             {
                 info.address = bar_value & ~0xFULL;
+
+                // Calculate 32-bit BAR size
+                uint32_t original = bar_registers[bar_index];
+                bar_registers[bar_index] = 0xFFFFFFFF;
+                uint32_t size_mask = bar_registers[bar_index] & ~0xF;
+                bar_registers[bar_index] = original;
+                info.size = ~size_mask + 1;
             }
         }
 

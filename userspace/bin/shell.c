@@ -36,6 +36,8 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <dev/usb_xhci_ioctl.h>
+#include <dev/unit_info.h>
+#include <dev/realm_info.h>
 #include <dev/cpuinfo.h>
 #include <dev/rtc.h>
 #include <exec.h>
@@ -244,7 +246,7 @@ void cmd_ls(command_t* cmd)
             printf("ls: Cannot open '%s': File or directory not found\n", path);
             return;
         }
-        printf("ls: Cannot open '%s' due to an unknown error\n", path);
+        printf("ls: Cannot open '%s' due to an unknown error (hdl=%ld)\n", path, hdl);
         return;
     }
 
@@ -709,23 +711,6 @@ void shell_main(int argc, char** argv)
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
 
-    FILE_HANDLE fd = fopen("/dev/cpuinfo", O_RDONLY);
-    if (fd < 0)
-    {
-        printf("Failed to open /dev/rtc\n");
-    }
-
-    cpu_info info;
-    ssize_t n = fread(fd, &info, sizeof(info));
-    if (n != sizeof(info))
-    {
-        printf("Failed to read version\n");
-        fclose(fd);
-    }
-
-    fclose(fd);
-
-    printf("Brand: %s, Vendor %s Features: %lu\n", info.brand, info.vendor, info.features);
     while (1)
     {
         show_prompt();

@@ -35,6 +35,7 @@
 #include <kernel/basic_renderer.h>
 
 #include "../drivers/ps2/keyboard/ps2_keyboard.h"
+#include "../filesystem/realmfs/realmfs.h"
 #include "tty/init.h"
 
 uint64_t* scroll_buffer_top = nullptr;
@@ -157,6 +158,10 @@ void initialize_kernel(BootInfo* boot_info)
     setup_cpu_tss(0);
     RealmManager::initialize();
 
+    VFS::init();
+    DevFS::init();
+    SysFS::init();
+
     RealmConfig realm_config_sys = {
         .name = "system_realm",
         .memory_limit = 0,
@@ -186,8 +191,6 @@ void initialize_kernel(BootInfo* boot_info)
     CPUManager::smp_init();
     Log::init(); // threads are possible -> switch to mutex
 
-    VFS::init();
-    DevFS::init();
     initialize_input_bus();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 

@@ -70,7 +70,6 @@ namespace USB {
 
         // Setup runtime registers
         configure_runtime_registers();
-
         return true;
     }
 

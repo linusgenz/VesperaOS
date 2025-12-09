@@ -46,10 +46,6 @@ struct VfsHandle {
         context->position = 0;
         context->required_caps = caps;
         context->type_specific_data = nullptr;
-
-        if (node && node->type == VfsNodeType::Device) {
-            DevFS::open(node);
-        }
     }
 
     ~VfsHandle() {

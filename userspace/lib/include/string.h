@@ -82,5 +82,9 @@ void *memcpy (void *dest, const void *src, size_t len);
  */
 int memcmp(const void* s1, const void* s2, size_t n);
 
+/**
+ * @brief Split a string into tokens using a delimiter.
+ */
+char* strtok(char* s, char delim);
 
 #endif //VESPERAOS_STRING_H

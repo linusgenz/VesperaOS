@@ -139,6 +139,15 @@ char* strcpy(char* dest, const char* src)
     return temp;
 }
 
+void replace_char(char* s, char old_char, char new_char) {
+    while (*s) {
+        if (*s == old_char) {
+            *s = new_char;
+        }
+        s++;
+    }
+}
+
 char* strdup(const char* src)
 {
     const size_t len = strlen(src) + 1;

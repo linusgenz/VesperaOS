@@ -100,7 +100,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         .envp = envp0
     };
     Unit* shell = UnitManager::create(shell_realm->id, result.entry_point, nullptr, &uc);
-
     Log::Ok("PF: %p %p", envp0, *envp0);
 
     kernel::SystemManager::set_system_initialized();

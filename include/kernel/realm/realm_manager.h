@@ -38,6 +38,7 @@ public:
     static Realm* create(const RealmConfig* cfg);
     static Realm* get(RealmID id);
     static bool destroy(RealmID id);
+    static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
     static void list();
 
 private:

@@ -30,7 +30,8 @@
 
 using UnitEntry = void(*)(void*);
 
-class UnitManager {
+class UnitManager
+{
 public:
     static void initialize();
     static bool is_initialized();
@@ -38,6 +39,8 @@ public:
     static Unit* get(UnitID id);
     static bool destroy(UnitID id);
     static void list();
+
+    static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
 
 private:
     static constexpr size_t MAX_UNITS = 256;
@@ -49,9 +52,9 @@ private:
     static UnitID allocate_id();
 
     static void setup_kernel_unit_stack(Unit* u);
-    static void setup_user_unit_stack(Unit *u);
+    static void setup_user_unit_stack(Unit* u);
 };
 
-uintptr_t SetupUserArgsAndEnv(Unit *u, const char **argv, const char **envp);
+uintptr_t SetupUserArgsAndEnv(Unit* u, const char** argv, const char** envp);
 
 #endif //VESPERAOS_UNIT_MANAGER_H

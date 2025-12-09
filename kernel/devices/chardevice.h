@@ -39,6 +39,7 @@ class CharDevice {
 public:
     const char* name;
     BusType bus_type;
+    VfsNode* parent;
 
     explicit CharDevice(const char* name, BusType bus_type) : name(name), bus_type(bus_type) {
         DevFS::register_device(this);
@@ -65,8 +66,8 @@ public:
         return DevFS::register_device(this);
     }
 
-    [[nodiscard]] int unregister_device() const {
-        return DevFS::unregister_device(name);
+    [[nodiscard]] int unregister_device() {
+        return DevFS::unregister_device(this);
     }
 
     // Nicht-kopierbar

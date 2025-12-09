@@ -29,9 +29,8 @@ namespace kernel::tty {
         active_tty = &tty_instances[0];
         for (int i = 0; i < 6; i++) {
             tty_init(&tty_instances[i]);
-            const char *name = DevFS::alloc_unique_name("tty");
+            const char *name = DevFS::alloc_unique_name("tty", BUS_TTY);
             tty_devices[i] = new TTYDevice(name, &tty_instances[i]);
-            tty_devices[i]->register_device();
         }
     }
 }

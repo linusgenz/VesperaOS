@@ -43,7 +43,7 @@ namespace syscalls::internal {
         if (!user_path) return -EINVAL;
 
         RealmConfig cfg = {
-            .name = user_path,
+            .name = user_path, // TODO change name (clashing with fs)
             .capabilities = CAP_RW | CAP_DEVICE_ACCESS,
             .is_user = true
         };

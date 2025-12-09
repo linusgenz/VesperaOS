@@ -52,6 +52,7 @@ namespace PCI {
 
     struct BarInfo {
         uint64_t address;
+        uint64_t size;
         bool is_64bit;
         bool is_memory;
         bool is_prefetchable;
@@ -110,7 +111,7 @@ namespace PCI {
 
     const char *get_prog_if_Name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
 
-    BarInfo get_bar_info(const PCIHeader0 *header, uint8_t bar_index);
+    BarInfo get_bar_info(PCIHeader0 *header, uint8_t bar_index);
 }
 
 #endif //PCI_H
