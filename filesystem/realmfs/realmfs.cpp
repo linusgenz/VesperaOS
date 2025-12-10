@@ -1,5 +1,5 @@
 /**
- * @file sysfs.cpp
+ * @file RealmFS.cpp
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
@@ -32,7 +32,7 @@
 #include "log.h"
 #include "../../kernel/units/unit_manager.h"
 
-void SysFS::init()
+void RealmFS::init()
 {
     VirtualFilesystem::init("/realms", "realms");
 
@@ -53,7 +53,7 @@ void SysFS::init()
 }
 
 
-int SysFS::register_realm(uint64_t realm_id, const char* name, void* realm_ptr)
+int RealmFS::register_realm(uint64_t realm_id, const char* name, void* realm_ptr)
 {
     spinlock_guard guard(lock);
 
@@ -68,12 +68,12 @@ int SysFS::register_realm(uint64_t realm_id, const char* name, void* realm_ptr)
     obj->id = realm_id;
     obj->manager_ref = realm_ptr;
 
-    create_entry_node("info", realm_dir, obj);
+    create_entry_node("info", realm_dir, obj, VfsNodeType::CharDevice);
 
     return SUCCESS_CODE;
 }
 
-int SysFS::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, const char* realm_name)
+int RealmFS::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, const char* realm_name)
 {
     spinlock_guard guard(lock);
 
@@ -90,7 +90,7 @@ int SysFS::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, con
     obj->id = unit_id;
     obj->manager_ref = unit_ptr;
 
-    auto* entry = create_entry_node(obj->name, units_dir, obj);
+    auto* entry = create_entry_node(obj->name, units_dir, obj, VfsNodeType::CharDevice);
     auto* unit_entry = entry;
     unit_entry->obj_type = SYS_OBJ_UNIT;
     unit_entry->parent_realm = realm_dir;
@@ -98,7 +98,7 @@ int SysFS::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, con
     return SUCCESS_CODE;
 }
 
-int SysFS::unregister_realm(uint64_t realm_id)
+int RealmFS::unregister_realm(uint64_t realm_id)
 {
     spinlock_guard guard(lock);
 
@@ -109,11 +109,11 @@ int SysFS::unregister_realm(uint64_t realm_id)
         VfsNode* realm_dir = root_data->subdirs[i];
 
         auto* dir_data = static_cast<DirData*>(realm_dir->internal_data);
-        SysfsEntry* realm_entry = nullptr;
+        RealmFSEntry* realm_entry = nullptr;
 
         for (auto* file_node : dir_data->files)
         {
-            auto* entry = static_cast<SysfsEntry*>(file_node->internal_data);
+            auto* entry = static_cast<RealmFSEntry*>(file_node->internal_data);
             if (entry && entry->device && entry->device->id == realm_id)
             {
                 realm_entry = entry;
@@ -131,7 +131,7 @@ int SysFS::unregister_realm(uint64_t realm_id)
     return -ENOENT;
 }
 
-int SysFS::unregister_unit(uint64_t unit_id)
+int RealmFS::unregister_unit(uint64_t unit_id)
 {
     spinlock_guard guard(lock);
 
@@ -145,7 +145,7 @@ int SysFS::unregister_unit(uint64_t unit_id)
         for (size_t i = 0; i < units_data->files.size(); i++)
         {
             VfsNode* u_node = units_data->files[i];
-            auto* u_entry = static_cast<SysfsEntry*>(u_node->internal_data);
+            auto* u_entry = static_cast<RealmFSEntry*>(u_node->internal_data);
             if (u_entry && u_entry->device->id == unit_id)
             {
                 units_data->files.erase(i);
@@ -158,11 +158,11 @@ int SysFS::unregister_unit(uint64_t unit_id)
     return -ENOENT;
 }
 
-ssize_t SysFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
+ssize_t RealmFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<SysfsEntry*>(node->internal_data);
+    auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SysObject* obj = entry->device;
@@ -179,11 +179,11 @@ ssize_t SysFS::read(const VfsNode* node, size_t offset, size_t size, void* buffe
     return -ENFILE;
 }
 
-ssize_t SysFS::write(VfsNode* node, size_t offset, size_t size, const void* buffer)
+ssize_t RealmFS::write(VfsNode* node, size_t offset, size_t size, const void* buffer)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<SysfsEntry*>(node->internal_data);
+    auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SysObject* obj = entry->device;
@@ -200,11 +200,11 @@ ssize_t SysFS::write(VfsNode* node, size_t offset, size_t size, const void* buff
     return -EUNSUPPORTED;
 }
 
-ssize_t SysFS::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
+ssize_t RealmFS::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<SysfsEntry*>(node->internal_data);
+    auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SysObject* obj = entry->device;
@@ -245,7 +245,7 @@ ssize_t SysFS::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
     return -EUNSUPPORTED;
 }
 
-void SysFS::close(VfsNode* node)
+void RealmFS::close(VfsNode* node)
 {
     // Cleanup if needed in the future
 }

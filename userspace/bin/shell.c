@@ -257,13 +257,14 @@ void cmd_ls(command_t* cmd)
         switch (ent.type)
         {
         case DT_DIR: color = "\033[38;2;66;117;245m";
-            break; // blau
+            break;
         case DT_EXEC: color = "\033[38;2;66;245;81";
-            break; // grün
+            break;
         case DT_SYMLINK: color = "\033[1;36m";
-            break; // cyan
-        case DT_CHARDEV:
-        case DT_BLOCKDEV: color = "\033[38;2;245;212;66m";
+            break;
+        case DT_BLOCKDEV: color = "\033[38;2;100;200;255m";
+            break;
+        case DT_CHARDEV: color = "\033[38;2;245;212;8m";
             break;
         default: color = "\033[0m";
             break;

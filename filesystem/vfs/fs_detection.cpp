@@ -23,13 +23,8 @@
 
 #include "fs_detection.h"
 #include "../../include/string.h"
-#include <kernel/memory.h>
-#include "../../kernel/devices/device_manager.h"
-#include "../fat32/fat32_vfs_adapter.h"
+#include "../../include/kernel/devices/device_manager.h"
 #include "vfs.h"
-#include "../partition/partition.h"
-#include "../kernel/devices/partition_device.h"
-#include "vfs_helper.h"
 #include <kernel/system/system_manager.h>
 #include <log.h>
 
@@ -39,7 +34,6 @@ size_t FilesystemDetector::device_count = 0;
 extern FileSystemDriver fat32_driver;
 extern FileSystemDriver ext4_driver;
 // TODO: Add other drivers when implemented
-// extern FileSystemDriver ext4_driver;
 // extern FileSystemDriver ntfs_driver;
 
 Vector<PendingMount>* FilesystemDetector::pending_mounts;
@@ -58,17 +52,13 @@ void FilesystemDetector::RegisterAllDrivers()
     if (fs_driver_count() < MAX_FS_DRIVERS)
     {
         register_fs_driver(&fat32_driver);
-        //     Log::Info("[FS] Registered FAT32 driver");
     }
 
     // EXT4 driver
     if (fs_driver_count() < MAX_FS_DRIVERS)
     {
         register_fs_driver(&ext4_driver);
-        //   Log::Info("[FS] Registered EXT4 driver");
     }
-
-    //   Log::Info("[FS] Registered %d filesystem drivers", fs_driver_count());
 }
 
 bool FilesystemDetector::DetectFilesystem(BlockDevice* device, FilesystemInfo* info)
@@ -104,33 +94,12 @@ bool FilesystemDetector::DetectFilesystem(BlockDevice* device, FilesystemInfo* i
                 info->description = "Unknown Filesystem";
             }
 
-            //   Log::Info("[FS] Detected filesystem: %s (%s)", info->type_name, info->description);
             return true;
         }
     }
 
     Log::Warning("[FS] No supported filesystem detected");
     return false;
-}
-
-void FilesystemDetector::GenerateMountPath(const char* fs_type, int index, char* out_path, size_t size)
-{
-    if (strcmp(fs_type, "fat32") == 0)
-    {
-        snprintf(out_path, size, "/mnt/fat32_%d", index);
-    }
-    else if (strcmp(fs_type, "ext4") == 0)
-    {
-        snprintf(out_path, size, "/mnt/ext4_%d", index);
-    }
-    else if (strcmp(fs_type, "ntfs") == 0)
-    {
-        snprintf(out_path, size, "/mnt/ntfs_%d", index);
-    }
-    else
-    {
-        snprintf(out_path, size, "/mnt/disk%d", index);
-    }
 }
 
 bool FilesystemDetector::Unmount(MountPoint* mp)
@@ -204,7 +173,7 @@ VfsNode* FilesystemDetector::MountFilesystem(BlockDevice* device, const Filesyst
 }
 
 bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested_path, bool is_partition,
-                                      size_t device_size, const char* table_type, bool is_root_device)
+                                      const char* table_type, bool is_root_device)
 {
     FilesystemInfo fs_info{};
     if (!DetectFilesystem(device, &fs_info))
@@ -218,14 +187,14 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
 
     if (strcmp(suggested_path, "/") != 0)
     {
-        ensure_path_exists(suggested_path);
+        VFS::ensure_path_exists(suggested_path);
     }
 
     fs_info.mounted = true;
 
     DeviceDescriptor desc{};
     desc.device = device;
-    desc.device_size = device_size;
+    desc.device_size = device->get_size();
     desc.is_recognized = true;
     desc.fs_info = fs_info;
     desc.partition_table_type = strdup(table_type);
@@ -247,8 +216,8 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
 
 void FilesystemDetector::ScanAndMountAll()
 {
-    auto devices = kernel::DeviceManager::GetDevices();
-    size_t device_count_actual = kernel::DeviceManager::GetDeviceCount();
+    auto devices = DeviceManager::GetAllDevices();
+    size_t device_count_actual = DeviceManager::GetDeviceCount();
 
     if (device_count_actual == 0)
     {
@@ -260,31 +229,21 @@ void FilesystemDetector::ScanAndMountAll()
     static bool root_assigned = false;
 
     const char* table_type = nullptr;
-    for (size_t i = 0; i < device_count_actual; i++)
+    for (size_t i = 0; i < devices.size(); ++i)
     {
-        BlockDevice* device = devices[i];
+        const KernelDevice* kd = devices[i];
+
+        if (!kd || kd->type != DeviceType::Block) continue;
+        BlockDevice* device = kd->block;
         if (!device) continue;
 
-        PartitionEntry parts[16];
-        size_t pcount = parse_partitions(device, parts, 16);
-
-        uint8_t sector[512];
-        if (device->read(1, 1, sector) && memcmp(sector, "EFI PART", 8) == 0)
-        {
-            table_type = "GPT";
-        }
-        else if (device->read(0, 1, sector) && sector[510] == 0x55 && sector[511] == 0xAA)
-        {
-            table_type = "MBR";
-        }
-
-        if (pcount == 0)
+        if (device->type == BlockDevice::Type::Disk && kd->children.empty())
         {
             char mount_path[64];
             if (!root_assigned)
             {
                 snprintf(mount_path, sizeof(mount_path), "/");
-                if (mount_device(device, mount_path, false, 0, table_type, true))
+                if (mount_device(device, mount_path, false, table_type, true))
                 {
                     root_assigned = true;
                     successful_mounts++;
@@ -295,10 +254,13 @@ void FilesystemDetector::ScanAndMountAll()
                 snprintf(mount_path, sizeof(mount_path), "/mnt/dev%d", i);
                 if (root_assigned)
                 {
-                    ensure_path_exists(mount_path);
-                    if (mount_device(device, mount_path, false, 0, table_type, false))
+                    VFS::ensure_path_exists(mount_path);
+                    if (mount_device(device, mount_path, false, table_type, false))
                     {
                         successful_mounts++;
+                    }  else
+                    {
+                        VFS::rmdir(mount_path);
                     }
                 }
                 else
@@ -313,127 +275,105 @@ void FilesystemDetector::ScanAndMountAll()
                     pending_mounts->push_back(pm);
                 }
             }
-            continue;
         }
-
-        for (size_t pi = 0; pi < pcount; ++pi)
+        else if (kd->block->type == BlockDevice::Type::Partition)
         {
-            PartitionEntry& pe = parts[pi];
-            auto* pdev = new PartitionDevice(device, pe.start_lba, pe.length_lba);
-
-            // Heuristik: EFI-Partition?
-            char mount_path[64];
-            bool looks_like_esp = false;
-            bool looks_like_root = false;
             {
+                if (kd->type != DeviceType::Block)
+                    continue;
+
+                BlockDevice* pdev = kd->block;
+                if (!pdev)
+                    continue;
+
+                bool looks_like_esp = false;
+                bool looks_like_root = false;
+
                 FilesystemInfo fs_info{};
                 if (DetectFilesystem(pdev, &fs_info))
                 {
                     VfsNode* probe_root = MountFilesystem(pdev, &fs_info);
                     if (probe_root && probe_root->ops && probe_root->ops->find)
                     {
+                        // ESP?
                         if (VfsNode* efi = probe_root->ops->find(probe_root, "EFI"))
                         {
                             if (VfsNode* boot = efi->ops ? efi->ops->find(efi, "BOOT") : nullptr)
                             {
-                                if (VfsNode* bootx64 = boot->ops ? boot->ops->find(boot, "BOOTX64.EFI") : nullptr)
+                                if (boot->ops &&
+                                    boot->ops->find(boot, "BOOTX64.EFI"))
+                                {
                                     looks_like_esp = true;
+                                }
                             }
                         }
-                        else if (VfsNode* bin = probe_root->ops->find(probe_root, "bin"))
+
+                        // Root?
+                        if (!looks_like_esp)
                         {
-                            if (VfsNode* shell = bin->ops ? bin->ops->find(bin, "shell") : nullptr)
+                            if (VfsNode* bin = probe_root->ops->find(probe_root, "bin"))
                             {
-                                looks_like_root = true;
+                                if (bin->ops && bin->ops->find(bin, "shell"))
+                                    looks_like_root = true;
                             }
                         }
                     }
                 }
-            }
 
-            if (looks_like_esp)
-            {
-                snprintf(mount_path, sizeof(mount_path), "/efi");
-            }
-            else if (!root_assigned && looks_like_root)
-            {
-                snprintf(mount_path, sizeof(mount_path), "/");
-            }
-            else
-            {
-                snprintf(mount_path, sizeof(mount_path), "/mnt/dev%dp%d", i, pi);
-            }
+                char mount_path[64];
 
-            if (!root_assigned && strcmp(mount_path, "/") == 0)
-            {
-                // Root sofort mounten
-                if (mount_device(pdev, mount_path, true, pe.length_lba, table_type, true))
+                // priority: ESP → root → standard path
+                if (looks_like_esp)
                 {
-                    root_assigned = true;
-                    successful_mounts++;
+                    snprintf(mount_path, sizeof(mount_path), "/efi");
+                }
+                else if (!root_assigned && looks_like_root)
+                {
+                    snprintf(mount_path, sizeof(mount_path), "/");
                 }
                 else
                 {
-                    delete pdev;
+                    snprintf(mount_path, sizeof(mount_path),
+                             "/mnt/%s", kd->name ? kd->name : "part");
                 }
-            }
-            else if (root_assigned)
-            {
-                ensure_path_exists(mount_path);
-                if (mount_device(pdev, mount_path, true, pe.length_lba, table_type, false))
+
+                if (!root_assigned && looks_like_root)
+                {
+                    if (mount_device(pdev, "/", true, nullptr, true))
+                    {
+                        root_assigned = true;
+                        successful_mounts++;
+                    }
+                    continue;
+                }
+
+                VFS::ensure_path_exists(mount_path);
+
+                if (mount_device(pdev, mount_path, true, nullptr, false))
                 {
                     successful_mounts++;
-                }
-                else
+                } else
                 {
-                    delete pdev;
+                    VFS::rmdir(mount_path);
                 }
-            }
-            else
-            {
-                PendingMount pm{};
-                strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
-                pm.device = pdev;
-                pm.device_size = pe.length_lba;
-                pm.is_partition = true;
-                pm.table_type = table_type;
-                pending_mounts->push_back(pm);
-                Log::debug("[FS] Queued mount %s until root is ready", mount_path);
             }
         }
     }
 
-    // Root gefunden? -> nachtragen
+    // =====================================================
+    // Virtuelle Mountpoints erzeugen (Shell, /proc etc.)
+    // =====================================================
     if (root_assigned)
     {
-        if (!pending_mounts->empty())
+        for (MountPoint* mp : VFS::get_mount_points_snapshot())
         {
-            for (auto& [path, device, device_size, is_partition, table_type_pm] : *pending_mounts)
-            {
-                ensure_path_exists(path);
-                if (mount_device(device, path, is_partition, device_size, table_type_pm, false))
-                {
-                    successful_mounts++;
-                }
-            }
-            pending_mounts->clear();
-        }
-
-        // virtual mount points have no dir, so when root is assigned create "dummy" dir for virtual
-        for (MountPoint* mount : VFS::get_mount_points_snapshot())
-        {
-            if (mount->is_virtual)
-            {
-                VFS::mkdir(mount->path);
-            }
+            if (mp->is_virtual)
+                VFS::mkdir(mp->path);
         }
     }
-
 
     if (successful_mounts == 0)
-    {
         Log::Warning("[FS] No filesystems could be mounted automatically");
-    }
 }
 
 void FilesystemDetector::PrintDetectedFilesystems()

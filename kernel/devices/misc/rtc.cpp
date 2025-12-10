@@ -39,10 +39,8 @@ int RTCDevice::release(CharFile* cf) {
     return 0;
 }
 
-size_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t) {
-    if (count < sizeof(RtcData)) {
-        return 0;
-    }
+ssize_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    if (count < sizeof(RtcData) || !buffer) return -EINVAL;
 
     RtcData data{};
     kernel::time::read_rtc(data.sec, data.min, data.hour,
@@ -52,7 +50,7 @@ size_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     return sizeof(RtcData);
 }
 
-size_t RTCDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t RTCDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
-    return count; // maybe add cmos write support late
+    return -EPERM; // maybe add cmos write support late
 }

@@ -24,10 +24,13 @@
 #ifndef VESPERAOS_CHAR_DEVICE_BASE_H
 #define VESPERAOS_CHAR_DEVICE_BASE_H
 
-#include "../../filesystem/devfs/devfs.h"
 #include <errno.h>
+#include "device_manager.h"
 
-struct CharFile;
+struct CharFile
+{
+    void* driver_private;
+};
 
 // Flags for poll()
 enum PollMask : int {
@@ -39,15 +42,12 @@ class CharDevice {
 public:
     const char* name;
     BusType bus_type;
-    VfsNode* parent;
 
-    explicit CharDevice(const char* name, BusType bus_type) : name(name), bus_type(bus_type) {
-        DevFS::register_device(this);
-    }
+    explicit CharDevice(const char* name, BusType bus_type)
+        : name(name), bus_type(bus_type) {}
 
     virtual ~CharDevice() {
         if (name) {
-            kernel::memory::free((void*)name);
             name = nullptr;
         }
     }
@@ -55,20 +55,12 @@ public:
     virtual int open(CharFile** out_cf) = 0;
     virtual int release(CharFile* cf) = 0;
 
-    virtual size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) = 0;
-    virtual size_t write(CharFile* cf, const void* buffer, size_t count) = 0;
+    virtual ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) = 0;
+    virtual ssize_t write(CharFile* cf, const void* buffer, size_t count) = 0;
 
     virtual int ioctl(CharFile* cf, uint32_t cmd, void* arg) { return -ENOTTY; }
 
     virtual int poll(CharFile* cf) { return 0; }
-
-    int register_device() {
-        return DevFS::register_device(this);
-    }
-
-    [[nodiscard]] int unregister_device() {
-        return DevFS::unregister_device(this);
-    }
 
     // Nicht-kopierbar
     CharDevice(const CharDevice&) = delete;

@@ -40,14 +40,18 @@ int FullDevice::release(CharFile *cf) {
     return 0;
 }
 
-size_t FullDevice::read(CharFile *cf, void *buffer, size_t count, size_t offset) {
+ssize_t FullDevice::read(CharFile *cf, void *buffer, size_t count, size_t offset) {
     (void) cf;
     (void) offset;
+
+    if (!buffer) return -EINVAL;
+    if (count == 0) return 0;
+
     memset(buffer, 0, count);
-    return count;
+    return static_cast<ssize_t>(count);
 }
 
-size_t FullDevice::write(CharFile *cf, const void *buffer, size_t count) {
+ssize_t FullDevice::write(CharFile *cf, const void *buffer, size_t count) {
     (void) cf;
     (void) buffer;
     (void) count;

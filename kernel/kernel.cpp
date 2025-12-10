@@ -31,6 +31,8 @@
 #include <kernel/realm/realm_manager.h>
 #include <kernel/system/system_manager.h>
 #include <kernel/tty/tty.h>
+
+#include "../include/kernel/devices/device_manager.h"
 #include "units/unit_manager.h"
 
 static const char* envp0[] = {"PATH=/bin", nullptr};
@@ -73,13 +75,12 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     shell_realm->setup_standard_handles(tty_dev);
 
     ElfLoader::ElfLoadResult result = ElfLoader::load_elf_binary("/bin/shell", 0x400000, shell_realm);
-    Log::Ok("Elf load result: %p", result.entry_point);
     if (!result.success)
     {
         Log::Error("Failed to load elf binary");
     }
 
-    const char *argv_example[] = {
+    const char* argv_example[] = {
         "shell",
         "-v",
         "--config=config.txt",
@@ -100,7 +101,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         .envp = envp0
     };
     Unit* shell = UnitManager::create(shell_realm->id, result.entry_point, nullptr, &uc);
-    Log::Ok("PF: %p %p", envp0, *envp0);
 
     kernel::SystemManager::set_system_initialized();
 

@@ -24,12 +24,14 @@
 #include "tty_device.h"
 #include "init.h"
 
+#include "../../filesystem/devfs/devfs.h"
+
 namespace kernel::tty {
     void initialize_ttys() {
         active_tty = &tty_instances[0];
         for (int i = 0; i < 6; i++) {
             tty_init(&tty_instances[i]);
-            const char *name = DevFS::alloc_unique_name("tty", BUS_TTY);
+            const char *name = DeviceManager::AllocUniqueDeviceName("tty");
             tty_devices[i] = new TTYDevice(name, &tty_instances[i]);
         }
     }

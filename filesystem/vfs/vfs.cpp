@@ -28,8 +28,7 @@
 #include <kernel/scheduling.h>
 
 #include <errno.h>
-#include "vfs_helper.h"
-#include "../kernel/devices/device_manager.h"
+#include "../../include/kernel/devices/device_manager.h"
 #include "fs_detection.h"
 #include "../dirent.h"
 #include <kernel/realm/realm_manager.h>
@@ -175,7 +174,7 @@ int VFS::create(const char *path) {
 
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->create) {
         close(parent);
@@ -193,8 +192,8 @@ int VFS::rename(const char *oldPath, const char *newPath) {
     VfsNode *oldParent, *newParent;
     char oldName[64], newName[64];
 
-    if (!vfs_resolve_parent(oldPath, &oldParent, oldName)) return -ENOENT;
-    if (!vfs_resolve_parent(newPath, &newParent, newName)) {
+    if (!resolve_parent(oldPath, &oldParent, oldName)) return -ENOENT;
+    if (!resolve_parent(newPath, &newParent, newName)) {
         close(oldParent);
         return -ENOENT;
     }
@@ -222,7 +221,7 @@ int VFS::mkdir(const char *path) {
 
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->mkdir) {
         close(parent);
@@ -246,7 +245,7 @@ int VFS::rmdir(const char *path) {
 
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->rmdir) {
         close(parent);
@@ -263,7 +262,7 @@ int VFS::unlink(const char *path) {
 
     VfsNode *parent;
     char name[64];
-    if (!vfs_resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (!parent->ops || !parent->ops->unlink) {
         close(parent);
@@ -295,11 +294,11 @@ void VFS::remount_all() {
 void VFS::get_stats(VfsStats *stats) {
     if (!stats) return;
 
-    stats->total_devices = kernel::DeviceManager::GetDeviceCount();
+    stats->total_devices = DeviceManager::GetDeviceCount();
     stats->mounted_devices = 0;
     stats->supported_filesystems = 0;
 
-    auto devices = kernel::DeviceManager::GetDevices();
+    auto devices = DeviceManager::GetDevices();
     for (size_t i = 0; i < stats->total_devices; i++) {
         FilesystemInfo info;
         if (FilesystemDetector::DetectFilesystem(devices[i], &info) && info.mounted) {

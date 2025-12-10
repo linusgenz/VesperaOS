@@ -40,9 +40,8 @@ int MemInfoDevice::release(CharFile* cf) {
     return 0;
 }
 
-size_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
-    if (count < sizeof(meminfo_t))
-        return 0;
+ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    if (count < sizeof(meminfo_t) || !buffer) return -EINVAL;
 
     kernel::SystemManager::update_system_stats();
     const kernel::SystemStats stats = kernel::SystemManager::get_system_stats();
@@ -57,7 +56,7 @@ size_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     return sizeof(meminfo_t);
 }
 
-size_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
-    return count;
+    return -EPERM;
 }

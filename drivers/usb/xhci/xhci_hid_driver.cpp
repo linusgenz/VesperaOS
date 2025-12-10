@@ -25,7 +25,7 @@
 #include "xhci.h"
 
 void xhciHidDriver::on_startup(USB::xhciDriver* hcd, xhciDevice* dev) {
-    this->on_device_init();
+    this->on_device_init(hcd);
 
     request_hid_report(hcd, dev);
 }

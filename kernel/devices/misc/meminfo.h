@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_MEMINFO_H
 #define VESPERAOS_MEMINFO_H
 
-#include "../chardevice.h"
+#include "../../../include/kernel/devices/char_device.h"
 
 typedef struct {
     uint64_t total_ram;
@@ -39,8 +39,8 @@ public:
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;
-    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
-    size_t write(CharFile* cf, const void* buffer, size_t count) override;
+    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+    ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
 };
 
 #endif //VESPERAOS_MEMINFO_H

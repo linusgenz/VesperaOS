@@ -16,10 +16,15 @@ namespace NVMe {
         NvmeNamespace(uint32_t nsid, NvmeQueue* ioQueue, uint32_t lbaSize)
             : nsID(nsid), queue(ioQueue), sectorSize(lbaSize) {}
 
-        bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
-        bool write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
+        ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
+        ssize_t write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
 
-        uint32_t get_sector_size() override {
+        [[nodiscard]] size_t get_size() const override
+        {
+            return 0;
+        };
+
+        [[nodiscard]] uint32_t get_sector_size() const override {
             return sectorSize;
         }
 

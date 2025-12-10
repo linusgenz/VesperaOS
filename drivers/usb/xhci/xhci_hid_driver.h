@@ -32,7 +32,7 @@ public:
     xhciHidDriver() = default;
     ~xhciHidDriver() override = default;
 
-    virtual void on_device_init() = 0;
+    virtual void on_device_init(USB::xhciDriver* hcd) = 0;
     virtual void on_device_event(uint8_t* data) = 0;
 
     void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) override;

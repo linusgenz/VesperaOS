@@ -24,6 +24,7 @@
 #ifndef PS2_MOUSE_H
 #define PS2_MOUSE_H
 
+#include "../ps2_controller.h"
 #include <cstdint>
 
 namespace ps2::mouse {

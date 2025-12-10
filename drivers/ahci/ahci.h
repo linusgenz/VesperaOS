@@ -4,6 +4,7 @@
 #include "../pci/pci.h"
 #include "../../kernel/devices/blockdevice.h"
 #include "../../include/kernel/sync/mutex.h"
+#include "../../kernel/types/handle.h"
 
 namespace AHCI {
 
@@ -151,17 +152,19 @@ namespace AHCI {
          void StopCMD() const;
          void StartCMD() const;
 
-        bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override {
+        ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer) override {
             return Read(lba, sectorCount, buffer);
         }
 
-        bool write(uint64_t sector, uint32_t sectorCount, void *buffer) override {
+        ssize_t write(uint64_t sector, uint32_t sectorCount, void *buffer) override {
             return Write(sector, sectorCount, buffer);
         }
 
-        bool Read(uint64_t sector, uint32_t sectorCount, void* buffer);
+        [[nodiscard]] size_t get_size() const override;
 
-        bool Write(uint64_t sector, uint32_t sectorCount, void *buffer);
+        ssize_t Read(uint64_t sector, uint32_t sectorCount, void* buffer);
+
+        ssize_t Write(uint64_t sector, uint32_t sectorCount, void *buffer);
     };
 
 

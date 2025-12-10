@@ -522,7 +522,21 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
                     written += len;
                     break;
                 }
+            case 'z':
+                {
+                    if (format[i + 1] == 'u') // %zu
+                    {
+                        i++; // Skip 'u'
+                        size_t val = __builtin_va_arg(args, size_t);
+                        char temp[32];
+                        int len = uint64_to_string(val, temp, 10);
 
+                        for (int j = 0; j < len && buf_pos < size - 1; j++)
+                            buffer[buf_pos++] = temp[j];
+                        written += len;
+                    }
+                    break;
+                }
             case 's':
                 {
                     const char* str = __builtin_va_arg(args, const char *);

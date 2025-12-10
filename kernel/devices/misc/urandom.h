@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_URANDOM_H
 #define VESPERAOS_URANDOM_H
 
-#include "../chardevice.h"
+#include "../../../include/kernel/devices/char_device.h"
 
 class URandomDevice final : public CharDevice {
 
@@ -33,8 +33,8 @@ public:
 
     int open(CharFile** out_cf) override;
     int release(CharFile*) override;
-    size_t read(CharFile*, void* buffer, size_t count, size_t offset) override;
-    size_t write(CharFile*, const void* buffer, size_t count) override;
+    ssize_t read(CharFile*, void* buffer, size_t count, size_t offset) override;
+    ssize_t write(CharFile*, const void* buffer, size_t count) override;
 
 private:
     void refill();

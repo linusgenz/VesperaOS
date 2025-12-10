@@ -2,6 +2,9 @@
 #include "../../include/log.h"
 #include <kernel/memory.h>
 
+#include "../../kernel/types/handle.h"
+#include "../../userspace/lib/include/errno.h"
+
 namespace AHCI
 {
 #define HBA_PORT_DEV_PRESENT 0x3
@@ -126,8 +129,14 @@ namespace AHCI
         hbaPort->cmdSts |= HBA_PxCMD_ST;
     }
 
-    bool Port::Read(const uint64_t sector, const uint32_t sectorCount, void* buffer)
+    size_t Port::get_size() const
     {
+        return 0;
+    }
+
+    ssize_t Port::Read(const uint64_t sector, const uint32_t sectorCount, void* buffer)
+    {
+        if (!buffer || sectorCount == 0) return -EINVAL;
         kernel::mutex_guard guard(portMutex);
 
         const auto sectorL = static_cast<uint32_t>(sector);
@@ -183,7 +192,7 @@ namespace AHCI
         if (spin == 1000000)
         {
             Log::Warning("[ AHCI ] Port is hung");
-            return false;
+            return -EIO;
         }
 
         hbaPort->commandIssue = 1 << 0;
@@ -194,21 +203,22 @@ namespace AHCI
             if (hbaPort->interruptStatus & HBA_PxIS_TFES)
             {
                 Log::Error("[ AHCI ] Read disk error");
-                return false;
+                return -EIO;
             }
         }
 
         if (hbaPort->interruptStatus & HBA_PxIS_TFES)
         {
             Log::Error("[ AHCI ] Read disk error");
-            return false;
+            return -EIO;
         }
 
-        return true;
+        return sectorCount * get_sector_size();
     }
 
-    bool Port::Write(const uint64_t sector, const uint32_t sectorCount, void* buffer)
+    ssize_t Port::Write(const uint64_t sector, const uint32_t sectorCount, void* buffer)
     {
+        if (!buffer || sectorCount == 0) return -EINVAL;
         kernel::mutex_guard guard(portMutex);
 
         const auto sectorL = static_cast<uint32_t>(sector);
@@ -263,7 +273,7 @@ namespace AHCI
         if (spin == 1000000)
         {
             Log::Warning("write timeout");
-            return false;
+            return -EIO;
         }
 
         hbaPort->commandIssue = 1 << 0;
@@ -274,17 +284,17 @@ namespace AHCI
             if (hbaPort->interruptStatus & HBA_PxIS_TFES)
             {
                 Log::Error("[ AHCI ] Write disk error");
-                return false;
+                return -EIO;
             }
         }
 
         if (hbaPort->interruptStatus & HBA_PxIS_TFES)
         {
             Log::Error("[ AHCI ] Write disk error");
-            return false;
+            return -EIO;
         }
 
-        return true;
+        return sectorCount * get_sector_size();
     }
 
     AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress) : portCount(0)

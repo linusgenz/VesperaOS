@@ -25,7 +25,7 @@
 #include "../cpu/cpu_manager.h"
 #include <kernel/time.h>
 #include <kernel/sync/spinlock.h>
-#include "../devices/device_manager.h"
+#include "../../include/kernel/devices/device_manager.h"
 #include <log.h>
 #include <string.h>
 #include "../utils/panic.h"

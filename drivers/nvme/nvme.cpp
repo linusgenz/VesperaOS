@@ -8,14 +8,19 @@
 #include <kernel/memory.h>
 #include <kernel/time.h>
 
-namespace NVMe {
-    NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader *pci_base_address) {
-        const auto *pci = reinterpret_cast<const PCI::PCIHeader0 *>(pci_base_address);
+#include "errno.h"
+
+namespace NVMe
+{
+    NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader* pci_base_address)
+    {
+        const auto* pci = reinterpret_cast<const PCI::PCIHeader0*>(pci_base_address);
         auto mmio = ((static_cast<uint64_t>(pci->BAR1) << 32) | (pci->BAR0 & 0xFFFFFFF0));
-        c_regs = static_cast<Registers *>(kernel::memory::request_pages(4));
-        for (int i = 0; i < 4; i++) {
-            auto virt = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(c_regs) + i * 0x1000);
-            auto phys = reinterpret_cast<void *>(mmio + i * 0x1000);
+        c_regs = static_cast<Registers*>(kernel::memory::request_pages(4));
+        for (int i = 0; i < 4; i++)
+        {
+            auto virt = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(c_regs) + i * 0x1000);
+            auto phys = reinterpret_cast<void*>(mmio + i * 0x1000);
             kernel::memory::map_memory(virt, phys, (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         }
 
@@ -24,11 +29,13 @@ namespace NVMe {
         Disable();
 
         unsigned spin = 500;
-        while (spin-- && (c_regs->status & NVME_CSTS_READY)) {
+        while (spin-- && (c_regs->status & NVME_CSTS_READY))
+        {
             kernel::time::sleep_ms(10);
         }
 
-        if (spin <= 0) {
+        if (spin <= 0)
+        {
             Log::Error("[NVMe] Controller not deactivated, abort...");
             d_status = ControllerError;
             return;
@@ -36,16 +43,18 @@ namespace NVMe {
 
         c_regs->config |= NVME_CFG_DEFAULT_IOCQES | NVME_CFG_DEFAULT_IOSQES;
 
-        void *admCQPhysPage = kernel::memory::request_page();
-        void *admSQPhysPage = kernel::memory::request_page();
-        if (!admCQPhysPage || !admSQPhysPage) {
+        void* admCQPhysPage = kernel::memory::request_page();
+        void* admSQPhysPage = kernel::memory::request_page();
+        if (!admCQPhysPage || !admSQPhysPage)
+        {
             Log::Error("[NVMe] No physical pages for admin queues");
             return;
         }
 
-        void *admCQVirtPage = kernel::memory::request_page();
-        void *admSQVirtPage = kernel::memory::request_page();
-        if (!admCQVirtPage || !admSQVirtPage) {
+        void* admCQVirtPage = kernel::memory::request_page();
+        void* admSQVirtPage = kernel::memory::request_page();
+        if (!admCQVirtPage || !admSQVirtPage)
+        {
             Log::Error("[NVMe] No virtual pages for admin queues");
             return;
         }
@@ -61,7 +70,8 @@ namespace NVMe {
         c_regs->admin_completion_q = reinterpret_cast<uintptr_t>(admCQPhysPage);
         c_regs->admin_submission_q = reinterpret_cast<uintptr_t>(admSQPhysPage);
 
-        new(&admin_queue) NVMe::NvmeQueue(0, reinterpret_cast<uintptr_t>(admCQPhysPage), reinterpret_cast<uintptr_t>(admSQPhysPage),
+        new(&admin_queue) NVMe::NvmeQueue(0, reinterpret_cast<uintptr_t>(admCQPhysPage),
+                                          reinterpret_cast<uintptr_t>(admSQPhysPage),
                                           admCQVirtPage, admSQVirtPage, GetCompletionDoorbell(0),
                                           GetSubmissionDoorbell(0),
                                           PAGE_SIZE_4K, PAGE_SIZE_4K);
@@ -74,22 +84,26 @@ namespace NVMe {
 
         // Warten auf Ready-Status
         spin = 500;
-        while (spin-- && !(c_regs->status & NVME_CSTS_READY)) {
+        while (spin-- && !(c_regs->status & NVME_CSTS_READY))
+        {
             kernel::time::sleep_ms(10);
         }
-        if (spin <= 0) {
+        if (spin <= 0)
+        {
             Log::Error("[NVMe] Controller not ready");
             d_status = DriverStatus::ControllerError;
             return;
         }
 
-        if (c_regs->status & NVME_CSTS_FATAL) {
+        if (c_regs->status & NVME_CSTS_FATAL)
+        {
             Log::Error("[NVMe] Controller error (Fatal)");
             d_status = DriverStatus::ControllerError;
             return;
         }
 
-        if (IdentifyController()) {
+        if (IdentifyController())
+        {
             Log::Error("[NVMe] Controller identifiy failed");
             d_status = DriverStatus::ControllerError;
             return;
@@ -97,19 +111,22 @@ namespace NVMe {
 
         Vector<uint32_t> namespaceIDs;
 
-        if (GetNamespaceList(&namespaceIDs)) {
+        if (GetNamespaceList(&namespaceIDs))
+        {
             Log::Error("[NVMe] Failed to get namespace list");
             d_status = DriverStatus::ControllerError;
         }
 
-        if (CreateIOQueue(&io_queue)) {
+        if (CreateIOQueue(&io_queue))
+        {
             Log::Error("Failed to create IO Queue");
         }
 
-        for (uint32_t namespaceID : namespaceIDs) {
+        for (uint32_t namespaceID : namespaceIDs)
+        {
             Log::LogMsg("[NVMe] Namespace ID %u", namespaceID);
 
-            void *physBuffer = kernel::memory::request_page();
+            void* physBuffer = kernel::memory::request_page();
             NvmeCompletion completion{};
             NvmeCommand identifyNsCmd = {};
             identifyNsCmd.opcode = AdminCmdIdentify;
@@ -119,7 +136,7 @@ namespace NVMe {
 
             admin_queue.SubmitWait(identifyNsCmd, completion);
 
-            auto nsIdentify = static_cast<NamespaceIdentity *>(physBuffer);
+            auto nsIdentify = static_cast<NamespaceIdentity*>(physBuffer);
 
             uint8_t lbaFormatIndex = nsIdentify->fmt_lba_size & 0x0F;
             uint8_t lbads = nsIdentify->lba_formats[lbaFormatIndex].lba_data_size;
@@ -127,27 +144,30 @@ namespace NVMe {
 
             Log::debug("namespaceSize: %u", nsIdentify->namespace_size);
 
-            auto *ns = new NvmeNamespace(namespaceID, &io_queue, lbaSize);
+            auto* ns = new NvmeNamespace(namespaceID, &io_queue, lbaSize);
             namespaces.push_back(ns);
         }
 
         Log::Ok("[NVMe] Controller initialized");
     }
 
-    long NvmeDriver::IdentifyController() {
+    long NvmeDriver::IdentifyController()
+    {
         controller_identity_phys = reinterpret_cast<uintptr_t>(kernel::memory::request_page());
-        if (!controller_identity_phys) {
+        if (!controller_identity_phys)
+        {
             Log::Error("[NVMe] No physical memory for controller identifiy");
             return -1;
         }
 
         controller_identity = static_cast<ControllerIdentity*>(kernel::memory::request_page());
-        if (!controller_identity) {
+        if (!controller_identity)
+        {
             Log::Error("[NVMe] No virtual memory for controller identify");
             return -1;
         }
 
-        kernel::memory::map_memory(controller_identity, reinterpret_cast<void *>(controller_identity_phys),
+        kernel::memory::map_memory(controller_identity, reinterpret_cast<void*>(controller_identity_phys),
                                    true);
 
         NvmeCommand identifyCommand{};
@@ -160,7 +180,8 @@ namespace NVMe {
         NvmeCompletion completion{};
         admin_queue.SubmitWait(identifyCommand, completion);
 
-        if (completion.status > 0) {
+        if (completion.status > 0)
+        {
             Log::Error("[NVMe] Controller identification status error: %u", completion.status);
             return completion.status;
         }
@@ -168,7 +189,8 @@ namespace NVMe {
         char serial[21] = {};
         memcpy(serial, controller_identity->serial_number, 20);
 
-        for (int i = 19; i >= 0 && serial[i] == ' '; --i) {
+        for (int i = 19; i >= 0 && serial[i] == ' '; --i)
+        {
             serial[i] = 0;
         }
 
@@ -188,8 +210,9 @@ namespace NVMe {
         return 0;
     }
 
-    long NvmeDriver::GetNamespaceList(Vector<uint32_t> *namespace_ids) {
-        auto *namespaceList = static_cast<uint32_t *>(kernel::memory::request_page());
+    long NvmeDriver::GetNamespaceList(Vector<uint32_t>* namespace_ids)
+    {
+        auto* namespaceList = static_cast<uint32_t*>(kernel::memory::request_page());
         kernel::memory::map_memory(namespaceList, namespaceList,
                                    (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::CacheDisabled));
 
@@ -205,12 +228,14 @@ namespace NVMe {
         NvmeCompletion completion{};
         admin_queue.SubmitWait(identifyNsList, completion);
 
-        if (completion.status > 0) {
+        if (completion.status > 0)
+        {
             return completion.status;
         }
 
-        uint32_t *namespaceListEnd = namespaceList + (PAGE_SIZE_4K / sizeof(uint32_t));
-        while (*namespaceList && namespaceList < namespaceListEnd) {
+        uint32_t* namespaceListEnd = namespaceList + (PAGE_SIZE_4K / sizeof(uint32_t));
+        while (*namespaceList && namespaceList < namespaceListEnd)
+        {
             namespace_ids->push_back(*namespaceList++);
         }
 
@@ -219,17 +244,20 @@ namespace NVMe {
         return 0;
     }
 
-    long NvmeDriver::CreateIOQueue(NvmeQueue *queue_ptr) {
-        void *sqPhys = kernel::memory::request_page();
-        void *cqPhys = kernel::memory::request_page();
-        if (!sqPhys || !cqPhys) {
+    long NvmeDriver::CreateIOQueue(NvmeQueue* queue_ptr)
+    {
+        void* sqPhys = kernel::memory::request_page();
+        void* cqPhys = kernel::memory::request_page();
+        if (!sqPhys || !cqPhys)
+        {
             Log::Error("[NVMe] Failed to allocate physical pages for IO queue");
             return -1;
         }
 
-        void *sqVirt = kernel::memory::request_page();
-        void *cqVirt = kernel::memory::request_page();
-        if (!sqVirt || !cqVirt) {
+        void* sqVirt = kernel::memory::request_page();
+        void* cqVirt = kernel::memory::request_page();
+        if (!sqVirt || !cqVirt)
+        {
             Log::Error("[NVMe] Failed to allocate virtual pages for IO queue");
             return -1;
         }
@@ -261,7 +289,8 @@ namespace NVMe {
         createCq.prp1 = reinterpret_cast<uintptr_t>(cqPhys);
 
         admin_queue.SubmitWait(createCq, completion);
-        if (completion.status > 0) {
+        if (completion.status > 0)
+        {
             Log::Warning("[NVMe] Status %u creating I/O completion queue", completion.status);
             return completion.status;
         }
@@ -275,7 +304,8 @@ namespace NVMe {
         createSq.prp1 = reinterpret_cast<uintptr_t>(sqPhys);
 
         admin_queue.SubmitWait(createSq, completion);
-        if (completion.status > 0) {
+        if (completion.status > 0)
+        {
             Log::Warning("[NVMe] Status %u creating I/O submission queue", completion.status);
             return completion.status;
         }
@@ -283,15 +313,16 @@ namespace NVMe {
         return 0;
     }
 
-    NvmeQueue::NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void *cq, void *sq, uint32_t *cq_db,
-                         uint32_t *sq_db, uint16_t csz, uint16_t ssz) {
+    NvmeQueue::NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void* cq, void* sq, uint32_t* cq_db,
+                         uint32_t* sq_db, uint16_t csz, uint16_t ssz)
+    {
         queue_id = qid;
 
         completion_base = cq_base;
         submission_base = sq_base;
 
-        completion_queue = static_cast<NvmeCompletion *>(cq);
-        submission_queue = static_cast<NvmeCommand *>(sq);
+        completion_queue = static_cast<NvmeCompletion*>(cq);
+        submission_queue = static_cast<NvmeCommand*>(sq);
 
         memset(completion_queue, 0, csz);
         memset(submission_queue, 0, ssz);
@@ -307,44 +338,52 @@ namespace NVMe {
         queue_mutex.init();
     }
 
-    long NvmeQueue::Consume(NvmeCommand &cmd) { return 0; }
+    long NvmeQueue::Consume(NvmeCommand& cmd) { return 0; }
 
-    void NvmeQueue::Submit(NvmeCommand &cmd) {
+    void NvmeQueue::Submit(NvmeCommand& cmd)
+    {
         cmd.command_id = next_command_id++;
-        if (next_command_id == 0xffff) {
+        if (next_command_id == 0xffff)
+        {
             next_command_id = 0;
         }
 
         submission_queue[sq_tail] = cmd;
 
         sq_tail++;
-        if (sq_tail >= sq_count) {
+        if (sq_tail >= sq_count)
+        {
             sq_tail = 0;
         }
 
         *submission_db = sq_tail;
     }
 
-    void NvmeQueue::SubmitWait(NvmeCommand &cmd, NvmeCompletion &complet) {
+    void NvmeQueue::SubmitWait(NvmeCommand& cmd, NvmeCompletion& complet)
+    {
         kernel::mutex_guard guard(queue_mutex);
 
         cmd.command_id = next_command_id++;
-        if (next_command_id == 0xffff) {
+        if (next_command_id == 0xffff)
+        {
             next_command_id = 0;
         }
 
         submission_queue[sq_tail] = cmd;
 
         sq_tail++;
-        if (sq_tail >= sq_count) {
+        if (sq_tail >= sq_count)
+        {
             sq_tail = 0;
         }
 
         *submission_db = sq_tail;
 
         auto start = 0;
-        while (completion_cycle_state == !completion_queue[cq_head].phase_tag) {
-            if (start > 50) {
+        while (completion_cycle_state == !completion_queue[cq_head].phase_tag)
+        {
+            if (start > 50)
+            {
                 complet.status = 32767;
                 return;
             }
@@ -353,7 +392,8 @@ namespace NVMe {
         }
         complet = completion_queue[cq_head];
 
-        if (++cq_head >= cq_count) {
+        if (++cq_head >= cq_count)
+        {
             cq_head = 0;
             completion_cycle_state = !completion_cycle_state;
         }
@@ -361,8 +401,10 @@ namespace NVMe {
         *completion_db = cq_head;
     }
 
+    ssize_t NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void* buffer)
+    {
+        if (!buffer || sectorCount == 0) return -EINVAL;
 
-    bool NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void *buffer) {
         NvmeCommand read_cmd = {};
         read_cmd.opcode = NVME_OPCODE_READ; // NVM Read
         read_cmd.ns_id = nsID;
@@ -373,15 +415,19 @@ namespace NVMe {
         NvmeCompletion completion{};
         queue->SubmitWait(read_cmd, completion);
 
-        if (completion.status > 0) {
+        if (completion.status != 0)
+        {
             Log::Warning("[NVMe] Read failed with status %u", completion.status);
-            return false;
+            return -EIO;
         }
 
-        return true;
+        return sectorCount * get_sector_size();
     }
 
-    bool NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void *buffer) {
+    ssize_t NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer)
+    {
+        if (!buffer || sectorCount == 0) return -EINVAL;
+
         NvmeCommand write_cmd = {};
         write_cmd.opcode = NVME_OPCODE_WRITE; // NVM Write
         write_cmd.ns_id = nsID;
@@ -392,11 +438,12 @@ namespace NVMe {
         NvmeCompletion completion{};
         queue->SubmitWait(write_cmd, completion);
 
-        if (completion.status > 0) {
+        if (completion.status != 0)
+        {
             Log::Warning("[NVMe] Write failed with status %u", completion.status);
-            return false;
+            return -EIO;
         }
 
-        return true;
+        return sectorCount * get_sector_size();
     }
 } // namespace NVMe

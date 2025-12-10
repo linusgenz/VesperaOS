@@ -256,7 +256,7 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
             realm->unit_count++;
 
             SYS_EVENT_UNIT_CREATED(u->id, u->rid);
-            SysFS::register_unit(u->id, u->name, u, realm->name);
+            RealmFS::register_unit(u->id, u->name, u, realm->name);
             return u;
         }
     }
@@ -324,7 +324,7 @@ bool UnitManager::destroy(const UnitID id)
             }
 
             SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
-            SysFS::unregister_unit(id);
+            RealmFS::unregister_unit(id);
 
             if (r && r->unit_count == 0)
             {

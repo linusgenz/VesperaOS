@@ -26,11 +26,14 @@
 
 #include "../../../filesystem/fat32/fat32.h"
 #include "../../../filesystem/fat32/fat32_vfs_adapter.h"
-#include "../../../kernel/devices/device_manager.h"
+#include "../../../include/kernel/devices/device_manager.h"
 #include <log.h>
 
+#include "../../../filesystem/devfs/devfs.h"
 
-void xhciMassStorageDriver::on_startup(USB::xhciDriver *hcd, xhciDevice *dev) {
+
+void xhciMassStorageDriver::on_startup(USB::xhciDriver* hcd, xhciDevice* dev)
+{
     this->hcd = hcd;
     this->device = dev;
 
@@ -42,42 +45,65 @@ void xhciMassStorageDriver::on_startup(USB::xhciDriver *hcd, xhciDevice *dev) {
 
     initialize_device();
 
-    while (!init_done) {
+    while (!init_done)
+    {
         asm volatile("pause");
     }
 
-    if (init_status == 0) {
+    if (init_status == 0)
+    {
         Log::Ok("USB Mass Storage initialized: %u sectors, %u bytes/sector",
                 total_sectors, sector_size);
-    } else {
+
+        char name_buf[16] = {};
+        DeviceManager::GenerateSDDeviceName(hcd->get_device(), name_buf, sizeof(name_buf));
+        kd = DeviceManager::RegisterBlockDevice(
+            this,
+            name_buf,
+            DeviceClass::Storage,
+            BUS_USB,
+            ControllerType::XHCI,
+            hcd->get_device()
+        );
+        DeviceManager::FindAndRegisterPartitions(kd);
+    }
+    else
+    {
         Log::Error("Mass storage initialization failed");
     }
 }
 
 
-void xhciMassStorageDriver::on_event(USB::xhciDriver *hcd, xhciDevice *dev) {
+void xhciMassStorageDriver::on_event(USB::xhciDriver* hcd, xhciDevice* dev)
+{
     if (!current_transfer) return;
 
-    switch (current_transfer->phase) {
-        case MassStorageTransfer::Phase::SentCBW: {
-            if (current_transfer->data_length > 0) {
+    switch (current_transfer->phase)
+    {
+    case MassStorageTransfer::Phase::SentCBW:
+        {
+            if (current_transfer->data_length > 0)
+            {
                 // Data phase: select endpoint according to direction
-                auto *data_ep = current_transfer->is_input ? bulk_in_endpoint : bulk_out_endpoint;
+                auto* data_ep = current_transfer->is_input ? bulk_in_endpoint : bulk_out_endpoint;
 
                 xhci_trb_t data_trb{};
                 data_trb.parameter = xhci_get_physical_addr(current_transfer->data_buffer);
                 data_trb.status = current_transfer->data_length & 0x1FFFF;
                 data_trb.control = (XHCI_TRB_TYPE_NORMAL << 10) | (1 << 0) | (1 << 5);
-                if (current_transfer->is_input) {
+                if (current_transfer->is_input)
+                {
                     data_trb.control |= (1 << 16); // IN for data phase if necessary
                 }
                 data_ep->get_transfer_ring()->enqueue(&data_trb);
                 hcd->ring_doorbell(dev->get_slot_id(), data_ep->xhc_endpoint_num);
 
                 current_transfer->phase = MassStorageTransfer::Phase::DataPhase;
-            } else {
+            }
+            else
+            {
                 // No data phase → directly CSW (always IN)
-                auto *ep_in = bulk_in_endpoint;
+                auto* ep_in = bulk_in_endpoint;
 
                 xhci_trb_t csw_trb{};
                 csw_trb.parameter = xhci_get_physical_addr(&current_transfer->csw);
@@ -91,9 +117,10 @@ void xhciMassStorageDriver::on_event(USB::xhciDriver *hcd, xhciDevice *dev) {
             break;
         }
 
-        case MassStorageTransfer::Phase::DataPhase: {
+    case MassStorageTransfer::Phase::DataPhase:
+        {
             // Data phase complete → Request CSW (always IN)
-            auto *ep_in = bulk_in_endpoint;
+            auto* ep_in = bulk_in_endpoint;
 
             xhci_trb_t csw_trb{};
             csw_trb.parameter = xhci_get_physical_addr(&current_transfer->csw);
@@ -106,25 +133,32 @@ void xhciMassStorageDriver::on_event(USB::xhciDriver *hcd, xhciDevice *dev) {
             break;
         }
 
-        case MassStorageTransfer::Phase::ReceivedCSW: {
-            if (current_transfer->csw.status == 0) {
+    case MassStorageTransfer::Phase::ReceivedCSW:
+        {
+            if (current_transfer->csw.status == 0)
+            {
                 current_transfer->phase = MassStorageTransfer::Phase::Completed;
-            } else {
+            }
+            else
+            {
                 current_transfer->phase = MassStorageTransfer::Phase::Error;
             }
             handle_completed_transfer();
             break;
         }
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
 
-void xhciMassStorageDriver::initialize_device() {
-    for (const auto &ep: m_interface->endpoints) {
-        if ((ep->usb_endpoint_attributes & 0x03) == 0x02) {
+void xhciMassStorageDriver::initialize_device()
+{
+    for (const auto& ep : m_interface->endpoints)
+    {
+        if ((ep->usb_endpoint_attributes & 0x03) == 0x02)
+        {
             if (ep->usb_endpoint_addr & 0x80)
                 bulk_in_endpoint = ep;
             else
@@ -132,7 +166,8 @@ void xhciMassStorageDriver::initialize_device() {
         }
     }
 
-    if (!bulk_in_endpoint || !bulk_out_endpoint) {
+    if (!bulk_in_endpoint || !bulk_out_endpoint)
+    {
         Log::Error("USB Mass Storage: Required bulk endpoints missing");
         return;
     }
@@ -140,19 +175,25 @@ void xhciMassStorageDriver::initialize_device() {
     scsi_test_unit_ready();
 }
 
-void xhciMassStorageDriver::handle_completed_transfer() {
+void xhciMassStorageDriver::handle_completed_transfer()
+{
     if (!current_transfer) return;
 
-    if (init_phase == InitPhase::TestUnitReady) {
+    if (init_phase == InitPhase::TestUnitReady)
+    {
         current_transfer = nullptr;
         init_phase = InitPhase::Inquiry;
         scsi_inquiry();
-    } else if (init_phase == InitPhase::Inquiry) {
+    }
+    else if (init_phase == InitPhase::Inquiry)
+    {
         current_transfer = nullptr;
         init_phase = InitPhase::ReadCapacity;
         scsi_read_capacity();
-    } else if (init_phase == InitPhase::ReadCapacity) {
-        auto *data = capacity_buffer;
+    }
+    else if (init_phase == InitPhase::ReadCapacity)
+    {
+        auto* data = capacity_buffer;
         uint32_t last_lba = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         uint32_t block_size = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 
@@ -164,15 +205,18 @@ void xhciMassStorageDriver::handle_completed_transfer() {
 
         init_done = true;
         init_status = 0;
-
-        kernel::DeviceManager::AddDevice(this);
-    } else {
+    }
+    else
+    {
         current_transfer->actual_length = current_transfer->cbw.data_length -
-                                          current_transfer->csw.data_residue;
+            current_transfer->csw.data_residue;
 
-        if (current_transfer->phase == MassStorageTransfer::Phase::Completed) {
+        if (current_transfer->phase == MassStorageTransfer::Phase::Completed)
+        {
             current_transfer->status = 0;
-        } else {
+        }
+        else
+        {
             current_transfer->status = -1;
         }
 
@@ -181,8 +225,9 @@ void xhciMassStorageDriver::handle_completed_transfer() {
     }
 }
 
-void xhciMassStorageDriver::scsi_test_unit_ready() {
-    auto &transfer = transfer_test_unit_ready;
+void xhciMassStorageDriver::scsi_test_unit_ready()
+{
+    auto& transfer = transfer_test_unit_ready;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_out_endpoint; // OUT for CBW
@@ -203,8 +248,9 @@ void xhciMassStorageDriver::scsi_test_unit_ready() {
     // The result is processed in on_event
 }
 
-void xhciMassStorageDriver::scsi_inquiry() {
-    auto &transfer = transfer_inquiry;
+void xhciMassStorageDriver::scsi_inquiry()
+{
+    auto& transfer = transfer_inquiry;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_in_endpoint;
@@ -226,8 +272,9 @@ void xhciMassStorageDriver::scsi_inquiry() {
 }
 
 
-void xhciMassStorageDriver::scsi_read_capacity() {
-    auto &transfer = transfer_capacity;
+void xhciMassStorageDriver::scsi_read_capacity()
+{
+    auto& transfer = transfer_capacity;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_in_endpoint;
@@ -249,11 +296,12 @@ void xhciMassStorageDriver::scsi_read_capacity() {
 }
 
 
-void xhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer *transfer) {
+void xhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer* transfer)
+{
     current_transfer = transfer;
     transfer->phase = MassStorageTransfer::Phase::SentCBW;
 
-    auto *ep_out = bulk_out_endpoint;
+    auto* ep_out = bulk_out_endpoint;
 
     xhci_trb_t cbw_trb{};
     cbw_trb.parameter = xhci_get_physical_addr(&transfer->cbw);
@@ -265,10 +313,12 @@ void xhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer *transfer) {
 }
 
 
-bool xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void *buffer) {
+ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* buffer)
+{
+    if (!buffer || sectorCount == 0) return -EINVAL;
     kernel::mutex_guard guard(io_mutex);
 
-    auto &transfer = transfer_rw;
+    auto& transfer = transfer_rw;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_in_endpoint; // IN-Endpoint
@@ -293,18 +343,24 @@ bool xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void *buffe
 
     start_bulk_transfer(&transfer);
 
-    while (!transfer.done) {
+    while (!transfer.done)
+    {
         asm volatile ("pause");
     }
 
-    return (transfer.status == 0 && transfer.actual_length == transfer.data_length);
+    if (transfer.status != 0)
+        return -EIO;
+
+    return transfer.actual_length;
 }
 
 
-bool xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void *buffer) {
+ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buffer)
+{
+    if (!buffer || sectorCount == 0) return -EINVAL;
     kernel::mutex_guard guard(io_mutex);
 
-    auto &transfer = transfer_rw;
+    auto& transfer = transfer_rw;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_out_endpoint; // OUT-Endpoint
@@ -329,22 +385,28 @@ bool xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void *buff
 
     start_bulk_transfer(&transfer);
 
-    while (!transfer.done) {
+    while (!transfer.done)
+    {
         asm volatile ("pause");
     }
 
-    return (transfer.status == 0 && transfer.actual_length == transfer.data_length);
+    if (transfer.status != 0)
+        return -EIO;
+
+    return transfer.actual_length;
 }
 
 // TODO später scheduler FIFO queue beachten falls schon gelesen wird etc.
 
-void xhciMassStorageDriver::detach() {
+void xhciMassStorageDriver::detach()
+{
     current_transfer = nullptr;
 
     bulk_in_endpoint = nullptr;
     bulk_out_endpoint = nullptr;
 
-    kernel::DeviceManager::RemoveDevice(this);
+    DevFS::unregister_device(kd);
+    DeviceManager::UnregisterDevice(kd);
 
     hcd = nullptr;
     device = nullptr;

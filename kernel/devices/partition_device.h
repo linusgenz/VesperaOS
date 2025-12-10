@@ -26,16 +26,22 @@
 
 #include "blockdevice.h"
 #include <cstdint>
+#include <cstddef>
 
-class PartitionDevice final : public BlockDevice {
+#include "../types/handle.h"
+
+class PartitionDevice final : public BlockDevice
+{
 public:
     PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba);
     ~PartitionDevice() override = default;
 
-    bool read(uint64_t lba, uint32_t count, void* buf) override;
-    bool write(uint64_t lba, uint32_t count, void* buf) override;
+    ssize_t read(uint64_t lba, uint32_t count, void* buf) override;
+    ssize_t write(uint64_t lba, uint32_t count, void* buf) override;
+    [[nodiscard]] size_t get_size() const override { return length_lba * get_sector_size(); };
 
     [[nodiscard]] uint64_t get_start_lba() const { return start_lba; }
+
     [[nodiscard]] uint64_t get_length_lba() const { return length_lba; }
 
 private:

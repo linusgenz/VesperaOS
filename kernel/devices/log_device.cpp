@@ -30,27 +30,27 @@ int LogDevice::open(CharFile** out_cf) {
     auto* cf = new CharFile();
     cf->driver_private = global_channel;
     *out_cf = cf;
-    return SUCCESS_CODE;
+    return 0;
 }
 
 int LogDevice::release(CharFile* cf) {
-    return SUCCESS_CODE;
+    return 0;
 }
 
-size_t LogDevice::write(CharFile* cf, const void* buffer, size_t count) {
-    if (!cf || !buffer || count == 0) return 0;
+ssize_t LogDevice::write(CharFile* cf, const void* buffer, size_t count) {
+    if (!cf || !buffer || count == 0) return -EINVAL;
     auto* channel = static_cast<Channel*>(cf->driver_private);
 
-    ssize_t r;
-    while ((r = channel->send(buffer, count)) == -EAGAIN) {
+    ssize_t w;
+    while ((w = channel->send(buffer, count)) == -EAGAIN) {
         asm volatile("pause");
     }
 
-    return r;
+    return w;
 }
 
-size_t LogDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset) {
-    if (!cf || !buffer || count == 0) return 0;
+ssize_t LogDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset) {
+    if (!cf || !buffer || count == 0) return -EINVAL;
     auto* channel = static_cast<Channel*>(cf->driver_private);
 
     ssize_t r;

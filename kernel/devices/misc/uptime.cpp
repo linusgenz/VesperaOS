@@ -39,17 +39,15 @@ int UptimeDevice::release(CharFile* cf) {
     return 0;
 }
 
-size_t UptimeDevice::read(CharFile*, void* buffer, size_t count, size_t) {
-    if (count < sizeof(uint64_t)) {
-        return 0;
-    }
+ssize_t UptimeDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    if (count < sizeof(uint64_t) || !buffer) return -EINVAL;
 
     uint64_t uptime = kernel::time::get_uptime_ms();
     memcpy(buffer, &uptime, sizeof(uint64_t));
     return sizeof(uint64_t);
 }
 
-size_t UptimeDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t UptimeDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
-    return count;
+    return -EPERM;
 }

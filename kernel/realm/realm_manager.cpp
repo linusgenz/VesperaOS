@@ -100,7 +100,7 @@ Realm* RealmManager::create(const RealmConfig* cfg)
             }
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);
-            SysFS::register_realm(r->id, r->name, r);
+            RealmFS::register_realm(r->id, r->name, r);
             result = r;
             break;
         }
@@ -148,7 +148,7 @@ bool RealmManager::destroy(const RealmID id)
         if (realm.active && realm.id == id)
         {
             SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
-            SysFS::unregister_realm(realm.id);
+            RealmFS::unregister_realm(realm.id);
 
             Unit* u = realm.unit_list;
             while (u)

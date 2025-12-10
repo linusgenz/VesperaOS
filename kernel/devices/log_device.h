@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_LOG_DEVICE_H
 #define VESPERAOS_LOG_DEVICE_H
 
-#include "chardevice.h"
+#include "../../include/kernel/devices/char_device.h"
 #include <kernel/ipc/channel.h>
 #include <kernel/realm/realm.h>
 
@@ -45,9 +45,9 @@ public:
 
     int release(CharFile* cf) override;
 
-    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
 
-    size_t write(CharFile* cf, const void* buffer, size_t count) override;
+    ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
 
     int poll(CharFile* cf) override;
 };

@@ -179,8 +179,8 @@ bool ext4_unmount(VfsNode* node)
 
 VfsNode* ext4_mount(BlockDevice* dev)
 {
+    return nullptr;
     auto* fs = new FileSystem(dev);
-    Log::debug("ext4_mount valid? : %u", fs->is_valid());
     if (!fs->is_valid())
     {
         delete fs;

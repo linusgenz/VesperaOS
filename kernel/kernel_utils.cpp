@@ -17,7 +17,7 @@
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/devfs/devfs.h"
 #include "../filesystem/vfs/vfs.h"
-#include "devices/device_manager.h"
+#include "../include/kernel/devices/device_manager.h"
 #include "sys/syscall_interface.h"
 #include <kernel/input/input_manager.h>
 #include <kernel/realm/realm_manager.h>
@@ -34,6 +34,7 @@
 
 #include <kernel/basic_renderer.h>
 
+#include "../drivers/ps2/ps2_init.h"
 #include "../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../filesystem/realmfs/realmfs.h"
 #include "tty/init.h"
@@ -140,9 +141,6 @@ void initialize_kernel(BootInfo* boot_info)
 
     kernel::interrupts::initialize();
 
-    //  ps2::mouse::init();
-    ps2::keyboard::init();
-
     asm ("sti");
 
     //  setup_scroll_buffer(boot_info->framebuffer);
@@ -150,7 +148,6 @@ void initialize_kernel(BootInfo* boot_info)
                       boot_info->font->height);
     scroll_manager = &s;
 
-    kernel::DeviceManager::Init();
 
     kernel::SystemManager::initialize();
 
@@ -160,7 +157,9 @@ void initialize_kernel(BootInfo* boot_info)
 
     VFS::init();
     DevFS::init();
-    SysFS::init();
+    RealmFS::init();
+
+    ps2_init();
 
     RealmConfig realm_config_sys = {
         .name = "systemv",
@@ -206,14 +205,15 @@ void initialize_kernel(BootInfo* boot_info)
     }
 
     kernel::tty::initialize_ttys();
-    initialize_devices();
+    initialize_pseudo_devices();
 
     VFS::remount_all();
 
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
     //   init_sys_log_writer();
-    //   kernel::SystemManager::process_events_to_logs(128);
+   // while (1);
+       kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();

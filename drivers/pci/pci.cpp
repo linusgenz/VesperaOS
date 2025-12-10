@@ -5,6 +5,7 @@
 #include <log.h>
 #include "../usb/xhci/xhci.h"
 #include "msix.h"
+#include "../../filesystem/devfs/devfs.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../usb/usb_manager.h"
 
@@ -22,7 +23,7 @@ void usb_enable(void* arg)
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header),
                                vector))
     {
-        const char* dev_name = DevFS::alloc_unique_name("xhci", BUS_XHCI);
+        const char* dev_name = DeviceManager::AllocUniqueDeviceName("xhci");
 
         auto usb_driver = new USB::xhciDriver(vector, dev_name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header))

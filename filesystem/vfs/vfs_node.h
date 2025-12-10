@@ -31,7 +31,9 @@
 enum class VfsNodeType {
     File,
     Directory,
-    Device
+    CharDevice,
+    BlockDevice,
+    OtherDevice,
 };
 
 struct VfsNode;

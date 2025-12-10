@@ -35,11 +35,11 @@ int NullDevice::release(CharFile*) {
     return 0;
 }
 
-size_t NullDevice::read(CharFile*, void* buffer, size_t, size_t) {
+ssize_t NullDevice::read(CharFile*, void* buffer, size_t, size_t) {
+    if (!buffer) return -EINVAL;
     return 0;
 }
 
-size_t NullDevice::write(CharFile*, const void* buffer, size_t count) {
-    // alles verwerfen
-    return count;
+ssize_t NullDevice::write(CharFile*, const void*, size_t count) {
+    return static_cast<ssize_t>(count);
 }

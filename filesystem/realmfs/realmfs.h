@@ -1,5 +1,5 @@
 /**
- * @file sysfs.h
+ * @file RealmFS.h
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_SYSFS_H
-#define VESPERAOS_SYSFS_H
+#ifndef VESPERAOS_RealmFS_H
+#define VESPERAOS_RealmFS_H
 
 #include "../virtual_fs.h"
 
@@ -43,14 +43,14 @@ struct SysObject
 };
 
 // Extended entry with system-specific data
-struct SysfsEntry : VirtualFsEntry<SysObject>
+struct RealmFSEntry : VirtualFsEntry<SysObject>
 {
     SysObjectType obj_type{};
     VfsNode* units_dir{nullptr};
     VfsNode* parent_realm{nullptr};
 };
 
-class SysFS : public VirtualFilesystem<SysObject, SysfsEntry>
+class RealmFS : public VirtualFilesystem<SysObject, RealmFSEntry>
 {
 public:
     static void init();
@@ -81,4 +81,4 @@ public:
 #define UNIT_IOCTL_GET_STATUS  0x2004
 #define UNIT_IOCTL_SET_CONFIG  0x2005
 
-#endif //VESPERAOS_SYSFS_H
+#endif //VESPERAOS_RealmFS_H

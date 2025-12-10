@@ -4,6 +4,9 @@ project(VesperaOS C CXX ASM_NASM)
 enable_language(ASM_NASM)
 set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+
 # Subdirectories
 add_subdirectory(kernel)
 add_subdirectory(userspace)
@@ -77,7 +80,7 @@ add_custom_target(test
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
         -device usb-storage,drive=usbstick2
-      #  -device usb-kbd
+        -device usb-kbd
         -trace *msi*
         -D /tmp/qemu.log
         -no-reboot
@@ -102,7 +105,8 @@ add_custom_target(debug
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
-        -device usb-storage,drive=usbstick2
+       # -device usb-storage,drive=usbstick2
+
         -trace *xhci*
         -D /tmp/qemu.log
         -no-reboot

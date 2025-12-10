@@ -114,11 +114,11 @@ protected:
 
 
     // Create a node for a device entry
-    static EntryType* create_entry_node(const char* name, VfsNode* parent, DeviceType* dev)
+    static EntryType* create_entry_node(const char* name, VfsNode* parent, DeviceType* dev, VfsNodeType type)
     {
         auto* n = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
         n->name = name;
-        n->type = VfsNodeType::Device;
+        n->type = type;
         n->ops = &ops;
         n->permanent = false;
 
@@ -275,14 +275,7 @@ public:
 
             strncpy(out->name, file->name, sizeof(out->name) - 1);
             out->name[sizeof(out->name) - 1] = '\0';
-            if (file->type == VfsNodeType::File)
-            {
-                out->type = DT_FILE;
-            }
-            else if (file->type == VfsNodeType::Device)
-            {
-                out->type = DT_CHARDEV;
-            }
+            out->type = VFS::node_type_to_dirent_type(file->type);
 
             ++h->index;
             return 1;

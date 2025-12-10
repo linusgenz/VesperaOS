@@ -41,8 +41,8 @@ int CPUInfoDevice::release(CharFile*) {
     return 0;
 }
 
-size_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
-    if (!buffer || count < sizeof(CpuInfo)) return 0;
+ssize_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
+    if (!buffer || count < sizeof(CpuInfo)) return -EINVAL;
 
     CpuInfo info{};
     get_cpu_vendor(info.vendor);
@@ -62,6 +62,6 @@ size_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) 
 
 
 
-size_t CPUInfoDevice::write(CharFile*, const void*, const size_t count) {
-    return count;
+ssize_t CPUInfoDevice::write(CharFile*, const void*, const size_t count) {
+    return -EPERM;
 }

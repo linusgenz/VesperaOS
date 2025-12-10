@@ -43,15 +43,20 @@ public:
     void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
 
     // BlockDevice interface
-    bool read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
+    ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
 
-    bool write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
+    ssize_t write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
 
-    uint32_t get_sector_size() override { return sector_size; }
+    [[nodiscard]] uint32_t get_sector_size() const override { return sector_size; }
 
-    [[nodiscard]] uint64_t get_total_sectors() const { return total_sectors; }
+    [[nodiscard]] size_t get_size() const override
+    {
+        return total_sectors * sector_size;
+    };
 
 private:
+    KernelDevice* kd = nullptr;
+
     USB::xhciDriver* hcd{};
     xhciDevice* device{};
     xhciEndpoint* bulk_in_endpoint{};

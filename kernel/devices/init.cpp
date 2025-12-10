@@ -23,7 +23,9 @@
 
 #include "init.h"
 
-void initialize_devices() {
+#include "../../filesystem/devfs/devfs.h"
+
+void initialize_pseudo_devices() {
     Channel *kernel_log_channel = Channel::create(32 * 1024);
 
     zero_dev = new ZeroDevice("zero");
@@ -36,4 +38,28 @@ void initialize_devices() {
     cpuinfo_dev = new CPUInfoDevice("cpuinfo");
     meminfo_dev = new MemInfoDevice("meminfo");
     log_dev = new LogDevice(kernel_log_channel);
+
+    auto register_char_device = [](CharDevice* dev, const char* name, DeviceClass cls) -> KernelDevice* {
+        KernelDevice* kd = DeviceManager::RegisterCharDevice(
+            dev,
+            name,
+            cls,
+            BUS_NONE,
+            ControllerType::None,
+            nullptr
+        );
+        if (kd) DevFS::register_device(kd);
+        return kd;
+    };
+
+    register_char_device(zero_dev, "zero", DeviceClass::Pseudo);
+    register_char_device(null_dev, "null", DeviceClass::Pseudo);
+    register_char_device(urand_dev, "urandom", DeviceClass::Pseudo);
+    register_char_device(full_dev, "full", DeviceClass::Pseudo);
+    register_char_device(rtc_dev, "rtc", DeviceClass::Misc);
+    register_char_device(uptime_dev, "uptime", DeviceClass::Pseudo);
+    register_char_device(version_dev, "version", DeviceClass::Pseudo);
+    register_char_device(cpuinfo_dev, "cpuinfo", DeviceClass::Pseudo);
+    register_char_device(meminfo_dev, "meminfo", DeviceClass::Pseudo);
+    register_char_device(log_dev, "log", DeviceClass::Pseudo);
 }

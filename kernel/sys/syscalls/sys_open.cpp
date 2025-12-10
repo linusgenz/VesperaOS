@@ -31,37 +31,48 @@
 #include "log.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
-namespace syscalls::internal {
-    int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const auto user_path = reinterpret_cast<const char *>(arg0);
+namespace syscalls::internal
+{
+    int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t)
+    {
+        const auto user_path = reinterpret_cast<const char*>(arg0);
         const auto flags = static_cast<uint32_t>(arg1);
 
         if (!user_path || user_path[0] == '\0') return -EINVAL;
 
-        const Unit *current_unit = kernel::scheduling::get_current_unit();
+        const Unit* current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
 
-        Realm *realm = RealmManager::get(current_unit->rid);
+        Realm* realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
-        VfsNode *node = VFS::open(user_path);
+        VfsNode* node = VFS::open(user_path);
 
-        if (!node) {
-            if (flags & O_CREAT) {
+        if (!node)
+        {
+            if (flags & O_CREAT)
+            {
                 int result = VFS::create(user_path);
-                if (result != 0) {
+                if (result != 0)
+                {
                     return result;
                 }
 
                 node = VFS::open(user_path);
-                if (!node) {
+                if (!node)
+                {
                     return -ENOENT;
                 }
-            } else {
+            }
+            else
+            {
                 return -ENOENT;
             }
-        } else {
-            if ((flags & O_CREAT) && (flags & O_EXCL)) {
+        }
+        else
+        {
+            if ((flags & O_CREAT) && (flags & O_EXCL))
+            {
                 VFS::close(node);
                 return -EEXIST;
             }
@@ -69,72 +80,86 @@ namespace syscalls::internal {
 
         CapabilitySet required_caps = CAP_NONE;
 
-        switch (flags & 0x3) {
-            case O_RDONLY:
-                required_caps |= CAP_READ;
-                break;
-            case O_WRONLY:
-                required_caps |= CAP_WRITE;
-                break;
-            case O_RDWR:
-                required_caps |= CAP_READ | CAP_WRITE;
-                break;
-            default:
-                VFS::close(node);
-                return -EINVAL;
+        switch (flags & 0x3)
+        {
+        case O_RDONLY:
+            required_caps |= CAP_READ;
+            break;
+        case O_WRONLY:
+            required_caps |= CAP_WRITE;
+            break;
+        case O_RDWR:
+            required_caps |= CAP_READ | CAP_WRITE;
+            break;
+        default:
+            VFS::close(node);
+            return -EINVAL;
         }
 
-        if (node->type == VfsNodeType::Directory) {
+        if (node->type == VfsNodeType::Directory)
+        {
             // User did not want a directory → EISDIR
-            if (!(flags & O_DIRECTORY)) {
+            if (!(flags & O_DIRECTORY))
+            {
                 VFS::close(node);
                 return -EISDIR;
             }
-        } else {
+        }
+        else
+        {
             // User WANTS a directory, but the target is not one
-            if (flags & O_DIRECTORY) {
+            if (flags & O_DIRECTORY)
+            {
                 VFS::close(node);
                 return -ENOTDIR;
             }
         }
 
-        VfsHandle *vh = nullptr;
+        VfsHandle* vh = nullptr;
         uint64_t handle_type = 0;
 
-        switch (node->type) {
-            case VfsNodeType::Device:
-                required_caps |= CAP_DEVICE_ACCESS;
-                vh = new VfsHandle(node, flags, required_caps);
-                if (!vh) {
-                    VFS::close(node);
-                    return -ENOMEM;
-                }
-                handle_type = HANDLE_TYPE_DEVICE;
-                break;
+        switch (node->type)
+        {
+        case VfsNodeType::CharDevice:
+        case VfsNodeType::BlockDevice:
+            required_caps |= CAP_DEVICE_ACCESS;
+            vh = new VfsHandle(node, flags, required_caps);
+            if (!vh)
+            {
+                VFS::close(node);
+                return -ENOMEM;
+            }
+            handle_type = HANDLE_TYPE_DEVICE;
+            break;
 
-            case VfsNodeType::File:
+        case VfsNodeType::File:
 
-                vh = new VfsHandle(node, flags, required_caps);
-                if (!vh) {
-                    VFS::close(node);
-                    return -ENOMEM;
-                }
-                handle_type = HANDLE_TYPE_FILE;
-                break;
+            vh = new VfsHandle(node, flags, required_caps);
+            if (!vh)
+            {
+                VFS::close(node);
+                return -ENOMEM;
+            }
+            handle_type = HANDLE_TYPE_FILE;
+            break;
 
-            case VfsNodeType::Directory: {
-                if (!node->ops || !node->ops->opendir) {
+        case VfsNodeType::Directory:
+            {
+                if (!node->ops || !node->ops->opendir)
+                {
                     VFS::close(node);
                     return -ENOTDIR;
                 }
-                void *dir_handle = node->ops->opendir(node);
-                if (!dir_handle) {
+                void* dir_handle = node->ops->opendir(node);
+                if (!dir_handle)
+                {
                     VFS::close(node);
                     return -ENOMEM;
                 }
 
                 vh = new VfsHandle(node, flags, required_caps);
-                if (!vh) {
+                if (!vh)
+                {
                     node->ops->closedir(dir_handle);
                     VFS::close(node);
                     return -ENOMEM;
@@ -146,20 +171,23 @@ namespace syscalls::internal {
             }
 
 
-            default:
-                VFS::close(node);
-                return -EINVAL;
+        default:
+            VFS::close(node);
+            return -EINVAL;
         }
 
         // Capability-Check
-        if ((realm->capabilities & required_caps) != required_caps) {
+        if ((realm->capabilities & required_caps) != required_caps)
+        {
             delete vh;
             VFS::close(node);
             return -EACCES;
         }
 
-        if (flags & O_APPEND) {
-            if (node->type == VfsNodeType::File) {
+        if (flags & O_APPEND)
+        {
+            if (node->type == VfsNodeType::File)
+            {
                 vh->context->position = node->size;
             }
         }
@@ -175,8 +203,10 @@ namespace syscalls::internal {
             &file_handle
         );
 
-        if (err != MOD_SUCCESS) {
-            if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {
+        if (err != MOD_SUCCESS)
+        {
+            if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)
+            {
                 node->ops->closedir(vh->node->internal_data);
             }
             delete vh;

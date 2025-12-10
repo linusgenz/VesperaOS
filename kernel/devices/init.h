@@ -46,6 +46,6 @@ static CPUInfoDevice *cpuinfo_dev = nullptr;
 static MemInfoDevice *meminfo_dev = nullptr;
 static LogDevice *log_dev = nullptr;
 
-void initialize_devices();
+void initialize_pseudo_devices();
 
 #endif //VESPERAOS_INIT_DEV_H

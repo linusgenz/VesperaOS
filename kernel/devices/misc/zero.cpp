@@ -24,7 +24,7 @@
 #include "zero.h"
 #include <kernel/memory.h>
 
-#include "../chardevice.h"
+#include "../../../include/kernel/devices/char_device.h"
 
 ZeroDevice::ZeroDevice(const char* name)
     : CharDevice(name, VIRTUAL) {
@@ -39,11 +39,12 @@ int ZeroDevice::release(CharFile* cf) {
     return 0;
 }
 
-size_t ZeroDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t ZeroDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    if (!buffer) return -EINVAL;
     memset(buffer, 0, count);
     return count;
 }
 
-size_t ZeroDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t ZeroDevice::write(CharFile*, const void*, size_t count) {
     return count;
 }

@@ -21,21 +21,22 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "vfs_helper.h"
 #include "vfs_node.h"
 #include "../../include/string.h"
 #include "../../include/path.h"
 #include "vfs.h"
 
-bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) {
+bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
+{
     if (!path || !parent_out || !name_out) return false;
 
     char components[16][32];
     size_t count = split_path(path, components, 16);
     if (count == 0) return false;
 
-    if (count == 1) {
-        *parent_out = VFS::open("/");  // root dir
+    if (count == 1)
+    {
+        *parent_out = open("/"); // root dir
         strncpy(name_out, components[0], 31);
         name_out[31] = '\0';
         return *parent_out != nullptr;
@@ -45,13 +46,14 @@ bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) 
     char parent_path[256] = {};
     parent_path[0] = '/';
 
-    for (size_t i = 0; i < count - 1; i++) {
+    for (size_t i = 0; i < count - 1; i++)
+    {
         strncat(parent_path, components[i], sizeof(parent_path) - strlen(parent_path) - 1);
         if (i < count - 2)
             strncat(parent_path, "/", sizeof(parent_path) - strlen(parent_path) - 1);
     }
 
-    *parent_out = VFS::open(parent_path);
+    *parent_out = open(parent_path);
     if (!*parent_out) return false;
 
     strncpy(name_out, components[count - 1], 31);
@@ -59,33 +61,41 @@ bool vfs_resolve_parent(const char* path, VfsNode** parent_out, char* name_out) 
     return true;
 }
 
-dirent_type_t vfsnode_type_to_dirent_type(VfsNodeType type) {
-    switch (type) {
-    case VfsNodeType::File:      return DT_FILE;
+dirent_type_t VFS::node_type_to_dirent_type(VfsNodeType type)
+{
+    switch (type)
+    {
+    case VfsNodeType::File: return DT_FILE;
     case VfsNodeType::Directory: return DT_DIR;
-    case VfsNodeType::Device:    return DT_CHARDEV;
-    default:                     return DT_UNKNOWN;
+    case VfsNodeType::CharDevice: return DT_CHARDEV;
+    case VfsNodeType::BlockDevice: return DT_BLOCKDEV;
+    case VfsNodeType::OtherDevice:
+    default:
+        return DT_UNKNOWN;
     }
 }
 
-void ensure_path_exists(const char* path) {
+void VFS::ensure_path_exists(const char* path)
+{
     if (!path || path[0] != '/') return;
 
     char temp[256];
-    strncpy(temp, path, sizeof(temp)-1);
-    temp[sizeof(temp)-1] = '\0';
+    strncpy(temp, path, sizeof(temp) - 1);
+    temp[sizeof(temp) - 1] = '\0';
 
     char components[16][32];
     size_t count = split_path(temp, components, 16);
 
     char current[256] = "/";
-    for (size_t i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++)
+    {
         if (strlen(current) > 1) strcat(current, "/");
         strcat(current, components[i]);
 
         VfsNode* node = VFS::open(current);
-        if (!node) {
-           VFS::mkdir(current);
+        if (!node)
+        {
+            VFS::mkdir(current);
         }
     }
 }

@@ -126,6 +126,10 @@ public:
         return mount_points->copy();
     }
 
+    static bool resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
+    static dirent_type_t node_type_to_dirent_type(VfsNodeType type);
+    static void ensure_path_exists(const char* path);
+
 private:
     static spinlock_t mount_points_lock;
     static Vector<MountPoint*>* mount_points;

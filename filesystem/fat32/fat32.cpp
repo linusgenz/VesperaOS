@@ -15,7 +15,7 @@ namespace FAT32
     FileSystem::FileSystem(BlockDevice* device)
     {
         this->device = device;
-        this->valid = false;
+        valid = false;
         sectorSize = device->get_sector_size();
 
         uint8_t sector[512];
@@ -34,7 +34,7 @@ namespace FAT32
         fatSize = bpb.FATSize32;
         dataStart = fatStart + (bpb.tableCount * fatSize);
 
-        this->valid = true;
+        valid = true;
     }
 
     FileSystem::~FileSystem()

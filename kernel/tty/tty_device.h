@@ -24,36 +24,68 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
-#include "../devices/chardevice.h"
+#include "../../include/kernel/devices/char_device.h"
 #include <kernel/tty/tty.h>
 
-class TTYDevice final : public CharDevice {
+#include "../../filesystem/devfs/devfs.h"
+#include "kernel/devices/device_manager.h"
+
+class TTYDevice final : public CharDevice
+{
 public:
     kernel::tty::TTY* tty;
+    KernelDevice* kd{};
 
     explicit TTYDevice(const char* name, kernel::tty::TTY* tty_ptr)
-        : CharDevice(name, BUS_TTY), tty(tty_ptr) {}
+        : CharDevice(name, BUS_TTY), tty(tty_ptr)
+    {
+        KernelDevice* _kd = DeviceManager::RegisterCharDevice(
+            this,
+            name,
+            DeviceClass::Pseudo,
+            BUS_TTY,
+            ControllerType::None,
+            nullptr
+        );
 
-    int open(CharFile** out_cf) override {
+        kd = _kd;
+
+        DevFS::register_device(kd);
+    }
+
+    ~TTYDevice() override
+    {
+        DevFS::unregister_device(kd);
+        DeviceManager::UnregisterDevice(kd);
+    }
+
+    int open(CharFile** out_cf) override
+    {
         *out_cf = new CharFile(this);
         return 0;
     }
 
-    int release(CharFile* cf) override {
+    int release(CharFile* cf) override
+    {
         delete cf;
         return 0;
     }
 
-    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override {
-        return kernel::tty::tty_read(reinterpret_cast<char*>(buffer), count);
+    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override
+    {
+        if (count == 0 || !buffer) return -EINVAL;
+        return kernel::tty::tty_read(static_cast<char*>(buffer), count);
     }
 
-    size_t write(CharFile* cf, const void* buffer, size_t count) override {
+    ssize_t write(CharFile* cf, const void* buffer, size_t count) override
+    {
+        if (count == 0 || !buffer) return -EINVAL;
         const char* buf = static_cast<const char*>(buffer);
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count; i++)
+        {
             kernel::tty::tty_process_output(tty, buf[i]);
         }
-        return count;
+        return static_cast<int>(count);
     }
 };
 

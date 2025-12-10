@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../chardevice.h"
+#include "../../../include/kernel/devices/char_device.h"
 #include "urandom.h"
 
 URandomDevice::URandomDevice(const char* name, const uint64_t seed)
@@ -36,17 +36,19 @@ int URandomDevice::release(CharFile*) {
     return 0;
 }
 
-size_t URandomDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
+ssize_t URandomDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
+    if (count < sizeof(uint8_t) || !buffer) return -EINVAL;
+
     auto* out = static_cast<uint8_t*>(buffer);
     for (size_t i = 0; i < count; i++) {
         out[i] = next();
     }
-    return count;
+    return static_cast<ssize_t>(count);
 }
 
-size_t URandomDevice::write(CharFile*, const void* buffer, const size_t count) {
+ssize_t URandomDevice::write(CharFile*, const void* buffer, const size_t count) {
     (void)buffer;
-    return count;
+    return -EPERM;
 }
 
 void URandomDevice::refill() {

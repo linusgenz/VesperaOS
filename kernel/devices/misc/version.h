@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_VERSION_H
 #define VESPERAOS_VERSION_H
 
-#include "../chardevice.h"
+#include "../../../include/kernel/devices/char_device.h"
 
 class VersionDevice final : public CharDevice {
 public:
@@ -32,8 +32,8 @@ public:
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;
-    size_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
-    size_t write(CharFile* cf, const void* buffer, size_t count) override;
+    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
+    ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
 };
 
 #endif //VESPERAOS_VERSION_H

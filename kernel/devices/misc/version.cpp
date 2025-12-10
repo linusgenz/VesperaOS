@@ -39,14 +39,17 @@ int VersionDevice::release(CharFile*) {
     return 0;
 }
 
-size_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+    if (!buffer || count == 0) return -EINVAL;
+
     const char* ver = get_kernel_version();
     size_t len = strlen(ver);
     if (count < len) len = count;
+
     memcpy(buffer, ver, len);
-    return len;
+    return static_cast<ssize_t>(len);
 }
 
-size_t VersionDevice::write(CharFile*, const void*, size_t count) {
-    return count;
+ssize_t VersionDevice::write(CharFile*, const void*, size_t) {
+    return -EPERM; // why would you write on the version device lol
 }

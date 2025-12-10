@@ -28,22 +28,11 @@
 
 #include "../virtual_fs.h"
 #include "../vfs/vfs_node.h"
+#include "kernel/devices/device_manager.h"
 #define DEVFS_NAME_MAX 64
 
 struct CharFile;
 class CharDevice;
-
-enum BusType
-{
-    VIRTUAL = 0,
-    BUS_NONE,
-    BUS_XHCI,
-    BUS_TTY,
-    BUS_I2C,
-    BUS_SPI,
-    BUS_PCI,
-    BUS_MAX
-};
 
 typedef int (*dev_open_t)(CharFile** out_cf);
 
@@ -58,17 +47,14 @@ typedef int (*dev_poll_t)(CharFile* cf); // returns POLLIN/POLLOUT mask-ish
 
 
 // handle for device drivers
-struct CharFile
-{
-    void* driver_private;
-};
 
-struct DevfsEntry : VirtualFsEntry<CharDevice>
+
+struct DevfsEntry : VirtualFsEntry<KernelDevice>
 {
     CharFile* cf;
 };
 
-class DevFS : public VirtualFilesystem<CharDevice, DevfsEntry>
+class DevFS : public VirtualFilesystem<KernelDevice, DevfsEntry>
 {
 private:
     static const char* bus_to_str(BusType bus);
@@ -76,11 +62,8 @@ private:
 public:
     static void init();
 
-    static VfsNode* ensure_bus_dir(BusType bus);
-
-    static int register_device(CharDevice* dev);
-    static const char* alloc_unique_name(const char* base, BusType type);
-    static int unregister_device(CharDevice* dev);
+    static int register_device(KernelDevice* dev);
+    static int unregister_device(KernelDevice* dev);
 
     static int open(const VfsNode* node);
     // VFS operations
