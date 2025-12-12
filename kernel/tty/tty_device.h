@@ -37,13 +37,13 @@ public:
     KernelDevice* kd{};
 
     explicit TTYDevice(const char* name, kernel::tty::TTY* tty_ptr)
-        : CharDevice(name, BUS_TTY), tty(tty_ptr)
+        : CharDevice(name, BusType::BUS_TTY), tty(tty_ptr)
     {
         KernelDevice* _kd = DeviceManager::RegisterCharDevice(
             this,
             name,
             DeviceClass::Pseudo,
-            BUS_TTY,
+            BusType::BUS_TTY,
             ControllerType::None,
             nullptr
         );

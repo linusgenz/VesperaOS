@@ -25,7 +25,7 @@
 #include "urandom.h"
 
 URandomDevice::URandomDevice(const char* name, const uint64_t seed)
-    : CharDevice(name, VIRTUAL), state(seed) {}
+    : CharDevice(name, BusType::VIRTUAL), state(seed) {}
 
 int URandomDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

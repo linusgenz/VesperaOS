@@ -22,7 +22,7 @@
 
 namespace USB
 {
-    xhciDriver::xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number) : CharDevice(_name, BUS_USB)
+    xhciDriver::xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number) : CharDevice(_name, BusType::BUS_USB)
     {
         vector_num = _vector_num;
         name = _name;
@@ -37,7 +37,7 @@ namespace USB
         device = DeviceManager::RegisterController(
             name,
             DeviceClass::Usb,
-            BUS_USB,
+            BusType::BUS_USB,
             ControllerType::XHCI,
             nullptr,
             this

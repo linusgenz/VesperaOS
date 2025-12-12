@@ -23,6 +23,7 @@
 
 #include <vector.h>
 #include "blockdevice.h"
+#include "log.h"
 #include "partition_device.h"
 #include "../../filesystem/devfs/devfs.h"
 #include "../../filesystem/partition/partition.h"
@@ -34,6 +35,8 @@ Vector<KernelDevice*>* DeviceManager::all_devices;
 uint32_t DeviceManager::next_id = 1;
 spinlock_t DeviceManager::lock;
 
+static bool blockLetterUsed[26] = {false};
+
 void DeviceManager::Init()
 {
     devices = new Vector<BlockDevice*>();
@@ -44,53 +47,53 @@ void DeviceManager::Init()
     all_devices->clear();
 }
 
-char DeviceManager::GetNextFreeBlockLetter(KernelDevice* controller)
+char DeviceManager::GetNextFreeBlockLetter()
 {
-    if (!controller) return '?';
     for (int i = 0; i < 26; i++)
     {
-        if (!controller->used_letters[i])
+        if (!blockLetterUsed[i])
         {
-            controller->used_letters[i] = true;
-            return 'a' + i;
+            blockLetterUsed[i] = true;
+            return static_cast<char>('a' + i);
         }
     }
     return '?';
 }
 
-char* DeviceManager::GenerateSDDeviceName(KernelDevice* controller, char* buffer, size_t buffer_size)
+void DeviceManager::ReleaseBlockLetter(char c)
+{
+    if (c >= 'a' && c <= 'z')
+    {
+        blockLetterUsed[c - 'a'] = false;
+    }
+}
+
+char* DeviceManager::GenerateSDDeviceName(char* buffer, size_t buffer_size)
 {
     if (!buffer || buffer_size < 4) return nullptr;
     buffer[0] = 's';
     buffer[1] = 'd';
-    buffer[2] = GetNextFreeBlockLetter(controller);
+    buffer[2] = GetNextFreeBlockLetter();
     buffer[3] = '\0';
     return buffer;
 }
 
-char* DeviceManager::GenerateNVMeDeviceName(KernelDevice* controller, char* buffer, size_t buffer_size)
+char* DeviceManager::GenerateNVMeDeviceName(const KernelDevice* controller,
+                                            char* buffer,
+                                            size_t buffer_size,
+                                            uint32_t namespaceId)
 {
-    if (!buffer || buffer_size < 16) return nullptr;
+    if (!controller || !buffer || buffer_size < 16)
+        return nullptr;
 
-    uint32_t dev_index = 0;
-    // finde freien Slot
-    for (size_t i = 0; i < controller->nvme_device_used.size(); i++)
-    {
-        if (!controller->nvme_device_used[i])
-        {
-            dev_index = i;
-            controller->nvme_device_used[i] = true;
-            break;
-        }
-    }
+    if (controller->controller != ControllerType::NVMe)
+        return nullptr;
 
-    // erweitere Vektor falls nötig
-    if (dev_index >= controller->nvme_device_used.size())
-    {
-        controller->nvme_device_used.push_back(true);
-    }
+    snprintf(buffer, buffer_size,
+             "%sn%u",
+             controller->name,
+             namespaceId);
 
-    snprintf(buffer, buffer_size, "nvme%dn%d", controller->next_nvme_index, dev_index + 1);
     return buffer;
 }
 
@@ -113,10 +116,18 @@ size_t DeviceManager::FindAndRegisterPartitions(KernelDevice* physical_kd)
 
         auto* pdev = new PartitionDevice(dev, pe.start_lba, pe.length_lba);
 
-        // physical_kd->name = "sda" → partition: "sda1"
-        char part_name[64];
-        snprintf(part_name, sizeof(part_name), "%s%zu", physical_kd->name, i + 1);
 
+        char part_name[64];
+        if (physical_kd->controller == ControllerType::NVMe)
+        {
+            // physical_kd->name = "nvme0n1" → partition: "nvme0n1p1"
+            snprintf(part_name, sizeof(part_name), "%sp%zu", physical_kd->name, i + 1);
+        }
+        else
+        {
+            // physical_kd->name = "sda" → partition: "sda1"
+            snprintf(part_name, sizeof(part_name), "%s%zu", physical_kd->name, i + 1);
+        }
         KernelDevice* pkd = RegisterBlockDevice(
             pdev,
             part_name,
@@ -134,38 +145,37 @@ size_t DeviceManager::FindAndRegisterPartitions(KernelDevice* physical_kd)
     return count;
 }
 
-const char* DeviceManager::AllocUniqueDeviceName(const char* base)
+bool DeviceManager::AllocUniqueDeviceName(const char* base, char* outBuffer, size_t outBufferSize)
 {
     spinlock_guard guard(lock);
 
-    static char buffer[64];
-    int counter = 0;
+    if (!all_devices || !outBuffer || outBufferSize == 0)
+        return false;
 
-    if (!all_devices) return nullptr;
+    int counter = 0;
 
     while (true)
     {
-        snprintf(buffer, sizeof(buffer), "%s%d", base, counter);
+        int written = snprintf(outBuffer, outBufferSize, "%s%d", base, counter);
+
+        if (written < 0 || static_cast<size_t>(written) >= outBufferSize)
+            return false;
 
         bool exists = false;
         for (auto* kd : *all_devices)
         {
-            if (kd && kd->name && strcmp(kd->name, buffer) == 0)
+            if (kd && kd->name && strcmp(kd->name, outBuffer) == 0)
             {
                 exists = true;
                 break;
             }
         }
 
-        if (!exists) break;
+        if (!exists)
+            return true;
+
         counter++;
     }
-
-    const size_t len = strlen(buffer) + 1;
-    auto result = static_cast<char*>(kernel::memory::malloc(len));
-    strncpy(result, buffer, len);
-    result[len - 1] = '\0';
-    return result;
 }
 
 Vector<BlockDevice*> DeviceManager::GetDevices()
@@ -304,7 +314,6 @@ void DeviceManager::UnregisterDevice(KernelDevice* kd)
 
     spinlock_guard guard(lock);
 
-    // Entferne aus all_devices
     if (all_devices)
     {
         for (size_t i = 0; i < all_devices->size(); ++i)
@@ -337,6 +346,11 @@ void DeviceManager::UnregisterDevice(KernelDevice* kd)
 
     if (kd->name)
     {
+        if (kd->type == DeviceType::Block)
+        {
+            const char released_char = kd->name[3];
+            ReleaseBlockLetter(released_char);
+        }
         kernel::memory::free(const_cast<char*>(kd->name));
         kd->name = nullptr;
     }

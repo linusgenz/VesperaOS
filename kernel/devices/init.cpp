@@ -44,7 +44,7 @@ void initialize_pseudo_devices() {
             dev,
             name,
             cls,
-            BUS_NONE,
+            BusType::BUS_NONE,
             ControllerType::None,
             nullptr
         );

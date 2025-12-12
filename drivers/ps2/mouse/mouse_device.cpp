@@ -27,13 +27,13 @@
 #include "../../../filesystem/devfs/devfs.h"
 
 Ps2MouseDevice::Ps2MouseDevice(Ps2Controller* controller)
-    : CharDevice("ps2mouse", BUS_PS2), parent(controller)
+    : CharDevice("ps2mouse", BusType::BUS_PS2), parent(controller)
 {
     devnode = DeviceManager::RegisterCharDevice(
         this,
         "ps2mouse",
         DeviceClass::Input,
-        BUS_PS2,
+        BusType::BUS_PS2,
         ControllerType::PS2,
         parent->devnode
     );

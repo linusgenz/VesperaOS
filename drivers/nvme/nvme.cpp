@@ -9,6 +9,9 @@
 #include <kernel/time.h>
 
 #include "errno.h"
+#include <kernel/devices/device_manager.h>
+
+#include "../../filesystem/devfs/devfs.h"
 
 namespace NVMe
 {
@@ -28,7 +31,7 @@ namespace NVMe
 
         Disable();
 
-        unsigned spin = 500;
+        unsigned spin = 50;
         while (spin-- && (c_regs->status & NVME_CSTS_READY))
         {
             kernel::time::sleep_ms(10);
@@ -122,6 +125,17 @@ namespace NVMe
             Log::Error("Failed to create IO Queue");
         }
 
+        char name[16];
+        DeviceManager::AllocUniqueDeviceName("nvme", name, sizeof(name));
+        kd = DeviceManager::RegisterController(
+            name,
+            DeviceClass::Storage,
+            BusType::BUS_PCI,
+            ControllerType::NVMe,
+            nullptr
+        );
+        DevFS::register_device(kd);
+
         for (uint32_t namespaceID : namespaceIDs)
         {
             Log::LogMsg("[NVMe] Namespace ID %u", namespaceID);
@@ -136,15 +150,23 @@ namespace NVMe
 
             admin_queue.SubmitWait(identifyNsCmd, completion);
 
-            auto nsIdentify = static_cast<NamespaceIdentity*>(physBuffer);
+            auto nsIdentify = static_cast<NVME_IDENTIFY_NAMESPACE_DATA*>(physBuffer);
 
-            uint8_t lbaFormatIndex = nsIdentify->fmt_lba_size & 0x0F;
-            uint8_t lbads = nsIdentify->lba_formats[lbaFormatIndex].lba_data_size;
-            uint32_t lbaSize = 1 << lbads;
+            auto* ns = new NvmeNamespace(namespaceID, &io_queue, nsIdentify);
 
-            Log::debug("namespaceSize: %u", nsIdentify->namespace_size);
+            char name_namespace[32];
+            DeviceManager::GenerateNVMeDeviceName(kd, name_namespace, sizeof(name_namespace), namespaceID);
+            ns->kd = DeviceManager::RegisterBlockDevice(
+                ns,
+                name_namespace,
+                DeviceClass::Storage,
+                BusType::BUS_PCI,
+                ControllerType::NVMe,
+                kd
+            );
+            DevFS::register_device(ns->kd);
+            DeviceManager::FindAndRegisterPartitions(ns->kd);
 
-            auto* ns = new NvmeNamespace(namespaceID, &io_queue, lbaSize);
             namespaces.push_back(ns);
         }
 
@@ -160,15 +182,14 @@ namespace NVMe
             return -1;
         }
 
-        controller_identity = static_cast<ControllerIdentity*>(kernel::memory::request_page());
+        controller_identity = static_cast<NVME_IDENTIFY_CONTROLLER_DATA*>(kernel::memory::request_page());
         if (!controller_identity)
         {
             Log::Error("[NVMe] No virtual memory for controller identify");
             return -1;
         }
 
-        kernel::memory::map_memory(controller_identity, reinterpret_cast<void*>(controller_identity_phys),
-                                   true);
+        kernel::memory::map_memory(controller_identity, reinterpret_cast<void*>(controller_identity_phys));
 
         NvmeCommand identifyCommand{};
         memset(&identifyCommand, 0, sizeof(NvmeCommand));
@@ -187,7 +208,7 @@ namespace NVMe
         }
 
         char serial[21] = {};
-        memcpy(serial, controller_identity->serial_number, 20);
+        memcpy(serial, controller_identity->SN, 20);
 
         for (int i = 19; i >= 0 && serial[i] == ' '; --i)
         {
@@ -195,12 +216,12 @@ namespace NVMe
         }
 
         char model[41] = {};
-        memcpy(model, controller_identity->model_number, 40);
+        memcpy(model, controller_identity->MN, 40);
 
         for (int i = 39; i >= 0 && model[i] == ' '; --i) model[i] = 0;
 
         char fw[9] = {};
-        memcpy(fw, controller_identity->firmware_revision, 8);
+        memcpy(fw, controller_identity->FR, 8);
         for (int i = 7; i >= 0 && fw[i] == ' '; --i) fw[i] = 0;
 
         Log::Info("[NVMe] Model: %s", model);
@@ -401,14 +422,22 @@ namespace NVMe
         *completion_db = cq_head;
     }
 
-    ssize_t NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void* buffer)
+    ssize_t NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
     {
-        if (!buffer || sectorCount == 0) return -EINVAL;
+        size_t bytes = sectorCount * sectorSize;
+        if (!buffer || sectorCount == 0 || bufferSize < bytes)
+            return -EINVAL;
+
+        kernel::mutex_guard guard(namespace_mutex);
+
+        size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        void* dma_phys = kernel::memory::request_pages(pages);
+        if (!dma_phys) return -ENOMEM;
 
         NvmeCommand read_cmd = {};
-        read_cmd.opcode = NVME_OPCODE_READ; // NVM Read
+        read_cmd.opcode = NVME_OPCODE_READ;
         read_cmd.ns_id = nsID;
-        read_cmd.prp1 = reinterpret_cast<uintptr_t>(buffer);
+        read_cmd.prp1 = reinterpret_cast<uintptr_t>(dma_phys);
         read_cmd.read.start_lba = lba;
         read_cmd.read.block_num = sectorCount - 1;
 
@@ -418,25 +447,42 @@ namespace NVMe
         if (completion.status != 0)
         {
             Log::Warning("[NVMe] Read failed with status %u", completion.status);
+            kernel::memory::free_pages(dma_phys, pages);
             return -EIO;
         }
 
-        return sectorCount * get_sector_size();
+        memcpy(buffer, dma_phys, bytes);
+
+        kernel::memory::free_pages(dma_phys, pages);
+
+        return static_cast<ssize_t>(bytes);
     }
 
-    ssize_t NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer)
+    ssize_t NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
     {
-        if (!buffer || sectorCount == 0) return -EINVAL;
+        size_t bytes = sectorCount * sectorSize;
+        if (!buffer || sectorCount == 0 || bufferSize < bytes)
+            return -EINVAL;
+
+        kernel::mutex_guard guard(namespace_mutex);
+
+        size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        void* dma_phys = kernel::memory::request_pages(pages);
+        if (!dma_phys) return -ENOMEM;
+
+        memcpy(dma_phys, buffer, bytes);
 
         NvmeCommand write_cmd = {};
         write_cmd.opcode = NVME_OPCODE_WRITE; // NVM Write
         write_cmd.ns_id = nsID;
-        write_cmd.prp1 = reinterpret_cast<uintptr_t>(buffer);
+        write_cmd.prp1 = reinterpret_cast<uintptr_t>(dma_phys);
         write_cmd.write.start_lba = lba;
         write_cmd.write.block_num = sectorCount - 1;
 
         NvmeCompletion completion{};
         queue->SubmitWait(write_cmd, completion);
+
+        kernel::memory::free_pages(dma_phys, pages);
 
         if (completion.status != 0)
         {
@@ -444,6 +490,6 @@ namespace NVMe
             return -EIO;
         }
 
-        return sectorCount * get_sector_size();
+        return static_cast<ssize_t>(bytes);
     }
 } // namespace NVMe

@@ -31,6 +31,7 @@
 typedef struct {
     uint64_t start_lba;
     uint64_t length_lba;
+    uint64_t sector_size;
     uint8_t  mbr_type;        // for MBR partitions (0 == unused). For GPT may be 0.
     char     name[72];        // GPT name (in utf-8)
 } PartitionEntry;

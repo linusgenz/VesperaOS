@@ -24,32 +24,32 @@
 #include "partition_device.h"
 
 #include "errno.h"
+#include "vector.h"
 #include "../types/handle.h"
 
 PartitionDevice::PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba)
     : parent(parent), start_lba(start_lba), length_lba(length_lba)
 {
+    sector_size = parent->get_sector_size();
     type = Type::Partition;
 }
 
-ssize_t PartitionDevice::read(const uint64_t lba, const uint32_t count, void* buf)
+ssize_t PartitionDevice::read(const uint64_t lba, const uint32_t count, void* buf, size_t buf_size)
 {
     if (!parent) return false;
     if (lba + count > length_lba) return false;
 
-    ssize_t ret = parent->read(start_lba + lba, count, buf);
+    ssize_t ret = parent->read(start_lba + lba, count, buf, buf_size);
 
-    if (ret < 0) return ret;
     return ret;
 }
 
-ssize_t PartitionDevice::write(const uint64_t lba, const uint32_t count, void* buf)
+ssize_t PartitionDevice::write(const uint64_t lba, const uint32_t count, void* buf, size_t buf_size)
 {
     if (!parent || !buf) return -EINVAL;
     if (lba + count > length_lba) return -EINVAL;
 
-    ssize_t ret =  parent->write(start_lba + lba, count, buf);
+    ssize_t ret = parent->write(start_lba + lba, count, buf, buf_size);
 
-    if (ret < 0) return ret;
     return ret;
 }

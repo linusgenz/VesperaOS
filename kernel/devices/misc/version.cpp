@@ -28,7 +28,7 @@
 #include "../../kversion.h"
 
 VersionDevice::VersionDevice(const char* name)
-    : CharDevice(name, VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL) {}
 
 int VersionDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

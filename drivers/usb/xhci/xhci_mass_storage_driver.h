@@ -43,9 +43,9 @@ public:
     void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
 
     // BlockDevice interface
-    ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer) override;
+    ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize) override;
 
-    ssize_t write(uint64_t lba, uint32_t sectorCount, void* buffer) override;
+    ssize_t write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize) override;
 
     [[nodiscard]] uint32_t get_sector_size() const override { return sector_size; }
 

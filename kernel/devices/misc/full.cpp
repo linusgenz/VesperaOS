@@ -27,7 +27,7 @@
 #include <kernel/memory.h>
 
 FullDevice::FullDevice(const char *name)
-    : CharDevice(name, VIRTUAL) {
+    : CharDevice(name, BusType::VIRTUAL) {
 }
 
 int FullDevice::open(CharFile **out_cf) {

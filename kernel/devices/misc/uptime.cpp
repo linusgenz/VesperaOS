@@ -27,7 +27,7 @@
 #include <kernel/time.h>
 
 UptimeDevice::UptimeDevice(const char* name)
-    : CharDevice(name, VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL) {}
 
 int UptimeDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

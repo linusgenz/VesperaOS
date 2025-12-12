@@ -33,22 +33,28 @@ struct CharFile
 };
 
 // Flags for poll()
-enum PollMask : int {
-    POLLIN  = 0x01,
+enum PollMask : int
+{
+    POLLIN = 0x01,
     POLLOUT = 0x02
 };
 
-class CharDevice {
+class CharDevice
+{
 public:
     const char* name;
     BusType bus_type;
 
-    explicit CharDevice(const char* name, BusType bus_type)
-        : name(name), bus_type(bus_type) {}
+    explicit CharDevice(const char* _name, BusType bus_type) : bus_type(bus_type)
+    {
+        name = strdup(_name);
+    }
 
-    virtual ~CharDevice() {
-        if (name) {
-            name = nullptr;
+    virtual ~CharDevice()
+    {
+        if (name)
+        {
+            kernel::memory::free(const_cast<char*>(name));
         }
     }
 

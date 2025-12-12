@@ -28,7 +28,7 @@
 #include <kernel/system/system_manager.h>
 
 MemInfoDevice::MemInfoDevice(const char* name)
-    : CharDevice(name, VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL) {}
 
 int MemInfoDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

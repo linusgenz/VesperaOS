@@ -76,7 +76,9 @@ void xhciKeyboardDriver::on_device_init(USB::xhciDriver* hcd)
 {
     memset(m_prev_keys, 0, sizeof(m_prev_keys));
 
-    device = new UsbKeyboardDevice("usb_kbd0", hcd->get_device());
+    char name[16];
+    DeviceManager::AllocUniqueDeviceName("usb_kbd", name, sizeof(name));
+    device = new UsbKeyboardDevice(name, hcd->get_device());
 }
 
 void xhciKeyboardDriver::on_device_event(uint8_t* data)

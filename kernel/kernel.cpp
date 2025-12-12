@@ -37,6 +37,101 @@
 
 static const char* envp0[] = {"PATH=/bin", nullptr};
 
+static const char* dev_type_to_str(DeviceType t)
+{
+    switch (t) {
+        case DeviceType::Block: return "Block";
+        case DeviceType::Char: return "Char";
+        case DeviceType::Controller: return "Controller";
+        case DeviceType::Bus: return "Bus";
+        case DeviceType::Logical: return "Logical";
+        default: return "Other";
+    }
+}
+
+static const char* class_to_str(DeviceClass c)
+{
+    switch (c) {
+        case DeviceClass::Storage: return "Storage";
+        case DeviceClass::Usb:     return "USB";
+        case DeviceClass::Input:   return "Input";
+        case DeviceClass::Net:     return "Net";
+        case DeviceClass::Misc:    return "Misc";
+        case DeviceClass::Pseudo:  return "Pseudo";
+        default: return "Unknown";
+    }
+}
+
+static const char* bus_to_str(BusType b)
+{
+    switch (b) {
+        case BusType::BUS_NONE:  return "None";
+        case BusType::BUS_PCI:   return "PCI";
+        case BusType::BUS_USB:   return "USB";
+        case BusType::BUS_PS2:    return "PS2";
+        case BusType::VIRTUAL:  return "Virtual";
+        default:        return "Other";
+    }
+}
+
+// Pretty-print indentation tree
+static void print_indent(int depth)
+{
+    for (int i = 0; i < depth; i++) {
+        Log::Print("  "); // 2 spaces per level
+    }
+}
+
+static void print_device_tree(KernelDevice* dev, int depth = 0)
+{
+    if (!dev) return;
+
+    print_indent(depth);
+
+    Log::PrintLn(
+        "[id=%u] %s (%s, class=%s, bus=%s)",
+        dev->id,
+        dev->name ? dev->name : "<noname>",
+        dev_type_to_str(dev->type),
+        class_to_str(dev->dev_class),
+        bus_to_str(dev->bus_type)
+    );
+
+    // extra info
+    if (dev->block && dev->type == DeviceType::Block) {
+        print_indent(depth + 1);
+        Log::PrintLn("BlockDevice: sector=%u",
+                     dev->block->get_sector_size());
+    }
+
+    // recursively print children
+    for (auto* child : dev->children) {
+        print_device_tree(child, depth + 1);
+    }
+}
+
+void Debug_PrintAllDevices()
+{
+    using namespace kernel;
+
+    auto list = DeviceManager::GetAllDevices();
+
+    Log::PrintLn("=== Registered Devices (%u) ===",
+                 DeviceManager::GetKernelDeviceCount());
+
+    // Only print root-level devices (those without parent)
+    for (auto* dev : list)
+    {
+        if (dev && dev->parent == nullptr)
+        {
+            print_device_tree(dev, 0);
+        }
+    }
+
+    Log::PrintLn("==============================");
+}
+
+
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 {
     initialize_kernel(boot_info);
@@ -80,7 +175,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         Log::Error("Failed to load elf binary");
     }
 
-    const char* argv_example[] = {
+    const char *argv_example[] = {
         "shell",
         "-v",
         "--config=config.txt",
@@ -104,7 +199,9 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 
     kernel::SystemManager::set_system_initialized();
 
-    kernel::scheduling::enable_on_cpu(0);
+    Debug_PrintAllDevices();
+
+  //  kernel::scheduling::enable_on_cpu(0);
 
     while (true);
 }

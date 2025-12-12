@@ -70,7 +70,6 @@ add_custom_target(test
         -enable-kvm
         -cpu qemu64
         #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
-        #  -device nvme,drive=host0,serial=deadbeef
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio
@@ -79,7 +78,10 @@ add_custom_target(test
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
-        -device usb-storage,drive=usbstick2
+       # -device usb-storage,drive=usbstick2
+        -device ahci,id=ahci0
+      # -device ide-hd,drive=usbstick2,bus=ahci0.0
+        -device nvme,drive=usbstick2,serial=deadbeef,physical_block_size=4096
         -device usb-kbd
         -trace *msi*
         -D /tmp/qemu.log
@@ -105,8 +107,7 @@ add_custom_target(debug
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
-       # -device usb-storage,drive=usbstick2
-
+        -device usb-storage,drive=usbstick2
         -trace *xhci*
         -D /tmp/qemu.log
         -no-reboot

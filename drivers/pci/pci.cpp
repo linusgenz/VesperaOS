@@ -7,6 +7,8 @@
 #include "msix.h"
 #include "../../filesystem/devfs/devfs.h"
 #include "../../kernel/units/unit_manager.h"
+#include "../ahci/ahci.h"
+#include "../nvme/nvme.h"
 #include "../usb/usb_manager.h"
 
 static atomic_u8 next_usb_bus_number;
@@ -23,9 +25,10 @@ void usb_enable(void* arg)
     if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header),
                                vector))
     {
-        const char* dev_name = DeviceManager::AllocUniqueDeviceName("xhci");
+        char name[16];
+        DeviceManager::AllocUniqueDeviceName("xhci", name, sizeof(name));
 
-        auto usb_driver = new USB::xhciDriver(vector, dev_name, next_usb_bus_number++);
+        auto usb_driver = new USB::xhciDriver(vector, name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header))
         {
             Log::Error("Could not initalize xhci driver");
@@ -51,11 +54,11 @@ namespace PCI
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-        /*     Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
-                         get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
-                         get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
-                         get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
-                                          pci_device_header->prog_if));*/
+        /*           Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
+                               get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
+                               get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
+                               get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
+                                                pci_device_header->prog_if));*/
 
         switch (pci_device_header->_class)
         {
@@ -65,48 +68,31 @@ namespace PCI
             case 0x06: // serial ATA
                 switch (pci_device_header->prog_if)
                 {
-                case 0x01:
-                    break; // AHCI 1.0 device
+                case 0x01: // AHCI 1.0 device
+                    {
+                        if (function != 0) return; // only accept function 0 (main function) for now
+                        auto ahci = new AHCI::AHCIDriver(pci_device_header);
+
+                        break;
+                    }
                 default: ;
-                    /*     auto ahci = new AHCI::AHCIDriver(pci_device_header);
-                          if (!ahci->HasActivePorts()) {
-                              delete ahci;
-                              break;
-                          }
-
-                          for (int i = 0; i < ahci->portCount; ++i) {
-                              auto* port = ahci->ports[i];
-                              if (!port) continue;
-
-                              Log::debug("added device: %u", i);
-                              kernel::DeviceManager::AddDevice(static_cast<BlockDevice*>(port));
-                          }*/
                 }
             case 0x08:
                 switch (pci_device_header->prog_if)
                 {
                 case 0x02:
-                    break;
-                default: ;
-                    /*    uint16_t command_register = pci_device_header->command;
+                    {
+                        uint16_t command_register = pci_device_header->command;
 
                         uint16_t command = pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         pci_write16(pci_device_header, 0x04, command);
 
-                        auto driver = new NVMe::NvmeDriver(pci_device_header);
-                        Log::debug("namespaces: %u", driver->get_namespaces().size());
-                        if (driver->get_namespaces().size() < 0) {
-                            Log::debug("[Nvme] Namespaces not found");
-                            delete driver;
-                            break;
-                        }
+                        new NVMe::NvmeDriver(pci_device_header);
 
-                        for (size_t i = 0; i < driver->get_namespaces().size(); ++i) {
-                            Log::debug("added device: %u", i);
-                            kernel::DeviceManager::AddDevice(
-                                static_cast<BlockDevice *>(driver->get_namespaces()[i]));
-                        }*/
+                        break;
+                    }
+                default: ;
                 }
             default: ;
             }

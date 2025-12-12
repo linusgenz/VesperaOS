@@ -42,7 +42,7 @@ namespace EXT4 {
 
         uint8_t buffer[sectorCount * sectorSize];
 
-        if (!device->read(startSector, sectorCount, buffer)) {
+        if (!device->read(startSector, sectorCount, buffer, sizeof(buffer))) {
             return false;
         }
 
@@ -58,7 +58,7 @@ namespace EXT4 {
         uint64_t startByte = block * bsize;
         uint64_t startSector = startByte / sectorSize;
         uint32_t count = (bsize + sectorSize - 1) / sectorSize;
-        return device->read(startSector, count, outBuf);
+        return device->read(startSector, count, outBuf, sizeof(outBuf));
     }
 
 
@@ -89,7 +89,7 @@ namespace EXT4 {
             return false;
         }
 
-        if (!device->read(startSector, cnt, buf)) {
+        if (!device->read(startSector, cnt, buf, sizeof(buf))) {
             Log::debug("[ext4] read_group_desc: device->read failed");
             kernel::memory::free(buf);
             return false;
@@ -142,7 +142,7 @@ namespace EXT4 {
         auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(count * sectorSize));
         if (!buf) return false;
 
-        if (!device->read(startSector, count, buf)) {
+        if (!device->read(startSector, count, buf, sizeof(buf))) {
             kernel::memory::free(buf);
             return false;
         }

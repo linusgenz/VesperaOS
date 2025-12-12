@@ -31,13 +31,13 @@
 #include "../../../filesystem/devfs/devfs.h"
 
 Ps2KeyboardDevice::Ps2KeyboardDevice(Ps2Controller* controller)
-    : CharDevice("ps2kbd", BUS_PS2), parent(controller)
+    : CharDevice("ps2kbd", BusType::BUS_PS2), parent(controller)
 {
     devnode = DeviceManager::RegisterCharDevice(
         this,
         "ps2kbd",
         DeviceClass::Input,
-        BUS_PS2,
+        BusType::BUS_PS2,
         ControllerType::PS2,
         parent->devnode
     );

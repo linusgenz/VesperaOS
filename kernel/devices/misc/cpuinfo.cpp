@@ -30,7 +30,7 @@
 #include "../../cpu/cpu.h"
 
 CPUInfoDevice::CPUInfoDevice(const char* name)
-    : CharDevice(name, VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL) {}
 
 int CPUInfoDevice::open(CharFile** out_cf) {
     *out_cf = nullptr;

@@ -34,13 +34,13 @@ const char* DevFS::bus_to_str(const BusType bus)
 {
     switch (bus)
     {
-    case BUS_USB: return "usb";
-    case BUS_I2C: return "i2c";
-    case BUS_PS2: return "ps2";
-    case BUS_SPI: return "spi";
-    case BUS_PCI: return "pci";
-    case BUS_TTY: return "tty";
-    case VIRTUAL: return "virtual";
+    case BusType::BUS_USB: return "usb";
+    case BusType::BUS_I2C: return "i2c";
+    case BusType::BUS_PS2: return "ps2";
+    case BusType::BUS_SPI: return "spi";
+    case BusType::BUS_PCI: return "pci";
+    case BusType::BUS_TTY: return "tty";
+    case BusType::VIRTUAL: return "virtual";
     default: return "unknown";
     }
 }
@@ -186,7 +186,7 @@ ssize_t DevFS::read(const VfsNode* node, size_t offset, size_t size, void* buffe
         size_t sector_size = kd->block->get_sector_size();
         uint64_t lba = offset / sector_size;
         uint32_t sectors = (size + sector_size - 1) / sector_size;
-        return kd->block->read(lba, sectors, buffer);
+        return kd->block->read(lba, sectors, buffer, sizeof(buffer));
     }
 
     return -EINVAL;
@@ -221,7 +221,7 @@ ssize_t DevFS::write(VfsNode* node, size_t offset, const size_t size, const void
         size_t sector_size = kd->block->get_sector_size();
         uint64_t lba = offset / sector_size;
         uint32_t sectors = (size + sector_size - 1) / sector_size;
-        return kd->block->write(lba, sectors, const_cast<void*>(buffer));
+        return kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer));
     }
 
     return -EINVAL;

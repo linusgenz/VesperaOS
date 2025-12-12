@@ -29,13 +29,13 @@
 #include "../../../include/kernel/devices/device_manager.h"
 
 UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
-    : CharDevice(name, BUS_USB)
+    : CharDevice(name, BusType::BUS_USB)
 {
     devnode = DeviceManager::RegisterCharDevice(
         this,
         name,
         DeviceClass::Input,
-        BUS_USB,
+        BusType::BUS_USB,
         ControllerType::XHCI,
         parent
     );

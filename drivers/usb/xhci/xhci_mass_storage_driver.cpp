@@ -56,15 +56,16 @@ void xhciMassStorageDriver::on_startup(USB::xhciDriver* hcd, xhciDevice* dev)
                 total_sectors, sector_size);
 
         char name_buf[16] = {};
-        DeviceManager::GenerateSDDeviceName(hcd->get_device(), name_buf, sizeof(name_buf));
+        DeviceManager::GenerateSDDeviceName(name_buf, sizeof(name_buf));
         kd = DeviceManager::RegisterBlockDevice(
             this,
             name_buf,
             DeviceClass::Storage,
-            BUS_USB,
+            BusType::BUS_USB,
             ControllerType::XHCI,
             hcd->get_device()
         );
+        DevFS::register_device(kd);
         DeviceManager::FindAndRegisterPartitions(kd);
     }
     else
@@ -313,9 +314,10 @@ void xhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer* transfer)
 }
 
 
-ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* buffer)
+ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
 {
-    if (!buffer || sectorCount == 0) return -EINVAL;
+    if (!buffer || sectorCount == 0 || bufferSize < sectorCount * sector_size)
+        return -EINVAL;
     kernel::mutex_guard guard(io_mutex);
 
     auto& transfer = transfer_rw;
@@ -355,9 +357,10 @@ ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* bu
 }
 
 
-ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buffer)
+ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
 {
-    if (!buffer || sectorCount == 0) return -EINVAL;
+    if (!buffer || sectorCount == 0 || bufferSize < sectorCount * sector_size)
+        return -EINVAL;
     kernel::mutex_guard guard(io_mutex);
 
     auto& transfer = transfer_rw;

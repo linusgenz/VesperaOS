@@ -54,7 +54,7 @@ enum class DeviceClass : uint8_t
 
 enum class ControllerType : uint8_t
 {
-    None = 0,
+    None,
     XHCI,
     EHCI,
     OHCI,
@@ -67,9 +67,9 @@ enum class ControllerType : uint8_t
     Other,
 };
 
-enum BusType
+enum class BusType : uint8_t
 {
-    VIRTUAL = 0,
+    VIRTUAL,
     BUS_NONE,
     BUS_USB,
     BUS_TTY,
@@ -87,7 +87,7 @@ struct KernelDevice
     DeviceType type{DeviceType::Other};
     DeviceClass dev_class{DeviceClass::Unknown};
     ControllerType controller;
-    BusType bus_type{BUS_NONE};
+    BusType bus_type{BusType::BUS_NONE};
 
     VfsNode* vfs_node_parent{};
 
@@ -97,7 +97,6 @@ struct KernelDevice
     BlockDevice* block{nullptr};
     ::CharDevice* chardev{nullptr};
 
-    char used_letters[26]{}; // für sd[a-z]
     uint32_t next_nvme_index = 0; // for nvme<N> controller
     Vector<bool> nvme_device_used;
 
@@ -108,13 +107,11 @@ class DeviceManager
 {
 public:
     static void Init();
-    static char GetNextFreeBlockLetter(KernelDevice* controller);
-    static char* GenerateSDDeviceName(KernelDevice* controller, char* buffer, size_t buffer_size);
+    static char* GenerateSDDeviceName(char* buffer, size_t buffer_size);
 
-    char* GenerateBlockDeviceName(KernelDevice* controller, char* buffer, size_t buffer_size);
-    static char* GenerateNVMeDeviceName(KernelDevice* controller, char* buffer, size_t buffer_size);
+    static char* GenerateNVMeDeviceName(const KernelDevice* controller, char* buffer, size_t buffer_size, uint32_t namespaceId);
     static size_t FindAndRegisterPartitions(KernelDevice* physical_kd);
-    static const char* AllocUniqueDeviceName(const char* base);
+    static bool AllocUniqueDeviceName(const char* base, char* outBuffer, size_t outBufferSize);
 
     // legacy
     static Vector<BlockDevice*> GetDevices();
@@ -123,7 +120,7 @@ public:
     static KernelDevice* RegisterBlockDevice(BlockDevice* dev,
                                              const char* name,
                                              DeviceClass dev_class = DeviceClass::Storage,
-                                             BusType bus = BUS_NONE,
+                                             BusType bus = BusType::BUS_NONE,
                                              ControllerType controller = ControllerType::Other,
                                              KernelDevice* parent = nullptr);
 
@@ -151,6 +148,9 @@ private:
     static Vector<KernelDevice*>* all_devices;
     static uint32_t next_id;
     static spinlock_t lock;
+
+    static void ReleaseBlockLetter(char c);
+    static char GetNextFreeBlockLetter();
 };
 
 #endif //DEVICE_MANAGER_H

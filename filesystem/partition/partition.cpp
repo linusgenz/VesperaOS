@@ -47,9 +47,8 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
     uint8_t sector[512];
 
     // try GPT header first (LBA 1)
-    if (device->read(1, 1, sector)) {
+    if (device->read(1, 1, sector, sizeof(sector))) {
         if (memcmp(sector, "EFI PART", 8) == 0) {
-            // GPT header found
             uint64_t part_lba = rd64(sector + 72);       // partition_entry_lba
             uint32_t part_count = rd32(sector + 80);     // num_partition_entries
             uint32_t part_size  = rd32(sector + 84);     // size_of_partition_entry
@@ -62,7 +61,7 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
                 uint64_t sector_idx = part_lba + (entry_index / 512);
                 uint32_t offset_in_sector = entry_index % 512;
 
-                if (!device->read(sector_idx, 1, entrybuf)) break;
+                if (!device->read(sector_idx, 1, entrybuf, sizeof(entrybuf))) break;
 
                 const uint8_t *entry = entrybuf + offset_in_sector;
 
@@ -74,7 +73,7 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
                     if (offset_in_sector + part_size > 512) {
                         // read next sector to cover full entry (simple handling)
                         uint8_t tmp[512];
-                        if (!device->read(sector_idx + 1, 1, tmp)) break;
+                        if (!device->read(sector_idx + 1, 1, tmp, sizeof(tmp))) break;
                         // copy combined bytes into a small buffer
                         uint8_t full[128]; // part_size is usually 128
                         size_t first = 512 - offset_in_sector;
@@ -108,7 +107,7 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
     }
 
     // Fallback: MBR (LBA 0)
-    if (!device->read(0, 1, sector)) return 0;
+    if (!device->read(0, 1, sector, sizeof(sector))) return 0;
     // check signature 0x55AA
     if (sector[510] != 0x55 || sector[511] != 0xAA) {
         return 0;

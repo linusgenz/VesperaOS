@@ -19,9 +19,10 @@ namespace FAT32
         sectorSize = device->get_sector_size();
 
         uint8_t sector[512];
-        if (!device->read(0, 1, sector))
+        ssize_t bytes = device->read(0, 1, sector, sizeof(sector));
+        if (bytes < 0)
         {
-            Log::Error("[FAT32] Failed to read first sector");
+            Log::Error("[FAT32] Failed to read first sector: %d", bytes);
             return;
         }
 
@@ -70,7 +71,8 @@ namespace FAT32
     bool FileSystem::ReadCluster(const uint32_t cluster, void* buffer) const
     {
         const uint32_t sector = ClusterToSector(cluster);
-        return device->read(sector, bpb.sectorsPerCluster, buffer);
+        ssize_t t = device->read(sector, bpb.sectorsPerCluster, buffer, sizeof(buffer));
+        return t == sizeof(buffer);
     }
 
     bool FileSystem::WriteCluster(uint32_t cluster, const void* data, size_t len, size_t offset = 0) const
@@ -101,7 +103,7 @@ namespace FAT32
         memcpy(clusterBuffer + offset, data, len);
 
         const uint32_t sector = ClusterToSector(cluster);
-        bool ok = device->write(sector, bpb.sectorsPerCluster, clusterBuffer);
+        bool ok = device->write(sector, bpb.sectorsPerCluster, clusterBuffer, sizeof(clusterBuffer));
 
         FreeClusterBuffer(clusterBuffer, clusterBytes);
         return ok;
@@ -121,7 +123,7 @@ namespace FAT32
         const uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
 
         uint8_t sectorData[512];
-        if (!device->read(sector, 1, sectorData)) return 0x0FFFFFFF; // Fehler = EOF
+        if (!device->read(sector, 1, sectorData, sizeof(sectorData))) return 0x0FFFFFFF; // Fehler = EOF
 
         const uint32_t entry = *reinterpret_cast<uint32_t*>(sectorData + offsetInSector);
         return entry & 0x0FFFFFFF;
@@ -460,11 +462,11 @@ namespace FAT32
         uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
 
         uint8_t sectorData[512];
-        if (!device->read(sector, 1, sectorData)) return false;
+        if (!device->read(sector, 1, sectorData, sizeof(sectorData))) return false;
 
         *reinterpret_cast<uint32_t*>(sectorData + offsetInSector) = value;
 
-        return device->write(sector, 1, sectorData);
+        return device->write(sector, 1, sectorData, sizeof(sectorData)) != 0;
     }
 
     uint32_t FileSystem::FindFreeCluster() const
@@ -476,7 +478,7 @@ namespace FAT32
 
         for (uint32_t sector = fatStart; sector < fatStart + sectorsInFAT; sector++)
         {
-            if (!device->read(sector, 1, sectorData)) return 0;
+            if (!device->read(sector, 1, sectorData, sizeof(sectorData))) return 0;
 
             // per Sector 128 entries (512 Bytes / 4 Bytes per entry)
             for (uint32_t i = 0; i < 128; i++)
@@ -519,7 +521,7 @@ namespace FAT32
                     0x00 || ent->name[0] == 0xE5)
                 {
                     memcpy(ent, entry, sizeof(DirectoryEntry));
-                    device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
+                    device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer, sizeof(buffer));
                     kernel::memory::free(chain);
                     return true;
                 }
@@ -552,11 +554,11 @@ namespace FAT32
 
         uint8_t zeroBuffer[bytesPerCluster()];
         memset(zeroBuffer, 0, sizeof(zeroBuffer));
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer);
+        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer, sizeof(zeroBuffer));
 
         auto* first = reinterpret_cast<DirectoryEntry*>(zeroBuffer);
         memcpy(first, entry, sizeof(DirectoryEntry));
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer);
+        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zeroBuffer, sizeof(zeroBuffer));
 
         Log::Error("Expanded directory with new cluster");
 
@@ -649,7 +651,7 @@ namespace FAT32
 
         memcpy(&entries[offsetInCluster + entriesNeeded], shortEntry, sizeof(DirectoryEntry));
 
-        bool ok = device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
+        bool ok = device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer, sizeof(buffer));
 
         kernel::memory::free(chain);
         return ok;
@@ -687,7 +689,7 @@ namespace FAT32
         entries[offsetInCluster] = *newEntry;
 
         // write back
-        bool ok = device->write(ClusterToSector(targetCluster), bpb.sectorsPerCluster, buffer);
+        bool ok = device->write(ClusterToSector(targetCluster), bpb.sectorsPerCluster, buffer, sizeof(buffer));
 
         FreeClusterBuffer(buffer, bytesPerCluster());
         kernel::memory::free(clusters);
@@ -730,7 +732,7 @@ namespace FAT32
         dir->firstClusterHigh = (parentCluster >> 16) & 0xFFFF;
 
         // 3. Leeren Cluster auf Platte schreiben
-        bool writeOk = device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
+        bool writeOk = device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero, sizeof(zero));
         FreeClusterBuffer(zero, clusterSize);
         if (!writeOk) return false;
 
@@ -763,7 +765,7 @@ namespace FAT32
         uint8_t* zero = AllocClusterBuffer(clusterSize);
         if (!zero) return false;
         memset(zero, 0, clusterSize);
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
+        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero, sizeof(zero));
         FreeClusterBuffer(zero, clusterSize);
 
         char shortName[11];
@@ -861,7 +863,8 @@ namespace FAT32
 
                         memcpy(&entries[startIndex + entriesNeeded], shortEntry, sizeof(DirectoryEntry));
 
-                        bool ok = device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer);
+                        bool ok = device->write(ClusterToSector(cluster), bpb.sectorsPerCluster, buffer,
+                                                sizeof(buffer));
                         kernel::memory::free(chain);
                         return ok;
                     }
@@ -884,7 +887,7 @@ namespace FAT32
 
         uint8_t zero[clusterSize];
         memset(zero, 0, clusterSize);
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero);
+        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero, sizeof(zero));
 
         return WriteDirectoryEntryWithLFN(dirCluster, longName, shortName, shortEntry);
     }
@@ -974,7 +977,7 @@ namespace FAT32
                         entries[k].name[0] = 0xE5;
                     }
 
-                    device->write(ClusterToSector(chain[i]), bpb.sectorsPerCluster, buffer);
+                    device->write(ClusterToSector(chain[i]), bpb.sectorsPerCluster, buffer, sizeof(buffer));
 
                     deleted = true;
                     break;
@@ -1251,7 +1254,7 @@ namespace FAT32
             memcpy(updated.name, newShortName, 11);
             dirEntries[oldStartIndex + newLFNCount] = updated;
 
-            if (!device->write(ClusterToSector(targetCluster), bpb.sectorsPerCluster, buffer))
+            if (!device->write(ClusterToSector(targetCluster), bpb.sectorsPerCluster, buffer, sizeof(buffer)))
             {
                 kernel::memory::free(entries);
                 kernel::memory::free(chain);
@@ -1262,7 +1265,7 @@ namespace FAT32
         {
             for (int i = oldStartIndex; i < oldStartIndex + oldTotalCount; ++i)
                 dirEntries[i].name[0] = 0xE5;
-            if (!device->write(ClusterToSector(targetCluster), bpb.sectorsPerCluster, buffer))
+            if (!device->write(ClusterToSector(targetCluster), bpb.sectorsPerCluster, buffer, sizeof(buffer)))
             {
                 kernel::memory::free(entries);
                 kernel::memory::free(chain);

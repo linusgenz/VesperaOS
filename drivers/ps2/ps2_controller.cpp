@@ -31,7 +31,7 @@ Ps2Controller::Ps2Controller()
     devnode = DeviceManager::RegisterController(
         "i8042",
         DeviceClass::Misc,
-        BUS_PS2,
+        BusType::BUS_PS2,
         ControllerType::PS2,
         nullptr
     );

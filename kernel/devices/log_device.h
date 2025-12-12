@@ -35,7 +35,7 @@ private:
 public:
 
     explicit LogDevice(Channel* ch)
-        : CharDevice("log", VIRTUAL), global_channel(ch) {}
+        : CharDevice("log", BusType::VIRTUAL), global_channel(ch) {}
 
     ~LogDevice() override {
         Channel::destroy(global_channel);
