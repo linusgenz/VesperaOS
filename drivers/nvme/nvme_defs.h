@@ -9,69 +9,246 @@
 
 namespace NVMe
 {
-#define NVME_CAP_CMBS (1 << 57) // Controller memory buffer supported
-#define NVME_CAP_PMRS (1 << 56) // Persistent memory region supported
-#define NVME_CAP_BPS (1 << 45) // Boot partition support
-#define NVME_CAP_NVM_CMD_SET (1UL << 37) // NVM command set supported
-#define NVME_CAP_NSSRS (1UL << 36) // NVM subsystem reset supported
-#define NVME_CAP_CQR (1 << 16) // Contiguous Queues Required
-
-#define NVME_CAP_MPS_MASK 0xfU
-#define NVME_CAP_MPSMAX(x) (((x) >> 52) & NVME_CAP_MPS_MASK) // Max supported memory page size (2 ^ (12 + MPSMAX))
-#define NVME_CAP_MPSMIN(x) (((x) >> 48) & NVME_CAP_MPS_MASK) // Min supported memory page size (2 ^ (12 + MPSMIN))
-
-#define NVME_CAP_DSTRD_MASK 0xfU
-#define NVME_CAP_DSTRD(x) (((x) >> 32) & NVME_CAP_DSTRD_MASK) // Doorbell stride (2 ^ (2 + DSTRD)) bytes
-
-#define NVME_CAP_MQES_MASK 0xffffU
-#define NVME_CAP_MQES(x) ((x) & NVME_CAP_MQES_MASK) // Maximum queue entries supported
-
-#define NVME_CFG_MPS_MASK 0xfUL
-#define NVME_CFG_MPS(x) (((x) & NVME_CFG_MPS_MASK) << 7) // Host memory page size (2 ^ (12 + MPSMIN))
-#define NVME_CFG_CSS_MASK 0b111U // Command set selected
-#define NVME_CFG_CSS(x) (((x) & NVME_CFG_CSS_MASK) << 4)
-#define NVME_CFG_ENABLE (1 << 0)
-
-#define NVME_CFG_DEFAULT_IOCQES (4 << 20) // 16 bytes so log2(16) = 4
-#define NVME_CFG_DEFAULT_IOSQES (6 << 16) // 64 bytes so log2(64) = 6
-
-#define NVME_CSTS_FATAL (1 << 1)
-#define NVME_CSTS_READY (1 << 0) // Set to 1 when the controller is ready to accept submission queue doorbell writes
-#define NVME_CSTS_NSSRO (1 << 4) // NVM Subsystem reset occurred
-
-#define NVME_AQA_AQS_MASK 0xfffU // Admin queue size mask
-#define NVME_AQA_ACQS(x) (((x) & NVME_AQA_AQS_MASK) << 16) // Admin completion queue size
-#define NVME_AQA_ASQS(x) (((x) & NVME_AQA_AQS_MASK) << 0) // Admin submission queue size
-
-#define NVME_NSSR_RESET_VALUE 0x4E564D65 // "NVME", initiates a reset
-
-#define NVME_OPCODE_READ 0x02
-#define NVME_OPCODE_WRITE 0x01
-
 #define PAGE_SIZE_4K 0x1000
 
-    struct Registers
+
+    enum NVME_ADMIN_COMMANDS
     {
-        uint64_t cap;
-        uint32_t version;
-        uint32_t int_mask;
-        uint32_t int_mask_clear;
-        uint32_t config;
-        uint32_t reserved;
-        uint32_t status;
-        uint32_t nvm_subsystem_reset;
-        uint32_t admin_q_attr;
-        uint64_t admin_submission_q;
-        uint64_t admin_completion_q;
-        uint32_t controller_mem_buffer_location;
-        uint32_t controller_mem_buffer_size;
-        uint32_t boot_partition_info;
-        uint32_t boot_partition_read_select;
-        uint64_t boot_partition_mem_buffer_location;
-        uint64_t boot_partition_mem_space_control;
-        uint64_t controller_mem_buffer_mem_space_control;
-        uint32_t controller_memory_buffer_status;
-    } __attribute__((packed));
+        NVME_ADMIN_COMMAND_DELETE_IO_SQ = 0x00,
+        NVME_ADMIN_COMMAND_CREATE_IO_SQ = 0x01,
+        NVME_ADMIN_COMMAND_GET_LOG_PAGE = 0x02,
+        NVME_ADMIN_COMMAND_DELETE_IO_CQ = 0x04,
+        NVME_ADMIN_COMMAND_CREATE_IO_CQ = 0x05,
+        NVME_ADMIN_COMMAND_IDENTIFY = 0x06,
+        NVME_ADMIN_COMMAND_ABORT = 0x08,
+        NVME_ADMIN_COMMAND_SET_FEATURES = 0x09,
+        NVME_ADMIN_COMMAND_GET_FEATURES = 0x0A,
+        NVME_ADMIN_COMMAND_ASYNC_EVENT_REQUEST = 0x0C,
+        NVME_ADMIN_COMMAND_NAMESPACE_MANAGEMENT = 0x0D,
+
+        NVME_ADMIN_COMMAND_FIRMWARE_COMMIT = 0x10,
+        NVME_ADMIN_COMMAND_FIRMWARE_IMAGE_DOWNLOAD = 0x11,
+        NVME_ADMIN_COMMAND_NAMESPACE_ATTACHMENT = 0x15,
+
+        NVME_ADMIN_COMMAND_FORMAT_NVM = 0x80,
+        NVME_ADMIN_COMMAND_SECURITY_SEND = 0x81,
+        NVME_ADMIN_COMMAND_SECURITY_RECEIVE = 0x82,
+    };
+
+    enum NVME_NVM_COMMANDS
+    {
+        NVME_NVM_COMMAND_FLUSH = 0x00,
+        NVME_NVM_COMMAND_WRITE = 0x01,
+        NVME_NVM_COMMAND_READ = 0x02,
+
+        NVME_NVM_COMMAND_WRITE_UNCORRECTABLE = 0x04,
+        NVME_NVM_COMMAND_COMPARE = 0x05,
+        NVME_NVM_COMMAND_WRITE_ZEROES = 0x08,
+        NVME_NVM_COMMAND_DATASET_MANAGEMENT = 0x09,
+        NVME_NVM_COMMAND_RESERVATION_REGISTER = 0x0D,
+        NVME_NVM_COMMAND_RESERVATION_REPORT = 0x0E,
+        NVME_NVM_COMMAND_RESERVATION_ACQUIRE = 0x11,
+        NVME_NVM_COMMAND_RESERVATION_RELEASE = 0x15,
+    };
+
+    enum NVME_IDENTIFY_CNS_CODES
+    {
+        NVME_IDENTIFY_CNS_SPECIFIC_NAMESPACE = 0,
+        NVME_IDENTIFY_CNS_CONTROLLER = 1,
+        NVME_IDENTIFY_CNS_ACTIVE_NAMESPACES = 2,
+    };
+
+    union NVME_CONTROLLER_CAPABILITIES
+    {
+        struct
+        {
+            //LSB
+
+            uint64_t MQES : 16; // RO - Maximum Queue Entries Supported (MQES)
+            uint64_t CQR : 1; // RO - Contiguous Queues Required (CQR)
+
+            // Bit 17, 18 - AMS; RO - Arbitration Mechanism Supported (AMS)
+            uint64_t AMS_WeightedRoundRobinWithUrgent : 1; // Bit 17: Weighted Round Robin with Urgent;
+            uint64_t AMS_VendorSpecific : 1; // Bit 18: Vendor Specific.
+
+            uint64_t Reserved0 : 5; // RO - bit 19 ~ 23
+            uint64_t TO : 8; // RO - Timeout (TO)
+            uint64_t DSTRD : 4; // RO - Doorbell Stride (DSTRD)
+            uint64_t NSSRS : 1; // RO - NVM Subsystem Reset Supported (NSSRS)
+
+            // Bit 37 ~ 44 - CSS; RO - Command Sets Supported (CSS)
+            uint64_t CSS_NVM : 1; // Bit 37: NVM command set
+            uint64_t CSS_Reserved0 : 1; // Bit 38: Reserved
+            uint64_t CSS_Reserved1 : 1; // Bit 39: Reserved
+            uint64_t CSS_Reserved2 : 1; // Bit 40: Reserved
+            uint64_t CSS_Reserved3 : 1; // Bit 41: Reserved
+            uint64_t CSS_Reserved4 : 1; // Bit 42: Reserved
+            uint64_t CSS_Reserved5 : 1; // Bit 43: Reserved
+            uint64_t CSS_Reserved6 : 1; // Bit 44: Reserved
+
+            uint64_t Reserved2 : 3; // RO - bit 45 ~ 47
+            uint64_t MPSMIN : 4; // RO - Memory Page Size Minimum (MPSMIN)
+            uint64_t MPSMAX : 4; // RO - Memory Page Size Maximum (MPSMAX)
+            uint64_t Reserved3 : 8; // RO - bit 56 ~ 63
+
+            //MSB
+        }__attribute__((packed));
+
+        uint64_t QWord;
+    };
+
+    union NVME_VERSION
+    {
+        struct
+        {
+            //LSB
+            uint32_t Reserved : 8;
+            uint32_t MNR : 8; // Minor Version Number (MNR)
+            uint32_t MJR : 16; // Major Version Number (MJR)
+            //MSB
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CONTROLLER_CONFIGURATION
+    {
+        struct
+        {
+            //LSB
+            uint32_t EN : 1; // RW - Enable (EN)
+            uint32_t Reserved0 : 3; // RO
+            uint32_t CSS : 3; // RW - I/O  Command Set Selected (CSS)
+            uint32_t MPS : 4; // RW - Memory Page Size (MPS)
+            uint32_t AMS : 3; // RW - Arbitration Mechanism Selected (AMS)
+            uint32_t SHN : 2; // RW - Shutdown Notification (SHN)
+            uint32_t IOSQES : 4; // RW - I/O  Submission Queue Entry Size (IOSQES)
+            uint32_t IOCQES : 4; // RW - I/O  Completion Queue Entry Size (IOCQES)
+            uint32_t Reserved1 : 8; // RO
+            //MSB
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CONTROLLER_STATUS
+    {
+        struct
+        {
+            uint32_t RDY : 1; // RO - Ready (RDY)
+            uint32_t CFS : 1; // RO - Controller Fatal Status (CFS)
+            uint32_t SHST : 2; // RO - Shutdown Status (SHST)
+            uint32_t NSSRO : 1; // RW1C - NVM Subsystem Reset Occurred (NSSRO)
+            uint32_t PP : 1; // RO - Processing Paused (PP)
+
+            uint32_t Reserved0 : 26; // RO
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    struct NVME_NVM_SUBSYSTEM_RESET
+    {
+        uint32_t NSSRC; // RW - NVM Subsystem Reset Control (NSSRC)
+    };
+
+    union NVME_ADMIN_QUEUE_ATTRIBUTES
+    {
+        struct
+        {
+            //LSB
+            uint32_t ASQS : 12; // RW - Admin  Submission Queue Size (ASQS)
+            uint32_t Reserved0 : 4; // RO
+            uint32_t ACQS : 12; // RW - Admin  Completion Queue Size (ACQS)
+            uint32_t Reserved1 : 4; // RO
+            //MSB
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_ADMIN_SUBMISSION_QUEUE_BASE_ADDRESS
+    {
+        struct
+        {
+            //LSB
+            uint64_t Reserved0 : 12; // RO
+            uint64_t ASQB : 52; // RW - Admin Submission Queue Base (ASQB)
+            //MSB
+        }__attribute__((packed));
+
+        uint64_t QWord;
+    };
+
+    union NVME_ADMIN_COMPLETION_QUEUE_BASE_ADDRESS
+    {
+        struct
+        {
+            //LSB
+            uint64_t Reserved0 : 12; // RO
+            uint64_t ACQB : 52; // RW - Admin Completion Queue Base (ACQB)
+            //MSB
+        }__attribute__((packed));
+
+        uint64_t QWord;
+    };
+
+    union NVME_CONTROLLER_MEMORY_BUFFER_LOCATION
+    {
+        struct
+        {
+            //LSB
+            uint32_t BIR : 3; // RO - Base Indicator Register (BIR)
+            uint32_t Reserved : 9; // RO
+            uint32_t OFST : 20; // RO - Offset (OFST)
+            //MSB
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CONTROLLER_MEMORY_BUFFER_SIZE
+    {
+        struct
+        {
+            //LSB
+            uint32_t SQS : 1; // RO - Submission Queue Support (SQS)
+            uint32_t CQS : 1; // RO - Completion Queue Support (CQS)
+            uint32_t LISTS : 1; // RO - PRP SGL List Support (LISTS)
+            uint32_t RDS : 1; // RO - Read Data Support (RDS)
+            uint32_t WDS : 1; // RO - Write Data Support (WDS)
+            uint32_t Reserved : 3; // RO
+            uint32_t SZU : 4; // RO - Size Units (SZU)
+            uint32_t SZ : 20; // RO - Size (SZ)
+            //MSB
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    struct NVME_CONTROLLER_REGISTERS
+    {
+        NVME_CONTROLLER_CAPABILITIES CAP; // Controller Capabilities; 8 bytes
+        NVME_VERSION VS; // Version
+        uint32_t INTMS; // Interrupt Mask Set
+        uint32_t INTMC; // Interrupt Mask Clear
+        NVME_CONTROLLER_CONFIGURATION CC; // Controller Configuration
+        uint32_t Reserved0;
+        NVME_CONTROLLER_STATUS CSTS; // Controller Status
+        NVME_NVM_SUBSYSTEM_RESET NSSR; // NVM Subsystem Reset (Optional)
+
+        NVME_ADMIN_QUEUE_ATTRIBUTES AQA; // Admin Queue Attributes
+        NVME_ADMIN_SUBMISSION_QUEUE_BASE_ADDRESS ASQ; // Admin Submission Queue Base Address; 8 bytes
+        NVME_ADMIN_COMPLETION_QUEUE_BASE_ADDRESS ACQ; // Admin Completion Queue Base Address; 8 bytes
+
+        NVME_CONTROLLER_MEMORY_BUFFER_LOCATION CMBLOC; // Controller Memory Buffer Location (Optional)
+        NVME_CONTROLLER_MEMORY_BUFFER_SIZE CMBSZ; // Controller Memory Buffer Size (Optional)
+
+        uint32_t Reserved2[944]; // 40h ~ EFFh
+        uint32_t Reserved3[64]; // F00h ~ FFFh, Command Set Specific
+
+        uint32_t Doorbells[0]; // Start of the first Doorbell register. (Admin SQ Tail Doorbell)
+    };
 
     enum DriverStatus
     {
@@ -80,164 +257,700 @@ namespace NVMe
         ControllerReady,
     };
 
-    struct NvmeCreateIoCompletionQueueCommand
+    union NVME_COMMAND_DWORD0
     {
         struct
         {
-            uint32_t queue_id : 16;
-            uint32_t queue_size : 16;
-        } __attribute__((packed));
+            uint32_t OPC : 8;
+            uint32_t FUSE : 2;
+            uint32_t Reserved0 : 5;
+            uint32_t PSDT : 1;
+            uint32_t CID : 16;
+        }__attribute__((packed));
 
-        struct
-        {
-            uint32_t contiguous : 1;
-            uint32_t int_enable : 1;
-            uint32_t reserved : 14;
-            uint32_t int_vector : 16;
-        } __attribute__((packed));
+        uint32_t DWord;
     };
 
-    struct NvmeCreateIoSubmissionQueueCommand
+    union NVME_CDW10_IDENTIFY
     {
         struct
         {
-            uint32_t queue_id : 16;
-            uint32_t queue_size : 16;
-        } __attribute__((packed));
+            uint32_t CNS : 8;
+            uint32_t Reserved : 8;
+            uint32_t CNTID : 16;
+        }__attribute__((packed));
 
-        struct
-        {
-            uint32_t contiguous : 1;
-            uint32_t priority : 2;
-            uint32_t reserved : 13;
-            uint32_t cq_id : 16;
-        } __attribute__((packed));
+        uint32_t DWord;
     };
 
-    struct NvmeIdentifyCommand
+    union NVME_CDW11_IDENTIFY
     {
-        enum
+        struct
         {
-            CnsNamespace = 0,
-            CnsController = 1,
-            CnsNamespaceList = 2,
+            uint16_t NVMSETID;
+            uint16_t Reserved;
         };
 
         struct
         {
-            uint32_t cns : 8;
-            uint32_t reserved : 8;
-            uint32_t cnt_id : 16;
+            uint32_t CNSID : 16;
+            uint32_t Reserved2 : 8;
+            uint32_t CSI : 8;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW10_ABORT
+    {
+        struct
+        {
+            uint32_t SQID : 8;
+            uint32_t CID : 16;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW10_GET_FEATURES
+    {
+        struct
+        {
+            uint32_t FID : 8;
+            uint32_t SEL : 3;
+            uint32_t Reserved0 : 21;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW10_SET_FEATURES
+    {
+        struct
+        {
+            uint32_t FID : 8;
+            uint32_t Reserved0 : 23;
+            uint32_t SV : 1;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_NUMBER_OF_QUEUES
+    {
+        struct
+        {
+            uint32_t NSQ : 16;
+            uint32_t NCQ : 16;
         } __attribute__((packed));
 
-        uint32_t nvm_set_id;
+        uint32_t DWord;
     };
 
-    struct NvmeDeleteIoQueueCommand
+    union NVME_CDW11_FEATURE_INTERRUPT_COALESCING
     {
-        uint32_t queue_id;
-    };
-
-    struct NvmeSetFeaturesCommand
-    {
-        enum
+        struct
         {
-            FeatureIdNumberOfQueues = 0x7,
+            uint32_t THR : 8;
+            uint32_t TIME : 8;
+            uint32_t Reserved0 : 16;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_INTERRUPT_VECTOR_CONFIG
+    {
+        struct
+        {
+            uint32_t IV : 16;
+            uint32_t CD : 1;
+            uint32_t Reserved0 : 15;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_LBA_RANGE_TYPE
+    {
+        struct
+        {
+            uint32_t NUM : 6;
+            uint32_t Reserved0 : 26;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_ARBITRATION
+    {
+        struct
+        {
+            uint32_t AB : 3;
+            uint32_t Reserved0 : 5;
+            uint32_t LPW : 8;
+            uint32_t MPW : 8;
+            uint32_t HPW : 8;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_VOLATILE_WRITE_CACHE
+    {
+        struct
+        {
+            uint32_t WCE : 1;
+            uint32_t Reserved0 : 31;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_ASYNC_EVENT_CONFIG
+    {
+        struct
+        {
+            uint32_t CriticalWarnings : 8;
+            uint32_t NsAttributeNotices : 1;
+            uint32_t FwActivationNotices : 1;
+            uint32_t TelemetryLogNotices : 1;
+            uint32_t ANAChangeNotices : 1;
+            uint32_t PredictableLogChangeNotices : 1;
+            uint32_t LBAStatusNotices : 1;
+            uint32_t EnduranceEventNotices : 1;
+            uint32_t Reserved0 : 12;
+            uint32_t ZoneDescriptorNotices : 1;
+            uint32_t Reserved1 : 4;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_POWER_MANAGEMENT
+    {
+        struct
+        {
+            uint32_t PS : 5;
+            uint32_t Reserved0 : 27;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_AUTO_POWER_STATE_TRANSITION
+    {
+        struct
+        {
+            uint32_t APSTE : 1;
+            uint32_t Reserved0 : 31;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_TEMPERATURE_THRESHOLD
+    {
+        struct
+        {
+            uint32_t TMPTH : 16;
+            uint32_t TMPSEL : 4;
+            uint32_t THSEL : 2;
+            uint32_t Reserved0 : 10;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_HOST_MEMORY_BUFFER
+    {
+        struct
+        {
+            uint32_t EHM : 1;
+            uint32_t MR : 1;
+            uint32_t Reserved : 30;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_WRITE_ATOMICITY_NORMAL
+    {
+        struct
+        {
+            uint32_t DN : 1;
+            uint32_t Reserved0 : 31;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURE_NON_OPERATIONAL_POWER_STATE
+    {
+        struct
+        {
+            uint32_t NOPPME : 1;
+            uint32_t Reserved0 : 31;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_FEATURES
+    {
+        NVME_CDW11_FEATURE_NUMBER_OF_QUEUES NumberOfQueues;
+        NVME_CDW11_FEATURE_INTERRUPT_COALESCING InterruptCoalescing;
+        NVME_CDW11_FEATURE_INTERRUPT_VECTOR_CONFIG InterruptVectorConfig;
+        NVME_CDW11_FEATURE_LBA_RANGE_TYPE LbaRangeType;
+        NVME_CDW11_FEATURE_ARBITRATION Arbitration;
+        NVME_CDW11_FEATURE_VOLATILE_WRITE_CACHE VolatileWriteCache;
+        NVME_CDW11_FEATURE_ASYNC_EVENT_CONFIG AsyncEventConfig;
+        NVME_CDW11_FEATURE_POWER_MANAGEMENT PowerManagement;
+        NVME_CDW11_FEATURE_AUTO_POWER_STATE_TRANSITION AutoPowerStateTransition;
+        NVME_CDW11_FEATURE_TEMPERATURE_THRESHOLD TemperatureThreshold;
+        NVME_CDW11_FEATURE_HOST_MEMORY_BUFFER HostMemoryBuffer;
+        NVME_CDW11_FEATURE_WRITE_ATOMICITY_NORMAL WriteAtomicityNormal;
+        NVME_CDW11_FEATURE_NON_OPERATIONAL_POWER_STATE NonOperationalPowerState;
+        uint32_t DWord;
+    };
+
+    union NVME_CDW12_FEATURE_HOST_MEMORY_BUFFER
+    {
+        struct
+        {
+            uint32_t HSIZE;
         };
 
-        struct
-        {
-            uint32_t feature_id : 8;
-            uint32_t reserved : 23;
-            uint32_t save : 1;
-        } __attribute__((packed));
-
-        uint32_t dw11;
-        uint32_t dw12;
-        uint32_t dw13;
+        uint32_t DWord;
     };
 
-    struct NvmeReadCommand
+    union NVME_CDW12_FEATURES
     {
-        uint64_t start_lba;
-
-        struct
-        {
-            uint32_t block_num : 16;
-            uint32_t reserved : 10;
-            uint32_t pr_info : 4;
-            uint32_t force_unit_access : 1;
-            uint32_t limited_retry : 1;
-        } __attribute__((packed));
+        NVME_CDW12_FEATURE_HOST_MEMORY_BUFFER HostMemoryBuffer;
+        uint32_t DWord;
     };
 
-    struct NvmeWriteCommand
-    {
-        uint64_t start_lba;
-
-        struct
-        {
-            uint32_t block_num : 16;
-            uint32_t reserved2 : 4;
-            uint32_t directive_type : 4;
-            uint32_t reserved : 2;
-            uint32_t pr_info : 4;
-            uint32_t force_unit_access : 1;
-            uint32_t limited_retry : 1;
-        } __attribute__((packed));
-    };
-
-    struct NvmeCommand
+    union NVME_CDW13_FEATURE_HOST_MEMORY_BUFFER
     {
         struct
         {
-            uint32_t opcode : 8;
-            uint32_t fuse : 2;
-            uint32_t reserved : 4;
-            uint32_t psdt : 2;
-            uint32_t command_id : 16;
-        } __attribute__((packed));
+            uint32_t Reserved : 4;
+            uint32_t HMDLLA : 28;
+        }__attribute__((packed));
 
-        uint32_t ns_id;
-        uint64_t reserved2;
-        uint64_t metadata_ptr;
-        uint64_t prp1;
-        uint64_t prp2;
+        uint32_t DWord;
+    };
+
+    union NVME_CDW13_FEATURES
+    {
+        NVME_CDW13_FEATURE_HOST_MEMORY_BUFFER HostMemoryBuffer;
+        uint32_t DWord;
+    };
+
+    union NVME_CDW14_FEATURE_HOST_MEMORY_BUFFER
+    {
+        struct
+        {
+            uint32_t HMDLUA;
+        };
+
+        uint32_t AsUlong;
+    };
+
+    union NVME_CDW14_FEATURES
+    {
+        NVME_CDW14_FEATURE_HOST_MEMORY_BUFFER HostMemoryBuffer;
+        uint32_t DWord;
+    };
+
+    union NVME_CDW15_FEATURE_HOST_MEMORY_BUFFER
+    {
+        struct
+        {
+            uint32_t HMDLEC;
+        };
+
+        uint32_t AsUlong;
+    };
+
+    union NVME_CDW15_FEATURES
+    {
+        NVME_CDW15_FEATURE_HOST_MEMORY_BUFFER HostMemoryBuffer;
+        uint32_t DWord;
+    };
+
+    union NVME_CDW10_GET_LOG_PAGE
+    {
+        struct
+        {
+            uint32_t LID : 8;
+            uint32_t Reserved0 : 8;
+            uint32_t NUMD : 12;
+            uint32_t Reserved1 : 4;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW10_GET_LOG_PAGE_V13
+    {
+        struct
+        {
+            uint32_t LID : 8;
+            uint32_t LSP : 4;
+            uint32_t Reserved0 : 3;
+            uint32_t RAE : 1;
+            uint32_t NUMDL : 16;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_GET_LOG_PAGE
+    {
+        struct
+        {
+            uint32_t NUMDU : 16;
+            uint32_t LogSpecificIdentifier : 16;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    struct NVME_CDW12_GET_LOG_PAGE
+    {
+        uint32_t LPOL;
+    };
+
+    struct NVME_CDW13_GET_LOG_PAGE
+    {
+        uint32_t LPOU;
+    };
+
+    struct NVME_CDW14_GET_LOG_PAGE
+    {
+        uint32_t Bitfield;
+    };
+
+    union NVME_CDW10_CREATE_IO_QUEUE
+    {
+        struct
+        {
+            uint32_t QID : 16;
+            uint32_t QSIZE : 16;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_CREATE_IO_SQ
+    {
+        struct
+        {
+            uint32_t PC : 1;
+            uint32_t QPRIO : 2;
+            uint32_t Reserved0 : 13;
+            uint32_t CQID : 16;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_CREATE_IO_CQ
+    {
+        struct
+        {
+            uint32_t PC : 1; // Physically Contiguous (PC)
+            uint32_t IEN : 1; // Interrupts Enabled (IEN)
+            uint32_t Reserved0 : 14;
+            uint32_t IV : 16; // Interrupt Vector (IV)
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW11_DATASET_MANAGEMENT
+    {
+        struct
+        {
+            uint32_t IDR : 1; // Integral Dataset for Read (IDR)
+            uint32_t IDW : 1; // Integral Dataset for Write (IDW)
+            uint32_t AD : 1; // Deallocate (AD)
+            uint32_t Reserved : 29;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW10_DATASET_MANAGEMENT
+    {
+        struct
+        {
+            uint32_t NR : 8; // Number of Ranges (NR)
+            uint32_t Reserved : 24;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+
+    union NVME_CDW10_SECURITY_SEND_RECEIVE
+    {
+        struct
+        {
+            uint32_t Reserved0 : 8;
+            uint32_t SPSP : 16; // SP Specific (SPSP)
+            uint32_t SECP : 8; // Security Protocol (SECP)
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+
+    struct NVME_CDW11_SECURITY_SEND
+    {
+        uint32_t TL; // Transfer Length  (TL):
+    };
+
+    struct NVME_CDW11_SECURITY_RECEIVE
+    {
+        uint32_t AL; // Transfer Length  (AL)
+    };
+
+    union NVME_CDW10_FORMAT_NVM
+    {
+        struct
+        {
+            uint32_t LBAF : 4; // LBA Format (LBAF)
+            uint32_t MS : 1; // Metadata Settings (MS)
+            uint32_t PI : 3; // Protection Information (PI)
+            uint32_t PIL : 1; // Protection Information Location (PIL)
+            uint32_t SES : 3; // Secure Erase Settings (SES)
+
+            uint32_t Reserved : 20;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW12_READ_WRITE
+    {
+        struct
+        {
+            uint32_t NLB : 16; // Number of Logical Blocks (NLB)
+            uint32_t Reserved0 : 10;
+            uint32_t PRINFO : 4; // Protection Information Field (PRINFO)
+            uint32_t FUA : 1; // Force Unit Access (FUA)
+            uint32_t LR : 1; // Limited Retry (LR)
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW13_READ_WRITE
+    {
+        struct
+        {
+            struct
+            {
+                uint8_t AccessFrequency : 4;
+                uint8_t AccessLatency : 2;
+                uint8_t SequentialRequest : 1;
+                uint8_t Incompressible : 1;
+            }__attribute__((packed)) DSM; // Dataset Management (DSM)
+
+            uint8_t Reserved0[3];
+        };
+
+        uint32_t DWord;
+    };
+
+    union NVME_CDW15_READ_WRITE
+    {
+        struct
+        {
+            uint32_t ELBAT : 16; // Expected Logical Block Application Tag (ELBAT)
+            uint32_t ELBATM : 16; // Expected Logical Block Application Tag Mask (ELBATM)
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    struct NVME_COMMAND
+    {
+        NVME_COMMAND_DWORD0 CDW0;
+        uint32_t NSID;
+        uint32_t Reserved0[2];
+        uint64_t MPTR;
+        uint64_t PRP1;
+        uint64_t PRP2;
+
+        union
+        {
+            struct GENERAL
+            {
+                uint32_t CDW10;
+                uint32_t CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } GENERAL;
+
+            struct IDENTIFY
+            {
+                NVME_CDW10_IDENTIFY CDW10;
+                NVME_CDW11_IDENTIFY CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } IDENTIFY;
+
+            struct ABORT
+            {
+                NVME_CDW10_ABORT CDW10;
+                uint32_t CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } ABORT;
+
+            struct GETFEATURES
+            {
+                NVME_CDW10_GET_FEATURES CDW10;
+                NVME_CDW11_FEATURES CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } GETFEATURES;
+
+            struct SETFEATURES
+            {
+                NVME_CDW10_SET_FEATURES CDW10;
+                NVME_CDW11_FEATURES CDW11;
+                NVME_CDW12_FEATURES CDW12;
+                NVME_CDW13_FEATURES CDW13;
+                NVME_CDW14_FEATURES CDW14;
+                NVME_CDW15_FEATURES CDW15;
+            } SETFEATURES;
+
+            struct GETLOGPAGE
+            {
+                union
+                {
+                    NVME_CDW10_GET_LOG_PAGE CDW10;
+                    NVME_CDW10_GET_LOG_PAGE_V13 CDW10_V13;
+                };
+
+                NVME_CDW11_GET_LOG_PAGE CDW11;
+                NVME_CDW12_GET_LOG_PAGE CDW12;
+                NVME_CDW13_GET_LOG_PAGE CDW13;
+                NVME_CDW14_GET_LOG_PAGE CDW14;
+                uint32_t CDW15;
+            } GETLOGPAGE;
+
+            struct CREATEIOCQ
+            {
+                NVME_CDW10_CREATE_IO_QUEUE CDW10;
+                NVME_CDW11_CREATE_IO_CQ CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } CREATEIOCQ;
+
+            struct CREATEIOSQ
+            {
+                NVME_CDW10_CREATE_IO_QUEUE CDW10;
+                NVME_CDW11_CREATE_IO_SQ CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } CREATEIOSQ;
+
+            struct DATASETMANAGEMENT // implement this
+            {
+                NVME_CDW10_DATASET_MANAGEMENT CDW10;
+                NVME_CDW11_DATASET_MANAGEMENT CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } DATASETMANAGEMENT;
+
+            struct SECURITYSEND
+            {
+                NVME_CDW10_SECURITY_SEND_RECEIVE CDW10;
+                NVME_CDW11_SECURITY_SEND CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } SECURITYSEND;
+
+            struct SECURITYRECEIVE
+            {
+                NVME_CDW10_SECURITY_SEND_RECEIVE CDW10;
+                NVME_CDW11_SECURITY_RECEIVE CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } SECURITYRECEIVE;
+
+            struct FORMATNVM
+            {
+                NVME_CDW10_FORMAT_NVM CDW10;
+                uint32_t CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } FORMATNVM;
+
+            struct READWRITE
+            {
+                uint32_t LBALOW;
+                uint32_t LBAHIGH;
+                NVME_CDW12_READ_WRITE CDW12;
+                NVME_CDW13_READ_WRITE CDW13;
+                uint32_t CDW14;
+                NVME_CDW15_READ_WRITE CDW15;
+            } READWRITE;
+        } u;
+    }__attribute__((packed));
+
+    struct NVME_COMPLETION_ENTRY
+    {
+        uint32_t DW0;
+        uint32_t Reserved;
 
         union
         {
             struct
             {
-                uint32_t cmd_dwords[6];
+                uint16_t SQHD; // SQ Head Pointer (SQHD)
+                uint16_t SQID; // SQ Identifier (SQID)
             };
 
-            NvmeIdentifyCommand identify;
-            NvmeCreateIoCompletionQueueCommand create_io_cq;
-            NvmeCreateIoSubmissionQueueCommand create_io_sq;
-            NvmeDeleteIoQueueCommand delete_io_q;
-            NvmeSetFeaturesCommand set_features;
-            NvmeReadCommand read;
-            NvmeWriteCommand write;
-        };
-    };
+            uint32_t DWord;
+        } DW2;
 
-    struct NvmeCompletion
-    {
-        uint32_t dw0;
-        uint32_t reserved;
-
-        struct
+        union
         {
-            uint32_t sq_head : 16;
-            uint32_t sq_id : 16;
-        } __attribute__((packed));
+            struct
+            {
+                uint16_t CID : 16; // Command Identifier (CID)
+                uint16_t P : 1; // Phase Tag (P)
+                uint16_t Status : 15;
+            }__attribute__((packed));
 
-        struct
-        {
-            uint32_t command_id : 16;
-            uint32_t phase_tag : 1;
-            uint32_t status : 15;
-        } __attribute__((packed));
+            uint32_t DWord;
+        } DW3;
     };
 
     class NvmeQueue
@@ -247,8 +960,8 @@ namespace NVMe
         uintptr_t completion_base{};
         uintptr_t submission_base{};
 
-        NvmeCompletion* completion_queue{};
-        NvmeCommand* submission_queue{};
+        NVME_COMPLETION_ENTRY* completion_queue{};
+        NVME_COMMAND* submission_queue{};
 
         volatile uint32_t* completion_db{};
         volatile uint32_t* submission_db{};
@@ -268,18 +981,18 @@ namespace NVMe
         uint16_t cq_head = 0;
         uint16_t sq_tail = 0;
 
-        NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void* cq, void* sq, uint32_t* cq_db,
-                  uint32_t* sq_db, uint16_t csz, uint16_t ssz);
+        NvmeQueue(uint16_t qid, uintptr_t cq_base, uintptr_t sq_base, void* cq, void* sq, volatile uint32_t* cq_db,
+                  volatile uint32_t* sq_db, uint16_t csz, uint16_t ssz);
 
         ~NvmeQueue() = default;
 
         NvmeQueue() = default;
 
-        static long Consume(NvmeCommand& cmd);
+        static long Consume(NVME_COMMAND& cmd);
 
-        void Submit(NvmeCommand& cmd);
+        void Submit(NVME_COMMAND& cmd);
 
-        void SubmitWait(NvmeCommand& cmd, NvmeCompletion& complet);
+        void SubmitWait(NVME_COMMAND& cmd, NVME_COMPLETION_ENTRY& complet);
 
         [[nodiscard]] uint16_t CQSize() const { return cq_count; }
         [[nodiscard]] uint16_t SQSize() const { return sq_count; }
@@ -612,17 +1325,6 @@ namespace NVMe
 
         NVME_POWER_STATE_DESC PDS[32];
         uint8_t VS[1024];
-    };
-
-    enum AdminCommands
-    {
-        AdminCmdDeleteIOSubmissionQueue = 0x0,
-        AdminCmdCreateIOSubmissionQueue = 0x1,
-        AdminCmdGetLogPage = 0x2,
-        AdminCmdDeleteIOCompletionQueue = 0x4,
-        AdminCmdCreateIOCompletionQueue = 0x5,
-        AdminCmdIdentify = 0x6,
-        AdminCmdSetFeatures = 0x9,
     };
 
     union NVME_LBA_FORMAT

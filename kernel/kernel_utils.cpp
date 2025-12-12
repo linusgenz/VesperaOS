@@ -209,7 +209,6 @@ void initialize_kernel(BootInfo* boot_info)
 
     VFS::remount_all();
     while (1);
-
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
     //   init_sys_log_writer();

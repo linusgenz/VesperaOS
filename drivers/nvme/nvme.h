@@ -54,7 +54,7 @@ namespace NVMe
 
     class NvmeDriver
     {
-        Registers* c_regs = nullptr;
+        volatile NVME_CONTROLLER_REGISTERS* c_regs = nullptr;
         NvmeQueue admin_queue;
         NvmeQueue io_queue;
         NVME_IDENTIFY_CONTROLLER_DATA* controller_identity = nullptr;
@@ -68,12 +68,12 @@ namespace NVMe
 
         __attribute__((always_inline)) void Disable() const
         {
-            c_regs->config &= ~NVME_CFG_ENABLE;
+            c_regs->CC.EN = 0;
         }
 
         __attribute__((always_inline)) void Enable() const
         {
-            c_regs->config |= NVME_CFG_ENABLE;
+            c_regs->CC.EN = 1;
         }
 
         __attribute__((always_inline)) uint16_t AllocateQueueID()
@@ -81,31 +81,32 @@ namespace NVMe
             return next_queue_id++;
         }
 
-        __attribute__((always_inline)) uint32_t* GetSubmissionDoorbell(uint16_t qid)
+        [[nodiscard]] __attribute__((always_inline)) volatile uint32_t* GetSubmissionDoorbell(uint16_t qid) const
         {
-            return reinterpret_cast<uint32_t*>(
-                reinterpret_cast<uintptr_t>(c_regs) + 0x1000 + (2 * qid) * (4 << GetDoorbellStride()));
+            size_t stride_words = (4 << GetDoorbellStride()) / sizeof(uint32_t);
+            return &c_regs->Doorbells[2 * qid * stride_words];
         }
 
-        __attribute__((always_inline)) uint32_t* GetCompletionDoorbell(uint16_t qid)
+        [[nodiscard]] volatile __attribute__((always_inline)) uint32_t* GetCompletionDoorbell(uint16_t qid) const
         {
-            return reinterpret_cast<uint32_t*>(
-                reinterpret_cast<uintptr_t>(c_regs) + 0x1000 + (2 * qid + 1) * (4 << GetDoorbellStride()));
+            size_t stride_words = (4 << GetDoorbellStride()) / sizeof(uint32_t);
+            return &c_regs->Doorbells[(2 * qid + 1) * stride_words];
         }
+
 
         __attribute__((always_inline)) void SetAdminSubmissionQueueSize(uint16_t sz) const
         {
-            c_regs->admin_q_attr = (c_regs->admin_q_attr & ~NVME_AQA_ASQS(NVME_AQA_AQS_MASK)) | NVME_AQA_ASQS(sz - 1);
+            c_regs->AQA.ASQS = sz - 1;
         }
 
         __attribute__((always_inline)) void SetAdminCompletionQueueSize(uint16_t sz) const
         {
-            c_regs->admin_q_attr = (c_regs->admin_q_attr & ~NVME_AQA_ACQS(NVME_AQA_AQS_MASK)) | NVME_AQA_ACQS(sz - 1);
+            c_regs->AQA.ACQS = sz - 1;
         }
 
         [[nodiscard]] __attribute__((always_inline)) uint32_t GetDoorbellStride() const
         {
-            return NVME_CAP_DSTRD(c_regs->cap);
+            return static_cast<uint32_t>(c_regs->CAP.DSTRD);
         }
 
         long IdentifyController();
