@@ -201,7 +201,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 
     Debug_PrintAllDevices();
 
-  //  kernel::scheduling::enable_on_cpu(0);
+    kernel::scheduling::enable_on_cpu(0);
 
     while (true);
 }

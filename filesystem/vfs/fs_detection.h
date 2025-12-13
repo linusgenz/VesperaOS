@@ -35,6 +35,7 @@ struct PendingMount;
 struct FilesystemInfo {
     const char *type_name;
     const char *description;
+    char label[16];
     bool mounted;
 };
 

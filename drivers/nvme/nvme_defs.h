@@ -669,6 +669,30 @@ namespace NVMe
         uint32_t DWord;
     };
 
+    union NVME_CONTEXT_ATTRIBUTES
+    {
+        struct
+        {
+            uint32_t AccessFrequency : 4;
+            uint32_t AccessLatency : 2;
+            uint32_t Reserved0 : 2;
+            uint32_t SequentialReadRange : 1;
+            uint32_t SequentialWriteRange : 1;
+            uint32_t WritePrepare : 1;
+            uint32_t Reserved1 : 13;
+            uint32_t CommandAccessSize : 8;
+        }__attribute__((packed));
+
+        uint32_t DWord;
+    };
+
+    struct NVME_LBA_RANGE
+    {
+        NVME_CONTEXT_ATTRIBUTES Attributes;
+        uint32_t LogicalBlockCount;
+        uint64_t StartingLBA;
+    };
+
     union NVME_CDW11_DATASET_MANAGEMENT
     {
         struct
@@ -872,7 +896,7 @@ namespace NVMe
                 uint32_t CDW15;
             } CREATEIOSQ;
 
-            struct DATASETMANAGEMENT // implement this
+            struct DATASETMANAGEMENT
             {
                 NVME_CDW10_DATASET_MANAGEMENT CDW10;
                 NVME_CDW11_DATASET_MANAGEMENT CDW11;

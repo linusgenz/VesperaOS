@@ -212,6 +212,8 @@ namespace EXT4 {
 
         FileEntry *read_directory(uint32_t inodeNumber, size_t &outCount);
 
+        Ext4Superblock* get_superblock();
+
         ~FileSystem();
 
     private:

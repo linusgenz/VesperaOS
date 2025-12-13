@@ -74,14 +74,15 @@ add_custom_target(test
         -net none
         -monitor stdio
         -device qemu-xhci,id=xhci1
-        -device qemu-xhci,id=xhci2
+     #   -device qemu-xhci,id=xhci2
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
        # -device usb-storage,drive=usbstick2
         -device ahci,id=ahci0
-      # -device ide-hd,drive=usbstick2,bus=ahci0.0
-        -device nvme,drive=usbstick2,serial=deadbeef,physical_block_size=4096
+       -device ide-hd,drive=usbstick2,bus=ahci0.0
+        #-device ide-hd,drive=usbstick2,bus=ahci0.0
+        #  -device nvme,drive=usbstick2,serial=deadbeef,physical_block_size=4096
         -device usb-kbd
         -trace *msi*
         -D /tmp/qemu.log

@@ -98,8 +98,8 @@ namespace PCI {
         return false;
     }
 
-    bool try_enable_msi_or_msix(PCIHeader0* header, uint8_t irq_vector) {
-        if (enable_msix(header, irq_vector)) return true;
-        return enable_msi(header, irq_vector);
+    bool try_enable_msi_or_msix(PCIHeader0* header, uint8_t base_vector, uint8_t wanted) {
+        if (enable_msix(header, base_vector)) return true;
+        return enable_msi(header, base_vector, wanted);
     }
 }

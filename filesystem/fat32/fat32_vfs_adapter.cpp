@@ -293,7 +293,8 @@ static VfsNodeOps fat32_ops = {
     .rename = fat32_rename,
     .mkdir = fat32_mkdir,
     .rmdir = fat32_rmdir,
-    .unlink = fat32_unlink
+    .unlink = fat32_unlink,
+    .ioctl = nullptr,
 };
 
 VfsNode* wrap_fat32_root(FileSystem* fs)

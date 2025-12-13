@@ -2,6 +2,7 @@
 #define AHCI_H
 
 #include "ata.h"
+#include "../../arch/x86_64/interrupts/idt.h"
 #include "../../filesystem/devfs/devfs.h"
 #include "../pci/pci.h"
 #include "../../kernel/devices/blockdevice.h"
@@ -19,6 +20,18 @@ namespace AHCI
 #define ATA_CMD_IDENTIFY 0xEC
 
 #define HBA_PxIS_TFES (1 << 30)
+
+    // Bit 31 — AE (AHCI Enable)
+#define AHCI_GHC_AE              (1u << 31)
+
+    // Bit 2  — MRSM (MSI Revert to Single Message) — read-only
+#define AHCI_GHC_MRSM            (1u << 2)
+
+    // Bit 1  — IE (Interrupt Enable)
+#define AHCI_GHC_IE              (1u << 1)
+
+    // Bit 0  — HR (HBA Reset)
+#define AHCI_GHC_HR              (1u << 0)
 
     enum PortType
     {
@@ -160,6 +173,8 @@ namespace AHCI
         kernel::mutex_t portMutex;
 
     public:
+        uint8_t vector = 0;
+
         ~Port() override
         {
             StopCMD();
@@ -209,8 +224,13 @@ namespace AHCI
         uint32_t sector_size = 0;
         uint64_t total_sectors = 0;
 
+        bool commandCompleted = false;
+        bool lastError = false;
+
         KernelDevice* kd;
 
+        void InterruptHandler();
+        void EnableInterrupts() const;
         void Configure() const;
         void StopCMD() const;
         void StartCMD() const;
@@ -234,6 +254,7 @@ namespace AHCI
         PCI::PCIDeviceHeader* PCIBaseAddress;
         HBAMemory* ABAR;
         void ProbePorts();
+        static irqreturn_t GlobalInterruptHandler(const AHCIDriver* driver);
         Port* ports[32]{};
         uint8_t portCount;
 

@@ -52,6 +52,11 @@ namespace EXT4 {
         return superblock.s_magic == EXT4_MAGIC;
     }
 
+    Ext4Superblock* FileSystem::get_superblock()
+    {
+        return &superblock;
+    }
+
     bool FileSystem::read_block(uint64_t block, void *outBuf) const
     {
         uint64_t bsize = get_block_size();

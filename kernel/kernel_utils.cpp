@@ -213,7 +213,7 @@ void initialize_kernel(BootInfo* boot_info)
     kernel::SystemManager::register_log_writer(fw);
     //   init_sys_log_writer();
    // while (1);
-       kernel::SystemManager::process_events_to_logs(128);
+      // kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();

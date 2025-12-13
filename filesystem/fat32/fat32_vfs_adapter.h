@@ -53,6 +53,6 @@
 
     int fat32_probe(BlockDevice *dev);
 
-    VfsNode *fat32_mount(BlockDevice *dev);
+    VfsNode *fat32_mount(BlockDevice *dev,  char* out, int out_size);
 
 #endif //FAT32_VFS_ADAPTER_H

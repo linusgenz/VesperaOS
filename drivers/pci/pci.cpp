@@ -71,6 +71,11 @@ namespace PCI
                 case 0x01: // AHCI 1.0 device
                     {
                         if (function != 0) return; // only accept function 0 (main function) for now
+                        uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
+                        command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
+                        command |= (1 << 10); // Disable INTx
+
+                        PCI::pci_write16(pci_device_header, 0x04, command);
                         auto ahci = new AHCI::AHCIDriver(pci_device_header);
 
                         break;

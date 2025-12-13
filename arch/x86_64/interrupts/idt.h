@@ -5,7 +5,7 @@
 #ifndef IDT_H
 #define IDT_H
 #include <cstdint>
-
+#include <cstddef>
 typedef int irqreturn_t;
 constexpr irqreturn_t IRQ_HANDLED = 1;
 using irq_handler_t = irqreturn_t (*)(void *cookie);
@@ -60,6 +60,8 @@ namespace arch::x86_64::interrupts::idt {
     bool allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie);
 
     void free_vector(uint8_t vec);
+
+    uint8_t get_free_vector_block(size_t size);
 
     uint8_t get_free_vector();
 

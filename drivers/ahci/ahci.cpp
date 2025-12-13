@@ -6,6 +6,10 @@
 #include "../../filesystem/devfs/devfs.h"
 #include "../../kernel/types/handle.h"
 #include "../../userspace/lib/include/errno.h"
+#include "../pci/msi.h"
+#include "../pci/msix.h"
+#include "kernel/interrupts.h"
+#include "kernel/time.h"
 #include "kernel/devices/device_manager.h"
 
 namespace AHCI
@@ -69,6 +73,49 @@ namespace AHCI
             portCount++;
         }
     }
+
+    void Port::InterruptHandler()
+    {
+        uint32_t is = hbaPort->interruptStatus;
+
+        if (!is) return; // no Interrupt
+
+        if (is & HBA_PxIS_TFES)
+        {
+            lastError = true;
+            Log::Error("[AHCI] Port %u transfer error", portNumber);
+        }
+
+        commandCompleted = true;
+
+        hbaPort->interruptStatus = is;
+    }
+
+    irqreturn_t AHCIDriver::GlobalInterruptHandler(const AHCIDriver* driver)
+    {
+        uint32_t is = driver->ABAR->interruptStatus;
+
+        if (!is) return IRQ_HANDLED; // no Interrupt
+
+        for (int i = 0; i < driver->portCount; i++)
+        {
+            if (is & (1 << driver->ports[i]->portNumber))
+            {
+                driver->ports[i]->InterruptHandler();
+            }
+        }
+
+        driver->ABAR->interruptStatus = is;
+
+        return IRQ_HANDLED;
+    }
+
+    void Port::EnableInterrupts() const
+    {
+        hbaPort->interruptStatus = 0xFFFFFFFF;
+        hbaPort->interruptEnable = 0xFFFFFFFF;
+    }
+
 
     void Port::Configure() const
     {
@@ -214,10 +261,13 @@ namespace AHCI
         // Set total_sectors
 
         bool lba48 = identify->AdditionalSupported.ExtendedUserAddressableSectorsSupported;
-        if (lba48) {
+        if (lba48)
+        {
             total_sectors = static_cast<uint64_t>(identify->ExtendedNumberOfUserAddressableSectors[1]) << 32 |
-                      identify->ExtendedNumberOfUserAddressableSectors[0];
-        } else {
+                identify->ExtendedNumberOfUserAddressableSectors[0];
+        }
+        else
+        {
             total_sectors = identify->UserAddressableSectors;
         }
 
@@ -238,7 +288,7 @@ namespace AHCI
         const auto sectorL = static_cast<uint32_t>(sector);
         const auto sectorH = static_cast<uint32_t>(sector >> 32);
 
-        hbaPort->interruptStatus = static_cast<uint32_t>(-1); // Clear pending interrupt bits
+        hbaPort->interruptStatus = 0xFFFFFFFF; // Clear pending interrupt bits
 
         const uint64_t cmdListPhys =
             static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
@@ -279,33 +329,16 @@ namespace AHCI
         cmdFIS->countLow = sectorCount & 0xFF;
         cmdFIS->countHigh = sectorCount >> 8 & 0xFF;
 
-        uint64_t spin = 0;
-
-        while (hbaPort->taskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ) && spin < 1000000)
-        {
-            spin++;
-        }
-        if (spin == 1000000)
-        {
-            kernel::memory::free_pages(dma_phys, pages);
-            Log::Warning("[ AHCI ] Port is hung");
-            return -EIO;
-        }
-
+        commandCompleted = false;
+        lastError = false;
         hbaPort->commandIssue = 1 << 0;
 
-        while (true)
+        while (!commandCompleted)
         {
-            if (hbaPort->commandIssue == 0) break;
-            if (hbaPort->interruptStatus & HBA_PxIS_TFES)
-            {
-                kernel::memory::free_pages(dma_phys, pages);
-                Log::Error("[ AHCI ] Read disk error");
-                return -EIO;
-            }
+            asm volatile("pause"); // TODO change this to yield
         }
 
-        if (hbaPort->interruptStatus & HBA_PxIS_TFES)
+        if (lastError)
         {
             kernel::memory::free_pages(dma_phys, pages);
             Log::Error("[ AHCI ] Read disk error");
@@ -315,7 +348,6 @@ namespace AHCI
         memcpy(buffer, dma_phys, bytes);
 
         kernel::memory::free_pages(dma_phys, pages);
-
         return static_cast<ssize_t>(bytes);
     }
 
@@ -375,39 +407,23 @@ namespace AHCI
         cmdFIS->countLow = sectorCount & 0xFF;
         cmdFIS->countHigh = sectorCount >> 8 & 0xFF;
 
-        // wait until not busy
-        uint64_t spin = 0;
-        while (hbaPort->taskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ) && spin < 1000000)
-        {
-            spin++;
-        }
-        if (spin == 1000000)
-        {
-            kernel::memory::free_pages(dma_phys, pages);
-            Log::Warning("write timeout");
-            return -EIO;
-        }
-
+        commandCompleted = false;
+        lastError = false;
         hbaPort->commandIssue = 1 << 0;
 
-        while (true)
+        while (!commandCompleted)
         {
-            if ((hbaPort->commandIssue & 1 << 0) == 0) break;
-            if (hbaPort->interruptStatus & HBA_PxIS_TFES)
-            {
-                kernel::memory::free_pages(dma_phys, pages);
-                Log::Error("[ AHCI ] Write disk error");
-                return -EIO;
-            }
+            asm volatile("pause"); // TODO change this to yield
         }
 
-        if (hbaPort->interruptStatus & HBA_PxIS_TFES)
+        if (lastError)
         {
             kernel::memory::free_pages(dma_phys, pages);
-            Log::Error("[ AHCI ] Write disk error");
+            Log::Error("[ AHCI ] Read disk error");
             return -EIO;
         }
 
+        kernel::memory::free_pages(dma_phys, pages);
         return static_cast<ssize_t>(bytes);
     }
 
@@ -430,11 +446,26 @@ namespace AHCI
         kernel::memory::map_memory(ABAR, ABAR, (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         ProbePorts();
 
+        uint8_t vector = kernel::interrupts::get_free_vector();
+        kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(GlobalInterruptHandler), this);
+        if (!PCI::try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress), vector))
+        {
+            Log::debug("[ AHCI ] AHCI Driver instance failed to enable MSI");
+            this->~AHCIDriver();
+        }; // switch to polling later maybe
+
+        ABAR->globalHostControl |= AHCI_GHC_AE;
+        ABAR->globalHostControl |= AHCI_GHC_IE;
+
         for (int i = 0; i < portCount; i++)
         {
             Port* port = ports[i];
 
+            port->vector = vector;
+
             port->Configure();
+
+            port->EnableInterrupts();
 
             port->Identify();
 

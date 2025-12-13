@@ -130,6 +130,12 @@ void ext4_closedir(void* dir_handle)
     free(h);
 }
 
+static void ext_volume_name(const VfsNode* node, char* out, int out_size)
+{
+    auto* fat_node = static_cast<Ext4Node*>(node->internal_data);
+
+}
+
 static VfsNodeOps ext4_ops = {
     .read = nullptr,
     .write = nullptr, // TODO
@@ -142,7 +148,8 @@ static VfsNodeOps ext4_ops = {
     .rename = nullptr,
     .mkdir = nullptr,
     .rmdir = nullptr,
-    .unlink = nullptr
+    .unlink = nullptr,
+    .ioctl = nullptr,
 };
 
 VfsNode* wrap_ext4_root(FileSystem* fs)

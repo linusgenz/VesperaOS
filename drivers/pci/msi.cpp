@@ -27,39 +27,55 @@
 #include "../../include/log.h"
 #include "pci.h"
 
-namespace PCI {
-
-    bool enable_msi(PCIHeader0* header, uint8_t irq_vector) {
+namespace PCI
+{
+    bool enable_msi(PCIHeader0* header, uint8_t base_vector, uint8_t wanted)
+    {
         auto* config_space = reinterpret_cast<uint8_t*>(&header->header);
 
-        if (!(header->header.status & (1 << 4))) {
-            Log::Error("PCI: No capabilities present");
+        if (!(header->header.status & (1 << 4)))
             return false;
-        }
 
         uint8_t cap_ptr = header->capabilities_ptr;
 
-        while (cap_ptr) {
+        while (cap_ptr)
+        {
             uint8_t cap_id = config_space[cap_ptr];
             uint8_t next_ptr = config_space[cap_ptr + 1];
 
-            if (cap_id == MSI_CAPABILITY_ID) {
-                volatile auto* msi_cap =
+            if (cap_id == MSI_CAPABILITY_ID)
+            {
+                volatile auto* msi =
                     reinterpret_cast<volatile pci_msi_capability*>(&config_space[cap_ptr]);
 
-                uint16_t control = msi_cap->message_control;
-                bool is_64_bit = control & (1 << 7);
+                uint16_t mc = msi->message_control;
 
-                msi_cap->message_address = build_msi_address(kernel::interrupts::lapic_get_id());
+                bool is64 = mc & (1 << 7);
+                uint8_t mmc = (mc >> 1) & 0b111;
+                uint8_t max_vectors = 1 << mmc;
 
-                if (is_64_bit) {
-                    msi_cap->message_address_hi = 0;
-                }
+                if (wanted > max_vectors)
+                    wanted = max_vectors;
 
-                msi_cap->message_data = build_msi_data(irq_vector);
-                msi_cap->message_control = control | 1;
+                // Translate wanted into encoded MME field
+                uint8_t mme = 0;
+                while ((1u << mme) < wanted) mme++;
 
-                Log::Ok("MSI enabled");
+                // Program address
+                msi->message_address = build_msi_address(kernel::interrupts::lapic_get_id());
+                if (is64)
+                    msi->message_address_hi = 0;
+
+                msi->message_data = base_vector;
+
+                // Write MME (multiple message enable)
+                mc &= ~((0b111 << 1)); // clear MME bits
+                mc |= (mme << 1);
+
+                // Enable MSI
+                mc |= 1;
+
+                msi->message_control = mc;
                 return true;
             }
 

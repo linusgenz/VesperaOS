@@ -44,6 +44,38 @@ namespace arch::x86_64::interrupts::idt
         }
     }
 
+    uint8_t get_free_vector_block(size_t size)
+    {
+        if (size == 0 || size > (VECTOR_MAX - VECTOR_MIN + 1))
+            return 0xFF;
+
+        for (uint16_t vec = VECTOR_MIN; vec + size - 1 <= VECTOR_MAX; ++vec)
+        {
+            bool block_free = true;
+
+            for (size_t i = 0; i < size; ++i)
+            {
+                if (!irq_handler_table[vec + i].free)
+                {
+                    block_free = false;
+                    vec += i;
+                    break;
+                }
+            }
+
+            if (block_free)
+            {
+                for (size_t i = 0; i < size; ++i)
+                {
+                    irq_handler_table[vec + i].free = false;
+                }
+                return static_cast<uint8_t>(vec);
+            }
+        }
+
+        return 0xFF;
+    }
+
     uint8_t get_free_vector()
     {
         for (uint16_t vec = VECTOR_MIN; vec <= VECTOR_MAX; ++vec)

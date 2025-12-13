@@ -105,6 +105,6 @@ namespace PCI {
 
     static_assert(sizeof(pci_msi_capability) == 24);
 
-    bool enable_msi(PCIHeader0* header, uint8_t irq_vector);
+    bool enable_msi(PCIHeader0* header, uint8_t base_vector, uint8_t wanted = 1);
 }
 #endif //MSI_H

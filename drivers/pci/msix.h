@@ -224,6 +224,6 @@ namespace PCI {
         *byte_ptr &= ~(1 << bit_offset);
     }
 
-    bool try_enable_msi_or_msix(PCIHeader0* header, uint8_t irq_vector);
+    bool try_enable_msi_or_msix(PCIHeader0* header, uint8_t base_vector, uint8_t wanted = 0);
 }
 #endif //MSIX_H
