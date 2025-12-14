@@ -26,7 +26,7 @@
 
 #include <vector.h>
 
-#include "fs_registry.h"
+#include "vfs_node.h"
 #include "../../kernel/devices/blockdevice.h"
 
 struct MountPoint;
@@ -35,8 +35,8 @@ struct PendingMount;
 struct FilesystemInfo {
     const char *type_name;
     const char *description;
-    char label[16];
     bool mounted;
+    char label[16];
 };
 
 struct DeviceDescriptor {
@@ -69,7 +69,7 @@ private:
 
     static bool Unmount(MountPoint* mp);
 
-    static VfsNode *MountFilesystem(BlockDevice *device, const FilesystemInfo *fs_info);
+    static VfsNode *MountFilesystem(BlockDevice *device, FilesystemInfo* fs_info);
 
     static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition,
                              const char *table_type, bool is_root_device);

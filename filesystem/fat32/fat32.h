@@ -223,7 +223,7 @@ namespace FAT32
 
         static size_t FindFirstLFNIndex(const FileEntry* entries, size_t shortNameIndex);
 
-        BPB_FAT32* GetBpb()
+        [[nodiscard]] BPB_FAT32* GetBpb()
         {
             return &bpb;
         };
@@ -240,7 +240,7 @@ namespace FAT32
 
         [[nodiscard]] uint32_t ClusterToSector(uint32_t cluster) const;
 
-        bool ReadCluster(uint32_t cluster, void* buffer) const;
+        ssize_t ReadCluster(uint32_t cluster, void* buffer, size_t buffer_size) const;
 
         bool WriteCluster(uint32_t cluster, const void* data, size_t len, size_t offset) const;
 

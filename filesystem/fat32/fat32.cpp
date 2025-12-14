@@ -68,11 +68,11 @@ namespace FAT32
         return dataStart + (cluster - 2) * bpb.sectorsPerCluster;
     }
 
-    bool FileSystem::ReadCluster(const uint32_t cluster, void* buffer) const
+    ssize_t FileSystem::ReadCluster(const uint32_t cluster, void* buffer, size_t buffer_size) const
     {
         const uint32_t sector = ClusterToSector(cluster);
-        ssize_t t = device->read(sector, bpb.sectorsPerCluster, buffer, sizeof(buffer));
-        return t == sizeof(buffer);
+        ssize_t bytes = device->read(sector, bpb.sectorsPerCluster, buffer, buffer_size);
+        return bytes;
     }
 
     bool FileSystem::WriteCluster(uint32_t cluster, const void* data, size_t len, size_t offset = 0) const
@@ -93,7 +93,7 @@ namespace FAT32
 
         if (len < clusterBytes || offset > 0)
         {
-            if (!ReadCluster(cluster, clusterBuffer))
+            if (ReadCluster(cluster, clusterBuffer, clusterBytes) <= 0)
             {
                 FreeClusterBuffer(clusterBuffer, clusterBytes);
                 return false;
@@ -123,7 +123,7 @@ namespace FAT32
         const uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
 
         uint8_t sectorData[512];
-        if (!device->read(sector, 1, sectorData, sizeof(sectorData))) return 0x0FFFFFFF; // Fehler = EOF
+        if (device->read(sector, 1, sectorData, sizeof(sectorData)) <= 0) return 0x0FFFFFFF; // Fehler = EOF
 
         const uint32_t entry = *reinterpret_cast<uint32_t*>(sectorData + offsetInSector);
         return entry & 0x0FFFFFFF;
@@ -202,7 +202,7 @@ namespace FAT32
         for (size_t ci = 0; ci < chainCount; ++ci)
         {
             uint8_t clusterBuffer[bytesPerCluster()];
-            if (!ReadCluster(chain[ci], clusterBuffer)) continue;
+            if (ReadCluster(chain[ci], clusterBuffer, bytesPerCluster()) <= 0) continue;
 
             size_t entryCountInCluster = bytesPerCluster() / sizeof(DirectoryEntry);
             for (size_t i = 0; i < entryCountInCluster; i++)
@@ -327,7 +327,7 @@ namespace FAT32
                 kernel::memory::free(clusterChain);
                 return false;
             }
-            if (!ReadCluster(clusterChain[i], clusterBuffer))
+            if (ReadCluster(clusterChain[i], clusterBuffer, bytesPerClus) <= 0)
             {
                 FreeClusterBuffer(clusterBuffer, bytesPerClus);
                 kernel::memory::free(clusterChain);
@@ -462,7 +462,7 @@ namespace FAT32
         uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
 
         uint8_t sectorData[512];
-        if (!device->read(sector, 1, sectorData, sizeof(sectorData))) return false;
+        if (device->read(sector, 1, sectorData, sizeof(sectorData)) <= 0) return false;
 
         *reinterpret_cast<uint32_t*>(sectorData + offsetInSector) = value;
 
@@ -478,7 +478,7 @@ namespace FAT32
 
         for (uint32_t sector = fatStart; sector < fatStart + sectorsInFAT; sector++)
         {
-            if (!device->read(sector, 1, sectorData, sizeof(sectorData))) return 0;
+            if (device->read(sector, 1, sectorData, sizeof(sectorData)) <= 0) return 0;
 
             // per Sector 128 entries (512 Bytes / 4 Bytes per entry)
             for (uint32_t i = 0; i < 128; i++)
@@ -512,7 +512,7 @@ namespace FAT32
         {
             uint32_t cluster = chain[i];
             uint8_t buffer[bytesPerCluster()];
-            if (!ReadCluster(cluster, buffer)) continue;
+            if (ReadCluster(cluster, buffer, bytesPerCluster()) <= 0) continue;
 
             size_t count = bytesPerCluster() / sizeof(DirectoryEntry);
             for (size_t j = 0; j < count; j++)
@@ -595,7 +595,7 @@ namespace FAT32
 
         uint32_t cluster = chain[clusterIdx];
         uint8_t buffer[clusterSize];
-        if (!ReadCluster(cluster, buffer))
+        if (ReadCluster(cluster, buffer, clusterSize) <= 0)
         {
             kernel::memory::free(chain);
             return false;
@@ -677,7 +677,7 @@ namespace FAT32
         // read cluster
         const uint32_t targetCluster = clusters[clusterIdx];
         uint8_t* buffer = AllocClusterBuffer(bytesPerCluster());
-        if (!ReadCluster(targetCluster, buffer))
+        if (ReadCluster(targetCluster, buffer, bytesPerCluster()) <= 0)
         {
             FreeClusterBuffer(buffer, bytesPerCluster());
             kernel::memory::free(clusters);
@@ -800,7 +800,8 @@ namespace FAT32
         {
             uint32_t cluster = chain[ci];
             uint8_t buffer[clusterSize];
-            if (!ReadCluster(cluster, buffer)) continue;
+            ssize_t readres = ReadCluster(cluster, buffer, clusterSize);
+            if (readres <= 0) continue;
 
             auto* entries = reinterpret_cast<DirectoryEntry*>(buffer);
             size_t freeCount = 0;
@@ -907,7 +908,7 @@ namespace FAT32
         for (size_t i = 0; i < chainCount; ++i)
         {
             uint8_t buffer[bytesPerCluster()];
-            if (!ReadCluster(chain[i], buffer))
+            if (ReadCluster(chain[i], buffer, bytesPerCluster()) <= 0)
             {
                 continue;
             }
@@ -1120,7 +1121,7 @@ namespace FAT32
         for (size_t ci = 0; ci < chainCount && targetEntryIndex < 0; ++ci)
         {
             uint8_t buffer[bytesPerCluster()];
-            if (!ReadCluster(chain[ci], buffer)) continue;
+            if (ReadCluster(chain[ci], buffer, bytesPerCluster()) <= 0) continue;
 
             auto* dirEntries = reinterpret_cast<DirectoryEntry*>(buffer);
             for (size_t i = 0; i < entriesPerCluster; ++i)
@@ -1148,7 +1149,7 @@ namespace FAT32
         }
 
         uint8_t buffer[bytesPerCluster()];
-        if (!ReadCluster(targetCluster, buffer))
+        if (ReadCluster(targetCluster, buffer, bytesPerCluster()) <= 0)
         {
             kernel::memory::free(entries);
             kernel::memory::free(chain);

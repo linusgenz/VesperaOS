@@ -28,6 +28,8 @@
 #include <kernel/system/system_manager.h>
 #include <log.h>
 
+#include "fs_registry.h"
+
 size_t FilesystemDetector::driver_count = 0;
 size_t FilesystemDetector::device_count = 0;
 
@@ -73,7 +75,7 @@ bool FilesystemDetector::DetectFilesystem(BlockDevice* device, FilesystemInfo* i
     for (size_t i = 0; i < fs_driver_count(); i++)
     {
         FileSystemDriver* drv = fs_driver_at(i);
-        if (drv && drv->probe && drv->probe(device))
+        if (drv && drv->probe && drv->probe(device, info))
         {
             info->type_name = drv->name;
 
@@ -158,7 +160,7 @@ void FilesystemDetector::UnmountAll()
     }
 }
 
-VfsNode* FilesystemDetector::MountFilesystem(BlockDevice* device, const FilesystemInfo* fs_info)
+VfsNode* FilesystemDetector::MountFilesystem(BlockDevice* device, FilesystemInfo* fs_info)
 {
     if (!device || !fs_info) return nullptr;
 
@@ -210,6 +212,7 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
     SYS_EVENT_FILESYSTEM_MOUNT(mp->path, fs_info.type_name);
 
     VFS::add_mount_point(mp);
+    Log::debug("mount device end, mounted: %s", mp->path);
     return true;
 }
 
@@ -258,7 +261,8 @@ void FilesystemDetector::ScanAndMountAll()
                     if (mount_device(device, mount_path, false, table_type, false))
                     {
                         successful_mounts++;
-                    }  else
+                    }
+                    else
                     {
                         VFS::rmdir(mount_path);
                     }
@@ -286,91 +290,81 @@ void FilesystemDetector::ScanAndMountAll()
                 if (!pdev)
                     continue;
 
-                bool looks_like_esp = false;
-                bool looks_like_root = false;
-
                 FilesystemInfo fs_info{};
                 if (DetectFilesystem(pdev, &fs_info))
                 {
-                    VfsNode* probe_root = MountFilesystem(pdev, &fs_info);
-                    if (probe_root && probe_root->ops && probe_root->ops->find)
+                    const char* label = fs_info.label;
+
+                    bool is_esp = false;
+                    bool is_root = false;
+
+                    if (label)
                     {
-                        // ESP?
-                        if (VfsNode* efi = probe_root->ops->find(probe_root, "EFI"))
-                        {
-                            if (VfsNode* boot = efi->ops ? efi->ops->find(efi, "BOOT") : nullptr)
-                            {
-                                if (boot->ops &&
-                                    boot->ops->find(boot, "BOOTX64.EFI"))
-                                {
-                                    looks_like_esp = true;
-                                }
-                            }
-                        }
-
-                        // Root?
-                        if (!looks_like_esp)
-                        {
-                            if (VfsNode* bin = probe_root->ops->find(probe_root, "bin"))
-                            {
-                                if (bin->ops && bin->ops->find(bin, "shell"))
-                                    looks_like_root = true;
-                            }
-                        }
+                        if (strncmp(label, "VesperaEFI", strlen("VesperaEFI")) == 0)
+                            is_esp = true;
+                        else if (strncmp(label, "VesperaRoot", strlen("VesperaRoot")) == 0)
+                            is_root = true;
                     }
-                }
 
-                char mount_path[64];
-
-                // priority: ESP → root → standard path
-                if (looks_like_esp)
-                {
-                    snprintf(mount_path, sizeof(mount_path), "/efi");
-                }
-                else if (!root_assigned && looks_like_root)
-                {
-                    snprintf(mount_path, sizeof(mount_path), "/");
-                }
-                else
-                {
-                    snprintf(mount_path, sizeof(mount_path),
-                             "/mnt/%s", kd->name ? kd->name : "part");
-                }
-
-                if (!root_assigned && looks_like_root)
-                {
-                    if (mount_device(pdev, "/", true, nullptr, true))
+                    char mount_path[64];
+                    if (is_root && !root_assigned)
                     {
-                        root_assigned = true;
-                        successful_mounts++;
+                        snprintf(mount_path, sizeof(mount_path), "/");
+                        if (mount_device(pdev, "/", true, nullptr, true))
+                        {
+                            root_assigned = true;
+                            successful_mounts++;
+                        }
+                        continue;
                     }
-                    continue;
-                }
 
-                VFS::ensure_path_exists(mount_path);
+                    if (is_esp)
+                        snprintf(mount_path, sizeof(mount_path), "/efi");
+                    else
+                        snprintf(mount_path, sizeof(mount_path), "/mnt/%s", kd->name ? kd->name : "part");
 
-                if (mount_device(pdev, mount_path, true, nullptr, false))
-                {
-                    successful_mounts++;
-                } else
-                {
-                    VFS::rmdir(mount_path);
+                    if (root_assigned)
+                    {
+                        VFS::ensure_path_exists(mount_path);
+                        if (mount_device(pdev, mount_path, true, nullptr, false))
+                            successful_mounts++;
+                        else
+                            VFS::rmdir(mount_path);
+                    }
+                    else
+                    {
+                        PendingMount pm{};
+                        strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
+                        pm.device = pdev;
+                        pm.device_size = 0;
+                        pm.is_partition = true;
+                        pm.table_type = nullptr;
+                        pending_mounts->push_back(pm);
+                    }
                 }
             }
         }
     }
 
-    // =====================================================
-    // Virtuelle Mountpoints erzeugen (Shell, /proc etc.)
-    // =====================================================
     if (root_assigned)
     {
+        for (const auto& pm : *pending_mounts)
+        {
+            VFS::ensure_path_exists(pm.path);
+            if (mount_device(pm.device, pm.path, pm.is_partition, pm.table_type, false))
+                successful_mounts++;
+            else
+                VFS::rmdir(pm.path);
+        }
+        pending_mounts->clear();
+
         for (MountPoint* mp : VFS::get_mount_points_snapshot())
         {
             if (mp->is_virtual)
                 VFS::mkdir(mp->path);
         }
     }
+
 
     if (successful_mounts == 0)
         Log::Warning("[FS] No filesystems could be mounted automatically");

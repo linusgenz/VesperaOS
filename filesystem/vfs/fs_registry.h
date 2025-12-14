@@ -24,6 +24,7 @@
 #ifndef FS_REGISTRY_H
 #define FS_REGISTRY_H
 
+#include "fs_detection.h"
 #include "../../kernel/devices/blockdevice.h"
 #include "vfs_node.h"
 
@@ -32,7 +33,7 @@
 
 struct FileSystemDriver {
     const char* name;
-    int (*probe)(BlockDevice* dev); // 1 = valid
+    int (*probe)(BlockDevice* dev, FilesystemInfo *fs_info); // 1 = valid
     VfsNode* (*mount)(BlockDevice* dev);
     bool (*unmount)(VfsNode* root);
 };

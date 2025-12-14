@@ -32,9 +32,13 @@
 
 using namespace EXT4;
 
-int ext4_probe(BlockDevice* dev)
+int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
 {
     FileSystem fs(dev);
+
+    size_t len = 16;
+    memcpy(fs_info->label, fs.get_superblock()->s_volume_name, len);
+
     return fs.is_valid();
 }
 
@@ -133,7 +137,6 @@ void ext4_closedir(void* dir_handle)
 static void ext_volume_name(const VfsNode* node, char* out, int out_size)
 {
     auto* fat_node = static_cast<Ext4Node*>(node->internal_data);
-
 }
 
 static VfsNodeOps ext4_ops = {

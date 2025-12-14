@@ -318,9 +318,14 @@ VfsNode* wrap_fat32_root(FileSystem* fs)
     return node;
 }
 
-int fat32_probe(BlockDevice* dev)
+int fat32_probe(BlockDevice* dev, FilesystemInfo *fs_info)
 {
-    const FileSystem fs(dev);
+    FileSystem fs(dev);
+
+    size_t len = 11;
+    memcpy(fs_info->label, fs.GetBpb()->volumeLabel, len);
+    fs_info->label[len] = '\0';
+
     return fs.is_valid();
 }
 
