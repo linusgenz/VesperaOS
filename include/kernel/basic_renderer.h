@@ -4,9 +4,9 @@
 #include "../../include/graphics.h"
 #include "../kernel/memory/heap.h"
 
-class BasicRenderer{
+class screen_renderer{
     public:
-    BasicRenderer(Framebuffer* targetFramebuffer, FONT* font);
+    screen_renderer(Framebuffer* targetFramebuffer, FONT* font);
 
     Framebuffer* TargetFramebuffer;
     FONT* PSF_Font;
@@ -34,6 +34,7 @@ class BasicRenderer{
     void draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, Point position, Colour colour);
     void draw_cursor() const;
     void clear_cursor(uint64_t x_pos, uint64_t y_pos) const;
+    void scroll_down();
     void clear_mouse_cursor(const uint8_t* mouse_cursor, Point position) const;
     Colour mouse_cursor_buffer[16 * 16]{};
     Colour mouse_cursor_buffer_after[16 * 16]{};
@@ -46,51 +47,51 @@ class BasicRenderer{
     bool mouse_drawn{};
 };
 
-inline void BasicRenderer::set_cursorX(int32_t x) {
+inline void screen_renderer::set_cursorX(int32_t x) {
     cursor_position.X = x;
 }
 
-inline void BasicRenderer::set_cursorY(int32_t y) {
+inline void screen_renderer::set_cursorY(int32_t y) {
     cursor_position.Y = y;
 }
 
-inline void BasicRenderer::set_cursor(Point pt) {
+inline void screen_renderer::set_cursor(Point pt) {
     cursor_position.X = pt.X;
     cursor_position.Y = pt.Y;
 }
 
-inline void BasicRenderer::increment_cursorX(uint32_t x) {
+inline void screen_renderer::increment_cursorX(uint32_t x) {
     cursor_position.X += x;
 }
 
-inline void BasicRenderer::increment_cursorY(uint32_t y) {
+inline void screen_renderer::increment_cursorY(uint32_t y) {
     cursor_position.Y += y;
 }
 
-inline void BasicRenderer::decrement_cursorX(int32_t x) {
+inline void screen_renderer::decrement_cursorX(int32_t x) {
     cursor_position.X -= x;
 }
 
-inline void BasicRenderer::decrement_cursorY(int32_t y) {
+inline void screen_renderer::decrement_cursorY(int32_t y) {
     cursor_position.Y -= y;
 }
 
-inline void BasicRenderer::set_colour(Colour new_colour) {
+inline void screen_renderer::set_colour(Colour new_colour) {
     colour = new_colour;
 }
 
-inline Colour BasicRenderer::get_colour() const {
+inline Colour screen_renderer::get_colour() const {
     return colour;
 }
 
-inline Colour BasicRenderer::get_bg_colour() const {
+inline Colour screen_renderer::get_bg_colour() const {
     return bg_colour;
 }
 
-inline void BasicRenderer::set_bg_colour(Colour new_colour) {
+inline void screen_renderer::set_bg_colour(Colour new_colour) {
     bg_colour = new_colour;
 }
 
-extern BasicRenderer* global_renderer;
+extern screen_renderer* global_renderer;
 
 #endif //BASIC_RENDERER_H

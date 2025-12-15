@@ -24,7 +24,6 @@
 #include "mouse.h"
 #include "../../../kernel/cpu/io.h"
 #include <kernel/basic_renderer.h>
-#include <kernel/ScrollManager.h>
 
 namespace input::mouse {
     uint8_t pointer[] = {
@@ -162,16 +161,9 @@ namespace input::mouse {
 
         int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]);
         if (wheel_movement > 0) {
-            if (scroll_manager->can_scroll_down()) {
-                scroll_manager->scroll_down();
-                if (!scroll_manager->can_scroll_down()) {
-                    global_renderer->draw_cursor();
-                }
-            }
+            //scroll down
         } else if (wheel_movement < 0) {
-            if (scroll_manager->can_scroll_up()) {
-                scroll_manager->scroll_up();
-            }
+            //scroll up
         }
 
         global_renderer->clear_mouse_cursor(pointer, mouse_position_old);

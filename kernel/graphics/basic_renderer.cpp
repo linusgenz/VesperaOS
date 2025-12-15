@@ -1,11 +1,12 @@
 #include  <kernel/basic_renderer.h>
 #include <string.h>
 #include <utils.h>
-#include <kernel/ScrollManager.h>
 
-BasicRenderer* global_renderer;
+#include "kernel/memory.h"
 
-BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, FONT* font)
+screen_renderer* global_renderer;
+
+screen_renderer::screen_renderer(Framebuffer* targetFramebuffer, FONT* font)
 {
     TargetFramebuffer = targetFramebuffer;
     PSF_Font = font;
@@ -15,7 +16,7 @@ BasicRenderer::BasicRenderer(Framebuffer* targetFramebuffer, FONT* font)
     cursor_visible = true;
 }
 
-void BasicRenderer::print(const char* str)
+void screen_renderer::print(const char* str)
 {
     const char* chr = str;
     while (*chr != 0)
@@ -37,7 +38,7 @@ void BasicRenderer::print(const char* str)
     }
 }
 
-void BasicRenderer::print(const char* str, const size_t length)
+void screen_renderer::print(const char* str, const size_t length)
 {
     for (size_t i = 0; i < length; i++)
     {
@@ -58,7 +59,7 @@ void BasicRenderer::print(const char* str, const size_t length)
 }
 
 
-void BasicRenderer::clear()
+void screen_renderer::clear()
 {
     const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
     const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
@@ -73,18 +74,17 @@ void BasicRenderer::clear()
             *pix_ptr = bg_colour;
         }
     }
-    scroll_manager->set_scroll_up(false);
-    scroll_manager->set_scroll_down(false);
+
     set_cursor({0, 0});
 }
 
-Colour BasicRenderer::get_pixel(const uint32_t x, const uint32_t y) const
+Colour screen_renderer::get_pixel(const uint32_t x, const uint32_t y) const
 {
     return *reinterpret_cast<Colour*>(reinterpret_cast<uint64_t>(TargetFramebuffer->base_address) + (x * 4) + (
         y * TargetFramebuffer->pixels_per_scanline * 4));
 }
 
-void BasicRenderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point position) const
+void screen_renderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point position) const
 {
     /*  if (!mouse_drawn) return;
 
@@ -114,7 +114,7 @@ void BasicRenderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point 
 }
 
 
-void BasicRenderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const Colour colour)
+void screen_renderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const Colour colour)
 {
     /*  int32_t x_max = 16;
       int32_t y_max = 16;
@@ -143,7 +143,7 @@ void BasicRenderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const
   */
 }
 
-void BasicRenderer::clear_char()
+void screen_renderer::clear_char()
 {
     if (cursor_position.X == 0)
     {
@@ -174,7 +174,7 @@ void BasicRenderer::clear_char()
     }
 }
 
-void BasicRenderer::put_char(const char chr, const uint32_t xOff, const uint32_t yOff) const
+void screen_renderer::put_char(const char chr, const uint32_t xOff, const uint32_t yOff) const
 {
     if (chr == '\0') return;
     auto* pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
@@ -195,7 +195,7 @@ void BasicRenderer::put_char(const char chr, const uint32_t xOff, const uint32_t
     }
 }
 
-void BasicRenderer::put_char(const char chr)
+void screen_renderer::put_char(const char chr)
 {
     clear_cursor(cursor_position.X, cursor_position.Y);
     put_char(chr, cursor_position.X, cursor_position.Y);
@@ -207,7 +207,7 @@ void BasicRenderer::put_char(const char chr)
     // draw_cursor();
 }
 
-void BasicRenderer::draw_cursor() const
+void screen_renderer::draw_cursor() const
 {
     auto* pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
 
@@ -223,7 +223,7 @@ void BasicRenderer::draw_cursor() const
     }
 }
 
-void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
+void screen_renderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
 {
     auto* pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
 
@@ -239,19 +239,39 @@ void BasicRenderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
     }
 }
 
-void BasicRenderer::new_line()
+void screen_renderer::scroll_down()
+{
+    const uint32_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
+    const uint32_t font_height = PSF_Font->height;
+
+    auto* fb_base = static_cast<uint8_t*>(TargetFramebuffer->base_address);
+
+    const size_t bytes_to_copy = bytes_per_scanline * (TargetFramebuffer->height - font_height);
+    memmove(fb_base, fb_base + (bytes_per_scanline * font_height), bytes_to_copy);
+
+    const uint32_t last_line_y = TargetFramebuffer->height - font_height;
+    auto* last_line = reinterpret_cast<uint32_t*>(fb_base + (bytes_per_scanline * last_line_y));
+    const size_t pixels_in_last_lines = bytes_per_scanline * font_height / 4;
+
+    for (size_t i = 0; i < pixels_in_last_lines; i++)
+    {
+        last_line[i] = bg_colour;
+    }
+}
+
+void screen_renderer::new_line()
 {
     cursor_position.X = 0;
     cursor_position.Y += PSF_Font->height;
 
     if (cursor_position.Y + PSF_Font->height >= TargetFramebuffer->height)
     {
-        scroll_manager->setup_new_line();
+        scroll_down();
         cursor_position.Y -= PSF_Font->height;
     }
 }
 
-Point BasicRenderer::get_cursor_pos() const
+Point screen_renderer::get_cursor_pos() const
 {
     return cursor_position;
 }

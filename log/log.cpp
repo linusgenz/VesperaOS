@@ -5,7 +5,7 @@
 #include "../include/log.h"
 #include "../include/string.h"
 
-BasicRenderer *Log::renderer = nullptr;
+screen_renderer *Log::renderer = nullptr;
 spinlock_t Log::log_spin = {};
 kernel::mutex_t Log::log_mutex = {};
 bool Log::initialized = false;
@@ -17,7 +17,7 @@ void Log::init() {
    // log_spin.init();
 }
 
-void Log::SetRenderer(BasicRenderer *r) {
+void Log::SetRenderer(screen_renderer *r) {
     renderer = r;
 }
 

@@ -12,7 +12,6 @@
 #include <log.h>
 #include "cpu/cpu_manager.h"
 #include <kernel/scheduling.h>
-#include <kernel/ScrollManager.h>
 #include "kernel/interrupts.h"
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/devfs/devfs.h"
@@ -101,8 +100,7 @@ void init_sys_log_writer()
 
 extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
-auto s = ScrollManager(nullptr, nullptr, nullptr, nullptr, 0);
-static auto renderer = BasicRenderer(nullptr, nullptr);
+static auto renderer = screen_renderer(nullptr, nullptr);
 Framebuffer* TargetFramebuffer = nullptr;
 
 void initialize_kernel(BootInfo* boot_info)
@@ -114,7 +112,7 @@ void initialize_kernel(BootInfo* boot_info)
     deadlock_detector_init();
 #endif
 
-    renderer = BasicRenderer(boot_info->framebuffer, boot_info->font);
+    renderer = screen_renderer(boot_info->framebuffer, boot_info->font);
     Log::SetRenderer(&renderer);
     global_renderer = &renderer;
 
@@ -142,12 +140,6 @@ void initialize_kernel(BootInfo* boot_info)
     kernel::interrupts::initialize();
 
     asm ("sti");
-
-    //  setup_scroll_buffer(boot_info->framebuffer);
-    s = ScrollManager(scroll_buffer_top, scroll_buffer_bottom, boot_info->framebuffer, &renderer,
-                      boot_info->font->height);
-    scroll_manager = &s;
-
 
     kernel::SystemManager::initialize();
 
