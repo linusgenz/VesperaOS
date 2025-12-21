@@ -7,8 +7,8 @@ KERNEL_ELF="$3"
 SRC_DIR="$4"
 
 # Größen
-IMG_SIZE_MB=256
-EFI_SIZE_MB=128
+IMG_SIZE_MB=128
+EFI_SIZE_MB=64
 
 # Temporäre Mountpoints
 MNT_DIR=$(mktemp -d)

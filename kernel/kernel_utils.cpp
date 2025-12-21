@@ -179,7 +179,7 @@ void initialize_kernel(BootInfo* boot_info)
     //   UnitManager::list();
 
     prepare_ap_trampoline();
-    CPUManager::smp_init();
+   // CPUManager::smp_init();
     Log::init(); // threads are possible -> switch to mutex
 
     initialize_input_bus();

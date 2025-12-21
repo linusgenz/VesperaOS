@@ -78,6 +78,21 @@ void screen_renderer::clear()
     set_cursor({0, 0});
 }
 
+void screen_renderer::put_pixel(uint32_t x, uint32_t y, uint32_t colour)
+{
+    if (x >= TargetFramebuffer->width || y >= TargetFramebuffer->height)
+        return;
+
+    const uint64_t fb_base =
+        reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
+
+    const uint64_t offset =
+        (y * TargetFramebuffer->pixels_per_scanline + x) * 4;
+
+    *reinterpret_cast<uint32_t*>(fb_base + offset) = colour;
+}
+
+
 Colour screen_renderer::get_pixel(const uint32_t x, const uint32_t y) const
 {
     return *reinterpret_cast<Colour*>(reinterpret_cast<uint64_t>(TargetFramebuffer->base_address) + (x * 4) + (

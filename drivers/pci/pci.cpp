@@ -8,8 +8,10 @@
 #include "../../filesystem/devfs/devfs.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../ahci/ahci.h"
+#include "../gpu/intel/intel_blt.h"
 #include "../nvme/nvme.h"
 #include "../usb/usb_manager.h"
+#include "kernel/time.h"
 
 static atomic_u8 next_usb_bus_number;
 
@@ -54,11 +56,11 @@ namespace PCI
         if (pci_device_header->device_id == 0) return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-        /*           Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
-                               get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
-                               get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
-                               get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
-                                                pci_device_header->prog_if));*/
+        Log::LogMsg("[ PCI ] %s %s %s %s", get_vendor_name(pci_device_header->vendor_id),
+                    get_device_name(pci_device_header->vendor_id, pci_device_header->device_id),
+                    get_subclass_name(pci_device_header->_class, pci_device_header->subclass),
+                    get_prog_if_Name(pci_device_header->_class, pci_device_header->subclass,
+                                     pci_device_header->prog_if));
 
         switch (pci_device_header->_class)
         {
@@ -74,10 +76,9 @@ namespace PCI
                         uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         command |= (1 << 10); // Disable INTx
-
                         PCI::pci_write16(pci_device_header, 0x04, command);
-                        auto ahci = new AHCI::AHCIDriver(pci_device_header);
 
+                        new AHCI::AHCIDriver(pci_device_header);
                         break;
                     }
                 default: ;
@@ -87,16 +88,56 @@ namespace PCI
                 {
                 case 0x02:
                     {
-                        uint16_t command_register = pci_device_header->command;
-
                         uint16_t command = pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         pci_write16(pci_device_header, 0x04, command);
 
                         new NVMe::NvmeDriver(pci_device_header);
-
                         break;
                     }
+                default: ;
+                }
+            default: ;
+            }
+        case 0x3: // Display Controller
+            switch (pci_device_header->subclass)
+            {
+            case 0x00:
+                switch (pci_device_header->prog_if)
+                {
+                case 0x0:
+                    switch (pci_device_header->vendor_id)
+                    {
+                    case 0x8086:
+                        {
+                            auto* driver = new IntelBlt(pci_device_header);
+                            GpuFramebuffer fb = driver->alloc_framebuffer(TargetFramebuffer->width, TargetFramebuffer->height, TileMode::Linear);
+                            BltRect rect = {
+                                .x = 0,
+                                .y = 0,
+                                .width = TargetFramebuffer->width,
+                                .height = TargetFramebuffer->height,
+                            };
+
+                            driver->fill_rect(rect, 0xFFFF0000, &fb);
+                            driver->set_display_framebuffer(fb);
+                            while (1)
+                            {
+                                driver->fill_rect(rect, 0xFFFF0000, &fb);
+                                kernel::time::sleep_ms(1000);
+                                driver->fill_rect(rect, 0x00FFFF00, &fb);
+                                kernel::time::sleep_ms(1000);
+                                driver->fill_rect(rect, 0x0000FFFF, &fb);
+                                kernel::time::sleep_ms(1000);
+                                driver->fill_rect(rect, 0xFF0000FF, &fb);
+                                kernel::time::sleep_ms(1000);
+                            };
+
+                            break;
+                        }
+                    default: ;
+                    }
+                    break;
                 default: ;
                 }
             default: ;

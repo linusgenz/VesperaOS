@@ -1,8 +1,8 @@
 #!/bin/bash
 
 VERSION_MAJOR=0
-VERSION_MINOR=18
-VERSION_PATCH=5
+VERSION_MINOR=19
+VERSION_PATCH=0
 VERSION_STAGE="dev"
 VERSION_NAME="spicy chicken"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

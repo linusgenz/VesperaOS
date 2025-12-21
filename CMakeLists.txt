@@ -69,6 +69,7 @@ add_custom_target(test
         -machine q35
         -enable-kvm
         -cpu qemu64
+        -vga std
         #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none

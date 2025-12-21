@@ -30,6 +30,7 @@ class screen_renderer{
     inline void set_bg_colour(Colour new_colour);
     void new_line();
     void clear();
+    void put_pixel(uint32_t x, uint32_t y, uint32_t colour);
     void clear_char();
     void draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, Point position, Colour colour);
     void draw_cursor() const;

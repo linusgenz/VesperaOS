@@ -53,23 +53,18 @@ namespace USB
         uint64_t bar = ((bar1 << 32) | bar0);
 
 
-        // 1. Originale Werte sichern
         uint32_t original_bar0 = pci_hdr->BAR0;
         uint32_t original_bar1 = pci_hdr->BAR1;
 
-        // 2. Temporär 0xFFFFFFFF schreiben
         pci_hdr->BAR0 = 0xFFFFFFFF;
         pci_hdr->BAR1 = 0xFFFFFFFF;
 
-        // 3. Gelesene Werte interpretieren
         uint32_t size_mask_lo = pci_hdr->BAR0;
         uint32_t size_mask_hi = pci_hdr->BAR1;
 
-        // 4. Originale Werte wiederherstellen
         pci_hdr->BAR0 = original_bar0;
         pci_hdr->BAR1 = original_bar1;
 
-        // 5. Größe berechnen
         uint64_t mask = (static_cast<uint64_t>(size_mask_hi) << 32) | (size_mask_lo & ~0xF);
         if (mask == 0)
         {
