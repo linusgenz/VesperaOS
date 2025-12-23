@@ -27,8 +27,6 @@
 #include "../gpu_blt.h"
 #include "../../pci/pci.h"
 
-#include <stddef.h>
-
 #include "graphics.h"
 
 struct GgttAllocation
@@ -105,9 +103,11 @@ struct GgttAllocation
 #define MI_FLUSH_POST_SYNC      (1 << 14)   // Write immediate data
 #define MI_FLUSH_DW_LEN         0x3         // Length field
 
-// HWSP Offset for flush marker
-#define HWSP_FLUSH_OFFSET       0x40        // Offset in HWSP for flush marker
-#define HWSP_FLUSH_MARKER       0xDEADBEEF  // Marker value to write
+#define MI_STORE_DATA_IMM_OPCODE (0x20 << 23)
+
+#define HWSP_SEQNO_OFFSET_DWORDS 4
+#define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
+
 
 // ============================================================================
 // XY_COLOR_BLT Command - 2D Color Fill
@@ -131,6 +131,20 @@ struct GgttAllocation
 // Coordinate Masks
 #define COORD_MASK              0xFFFF        // 16-bit coordinate mask
 #define COORD_Y_SHIFT           16            // Y coordinate position
+
+
+#define XY_MONO_SRC_COPY_CMD            0x2 << 29  // Client: 2D Processor
+#define XY_MONO_SRC_COPY_OPCODE         0x54 << 22 // Opcode: 0x54
+#define XY_MONO_SRC_COPY_WRITE_ALPHA    1 << 21    // Write Alpha Channel
+#define XY_MONO_SRC_COPY_WRITE_RGB      1 << 20    // Write RGB Channel
+#define XY_MONO_SRC_COPY_LEN            0x08       // DWord Length: 8
+
+// BR13 bits
+#define MONO_SRC_TRANSPARENCY           1 << 29    // Transparency Enabled
+#define MONO_SRC_USE_BACKGROUND         0 << 29    // Use Background
+
+// ROP codes (must involve source, no pattern)
+#define SRCCOPY 0xCC
 
 // ============================================================================
 // BAR0 Configuration
@@ -186,33 +200,38 @@ struct GpuFramebuffer
     TileMode tile_mode;
 };
 
+struct GpuTextBuffer
+{
+    void* cpu_addr;
+    uint64_t gfx_addr;
+    uint32_t width; // in pixels
+    uint32_t height; // in pixels
+    size_t total_size;
+};
+
+struct MonoTestBuffer
+{
+    void* cpu;
+    uint64_t gfx;
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride; // bytes per scanline
+};
 
 class IntelBlt final : public GpuBlt
 {
 public:
     explicit IntelBlt(PCI::PCIDeviceHeader* header);
-    void write_command(uint32_t cmd);
-    bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
-    static bool validate_blt_params(const BltRect& rect, const GpuFramebuffer* fb);
-    void xy_color_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
-                      uint32_t color);
-    void emergency_reset_bcs();
-    void check_gpu_health();
-    bool fill_rect_and_display(BltRect rect, uint32_t color, GpuFramebuffer* fb);
+    void init_text_buffer(FONT* font, uint32_t screen_width);
+
     bool fill_rect(BltRect rect, uint32_t color, GpuFramebuffer* fb);
     GpuFramebuffer alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
-    bool wait_idle(uint32_t timeout_us = 1000000) const;
-    void mi_flush();
-    void flush_commands() const;
-    void setup_ring_buffer();
-    void enable_force_wake() const;
-    void enable_bcs_power() const;
-    void reset_bcs() const;
-    void init_gtt();
-    GgttAllocation alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags = 0, uint8_t pat_index = GTT_PAT_UC);
-    uint64_t map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat_index);
-    void set_display_framebuffer(uint64_t gfx_addr, uint32_t width, uint32_t height, uint32_t pitch, TileMode tile_mode) const;
     void set_display_framebuffer(const GpuFramebuffer& fb) const;
+    void build_text_scanline(const char* text, size_t length,
+                             FONT* font, uint8_t* buffer,
+                             uint32_t buffer_stride);
+    bool draw_string(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color, FONT* font,
+                     GpuFramebuffer* fb);
     bool init() override;
     void fill(uint32_t color) override;
     void copy(BltRect src, BltRect dst) override;
@@ -242,6 +261,34 @@ private:
 
     uint32_t gtt_next_free{};
     uint32_t gtt_total_entries{};
+
+    uint32_t sequence_number;
+
+    GpuTextBuffer text_buffer;
+
+    void write_command(uint32_t cmd);
+    void set_display_framebuffer(uint64_t gfx_addr, uint32_t width, uint32_t height, uint32_t pitch,
+                                 TileMode tile_mode) const;
+    void mi_flush(uint32_t seqno);
+    [[nodiscard]] bool wait_for_sequence(uint32_t target_seqno, uint32_t timeout_us) const;
+    void flush_commands() const;
+    void setup_ring_buffer();
+    void enable_force_wake() const;
+    void enable_bcs_power() const;
+    void reset_bcs() const;
+    void init_gtt();
+    void emergency_reset_bcs();
+    void check_gpu_health();
+    static bool validate_blt_params(const BltRect& rect, const GpuFramebuffer* fb);
+    [[nodiscard]] bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
+    void xy_color_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
+                      uint32_t color);
+    void xy_mono_src_copy_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1,
+                              uint32_t dest_x2,
+                              uint32_t dest_y2, uint64_t mono_src_addr, uint32_t src_bit_position,
+                              bool transparency_enabled, uint32_t bg_color, uint32_t fg_color);
+    GgttAllocation alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags = 0, uint8_t pat_index = GTT_PAT_UC);
+    uint64_t map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat_index);
 };
 
 #endif //VESPERAOS_INTEL_BLT_H

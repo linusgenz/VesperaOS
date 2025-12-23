@@ -102,7 +102,6 @@ extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
 extern unsigned int Splash_VesperaOS_raw_len;
 static auto renderer = screen_renderer(nullptr, nullptr);
 Framebuffer* TargetFramebuffer = nullptr;
-
 void initialize_kernel(BootInfo* boot_info)
 {
     zero_bss();
@@ -111,6 +110,7 @@ void initialize_kernel(BootInfo* boot_info)
     lock_debug_init();
     deadlock_detector_init();
 #endif
+    system_font = boot_info->font;
 
     renderer = screen_renderer(boot_info->framebuffer, boot_info->font);
     Log::SetRenderer(&renderer);

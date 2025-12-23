@@ -26,6 +26,7 @@
 
 #include <log.h>
 
+#include "string.h"
 #include "kernel/memory.h"
 #include "kernel/time.h"
 
@@ -49,11 +50,11 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     enable_bcs_power();
     reset_bcs();
 
-    auto hwsp = alloc_and_map_to_ggtt(1, (1ULL << CacheDisabled));
+    auto hwsp = alloc_and_map_to_ggtt(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
     hwsp_cpu_addr = hwsp.cpu_addr;
     hwsp_graphics_addr = hwsp.gfx_addr;
     memset(hwsp_cpu_addr, 0, PAGE_SIZE);
-    bcs_regs[BCS_HWSP / 4] = static_cast<uint32_t>(hwsp_graphics_addr & GTT_PHYS_ADDR_MASK);
+    bcs_regs[BCS_HWSP / 4] = static_cast<uint32_t>(hwsp_graphics_addr);
 
     ring_size = RING_BUFFER_SIZE;
     uint32_t ring_pages = ring_size / PAGE_SIZE;
@@ -64,7 +65,6 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     memset(ring_cpu_addr, 0, ring_size);
     setup_ring_buffer();
 
-    // Configure Ring Buffer registers
     bcs_regs[BCS_RING_START / 4] = static_cast<uint32_t>(ring_graphics_addr & GTT_PHYS_ADDR_MASK);
 
     uint32_t ring_ctl = ((ring_size - PAGE_SIZE) & RING_SIZE_MASK) | RING_CTL_ENABLED;
@@ -77,6 +77,10 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     uint32_t tail = bcs_regs[BCS_RING_TAIL / 4];
     uint32_t ctl = bcs_regs[BCS_RING_CTL / 4];
 
+    sequence_number = 0;
+
+    init_text_buffer(system_font, TargetFramebuffer->width);
+
     if ((ctl & RING_CTL_ENABLED) && (head == tail))
     {
         Log::debug("BCS is READY!");
@@ -85,6 +89,41 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     {
         Log::Error("BCS initialization failed!");
     }
+}
+
+void IntelBlt::init_text_buffer(FONT* font, uint32_t screen_width)
+{
+    if (!font)
+    {
+        Log::Error("Invalid font for text buffer initialization");
+        return;
+    }
+
+    uint32_t max_chars = screen_width / font->width;
+
+    uint32_t max_width = max_chars * font->width;
+    uint32_t max_height = font->height;
+
+    uint32_t stride = ((max_width + 7) / 8);
+    stride = ((stride + 1) / 2) * 2;
+    size_t total_size = stride * max_height;
+    size_t num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    Log::debug("Allocating text buffer: font=%ux%u, screen=%u, max_chars=%u, buffer=%ux%u, stride=%u, size=%zu",
+               font->width, font->height, screen_width, max_chars,
+               max_width, max_height, stride, total_size);
+
+    auto allocation = alloc_and_map_to_ggtt(num_pages,
+                                            (1ULL << CacheDisabled),
+                                            MOCS_UNCACHED);
+
+    text_buffer.cpu_addr = allocation.cpu_addr;
+    text_buffer.gfx_addr = allocation.gfx_addr;
+    text_buffer.width = max_width;
+    text_buffer.height = max_height;
+    text_buffer.total_size = total_size;
+
+    memset(text_buffer.cpu_addr, 0, total_size);
 }
 
 void IntelBlt::write_command(uint32_t cmd)
@@ -116,7 +155,7 @@ void IntelBlt::write_command(uint32_t cmd)
     volatile auto* ring = static_cast<volatile uint32_t*>(ring_cpu_addr);
     ring[ring_tail / 4] = cmd;
 
-    __asm__ volatile("sfence" ::: "memory");
+    asm volatile("sfence" ::: "memory");
 
     ring_tail += 4;
     if (ring_tail >= ring_size)
@@ -147,7 +186,7 @@ bool IntelBlt::wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us)
         }
 
         // Micro-delay (1µs)
-        for ( int j = 0; j < IDLE_CHECK_DELAY; j++);
+        for (int j = 0; j < IDLE_CHECK_DELAY; j++);
     }
     return false;
 }
@@ -288,7 +327,6 @@ void IntelBlt::check_gpu_health()
         hang_counter++;
         if (hang_counter > 1000)
         {
-            // 1000 checks without progress
             Log::Error("GPU hang detected! HEAD stuck at 0x%x", head);
             emergency_reset_bcs();
             hang_counter = 0;
@@ -330,17 +368,16 @@ bool IntelBlt::fill_rect(BltRect rect,
         color
     );
 
-    mi_flush();
+    sequence_number++;
+    uint32_t target_seqno = sequence_number;
+    mi_flush(target_seqno);
     flush_commands();
 
-    if (!wait_idle(5000000)) // 5 second timeout
+    if (!wait_for_sequence(target_seqno, 5'000'000))
     {
-        Log::Error("Timeout waiting for BLT to complete!");
-        check_gpu_health();
+        Log::Error("Timeout for sequence %u!", target_seqno);
         return false;
     }
-
-    __asm__ volatile("mfence" ::: "memory");
 
     return true;
 }
@@ -374,41 +411,7 @@ GpuFramebuffer IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, Tile
     return fb;
 }
 
-
-bool IntelBlt::wait_idle(uint32_t timeout_us) const
-{
-    uint32_t initial_head = bcs_regs[BCS_RING_HEAD / 4];
-    uint32_t initial_tail = bcs_regs[BCS_RING_TAIL / 4];
-
-    Log::debug("Waiting for idle: HEAD=0x%x, TAIL=0x%x", initial_head, initial_tail);
-
-    for (uint32_t i = 0; i < timeout_us; i++)
-    {
-        uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
-        uint32_t tail = bcs_regs[BCS_RING_TAIL / 4];
-
-        if (head == tail)
-        {
-            return true;
-        }
-
-        // 1µs delay
-        for (int j = 0; j < IDLE_CHECK_DELAY; j++);
-    }
-
-    uint32_t final_head = bcs_regs[BCS_RING_HEAD / 4];
-    uint32_t final_tail = bcs_regs[BCS_RING_TAIL / 4];
-    uint32_t ring_ctl = bcs_regs[BCS_RING_CTL / 4];
-
-    Log::Error("BCS timeout! Initial HEAD=0x%x TAIL=0x%x, Final HEAD=0x%x TAIL=0x%x",
-               initial_head, initial_tail, final_head, final_tail);
-    Log::Error("  Ring CTL=0x%x (enabled=%d)",
-               ring_ctl, ring_ctl & RING_CTL_ENABLED);
-
-    return false;
-}
-
-void IntelBlt::mi_flush()
+void IntelBlt::mi_flush(uint32_t seqno)
 {
     constexpr uint32_t dw0 = MI_COMMAND_TYPE |
         MI_FLUSH_DW_OPCODE |
@@ -416,16 +419,49 @@ void IntelBlt::mi_flush()
         MI_FLUSH_POST_SYNC |
         MI_FLUSH_DW_LEN;
 
+    constexpr uint32_t dw1 = HWSP_SEQNO_OFFSET;
+    constexpr uint32_t dw2 = 0;
+    const uint32_t dw3 = seqno;
+
     write_command(dw0);
-    write_command(HWSP_FLUSH_OFFSET);
-    write_command(0);
-    write_command(HWSP_FLUSH_MARKER);
+    write_command(dw1);
+    write_command(dw2);
+    write_command(dw3);
     write_command(0);
 }
 
+bool IntelBlt::wait_for_sequence(uint32_t target_seqno, uint32_t timeout_us) const
+{
+    auto* hwsp = static_cast<uint32_t*>(hwsp_cpu_addr);
+    uint32_t* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
+
+    for (uint32_t i = 0; i < timeout_us; i++)
+    {
+        asm volatile("lfence" ::: "memory");
+
+        uint32_t current_seqno = *seqno_ptr;
+
+        if (static_cast<int32_t>(current_seqno - target_seqno) >= 0)
+        {
+            asm volatile("lfence" ::: "memory");
+            return true;
+        }
+
+        // 1µs delay
+        for (int j = 0; j < IDLE_CHECK_DELAY; j++);
+    }
+
+    asm volatile("lfence" ::: "memory");
+    uint32_t final_seqno = *seqno_ptr;
+    Log::Error("Sequence timeout! Expected %u, got %u", target_seqno, final_seqno);
+
+    return false;
+}
+
+
 void IntelBlt::flush_commands() const
 {
-    __asm__ volatile("mfence" ::: "memory");
+    asm volatile("mfence" ::: "memory");
     bcs_regs[BCS_RING_TAIL / 4] = ring_tail;
 }
 
@@ -456,7 +492,7 @@ void IntelBlt::setup_ring_buffer()
     volatile auto* ring = static_cast<volatile uint32_t*>(ring_cpu_addr);
     for (uint32_t i = 0; i < ring_size / 4; i++)
     {
-        ring[i] = MI_NOOP; // MI_NOOP
+        ring[i] = MI_NOOP;
     }
 
     Log::debug("Ring Buffer cleared with NOOPs");
@@ -507,12 +543,16 @@ void IntelBlt::reset_bcs() const
     // Request BCS reset
     *reset_ctl |= RESET_BCS_BIT;
 
-    for (int i = 0; i < RESET_DELAY; i++) {}
+    for (int i = 0; i < RESET_DELAY; i++)
+    {
+    }
 
     // Release reset
     *reset_ctl &= ~RESET_BCS_BIT;
 
-    for (int i = 0; i < RESET_DELAY; i++) {}
+    for (int i = 0; i < RESET_DELAY; i++)
+    {
+    }
 
     Log::debug("BCS Reset completed");
 }
@@ -543,7 +583,7 @@ uint64_t IntelBlt::map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat
         gtt_entry |= GTT_VALID;
 
         gtt_entries[gtt_index + i] = gtt_entry;
-        __asm__ volatile("mfence" ::: "memory");
+        asm volatile("mfence" ::: "memory");
     }
 
     uint64_t graphics_addr = static_cast<uint64_t>(gtt_index) * PAGE_SIZE;
@@ -563,7 +603,9 @@ void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
     uint32_t plane_ctl = plane_regs[PLANE_CTL_1A / 4];
     plane_regs[PLANE_CTL_1A / 4] = plane_ctl & ~PLANE_CTL_ENABLE;
 
-    for (int i = 0; i < 1000; i++) {}
+    for (int i = 0; i < 1000; i++)
+    {
+    }
 
     uint32_t stride_value;
     switch (tile_mode)
@@ -578,14 +620,14 @@ void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
         stride_value = pitch / 512;
         plane_ctl = PLANE_CTL_PIPE_A |
             PLANE_CTL_FORMAT_XRGB8888 |
-            (0b001 << 10); // Tile X format
+            (0b001 << 10);
         break;
 
     case TileMode::Y:
         stride_value = pitch / 128;
         plane_ctl = PLANE_CTL_PIPE_A |
             PLANE_CTL_FORMAT_XRGB8888 |
-            PLANE_CTL_TILE_Y; // 0b100 << 10
+            PLANE_CTL_TILE_Y;
         break;
 
     default:
@@ -613,7 +655,7 @@ void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
 
     plane_regs[PLANE_CTL_1A / 4] = plane_ctl | PLANE_CTL_ENABLE;
 
-    __asm__ volatile("mfence" ::: "memory");
+    asm volatile("mfence" ::: "memory");
 
     Log::debug("Display framebuffer updated: addr=0x%llx, %dx%d, pitch=%d",
                gfx_addr, width, height, pitch);
@@ -624,6 +666,194 @@ void IntelBlt::set_display_framebuffer(const GpuFramebuffer& fb) const
     set_display_framebuffer(fb.gfx_addr, fb.width, fb.height, fb.pitch, fb.tile_mode);
 }
 
+void IntelBlt::xy_mono_src_copy_blt(
+    uint64_t dest_addr,
+    uint32_t dest_pitch,
+    uint32_t dest_x1, uint32_t dest_y1,
+    uint32_t dest_x2, uint32_t dest_y2,
+    uint64_t mono_src_addr,
+    uint32_t src_bit_position,
+    bool transparency_enabled,
+    uint32_t bg_color,
+    uint32_t fg_color)
+{
+    // DW0: BR00 - Command Header
+    uint32_t dw0 = XY_MONO_SRC_COPY_CMD |
+        XY_MONO_SRC_COPY_OPCODE |
+        XY_MONO_SRC_COPY_WRITE_ALPHA |
+        XY_MONO_SRC_COPY_WRITE_RGB |
+        ((src_bit_position & 0x7) << 17) |
+        XY_MONO_SRC_COPY_LEN;
+
+    // DW1: BR13 - Format, transparency, ROP, pitch
+    uint32_t dw1 = (transparency_enabled ? MONO_SRC_TRANSPARENCY : MONO_SRC_USE_BACKGROUND) |
+        COLOR_DEPTH_8888 |
+        (SRCCOPY << 16) |
+        (dest_pitch & 0xFFFF);
+
+    // DW2: BR22 - Destination Y1, X1
+    uint32_t dw2 = ((dest_y1 & 0xFFFF) << 16) | (dest_x1 & 0xFFFF);
+
+    // DW3: BR23 - Destination Y2, X2
+    uint32_t dw3 = ((dest_y2 & 0xFFFF) << 16) | (dest_x2 & 0xFFFF);
+
+    // DW4-5: Destination Base Address (64-bit)
+    uint32_t dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
+    uint32_t dw5 = static_cast<uint32_t>(dest_addr >> 32);
+
+    // DW6-7: Monochrome Source Address (64-bit, 64-byte aligned)
+    uint32_t dw6 = static_cast<uint32_t>(mono_src_addr & 0xFFFFFFFF);
+    uint32_t dw7 = static_cast<uint32_t>(mono_src_addr >> 32);
+
+    // DW8: BR18 - Source Background Color
+    uint32_t dw8 = bg_color;
+
+    // DW9: BR19 - Source Foreground Color
+    uint32_t dw9 = fg_color;
+
+    write_command(dw0);
+    write_command(dw1);
+    write_command(dw2);
+    write_command(dw3);
+    write_command(dw4);
+    write_command(dw5);
+    write_command(dw6);
+    write_command(dw7);
+    write_command(dw8);
+    write_command(dw9);
+    write_command(0); // trailing DW
+}
+
+void IntelBlt::build_text_scanline(const char* text, size_t length,
+                                   FONT* font, uint8_t* buffer,
+                                   uint32_t buffer_stride)
+{
+    const uint32_t glyph_width = font->width; // z.B. 10
+    const uint32_t glyph_height = font->height; // z.B. 24
+    const uint32_t glyph_stride = (glyph_width + 7) / 8; // PSF2: Bytes pro Zeile
+
+    const uint8_t* glyphs = static_cast<const uint8_t*>(font->glyphBuffer);
+
+    // Hintergrund transparent
+    memset(buffer, 0, buffer_stride * glyph_height);
+
+    for (size_t char_idx = 0; char_idx < length; char_idx++)
+    {
+        const uint8_t c = static_cast<uint8_t>(text[char_idx]);
+        const uint8_t* glyph = glyphs + c * font->charsize;
+
+        // Glyph beginnt exakt an seiner Zelle
+        const uint32_t char_x = char_idx * glyph_width;
+
+        for (uint32_t y = 0; y < glyph_height; y++)
+        {
+            uint8_t* dst_row = buffer + y * buffer_stride;
+            const uint8_t* src_row = glyph + y * glyph_stride;
+
+            for (uint32_t src_byte = 0; src_byte < glyph_stride; src_byte++)
+            {
+                const uint8_t bits = src_row[src_byte]; // PSF2: MSB-first
+
+                const uint32_t glyph_bit_base = src_byte * 8;
+                if (glyph_bit_base >= glyph_width)
+                    break;
+
+                uint32_t bits_to_process = glyph_width - glyph_bit_base;
+                if (bits_to_process > 8)
+                    bits_to_process = 8;
+
+                for (uint32_t bit = 0; bit < bits_to_process; bit++)
+                {
+                    if (bits & (0x80 >> bit))
+                    {
+                        const uint32_t dst_pixel =
+                            char_x + glyph_bit_base + bit;
+
+                        const uint32_t dst_byte = dst_pixel / 8;
+                        const uint32_t dst_bit = dst_pixel % 8;
+
+                        dst_row[dst_byte] |= (0x80 >> dst_bit);
+                    }
+                }
+            }
+        }
+    }
+
+    asm volatile("sfence" ::: "memory");
+}
+
+bool IntelBlt::draw_string(const char* text, uint32_t x, uint32_t y,
+                           uint32_t fg_color, uint32_t bg_color,
+                           FONT* font, GpuFramebuffer* fb)
+{
+    if (!text || !font || !fb || !text_buffer.cpu_addr)
+    {
+        Log::Error("Invalid parameters for draw_string");
+        return false;
+    }
+
+    size_t text_len = strlen(text);
+    if (text_len == 0)
+    {
+        return true;
+    }
+
+    // Calculate text dimensions
+    uint32_t text_width = text_len * font->width;
+    uint32_t text_height = font->height;
+
+    uint32_t text_stride = ((text_width + 7) / 8);
+    text_stride = ((text_stride + 1) / 2) * 2;
+
+    if (text_stride * text_height > text_buffer.total_size)
+    {
+        Log::Error("Text too large for buffer: stride=%u, height=%u (max size=%zu)",
+                   text_stride, text_height, text_buffer.total_size);
+        return false;
+    }
+
+    check_gpu_health();
+
+    uint32_t required = 12 * 4 + 64;
+    if (!wait_for_ring_space(required, 1000000))
+    {
+        Log::Error("Ring buffer full!");
+        return false;
+    }
+
+    build_text_scanline(text, text_len, font,
+                        static_cast<uint8_t*>(text_buffer.cpu_addr),
+                        text_stride);
+
+    asm volatile("mfence" ::: "memory");
+
+    xy_mono_src_copy_blt(
+        fb->gfx_addr,
+        fb->pitch,
+        x, y,
+        x + text_width,
+        y + text_height,
+        text_buffer.gfx_addr,
+        0,
+        false,
+        bg_color,
+        fg_color);
+
+    sequence_number++;
+    uint32_t target_seqno = sequence_number;
+    mi_flush(target_seqno);
+    flush_commands();
+
+    if (!wait_for_sequence(target_seqno, 1000000))
+    {
+        Log::Error("Timeout waiting for text! HEAD=0x%x TAIL=0x%x",
+                   bcs_regs[BCS_RING_HEAD / 4],
+                   bcs_regs[BCS_RING_TAIL / 4]);
+        return false;
+    }
+
+    return true;
+}
 
 bool IntelBlt::init() { return true; }
 
@@ -637,6 +867,6 @@ void IntelBlt::copy(BltRect src, BltRect dst)
 
 void IntelBlt::flush()
 {
-    mi_flush();
+    //mi_flush();
     flush_commands();
 }

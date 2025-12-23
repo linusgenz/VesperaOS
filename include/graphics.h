@@ -65,5 +65,6 @@ typedef struct {
 	uint32_t width;        // Pixelbreite
 } PSF2_HEADER;
 
+inline FONT* system_font;
 
 #endif //GRAHICS_H

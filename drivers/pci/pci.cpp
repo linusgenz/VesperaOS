@@ -111,28 +111,15 @@ namespace PCI
                     case 0x8086:
                         {
                             auto* driver = new IntelBlt(pci_device_header);
-                            GpuFramebuffer fb = driver->alloc_framebuffer(TargetFramebuffer->width, TargetFramebuffer->height, TileMode::Linear);
-                            BltRect rect = {
-                                .x = 0,
-                                .y = 0,
-                                .width = TargetFramebuffer->width,
-                                .height = TargetFramebuffer->height,
-                            };
+                            GpuFramebuffer fb = driver->alloc_framebuffer(
+                                TargetFramebuffer->width, TargetFramebuffer->height, TileMode::Linear);
 
-                            driver->fill_rect(rect, 0xFFFF0000, &fb);
+                            driver->draw_string("Zat", 200, 200,
+                                                0xFFFFFFFF, 0xFF000000, system_font, &fb);
+                           // driver->draw_string("Intel BLT Initialized", 100, 120,
+                           //                     0xFF00FF00, 0xFF000000, system_font, &fb);
                             driver->set_display_framebuffer(fb);
-                            while (1)
-                            {
-                                driver->fill_rect(rect, 0xFFFF0000, &fb);
-                                kernel::time::sleep_ms(1000);
-                                driver->fill_rect(rect, 0x00FFFF00, &fb);
-                                kernel::time::sleep_ms(1000);
-                                driver->fill_rect(rect, 0x0000FFFF, &fb);
-                                kernel::time::sleep_ms(1000);
-                                driver->fill_rect(rect, 0xFF0000FF, &fb);
-                                kernel::time::sleep_ms(1000);
-                            };
-
+                            while (1);
                             break;
                         }
                     default: ;
