@@ -1,10 +1,10 @@
 /**
- * @file gpu_blt.h
+ * @file IScreenRenderer.h
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
  *
- * Created by Linus Genz on 16.12.25.
+ * Created by Linus Genz on 23.12.25.
  *
  * This file is part of VesperaOS.
  *
@@ -21,27 +21,23 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_GPU_BLT_H
-#define VESPERAOS_GPU_BLT_H
+#ifndef VESPERAOS_ISCREENRENDERER_H
+#define VESPERAOS_ISCREENRENDERER_H
 
 #include <cstdint>
 
-struct BltRect {
-    uint32_t x, y;
-    uint32_t width, height;
-};
-
-class GpuBltDriver {
+class IScreenRenderer
+{
 public:
-    virtual bool rect(BltRect rect, uint32_t color) = 0;
-    virtual void copy(BltRect src, BltRect dst) = 0;
-    virtual uint32_t get_width() = 0;
-    virtual uint32_t get_height() = 0;
-    virtual bool draw_str(const char* str, uint32_t x, uint32_t y, uint32_t colour, uint32_t bg) = 0;
-    virtual void scroll(uint32_t scroll_pixels) = 0;
-    virtual ~GpuBltDriver() = default;
+    virtual ~IScreenRenderer() = default;
+
+    virtual void put_char(char c, uint32_t colour, uint32_t bg) = 0;
+    virtual void put_char(char c) = 0;
+    virtual void print(const char* str, uint32_t colour, uint32_t bg) = 0;
+    virtual void print(const char* str) = 0;
+    virtual void clear() = 0;
+    [[nodiscard]] virtual uint32_t get_width() const = 0;
+    [[nodiscard]] virtual uint32_t get_height() const = 0;
 };
 
-extern GpuBltDriver* gpu_blt;
-
-#endif //VESPERAOS_GPU_BLT_H
+#endif //VESPERAOS_ISCREENRENDERER_H

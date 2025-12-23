@@ -91,6 +91,13 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     }
 }
 
+void IntelBlt::start_device(uint32_t screen_width, uint32_t screen_height)
+{
+    alloc_framebuffer(screen_width, screen_height, TileMode::Linear);
+    set_display_framebuffer();
+}
+
+
 void IntelBlt::init_text_buffer(FONT* font, uint32_t screen_width)
 {
     if (!font)
@@ -191,11 +198,11 @@ bool IntelBlt::wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us)
     return false;
 }
 
-bool IntelBlt::validate_blt_params(const BltRect& rect, const GpuFramebuffer* fb)
+bool IntelBlt::validate_blt_params(const BltRect& rect)
 {
-    if (!fb || !fb->cpu_addr)
+    if (!fb.cpu_addr)
     {
-        Log::Error("Invalid framebuffer pointer");
+        Log::Error("Invalid framebuffer");
         return false;
     }
 
@@ -213,27 +220,27 @@ bool IntelBlt::validate_blt_params(const BltRect& rect, const GpuFramebuffer* fb
     }
 
     // Check bounds
-    if (rect.x + rect.width > fb->width || rect.y + rect.height > fb->height)
+    if (rect.x + rect.width > fb.width || rect.y + rect.height > fb.height)
     {
         Log::Error("Rect out of bounds: (%d,%d)-(%d,%d) in %dx%d FB",
                    rect.x, rect.y, rect.x + rect.width, rect.y + rect.height,
-                   fb->width, fb->height);
+                   fb.width, fb.height);
         return false;
     }
 
     // Check alignment
-    if (fb->gfx_addr & 0x3F)
+    if (fb.gfx_addr & 0x3F)
     {
         // 64-byte alignment
-        Log::Error("Framebuffer not aligned: 0x%llx", fb->gfx_addr);
+        Log::Error("Framebuffer not aligned: 0x%llx", fb.gfx_addr);
         return false;
     }
 
     // Check pitch
-    if (fb->pitch & 0x3F)
+    if (fb.pitch & 0x3F)
     {
         // 64-byte alignment
-        Log::Error("Pitch not aligned: %d", fb->pitch);
+        Log::Error("Pitch not aligned: %d", fb.pitch);
         return false;
     }
 
@@ -339,10 +346,10 @@ void IntelBlt::check_gpu_health()
     last_head = head;
 }
 
-bool IntelBlt::fill_rect(BltRect rect,
-                         uint32_t color, GpuFramebuffer* fb)
+bool IntelBlt::rect(BltRect rect,
+                    uint32_t color)
 {
-    if (!validate_blt_params(rect, fb))
+    if (!validate_blt_params(rect))
     {
         return false;
     }
@@ -361,8 +368,8 @@ bool IntelBlt::fill_rect(BltRect rect,
     uint32_t y2 = rect.y + rect.height;
 
     xy_color_blt(
-        fb->gfx_addr,
-        fb->pitch,
+        fb.gfx_addr,
+        fb.pitch,
         rect.x, rect.y,
         x2, y2,
         color
@@ -382,9 +389,8 @@ bool IntelBlt::fill_rect(BltRect rect,
     return true;
 }
 
-GpuFramebuffer IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode)
+void IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode)
 {
-    GpuFramebuffer fb{};
     fb.width = width;
     fb.height = height;
     fb.bpp = 4; // 32-bit ARGB
@@ -407,8 +413,6 @@ GpuFramebuffer IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, Tile
     fb.cpu_addr = allocation.cpu_addr;
 
     memset(fb.cpu_addr, 0, total_size);
-
-    return fb;
 }
 
 void IntelBlt::mi_flush(uint32_t seqno)
@@ -594,8 +598,7 @@ uint64_t IntelBlt::map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat
 
 
 // https://kiwitree.net/~lina/intel-gfx-docs/prm/kbl/intel-gfx-prm-osrc-kbl-vol02c-commandreference-registers-part2_0.pdf (page 604)
-void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
-                                       uint32_t height, uint32_t pitch, TileMode tile_mode) const
+void IntelBlt::set_display_framebuffer() const
 {
     auto plane_regs = reinterpret_cast<volatile uint32_t*>(mmio_base);
 
@@ -608,23 +611,23 @@ void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
     }
 
     uint32_t stride_value;
-    switch (tile_mode)
+    switch (fb.tile_mode)
     {
     case TileMode::Linear:
         // Linear: stride in chunks of 64 bytes
-        stride_value = pitch / 64;
+        stride_value = fb.pitch / 64;
         plane_ctl = PLANE_CTL_PIPE_A | PLANE_CTL_FORMAT_XRGB8888;
         break;
 
     case TileMode::X:
-        stride_value = pitch / 512;
+        stride_value = fb.pitch / 512;
         plane_ctl = PLANE_CTL_PIPE_A |
             PLANE_CTL_FORMAT_XRGB8888 |
             (0b001 << 10);
         break;
 
     case TileMode::Y:
-        stride_value = pitch / 128;
+        stride_value = fb.pitch / 128;
         plane_ctl = PLANE_CTL_PIPE_A |
             PLANE_CTL_FORMAT_XRGB8888 |
             PLANE_CTL_TILE_Y;
@@ -638,7 +641,7 @@ void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
     plane_regs[PLANE_STRIDE_1A / 4] = stride_value & 0x3FF;
 
     // Set size (width-1, height-1)
-    uint32_t size = ((height - 1) << 16) | (width - 1);
+    uint32_t size = ((fb.height - 1) << 16) | (fb.width - 1);
     plane_regs[PLANE_SIZE_1A / 4] = size;
 
     // Set position (0, 0 for fullscreen)
@@ -651,19 +654,14 @@ void IntelBlt::set_display_framebuffer(uint64_t gfx_addr, uint32_t width,
 
     plane_regs[PLANE_CTL_1A / 4] = plane_ctl;
 
-    plane_regs[PLANE_SURF_1A / 4] = gfx_addr;
+    plane_regs[PLANE_SURF_1A / 4] = fb.gfx_addr;
 
     plane_regs[PLANE_CTL_1A / 4] = plane_ctl | PLANE_CTL_ENABLE;
 
     asm volatile("mfence" ::: "memory");
 
     Log::debug("Display framebuffer updated: addr=0x%llx, %dx%d, pitch=%d",
-               gfx_addr, width, height, pitch);
-}
-
-void IntelBlt::set_display_framebuffer(const GpuFramebuffer& fb) const
-{
-    set_display_framebuffer(fb.gfx_addr, fb.width, fb.height, fb.pitch, fb.tile_mode);
+               fb.gfx_addr, fb.width, fb.height, fb.pitch);
 }
 
 void IntelBlt::xy_mono_src_copy_blt(
@@ -782,11 +780,10 @@ void IntelBlt::build_text_scanline(const char* text, size_t length,
     asm volatile("sfence" ::: "memory");
 }
 
-bool IntelBlt::draw_string(const char* text, uint32_t x, uint32_t y,
-                           uint32_t fg_color, uint32_t bg_color,
-                           FONT* font, GpuFramebuffer* fb)
+bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y,
+                        uint32_t fg_color, uint32_t bg_color)
 {
-    if (!text || !font || !fb || !text_buffer.cpu_addr)
+    if (!text || !system_font || !text_buffer.cpu_addr)
     {
         Log::Error("Invalid parameters for draw_string");
         return false;
@@ -799,8 +796,8 @@ bool IntelBlt::draw_string(const char* text, uint32_t x, uint32_t y,
     }
 
     // Calculate text dimensions
-    uint32_t text_width = text_len * font->width;
-    uint32_t text_height = font->height;
+    uint32_t text_width = text_len * system_font->width;
+    uint32_t text_height = system_font->height;
 
     uint32_t text_stride = ((text_width + 7) / 8);
     text_stride = ((text_stride + 1) / 2) * 2;
@@ -821,15 +818,15 @@ bool IntelBlt::draw_string(const char* text, uint32_t x, uint32_t y,
         return false;
     }
 
-    build_text_scanline(text, text_len, font,
+    build_text_scanline(text, text_len, system_font,
                         static_cast<uint8_t*>(text_buffer.cpu_addr),
                         text_stride);
 
     asm volatile("mfence" ::: "memory");
 
     xy_mono_src_copy_blt(
-        fb->gfx_addr,
-        fb->pitch,
+        fb.gfx_addr,
+        fb.pitch,
         x, y,
         x + text_width,
         y + text_height,
@@ -855,18 +852,16 @@ bool IntelBlt::draw_string(const char* text, uint32_t x, uint32_t y,
     return true;
 }
 
-bool IntelBlt::init() { return true; }
-
-void IntelBlt::fill(uint32_t color)
+uint32_t IntelBlt::get_height()
 {
+    return fb.height;
+}
+
+uint32_t IntelBlt::get_width()
+{
+    return fb.width;
 }
 
 void IntelBlt::copy(BltRect src, BltRect dst)
 {
-}
-
-void IntelBlt::flush()
-{
-    //mi_flush();
-    flush_commands();
 }

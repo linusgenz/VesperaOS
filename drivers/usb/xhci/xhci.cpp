@@ -122,7 +122,7 @@ namespace USB
 
         kernel::time::sleep_ms(100);
 
-        if (true)
+        if (false)
         {
             for (uint8_t i = 0; i < m_max_ports; i++)
             {

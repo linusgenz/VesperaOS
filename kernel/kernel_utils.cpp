@@ -36,6 +36,7 @@
 #include "../drivers/ps2/ps2_init.h"
 #include "../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../filesystem/realmfs/realmfs.h"
+#include "graphics/framebuffer_renderer.h"
 #include "tty/init.h"
 
 uint64_t* scroll_buffer_top = nullptr;
@@ -113,7 +114,8 @@ void initialize_kernel(BootInfo* boot_info)
     system_font = boot_info->font;
 
     renderer = screen_renderer(boot_info->framebuffer, boot_info->font);
-    Log::SetRenderer(&renderer);
+    auto Irenderer = new FramebufferRenderer(&renderer);
+    Log::SetRenderer(Irenderer);
     global_renderer = &renderer;
 
     TargetFramebuffer = boot_info->framebuffer;

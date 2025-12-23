@@ -2,38 +2,47 @@
 // Created by Linus on 10.07.25.
 //
 
-#include "../include/log.h"
-#include "../include/string.h"
+#include <log.h>
+#include <string.h>
+#include "../kernel/graphics/IScreenRenderer.h"
 
-screen_renderer *Log::renderer = nullptr;
+IScreenRenderer* Log::renderer = nullptr;
 spinlock_t Log::log_spin = {};
 kernel::mutex_t Log::log_mutex = {};
 bool Log::initialized = false;
 bool Log::is_debug = false;
 
-void Log::init() {
-  //  initialized = true;
-  //  kernel::mutex_init(&log_mutex);
-   // log_spin.init();
+void Log::init()
+{
+    //  initialized = true;
+    //  kernel::mutex_init(&log_mutex);
+    // log_spin.init();
 }
 
-void Log::SetRenderer(screen_renderer *r) {
+void Log::SetRenderer(IScreenRenderer* r)
+{
     renderer = r;
 }
 
-void Log::enableDebug() {
+void Log::enableDebug()
+{
     is_debug = true;
 }
 
 
-void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = false) {
+void UIntToStr(uint64_t value, char* buffer, uint8_t base = 10, bool prefix = false)
+{
     char temp[32];
     int i = 0;
 
-    if (value == 0) {
+    if (value == 0)
+    {
         temp[i++] = '0';
-    } else {
-        while (value > 0) {
+    }
+    else
+    {
+        while (value > 0)
+        {
             const auto digits = "0123456789ABCDEF";
             temp[i++] = digits[value % base];
             value /= base;
@@ -41,26 +50,26 @@ void UIntToStr(uint64_t value, char *buffer, uint8_t base = 10, bool prefix = fa
     }
 
     int j = 0;
-    if (prefix && base == 16) {
+    if (prefix && base == 16)
+    {
         buffer[j++] = '0';
         buffer[j++] = 'x';
     }
 
-    while (i--) {
+    while (i--)
+    {
         buffer[j++] = temp[i];
     }
 
     buffer[j] = '\0';
 }
 
-void Log::Info(const char *fmt, ...) {
+void Log::Info(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
-    Colour old = renderer->get_colour();
     renderer->print("[  ");
-    renderer->set_colour(BLUE);
-    renderer->print("INFO");
-    renderer->set_colour(old);
+    renderer->print("INFO", BLUE, BLACK);
     renderer->print("   ] ");
 
     __builtin_va_list args;
@@ -69,17 +78,15 @@ void Log::Info(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
 }
 
-void Log::Ok(const char *fmt, ...) {
+
+void Log::Ok(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
-    Colour old = renderer->get_colour();
     renderer->print("[   ");
-    renderer->set_colour(GREEN);
-    renderer->print("OK");
-    renderer->set_colour(old);
+    renderer->print("OK", GREEN, BLACK);
     renderer->print("    ] ");
 
     __builtin_va_list args;
@@ -88,17 +95,14 @@ void Log::Ok(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
 }
 
-void Log::Warning(const char *fmt, ...) {
+void Log::Warning(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
-    Colour old = renderer->get_colour();
     renderer->print("[ ");
-    renderer->set_colour(YELLOW);
-    renderer->print("WARNING");
-    renderer->set_colour(old);
+    renderer->print("WARNING", YELLOW, BLACK);
     renderer->print(" ] ");
 
     __builtin_va_list args;
@@ -109,14 +113,12 @@ void Log::Warning(const char *fmt, ...) {
     renderer->print("\n");
 }
 
-void Log::Error(const char *fmt, ...) {
+void Log::Error(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
-    Colour old = renderer->get_colour();
     renderer->print("[  ");
-    renderer->set_colour(RED);
-    renderer->print("ERROR");
-    renderer->set_colour(old);
+    renderer->print("ERROR", RED, BLACK);
     renderer->print("  ] ");
 
     __builtin_va_list args;
@@ -127,14 +129,12 @@ void Log::Error(const char *fmt, ...) {
     renderer->print("\n");
 }
 
-void Log::LogMsg(const char *fmt, ...) {
+void Log::LogMsg(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
-    Colour old = renderer->get_colour();
     renderer->print("[   ");
-    renderer->set_colour(GRAY);
-    renderer->print("LOG");
-    renderer->set_colour(old);
+    renderer->print("LOG", GRAY, BLACK);
     renderer->print("   ] ");
 
     __builtin_va_list args;
@@ -143,10 +143,10 @@ void Log::LogMsg(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
 }
 
-void Log::PrintLn(const char *fmt, ...) {
+void Log::PrintLn(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
     __builtin_va_list args;
@@ -155,28 +155,25 @@ void Log::PrintLn(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
 }
 
-void Log::Print(const char *fmt, ...) {
+void Log::Print(const char* fmt, ...)
+{
     spinlock_guard g(log_spin);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
 }
 
-void Log::debug(const char *fmt, ...) {
+void Log::debug(const char* fmt, ...)
+{
     if (!is_debug) return;
     spinlock_guard g(log_spin);
 
-    Colour old = renderer->get_colour();
     renderer->print("[  ");
-    renderer->set_colour(ORANGE);
-    renderer->print("DEBUG");
-    renderer->set_colour(old);
+    renderer->print("DEBUG", ORANGE, BLACK);
     renderer->print("  ] ");
 
     __builtin_va_list args;
@@ -185,11 +182,12 @@ void Log::debug(const char *fmt, ...) {
     __builtin_va_end(args);
 
     renderer->print("\n");
-
 }
 
-static void float_to_str(float val, char *buf, int precision) {
-    if (val < 0) {
+static void float_to_str(float val, char* buf, int precision)
+{
+    if (val < 0)
+    {
         *buf++ = '-';
         val = -val;
     }
@@ -200,15 +198,17 @@ static void float_to_str(float val, char *buf, int precision) {
 
     char int_buf[32];
     UIntToStr(int_part, int_buf, 10);
-    char *p = int_buf;
-    while (*p) {
+    char* p = int_buf;
+    while (*p)
+    {
         *buf++ = *p++;
     }
 
     *buf++ = '.';
 
     // Nachkommateil
-    for (int i = 0; i < precision; i++) {
+    for (int i = 0; i < precision; i++)
+    {
         frac_part *= 10.0f;
         int digit = static_cast<int>(frac_part);
         *buf++ = static_cast<char>('0' + digit);
@@ -218,10 +218,13 @@ static void float_to_str(float val, char *buf, int precision) {
     *buf = '\0';
 }
 
-void Log::print_formatted(const char *fmt, __builtin_va_list args) {
+void Log::print_formatted(const char* fmt, __builtin_va_list args)
+{
     char chr;
-    while ((chr = *fmt++) != 0) {
-        if (chr == '%') {
+    while ((chr = *fmt++) != 0)
+    {
+        if (chr == '%')
+        {
             // Flags & Width
             bool long_long = false;
             bool long_flag = false;
@@ -230,26 +233,33 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
             int precision = -1;
 
             // Padding: z. B. %02x → '0' erkannt
-            if (*fmt == '0') {
+            if (*fmt == '0')
+            {
                 pad_char = '0';
                 fmt++;
             }
 
             // Breite (z. B. 2, 4, 8, etc.)
-            while (*fmt >= '0' && *fmt <= '9') {
+            while (*fmt >= '0' && *fmt <= '9')
+            {
                 min_width = min_width * 10 + (*fmt - '0');
                 fmt++;
             }
 
             // Precision: .* oder .n
-            if (*fmt == '.') {
+            if (*fmt == '.')
+            {
                 fmt++;
-                if (*fmt == '*') {
+                if (*fmt == '*')
+                {
                     precision = __builtin_va_arg(args, int);
                     fmt++;
-                } else {
+                }
+                else
+                {
                     precision = 0;
-                    while (*fmt >= '0' && *fmt <= '9') {
+                    while (*fmt >= '0' && *fmt <= '9')
+                    {
                         precision = precision * 10 + (*fmt - '0');
                         fmt++;
                     }
@@ -257,12 +267,16 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
             }
 
             // Länge: l / ll
-            if (*fmt == 'l') {
+            if (*fmt == 'l')
+            {
                 fmt++;
-                if (*fmt == 'l') {
+                if (*fmt == 'l')
+                {
                     long_long = true;
                     fmt++;
-                } else {
+                }
+                else
+                {
                     long_flag = true;
                 }
             }
@@ -270,25 +284,32 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
             char specifier = *fmt++;
             char buffer[64];
 
-            switch (specifier) {
-                case 's': {
-                    const char *str = __builtin_va_arg(args, const char*);
+            switch (specifier)
+            {
+            case 's':
+                {
+                    const char* str = __builtin_va_arg(args, const char*);
                     if (!str) str = "<null>";
 
-                    if (precision >= 0) {
+                    if (precision >= 0)
+                    {
                         // Maximal precision Zeichen ausgeben
                         int count = 0;
-                        while (str[count] && count < precision) {
+                        while (str[count] && count < precision)
+                        {
                             renderer->put_char(str[count]);
                             count++;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         renderer->print(str);
                     }
                     break;
                 }
-                case 'u':
-                case 'x': {
+            case 'u':
+            case 'x':
+                {
                     uint64_t val = (long_long || long_flag)
                                        ? __builtin_va_arg(args, uint64_t)
                                        : __builtin_va_arg(args, uint32_t);
@@ -303,16 +324,19 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     renderer->print(buffer);
                     break;
                 }
-                case 'c': {
+            case 'c':
+                {
                     int val = __builtin_va_arg(args, int);
                     renderer->put_char(static_cast<char>(val));
                     break;
                 }
-                case 'd': {
+            case 'd':
+                {
                     int64_t val = (long_long || long_flag)
                                       ? __builtin_va_arg(args, int64_t)
                                       : __builtin_va_arg(args, int32_t);
-                    if (val < 0) {
+                    if (val < 0)
+                    {
                         renderer->put_char('-');
                         val = -val;
                     }
@@ -323,7 +347,9 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     renderer->print(buffer);
                     break;
                 }
-                case 'f': {  // Float-Support
+            case 'f':
+                {
+                    // Float-Support
                     double val = __builtin_va_arg(args, double);
                     int frac_digits = (precision >= 0) ? precision : 6;
                     float_to_str(static_cast<float>(val), buffer, frac_digits);
@@ -333,7 +359,8 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     renderer->print(buffer);
                     break;
                 }
-                case 'p': {
+            case 'p':
+                {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);
                     renderer->print("0x");
                     UIntToStr(val, buffer, 16);
@@ -343,15 +370,17 @@ void Log::print_formatted(const char *fmt, __builtin_va_list args) {
                     renderer->print(buffer);
                     break;
                 }
-                case '%':
-                    renderer->put_char('%');
-                    break;
-                default:
-                    renderer->put_char('%');
-                    renderer->put_char(specifier);
-                    break;
+            case '%':
+                renderer->put_char('%');
+                break;
+            default:
+                renderer->put_char('%');
+                renderer->put_char(specifier);
+                break;
             }
-        } else {
+        }
+        else
+        {
             renderer->put_char(chr);
         }
     }

@@ -218,24 +218,22 @@ struct MonoTestBuffer
     uint32_t stride; // bytes per scanline
 };
 
-class IntelBlt final : public GpuBlt
+class IntelBlt final : public GpuBltDriver
 {
 public:
     explicit IntelBlt(PCI::PCIDeviceHeader* header);
+    void start_device(uint32_t screen_width, uint32_t screen_height);
     void init_text_buffer(FONT* font, uint32_t screen_width);
 
-    bool fill_rect(BltRect rect, uint32_t color, GpuFramebuffer* fb);
-    GpuFramebuffer alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
-    void set_display_framebuffer(const GpuFramebuffer& fb) const;
+    void alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
     void build_text_scanline(const char* text, size_t length,
                              FONT* font, uint8_t* buffer,
                              uint32_t buffer_stride);
-    bool draw_string(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color, FONT* font,
-                     GpuFramebuffer* fb);
-    bool init() override;
-    void fill(uint32_t color) override;
+    bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) override;
+    bool rect(BltRect rect, uint32_t color) override;
     void copy(BltRect src, BltRect dst) override;
-    void flush() override;
+    uint32_t get_width() override;
+    uint32_t get_height() override;
     uint64_t fb_graphics_addr = 0;
 
 private:
@@ -265,10 +263,10 @@ private:
     uint32_t sequence_number;
 
     GpuTextBuffer text_buffer;
+    GpuFramebuffer fb;
 
     void write_command(uint32_t cmd);
-    void set_display_framebuffer(uint64_t gfx_addr, uint32_t width, uint32_t height, uint32_t pitch,
-                                 TileMode tile_mode) const;
+    void set_display_framebuffer() const;
     void mi_flush(uint32_t seqno);
     [[nodiscard]] bool wait_for_sequence(uint32_t target_seqno, uint32_t timeout_us) const;
     void flush_commands() const;
@@ -279,7 +277,7 @@ private:
     void init_gtt();
     void emergency_reset_bcs();
     void check_gpu_health();
-    static bool validate_blt_params(const BltRect& rect, const GpuFramebuffer* fb);
+    bool validate_blt_params(const BltRect& rect);
     [[nodiscard]] bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
     void xy_color_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
                       uint32_t color);

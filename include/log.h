@@ -5,9 +5,11 @@
 #include <kernel/sync/spinlock.h>
 #include <kernel/sync/mutex.h>
 
+class IScreenRenderer;
+
 class Log {
 public:
-    static void SetRenderer(screen_renderer* r);
+    static void SetRenderer(IScreenRenderer* r);
 
     static void Info(const char* fmt, ...);
     static void Ok(const char* fmt, ...);
@@ -25,7 +27,7 @@ public:
     static void enableDebug();
 
 private:
-    static screen_renderer* renderer;
+    static IScreenRenderer* renderer;
     static void print_formatted(const char *fmt, __builtin_va_list args);
     static spinlock_t log_lock;
 

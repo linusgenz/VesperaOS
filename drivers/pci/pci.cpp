@@ -8,6 +8,7 @@
 #include "../../filesystem/devfs/devfs.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../ahci/ahci.h"
+#include "../gpu/gpu_blitter_renderer.h"
 #include "../gpu/intel/intel_blt.h"
 #include "../nvme/nvme.h"
 #include "../usb/usb_manager.h"
@@ -111,15 +112,10 @@ namespace PCI
                     case 0x8086:
                         {
                             auto* driver = new IntelBlt(pci_device_header);
-                            GpuFramebuffer fb = driver->alloc_framebuffer(
-                                TargetFramebuffer->width, TargetFramebuffer->height, TileMode::Linear);
+                            driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
+                            auto Irenderer = new GPUBlitterRenderer(driver, system_font->width, system_font->height);
+                            Log::SetRenderer(Irenderer);
 
-                            driver->draw_string("Zat", 200, 200,
-                                                0xFFFFFFFF, 0xFF000000, system_font, &fb);
-                           // driver->draw_string("Intel BLT Initialized", 100, 120,
-                           //                     0xFF00FF00, 0xFF000000, system_font, &fb);
-                            driver->set_display_framebuffer(fb);
-                            while (1);
                             break;
                         }
                     default: ;

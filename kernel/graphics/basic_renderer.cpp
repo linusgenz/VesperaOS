@@ -93,9 +93,9 @@ void screen_renderer::put_pixel(uint32_t x, uint32_t y, uint32_t colour)
 }
 
 
-Colour screen_renderer::get_pixel(const uint32_t x, const uint32_t y) const
+uint32_t screen_renderer::get_pixel(const uint32_t x, const uint32_t y) const
 {
-    return *reinterpret_cast<Colour*>(reinterpret_cast<uint64_t>(TargetFramebuffer->base_address) + (x * 4) + (
+    return *reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(TargetFramebuffer->base_address) + (x * 4) + (
         y * TargetFramebuffer->pixels_per_scanline * 4));
 }
 
@@ -129,7 +129,7 @@ void screen_renderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Poin
 }
 
 
-void screen_renderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const Colour colour)
+void screen_renderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const uint32_t colour)
 {
     /*  int32_t x_max = 16;
       int32_t y_max = 16;
