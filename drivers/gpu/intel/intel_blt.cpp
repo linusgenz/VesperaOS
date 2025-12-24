@@ -852,6 +852,112 @@ bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y,
     return true;
 }
 
+
+void IntelBlt::xy_src_copy_blt(
+    uint64_t dest_addr,
+    uint32_t dest_pitch,
+    uint32_t dest_x1, uint32_t dest_y1,
+    uint32_t dest_x2, uint32_t dest_y2,
+    uint64_t src_addr,
+    uint32_t src_pitch,
+    uint32_t src_x1, uint32_t src_y1)
+{
+    // DW0: BR00 - Command Header
+    uint32_t dw0 = XY_SRC_COPY_BLT_CMD |
+        XY_SRC_COPY_BLT_OPCODE |
+        XY_SRC_COPY_WRITE_ALPHA |
+        XY_SRC_COPY_WRITE_RGB |
+        XY_SRC_COPY_BLT_LEN;
+
+    // DW1: BR13 - Format and ROP
+    uint32_t dw1 = COLOR_DEPTH_8888 |
+        (SRCCOPY << 16) | // ROP: SRCCOPY (0xCC)
+        (dest_pitch & 0xFFFF);
+
+    // DW2: BR22 - Destination Y1, X1
+    uint32_t dw2 = ((dest_y1 & COORD_MASK) << COORD_Y_SHIFT) | (dest_x1 & COORD_MASK);
+
+    // DW3: BR23 - Destination Y2, X2
+    uint32_t dw3 = ((dest_y2 & COORD_MASK) << COORD_Y_SHIFT) | (dest_x2 & COORD_MASK);
+
+    // DW4-5: Destination Base Address (64-bit)
+    uint32_t dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
+    uint32_t dw5 = static_cast<uint32_t>(dest_addr >> 32);
+
+    // DW6: BR26 - Source Y1, X1
+    uint32_t dw6 = ((src_y1 & COORD_MASK) << COORD_Y_SHIFT) | (src_x1 & COORD_MASK);
+
+    // DW7: BR11 - Source Pitch
+    uint32_t dw7 = src_pitch & 0xFFFF;
+
+    // DW8-9: Source Base Address (64-bit)
+    uint32_t dw8 = static_cast<uint32_t>(src_addr & 0xFFFFFFFF);
+    uint32_t dw9 = static_cast<uint32_t>(src_addr >> 32);
+
+    write_command(dw0);
+    write_command(dw1);
+    write_command(dw2);
+    write_command(dw3);
+    write_command(dw4);
+    write_command(dw5);
+    write_command(dw6);
+    write_command(dw7);
+    write_command(dw8);
+    write_command(dw9);
+}
+
+bool IntelBlt::scroll(uint32_t scroll_pixels)
+{
+    if (scroll_pixels == 0)
+        return true;
+
+    if (scroll_pixels >= fb.height)
+    {
+        xy_color_blt(fb.gfx_addr, fb.pitch, 0, 0, fb.width, fb.height, BLACK);
+        return true;
+    }
+
+    check_gpu_health();
+
+    const uint32_t copy_height = fb.height - scroll_pixels;
+
+    uint32_t required = 30 * 4 + 64;
+    if (!wait_for_ring_space(required, 1000000))
+        return false;
+
+    xy_src_copy_blt(
+        fb.gfx_addr,
+        fb.pitch,
+        0, 0,
+        fb.width, copy_height,
+        fb.gfx_addr,
+        fb.pitch,
+        0, scroll_pixels
+    );
+
+    xy_color_blt(
+        fb.gfx_addr,
+        fb.pitch,
+        0, copy_height,
+        fb.width,
+        fb.height,
+        BLACK
+    );
+
+    sequence_number++;
+    mi_flush(sequence_number);
+    flush_commands();
+
+    if (!wait_for_sequence(sequence_number, 2'000'000))
+    {
+        Log::Error("Scroll timeout (combined)");
+        return false;
+    }
+
+    return true;
+}
+
+
 uint32_t IntelBlt::get_height()
 {
     return fb.height;

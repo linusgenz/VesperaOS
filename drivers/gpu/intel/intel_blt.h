@@ -108,6 +108,17 @@ struct GgttAllocation
 #define HWSP_SEQNO_OFFSET_DWORDS 4
 #define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
 
+// ============================================================================
+// XY_SRC_COPY_BLT Command - 2D Source Copy
+// ============================================================================
+
+#define XY_SRC_COPY_BLT_CMD         (2u << 29)    // Command type: 2D processor
+#define XY_SRC_COPY_BLT_OPCODE      (0x53u << 22) // Opcode: XY_SRC_COPY_BLT
+#define XY_SRC_COPY_WRITE_RGB       (1u << 20)    // Write RGB
+#define XY_SRC_COPY_WRITE_ALPHA     (1u << 21)    // Write Alpha
+#define XY_SRC_TILING_ENABLE        (1u << 15)    // Source tiling enable
+#define XY_DEST_TILING_ENABLE       (1u << 11)    // Destination tiling enable
+#define XY_SRC_COPY_BLT_LEN         8             // DWord length = 8 (10 DWords total)
 
 // ============================================================================
 // XY_COLOR_BLT Command - 2D Color Fill
@@ -230,7 +241,10 @@ public:
                              FONT* font, uint8_t* buffer,
                              uint32_t buffer_stride);
     bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) override;
+    void xy_src_copy_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2,
+                         uint32_t dest_y2, uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1);
     bool rect(BltRect rect, uint32_t color) override;
+    bool scroll(uint32_t scroll_pixels) override;
     void copy(BltRect src, BltRect dst) override;
     uint32_t get_width() override;
     uint32_t get_height() override;

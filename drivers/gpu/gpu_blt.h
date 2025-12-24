@@ -38,7 +38,7 @@ public:
     virtual uint32_t get_width() = 0;
     virtual uint32_t get_height() = 0;
     virtual bool draw_str(const char* str, uint32_t x, uint32_t y, uint32_t colour, uint32_t bg) = 0;
-    virtual void scroll(uint32_t scroll_pixels) = 0;
+    virtual bool scroll(uint32_t scroll_pixels) = 0;
     virtual ~GpuBltDriver() = default;
 };
 
