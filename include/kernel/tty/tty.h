@@ -26,6 +26,7 @@
 
 #include <kernel/input/input_event.h>
 
+class TTYOutput;
 class TTYDevice;
 
 namespace kernel::tty {
@@ -60,6 +61,10 @@ namespace kernel::tty {
 
         Colour fg = WHITE;
         Colour bg = BLACK;
+
+        char out_buffer[BUFFER_SIZE];
+        size_t out_len = 0;
+        TTYOutput *out;
     };
 
 
@@ -67,11 +72,15 @@ namespace kernel::tty {
     extern TTYDevice *tty_devices[6];
     extern TTY *active_tty;
 
-    void tty_init(TTY *tty);
+    void tty_init(TTY *tty, TTYOutput *out);
 
     void tty_handle_input(const input::InputEvent &ev);
 
     void tty_process_output(TTY *tty, char c);
+
+    void tty_flush_output(TTY* tty);
+
+    void tty_buffer_char(TTY* tty, char c);
 
     void tty_clear(TTY *tty);
 

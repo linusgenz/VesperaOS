@@ -1,10 +1,10 @@
 /**
- * @file IScreenRenderer.h
+ * @file tty_output.h
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
  *
- * Created by Linus Genz on 23.12.25.
+ * Created by Linus Genz on 24.12.25.
  *
  * This file is part of VesperaOS.
  *
@@ -21,26 +21,25 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_ISCREENRENDERER_H
-#define VESPERAOS_ISCREENRENDERER_H
-
+#ifndef VESPERAOS_TTY_OUTPUT_H
+#define VESPERAOS_TTY_OUTPUT_H
 #include <cstdint>
 
-class IScreenRenderer
-{
+class TTYOutput {
 public:
-    virtual ~IScreenRenderer() = default;
+    virtual ~TTYOutput() = default;
 
-    virtual void put_char(char c, uint32_t colour, uint32_t bg) = 0;
     virtual void put_char(char c) = 0;
-    virtual void clear_char(uint32_t colour, uint32_t bg) = 0;
     virtual void clear_char() = 0;
-    virtual void print(const char* str, uint32_t colour, uint32_t bg) = 0;
-    virtual void print(const char* str) = 0;
+    virtual void print(const char* s) = 0;
+    virtual void new_line() = 0;
+
     virtual void clear() = 0;
+
+    virtual void set_fg(uint32_t c) = 0;
+    virtual void set_bg(uint32_t c) = 0;
+
     virtual void set_cursor(uint32_t x, uint32_t y) = 0;
-    [[nodiscard]] virtual uint32_t get_width() const = 0;
-    [[nodiscard]] virtual uint32_t get_height() const = 0;
 };
 
-#endif //VESPERAOS_ISCREENRENDERER_H
+#endif //VESPERAOS_TTY_OUTPUT_H

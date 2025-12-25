@@ -62,6 +62,18 @@ public:
         put_char(c, 0xFFFFFFFF, 0x00000000);
     }
 
+    void clear_char(uint32_t colour, uint32_t bg) override
+    {
+        cursor_position.X -= char_width;
+        put_char(' ', colour, bg);
+    }
+
+    void clear_char() override
+    {
+        cursor_position.X -= char_width;
+        put_char(' ');
+    }
+
     void print(const char* str, uint32_t colour, uint32_t bg) override
     {
         if (!str || !*str) return;
@@ -83,7 +95,6 @@ public:
             {
                 if (chars_in_line > 0)
                 {
-                    // temporärer Buffer für genau EINEN GPU-Call
                     char buf[256]; // ausreichend für Kernel-Logs
                     if (chars_in_line >= sizeof(buf))
                         chars_in_line = sizeof(buf) - 1;
@@ -156,6 +167,12 @@ public:
             gpu->scroll(char_height);
             cursor_position.Y = get_height() - char_height;
         }
+    }
+
+    void set_cursor(uint32_t x, uint32_t y)
+    {
+        cursor_position.X = x;
+        cursor_position.Y = y;
     }
 };
 

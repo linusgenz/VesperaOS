@@ -28,7 +28,7 @@
 
 #include <kernel/time.h>
 #include <kernel/system/system_manager.h>
-
+/*
 static float abs(float v) {
     return v < 0.0f ? -v : v;
 }
@@ -190,4 +190,5 @@ void render_throbber(void *arg) {
     }
 
  //   kernel::scheduling::thread_exit();
-}
+
+}*/

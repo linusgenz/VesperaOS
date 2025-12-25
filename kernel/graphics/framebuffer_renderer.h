@@ -51,6 +51,20 @@ public:
         renderer->put_char(c);
     }
 
+    void clear_char(uint32_t colour, uint32_t bg) override
+    {
+        renderer->set_colour(colour);
+        renderer->set_bg_colour(bg);
+        renderer->clear_char();
+    }
+
+    void clear_char() override
+    {
+        renderer->set_colour(0xFFFFFFFF);
+        renderer->set_bg_colour(0x00000000);
+        renderer->clear_char();
+    }
+
     void print(const char* str, uint32_t colour, uint32_t bg) override
     {
         renderer->set_colour(colour);
@@ -68,6 +82,11 @@ public:
     void clear() override
     {
         renderer->clear();
+    }
+
+    void set_cursor(uint32_t x, uint32_t y)
+    {
+        renderer->set_cursor({x, y});
     }
 
     [[nodiscard]] uint32_t get_width() const override

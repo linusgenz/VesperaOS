@@ -25,6 +25,8 @@
 #include "../../../kernel/cpu/io.h"
 #include <kernel/basic_renderer.h>
 
+#include "kernel/kernel_utils.h"
+
 namespace input::mouse {
     uint8_t pointer[] = {
         0b10000000, 0b00000000,
@@ -152,12 +154,12 @@ namespace input::mouse {
         }
 
         if (position.X < 0) position.X = 0;
-        if (position.X > global_renderer->TargetFramebuffer->width - 1)
-            position.X = global_renderer->TargetFramebuffer->width - 1;
+        if (position.X > TargetFramebuffer->width - 1)
+            position.X = TargetFramebuffer->width - 1;
 
         if (position.Y < 0) position.Y = 0;
-        if (position.Y > global_renderer->TargetFramebuffer->height - 1)
-            position.Y = global_renderer->TargetFramebuffer->height - 1;
+        if (position.Y > TargetFramebuffer->height - 1)
+            position.Y = TargetFramebuffer->height - 1;
 
         int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]);
         if (wheel_movement > 0) {
@@ -166,8 +168,8 @@ namespace input::mouse {
             //scroll up
         }
 
-        global_renderer->clear_mouse_cursor(pointer, mouse_position_old);
-        global_renderer->draw_overlay_mouse_cursor(pointer, position, WHITE);
+       // global_renderer->clear_mouse_cursor(pointer, mouse_position_old);
+       // global_renderer->draw_overlay_mouse_cursor(pointer, position, WHITE);
 
         if (mouse_packet[0] & PS2LeftButton) {
         }

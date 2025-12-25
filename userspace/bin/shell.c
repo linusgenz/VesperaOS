@@ -650,27 +650,34 @@ int execute_command(command_t* cmd)
 
 void show_prompt(void)
 {
-    printf("[VesperaOS:");
-
-    // Show current directory (basename only)
     const char* dir = current_dir;
     const char* last_slash = NULL;
+
     while (*dir)
     {
-        if (*dir == '/') last_slash = dir;
+        if (*dir == '/')
+            last_slash = dir;
         dir++;
     }
 
-    if (last_slash && *(last_slash + 1))
-    {
-        printf(last_slash + 1);
-    }
-    else
-    {
-        printf("/");
-    }
+    char name[64];  // ausreichend für Prompt
+    const char* src;
 
-    printf("]$ ");
+    if (last_slash && *(last_slash + 1))
+        src = last_slash + 1;
+    else
+        src = "/";
+
+    // Kopieren mit Längenbegrenzung
+    size_t i = 0;
+    while (src[i] && i < sizeof(name) - 1)
+    {
+        name[i] = src[i];
+        i++;
+    }
+    name[i] = '\0';
+
+    printf("[VesperaOS:%s]$ ", name);
 }
 
 

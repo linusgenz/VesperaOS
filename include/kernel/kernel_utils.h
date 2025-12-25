@@ -6,10 +6,15 @@
 #define KERNEL_UTILS_H
 #include <boot.h>
 
+
+class ScreenRendererTTYOutput;
+
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
 extern Framebuffer *TargetFramebuffer;
+
+inline ScreenRendererTTYOutput* renderer_tty_out = nullptr;
 
 void initialize_kernel(BootInfo* boot_info);
 

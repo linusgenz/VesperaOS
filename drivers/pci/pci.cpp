@@ -115,6 +115,7 @@ namespace PCI
                             driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
                             auto Irenderer = new GPUBlitterRenderer(driver, system_font->width, system_font->height);
                             Log::SetRenderer(Irenderer);
+                            global_renderer = Irenderer;
                             break;
                         }
                     default: ;

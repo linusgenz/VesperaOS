@@ -2,6 +2,7 @@
 #ifndef BASIC_RENDERER_H
 #define BASIC_RENDERER_H
 #include "../../include/graphics.h"
+#include "../../kernel/graphics/IScreenRenderer.h"
 #include "../kernel/memory/heap.h"
 
 class screen_renderer{
@@ -93,6 +94,6 @@ inline void screen_renderer::set_bg_colour(uint32_t new_colour) {
     bg_colour = new_colour;
 }
 
-extern screen_renderer* global_renderer;
+extern IScreenRenderer* global_renderer;
 
 #endif //BASIC_RENDERER_H

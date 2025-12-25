@@ -38,6 +38,7 @@
 #include "../filesystem/realmfs/realmfs.h"
 #include "graphics/framebuffer_renderer.h"
 #include "tty/init.h"
+#include "tty/screen_renderer_tty_output.h"
 
 uint64_t* scroll_buffer_top = nullptr;
 uint64_t* scroll_buffer_bottom = nullptr;
@@ -116,7 +117,7 @@ void initialize_kernel(BootInfo* boot_info)
     renderer = screen_renderer(boot_info->framebuffer, boot_info->font);
     auto Irenderer = new FramebufferRenderer(&renderer);
     Log::SetRenderer(Irenderer);
-    global_renderer = &renderer;
+    global_renderer = Irenderer;
 
     TargetFramebuffer = boot_info->framebuffer;
 
@@ -181,7 +182,7 @@ void initialize_kernel(BootInfo* boot_info)
     //   UnitManager::list();
 
     prepare_ap_trampoline();
-   // CPUManager::smp_init();
+    CPUManager::smp_init();
     Log::init(); // threads are possible -> switch to mutex
 
     initialize_input_bus();
@@ -198,6 +199,7 @@ void initialize_kernel(BootInfo* boot_info)
                      USBManager::get_initialized_count());
     }
 
+    renderer_tty_out = new ScreenRendererTTYOutput(global_renderer);
     kernel::tty::initialize_ttys();
     initialize_pseudo_devices();
 

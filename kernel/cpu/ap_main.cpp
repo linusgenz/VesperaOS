@@ -27,8 +27,6 @@ extern "C" void ap_main(uint32_t apic_id)
 
     kernel::interrupts::lapic_init(cpu_id);
 
-    Log::Ok("Cpu %u initialized", cpu_id);
-
     kernel::scheduling::enable_on_cpu(cpu_id);
 
     kernel::SystemManager::system_panic("AP core returned from context switch", -KEAPRETURN);

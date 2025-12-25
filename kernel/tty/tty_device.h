@@ -85,6 +85,7 @@ public:
         {
             kernel::tty::tty_process_output(tty, buf[i]);
         }
+        kernel::tty::tty_flush_output(tty);
         return static_cast<int>(count);
     }
 };

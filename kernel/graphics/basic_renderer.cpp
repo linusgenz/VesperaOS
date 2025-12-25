@@ -2,9 +2,10 @@
 #include <string.h>
 #include <utils.h>
 
+#include "IScreenRenderer.h"
 #include "kernel/memory.h"
 
-screen_renderer* global_renderer;
+IScreenRenderer* global_renderer;
 
 screen_renderer::screen_renderer(Framebuffer* targetFramebuffer, FONT* font)
 {
@@ -192,7 +193,7 @@ void screen_renderer::clear_char()
 void screen_renderer::put_char(const char chr, const uint32_t xOff, const uint32_t yOff) const
 {
     if (chr == '\0') return;
-    auto* pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
+    auto pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
     const char* glyph = static_cast<char*>(PSF_Font->glyphBuffer) + (chr * PSF_Font->charsize);
     for (uint32_t y = 0; y < PSF_Font->height; y++)
     {
