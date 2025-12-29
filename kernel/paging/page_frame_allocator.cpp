@@ -29,8 +29,6 @@ void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* mMap, size_t
     }
     uint64_t memory_size = get_memory_size(mMap, mMapEntries, mMapDescSize);
 
-    Log::Info("Total RAM: %u mb", memory_size / 1024 / 1024);
-
     total_memory = memory_size;
     free_memory = memory_size;
     reserved_memory = 0;

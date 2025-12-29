@@ -26,10 +26,11 @@
 
 #include <vector.h>
 #include <cstdint>
-#include "../../../kernel/devices/blockdevice.h"
-#include "../filesystem/vfs/vfs.h"
 
+struct VfsNode;
 class CharDevice;
+class BlockDevice;
+class IRenderDriver;
 
 enum class DeviceType : uint8_t
 {
@@ -38,6 +39,7 @@ enum class DeviceType : uint8_t
     Controller,
     Bus,
     Logical,
+    Gpu,
     Other,
 };
 
@@ -49,6 +51,7 @@ enum class DeviceClass : uint8_t
     Net,
     Misc,
     Pseudo,
+    Graphics,
     Unknown,
 };
 
@@ -64,6 +67,8 @@ enum class ControllerType : uint8_t
     VirtIO,
     PS2,
     SMBus,
+    IntelGPU,
+    UefiGOP,
     Other,
 };
 
@@ -106,7 +111,7 @@ struct KernelDevice
 class DeviceManager
 {
 public:
-    static void Init();
+    static void init();
     static char* GenerateSDDeviceName(char* buffer, size_t buffer_size);
 
     static char* GenerateNVMeDeviceName(const KernelDevice* controller, char* buffer, size_t buffer_size, uint32_t namespaceId);
@@ -137,6 +142,8 @@ public:
         BusType bus,
         ControllerType controller = ControllerType::Other,
         KernelDevice* parent = nullptr, ::CharDevice* dev = nullptr);
+    static KernelDevice* RegisterGpuDevice(IRenderDriver* driver, const char* name, DeviceClass dev_class, BusType bus,
+                                    ControllerType controller, KernelDevice* parent);
     static void UnregisterDevice(KernelDevice* kd);
 
     static Vector<KernelDevice*> GetAllDevices();

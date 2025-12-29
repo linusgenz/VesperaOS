@@ -28,6 +28,9 @@
 
 #include "string.h"
 #include "kernel/memory.h"
+#include <kernel/devices/device_manager.h>
+
+#include "../../../filesystem/devfs/devfs.h"
 #include "kernel/time.h"
 
 IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
@@ -88,7 +91,21 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     else
     {
         Log::Error("BCS initialization failed!");
+        return;
     }
+
+    char name[16];
+    DeviceManager::AllocUniqueDeviceName("intel_blt", name, sizeof(name));
+    auto* gpu_device = DeviceManager::RegisterGpuDevice(
+        this,
+        name,
+        DeviceClass::Graphics,
+        BusType::BUS_PCI,
+        ControllerType::IntelGPU,
+        nullptr
+    );
+
+    DevFS::register_device(gpu_device);
 }
 
 void IntelBlt::start_device(uint32_t screen_width, uint32_t screen_height)
@@ -346,9 +363,21 @@ void IntelBlt::check_gpu_health()
     last_head = head;
 }
 
-bool IntelBlt::rect(BltRect rect,
-                    uint32_t color)
+bool IntelBlt::fill_rect(
+    uint32_t px,
+    uint32_t py,
+    uint32_t w,
+    uint32_t h,
+    uint32_t colour
+)
 {
+    BltRect rect{
+        .x = px,
+        .y = py,
+        .width = w,
+        .height = h
+    };
+
     if (!validate_blt_params(rect))
     {
         return false;
@@ -356,27 +385,29 @@ bool IntelBlt::rect(BltRect rect,
 
     check_gpu_health();
 
-    uint32_t required = 12 * 4 + 64; // 12 DWords + margin
-    if (!wait_for_ring_space(required, 1000000))
+    constexpr uint32_t required = 12 * 4 + 64; // 12 DWORDs + margin
+    if (!wait_for_ring_space(required, 1'000'000))
     {
-        // 1s timeout
         Log::Error("Ring buffer full!");
         return false;
     }
 
-    uint32_t x2 = rect.x + rect.width;
-    uint32_t y2 = rect.y + rect.height;
+    const uint32_t x2 = rect.x + rect.width;
+    const uint32_t y2 = rect.y + rect.height;
 
     xy_color_blt(
         fb.gfx_addr,
         fb.pitch,
-        rect.x, rect.y,
-        x2, y2,
-        color
+        rect.x,
+        rect.y,
+        x2,
+        y2,
+        colour
     );
 
     sequence_number++;
-    uint32_t target_seqno = sequence_number;
+    const uint32_t target_seqno = sequence_number;
+
     mi_flush(target_seqno);
     flush_commands();
 
@@ -388,6 +419,7 @@ bool IntelBlt::rect(BltRect rect,
 
     return true;
 }
+
 
 void IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode)
 {
@@ -906,12 +938,12 @@ void IntelBlt::xy_src_copy_blt(
     write_command(dw9);
 }
 
-bool IntelBlt::scroll(uint32_t scroll_pixels)
+bool IntelBlt::scroll_pixels(int dy)
 {
-    if (scroll_pixels == 0)
+    if (dy == 0)
         return true;
 
-    if (scroll_pixels >= fb.height)
+    if (dy >= fb.height)
     {
         xy_color_blt(fb.gfx_addr, fb.pitch, 0, 0, fb.width, fb.height, BLACK);
         return true;
@@ -919,7 +951,7 @@ bool IntelBlt::scroll(uint32_t scroll_pixels)
 
     check_gpu_health();
 
-    const uint32_t copy_height = fb.height - scroll_pixels;
+    const uint32_t copy_height = fb.height - dy;
 
     uint32_t required = 30 * 4 + 64;
     if (!wait_for_ring_space(required, 1000000))
@@ -932,7 +964,7 @@ bool IntelBlt::scroll(uint32_t scroll_pixels)
         fb.width, copy_height,
         fb.gfx_addr,
         fb.pitch,
-        0, scroll_pixels
+        0, dy
     );
 
     xy_color_blt(
@@ -958,16 +990,12 @@ bool IntelBlt::scroll(uint32_t scroll_pixels)
 }
 
 
-uint32_t IntelBlt::get_height()
+uint32_t IntelBlt::screen_height_px() const
 {
     return fb.height;
 }
 
-uint32_t IntelBlt::get_width()
+uint32_t IntelBlt::screen_width_px() const
 {
     return fb.width;
-}
-
-void IntelBlt::copy(BltRect src, BltRect dst)
-{
 }

@@ -28,23 +28,24 @@
 #include <kernel/scheduling.h>
 #include <kernel/memory.h>
 
-#include "tty_output.h"
-
 namespace kernel::tty
 {
     TTY* active_tty;
     TTY tty_instances[6];
     TTYDevice* tty_devices[6];
 
-    void tty_init(TTY* tty, TTYOutput* out)
+    void tty_init(TTY* tty, Terminal* term)
     {
         memset(tty->canon_buffer, 0, TTY::BUFFER_SIZE);
-        memset(tty->out_buffer, 0, TTY::BUFFER_SIZE);
+
         tty->canonical = true;
         tty->fg = WHITE;
         tty->bg = BLACK;
-        tty->out = out;
+        tty->term = term;
+
+        term->set_colour(tty->fg, tty->bg);
     }
+
 
     void tty_handle_input(const kernel::input::InputEvent& ev)
     {
@@ -61,7 +62,7 @@ namespace kernel::tty
                 if (active_tty->canon_len > 0 && !active_tty->line_ready)
                 {
                     active_tty->canon_len--;
-                    active_tty->out->clear_char();
+                    active_tty->term->clear_char();
                 }
             }
             else
@@ -69,7 +70,7 @@ namespace kernel::tty
                 if (active_tty->raw_len > 0)
                 {
                     active_tty->raw_len--;
-                    active_tty->out->clear_char();
+                    active_tty->term->clear_char();
                 }
             }
             return;
@@ -92,7 +93,7 @@ namespace kernel::tty
                 if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1)
                 {
                     active_tty->canon_buffer[active_tty->canon_len++] = c;
-                    active_tty->out->put_char(c);
+                    active_tty->term->put_char(c);
                 }
             }
         }
@@ -102,7 +103,7 @@ namespace kernel::tty
             if (active_tty->raw_len < TTY::BUFFER_SIZE - 1)
             {
                 active_tty->raw_buffer[active_tty->raw_len++] = c;
-                active_tty->out->put_char(c); // Echo
+                active_tty->term->put_char(c); // Echo
             }
         }
     }
@@ -204,8 +205,7 @@ namespace kernel::tty
             }
         }
 
-        tty->out->set_fg(tty->fg);
-        tty->out->set_bg(tty->bg);
+        tty->term->set_colour(tty->fg, tty->bg);
     }
 
     void tty_process_output(TTY* tty, const char c)
@@ -215,24 +215,24 @@ namespace kernel::tty
         case EscapeState::NONE:
             if (c == 0x1B)
             {
-                tty_flush_output(tty);
+                tty->term->flush();
                 tty->esc_state = EscapeState::ESC_RECEIVED;
             }
             else if (c == '\n')
             {
-                tty_flush_output(tty);
-                tty->out->new_line();
+                tty->term->flush();
+                tty->term->new_line();
                 tty->cursor_x = 0;
                 tty->cursor_y++;
             }
             else if (c == '\r')
             {
-                tty_flush_output(tty);
+                tty->term->flush();
                 tty->cursor_x = 0;
             }
             else
             {
-                tty_buffer_char(tty, c);
+                tty->term->put_char(c);
                 tty->cursor_x++;
             }
             break;
@@ -278,7 +278,7 @@ namespace kernel::tty
                 else if (c == 'H')
                 {
                     tty->cursor_x = tty->cursor_y = 0;
-                    tty->out->set_cursor(0, 0);
+                    tty->term->set_cursor(0, 0);
                 }
 
                 tty->esc_state = EscapeState::NONE;
@@ -289,28 +289,9 @@ namespace kernel::tty
         }
     }
 
-    void tty_flush_output(TTY* tty)
-    {
-        if (tty->out_len == 0)
-            return;
-
-        tty->out_buffer[tty->out_len] = '\0';
-        tty->out->print(tty->out_buffer);
-        tty->out_len = 0;
-    }
-
-    void tty_buffer_char(TTY* tty, char c)
-    {
-        if (tty->out_len >= (sizeof(tty->out_buffer)-1))
-            tty_flush_output(tty);
-
-        tty->out_buffer[tty->out_len++] = c;
-    }
-
-
     void tty_clear(TTY* tty)
     {
-        tty->out->clear();
+        tty->term->clear();
 
         tty->canon_len = 0;
         tty->line_ready = false;

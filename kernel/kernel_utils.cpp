@@ -36,9 +36,7 @@
 #include "../drivers/ps2/ps2_init.h"
 #include "../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../filesystem/realmfs/realmfs.h"
-#include "graphics/framebuffer_renderer.h"
 #include "tty/init.h"
-#include "tty/screen_renderer_tty_output.h"
 
 uint64_t* scroll_buffer_top = nullptr;
 uint64_t* scroll_buffer_bottom = nullptr;
@@ -100,10 +98,9 @@ void init_sys_log_writer()
     UnitManager::create(KERNEL_REALM_SYSTEM, sys_log_writer, nullptr, &uc);
 }
 
-extern uint8_t Splash_VesperaOS_raw[]; // Aus xxd -i
-extern unsigned int Splash_VesperaOS_raw_len;
-static auto renderer = screen_renderer(nullptr, nullptr);
+
 Framebuffer* TargetFramebuffer = nullptr;
+
 void initialize_kernel(BootInfo* boot_info)
 {
     zero_bss();
@@ -113,16 +110,8 @@ void initialize_kernel(BootInfo* boot_info)
     deadlock_detector_init();
 #endif
     system_font = boot_info->font;
-
-    renderer = screen_renderer(boot_info->framebuffer, boot_info->font);
-    auto Irenderer = new FramebufferRenderer(&renderer);
-    Log::SetRenderer(Irenderer);
-    global_renderer = Irenderer;
-
     TargetFramebuffer = boot_info->framebuffer;
-
-
-    global_renderer->clear();
+    memset(TargetFramebuffer->base_address, 0, TargetFramebuffer->buffer_size);
 
     kernel::input::InputManager::init();
 
@@ -135,6 +124,17 @@ void initialize_kernel(BootInfo* boot_info)
     kernel::memory::initialize_memory(boot_info);
     kernel::memory::initialize_heap(reinterpret_cast<void*>(0x0000100000000000), 0x500);
 
+    DeviceManager::init();
+    VFS::init();
+    DevFS::init();
+    RealmFS::init();
+
+    auto renderer = new screen_renderer(boot_info->framebuffer, boot_info->font);
+    auto terminal = new Terminal(renderer, system_font->width, system_font->height);
+    Log::SetTerminal(terminal);
+    global_terminal = terminal;
+
+    Log::Info("Vespera booting...");
 
     prepare_acpi(boot_info);
     MADT::parse_madt(ACPI::TableManager::get_madt());
@@ -149,10 +149,6 @@ void initialize_kernel(BootInfo* boot_info)
     CPUManager::initialize();
     setup_cpu_tss(0);
     RealmManager::initialize();
-
-    VFS::init();
-    DevFS::init();
-    RealmFS::init();
 
     ps2_init();
 
@@ -199,7 +195,6 @@ void initialize_kernel(BootInfo* boot_info)
                      USBManager::get_initialized_count());
     }
 
-    renderer_tty_out = new ScreenRendererTTYOutput(global_renderer);
     kernel::tty::initialize_ttys();
     initialize_pseudo_devices();
 
@@ -208,7 +203,7 @@ void initialize_kernel(BootInfo* boot_info)
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
     //   init_sys_log_writer();
-      // kernel::SystemManager::process_events_to_logs(128);
+    // kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();

@@ -4,9 +4,9 @@
 
 #include <log.h>
 #include <string.h>
-#include "../kernel/graphics/IScreenRenderer.h"
+#include "../kernel/graphics/terminal.h"
 
-IScreenRenderer* Log::renderer = nullptr;
+Terminal* Log::t = nullptr;
 spinlock_t Log::log_spin = {};
 kernel::mutex_t Log::log_mutex = {};
 bool Log::initialized = false;
@@ -19,9 +19,25 @@ void Log::init()
     // log_spin.init();
 }
 
-void Log::SetRenderer(IScreenRenderer* r)
+ void Log::log_prefix(
+    const char* tag,
+    uint32_t tag_fg
+)
 {
-    renderer = r;
+    t->set_colour(WHITE, BLACK);
+    t->print("[ ");
+
+    t->set_colour(tag_fg, BLACK);
+    t->print(tag);
+
+    t->set_colour(WHITE, BLACK);
+    t->print(" ] ");
+}
+
+
+void Log::SetTerminal(Terminal* _t)
+{
+    t = _t;
 }
 
 void Log::enableDebug()
@@ -68,81 +84,77 @@ void Log::Info(const char* fmt, ...)
 {
     spinlock_guard g(log_spin);
 
-    renderer->print("[  ");
-    renderer->print("INFO", BLUE, BLACK);
-    renderer->print("   ] ");
+    log_prefix("INFO", BLUE);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
-
 
 void Log::Ok(const char* fmt, ...)
 {
     spinlock_guard g(log_spin);
 
-    renderer->print("[   ");
-    renderer->print("OK", GREEN, BLACK);
-    renderer->print("    ] ");
+    log_prefix("OK", GREEN);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
+
 
 void Log::Warning(const char* fmt, ...)
 {
     spinlock_guard g(log_spin);
 
-    renderer->print("[ ");
-    renderer->print("WARNING", YELLOW, BLACK);
-    renderer->print(" ] ");
+    log_prefix("WARNING", YELLOW);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
 
 void Log::Error(const char* fmt, ...)
 {
     spinlock_guard g(log_spin);
 
-    renderer->print("[  ");
-    renderer->print("ERROR", RED, BLACK);
-    renderer->print("  ] ");
+    log_prefix("ERROR", RED);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
+
 
 void Log::LogMsg(const char* fmt, ...)
 {
     spinlock_guard g(log_spin);
 
-    renderer->print("[   ");
-    renderer->print("LOG", GRAY, BLACK);
-    renderer->print("   ] ");
+    log_prefix("LOG", GRAY);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
 
 void Log::PrintLn(const char* fmt, ...)
@@ -154,7 +166,8 @@ void Log::PrintLn(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
 
 void Log::Print(const char* fmt, ...)
@@ -169,19 +182,20 @@ void Log::Print(const char* fmt, ...)
 
 void Log::debug(const char* fmt, ...)
 {
-    if (!is_debug) return;
+    if (!is_debug)
+        return;
+
     spinlock_guard g(log_spin);
 
-    renderer->print("[  ");
-    renderer->print("DEBUG", ORANGE, BLACK);
-    renderer->print("  ] ");
+    log_prefix("DEBUG", ORANGE);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    renderer->print("\n");
+    t->print("\n");
+    t->flush();
 }
 
 static void float_to_str(float val, char* buf, int precision)
@@ -297,13 +311,13 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                         int count = 0;
                         while (str[count] && count < precision)
                         {
-                            renderer->put_char(str[count]);
+                            t->put_char(str[count]);
                             count++;
                         }
                     }
                     else
                     {
-                        renderer->print(str);
+                        t->print(str);
                     }
                     break;
                 }
@@ -319,15 +333,15 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                     // Padding manuell
                     const size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        renderer->put_char(pad_char);
+                        t->put_char(pad_char);
 
-                    renderer->print(buffer);
+                    t->print(buffer);
                     break;
                 }
             case 'c':
                 {
                     int val = __builtin_va_arg(args, int);
-                    renderer->put_char(static_cast<char>(val));
+                    t->put_char(static_cast<char>(val));
                     break;
                 }
             case 'd':
@@ -337,14 +351,14 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                                       : __builtin_va_arg(args, int32_t);
                     if (val < 0)
                     {
-                        renderer->put_char('-');
+                        t->put_char('-');
                         val = -val;
                     }
                     UIntToStr(static_cast<uint64_t>(val), buffer, 10);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        renderer->put_char(pad_char);
-                    renderer->print(buffer);
+                        t->put_char(pad_char);
+                    t->print(buffer);
                     break;
                 }
             case 'f':
@@ -355,33 +369,33 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                     float_to_str(static_cast<float>(val), buffer, frac_digits);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        renderer->put_char(pad_char);
-                    renderer->print(buffer);
+                        t->put_char(pad_char);
+                    t->print(buffer);
                     break;
                 }
             case 'p':
                 {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);
-                    renderer->print("0x");
+                    t->print("0x");
                     UIntToStr(val, buffer, 16);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        renderer->put_char('0');
-                    renderer->print(buffer);
+                        t->put_char('0');
+                    t->print(buffer);
                     break;
                 }
             case '%':
-                renderer->put_char('%');
+                t->put_char('%');
                 break;
             default:
-                renderer->put_char('%');
-                renderer->put_char(specifier);
+                t->put_char('%');
+                t->put_char(specifier);
                 break;
             }
         }
         else
         {
-            renderer->put_char(chr);
+            t->put_char(chr);
         }
     }
 }

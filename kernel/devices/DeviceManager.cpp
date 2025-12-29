@@ -37,7 +37,7 @@ spinlock_t DeviceManager::lock;
 
 static bool blockLetterUsed[26] = {false};
 
-void DeviceManager::Init()
+void DeviceManager::init()
 {
     devices = new Vector<BlockDevice*>();
     all_devices = new Vector<KernelDevice*>();
@@ -307,6 +307,45 @@ KernelDevice* DeviceManager::RegisterController(
     all_devices->push_back(kd);
     return kd;
 }
+
+KernelDevice* DeviceManager::RegisterGpuDevice(
+    IRenderDriver* driver,
+    const char* name,
+    DeviceClass dev_class,
+    BusType bus,
+    ControllerType controller,
+    KernelDevice* parent = nullptr)
+{
+    if (!driver) return nullptr;
+
+    spinlock_guard guard(lock);
+
+    if (!all_devices)
+    {
+        all_devices = new Vector<KernelDevice*>();
+    }
+
+    auto* kd = new KernelDevice();
+    kd->id = next_id++;
+    kd->name = strdup(name);
+    kd->type = DeviceType::Gpu;
+    kd->dev_class = dev_class;
+    kd->controller = controller;
+    kd->bus_type = bus;
+    kd->parent = parent;
+    kd->block = nullptr;
+    kd->chardev = nullptr;
+    kd->driver_data = driver;
+
+    if (parent)
+    {
+        parent->children.push_back(kd);
+    }
+
+    all_devices->push_back(kd);
+    return kd;
+}
+
 
 void DeviceManager::UnregisterDevice(KernelDevice* kd)
 {

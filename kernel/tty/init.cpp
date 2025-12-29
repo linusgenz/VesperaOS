@@ -24,14 +24,13 @@
 #include "tty_device.h"
 #include "init.h"
 
-#include "screen_renderer_tty_output.h"
 #include "../../filesystem/devfs/devfs.h"
 
 namespace kernel::tty {
     void initialize_ttys() {
         active_tty = &tty_instances[0];
         for (int i = 0; i < 6; i++) {
-            tty_init(&tty_instances[i], renderer_tty_out);
+            tty_init(&tty_instances[i], global_terminal);
             char name[16];
             DeviceManager::AllocUniqueDeviceName("tty", name, sizeof(name));
             tty_devices[i] = new TTYDevice(name, &tty_instances[i]);

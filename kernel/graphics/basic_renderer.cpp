@@ -2,107 +2,66 @@
 #include <string.h>
 #include <utils.h>
 
-#include "IScreenRenderer.h"
+#include "terminal.h"
+#include "../../filesystem/devfs/devfs.h"
 #include "kernel/memory.h"
+#include "kernel/devices/device_manager.h"
 
-IScreenRenderer* global_renderer;
+Terminal* global_terminal;
 
-screen_renderer::screen_renderer(Framebuffer* targetFramebuffer, FONT* font)
+screen_renderer::screen_renderer(Framebuffer* fb, FONT* font)
+    : fb(fb), font(font)
 {
-    TargetFramebuffer = targetFramebuffer;
-    PSF_Font = font;
-    colour = WHITE;
-    bg_colour = BLACK;
-    cursor_position = {0, 0};
-    cursor_visible = true;
+    char name[5];
+    DeviceManager::AllocUniqueDeviceName("fb", name, sizeof(name));
+    kd = DeviceManager::RegisterGpuDevice(
+        this,
+        name,
+        DeviceClass::Graphics,
+        BusType::VIRTUAL,
+        ControllerType::UefiGOP,
+        nullptr
+    );
+    /* DevFS::register_device(fb_device);*/
 }
 
-void screen_renderer::print(const char* str)
+
+void screen_renderer::draw_glyph_run(const GlyphRun& run)
 {
-    const char* chr = str;
-    while (*chr != 0)
+    for (uint32_t i = 0; i < run.length; i++)
     {
-        if (*chr == '\n')
-        {
-            new_line();
-        }
-        else
-        {
-            put_char(*chr, cursor_position.X, cursor_position.Y);
-            increment_cursorX(PSF_Font->width);
-            if (cursor_position.X + 8 > TargetFramebuffer->width)
-            {
-                new_line();
-            }
-        }
-        chr++;
+        put_char(run.text[i], run.px + i * font->width, run.py, run.fg, run.bg);
     }
 }
 
-void screen_renderer::print(const char* str, const size_t length)
+
+bool screen_renderer::fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour)
 {
-    for (size_t i = 0; i < length; i++)
+    if (px + w > fb->width || py + h > fb->height)
+        return false;
+
+    for (uint32_t y = 0; y < h; y++)
     {
-        if (str[i] == '\n')
+        for (uint32_t x = 0; x < w; x++)
         {
-            new_line();
-        }
-        else
-        {
-            put_char(str[i], cursor_position.X, cursor_position.Y);
-            increment_cursorX(PSF_Font->width);
-            if (cursor_position.X + PSF_Font->width > TargetFramebuffer->width)
-            {
-                new_line();
-            }
+            uint32_t* pix = static_cast<uint32_t*>(fb->base_address)
+                + (px + x) + (py + y) * fb->pixels_per_scanline;
+            *pix = colour;
         }
     }
-}
 
+    return true;
+}
 
 void screen_renderer::clear()
 {
-    const auto fb_base = reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
-    const uint64_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
-    const uint64_t fb_height = TargetFramebuffer->height;
-
-    for (int y = 0; y < fb_height; y++)
-    {
-        const uint64_t pix_ptr_base = fb_base + (bytes_per_scanline * y);
-        for (auto* pix_ptr = reinterpret_cast<uint32_t*>(pix_ptr_base);
-             pix_ptr < reinterpret_cast<uint32_t*>(pix_ptr_base + bytes_per_scanline); pix_ptr++)
-        {
-            *pix_ptr = bg_colour;
-        }
-    }
-
-    set_cursor({0, 0});
+    fill_rect(0, 0, fb->width, fb->height, 0x00000000);
 }
 
-void screen_renderer::put_pixel(uint32_t x, uint32_t y, uint32_t colour)
-{
-    if (x >= TargetFramebuffer->width || y >= TargetFramebuffer->height)
-        return;
-
-    const uint64_t fb_base =
-        reinterpret_cast<uint64_t>(TargetFramebuffer->base_address);
-
-    const uint64_t offset =
-        (y * TargetFramebuffer->pixels_per_scanline + x) * 4;
-
-    *reinterpret_cast<uint32_t*>(fb_base + offset) = colour;
-}
-
-
-uint32_t screen_renderer::get_pixel(const uint32_t x, const uint32_t y) const
-{
-    return *reinterpret_cast<uint32_t*>(reinterpret_cast<uint64_t>(TargetFramebuffer->base_address) + (x * 4) + (
-        y * TargetFramebuffer->pixels_per_scanline * 4));
-}
-
+/*
 void screen_renderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Point position) const
 {
-    /*  if (!mouse_drawn) return;
+      if (!mouse_drawn) return;
 
       int32_t x_max = 16;
       int32_t y_max = 16;
@@ -126,13 +85,13 @@ void screen_renderer::clear_mouse_cursor(const uint8_t* mouse_cursor, const Poin
                   }
               }
           }
-      }*/
+      }
 }
 
 
 void screen_renderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const uint32_t colour)
 {
-    /*  int32_t x_max = 16;
+      int32_t x_max = 16;
       int32_t y_max = 16;
       int32_t diffrence_x = TargetFramebuffer->width - position.X;
       int32_t diffrence_y = TargetFramebuffer->height - position.Y;
@@ -156,73 +115,34 @@ void screen_renderer::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, con
       }
 
       mouse_drawn = true;
-  */
-}
 
-void screen_renderer::clear_char()
+}*/
+
+void screen_renderer::put_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) const
 {
-    if (cursor_position.X == 0)
-    {
-        cursor_position.X = TargetFramebuffer->width;
-        cursor_position.Y -= PSF_Font->height;
-        if (cursor_position.Y < 0) cursor_position.Y = 0;
-    }
+    if (!c) return;
 
-    const uint32_t x_off = cursor_position.X;
-    const uint32_t y_off = cursor_position.Y;
+    uint32_t* pix_ptr = static_cast<uint32_t*>(fb->base_address);
+    const char* glyph = static_cast<char*>(font->glyphBuffer) + (c * font->charsize);
 
-    auto* pixPtr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
-    for (unsigned long y = y_off; y < y_off + PSF_Font->height; y++)
+    for (uint32_t row = 0; row < font->height; row++)
     {
-        for (unsigned long x = x_off - PSF_Font->width; x < x_off; x++)
+        for (uint32_t bx = 0; bx < (font->width + 7) / 8; bx++)
         {
-            *(pixPtr + x + y * TargetFramebuffer->pixels_per_scanline) = bg_colour;
-        }
-    }
-
-    cursor_position.X -= PSF_Font->width;
-
-    if (cursor_position.X < 0)
-    {
-        cursor_position.X = TargetFramebuffer->width;
-        cursor_position.Y -= PSF_Font->height;
-        if (cursor_position.Y < 0) cursor_position.Y = 0;
-    }
-}
-
-void screen_renderer::put_char(const char chr, const uint32_t xOff, const uint32_t yOff) const
-{
-    if (chr == '\0') return;
-    auto pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
-    const char* glyph = static_cast<char*>(PSF_Font->glyphBuffer) + (chr * PSF_Font->charsize);
-    for (uint32_t y = 0; y < PSF_Font->height; y++)
-    {
-        for (uint32_t bx = 0; bx < (PSF_Font->width + 7) / 8; bx++)
-        {
-            uint8_t byte = glyph[y * ((PSF_Font->width + 7) / 8) + bx];
+            uint8_t byte = glyph[row * ((font->width + 7) / 8) + bx];
             for (uint32_t bit = 0; bit < 8; bit++)
             {
-                uint32_t x = bx * 8 + bit;
-                if (x >= PSF_Font->width) break;
-                uint32_t color_to_draw = (byte & (0x80 >> bit)) ? colour : bg_colour;
-                *(pix_ptr + (xOff + x) + (yOff + y) * TargetFramebuffer->pixels_per_scanline) = color_to_draw;
+                uint32_t xpix = bx * 8 + bit;
+                if (xpix >= font->width) break;
+
+                uint32_t color_to_draw = (byte & (0x80 >> bit)) ? fg_color : bg_color;
+                *(pix_ptr + (x + xpix) + (y + row) * fb->pixels_per_scanline) = color_to_draw;
             }
         }
     }
 }
 
-void screen_renderer::put_char(const char chr)
-{
-    clear_cursor(cursor_position.X, cursor_position.Y);
-    put_char(chr, cursor_position.X, cursor_position.Y);
-    cursor_position.X += PSF_Font->width;
-    if (cursor_position.X + PSF_Font->width > TargetFramebuffer->width)
-    {
-        new_line();
-    }
-    // draw_cursor();
-}
-
+/*
 void screen_renderer::draw_cursor() const
 {
     auto* pix_ptr = static_cast<uint32_t*>(TargetFramebuffer->base_address);
@@ -253,41 +173,24 @@ void screen_renderer::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
             *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = BLACK;
         }
     }
-}
+}*/
 
-void screen_renderer::scroll_down()
+bool screen_renderer::scroll_pixels(int dy)
 {
-    const uint32_t bytes_per_scanline = TargetFramebuffer->pixels_per_scanline * 4;
-    const uint32_t font_height = PSF_Font->height;
+    if (dy <= 0 || static_cast<uint32_t>(dy) >= fb->height)
+        return false;
 
-    auto* fb_base = static_cast<uint8_t*>(TargetFramebuffer->base_address);
+    uint32_t bytes_per_scanline = fb->pixels_per_scanline * 4;
+    uint32_t scroll_bytes = bytes_per_scanline * (fb->height - dy);
 
-    const size_t bytes_to_copy = bytes_per_scanline * (TargetFramebuffer->height - font_height);
-    memmove(fb_base, fb_base + (bytes_per_scanline * font_height), bytes_to_copy);
+    memmove(fb->base_address,
+            static_cast<uint8_t*>(fb->base_address) + bytes_per_scanline * dy,
+            scroll_bytes);
 
-    const uint32_t last_line_y = TargetFramebuffer->height - font_height;
-    auto* last_line = reinterpret_cast<uint32_t*>(fb_base + (bytes_per_scanline * last_line_y));
-    const size_t pixels_in_last_lines = bytes_per_scanline * font_height / 4;
-
-    for (size_t i = 0; i < pixels_in_last_lines; i++)
-    {
-        last_line[i] = bg_colour;
-    }
+    // neuen Bereich mit 0 füllen
+    fill_rect(0, fb->height - dy, fb->width, dy, 0x00000000);
+    return true;
 }
 
-void screen_renderer::new_line()
-{
-    cursor_position.X = 0;
-    cursor_position.Y += PSF_Font->height;
-
-    if (cursor_position.Y + PSF_Font->height >= TargetFramebuffer->height)
-    {
-        scroll_down();
-        cursor_position.Y -= PSF_Font->height;
-    }
-}
-
-Point screen_renderer::get_cursor_pos() const
-{
-    return cursor_position;
-}
+uint32_t screen_renderer::screen_width_px() const { return fb->width; }
+uint32_t screen_renderer::screen_height_px() const { return fb->height; }

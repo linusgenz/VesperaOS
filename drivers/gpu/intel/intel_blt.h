@@ -24,10 +24,10 @@
 #ifndef VESPERAOS_INTEL_BLT_H
 #define VESPERAOS_INTEL_BLT_H
 
-#include "../gpu_blt.h"
 #include "../../pci/pci.h"
 
 #include "graphics.h"
+#include "../../../kernel/graphics/IRenderDriver.h"
 
 struct GgttAllocation
 {
@@ -220,35 +220,31 @@ struct GpuTextBuffer
     size_t total_size;
 };
 
-struct MonoTestBuffer
-{
-    void* cpu;
-    uint64_t gfx;
-    uint32_t width;
-    uint32_t height;
-    uint32_t stride; // bytes per scanline
+struct BltRect {
+    uint32_t x, y;
+    uint32_t width, height;
 };
 
-class IntelBlt final : public GpuBltDriver
+class IntelBlt final : public IRenderDriver
 {
 public:
     explicit IntelBlt(PCI::PCIDeviceHeader* header);
     void start_device(uint32_t screen_width, uint32_t screen_height);
-    void init_text_buffer(FONT* font, uint32_t screen_width);
 
-    void alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
-    void build_text_scanline(const char* text, size_t length,
-                             FONT* font, uint8_t* buffer,
-                             uint32_t buffer_stride);
-    bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) override;
-    void xy_src_copy_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2,
-                         uint32_t dest_y2, uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1);
-    bool rect(BltRect rect, uint32_t color) override;
-    bool scroll(uint32_t scroll_pixels) override;
-    void copy(BltRect src, BltRect dst) override;
-    uint32_t get_width() override;
-    uint32_t get_height() override;
-    uint64_t fb_graphics_addr = 0;
+    bool fill_rect(
+        uint32_t px,
+        uint32_t py,
+        uint32_t w,
+        uint32_t h,
+        uint32_t colour
+    ) override;
+    bool scroll_pixels(int dy) override;
+    void draw_glyph_run(const GlyphRun& r) override
+    {
+        draw_str(r.text, r.px, r.py, r.fg, r.bg);
+    }
+    [[nodiscard]] uint32_t screen_width_px() const override;
+    [[nodiscard]] uint32_t screen_height_px() const override;
 
 private:
     volatile uint8_t* mmio_base;
@@ -278,6 +274,16 @@ private:
 
     GpuTextBuffer text_buffer;
     GpuFramebuffer fb;
+
+    void init_text_buffer(FONT* font, uint32_t screen_width);
+
+    void alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
+    void build_text_scanline(const char* text, size_t length,
+                             FONT* font, uint8_t* buffer,
+                             uint32_t buffer_stride);
+    bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color);
+    void xy_src_copy_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2,
+                         uint32_t dest_y2, uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1);
 
     void write_command(uint32_t cmd);
     void set_display_framebuffer() const;

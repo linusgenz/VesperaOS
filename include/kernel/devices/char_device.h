@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include "device_manager.h"
+#include "string.h"
 
 struct CharFile
 {

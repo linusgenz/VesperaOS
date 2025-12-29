@@ -248,7 +248,7 @@ void keyboard_int_handler(trap_frame *frame) {
 }
 
 void mouse_int_handler(trap_frame *frame) {
-    global_renderer->print("mouse_int_handler");
+    global_terminal->print("mouse_int_handler");
     uint8_t data = inb(0x60);
     input::mouse::handle_byte(data);
     arch::x86_64::interrupts::pic::end_slave();

@@ -5,11 +5,13 @@
 #include <kernel/sync/spinlock.h>
 #include <kernel/sync/mutex.h>
 
+#include "../kernel/graphics/terminal.h"
+
 class IScreenRenderer;
 
 class Log {
 public:
-    static void SetRenderer(IScreenRenderer* r);
+    static void SetTerminal(Terminal* _t);
 
     static void Info(const char* fmt, ...);
     static void Ok(const char* fmt, ...);
@@ -23,11 +25,12 @@ public:
     static void Print(const char *fmt, ...);
 
     static void init();
+    static void log_prefix(const char* tag, uint32_t tag_fg);
 
     static void enableDebug();
 
 private:
-    static IScreenRenderer* renderer;
+    static Terminal* t;
     static void print_formatted(const char *fmt, __builtin_va_list args);
     static spinlock_t log_lock;
 

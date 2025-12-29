@@ -50,8 +50,6 @@ void VFS::init()
     // FilesystemDetector::ScanAndMountAll();
 
     // FilesystemDetector::PrintDetectedFilesystems();
-
-    Log::Info("[VFS] Initialization complete");
 }
 
 VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path)

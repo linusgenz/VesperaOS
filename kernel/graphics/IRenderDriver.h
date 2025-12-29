@@ -1,10 +1,10 @@
 /**
- * @file tty_output.h
+ * @file IRenderDriver.h
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
  *
- * Created by Linus Genz on 24.12.25.
+ * Created by Linus Genz on 29.12.25.
  *
  * This file is part of VesperaOS.
  *
@@ -21,25 +21,42 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_TTY_OUTPUT_H
-#define VESPERAOS_TTY_OUTPUT_H
+#ifndef VESPERAOS_IRENDERDRIVER_H
+#define VESPERAOS_IRENDERDRIVER_H
+
 #include <cstdint>
 
-class TTYOutput {
-public:
-    virtual ~TTYOutput() = default;
+struct GlyphRun
+{
+    const char* text;
+    uint32_t length;
 
-    virtual void put_char(char c) = 0;
-    virtual void clear_char() = 0;
-    virtual void print(const char* s) = 0;
-    virtual void new_line() = 0;
+    uint32_t px;
+    uint32_t py;
 
-    virtual void clear() = 0;
-
-    virtual void set_fg(uint32_t c) = 0;
-    virtual void set_bg(uint32_t c) = 0;
-
-    virtual void set_cursor(uint32_t x, uint32_t y) = 0;
+    uint32_t fg;
+    uint32_t bg;
 };
 
-#endif //VESPERAOS_TTY_OUTPUT_H
+class IRenderDriver
+{
+public:
+    virtual ~IRenderDriver() = default;
+
+    virtual void draw_glyph_run(const GlyphRun& run) = 0;
+
+    virtual bool fill_rect(
+        uint32_t px,
+        uint32_t py,
+        uint32_t w,
+        uint32_t h,
+        uint32_t colour
+    ) = 0;
+
+    virtual bool scroll_pixels(int dy) = 0;
+
+    [[nodiscard]] virtual uint32_t screen_width_px() const = 0;
+    [[nodiscard]] virtual uint32_t screen_height_px() const = 0;
+};
+
+#endif //VESPERAOS_IRENDERDRIVER_H

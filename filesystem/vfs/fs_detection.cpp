@@ -44,8 +44,6 @@ void FilesystemDetector::Init()
 {
     device_count = 0;
     pending_mounts = new Vector<PendingMount>();
-
-    Log::Info("[FS] Filesystem detector initialized");
 }
 
 void FilesystemDetector::RegisterAllDrivers()

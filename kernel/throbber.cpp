@@ -143,8 +143,8 @@ void generate_throbber() {
 }
 
 void clear_throbber(uint32_t x, uint32_t y) {
-    Framebuffer* fb = global_renderer->TargetFramebuffer;
-    uint32_t bg_color = global_renderer->get_bg_colour();
+    Framebuffer* fb = global_terminal->TargetFramebuffer;
+    uint32_t bg_color = global_terminal->get_bg_colour();
 
     for (uint32_t row = 0; row < THROBBER_SIZE; row++) {
         auto* fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) * fb->pixels_per_scanline * 4);
@@ -169,8 +169,8 @@ void draw_bitmap(const Framebuffer *fb, const uint32_t *bitmap, uint32_t w, uint
 
 void render_throbber(void *arg) {
     uint32_t frame = 0;
-    uint32_t draw_x = (global_renderer->TargetFramebuffer->width / 2) - (THROBBER_SIZE / 2);
-    uint32_t draw_y = ((global_renderer->TargetFramebuffer->height * 3) / 4) - (THROBBER_SIZE / 2);
+    uint32_t draw_x = (global_terminal->TargetFramebuffer->width / 2) - (THROBBER_SIZE / 2);
+    uint32_t draw_y = ((global_terminal->TargetFramebuffer->height * 3) / 4) - (THROBBER_SIZE / 2);
 
     while (true) {
         if (kernel::SystemManager::is_system_initialized()) {
@@ -178,7 +178,7 @@ void render_throbber(void *arg) {
             break;
         }
 
-        draw_bitmap(global_renderer->TargetFramebuffer,
+        draw_bitmap(global_terminal->TargetFramebuffer,
                     throbber_frames[frame],
                     THROBBER_SIZE,
                     THROBBER_SIZE,

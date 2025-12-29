@@ -168,8 +168,8 @@ namespace input::mouse {
             //scroll up
         }
 
-       // global_renderer->clear_mouse_cursor(pointer, mouse_position_old);
-       // global_renderer->draw_overlay_mouse_cursor(pointer, position, WHITE);
+       // global_terminal->clear_mouse_cursor(pointer, mouse_position_old);
+       // global_terminal->draw_overlay_mouse_cursor(pointer, position, WHITE);
 
         if (mouse_packet[0] & PS2LeftButton) {
         }

@@ -8,7 +8,6 @@
 #include "../../filesystem/devfs/devfs.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../ahci/ahci.h"
-#include "../gpu/gpu_blitter_renderer.h"
 #include "../gpu/intel/intel_blt.h"
 #include "../nvme/nvme.h"
 #include "../usb/usb_manager.h"
@@ -113,9 +112,9 @@ namespace PCI
                         {
                             auto* driver = new IntelBlt(pci_device_header);
                             driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
-                            auto Irenderer = new GPUBlitterRenderer(driver, system_font->width, system_font->height);
-                            Log::SetRenderer(Irenderer);
-                            global_renderer = Irenderer;
+                            auto terminal = new Terminal(driver, system_font->width, system_font->height);
+                            Log::SetTerminal(terminal);
+                            global_terminal = terminal;
                             break;
                         }
                     default: ;
