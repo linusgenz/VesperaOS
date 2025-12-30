@@ -96,7 +96,7 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
 
     char name[16];
     DeviceManager::AllocUniqueDeviceName("intel_blt", name, sizeof(name));
-    auto* gpu_device = DeviceManager::RegisterGpuDevice(
+    kd = DeviceManager::RegisterGpuDevice(
         this,
         name,
         DeviceClass::Graphics,
@@ -105,7 +105,7 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
         nullptr
     );
 
-    DevFS::register_device(gpu_device);
+    DevFS::register_device(kd);
 }
 
 void IntelBlt::start_device(uint32_t screen_width, uint32_t screen_height)

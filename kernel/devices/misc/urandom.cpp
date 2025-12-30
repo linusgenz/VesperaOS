@@ -48,7 +48,7 @@ ssize_t URandomDevice::read(CharFile*, void* buffer, const size_t count, size_t)
 
 ssize_t URandomDevice::write(CharFile*, const void* buffer, const size_t count) {
     (void)buffer;
-    return -EPERM;
+    return -EUNSUPPORTED;
 }
 
 void URandomDevice::refill() {

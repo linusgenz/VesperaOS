@@ -58,5 +58,5 @@ ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
 
 ssize_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
-    return -EPERM;
+    return -EUNSUPPORTED;
 }

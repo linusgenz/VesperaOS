@@ -23,8 +23,8 @@
 
 #ifndef VESPERAOS_REENTRANT_SPINLOCK_H
 #define VESPERAOS_REENTRANT_SPINLOCK_H
-#include <kernel/basic_renderer.h>
 
+#include <cstdint>
 
 struct reentrant_spinlock_t
 {

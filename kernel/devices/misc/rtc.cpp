@@ -52,5 +52,5 @@ ssize_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t) {
 
 ssize_t RTCDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
-    return -EPERM; // maybe add cmos write support late
+    return -EUNSUPPORTED; // maybe add cmos write support late
 }

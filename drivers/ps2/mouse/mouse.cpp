@@ -23,7 +23,6 @@
 
 #include "mouse.h"
 #include "../../../kernel/cpu/io.h"
-#include <kernel/basic_renderer.h>
 
 #include "kernel/kernel_utils.h"
 

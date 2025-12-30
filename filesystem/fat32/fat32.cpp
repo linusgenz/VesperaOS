@@ -7,7 +7,6 @@
 #include "../../include/log.h"
 #include <kernel/memory.h>
 #include "../../include/string.h"
-#include <kernel/basic_renderer.h>
 #include "../../include/path.h"
 
 namespace FAT32
@@ -180,7 +179,7 @@ namespace FAT32
 
     FileEntry* FileSystem::ReadDirectory(uint32_t cluster, size_t& outCount) const
     {
-        auto* entries = static_cast<FileEntry*>(malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
+        auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
         if (!entries)
         {
             outCount = 0;

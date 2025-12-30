@@ -31,11 +31,12 @@
 #include "devices/init.h"
 #include <kernel/time.h>
 
-#include <kernel/basic_renderer.h>
-
-#include "../drivers/ps2/ps2_init.h"
 #include "../drivers/ps2/keyboard/ps2_keyboard.h"
+#include "../drivers/ps2/ps2_init.h"
 #include "../filesystem/realmfs/realmfs.h"
+#include "graphics/display_manager.h"
+#include "graphics/framebuffer_device.h"
+#include "graphics/gop_render_driver.h"
 #include "tty/init.h"
 
 uint64_t* scroll_buffer_top = nullptr;
@@ -129,7 +130,22 @@ void initialize_kernel(BootInfo* boot_info)
     DevFS::init();
     RealmFS::init();
 
-    auto renderer = new screen_renderer(boot_info->framebuffer, boot_info->font);
+    auto* renderer = new gop_render_driver(boot_info->framebuffer, boot_info->font);
+
+    DisplayBackend be{ renderer, renderer->get_kd() };
+    DisplayManager::init(be);
+
+    auto* fbdev = new FramebufferDevice("fb0", BusType::VIRTUAL);
+    auto* fb_kd = DeviceManager::RegisterCharDevice(
+        fbdev,
+        "fb0",
+        DeviceClass::Graphics,
+        BusType::VIRTUAL,
+        ControllerType::None,
+        nullptr
+    );
+    DevFS::register_device(fb_kd);
+
     auto terminal = new Terminal(renderer, system_font->width, system_font->height);
     Log::SetTerminal(terminal);
     global_terminal = terminal;

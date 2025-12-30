@@ -165,19 +165,19 @@ static VfsNode* fat32_find(const VfsNode* node, const char* name)
 
             childData->cluster = entries[i].GetFirstCluster();
 
-            auto* child = static_cast<VfsNode*>(malloc(sizeof(VfsNode)));
+            auto* child = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
             child->name = entries[i].GetName();
             child->type = childData->isDir ? VfsNodeType::Directory : VfsNodeType::File;
             child->internal_data = childData;
             child->ops = node->ops;
             child->size = entries[i].GetFileSize();
 
-            free(entries);
+            kernel::memory::free(entries);
             return child;
         }
     }
 
-    free(entries);
+    kernel::memory::free(entries);
     return nullptr;
 }
 
@@ -225,7 +225,7 @@ void fat32_closedir(void* h)
 
     if (handle->entries)
     {
-        free(handle->entries);
+        kernel::memory::free(handle->entries);
     }
     delete handle;
 }

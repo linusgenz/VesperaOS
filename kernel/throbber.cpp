@@ -23,7 +23,6 @@
 
 #include "throbber.h"
 
-#include <kernel/basic_renderer.h>
 #include <log.h>
 
 #include <kernel/time.h>

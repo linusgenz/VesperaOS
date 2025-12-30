@@ -199,9 +199,9 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 
     kernel::SystemManager::set_system_initialized();
 
-    Debug_PrintAllDevices();
+  //  Debug_PrintAllDevices();
 
-    //kernel::scheduling::enable_on_cpu(0);
+    kernel::scheduling::enable_on_cpu(0);
 
     while (true);
 }

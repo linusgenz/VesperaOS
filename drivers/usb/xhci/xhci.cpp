@@ -122,7 +122,7 @@ namespace USB
 
         kernel::time::sleep_ms(100);
 
-        if (false)
+        if (true)
         {
             for (uint8_t i = 0; i < m_max_ports; i++)
             {
@@ -1881,6 +1881,6 @@ namespace USB
 
     ssize_t xhciDriver::write(CharFile* cf, const void* buffer, size_t count)
     {
-        return -EPERM;
+        return -EUNSUPPORTED;
     }
 } // namespace USB

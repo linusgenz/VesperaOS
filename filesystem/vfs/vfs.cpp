@@ -144,7 +144,7 @@ VfsDir* VFS::opendir(const char* path)
         return nullptr;
     }
 
-    auto* dir = static_cast<VfsDir*>(malloc(sizeof(VfsDir)));
+    auto* dir = static_cast<VfsDir*>(kernel::memory::malloc(sizeof(VfsDir)));
     dir->node = node;
     dir->handle = handle;
     return dir;
@@ -172,7 +172,7 @@ void VFS::closedir(VfsDir* dir)
         dir->node->ops->closedir(dir->handle);
     }
     if (dir->node) close(dir->node);
-    free(dir);
+    kernel::memory::free(dir);
 }
 
 size_t VFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)

@@ -26,9 +26,10 @@
 
 #include "../../pci/pci.h"
 
-#include "graphics.h"
 #include "../../../kernel/graphics/IRenderDriver.h"
+#include "graphics.h"
 
+struct KernelDevice;
 struct GgttAllocation
 {
     void* cpu_addr;
@@ -243,10 +244,17 @@ public:
     {
         draw_str(r.text, r.px, r.py, r.fg, r.bg);
     }
+
+    [[nodiscard]] KernelDevice* get_kd() const {
+        return kd;
+    }
+
     [[nodiscard]] uint32_t screen_width_px() const override;
     [[nodiscard]] uint32_t screen_height_px() const override;
 
 private:
+    KernelDevice* kd;
+
     volatile uint8_t* mmio_base;
     volatile uint32_t* bcs_regs;
     volatile uint64_t* gtt_entries{};

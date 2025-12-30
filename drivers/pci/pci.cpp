@@ -1,17 +1,18 @@
 #include <kernel/interrupts.h>
 #include <kernel/memory.h>
 
-#include "pci.h"
-#include <log.h>
-#include "../usb/xhci/xhci.h"
-#include "msix.h"
 #include "../../filesystem/devfs/devfs.h"
+#include "../../kernel/graphics/display_manager.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../ahci/ahci.h"
 #include "../gpu/intel/intel_blt.h"
 #include "../nvme/nvme.h"
 #include "../usb/usb_manager.h"
+#include "../usb/xhci/xhci.h"
 #include "kernel/time.h"
+#include "msix.h"
+#include "pci.h"
+#include <log.h>
 
 static atomic_u8 next_usb_bus_number;
 
@@ -112,6 +113,10 @@ namespace PCI
                         {
                             auto* driver = new IntelBlt(pci_device_header);
                             driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
+
+                            DisplayBackend be{ driver, driver->get_kd() };
+                            DisplayManager::set_primary(be);
+
                             auto terminal = new Terminal(driver, system_font->width, system_font->height);
                             Log::SetTerminal(terminal);
                             global_terminal = terminal;

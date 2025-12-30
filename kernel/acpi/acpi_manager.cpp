@@ -1,5 +1,4 @@
 #include "acpi_manager.h"
-#include <kernel/basic_renderer.h>
 
 namespace ACPI
 {

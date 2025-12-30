@@ -58,7 +58,7 @@ static VfsNode* ext4_find(const VfsNode* node, const char* name)
             auto* childData = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
             if (!childData)
             {
-                free(entries);
+                kernel::memory::free(entries);
                 return nullptr;
             }
 
@@ -74,11 +74,11 @@ static VfsNode* ext4_find(const VfsNode* node, const char* name)
                      strcmp(dir->path, "/") == 0 ? "" : "/",
                      name);
 
-            auto* child = static_cast<VfsNode*>(malloc(sizeof(VfsNode)));
+            auto* child = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
             if (!child)
             {
                 kernel::memory::free(childData);
-                free(entries);
+                kernel::memory::free(entries);
                 return nullptr;
             }
 
@@ -87,12 +87,12 @@ static VfsNode* ext4_find(const VfsNode* node, const char* name)
             child->internal_data = childData;
             child->ops = node->ops;
 
-            free(entries);
+            kernel::memory::free(entries);
             return child;
         }
     }
 
-    free(entries);
+    kernel::memory::free(entries);
     return nullptr;
 }
 
@@ -107,7 +107,7 @@ void* ext4_opendir(const VfsNode* dir)
     Log::debug("dir->fs->read_directory: %d entries", count);
     if (!entries) return nullptr;
 
-    auto* handle = static_cast<Ext4DirHandle*>(malloc(sizeof(Ext4DirHandle)));
+    auto* handle = static_cast<Ext4DirHandle*>(kernel::memory::malloc(sizeof(Ext4DirHandle)));
     handle->entries = entries;
     handle->count = count;
     handle->index = 0;
@@ -130,8 +130,8 @@ void ext4_closedir(void* dir_handle)
 {
     auto* h = reinterpret_cast<Ext4DirHandle*>(dir_handle);
     if (!h) return;
-    free(h->entries);
-    free(h);
+    kernel::memory::free(h->entries);
+    kernel::memory::free(h);
 }
 
 static void ext_volume_name(const VfsNode* node, char* out, int out_size)

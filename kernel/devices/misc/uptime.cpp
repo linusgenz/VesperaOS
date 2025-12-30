@@ -49,5 +49,5 @@ ssize_t UptimeDevice::read(CharFile*, void* buffer, size_t count, size_t) {
 
 ssize_t UptimeDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
-    return -EPERM;
+    return -EUNSUPPORTED;
 }

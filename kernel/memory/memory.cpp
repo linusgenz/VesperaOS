@@ -4,7 +4,7 @@
 
 #include "../paging/page_frame_allocator.h"
 #include "../paging/page_table_manager.h"
-#include <kernel/basic_renderer.h>
+#include "heap.h"
 
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR *mMap, uint64_t mMapEntries, uint64_t mMapDescSize) {
     uint64_t memory_size_bytes = 0; // static

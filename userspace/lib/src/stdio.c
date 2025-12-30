@@ -48,6 +48,30 @@ int getchar(void) {
     return (int) ch;
 }
 
+#define PRINTF_BUFFER_SIZE 1024
+
+static char printf_buffer[PRINTF_BUFFER_SIZE];
+static size_t printf_pos = 0;
+
+static void flush_printf_buffer() {
+    if (printf_pos > 0) {
+        sys_write(stdout, (uint64_t)printf_buffer, printf_pos,0,0,0);
+        printf_pos = 0;
+    }
+}
+
+static void buffer_putc(char c) {
+    printf_buffer[printf_pos++] = c;
+    if (printf_pos == PRINTF_BUFFER_SIZE)
+        flush_printf_buffer();
+}
+
+static void buffer_puts(const char *s) {
+    while (*s) {
+        buffer_putc(*s++);
+    }
+}
+
 void printf(const char *fmt, ...) {
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
@@ -89,7 +113,7 @@ void printf(const char *fmt, ...) {
             switch (specifier) {
                 case 's': {
                     const char *str = __builtin_va_arg(args, const char*);
-                    puts(str ? str : "<null>");
+                        buffer_puts(str ? str : "<null>");
                     break;
                 }
                 case 'u':
@@ -103,14 +127,14 @@ void printf(const char *fmt, ...) {
                     // Padding manuell
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        putchar(pad_char);
+                        buffer_putc(pad_char);
 
-                    puts(buffer);
+                    buffer_puts(buffer);
                     break;
                 }
                 case 'c': {
                     int val = __builtin_va_arg(args, int);
-                    putchar((char) val);
+                    buffer_putc((char) val);
                     break;
                 }
                 case 'd': {
@@ -118,14 +142,14 @@ void printf(const char *fmt, ...) {
                                       ? __builtin_va_arg(args, int64_t)
                                       : __builtin_va_arg(args, int32_t);
                     if (val < 0) {
-                        putchar('-');
+                        buffer_putc('-');
                         val = -val;
                     }
                     uint_to_str((uint64_t) val, buffer, 10, false);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        putchar(pad_char);
-                    puts(buffer);
+                        buffer_putc(pad_char);
+                    buffer_puts(buffer);
                     break;
                 }
                 case 'f': {
@@ -134,8 +158,8 @@ void printf(const char *fmt, ...) {
                     float_to_str((float) val, buffer, 6); // 6 Nachkommastellen Standard
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        putchar(pad_char);
-                    puts(buffer);
+                        buffer_putc(pad_char);
+                    buffer_puts(buffer);
                     break;
                 }
                 case 'p': {
@@ -144,23 +168,24 @@ void printf(const char *fmt, ...) {
                     uint_to_str(val, buffer, 16, false);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        putchar('0');
+                        buffer_putc('0');
                     puts(buffer);
                     break;
                 }
                 case '%':
-                    putchar('%');
+                    buffer_putc('%');
                     break;
                 default:
-                    putchar('%');
-                    putchar(specifier);
+                    buffer_putc('%');
+                    buffer_putc(specifier);
                     break;
             }
         } else {
-            putchar(chr);
+            buffer_putc(chr);
         }
     }
     __builtin_va_end(args);
+    flush_printf_buffer();
 }
 
 

@@ -233,7 +233,7 @@ namespace EXT4 {
             return nullptr;
         }
 
-        auto* entries = static_cast<FileEntry*>(malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
+        auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
         if (!entries) {
             Log::debug("[ext4] malloc failed for directory entries");
             return nullptr;

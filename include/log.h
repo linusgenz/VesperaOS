@@ -1,11 +1,10 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <kernel/basic_renderer.h>
 #include <kernel/sync/spinlock.h>
 #include <kernel/sync/mutex.h>
 
-#include "../kernel/graphics/terminal.h"
+#include "kernel/terminal.h"
 
 class IScreenRenderer;
 

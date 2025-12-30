@@ -51,5 +51,5 @@ ssize_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t) {
 }
 
 ssize_t VersionDevice::write(CharFile*, const void*, size_t) {
-    return -EPERM; // why would you write on the version device lol
+    return -EUNSUPPORTED; // why would you write on the version device lol
 }

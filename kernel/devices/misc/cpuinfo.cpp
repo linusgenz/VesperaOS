@@ -63,5 +63,5 @@ ssize_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t)
 
 
 ssize_t CPUInfoDevice::write(CharFile*, const void*, const size_t count) {
-    return -EPERM;
+    return -EUNSUPPORTED;
 }

@@ -25,6 +25,7 @@
 #define VESPERAOS_TTY_H
 
 #include <kernel/input/input_event.h>
+#include <graphics.h>
 
 class TTYDevice;
 class Terminal;

@@ -21,7 +21,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/basic_renderer.h>
 #include <kernel/tty/tty.h>
 
 #include <log.h>
@@ -93,7 +92,7 @@ namespace kernel::tty
                 if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1)
                 {
                     active_tty->canon_buffer[active_tty->canon_len++] = c;
-                    active_tty->term->put_char(c);
+                    active_tty->term->put_char_fast(c);
                 }
             }
         }
@@ -103,7 +102,7 @@ namespace kernel::tty
             if (active_tty->raw_len < TTY::BUFFER_SIZE - 1)
             {
                 active_tty->raw_buffer[active_tty->raw_len++] = c;
-                active_tty->term->put_char(c); // Echo
+                active_tty->term->put_char_fast(c); // Echo
             }
         }
     }

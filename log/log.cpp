@@ -4,7 +4,7 @@
 
 #include <log.h>
 #include <string.h>
-#include "../kernel/graphics/terminal.h"
+#include "../include/kernel/terminal.h"
 
 Terminal* Log::t = nullptr;
 spinlock_t Log::log_spin = {};
