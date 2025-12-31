@@ -27,7 +27,7 @@
 #include <kernel/memory.h>
 #include <string.h>
 
-#define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL * 10000ULL)
+#define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL)
 
 static lock_debug_info lock_table[MAX_DEBUG_LOCKS];
 static uint32_t lock_table_count = 0;

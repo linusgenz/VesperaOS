@@ -25,6 +25,7 @@
 #include <kernel/memory.h>
 
 #include "../cpu/cpu_manager.h"
+#include "arch/x86_64/cpu/msr.h"
 
 namespace kernel::memory
 {
@@ -43,6 +44,26 @@ namespace kernel::memory
         lock_pages(nullptr, 256);
 
         initialize_page_table_manager();
+
+        constexpr uint32_t IA32_PAT_MSR = 0x277;
+        constexpr uint8_t PAT_UC = 0x00; // Uncacheable
+        constexpr uint8_t PAT_WC = 0x01; // Write-Combining
+        constexpr uint8_t PAT_WT = 0x04; // Write-Through
+        constexpr uint8_t PAT_WP = 0x05; // Write-Protected
+        constexpr uint8_t PAT_WB = 0x06; // Write-Back
+        constexpr uint8_t PAT_UCM = 0x07; // Uncached (UC-)
+
+        uint64_t pat_value =
+            ((uint64_t)PAT_WB << 0) | // PAT0: Write-Back
+            ((uint64_t)PAT_WC << 8) | // PAT1: Write-Combining
+            ((uint64_t)PAT_UCM << 16) | // PAT2: UC-
+            ((uint64_t)PAT_UC << 24) | // PAT3: UC
+            ((uint64_t)PAT_WB << 32) | // PAT4: WB
+            ((uint64_t)PAT_WT << 40) | // PAT5: WT
+            ((uint64_t)PAT_UCM << 48) | // PAT6: UC-
+            ((uint64_t)PAT_WP << 56); // PAT7: WP
+
+        wrmsr(IA32_PAT_MSR, pat_value);
 
         // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob
         for (int i = 0; i < mMapEntries; i++)
@@ -79,7 +100,9 @@ namespace kernel::memory
         lock_pages(reinterpret_cast<void*>(fb_base), fb_size / 0x1000 + 1);
         for (uint64_t t = fb_base; t < fb_base + fb_size; t += 0x1000)
         {
-            map_memory(reinterpret_cast<void*>(t), reinterpret_cast<void*>(t));
+            map_memory(reinterpret_cast<void*>(t), reinterpret_cast<void*>(t),
+                       (1ULL << PT_Flag::WriteThrough) | // PWT=1
+                       (1ULL << PT_Flag::Global));
         }
 
         asm ("mov %0, %%cr3" : : "r" (get_pagetable_address()));

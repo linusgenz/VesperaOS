@@ -210,7 +210,6 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
     SYS_EVENT_FILESYSTEM_MOUNT(mp->path, fs_info.type_name);
 
     VFS::add_mount_point(mp);
-    Log::debug("mount device end, mounted: %s", mp->path);
     return true;
 }
 

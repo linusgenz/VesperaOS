@@ -16,7 +16,7 @@ void Log::init()
 {
     //  initialized = true;
     //  kernel::mutex_init(&log_mutex);
-    // log_spin.init();
+     log_spin.init("log_lock");
 }
 
  void Log::log_prefix(

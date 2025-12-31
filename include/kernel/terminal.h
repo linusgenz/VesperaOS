@@ -37,6 +37,7 @@ class Terminal
         char ch;
         uint32_t fg;
         uint32_t bg;
+        bool dirty;
     };
 
     IRenderDriver* drv = nullptr;

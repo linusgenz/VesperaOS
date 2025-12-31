@@ -61,7 +61,7 @@ void Terminal::put_char(char c)
 {
     if (c == '\n') { new_line(); return; }
 
-    at(cx, cy) = {c, fg, bg};
+    at(cx, cy) = {c, fg, bg, true};
     advance();
 }
 
@@ -70,7 +70,7 @@ void Terminal::put_char_fast(char c)
     if (c == '\n') { new_line(); return; }
     if (c == '\r') { cx = 0; return; }
 
-    at(cx, cy) = {c, fg, bg};
+    at(cx, cy) = {c, fg, bg, true};
     GlyphRun run{ &c, 1, cx*char_w, cy*char_h, fg, bg };
     drv->draw_glyph_run(run);
     advance();
@@ -98,7 +98,7 @@ void Terminal::clear_char()
     if (cx == 0) { cy--; cx = cols - 1; }
     else { cx--; }
 
-    put_char(' ');
+    put_char_fast(' ');
 }
 
 void Terminal::new_line()
@@ -121,21 +121,28 @@ void Terminal::flush()
         while (x < cols)
         {
             Cell& start = at(x, y);
-            uint32_t len = 1;
+            if (!start.dirty) { x++; continue; }
 
-            while (x + len < cols)
+            // Finde zusammenhängenden dirty run
+            uint32_t len = 1;
+            while (x + len < cols && at(x + len, y).dirty &&
+                   at(x + len, y).fg == start.fg &&
+                   at(x + len, y).bg == start.bg)
             {
-                Cell& c = at(x + len, y);
-                if (c.fg != start.fg || c.bg != start.bg)
-                    break;
                 len++;
             }
 
             draw_run(x, y, &start, len);
+
+            // Dirty-Flags löschen
+            for (uint32_t i = 0; i < len; ++i)
+                at(x + i, y).dirty = false;
+
             x += len;
         }
     }
 }
+
 
 Terminal::Cell& Terminal::at(uint32_t x, uint32_t y)
 {

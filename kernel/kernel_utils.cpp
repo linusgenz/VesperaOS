@@ -110,6 +110,7 @@ void initialize_kernel(BootInfo* boot_info)
     lock_debug_init();
     deadlock_detector_init();
 #endif
+
     system_font = boot_info->font;
     TargetFramebuffer = boot_info->framebuffer;
     memset(TargetFramebuffer->base_address, 0, TargetFramebuffer->buffer_size);
