@@ -2,80 +2,45 @@
 
 namespace ACPI
 {
+    // Static member initialization
+    SDTHeader* TableManager::xsdt = nullptr;
     FADT* TableManager::fadt = nullptr;
     MADTHeader* TableManager::madt = nullptr;
     MCFGHeader* TableManager::mcfg = nullptr;
 
-    constexpr int MAX_TABLES = 16;
-
-    struct TableEntry
+    void TableManager::init(const BootInfo* boot_info)
     {
-        const char* signature;
-        SDTHeader* header;
-    };
+        xsdt = reinterpret_cast<SDTHeader*>(boot_info->rsdp->xsdt_address);
 
-    SDTHeader* xsdt_ptr = nullptr;
-    TableEntry table_list[MAX_TABLES];
-    int table_count = 0;
-
-    SDTHeader* find_table(const char* signature)
-    {
-        const uint32_t entries = (xsdt_ptr->length - sizeof(SDTHeader)) / 8;
-
-        for (int t = 0; t < entries; t++)
-        {
-            const auto base = reinterpret_cast<uint64_t>(xsdt_ptr);
-            const auto entry_addr = base + sizeof(SDTHeader) + t * 8;
-
-            const auto entry_ptr = reinterpret_cast<uint64_t*>(entry_addr);
-            const uint64_t entry = *entry_ptr;
-
-            auto* new_sdt_header = reinterpret_cast<SDTHeader*>(entry);
-            for (int i = 0; i < 4; i++)
-            {
-                if (new_sdt_header->signature[i] != signature[i])
-                {
-                    break;
-                }
-                if (i == 3) return new_sdt_header;
-            }
-        }
-        return nullptr;
-    }
-
-    void TableManager::init(SDTHeader* xsdt)
-    {
-        xsdt_ptr = xsdt;
-        table_count = 0;
-    }
-
-    void TableManager::register_madt()
-    {
+        // Find and cache all known tables
         madt = reinterpret_cast<MADTHeader*>(find_table("APIC"));
-    }
-
-    void TableManager::register_mcfg()
-    {
         mcfg = reinterpret_cast<MCFGHeader*>(find_table("MCFG"));
-    }
-
-    void TableManager::register_fadr()
-    {
         fadt = reinterpret_cast<FADT*>(find_table("FACP"));
     }
 
-    FADT* TableManager::get_fadt()
+    SDTHeader* TableManager::find_table(const char* signature)
     {
-        return fadt;
-    }
+        if (!xsdt) return nullptr;
 
-    MADTHeader* TableManager::get_madt()
-    {
-        return madt;
-    }
+        const uint32_t entry_count = (xsdt->length - sizeof(SDTHeader)) / 8;
+        const auto* entries = reinterpret_cast<uint64_t*>(
+            reinterpret_cast<uint64_t>(xsdt) + sizeof(SDTHeader)
+        );
 
-    MCFGHeader* TableManager::get_mcfg()
-    {
-        return mcfg;
+        for (uint32_t i = 0; i < entry_count; i++)
+        {
+            auto* header = reinterpret_cast<SDTHeader*>(entries[i]);
+
+            // Compare signature (4 bytes)
+            if (header->signature[0] == signature[0] &&
+                header->signature[1] == signature[1] &&
+                header->signature[2] == signature[2] &&
+                header->signature[3] == signature[3])
+            {
+                return header;
+            }
+        }
+
+        return nullptr;
     }
 }

@@ -137,26 +137,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
-    //  Log::Info("CPU Vendor: %s", vendor);
+    Log::Info("CPU Vendor: %s", vendor);
 
     char brand[49];
     get_cpu_brand(brand);
-    //  Log::Info("CPU Brand: %s", brand);
+    Log::Info("CPU Brand: %s", brand);
     Log::Ok("Kernel initialized successfully");
     Log::Info("Kernel version: %s", get_kernel_version());
-    //  kernel::time::print_current_time();
-    // kernel::time::internal::sleep(5000);
-
-
-    /* auto dir21 = vfs_opendir("/mnt/fat32_0/");
-     Log::debug("vfs_opendir: %d", dir21);
-     char name21[128];
-     while (vfs_readdir(dir21, name21, sizeof(name21)) == 1) {
-         Log::PrintLn("Eintrag2: %s", name21);
-     }
-
-     vfs_closedir(dir21);*/
-
 
     RealmConfig realm_config_shell = {
         .name = "shell_realm",

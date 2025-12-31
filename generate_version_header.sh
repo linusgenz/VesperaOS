@@ -2,7 +2,7 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=19
-VERSION_PATCH=7
+VERSION_PATCH=8
 VERSION_STAGE="dev"
 VERSION_NAME="crazy dog"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

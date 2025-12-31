@@ -29,9 +29,6 @@
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
 #include "../drivers/pci/msi.h"
 #include "devices/init.h"
-#include <kernel/time.h>
-
-#include "../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../drivers/ps2/ps2_init.h"
 #include "../filesystem/realmfs/realmfs.h"
 #include "graphics/display_manager.h"
@@ -39,70 +36,9 @@
 #include "graphics/gop_render_driver.h"
 #include "tty/init.h"
 
-uint64_t* scroll_buffer_top = nullptr;
-uint64_t* scroll_buffer_bottom = nullptr;
-
-void setup_scroll_buffer(Framebuffer* buffer)
-{
-    uint64_t buffer_size = buffer->width * buffer->height * sizeof(uint32_t) * 10;
-    scroll_buffer_top = static_cast<uint64_t*>(kernel::memory::malloc(buffer_size));
-    if (!scroll_buffer_top)
-    {
-        Log::Error("Failed to allocate scroll buffer (top)\n");
-        asm ("hlt");
-    }
-    memset(scroll_buffer_top, 0, buffer_size);
-
-    scroll_buffer_bottom = static_cast<uint64_t*>(kernel::memory::malloc(buffer_size));
-    if (!scroll_buffer_bottom)
-    {
-        Log::Error("Failed to allocate scroll buffer (bot)\n");
-        asm ("hlt");
-    }
-    memset(scroll_buffer_bottom, 0, buffer_size);
-}
-
-void prepare_acpi(const BootInfo* boot_info)
-{
-    auto* xsdt = reinterpret_cast<ACPI::SDTHeader*>(boot_info->rsdp->xsdt_address);
-    // auto *rsdt = reinterpret_cast<ACPI::SDTHeader *>(boot_info->rsdp->rsdt_address);
-
-    ACPI::TableManager::init(xsdt);
-
-    ACPI::TableManager::register_madt();
-    ACPI::TableManager::register_mcfg();
-    ACPI::TableManager::register_fadr();
-}
-
-[[noreturn]] void sys_log_writer(void* arg)
-{
-    while (true)
-    {
-        kernel::SystemManager::process_events_to_logs(128);
-        kernel::time::sleep_ms(1000);
-    }
-}
-
-void init_sys_log_writer()
-{
-    UnitConfig uc = {
-        .name = "system_log",
-        .cpu_id = 7,
-        .priority = 0,
-        .stack_size = DEFAULT_UNIT_STACK_SIZE,
-        .initial_handles = nullptr,
-        .initial_handle_count = 0,
-        .is_idle = false,
-        .is_user = false,
-        .user_stack_size = 0
-    };
-    UnitManager::create(KERNEL_REALM_SYSTEM, sys_log_writer, nullptr, &uc);
-}
-
-
 Framebuffer* TargetFramebuffer = nullptr;
 
-void initialize_kernel(BootInfo* boot_info)
+static void initialize_early_boot(const BootInfo* boot_info)
 {
     zero_bss();
 
@@ -116,26 +52,31 @@ void initialize_kernel(BootInfo* boot_info)
     memset(TargetFramebuffer->base_address, 0, TargetFramebuffer->buffer_size);
 
     kernel::input::InputManager::init();
-
-    // generate_throbber();
-
     Log::enableDebug();
-
     gdt_install();
+}
 
+static void initialize_memory_subsystem(BootInfo* boot_info)
+{
     kernel::memory::initialize_memory(boot_info);
     kernel::memory::initialize_heap(reinterpret_cast<void*>(0x0000100000000000), 0x500);
+}
 
+static void initialize_device_manager_and_vfs()
+{
     DeviceManager::init();
     VFS::init();
     DevFS::init();
     RealmFS::init();
+}
 
+static void initialize_graphics_and_terminal(const BootInfo* boot_info)
+{
     auto* renderer = new gop_render_driver(boot_info->framebuffer, boot_info->font);
-
     DisplayBackend be{ renderer, renderer->get_kd() };
     DisplayManager::init(be);
 
+    // Register framebuffer device
     auto* fbdev = new FramebufferDevice("fb0", BusType::VIRTUAL);
     auto* fb_kd = DeviceManager::RegisterCharDevice(
         fbdev,
@@ -147,28 +88,32 @@ void initialize_kernel(BootInfo* boot_info)
     );
     DevFS::register_device(fb_kd);
 
+    // Setup terminal for logging
     auto terminal = new Terminal(renderer, system_font->width, system_font->height);
     Log::SetTerminal(terminal);
     global_terminal = terminal;
 
     Log::Info("Vespera booting...");
+}
 
-    prepare_acpi(boot_info);
+static void initialize_acpi_and_interrupts(BootInfo* boot_info)
+{
+    ACPI::TableManager::init(boot_info);
     MADT::parse_madt(ACPI::TableManager::get_madt());
     ACPI::parse_fadt();
 
     kernel::interrupts::initialize();
-
     asm ("sti");
+}
 
+static void initialize_cpu_and_realms()
+{
     kernel::SystemManager::initialize();
-
     CPUManager::initialize();
     setup_cpu_tss(0);
     RealmManager::initialize();
 
-    ps2_init();
-
+    // Create system realm
     RealmConfig realm_config_sys = {
         .name = "systemv",
         .memory_limit = 0,
@@ -177,6 +122,7 @@ void initialize_kernel(BootInfo* boot_info)
     };
     RealmManager::create(&realm_config_sys);
 
+    // Create driver realm
     RealmConfig realm_config_drv = {
         .name = "driverv",
         .memory_limit = 0,
@@ -184,20 +130,23 @@ void initialize_kernel(BootInfo* boot_info)
         .is_user = false,
     };
     RealmManager::create(&realm_config_drv);
+}
 
+static void initialize_scheduling_and_smp()
+{
     UnitManager::initialize();
     kernel::scheduling::init(CPUManager::total_cpus);
-    // cannot create units before the scheduler inits, this is a feature not a bug
-
-
-    //  RealmManager::list();
-
-    //   UnitManager::list();
 
     prepare_ap_trampoline();
     CPUManager::smp_init();
-    Log::init(); // threads are possible -> switch to mutex
 
+    // Threading now available - upgrade log to use mutex
+    Log::init();
+}
+
+static void initialize_hardware_buses()
+{
+    ps2_init();
     initialize_input_bus();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
@@ -211,19 +160,49 @@ void initialize_kernel(BootInfo* boot_info)
                      USBManager::get_expected_count(),
                      USBManager::get_initialized_count());
     }
+}
 
+static void initialize_user_space_interfaces()
+{
     kernel::tty::initialize_ttys();
     initialize_pseudo_devices();
-
     VFS::remount_all();
 
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
-    //   init_sys_log_writer();
-    // kernel::SystemManager::process_events_to_logs(128);
 
     syscall_init();
     install_syscalls();
+}
 
+static void finalize_initialization()
+{
     kernel::interrupts::mask_pic();
+}
+
+// ============================================================================
+// Main Kernel Initialization
+// ============================================================================
+
+void initialize_kernel(BootInfo* boot_info)
+{
+    initialize_early_boot(boot_info);
+
+    initialize_memory_subsystem(boot_info);
+
+    initialize_device_manager_and_vfs();
+
+    initialize_graphics_and_terminal(boot_info);
+
+    initialize_acpi_and_interrupts(boot_info);
+
+    initialize_cpu_and_realms();
+
+    initialize_scheduling_and_smp();
+
+    initialize_hardware_buses();
+
+    initialize_user_space_interfaces();
+
+    finalize_initialization();
 }
