@@ -25,15 +25,19 @@
 
 #include <errno.h>
 
-int LogDevice::open(CharFile** out_cf) {
+int LogDevice::open(CharFile** out_cf)
+{
     if (!out_cf) return -EINVAL;
+
     auto* cf = new CharFile();
     cf->driver_private = global_channel;
     *out_cf = cf;
     return 0;
 }
 
+
 int LogDevice::release(CharFile* cf) {
+    delete cf;
     return 0;
 }
 

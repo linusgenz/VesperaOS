@@ -28,18 +28,22 @@
 #include "../../kversion.h"
 
 VersionDevice::VersionDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL)
+{
+}
 
-int VersionDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int VersionDevice::open(CharFile**)
+{
     return 0;
 }
 
-int VersionDevice::release(CharFile*) {
+int VersionDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t)
+{
     if (!buffer || count == 0) return -EINVAL;
 
     const char* ver = get_kernel_version();
@@ -50,6 +54,7 @@ ssize_t VersionDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     return static_cast<ssize_t>(len);
 }
 
-ssize_t VersionDevice::write(CharFile*, const void*, size_t) {
+ssize_t VersionDevice::write(CharFile*, const void*, size_t)
+{
     return -EUNSUPPORTED; // why would you write on the version device lol
 }

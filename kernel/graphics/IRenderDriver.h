@@ -53,10 +53,19 @@ public:
         uint32_t colour
     ) = 0;
 
+    virtual bool blit_buffer(
+        const void* pixels,
+        uint32_t buffer_width,
+        uint32_t buffer_height,
+        uint32_t dst_x,
+        uint32_t dst_y
+    ) = 0;
+
     virtual bool scroll_pixels(int dy) = 0;
 
     [[nodiscard]] virtual uint32_t screen_width_px() const = 0;
     [[nodiscard]] virtual uint32_t screen_height_px() const = 0;
+    [[nodiscard]] virtual uint32_t bytes_per_scanline() const = 0;
 };
 
 #endif //VESPERAOS_IRENDERDRIVER_H

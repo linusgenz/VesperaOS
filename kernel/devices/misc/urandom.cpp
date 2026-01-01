@@ -25,33 +25,40 @@
 #include "urandom.h"
 
 URandomDevice::URandomDevice(const char* name, const uint64_t seed)
-    : CharDevice(name, BusType::VIRTUAL), state(seed) {}
+    : CharDevice(name, BusType::VIRTUAL), state(seed)
+{
+}
 
-int URandomDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int URandomDevice::open(CharFile**)
+{
     return 0;
 }
 
-int URandomDevice::release(CharFile*) {
+int URandomDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t URandomDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
+ssize_t URandomDevice::read(CharFile*, void* buffer, const size_t count, size_t)
+{
     if (count < sizeof(uint8_t) || !buffer) return -EINVAL;
 
     auto* out = static_cast<uint8_t*>(buffer);
-    for (size_t i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++)
+    {
         out[i] = next();
     }
     return static_cast<ssize_t>(count);
 }
 
-ssize_t URandomDevice::write(CharFile*, const void* buffer, const size_t count) {
+ssize_t URandomDevice::write(CharFile*, const void* buffer, const size_t count)
+{
     (void)buffer;
     return -EUNSUPPORTED;
 }
 
-void URandomDevice::refill() {
+void URandomDevice::refill()
+{
     uint64_t x = state;
     x ^= x << 13;
     x ^= x >> 7;
@@ -59,14 +66,17 @@ void URandomDevice::refill() {
     state = x;
 
     // in Bytes zerlegen (Little Endian)
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++)
+    {
         dev_buffer[i] = static_cast<uint8_t>(x >> (i * 8));
     }
     buffer_index = 0;
 }
 
-uint8_t URandomDevice::next() {
-    if (buffer_index >= 8) {
+uint8_t URandomDevice::next()
+{
+    if (buffer_index >= 8)
+    {
         refill();
     }
     return dev_buffer[buffer_index++];

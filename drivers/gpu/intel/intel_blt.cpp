@@ -428,7 +428,7 @@ void IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_
     fb.bpp = 4; // 32-bit ARGB
     fb.tile_mode = tile_mode;
 
-    fb.pitch = ((width * fb.bpp + 127) / 128) * 128;
+    fb.pitch = ((width * fb.bpp + 63) / 64) * 64;
 
     size_t total_size = fb.pitch * height;
 
@@ -938,6 +938,134 @@ void IntelBlt::xy_src_copy_blt(
     write_command(dw9);
 }
 
+void IntelBlt::xy_fast_copy_blt(
+    uint64_t dest_addr,
+    uint32_t dest_pitch,
+    uint32_t dest_x1, uint32_t dest_y1,
+    uint32_t dest_x2, uint32_t dest_y2,
+    uint64_t src_addr,
+    uint32_t src_pitch,
+    uint32_t src_x1, uint32_t src_y1)
+{
+    // DW0: BR00 – Command Header
+    uint32_t dw0 =
+        XY_FAST_COPY_BLT_CMD |
+        XY_FAST_COPY_BLT_OPCODE |
+        FAST_SRC_TILING_LINEAR |
+        FAST_DST_TILING_LINEAR |
+        XY_FAST_COPY_BLT_LEN;
+
+    // DW1: BR13 – Color depth + Destination Pitch (BYTES!)
+    uint32_t dw1 =
+        FAST_COLOR_DEPTH_8888 |
+        (dest_pitch & 0x7FFF); // must be positive, bit15 = 0
+
+    // DW2: BR22 – Dest Y1, X1
+    uint32_t dw2 =
+        ((dest_y1 & COORD_MASK) << COORD_Y_SHIFT) |
+        (dest_x1 & COORD_MASK);
+
+    // DW3: BR23 – Dest Y2, X2
+    uint32_t dw3 =
+        ((dest_y2 & COORD_MASK) << COORD_Y_SHIFT) |
+        (dest_x2 & COORD_MASK);
+
+    // DW4–5: Destination Base Address
+    uint32_t dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
+    uint32_t dw5 = static_cast<uint32_t>(dest_addr >> 32);
+
+    // DW6: BR26 – Source Y1, X1
+    uint32_t dw6 =
+        ((src_y1 & COORD_MASK) << COORD_Y_SHIFT) |
+        (src_x1 & COORD_MASK);
+
+    // DW7: BR11 – Source Pitch (BYTES!)
+    uint32_t dw7 = src_pitch & 0x7FFF;
+
+    // DW8–9: Source Base Address
+    uint32_t dw8 = static_cast<uint32_t>(src_addr & 0xFFFFFFFF);
+    uint32_t dw9 = static_cast<uint32_t>(src_addr >> 32);
+
+    write_command(dw0);
+    write_command(dw1);
+    write_command(dw2);
+    write_command(dw3);
+    write_command(dw4);
+    write_command(dw5);
+    write_command(dw6);
+    write_command(dw7);
+    write_command(dw8);
+    write_command(dw9);
+}
+
+
+bool IntelBlt::blit_buffer(const void* pixels, uint32_t buffer_width, uint32_t buffer_height,
+                           uint32_t dst_x, uint32_t dst_y)
+{
+    if (!pixels) return false;
+
+    uint32_t max_w = buffer_width;
+    uint32_t max_h = buffer_height;
+    if (dst_x >= fb.width || dst_y >= fb.height) return false;
+    if (dst_x + buffer_width > fb.width)
+        max_w = fb.width - dst_x;
+    if (dst_y + buffer_height > fb.height)
+        max_h = fb.height - dst_y;
+
+    // Allocate temporary GPU buffer
+    uint32_t src_pitch = ((buffer_width * 4 + 63) / 64) * 64;;
+    size_t buffer_size = src_pitch * max_h;
+    size_t num_pages = (buffer_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    auto temp_buffer = alloc_and_map_to_ggtt(num_pages,
+                                             (1ULL << CacheDisabled),
+                                             MOCS_UNCACHED);
+
+    const uint8_t* src = static_cast<const uint8_t*>(pixels);
+    uint8_t* dst = static_cast<uint8_t*>(temp_buffer.cpu_addr);
+
+    for (uint32_t y = 0; y < max_h; y++)
+    {
+        memcpy(dst + y * src_pitch,
+               src + y * buffer_width * 4,
+               buffer_width * 4);
+    }
+
+    check_gpu_health();
+    uint32_t required = 30 * 4 + 64;
+    if (!wait_for_ring_space(required, 1'000'000))
+    {
+        // free_ggtt_buffer(temp_buffer);
+        return false;
+    }
+
+    xy_fast_copy_blt(
+        fb.gfx_addr,
+        fb.pitch,
+        dst_x, dst_y,
+        dst_x + max_w, dst_y + max_h,
+        temp_buffer.gfx_addr,
+        src_pitch,
+        0, 0
+    );
+
+    sequence_number++;
+    mi_flush(sequence_number);
+    flush_commands();
+
+    bool success = wait_for_sequence(sequence_number, 2'000'000);
+
+    // free_ggtt_buffer(temp_buffer);
+
+    if (!success)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
 bool IntelBlt::scroll_pixels(int dy)
 {
     if (dy == 0)
@@ -998,4 +1126,9 @@ uint32_t IntelBlt::screen_height_px() const
 uint32_t IntelBlt::screen_width_px() const
 {
     return fb.width;
+}
+
+uint32_t IntelBlt::bytes_per_scanline() const
+{
+    return fb.pitch;
 }

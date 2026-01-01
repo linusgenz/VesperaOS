@@ -32,8 +32,7 @@
 CPUInfoDevice::CPUInfoDevice(const char* name)
     : CharDevice(name, BusType::VIRTUAL) {}
 
-int CPUInfoDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int CPUInfoDevice::open(CharFile**) {
     return 0;
 }
 

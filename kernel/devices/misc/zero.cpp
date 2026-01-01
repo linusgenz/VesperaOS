@@ -27,24 +27,28 @@
 #include "../../../include/kernel/devices/char_device.h"
 
 ZeroDevice::ZeroDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+    : CharDevice(name, BusType::VIRTUAL)
+{
 }
 
-int ZeroDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int ZeroDevice::open(CharFile**)
+{
     return 0;
 }
 
-int ZeroDevice::release(CharFile* cf) {
+int ZeroDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t ZeroDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t ZeroDevice::read(CharFile*, void* buffer, size_t count, size_t)
+{
     if (!buffer) return -EINVAL;
     memset(buffer, 0, count);
     return count;
 }
 
-ssize_t ZeroDevice::write(CharFile*, const void*, size_t count) {
+ssize_t ZeroDevice::write(CharFile*, const void*, size_t count)
+{
     return count;
 }

@@ -27,19 +27,22 @@
 #include <kernel/time.h>
 
 UptimeDevice::UptimeDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL)
+{
+}
 
-int UptimeDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int UptimeDevice::open(CharFile**)
+{
     return 0;
 }
 
-int UptimeDevice::release(CharFile* cf) {
-    (void)cf;
+int UptimeDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t UptimeDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t UptimeDevice::read(CharFile*, void* buffer, size_t count, size_t)
+{
     if (count < sizeof(uint64_t) || !buffer) return -EINVAL;
 
     uint64_t uptime = kernel::time::get_uptime_ms();
@@ -47,7 +50,8 @@ ssize_t UptimeDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     return sizeof(uint64_t);
 }
 
-ssize_t UptimeDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t UptimeDevice::write(CharFile*, const void* buffer, size_t count)
+{
     (void)buffer;
     return -EUNSUPPORTED;
 }

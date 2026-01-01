@@ -45,8 +45,10 @@ const char* DevFS::bus_to_str(const BusType bus)
     }
 }
 
-VfsNodeType mapDeviceType(DeviceType type) {
-    switch (type) {
+VfsNodeType mapDeviceType(DeviceType type)
+{
+    switch (type)
+    {
     case DeviceType::Char:
         return VfsNodeType::CharDevice;
     case DeviceType::Block:
@@ -158,13 +160,17 @@ int DevFS::open(const VfsNode* node)
 
     if (kd->chardev && !entry->cf)
     {
-        entry->cf = new CharFile();
-        entry->cf->driver_private = nullptr;
-        return kd->chardev->open(&entry->cf);
+        CharFile* cf = nullptr;
+        int ret = kd->chardev->open(&cf);
+        if (ret != 0)
+            return ret;
+
+        entry->cf = cf;
     }
 
     return SUCCESS_CODE;
 }
+
 
 ssize_t DevFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
 {
@@ -269,10 +275,7 @@ void DevFS::close(VfsNode* node)
 
     KernelDevice* kd = entry->device;
     if (kd->chardev)
-    {
         kd->chardev->release(entry->cf);
-    }
 
-    delete entry->cf;
     entry->cf = nullptr;
 }

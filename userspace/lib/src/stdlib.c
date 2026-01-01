@@ -37,7 +37,6 @@ FILE_HANDLE stderr;
 
 void init_environ(char** envp)
 {
-    puts("init_environ");
     size_t count = 0;
     while (envp[count]) count++;
 

@@ -26,23 +26,25 @@
 
 #include <kernel/memory.h>
 
-FullDevice::FullDevice(const char *name)
-    : CharDevice(name, BusType::VIRTUAL) {
+FullDevice::FullDevice(const char* name)
+    : CharDevice(name, BusType::VIRTUAL)
+{
 }
 
-int FullDevice::open(CharFile **out_cf) {
-    *out_cf = nullptr;
+int FullDevice::open(CharFile**)
+{
     return 0;
 }
 
-int FullDevice::release(CharFile *cf) {
-    (void) cf;
+int FullDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t FullDevice::read(CharFile *cf, void *buffer, size_t count, size_t offset) {
-    (void) cf;
-    (void) offset;
+ssize_t FullDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset)
+{
+    (void)cf;
+    (void)offset;
 
     if (!buffer) return -EINVAL;
     if (count == 0) return 0;
@@ -51,10 +53,11 @@ ssize_t FullDevice::read(CharFile *cf, void *buffer, size_t count, size_t offset
     return static_cast<ssize_t>(count);
 }
 
-ssize_t FullDevice::write(CharFile *cf, const void *buffer, size_t count) {
-    (void) cf;
-    (void) buffer;
-    (void) count;
+ssize_t FullDevice::write(CharFile* cf, const void* buffer, size_t count)
+{
+    (void)cf;
+    (void)buffer;
+    (void)count;
     // always fail with ENOSPC
     return -ENOSPC;
 }

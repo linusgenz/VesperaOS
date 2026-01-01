@@ -24,22 +24,27 @@
 #include "null.h"
 
 NullDevice::NullDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL)
+{
+}
 
-int NullDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int NullDevice::open(CharFile**)
+{
     return 0;
 }
 
-int NullDevice::release(CharFile*) {
+int NullDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t NullDevice::read(CharFile*, void* buffer, size_t, size_t) {
+ssize_t NullDevice::read(CharFile*, void* buffer, size_t, size_t)
+{
     if (!buffer) return -EINVAL;
     return 0;
 }
 
-ssize_t NullDevice::write(CharFile*, const void*, size_t count) {
+ssize_t NullDevice::write(CharFile*, const void*, size_t count)
+{
     return static_cast<ssize_t>(count);
 }

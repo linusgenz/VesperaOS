@@ -33,7 +33,7 @@
 
 
 int main() {
-    HANDLE_ID log_fd = open(LOG_DEVICE, O_RDWR);
+    HANDLE log_fd = open(LOG_DEVICE, O_RDWR);
     if (log_fd < 0) {
         printf("Failed to open /dev/log: %ld", log_fd);
         return 1;

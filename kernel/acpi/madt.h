@@ -18,8 +18,6 @@ namespace MADT {
         bool is_bsp;        // Bootstrap Processor
         bool is_online;
         bool is_enabled;
-        void* stack_ptr;    // Stack for this Core
-        uint64_t current_task_id;
     };
 
     struct IoApic {

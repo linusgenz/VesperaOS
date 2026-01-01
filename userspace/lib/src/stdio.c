@@ -319,19 +319,19 @@ ssize_t fwrite(FILE_HANDLE handle, const void *buf, size_t count) {
     return sys_write(handle, (uint64_t) buf, count, 0, 0, 0);
 }
 
-HANDLE_ID open(const char *path, int flags) {
+HANDLE open(const char *path, int flags) {
     return sys_open((uint64_t) path, flags, 0, 0, 0, 0);
 }
 
-int close(HANDLE_ID handle) {
+int close(HANDLE handle) {
     return sys_close(handle, 0, 0, 0, 0, 0);
 }
 
-ssize_t read(HANDLE_ID handle, void *buf, size_t count) {
+ssize_t read(HANDLE handle, void *buf, size_t count) {
     return sys_read(handle, (uint64_t) buf, count, 0, 0, 0);
 }
 
-ssize_t write(HANDLE_ID handle, const void *buf, size_t count) {
+ssize_t write(HANDLE handle, const void *buf, size_t count) {
     return sys_write(handle, (uint64_t) buf, count, 0, 0, 0);
 }
 

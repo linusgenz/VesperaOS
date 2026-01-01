@@ -30,6 +30,7 @@
 #include "graphics.h"
 
 struct KernelDevice;
+
 struct GgttAllocation
 {
     void* cpu_addr;
@@ -84,8 +85,7 @@ struct GgttAllocation
 #define GTT_PAT_WT              0x2  // Write-Through
 #define GTT_PAT_WB              0x3  // Write-Back (cached in LLC)
 
-// MOCS Indices (für Surface States, nicht GTT!)
-// Diese werden NUR in SURFACE_STATE/Commands verwendet
+
 #define MOCS_UNCACHED           0x01  // UC für alle Caches
 #define MOCS_LLC_ONLY           0x02  // Nur LLC, WB
 #define MOCS_DISPLAY_BUFFER     0x03  // Für Display: LLC cacheable
@@ -145,6 +145,13 @@ struct GgttAllocation
 #define COORD_Y_SHIFT           16            // Y coordinate position
 
 
+// ROP codes (must involve source, no pattern)
+#define SRCCOPY 0xCC
+
+// ============================================================================
+// XY_MONO_SRC_COPY_BLT Command
+// ============================================================================
+
 #define XY_MONO_SRC_COPY_CMD            0x2 << 29  // Client: 2D Processor
 #define XY_MONO_SRC_COPY_OPCODE         0x54 << 22 // Opcode: 0x54
 #define XY_MONO_SRC_COPY_WRITE_ALPHA    1 << 21    // Write Alpha Channel
@@ -155,8 +162,22 @@ struct GgttAllocation
 #define MONO_SRC_TRANSPARENCY           1 << 29    // Transparency Enabled
 #define MONO_SRC_USE_BACKGROUND         0 << 29    // Use Background
 
-// ROP codes (must involve source, no pattern)
-#define SRCCOPY 0xCC
+// ============================================================================
+// XY_FAST_COPY_BLT Command
+// ============================================================================
+
+#define XY_FAST_COPY_BLT_CMD        (2u << 29)     // 2D Processor
+#define XY_FAST_COPY_BLT_OPCODE     (0x42u << 22)  // XY_FAST_COPY_BLT
+
+// DW0 tiling bits
+#define FAST_SRC_TILING_LINEAR      (0u << 20)
+#define FAST_DST_TILING_LINEAR      (0u << 13)
+
+// Length: 8 DWORDs *after* DW0/1 → total 10 DWORDs
+#define XY_FAST_COPY_BLT_LEN        8
+
+// BR13
+#define FAST_COLOR_DEPTH_8888       (0b011u << 24) // 32bpp
 
 // ============================================================================
 // BAR0 Configuration
@@ -221,7 +242,8 @@ struct GpuTextBuffer
     size_t total_size;
 };
 
-struct BltRect {
+struct BltRect
+{
     uint32_t x, y;
     uint32_t width, height;
 };
@@ -239,18 +261,25 @@ public:
         uint32_t h,
         uint32_t colour
     ) override;
+
+    bool blit_buffer(const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x,
+                     uint32_t dst_y) override;
+
     bool scroll_pixels(int dy) override;
+
     void draw_glyph_run(const GlyphRun& r) override
     {
         draw_str(r.text, r.px, r.py, r.fg, r.bg);
     }
 
-    [[nodiscard]] KernelDevice* get_kd() const {
+    [[nodiscard]] KernelDevice* get_kd() const
+    {
         return kd;
     }
 
     [[nodiscard]] uint32_t screen_width_px() const override;
     [[nodiscard]] uint32_t screen_height_px() const override;
+    [[nodiscard]] uint32_t bytes_per_scanline() const override;
 
 private:
     KernelDevice* kd;
@@ -292,6 +321,8 @@ private:
     bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color);
     void xy_src_copy_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2,
                          uint32_t dest_y2, uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1);
+    void xy_fast_copy_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2,
+                          uint32_t dest_y2, uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1);
 
     void write_command(uint32_t cmd);
     void set_display_framebuffer() const;

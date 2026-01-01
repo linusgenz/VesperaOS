@@ -5,19 +5,37 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
-file(GLOB_RECURSE LIB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+# --- C Sources ---
+set(LIB_SOURCES
+        src/channel.c
+        src/exec.c
+        src/file.c
+        src/internal.c
+        src/malloc.c
+        src/realm.c
+        src/reboot.c
+        src/stdio.c
+        src/stdlib.c
+        src/string.c
+        src/sysstd.c
+        src/urandom.c
+
+        src/sys/ioctl.c
+        src/sys/mman.c
 )
 
+# --- ASM Sources ---
 set(ASM_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/crt0.asm
+        src/crt0.asm
 )
 
-add_library(vesplib STATIC ${LIB_SOURCES} ${ASM_SOURCES})
-
-# NASM Flags korrekt setzen
-set_source_files_properties(
+add_library(vesplib STATIC
+        ${LIB_SOURCES}
         ${ASM_SOURCES}
+)
+
+set_source_files_properties(
+        src/crt0.asm
         PROPERTIES
         LANGUAGE ASM_NASM
         COMPILE_FLAGS "-f elf64"

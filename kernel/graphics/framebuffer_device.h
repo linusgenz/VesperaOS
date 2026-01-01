@@ -29,16 +29,49 @@
 
 #include <kernel/devices/char_device.h>
 
+#define FB_IOCTL_GET_INFO           0x4600
+#define FB_IOCTL_GET_BACKING_DEVID  0x4601
+#define FB_IOCTL_FILL_RECT          0x4602
+#define FB_IOCTL_DRAW_RECT          0x4603
+#define FB_IOCTL_CLEAR              0x4604
+#define FB_IOCTL_BLIT               0x4605
+
 struct FbInfo {
-  uint32_t width;
-  uint32_t height;
-  uint32_t bpp;
-  uint32_t pitch;
-  uint32_t is_primary; // 1 = yes, 0 = no
+    uint32_t width;
+    uint32_t height;
+    uint32_t bpp;
+    uint32_t pitch;
+    uint32_t is_primary;  // 1 = yes, 0 = no
 };
 
-#define FB_IOCTL_GET_INFO 0x4600
-#define FB_IOCTL_GET_BACKING_DEVID 0x4601
+struct FbRect {
+    uint32_t x;
+    uint32_t y;
+    uint32_t width;
+    uint32_t height;
+    uint32_t color;       // ARGB format: 0xAARRGGBB
+};
+
+struct FbRectOutline {
+    uint32_t x;
+    uint32_t y;
+    uint32_t width;
+    uint32_t height;
+    uint32_t color;       // ARGB format
+    uint32_t thickness;   // border thickness in pixels
+};
+
+struct FbClear {
+    uint32_t color;       // ARGB format
+};
+
+struct FbBlit {
+    const void* pixels;
+    uint32_t buffer_width;
+    uint32_t buffer_height;
+    uint32_t dst_x;
+    uint32_t dst_y;
+};
 
 class FramebufferDevice final : public CharDevice {
 public:
@@ -52,6 +85,17 @@ public:
   ssize_t write(CharFile *cf, const void *buffer, size_t count) override;
 
   int ioctl(CharFile *cf, uint32_t cmd, void *arg) override;
+
+private:
+    // Validation helpers
+    bool validate_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+    bool validate_blit(const FbBlit* blit);
+
+    // Drawing helpers
+    int fill_rect(const FbRect* rect);
+    int draw_rect_outline(const FbRectOutline* rect);
+    int clear_screen(const FbClear* clear);
+    int blit_pixels(const FbBlit* blit);
 };
 
 #endif // VESPERAOS_FRAMEBUFFER_DEVICE_H

@@ -82,10 +82,10 @@ void heap_lazy_init() {
 
     // Get current break (sollte die Heap-Basis zurückgeben)
     heap_base = sys_brk(0, 0, 0, 0, 0, 0);
-    heap_end = heap_base + 0x1000; // every unit has a standard heap size of 0x1000 bytes
+    heap_end = heap_base + 0x20000; // every unit has a standard heap size of 0x20000 bytes
 
     heap_head = (heap_seg *) heap_base;
-    heap_head->length = 0x1000 - sizeof(heap_seg);
+    heap_head->length = 0x20000 - sizeof(heap_seg);
     heap_head->free = 1;
     heap_head->magic = HEAP_MAGIC;
     heap_head->next = NULL;
@@ -96,20 +96,18 @@ void *malloc(size_t size) {
     if (size == 0) return NULL;
 
     if (size >= LARGE_ALLOC_THRESHOLD) {
-        void* addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS, 0, 0);
+        size_t total_size = size + sizeof(large_seg);
+        void* addr = mmap(NULL, total_size, PROT_READ | PROT_WRITE,
+                         MAP_ANONYMOUS, 0, 0);
         if (!addr) return NULL;
 
-        large_seg* lb = malloc(sizeof(large_seg));
-        if (!lb) {
-            munmap(addr, size);
-            return NULL;
-        }
-        lb->addr = addr;
+        large_seg* lb = (large_seg*)addr;
+        lb->addr = (char*)addr + sizeof(large_seg);
         lb->size = size;
         lb->next = large_alloc_list;
         large_alloc_list = lb;
 
-        return addr;
+        return lb->addr;
     }
 
     heap_lazy_init();
@@ -118,20 +116,21 @@ void *malloc(size_t size) {
     heap_seg *seg = find_free_segment(size);
 
     if (!seg) {
-        // grow heap
+        // Grow heap
         size_t grow_size = size > 4096 ? size : 4096;
         const uintptr_t new_brk = heap_end + sizeof(heap_seg) + grow_size;
-        if (sys_brk(new_brk, 0, 0, 0, 0, 0) != new_brk) return NULL; // failed
+        if (sys_brk(new_brk, 0, 0, 0, 0, 0) != new_brk) return NULL;
 
         seg = (heap_seg *) heap_end;
         seg->length = grow_size;
         seg->free = 1;
         seg->magic = HEAP_MAGIC;
         seg->next = NULL;
-        seg->prev = NULL;
 
+        // Find last segment and link
         heap_seg *last = heap_head;
         while (last->next) last = last->next;
+
         last->next = seg;
         seg->prev = last;
 
@@ -158,24 +157,23 @@ void heap_free(void *ptr) {
 void free(void* ptr) {
     if (!ptr) return;
 
-    // Prüfen, ob es sich um eine große mmap-Allokation handelt
+    // Check if it's a large mmap allocation
     large_seg** current = &large_alloc_list;
     while (*current) {
         if ((*current)->addr == ptr) {
-            munmap(ptr, (*current)->size);
-            large_seg* to_free = *current;
+            size_t total_size = (*current)->size + sizeof(large_seg);
+            void* base = (char*)ptr - sizeof(large_seg);
+            munmap(base, total_size);
+
+            // Remove from list
             *current = (*current)->next;
-            heap_free(to_free); // Tracking-Struktur freigeben
             return;
         }
         current = &(*current)->next;
     }
 
-    // Normale kleine Allokation
     heap_free(ptr);
 }
-
-
 
 void *realloc(void *ptr, size_t new_size) {
     if (!ptr) return malloc(new_size);

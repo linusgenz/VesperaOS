@@ -43,10 +43,10 @@
 #define HANDLE_STDOUT  (HANDLE_TYPE_CONSOLE | 0x0000000000000001ULL)
 #define HANDLE_STDERR  (HANDLE_TYPE_CONSOLE | 0x0000000000000002ULL)
 
-typedef int64_t HANDLE_ID;
-typedef HANDLE_ID FILE_HANDLE;
-typedef HANDLE_ID CHANNEL_HANDLE;
-typedef HANDLE_ID DIR_HANDLE;
+typedef int64_t HANDLE;
+typedef HANDLE FILE_HANDLE;
+typedef HANDLE CHANNEL_HANDLE;
+typedef HANDLE DIR_HANDLE;
 
 #ifdef __cplusplus
 extern "C" {
@@ -284,7 +284,7 @@ ssize_t readdir(DIR_HANDLE handle, dirent_t* entry);
 * @see close()
 * @see fopen()
 */
-HANDLE_ID open(const char* path, int flags);
+HANDLE open(const char* path, int flags);
 
 /**
  * @brief Close a generic handle.
@@ -297,7 +297,7 @@ HANDLE_ID open(const char* path, int flags);
  * @see open()
  * @see fclose()
  */
-int close(HANDLE_ID handle);
+int close(HANDLE handle);
 
 /**
 * @brief Read data from a generic handle.
@@ -312,7 +312,7 @@ int close(HANDLE_ID handle);
 * @see write()
 * @see open()
 */
-ssize_t read(HANDLE_ID handle, void* buf, size_t count);
+ssize_t read(HANDLE handle, void* buf, size_t count);
 
 /**
 * @brief Write data to a generic handle.

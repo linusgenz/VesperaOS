@@ -36,28 +36,38 @@ namespace syscalls::internal
         Realm* cur_r = RealmManager::get(cur->rid);
         if (!cur || !cur->is_user) return -EACCES;
 
+        // Initialize heap on first call
         if (cur->heap_end == 0)
         {
             cur->heap_end = USER_HEAP_START;
 
-            void* page = kernel::memory::request_page();
+            void* page = kernel::memory::request_pages(0x20000 / PAGE_SIZE);
             if (!page) return -ENOMEM;
-            cur_r->page_table->map_memory(reinterpret_cast<void*>(USER_HEAP_START), page, (1ULL << UserSuper));
+
+            cur_r->page_table->map_range(
+                reinterpret_cast<void*>(USER_HEAP_START),
+                page,
+                0x20000,
+                (1ULL << UserSuper)
+            );
 
             VmArea* vma = new VmArea();
             vma->start = USER_HEAP_START;
-            vma->length = 0x1000; // initiale Page
+            vma->length = 0x20000;
             vma->prot = 0;
-            vma->flags = 0; // TODO
+            vma->flags = 0;
             vma->file_off = 0;
             vma->handle = 0;
             cur->add_vma(vma);
         }
 
+        // Return current break
         if (addr == 0) return cur->heap_end;
 
+        // Validate address range
         if (addr < USER_HEAP_START || addr > USER_HEAP_MAX) return -EINVAL;
 
+        // Grow heap
         if (addr > cur->heap_end)
         {
             uintptr_t start = (cur->heap_end + 0xFFF) & ~0xFFF;
@@ -67,9 +77,15 @@ namespace syscalls::internal
             {
                 void* page = kernel::memory::request_page();
                 if (!page) return -ENOMEM;
-                cur_r->page_table->map_memory(reinterpret_cast<void*>(USER_HEAP_START), page, (1ULL << UserSuper));
+
+                cur_r->page_table->map_memory(
+                    reinterpret_cast<void*>(a),
+                    page,
+                    (1ULL << UserSuper)
+                );
             }
 
+            // Update or create VMA
             VmArea* vma = cur->find_vma(cur->heap_end, 0);
             if (vma)
             {
@@ -81,12 +97,14 @@ namespace syscalls::internal
                 new_vma->start = cur->heap_end;
                 new_vma->length = addr - cur->heap_end;
                 new_vma->prot = 0;
-                new_vma->flags = 0; // TODO
+                new_vma->flags = 0;
                 new_vma->file_off = 0;
                 new_vma->handle = 0;
                 cur->add_vma(new_vma);
             }
         }
+
+        // Shrink heap
         else if (addr < cur->heap_end)
         {
             uintptr_t start = (addr + 0xFFF) & ~0xFFF;
@@ -94,7 +112,9 @@ namespace syscalls::internal
 
             for (uintptr_t a = start; a < end; a += 0x1000)
             {
-                void* page = cur_r->page_table->get_physical_address(reinterpret_cast<void*>(a));
+                void* page = cur_r->page_table->get_physical_address(
+                    reinterpret_cast<void*>(a)
+                );
                 if (page)
                 {
                     cur_r->page_table->unmap_memory(reinterpret_cast<void*>(a));

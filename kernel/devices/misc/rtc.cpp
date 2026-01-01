@@ -27,19 +27,22 @@
 #include <kernel/time.h>
 
 RTCDevice::RTCDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL)
+{
+}
 
-int RTCDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int RTCDevice::open(CharFile**)
+{
     return 0;
 }
 
-int RTCDevice::release(CharFile* cf) {
-    (void)cf;
+int RTCDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t)
+{
     if (count < sizeof(RtcData) || !buffer) return -EINVAL;
 
     RtcData data{};
@@ -50,7 +53,8 @@ ssize_t RTCDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     return sizeof(RtcData);
 }
 
-ssize_t RTCDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t RTCDevice::write(CharFile*, const void* buffer, size_t count)
+{
     (void)buffer;
     return -EUNSUPPORTED; // maybe add cmos write support late
 }

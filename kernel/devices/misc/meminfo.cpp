@@ -28,35 +28,39 @@
 #include <kernel/system/system_manager.h>
 
 MemInfoDevice::MemInfoDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL)
+{
+}
 
-int MemInfoDevice::open(CharFile** out_cf) {
-    *out_cf = nullptr;
+int MemInfoDevice::open(CharFile**)
+{
     return 0;
 }
 
-int MemInfoDevice::release(CharFile* cf) {
-    (void)cf;
+int MemInfoDevice::release(CharFile*)
+{
     return 0;
 }
 
-ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t)
+{
     if (count < sizeof(meminfo_t) || !buffer) return -EINVAL;
 
     kernel::SystemManager::update_system_stats();
     const kernel::SystemStats stats = kernel::SystemManager::get_system_stats();
 
     meminfo_t info{};
-    info.total_ram    = stats.total_memory;
-    info.used_ram     = stats.used_memory;
-    info.free_ram     = stats.free_memory;
+    info.total_ram = stats.total_memory;
+    info.used_ram = stats.used_memory;
+    info.free_ram = stats.free_memory;
     info.reserved_ram = stats.reserved_memory;
 
     memcpy(buffer, &info, sizeof(meminfo_t));
     return sizeof(meminfo_t);
 }
 
-ssize_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count) {
+ssize_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count)
+{
     (void)buffer;
     return -EUNSUPPORTED;
 }
