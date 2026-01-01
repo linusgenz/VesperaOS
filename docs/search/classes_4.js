@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['meminfo_5ft_0',['meminfo_t',['../structmeminfo__t.html',1,'']]]
+  ['large_5fseg_0',['large_seg',['../structlarge__seg.html',1,'']]]
 ];

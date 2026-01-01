@@ -1,17 +1,19 @@
 var searchData=
 [
   ['day_0',['day',['../structrtc__data.html#a74b0bfc04b7236fecefd87aaceb61d6b',1,'rtc_data']]],
-  ['dir_5fhandle_1',['DIR_HANDLE',['../stdio_8h.html#af4072c4c1cb0b8441d6ce257461cccb0',1,'stdio.h']]],
+  ['dir_5fhandle_1',['DIR_HANDLE',['../stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22',1,'stdio.h']]],
   ['dirent_2eh_2',['dirent.h',['../dirent_8h.html',1,'']]],
   ['dirent_5ft_3',['dirent_t',['../structdirent__t.html',1,'']]],
   ['dirent_5ftype_5ft_4',['dirent_type_t',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d',1,'dirent.h']]],
-  ['dt_5fblockdev_5',['DT_BLOCKDEV',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da3412353c2a426673a0825c38381a6dc5',1,'dirent.h']]],
-  ['dt_5fchardev_6',['DT_CHARDEV',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da45c2663804c110f37496697c8e1122e8',1,'dirent.h']]],
-  ['dt_5fdir_7',['DT_DIR',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da40b944f75d390136b9f74124dc23ef94',1,'dirent.h']]],
-  ['dt_5fexec_8',['DT_EXEC',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da433674f41e1ea22c4079d028475141d8',1,'dirent.h']]],
-  ['dt_5ffifo_9',['DT_FIFO',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da5488f793b1e97263b3b7ffea7d8ca820',1,'dirent.h']]],
-  ['dt_5ffile_10',['DT_FILE',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da2e66401e4f5d2c978ddb6021267c717e',1,'dirent.h']]],
-  ['dt_5fsocket_11',['DT_SOCKET',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17dad7bea0362e9c429fabbd3a881f261ea3',1,'dirent.h']]],
-  ['dt_5fsymlink_12',['DT_SYMLINK',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daf17ead8c24594dd530d8451c0edc6f16',1,'dirent.h']]],
-  ['dt_5funknown_13',['DT_UNKNOWN',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]]
+  ['dst_5fx_5',['dst_x',['../structfb__blit.html#a2f520113435aed235125167f33cb9d46',1,'fb_blit']]],
+  ['dst_5fy_6',['dst_y',['../structfb__blit.html#af90f6eef434673bd42fc62cb5691926b',1,'fb_blit']]],
+  ['dt_5fblockdev_7',['DT_BLOCKDEV',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da3412353c2a426673a0825c38381a6dc5',1,'dirent.h']]],
+  ['dt_5fchardev_8',['DT_CHARDEV',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da45c2663804c110f37496697c8e1122e8',1,'dirent.h']]],
+  ['dt_5fdir_9',['DT_DIR',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da40b944f75d390136b9f74124dc23ef94',1,'dirent.h']]],
+  ['dt_5fexec_10',['DT_EXEC',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da433674f41e1ea22c4079d028475141d8',1,'dirent.h']]],
+  ['dt_5ffifo_11',['DT_FIFO',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da5488f793b1e97263b3b7ffea7d8ca820',1,'dirent.h']]],
+  ['dt_5ffile_12',['DT_FILE',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da2e66401e4f5d2c978ddb6021267c717e',1,'dirent.h']]],
+  ['dt_5fsocket_13',['DT_SOCKET',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17dad7bea0362e9c429fabbd3a881f261ea3',1,'dirent.h']]],
+  ['dt_5fsymlink_14',['DT_SYMLINK',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daf17ead8c24594dd530d8451c0edc6f16',1,'dirent.h']]],
+  ['dt_5funknown_15',['DT_UNKNOWN',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]]
 ];
