@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['handle_5fcount_0',['handle_count',['../structunit__info__t.html#a31f6c188b3a83e1a3929fab8726006a2',1,'unit_info_t']]],
-  ['height_1',['height',['../structfb__info.html#ac512f9325cad40bb0d556a2b2f605a0b',1,'fb_info::height'],['../structfb__rect.html#ad10892ca7a09f36735fe1bf52e96765c',1,'fb_rect::height'],['../structfb__rect__outline.html#afc00a5cf143b759a9a0d220942bcd192',1,'fb_rect_outline::height']]],
-  ['hour_2',['hour',['../structrtc__data.html#ab364b6e0f535de7459b09ee71db47e15',1,'rtc_data']]]
+  ['fast_5fdct_0',['fast_dct',['../structjpeg__load__options__t.html#af175ec7b5f8c67ffa1d694c4a353183e',1,'jpeg_load_options_t']]],
+  ['features_1',['features',['../structcpu__info.html#aeac8d8efb615531a37df263f38a52cbd',1,'cpu_info']]],
+  ['format_2',['format',['../structimage__t.html#ace4746ea3e098923478aa03dac2aaaa9',1,'image_t']]],
+  ['free_3',['free',['../structheap__seg.html#a5e1d84ac164308cd5c60cfa0fa114e50',1,'heap_seg']]],
+  ['free_5fram_4',['free_ram',['../structmeminfo__t.html#ab2f922d7b3eaf7f68c2733611938fcbe',1,'meminfo_t']]]
 ];

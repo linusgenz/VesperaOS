@@ -1,15 +1,12 @@
 var searchData=
 [
-  ['sched_5fpriority_0',['sched_priority',['../structrealm__info__t.html#a82ae8c64f4109027b89f1d13d8f1d381',1,'realm_info_t']]],
-  ['sec_1',['sec',['../structrtc__data.html#a74497aa2ff01749912cd64a36ee07844',1,'rtc_data']]],
-  ['serial_5fnumber_2',['serial_number',['../structxhci__device__stat.html#a9112f6aad0d10c249388721dc7a24fea',1,'xhci_device_stat']]],
-  ['size_3',['size',['../structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710',1,'large_seg']]],
-  ['slot_5fid_4',['slot_id',['../structxhci__device__stat.html#ae614144c080e407be3d64ec136a9db73',1,'xhci_device_stat']]],
-  ['speed_5',['speed',['../structxhci__device__stat.html#a1d61d8c2c89d977d4b0cb39f9966b886',1,'xhci_device_stat']]],
-  ['stack_5fend_6',['stack_end',['../structunit__info__t.html#a206fc2e619022308ed01a9be204de2b6',1,'unit_info_t']]],
-  ['stack_5fstart_7',['stack_start',['../structunit__info__t.html#a0c8b2c18d93a84b70b4f7de8b178e48d',1,'unit_info_t']]],
-  ['state_8',['state',['../structunit__info__t.html#a857d87537d67eaedda6f209aa92e3074',1,'unit_info_t']]],
-  ['stderr_9',['stderr',['../stdlib_8h.html#a68d8bb041a7c69667bcd076557b84de1',1,'stdlib.h']]],
-  ['stdin_10',['stdin',['../stdlib_8h.html#aad7e0a39be21b2491dd86fed4fdac3a9',1,'stdlib.h']]],
-  ['stdout_11',['stdout',['../stdlib_8h.html#ae1e629f812b37fb991dabc7f62c3232d',1,'stdlib.h']]]
+  ['pitch_0',['pitch',['../structfb__info.html#a10698604dd5700920ad494466b512e08',1,'fb_info']]],
+  ['pixels_1',['pixels',['../structfb__blit.html#a1865017c8e34ba456777064246b08713',1,'fb_blit']]],
+  ['port_5fnum_2',['port_num',['../structxhci__device__stat.html#a28736c64ed1e6121af9764a45d6fe558',1,'xhci_device_stat']]],
+  ['precision_3',['precision',['../structimage__t.html#ad13fa2b67f6b9e0dd76983345b627df7',1,'image_t']]],
+  ['prev_4',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
+  ['priority_5',['priority',['../structunit__info__t.html#a853167f13ba3f2d40ff77634247cb51b',1,'unit_info_t']]],
+  ['product_6',['product',['../structxhci__device__stat.html#a8e18b92b92445be1e3b909204d70d663',1,'xhci_device_stat']]],
+  ['product_5fid_7',['product_id',['../structxhci__device__stat.html#ac94de7315999b16e4807c7c234311822',1,'xhci_device_stat']]],
+  ['progressive_8',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]]
 ];

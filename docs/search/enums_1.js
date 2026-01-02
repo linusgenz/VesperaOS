@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reboot_5fmode_5ft_0',['reboot_mode_t',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38',1,'reboot.h']]]
+  ['jpeg_5ferror_5ft_0',['jpeg_error_t',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992',1,'jpeg.h']]]
 ];

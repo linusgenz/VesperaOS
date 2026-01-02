@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['uint_5fto_5fstr_0',['uint_to_str',['../internal_8h.html#ab72bae8e2e38262d4e342ea762149f3a',1,'internal.h']]],
-  ['unlink_1',['unlink',['../stdio_8h.html#a28af9471bbdf262321af663e02899a47',1,'stdio.h']]],
-  ['unsetenv_2',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
-  ['urandom_5fu32_3',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
-  ['urandom_5fu64_4',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]]
+  ['read_0',['read',['../stdio_8h.html#ac01dfe00c38b79b1f2ab3d1cd870dd0b',1,'stdio.h']]],
+  ['readdir_1',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
+  ['realloc_2',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
+  ['reboot_3',['reboot',['../reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5',1,'reboot.h']]],
+  ['rewind_4',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
+  ['rmdir_5',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]]
 ];

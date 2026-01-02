@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['y_0',['y',['../structfb__rect.html#a6a68b094b82ddb1c9a4eadf642fba54d',1,'fb_rect::y'],['../structfb__rect__outline.html#ab5de8e4564e567d207fc03ecde7cd867',1,'fb_rect_outline::y']]],
-  ['year_1',['year',['../structrtc__data.html#ae1f6e8da2c753702a452d6be44dbc5e5',1,'rtc_data']]]
+  ['v_5fsamp_5ffactor_0',['v_samp_factor',['../structjpeg__save__options__t.html#a06445193fca1fa42950df1536bf0a470',1,'jpeg_save_options_t']]],
+  ['vendor_1',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info']]],
+  ['vendor_5fid_2',['vendor_id',['../structxhci__device__stat.html#a515718791dccd4d50e68ec911c475100',1,'xhci_device_stat']]]
 ];

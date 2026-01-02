@@ -1,7 +1,10 @@
 var searchData=
 [
-  ['vendor_0',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info']]],
-  ['vendor_5fid_1',['vendor_id',['../structxhci__device__stat.html#a515718791dccd4d50e68ec911c475100',1,'xhci_device_stat']]],
-  ['vesperaos_20standard_20library_20vesplib_2',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
-  ['vesplib_3',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]]
+  ['thickness_0',['thickness',['../structfb__rect__outline.html#aec951effb218b7c56c5b709876411a63',1,'fb_rect_outline']]],
+  ['todo_20list_1',['Todo List',['../todo.html',1,'']]],
+  ['tolower_2',['tolower',['../ctype_8h.html#a422175620f52b1ca4dbc39d627296d83',1,'ctype.h']]],
+  ['total_5fram_3',['total_ram',['../structmeminfo__t.html#aaf3af1b93cc3aced8770ad503f4069b6',1,'meminfo_t']]],
+  ['toupper_4',['toupper',['../ctype_8h.html#adda03014c30b02d7b496fce96f37951b',1,'ctype.h']]],
+  ['true_5',['true',['../stdbool_8h.html#a41f9c5fb8b08eb5dc3edce4dcb37fee7',1,'stdbool.h']]],
+  ['type_6',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t']]]
 ];

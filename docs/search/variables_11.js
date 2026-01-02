@@ -1,5 +1,19 @@
 var searchData=
 [
-  ['vendor_0',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info']]],
-  ['vendor_5fid_1',['vendor_id',['../structxhci__device__stat.html#a515718791dccd4d50e68ec911c475100',1,'xhci_device_stat']]]
+  ['scale_5fdenom_0',['scale_denom',['../structjpeg__load__options__t.html#acb0882ec1a0422b6fbee5104e50724b1',1,'jpeg_load_options_t']]],
+  ['scale_5fnum_1',['scale_num',['../structjpeg__load__options__t.html#a56185da9d48ee5c87f06d563254cb1bc',1,'jpeg_load_options_t']]],
+  ['sched_5fpriority_2',['sched_priority',['../structrealm__info__t.html#a82ae8c64f4109027b89f1d13d8f1d381',1,'realm_info_t']]],
+  ['sec_3',['sec',['../structrtc__data.html#a74497aa2ff01749912cd64a36ee07844',1,'rtc_data']]],
+  ['serial_5fnumber_4',['serial_number',['../structxhci__device__stat.html#a9112f6aad0d10c249388721dc7a24fea',1,'xhci_device_stat']]],
+  ['size_5',['size',['../structimage__t.html#a59f1805a29e1060950754281201301fa',1,'image_t::size'],['../structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710',1,'large_seg::size']]],
+  ['slot_5fid_6',['slot_id',['../structxhci__device__stat.html#ae614144c080e407be3d64ec136a9db73',1,'xhci_device_stat']]],
+  ['smoothing_5ffactor_7',['smoothing_factor',['../structjpeg__save__options__t.html#a1a549137c32b3e4572950bad49dcf356',1,'jpeg_save_options_t']]],
+  ['speed_8',['speed',['../structxhci__device__stat.html#a1d61d8c2c89d977d4b0cb39f9966b886',1,'xhci_device_stat']]],
+  ['stack_5fend_9',['stack_end',['../structunit__info__t.html#a206fc2e619022308ed01a9be204de2b6',1,'unit_info_t']]],
+  ['stack_5fstart_10',['stack_start',['../structunit__info__t.html#a0c8b2c18d93a84b70b4f7de8b178e48d',1,'unit_info_t']]],
+  ['state_11',['state',['../structunit__info__t.html#a857d87537d67eaedda6f209aa92e3074',1,'unit_info_t']]],
+  ['stderr_12',['stderr',['../stdlib_8h.html#a68d8bb041a7c69667bcd076557b84de1',1,'stdlib.h']]],
+  ['stdin_13',['stdin',['../stdlib_8h.html#aad7e0a39be21b2491dd86fed4fdac3a9',1,'stdlib.h']]],
+  ['stdout_14',['stdout',['../stdlib_8h.html#ae1e629f812b37fb991dabc7f62c3232d',1,'stdlib.h']]],
+  ['stride_15',['stride',['../structimage__t.html#a6eeb20227a04718347b735ea8eee9c53',1,'image_t']]]
 ];

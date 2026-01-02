@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['seek_5fcur_0',['SEEK_CUR',['../fflags_8h.html#a4c8d0b76b470ba65a43ca46a88320f39',1,'fflags.h']]],
-  ['seek_5fend_1',['SEEK_END',['../fflags_8h.html#ad2a2e6c114780c3071efd24f16c7f7d8',1,'fflags.h']]],
-  ['seek_5fset_2',['SEEK_SET',['../fflags_8h.html#a0d112bae8fd35be772185b6ec6bcbe64',1,'fflags.h']]],
-  ['success_5fcode_3',['SUCCESS_CODE',['../errno_8h.html#af552599b46244712be9567e1c81b099b',1,'errno.h']]]
+  ['prot_5fexec_0',['PROT_EXEC',['../mman_8h.html#a77848f068638e916c72cd543f5ecb815',1,'mman.h']]],
+  ['prot_5fnone_1',['PROT_NONE',['../mman_8h.html#a6a982b48b8d3eb8eccd17e0d54ee5379',1,'mman.h']]],
+  ['prot_5fread_2',['PROT_READ',['../mman_8h.html#a15bf68ce8b590838b3a5c0b639d8d519',1,'mman.h']]],
+  ['prot_5fwrite_3',['PROT_WRITE',['../mman_8h.html#a2a79c8ceefb8fc25a940ae07a3d94429',1,'mman.h']]]
 ];

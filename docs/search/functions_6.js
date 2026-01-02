@@ -1,10 +1,11 @@
 var searchData=
 [
-  ['malloc_0',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
-  ['memcmp_1',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
-  ['memcpy_2',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
-  ['memset_3',['memset',['../string_8h.html#a7b790200c268c08dc4429094ad149853',1,'string.h']]],
-  ['mkdir_4',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
-  ['mmap_5',['mmap',['../mman_8h.html#adce60d6da219bfd77ddbe177533942e8',1,'mman.h']]],
-  ['munmap_6',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
+  ['jpeg_5ferror_5fstring_0',['jpeg_error_string',['../jpeg_8h.html#a6f89c2e22b7dce292f5718375e748565',1,'jpeg.h']]],
+  ['jpeg_5fget_5finfo_1',['jpeg_get_info',['../jpeg_8h.html#ac154607724eda2453cd10b2bc390dff0',1,'jpeg.h']]],
+  ['jpeg_5fload_5ffrom_5ffile_2',['jpeg_load_from_file',['../jpeg_8h.html#a3dc8cff806e9b64a67bda74452cb0db5',1,'jpeg.h']]],
+  ['jpeg_5fload_5ffrom_5fmemory_3',['jpeg_load_from_memory',['../jpeg_8h.html#a0539c9bc0649cf3a7f67b762184125da',1,'jpeg.h']]],
+  ['jpeg_5fload_5foptions_5finit_4',['jpeg_load_options_init',['../jpeg_8h.html#ac3c8272ca37d3e7c4c27d3a597bffd9c',1,'jpeg.h']]],
+  ['jpeg_5fsave_5foptions_5finit_5',['jpeg_save_options_init',['../jpeg_8h.html#a88358088e98874ddc24652a86cbfb7e9',1,'jpeg.h']]],
+  ['jpeg_5fsave_5fto_5ffile_6',['jpeg_save_to_file',['../jpeg_8h.html#ab83ae34da05179179b7ff1586224dd0b',1,'jpeg.h']]],
+  ['jpeg_5fsave_5fto_5fmemory_7',['jpeg_save_to_memory',['../jpeg_8h.html#a3424c9c116baeba406d0cd2c3f7b841d',1,'jpeg.h']]]
 ];

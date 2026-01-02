@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['realm_5fid_0',['realm_id',['../structunit__info__t.html#a789a9b234568fd6eb2b21980204d25c2',1,'unit_info_t']]],
-  ['reserved_5fram_1',['reserved_ram',['../structmeminfo__t.html#a944f672d0f1bad28dbbbc5494cc656f2',1,'meminfo_t']]]
+  ['optimize_5fcoding_0',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
+  ['output_5fformat_1',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['x_0',['x',['../structfb__rect.html#acfbd1b6c3b6c100c760304677cd19dfc',1,'fb_rect::x'],['../structfb__rect__outline.html#a00785e8d90e472d287a9a170952ff17b',1,'fb_rect_outline::x']]]
+  ['unit_5fcount_0',['unit_count',['../structrealm__info__t.html#acfb3aea6f5a9de2626910d169275d204',1,'realm_info_t']]],
+  ['used_5fram_1',['used_ram',['../structmeminfo__t.html#afe3c8841983450c6aedf3cc2e9cbca0a',1,'meminfo_t']]]
 ];

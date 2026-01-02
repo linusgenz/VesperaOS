@@ -10,5 +10,8 @@ var searchData=
   ['cap_5fread_7',['CAP_READ',['../capabilities_8h.html#a9cdd03c912c9f2d0095ed3ac54e3cc4e',1,'capabilities.h']]],
   ['cap_5frw_8',['CAP_RW',['../capabilities_8h.html#a43c399ba202c4a12183cacfc3212e660',1,'capabilities.h']]],
   ['cap_5funit_5fspawn_9',['CAP_UNIT_SPAWN',['../capabilities_8h.html#a77e98be56da768faf7ac679435e4e529',1,'capabilities.h']]],
-  ['cap_5fwrite_10',['CAP_WRITE',['../capabilities_8h.html#a2238825f4466c863d89ed0451562af61',1,'capabilities.h']]]
+  ['cap_5fwrite_10',['CAP_WRITE',['../capabilities_8h.html#a2238825f4466c863d89ed0451562af61',1,'capabilities.h']]],
+  ['char_5fbit_11',['CHAR_BIT',['../limits_8h.html#a308d9dd2c0028ddb184b455bbd7865de',1,'limits.h']]],
+  ['char_5fmax_12',['CHAR_MAX',['../limits_8h.html#a778eefd6535a9d4b752fca5dd0af58db',1,'limits.h']]],
+  ['char_5fmin_13',['CHAR_MIN',['../limits_8h.html#a5d707bd32338557ced18c6ac76ca1b3a',1,'limits.h']]]
 ];

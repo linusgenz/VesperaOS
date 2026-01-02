@@ -1,6 +1,12 @@
 var searchData=
 [
-  ['reboot_5fmode_5fhalt_0',['REBOOT_MODE_HALT',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4',1,'reboot.h']]],
-  ['reboot_5fmode_5fpower_5foff_1',['REBOOT_MODE_POWER_OFF',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491',1,'reboot.h']]],
-  ['reboot_5fmode_5frestart_2',['REBOOT_MODE_RESTART',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50',1,'reboot.h']]]
+  ['dt_5fblockdev_0',['DT_BLOCKDEV',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da3412353c2a426673a0825c38381a6dc5',1,'dirent.h']]],
+  ['dt_5fchardev_1',['DT_CHARDEV',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da45c2663804c110f37496697c8e1122e8',1,'dirent.h']]],
+  ['dt_5fdir_2',['DT_DIR',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da40b944f75d390136b9f74124dc23ef94',1,'dirent.h']]],
+  ['dt_5fexec_3',['DT_EXEC',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da433674f41e1ea22c4079d028475141d8',1,'dirent.h']]],
+  ['dt_5ffifo_4',['DT_FIFO',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da5488f793b1e97263b3b7ffea7d8ca820',1,'dirent.h']]],
+  ['dt_5ffile_5',['DT_FILE',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da2e66401e4f5d2c978ddb6021267c717e',1,'dirent.h']]],
+  ['dt_5fsocket_6',['DT_SOCKET',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17dad7bea0362e9c429fabbd3a881f261ea3',1,'dirent.h']]],
+  ['dt_5fsymlink_7',['DT_SYMLINK',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daf17ead8c24594dd530d8451c0edc6f16',1,'dirent.h']]],
+  ['dt_5funknown_8',['DT_UNKNOWN',['../dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]]
 ];

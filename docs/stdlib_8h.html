@@ -133,9 +133,14 @@ Functions</h2></td></tr>
 <tr class="memitem:a2807e26a012717736641384f91ab2563" id="r_a2807e26a012717736641384f91ab2563"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2807e26a012717736641384f91ab2563">calloc</a> (<a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
 <tr class="memdesc:a2807e26a012717736641384f91ab2563"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates zero-initialized memory for an array.  <br /></td></tr>
 <tr class="separator:a2807e26a012717736641384f91ab2563"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fbb78b7e72ea7263d5f0ca3bb21bdd2" id="r_a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">__attribute__</a> ((noreturn)) void exit(<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
+<tr class="memdesc:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
+<tr class="separator:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
+<tr class="memitem:ad65a8842cc674e3ddf69355898c0ecbf" id="r_ad65a8842cc674e3ddf69355898c0ecbf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#ad65a8842cc674e3ddf69355898c0ecbf">errno</a></td></tr>
+<tr class="separator:ad65a8842cc674e3ddf69355898c0ecbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa006daaf11f1e2e45a6ababaf463212b" id="r_aa006daaf11f1e2e45a6ababaf463212b"><td class="memItemLeft" align="right" valign="top">char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b">environ</a></td></tr>
 <tr class="memdesc:aa006daaf11f1e2e45a6ababaf463212b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of environment variables in "NAME=VALUE" format.  <br /></td></tr>
 <tr class="separator:aa006daaf11f1e2e45a6ababaf463212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -179,6 +184,34 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a8fbb78b7e72ea7263d5f0ca3bb21bdd2" name="a8fbb78b7e72ea7263d5f0ca3bb21bdd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">&#9670;&#160;</a></span>__attribute__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">__attribute__ </td>
+          <td>(</td>
+          <td class="paramtype">(noreturn)&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Terminate the current unit. </p>
+<p>This will stop the unit and remove it from its realm.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">code</td><td>Exit code for the unit. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Does not return; halts the unit. </dd></dl>
+
+</div>
+</div>
 <a id="a2807e26a012717736641384f91ab2563" name="a2807e26a012717736641384f91ab2563"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2807e26a012717736641384f91ab2563">&#9670;&#160;</a></span>calloc()</h2>
 
@@ -451,6 +484,28 @@ Variables</h2></td></tr>
 <a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c" title="Remove an environment variable.">unsetenv()</a> </dd>
 <dd>
 putenv() </dd></dl>
+
+</div>
+</div>
+<a id="ad65a8842cc674e3ddf69355898c0ecbf" name="ad65a8842cc674e3ddf69355898c0ecbf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad65a8842cc674e3ddf69355898c0ecbf">&#9670;&#160;</a></span>errno</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int errno</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">extern</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

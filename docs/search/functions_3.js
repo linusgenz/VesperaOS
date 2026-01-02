@@ -1,13 +1,15 @@
 var searchData=
 [
-  ['fclose_0',['fclose',['../stdio_8h.html#abead4fc4fe2480561857ffd16c1fdc24',1,'stdio.h']]],
-  ['file_5fexists_1',['file_exists',['../file_8h.html#aba2db2f17a82cb9f949de86a2f783ce6',1,'file.h']]],
-  ['find_5fexecutable_2',['find_executable',['../exec_8h.html#adab2f82d2226eff562aa7c3c00396c3b',1,'exec.h']]],
-  ['float_5fto_5fstr_3',['float_to_str',['../internal_8h.html#a143301671278635e0a17d4ee41f780f3',1,'internal.h']]],
-  ['fopen_4',['fopen',['../stdio_8h.html#a82f772624397cd590af87a316fe3b29f',1,'stdio.h']]],
-  ['fread_5',['fread',['../stdio_8h.html#a2c1fd03e6ae417425681ad4acc778ef7',1,'stdio.h']]],
-  ['free_6',['free',['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'stdlib.h']]],
-  ['fseek_7',['fseek',['../stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b',1,'stdio.h']]],
-  ['ftell_8',['ftell',['../stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9',1,'stdio.h']]],
-  ['fwrite_9',['fwrite',['../stdio_8h.html#a0521008fe2a792026bcd8f31234818a3',1,'stdio.h']]]
+  ['fclose_0',['fclose',['../stdio_8h.html#a16899976ac8e865813485db3d5f5186f',1,'stdio.h']]],
+  ['ferror_1',['ferror',['../stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c',1,'stdio.h']]],
+  ['fflush_2',['fflush',['../stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf',1,'stdio.h']]],
+  ['file_5fexists_3',['file_exists',['../file_8h.html#aba2db2f17a82cb9f949de86a2f783ce6',1,'file.h']]],
+  ['find_5fexecutable_4',['find_executable',['../exec_8h.html#adab2f82d2226eff562aa7c3c00396c3b',1,'exec.h']]],
+  ['float_5fto_5fstr_5',['float_to_str',['../internal_8h.html#a143301671278635e0a17d4ee41f780f3',1,'internal.h']]],
+  ['fopen_6',['fopen',['../stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f',1,'stdio.h']]],
+  ['fread_7',['fread',['../stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450',1,'stdio.h']]],
+  ['free_8',['free',['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'stdlib.h']]],
+  ['fseek_9',['fseek',['../stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b',1,'stdio.h']]],
+  ['ftell_10',['ftell',['../stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9',1,'stdio.h']]],
+  ['fwrite_11',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
 ];

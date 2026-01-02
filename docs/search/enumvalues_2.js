@@ -1,9 +1,13 @@
 var searchData=
 [
-  ['unit_5fblocked_0',['UNIT_BLOCKED',['../unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544ac9af46849ae5eefbd8b5447adc421e6c',1,'unit_info.h']]],
-  ['unit_5fnew_1',['UNIT_NEW',['../unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544a3db782371b4a0d24ece5c6b424561a04',1,'unit_info.h']]],
-  ['unit_5fready_2',['UNIT_READY',['../unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544a24ffdc56177587dfafcd7465646a2ee2',1,'unit_info.h']]],
-  ['unit_5frunning_3',['UNIT_RUNNING',['../unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544a4f83325cc0de50b5dc4c0ec2b2590737',1,'unit_info.h']]],
-  ['unit_5fterminated_4',['UNIT_TERMINATED',['../unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544a877ddce5ae17f24d2c0921aeb49f48c8',1,'unit_info.h']]],
-  ['unit_5fzombie_5',['UNIT_ZOMBIE',['../unit__info_8h.html#ae51d2ecb71f7a5cb3882982a622c9544aecb1f348eee63502aa73f70872d0cd0f',1,'unit_info.h']]]
+  ['jpeg_5ferror_5fdecode_0',['JPEG_ERROR_DECODE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a1a13fb88352b2ef4588c7d1d47803b1f',1,'jpeg.h']]],
+  ['jpeg_5ferror_5fencode_1',['JPEG_ERROR_ENCODE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aa662efb7898866961313278f2a2f7f4a',1,'jpeg.h']]],
+  ['jpeg_5ferror_5ffile_5fopen_2',['JPEG_ERROR_FILE_OPEN',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992afe866cb21c555563f6327642d20c3be9',1,'jpeg.h']]],
+  ['jpeg_5ferror_5ffile_5fread_3',['JPEG_ERROR_FILE_READ',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992ab5044720b6d70b3e8b05df32c3e1d146',1,'jpeg.h']]],
+  ['jpeg_5ferror_5ffile_5fwrite_4',['JPEG_ERROR_FILE_WRITE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aa540009e2cd5acfc6cd4fdd87d3ac6be',1,'jpeg.h']]],
+  ['jpeg_5ferror_5finvalid_5fformat_5',['JPEG_ERROR_INVALID_FORMAT',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992ada72ecd2a44535911bd4bb6afe38405b',1,'jpeg.h']]],
+  ['jpeg_5ferror_5finvalid_5fparam_6',['JPEG_ERROR_INVALID_PARAM',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a514a76ab8f943f41306340a375442316',1,'jpeg.h']]],
+  ['jpeg_5ferror_5fmemory_7',['JPEG_ERROR_MEMORY',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a7209fe7a2316ff08ebf27dabfe4886ea',1,'jpeg.h']]],
+  ['jpeg_5ferror_5funsupported_8',['JPEG_ERROR_UNSUPPORTED',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a5ad90a06f4770aff755e506d67062b75',1,'jpeg.h']]],
+  ['jpeg_5fok_9',['JPEG_OK',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aea890bdcbd1a3851a32ca4c1165e4c29',1,'jpeg.h']]]
 ];
