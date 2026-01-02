@@ -55,17 +55,6 @@ RealmID spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char
 UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr);
 
 /**
- * @brief Terminate the current unit.
- *
- * This will stop the unit and remove it from its realm.
- *
- * @param code Exit code for the unit.
- * @return Does not return; halts the unit.
- */
-__attribute__((noreturn))
-void exit(uint64_t code);
-
-/**
  * @brief Terminate an entire realm and all its units.
  *
  * @param realm_id The ID of the realm to terminate.

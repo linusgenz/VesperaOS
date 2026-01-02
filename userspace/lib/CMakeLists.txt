@@ -5,6 +5,26 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
+enable_language(ASM_NASM)
+
+set(CPU_TYPE "x86_64")
+set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
+
+if(NOT DEFINED CMAKE_ASM_NASM_COMPILER AND DEFINED ENV{ASM_NASM})
+    set(CMAKE_ASM_NASM_COMPILER $ENV{ASM_NASM})
+endif()
+if(NOT CMAKE_ASM_NASM_COMPILER)
+    find_program(CMAKE_ASM_NASM_COMPILER nasm)
+endif()
+message(STATUS "CMAKE_ASM_NASM_COMPILER = ${CMAKE_ASM_NASM_COMPILER}")
+
+set(LIBJPEG_SRC "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/src")
+set(NASM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/nasm")
+set(SIMD_X86_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/x86_64")
+
+string(TIMESTAMP BUILD_DATE "%Y%m%d")
+add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
+
 # --- C Sources ---
 set(LIB_SOURCES
         src/channel.c
@@ -19,17 +39,113 @@ set(LIB_SOURCES
         src/string.c
         src/sysstd.c
         src/urandom.c
+        src/ctype.c
 
         src/sys/ioctl.c
         src/sys/mman.c
+
+        ${LIBJPEG_SRC}/jcapimin.c
+        ${LIBJPEG_SRC}/jdapimin.c
+        ${LIBJPEG_SRC}/wrapper/jdcolor-8.c
+        ${LIBJPEG_SRC}/wrapper/jdcoefct-8.c
+        ${LIBJPEG_SRC}/wrapper/jddctmgr-8.c
+        ${LIBJPEG_SRC}/wrapper/jddiffct-8.c
+        ${LIBJPEG_SRC}/jdhuff.c
+        ${LIBJPEG_SRC}/jdinput.c
+        ${LIBJPEG_SRC}/wrapper/jdmainct-8.c
+        ${LIBJPEG_SRC}/jdmarker.c
+        ${LIBJPEG_SRC}/jdmaster.c
+        ${LIBJPEG_SRC}/wrapper/jdmerge-8.c
+        ${LIBJPEG_SRC}/jdphuff.c
+        ${LIBJPEG_SRC}/wrapper/jdpostct-8.c
+        ${LIBJPEG_SRC}/wrapper/jdsample-8.c
+        ${LIBJPEG_SRC}/jdtrans.c
+        ${LIBJPEG_SRC}/jerror.c
+        ${LIBJPEG_SRC}/jmemmgr.c
+        ${LIBJPEG_SRC}/jmemnobs.c
+        ${LIBJPEG_SRC}/wrapper/jutils-8.c
+        ${LIBJPEG_SRC}/jcparam.c
+        ${LIBJPEG_SRC}/jdatadst.c
+        ${LIBJPEG_SRC}/jdatasrc.c
+        ${LIBJPEG_SRC}/jcomapi.c
+        ${LIBJPEG_SRC}/jcmarker.c
+        ${LIBJPEG_SRC}/jcinit.c
+        ${LIBJPEG_SRC}/jcphuff.c
+        ${LIBJPEG_SRC}/jchuff.c
+        ${LIBJPEG_SRC}/jcmaster.c
+        ${LIBJPEG_SRC}/jfdctflt.c
+        ${LIBJPEG_SRC}/wrapper/jdapistd-8.c
+        ${LIBJPEG_SRC}/wrapper/jidctint-8.c
+        ${LIBJPEG_SRC}/wrapper/jidctflt-8.c
+        ${LIBJPEG_SRC}/wrapper/jidctfst-8.c
+        ${LIBJPEG_SRC}/wrapper/jidctred-8.c
+        ${LIBJPEG_SRC}/wrapper/jquant1-8.c
+        ${LIBJPEG_SRC}/wrapper/jquant2-8.c
+        ${LIBJPEG_SRC}/wrapper/jdlossls-8.c
+        ${LIBJPEG_SRC}/wrapper/jcapistd-8.c
+        ${LIBJPEG_SRC}/wrapper/jccolor-8.c
+        ${LIBJPEG_SRC}/wrapper/jcsample-8.c
+        ${LIBJPEG_SRC}/wrapper/jcprepct-8.c
+        ${LIBJPEG_SRC}/wrapper/jcmainct-8.c
+        ${LIBJPEG_SRC}/wrapper/jcdctmgr-8.c
+        ${LIBJPEG_SRC}/wrapper/jccoefct-8.c
+        ${LIBJPEG_SRC}/wrapper/jfdctint-8.c
+        ${LIBJPEG_SRC}/wrapper/jfdctfst-8.c
+
+        ${SIMD_X86_DIR}/jsimd.c
+
+        jpeg/jpeg.c
 )
+
+
+set(SIMD_ASM_SOURCES
+        ${SIMD_X86_DIR}/jsimdcpu.asm
+        ${SIMD_X86_DIR}/jfdctflt-sse.asm
+        ${SIMD_X86_DIR}/jccolor-sse2.asm
+        ${SIMD_X86_DIR}/jcgray-sse2.asm
+        ${SIMD_X86_DIR}/jchuff-sse2.asm
+        ${SIMD_X86_DIR}/jcphuff-sse2.asm
+        ${SIMD_X86_DIR}/jcsample-sse2.asm
+        ${SIMD_X86_DIR}/jdcolor-sse2.asm
+        ${SIMD_X86_DIR}/jdmerge-sse2.asm
+        ${SIMD_X86_DIR}/jdsample-sse2.asm
+        ${SIMD_X86_DIR}/jfdctfst-sse2.asm
+        ${SIMD_X86_DIR}/jfdctint-sse2.asm
+        ${SIMD_X86_DIR}/jidctflt-sse2.asm
+        ${SIMD_X86_DIR}/jidctfst-sse2.asm
+        ${SIMD_X86_DIR}/jidctint-sse2.asm
+        ${SIMD_X86_DIR}/jidctred-sse2.asm
+        ${SIMD_X86_DIR}/jquantf-sse2.asm
+        ${SIMD_X86_DIR}/jquanti-sse2.asm
+        ${SIMD_X86_DIR}/jccolor-avx2.asm
+        ${SIMD_X86_DIR}/jcgray-avx2.asm
+        ${SIMD_X86_DIR}/jcsample-avx2.asm
+        ${SIMD_X86_DIR}/jdcolor-avx2.asm
+        ${SIMD_X86_DIR}/jdmerge-avx2.asm
+        ${SIMD_X86_DIR}/jdsample-avx2.asm
+        ${SIMD_X86_DIR}/jfdctint-avx2.asm
+        ${SIMD_X86_DIR}/jidctint-avx2.asm
+        ${SIMD_X86_DIR}/jquanti-avx2.asm
+)
+
+foreach(_asm IN LISTS SIMD_ASM_SOURCES)
+    set_source_files_properties(${_asm}
+            PROPERTIES
+            LANGUAGE ASM_NASM
+            COMPILE_FLAGS "-f elf64 -I${NASM_INCLUDE_DIR} -I${SIMD_X86_DIR} -D__x86_64__"
+            OBJECT_DEPENDS "${NASM_INCLUDE_DIR}/jsimdcfg.inc;${NASM_INCLUDE_DIR}/jsimdext.inc"
+    )
+endforeach()
+
 
 # --- ASM Sources ---
 set(ASM_SOURCES
         src/crt0.asm
+        src/setjmp.asm
 )
 
 add_library(vesplib STATIC
+        ${SIMD_ASM_SOURCES}
         ${LIB_SOURCES}
         ${ASM_SOURCES}
 )
@@ -48,6 +164,11 @@ set_target_properties(vesplib PROPERTIES
 
 target_include_directories(vesplib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/${LIBJPEG_SRC}
+        ${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd
+        ${NASM_INCLUDE_DIR}
+        ${SIMD_X86_DIR}
 )
 
 target_compile_options(vesplib PRIVATE

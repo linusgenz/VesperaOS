@@ -40,12 +40,15 @@
 #include <dev/realm_info.h>
 #include <dev/cpuinfo.h>
 #include <dev/rtc.h>
+#include <dev/framebuffer_ioctl.h>
 #include <exec.h>
 #include <sysstd.h>
 #include <dirent.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <reboot.h>
+
+#include <jpeg/jpeg.h>
 
 
 typedef struct
@@ -273,7 +276,7 @@ void cmd_ls(command_t* cmd)
     }
 
     putchar('\n');
-    fclose(hdl);
+    close(hdl);
 }
 
 void cmd_cat(command_t* cmd)
@@ -285,7 +288,7 @@ void cmd_cat(command_t* cmd)
     }
 
     const char* path = cmd->args[1];
-    FILE_HANDLE fd = fopen(path, O_RDONLY);
+    FILE_HANDLE fd = open(path, O_RDONLY);
 
     if (fd < 0)
     {
@@ -308,7 +311,7 @@ void cmd_cat(command_t* cmd)
     ssize_t bytes_read;
 
     printf("reading from '%s'\n", path);
-    while ((bytes_read = fread(fd, buffer, sizeof(buffer) - 1)) > 0)
+    while ((bytes_read = read(fd, buffer, sizeof(buffer) - 1)) > 0)
     {
         buffer[bytes_read] = '\0';
         printf("%s", buffer);
@@ -319,7 +322,7 @@ void cmd_cat(command_t* cmd)
         printf("\ncat: Error reading file\n");
     }
 
-    fclose(fd);
+    close(fd);
 }
 
 void cmd_mkdir(command_t* cmd)
@@ -405,7 +408,7 @@ void cmd_touch(command_t* cmd)
     }
 
     const char* path = cmd->args[1];
-    FILE_HANDLE fd = fopen(path, O_CREAT | O_RDWR);
+    FILE_HANDLE fd = open(path, O_CREAT | O_RDWR);
 
     if (fd < 0)
     {
@@ -425,7 +428,7 @@ void cmd_touch(command_t* cmd)
     }
 
     // Datei existiert -> eventuell Zeitstempel aktualisieren (optional)
-    fclose(fd);
+    close(fd);
     printf("File '%s' created or updated successfully.\n", path);
 }
 
@@ -437,34 +440,34 @@ void cmd_cp(command_t* cmd)
         return;
     }
 
-    FILE_HANDLE src = fopen(cmd->args[1], O_RDONLY);
+    FILE_HANDLE src = open(cmd->args[1], O_RDONLY);
     if (src < 0)
     {
         printf("cp: cannot open '%s'\n", cmd->args[1]);
         return;
     }
 
-    FILE_HANDLE dst = fopen(cmd->args[2], O_WRONLY | O_CREAT | O_TRUNC);
+    FILE_HANDLE dst = open(cmd->args[2], O_WRONLY | O_CREAT | O_TRUNC);
     if (dst < 0)
     {
         printf("cp: cannot create '%s'\n", cmd->args[2]);
-        fclose(src);
+        close(src);
         return;
     }
 
     char buffer[4096];
     ssize_t bytes;
-    while ((bytes = fread(src, buffer, sizeof(buffer))) > 0)
+    while ((bytes = read(src, buffer, sizeof(buffer))) > 0)
     {
-        if (fwrite(dst, buffer, bytes) != bytes)
+        if (write(dst, buffer, bytes) != bytes)
         {
             printf("cp: write error\n");
             break;
         }
     }
 
-    fclose(src);
-    fclose(dst);
+    close(src);
+    close(dst);
 }
 
 void cmd_rm(command_t* cmd)
@@ -498,7 +501,7 @@ int execute_command(command_t* cmd)
 
     if (cmd->input_file)
     {
-        redirect_in = fopen(cmd->input_file, O_RDONLY);
+        redirect_in = open(cmd->input_file, O_RDONLY);
         if (redirect_in < 0)
         {
             printf("Cannot open input file '%s'\n", cmd->input_file);
@@ -519,13 +522,13 @@ int execute_command(command_t* cmd)
             flags |= O_TRUNC;
         }
 
-        redirect_out = fopen(cmd->output_file, flags);
+        redirect_out = open(cmd->output_file, flags);
         if (redirect_out < 0)
         {
             printf("Cannot open output file '%s'\n", cmd->output_file);
             if (redirect_in >= 0)
             {
-                fclose(redirect_in);
+                close(redirect_in);
                 stdin = saved_stdin;
             }
             return 0;
@@ -633,13 +636,13 @@ int execute_command(command_t* cmd)
 
     if (redirect_in >= 0)
     {
-        fclose(redirect_in);
+        close(redirect_in);
         stdin = saved_stdin;
     }
 
     if (redirect_out >= 0)
     {
-        fclose(redirect_out);
+        close(redirect_out);
         stdout = saved_stdout;
     }
 
@@ -660,7 +663,7 @@ void show_prompt(void)
         dir++;
     }
 
-    char name[64];  // ausreichend für Prompt
+    char name[64]; // ausreichend für Prompt
     const char* src;
 
     if (last_slash && *(last_slash + 1))
@@ -719,11 +722,37 @@ void shell_main(int argc, char** argv)
     printf("Welcome to VesperaOS Shell!\n");
     printf("Type 'help' for available commands.\n\n");
 
+
+    image_t img;
+    int result = jpeg_load_from_file("test.jpg", &img, NULL);
+
+    if (result != JPEG_OK)
+    {
+        printf("Error loading JPEG: %s\n", jpeg_error_string(result));
+        return;
+    }
+
+    printf("Loaded image: %lu x %lu, %d channels\n",
+           img.width, img.height, img.channels);
+
+    fb_blit bltcmd = {
+        .buffer_height = img.height,
+        .buffer_width = img.width,
+        .dst_x = 0,
+        .dst_y = 0,
+        .pixels = img.data
+    };
+    HANDLE hdl = open("/dev/fb0", O_RDWR);
+    ioctl(hdl, FB_IOCTL_BLIT, &bltcmd);
+
+    image_free(&img);
+
+
     while (1)
     {
         show_prompt();
 
-        FILE_HANDLE n = fread(HANDLE_STDIN, buf, MAX_INPUT - 1);
+        FILE_HANDLE n = read(HANDLE_STDIN, buf, MAX_INPUT - 1);
         putchar('\n');
         if (n <= 0) continue;
 

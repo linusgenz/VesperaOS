@@ -48,12 +48,24 @@ typedef HANDLE FILE_HANDLE;
 typedef HANDLE CHANNEL_HANDLE;
 typedef HANDLE DIR_HANDLE;
 
+typedef struct FILE
+{
+    FILE_HANDLE handle;
+    int error;
+    uint8_t* buffer;
+    size_t buf_size;
+    size_t buf_pos;
+} FILE;
+
 #ifdef __cplusplus
 extern "C" {
 
 
 
 #endif
+
+/* Read formatted input from S.  */
+int sscanf(const char* str, const char* format, ...);
 
 /**
  * @brief Write a single character to stdout.
@@ -119,63 +131,27 @@ void printf(const char* fmt, ...);
 size_t snprintf(char* buffer, size_t size, const char* format, ...);
 
 /**
- * @brief Open a file.
- *
- * Opens the file at @p path with the specified flags.
- * Common flags: @c O_RDONLY, @c O_WRONLY, @c O_RDWR, @c O_CREAT.
- *
- * @param path Path to the file (null-terminated string).
- * @param flags Open flags (bitwise OR of O_* constants).
- * @return File handle on success, or negative error code on failure.
- *
- * @see fclose()
- * @see fread()
- * @see fwrite()
+ * @todo add docs
  */
-FILE_HANDLE fopen(const char* path, int flags);
+FILE* fopen(const char* path, const char* mode);
 
 /**
- * @brief Close a file.
- *
- * Closes the file associated with @p handle and releases resources.
- *
- * @param handle File handle returned by fopen().
- * @return @c 0 on success, or negative error code on failure.
- *
- * @see fopen()
+ * @todo add docs
  */
-int fclose(FILE_HANDLE handle);
+int fclose(FILE* f);
 
 /**
- * @brief Read data from a file.
- *
- * Reads up to @p count bytes from @p handle into @p buf.
- *
- * @param handle File handle returned by fopen().
- * @param buf Buffer to store read data.
- * @param count Maximum number of bytes to read.
- * @return Number of bytes read on success, or negative error code on failure.
- *
- * @see fwrite()
- * @see fopen()
+ * @todo add docs
  */
-ssize_t fread(FILE_HANDLE handle, void* buf, size_t count);
+size_t fread(void* ptr, size_t size, size_t nmemb, FILE* f);
 
 /**
- * @brief Write data to a file.
- *
- * Writes @p count bytes from @p buf to @p handle.
- *
- * @param handle File handle returned by fopen().
- * @param buf Buffer containing data to write.
- * @param count Number of bytes to write.
- * @return Number of bytes written on success, or negative error code on failure.
- *
- * @see fread()
- * @see fopen()
+ * @todo add docs
  */
-ssize_t fwrite(FILE_HANDLE handle, const void* buf, size_t count);
+size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* f);
 
+int ferror(FILE* f);
+int fflush(FILE* f);
 
 /**
  * @brief Reposition stream position indicator.

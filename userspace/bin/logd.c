@@ -40,11 +40,11 @@ int main() {
     }
 
     char* buf = "LogD initialized. starting logger...";
-    fwrite(log_fd, buf, strlen(buf));
+    write(log_fd, buf, strlen(buf));
 
     create(LOG_FILE, C_FILE);
 
-    FILE_HANDLE log_file = fopen(LOG_FILE, O_WRONLY);
+    FILE_HANDLE log_file = open(LOG_FILE, O_WRONLY);
     if (!log_file) {
         puts("Failed to open log file");
         close(log_fd);
@@ -55,7 +55,7 @@ int main() {
     ssize_t n;
 
     while (1) {
-        n = fread(log_fd, buffer, sizeof(buffer) - 1);
+        n = read(log_fd, buffer, sizeof(buffer) - 1);
         if (n < 0) {
             puts("Error reading from /dev/log");
             break;
@@ -64,16 +64,16 @@ int main() {
         }
 
         buffer[n] = '\0';
-        fwrite(log_file, buffer, n);
+        write(log_file, buffer, n);
         break;
     }
 
 
-    fclose(log_file);
+    close(log_file);
     close(log_fd);
 
     char* path = "/var/log";
-    FILE_HANDLE hdl = fopen(path, O_RDONLY);
+    FILE_HANDLE hdl = open(path, O_RDONLY);
     if (hdl < 0) {
         if (hdl == -2) {
             printf("ls: Cannot open '%s': File or directory not found\n", path);
@@ -98,7 +98,7 @@ int main() {
     }
 
     putchar('\n');
-    fclose(hdl);
+    close(hdl);
 
     return 0;
 }

@@ -99,7 +99,7 @@ void *malloc(size_t size) {
         size_t total_size = size + sizeof(large_seg);
         void* addr = mmap(NULL, total_size, PROT_READ | PROT_WRITE,
                          MAP_ANONYMOUS, 0, 0);
-        if (!addr) return NULL;
+        if (addr == MAP_FAILED) return NULL;
 
         large_seg* lb = (large_seg*)addr;
         lb->addr = (char*)addr + sizeof(large_seg);
@@ -147,7 +147,7 @@ void *malloc(size_t size) {
 void heap_free(void *ptr) {
     if (!ptr) return;
     heap_seg *seg = (heap_seg *) ((char *) ptr - sizeof(heap_seg));
-
+    if (seg->free) return;
     if (seg->magic != HEAP_MAGIC) return;
 
     seg->free = 1;
@@ -182,13 +182,27 @@ void *realloc(void *ptr, size_t new_size) {
         return NULL;
     }
 
-    heap_seg *seg = (heap_seg *) ((char *) ptr - sizeof(heap_seg));
+    for (large_seg *lb = large_alloc_list; lb; lb = lb->next) {
+        if (lb->addr == ptr) {
+            if (lb->size >= new_size) return ptr;
+
+            void *new_ptr = malloc(new_size);
+            if (!new_ptr) return NULL;
+            memcpy(new_ptr, ptr, lb->size);
+            free(ptr);
+            return new_ptr;
+        }
+    }
+
+    heap_seg *seg = (heap_seg *)((char *)ptr - sizeof(heap_seg));
+    if (seg->magic != HEAP_MAGIC) return NULL;
+
     if (seg->length >= new_size) return ptr;
 
     void *new_ptr = malloc(new_size);
     if (!new_ptr) return NULL;
-
-    memcpy(new_ptr, ptr, seg->length);
+    size_t copy = seg->length < new_size ? seg->length : new_size;
+    memcpy(new_ptr, ptr, copy);
     free(ptr);
     return new_ptr;
 }

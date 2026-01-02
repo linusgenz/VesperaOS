@@ -33,7 +33,7 @@
 #include <dev/meminfo.h>
 
 int main(int argc, char **argv) {
-    FILE_HANDLE hdl = fopen("/dev/meminfo", O_RDONLY);
+    FILE_HANDLE hdl = open("/dev/meminfo", O_RDONLY);
     if (hdl < 0) {
         printf("memstat: cannot open /dev/meminfo (hdl=%lld)\n", (long long) hdl);
         return -1;
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     meminfo_t info;
     ssize_t r = read(hdl, &info, sizeof(info));
 
-    fclose(hdl);
+    close(hdl);
 
     if (r != sizeof(info)) {
         printf("memstat: failed to read meminfo (bytes=%lld)\n", (long long) r);

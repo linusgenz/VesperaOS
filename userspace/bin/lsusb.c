@@ -49,7 +49,7 @@ void main(int argc, char **argv) {
         char ctrl_path[256];
         snprintf(ctrl_path, sizeof(ctrl_path), "%s%s", "/dev/xhci/", devname);
 
-        FILE_HANDLE ctrl_hdl = fopen(ctrl_path, O_RDONLY);
+        FILE_HANDLE ctrl_hdl = open(ctrl_path, O_RDONLY);
         if (ctrl_hdl < 0) {
             printf("lsusb: cannot open controller %s (hdl=%lld)\n", ctrl_path, (long long) ctrl_hdl);
             continue;
@@ -60,12 +60,12 @@ void main(int argc, char **argv) {
         int rc = ioctl(ctrl_hdl, XHCI_IOCTL_GET_COUNT, &dev_count);
         if (rc != 0) {
             printf("%s: ioctl(GET_COUNT) failed (%d)\n", ctrl_path, rc);
-            fclose(ctrl_hdl);
+            close(ctrl_hdl);
             continue;
         }
 
         if (dev_count == 0) {
-            fclose(ctrl_hdl);
+            close(ctrl_hdl);
             continue;
         }
 
@@ -96,8 +96,8 @@ void main(int argc, char **argv) {
             printf("%s: device count %lu but could not fetch device entries\n", ctrl_path, dev_count);
         }
 
-        fclose(ctrl_hdl);
+        close(ctrl_hdl);
     }
 
-    fclose(bus_hdl);
+    close(bus_hdl);
 }

@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
+int errno = 0;
 char** environ = NULL;
 size_t env_count = 0;
 size_t env_capacity = 0;
@@ -138,4 +138,35 @@ int unsetenv(const char* name)
         }
     }
     return -1;
+}
+
+/* GETENV_S(buffer, size, name) */
+static inline int GETENV_S(char *buffer, size_t buffer_size, const char *name) {
+    char *val = getenv(name);
+    if (!val) {
+        errno = 22; /* EINVAL */
+        return errno;
+    }
+    /* kopiere ins buffer */
+    size_t i = 0;
+    while (i < buffer_size - 1 && val[i]) {
+        buffer[i] = val[i];
+        i++;
+    }
+    buffer[i] = 0;
+    return 0;
+}
+
+/* PUTENV_S(name, value) */
+static inline int PUTENV_S(const char *name, const char *value) {
+    if (!name || !value) {
+        errno = 22; /* EINVAL */
+        return errno;
+    }
+    int res = setenv(name, value, 1);
+    if (res != 0) {
+        errno = 12; /* ENOMEM, fallback */
+        return errno;
+    }
+    return 0;
 }

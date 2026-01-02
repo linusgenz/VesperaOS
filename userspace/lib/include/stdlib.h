@@ -27,6 +27,7 @@
 #include <sysstd.h>
 
 typedef int64_t FILE_HANDLE;
+extern int errno;
 
 #ifdef __cplusplus
 extern "C" {
@@ -155,6 +156,17 @@ void* realloc(void* ptr, size_t new_size);
  * @return Pointer to zero-initialized memory, or NULL on failure.
  */
 void* calloc(size_t nmemb, size_t size);
+
+/**
+* @brief Terminate the current unit.
+*
+* This will stop the unit and remove it from its realm.
+*
+* @param code Exit code for the unit.
+* @return Does not return; halts the unit.
+*/
+__attribute__((noreturn))
+void exit(uint64_t code);
 
 #ifdef __cplusplus
 }

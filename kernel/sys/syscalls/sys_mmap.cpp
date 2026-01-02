@@ -28,7 +28,7 @@
 #include <kernel/sys/mman.h>
 
 #include <log.h>
-
+// TODO FIX MMAP. USE PROT AND USE MAP_*
 namespace syscalls::internal {
     int64_t sys_mmap(uint64_t addr, uint64_t length, uint64_t prot,
                      uint64_t flags, uint64_t handle, uint64_t offset) {
