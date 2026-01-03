@@ -26,21 +26,35 @@
 
 #ifdef __cplusplus
 extern "C" {
+
 #endif
 
+    /* jmp_buf structure for x86-64
+     * Stores all callee-saved registers and stack pointer
+     */
     typedef struct {
-        unsigned long rsp;
-        unsigned long rbp;
-        unsigned long rbx;
-        unsigned long r12;
-        unsigned long r13;
-        unsigned long r14;
-        unsigned long r15;
+        unsigned long rbx;      /* Callee-saved register */
+        unsigned long rbp;      /* Frame pointer */
+        unsigned long r12;      /* Callee-saved register */
+        unsigned long r13;      /* Callee-saved register */
+        unsigned long r14;      /* Callee-saved register */
+        unsigned long r15;      /* Callee-saved register */
+        unsigned long rsp;      /* Stack pointer */
+        unsigned long rip;      /* Return address */
     } jmp_buf[1];
 
+    /* Save the current execution context
+     * Returns 0 when first called
+     * Returns non-zero value when returning via longjmp
+     */
     int setjmp(jmp_buf env);
 
+    /* Restore execution context
+     * Does not return normally - jumps back to setjmp location
+     * val: value to be returned by setjmp (must be non-zero)
+     */
     void longjmp(jmp_buf env, int val) __attribute__((noreturn));
+
 
 #ifdef __cplusplus
 }
