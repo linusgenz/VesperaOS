@@ -6,5 +6,6 @@ var structjmp__buf =
     [ "r15", "structjmp__buf.html#ab844c9a6e0f401e1c1d65712928dd233", null ],
     [ "rbp", "structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8", null ],
     [ "rbx", "structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8", null ],
+    [ "rip", "structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b", null ],
     [ "rsp", "structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9", null ]
 ];

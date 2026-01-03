@@ -25,8 +25,9 @@ var searchData=
   ['reboot_5frestart_22',['reboot_restart',['../reboot_8h.html#aa1843d7f616e462b9cf039ab14629f95',1,'reboot.h']]],
   ['reserved_5fram_23',['reserved_ram',['../structmeminfo__t.html#a944f672d0f1bad28dbbbc5494cc656f2',1,'meminfo_t']]],
   ['rewind_24',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
-  ['rmdir_25',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]],
-  ['rsp_26',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]],
-  ['rtc_2eh_27',['rtc.h',['../rtc_8h.html',1,'']]],
-  ['rtc_5fdata_28',['rtc_data',['../structrtc__data.html',1,'']]]
+  ['rip_25',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rmdir_26',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]],
+  ['rsp_27',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]],
+  ['rtc_2eh_28',['rtc.h',['../rtc_8h.html',1,'']]],
+  ['rtc_5fdata_29',['rtc_data',['../structrtc__data.html',1,'']]]
 ];

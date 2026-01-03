@@ -8,5 +8,6 @@ var searchData=
   ['rbx_5',['rbx',['../structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8',1,'jmp_buf']]],
   ['realm_5fid_6',['realm_id',['../structunit__info__t.html#a789a9b234568fd6eb2b21980204d25c2',1,'unit_info_t']]],
   ['reserved_5fram_7',['reserved_ram',['../structmeminfo__t.html#a944f672d0f1bad28dbbbc5494cc656f2',1,'meminfo_t']]],
-  ['rsp_8',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
+  ['rip_8',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rsp_9',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

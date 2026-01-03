@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6":[2,0,12,2],
 "structlarge__seg.html":[2,0,13],
 "structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710":[2,0,13,2],
 "structlarge__seg.html#aaa681d5c790748892a94f9125f3d0335":[2,0,13,0],

@@ -54,7 +54,7 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "limits_8h_source.html",
-"structlarge__seg.html"
+"structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -230,8 +230,9 @@ var NAVTREEINDEX1 =
 "structimage__t.html#ad13fa2b67f6b9e0dd76983345b627df7":[2,0,9,4],
 "structjmp__buf.html":[2,0,10],
 "structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8":[2,0,10,4],
+"structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b":[2,0,10,6],
 "structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c":[2,0,10,1],
-"structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9":[2,0,10,6],
+"structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9":[2,0,10,7],
 "structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8":[2,0,10,5],
 "structjmp__buf.html#ab844c9a6e0f401e1c1d65712928dd233":[2,0,10,3],
 "structjmp__buf.html#adc2aef99200faee28a4cf1348257d4b4":[2,0,10,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36":[2,0,12,3],
 "structjpeg__save__options__t.html#a4c3b20d95ae8c4815836799d8f8bec8c":[2,0,12,0],
 "structjpeg__save__options__t.html#a521f508a3c9014ef9d74a323eeb1a0cf":[2,0,12,1],
-"structjpeg__save__options__t.html#a5ce1c03ddbece6fb718ed1d27b33f938":[2,0,12,4],
-"structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6":[2,0,12,2]
+"structjpeg__save__options__t.html#a5ce1c03ddbece6fb718ed1d27b33f938":[2,0,12,4]
 };
