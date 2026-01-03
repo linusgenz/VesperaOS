@@ -20,6 +20,15 @@
  * without linking in the whole library.
  */
 
+/*
+ * Modifications for VesperaOS
+ * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+ *
+ * This file has been modified from the original libjpeg / libjpeg-turbo
+ * source to integrate with the VesperaOS build system and runtime.
+ */
+
+
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
@@ -35,116 +44,130 @@
 GLOBAL(void)
 jinit_compress_master(j_compress_ptr cinfo)
 {
-  /* Initialize master control (includes parameter checking/processing) */
-  jinit_c_master_control(cinfo, FALSE /* full compression */);
+    /* Initialize master control (includes parameter checking/processing) */
+    jinit_c_master_control(cinfo, FALSE /* full compression */);
 
-  /* Preprocessing */
-  if (!cinfo->raw_data_in) {
-    if (cinfo->data_precision <= 8) {
-      jinit_color_converter(cinfo);
-      jinit_downsampler(cinfo);
-      jinit_c_prep_controller(cinfo, FALSE /* never need full buffer here */);
-    }// else if (cinfo->data_precision <= 12) {
-   //   j12init_color_converter(cinfo);
-   //   j12init_downsampler(cinfo);
-   //   j12init_c_prep_controller(cinfo,
-   //                             FALSE /* never need full buffer here */);
-   // }
-    else {
+    /* Preprocessing */
+    if (!cinfo->raw_data_in)
+    {
+        if (cinfo->data_precision <= 8)
+        {
+            jinit_color_converter(cinfo);
+            jinit_downsampler(cinfo);
+            jinit_c_prep_controller(cinfo, FALSE /* never need full buffer here */);
+        } // else if (cinfo->data_precision <= 12) {
+        //   j12init_color_converter(cinfo);
+        //   j12init_downsampler(cinfo);
+        //   j12init_c_prep_controller(cinfo,
+        //                             FALSE /* never need full buffer here */);
+        // }
+        else
+        {
 #ifdef C_LOSSLESS_SUPPORTED
-      j16init_color_converter(cinfo);
-      j16init_downsampler(cinfo);
-      j16init_c_prep_controller(cinfo,
-                                FALSE /* never need full buffer here */);
+            j16init_color_converter(cinfo);
+            j16init_downsampler(cinfo);
+            j16init_c_prep_controller(cinfo,
+                                      FALSE /* never need full buffer here */);
 #else
-      ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
+            ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
 #endif
-    }
-  }
-
-  if (cinfo->master->lossless) {
-#ifdef C_LOSSLESS_SUPPORTED
-    /* Prediction, sample differencing, and point transform */
-    if (cinfo->data_precision <= 8)
-      jinit_lossless_compressor(cinfo);
-    else if (cinfo->data_precision <= 12)
-  //    j12init_lossless_compressor(cinfo);
-    else
-      j16init_lossless_compressor(cinfo);
-    /* Entropy encoding: either Huffman or arithmetic coding. */
-    if (cinfo->arith_code) {
-      ERREXIT(cinfo, JERR_ARITH_NOTIMPL);
-    } else {
-      jinit_lhuff_encoder(cinfo);
+        }
     }
 
-    /* Need a full-image difference buffer in any multi-pass mode. */
-    if (cinfo->data_precision <= 8)
-      jinit_c_diff_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
-                                               cinfo->optimize_coding));
-    //else if (cinfo->data_precision <= 12)
-   //   j12init_c_diff_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
-    //                                             cinfo->optimize_coding));
-    else
-      j16init_c_diff_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
-                                                 cinfo->optimize_coding));
-#else
-    ERREXIT(cinfo, JERR_NOT_COMPILED);
-#endif
-  } else {
-    /* Forward DCT */
-    if (cinfo->data_precision == 8)
-      jinit_forward_dct(cinfo);
-   // else if (cinfo->data_precision == 12)
-   //   j12init_forward_dct(cinfo);
-    else
-      ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
-    /* Entropy encoding: either Huffman or arithmetic coding. */
-    if (cinfo->arith_code) {
-#ifdef C_ARITH_CODING_SUPPORTED
-      jinit_arith_encoder(cinfo);
-#else
-      ERREXIT(cinfo, JERR_ARITH_NOTIMPL);
-#endif
-    } else {
-      if (cinfo->progressive_mode) {
-#ifdef C_PROGRESSIVE_SUPPORTED
-        jinit_phuff_encoder(cinfo);
+    if (cinfo->master->lossless)
+    {
+#ifdef C_LOSSLESS_SUPPORTED
+        /* Prediction, sample differencing, and point transform */
+        if (cinfo->data_precision <= 8)
+            jinit_lossless_compressor(cinfo);
+        else if (cinfo->data_precision <= 12)
+            //    j12init_lossless_compressor(cinfo);
+        else
+            j16init_lossless_compressor(cinfo);
+        /* Entropy encoding: either Huffman or arithmetic coding. */
+        if (cinfo->arith_code)
+        {
+            ERREXIT(cinfo, JERR_ARITH_NOTIMPL);
+        }
+        else
+        {
+            jinit_lhuff_encoder(cinfo);
+        }
+
+        /* Need a full-image difference buffer in any multi-pass mode. */
+        if (cinfo->data_precision <= 8)
+            jinit_c_diff_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
+                                        cinfo->optimize_coding));
+            //else if (cinfo->data_precision <= 12)
+            //   j12init_c_diff_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
+            //                                             cinfo->optimize_coding));
+        else
+            j16init_c_diff_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
+                                          cinfo->optimize_coding));
 #else
         ERREXIT(cinfo, JERR_NOT_COMPILED);
 #endif
-      } else
-        jinit_huff_encoder(cinfo);
+    }
+    else
+    {
+        /* Forward DCT */
+        if (cinfo->data_precision == 8)
+            jinit_forward_dct(cinfo);
+            // else if (cinfo->data_precision == 12)
+            //   j12init_forward_dct(cinfo);
+        else
+            ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
+        /* Entropy encoding: either Huffman or arithmetic coding. */
+        if (cinfo->arith_code)
+        {
+#ifdef C_ARITH_CODING_SUPPORTED
+            jinit_arith_encoder(cinfo);
+#else
+            ERREXIT(cinfo, JERR_ARITH_NOTIMPL);
+#endif
+        }
+        else
+        {
+            if (cinfo->progressive_mode)
+            {
+#ifdef C_PROGRESSIVE_SUPPORTED
+                jinit_phuff_encoder(cinfo);
+#else
+                ERREXIT(cinfo, JERR_NOT_COMPILED);
+#endif
+            }
+            else
+                jinit_huff_encoder(cinfo);
+        }
+
+        /* Need a full-image coefficient buffer in any multi-pass mode. */
+        //  if (cinfo->data_precision == 12)
+        //    j12init_c_coef_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
+        //                                               cinfo->optimize_coding));
+        //  else
+        jinit_c_coef_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
+                                    cinfo->optimize_coding));
     }
 
-    /* Need a full-image coefficient buffer in any multi-pass mode. */
-  //  if (cinfo->data_precision == 12)
-  //    j12init_c_coef_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
-  //                                               cinfo->optimize_coding));
-  //  else
-      jinit_c_coef_controller(cinfo, (boolean)(cinfo->num_scans > 1 ||
-                                               cinfo->optimize_coding));
-  }
-
-  if (cinfo->data_precision <= 8)
-    jinit_c_main_controller(cinfo, FALSE /* never need full buffer here */);
-  //else if (cinfo->data_precision <= 12)
-  //  j12init_c_main_controller(cinfo, FALSE /* never need full buffer here */);
-  else
+    if (cinfo->data_precision <= 8)
+        jinit_c_main_controller(cinfo, FALSE /* never need full buffer here */);
+        //else if (cinfo->data_precision <= 12)
+        //  j12init_c_main_controller(cinfo, FALSE /* never need full buffer here */);
+    else
 #ifdef C_LOSSLESS_SUPPORTED
     j16init_c_main_controller(cinfo, FALSE /* never need full buffer here */);
 #else
-    ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
+        ERREXIT1(cinfo, JERR_BAD_PRECISION, cinfo->data_precision);
 #endif
 
-  jinit_marker_writer(cinfo);
+    jinit_marker_writer(cinfo);
 
-  /* We can now tell the memory manager to allocate virtual arrays. */
-  (*cinfo->mem->realize_virt_arrays) ((j_common_ptr)cinfo);
+    /* We can now tell the memory manager to allocate virtual arrays. */
+    (*cinfo->mem->realize_virt_arrays)((j_common_ptr)cinfo);
 
-  /* Write the datastream header (SOI) immediately.
-   * Frame and scan headers are postponed till later.
-   * This lets application insert special markers after the SOI.
-   */
-  (*cinfo->marker->write_file_header) (cinfo);
+    /* Write the datastream header (SOI) immediately.
+     * Frame and scan headers are postponed till later.
+     * This lets application insert special markers after the SOI.
+     */
+    (*cinfo->marker->write_file_header)(cinfo);
 }

@@ -19,6 +19,14 @@
  * pass.
  */
 
+/*
+ * Modifications for VesperaOS
+ * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+ *
+ * This file has been modified from the original libjpeg / libjpeg-turbo
+ * source to integrate with the VesperaOS build system and runtime.
+ */
+
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"

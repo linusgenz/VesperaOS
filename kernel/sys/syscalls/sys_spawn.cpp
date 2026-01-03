@@ -53,7 +53,8 @@ namespace syscalls::internal {
         TTYDevice* tty_dev = kernel::tty::tty_devices[0];
         new_realm->setup_standard_handles(tty_dev);
 
-        const ElfLoader::ElfLoadResult elf = ElfLoader::load_elf_binary(user_path, 0x500000, new_realm);
+        const ElfLoader::LoadResult elf = ElfLoader::load(user_path, 0x500000, new_realm);
+
         if (!elf.success) {
             RealmManager::destroy(new_realm->id);
             return -ENOEXEC;
@@ -66,7 +67,7 @@ namespace syscalls::internal {
             .is_user = true,
             .auto_schedule = false,
         };
-        Unit* u = UnitManager::create(new_realm->id, elf.entry_point, reinterpret_cast<void*>(arg1), &ucfg);
+        Unit* u = UnitManager::create(new_realm->id, reinterpret_cast<UnitEntry>(elf.entry_point), reinterpret_cast<void*>(arg1), &ucfg);
         if (!u) {
             RealmManager::destroy(new_realm->id);
             return -EFAULT;

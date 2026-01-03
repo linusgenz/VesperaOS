@@ -32,31 +32,30 @@
 #include <string.h>
 #include <stdio.h>
 
-struct jpeg_error_handler
+typedef struct
 {
-    struct jpeg_error_mgr pub;
-    jmp_buf setjmp_buffer;
+    jmp_buf env;
     int error_code;
-};
+} jpeg_error_context_t;
 
 static void jpeg_output_message(j_common_ptr cinfo)
 {
-    struct jpeg_error_mgr* err = cinfo->err;
     char buffer[JMSG_LENGTH_MAX];
 
-    (*err->format_message)(cinfo, buffer);
-
+    (*cinfo->err->format_message)(cinfo, buffer);
     printf("[libjpeg] %s\n", buffer);
 }
 
 static void jpeg_error_exit(j_common_ptr cinfo)
 {
-    struct jpeg_error_handler* err = (struct jpeg_error_handler*)cinfo->err;
-    err->pub.output_message = jpeg_output_message;
+    struct jpeg_error_mgr* err = cinfo->err;
+    err->output_message = jpeg_output_message;
 
-    (*err->pub.output_message)(cinfo);
+    (*err->output_message)(cinfo);
 
-    longjmp(err->setjmp_buffer, 1);
+    jpeg_error_context_t* ctx = cinfo->client_data;
+
+    longjmp(ctx->env, 1);
 }
 
 static void jpeg_emit_message(j_common_ptr cinfo, int msg_level)
@@ -405,13 +404,15 @@ int jpeg_get_info(const uint8_t* jpeg_data, size_t jpeg_size,
     if (!jpeg_data || jpeg_size == 0) return JPEG_ERROR_INVALID_PARAM;
 
     struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_handler jerr;
+    struct jpeg_error_mgr jerr;
+    jpeg_error_context_t ctx;
 
-    cinfo.err = jpeg_std_error(&jerr.pub);
-    jerr.pub.error_exit = jpeg_error_exit;
-    jerr.pub.emit_message = jpeg_emit_message;
+    cinfo.client_data = &ctx;
+    cinfo.err = jpeg_std_error(&jerr);
+    jerr.error_exit = jpeg_error_exit;
+    jerr.emit_message = jpeg_emit_message;
 
-    if (setjmp(jerr.setjmp_buffer))
+    if (setjmp(ctx.env))
     {
         jpeg_destroy_decompress(&cinfo);
         return JPEG_ERROR_DECODE;
@@ -449,15 +450,18 @@ int jpeg_load_from_memory(const uint8_t* jpeg_data, size_t jpeg_size,
     }
 
     struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_handler jerr;
+    struct jpeg_error_mgr jerr;
+    jpeg_error_context_t ctx;
     JSAMPARRAY buffer = NULL;
     uint32_t row_stride;
 
-    cinfo.err = jpeg_std_error(&jerr.pub);
-    jerr.pub.error_exit = jpeg_error_exit;
-  //  jerr.pub.emit_message = jpeg_emit_message;
+    cinfo.client_data = &ctx;
+    cinfo.err = jpeg_std_error(&jerr);
+    jerr.error_exit = jpeg_error_exit;
+    jerr.emit_message = jpeg_emit_message;
 
-    if (setjmp(jerr.setjmp_buffer))
+    int r = setjmp(ctx.env);
+    if (r)
     {
         jpeg_destroy_decompress(&cinfo);
         return JPEG_ERROR_DECODE;
@@ -594,17 +598,19 @@ int jpeg_save_to_memory(const image_t* image, uint8_t** out_data,
         return JPEG_ERROR_INVALID_PARAM;
 
     struct jpeg_compress_struct cinfo;
-    struct jpeg_error_handler jerr;
+    struct jpeg_error_mgr jerr;
+    jpeg_error_context_t ctx;
     JSAMPROW row_pointer[1];
     uint8_t* rgb_buffer = NULL;
     unsigned char* jpeg_buffer = NULL;
     unsigned long jpeg_size = 0;
 
-    cinfo.err = jpeg_std_error(&jerr.pub);
-    jerr.pub.error_exit = jpeg_error_exit;
-    jerr.pub.emit_message = jpeg_emit_message;
+    cinfo.client_data = &ctx;
+    cinfo.err = jpeg_std_error(&jerr);
+    jerr.error_exit = jpeg_error_exit;
+    jerr.emit_message = jpeg_emit_message;
 
-    if (setjmp(jerr.setjmp_buffer))
+    if (setjmp(ctx.env))
     {
         if (jpeg_buffer) free(jpeg_buffer);
         if (rgb_buffer) free(rgb_buffer);

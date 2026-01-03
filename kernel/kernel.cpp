@@ -156,7 +156,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     TTYDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
-    ElfLoader::ElfLoadResult result = ElfLoader::load_elf_binary("/bin/shell", 0x400000, shell_realm);
+    ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
     if (!result.success)
     {
         Log::Error("Failed to load elf binary");
@@ -173,7 +173,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         .name = "shell",
         .cpu_id = 0,
         .priority = 10,
-        .stack_size = 0x4000,
+        .stack_size = 0x1000000,
         .initial_handles = nullptr,
         .initial_handle_count = 0,
         .is_idle = false,
@@ -182,7 +182,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
         .argv = argv_example,
         .envp = envp0
     };
-    Unit* shell = UnitManager::create(shell_realm->id, result.entry_point, nullptr, &uc);
+    UnitManager::create(shell_realm->id, reinterpret_cast<UnitEntry>(result.entry_point), nullptr, &uc);
 
     kernel::SystemManager::set_system_initialized();
 

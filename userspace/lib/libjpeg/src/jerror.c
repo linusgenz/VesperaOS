@@ -21,6 +21,14 @@
  * These routines are used by both the compression and decompression code.
  */
 
+/*
+ * Modifications for VesperaOS
+ * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+ *
+ * This file has been modified from the original libjpeg / libjpeg-turbo
+ * source to integrate with the VesperaOS build system and runtime.
+ */
+
 /* this is not a core library module, so it doesn't define JPEG_INTERNALS */
 #include "jinclude.h"
 #include "jpeglib.h"
@@ -105,7 +113,7 @@ output_message(j_common_ptr cinfo)
              MB_OK | MB_ICONERROR);
 #else
   /* Send it to stderr, adding a newline */
- // fprintf(stderr, "%s\n", buffer);
+  printf("%s\n", buffer);
 #endif
 }
 
