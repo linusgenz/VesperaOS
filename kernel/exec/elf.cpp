@@ -120,8 +120,8 @@ ElfLoader::LoadResult ElfLoader::load(
 
     bool is_pie = (header->e_type == ET_DYN);
     ELF_LOG("[ELF] Type: %s, Entry: 0x%lx",
-             is_pie ? "ET_DYN (PIE)" : "ET_EXEC",
-             header->e_entry);
+            is_pie ? "ET_DYN (PIE)" : "ET_EXEC",
+            header->e_entry);
 
     AddressRange range{};
     if (!calculate_address_range(header, file_data.data, range))
@@ -140,7 +140,7 @@ ElfLoader::LoadResult ElfLoader::load(
     }
 
     ELF_LOG("[ELF] Virtual range: 0x%lx - 0x%lx (size: %lu)",
-             range.vaddr_min, range.vaddr_max, range.total_size);
+            range.vaddr_min, range.vaddr_max, range.total_size);
 
     uintptr_t load_bias = calculate_load_bias(header, range, preferred_base);
     uintptr_t load_base = range.vaddr_min + load_bias;
@@ -185,7 +185,7 @@ ElfLoader::LoadResult ElfLoader::load(
     uintptr_t load_end = range.vaddr_max + load_bias;
 
     ELF_LOG("[ELF] Entry point: 0x%lx -> 0x%lx (relocated)",
-             header->e_entry, entry_point);
+            header->e_entry, entry_point);
     ELF_LOG("[ELF] Loaded range: 0x%lx - 0x%lx", load_base, load_end);
 
     kernel::memory::free(file_data.data);
@@ -253,6 +253,11 @@ bool ElfLoader::apply_relocations(
         case DT_RELAENT:
             rela_ent = dyn[i].d_un.d_val;
             break;
+
+        case DT_REL:
+        case DT_RELSZ:
+        case DT_RELENT:
+            break;
         }
     }
 
@@ -276,6 +281,13 @@ bool ElfLoader::apply_relocations(
 
             *where = load_bias + r.r_addend;
         }
+        else if (type == R_X86_64_IRELATIVE)
+        {
+            typedef uint64_t (*functype)(void);
+            functype fn = reinterpret_cast<functype>(load_bias + r.r_addend);
+            auto* where = reinterpret_cast<uint64_t*>(r.r_offset + load_bias);
+            *where = fn();
+        }
     }
 
     return true;
@@ -287,9 +299,9 @@ bool ElfLoader::apply_relocations(
 bool ElfLoader::validate_magic(const Elf64_Ehdr* header)
 {
     return header->e_ident[0] == ELFMAG0 &&
-           header->e_ident[1] == ELFMAG1 &&
-           header->e_ident[2] == ELFMAG2 &&
-           header->e_ident[3] == ELFMAG3;
+        header->e_ident[1] == ELFMAG1 &&
+        header->e_ident[2] == ELFMAG2 &&
+        header->e_ident[3] == ELFMAG3;
 }
 
 bool ElfLoader::validate_type(const Elf64_Ehdr* header)
@@ -429,11 +441,11 @@ bool ElfLoader::load_segment(
         calculate_segment_mapping(phdr, load_bias);
 
     ELF_LOG("[ELF] Loading segment: vaddr=0x%lx -> 0x%lx, size=0x%lx/0x%lx, flags=%c%c%c",
-              phdr.p_vaddr, phdr.p_vaddr + load_bias,
-              file_size, memory_size,
-              (phdr.p_flags & PF_R) ? 'R' : '-',
-              (phdr.p_flags & PF_W) ? 'W' : '-',
-              (phdr.p_flags & PF_X) ? 'X' : '-');
+            phdr.p_vaddr, phdr.p_vaddr + load_bias,
+            file_size, memory_size,
+            (phdr.p_flags & PF_R) ? 'R' : '-',
+            (phdr.p_flags & PF_W) ? 'W' : '-',
+            (phdr.p_flags & PF_X) ? 'X' : '-');
 
     void* phys = kernel::memory::request_pages(map_size / PAGE_SIZE);
     if (!phys)
@@ -468,8 +480,8 @@ bool ElfLoader::load_segment(
                memory_size - file_size);
 
         ELF_LOG("[ELF] BSS cleared: 0x%lx + 0x%lx (%lu bytes)",
-                  reinterpret_cast<uintptr_t>(dest), file_size,
-                  memory_size - file_size);
+                reinterpret_cast<uintptr_t>(dest), file_size,
+                memory_size - file_size);
     }
 
     return true;

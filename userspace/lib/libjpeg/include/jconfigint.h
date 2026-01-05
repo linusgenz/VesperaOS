@@ -58,9 +58,12 @@
 
 #undef C_ARITH_CODING_SUPPORTED
 #undef D_ARITH_CODING_SUPPORTED
-#undef WITH_SIMD
 
 #if BITS_IN_JSAMPLE == 8
+
+#undef C_LOSSLESS_SUPPORTED
+
+#undef D_LOSSLESS_SUPPORTED
 
 /* Support arithmetic encoding */
 // #define C_ARITH_CODING_SUPPORTED 1
@@ -69,7 +72,7 @@
 // #define D_ARITH_CODING_SUPPORTED 1
 
 /* Use accelerated SIMD routines. */
-#define WITH_SIMD 1
+#undef WITH_SIMD
 
 #endif
 

@@ -28,7 +28,7 @@
 #define DCTSIZE 8
 #define DCTSIZE2 64
 
-#define WITH_SIMD 1
+#undef  WITH_SIMD
 
 /*
  * These symbols indicate the properties of your machine or compiler.

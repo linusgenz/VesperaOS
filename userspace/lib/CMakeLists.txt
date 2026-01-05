@@ -92,7 +92,7 @@ set(LIB_SOURCES
         ${LIBJPEG_SRC}/wrapper/jfdctint-8.c
         ${LIBJPEG_SRC}/wrapper/jfdctfst-8.c
 
-        ${SIMD_X86_DIR}/jsimd.c
+        #${SIMD_X86_DIR}/jsimd.c
 
         jpeg/jpeg.c
 )

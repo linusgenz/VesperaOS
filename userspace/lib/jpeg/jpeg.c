@@ -40,14 +40,16 @@ typedef struct
 
 static void jpeg_output_message(j_common_ptr cinfo)
 {
-    char buffer[JMSG_LENGTH_MAX];
+    //printf("jpeg_output_message");
+   // char buffer[JMSG_LENGTH_MAX];
 
-    (*cinfo->err->format_message)(cinfo, buffer);
-    printf("[libjpeg] %s\n", buffer);
+   // (*cinfo->err->format_message)(cinfo, buffer);
+   // printf("[libjpeg] %s\n", buffer);
 }
 
 static void jpeg_error_exit(j_common_ptr cinfo)
 {
+    printf("jpeg_error_exit");
     struct jpeg_error_mgr* err = cinfo->err;
     err->output_message = jpeg_output_message;
 
@@ -58,16 +60,20 @@ static void jpeg_error_exit(j_common_ptr cinfo)
     longjmp(ctx->env, 1);
 }
 
+static void jpeg_emit_message_stub(j_common_ptr cinfo, int msg_level)
+{
+}
+
 static void jpeg_emit_message(j_common_ptr cinfo, int msg_level)
 {
     struct jpeg_error_handler* err = (struct jpeg_error_handler*)cinfo->err;
     char buffer[JMSG_LENGTH_MAX];
-    (*cinfo->err->format_message)(cinfo, buffer);
+  //  (*cinfo->err->format_message)(cinfo, buffer);
 
-    if (msg_level < 0)
-        printf("[libjpeg warning] %s\n", buffer);
-    else
-        printf("[libjpeg info] %s\n", buffer);
+   // if (msg_level < 0)
+    //    printf("[libjpeg warning] %s\n", buffer);
+  //  else
+    //    printf("[libjpeg info] %s\n", buffer);
 }
 
 // Utility functions
@@ -154,7 +160,7 @@ void jpeg_load_options_init(jpeg_load_options_t* opts)
 void jpeg_save_options_init(jpeg_save_options_t* opts)
 {
     if (!opts) return;
-    opts->quality = 85;
+    opts->quality = 100;
     opts->progressive = false;
     opts->optimize_coding = true;
     opts->smoothing_factor = 0;
@@ -458,7 +464,7 @@ int jpeg_load_from_memory(const uint8_t* jpeg_data, size_t jpeg_size,
     cinfo.client_data = &ctx;
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = jpeg_error_exit;
-    jerr.emit_message = jpeg_emit_message;
+    jerr.emit_message = jpeg_emit_message_stub;
 
     int r = setjmp(ctx.env);
     if (r)
@@ -557,6 +563,8 @@ int jpeg_load_from_file(const char* filename, image_t* out_image,
     size_t size = ftell(hdl);
     fseek(hdl, 0, SEEK_SET);
 
+    printf("size %u\n", size);
+
     uint8_t* buffer = malloc(size);
 
     if (!buffer)
@@ -608,7 +616,8 @@ int jpeg_save_to_memory(const image_t* image, uint8_t** out_data,
     cinfo.client_data = &ctx;
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = jpeg_error_exit;
-    jerr.emit_message = jpeg_emit_message;
+    jerr.emit_message = jpeg_emit_message_stub;
+    jerr.output_message = jpeg_output_message;
 
     if (setjmp(ctx.env))
     {
@@ -692,15 +701,18 @@ int jpeg_save_to_file(const image_t* image, const char* filename,
     int result = jpeg_save_to_memory(image, &buffer, &size, opts);
     if (result != JPEG_OK) return result;
 
-    HANDLE hdl = open(filename, O_WRONLY);
-    if (!hdl)
+    HANDLE hdl = open(filename, O_WRONLY | O_CREAT);
+    if (hdl < 0)
     {
         free(buffer);
         return JPEG_ERROR_FILE_OPEN;
     }
 
-    if ((size_t)write(hdl, buffer, size) != size)
+    printf("writing to file %ld", size);
+    size_t res = (size_t)write(hdl, buffer, size);
+    if ( res != size)
     {
+        printf("%ld %ld", res, size);
         free(buffer);
         close(hdl);
         return JPEG_ERROR_FILE_WRITE;

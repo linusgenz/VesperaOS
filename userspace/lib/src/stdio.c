@@ -419,13 +419,100 @@ size_t snprintf(char* buffer, size_t size, const char* format, ...)
         {
             i++; // Skip '%'
 
+            // Parse flags (zero-padding)
+            bool zero_pad = false;
+            if (format[i] == '0')
+            {
+                zero_pad = true;
+                i++;
+            }
+
+            // Parse width
+            int width = 0;
+            while (format[i] >= '0' && format[i] <= '9')
+            {
+                width = width * 10 + (format[i] - '0');
+                i++;
+            }
+
+            // Parse length modifier
+            bool is_long_long = false;
+            if (format[i] == 'l')
+            {
+                i++;
+                if (format[i] == 'l')
+                {
+                    is_long_long = true;
+                    i++;
+                }
+            }
+
             switch (format[i])
             {
             case 'd':
+            case 'i':
                 {
                     int val = __builtin_va_arg(args, int);
                     char temp[32];
                     size_t len = uint_to_str(val, temp, 10, false);
+
+                    // Apply padding
+                    int pad_count = width > len ? width - len : 0;
+                    char pad_char = zero_pad ? '0' : ' ';
+
+                    // Handle negative numbers with zero padding
+                    if (zero_pad && temp[0] == '-')
+                    {
+                        if (buf_pos < size - 1)
+                        {
+                            buffer[buf_pos++] = '-';
+                        }
+                        written++;
+
+                        for (int p = 0; p < pad_count && buf_pos < size - 1; p++)
+                        {
+                            buffer[buf_pos++] = '0';
+                        }
+                        written += pad_count;
+
+                        for (int j = 1; j < len && buf_pos < size - 1; j++)
+                        {
+                            buffer[buf_pos++] = temp[j];
+                        }
+                        written += len - 1;
+                    }
+                    else
+                    {
+                        for (int p = 0; p < pad_count && buf_pos < size - 1; p++)
+                        {
+                            buffer[buf_pos++] = pad_char;
+                        }
+                        written += pad_count;
+
+                        for (int j = 0; j < len && buf_pos < size - 1; j++)
+                        {
+                            buffer[buf_pos++] = temp[j];
+                        }
+                        written += len;
+                    }
+                    break;
+                }
+
+            case 'u':
+                {
+                    unsigned int val = __builtin_va_arg(args, unsigned int);
+                    char temp[32];
+                    size_t len = uint_to_str(val, temp, 10, false);
+
+                    // Apply padding
+                    int pad_count = width > len ? width - len : 0;
+                    char pad_char = zero_pad ? '0' : ' ';
+
+                    for (int p = 0; p < pad_count && buf_pos < size - 1; p++)
+                    {
+                        buffer[buf_pos++] = pad_char;
+                    }
+                    written += pad_count;
 
                     for (int j = 0; j < len && buf_pos < size - 1; j++)
                     {
@@ -436,10 +523,20 @@ size_t snprintf(char* buffer, size_t size, const char* format, ...)
                 }
 
             case 'x':
+            case 'X':
                 {
-                    int val = __builtin_va_arg(args, int);
+                    unsigned int val = __builtin_va_arg(args, unsigned int);
                     char temp[32];
                     const size_t len = uint_to_str(val, temp, 16, false);
+
+                    int pad_count = width > len ? width - len : 0;
+                    char pad_char = zero_pad ? '0' : ' ';
+
+                    for (int p = 0; p < pad_count && buf_pos < size - 1; p++)
+                    {
+                        buffer[buf_pos++] = pad_char;
+                    }
+                    written += pad_count;
 
                     for (int j = 0; j < len && buf_pos < size - 1; j++)
                     {
@@ -455,6 +552,14 @@ size_t snprintf(char* buffer, size_t size, const char* format, ...)
                     if (str)
                     {
                         const size_t len = strlen(str);
+
+                        int pad_count = width > len ? width - len : 0;
+                        for (int p = 0; p < pad_count && buf_pos < size - 1; p++)
+                        {
+                            buffer[buf_pos++] = ' ';
+                        }
+                        written += pad_count;
+
                         for (int j = 0; j < len && buf_pos < size - 1; j++)
                         {
                             buffer[buf_pos++] = str[j];
@@ -467,33 +572,19 @@ size_t snprintf(char* buffer, size_t size, const char* format, ...)
             case 'c':
                 {
                     char ch = (char)__builtin_va_arg(args, int);
+
+                    int pad_count = width > 1 ? width - 1 : 0;
+                    for (int p = 0; p < pad_count && buf_pos < size - 1; p++)
+                    {
+                        buffer[buf_pos++] = ' ';
+                    }
+                    written += pad_count;
+
                     if (buf_pos < size - 1)
                     {
                         buffer[buf_pos++] = ch;
                     }
                     written++;
-                    break;
-                }
-
-            case 'l':
-                {
-                    if (format[i + 1] == 'l')
-                    {
-                        i++;
-                        if (format[i + 1] == 'u')
-                        {
-                            i++;
-                            unsigned long long val = __builtin_va_arg(args, unsigned long long);
-                            char temp[32];
-                            const size_t len = uint_to_str(val, temp, 10, false);
-
-                            for (int j = 0; j < len && buf_pos < size - 1; j++)
-                            {
-                                buffer[buf_pos++] = temp[j];
-                            }
-                            written += len;
-                        }
-                    }
                     break;
                 }
 

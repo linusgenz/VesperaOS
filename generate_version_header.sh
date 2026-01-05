@@ -2,7 +2,7 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=20
-VERSION_PATCH=2
+VERSION_PATCH=3
 VERSION_STAGE="dev"
 VERSION_NAME="holy basil"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

@@ -38,7 +38,7 @@ namespace syscalls::internal {
         if (!current) {
             kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -KENOUNIT);
         }
-        while (1);
+
         current->exit_code = static_cast<int>(code);
         current->state = UNIT_TERMINATED;
 
