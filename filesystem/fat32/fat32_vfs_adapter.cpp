@@ -27,6 +27,7 @@
 #include <kernel/memory.h>
 
 #include "fat32.h"
+#include "fat32_lfn.h"
 #include "../../include/log.h"
 #include "../../include/errno.h"
 #include "../../kernel/types/types.h"
@@ -154,7 +155,7 @@ static VfsNode* fat32_find(const VfsNode* node, const char* name)
             childData->isDir = entries[i].isDir();
             childData->fileSize = entries[i].GetFileSize();
             childData->dirEntry = entries[i].GetDirectoryEntry();
-            childData->firstLFNIndex = FileSystem::FindFirstLFNIndex(entries, i);
+            childData->firstLFNIndex = FindFirstLFNIndex(entries, i);
 
             // neuen Pfad bauen: "/EFI/BOOT" + "/" + "foo.txt"
             snprintf(childData->path, sizeof(childData->path),
@@ -217,7 +218,6 @@ int fat32_readdir(void* h, dirent_t* out)
     return 1;
 }
 
-
 void fat32_closedir(void* h)
 {
     auto* handle = static_cast<Fat32DirHandle*>(h);
@@ -237,7 +237,6 @@ static void fat32_close(VfsNode* node)
     auto* data = static_cast<Fat32Node*>(node->internal_data);
     if (data)
     {
-        //   if (data->entries) kernel::memory::free(data->entries);
         kernel::memory::free(data);
     }
 

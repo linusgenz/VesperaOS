@@ -134,6 +134,7 @@ void Debug_PrintAllDevices()
 
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 {
+    Log::disableDebug();
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
@@ -159,7 +160,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
     if (!result.success)
     {
-        Log::Error("Failed to load elf binary");
+        Log::Error("Failed to load elf binary: %s", result.error_message);
     }
 
     const char *argv_example[] = {

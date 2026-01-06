@@ -20,6 +20,7 @@ namespace FAT32
 #define ATTR_DIRECTORY 0x10
 #define ATTR_ARCHIVE 0x20
 #define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
+#define LAST_LONG_ENTRY 0x40
 
 #define READ_DIR_MAX_ENTRIES 256
 
@@ -54,6 +55,18 @@ namespace FAT32
         uint32_t volumeID; // 0x43
         uint8_t volumeLabel[11]; // 0x47
         uint8_t fsType[8]; // 0x52
+    }__attribute__((packed));
+
+    // BPB_FSInfo
+    struct FSINFO
+    {
+        uint32_t LeadSig;
+        uint64_t Reserved1[60];
+        uint32_t StrucSig;
+        uint32_t Free_Count;
+        uint32_t Nxt_Free;
+        uint32_t Reserved2[3];
+        uint32_t TrailSig;
     }__attribute__((packed));
 
     //  Section 6: Directory Structure FAT spec
@@ -194,11 +207,11 @@ namespace FAT32
 
         [[nodiscard]] uint32_t GetRootCluster() const;
 
-        bool IsDir(uint32_t cluster) const;
+        [[nodiscard]] bool IsDir(uint32_t cluster) const;
 
         uint32_t ResolvePathToCluster(const char* path) const;
 
-        bool ReadFile(const Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset = 0) const;
+        bool ReadFile(Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset = 0) const;
 
         bool WriteFile(Fat32Node* node, const void* buffer, size_t len);
         bool WriteLFNEntries(DirectoryEntry* entries, size_t startIndex, const char* longName, const char* shortName,
@@ -237,27 +250,37 @@ namespace FAT32
         bool valid;
 
         uint32_t sectorSize;
-        uint32_t fatStart;
-        uint32_t fatSize;
         uint32_t dataStart;
 
+        uint32_t clusterCount;
+        uint32_t freeClusterCount;
+        uint32_t nextFreeCluster;
+
+        bool probe_fs() const;
+
         [[nodiscard]] uint32_t ClusterToSector(uint32_t cluster) const;
+        bool LoadFSInfo();
+        void WriteFSInfo() const;
 
         ssize_t ReadCluster(uint32_t cluster, void* buffer, size_t buffer_size) const;
 
         bool WriteCluster(uint32_t cluster, const void* data, size_t len, size_t offset = 0) const;
+        bool IsValidFATEntry(uint32_t value) const;
+        uint32_t ReadFATEntryRaw(uint32_t fatSector, uint32_t offset) const;
 
         [[nodiscard]] uint32_t bytesPerCluster() const;
 
         [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
-
-        bool WriteFATEntry(uint32_t cluster, uint32_t value) const;
+        bool WriteFATEntryRaw(uint32_t fatSector, uint32_t offset, uint32_t value) const;
 
         uint32_t FindFreeCluster() const;
 
         uint32_t* GetClusterChain(uint32_t startCluster, size_t& outCount) const;
+        bool FreeClusterChain(uint32_t startCluster);
 
         bool WriteFATEntry(uint32_t cluster, uint32_t value);
+        uint32_t NextCluster(uint32_t c) const;
+        bool HasFATLoop(uint32_t start) const;
         uint32_t FindFreeCluster();
         bool WriteDirectoryEntry(uint32_t dirCluster, const void* entry);
 

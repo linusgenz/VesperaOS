@@ -45,6 +45,11 @@ void Log::enableDebug()
     is_debug = true;
 }
 
+void Log::disableDebug()
+{
+    is_debug = false;
+}
+
 
 void UIntToStr(uint64_t value, char* buffer, uint8_t base = 10, bool prefix = false)
 {

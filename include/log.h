@@ -27,6 +27,7 @@ public:
     static void log_prefix(const char* tag, uint32_t tag_fg);
 
     static void enableDebug();
+    static void disableDebug();
 
 private:
     static Terminal* t;
