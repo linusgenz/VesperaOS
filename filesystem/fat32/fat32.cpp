@@ -35,8 +35,10 @@ namespace FAT32
     // ============================================================================
 
     FileSystem::FileSystem(BlockDevice* device)
-        : device(device), valid(false), sectorSize(device->get_sector_size())
+        : device(device), fs_valid(false), sectorSize(device->get_sector_size()), nextFreeCluster(2),
+          cacheAccessCounter(0)
     {
+
         uint8_t sector[512];
         if (!device->read(0, 1, sector, 512))
         {
@@ -48,6 +50,13 @@ namespace FAT32
 
         if (bpb.tableCount < 1 || bpb.sectorsPerCluster == 0) return;
         if (!probe_fs()) return;
+
+        for (auto & i : fatCache)
+        {
+            i.sector = 0;
+            i.lastUsed = 0;
+            i.valid = false;
+        }
 
         LoadFSInfo();
 
@@ -66,7 +75,7 @@ namespace FAT32
 
         dataStart = bpb.reservedSectorCount + (bpb.tableCount * bpb.FATSize32);
 
-        valid = true;
+        fs_valid = true;
     }
 
     FileSystem::~FileSystem()
@@ -102,7 +111,7 @@ namespace FAT32
         return isFat32;
     }
 
-    bool FileSystem::is_valid() const { return valid; }
+    bool FileSystem::is_valid() const { return fs_valid; }
     uint32_t FileSystem::GetRootCluster() const { return bpb.rootCluster; }
     uint32_t FileSystem::bytesPerCluster() const { return bpb.bytesPerSector * bpb.sectorsPerCluster; }
 
@@ -110,6 +119,81 @@ namespace FAT32
     {
         return dataStart + (cluster - 2) * bpb.sectorsPerCluster;
     }
+
+    // ============================================================================
+    // Cache
+    // ============================================================================
+
+    bool FileSystem::ReadFATSector(uint32_t fat_sector, uint8_t* buffer) const
+    {
+        cacheAccessCounter++;
+
+        // Search for cached entry
+        for (size_t i = 0; i < FAT_CACHE_SIZE; ++i)
+        {
+            if (fatCache[i].valid && fatCache[i].sector == fat_sector)
+            {
+                cacheStats.hits++;
+                fatCache[i].lastUsed = cacheAccessCounter;
+                memcpy(buffer, fatCache[i].data, bpb.bytesPerSector);
+                return true;
+            }
+        }
+
+        // Cache miss - read from disk
+        cacheStats.misses++;
+        if (!device->read(fat_sector, 1, buffer, bpb.bytesPerSector))
+            return false;
+
+        // Find slot for new entry (LRU replacement)
+        size_t replaceIdx = 0;
+        uint32_t oldestAccess = fatCache[0].valid ? fatCache[0].lastUsed : 0;
+
+        for (size_t i = 0; i < FAT_CACHE_SIZE; ++i)
+        {
+            if (!fatCache[i].valid)
+            {
+                // Found empty slot
+                replaceIdx = i;
+                break;
+            }
+
+            if (fatCache[i].lastUsed < oldestAccess)
+            {
+                oldestAccess = fatCache[i].lastUsed;
+                replaceIdx = i;
+            }
+        }
+
+        // Store in cache
+        fatCache[replaceIdx].sector = fat_sector;
+        memcpy(fatCache[replaceIdx].data, buffer, bpb.bytesPerSector);
+        fatCache[replaceIdx].lastUsed = cacheAccessCounter;
+        fatCache[replaceIdx].valid = true;
+
+        return true;
+    }
+
+    void FileSystem::InvalidateFATCache() const
+    {
+        for (auto & i : fatCache)
+        {
+            i.valid = false;
+        }
+    }
+
+    void FileSystem::InvalidateFATCacheSector(uint32_t sector) const
+    {
+        for (auto & i : fatCache)
+        {
+            if (i.valid && i.sector == sector)
+            {
+                i.valid = false;
+                break;
+            }
+        }
+    }
+
 
     // ============================================================================
     // FSInfo
@@ -215,23 +299,27 @@ namespace FAT32
     uint32_t FileSystem::ReadFATEntryRaw(uint32_t fatSector, uint32_t offset) const
     {
         uint8_t buf[1024]; // max 2 sectors
+        const uint32_t sector_size = bpb.bytesPerSector;
 
-        if (const uint32_t sector_size = bpb.bytesPerSector; offset <= sector_size - 4)
+        // one sector
+        if (offset <= sector_size - 4)
         {
-            if (!device->read(fatSector, 1, buf, sector_size))
+            if (!ReadFATSector(fatSector, buf))
                 return 0x0FFFFFFF;
 
             return *reinterpret_cast<uint32_t*>(buf + offset);
         }
-        else
-        {
-            // entry spans two sectors
-            if (!device->read(fatSector, 2, buf, sector_size * 2))
-                return 0x0FFFFFFF;
 
-            return *reinterpret_cast<uint32_t*>(buf + offset);
-        }
+        // two sectors
+        if (!ReadFATSector(fatSector, buf))
+            return 0x0FFFFFFF;
+
+        if (!ReadFATSector(fatSector + 1, buf + sector_size))
+            return 0x0FFFFFFF;
+
+        return *reinterpret_cast<uint32_t*>(buf + offset);
     }
+
 
     uint32_t FileSystem::GetFATEntry(uint32_t cluster) const
     {
@@ -272,28 +360,42 @@ namespace FAT32
     }
 
 
-    bool FileSystem::WriteFATEntryRaw(uint32_t fatSector, uint32_t offset, uint32_t value) const
+    bool FileSystem::WriteFATEntryRaw(uint32_t fatSector,
+                                     uint32_t offset,
+                                     uint32_t value) const
     {
         uint8_t buf[1024];
         const uint32_t sector_size = bpb.bytesPerSector;
 
+        // one sector
         if (offset <= sector_size - 4)
         {
             if (!device->read(fatSector, 1, buf, sector_size))
                 return false;
 
             *reinterpret_cast<uint32_t*>(buf + offset) = value;
-            return device->write(fatSector, 1, buf, sector_size);
-        }
-        else
-        {
-            if (!device->read(fatSector, 2, buf, sector_size * 2))
+
+            if (!device->write(fatSector, 1, buf, sector_size))
                 return false;
 
-            *reinterpret_cast<uint32_t*>(buf + offset) = value;
-            return device->write(fatSector, 2, buf, sector_size * 2);
+            InvalidateFATCacheSector(fatSector);
+            return true;
         }
+
+        // two sectors
+        if (!device->read(fatSector, 2, buf, sector_size * 2))
+            return false;
+
+        *reinterpret_cast<uint32_t*>(buf + offset) = value;
+
+        if (!device->write(fatSector, 2, buf, sector_size * 2))
+            return false;
+
+        InvalidateFATCacheSector(fatSector);
+        InvalidateFATCacheSector(fatSector + 1);
+        return true;
     }
+
 
     bool FileSystem::WriteFATEntry(uint32_t cluster, uint32_t value)
     {
@@ -354,7 +456,7 @@ namespace FAT32
     bool FileSystem::HasFATLoop(uint32_t start) const
     {
         uint32_t tortoise = start;
-        uint32_t hare     = start;
+        uint32_t hare = start;
 
         while (true)
         {
@@ -409,7 +511,7 @@ namespace FAT32
 
 
     uint32_t* FileSystem::GetClusterChain(uint32_t startCluster,
-                                      size_t& outCount) const
+                                          size_t& outCount) const
     {
         outCount = 0;
 
@@ -1165,6 +1267,8 @@ namespace FAT32
 
     bool FileSystem::DeleteFile(const Fat32Node* parentDir, const char* name)
     {
+        Log::Info("[FAT32] Cache: %.1f%% hit rate (%u hits, %u misses)",
+          cacheStats.HitRate(), cacheStats.hits, cacheStats.misses);
         if (!parentDir || !name) return false;
 
         const uint32_t parentCluster = parentDir->cluster;

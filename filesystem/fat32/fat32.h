@@ -247,7 +247,7 @@ namespace FAT32
     private:
         BlockDevice* device;
         BPB_FAT32 bpb{};
-        bool valid;
+        bool fs_valid;
 
         uint32_t sectorSize;
         uint32_t dataStart;
@@ -255,6 +255,38 @@ namespace FAT32
         uint32_t clusterCount;
         uint32_t freeClusterCount;
         uint32_t nextFreeCluster;
+
+        struct CacheStats
+        {
+            uint32_t hits;
+            uint32_t misses;
+            uint32_t invalidations;
+
+            void Reset() { hits = misses = invalidations = 0; }
+
+            [[nodiscard]] float HitRate() const
+            {
+                uint32_t total = hits + misses;
+                return total > 0 ? (100.0f * hits / total) : 0.0f;
+            }
+        };
+        mutable CacheStats cacheStats;
+
+        struct CacheEntry
+        {
+            uint32_t sector;
+            uint8_t data[512];
+            uint32_t lastUsed; // LRU counter
+            bool valid;
+        };
+
+        static constexpr size_t FAT_CACHE_SIZE = 10;
+        mutable CacheEntry fatCache[FAT_CACHE_SIZE];
+        mutable uint32_t cacheAccessCounter;
+
+        bool ReadFATSector(uint32_t fat_sector, uint8_t* buffer) const;
+        void InvalidateFATCache() const;
+        void InvalidateFATCacheSector(uint32_t sector) const;
 
         bool probe_fs() const;
 
@@ -273,13 +305,13 @@ namespace FAT32
         [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
         bool WriteFATEntryRaw(uint32_t fatSector, uint32_t offset, uint32_t value) const;
 
-        uint32_t FindFreeCluster() const;
+        [[nodiscard]] uint32_t FindFreeCluster() const;
 
         uint32_t* GetClusterChain(uint32_t startCluster, size_t& outCount) const;
         bool FreeClusterChain(uint32_t startCluster);
 
         bool WriteFATEntry(uint32_t cluster, uint32_t value);
-        uint32_t NextCluster(uint32_t c) const;
+        [[nodiscard]] uint32_t NextCluster(uint32_t c) const;
         bool HasFATLoop(uint32_t start) const;
         uint32_t FindFreeCluster();
         bool WriteDirectoryEntry(uint32_t dirCluster, const void* entry);
