@@ -316,16 +316,22 @@ void xhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer* transfer)
 
 ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
 {
-    if (!buffer || sectorCount == 0 || bufferSize < sectorCount * sector_size)
+    size_t bytes = sectorCount * sector_size;
+    if (!buffer || sectorCount == 0 || bufferSize < bytes)
         return -EINVAL;
+
     kernel::mutex_guard guard(io_mutex);
+
+    size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+    void* dma_phys = kernel::memory::request_pages(pages);
+    if (!dma_phys) return -ENOMEM;
 
     auto& transfer = transfer_rw;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_in_endpoint; // IN-Endpoint
-    transfer.data_buffer = buffer; // User-Buffer
-    transfer.data_length = sectorCount * sector_size;
+    transfer.data_buffer = dma_phys;      // DMA-Puffer
+    transfer.data_length = bytes;
     transfer.is_input = true;
 
     // CBW aufbauen
@@ -346,29 +352,38 @@ ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* bu
     start_bulk_transfer(&transfer);
 
     while (!transfer.done)
-    {
         asm volatile ("pause");
-    }
 
-    if (transfer.status != 0)
-        return -EIO;
+    ssize_t result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
-    return transfer.actual_length;
+    if (result > 0)
+        memcpy(buffer, dma_phys, bytes);
+
+    kernel::memory::free_pages(dma_phys, pages);
+    return result;
 }
 
 
 ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
 {
-    if (!buffer || sectorCount == 0 || bufferSize < sectorCount * sector_size)
+    size_t bytes = sectorCount * sector_size;
+    if (!buffer || sectorCount == 0 || bufferSize < bytes)
         return -EINVAL;
+
     kernel::mutex_guard guard(io_mutex);
+
+    size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+    void* dma_phys = kernel::memory::request_pages(pages);
+    if (!dma_phys) return -ENOMEM;
+
+    memcpy(dma_phys, buffer, bytes);
 
     auto& transfer = transfer_rw;
     memset(&transfer, 0, sizeof(transfer));
 
     transfer.endpoint = bulk_out_endpoint; // OUT-Endpoint
-    transfer.data_buffer = buffer; // User-Buffer
-    transfer.data_length = sectorCount * sector_size;
+    transfer.data_buffer = dma_phys;       // DMA-Puffer
+    transfer.data_length = bytes;
     transfer.is_input = false;
 
     // CBW
@@ -389,15 +404,14 @@ ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* b
     start_bulk_transfer(&transfer);
 
     while (!transfer.done)
-    {
         asm volatile ("pause");
-    }
 
-    if (transfer.status != 0)
-        return -EIO;
+    ssize_t result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
-    return transfer.actual_length;
+    kernel::memory::free_pages(dma_phys, pages);
+    return result;
 }
+
 
 // TODO später scheduler FIFO queue beachten falls schon gelesen wird etc.
 

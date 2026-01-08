@@ -34,19 +34,6 @@
 
 using namespace FAT32;
 
-
-bool fat32_resolve_path(FileSystem* fs, const char* path, Fat32Node* outNode)
-{
-    uint32_t cluster = fs->ResolvePathToCluster(path);
-    if (cluster == 0) return false;
-
-    strncpy(outNode->path, path, strlen(path));
-    outNode->cluster = cluster;
-    outNode->fs = fs;
-    outNode->isDir = fs->IsDir(cluster);
-    return true;
-}
-
 static ssize_t fat32_read(const VfsNode* node, const size_t offset, const size_t size, void* buffer)
 {
     if (!node || !buffer) return -EFAULT;

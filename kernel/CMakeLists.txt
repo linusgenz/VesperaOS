@@ -122,7 +122,7 @@ if(ENABLE_DEBUG_FAULT)
     )
     set_target_properties(kernel_stage1 PROPERTIES
             OUTPUT_NAME "kernel_stage1"
-            LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
+            LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
     )
 
     target_include_directories(kernel_stage1 PUBLIC
@@ -175,7 +175,7 @@ add_executable(kernel.elf
 
 set_target_properties(kernel.elf PROPERTIES
         OUTPUT_NAME "kernel.elf"
-        LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static"
+        LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
 )
 
 target_include_directories(kernel.elf PUBLIC

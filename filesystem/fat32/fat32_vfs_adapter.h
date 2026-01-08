@@ -46,10 +46,7 @@
         size_t index;
     };
 
-    bool fat32_resolve_path(FAT32::FileSystem *fs, const char *path, Fat32Node *outNode);
-
     VfsNode *wrap_fat32_root(FAT32::FileSystem * fs);
-
 
     int fat32_probe(BlockDevice *dev);
 

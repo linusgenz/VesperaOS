@@ -34,21 +34,53 @@ namespace FAT32
         return sum;
     }
 
+    // Case-insensitive strcmp für FAT32
+    int strcasecmp(const char* s1, const char* s2)
+    {
+        while (*s1 && *s2)
+        {
+            char c1 = *s1;
+            char c2 = *s2;
+
+            // Convert to uppercase
+            if (c1 >= 'a' && c1 <= 'z') c1 = c1 - 'a' + 'A';
+            if (c2 >= 'a' && c2 <= 'z') c2 = c2 - 'a' + 'A';
+
+            if (c1 != c2) return c1 - c2;
+
+            s1++;
+            s2++;
+        }
+
+        return *s1 - *s2;
+    }
+
+    // KORRIGIERT: Stoppt bei 0x0000 oder 0xFFFF
     bool CopyLFNPart(const LongFileName* lfn, char* buffer, size_t& pos, size_t maxLen)
     {
         auto copyChars = [&](const uint16_t* src, size_t count)
         {
             for (size_t i = 0; i < count; i++)
             {
-                if (src[i] == 0x0000 || src[i] == 0xFFFF) return false;
-                if (pos >= maxLen - 1) return false;
+                // Stoppe bei Terminatoren
+                if (src[i] == 0x0000 || src[i] == 0xFFFF)
+                    return false;
+
+                if (pos >= maxLen - 1)
+                    return false;
+
+                // Nur ASCII unterstützt
                 buffer[pos++] = static_cast<char>(src[i] & 0xFF);
             }
             return true;
         };
-        return copyChars(lfn->name1, 5) &&
-               copyChars(lfn->name2, 6) &&
-               copyChars(lfn->name3, 2);
+
+        // Kopiere alle drei Teile
+        if (!copyChars(lfn->name1, 5)) return false;
+        if (!copyChars(lfn->name2, 6)) return false;
+        if (!copyChars(lfn->name3, 2)) return false;
+
+        return true;
     }
 
     bool MakeShortName(const char* input, char* output11)
@@ -87,18 +119,41 @@ namespace FAT32
         return true;
     }
 
+    // KORRIGIERT: Fügt Punkt ein, IMMER Uppercase (FAT32 Spec konform)
     void ExtractShortName(const unsigned char* rawName, char* shortNameBuffer, size_t bufferSize)
     {
         if (bufferSize < 13) return;
-        memcpy(shortNameBuffer, rawName, 11);
-        for (int i = 10; i >= 0; i--)
+
+        // Name Teil (8 Zeichen) - IMMER UPPERCASE
+        size_t pos = 0;
+        for (int i = 0; i < 8; i++)
         {
-            if (shortNameBuffer[i] == ' ')
-                shortNameBuffer[i] = '\0';
-            else
-                break;
+            if (rawName[i] != ' ')
+                shortNameBuffer[pos++] = rawName[i];
         }
-        shortNameBuffer[12] = '\0';
+
+        // Extension Teil (3 Zeichen) - IMMER UPPERCASE
+        bool hasExt = false;
+        for (int i = 8; i < 11; i++)
+        {
+            if (rawName[i] != ' ')
+            {
+                hasExt = true;
+                break;
+            }
+        }
+
+        if (hasExt)
+        {
+            shortNameBuffer[pos++] = '.';
+            for (int i = 8; i < 11; i++)
+            {
+                if (rawName[i] != ' ')
+                    shortNameBuffer[pos++] = rawName[i];
+            }
+        }
+
+        shortNameBuffer[pos] = '\0';
     }
 
     bool WriteLFNEntries(DirectoryEntry* entries, size_t startIndex,

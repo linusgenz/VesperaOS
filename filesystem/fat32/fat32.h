@@ -74,7 +74,7 @@ namespace FAT32
     {
         unsigned char name[11]; // 8 + 3 Bytes
         uint8_t attr;
-        uint8_t reserved;
+        uint8_t ntRes;
         uint8_t creationTimeTenths;
         uint16_t creationTime;
         uint16_t creationDate;
@@ -207,8 +207,6 @@ namespace FAT32
 
         [[nodiscard]] uint32_t GetRootCluster() const;
 
-        [[nodiscard]] bool IsDir(uint32_t cluster) const;
-
         uint32_t ResolvePathToCluster(const char* path) const;
 
         bool ReadFile(Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset = 0) const;
@@ -270,6 +268,7 @@ namespace FAT32
                 return total > 0 ? (100.0f * hits / total) : 0.0f;
             }
         };
+
         mutable CacheStats cacheStats;
 
         struct CacheEntry
@@ -278,6 +277,12 @@ namespace FAT32
             uint8_t data[512];
             uint32_t lastUsed; // LRU counter
             bool valid;
+        };
+
+        struct Sector
+        {
+            uint32_t sector = UINT32_MAX;
+            uint8_t  buf[512]{};
         };
 
         static constexpr size_t FAT_CACHE_SIZE = 10;
@@ -303,6 +308,7 @@ namespace FAT32
         [[nodiscard]] uint32_t bytesPerCluster() const;
 
         [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
+        uint32_t ReadFATEntry(uint32_t cluster, Sector& sec) const;
         bool WriteFATEntryRaw(uint32_t fatSector, uint32_t offset, uint32_t value) const;
 
         [[nodiscard]] uint32_t FindFreeCluster() const;
@@ -323,6 +329,7 @@ namespace FAT32
         bool OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex, const DirectoryEntry* newEntry) const;
 
         uint32_t FindEntryCluster(uint32_t dirCluster, const char* givenName) const;
+        bool IsProtected(const DirectoryEntry& e);
     };
 }
 

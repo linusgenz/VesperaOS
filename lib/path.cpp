@@ -9,6 +9,7 @@ size_t split_path(const char* path, char components[][32], size_t maxComponents)
     size_t count = 0;
     size_t pos = 0;
 
+
     while (path[pos] == '/') pos++;
     size_t compPos = 0;
 

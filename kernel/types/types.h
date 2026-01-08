@@ -92,7 +92,7 @@ typedef enum {
 } ErrorCode;
 
 #define PRIORITY_NONE 0
-#define DEFAULT_UNIT_STACK_SIZE 0x2000
+#define DEFAULT_UNIT_STACK_SIZE 0x20000
 
 struct UnitConfig {
     const char *name = "unnamed_unit";

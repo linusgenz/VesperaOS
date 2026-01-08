@@ -3,7 +3,7 @@
 //
 
 #include "fat32.h"
-
+#include <sort.h>
 #include "fat32_lfn.h"
 #include "fat32_vfs_adapter.h"
 #include "fat32_time.h"
@@ -38,7 +38,6 @@ namespace FAT32
         : device(device), fs_valid(false), sectorSize(device->get_sector_size()), nextFreeCluster(2),
           cacheAccessCounter(0)
     {
-
         uint8_t sector[512];
         if (!device->read(0, 1, sector, 512))
         {
@@ -51,7 +50,7 @@ namespace FAT32
         if (bpb.tableCount < 1 || bpb.sectorsPerCluster == 0) return;
         if (!probe_fs()) return;
 
-        for (auto & i : fatCache)
+        for (auto& i : fatCache)
         {
             i.sector = 0;
             i.lastUsed = 0;
@@ -176,7 +175,7 @@ namespace FAT32
 
     void FileSystem::InvalidateFATCache() const
     {
-        for (auto & i : fatCache)
+        for (auto& i : fatCache)
         {
             i.valid = false;
         }
@@ -184,12 +183,11 @@ namespace FAT32
 
     void FileSystem::InvalidateFATCacheSector(uint32_t sector) const
     {
-        for (auto & i : fatCache)
+        for (auto& i : fatCache)
         {
             if (i.valid && i.sector == sector)
             {
                 i.valid = false;
-                break;
             }
         }
     }
@@ -359,10 +357,36 @@ namespace FAT32
         return 0x0FFFFFFF;
     }
 
+    uint32_t FileSystem::ReadFATEntry(
+        uint32_t cluster,
+        Sector& sec) const
+    {
+        const uint32_t fatOffset = cluster * 4;
+        const uint32_t sectorOffset = fatOffset / bpb.bytesPerSector;
+        const uint32_t offset = fatOffset % bpb.bytesPerSector;
+
+        const uint32_t fatSector =
+            bpb.reservedSectorCount + sectorOffset;
+
+        if (sec.sector != fatSector)
+        {
+            if (!ReadFATSector(fatSector, sec.buf))
+                return 0x0FFFFFFF;
+            sec.sector = fatSector;
+        }
+
+        uint32_t entry =
+            *reinterpret_cast<uint32_t*>(sec.buf + offset) & 0x0FFFFFFF;
+
+        if (entry >= 0x0FFFFFF8 || entry == 0 || entry == 1 || entry == 0x0FFFFFF7)
+            return 0;
+
+        return entry;
+    }
 
     bool FileSystem::WriteFATEntryRaw(uint32_t fatSector,
-                                     uint32_t offset,
-                                     uint32_t value) const
+                                      uint32_t offset,
+                                      uint32_t value) const
     {
         uint8_t buf[1024];
         const uint32_t sector_size = bpb.bytesPerSector;
@@ -510,8 +534,7 @@ namespace FAT32
     }
 
 
-    uint32_t* FileSystem::GetClusterChain(uint32_t startCluster,
-                                          size_t& outCount) const
+    uint32_t* FileSystem::GetClusterChain(uint32_t startCluster, size_t& outCount) const
     {
         outCount = 0;
 
@@ -521,45 +544,104 @@ namespace FAT32
         if (HasFATLoop(startCluster))
             return nullptr;
 
-        size_t capacity = 16;
-        auto* chain = static_cast<uint32_t*>(
-            kernel::memory::malloc(capacity * sizeof(uint32_t)));
-        if (!chain)
-            return nullptr;
+        // Phase 1: Cluster zählen mit Batch-Reads
+        const uint32_t entriesPerSector = bpb.bytesPerSector / 4;
+        constexpr uint32_t sectorsPerRead = 128; // 64 KiB @ 512 B sectors
+        const uint32_t bytesNeeded = sectorsPerRead * bpb.bytesPerSector;
+        const uint32_t pages =
+            (bytesNeeded + 0xFFF) / 0x1000;
+
+        auto* batchBuffer = static_cast<uint32_t*>(
+            kernel::memory::request_pages(pages));
 
         uint32_t cluster = startCluster;
+        size_t count = 0;
+        uint32_t currentBatchSector = UINT32_MAX;
 
-        while (cluster != 0)
+        while (cluster >= 2 && cluster < clusterCount + 2)
         {
-            if (outCount == capacity)
-            {
-                capacity *= 2;
-                auto* newChain = static_cast<uint32_t*>(
-                    kernel::memory::realloc(
-                        chain,
-                        outCount * sizeof(uint32_t),
-                        capacity * sizeof(uint32_t)));
+            ++count;
 
-                if (!newChain)
+            const uint32_t fatOffset = cluster * 4;
+            const uint32_t sectorOffset = fatOffset / bpb.bytesPerSector;
+            const uint32_t fatSector = bpb.reservedSectorCount + sectorOffset;
+            const uint32_t batchStart = (fatSector / sectorsPerRead) * sectorsPerRead;
+
+            // Load new batch if necessary
+            if (batchStart != currentBatchSector)
+            {
+                const uint32_t sectorsToRead =
+                    ((bpb.reservedSectorCount + bpb.FATSize32) - batchStart < sectorsPerRead)
+                        ? (bpb.reservedSectorCount + bpb.FATSize32) - batchStart
+                        : sectorsPerRead;
+
+                if (!device->read(batchStart, sectorsToRead,
+                                  batchBuffer, sectorsToRead * bpb.bytesPerSector))
                 {
-                    kernel::memory::free(chain);
+                    kernel::memory::free_pages(batchBuffer, pages);
                     return nullptr;
                 }
-                chain = newChain;
+                currentBatchSector = batchStart;
             }
 
-            chain[outCount++] = cluster;
-            cluster = NextCluster(cluster);
+            const uint32_t indexInBatch = (fatSector - batchStart) * entriesPerSector +
+                (fatOffset % bpb.bytesPerSector) / 4;
+            const uint32_t entry = batchBuffer[indexInBatch] & 0x0FFFFFFF;
+
+            if (entry >= 0x0FFFFFF8 || entry == 0 || entry == 1 || entry == 0x0FFFFFF7)
+                break;
+
+            cluster = entry;
         }
 
-        if (outCount == 0)
+        if (count == 0)
         {
-            kernel::memory::free(chain);
+            kernel::memory::free_pages(batchBuffer, pages);
             return nullptr;
         }
 
+        auto* chain = static_cast<uint32_t*>(
+            kernel::memory::malloc(count * sizeof(uint32_t)));
+        if (!chain)
+        {
+            kernel::memory::free_pages(batchBuffer, pages);
+            return nullptr;
+        }
+
+        cluster = startCluster;
+        currentBatchSector = UINT32_MAX;
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            chain[i] = cluster;
+
+            const uint32_t fatOffset = cluster * 4;
+            const uint32_t sectorOffset = fatOffset / bpb.bytesPerSector;
+            const uint32_t fatSector = bpb.reservedSectorCount + sectorOffset;
+            const uint32_t batchStart = (fatSector / sectorsPerRead) * sectorsPerRead;
+
+            if (batchStart != currentBatchSector)
+            {
+                const uint32_t sectorsToRead =
+                    ((bpb.reservedSectorCount + bpb.FATSize32) - batchStart < sectorsPerRead)
+                        ? (bpb.reservedSectorCount + bpb.FATSize32) - batchStart
+                        : sectorsPerRead;
+
+                device->read(batchStart, sectorsToRead,
+                             batchBuffer, sectorsToRead * bpb.bytesPerSector);
+                currentBatchSector = batchStart;
+            }
+
+            const uint32_t indexInBatch = (fatSector - batchStart) * entriesPerSector +
+                (fatOffset % bpb.bytesPerSector) / 4;
+            cluster = batchBuffer[indexInBatch] & 0x0FFFFFFF;
+        }
+
+        kernel::memory::free_pages(batchBuffer, pages);
+        outCount = count;
         return chain;
     }
+
 
     bool FileSystem::FreeClusterChain(uint32_t startCluster)
     {
@@ -571,17 +653,103 @@ namespace FAT32
         if (!chain || count == 0)
             return false;
 
-        for (size_t i = 0; i < count; ++i)
-        {
-            WriteFATEntry(chain[i], 0);
+        klib::sort(chain, chain + count);
 
-            if (freeClusterCount != 0xFFFFFFFF)
-                freeClusterCount++;
+        const uint32_t entriesPerSector = bpb.bytesPerSector / 4;
+        const uint32_t sectorsPerBatch = 128; // 64KB Batches
+        const uint32_t bytesNeeded = sectorsPerBatch * bpb.bytesPerSector;
+        const uint32_t pages =
+            (bytesNeeded + 0xFFF) / 0x1000;
+
+        auto* batchBuffer = static_cast<uint32_t*>(
+            kernel::memory::request_pages(pages));
+        if (!batchBuffer)
+        {
+            kernel::memory::free(chain);
+            return false;
         }
+
+        // Für jede FAT-Kopie
+        for (uint32_t fat = 0; fat < bpb.tableCount; ++fat)
+        {
+            const uint32_t fatBase = bpb.reservedSectorCount + fat * bpb.FATSize32;
+
+            uint32_t currentBatchStart = UINT32_MAX;
+            uint32_t currentBatchEnd = 0;
+            bool batchDirty = false;
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                const uint32_t cluster = chain[i];
+                const uint32_t fatOffset = cluster * 4;
+                const uint32_t sectorOffset = fatOffset / bpb.bytesPerSector;
+                const uint32_t fatSector = fatBase + sectorOffset;
+                const uint32_t batchStart = (fatSector / sectorsPerBatch) * sectorsPerBatch;
+                const uint32_t batchEnd = batchStart + sectorsPerBatch;
+
+                // Neue Batch?
+                if (batchStart != currentBatchStart)
+                {
+                    // Alte Batch schreiben
+                    if (batchDirty)
+                    {
+                        const uint32_t sectorsToWrite = currentBatchEnd - currentBatchStart;
+                        device->write(currentBatchStart, sectorsToWrite,
+                                      batchBuffer, sectorsToWrite * bpb.bytesPerSector);
+
+                        // Cache invalidieren
+                        for (uint32_t s = currentBatchStart; s < currentBatchEnd; ++s)
+                            InvalidateFATCacheSector(s);
+                    }
+
+                    // Neue Batch laden
+                    currentBatchStart = batchStart;
+                    currentBatchEnd = (batchEnd > fatBase + bpb.FATSize32)
+                                          ? fatBase + bpb.FATSize32
+                                          : batchEnd;
+
+                    const uint32_t sectorsToRead = currentBatchEnd - currentBatchStart;
+
+                    if (!device->read(currentBatchStart, sectorsToRead,
+                                      batchBuffer, sectorsToRead * bpb.bytesPerSector))
+                    {
+                        kernel::memory::free_pages(batchBuffer, pages);
+                        kernel::memory::free(chain);
+                        return false;
+                    }
+
+                    batchDirty = false;
+                }
+
+                // Entry in Batch auf 0 setzen
+                const uint32_t indexInBatch = (fatSector - currentBatchStart) * entriesPerSector +
+                    (fatOffset % bpb.bytesPerSector) / 4;
+                batchBuffer[indexInBatch] = 0;
+                batchDirty = true;
+            }
+
+            // Letzte Batch schreiben
+            if (batchDirty)
+            {
+                const uint32_t sectorsToWrite = currentBatchEnd - currentBatchStart;
+                device->write(currentBatchStart, sectorsToWrite,
+                              batchBuffer, sectorsToWrite * bpb.bytesPerSector);
+
+                for (uint32_t s = currentBatchStart; s < currentBatchEnd; ++s)
+                    InvalidateFATCacheSector(s);
+            }
+        }
+
+        kernel::memory::free_pages(batchBuffer, pages);
+
+        // Free cluster count aktualisieren
+        if (freeClusterCount != 0xFFFFFFFF)
+            freeClusterCount += count;
 
         kernel::memory::free(chain);
         return true;
     }
+
 
     // ============================================================================
     // Directory Operations
@@ -641,7 +809,7 @@ namespace FAT32
                 if (entry->name[0] == 0x00)
                 {
                     break;
-                } // delteted or volume label
+                } // deleted or volume label
                 if (entry->name[0] == 0xE5 || entry->attr == ATTR_VOLUME_ID)
                 {
                     continue;
@@ -663,32 +831,21 @@ namespace FAT32
                 // Process collected LFN entries
                 if (lfnCount > 0)
                 {
-                    // Sort LFN entries
-                    for (size_t j = 0; j < lfnCount - 1; j++)
-                    {
-                        for (size_t k = 0; k < lfnCount - 1 - j; k++)
-                        {
-                            if ((lfnBuffer[k].lfnEntry.order & 0x3F) >
-                                (lfnBuffer[k + 1].lfnEntry.order & 0x3F))
-                            {
-                                const auto tmp = lfnBuffer[k];
-                                lfnBuffer[k] = lfnBuffer[k + 1];
-                                lfnBuffer[k + 1] = tmp;
-                            }
-                        }
-                    }
-
-                    // Construct long name
                     char nameBuffer[256];
                     size_t pos = 0;
-                    for (size_t j = 0; j < lfnCount; j++)
+
+                    // LFN entries are stored in descending order in the buffer,
+                    // so they are processed from back to front.
+                    for (int j = static_cast<int>(lfnCount) - 1; j >= 0; --j)
                     {
                         CopyLFNPart(&lfnBuffer[j].lfnEntry, nameBuffer, pos, sizeof(nameBuffer));
                     }
+
                     nameBuffer[pos] = '\0';
                     entries[outCount].SetLongName(nameBuffer);
                     lfnCount = 0;
                 }
+
                 else
                 {
                     entries[outCount].SetLongName(nullptr);
@@ -835,6 +992,8 @@ namespace FAT32
     {
         if (!node || !buffer || len == 0)
             return false;
+
+        if (IsProtected(node->dirEntry)) return false;
 
         const size_t clusterBytes = bytesPerCluster();
         const size_t neededClusters =
@@ -1142,13 +1301,18 @@ namespace FAT32
         // Allocate cluster for file
         uint32_t newCluster = FindFreeCluster();
         if (newCluster == 0) return false;
-        if (!WriteFATEntry(newCluster, 0x0FFFFFFF)) return false;
 
         // Initialize cluster
         uint8_t* zero = AllocClusterBuffer(clusterBytes);
-        if (!zero) return false;
         memset(zero, 0, clusterBytes);
-        device->write(ClusterToSector(newCluster), bpb.sectorsPerCluster, zero, clusterBytes);
+        if (!device->write(ClusterToSector(newCluster),
+                           bpb.sectorsPerCluster,
+                           zero,
+                           clusterBytes))
+        {
+            FreeClusterBuffer(zero, clusterBytes);
+            return false;
+        }
         FreeClusterBuffer(zero, clusterBytes);
 
         // Create directory entry
@@ -1163,9 +1327,14 @@ namespace FAT32
         newEntry.fileSize = 0;
         UpdateCreateTime(newEntry);
 
-        WriteFSInfo();
+        if (!WriteDirectoryEntryWithLFN(parentCluster, name, shortName, &newEntry))
+            return false;
 
-        return WriteDirectoryEntryWithLFN(parentCluster, name, shortName, &newEntry);
+        if (!WriteFATEntry(newCluster, 0x0FFFFFFF))
+            return false;
+
+        WriteFSInfo();
+        return true;
     }
 
     bool FileSystem::DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char* name)
@@ -1175,48 +1344,79 @@ namespace FAT32
         if (!chain) return false;
 
         const uint32_t clusterBytes = bytesPerCluster();
-        const size_t entryCount = clusterBytes / sizeof(DirectoryEntry);
-        bool deleted = false;
+        const size_t entriesPerCluster = clusterBytes / sizeof(DirectoryEntry);
 
-        for (size_t i = 0; i < chainCount && !deleted; ++i)
+        // Struktur für gefundene Einträge
+        struct FoundEntry
+        {
+            uint32_t clusterIndex;
+            size_t entryIndex;
+            size_t lfnStartIndex;
+            size_t lfnCount;
+        };
+
+        FoundEntry found = {0, 0, 0, 0};
+        bool entryFound = false;
+
+        // Phase 1: Finde den Eintrag
+        for (size_t ci = 0; ci < chainCount && !entryFound; ++ci)
         {
             uint8_t* buffer = AllocClusterBuffer(clusterBytes);
             if (!buffer) continue;
 
-            if (!ReadCluster(chain[i], buffer, clusterBytes))
+            if (!ReadCluster(chain[ci], buffer, clusterBytes))
             {
                 FreeClusterBuffer(buffer, clusterBytes);
                 continue;
             }
 
             auto* entries = reinterpret_cast<DirectoryEntry*>(buffer);
-            LFNBufferEntry lfnBuffer[20];
+
+            size_t lfnStartIdx = 0;
             size_t lfnCount = 0;
 
-            for (size_t j = 0; j < entryCount; ++j)
+            for (size_t j = 0; j < entriesPerCluster; ++j)
             {
                 if (entries[j].name[0] == 0x00) break;
-                if (entries[j].name[0] == 0xE5) continue;
-                if (entries[j].attr == ATTR_VOLUME_ID) continue;
-
-                // Collect LFN entries
-                if (entries[j].attr == ATTR_LONG_NAME)
+                if (entries[j].name[0] == 0xE5)
                 {
-                    if (lfnCount < 20)
-                    {
-                        lfnBuffer[lfnCount++].lfnEntry = *reinterpret_cast<LongFileName*>(&entries[j]);
-                    }
+                    lfnCount = 0;
+                    continue;
+                }
+                if (entries[j].attr == ATTR_VOLUME_ID)
+                {
+                    lfnCount = 0;
                     continue;
                 }
 
-                // Construct name
+                // LFN Entry
+                if (entries[j].attr == ATTR_LONG_NAME)
+                {
+                    if (lfnCount == 0)
+                        lfnStartIdx = j;
+                    lfnCount++;
+                    continue;
+                }
+
+                // Regular Entry - Name rekonstruieren
                 char fullName[256] = {};
+
                 if (lfnCount > 0)
                 {
-                    // Sort LFN entries
-                    for (size_t a = 0; a < lfnCount - 1; a++)
+                    // LFN Name aus gesammelten Entries
+                    LFNBufferEntry lfnBuffer[20];
+                    size_t actualLfnCount = (lfnCount < 20) ? lfnCount : 20;
+
+                    for (size_t l = 0; l < actualLfnCount; ++l)
                     {
-                        for (size_t b = 0; b < lfnCount - 1 - a; b++)
+                        lfnBuffer[l].lfnEntry =
+                            *reinterpret_cast<LongFileName*>(&entries[lfnStartIdx + l]);
+                    }
+
+                    // Sort by order
+                    for (size_t a = 0; a < actualLfnCount - 1; a++)
+                    {
+                        for (size_t b = 0; b < actualLfnCount - 1 - a; b++)
                         {
                             if ((lfnBuffer[b].lfnEntry.order & 0x3F) >
                                 (lfnBuffer[b + 1].lfnEntry.order & 0x3F))
@@ -1229,7 +1429,7 @@ namespace FAT32
                     }
 
                     size_t pos = 0;
-                    for (size_t l = 0; l < lfnCount; ++l)
+                    for (size_t l = 0; l < actualLfnCount; ++l)
                         CopyLFNPart(&lfnBuffer[l].lfnEntry, fullName, pos, sizeof(fullName));
                     fullName[pos] = '\0';
                 }
@@ -1238,37 +1438,66 @@ namespace FAT32
                     ExtractShortName(entries[j].name, fullName, sizeof(fullName));
                 }
 
-                // Check if this is the entry to delete
-                if (strcmp(fullName, name) == 0)
+                // Match gefunden?
+                if (strcasecmp(fullName, name) == 0)
                 {
-                    entries[j].name[0] = 0xE5;
-
-                    // Mark LFN entries as deleted
-                    for (int k = static_cast<int>(j) - 1; k >= 0; --k)
-                    {
-                        if ((entries[k].attr & ATTR_LONG_NAME) != ATTR_LONG_NAME) break;
-                        entries[k].name[0] = 0xE5;
-                    }
-
-                    device->write(ClusterToSector(chain[i]), bpb.sectorsPerCluster, buffer, clusterBytes);
-                    deleted = true;
+                    found.clusterIndex = ci;
+                    found.entryIndex = j;
+                    found.lfnStartIndex = lfnStartIdx;
+                    found.lfnCount = lfnCount;
+                    entryFound = true;
+                    break;
                 }
 
                 lfnCount = 0;
-                if (deleted) break;
             }
 
             FreeClusterBuffer(buffer, clusterBytes);
         }
 
+        if (!entryFound)
+        {
+            kernel::memory::free(chain);
+            return false;
+        }
+
+        // Phase 2: Lösche den Eintrag
+        uint8_t* buffer = AllocClusterBuffer(clusterBytes);
+        if (!buffer)
+        {
+            kernel::memory::free(chain);
+            return false;
+        }
+
+        if (!ReadCluster(chain[found.clusterIndex], buffer, clusterBytes))
+        {
+            FreeClusterBuffer(buffer, clusterBytes);
+            kernel::memory::free(chain);
+            return false;
+        }
+
+        auto* entries = reinterpret_cast<DirectoryEntry*>(buffer);
+
+        // Markiere Short Entry als gelöscht
+        entries[found.entryIndex].name[0] = 0xE5;
+
+        // Markiere alle LFN Entries als gelöscht
+        for (size_t i = 0; i < found.lfnCount; ++i)
+        {
+            entries[found.lfnStartIndex + i].name[0] = 0xE5;
+        }
+
+        bool success = device->write(ClusterToSector(chain[found.clusterIndex]),
+                                     bpb.sectorsPerCluster, buffer, clusterBytes);
+
+        FreeClusterBuffer(buffer, clusterBytes);
         kernel::memory::free(chain);
-        return deleted;
+
+        return success;
     }
 
     bool FileSystem::DeleteFile(const Fat32Node* parentDir, const char* name)
     {
-        Log::Info("[FAT32] Cache: %.1f%% hit rate (%u hits, %u misses)",
-          cacheStats.HitRate(), cacheStats.hits, cacheStats.misses);
         if (!parentDir || !name) return false;
 
         const uint32_t parentCluster = parentDir->cluster;
@@ -1278,6 +1507,7 @@ namespace FAT32
         if (!entries) return false;
 
         uint32_t startCluster = 0;
+        DirectoryEntry victim = {};
         bool found = false;
 
         for (size_t i = 0; i < entryCount; ++i)
@@ -1286,6 +1516,7 @@ namespace FAT32
                 strcmp(entries[i].GetName(), name) == 0)
             {
                 startCluster = entries[i].GetFirstCluster();
+                victim = entries[i].GetDirectoryEntry();
                 found = true;
                 break;
             }
@@ -1293,6 +1524,9 @@ namespace FAT32
 
         kernel::memory::free(entries);
         if (!found) return false;
+
+        if (IsProtected(victim))
+            return false;
 
         if (startCluster != 0)
             FreeClusterChain(startCluster);
@@ -1380,6 +1614,12 @@ namespace FAT32
         }
 
         DirectoryEntry oldEntry = entries[foundIndex].GetDirectoryEntry();
+        if (IsProtected(oldEntry))
+        {
+            kernel::memory::free(entries);
+            return false;
+        }
+
 
         size_t chainCount = 0;
         uint32_t* chain = GetClusterChain(dirCluster, chainCount);
@@ -1571,15 +1811,6 @@ namespace FAT32
         return result;
     }
 
-    bool FileSystem::IsDir(uint32_t cluster) const
-    {
-        size_t entryCount = 0;
-        FileEntry* entries = ReadDirectory(cluster, entryCount);
-        if (!entries) return false;
-        kernel::memory::free(entries);
-        return true;
-    }
-
     // ============================================================================
     // FileEntry Helper
     // ============================================================================
@@ -1610,5 +1841,10 @@ namespace FAT32
         {
             formattedShortName[nameLen] = '\0';
         }
+    }
+
+    bool FileSystem::IsProtected(const DirectoryEntry& e)
+    {
+        return e.attr & (ATTR_READ_ONLY | ATTR_SYSTEM);
     }
 }
