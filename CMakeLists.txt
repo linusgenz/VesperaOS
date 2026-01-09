@@ -8,6 +8,7 @@ set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
 # Subdirectories
+add_subdirectory(bootstrap)
 add_subdirectory(kernel)
 add_subdirectory(userspace)
 
@@ -49,9 +50,10 @@ add_custom_target(disk_image
         COMMAND bash ${CMAKE_SOURCE_DIR}/make_disk.sh
         ${CMAKE_BINARY_DIR}/boot.img
         ${BOOTLOADER_EFI}
+        ${CMAKE_BINARY_DIR}/bootstrap/bootstrap.elf
         ${CMAKE_BINARY_DIR}/kernel/kernel.elf
         ${CMAKE_SOURCE_DIR}
-        DEPENDS bootloader version kernel.elf elfs   # splash_header
+        DEPENDS bootloader bootstrap.elf version kernel.elf elfs   # splash_header
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
@@ -95,7 +97,7 @@ add_custom_target(test
 add_custom_target(debug
         COMMAND qemu-system-x86_64
         -m 4G
-        -smp 8
+        #   -smp 8
         -machine q35
         -enable-kvm
         -cpu host

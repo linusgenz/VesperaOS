@@ -9,8 +9,8 @@
 
 class ScreenRendererTTYOutput;
 
-extern uint64_t _KernelStart;
-extern uint64_t _KernelEnd;
+extern uint64_t kernel_phys_start;
+extern uint64_t kernel_phys_end;
 
 extern Framebuffer *TargetFramebuffer;
 

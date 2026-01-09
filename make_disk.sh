@@ -3,8 +3,9 @@ set -euo pipefail
 
 IMG_FILE="$1"
 BOOTLOADER_EFI="$2"
-KERNEL_ELF="$3"
-SRC_DIR="$4"
+BOOTSTRAP_ELF="$3"
+KERNEL_ELF="$4"
+SRC_DIR="$5"
 
 # Größen
 IMG_SIZE_MB=128
@@ -40,6 +41,7 @@ sudo mount "${LOOPDEV}"p1 "$EFI_MNT"
 sudo mkdir -p "$EFI_MNT/EFI/BOOT"
 sudo cp "$BOOTLOADER_EFI" "$EFI_MNT/EFI/BOOT/BOOTX64.EFI"
 sudo cp "$KERNEL_ELF" "$EFI_MNT/kernel.elf"
+sudo cp "$BOOTSTRAP_ELF" "$EFI_MNT/bootstrap.elf"
 sudo cp "$SRC_DIR/build/startup.nsh" "$EFI_MNT/"
 sudo cp "$SRC_DIR/build/zap-light16.psf" "$EFI_MNT/"
 sudo cp "$SRC_DIR/build/zap-vga16.psf" "$EFI_MNT/"
