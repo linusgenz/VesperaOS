@@ -27,7 +27,7 @@
 #include <kernel/sync/spinlock.h>
 #include <vector.h>
 
-#include "errno.h"
+#include "../kernel/cpu/io.h"
 #include "vfs/vfs.h"
 
 struct DirData

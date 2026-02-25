@@ -65,6 +65,7 @@ namespace kernel::memory
             ((uint64_t)PAT_WP << 56); // PAT7: WP
 
         wrmsr(IA32_PAT_MSR, pat_value);
+        outb(0x3F8, 'X');
 
         // just map everythin cuz it works lol. might not be a good practice tho, needs refactoring prob
         for (int i = 0; i < mMapEntries; i++)
@@ -78,7 +79,8 @@ namespace kernel::memory
                 map_memory(reinterpret_cast<void*>(addr), reinterpret_cast<void*>(addr));
             }
         }
-
+        outb(0x3F8, 'X');
+/*
         const uint64_t kernelVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
         const uint64_t kernelVirtEnd   = reinterpret_cast<uint64_t>(&_KernelEnd);
         for (uint64_t virt = kernelVirtStart; virt < kernelVirtEnd; virt += 0x1000)
@@ -86,7 +88,8 @@ namespace kernel::memory
             uint64_t phys = virt - KERNEL_BASE;
             map_memory(reinterpret_cast<void*>(virt),
                        reinterpret_cast<void*>(phys));
-        }
+        }*/
+        outb(0x3F8, 'X');
 
         for (uint32_t i = 0; i < CPUManager::total_cpus; ++i)
         {
@@ -95,19 +98,32 @@ namespace kernel::memory
             map_memory(stack_addr, stack_addr,
                        (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         }
+        outb(0x3F8, 'X');
 
         map_memory(reinterpret_cast<void*>(0x1000), reinterpret_cast<void*>(0x1000),
                    (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         map_memory(reinterpret_cast<void*>(0x2000), reinterpret_cast<void*>(0x2000), (1ULL << CacheDisabled));
+        outb(0x3F8, 'X');
 
-        auto fb_base = reinterpret_cast<uint64_t>(bootInfo->framebuffer->base_address);
+        // Framebuffer: virt (HHDM) → phys
+        auto fb_virt = reinterpret_cast<uint64_t>(bootInfo->framebuffer->base_address);
+        auto fb_phys = bootInfo->framebuffer->phys_base_address;
         uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
-        lock_pages(reinterpret_cast<void*>(fb_base), fb_size / 0x1000 + 1);
-        for (uint64_t t = fb_base; t < fb_base + fb_size; t += 0x1000)
-        {
-            map_memory(reinterpret_cast<void*>(t), reinterpret_cast<void*>(t),
-                       (1ULL << PT_Flag::WriteThrough) | // PWT=1
-                       (1ULL << PT_Flag::Global));
+
+        lock_pages(reinterpret_cast<void*>(fb_phys), fb_size / 0x1000 + 1);
+        for (uint64_t offset = 0; offset < fb_size; offset += 0x1000) {
+            map_memory(
+                reinterpret_cast<void*>(fb_virt + offset),
+                reinterpret_cast<void*>(fb_phys + offset),
+                (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::Global)
+            );
+        }
+        outb(0x3F8, 'X');
+
+        uint64_t rsp;
+        asm volatile("mov %%rsp, %0" : "=r"(rsp));
+        for (uint64_t addr = (rsp & ~0xFFFULL) - 0x8000; addr < rsp + 0x1000; addr += 0x1000) {
+            map_memory(reinterpret_cast<void*>(addr), reinterpret_cast<void*>(addr));
         }
 
         outb(0x3F8, 'D');

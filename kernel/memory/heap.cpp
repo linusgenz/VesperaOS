@@ -2,6 +2,8 @@
 #include <kernel/memory.h>
 #include <log.h>
 
+#include "../cpu/io.h"
+
 void* heap_start = nullptr;
 void* heap_end = nullptr;
 HeapSegHdr* last_hdr = nullptr;
@@ -276,10 +278,10 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size)
 }
 
 
-void* malloc(size_t size)
-{
-    if (!heap_initialized || size == 0)
-    {
+void* malloc(size_t size) {
+    outb(0x3F8, 'H');  // Heap malloc aufgerufen
+    if (!heap_initialized || size == 0) {
+        outb(0x3F8, 'X');
         return nullptr;
     }
 
@@ -289,17 +291,20 @@ void* malloc(size_t size)
     if (seg)
     {
         auto x = allocate_from_segment(seg, size);
+        outb(0x3F8, 'S');
         return x;
     }
 
     // Need to expand heap
+    outb(0x3F8, 'E');
+    outb(0x3F8, 'E');
     expand_heap(size);
     seg = find_free_segment(size);
     if (seg)
     {
         return allocate_from_segment(seg, size);
     }
-
+    outb(0x3F8, 'N');
     return nullptr;
 }
 
@@ -516,8 +521,14 @@ void expand_heap(size_t length)
     // Map new pages
     for (size_t i = 0; i < page_count; i++)
     {
-        kernel::memory::map_memory(heap_end, kernel::memory::request_page());
-        heap_end = reinterpret_cast<void*>(reinterpret_cast<size_t>(heap_end) + 0x1000);
+        void* virt = heap_end;
+        void* phys = kernel::memory::request_page();
+        if (!phys) { length = i * 0x1000; break; }
+        kernel::memory::map_memory(virt, phys);
+        memset(virt, 0, PAGE_SIZE);
+        heap_end = reinterpret_cast<void*>(
+            reinterpret_cast<uintptr_t>(heap_end) + 0x1000
+        );
     }
 
     // Initialize new segment

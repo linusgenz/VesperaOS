@@ -29,12 +29,15 @@
 #include "../kernel/acpi/acpi.h"
 
 struct BootInfo {
-    Framebuffer* framebuffer;
-    FONT* font;
+    Framebuffer*           framebuffer;
+    FONT*                  font;
     EFI_MEMORY_DESCRIPTOR* mMap;
-    uint64_t mMapSize;
-    uint64_t mMapDescSize;
-    ACPI::RSDP2* rsdp;
+    uint64_t               mMapSize;
+    uint64_t               mMapDescSize;
+    ACPI::RSDP2*           rsdp;
+    uint64_t               hhdm_offset;
+    uint64_t               kernel_phys_base;
+    uint64_t               kernel_virt_base;
 };
 
 #endif //VESPERAOS_BOOT_H

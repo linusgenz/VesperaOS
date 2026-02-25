@@ -28,6 +28,7 @@
 #include "../../filesystem/devfs/devfs.h"
 #include "../../filesystem/partition/partition.h"
 #include "../../include/kernel/devices/device_manager.h"
+#include "../cpu/io.h"
 
 
 Vector<BlockDevice*>* DeviceManager::devices;

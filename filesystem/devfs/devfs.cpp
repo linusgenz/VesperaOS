@@ -28,6 +28,7 @@
 
 #include "log.h"
 #include "../../include/kernel/devices/char_device.h"
+#include "../../kernel/cpu/io.h"
 #include "../vfs/vfs.h"
 
 const char* DevFS::bus_to_str(const BusType bus)
@@ -61,7 +62,7 @@ VfsNodeType mapDeviceType(DeviceType type)
 void DevFS::init()
 {
     VirtualFilesystem::init("/dev", "dev");
-
+    outb(0x3F8, 'F');
     ops.read = read;
     ops.write = write;
     ops.find = find;

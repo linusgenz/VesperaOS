@@ -66,6 +66,15 @@ namespace kernel::memory {
     void initialize_page_table_manager() {
         auto *PML4 = static_cast<PageTable*>(request_page());
         memset(PML4, 0, 0x1000);
+
+        uint64_t current_cr3;
+        asm volatile("mov %%cr3, %0" : "=r"(current_cr3));
+        auto* current_pml4 = reinterpret_cast<PageTable*>(current_cr3 & ~0xFFFULL);
+
+        for (int i = 256; i < 512; i++) {
+            PML4->entries[i] = current_pml4->entries[i];
+        }
+
         page_table_manager = PageTableManager(PML4);
     }
 
