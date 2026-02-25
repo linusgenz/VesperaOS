@@ -44,13 +44,10 @@ void VFS::init()
 {
     mount_points = new Vector<MountPoint*>();
     mount_points_lock.init("mount_points_lock");
-    outb(0x3F8, 'J');
 
     FilesystemDetector::Init();
-    outb(0x3F8, 'F');
 
     FilesystemDetector::RegisterAllDrivers();
-    outb(0x3F8, 'M');
 
     // FilesystemDetector::ScanAndMountAll();
 
@@ -60,27 +57,18 @@ void VFS::init()
 VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path)
 {
     if (!root || !mount_path) return nullptr;
-    outb(0x3F8, 'X');
 
     auto* mp =  new MountPoint();
-    memset(mp, 0, sizeof(MountPoint));
-    outb(0x3F8, mp ? 'G' : 'N'); // G = got pointer, N = null
-    volatile char* test = reinterpret_cast<volatile char*>(mp);
-    *test = 0x42;
-    outb(0x3F8, 'Y');
-    strncpy(mp->path, mount_path, sizeof(mp->path) - 1);
-    outb(0x3F8, 'Y');
+   strncpy(mp->path, mount_path, sizeof(mp->path) - 1);
     mp->path[sizeof(mp->path) - 1] = '\0';
     mp->is_virtual = true;
     mp->root = root;
-    outb(0x3F8, 'Y');
 
     {
         spinlock_guard g(mount_points_lock);
         mount_points->push_back(mp);
     }
-    outb(0x3F8, 'Z');
-    while (1);
+
     return root;
 }
 

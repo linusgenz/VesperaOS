@@ -202,7 +202,7 @@ void Log::debug(const char* fmt, ...)
     t->print("\n");
     t->flush();
 }
-
+/*
 static void float_to_str(float val, char* buf, int precision)
 {
     if (val < 0)
@@ -236,7 +236,7 @@ static void float_to_str(float val, char* buf, int precision)
 
     *buf = '\0';
 }
-
+*/
 void Log::print_formatted(const char* fmt, __builtin_va_list args)
 {
     char chr;
@@ -366,7 +366,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                     t->print(buffer);
                     break;
                 }
-            case 'f':
+   /*         case 'f':
                 {
                     // Float-Support
                     double val = __builtin_va_arg(args, double);
@@ -377,7 +377,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                         t->put_char(pad_char);
                     t->print(buffer);
                     break;
-                }
+                }*/
             case 'p':
                 {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);

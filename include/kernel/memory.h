@@ -103,12 +103,12 @@ namespace kernel::memory
     void print_heap_stats();
 } // namespace kernel::memory
 
-inline void *operator new(size_t size) { return kernel::memory::malloc(size); }
-inline void *operator new[](size_t size) { return kernel::memory::malloc(size); }
-inline void *operator new(size_t size, void *ptr) noexcept { return ptr; }
-inline void operator delete(void *p) { return kernel::memory::free(p); }
-inline void operator delete(void *ptr, size_t size) { kernel::memory::free(ptr); }
-inline void operator delete[](void *p) { kernel::memory::free(p); }
-inline void operator delete[](void *p, size_t size) { kernel::memory::free(p); }
+void* operator new(size_t size);
+void* operator new[](size_t size);
+inline void* operator new(size_t, void* ptr) noexcept { return ptr; }
+void operator delete(void* p) noexcept;
+void operator delete(void* p, size_t) noexcept;
+void operator delete[](void* p) noexcept;
+void operator delete[](void* p, size_t) noexcept;
 
 #endif //MEMORY_H

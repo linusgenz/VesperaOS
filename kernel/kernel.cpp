@@ -140,8 +140,8 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
+    while (1);
     Log::Info("CPU Vendor: %s", vendor);
-
     char brand[49];
     get_cpu_brand(brand);
     Log::Info("CPU Brand: %s", brand);

@@ -14,24 +14,35 @@ size_t total_allocated = 0;
 size_t total_freed = 0;
 size_t peak_usage = 0;
 
+static inline uintptr_t align_up(uintptr_t x, size_t a)
+{
+    return (x + a - 1) & ~(a - 1);
+}
+
 bool HeapSegHdr::is_valid() const
 {
     return (magic == HEAP_MAGIC_FREE || magic == HEAP_MAGIC_USED) &&
-        length > 0 && length < 0x100000000ULL; // Reasonable size limit
+        length > 0 && length < 0x100000000ULL;
 }
 
 void HeapSegHdr::set_guard_bytes()
 {
     guard_start = HEAP_GUARD_PATTERN;
 
-    // Set guard byte at end of user data
-    auto* end_guard = reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
-    if (reinterpret_cast<uintptr_t>(end_guard) < reinterpret_cast<uintptr_t>(heap_end))
+    // FIX: End-Guard nur setzen wenn kein Nachbar-Segment direkt anschließt.
+    // Ohne diesen Guard liegt end_guard auf new_seg->magic[0] und überschreibt
+    // es mit 0xAA → is_valid() schlägt fehl → Heap-Corruption.
+    if (!next)
     {
-        *end_guard = HEAP_GUARD_PATTERN;
+        auto* end_guard = reinterpret_cast<uint8_t*>(
+            reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
+        if (reinterpret_cast<uintptr_t>(end_guard) < reinterpret_cast<uintptr_t>(heap_end))
+        {
+            *end_guard = HEAP_GUARD_PATTERN;
+        }
     }
 
-    // Calculate simple checksum for corruption detection
+    // Checksum immer aktualisieren (deckt magic + length + next-Pointer ab)
     checksum = magic
         ^ static_cast<uint32_t>(length)
         ^ static_cast<uint32_t>(reinterpret_cast<uintptr_t>(next) >> 32)
@@ -43,7 +54,7 @@ bool HeapSegHdr::check_guard_bytes() const
     if (guard_start != HEAP_GUARD_PATTERN)
         return false;
 
-    // Verify checksum
+    // Checksum verifizieren
     const auto expected_checksum = magic
         ^ static_cast<uint32_t>(length)
         ^ static_cast<uint32_t>(reinterpret_cast<uintptr_t>(next) >> 32)
@@ -51,11 +62,18 @@ bool HeapSegHdr::check_guard_bytes() const
     if (checksum != expected_checksum)
         return false;
 
-    if (auto* end_guard = reinterpret_cast<const uint8_t*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE +
-        length); reinterpret_cast<uintptr_t>(end_guard) < reinterpret_cast<uintptr_t>(heap_end))
+    // FIX: End-Guard nur prüfen wenn kein direkt anschließendes Segment folgt
+    // (symmetrisch zu set_guard_bytes)
+    if (!next)
     {
-        return *end_guard == HEAP_GUARD_PATTERN;
+        if (auto* end_guard = reinterpret_cast<const uint8_t*>(
+                reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
+            reinterpret_cast<uintptr_t>(end_guard) < reinterpret_cast<uintptr_t>(heap_end))
+        {
+            return *end_guard == HEAP_GUARD_PATTERN;
+        }
     }
+
     return true;
 }
 
@@ -78,18 +96,28 @@ HeapSegHdr* HeapSegHdr::split(const size_t split_length)
         return nullptr;
     }
 
-    if (length < split_length + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE + 1)
+    if (length < split_length + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE)
     {
         Log::debug("Split not possible: remaining would be too small (seg len=%zu, req=%zu)", length, split_length);
         return nullptr;
     }
 
-    // compute address of new segment header
-    uintptr_t new_seg_addr = reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + split_length + 1;
+    // Neue Header-Adresse: nach Nutzerdaten, aufgerundet auf MIN_ALIGNMENT.
+    // Das stellt sicher dass get_data_ptr() des neuen Segments 16-Byte-aligned ist
+    // und rep-stosq (Compiler-Null-Init) nicht mit GPF abstürzt.
+    uintptr_t new_seg_addr =
+        align_up(
+            (uintptr_t)this + HEAP_HEADER_SIZE + split_length,
+            MIN_ALIGNMENT
+        );
     auto* new_seg = reinterpret_cast<HeapSegHdr*>(new_seg_addr);
 
-    // remaining length for new seg (user-data)
-    size_t remaining_length = this->length - split_length - HEAP_HEADER_SIZE - 1;
+    // Verbleibende Nutzerdaten-Länge für das neue Segment
+    size_t remaining_length =
+        (uintptr_t)this + HEAP_HEADER_SIZE + this->length
+        - new_seg_addr
+        - HEAP_HEADER_SIZE;
+
     if (remaining_length < MIN_ALLOC_SIZE)
     {
         Log::Error("Split failed: remaining length %zu too small after split", remaining_length);
@@ -108,7 +136,9 @@ HeapSegHdr* HeapSegHdr::split(const size_t split_length)
         new_seg->next->last = new_seg;
     }
 
-    this->length = split_length;
+    // Tatsächliche Länge dieses Segments: Abstand bis zum neuen Header minus
+    // eigener Header-Größe (berücksichtigt Alignment-Padding)
+    this->length = new_seg_addr - (uintptr_t)this - HEAP_HEADER_SIZE;
     this->next = new_seg;
     this->set_guard_bytes();
 
@@ -123,7 +153,6 @@ HeapSegHdr* HeapSegHdr::split(const size_t split_length)
 
 void HeapSegHdr::combine_forward()
 {
-    // combine this and next if both free and valid
     if (!next || !next->free || !is_valid() || !next->is_valid())
     {
         return;
@@ -134,7 +163,7 @@ void HeapSegHdr::combine_forward()
         last_hdr = this;
     }
 
-    this->length += HEAP_HEADER_SIZE + 1 + next->length;
+    this->length += HEAP_HEADER_SIZE + next->length;
 
     HeapSegHdr* after = next->next;
     this->next = after;
@@ -155,7 +184,6 @@ void HeapSegHdr::combine_backward() const
 }
 
 
-// Core heap function implementations
 bool initialize_heap(void* heap_address, size_t page_count)
 {
     if (heap_initialized)
@@ -176,7 +204,7 @@ bool initialize_heap(void* heap_address, size_t page_count)
 
     void* pos = heap_address;
 
-    // Map pages
+    // Seiten mappen
     for (size_t i = 0; i < page_count; i++)
     {
         kernel::memory::map_memory(pos, kernel::memory::request_page());
@@ -186,13 +214,16 @@ bool initialize_heap(void* heap_address, size_t page_count)
 
     size_t heap_length = page_count * 0x1000;
 
-    heap_start = heap_address;
-    heap_end = reinterpret_cast<void*>(reinterpret_cast<size_t>(heap_start) + heap_length);
+    uintptr_t aligned_start = align_up((uintptr_t)heap_address, MIN_ALIGNMENT);
+    size_t adjustment = aligned_start - (uintptr_t)heap_address;
 
-    // Initialize first segment
-    auto* start_seg = static_cast<HeapSegHdr*>(heap_address);
+    heap_start = (void*)aligned_start;
+    heap_end   = (void*)((uintptr_t)heap_address + heap_length);
+    heap_length -= adjustment;
+
+    auto* start_seg = static_cast<HeapSegHdr*>((void*)aligned_start);
     start_seg->magic = HEAP_MAGIC_FREE;
-    start_seg->length = heap_length - HEAP_HEADER_SIZE - 1; // -1 for end guard
+    start_seg->length = heap_length - HEAP_HEADER_SIZE;
     start_seg->next = nullptr;
     start_seg->last = nullptr;
     start_seg->free = true;
@@ -201,7 +232,6 @@ bool initialize_heap(void* heap_address, size_t page_count)
     last_hdr = start_seg;
     heap_initialized = true;
 
-    // Reset statistics
     total_allocated = 0;
     total_freed = 0;
     peak_usage = 0;
@@ -231,7 +261,6 @@ HeapSegHdr* find_free_segment(size_t size)
     {
         if (!current_seg->is_valid())
         {
-            // Heap corruption detected
             Log::Error("Heap segment is not valid");
             asm volatile("cli; hlt");
             return nullptr;
@@ -255,7 +284,7 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size)
         return nullptr;
     }
 
-    if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE + 1)
+    if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE)
     {
         HeapSegHdr* new_seg = seg->split(size);
         if (!new_seg)
@@ -278,9 +307,11 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size)
 }
 
 
-void* malloc(size_t size) {
-    outb(0x3F8, 'H');  // Heap malloc aufgerufen
-    if (!heap_initialized || size == 0) {
+void* malloc(size_t size)
+{
+    outb(0x3F8, 'H');
+    if (!heap_initialized || size == 0)
+    {
         outb(0x3F8, 'X');
         return nullptr;
     }
@@ -291,11 +322,17 @@ void* malloc(size_t size) {
     if (seg)
     {
         auto x = allocate_from_segment(seg, size);
-        outb(0x3F8, 'S');
+        outb(0x3F8, ' ');
+        for (int i = 60; i >= 0; i -= 4)
+        {
+            uint8_t nibble = ((uint64_t)x >> i) & 0xF;
+            outb(0x3F8, nibble < 10 ? '0' + nibble : 'A' + nibble - 10);
+        }
+        outb(0x3F8, ' ');
+
         return x;
     }
 
-    // Need to expand heap
     outb(0x3F8, 'E');
     outb(0x3F8, 'E');
     expand_heap(size);
@@ -315,14 +352,12 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary)
         return nullptr;
     }
 
-    // Validate alignment (must be power of 2)
     if ((alignment & (alignment - 1)) != 0)
     {
         Log::Error("Alignment must be a power of 2: %u", alignment);
         return nullptr;
     }
 
-    // Validate boundary if specified
     if (boundary != 0 && (boundary & (boundary - 1)) != 0)
     {
         Log::Error("Bounds must be a power of 2");
@@ -336,17 +371,15 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary)
 
     size = align_size(size);
 
-    // Calculate total size needed
     size_t header_size = sizeof(AlignedSegHdr);
     size_t max_padding = alignment - 1 + header_size;
     size_t total_size = size + max_padding;
 
     if (boundary > 0)
     {
-        total_size += boundary; // Extra space for boundary alignment
+        total_size += boundary;
     }
 
-    // Allocate raw memory
     void* raw_ptr = malloc(total_size);
     if (!raw_ptr)
     {
@@ -356,16 +389,13 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary)
 
     HeapSegHdr* raw_seg = HeapSegHdr::from_data_ptr(raw_ptr);
 
-    // Calculate aligned address
     auto raw_addr = reinterpret_cast<uintptr_t>(raw_ptr);
     uintptr_t aligned_addr = (raw_addr + header_size + alignment - 1) & ~(alignment - 1);
 
-    // Handle boundary constraint
     if (boundary > 0)
     {
         const uintptr_t end_addr = raw_addr + total_size;
 
-        // Find suitable aligned address within boundary
         bool found = false;
         for (uintptr_t candidate = aligned_addr;
              candidate + size <= end_addr;
@@ -390,7 +420,6 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary)
         }
     }
 
-    // Setup aligned header
     auto* aligned_hdr = reinterpret_cast<AlignedSegHdr*>(aligned_addr - sizeof(AlignedSegHdr));
     aligned_hdr->magic = HEAP_MAGIC_ALIGNED;
     aligned_hdr->raw_segment = raw_seg;
@@ -424,6 +453,11 @@ void free(void* ptr)
 
     seg->free = true;
     seg->magic = HEAP_MAGIC_FREE;
+    // FIX: Checksum nach magic-Wechsel neu berechnen.
+    // Ohne diesen Aufruf enthält checksum noch den HEAP_MAGIC_USED-Wert;
+    // check_guard_bytes() schlägt dann bei validate_heap() fehl.
+    seg->set_guard_bytes();
+
     total_freed += seg->length;
 
     seg->combine_forward();
@@ -439,14 +473,12 @@ void free_aligned(void* ptr)
 
     auto* aligned_hdr = reinterpret_cast<AlignedSegHdr*>(reinterpret_cast<uintptr_t>(ptr) - sizeof(AlignedSegHdr));
 
-    // Validate aligned header
     if (!aligned_hdr->is_valid())
     {
         Log::Error("Tried to free invalid memory");
         return;
     }
 
-    // Free the raw segment
     void* raw_ptr = aligned_hdr->raw_segment->get_data_ptr();
     free(raw_ptr);
 }
@@ -477,13 +509,11 @@ void* realloc(void* ptr, const size_t old_size, size_t new_size)
         return nullptr;
     }
 
-    // If new size fits in current segment, just return it
     if (new_size <= seg->length)
     {
         return ptr;
     }
 
-    // Allocate new memory
     void* new_ptr = malloc(new_size);
     if (!new_ptr)
     {
@@ -491,7 +521,6 @@ void* realloc(void* ptr, const size_t old_size, size_t new_size)
         return nullptr;
     }
 
-    // Copy data
     size_t copy_size = (old_size < seg->length) ? old_size : seg->length;
     copy_size = (copy_size < new_size) ? copy_size : new_size;
 
@@ -509,7 +538,6 @@ void expand_heap(size_t length)
         return;
     }
 
-    // Round up to page boundary
     if (length % 0x1000)
     {
         length = (length + 0x1000 - 1) & ~(0x1000 - 1);
@@ -518,12 +546,15 @@ void expand_heap(size_t length)
     size_t page_count = length / 0x1000;
     auto* new_segment = static_cast<HeapSegHdr*>(heap_end);
 
-    // Map new pages
     for (size_t i = 0; i < page_count; i++)
     {
         void* virt = heap_end;
         void* phys = kernel::memory::request_page();
-        if (!phys) { length = i * 0x1000; break; }
+        if (!phys)
+        {
+            length = i * 0x1000;
+            break;
+        }
         kernel::memory::map_memory(virt, phys);
         memset(virt, 0, PAGE_SIZE);
         heap_end = reinterpret_cast<void*>(
@@ -531,7 +562,6 @@ void expand_heap(size_t length)
         );
     }
 
-    // Initialize new segment
     new_segment->magic = HEAP_MAGIC_FREE;
     new_segment->free = true;
     new_segment->last = last_hdr;
@@ -539,7 +569,6 @@ void expand_heap(size_t length)
     new_segment->length = length - HEAP_HEADER_SIZE - 1;
     new_segment->set_guard_bytes();
 
-    // Update links
     if (last_hdr)
     {
         last_hdr->next = new_segment;
@@ -548,7 +577,6 @@ void expand_heap(size_t length)
 
     Log::PrintLn("Heap expanded by %u bytes (%u pages)", length, page_count);
 
-    // Try to combine with previous segment if it's free
     new_segment->combine_backward();
 }
 
@@ -561,7 +589,6 @@ bool validate_heap()
 
     while (current)
     {
-        // Prevent infinite loops
         if (++segment_count > 10000)
         {
             return false;
@@ -577,7 +604,6 @@ bool validate_heap()
             return false;
         }
 
-        // Check forward/backward consistency
         if (current->next && current->next->last != current)
         {
             return false;

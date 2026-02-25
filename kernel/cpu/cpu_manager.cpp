@@ -236,7 +236,7 @@ namespace CPUManager
         }
     }
 
-    double get_cpu_usage(const uint32_t apic_id)
+    int get_cpu_usage(const uint32_t apic_id)
     {
         CPUInfo* cpu_info = get_cpu_info(apic_id);
         if (!cpu_info || cpu_info->total_cycles == 0)
@@ -245,6 +245,6 @@ namespace CPUManager
         }
 
         uint64_t active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
-        return (static_cast<double>(active_cycles) / static_cast<double>(cpu_info->total_cycles)) * 100.0;
+        return ((active_cycles) / cpu_info->total_cycles) * 100;
     }
 }

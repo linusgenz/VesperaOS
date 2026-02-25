@@ -70,7 +70,7 @@ namespace CPUManager {
     void print_cpu_info();
     
     void update_cpu_stats(uint32_t apic_id, uint64_t cycles, uint64_t idle_cycles);
-    double get_cpu_usage(uint32_t apic_id);
+    int get_cpu_usage(uint32_t apic_id);
     
     // Externe Zugriffe für Interrupt Handler
     extern CPUInfo cpu_infos[];

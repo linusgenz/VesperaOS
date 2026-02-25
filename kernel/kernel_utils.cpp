@@ -60,7 +60,9 @@ static void initialize_early_boot(const BootInfo* boot_info)
 static void initialize_memory_subsystem(BootInfo* boot_info)
 {
     kernel::memory::initialize_memory(boot_info);
-    kernel::memory::initialize_heap(reinterpret_cast<void*>(0xFFFFFFFF90000000), 0x500);
+    uintptr_t heap_start = (reinterpret_cast<uintptr_t>(&_KernelEnd) + 0xFFFFF) & ~0xFFFFFULL;
+    kernel::memory::initialize_heap(reinterpret_cast<void*>(heap_start), 0x500);
+    volatile uint8_t* probe = reinterpret_cast<volatile uint8_t*>(heap_start);
 }
 
 static void initialize_device_manager_and_vfs()
@@ -68,11 +70,7 @@ static void initialize_device_manager_and_vfs()
     DeviceManager::init();
     VFS::init();
     DevFS::init();
-    outb(0x3F8, 'Z');
-
-    while (1);
     RealmFS::init();
-    while (1);
 }
 
 static void initialize_graphics_and_terminal(const BootInfo* boot_info)
