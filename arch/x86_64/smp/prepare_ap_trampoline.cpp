@@ -28,7 +28,7 @@
 
 void prepare_ap_trampoline()
 {
-    *reinterpret_cast<volatile uint64_t*>(0x2000) = kernel::memory::get_pagetable_address();
+ /*   *reinterpret_cast<volatile uint64_t*>(0x2000) = kernel::memory::get_pagetable_address();
     *reinterpret_cast<arch::x86_64::interrupts::idt::IDTR*>(0x1000) = *kernel::interrupts::get_idtr_address();
-    __asm__ volatile("wbinvd" ::: "memory");
+    __asm__ volatile("wbinvd" ::: "memory");*/
 }

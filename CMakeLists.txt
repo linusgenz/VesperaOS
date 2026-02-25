@@ -11,22 +11,17 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 add_subdirectory(kernel)
 add_subdirectory(userspace)
 
-# Bootloader
-add_library(bootloader-lint STATIC
-        ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.c
-        arch/x86_64/boot/bss.cpp
-        arch/x86_64/boot/bss.h
-        arch/x86_64/smp/prepare_ap_trampoline.cpp
-        arch/x86_64/smp/prepare_ap_trampoline.h
-        include/boot.h
-)
-set_target_properties(bootloader-lint PROPERTIES
-        LINKER_LANGUAGE C
-)
+# ────────────────────────────────────────────────────────────────
+# Limine Bootloader
+# Liegt als Submodul unter ${CMAKE_SOURCE_DIR}/limine
+# ────────────────────────────────────────────────────────────────
+
+set(LIMINE_DIR ${CMAKE_SOURCE_DIR}/limine)
+
+# Limine selbst bauen (nur limine-deploy wird benötigt)
 add_custom_target(bootloader
-        COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        COMMENT "Building bootloader"
+        COMMAND make -C ${LIMINE_DIR}
+        COMMENT "Building Limine bootloader"
 )
 
 # splash.h
@@ -38,29 +33,33 @@ add_custom_command(
 )
 add_custom_target(splash_header DEPENDS ${CMAKE_SOURCE_DIR}/splash.h)
 
-# Disk image target
-set(BOOTLOADER_EFI ${CMAKE_SOURCE_DIR}/gnu-efi/bootloader/boot.efi)
-set(IMG_SIZE 400000)
-set(EFI_DIR mnt/EFI/BOOT)
-
+# ────────────────────────────────────────────────────────────────
+# Disk Image
+# ────────────────────────────────────────────────────────────────
 
 add_custom_target(disk_image
         COMMAND ${CMAKE_COMMAND} -E echo "Creating partitioned disk image..."
         COMMAND bash ${CMAKE_SOURCE_DIR}/make_disk.sh
         ${CMAKE_BINARY_DIR}/boot.img
-        ${BOOTLOADER_EFI}
+        ${LIMINE_DIR}
         ${CMAKE_BINARY_DIR}/kernel/kernel.elf
         ${CMAKE_SOURCE_DIR}
-        DEPENDS bootloader version kernel.elf elfs   # splash_header
+        DEPENDS bootloader version kernel.elf elfs
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
-
+# ────────────────────────────────────────────────────────────────
 # img (write to device)
+# ────────────────────────────────────────────────────────────────
+
 add_custom_target(img
         COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
         DEPENDS disk_image
 )
+
+# ────────────────────────────────────────────────────────────────
+# QEMU test target
+# ────────────────────────────────────────────────────────────────
 
 add_custom_target(test
         COMMAND qemu-system-x86_64
@@ -70,27 +69,26 @@ add_custom_target(test
         -enable-kvm
         -cpu qemu64
         -vga std
-        #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio
         -device qemu-xhci,id=xhci1
-     #   -device qemu-xhci,id=xhci2
         -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
         -drive id=usbstick2,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
         -device usb-storage,drive=usbstick
-       # -device usb-storage,drive=usbstick2
         -device ahci,id=ahci0
-       -device ide-hd,drive=usbstick2,bus=ahci0.0
-        #-device ide-hd,drive=usbstick2,bus=ahci0.0
-        #  -device nvme,drive=usbstick2,serial=deadbeef,physical_block_size=4096
+        -device ide-hd,drive=usbstick2,bus=ahci0.0
         -device usb-kbd
         -trace *msi*
-        -D /tmp/qemu.log
+        -D qemu.log
         -no-reboot
         -no-shutdown
         DEPENDS disk_image
 )
+
+# ────────────────────────────────────────────────────────────────
+# QEMU debug target
+# ────────────────────────────────────────────────────────────────
 
 add_custom_target(debug
         COMMAND qemu-system-x86_64
@@ -99,8 +97,6 @@ add_custom_target(debug
         -machine q35
         -enable-kvm
         -cpu host
-        #   -drive file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw,id=host0
-        #  -device nvme,drive=host0,serial=deadbeef
         -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
         -net none
         -monitor stdio
@@ -111,12 +107,16 @@ add_custom_target(debug
         -device usb-storage,drive=usbstick
         -device usb-storage,drive=usbstick2
         -trace *xhci*
-        -D /tmp/qemu.log
+        -D qemu.log
         -no-reboot
         -no-shutdown
         -s -S
         DEPENDS disk_image
 )
+
+# ────────────────────────────────────────────────────────────────
+# Clean
+# ────────────────────────────────────────────────────────────────
 
 file(GLOB USERSPACE_BINS
         "${CMAKE_SOURCE_DIR}/userspace/bin/*"

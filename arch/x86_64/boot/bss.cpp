@@ -23,12 +23,12 @@
 
 #include <cstdint>
 
-extern uint8_t __bss_start[];
-extern uint8_t __bss_end[];
+extern uint8_t _bss_start[];
+extern uint8_t _bss_end[];
 
 void zero_bss() {
-    uint8_t *bss = __bss_start;
-    while (bss < __bss_end) {
+    uint8_t *bss = _bss_start;
+    while (bss < _bss_end) {
         *bss++ = 0;
     }
 }

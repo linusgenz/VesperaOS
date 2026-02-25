@@ -33,6 +33,7 @@
 #include <kernel/tty/tty.h>
 
 #include "../include/kernel/devices/device_manager.h"
+#include "cpu/io.h"
 #include "units/unit_manager.h"
 
 static const char* envp0[] = {"PATH=/bin", nullptr};
@@ -134,6 +135,7 @@ void Debug_PrintAllDevices()
 
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 {
+    outb(0x3F8, 'A');
     Log::disableDebug();
     initialize_kernel(boot_info);
     char vendor[13];

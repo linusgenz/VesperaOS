@@ -10,6 +10,7 @@
 #include "efi_memory.h"
 
 #define PAGE_SIZE 4096
+#define KERNEL_BASE 0xFFFFFFFF80000000
 
 struct PageTable;
 

@@ -1,3 +1,4 @@
+#include "cpu/io.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
 #include "debug/lock_debug.h"
@@ -40,7 +41,7 @@ Framebuffer* TargetFramebuffer = nullptr;
 
 static void initialize_early_boot(const BootInfo* boot_info)
 {
-    zero_bss();
+  //  zero_bss();
 
 #if DEBUG_SPINLOCK
     lock_debug_init();
@@ -58,6 +59,8 @@ static void initialize_early_boot(const BootInfo* boot_info)
 
 static void initialize_memory_subsystem(BootInfo* boot_info)
 {
+    outb(0x3F8, 'A');
+
     kernel::memory::initialize_memory(boot_info);
     kernel::memory::initialize_heap(reinterpret_cast<void*>(0x0000100000000000), 0x500);
 }
@@ -138,7 +141,7 @@ static void initialize_scheduling_and_smp()
     kernel::scheduling::init(CPUManager::total_cpus);
 
     prepare_ap_trampoline();
-    CPUManager::smp_init();
+  //  CPUManager::smp_init(); REVIEW LOW ADDRESSES CPUSTARTUPREPORT AP_TRAMPOLINE
 
     // Threading now available - upgrade log to use mutex
     Log::init();

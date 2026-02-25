@@ -1,0 +1,222 @@
+// bss.cpp
+//
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 24.02.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <limine.h>
+#include <boot.h>
+#include <graphics.h>
+
+// ============================================================================
+// Limine Requests
+// Müssen in der .requests Section liegen – Limine erkennt sie beim Laden
+// ============================================================================
+
+__attribute__((used, section(".requests_start_marker")))
+static volatile LIMINE_REQUESTS_START_MARKER;
+
+__attribute__((used, section(".requests")))
+static volatile limine_framebuffer_request fb_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0,
+    .response = nullptr
+};
+
+__attribute__((used, section(".requests")))
+static volatile limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0,
+    .response = nullptr
+};
+
+__attribute__((used, section(".requests")))
+static volatile limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST,
+    .revision = 0,
+    .response = nullptr
+};
+
+__attribute__((used, section(".requests")))
+static volatile limine_kernel_address_request kaddr_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0,
+    .response = nullptr
+};
+
+__attribute__((used, section(".requests_end_marker")))
+static volatile LIMINE_REQUESTS_END_MARKER;
+
+// ============================================================================
+// Eingebetteter PSF Font (via objcopy – siehe CMakeLists.txt)
+// objcopy -I binary -O elf64-x86-64 -B i386:x86-64 font.psf font.o
+// ============================================================================
+
+extern "C" {
+    extern uint8_t _binary_zap_light24_psf_start[];
+    extern uint8_t _binary_zap_light24_psf_end[];
+    extern uint8_t _binary_zap_light24_psf_size[];
+}
+
+// ============================================================================
+// Statische Strukturen (kein Heap verfügbar beim Boot)
+// ============================================================================
+
+static Framebuffer framebuffer;
+static BootInfo    boot_info;
+static FONT        embedded_font;
+
+// Limine Memory Map → EFI_MEMORY_DESCRIPTOR Konvertierung
+// 512 Einträge reichen für jede realistische Speicherkarte
+static EFI_MEMORY_DESCRIPTOR efi_map[512];
+
+// ============================================================================
+// Hilfsfunktionen
+// ============================================================================
+
+static void hlt_forever() {
+    while (true) asm volatile("cli; hlt");
+}
+
+static void parse_psf_font() {
+    uint8_t* data = _binary_zap_light24_psf_start;
+
+    // PSF1: Magic = 0x36 0x04
+    if (data[0] == 0x36 && data[1] == 0x04) {
+        auto* hdr = reinterpret_cast<PSF1_HEADER*>(data);
+        embedded_font.header    = hdr;
+        embedded_font.glyphBuffer = data + sizeof(PSF1_HEADER);
+        embedded_font.type      = 1;
+        embedded_font.width     = 8;
+        embedded_font.height    = hdr->charsize;
+        embedded_font.charsize  = hdr->charsize;
+        return;
+    }
+
+    // PSF2: Magic = 0x72 0xb5 0x4a 0x86
+    if (data[0] == 0x72 && data[1] == 0xb5 && data[2] == 0x4a && data[3] == 0x86) {
+        auto* hdr = reinterpret_cast<PSF2_HEADER*>(data);
+        embedded_font.header    = hdr;
+        embedded_font.glyphBuffer = data + hdr->headersize;
+        embedded_font.type      = 2;
+        embedded_font.width     = hdr->width;
+        embedded_font.height    = hdr->height;
+        embedded_font.charsize  = hdr->charsize;
+        return;
+    }
+
+    // Kein gültiger Font – boot_info.font bleibt nullptr
+    // kernel_utils.cpp prüft das bereits
+}
+
+static void convert_memmap(uint64_t* out_count) {
+    *out_count = 0;
+    if (!memmap_request.response) return;
+
+    auto* resp  = memmap_request.response;
+    uint64_t n  = 0;
+
+    for (uint64_t i = 0; i < resp->entry_count && n < 512; i++) {
+        limine_memmap_entry* src = resp->entries[i];
+        EFI_MEMORY_DESCRIPTOR* dst = &efi_map[n];
+
+        // Limine Typ → EFI Typ
+        // Wichtig: nur EfiConventionalMemory (7) wird vom Allocator als frei behandelt
+        switch (src->type) {
+            case LIMINE_MEMMAP_USABLE:
+                dst->type = 7;   // EfiConventionalMemory  ← nutzbar
+                break;
+            case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
+                dst->type = 4;   // EfiBootServicesData    ← nach Boot reclaimable
+                break;
+            case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
+                dst->type = 9;   // EfiACPIReclaimMemory
+                break;
+            case LIMINE_MEMMAP_ACPI_NVS:
+                dst->type = 10;  // EfiACPIMemoryNVS
+                break;
+            case LIMINE_MEMMAP_FRAMEBUFFER:
+                dst->type = 11;  // EfiMemoryMappedIO
+                break;
+            case LIMINE_MEMMAP_KERNEL_AND_MODULES:
+                dst->type = 1;   // EfiLoaderCode          ← Kernel selbst
+                break;
+            case LIMINE_MEMMAP_RESERVED:
+            default:
+                dst->type = 0;   // EfiReservedMemoryType
+                break;
+        }
+
+        dst->phys_addr  = src->base;
+        dst->virt_addr  = src->base;   // Identity mapped – bleibt so bis Higher Half Migration
+        dst->num_pages  = src->length / 4096;
+        dst->attribs    = 0;
+
+        n++;
+    }
+
+    *out_count = n;
+}
+
+// ============================================================================
+// Kernel Entry Point
+// ============================================================================
+
+extern "C" void kernel_main(BootInfo* boot_info);
+
+extern "C" void limine_entry() {
+
+    // --- Framebuffer ---
+    if (!fb_request.response || fb_request.response->framebuffer_count == 0)
+        hlt_forever();
+
+    limine_framebuffer* lfb = fb_request.response->framebuffers[0];
+    framebuffer.base_address        = reinterpret_cast<void*>(lfb->address);
+    framebuffer.buffer_size         = lfb->pitch * lfb->height;
+    framebuffer.width               = lfb->width;
+    framebuffer.height              = lfb->height;
+    // pixels_per_scanline = Bytes pro Zeile / Bytes pro Pixel
+    framebuffer.pixels_per_scanline = lfb->pitch / (lfb->bpp / 8);
+
+    boot_info.framebuffer = &framebuffer;
+
+    // --- Memory Map ---
+    uint64_t map_count = 0;
+    convert_memmap(&map_count);
+    boot_info.mMap          = efi_map;
+    boot_info.mMapSize      = map_count * sizeof(EFI_MEMORY_DESCRIPTOR);
+    boot_info.mMapDescSize  = sizeof(EFI_MEMORY_DESCRIPTOR);
+
+    // --- RSDP ---
+    if (rsdp_request.response)
+        boot_info.rsdp = static_cast<ACPI::RSDP2*>(rsdp_request.response->address);
+    else
+        boot_info.rsdp = nullptr;
+
+    // --- Font ---
+    parse_psf_font();
+    boot_info.font = &embedded_font;
+
+    // --- Kernel starten ---
+    kernel_main(&boot_info);
+
+    // Sollte nie erreicht werden
+    hlt_forever();
+}

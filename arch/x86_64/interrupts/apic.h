@@ -9,7 +9,7 @@
 #include "../../../kernel/acpi/madt.h"
 #include "interrupts_internal.h"
 
-extern uint8_t *g_localApicAddr;
+inline uint8_t *g_localApicAddr;
 
 namespace arch::x86_64::interrupts::apic {
     // ------------------------------------------------------------------------------------------------

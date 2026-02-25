@@ -25,6 +25,7 @@
 #include <kernel/memory.h>
 
 #include "../cpu/cpu_manager.h"
+#include "../cpu/io.h"
 #include "arch/x86_64/cpu/msr.h"
 
 namespace kernel::memory
@@ -35,9 +36,9 @@ namespace kernel::memory
 
         initialize_page_frame_allocator(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
-        const auto kernelStart = reinterpret_cast<uint64_t>(&_KernelStart);
-        const auto kernelEnd = reinterpret_cast<uint64_t>(&_KernelEnd);
-        const uint64_t kernelSize = kernelEnd - kernelStart;
+        const auto kernelPhysStart = reinterpret_cast<uint64_t>(&_KernelStart) - KERNEL_BASE;
+        const auto kernelPhysEnd   = reinterpret_cast<uint64_t>(&_KernelEnd)   - KERNEL_BASE;
+        const uint64_t kernelSize  = kernelPhysEnd - kernelPhysStart;
         const uint64_t kernelPages = kernelSize / 4096 + 1;
 
         lock_pages(&_KernelStart, kernelPages);
@@ -78,9 +79,13 @@ namespace kernel::memory
             }
         }
 
-        for (uint64_t addr = kernelStart; addr < kernelEnd; addr += 0x1000)
+        const uint64_t kernelVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
+        const uint64_t kernelVirtEnd   = reinterpret_cast<uint64_t>(&_KernelEnd);
+        for (uint64_t virt = kernelVirtStart; virt < kernelVirtEnd; virt += 0x1000)
         {
-            map_memory(reinterpret_cast<void*>(addr), reinterpret_cast<void*>(addr));
+            uint64_t phys = virt - KERNEL_BASE;
+            map_memory(reinterpret_cast<void*>(virt),
+                       reinterpret_cast<void*>(phys));
         }
 
         for (uint32_t i = 0; i < CPUManager::total_cpus; ++i)
@@ -105,6 +110,8 @@ namespace kernel::memory
                        (1ULL << PT_Flag::Global));
         }
 
+        outb(0x3F8, 'D');
         asm ("mov %0, %%cr3" : : "r" (get_pagetable_address()));
+        outb(0x3F8, 'P');
     }
 }

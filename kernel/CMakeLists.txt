@@ -19,13 +19,13 @@ set(INCLUDE_SRC_DIR ${KERNEL_DIR}/include)
 function(add_debug_option name description default_value)
     option(${name} ${description} ${default_value})
 
-    if(${name})
+    if (${name})
         add_compile_definitions(${name}=1)
         set(status "ENABLED")
-    else()
+    else ()
         add_compile_definitions(${name}=0)
         set(status "DISABLED")
-    endif()
+    endif ()
 
     message(STATUS "  ${name}: ${status}")
 endfunction()
@@ -76,16 +76,16 @@ collect_asm(KERNEL_ASM_SOURCES
 )
 
 # REMOVE debug source files when disabled
-if(NOT ENABLE_DEBUG_SPINLOCK)
+if (NOT ENABLE_DEBUG_SPINLOCK)
     list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/lock_debug.cpp")
     list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/deadlock_detector.cpp")
-endif()
+endif ()
 
-if(NOT ENABLE_DEBUG_FAULT)
+if (NOT ENABLE_DEBUG_FAULT)
     list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/disasm.cpp")
     list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/trace.cpp")
     list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/symbols.cpp")
-endif()
+endif ()
 
 set_source_files_properties(
         ${CMAKE_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
@@ -100,25 +100,48 @@ add_custom_command(
 )
 add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 
+
+set(FONT_DIR "${CMAKE_SOURCE_DIR}/build")
+set(FONT_FILE "zap-light24.psf")
+set(FONT_PSF "${FONT_DIR}/${FONT_FILE}")
+
+
+add_custom_command(
+        OUTPUT ${CMAKE_BINARY_DIR}/font.o
+        COMMAND objcopy
+        -I binary
+        -O elf64-x86-64
+        -B i386:x86-64
+        --rename-section .data=.data.font,alloc,load,readonly,data,contents
+        ${FONT_FILE}
+        ${CMAKE_BINARY_DIR}/font.o
+        DEPENDS ${FONT_PSF}
+        WORKING_DIRECTORY ${FONT_DIR}
+        COMMENT "Embedding PSF font (${FONT_FILE}) into kernel binary"
+)
+
+add_custom_target(embedded_font DEPENDS ${CMAKE_BINARY_DIR}/font.o)
+
 #
 # ────────────────────────────────────────────────────────────────
 #   CONDITIONAL KERNEL SYMBOLS GENERATION  (ONLY IF DEBUG_FAULT)
 # ────────────────────────────────────────────────────────────────
 #
 
-if(ENABLE_DEBUG_FAULT)
+if (ENABLE_DEBUG_FAULT)
 
     set(BOILERPLATE_HEADER "${CMAKE_BINARY_DIR}/kernel_symbols.h")
 
     if (NOT EXISTS ${BOILERPLATE_HEADER})
         file(WRITE ${BOILERPLATE_HEADER}
                 "unsigned char kernel_map[] = {};\nunsigned int kernel_map_len = 0;\n")
-    endif()
+    endif ()
 
     # Stage1 kernel
     add_executable(kernel_stage1
             ${KERNEL_CPP_SOURCES}
             ${KERNEL_ASM_SOURCES}
+            ${CMAKE_BINARY_DIR}/font.o
     )
     set_target_properties(kernel_stage1 PROPERTIES
             OUTPUT_NAME "kernel_stage1"
@@ -128,7 +151,10 @@ if(ENABLE_DEBUG_FAULT)
     target_include_directories(kernel_stage1 PUBLIC
             ${CMAKE_SOURCE_DIR}/include
             ${CMAKE_BINARY_DIR}
+            ${CMAKE_SOURCE_DIR}/limine
     )
+
+    add_dependencies(kernel_stage1 embedded_font)
 
     # generate kernel.map
     add_custom_command(
@@ -153,7 +179,7 @@ if(ENABLE_DEBUG_FAULT)
             DEPENDS ${CMAKE_BINARY_DIR}/kernel_symbols.h
     )
 
-endif()
+endif ()
 
 #
 # ────────────────────────────────────────────────────────────────
@@ -161,16 +187,17 @@ endif()
 # ────────────────────────────────────────────────────────────────
 #
 
-if(ENABLE_DEBUG_FAULT)
+if (ENABLE_DEBUG_FAULT)
     set(KERNEL_EXTRA ${CMAKE_BINARY_DIR}/kernel_symbols.h)
-else()
+else ()
     set(KERNEL_EXTRA "")
-endif()
+endif ()
 
 add_executable(kernel.elf
         ${KERNEL_CPP_SOURCES}
         ${KERNEL_ASM_SOURCES}
         ${KERNEL_EXTRA}
+        ${CMAKE_BINARY_DIR}/font.o
 )
 
 set_target_properties(kernel.elf PROPERTIES
@@ -181,9 +208,11 @@ set_target_properties(kernel.elf PROPERTIES
 target_include_directories(kernel.elf PUBLIC
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_BINARY_DIR}
+        ${CMAKE_SOURCE_DIR}/limine
 )
 
-# kernel.elf depends on symbols only when they exist
-if(ENABLE_DEBUG_FAULT)
-    add_dependencies(kernel.elf kernel_symbols_header version)
-endif()
+if (ENABLE_DEBUG_FAULT)
+    add_dependencies(kernel.elf kernel_symbols_header embedded_font version)
+else ()
+    add_dependencies(kernel.elf embedded_font version)
+endif ()
