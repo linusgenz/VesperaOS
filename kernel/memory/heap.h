@@ -74,9 +74,6 @@ struct AlignedSegHdr {
 };
 
 // Global heap variables
-extern void *heap_start;
-extern void *heap_end;
-extern HeapSegHdr *last_hdr;
 extern bool heap_initialized;
 
 // Statistics

@@ -26,7 +26,6 @@
 #include "units/unit_manager.h"
 #include <kernel/system/system_manager.h>
 #include "input/worker.h"
-#include "../arch/x86_64/boot/bss.h"
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
 #include "../drivers/pci/msi.h"
 #include "devices/init.h"
@@ -41,7 +40,6 @@ Framebuffer* TargetFramebuffer = nullptr;
 
 static void initialize_early_boot(const BootInfo* boot_info)
 {
-  //  zero_bss();
 
 #if DEBUG_SPINLOCK
     lock_debug_init();
@@ -60,9 +58,8 @@ static void initialize_early_boot(const BootInfo* boot_info)
 static void initialize_memory_subsystem(BootInfo* boot_info)
 {
     kernel::memory::initialize_memory(boot_info);
-    uintptr_t heap_start = (reinterpret_cast<uintptr_t>(&_KernelEnd) + 0xFFFFF) & ~0xFFFFFULL;
+    const uintptr_t heap_start = (reinterpret_cast<uintptr_t>(&_KernelEnd) + 0xFFFFF) & ~0xFFFFFULL;
     kernel::memory::initialize_heap(reinterpret_cast<void*>(heap_start), 0x500);
-    volatile uint8_t* probe = reinterpret_cast<volatile uint8_t*>(heap_start);
 }
 
 static void initialize_device_manager_and_vfs()

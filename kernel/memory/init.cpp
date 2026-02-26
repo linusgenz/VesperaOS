@@ -36,8 +36,8 @@ namespace kernel::memory
 
         initialize_page_frame_allocator(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
-        const auto kernelPhysStart = reinterpret_cast<uint64_t>(&_KernelStart) - KERNEL_BASE;
-        const auto kernelPhysEnd   = reinterpret_cast<uint64_t>(&_KernelEnd)   - KERNEL_BASE;
+        const auto kernelPhysStart = reinterpret_cast<uint64_t>(&_KernelStart) - bootInfo->kernel_virt_base;
+        const auto kernelPhysEnd   = reinterpret_cast<uint64_t>(&_KernelEnd) - bootInfo->kernel_virt_base;
         const uint64_t kernelSize  = kernelPhysEnd - kernelPhysStart;
         const uint64_t kernelPages = kernelSize / 4096 + 1;
 
@@ -80,12 +80,12 @@ namespace kernel::memory
             }
         }
         outb(0x3F8, 'X');
-/*
-        const uint64_t kernelVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
+
+       /*  const uint64_t kernelVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
         const uint64_t kernelVirtEnd   = reinterpret_cast<uint64_t>(&_KernelEnd);
-        for (uint64_t virt = kernelVirtStart; virt < kernelVirtEnd; virt += 0x1000)
+       for (uint64_t virt = kernelVirtStart; virt < kernelVirtEnd; virt += 0x1000)
         {
-            uint64_t phys = virt - KERNEL_BASE;
+            uint64_t phys = virt - bootInfo->kernel_virt_base;
             map_memory(reinterpret_cast<void*>(virt),
                        reinterpret_cast<void*>(phys));
         }*/
@@ -120,11 +120,6 @@ namespace kernel::memory
         }
         outb(0x3F8, 'X');
 
-        uint64_t rsp;
-        asm volatile("mov %%rsp, %0" : "=r"(rsp));
-        for (uint64_t addr = (rsp & ~0xFFFULL) - 0x8000; addr < rsp + 0x1000; addr += 0x1000) {
-            map_memory(reinterpret_cast<void*>(addr), reinterpret_cast<void*>(addr));
-        }
 
         outb(0x3F8, 'D');
         asm ("mov %0, %%cr3" : : "r" (get_pagetable_address()));
