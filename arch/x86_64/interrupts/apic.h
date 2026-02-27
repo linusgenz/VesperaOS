@@ -9,11 +9,12 @@
 #include "../../../kernel/acpi/madt.h"
 #include "interrupts_internal.h"
 
-inline uint8_t *g_localApicAddr;
+inline volatile uint8_t* g_localApicAddr;
 
-namespace arch::x86_64::interrupts::apic {
+namespace arch::x86_64::interrupts::apic
+{
     // ------------------------------------------------------------------------------------------------
-// Local APIC Registers
+    // Local APIC Registers
 #define LAPIC_ID                        0x0020  // Local APIC ID
 #define LAPIC_VER                       0x0030  // Local APIC Version
 #define LAPIC_TPR                       0x0080  // Task Priority
@@ -40,7 +41,7 @@ namespace arch::x86_64::interrupts::apic {
 #define LAPIC_TCCR                      0x0390  // Current Count (for Timer)
 #define LAPIC_TDCR                      0x03e0  // Divide Configuration (for Timer)
 
-// ICR bits
+    // ICR bits
 #define ICR_DELIVS     0x00001000   // Delivery status
 #define ICR_DEASSERT   0x00000000   // Deassert
 #define ICR_LEVEL      0x00008000   // Level triggered
@@ -55,7 +56,7 @@ namespace arch::x86_64::interrupts::apic {
 
     void send_eoi();
     void timer_accounting();
-    void timer_tick(trap_frame *frame);
+    void timer_tick(trap_frame* frame);
     void init(uint8_t cpu_id);
     void send_ipi(uint32_t apic_id, uint8_t vector);
     void broadcast_ipi(uint8_t vector);

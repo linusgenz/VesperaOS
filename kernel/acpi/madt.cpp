@@ -7,6 +7,8 @@
 #include <log.h>
 #include "madt.h"
 
+#include <kernel/memory.h>
+
 namespace MADT
 {
     CPUCore cpu_cores[MAX_CPU_CORES];
@@ -30,8 +32,12 @@ namespace MADT
             Log::Info("No Pic detected");
         }
 
-        g_localApicAddr = reinterpret_cast<uint8_t*>(static_cast<uintptr_t>(madt->lapic_address));
-
+        kernel::memory::map_memory(
+            phys_to_virt(madt->lapic_address),
+            reinterpret_cast<void*>(madt->lapic_address),
+            (1ULL << PT_Flag::CacheDisabled)
+        );
+        g_localApicAddr = static_cast<uint8_t*>(phys_to_virt(madt->lapic_address));
 
         auto* entries = reinterpret_cast<uint8_t*>(madt) + sizeof(ACPI::MADTHeader);
         auto* end = reinterpret_cast<uint8_t*>(madt) + madt->header.length;

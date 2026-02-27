@@ -87,7 +87,7 @@ namespace kernel::memory
         g_kernel_phys_base = boot_info->kernel_phys_base;
         g_kernel_virt_base = boot_info->kernel_virt_base;
 
-        auto* PML4 = static_cast<PageTable*>(request_page());
+        auto* PML4 = reinterpret_cast<PageTable*>(request_page_phys());
         memset(PML4, 0, 0x1000);
 
         page_table_manager = PageTableManager(PML4);

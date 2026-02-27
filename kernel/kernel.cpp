@@ -132,6 +132,39 @@ void Debug_PrintAllDevices()
     Log::PrintLn("==============================");
 }
 
+void enable_sse() {
+    // CR0: MP setzen, EM löschen
+    uint64_t cr0;
+    asm volatile("mov %%cr0, %0" : "=r"(cr0));
+    cr0 |=  (1 << 1);  // MP - Monitor Coprocessor
+    cr0 &= ~(1 << 2);  // EM löschen - kein Emulation-Flag
+    asm volatile("mov %0, %%cr0" :: "r"(cr0));
+
+    // CR4: OSFXSR und OSXMMEXCPT setzen
+    uint64_t cr4;
+    asm volatile("mov %%cr4, %0" : "=r"(cr4));
+    cr4 |= (1 << 9);   // OSFXSR - OS unterstützt FXSAVE/FXRSTOR
+    cr4 |= (1 << 10);  // OSXMMEXCPT - OS behandelt SSE-Exceptions
+    asm volatile("mov %0, %%cr4" :: "r"(cr4));
+}
+
+void enable_avx() {
+    // Erst SSE aktivieren (oben)
+
+    // CR4: OSXSAVE setzen
+    uint64_t cr4;
+    asm volatile("mov %%cr4, %0" : "=r"(cr4));
+    cr4 |= (1 << 18);  // OSXSAVE
+    asm volatile("mov %0, %%cr4" :: "r"(cr4));
+
+    // XCR0: SSE und AVX-State für XSAVE aktivieren
+    uint64_t xcr0;
+    asm volatile("xgetbv" : "=A"(xcr0) : "c"(0));
+    xcr0 |= (1 << 0);  // x87
+    xcr0 |= (1 << 1);  // SSE
+    xcr0 |= (1 << 2);  // AVX
+    asm volatile("xsetbv" :: "A"(xcr0), "c"(0));
+}
 
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 {
@@ -163,7 +196,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     {
         Log::Error("Failed to load elf binary: %s", result.error_message);
     }
-    while (1);
 
     const char *argv_example[] = {
         "shell",
@@ -188,6 +220,9 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     UnitManager::create(shell_realm->id, reinterpret_cast<UnitEntry>(result.entry_point), nullptr, &uc);
 
     kernel::SystemManager::set_system_initialized();
+
+  //  enable_avx();
+    enable_sse();
 
   //  Debug_PrintAllDevices();
 

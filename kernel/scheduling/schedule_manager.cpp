@@ -42,7 +42,7 @@ namespace kernel::scheduling::manager {
             wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<uint64_t>(&ctx_ptr));
             if (to->rid) {
                 Realm *r = RealmManager::get(to->rid);
-                uint64_t cr3 = reinterpret_cast<uint64_t>(r->pml4);
+                uint64_t cr3 = r->pml4_phys;
                 asm volatile("mov %0, %%cr3" :: "r"(cr3));
             }
         } else {

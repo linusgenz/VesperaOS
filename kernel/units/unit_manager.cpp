@@ -61,21 +61,26 @@ UnitID UnitManager::allocate_id()
     return next_id++;
 }
 
-static void write_user_ptr(Unit* u, uintptr_t addr, uintptr_t val)
+static void* user_virt_to_hhdm(Unit* u, uintptr_t user_vaddr)
 {
-    uintptr_t offset = addr - reinterpret_cast<uintptr_t>(u->context.user_stack);
-    if (offset + sizeof(uintptr_t) > u->context.user_stack_size)
-    {
-        return;
-    }
-    *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(u->context.user_stack) + offset) = val;
+    uintptr_t offset = user_vaddr - u->context.user_stack_virt_base;
+    if (offset >= u->context.user_stack_size) return nullptr;
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(u->context.user_stack) + offset);
 }
 
-static void memcpy_to_user(Unit* u, void* dest, const void* src, size_t len)
+static void write_user_ptr(Unit* u, uintptr_t user_addr, uintptr_t val)
 {
-    uintptr_t offset = reinterpret_cast<uintptr_t>(dest) - reinterpret_cast<uintptr_t>(u->context.user_stack);
-    if (offset + len > u->context.user_stack_size) return;
-    memcpy(static_cast<uint8_t*>(u->context.user_stack) + offset, src, len);
+    void* hhdm = user_virt_to_hhdm(u, user_addr);
+    if (!hhdm) return;
+    *static_cast<uintptr_t*>(hhdm) = val;
+}
+
+static void memcpy_to_user(Unit* u, void* user_dest, const void* src, size_t len)
+{
+    void* hhdm = user_virt_to_hhdm(u, reinterpret_cast<uintptr_t>(user_dest));
+    if (!hhdm) return;
+    memcpy(hhdm, src, len);
 }
 
 // TODO integrate
@@ -187,26 +192,42 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
 
             uint64_t stack_size = cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE;
 
-
             if (u->is_user)
             {
                 uint64_t user_stack_size = cfg->user_stack_size
                                                ? cfg->user_stack_size
                                                : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
-                u->context.user_stack = kernel::memory::request_pages((user_stack_size + 0xFFF) / 0x1000);
-                if (!u->context.user_stack)
-                {
-                    u->active = false;
-                    return nullptr;
-                }
-                memset(u->context.user_stack, 0, u->context.user_stack_size);
+                size_t pages = (user_stack_size + 0xFFF) / 0x1000;
 
-                kernel::memory::map_range(u->context.user_stack, u->context.user_stack, user_stack_size,
-                                          (1ULL << PT_Flag::UserSuper));
+                // Physische Pages holen
+                uint64_t stack_phys = kernel::memory::request_pages_phys(pages);
+                if (!stack_phys) { u->active = false; return nullptr; }
+
+                // Kernel greift via HHDM zu (zum Initialisieren, argv schreiben etc.)
+                void* stack_hhdm = phys_to_virt(stack_phys);
+                memset(stack_hhdm, 0, user_stack_size);
+
+                // User-Space virtuelle Adresse — klassisch am oberen Ende des User-Space
+                constexpr uintptr_t USER_STACK_TOP = 0x00007FFFFFFF0000ULL;
+                uintptr_t user_virt_base = USER_STACK_TOP - user_stack_size;
+
+                // Im Realm Page Table mappen (UserSuper + ReadWrite)
+                realm->page_table->map_range(
+                    reinterpret_cast<void*>(user_virt_base),
+                    reinterpret_cast<void*>(stack_phys),
+                    user_stack_size,
+                    (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper)
+                );
+
+                // Kernel-seitig HHDM-Adresse speichern (für memcpy_to_user etc.)
+                u->context.user_stack      = stack_hhdm;
+                u->context.user_stack_phys = stack_phys;
                 u->context.user_stack_size = user_stack_size;
-                u->context.user_stack_top = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(u->context.user_stack) +
-                    user_stack_size);
-                u->context.user_stack_pointer = u->context.user_stack_top;
+
+                // user_stack_top und user_stack_pointer = User-Space virtuelle Adressen
+                u->context.user_stack_virt_base = user_virt_base;
+                u->context.user_stack_top       = reinterpret_cast<void*>(USER_STACK_TOP);
+                u->context.user_stack_pointer   = u->context.user_stack_top;
             }
 
             u->context.stack = kernel::memory::request_pages((stack_size + 0xFFF) / 0x1000);

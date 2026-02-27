@@ -44,10 +44,6 @@ namespace kernel::interrupts
 
         arch::x86_64::interrupts::idt::init_irq_table();
 
-        memory::map_memory(g_localApicAddr,
-                           g_localApicAddr,
-                           (1ULL << WriteThrough) | (1ULL << CacheDisabled));
-
         arch::x86_64::interrupts::idt::load_default_idt();
         arch::x86_64::interrupts::pic::remap();
         //  arch::x86_64::interrupts::ioapic::init();

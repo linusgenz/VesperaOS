@@ -73,7 +73,7 @@ extern "C" void syscall_handler(
 ) {
     uint64_t ret = 0;
 
-    asm volatile("mov %0, %%cr3" :: "r"(kernel::memory::get_pagetable_address()));
+ //   asm volatile("mov %0, %%cr3" :: "r"(kernel::memory::get_pagetable_address()));
 
     if (num < MAX_SYSCALLS && syscall_table[num]) {
         asm volatile("sti");
@@ -82,9 +82,9 @@ extern "C" void syscall_handler(
         Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
     }
 
-    Realm *r = RealmManager::get(kernel::scheduling::get_current_unit()->rid);
-    uint64_t cr3 = reinterpret_cast<uint64_t>(r->pml4);
-    asm volatile("mov %0, %%cr3" :: "r"(cr3));
+   /* Realm *r = RealmManager::get(kernel::scheduling::get_current_unit()->rid);
+    uint64_t cr3 = r->pml4_phys;
+    asm volatile("mov %0, %%cr3" :: "r"(cr3));*/
 
     asm volatile ("mov %0, %%rax" :: "r"(ret));
 }

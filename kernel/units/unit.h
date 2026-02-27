@@ -46,7 +46,8 @@ typedef struct arg_registers
 } arg_registers_t;
 
 
-// WARINING when changing this struct syscall might break as offsets are hardcoded!
+// WARNING when changing this struct syscall might break as offsets are hardcoded!
+// TODO refactor this struct
 typedef struct execution_context
 {
     uint64_t stack_size;
@@ -69,6 +70,9 @@ typedef struct execution_context
     void* kernel_rsp;
     bool from_syscall;
     void* kernel_rsp_after_syscall;
+
+    uint64_t user_stack_phys;
+    uintptr_t user_stack_virt_base;
 } execution_context_t;
 
 typedef struct sleep_context
