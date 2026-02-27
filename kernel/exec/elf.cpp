@@ -34,6 +34,19 @@
 #define ELF_LOG(fmt, ...)
 #endif
 
+static void* realm_get_phys(const Realm* realm, const uintptr_t vaddr)
+{
+    uintptr_t page_vaddr = vaddr & ~0xFFFULL;
+    uintptr_t offset = vaddr & 0xFFFULL;
+
+    void* phys_page = realm->page_table->get_physical_address(
+        reinterpret_cast<void*>(page_vaddr));
+    if (!phys_page) return nullptr;
+
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(phys_page) + offset);
+}
+
 ElfLoader::LoadResult ElfLoader::load(
     const char* path,
     uintptr_t preferred_base,
@@ -164,7 +177,7 @@ ElfLoader::LoadResult ElfLoader::load(
 
     if (is_pie)
     {
-        if (!apply_relocations(header, file_data.data, load_bias))
+        if (!apply_relocations(header, file_data.data, load_bias, realm))
         {
             kernel::memory::free(file_data.data);
             return {
@@ -205,7 +218,8 @@ ElfLoader::LoadResult ElfLoader::load(
 bool ElfLoader::apply_relocations(
     const Elf64_Ehdr* header,
     const void* file_data,
-    uintptr_t load_bias
+    uintptr_t load_bias,
+    const Realm* realm
 )
 {
     auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(
@@ -213,7 +227,6 @@ bool ElfLoader::apply_relocations(
     );
 
     const Elf64_Phdr* dynamic_phdr = nullptr;
-
     for (int i = 0; i < header->e_phnum; ++i)
     {
         if (phdrs[i].p_type == PT_DYNAMIC)
@@ -222,30 +235,25 @@ bool ElfLoader::apply_relocations(
             break;
         }
     }
+    if (!dynamic_phdr) return true;
 
-    if (!dynamic_phdr)
-    {
-        return true;
-    }
-
-    auto* dyn = reinterpret_cast<Elf64_Dyn*>(
-        dynamic_phdr->p_vaddr + load_bias
+    auto* dyn = reinterpret_cast<const Elf64_Dyn*>(
+        static_cast<const uint8_t*>(file_data) + dynamic_phdr->p_offset
     );
 
-    size_t dyn_count = dynamic_phdr->p_memsz / sizeof(Elf64_Dyn);
+    size_t dyn_count = dynamic_phdr->p_filesz / sizeof(Elf64_Dyn);
 
-    Elf64_Rela* rela = nullptr;
+    Elf64_Rela* rela_virt = nullptr;
     size_t rela_sz = 0;
     size_t rela_ent = sizeof(Elf64_Rela);
+    uintptr_t rela_vaddr = 0;
 
     for (size_t i = 0; i < dyn_count; ++i)
     {
         switch (dyn[i].d_tag)
         {
         case DT_RELA:
-            rela = reinterpret_cast<Elf64_Rela*>(
-                dyn[i].d_un.d_ptr + load_bias
-            );
+            rela_vaddr = dyn[i].d_un.d_ptr;
             break;
         case DT_RELASZ:
             rela_sz = dyn[i].d_un.d_val;
@@ -253,46 +261,54 @@ bool ElfLoader::apply_relocations(
         case DT_RELAENT:
             rela_ent = dyn[i].d_un.d_val;
             break;
+        case DT_NULL:
+            goto done_dyn;
+        default:
+            break;
+        }
+    }
+    done_dyn:
 
-        case DT_REL:
-        case DT_RELSZ:
-        case DT_RELENT:
+    if (!rela_vaddr || rela_sz == 0) return true;
+
+    const Elf64_Rela* rela = nullptr;
+    for (int i = 0; i < header->e_phnum; ++i)
+    {
+        const Elf64_Phdr& ph = phdrs[i];
+        if (ph.p_type != PT_LOAD) continue;
+        if (rela_vaddr >= ph.p_vaddr && rela_vaddr < ph.p_vaddr + ph.p_filesz)
+        {
+            uintptr_t offset_in_seg = rela_vaddr - ph.p_vaddr;
+            rela = reinterpret_cast<const Elf64_Rela*>(
+                static_cast<const uint8_t*>(file_data) + ph.p_offset + offset_in_seg
+            );
             break;
         }
     }
 
-    if (!rela || rela_sz == 0)
-    {
-        return true;
-    }
+    if (!rela) return true;
 
     size_t count = rela_sz / rela_ent;
 
     for (size_t i = 0; i < count; ++i)
     {
-        Elf64_Rela& r = rela[i];
+        const Elf64_Rela& r = rela[i];
         uint32_t type = ELF64_R_TYPE(r.r_info);
 
         if (type == R_X86_64_RELATIVE)
         {
-            auto* where = reinterpret_cast<uint64_t*>(
-                r.r_offset + load_bias
-            );
+            uintptr_t target_vaddr = r.r_offset + load_bias;
 
+            void* phys = realm_get_phys(realm, target_vaddr);
+            if (!phys) continue;
+
+            auto* where = static_cast<uint64_t*>(phys_to_virt(reinterpret_cast<uint64_t>(phys)));
             *where = load_bias + r.r_addend;
-        }
-        else if (type == R_X86_64_IRELATIVE)
-        {
-            typedef uint64_t (*functype)(void);
-            functype fn = reinterpret_cast<functype>(load_bias + r.r_addend);
-            auto* where = reinterpret_cast<uint64_t*>(r.r_offset + load_bias);
-            *where = fn();
         }
     }
 
     return true;
 }
-
 
 // Validation
 
@@ -447,42 +463,45 @@ bool ElfLoader::load_segment(
             (phdr.p_flags & PF_W) ? 'W' : '-',
             (phdr.p_flags & PF_X) ? 'X' : '-');
 
-    void* phys = kernel::memory::request_pages(map_size / PAGE_SIZE);
+    uint64_t phys = kernel::memory::request_pages_phys(map_size / PAGE_SIZE);
     if (!phys)
     {
         ELF_LOG("[ELF] Failed to allocate physical memory for segment");
         return false;
     }
 
-    // Flags (PF_R/W/X + User-Bit)
-    uint64_t flags = phdr.p_flags | (1ULL << UserSuper);
+    void* virt = phys_to_virt(phys);
+    memset(virt, 0, map_size);
+
+    if (file_size > 0)
+    {
+        memcpy(
+            static_cast<uint8_t*>(virt) + page_offset,
+            static_cast<const uint8_t*>(file_data) + phdr.p_offset,
+            file_size
+        );
+    }
+
+    if (memory_size > file_size)
+    {
+        memset(
+            static_cast<uint8_t*>(virt) + page_offset + file_size,
+            0,
+            memory_size - file_size
+        );
+    }
+
+    uint64_t pt_flags = (1ULL << PT_Flag::Present)
+                      | (1ULL << PT_Flag::UserSuper);
+    if (phdr.p_flags & PF_W)
+        pt_flags |= (1ULL << PT_Flag::ReadWrite);
 
     realm->page_table->map_range(
         reinterpret_cast<void*>(page_start),
-        phys,
+        reinterpret_cast<void*>(phys),
         map_size,
-        flags
+        pt_flags
     );
-
-    void* dest = reinterpret_cast<uint8_t*>(page_start) + page_offset;
-    if (file_size > 0)
-    {
-        memcpy(dest,
-               static_cast<const uint8_t*>(file_data) + phdr.p_offset,
-               file_size);
-    }
-
-    // Zero bss
-    if (memory_size > file_size)
-    {
-        memset(static_cast<uint8_t*>(dest) + file_size,
-               0,
-               memory_size - file_size);
-
-        ELF_LOG("[ELF] BSS cleared: 0x%lx + 0x%lx (%lu bytes)",
-                reinterpret_cast<uintptr_t>(dest), file_size,
-                memory_size - file_size);
-    }
 
     return true;
 }

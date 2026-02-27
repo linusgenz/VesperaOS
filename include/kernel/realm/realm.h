@@ -44,6 +44,7 @@ public:
     uint64_t unit_count;
 
     PageTable *pml4;
+    uint64_t pml4_phys;
     PageTableManager *page_table;
 
     char cwd_path[256];

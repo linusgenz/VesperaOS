@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IMG_FILE="$1"
-LIMINE_DIR="$2"      # Pfad zum Limine-Submodul (z.B. /src/limine)
+LIMINE_DIR="$2"
 KERNEL_ELF="$3"
 SRC_DIR="$4"
 
@@ -10,7 +10,6 @@ SRC_DIR="$4"
 IMG_SIZE_MB=128
 EFI_SIZE_MB=64
 
-# Temporäre Mountpoints
 MNT_DIR=$(mktemp -d)
 EFI_MNT="$MNT_DIR/efi"
 ROOT_MNT="$MNT_DIR/root"
@@ -29,7 +28,6 @@ echo "[make_disk] Creating disk image: $IMG_FILE"
 rm -f "$IMG_FILE"
 dd if=/dev/zero of="$IMG_FILE" bs=1M count=$IMG_SIZE_MB
 
-# Partitionstabelle
 parted --script "$IMG_FILE" mklabel gpt
 parted --script "$IMG_FILE" mkpart EFI  fat32 1MiB     ${EFI_SIZE_MB}MiB
 parted --script "$IMG_FILE" set 1 esp on
@@ -43,9 +41,8 @@ sudo mkfs.fat -F 32 -n "VesperaRoot" "${LOOPDEV}p2"
 
 # ────────────────────────────────────────────────────────────────
 # EFI Partition
-# Limine braucht:
 #   /EFI/BOOT/BOOTX64.EFI   ← Limine EFI Binary
-#   /limine.conf             ← Boot Konfiguration
+#   /limine.conf             ← Boot config
 #   /kernel.elf              ← Kernel
 # ────────────────────────────────────────────────────────────────
 
@@ -58,7 +55,6 @@ sudo cp "$LIMINE_DIR/BOOTX64.EFI"       "$EFI_MNT/EFI/BOOT/BOOTX64.EFI"
 sudo cp "$SRC_DIR/limine.conf"          "$EFI_MNT/limine.conf"
 sudo cp "$KERNEL_ELF"                   "$EFI_MNT/kernel.elf"
 
-# Limine BIOS Support (optional bei reinem UEFI, schadet nicht)
 sudo cp "$LIMINE_DIR/limine-bios.sys"   "$EFI_MNT/" 2>/dev/null || true
 
 sudo umount "$EFI_MNT"
@@ -87,15 +83,6 @@ sudo cp "$SRC_DIR/userspace/bin/uptime"  "$ROOT_MNT/bin/uptime"
 sudo cp "$SRC_DIR/build/test.jpg"        "$ROOT_MNT/"
 
 sudo umount "$ROOT_MNT"
-
-# ────────────────────────────────────────────────────────────────
-# Limine BIOS MBR (für BIOS-Boot, bei UEFI-only optional)
-# ────────────────────────────────────────────────────────────────
-
-if [ -f "$LIMINE_DIR/limine" ]; then
-    sudo "$LIMINE_DIR/limine" bios-install "$IMG_FILE" 2>/dev/null || true
-    echo "[make_disk] Limine BIOS MBR installed"
-fi
 
 sudo losetup -d "$LOOPDEV"
 LOOPDEV=""

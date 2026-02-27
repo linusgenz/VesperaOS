@@ -140,11 +140,10 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
-    while (1);
-    Log::Info("CPU Vendor: %s", vendor);
+   // Log::Info("CPU Vendor: %s", vendor); WHY DOES THIS NOT WORK? investigate
     char brand[49];
     get_cpu_brand(brand);
-    Log::Info("CPU Brand: %s", brand);
+  //  Log::Info("CPU Brand: %s", brand);
     Log::Ok("Kernel initialized successfully");
     Log::Info("Kernel version: %s", get_kernel_version());
 
@@ -164,6 +163,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     {
         Log::Error("Failed to load elf binary: %s", result.error_message);
     }
+    while (1);
 
     const char *argv_example[] = {
         "shell",

@@ -150,7 +150,7 @@ static void initialize_hardware_buses()
     initialize_input_bus();
     PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
 
-    if (USBManager::wait_for_all_controllers(10000))
+    if (USBManager::wait_for_all_controllers(2000)) // TODO
     {
         Log::Info("All USB controllers ready");
     }
@@ -201,7 +201,6 @@ void initialize_kernel(BootInfo* boot_info)
     initialize_scheduling_and_smp();
 
     initialize_hardware_buses();
-    while (1);
 
     initialize_user_space_interfaces();
 

@@ -197,7 +197,7 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
     desc.device_size = device->get_size();
     desc.is_recognized = true;
     desc.fs_info = fs_info;
-    desc.partition_table_type = strdup(table_type);
+    desc.partition_table_type = table_type ? strdup(table_type) : nullptr;
 
     auto* mp = new MountPoint();
     strncpy(mp->path, suggested_path, sizeof(mp->path) - 1);
@@ -228,7 +228,7 @@ void FilesystemDetector::ScanAndMountAll()
     int successful_mounts = 0;
     static bool root_assigned = false;
 
-    const char* table_type = nullptr;
+    const char* table_type = nullptr; // TODO set table_type
     for (size_t i = 0; i < devices.size(); ++i)
     {
         const KernelDevice* kd = devices[i];

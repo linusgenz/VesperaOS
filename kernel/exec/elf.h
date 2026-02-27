@@ -403,7 +403,7 @@ public:
     };
 
     static LoadResult load(const char* path, uintptr_t preferred_base, const Realm* realm);
-    static bool apply_relocations(const Elf64_Ehdr* header, const void* file_data, uintptr_t load_bias);
+    static bool apply_relocations(const Elf64_Ehdr* header, const void* file_data, uintptr_t load_bias, const Realm* realm);
 
 private:
     struct ElfSegment

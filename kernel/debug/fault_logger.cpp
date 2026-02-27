@@ -43,6 +43,7 @@ namespace kernel::debug
          //   auto u = scheduling::get_current_unit();
         //    Log::Error("%s: %s on CPU#%u on Unit#%u (%s)", type_str, extra_msg, CPUManager::get_current_cpu_id(), u->id,
          //              u->name);
+            Log::Error("%s: %s", type_str, extra_msg);
         }
         else
         {
@@ -51,6 +52,7 @@ namespace kernel::debug
 
         Log::Error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx",
                    ctx.rip, ctx.cs, ctx.rsp, ctx.rflags);
+        while (1);
 
         if (ctx.error_code != 0)
         {
