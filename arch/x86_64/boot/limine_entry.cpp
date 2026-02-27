@@ -25,9 +25,6 @@
 #include <boot.h>
 #include <graphics.h>
 
-// ============================================================================
-// Limine Requests
-// ============================================================================
 
 __attribute__((used, section(".requests_start_marker")))
 static volatile LIMINE_REQUESTS_START_MARKER;
@@ -60,11 +57,6 @@ static volatile limine_kernel_address_request kaddr_request = {
     .response = nullptr
 };
 
-// HHDM: Higher Half Direct Map
-// Limine mappt den gesamten physischen RAM ins Higher Half.
-// Alle Pointer die Limine zurückgibt (Framebuffer, RSDP, ...) sind
-// HHDM-virtuelle Adressen. Nach unserem eigenen CR3-Wechsel müssen wir
-// wissen: phys = virt - hhdm_offset
 __attribute__((used, section(".requests")))
 static volatile limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
@@ -75,9 +67,6 @@ static volatile limine_hhdm_request hhdm_request = {
 __attribute__((used, section(".requests_end_marker")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
-// ============================================================================
-// Eingebetteter PSF Font (via objcopy)
-// ============================================================================
 
 extern "C" {
     extern uint8_t _binary_zap_light24_psf_start[];
@@ -85,18 +74,12 @@ extern "C" {
     extern uint8_t _binary_zap_light24_psf_size[];
 }
 
-// ============================================================================
-// Statische Boot-Strukturen (kein Heap beim Boot verfügbar)
-// ============================================================================
 
 static Framebuffer          framebuffer;
 static BootInfo             boot_info;
 static FONT                 embedded_font;
 static EFI_MEMORY_DESCRIPTOR efi_map[512];
 
-// ============================================================================
-// Hilfsfunktionen
-// ============================================================================
 
 static void hlt_forever() {
     while (true) asm volatile("cli; hlt");

@@ -123,11 +123,12 @@ namespace arch::x86_64::interrupts::idt
 
     void load_default_idt()
     {
-        void* idt_page = kernel::memory::request_page();
-        memset(idt_page, 0, 0x1000);
+        void* idt_virt = kernel::memory::request_page();
+
+        memset(idt_virt, 0, 0x1000);
 
         idtr.limit = 0x0FFF;
-        idtr.offset = reinterpret_cast<uint64_t>(idt_page);
+        idtr.offset = reinterpret_cast<uint64_t>(idt_virt);
 
         // Standard Exception Handlers
         set_idt_gate(isr_divide_error, 0x00, IDT_TA_InterruptGate, 0x08);
@@ -145,6 +146,7 @@ namespace arch::x86_64::interrupts::idt
         set_idt_gate(isr_spurious_int, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
         set_idt_gate(isr_panic_ipi, IRQ_PANIC, IDT_TA_InterruptGate, 0x08);
 
+        Log::debug("Loading IDT: %x page-offset: %p", idtr, idt_virt);
         asm ("lidt %0" : : "m" (idtr));
         asm ("cli");
     }

@@ -27,20 +27,24 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
         PageDirectoryEntry &entry = parent->entries[index];
 
         if (!entry.get_flag(PT_Flag::Present)) {
-            auto *new_table = static_cast<PageTable*>(kernel::memory::request_page());
-            if (!new_table) return nullptr;
-            memset(new_table, 0, 0x1000);
-            entry.set_address(reinterpret_cast<uint64_t>(new_table) >> 12);
+            uint64_t new_phys = kernel::memory::request_page_phys();
+            if (!new_phys) return nullptr;
+
+            auto* new_virt = static_cast<PageTable*>(phys_to_virt(new_phys));
+            memset(new_virt, 0, 0x1000);
+
+            entry.set_address(new_phys >> 12);
         }
-        // Immer die Flags korrekt setzen
         entry.set_flag(PT_Flag::Present, true);
         entry.set_flag(PT_Flag::ReadWrite, true);
         entry.set_flag(PT_Flag::UserSuper, true);
 
-        return reinterpret_cast<PageTable *>(entry.get_address() << 12);
+        return static_cast<PageTable*>(phys_to_virt(entry.get_address() << 12));
     };
 
-    PageTable *PDP = ensure_table(PML4, indexer.PDP_i);
+    auto* pml4_virt = static_cast<PageTable*>(phys_to_virt(reinterpret_cast<uint64_t>(PML4)));
+
+    PageTable *PDP = ensure_table(pml4_virt, indexer.PDP_i);
     if (!PDP) return;
 
     PageTable *PD = ensure_table(PDP, indexer.PD_i);
@@ -52,15 +56,11 @@ void PageTableManager::map_memory(void *virtual_memory, void *physical_memory, u
     PageDirectoryEntry &final_entry = PT->entries[indexer.P_i];
     final_entry.set_address(reinterpret_cast<uint64_t>(physical_memory) >> 12);
 
-    // Default Flags (immer present + rw)
     flags |= (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite);
-
     for (int bit = 0; bit < 64; ++bit) {
-        if (flags & (1ULL << bit)) {
+        if (flags & (1ULL << bit))
             final_entry.set_flag(static_cast<PT_Flag>(bit), true);
-        }
     }
-
     PT->entries[indexer.P_i] = final_entry;
 
     invlpg(virtual_memory);

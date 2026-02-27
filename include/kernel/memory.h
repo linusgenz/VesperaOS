@@ -10,7 +10,9 @@
 #include "efi_memory.h"
 
 #define PAGE_SIZE 4096
-#define KERNEL_BASE 0xFFFFFFFF80000000
+inline uint64_t g_hhdm_offset = 0;
+inline uint64_t g_kernel_phys_base = 0;
+inline uint64_t g_kernel_virt_base = 0;
 
 struct PageTable;
 
@@ -23,6 +25,8 @@ void* memcpy(void* dest, const void* src, size_t len);
 int memcmp(const void* ptr1, const void* ptr2, size_t num);
 
 void* memmove(void* dest, const void* src, size_t len);
+
+void* phys_to_virt(uint64_t phys_addr);
 
 enum PT_Flag
 {
@@ -46,7 +50,7 @@ namespace kernel::memory
     void initialize_memory(BootInfo* bootInfo);
 
     // Page Table Management
-    void initialize_page_table_manager();
+    void initialize_page_table_manager(BootInfo* bootInfo);
 
     void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags = 0);
 
@@ -75,9 +79,15 @@ namespace kernel::memory
 
     void lock_pages(void* virtual_addr, uint64_t page_count);
 
+    void relocate_bitmap_to_hhdm();
+
     [[nodiscard]] void* request_page();
 
+    [[nodiscard]] uint64_t request_page_phys();
+
     [[nodiscard]] void* request_pages(size_t pageCount);
+
+    [[nodiscard]] uint64_t request_pages_phys(size_t pageCount);
 
     [[nodiscard]] uint64_t get_free_ram();
 

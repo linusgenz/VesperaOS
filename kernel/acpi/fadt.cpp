@@ -59,9 +59,8 @@ namespace ACPI {
         uint64_t dsdt_phys = fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt;
         if (dsdt_phys == 0) return;
 
-        kernel::memory::map_memory(reinterpret_cast<void*>(dsdt_phys), reinterpret_cast<void*>(dsdt_phys));
-        auto* header = reinterpret_cast<SDTHeader*>(dsdt_phys);
-        auto* dsdt = reinterpret_cast<uint8_t*>(dsdt_phys);
+        const auto* header = static_cast<SDTHeader*>(phys_to_virt(dsdt_phys));
+        auto* dsdt = static_cast<uint8_t*>(phys_to_virt(dsdt_phys));
         size_t length = header->length;
 
         parse_s5(dsdt, length);

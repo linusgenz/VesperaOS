@@ -5,6 +5,8 @@
 
 #include <log.h>
 
+#include "../cpu/io.h"
+
 
 PageFrameAllocator global_allocator;
 
@@ -56,18 +58,24 @@ void PageFrameAllocator::init_bitmap(const size_t bitmap_size, void* buffer_addr
     }
 }
 
+void PageFrameAllocator::relocate_bitmap_to_hhdm() {
+    page_bitmap.buffer = reinterpret_cast<uint8_t*>(
+        reinterpret_cast<uint64_t>(page_bitmap.buffer) + g_hhdm_offset
+    );
+}
+
 uint64_t page_bitmap_index = 0;
-void* PageFrameAllocator::request_page(){
+uint64_t PageFrameAllocator::request_page(){
     for (; page_bitmap_index < page_bitmap.size * 8; page_bitmap_index++){
         if (page_bitmap[page_bitmap_index] == true) continue;
         lock_page(reinterpret_cast<void*>(page_bitmap_index * 4096));
-        return reinterpret_cast<void*>(page_bitmap_index * 4096);
+        return (page_bitmap_index * 4096);
     }
 
-    return nullptr; // Page Frame Swap to file
+    return 0; // Page Frame Swap to file
 }
 
-void* PageFrameAllocator::request_pages(const size_t page_count) {
+uint64_t PageFrameAllocator::request_pages(const size_t page_count) {
     if (page_count == 1) return request_page();
 
     const size_t maxPages = page_bitmap.size * 8;
@@ -87,11 +95,11 @@ void* PageFrameAllocator::request_pages(const size_t page_count) {
             for (size_t j = 0; j < page_count; j++) {
                 lock_page(reinterpret_cast<void*>((i + j) * 4096));
             }
-            return reinterpret_cast<void*>(i * 4096);
+            return (i * 4096);
         }
     }
 
-    return nullptr; // nothing found
+    return 0; // nothing found
 }
 
 void PageFrameAllocator::free_page(void* address){

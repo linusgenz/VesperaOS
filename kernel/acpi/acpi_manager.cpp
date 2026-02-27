@@ -1,5 +1,7 @@
 #include "acpi_manager.h"
 
+#include <kernel/memory.h>
+
 namespace ACPI
 {
     // Static member initialization
@@ -10,7 +12,9 @@ namespace ACPI
 
     void TableManager::init(const BootInfo* boot_info)
     {
-        xsdt = reinterpret_cast<SDTHeader*>(boot_info->rsdp->xsdt_address);
+        xsdt = static_cast<SDTHeader*>(
+            phys_to_virt(boot_info->rsdp->xsdt_address)
+        );
 
         // Find and cache all known tables
         madt = reinterpret_cast<MADTHeader*>(find_table("APIC"));
@@ -29,16 +33,11 @@ namespace ACPI
 
         for (uint32_t i = 0; i < entry_count; i++)
         {
-            auto* header = reinterpret_cast<SDTHeader*>(entries[i]);
-
-            // Compare signature (4 bytes)
-            if (header->signature[0] == signature[0] &&
-                header->signature[1] == signature[1] &&
-                header->signature[2] == signature[2] &&
-                header->signature[3] == signature[3])
-            {
+            auto* header = static_cast<SDTHeader*>(
+                phys_to_virt(entries[i])
+            );
+            if (memcmp(header->signature, signature, 4) == 0)
                 return header;
-            }
         }
 
         return nullptr;

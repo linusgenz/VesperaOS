@@ -28,9 +28,9 @@ public:
 
     void lock_pages(void *address, uint64_t page_count);
 
-    void *request_page();
+    uint64_t request_page();
 
-    void *request_pages(size_t page_count);
+    uint64_t request_pages(size_t page_count);
 
     [[nodiscard]] uint64_t get_free_ram() const;
 
@@ -39,6 +39,8 @@ public:
     [[nodiscard]] uint64_t get_reserved_ram() const;
 
     [[nodiscard]] uint64_t get_total_ram() const;
+
+    void relocate_bitmap_to_hhdm();
 
 private:
     void init_bitmap(size_t bitmap_size, void *buffer_address);

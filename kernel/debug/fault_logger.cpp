@@ -40,9 +40,9 @@ namespace kernel::debug
 
         if (extra_msg && *extra_msg)
         {
-            auto u = scheduling::get_current_unit();
-            Log::Error("%s: %s on CPU#%u on Unit#%u (%s)", type_str, extra_msg, CPUManager::get_current_cpu_id(), u->id,
-                       u->name);
+         //   auto u = scheduling::get_current_unit();
+        //    Log::Error("%s: %s on CPU#%u on Unit#%u (%s)", type_str, extra_msg, CPUManager::get_current_cpu_id(), u->id,
+         //              u->name);
         }
         else
         {

@@ -203,11 +203,12 @@ bool initialize_heap(void* heap_address, size_t page_count)
     }
 
     void* pos = heap_address;
+    outb(0x3F8, 'H');
 
     // Seiten mappen
     for (size_t i = 0; i < page_count; i++)
     {
-        kernel::memory::map_memory(pos, kernel::memory::request_page());
+        kernel::memory::map_memory(pos, (void*)kernel::memory::request_page_phys());
         memset(pos, 0, PAGE_SIZE);
         pos = reinterpret_cast<void*>(reinterpret_cast<size_t>(pos) + 0x1000);
     }
@@ -309,10 +310,8 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size)
 
 void* malloc(size_t size)
 {
-    outb(0x3F8, 'H');
     if (!heap_initialized || size == 0)
     {
-        outb(0x3F8, 'X');
         return nullptr;
     }
 
@@ -321,27 +320,16 @@ void* malloc(size_t size)
     HeapSegHdr* seg = find_free_segment(size);
     if (seg)
     {
-        auto x = allocate_from_segment(seg, size);
-        outb(0x3F8, ' ');
-        for (int i = 60; i >= 0; i -= 4)
-        {
-            uint8_t nibble = ((uint64_t)x >> i) & 0xF;
-            outb(0x3F8, nibble < 10 ? '0' + nibble : 'A' + nibble - 10);
-        }
-        outb(0x3F8, ' ');
-
-        return x;
+        return allocate_from_segment(seg, size);
     }
 
-    outb(0x3F8, 'E');
-    outb(0x3F8, 'E');
     expand_heap(size);
     seg = find_free_segment(size);
     if (seg)
     {
         return allocate_from_segment(seg, size);
     }
-    outb(0x3F8, 'N');
+
     return nullptr;
 }
 
