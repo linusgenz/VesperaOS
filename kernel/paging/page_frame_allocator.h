@@ -20,9 +20,9 @@ public:
 
     Bitmap page_bitmap{};
 
-    void free_page(void *address);
+    void free_page(uint64_t phys_addr);
 
-    void free_pages(void *address, uint64_t page_count);
+    void free_pages(uint64_t phys_addr, uint64_t page_count);
 
     void lock_page(void *address);
 

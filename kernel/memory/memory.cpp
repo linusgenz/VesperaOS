@@ -72,6 +72,11 @@ void* phys_to_virt(const uint64_t phys_addr)
     return reinterpret_cast<void*>(phys_addr + g_hhdm_offset);
 }
 
+uint64_t virt_to_phys(const void* virt_addr)
+{
+    return reinterpret_cast<uint64_t>(virt_addr) - g_hhdm_offset;
+}
+
 namespace kernel::memory
 {
     static PageFrameAllocator page_frame_allocator;
@@ -105,8 +110,8 @@ namespace kernel::memory
             page_table_manager.map_memory(virt, reinterpret_cast<void*>(phys), 0);
         }
 
-        const uint64_t kVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
-        const uint64_t kVirtEnd = reinterpret_cast<uint64_t>(&_KernelEnd);
+        const auto kVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
+        const auto kVirtEnd = reinterpret_cast<uint64_t>(&_KernelEnd);
         for (uint64_t virt = kVirtStart; virt < kVirtEnd; virt += 0x1000)
         {
             uint64_t phys = virt - g_kernel_virt_base + g_kernel_phys_base;
@@ -199,14 +204,26 @@ namespace kernel::memory
         return page_frame_allocator.request_page();
     }
 
-    void free_page(void* virtual_addr)
+    void free_page(const void* virt_addr)
     {
-        page_frame_allocator.free_page(virtual_addr);
+        uint64_t phys_addr = virt_to_phys(virt_addr);
+        page_frame_allocator.free_page(phys_addr);
     }
 
-    void free_pages(void* virtual_addr, const uint64_t page_count)
+    void free_page_phys(const uint64_t phys_addr)
     {
-        page_frame_allocator.free_pages(virtual_addr, page_count);
+        page_frame_allocator.free_page(phys_addr);
+    }
+
+    void free_pages(const void* virt_addr, const uint64_t page_count)
+    {
+        uint64_t phys_addr = virt_to_phys(virt_addr);
+        page_frame_allocator.free_pages(phys_addr, page_count);
+    }
+
+    void free_pages_phys(uint64_t phys_addr, const uint64_t page_count)
+    {
+        page_frame_allocator.free_pages(phys_addr, page_count);
     }
 
     void relocate_bitmap_to_hhdm()

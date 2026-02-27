@@ -217,7 +217,6 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
             }
             memset(u->context.stack, 0, u->context.stack_size);
 
-            kernel::memory::map_range(u->context.stack, u->context.stack, stack_size);
             u->context.stack_size = stack_size;
             u->context.stack_top = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(u->context.stack) + stack_size);
             u->context.stack_pointer = u->context.stack_top;
@@ -308,9 +307,8 @@ bool UnitManager::destroy(const UnitID id)
             u->detach_all_handles();
 
             if (u->context.stack)
-            { // TODO fix and set to page table of unit
+            {
                 size_t pages = (u->context.stack_size + 0xFFF) / 0x1000;
-                kernel::memory::unmap_range(u->context.stack, u->context.stack_size);
                 kernel::memory::free_pages(u->context.stack, pages);
                 u->context.stack = nullptr;
             }
@@ -318,6 +316,7 @@ bool UnitManager::destroy(const UnitID id)
             if (u->is_user && u->context.user_stack)
             {
                 size_t user_pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
+                // TODO fix and set to page table of unit
                 kernel::memory::unmap_range(u->context.user_stack, u->context.user_stack_size);
                 kernel::memory::free_pages(u->context.user_stack, user_pages);
                 u->context.user_stack = nullptr;

@@ -120,33 +120,34 @@ namespace AHCI
     void Port::Configure() const
     {
         StopCMD();
-        // we have to use pages here because we need physical addresses
-        void* newBase = kernel::memory::request_page();
 
-        hbaPort->commandListBase = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(newBase));
-        hbaPort->commandListBaseUpper = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(newBase) >> 32);
+        uint64_t cmdListPhys = kernel::memory::request_page_phys();
+        void* cmdListVirt = phys_to_virt(cmdListPhys);
 
-        auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(
-            reinterpret_cast<uintptr_t>(newBase)
-        );
+        hbaPort->commandListBase = static_cast<uint32_t>(cmdListPhys);
+        hbaPort->commandListBaseUpper = static_cast<uint32_t>(cmdListPhys >> 32);
 
-        memset(newBase, 0, 1024);
+        auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(cmdListVirt);
+        memset(cmdListVirt, 0, 1024);
 
-        void* fisBase = kernel::memory::request_page();
-        hbaPort->fisBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase));
-        hbaPort->fisBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(fisBase) >> 32);
-        memset(fisBase, 0, 256);
+        uint64_t fisPhys = kernel::memory::request_page_phys();
+        void* fisVirt = phys_to_virt(fisPhys);
 
+        hbaPort->fisBaseAddress = static_cast<uint32_t>(fisPhys);
+        hbaPort->fisBaseAddressUpper = static_cast<uint32_t>(fisPhys >> 32);
+        memset(fisVirt, 0, 256);
 
         for (int i = 0; i < 32; i++)
         {
             cmdHeader[i].prdtLength = 8;
 
-            void* cmdTableAddress = kernel::memory::request_page();
-            const uint64_t address = reinterpret_cast<uint64_t>(cmdTableAddress) + (i << 8);
-            cmdHeader[i].commandTableBaseAddress = static_cast<uint32_t>(address);
-            cmdHeader[i].commandTableBaseAddressUpper = static_cast<uint32_t>(address >> 32);
-            memset(cmdTableAddress, 0, 256);
+            uint64_t tablePhys = kernel::memory::request_page_phys();
+            void* tableVirt = phys_to_virt(tablePhys);
+
+            uint64_t tablePhysOffset = tablePhys + (i << 8);
+            cmdHeader[i].commandTableBaseAddress = static_cast<uint32_t>(tablePhysOffset);
+            cmdHeader[i].commandTableBaseAddressUpper = static_cast<uint32_t>(tablePhysOffset >> 32);
+            memset(tableVirt, 0, 256);
         }
 
         StartCMD();
@@ -188,50 +189,35 @@ namespace AHCI
 
     bool Port::Identify()
     {
-        identify = static_cast<IDENTIFY_DEVICE_DATA*>(kernel::memory::request_page());
-        memset(identify, 0, 4096);
+        uint64_t identifyPhys = kernel::memory::request_page_phys();
+        identify = static_cast<IDENTIFY_DEVICE_DATA*>(phys_to_virt(identifyPhys));
+        memset(identify, 0, 0x1000);
 
         kernel::mutex_guard guard(portMutex);
-
         hbaPort->interruptStatus = static_cast<uint32_t>(-1);
 
-        const uint64_t cmdListPhys =
-            static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
-            static_cast<uint64_t>(hbaPort->commandListBase);
-        auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(cmdListPhys);
+        uint64_t cmdListPhys = static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32
+                             | static_cast<uint64_t>(hbaPort->commandListBase);
+        auto* cmdHeader = static_cast<HBACommandHeader*>(phys_to_virt(cmdListPhys));
 
         cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
         cmdHeader->write = 0;
         cmdHeader->prdtLength = 1;
 
-        const uint64_t cmdTablePhys =
-            static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
-            static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
-
-        auto* commandTable = reinterpret_cast<HBACommandTable*>(cmdTablePhys);
+        const uint64_t cmdTablePhys = static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32
+                              | static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
+        auto* commandTable = static_cast<HBACommandTable*>(phys_to_virt(cmdTablePhys));
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(identify));
-        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(identify)
-            >> 32);
-        commandTable->prdtEntry[0].byteCount = 511; // 512 bytes - 1
+        commandTable->prdtEntry[0].dataBaseAddress      = static_cast<uint32_t>(identifyPhys);
+        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(identifyPhys >> 32);
+        commandTable->prdtEntry[0].byteCount = 511;
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
 
         auto* cmdFIS = reinterpret_cast<FIS_REG_H2D*>(&commandTable->commandFIS);
         cmdFIS->fisType = FIS_TYPE_REG_H2D;
         cmdFIS->commandControl = 1;
         cmdFIS->command = ATA_CMD_IDENTIFY;
-
-        uint64_t spin = 0;
-        while (hbaPort->taskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ) && spin < 1000000)
-        {
-            spin++;
-        }
-        if (spin == 1000000)
-        {
-            Log::Warning("[ AHCI ] IDENTIFY timeout");
-            return false;
-        }
 
         hbaPort->commandIssue = 1;
 
@@ -282,7 +268,8 @@ namespace AHCI
         kernel::mutex_guard guard(portMutex);
 
         size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
-        void* dma_phys = kernel::memory::request_pages(pages);
+        uint64_t dma_phys = kernel::memory::request_pages_phys(pages);
+        void* dma = phys_to_virt(dma_phys);
         if (!dma_phys) return -ENOMEM;
 
         const auto sectorL = static_cast<uint32_t>(sector);
@@ -293,7 +280,7 @@ namespace AHCI
         const uint64_t cmdListPhys =
             static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
             static_cast<uint64_t>(hbaPort->commandListBase);
-        auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(cmdListPhys);
+        auto* cmdHeader = static_cast<HBACommandHeader*>(phys_to_virt(cmdListPhys));
         cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
         cmdHeader->write = 0; //this is a read
         cmdHeader->prdtLength = 1;
@@ -302,11 +289,11 @@ namespace AHCI
             static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
             static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
 
-        auto* commandTable = reinterpret_cast<HBACommandTable*>(cmdTablePhys);
+        auto* commandTable = static_cast<HBACommandTable*>(phys_to_virt(cmdTablePhys));
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(dma_phys));
-        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(dma_phys) >>
+        commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(dma_phys);
+        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(dma_phys >>
             32);
         commandTable->prdtEntry[0].byteCount = sectorCount * sector_size - 1; // (sectorCount<<9)-1;
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
@@ -340,14 +327,14 @@ namespace AHCI
 
         if (lastError)
         {
-            kernel::memory::free_pages(dma_phys, pages);
+            kernel::memory::free_pages_phys(dma_phys, pages);
             Log::Error("[ AHCI ] Read disk error");
             return -EIO;
         }
 
-        memcpy(buffer, dma_phys, bytes);
+        memcpy(buffer, dma, bytes);
 
-        kernel::memory::free_pages(dma_phys, pages);
+        kernel::memory::free_pages_phys(dma_phys, pages);
         return static_cast<ssize_t>(bytes);
     }
 
@@ -359,10 +346,11 @@ namespace AHCI
         kernel::mutex_guard guard(portMutex);
 
         size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
-        void* dma_phys = kernel::memory::request_pages(pages);
+        uint64_t dma_phys = kernel::memory::request_pages_phys(pages);
+        void* dma = phys_to_virt(dma_phys);
         if (!dma_phys) return -ENOMEM;
 
-        memcpy(dma_phys, buffer, bytes);
+        memcpy(dma, buffer, bytes);
 
         const auto sectorL = static_cast<uint32_t>(sector);
         const auto sectorH = static_cast<uint32_t>(sector >> 32);
@@ -372,7 +360,7 @@ namespace AHCI
         const uint64_t cmdListPhys =
             static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
             static_cast<uint64_t>(hbaPort->commandListBase);
-        auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(cmdListPhys);
+        auto* cmdHeader = static_cast<HBACommandHeader*>(phys_to_virt(cmdListPhys));
         cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
         cmdHeader->write = 1;
         cmdHeader->prdtLength = 1;
@@ -381,11 +369,11 @@ namespace AHCI
             static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
             static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
 
-        auto* commandTable = reinterpret_cast<HBACommandTable*>(cmdTablePhys);
+        auto* commandTable = static_cast<HBACommandTable*>(phys_to_virt(cmdTablePhys));
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(reinterpret_cast<uint64_t>(dma_phys));
-        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(reinterpret_cast<uint64_t>(dma_phys) >>
+        commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(dma_phys);
+        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(dma_phys >>
             32);
         commandTable->prdtEntry[0].byteCount = sectorCount * 512 - 1;
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
@@ -418,12 +406,12 @@ namespace AHCI
 
         if (lastError)
         {
-            kernel::memory::free_pages(dma_phys, pages);
+            kernel::memory::free_pages_phys(dma_phys, pages);
             Log::Error("[ AHCI ] Read disk error");
             return -EIO;
         }
 
-        kernel::memory::free_pages(dma_phys, pages);
+        kernel::memory::free_pages_phys(dma_phys, pages);
         return static_cast<ssize_t>(bytes);
     }
 
@@ -441,9 +429,15 @@ namespace AHCI
             ControllerType::AHCI
         );
 
-        ABAR = (HBAMemory*)((PCI::PCIHeader0*)pciBaseAddress)->BAR5;
+        const uint64_t abar_phys = reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress)->BAR5;
+        ABAR = static_cast<HBAMemory*>(phys_to_virt(abar_phys));
+        kernel::memory::map_memory(
+            ABAR,
+            reinterpret_cast<void*>(abar_phys),
+            (1ULL << PT_Flag::CacheDisabled) |
+            (1ULL << PT_Flag::WriteThrough)
+        );
 
-        kernel::memory::map_memory(ABAR, ABAR, (1ULL << WriteThrough) | (1ULL << CacheDisabled));
         ProbePorts();
 
         uint8_t vector = kernel::interrupts::get_free_vector();

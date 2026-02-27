@@ -102,8 +102,8 @@ uint64_t PageFrameAllocator::request_pages(const size_t page_count) {
     return 0; // nothing found
 }
 
-void PageFrameAllocator::free_page(void* address){
-    uint64_t index = reinterpret_cast<uint64_t>(address) / 4096;
+void PageFrameAllocator::free_page(uint64_t phys_addr){
+    uint64_t index = phys_addr / 4096;
     if (page_bitmap[index] == false) return;
     if (page_bitmap.set(index, false)) {
         free_memory += 4096;
@@ -112,9 +112,9 @@ void PageFrameAllocator::free_page(void* address){
     }
 }
 
-void PageFrameAllocator::free_pages(void* address, uint64_t page_count){
+void PageFrameAllocator::free_pages(uint64_t address, uint64_t page_count){
     for (int t = 0; t < page_count; t++){
-        free_page(reinterpret_cast<void*>(reinterpret_cast<uint64_t>(address) + (t * 4096)));
+        free_page((address + (t * 4096)));
     }
 }
 

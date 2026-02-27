@@ -201,6 +201,7 @@ void initialize_kernel(BootInfo* boot_info)
     initialize_scheduling_and_smp();
 
     initialize_hardware_buses();
+    while (1);
 
     initialize_user_space_interfaces();
 

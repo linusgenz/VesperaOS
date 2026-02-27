@@ -71,9 +71,13 @@ namespace kernel::memory
     // Page Frame Allocator
     void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size);
 
-    void free_page(void* virtual_addr);
+    void free_page(const void* virtual_addr);
 
-    void free_pages(void* virtual_addr, uint64_t page_count);
+    void free_page_phys(uint64_t phys_addr);
+
+    void free_pages(const void* virtual_addr, uint64_t page_count);
+
+    void free_pages_phys(uint64_t phys_addr, uint64_t page_count);
 
     void lock_page(void* virtual_addr);
 
