@@ -20,7 +20,7 @@ namespace USB
     public:
         explicit xhciDriver(uint8_t _vector_num, const char* _name, uint8_t _bus_number);
 
-        [[nodiscard]] KernelDevice* get_device() const { return device; }
+        [[nodiscard]] KernelDevice* get_device() const { return kd; }
 
         ~xhciDriver() override = default;
 
@@ -47,7 +47,7 @@ namespace USB
         ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
 
     private:
-        KernelDevice* device;
+        KernelDevice* kd;
 
         spinlock_t m_devices_lock{};
         spinlock_t m_command_lock{};

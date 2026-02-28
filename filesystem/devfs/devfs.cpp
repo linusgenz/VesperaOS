@@ -22,14 +22,14 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "devfs.h"
+
 #include <errno.h>
-#include <string.h>
 #include <kernel/memory.h>
 
-#include "log.h"
 #include "../../include/kernel/devices/char_device.h"
 #include "../../kernel/cpu/io.h"
 #include "../vfs/vfs.h"
+#include "log.h"
 
 const char* DevFS::bus_to_str(const BusType bus)
 {

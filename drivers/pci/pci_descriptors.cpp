@@ -55,11 +55,11 @@ namespace PCI
 
     const char* get_device_name(uint16_t vendor_id, uint16_t device_id)
     {
-        for (auto pci_device : pci_devices)
+        for (auto [vendor_id, device_id, name] : pci_devices)
         {
-            if (pci_device.vendor_id == vendor_id && pci_device.device_id == device_id)
+            if (vendor_id == vendor_id && device_id == device_id)
             {
-                return pci_device.name;
+                return name;
             }
         }
 

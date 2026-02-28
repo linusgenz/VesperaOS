@@ -20,19 +20,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #ifndef VESPERAOS_REAPER_H
 #define VESPERAOS_REAPER_H
 
 #include <intrusive_queue.h>
+
 #include "../units/unit.h"
 #include "../units/unit_manager.h"
 
 [[noreturn]] void reaper_unit(void* arg);
 
-struct Reaper
-{
-public:
+struct Reaper {
+   public:
     Reaper() = default;
 
     void enqueue(Unit* unit);
@@ -41,8 +41,8 @@ public:
 
     bool empty() const;
 
-private:
+   private:
     intrusive_queue_t<Unit> pending;
 };
 
-#endif //VESPERAOS_REAPER_H
+#endif  // VESPERAOS_REAPER_H

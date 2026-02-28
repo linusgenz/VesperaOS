@@ -1,6 +1,7 @@
 ---
 Checks: >
   clang-diagnostic-*,
+  clang-diagnostic-sign-compare,
   clang-analyzer-*,
 
   # Common Practices and Code Improvements
@@ -123,7 +124,7 @@ Checks: >
 
   # Syntax Style - include directive style
   llvm-include-order,
-  misc-include-cleaner,
+  -misc-include-cleaner,
 
   # Syntax Style - initialization style
   modernize-use-default-member-init,
@@ -197,7 +198,7 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
 
-  # Enum constants: snake_case (oder UPPER_CASE, je nach Präferenz)
+  # Enum constants: snake_case
   - key: readability-identifier-naming.EnumConstantCase
     value: lower_case
 
@@ -213,7 +214,7 @@ CheckOptions:
   - key: readability-identifier-naming.TemplateParameterCase
     value: CamelCase
 
-  # Global constants: UPPER_CASE (typisch für Kernel-Code)
+  # Global constants: UPPER_CASE
   - key: readability-identifier-naming.GlobalConstantCase
     value: UPPER_CASE
 

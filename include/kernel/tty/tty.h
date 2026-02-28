@@ -55,7 +55,7 @@ namespace kernel::tty {
         EscapeState esc_state = EscapeState::NONE;
         int esc_param = 0;
         int esc_params[MAX_PARAMS] = {};
-        int esc_param_count = 0;
+        size_t esc_param_count = 0;
 
         size_t cursor_x = 0;
         size_t cursor_y = 0;

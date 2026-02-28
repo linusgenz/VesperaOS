@@ -20,19 +20,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-
-#include <kernel/terminal.h>
-#include "IRenderDriver.h"
 #include <graphics.h>
+#include <kernel/terminal.h>
+
+#include "IRenderDriver.h"
 
 FONT* system_font = nullptr;
 Terminal* global_terminal = nullptr;
 
 Terminal::Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height)
-    : drv(d), char_w(char_width), char_h(char_height)
-{
+    : drv(d)
+    , char_w(char_width)
+    , char_h(char_height) {
     cols = drv->screen_width_px() / char_w;
     rows = drv->screen_height_px() / char_h;
 
@@ -40,153 +41,136 @@ Terminal::Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height)
     clear();
 }
 
-Terminal::~Terminal()
-{
+Terminal::~Terminal() {
     delete[] cells;
 }
 
-void Terminal::set_colour(uint32_t new_fg, uint32_t new_bg)
-{
+void Terminal::set_colour(uint32_t new_fg, uint32_t new_bg) {
     fg = new_fg;
     bg = new_bg;
 }
 
-void Terminal::set_cursor(uint32_t x, uint32_t y)
-{
+void Terminal::set_cursor(uint32_t x, uint32_t y) {
     cx = x;
     cy = y;
 }
 
-void Terminal::put_char(char c)
-{
-    if (c == '\n') { new_line(); return; }
+void Terminal::put_char(char c) {
+    if (c == '\n') {
+        new_line();
+        return;
+    }
 
     at(cx, cy) = {c, fg, bg, true};
     advance();
 }
 
-void Terminal::put_char_fast(char c)
-{
-    if (c == '\n') { new_line(); return; }
-    if (c == '\r') { cx = 0; return; }
+void Terminal::put_char_fast(char c) {
+    if (c == '\n') {
+        new_line();
+        return;
+    }
+    if (c == '\r') {
+        cx = 0;
+        return;
+    }
 
     at(cx, cy) = {c, fg, bg, true};
-    GlyphRun run{ &c, 1, cx*char_w, cy*char_h, fg, bg };
+    GlyphRun run{&c, 1, cx * char_w, cy * char_h, fg, bg};
     drv->draw_glyph_run(run);
     advance();
 }
 
-void Terminal::print(const char* s)
-{
-    while (*s)
-        put_char(*s++);
+void Terminal::print(const char* s) {
+    while (*s) put_char(*s++);
 }
 
-void Terminal::clear()
-{
-    for (uint32_t i = 0; i < cols * rows; ++i)
-        cells[i] = {' ', fg, bg};
+void Terminal::clear() {
+    for (uint32_t i = 0; i < cols * rows; ++i) cells[i] = {' ', fg, bg};
 
     drv->fill_rect(0, 0, drv->screen_width_px(), drv->screen_height_px(), bg);
     cx = cy = 0;
 }
 
-void Terminal::clear_char()
-{
+void Terminal::clear_char() {
     if (cx == 0 && cy == 0) return;
 
-    if (cx == 0) { cy--; cx = cols - 1; }
-    else { cx--; }
+    if (cx == 0) {
+        cy--;
+        cx = cols - 1;
+    } else {
+        cx--;
+    }
 
     put_char_fast(' ');
 }
 
-void Terminal::new_line()
-{
+void Terminal::new_line() {
     cx = 0;
     cy++;
 
-    if (cy >= rows)
-    {
+    if (cy >= rows) {
         scroll();
         cy = rows - 1;
     }
 }
 
-void Terminal::flush()
-{
-    for (uint32_t y = 0; y < rows; ++y)
-    {
+void Terminal::flush() const {
+    for (uint32_t y = 0; y < rows; ++y) {
         uint32_t x = 0;
-        while (x < cols)
-        {
+        while (x < cols) {
             Cell& start = at(x, y);
-            if (!start.dirty) { x++; continue; }
+            if (!start.dirty) {
+                x++;
+                continue;
+            }
 
             // Finde zusammenhängenden dirty run
             uint32_t len = 1;
-            while (x + len < cols && at(x + len, y).dirty &&
-                   at(x + len, y).fg == start.fg &&
-                   at(x + len, y).bg == start.bg)
-            {
+            while (x + len < cols && at(x + len, y).dirty && at(x + len, y).fg == start.fg &&
+                   at(x + len, y).bg == start.bg) {
                 len++;
             }
 
             draw_run(x, y, &start, len);
 
             // Dirty-Flags löschen
-            for (uint32_t i = 0; i < len; ++i)
-                at(x + i, y).dirty = false;
+            for (uint32_t i = 0; i < len; ++i) at(x + i, y).dirty = false;
 
             x += len;
         }
     }
 }
 
-
-Terminal::Cell& Terminal::at(uint32_t x, uint32_t y)
-{
+Terminal::Cell& Terminal::at(uint32_t x, uint32_t y) const {
     return cells[y * cols + x];
 }
 
-void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* cells, uint32_t len)
-{
+void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* cells, uint32_t len) const {
     char buf[256];
-    if (len >= sizeof(buf))
-        len = sizeof(buf) - 1;
+    if (len >= sizeof(buf)) len = sizeof(buf) - 1;
 
-    for (uint32_t i = 0; i < len; ++i)
-        buf[i] = cells[i].ch;
+    for (uint32_t i = 0; i < len; ++i) buf[i] = cells[i].ch;
 
     buf[len] = '\0';
 
     GlyphRun run{
-        .text = buf,
-        .length = len,
-        .px = cell_x * char_w,
-        .py = cell_y * char_h,
-        .fg = cells[0].fg,
-        .bg = cells[0].bg
+        .text = buf, .length = len, .px = cell_x * char_w, .py = cell_y * char_h, .fg = cells[0].fg, .bg = cells[0].bg
     };
 
     drv->draw_glyph_run(run);
 }
 
-void Terminal::advance()
-{
+void Terminal::advance() {
     cx++;
-    if (cx >= cols)
-        new_line();
+    if (cx >= cols) new_line();
 }
 
-void Terminal::scroll()
-{
+void Terminal::scroll() const {
     drv->scroll_pixels(char_h);
 
     for (uint32_t y = 1; y < rows; ++y)
-        for (uint32_t x = 0; x < cols; ++x)
-            at(x, y - 1) = at(x, y);
+        for (uint32_t x = 0; x < cols; ++x) at(x, y - 1) = at(x, y);
 
-    for (uint32_t x = 0; x < cols; ++x)
-        at(x, rows - 1) = {' ', fg, bg};
+    for (uint32_t x = 0; x < cols; ++x) at(x, rows - 1) = {' ', fg, bg};
 }

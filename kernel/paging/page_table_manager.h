@@ -6,9 +6,8 @@
 
 #include "paging.h"
 
-class PageTableManager
-{
-public:
+class PageTableManager {
+   public:
     PageTableManager(PageTable* PML4Address);
     PageTable* PML4;
     void map_memory(void* virtual_memory, void* physical_memory, uint64_t flags) const;
@@ -25,4 +24,4 @@ public:
     void* get_physical_address(void* virtual_memory) const;
 };
 
-#endif // PAGE_TABLE_MANAGER_H
+#endif  // PAGE_TABLE_MANAGER_H

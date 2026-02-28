@@ -1,5 +1,5 @@
 /**
- * @file RealmFS.cpp
+ * @file realmfs.cpp
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
@@ -23,13 +23,12 @@
 */
 
 #include "realmfs.h"
+
 #include <errno.h>
-#include <string.h>
 #include <kernel/memory.h>
-
 #include <kernel/realm/realm_manager.h>
+#include <string.h>
 
-#include "log.h"
 #include "../../kernel/units/unit_manager.h"
 
 void RealmFS::init()

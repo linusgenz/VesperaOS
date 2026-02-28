@@ -128,7 +128,7 @@ int ext4_readdir(void* dir_handle, dirent_t* out)
 
 void ext4_closedir(void* dir_handle)
 {
-    auto* h = reinterpret_cast<Ext4DirHandle*>(dir_handle);
+    auto* h = static_cast<Ext4DirHandle*>(dir_handle);
     if (!h) return;
     kernel::memory::free(h->entries);
     kernel::memory::free(h);

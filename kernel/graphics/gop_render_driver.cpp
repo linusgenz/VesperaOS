@@ -1,49 +1,33 @@
-#include  "gop_render_driver.h"
-#include <string.h>
-#include <utils.h>
+#include "gop_render_driver.h"
 
-#include "../../include/kernel/terminal.h"
 #include "../../filesystem/devfs/devfs.h"
-#include "kernel/memory.h"
+#include "../../include/kernel/terminal.h"
 #include "kernel/devices/device_manager.h"
+#include "kernel/memory.h"
 
 gop_render_driver::gop_render_driver(Framebuffer* fb, FONT* font)
-    : fb(fb), font(font)
-{
+    : fb(fb)
+    , font(font) {
     char name[10];
     DeviceManager::AllocUniqueDeviceName("uefi_gop", name, sizeof(name));
     kd = DeviceManager::RegisterGpuDevice(
-        this,
-        name,
-        DeviceClass::Graphics,
-        BusType::VIRTUAL,
-        ControllerType::UefiGOP,
-        nullptr
+        this, name, DeviceClass::Graphics, BusType::VIRTUAL, ControllerType::UefiGOP, nullptr
     );
     DevFS::register_device(kd);
 }
 
-
-void gop_render_driver::draw_glyph_run(const GlyphRun& run)
-{
-    for (uint32_t i = 0; i < run.length; i++)
-    {
+void gop_render_driver::draw_glyph_run(const GlyphRun& run) {
+    for (uint32_t i = 0; i < run.length; i++) {
         put_char(run.text[i], run.px + i * font->width, run.py, run.fg, run.bg);
     }
 }
 
+bool gop_render_driver::fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour) {
+    if (px + w > fb->width || py + h > fb->height) return false;
 
-bool gop_render_driver::fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour)
-{
-    if (px + w > fb->width || py + h > fb->height)
-        return false;
-
-    for (uint32_t y = 0; y < h; y++)
-    {
-        for (uint32_t x = 0; x < w; x++)
-        {
-            uint32_t* pix = static_cast<uint32_t*>(fb->base_address)
-                + (px + x) + (py + y) * fb->pixels_per_scanline;
+    for (uint32_t y = 0; y < h; y++) {
+        for (uint32_t x = 0; x < w; x++) {
+            uint32_t* pix = static_cast<uint32_t*>(fb->base_address) + (px + x) + (py + y) * fb->pixels_per_scanline;
             *pix = colour;
         }
     }
@@ -51,8 +35,7 @@ bool gop_render_driver::fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t
     return true;
 }
 
-void gop_render_driver::clear()
-{
+void gop_render_driver::clear() {
     fill_rect(0, 0, fb->width, fb->height, 0x00000000);
 }
 
@@ -87,7 +70,8 @@ void gop_render_driver::clear_mouse_cursor(const uint8_t* mouse_cursor, const Po
 }
 
 
-void gop_render_driver::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const uint32_t colour)
+void gop_render_driver::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, const Point position, const uint32_t
+colour)
 {
       int32_t x_max = 16;
       int32_t y_max = 16;
@@ -116,20 +100,16 @@ void gop_render_driver::draw_overlay_mouse_cursor(const uint8_t* mouse_cursor, c
 
 }*/
 
-void gop_render_driver::put_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) const
-{
+void gop_render_driver::put_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) const {
     if (!c) return;
 
-    uint32_t* pix_ptr = static_cast<uint32_t*>(fb->base_address);
+    auto pix_ptr = static_cast<uint32_t*>(fb->base_address);
     const char* glyph = static_cast<char*>(font->glyphBuffer) + (c * font->charsize);
 
-    for (uint32_t row = 0; row < font->height; row++)
-    {
-        for (uint32_t bx = 0; bx < (font->width + 7) / 8; bx++)
-        {
+    for (uint32_t row = 0; row < font->height; row++) {
+        for (uint32_t bx = 0; bx < (font->width + 7) / 8; bx++) {
             uint8_t byte = glyph[row * ((font->width + 7) / 8) + bx];
-            for (uint32_t bit = 0; bit < 8; bit++)
-            {
+            for (uint32_t bit = 0; bit < 8; bit++) {
                 uint32_t xpix = bx * 8 + bit;
                 if (xpix >= font->width) break;
 
@@ -173,9 +153,9 @@ void gop_render_driver::clear_cursor(uint64_t x_pos, uint64_t y_pos) const
     }
 }*/
 
-bool gop_render_driver::blit_buffer(const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x,
-                     uint32_t dst_y)
-{
+bool gop_render_driver::blit_buffer(
+    const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x, uint32_t dst_y
+) {
     if (!pixels) return false;
 
     uint32_t max_w = buffer_width;
@@ -183,16 +163,13 @@ bool gop_render_driver::blit_buffer(const void* pixels, uint32_t buffer_width, u
 
     if (dst_x >= fb->width || dst_y >= fb->height) return false;
 
-    if (dst_x + buffer_width > fb->width)
-        max_w = fb->width - dst_x;
-    if (dst_y + buffer_height > fb->height)
-        max_h = fb->height - dst_y;
+    if (dst_x + buffer_width > fb->width) max_w = fb->width - dst_x;
+    if (dst_y + buffer_height > fb->height) max_h = fb->height - dst_y;
 
     const auto* src = static_cast<const uint32_t*>(pixels);
     auto* dst = static_cast<uint32_t*>(fb->base_address);
 
-    for (uint32_t y = 0; y < max_h; y++)
-    {
+    for (uint32_t y = 0; y < max_h; y++) {
         uint32_t* dst_row = dst + (dst_y + y) * fb->pixels_per_scanline + dst_x;
         const uint32_t* src_row = src + y * buffer_width;
 
@@ -202,23 +179,25 @@ bool gop_render_driver::blit_buffer(const void* pixels, uint32_t buffer_width, u
     return true;
 }
 
-bool gop_render_driver::scroll_pixels(int dy)
-{
-    if (dy <= 0 || static_cast<uint32_t>(dy) >= fb->height)
-        return false;
+bool gop_render_driver::scroll_pixels(int dy) {
+    if (dy <= 0 || static_cast<uint32_t>(dy) >= fb->height) return false;
 
     uint32_t bytes_per_scanline = fb->pixels_per_scanline * 4;
     uint32_t scroll_bytes = bytes_per_scanline * (fb->height - dy);
 
-    memmove(fb->base_address,
-            static_cast<uint8_t*>(fb->base_address) + bytes_per_scanline * dy,
-            scroll_bytes);
+    memmove(fb->base_address, static_cast<uint8_t*>(fb->base_address) + bytes_per_scanline * dy, scroll_bytes);
 
     // neuen Bereich mit 0 füllen
     fill_rect(0, fb->height - dy, fb->width, dy, 0x00000000);
     return true;
 }
 
-uint32_t gop_render_driver::screen_width_px() const { return fb->width; }
-uint32_t gop_render_driver::screen_height_px() const { return fb->height; }
-uint32_t gop_render_driver::bytes_per_scanline() const { return fb->pixels_per_scanline * 4; }
+uint32_t gop_render_driver::screen_width_px() const {
+    return fb->width;
+}
+uint32_t gop_render_driver::screen_height_px() const {
+    return fb->height;
+}
+uint32_t gop_render_driver::bytes_per_scanline() const {
+    return fb->pixels_per_scanline * 4;
+}

@@ -5,12 +5,10 @@
 #include "../../include/kernel/sync/mutex.h"
 
 #include <kernel/scheduling.h>
-
 #include <kernel/sync/atomic.h>
 
 namespace kernel {
     inline bool scheduling_started = false;
-
 
     void mutex_t::init() {
         locked.init(false);
@@ -24,7 +22,6 @@ namespace kernel {
             return;
         }
 
-        // Versuche Lock zu erwerben
         while (locked.test_and_set()) {
             Unit *current = scheduling::get_current_unit();
             scheduling::remove_unit(current);
@@ -52,8 +49,7 @@ namespace kernel {
         return !locked.test_and_set();
     }
 
-
     bool mutex_t::is_locked() const {
         return locked.load();
     }
-}
+}  // namespace kernel

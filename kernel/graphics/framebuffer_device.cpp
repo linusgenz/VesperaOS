@@ -28,40 +28,32 @@
 
 #include "log.h"
 
-int FramebufferDevice::open(CharFile**)
-{
+int FramebufferDevice::open(CharFile**) {
     return 0;
 }
 
-int FramebufferDevice::release(CharFile*)
-{
+int FramebufferDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t FramebufferDevice::read(CharFile* /*cf*/, void* /*buffer*/, size_t /*count*/, size_t /*offset*/)
-{
+ssize_t FramebufferDevice::read(CharFile* /*cf*/, void* /*buffer*/, size_t /*count*/, size_t /*offset*/) {
     return -EUNSUPPORTED;
 }
 
-ssize_t FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, size_t /*count*/)
-{
+ssize_t FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, size_t /*count*/) {
     return -EUNSUPPORTED;
 }
 
-int FramebufferDevice::ioctl(CharFile*, uint32_t cmd, void* arg)
-{
-    if (!arg && cmd != FB_IOCTL_GET_INFO && cmd != FB_IOCTL_GET_BACKING_DEVID)
-    {
+int FramebufferDevice::ioctl(CharFile*, uint32_t cmd, void* arg) {
+    if (!arg && cmd != FB_IOCTL_GET_INFO && cmd != FB_IOCTL_GET_BACKING_DEVID) {
         return -EINVAL;
     }
 
     auto backend = DisplayManager::primary();
     if (!backend.drv) return -ENODEV;
 
-    switch (cmd)
-    {
-    case FB_IOCTL_GET_INFO:
-        {
+    switch (cmd) {
+        case FB_IOCTL_GET_INFO: {
             if (!arg) return -EINVAL;
             auto* info = static_cast<FbInfo*>(arg);
             info->width = backend.drv->screen_width_px();
@@ -72,32 +64,30 @@ int FramebufferDevice::ioctl(CharFile*, uint32_t cmd, void* arg)
             return 0;
         }
 
-    case FB_IOCTL_GET_BACKING_DEVID:
-        {
+        case FB_IOCTL_GET_BACKING_DEVID: {
             if (!arg) return -EINVAL;
             *static_cast<uint32_t*>(arg) = backend.kd ? backend.kd->id : 0;
             return 0;
         }
 
-    case FB_IOCTL_FILL_RECT:
-        return fill_rect(static_cast<const FbRect*>(arg));
+        case FB_IOCTL_FILL_RECT:
+            return fill_rect(static_cast<const FbRect*>(arg));
 
-    case FB_IOCTL_DRAW_RECT:
-        return draw_rect_outline(static_cast<const FbRectOutline*>(arg));
+        case FB_IOCTL_DRAW_RECT:
+            return draw_rect_outline(static_cast<const FbRectOutline*>(arg));
 
-    case FB_IOCTL_CLEAR:
-        return clear_screen(static_cast<const FbClear*>(arg));
+        case FB_IOCTL_CLEAR:
+            return clear_screen(static_cast<const FbClear*>(arg));
 
-    case FB_IOCTL_BLIT:
-        return blit_pixels(static_cast<const FbBlit*>(arg));
+        case FB_IOCTL_BLIT:
+            return blit_pixels(static_cast<const FbBlit*>(arg));
 
-    default:
-        return -ENOTTY;
+        default:
+            return -ENOTTY;
     }
 }
 
-bool FramebufferDevice::validate_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
-{
+bool FramebufferDevice::validate_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
     auto backend = DisplayManager::primary();
     if (!backend.drv) return false;
 
@@ -119,87 +109,70 @@ bool FramebufferDevice::validate_blit(const FbBlit* blit) {
     return validate_rect(blit->dst_x, blit->dst_y, blit->buffer_width, blit->buffer_height);
 }
 
-int FramebufferDevice::fill_rect(const FbRect* rect)
-{
-    if (!validate_rect(rect->x, rect->y, rect->width, rect->height))
-    {
+int FramebufferDevice::fill_rect(const FbRect* rect) {
+    if (!validate_rect(rect->x, rect->y, rect->width, rect->height)) {
         return -EINVAL;
     }
 
     auto backend = DisplayManager::primary();
-    if (!backend.drv->fill_rect(rect->x, rect->y, rect->width, rect->height, rect->color))
-    {
+    if (!backend.drv->fill_rect(rect->x, rect->y, rect->width, rect->height, rect->color)) {
         return -EIO;
     }
 
     return 0;
 }
 
-int FramebufferDevice::draw_rect_outline(const FbRectOutline* rect)
-{
+int FramebufferDevice::draw_rect_outline(const FbRectOutline* rect) {
     if (rect->thickness == 0) return -EINVAL;
-    if (!validate_rect(rect->x, rect->y, rect->width, rect->height))
-    {
+    if (!validate_rect(rect->x, rect->y, rect->width, rect->height)) {
         return -EINVAL;
     }
 
     auto backend = DisplayManager::primary();
     auto* drv = backend.drv;
 
-    if (!drv->fill_rect(rect->x, rect->y, rect->width, rect->thickness, rect->color))
-        return -EIO;
+    if (!drv->fill_rect(rect->x, rect->y, rect->width, rect->thickness, rect->color)) return -EIO;
 
     // Bottom edge
-    if (!drv->fill_rect(rect->x, rect->y + rect->height - rect->thickness,
-                        rect->width, rect->thickness, rect->color))
+    if (!drv->fill_rect(rect->x, rect->y + rect->height - rect->thickness, rect->width, rect->thickness, rect->color))
         return -EIO;
 
-    if (rect->height > 2 * rect->thickness)
-    {
-        if (!drv->fill_rect(rect->x, rect->y + rect->thickness,
-                            rect->thickness, rect->height - 2 * rect->thickness, rect->color))
+    if (rect->height > 2 * rect->thickness) {
+        if (!drv->fill_rect(
+                rect->x, rect->y + rect->thickness, rect->thickness, rect->height - 2 * rect->thickness, rect->color
+            ))
             return -EIO;
     }
 
-    if (rect->height > 2 * rect->thickness)
-    {
-        if (!drv->fill_rect(rect->x + rect->width - rect->thickness,
-                            rect->y + rect->thickness,
-                            rect->thickness, rect->height - 2 * rect->thickness, rect->color))
+    if (rect->height > 2 * rect->thickness) {
+        if (!drv->fill_rect(
+                rect->x + rect->width - rect->thickness,
+                rect->y + rect->thickness,
+                rect->thickness,
+                rect->height - 2 * rect->thickness,
+                rect->color
+            ))
             return -EIO;
     }
 
     return 0;
 }
 
-int FramebufferDevice::clear_screen(const FbClear* clear)
-{
+int FramebufferDevice::clear_screen(const FbClear* clear) {
     auto backend = DisplayManager::primary();
-    if (!backend.drv->fill_rect(0, 0,
-                                backend.drv->screen_width_px(),
-                                backend.drv->screen_height_px(),
-                                clear->color))
-    {
+    if (!backend.drv->fill_rect(0, 0, backend.drv->screen_width_px(), backend.drv->screen_height_px(), clear->color)) {
         return -EIO;
     }
 
     return 0;
 }
 
-int FramebufferDevice::blit_pixels(const FbBlit* blit)
-{
+int FramebufferDevice::blit_pixels(const FbBlit* blit) {
     if (!validate_blit(blit)) return -EINVAL;
 
     auto backend = DisplayManager::primary();
 
-    if (!backend.drv->blit_buffer(
-        blit->pixels,
-        blit->buffer_width,
-        blit->buffer_height,
-        blit->dst_x,
-        blit->dst_y
-    ))
-    {
+    if (!backend.drv->blit_buffer(blit->pixels, blit->buffer_width, blit->buffer_height, blit->dst_x, blit->dst_y)) {
         return -EIO;
     }
 

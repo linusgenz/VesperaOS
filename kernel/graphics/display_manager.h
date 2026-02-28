@@ -23,24 +23,25 @@
  */
 #ifndef VESPERAOS_DISPLAY_MANAGER_H
 #define VESPERAOS_DISPLAY_MANAGER_H
-#include "IRenderDriver.h"
 #include <kernel/sync/spinlock.h>
+
+#include "IRenderDriver.h"
 
 struct KernelDevice;
 struct DisplayBackend {
-  IRenderDriver* drv;
-  KernelDevice*  kd;
+    IRenderDriver* drv;
+    KernelDevice* kd;
 };
 
 class DisplayManager {
-public:
-  static void init(DisplayBackend initial);
-  static void set_primary(DisplayBackend backend);
-  static DisplayBackend primary();
+   public:
+    static void init(DisplayBackend initial);
+    static void set_primary(DisplayBackend backend);
+    static DisplayBackend primary();
 
-private:
-  static inline DisplayBackend s_primary;
-  static inline spinlock_t s_lock{};
+   private:
+    static inline DisplayBackend s_primary;
+    static inline spinlock_t s_lock{};
 };
 
-#endif // VESPERAOS_DISPLAY_MANAGER_H
+#endif  // VESPERAOS_DISPLAY_MANAGER_H

@@ -20,10 +20,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-#include <cstdint>
 #include <kernel/time.h>
+
 #include "fat32.h"
 
 namespace FAT32
@@ -76,13 +76,13 @@ namespace FAT32
 
     void UpdateCreateTime(DirectoryEntry& e)
     {
-        FsTime t = GetCurrentFatTime();
-        e.creationDate = t.date;
-        e.creationTime = t.time;
-        e.creationTimeTenths = t.tenths;
-        e.lastAccessDate = t.date;
-        e.writeDate = t.date;
-        e.writeTime = t.time;
+        auto [date, time, tenths] = GetCurrentFatTime();
+        e.creationDate = date;
+        e.creationTime = time;
+        e.creationTimeTenths = tenths;
+        e.lastAccessDate = date;
+        e.writeDate = date;
+        e.writeTime = time;
     }
 
     void UpdateWriteTime(DirectoryEntry& e)

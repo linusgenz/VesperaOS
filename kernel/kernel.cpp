@@ -21,70 +21,85 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-
-#include "exec/elf.h"
-#include "../include/kernel/kernel_utils.h"
-#include "./cpu/cpu.h"
-#include "kversion.h"
-#include <log.h>
-#include "kernel/scheduling.h"
 #include <kernel/realm/realm_manager.h>
 #include <kernel/system/system_manager.h>
 #include <kernel/tty/tty.h>
+#include <log.h>
 
 #include "../include/kernel/devices/device_manager.h"
+#include "../include/kernel/kernel_utils.h"
+#include "./cpu/cpu.h"
+#include "boot.h"
 #include "cpu/io.h"
+#include "exec/elf.h"
+#include "kernel/scheduling.h"
+#include "kversion.h"
+#include "types/types.h"
 #include "units/unit_manager.h"
 
 static const char* envp0[] = {"PATH=/bin", nullptr};
 
-static const char* dev_type_to_str(DeviceType t)
-{
+static const char* dev_type_to_str(DeviceType t) {
     switch (t) {
-        case DeviceType::Block: return "Block";
-        case DeviceType::Char: return "Char";
-        case DeviceType::Controller: return "Controller";
-        case DeviceType::Bus: return "Bus";
-        case DeviceType::Logical: return "Logical";
-        default: return "Other";
+        case DeviceType::Block:
+            return "Block";
+        case DeviceType::Char:
+            return "Char";
+        case DeviceType::Controller:
+            return "Controller";
+        case DeviceType::Bus:
+            return "Bus";
+        case DeviceType::Logical:
+            return "Logical";
+        default:
+            return "Other";
     }
 }
 
-static const char* class_to_str(DeviceClass c)
-{
+static const char* class_to_str(DeviceClass c) {
     switch (c) {
-        case DeviceClass::Storage: return "Storage";
-        case DeviceClass::Usb:     return "USB";
-        case DeviceClass::Input:   return "Input";
-        case DeviceClass::Net:     return "Net";
-        case DeviceClass::Misc:    return "Misc";
-        case DeviceClass::Pseudo:  return "Pseudo";
-        default: return "Unknown";
+        case DeviceClass::Storage:
+            return "Storage";
+        case DeviceClass::Usb:
+            return "USB";
+        case DeviceClass::Input:
+            return "Input";
+        case DeviceClass::Net:
+            return "Net";
+        case DeviceClass::Misc:
+            return "Misc";
+        case DeviceClass::Pseudo:
+            return "Pseudo";
+        default:
+            return "Unknown";
     }
 }
 
-static const char* bus_to_str(BusType b)
-{
+static const char* bus_to_str(BusType b) {
     switch (b) {
-        case BusType::BUS_NONE:  return "None";
-        case BusType::BUS_PCI:   return "PCI";
-        case BusType::BUS_USB:   return "USB";
-        case BusType::BUS_PS2:    return "PS2";
-        case BusType::VIRTUAL:  return "Virtual";
-        default:        return "Other";
+        case BusType::BUS_NONE:
+            return "None";
+        case BusType::BUS_PCI:
+            return "PCI";
+        case BusType::BUS_USB:
+            return "USB";
+        case BusType::BUS_PS2:
+            return "PS2";
+        case BusType::VIRTUAL:
+            return "Virtual";
+        default:
+            return "Other";
     }
 }
 
 // Pretty-print indentation tree
-static void print_indent(int depth)
-{
+static void print_indent(int depth) {
     for (int i = 0; i < depth; i++) {
-        Log::Print("  "); // 2 spaces per level
+        Log::Print("  ");  // 2 spaces per level
     }
 }
 
-static void print_device_tree(KernelDevice* dev, int depth = 0)
-{
+static void print_device_tree(KernelDevice* dev, int depth = 0) {
     if (!dev) return;
 
     print_indent(depth);
@@ -101,8 +116,7 @@ static void print_device_tree(KernelDevice* dev, int depth = 0)
     // extra info
     if (dev->block && dev->type == DeviceType::Block) {
         print_indent(depth + 1);
-        Log::PrintLn("BlockDevice: sector=%u",
-                     dev->block->get_sector_size());
+        Log::PrintLn("BlockDevice: sector=%u", dev->block->get_sector_size());
     }
 
     // recursively print children
@@ -111,20 +125,16 @@ static void print_device_tree(KernelDevice* dev, int depth = 0)
     }
 }
 
-void Debug_PrintAllDevices()
-{
+void Debug_PrintAllDevices() {
     using namespace kernel;
 
     auto list = DeviceManager::GetAllDevices();
 
-    Log::PrintLn("=== Registered Devices (%u) ===",
-                 DeviceManager::GetKernelDeviceCount());
+    Log::PrintLn("=== Registered Devices (%u) ===", DeviceManager::GetKernelDeviceCount());
 
     // Only print root-level devices (those without parent)
-    for (auto* dev : list)
-    {
-        if (dev && dev->parent == nullptr)
-        {
+    for (auto* dev : list) {
+        if (dev && dev->parent == nullptr) {
             print_device_tree(dev, 0);
         }
     }
@@ -134,49 +144,48 @@ void Debug_PrintAllDevices()
 
 void enable_sse() {
     // CR0: MP setzen, EM löschen
-    uint64_t cr0;
+    uint64_t cr0 = 0;
     asm volatile("mov %%cr0, %0" : "=r"(cr0));
-    cr0 |=  (1 << 1);  // MP - Monitor Coprocessor
+    cr0 |= (1 << 1);   // MP - Monitor Coprocessor
     cr0 &= ~(1 << 2);  // EM löschen - kein Emulation-Flag
-    asm volatile("mov %0, %%cr0" :: "r"(cr0));
+    asm volatile("mov %0, %%cr0" ::"r"(cr0));
 
     // CR4: OSFXSR und OSXMMEXCPT setzen
-    uint64_t cr4;
+    uint64_t cr4 = 0;
     asm volatile("mov %%cr4, %0" : "=r"(cr4));
     cr4 |= (1 << 9);   // OSFXSR - OS unterstützt FXSAVE/FXRSTOR
     cr4 |= (1 << 10);  // OSXMMEXCPT - OS behandelt SSE-Exceptions
-    asm volatile("mov %0, %%cr4" :: "r"(cr4));
+    asm volatile("mov %0, %%cr4" ::"r"(cr4));
 }
 
-void enable_avx() {
+void EnableAVX() {
     // Erst SSE aktivieren (oben)
 
     // CR4: OSXSAVE setzen
-    uint64_t cr4;
+    uint64_t cr4 = 0;
     asm volatile("mov %%cr4, %0" : "=r"(cr4));
     cr4 |= (1 << 18);  // OSXSAVE
-    asm volatile("mov %0, %%cr4" :: "r"(cr4));
+    asm volatile("mov %0, %%cr4" ::"r"(cr4));
 
     // XCR0: SSE und AVX-State für XSAVE aktivieren
-    uint64_t xcr0;
+    uint64_t xcr0 = 0;
     asm volatile("xgetbv" : "=A"(xcr0) : "c"(0));
     xcr0 |= (1 << 0);  // x87
     xcr0 |= (1 << 1);  // SSE
     xcr0 |= (1 << 2);  // AVX
-    asm volatile("xsetbv" :: "A"(xcr0), "c"(0));
+    asm volatile("xsetbv" ::"A"(xcr0), "c"(0));
 }
 
-extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
-{
+extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     outb(0x3F8, 'A');
     Log::disableDebug();
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
-   // Log::Info("CPU Vendor: %s", vendor); WHY DOES THIS NOT WORK? investigate
+    // Log::Info("CPU Vendor: %s", vendor); WHY DOES THIS NOT WORK? investigate
     char brand[49];
     get_cpu_brand(brand);
-  //  Log::Info("CPU Brand: %s", brand);
+    //  Log::Info("CPU Brand: %s", brand);
     Log::Ok("Kernel initialized successfully");
     Log::Info("Kernel version: %s", get_kernel_version());
 
@@ -192,17 +201,11 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
     shell_realm->setup_standard_handles(tty_dev);
 
     ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
-    if (!result.success)
-    {
+    if (!result.success) {
         Log::Error("Failed to load elf binary: %s", result.error_message);
     }
 
-    const char *argv_example[] = {
-        "shell",
-        "-v",
-        "--config=config.txt",
-        nullptr
-    };
+    const char* argv_example[] = {"shell", "-v", "--config=config.txt", nullptr};
 
     UnitConfig uc = {
         .name = "shell",
@@ -221,10 +224,10 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info)
 
     kernel::SystemManager::set_system_initialized();
 
-  //  enable_avx();
+    //  enable_avx();
     enable_sse();
 
-  //  Debug_PrintAllDevices();
+    //  Debug_PrintAllDevices();
 
     kernel::scheduling::enable_on_cpu(0);
 

@@ -7,4 +7,4 @@
 
 [[noreturn]] void panic(const char* panic_msg);
 
-#endif //PANIC_H
+#endif  // PANIC_H

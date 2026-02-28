@@ -10,4 +10,4 @@ extern "C" void get_cpu_vendor(char buf[13]);
 extern "C" uint64_t check_cpu_features();
 extern "C" void get_cpu_brand(char buf[49]);
 
-#endif //CPU_H
+#endif  // CPU_H

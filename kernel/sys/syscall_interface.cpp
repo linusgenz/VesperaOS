@@ -1,39 +1,37 @@
 // syscall_interface.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 01.08.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
 #include "syscall_interface.h"
 
-#include <kernel/memory.h>
+#include <kernel/sys/syscall_numbers.h>
 
 #include "../../include/log.h"
-#include <kernel/scheduling.h>
-#include <kernel/sys/syscall_numbers.h>
-#include <kernel/realm/realm_manager.h>
 
 constexpr int MAX_SYSCALLS = 256;
 static syscalls::internal::syscall_fn syscall_table[MAX_SYSCALLS];
 
 void install_syscalls() {
-    for (auto & i : syscall_table) {
+    for (auto& i : syscall_table) {
         i = nullptr;
     }
 
@@ -63,17 +61,9 @@ void install_syscalls() {
 }
 
 extern "C" void syscall_handler(
-    uint64_t num,
-    uint64_t arg0,
-    uint64_t arg1,
-    uint64_t arg2,
-    uint64_t arg3,
-    uint64_t arg4,
-    uint64_t arg5
+    uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5
 ) {
     uint64_t ret = 0;
-
- //   asm volatile("mov %0, %%cr3" :: "r"(kernel::memory::get_pagetable_address()));
 
     if (num < MAX_SYSCALLS && syscall_table[num]) {
         asm volatile("sti");
@@ -82,9 +72,5 @@ extern "C" void syscall_handler(
         Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
     }
 
-   /* Realm *r = RealmManager::get(kernel::scheduling::get_current_unit()->rid);
-    uint64_t cr3 = r->pml4_phys;
-    asm volatile("mov %0, %%cr3" :: "r"(cr3));*/
-
-    asm volatile ("mov %0, %%rax" :: "r"(ret));
+    asm volatile("mov %0, %%rax" ::"r"(ret));
 }

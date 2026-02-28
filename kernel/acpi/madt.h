@@ -15,7 +15,7 @@ namespace MADT {
     struct CPUCore {
         uint32_t apic_id;
         uint32_t acpi_processor_id;
-        bool is_bsp;        // Bootstrap Processor
+        bool is_bsp;  // Bootstrap Processor
         bool is_online;
         bool is_enabled;
     };
@@ -32,7 +32,7 @@ namespace MADT {
         uint32_t gsi;
         uint16_t flags;
     };
-    
+
     void parse_madt(ACPI::MADTHeader* madt);
     uint32_t get_cpu_count();
     CPUCore* get_cpu_cores();
@@ -41,5 +41,5 @@ namespace MADT {
     uint32_t get_ioapic_count();
     InterruptOverride* get_overrides();
     uint32_t get_override_count();
-}
-#endif //MADT_H
+}  // namespace MADT
+#endif  // MADT_H

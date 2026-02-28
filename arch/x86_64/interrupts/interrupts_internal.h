@@ -6,10 +6,10 @@
 #define INTERRUPTS_INTERNAL_H
 #include <cstdint>
 
-#define IRQ_SPURIOUS         0xFF
-#define IRQ_TIMER            0x20
-#define IRQ_PANIC            0xFE
-#define IRQ_COMMON_STUB      0x31
+#define IRQ_SPURIOUS 0xFF
+#define IRQ_TIMER 0x20
+#define IRQ_PANIC 0xFE
+#define IRQ_COMMON_STUB 0x31
 
 // x86_64 Interrupt Frame Structure (pushed via asm stubs)
 struct trap_frame {
@@ -27,8 +27,7 @@ struct trap_frame {
     uint64_t rflags;
     uint64_t rsp;
     uint64_t ss;
-}__attribute__((packed));
-
+} __attribute__((packed));
 
 // Asm Stubs
 extern "C" void isr_divide_error();
@@ -60,4 +59,4 @@ extern "C" void apic_timer_int_handler(trap_frame* frame);
 extern "C" void spurious_int_handler(trap_frame* frame);
 extern "C" [[noreturn]] void panic_ipi_handler(trap_frame* frame);
 
-#endif //INTERRUPTS_H
+#endif  // INTERRUPTS_H

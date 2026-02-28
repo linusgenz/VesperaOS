@@ -26,9 +26,9 @@
 
 uint8_t get_xhc_endpoint_type_from_ep_descriptor(const usb_endpoint_descriptor* desc) {
     uint8_t endpoint_direction_in = (desc->bEndpointAddress & 0x80) ? 1 : 0;
-    uint8_t transfer_type = desc->bmAttributes & 0x3;
 
-    switch (transfer_type) {
+    // transfer type
+    switch (desc->bmAttributes & 0x3) {
         case 0: {
             return XHCI_ENDPOINT_TYPE_CONTROL;
         }
@@ -92,7 +92,7 @@ void xhciEndpoint::allocate_internal_data_buffer() {
         boundary  = 64;
     }
 
-    m_data_buffer = reinterpret_cast<uint8_t*>(
+    m_data_buffer = static_cast<uint8_t*>(
         alloc_xhci_memory(max_packet_size, alignment, boundary));
 
     m_data_buffer_dma_addr = xhci_get_physical_addr(m_data_buffer);

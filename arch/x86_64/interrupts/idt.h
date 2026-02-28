@@ -4,10 +4,13 @@
 
 #ifndef IDT_H
 #define IDT_H
-#include <cstdint>
 #include <cstddef>
-typedef int irqreturn_t;
-constexpr irqreturn_t IRQ_HANDLED = 1;
+#include <cstdint>
+enum irqreturn_t : int {
+    IRQ_HANDLED = 1,
+    IRQ_NONE = 0,
+    IRQ_ERROR = -1
+};
 using irq_handler_t = irqreturn_t (*)(void *cookie);
 
 namespace arch::x86_64::interrupts::idt {
@@ -29,13 +32,13 @@ namespace arch::x86_64::interrupts::idt {
 
         void set_offset(uint64_t offset);
 
-        uint64_t get_offset() const;
+        [[nodiscard]] uint64_t get_offset() const;
     };
 
     struct IDTR {
         uint16_t limit;
         uint64_t offset;
-    }__attribute((packed));
+    } __attribute((packed));
 
     struct irq_desc {
         irq_handler_t handler = nullptr;
@@ -44,7 +47,7 @@ namespace arch::x86_64::interrupts::idt {
     };
 
     constexpr int IRQ_MAX = 256;
-    inline  irq_desc irq_handler_table[IRQ_MAX];
+    inline irq_desc irq_handler_table[IRQ_MAX];
 
     void init_irq_table();
 
@@ -54,7 +57,7 @@ namespace arch::x86_64::interrupts::idt {
 
     void load_default_idt();
 
-    using ISRHandler = void(*)();
+    using ISRHandler = void (*)();
     void set_idt_gate(ISRHandler handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
 
     bool allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie);
@@ -66,5 +69,5 @@ namespace arch::x86_64::interrupts::idt {
     uint8_t get_free_vector();
 
     extern "C" void irq_common_stub(uint8_t irqno);
-}
-#endif //IDT_H
+}  // namespace arch::x86_64::interrupts::idt
+#endif  // IDT_H

@@ -21,13 +21,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/system/system_manager.h>
-#include "../cpu/cpu_manager.h"
-#include <kernel/time.h>
 #include <kernel/sync/spinlock.h>
-#include "../../include/kernel/devices/device_manager.h"
+#include <kernel/system/system_manager.h>
+#include <kernel/time.h>
 #include <log.h>
 #include <string.h>
+
+#include "../../include/kernel/devices/device_manager.h"
+#include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 #include "kernel/scheduling.h"
 
@@ -93,8 +94,11 @@ namespace kernel {
         init_event.type = SystemEventType::KERNEL_LOG;
         init_event.timestamp = boot_timestamp;
         init_event.cpu_id = 0;
-        strncpy(init_event.data.log_event.message, "SystemManager initialized",
-                sizeof(init_event.data.log_event.message) - 1);
+        strncpy(
+            init_event.data.log_event.message,
+            "SystemManager initialized",
+            sizeof(init_event.data.log_event.message) - 1
+        );
         init_event.data.log_event.message[sizeof(init_event.data.log_event.message) - 1] = '\0';
         init_event.data.log_event.error_code = 0;
 
@@ -117,22 +121,26 @@ namespace kernel {
         if (event_logging_enabled) {
             switch (event.type) {
                 case SystemEventType::SYSTEM_PANIC:
-                    Log::Error("SystemManager: PANIC - %s (code: %u)",
-                               event.data.log_event.message,
-                               event.data.log_event.error_code);
+                    Log::Error(
+                        "SystemManager: PANIC - %s (code: %u)",
+                        event.data.log_event.message,
+                        event.data.log_event.error_code
+                    );
                     break;
                 case SystemEventType::MEMORY_LOW:
-                    Log::Warning("SystemManager: Low memory - %lu bytes available",
-                                 event.data.memory_event.available_bytes);
+                    Log::Warning(
+                        "SystemManager: Low memory - %lu bytes available", event.data.memory_event.available_bytes
+                    );
                     break;
                 case SystemEventType::CPU_HIGH_USAGE:
-                    Log::Warning("SystemManager: High CPU usage on CPU %u - %u%%",
-                                 event.data.cpu_event.cpu_id,
-                                 static_cast<unsigned>(event.data.cpu_event.usage_percent));
+                    Log::Warning(
+                        "SystemManager: High CPU usage on CPU %u - %u%%",
+                        event.data.cpu_event.cpu_id,
+                        static_cast<unsigned>(event.data.cpu_event.usage_percent)
+                    );
                     break;
                 case SystemEventType::SYSTEM_SHUTDOWN:
-                    Log::Info("SystemManager: System shutdown initiated - %s",
-                              event.data.log_event.message);
+                    Log::Info("SystemManager: System shutdown initiated - %s", event.data.log_event.message);
                     break;
                 default:
                     break;
@@ -143,12 +151,12 @@ namespace kernel {
     void SystemManager::internal_publish_event(const SystemEvent &event) {
         if (!event_channel) return;
 
-
         if (!event_channel->send(&event, sizeof(SystemEvent))) {
             if (log_channel) {
                 char buf[128];
-                int n = snprintf(buf, sizeof(buf), "SystemManager: Dropped event type %u\n",
-                                 static_cast<unsigned>(event.type));
+                int n = snprintf(
+                    buf, sizeof(buf), "SystemManager: Dropped event type %u\n", static_cast<unsigned>(event.type)
+                );
                 log_channel->send(buf, n);
             }
         }
@@ -273,21 +281,21 @@ namespace kernel {
         shutdown_event.cpu_id = CPUManager::get_current_cpu_id();
 
         if (reason) {
-            strncpy(shutdown_event.data.log_event.message, reason,
-                    sizeof(shutdown_event.data.log_event.message) - 1);
+            strncpy(shutdown_event.data.log_event.message, reason, sizeof(shutdown_event.data.log_event.message) - 1);
             shutdown_event.data.log_event.message[sizeof(shutdown_event.data.log_event.message) - 1] = '\0';
         } else {
-            strncpy(shutdown_event.data.log_event.message, "User initiated shutdown",
-                    sizeof(shutdown_event.data.log_event.message) - 1);
+            strncpy(
+                shutdown_event.data.log_event.message,
+                "User initiated shutdown",
+                sizeof(shutdown_event.data.log_event.message) - 1
+            );
             shutdown_event.data.log_event.message[sizeof(shutdown_event.data.log_event.message) - 1] = '\0';
         }
         shutdown_event.data.log_event.error_code = 0;
 
         publish_event(shutdown_event);
 
-
         FilesystemDetector::UnmountAll();
-
 
         if (reboot) {
             ACPI::acpi_reboot();
@@ -303,20 +311,19 @@ namespace kernel {
         panic_event.cpu_id = CPUManager::get_current_cpu_id();
 
         if (message) {
-            strncpy(panic_event.data.log_event.message, message,
-                    sizeof(panic_event.data.log_event.message) - 1);
+            strncpy(panic_event.data.log_event.message, message, sizeof(panic_event.data.log_event.message) - 1);
             panic_event.data.log_event.message[sizeof(panic_event.data.log_event.message) - 1] = '\0';
         } else {
-            strncpy(panic_event.data.log_event.message, "Unknown panic",
-                    sizeof(panic_event.data.log_event.message) - 1);
+            strncpy(
+                panic_event.data.log_event.message, "Unknown panic", sizeof(panic_event.data.log_event.message) - 1
+            );
             panic_event.data.log_event.message[sizeof(panic_event.data.log_event.message) - 1] = '\0';
         }
         panic_event.data.log_event.error_code = error_code;
 
         internal_publish_event(panic_event);
 
-        Log::Error("KERNEL PANIC: %s (Error Code: %d)",
-                   message ? message : "Unknown", error_code);
+        Log::Error("KERNEL PANIC: %s (Error Code: %d)", message ? message : "Unknown", error_code);
 
         panic(message);
     }
@@ -326,14 +333,13 @@ namespace kernel {
 
         global_lock.lock();
 
-        Log::Info("SystemManager: Active system channels (%u/%u):",
-                  channel_count, MAX_SYSTEM_CHANNELS);
+        Log::Info("SystemManager: Active system channels (%u/%u):", channel_count, MAX_SYSTEM_CHANNELS);
 
         for (size_t i = 0; i < channel_count; i++) {
             SystemChannel *chan = &system_channels[i];
-            Log::Info("  [%zu] %s (created: % ms ago)",
-                      i, chan->name,
-                      get_current_timestamp() - chan->created_timestamp);
+            Log::Info(
+                "  [%zu] %s (created: % ms ago)", i, chan->name, get_current_timestamp() - chan->created_timestamp
+            );
         }
 
         global_lock.unlock();
@@ -347,16 +353,17 @@ namespace kernel {
 
         Log::Info("=== System Statistics ===");
         Log::Info("Uptime: %lu ms", stats.uptime_ms);
-        Log::Info("Memory: %lu MB total, %lu MB used, %lu MB free",
-                  stats.total_memory / 1024 / 1024,
-                  stats.used_memory / 1024 / 1024,
-                  stats.free_memory / 1024 / 1024);
+        Log::Info(
+            "Memory: %lu MB total, %lu MB used, %lu MB free",
+            stats.total_memory / 1024 / 1024,
+            stats.used_memory / 1024 / 1024,
+            stats.free_memory / 1024 / 1024
+        );
         Log::Info("Units: %u total, %u active", stats.total_units, stats.active_units);
         Log::Info("Realms: %u total", stats.total_realms);
         Log::Info("Devices: %u total", stats.total_devices);
         Log::Info("Interrupts: %u total", stats.total_interrupts);
-        Log::Info("Last updated: %lu ms ago",
-                  get_current_timestamp() - stats.last_update_timestamp);
+        Log::Info("Last updated: %lu ms ago", get_current_timestamp() - stats.last_update_timestamp);
     }
 
     void SystemManager::enable_event_logging(bool enabled) {
@@ -388,8 +395,7 @@ namespace kernel {
         event.data.realm_event.realm_id = realm_id;
 
         if (name) {
-            strncpy(event.data.realm_event.name, name,
-                    sizeof(event.data.realm_event.name) - 1);
+            strncpy(event.data.realm_event.name, name, sizeof(event.data.realm_event.name) - 1);
             event.data.realm_event.name[sizeof(event.data.realm_event.name) - 1] = '\0';
         }
 
@@ -406,8 +412,7 @@ namespace kernel {
         event.data.device_event.device_id = device_id;
 
         if (device_name) {
-            strncpy(event.data.device_event.device_name, device_name,
-                    sizeof(event.data.device_event.device_name) - 1);
+            strncpy(event.data.device_event.device_name, device_name, sizeof(event.data.device_event.device_name) - 1);
             event.data.device_event.device_name[sizeof(event.data.device_event.device_name) - 1] = '\0';
         }
 
@@ -422,7 +427,7 @@ namespace kernel {
         event.timestamp = get_current_timestamp();
         event.cpu_id = CPUManager::get_current_cpu_id();
         event.data.memory_event.available_bytes = available_bytes;
-        event.data.memory_event.threshold_bytes = 64 * 1024 * 1024; // 64MB threshold
+        event.data.memory_event.threshold_bytes = 64 * 1024 * 1024;  // 64MB threshold
 
         publish_event(event);
     }
@@ -436,14 +441,12 @@ namespace kernel {
         event.cpu_id = CPUManager::get_current_cpu_id();
 
         if (path) {
-            strncpy(event.data.fs_event.fs_path, path,
-                    sizeof(event.data.fs_event.fs_path) - 1);
+            strncpy(event.data.fs_event.fs_path, path, sizeof(event.data.fs_event.fs_path) - 1);
             event.data.fs_event.fs_path[sizeof(event.data.fs_event.fs_path) - 1] = '\0';
         }
 
         if (fs_type) {
-            strncpy(event.data.fs_event.fs_type, fs_type,
-                    sizeof(event.data.fs_event.fs_type) - 1);
+            strncpy(event.data.fs_event.fs_type, fs_type, sizeof(event.data.fs_event.fs_type) - 1);
             event.data.fs_event.fs_type[sizeof(event.data.fs_event.fs_type) - 1] = '\0';
         }
 
@@ -508,98 +511,154 @@ namespace kernel {
             int n = 0;
             switch (evbuf.type) {
                 case SystemEventType::KERNEL_LOG:
-                    n = snprintf(line, sizeof(line), "[%llu] KERNEL_LOG cpu=%u msg=\"%s\" code=%u\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.log_event.message,
-                                 evbuf.data.log_event.error_code);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] KERNEL_LOG cpu=%u msg=\"%s\" code=%u\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.log_event.message,
+                        evbuf.data.log_event.error_code
+                    );
                     break;
                 case SystemEventType::UNIT_CREATED:
-                    n = snprintf(line, sizeof(line), "[%llu] UNIT_CREATED cpu=%u unit=%u realm=%u\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 static_cast<unsigned>(evbuf.data.unit_event.unit_id),
-                                 static_cast<unsigned>(evbuf.data.unit_event.realm_id));
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] UNIT_CREATED cpu=%u unit=%u realm=%u\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        static_cast<unsigned>(evbuf.data.unit_event.unit_id),
+                        static_cast<unsigned>(evbuf.data.unit_event.realm_id)
+                    );
                     break;
                 case SystemEventType::UNIT_DESTROYED:
-                    n = snprintf(line, sizeof(line), "[%llu] UNIT_DESTROYED cpu=%u unit=%u realm=%u\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 static_cast<unsigned>(evbuf.data.unit_event.unit_id),
-                                 static_cast<unsigned>(evbuf.data.unit_event.realm_id));
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] UNIT_DESTROYED cpu=%u unit=%u realm=%u\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        static_cast<unsigned>(evbuf.data.unit_event.unit_id),
+                        static_cast<unsigned>(evbuf.data.unit_event.realm_id)
+                    );
                     break;
                 case SystemEventType::REALM_CREATED:
-                    n = snprintf(line, sizeof(line), "[%llu] REALM_CREATED cpu=%u realm=%u name=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 static_cast<unsigned>(evbuf.data.realm_event.realm_id),
-                                 evbuf.data.realm_event.name);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] REALM_CREATED cpu=%u realm=%u name=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        static_cast<unsigned>(evbuf.data.realm_event.realm_id),
+                        evbuf.data.realm_event.name
+                    );
                     break;
                 case SystemEventType::REALM_DESTROYED:
-                    n = snprintf(line, sizeof(line), "[%llu] REALM_DESTROYED cpu=%u realm=%u name=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 static_cast<unsigned>(evbuf.data.realm_event.realm_id),
-                                 evbuf.data.realm_event.name);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] REALM_DESTROYED cpu=%u realm=%u name=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        static_cast<unsigned>(evbuf.data.realm_event.realm_id),
+                        evbuf.data.realm_event.name
+                    );
                     break;
                 case SystemEventType::DEVICE_REGISTERED:
-                    n = snprintf(line, sizeof(line), "[%llu] DEVICE_REGISTERED cpu=%u id=%u name=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.device_event.device_id,
-                                 evbuf.data.device_event.device_name);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] DEVICE_REGISTERED cpu=%u id=%u name=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.device_event.device_id,
+                        evbuf.data.device_event.device_name
+                    );
                     break;
                 case SystemEventType::DEVICE_REMOVED:
-                    n = snprintf(line, sizeof(line), "[%llu] DEVICE_REMOVED cpu=%u id=%u name=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.device_event.device_id,
-                                 evbuf.data.device_event.device_name);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] DEVICE_REMOVED cpu=%u id=%u name=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.device_event.device_id,
+                        evbuf.data.device_event.device_name
+                    );
                     break;
                 case SystemEventType::MEMORY_LOW:
-                    n = snprintf(line, sizeof(line), "[%llu] MEMORY_LOW cpu=%u available=%lu threshold=%lu\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.memory_event.available_bytes,
-                                 evbuf.data.memory_event.threshold_bytes);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] MEMORY_LOW cpu=%u available=%lu threshold=%lu\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.memory_event.available_bytes,
+                        evbuf.data.memory_event.threshold_bytes
+                    );
                     break;
                 case SystemEventType::CPU_HIGH_USAGE:
-                    n = snprintf(line, sizeof(line), "[%llu] CPU_HIGH_USAGE cpu=%u usage=%u%%\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.data.cpu_event.cpu_id,
-                                 static_cast<unsigned>(evbuf.data.cpu_event.usage_percent));
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] CPU_HIGH_USAGE cpu=%u usage=%u%%\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.data.cpu_event.cpu_id,
+                        static_cast<unsigned>(evbuf.data.cpu_event.usage_percent)
+                    );
                     break;
                 case SystemEventType::FILESYSTEM_MOUNT:
-                    n = snprintf(line, sizeof(line), "[%llu] FILESYSTEM_MOUNT cpu=%u path=\"%s\" type=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.fs_event.fs_path,
-                                 evbuf.data.fs_event.fs_type);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] FILESYSTEM_MOUNT cpu=%u path=\"%s\" type=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.fs_event.fs_path,
+                        evbuf.data.fs_event.fs_type
+                    );
                     break;
                 case SystemEventType::FILESYSTEM_UNMOUNT:
-                    n = snprintf(line, sizeof(line), "[%llu] FILESYSTEM_UNMOUNT cpu=%u path=\"%s\" type=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.fs_event.fs_path,
-                                 evbuf.data.fs_event.fs_type);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] FILESYSTEM_UNMOUNT cpu=%u path=\"%s\" type=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.fs_event.fs_path,
+                        evbuf.data.fs_event.fs_type
+                    );
                     break;
                 case SystemEventType::SYSTEM_SHUTDOWN:
-                    n = snprintf(line, sizeof(line), "[%llu] SYSTEM_SHUTDOWN cpu=%u msg=\"%s\"\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.log_event.message);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] SYSTEM_SHUTDOWN cpu=%u msg=\"%s\"\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.log_event.message
+                    );
                     break;
                 case SystemEventType::SYSTEM_PANIC:
-                    n = snprintf(line, sizeof(line), "[%llu] SYSTEM_PANIC cpu=%u msg=\"%s\" code=%u\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 evbuf.cpu_id,
-                                 evbuf.data.log_event.message,
-                                 evbuf.data.log_event.error_code);
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] SYSTEM_PANIC cpu=%u msg=\"%s\" code=%u\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        evbuf.cpu_id,
+                        evbuf.data.log_event.message,
+                        evbuf.data.log_event.error_code
+                    );
                     break;
                 default:
-                    n = snprintf(line, sizeof(line), "[%llu] UNKNOWN_EVENT type=%u\n",
-                                 static_cast<uint64_t>(evbuf.timestamp),
-                                 static_cast<unsigned>(evbuf.type));
+                    n = snprintf(
+                        line,
+                        sizeof(line),
+                        "[%llu] UNKNOWN_EVENT type=%u\n",
+                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<unsigned>(evbuf.type)
+                    );
                     break;
             }
 
@@ -622,4 +681,4 @@ namespace kernel {
             processed++;
         }
     }
-} // namespace kernel
+}  // namespace kernel

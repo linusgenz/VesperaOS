@@ -1,5 +1,5 @@
 /**
- * @file xhci_keyboard_devic.cpp
+ * @file xhci_keyboard_device.cpp
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
@@ -25,7 +25,6 @@
 #include "xhci.h"
 #include "xhci_keyboard_device.h"
 #include "../../../filesystem/devfs/devfs.h"
-#include "../../../include/kernel/memory.h"
 #include "../../../include/kernel/devices/device_manager.h"
 
 UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)

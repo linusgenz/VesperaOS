@@ -24,8 +24,6 @@
 #include "xhci.h"
 #include "xhci_mass_storage_driver.h"
 
-#include "../../../filesystem/fat32/fat32.h"
-#include "../../../filesystem/fat32/fat32_vfs_adapter.h"
 #include "../../../include/kernel/devices/device_manager.h"
 #include <log.h>
 

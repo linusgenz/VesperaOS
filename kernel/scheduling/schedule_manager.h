@@ -4,9 +4,9 @@
 #ifndef THREAD_MANAGER_H
 #define THREAD_MANAGER_H
 
-#include "../units/unit.h"
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
-                                                                                                    // argregister_t
+#include "../units/unit.h"
+// argregister_t
 extern "C" void context_switch(void** old_sp, void* new_sp, uint32_t to_is_user, uint32_t from_is_user, void* args);
 
 namespace kernel::scheduling::manager {
@@ -19,13 +19,13 @@ namespace kernel::scheduling::manager {
 
     // Thread execution helpers
     extern "C" void unit_trampoline();
-  //  extern "C" [[noreturn]] void idle_unit_func(void* arg);
+    //  extern "C" [[noreturn]] void idle_unit_func(void* arg);
 
     // Internal thread operations
-    void switch_to_unit(Unit* from, Unit* to, trap_frame *frame);
+    void switch_to_unit(Unit* from, Unit* to, trap_frame* frame);
 
-    Unit *setup_idle_unit(uint8_t cpu_id);
+    Unit* setup_idle_unit(uint8_t cpu_id);
 
-} // namespace kernel::manager
+}  // namespace kernel::scheduling::manager
 
 #endif

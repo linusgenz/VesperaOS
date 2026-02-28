@@ -34,7 +34,6 @@ namespace FAT32
         return sum;
     }
 
-    // Case-insensitive strcmp für FAT32
     int strcasecmp(const char* s1, const char* s2)
     {
         while (*s1 && *s2)
@@ -55,30 +54,30 @@ namespace FAT32
         return *s1 - *s2;
     }
 
-    // KORRIGIERT: Stoppt bei 0x0000 oder 0xFFFF
-    bool CopyLFNPart(const LongFileName* lfn, char* buffer, size_t& pos, size_t maxLen)
-    {
-        auto copyChars = [&](const uint16_t* src, size_t count)
-        {
-            for (size_t i = 0; i < count; i++)
-            {
-                // Stoppe bei Terminatoren
-                if (src[i] == 0x0000 || src[i] == 0xFFFF)
-                    return false;
+    bool CopyLFNPart(const LongFileName* lfn, char* buffer, size_t& pos, const size_t maxLen) {
+        uint16_t name1[5];
+        uint16_t name2[6];
+        uint16_t name3[2];
+        memcpy(name1, lfn->name1, sizeof(name1));
+        memcpy(name2, lfn->name2, sizeof(name2));
+        memcpy(name3, lfn->name3, sizeof(name3));
 
-                if (pos >= maxLen - 1)
+        auto copyChars = [&](const uint16_t* src, size_t count) {
+            for (size_t i = 0; i < count; i++) {
+                if (src[i] == 0x0000 || src[i] == 0xFFFF) {
                     return false;
-
-                // Nur ASCII unterstützt
+                }
+                if (pos >= maxLen - 1) {
+                    return false;
+                }
                 buffer[pos++] = static_cast<char>(src[i] & 0xFF);
             }
             return true;
         };
 
-        // Kopiere alle drei Teile
-        if (!copyChars(lfn->name1, 5)) return false;
-        if (!copyChars(lfn->name2, 6)) return false;
-        if (!copyChars(lfn->name3, 2)) return false;
+        if (!copyChars(name1, 5)) return false;
+        if (!copyChars(name2, 6)) return false;
+        if (!copyChars(name3, 2)) return false;
 
         return true;
     }
@@ -119,7 +118,6 @@ namespace FAT32
         return true;
     }
 
-    // KORRIGIERT: Fügt Punkt ein, IMMER Uppercase (FAT32 Spec konform)
     void ExtractShortName(const unsigned char* rawName, char* shortNameBuffer, size_t bufferSize)
     {
         if (bufferSize < 13) return;

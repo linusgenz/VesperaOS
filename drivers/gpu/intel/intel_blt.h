@@ -336,7 +336,7 @@ private:
     void init_gtt();
     void emergency_reset_bcs();
     void check_gpu_health();
-    bool validate_blt_params(const BltRect& rect);
+    bool validate_blt_params(const BltRect& rect) const;
     [[nodiscard]] bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
     void xy_color_blt(uint64_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
                       uint32_t color);

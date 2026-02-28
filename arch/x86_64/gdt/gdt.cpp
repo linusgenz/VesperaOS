@@ -47,7 +47,7 @@ void setup_cpu_tss(uint32_t cpu_id) {
     memcpy(&gdt[gdt_index], &temp_desc, sizeof(TSSDescriptor));
 
     uint16_t tss_selector = (gdt_index << 3);  // Index * 8
-    asm volatile("ltr %w0" :: "r"(tss_selector));
+    asm volatile("ltr %w0" ::"r"(tss_selector));
 }
 
 uint16_t get_tss_selector(uint32_t cpu_id) {

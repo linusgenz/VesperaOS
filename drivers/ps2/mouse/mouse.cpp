@@ -45,7 +45,7 @@ namespace input::mouse {
         0b00000011, 0b00000000,
         0b00000001, 0b00000000,
     };
-    
+
     static Point position = {0, 0};
 
     Point get_position() {

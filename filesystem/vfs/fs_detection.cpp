@@ -145,8 +145,7 @@ void FilesystemDetector::UnmountAll()
             continue;
         }
 
-        MountPoint* real_mp = VFS::find_mount_point(mp->path);
-        if (real_mp)
+        if (MountPoint* real_mp = VFS::find_mount_point(mp->path))
         {
             Unmount(real_mp);
         }
@@ -228,7 +227,6 @@ void FilesystemDetector::ScanAndMountAll()
     int successful_mounts = 0;
     static bool root_assigned = false;
 
-    const char* table_type = nullptr; // TODO set table_type
     for (size_t i = 0; i < devices.size(); ++i)
     {
         const KernelDevice* kd = devices[i];
@@ -239,6 +237,7 @@ void FilesystemDetector::ScanAndMountAll()
 
         if (device->type == BlockDevice::Type::Disk && kd->children.empty())
         {
+            const char* table_type = nullptr;
             char mount_path[64];
             if (!root_assigned)
             {

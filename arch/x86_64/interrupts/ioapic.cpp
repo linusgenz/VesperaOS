@@ -1,29 +1,31 @@
 // ioapic.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 23.07.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ioapic.h"
-#include "../../../include/log.h"
+
 #include <kernel/memory.h>
+
+#include "../../../include/log.h"
 
 namespace arch::x86_64::interrupts::ioapic {
     static MADT::IoApic *find_ioapic_for_gsi(uint32_t gsi) {
@@ -54,11 +56,11 @@ namespace arch::x86_64::interrupts::ioapic {
                 return overrides[i].flags;
             }
         }
-        return 0; // default flags: polarity = high, trigger = edge
+        return 0;  // default flags: polarity = high, trigger = edge
     }
 
     static volatile uint32_t *map_ioapic(const uintptr_t address) {
-        kernel::memory::map_memory(reinterpret_cast<void*>(address), reinterpret_cast<void*>(address));
+        kernel::memory::map_memory(reinterpret_cast<void *>(address), reinterpret_cast<void *>(address));
         return reinterpret_cast<volatile uint32_t *>(address);
     }
 
@@ -67,30 +69,37 @@ namespace arch::x86_64::interrupts::ioapic {
         base[IOAPIC_WINDOW] = val;
     }
 
-    static void ioapic_set_redirect(const MADT::IoApic *ioapic, const uint32_t gsi, const uint8_t vector, const uint8_t dest_apic_id,
-                                    uint16_t flags) {
+    static void ioapic_set_redirect(
+        const MADT::IoApic *ioapic, const uint32_t gsi, const uint8_t vector, const uint8_t dest_apic_id, uint16_t flags
+    ) {
         volatile uint32_t *mmio = map_ioapic(ioapic->address);
         const uint32_t index = gsi - ioapic->gsi_base;
         const uint8_t reg = 0x10 + (index * 2);
 
         uint32_t low = vector;
-        low |= 0 << 8; // delivery mode fixed
-        low |= 0 << 11; // physical
-        low |= ((flags >> 1) & 1) << 13; // polarity
-        low |= ((flags >> 3) & 1) << 15; // trigger mode
-        low |= 0 << 16; // mask = 0 (enabled)
+        low |= 0 << 8;                    // delivery mode fixed
+        low |= 0 << 11;                   // physical
+        low |= ((flags >> 1) & 1) << 13;  // polarity
+        low |= ((flags >> 3) & 1) << 15;  // trigger mode
+        low |= 0 << 16;                   // mask = 0 (enabled)
 
         uint32_t high = dest_apic_id << 24;
 
-        low |= 1 << 16; // masked
+        low |= 1 << 16;  // masked
         write_ioapic_reg(mmio, reg, low);
         write_ioapic_reg(mmio, reg + 1, high);
 
         low &= ~(1 << 16);
         write_ioapic_reg(mmio, reg, low);
 
-        Log::Info("IOAPIC: Redirect GSI %u (IRQ 0x%x) -> vec 0x%x on CPU %u (flags: 0x%x)",
-                  gsi, gsi, vector, dest_apic_id, flags);
+        Log::Info(
+            "IOAPIC: Redirect GSI %u (IRQ 0x%x) -> vec 0x%x on CPU %u (flags: 0x%x)",
+            gsi,
+            gsi,
+            vector,
+            dest_apic_id,
+            flags
+        );
     }
 
     void configure_irq(uint8_t irq, uint8_t vector, uint8_t dest_apic_id) {
@@ -107,10 +116,10 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void init() {
-        const uint8_t default_irqs[] = {0, 5, 9, 10, 11}; // default irq's
+        const uint8_t default_irqs[] = {0, 5, 9, 10, 11};  // default irq's
 
-        for (uint8_t irq: default_irqs) {
+        for (uint8_t irq : default_irqs) {
             configure_irq(irq, 0x20 + irq, MADT::get_bsp_apic_id());
         }
     }
-}
+}  // namespace arch::x86_64::interrupts::ioapic

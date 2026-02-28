@@ -8,14 +8,13 @@
 #include <cstddef>
 #include <cstdint>
 
-class Bitmap{
-    public:
+class Bitmap {
+   public:
     size_t size;
     uint8_t* buffer;
     bool operator[](uint64_t index) const;
     [[nodiscard]] bool set(uint64_t index, bool value) const;
     [[nodiscard]] bool get(uint64_t index) const;
-
 };
 
-#endif //BITMAP_H
+#endif  // BITMAP_H

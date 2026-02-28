@@ -239,7 +239,7 @@ static void float_to_str(float val, char* buf, int precision)
 */
 void Log::print_formatted(const char* fmt, __builtin_va_list args)
 {
-    char chr;
+    char chr = 0;
     while ((chr = *fmt++) != 0)
     {
         if (chr == '%')

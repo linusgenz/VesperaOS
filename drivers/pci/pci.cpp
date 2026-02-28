@@ -1,7 +1,10 @@
-#include <kernel/interrupts.h>
-#include <kernel/memory.h>
+#include "pci.h"
 
-#include "../../filesystem/devfs/devfs.h"
+#include <kernel/interrupts.h>
+#include <kernel/kernel_utils.h>
+#include <kernel/memory.h>
+#include <log.h>
+
 #include "../../kernel/graphics/display_manager.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../ahci/ahci.h"
@@ -9,10 +12,7 @@
 #include "../nvme/nvme.h"
 #include "../usb/usb_manager.h"
 #include "../usb/xhci/xhci.h"
-#include "kernel/time.h"
 #include "msix.h"
-#include "pci.h"
-#include <log.h>
 
 static atomic_u8 next_usb_bus_number;
 
@@ -224,9 +224,9 @@ namespace PCI
 
         USBManager::init();
 
-        for (int t = 0; t < entries; t++)
+        for (size_t t = 0; t < entries; t++)
         {
-            auto* new_device_config = reinterpret_cast<ACPI::DeviceConfig*>(reinterpret_cast<uint64_t>(mcfg) + sizeof(
+            const auto* new_device_config = reinterpret_cast<ACPI::DeviceConfig*>(reinterpret_cast<uint64_t>(mcfg) + sizeof(
                 ACPI::MCFGHeader) + (sizeof(ACPI::DeviceConfig) * t));
             for (uint64_t bus = new_device_config->start_bus; bus < new_device_config->end_bus; bus++)
             {

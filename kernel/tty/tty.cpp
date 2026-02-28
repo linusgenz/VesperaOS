@@ -21,20 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/tty/tty.h>
-
-#include <log.h>
-#include <kernel/scheduling.h>
 #include <kernel/memory.h>
+#include <kernel/scheduling.h>
+#include <kernel/tty/tty.h>
+#include <log.h>
 
-namespace kernel::tty
-{
+namespace kernel::tty {
     TTY* active_tty;
     TTY tty_instances[6];
     TTYDevice* tty_devices[6];
 
-    void tty_init(TTY* tty, Terminal* term)
-    {
+    void tty_init(TTY* tty, Terminal* term) {
         memset(tty->canon_buffer, 0, TTY::BUFFER_SIZE);
 
         tty->canonical = true;
@@ -45,29 +42,21 @@ namespace kernel::tty
         term->set_colour(tty->fg, tty->bg);
     }
 
-
-    void tty_handle_input(const kernel::input::InputEvent& ev)
-    {
+    void tty_handle_input(const kernel::input::InputEvent& ev) {
         if (ev.device != kernel::input::InputDeviceType::KEYBOARD) return;
         if (ev.action != kernel::input::KeyAction::PRESS) return;
 
         const char c = ev.ascii;
         if (!c) return;
 
-        if (c == '\b')
-        {
-            if (active_tty->canonical)
-            {
-                if (active_tty->canon_len > 0 && !active_tty->line_ready)
-                {
+        if (c == '\b') {
+            if (active_tty->canonical) {
+                if (active_tty->canon_len > 0 && !active_tty->line_ready) {
                     active_tty->canon_len--;
                     active_tty->term->clear_char();
                 }
-            }
-            else
-            {
-                if (active_tty->raw_len > 0)
-                {
+            } else {
+                if (active_tty->raw_len > 0) {
                     active_tty->raw_len--;
                     active_tty->term->clear_char();
                 }
@@ -75,221 +64,198 @@ namespace kernel::tty
             return;
         }
 
-        if (active_tty->canonical)
-        {
+        if (active_tty->canonical) {
             // Canonical Mode
-            if (c == '\n')
-            {
-                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1)
-                {
+            if (c == '\n') {
+                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
                     active_tty->canon_buffer[active_tty->canon_len++] = '\n';
                     active_tty->canon_buffer[active_tty->canon_len] = '\0';
                     active_tty->line_ready = true;
                 }
-            }
-            else
-            {
-                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1)
-                {
+            } else {
+                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
                     active_tty->canon_buffer[active_tty->canon_len++] = c;
                     active_tty->term->put_char_fast(c);
                 }
             }
-        }
-        else
-        {
+        } else {
             // Non-canonical Mode
-            if (active_tty->raw_len < TTY::BUFFER_SIZE - 1)
-            {
+            if (active_tty->raw_len < TTY::BUFFER_SIZE - 1) {
                 active_tty->raw_buffer[active_tty->raw_len++] = c;
-                active_tty->term->put_char_fast(c); // Echo
+                active_tty->term->put_char_fast(c);  // Echo
             }
         }
     }
 
     // reference: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-    static Colour ansi_to_colour(const int code, bool is_bg, const bool bright = false)
-    {
-        switch (code)
-        {
-        case 30:
-        case 40: return bright ? static_cast<Colour>(0x00808080) : BLACK; // gray for bright black
-        case 31:
-        case 41: return bright ? static_cast<Colour>(0x00FF6060) : RED;
-        case 32:
-        case 42: return bright ? static_cast<Colour>(0x0060FF60) : GREEN;
-        case 33:
-        case 43: return bright ? static_cast<Colour>(0x00FFFF60) : YELLOW;
-        case 34:
-        case 44: return bright ? static_cast<Colour>(0x0060A0FF) : BLUE;
-        case 35:
-        case 45: return bright ? static_cast<Colour>(0x00FF60FF) : MAGENTA;
-        case 36:
-        case 46: return bright ? static_cast<Colour>(0x0060FFFF) : CYAN;
-        case 37:
-        case 47: return bright ? static_cast<Colour>(0x00FFFFFF) : WHITE;
+    static Colour ansi_to_colour(const int code, bool is_bg, const bool bright = false) {
+        switch (code) {
+            case 30:
+            case 40:
+                return bright ? static_cast<Colour>(0x00808080) : BLACK;  // gray for bright black
+            case 31:
+            case 41:
+                return bright ? static_cast<Colour>(0x00FF6060) : RED;
+            case 32:
+            case 42:
+                return bright ? static_cast<Colour>(0x0060FF60) : GREEN;
+            case 33:
+            case 43:
+                return bright ? static_cast<Colour>(0x00FFFF60) : YELLOW;
+            case 34:
+            case 44:
+                return bright ? static_cast<Colour>(0x0060A0FF) : BLUE;
+            case 35:
+            case 45:
+                return bright ? static_cast<Colour>(0x00FF60FF) : MAGENTA;
+            case 36:
+            case 46:
+                return bright ? static_cast<Colour>(0x0060FFFF) : CYAN;
+            case 37:
+            case 47:
+                return bright ? static_cast<Colour>(0x00FFFFFF) : WHITE;
 
-        case 90:
-        case 100: return static_cast<Colour>(0x00808080); // Bright Black (→ Gray)
-        case 91:
-        case 101: return static_cast<Colour>(0x00FF6060); // Bright Red
-        case 92:
-        case 102: return static_cast<Colour>(0x0060FF60); // Bright Green
-        case 93:
-        case 103: return static_cast<Colour>(0x00FFFF60); // Bright Yellow
-        case 94:
-        case 104: return static_cast<Colour>(0x0060A0FF); // Bright Blue
-        case 95:
-        case 105: return static_cast<Colour>(0x00FF60FF); // Bright Magenta
-        case 96:
-        case 106: return static_cast<Colour>(0x0060FFFF); // Bright Cyan
-        case 97:
-        case 107: return static_cast<Colour>(0x00FFFFFF); // Bright White
+            case 90:
+            case 100:
+                return static_cast<Colour>(0x00808080);  // Bright Black (→ Gray)
+            case 91:
+            case 101:
+                return static_cast<Colour>(0x00FF6060);  // Bright Red
+            case 92:
+            case 102:
+                return static_cast<Colour>(0x0060FF60);  // Bright Green
+            case 93:
+            case 103:
+                return static_cast<Colour>(0x00FFFF60);  // Bright Yellow
+            case 94:
+            case 104:
+                return static_cast<Colour>(0x0060A0FF);  // Bright Blue
+            case 95:
+            case 105:
+                return static_cast<Colour>(0x00FF60FF);  // Bright Magenta
+            case 96:
+            case 106:
+                return static_cast<Colour>(0x0060FFFF);  // Bright Cyan
+            case 97:
+            case 107:
+                return static_cast<Colour>(0x00FFFFFF);  // Bright White
 
-        default:
-            return WHITE; // fallback
+            default:
+                return WHITE;  // fallback
         }
     }
 
-    static void tty_apply_sgr(TTY* tty)
-    {
-        int i = 0;
-        while (i < tty->esc_param_count)
-        {
-            switch (const int code = tty->esc_params[i++])
-            {
-            case 0: // Reset
-                tty->fg = WHITE;
-                tty->bg = BLACK;
-                break;
+    static void tty_apply_sgr(TTY* tty) {
+        size_t i = 0;
+        while (i < tty->esc_param_count) {
+            switch (const int code = tty->esc_params[i++]) {
+                case 0:  // Reset
+                    tty->fg = WHITE;
+                    tty->bg = BLACK;
+                    break;
 
-            case 30 ... 37: // Standard FG
-                tty->fg = ansi_to_colour(code, false);
-                break;
-            case 40 ... 47: // Standard BG
-                tty->bg = ansi_to_colour(code, true);
-                break;
+                case 30 ... 37:  // Standard FG
+                    tty->fg = ansi_to_colour(code, false);
+                    break;
+                case 40 ... 47:  // Standard BG
+                    tty->bg = ansi_to_colour(code, true);
+                    break;
 
-            case 90 ... 97: // Bright FG
-                tty->fg = ansi_to_colour(code, false, true);
-                break;
-            case 100 ... 107: // Bright BG
-                tty->bg = ansi_to_colour(code, true, true);
-                break;
+                case 90 ... 97:  // Bright FG
+                    tty->fg = ansi_to_colour(code, false, true);
+                    break;
+                case 100 ... 107:  // Bright BG
+                    tty->bg = ansi_to_colour(code, true, true);
+                    break;
 
-            case 38: // Extended FG
-                if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count)
-                {
-                    const int r = tty->esc_params[i + 1];
-                    const int g = tty->esc_params[i + 2];
-                    const int b = tty->esc_params[i + 3];
-                    tty->fg = static_cast<Colour>((r << 16) | (g << 8) | b);
-                    i += 4;
-                }
-                break;
+                case 38:  // Extended FG
+                    if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
+                        const int r = tty->esc_params[i + 1];
+                        const int g = tty->esc_params[i + 2];
+                        const int b = tty->esc_params[i + 3];
+                        tty->fg = static_cast<Colour>((r << 16) | (g << 8) | b);
+                        i += 4;
+                    }
+                    break;
 
-            case 48: // Extended BG
-                if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count)
-                {
-                    int r = tty->esc_params[i + 1];
-                    int g = tty->esc_params[i + 2];
-                    int b = tty->esc_params[i + 3];
-                    tty->bg = static_cast<Colour>((r << 16) | (g << 8) | b);
-                    i += 4;
-                }
-                break;
+                case 48:  // Extended BG
+                    if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
+                        int r = tty->esc_params[i + 1];
+                        int g = tty->esc_params[i + 2];
+                        int b = tty->esc_params[i + 3];
+                        tty->bg = static_cast<Colour>((r << 16) | (g << 8) | b);
+                        i += 4;
+                    }
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
             }
         }
 
         tty->term->set_colour(tty->fg, tty->bg);
     }
 
-    void tty_process_output(TTY* tty, const char c)
-    {
-        switch (tty->esc_state)
-        {
-        case EscapeState::NONE:
-            if (c == 0x1B)
-            {
-                tty->term->flush();
-                tty->esc_state = EscapeState::ESC_RECEIVED;
-            }
-            else if (c == '\n')
-            {
-                tty->term->flush();
-                tty->term->new_line();
-                tty->cursor_x = 0;
-                tty->cursor_y++;
-            }
-            else if (c == '\r')
-            {
-                tty->term->flush();
-                tty->cursor_x = 0;
-            }
-            else
-            {
-                tty->term->put_char(c);
-                tty->cursor_x++;
-            }
-            break;
-
-        case EscapeState::ESC_RECEIVED:
-            if (c == '[')
-            {
-                tty->esc_state = EscapeState::CSI_RECEIVED;
-                tty->esc_param = 0;
-                tty->esc_param_count = 0;
-            }
-            else
-            {
-                tty->esc_state = EscapeState::NONE;
-            }
-            break;
-
-        case EscapeState::CSI_RECEIVED:
-            if (c >= '0' && c <= '9')
-            {
-                tty->esc_param = tty->esc_param * 10 + (c - '0');
-            }
-            else if (c == ';')
-            {
-                if (tty->esc_param_count < TTY::MAX_PARAMS)
-                    tty->esc_params[tty->esc_param_count++] = tty->esc_param;
-                tty->esc_param = 0;
-            }
-            else
-            {
-                if (tty->esc_param_count < TTY::MAX_PARAMS)
-                    tty->esc_params[tty->esc_param_count++] = tty->esc_param;
-
-                // CSI abschließen
-                if (c == 'm')
-                {
-                    tty_apply_sgr(tty);
+    void tty_process_output(TTY* tty, const char c) {
+        switch (tty->esc_state) {
+            case EscapeState::NONE:
+                if (c == 0x1B) {
+                    tty->term->flush();
+                    tty->esc_state = EscapeState::ESC_RECEIVED;
+                } else if (c == '\n') {
+                    tty->term->flush();
+                    tty->term->new_line();
+                    tty->cursor_x = 0;
+                    tty->cursor_y++;
+                } else if (c == '\r') {
+                    tty->term->flush();
+                    tty->cursor_x = 0;
+                } else {
+                    tty->term->put_char(c);
+                    tty->cursor_x++;
                 }
-                else if (c == 'J' && tty->esc_params[0] == 2)
-                {
-                    tty_clear(tty);
-                }
-                else if (c == 'H')
-                {
-                    tty->cursor_x = tty->cursor_y = 0;
-                    tty->term->set_cursor(0, 0);
-                }
+                break;
 
-                tty->esc_state = EscapeState::NONE;
-                tty->esc_param = 0;
-                tty->esc_param_count = 0;
-            }
-            break;
+            case EscapeState::ESC_RECEIVED:
+                if (c == '[') {
+                    tty->esc_state = EscapeState::CSI_RECEIVED;
+                    tty->esc_param = 0;
+                    tty->esc_param_count = 0;
+                } else {
+                    tty->esc_state = EscapeState::NONE;
+                }
+                break;
+
+            case EscapeState::CSI_RECEIVED:
+                if (c >= '0' && c <= '9') {
+                    tty->esc_param = tty->esc_param * 10 + (c - '0');
+                } else if (c == ';') {
+                    if (tty->esc_param_count < TTY::MAX_PARAMS)
+                        tty->esc_params[tty->esc_param_count++] = tty->esc_param;
+                    tty->esc_param = 0;
+                } else {
+                    if (tty->esc_param_count < TTY::MAX_PARAMS)
+                        tty->esc_params[tty->esc_param_count++] = tty->esc_param;
+
+                    // CSI abschließen
+                    if (c == 'm') {
+                        tty_apply_sgr(tty);
+                    } else if (c == 'J' && tty->esc_params[0] == 2) {
+                        tty_clear(tty);
+                    } else if (c == 'H') {
+                        tty->cursor_x = tty->cursor_y = 0;
+                        tty->term->set_cursor(0, 0);
+                    }
+
+                    tty->esc_state = EscapeState::NONE;
+                    tty->esc_param = 0;
+                    tty->esc_param_count = 0;
+                }
+                break;
         }
     }
 
-    void tty_clear(TTY* tty)
-    {
+    void tty_clear(TTY* tty) {
         tty->term->clear();
 
         tty->canon_len = 0;
@@ -303,15 +269,12 @@ namespace kernel::tty
         tty->esc_param_count = 0;
     }
 
-    size_t tty_read(char* buf, size_t count)
-    {
+    size_t tty_read(char* buf, size_t count) {
         size_t read = 0;
 
-        if (active_tty->canonical)
-        {
+        if (active_tty->canonical) {
             // Zeilenmodus
-            while (!active_tty->line_ready)
-            {
+            while (!active_tty->line_ready) {
                 kernel::scheduling::yield();
             }
 
@@ -322,12 +285,9 @@ namespace kernel::tty
             active_tty->canon_len = 0;
             active_tty->line_ready = false;
             memset(active_tty->canon_buffer, 0, TTY::BUFFER_SIZE);
-        }
-        else
-        {
+        } else {
             // Non-Canonical (charweise)
-            while (active_tty->raw_len == 0)
-            {
+            while (active_tty->raw_len == 0) {
                 kernel::scheduling::yield();
             }
 
@@ -335,11 +295,10 @@ namespace kernel::tty
             memcpy(buf, active_tty->raw_buffer, to_copy);
             read = to_copy;
 
-            memmove(active_tty->raw_buffer, active_tty->raw_buffer + to_copy,
-                    active_tty->raw_len - to_copy);
+            memmove(active_tty->raw_buffer, active_tty->raw_buffer + to_copy, active_tty->raw_len - to_copy);
             active_tty->raw_len -= to_copy;
         }
 
         return read;
     }
-}
+}  // namespace kernel::tty

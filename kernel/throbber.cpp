@@ -1,32 +1,28 @@
 // throbber.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 16.08.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "throbber.h"
 
-#include <log.h>
-
-#include <kernel/time.h>
-#include <kernel/system/system_manager.h>
 /*
 static float abs(float v) {
     return v < 0.0f ? -v : v;
@@ -146,19 +142,17 @@ void clear_throbber(uint32_t x, uint32_t y) {
     uint32_t bg_color = global_terminal->get_bg_colour();
 
     for (uint32_t row = 0; row < THROBBER_SIZE; row++) {
-        auto* fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) * fb->pixels_per_scanline * 4);
-        for (uint32_t col = 0; col < THROBBER_SIZE; col++) {
-            fb_row[x + col] = bg_color;
+        auto* fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) *
+fb->pixels_per_scanline * 4); for (uint32_t col = 0; col < THROBBER_SIZE; col++) { fb_row[x + col] = bg_color;
         }
     }
 }
 
 void draw_bitmap(const Framebuffer *fb, const uint32_t *bitmap, uint32_t w, uint32_t h, uint32_t x, uint32_t y) {
     for (uint32_t row = 0; row < h; row++) {
-        auto *fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) * fb->pixels_per_scanline * 4);
-        for (uint32_t col = 0; col < w; col++) {
-            uint32_t px = bitmap[row * w + col];
-            if (px >> 24) {
+        auto *fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) *
+fb->pixels_per_scanline * 4); for (uint32_t col = 0; col < w; col++) { uint32_t px = bitmap[row * w + col]; if (px >>
+24) {
                 // alpha > 0
                 fb_row[x + col] = px;
             }

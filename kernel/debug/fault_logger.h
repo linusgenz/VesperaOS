@@ -44,6 +44,6 @@ namespace kernel::debug {
 
     void log_invalid_opcode_bytes(uint64_t rip, const FaultContext& ctx);
 
-} // namespace kernel::debug
+}  // namespace kernel::debug
 
-#endif // VESPERAOS_FAULT_LOGGER_H
+#endif  // VESPERAOS_FAULT_LOGGER_H

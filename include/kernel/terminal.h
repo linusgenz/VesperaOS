@@ -68,13 +68,13 @@ public:
     void clear();
     void clear_char();
     void new_line();
-    void flush();
+    void flush() const;
 
 private:
-    Cell& at(uint32_t x, uint32_t y);
-    void draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* cells, uint32_t len);
+    Cell& at(uint32_t x, uint32_t y) const;
+    void draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* cells, uint32_t len) const;
     void advance();
-    void scroll();
+    void scroll() const;
 };
 
 extern FONT* system_font;

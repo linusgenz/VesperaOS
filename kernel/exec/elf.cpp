@@ -1,60 +1,52 @@
 // elf.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 05.08.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "elf.h"
-#include <log.h>
-#include <kernel/memory.h>
 
-#include "../../filesystem/vfs/vfs.h"
+#include <kernel/memory.h>
 #include <kernel/realm/realm.h>
 
+#include "../../filesystem/vfs/vfs.h"
+
 #if ENABLE_ELF_LOGGING
+#include <log.h>
 #define ELF_LOG(fmt, ...) Log::Info(fmt, ##__VA_ARGS__)
 #else
 #define ELF_LOG(fmt, ...)
 #endif
 
-static void* realm_get_phys(const Realm* realm, const uintptr_t vaddr)
-{
+static void* realm_get_phys(const Realm* realm, const uintptr_t vaddr) {
     uintptr_t page_vaddr = vaddr & ~0xFFFULL;
     uintptr_t offset = vaddr & 0xFFFULL;
 
-    void* phys_page = realm->page_table->get_physical_address(
-        reinterpret_cast<void*>(page_vaddr));
+    void* phys_page = realm->page_table->get_physical_address(reinterpret_cast<void*>(page_vaddr));
     if (!phys_page) return nullptr;
 
-    return reinterpret_cast<void*>(
-        reinterpret_cast<uintptr_t>(phys_page) + offset);
+    return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(phys_page) + offset);
 }
 
-ElfLoader::LoadResult ElfLoader::load(
-    const char* path,
-    uintptr_t preferred_base,
-    const Realm* realm
-)
-{
-    if (!path || !realm)
-    {
+ElfLoader::LoadResult ElfLoader::load(const char* path, uintptr_t preferred_base, const Realm* realm) {
+    if (!path || !realm) {
         return {
             .entry_point = nullptr,
             .load_base = 0,
@@ -70,8 +62,7 @@ ElfLoader::LoadResult ElfLoader::load(
     ELF_LOG("[ELF] Loading binary from: %s", path);
 
     FileData file_data = load_file_from_vfs(path);
-    if (!file_data.data)
-    {
+    if (!file_data.data) {
         return {
             .entry_point = nullptr,
             .load_base = 0,
@@ -86,8 +77,7 @@ ElfLoader::LoadResult ElfLoader::load(
 
     auto* header = static_cast<Elf64_Ehdr*>(file_data.data);
 
-    if (!validate_magic(header))
-    {
+    if (!validate_magic(header)) {
         kernel::memory::free(file_data.data);
         return {
             .entry_point = nullptr,
@@ -101,8 +91,7 @@ ElfLoader::LoadResult ElfLoader::load(
         };
     }
 
-    if (!validate_type(header))
-    {
+    if (!validate_type(header)) {
         kernel::memory::free(file_data.data);
         return {
             .entry_point = nullptr,
@@ -116,8 +105,7 @@ ElfLoader::LoadResult ElfLoader::load(
         };
     }
 
-    if (!validate_architecture(header))
-    {
+    if (!validate_architecture(header)) {
         kernel::memory::free(file_data.data);
         return {
             .entry_point = nullptr,
@@ -132,13 +120,10 @@ ElfLoader::LoadResult ElfLoader::load(
     }
 
     bool is_pie = (header->e_type == ET_DYN);
-    ELF_LOG("[ELF] Type: %s, Entry: 0x%lx",
-            is_pie ? "ET_DYN (PIE)" : "ET_EXEC",
-            header->e_entry);
+    ELF_LOG("[ELF] Type: %s, Entry: 0x%lx", is_pie ? "ET_DYN (PIE)" : "ET_EXEC", header->e_entry);
 
     AddressRange range{};
-    if (!calculate_address_range(header, file_data.data, range))
-    {
+    if (!calculate_address_range(header, file_data.data, range)) {
         kernel::memory::free(file_data.data);
         return {
             .entry_point = nullptr,
@@ -152,16 +137,14 @@ ElfLoader::LoadResult ElfLoader::load(
         };
     }
 
-    ELF_LOG("[ELF] Virtual range: 0x%lx - 0x%lx (size: %lu)",
-            range.vaddr_min, range.vaddr_max, range.total_size);
+    ELF_LOG("[ELF] Virtual range: 0x%lx - 0x%lx (size: %lu)", range.vaddr_min, range.vaddr_max, range.total_size);
 
     uintptr_t load_bias = calculate_load_bias(header, range, preferred_base);
     uintptr_t load_base = range.vaddr_min + load_bias;
 
     ELF_LOG("[ELF] Load base: 0x%lx, Bias: 0x%lx", load_base, load_bias);
 
-    if (!process_all_segments(header, file_data.data, load_bias, realm))
-    {
+    if (!process_all_segments(header, file_data.data, load_bias, realm)) {
         kernel::memory::free(file_data.data);
         return {
             .entry_point = nullptr,
@@ -175,10 +158,8 @@ ElfLoader::LoadResult ElfLoader::load(
         };
     }
 
-    if (is_pie)
-    {
-        if (!apply_relocations(header, file_data.data, load_bias, realm))
-        {
+    if (is_pie) {
+        if (!apply_relocations(header, file_data.data, load_bias, realm)) {
             kernel::memory::free(file_data.data);
             return {
                 .entry_point = nullptr,
@@ -193,12 +174,10 @@ ElfLoader::LoadResult ElfLoader::load(
         }
     }
 
-
     uintptr_t entry_point = header->e_entry + load_bias;
     uintptr_t load_end = range.vaddr_max + load_bias;
 
-    ELF_LOG("[ELF] Entry point: 0x%lx -> 0x%lx (relocated)",
-            header->e_entry, entry_point);
+    ELF_LOG("[ELF] Entry point: 0x%lx -> 0x%lx (relocated)", header->e_entry, entry_point);
     ELF_LOG("[ELF] Loaded range: 0x%lx - 0x%lx", load_base, load_end);
 
     kernel::memory::free(file_data.data);
@@ -216,68 +195,53 @@ ElfLoader::LoadResult ElfLoader::load(
 }
 
 bool ElfLoader::apply_relocations(
-    const Elf64_Ehdr* header,
-    const void* file_data,
-    uintptr_t load_bias,
-    const Realm* realm
-)
-{
-    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(
-        static_cast<const uint8_t*>(file_data) + header->e_phoff
-    );
+    const Elf64_Ehdr* header, const void* file_data, uintptr_t load_bias, const Realm* realm
+) {
+    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(static_cast<const uint8_t*>(file_data) + header->e_phoff);
 
     const Elf64_Phdr* dynamic_phdr = nullptr;
-    for (int i = 0; i < header->e_phnum; ++i)
-    {
-        if (phdrs[i].p_type == PT_DYNAMIC)
-        {
+    for (int i = 0; i < header->e_phnum; ++i) {
+        if (phdrs[i].p_type == PT_DYNAMIC) {
             dynamic_phdr = &phdrs[i];
             break;
         }
     }
     if (!dynamic_phdr) return true;
 
-    auto* dyn = reinterpret_cast<const Elf64_Dyn*>(
-        static_cast<const uint8_t*>(file_data) + dynamic_phdr->p_offset
-    );
+    auto* dyn = reinterpret_cast<const Elf64_Dyn*>(static_cast<const uint8_t*>(file_data) + dynamic_phdr->p_offset);
 
     size_t dyn_count = dynamic_phdr->p_filesz / sizeof(Elf64_Dyn);
 
-    Elf64_Rela* rela_virt = nullptr;
     size_t rela_sz = 0;
     size_t rela_ent = sizeof(Elf64_Rela);
     uintptr_t rela_vaddr = 0;
 
-    for (size_t i = 0; i < dyn_count; ++i)
-    {
-        switch (dyn[i].d_tag)
-        {
-        case DT_RELA:
-            rela_vaddr = dyn[i].d_un.d_ptr;
-            break;
-        case DT_RELASZ:
-            rela_sz = dyn[i].d_un.d_val;
-            break;
-        case DT_RELAENT:
-            rela_ent = dyn[i].d_un.d_val;
-            break;
-        case DT_NULL:
-            goto done_dyn;
-        default:
-            break;
+    for (size_t i = 0; i < dyn_count; ++i) {
+        switch (dyn[i].d_tag) {
+            case DT_RELA:
+                rela_vaddr = dyn[i].d_un.d_ptr;
+                break;
+            case DT_RELASZ:
+                rela_sz = dyn[i].d_un.d_val;
+                break;
+            case DT_RELAENT:
+                rela_ent = dyn[i].d_un.d_val;
+                break;
+            case DT_NULL:
+                goto done_dyn;
+            default:
+                break;
         }
     }
-    done_dyn:
+done_dyn:
 
     if (!rela_vaddr || rela_sz == 0) return true;
 
     const Elf64_Rela* rela = nullptr;
-    for (int i = 0; i < header->e_phnum; ++i)
-    {
+    for (int i = 0; i < header->e_phnum; ++i) {
         const Elf64_Phdr& ph = phdrs[i];
         if (ph.p_type != PT_LOAD) continue;
-        if (rela_vaddr >= ph.p_vaddr && rela_vaddr < ph.p_vaddr + ph.p_filesz)
-        {
+        if (rela_vaddr >= ph.p_vaddr && rela_vaddr < ph.p_vaddr + ph.p_filesz) {
             uintptr_t offset_in_seg = rela_vaddr - ph.p_vaddr;
             rela = reinterpret_cast<const Elf64_Rela*>(
                 static_cast<const uint8_t*>(file_data) + ph.p_offset + offset_in_seg
@@ -290,20 +254,18 @@ bool ElfLoader::apply_relocations(
 
     size_t count = rela_sz / rela_ent;
 
-    for (size_t i = 0; i < count; ++i)
-    {
-        const Elf64_Rela& r = rela[i];
-        uint32_t type = ELF64_R_TYPE(r.r_info);
+    for (size_t i = 0; i < count; ++i) {
+        const auto& [r_offset, r_info, r_addend] = rela[i];
+        uint32_t type = ELF64_R_TYPE(r_info);
 
-        if (type == R_X86_64_RELATIVE)
-        {
-            uintptr_t target_vaddr = r.r_offset + load_bias;
+        if (type == R_X86_64_RELATIVE) {
+            uintptr_t target_vaddr = r_offset + load_bias;
 
             void* phys = realm_get_phys(realm, target_vaddr);
             if (!phys) continue;
 
             auto* where = static_cast<uint64_t*>(phys_to_virt(reinterpret_cast<uint64_t>(phys)));
-            *where = load_bias + r.r_addend;
+            *where = load_bias + r_addend;
         }
     }
 
@@ -312,38 +274,29 @@ bool ElfLoader::apply_relocations(
 
 // Validation
 
-bool ElfLoader::validate_magic(const Elf64_Ehdr* header)
-{
-    return header->e_ident[0] == ELFMAG0 &&
-        header->e_ident[1] == ELFMAG1 &&
-        header->e_ident[2] == ELFMAG2 &&
-        header->e_ident[3] == ELFMAG3;
+bool ElfLoader::validate_magic(const Elf64_Ehdr* header) {
+    return header->e_ident[0] == ELFMAG0 && header->e_ident[1] == ELFMAG1 && header->e_ident[2] == ELFMAG2 &&
+           header->e_ident[3] == ELFMAG3;
 }
 
-bool ElfLoader::validate_type(const Elf64_Ehdr* header)
-{
+bool ElfLoader::validate_type(const Elf64_Ehdr* header) {
     return header->e_type == ET_EXEC || header->e_type == ET_DYN;
 }
 
-bool ElfLoader::validate_architecture(const Elf64_Ehdr* header)
-{
+bool ElfLoader::validate_architecture(const Elf64_Ehdr* header) {
     return header->e_machine == EM_X86_64;
 }
 
-
-ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path)
-{
+ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path) {
     VfsNode* file = VFS::open(path);
-    if (!file)
-    {
+    if (!file) {
         return {nullptr, 0, "Failed to open file"};
     }
 
     size_t size = file->size;
     void* data = kernel::memory::malloc(size);
 
-    if (!data)
-    {
+    if (!data) {
         VFS::close(file);
         return {nullptr, 0, "Failed to allocate memory for file"};
     }
@@ -354,26 +307,17 @@ ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path)
     return {data, size, nullptr};
 }
 
-bool ElfLoader::calculate_address_range(
-    const Elf64_Ehdr* header,
-    const void* file_data,
-    AddressRange& range
-)
-{
-    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(
-        static_cast<const uint8_t*>(file_data) + header->e_phoff
-    );
+bool ElfLoader::calculate_address_range(const Elf64_Ehdr* header, const void* file_data, AddressRange& range) {
+    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(static_cast<const uint8_t*>(file_data) + header->e_phoff);
 
     uintptr_t min_addr = UINTPTR_MAX;
     uintptr_t max_addr = 0;
     bool found_load = false;
 
-    for (int i = 0; i < header->e_phnum; ++i)
-    {
+    for (int i = 0; i < header->e_phnum; ++i) {
         const Elf64_Phdr& ph = phdrs[i];
 
-        if (ph.p_type != PT_LOAD)
-            continue;
+        if (ph.p_type != PT_LOAD) continue;
 
         found_load = true;
 
@@ -387,8 +331,7 @@ bool ElfLoader::calculate_address_range(
         if (seg_end > max_addr) max_addr = seg_end;
     }
 
-    if (!found_load)
-    {
+    if (!found_load) {
         return false;
     }
 
@@ -400,18 +343,12 @@ bool ElfLoader::calculate_address_range(
 }
 
 uintptr_t ElfLoader::calculate_load_bias(
-    const Elf64_Ehdr* header,
-    const AddressRange& range,
-    uintptr_t preferred_base
-)
-{
-    if (header->e_type == ET_EXEC)
-    {
+    const Elf64_Ehdr* header, const AddressRange& range, uintptr_t preferred_base
+) {
+    if (header->e_type == ET_EXEC) {
         // ET_EXEC, no Bias
         return 0;
-    }
-    else
-    {
+    } else {
         // ET_DYN
         return preferred_base - range.vaddr_min;
     }
@@ -421,11 +358,7 @@ uintptr_t ElfLoader::calculate_load_bias(
 // SEGMENT-VERARBEITUNG
 // =============================================================================
 
-ElfLoader::SegmentMapping ElfLoader::calculate_segment_mapping(
-    const Elf64_Phdr& phdr,
-    uintptr_t load_bias
-)
-{
+ElfLoader::SegmentMapping ElfLoader::calculate_segment_mapping(const Elf64_Phdr& phdr, uintptr_t load_bias) {
     uintptr_t seg_vaddr = phdr.p_vaddr + load_bias;
 
     uintptr_t page_start = align_down(seg_vaddr, PAGE_SIZE);
@@ -446,26 +379,22 @@ ElfLoader::SegmentMapping ElfLoader::calculate_segment_mapping(
     };
 }
 
-bool ElfLoader::load_segment(
-    const Elf64_Phdr& phdr,
-    const void* file_data,
-    uintptr_t load_bias,
-    const Realm* realm
-)
-{
-    auto [page_start, page_offset, map_size, file_size, memory_size] =
-        calculate_segment_mapping(phdr, load_bias);
+bool ElfLoader::load_segment(const Elf64_Phdr& phdr, const void* file_data, uintptr_t load_bias, const Realm* realm) {
+    auto [page_start, page_offset, map_size, file_size, memory_size] = calculate_segment_mapping(phdr, load_bias);
 
-    ELF_LOG("[ELF] Loading segment: vaddr=0x%lx -> 0x%lx, size=0x%lx/0x%lx, flags=%c%c%c",
-            phdr.p_vaddr, phdr.p_vaddr + load_bias,
-            file_size, memory_size,
-            (phdr.p_flags & PF_R) ? 'R' : '-',
-            (phdr.p_flags & PF_W) ? 'W' : '-',
-            (phdr.p_flags & PF_X) ? 'X' : '-');
+    ELF_LOG(
+        "[ELF] Loading segment: vaddr=0x%lx -> 0x%lx, size=0x%lx/0x%lx, flags=%c%c%c",
+        phdr.p_vaddr,
+        phdr.p_vaddr + load_bias,
+        file_size,
+        memory_size,
+        (phdr.p_flags & PF_R) ? 'R' : '-',
+        (phdr.p_flags & PF_W) ? 'W' : '-',
+        (phdr.p_flags & PF_X) ? 'X' : '-'
+    );
 
     uint64_t phys = kernel::memory::request_pages_phys(map_size / PAGE_SIZE);
-    if (!phys)
-    {
+    if (!phys) {
         ELF_LOG("[ELF] Failed to allocate physical memory for segment");
         return false;
     }
@@ -473,59 +402,37 @@ bool ElfLoader::load_segment(
     void* virt = phys_to_virt(phys);
     memset(virt, 0, map_size);
 
-    if (file_size > 0)
-    {
+    if (file_size > 0) {
         memcpy(
-            static_cast<uint8_t*>(virt) + page_offset,
-            static_cast<const uint8_t*>(file_data) + phdr.p_offset,
-            file_size
+            static_cast<uint8_t*>(virt) + page_offset, static_cast<const uint8_t*>(file_data) + phdr.p_offset, file_size
         );
     }
 
-    if (memory_size > file_size)
-    {
-        memset(
-            static_cast<uint8_t*>(virt) + page_offset + file_size,
-            0,
-            memory_size - file_size
-        );
+    if (memory_size > file_size) {
+        memset(static_cast<uint8_t*>(virt) + page_offset + file_size, 0, memory_size - file_size);
     }
 
-    uint64_t pt_flags = (1ULL << PT_Flag::Present)
-                      | (1ULL << PT_Flag::UserSuper);
-    if (phdr.p_flags & PF_W)
-        pt_flags |= (1ULL << PT_Flag::ReadWrite);
+    uint64_t pt_flags = (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::UserSuper);
+    if (phdr.p_flags & PF_W) pt_flags |= (1ULL << PT_Flag::ReadWrite);
 
     realm->page_table->map_range(
-        reinterpret_cast<void*>(page_start),
-        reinterpret_cast<void*>(phys),
-        map_size,
-        pt_flags
+        reinterpret_cast<void*>(page_start), reinterpret_cast<void*>(phys), map_size, pt_flags
     );
 
     return true;
 }
 
 bool ElfLoader::process_all_segments(
-    const Elf64_Ehdr* header,
-    const void* file_data,
-    uintptr_t load_bias,
-    const Realm* realm
-)
-{
-    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(
-        static_cast<const uint8_t*>(file_data) + header->e_phoff
-    );
+    const Elf64_Ehdr* header, const void* file_data, uintptr_t load_bias, const Realm* realm
+) {
+    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(static_cast<const uint8_t*>(file_data) + header->e_phoff);
 
-    for (int i = 0; i < header->e_phnum; ++i)
-    {
+    for (int i = 0; i < header->e_phnum; ++i) {
         const Elf64_Phdr& ph = phdrs[i];
 
-        if (ph.p_type != PT_LOAD)
-            continue;
+        if (ph.p_type != PT_LOAD) continue;
 
-        if (!load_segment(ph, file_data, load_bias, realm))
-        {
+        if (!load_segment(ph, file_data, load_bias, realm)) {
             ELF_LOG("[ELF] Failed to load segment %d", i);
             return false;
         }
@@ -534,13 +441,10 @@ bool ElfLoader::process_all_segments(
     return true;
 }
 
-
-uintptr_t ElfLoader::align_down(uintptr_t v, size_t align)
-{
+uintptr_t ElfLoader::align_down(uintptr_t v, size_t align) {
     return v & ~(align - 1);
 }
 
-uintptr_t ElfLoader::align_up(uintptr_t v, size_t align)
-{
+uintptr_t ElfLoader::align_up(uintptr_t v, size_t align) {
     return (v + align - 1) & ~(align - 1);
 }

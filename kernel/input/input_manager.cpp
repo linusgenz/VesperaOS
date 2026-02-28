@@ -1,30 +1,30 @@
 // input_manager.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 09.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/input/input_manager.h>
-#include <log.h>
-#include <kernel/memory.h>
 #include <kernel/input/input_event.h>
+#include <kernel/input/input_manager.h>
+#include <kernel/memory.h>
+#include <log.h>
 
 namespace kernel::input {
 
@@ -34,7 +34,6 @@ namespace kernel::input {
         s_tail = 0;
         memset(s_buffer, 0, sizeof(s_buffer));
     }
-
 
     void InputManager::push_event(const InputEvent& ev) {
         spinlock_guard_irq g(s_lock);
@@ -58,4 +57,4 @@ namespace kernel::input {
         return s_head == s_tail;
     }
 
-}
+}  // namespace kernel::input

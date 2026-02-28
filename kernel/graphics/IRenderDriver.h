@@ -20,14 +20,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #ifndef VESPERAOS_IRENDERDRIVER_H
 #define VESPERAOS_IRENDERDRIVER_H
 
 #include <cstdint>
 
-struct GlyphRun
-{
+struct GlyphRun {
     const char* text;
     uint32_t length;
 
@@ -38,27 +37,16 @@ struct GlyphRun
     uint32_t bg;
 };
 
-class IRenderDriver
-{
-public:
+class IRenderDriver {
+   public:
     virtual ~IRenderDriver() = default;
 
     virtual void draw_glyph_run(const GlyphRun& run) = 0;
 
-    virtual bool fill_rect(
-        uint32_t px,
-        uint32_t py,
-        uint32_t w,
-        uint32_t h,
-        uint32_t colour
-    ) = 0;
+    virtual bool fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour) = 0;
 
     virtual bool blit_buffer(
-        const void* pixels,
-        uint32_t buffer_width,
-        uint32_t buffer_height,
-        uint32_t dst_x,
-        uint32_t dst_y
+        const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x, uint32_t dst_y
     ) = 0;
 
     virtual bool scroll_pixels(int dy) = 0;
@@ -68,4 +56,4 @@ public:
     [[nodiscard]] virtual uint32_t bytes_per_scanline() const = 0;
 };
 
-#endif //VESPERAOS_IRENDERDRIVER_H
+#endif  // VESPERAOS_IRENDERDRIVER_H

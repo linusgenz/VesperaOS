@@ -2,16 +2,15 @@
 #include "../../../kernel/debug/deadlock_detector.h"
 #endif
 
-#include "apic.h"
 #include <kernel/kerrno.h>
-#include "../../../include/log.h"
-#include "../../../include/string.h"
-#include "../../../kernel/acpi/acpi_manager.h"
-#include "../../../kernel/cpu/io.h"
-#include "../../../kernel/acpi/madt.h"
-#include "../../../kernel/cpu/cpu_manager.h"
 #include <kernel/scheduling.h>
 #include <kernel/system/system_manager.h>
+
+#include "../../../kernel/acpi/acpi_manager.h"
+#include "../../../kernel/acpi/madt.h"
+#include "../../../kernel/cpu/cpu_manager.h"
+#include "../../../kernel/cpu/io.h"
+#include "apic.h"
 #include "interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::apic {
@@ -28,7 +27,7 @@ namespace arch::x86_64::interrupts::apic {
     void wait_for_delivery() {
         // Wait for delivery to complete
         while (read(LAPIC_ICRLO) & ICR_DELIVS) {
-            asm volatile("pause"); // TODO
+            asm volatile("pause");  // TODO
         }
     }
 
@@ -36,23 +35,23 @@ namespace arch::x86_64::interrupts::apic {
         write(LAPIC_TPR, 0);
 
         // Logical Destination Mode
-        write(LAPIC_DFR, 0xffffffff); // Flat mode
-        write(LAPIC_LDR, cpu_id << 24); // 0x01000000   // All cpus use logical id 1
+        write(LAPIC_DFR, 0xffffffff);    // Flat mode
+        write(LAPIC_LDR, cpu_id << 24);  // 0x01000000   // All cpus use logical id 1
 
         // Configure Spurious Interrupt Vector Register
         write(LAPIC_SVR, 0x100 | IRQ_SPURIOUS);
 
-        write(LAPIC_TDCR, 0x3); // Divide by 16
+        write(LAPIC_TDCR, 0x3);  // Divide by 16
         write(LAPIC_TICR, 0xFFFFFFFF);
 
-        pmt_delay(10000); // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
+        pmt_delay(10000);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
         uint32_t calibration = 0xffffffff - read(LAPIC_TCCR);
         write(LAPIC_TIMER, IRQ_TIMER | LAPIC_PERIODIC);
-        write(LAPIC_TDCR, 0x3); // 16
+        write(LAPIC_TDCR, 0x3);  // 16
         write(LAPIC_TICR, calibration);
 
-        write(LAPIC_ICRLO, 0x0); // zero this shit
+        write(LAPIC_ICRLO, 0x0);  // zero this shit
         write(LAPIC_ICRHI, 0x0);
     }
 
@@ -71,17 +70,13 @@ namespace arch::x86_64::interrupts::apic {
         uint32_t self_apic_id = local_apic_get_id();
 
         for (uint32_t i = 0; i < CPUManager::total_cpus && i < MAX_CPU_CORES; i++) {
+            const auto &cpu = CPUManager::cpu_infos[i];
 
-            const auto& cpu = CPUManager::cpu_infos[i];
-
-            if (cpu.apic_id == self_apic_id)
-                continue;
+            if (cpu.apic_id == self_apic_id) continue;
 
             send_ipi(cpu.apic_id, vector);
         }
     }
-
-
 
     void pmt_delay(const size_t us) {
         ACPI::FADT *fadt = ACPI::TableManager::get_fadt();
@@ -109,7 +104,6 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void timer_tick(trap_frame *frame) {
-
 #if DEBUG_SPINLOCK
         deadlock_detector_tick();
 #endif
@@ -121,7 +115,6 @@ namespace arch::x86_64::interrupts::apic {
 
         kernel::scheduling::tick_cpu(cpu, frame);
     }
-
 
     void sleep(uint64_t ms) {
         uint64_t ticks_to_wait = (ms + 9) / 10;
@@ -136,4 +129,4 @@ namespace arch::x86_64::interrupts::apic {
     void send_eoi() {
         write(LAPIC_EOI, 0);
     }
-}
+}  // namespace arch::x86_64::interrupts::apic

@@ -5,9 +5,10 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <kernel/kernel_utils.h>
+#include <boot.h>
 
 #include "efi_memory.h"
+#include <cstddef>
 
 #define PAGE_SIZE 4096
 inline uint64_t g_hhdm_offset = 0;
@@ -16,7 +17,7 @@ inline uint64_t g_kernel_virt_base = 0;
 
 struct PageTable;
 
-uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);
+uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapEntries, size_t mMapDescSize);
 
 void memset(void* dest, uint8_t val, uint64_t num);
 
@@ -28,8 +29,7 @@ void* memmove(void* dest, const void* src, size_t len);
 
 void* phys_to_virt(uint64_t phys_addr);
 
-enum PT_Flag
-{
+enum PT_Flag {
     Present = 0,
     ReadWrite = 1,
     UserSuper = 2,
@@ -42,11 +42,10 @@ enum PT_Flag
     Custom0 = 9,
     Custom1 = 10,
     Custom2 = 11,
-    NX = 63 // only if supported
+    NX = 63  // only if supported
 };
 
-namespace kernel::memory
-{
+namespace kernel::memory {
     void initialize_memory(BootInfo* bootInfo);
 
     // Page Table Management
@@ -115,14 +114,16 @@ namespace kernel::memory
     void* realloc(void* old_ptr, size_t old_size, size_t new_size);
 
     void print_heap_stats();
-} // namespace kernel::memory
+}  // namespace kernel::memory
 
 void* operator new(size_t size);
 void* operator new[](size_t size);
-inline void* operator new(size_t, void* ptr) noexcept { return ptr; }
+inline void* operator new(size_t, void* ptr) noexcept {
+    return ptr;
+}
 void operator delete(void* p) noexcept;
 void operator delete(void* p, size_t) noexcept;
 void operator delete[](void* p) noexcept;
 void operator delete[](void* p, size_t) noexcept;
 
-#endif //MEMORY_H
+#endif  // MEMORY_H

@@ -29,12 +29,12 @@ namespace ACPI {
         uint32_t oem_revision;
         uint32_t creator_id;
         uint32_t creator_revision;
-    }__attribute__((packed));
+    } __attribute__((packed));
 
     struct MCFGHeader {
         SDTHeader header;
         uint64_t reserved;
-    }__attribute__((packed));
+    } __attribute__((packed));
 
     struct DeviceConfig {
         uint64_t base_address;
@@ -42,23 +42,22 @@ namespace ACPI {
         uint8_t start_bus;
         uint8_t end_bus;
         uint32_t reserved;
-    }__attribute__((packed));
-
+    } __attribute__((packed));
 
     struct MADTHeader {
-        SDTHeader header;      // ACPI Standard Header (signature = "APIC")
+        SDTHeader header;  // ACPI Standard Header (signature = "APIC")
         uint32_t lapic_address;
-        uint32_t flags;        // Bit 0 = PCAT_COMPAT (Legacy PICs installed)
+        uint32_t flags;  // Bit 0 = PCAT_COMPAT (Legacy PICs installed)
     } __attribute__((packed));
 
     enum class MADTEntryType : uint8_t {
-        LOCAL_APIC            = 0,
-        IO_APIC               = 1,
-        INTERRUPT_OVERRIDE    = 2,
-        NMI_SOURCE            = 3,
-        LOCAL_APIC_NMI        = 4,
-        LOCAL_APIC_OVERRIDE   = 5,
-        X2APIC                = 9
+        LOCAL_APIC = 0,
+        IO_APIC = 1,
+        INTERRUPT_OVERRIDE = 2,
+        NMI_SOURCE = 3,
+        LOCAL_APIC_NMI = 4,
+        LOCAL_APIC_OVERRIDE = 5,
+        X2APIC = 9
     };
 
     struct MADTEntryHeader {
@@ -110,9 +109,7 @@ namespace ACPI {
         uint32_t acpi_id;
     } __attribute__((packed));
 
-
-    struct GenericAddressStructure
-    {
+    struct GenericAddressStructure {
         uint8_t AddressSpace;
         uint8_t BitWidth;
         uint8_t BitOffset;
@@ -198,6 +195,6 @@ namespace ACPI {
     void acpi_reboot();
     void acpi_power_off();
     void parse_fadt();
-}
+}  // namespace ACPI
 
-#endif //ACPI_H
+#endif  // ACPI_H

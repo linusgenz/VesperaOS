@@ -240,7 +240,7 @@ namespace EXT4 {
 
         bool read_group_desc(uint32_t group, GroupDesc &gd) const;
 
-        bool read_inode(uint32_t inode_no, Inode &outInode);
+        bool read_inode(uint32_t inode_no, Inode &outInode) const;
 
         static bool parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &outExtents);
 

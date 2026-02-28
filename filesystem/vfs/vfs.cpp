@@ -34,8 +34,6 @@
 #include <kernel/realm/realm_manager.h>
 #include <log.h>
 
-#include "../../kernel/cpu/io.h"
-
 Vector<MountPoint*>* VFS::mount_points = nullptr;
 spinlock_t VFS::mount_points_lock;
 

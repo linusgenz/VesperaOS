@@ -1,4 +1,5 @@
 #include "pit.h"
+
 #include "../../cpu/io.h"
 
 namespace PIT {
@@ -15,8 +16,8 @@ namespace PIT {
 
     void pit_wait_ms(uint32_t ms) {
         uint32_t ticks = (base_frequency * ms) / 1000;
-        asm volatile ("cli");
-        outb(PIT_COMMAND, 0x34);            // Channel 0, mode 2, binary
+        asm volatile("cli");
+        outb(PIT_COMMAND, 0x34);  // Channel 0, mode 2, binary
         outb(PIT_CHANNEL0, ticks & 0xFF);
         outb(PIT_CHANNEL0, (ticks >> 8) & 0xFF);
         asm volatile("sti");
@@ -26,7 +27,6 @@ namespace PIT {
             if (status & 0x20) break;
         }
     }
-
 
     void sleep(uint64_t milliseconds) {
         sleepd(static_cast<double>(milliseconds) / 1000);
@@ -51,4 +51,4 @@ namespace PIT {
     void tick() {
         time_since_boot += 1 / static_cast<double>(get_frequency());
     }
-}
+}  // namespace PIT

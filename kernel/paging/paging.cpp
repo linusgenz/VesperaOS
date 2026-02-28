@@ -14,8 +14,7 @@ bool PageDirectoryEntry::get_flag(PT_Flag flag) const {
     return (Value & (1ULL << flag)) != 0;
 }
 
-
-uint64_t PageDirectoryEntry::get_address() {
+uint64_t PageDirectoryEntry::get_address() const {
     return (Value & 0x000ffffffffff000) >> 12;
 }
 

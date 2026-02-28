@@ -2,10 +2,11 @@
 // Created by linus on 02.07.25.
 //
 
-#include <kernel/time.h>
 #include <kernel/interrupts.h>
-#include "../cpu/cpu_manager.h"
 #include <kernel/scheduling.h>
+#include <kernel/time.h>
+
+#include "../cpu/cpu_manager.h"
 
 extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
 
@@ -30,7 +31,7 @@ namespace kernel::time {
                 asm volatile("hlt");
             }
         }
-    }
+    }  // namespace internal
 
     void sleep_ms(uint64_t ms) {
         Unit *current = kernel::scheduling::get_current_unit();
@@ -49,4 +50,4 @@ namespace kernel::time {
     uint64_t get_uptime_ms() {
         return get_ticks() * 10;
     }
-}
+}  // namespace kernel::time

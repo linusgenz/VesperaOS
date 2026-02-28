@@ -3,17 +3,19 @@
 //
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
-#include <cstdint>
-#include "bitmap.h"
 #include <kernel/efi_memory.h>
 
+#include "bitmap.h"
+#include <cstdint>
+
 class PageFrameAllocator {
-public:
-    PageFrameAllocator() : free_memory(0),
-                           reserved_memory(0),
-                           used_memory(0),
-                           total_memory(0),
-                           initialized(false) {
+   public:
+    PageFrameAllocator()
+        : free_memory(0)
+        , reserved_memory(0)
+        , used_memory(0)
+        , total_memory(0)
+        , initialized(false) {
     }
 
     void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *mMap, size_t mMapSize, size_t mMapDescSize);
@@ -22,11 +24,11 @@ public:
 
     void free_page(uint64_t phys_addr);
 
-    void free_pages(uint64_t phys_addr, uint64_t page_count);
+    void free_pages(uint64_t phys_addr, size_t page_count);
 
     void lock_page(void *address);
 
-    void lock_pages(void *address, uint64_t page_count);
+    void lock_pages(void *address, size_t page_count);
 
     uint64_t request_page();
 
@@ -42,16 +44,16 @@ public:
 
     void relocate_bitmap_to_hhdm();
 
-private:
+   private:
     void init_bitmap(size_t bitmap_size, void *buffer_address);
 
     void reserve_page(void *address);
 
-    void reserve_pages(void *address, uint64_t page_count);
+    void reserve_pages(void *address, size_t page_count);
 
     void unreserve_page(uint64_t address);
 
-    void unreserve_pages(uint64_t address, uint64_t page_count);
+    void unreserve_pages(uint64_t address, size_t page_count);
 
     uint64_t free_memory;
     uint64_t reserved_memory;
@@ -60,4 +62,4 @@ private:
     bool initialized;
 };
 
-#endif // PAGE_FRAME_ALLOCATOR_H
+#endif  // PAGE_FRAME_ALLOCATOR_H

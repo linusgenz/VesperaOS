@@ -221,8 +221,7 @@ static void fat32_close(VfsNode* node)
 {
     if (!node) return;
 
-    auto* data = static_cast<Fat32Node*>(node->internal_data);
-    if (data)
+    if (auto* data = static_cast<Fat32Node*>(node->internal_data))
     {
         kernel::memory::free(data);
     }

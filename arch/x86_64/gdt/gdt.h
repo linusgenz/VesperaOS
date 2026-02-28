@@ -4,29 +4,28 @@
 
 #ifndef GDT_H
 #define GDT_H
+#include "../../../kernel/acpi/madt.h"
 #include <cstdint>
 
-#include "../../../kernel/acpi/madt.h"
-
 struct __attribute__((packed)) GDTEntry {
-    uint16_t limit_low; // Limit bits 0-15
-    uint16_t base_low; // Base bits 0-15
-    uint8_t base_middle; // Base bits 16-23
-    uint8_t access; // Access byte
-    uint8_t granularity; // Flags + Limit bits 16-19
-    uint8_t base_high; // Base bits 24-31
+    uint16_t limit_low;   // Limit bits 0-15
+    uint16_t base_low;    // Base bits 0-15
+    uint8_t base_middle;  // Base bits 16-23
+    uint8_t access;       // Access byte
+    uint8_t granularity;  // Flags + Limit bits 16-19
+    uint8_t base_high;    // Base bits 24-31
 };
 
 // TSS Descriptor (16 bytes)
 struct __attribute__((packed)) TSSDescriptor {
-    uint16_t limit_low; // Limit bits 0-15
-    uint16_t base_low; // Base bits 0-15
-    uint8_t base_middle; // Base bits 16-23
-    uint8_t access; // Access byte
-    uint8_t granularity; // Flags + Limit bits 16-19
-    uint8_t base_high; // Base bits 24-31
-    uint32_t base_upper; // Base bits 32-63
-    uint32_t reserved; // Must be zero
+    uint16_t limit_low;   // Limit bits 0-15
+    uint16_t base_low;    // Base bits 0-15
+    uint8_t base_middle;  // Base bits 16-23
+    uint8_t access;       // Access byte
+    uint8_t granularity;  // Flags + Limit bits 16-19
+    uint8_t base_high;    // Base bits 24-31
+    uint32_t base_upper;  // Base bits 32-63
+    uint32_t reserved;    // Must be zero
 };
 
 struct __attribute__((packed)) TSS {
@@ -60,11 +59,10 @@ extern TSSDescriptor tss_desc;
 extern TSS tss[MAX_CPU_CORES];
 extern GDTPtr gdt_ptr;
 
-
 void setup_cpu_tss(uint32_t cpu_id);
 
 void gdt_install();
 
 extern "C" void load_GDT(GDTPtr *);
 
-#endif //GDT_H
+#endif  // GDT_H

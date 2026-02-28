@@ -20,50 +20,41 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #include "reaper.h"
 
-#include "cpu_scheduler.h"
-#include "log.h"
 #include "../../include/kernel/scheduling.h"
 #include "../../include/kernel/time.h"
 #include "../cpu/cpu_manager.h"
+#include "log.h"
 
-[[noreturn]] void reaper_unit(void* arg)
-{
-    while (true)
-    {
+[[noreturn]] void reaper_unit(void* arg) {
+    while (true) {
         asm volatile("cli");
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
         auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
-        if (!cpu->reaper.empty())
-        {
+        if (!cpu->reaper.empty()) {
             cpu->reaper.reap();
         }
         asm volatile("sti");
         kernel::time::sleep_ms(1000);
-       // kernel::scheduling::yield();
+        // kernel::scheduling::yield();
     }
 }
 
-
-void Reaper::enqueue(Unit* unit)
-{
+void Reaper::enqueue(Unit* unit) {
     pending.push(unit);
 }
 
-void Reaper::reap()
-{
+void Reaper::reap() {
     Unit* unit = pending.pop();
-    while (unit)
-    {
+    while (unit) {
         Unit* next = unit->next;
         UnitManager::destroy(unit->id);
         unit = next;
     }
 }
 
-bool Reaper::empty() const
-{
+bool Reaper::empty() const {
     return pending.empty();
 }

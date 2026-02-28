@@ -4,20 +4,19 @@
 #ifndef CPU_SCHEDULER_H
 #define CPU_SCHEDULER_H
 
+#include <kernel/scheduling.h>
 
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
-#include <kernel/scheduling.h>
 
 #define READY_SCAN_LIMIT 16
 
-#define SCHEDULER_QUANTUM_MS 10   // Time slice in milliseconds
-#define SCHEDULER_TICK_MS    10  // Interrupt frequency
+#define SCHEDULER_QUANTUM_MS 10  // Time slice in milliseconds
+#define SCHEDULER_TICK_MS 10     // Interrupt frequency
 #define SCHEDULER_TICKS (SCHEDULER_QUANTUM_MS / SCHEDULER_TICK_MS)
 
 class Unit;
 
 namespace kernel::scheduling::cpu_scheduler {
-
 
     // Per-CPU operations
     void init_cpu(uint8_t cpu_id);
@@ -47,6 +46,6 @@ namespace kernel::scheduling::cpu_scheduler {
 
     void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick);
 
-} // namespace kernel::scheduling::cpu_scheduler
+}  // namespace kernel::scheduling::cpu_scheduler
 
-#endif // CPU_SCHEDULER_H
+#endif  // CPU_SCHEDULER_H

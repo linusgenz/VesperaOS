@@ -110,7 +110,7 @@ namespace EXT4 {
     }
 
 
-    bool FileSystem::read_inode(uint32_t inode_no, Inode &outInode) {
+    bool FileSystem::read_inode(uint32_t inode_no, Inode &outInode) const {
         if (inode_no == 0) {
             Log::debug("[ext4] read_inode: invalid inode_no=0");
             return false;

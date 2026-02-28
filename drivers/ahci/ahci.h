@@ -7,7 +7,6 @@
 #include "../pci/pci.h"
 #include "../../kernel/devices/blockdevice.h"
 #include "../../include/kernel/sync/mutex.h"
-#include "../../kernel/types/handle.h"
 #include "kernel/devices/device_manager.h"
 
 // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/serial-ata-ahci-spec-rev1-3-1.pdf
@@ -224,8 +223,8 @@ namespace AHCI
         uint32_t sector_size = 0;
         uint64_t total_sectors = 0;
 
-        bool commandCompleted = false;
-        bool lastError = false;
+        volatile bool commandCompleted = false;
+        volatile bool lastError = false;
 
         KernelDevice* kd;
 

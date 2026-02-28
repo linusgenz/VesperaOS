@@ -1,49 +1,44 @@
 // meminfo.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 19.11.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "meminfo.h"
 
 #include <kernel/memory.h>
-
 #include <kernel/system/system_manager.h>
 
 MemInfoDevice::MemInfoDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL)
-{
+    : CharDevice(name, BusType::VIRTUAL) {
 }
 
-int MemInfoDevice::open(CharFile**)
-{
+int MemInfoDevice::open(CharFile**) {
     return 0;
 }
 
-int MemInfoDevice::release(CharFile*)
-{
+int MemInfoDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t)
-{
+ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     if (count < sizeof(meminfo_t) || !buffer) return -EINVAL;
 
     kernel::SystemManager::update_system_stats();
@@ -59,8 +54,7 @@ ssize_t MemInfoDevice::read(CharFile*, void* buffer, size_t count, size_t)
     return sizeof(meminfo_t);
 }
 
-ssize_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count)
-{
+ssize_t MemInfoDevice::write(CharFile*, const void* buffer, size_t count) {
     (void)buffer;
     return -EUNSUPPORTED;
 }

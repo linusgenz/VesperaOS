@@ -24,17 +24,17 @@
 #ifndef VESPERAOS_FRAMEBUFFER_DEVICE_H
 #define VESPERAOS_FRAMEBUFFER_DEVICE_H
 
+#include <kernel/devices/char_device.h>
+
 #include "../types/handle.h"
 #include "display_manager.h"
 
-#include <kernel/devices/char_device.h>
-
-#define FB_IOCTL_GET_INFO           0x4600
-#define FB_IOCTL_GET_BACKING_DEVID  0x4601
-#define FB_IOCTL_FILL_RECT          0x4602
-#define FB_IOCTL_DRAW_RECT          0x4603
-#define FB_IOCTL_CLEAR              0x4604
-#define FB_IOCTL_BLIT               0x4605
+#define FB_IOCTL_GET_INFO 0x4600
+#define FB_IOCTL_GET_BACKING_DEVID 0x4601
+#define FB_IOCTL_FILL_RECT 0x4602
+#define FB_IOCTL_DRAW_RECT 0x4603
+#define FB_IOCTL_CLEAR 0x4604
+#define FB_IOCTL_BLIT 0x4605
 
 struct FbInfo {
     uint32_t width;
@@ -49,7 +49,7 @@ struct FbRect {
     uint32_t y;
     uint32_t width;
     uint32_t height;
-    uint32_t color;       // ARGB format: 0xAARRGGBB
+    uint32_t color;  // ARGB format: 0xAARRGGBB
 };
 
 struct FbRectOutline {
@@ -57,16 +57,16 @@ struct FbRectOutline {
     uint32_t y;
     uint32_t width;
     uint32_t height;
-    uint32_t color;       // ARGB format
-    uint32_t thickness;   // border thickness in pixels
+    uint32_t color;      // ARGB format
+    uint32_t thickness;  // border thickness in pixels
 };
 
 struct FbClear {
-    uint32_t color;       // ARGB format
+    uint32_t color;  // ARGB format
 };
 
 struct FbBlit {
-    const void* pixels;
+    const void *pixels;
     uint32_t buffer_width;
     uint32_t buffer_height;
     uint32_t dst_x;
@@ -74,28 +74,29 @@ struct FbBlit {
 };
 
 class FramebufferDevice final : public CharDevice {
-public:
-  FramebufferDevice(const char *name, BusType bus) : CharDevice(name, bus) {}
+   public:
+    FramebufferDevice(const char *name, BusType bus)
+        : CharDevice(name, bus) {
+    }
 
-  int open(CharFile **out_cf) override;
-  int release(CharFile *cf) override;
+    int open(CharFile **out_cf) override;
+    int release(CharFile *cf) override;
 
-  ssize_t read(CharFile *cf, void *buffer, size_t count,
-               size_t offset) override;
-  ssize_t write(CharFile *cf, const void *buffer, size_t count) override;
+    ssize_t read(CharFile *cf, void *buffer, size_t count, size_t offset) override;
+    ssize_t write(CharFile *cf, const void *buffer, size_t count) override;
 
-  int ioctl(CharFile *cf, uint32_t cmd, void *arg) override;
+    int ioctl(CharFile *cf, uint32_t cmd, void *arg) override;
 
-private:
+   private:
     // Validation helpers
     bool validate_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
-    bool validate_blit(const FbBlit* blit);
+    bool validate_blit(const FbBlit *blit);
 
     // Drawing helpers
-    int fill_rect(const FbRect* rect);
-    int draw_rect_outline(const FbRectOutline* rect);
-    int clear_screen(const FbClear* clear);
-    int blit_pixels(const FbBlit* blit);
+    int fill_rect(const FbRect *rect);
+    int draw_rect_outline(const FbRectOutline *rect);
+    int clear_screen(const FbClear *clear);
+    int blit_pixels(const FbBlit *blit);
 };
 
-#endif // VESPERAOS_FRAMEBUFFER_DEVICE_H
+#endif  // VESPERAOS_FRAMEBUFFER_DEVICE_H

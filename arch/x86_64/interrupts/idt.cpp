@@ -1,22 +1,19 @@
 #include "idt.h"
 
+#include <kernel/memory.h>
 #include <log.h>
 
-#include <kernel/memory.h>
-#include "interrupts_internal.h"
 #include "apic.h"
+#include "interrupts_internal.h"
 
-namespace arch::x86_64::interrupts::idt
-{
-    void IDTDescEntry::set_offset(uint64_t offset)
-    {
+namespace arch::x86_64::interrupts::idt {
+    void IDTDescEntry::set_offset(uint64_t offset) {
         offset0 = static_cast<uint16_t>(offset & 0x000000000000ffff);
         offset1 = static_cast<uint16_t>((offset & 0x00000000ffff0000) >> 16);
         offset2 = static_cast<uint32_t>((offset & 0xffffffff00000000) >> 32);
     }
 
-    uint64_t IDTDescEntry::get_offset() const
-    {
+    uint64_t IDTDescEntry::get_offset() const {
         uint64_t offset = 0;
         offset |= static_cast<uint64_t>(offset0);
         offset |= static_cast<uint64_t>(offset1) << 16;
@@ -24,8 +21,7 @@ namespace arch::x86_64::interrupts::idt
         return offset;
     }
 
-    void set_idt_gate(ISRHandler handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector)
-    {
+    void set_idt_gate(ISRHandler handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector) {
         auto* interrupt = reinterpret_cast<IDTDescEntry*>(idtr.offset + entry_offset * sizeof(IDTDescEntry));
         interrupt->set_offset(reinterpret_cast<uint64_t>(handler));
         interrupt->selector = selector;
@@ -34,39 +30,30 @@ namespace arch::x86_64::interrupts::idt
         interrupt->ignore = 0;
     }
 
-    void init_irq_table()
-    {
-        for (auto& [handler, cookie, free] : irq_handler_table)
-        {
+    void init_irq_table() {
+        for (auto& [handler, cookie, free] : irq_handler_table) {
             handler = nullptr;
             cookie = nullptr;
             free = true;
         }
     }
 
-    uint8_t get_free_vector_block(size_t size)
-    {
-        if (size == 0 || size > (VECTOR_MAX - VECTOR_MIN + 1))
-            return 0xFF;
+    uint8_t get_free_vector_block(size_t size) {
+        if (size == 0 || size > (VECTOR_MAX - VECTOR_MIN + 1)) return 0xFF;
 
-        for (uint16_t vec = VECTOR_MIN; vec + size - 1 <= VECTOR_MAX; ++vec)
-        {
+        for (uint16_t vec = VECTOR_MIN; vec + size - 1 <= VECTOR_MAX; ++vec) {
             bool block_free = true;
 
-            for (size_t i = 0; i < size; ++i)
-            {
-                if (!irq_handler_table[vec + i].free)
-                {
+            for (size_t i = 0; i < size; ++i) {
+                if (!irq_handler_table[vec + i].free) {
                     block_free = false;
                     vec += i;
                     break;
                 }
             }
 
-            if (block_free)
-            {
-                for (size_t i = 0; i < size; ++i)
-                {
+            if (block_free) {
+                for (size_t i = 0; i < size; ++i) {
                     irq_handler_table[vec + i].free = false;
                 }
                 return static_cast<uint8_t>(vec);
@@ -76,29 +63,24 @@ namespace arch::x86_64::interrupts::idt
         return 0xFF;
     }
 
-    uint8_t get_free_vector()
-    {
-        for (uint16_t vec = VECTOR_MIN; vec <= VECTOR_MAX; ++vec)
-        {
-            if (irq_handler_table[vec].free)
-            {
+    uint8_t get_free_vector() {
+        for (uint16_t vec = VECTOR_MIN; vec <= VECTOR_MAX; ++vec) {
+            if (irq_handler_table[vec].free) {
                 irq_handler_table[vec].free = false;
                 return static_cast<uint8_t>(vec);
             }
         }
-        return 0xFF; // no vector available
+        return 0xFF;  // no vector available
     }
 
-    void free_vector(const uint8_t vec)
-    {
+    void free_vector(const uint8_t vec) {
         irq_handler_table[vec].handler = nullptr;
         irq_handler_table[vec].cookie = nullptr;
         irq_handler_table[vec].free = true;
     }
 
-    extern "C" ISRHandler irq_stub_table[]; // irq_stub.asm
-    bool allocate_vector(uint8_t vector, const irq_handler_t handler, void* cookie)
-    {
+    extern "C" ISRHandler irq_stub_table[];  // irq_stub.asm
+    bool allocate_vector(uint8_t vector, const irq_handler_t handler, void* cookie) {
         irq_handler_table[vector].handler = handler;
         irq_handler_table[vector].cookie = cookie;
 
@@ -109,10 +91,8 @@ namespace arch::x86_64::interrupts::idt
         return true;
     }
 
-    extern "C" void irq_common_stub_handler(uint8_t irqno)
-    {
-        if (const irq_desc& desc = irq_handler_table[irqno]; desc.handler)
-        {
+    extern "C" void irq_common_stub_handler(uint8_t irqno) {
+        if (const irq_desc& desc = irq_handler_table[irqno]; desc.handler) {
             desc.handler(desc.cookie);
         }
 
@@ -121,8 +101,7 @@ namespace arch::x86_64::interrupts::idt
 
     extern "C" void irq_stub_0x30();
 
-    void load_default_idt()
-    {
+    void load_default_idt() {
         void* idt_virt = kernel::memory::request_page();
 
         memset(idt_virt, 0, 0x1000);
@@ -147,12 +126,11 @@ namespace arch::x86_64::interrupts::idt
         set_idt_gate(isr_panic_ipi, IRQ_PANIC, IDT_TA_InterruptGate, 0x08);
 
         Log::debug("Loading IDT: %x page-offset: %p", idtr, idt_virt);
-        asm ("lidt %0" : : "m" (idtr));
-        asm ("cli");
+        asm("lidt %0" : : "m"(idtr));
+        asm("cli");
     }
 
-    IDTR* get_idtr_address()
-    {
+    IDTR* get_idtr_address() {
         return &idtr;
     }
-}
+}  // namespace arch::x86_64::interrupts::idt

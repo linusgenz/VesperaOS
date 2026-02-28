@@ -83,10 +83,10 @@ public:
     void clear_handle_table();
 
 private:
-    bool test_bit(size_t i) const;
+    [[nodiscard]] bool test_bit(size_t i) const;
     void set_bit(size_t i);
     void clear_bit(size_t i);
-    int find_free_slot() const;
+    [[nodiscard]] int find_free_slot() const;
 };
 
 #endif //VESPERAOS_REALM_H

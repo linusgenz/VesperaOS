@@ -21,65 +21,44 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <limine.h>
 #include <boot.h>
 #include <graphics.h>
+#include <limine.h>
 
+__attribute__((used, section(".requests_start_marker"))) static volatile LIMINE_REQUESTS_START_MARKER;
 
-__attribute__((used, section(".requests_start_marker")))
-static volatile LIMINE_REQUESTS_START_MARKER;
-
-__attribute__((used, section(".requests")))
-static volatile limine_framebuffer_request fb_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0,
-    .response = nullptr
+__attribute__((used, section(".requests"))) static volatile limine_framebuffer_request fb_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0, .response = nullptr
 };
 
-__attribute__((used, section(".requests")))
-static volatile limine_memmap_request memmap_request = {
-    .id = LIMINE_MEMMAP_REQUEST,
-    .revision = 0,
-    .response = nullptr
+__attribute__((used, section(".requests"))) static volatile limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST, .revision = 0, .response = nullptr
 };
 
-__attribute__((used, section(".requests")))
-static volatile limine_rsdp_request rsdp_request = {
-    .id = LIMINE_RSDP_REQUEST,
-    .revision = 0,
-    .response = nullptr
+__attribute__((used, section(".requests"))) static volatile limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST, .revision = 0, .response = nullptr
 };
 
-__attribute__((used, section(".requests")))
-static volatile limine_kernel_address_request kaddr_request = {
-    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
-    .revision = 0,
-    .response = nullptr
+__attribute__((used, section(".requests"))) static volatile limine_kernel_address_request kaddr_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST, .revision = 0, .response = nullptr
 };
 
-__attribute__((used, section(".requests")))
-static volatile limine_hhdm_request hhdm_request = {
-    .id = LIMINE_HHDM_REQUEST,
-    .revision = 0,
-    .response = nullptr
+__attribute__((used, section(".requests"))) static volatile limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST, .revision = 0, .response = nullptr
 };
 
-__attribute__((used, section(".requests_end_marker")))
-static volatile LIMINE_REQUESTS_END_MARKER;
-
+__attribute__((used, section(".requests_end_marker"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
 extern "C" {
-    extern uint8_t _binary_zap_light24_psf_start[];
-    extern uint8_t _binary_zap_light24_psf_end[];
-    extern uint8_t _binary_zap_light24_psf_size[];
+extern uint8_t _binary_zap_light24_psf_start[];
+extern uint8_t _binary_zap_light24_psf_end[];
+extern uint8_t _binary_zap_light24_psf_size[];
 }
 
-
-static Framebuffer          framebuffer;
-static BootInfo             boot_info;
-static FONT                 embedded_font;
+static Framebuffer framebuffer;
+static BootInfo boot_info;
+static FONT embedded_font;
 static EFI_MEMORY_DESCRIPTOR efi_map[512];
-
 
 static void hlt_forever() {
     while (true) asm volatile("cli; hlt");
@@ -91,24 +70,24 @@ static void parse_psf_font() {
     // PSF1: Magic = 0x36 0x04
     if (data[0] == 0x36 && data[1] == 0x04) {
         auto* hdr = reinterpret_cast<PSF1_HEADER*>(data);
-        embedded_font.header      = hdr;
+        embedded_font.header = hdr;
         embedded_font.glyphBuffer = data + sizeof(PSF1_HEADER);
-        embedded_font.type        = 1;
-        embedded_font.width       = 8;
-        embedded_font.height      = hdr->charsize;
-        embedded_font.charsize    = hdr->charsize;
+        embedded_font.type = 1;
+        embedded_font.width = 8;
+        embedded_font.height = hdr->charsize;
+        embedded_font.charsize = hdr->charsize;
         return;
     }
 
     // PSF2: Magic = 0x72 0xb5 0x4a 0x86
     if (data[0] == 0x72 && data[1] == 0xb5 && data[2] == 0x4a && data[3] == 0x86) {
         auto* hdr = reinterpret_cast<PSF2_HEADER*>(data);
-        embedded_font.header      = hdr;
+        embedded_font.header = hdr;
         embedded_font.glyphBuffer = data + hdr->headersize;
-        embedded_font.type        = 2;
-        embedded_font.width       = hdr->width;
-        embedded_font.height      = hdr->height;
-        embedded_font.charsize    = hdr->charsize;
+        embedded_font.type = 2;
+        embedded_font.width = hdr->width;
+        embedded_font.height = hdr->height;
+        embedded_font.charsize = hdr->charsize;
         return;
     }
 }
@@ -117,12 +96,12 @@ static void convert_memmap(uint64_t* out_count) {
     *out_count = 0;
     if (!memmap_request.response) return;
 
-    auto*    resp = memmap_request.response;
-    uint64_t n    = 0;
+    auto* resp = memmap_request.response;
+    uint64_t n = 0;
 
     for (uint64_t i = 0; i < resp->entry_count && n < 512; i++) {
-        limine_memmap_entry*     src = resp->entries[i];
-        EFI_MEMORY_DESCRIPTOR*   dst = &efi_map[n];
+        limine_memmap_entry* src = resp->entries[i];
+        EFI_MEMORY_DESCRIPTOR* dst = &efi_map[n];
 
         switch (src->type) {
             case LIMINE_MEMMAP_USABLE:
@@ -135,10 +114,10 @@ static void convert_memmap(uint64_t* out_count) {
                 dst->type = 9;  // EfiACPIReclaimMemory
                 break;
             case LIMINE_MEMMAP_ACPI_NVS:
-                dst->type = 10; // EfiACPIMemoryNVS
+                dst->type = 10;  // EfiACPIMemoryNVS
                 break;
             case LIMINE_MEMMAP_FRAMEBUFFER:
-                dst->type = 11; // EfiMemoryMappedIO
+                dst->type = 11;  // EfiMemoryMappedIO
                 break;
             case LIMINE_MEMMAP_KERNEL_AND_MODULES:
                 dst->type = 1;  // EfiLoaderCode
@@ -153,7 +132,7 @@ static void convert_memmap(uint64_t* out_count) {
         dst->phys_addr = src->base;
         dst->virt_addr = src->base;
         dst->num_pages = src->length / 4096;
-        dst->attribs   = 0;
+        dst->attribs = 0;
 
         n++;
     }
@@ -168,30 +147,28 @@ static void convert_memmap(uint64_t* out_count) {
 extern "C" void kernel_main(BootInfo* info);
 
 extern "C" void limine_entry() {
-
     // --- Framebuffer ---
-    if (!fb_request.response || fb_request.response->framebuffer_count == 0)
-        hlt_forever();
+    if (!fb_request.response || fb_request.response->framebuffer_count == 0) hlt_forever();
 
     limine_framebuffer* lfb = fb_request.response->framebuffers[0];
 
-    framebuffer.base_address        = reinterpret_cast<void*>(lfb->address);
-    framebuffer.buffer_size         = lfb->pitch * lfb->height;
-    framebuffer.width               = lfb->width;
-    framebuffer.height              = lfb->height;
+    framebuffer.base_address = reinterpret_cast<void*>(lfb->address);
+    framebuffer.buffer_size = lfb->pitch * lfb->height;
+    framebuffer.width = lfb->width;
+    framebuffer.height = lfb->height;
     framebuffer.pixels_per_scanline = lfb->pitch / (lfb->bpp / 8);
 
     // Physische Adresse des Framebuffers für späteres Mapping in init.cpp
     // phys = virt - hhdm_offset (wird unten gesetzt)
-    framebuffer.phys_base_address   = (uint64_t)lfb->address;
+    framebuffer.phys_base_address = reinterpret_cast<uint64_t>(lfb->address);
 
     boot_info.framebuffer = &framebuffer;
 
     // --- Memory Map ---
     uint64_t map_count = 0;
     convert_memmap(&map_count);
-    boot_info.mMap         = efi_map;
-    boot_info.mMapSize     = map_count * sizeof(EFI_MEMORY_DESCRIPTOR);
+    boot_info.mMap = efi_map;
+    boot_info.mMapSize = map_count * sizeof(EFI_MEMORY_DESCRIPTOR);
     boot_info.mMapDescSize = sizeof(EFI_MEMORY_DESCRIPTOR);
 
     // --- HHDM Offset ---
@@ -203,13 +180,12 @@ extern "C" void limine_entry() {
         boot_info.hhdm_offset = 0;
 
     // Jetzt phys_base_address korrekt setzen
-    framebuffer.phys_base_address = (uint64_t)lfb->address - boot_info.hhdm_offset;
+    framebuffer.phys_base_address = reinterpret_cast<uint64_t>(lfb->address) - boot_info.hhdm_offset;
 
     // --- RSDP ---
     // rsdp_request.response->address ist ebenfalls HHDM-virtuell
     if (rsdp_request.response)
-        boot_info.rsdp = static_cast<ACPI::RSDP2*>(
-            reinterpret_cast<void*>(rsdp_request.response->address));
+        boot_info.rsdp = static_cast<ACPI::RSDP2*>(reinterpret_cast<void*>(rsdp_request.response->address));
     else
         boot_info.rsdp = nullptr;
 

@@ -1,19 +1,18 @@
 #include "ahci.h"
-#include "../../include/log.h"
+
 #include <kernel/memory.h>
 
-#include "ata.h"
 #include "../../filesystem/devfs/devfs.h"
+#include "../../include/log.h"
 #include "../../kernel/types/handle.h"
 #include "../../userspace/lib/include/errno.h"
 #include "../pci/msi.h"
 #include "../pci/msix.h"
-#include "kernel/interrupts.h"
-#include "kernel/time.h"
+#include "ata.h"
 #include "kernel/devices/device_manager.h"
+#include "kernel/interrupts.h"
 
-namespace AHCI
-{
+namespace AHCI {
 #define HBA_PORT_DEV_PRESENT 0x3
 #define HBA_PORT_IPM_ACTIVE 0x1
 #define SATA_SIG_ATAPI 0xEB140101
@@ -26,36 +25,30 @@ namespace AHCI
 #define HBA_PxCMD_ST 0x0001
 #define HBA_PxCMD_FR 0x4000
 
-    PortType CheckPortType(const HBAPort* port)
-    {
+    PortType CheckPortType(const HBAPort* port) {
         uint32_t sataStatus = port->sataStatus;
 
         const uint8_t interfacePowerManagement = sataStatus >> 8 & 0b111;
 
-        if (const uint8_t deviceDetection = sataStatus & 0b111; deviceDetection != HBA_PORT_DEV_PRESENT)
-            return
-                None;
+        if (const uint8_t deviceDetection = sataStatus & 0b111; deviceDetection != HBA_PORT_DEV_PRESENT) return None;
         if (interfacePowerManagement != HBA_PORT_IPM_ACTIVE) return None;
 
-        switch (port->signature)
-        {
-        case SATA_SIG_ATAPI:
-            return SATAPI;
-        case SATA_SIG_ATA:
-            return SATA;
-        case SATA_SIG_PM:
-            return PM;
-        case SATA_SIG_SEMB:
-            return SEMB;
-        default:
-            return None;
+        switch (port->signature) {
+            case SATA_SIG_ATAPI:
+                return SATAPI;
+            case SATA_SIG_ATA:
+                return SATA;
+            case SATA_SIG_PM:
+                return PM;
+            case SATA_SIG_SEMB:
+                return SEMB;
+            default:
+                return None;
         }
     }
 
-    void AHCIDriver::ProbePorts()
-    {
-        for (int i = 0; i < 32; i++)
-        {
+    void AHCIDriver::ProbePorts() {
+        for (int i = 0; i < 32; i++) {
             if (!(ABAR->portsImplemented & (1 << i))) continue;
 
             PortType portType = CheckPortType(&ABAR->ports[i]);
@@ -65,7 +58,6 @@ namespace AHCI
             uint32_t ssts = ABAR->ports[i].sataStatus;
             if ((ssts & 0xF) != 3) continue;
 
-
             ports[portCount] = new Port();
             ports[portCount]->portType = portType;
             ports[portCount]->hbaPort = &ABAR->ports[i];
@@ -74,14 +66,12 @@ namespace AHCI
         }
     }
 
-    void Port::InterruptHandler()
-    {
+    void Port::InterruptHandler() {
         uint32_t is = hbaPort->interruptStatus;
 
-        if (!is) return; // no Interrupt
+        if (!is) return;  // no Interrupt
 
-        if (is & HBA_PxIS_TFES)
-        {
+        if (is & HBA_PxIS_TFES) {
             lastError = true;
             Log::Error("[AHCI] Port %u transfer error", portNumber);
         }
@@ -91,16 +81,13 @@ namespace AHCI
         hbaPort->interruptStatus = is;
     }
 
-    irqreturn_t AHCIDriver::GlobalInterruptHandler(const AHCIDriver* driver)
-    {
-        uint32_t is = driver->ABAR->interruptStatus;
+    irqreturn_t AHCIDriver::GlobalInterruptHandler(const AHCIDriver* driver) {
+        const uint32_t is = driver->ABAR->interruptStatus;
 
-        if (!is) return IRQ_HANDLED; // no Interrupt
+        if (!is) return IRQ_NONE;  // no Interrupt
 
-        for (int i = 0; i < driver->portCount; i++)
-        {
-            if (is & (1 << driver->ports[i]->portNumber))
-            {
+        for (int i = 0; i < driver->portCount; i++) {
+            if (is & (1 << driver->ports[i]->portNumber)) {
                 driver->ports[i]->InterruptHandler();
             }
         }
@@ -110,15 +97,12 @@ namespace AHCI
         return IRQ_HANDLED;
     }
 
-    void Port::EnableInterrupts() const
-    {
+    void Port::EnableInterrupts() const {
         hbaPort->interruptStatus = 0xFFFFFFFF;
         hbaPort->interruptEnable = 0xFFFFFFFF;
     }
 
-
-    void Port::Configure() const
-    {
+    void Port::Configure() const {
         StopCMD();
 
         uint64_t cmdListPhys = kernel::memory::request_page_phys();
@@ -127,7 +111,7 @@ namespace AHCI
         hbaPort->commandListBase = static_cast<uint32_t>(cmdListPhys);
         hbaPort->commandListBaseUpper = static_cast<uint32_t>(cmdListPhys >> 32);
 
-        auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(cmdListVirt);
+        auto* cmdHeader = static_cast<HBACommandHeader*>(cmdListVirt);
         memset(cmdListVirt, 0, 1024);
 
         uint64_t fisPhys = kernel::memory::request_page_phys();
@@ -137,8 +121,7 @@ namespace AHCI
         hbaPort->fisBaseAddressUpper = static_cast<uint32_t>(fisPhys >> 32);
         memset(fisVirt, 0, 256);
 
-        for (int i = 0; i < 32; i++)
-        {
+        for (int i = 0; i < 32; i++) {
             cmdHeader[i].prdtLength = 8;
 
             uint64_t tablePhys = kernel::memory::request_page_phys();
@@ -153,13 +136,11 @@ namespace AHCI
         StartCMD();
     }
 
-    void Port::StopCMD() const
-    {
+    void Port::StopCMD() const {
         hbaPort->cmdSts &= ~HBA_PxCMD_ST;
         hbaPort->cmdSts &= ~HBA_PxCMD_FRE;
 
-        while (true)
-        {
+        while (true) {
             if (hbaPort->cmdSts & HBA_PxCMD_FR) continue;
             if (hbaPort->cmdSts & HBA_PxCMD_CR) continue;
 
@@ -167,28 +148,23 @@ namespace AHCI
         }
     }
 
-    void Port::StartCMD() const
-    {
-        while (hbaPort->cmdSts & HBA_PxCMD_CR)
-        {
+    void Port::StartCMD() const {
+        while (hbaPort->cmdSts & HBA_PxCMD_CR) {
         }
 
         hbaPort->cmdSts |= HBA_PxCMD_FRE;
         hbaPort->cmdSts |= HBA_PxCMD_ST;
     }
 
-    size_t Port::get_size() const
-    {
+    size_t Port::get_size() const {
         return total_sectors * sector_size;
     }
 
-    uint32_t Port::get_sector_size() const
-    {
+    uint32_t Port::get_sector_size() const {
         return sector_size;
     }
 
-    bool Port::Identify()
-    {
+    bool Port::Identify() {
         uint64_t identifyPhys = kernel::memory::request_page_phys();
         identify = static_cast<IDENTIFY_DEVICE_DATA*>(phys_to_virt(identifyPhys));
         memset(identify, 0, 0x1000);
@@ -196,20 +172,20 @@ namespace AHCI
         kernel::mutex_guard guard(portMutex);
         hbaPort->interruptStatus = static_cast<uint32_t>(-1);
 
-        uint64_t cmdListPhys = static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32
-                             | static_cast<uint64_t>(hbaPort->commandListBase);
+        uint64_t cmdListPhys = static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
+                               static_cast<uint64_t>(hbaPort->commandListBase);
         auto* cmdHeader = static_cast<HBACommandHeader*>(phys_to_virt(cmdListPhys));
 
         cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
         cmdHeader->write = 0;
         cmdHeader->prdtLength = 1;
 
-        const uint64_t cmdTablePhys = static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32
-                              | static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
+        const uint64_t cmdTablePhys = static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
+                                      static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
         auto* commandTable = static_cast<HBACommandTable*>(phys_to_virt(cmdTablePhys));
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
 
-        commandTable->prdtEntry[0].dataBaseAddress      = static_cast<uint32_t>(identifyPhys);
+        commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(identifyPhys);
         commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(identifyPhys >> 32);
         commandTable->prdtEntry[0].byteCount = 511;
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
@@ -221,11 +197,9 @@ namespace AHCI
 
         hbaPort->commandIssue = 1;
 
-        while (true)
-        {
+        while (true) {
             if ((hbaPort->commandIssue & 1) == 0) break;
-            if (hbaPort->interruptStatus & HBA_PxIS_TFES)
-            {
+            if (hbaPort->interruptStatus & HBA_PxIS_TFES) {
                 Log::Error("[ AHCI ] IDENTIFY error");
                 return false;
             }
@@ -233,38 +207,29 @@ namespace AHCI
 
         // Set sector_size
 
-        if (identify->PhysicalLogicalSectorSize.LogicalSectorLongerThan256Words)
-        {
-            uint32_t wordsPerSector = identify->WordsPerLogicalSector[0] |
-                (static_cast<uint32_t>(identify->WordsPerLogicalSector[1]) << 16);
-            sector_size = wordsPerSector * 2; // Words -> Bytes
-        }
-        else
-        {
-            sector_size = 512; // Standard 512 Bytes
+        if (identify->PhysicalLogicalSectorSize.LogicalSectorLongerThan256Words) {
+            uint32_t wordsPerSector =
+                identify->WordsPerLogicalSector[0] | (static_cast<uint32_t>(identify->WordsPerLogicalSector[1]) << 16);
+            sector_size = wordsPerSector * 2;  // Words -> Bytes
+        } else {
+            sector_size = 512;  // Standard 512 Bytes
         }
 
         // Set total_sectors
 
-        bool lba48 = identify->AdditionalSupported.ExtendedUserAddressableSectorsSupported;
-        if (lba48)
-        {
+        if (identify->AdditionalSupported.ExtendedUserAddressableSectorsSupported) {
             total_sectors = static_cast<uint64_t>(identify->ExtendedNumberOfUserAddressableSectors[1]) << 32 |
-                identify->ExtendedNumberOfUserAddressableSectors[0];
-        }
-        else
-        {
+                            identify->ExtendedNumberOfUserAddressableSectors[0];
+        } else {
             total_sectors = identify->UserAddressableSectors;
         }
 
         return true;
     }
 
-    ssize_t Port::read(const uint64_t sector, const uint32_t sectorCount, void* buffer, size_t bufferSize)
-    {
-        size_t bytes = sectorCount * sector_size;
-        if (!buffer || sectorCount == 0 || bufferSize < bytes)
-            return -EINVAL;
+    ssize_t Port::read(const uint64_t sector, const uint32_t sectorCount, void* buffer, size_t bufferSize) {
+        size_t bytes = static_cast<size_t>(sectorCount) * sector_size;
+        if (!buffer || sectorCount == 0 || bufferSize < bytes) return -EINVAL;
         kernel::mutex_guard guard(portMutex);
 
         size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -275,33 +240,30 @@ namespace AHCI
         const auto sectorL = static_cast<uint32_t>(sector);
         const auto sectorH = static_cast<uint32_t>(sector >> 32);
 
-        hbaPort->interruptStatus = 0xFFFFFFFF; // Clear pending interrupt bits
+        hbaPort->interruptStatus = 0xFFFFFFFF;  // Clear pending interrupt bits
 
-        const uint64_t cmdListPhys =
-            static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
-            static_cast<uint64_t>(hbaPort->commandListBase);
+        const uint64_t cmdListPhys = static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
+                                     static_cast<uint64_t>(hbaPort->commandListBase);
         auto* cmdHeader = static_cast<HBACommandHeader*>(phys_to_virt(cmdListPhys));
-        cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t); //command FIS size;
-        cmdHeader->write = 0; //this is a read
+        cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);  // command FIS size;
+        cmdHeader->write = 0;                                                  // this is a read
         cmdHeader->prdtLength = 1;
 
-        uint64_t cmdTablePhys =
-            static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
-            static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
+        uint64_t cmdTablePhys = static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
+                                static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
 
         auto* commandTable = static_cast<HBACommandTable*>(phys_to_virt(cmdTablePhys));
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
 
         commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(dma_phys);
-        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(dma_phys >>
-            32);
-        commandTable->prdtEntry[0].byteCount = sectorCount * sector_size - 1; // (sectorCount<<9)-1;
+        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(dma_phys >> 32);
+        commandTable->prdtEntry[0].byteCount = sectorCount * sector_size - 1;  // (sectorCount<<9)-1;
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
 
         auto* cmdFIS = reinterpret_cast<FIS_REG_H2D*>(&commandTable->commandFIS);
 
         cmdFIS->fisType = FIS_TYPE_REG_H2D;
-        cmdFIS->commandControl = 1; // command
+        cmdFIS->commandControl = 1;  // command
         cmdFIS->command = ATA_CMD_READ_DMA_EX;
 
         cmdFIS->lba0 = static_cast<uint8_t>(sectorL);
@@ -311,7 +273,7 @@ namespace AHCI
         cmdFIS->lba4 = static_cast<uint8_t>(sectorH & 0xFF);
         cmdFIS->lba5 = static_cast<uint8_t>(sectorH >> 8 & 0xFF);
 
-        cmdFIS->deviceRegister = 1 << 6; //LBA mode
+        cmdFIS->deviceRegister = 1 << 6;  // LBA mode
 
         cmdFIS->countLow = sectorCount & 0xFF;
         cmdFIS->countHigh = sectorCount >> 8 & 0xFF;
@@ -320,13 +282,11 @@ namespace AHCI
         lastError = false;
         hbaPort->commandIssue = 1 << 0;
 
-        while (!commandCompleted)
-        {
-            asm volatile("pause"); // TODO change this to yield
+        while (!commandCompleted) {
+            asm volatile("pause");  // TODO change this to yield
         }
 
-        if (lastError)
-        {
+        if (lastError) {
             kernel::memory::free_pages_phys(dma_phys, pages);
             Log::Error("[ AHCI ] Read disk error");
             return -EIO;
@@ -338,11 +298,9 @@ namespace AHCI
         return static_cast<ssize_t>(bytes);
     }
 
-    ssize_t Port::write(const uint64_t sector, const uint32_t sectorCount, void* buffer, size_t bufferSize)
-    {
-        size_t bytes = sectorCount * sector_size;
-        if (!buffer || sectorCount == 0 || bufferSize < bytes)
-            return -EINVAL;
+    ssize_t Port::write(const uint64_t sector, const uint32_t sectorCount, void* buffer, size_t bufferSize) {
+        size_t bytes = static_cast<size_t>(sectorCount) * sector_size;
+        if (!buffer || sectorCount == 0 || bufferSize < bytes) return -EINVAL;
         kernel::mutex_guard guard(portMutex);
 
         size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -355,26 +313,23 @@ namespace AHCI
         const auto sectorL = static_cast<uint32_t>(sector);
         const auto sectorH = static_cast<uint32_t>(sector >> 32);
 
-        hbaPort->interruptStatus = static_cast<uint32_t>(-1); // clear interrupts
+        hbaPort->interruptStatus = static_cast<uint32_t>(-1);  // clear interrupts
 
-        const uint64_t cmdListPhys =
-            static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
-            static_cast<uint64_t>(hbaPort->commandListBase);
+        const uint64_t cmdListPhys = static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
+                                     static_cast<uint64_t>(hbaPort->commandListBase);
         auto* cmdHeader = static_cast<HBACommandHeader*>(phys_to_virt(cmdListPhys));
         cmdHeader->commandFISLength = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
         cmdHeader->write = 1;
         cmdHeader->prdtLength = 1;
 
-        const uint64_t cmdTablePhys =
-            static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
-            static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
+        const uint64_t cmdTablePhys = static_cast<uint64_t>(cmdHeader->commandTableBaseAddressUpper) << 32 |
+                                      static_cast<uint64_t>(cmdHeader->commandTableBaseAddress);
 
         auto* commandTable = static_cast<HBACommandTable*>(phys_to_virt(cmdTablePhys));
         memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength - 1) * sizeof(HBAPRDTEntry));
 
         commandTable->prdtEntry[0].dataBaseAddress = static_cast<uint32_t>(dma_phys);
-        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(dma_phys >>
-            32);
+        commandTable->prdtEntry[0].dataBaseAddressUpper = static_cast<uint32_t>(dma_phys >> 32);
         commandTable->prdtEntry[0].byteCount = sectorCount * 512 - 1;
         commandTable->prdtEntry[0].interruptOnCompletion = 1;
 
@@ -390,7 +345,7 @@ namespace AHCI
         cmdFIS->lba4 = static_cast<uint8_t>(sectorH & 0xFF);
         cmdFIS->lba5 = static_cast<uint8_t>(sectorH >> 8 & 0xFF);
 
-        cmdFIS->deviceRegister = 1 << 6; // LBA mode
+        cmdFIS->deviceRegister = 1 << 6;  // LBA mode
 
         cmdFIS->countLow = sectorCount & 0xFF;
         cmdFIS->countHigh = sectorCount >> 8 & 0xFF;
@@ -399,13 +354,11 @@ namespace AHCI
         lastError = false;
         hbaPort->commandIssue = 1 << 0;
 
-        while (!commandCompleted)
-        {
-            asm volatile("pause"); // TODO change this to yield
+        while (!commandCompleted) {
+            asm volatile("pause");  // TODO change this to yield
         }
 
-        if (lastError)
-        {
+        if (lastError) {
             kernel::memory::free_pages_phys(dma_phys, pages);
             Log::Error("[ AHCI ] Read disk error");
             return -EIO;
@@ -415,44 +368,34 @@ namespace AHCI
         return static_cast<ssize_t>(bytes);
     }
 
-    AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress) : portCount(0)
-    {
-        this->PCIBaseAddress = pciBaseAddress;
+    AHCIDriver::AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress)
+        : PCIBaseAddress(pciBaseAddress), portCount(0) {
+
         Log::Ok("[ AHCI ] AHCI Driver instance initialized");
 
         char name[16];
         DeviceManager::AllocUniqueDeviceName("ahci", name, sizeof(name));
-        kd = DeviceManager::RegisterController(
-            name,
-            DeviceClass::Storage,
-            BusType::BUS_PCI,
-            ControllerType::AHCI
-        );
+        kd = DeviceManager::RegisterController(name, DeviceClass::Storage, BusType::BUS_PCI, ControllerType::AHCI);
 
         const uint64_t abar_phys = reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress)->BAR5;
         ABAR = static_cast<HBAMemory*>(phys_to_virt(abar_phys));
         kernel::memory::map_memory(
-            ABAR,
-            reinterpret_cast<void*>(abar_phys),
-            (1ULL << PT_Flag::CacheDisabled) |
-            (1ULL << PT_Flag::WriteThrough)
+            ABAR, reinterpret_cast<void*>(abar_phys), (1ULL << PT_Flag::CacheDisabled) | (1ULL << PT_Flag::WriteThrough)
         );
 
         ProbePorts();
 
-        uint8_t vector = kernel::interrupts::get_free_vector();
+        const uint8_t vector = kernel::interrupts::get_free_vector();
         kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(GlobalInterruptHandler), this);
-        if (!PCI::try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress), vector))
-        {
+        if (!PCI::try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress), vector)) {
             Log::debug("[ AHCI ] AHCI Driver instance failed to enable MSI");
             this->~AHCIDriver();
-        }; // switch to polling later maybe
+        };  // switch to polling later maybe
 
         ABAR->globalHostControl |= AHCI_GHC_AE;
         ABAR->globalHostControl |= AHCI_GHC_IE;
 
-        for (int i = 0; i < portCount; i++)
-        {
+        for (int i = 0; i < portCount; i++) {
             Port* port = ports[i];
 
             port->vector = vector;
@@ -465,26 +408,24 @@ namespace AHCI
 
             char name_buf[16] = {};
             DeviceManager::GenerateSDDeviceName(name_buf, sizeof(name_buf));
-            port->kd = DeviceManager::RegisterBlockDevice(port, name_buf, DeviceClass::Storage, BusType::BUS_PCI,
-                                                          ControllerType::AHCI, kd);
+            port->kd = DeviceManager::RegisterBlockDevice(
+                port, name_buf, DeviceClass::Storage, BusType::BUS_PCI, ControllerType::AHCI, kd
+            );
             DevFS::register_device(port->kd);
             DeviceManager::FindAndRegisterPartitions(port->kd);
         }
     }
 
-    bool AHCIDriver::HasActivePorts() const
-    {
+    bool AHCIDriver::HasActivePorts() const {
         return portCount > 0;
     }
 
-    AHCIDriver::~AHCIDriver()
-    {
+    AHCIDriver::~AHCIDriver() {
         kernel::memory::unmap_memory(ABAR);
 
-        for (int i = 0; i < portCount; i++)
-        {
+        for (int i = 0; i < portCount; i++) {
             Port* port = ports[i];
             delete port;
         }
     }
-}
+}  // namespace AHCI

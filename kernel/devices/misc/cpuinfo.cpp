@@ -1,36 +1,36 @@
 // cpuinfo.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 26.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
-#include <string.h>
 
 #include "cpuinfo.h"
 
 #include <kernel/memory.h>
+#include <string.h>
 
 #include "../../cpu/cpu.h"
 
 CPUInfoDevice::CPUInfoDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {}
+    : CharDevice(name, BusType::VIRTUAL) {
+}
 
 int CPUInfoDevice::open(CharFile**) {
     return 0;
@@ -50,8 +50,8 @@ ssize_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t)
 
     // trim white space
     size_t len = strlen(info.brand);
-    while (len > 0 && info.brand[len-1] == ' ') {
-        info.brand[len-1] = '\0';
+    while (len > 0 && info.brand[len - 1] == ' ') {
+        info.brand[len - 1] = '\0';
         len--;
     }
 
@@ -59,8 +59,6 @@ ssize_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t)
     return sizeof(CpuInfo);
 }
 
-
-
-ssize_t CPUInfoDevice::write(CharFile*, const void*, const size_t count) {
+ssize_t CPUInfoDevice::write(CharFile*, const void*, const size_t  /*count*/) {
     return -EUNSUPPORTED;
 }

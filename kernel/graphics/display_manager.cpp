@@ -20,22 +20,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 #include "display_manager.h"
 
 void DisplayManager::init(DisplayBackend initial) {
-  s_lock.init("display_manager_lock");
-  spinlock_guard guard(s_lock);
-  s_primary = initial;
+    s_lock.init("display_manager_lock");
+    spinlock_guard guard(s_lock);
+    s_primary = initial;
 }
 
 void DisplayManager::set_primary(DisplayBackend be) {
-  spinlock_guard guard(s_lock);
-  s_primary = be;
+    spinlock_guard guard(s_lock);
+    s_primary = be;
 }
 
 DisplayBackend DisplayManager::primary() {
-  spinlock_guard guard(s_lock);
-  return s_primary;
+    spinlock_guard guard(s_lock);
+    return s_primary;
 }

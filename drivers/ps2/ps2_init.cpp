@@ -26,7 +26,6 @@
 #include "keyboard/keyboard_device.h"
 #include "keyboard/ps2_keyboard.h"
 #include "mouse/mouse_device.h"
-#include "mouse/ps2_mouse.h"
 
 static Ps2Controller* g_ps2 = nullptr;
 static Ps2KeyboardDevice* g_kbd = nullptr;

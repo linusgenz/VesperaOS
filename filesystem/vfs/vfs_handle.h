@@ -26,7 +26,6 @@
 
 #include <cstdint>
 
-#include "../devfs/devfs.h"
 #include "vfs.h"
 
 struct VfsHandleContext {
@@ -40,8 +39,7 @@ struct VfsHandle {
     VfsNode *node;
     VfsHandleContext *context;
 
-    VfsHandle(VfsNode *n, uint32_t flags, CapabilitySet caps) : node(n) {
-        context = new VfsHandleContext();
+    VfsHandle(VfsNode *n, uint32_t flags, CapabilitySet caps) : node(n), context(new VfsHandleContext()) {
         context->open_flags = flags;
         context->position = 0;
         context->required_caps = caps;

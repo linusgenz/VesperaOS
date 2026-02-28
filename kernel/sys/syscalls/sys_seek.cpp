@@ -1,31 +1,30 @@
 // sys_seek.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 04.10.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
+#include <kernel/realm/realm_manager.h>
 #include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include <kernel/realm/realm_manager.h>
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
@@ -46,14 +45,14 @@ namespace syscalls::internal {
         switch (he->type & HANDLE_TYPE_MASK) {
             case HANDLE_TYPE_DIRECTORY:
             case HANDLE_TYPE_TTY:
-                return -ESPIPE; // Illegal seek
+                return -ESPIPE;  // Illegal seek
 
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 const VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node) return -EBADH;
 
-                int64_t new_pos;
+                int64_t new_pos = 0;
 
                 switch (whence) {
                     case SEEK_SET:
@@ -84,4 +83,4 @@ namespace syscalls::internal {
                 return -EBADH;
         }
     }
-}
+}  // namespace syscalls::internal
