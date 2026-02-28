@@ -75,6 +75,8 @@ collect_asm(KERNEL_ASM_SOURCES
         ${ARCH_SRC_DIR}
 )
 
+list(FILTER KERNEL_ASM_SOURCES EXCLUDE REGEX ".*/ap_trampoline\\.asm")
+
 # REMOVE debug source files when disabled
 if (NOT ENABLE_DEBUG_SPINLOCK)
     list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/lock_debug.cpp")
@@ -121,6 +123,38 @@ add_custom_command(
 )
 
 add_custom_target(embedded_font DEPENDS ${CMAKE_BINARY_DIR}/font.o)
+
+# ────────────────────────────────────────────────────────────────
+#   AP TRAMPOLINE - separate flat binary
+# ────────────────────────────────────────────────────────────────
+
+find_program(NASM_EXECUTABLE nasm REQUIRED)
+
+set(AP_TRAMPOLINE_ASM ${CMAKE_SOURCE_DIR}/kernel/cpu/ap_trampoline.asm)
+set(AP_TRAMPOLINE_BIN ${CMAKE_BINARY_DIR}/ap_trampoline.bin)
+set(AP_TRAMPOLINE_HEADER ${CMAKE_BINARY_DIR}/ap_trampoline_blob.h)
+
+add_custom_command(
+        OUTPUT ${AP_TRAMPOLINE_BIN}
+        COMMAND ${NASM_EXECUTABLE} -f bin
+        -o ${AP_TRAMPOLINE_BIN}
+        ${AP_TRAMPOLINE_ASM}
+        DEPENDS ${AP_TRAMPOLINE_ASM}
+        COMMENT "Assembling AP trampoline flat binary"
+)
+
+add_custom_command(
+        OUTPUT ${AP_TRAMPOLINE_HEADER}
+        COMMAND xxd -i ap_trampoline.bin
+        | sed 's/unsigned char ap_trampoline_bin/inline unsigned char ap_trampoline_bin/'
+        | sed 's/unsigned int ap_trampoline_bin_len/inline unsigned int ap_trampoline_bin_len/'
+        > ${AP_TRAMPOLINE_HEADER}
+        DEPENDS ${AP_TRAMPOLINE_BIN}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Generating AP trampoline header"
+)
+
+add_custom_target(ap_trampoline DEPENDS ${AP_TRAMPOLINE_HEADER})
 
 #
 # ────────────────────────────────────────────────────────────────
@@ -212,7 +246,7 @@ target_include_directories(kernel.elf PUBLIC
 )
 
 if (ENABLE_DEBUG_FAULT)
-    add_dependencies(kernel.elf kernel_symbols_header embedded_font version)
+    add_dependencies(kernel.elf kernel_symbols_header embedded_font ap_trampoline version)
 else ()
-    add_dependencies(kernel.elf embedded_font version)
+    add_dependencies(kernel.elf embedded_font ap_trampoline version)
 endif ()

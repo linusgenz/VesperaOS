@@ -21,14 +21,45 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include "prepare_ap_trampoline.h"
+
 #include <kernel/interrupts.h>
 #include <kernel/memory.h>
+#include <log.h>
 
 #include "../interrupts/idt.h"
-#include <cstdint>
+#include <ap_trampoline_blob.h>
+
+#define TRAMPOLINE_PHYS 0x8000
+#define IDTR_PHYS 0x1000
+#define PML4_PHYS 0x2000
+#define REPORT_PHYS 0x7000
+#define ENTRY_PTR_PHYS 0x3000
+
+extern "C" void ap_main();
 
 void prepare_ap_trampoline() {
-    /*   *reinterpret_cast<volatile uint64_t*>(0x2000) = kernel::memory::get_pagetable_address();
-       *reinterpret_cast<arch::x86_64::interrupts::idt::IDTR*>(0x1000) = *kernel::interrupts::get_idtr_address();
-       __asm__ volatile("wbinvd" ::: "memory");*/
+
+    for (uint64_t phys = 0x1000; phys <= 0x9000; phys += 0x1000) {
+        kernel::memory::map_memory(
+            reinterpret_cast<void*>(phys),
+            reinterpret_cast<void*>(phys),
+            0
+        );
+        kernel::memory::map_memory(
+            phys_to_virt(phys),
+            reinterpret_cast<void*>(phys),
+            0
+        );
+    }
+
+    memcpy(reinterpret_cast<void*>(TRAMPOLINE_PHYS), ap_trampoline_bin, ap_trampoline_bin_len);
+
+    *reinterpret_cast<uint32_t*>(PML4_PHYS) = static_cast<uint32_t>(kernel::memory::get_pagetable_address());
+
+    *reinterpret_cast<arch::x86_64::interrupts::idt::IDTR*>(IDTR_PHYS) = *kernel::interrupts::get_idtr_address();
+
+    *reinterpret_cast<uint64_t*>(ENTRY_PTR_PHYS) = reinterpret_cast<uint64_t>(ap_main);
+
+    asm volatile("wbinvd" ::: "memory");
 }

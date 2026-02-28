@@ -125,7 +125,7 @@ static void initialize_scheduling_and_smp() {
     kernel::scheduling::init(CPUManager::total_cpus);
 
     prepare_ap_trampoline();
-    //  CPUManager::smp_init(); REVIEW LOW ADDRESSES CPUSTARTUPREPORT AP_TRAMPOLINE
+    CPUManager::smp_init();
 
     // Threading now available - upgrade log to use mutex
     Log::init();

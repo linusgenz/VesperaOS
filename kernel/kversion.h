@@ -5,7 +5,7 @@
 #define VERSION_MINOR "20"
 #define VERSION_PATCH "5"
 #define VERSION_STAGE "dev"
-#define VERSION_BUILD "20260228-gdf3e048"
+#define VERSION_BUILD "20260228-g39ed2fc"
 #define VERSION_NAME "holy basil"
 
 #define VERSION_STRING "Vespera '" VERSION_NAME "' (dev) x86_64 " \

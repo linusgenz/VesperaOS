@@ -4,6 +4,7 @@
 #include <kernel/time.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
+#include "../../arch/x86_64/smp/prepare_ap_trampoline.h"
 #include "../../include/log.h"
 #include "../acpi/madt.h"
 #include "kernel/memory.h"
@@ -66,38 +67,58 @@ namespace CPUManager {
         Log::Ok("CPU Manager initialized - %u CPUs detected, %u online", total_cpus, online_cpus);
     }
 
-    void smp_init() {
-        // Send Startup to all cpus except self
+void smp_init() {
 
-        for (uint32_t i = 0; i < total_cpus; ++i) {
-            if (cpu_infos[i].is_bsp) continue;
-            init_core(&cpu_infos[i]);
-        }
+    for (uint32_t i = 0; i < total_cpus; ++i) {
+        if (cpu_infos[i].is_bsp) continue;
 
-        for (int i = 0; i < total_cpus; ++i) {
-            if (cpu_infos[i].is_bsp) continue;
-            uint32_t apic_id = cpu_infos[i].apic_id;
-            volatile CpuStartupReport* report = &cpu_startup_reports[apic_id];
+        uint32_t apic_id = cpu_infos[i].apic_id;
 
-            int timeout_counter = 0;
-            constexpr int timeout_limit = 100;
-            while (!report->ready && timeout_counter < timeout_limit) {
-                kernel::time::sleep_ms(10);
-                timeout_counter++;
-            }
-            if (timeout_counter == 100) continue;
+        void* stack_virt = kernel::memory::request_pages(KERNEL_STACK_SIZE / PAGE_SIZE);
+        void* stack_top_virt = reinterpret_cast<void*>(reinterpret_cast<uint64_t>(stack_virt) + KERNEL_STACK_SIZE);
 
-            kernel::memory::map_memory(
-                reinterpret_cast<void*>(report->stack_pointer), reinterpret_cast<void*>(report->stack_pointer)
-            );
+        memset(stack_virt, 0, KERNEL_STACK_SIZE);
 
-            online_cpus++;
-            cpu_infos[i].kernel_stack = report->stack_pointer;
-            cpu_infos[i].kernel_stack_top = report->stack_pointer + KERNEL_STACK_SIZE;
-            cpu_infos[i].state = CPU_STATE_ONLINE;
-            report->go = true;
-        }
+        volatile auto* report = &cpu_startup_reports[apic_id];
+        report->apic_id      = apic_id;
+        report->stack_pointer = reinterpret_cast<uint64_t>(stack_top_virt);
+        report->ready        = false;
+        report->go           = false;
+
+        cpu_infos[i].kernel_stack     = reinterpret_cast<uint64_t>(stack_virt);
+        cpu_infos[i].kernel_stack_top = reinterpret_cast<uint64_t>(stack_top_virt);
+
+        asm volatile("mfence" ::: "memory");
     }
+
+    for (uint32_t i = 0; i < total_cpus; ++i) {
+        if (cpu_infos[i].is_bsp) continue;
+        init_core(&cpu_infos[i]);
+    }
+
+    for (int i = 0; i < total_cpus; ++i) {
+        if (cpu_infos[i].is_bsp) continue;
+
+        uint32_t apic_id = cpu_infos[i].apic_id;
+        volatile auto* report = &cpu_startup_reports[apic_id];
+
+        int timeout = 0;
+        while (!report->ready && timeout++ < 100)
+            kernel::time::sleep_ms(10);
+
+        if (timeout >= 100) {
+            Log::Warning("CPU %u (APIC %u) timed out", i, apic_id);
+            continue;
+        }
+
+        online_cpus++;
+        cpu_infos[i].state = CPU_STATE_ONLINE;
+        report->go = true;
+
+        asm volatile("mfence" ::: "memory");
+    }
+        while (1);
+}
 
     void init_core(const CPUInfo* cpu) {
         uint32_t vectorValue = 0x8;
