@@ -50,11 +50,10 @@ namespace PCI
 
                 uint16_t mc = msi->message_control;
 
-                bool is64 = mc & (1 << 7);
-                uint8_t mmc = (mc >> 1) & 0b111;
-                uint8_t max_vectors = 1 << mmc;
+                const bool is64 = mc & (1 << 7);
+                const uint8_t mmc = (mc >> 1) & 0b111;
 
-                if (wanted > max_vectors)
+                if (const uint8_t max_vectors = 1 << mmc; wanted > max_vectors)
                     wanted = max_vectors;
 
                 // Translate wanted into encoded MME field

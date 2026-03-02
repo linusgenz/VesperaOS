@@ -126,12 +126,11 @@ bool DeviceManager::AllocUniqueDeviceName(const char* base, char* outBuffer, siz
     int counter = 0;
 
     while (true) {
-        int written = snprintf(outBuffer, outBufferSize, "%s%d", base, counter);
-
-        if (written < 0 || static_cast<size_t>(written) >= outBufferSize) return false;
+        if (const int written = snprintf(outBuffer, outBufferSize, "%s%d", base, counter);
+            written < 0 || static_cast<size_t>(written) >= outBufferSize) return false;
 
         bool exists = false;
-        for (auto* kd : *all_devices) {
+        for (const auto* kd : *all_devices) {
             if (kd && kd->name && strcmp(kd->name, outBuffer) == 0) {
                 exists = true;
                 break;

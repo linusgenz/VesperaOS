@@ -53,11 +53,11 @@ namespace PCI
         return buffer;
     }
 
-    const char* get_device_name(uint16_t vendor_id, uint16_t device_id)
+    const char* get_device_name(const uint16_t vendor_id, const uint16_t device_id)
     {
-        for (auto [vendor_id, device_id, name] : pci_devices)
+        for (auto [vid, did, name] : pci_devices)
         {
-            if (vendor_id == vendor_id && device_id == device_id)
+            if (vid == vendor_id && did == device_id)
             {
                 return name;
             }

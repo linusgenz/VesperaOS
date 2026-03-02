@@ -33,9 +33,8 @@ namespace kernel::time {
         }
     }  // namespace internal
 
-    void sleep_ms(uint64_t ms) {
-        Unit *current = kernel::scheduling::get_current_unit();
-        if (kernel::scheduling::is_initialized() && current) {
+    void sleep_ms(const uint64_t ms) {
+        if (const Unit *current = scheduling::get_current_unit(); scheduling::is_initialized() && current) {
             internal::thread_sleep_ms(ms);
         } else {
             internal::sleep(ms);
@@ -43,7 +42,7 @@ namespace kernel::time {
     }
 
     uint64_t get_ticks() {
-        uint32_t cpu = CPUManager::get_current_cpu_id();
+        const uint32_t cpu = CPUManager::get_current_cpu_id();
         return interrupts::lapic_get_ticks(cpu);
     }
 

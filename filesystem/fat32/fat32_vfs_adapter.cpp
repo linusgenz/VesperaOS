@@ -46,8 +46,7 @@ static ssize_t fat32_read(const VfsNode* node, const size_t offset, const size_t
     if (!temp) return -ENOMEM;
 
     size_t actual = 0;
-    bool ok = fnode->fs->ReadFile(fnode, temp, size, actual, offset);
-    if (!ok)
+    if (const bool ok = fnode->fs->ReadFile(fnode, temp, size, actual, offset); !ok)
     {
         kernel::memory::free(temp);
         return -EIO;
@@ -124,8 +123,7 @@ static VfsNode* fat32_find(const VfsNode* node, const char* name)
 
     for (size_t i = 0; i < entryCount; i++)
     {
-        const char* entryName = entries[i].GetName();
-        if (strcmp(entryName, name) == 0)
+        if (const char* entryName = entries[i].GetName(); strcmp(entryName, name) == 0)
         {
             auto* childData = static_cast<Fat32Node*>(kernel::memory::malloc(sizeof(Fat32Node)));
             memset(childData, 0, sizeof(Fat32Node));

@@ -23,8 +23,7 @@ namespace PIT {
         asm volatile("sti");
 
         for (;;) {
-            uint8_t status = inb(0x61);
-            if (status & 0x20) break;
+            if (uint8_t status = inb(0x61); status & 0x20) break;
         }
     }
 

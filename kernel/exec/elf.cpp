@@ -256,10 +256,9 @@ done_dyn:
 
     for (size_t i = 0; i < count; ++i) {
         const auto& [r_offset, r_info, r_addend] = rela[i];
-        uint32_t type = ELF64_R_TYPE(r_info);
 
-        if (type == R_X86_64_RELATIVE) {
-            uintptr_t target_vaddr = r_offset + load_bias;
+        if (const uint32_t type = ELF64_R_TYPE(r_info); type == R_X86_64_RELATIVE) {
+            const uintptr_t target_vaddr = r_offset + load_bias;
 
             void* phys = realm_get_phys(realm, target_vaddr);
             if (!phys) continue;

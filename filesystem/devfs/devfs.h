@@ -62,8 +62,8 @@ private:
 public:
     static void init();
 
-    static int register_device(KernelDevice* dev);
-    static int unregister_device(KernelDevice* dev);
+    static int register_device(KernelDevice* kd);
+    static int unregister_device(KernelDevice* kd);
 
     static int open(const VfsNode* node);
     // VFS operations

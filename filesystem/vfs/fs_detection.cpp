@@ -72,8 +72,7 @@ bool FilesystemDetector::DetectFilesystem(BlockDevice* device, FilesystemInfo* i
 
     for (size_t i = 0; i < fs_driver_count(); i++)
     {
-        FileSystemDriver* drv = fs_driver_at(i);
-        if (drv && drv->probe && drv->probe(device, info))
+        if (const FileSystemDriver* drv = fs_driver_at(i); drv && drv->probe && drv->probe(device, info))
         {
             info->type_name = drv->name;
 
@@ -109,8 +108,7 @@ bool FilesystemDetector::Unmount(MountPoint* mp)
     // If not virtual, unmount via the driver
     if (!mp->is_virtual && mp->root && mp->device && mp->device->fs_info.mounted)
     {
-        FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name);
-        if (driver && driver->unmount)
+        if (FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name); driver && driver->unmount)
         {
             if (!driver->unmount(mp->root))
             {
@@ -216,9 +214,8 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
 void FilesystemDetector::ScanAndMountAll()
 {
     auto devices = DeviceManager::GetAllDevices();
-    size_t device_count_actual = DeviceManager::GetDeviceCount();
 
-    if (device_count_actual == 0)
+    if (size_t device_count_actual = DeviceManager::GetDeviceCount(); device_count_actual == 0)
     {
         Log::Warning("[FS] No storage devices found");
         return;

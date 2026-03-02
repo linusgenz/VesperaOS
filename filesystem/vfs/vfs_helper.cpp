@@ -92,8 +92,7 @@ void VFS::ensure_path_exists(const char* path)
         if (strlen(current) > 1) strcat(current, "/");
         strcat(current, components[i]);
 
-        VfsNode* node = VFS::open(current);
-        if (!node)
+        if (const VfsNode* node = VFS::open(current); !node)
         {
             VFS::mkdir(current);
         }

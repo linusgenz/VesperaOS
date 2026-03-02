@@ -27,8 +27,8 @@ void HeapSegHdr::set_guard_bytes() {
     guard_start = HEAP_GUARD_PATTERN;
 
     if (!next) {
-        auto* end_guard = reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
-        if (reinterpret_cast<uintptr_t>(end_guard) < reinterpret_cast<uintptr_t>(heap_end)) {
+        if (auto* end_guard = reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
+            reinterpret_cast<uintptr_t>(end_guard) < reinterpret_cast<uintptr_t>(heap_end)) {
             *end_guard = HEAP_GUARD_PATTERN;
         }
     }
@@ -222,8 +222,7 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
     }
 
     if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE) {
-        HeapSegHdr* new_seg = seg->split(size);
-        if (!new_seg) {
+        if (const HeapSegHdr* new_seg = seg->split(size); !new_seg) {
             Log::Warning("Split failed, taking whole segment");
         }
     }
@@ -307,9 +306,8 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
         bool found = false;
         for (uintptr_t candidate = aligned_addr; candidate + size <= end_addr; candidate += alignment) {
             uintptr_t start_boundary = candidate & ~(boundary - 1);
-            uintptr_t end_boundary = (candidate + size - 1) & ~(boundary - 1);
 
-            if (start_boundary == end_boundary) {
+            if (const uintptr_t end_boundary = (candidate + size - 1) & ~(boundary - 1); start_boundary == end_boundary) {
                 aligned_addr = candidate;
                 found = true;
                 break;

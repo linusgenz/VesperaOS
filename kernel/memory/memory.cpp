@@ -81,8 +81,7 @@ namespace kernel::memory {
             auto* desc = reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(
                 reinterpret_cast<uint64_t>(boot_info->mMap) + i * boot_info->mMapDescSize
             );
-            uint64_t end = desc->phys_addr + desc->num_pages * 0x1000;
-            if (end > max_phys) max_phys = end;
+            if (const uint64_t end = desc->phys_addr + desc->num_pages * 0x1000; end > max_phys) max_phys = end;
         }
 
         max_phys = (max_phys + 0x1FFFFF) & ~0x1FFFFFULL;

@@ -6,10 +6,8 @@
 template <typename T>
 char* itohex(T value, char* buffer, const size_t buffer_size)
 {
-    constexpr size_t required_size = sizeof(T) * 2 + 1;
-
-    // Buffer zu klein?
-    if (buffer_size < required_size)
+    // Buffer too small?
+    if (constexpr size_t required_size = sizeof(T) * 2 + 1; buffer_size < required_size)
     {
         if (buffer_size > 0) buffer[0] = '\0';
         return nullptr;
@@ -20,11 +18,11 @@ char* itohex(T value, char* buffer, const size_t buffer_size)
 
     for (size_t i = 0; i < sizeof(T); i++)
     {
-        uint8_t byte = bytes[i];
-        uint8_t high_nibble = (byte >> 4) & 0x0F;
-        uint8_t low_nibble  = byte & 0x0F;
+        const uint8_t byte = bytes[i];
+        const uint8_t high_nibble = (byte >> 4) & 0x0F;
+        const uint8_t low_nibble  = byte & 0x0F;
 
-        size_t pos = hex_digits - (i * 2) - 1;
+        const size_t pos = hex_digits - (i * 2) - 1;
         buffer[pos]     = static_cast<char>(high_nibble + (high_nibble > 9 ? 'A' - 10 : '0'));
         buffer[pos + 1] = static_cast<char>(low_nibble  + (low_nibble  > 9 ? 'A' - 10 : '0'));
     }
@@ -36,9 +34,8 @@ char* itohex(T value, char* buffer, const size_t buffer_size)
 char* ptohex(void* ptr, char* buffer, const size_t buffer_size)
 {
     const auto value = reinterpret_cast<uintptr_t>(ptr);
-    constexpr size_t required_size = sizeof(uintptr_t) * 2 + 1;
 
-    if (buffer_size < required_size)
+    if (constexpr size_t required_size = sizeof(uintptr_t) * 2 + 1; buffer_size < required_size)
     {
         if (buffer_size > 0)
             buffer[0] = '\0';

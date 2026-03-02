@@ -42,8 +42,7 @@ void completion_t::wait() const {
 bool completion_t::wait_timeout(uint64_t timeout_ms) const {
     uint64_t start = kernel::time::get_ticks();
     while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
-        uint64_t elapsed = kernel::time::get_ticks() - start;
-        if (elapsed > timeout_ms / 10) {  // ticks sind 10ms
+        if (const uint64_t elapsed = kernel::time::get_ticks() - start; elapsed > timeout_ms / 10) {  // ticks sind 10ms
             return false;
         }
         kernel::time::sleep_ms(10);

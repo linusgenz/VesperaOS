@@ -295,12 +295,11 @@ void IntelBlt::emergency_reset_bcs() {
 }
 
 void IntelBlt::check_gpu_health() {
-    uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
-    uint32_t tail = bcs_regs[BCS_RING_TAIL / 4];
-    uint32_t ctl = bcs_regs[BCS_RING_CTL / 4];
+    const uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
+    const uint32_t tail = bcs_regs[BCS_RING_TAIL / 4];
 
     // Check if ring is still enabled
-    if (!(ctl & RING_CTL_ENABLED)) {
+    if (const uint32_t ctl = bcs_regs[BCS_RING_CTL / 4]; !(ctl & RING_CTL_ENABLED)) {
         Log::Error("BCS ring disabled unexpectedly!");
         emergency_reset_bcs();
         return;
@@ -332,8 +331,7 @@ bool IntelBlt::fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint3
 
     check_gpu_health();
 
-    constexpr uint32_t required = 12 * 4 + 64;  // 12 DWORDs + margin
-    if (!wait_for_ring_space(required, 1'000'000)) {
+    if (constexpr uint32_t required = 12 * 4 + 64; !wait_for_ring_space(required, 1'000'000)) {
         Log::Error("Ring buffer full!");
         return false;
     }
@@ -409,9 +407,7 @@ bool IntelBlt::wait_for_sequence(uint32_t target_seqno, uint32_t timeout_us) con
     for (uint32_t i = 0; i < timeout_us; i++) {
         asm volatile("lfence" ::: "memory");
 
-        uint32_t current_seqno = *seqno_ptr;
-
-        if (static_cast<int32_t>(current_seqno - target_seqno) >= 0) {
+        if (uint32_t current_seqno = *seqno_ptr; static_cast<int32_t>(current_seqno - target_seqno) >= 0) {
             asm volatile("lfence" ::: "memory");
             return true;
         }
@@ -716,8 +712,7 @@ bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_co
 
     check_gpu_health();
 
-    uint32_t required = 12 * 4 + 64;
-    if (!wait_for_ring_space(required, 1000000)) {
+    if (uint32_t required = 12 * 4 + 64; !wait_for_ring_space(required, 1000000)) {
         Log::Error("Ring buffer full!");
         return false;
     }
@@ -859,8 +854,7 @@ bool IntelBlt::blit_buffer(
     }
 
     check_gpu_health();
-    uint32_t required = 30 * 4 + 64;
-    if (!wait_for_ring_space(required, 1'000'000)) {
+    if (constexpr uint32_t required = 30 * 4 + 64; !wait_for_ring_space(required, 1'000'000)) {
         // free_ggtt_buffer(temp_buffer);
         return false;
     }
@@ -873,11 +867,9 @@ bool IntelBlt::blit_buffer(
     mi_flush(sequence_number);
     flush_commands();
 
-    bool success = wait_for_sequence(sequence_number, 2'000'000);
-
     // free_ggtt_buffer(temp_buffer);
 
-    if (!success) {
+    if (const bool success = wait_for_sequence(sequence_number, 2'000'000); !success) {
         return false;
     }
 
@@ -896,8 +888,7 @@ bool IntelBlt::scroll_pixels(int dy) {
 
     const uint32_t copy_height = fb.height - dy;
 
-    uint32_t required = 30 * 4 + 64;
-    if (!wait_for_ring_space(required, 1000000)) return false;
+    if (const uint32_t required = 30 * 4 + 64; !wait_for_ring_space(required, 1000000)) return false;
 
     xy_src_copy_blt(fb.gfx_addr, fb.pitch, 0, 0, fb.width, copy_height, fb.gfx_addr, fb.pitch, 0, dy);
 

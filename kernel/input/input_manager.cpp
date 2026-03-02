@@ -37,8 +37,7 @@ namespace kernel::input {
 
     void InputManager::push_event(const InputEvent& ev) {
         spinlock_guard_irq g(s_lock);
-        size_t next = (s_head + 1) % BUFFER_SIZE;
-        if (next != s_tail) {
+        if (const size_t next = (s_head + 1) % BUFFER_SIZE; next != s_tail) {
             s_buffer[s_head] = ev;
             s_head = next;
         }

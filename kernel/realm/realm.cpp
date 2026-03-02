@@ -139,10 +139,9 @@ void Realm::release_handle(HandleID hid) {
     handle_entry_t* he = lookup_handle(hid);
     if (!he) return;
 
-    uint64_t v = __sync_sub_and_fetch(&he->refcount, 1);
-    if (v == 0) {
+    if (const uint64_t v = __sync_sub_and_fetch(&he->refcount, 1); v == 0) {
         spinlock_guard guard(lock);
-        auto raw = static_cast<uint64_t>(he->hid & HANDLE_ID_MASK);
+        const auto raw = static_cast<uint64_t>(he->hid & HANDLE_ID_MASK);
         if (he->destroy && he->resource) he->destroy(he->resource);
         memset(he, 0, sizeof(handle_entry_t));
         clear_bit(raw);

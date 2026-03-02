@@ -29,16 +29,15 @@
 
 namespace syscalls::internal {
     int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = arg0;
+        const HandleID hid = arg0;
 
-        Unit *current_unit = kernel::scheduling::get_current_unit();
+        const Unit *current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
 
         Realm *realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
-        handle_entry_t *he = realm->lookup_handle(hid);
-        if (!he) return -EBADH;  // invalid handle
+        if (const handle_entry_t *he = realm->lookup_handle(hid); !he) return -EBADH;  // invalid handle
 
         realm->release_handle(hid);
 

@@ -55,8 +55,7 @@ namespace AHCI {
             if (portType != SATA && portType != SATAPI) continue;
 
             // we only want ports which have a device present with Phy communication established
-            uint32_t ssts = ABAR->ports[i].sataStatus;
-            if ((ssts & 0xF) != 3) continue;
+            if (const uint32_t ssts = ABAR->ports[i].sataStatus; (ssts & 0xF) != 3) continue;
 
             ports[portCount] = new Port();
             ports[portCount]->portType = portType;

@@ -32,8 +32,7 @@
     while (true) {
         asm volatile("cli");
         uint8_t cpu_id = CPUManager::get_current_cpu_id();
-        auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
-        if (!cpu->reaper.empty()) {
+        if (auto* cpu = kernel::scheduling::get_cpu_data(cpu_id); !cpu->reaper.empty()) {
             cpu->reaper.reap();
         }
         asm volatile("sti");

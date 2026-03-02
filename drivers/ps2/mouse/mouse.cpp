@@ -160,8 +160,7 @@ namespace input::mouse {
         if (position.Y > TargetFramebuffer->height - 1)
             position.Y = TargetFramebuffer->height - 1;
 
-        int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]);
-        if (wheel_movement > 0) {
+        if (const int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]); wheel_movement > 0) {
             //scroll down
         } else if (wheel_movement < 0) {
             //scroll up

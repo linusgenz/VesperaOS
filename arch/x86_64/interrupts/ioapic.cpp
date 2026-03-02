@@ -116,9 +116,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void init() {
-        const uint8_t default_irqs[] = {0, 5, 9, 10, 11};  // default irq's
-
-        for (uint8_t irq : default_irqs) {
+        for (const uint8_t default_irqs[] = {0, 5, 9, 10, 11}; uint8_t irq : default_irqs) {
             configure_irq(irq, 0x20 + irq, MADT::get_bsp_apic_id());
         }
     }

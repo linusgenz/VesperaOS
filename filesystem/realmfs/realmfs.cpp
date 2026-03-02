@@ -112,8 +112,8 @@ int RealmFS::unregister_realm(uint64_t realm_id)
 
         for (auto* file_node : dir_data->files)
         {
-            auto* entry = static_cast<RealmFSEntry*>(file_node->internal_data);
-            if (entry && entry->device && entry->device->id == realm_id)
+            if (auto* entry = static_cast<RealmFSEntry*>(file_node->internal_data);
+                entry && entry->device && entry->device->id == realm_id)
             {
                 realm_entry = entry;
                 break;
@@ -134,8 +134,7 @@ int RealmFS::unregister_unit(uint64_t unit_id)
 {
     spinlock_guard guard(lock);
 
-    auto* root_data = static_cast<DirData*>(root->internal_data);
-    for (auto* realm_dir : root_data->subdirs)
+    for (auto* root_data = static_cast<DirData*>(root->internal_data); const auto* realm_dir : root_data->subdirs)
     {
         VfsNode* units_dir = finddir(realm_dir, "units");
         if (!units_dir) continue;
@@ -144,8 +143,8 @@ int RealmFS::unregister_unit(uint64_t unit_id)
         for (size_t i = 0; i < units_data->files.size(); i++)
         {
             VfsNode* u_node = units_data->files[i];
-            auto* u_entry = static_cast<RealmFSEntry*>(u_node->internal_data);
-            if (u_entry && u_entry->device->id == unit_id)
+            if (const auto* u_entry = static_cast<RealmFSEntry*>(u_node->internal_data);
+                u_entry && u_entry->device->id == unit_id)
             {
                 units_data->files.erase(i);
                 delete_entry_node(u_node);
@@ -164,9 +163,7 @@ ssize_t RealmFS::read(const VfsNode* node, size_t offset, size_t size, void* buf
     auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
-    SysObject* obj = entry->device;
-
-    if (obj->type == SYS_OBJ_REALM)
+    if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
     {
         return RealmManager::get_status(obj->manager_ref, buffer, size, offset);
     }
@@ -185,9 +182,7 @@ ssize_t RealmFS::write(VfsNode* node, size_t offset, size_t size, const void* bu
     auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
-    SysObject* obj = entry->device;
-
-    if (obj->type == SYS_OBJ_REALM)
+    if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
     {
         //      return RealmManager::control(obj->manager_ref, buffer, size);
     }

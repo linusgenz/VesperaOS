@@ -157,13 +157,10 @@ int DevFS::open(const VfsNode* node)
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
-    KernelDevice* kd = entry->device;
-
-    if (kd->chardev && !entry->cf)
+    if (const KernelDevice* kd = entry->device; kd->chardev && !entry->cf)
     {
         CharFile* cf = nullptr;
-        int ret = kd->chardev->open(&cf);
-        if (ret != 0)
+        if (const int ret = kd->chardev->open(&cf); ret != 0)
             return ret;
 
         entry->cf = cf;
@@ -216,8 +213,7 @@ ssize_t DevFS::write(VfsNode* node, size_t offset, const size_t size, const void
     {
         if (!entry->cf)
         {
-            int res = open(node);
-            if (res < 0) return res;
+            if (const int res = open(node); res < 0) return res;
         }
         return kd->chardev->write(entry->cf, buffer, size);
     }
@@ -250,8 +246,7 @@ ssize_t DevFS::ioctl(const VfsNode* node, const uint32_t cmd, void* arg)
     {
         if (!entry->cf)
         {
-            int res = open(node);
-            if (res < 0) return res;
+            if (const int res = open(node); res < 0) return res;
         }
         return kd->chardev->ioctl(entry->cf, cmd, arg);
     }
@@ -274,8 +269,7 @@ void DevFS::close(VfsNode* node)
 
     spinlock_guard guard(lock);
 
-    KernelDevice* kd = entry->device;
-    if (kd->chardev)
+    if (const KernelDevice* kd = entry->device; kd->chardev)
         kd->chardev->release(entry->cf);
 
     entry->cf = nullptr;

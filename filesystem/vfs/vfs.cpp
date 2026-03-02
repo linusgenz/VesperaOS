@@ -95,11 +95,9 @@ VfsNode* VFS::open(const char* path)
 
     {
         spinlock_guard g(mount_points_lock);
-        for (auto& mp : *mount_points)
+        for (const auto& mp : *mount_points)
         {
-            size_t len = strlen(mp->path);
-
-            if (strncmp(path, mp->path, len) == 0 &&
+            if (const size_t len = strlen(mp->path); strncmp(path, mp->path, len) == 0 &&
                 (strcmp(mp->path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
                 len > best_len)
             {
@@ -380,9 +378,7 @@ bool VFS::remove_mount_point(MountPoint* mp)
 
     for (size_t i = 0; i < mount_points->size(); ++i)
     {
-        MountPoint* mp_iter = (*mount_points)[i];
-
-        if (mp_iter == mp)
+        if (MountPoint* mp_iter = (*mount_points)[i]; mp_iter == mp)
         {
             if (mp_iter->device)
             {

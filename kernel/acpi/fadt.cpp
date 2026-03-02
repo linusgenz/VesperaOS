@@ -38,8 +38,7 @@ namespace ACPI {
                 // Expect AML: NameOp (0x08), PkgOp (0x12)
                 if (dsdt[i + 4] != 0x12) continue;  // Not a PackageOp
 
-                uint8_t elem_count = dsdt[i + 6];
-                if (elem_count < 2) continue;
+                if (const uint8_t elem_count = dsdt[i + 6]; elem_count < 2) continue;
 
                 if (dsdt[i + 7] == 0x0A)
                     slp_typa = dsdt[i + 8];  // BytePrefix

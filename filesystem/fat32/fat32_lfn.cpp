@@ -202,8 +202,7 @@ namespace FAT32
         size_t firstLFN = shortNameIndex;
         for (int i = static_cast<int>(shortNameIndex) - 1; i >= 0; i--)
         {
-            DirectoryEntry entry = entries[i].GetDirectoryEntry();
-            if (entry.attr == ATTR_LONG_NAME) firstLFN = i;
+            if (const DirectoryEntry entry = entries[i].GetDirectoryEntry(); entry.attr == ATTR_LONG_NAME) firstLFN = i;
             else break;
         }
 

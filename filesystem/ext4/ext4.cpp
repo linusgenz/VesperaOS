@@ -183,8 +183,7 @@ namespace EXT4 {
     }
 
     bool FileSystem::map_logical_to_physical(Inode &inode, uint32_t lblock, uint64_t &out_pblock) {
-        Vector<Ext4ExtentMap> exts;
-        if (parse_extents_from_inode(inode, exts)) {
+        if (Vector<Ext4ExtentMap> exts; parse_extents_from_inode(inode, exts)) {
             ExtentHeader eh{};
             memcpy(&eh, &inode.i_block[0], sizeof(ExtentHeader));
             if (eh.eh_depth != 0) return false; // not handling interior nodes

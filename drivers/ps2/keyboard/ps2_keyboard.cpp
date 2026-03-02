@@ -71,9 +71,8 @@ namespace ps2::keyboard {
             return;
         }
 
-        char c = translate(scancode, shift);
-        if (c != 0) {
-            kernel::input::InputEvent ev {
+        if (const char c = translate(scancode, shift); c != 0) {
+            const kernel::input::InputEvent ev {
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = scancode,
                 .modifiers = static_cast<uint32_t>(shift ? 1 : 0),

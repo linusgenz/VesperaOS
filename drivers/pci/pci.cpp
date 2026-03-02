@@ -24,8 +24,8 @@ void usb_enable(void* arg)
     command |= (1 << 10); // Disable INTx
     PCI::pci_write16(pci_device_header, 0x04, command);
 
-    uint8_t vector = kernel::interrupts::get_free_vector();
-    if (try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header),
+    if (const uint8_t vector = kernel::interrupts::get_free_vector();
+        try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header),
                                vector))
     {
         char name[16];
@@ -234,8 +234,7 @@ namespace PCI
             }
         }
 
-        uint8_t count = USBManager::get_expected_count();
-        if (count > 0)
+        if (const uint8_t count = USBManager::get_expected_count(); count > 0)
         {
             Log::Info("Found %u XHCI controller(s)", count);
         }

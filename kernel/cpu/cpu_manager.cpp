@@ -75,7 +75,7 @@ void smp_init() {
         uint32_t apic_id = cpu_infos[i].apic_id;
 
         void* stack_virt = kernel::memory::request_pages(KERNEL_STACK_SIZE / PAGE_SIZE);
-        void* stack_top_virt = reinterpret_cast<void*>(reinterpret_cast<uint64_t>(stack_virt) + KERNEL_STACK_SIZE);
+        auto stack_top_virt = reinterpret_cast<void*>(reinterpret_cast<uint64_t>(stack_virt) + KERNEL_STACK_SIZE);
 
         memset(stack_virt, 0, KERNEL_STACK_SIZE);
 
@@ -117,7 +117,6 @@ void smp_init() {
 
         asm volatile("mfence" ::: "memory");
     }
-        while (1);
 }
 
     void init_core(const CPUInfo* cpu) {

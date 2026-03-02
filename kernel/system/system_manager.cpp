@@ -503,9 +503,7 @@ namespace kernel {
         size_t processed = 0;
 
         while (processed < max_events_to_process) {
-            ssize_t read_bytes = event_channel->recv(&evbuf, sizeof(evbuf));
-
-            if (read_bytes <= 0) break;
+            if (const ssize_t read_bytes = event_channel->recv(&evbuf, sizeof(evbuf)); read_bytes <= 0) break;
 
             char line[512];
             int n = 0;

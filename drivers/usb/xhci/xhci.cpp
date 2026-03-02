@@ -320,12 +320,11 @@ namespace USB {
         legacy->usblegsup.os_owned = 1;
 
         // Wait for BIOS to clear BIOS_OWNED (bit 16)
-        constexpr int max_wait_ms = 100;
         int waited = 0;
 
         while (legacy->usblegsup.bios_owned == 1) {
             kernel::time::sleep_ms(10);
-            if (++waited >= max_wait_ms) {
+            if (constexpr int max_wait_ms = 100; ++waited >= max_wait_ms) {
                 Log::Error("BIOS did not release xHCI ownership after %d ms", waited);
                 break;
             }
@@ -348,12 +347,12 @@ namespace USB {
         return false;
     }
 
-    xhciPortRegisterManager xhciDriver::get_port_register_set(uint8_t port_num) {
+    xhciPortRegisterManager xhciDriver::get_port_register_set(const uint8_t port_num) {
         const uint64_t base = reinterpret_cast<uint64_t>(m_op_regs) + (0x400 + (0x10 * port_num));
         return xhciPortRegisterManager(base);
     }
 
-    uint8_t xhciDriver::get_port_speed(uint8_t port) {
+    uint8_t xhciDriver::get_port_speed(const uint8_t port) {
         auto port_register_set = get_port_register_set(port);
         xhci_portsc_register portsc{};
         port_register_set.read_portsc_reg(portsc);
@@ -548,11 +547,10 @@ namespace USB {
         m_op_regs->usbcmd |= XHCI_USBCMD_RUN_STOP;
 
         // Wait for controller to start
-        constexpr int max_retries = 100;
         int retries = 0;
 
         while (m_op_regs->usbsts & XHCI_USBSTS_HCH) {
-            if (retries++ >= max_retries) {
+            if (constexpr int max_retries = 100; retries++ >= max_retries) {
                 Log::Error("Controller failed to start within timeout");
                 return false;
             }
@@ -624,8 +622,7 @@ namespace USB {
                         break;
                     }
 
-                    auto& primary_interface = device->interfaces[0];
-                    if (primary_interface->driver) {
+                    if (const auto& primary_interface = device->interfaces[0]; primary_interface->driver) {
                         primary_interface->driver->on_event(this, device);
                     }
                     break;
@@ -921,8 +918,7 @@ namespace USB {
         // (See bug report: https://bugs.launchpad.net/qemu/+bug/1859378 )
         bool in_qemu = true;
         if (!in_qemu) {
-            auto completion_trb = start_control_endpoint_transfer(transfer_ring);
-            if (!completion_trb) {
+            if (auto completion_trb = start_control_endpoint_transfer(transfer_ring); !completion_trb) {
                 free_xhci_memory(transfer_status_buffer);
                 free_xhci_memory(descriptor_buffer);
                 return false;
@@ -994,8 +990,7 @@ namespace USB {
         transfer_ring->enqueue(reinterpret_cast<xhci_trb_t*>(&setup_stage));
         transfer_ring->enqueue(reinterpret_cast<xhci_trb_t*>(&status_stage));
 
-        auto completion_trb = start_control_endpoint_transfer(transfer_ring);
-        if (!completion_trb) {
+        if (const auto completion_trb = start_control_endpoint_transfer(transfer_ring); !completion_trb) {
             Log::Error("No-Data request: Timed out or failed.");
             return false;
         }
@@ -1006,14 +1001,13 @@ namespace USB {
     xhci_transfer_completion_trb_t* xhciDriver::start_control_endpoint_transfer(const xhciTransferRing* transfer_ring) {
         m_doorbell_manager->ring_control_endpoint_doorbell(transfer_ring->get_doorbell_id());
 
-        constexpr uint64_t timeout_ms = 400;
         uint64_t sleep_passed = 0;
 
         while (!m_transfer_irq_completed.load()) {
             kernel::time::sleep_ms(10);
             sleep_passed += 10;
 
-            if (sleep_passed > timeout_ms) {
+            if (constexpr uint64_t timeout_ms = 400; sleep_passed > timeout_ms) {
                 break;
             }
         }
@@ -1416,11 +1410,10 @@ namespace USB {
                             // Allocate a buffer to hold the HID report descriptor.
                             current_interface->additional_data = new uint8_t[current_interface->additional_data_length];
 
-                            int8_t interface_number = device->interfaces.back()->descriptor.bInterfaceNumber;
-
                             // Retrieve the HID report descriptor.
 
-                            if (!get_hid_report_descriptor(
+                            if (const int8_t interface_number = device->interfaces.back()->descriptor.bInterfaceNumber;
+                                !get_hid_report_descriptor(
                                     device,
                                     interface_number,
                                     0,

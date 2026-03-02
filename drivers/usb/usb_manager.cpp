@@ -54,10 +54,8 @@ void USBManager::notify_controller_ready() {
     }
 }
 
-bool USBManager::wait_for_all_controllers(uint64_t timeout_ms) {
-    uint8_t expected = expected_controllers.load();
-
-    if (expected == 0) return true;
+bool USBManager::wait_for_all_controllers(const uint64_t timeout_ms) {
+    if (const uint8_t expected = expected_controllers.load(); expected == 0) return true;
     return all_controllers_ready.wait_timeout(timeout_ms);
 }
 

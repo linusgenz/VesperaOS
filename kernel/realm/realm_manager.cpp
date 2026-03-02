@@ -120,8 +120,7 @@ Realm* RealmManager::get(const RealmID id) {
             }
         }
 
-        uint8_t end = seq.load();
-        if (begin == end) return result;
+        if (const uint8_t end = seq.load(); begin == end) return result;
     }
 }
 
@@ -211,8 +210,7 @@ void RealmManager::list() {
             }
         }
 
-        uint8_t end = seq.load();
-        if (begin == end)  // konsistent gelesen?
+        if (const uint8_t end = seq.load(); begin == end)
             return;
     }
 }

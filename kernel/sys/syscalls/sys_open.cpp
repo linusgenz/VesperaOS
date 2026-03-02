@@ -46,8 +46,7 @@ namespace syscalls::internal {
 
         if (!node) {
             if (flags & O_CREAT) {
-                int result = VFS::create(user_path);
-                if (result != 0) {
+                if (int result = VFS::create(user_path); result != 0) {
                     return result;
                 }
 
@@ -163,10 +162,11 @@ namespace syscalls::internal {
         }
 
         // Handle registrieren
-        HandleID file_handle;
-        ErrorCode err = realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, &file_handle);
+        HandleID file_handle = 0;
 
-        if (err != MOD_SUCCESS) {
+        if (const ErrorCode err =
+                realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, &file_handle);
+            err != MOD_SUCCESS) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {
                 node->ops->closedir(vh->node->internal_data);
             }

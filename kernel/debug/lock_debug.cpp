@@ -77,8 +77,7 @@ void lock_debug_before_acquire(const void* lockptr, const uint32_t current_unit)
     if (!lockptr) return;
     if (auto* e = lock_debug_find(lockptr)) {
         // if lock has owner and owner != current, register current as waiter
-        uint32_t owner = e->owner_unit;
-        if (owner != 0 && owner != current_unit) {
+        if (uint32_t owner = e->owner_unit; owner != 0 && owner != current_unit) {
             if (e->waiter_count < MAX_WAITERS_PER_LOCK) {
                 e->waiters[e->waiter_count++] = current_unit;
             }
