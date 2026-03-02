@@ -25,7 +25,6 @@
 #include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../../include/errno.h"
 #include "../syscall_interface.h"
 
 namespace syscalls::internal {

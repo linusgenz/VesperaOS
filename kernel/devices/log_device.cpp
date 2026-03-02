@@ -23,7 +23,7 @@
 
 #include "log_device.h"
 
-#include <errno.h>
+#include <vespera_errno.h>
 
 int LogDevice::open(CharFile** out_cf) {
     if (!out_cf) return -EINVAL;

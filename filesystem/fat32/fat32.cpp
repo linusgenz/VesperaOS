@@ -4,11 +4,11 @@
 
 #include "fat32.h"
 
+#include <log.h>
+#include <path.h>
 #include <sort.h>
+#include <string.h>
 
-#include "../../include/log.h"
-#include "../../include/path.h"
-#include "../../include/string.h"
 #include "fat32_lfn.h"
 #include "fat32_time.h"
 #include "fat32_vfs_adapter.h"
@@ -189,6 +189,37 @@ namespace FAT32 {
         fsinfo.TrailSig = 0xAA550000;
 
         device->write(bpb.FSInfo, 1, &fsinfo, sizeof(FSINFO));
+    }
+
+    uint32_t FileSystem::GetFreeClusterCount() {
+        if (freeClusterCount != 0xFFFFFFFF)
+            return freeClusterCount;
+
+        uint32_t count = 0;
+        uint8_t buf[512];
+        uint32_t lastSector = UINT32_MAX;
+
+        for (uint32_t c = 2; c < clusterCount + 2; ++c) {
+            const uint32_t fatOffset    = c * 4;
+            const uint32_t sectorOffset = fatOffset / bpb.bytesPerSector;
+            const uint32_t fatSector    = bpb.reservedSectorCount + sectorOffset;
+
+            if (fatSector != lastSector) {
+                if (!ReadFATSector(fatSector, buf))
+                    continue;
+                lastSector = fatSector;
+            }
+
+            const uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
+            const uint32_t entry = *reinterpret_cast<uint32_t*>(buf + offsetInSector) & 0x0FFFFFFF;
+
+            if (entry == 0)
+                ++count;
+        }
+
+        freeClusterCount = count;
+        WriteFSInfo();
+        return freeClusterCount;
     }
 
     // ============================================================================
@@ -811,16 +842,18 @@ namespace FAT32 {
         return true;
     }
 
-    bool FileSystem::WriteFile(Fat32Node* node, const void* buffer, size_t len) {
+    bool FileSystem::WriteFile(Fat32Node* node, const void* buffer, const size_t len, const size_t offset) {
         if (!node || !buffer || len == 0) return false;
-
         if (IsProtected(node->dirEntry)) return false;
 
+        // Classic FAT32: offset > fileSize is prohibited
+        if (offset > node->fileSize) return false;
+
         const size_t clusterBytes = bytesPerCluster();
-        const size_t neededClusters = (len + clusterBytes - 1) / clusterBytes;
+        const size_t newSize = (offset + len > node->fileSize) ? (offset + len) : node->fileSize;
+        const size_t neededClusters = (newSize + clusterBytes - 1) / clusterBytes;
 
         uint32_t startCluster = node->cluster;
-
         size_t existingClustersCount = 0;
         uint32_t* clusterChain = nullptr;
 
@@ -832,69 +865,77 @@ namespace FAT32 {
 
         // Allocate additional clusters if needed
         if (existingClustersCount < neededClusters) {
-            const size_t additional = neededClusters - existingClustersCount;
+            size_t additional = neededClusters - existingClustersCount;
 
             // File has no cluster yet → allocate first one
             if (startCluster == 0) {
                 startCluster = FindFreeCluster();
                 if (startCluster == 0) return false;
-
                 WriteFATEntry(startCluster, 0x0FFFFFFF);
                 node->cluster = startCluster;
-
                 clusterChain = GetClusterChain(startCluster, existingClustersCount);
-                if (!clusterChain || existingClustersCount == 0) return false;
-            }
-
-            if (!clusterChain) {
-                return false;
+                if (!clusterChain) return false;
             }
 
             uint32_t lastCluster = clusterChain[existingClustersCount - 1];
-
-            for (size_t i = 0; i < additional; ++i) {
+            for (size_t i = 0; i < additional; i++) {
                 uint32_t freeCluster = FindFreeCluster();
                 if (freeCluster == 0) {
                     kernel::memory::free(clusterChain);
                     return false;
                 }
-
                 WriteFATEntry(lastCluster, freeCluster);
+                WriteFATEntry(freeCluster, 0x0FFFFFFF);
                 lastCluster = freeCluster;
-                WriteFATEntry(lastCluster, 0x0FFFFFFF);
             }
 
             kernel::memory::free(clusterChain);
-
             clusterChain = GetClusterChain(startCluster, existingClustersCount);
             if (!clusterChain || existingClustersCount < neededClusters) return false;
         }
 
-        if (!clusterChain) {
-            return false;
-        }
+        if (!clusterChain) return false;
 
-        // Write data
-        const auto* src = static_cast<const uint8_t*>(buffer);
+        auto src = static_cast<const uint8_t*>(buffer);
         size_t remaining = len;
+        size_t currentOffset = offset;
+        size_t clusterIndex = offset / clusterBytes;
 
-        for (size_t i = 0; i < existingClustersCount && remaining > 0; ++i) {
-            const size_t toWrite = (remaining > clusterBytes) ? clusterBytes : remaining;
+        uint8_t clusterBuf[clusterBytes];
 
-            if (!WriteCluster(clusterChain[i], src, toWrite)) {
-                kernel::memory::free(clusterChain);
-                return false;
+        while (remaining > 0 && clusterIndex < existingClustersCount) {
+            const size_t offsetInCluster = currentOffset % clusterBytes;
+            const size_t spaceInCluster = clusterBytes - offsetInCluster;
+            const size_t toWrite = (remaining < spaceInCluster) ? remaining : spaceInCluster;
+
+            const bool partial = (offsetInCluster != 0) || (toWrite < clusterBytes);
+            if (partial) {
+                if (ReadCluster(clusterChain[clusterIndex], clusterBuf, clusterBytes) < 0) {
+                    kernel::memory::free(clusterChain);
+                    return false;
+                }
+                memcpy(clusterBuf + offsetInCluster, src, toWrite);
+                if (!WriteCluster(clusterChain[clusterIndex], clusterBuf, clusterBytes)) {
+                    kernel::memory::free(clusterChain);
+                    return false;
+                }
+            } else {
+                if (!WriteCluster(clusterChain[clusterIndex], src, clusterBytes)) {
+                    kernel::memory::free(clusterChain);
+                    return false;
+                }
             }
 
             src += toWrite;
             remaining -= toWrite;
+            currentOffset += toWrite;
+            clusterIndex++;
         }
 
         kernel::memory::free(clusterChain);
 
-        // Update directory entry
-        node->fileSize = len;
-        node->dirEntry.fileSize = static_cast<uint32_t>(len);
+        node->fileSize = newSize;
+        node->dirEntry.fileSize = static_cast<uint32_t>(newSize);
         node->dirEntry.firstClusterLow = static_cast<uint16_t>(startCluster & 0xFFFF);
         node->dirEntry.firstClusterHigh = static_cast<uint16_t>((startCluster >> 16) & 0xFFFF);
         UpdateWriteTime(node->dirEntry);

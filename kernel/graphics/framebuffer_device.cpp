@@ -24,7 +24,7 @@
 
 #include "framebuffer_device.h"
 
-#include <errno.h>
+#include <vespera_errno.h>
 
 #include "log.h"
 

@@ -1,4 +1,4 @@
-// errno.h
+// vespera_errno.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 // 

@@ -24,6 +24,8 @@
 
 #include "fat32_lfn.h"
 
+#include "kernel/memory.h"
+
 namespace FAT32
 {
     uint8_t ChkSum(const char* shortName)

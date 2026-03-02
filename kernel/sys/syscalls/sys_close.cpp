@@ -24,7 +24,6 @@
 #include <kernel/realm/realm_manager.h>
 #include <kernel/scheduling.h>
 
-#include "../../../include/errno.h"
 #include "../../types/types.h"
 
 namespace syscalls::internal {

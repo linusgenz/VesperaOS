@@ -22,9 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/errno.h"
 #include "../../../include/log.h"
 #include "../../../include/string.h"
+#include "vespera_errno.h"
 
 namespace syscalls::internal {
     int64_t sys_rmdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {

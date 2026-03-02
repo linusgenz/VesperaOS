@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include <kernel/realm/realm_manager.h>
 #include <kernel/scheduling.h>
 #include <kernel/tty/tty.h>

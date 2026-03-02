@@ -4,7 +4,7 @@
 
 #ifndef FAT32_CPP_H
 #define FAT32_CPP_H
-#include "../../include/string.h"
+#include <string.h>
 #include "../../kernel/devices/blockdevice.h"
 #include <cstdint>
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
@@ -13,16 +13,16 @@ struct Fat32Node;
 
 namespace FAT32
 {
-#define ATTR_READ_ONLY 0x01
-#define ATTR_HIDDEN 0x02
-#define ATTR_SYSTEM 0x04
-#define ATTR_VOLUME_ID 0x08
-#define ATTR_DIRECTORY 0x10
-#define ATTR_ARCHIVE 0x20
-#define ATTR_LONG_NAME (ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
-#define LAST_LONG_ENTRY 0x40
+    inline constexpr uint8_t ATTR_READ_ONLY   = 0x01;
+    inline constexpr uint8_t ATTR_HIDDEN      = 0x02;
+    inline constexpr uint8_t ATTR_SYSTEM      = 0x04;
+    inline constexpr uint8_t ATTR_VOLUME_ID   = 0x08;
+    inline constexpr uint8_t ATTR_DIRECTORY   = 0x10;
+    inline constexpr uint8_t ATTR_ARCHIVE     = 0x20;
+    inline constexpr uint8_t ATTR_LONG_NAME   = ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID;
+    inline constexpr uint8_t LAST_LONG_ENTRY  = 0x40;
 
-#define READ_DIR_MAX_ENTRIES 256
+    inline constexpr size_t READ_DIR_MAX_ENTRIES = 256;
 
     struct BPB_FAT32
     {
@@ -211,7 +211,7 @@ namespace FAT32
 
         bool ReadFile(Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset = 0) const;
 
-        bool WriteFile(Fat32Node* node, const void* buffer, size_t len);
+        bool WriteFile(Fat32Node* node, const void* buffer, size_t len, size_t offset);
         bool WriteLFNEntries(DirectoryEntry* entries, size_t startIndex, const char* longName, const char* shortName,
                              size_t nameLen) const;
 
@@ -242,7 +242,7 @@ namespace FAT32
             return &bpb;
         };
 
-    private:
+ //   private:
         BlockDevice* device;
         BPB_FAT32 bpb{};
         bool fs_valid;
@@ -298,6 +298,7 @@ namespace FAT32
         [[nodiscard]] uint32_t ClusterToSector(uint32_t cluster) const;
         bool LoadFSInfo();
         void WriteFSInfo() const;
+        uint32_t GetFreeClusterCount();
 
         ssize_t ReadCluster(uint32_t cluster, void* buffer, size_t buffer_size) const;
 

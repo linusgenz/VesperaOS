@@ -23,7 +23,7 @@
 
 #include "devfs.h"
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include <kernel/memory.h>
 
 #include "../../include/kernel/devices/char_device.h"

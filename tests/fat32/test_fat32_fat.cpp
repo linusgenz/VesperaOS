@@ -1,10 +1,9 @@
-// sys_create.cpp
-//
+// test_fat32_fat.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 03.08.25.
+// Created by Linus Genz on 02.03.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,21 +19,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
-#include "../../../filesystem/vfs/vfs.h"
-#include "vespera_errno.h"
-
-namespace syscalls::internal {
-    int64_t sys_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const auto path = reinterpret_cast<const char*>(arg0);
-        if (!path) return -EINVAL;
-
-        if (VFS::open(path)) {
-            return -EEXIST;
-        }
-
-        const int result = VFS::create(path);
-        return result < 0 ? -result : 0;
-    }
-
-}  // namespace syscalls::internal

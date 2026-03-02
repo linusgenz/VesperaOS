@@ -26,7 +26,6 @@
 
 #include "../../../filesystem/vfs/vfs.h"
 #include "../../../filesystem/vfs/vfs_node.h"
-#include "../../../include/errno.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {

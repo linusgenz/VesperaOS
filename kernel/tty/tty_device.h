@@ -25,7 +25,7 @@
 #define VESPERAOS_TTY_DEVICE_H
 
 #include <kernel/tty/tty.h>
-
+#include <kernel/terminal.h>
 #include "../../filesystem/devfs/devfs.h"
 #include "../../include/kernel/devices/char_device.h"
 #include "kernel/devices/device_manager.h"

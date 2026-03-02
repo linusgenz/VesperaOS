@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include <kernel/scheduling.h>
 
 #include "/mnt/ExternerDatentraeger/VesperaOS/kernel/units/unit.h"

@@ -25,7 +25,6 @@
 #include <kernel/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/errno.h"
 #include "../../types/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
 

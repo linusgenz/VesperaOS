@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/errno.h"
+#include "vespera_errno.h"
 
 namespace syscalls::internal {
     int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {

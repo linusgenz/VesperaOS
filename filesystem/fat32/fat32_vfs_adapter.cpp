@@ -21,20 +21,20 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../vfs/fs_registry.h"
 #include "fat32_vfs_adapter.h"
 
 #include <kernel/memory.h>
 
+#include "../../include/log.h"
+#include "../../kernel/types/types.h"
+#include "../vfs/fs_registry.h"
 #include "fat32.h"
 #include "fat32_lfn.h"
-#include "../../include/log.h"
-#include "../../include/errno.h"
-#include "../../kernel/types/types.h"
+#include "vespera_errno.h"
 
 using namespace FAT32;
 
-static ssize_t fat32_read(const VfsNode* node, const size_t offset, const size_t size, void* buffer)
+static ssize_t fat32_read(const VfsNode* node, size_t offset, size_t size, void* buffer)
 {
     if (!node || !buffer) return -EFAULT;
     if (size == 0) return 0;
@@ -42,27 +42,16 @@ static ssize_t fat32_read(const VfsNode* node, const size_t offset, const size_t
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
     if (!fnode) return -EBADH;
 
-    const auto temp = static_cast<char*>(kernel::memory::malloc(size));
-    if (!temp) return -ENOMEM;
-
     size_t actual = 0;
-    if (const bool ok = fnode->fs->ReadFile(fnode, temp, size, actual, offset); !ok)
-    {
-        kernel::memory::free(temp);
+    if (!fnode->fs->ReadFile(fnode, buffer, size, actual, offset))
         return -EIO;
-    }
 
-    if (offset >= actual)
-    {
-        kernel::memory::free(temp);
-        return 0; // EOF
-    }
+    // Offset can be >= actual → EOF
+    if (offset >= actual) return 0;
 
     size_t copySize = actual - offset;
     if (copySize > size) copySize = size;
 
-    memcpy(buffer, temp + offset, copySize);
-    kernel::memory::free(temp);
     return static_cast<ssize_t>(copySize);
 }
 
@@ -80,35 +69,10 @@ static ssize_t fat32_write(VfsNode* node, const size_t offset, const size_t size
         return -EINVAL;
     }
 
-    size_t newSize = offset + size;
+    if (!fnode->fs->WriteFile(fnode, buffer, size, offset))
+        return -EIO;
 
-    auto tmp = static_cast<char*>(kernel::memory::malloc(newSize));
-    if (!tmp) return -ENOMEM;
-
-    const size_t oldSize = fnode->fileSize;
-    if (oldSize > 0)
-    {
-        if (size_t readBytes = 0; !fnode->fs->ReadFile(fnode, tmp, oldSize, readBytes))
-        {
-            kernel::memory::free(tmp);
-            return -EIO;
-        }
-    }
-
-    if (offset > oldSize)
-    {
-        memset(tmp + oldSize, 0, offset - oldSize);
-    }
-
-    memcpy(tmp + offset, buffer, size);
-
-    bool ok = fnode->fs->WriteFile(fnode, tmp, newSize);
-    kernel::memory::free(tmp);
-
-    if (!ok) return -EIO;
-
-    fnode->fileSize = newSize;
-    node->size = newSize;
+    node->size = fnode->fileSize;
     return static_cast<ssize_t>(size);
 }
 

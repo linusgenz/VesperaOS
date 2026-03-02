@@ -24,7 +24,7 @@
 
 #include "realmfs.h"
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include <kernel/memory.h>
 #include <kernel/realm/realm_manager.h>
 #include <string.h>

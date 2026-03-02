@@ -4,6 +4,7 @@
 #include <log.h>
 
 #include "../cpu/io.h"
+#include "../debug/trace.h"
 
 void* heap_start = nullptr;
 void* heap_end = nullptr;
@@ -429,12 +430,12 @@ void expand_heap(size_t length) {
 
     for (size_t i = 0; i < page_count; i++) {
         void* virt = heap_end;
-        void* phys = kernel::memory::request_page();
-        if (!phys) {
+        const uint64_t phys = kernel::memory::request_page_phys();
+        if (phys == 0) {
             length = i * 0x1000;
             break;
         }
-        kernel::memory::map_memory(virt, phys);
+        kernel::memory::map_memory(virt, reinterpret_cast<void*>(phys));
         memset(virt, 0, PAGE_SIZE);
         heap_end = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(heap_end) + 0x1000);
     }

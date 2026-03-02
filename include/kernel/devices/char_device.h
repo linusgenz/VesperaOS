@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_CHAR_DEVICE_BASE_H
 #define VESPERAOS_CHAR_DEVICE_BASE_H
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include "device_manager.h"
 #include "string.h"
 

@@ -6,8 +6,6 @@
 #define BLOCKDEVICE_H
 
 #include "../types/types.h"
-#include "kernel/memory.h"
-#include "log.h"
 #include <cstddef>
 #include <cstdint>
 

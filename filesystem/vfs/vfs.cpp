@@ -27,7 +27,7 @@
 
 #include <kernel/scheduling.h>
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include "../../include/kernel/devices/device_manager.h"
 #include "fs_detection.h"
 #include "../dirent.h"

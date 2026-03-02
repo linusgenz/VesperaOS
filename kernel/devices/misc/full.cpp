@@ -23,7 +23,7 @@
 
 #include "full.h"
 
-#include <errno.h>
+#include <vespera_errno.h>
 #include <kernel/memory.h>
 
 FullDevice::FullDevice(const char* name)

@@ -2,7 +2,7 @@
 // Created by linus on 06.07.25.
 //
 
-#include "../userspace/lib/include/string.h"
+#include <string.h>
 
 //  "/foo/bar/baz" -> "foo", "bar", "baz"
 size_t split_path(const char* path, char components[][32], size_t maxComponents) {

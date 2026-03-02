@@ -111,7 +111,7 @@ namespace PCI
                     {
                     case 0x8086:
                         {
-                            auto* driver = new IntelBlt(pci_device_header);
+                       /*     auto* driver = new IntelBlt(pci_device_header);
                             driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
 
                             DisplayBackend be{ driver, driver->get_kd() };
@@ -119,7 +119,7 @@ namespace PCI
 
                             auto terminal = new Terminal(driver, system_font->width, system_font->height);
                             Log::SetTerminal(terminal);
-                            global_terminal = terminal;
+                            global_terminal = terminal;*/
                             break;
                         }
                     default: ;
