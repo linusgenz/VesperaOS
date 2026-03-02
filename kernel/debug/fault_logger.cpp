@@ -4,10 +4,11 @@
 // Nutzt das bestehende Log-System, kapselt aber ein konsistentes,
 // auf Faults zugeschnittenes Ausgabeformat.
 //
+#include "../utils/panic.h"
 #if DEBUG_FAULT
 #include "trace.h"
 #endif
-
+#include "trace.h"
 #include <kernel/realm/realm_manager.h>
 #include <kernel/scheduling.h>
 
@@ -55,7 +56,11 @@ namespace kernel::debug {
         }
 
         Log::Error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx.rip, ctx.cs, ctx.rsp, ctx.rflags);
-        while (1)
+        uint64_t fault_addr = 0;
+        asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
+        Log::Error("Page fault address (CR2): %p", fault_addr);
+        backtrace(ctx.rbp, ctx.rip);
+        panic("FAULT");
 
         if (ctx.error_code != 0) {
             Log::Error("  ERROR_CODE=0x%llx", ctx.error_code);

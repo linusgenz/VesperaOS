@@ -33,18 +33,15 @@
 #include "string.h"
 
 IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
-    : mmio_base(nullptr)
-    , bcs_regs(reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_RING_BASE))
-    , ring_size(RING_BUFFER_SIZE)
+    : ring_size(RING_BUFFER_SIZE)
     , sequence_number(0) {
-    auto* pci = reinterpret_cast<PCI::PCIHeader0*>(header);
+    const auto* pci = reinterpret_cast<PCI::PCIHeader0*>(header);
 
-    uint64_t bar0 = pci->BAR0 & BAR0_ADDR_MASK;
-    kernel::memory::map_range(
-        reinterpret_cast<void*>(bar0), reinterpret_cast<void*>(bar0), BAR0_SIZE, (1ULL << CacheDisabled)
-    );
+    const uint64_t bar0 = pci->BAR0 & BAR0_ADDR_MASK;
+    kernel::memory::map_range(phys_to_virt(bar0), reinterpret_cast<void*>(bar0), BAR0_SIZE, (1ULL << CacheDisabled));
 
-    mmio_base = reinterpret_cast<volatile uint8_t*>(bar0);
+    mmio_base = static_cast<volatile uint8_t*>(phys_to_virt(bar0));
+    bcs_regs = reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_RING_BASE);
 
     enable_force_wake();
     init_gtt();
@@ -57,25 +54,25 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     memset(hwsp_cpu_addr, 0, PAGE_SIZE);
     bcs_regs[BCS_HWSP / 4] = static_cast<uint32_t>(hwsp_graphics_addr);
 
-    uint32_t ring_pages = ring_size / PAGE_SIZE;
-    auto ring = alloc_and_map_to_ggtt(ring_pages);
+    const uint32_t ring_pages = ring_size / PAGE_SIZE;
+    auto [cpu_addr, gfx_addr] = alloc_and_map_to_ggtt(ring_pages);
 
-    ring_cpu_addr = ring.cpu_addr;
-    ring_graphics_addr = ring.gfx_addr;
+    ring_cpu_addr = cpu_addr;
+    ring_graphics_addr = gfx_addr;
     memset(ring_cpu_addr, 0, ring_size);
     setup_ring_buffer();
 
     bcs_regs[BCS_RING_START / 4] = static_cast<uint32_t>(ring_graphics_addr & GTT_PHYS_ADDR_MASK);
 
-    uint32_t ring_ctl = ((ring_size - PAGE_SIZE) & RING_SIZE_MASK) | RING_CTL_ENABLED;
+    const uint32_t ring_ctl = ((ring_size - PAGE_SIZE) & RING_SIZE_MASK) | RING_CTL_ENABLED;
     bcs_regs[BCS_RING_CTL / 4] = ring_ctl;
 
     bcs_regs[BCS_RING_HEAD / 4] = 0;
     bcs_regs[BCS_RING_TAIL / 4] = 0;
 
-    uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
-    uint32_t tail = bcs_regs[BCS_RING_TAIL / 4];
-    uint32_t ctl = bcs_regs[BCS_RING_CTL / 4];
+    const uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
+    const uint32_t tail = bcs_regs[BCS_RING_TAIL / 4];
+    const uint32_t ctl = bcs_regs[BCS_RING_CTL / 4];
 
     init_text_buffer(system_font, TargetFramebuffer->width);
 
@@ -100,21 +97,21 @@ void IntelBlt::start_device(uint32_t screen_width, uint32_t screen_height) {
     set_display_framebuffer();
 }
 
-void IntelBlt::init_text_buffer(FONT* font, uint32_t screen_width) {
+void IntelBlt::init_text_buffer(const FONT* font, const uint32_t screen_width) {
     if (!font) {
         Log::Error("Invalid font for text buffer initialization");
         return;
     }
 
-    uint32_t max_chars = screen_width / font->width;
+    const uint32_t max_chars = screen_width / font->width;
 
-    uint32_t max_width = max_chars * font->width;
-    uint32_t max_height = font->height;
+    const uint32_t max_width = max_chars * font->width;
+    const uint32_t max_height = font->height;
 
-    uint32_t stride = ((max_width + 7) / 8);
+    size_t stride = ((max_width + 7) / 8);
     stride = ((stride + 1) / 2) * 2;
-    size_t total_size = stride * max_height;
-    size_t num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
+    const size_t total_size = stride * max_height;
+    const size_t num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
     Log::debug(
         "Allocating text buffer: font=%ux%u, screen=%u, max_chars=%u, buffer=%ux%u, stride=%u, size=%zu",
@@ -141,7 +138,7 @@ void IntelBlt::init_text_buffer(FONT* font, uint32_t screen_width) {
 
 void IntelBlt::write_command(uint32_t cmd) {
     uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
-    uint32_t available_space;
+    uint32_t available_space = 0;
 
     if (ring_tail >= head) {
         available_space = (ring_size - ring_tail) + head;
@@ -173,7 +170,7 @@ void IntelBlt::write_command(uint32_t cmd) {
 bool IntelBlt::wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const {
     for (uint32_t i = 0; i < timeout_us; i++) {
         uint32_t head = bcs_regs[BCS_RING_HEAD / 4];
-        uint32_t available;
+        uint32_t available = 0;
 
         if (ring_tail >= head) {
             available = (ring_size - ring_tail) + head;
@@ -363,9 +360,9 @@ void IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_
 
     fb.pitch = ((width * fb.bpp + 63) / 64) * 64;
 
-    size_t total_size = fb.pitch * height;
+    const size_t total_size = static_cast<size_t>(fb.pitch) * height;
 
-    size_t num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
+    const size_t num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
     Log::debug(
         "Allocating framebuffer: %dx%d, pitch=%d, size=%zu bytes, pages=%zu, tile_mode=%u",
@@ -429,11 +426,11 @@ void IntelBlt::flush_commands() const {
 }
 
 GgttAllocation IntelBlt::alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags, uint8_t pat_index) {
-    void* cpu = kernel::memory::request_pages(num_pages);
+    uint64_t phys = kernel::memory::request_pages_phys(num_pages);
+    void* cpu = phys_to_virt(phys);
 
-    kernel::memory::map_range(cpu, cpu, num_pages * 4096, flags);
+    kernel::memory::map_range(cpu, (void*)phys, num_pages * PAGE_SIZE, flags);
 
-    const auto phys = reinterpret_cast<uint64_t>(cpu);
     uint64_t gfx = map_to_ggtt(phys, num_pages, pat_index);
 
     return {cpu, gfx};
@@ -542,7 +539,7 @@ void IntelBlt::set_display_framebuffer() const {
     for (int i = 0; i < 1000; i++) {
     }
 
-    uint32_t stride_value;
+    uint32_t stride_value = 0;
     switch (fb.tile_mode) {
         case TileMode::Linear:
             // Linear: stride in chunks of 64 bytes
@@ -633,12 +630,10 @@ void IntelBlt::xy_mono_src_copy_blt(
     write_command(0);  // trailing DW
 }
 
-void IntelBlt::build_text_scanline(
-    const char* text, size_t length, FONT* font, uint8_t* buffer, uint32_t buffer_stride
-) {
-    const uint32_t glyph_width = font->width;             // z.B. 10
-    const uint32_t glyph_height = font->height;           // z.B. 24
-    const uint32_t glyph_stride = (glyph_width + 7) / 8;  // PSF2: Bytes pro Zeile
+void IntelBlt::build_text_scanline(const char* text, size_t length, FONT* font, uint8_t* buffer, size_t buffer_stride) {
+    const size_t glyph_width = font->width;             // z.B. 10
+    const size_t glyph_height = font->height;           // z.B. 24
+    const size_t glyph_stride = (glyph_width + 7) / 8;  // PSF2: Bytes pro Zeile
 
     auto glyphs = static_cast<const uint8_t*>(font->glyphBuffer);
 
@@ -647,7 +642,9 @@ void IntelBlt::build_text_scanline(
 
     for (size_t char_idx = 0; char_idx < length; char_idx++) {
         const uint8_t c = static_cast<uint8_t>(text[char_idx]);
-        const uint8_t* glyph = glyphs + c * font->charsize;
+        const size_t glyph_offset = static_cast<size_t>(c) * static_cast<size_t>(font->charsize);
+
+        const uint8_t* glyph = glyphs + glyph_offset;
 
         // Glyph beginnt exakt an seiner Zelle
         const uint32_t char_x = char_idx * glyph_width;
@@ -697,7 +694,7 @@ bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_co
     uint32_t text_width = text_len * system_font->width;
     uint32_t text_height = system_font->height;
 
-    uint32_t text_stride = ((text_width + 7) / 8);
+    size_t text_stride = ((text_width + 7) / 8);
     text_stride = ((text_stride + 1) / 2) * 2;
 
     if (text_stride * text_height > text_buffer.total_size) {
@@ -839,18 +836,19 @@ bool IntelBlt::blit_buffer(
     if (dst_y + buffer_height > fb.height) max_h = fb.height - dst_y;
 
     // Allocate temporary GPU buffer
-    uint32_t src_pitch = ((buffer_width * 4 + 63) / 64) * 64;
-    ;
-    size_t buffer_size = src_pitch * max_h;
-    size_t num_pages = (buffer_size + PAGE_SIZE - 1) / PAGE_SIZE;
+    constexpr size_t bytes_per_pixel = 4;
+    const size_t width_bytes = static_cast<size_t>(buffer_width) * bytes_per_pixel;
+    const size_t src_pitch = ((width_bytes + 63) / 64) * 64;
+    const size_t buffer_size = src_pitch * max_h;
+    const size_t num_pages = (buffer_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-    auto temp_buffer = alloc_and_map_to_ggtt(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+    const auto temp_buffer = alloc_and_map_to_ggtt(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
 
     const auto src = static_cast<const uint8_t*>(pixels);
     const auto dst = static_cast<uint8_t*>(temp_buffer.cpu_addr);
 
     for (uint32_t y = 0; y < max_h; y++) {
-        memcpy(dst + y * src_pitch, src + y * buffer_width * 4, buffer_width * 4);
+        memcpy(dst + y * src_pitch, src + y * width_bytes, width_bytes);
     }
 
     check_gpu_health();
@@ -888,7 +886,7 @@ bool IntelBlt::scroll_pixels(int dy) {
 
     const uint32_t copy_height = fb.height - dy;
 
-    if (const uint32_t required = 30 * 4 + 64; !wait_for_ring_space(required, 1000000)) return false;
+    if (constexpr uint32_t required = 30 * 4 + 64; !wait_for_ring_space(required, 1000000)) return false;
 
     xy_src_copy_blt(fb.gfx_addr, fb.pitch, 0, 0, fb.width, copy_height, fb.gfx_addr, fb.pitch, 0, dy);
 

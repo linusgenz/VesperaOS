@@ -15,7 +15,7 @@ size_t total_allocated = 0;
 size_t total_freed = 0;
 size_t peak_usage = 0;
 
-static inline uintptr_t align_up(uintptr_t x) {
+static uintptr_t align_up(uintptr_t x) {
     return (x + MIN_ALIGNMENT - 1) & ~(MIN_ALIGNMENT - 1);
 }
 

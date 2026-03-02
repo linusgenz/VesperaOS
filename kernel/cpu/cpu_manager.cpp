@@ -4,7 +4,6 @@
 #include <kernel/time.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../../arch/x86_64/smp/prepare_ap_trampoline.h"
 #include "../../include/log.h"
 #include "../acpi/madt.h"
 #include "kernel/memory.h"
@@ -197,7 +196,7 @@ void smp_init() {
         Log::Info("BSP APIC ID: %u", bsp_apic_id);
 
         for (uint32_t i = 0; i < total_cpus; i++) {
-            const char* state_str;
+            const char* state_str = nullptr;
             switch (cpu_infos[i].state) {
                 case CPU_STATE_OFFLINE:
                     state_str = "OFFLINE";

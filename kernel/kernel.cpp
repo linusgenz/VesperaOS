@@ -228,7 +228,8 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     enable_sse();
 
     //  Debug_PrintAllDevices();
-
+    Log::debug("enabling cpu 0");
+    while (1);
     kernel::scheduling::enable_on_cpu(0);
 
     while (true);

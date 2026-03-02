@@ -104,7 +104,7 @@ namespace USB {
 
         kernel::time::sleep_ms(100);
 
-        if (true) {
+        if (false) {
             for (uint8_t i = 0; i < m_max_ports; i++) {
                 xhciPortRegisterManager regman = get_port_register_set(i);
                 xhci_portsc_register portsc{};
@@ -916,7 +916,7 @@ namespace USB {
         // If you are using QEMU, do not ring the doorbell here.  Ring the doorbell
         //  *after* you place the STATUS TRB on the ring.
         // (See bug report: https://bugs.launchpad.net/qemu/+bug/1859378 )
-        bool in_qemu = true;
+        bool in_qemu = false;
         if (!in_qemu) {
             if (auto completion_trb = start_control_endpoint_transfer(transfer_ring); !completion_trb) {
                 free_xhci_memory(transfer_status_buffer);

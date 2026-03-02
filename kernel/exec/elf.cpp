@@ -347,10 +347,9 @@ uintptr_t ElfLoader::calculate_load_bias(
     if (header->e_type == ET_EXEC) {
         // ET_EXEC, no Bias
         return 0;
-    } else {
-        // ET_DYN
-        return preferred_base - range.vaddr_min;
     }
+    // ET_DYN
+    return preferred_base - range.vaddr_min;
 }
 
 // =============================================================================

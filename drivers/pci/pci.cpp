@@ -89,12 +89,12 @@ namespace PCI
                 {
                 case 0x02:
                     {
-                        uint16_t command = pci_read16(pci_device_header, 0x04);
+                   /*     uint16_t command = pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         pci_write16(pci_device_header, 0x04, command);
 
                         new NVMe::NvmeDriver(pci_device_header);
-                        break;
+                        break;*/
                     }
                 default: ;
                 }
@@ -159,7 +159,7 @@ namespace PCI
                             .user_stack_size = 0
                         };
 
-                        Unit* usb_unit = UnitManager::create(
+                        const Unit* usb_unit = UnitManager::create(
                             KERNEL_REALM_DRIVER, usb_enable, pci_device_header, &config);
                         if (!usb_unit)
                         {

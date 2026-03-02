@@ -88,7 +88,6 @@ static void parse_psf_font() {
         embedded_font.width = hdr->width;
         embedded_font.height = hdr->height;
         embedded_font.charsize = hdr->charsize;
-        return;
     }
 }
 
@@ -152,7 +151,7 @@ extern "C" void limine_entry() {
 
     limine_framebuffer* lfb = fb_request.response->framebuffers[0];
 
-    framebuffer.base_address = reinterpret_cast<void*>(lfb->address);
+    framebuffer.base_address = lfb->address;
     framebuffer.buffer_size = lfb->pitch * lfb->height;
     framebuffer.width = lfb->width;
     framebuffer.height = lfb->height;
@@ -185,7 +184,7 @@ extern "C" void limine_entry() {
     // --- RSDP ---
     // rsdp_request.response->address ist ebenfalls HHDM-virtuell
     if (rsdp_request.response)
-        boot_info.rsdp = static_cast<ACPI::RSDP2*>(reinterpret_cast<void*>(rsdp_request.response->address));
+        boot_info.rsdp = static_cast<ACPI::RSDP2*>(rsdp_request.response->address);
     else
         boot_info.rsdp = nullptr;
 

@@ -389,7 +389,7 @@ namespace AHCI {
         if (!PCI::try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress), vector)) {
             Log::debug("[ AHCI ] AHCI Driver instance failed to enable MSI");
             this->~AHCIDriver();
-        };  // switch to polling later maybe
+        }  // switch to polling later maybe
 
         ABAR->globalHostControl |= AHCI_GHC_AE;
         ABAR->globalHostControl |= AHCI_GHC_IE;

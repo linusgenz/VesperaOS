@@ -27,7 +27,7 @@
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
     kernel::memory::map_range(phys_to_virt(pci_bar_address), reinterpret_cast<void*>(pci_bar_address), bar_size, (1ULL << CacheDisabled));
 
-    return (uintptr_t)phys_to_virt(pci_bar_address);
+    return reinterpret_cast<uintptr_t>(phys_to_virt(pci_bar_address));
 }
 
 
