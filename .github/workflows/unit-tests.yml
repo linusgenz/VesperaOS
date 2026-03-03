@@ -2,9 +2,11 @@ name: Unit tests
 
 on:
   push:
-    branches: [ "limine" ]
+    branches:
+      - limine
   pull_request:
-    branches: [ "limine" ]
+    branches:
+      - limine
 
 jobs:
   hosted-tests:

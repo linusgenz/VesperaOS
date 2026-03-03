@@ -3,7 +3,10 @@ name: Build and Deploy Doxygen
 on:
   push:
     branches:
-      - xhci
+      - limine
+    paths:
+      - 'userspace/**'
+      - 'Doxyfile'
   workflow_dispatch:
 
 jobs:
