@@ -1,35 +1,28 @@
-// string.h
-// VesperaOS - operating system for the x86_64 architecture
-//
-// Copyright (c) 2025 Linus Genz <linuslinuxgenz@gmail.com>
-//
-// Created by Linus Genz on 02.03.26.
-//
-// This file is part of VesperaOS.
-//
-// VesperaOS is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// VesperaOS is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
 #pragma once
-// Ersetzt den Kernel-eigenen string.h vollständig für den Test-Harness.
-// Setzt den Guard des echten Headers, damit er nie includiert wird.
 #define STRING_H
 
-// System-C-Header direkt — gibt ::memcpy, ::strlen etc. in den globalen Namespace
+
 extern "C" {
-#include <string.h>
-#include <stdio.h>
+#include "/usr/include/string.h"
+#include "/usr/include/stdio.h"
 }
 
 #include <cstdint>
 #include <cstddef>
+
+// Kernel-eigene Extras
+constexpr size_t hex_buffer_size(const size_t bytes) { return bytes * 2 + 1; }
+constexpr size_t HEX_BUFFER_PTR = hex_buffer_size(sizeof(void*));
+constexpr size_t HEX_BUFFER_U64 = hex_buffer_size(sizeof(uint64_t));
+constexpr size_t HEX_BUFFER_U32 = hex_buffer_size(sizeof(uint32_t));
+constexpr size_t HEX_BUFFER_U16 = hex_buffer_size(sizeof(uint16_t));
+constexpr size_t HEX_BUFFER_U8  = hex_buffer_size(sizeof(uint8_t));
+
+inline char* u64tohex(uint64_t, char* b, size_t) { return b; }
+inline char* u32tohex(uint32_t, char* b, size_t) { return b; }
+inline char* u16tohex(uint16_t, char* b, size_t) { return b; }
+inline char* u8tohex(uint8_t,   char* b, size_t) { return b; }
+inline void  replace_char(char* s, char o, char n) {
+    for (; *s; s++) if (*s == o) *s = n;
+}
+inline char to_upper(char c) { return (c>='a'&&c<='z') ? c-32 : c; }

@@ -19,7 +19,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_LOG_H
-#define VESPERAOS_LOG_H
+#pragma once
+#define LOG_H
+#include <cstdio>
+#include <cstdarg>
 
-#endif  // VESPERAOS_LOG_H
+namespace Log {
+    void Error(const char* fmt, ...);
+    void debug(const char* fmt, ...);
+    void Warning(const char* fmt, ...);
+    void Info(const char* fmt, ...);
+    void Ok(const char* fmt, ...);
+    void Print(const char* fmt, ...);
+    void PrintLn(const char* fmt, ...);
+}

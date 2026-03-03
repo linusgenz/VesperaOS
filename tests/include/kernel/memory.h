@@ -1,4 +1,4 @@
-// mock_kernel_memory.h
+// memory.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2025 Linus Genz <linuslinuxgenz@gmail.com>
@@ -22,21 +22,25 @@
 #pragma once
 #define MEMORY_H
 
-#include <cstdlib>
 #include <cstddef>
 #include <cstdint>
-#include <new>
+#include <cstring>
 
 #define PAGE_SIZE 4096
 
 namespace kernel::memory {
-    inline void* malloc(size_t size)  { return std::malloc(size); }
-    inline void  free(void* p)        { std::free(p); }
-    inline void* alloc_aligned(size_t s, size_t, size_t = 0) { return std::malloc(s); }
-    inline void  free_aligned(void* p) { std::free(p); }
 
-    inline void* request_page()  { return std::malloc(4096); }
-    inline void* request_pages(size_t n) { return std::malloc(n * 4096); }
-    inline void  free_pages(const void* p, uint64_t) { std::free(const_cast<void*>(p)); }
-    inline void  free_page(const void* p) { std::free(const_cast<void*>(p)); }
-}
+    void* malloc(size_t size);
+    void free(void* p);
+
+    void* alloc_aligned(size_t size, size_t alignment, size_t offset = 0);
+    void free_aligned(void* p);
+
+    void* request_page();
+    void* request_pages(size_t n);
+    void free_pages(const void* p, uint64_t n);
+    void free_page(const void* p);
+    uint64_t request_page_phys();
+
+    void map_memory(void* virtual_addr, void* physical_addr, const uint64_t flags = 0);
+}  // namespace kernel::memory

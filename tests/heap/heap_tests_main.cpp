@@ -19,3 +19,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+
+#include "heap_fixture.h"
+
+#include "test_heap_malloc_free.cpp"
+#include "test_heap_segment.cpp"
+#include "test_heap_aligned.cpp"
+#include "test_heap_validate.cpp"
+
+TEST_MAIN()

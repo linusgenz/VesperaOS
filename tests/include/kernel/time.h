@@ -23,8 +23,6 @@
 #pragma once
 
 namespace kernel::time {
-    inline void read_rtc(unsigned char& h, unsigned char& min, unsigned char& sec,
-                         unsigned char& day, unsigned char& mon, unsigned char& yr) {
-        h = min = sec = day = mon = yr = 0;
-    }
+    void read_rtc(unsigned char& h, unsigned char& min, unsigned char& sec,
+                         unsigned char& day, unsigned char& mon, unsigned char& yr);
 }
