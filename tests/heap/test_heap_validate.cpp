@@ -1,9 +1,9 @@
-// fat32_tests_main.cpp
+// test_heap_validate.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 02.03.26.
+// Created by Linus Genz on 03.03.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,16 +19,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
-#include <cerrno>
-#include <cassert>
-#include <cstdio>
-#include <cstring>
-#include "fat32_fixture.h"
-
-#include "test_fat32_directory.cpp"
-#include "test_fat32_fat.cpp"
-#include "test_fat32_fileio.cpp"
-#include "test_fat32_fs.cpp"
-
-TEST_MAIN()

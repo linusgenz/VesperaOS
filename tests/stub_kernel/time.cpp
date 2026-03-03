@@ -1,7 +1,7 @@
-// fat32_tests_main.cpp
+// time.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+// Copyright (c) 2025 Linus Genz <linuslinuxgenz@gmail.com>
 //
 // Created by Linus Genz on 02.03.26.
 //
@@ -20,15 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cerrno>
-#include <cassert>
-#include <cstdio>
-#include <cstring>
-#include "fat32_fixture.h"
-
-#include "test_fat32_directory.cpp"
-#include "test_fat32_fat.cpp"
-#include "test_fat32_fileio.cpp"
-#include "test_fat32_fs.cpp"
-
-TEST_MAIN()
+namespace kernel::time {
+    void read_rtc(unsigned char& h, unsigned char& min, unsigned char& sec,
+                             unsigned char& day, unsigned char& mon, unsigned char& yr) {
+        h = min = sec = day = mon = yr = 0;
+    }
+}

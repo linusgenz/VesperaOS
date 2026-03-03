@@ -1,7 +1,7 @@
-// fat32_tests_main.cpp
+// log.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+// Copyright (c) 2025 Linus Genz <linuslinuxgenz@gmail.com>
 //
 // Created by Linus Genz on 02.03.26.
 //
@@ -20,15 +20,28 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cerrno>
-#include <cassert>
+#include "log.h"
+
+#include <cstdarg>
 #include <cstdio>
-#include <cstring>
-#include "fat32_fixture.h"
 
-#include "test_fat32_directory.cpp"
-#include "test_fat32_fat.cpp"
-#include "test_fat32_fileio.cpp"
-#include "test_fat32_fs.cpp"
+static void vprint(const char* fmt, std::va_list args) {
+    vprintf(fmt, args);
+}
 
-TEST_MAIN()
+#define DEFINE_LOG_FN(name)                \
+    void Log::name(const char* fmt, ...) { \
+        va_list args;                      \
+        va_start(args, fmt);               \
+        vprint(fmt, args);                 \
+        va_end(args);                      \
+        printf("\n");                      \
+    }
+
+DEFINE_LOG_FN(Info)
+DEFINE_LOG_FN(Ok)
+DEFINE_LOG_FN(Warning)
+DEFINE_LOG_FN(Error)
+DEFINE_LOG_FN(debug)
+DEFINE_LOG_FN(Print)
+DEFINE_LOG_FN(PrintLn)

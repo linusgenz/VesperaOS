@@ -18,7 +18,98 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.#ifndef VESPERAOS_MOCK_BLOCKDEVICE_H
-#define VESPERAOS_MOCK_BLOCKDEVICE_H
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#endif  // VESPERAOS_MOCK_BLOCKDEVICE_H
+#ifndef BLOCKDEVICE_H
+#define BLOCKDEVICE_H
+
+#include <cstdint>
+#include <cstring>
+#include <vector>
+#include <cassert>
+
+// Dein Kernel-Interface
+class BlockDevice {
+public:
+    enum class Type { Disk, Partition };
+
+    Type type{Type::Disk};
+
+    virtual ssize_t read(uint64_t lba,
+                         uint32_t sectorCount,
+                         void* buffer,
+                         size_t bufferSize) = 0;
+
+    virtual ssize_t write(uint64_t lba,
+                          uint32_t sectorCount,
+                          void* buffer,
+                          size_t bufferSize) = 0;
+
+    [[nodiscard]] virtual size_t get_size() const = 0;
+    [[nodiscard]] virtual uint32_t get_sector_size() const = 0;
+
+    virtual ~BlockDevice() = default;
+};
+
+
+
+// ===== MOCK IMPLEMENTIERUNG =====
+
+class MockBlockDevice : public BlockDevice {
+public:
+    static constexpr size_t SECTOR_SIZE = 512;
+
+    explicit MockBlockDevice(size_t sectorCount)
+        : storage(sectorCount * SECTOR_SIZE, 0)
+    {
+        type = Type::Disk;
+    }
+
+    ssize_t read(uint64_t lba,
+                 uint32_t sectorCount,
+                 void* buffer,
+                 size_t bufferSize) override
+    {
+        size_t len = sectorCount * SECTOR_SIZE;
+        size_t offset = lba * SECTOR_SIZE;
+
+        if (bufferSize < len) return -1;
+        if (offset + len > storage.size()) return -1;
+
+        std::memcpy(buffer, storage.data() + offset, len);
+        return len;
+    }
+
+    ssize_t write(uint64_t lba,
+                  uint32_t sectorCount,
+                  void* buffer,
+                  size_t bufferSize) override
+    {
+        size_t len = sectorCount * SECTOR_SIZE;
+        size_t offset = lba * SECTOR_SIZE;
+
+        if (bufferSize < len) return -1;
+        if (offset + len > storage.size()) return -1;
+
+        std::memcpy(storage.data() + offset, buffer, len);
+        return len;
+    }
+
+    size_t get_size() const override {
+        return storage.size();
+    }
+
+    uint32_t get_sector_size() const override {
+        return SECTOR_SIZE;
+    }
+
+    // Test helper
+    uint8_t* raw() {
+        return storage.data();
+    }
+
+private:
+    std::vector<uint8_t> storage;
+};
+
+#endif  // BLOCKDEVICE_H

@@ -203,7 +203,6 @@ HeapSegHdr* find_free_segment(size_t size) {
     while (current_seg) {
         if (!current_seg->is_valid()) {
             Log::Error("Heap segment is not valid");
-            asm volatile("cli; hlt");
             return nullptr;
         }
 
@@ -240,7 +239,7 @@ void* allocate_from_segment(HeapSegHdr* seg, size_t size) {
     return seg->get_data_ptr();
 }
 
-void* malloc(size_t size) {
+void* kmalloc(size_t size) {
     if (!heap_initialized || size == 0) {
         return nullptr;
     }
@@ -261,7 +260,7 @@ void* malloc(size_t size) {
     return nullptr;
 }
 
-void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
+void* kalloc_aligned(size_t size, size_t alignment, size_t boundary) {
     if (!heap_initialized || size == 0 || alignment == 0) {
         return nullptr;
     }
@@ -290,7 +289,7 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
         total_size += boundary;
     }
 
-    void* raw_ptr = malloc(total_size);
+    void* raw_ptr = kmalloc(total_size);
     if (!raw_ptr) {
         Log::Error("Aligned alloc failed: could not allocate %u bytes for aligned allocation", total_size);
         return nullptr;
@@ -317,7 +316,7 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
 
         if (!found) {
             Log::Error("Aligned alloc failed: could not satisfy boundary constraint %u", boundary);
-            free(raw_ptr);
+            kfree(raw_ptr);
             return nullptr;
         }
     }
@@ -332,7 +331,7 @@ void* alloc_aligned(size_t size, size_t alignment, size_t boundary) {
     return reinterpret_cast<void*>(aligned_addr);
 }
 
-void free(void* ptr) {
+void kfree(void* ptr) {
     if (!ptr || !heap_initialized) {
         return;
     }
@@ -359,7 +358,7 @@ void free(void* ptr) {
     seg->combine_backward();
 }
 
-void free_aligned(void* ptr) {
+void kfree_aligned(void* ptr) {
     if (!ptr || !heap_initialized) {
         return;
     }
@@ -372,20 +371,20 @@ void free_aligned(void* ptr) {
     }
 
     void* raw_ptr = aligned_hdr->raw_segment->get_data_ptr();
-    free(raw_ptr);
+    kfree(raw_ptr);
 }
 
-void* realloc(void* ptr, const size_t old_size, size_t new_size) {
+void* krealloc(void* ptr, const size_t old_size, size_t new_size) {
     if (!heap_initialized) {
         return nullptr;
     }
 
     if (!ptr) {
-        return malloc(new_size);
+        return kmalloc(new_size);
     }
 
     if (new_size == 0) {
-        free(ptr);
+        kfree(ptr);
         return nullptr;
     }
 
@@ -400,7 +399,7 @@ void* realloc(void* ptr, const size_t old_size, size_t new_size) {
         return ptr;
     }
 
-    void* new_ptr = malloc(new_size);
+    void* new_ptr = kmalloc(new_size);
     if (!new_ptr) {
         Log::Error("Realloc failed: could not allocate %u bytes", new_size);
         return nullptr;
@@ -410,7 +409,7 @@ void* realloc(void* ptr, const size_t old_size, size_t new_size) {
     copy_size = (copy_size < new_size) ? copy_size : new_size;
 
     memcpy(new_ptr, ptr, copy_size);
-    free(ptr);
+    kfree(ptr);
 
     return new_ptr;
 }

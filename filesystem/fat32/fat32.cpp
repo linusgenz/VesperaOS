@@ -985,7 +985,7 @@ namespace FAT32 {
             copy_from_name(lfn.name2, 6);
             copy_from_name(lfn.name3, 2);
 
-            memcpy(&entries[startIndex + lfnIndex], &lfn, sizeof(LongFileName));
+            memcpy(&entries[startIndex + (entriesNeeded - 1 - static_cast<size_t>(lfnIndex))], &lfn, sizeof(LongFileName));
         }
 
         return true;

@@ -50,7 +50,7 @@ struct HeapSegHdr {
 };
 
 // Minimum alignment (16 bytes)
-#define MIN_ALIGNMENT 16
+constexpr size_t MIN_ALIGNMENT = 16;
 
 struct AlignedSegHdr {
     uint32_t magic;            // HEAP_MAGIC_ALIGNED
@@ -75,6 +75,9 @@ struct AlignedSegHdr {
 
 // Global heap variables
 extern bool heap_initialized;
+extern void* heap_start;
+extern void* heap_end;
+extern HeapSegHdr* last_hdr;
 
 // Statistics
 extern size_t total_allocated;
@@ -84,15 +87,15 @@ extern size_t peak_usage;
 // Core heap functions
 bool initialize_heap(void *heap_address, size_t page_count);
 
-void *malloc(size_t size);
+void *kmalloc(size_t size);
 
-void *alloc_aligned(size_t size, size_t alignment, size_t boundary = 0);
+void *kalloc_aligned(size_t size, size_t alignment, size_t boundary = 0);
 
-void *realloc(void *ptr, size_t old_size, size_t new_size);
+void *krealloc(void *ptr, size_t old_size, size_t new_size);
 
-void free(void *ptr);
+void kfree(void *ptr);
 
-void free_aligned(void *ptr);
+void kfree_aligned(void *ptr);
 
 // Utility functions
 void expand_heap(size_t length);
