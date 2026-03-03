@@ -37,11 +37,16 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     , sequence_number(0) {
     const auto* pci = reinterpret_cast<PCI::PCIHeader0*>(header);
 
-    const uint64_t bar0 = pci->BAR0 & BAR0_ADDR_MASK;
-    kernel::memory::map_range(phys_to_virt(bar0), reinterpret_cast<void*>(bar0), BAR0_SIZE, (1ULL << CacheDisabled));
+    phys_addr_t bar0 = make_phys(pci->BAR0 & BAR0_ADDR_MASK);
+    kernel::memory::map_range(
+        phys_to_virt(bar0),
+        bar0,
+        BAR0_SIZE,
+        (1ULL << CacheDisabled)
+    );
 
-    mmio_base = static_cast<volatile uint8_t*>(phys_to_virt(bar0));
-    bcs_regs = reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_RING_BASE);
+    mmio_base = static_cast<volatile uint8_t*>(virt_ptr(phys_to_virt(bar0)));
+    bcs_regs  = reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_RING_BASE);
 
     enable_force_wake();
     init_gtt();
@@ -156,7 +161,7 @@ void IntelBlt::write_command(uint32_t cmd) {
         }
     }
 
-    volatile auto* ring = static_cast<volatile uint32_t*>(ring_cpu_addr);
+    volatile auto* ring = static_cast<volatile uint32_t*>(virt_ptr(ring_cpu_addr));
     ring[ring_tail / 4] = cmd;
 
     asm volatile("sfence" ::: "memory");
@@ -189,7 +194,7 @@ bool IntelBlt::wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us)
 }
 
 bool IntelBlt::validate_blt_params(const BltRect& rect) const {
-    if (!fb.cpu_addr) {
+    if (virt_null(fb.cpu_addr)) {
         Log::Error("Invalid framebuffer");
         return false;
     }
@@ -398,7 +403,7 @@ void IntelBlt::mi_flush(uint32_t seqno) {
 }
 
 bool IntelBlt::wait_for_sequence(uint32_t target_seqno, uint32_t timeout_us) const {
-    auto* hwsp = static_cast<uint32_t*>(hwsp_cpu_addr);
+    auto* hwsp = virt_as<uint32_t>(hwsp_cpu_addr);
     uint32_t* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
 
     for (uint32_t i = 0; i < timeout_us; i++) {
@@ -426,12 +431,12 @@ void IntelBlt::flush_commands() const {
 }
 
 GgttAllocation IntelBlt::alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags, uint8_t pat_index) {
-    uint64_t phys = kernel::memory::request_pages_phys(num_pages);
-    void* cpu = phys_to_virt(phys);
+    phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
+    virt_addr_t cpu = phys_to_virt(phys);
 
-    kernel::memory::map_range(cpu, (void*)phys, num_pages * PAGE_SIZE, flags);
+    kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
 
-    uint64_t gfx = map_to_ggtt(phys, num_pages, pat_index);
+    uint64_t gfx = map_to_ggtt(phys_raw(phys), num_pages, pat_index);
 
     return {cpu, gfx};
 }
@@ -441,7 +446,7 @@ void IntelBlt::setup_ring_buffer() {
 
     Log::debug("Ring Buffer: CPU=%p GFX=0x%llx", ring_cpu_addr, ring_graphics_addr);
 
-    volatile auto* ring = static_cast<volatile uint32_t*>(ring_cpu_addr);
+    volatile auto* ring = static_cast<volatile uint32_t*>(virt_ptr(ring_cpu_addr));
     for (uint32_t i = 0; i < ring_size / 4; i++) {
         ring[i] = MI_NOOP;
     }
@@ -680,7 +685,7 @@ void IntelBlt::build_text_scanline(const char* text, size_t length, FONT* font, 
 }
 
 bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) {
-    if (!text || !system_font || !text_buffer.cpu_addr) {
+    if (!text || !system_font || virt_null(text_buffer.cpu_addr)) {
         Log::Error("Invalid parameters for draw_string");
         return false;
     }
@@ -714,7 +719,7 @@ bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_co
         return false;
     }
 
-    build_text_scanline(text, text_len, system_font, static_cast<uint8_t*>(text_buffer.cpu_addr), text_stride);
+    build_text_scanline(text, text_len, system_font, virt_as<uint8_t>(text_buffer.cpu_addr), text_stride);
 
     asm volatile("mfence" ::: "memory");
 
@@ -845,7 +850,7 @@ bool IntelBlt::blit_buffer(
     const auto temp_buffer = alloc_and_map_to_ggtt(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
 
     const auto src = static_cast<const uint8_t*>(pixels);
-    const auto dst = static_cast<uint8_t*>(temp_buffer.cpu_addr);
+    uint8_t* dst = virt_as<uint8_t>(temp_buffer.cpu_addr);
 
     for (uint32_t y = 0; y < max_h; y++) {
         memcpy(dst + y * src_pitch, src + y * width_bytes, width_bytes);

@@ -102,12 +102,12 @@ namespace arch::x86_64::interrupts::idt {
     extern "C" void irq_stub_0x30();
 
     void load_default_idt() {
-        void* idt_virt = kernel::memory::request_page();
+        virt_addr_t idt_virt = kernel::memory::request_page();
 
         memset(idt_virt, 0, 0x1000);
 
         idtr.limit = 0x0FFF;
-        idtr.offset = reinterpret_cast<uint64_t>(idt_virt);
+        idtr.offset = virt_raw(idt_virt);
 
         // Standard Exception Handlers
         set_idt_gate(isr_divide_error, 0x00, IDT_TA_InterruptGate, 0x08);

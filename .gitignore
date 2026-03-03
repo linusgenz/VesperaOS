@@ -23,3 +23,13 @@ gnu-efi/*
 tests/test.img
 tests/build
 tests/Testing
+
+shell.asm
+kernel.asm
+
+disk.img
+nvme.img
+Splash_VesperaOS.png
+todo.txt
+
+kernel/kversion.h

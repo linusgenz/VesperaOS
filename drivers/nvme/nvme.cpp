@@ -12,7 +12,7 @@
 #include "../../include/log.h"
 #include "../../kernel/cpu/cpu_manager.h"
 #include "vespera_errno.h"
-
+/*
 namespace NVMe
 {
     NvmeDriver::NvmeDriver(PCI::PCIDeviceHeader* pci_base_address)
@@ -407,12 +407,12 @@ namespace NVMe
         {
             if (start > 50)
             {
-              /*   NVME_COMMAND_STATUS timeout_status{};
-               timeout_status.P = 1;
-                timeout_status.SCT = 1;
-                timeout_status.SC = 0x01;
-                timeout_status.DNR = 1;
-                timeout_status.M = 0;*/
+              //   NVME_COMMAND_STATUS timeout_status{};
+              //  timeout_status.P = 1;
+              //  timeout_status.SCT = 1;
+              //  timeout_status.SC = 0x01;
+              //  timeout_status.DNR = 1;
+              //  timeout_status.M = 0;
                 complet.DW3.Status = 10000;
                 return;
             }
@@ -503,3 +503,4 @@ namespace NVMe
         return static_cast<ssize_t>(bytes);
     }
 } // namespace NVMe
+*/

@@ -34,6 +34,7 @@ using namespace EXT4;
 
 int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
 {
+    return 0;
     FileSystem fs(dev);
 
     size_t len = 16;

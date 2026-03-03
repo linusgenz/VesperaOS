@@ -10,7 +10,7 @@ namespace ACPI {
     MCFGHeader* TableManager::mcfg = nullptr;
 
     void TableManager::init(const BootInfo* boot_info) {
-        xsdt = static_cast<SDTHeader*>(phys_to_virt(boot_info->rsdp->xsdt_address));
+        xsdt = static_cast<SDTHeader*>(virt_ptr(phys_to_virt(make_phys(boot_info->rsdp->xsdt_address))));
 
         // Find and cache all known tables
         madt = reinterpret_cast<MADTHeader*>(find_table("APIC"));
@@ -25,7 +25,7 @@ namespace ACPI {
         const auto* entries = reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(xsdt) + sizeof(SDTHeader));
 
         for (uint32_t i = 0; i < entry_count; i++) {
-            auto* header = static_cast<SDTHeader*>(phys_to_virt(entries[i]));
+            auto* header = static_cast<SDTHeader*>(virt_ptr(phys_to_virt(make_phys(entries[i]))));
             if (memcmp(header->signature, signature, 4) == 0) return header;
         }
 

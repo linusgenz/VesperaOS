@@ -35,14 +35,14 @@
 #define ELF_LOG(fmt, ...)
 #endif
 
-static void* realm_get_phys(const Realm* realm, const uintptr_t vaddr) {
+static phys_addr_t realm_get_phys(const Realm* realm, const uintptr_t vaddr) {
     uintptr_t page_vaddr = vaddr & ~0xFFFULL;
-    uintptr_t offset = vaddr & 0xFFFULL;
+    uintptr_t offset     = vaddr & 0xFFFULL;
 
-    void* phys_page = realm->page_table->get_physical_address(reinterpret_cast<void*>(page_vaddr));
-    if (!phys_page) return nullptr;
+    phys_addr_t phys_page = realm->page_table->get_physical_address(virt_from_raw(page_vaddr));
+    if (phys_null(phys_page)) return make_phys(0);
 
-    return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(phys_page) + offset);
+    return phys_add(phys_page, offset);
 }
 
 ElfLoader::LoadResult ElfLoader::load(const char* path, uintptr_t preferred_base, const Realm* realm) {
@@ -260,10 +260,10 @@ done_dyn:
         if (const uint32_t type = ELF64_R_TYPE(r_info); type == R_X86_64_RELATIVE) {
             const uintptr_t target_vaddr = r_offset + load_bias;
 
-            void* phys = realm_get_phys(realm, target_vaddr);
-            if (!phys) continue;
+            phys_addr_t phys = realm_get_phys(realm, target_vaddr);
+            if (phys_null(phys)) continue;
 
-            auto* where = static_cast<uint64_t*>(phys_to_virt(reinterpret_cast<uint64_t>(phys)));
+            auto* where = static_cast<uint64_t*>(phys_to_virt(phys).ptr);
             *where = load_bias + r_addend;
         }
     }
@@ -391,31 +391,31 @@ bool ElfLoader::load_segment(const Elf64_Phdr& phdr, const void* file_data, uint
         (phdr.p_flags & PF_X) ? 'X' : '-'
     );
 
-    uint64_t phys = kernel::memory::request_pages_phys(map_size / PAGE_SIZE);
-    if (!phys) {
+    phys_addr_t phys = kernel::memory::request_pages_phys(map_size / PAGE_SIZE);
+    if (phys_null(phys)) {
         ELF_LOG("[ELF] Failed to allocate physical memory for segment");
         return false;
     }
 
-    void* virt = phys_to_virt(phys);
+    virt_addr_t virt = phys_to_virt(phys);
     memset(virt, 0, map_size);
 
     if (file_size > 0) {
         memcpy(
-            static_cast<uint8_t*>(virt) + page_offset, static_cast<const uint8_t*>(file_data) + phdr.p_offset, file_size
+            virt_as<uint8_t>(virt_add(virt, page_offset)),
+            static_cast<const uint8_t*>(file_data) + phdr.p_offset,
+            file_size
         );
     }
 
     if (memory_size > file_size) {
-        memset(static_cast<uint8_t*>(virt) + page_offset + file_size, 0, memory_size - file_size);
+        memset(virt_as<uint8_t>(virt_add(virt, page_offset + file_size)), 0, memory_size - file_size);
     }
 
     uint64_t pt_flags = (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::UserSuper);
     if (phdr.p_flags & PF_W) pt_flags |= (1ULL << PT_Flag::ReadWrite);
 
-    realm->page_table->map_range(
-        reinterpret_cast<void*>(page_start), reinterpret_cast<void*>(phys), map_size, pt_flags
-    );
+    realm->page_table->map_range(virt_from_raw(page_start), phys, map_size, pt_flags);
 
     return true;
 }

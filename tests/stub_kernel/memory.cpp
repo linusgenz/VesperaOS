@@ -42,26 +42,26 @@ namespace kernel::memory {
         std::free(p);
     }
 
-    void* request_page() {
-        return std::malloc(PAGE_SIZE);
+    virt_addr_t request_page() {
+        return make_virt(std::malloc(PAGE_SIZE));
     }
 
-    void* request_pages(size_t n) {
-        return std::malloc(n * PAGE_SIZE);
+    virt_addr_t request_pages(size_t n) {
+        return make_virt(std::malloc(n * PAGE_SIZE));
     }
 
-    void free_pages(const void* p, uint64_t /*n*/) {
-        std::free(const_cast<void*>(p));
+    void free_pages(virt_addr_t p, uint64_t /*n*/) {
+        std::free(virt_ptr(p));
     }
 
-    void free_page(const void* p) {
-        std::free(const_cast<void*>(p));
+    void free_page(virt_addr_t p) {
+        std::free(virt_ptr(p));
     }
 
-    uint64_t request_page_phys() {
-        return 0;
+    phys_addr_t request_page_phys() {
+        return make_phys(0);
     }
 
-    void map_memory(void* virtual_addr, void* physical_addr, const uint64_t flags) {}
+    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, const uint64_t flags) {}
 
 } // namespace kernel::memory

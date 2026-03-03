@@ -80,18 +80,18 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->init_handle_table();
 
             if (cfg->is_user) {
-                uint64_t pml4_phys = kernel::memory::request_page_phys();
+                phys_addr_t pml4_phys = kernel::memory::request_page_phys();
 
-                auto* new_pml4 = static_cast<PageTable*>(phys_to_virt(pml4_phys));
+                auto* new_pml4 = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
                 memset(new_pml4, 0, 0x1000);
 
-                auto* kernel_pml4 = static_cast<PageTable*>(phys_to_virt(kernel::memory::get_pagetable_address()));
+                const auto* kernel_pml4 = static_cast<PageTable*>(virt_ptr(phys_to_virt(make_phys(kernel::memory::get_pagetable_address()))));
 
                 for (int i = 256; i < 512; i++) new_pml4->entries[i] = kernel_pml4->entries[i];
 
                 r->pml4_phys = pml4_phys;
                 r->pml4 = new_pml4;
-                r->page_table = new PageTableManager(reinterpret_cast<PageTable*>(pml4_phys));
+                r->page_table = new PageTableManager(reinterpret_cast<PageTable*>(phys_raw(pml4_phys)));
             }
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);
@@ -142,9 +142,9 @@ bool RealmManager::destroy(const RealmID id) {
                 u = next;
             }
 
-            if (realm.pml4_phys) {
+            if (!phys_null(realm.pml4_phys)) {
                 kernel::memory::free_page_phys(realm.pml4_phys);
-                realm.pml4_phys = 0;
+                realm.pml4_phys = make_phys(0);
                 realm.pml4 = nullptr;
             }
             delete realm.page_table;

@@ -1,23 +1,23 @@
 // xhci_mass_storage_driver.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 02.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -321,7 +321,7 @@ ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* bu
     kernel::mutex_guard guard(io_mutex);
 
     size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
-    void* dma_phys = kernel::memory::request_pages(pages);
+    void* dma_phys = kernel::memory::request_pages(pages).ptr;
     if (!dma_phys) return -ENOMEM;
 
     auto& transfer = transfer_rw;
@@ -357,7 +357,7 @@ ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* bu
     if (result > 0)
         memcpy(buffer, dma_phys, bytes);
 
-    kernel::memory::free_pages(dma_phys, pages);
+    kernel::memory::free_pages(make_virt(dma_phys), pages);
     return result;
 }
 
@@ -371,7 +371,7 @@ ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* b
     kernel::mutex_guard guard(io_mutex);
 
     size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
-    void* dma_phys = kernel::memory::request_pages(pages);
+    void* dma_phys = kernel::memory::request_pages(pages).ptr;
     if (!dma_phys) return -ENOMEM;
 
     memcpy(dma_phys, buffer, bytes);
@@ -406,7 +406,7 @@ ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* b
 
     ssize_t result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
-    kernel::memory::free_pages(dma_phys, pages);
+    kernel::memory::free_pages(make_virt(dma_phys), pages);
     return result;
 }
 
@@ -431,3 +431,5 @@ void xhciMassStorageDriver::detach()
     init_status = -1;
     init_phase = InitPhase::Completed;
 }
+
+// TODO pls rework me, i am pretty shitty •`_´•

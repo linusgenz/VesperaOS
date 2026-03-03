@@ -1,17 +1,16 @@
 #ifndef AHCI_H
 #define AHCI_H
 
-#include "ata.h"
 #include "../../arch/x86_64/interrupts/idt.h"
 #include "../../filesystem/devfs/devfs.h"
-#include "../pci/pci.h"
-#include "../../kernel/devices/blockdevice.h"
 #include "../../include/kernel/sync/mutex.h"
+#include "../../kernel/devices/blockdevice.h"
+#include "../pci/pci.h"
+#include "ata.h"
 #include "kernel/devices/device_manager.h"
 
 // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/serial-ata-ahci-spec-rev1-3-1.pdf
-namespace AHCI
-{
+namespace AHCI {
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 #define ATA_CMD_READ_DMA_EX 0x25
@@ -21,19 +20,18 @@ namespace AHCI
 #define HBA_PxIS_TFES (1 << 30)
 
     // Bit 31 — AE (AHCI Enable)
-#define AHCI_GHC_AE              (1u << 31)
+#define AHCI_GHC_AE (1u << 31)
 
     // Bit 2  — MRSM (MSI Revert to Single Message) — read-only
-#define AHCI_GHC_MRSM            (1u << 2)
+#define AHCI_GHC_MRSM (1u << 2)
 
     // Bit 1  — IE (Interrupt Enable)
-#define AHCI_GHC_IE              (1u << 1)
+#define AHCI_GHC_IE (1u << 1)
 
     // Bit 0  — HR (HBA Reset)
-#define AHCI_GHC_HR              (1u << 0)
+#define AHCI_GHC_HR (1u << 0)
 
-    enum PortType
-    {
+    enum PortType {
         None = 0,
         SATA = 1,
         SEMB = 2,
@@ -41,8 +39,7 @@ namespace AHCI
         SATAPI = 4,
     };
 
-    enum FIS_TYPE
-    {
+    enum FIS_TYPE {
         FIS_TYPE_REG_H2D = 0x27,
         FIS_TYPE_REG_D2H = 0x34,
         FIS_TYPE_DMA_ACT = 0x39,
@@ -53,8 +50,7 @@ namespace AHCI
         FIS_TYPE_DEV_BITS = 0xA1,
     };
 
-    struct HBAPort
-    {
+    struct HBAPort {
         uint32_t commandListBase;
         uint32_t commandListBaseUpper;
         uint32_t fisBaseAddress;
@@ -76,8 +72,7 @@ namespace AHCI
         uint32_t vendor[4];
     };
 
-    struct HBAMemory
-    {
+    struct HBAMemory {
         uint32_t hostCapability;
         uint32_t globalHostControl;
         uint32_t interruptStatus;
@@ -94,8 +89,7 @@ namespace AHCI
         HBAPort ports[32];
     };
 
-    struct HBACommandHeader
-    {
+    struct HBACommandHeader {
         uint8_t commandFISLength : 5;
         uint8_t atapi : 1;
         uint8_t write : 1;
@@ -114,8 +108,7 @@ namespace AHCI
         uint32_t rsv1[4];
     };
 
-    struct HBAPRDTEntry
-    {
+    struct HBAPRDTEntry {
         uint32_t dataBaseAddress;
         uint32_t dataBaseAddressUpper;
         uint32_t rsv0;
@@ -125,8 +118,7 @@ namespace AHCI
         uint32_t interruptOnCompletion : 1;
     };
 
-    struct HBACommandTable
-    {
+    struct HBACommandTable {
         uint8_t commandFIS[64];
 
         uint8_t atapiCommand[16];
@@ -136,8 +128,7 @@ namespace AHCI
         HBAPRDTEntry prdtEntry[];
     };
 
-    struct FIS_REG_H2D
-    {
+    struct FIS_REG_H2D {
         uint8_t fisType;
 
         uint8_t portMultiplier : 4;
@@ -165,56 +156,15 @@ namespace AHCI
         uint8_t rsv1[4];
     };
 
-    class Port final : public BlockDevice
-    {
-    private:
+    class Port final : public BlockDevice {
+       private:
         IDENTIFY_DEVICE_DATA* identify = nullptr;
         kernel::mutex_t portMutex;
 
-    public:
+       public:
         uint8_t vector = 0;
 
-        ~Port() override
-        {
-            StopCMD();
-
-            if (hbaPort->commandListBase || hbaPort->commandListBaseUpper)
-            {
-                auto commandListBase = reinterpret_cast<void*>(
-                    (static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32) |
-                    hbaPort->commandListBase
-                );
-                kernel::memory::free_page(commandListBase);
-            }
-
-            if (hbaPort->fisBaseAddress || hbaPort->fisBaseAddressUpper)
-            {
-                auto fisBase = reinterpret_cast<void*>(
-                    (static_cast<uint64_t>(hbaPort->fisBaseAddressUpper) << 32) |
-                    hbaPort->fisBaseAddress
-                );
-                kernel::memory::free_page(fisBase);
-            }
-
-            auto* cmdHeader = reinterpret_cast<HBACommandHeader*>(
-                static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 |
-                hbaPort->commandListBase
-            );
-
-            for (int i = 0; i < 32; i++)
-            {
-                auto cmdTable = reinterpret_cast<void*>(
-                    (static_cast<uint64_t>(cmdHeader[i].commandTableBaseAddressUpper) << 32) |
-                    cmdHeader[i].commandTableBaseAddress
-                );
-                kernel::memory::free_page(cmdTable);
-            }
-
-            kernel::memory::free_page(identify);
-
-            DevFS::unregister_device(kd);
-            DeviceManager::UnregisterDevice(kd);
-        };
+        ~Port() override;
 
         HBAPort* hbaPort{};
         PortType portType;
@@ -243,10 +193,8 @@ namespace AHCI
         bool Identify();
     };
 
-
-    class AHCIDriver
-    {
-    public:
+    class AHCIDriver {
+       public:
         explicit AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress);
         ~AHCIDriver();
         [[nodiscard]] bool HasActivePorts() const;
@@ -257,9 +205,9 @@ namespace AHCI
         Port* ports[32]{};
         uint8_t portCount;
 
-    private:
+       private:
         KernelDevice* kd;
     };
-}
+}  // namespace AHCI
 
-#endif // AHCI_H
+#endif  // AHCI_H

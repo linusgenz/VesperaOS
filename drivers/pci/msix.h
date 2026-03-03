@@ -25,6 +25,7 @@
 #define MSIX_H
 
 #include "pci.h"
+#include <cstddef>
 
 namespace PCI {
     /**

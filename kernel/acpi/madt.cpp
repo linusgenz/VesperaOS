@@ -29,12 +29,15 @@ namespace MADT {
             Log::Info("No Pic detected");
         }
 
+        virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
+
         kernel::memory::map_memory(
-            phys_to_virt(madt->lapic_address),
-            reinterpret_cast<void*>(madt->lapic_address),
+            virt_lapic,
+            make_phys(madt->lapic_address),
             (1ULL << PT_Flag::CacheDisabled)
         );
-        g_localApicAddr = static_cast<uint8_t*>(phys_to_virt(madt->lapic_address));
+
+        g_localApicAddr = static_cast<volatile uint8_t*>(virt_ptr(virt_lapic));
 
         auto* entries = reinterpret_cast<uint8_t*>(madt) + sizeof(ACPI::MADTHeader);
         const auto* end = reinterpret_cast<uint8_t*>(madt) + madt->header.length;

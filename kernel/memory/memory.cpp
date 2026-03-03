@@ -5,6 +5,7 @@
 #include "../paging/page_frame_allocator.h"
 #include "../paging/page_table_manager.h"
 #include "heap.h"
+#include "kernel/addr.h"
 
 uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, const size_t mMapEntries, const size_t mMapDescSize) {
     uint64_t memory_size_bytes = 0;  // static
@@ -54,23 +55,29 @@ void* memmove(void* dest, const void* src, size_t len) {
     return dest;
 }
 
-void* phys_to_virt(const uint64_t phys_addr) {
-    return reinterpret_cast<void*>(phys_addr + g_hhdm_offset);
+virt_addr_t phys_to_virt(phys_addr_t addr) {
+    return virt_from_raw(addr.raw + g_hhdm_offset);
 }
 
-uint64_t virt_to_phys(const void* virt_addr) {
-    return reinterpret_cast<uint64_t>(virt_addr) - g_hhdm_offset;
+phys_addr_t virt_to_phys(virt_addr_t addr) {
+    return make_phys(virt_raw(addr) - g_hhdm_offset);
 }
 
 namespace kernel::memory {
     static PageFrameAllocator page_frame_allocator;
     static PageTableManager page_table_manager = nullptr;
 
+    void initialize_page_frame_allocator(void* efi_memory_map, const size_t map_size, const size_t desc_size) {
+        page_frame_allocator.read_efi_memory_map(
+            static_cast<EFI_MEMORY_DESCRIPTOR*>(efi_memory_map), map_size, desc_size
+        );
+    }
+
     void initialize_page_table_manager(BootInfo* boot_info) {
         g_kernel_phys_base = boot_info->kernel_phys_base;
         g_kernel_virt_base = boot_info->kernel_virt_base;
 
-        auto* PML4 = reinterpret_cast<PageTable*>(request_page_phys());
+        auto* PML4 = reinterpret_cast<PageTable*>(phys_raw(request_page_phys()));
         memset(PML4, 0, 0x1000);
 
         page_table_manager = PageTableManager(PML4);
@@ -87,119 +94,107 @@ namespace kernel::memory {
         max_phys = (max_phys + 0x1FFFFF) & ~0x1FFFFFULL;
 
         for (uint64_t phys = 0; phys < max_phys; phys += 0x1000) {
-            const auto virt = reinterpret_cast<void*>(boot_info->hhdm_offset + phys);
-            page_table_manager.map_memory(virt, reinterpret_cast<void*>(phys), 0);
+            page_table_manager.map_memory(virt_from_raw(boot_info->hhdm_offset + phys), make_phys(phys), 0);
         }
 
-        const auto kVirtStart = reinterpret_cast<uint64_t>(&_KernelStart);
-        const auto kVirtEnd = reinterpret_cast<uint64_t>(&_KernelEnd);
-        for (uint64_t virt = kVirtStart; virt < kVirtEnd; virt += 0x1000) {
+        const uint64_t k_virt_start = reinterpret_cast<uint64_t>(&_KernelStart);
+        const uint64_t k_virt_end = reinterpret_cast<uint64_t>(&_KernelEnd);
+        for (uint64_t virt = k_virt_start; virt < k_virt_end; virt += 0x1000) {
             uint64_t phys = virt - g_kernel_virt_base + g_kernel_phys_base;
-            page_table_manager.map_memory(reinterpret_cast<void*>(virt), reinterpret_cast<void*>(phys), 0);
+            page_table_manager.map_memory(virt_from_raw(virt), make_phys(phys), 0);
         }
     }
 
-    void map_memory(void* virtual_addr, void* physical_addr, const uint64_t flags) {
-        page_table_manager.map_memory(virtual_addr, physical_addr, flags);
+    // Page Table Manager
+
+    void map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, const uint64_t flags) {
+        page_table_manager.map_memory(virt_addr, phys_addr, flags);
     }
 
-    void set_user_flags(void* virtual_memory, const size_t size) {
-        page_table_manager.set_user_flags(virtual_memory, size);
-    }
-
-    void map_range(void* virt_start, void* phys_start, const size_t size, const uint64_t flags) {
+    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, const size_t size, const uint64_t flags) {
         page_table_manager.map_range(virt_start, phys_start, size, flags);
     }
 
-    void unmap_memory(void* virtual_addr) {
-        page_table_manager.unmap_memory(virtual_addr);
+    void unmap_memory(virt_addr_t virt_addr) {
+        page_table_manager.unmap_memory(virt_addr);
     }
 
-    void unmap_range(void* virt_start, const size_t size) {
+    void unmap_range(virt_addr_t virt_start, const size_t size) {
         page_table_manager.unmap_range(virt_start, size);
     }
 
-    bool is_mapped(void* virtual_addr) {
-        return page_table_manager.is_mapped(virtual_addr);
+    bool is_mapped(virt_addr_t virt_addr) {
+        return page_table_manager.is_mapped(virt_addr);
+    }
+
+    phys_addr_t get_physical_address(virt_addr_t virt_addr) {
+        return page_table_manager.get_physical_address(virt_addr);
     }
 
     uintptr_t get_pagetable_address() {
         return reinterpret_cast<uintptr_t>(page_table_manager.PML4);
     }
 
-    void* get_physical_address(void* virtual_addr) {
-        return page_table_manager.get_physical_address(virtual_addr);
-    }
-
     // Page Frame Allocator
-    void initialize_page_frame_allocator(void* efi_memory_map, const size_t map_size, const size_t desc_size) {
-        page_frame_allocator.read_efi_memory_map(
-            static_cast<EFI_MEMORY_DESCRIPTOR*>(efi_memory_map), map_size, desc_size
-        );
+
+    void lock_page(phys_addr_t phys_addr) {
+        page_frame_allocator.lock_page(reinterpret_cast<void*>(phys_raw(phys_addr)));
     }
 
-    void lock_page(void* virtual_addr) {
-        page_frame_allocator.lock_page(virtual_addr);
+    void lock_pages(phys_addr_t phys_addr, uint64_t page_count) {
+        page_frame_allocator.lock_pages(reinterpret_cast<void*>(phys_raw(phys_addr)), page_count);
     }
 
-    void lock_pages(void* virtual_addr, uint64_t page_count) {
-        page_frame_allocator.lock_pages(virtual_addr, page_count);
+    phys_addr_t request_page_phys() {
+        return make_phys(page_frame_allocator.request_page());
     }
 
-    void* request_pages(size_t pageCount) {
-        const uint64_t phys = page_frame_allocator.request_pages(pageCount);
-        if (!phys) return nullptr;
-        return phys_to_virt(phys);
+    virt_addr_t request_page() {
+        uint64_t phys = page_frame_allocator.request_page();
+        if (!phys) return make_virt(nullptr);
+        return phys_to_virt(make_phys(phys));
     }
 
-    uint64_t request_pages_phys(size_t pageCount) {
-        return page_frame_allocator.request_pages(pageCount);
+    phys_addr_t request_pages_phys(size_t page_count) {
+        return make_phys(page_frame_allocator.request_pages(page_count));
     }
 
-    void* request_page() {
-        const uint64_t phys = page_frame_allocator.request_page();
-        if (!phys) return nullptr;
-        return phys_to_virt(phys);
+    virt_addr_t request_pages(size_t page_count) {
+        uint64_t phys = page_frame_allocator.request_pages(page_count);
+        if (!phys) return make_virt(nullptr);
+        return phys_to_virt(make_phys(phys));
     }
 
-    uint64_t request_page_phys() {
-        return page_frame_allocator.request_page();
+    void free_page(virt_addr_t virt_addr) {
+        page_frame_allocator.free_page(phys_raw(virt_to_phys(virt_addr)));
     }
 
-    void free_page(const void* virt_addr) {
-        uint64_t phys_addr = virt_to_phys(virt_addr);
-        page_frame_allocator.free_page(phys_addr);
+    void free_page_phys(phys_addr_t phys_addr) {
+        page_frame_allocator.free_page(phys_raw(phys_addr));
     }
 
-    void free_page_phys(const uint64_t phys_addr) {
-        page_frame_allocator.free_page(phys_addr);
+    void free_pages(virt_addr_t virt_addr, uint64_t page_count) {
+        page_frame_allocator.free_pages(phys_raw(virt_to_phys(virt_addr)), page_count);
     }
 
-    void free_pages(const void* virt_addr, const uint64_t page_count) {
-        uint64_t phys_addr = virt_to_phys(virt_addr);
-        page_frame_allocator.free_pages(phys_addr, page_count);
-    }
-
-    void free_pages_phys(uint64_t phys_addr, const uint64_t page_count) {
-        page_frame_allocator.free_pages(phys_addr, page_count);
+    void free_pages_phys(phys_addr_t phys_addr, uint64_t page_count) {
+        page_frame_allocator.free_pages(phys_raw(phys_addr), page_count);
     }
 
     void relocate_bitmap_to_hhdm() {
         page_frame_allocator.relocate_bitmap_to_hhdm();
     }
 
+    // Memory Statistics
     uint64_t get_total_ram() {
         return page_frame_allocator.get_total_ram();
     }
-
     uint64_t get_free_ram() {
         return page_frame_allocator.get_free_ram();
     }
-
     uint64_t get_used_ram() {
         return page_frame_allocator.get_used_ram();
     }
-
     uint64_t get_reserved_ram() {
         return page_frame_allocator.get_reserved_ram();
     }
@@ -208,7 +203,7 @@ namespace kernel::memory {
     static bool heap_initialized = false;
     static spinlock_t heap_lock;
 
-    void initialize_heap(void* heap_start, size_t page_count) {
+    void initialize_heap(virt_addr_t heap_start, size_t page_count) {
         ::initialize_heap(heap_start, page_count);
         heap_lock.init("kernel_heap_lock");
         heap_initialized = true;

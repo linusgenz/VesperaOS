@@ -26,7 +26,6 @@
 #include <stdbool.h>
 
 size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
-    const char *digits = "0123456789ABCDEF";
     char temp[32];
     int i = 0;
 
@@ -34,6 +33,7 @@ size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
         temp[i++] = '0';
     } else {
         while (value > 0) {
+            const char *digits = "0123456789ABCDEF";
             temp[i++] = digits[value % base];
             value /= base;
         }

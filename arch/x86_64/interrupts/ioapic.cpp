@@ -60,7 +60,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static volatile uint32_t *map_ioapic(const uintptr_t address) {
-        kernel::memory::map_memory(reinterpret_cast<void *>(address), reinterpret_cast<void *>(address));
+        kernel::memory::map_memory(phys_to_virt(make_phys(address)),make_phys(address));
         return reinterpret_cast<volatile uint32_t *>(address);
     }
 

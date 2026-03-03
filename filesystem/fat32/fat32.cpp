@@ -20,13 +20,13 @@ namespace FAT32 {
 
     static uint8_t* AllocClusterBuffer(uint32_t clusterBytes) {
         const size_t pages = (clusterBytes + 0xFFF) / 0x1000;
-        auto* page = static_cast<uint8_t*>(kernel::memory::request_pages(pages));
-        if (page) memset(page, 0, pages * 0x1000);
-        return page;
+        virt_addr_t page = kernel::memory::request_pages(pages);
+        if (!virt_null(page)) memset(page, 0, pages * 0x1000);
+        return virt_as<uint8_t>(page);
     }
 
     static void FreeClusterBuffer(const uint8_t* ptr, const uint32_t clusterBytes) {
-        kernel::memory::free_pages(ptr, (clusterBytes + 0xFFF) / 0x1000);
+        kernel::memory::free_pages(make_virt((void*)ptr), (clusterBytes + 0xFFF) / 0x1000);
     }
 
     // ============================================================================
@@ -466,7 +466,9 @@ namespace FAT32 {
         const uint32_t bytesNeeded = sectorsPerRead * bpb.bytesPerSector;
         const uint32_t pages = (bytesNeeded + 0xFFF) / 0x1000;
 
-        auto* batchBuffer = static_cast<uint32_t*>(kernel::memory::request_pages(pages));
+        virt_addr_t batch_virt = kernel::memory::request_pages(pages);
+        if (virt_null(batch_virt)) return nullptr;
+        auto* batchBuffer = virt_as<uint32_t>(batch_virt);
 
         uint32_t cluster = startCluster;
         size_t count = 0;
@@ -487,7 +489,7 @@ namespace FAT32 {
                                                  : sectorsPerRead;
 
                 if (!device->read(batchStart, sectorsToRead, batchBuffer, sectorsToRead * bpb.bytesPerSector)) {
-                    kernel::memory::free_pages(batchBuffer, pages);
+                    kernel::memory::free_pages(batch_virt, pages);
                     return nullptr;
                 }
                 currentBatchSector = batchStart;
@@ -503,13 +505,13 @@ namespace FAT32 {
         }
 
         if (count == 0) {
-            kernel::memory::free_pages(batchBuffer, pages);
+            kernel::memory::free_pages(batch_virt, pages);
             return nullptr;
         }
 
         auto* chain = static_cast<uint32_t*>(kernel::memory::malloc(count * sizeof(uint32_t)));
         if (!chain) {
-            kernel::memory::free_pages(batchBuffer, pages);
+            kernel::memory::free_pages(batch_virt, pages);
             return nullptr;
         }
 
@@ -538,7 +540,7 @@ namespace FAT32 {
             cluster = batchBuffer[indexInBatch] & 0x0FFFFFFF;
         }
 
-        kernel::memory::free_pages(batchBuffer, pages);
+        kernel::memory::free_pages(batch_virt, pages);
         outCount = count;
         return chain;
     }
@@ -557,11 +559,12 @@ namespace FAT32 {
         const uint32_t bytesNeeded = sectorsPerBatch * bpb.bytesPerSector;
         const uint32_t pages = (bytesNeeded + 0xFFF) / 0x1000;
 
-        auto* batchBuffer = static_cast<uint32_t*>(kernel::memory::request_pages(pages));
-        if (!batchBuffer) {
+        virt_addr_t batch_virt = kernel::memory::request_pages(pages);
+        if (virt_null(batch_virt)) {
             kernel::memory::free(chain);
             return false;
         }
+        auto* batchBuffer = virt_as<uint32_t>(batch_virt);
 
         // Für jede FAT-Kopie
         for (uint32_t fat = 0; fat < bpb.tableCount; ++fat) {
@@ -599,7 +602,7 @@ namespace FAT32 {
                     if (const size_t sectorsToRead = currentBatchEnd - currentBatchStart; !device->read(
                             currentBatchStart, sectorsToRead, batchBuffer, sectorsToRead * bpb.bytesPerSector
                         )) {
-                        kernel::memory::free_pages(batchBuffer, pages);
+                        kernel::memory::free_pages(batch_virt, pages);
                         kernel::memory::free(chain);
                         return false;
                     }
@@ -623,7 +626,7 @@ namespace FAT32 {
             }
         }
 
-        kernel::memory::free_pages(batchBuffer, pages);
+        kernel::memory::free_pages(batch_virt, pages);
 
         // Free cluster count aktualisieren
         if (freeClusterCount != 0xFFFFFFFF) freeClusterCount += count;

@@ -59,11 +59,11 @@ namespace ACPI {
         FADT* fadt = TableManager::get_fadt();
         if (!fadt) return;
 
-        uint64_t dsdt_phys = fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt;
-        if (dsdt_phys == 0) return;
+        phys_addr_t dsdt_phys = make_phys(fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt);
+        if (phys_null(dsdt_phys)) return;
 
-        const auto* header = static_cast<SDTHeader*>(phys_to_virt(dsdt_phys));
-        auto* dsdt = static_cast<uint8_t*>(phys_to_virt(dsdt_phys));
+        const auto* header = static_cast<SDTHeader*>(virt_ptr(phys_to_virt(dsdt_phys)));
+        auto* dsdt = static_cast<uint8_t*>(virt_ptr(phys_to_virt(dsdt_phys)));
         size_t length = header->length;
 
         parse_s5(dsdt, length);

@@ -40,7 +40,7 @@ const char *find_executable(const char *name) {
     if (!path) return NULL;
 
     const char *start = path;
-    const char *end;
+    const char *end = NULL;
 
     while (*start) {
         end = strchr(start, ':');

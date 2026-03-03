@@ -25,9 +25,11 @@
 #include <log.h>
 
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
-    kernel::memory::map_range(phys_to_virt(pci_bar_address), reinterpret_cast<void*>(pci_bar_address), bar_size, (1ULL << CacheDisabled));
+    phys_addr_t mmio_phys = make_phys(pci_bar_address);
+    virt_addr_t mmio_virt = phys_to_virt(mmio_phys);
+    kernel::memory::map_range(mmio_virt, mmio_phys, bar_size, (1ULL << CacheDisabled));
 
-    return reinterpret_cast<uintptr_t>(phys_to_virt(pci_bar_address));
+    return virt_raw(mmio_virt);
 }
 
 
@@ -52,5 +54,5 @@ void free_xhci_memory(void *ptr) {
 }
 
 uintptr_t xhci_get_physical_addr(void *virt) {
-    return reinterpret_cast<uintptr_t>(kernel::memory::get_physical_address(virt));
+    return kernel::memory::get_physical_address(make_virt(virt)).raw;
 }

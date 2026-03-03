@@ -28,20 +28,20 @@ namespace kernel::scheduling::manager {
 
 #define MSR_KERNEL_GS_BASE 0xC0000102
 #define MSR_GS_BASE 0xC0000101
-
+// this code here is so shit, but it works, so I advise to not touch it
     void switch_to_unit(Unit *from, Unit *to, trap_frame *frame) {
         const bool from_syscall = from && from->context.from_syscall;
 
         if (to->is_user) {
             uint32_t cpu_id = CPUManager::get_current_cpu_id();
-            tss[cpu_id].rsp0 = reinterpret_cast<uintptr_t>(to->context.stack_top);
+            tss[cpu_id].rsp0 = virt_raw(to->context.stack_top);
 
             wrmsr(MSR_GS_BASE, 0);
             auto *ctx_ptr = &to->context;
             wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<uint64_t>(&ctx_ptr));
             if (to->rid) {
                 Realm *r = RealmManager::get(to->rid);
-                uint64_t cr3 = r->pml4_phys;
+                uint64_t cr3 = phys_raw(r->pml4_phys);
                 asm volatile("mov %0, %%cr3" ::"r"(cr3));
             }
         } else {
@@ -55,14 +55,13 @@ namespace kernel::scheduling::manager {
         uint64_t save_iretq = 0;
 
         if (from_syscall) {
-            rdi_save_addr = &from->context.stack_pointer;
+            rdi_save_addr = &from->context.stack_pointer.ptr;
         } else if (from) {
-            rdi_save_addr = &from->context.stack_pointer;
-            // frame_ptr = frame;
+            rdi_save_addr = &from->context.stack_pointer.ptr;
             if (from->is_user) {
-                save_iretq = 1;
+                save_iretq    = 1;
                 rdi_save_addr = nullptr;
-                from->context.stack_pointer = frame;
+                from->context.stack_pointer = virt_from_raw(reinterpret_cast<uintptr_t>(frame));
             }
         }
 
@@ -70,10 +69,10 @@ namespace kernel::scheduling::manager {
             asm volatile("swapgs");
             // todo, when a sleep thread gets waken up the gs points to the user gs for some reason. swap to kernel gs
             // so we dont mess up things
-            rsp_to_load = to->context.stack_pointer;
+            rsp_to_load  = virt_ptr(to->context.stack_pointer);
             should_iretq = 0;
         } else {
-            rsp_to_load = to->context.stack_pointer;
+    rsp_to_load = virt_ptr(to->context.stack_pointer);
             if (to->is_user) {
                 //  frame_ptr = frame;
                 should_iretq = 1;

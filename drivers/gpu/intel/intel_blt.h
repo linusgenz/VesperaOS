@@ -27,13 +27,9 @@
 #include "../../../kernel/graphics/IRenderDriver.h"
 #include "../../pci/pci.h"
 #include "graphics.h"
+#include "kernel/addr.h"
 
 struct KernelDevice;
-
-struct GgttAllocation {
-    void* cpu_addr;
-    uint64_t gfx_addr;
-};
 
 // Force Wake Registers
 #define FORCEWAKE_MT 0xA188          // Multi-threaded force wake control
@@ -217,8 +213,13 @@ enum class TileMode : uint8_t {
     Y = 2        // 1 MB alignment
 };
 
+struct GgttAllocation {
+    virt_addr_t cpu_addr;
+    uint64_t gfx_addr;
+};
+
 struct GpuFramebuffer {
-    void* cpu_addr;
+    virt_addr_t cpu_addr;
     uint64_t gfx_addr;
     uint32_t width;
     uint32_t height;
@@ -228,7 +229,7 @@ struct GpuFramebuffer {
 };
 
 struct GpuTextBuffer {
-    void* cpu_addr;
+    virt_addr_t cpu_addr;
     uint64_t gfx_addr;
     uint32_t width;   // in pixels
     uint32_t height;  // in pixels
@@ -273,19 +274,19 @@ class IntelBlt final : public IRenderDriver {
     volatile uint64_t* gtt_entries{};
 
     uint64_t ring_graphics_addr;
-    void* ring_cpu_addr;
+    virt_addr_t ring_cpu_addr;
     uint32_t ring_size;
     uint32_t ring_tail{};
 
-    void* context_cpu_addr{};
+    virt_addr_t context_cpu_addr{};
     uint64_t context_graphics_addr{};
 
     uint64_t context_descriptor{};
 
     uint64_t hwsp_graphics_addr;
-    void* hwsp_cpu_addr;
+    virt_addr_t hwsp_cpu_addr;
 
-    void* pattern_buffer_cpu = nullptr;
+    virt_addr_t pattern_buffer_cpu = make_virt(nullptr);
     uint64_t pattern_buffer_addr = 0;
 
     uint32_t gtt_next_free{};

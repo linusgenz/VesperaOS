@@ -22,11 +22,17 @@
 #pragma once
 #define MEMORY_H
 
+#include "kernel/addr.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 
 #define PAGE_SIZE 4096
+
+inline void memset(virt_addr_t dest, uint8_t val, uint64_t num) {
+    memset(virt_ptr(dest), val, num);
+}
 
 namespace kernel::memory {
 
@@ -36,11 +42,11 @@ namespace kernel::memory {
     void* alloc_aligned(size_t size, size_t alignment, size_t offset = 0);
     void free_aligned(void* p);
 
-    void* request_page();
-    void* request_pages(size_t n);
-    void free_pages(const void* p, uint64_t n);
-    void free_page(const void* p);
-    uint64_t request_page_phys();
+    virt_addr_t request_page();
+    virt_addr_t request_pages(size_t n);
+    void free_pages(virt_addr_t p, uint64_t n);
+    void free_page(virt_addr_t p);
+    phys_addr_t request_page_phys();
 
-    void map_memory(void* virtual_addr, void* physical_addr, const uint64_t flags = 0);
+    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, const uint64_t flags = 0);
 }  // namespace kernel::memory

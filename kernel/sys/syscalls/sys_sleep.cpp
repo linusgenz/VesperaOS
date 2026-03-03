@@ -28,7 +28,7 @@ namespace syscalls::internal {
     int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
         Unit* current = kernel::scheduling::get_current_unit();
 
-        void* saved_rsp = current->context.stack_pointer;
+        const virt_addr_t saved_rsp = current->context.stack_pointer;
         kernel::time::internal::thread_sleep_ms(arg0);
         current->context.stack_pointer = saved_rsp;
 

@@ -41,13 +41,13 @@ typedef struct arg_registers {
 // TODO refactor this struct
 typedef struct execution_context {
     uint64_t stack_size;
-    void* stack;
-    void* stack_top;
-    void* stack_pointer;
+    virt_addr_t stack;
+    virt_addr_t stack_top;
+    virt_addr_t stack_pointer;
     uint64_t user_stack_size;
-    void* user_stack;
-    void* user_stack_top;
-    void* user_stack_pointer;
+    virt_addr_t user_stack;
+    virt_addr_t user_stack_top;
+    virt_addr_t user_stack_pointer;
 
     void (*entry)(void*);
 
@@ -61,8 +61,8 @@ typedef struct execution_context {
     bool from_syscall;
     void* kernel_rsp_after_syscall;
 
-    uint64_t user_stack_phys;
-    uintptr_t user_stack_virt_base;
+    phys_addr_t user_stack_phys;
+    virt_addr_t user_stack_virt_base;
 } execution_context_t;
 
 typedef struct sleep_context {

@@ -45,13 +45,12 @@ namespace PCI
 {
     void enumerate_function(const uint64_t device_address, const uint64_t function)
     {
-        const uint64_t offset = function << 12;
+        virt_addr_t func_virt = virt_from_raw(device_address + (function << 12));
+        phys_addr_t func_phys = make_phys(virt_raw(func_virt));  // identity mapped
 
-        const uint64_t function_address = device_address + offset;
-        kernel::memory::map_memory(reinterpret_cast<void*>(function_address),
-                                   reinterpret_cast<void*>(function_address));
+        kernel::memory::map_memory(func_virt, func_phys, 0);
 
-        auto* pci_device_header = reinterpret_cast<PCIDeviceHeader*>(function_address);
+        auto* pci_device_header = virt_as<PCIDeviceHeader>(func_virt);
 
 
         if (pci_device_header->device_id == 0) return;
@@ -111,7 +110,7 @@ namespace PCI
                     {
                     case 0x8086:
                         {
-                       /*     auto* driver = new IntelBlt(pci_device_header);
+                            auto* driver = new IntelBlt(pci_device_header);
                             driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
 
                             DisplayBackend be{ driver, driver->get_kd() };
@@ -119,7 +118,7 @@ namespace PCI
 
                             auto terminal = new Terminal(driver, system_font->width, system_font->height);
                             Log::SetTerminal(terminal);
-                            global_terminal = terminal;*/
+                            global_terminal = terminal;
                             break;
                         }
                     default: ;
@@ -181,40 +180,35 @@ namespace PCI
         }
     }
 
-    void enumerate_device(uint64_t bus_address, uint64_t device)
-    {
-        const uint64_t offset = device << 15;
 
-        const uint64_t device_address = bus_address + offset;
-        kernel::memory::map_memory(reinterpret_cast<void*>(device_address), reinterpret_cast<void*>(device_address));
+    void enumerate_device(uint64_t bus_address, uint64_t device) {
+        virt_addr_t dev_virt = virt_from_raw(bus_address + (device << 15));
+        phys_addr_t dev_phys = make_phys(virt_raw(dev_virt));
 
-        const auto* pci_device_header = reinterpret_cast<PCIDeviceHeader*>(device_address);
+        kernel::memory::map_memory(dev_virt, dev_phys, 0);
 
-        if (pci_device_header->device_id == 0) return;
+        const auto* pci_device_header = virt_as<PCIDeviceHeader>(dev_virt);
+
+        if (pci_device_header->device_id == 0)      return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
         for (uint64_t function = 0; function < 8; function++)
-        {
-            enumerate_function(device_address, function);
-        }
+            enumerate_function(virt_raw(dev_virt), function);
     }
 
-    void enumerate_bus(uint64_t base_address, uint64_t bus)
-    {
-        const uint64_t offset = bus << 20;
+    void enumerate_bus(uint64_t base_address, uint64_t bus) {
+        virt_addr_t bus_virt = virt_from_raw(base_address + (bus << 20));
+        phys_addr_t bus_phys = make_phys(virt_raw(bus_virt));
 
-        const uint64_t bus_address = base_address + offset;
-        kernel::memory::map_memory(reinterpret_cast<void*>(bus_address), reinterpret_cast<void*>(bus_address));
+        kernel::memory::map_memory(bus_virt, bus_phys, 0);
 
-        auto* pci_device_header = reinterpret_cast<PCIDeviceHeader*>(bus_address);
+        const auto* pci_device_header = virt_as<PCIDeviceHeader>(bus_virt);
 
-        if (pci_device_header->device_id == 0) return;
+        if (pci_device_header->device_id == 0)      return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
         for (uint64_t device = 0; device < 32; device++)
-        {
-            enumerate_device(bus_address, device);
-        }
+            enumerate_device(virt_raw(bus_virt), device);
     }
 
     void enumerate_pci(ACPI::MCFGHeader* mcfg)

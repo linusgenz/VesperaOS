@@ -7,6 +7,7 @@
 
 #include <boot.h>
 
+#include "addr.h"
 #include "efi_memory.h"
 #include <cstddef>
 
@@ -21,13 +22,18 @@ uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapEntries, size_t
 
 void memset(void* dest, uint8_t val, uint64_t num);
 
+inline void memset(virt_addr_t dest, uint8_t val, uint64_t num) {
+    memset(virt_ptr(dest), val, num);
+}
+
 void* memcpy(void* dest, const void* src, size_t len);
 
 int memcmp(const void* ptr1, const void* ptr2, size_t num);
 
 void* memmove(void* dest, const void* src, size_t len);
 
-void* phys_to_virt(uint64_t phys_addr);
+virt_addr_t phys_to_virt(phys_addr_t addr);
+phys_addr_t virt_to_phys(virt_addr_t addr);
 
 enum PT_Flag {
     Present = 0,
@@ -51,46 +57,46 @@ namespace kernel::memory {
     // Page Table Management
     void initialize_page_table_manager(BootInfo* bootInfo);
 
-    void map_memory(void* virtual_addr, void* physical_addr, uint64_t flags = 0);
+    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, uint64_t flags = 0);
 
-    void set_user_flags(void* virtual_memory, size_t size);
+    //void set_user_flags(void* virtual_memory, size_t size);
 
-    void map_range(void* virt_start, void* phys_start, size_t size, uint64_t flags = 0);
+    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, size_t size, uint64_t flags = 0);
 
-    void unmap_range(void* virt_start, size_t size);
+    void unmap_range(virt_addr_t virt_start, size_t size);
 
-    void unmap_memory(void* virtual_addr);
+    void unmap_memory(virt_addr_t virtual_addr);
 
-    bool is_mapped(void* virtual_addr);
+    bool is_mapped(virt_addr_t virtual_addr);
 
     uintptr_t get_pagetable_address();
 
-    void* get_physical_address(void* virtual_addr);
+    phys_addr_t get_physical_address(virt_addr_t virtual_addr);
 
     // Page Frame Allocator
     void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size);
 
-    void free_page(const void* virtual_addr);
+    void free_page(virt_addr_t virtual_addr);
 
-    void free_page_phys(uint64_t phys_addr);
+    void free_page_phys(phys_addr_t phys_addr);
 
-    void free_pages(const void* virtual_addr, uint64_t page_count);
+    void free_pages(virt_addr_t virtual_addr, uint64_t page_count);
 
-    void free_pages_phys(uint64_t phys_addr, uint64_t page_count);
+    void free_pages_phys(phys_addr_t phys_addr, uint64_t page_count);
 
-    void lock_page(void* virtual_addr);
+    void lock_page(phys_addr_t phys_addr);
 
-    void lock_pages(void* virtual_addr, uint64_t page_count);
+    void lock_pages(phys_addr_t phys_addr, uint64_t page_count);
 
     void relocate_bitmap_to_hhdm();
 
-    [[nodiscard]] void* request_page();
+    [[nodiscard]] virt_addr_t request_page();
 
-    [[nodiscard]] uint64_t request_page_phys();
+    [[nodiscard]] phys_addr_t request_page_phys();
 
-    [[nodiscard]] void* request_pages(size_t pageCount);
+    [[nodiscard]] virt_addr_t request_pages(size_t pageCount);
 
-    [[nodiscard]] uint64_t request_pages_phys(size_t pageCount);
+    [[nodiscard]] phys_addr_t request_pages_phys(size_t pageCount);
 
     [[nodiscard]] uint64_t get_free_ram();
 
@@ -101,7 +107,7 @@ namespace kernel::memory {
     [[nodiscard]] uint64_t get_total_ram();
 
     // Heap Allocator
-    void initialize_heap(void* heap_start, size_t page_count);
+    void initialize_heap(virt_addr_t heap_start, size_t page_count);
 
     void* alloc_aligned(size_t size, size_t alignment, size_t boundary = 0);
 

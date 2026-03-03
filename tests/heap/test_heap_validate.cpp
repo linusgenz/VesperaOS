@@ -53,7 +53,7 @@ TEST(Heap_Validate, IsValidPtrReturnsFalseForNull, "is_valid_pointer returns fal
 TEST(Heap_Validate, IsValidPtrReturnsFalseForHeapStart, "is_valid_pointer returns false for the raw heap_start pointer") {
     WITH_HEAP(h, 64);
     // heap_start points at a HeapSegHdr, not at user data
-    ASSERT_FALSE(h.is_valid_ptr(::heap_start));
+    ASSERT_FALSE(h.is_valid_ptr(virt_ptr(::heap_start)));
 }
 
 TEST(Heap_Validate, IsValidPtrReturnsFalseForArbitraryAddress, "is_valid_pointer returns false for a stack-local variable") {

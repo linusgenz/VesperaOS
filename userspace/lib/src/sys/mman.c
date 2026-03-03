@@ -27,14 +27,14 @@
 #include <sys/mman.h>
 
 void* mmap(void* addr, size_t length, int prot, int flags, int handle, size_t offset) {
-	int64_t ret = sys_mmap((uint64_t)addr, length, prot, flags, handle, offset);
-	if (ret < 0) {
-		errno = -ret;
-		return MAP_FAILED;
-	}
-	return (void*)ret;
+    int64_t ret = sys_mmap((uint64_t)addr, length, prot, flags, handle, offset);
+    if (ret < 0) {
+        errno = -ret;
+        return MAP_FAILED;
+    }
+    return (void*)ret;
 }
 
 int munmap(void* addr, size_t length) {
-	return sys_munmap((uint64_t)addr, length, 0, 0, 0);
+    return sys_munmap((uint64_t)addr, length, 0, 0, 0);
 }

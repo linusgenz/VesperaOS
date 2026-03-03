@@ -2,11 +2,11 @@
 #define VESPERAOS_KVERSION_H
 
 #define VERSION_MAJOR "0"
-#define VERSION_MINOR "20"
-#define VERSION_PATCH "5"
+#define VERSION_MINOR "21"
+#define VERSION_PATCH "0"
 #define VERSION_STAGE "dev"
-#define VERSION_BUILD "20260302-gd5343f3"
-#define VERSION_NAME "holy basil"
+#define VERSION_BUILD "20260303-g4404c7c"
+#define VERSION_NAME "maokai tree"
 
 #define VERSION_STRING "Vespera '" VERSION_NAME "' (dev) x86_64 " \
                        VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH \

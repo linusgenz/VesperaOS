@@ -6,12 +6,14 @@
 
 #include <kernel/memory.h>
 
+#include "kernel/addr.h"
+
 struct PageDirectoryEntry {
     uint64_t Value;
     void set_flag(PT_Flag flag, bool enabled);
-    bool get_flag(PT_Flag flag) const;
-    void set_address(uint64_t address);
-    uint64_t get_address() const;
+    [[nodiscard]] bool get_flag(PT_Flag flag) const;
+    void set_address(phys_addr_t phys_addr);
+    [[nodiscard]] phys_addr_t get_address() const;
 };
 
 struct PageTable {

@@ -4,6 +4,7 @@
 
 #ifndef HEAP_H
 #define HEAP_H
+#include "kernel/addr.h"
 #include <cstddef>
 #include <cstdint>
 
@@ -75,9 +76,6 @@ struct AlignedSegHdr {
 
 // Global heap variables
 extern bool heap_initialized;
-extern void* heap_start;
-extern void* heap_end;
-extern HeapSegHdr* last_hdr;
 
 // Statistics
 extern size_t total_allocated;
@@ -85,7 +83,7 @@ extern size_t total_freed;
 extern size_t peak_usage;
 
 // Core heap functions
-bool initialize_heap(void *heap_address, size_t page_count);
+bool initialize_heap(virt_addr_t heap_address, size_t page_count);
 
 void *kmalloc(size_t size);
 

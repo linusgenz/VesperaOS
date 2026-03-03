@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera_errno.h>
 #include <kernel/scheduling.h>
+#include <vespera_errno.h>
 
 #include "/mnt/ExternerDatentraeger/VesperaOS/kernel/units/unit.h"
 #include "kernel/memory.h"
@@ -43,15 +43,14 @@ namespace syscalls::internal {
         if (cur->heap_end == 0) {
             cur->heap_end = USER_HEAP_START;
 
-            uint64_t phys = kernel::memory::request_pages_phys(0x20000 / PAGE_SIZE);
-            if (!phys) return -ENOMEM;
+            phys_addr_t phys = kernel::memory::request_pages_phys(0x20000 / PAGE_SIZE);
+            if (phys_null(phys)) return -ENOMEM;
 
-            // Kernel kann via HHDM nullen
             memset(phys_to_virt(phys), 0, 0x20000);
 
             cur_r->page_table->map_range(
-                reinterpret_cast<void*>(USER_HEAP_START),
-                reinterpret_cast<void*>(phys),
+                virt_from_raw(USER_HEAP_START),
+                phys,
                 0x20000,
                 (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper)
             );
@@ -76,14 +75,14 @@ namespace syscalls::internal {
             uintptr_t end = (addr + 0xFFF) & ~0xFFFULL;
 
             for (uintptr_t a = start; a < end; a += 0x1000) {
-                uint64_t phys = kernel::memory::request_page_phys();
-                if (!phys) return -ENOMEM;
+                phys_addr_t phys = kernel::memory::request_page_phys();
+                if (phys_null(phys)) return -ENOMEM;
 
                 memset(phys_to_virt(phys), 0, 0x1000);
 
                 cur_r->page_table->map_memory(
-                    reinterpret_cast<void*>(a),
-                    reinterpret_cast<void*>(phys),
+                    virt_from_raw(a),
+                    phys,
                     (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper)
                 );
             }
@@ -108,17 +107,17 @@ namespace syscalls::internal {
             uintptr_t end = (cur->heap_end + 0xFFF) & ~0xFFFULL;
 
             for (uintptr_t a = start; a < end; a += 0x1000) {
-                if (void* phys = cur_r->page_table->get_physical_address(reinterpret_cast<void*>(a))) {
-                    cur_r->page_table->unmap_memory(reinterpret_cast<void*>(a));
-                    kernel::memory::free_page_phys(reinterpret_cast<uint64_t>(phys));
+                virt_addr_t vaddr = virt_from_raw(a);
+                phys_addr_t phys = cur_r->page_table->get_physical_address(vaddr);
+                if (!phys_null(phys)) {
+                    cur_r->page_table->unmap_memory(vaddr);
+                    kernel::memory::free_page_phys(phys);
                 }
             }
 
             if (VmArea* vma = cur->find_vma(addr, 0)) {
                 vma->length = addr - vma->start;
-                if (vma->length == 0) {
-                    cur->remove_vma(vma->start, vma->length);
-                }
+                if (vma->length == 0) cur->remove_vma(vma->start, vma->length);
             }
         }
 

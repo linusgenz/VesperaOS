@@ -52,10 +52,9 @@ int main() {
     }
 
     char buffer[BUFFER_SIZE];
-    ssize_t n;
 
     while (1) {
-        n = read(log_fd, buffer, sizeof(buffer) - 1);
+        const ssize_t n = read(log_fd, buffer, sizeof(buffer) - 1);
         if (n < 0) {
             puts("Error reading from /dev/log");
             break;

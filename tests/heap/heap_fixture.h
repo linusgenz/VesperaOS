@@ -31,46 +31,38 @@
 #include <cstring>
 #include <vector>
 
-// =============================================================================
-// HeapArena
-// =============================================================================
+extern virt_addr_t heap_start;
+extern virt_addr_t heap_end;
+extern HeapSegHdr* last_hdr;
 
 struct HeapArena {
-    // Saved global heap state (restored in destructor)
-    void*       saved_heap_start  = nullptr;
-    void*       saved_heap_end    = nullptr;
-    HeapSegHdr* saved_last_hdr    = nullptr;
-    bool        saved_initialized = false;
-    size_t      saved_allocated   = 0;
-    size_t      saved_freed       = 0;
-    size_t      saved_peak        = 0;
+    void* saved_heap_start = nullptr;
+    void* saved_heap_end = nullptr;
+    HeapSegHdr* saved_last_hdr = nullptr;
+    bool saved_initialized = false;
+    size_t saved_allocated = 0;
+    size_t saved_freed = 0;
+    size_t saved_peak = 0;
 
     // Arena backing buffer
-    uint8_t*    arena      = nullptr;
-    size_t      arena_size = 0;
-
-    // -------------------------------------------------------------------------
-    // Constructor / Destructor
-    // -------------------------------------------------------------------------
+    uint8_t* arena = nullptr;
+    size_t arena_size = 0;
 
     explicit HeapArena(size_t kb = 64) {
         arena_size = kb * 1024;
 
-        // Page-aligned so our in-place HeapSegHdr writes cannot touch
-        // glibc's bookkeeping bytes that sit before a plain malloc() block.
         void* raw = nullptr;
         if (posix_memalign(&raw, 4096, arena_size) != 0) return;
         arena = static_cast<uint8_t*>(raw);
         std::memset(arena, 0, arena_size);
 
-        // Save globals so sequential tests do not interfere.
-        saved_heap_start  = ::heap_start;
-        saved_heap_end    = ::heap_end;
-        saved_last_hdr    = ::last_hdr;
+        saved_heap_start = virt_ptr(::heap_start);
+        saved_heap_end = virt_ptr(::heap_end);
+        saved_last_hdr = ::last_hdr;
         saved_initialized = ::heap_initialized;
-        saved_allocated   = ::total_allocated;
-        saved_freed       = ::total_freed;
-        saved_peak        = ::peak_usage;
+        saved_allocated = ::total_allocated;
+        saved_freed = ::total_freed;
+        saved_peak = ::peak_usage;
 
         ::heap_initialized = false;
         install();
@@ -78,37 +70,57 @@ struct HeapArena {
 
     ~HeapArena() {
         // Restore globals BEFORE freeing the buffer.
-        ::heap_start       = saved_heap_start;
-        ::heap_end         = saved_heap_end;
-        ::last_hdr         = saved_last_hdr;
+        ::heap_start = make_virt(saved_heap_start);
+        ::heap_end = make_virt(saved_heap_end);
+        ::last_hdr = saved_last_hdr;
         ::heap_initialized = saved_initialized;
-        ::total_allocated  = saved_allocated;
-        ::total_freed      = saved_freed;
-        ::peak_usage       = saved_peak;
+        ::total_allocated = saved_allocated;
+        ::total_freed = saved_freed;
+        ::peak_usage = saved_peak;
 
         std::free(arena);
     }
 
-    bool valid() const { return arena != nullptr && ::heap_initialized; }
+    bool valid() const {
+        return arena != nullptr && ::heap_initialized;
+    }
 
     // -------------------------------------------------------------------------
     // Wrappers — call the renamed kernel functions, never glibc
     // -------------------------------------------------------------------------
 
-    void*  malloc(size_t sz)                                   { return ::kmalloc(sz); }
-    void   free(void* p)                                       { ::kfree(p); }
-    void*  realloc(void* p, size_t old_sz, size_t new_sz)     { return ::krealloc(p, old_sz, new_sz); }
-    void*  alloc_aligned(size_t sz, size_t al, size_t bd = 0) { return ::kalloc_aligned(sz, al, bd); }
-    void   free_aligned(void* p)                               { ::kfree_aligned(p); }
-    bool   validate()                                          { return ::validate_heap(); }
-    bool   is_valid_ptr(void* p)                               { return ::is_valid_pointer(p); }
-    size_t usage()                                             { return ::get_heap_usage(); }
-    size_t free_space()                                        { return ::get_free_space(); }
+    void* malloc(size_t sz) {
+        return ::kmalloc(sz);
+    }
+    void free(void* p) {
+        ::kfree(p);
+    }
+    void* realloc(void* p, size_t old_sz, size_t new_sz) {
+        return ::krealloc(p, old_sz, new_sz);
+    }
+    void* alloc_aligned(size_t sz, size_t al, size_t bd = 0) {
+        return ::kalloc_aligned(sz, al, bd);
+    }
+    void free_aligned(void* p) {
+        ::kfree_aligned(p);
+    }
+    bool validate() {
+        return ::validate_heap();
+    }
+    bool is_valid_ptr(void* p) {
+        return ::is_valid_pointer(p);
+    }
+    size_t usage() {
+        return ::get_heap_usage();
+    }
+    size_t free_space() {
+        return ::get_free_space();
+    }
 
-private:
+   private:
     void install() {
         uintptr_t buf_start = reinterpret_cast<uintptr_t>(arena);
-        uintptr_t buf_end   = buf_start + arena_size;
+        uintptr_t buf_end = buf_start + arena_size;
 
         // Align the first header to MIN_ALIGNMENT.
         uintptr_t hdr_start = (buf_start + MIN_ALIGNMENT - 1) & ~(uintptr_t)(MIN_ALIGNMENT - 1);
@@ -119,43 +131,34 @@ private:
         const size_t tail_guard = HEAP_HEADER_SIZE + 16;
         uintptr_t heap_end_addr = buf_end - tail_guard;
 
-        ::heap_start = reinterpret_cast<void*>(hdr_start);
-        ::heap_end   = reinterpret_cast<void*>(heap_end_addr);
+        ::heap_start = virt_from_raw(hdr_start);
+        ::heap_end = virt_from_raw(heap_end_addr);
 
         size_t usable = heap_end_addr - hdr_start;
         if (usable <= HEAP_HEADER_SIZE) return;
 
-        auto* hdr   = reinterpret_cast<HeapSegHdr*>(hdr_start);
-        hdr->magic  = HEAP_MAGIC_FREE;
+        auto* hdr = reinterpret_cast<HeapSegHdr*>(hdr_start);
+        hdr->magic = HEAP_MAGIC_FREE;
         hdr->length = usable - HEAP_HEADER_SIZE;
-        hdr->next   = nullptr;
-        hdr->last   = nullptr;
-        hdr->free   = true;
+        hdr->next = nullptr;
+        hdr->last = nullptr;
+        hdr->free = true;
         hdr->set_guard_bytes();
 
-        ::last_hdr         = hdr;
+        ::last_hdr = hdr;
         ::heap_initialized = true;
-        ::total_allocated  = 0;
-        ::total_freed      = 0;
-        ::peak_usage       = 0;
+        ::total_allocated = 0;
+        ::total_freed = 0;
+        ::peak_usage = 0;
     }
 };
 
-// =============================================================================
-// WITH_HEAP(name, kb)
-// =============================================================================
-
-#define WITH_HEAP(var, kb) \
-    HeapArena var(kb); \
-    if (!(var).valid()) { \
-        TestFramework::fail_test(__FILE__, __LINE__, \
-            "HeapArena setup failed — posix_memalign returned error"); \
-        return; \
+#define WITH_HEAP(var, kb)                                                                                      \
+    HeapArena var(kb);                                                                                          \
+    if (!(var).valid()) {                                                                                       \
+        TestFramework::fail_test(__FILE__, __LINE__, "HeapArena setup failed — posix_memalign returned error"); \
+        return;                                                                                                 \
     }
-
-// =============================================================================
-// Pattern helpers
-// =============================================================================
 
 inline void fill_pattern(void* ptr, size_t size, uint8_t pat) {
     std::memset(ptr, pat, size);

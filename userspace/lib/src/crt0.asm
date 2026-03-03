@@ -45,4 +45,4 @@ _start:
     xor  r9,  r9
     call sys_exit
 
-    hlt
+    jmp $

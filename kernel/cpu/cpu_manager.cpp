@@ -54,9 +54,10 @@ namespace CPUManager {
                 cpu_infos[i].kernel_stack_top = KERNEL_STACK_BASE + KERNEL_STACK_SIZE;
                 online_cpus++;
 
-                kernel::memory::map_memory(
+                // TODO set bsp stack so it does not use limine stack
+            /*    kernel::memory::map_memory(
                     reinterpret_cast<void*>(KERNEL_STACK_BASE), reinterpret_cast<void*>(KERNEL_STACK_BASE)
-                );
+                );*/
             }
 
             total_cpus++;
@@ -73,10 +74,10 @@ void smp_init() {
 
         uint32_t apic_id = cpu_infos[i].apic_id;
 
-        void* stack_virt = kernel::memory::request_pages(KERNEL_STACK_SIZE / PAGE_SIZE);
-        auto stack_top_virt = reinterpret_cast<void*>(reinterpret_cast<uint64_t>(stack_virt) + KERNEL_STACK_SIZE);
+        virt_addr_t stack_virt = kernel::memory::request_pages(KERNEL_STACK_SIZE / PAGE_SIZE);
+        auto stack_top_virt = reinterpret_cast<void*>(virt_raw(stack_virt) + KERNEL_STACK_SIZE);
 
-        memset(stack_virt, 0, KERNEL_STACK_SIZE);
+        memset(stack_virt.ptr, 0, KERNEL_STACK_SIZE);
 
         volatile auto* report = &cpu_startup_reports[apic_id];
         report->apic_id      = apic_id;
@@ -84,7 +85,7 @@ void smp_init() {
         report->ready        = false;
         report->go           = false;
 
-        cpu_infos[i].kernel_stack     = reinterpret_cast<uint64_t>(stack_virt);
+        cpu_infos[i].kernel_stack     = virt_raw(stack_virt);
         cpu_infos[i].kernel_stack_top = reinterpret_cast<uint64_t>(stack_top_virt);
 
         asm volatile("mfence" ::: "memory");
