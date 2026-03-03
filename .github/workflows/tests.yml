@@ -18,7 +18,12 @@ jobs:
       - name: Install build deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++
+          sudo apt-get install -y cmake ninja-build g++ dosfstools
+
+      - name: Create FAT32 test image
+        run: |
+          truncate -s 300M tests/test.img
+          mkfs.fat -F 32 -s 8 -n VesperaTest tests/test.img
 
       - name: Configure
         run: cmake -S tests -B tests/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
