@@ -20,7 +20,7 @@ gnu-efi/*
 *.iso
 /userspace/bin/*
 
-tests/test.img
+tests/build/fat32/test.img
 tests/build
 tests/Testing
 

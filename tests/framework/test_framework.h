@@ -132,43 +132,40 @@
         }                                                                    \
     } while (0)
 
+extern jmp_buf g_panic_jmp;
+extern bool g_panic_armed;
+extern bool g_panic_fired;
+extern char g_panic_msg[256];
+extern int32_t g_panic_code;
 
-extern jmp_buf  g_panic_jmp;
-extern bool     g_panic_armed;
-extern bool     g_panic_fired;
-extern char     g_panic_msg[256];
-extern int32_t  g_panic_code;
-
-#define ASSERT_PANICS(code_block)                             \
-    do {                                                      \
-        g_panic_armed = true;                                 \
-        g_panic_fired = false;                                \
-        g_panic_msg[0] = '\0';                                \
-        g_panic_code = 0;                                     \
-        if (setjmp(g_panic_jmp) == 0) {                       \
-            code_block;                                       \
-        }                                                     \
-        g_panic_armed = false;                                \
-        if (!g_panic_fired) {                                 \
-            ::TestFramework::fail_test(__FILE__, __LINE__,    \
-                "ASSERT_PANICS: no panic was triggered");     \
-            return;                                           \
-        }                                                     \
+#define ASSERT_PANICS(code_block)                                                                    \
+    do {                                                                                             \
+        g_panic_armed = true;                                                                        \
+        g_panic_fired = false;                                                                       \
+        g_panic_msg[0] = '\0';                                                                       \
+        g_panic_code = 0;                                                                            \
+        if (setjmp(g_panic_jmp) == 0) {                                                              \
+            code_block;                                                                              \
+        }                                                                                            \
+        g_panic_armed = false;                                                                       \
+        if (!g_panic_fired) {                                                                        \
+            ::TestFramework::fail_test(__FILE__, __LINE__, "ASSERT_PANICS: no panic was triggered"); \
+            return;                                                                                  \
+        }                                                                                            \
     } while (0)
 
-#define ASSERT_NO_PANIC(code_block)                           \
-    do {                                                      \
-        g_panic_armed = true;                                 \
-        g_panic_fired = false;                                \
-        if (setjmp(g_panic_jmp) == 0) {                       \
-            code_block;                                       \
-        }                                                     \
-        g_panic_armed = false;                                \
-        if (g_panic_fired) {                                  \
-            ::TestFramework::fail_test(__FILE__, __LINE__,    \
-                "ASSERT_NO_PANIC: unexpected panic occurred");\
-            return;                                           \
-        }                                                     \
+#define ASSERT_NO_PANIC(code_block)                                                                       \
+    do {                                                                                                  \
+        g_panic_armed = true;                                                                             \
+        g_panic_fired = false;                                                                            \
+        if (setjmp(g_panic_jmp) == 0) {                                                                   \
+            code_block;                                                                                   \
+        }                                                                                                 \
+        g_panic_armed = false;                                                                            \
+        if (g_panic_fired) {                                                                              \
+            ::TestFramework::fail_test(__FILE__, __LINE__, "ASSERT_NO_PANIC: unexpected panic occurred"); \
+            return;                                                                                       \
+        }                                                                                                 \
     } while (0)
 
 namespace TestFramework {
@@ -203,6 +200,7 @@ namespace TestFramework {
     // --- Test entry ---
     struct TestEntry {
         std::string suite;
+        std::string test_id;
         std::string display_name;
         std::function<void()> fn;
     };
@@ -212,66 +210,62 @@ namespace TestFramework {
         return r;
     }
 
-    inline void register_test(const char* suite, const char* display_name, std::function<void()> fn) {
-        registry().push_back({suite, display_name, std::move(fn)});
+    inline void register_test(
+        const char* suite, const char* test_id, const char* display_name, std::function<void()> fn
+    ) {
+        registry().push_back({suite, test_id, display_name, std::move(fn)});
     }
 
-    inline int run_all_tests(const char* filter_suite = nullptr) {
-        int passed = 0, failed = 0, skipped = 0;
-        std::string last_suite;
+    inline int run_all_tests(const char* filter_suite = nullptr, const char* filter_id = nullptr) {
+        int failed = 1;
+        bool any_matched = false;
 
         for (auto& t : registry()) {
-            if (filter_suite && t.suite != filter_suite) {
-                skipped++;
-                continue;
-            }
+            if (filter_suite && t.suite != filter_suite) continue;
+            if (filter_id && t.test_id != filter_id) continue;
 
-            if (t.suite != last_suite) {
-                printf("\n" TF_BOLD TF_CYAN "[ %s ]" TF_RESET "\n", t.suite.c_str());
-                last_suite = t.suite;
-            }
+            any_matched = true;
 
             current_test_failed = false;
             current_failure_msg[0] = '\0';
 
             t.fn();
 
-            if (!current_test_failed) {
-                printf("  " TF_GREEN "PASS" TF_RESET "  %s\n", t.display_name.c_str());
-                passed++;
-            } else {
+            if (current_test_failed) {
                 printf("  " TF_RED "FAIL" TF_RESET "  %s\n%s\n", t.display_name.c_str(), current_failure_msg);
-                failed++;
+            } else {
+                printf("  " TF_GREEN "PASS" TF_RESET "  %s\n", t.display_name.c_str());
+                failed = 0;
             }
         }
 
-        printf(
-            "\n" TF_BOLD
-            "-------------------------------------------\n"
-            "  Results: " TF_GREEN "%d passed" TF_RESET "  " TF_RED "%d failed" TF_RESET "  %d skipped\n" TF_BOLD
-            "-------------------------------------------\n" TF_RESET,
-            passed,
-            failed,
-            skipped
-        );
+        if ((filter_suite || filter_id) && !any_matched) {
+            printf(
+                "  " TF_CYAN "SKIP" TF_RESET "  Registered test does not exist (suite='%s', test='%s')\n",
+                filter_suite ? filter_suite : "<any>",
+                filter_id ? filter_id : "<any>"
+            );
+            failed = 1;
+        }
 
-        return failed > 0 ? 1 : 0;
+        return failed;
     }
 
 }  // namespace TestFramework
 
-#define TEST(suite_name, test_id, description)                                                     \
-    static void _test_fn_##suite_name##_##test_id();                                               \
-    static bool _test_reg_##suite_name##_##test_id = [] {                                          \
-        TestFramework::register_test(#suite_name, description, _test_fn_##suite_name##_##test_id); \
-        return true;                                                                               \
-    }();                                                                                           \
+#define TEST(suite_name, test_id, description)                                                               \
+    static void _test_fn_##suite_name##_##test_id();                                                         \
+    static bool _test_reg_##suite_name##_##test_id = [] {                                                    \
+        TestFramework::register_test(#suite_name, #test_id, description, _test_fn_##suite_name##_##test_id); \
+        return true;                                                                                         \
+    }();                                                                                                     \
     static void _test_fn_##suite_name##_##test_id()
 
-#define TEST_MAIN()                                          \
-    int main(int argc, char** argv) {                        \
-        const char* filter = (argc > 1) ? argv[1] : nullptr; \
-        return TestFramework::run_all_tests(filter);         \
+#define TEST_MAIN()                                                   \
+    int main(int argc, char** argv) {                                 \
+        const char* filter_suite = (argc > 1) ? argv[1] : nullptr;    \
+        const char* filter_id = (argc > 2) ? argv[2] : nullptr;       \
+        return TestFramework::run_all_tests(filter_suite, filter_id); \
     }
 
 #endif  // VESPERAOS_TEST_FRAMEWORK_H

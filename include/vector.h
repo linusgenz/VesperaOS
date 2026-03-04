@@ -15,7 +15,7 @@ class Vector
 {
 public:
     explicit Vector(size_t initial_capacity = 4)
-        : _data(nullptr), capacity(0), length(0)
+        : _data(nullptr)
     {
         if (initial_capacity == 0) initial_capacity = 4;
         capacity = initial_capacity;
@@ -217,8 +217,8 @@ public:
 
 private:
     T* _data;
-    size_t capacity;
-    size_t length;
+    size_t capacity{0};
+    size_t length{0};
 
     void resize(size_t new_capacity)
     {
@@ -228,7 +228,7 @@ private:
 
         if constexpr (std::is_trivially_copyable_v<T>)
         {
-            // triviale Typen: einfache Zuweisung
+            // triviale Typen
             for (size_t i = 0; i < length; ++i)
             {
                 new_data[i] = _data[i];
