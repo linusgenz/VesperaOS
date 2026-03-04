@@ -215,12 +215,12 @@ enum class TileMode : uint8_t {
 
 struct GgttAllocation {
     virt_addr_t cpu_addr;
-    uint64_t gfx_addr;
+    gfx_addr_t gfx_addr;
 };
 
 struct GpuFramebuffer {
     virt_addr_t cpu_addr;
-    uint64_t gfx_addr;
+    gfx_addr_t gfx_addr;
     uint32_t width;
     uint32_t height;
     uint32_t bpp;
@@ -230,7 +230,7 @@ struct GpuFramebuffer {
 
 struct GpuTextBuffer {
     virt_addr_t cpu_addr;
-    uint64_t gfx_addr;
+    gfx_addr_t gfx_addr;
     uint32_t width;   // in pixels
     uint32_t height;  // in pixels
     size_t total_size;
@@ -273,17 +273,17 @@ class IntelBlt final : public IRenderDriver {
     volatile uint32_t* bcs_regs;
     volatile uint64_t* gtt_entries{};
 
-    uint64_t ring_graphics_addr;
+    gfx_addr_t ring_gfx_addr;
     virt_addr_t ring_cpu_addr;
     uint32_t ring_size;
     uint32_t ring_tail{};
 
     virt_addr_t context_cpu_addr{};
-    uint64_t context_graphics_addr{};
+    gfx_addr_t context_gfx_addr{};
 
     uint64_t context_descriptor{};
 
-    uint64_t hwsp_graphics_addr;
+    gfx_addr_t hwsp_gfx_addr;
     virt_addr_t hwsp_cpu_addr;
 
     virt_addr_t pattern_buffer_cpu = make_virt(nullptr);
@@ -303,12 +303,12 @@ class IntelBlt final : public IRenderDriver {
     void build_text_scanline(const char* text, size_t length, FONT* font, uint8_t* buffer, size_t buffer_stride);
     bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color);
     void xy_src_copy_blt(
-        uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-        uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
+        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
+        gfx_addr_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
     );
     void xy_fast_copy_blt(
-        uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-        uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
+        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
+        gfx_addr_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
     );
 
     void write_command(uint32_t cmd);
@@ -326,15 +326,15 @@ class IntelBlt final : public IRenderDriver {
     bool validate_blt_params(const BltRect& rect) const;
     [[nodiscard]] bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
     void xy_color_blt(
-        uint64_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color
+        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color
     );
     void xy_mono_src_copy_blt(
-        uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-        uint64_t mono_src_addr, uint32_t src_bit_position, bool transparency_enabled, uint32_t bg_color,
+        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
+        gfx_addr_t mono_src_addr, uint32_t src_bit_position, bool transparency_enabled, uint32_t bg_color,
         uint32_t fg_color
     );
     GgttAllocation alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags = 0, uint8_t pat_index = GTT_PAT_UC);
-    uint64_t map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat_index);
+    gfx_addr_t map_to_ggtt(phys_addr_t phys_addr, size_t num_pages, uint8_t pat_index);
 };
 
 #endif  // VESPERAOS_INTEL_BLT_H

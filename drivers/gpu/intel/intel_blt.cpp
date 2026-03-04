@@ -38,15 +38,10 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
     const auto* pci = reinterpret_cast<PCI::PCIHeader0*>(header);
 
     phys_addr_t bar0 = make_phys(pci->BAR0 & BAR0_ADDR_MASK);
-    kernel::memory::map_range(
-        phys_to_virt(bar0),
-        bar0,
-        BAR0_SIZE,
-        (1ULL << CacheDisabled)
-    );
+    kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
 
     mmio_base = static_cast<volatile uint8_t*>(virt_ptr(phys_to_virt(bar0)));
-    bcs_regs  = reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_RING_BASE);
+    bcs_regs = reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_RING_BASE);
 
     enable_force_wake();
     init_gtt();
@@ -55,19 +50,19 @@ IntelBlt::IntelBlt(PCI::PCIDeviceHeader* header)
 
     auto hwsp = alloc_and_map_to_ggtt(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
     hwsp_cpu_addr = hwsp.cpu_addr;
-    hwsp_graphics_addr = hwsp.gfx_addr;
+    hwsp_gfx_addr = hwsp.gfx_addr;
     memset(hwsp_cpu_addr, 0, PAGE_SIZE);
-    bcs_regs[BCS_HWSP / 4] = static_cast<uint32_t>(hwsp_graphics_addr);
+    bcs_regs[BCS_HWSP / 4] = static_cast<uint32_t>(gfx_raw(hwsp_gfx_addr));
 
     const uint32_t ring_pages = ring_size / PAGE_SIZE;
     auto [cpu_addr, gfx_addr] = alloc_and_map_to_ggtt(ring_pages);
 
     ring_cpu_addr = cpu_addr;
-    ring_graphics_addr = gfx_addr;
+    ring_gfx_addr = gfx_addr;
     memset(ring_cpu_addr, 0, ring_size);
     setup_ring_buffer();
 
-    bcs_regs[BCS_RING_START / 4] = static_cast<uint32_t>(ring_graphics_addr & GTT_PHYS_ADDR_MASK);
+    bcs_regs[BCS_RING_START / 4] = static_cast<uint32_t>(gfx_raw(ring_gfx_addr) & GTT_PHYS_ADDR_MASK);
 
     const uint32_t ring_ctl = ((ring_size - PAGE_SIZE) & RING_SIZE_MASK) | RING_CTL_ENABLED;
     bcs_regs[BCS_RING_CTL / 4] = ring_ctl;
@@ -109,7 +104,6 @@ void IntelBlt::init_text_buffer(const FONT* font, const uint32_t screen_width) {
     }
 
     const uint32_t max_chars = screen_width / font->width;
-
     const uint32_t max_width = max_chars * font->width;
     const uint32_t max_height = font->height;
 
@@ -161,7 +155,7 @@ void IntelBlt::write_command(uint32_t cmd) {
         }
     }
 
-    volatile auto* ring = static_cast<volatile uint32_t*>(virt_ptr(ring_cpu_addr));
+    volatile auto* ring = virt_as<uint32_t>(ring_cpu_addr);
     ring[ring_tail / 4] = cmd;
 
     asm volatile("sfence" ::: "memory");
@@ -225,9 +219,9 @@ bool IntelBlt::validate_blt_params(const BltRect& rect) const {
     }
 
     // Check alignment
-    if (fb.gfx_addr & 0x3F) {
+    if (gfx_raw(fb.gfx_addr) & 0x3F) {
         // 64-byte alignment
-        Log::Error("Framebuffer not aligned: 0x%llx", fb.gfx_addr);
+        Log::Error("Framebuffer not aligned: 0x%llx", gfx_raw(fb.gfx_addr));
         return false;
     }
 
@@ -242,17 +236,13 @@ bool IntelBlt::validate_blt_params(const BltRect& rect) const {
 }
 
 void IntelBlt::xy_color_blt(
-    uint64_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color
+    gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color
 ) {
     // DW0: Command Header
     uint32_t dw0 =
         XY_COLOR_BLT_CMD | XY_COLOR_BLT_OPCODE | XY_COLOR_BLT_WRITE_RGB | XY_COLOR_BLT_WRITE_ALPHA | XY_COLOR_BLT_LEN;
 
     // DW1: BR13 - Format and ROP
-    // Pitch should be in dwords. however when writing it in dwords, it only fills 1/4 of the buffer so we leave it in
-    // bytes lol reference:
-    // https://kiwitree.net/~lina/intel-gfx-docs/prm/kbl/intel-gfx-prm-osrc-kbl-vol02a-commandreference-instructions.pdf
-    // (page 1271)
     uint32_t dw1 = COLOR_DEPTH_8888 | PATCOPY | ((dest_pitch)&COORD_MASK);
 
     // DW2: BR22 - Top-Left coordinate (Y1, X1)
@@ -262,8 +252,8 @@ void IntelBlt::xy_color_blt(
     uint32_t dw3 = ((y2 & COORD_MASK) << COORD_Y_SHIFT) | (x2 & COORD_MASK);
 
     // DW4-5: Destination Base Address (64-bit)
-    auto dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
-    auto dw5 = static_cast<uint32_t>(dest_addr >> 32);
+    auto dw4 = static_cast<uint32_t>(gfx_raw(dest_addr) & 0xFFFFFFFF);
+    auto dw5 = static_cast<uint32_t>(gfx_raw(dest_addr) >> 32);
 
     // DW6: BR16 - Solid Pattern Color (ARGB8888)
     uint32_t dw6 = color;
@@ -366,7 +356,6 @@ void IntelBlt::alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_
     fb.pitch = ((width * fb.bpp + 63) / 64) * 64;
 
     const size_t total_size = static_cast<size_t>(fb.pitch) * height;
-
     const size_t num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
     Log::debug(
@@ -436,7 +425,7 @@ GgttAllocation IntelBlt::alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags,
 
     kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
 
-    uint64_t gfx = map_to_ggtt(phys_raw(phys), num_pages, pat_index);
+    gfx_addr_t gfx = map_to_ggtt(phys, num_pages, pat_index);
 
     return {cpu, gfx};
 }
@@ -444,9 +433,9 @@ GgttAllocation IntelBlt::alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags,
 void IntelBlt::setup_ring_buffer() {
     ring_tail = 0;
 
-    Log::debug("Ring Buffer: CPU=%p GFX=0x%llx", ring_cpu_addr, ring_graphics_addr);
+    Log::debug("Ring Buffer: CPU=%p GFX=0x%llx", virt_ptr(ring_cpu_addr), gfx_raw(ring_gfx_addr));
 
-    volatile auto* ring = static_cast<volatile uint32_t*>(virt_ptr(ring_cpu_addr));
+    volatile auto* ring = virt_as<uint32_t>(ring_cpu_addr);
     for (uint32_t i = 0; i < ring_size / 4; i++) {
         ring[i] = MI_NOOP;
     }
@@ -477,9 +466,7 @@ void IntelBlt::enable_force_wake() const {
 
 void IntelBlt::enable_bcs_power() const {
     auto bcs_swctrl = reinterpret_cast<volatile uint32_t*>(mmio_base + BCS_SWCTRL);
-
     *bcs_swctrl |= BCS_SWCTRL_WAKEUP;
-
     Log::debug("BCS Power enabled");
 }
 
@@ -488,13 +475,11 @@ void IntelBlt::reset_bcs() const {
 
     // Request BCS reset
     *reset_ctl |= RESET_BCS_BIT;
-
     for (int i = 0; i < RESET_DELAY; i++) {
     }
 
     // Release reset
     *reset_ctl &= ~RESET_BCS_BIT;
-
     for (int i = 0; i < RESET_DELAY; i++) {
     }
 
@@ -507,18 +492,18 @@ void IntelBlt::init_gtt() {
     gtt_next_free = GTT_START_INDEX;
 }
 
-uint64_t IntelBlt::map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat_index) {
+gfx_addr_t IntelBlt::map_to_ggtt(phys_addr_t phys_addr, size_t num_pages, uint8_t pat_index) {
     if (gtt_next_free + num_pages > gtt_total_entries) {
         Log::Error("GGTT out of space!");
-        return 0;
+        return make_gfx(0);
     }
 
     uint32_t gtt_index = gtt_next_free;
 
     for (size_t i = 0; i < num_pages; i++) {
-        uint64_t page_phys = phys_addr + (i * PAGE_SIZE);
+        uint64_t page_phys = phys_raw(phys_add(phys_addr, i * PAGE_SIZE));
 
-        uint64_t gtt_entry = (page_phys & GTT_PHYS_ADDR_MASK);
+        uint64_t gtt_entry = page_phys & GTT_PHYS_ADDR_MASK;
         gtt_entry |= (static_cast<uint64_t>(pat_index) & GTT_PAT_MASK) << GTT_PAT_SHIFT;
         gtt_entry |= GTT_VALID;
 
@@ -526,10 +511,8 @@ uint64_t IntelBlt::map_to_ggtt(uint64_t phys_addr, size_t num_pages, uint8_t pat
         asm volatile("mfence" ::: "memory");
     }
 
-    uint64_t graphics_addr = static_cast<uint64_t>(gtt_index) * PAGE_SIZE;
     gtt_next_free += num_pages;
-
-    return graphics_addr;
+    return make_gfx(static_cast<uint64_t>(gtt_index) * PAGE_SIZE);
 }
 
 // https://kiwitree.net/~lina/intel-gfx-docs/prm/kbl/intel-gfx-prm-osrc-kbl-vol02c-commandreference-registers-part2_0.pdf
@@ -580,19 +563,19 @@ void IntelBlt::set_display_framebuffer() const {
     plane_ctl = PLANE_CTL_PIPE_A | PLANE_CTL_FORMAT_XRGB8888;
 
     plane_regs[PLANE_CTL_1A / 4] = plane_ctl;
-
-    plane_regs[PLANE_SURF_1A / 4] = fb.gfx_addr;
-
+    plane_regs[PLANE_SURF_1A / 4] = static_cast<uint32_t>(gfx_raw(fb.gfx_addr));
     plane_regs[PLANE_CTL_1A / 4] = plane_ctl | PLANE_CTL_ENABLE;
 
     asm volatile("mfence" ::: "memory");
 
-    Log::debug("Display framebuffer updated: addr=0x%llx, %dx%d, pitch=%d", fb.gfx_addr, fb.width, fb.height, fb.pitch);
+    Log::debug(
+        "Display framebuffer updated: addr=0x%llx, %dx%d, pitch=%d", gfx_raw(fb.gfx_addr), fb.width, fb.height, fb.pitch
+    );
 }
 
 void IntelBlt::xy_mono_src_copy_blt(
-    uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-    uint64_t mono_src_addr, uint32_t src_bit_position, bool transparency_enabled, uint32_t bg_color, uint32_t fg_color
+    gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
+    gfx_addr_t mono_src_addr, uint32_t src_bit_position, bool transparency_enabled, uint32_t bg_color, uint32_t fg_color
 ) {
     // DW0: BR00 - Command Header
     uint32_t dw0 = XY_MONO_SRC_COPY_CMD | XY_MONO_SRC_COPY_OPCODE | XY_MONO_SRC_COPY_WRITE_ALPHA |
@@ -609,12 +592,12 @@ void IntelBlt::xy_mono_src_copy_blt(
     uint32_t dw3 = ((dest_y2 & 0xFFFF) << 16) | (dest_x2 & 0xFFFF);
 
     // DW4-5: Destination Base Address (64-bit)
-    uint32_t dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
-    uint32_t dw5 = static_cast<uint32_t>(dest_addr >> 32);
+    uint32_t dw4 = static_cast<uint32_t>(gfx_raw(dest_addr) & 0xFFFFFFFF);
+    uint32_t dw5 = static_cast<uint32_t>(gfx_raw(dest_addr) >> 32);
 
     // DW6-7: Monochrome Source Address (64-bit, 64-byte aligned)
-    uint32_t dw6 = static_cast<uint32_t>(mono_src_addr & 0xFFFFFFFF);
-    uint32_t dw7 = static_cast<uint32_t>(mono_src_addr >> 32);
+    uint32_t dw6 = static_cast<uint32_t>(gfx_raw(mono_src_addr) & 0xFFFFFFFF);
+    uint32_t dw7 = static_cast<uint32_t>(gfx_raw(mono_src_addr) >> 32);
 
     // DW8: BR18 - Source Background Color
     uint32_t dw8 = bg_color;
@@ -636,9 +619,9 @@ void IntelBlt::xy_mono_src_copy_blt(
 }
 
 void IntelBlt::build_text_scanline(const char* text, size_t length, FONT* font, uint8_t* buffer, size_t buffer_stride) {
-    const size_t glyph_width = font->width;             // z.B. 10
-    const size_t glyph_height = font->height;           // z.B. 24
-    const size_t glyph_stride = (glyph_width + 7) / 8;  // PSF2: Bytes pro Zeile
+    const size_t glyph_width = font->width;
+    const size_t glyph_height = font->height;
+    const size_t glyph_stride = (glyph_width + 7) / 8;
 
     auto glyphs = static_cast<const uint8_t*>(font->glyphBuffer);
 
@@ -648,7 +631,6 @@ void IntelBlt::build_text_scanline(const char* text, size_t length, FONT* font, 
     for (size_t char_idx = 0; char_idx < length; char_idx++) {
         const uint8_t c = static_cast<uint8_t>(text[char_idx]);
         const size_t glyph_offset = static_cast<size_t>(c) * static_cast<size_t>(font->charsize);
-
         const uint8_t* glyph = glyphs + glyph_offset;
 
         // Glyph beginnt exakt an seiner Zelle
@@ -670,10 +652,8 @@ void IntelBlt::build_text_scanline(const char* text, size_t length, FONT* font, 
                 for (uint32_t bit = 0; bit < bits_to_process; bit++) {
                     if (bits & (0x80 >> bit)) {
                         const uint32_t dst_pixel = char_x + glyph_bit_base + bit;
-
                         const uint32_t dst_byte = dst_pixel / 8;
                         const uint32_t dst_bit = dst_pixel % 8;
-
                         dst_row[dst_byte] |= (0x80 >> dst_bit);
                     }
                 }
@@ -743,8 +723,8 @@ bool IntelBlt::draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_co
 }
 
 void IntelBlt::xy_src_copy_blt(
-    uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-    uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
+    gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
+    gfx_addr_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
 ) {
     // DW0: BR00 - Command Header
     uint32_t dw0 = XY_SRC_COPY_BLT_CMD | XY_SRC_COPY_BLT_OPCODE | XY_SRC_COPY_WRITE_ALPHA | XY_SRC_COPY_WRITE_RGB |
@@ -761,8 +741,8 @@ void IntelBlt::xy_src_copy_blt(
     uint32_t dw3 = ((dest_y2 & COORD_MASK) << COORD_Y_SHIFT) | (dest_x2 & COORD_MASK);
 
     // DW4-5: Destination Base Address (64-bit)
-    uint32_t dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
-    uint32_t dw5 = static_cast<uint32_t>(dest_addr >> 32);
+    uint32_t dw4 = static_cast<uint32_t>(gfx_raw(dest_addr) & 0xFFFFFFFF);
+    uint32_t dw5 = static_cast<uint32_t>(gfx_raw(dest_addr) >> 32);
 
     // DW6: BR26 - Source Y1, X1
     uint32_t dw6 = ((src_y1 & COORD_MASK) << COORD_Y_SHIFT) | (src_x1 & COORD_MASK);
@@ -771,8 +751,8 @@ void IntelBlt::xy_src_copy_blt(
     uint32_t dw7 = src_pitch & 0xFFFF;
 
     // DW8-9: Source Base Address (64-bit)
-    uint32_t dw8 = static_cast<uint32_t>(src_addr & 0xFFFFFFFF);
-    uint32_t dw9 = static_cast<uint32_t>(src_addr >> 32);
+    uint32_t dw8 = static_cast<uint32_t>(gfx_raw(src_addr) & 0xFFFFFFFF);
+    uint32_t dw9 = static_cast<uint32_t>(gfx_raw(src_addr) >> 32);
 
     write_command(dw0);
     write_command(dw1);
@@ -787,8 +767,8 @@ void IntelBlt::xy_src_copy_blt(
 }
 
 void IntelBlt::xy_fast_copy_blt(
-    uint64_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-    uint64_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
+    gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
+    gfx_addr_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
 ) {
     // DW0: BR00 – Command Header
     uint32_t dw0 = XY_FAST_COPY_BLT_CMD | XY_FAST_COPY_BLT_OPCODE | FAST_SRC_TILING_LINEAR | FAST_DST_TILING_LINEAR |
@@ -804,8 +784,8 @@ void IntelBlt::xy_fast_copy_blt(
     uint32_t dw3 = ((dest_y2 & COORD_MASK) << COORD_Y_SHIFT) | (dest_x2 & COORD_MASK);
 
     // DW4–5: Destination Base Address
-    uint32_t dw4 = static_cast<uint32_t>(dest_addr & 0xFFFFFFFF);
-    uint32_t dw5 = static_cast<uint32_t>(dest_addr >> 32);
+    uint32_t dw4 = static_cast<uint32_t>(gfx_raw(dest_addr) & 0xFFFFFFFF);
+    uint32_t dw5 = static_cast<uint32_t>(gfx_raw(dest_addr) >> 32);
 
     // DW6: BR26 – Source Y1, X1
     uint32_t dw6 = ((src_y1 & COORD_MASK) << COORD_Y_SHIFT) | (src_x1 & COORD_MASK);
@@ -814,8 +794,8 @@ void IntelBlt::xy_fast_copy_blt(
     uint32_t dw7 = src_pitch & 0x7FFF;
 
     // DW8–9: Source Base Address
-    uint32_t dw8 = static_cast<uint32_t>(src_addr & 0xFFFFFFFF);
-    uint32_t dw9 = static_cast<uint32_t>(src_addr >> 32);
+    uint32_t dw8 = static_cast<uint32_t>(gfx_raw(src_addr) & 0xFFFFFFFF);
+    uint32_t dw9 = static_cast<uint32_t>(gfx_raw(src_addr) >> 32);
 
     write_command(dw0);
     write_command(dw1);
@@ -849,7 +829,7 @@ bool IntelBlt::blit_buffer(
 
     const auto temp_buffer = alloc_and_map_to_ggtt(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
 
-    const auto src = static_cast<const uint8_t*>(pixels);
+    const auto* src = static_cast<const uint8_t*>(pixels);
     uint8_t* dst = virt_as<uint8_t>(temp_buffer.cpu_addr);
 
     for (uint32_t y = 0; y < max_h; y++) {
