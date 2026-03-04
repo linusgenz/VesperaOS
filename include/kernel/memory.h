@@ -22,7 +22,7 @@ uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapEntries, size_t
 
 void memset(void* dest, uint8_t val, uint64_t num);
 
-inline void memset(virt_addr_t dest, uint8_t val, uint64_t num) {
+inline void memset(const virt_addr_t dest, const uint8_t val, const uint64_t num) {
     memset(virt_ptr(dest), val, num);
 }
 

@@ -28,7 +28,7 @@
 
 class Ps2Controller;
 
-class Ps2MouseDevice : public CharDevice {
+class Ps2MouseDevice final : public CharDevice {
 public:
     KernelDevice* devnode;
     Ps2Controller* parent;

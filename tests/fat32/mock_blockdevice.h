@@ -46,7 +46,7 @@ public:
                           size_t bufferSize) = 0;
 
     [[nodiscard]] virtual size_t get_size() const = 0;
-    [[nodiscard]] virtual uint32_t get_sector_size() const = 0;
+    [[nodiscard]] virtual size_t get_sector_size() const = 0;
 
     virtual ~BlockDevice() = default;
 };
@@ -99,7 +99,7 @@ public:
         return storage.size();
     }
 
-    uint32_t get_sector_size() const override {
+    size_t get_sector_size() const override {
         return SECTOR_SIZE;
     }
 

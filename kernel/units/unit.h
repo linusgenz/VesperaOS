@@ -203,8 +203,7 @@ class Unit {
     ErrorCode detach_all_handles() {
         handle_table.lock.lock();
         for (uint64_t& slot : handle_table.slots) {
-            HandleID h = slot;
-            if (h != 0) {
+            if (const HandleID h = slot; h != 0) {
                 slot = 0;
             }
         }

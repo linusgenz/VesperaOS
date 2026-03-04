@@ -1,7 +1,7 @@
-; ap_trampoline.asm - kompiliert mit: nasm -f bin -o ap_trampoline.bin
 TRAMPOLINE_BASE equ 0x8000
 IDTR_SRC        equ 0x1000   ; vom Kernel vorbereitet
 PML4_SRC        equ 0x2000   ; vom Kernel vorbereitet
+KERNEL_ENTRY    equ 0x3000
 REPORT_BASE     equ 0x7000   ; CpuStartupReport array
 
 bits 16
@@ -15,7 +15,7 @@ ap_trampoline_entry:
     mov es, ax
     mov ss, ax
 
-    ; GDT laden
+    ; GDT
     lgdt [gdt32.desc - TRAMPOLINE_BASE + TRAMPOLINE_BASE]
 
     ; Protected Mode
@@ -34,16 +34,15 @@ ap32:
     mov fs, ax
     mov gs, ax
 
-    ; PAE aktivieren
+    ; PAE
     mov eax, cr4
     or  eax, (1 << 5)
     mov cr4, eax
 
-    ; PML4 laden (vom Kernel bei 0x2000 abgelegt)
-    mov eax, [0x2000]
+    mov eax, [abs PML4_SRC]
     mov cr3, eax
 
-    ; Long Mode aktivieren
+    ; Long Mode
     mov ecx, 0xC0000080
     rdmsr
     or  eax, (1 << 8)
@@ -54,7 +53,7 @@ ap32:
     or  eax, (1 << 31) | 1
     mov cr0, eax
 
-    ; GDT64 laden
+    ; GDT64
     lgdt [gdt64.desc - TRAMPOLINE_BASE + TRAMPOLINE_BASE]
 
     jmp 0x08:(ap64 - TRAMPOLINE_BASE + TRAMPOLINE_BASE)
@@ -68,36 +67,30 @@ ap64:
     mov fs, ax
     mov gs, ax
 
-    ; IDT laden (vom Kernel bei 0x1000 abgelegt)
-    lidt [0x1000]
+    lidt [abs IDTR_SRC]
 
-    ; APIC ID lesen um den richtigen Report-Slot zu finden
     mov eax, 1
     cpuid
     shr ebx, 24
     and ebx, 0xFF           ; APIC ID in EBX
 
-    ; Report-Adresse: 0x7000 + apic_id * sizeof(CpuStartupReport)
+    ; report address: 0x7000 + apic_id * sizeof(CpuStartupReport)
     ; sizeof = 24 Bytes
     imul rax, rbx, 24
     add rax, REPORT_BASE
 
-    ; Stack aus Report laden
+    ; load stack from report
     mov rsp, [rax + 8]      ; stack_pointer offset = 8
 
-    ; ready = true setzen
     mov byte [rax + 16], 1  ; ready offset = 16
 
-    ; Warten bis go = true
+    ; wait till go = true
 .wait:
     pause
     cmp byte [rax + 17], 1  ; go offset = 17
     jne .wait
 
-    ; In den Kernel springen
-    ; Zieladresse muss vom Kernel bei 0x3000 abgelegt werden
-
-    mov rax, [0x3000]
+    mov rax, [abs KERNEL_ENTRY]
     jmp rax
 
 ; ============================================================

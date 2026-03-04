@@ -99,7 +99,7 @@ RandomIt partition(RandomIt first, RandomIt last, Compare comp) {
 // Heapsort als Fallback bei zu tiefer Rekursion
 template<typename RandomIt, typename Compare>
 void heapsort(RandomIt first, RandomIt last, Compare comp) {
-    using diff_t = typename iterator_traits<RandomIt>::difference_type;
+    using diff_t = iterator_traits<RandomIt>::difference_type;
     diff_t n = last - first;
 
     // Build heap

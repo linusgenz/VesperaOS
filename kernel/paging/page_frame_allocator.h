@@ -10,13 +10,6 @@
 
 class PageFrameAllocator {
    public:
-    PageFrameAllocator()
-        : free_memory(0)
-        , reserved_memory(0)
-        , used_memory(0)
-        , total_memory(0)
-        , initialized(false) {
-    }
 
     void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *mMap, size_t mMapSize, size_t mMapDescSize);
 
@@ -55,11 +48,11 @@ class PageFrameAllocator {
 
     void unreserve_pages(uint64_t address, size_t page_count);
 
-    uint64_t free_memory;
-    uint64_t reserved_memory;
-    uint64_t used_memory;
-    uint64_t total_memory;
-    bool initialized;
+    uint64_t free_memory{0};
+    uint64_t reserved_memory{0};
+    uint64_t used_memory{0};
+    uint64_t total_memory{0};
+    bool initialized{false};
 };
 
 #endif  // PAGE_FRAME_ALLOCATOR_H

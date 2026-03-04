@@ -101,7 +101,7 @@ namespace AHCI {
         StopCMD();
 
         // Command list
-        phys_addr_t cmd_list_phys = kernel::memory::request_page_phys();
+        const phys_addr_t cmd_list_phys = kernel::memory::request_page_phys();
         auto* cmd_list_virt = static_cast<HBACommandHeader*>(virt_ptr(phys_to_virt(cmd_list_phys)));
         memset(cmd_list_virt, 0, 1024);
 
@@ -109,8 +109,8 @@ namespace AHCI {
         hbaPort->commandListBaseUpper = static_cast<uint32_t>(phys_raw(cmd_list_phys) >> 32);
 
         // FIS base
-        phys_addr_t fis_phys = kernel::memory::request_page_phys();
-        virt_addr_t fis_virt = phys_to_virt(fis_phys);
+        const phys_addr_t fis_phys = kernel::memory::request_page_phys();
+        const virt_addr_t fis_virt = phys_to_virt(fis_phys);
         memset(fis_virt, 0, 256);
 
         hbaPort->fisBaseAddress = static_cast<uint32_t>(phys_raw(fis_phys));
@@ -120,9 +120,9 @@ namespace AHCI {
         for (int i = 0; i < 32; i++) {
             cmd_list_virt[i].prdtLength = 8;
 
-            phys_addr_t table_phys = kernel::memory::request_page_phys();
-            phys_addr_t table_phys_offset = phys_add(table_phys, i << 8);
-            virt_addr_t table_virt = phys_to_virt(table_phys);
+            const phys_addr_t table_phys = kernel::memory::request_page_phys();
+            const phys_addr_t table_phys_offset = phys_add(table_phys, i << 8);
+            const virt_addr_t table_virt = phys_to_virt(table_phys);
             memset(table_virt, 0, 256);
 
             cmd_list_virt[i].commandTableBaseAddress = static_cast<uint32_t>(phys_raw(table_phys_offset));
@@ -139,14 +139,14 @@ namespace AHCI {
 
         // Free command list
         if (hbaPort->commandListBase || hbaPort->commandListBaseUpper) {
-            phys_addr_t cmd_list_phys =
+            const phys_addr_t cmd_list_phys =
                 make_phys(static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 | hbaPort->commandListBase);
 
             // Free command tables before freeing the list
-            auto* cmd_header = static_cast<HBACommandHeader*>(virt_ptr(phys_to_virt(cmd_list_phys)));
+            const auto* cmd_header = static_cast<HBACommandHeader*>(virt_ptr(phys_to_virt(cmd_list_phys)));
             for (int i = 0; i < 32; i++) {
                 if (!cmd_header[i].commandTableBaseAddress && !cmd_header[i].commandTableBaseAddressUpper) continue;
-                phys_addr_t table_phys = make_phys(
+                const phys_addr_t table_phys = make_phys(
                     static_cast<uint64_t>(cmd_header[i].commandTableBaseAddressUpper) << 32 |
                     cmd_header[i].commandTableBaseAddress
                 );
@@ -158,14 +158,14 @@ namespace AHCI {
 
         // Free FIS base
         if (hbaPort->fisBaseAddress || hbaPort->fisBaseAddressUpper) {
-            phys_addr_t fis_phys =
+            const phys_addr_t fis_phys =
                 make_phys(static_cast<uint64_t>(hbaPort->fisBaseAddressUpper) << 32 | hbaPort->fisBaseAddress);
             kernel::memory::free_page_phys(fis_phys);
         }
 
         // Free identify buffer
         if (identify) {
-            phys_addr_t identify_phys = virt_to_phys(make_virt(identify));
+            const phys_addr_t identify_phys = virt_to_phys(make_virt(identify));
             kernel::memory::free_page_phys(identify_phys);
             identify = nullptr;
         }
@@ -195,19 +195,19 @@ namespace AHCI {
     size_t Port::get_size() const {
         return total_sectors * sector_size;
     }
-    uint32_t Port::get_sector_size() const {
+    size_t Port::get_sector_size() const {
         return sector_size;
     }
 
     bool Port::Identify() {
-        phys_addr_t identify_phys = kernel::memory::request_page_phys();
+        const phys_addr_t identify_phys = kernel::memory::request_page_phys();
         identify = static_cast<IDENTIFY_DEVICE_DATA*>(virt_ptr(phys_to_virt(identify_phys)));
         memset(identify, 0, 0x1000);
 
         kernel::mutex_guard guard(portMutex);
         hbaPort->interruptStatus = static_cast<uint32_t>(-1);
 
-        phys_addr_t cmd_list_phys =
+        const phys_addr_t cmd_list_phys =
             make_phys(static_cast<uint64_t>(hbaPort->commandListBaseUpper) << 32 | hbaPort->commandListBase);
         auto* cmd_header = static_cast<HBACommandHeader*>(virt_ptr(phys_to_virt(cmd_list_phys)));
 
@@ -215,7 +215,7 @@ namespace AHCI {
         cmd_header->write = 0;
         cmd_header->prdtLength = 1;
 
-        phys_addr_t cmd_table_phys = make_phys(
+        const phys_addr_t cmd_table_phys = make_phys(
             static_cast<uint64_t>(cmd_header->commandTableBaseAddressUpper) << 32 | cmd_header->commandTableBaseAddress
         );
         auto* cmd_table = static_cast<HBACommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
@@ -242,7 +242,7 @@ namespace AHCI {
         }
 
         if (identify->PhysicalLogicalSectorSize.LogicalSectorLongerThan256Words) {
-            uint32_t words =
+            const uint32_t words =
                 identify->WordsPerLogicalSector[0] | static_cast<uint32_t>(identify->WordsPerLogicalSector[1]) << 16;
             sector_size = words * 2;
         } else {
@@ -259,7 +259,7 @@ namespace AHCI {
         return true;
     }
 
-    ssize_t Port::read(const uint64_t sector, const uint32_t sectorCount, void* buffer, size_t bufferSize) {
+    ssize_t Port::read(const uint64_t lba, const size_t sectorCount, void* buffer, size_t bufferSize) {
         size_t bytes = static_cast<size_t>(sectorCount) * sector_size;
         if (!buffer || sectorCount == 0 || bufferSize < bytes) return -EINVAL;
 
@@ -270,8 +270,8 @@ namespace AHCI {
         if (phys_null(dma_phys)) return -ENOMEM;
         void* dma = virt_ptr(phys_to_virt(dma_phys));
 
-        const auto sectorL = static_cast<uint32_t>(sector);
-        const auto sectorH = static_cast<uint32_t>(sector >> 32);
+        const auto sectorL = static_cast<uint32_t>(lba);
+        const auto sectorH = static_cast<uint32_t>(lba >> 32);
 
         hbaPort->interruptStatus = 0xFFFFFFFF;
 
@@ -326,7 +326,7 @@ namespace AHCI {
         return static_cast<ssize_t>(bytes);
     }
 
-    ssize_t Port::write(const uint64_t sector, const uint32_t sectorCount, void* buffer, size_t bufferSize) {
+    ssize_t Port::write(const uint64_t sector, const size_t sectorCount, void* buffer, size_t bufferSize) {
         size_t bytes = static_cast<size_t>(sectorCount) * sector_size;
         if (!buffer || sectorCount == 0 || bufferSize < bytes) return -EINVAL;
 
@@ -403,7 +403,7 @@ namespace AHCI {
         DeviceManager::AllocUniqueDeviceName("ahci", name, sizeof(name));
         kd = DeviceManager::RegisterController(name, DeviceClass::Storage, BusType::BUS_PCI, ControllerType::AHCI);
 
-        phys_addr_t abar_phys = make_phys(reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress)->BAR5);
+        const phys_addr_t abar_phys = make_phys(reinterpret_cast<PCI::PCIHeader0*>(pciBaseAddress)->BAR5);
         ABAR = static_cast<HBAMemory*>(virt_ptr(phys_to_virt(abar_phys)));
         kernel::memory::map_memory(
             make_virt(ABAR), abar_phys, (1ULL << PT_Flag::CacheDisabled) | (1ULL << PT_Flag::WriteThrough)
@@ -446,5 +446,4 @@ namespace AHCI {
         kernel::memory::unmap_memory(make_virt(ABAR));
         for (int i = 0; i < portCount; i++) delete ports[i];
     }
-
 }  // namespace AHCI

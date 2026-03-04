@@ -1,10 +1,11 @@
 [bits 64]
 
+section .bss
+    vendor_buffer resb 13
 section .data
     cpu_features dq 0
     vendor_string db "GenuineIntel", 0   ; Intel string
     amd_string db "AuthenticAMD", 0      ; AMD string
-    vendor_buffer resb 13
 
 
 get_cpu_vendor:

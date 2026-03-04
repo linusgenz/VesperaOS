@@ -24,28 +24,6 @@
 #ifndef VESPERAOS_INIT_DEV_H
 #define VESPERAOS_INIT_DEV_H
 
-#include "../devices/log_device.h"
-#include "../devices/misc/cpuinfo.h"
-#include "../devices/misc/full.h"
-#include "../devices/misc/null.h"
-#include "../devices/misc/rtc.h"
-#include "../devices/misc/uptime.h"
-#include "../devices/misc/urandom.h"
-#include "../devices/misc/version.h"
-#include "../devices/misc/zero.h"
-#include "misc/meminfo.h"
-
-static ZeroDevice *zero_dev = nullptr;
-static NullDevice *null_dev = nullptr;
-static URandomDevice *urand_dev = nullptr;
-static FullDevice *full_dev = nullptr;
-static RTCDevice *rtc_dev = nullptr;
-static UptimeDevice *uptime_dev = nullptr;
-static VersionDevice *version_dev = nullptr;
-static CPUInfoDevice *cpuinfo_dev = nullptr;
-static MemInfoDevice *meminfo_dev = nullptr;
-static LogDevice *log_dev = nullptr;
-
 void initialize_pseudo_devices();
 
 #endif  // VESPERAOS_INIT_DEV_H

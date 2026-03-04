@@ -33,11 +33,10 @@ Terminal* global_terminal = nullptr;
 Terminal::Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height)
     : drv(d)
     , char_w(char_width)
-    , char_h(char_height) {
-    cols = drv->screen_width_px() / char_w;
-    rows = drv->screen_height_px() / char_h;
-
-    cells = new Cell[cols * rows];
+    , char_h(char_height)
+    , cols(drv->screen_width_px() / char_w)
+    , rows(drv->screen_height_px() / char_h)
+    , cells(new Cell[cols * rows]) {
     clear();
 }
 
@@ -146,16 +145,21 @@ Terminal::Cell& Terminal::at(uint32_t x, uint32_t y) const {
     return cells[y * cols + x];
 }
 
-void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* cells, uint32_t len) const {
+void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* run_cells, uint32_t len) const {
     char buf[256];
     if (len >= sizeof(buf)) len = sizeof(buf) - 1;
 
-    for (uint32_t i = 0; i < len; ++i) buf[i] = cells[i].ch;
+    for (uint32_t i = 0; i < len; ++i) buf[i] = run_cells[i].ch;
 
     buf[len] = '\0';
 
     GlyphRun run{
-        .text = buf, .length = len, .px = cell_x * char_w, .py = cell_y * char_h, .fg = cells[0].fg, .bg = cells[0].bg
+        .text = buf,
+        .length = len,
+        .px = cell_x * char_w,
+        .py = cell_y * char_h,
+        .fg = run_cells[0].fg,
+        .bg = run_cells[0].bg
     };
 
     drv->draw_glyph_run(run);

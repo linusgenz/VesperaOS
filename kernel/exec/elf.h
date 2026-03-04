@@ -429,8 +429,6 @@ class ElfLoader {
         const size_t memory_size;
     };
 
-    static bool validate_elf_header(const Elf64_Ehdr* header);
-
     static bool validate_magic(const Elf64_Ehdr* header);
     static bool validate_type(const Elf64_Ehdr* header);
     static bool validate_architecture(const Elf64_Ehdr* header);

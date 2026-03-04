@@ -100,7 +100,7 @@ struct KernelDevice
     Vector<KernelDevice*> children{};
 
     BlockDevice* block{nullptr};
-    ::CharDevice* chardev{nullptr};
+    CharDevice* chardev{nullptr};
 
     uint32_t next_nvme_index = 0; // for nvme<N> controller
     Vector<bool> nvme_device_used;

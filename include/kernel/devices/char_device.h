@@ -69,7 +69,7 @@ public:
 
     virtual int poll(CharFile* cf) { return 0; }
 
-    // Nicht-kopierbar
+    // Non-copyable
     CharDevice(const CharDevice&) = delete;
     CharDevice& operator=(const CharDevice&) = delete;
 };

@@ -21,23 +21,32 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "init.h"
-
 #include "../../filesystem/devfs/devfs.h"
+#include "log_device.h"
+#include "misc/cpuinfo.h"
+#include "misc/full.h"
+#include "misc/meminfo.h"
+#include "misc/null.h"
+#include "misc/rtc.h"
+#include "misc/uptime.h"
+#include "misc/urandom.h"
+#include "misc/version.h"
+#include "misc/zero.h"
 
 void initialize_pseudo_devices() {
-    Channel* kernel_log_channel = Channel::create(32 * 1024);
+    constexpr size_t CHANNEL_CAPACITY = static_cast<size_t>(32) * 1024;
+    Channel* kernel_log_channel = Channel::create(CHANNEL_CAPACITY);
 
-    zero_dev = new ZeroDevice("zero");
-    null_dev = new NullDevice("null");
-    urand_dev = new URandomDevice("urandom");
-    full_dev = new FullDevice("full");
-    rtc_dev = new RTCDevice("rtc");
-    uptime_dev = new UptimeDevice("uptime");
-    version_dev = new VersionDevice("version");
-    cpuinfo_dev = new CPUInfoDevice("cpuinfo");
-    meminfo_dev = new MemInfoDevice("meminfo");
-    log_dev = new LogDevice(kernel_log_channel);
+    auto* zero_dev = new ZeroDevice("zero");
+    auto* null_dev = new NullDevice("null");
+    auto* urand_dev = new URandomDevice("urandom");
+    auto* full_dev = new FullDevice("full");
+    auto* rtc_dev = new RTCDevice("rtc");
+    auto* uptime_dev = new UptimeDevice("uptime");
+    auto* version_dev = new VersionDevice("version");
+    auto* cpuinfo_dev = new CPUInfoDevice("cpuinfo");
+    auto* meminfo_dev = new MemInfoDevice("meminfo");
+    auto* log_dev = new LogDevice(kernel_log_channel);
 
     auto register_char_device = [](CharDevice* dev, const char* name, DeviceClass cls) -> KernelDevice* {
         KernelDevice* kd =

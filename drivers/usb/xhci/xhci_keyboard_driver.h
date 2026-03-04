@@ -46,7 +46,7 @@ class xhciKeyboardDriver final : public xhciHidDriver
 {
 public:
     xhciKeyboardDriver() = default;
-    ~xhciKeyboardDriver() = default;
+    ~xhciKeyboardDriver() override = default;
 
     void on_device_init(USB::xhciDriver* hcd) override;
     void on_device_event(uint8_t* data) override;

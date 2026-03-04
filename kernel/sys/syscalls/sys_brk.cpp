@@ -107,9 +107,8 @@ namespace syscalls::internal {
             uintptr_t end = (cur->heap_end + 0xFFF) & ~0xFFFULL;
 
             for (uintptr_t a = start; a < end; a += 0x1000) {
-                virt_addr_t vaddr = virt_from_raw(a);
-                phys_addr_t phys = cur_r->page_table->get_physical_address(vaddr);
-                if (!phys_null(phys)) {
+                const virt_addr_t vaddr = virt_from_raw(a);
+                if (const phys_addr_t phys = cur_r->page_table->get_physical_address(vaddr); !phys_null(phys)) {
                     cur_r->page_table->unmap_memory(vaddr);
                     kernel::memory::free_page_phys(phys);
                 }

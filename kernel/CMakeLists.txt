@@ -188,7 +188,7 @@ if (ENABLE_DEBUG_FAULT)
             ${CMAKE_SOURCE_DIR}/limine
     )
 
-    add_dependencies(kernel_stage1 embedded_font)
+    add_dependencies(kernel_stage1 embedded_font ap_trampoline)
 
     # generate kernel.map
     add_custom_command(

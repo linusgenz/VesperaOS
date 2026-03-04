@@ -29,16 +29,16 @@
 
 #include "../../../include/kernel/devices/device_manager.h"
 
-class UsbKeyboardDevice : public CharDevice
+class UsbKeyboardDevice final : public CharDevice
 {
 public:
     explicit UsbKeyboardDevice(const char* name, KernelDevice* parent);
-    int open(CharFile**);
-    int release(CharFile*);
+    int open(CharFile**) override;
+    int release(CharFile*) override;
 
     ~UsbKeyboardDevice() override;
 
-    KernelDevice* devnode;
+    KernelDevice* kd;
 
     // CharDevice API
     ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;

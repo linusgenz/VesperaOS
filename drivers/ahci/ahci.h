@@ -184,11 +184,11 @@ namespace AHCI {
         void StopCMD() const;
         void StartCMD() const;
 
-        ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize) override;
+        ssize_t read(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize) override;
 
-        ssize_t write(uint64_t sector, uint32_t sectorCount, void* buffer, size_t bufferSize) override;
+        ssize_t write(uint64_t sector, size_t sectorCount, void* buffer, size_t bufferSize) override;
 
-        [[nodiscard]] uint32_t get_sector_size() const override;
+        [[nodiscard]] size_t get_sector_size() const override;
         [[nodiscard]] size_t get_size() const override;
         bool Identify();
     };

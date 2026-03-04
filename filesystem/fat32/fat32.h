@@ -212,8 +212,6 @@ namespace FAT32
         bool ReadFile(Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset = 0) const;
 
         bool WriteFile(Fat32Node* node, const void* buffer, size_t len, size_t offset);
-        bool WriteLFNEntries(DirectoryEntry* entries, size_t startIndex, const char* longName, const char* shortName,
-                             size_t nameLen) const;
 
         FileEntry* ReadDirectory(const char* path, size_t& outCount) const;
 
@@ -225,8 +223,6 @@ namespace FAT32
                                         const DirectoryEntry* shortEntry);
         bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char* name);
 
-        bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char* name) const;
-
         bool CreateDirectory(const Fat32Node* parentDir, const char* name);
 
         bool RemoveDirectory(const Fat32Node* parentDir, const char* name);
@@ -235,12 +231,10 @@ namespace FAT32
 
         bool DeleteFile(const Fat32Node* parentDir, const char* name);
 
-        static size_t FindFirstLFNIndex(const FileEntry* entries, size_t shortNameIndex);
-
         [[nodiscard]] BPB_FAT32* GetBpb()
         {
             return &bpb;
-        };
+        }
 
  //   private:
         BlockDevice* device;
@@ -312,8 +306,6 @@ namespace FAT32
         uint32_t ReadFATEntry(uint32_t cluster, Sector& sec) const;
         bool WriteFATEntryRaw(uint32_t fatSector, uint32_t offset, uint32_t value) const;
 
-        [[nodiscard]] uint32_t FindFreeCluster() const;
-
         uint32_t* GetClusterChain(uint32_t startCluster, size_t& outCount) const;
         bool FreeClusterChain(uint32_t startCluster);
 
@@ -321,11 +313,6 @@ namespace FAT32
         [[nodiscard]] uint32_t NextCluster(uint32_t c) const;
         bool HasFATLoop(uint32_t start) const;
         uint32_t FindFreeCluster();
-        bool WriteDirectoryEntry(uint32_t dirCluster, const void* entry);
-
-        bool UpdateDirectoryEntryWithLFN(uint32_t parentCluster, size_t firstLFNIndex,
-                                         const char* longName, const char* shortName,
-                                         const DirectoryEntry* shortEntry) const;
 
         bool OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex, const DirectoryEntry* newEntry) const;
 

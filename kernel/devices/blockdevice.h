@@ -17,12 +17,12 @@ class BlockDevice {
 
     // bufferSize is not used to determine how much to read, but to assert, that the buffer is equal or greater than
     // sectorCount * sector_size
-    virtual ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize) = 0;
+    virtual ssize_t read(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize) = 0;
     // bufferSize is not used to determine how much to write, but to assert, that the buffer is equal or greater than
     // sectorCount * sector_size
-    virtual ssize_t write(uint64_t sector, uint32_t sectorCount, void* buffer, size_t bufferSize) = 0;
+    virtual ssize_t write(uint64_t sector, size_t sectorCount, void* buffer, size_t bufferSize) = 0;
     [[nodiscard]] virtual size_t get_size() const = 0;
-    [[nodiscard]] virtual uint32_t get_sector_size() const = 0;
+    [[nodiscard]] virtual size_t get_sector_size() const = 0;
     virtual ~BlockDevice() = default;
 };
 

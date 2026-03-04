@@ -72,7 +72,7 @@ namespace FAT32 {
 
     FileSystem::~FileSystem() {
         WriteFSInfo();
-    };
+    }
 
     bool FileSystem::probe_fs() const {
         return bpb.rootEntryCount == 0 && bpb.FATSize16 == 0 && clusterCount >= 65525;
@@ -202,19 +202,18 @@ namespace FAT32 {
         for (uint32_t c = 2; c < clusterCount + 2; ++c) {
             const uint32_t fatOffset    = c * 4;
             const uint32_t sectorOffset = fatOffset / bpb.bytesPerSector;
-            const uint32_t fatSector    = bpb.reservedSectorCount + sectorOffset;
 
-            if (fatSector != lastSector) {
+            if (const uint32_t fatSector = bpb.reservedSectorCount + sectorOffset; fatSector != lastSector) {
                 if (!ReadFATSector(fatSector, buf))
                     continue;
                 lastSector = fatSector;
             }
 
             const uint32_t offsetInSector = fatOffset % bpb.bytesPerSector;
-            const uint32_t entry = *reinterpret_cast<uint32_t*>(buf + offsetInSector) & 0x0FFFFFFF;
 
-            if (entry == 0)
+            if (const uint32_t entry = *reinterpret_cast<uint32_t*>(buf + offsetInSector) & 0x0FFFFFFF; entry == 0) {
                 ++count;
+            }
         }
 
         freeClusterCount = count;
@@ -911,8 +910,7 @@ namespace FAT32 {
             const size_t spaceInCluster = clusterBytes - offsetInCluster;
             const size_t toWrite = (remaining < spaceInCluster) ? remaining : spaceInCluster;
 
-            const bool partial = (offsetInCluster != 0) || (toWrite < clusterBytes);
-            if (partial) {
+            if (const bool partial = (offsetInCluster != 0) || (toWrite < clusterBytes)) {
                 if (ReadCluster(clusterChain[clusterIndex], clusterBuf, clusterBytes) < 0) {
                     kernel::memory::free(clusterChain);
                     return false;
@@ -949,50 +947,6 @@ namespace FAT32 {
     // ============================================================================
     // LFN Support Functions
     // ============================================================================
-
-    bool FileSystem::WriteLFNEntries(
-        DirectoryEntry* entries, size_t startIndex, const char* longName, const char* shortName, size_t nameLen
-    ) const {
-        const size_t entriesNeeded = (nameLen + 12) / 13;
-        uint16_t nameBuffer[256] = {};
-
-        for (size_t j = 0; j < nameLen; ++j) nameBuffer[j] = static_cast<uint8_t>(longName[j]);
-
-        uint8_t checksum = ChkSum(shortName);
-
-        for (int lfnIndex = static_cast<int>(entriesNeeded) - 1; lfnIndex >= 0; --lfnIndex) {
-            LongFileName lfn = {};
-            lfn.order = static_cast<uint8_t>(lfnIndex + 1);
-            if (lfnIndex == static_cast<int>(entriesNeeded) - 1) lfn.order |= 0x40;
-
-            lfn.attr = ATTR_LONG_NAME;
-            lfn.type = 0;
-            lfn.checksum = checksum;
-            lfn.firstClusterLow = 0;
-
-            size_t namePos = static_cast<size_t>(lfnIndex) * 13;
-
-            auto copy_from_name = [&](uint16_t* dest, int count) {
-                for (int c = 0; c < count; ++c) {
-                    if (namePos < nameLen)
-                        dest[c] = nameBuffer[namePos++];
-                    else if (namePos == nameLen) {
-                        dest[c] = 0x0000;
-                        namePos++;
-                    } else
-                        dest[c] = 0xFFFF;
-                }
-            };
-
-            copy_from_name(lfn.name1, 5);
-            copy_from_name(lfn.name2, 6);
-            copy_from_name(lfn.name3, 2);
-
-            memcpy(&entries[startIndex + (entriesNeeded - 1 - static_cast<size_t>(lfnIndex))], &lfn, sizeof(LongFileName));
-        }
-
-        return true;
-    }
 
     bool FileSystem::WriteDirectoryEntryWithLFN(
         uint32_t dirCluster, const char* longName, const char* shortName, const DirectoryEntry* shortEntry

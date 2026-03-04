@@ -20,20 +20,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #ifndef VESPERAOS_TERMINAL_H
 #define VESPERAOS_TERMINAL_H
 
+#include <graphics.h>
+
+#include "../../kernel/graphics/IRenderDriver.h"
 #include <cstdint>
 
-#include <graphics.h>
-#include "../../kernel/graphics/IRenderDriver.h"
-
-
-class Terminal
-{
-    struct Cell
-    {
+class Terminal {
+    struct Cell {
         char ch;
         uint32_t fg;
         uint32_t bg;
@@ -42,11 +39,11 @@ class Terminal
 
     IRenderDriver* drv = nullptr;
 
-    uint32_t cols{};
-    uint32_t rows{};
-
     uint32_t char_w{};
     uint32_t char_h{};
+
+    size_t cols{};
+    size_t rows{};
 
     uint32_t cx = 0;
     uint32_t cy = 0;
@@ -56,7 +53,7 @@ class Terminal
 
     Cell* cells{};
 
-public:
+   public:
     Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height);
     ~Terminal();
 
@@ -70,9 +67,9 @@ public:
     void new_line();
     void flush() const;
 
-private:
-    Cell& at(uint32_t x, uint32_t y) const;
-    void draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* cells, uint32_t len) const;
+   private:
+    [[nodiscard]] Cell& at(uint32_t x, uint32_t y) const;
+    void draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* run_cells, uint32_t len) const;
     void advance();
     void scroll() const;
 };
@@ -80,4 +77,4 @@ private:
 extern FONT* system_font;
 extern Terminal* global_terminal;
 
-#endif //VESPERAOS_TERMINAL_H
+#endif  // VESPERAOS_TERMINAL_H

@@ -67,7 +67,7 @@ inline uint64_t    virt_raw(virt_addr_t a)   { return reinterpret_cast<uint64_t>
 inline void*       virt_ptr(virt_addr_t a)   { return a.ptr; }
 
 template<typename T>
-inline T* virt_as(virt_addr_t a) {
+T* virt_as(virt_addr_t a) {
     return static_cast<T*>(a.ptr);
 }
 

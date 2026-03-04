@@ -61,7 +61,7 @@ struct VfsHandle {
     }
 };
 
-static void vfs_handle_destructor(void *resource) {
+inline void vfs_handle_destructor(void *resource) {
     const auto *vh = static_cast<VfsHandle *>(resource);
     delete vh;
 }

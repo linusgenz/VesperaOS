@@ -34,7 +34,7 @@ PartitionDevice::PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64
     type = Type::Partition;
 }
 
-ssize_t PartitionDevice::read(const uint64_t lba, const uint32_t count, void* buf, size_t buf_size) {
+ssize_t PartitionDevice::read(const uint64_t lba, const size_t count, void* buf, size_t buf_size) {
     if (!parent) return false;
     if (lba + count > length_lba) return false;
 
@@ -43,7 +43,7 @@ ssize_t PartitionDevice::read(const uint64_t lba, const uint32_t count, void* bu
     return ret;
 }
 
-ssize_t PartitionDevice::write(const uint64_t lba, const uint32_t count, void* buf, size_t buf_size) {
+ssize_t PartitionDevice::write(const uint64_t lba, const size_t count, void* buf, size_t buf_size) {
     if (!parent || !buf) return -EINVAL;
     if (lba + count > length_lba) return -EINVAL;
 

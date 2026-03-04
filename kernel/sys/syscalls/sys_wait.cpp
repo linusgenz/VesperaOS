@@ -41,7 +41,7 @@ namespace syscalls::internal {
 
         if (target->unit_count == 0) {
             if (status_user_ptr != 0) {
-                const int status_val = 0;
+                constexpr int status_val = 0;
                 (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
             }
             return 0;

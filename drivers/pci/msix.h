@@ -174,7 +174,7 @@ namespace PCI {
      * @return A copy of the msix_table_entry for the specified vector.
      */
     inline msix_table_entry read_msix_vector_entry(void* base_address, size_t vector_index) {
-        uint8_t* entry_addr = reinterpret_cast<uint8_t*>(base_address) + (vector_index * sizeof(msix_table_entry));
+        uint8_t* entry_addr = static_cast<uint8_t*>(base_address) + (vector_index * sizeof(msix_table_entry));
 
         volatile auto* data = reinterpret_cast<volatile uint32_t*>(entry_addr);
 
@@ -219,7 +219,7 @@ namespace PCI {
     inline void clear_msix_pending_bit(void* pba_base, size_t vector_index) {
         size_t byte_offset = (vector_index / 8);
         size_t bit_offset = (vector_index % 8);
-        uint8_t* byte_ptr = reinterpret_cast<uint8_t*>(pba_base) + byte_offset;
+        uint8_t* byte_ptr = static_cast<uint8_t*>(pba_base) + byte_offset;
 
         // Clear the corresponding bit
         *byte_ptr &= ~(1 << bit_offset);

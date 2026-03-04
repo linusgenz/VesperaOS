@@ -13,12 +13,10 @@ add_subdirectory(userspace)
 
 # ────────────────────────────────────────────────────────────────
 # Limine Bootloader
-# Liegt als Submodul unter ${CMAKE_SOURCE_DIR}/limine
 # ────────────────────────────────────────────────────────────────
 
 set(LIMINE_DIR ${CMAKE_SOURCE_DIR}/limine)
 
-# Limine selbst bauen (nur limine-deploy wird benötigt)
 add_custom_target(bootloader
         COMMAND make -C ${LIMINE_DIR}
         COMMENT "Building Limine bootloader"

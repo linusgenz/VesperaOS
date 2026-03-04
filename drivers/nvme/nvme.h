@@ -31,15 +31,15 @@ namespace NVMe
 
         KernelDevice* kd{};
 
-        ssize_t read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize) override;
-        ssize_t write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize) override;
+        ssize_t read(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize) override;
+        ssize_t write(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize) override;
 
         [[nodiscard]] size_t get_size() const override
         {
             return sectorSize * NCAP;
-        };
+        }
 
-        [[nodiscard]] uint32_t get_sector_size() const override
+        [[nodiscard]] size_t get_sector_size() const override
         {
             return sectorSize;
         }

@@ -25,8 +25,10 @@ void HeapSegHdr::set_guard_bytes() {
     guard_start = HEAP_GUARD_PATTERN;
 
     if (!next) {
-        auto* end_guard = reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
-        if (reinterpret_cast<uintptr_t>(end_guard) < virt_raw(heap_end)) *end_guard = HEAP_GUARD_PATTERN;
+        if (auto* end_guard = reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE + length);
+            reinterpret_cast<uintptr_t>(end_guard) < virt_raw(heap_end)) {
+            *end_guard = HEAP_GUARD_PATTERN;
+        };
     }
 
     checksum = magic ^ static_cast<uint32_t>(length) ^ static_cast<uint32_t>(reinterpret_cast<uintptr_t>(next) >> 32) ^
@@ -480,12 +482,13 @@ bool validate_heap() {
 
     return true;
 }
-// TODO
+
 bool is_valid_pointer(void* ptr) {
     if (!ptr || !heap_initialized) return false;
 
-    const uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-    if (addr < virt_raw(heap_start) || addr >= virt_raw(heap_end)) return false;
+    if (const uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
+        addr < virt_raw(heap_start) || addr >= virt_raw(heap_end))
+        return false;
 
     const HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
     return seg->is_valid() && seg->magic == HEAP_MAGIC_USED && !seg->free;

@@ -193,7 +193,7 @@ KernelDevice* DeviceManager::RegisterBlockDevice(
 }
 
 KernelDevice* DeviceManager::RegisterCharDevice(
-    ::CharDevice* dev, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
+    CharDevice* dev, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
     KernelDevice* parent
 ) {
     if (!dev) return nullptr;

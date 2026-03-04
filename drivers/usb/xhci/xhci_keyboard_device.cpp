@@ -30,7 +30,7 @@
 UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
     : CharDevice(name, BusType::BUS_USB)
 {
-    devnode = DeviceManager::RegisterCharDevice(
+    kd = DeviceManager::RegisterCharDevice(
         this,
         name,
         DeviceClass::Input,
@@ -38,13 +38,13 @@ UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
         ControllerType::XHCI,
         parent
     );
-    DevFS::register_device(devnode);
+    DevFS::register_device(kd);
 }
 
 UsbKeyboardDevice::~UsbKeyboardDevice()
 {
-    DevFS::unregister_device(devnode);
-    DeviceManager::UnregisterDevice(devnode);
+    DevFS::unregister_device(kd);
+    DeviceManager::UnregisterDevice(kd);
 }
 
 int UsbKeyboardDevice::open(CharFile**) { return 0; }

@@ -27,9 +27,9 @@
 template<typename Iterator>
 struct iterator_traits {
     using difference_type = decltype(Iterator{} - Iterator{});
-    using value_type = typename Iterator::value_type;
-    using pointer = typename Iterator::pointer;
-    using reference = typename Iterator::reference;
+    using value_type = Iterator::value_type;
+    using pointer = Iterator::pointer;
+    using reference = Iterator::reference;
 };
 
 template<typename T>

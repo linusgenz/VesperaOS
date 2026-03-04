@@ -28,13 +28,13 @@
 
 inline uint64_t rdmsr(uint32_t msr)
 {
-    uint32_t low, high;
+    uint32_t low = 0, high = 0;
     asm volatile (
         "rdmsr"
         : "=a"(low), "=d"(high)
         : "c"(msr)
     );
-    return (uint64_t(high) << 32) | low;
+    return (static_cast<uint64_t>(high) << 32) | low;
 }
 
 inline void wrmsr(uint32_t msr, uint64_t value)

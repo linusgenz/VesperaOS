@@ -430,7 +430,7 @@ namespace NVMe
         *completion_db = cq_head;
     }
 
-    ssize_t NvmeNamespace::read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
+    ssize_t NvmeNamespace::read(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize)
     {
         size_t bytes = sectorCount * sectorSize;
         if (!buffer || sectorCount == 0 || bufferSize < bytes)
@@ -467,7 +467,7 @@ namespace NVMe
         return static_cast<ssize_t>(bytes);
     }
 
-    ssize_t NvmeNamespace::write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
+    ssize_t NvmeNamespace::write(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize)
     {
         size_t bytes = sectorCount * sectorSize;
         if (!buffer || sectorCount == 0 || bufferSize < bytes)

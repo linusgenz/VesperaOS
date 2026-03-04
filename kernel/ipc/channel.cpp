@@ -37,6 +37,12 @@ Channel::Channel(const size_t cap)
     lock.init("channel_lock");
 }
 
+
+/**
+ *
+ * @param cap capacity in bytes
+ * @return a channel on success, on error nullptr
+ */
 Channel *Channel::create(const size_t cap) {
     auto *ch = new Channel(cap);
     if (!ch->buf) {

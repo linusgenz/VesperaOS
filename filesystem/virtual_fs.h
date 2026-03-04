@@ -148,8 +148,7 @@ protected:
 
         if (node->type == VfsNodeType::Directory)
         {
-            auto* dir_data = static_cast<DirData*>(node->internal_data);
-            if (dir_data)
+            if (auto* dir_data = static_cast<DirData*>(node->internal_data))
             {
                 for (auto* sub : dir_data->subdirs)
                     delete_entry_node(sub);

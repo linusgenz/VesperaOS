@@ -69,7 +69,7 @@ class TTYDevice final : public CharDevice {
 
     ssize_t write(CharFile* cf, const void* buffer, size_t count) override {
         if (count == 0 || !buffer) return -EINVAL;
-        const char* buf = static_cast<const char*>(buffer);
+        const auto buf = static_cast<const char*>(buffer);
         for (size_t i = 0; i < count; i++) {
             kernel::tty::tty_process_output(tty, buf[i]);
         }

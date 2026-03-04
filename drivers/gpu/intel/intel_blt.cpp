@@ -859,10 +859,10 @@ bool IntelBlt::blit_buffer(
     return true;
 }
 
-bool IntelBlt::scroll_pixels(int dy) {
+bool IntelBlt::scroll_pixels(const int dy) {
     if (dy == 0) return true;
 
-    if (dy >= fb.height) {
+    if (dy >= static_cast<int>(fb.height)) {
         xy_color_blt(fb.gfx_addr, fb.pitch, 0, 0, fb.width, fb.height, BLACK);
         return true;
     }

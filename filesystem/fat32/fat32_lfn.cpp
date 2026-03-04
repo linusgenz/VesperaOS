@@ -178,6 +178,11 @@ namespace FAT32
             lfn.firstClusterLow = 0;
 
             size_t namePos = static_cast<size_t>(lfnIndex) * 13;
+
+            uint16_t tmp_name1[5] = {};
+            uint16_t tmp_name2[6] = {};
+            uint16_t tmp_name3[2] = {};
+
             auto copy_from_name = [&](uint16_t* dest, int count)
             {
                 for (int c = 0; c < count; ++c)
@@ -187,9 +192,14 @@ namespace FAT32
                     else dest[c] = 0xFFFF;
                 }
             };
-            copy_from_name(lfn.name1, 5);
-            copy_from_name(lfn.name2, 6);
-            copy_from_name(lfn.name3, 2);
+
+            copy_from_name(tmp_name1, 5);
+            copy_from_name(tmp_name2, 6);
+            copy_from_name(tmp_name3, 2);
+
+            memcpy(lfn.name1, tmp_name1, sizeof(tmp_name1));
+            memcpy(lfn.name2, tmp_name2, sizeof(tmp_name2));
+            memcpy(lfn.name3, tmp_name3, sizeof(tmp_name3));
 
             memcpy(&entries[startIndex + lfnIndex], &lfn, sizeof(LongFileName));
         }

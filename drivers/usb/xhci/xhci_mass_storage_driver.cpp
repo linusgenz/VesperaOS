@@ -312,7 +312,7 @@ void xhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer* transfer)
 }
 
 
-ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
+ssize_t xhciMassStorageDriver::read(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize)
 {
     size_t bytes = sectorCount * sector_size;
     if (!buffer || sectorCount == 0 || bufferSize < bytes)
@@ -362,7 +362,7 @@ ssize_t xhciMassStorageDriver::read(uint64_t lba, uint32_t sectorCount, void* bu
 }
 
 
-ssize_t xhciMassStorageDriver::write(uint64_t lba, uint32_t sectorCount, void* buffer, size_t bufferSize)
+ssize_t xhciMassStorageDriver::write(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize)
 {
     size_t bytes = sectorCount * sector_size;
     if (!buffer || sectorCount == 0 || bufferSize < bytes)

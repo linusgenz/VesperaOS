@@ -248,7 +248,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
             bool long_long = false;
             bool long_flag = false;
             char pad_char = ' ';
-            int min_width = 0;
+            size_t min_width = 0;
             int precision = -1;
 
             // Padding: z. B. %02x → '0' erkannt

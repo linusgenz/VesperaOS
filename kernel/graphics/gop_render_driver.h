@@ -6,7 +6,7 @@
 #include "../../include/kernel/terminal.h"
 #include "../memory/heap.h"
 
-class gop_render_driver : public IRenderDriver {
+class gop_render_driver final : public IRenderDriver {
    public:
     gop_render_driver(Framebuffer* fb, FONT* font);
 
