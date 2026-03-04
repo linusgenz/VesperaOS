@@ -24,6 +24,7 @@ add_library(kernel_stubs STATIC
         stub_kernel/memory.cpp
         stub_kernel/log.cpp
         stub_kernel/time.cpp
+        stub_kernel/systemmanager.cpp
 )
 target_include_directories(kernel_stubs PUBLIC
         ${CMAKE_SOURCE_DIR}
@@ -71,6 +72,26 @@ target_include_directories(heap_tests PRIVATE
         ${CMAKE_SOURCE_DIR}/../
         ${PROJECT_ROOT}/include
         heap
+)
+
+# =============================================================================
+# Vector tests
+# =============================================================================
+add_executable(vector_tests
+        vector/vector_tests_main.cpp
+)
+target_link_libraries(vector_tests PRIVATE kernel_stubs)
+target_include_directories(vector_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/tests/include
+        ${CMAKE_SOURCE_DIR}/tests/framework
+        ${CMAKE_SOURCE_DIR}/include
+)
+target_compile_options(vector_tests PRIVATE
+        -DUNIT_TEST
+        -fno-rtti
+        -g
+        -Wall
+        -Wextra
 )
 
 # =============================================================================
@@ -130,3 +151,19 @@ add_test(NAME Heap_ALL
         COMMAND heap_tests
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
+add_test(NAME Vector_PushBack COMMAND vector_tests Vector_PushBack)
+add_test(NAME Vector_Erase COMMAND vector_tests Vector_Erase)
+add_test(NAME Vector_EraseValue COMMAND vector_tests Vector_EraseValue)
+add_test(NAME Vector_Pop COMMAND vector_tests Vector_Pop)
+add_test(NAME Vector_PopBack COMMAND vector_tests Vector_PopBack)
+add_test(NAME Vector_Clear COMMAND vector_tests Vector_Clear)
+add_test(NAME Vector_Back COMMAND vector_tests Vector_Back)
+add_test(NAME Vector_Iterator COMMAND vector_tests Vector_Iterator)
+add_test(NAME Vector_Move COMMAND vector_tests Vector_Move)
+add_test(NAME Vector_Copy COMMAND vector_tests Vector_Copy)
+add_test(NAME Vector_Misc COMMAND vector_tests Vector_Misc)
+add_test(NAME Vector_Lifecycle COMMAND vector_tests Vector_Lifecycle)
+add_test(NAME Vector_EdgeCase COMMAND vector_tests Vector_EdgeCase)
+add_test(NAME Vector_Stress COMMAND vector_tests Vector_Stress)
+add_test(NAME Vector_ALL COMMAND vector_tests)

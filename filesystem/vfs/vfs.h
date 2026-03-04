@@ -28,8 +28,7 @@
 
 #include "fs_detection.h"
 #include "vfs_node.h"
-#include "../../kernel/devices/blockdevice.h"
-#include "../fat32/fat32.h"
+#include "kernel/sync/spinlock.h"
 
 struct FilesystemInfo;
 

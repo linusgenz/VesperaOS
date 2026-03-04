@@ -13,7 +13,7 @@ SUITE=""
 for arg in "$@"; do
     case "$arg" in
         --no-build) NO_BUILD=1 ;;
-        fat32|heap) TARGET="$arg" ;;
+        fat32|heap|vector) TARGET="$arg" ;;
         *)          SUITE="$arg" ;;
     esac
 done
@@ -56,11 +56,14 @@ run_binary() {
 }
 
 case "$TARGET" in
-    fat32) run_binary fat32_tests "$SUITE" ;;
-    heap)  run_binary heap_tests  "$SUITE" ;;
+    fat32)  run_binary fat32_tests  "$SUITE" ;;
+    heap)   run_binary heap_tests   "$SUITE" ;;
+    vector) run_binary vector_tests "$SUITE" ;;
     *)
-        run_binary fat32_tests "$SUITE"
+        run_binary fat32_tests  "$SUITE"
         echo ""
-        run_binary heap_tests  "$SUITE"
+        run_binary heap_tests   "$SUITE"
+        echo ""
+        run_binary vector_tests "$SUITE"
         ;;
 esac

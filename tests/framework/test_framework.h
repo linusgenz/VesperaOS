@@ -22,6 +22,7 @@
 #ifndef VESPERAOS_TEST_FRAMEWORK_H
 #define VESPERAOS_TEST_FRAMEWORK_H
 
+#include <csetjmp>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -129,6 +130,45 @@
             ::TestFramework::fail_test(__FILE__, __LINE__, _buf);            \
             return;                                                          \
         }                                                                    \
+    } while (0)
+
+
+extern jmp_buf  g_panic_jmp;
+extern bool     g_panic_armed;
+extern bool     g_panic_fired;
+extern char     g_panic_msg[256];
+extern int32_t  g_panic_code;
+
+#define ASSERT_PANICS(code_block)                             \
+    do {                                                      \
+        g_panic_armed = true;                                 \
+        g_panic_fired = false;                                \
+        g_panic_msg[0] = '\0';                                \
+        g_panic_code = 0;                                     \
+        if (setjmp(g_panic_jmp) == 0) {                       \
+            code_block;                                       \
+        }                                                     \
+        g_panic_armed = false;                                \
+        if (!g_panic_fired) {                                 \
+            ::TestFramework::fail_test(__FILE__, __LINE__,    \
+                "ASSERT_PANICS: no panic was triggered");     \
+            return;                                           \
+        }                                                     \
+    } while (0)
+
+#define ASSERT_NO_PANIC(code_block)                           \
+    do {                                                      \
+        g_panic_armed = true;                                 \
+        g_panic_fired = false;                                \
+        if (setjmp(g_panic_jmp) == 0) {                       \
+            code_block;                                       \
+        }                                                     \
+        g_panic_armed = false;                                \
+        if (g_panic_fired) {                                  \
+            ::TestFramework::fail_test(__FILE__, __LINE__,    \
+                "ASSERT_NO_PANIC: unexpected panic occurred");\
+            return;                                           \
+        }                                                     \
     } while (0)
 
 namespace TestFramework {
