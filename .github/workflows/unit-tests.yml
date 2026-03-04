@@ -24,8 +24,8 @@ jobs:
 
       - name: Create FAT32 test image
         run: |
-          truncate -s 300M tests/test.img
-          mkfs.fat -F 32 -s 8 -n VesperaTest tests/test.img
+          dd if=/dev/zero of=tests/test.img bs=512 count=70000
+          mkfs.fat -F 32 -S 512 tests/test.img
 
       - name: Configure
         run: cmake -S tests -B tests/build -G Ninja -DCMAKE_BUILD_TYPE=Debug

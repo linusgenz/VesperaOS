@@ -11,7 +11,7 @@
 #include "efi_memory.h"
 #include <cstddef>
 
-#define PAGE_SIZE 4096
+constexpr size_t PAGE_SIZE = 0x1000;
 inline uint64_t g_hhdm_offset = 0;
 inline uint64_t g_kernel_phys_base = 0;
 inline uint64_t g_kernel_virt_base = 0;

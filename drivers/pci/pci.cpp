@@ -88,12 +88,12 @@ namespace PCI
                 {
                 case 0x02:
                     {
-                   /*     uint16_t command = pci_read16(pci_device_header, 0x04);
+                        uint16_t command = pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         pci_write16(pci_device_header, 0x04, command);
 
                         new NVMe::NvmeDriver(pci_device_header);
-                        break;*/
+                        break;
                     }
                 default: ;
                 }
@@ -110,7 +110,7 @@ namespace PCI
                     {
                     case 0x8086:
                         {
-                            auto* driver = new IntelBlt(pci_device_header);
+                            /*auto* driver = new IntelBlt(pci_device_header);
                             driver->start_device(TargetFramebuffer->width, TargetFramebuffer->height);
 
                             DisplayBackend be{ driver, driver->get_kd() };
@@ -119,7 +119,7 @@ namespace PCI
                             auto terminal = new Terminal(driver, system_font->width, system_font->height);
                             Log::SetTerminal(terminal);
                             global_terminal = terminal;
-                            break;
+                            break;*/
                         }
                     default: ;
                     }

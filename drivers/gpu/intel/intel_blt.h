@@ -183,7 +183,6 @@ constexpr size_t BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 // ============================================================================
 
 #define RING_BUFFER_SIZE (64 * 1024)  // 64KB ring buffer
-#define PAGE_SIZE 4096                // Standard page size
 #define FORCE_WAKE_TIMEOUT 1000       // Force wake timeout iterations
 #define RESET_DELAY 10000             // Reset delay iterations
 #define IDLE_CHECK_DELAY 100          // Delay per idle check iteration

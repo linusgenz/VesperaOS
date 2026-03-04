@@ -154,7 +154,7 @@ void smp_init() {
     uint8_t get_current_cpu_id() {
         if (!is_initialized) return 0;
 
-        uint32_t current_apic_id = kernel::interrupts::lapic_get_id();
+        const uint32_t current_apic_id = kernel::interrupts::lapic_get_id();
 
         for (uint8_t i = 0; i < total_cpus; i++) {
             if (cpu_infos[i].apic_id == current_apic_id) {
