@@ -127,7 +127,8 @@ bool DeviceManager::AllocUniqueDeviceName(const char* base, char* outBuffer, siz
 
     while (true) {
         if (const int written = snprintf(outBuffer, outBufferSize, "%s%d", base, counter);
-            written < 0 || static_cast<size_t>(written) >= outBufferSize) return false;
+            written < 0 || static_cast<size_t>(written) >= outBufferSize)
+            return false;
 
         bool exists = false;
         for (const auto* kd : *all_devices) {
@@ -227,7 +228,7 @@ KernelDevice* DeviceManager::RegisterCharDevice(
 
 KernelDevice* DeviceManager::RegisterController(
     const char* name, DeviceClass dev_class, BusType bus, ControllerType controller, KernelDevice* parent,
-    ::CharDevice* dev
+    ::CharDevice* dev, IDriverLifecycle* lifecycle
 ) {
     spinlock_guard guard(lock);
 
@@ -245,6 +246,8 @@ KernelDevice* DeviceManager::RegisterController(
     kd->parent = parent;
     kd->block = nullptr;
     kd->chardev = dev;
+    kd->lifecycle = lifecycle;
+
     kd->driver_data = nullptr;
 
     if (parent) {
@@ -350,4 +353,37 @@ uint32_t DeviceManager::GetKernelDeviceCount() {
     spinlock_guard guard(lock);
     if (!all_devices) return 0;
     return all_devices->size();
+}
+
+void DeviceManager::ShutdownAll() {
+    spinlock_guard guard(lock);
+    if (!all_devices) return;
+
+    for (const auto* kd : *all_devices) {
+        if (!kd || !kd->lifecycle) continue;
+        if (kd->type != DeviceType::Controller) continue;
+        kd->lifecycle->on_shutdown();
+    }
+}
+
+void DeviceManager::SuspendAll() {
+    spinlock_guard guard(lock);
+    if (!all_devices) return;
+
+    for (const auto* kd : *all_devices) {
+        if (!kd || !kd->lifecycle) continue;
+        if (kd->type != DeviceType::Controller) continue;
+        kd->lifecycle->on_suspend();
+    }
+}
+
+void DeviceManager::ResumeAll() {
+    spinlock_guard guard(lock);
+    if (!all_devices) return;
+
+    for (const auto* kd : *all_devices) {
+        if (!kd || !kd->lifecycle) continue;
+        if (kd->type != DeviceType::Controller) continue;
+        kd->lifecycle->on_resume();
+    }
 }

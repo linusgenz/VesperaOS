@@ -297,6 +297,8 @@ namespace kernel {
 
         FilesystemDetector::UnmountAll();
 
+        DeviceManager::ShutdownAll();
+
         if (reboot) {
             ACPI::acpi_reboot();
         } else {

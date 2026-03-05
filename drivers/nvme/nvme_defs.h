@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-namespace NVMe {
+namespace nvme {
     enum NVME_ADMIN_COMMANDS {
         NVME_ADMIN_COMMAND_DELETE_IO_SQ = 0x00,
         NVME_ADMIN_COMMAND_CREATE_IO_SQ = 0x01,
@@ -223,10 +223,11 @@ namespace NVMe {
         uint32_t Doorbells[0];  // Start of the first Doorbell register. (Admin SQ Tail Doorbell)
     };
 
-    enum DriverStatus {
-        ControllerNotReady,
-        ControllerError,
-        ControllerReady,
+    enum DRIVER_STATUS {
+        CONTROLLER_NOT_READY,
+        CONTROLLER_ERROR,
+        CONTROLLER_READY,
+        CONTROLLER_SHUTDOWN
     };
 
     union NVME_COMMAND_DWORD0 {

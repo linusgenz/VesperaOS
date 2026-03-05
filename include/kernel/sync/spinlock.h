@@ -8,9 +8,7 @@
 
 
 struct spinlock_t {
-    spinlock_t() : locked(0) {}
-
-    volatile uint32_t locked;
+    volatile uint32_t locked{0};
 
     void init(const char* name = "unnamed_lock");
 
@@ -30,7 +28,7 @@ struct spinlock_t {
 
 private:
     uint32_t xchg(volatile uint32_t *ptr, uint32_t val) {
-        uint32_t old;
+        uint32_t old = 0;
         __asm__ volatile (
             "lock xchg %0, %1"
             : "=r"(old), "+m"(*ptr)
@@ -41,7 +39,7 @@ private:
     }
 
     static uint64_t irq_save() {
-        uint64_t flags;
+        uint64_t flags = 0;
         asm volatile(
             "pushfq\n\t"
             "popq %0\n\t"

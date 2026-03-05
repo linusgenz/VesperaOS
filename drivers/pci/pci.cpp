@@ -92,7 +92,7 @@ namespace PCI
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         pci_write16(pci_device_header, 0x04, command);
 
-                        new NVMe::NvmeDriver(pci_device_header);
+                        new nvme::NvmeDriver(pci_device_header);
                         break;
                     }
                 default: ;

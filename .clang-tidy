@@ -180,7 +180,7 @@ CheckOptions:
 
   # Structs: snake_case
   - key: readability-identifier-naming.StructCase
-    value: lower_case
+    value: CamelCase
 
   # Member variables: snake_case
   - key: readability-identifier-naming.MemberCase
@@ -198,13 +198,15 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
 
-  # Enum constants: snake_case
+  # Enum constants: CamelCase
   - key: readability-identifier-naming.EnumConstantCase
-    value: lower_case
+    value: CamelCase
 
   # Namespaces: snake_case
   - key: readability-identifier-naming.NamespaceCase
     value: lower_case
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: _
 
   # Type aliases: PascalCase
   - key: readability-identifier-naming.TypeAliasCase
