@@ -150,7 +150,12 @@ namespace NVMe {
             namespaces.push_back(ns);
         }
 
+        d_status = controller_ready;
         Log::Ok("[NVMe] Controller initialized");
+    }
+
+    NvmeDriver::~NvmeDriver() {
+        shutdown();
     }
 
     long NvmeDriver::identify_controller() {
@@ -239,6 +244,81 @@ namespace NVMe {
         }
 
         kernel::memory::free_page(namespace_list_virt);
+
+        return 0;
+    }
+
+    void NvmeDriver::shutdown() {
+        if (d_status != controller_ready || !c_regs) {
+            return;
+        }
+
+        Log::Info("[NVMe] Starting controller shutdown...");
+
+        if (c_regs->CC.EN) {
+            if (io_queue.get_queue_id() != 0) {
+                delete_io_queue(&io_queue);
+            }
+
+            c_regs->CC.SHN = 0x1;
+
+            // Wait for shutdown to complete
+            // Spec recommends waiting RTD3 Entry Latency, or 1 second minimum
+            uint32_t timeout_ms = 1000;
+            if (controller_identity && controller_identity->RTD3E > 0) {
+                timeout_ms = controller_identity->RTD3E;
+            }
+
+            uint32_t elapsed = 0;
+
+            // Poll CSTS.SHST for shutdown complete (10b)
+            while (elapsed < timeout_ms) {
+                constexpr uint32_t poll_interval_ms = 10;
+                if (c_regs->CSTS.SHST == 0x2)  // 10b = shutdown complete
+                {
+                    Log::Ok("[NVMe] Controller shutdown complete");
+                    d_status = driver_status::controller_shutdown;
+                    return;
+                }
+
+                kernel::time::sleep_ms(poll_interval_ms);
+                elapsed += poll_interval_ms;
+            }
+
+            Log::Warning("[NVMe] Controller shutdown timeout (SHST = %u)", c_regs->CSTS.SHST);
+        }
+    }
+
+    long NvmeDriver::delete_io_queue(NvmeQueue* queue_ptr) {
+        if (!queue_ptr || queue_ptr->get_queue_id() == 0) {
+            return 0;
+        }
+
+        uint16_t queue_id = queue_ptr->get_queue_id();
+
+        NVME_COMPLETION_ENTRY completion{};
+
+        // Delete I/O Submission Queue
+        NVME_COMMAND delete_sq{};
+        delete_sq.CDW0.OPC = NVME_ADMIN_COMMAND_DELETE_IO_SQ;
+        delete_sq.u.DELETEIOQ.CDW10.QID = queue_id;
+
+        admin_queue.submit_wait(delete_sq, completion);
+        if (completion.DW3.Status > 0) {
+            Log::Warning("[NVMe] Failed to delete I/O submission queue %u, status %u", queue_id, completion.DW3.Status);
+            return completion.DW3.Status;
+        }
+
+        // Delete I/O Completion Queue
+        NVME_COMMAND delete_cq{};
+        delete_cq.CDW0.OPC = NVME_ADMIN_COMMAND_DELETE_IO_CQ;
+        delete_cq.u.DELETEIOQ.CDW10.QID = queue_id;
+
+        admin_queue.submit_wait(delete_cq, completion);
+        if (completion.DW3.Status > 0) {
+            Log::Warning("[NVMe] Failed to delete I/O completion queue %u, status %u", queue_id, completion.DW3.Status);
+            return completion.DW3.Status;
+        }
 
         return 0;
     }
@@ -371,7 +451,6 @@ namespace NVMe {
         *submission_db = sq_tail;
 
         auto start = 0;
-        constexpr uint16_t NVME_CS_P_MASK = 0x0001;
         while (completion_cycle_state == !completion_queue[cq_head].DW3.P) {
             if (start > 50) {
                 //   NVME_COMMAND_STATUS timeout_status{};

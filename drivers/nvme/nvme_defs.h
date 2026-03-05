@@ -574,6 +574,14 @@ namespace NVMe {
         uint32_t DWord;
     };
 
+    union NVME_CDW10_DELETE_IO_QUEUE {
+        struct {
+            uint32_t QID : 16;      // Queue Identifier
+            uint32_t Reserved0 : 16;
+        } __attribute__((packed));
+        uint32_t DWord;
+    };
+
     union NVME_CONTEXT_ATTRIBUTES {
         struct {
             uint32_t AccessFrequency : 4;
@@ -767,6 +775,15 @@ namespace NVMe {
                 uint32_t CDW14;
                 uint32_t CDW15;
             } CREATEIOSQ;
+
+            struct DELETEIOQ {
+                NVME_CDW10_DELETE_IO_QUEUE CDW10;
+                uint32_t CDW11;
+                uint32_t CDW12;
+                uint32_t CDW13;
+                uint32_t CDW14;
+                uint32_t CDW15;
+            } DELETEIOQ;
 
             struct DATASETMANAGEMENT {
                 NVME_CDW10_DATASET_MANAGEMENT CDW10;

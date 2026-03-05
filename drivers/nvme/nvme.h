@@ -55,6 +55,10 @@ namespace NVMe {
 
         void submit_wait(NVME_COMMAND& cmd, NVME_COMPLETION_ENTRY& complet);
 
+        [[nodiscard]] uint16_t get_queue_id() const {
+            return queue_id;
+        }
+
         [[nodiscard]] uint16_t cq_size() const {
             return cq_count;
         }
@@ -154,13 +158,21 @@ namespace NVMe {
         long identify_controller();
 
         long get_namespace_list(Vector<uint32_t>* namespace_ids);
+        void shutdown();
 
+        long delete_io_queue(NvmeQueue* queue_ptr);
         long create_io_queue(NvmeQueue* queue_ptr);
 
        public:
-        enum driver_status { controller_not_ready, controller_error, controller_ready } d_status = controller_not_ready;
+        enum driver_status {
+            controller_not_ready,
+            controller_error,
+            controller_ready,
+            controller_shutdown
+        } d_status = controller_not_ready;
 
         explicit NvmeDriver(PCI::PCIDeviceHeader* pci_base_address);
+        ~NvmeDriver();
 
         [[nodiscard]] const Vector<NvmeNamespace*>& get_namespaces() const {
             return namespaces;
