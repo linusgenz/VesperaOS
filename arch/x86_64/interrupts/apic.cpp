@@ -15,12 +15,12 @@
 
 namespace arch::x86_64::interrupts::apic {
     uint32_t read(const uint32_t offset) {
-        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
+        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_local_apic_addr + offset);
         return *reg;
     }
 
     void write(const uint32_t offset, const uint32_t value) {
-        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_localApicAddr + offset);
+        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_local_apic_addr + offset);
         *reg = value;
     }
 
@@ -69,8 +69,8 @@ namespace arch::x86_64::interrupts::apic {
     void broadcast_ipi(const uint8_t vector) {
         uint32_t self_apic_id = local_apic_get_id();
 
-        for (uint32_t i = 0; i < CPUManager::total_cpus && i < MAX_CPU_CORES; i++) {
-            const auto &cpu = CPUManager::cpu_infos[i];
+        for (uint32_t i = 0; i < cpu_manager::total_cpus && i < MAX_CPU_CORES; i++) {
+            const auto &cpu = cpu_manager::cpu_infos[i];
 
             if (cpu.apic_id == self_apic_id) continue;
 
@@ -79,7 +79,7 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void pmt_delay(const size_t us) {
-        ACPI::FADT *fadt = ACPI::TableManager::get_fadt();
+        acpi::FADT *fadt = acpi::TableManager::get_fadt();
 
         if (fadt->pm_timer_length != 4) {
             kernel::SystemManager::system_panic("ACPI Timer unavailable", -KENOACPI);
@@ -99,17 +99,17 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void timer_accounting() {
-        uint32_t cpu = CPUManager::get_current_cpu_id();
+        uint32_t cpu = cpu_manager::get_current_cpu_id();
         apic_ticks[cpu]++;
     }
 
-    void timer_tick(trap_frame *frame) {
+    void timer_tick(TrapFrame *frame) {
 #if DEBUG_SPINLOCK
         deadlock_detector_tick();
 #endif
 
         if (!kernel::scheduling::is_initialized()) return;
-        uint32_t cpu = CPUManager::get_current_cpu_id();
+        uint32_t cpu = cpu_manager::get_current_cpu_id();
 
         kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
 
@@ -118,7 +118,7 @@ namespace arch::x86_64::interrupts::apic {
 
     void sleep(uint64_t ms) {
         uint64_t ticks_to_wait = (ms + 9) / 10;
-        uint32_t cpu = CPUManager::get_current_cpu_id();
+        uint32_t cpu = cpu_manager::get_current_cpu_id();
         uint64_t target = apic_ticks[cpu] + ticks_to_wait;
 
         while (apic_ticks[cpu] < target) {

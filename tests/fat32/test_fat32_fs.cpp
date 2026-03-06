@@ -40,24 +40,24 @@ TEST(FAT32_FS, ValidImageIsValid, "A filesystem mounted from test.img reports is
 
 TEST(FAT32_FS, RootClusterAtLeastTwo, "GetRootCluster() returns a value >= 2") {
     WITH_FAT32(f);
-    ASSERT_GE(f.fs->GetRootCluster(), static_cast<uint32_t>(2));
+    ASSERT_GE(f.fs->get_root_cluster(), static_cast<uint32_t>(2));
 }
 
 TEST(FAT32_FS, BytesPerClusterIsPowerOfTwo, "bytesPerCluster() is a power of two and >= 512") {
     WITH_FAT32(f);
-    uint32_t bpc = f.fs->bytesPerCluster();
+    uint32_t bpc = f.fs->bytes_per_cluster();
     ASSERT_GE(bpc, static_cast<uint32_t>(512));
     ASSERT_EQ(static_cast<uint32_t>(0), bpc & (bpc - 1));
 }
 
 TEST(FAT32_FS, ClusterToSectorRoot, "ClusterToSector for the root cluster returns a sector > 0") {
     WITH_FAT32(f);
-    ASSERT_GE(f.fs->ClusterToSector(f.fs->GetRootCluster()), static_cast<uint32_t>(1));
+    ASSERT_GE(f.fs->cluster_to_sector(f.fs->get_root_cluster()), static_cast<uint32_t>(1));
 }
 
 TEST(FAT32_FS, AllZeroImageInvalid, "A zeroed block device is not a valid FAT32 filesystem") {
     auto* mdev = new MockBlockDevice(64);  // 64 sectors, all zero
-    auto* bad_fs = new FAT32::FileSystem(mdev);
+    auto* bad_fs = new fat32::FileSystem(mdev);
     ASSERT_FALSE(bad_fs->is_valid());
     delete bad_fs;
     delete mdev;
@@ -66,7 +66,7 @@ TEST(FAT32_FS, AllZeroImageInvalid, "A zeroed block device is not a valid FAT32 
 TEST(FAT32_FS, AllFFImageInvalid, "A 0xFF-filled block device is not a valid FAT32 filesystem") {
     auto* mdev = new MockBlockDevice(512);
     memset(mdev->raw(), 0xFF, 512 * MockBlockDevice::SECTOR_SIZE);
-    auto* bad_fs = new FAT32::FileSystem(mdev);
+    auto* bad_fs = new fat32::FileSystem(mdev);
     ASSERT_FALSE(bad_fs->is_valid());
     delete bad_fs;
     delete mdev;
@@ -81,29 +81,29 @@ TEST(
     "Free cluster count does not increase after creating and writing a file"
 ) {
     WITH_FAT32(f);
-    uint32_t before = f.fs->GetFreeClusterCount();
+    uint32_t before = f.fs->get_free_cluster_count();
     if (before == 0xFFFFFFFF) return;  // count unknown — skip
 
     Fat32Node parent = f.root_node();
-    f.fs->CreateFile(&parent, "INFOTEST.TXT");
+    f.fs->create_file(&parent, "INFOTEST.TXT");
     auto node = f.find_file_node("INFOTEST.TXT");
     f.write(node, "DATA", 4);
 
-    ASSERT_LE(f.fs->GetFreeClusterCount(), before);
+    ASSERT_LE(f.fs->get_free_cluster_count(), before);
 }
 
 TEST(FAT32_FS, FreeCountIncreasesAfterDeleteFile, "Free cluster count does not decrease after deleting a file") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    f.fs->CreateFile(&parent, "DELINFO.TXT");
+    f.fs->create_file(&parent, "DELINFO.TXT");
     auto node = f.find_file_node("DELINFO.TXT");
     f.write(node, "PAYLOAD", 7);
 
-    uint32_t before = f.fs->GetFreeClusterCount();
+    uint32_t before = f.fs->get_free_cluster_count();
     if (before == 0xFFFFFFFF) return;
 
-    f.fs->DeleteFile(&parent, "DELINFO.TXT");
-    ASSERT_GE(f.fs->GetFreeClusterCount(), before);
+    f.fs->delete_file(&parent, "DELINFO.TXT");
+    ASSERT_GE(f.fs->get_free_cluster_count(), before);
 }
 
 // =============================================================================
@@ -116,11 +116,11 @@ TEST(
 ) {
     WITH_FAT32(f);
     auto node = f.create_file("ATTRTEST.TXT");
-    node.dirEntry.attr |= FAT32::ATTR_READ_ONLY;
-    ASSERT_TRUE(f.fs->OverwriteDirectoryEntry(node.parentCluster, node.currentIndex, &node.dirEntry));
+    node.dir_entry.attr |= fat32::ATTR_READ_ONLY;
+    ASSERT_TRUE(f.fs->overwrite_directory_entry(node.parent_cluster, node.current_index, &node.dir_entry));
 
     auto fresh = f.find_file_node("ATTRTEST.TXT");
-    ASSERT_TRUE(fresh.dirEntry.attr & FAT32::ATTR_READ_ONLY);
+    ASSERT_TRUE(fresh.dir_entry.attr & fat32::ATTR_READ_ONLY);
 }
 
 TEST(
@@ -128,7 +128,7 @@ TEST(
 ) {
     WITH_FAT32(f);
     auto node = f.create_file("BADIDX.TXT");
-    ASSERT_FALSE(f.fs->OverwriteDirectoryEntry(node.parentCluster, 999999, &node.dirEntry));
+    ASSERT_FALSE(f.fs->overwrite_directory_entry(node.parent_cluster, 999999, &node.dir_entry));
 }
 
 // =============================================================================
@@ -144,7 +144,7 @@ TEST(FAT32_FS, Stress10FilesCreateWriteReadDelete, "Create, write, read, and del
 
     for (int i = 0; i < N; i++) {
         snprintf(names[i], sizeof(names[i]), "STRESS%02d.TXT", i);
-        ASSERT_TRUE(f.fs->CreateFile(&parent, names[i]));
+        ASSERT_TRUE(f.fs->create_file(&parent, names[i]));
     }
 
     for (int i = 0; i < N; i++) {
@@ -165,7 +165,7 @@ TEST(FAT32_FS, Stress10FilesCreateWriteReadDelete, "Create, write, read, and del
         ASSERT_MEM_EQ(expected, result.data(), len);
     }
 
-    for (auto & name : names) ASSERT_TRUE(f.fs->DeleteFile(&parent, name));
+    for (auto & name : names) ASSERT_TRUE(f.fs->delete_file(&parent, name));
 
     auto listing = f.list_root();
     for (auto & name : names) ASSERT_FALSE(f.list_contains(listing, name));
@@ -189,7 +189,7 @@ TEST(FAT32_FS, StressVariousSizes, "Write and read files of various sizes spanni
         ASSERT_MEM_EQ(data.data(), result.data(), sizes[i]);
 
         Fat32Node parent = f.root_node();
-        f.fs->DeleteFile(&parent, name);
+        f.fs->delete_file(&parent, name);
     }
 }
 
@@ -201,7 +201,7 @@ TEST(FAT32_FS, StressDirectoryOverflow, "Creating >128 files forces the director
     for (int i = 0; i < N; i++) {
         char name[16];
         snprintf(name, sizeof(name), "F%03d.TXT", i);
-        ASSERT_TRUE(f.fs->CreateFile(&parent, name));
+        ASSERT_TRUE(f.fs->create_file(&parent, name));
     }
 
     // All files must appear in the listing
@@ -211,6 +211,6 @@ TEST(FAT32_FS, StressDirectoryOverflow, "Creating >128 files forces the director
     for (int i = 0; i < N; i++) {
         char name[16];
         snprintf(name, sizeof(name), "F%03d.TXT", i);
-        f.fs->DeleteFile(&parent, name);
+        f.fs->delete_file(&parent, name);
     }
 }

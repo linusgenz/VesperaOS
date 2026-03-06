@@ -27,7 +27,7 @@
 #include <kernel/input/input_event.h>
 #include <graphics.h>
 
-class TTYDevice;
+class TtyDevice;
 class Terminal;
 
 namespace kernel::tty {
@@ -60,15 +60,15 @@ namespace kernel::tty {
         size_t cursor_x = 0;
         size_t cursor_y = 0;
 
-        Colour fg = WHITE;
-        Colour bg = BLACK;
+        colour_t fg = WHITE;
+        colour_t bg = BLACK;
 
         Terminal *term;
     };
 
 
     extern TTY tty_instances[6];
-    extern TTYDevice *tty_devices[6];
+    extern TtyDevice *tty_devices[6];
     extern TTY *active_tty;
 
     void tty_init(TTY *tty, Terminal *term);

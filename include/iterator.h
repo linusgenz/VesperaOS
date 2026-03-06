@@ -25,27 +25,27 @@
 #define VESPERAOS_ITERATOR_H
 
 template<typename Iterator>
-struct iterator_traits {
+struct IteratorTraits {
     using difference_type = decltype(Iterator{} - Iterator{});
     using value_type = Iterator::value_type;
-    using pointer = Iterator::pointer;
-    using reference = Iterator::reference;
+    using pointer_t = Iterator::pointer;
+    using reference_t = Iterator::reference;
 };
 
 template<typename T>
-struct iterator_traits<T*> {
+struct IteratorTraits<T*> {
     using difference_type = ptrdiff_t;
     using value_type = T;
-    using pointer = T*;
-    using reference = T&;
+    using pointer_t = T*;
+    using reference_t = T&;
 };
 
 template<typename T>
-struct iterator_traits<const T*> {
+struct IteratorTraits<const T*> {
     using difference_type = ptrdiff_t;
     using value_type = T;
-    using pointer = const T*;
-    using reference = const T&;
+    using pointer_t = const T*;
+    using reference_t = const T&;
 };
 
 #endif //VESPERAOS_ITERATOR_H

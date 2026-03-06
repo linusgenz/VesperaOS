@@ -29,24 +29,24 @@
 #include "xhci_usb_device_driver.h"
 #include <vector.h>
 
-class xhciUsbInterface {
+class XhciUsbInterface {
 public:
-    xhciUsbInterface(uint8_t dev_slot_id, const usb_interface_descriptor *desc);
+    XhciUsbInterface(uint8_t dev_slot_id, const USB_INTERFACE_DESCRIPTOR *desc);
 
-    ~xhciUsbInterface() = default;
+    ~XhciUsbInterface() = default;
 
-    void setup_add_endpoint(const usb_endpoint_descriptor *ep_desc);
+    void setup_add_endpoint(const USB_ENDPOINT_DESCRIPTOR *ep_desc);
 
-    usb_interface_descriptor descriptor{};
-    Vector<xhciEndpoint*> endpoints;
-    xhciUsbDeviceDriver *driver{};
+    USB_INTERFACE_DESCRIPTOR descriptor{};
+    Vector<XhciEndpoint*> endpoints;
+    XhciUsbDeviceDriver *driver{};
 
     // HID report data for HID devices
     uint8_t *additional_data = nullptr;
     size_t additional_data_length = 0;
 
 private:
-    uint8_t m_dev_slot_id;
+    uint8_t dev_slot_id_;
 };
 
 #endif //VESPERAOS_XHCU_USB_INTERFACE_H

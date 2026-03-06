@@ -29,17 +29,15 @@
 #include "../types/handle.h"
 #include "../types/types.h"
 
-struct realm;
+enum class UnitState : uint8_t { New, Ready, Running, Blocked, Zombie, Terminated };
 
-typedef enum { UNIT_NEW, UNIT_READY, UNIT_RUNNING, UNIT_BLOCKED, UNIT_ZOMBIE, UNIT_TERMINATED } UnitState;
-
-typedef struct arg_registers {
+struct ArgRegisters {
     uint64_t rdi, rsi, rdx, rcx, r8, r9;
-} arg_registers_t;
+};
 
 // WARNING when changing this struct syscall might break as offsets are hardcoded!
 // TODO refactor this struct
-typedef struct execution_context {
+typedef struct ExecutionContext {
     uint64_t stack_size;
     virt_addr_t stack;
     virt_addr_t stack_top;
@@ -51,7 +49,7 @@ typedef struct execution_context {
 
     void (*entry)(void*);
 
-    arg_registers_t regs;
+    ArgRegisters regs;
 
     bool initialized;
 
@@ -65,7 +63,7 @@ typedef struct execution_context {
     virt_addr_t user_stack_virt_base;
 } execution_context_t;
 
-typedef struct sleep_context {
+typedef struct SleepContext {
     uint64_t wakeup_tick;
     void* kernel_rsp_after_sleep;
 } sleep_context_t;
@@ -76,70 +74,56 @@ struct VmArea {
     uint64_t prot;
     uint64_t flags;
     uintptr_t file_off;
-    HandleID handle;
+    handle_id_t handle;
 
     VmArea* next;
 };
 
 class Unit {
    private:
-    unit_handle_table_t handle_table{};
-    VmArea* vma_list{};
+    unit_handle_table_t handle_table_{};
+    VmArea* vma_list_{};
 
    public:
-    UnitID id;
-    RealmID rid;
-    const char* name;
+    unit_id_t id{0};
+    realm_id_t rid{0};
+    const char* name{nullptr};
 
-    Unit* next;
+    Unit* next{nullptr};
     Unit* realm_next{};
 
-    UnitState state;
-    uint64_t creation_time;
+    UnitState state{UnitState::New};
+    uint64_t creation_time{0};
 
-    uint8_t priority;
-    uint8_t cpu_id;
+    uint8_t priority{0};
+    uint8_t cpu_id{0};
 
-    int exit_code;
-    bool active;
+    int exit_code{0};
+    bool active{false};
 
-    bool is_idle;
-    bool is_user;
-    bool is_kernel;
+    bool is_idle{false};
+    bool is_user{false};
+    bool is_kernel{false};
 
     uint64_t heap_end{};
 
-    uint64_t handle_count;
+    uint64_t handle_count{0};
 
     execution_context_t context{};
     sleep_context_t sleep_context{};
 
-    Unit()
-        : id(0)
-        , rid(0)
-        , name(nullptr)
-        , next(nullptr)
-        , state(UnitState::UNIT_NEW)
-        , creation_time(0)
-        , priority(0)
-        , cpu_id(0)
-        , exit_code(0)
-        , active(false)
-        , is_idle(false)
-        , is_user(false)
-        , is_kernel(false)
-        , handle_count(0) {
-        memset(&handle_table, 0, sizeof(handle_table));
-        handle_table.lock.init();
+    Unit() {
+        memset(&handle_table_, 0, sizeof(handle_table_));
+        handle_table_.lock.init();
     }
 
     void add_vma(VmArea* vma) {
-        vma->next = vma_list;
-        vma_list = vma;
+        vma->next = vma_list_;
+        vma_list_ = vma;
     }
 
-    VmArea* find_vma(uintptr_t addr, size_t len) const {
-        for (VmArea* v = vma_list; v; v = v->next) {
+    [[nodiscard]] VmArea* find_vma(uintptr_t addr, size_t len) const {
+        for (VmArea* v = vma_list_; v; v = v->next) {
             if (addr >= v->start && (addr + len) <= (v->start + v->length)) {
                 return v;
             }
@@ -149,14 +133,14 @@ class Unit {
 
     bool remove_vma(uintptr_t addr, size_t len) {
         VmArea* prev = nullptr;
-        VmArea* cur = vma_list;
+        VmArea* cur = vma_list_;
 
         while (cur) {
             if (cur->start == addr && cur->length == len) {
                 if (prev)
                     prev->next = cur->next;
                 else
-                    vma_list = cur->next;
+                    vma_list_ = cur->next;
                 delete cur;  // Achtung: später evtl. eigener Allocator
                 return true;
             }
@@ -166,57 +150,57 @@ class Unit {
         return false;
     }
 
-    ErrorCode attach_handle(HandleID h) {
-        handle_table.lock.lock();
-        if (handle_table.count >= MAX_UNIT_HANDLE_SLOTS) {
-            handle_table.lock.unlock();
+    error_code_t attach_handle(handle_id_t h) {
+        handle_table_.lock.lock();
+        if (handle_table_.count >= MAX_UNIT_HANDLE_SLOTS) {
+            handle_table_.lock.unlock();
             return MOD_ERR_OUT_OF_MEMORY;
         }
-        for (unsigned long& slot : handle_table.slots) {
+        for (unsigned long& slot : handle_table_.slots) {
             if (slot == 0) {
                 slot = h;
-                handle_table.count++;
-                handle_count = handle_table.count;
-                handle_table.lock.unlock();
+                handle_table_.count++;
+                handle_count = handle_table_.count;
+                handle_table_.lock.unlock();
                 return MOD_SUCCESS;
             }
         }
-        handle_table.lock.unlock();
+        handle_table_.lock.unlock();
         return MOD_ERR_OUT_OF_MEMORY;
     }
 
-    ErrorCode detach_handle(HandleID h) {
-        handle_table.lock.lock();
-        for (unsigned long& slot : handle_table.slots) {
+    error_code_t detach_handle(handle_id_t h) {
+        handle_table_.lock.lock();
+        for (unsigned long& slot : handle_table_.slots) {
             if (slot == h) {
                 slot = 0;
-                handle_table.count--;
-                handle_count = handle_table.count;
-                handle_table.lock.unlock();
+                handle_table_.count--;
+                handle_count = handle_table_.count;
+                handle_table_.lock.unlock();
                 return MOD_SUCCESS;
             }
         }
-        handle_table.lock.unlock();
+        handle_table_.lock.unlock();
         return MOD_ERR_INVALID_HANDLE;
     }
 
-    ErrorCode detach_all_handles() {
-        handle_table.lock.lock();
-        for (uint64_t& slot : handle_table.slots) {
-            if (const HandleID h = slot; h != 0) {
+    error_code_t detach_all_handles() {
+        handle_table_.lock.lock();
+        for (uint64_t& slot : handle_table_.slots) {
+            if (const handle_id_t h = slot; h != 0) {
                 slot = 0;
             }
         }
-        handle_table.count = 0;
+        handle_table_.count = 0;
         handle_count = 0;
 
-        handle_table.lock.unlock();
+        handle_table_.lock.unlock();
         return MOD_SUCCESS;
     }
 
-    [[nodiscard]] uint32_t find_handle_slot(HandleID h) const {
+    [[nodiscard]] uint32_t find_handle_slot(handle_id_t h) const {
         for (uint32_t i = 0; i < MAX_UNIT_HANDLE_SLOTS; ++i) {
-            if (handle_table.slots[i] == h) return i;
+            if (handle_table_.slots[i] == h) return i;
         }
         return -1;
     }

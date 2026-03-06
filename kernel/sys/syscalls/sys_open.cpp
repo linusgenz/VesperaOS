@@ -63,7 +63,7 @@ namespace syscalls::internal {
             }
         }
 
-        CapabilitySet required_caps = CAP_NONE;
+        capability_set_t required_caps = CAP_NONE;
 
         switch (flags & 0x3) {
             case O_RDONLY:
@@ -161,9 +161,9 @@ namespace syscalls::internal {
         }
 
         // Handle registrieren
-        HandleID file_handle = 0;
+        handle_id_t file_handle = 0;
 
-        if (const ErrorCode err =
+        if (const error_code_t err =
                 realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, &file_handle);
             err != MOD_SUCCESS) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {

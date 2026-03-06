@@ -4,7 +4,7 @@
 
 #ifndef INTERRUPTS_INTERNAL_H
 #define INTERRUPTS_INTERNAL_H
-#include <cstdint>
+#include <stdint.h>
 
 #define IRQ_SPURIOUS 0xFF
 #define IRQ_TIMER 0x20
@@ -12,7 +12,7 @@
 #define IRQ_COMMON_STUB 0x31
 
 // x86_64 Interrupt Frame Structure (pushed via asm stubs)
-struct trap_frame {
+struct TrapFrame {
     uint64_t rax, rbx, rcx, rdx;
     uint64_t rbp, rsi, rdi;
     uint64_t r8, r9, r10, r11, r12, r13, r14, r15;
@@ -45,18 +45,18 @@ extern "C" void isr_spurious_int();
 extern "C" void isr_panic_ipi();
 
 // C++ Handler
-extern "C" void divide_error_handler(const trap_frame* frame);
-extern "C" void invalid_opcode_handler(const trap_frame* frame);
-extern "C" void double_fault_handler(const trap_frame* frame);
-extern "C" void segment_not_present_handler(const trap_frame* frame);
-extern "C" void stack_fault_handler(const trap_frame* frame);
-extern "C" void gp_fault_handler(const trap_frame* frame);
-extern "C" void page_fault_handler(trap_frame* frame);
-extern "C" void machine_check_handler(const trap_frame* frame);
-extern "C" void keyboard_int_handler(trap_frame* frame);
-extern "C" void mouse_int_handler(trap_frame* frame);
-extern "C" void apic_timer_int_handler(trap_frame* frame);
-extern "C" void spurious_int_handler(trap_frame* frame);
-extern "C" [[noreturn]] void panic_ipi_handler(trap_frame* frame);
+extern "C" void divide_error_handler(const TrapFrame* frame);
+extern "C" void invalid_opcode_handler(const TrapFrame* frame);
+extern "C" void double_fault_handler(const TrapFrame* frame);
+extern "C" void segment_not_present_handler(const TrapFrame* frame);
+extern "C" void stack_fault_handler(const TrapFrame* frame);
+extern "C" void gp_fault_handler(const TrapFrame* frame);
+extern "C" void page_fault_handler(TrapFrame* frame);
+extern "C" void machine_check_handler(const TrapFrame* frame);
+extern "C" void keyboard_int_handler(TrapFrame* frame);
+extern "C" void mouse_int_handler(TrapFrame* frame);
+extern "C" void apic_timer_int_handler(TrapFrame* frame);
+extern "C" void spurious_int_handler(TrapFrame* frame);
+extern "C" [[noreturn]] void panic_ipi_handler(TrapFrame* frame);
 
 #endif  // INTERRUPTS_H

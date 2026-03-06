@@ -25,26 +25,25 @@
 #include <kernel/kernel_utils.h>
 #include <kernel/memory.h>
 
-#include "../cpu/io.h"
 #include "arch/x86_64/cpu/msr.h"
 
 namespace kernel::memory {
-void initialize_memory(BootInfo* bootInfo) {
-    initialize_page_frame_allocator(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+void initialize_memory(BootInfo* boot_info) {
+    initialize_page_frame_allocator(boot_info->m_map, boot_info->m_map_size, boot_info->m_map_desc_size);
 
     const uint64_t kernel_phys_start =
-        reinterpret_cast<uint64_t>(&_KernelStart) - bootInfo->kernel_virt_base + bootInfo->kernel_phys_base;
+        reinterpret_cast<uint64_t>(&kernel_start) - boot_info->kernel_virt_base + boot_info->kernel_phys_base;
     const uint64_t kernel_phys_end =
-        reinterpret_cast<uint64_t>(&_KernelEnd) - bootInfo->kernel_virt_base + bootInfo->kernel_phys_base;
+        reinterpret_cast<uint64_t>(&kernel_end) - boot_info->kernel_virt_base + boot_info->kernel_phys_base;
     const uint64_t kernel_pages = (kernel_phys_end - kernel_phys_start) / 4096 + 1;
 
     lock_pages(make_phys(kernel_phys_start), kernel_pages);
     lock_pages(make_phys(0), 256);
 
-    initialize_page_table_manager(bootInfo);
+    initialize_page_table_manager(boot_info);
 
     // PAT
-    constexpr uint32_t IA32_PAT_MSR = 0x277;
+    constexpr uint32_t ia32_pat_msr = 0x277;
     uint64_t pat_value = (0x06ULL << 0)  |  // PAT0: WB
                          (0x01ULL << 8)  |  // PAT1: WC
                          (0x07ULL << 16) |  // PAT2: UC-
@@ -53,11 +52,11 @@ void initialize_memory(BootInfo* bootInfo) {
                          (0x04ULL << 40) |  // PAT5: WT
                          (0x07ULL << 48) |  // PAT6: UC-
                          (0x05ULL << 56);   // PAT7: WP
-    wrmsr(IA32_PAT_MSR, pat_value);
+    wrmsr(ia32_pat_msr, pat_value);
 
-    const uint64_t fb_virt = reinterpret_cast<uint64_t>(bootInfo->framebuffer->base_address);
-    const uint64_t fb_phys = bootInfo->framebuffer->phys_base_address;
-    const uint64_t fb_size = bootInfo->framebuffer->buffer_size + 0x1000;
+    const uint64_t fb_virt = reinterpret_cast<uint64_t>(boot_info->framebuffer->base_address);
+    const uint64_t fb_phys = boot_info->framebuffer->phys_base_address;
+    const uint64_t fb_size = boot_info->framebuffer->buffer_size + 0x1000;
 
     lock_pages(make_phys(fb_phys), fb_size / 0x1000 + 1);
 
@@ -65,12 +64,12 @@ void initialize_memory(BootInfo* bootInfo) {
         map_memory(
             virt_from_raw(fb_virt + offset),
             make_phys(fb_phys + offset),
-            (1ULL << PT_Flag::WriteThrough) | (1ULL << PT_Flag::Global)
+            (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::Global)
         );
     }
 
     asm volatile("mov %0, %%cr3" : : "r"(get_pagetable_address()) : "memory");
-    g_hhdm_offset = bootInfo->hhdm_offset;
+    g_hhdm_offset = boot_info->hhdm_offset;
     relocate_bitmap_to_hhdm();
 }
 }  // namespace kernel::memory

@@ -27,31 +27,31 @@
 
 #include "IRenderDriver.h"
 
-FONT* system_font = nullptr;
+font_t* system_font = nullptr;
 Terminal* global_terminal = nullptr;
 
 Terminal::Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height)
-    : drv(d)
-    , char_w(char_width)
-    , char_h(char_height)
-    , cols(drv->screen_width_px() / char_w)
-    , rows(drv->screen_height_px() / char_h)
-    , cells(new Cell[cols * rows]) {
+    : drv_(d)
+    , char_w_(char_width)
+    , char_h_(char_height)
+    , cols_(drv_->screen_width_px() / char_w_)
+    , rows_(drv_->screen_height_px() / char_h_)
+    , cells_(new Cell[cols_ * rows_]) {
     clear();
 }
 
 Terminal::~Terminal() {
-    delete[] cells;
+    delete[] cells_;
 }
 
 void Terminal::set_colour(uint32_t new_fg, uint32_t new_bg) {
-    fg = new_fg;
-    bg = new_bg;
+    fg_ = new_fg;
+    bg_ = new_bg;
 }
 
 void Terminal::set_cursor(uint32_t x, uint32_t y) {
-    cx = x;
-    cy = y;
+    cx_ = x;
+    cy_ = y;
 }
 
 void Terminal::put_char(char c) {
@@ -60,7 +60,7 @@ void Terminal::put_char(char c) {
         return;
     }
 
-    at(cx, cy) = {c, fg, bg, true};
+    at(cx_, cy_) = {c, fg_, bg_, true};
     advance();
 }
 
@@ -70,13 +70,13 @@ void Terminal::put_char_fast(char c) {
         return;
     }
     if (c == '\r') {
-        cx = 0;
+        cx_ = 0;
         return;
     }
 
-    at(cx, cy) = {c, fg, bg, true};
-    GlyphRun run{&c, 1, cx * char_w, cy * char_h, fg, bg};
-    drv->draw_glyph_run(run);
+    at(cx_, cy_) = {c, fg_, bg_, true};
+    GlyphRun run{&c, 1, cx_ * char_w_, cy_ * char_h_, fg_, bg_};
+    drv_->draw_glyph_run(run);
     advance();
 }
 
@@ -85,39 +85,39 @@ void Terminal::print(const char* s) {
 }
 
 void Terminal::clear() {
-    for (uint32_t i = 0; i < cols * rows; ++i) cells[i] = {' ', fg, bg};
+    for (uint32_t i = 0; i < cols_ * rows_; ++i) cells_[i] = {' ', fg_, bg_};
 
-    drv->fill_rect(0, 0, drv->screen_width_px(), drv->screen_height_px(), bg);
-    cx = cy = 0;
+    drv_->fill_rect(0, 0, drv_->screen_width_px(), drv_->screen_height_px(), bg_);
+    cx_ = cy_ = 0;
 }
 
 void Terminal::clear_char() {
-    if (cx == 0 && cy == 0) return;
+    if (cx_ == 0 && cy_ == 0) return;
 
-    if (cx == 0) {
-        cy--;
-        cx = cols - 1;
+    if (cx_ == 0) {
+        cy_--;
+        cx_ = cols_ - 1;
     } else {
-        cx--;
+        cx_--;
     }
 
     put_char_fast(' ');
 }
 
 void Terminal::new_line() {
-    cx = 0;
-    cy++;
+    cx_ = 0;
+    cy_++;
 
-    if (cy >= rows) {
+    if (cy_ >= rows_) {
         scroll();
-        cy = rows - 1;
+        cy_ = rows_ - 1;
     }
 }
 
 void Terminal::flush() const {
-    for (uint32_t y = 0; y < rows; ++y) {
+    for (uint32_t y = 0; y < rows_; ++y) {
         uint32_t x = 0;
-        while (x < cols) {
+        while (x < cols_) {
             Cell& start = at(x, y);
             if (!start.dirty) {
                 x++;
@@ -126,7 +126,7 @@ void Terminal::flush() const {
 
             // Finde zusammenhängenden dirty run
             uint32_t len = 1;
-            while (x + len < cols && at(x + len, y).dirty && at(x + len, y).fg == start.fg &&
+            while (x + len < cols_ && at(x + len, y).dirty && at(x + len, y).fg == start.fg &&
                    at(x + len, y).bg == start.bg) {
                 len++;
             }
@@ -142,7 +142,7 @@ void Terminal::flush() const {
 }
 
 Terminal::Cell& Terminal::at(uint32_t x, uint32_t y) const {
-    return cells[y * cols + x];
+    return cells_[y * cols_ + x];
 }
 
 void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* run_cells, uint32_t len) const {
@@ -156,25 +156,25 @@ void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* run_cells,
     GlyphRun run{
         .text = buf,
         .length = len,
-        .px = cell_x * char_w,
-        .py = cell_y * char_h,
+        .px = cell_x * char_w_,
+        .py = cell_y * char_h_,
         .fg = run_cells[0].fg,
         .bg = run_cells[0].bg
     };
 
-    drv->draw_glyph_run(run);
+    drv_->draw_glyph_run(run);
 }
 
 void Terminal::advance() {
-    cx++;
-    if (cx >= cols) new_line();
+    cx_++;
+    if (cx_ >= cols_) new_line();
 }
 
 void Terminal::scroll() const {
-    drv->scroll_pixels(char_h);
+    drv_->scroll_pixels(char_h_);
 
-    for (uint32_t y = 1; y < rows; ++y)
-        for (uint32_t x = 0; x < cols; ++x) at(x, y - 1) = at(x, y);
+    for (uint32_t y = 1; y < rows_; ++y)
+        for (uint32_t x = 0; x < cols_; ++x) at(x, y - 1) = at(x, y);
 
-    for (uint32_t x = 0; x < cols; ++x) at(x, rows - 1) = {' ', fg, bg};
+    for (uint32_t x = 0; x < cols_; ++x) at(x, rows_ - 1) = {' ', fg_, bg_};
 }

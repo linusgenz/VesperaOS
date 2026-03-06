@@ -49,7 +49,7 @@ TEST(FAT32_FileIO, BasicWriteRead, "Write a string and read it back") {
     const size_t len = strlen(data);
 
     ASSERT_TRUE(f.write(node, data, len));
-    ASSERT_EQ(len, (size_t)node.fileSize);
+    ASSERT_EQ(len, (size_t)node.file_size);
 
     auto result = f.read(node, len);
     ASSERT_EQ(len, result.size());
@@ -59,8 +59,8 @@ TEST(FAT32_FileIO, BasicWriteRead, "Write a string and read it back") {
 TEST(FAT32_FileIO, WriteEmptyRejected, "Write with len=0 or null buffer is rejected") {
     WITH_FAT32(f);
     auto node = f.create_file("EMPTY.TXT");
-    ASSERT_FALSE(f.fs->WriteFile(&node, "X", 0, 0));
-    ASSERT_FALSE(f.fs->WriteFile(&node, nullptr, 5, 0));
+    ASSERT_FALSE(f.fs->write_file(&node, "X", 0, 0));
+    ASSERT_FALSE(f.fs->write_file(&node, nullptr, 5, 0));
 }
 
 TEST(FAT32_FileIO, ReadEmptyFile, "Reading an empty file returns 0 bytes") {
@@ -69,7 +69,7 @@ TEST(FAT32_FileIO, ReadEmptyFile, "Reading an empty file returns 0 bytes") {
 
     char buf[16] = {};
     size_t actual = 99;
-    ASSERT_TRUE(f.fs->ReadFile(&node, buf, sizeof(buf), actual));
+    ASSERT_TRUE(f.fs->read_file(&node, buf, sizeof(buf), actual));
     ASSERT_EQ(static_cast<size_t>(0), actual);
 }
 
@@ -82,7 +82,7 @@ TEST(FAT32_FileIO, ReadExactSize, "Read exactly fileSize bytes") {
 
     char buf[8] = {};
     size_t actual = 0;
-    ASSERT_TRUE(f.fs->ReadFile(&node, buf, 5, actual));
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 5, actual));
     ASSERT_EQ(static_cast<size_t>(5), actual);
     ASSERT_MEM_EQ(data, buf, 5);
 }
@@ -96,11 +96,11 @@ TEST(FAT32_FileIO, ReadOffsetAtEOF, "Read with offset >= fileSize returns 0 byte
     size_t actual = 99;
 
     // offset == fileSize
-    ASSERT_TRUE(f.fs->ReadFile(&node, buf, 8, actual, 5));
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 8, actual, 5));
     ASSERT_EQ(static_cast<size_t>(0), actual);
 
     // offset far past EOF
-    ASSERT_TRUE(f.fs->ReadFile(&node, buf, 8, actual, 100));
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 8, actual, 100));
     ASSERT_EQ(static_cast<size_t>(0), actual);
 }
 
@@ -185,10 +185,10 @@ TEST(FAT32_FileIO, SequentialAppend, "Simulate append by writing at fileSize off
     auto node = f.create_file("APPEND.TXT");
 
     ASSERT_TRUE(f.write(node, "Hello", 5, 0));
-    ASSERT_EQ(static_cast<size_t>(5), (size_t)node.fileSize);
+    ASSERT_EQ(static_cast<size_t>(5), (size_t)node.file_size);
 
     ASSERT_TRUE(f.write(node, " World", 6, 5));
-    ASSERT_EQ(static_cast<size_t>(11), (size_t)node.fileSize);
+    ASSERT_EQ(static_cast<size_t>(11), (size_t)node.file_size);
 
     auto result = f.read(node, 11);
     ASSERT_EQ(static_cast<size_t>(11), result.size());
@@ -201,7 +201,7 @@ TEST(FAT32_FileIO, FileSizePersisted, "fileSize is correct after reloading the n
     ASSERT_TRUE(f.write(node, "TESTDATA", 8));
 
     auto fresh = f.find_file_node("PERSIST.TXT");
-    ASSERT_EQ(static_cast<size_t>(8), (size_t)fresh.fileSize);
+    ASSERT_EQ(static_cast<size_t>(8), (size_t)fresh.file_size);
 }
 
 TEST(FAT32_FileIO, ReadClampedToFileSize, "Read with len > fileSize reads only fileSize bytes") {
@@ -211,7 +211,7 @@ TEST(FAT32_FileIO, ReadClampedToFileSize, "Read with len > fileSize reads only f
 
     char buf[64] = {};
     size_t actual = 0;
-    ASSERT_TRUE(f.fs->ReadFile(&node, buf, 64, actual));
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 64, actual));
     ASSERT_EQ(static_cast<size_t>(3), actual);
 }
 
@@ -233,7 +233,7 @@ TEST(FAT32_FileIO, ReadAtOffset, "Read with non-zero offset returns correct byte
 
     char buf[8] = {};
     size_t actual = 0;
-    ASSERT_TRUE(f.fs->ReadFile(&node, buf, 4, actual, 3));
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 4, actual, 3));
     ASSERT_EQ(static_cast<size_t>(4), actual);
     ASSERT_MEM_EQ("3456", buf, 4);
 }
@@ -243,14 +243,14 @@ TEST(FAT32_FileIO, ReadOnlyProtection, "Write to a read-only file is rejected") 
     auto node = f.create_file("RDONLY.TXT");
     ASSERT_TRUE(f.write(node, "data", 4));
 
-    node.dirEntry.attr |= FAT32::ATTR_READ_ONLY;
+    node.dir_entry.attr |= fat32::ATTR_READ_ONLY;
     ASSERT_FALSE(f.write(node, "nope", 4));
 }
 
 TEST(FAT32_FileIO, SystemFileProtection, "Write to a system file is rejected") {
     WITH_FAT32(f);
     auto node = f.create_file("SYSFILE.TXT");
-    node.dirEntry.attr |= FAT32::ATTR_SYSTEM;
+    node.dir_entry.attr |= fat32::ATTR_SYSTEM;
     ASSERT_FALSE(f.write(node, "X", 1));
 }
 
@@ -263,7 +263,7 @@ TEST(FAT32_FileIO, LargeFile128KB, "Write and read a 128 KB file") {
     for (size_t i = 0; i < sz; i++) src[i] = static_cast<uint8_t>(i * 7 + 13);
 
     ASSERT_TRUE(f.write(node, src.data(), sz));
-    ASSERT_EQ(sz, (size_t)node.fileSize);
+    ASSERT_EQ(sz, (size_t)node.file_size);
 
     auto result = f.read(node, sz);
     ASSERT_EQ(sz, result.size());

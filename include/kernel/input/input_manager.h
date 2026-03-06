@@ -25,7 +25,7 @@
 #define VESPERAOS_INPUT_MANAGER_H
 
 #include <kernel/input/input_event.h>
-#include <cstddef>
+#include <stddef.h>
 
 #include <kernel/sync/spinlock.h>
 
@@ -42,10 +42,10 @@ namespace kernel::input
         static void init();
 
     private:
-        static inline InputEvent s_buffer[BUFFER_SIZE];
-        static volatile inline size_t s_head = 0;
-        static volatile inline size_t s_tail = 0;
-        static inline spinlock_t s_lock{};
+        static inline InputEvent s_buffer_[BUFFER_SIZE];
+        static volatile inline size_t s_head_ = 0;
+        static volatile inline size_t s_tail_ = 0;
+        static inline Spinlock s_lock_{};
     };
 }
 

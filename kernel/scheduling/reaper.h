@@ -27,7 +27,6 @@
 #include <intrusive_queue.h>
 
 #include "../units/unit.h"
-#include "../units/unit_manager.h"
 
 [[noreturn]] void reaper_unit(void* arg);
 
@@ -39,10 +38,10 @@ struct Reaper {
 
     void reap();
 
-    bool empty() const;
+    [[nodiscard]] bool empty() const;
 
    private:
-    intrusive_queue_t<Unit> pending;
+    IntrusiveQueue<Unit> pending_;
 };
 
 #endif  // VESPERAOS_REAPER_H

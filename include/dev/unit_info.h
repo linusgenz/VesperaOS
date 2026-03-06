@@ -23,7 +23,7 @@
 */
 #ifndef VESPERAOS_UNIT_STATUS_H
 #define VESPERAOS_UNIT_STATUS_H
-#include <cstdint>
+#include <stdint.h>
 
 typedef struct {
     uint32_t id;

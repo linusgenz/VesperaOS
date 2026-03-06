@@ -27,27 +27,27 @@
 #include "vespera_errno.h"
 
 PartitionDevice::PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba)
-    : parent(parent)
-    , start_lba(start_lba)
-    , length_lba(length_lba), sector_size(parent->get_sector_size()) {
+    : parent_(parent)
+    , start_lba_(start_lba)
+    , length_lba_(length_lba), sector_size_(parent->get_sector_size()) {
 
     type = Type::Partition;
 }
 
 ssize_t PartitionDevice::read(const uint64_t lba, const size_t count, void* buf, size_t buf_size) {
-    if (!parent) return false;
-    if (lba + count > length_lba) return false;
+    if (!parent_) return false;
+    if (lba + count > length_lba_) return false;
 
-    ssize_t ret = parent->read(start_lba + lba, count, buf, buf_size);
+    ssize_t ret = parent_->read(start_lba_ + lba, count, buf, buf_size);
 
     return ret;
 }
 
 ssize_t PartitionDevice::write(const uint64_t lba, const size_t count, void* buf, size_t buf_size) {
-    if (!parent || !buf) return -EINVAL;
-    if (lba + count > length_lba) return -EINVAL;
+    if (!parent_ || !buf) return -EINVAL;
+    if (lba + count > length_lba_) return -EINVAL;
 
-    ssize_t ret = parent->write(start_lba + lba, count, buf, buf_size);
+    ssize_t ret = parent_->write(start_lba_ + lba, count, buf, buf_size);
 
     return ret;
 }

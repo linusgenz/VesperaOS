@@ -11,13 +11,13 @@
 #include "cpu_manager.h"
 
 extern "C" void ap_main() {
-    const uint32_t cpu_id = CPUManager::get_current_cpu_id();
+    const uint32_t cpu_id = cpu_manager::get_current_cpu_id();
 
     if (!cpu_id) {
         kernel::SystemManager::system_panic("Failed to find CPU ID", -KENOCPUID);
     }
 
-    load_GDT(&gdt_ptr);
+    load_gdt(&gdt_ptr);
 
     setup_cpu_tss(cpu_id);
     syscall_init();

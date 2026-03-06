@@ -25,17 +25,17 @@
 #include "display_manager.h"
 
 void DisplayManager::init(DisplayBackend initial) {
-    s_lock.init("display_manager_lock");
-    spinlock_guard guard(s_lock);
-    s_primary = initial;
+    lock_.init("display_manager_lock");
+    SpinlockGuard guard(lock_);
+    primary_ = initial;
 }
 
 void DisplayManager::set_primary(DisplayBackend be) {
-    spinlock_guard guard(s_lock);
-    s_primary = be;
+    SpinlockGuard guard(lock_);
+    primary_ = be;
 }
 
 DisplayBackend DisplayManager::primary() {
-    spinlock_guard guard(s_lock);
-    return s_primary;
+    SpinlockGuard guard(lock_);
+    return primary_;
 }

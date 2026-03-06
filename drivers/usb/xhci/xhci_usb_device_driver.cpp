@@ -23,6 +23,6 @@
 
 #include "xhci_usb_device_driver.h"
 
-void xhciUsbDeviceDriver::attach_interface(xhciUsbInterface* interface) {
-    m_interface = interface;
+void XhciUsbDeviceDriver::attach_interface(XhciUsbInterface* interface) {
+    interface_ = interface;
 }

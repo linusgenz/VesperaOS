@@ -53,9 +53,9 @@ template <typename DeviceType, typename EntryType = VirtualFsEntry<DeviceType>>
 class VirtualFilesystem
 {
 protected:
-    static VfsNode* root;
-    static spinlock_t lock;
-    static VfsNodeOps ops;
+    static VfsNode* root_;
+    static Spinlock lock_;
+    static VfsNodeOps ops_;
 
     // Lookup a device by name
     static VfsNode* lookup_device(const VfsNode* dir, const char* name)
@@ -84,7 +84,7 @@ protected:
     // Create a subdirectory within the virtual filesystem
     static VfsNode* ensure_subdirectory(const char* name, VfsNode* parent = nullptr)
     {
-        if (!parent) parent = root;
+        if (!parent) parent = root_;
 
         auto* parent_data = static_cast<DirData*>(parent->internal_data);
         if (!parent_data)
@@ -102,7 +102,7 @@ protected:
         auto* dir = new VfsNode();
         dir->name = name;
         dir->type = VfsNodeType::Directory;
-        dir->ops = &ops;
+        dir->ops = &ops_;
         dir->permanent = true;
 
         auto* data = new DirData();
@@ -120,7 +120,7 @@ protected:
         auto* n = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
         n->name = name;
         n->type = type;
-        n->ops = &ops;
+        n->ops = &ops_;
         n->permanent = false;
 
         auto* e = static_cast<EntryType*>(kernel::memory::malloc(sizeof(EntryType)));
@@ -186,18 +186,18 @@ protected:
 public:
     static void init(const char* mount_point, const char* name)
     {
-        lock.init("vfs_lock");
+        lock_.init("vfs_lock");
 
-        root = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
-        root->name = strdup(name);
-        root->type = VfsNodeType::Directory;
-        root->permanent = true;
-        root->ops = &ops;
+        root_ = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+        root_->name = strdup(name);
+        root_->type = VfsNodeType::Directory;
+        root_->permanent = true;
+        root_->ops = &ops_;
 
         auto* data = new DirData();
-        root->internal_data = data;
+        root_->internal_data = data;
 
-        VFS::mount_virtual(root, mount_point);
+        VFS::mount_virtual(root_, mount_point);
     }
 
     static VfsNode* find(const VfsNode* dir, const char* name)
@@ -291,12 +291,12 @@ public:
 };
 
 template <typename D, typename E>
-VfsNode* VirtualFilesystem<D, E>::root = nullptr;
+VfsNode* VirtualFilesystem<D, E>::root_ = nullptr;
 
 template <typename D, typename E>
-spinlock_t VirtualFilesystem<D, E>::lock;
+Spinlock VirtualFilesystem<D, E>::lock_;
 
 template <typename D, typename E>
-VfsNodeOps VirtualFilesystem<D, E>::ops = {};
+VfsNodeOps VirtualFilesystem<D, E>::ops_ = {};
 
 #endif //VESPERAOS_VIRTUAL_FS_H

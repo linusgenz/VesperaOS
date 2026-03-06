@@ -25,11 +25,11 @@
 #include <cstdarg>
 
 namespace Log {
-    void Error(const char* fmt, ...);
+    void error(const char* fmt, ...);
     void debug(const char* fmt, ...);
-    void Warning(const char* fmt, ...);
-    void Info(const char* fmt, ...);
-    void Ok(const char* fmt, ...);
-    void Print(const char* fmt, ...);
-    void PrintLn(const char* fmt, ...);
+    void warning(const char* fmt, ...);
+    void info(const char* fmt, ...);
+    void ok(const char* fmt, ...);
+    void print(const char* fmt, ...);
+    void print_ln(const char* fmt, ...);
 }

@@ -29,32 +29,32 @@
 #include "../types/types.h"
 #include "unit.h"
 
-using UnitEntry = void (*)(void*);
+using unit_entry_t = void (*)(void*);
 
 class UnitManager {
    public:
     static void initialize();
     static bool is_initialized();
-    static Unit* create(RealmID realm_id, UnitEntry entry_point, void* arg, const UnitConfig* cfg);
-    static Unit* get(UnitID id);
-    static bool destroy(UnitID id);
+    static Unit* create(realm_id_t realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg);
+    static Unit* get(unit_id_t id);
+    static bool destroy(unit_id_t id);
     static void list();
 
     static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
 
    private:
     static constexpr size_t MAX_UNITS = 256;
-    static Unit units[MAX_UNITS];
-    static spinlock_t global_lock;
-    static UnitID next_id;
-    static bool initialized;
+    static Unit units_[MAX_UNITS];
+    static Spinlock global_lock_;
+    static unit_id_t next_id_;
+    static bool initialized_;
 
-    static UnitID allocate_id();
+    static unit_id_t allocate_id();
 
     static void setup_kernel_unit_stack(Unit* u);
     static void setup_user_unit_stack(Unit* u);
 };
 
-uintptr_t SetupUserArgsAndEnv(Unit* u, const char** argv, const char** envp);
+uintptr_t setup_user_args_and_env(Unit* u, const char** argv, const char** envp);
 
 #endif  // VESPERAOS_UNIT_MANAGER_H

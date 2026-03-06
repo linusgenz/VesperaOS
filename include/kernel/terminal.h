@@ -27,7 +27,7 @@
 #include <graphics.h>
 
 #include "../../kernel/graphics/IRenderDriver.h"
-#include <cstdint>
+#include <stdint.h>
 
 class Terminal {
     struct Cell {
@@ -37,21 +37,21 @@ class Terminal {
         bool dirty;
     };
 
-    IRenderDriver* drv = nullptr;
+    IRenderDriver* drv_ = nullptr;
 
-    uint32_t char_w{};
-    uint32_t char_h{};
+    uint32_t char_w_{};
+    uint32_t char_h_{};
 
-    size_t cols{};
-    size_t rows{};
+    size_t cols_{};
+    size_t rows_{};
 
-    uint32_t cx = 0;
-    uint32_t cy = 0;
+    uint32_t cx_ = 0;
+    uint32_t cy_ = 0;
 
-    uint32_t fg = 0xFFFFFFFF;
-    uint32_t bg = 0x00000000;
+    uint32_t fg_ = 0xFFFFFFFF;
+    uint32_t bg_ = 0x00000000;
 
-    Cell* cells{};
+    Cell* cells_{};
 
    public:
     Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height);
@@ -74,7 +74,7 @@ class Terminal {
     void scroll() const;
 };
 
-extern FONT* system_font;
+extern font_t* system_font;
 extern Terminal* global_terminal;
 
 #endif  // VESPERAOS_TERMINAL_H

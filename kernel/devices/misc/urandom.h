@@ -28,7 +28,7 @@
 
 class URandomDevice final : public CharDevice {
    public:
-    explicit URandomDevice(const char* name, uint64_t seed = 881723468263953272ull);
+    explicit URandomDevice(uint64_t seed = 881723468263953272ull);
 
     int open(CharFile** out_cf) override;
     int release(CharFile*) override;
@@ -38,9 +38,9 @@ class URandomDevice final : public CharDevice {
    private:
     void refill();
     uint8_t next();
-    uint64_t state;
-    uint8_t dev_buffer[8]{};
-    size_t buffer_index = 8;
+    uint64_t state_;
+    uint8_t dev_buffer_[8]{};
+    size_t buffer_index_ = 8;
 };
 
 #endif  // VESPERAOS_URANDOM_H

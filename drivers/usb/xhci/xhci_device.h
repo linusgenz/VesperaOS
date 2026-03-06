@@ -29,40 +29,40 @@
 #include "xhci_usb_interface.h"
 #include <dev/usb_xhci_ioctl.h>
 
-class xhciDevice {
+class XhciDevice {
 public:
-    explicit xhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64byte_ctx);
+    explicit XhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64_byte_ctx);
 
     void allocate_control_ep_ring();
 
     [[nodiscard]] uint8_t get_slot_id() const { return info.slot_id; }
     [[nodiscard]] uint8_t get_port_id() const { return info.port_num; }
     [[nodiscard]] uint8_t get_speed() const { return info.speed; }
-    [[nodiscard]] uintptr_t get_input_context_phys() const { return m_input_context_phys; }
-    [[nodiscard]] xhciTransferRing *get_control_transfer_ring() const { return m_control_transfer_ring; }
+    [[nodiscard]] uintptr_t get_input_context_phys() const { return input_context_phys_; }
+    [[nodiscard]] XhciTransferRing *get_control_transfer_ring() const { return control_transfer_ring_; }
 
-    [[nodiscard]] xhci_input_control_context32 *get_input_control_ctx() const;
+    [[nodiscard]] XHCI_INPUT_CONTROL_CONTEXT32 *get_input_control_ctx() const;
 
-    [[nodiscard]] xhci_slot_context32 *get_input_slot_ctx() const;
+    [[nodiscard]] XHCI_SLOT_CONTEXT32 *get_input_slot_ctx() const;
 
-    [[nodiscard]] xhci_endpoint_context32 *get_input_control_ep_ctx() const;
+    [[nodiscard]] XHCI_ENDPOINT_CONTEXT32 *get_input_control_ep_ctx() const;
 
-    [[nodiscard]] xhci_endpoint_context32 *get_input_ep_ctx(uint8_t endpoint_num) const;
+    [[nodiscard]] XHCI_ENDPOINT_CONTEXT32 *get_input_ep_ctx(uint8_t endpoint_num) const;
 
-    void setup_add_interface(const usb_interface_descriptor *desc);
+    void setup_add_interface(const USB_INTERFACE_DESCRIPTOR *desc);
 
     void sync_input_ctx(const void *out_ctx) const;
 
-    Vector<xhciUsbInterface *> interfaces;
+    Vector<XhciUsbInterface *> interfaces;
 
-    xhci_device_stat info{};
+    XhciDeviceStat info{};
 
 private:
-    bool use64byte_ctx;
+    bool use_64_byte_ctx_;
 
-    void *m_input_context{};
-    uintptr_t m_input_context_phys{};
-    xhciTransferRing *m_control_transfer_ring{};
+    void *input_context_{};
+    uintptr_t input_context_phys_{};
+    XhciTransferRing *control_transfer_ring_{};
 
     void allocate_input_context();
 };

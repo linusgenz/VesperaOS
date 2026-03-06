@@ -29,15 +29,15 @@
 
 namespace syscalls::internal {
     int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
-        kernel::scheduling::cpu_scheduler::cpu_scheduler_t* cpu = kernel::scheduling::get_cpu_data(cpu_id);
+        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        kernel::scheduling::cpu_scheduler::CpuScheduler* cpu = kernel::scheduling::get_cpu_data(cpu_id);
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) {
             kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -KENOUNIT);
         }
 
         current->exit_code = static_cast<int>(code);
-        current->state = UNIT_TERMINATED;
+        current->state = UnitState::Terminated;
 
         cpu->reaper.enqueue(current);
 

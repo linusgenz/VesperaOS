@@ -27,8 +27,8 @@
 #include <kernel/sync/spinlock.h>
 #include <kernel/sync/mutex.h>
 #include "../../../kernel/types/types.h"
-#include <cstdint>
-#include <cstddef>
+#include <stdint.h>
+#include <stddef.h>
 
 #include "../../../kernel/acpi/madt.h"
 
@@ -57,11 +57,11 @@ namespace kernel {
         uint32_t cpu_id;
         union {
             struct {
-                UnitID unit_id;
-                RealmID realm_id;
+                unit_id_t unit_id;
+                realm_id_t realm_id;
             } unit_event;
             struct {
-                RealmID realm_id;
+                realm_id_t realm_id;
                 char name[32];
             } realm_event;
             struct {
@@ -138,8 +138,8 @@ namespace kernel {
         static void enable_event_logging(bool enabled);
 
         // Helper für andere Manager
-        static void notify_unit_lifecycle(UnitID unit_id, RealmID realm_id, bool created);
-        static void notify_realm_lifecycle(RealmID realm_id, const char* name, bool created);
+        static void notify_unit_lifecycle(unit_id_t unit_id, realm_id_t realm_id, bool created);
+        static void notify_realm_lifecycle(realm_id_t realm_id, const char* name, bool created);
         static void notify_device_lifecycle(const char* device_name, uint32_t device_id, bool registered);
         static void notify_memory_pressure(uint64_t available_bytes);
         static void notify_filesystem_mount(const char* path, const char* fs_type, bool mounted);
@@ -157,29 +157,30 @@ namespace kernel {
         };
 
         static constexpr size_t MAX_SYSTEM_CHANNELS = 32;
-        static constexpr size_t EVENT_CHANNEL_SIZE = 64 * 1024;  // 64KB für Events
-        static constexpr size_t LOG_CHANNEL_SIZE = 128 * 1024;   // 128KB für Logs
+        static constexpr size_t EVENT_CHANNEL_SIZE = static_cast<size_t>(64) * 1024;  // 64KB für Events
+        static constexpr size_t LOG_CHANNEL_SIZE = static_cast<size_t>(128) * 1024;   // 128KB für Logs
+        static constexpr size_t MEMORY_LOW_BYTES_THRESHOLD = static_cast<size_t>(64) * 1024 * 1024;
 
-        static bool manager_initialized;
-        static bool system_initialized;
+        static bool manager_initialized_;
+        static bool system_initialized_;
 
-        static spinlock_t global_lock;
-        static mutex_t stats_mutex;
+        static Spinlock global_lock_;
+        static Mutex stats_mutex_;
 
         // Core System Channels
-        static Channel* event_channel;     // Für SystemEvent structs
-        static Channel* log_channel;       // Für Kernel-Logs
+        static Channel* event_channel_;     // Für SystemEvent structs
+        static Channel* log_channel_;       // Für Kernel-Logs
 
         // Managed Channels
-        static SystemChannel system_channels[MAX_SYSTEM_CHANNELS];
-        static size_t channel_count;
+        static SystemChannel system_channels_[MAX_SYSTEM_CHANNELS];
+        static size_t channel_count_;
 
         // System Statistics
-        static SystemStats current_stats;
-        static uint64_t boot_timestamp;
-        static bool event_logging_enabled;
+        static SystemStats current_stats_;
+        static uint64_t boot_timestamp_;
+        static bool event_logging_enabled_;
 
-        static ILogWriter* log_writer;
+        static ILogWriter* log_writer_;
 
         // Interne Helper
         static void internal_publish_event(const SystemEvent& event);

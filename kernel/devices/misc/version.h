@@ -28,7 +28,7 @@
 
 class VersionDevice final : public CharDevice {
    public:
-    explicit VersionDevice(const char* name);
+    explicit VersionDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

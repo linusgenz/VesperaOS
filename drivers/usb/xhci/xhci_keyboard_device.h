@@ -25,7 +25,7 @@
 #define VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 
 #include <kernel/devices/char_device.h>
-#include <cstdint>
+#include <stdint.h>
 
 #include "../../../include/kernel/devices/device_manager.h"
 

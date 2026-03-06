@@ -33,7 +33,7 @@ namespace nvme {
 
         uint16_t next_command_id_ = 0;
 
-        kernel::mutex_t queue_mutex_{};
+        kernel::Mutex queue_mutex_{};
 
        public:
         bool completion_cycle_state = true;
@@ -77,9 +77,9 @@ namespace nvme {
        public:
         NvmeNamespace(uint32_t nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify)
             : ns_id_(nsid)
-            , queue_(io_queue), ncap_(identify->NCAP) {
-            const uint8_t lba_format_index = identify->FLBAS.LbaFormatIndex;
-            uint8_t lbads = identify->LBAF[lba_format_index].LBADS;
+            , queue_(io_queue), ncap_(identify->ncap) {
+            const uint8_t lba_format_index = identify->flbas.lba_format_index;
+            uint8_t lbads = identify->lbaf[lba_format_index].lbads;
             sector_size_ = 1 << lbads;
 
             namespace_mutex_.init();
@@ -103,7 +103,7 @@ namespace nvme {
         NvmeQueue* queue_;
         uint32_t sector_size_;
         uint64_t ncap_;
-        kernel::mutex_t namespace_mutex_;
+        kernel::Mutex namespace_mutex_;
     };
 
     class NvmeDriver final : public IDriverLifecycle {
@@ -120,11 +120,11 @@ namespace nvme {
         Vector<NvmeNamespace*> namespaces_;
 
         __attribute__((always_inline)) void disable() const {
-            c_regs_->CC.EN = 0;
+            c_regs_->cc.en = 0;
         }
 
         __attribute__((always_inline)) void enable() const {
-            c_regs_->CC.EN = 1;
+            c_regs_->cc.en = 1;
         }
 
         __attribute__((always_inline)) uint16_t allocate_queue_id() {
@@ -133,24 +133,24 @@ namespace nvme {
 
         [[nodiscard]] __attribute__((always_inline)) volatile uint32_t* get_submission_doorbell(uint16_t qid) const {
             size_t stride_words = (4 << get_doorbell_stride()) / sizeof(uint32_t);
-            return &c_regs_->Doorbells[static_cast<size_t>(2) * qid * stride_words];
+            return &c_regs_->doorbells[static_cast<size_t>(2) * qid * stride_words];
         }
 
         [[nodiscard]] volatile __attribute__((always_inline)) uint32_t* get_completion_doorbell(uint16_t qid) const {
             size_t stride_words = (4 << get_doorbell_stride()) / sizeof(uint32_t);
-            return &c_regs_->Doorbells[(2 * qid + 1) * stride_words];
+            return &c_regs_->doorbells[(2 * qid + 1) * stride_words];
         }
 
         __attribute__((always_inline)) void set_admin_submission_queue_size(uint16_t sz) const {
-            c_regs_->AQA.ASQS = sz - 1;
+            c_regs_->aqa.asqs = sz - 1;
         }
 
         __attribute__((always_inline)) void set_admin_completion_queue_size(uint16_t sz) const {
-            c_regs_->AQA.ACQS = sz - 1;
+            c_regs_->aqa.acqs = sz - 1;
         }
 
         [[nodiscard]] __attribute__((always_inline)) uint32_t get_doorbell_stride() const {
-            return static_cast<uint32_t>(c_regs_->CAP.DSTRD);
+            return static_cast<uint32_t>(c_regs_->cap.dstrd);
         }
 
         long identify_controller();
@@ -164,7 +164,7 @@ namespace nvme {
        public:
         DRIVER_STATUS d_status = CONTROLLER_NOT_READY;
 
-        explicit NvmeDriver(PCI::PCIDeviceHeader* pci_base_address);
+        explicit NvmeDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
         ~NvmeDriver() override;
 
         void on_shutdown() override { shutdown(); }

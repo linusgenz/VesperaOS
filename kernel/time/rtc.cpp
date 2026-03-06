@@ -49,7 +49,7 @@ namespace kernel::time {
         uint8_t sec, min, hour, day, month, year;
         read_rtc(sec, min, hour, day, month, year);
 
-        Log::Info("Time: %u:%u:%u Date: %u.%u.%u", hour, min, sec, day, month, year);
+        Log::info("Time: %u:%u:%u Date: %u.%u.%u", hour, min, sec, day, month, year);
     }
 
 }  // namespace kernel::time

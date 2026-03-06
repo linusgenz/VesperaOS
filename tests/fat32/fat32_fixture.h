@@ -34,7 +34,7 @@
 
 struct Fat32Fixture {
     BlockDevice*       dev = nullptr;
-    FAT32::FileSystem* fs  = nullptr;
+    fat32::FileSystem* fs  = nullptr;
 
     Fat32Fixture() {
         FILE* f = fopen("test.img", "rb");
@@ -53,7 +53,7 @@ struct Fat32Fixture {
         fclose(f);
 
         dev = mdev;
-        fs  = new FAT32::FileSystem(dev);
+        fs  = new fat32::FileSystem(dev);
     }
 
     ~Fat32Fixture() {
@@ -66,15 +66,15 @@ struct Fat32Fixture {
 
     [[nodiscard]] Fat32Node root_node() const {
         Fat32Node n{};
-        n.cluster       = fs->GetRootCluster();
-        n.parentCluster = n.cluster;
+        n.cluster       = fs->get_root_cluster();
+        n.parent_cluster = n.cluster;
         n.fs            = fs;
         return n;
     }
 
     Fat32Node create_file(const char* name) {
         Fat32Node parent = root_node();
-        if (!fs->CreateFile(&parent, name)) {
+        if (!fs->create_file(&parent, name)) {
             TestFramework::fail_test(__FILE__, __LINE__,
                 (std::string("CreateFile failed: ") + name).c_str());
             return {};
@@ -84,7 +84,7 @@ struct Fat32Fixture {
 
     Fat32Node create_dir(const char* name) {
         Fat32Node parent = root_node();
-        if (!fs->CreateDirectory(&parent, name)) {
+        if (!fs->create_directory(&parent, name)) {
             TestFramework::fail_test(__FILE__, __LINE__,
                 (std::string("CreateDirectory failed: ") + name).c_str());
             return {};
@@ -98,14 +98,14 @@ struct Fat32Fixture {
     Fat32Node find_dir_node(const char* name) { return find_node(name, true); }
 
     bool write(Fat32Node& node, const void* data, size_t len, size_t offset = 0) const {
-        return fs->WriteFile(&node, data, len, offset);
+        return fs->write_file(&node, data, len, offset);
     }
 
 
     std::vector<uint8_t> read(Fat32Node& node, size_t len, size_t offset = 0) {
         std::vector<uint8_t> buf(len, 0);
         size_t actual = 0;
-        if (!fs->ReadFile(&node, buf.data(), len, actual, offset)) return {};
+        if (!fs->read_file(&node, buf.data(), len, actual, offset)) return {};
         buf.resize(actual);
         return buf;
     }
@@ -113,12 +113,12 @@ struct Fat32Fixture {
     // Returns all entry names in the root directory.
     std::vector<std::string> list_root() const {
         size_t count = 0;
-        FAT32::FileEntry* entries = fs->ReadDirectory(fs->GetRootCluster(), count);
+        fat32::FileEntry* entries = fs->read_directory(fs->get_root_cluster(), count);
         if (!entries) return {};
 
         std::vector<std::string> names;
         for (size_t i = 0; i < count; i++)
-            names.emplace_back(entries[i].GetName());
+            names.emplace_back(entries[i].get_name());
 
         kernel::memory::free(entries);
         return names;
@@ -132,20 +132,20 @@ struct Fat32Fixture {
 
 private:
     Fat32Node find_node(const char* name, bool is_dir) const {
-        uint32_t root = fs->GetRootCluster();
+        uint32_t root = fs->get_root_cluster();
         size_t count = 0;
-        FAT32::FileEntry* entries = fs->ReadDirectory(root, count);
+        fat32::FileEntry* entries = fs->read_directory(root, count);
         if (!entries) return {};
 
         Fat32Node node{};
         for (size_t i = 0; i < count; i++) {
-            if (strcmp(entries[i].GetName(), name) == 0 && entries[i].isDir() == is_dir) {
-                auto de = entries[i].GetDirectoryEntry();
-                node.cluster = entries[i].GetFirstCluster();
-                node.fileSize = de.fileSize;
-                node.dirEntry = de;
-                node.parentCluster = root;
-                node.currentIndex = entries[i].GetIndexInCluster();
+            if (strcmp(entries[i].get_name(), name) == 0 && entries[i].is_dir() == is_dir) {
+                auto de = entries[i].get_directory_entry();
+                node.cluster = entries[i].get_first_cluster();
+                node.file_size = de.file_size;
+                node.dir_entry = de;
+                node.parent_cluster = root;
+                node.current_index = entries[i].get_index_in_cluster();
                 node.fs = fs;
                 break;
             }

@@ -7,13 +7,13 @@
 #include "heap.h"
 #include "kernel/addr.h"
 
-uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, const size_t mMapEntries, const size_t mMapDescSize) {
+uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, const size_t m_map_entries, const size_t m_map_desc_size) {
     uint64_t memory_size_bytes = 0;  // static
     // if (memory_size_bytes > 0) return memory_size_bytes;
 
-    for (size_t i = 0; i < mMapEntries; i++) {
+    for (size_t i = 0; i < m_map_entries; i++) {
         const auto* desc =
-            reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(reinterpret_cast<uint64_t>(mMap) + (i * mMapDescSize));
+            reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(reinterpret_cast<uint64_t>(m_map) + (i * m_map_desc_size));
         if (desc->type != 7) continue;
         memory_size_bytes += desc->num_pages * 4096;
     }
@@ -77,16 +77,16 @@ namespace kernel::memory {
         g_kernel_phys_base = boot_info->kernel_phys_base;
         g_kernel_virt_base = boot_info->kernel_virt_base;
 
-        auto* PML4 = reinterpret_cast<PageTable*>(phys_raw(request_page_phys()));
-        memset(PML4, 0, 0x1000);
+        auto* pml4 = reinterpret_cast<PageTable*>(phys_raw(request_page_phys()));
+        memset(pml4, 0, 0x1000);
 
-        page_table_manager = PageTableManager(PML4);
+        page_table_manager = PageTableManager(pml4);
 
         uint64_t max_phys = 0;
-        const uint64_t entries = boot_info->mMapSize / boot_info->mMapDescSize;
+        const uint64_t entries = boot_info->m_map_size / boot_info->m_map_desc_size;
         for (uint64_t i = 0; i < entries; i++) {
             auto* desc = reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(
-                reinterpret_cast<uint64_t>(boot_info->mMap) + i * boot_info->mMapDescSize
+                reinterpret_cast<uint64_t>(boot_info->m_map) + i * boot_info->m_map_desc_size
             );
             if (const uint64_t end = desc->phys_addr + desc->num_pages * 0x1000; end > max_phys) max_phys = end;
         }
@@ -97,8 +97,8 @@ namespace kernel::memory {
             page_table_manager.map_memory(virt_from_raw(boot_info->hhdm_offset + phys), make_phys(phys), 0);
         }
 
-        const uint64_t k_virt_start = reinterpret_cast<uint64_t>(&_KernelStart);
-        const uint64_t k_virt_end = reinterpret_cast<uint64_t>(&_KernelEnd);
+        const uint64_t k_virt_start = reinterpret_cast<uint64_t>(&kernel_start);
+        const uint64_t k_virt_end = reinterpret_cast<uint64_t>(&kernel_end);
         for (uint64_t virt = k_virt_start; virt < k_virt_end; virt += 0x1000) {
             uint64_t phys = virt - g_kernel_virt_base + g_kernel_phys_base;
             page_table_manager.map_memory(virt_from_raw(virt), make_phys(phys), 0);
@@ -132,7 +132,7 @@ namespace kernel::memory {
     }
 
     uintptr_t get_pagetable_address() {
-        return reinterpret_cast<uintptr_t>(page_table_manager.PML4);
+        return reinterpret_cast<uintptr_t>(page_table_manager.pml4);
     }
 
     // Page Frame Allocator
@@ -201,7 +201,7 @@ namespace kernel::memory {
 
     // Heap
     static bool heap_initialized = false;
-    static spinlock_t heap_lock;
+    static Spinlock heap_lock;
 
     void initialize_heap(virt_addr_t heap_start, size_t page_count) {
         ::initialize_heap(heap_start, page_count);
@@ -211,25 +211,25 @@ namespace kernel::memory {
 
     void* malloc(const size_t size) {
         if (!heap_initialized) return nullptr;
-        spinlock_guard guard(heap_lock);
+        SpinlockGuard guard(heap_lock);
         return ::kmalloc(size);
     }
 
     void free(void* addr) {
         if (!heap_initialized) return;
-        spinlock_guard guard(heap_lock);
+        SpinlockGuard guard(heap_lock);
         ::kfree(addr);
     }
 
     void* alloc_aligned(const size_t size, const size_t alignment, const size_t boundary) {
         if (!heap_initialized) return nullptr;
-        spinlock_guard guard(heap_lock);
+        SpinlockGuard guard(heap_lock);
         return ::kalloc_aligned(size, alignment, boundary);
     }
 
     void free_aligned(void* aligned_ptr) {
         if (!heap_initialized) return;
-        spinlock_guard guard(heap_lock);
+        SpinlockGuard guard(heap_lock);
         return ::kfree_aligned(aligned_ptr);
     }
 
@@ -239,7 +239,7 @@ namespace kernel::memory {
 
     void* realloc(void* old_ptr, const size_t old_size, const size_t new_size) {
         if (!heap_initialized) return nullptr;
-        spinlock_guard guard(heap_lock);
+        SpinlockGuard guard(heap_lock);
         return ::krealloc(old_ptr, old_size, new_size);
     }
 }  // namespace kernel::memory

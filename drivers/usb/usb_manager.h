@@ -24,17 +24,17 @@
 #ifndef VESPERAOS_USB_MANAGER_H
 #define VESPERAOS_USB_MANAGER_H
 
-#include <cstdint>
+#include <stdint.h>
 #include <kernel/sync/atomic.h>
 #include <kernel/sync/completion.h>
 #include <kernel/sync/spinlock.h>
 
-class USBManager {
+class UsbManager {
 private:
-    static completion_t all_controllers_ready;
-    static atomic_u8 expected_controllers;
-    static atomic_u8 initialized_controllers;
-    static spinlock_t lock;
+    static Completion all_controllers_ready_;
+    static AtomicU8 expected_controllers_;
+    static AtomicU8 initialized_controllers_;
+    static Spinlock lock_;
 public:
     static void init();
     static void notify_controller_ready();

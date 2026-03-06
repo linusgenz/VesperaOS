@@ -77,13 +77,13 @@ static const char* class_to_str(DeviceClass c) {
 
 static const char* bus_to_str(BusType b) {
     switch (b) {
-        case BusType::BUS_NONE:
+        case BusType::None:
             return "None";
-        case BusType::BUS_PCI:
+        case BusType::Pci:
             return "PCI";
-        case BusType::BUS_USB:
+        case BusType::Usb:
             return "USB";
-        case BusType::BUS_PS2:
+        case BusType::Ps2:
             return "PS2";
         case BusType::VIRTUAL:
             return "Virtual";
@@ -95,7 +95,7 @@ static const char* bus_to_str(BusType b) {
 // Pretty-print indentation tree
 static void print_indent(int depth) {
     for (int i = 0; i < depth; i++) {
-        Log::Print("  ");  // 2 spaces per level
+        Log::print("  ");  // 2 spaces per level
     }
 }
 
@@ -104,7 +104,7 @@ static void print_device_tree(KernelDevice* dev, int depth = 0) {
 
     print_indent(depth);
 
-    Log::PrintLn(
+    Log::print_ln(
         "[id=%u] %s (%s, class=%s, bus=%s)",
         dev->id,
         dev->name ? dev->name : "<noname>",
@@ -116,7 +116,7 @@ static void print_device_tree(KernelDevice* dev, int depth = 0) {
     // extra info
     if (dev->block && dev->type == DeviceType::Block) {
         print_indent(depth + 1);
-        Log::PrintLn("BlockDevice: sector=%u", dev->block->get_sector_size());
+        Log::print_ln("BlockDevice: sector=%u", dev->block->get_sector_size());
     }
 
     // recursively print children
@@ -125,12 +125,12 @@ static void print_device_tree(KernelDevice* dev, int depth = 0) {
     }
 }
 
-void Debug_PrintAllDevices() {
+void debug_print_all_devices() {
     using namespace kernel;
 
-    auto list = DeviceManager::GetAllDevices();
+    auto list = DeviceManager::get_all_devices();
 
-    Log::PrintLn("=== Registered Devices (%u) ===", DeviceManager::GetKernelDeviceCount());
+    Log::print_ln("=== Registered Devices (%u) ===", DeviceManager::get_kernel_device_count());
 
     // Only print root-level devices (those without parent)
     for (auto* dev : list) {
@@ -139,7 +139,7 @@ void Debug_PrintAllDevices() {
         }
     }
 
-    Log::PrintLn("==============================");
+    Log::print_ln("==============================");
 }
 
 void enable_sse() {
@@ -158,8 +158,7 @@ void enable_sse() {
     asm volatile("mov %0, %%cr4" ::"r"(cr4));
 }
 
-void EnableAVX() {
-    // Erst SSE aktivieren (oben)
+void enable_avx() {
 
     // CR4: OSXSAVE setzen
     uint64_t cr4 = 0;
@@ -178,7 +177,7 @@ void EnableAVX() {
 
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     outb(0x3F8, 'A');
-    Log::disableDebug();
+    Log::disable_debug();
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
@@ -186,8 +185,8 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     char brand[49];
     get_cpu_brand(brand);
     //  Log::Info("CPU Brand: %s", brand);
-    Log::Ok("Kernel initialized successfully");
-    Log::Info("Kernel version: %s", get_kernel_version());
+    Log::ok("Kernel initialized successfully");
+    Log::info("Kernel version: %s", get_kernel_version());
 
     RealmConfig realm_config_shell = {
         .name = "shell_realm",
@@ -197,12 +196,12 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         .is_user = true,
     };
     Realm* shell_realm = RealmManager::create(&realm_config_shell);
-    TTYDevice* tty_dev = kernel::tty::tty_devices[0];
+    TtyDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
     ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
     if (!result.success) {
-        Log::Error("Failed to load elf binary: %s", result.error_message);
+        Log::error("Failed to load elf binary: %s", result.error_message);
     }
 
     const char* argv_example[] = {"shell", "-v", "--config=config.txt", nullptr};
@@ -220,7 +219,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         .argv = argv_example,
         .envp = envp0
     };
-    UnitManager::create(shell_realm->id, reinterpret_cast<UnitEntry>(result.entry_point), nullptr, &uc);
+    UnitManager::create(shell_realm->id, reinterpret_cast<unit_entry_t>(result.entry_point), nullptr, &uc);
 
     kernel::SystemManager::set_system_initialized();
 

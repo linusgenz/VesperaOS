@@ -26,8 +26,8 @@
 #include <kernel/memory.h>
 #include <kernel/time.h>
 
-UptimeDevice::UptimeDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+UptimeDevice::UptimeDevice()
+    : CharDevice( BusType::VIRTUAL) {
 }
 
 int UptimeDevice::open(CharFile**) {

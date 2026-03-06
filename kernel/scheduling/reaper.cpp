@@ -26,12 +26,13 @@
 #include "../../include/kernel/scheduling.h"
 #include "../../include/kernel/time.h"
 #include "../cpu/cpu_manager.h"
+#include "../units/unit_manager.h"
 #include "log.h"
 
 [[noreturn]] void reaper_unit(void* arg) {
     while (true) {
         asm volatile("cli");
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
         if (auto* cpu = kernel::scheduling::get_cpu_data(cpu_id); !cpu->reaper.empty()) {
             cpu->reaper.reap();
         }
@@ -42,11 +43,11 @@
 }
 
 void Reaper::enqueue(Unit* unit) {
-    pending.push(unit);
+    pending_.push(unit);
 }
 
 void Reaper::reap() {
-    Unit* unit = pending.pop();
+    Unit* unit = pending_.pop();
     while (unit) {
         Unit* next = unit->next;
         UnitManager::destroy(unit->id);
@@ -55,5 +56,5 @@ void Reaper::reap() {
 }
 
 bool Reaper::empty() const {
-    return pending.empty();
+    return pending_.empty();
 }

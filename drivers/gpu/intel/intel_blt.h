@@ -192,12 +192,12 @@ constexpr size_t BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 // Display Plane Registers (Primary Plane A)
 // ============================================================================
 
-#define PLANE_CTL_1A 0x70180     // Plane control register
-#define PLANE_STRIDE_1A 0x70188  // Stride (pitch) in bytes
-#define PLANE_SIZE_1A 0x70190    // Size register
-#define PLANE_POS_1A 0x7018C     // Position on screen
-#define PLANE_OFFSET_1A 0x701A4  // Start offset in surface
-#define PLANE_SURF_1A 0x7019C    // Surface address (triggers update)
+#define PLANE_CTL_1_A 0x70180     // Plane control register
+#define PLANE_STRIDE_1_A 0x70188  // Stride (pitch) in bytes
+#define PLANE_SIZE_1_A 0x70190    // Size register
+#define PLANE_POS_1_A 0x7018C     // Position on screen
+#define PLANE_OFFSET_1_A 0x701A4  // Start offset in surface
+#define PLANE_SURF_1_A 0x7019C    // Surface address (triggers update)
 
 // Plane Control Bits
 #define PLANE_CTL_ENABLE (1 << 31)                // Enable plane
@@ -242,7 +242,7 @@ struct BltRect {
 
 class IntelBlt final : public IRenderDriver {
    public:
-    explicit IntelBlt(PCI::PCIDeviceHeader* header);
+    explicit IntelBlt(pci::PCI_DEVICE_HEADER* header);
     void start_device(uint32_t screen_width, uint32_t screen_height);
 
     bool fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour) override;
@@ -258,7 +258,7 @@ class IntelBlt final : public IRenderDriver {
     }
 
     [[nodiscard]] KernelDevice* get_kd() const {
-        return kd;
+        return kd_;
     }
 
     [[nodiscard]] uint32_t screen_width_px() const override;
@@ -266,40 +266,40 @@ class IntelBlt final : public IRenderDriver {
     [[nodiscard]] uint32_t bytes_per_scanline() const override;
 
    private:
-    KernelDevice* kd;
+    KernelDevice* kd_;
 
-    volatile uint8_t* mmio_base;
-    volatile uint32_t* bcs_regs;
-    volatile uint64_t* gtt_entries{};
+    volatile uint8_t* mmio_base_;
+    volatile uint32_t* bcs_regs_;
+    volatile uint64_t* gtt_entries_{};
 
-    gfx_addr_t ring_gfx_addr;
-    virt_addr_t ring_cpu_addr;
-    uint32_t ring_size;
-    uint32_t ring_tail{};
+    gfx_addr_t ring_gfx_addr_;
+    virt_addr_t ring_cpu_addr_;
+    uint32_t ring_size_;
+    uint32_t ring_tail_{};
 
-    virt_addr_t context_cpu_addr{};
-    gfx_addr_t context_gfx_addr{};
+    virt_addr_t context_cpu_addr_{};
+    gfx_addr_t context_gfx_addr_{};
 
-    uint64_t context_descriptor{};
+    uint64_t context_descriptor_{};
 
-    gfx_addr_t hwsp_gfx_addr;
-    virt_addr_t hwsp_cpu_addr;
+    gfx_addr_t hwsp_gfx_addr_;
+    virt_addr_t hwsp_cpu_addr_;
 
-    virt_addr_t pattern_buffer_cpu = make_virt(nullptr);
-    uint64_t pattern_buffer_addr = 0;
+    virt_addr_t pattern_buffer_cpu_ = make_virt(nullptr);
+    uint64_t pattern_buffer_addr_ = 0;
 
-    uint32_t gtt_next_free{};
-    uint32_t gtt_total_entries{};
+    uint32_t gtt_next_free_{};
+    uint32_t gtt_total_entries_{};
 
-    uint32_t sequence_number;
+    uint32_t sequence_number_;
 
-    GpuTextBuffer text_buffer;
-    GpuFramebuffer fb;
+    GpuTextBuffer text_buffer_;
+    GpuFramebuffer fb_;
 
-    void init_text_buffer(const FONT* font, uint32_t screen_width);
+    void init_text_buffer(const font_t* font, uint32_t screen_width);
 
     void alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
-    void build_text_scanline(const char* text, size_t length, FONT* font, uint8_t* buffer, size_t buffer_stride);
+    void build_text_scanline(const char* text, size_t length, font_t* font, uint8_t* buffer, size_t buffer_stride);
     bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color);
     void xy_src_copy_blt(
         gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
@@ -322,7 +322,7 @@ class IntelBlt final : public IRenderDriver {
     void init_gtt();
     void emergency_reset_bcs();
     void check_gpu_health();
-    bool validate_blt_params(const BltRect& rect) const;
+    [[nodiscard]] bool validate_blt_params(const BltRect& rect) const;
     [[nodiscard]] bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
     void xy_color_blt(
         gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_INPUT_EVENT_H
 #define VESPERAOS_INPUT_EVENT_H
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace kernel::input {
 

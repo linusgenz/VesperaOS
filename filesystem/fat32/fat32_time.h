@@ -24,12 +24,12 @@
 #ifndef VESPERAOS_FS_TIME_H
 #define VESPERAOS_FS_TIME_H
 
-namespace FAT32
+namespace fat32
 {
     struct DirectoryEntry;
 
-    void UpdateCreateTime(DirectoryEntry& e);
-    void UpdateWriteTime(DirectoryEntry& e);
-    void UpdateAccessTime(DirectoryEntry& e);
+    void update_create_time(DirectoryEntry& e);
+    void update_write_time(DirectoryEntry& e);
+    void update_access_time(DirectoryEntry& e);
 }
 #endif //VESPERAOS_FS_TIME_H

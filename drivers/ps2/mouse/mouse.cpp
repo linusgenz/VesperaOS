@@ -46,9 +46,9 @@ namespace input::mouse {
         0b00000001, 0b00000000,
     };
 
-    static Point position = {0, 0};
+    static point_t position = {0, 0};
 
-    Point get_position() {
+    point_t get_position() {
         return position;
     }
 
@@ -85,7 +85,7 @@ namespace input::mouse {
     uint8_t mouse_cycle = 0;
     uint8_t mouse_packet[4];
     bool mouse_packet_ready = false;
-    Point mouse_position_old;
+    point_t mouse_position_old;
 
     void handle_byte(uint8_t data) {
         static bool skip = true;
@@ -127,38 +127,38 @@ namespace input::mouse {
         mouse_packet_ready = false;
 
 
-        bool x_negative = mouse_packet[0] & PS2XSign;
-        bool y_negative = mouse_packet[0] & PS2YSign;
-        bool x_overflow = mouse_packet[0] & PS2XOverflow;
-        bool y_overflow = mouse_packet[0] & PS2YOverflow;
+        bool x_negative = mouse_packet[0] & PS2_X_SIGN;
+        bool y_negative = mouse_packet[0] & PS2_Y_SIGN;
+        bool x_overflow = mouse_packet[0] & PS2_X_OVERFLOW;
+        bool y_overflow = mouse_packet[0] & PS2_Y_OVERFLOW;
 
         // Calculate X movement
         if (!x_negative) {
-            position.X += mouse_packet[1];
-            if (x_overflow) position.X += 255;
+            position.x += mouse_packet[1];
+            if (x_overflow) position.x += 255;
         } else {
             mouse_packet[1] = 256 - mouse_packet[1];
-            position.X -= mouse_packet[1];
-            if (x_overflow) position.X -= 255;
+            position.x -= mouse_packet[1];
+            if (x_overflow) position.x -= 255;
         }
 
         // Calculate Y movement
         if (!y_negative) {
-            position.Y -= mouse_packet[2];
-            if (y_overflow) position.Y -= 255;
+            position.y -= mouse_packet[2];
+            if (y_overflow) position.y -= 255;
         } else {
             mouse_packet[2] = 256 - mouse_packet[2];
-            position.Y += mouse_packet[2];
-            if (y_overflow) position.Y += 255;
+            position.y += mouse_packet[2];
+            if (y_overflow) position.y += 255;
         }
 
-        if (position.X < 0) position.X = 0;
-        if (position.X > TargetFramebuffer->width - 1)
-            position.X = TargetFramebuffer->width - 1;
+        if (position.x < 0) position.x = 0;
+        if (position.x > target_framebuffer->width - 1)
+            position.x = target_framebuffer->width - 1;
 
-        if (position.Y < 0) position.Y = 0;
-        if (position.Y > TargetFramebuffer->height - 1)
-            position.Y = TargetFramebuffer->height - 1;
+        if (position.y < 0) position.y = 0;
+        if (position.y > target_framebuffer->height - 1)
+            position.y = target_framebuffer->height - 1;
 
         if (const int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]); wheel_movement > 0) {
             //scroll down
@@ -169,11 +169,11 @@ namespace input::mouse {
        // global_terminal->clear_mouse_cursor(pointer, mouse_position_old);
        // global_terminal->draw_overlay_mouse_cursor(pointer, position, WHITE);
 
-        if (mouse_packet[0] & PS2LeftButton) {
+        if (mouse_packet[0] & PS2_LEFT_BUTTON) {
         }
-        if (mouse_packet[0] & PS2MiddleButton) {
+        if (mouse_packet[0] & PS2_MIDDLE_BUTTON) {
         }
-        if (mouse_packet[0] & PS2RightButton) {
+        if (mouse_packet[0] & PS2_RIGHT_BUTTON) {
         }
 
         mouse_packet_ready = false;

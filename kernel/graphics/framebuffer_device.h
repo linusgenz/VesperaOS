@@ -76,7 +76,7 @@ struct FbBlit {
 class FramebufferDevice final : public CharDevice {
    public:
     FramebufferDevice(const char *name, BusType bus)
-        : CharDevice(name, bus) {
+        : CharDevice( bus) {
     }
 
     int open(CharFile **out_cf) override;

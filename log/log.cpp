@@ -4,19 +4,20 @@
 
 #include <log.h>
 #include <string.h>
+
 #include "../include/kernel/terminal.h"
 
-Terminal* Log::t = nullptr;
-spinlock_t Log::log_spin = {};
-kernel::mutex_t Log::log_mutex = {};
-bool Log::initialized = false;
-bool Log::is_debug = false;
+Terminal* Log::t_ = nullptr;
+Spinlock Log::log_spin_ = {};
+kernel::Mutex Log::log_mutex_ = {};
+bool Log::initialized_ = false;
+bool Log::is_debug_ = false;
 
 void Log::init()
 {
     //  initialized = true;
     //  kernel::mutex_init(&log_mutex);
-     log_spin.init("log_lock");
+     log_spin_.init("log_lock");
 }
 
  void Log::log_prefix(
@@ -24,34 +25,34 @@ void Log::init()
     uint32_t tag_fg
 )
 {
-    t->set_colour(WHITE, BLACK);
-    t->print("[ ");
+    t_->set_colour(WHITE, BLACK);
+    t_->print("[ ");
 
-    t->set_colour(tag_fg, BLACK);
-    t->print(tag);
+    t_->set_colour(tag_fg, BLACK);
+    t_->print(tag);
 
-    t->set_colour(WHITE, BLACK);
-    t->print(" ] ");
+    t_->set_colour(WHITE, BLACK);
+    t_->print(" ] ");
 }
 
 
-void Log::SetTerminal(Terminal* _t)
+void Log::set_terminal(Terminal* t)
 {
-    t = _t;
+    t_ = t;
 }
 
-void Log::enableDebug()
+void Log::enable_debug()
 {
-    is_debug = true;
+    is_debug_ = true;
 }
 
-void Log::disableDebug()
+void Log::disable_debug()
 {
-    is_debug = false;
+    is_debug_ = false;
 }
 
 
-void UIntToStr(uint64_t value, char* buffer, uint8_t base = 10, bool prefix = false)
+void u_int_to_str(uint64_t value, char* buffer, uint8_t base = 10, bool prefix = false)
 {
     char temp[32];
     int i = 0;
@@ -85,9 +86,9 @@ void UIntToStr(uint64_t value, char* buffer, uint8_t base = 10, bool prefix = fa
     buffer[j] = '\0';
 }
 
-void Log::Info(const char* fmt, ...)
+void Log::info(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     log_prefix("INFO", BLUE);
 
@@ -96,13 +97,13 @@ void Log::Info(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 
-void Log::Ok(const char* fmt, ...)
+void Log::ok(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     log_prefix("OK", GREEN);
 
@@ -111,14 +112,14 @@ void Log::Ok(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 
 
-void Log::Warning(const char* fmt, ...)
+void Log::warning(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     log_prefix("WARNING", YELLOW);
 
@@ -127,13 +128,13 @@ void Log::Warning(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 
-void Log::Error(const char* fmt, ...)
+void Log::error(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     log_prefix("ERROR", RED);
 
@@ -142,14 +143,14 @@ void Log::Error(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 
 
-void Log::LogMsg(const char* fmt, ...)
+void Log::log_msg(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     log_prefix("LOG", GRAY);
 
@@ -158,26 +159,26 @@ void Log::LogMsg(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 
-void Log::PrintLn(const char* fmt, ...)
+void Log::print_ln(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 
-void Log::Print(const char* fmt, ...)
+void Log::print(const char* fmt, ...)
 {
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
@@ -187,10 +188,10 @@ void Log::Print(const char* fmt, ...)
 
 void Log::debug(const char* fmt, ...)
 {
-    if (!is_debug)
+    if (!is_debug_)
         return;
 
-    spinlock_guard g(log_spin);
+    SpinlockGuard g(log_spin_);
 
     log_prefix("DEBUG", ORANGE);
 
@@ -199,8 +200,8 @@ void Log::debug(const char* fmt, ...)
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
-    t->print("\n");
-    t->flush();
+    t_->print("\n");
+    t_->flush();
 }
 /*
 static void float_to_str(float val, char* buf, int precision)
@@ -316,13 +317,13 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                         int count = 0;
                         while (str[count] && count < precision)
                         {
-                            t->put_char(str[count]);
+                            t_->put_char(str[count]);
                             count++;
                         }
                     }
                     else
                     {
-                        t->print(str);
+                        t_->print(str);
                     }
                     break;
                 }
@@ -333,20 +334,20 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                                        ? __builtin_va_arg(args, uint64_t)
                                        : __builtin_va_arg(args, uint32_t);
                     int base = (specifier == 'x') ? 16 : 10;
-                    UIntToStr(val, buffer, base);
+                    u_int_to_str(val, buffer, base);
 
                     // Padding manuell
                     const size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        t->put_char(pad_char);
+                        t_->put_char(pad_char);
 
-                    t->print(buffer);
+                    t_->print(buffer);
                     break;
                 }
             case 'c':
                 {
                     int val = __builtin_va_arg(args, int);
-                    t->put_char(static_cast<char>(val));
+                    t_->put_char(static_cast<char>(val));
                     break;
                 }
             case 'd':
@@ -356,14 +357,14 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                                       : __builtin_va_arg(args, int32_t);
                     if (val < 0)
                     {
-                        t->put_char('-');
+                        t_->put_char('-');
                         val = -val;
                     }
-                    UIntToStr(static_cast<uint64_t>(val), buffer, 10);
+                    u_int_to_str(static_cast<uint64_t>(val), buffer, 10);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        t->put_char(pad_char);
-                    t->print(buffer);
+                        t_->put_char(pad_char);
+                    t_->print(buffer);
                     break;
                 }
    /*         case 'f':
@@ -381,26 +382,26 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
             case 'p':
                 {
                     uintptr_t val = __builtin_va_arg(args, uintptr_t);
-                    t->print("0x");
-                    UIntToStr(val, buffer, 16);
+                    t_->print("0x");
+                    u_int_to_str(val, buffer, 16);
                     size_t len = strlen(buffer);
                     for (size_t i = len; i < min_width; i++)
-                        t->put_char('0');
-                    t->print(buffer);
+                        t_->put_char('0');
+                    t_->print(buffer);
                     break;
                 }
             case '%':
-                t->put_char('%');
+                t_->put_char('%');
                 break;
             default:
-                t->put_char('%');
-                t->put_char(specifier);
+                t_->put_char('%');
+                t_->put_char(specifier);
                 break;
             }
         }
         else
         {
-            t->put_char(chr);
+            t_->put_char(chr);
         }
     }
 }

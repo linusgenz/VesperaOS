@@ -27,83 +27,87 @@
 
 #include "../units/unit.h"
 
-void wait_queue_t::add_wait(Unit *u) {
-    auto *entry = new wait_queue_entry_t();
+WaitQueue::WaitQueue() {
+    lock_.init();
+}
+
+void WaitQueue::add_wait(Unit *u) {
+    auto *entry = new WaitQueueEntry();
     entry->unit = u;
     entry->next = nullptr;
 
     {
-        spinlock_guard guard(lock);
+        SpinlockGuard guard(lock_);
 
-        if (!head) {
-            head = tail = entry;
+        if (!head_) {
+            head_ = tail_ = entry;
         } else {
-            tail->next = entry;
-            tail = entry;
+            tail_->next = entry;
+            tail_ = entry;
         }
     }
 
-    u->state = UNIT_BLOCKED;
+    u->state = UnitState::Blocked;
 
     kernel::scheduling::remove_unit(u);
 }
 
-void wait_queue_t::wake_all() {
-    spinlock_guard guard(lock);
+void WaitQueue::wake_all() {
+    SpinlockGuard guard(lock_);
 
-    wait_queue_entry_t *entry = head;
+    const WaitQueueEntry *entry = head_;
     while (entry) {
         if (entry->unit) {
-            entry->unit->state = UNIT_READY;
+            entry->unit->state = UnitState::Ready;
 
             kernel::scheduling::add_unit(entry->unit);
         }
 
-        wait_queue_entry_t *next = entry->next;
+        const WaitQueueEntry *next = entry->next;
         delete entry;
         entry = next;
     }
 
-    head = tail = nullptr;
+    head_ = tail_ = nullptr;
 }
 
-void wait_queue_t::wake_one() {
-    spinlock_guard guard(lock);
+void WaitQueue::wake_one() {
+    SpinlockGuard guard(lock_);
 
-    if (!head) return;
+    if (!head_) return;
 
-    wait_queue_entry_t *entry = head;
-    head = head->next;
-    if (!head) tail = nullptr;
+    const WaitQueueEntry *entry = head_;
+    head_ = head_->next;
+    if (!head_) tail_ = nullptr;
 
     if (entry->unit) {
-        entry->unit->state = UNIT_READY;
+        entry->unit->state = UnitState::Ready;
         kernel::scheduling::add_unit(entry->unit);
     }
 
     delete entry;
 }
 
-bool wait_queue_t::remove(const Unit *u) {
-    spinlock_guard guard(lock);
+bool WaitQueue::remove(const Unit *u) {
+    SpinlockGuard guard(lock_);
 
-    if (!head) return false;
+    if (!head_) return false;
 
-    if (head->unit == u) {
-        wait_queue_entry_t *tmp = head;
-        head = head->next;
-        if (!head) tail = nullptr;
+    if (head_->unit == u) {
+        const WaitQueueEntry *tmp = head_;
+        head_ = head_->next;
+        if (!head_) tail_ = nullptr;
         delete tmp;
         return true;
     }
 
-    wait_queue_entry_t *prev = head;
-    wait_queue_entry_t *cur = head->next;
+    WaitQueueEntry *prev = head_;
+    WaitQueueEntry *cur = head_->next;
 
     while (cur) {
         if (cur->unit == u) {
             prev->next = cur->next;
-            if (cur == tail) tail = prev;
+            if (cur == tail_) tail_ = prev;
             delete cur;
             return true;
         }

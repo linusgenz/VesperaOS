@@ -28,25 +28,25 @@
 #include "fat32.h"
 
     struct Fat32Node {
-        FAT32::FileSystem *fs;
+        fat32::FileSystem *fs;
         char path[256];
-        uint32_t parentCluster;
+        uint32_t parent_cluster;
         uint32_t cluster;
-        bool isDir;
-        size_t fileSize;
-        size_t entryCount;
-        size_t firstLFNIndex;
-        size_t currentIndex;
-        FAT32::DirectoryEntry dirEntry;
+        bool is_dir;
+        size_t file_size;
+        size_t entry_count;
+        size_t first_lfn_index;
+        size_t current_index;
+        fat32::DirectoryEntry dir_entry;
     };
 
     struct Fat32DirHandle {
-        FAT32::FileEntry* entries;
+        fat32::FileEntry* entries;
         size_t count;
         size_t index;
     };
 
-    VfsNode *wrap_fat32_root(FAT32::FileSystem * fs);
+    VfsNode *wrap_fat32_root(fat32::FileSystem * fs);
 
     int fat32_probe(BlockDevice *dev);
 

@@ -25,9 +25,9 @@
 #define MSIX_H
 
 #include "pci.h"
-#include <cstddef>
+#include <stddef.h>
 
-namespace PCI {
+namespace pci {
     /**
      * @brief Base address for local APIC in MSI-X message address (similar to MSI).
      *
@@ -63,7 +63,7 @@ namespace PCI {
     /**
      * @brief Structure for an entry in the MSI-X vector table.
      */
-    struct msix_table_entry {
+    struct MSIX_TABLE_ENTRY {
         uint64_t message_address;   // MSI-X message address
         uint32_t message_data;      // MSI-X message data
         uint32_t vector_control;    // Vector control (bit 0 is the mask bit)
@@ -83,7 +83,7 @@ namespace PCI {
         }
     } __attribute__((packed));
 
-    static_assert(sizeof(msix_table_entry) == 16, "msix_table_entry must be 16 bytes");
+    static_assert(sizeof(MSIX_TABLE_ENTRY) == 16, "MSIX_TABLE_ENTRY must be 16 bytes");
 
     /**
      * @brief MSI-X capability structure from the PCI configuration space.
@@ -91,7 +91,7 @@ namespace PCI {
      * This is read during MSI-X initialization to determine the location
      * of the vector table and pending bit array (PBA).
      */
-    struct pci_msix_capability {
+    struct PCI_MSIX_CAPABILITY {
         union {
             struct {
                 uint8_t cap_id;
@@ -131,7 +131,7 @@ namespace PCI {
             uint32_t dword2;
         };
     } __attribute__((packed));
-    static_assert(sizeof(pci_msix_capability) == 12, "pci_msix_capability must be 12 bytes");
+    static_assert(sizeof(PCI_MSIX_CAPABILITY) == 12, "PCI_MSIX_CAPABILITY must be 12 bytes");
 
     /**
      * @brief Builds a 32-bit or 64-bit MSI-X message address for xAPIC mode.
@@ -173,12 +173,12 @@ namespace PCI {
      * @param vector_index The index of the vector to read.
      * @return A copy of the msix_table_entry for the specified vector.
      */
-    inline msix_table_entry read_msix_vector_entry(void* base_address, size_t vector_index) {
-        uint8_t* entry_addr = static_cast<uint8_t*>(base_address) + (vector_index * sizeof(msix_table_entry));
+    inline MSIX_TABLE_ENTRY read_msix_vector_entry(void* base_address, size_t vector_index) {
+        uint8_t* entry_addr = static_cast<uint8_t*>(base_address) + (vector_index * sizeof(MSIX_TABLE_ENTRY));
 
         volatile auto* data = reinterpret_cast<volatile uint32_t*>(entry_addr);
 
-        msix_table_entry result{};
+        MSIX_TABLE_ENTRY result{};
         result.message_address = static_cast<uint64_t>(data[1]) << 32 | data[0];
         result.message_data    = data[2];
         result.vector_control  = data[3];
@@ -194,9 +194,9 @@ namespace PCI {
      * @param vector_index The index of the vector to write.
      * @param entry The msix_table_entry to write to the table.
      */
-    inline void write_msix_vector_entry(void* base_address, size_t vector_index, const msix_table_entry& entry) {
+    inline void write_msix_vector_entry(void* base_address, size_t vector_index, const MSIX_TABLE_ENTRY& entry) {
         volatile auto* entry_addr = reinterpret_cast<volatile uint32_t*>(
-            static_cast<uint8_t*>(base_address) + vector_index * sizeof(msix_table_entry)
+            static_cast<uint8_t*>(base_address) + vector_index * sizeof(MSIX_TABLE_ENTRY)
         );
 
         entry_addr[0] = static_cast<uint32_t>(entry.message_address);          // Address Low
@@ -225,6 +225,6 @@ namespace PCI {
         *byte_ptr &= ~(1 << bit_offset);
     }
 
-    bool try_enable_msi_or_msix(PCIHeader0* header, uint8_t base_vector, uint8_t wanted = 0);
+    bool try_enable_msi_or_msix(PCI_HEADER0* header, uint8_t base_vector, uint8_t wanted = 0);
 }
 #endif //MSIX_H

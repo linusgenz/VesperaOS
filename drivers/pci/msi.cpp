@@ -27,9 +27,9 @@
 #include "../../include/log.h"
 #include "pci.h"
 
-namespace PCI
+namespace pci
 {
-    bool enable_msi(PCIHeader0* header, uint8_t base_vector, uint8_t wanted)
+    bool enable_msi(PCI_HEADER0* header, uint8_t base_vector, uint8_t wanted)
     {
         auto* config_space = reinterpret_cast<uint8_t*>(&header->header);
 
@@ -46,7 +46,7 @@ namespace PCI
             if (cap_id == MSI_CAPABILITY_ID)
             {
                 volatile auto* msi =
-                    reinterpret_cast<volatile pci_msi_capability*>(&config_space[cap_ptr]);
+                    reinterpret_cast<volatile PCI_MSI_CAPABILITY*>(&config_space[cap_ptr]);
 
                 uint16_t mc = msi->message_control;
 
@@ -81,7 +81,7 @@ namespace PCI
             cap_ptr = next_ptr;
         }
 
-        Log::Warning("MSI capability not found");
+        Log::warning("MSI capability not found");
         return false;
     }
 }

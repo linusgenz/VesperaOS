@@ -22,7 +22,7 @@
 
 #pragma once
 #define VESPERAOS_SYSTEM_MANAGER_H
-#include <cstdint>
+#include <stdint.h>
 
 namespace kernel {
     class SystemManager {

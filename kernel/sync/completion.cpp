@@ -28,18 +28,18 @@
 
 #include "../../include/log.h"
 
-void completion_t::init() {
+void Completion::init() {
     completed = false;
     lock.init();
 }
 
-void completion_t::wait() const {
+void Completion::wait() const {
     while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
         kernel::time::sleep_ms(10);
     }
 }
 
-bool completion_t::wait_timeout(uint64_t timeout_ms) const {
+bool Completion::wait_timeout(uint64_t timeout_ms) const {
     uint64_t start = kernel::time::get_ticks();
     while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
         if (const uint64_t elapsed = kernel::time::get_ticks() - start; elapsed > timeout_ms / 10) {  // ticks sind 10ms
@@ -50,7 +50,7 @@ bool completion_t::wait_timeout(uint64_t timeout_ms) const {
     return true;
 }
 
-void completion_t::complete() {
-    spinlock_guard guard(lock);
+void Completion::complete() {
+    SpinlockGuard guard(lock);
     __atomic_store_n(&completed, true, __ATOMIC_RELEASE);
 }

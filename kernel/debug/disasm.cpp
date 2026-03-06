@@ -50,7 +50,7 @@ static const char* reg8[] = {
     "al", "cl", "dl", "bl", "spl", "bpl", "sil", "dil", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b", "r14b", "r15b"
 };
 
-struct REXPrefix {
+struct RexPrefix {
     bool present;
     bool w;  // 64-bit operand
     bool r;  // Extension of ModR/M reg field
@@ -58,14 +58,14 @@ struct REXPrefix {
     bool b;  // Extension of ModR/M r/m field
 };
 
-struct ModRM {
+struct ModRm {
     uint8_t mod;
     uint8_t reg;
     uint8_t rm;
 };
 
-ModRM decode_modrm(uint8_t byte) {
-    ModRM m{};
+ModRm decode_modrm(uint8_t byte) {
+    ModRm m{};
     m.mod = (byte >> 6) & 0x3;
     m.reg = (byte >> 3) & 0x7;
     m.rm = byte & 0x7;
@@ -89,7 +89,7 @@ const char* get_reg_name(uint8_t reg_idx, int operand_size) {
 
 // Returns extra bytes consumed AFTER the ModR/M byte (SIB, displacement, etc.)
 size_t decode_rm_operand(
-    const uint8_t* code, size_t offset, size_t max_len, ModRM modrm, REXPrefix rex, int operand_size,
+    const uint8_t* code, size_t offset, size_t max_len, ModRm modrm, RexPrefix rex, int operand_size,
     uint64_t instr_addr, size_t instr_len, char* output, size_t output_size, bool show_size_prefix = true
 ) {
     uint8_t rm = modrm.rm | (rex.b ? 8 : 0);
@@ -296,7 +296,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
     if (max_len == 0) return result;
 
     size_t offset = 0;
-    REXPrefix rex = {false, false, false, false, false};
+    RexPrefix rex = {false, false, false, false, false};
 
     // Parse REX prefix (0x40-0x4F)
     if (code[offset] >= 0x40 && code[offset] <= 0x4F) {
@@ -346,7 +346,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 return result;
             }
 
-            ModRM modrm = decode_modrm(code[offset]);
+            ModRm modrm = decode_modrm(code[offset]);
             offset++;  // Consume ModR/M
 
             uint8_t reg = modrm.reg | (rex.r ? 8 : 0);
@@ -424,7 +424,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 result.size = offset;
                 return result;
             }
-            ModRM modrm = decode_modrm(code[offset]);
+            ModRm modrm = decode_modrm(code[offset]);
             offset++;
 
             const char* setcc[] = {
@@ -463,7 +463,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 result.size = offset;
                 return result;
             }
-            ModRM modrm = decode_modrm(code[offset]);
+            ModRm modrm = decode_modrm(code[offset]);
             offset++;
 
             uint8_t reg = modrm.reg | (rex.r ? 8 : 0);
@@ -729,7 +729,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             return result;
         }
 
-        ModRM modrm = decode_modrm(code[offset]);
+        ModRm modrm = decode_modrm(code[offset]);
         offset++;  // Consume ModR/M byte
 
         if (is_group && (opcode == 0xC0 || opcode == 0xC1)) {
@@ -1084,7 +1084,7 @@ void disassemble_frame(uint64_t addr, size_t bytes) {
     while (offset < bytes) {
         uint64_t instr_addr = addr + offset;
         auto [mnemonic, size] = disasm_next(ptr + offset, bytes, instr_addr);
-        Log::PrintLn("    %p: %s", reinterpret_cast<void*>(instr_addr), mnemonic);
+        Log::print_ln("    %p: %s", reinterpret_cast<void*>(instr_addr), mnemonic);
         offset += size;
     }
 }

@@ -5,10 +5,10 @@
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 
-GDTEntry gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
-TSSDescriptor tss_desc;
+GDT_ENTRY gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
+TSS_DESCRIPTOR tss_desc;
 TSS tss[MAX_CPU_CORES] __attribute__((aligned(4096)));
-GDTPtr gdt_ptr;
+GDT_PTR gdt_ptr;
 
 static void set_gdt_entry(int idx, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
     gdt[idx].limit_low = limit & 0xFFFF;
@@ -24,14 +24,14 @@ void setup_cpu_tss(uint32_t cpu_id) {
 
     memset(&tss[cpu_id], 0, sizeof(TSS));
 
-    uintptr_t kernel_stack = CPUManager::get_cpu_info(cpu_id)->kernel_stack_top;
+    uintptr_t kernel_stack = cpu_manager::get_cpu_info(cpu_id)->kernel_stack_top;
     tss[cpu_id].rsp0 = kernel_stack;
     tss[cpu_id].iomap_base = sizeof(TSS);
 
     // Index: 5 + (cpu_id * 2) weil TSS 16 bytes = 2 GDT entries braucht
     uint32_t gdt_index = 5 + (cpu_id * 2);
 
-    TSSDescriptor temp_desc{};
+    TSS_DESCRIPTOR temp_desc{};
     auto base = reinterpret_cast<uint64_t>(&tss[cpu_id]);
     uint32_t limit = sizeof(TSS) - 1;
 
@@ -44,7 +44,7 @@ void setup_cpu_tss(uint32_t cpu_id) {
     temp_desc.base_upper = (base >> 32) & 0xFFFFFFFF;
     temp_desc.reserved = 0;
 
-    memcpy(&gdt[gdt_index], &temp_desc, sizeof(TSSDescriptor));
+    memcpy(&gdt[gdt_index], &temp_desc, sizeof(TSS_DESCRIPTOR));
 
     uint16_t tss_selector = (gdt_index << 3);  // Index * 8
     asm volatile("ltr %w0" ::"r"(tss_selector));
@@ -76,5 +76,5 @@ void gdt_install() {
     gdt_ptr.limit = sizeof(gdt) - 1;
     gdt_ptr.base = reinterpret_cast<uint64_t>(&gdt);
 
-    load_GDT(&gdt_ptr);
+    load_gdt(&gdt_ptr);
 }

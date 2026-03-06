@@ -31,31 +31,31 @@ typedef long int ssize_t;
 #include <kernel/sync/spinlock.h>
 
 #include "../types/types.h"
-#include <cstdint>
+#include <stdint.h>
 
-typedef struct handle_entry {
-    HandleID hid;
+typedef struct HandleEntry {
+    handle_id_t hid;
     uint64_t type;
     void *resource;
-    CapabilitySet capabilities;
+    capability_set_t capabilities;
     volatile uint64_t refcount;
     bool transferable;
-    spinlock_t lock;
+    Spinlock lock;
 
     void (*destroy)(void *);
 } handle_entry_t;
 
-typedef struct handle_table {
+typedef struct HandleTable {
     handle_entry_t entries[MAX_HANDLES_PER_REALM];
     uint8_t bitmap[MAX_HANDLES_PER_REALM / 8];
-    RealmID owner_realm;
-    spinlock_t lock;
+    realm_id_t owner_realm;
+    Spinlock lock;
 } handle_table_t;
 
-typedef struct unit_handle_table {
-    HandleID slots[MAX_UNIT_HANDLE_SLOTS];
+typedef struct UnitHandleTable {
+    handle_id_t slots[MAX_UNIT_HANDLE_SLOTS];
     uint64_t count;
-    spinlock_t lock;
+    Spinlock lock;
 } unit_handle_table_t;
 
 #endif  // VESPERAOS_HANDLE_H

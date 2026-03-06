@@ -5,7 +5,6 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 #include <intrusive_queue.h>
-
 #include "atomic.h"
 
 class Unit;
@@ -18,10 +17,11 @@ namespace kernel {
      * - Before scheduling start: Simple spinlock
      * - After scheduling start: Blocking mutex with waiting list
      */
-    struct mutex_t {
-        atomic_flag_t locked{};
-        intrusive_queue_t<Unit, queue_lock_irq> waiters{};
+    class Mutex {
+        atomic_flag_t locked_{};
+        IntrusiveQueue<Unit, QueueLockIrq> waiters_{};
 
+       public:
         void init();
 
         void lock();
@@ -33,21 +33,22 @@ namespace kernel {
         [[nodiscard]] bool is_locked() const;
     };
 
-    struct mutex_guard {
-        mutex_t &mtx;
+    struct MutexGuard {
+        Mutex &mtx;
 
-        explicit mutex_guard(mutex_t &m) : mtx(m) {
+        explicit MutexGuard(Mutex &m)
+            : mtx(m) {
             mtx.lock();
         }
 
-        ~mutex_guard() {
+        ~MutexGuard() {
             mtx.unlock();
         }
 
-        mutex_guard(const mutex_guard &) = delete;
+        MutexGuard(const MutexGuard &) = delete;
 
-        mutex_guard &operator=(const mutex_guard &) = delete;
+        MutexGuard &operator=(const MutexGuard &) = delete;
     };
-} // namespace kernel
+}  // namespace kernel
 
-#endif //MUTEX_H
+#endif  // MUTEX_H

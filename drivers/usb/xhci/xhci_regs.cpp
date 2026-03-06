@@ -26,95 +26,95 @@
 #include "../../../include/log.h"
 #include "xhci_common.h"
 
-xhci_doorbell_manager::xhci_doorbell_manager(uintptr_t base)
-    : m_doorbell_registers(reinterpret_cast<xhci_doorbell_register*>(base)) {
+XhciDoorbellManager::XhciDoorbellManager(uintptr_t base)
+    : doorbell_registers_(reinterpret_cast<XHCI_DOORBELL_REGISTER*>(base)) {
 }
 
-void xhci_doorbell_manager::ring_doorbell(uint8_t doorbell, uint8_t target) const {
-    m_doorbell_registers[doorbell].raw = static_cast<uint32_t>(target);
+void XhciDoorbellManager::ring_doorbell(uint8_t doorbell, uint8_t target) const {
+    doorbell_registers_[doorbell].raw = static_cast<uint32_t>(target);
 }
 
-void xhci_doorbell_manager::ring_command_doorbell() const {
+void XhciDoorbellManager::ring_command_doorbell() const {
     ring_doorbell(0, XHCI_DOORBELL_TARGET_COMMAND_RING);
 }
 
-void xhci_doorbell_manager::ring_control_endpoint_doorbell(uint8_t doorbell) const {
+void XhciDoorbellManager::ring_control_endpoint_doorbell(uint8_t doorbell) const {
     ring_doorbell(doorbell, XHCI_DOORBELL_TARGET_CONTROL_EP_RING);
 }
 
-xhci_extended_capability::xhci_extended_capability(volatile uint32_t* cap_ptr)
-    : m_base(cap_ptr)
-    , m_next(nullptr) {
-    memset(&m_entry, 0, sizeof(m_entry));
-    m_entry.raw = *m_base;
+XhciExtendedCapability::XhciExtendedCapability(volatile uint32_t* cap_ptr)
+    : base_(cap_ptr)
+    , next_(nullptr) {
+    memset(&entry_, 0, sizeof(entry_));
+    entry_.raw = *base_;
 
     read_next_ext_caps();
 }
 
-void xhci_extended_capability::read_next_ext_caps() {
-    if (m_entry.next) {
-        auto next_cap_ptr = XHCI_NEXT_EXT_CAP_PTR(m_base, m_entry.next);
+void XhciExtendedCapability::read_next_ext_caps() {
+    if (entry_.next) {
+        auto next_cap_ptr = XHCI_NEXT_EXT_CAP_PTR(base_, entry_.next);
 
-        m_next = new xhci_extended_capability(next_cap_ptr);
+        next_ = new XhciExtendedCapability(next_cap_ptr);
     }
 }
 
-void xhciPortRegisterManager::read_portsc_reg(xhci_portsc_register& reg) const {
-    uint64_t portsc_address = m_base + m_portsc_offset;
+void XhciPortRegisterManager::read_portsc_reg(XHCI_PORTSC_REGISTER& reg) const {
+    uint64_t portsc_address = base_ + portsc_offset_;
     reg.raw = *reinterpret_cast<volatile uint32_t*>(portsc_address);
 }
 
-void xhciPortRegisterManager::write_portsc_reg(const xhci_portsc_register& reg) const {
-    uint64_t portsc_address = m_base + m_portsc_offset;
+void XhciPortRegisterManager::write_portsc_reg(const XHCI_PORTSC_REGISTER& reg) const {
+    uint64_t portsc_address = base_ + portsc_offset_;
     *reinterpret_cast<volatile uint32_t*>(portsc_address) = reg.raw;
 }
 
-void xhciPortRegisterManager::read_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const {
-    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+void XhciPortRegisterManager::read_portpmsc_reg_usb2(XHCI_PORTPMSC_REGISTER_USB2& reg) const {
+    uint64_t portpmsc_address = base_ + portpmsc_offset_;
     reg.raw = *reinterpret_cast<volatile uint32_t*>(portpmsc_address);
 }
 
-void xhciPortRegisterManager::write_portpmsc_reg_usb2(const xhci_portpmsc_register_usb2& reg) const {
-    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+void XhciPortRegisterManager::write_portpmsc_reg_usb2(const XHCI_PORTPMSC_REGISTER_USB2& reg) const {
+    uint64_t portpmsc_address = base_ + portpmsc_offset_;
     *reinterpret_cast<volatile uint32_t*>(portpmsc_address) = reg.raw;
 }
 
-void xhciPortRegisterManager::read_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const {
-    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+void XhciPortRegisterManager::read_portpmsc_reg_usb3(XHCI_PORTPMSC_REGISTER_USB3& reg) const {
+    uint64_t portpmsc_address = base_ + portpmsc_offset_;
     reg.raw = *reinterpret_cast<volatile uint32_t*>(portpmsc_address);
 }
 
-void xhciPortRegisterManager::write_portpmsc_reg_usb3(const xhci_portpmsc_register_usb3& reg) const {
-    uint64_t portpmsc_address = m_base + m_portpmsc_offset;
+void XhciPortRegisterManager::write_portpmsc_reg_usb3(const XHCI_PORTPMSC_REGISTER_USB3& reg) const {
+    uint64_t portpmsc_address = base_ + portpmsc_offset_;
     *reinterpret_cast<volatile uint32_t*>(portpmsc_address) = reg.raw;
 }
 
-void xhciPortRegisterManager::read_portli_reg(xhci_portli_register& reg) const {
-    uint64_t portli_address = m_base + m_portli_offset;
+void XhciPortRegisterManager::read_portli_reg(XHCI_PORTLI_REGISTER& reg) const {
+    uint64_t portli_address = base_ + portli_offset_;
     reg.raw = *reinterpret_cast<volatile uint32_t*>(portli_address);
 }
 
-void xhciPortRegisterManager::write_portli_reg(const xhci_portli_register& reg) const {
-    uint64_t portli_address = m_base + m_portli_offset;
+void XhciPortRegisterManager::write_portli_reg(const XHCI_PORTLI_REGISTER& reg) const {
+    uint64_t portli_address = base_ + portli_offset_;
     *reinterpret_cast<volatile uint32_t*>(portli_address) = reg.raw;
 }
 
-void xhciPortRegisterManager::read_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const {
-    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+void XhciPortRegisterManager::read_porthlpmc_reg_usb2(XHCI_PORTHLPMC_REGISTER_USB2& reg) const {
+    uint64_t porthlpm_address = base_ + porthlpmc_offset_;
     reg.raw = *reinterpret_cast<volatile uint32_t*>(porthlpm_address);
 }
 
-void xhciPortRegisterManager::write_porthlpmc_reg_usb2(const xhci_porthlpmc_register_usb2& reg) const {
-    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+void XhciPortRegisterManager::write_porthlpmc_reg_usb2(const XHCI_PORTHLPMC_REGISTER_USB2& reg) const {
+    uint64_t porthlpm_address = base_ + porthlpmc_offset_;
     *reinterpret_cast<volatile uint32_t*>(porthlpm_address) = reg.raw;
 }
 
-void xhciPortRegisterManager::read_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const {
-    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+void XhciPortRegisterManager::read_porthlpmc_reg_usb3(XHCI_PORTHLPMC_REGISTER_USB3& reg) const {
+    uint64_t porthlpm_address = base_ + porthlpmc_offset_;
     reg.raw = *reinterpret_cast<volatile uint32_t*>(porthlpm_address);
 }
 
-void xhciPortRegisterManager::write_porthlpmc_reg_usb3(const xhci_porthlpmc_register_usb3& reg) const {
-    uint64_t porthlpm_address = m_base + m_porthlpmc_offset;
+void XhciPortRegisterManager::write_porthlpmc_reg_usb3(const XHCI_PORTHLPMC_REGISTER_USB3& reg) const {
+    uint64_t porthlpm_address = base_ + porthlpmc_offset_;
     *reinterpret_cast<volatile uint32_t*>(porthlpm_address) = reg.raw;
 }

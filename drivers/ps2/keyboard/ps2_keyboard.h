@@ -24,7 +24,7 @@
 #ifndef PS2_KEYBOARD_H
 #define PS2_KEYBOARD_H
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace ps2::keyboard {
     void init();

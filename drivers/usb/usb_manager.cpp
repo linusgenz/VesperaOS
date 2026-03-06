@@ -23,46 +23,46 @@
 
 #include "usb_manager.h"
 
-#include <cstdint>
+#include <stdint.h>
 
 #include <kernel/sync/atomic.h>
 #include <kernel/sync/spinlock.h>
 #include <kernel/sync/completion.h>
 
-completion_t USBManager::all_controllers_ready;
-atomic_u8 USBManager::expected_controllers;
-atomic_u8 USBManager::initialized_controllers;
-spinlock_t USBManager::lock;
+Completion UsbManager::all_controllers_ready_;
+AtomicU8 UsbManager::expected_controllers_;
+AtomicU8 UsbManager::initialized_controllers_;
+Spinlock UsbManager::lock_;
 
-void USBManager::init() {
-    all_controllers_ready.init();
-    expected_controllers.init();
-    initialized_controllers.init();
-    lock.init("usb_manager_lock");
+void UsbManager::init() {
+    all_controllers_ready_.init();
+    expected_controllers_.init();
+    initialized_controllers_.init();
+    lock_.init("usb_manager_lock");
 }
 
-void USBManager::increment_expected_count() {
-    expected_controllers.fetch_add(1);
+void UsbManager::increment_expected_count() {
+    expected_controllers_.fetch_add(1);
 }
 
-void USBManager::notify_controller_ready() {
-    spinlock_guard guard(lock);
-    ++initialized_controllers;
+void UsbManager::notify_controller_ready() {
+    SpinlockGuard guard(lock_);
+    ++initialized_controllers_;
 
-    if (initialized_controllers.load() >= expected_controllers.load()) {
-        all_controllers_ready.complete();
+    if (initialized_controllers_.load() >= expected_controllers_.load()) {
+        all_controllers_ready_.complete();
     }
 }
 
-bool USBManager::wait_for_all_controllers(const uint64_t timeout_ms) {
-    if (const uint8_t expected = expected_controllers.load(); expected == 0) return true;
-    return all_controllers_ready.wait_timeout(timeout_ms);
+bool UsbManager::wait_for_all_controllers(const uint64_t timeout_ms) {
+    if (const uint8_t expected = expected_controllers_.load(); expected == 0) return true;
+    return all_controllers_ready_.wait_timeout(timeout_ms);
 }
 
-uint8_t USBManager::get_initialized_count() {
-    return initialized_controllers.load();
+uint8_t UsbManager::get_initialized_count() {
+    return initialized_controllers_.load();
 }
 
-uint8_t USBManager::get_expected_count() {
-    return expected_controllers.load();
+uint8_t UsbManager::get_expected_count() {
+    return expected_controllers_.load();
 }

@@ -1,6 +1,6 @@
 #include <string.h>
 #include <kernel/memory.h>
-#include <cstddef>
+#include <stddef.h>
 
 
 template <typename T>
@@ -55,22 +55,22 @@ char* ptohex(void* ptr, char* buffer, const size_t buffer_size)
 }
 
 
-char* u64tohex(const uint64_t value, char* buffer, const size_t buffer_size)
+char* u64_tohex(const uint64_t value, char* buffer, const size_t buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
-char* u32tohex(const uint32_t value, char* buffer, const size_t buffer_size)
+char* u32_tohex(const uint32_t value, char* buffer, const size_t buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
-char* u16tohex(const uint16_t value, char* buffer, const size_t buffer_size)
+char* u16_tohex(const uint16_t value, char* buffer, const size_t buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
-char* u8tohex(const uint8_t value, char* buffer, const size_t buffer_size)
+char* u8_tohex(const uint8_t value, char* buffer, const size_t buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_SORT_H
 #define VESPERAOS_SORT_H
 
-#include <cstddef>
+#include <stddef.h>
 #include <utility>
 #include <iterator.h>
 
@@ -99,7 +99,7 @@ RandomIt partition(RandomIt first, RandomIt last, Compare comp) {
 // Heapsort als Fallback bei zu tiefer Rekursion
 template<typename RandomIt, typename Compare>
 void heapsort(RandomIt first, RandomIt last, Compare comp) {
-    using diff_t = iterator_traits<RandomIt>::difference_type;
+    using diff_t = IteratorTraits<RandomIt>::difference_type;
     diff_t n = last - first;
 
     // Build heap

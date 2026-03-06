@@ -49,16 +49,16 @@ Realm::Realm()
     handle_table.lock.init(buf2);
 }
 
-ErrorCode Realm::init_handle_table() {
+error_code_t Realm::init_handle_table() {
     memset(&handle_table, 0, sizeof(handle_table_t));
     handle_table.owner_realm = id;
     return MOD_SUCCESS;
 }
 
-ErrorCode Realm::add_handle(
-    uint64_t type, void* resource, CapabilitySet caps, bool transferable, void (*destroy)(void*), HandleID* out_h
+error_code_t Realm::add_handle(
+    uint64_t type, void* resource, capability_set_t caps, bool transferable, void (*destroy)(void*), handle_id_t* out_h
 ) {
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock);
     int slot = find_free_slot();
     if (slot < 0) {
         return MOD_ERR_OUT_OF_MEMORY;
@@ -66,7 +66,7 @@ ErrorCode Realm::add_handle(
 
     set_bit(slot);
     handle_entry_t& he = handle_table.entries[slot];
-    he.hid = type | static_cast<HandleID>(slot & HANDLE_ID_MASK);
+    he.hid = type | static_cast<handle_id_t>(slot & HANDLE_ID_MASK);
     he.type = type;
     he.resource = resource;
     he.capabilities = caps;
@@ -78,15 +78,15 @@ ErrorCode Realm::add_handle(
     return MOD_SUCCESS;
 }
 
-ErrorCode Realm::add_handle_with_id(
-    HandleID fixed_id, uint64_t type, void* resource, CapabilitySet caps, bool transferable, void (*destroy)(void*)
+error_code_t Realm::add_handle_with_id(
+    handle_id_t fixed_id, uint64_t type, void* resource, capability_set_t caps, bool transferable, void (*destroy)(void*)
 ) {
     uint64_t slot = fixed_id & HANDLE_ID_MASK;
     if (slot >= MAX_HANDLES_PER_REALM) {
         return MOD_ERR_INVALID_HANDLE;
     }
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock);
 
     if (test_bit(slot)) {
         return MOD_ERR_INVALID_HANDLE;
@@ -105,8 +105,8 @@ ErrorCode Realm::add_handle_with_id(
     return MOD_SUCCESS;
 }
 
-ErrorCode Realm::setup_standard_handles(TTYDevice* tty_dev) {
-    ErrorCode err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ, false, nullptr);
+error_code_t Realm::setup_standard_handles(TtyDevice* tty_dev) {
+    error_code_t err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ, false, nullptr);
     if (err != MOD_SUCCESS) return err;
 
     err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE, false, nullptr);
@@ -118,7 +118,7 @@ ErrorCode Realm::setup_standard_handles(TTYDevice* tty_dev) {
     return MOD_SUCCESS;
 }
 
-handle_entry_t* Realm::lookup_handle(HandleID hid) {
+handle_entry_t* Realm::lookup_handle(handle_id_t hid) {
     uint64_t raw = hid & HANDLE_ID_MASK;
 
     if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
@@ -129,18 +129,18 @@ handle_entry_t* Realm::lookup_handle(HandleID hid) {
     return &he;
 }
 
-void Realm::acquire_handle(HandleID hid) {
+void Realm::acquire_handle(handle_id_t hid) {
     if (auto he = lookup_handle(hid)) {
         __sync_add_and_fetch(&he->refcount, 1);
     }
 }
 
-void Realm::release_handle(HandleID hid) {
+void Realm::release_handle(handle_id_t hid) {
     handle_entry_t* he = lookup_handle(hid);
     if (!he) return;
 
     if (const uint64_t v = __sync_sub_and_fetch(&he->refcount, 1); v == 0) {
-        spinlock_guard guard(lock);
+        SpinlockGuard guard(lock);
         const auto raw = static_cast<uint64_t>(he->hid & HANDLE_ID_MASK);
         if (he->destroy && he->resource) he->destroy(he->resource);
         memset(he, 0, sizeof(handle_entry_t));

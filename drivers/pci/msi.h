@@ -26,7 +26,7 @@
 
 #include "pci.h"
 
-namespace PCI {
+namespace pci {
     constexpr uint16_t MSI_DELIVERY_MODE_FIXED = (0 << 8);
     constexpr uint32_t MSI_ADDRESS_BASE = 0xFEE00000;
 
@@ -64,7 +64,7 @@ namespace PCI {
         return data;
     }
 
-    struct pci_msi_capability {
+    struct PCI_MSI_CAPABILITY {
         union {
             struct {
                 uint8_t cap_id;
@@ -75,7 +75,7 @@ namespace PCI {
                         uint16_t enable_bit: 1;
                         uint16_t multiple_message_capable: 3;
                         uint16_t multiple_message_enable: 3;
-                        uint16_t is_64bit: 1;
+                        uint16_t is_64_bit: 1;
                         uint16_t per_vector_masking: 1;
                         uint16_t rsvd0: 7;
                     } __attribute__((packed));
@@ -103,8 +103,8 @@ namespace PCI {
         uint32_t pending;
     } __attribute__((packed));
 
-    static_assert(sizeof(pci_msi_capability) == 24);
+    static_assert(sizeof(PCI_MSI_CAPABILITY) == 24);
 
-    bool enable_msi(PCIHeader0* header, uint8_t base_vector, uint8_t wanted = 1);
+    bool enable_msi(PCI_HEADER0* header, uint8_t base_vector, uint8_t wanted = 1);
 }
 #endif //MSI_H

@@ -27,14 +27,14 @@
 #include "../../../include/graphics.h"
 
 namespace input::mouse {
-#define PS2LeftButton 0b00000001
-#define PS2MiddleButton 0b00000100
-#define PS2RightButton 0b00000010
+#define PS2_LEFT_BUTTON 0b00000001
+#define PS2_MIDDLE_BUTTON 0b00000100
+#define PS2_RIGHT_BUTTON 0b00000010
 
-#define PS2XSign 0b00010000
-#define PS2YSign 0b00100000
-#define PS2XOverflow 0b001000000
-#define PS2YOverflow 0b100000000
+#define PS2_X_SIGN 0b00010000
+#define PS2_Y_SIGN 0b00100000
+#define PS2_X_OVERFLOW 0b001000000
+#define PS2_Y_OVERFLOW 0b100000000
 
     extern uint8_t pointer[];
 
@@ -51,7 +51,7 @@ namespace input::mouse {
     void handle_byte(uint8_t data);
     bool read_packet(MousePacket& out);
 
-    Point get_position();
+    point_t get_position();
 
     void process_mouse_packet();
 }

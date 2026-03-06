@@ -28,8 +28,8 @@
 
 #include "../../kversion.h"
 
-VersionDevice::VersionDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+VersionDevice::VersionDevice()
+    : CharDevice( BusType::VIRTUAL) {
 }
 
 int VersionDevice::open(CharFile**) {

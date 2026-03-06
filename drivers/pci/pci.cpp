@@ -14,34 +14,34 @@
 #include "../usb/xhci/xhci.h"
 #include "msix.h"
 
-static atomic_u8 next_usb_bus_number;
+static AtomicU8 next_usb_bus_number;
 
 void usb_enable(void* arg)
 {
-    const auto pci_device_header = static_cast<PCI::PCIDeviceHeader*>(arg);
-    uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
+    const auto pci_device_header = static_cast<pci::PCI_DEVICE_HEADER*>(arg);
+    uint16_t command = pci::pci_read16(pci_device_header, 0x04);
     command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
     command |= (1 << 10); // Disable INTx
-    PCI::pci_write16(pci_device_header, 0x04, command);
+    pci::pci_write16(pci_device_header, 0x04, command);
 
     if (const uint8_t vector = kernel::interrupts::get_free_vector();
-        try_enable_msi_or_msix(reinterpret_cast<PCI::PCIHeader0*>(pci_device_header),
+        try_enable_msi_or_msix(reinterpret_cast<pci::PCI_HEADER0*>(pci_device_header),
                                vector))
     {
         char name[16];
-        DeviceManager::AllocUniqueDeviceName("xhci", name, sizeof(name));
+        DeviceManager::alloc_unique_device_name("xhci", name, sizeof(name));
 
-        auto usb_driver = new USB::xhciDriver(vector, name, next_usb_bus_number++);
+        auto usb_driver = new usb::XhciDriver(vector, name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header))
         {
-            Log::Error("Could not initalize xhci driver");
+            Log::error("Could not initalize xhci driver");
             return;
         }
         usb_driver->start_device();
     }
 }
 
-namespace PCI
+namespace pci
 {
     void enumerate_function(const uint64_t device_address, const uint64_t function)
     {
@@ -50,7 +50,7 @@ namespace PCI
 
         kernel::memory::map_memory(func_virt, func_phys, 0);
 
-        auto* pci_device_header = virt_as<PCIDeviceHeader>(func_virt);
+        auto* pci_device_header = virt_as<PCI_DEVICE_HEADER>(func_virt);
 
 
         if (pci_device_header->device_id == 0) return;
@@ -73,12 +73,12 @@ namespace PCI
                 case 0x01: // AHCI 1.0 device
                     {
                         if (function != 0) return; // only accept function 0 (main function) for now
-                        uint16_t command = PCI::pci_read16(pci_device_header, 0x04);
+                        uint16_t command = pci::pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         command |= (1 << 10); // Disable INTx
-                        PCI::pci_write16(pci_device_header, 0x04, command);
+                        pci::pci_write16(pci_device_header, 0x04, command);
 
-                        new AHCI::AHCIDriver(pci_device_header);
+                        new ahci::AhciDriver(pci_device_header);
                         break;
                     }
                 default: ;
@@ -142,7 +142,7 @@ namespace PCI
 
                 case 0x30:
                     {
-                        USBManager::increment_expected_count();
+                        UsbManager::increment_expected_count();
                         char unit_name[32];
                         snprintf(unit_name, sizeof(unit_name), "xhci%u", next_usb_bus_number);
 
@@ -162,8 +162,8 @@ namespace PCI
                             KERNEL_REALM_DRIVER, usb_enable, pci_device_header, &config);
                         if (!usb_unit)
                         {
-                            Log::Error("Failed to create XHCI unit");
-                            USBManager::notify_controller_ready();
+                            Log::error("Failed to create XHCI unit");
+                            UsbManager::notify_controller_ready();
                         }
                         break;
                     }
@@ -187,7 +187,7 @@ namespace PCI
 
         kernel::memory::map_memory(dev_virt, dev_phys, 0);
 
-        const auto* pci_device_header = virt_as<PCIDeviceHeader>(dev_virt);
+        const auto* pci_device_header = virt_as<PCI_DEVICE_HEADER>(dev_virt);
 
         if (pci_device_header->device_id == 0)      return;
         if (pci_device_header->device_id == 0xFFFF) return;
@@ -202,7 +202,7 @@ namespace PCI
 
         kernel::memory::map_memory(bus_virt, bus_phys, 0);
 
-        const auto* pci_device_header = virt_as<PCIDeviceHeader>(bus_virt);
+        const auto* pci_device_header = virt_as<PCI_DEVICE_HEADER>(bus_virt);
 
         if (pci_device_header->device_id == 0)      return;
         if (pci_device_header->device_id == 0xFFFF) return;
@@ -211,26 +211,26 @@ namespace PCI
             enumerate_device(virt_raw(bus_virt), device);
     }
 
-    void enumerate_pci(ACPI::MCFGHeader* mcfg)
+    void enumerate_pci(acpi::MCFG_HEADER* mcfg)
     {
         next_usb_bus_number.init(1);
-        const uint32_t entries = ((mcfg->header.length) - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
+        const uint32_t entries = ((mcfg->header.length) - sizeof(acpi::MCFG_HEADER)) / sizeof(acpi::DeviceConfig);
 
-        USBManager::init();
+        UsbManager::init();
 
         for (size_t t = 0; t < entries; t++)
         {
-            const auto* new_device_config = reinterpret_cast<ACPI::DeviceConfig*>(reinterpret_cast<uint64_t>(mcfg) + sizeof(
-                ACPI::MCFGHeader) + (sizeof(ACPI::DeviceConfig) * t));
+            const auto* new_device_config = reinterpret_cast<acpi::DeviceConfig*>(reinterpret_cast<uint64_t>(mcfg) + sizeof(
+                acpi::MCFG_HEADER) + (sizeof(acpi::DeviceConfig) * t));
             for (uint64_t bus = new_device_config->start_bus; bus < new_device_config->end_bus; bus++)
             {
                 enumerate_bus(new_device_config->base_address, bus);
             }
         }
 
-        if (const uint8_t count = USBManager::get_expected_count(); count > 0)
+        if (const uint8_t count = UsbManager::get_expected_count(); count > 0)
         {
-            Log::Info("Found %u XHCI controller(s)", count);
+            Log::info("Found %u XHCI controller(s)", count);
         }
     }
 
@@ -239,7 +239,7 @@ namespace PCI
  * @param bar_value Der Wert der BAR (z.B. header->BAR0)
  * @return true wenn 64-bit BAR, false wenn 32-bit BAR oder I/O BAR
  */
-    bool is_bar_64bit(uint32_t bar_value)
+    bool is_bar_64_bit(uint32_t bar_value)
     {
         // Erstmal prüfen ob es eine Memory BAR ist (Bit 0 = 0)
         if (bar_value & PCI_BAR_MEMORY_MASK)
@@ -254,7 +254,7 @@ namespace PCI
     }
 
 
-    BarInfo get_bar_info(PCIHeader0* header, uint8_t bar_index)
+    BarInfo get_bar_info(PCI_HEADER0* header, uint8_t bar_index)
     {
         BarInfo info = {};
 
@@ -263,7 +263,7 @@ namespace PCI
             return info; // is_valid = false
         }
 
-        volatile uint32_t* bar_registers = &header->BAR0;
+        volatile uint32_t* bar_registers = &header->bar0;
         uint32_t bar_value = bar_registers[bar_index];
 
         if (bar_value == 0)
@@ -278,7 +278,7 @@ namespace PCI
         {
             // I/O BAR
             info.address = bar_value & ~0x3ULL;
-            info.is_64bit = false;
+            info.is_64_bit = false;
             info.is_prefetchable = false;
 
             // Calculate I/O BAR size
@@ -291,10 +291,10 @@ namespace PCI
         else
         {
             // Memory BAR
-            info.is_64bit = is_bar_64bit(bar_value);
+            info.is_64_bit = is_bar_64_bit(bar_value);
             info.is_prefetchable = (bar_value >> 3) & 1;
 
-            if (info.is_64bit)
+            if (info.is_64_bit)
             {
                 if (bar_index >= 5)
                 {

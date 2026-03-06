@@ -23,7 +23,7 @@
 #ifndef BLOCKDEVICE_H
 #define BLOCKDEVICE_H
 
-#include <cstdint>
+#include <stdint.h>
 #include <cstring>
 #include <vector>
 #include <cassert>

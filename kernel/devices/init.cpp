@@ -34,24 +34,24 @@
 #include "misc/zero.h"
 
 void initialize_pseudo_devices() {
-    constexpr size_t CHANNEL_CAPACITY = static_cast<size_t>(32) * 1024;
-    Channel* kernel_log_channel = Channel::create(CHANNEL_CAPACITY);
+    constexpr size_t channel_capacity = static_cast<size_t>(32) * 1024;
+    Channel* kernel_log_channel = Channel::create(channel_capacity);
 
-    auto* zero_dev = new ZeroDevice("zero");
-    auto* null_dev = new NullDevice("null");
-    auto* urand_dev = new URandomDevice("urandom");
-    auto* full_dev = new FullDevice("full");
-    auto* rtc_dev = new RTCDevice("rtc");
-    auto* uptime_dev = new UptimeDevice("uptime");
-    auto* version_dev = new VersionDevice("version");
-    auto* cpuinfo_dev = new CPUInfoDevice("cpuinfo");
-    auto* meminfo_dev = new MemInfoDevice("meminfo");
+    auto* zero_dev = new ZeroDevice();
+    auto* null_dev = new NullDevice();
+    auto* urand_dev = new URandomDevice();
+    auto* full_dev = new FullDevice();
+    auto* rtc_dev = new RtcDevice();
+    auto* uptime_dev = new UptimeDevice();
+    auto* version_dev = new VersionDevice();
+    auto* cpuinfo_dev = new CpuInfoDevice();
+    auto* meminfo_dev = new MemInfoDevice();
     auto* log_dev = new LogDevice(kernel_log_channel);
 
     auto register_char_device = [](CharDevice* dev, const char* name, DeviceClass cls) -> KernelDevice* {
         KernelDevice* kd =
-            DeviceManager::RegisterCharDevice(dev, name, cls, BusType::BUS_NONE, ControllerType::None, nullptr);
-        if (kd) DevFS::register_device(kd);
+            DeviceManager::register_char_device(dev, name, cls, BusType::None, ControllerType::None, nullptr);
+        if (kd) DevFs::register_device(kd);
         return kd;
     };
 

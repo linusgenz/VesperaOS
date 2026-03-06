@@ -31,44 +31,44 @@
 #include "../units/unit_manager.h"
 #include "dev/realm_info.h"
 
-Realm RealmManager::realms[MAX_REALMS];
-spinlock_t RealmManager::global_lock;
-RealmID RealmManager::next_id = 1;
-atomic_u8_t RealmManager::seq;
-bool RealmManager::initialized = false;
+Realm RealmManager::realms_[MAX_REALMS];
+Spinlock RealmManager::global_lock_;
+realm_id_t RealmManager::next_id_ = 1;
+atomic_u8_t RealmManager::seq_;
+bool RealmManager::initialized_ = false;
 
 void RealmManager::initialize() {
-    global_lock.init("realm_manager_lock");
+    global_lock_.init("realm_manager_lock");
 
-    seq.init(0);
+    seq_.init(0);
 
-    for (auto& realm : realms) {
+    for (auto& realm : realms_) {
         realm.active = false;
         realm.id = 0;
         realm.unit_list = nullptr;
         realm.unit_count = 0;
     }
-    next_id = 1;
-    initialized = true;
+    next_id_ = 1;
+    initialized_ = true;
 }
 
 bool RealmManager::is_initialized() {
-    return initialized;
+    return initialized_;
 }
 
 Realm* RealmManager::create(const RealmConfig* cfg) {
     if (!cfg) return nullptr;
 
-    spinlock_guard g(global_lock);
+    SpinlockGuard g(global_lock_);
 
-    seq.fetch_add(1);  // begin write section (odd)
+    seq_.fetch_add(1);  // begin write section (odd)
 
     Realm* result = nullptr;
 
-    for (auto& realm : realms) {
+    for (auto& realm : realms_) {
         if (!realm.active) {
             Realm* r = &realm;
-            r->id = next_id++;
+            r->id = next_id_++;
             r->name = cfg->name;
             r->memory_limit = cfg->memory_limit;
             r->max_units = cfg->max_units;
@@ -95,45 +95,45 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             }
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);
-            RealmFS::register_realm(r->id, r->name, r);
+            RealmFs::register_realm(r->id, r->name, r);
             result = r;
             break;
         }
     }
 
-    seq.fetch_add(1);  // end write section (even)
+    seq_.fetch_add(1);  // end write section (even)
     return result;
 }
 
-Realm* RealmManager::get(const RealmID id) {
+Realm* RealmManager::get(const realm_id_t id) {
     while (true) {
-        uint8_t begin = seq.load();
+        uint8_t begin = seq_.load();
         if (begin & 1)  // Writer aktiv → retry
             continue;
 
         Realm* result = nullptr;
 
-        for (auto& realm : realms) {
+        for (auto& realm : realms_) {
             if (realm.active && realm.id == id) {
                 result = &realm;
                 break;
             }
         }
 
-        if (const uint8_t end = seq.load(); begin == end) return result;
+        if (const uint8_t end = seq_.load(); begin == end) return result;
     }
 }
 
-bool RealmManager::destroy(const RealmID id) {
-    spinlock_guard g(global_lock);
+bool RealmManager::destroy(const realm_id_t id) {
+    SpinlockGuard g(global_lock_);
 
-    seq.fetch_add(1);  // writer begin
+    seq_.fetch_add(1);  // writer begin
 
     bool ok = false;
-    for (auto& realm : realms) {
+    for (auto& realm : realms_) {
         if (realm.active && realm.id == id) {
             SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
-            RealmFS::unregister_realm(realm.id);
+            RealmFs::unregister_realm(realm.id);
 
             Unit* u = realm.unit_list;
             while (u) {
@@ -163,16 +163,16 @@ bool RealmManager::destroy(const RealmID id) {
         }
     }
 
-    seq.fetch_add(1);  // writer end
+    seq_.fetch_add(1);  // writer end
 
     return ok;
 }
 
 ssize_t RealmManager::get_status(void* manager_ref, void* buffer, size_t size, size_t offset) {
-    if (!manager_ref || !buffer || size < sizeof(realm_info_t)) return -EINVAL;
+    if (!manager_ref || !buffer || size < sizeof(RealmInfo)) return -EINVAL;
 
     auto* r = static_cast<Realm*>(manager_ref);
-    realm_info_t status{};
+    RealmInfo status{};
 
     status.id = r->id;
     strncpy(status.name, r->name, sizeof(status.name) - 1);
@@ -188,19 +188,19 @@ ssize_t RealmManager::get_status(void* manager_ref, void* buffer, size_t size, s
     strncpy(status.cwd_path, r->cwd_path, sizeof(status.cwd_path) - 1);
     status.cwd_path[sizeof(status.cwd_path) - 1] = '\0';
 
-    memcpy(buffer, &status, sizeof(realm_info_t));
-    return sizeof(realm_info_t);
+    memcpy(buffer, &status, sizeof(RealmInfo));
+    return sizeof(RealmInfo);
 }
 
 void RealmManager::list() {
     while (true) {
-        uint8_t begin = seq.load();
+        uint8_t begin = seq_.load();
         if (begin & 1)  // Writer aktiv
             continue;
 
-        for (const auto& realm : realms) {
+        for (const auto& realm : realms_) {
             if (realm.active) {
-                Log::PrintLn(
+                Log::print_ln(
                     "Realm %u: name=%s, units=%llu/%llu",
                     realm.id,
                     realm.name,
@@ -210,7 +210,7 @@ void RealmManager::list() {
             }
         }
 
-        if (const uint8_t end = seq.load(); begin == end)
+        if (const uint8_t end = seq_.load(); begin == end)
             return;
     }
 }

@@ -8,28 +8,28 @@
 
 #include "acpi.h"
 
-namespace ACPI {
+namespace acpi {
     class TableManager {
        public:
         static void init(const BootInfo* boot_info);
 
         static FADT* get_fadt() {
-            return fadt;
+            return fadt_;
         }
-        static MADTHeader* get_madt() {
-            return madt;
+        static MADT_HEADER* get_madt() {
+            return madt_;
         }
-        static MCFGHeader* get_mcfg() {
-            return mcfg;
+        static MCFG_HEADER* get_mcfg() {
+            return mcfg_;
         }
 
        private:
-        static SDTHeader* find_table(const char* signature);
+        static SDT_HEADER* find_table(const char* signature);
 
-        static SDTHeader* xsdt;
-        static FADT* fadt;
-        static MADTHeader* madt;
-        static MCFGHeader* mcfg;
+        static SDT_HEADER* xsdt_;
+        static FADT* fadt_;
+        static MADT_HEADER* madt_;
+        static MCFG_HEADER* mcfg_;
     };
 }  // namespace ACPI
 

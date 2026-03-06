@@ -9,7 +9,7 @@
 
 #include "addr.h"
 #include "efi_memory.h"
-#include <cstddef>
+#include <stddef.h>
 
 constexpr size_t PAGE_SIZE = 0x1000;
 inline uint64_t g_hhdm_offset = 0;
@@ -18,7 +18,7 @@ inline uint64_t g_kernel_virt_base = 0;
 
 struct PageTable;
 
-uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapEntries, size_t mMapDescSize);
+uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, size_t m_map_entries, size_t m_map_desc_size);
 
 void memset(void* dest, uint8_t val, uint64_t num);
 
@@ -35,7 +35,7 @@ void* memmove(void* dest, const void* src, size_t len);
 virt_addr_t phys_to_virt(phys_addr_t addr);
 phys_addr_t virt_to_phys(virt_addr_t addr);
 
-enum PT_Flag {
+enum PtFlag {
     Present = 0,
     ReadWrite = 1,
     UserSuper = 2,
@@ -52,10 +52,10 @@ enum PT_Flag {
 };
 
 namespace kernel::memory {
-    void initialize_memory(BootInfo* bootInfo);
+    void initialize_memory(BootInfo* boot_info);
 
     // Page Table Management
-    void initialize_page_table_manager(BootInfo* bootInfo);
+    void initialize_page_table_manager(BootInfo* boot_info);
 
     void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, uint64_t flags = 0);
 
@@ -94,9 +94,9 @@ namespace kernel::memory {
 
     [[nodiscard]] phys_addr_t request_page_phys();
 
-    [[nodiscard]] virt_addr_t request_pages(size_t pageCount);
+    [[nodiscard]] virt_addr_t request_pages(size_t page_count);
 
-    [[nodiscard]] phys_addr_t request_pages_phys(size_t pageCount);
+    [[nodiscard]] phys_addr_t request_pages_phys(size_t page_count);
 
     [[nodiscard]] uint64_t get_free_ram();
 

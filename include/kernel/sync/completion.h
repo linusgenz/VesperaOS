@@ -24,13 +24,13 @@
 #ifndef VESPERAOS_COMPLETION_H
 #define VESPERAOS_COMPLETION_H
 
-#include <cstdint>
+#include <stdint.h>
 #include <kernel/sync/spinlock.h>
 
-struct completion_t
+struct Completion
 {
     volatile bool completed{};
-    spinlock_t lock{};
+    Spinlock lock{};
 
     void init();
 

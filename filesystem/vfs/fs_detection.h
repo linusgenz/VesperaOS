@@ -49,49 +49,49 @@ struct DeviceDescriptor {
 
 class FilesystemDetector {
 public:
-    static void Init();
+    static void init();
 
-    static void RegisterAllDrivers();
+    static void register_all_drivers();
 
-    static bool DetectFilesystem(BlockDevice *device, FilesystemInfo *info);
+    static bool detect_filesystem(BlockDevice *device, FilesystemInfo *info);
 
-    static void ScanAndMountAll();
+    static void scan_and_mount_all();
 
-    static void UnmountAll();
+    static void unmount_all();
 
-    static void PrintDetectedFilesystems();
+    static void print_detected_filesystems();
 
 private:
-    static Vector<PendingMount> *pending_mounts;
+    static Vector<PendingMount> *pending_mounts_;
 
-    static size_t driver_count;
-    static size_t device_count;
+    static size_t driver_count_;
+    static size_t device_count_;
 
-    static bool Unmount(MountPoint* mp);
+    static bool unmount(MountPoint* mp);
 
-    static VfsNode *MountFilesystem(BlockDevice *device, FilesystemInfo* fs_info);
+    static VfsNode *mount_filesystem(BlockDevice *device, FilesystemInfo* fs_info);
 
     static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition,
                              const char *table_type, bool is_root_device);
 
 };
 
-namespace FilesystemProbes {
-    bool ProbeFAT12(BlockDevice *device);
+namespace filesystem_probes {
+    bool probe_fat12(BlockDevice *device);
 
-    bool ProbeFAT16(BlockDevice *device);
+    bool probe_fat16(BlockDevice *device);
 
-    bool ProbeFAT32(BlockDevice *device);
+    bool probe_fat32(BlockDevice *device);
 
-    bool ProbeEXT2(BlockDevice *device);
+    bool probe_ext2(BlockDevice *device);
 
-    bool ProbeEXT3(BlockDevice *device);
+    bool probe_ext3(BlockDevice *device);
 
-    bool ProbeEXT4(BlockDevice *device);
+    bool probe_ext4(BlockDevice *device);
 
-    bool ProbeNTFS(BlockDevice *device);
+    bool probe_ntfs(BlockDevice *device);
 
-    bool ProbeISO9660(BlockDevice *device);
+    bool probe_iso9660(BlockDevice *device);
 }
 
 #endif //ENHANCED_FS_DETECTION_H

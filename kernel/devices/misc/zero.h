@@ -28,7 +28,7 @@
 
 class ZeroDevice final : public CharDevice {
    public:
-    explicit ZeroDevice(const char* name);
+    explicit ZeroDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

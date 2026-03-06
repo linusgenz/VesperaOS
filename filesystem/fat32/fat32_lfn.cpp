@@ -26,10 +26,10 @@
 
 #include "kernel/memory.h"
 
-namespace FAT32 {
-    uint8_t ChkSum(const char* shortName) {
+namespace fat32 {
+    uint8_t chk_sum(const char* short_name) {
         uint8_t sum = 0;
-        for (int i = 0; i < 11; i++) sum = ((sum & 1) ? 0x80 : 0) + (sum >> 1) + shortName[i];
+        for (int i = 0; i < 11; i++) sum = ((sum & 1) ? 0x80 : 0) + (sum >> 1) + short_name[i];
         return sum;
     }
 
@@ -51,7 +51,7 @@ namespace FAT32 {
         return *s1 - *s2;
     }
 
-    bool CopyLFNPart(const LongFileName* lfn, char* buffer, size_t& pos, const size_t maxLen) {
+    bool copy_lfn_part(const LongFileName* lfn, char* buffer, size_t& pos, const size_t max_len) {
         uint16_t name1[5];
         uint16_t name2[6];
         uint16_t name3[2];
@@ -59,12 +59,12 @@ namespace FAT32 {
         memcpy(name2, lfn->name2, sizeof(name2));
         memcpy(name3, lfn->name3, sizeof(name3));
 
-        auto copyChars = [&](const uint16_t* src, size_t count) {
+        auto copy_chars = [&](const uint16_t* src, size_t count) {
             for (size_t i = 0; i < count; i++) {
                 if (src[i] == 0x0000 || src[i] == 0xFFFF) {
                     return false;
                 }
-                if (pos >= maxLen - 1) {
+                if (pos >= max_len - 1) {
                     return false;
                 }
                 buffer[pos++] = static_cast<char>(src[i] & 0xFF);
@@ -72,106 +72,108 @@ namespace FAT32 {
             return true;
         };
 
-        if (!copyChars(name1, 5)) return false;
-        if (!copyChars(name2, 6)) return false;
-        if (!copyChars(name3, 2)) return false;
+        if (!copy_chars(name1, 5)) return false;
+        if (!copy_chars(name2, 6)) return false;
+        if (!copy_chars(name3, 2)) return false;
 
         return true;
     }
 
-    bool MakeShortName(const char* input, char* output11) {
+    bool make_short_name(const char* input, char* output11) {
         memset(output11, ' ', 11);
         const char* dot = strrchr(input, '.');
-        size_t nameLen = dot ? static_cast<size_t>(dot - input) : strlen(input);
-        size_t extLen = dot ? strlen(dot + 1) : 0;
-        if (nameLen == 0) return false;
+        const size_t name_len = dot ? static_cast<size_t>(dot - input) : strlen(input);
+        const size_t ext_len = dot ? strlen(dot + 1) : 0;
+        if (name_len == 0) return false;
 
-        size_t outPos = 0;
-        for (size_t i = 0; i < nameLen && outPos < 8; i++) {
+        size_t out_pos = 0;
+        for (size_t i = 0; i < name_len && out_pos < 8;
+            i++) {
             char c = input[i];
             if (c == ' ' || c == '.' || c == '+' || c == ',' || c == ';') continue;
-            output11[outPos++] = to_upper(c);
+            output11[out_pos++] = to_upper(c);
         }
 
-        if (nameLen > 8) {
+        if (name_len <= 8) {
+
             output11[6] = '~';
             output11[7] = '1';
         }
 
-        if (dot && extLen > 0) {
-            size_t extPos = 0;
+        if (dot && ext_len > 0) {
+            size_t ext_pos = 0;
             for (size_t i = 0; i < 3 && dot[1 + i]; i++) {
                 char c = dot[1 + i];
                 if (c == ' ' || c == '.' || c == '+' || c == ',' || c == ';') continue;
-                output11[8 + extPos++] = to_upper(c);
+                output11[8 + ext_pos++] = to_upper(c);
             }
         }
 
         return true;
     }
 
-    void ExtractShortName(const unsigned char* rawName, char* shortNameBuffer, size_t bufferSize) {
-        if (bufferSize < 13) return;
+    void extract_short_name(const unsigned char* raw_name, char* short_name_buffer, const size_t buffer_size) {
+        if (buffer_size < 13) return;
 
         // Name Teil (8 Zeichen) - IMMER UPPERCASE
         size_t pos = 0;
         for (int i = 0; i < 8; i++) {
-            if (rawName[i] != ' ') shortNameBuffer[pos++] = rawName[i];
+            if (raw_name[i] != ' ') short_name_buffer[pos++] = raw_name[i];
         }
 
         // Extension Teil (3 Zeichen) - IMMER UPPERCASE
-        bool hasExt = false;
+        bool has_ext = false;
         for (int i = 8; i < 11; i++) {
-            if (rawName[i] != ' ') {
-                hasExt = true;
+            if (raw_name[i] != ' ') {
+                has_ext = true;
                 break;
             }
         }
 
-        if (hasExt) {
-            shortNameBuffer[pos++] = '.';
+        if (has_ext) {
+            short_name_buffer[pos++] = '.';
             for (int i = 8; i < 11; i++) {
-                if (rawName[i] != ' ') shortNameBuffer[pos++] = rawName[i];
+                if (raw_name[i] != ' ') short_name_buffer[pos++] = raw_name[i];
             }
         }
 
-        shortNameBuffer[pos] = '\0';
+        short_name_buffer[pos] = '\0';
     }
 
-    bool WriteLFNEntries(
-        DirectoryEntry* entries, const size_t startIndex, const char* longName, const char* shortName,
-        const size_t nameLen
+    bool write_lfn_entries(
+        DirectoryEntry* entries, const size_t start_index, const char* long_name, const char* short_name,
+        const size_t name_len
     ) {
-        const size_t entriesNeeded = (nameLen + 12) / 13;
-        uint16_t nameBuffer[256] = {};
+        const size_t entries_needed = (name_len + 12) / 13;
+        uint16_t name_buffer[256] = {};
 
-        for (size_t j = 0; j < nameLen; ++j) nameBuffer[j] = static_cast<uint8_t>(longName[j]);
+        for (size_t j = 0; j < name_len; ++j) name_buffer[j] = static_cast<uint8_t>(long_name[j]);
 
-        uint8_t checksum = ChkSum(shortName);
+        const uint8_t checksum = chk_sum(short_name);
 
-        for (int lfnIndex = static_cast<int>(entriesNeeded) - 1; lfnIndex >= 0; --lfnIndex) {
+        for (int lfn_index = static_cast<int>(entries_needed) - 1; lfn_index >= 0; --lfn_index) {
             LongFileName lfn = {};
-            lfn.order = static_cast<uint8_t>(lfnIndex + 1);
-            if (lfnIndex == static_cast<int>(entriesNeeded) - 1) lfn.order |= 0x40;
+            lfn.order = static_cast<uint8_t>(lfn_index + 1);
+            if (lfn_index == static_cast<int>(entries_needed) - 1) lfn.order |= 0x40;
 
             lfn.attr = ATTR_LONG_NAME;
             lfn.type = 0;
             lfn.checksum = checksum;
-            lfn.firstClusterLow = 0;
+            lfn.first_cluster_low = 0;
 
-            size_t namePos = static_cast<size_t>(lfnIndex) * 13;
+            size_t name_pos = static_cast<size_t>(lfn_index) * 13;
 
             uint16_t tmp_name1[5] = {};
             uint16_t tmp_name2[6] = {};
             uint16_t tmp_name3[2] = {};
 
-            auto copy_from_name = [&](uint16_t* dest, int count) {
+            auto copy_from_name = [&](uint16_t* dest, const int count) {
                 for (int c = 0; c < count; ++c) {
-                    if (namePos < nameLen)
-                        dest[c] = nameBuffer[namePos++];
-                    else if (namePos == nameLen) {
+                    if (name_pos < name_len)
+                        dest[c] = name_buffer[name_pos++];
+                    else if (name_pos == name_len) {
                         dest[c] = 0x0000;
-                        namePos++;
+                        name_pos++;
                     } else
                         dest[c] = 0xFFFF;
                 }
@@ -186,24 +188,24 @@ namespace FAT32 {
             memcpy(lfn.name3, tmp_name3, sizeof(tmp_name3));
 
             memcpy(
-                &entries[startIndex + (entriesNeeded - 1 - static_cast<size_t>(lfnIndex))], &lfn, sizeof(LongFileName)
+                &entries[start_index + (entries_needed - 1 - static_cast<size_t>(lfn_index))], &lfn, sizeof(LongFileName)
             );
         }
 
         return true;
     }
 
-    size_t FindFirstLFNIndex(const FileEntry* entries, size_t shortNameIndex) {
-        if (shortNameIndex == 0) return shortNameIndex;
+    size_t find_first_lfn_index(const FileEntry* entries, const size_t short_name_index) {
+        if (short_name_index == 0) return short_name_index;
 
-        size_t firstLFN = shortNameIndex;
-        for (int i = static_cast<int>(shortNameIndex) - 1; i >= 0; i--) {
-            if (const DirectoryEntry entry = entries[i].GetDirectoryEntry(); entry.attr == ATTR_LONG_NAME)
-                firstLFN = i;
+        size_t first_lfn = short_name_index;
+        for (int i = static_cast<int>(short_name_index) - 1; i >= 0; i--) {
+            if (const DirectoryEntry entry = entries[i].get_directory_entry(); entry.attr == ATTR_LONG_NAME)
+                first_lfn = i;
             else
                 break;
         }
 
-        return firstLFN;
+        return first_lfn;
     }
 }  // namespace FAT32

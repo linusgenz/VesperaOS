@@ -1,23 +1,23 @@
 // vespera_errno.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 03.08.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -26,13 +26,13 @@
 
 #define SUCCESS_CODE 0
 
-
 #define EPERM           1   // Operation not permitted
 #define ENOENT          2   // No such file or directory
 #define ESRCH           3   // No such process
 #define EINTR           4   // Interrupted system call
 #define EIO             5   // I/O error
 #define ENXIO           6   // No such device or address
+// ReSharper disable once CppInconsistentNaming
 #define E2BIG           7   // Argument list too long
 #define ENOEXEC         8   // Exec format error
 #define EBADH           9   // Bad handle id

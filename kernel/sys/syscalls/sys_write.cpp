@@ -29,7 +29,7 @@
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        const HandleID hid = arg0;
+        const handle_id_t hid = arg0;
         auto buf = reinterpret_cast<void *>(arg1);
         size_t count = arg2;
         Unit *u = kernel::scheduling::get_current_unit();
@@ -50,7 +50,7 @@ namespace syscalls::internal {
         }
         switch (he->type) {
             case HANDLE_TYPE_TTY: {
-                auto *tty_dev = static_cast<TTYDevice *>(he->resource);
+                auto *tty_dev = static_cast<TtyDevice *>(he->resource);
                 return tty_dev->write(nullptr, user_buf, arg2);
             }
             case HANDLE_TYPE_DEVICE:

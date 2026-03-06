@@ -26,23 +26,23 @@
 #include "../../filesystem/vfs/vfs.h"
 
 FileLogWriter::FileLogWriter(const char *file_path)
-    : file_handle(nullptr)
-    , path(file_path) {
-    file_handle = VFS::open(path);
-    if (!file_handle) {
-        VFS::create(path);
-        file_handle = VFS::open(path);
+    : file_handle_(nullptr)
+    , path_(file_path) {
+    file_handle_ = VFS::open(path_);
+    if (!file_handle_) {
+        VFS::create(path_);
+        file_handle_ = VFS::open(path_);
     }
 }
 
 FileLogWriter::~FileLogWriter() {
-    if (file_handle) {
-        VFS::close(file_handle);
+    if (file_handle_) {
+        VFS::close(file_handle_);
     }
 }
 
 bool FileLogWriter::append_line(const char *line, size_t len) {
-    if (!file_handle) return false;
-    ssize_t w = file_handle->ops->write(file_handle, file_handle->size, len, line);
+    if (!file_handle_) return false;
+    ssize_t w = file_handle_->ops->write(file_handle_, file_handle_->size, len, line);
     return (w == static_cast<ssize_t>(len));
 }

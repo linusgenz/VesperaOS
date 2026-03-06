@@ -24,7 +24,7 @@
 #include <kernel/scheduling.h>
 #include <kernel/sync/reentrant_spinlock.h>
 
-void reentrant_spinlock_t::lock() {
+void ReentrantSpinlock::lock() {
     uint32_t uid = kernel::scheduling::get_current_unit()->id;
 
     if (owner_unit == uid) {
@@ -41,7 +41,7 @@ void reentrant_spinlock_t::lock() {
     recursion = 1;
 }
 
-void reentrant_spinlock_t::unlock() {
+void ReentrantSpinlock::unlock() {
     if (--recursion == 0) {
         owner_unit = 0;
         __atomic_store_n(&locked, 0, __ATOMIC_RELEASE);

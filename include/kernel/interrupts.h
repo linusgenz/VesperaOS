@@ -24,7 +24,7 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include <cstdint>
+#include <stdint.h>
 #include "../../arch/x86_64/interrupts/idt.h"
 
 namespace kernel::interrupts

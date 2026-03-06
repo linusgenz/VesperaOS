@@ -24,10 +24,10 @@
 #ifndef SYSCALL_INTERFACE_H
 #define SYSCALL_INTERFACE_H
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace syscalls::internal {
-    using syscall_fn = int64_t (*)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    using syscall_fn_t = int64_t (*)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
 

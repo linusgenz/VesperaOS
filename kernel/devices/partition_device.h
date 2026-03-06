@@ -26,8 +26,8 @@
 
 #include "../types/handle.h"
 #include "blockdevice.h"
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 class PartitionDevice final : public BlockDevice {
    public:
@@ -37,25 +37,25 @@ class PartitionDevice final : public BlockDevice {
     ssize_t read(uint64_t lba, size_t count, void* buf, size_t buf_size) override;
     ssize_t write(uint64_t lba, size_t count, void* buf, size_t buf_size) override;
     [[nodiscard]] size_t get_sector_size() const override {
-        return sector_size;
+        return sector_size_;
     };
     [[nodiscard]] size_t get_size() const override {
-        return length_lba * get_sector_size();
+        return length_lba_ * get_sector_size();
     }
 
     [[nodiscard]] uint64_t get_start_lba() const {
-        return start_lba;
+        return start_lba_;
     }
 
     [[nodiscard]] uint64_t get_length_lba() const {
-        return length_lba;
+        return length_lba_;
     }
 
    private:
-    BlockDevice* parent;
-    uint64_t start_lba;
-    uint64_t length_lba;
-    uint64_t sector_size;
+    BlockDevice* parent_;
+    uint64_t start_lba_;
+    uint64_t length_lba_;
+    uint64_t sector_size_;
 };
 
 #endif  // VESPERAOS_PARTION_DEVICE_H

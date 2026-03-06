@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_MSR_H
 #define VESPERAOS_MSR_H
 
-#include <cstdint>
+#include <stdint.h>
 
 inline uint64_t rdmsr(uint32_t msr)
 {

@@ -4,15 +4,15 @@
 #ifndef PAGE_MAP_INDEXER_H
 #define PAGE_MAP_INDEXER_H
 #include "kernel/addr.h"
-#include <cstdint>
+#include <stdint.h>
 class PageMapIndexer {
    private:
    public:
     explicit PageMapIndexer(virt_addr_t virt_addr);
-    uint64_t PDP_i;
-    uint64_t PD_i;
-    uint64_t PT_i;
-    uint64_t P_i;
+    uint64_t pdp_i;
+    uint64_t pd_i;
+    uint64_t pt_i;
+    uint64_t p_i;
 };
 
 #endif  // PAGE_MAP_INDEXER_H

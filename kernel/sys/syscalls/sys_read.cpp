@@ -36,7 +36,7 @@ namespace syscalls::internal {
         //  }
         //  reader_owner = kernel::scheduling::get_current_unit();
 
-        HandleID hid = arg0;
+        handle_id_t hid = arg0;
         const auto buf = reinterpret_cast<void *>(arg1);
         size_t count = arg2;
 
@@ -57,7 +57,7 @@ namespace syscalls::internal {
 
         switch (he->type & HANDLE_TYPE_MASK) {
             case HANDLE_TYPE_TTY: {
-                auto *tty_dev = static_cast<TTYDevice *>(he->resource);
+                auto *tty_dev = static_cast<TtyDevice *>(he->resource);
                 return tty_dev->read(nullptr, buf, count, 0);
             }
             case HANDLE_TYPE_DEVICE:

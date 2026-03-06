@@ -5,9 +5,9 @@
 #ifndef GDT_H
 #define GDT_H
 #include "../../../kernel/acpi/madt.h"
-#include <cstdint>
+#include <stdint.h>
 
-struct __attribute__((packed)) GDTEntry {
+struct __attribute__((packed)) GDT_ENTRY {
     uint16_t limit_low;   // Limit bits 0-15
     uint16_t base_low;    // Base bits 0-15
     uint8_t base_middle;  // Base bits 16-23
@@ -17,7 +17,7 @@ struct __attribute__((packed)) GDTEntry {
 };
 
 // TSS Descriptor (16 bytes)
-struct __attribute__((packed)) TSSDescriptor {
+struct __attribute__((packed)) TSS_DESCRIPTOR {
     uint16_t limit_low;   // Limit bits 0-15
     uint16_t base_low;    // Base bits 0-15
     uint8_t base_middle;  // Base bits 16-23
@@ -47,22 +47,22 @@ struct __attribute__((packed)) TSS {
 };
 
 // GDTR (GDT Register)
-struct __attribute__((packed)) GDTPtr {
+struct __attribute__((packed)) GDT_PTR {
     uint16_t limit;
     uint64_t base;
 };
 
 // GDT Entries
 #define GDT_ENTRIES 7
-extern GDTEntry gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
-extern TSSDescriptor tss_desc;
+extern GDT_ENTRY gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
+extern TSS_DESCRIPTOR tss_desc;
 extern TSS tss[MAX_CPU_CORES];
-extern GDTPtr gdt_ptr;
+extern GDT_PTR gdt_ptr;
 
 void setup_cpu_tss(uint32_t cpu_id);
 
 void gdt_install();
 
-extern "C" void load_GDT(GDTPtr *);
+extern "C" void load_gdt(GDT_PTR *);
 
 #endif  // GDT_H

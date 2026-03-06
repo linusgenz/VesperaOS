@@ -30,7 +30,7 @@
 
 namespace syscalls::internal {
     int64_t sys_ioctl(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = arg0;
+        handle_id_t hid = arg0;
         uint64_t req = arg1;
         auto arg = reinterpret_cast<void*>(arg2);
 

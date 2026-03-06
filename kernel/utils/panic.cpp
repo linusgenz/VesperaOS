@@ -6,7 +6,7 @@
 #include "../../include/string.h"
 #include "../cpu/cpu_manager.h"
 
-static const uint8_t simple_font[27][16] = {
+static const uint8_t SIMPLE_FONT[27][16] = {
     // Space (ASCII 32)
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     // A
@@ -63,19 +63,19 @@ static const uint8_t simple_font[27][16] = {
     {0x7E, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x40, 0x7E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 };
 
-void put_pixel(const Framebuffer* fb, uint32_t x, uint32_t y, uint32_t color) {
+void put_pixel(const framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
     if (x >= fb->width || y >= fb->height) return;
     auto* pixel_ptr = static_cast<uint32_t*>(fb->base_address);
     pixel_ptr[y * fb->pixels_per_scanline + x] = color;
 }
 
-void put_char(const Framebuffer* fb, const unsigned char c, const uint32_t x, const uint32_t y, const uint32_t color) {
+void put_char(const framebuffer_t* fb, const unsigned char c, const uint32_t x, const uint32_t y, const uint32_t color) {
     if (c == ' ') {
         // space
         return;
     }
     if (c >= 'A' && c <= 'Z') {
-        const uint8_t* glyph = simple_font[c - 'A' + 1];
+        const uint8_t* glyph = SIMPLE_FONT[c - 'A' + 1];
         for (uint32_t row = 0; row < 16; row++) {
             uint8_t row_bits = glyph[row];
             for (uint32_t bit = 0; bit < 8; bit++) {
@@ -87,7 +87,7 @@ void put_char(const Framebuffer* fb, const unsigned char c, const uint32_t x, co
     }
 }
 
-void put_string(const Framebuffer* fb, const char* str, const uint32_t x, const uint32_t y, uint32_t color) {
+void put_string(const framebuffer_t* fb, const char* str, const uint32_t x, const uint32_t y, uint32_t color) {
     uint32_t cursor_x = x;
     uint32_t cursor_y = y;
     while (*str) {
@@ -105,10 +105,10 @@ void put_string(const Framebuffer* fb, const char* str, const uint32_t x, const 
 }
 
 [[noreturn]] void panic(const char* panic_msg) {
-    auto fb = TargetFramebuffer;
+    auto fb = target_framebuffer;
 
     uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
-    CPUManager::halt_cpu(apic_id);
+    cpu_manager::halt_cpu(apic_id);
 
     arch::x86_64::interrupts::apic::broadcast_ipi(IRQ_PANIC);
 

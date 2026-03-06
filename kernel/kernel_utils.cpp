@@ -36,7 +36,7 @@
 #include "types/types.h"
 #include "units/unit_manager.h"
 
-Framebuffer* TargetFramebuffer = nullptr;
+framebuffer_t* target_framebuffer = nullptr;
 
 static void initialize_early_boot(const BootInfo* boot_info) {
 #if DEBUG_SPINLOCK
@@ -45,51 +45,51 @@ static void initialize_early_boot(const BootInfo* boot_info) {
 #endif
 
     system_font = boot_info->font;
-    TargetFramebuffer = boot_info->framebuffer;
-    memset(TargetFramebuffer->base_address, 0, TargetFramebuffer->buffer_size);
+    target_framebuffer = boot_info->framebuffer;
+    memset(target_framebuffer->base_address, 0, target_framebuffer->buffer_size);
 
     kernel::input::InputManager::init();
-    Log::enableDebug();
+    Log::enable_debug();
     gdt_install();
 }
 
 static void initialize_memory_subsystem(BootInfo* boot_info) {
     kernel::memory::initialize_memory(boot_info);
-    const virt_addr_t heap_start = virt_from_raw((reinterpret_cast<uintptr_t>(&_KernelEnd) + 0xFFFFF) & ~0xFFFFFULL);
+    const virt_addr_t heap_start = virt_from_raw((reinterpret_cast<uintptr_t>(&kernel_end) + 0xFFFFF) & ~0xFFFFFULL);
     kernel::memory::initialize_heap((heap_start), 0x500);
 }
 
 static void initialize_device_manager_and_vfs() {
     DeviceManager::init();
     VFS::init();
-    DevFS::init();
-    RealmFS::init();
+    DevFs::init();
+    RealmFs::init();
 }
 
 static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
-    auto* renderer = new gop_render_driver(boot_info->framebuffer, boot_info->font);
+    auto* renderer = new GopRenderDriver(boot_info->framebuffer, boot_info->font);
     DisplayBackend be{renderer, renderer->get_kd()};
     DisplayManager::init(be);
 
     // Register framebuffer device
     auto* fbdev = new FramebufferDevice("fb0", BusType::VIRTUAL);
-    auto* fb_kd = DeviceManager::RegisterCharDevice(
+    auto* fb_kd = DeviceManager::register_char_device(
         fbdev, "fb0", DeviceClass::Graphics, BusType::VIRTUAL, ControllerType::None, nullptr
     );
-    DevFS::register_device(fb_kd);
+    DevFs::register_device(fb_kd);
 
     // Setup terminal for logging
     auto terminal = new Terminal(renderer, system_font->width, system_font->height);
-    Log::SetTerminal(terminal);
+    Log::set_terminal(terminal);
     global_terminal = terminal;
 
-    Log::Info("Vespera booting...");
+    Log::info("Vespera booting...");
 }
 
 static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
-    ACPI::TableManager::init(boot_info);
-    MADT::parse_madt(ACPI::TableManager::get_madt());
-    ACPI::parse_fadt();
+    acpi::TableManager::init(boot_info);
+    madt::parse_madt(acpi::TableManager::get_madt());
+    acpi::parse_fadt();
 
     kernel::interrupts::initialize();
     asm("sti");
@@ -97,7 +97,7 @@ static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
 
 static void initialize_cpu_and_realms() {
     kernel::SystemManager::initialize();
-    CPUManager::initialize();
+    cpu_manager::initialize();
     setup_cpu_tss(0);
     RealmManager::initialize();
 
@@ -122,10 +122,10 @@ static void initialize_cpu_and_realms() {
 
 static void initialize_scheduling_and_smp() {
     UnitManager::initialize();
-    kernel::scheduling::init(CPUManager::total_cpus);
+    kernel::scheduling::init(cpu_manager::total_cpus);
 
     prepare_ap_trampoline();
-    CPUManager::smp_init();
+    cpu_manager::smp_init();
 
     // Threading now available - upgrade log to use mutex
     Log::init();
@@ -134,16 +134,16 @@ static void initialize_scheduling_and_smp() {
 static void initialize_hardware_buses() {
     ps2_init();
     initialize_input_bus();
-    PCI::enumerate_pci(ACPI::TableManager::get_mcfg());
+    pci::enumerate_pci(acpi::TableManager::get_mcfg());
 
-    if (USBManager::wait_for_all_controllers(10000))  // TODO
+    if (UsbManager::wait_for_all_controllers(10000))  // TODO
     {
-        Log::Info("All USB controllers ready");
+        Log::info("All USB controllers ready");
     } else {
-        Log::Warning(
+        Log::warning(
             "Timeout waiting for USB controllers (%u/%u ready)",
-            USBManager::get_expected_count(),
-            USBManager::get_initialized_count()
+            UsbManager::get_expected_count(),
+            UsbManager::get_initialized_count()
         );
     }
 }

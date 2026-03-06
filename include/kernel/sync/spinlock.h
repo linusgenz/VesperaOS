@@ -4,13 +4,13 @@
 
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
-#include <cstdint>
+#include <stdint.h>
 
+class Spinlock {
+    volatile uint32_t locked_{0};
 
-struct spinlock_t {
-    volatile uint32_t locked{0};
-
-    void init(const char* name = "unnamed_lock");
+   public:
+    void init(const char *name = "unnamed_lock");
 
     void lock();
 
@@ -26,15 +26,10 @@ struct spinlock_t {
         irq_restore(flags);
     }
 
-private:
+   private:
     uint32_t xchg(volatile uint32_t *ptr, uint32_t val) {
         uint32_t old = 0;
-        __asm__ volatile (
-            "lock xchg %0, %1"
-            : "=r"(old), "+m"(*ptr)
-            : "0"(val)
-            : "memory"
-        );
+        __asm__ volatile("lock xchg %0, %1" : "=r"(old), "+m"(*ptr) : "0"(val) : "memory");
         return old;
     }
 
@@ -62,37 +57,38 @@ private:
     }
 };
 
-struct spinlock_guard {
-    spinlock_t &lock_ref;
+struct SpinlockGuard {
+    Spinlock &lock_ref;
 
-    explicit spinlock_guard(spinlock_t &lock) : lock_ref(lock) {
+    explicit SpinlockGuard(Spinlock &lock)
+        : lock_ref(lock) {
         lock_ref.lock();
     }
 
-    ~spinlock_guard() {
+    ~SpinlockGuard() {
         lock_ref.unlock();
     }
 
-    spinlock_guard(const spinlock_guard &) = delete;
+    SpinlockGuard(const SpinlockGuard &) = delete;
 
-    spinlock_guard &operator=(const spinlock_guard &) = delete;
+    SpinlockGuard &operator=(const SpinlockGuard &) = delete;
 };
 
-struct spinlock_guard_irq {
-    spinlock_t &lock_ref;
+struct SpinlockGuardIrq {
+    Spinlock &lock_ref;
     uint64_t flags{};
 
-    explicit spinlock_guard_irq(spinlock_t &lock) : lock_ref(lock) {
+    explicit SpinlockGuardIrq(Spinlock &lock)
+        : lock_ref(lock) {
         lock_ref.lock_irqsave(flags);
     }
 
-    ~spinlock_guard_irq() {
+    ~SpinlockGuardIrq() {
         lock_ref.unlock_irqrestore(flags);
     }
 
-    spinlock_guard_irq(const spinlock_guard_irq &) = delete;
-    spinlock_guard_irq &operator=(const spinlock_guard_irq &) = delete;
+    SpinlockGuardIrq(const SpinlockGuardIrq &) = delete;
+    SpinlockGuardIrq &operator=(const SpinlockGuardIrq &) = delete;
 };
 
-
-#endif //SPINLOCK_H
+#endif  // SPINLOCK_H

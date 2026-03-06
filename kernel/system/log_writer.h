@@ -36,8 +36,8 @@ class FileLogWriter final : public kernel::ILogWriter {
     bool append_line(const char* line, size_t len) override;
 
    private:
-    VfsNode* file_handle;
-    const char* path;
+    VfsNode* file_handle_;
+    const char* path_;
 };
 
 #endif  // VESPERAOS_LOG_WRITER_H

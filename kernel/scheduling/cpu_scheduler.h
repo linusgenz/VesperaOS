@@ -31,11 +31,11 @@ namespace kernel::scheduling::cpu_scheduler {
     void remove_unit_from_cpu(Unit *unit, uint8_t cpu_id);
 
     // Context switching and execution
-    void yield_cpu(uint8_t cpu_id, trap_frame *frame = nullptr);
+    void yield_cpu(uint8_t cpu_id, TrapFrame *frame = nullptr);
 
-    void tick_cpu(uint8_t cpu_id, trap_frame *frame);
+    void tick_cpu(uint8_t cpu_id, TrapFrame *frame);
 
-    cpu_scheduler_t *get_cpu_data(uint8_t cpu_id);
+    CpuScheduler *get_cpu_data(uint8_t cpu_id);
 
     // Query functions
     Unit *get_current_unit_on_cpu(uint8_t cpu_id);

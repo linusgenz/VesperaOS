@@ -28,13 +28,13 @@
 #include <utils.h>
 
 Channel::Channel(const size_t cap)
-    : buf(static_cast<uint8_t *>(kernel::memory::malloc(cap)))
-    , head(0)
-    , tail(0)
-    , refcount(1)
+    : buf_(static_cast<uint8_t *>(kernel::memory::malloc(cap)))
+    , head_(0)
+    , tail_(0)
+    , refcount_(1)
     , used(0)
     , capacity(cap) {
-    lock.init("channel_lock");
+    lock_.init("channel_lock");
 }
 
 
@@ -45,7 +45,7 @@ Channel::Channel(const size_t cap)
  */
 Channel *Channel::create(const size_t cap) {
     auto *ch = new Channel(cap);
-    if (!ch->buf) {
+    if (!ch->buf_) {
         delete ch;
         return nullptr;
     }
@@ -58,24 +58,24 @@ void Channel::destroy(void *res) {
 }
 
 Channel::~Channel() {
-    if (buf) kernel::memory::free(buf);
+    if (buf_) kernel::memory::free(buf_);
 }
 
 ssize_t Channel::send(const void *data, const size_t len) {
     if (!data || len == 0) return 0;
 
-    spinlock_guard g(lock);
+    SpinlockGuard g(lock_);
     const size_t free_space = capacity - used;
     if (free_space == 0) return -EAGAIN;
 
     const size_t to_write = (len < free_space) ? len : free_space;
 
-    const size_t first = min(to_write, capacity - head);
-    memcpy(buf + head, data, first);
+    const size_t first = min(to_write, capacity - head_);
+    memcpy(buf_ + head_, data, first);
     if (first < to_write) {
-        memcpy(buf, static_cast<const uint8_t *>(data) + first, to_write - first);
+        memcpy(buf_, static_cast<const uint8_t *>(data) + first, to_write - first);
     }
-    head = (head + to_write) % capacity;
+    head_ = (head_ + to_write) % capacity;
     used += to_write;
 
     return static_cast<ssize_t>(to_write);
@@ -84,17 +84,17 @@ ssize_t Channel::send(const void *data, const size_t len) {
 ssize_t Channel::recv(void *out, const size_t len) {
     if (!out || len == 0) return 0;
 
-    spinlock_guard g(lock);
+    SpinlockGuard g(lock_);
     if (used == 0) return -EAGAIN;
 
     const size_t to_read = (len < used) ? len : used;
 
-    const size_t first = min(to_read, capacity - tail);
-    memcpy(out, buf + tail, first);
+    const size_t first = min(to_read, capacity - tail_);
+    memcpy(out, buf_ + tail_, first);
     if (first < to_read) {
-        memcpy(static_cast<uint8_t *>(out) + first, buf, to_read - first);
+        memcpy(static_cast<uint8_t *>(out) + first, buf_, to_read - first);
     }
-    tail = (tail + to_read) % capacity;
+    tail_ = (tail_ + to_read) % capacity;
     used -= to_read;
 
     return static_cast<ssize_t>(to_read);

@@ -28,9 +28,9 @@
 #include "../../../include/log.h"
 
 namespace arch::x86_64::interrupts::ioapic {
-    static MADT::IoApic *find_ioapic_for_gsi(uint32_t gsi) {
-        MADT::IoApic *apics = MADT::get_ioapics();
-        for (uint32_t i = 0; i < MADT::get_ioapic_count(); ++i) {
+    static madt::IoApic *find_ioapic_for_gsi(uint32_t gsi) {
+        madt::IoApic *apics = madt::get_ioapics();
+        for (uint32_t i = 0; i < madt::get_ioapic_count(); ++i) {
             auto &apic = apics[i];
             if (gsi >= apic.gsi_base && gsi < apic.gsi_base + 24) {
                 return &apic;
@@ -40,8 +40,8 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static uint32_t resolve_irq_to_gsi(uint8_t irq) {
-        MADT::InterruptOverride *overrides = MADT::get_overrides();
-        for (uint32_t i = 0; i < MADT::get_override_count(); ++i) {
+        madt::InterruptOverride *overrides = madt::get_overrides();
+        for (uint32_t i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].gsi;
             }
@@ -50,8 +50,8 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static uint16_t get_flags_for_irq(const uint8_t irq) {
-        MADT::InterruptOverride *overrides = MADT::get_overrides();
-        for (uint32_t i = 0; i < MADT::get_override_count(); ++i) {
+        madt::InterruptOverride *overrides = madt::get_overrides();
+        for (uint32_t i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].flags;
             }
@@ -70,7 +70,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static void ioapic_set_redirect(
-        const MADT::IoApic *ioapic, const uint32_t gsi, const uint8_t vector, const uint8_t dest_apic_id, uint16_t flags
+        const madt::IoApic *ioapic, const uint32_t gsi, const uint8_t vector, const uint8_t dest_apic_id, uint16_t flags
     ) {
         volatile uint32_t *mmio = map_ioapic(ioapic->address);
         const uint32_t index = gsi - ioapic->gsi_base;
@@ -92,7 +92,7 @@ namespace arch::x86_64::interrupts::ioapic {
         low &= ~(1 << 16);
         write_ioapic_reg(mmio, reg, low);
 
-        Log::Info(
+        Log::info(
             "IOAPIC: Redirect GSI %u (IRQ 0x%x) -> vec 0x%x on CPU %u (flags: 0x%x)",
             gsi,
             gsi,
@@ -106,9 +106,9 @@ namespace arch::x86_64::interrupts::ioapic {
         uint32_t gsi = resolve_irq_to_gsi(irq);
         uint16_t flags = get_flags_for_irq(irq);
 
-        MADT::IoApic *ioapic = find_ioapic_for_gsi(gsi);
+        madt::IoApic *ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) {
-            Log::Error("IOAPIC: No APIC found for GSI %u (IRQ 0x%x)", gsi, irq);
+            Log::error("IOAPIC: No APIC found for GSI %u (IRQ 0x%x)", gsi, irq);
             return;
         }
 
@@ -117,7 +117,7 @@ namespace arch::x86_64::interrupts::ioapic {
 
     void init() {
         for (const uint8_t default_irqs[] = {0, 5, 9, 10, 11}; uint8_t irq : default_irqs) {
-            configure_irq(irq, 0x20 + irq, MADT::get_bsp_apic_id());
+            configure_irq(irq, 0x20 + irq, madt::get_bsp_apic_id());
         }
     }
 }  // namespace arch::x86_64::interrupts::ioapic

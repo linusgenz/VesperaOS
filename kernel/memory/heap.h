@@ -5,8 +5,8 @@
 #ifndef HEAP_H
 #define HEAP_H
 #include "kernel/addr.h"
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 #define HEAP_MAGIC_FREE 0xDEADBEEF
 #define HEAP_MAGIC_USED 0xBEEFCAFE

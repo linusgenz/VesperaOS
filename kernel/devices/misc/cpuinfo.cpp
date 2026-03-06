@@ -28,19 +28,19 @@
 
 #include "../../cpu/cpu.h"
 
-CPUInfoDevice::CPUInfoDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+CpuInfoDevice::CpuInfoDevice()
+    : CharDevice(BusType::VIRTUAL) {
 }
 
-int CPUInfoDevice::open(CharFile**) {
+int CpuInfoDevice::open(CharFile**) {
     return 0;
 }
 
-int CPUInfoDevice::release(CharFile*) {
+int CpuInfoDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
+ssize_t CpuInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
     if (!buffer || count < sizeof(CpuInfo)) return -EINVAL;
 
     CpuInfo info{};
@@ -59,6 +59,6 @@ ssize_t CPUInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t)
     return sizeof(CpuInfo);
 }
 
-ssize_t CPUInfoDevice::write(CharFile*, const void*, const size_t  /*count*/) {
+ssize_t CpuInfoDevice::write(CharFile*, const void*, const size_t /*count*/) {
     return -EUNSUPPORTED;
 }

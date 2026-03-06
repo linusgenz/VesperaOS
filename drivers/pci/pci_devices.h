@@ -4,15 +4,15 @@
 
 #ifndef PCI_DEVICES_H
 #define PCI_DEVICES_H
-#include <cstdint>
+#include <stdint.h>
 
-struct PCIDevice {
+struct PciDevice {
     uint16_t vendor_id;
     uint16_t device_id;
     const char* name;
 };
 
-static constexpr PCIDevice pci_devices[] = {
+static constexpr PciDevice PCI_DEVICES[] = {
     {0x8086, 0x29C0, "Express DRAM Controller"},
     {0x8086, 0x2918, "LPC Interface Controller"},
     {0x8086, 0x2922, "6 port SATA Controller [AHCI mode]"},

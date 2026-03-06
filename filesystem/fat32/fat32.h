@@ -6,12 +6,13 @@
 #define FAT32_CPP_H
 #include <string.h>
 #include "../../kernel/devices/blockdevice.h"
-#include <cstdint>
+#include <stdint.h>
+#include <stddef.h>
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
 struct Fat32Node;
 
-namespace FAT32
+namespace fat32
 {
     inline constexpr uint8_t ATTR_READ_ONLY   = 0x01;
     inline constexpr uint8_t ATTR_HIDDEN      = 0x02;
@@ -26,47 +27,47 @@ namespace FAT32
 
     struct BPB_FAT32
     {
-        uint8_t jmpBoot[3]; // 0x00
-        uint8_t OEMName[8]; // 0x03
-        uint16_t bytesPerSector; // 0x0B
-        uint8_t sectorsPerCluster; // 0x0D
-        uint16_t reservedSectorCount; // 0x0E
-        uint8_t tableCount; // 0x10
-        uint16_t rootEntryCount; // 0x11
-        uint16_t totalSectors16; // 0x13
-        uint8_t mediaType; // 0x15
-        uint16_t FATSize16; // 0x16
-        uint16_t sectorsPerTrack; // 0x18
-        uint16_t headSideCount; // 0x1A
-        uint32_t hiddenSectors; // 0x1C
-        uint32_t totalSectors32; // 0x20
+        uint8_t jmp_boot[3]; // 0x00
+        uint8_t oem_name[8]; // 0x03
+        uint16_t bytes_per_sector; // 0x0B
+        uint8_t sectors_per_cluster; // 0x0D
+        uint16_t reserved_sector_count; // 0x0E
+        uint8_t table_count; // 0x10
+        uint16_t root_entry_count; // 0x11
+        uint16_t total_sectors16; // 0x13
+        uint8_t media_type; // 0x15
+        uint16_t fat_size16; // 0x16
+        uint16_t sectors_per_track; // 0x18
+        uint16_t head_side_count; // 0x1A
+        uint32_t hidden_sectors; // 0x1C
+        uint32_t total_sectors32; // 0x20
 
         // FAT32 Extended BIOS Parameter Block
-        uint32_t FATSize32; // 0x24
-        uint16_t extFlags; // 0x28
-        uint16_t FSVersion; // 0x2A
-        uint32_t rootCluster; // 0x2C
-        uint16_t FSInfo; // 0x30
-        uint16_t backupBootSector; // 0x32
+        uint32_t fat_size32; // 0x24
+        uint16_t ext_flags; // 0x28
+        uint16_t fs_version; // 0x2A
+        uint32_t root_cluster; // 0x2C
+        uint16_t fs_info; // 0x30
+        uint16_t backup_boot_sector; // 0x32
         uint8_t reserved[12]; // 0x34
-        uint8_t driveNumber; // 0x40
+        uint8_t drive_number; // 0x40
         uint8_t reserved1; // 0x41
-        uint8_t bootSignature; // 0x42
-        uint32_t volumeID; // 0x43
-        uint8_t volumeLabel[11]; // 0x47
-        uint8_t fsType[8]; // 0x52
+        uint8_t boot_signature; // 0x42
+        uint32_t volume_id; // 0x43
+        uint8_t volume_label[11]; // 0x47
+        uint8_t fs_type[8]; // 0x52
     }__attribute__((packed));
 
     // BPB_FSInfo
     struct FSINFO
     {
-        uint32_t LeadSig;
-        uint64_t Reserved1[60];
-        uint32_t StrucSig;
-        uint32_t Free_Count;
-        uint32_t Nxt_Free;
-        uint32_t Reserved2[3];
-        uint32_t TrailSig;
+        uint32_t lead_sig;
+        uint64_t reserved1[60];
+        uint32_t struc_sig;
+        uint32_t free_count;
+        uint32_t nxt_free;
+        uint32_t reserved2[3];
+        uint32_t trail_sig;
     }__attribute__((packed));
 
     //  Section 6: Directory Structure FAT spec
@@ -74,109 +75,109 @@ namespace FAT32
     {
         unsigned char name[11]; // 8 + 3 Bytes
         uint8_t attr;
-        uint8_t ntRes;
-        uint8_t creationTimeTenths;
-        uint16_t creationTime;
-        uint16_t creationDate;
-        uint16_t lastAccessDate;
-        uint16_t firstClusterHigh;
-        uint16_t writeTime;
-        uint16_t writeDate;
-        uint16_t firstClusterLow;
-        uint32_t fileSize;
+        uint8_t nt_res;
+        uint8_t creation_time_tenths;
+        uint16_t creation_time;
+        uint16_t creation_date;
+        uint16_t last_access_date;
+        uint16_t first_cluster_high;
+        uint16_t write_time;
+        uint16_t write_date;
+        uint16_t first_cluster_low;
+        uint32_t file_size;
     } __attribute__((packed));
 
     class FileEntry
     {
-        char shortName[13] = {};
-        char longName[256] = {};
-        char formattedShortName[13] = {};
-        DirectoryEntry dirEntry = {};
-        bool _isDir = false;
-        size_t indexInCluster = 0;
+        char short_name_[13] = {};
+        char long_name_[256] = {};
+        char formatted_short_name_[13] = {};
+        DirectoryEntry dir_entry_ = {};
+        bool is_dir_ = false;
+        size_t index_in_cluster_ = 0;
 
     public:
-        void SetLongName(const char* name)
+        void set_long_name(const char* name)
         {
             if (!name || name[0] == '\0')
             {
-                longName[0] = '\0';
+                long_name_[0] = '\0';
             }
             else
             {
-                strncpy(longName, name, sizeof(longName));
+                strncpy(long_name_, name, sizeof(long_name_));
             }
         }
 
-        void SetShortName(const char* name)
+        void set_short_name(const char* name)
         {
-            strncpy(shortName, name, sizeof(shortName));
-            FormatShortName();
+            strncpy(short_name_, name, sizeof(short_name_));
+            format_short_name();
         }
 
-        void SetDirectoryEntry(const DirectoryEntry& entry)
+        void set_directory_entry(const DirectoryEntry& entry)
         {
-            dirEntry = entry;
-            FormatShortName();
+            dir_entry_ = entry;
+            format_short_name();
         }
 
-        void SetIsDir(const bool value)
+        void set_is_dir(const bool value)
         {
-            _isDir = value;
+            is_dir_ = value;
         }
 
-        [[nodiscard]] bool isDir() const
+        [[nodiscard]] bool is_dir() const
         {
-            return _isDir;
+            return is_dir_;
         }
 
-        [[nodiscard]] const char* GetLongName() const
+        [[nodiscard]] const char* get_long_name() const
         {
-            return longName;
+            return long_name_;
         }
 
-        [[nodiscard]] const char* GetName() const
+        [[nodiscard]] const char* get_name() const
         {
-            if (longName[0] != '\0') return longName;
-            return formattedShortName;
+            if (long_name_[0] != '\0') return long_name_;
+            return formatted_short_name_;
         }
 
-        [[nodiscard]] const char* GetFormattedShortName() const
+        [[nodiscard]] const char* get_formatted_short_name() const
         {
-            return formattedShortName;
+            return formatted_short_name_;
         }
 
-        [[nodiscard]] DirectoryEntry GetDirectoryEntry() const
+        [[nodiscard]] DirectoryEntry get_directory_entry() const
         {
-            return dirEntry;
+            return dir_entry_;
         }
 
-        [[nodiscard]] uint32_t GetFirstCluster() const
+        [[nodiscard]] uint32_t get_first_cluster() const
         {
-            return (static_cast<uint32_t>(dirEntry.firstClusterHigh) << 16) | dirEntry.firstClusterLow;
+            return (static_cast<uint32_t>(dir_entry_.first_cluster_high) << 16) | dir_entry_.first_cluster_low;
         }
 
-        [[nodiscard]] uint32_t GetFileSize() const
+        [[nodiscard]] uint32_t get_file_size() const
         {
-            return dirEntry.fileSize;
+            return dir_entry_.file_size;
         }
 
-        void SetFileSize(uint32_t size)
+        void set_file_size(uint32_t size)
         {
-            dirEntry.fileSize = size;
+            dir_entry_.file_size = size;
         }
 
-        void SetIndexInCluster(size_t index)
+        void set_index_in_cluster(size_t index)
         {
-            indexInCluster = index;
+            index_in_cluster_ = index;
         }
 
-        [[nodiscard]] size_t GetIndexInCluster() const
+        [[nodiscard]] size_t get_index_in_cluster() const
         {
-            return indexInCluster;
+            return index_in_cluster_;
         }
 
-        void FormatShortName();
+        void format_short_name();
     };
 
     struct LongFileName
@@ -187,13 +188,13 @@ namespace FAT32
         uint8_t type;
         uint8_t checksum;
         uint16_t name2[6];
-        uint16_t firstClusterLow;
+        uint16_t first_cluster_low;
         uint16_t name3[2];
     } __attribute__((packed));
 
-    struct LFNBufferEntry
+    struct LfnBufferEntry
     {
-        LongFileName lfnEntry;
+        LongFileName lfn_entry;
     };
 
     class FileSystem
@@ -205,33 +206,33 @@ namespace FAT32
 
         [[nodiscard]] bool is_valid() const;
 
-        [[nodiscard]] uint32_t GetRootCluster() const;
+        [[nodiscard]] uint32_t get_root_cluster() const;
 
-        uint32_t ResolvePathToCluster(const char* path) const;
+        uint32_t resolve_path_to_cluster(const char* path) const;
 
-        bool ReadFile(Fat32Node* node, void* buffer, size_t len, size_t& outActual, size_t offset = 0) const;
+        bool read_file(Fat32Node* node, void* buffer, size_t len, size_t& out_actual, size_t offset = 0) const;
 
-        bool WriteFile(Fat32Node* node, const void* buffer, size_t len, size_t offset);
+        bool write_file(Fat32Node* node, const void* buffer, size_t len, size_t offset);
 
-        FileEntry* ReadDirectory(const char* path, size_t& outCount) const;
+        FileEntry* read_directory(const char* path, size_t& out_count) const;
 
-        FileEntry* ReadDirectory(uint32_t cluster, size_t& outCount) const;
+        FileEntry* read_directory(uint32_t cluster, size_t& out_count) const;
 
-        bool CreateFile(const Fat32Node* parentDir, const char* name);
+        bool create_file(const Fat32Node* parent_dir, const char* name);
 
-        bool WriteDirectoryEntryWithLFN(uint32_t dirCluster, const char* longName, const char* shortName,
-                                        const DirectoryEntry* shortEntry);
-        bool DeleteDirectoryEntryInDirectory(uint32_t dirCluster, const char* name);
+        bool write_directory_entry_with_lfn(uint32_t dir_cluster, const char* long_name, const char* short_name,
+                                        const DirectoryEntry* short_entry);
+        bool delete_directory_entry_in_directory(uint32_t dir_cluster, const char* name) const;
 
-        bool CreateDirectory(const Fat32Node* parentDir, const char* name);
+        bool create_directory(const Fat32Node* parent_dir, const char* name);
 
-        bool RemoveDirectory(const Fat32Node* parentDir, const char* name);
+        bool remove_directory(const Fat32Node* parent_dir, const char* name);
 
-        bool Rename(const Fat32Node* parentDir, const char* oldName, const char* newName);
+        bool rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name);
 
-        bool DeleteFile(const Fat32Node* parentDir, const char* name);
+        bool delete_file(const Fat32Node* parent_dir, const char* name);
 
-        [[nodiscard]] BPB_FAT32* GetBpb()
+        [[nodiscard]] BPB_FAT32* get_bpb()
         {
             return &bpb;
         }
@@ -241,12 +242,12 @@ namespace FAT32
         BPB_FAT32 bpb{};
         bool fs_valid;
 
-        uint32_t sectorSize;
-        uint32_t dataStart;
+        uint32_t sector_size;
+        uint32_t data_start;
 
-        uint32_t clusterCount;
-        uint32_t freeClusterCount;
-        uint32_t nextFreeCluster;
+        uint32_t cluster_count;
+        uint32_t free_cluster_count;
+        uint32_t next_free_cluster;
 
         struct CacheStats
         {
@@ -254,22 +255,22 @@ namespace FAT32
             uint32_t misses;
             uint32_t invalidations;
 
-            void Reset() { hits = misses = invalidations = 0; }
+            void reset() { hits = misses = invalidations = 0; }
 
-            [[nodiscard]] float HitRate() const
+            [[nodiscard]] float hit_rate() const
             {
                 uint32_t total = hits + misses;
                 return total > 0 ? (100.0f * hits / total) : 0.0f;
             }
         };
 
-        mutable CacheStats cacheStats;
+        mutable CacheStats cache_stats;
 
         struct CacheEntry
         {
             uint32_t sector;
             uint8_t data[512];
-            uint32_t lastUsed; // LRU counter
+            uint32_t last_used; // LRU counter
             bool valid;
         };
 
@@ -280,44 +281,44 @@ namespace FAT32
         };
 
         static constexpr size_t FAT_CACHE_SIZE = 10;
-        mutable CacheEntry fatCache[FAT_CACHE_SIZE];
-        mutable uint32_t cacheAccessCounter;
+        mutable CacheEntry fat_cache[FAT_CACHE_SIZE];
+        mutable uint32_t cache_access_counter;
 
-        bool ReadFATSector(uint32_t fat_sector, uint8_t* buffer) const;
-        void InvalidateFATCache() const;
-        void InvalidateFATCacheSector(uint32_t sector) const;
+        bool read_fat_sector(uint32_t fat_sector, uint8_t* buffer) const;
+        void invalidate_fat_cache() const;
+        void invalidate_fat_cache_sector(uint32_t sector) const;
 
         bool probe_fs() const;
 
-        [[nodiscard]] uint32_t ClusterToSector(uint32_t cluster) const;
-        bool LoadFSInfo();
-        void WriteFSInfo() const;
-        uint32_t GetFreeClusterCount();
+        [[nodiscard]] uint32_t cluster_to_sector(uint32_t cluster) const;
+        bool load_fs_info();
+        void write_fs_info() const;
+        uint32_t get_free_cluster_count();
 
-        ssize_t ReadCluster(uint32_t cluster, void* buffer, size_t buffer_size) const;
+        ssize_t read_cluster(uint32_t cluster, void* buffer, size_t buffer_size) const;
 
-        bool WriteCluster(uint32_t cluster, const void* data, size_t len, size_t offset = 0) const;
-        bool IsValidFATEntry(uint32_t value) const;
-        uint32_t ReadFATEntryRaw(uint32_t fatSector, uint32_t offset) const;
+        bool write_cluster(uint32_t cluster, const void* data, size_t len, size_t offset = 0) const;
+        bool is_valid_fat_entry(uint32_t value) const;
+        uint32_t read_fat_entry_raw(uint32_t fat_sector, uint32_t offset) const;
 
-        [[nodiscard]] uint32_t bytesPerCluster() const;
+        [[nodiscard]] uint32_t bytes_per_cluster() const;
 
-        [[nodiscard]] uint32_t GetFATEntry(uint32_t cluster) const;
-        uint32_t ReadFATEntry(uint32_t cluster, Sector& sec) const;
-        bool WriteFATEntryRaw(uint32_t fatSector, uint32_t offset, uint32_t value) const;
+        [[nodiscard]] uint32_t get_fat_entry(uint32_t cluster) const;
+        uint32_t read_fat_entry(uint32_t cluster, Sector& sec) const;
+        bool write_fat_entry_raw(uint32_t fat_sector, uint32_t offset, uint32_t value) const;
 
-        uint32_t* GetClusterChain(uint32_t startCluster, size_t& outCount) const;
-        bool FreeClusterChain(uint32_t startCluster);
+        uint32_t* get_cluster_chain(uint32_t start_cluster, size_t& out_count) const;
+        bool free_cluster_chain(uint32_t start_cluster);
 
-        bool WriteFATEntry(uint32_t cluster, uint32_t value);
-        [[nodiscard]] uint32_t NextCluster(uint32_t c) const;
-        bool HasFATLoop(uint32_t start) const;
-        uint32_t FindFreeCluster();
+        bool write_fat_entry(uint32_t cluster, uint32_t value);
+        [[nodiscard]] uint32_t next_cluster(uint32_t c) const;
+        bool has_fat_loop(uint32_t start) const;
+        uint32_t find_free_cluster();
 
-        bool OverwriteDirectoryEntry(uint32_t cluster, size_t entryIndex, const DirectoryEntry* newEntry) const;
+        bool overwrite_directory_entry(uint32_t parent_cluster, size_t entry_index, const DirectoryEntry* new_entry) const;
 
-        uint32_t FindEntryCluster(uint32_t dirCluster, const char* givenName) const;
-        bool IsProtected(const DirectoryEntry& e);
+        uint32_t find_entry_cluster(uint32_t dir_cluster, const char* given_name) const;
+        static bool is_protected(const DirectoryEntry& e);
     };
 }
 

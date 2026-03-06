@@ -6,12 +6,13 @@
 #include <kernel/efi_memory.h>
 
 #include "bitmap.h"
-#include <cstdint>
+#include <stdint.h>
+#include <stddef.h>
 
 class PageFrameAllocator {
    public:
 
-    void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *mMap, size_t mMapSize, size_t mMapDescSize);
+    void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *m_map, size_t m_map_size, size_t m_map_desc_size);
 
     Bitmap page_bitmap{};
 
@@ -48,11 +49,11 @@ class PageFrameAllocator {
 
     void unreserve_pages(uint64_t address, size_t page_count);
 
-    uint64_t free_memory{0};
-    uint64_t reserved_memory{0};
-    uint64_t used_memory{0};
-    uint64_t total_memory{0};
-    bool initialized{false};
+    uint64_t free_memory_{0};
+    uint64_t reserved_memory_{0};
+    uint64_t used_memory_{0};
+    uint64_t total_memory_{0};
+    bool initialized_{false};
 };
 
 #endif  // PAGE_FRAME_ALLOCATOR_H

@@ -30,7 +30,7 @@ SECTIONS
     } :text
 
     .text : ALIGN(0x1000) {
-        _KernelStart = .;
+        kernel_start = .;
         *(.text._start)
         *(.text*)
     } :text
@@ -52,7 +52,7 @@ SECTIONS
         *(.bss*)
         *(COMMON)
         _bss_end = .;
-        _KernelEnd = .;
+        kernel_end = .;
     } :data
 
     /DISCARD/ : {

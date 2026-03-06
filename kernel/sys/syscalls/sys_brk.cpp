@@ -52,7 +52,7 @@ namespace syscalls::internal {
                 virt_from_raw(USER_HEAP_START),
                 phys,
                 0x20000,
-                (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper)
+                (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::UserSuper)
             );
 
             const auto vma = new VmArea();
@@ -83,7 +83,7 @@ namespace syscalls::internal {
                 cur_r->page_table->map_memory(
                     virt_from_raw(a),
                     phys,
-                    (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper)
+                    (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::UserSuper)
                 );
             }
 

@@ -29,12 +29,12 @@
 #include "../kernel/acpi/acpi.h"
 
 struct BootInfo {
-    Framebuffer*           framebuffer;
-    FONT*                  font;
-    EFI_MEMORY_DESCRIPTOR* mMap;
-    uint64_t               mMapSize;
-    uint64_t               mMapDescSize;
-    ACPI::RSDP2*           rsdp;
+    framebuffer_t*           framebuffer;
+    font_t*                  font;
+    EFI_MEMORY_DESCRIPTOR* m_map;
+    uint64_t               m_map_size;
+    uint64_t               m_map_desc_size;
+    acpi::RSDP2*           rsdp;
     uint64_t               hhdm_offset;
     uint64_t               kernel_phys_base;
     uint64_t               kernel_virt_base;

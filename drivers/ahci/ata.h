@@ -24,475 +24,475 @@
 #ifndef VESPERAOS_ATA_H
 #define VESPERAOS_ATA_H
 
-#include <cstdint>
+#include <stdint.h>
 
 struct IDENTIFY_DEVICE_DATA
 {
     struct
     {
-        uint16_t Reserved1 : 1;
-        uint16_t Retired3 : 1;
-        uint16_t ResponseIncomplete : 1;
-        uint16_t Retired2 : 3;
-        uint16_t FixedDevice : 1;
-        uint16_t RemovableMedia : 1;
-        uint16_t Retired1 : 7;
-        uint16_t DeviceType : 1;
-    } GeneralConfiguration;
+        uint16_t reserved1 : 1;
+        uint16_t retired3 : 1;
+        uint16_t response_incomplete : 1;
+        uint16_t retired2 : 3;
+        uint16_t fixed_device : 1;
+        uint16_t removable_media : 1;
+        uint16_t retired1 : 7;
+        uint16_t device_type : 1;
+    } general_configuration;
 
-    uint16_t NumCylinders;
-    uint16_t SpecificConfiguration;
-    uint16_t NumHeads;
-    uint16_t Retired1[2];
-    uint16_t NumSectorsPerTrack;
-    uint16_t VendorUnique1[3];
-    uint8_t SerialNumber[20];
-    uint16_t Retired2[2];
-    uint16_t Obsolete1;
-    uint8_t FirmwareRevision[8];
-    uint8_t ModelNumber[40];
-    uint8_t MaximumBlockTransfer;
-    uint8_t VendorUnique2;
-
-    struct
-    {
-        uint16_t FeatureSupported : 1;
-        uint16_t Reserved : 15;
-    } TrustedComputing;
+    uint16_t num_cylinders;
+    uint16_t specific_configuration;
+    uint16_t num_heads;
+    uint16_t retired1[2];
+    uint16_t num_sectors_per_track;
+    uint16_t vendor_unique1[3];
+    uint8_t serial_number[20];
+    uint16_t retired2[2];
+    uint16_t obsolete1;
+    uint8_t firmware_revision[8];
+    uint8_t model_number[40];
+    uint8_t maximum_block_transfer;
+    uint8_t vendor_unique2;
 
     struct
     {
-        uint8_t CurrentLongPhysicalSectorAlignment : 2;
-        uint8_t ReservedByte49 : 6;
-        uint8_t DmaSupported : 1;
-        uint8_t LbaSupported : 1;
-        uint8_t IordyDisable : 1;
-        uint8_t IordySupported : 1;
-        uint8_t Reserved1 : 1;
-        uint8_t StandbyTimerSupport : 1;
-        uint8_t Reserved2 : 2;
-        uint16_t ReservedWord50;
-    } Capabilities;
-
-    uint16_t ObsoleteWords51[2];
+        uint16_t feature_supported : 1;
+        uint16_t reserved : 15;
+    } trusted_computing;
 
     struct
     {
-        uint16_t TranslationFieldsValid : 3;
-        uint16_t Reserved3 : 5;
-        uint16_t FreeFallControlSensitivity : 8;
+        uint8_t current_long_physical_sector_alignment : 2;
+        uint8_t reserved_byte49 : 6;
+        uint8_t dma_supported : 1;
+        uint8_t lba_supported : 1;
+        uint8_t iordy_disable : 1;
+        uint8_t iordy_supported : 1;
+        uint8_t reserved1 : 1;
+        uint8_t standby_timer_support : 1;
+        uint8_t reserved2 : 2;
+        uint16_t reserved_word50;
+    } capabilities;
+
+    uint16_t obsolete_words51[2];
+
+    struct
+    {
+        uint16_t translation_fields_valid : 3;
+        uint16_t reserved3 : 5;
+        uint16_t free_fall_control_sensitivity : 8;
     };
 
-    uint16_t NumberOfCurrentCylinders;
-    uint16_t NumberOfCurrentHeads;
-    uint16_t CurrentSectorsPerTrack;
-    uint32_t CurrentSectorCapacity;
-    uint8_t CurrentMultiSectorSetting;
+    uint16_t number_of_current_cylinders;
+    uint16_t number_of_current_heads;
+    uint16_t current_sectors_per_track;
+    uint32_t current_sector_capacity;
+    uint8_t current_multi_sector_setting;
 
     struct
     {
-        uint8_t MultiSectorSettingValid : 1;
-        uint8_t ReservedByte59 : 3;
-        uint8_t SanitizeFeatureSupported : 1;
-        uint8_t CryptoScrambleExtCommandSupported : 1;
-        uint8_t OverwriteExtCommandSupported : 1;
-        uint8_t BlockEraseExtCommandSupported : 1;
+        uint8_t multi_sector_setting_valid : 1;
+        uint8_t reserved_byte59 : 3;
+        uint8_t sanitize_feature_supported : 1;
+        uint8_t crypto_scramble_ext_command_supported : 1;
+        uint8_t overwrite_ext_command_supported : 1;
+        uint8_t block_erase_ext_command_supported : 1;
     };
 
-    uint32_t UserAddressableSectors;
-    uint16_t ObsoleteWord62;
+    uint32_t user_addressable_sectors;
+    uint16_t obsolete_word62;
 
     struct
     {
-        uint16_t MultiWordDMASupport : 8;
-        uint16_t MultiWordDMAActive : 8;
-    };
-
-    struct
-    {
-        uint16_t AdvancedPIOModes : 8;
-        uint16_t ReservedByte64 : 8;
-    };
-
-    uint16_t MinimumMWXferCycleTime;
-    uint16_t RecommendedMWXferCycleTime;
-    uint16_t MinimumPIOCycleTime;
-    uint16_t MinimumPIOCycleTimeIORDY;
-
-    struct
-    {
-        uint16_t ZonedCapabilities : 2;
-        uint16_t NonVolatileWriteCache : 1;
-        uint16_t ExtendedUserAddressableSectorsSupported : 1;
-        uint16_t DeviceEncryptsAllUserData : 1;
-        uint16_t ReadZeroAfterTrimSupported : 1;
-        uint16_t Optional28BitCommandsSupported : 1;
-        uint16_t IEEE1667 : 1;
-        uint16_t DownloadMicrocodeDmaSupported : 1;
-        uint16_t SetMaxSetPasswordUnlockDmaSupported : 1;
-        uint16_t WriteBufferDmaSupported : 1;
-        uint16_t ReadBufferDmaSupported : 1;
-        uint16_t DeviceConfigIdentifySetDmaSupported : 1;
-        uint16_t LPSAERCSupported : 1;
-        uint16_t DeterministicReadAfterTrimSupported : 1;
-        uint16_t CFastSpecSupported : 1;
-    } AdditionalSupported;
-
-    uint16_t ReservedWords70[5];
-
-    struct
-    {
-        uint16_t QueueDepth : 5;
-        uint16_t ReservedWord75 : 11;
+        uint16_t multi_word_dma_support : 8;
+        uint16_t multi_word_dma_active : 8;
     };
 
     struct
     {
-        uint16_t Reserved0 : 1;
-        uint16_t SataGen1 : 1;
-        uint16_t SataGen2 : 1;
-        uint16_t SataGen3 : 1;
-        uint16_t Reserved1 : 4;
-        uint16_t NCQ : 1;
-        uint16_t HIPM : 1;
-        uint16_t PhyEvents : 1;
-        uint16_t NcqUnload : 1;
-        uint16_t NcqPriority : 1;
-        uint16_t HostAutoPS : 1;
-        uint16_t DeviceAutoPS : 1;
-        uint16_t ReadLogDMA : 1;
-        uint16_t Reserved2 : 1;
-        uint16_t CurrentSpeed : 3;
-        uint16_t NcqStreaming : 1;
-        uint16_t NcqQueueMgmt : 1;
-        uint16_t NcqReceiveSend : 1;
-        uint16_t DEVSLPtoReducedPwrState : 1;
-        uint16_t Reserved3 : 8;
-    } SerialAtaCapabilities;
+        uint16_t advanced_pio_modes : 8;
+        uint16_t reserved_byte64 : 8;
+    };
+
+    uint16_t minimum_mw_xfer_cycle_time;
+    uint16_t recommended_mw_xfer_cycle_time;
+    uint16_t minimum_pio_cycle_time;
+    uint16_t minimum_pio_cycle_time_iordy;
 
     struct
     {
-        uint16_t Reserved0 : 1;
-        uint16_t NonZeroOffsets : 1;
-        uint16_t DmaSetupAutoActivate : 1;
-        uint16_t DIPM : 1;
-        uint16_t InOrderData : 1;
-        uint16_t HardwareFeatureControl : 1;
-        uint16_t SoftwareSettingsPreservation : 1;
-        uint16_t NCQAutosense : 1;
-        uint16_t DEVSLP : 1;
-        uint16_t HybridInformation : 1;
-        uint16_t Reserved1 : 6;
-    } SerialAtaFeaturesSupported;
+        uint16_t zoned_capabilities : 2;
+        uint16_t non_volatile_write_cache : 1;
+        uint16_t extended_user_addressable_sectors_supported : 1;
+        uint16_t device_encrypts_all_user_data : 1;
+        uint16_t read_zero_after_trim_supported : 1;
+        uint16_t optional28_bit_commands_supported : 1;
+        uint16_t ieee1667 : 1;
+        uint16_t download_microcode_dma_supported : 1;
+        uint16_t set_max_set_password_unlock_dma_supported : 1;
+        uint16_t write_buffer_dma_supported : 1;
+        uint16_t read_buffer_dma_supported : 1;
+        uint16_t device_config_identify_set_dma_supported : 1;
+        uint16_t lpsaerc_supported : 1;
+        uint16_t deterministic_read_after_trim_supported : 1;
+        uint16_t c_fast_spec_supported : 1;
+    } additional_supported;
+
+    uint16_t reserved_words70[5];
 
     struct
     {
-        uint16_t Reserved0 : 1;
-        uint16_t NonZeroOffsets : 1;
-        uint16_t DmaSetupAutoActivate : 1;
-        uint16_t DIPM : 1;
-        uint16_t InOrderData : 1;
-        uint16_t HardwareFeatureControl : 1;
-        uint16_t SoftwareSettingsPreservation : 1;
-        uint16_t DeviceAutoPS : 1;
-        uint16_t DEVSLP : 1;
-        uint16_t HybridInformation : 1;
-        uint16_t Reserved1 : 6;
-    } SerialAtaFeaturesEnabled;
-
-    uint16_t MajorRevision;
-    uint16_t MinorRevision;
-
-    struct
-    {
-        uint16_t SmartCommands : 1;
-        uint16_t SecurityMode : 1;
-        uint16_t RemovableMediaFeature : 1;
-        uint16_t PowerManagement : 1;
-        uint16_t Reserved1 : 1;
-        uint16_t WriteCache : 1;
-        uint16_t LookAhead : 1;
-        uint16_t ReleaseInterrupt : 1;
-        uint16_t ServiceInterrupt : 1;
-        uint16_t DeviceReset : 1;
-        uint16_t HostProtectedArea : 1;
-        uint16_t Obsolete1 : 1;
-        uint16_t WriteBuffer : 1;
-        uint16_t ReadBuffer : 1;
-        uint16_t Nop : 1;
-        uint16_t Obsolete2 : 1;
-        uint16_t DownloadMicrocode : 1;
-        uint16_t DmaQueued : 1;
-        uint16_t Cfa : 1;
-        uint16_t AdvancedPm : 1;
-        uint16_t Msn : 1;
-        uint16_t PowerUpInStandby : 1;
-        uint16_t ManualPowerUp : 1;
-        uint16_t Reserved2 : 1;
-        uint16_t SetMax : 1;
-        uint16_t Acoustics : 1;
-        uint16_t BigLba : 1;
-        uint16_t DeviceConfigOverlay : 1;
-        uint16_t FlushCache : 1;
-        uint16_t FlushCacheExt : 1;
-        uint16_t WordValid83 : 2;
-        uint16_t SmartErrorLog : 1;
-        uint16_t SmartSelfTest : 1;
-        uint16_t MediaSerialNumber : 1;
-        uint16_t MediaCardPassThrough : 1;
-        uint16_t StreamingFeature : 1;
-        uint16_t GpLogging : 1;
-        uint16_t WriteFua : 1;
-        uint16_t WriteQueuedFua : 1;
-        uint16_t WWN64Bit : 1;
-        uint16_t URGReadStream : 1;
-        uint16_t URGWriteStream : 1;
-        uint16_t ReservedForTechReport : 2;
-        uint16_t IdleWithUnloadFeature : 1;
-        uint16_t WordValid : 2;
-    } CommandSetSupport;
-
-    struct
-    {
-        uint16_t SmartCommands : 1;
-        uint16_t SecurityMode : 1;
-        uint16_t RemovableMediaFeature : 1;
-        uint16_t PowerManagement : 1;
-        uint16_t Reserved1 : 1;
-        uint16_t WriteCache : 1;
-        uint16_t LookAhead : 1;
-        uint16_t ReleaseInterrupt : 1;
-        uint16_t ServiceInterrupt : 1;
-        uint16_t DeviceReset : 1;
-        uint16_t HostProtectedArea : 1;
-        uint16_t Obsolete1 : 1;
-        uint16_t WriteBuffer : 1;
-        uint16_t ReadBuffer : 1;
-        uint16_t Nop : 1;
-        uint16_t Obsolete2 : 1;
-        uint16_t DownloadMicrocode : 1;
-        uint16_t DmaQueued : 1;
-        uint16_t Cfa : 1;
-        uint16_t AdvancedPm : 1;
-        uint16_t Msn : 1;
-        uint16_t PowerUpInStandby : 1;
-        uint16_t ManualPowerUp : 1;
-        uint16_t Reserved2 : 1;
-        uint16_t SetMax : 1;
-        uint16_t Acoustics : 1;
-        uint16_t BigLba : 1;
-        uint16_t DeviceConfigOverlay : 1;
-        uint16_t FlushCache : 1;
-        uint16_t FlushCacheExt : 1;
-        uint16_t Resrved3 : 1;
-        uint16_t Words119_120Valid : 1;
-        uint16_t SmartErrorLog : 1;
-        uint16_t SmartSelfTest : 1;
-        uint16_t MediaSerialNumber : 1;
-        uint16_t MediaCardPassThrough : 1;
-        uint16_t StreamingFeature : 1;
-        uint16_t GpLogging : 1;
-        uint16_t WriteFua : 1;
-        uint16_t WriteQueuedFua : 1;
-        uint16_t WWN64Bit : 1;
-        uint16_t URGReadStream : 1;
-        uint16_t URGWriteStream : 1;
-        uint16_t ReservedForTechReport : 2;
-        uint16_t IdleWithUnloadFeature : 1;
-        uint16_t Reserved4 : 2;
-    } CommandSetActive;
-
-    struct
-    {
-        uint16_t UltraDMASupport : 8;
-        uint16_t UltraDMAActive : 8;
+        uint16_t queue_depth : 5;
+        uint16_t reserved_word75 : 11;
     };
 
     struct
     {
-        uint16_t TimeRequired : 15;
-        uint16_t ExtendedTimeReported : 1;
-    } NormalSecurityEraseUnit;
+        uint16_t reserved0 : 1;
+        uint16_t sata_gen1 : 1;
+        uint16_t sata_gen2 : 1;
+        uint16_t sata_gen3 : 1;
+        uint16_t reserved1 : 4;
+        uint16_t ncq : 1;
+        uint16_t hipm : 1;
+        uint16_t phy_events : 1;
+        uint16_t ncq_unload : 1;
+        uint16_t ncq_priority : 1;
+        uint16_t host_auto_ps : 1;
+        uint16_t device_auto_ps : 1;
+        uint16_t read_log_dma : 1;
+        uint16_t reserved2 : 1;
+        uint16_t current_speed : 3;
+        uint16_t ncq_streaming : 1;
+        uint16_t ncq_queue_mgmt : 1;
+        uint16_t ncq_receive_send : 1;
+        uint16_t devsl_pto_reduced_pwr_state : 1;
+        uint16_t reserved3 : 8;
+    } serial_ata_capabilities;
 
     struct
     {
-        uint16_t TimeRequired : 15;
-        uint16_t ExtendedTimeReported : 1;
-    } EnhancedSecurityEraseUnit;
-
-    uint16_t CurrentAPMLevel : 8;
-    uint16_t ReservedWord91 : 8;
-    uint16_t MasterPasswordID;
-    uint16_t HardwareResetResult;
-    uint16_t CurrentAcousticValue : 8;
-    uint16_t RecommendedAcousticValue : 8;
-
-    uint16_t StreamMinRequestSize;
-    uint16_t StreamingTransferTimeDMA;
-    uint16_t StreamingAccessLatencyDMAPIO;
-    uint32_t StreamingPerfGranularity;
-    uint32_t Max48BitLBA[2];
-    uint16_t StreamingTransferTime;
-    uint16_t DsmCap;
+        uint16_t reserved0 : 1;
+        uint16_t non_zero_offsets : 1;
+        uint16_t dma_setup_auto_activate : 1;
+        uint16_t dipm : 1;
+        uint16_t in_order_data : 1;
+        uint16_t hardware_feature_control : 1;
+        uint16_t software_settings_preservation : 1;
+        uint16_t ncq_autosense : 1;
+        uint16_t devslp : 1;
+        uint16_t hybrid_information : 1;
+        uint16_t reserved1 : 6;
+    } serial_ata_features_supported;
 
     struct
     {
-        uint16_t LogicalSectorsPerPhysicalSector : 4;
-        uint16_t Reserved0 : 8;
-        uint16_t LogicalSectorLongerThan256Words : 1;
-        uint16_t MultipleLogicalSectorsPerPhysicalSector : 1;
-        uint16_t Reserved1 : 2;
-    } PhysicalLogicalSectorSize;
+        uint16_t reserved0 : 1;
+        uint16_t non_zero_offsets : 1;
+        uint16_t dma_setup_auto_activate : 1;
+        uint16_t dipm : 1;
+        uint16_t in_order_data : 1;
+        uint16_t hardware_feature_control : 1;
+        uint16_t software_settings_preservation : 1;
+        uint16_t device_auto_ps : 1;
+        uint16_t devslp : 1;
+        uint16_t hybrid_information : 1;
+        uint16_t reserved1 : 6;
+    } serial_ata_features_enabled;
 
-    uint16_t InterSeekDelay;
-    uint16_t WorldWideName[4];
-    uint16_t ReservedForWorldWideName128[4];
-    uint16_t ReservedForTlcTechnicalReport;
-    uint16_t WordsPerLogicalSector[2];
-
-    struct
-    {
-        uint16_t ReservedForDrqTechnicalReport : 1;
-        uint16_t WriteReadVerify : 1;
-        uint16_t WriteUncorrectableExt : 1;
-        uint16_t ReadWriteLogDmaExt : 1;
-        uint16_t DownloadMicrocodeMode3 : 1;
-        uint16_t FreefallControl : 1;
-        uint16_t SenseDataReporting : 1;
-        uint16_t ExtendedPowerConditions : 1;
-        uint16_t Reserved0 : 6;
-        uint16_t WordValid : 2;
-    } CommandSetSupportExt;
+    uint16_t major_revision;
+    uint16_t minor_revision;
 
     struct
     {
-        uint16_t ReservedForDrqTechnicalReport : 1;
-        uint16_t WriteReadVerify : 1;
-        uint16_t WriteUncorrectableExt : 1;
-        uint16_t ReadWriteLogDmaExt : 1;
-        uint16_t DownloadMicrocodeMode3 : 1;
-        uint16_t FreefallControl : 1;
-        uint16_t SenseDataReporting : 1;
-        uint16_t ExtendedPowerConditions : 1;
-        uint16_t Reserved0 : 6;
-        uint16_t Reserved1 : 2;
-    } CommandSetActiveExt;
-
-    uint16_t ReservedForExpandedSupportandActive[6];
+        uint16_t smart_commands : 1;
+        uint16_t security_mode : 1;
+        uint16_t removable_media_feature : 1;
+        uint16_t power_management : 1;
+        uint16_t reserved1 : 1;
+        uint16_t write_cache : 1;
+        uint16_t look_ahead : 1;
+        uint16_t release_interrupt : 1;
+        uint16_t service_interrupt : 1;
+        uint16_t device_reset : 1;
+        uint16_t host_protected_area : 1;
+        uint16_t obsolete1 : 1;
+        uint16_t write_buffer : 1;
+        uint16_t read_buffer : 1;
+        uint16_t nop : 1;
+        uint16_t obsolete2 : 1;
+        uint16_t download_microcode : 1;
+        uint16_t dma_queued : 1;
+        uint16_t cfa : 1;
+        uint16_t advanced_pm : 1;
+        uint16_t msn : 1;
+        uint16_t power_up_in_standby : 1;
+        uint16_t manual_power_up : 1;
+        uint16_t reserved2 : 1;
+        uint16_t set_max : 1;
+        uint16_t acoustics : 1;
+        uint16_t big_lba : 1;
+        uint16_t device_config_overlay : 1;
+        uint16_t flush_cache : 1;
+        uint16_t flush_cache_ext : 1;
+        uint16_t word_valid83 : 2;
+        uint16_t smart_error_log : 1;
+        uint16_t smart_self_test : 1;
+        uint16_t media_serial_number : 1;
+        uint16_t media_card_pass_through : 1;
+        uint16_t streaming_feature : 1;
+        uint16_t gp_logging : 1;
+        uint16_t write_fua : 1;
+        uint16_t write_queued_fua : 1;
+        uint16_t wwn64_bit : 1;
+        uint16_t urg_read_stream : 1;
+        uint16_t urg_write_stream : 1;
+        uint16_t reserved_for_tech_report : 2;
+        uint16_t idle_with_unload_feature : 1;
+        uint16_t word_valid : 2;
+    } command_set_support;
 
     struct
     {
-        uint16_t MsnSupport : 2;
-        uint16_t ReservedWord127 : 14;
+        uint16_t smart_commands : 1;
+        uint16_t security_mode : 1;
+        uint16_t removable_media_feature : 1;
+        uint16_t power_management : 1;
+        uint16_t reserved1 : 1;
+        uint16_t write_cache : 1;
+        uint16_t look_ahead : 1;
+        uint16_t release_interrupt : 1;
+        uint16_t service_interrupt : 1;
+        uint16_t device_reset : 1;
+        uint16_t host_protected_area : 1;
+        uint16_t obsolete1 : 1;
+        uint16_t write_buffer : 1;
+        uint16_t read_buffer : 1;
+        uint16_t nop : 1;
+        uint16_t obsolete2 : 1;
+        uint16_t download_microcode : 1;
+        uint16_t dma_queued : 1;
+        uint16_t cfa : 1;
+        uint16_t advanced_pm : 1;
+        uint16_t msn : 1;
+        uint16_t power_up_in_standby : 1;
+        uint16_t manual_power_up : 1;
+        uint16_t reserved2 : 1;
+        uint16_t set_max : 1;
+        uint16_t acoustics : 1;
+        uint16_t big_lba : 1;
+        uint16_t device_config_overlay : 1;
+        uint16_t flush_cache : 1;
+        uint16_t flush_cache_ext : 1;
+        uint16_t resrved3 : 1;
+        uint16_t words119_120_valid : 1;
+        uint16_t smart_error_log : 1;
+        uint16_t smart_self_test : 1;
+        uint16_t media_serial_number : 1;
+        uint16_t media_card_pass_through : 1;
+        uint16_t streaming_feature : 1;
+        uint16_t gp_logging : 1;
+        uint16_t write_fua : 1;
+        uint16_t write_queued_fua : 1;
+        uint16_t wwn64_bit : 1;
+        uint16_t urg_read_stream : 1;
+        uint16_t urg_write_stream : 1;
+        uint16_t reserved_for_tech_report : 2;
+        uint16_t idle_with_unload_feature : 1;
+        uint16_t reserved4 : 2;
+    } command_set_active;
+
+    struct
+    {
+        uint16_t ultra_dma_support : 8;
+        uint16_t ultra_dma_active : 8;
     };
 
     struct
     {
-        uint16_t SecuritySupported : 1;
-        uint16_t SecurityEnabled : 1;
-        uint16_t SecurityLocked : 1;
-        uint16_t SecurityFrozen : 1;
-        uint16_t SecurityCountExpired : 1;
-        uint16_t EnhancedSecurityEraseSupported : 1;
-        uint16_t Reserved0 : 2;
-        uint16_t SecurityLevel : 1;
-        uint16_t Reserved1 : 7;
-    } SecurityStatus;
-
-    uint16_t ReservedWord129[31];
+        uint16_t time_required : 15;
+        uint16_t extended_time_reported : 1;
+    } normal_security_erase_unit;
 
     struct
     {
-        uint16_t MaximumCurrentInMA : 12;
-        uint16_t CfaPowerMode1Disabled : 1;
-        uint16_t CfaPowerMode1Required : 1;
-        uint16_t Reserved0 : 1;
-        uint16_t Word160Supported : 1;
-    } CfaPowerMode1;
+        uint16_t time_required : 15;
+        uint16_t extended_time_reported : 1;
+    } enhanced_security_erase_unit;
 
-    uint16_t ReservedForCfaWord161[7];
+    uint16_t current_apm_level : 8;
+    uint16_t reserved_word91 : 8;
+    uint16_t master_password_id;
+    uint16_t hardware_reset_result;
+    uint16_t current_acoustic_value : 8;
+    uint16_t recommended_acoustic_value : 8;
 
-    uint16_t NominalFormFactor : 4;
-    uint16_t ReservedWord168 : 12;
-
-    struct
-    {
-        uint16_t SupportsTrim : 1;
-        uint16_t Reserved0 : 15;
-    } DataSetManagementFeature;
-
-    uint16_t AdditionalProductID[4];
-    uint16_t ReservedForCfaWord174[2];
-    uint16_t CurrentMediaSerialNumber[30];
+    uint16_t stream_min_request_size;
+    uint16_t streaming_transfer_time_dma;
+    uint16_t streaming_access_latency_dmapio;
+    uint32_t streaming_perf_granularity;
+    uint32_t max48_bit_lba[2];
+    uint16_t streaming_transfer_time;
+    uint16_t dsm_cap;
 
     struct
     {
-        uint16_t Supported : 1;
-        uint16_t Reserved0 : 1;
-        uint16_t WriteSameSuported : 1;
-        uint16_t ErrorRecoveryControlSupported : 1;
-        uint16_t FeatureControlSuported : 1;
-        uint16_t DataTablesSuported : 1;
-        uint16_t Reserved1 : 6;
-        uint16_t VendorSpecific : 4;
-    } SCTCommandTransport;
+        uint16_t logical_sectors_per_physical_sector : 4;
+        uint16_t reserved0 : 8;
+        uint16_t logical_sector_longer_than256_words : 1;
+        uint16_t multiple_logical_sectors_per_physical_sector : 1;
+        uint16_t reserved1 : 2;
+    } physical_logical_sector_size;
 
-    uint16_t ReservedWord207[2];
-
-    struct
-    {
-        uint16_t AlignmentOfLogicalWithinPhysical : 14;
-        uint16_t Word209Supported : 1;
-        uint16_t Reserved0 : 1;
-    } BlockAlignment;
-
-    uint16_t WriteReadVerifySectorCountMode3Only[2];
-    uint16_t WriteReadVerifySectorCountMode2Only[2];
+    uint16_t inter_seek_delay;
+    uint16_t world_wide_name[4];
+    uint16_t reserved_for_world_wide_name128[4];
+    uint16_t reserved_for_tlc_technical_report;
+    uint16_t words_per_logical_sector[2];
 
     struct
     {
-        uint16_t NVCachePowerModeEnabled : 1;
-        uint16_t Reserved0 : 3;
-        uint16_t NVCacheFeatureSetEnabled : 1;
-        uint16_t Reserved1 : 3;
-        uint16_t NVCachePowerModeVersion : 4;
-        uint16_t NVCacheFeatureSetVersion : 4;
-    } NVCacheCapabilities;
-
-    uint16_t NVCacheSizeLSW;
-    uint16_t NVCacheSizeMSW;
-    uint16_t NominalMediaRotationRate;
-    uint16_t ReservedWord218;
-
-    struct
-    {
-        uint8_t NVCacheEstimatedTimeToSpinUpInSeconds;
-        uint8_t Reserved;
-    } NVCacheOptions;
-
-    uint16_t WriteReadVerifySectorCountMode : 8;
-    uint16_t ReservedWord220 : 8;
-    uint16_t ReservedWord221;
+        uint16_t reserved_for_drq_technical_report : 1;
+        uint16_t write_read_verify : 1;
+        uint16_t write_uncorrectable_ext : 1;
+        uint16_t read_write_log_dma_ext : 1;
+        uint16_t download_microcode_mode3 : 1;
+        uint16_t freefall_control : 1;
+        uint16_t sense_data_reporting : 1;
+        uint16_t extended_power_conditions : 1;
+        uint16_t reserved0 : 6;
+        uint16_t word_valid : 2;
+    } command_set_support_ext;
 
     struct
     {
-        uint16_t MajorVersion : 12;
-        uint16_t TransportType : 4;
-    } TransportMajorVersion;
+        uint16_t reserved_for_drq_technical_report : 1;
+        uint16_t write_read_verify : 1;
+        uint16_t write_uncorrectable_ext : 1;
+        uint16_t read_write_log_dma_ext : 1;
+        uint16_t download_microcode_mode3 : 1;
+        uint16_t freefall_control : 1;
+        uint16_t sense_data_reporting : 1;
+        uint16_t extended_power_conditions : 1;
+        uint16_t reserved0 : 6;
+        uint16_t reserved1 : 2;
+    } command_set_active_ext;
 
-    uint16_t TransportMinorVersion;
-    uint16_t ReservedWord224[6];
-
-    uint32_t ExtendedNumberOfUserAddressableSectors[2];
-    uint16_t MinBlocksPerDownloadMicrocodeMode03;
-    uint16_t MaxBlocksPerDownloadMicrocodeMode03;
-
-    uint16_t ReservedWord236[19];
+    uint16_t reserved_for_expanded_supportand_active[6];
 
     struct
     {
-        uint16_t Signature : 8;
-        uint16_t CheckSum : 8;
+        uint16_t msn_support : 2;
+        uint16_t reserved_word127 : 14;
+    };
+
+    struct
+    {
+        uint16_t security_supported : 1;
+        uint16_t security_enabled : 1;
+        uint16_t security_locked : 1;
+        uint16_t security_frozen : 1;
+        uint16_t security_count_expired : 1;
+        uint16_t enhanced_security_erase_supported : 1;
+        uint16_t reserved0 : 2;
+        uint16_t security_level : 1;
+        uint16_t reserved1 : 7;
+    } security_status;
+
+    uint16_t reserved_word129[31];
+
+    struct
+    {
+        uint16_t maximum_current_in_ma : 12;
+        uint16_t cfa_power_mode_1disabled : 1;
+        uint16_t cfa_power_mode1_required : 1;
+        uint16_t reserved0 : 1;
+        uint16_t word160_supported : 1;
+    } cfa_power_mode1;
+
+    uint16_t reserved_for_cfa_word161[7];
+
+    uint16_t nominal_form_factor : 4;
+    uint16_t reserved_word168 : 12;
+
+    struct
+    {
+        uint16_t supports_trim : 1;
+        uint16_t reserved0 : 15;
+    } data_set_management_feature;
+
+    uint16_t additional_product_id[4];
+    uint16_t reserved_for_cfa_word174[2];
+    uint16_t current_media_serial_number[30];
+
+    struct
+    {
+        uint16_t supported : 1;
+        uint16_t reserved0 : 1;
+        uint16_t write_same_suported : 1;
+        uint16_t error_recovery_control_supported : 1;
+        uint16_t feature_control_suported : 1;
+        uint16_t data_tables_suported : 1;
+        uint16_t reserved1 : 6;
+        uint16_t vendor_specific : 4;
+    } sct_command_transport;
+
+    uint16_t reserved_word207[2];
+
+    struct
+    {
+        uint16_t alignment_of_logical_within_physical : 14;
+        uint16_t word209_supported : 1;
+        uint16_t reserved0 : 1;
+    } block_alignment;
+
+    uint16_t write_read_verify_sector_count_mode3_only[2];
+    uint16_t write_read_verify_sector_count_mode2_only[2];
+
+    struct
+    {
+        uint16_t nv_cache_power_mode_enabled : 1;
+        uint16_t reserved0 : 3;
+        uint16_t nv_cache_feature_set_enabled : 1;
+        uint16_t reserved1 : 3;
+        uint16_t nv_cache_power_mode_version : 4;
+        uint16_t nv_cache_feature_set_version : 4;
+    } nv_cache_capabilities;
+
+    uint16_t nv_cache_size_lsw;
+    uint16_t nv_cache_size_msw;
+    uint16_t nominal_media_rotation_rate;
+    uint16_t reserved_word218;
+
+    struct
+    {
+        uint8_t nv_cache_estimated_time_to_spin_up_in_seconds;
+        uint8_t reserved;
+    } nv_cache_options;
+
+    uint16_t write_read_verify_sector_count_mode : 8;
+    uint16_t reserved_word220 : 8;
+    uint16_t reserved_word221;
+
+    struct
+    {
+        uint16_t major_version : 12;
+        uint16_t transport_type : 4;
+    } transport_major_version;
+
+    uint16_t transport_minor_version;
+    uint16_t reserved_word224[6];
+
+    uint32_t extended_number_of_user_addressable_sectors[2];
+    uint16_t min_blocks_per_download_microcode_mode03;
+    uint16_t max_blocks_per_download_microcode_mode03;
+
+    uint16_t reserved_word236[19];
+
+    struct
+    {
+        uint16_t signature : 8;
+        uint16_t check_sum : 8;
     };
 } __attribute__((packed));
 

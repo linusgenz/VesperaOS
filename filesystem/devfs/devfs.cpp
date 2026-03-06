@@ -31,22 +31,22 @@
 #include "../vfs/vfs.h"
 #include "log.h"
 
-const char* DevFS::bus_to_str(const BusType bus)
+const char* DevFs::bus_to_str(const BusType bus)
 {
     switch (bus)
     {
-    case BusType::BUS_USB: return "usb";
-    case BusType::BUS_I2C: return "i2c";
-    case BusType::BUS_PS2: return "ps2";
-    case BusType::BUS_SPI: return "spi";
-    case BusType::BUS_PCI: return "pci";
-    case BusType::BUS_TTY: return "tty";
+    case BusType::Usb: return "usb";
+    case BusType::I2C: return "I2c";
+    case BusType::Ps2: return "ps2";
+    case BusType::Spi: return "spi";
+    case BusType::Pci: return "pci";
+    case BusType::Tty: return "tty";
     case BusType::VIRTUAL: return "virtual";
     default: return "unknown";
     }
 }
 
-VfsNodeType mapDeviceType(DeviceType type)
+VfsNodeType map_device_type(DeviceType type)
 {
     switch (type)
     {
@@ -59,41 +59,40 @@ VfsNodeType mapDeviceType(DeviceType type)
     }
 }
 
-void DevFS::init()
+void DevFs::init()
 {
     VirtualFilesystem::init("/dev", "dev");
     outb(0x3F8, 'F');
-    ops.read = read;
-    ops.write = write;
-    ops.find = find;
-    ops.close = close;
-    ops.opendir = open_dir;
-    ops.readdir = read_dir;
-    ops.closedir = close_dir;
-    ops.ioctl = ioctl;
-    ops.create = nullptr;
-    ops.rename = nullptr;
-    ops.mkdir = nullptr;
-    ops.rmdir = nullptr;
-    ops.unlink = nullptr;
+    ops_.read = read;
+    ops_.write = write;
+    ops_.find = find;
+    ops_.close = close;
+    ops_.opendir = open_dir;
+    ops_.readdir = read_dir;
+    ops_.closedir = close_dir;
+    ops_.ioctl = ioctl;
+    ops_.create = nullptr;
+    ops_.rename = nullptr;
+    ops_.mkdir = nullptr;
+    ops_.rmdir = nullptr;
+    ops_.unlink = nullptr;
 }
 
-int DevFS::register_device(KernelDevice* kd)
+int DevFs::register_device(KernelDevice* kd)
 {
     if (!kd || !kd->name) return -EINVAL;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    VfsNode* root_dir = root;
-    if (!root_dir) return -ENOMEM;
+    if (!root_) return -ENOMEM;
 
-    if (lookup_device(root_dir, kd->name)) return -EEXIST;
+    if (lookup_device(root_, kd->name)) return -EEXIST;
 
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = kd->name;
-    node->type = mapDeviceType(kd->type);
+    node->type = map_device_type(kd->type);
 
-    node->ops = &ops;
+    node->ops = &ops_;
     node->permanent = false;
 
     auto* entry = static_cast<DevfsEntry*>(kernel::memory::malloc(sizeof(DevfsEntry)));
@@ -103,15 +102,15 @@ int DevFS::register_device(KernelDevice* kd)
     entry->cf = nullptr;
 
     node->internal_data = entry;
-    kd->vfs_node_parent = root_dir; // root as parent
+    kd->vfs_node_parent = root_; // root as parent
 
-    auto* root_data = static_cast<DirData*>(root_dir->internal_data);
+    auto* root_data = static_cast<DirData*>(root_->internal_data);
     if (!root_data)
     {
         root_data = static_cast<DirData*>(kernel::memory::malloc(sizeof(DirData)));
         root_data->subdirs = Vector<VfsNode*>();
         root_data->files = Vector<VfsNode*>();
-        root_dir->internal_data = root_data;
+        root_->internal_data = root_data;
     }
 
     root_data->files.push_back(node);
@@ -119,11 +118,11 @@ int DevFS::register_device(KernelDevice* kd)
     return SUCCESS_CODE;
 }
 
-int DevFS::unregister_device(KernelDevice* kd)
+int DevFs::unregister_device(KernelDevice* kd)
 {
     if (!kd) return -EINVAL;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
     VfsNode* node = kd->vfs_node_parent;
     if (!node) return -ENOENT;
@@ -150,7 +149,7 @@ int DevFS::unregister_device(KernelDevice* kd)
     return SUCCESS_CODE;
 }
 
-int DevFS::open(const VfsNode* node)
+int DevFs::open(const VfsNode* node)
 {
     if (!node) return -EINVAL;
 
@@ -170,14 +169,14 @@ int DevFS::open(const VfsNode* node)
 }
 
 
-ssize_t DevFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
+ssize_t DevFs::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
 {
     if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
     KernelDevice* kd = entry->device;
     if (kd->chardev)
@@ -197,14 +196,14 @@ ssize_t DevFS::read(const VfsNode* node, size_t offset, size_t size, void* buffe
 }
 
 
-ssize_t DevFS::write(VfsNode* node, size_t offset, const size_t size, const void* buffer)
+ssize_t DevFs::write(VfsNode* node, size_t offset, const size_t size, const void* buffer)
 {
     if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
     KernelDevice* kd = entry->device;
 
@@ -230,14 +229,14 @@ ssize_t DevFS::write(VfsNode* node, size_t offset, const size_t size, const void
     return -EINVAL;
 }
 
-ssize_t DevFS::ioctl(const VfsNode* node, const uint32_t cmd, void* arg)
+ssize_t DevFs::ioctl(const VfsNode* node, const uint32_t cmd, void* arg)
 {
     if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
     KernelDevice* kd = entry->device;
 
@@ -260,14 +259,14 @@ ssize_t DevFS::ioctl(const VfsNode* node, const uint32_t cmd, void* arg)
     return -EINVAL;
 }
 
-void DevFS::close(VfsNode* node)
+void DevFs::close(VfsNode* node)
 {
     if (!node) return;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device || !entry->cf) return;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
     if (const KernelDevice* kd = entry->device; kd->chardev)
         kd->chardev->release(entry->cf);

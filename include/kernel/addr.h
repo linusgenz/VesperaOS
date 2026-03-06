@@ -23,7 +23,7 @@
 #ifndef VESPERAOS_ADDR_H
 #define VESPERAOS_ADDR_H
 
-#include <cstdint>
+#include <stdint.h>
 
 // ============================================================================
 // Physical Address

@@ -25,21 +25,21 @@
 #define VESPERAOS_XHCI_HID_DRIVER_H
 
 #include "xhci_usb_device_driver.h"
-#include <cstdint>
+#include <stdint.h>
 
-class xhciHidDriver : public xhciUsbDeviceDriver {
+class XhciHidDriver : public XhciUsbDeviceDriver {
 public:
-    xhciHidDriver() = default;
-    ~xhciHidDriver() override = default;
+    XhciHidDriver() = default;
+    ~XhciHidDriver() override = default;
 
-    virtual void on_device_init(USB::xhciDriver* hcd) = 0;
+    virtual void on_device_init(usb::XhciDriver* hcd) = 0;
     virtual void on_device_event(uint8_t* data) = 0;
 
-    void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) override;
-    void on_event(USB::xhciDriver* hcd, xhciDevice* dev) override;
+    void on_startup(usb::XhciDriver* hcd, XhciDevice* dev) override;
+    void on_event(usb::XhciDriver* hcd, XhciDevice* dev) override;
 
 private:
-    void request_hid_report(const USB::xhciDriver* hcd, const xhciDevice* dev) const;
+    void request_hid_report(const usb::XhciDriver* hcd, const XhciDevice* dev) const;
 };
 
 #endif //VESPERAOS_XHCI_HID_DRIVER_H

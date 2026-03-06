@@ -26,18 +26,18 @@
 #include "ext4.h"
 
 struct Ext4Node {
-    EXT4::FileSystem* fs;
+    ext4::FileSystem* fs;
     char path[256];
     uint32_t inode;
-    bool isDir;
-    size_t fileSize;
+    bool is_dir;
+    size_t file_size;
     void* entries; // EXT struct TODO
-    size_t entryCount;
-    size_t currentIndex;
+    size_t entry_count;
+    size_t current_index;
 };
 
 struct Ext4DirHandle {
-    EXT4::FileEntry* entries;
+    ext4::FileEntry* entries;
     size_t count;
     size_t index;
 };

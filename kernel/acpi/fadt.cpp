@@ -27,7 +27,7 @@
 #include "../cpu/io.h"
 #include "acpi_manager.h"
 
-namespace ACPI {
+namespace acpi {
 
     static uint8_t slp_typa = 0;
     static uint8_t slp_typb = 0;
@@ -62,7 +62,7 @@ namespace ACPI {
         phys_addr_t dsdt_phys = make_phys(fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt);
         if (phys_null(dsdt_phys)) return;
 
-        const auto* header = static_cast<SDTHeader*>(virt_ptr(phys_to_virt(dsdt_phys)));
+        const auto* header = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(dsdt_phys)));
         auto* dsdt = static_cast<uint8_t*>(virt_ptr(phys_to_virt(dsdt_phys)));
         size_t length = header->length;
 
@@ -73,12 +73,12 @@ namespace ACPI {
         FADT* fadt = TableManager::get_fadt();
         if (!fadt || slp_typa == 0) return;
 
-        uint16_t port = fadt->pm1a_control_block;
+        uint16_t port = fadt->pm1_a_control_block;
         uint16_t value = (slp_typa << 10) | (1 << 13);  // SLP_TYP | SLP_EN
 
         outw(port, value);
 
-        if (fadt->pm1b_control_block) outw(fadt->pm1b_control_block, value);
+        if (fadt->pm1_b_control_block) outw(fadt->pm1_b_control_block, value);
 
         Log::debug("acpi_power_off");
         while (true) {

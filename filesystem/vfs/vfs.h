@@ -95,7 +95,7 @@ public:
 
     static int create(const char* path);
 
-    static int rename(const char* oldPath, const char* newPath);
+    static int rename(const char* old_path, const char* new_path);
 
     static int mkdir(const char* path);
 
@@ -121,8 +121,8 @@ public:
 
     static Vector<MountPoint*> get_mount_points_snapshot()
     {
-        spinlock_guard g(mount_points_lock);
-        return mount_points->copy();
+        SpinlockGuard g(mount_points_lock_);
+        return mount_points_->copy();
     }
 
     static bool resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
@@ -130,8 +130,8 @@ public:
     static void ensure_path_exists(const char* path);
 
 private:
-    static spinlock_t mount_points_lock;
-    static Vector<MountPoint*>* mount_points;
+    static Spinlock mount_points_lock_;
+    static Vector<MountPoint*>* mount_points_;
 };
 
 #endif //VFS_H

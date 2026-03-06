@@ -40,8 +40,8 @@ class DisplayManager {
     static DisplayBackend primary();
 
    private:
-    static inline DisplayBackend s_primary;
-    static inline spinlock_t s_lock{};
+    static inline DisplayBackend primary_;
+    static inline Spinlock lock_{};
 };
 
 #endif  // VESPERAOS_DISPLAY_MANAGER_H

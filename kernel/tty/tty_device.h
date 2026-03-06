@@ -24,32 +24,29 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
-#include <kernel/tty/tty.h>
 #include <kernel/terminal.h>
+#include <kernel/tty/tty.h>
+
 #include "../../filesystem/devfs/devfs.h"
 #include "../../include/kernel/devices/char_device.h"
 #include "kernel/devices/device_manager.h"
 
-class TTYDevice final : public CharDevice {
+class TtyDevice final : public CharDevice {
    public:
     kernel::tty::TTY* tty;
-    KernelDevice* kd{};
 
-    explicit TTYDevice(const char* name, kernel::tty::TTY* tty_ptr)
-        : CharDevice(name, BusType::BUS_TTY)
-        , tty(tty_ptr) {
-        KernelDevice* _kd = DeviceManager::RegisterCharDevice(
-            this, name, DeviceClass::Pseudo, BusType::BUS_TTY, ControllerType::None, nullptr
-        );
-
-        kd = _kd;
-
-        DevFS::register_device(kd);
+    explicit TtyDevice(const char* name, kernel::tty::TTY* tty_ptr)
+        : CharDevice( BusType::Tty)
+        , tty(tty_ptr)
+        , kd_(DeviceManager::register_char_device(
+              this, name, DeviceClass::Pseudo, BusType::Tty, ControllerType::None, nullptr
+          )) {
+        DevFs::register_device(kd_);
     }
 
-    ~TTYDevice() override {
-        DevFS::unregister_device(kd);
-        DeviceManager::UnregisterDevice(kd);
+    ~TtyDevice() override {
+        DevFs::unregister_device(kd_);
+        DeviceManager::unregister_device(kd_);
     }
 
     int open(CharFile** out_cf) override {
@@ -62,12 +59,12 @@ class TTYDevice final : public CharDevice {
         return 0;
     }
 
-    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override {
+    ssize_t read(CharFile*, void* buffer, size_t count, size_t) override {
         if (count == 0 || !buffer) return -EINVAL;
         return kernel::tty::tty_read(static_cast<char*>(buffer), count);
     }
 
-    ssize_t write(CharFile* cf, const void* buffer, size_t count) override {
+    ssize_t write(CharFile*, const void* buffer, size_t count) override {
         if (count == 0 || !buffer) return -EINVAL;
         const auto buf = static_cast<const char*>(buffer);
         for (size_t i = 0; i < count; i++) {
@@ -76,6 +73,9 @@ class TTYDevice final : public CharDevice {
         tty->term->flush();
         return static_cast<int>(count);
     }
+
+   private:
+    KernelDevice* kd_{};
 };
 
 #endif  // VESPERAOS_TTY_DEVICE_H

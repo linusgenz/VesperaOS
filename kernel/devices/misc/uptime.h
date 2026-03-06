@@ -28,7 +28,7 @@
 
 class UptimeDevice final : public CharDevice {
    public:
-    explicit UptimeDevice(const char* name);
+    explicit UptimeDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

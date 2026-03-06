@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_IRENDERDRIVER_H
 #define VESPERAOS_IRENDERDRIVER_H
 
-#include <cstdint>
+#include <stdint.h>
 
 struct GlyphRun {
     const char* text;

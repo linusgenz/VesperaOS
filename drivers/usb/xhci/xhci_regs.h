@@ -2,7 +2,7 @@
 #define XHCI_REGS_H
 #include "xhci_mem.h"
 
-struct xhci_capability_registers {
+struct XHCI_CAPABILITY_REGISTERS {
     const uint8_t caplength;    // Capability Register Length
     const uint8_t reserved0;
     const uint16_t hciversion;  // Interface Version Number
@@ -14,9 +14,9 @@ struct xhci_capability_registers {
     const uint32_t rtsoff;      // Runtime Register Space Offset
     const uint32_t hccparams2;  // Capability Parameters 2
 };
-static_assert(sizeof(xhci_capability_registers) == 32);
+static_assert(sizeof(XHCI_CAPABILITY_REGISTERS) == 32);
 
-struct xhci_operational_registers {
+struct XHCI_OPERATIONAL_REGISTERS {
     uint32_t usbcmd;        // USB Command
     uint32_t usbsts;        // USB Status
     uint32_t pagesize;      // Page Size
@@ -29,7 +29,7 @@ struct xhci_operational_registers {
     uint32_t reserved2[49];
     // Port Register Set offset has to be calculated dynamically based on MAXPORTS
 };
-static_assert(sizeof(xhci_operational_registers) == 256);
+static_assert(sizeof(XHCI_OPERATIONAL_REGISTERS) == 256);
 
 /*
 // xHci Spec Section 5.5.2 (page 389)
@@ -40,11 +40,11 @@ Interrupters may be initialized after RS = ‘1’, however all Secondary
 Interrupter registers shall be initialized before an event that targets them is
 generated. Not following these rules, shall result in undefined xHC behavior.
 */
-struct xhci_interrupter_registers {
+struct XHCI_INTERRUPTER_REGISTERS {
     union {
         struct {
-            uint32_t IP : 1;
-            uint32_t IE : 1;
+            uint32_t ip : 1;
+            uint32_t ie : 1;
             uint32_t rsv: 30;
         };
         uint32_t iman;
@@ -88,10 +88,10 @@ Qword references. If a system is incapable of issuing Qword references, then
 writes to the Qword address fields shall be performed using 2 Dword
 references; low Dword-first, high-Dword second.
 */
-struct xhci_runtime_registers {
+struct XHCI_RUNTIME_REGISTERS {
     uint32_t mf_index;                      // Microframe Index (offset 0000h)
     uint32_t rsvdz[7];                      // Reserved (offset 001Fh:0004h)
-    xhci_interrupter_registers ir[1024];    // Interrupter Register Sets (offset 0020h to 8000h)
+    XHCI_INTERRUPTER_REGISTERS ir[1024];    // Interrupter Register Sets (offset 0020h to 8000h)
 };
 
 /*
@@ -117,7 +117,7 @@ Note: Software shall not write the Doorbell of an endpoint until after it has is
 Configure Endpoint Command for the endpoint and received a successful
 Command Completion Event.
 */
-struct xhci_doorbell_register {
+struct XHCI_DOORBELL_REGISTER {
     union {
         struct {
             uint8_t     db_target;
@@ -130,9 +130,9 @@ struct xhci_doorbell_register {
     };
 } __attribute__((packed));
 
-class xhci_doorbell_manager {
+class XhciDoorbellManager {
 public:
-    explicit xhci_doorbell_manager(uintptr_t base);
+    explicit XhciDoorbellManager(uintptr_t base);
 
     // TargeValue = 2 + (ZeroBasedEndpoint * 2) + (isOutEp ? 0 : 1)
     void ring_doorbell(uint8_t doorbell, uint8_t target) const;
@@ -141,10 +141,10 @@ public:
     void ring_control_endpoint_doorbell(uint8_t doorbell) const;
 
 private:
-    xhci_doorbell_register* m_doorbell_registers;
+    XHCI_DOORBELL_REGISTER* doorbell_registers_;
 };
 
-struct xhci_extended_capability_entry {
+struct XHCI_EXTENDED_CAPABILITY_ENTRY {
     union {
         struct {
             uint8_t id;
@@ -155,9 +155,9 @@ struct xhci_extended_capability_entry {
         uint32_t raw;
     };
 };
-#define XHCI_NEXT_EXT_CAP_PTR(ptr, next) (volatile uint32_t*)((char*)ptr + (next * sizeof(uint32_t)))
+#define XHCI_NEXT_EXT_CAP_PTR(ptr, next) (volatile uint32_t*)((char*)(ptr) + ((next) * sizeof(uint32_t)))
 
-struct xhci_portsc_register {
+struct XHCI_PORTSC_REGISTER {
     union {
         struct {
             // Current connect status (RO), if PP is 0, this bit is also 0
@@ -257,41 +257,41 @@ struct xhci_portsc_register {
         uint32_t raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(xhci_portsc_register) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTSC_REGISTER) == sizeof(uint32_t));
 
-enum class xhci_extended_capability_code {
-    revd = 0,
-    usb_legacy_support = 1,
-    support_protocol = 2,
-    extended_power_management = 3,
-    iovirtulization_support = 4,
-    message_interrupt_support = 5,
-    local_memory_support = 6,
-    usb_debug_capability_support = 10,
-    extended_message_interrupt_support = 17,
+enum class XHCI_EXTENDED_CAPABILITY_CODE {
+    REVD = 0,
+    USB_LEGACY_SUPPORT = 1,
+    SUPPORT_PROTOCOL = 2,
+    EXTENDED_POWER_MANAGEMENT = 3,
+    IOVIRTULIZATION_SUPPORT = 4,
+    MESSAGE_INTERRUPT_SUPPORT = 5,
+    LOCAL_MEMORY_SUPPORT = 6,
+    USB_DEBUG_CAPABILITY_SUPPORT = 10,
+    EXTENDED_MESSAGE_INTERRUPT_SUPPORT = 17,
 };
 
-class xhci_extended_capability {
+class XhciExtendedCapability {
 public:
-    explicit xhci_extended_capability(volatile uint32_t* cap_ptr);
+    explicit XhciExtendedCapability(volatile uint32_t* cap_ptr);
 
-    [[nodiscard]] volatile uint32_t* base() const {return m_base;}
+    [[nodiscard]] volatile uint32_t* base() const {return base_;}
 
-    [[nodiscard]]  xhci_extended_capability_code id() const {
-        return static_cast<xhci_extended_capability_code>(m_entry.id);
+    [[nodiscard]]  XHCI_EXTENDED_CAPABILITY_CODE id() const {
+        return static_cast<XHCI_EXTENDED_CAPABILITY_CODE>(entry_.id);
     }
-    [[nodiscard]] xhci_extended_capability* next() const {return m_next;}
+    [[nodiscard]] XhciExtendedCapability* next() const {return next_;}
 private:
-    volatile uint32_t* m_base;
-    xhci_extended_capability_entry m_entry{};
+    volatile uint32_t* base_;
+    XHCI_EXTENDED_CAPABILITY_ENTRY entry_{};
 
-    xhci_extended_capability* m_next;
+    XhciExtendedCapability* next_;
 
     void read_next_ext_caps();
 };
 
 // For USB2.0 this register is reserved and preserved
-struct xhci_portli_register {
+struct XHCI_PORTLI_REGISTER {
     union {
         struct {
             uint32_t link_error_count   : 16;
@@ -304,31 +304,31 @@ struct xhci_portli_register {
         uint32_t raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(xhci_portli_register) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTLI_REGISTER) == sizeof(uint32_t));
 
-struct xhci_portpmsc_register_usb2 {
+struct XHCI_PORTPMSC_REGISTER_USB2 {
     union {
         struct {
-            uint32_t l1status                       : 3;
+            uint32_t l1_status                       : 3;
             uint32_t remote_wake_enable             : 1;
             uint32_t host_initiated_resume_duration : 4;
             uint32_t l1device_slot                  : 8;
             uint32_t hardware_lpm_enable            : 1;
             uint32_t rsvd                           : 11;
-            uint32_t portTestControl                : 4;
+            uint32_t port_test_control                : 4;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
         uint32_t raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(xhci_portpmsc_register_usb2) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTPMSC_REGISTER_USB2) == sizeof(uint32_t));
 
-struct xhci_portpmsc_register_usb3 {
+struct XHCI_PORTPMSC_REGISTER_USB3 {
     union {
         struct {
-            uint32_t u1timeout              : 8;
-            uint32_t u2timeout              : 8;
+            uint32_t u1_timeout              : 8;
+            uint32_t u2_timeout              : 8;
             uint32_t force_link_pm_accept   : 1;
             uint32_t rsvd                   : 15;
         } __attribute__((packed));
@@ -337,14 +337,14 @@ struct xhci_portpmsc_register_usb3 {
         uint32_t raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(xhci_portpmsc_register_usb3) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTPMSC_REGISTER_USB3) == sizeof(uint32_t));
 
 // Port Hardware LPM Control Register
-struct xhci_porthlpmc_register_usb2 {
+struct XHCI_PORTHLPMC_REGISTER_USB2 {
     union {
         struct {
             uint32_t hirdm      : 2;
-            uint32_t l1timeout  : 8;
+            uint32_t l1_timeout  : 8;
             uint32_t besld      : 4;
             uint32_t rsvd       : 18;
         } __attribute__((packed));
@@ -353,9 +353,9 @@ struct xhci_porthlpmc_register_usb2 {
         uint32_t raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(xhci_porthlpmc_register_usb2) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTHLPMC_REGISTER_USB2) == sizeof(uint32_t));
 
-struct xhci_porthlpmc_register_usb3 {
+struct XHCI_PORTHLPMC_REGISTER_USB3 {
     union {
         struct {
             uint16_t link_soft_error_count;
@@ -366,37 +366,37 @@ struct xhci_porthlpmc_register_usb3 {
         uint32_t raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(xhci_porthlpmc_register_usb3) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTHLPMC_REGISTER_USB3) == sizeof(uint32_t));
 
-class xhciPortRegisterManager {
+class XhciPortRegisterManager {
 public:
-    explicit xhciPortRegisterManager(uintptr_t base) : m_base(base) {}
+    explicit XhciPortRegisterManager(uintptr_t base) : base_(base) {}
 
-    void read_portsc_reg(xhci_portsc_register& reg) const;
-    void write_portsc_reg(const xhci_portsc_register& reg) const;
+    void read_portsc_reg(XHCI_PORTSC_REGISTER& reg) const;
+    void write_portsc_reg(const XHCI_PORTSC_REGISTER& reg) const;
 
-    void read_portpmsc_reg_usb2(xhci_portpmsc_register_usb2& reg) const;
-    void write_portpmsc_reg_usb2(const xhci_portpmsc_register_usb2& reg) const;
+    void read_portpmsc_reg_usb2(XHCI_PORTPMSC_REGISTER_USB2& reg) const;
+    void write_portpmsc_reg_usb2(const XHCI_PORTPMSC_REGISTER_USB2& reg) const;
 
-    void read_portpmsc_reg_usb3(xhci_portpmsc_register_usb3& reg) const;
-    void write_portpmsc_reg_usb3(const xhci_portpmsc_register_usb3& reg) const;
+    void read_portpmsc_reg_usb3(XHCI_PORTPMSC_REGISTER_USB3& reg) const;
+    void write_portpmsc_reg_usb3(const XHCI_PORTPMSC_REGISTER_USB3& reg) const;
 
-    void read_portli_reg(xhci_portli_register& reg) const;
-    void write_portli_reg(const xhci_portli_register& reg) const;
+    void read_portli_reg(XHCI_PORTLI_REGISTER& reg) const;
+    void write_portli_reg(const XHCI_PORTLI_REGISTER& reg) const;
 
-    void read_porthlpmc_reg_usb2(xhci_porthlpmc_register_usb2& reg) const;
-    void write_porthlpmc_reg_usb2(const xhci_porthlpmc_register_usb2& reg) const;
+    void read_porthlpmc_reg_usb2(XHCI_PORTHLPMC_REGISTER_USB2& reg) const;
+    void write_porthlpmc_reg_usb2(const XHCI_PORTHLPMC_REGISTER_USB2& reg) const;
 
-    void read_porthlpmc_reg_usb3(xhci_porthlpmc_register_usb3& reg) const;
-    void write_porthlpmc_reg_usb3(const xhci_porthlpmc_register_usb3& reg) const;
+    void read_porthlpmc_reg_usb3(XHCI_PORTHLPMC_REGISTER_USB3& reg) const;
+    void write_porthlpmc_reg_usb3(const XHCI_PORTHLPMC_REGISTER_USB3& reg) const;
 
 private:
-    uintptr_t m_base;
+    uintptr_t base_;
 
-    const size_t m_portsc_offset     = 0x00;
-    const size_t m_portpmsc_offset   = 0x04;
-    const size_t m_portli_offset     = 0x08;
-    const size_t m_porthlpmc_offset  = 0x0C;
+    const size_t portsc_offset_     = 0x00;
+    const size_t portpmsc_offset_   = 0x04;
+    const size_t portli_offset_     = 0x08;
+    const size_t porthlpmc_offset_  = 0x0C;
 };
 
 

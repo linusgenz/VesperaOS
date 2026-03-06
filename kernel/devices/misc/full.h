@@ -28,7 +28,7 @@
 
 class FullDevice final : public CharDevice {
    public:
-    explicit FullDevice(const char* name);
+    explicit FullDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

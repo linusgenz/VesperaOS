@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_THROBBER_H
 #define VESPERAOS_THROBBER_H
 
-#include <cstdint>
+#include <stdint.h>
 
 #define THROBBER_SIZE 64
 #define THROBBER_FRAMES 8

@@ -24,11 +24,11 @@
 #include "xhci_endpoint.h"
 #include "../usb_descriptors.h"
 
-uint8_t get_xhc_endpoint_type_from_ep_descriptor(const usb_endpoint_descriptor* desc) {
-    uint8_t endpoint_direction_in = (desc->bEndpointAddress & 0x80) ? 1 : 0;
+uint8_t get_xhc_endpoint_type_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
+    uint8_t endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
 
     // transfer type
-    switch (desc->bmAttributes & 0x3) {
+    switch (desc->bm_attributes & 0x3) {
         case 0: {
             return XHCI_ENDPOINT_TYPE_CONTROL;
         }
@@ -47,23 +47,23 @@ uint8_t get_xhc_endpoint_type_from_ep_descriptor(const usb_endpoint_descriptor* 
     return 0;
 }
 
-uint8_t get_xhc_endpoint_num_from_ep_descriptor(const usb_endpoint_descriptor* desc) {
-    uint8_t endpoint_number_base = desc->bEndpointAddress & 0x0F;
-    uint8_t endpoint_direction_in = (desc->bEndpointAddress & 0x80) ? 1 : 0;
+uint8_t get_xhc_endpoint_num_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
+    uint8_t endpoint_number_base = desc->b_endpoint_address & 0x0F;
+    uint8_t endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
 
     return (endpoint_number_base * 2) + endpoint_direction_in;
 }
 
-xhciEndpoint::xhciEndpoint(uint8_t xhc_slot_id, const usb_endpoint_descriptor* desc) {
-    usb_endpoint_addr = desc->bEndpointAddress;
-    usb_endpoint_attributes = desc->bmAttributes;
-    max_packet_size = desc->wMaxPacketSize;
-    interval = desc->bInterval;
+XhciEndpoint::XhciEndpoint(uint8_t xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc) {
+    usb_endpoint_addr = desc->b_endpoint_address;
+    usb_endpoint_attributes = desc->bm_attributes;
+    max_packet_size = desc->w_max_packet_size;
+    interval = desc->b_interval;
 
     xhc_endpoint_type = get_xhc_endpoint_type_from_ep_descriptor(desc);
     xhc_endpoint_num = get_xhc_endpoint_num_from_ep_descriptor(desc);
 
-    m_transfer_ring = xhciTransferRing::allocate(xhc_slot_id);
+    transfer_ring_ = XhciTransferRing::allocate(xhc_slot_id);
 
     allocate_internal_data_buffer();
 }
@@ -83,7 +83,7 @@ static size_t next_power_of_two(size_t x) {
 }
 
 
-void xhciEndpoint::allocate_internal_data_buffer() {
+void XhciEndpoint::allocate_internal_data_buffer() {
     size_t alignment = next_power_of_two(max_packet_size);
     size_t boundary  = alignment;
 
@@ -92,8 +92,8 @@ void xhciEndpoint::allocate_internal_data_buffer() {
         boundary  = 64;
     }
 
-    m_data_buffer = static_cast<uint8_t*>(
+    data_buffer_ = static_cast<uint8_t*>(
         alloc_xhci_memory(max_packet_size, alignment, boundary));
 
-    m_data_buffer_dma_addr = xhci_get_physical_addr(m_data_buffer);
+    data_buffer_dma_addr_ = xhci_get_physical_addr(data_buffer_);
 }

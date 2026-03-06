@@ -1,7 +1,7 @@
 //
 // Created by linus on 03.07.25.
 //
-#include <cstddef>
+#include <stddef.h>
 #include <encoding.h>
 
 // === Konstanten & Masken ===
@@ -33,9 +33,9 @@
 typedef struct {
     utf8_t mask;
     utf8_t value;
-} utf8_pattern;
+} utf8_pattern_t;
 
-static constexpr utf8_pattern utf8_leading_bytes[] = {
+static constexpr utf8_pattern_t UTF8_LEADING_BYTES[] = {
     { 0x80, 0x00 }, // 0xxxxxxx
     { 0xE0, 0xC0 }, // 110xxxxx
     { 0xF0, 0xE0 }, // 1110xxxx
@@ -94,7 +94,7 @@ size_t encode_utf8(codepoint_t cp, utf8_t* utf8, size_t utf8_len, size_t index) 
         cp >>= UTF8_CONTINUATION_CODEPOINT_BITS;
     }
 
-    utf8_pattern pattern = utf8_leading_bytes[size - 1];
+    utf8_pattern_t pattern = UTF8_LEADING_BYTES[size - 1];
     utf8_t lead = (cp & ~pattern.mask) | pattern.value;
     utf8[index] = lead;
 

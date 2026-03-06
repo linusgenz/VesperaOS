@@ -27,50 +27,50 @@
 #include <vector.h>
 #include <kernel/memory.h>
 
-namespace EXT4 {
+namespace ext4 {
     FileSystem::FileSystem(BlockDevice *device) {
-        this->device = device;
-        this->valid = false;
-        sectorSize = device->get_sector_size();
-        valid = read_superblock();
+        this->device_ = device;
+        this->valid_ = false;
+        sector_size_ = device->get_sector_size();
+        valid_ = read_superblock();
     }
 
     bool FileSystem::read_superblock() {
-        constexpr uint32_t SUPERBLOCK_OFFSET = 1024;
-        uint32_t startSector = SUPERBLOCK_OFFSET / sectorSize;
-        uint32_t sectorCount = (sizeof(Ext4Superblock) + sectorSize - 1) / sectorSize;
+        constexpr uint32_t superblock_offset = 1024;
+        uint32_t start_sector = superblock_offset / sector_size_;
+        uint32_t sector_count = (sizeof(Ext4Superblock) + sector_size_ - 1) / sector_size_;
 
-        uint8_t buffer[sectorCount * sectorSize];
+        uint8_t buffer[sector_count * sector_size_];
 
-        if (!device->read(startSector, sectorCount, buffer, sizeof(buffer))) {
+        if (!device_->read(start_sector, sector_count, buffer, sizeof(buffer))) {
             return false;
         }
 
-        memcpy(&superblock, buffer, sizeof(Ext4Superblock));
+        memcpy(&superblock_, buffer, sizeof(Ext4Superblock));
 
         // Magic number
-        return superblock.s_magic == EXT4_MAGIC;
+        return superblock_.s_magic == EXT4_MAGIC;
     }
 
     Ext4Superblock* FileSystem::get_superblock()
     {
-        return &superblock;
+        return &superblock_;
     }
 
-    bool FileSystem::read_block(uint64_t block, void *outBuf) const
+    bool FileSystem::read_block(uint64_t block, void *out_buf) const
     {
         uint64_t bsize = get_block_size();
-        uint64_t startByte = block * bsize;
-        uint64_t startSector = startByte / sectorSize;
-        uint32_t count = (bsize + sectorSize - 1) / sectorSize;
-        return device->read(startSector, count, outBuf, sizeof(outBuf));
+        uint64_t start_byte = block * bsize;
+        uint64_t start_sector = start_byte / sector_size_;
+        uint32_t count = (bsize + sector_size_ - 1) / sector_size_;
+        return device_->read(start_sector, count, out_buf, sizeof(out_buf));
     }
 
 
     bool FileSystem::read_group_desc(uint32_t group, GroupDesc &gd) const
     {
         uint32_t bsize = get_block_size();
-        uint64_t gd_table_block;
+        uint64_t gd_table_block = 0;
         if (bsize == 1024) {
             gd_table_block = 2; // superblock bei Offset 1024 -> Block 1 belegt, Deskriptor ab Block 2
         } else {
@@ -78,29 +78,29 @@ namespace EXT4 {
         }
 
         const uint64_t gd_offset_bytes = gd_table_block * bsize + static_cast<uint64_t>(group) * sizeof(GroupDesc);
-        const uint64_t startSector = gd_offset_bytes / sectorSize;
-        const uint32_t cnt = (sizeof(GroupDesc) + sectorSize - 1) / sectorSize;
+        const uint64_t start_sector = gd_offset_bytes / sector_size_;
+        const uint32_t cnt = (sizeof(GroupDesc) + sector_size_ - 1) / sector_size_;
 
         Log::debug("[ext4] read_group_desc: group=%u bsize=%u gd_table_block=%llu",
                    group, bsize, static_cast<uint64_t>(gd_table_block));
         Log::debug("[ext4]   -> gd_offset_bytes=%llu startSector=%llu cnt=%u",
                    static_cast<uint64_t>(gd_offset_bytes),
-                   static_cast<uint64_t>(startSector),
+                   static_cast<uint64_t>(start_sector),
                    cnt);
 
-        auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(cnt * sectorSize));
+        auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(cnt * sector_size_));
         if (!buf) {
-            Log::debug("[ext4] read_group_desc: malloc failed (cnt=%u, sectorSize=%u)", cnt, sectorSize);
+            Log::debug("[ext4] read_group_desc: malloc failed (cnt=%u, sectorSize=%u)", cnt, sector_size_);
             return false;
         }
 
-        if (!device->read(startSector, cnt, buf, sizeof(buf))) {
+        if (!device_->read(start_sector, cnt, buf, sizeof(buf))) {
             Log::debug("[ext4] read_group_desc: device->read failed");
             kernel::memory::free(buf);
             return false;
         }
 
-        memcpy(&gd, buf + (gd_offset_bytes % sectorSize), sizeof(GroupDesc));
+        memcpy(&gd, buf + (gd_offset_bytes % sector_size_), sizeof(GroupDesc));
         kernel::memory::free(buf);
 
         Log::debug("[ext4]   -> bg_inode_table_lo=%u bg_block_bitmap_lo=%u bg_inode_bitmap_lo=%u",
@@ -110,13 +110,13 @@ namespace EXT4 {
     }
 
 
-    bool FileSystem::read_inode(uint32_t inode_no, Inode &outInode) const {
+    bool FileSystem::read_inode(uint32_t inode_no, Inode &out_inode) const {
         if (inode_no == 0) {
             Log::debug("[ext4] read_inode: invalid inode_no=0");
             return false;
         }
 
-        uint32_t inodes_per_group = superblock.s_inodes_per_group;
+        uint32_t inodes_per_group = superblock_.s_inodes_per_group;
         uint32_t group = (inode_no - 1) / inodes_per_group;
         uint32_t index = (inode_no - 1) % inodes_per_group;
 
@@ -137,33 +137,33 @@ namespace EXT4 {
             Log::debug("[ext4] read_inode: using fallback inode_table_block=%llu", inode_table_block);
         }
 
-        const uint32_t inode_size = (superblock.s_inode_size == 0) ? 128 : superblock.s_inode_size;
+        const uint32_t inode_size = (superblock_.s_inode_size == 0) ? 128 : superblock_.s_inode_size;
         const uint64_t inode_table_offset = inode_table_block * get_block_size();
         const uint64_t inode_offset = inode_table_offset + static_cast<uint64_t>(index) * inode_size;
 
-        uint64_t startSector = inode_offset / sectorSize;
-        uint32_t count = (inode_size + sectorSize - 1) / sectorSize;
+        uint64_t start_sector = inode_offset / sector_size_;
+        uint32_t count = (inode_size + sector_size_ - 1) / sector_size_;
 
-        auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(count * sectorSize));
+        auto *buf = static_cast<uint8_t*>(kernel::memory::malloc(count * sector_size_));
         if (!buf) return false;
 
-        if (!device->read(startSector, count, buf, sizeof(buf))) {
+        if (!device_->read(start_sector, count, buf, sizeof(buf))) {
             kernel::memory::free(buf);
             return false;
         }
 
-        memcpy(&outInode, buf + (inode_offset % sectorSize), sizeof(Inode));
+        memcpy(&out_inode, buf + (inode_offset % sector_size_), sizeof(Inode));
         kernel::memory::free(buf);
 
         Log::debug("[ext4] read_inode: success inode_no=%u i_mode=%u i_size_lo=%u",
-                   inode_no, outInode.i_mode, outInode.i_size_lo);
+                   inode_no, out_inode.i_mode, out_inode.i_size_lo);
 
         return true;
     }
 
 
 
-    bool FileSystem::parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &outExtents) {
+    bool FileSystem::parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &out_extents) {
         ExtentHeader eh{};
         memcpy(&eh, &inode.i_block[0], sizeof(ExtentHeader));
         if (eh.eh_magic != EXT4_EXTENT_MAGIC) return false;
@@ -177,7 +177,7 @@ namespace EXT4 {
             memcpy(&ex, base + i * sizeof(Extent), sizeof(Extent));
             const uint64_t start = (static_cast<uint64_t>(ex.ee_start_hi) << 32) | ex.ee_start_lo;
             const uint32_t len = ex.ee_len & 0xFFFF;
-            outExtents.push_back({len, start});
+            out_extents.push_back({len, start});
         }
         return true;
     }
@@ -216,19 +216,19 @@ namespace EXT4 {
         return false;
     }
 
-    FileEntry* FileSystem::read_directory(uint32_t inodeNumber, size_t& outCount) {
-        outCount = 0;
+    FileEntry* FileSystem::read_directory(uint32_t inode_number, size_t& out_count) {
+        out_count = 0;
 
-        Log::debug("[ext4] read_directory: inodeNumber=%u", inodeNumber);
+        Log::debug("[ext4] read_directory: inodeNumber=%u", inode_number);
 
-        Inode dirInode{};
-        if (!read_inode(inodeNumber, dirInode)) {
-            Log::debug("[ext4] read_inode failed for inode %u", inodeNumber);
+        Inode dir_inode{};
+        if (!read_inode(inode_number, dir_inode)) {
+            Log::debug("[ext4] read_inode failed for inode %u", inode_number);
             return nullptr;
         }
 
-        if ((dirInode.i_mode & 0xF000) != EXT4_S_IFDIR) {
-            Log::debug("[ext4] inode %u is not a directory (i_mode=0x%x)", inodeNumber, dirInode.i_mode);
+        if ((dir_inode.i_mode & 0xF000) != EXT4_S_IFDIR) {
+            Log::debug("[ext4] inode %u is not a directory (i_mode=0x%x)", inode_number, dir_inode.i_mode);
             return nullptr;
         }
 
@@ -239,11 +239,11 @@ namespace EXT4 {
         }
 
         // Anzahl logischer Blöcke im Verzeichnis
-        uint32_t blockCount = (inode_get_size(dirInode) + get_block_size() - 1) / get_block_size();
+        uint32_t block_count = (inode_get_size(dir_inode) + get_block_size() - 1) / get_block_size();
 
-        for (uint32_t lblock = 0; lblock < blockCount && outCount < READ_DIR_MAX_ENTRIES; ++lblock) {
-            uint64_t pblock;
-            if (!map_logical_to_physical(dirInode, lblock, pblock)) {
+        for (uint32_t lblock = 0; lblock < block_count && out_count < READ_DIR_MAX_ENTRIES; ++lblock) {
+            uint64_t pblock = 0;
+            if (!map_logical_to_physical(dir_inode, lblock, pblock)) {
                 Log::debug("[ext4] logical block %u not mapped to physical block", lblock);
                 continue;
             }
@@ -255,20 +255,20 @@ namespace EXT4 {
             }
 
             size_t offset = 0;
-            while (offset + sizeof(DirEntry) <= get_block_size() && outCount < READ_DIR_MAX_ENTRIES) {
+            while (offset + sizeof(DirEntry) <= get_block_size() && out_count < READ_DIR_MAX_ENTRIES) {
                 const auto* de = reinterpret_cast<DirEntry*>(buf.data() + offset);
                 if (de->inode == 0 || de->rec_len == 0) break;
 
-                FileEntry& fe = entries[outCount++];
-                fe.SetInode(de->inode);
-                fe.SetType(de->file_type);
-                fe.SetName(de->name, de->name_len);
+                FileEntry& fe = entries[out_count++];
+                fe.set_inode(de->inode);
+                fe.set_type(de->file_type);
+                fe.set_name(de->name, de->name_len);
 
                 offset += de->rec_len;
             }
         }
 
-        Log::debug("[ext4] read_directory: read %zu entries", outCount);
+        Log::debug("[ext4] read_directory: read %zu entries", out_count);
         return entries;
     }
 

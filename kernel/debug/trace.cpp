@@ -55,13 +55,13 @@ void backtrace(uint64_t rbp_start, uint64_t rip_start) {
 
     debug_capture_stack(rbp_start, rip_start, frames, &count, 32);
 
-    Log::PrintLn("Backtrace (frames: %u, most recent call last)", count);
+    Log::print_ln("Backtrace (frames: %u, most recent call last)", count);
 
     for (uint8_t i = 0; i < count; i++) {
         Symbol s = lookup_symbol(frames[i]);
         uint64_t offset = frames[i] - s.addr;
 
-        Log::PrintLn(
+        Log::print_ln(
             "  #%u  %p  <%.*s+0x%llx>", i, reinterpret_cast<void*>(frames[i]), static_cast<int>(s.len), s.name, offset
         );
 

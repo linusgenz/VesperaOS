@@ -26,9 +26,9 @@
 
 #include "../../../include/kernel/devices/char_device.h"
 
-class CPUInfoDevice final : public CharDevice {
+class CpuInfoDevice final : public CharDevice {
    public:
-    explicit CPUInfoDevice(const char* name);
+    explicit CpuInfoDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

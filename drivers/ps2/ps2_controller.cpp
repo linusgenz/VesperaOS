@@ -28,16 +28,16 @@
 
 Ps2Controller::Ps2Controller()
 {
-    devnode = DeviceManager::RegisterController(
+    devnode = DeviceManager::register_controller(
         "i8042",
         DeviceClass::Misc,
-        BusType::BUS_PS2,
-        ControllerType::PS2,
+        BusType::Ps2,
+        ControllerType::Ps2,
         nullptr
     );
 }
 
 Ps2Controller::~Ps2Controller()
 {
-    DeviceManager::UnregisterDevice(devnode);
+    DeviceManager::unregister_device(devnode);
 }

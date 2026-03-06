@@ -28,7 +28,7 @@
 #include "../../include/log.h"
 
 constexpr int MAX_SYSCALLS = 256;
-static syscalls::internal::syscall_fn syscall_table[MAX_SYSCALLS];
+static syscalls::internal::syscall_fn_t syscall_table[MAX_SYSCALLS];
 
 void install_syscalls() {
     for (auto& i : syscall_table) {
@@ -69,7 +69,7 @@ extern "C" void syscall_handler(
         asm volatile("sti");
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {
-        Log::PrintLn("[SYSCALL] Invalid syscall number: %u", num);
+        Log::print_ln("[SYSCALL] Invalid syscall number: %u", num);
     }
 
     asm volatile("mov %0, %%rax" ::"r"(ret));

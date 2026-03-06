@@ -5,8 +5,8 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 class Bitmap {
    public:

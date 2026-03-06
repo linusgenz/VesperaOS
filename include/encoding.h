@@ -4,7 +4,7 @@
 
 #ifndef ENCODING_H
 #define ENCODING_H
-#include <cstdint>
+#include <stdint.h>
 
 typedef uint16_t utf16_t;
 typedef uint8_t utf8_t;

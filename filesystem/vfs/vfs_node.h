@@ -23,8 +23,8 @@
 
 #ifndef VFS_NODE_H
 #define VFS_NODE_H
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 #include "../dirent.h"
 #include "../../kernel/types/types.h"
 

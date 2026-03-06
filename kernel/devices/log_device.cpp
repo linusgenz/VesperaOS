@@ -29,7 +29,7 @@ int LogDevice::open(CharFile** out_cf) {
     if (!out_cf) return -EINVAL;
 
     auto* cf = new CharFile();
-    cf->driver_private = global_channel;
+    cf->driver_private = global_channel_;
     *out_cf = cf;
     return 0;
 }

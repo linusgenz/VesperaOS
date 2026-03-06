@@ -27,7 +27,7 @@
 #include "../../kernel/devices/blockdevice.h"
 #include <vector.h>
 
-namespace EXT4 {
+namespace ext4 {
 #define EXT4_MAGIC 0xEF53
 #define EXT4_EXTENT_MAGIC 0xF30A
 #define READ_DIR_MAX_ENTRIES  256
@@ -177,29 +177,29 @@ namespace EXT4 {
     };
 
     class FileEntry {
-        char name[256] = {};
-        uint32_t inodeNumber = 0;
-        uint8_t type = 0; // 1=File, 2=Dir, 7=Symlink usw. (EXT4_FT_xx)
-        bool _isDir = false;
+        char name_[256] = {};
+        uint32_t inode_number_ = 0;
+        uint8_t type_ = 0; // 1=File, 2=Dir, 7=Symlink usw. (EXT4_FT_xx)
+        bool is_dir_ = false;
 
     public:
-        void SetName(const char *n, size_t len) {
-            if (len >= sizeof(name)) len = sizeof(name) - 1;
-            memcpy(name, n, len);
-            name[len] = '\0';
+        void set_name(const char *n, size_t len) {
+            if (len >= sizeof(name_)) len = sizeof(name_) - 1;
+            memcpy(name_, n, len);
+            name_[len] = '\0';
         }
 
-        void SetInode(uint32_t ino) { inodeNumber = ino; }
+        void set_inode(uint32_t ino) { inode_number_ = ino; }
 
-        void SetType(uint8_t t) {
-            type = t;
-            _isDir = (t == 2); // EXT4_FT_DIR
+        void set_type(uint8_t t) {
+            type_ = t;
+            is_dir_ = (t == 2); // EXT4_FT_DIR
         }
 
-        const char *GetName() const { return name; }
-        uint32_t GetInode() const { return inodeNumber; }
-        bool isDir() const { return _isDir; }
-        uint8_t GetType() const { return type; }
+        [[nodiscard]] const char *get_name() const { return name_; }
+        [[nodiscard]] uint32_t get_inode() const { return inode_number_; }
+        [[nodiscard]] bool is_dir() const { return is_dir_; }
+        [[nodiscard]] uint8_t get_type() const { return type_; }
     };
 
 
@@ -208,22 +208,22 @@ namespace EXT4 {
         explicit FileSystem(BlockDevice *device);
 
 
-        bool is_valid() const { return valid; }
+        [[nodiscard]] bool is_valid() const { return valid_; }
 
-        FileEntry *read_directory(uint32_t inodeNumber, size_t &outCount);
+        FileEntry *read_directory(uint32_t inode_number, size_t &out_count);
 
         Ext4Superblock* get_superblock();
 
         ~FileSystem();
 
     private:
-        BlockDevice *device;
-        Ext4Superblock superblock{};
-        uint32_t sectorSize;
-        bool valid;
+        BlockDevice *device_;
+        Ext4Superblock superblock_{};
+        uint32_t sector_size_;
+        bool valid_;
 
         [[nodiscard]] uint32_t get_block_size() const {
-            return 1024U << superblock.s_log_block_size;
+            return 1024U << superblock_.s_log_block_size;
         }
 
         static uint64_t inode_get_size(const Inode& ino) {
@@ -236,13 +236,13 @@ namespace EXT4 {
 
         bool read_superblock();
 
-        bool read_block(uint64_t block, void *outBuf) const;
+        bool read_block(uint64_t block, void *out_buf) const;
 
         bool read_group_desc(uint32_t group, GroupDesc &gd) const;
 
-        bool read_inode(uint32_t inode_no, Inode &outInode) const;
+        bool read_inode(uint32_t inode_no, Inode &out_inode) const;
 
-        static bool parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &outExtents);
+        static bool parse_extents_from_inode(Inode &inode, Vector<Ext4ExtentMap> &out_extents);
 
         bool map_logical_to_physical(Inode &inode, uint32_t lblock, uint64_t &out_pblock);
     };

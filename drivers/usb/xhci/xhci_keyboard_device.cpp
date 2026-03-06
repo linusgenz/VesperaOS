@@ -28,23 +28,23 @@
 #include "../../../include/kernel/devices/device_manager.h"
 
 UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
-    : CharDevice(name, BusType::BUS_USB)
+    : CharDevice( BusType::Usb)
 {
-    kd = DeviceManager::RegisterCharDevice(
+    kd = DeviceManager::register_char_device(
         this,
         name,
         DeviceClass::Input,
-        BusType::BUS_USB,
-        ControllerType::XHCI,
+        BusType::Usb,
+        ControllerType::Xhci,
         parent
     );
-    DevFS::register_device(kd);
+    DevFs::register_device(kd);
 }
 
 UsbKeyboardDevice::~UsbKeyboardDevice()
 {
-    DevFS::unregister_device(kd);
-    DeviceManager::UnregisterDevice(kd);
+    DevFs::unregister_device(kd);
+    DeviceManager::unregister_device(kd);
 }
 
 int UsbKeyboardDevice::open(CharFile**) { return 0; }

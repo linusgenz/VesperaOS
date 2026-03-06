@@ -31,16 +31,16 @@
 
 class LogDevice final : public CharDevice {
    private:
-    Channel* global_channel;
+    Channel* global_channel_;
 
    public:
     explicit LogDevice(Channel* ch)
-        : CharDevice("log", BusType::VIRTUAL)
-        , global_channel(ch) {
+        : CharDevice(BusType::VIRTUAL)
+        , global_channel_(ch) {
     }
 
     ~LogDevice() override {
-        Channel::destroy(global_channel);
+        Channel::destroy(global_channel_);
     }
 
     int open(CharFile** out_cf) override;

@@ -24,8 +24,8 @@
 #ifndef VESPERAOS_SYMBOLS_H
 #define VESPERAOS_SYMBOLS_H
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 struct Symbol {
     const char* name{};

@@ -1,10 +1,10 @@
-#include <cstdint>
+#include <stdint.h>
 #include "../../include/string.h"
 #include "pci_devices.h"
 
-namespace PCI
+namespace pci
 {
-    const char* DeviceClasses[]{
+    const char* device_classes[]{
         "Unclassified",
         "Mass Storage Controller",
         "Network Controller",
@@ -49,13 +49,13 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U16];
-        u16tohex(vendor_id, buffer, sizeof(buffer));
+        u16_tohex(vendor_id, buffer, sizeof(buffer));
         return buffer;
     }
 
     const char* get_device_name(const uint16_t vendor_id, const uint16_t device_id)
     {
-        for (auto [vid, did, name] : pci_devices)
+        for (auto [vid, did, name] : PCI_DEVICES)
         {
             if (vid == vendor_id && did == device_id)
             {
@@ -64,7 +64,7 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U16];
-        u16tohex(device_id, buffer, sizeof(buffer));
+        u16_tohex(device_id, buffer, sizeof(buffer));
         return buffer;
     }
 
@@ -97,7 +97,7 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U8];
-        u8tohex(subclass_code, buffer, sizeof(buffer));
+        u8_tohex(subclass_code, buffer, sizeof(buffer));
         return buffer;
     }
 
@@ -132,7 +132,7 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U8];
-        u8tohex(subclass_code, buffer, sizeof(buffer));
+        u8_tohex(subclass_code, buffer, sizeof(buffer));
         return buffer;
     }
 
@@ -169,7 +169,7 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U8];
-        u8tohex(subclass_code, buffer, sizeof(buffer));
+        u8_tohex(subclass_code, buffer, sizeof(buffer));
         return buffer;
     }
 
@@ -194,11 +194,11 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U8];
-        u8tohex(subclass_code, buffer, sizeof(buffer));
+        u8_tohex(subclass_code, buffer, sizeof(buffer));
         return buffer;
     }
 
-    const char* get_prog_if_Name(const uint8_t class_code, const uint8_t subclass_code, const uint8_t prog_if)
+    const char* get_prog_if_name(const uint8_t class_code, const uint8_t subclass_code, const uint8_t prog_if)
     {
         switch (class_code)
         {
@@ -274,7 +274,7 @@ namespace PCI
         }
 
         static char buffer[HEX_BUFFER_U8];
-        u8tohex(prog_if, buffer, sizeof(buffer));
+        u8_tohex(prog_if, buffer, sizeof(buffer));
         return buffer;
     }
 }

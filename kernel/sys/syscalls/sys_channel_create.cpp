@@ -41,11 +41,11 @@ namespace syscalls::internal {
         if (!ch) return -ENOMEM;
 
         // set required caps for channels: read+write for owner
-        CapabilitySet caps = CAP_READ | CAP_WRITE;
+        capability_set_t caps = CAP_READ | CAP_WRITE;
 
-        HandleID hid;
+        handle_id_t hid;
 
-        if (const ErrorCode err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
+        if (const error_code_t err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
             err != MOD_SUCCESS) {
             Channel::destroy(ch);
             return -err;

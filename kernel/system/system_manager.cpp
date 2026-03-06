@@ -33,66 +33,66 @@
 #include "kernel/scheduling.h"
 
 namespace kernel {
-    bool SystemManager::manager_initialized = false;
-    bool SystemManager::system_initialized = false;
-    spinlock_t SystemManager::global_lock;
+    bool SystemManager::manager_initialized_ = false;
+    bool SystemManager::system_initialized_ = false;
+    Spinlock SystemManager::global_lock_;
 
-    mutex_t SystemManager::stats_mutex;
+    Mutex SystemManager::stats_mutex_;
 
-    Channel *SystemManager::event_channel = nullptr;
-    Channel *SystemManager::log_channel = nullptr;
+    Channel *SystemManager::event_channel_ = nullptr;
+    Channel *SystemManager::log_channel_ = nullptr;
 
-    SystemManager::SystemChannel SystemManager::system_channels[MAX_SYSTEM_CHANNELS];
-    size_t SystemManager::channel_count = 0;
+    SystemManager::SystemChannel SystemManager::system_channels_[MAX_SYSTEM_CHANNELS];
+    size_t SystemManager::channel_count_ = 0;
 
-    SystemStats SystemManager::current_stats = {};
-    uint64_t SystemManager::boot_timestamp = 0;
-    bool SystemManager::event_logging_enabled = true;
+    SystemStats SystemManager::current_stats_ = {};
+    uint64_t SystemManager::boot_timestamp_ = 0;
+    bool SystemManager::event_logging_enabled_ = true;
 
-    ILogWriter *SystemManager::log_writer = nullptr;
+    ILogWriter *SystemManager::log_writer_ = nullptr;
 
     void SystemManager::initialize() {
-        global_lock.init("system_manager_lock");
-        global_lock.lock();
+        global_lock_.init("system_manager_lock");
+        global_lock_.lock();
 
-        if (manager_initialized) {
-            global_lock.unlock();
+        if (manager_initialized_) {
+            global_lock_.unlock();
             return;
         }
 
-        boot_timestamp = get_current_timestamp();
+        boot_timestamp_ = get_current_timestamp();
 
-        event_channel = Channel::create(EVENT_CHANNEL_SIZE);
-        if (!event_channel) {
-            Log::Error("SystemManager: Failed to create event channel");
-            global_lock.unlock();
+        event_channel_ = Channel::create(EVENT_CHANNEL_SIZE);
+        if (!event_channel_) {
+            Log::error("SystemManager: Failed to create event channel");
+            global_lock_.unlock();
             return;
         }
 
-        log_channel = Channel::create(LOG_CHANNEL_SIZE);
-        if (!log_channel) {
-            Log::Error("SystemManager: Failed to create log channel");
-            Channel::destroy(event_channel);
-            event_channel = nullptr;
-            global_lock.unlock();
+        log_channel_ = Channel::create(LOG_CHANNEL_SIZE);
+        if (!log_channel_) {
+            Log::error("SystemManager: Failed to create log channel");
+            Channel::destroy(event_channel_);
+            event_channel_ = nullptr;
+            global_lock_.unlock();
             return;
         }
 
-        memset(system_channels, 0, sizeof(system_channels));
-        channel_count = 0;
+        memset(system_channels_, 0, sizeof(system_channels_));
+        channel_count_ = 0;
 
-        memset(&current_stats, 0, sizeof(current_stats));
-        current_stats.last_update_timestamp = boot_timestamp;
+        memset(&current_stats_, 0, sizeof(current_stats_));
+        current_stats_.last_update_timestamp = boot_timestamp_;
 
-        global_lock.unlock();
+        global_lock_.unlock();
 
-        Log::Info("SystemManager: Initialized successfully");
+        Log::info("SystemManager: Initialized successfully");
 
-        manager_initialized = true;
+        manager_initialized_ = true;
 
         SystemEvent init_event = {};
         init_event.type = SystemEventType::KERNEL_LOG;
-        init_event.timestamp = boot_timestamp;
+        init_event.timestamp = boot_timestamp_;
         init_event.cpu_id = 0;
         strncpy(
             init_event.data.log_event.message,
@@ -106,41 +106,41 @@ namespace kernel {
     }
 
     void SystemManager::set_system_initialized() {
-        system_initialized = true;
+        system_initialized_ = true;
     }
 
     bool SystemManager::is_system_initialized() {
-        return system_initialized;
+        return system_initialized_;
     }
 
     void SystemManager::publish_event(const SystemEvent &event) {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
         internal_publish_event(event);
 
-        if (event_logging_enabled) {
+        if (event_logging_enabled_) {
             switch (event.type) {
                 case SystemEventType::SYSTEM_PANIC:
-                    Log::Error(
+                    Log::error(
                         "SystemManager: PANIC - %s (code: %u)",
                         event.data.log_event.message,
                         event.data.log_event.error_code
                     );
                     break;
                 case SystemEventType::MEMORY_LOW:
-                    Log::Warning(
+                    Log::warning(
                         "SystemManager: Low memory - %lu bytes available", event.data.memory_event.available_bytes
                     );
                     break;
                 case SystemEventType::CPU_HIGH_USAGE:
-                    Log::Warning(
+                    Log::warning(
                         "SystemManager: High CPU usage on CPU %u - %u%%",
                         event.data.cpu_event.cpu_id,
                         static_cast<unsigned>(event.data.cpu_event.usage_percent)
                     );
                     break;
                 case SystemEventType::SYSTEM_SHUTDOWN:
-                    Log::Info("SystemManager: System shutdown initiated - %s", event.data.log_event.message);
+                    Log::info("SystemManager: System shutdown initiated - %s", event.data.log_event.message);
                     break;
                 default:
                     break;
@@ -149,43 +149,43 @@ namespace kernel {
     }
 
     void SystemManager::internal_publish_event(const SystemEvent &event) {
-        if (!event_channel) return;
+        if (!event_channel_) return;
 
-        if (!event_channel->send(&event, sizeof(SystemEvent))) {
-            if (log_channel) {
+        if (!event_channel_->send(&event, sizeof(SystemEvent))) {
+            if (log_channel_) {
                 char buf[128];
                 int n = snprintf(
                     buf, sizeof(buf), "SystemManager: Dropped event type %u\n", static_cast<unsigned>(event.type)
                 );
-                log_channel->send(buf, n);
+                log_channel_->send(buf, n);
             }
         }
     }
 
     Channel *SystemManager::get_event_channel() {
-        return event_channel;
+        return event_channel_;
     }
 
     Channel *SystemManager::get_log_channel() {
-        return log_channel;
+        return log_channel_;
     }
 
     SystemStats SystemManager::get_system_stats() {
         // Kopie zurückgeben (thread-safe)
         //  mutex_acquire(&stats_mutex);
-        SystemStats copy = current_stats;
+        SystemStats copy = current_stats_;
         //  mutex_release(&stats_mutex);
         return copy;
     }
 
     void SystemManager::update_system_stats() {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
         //  mutex_acquire(&stats_mutex);
 
         uint64_t now = get_current_timestamp();
-        current_stats.uptime_ms = now - boot_timestamp;
-        current_stats.last_update_timestamp = now;
+        current_stats_.uptime_ms = now - boot_timestamp_;
+        current_stats_.last_update_timestamp = now;
 
         // CPU/Mem/Device/Unit/Realm Stat Updates
         update_memory_stats();
@@ -197,79 +197,79 @@ namespace kernel {
         // current_stats.total_realms = RealmManager::get_total_count();
 
         // Device Statistics
-        current_stats.total_devices = DeviceManager::GetDeviceCount();
+        current_stats_.total_devices = DeviceManager::get_device_count();
 
         //  mutex_release(&stats_mutex);
     }
 
     Channel *SystemManager::create_system_channel(const char *name, size_t buffer_size) {
-        if (!manager_initialized || !name) return nullptr;
+        if (!manager_initialized_ || !name) return nullptr;
 
-        global_lock.lock();
+        global_lock_.lock();
 
         if (find_channel_by_name(name) != nullptr) {
-            global_lock.unlock();
+            global_lock_.unlock();
             return nullptr;
         }
 
-        if (channel_count >= MAX_SYSTEM_CHANNELS) {
-            global_lock.unlock();
+        if (channel_count_ >= MAX_SYSTEM_CHANNELS) {
+            global_lock_.unlock();
             return nullptr;
         }
 
         Channel *new_channel = Channel::create(buffer_size);
         if (!new_channel) {
-            global_lock.unlock();
+            global_lock_.unlock();
             return nullptr;
         }
 
         // Channel registrieren
-        SystemChannel *sys_chan = &system_channels[channel_count];
+        SystemChannel *sys_chan = &system_channels_[channel_count_];
         strncpy(sys_chan->name, name, sizeof(sys_chan->name) - 1);
         sys_chan->name[sizeof(sys_chan->name) - 1] = '\0';
         sys_chan->channel = new_channel;
         sys_chan->created_timestamp = get_current_timestamp();
 
-        channel_count++;
+        channel_count_++;
 
-        global_lock.unlock();
+        global_lock_.unlock();
 
-        Log::Info("SystemManager: Created system channel '%s' (size: %zu)", name, buffer_size);
+        Log::info("SystemManager: Created system channel '%s' (size: %zu)", name, buffer_size);
         return new_channel;
     }
 
     bool SystemManager::destroy_system_channel(const char *name) {
-        if (!manager_initialized || !name) return false;
+        if (!manager_initialized_ || !name) return false;
 
-        global_lock.lock();
+        global_lock_.lock();
 
-        for (size_t i = 0; i < channel_count; i++) {
-            if (strcmp(system_channels[i].name, name) == 0) {
-                Channel::destroy(system_channels[i].channel);
+        for (size_t i = 0; i < channel_count_; i++) {
+            if (strcmp(system_channels_[i].name, name) == 0) {
+                Channel::destroy(system_channels_[i].channel);
 
                 // Array kompaktieren
-                for (size_t j = i; j < channel_count - 1; j++) {
-                    system_channels[j] = system_channels[j + 1];
+                for (size_t j = i; j < channel_count_ - 1; j++) {
+                    system_channels_[j] = system_channels_[j + 1];
                 }
-                channel_count--;
+                channel_count_--;
 
-                global_lock.unlock();
-                Log::Info("SystemManager: Destroyed system channel '%s'", name);
+                global_lock_.unlock();
+                Log::info("SystemManager: Destroyed system channel '%s'", name);
                 return true;
             }
         }
 
-        global_lock.unlock();
+        global_lock_.unlock();
         return false;
     }
 
     Channel *SystemManager::get_system_channel(const char *name) {
-        if (!manager_initialized || !name) return nullptr;
+        if (!manager_initialized_ || !name) return nullptr;
 
-        global_lock.lock();
+        global_lock_.lock();
         SystemChannel *sys_chan = find_channel_by_name(name);
         Channel *result = sys_chan ? sys_chan->channel : nullptr;
-        global_lock.unlock();
+        global_lock_.unlock();
 
         return result;
     }
@@ -278,7 +278,7 @@ namespace kernel {
         SystemEvent shutdown_event = {};
         shutdown_event.type = SystemEventType::SYSTEM_SHUTDOWN;
         shutdown_event.timestamp = get_current_timestamp();
-        shutdown_event.cpu_id = CPUManager::get_current_cpu_id();
+        shutdown_event.cpu_id = cpu_manager::get_current_cpu_id();
 
         if (reason) {
             strncpy(shutdown_event.data.log_event.message, reason, sizeof(shutdown_event.data.log_event.message) - 1);
@@ -295,14 +295,14 @@ namespace kernel {
 
         publish_event(shutdown_event);
 
-        FilesystemDetector::UnmountAll();
+        FilesystemDetector::unmount_all();
 
-        DeviceManager::ShutdownAll();
+        DeviceManager::shutdown_all();
 
         if (reboot) {
-            ACPI::acpi_reboot();
+            acpi::acpi_reboot();
         } else {
-            ACPI::acpi_power_off();
+            acpi::acpi_power_off();
         }
     }
 
@@ -310,7 +310,7 @@ namespace kernel {
         SystemEvent panic_event = {};
         panic_event.type = SystemEventType::SYSTEM_PANIC;
         panic_event.timestamp = get_current_timestamp();
-        panic_event.cpu_id = CPUManager::get_current_cpu_id();
+        panic_event.cpu_id = cpu_manager::get_current_cpu_id();
 
         if (message) {
             strncpy(panic_event.data.log_event.message, message, sizeof(panic_event.data.log_event.message) - 1);
@@ -325,75 +325,75 @@ namespace kernel {
 
         internal_publish_event(panic_event);
 
-        Log::Error("KERNEL PANIC: %s (Error Code: %d)", message ? message : "Unknown", error_code);
+        Log::error("KERNEL PANIC: %s (Error Code: %d)", message ? message : "Unknown", error_code);
 
         panic(message);
     }
 
     void SystemManager::list_system_channels() {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
-        global_lock.lock();
+        global_lock_.lock();
 
-        Log::Info("SystemManager: Active system channels (%u/%u):", channel_count, MAX_SYSTEM_CHANNELS);
+        Log::info("SystemManager: Active system channels (%u/%u):", channel_count_, MAX_SYSTEM_CHANNELS);
 
-        for (size_t i = 0; i < channel_count; i++) {
-            SystemChannel *chan = &system_channels[i];
-            Log::Info(
+        for (size_t i = 0; i < channel_count_; i++) {
+            SystemChannel *chan = &system_channels_[i];
+            Log::info(
                 "  [%zu] %s (created: % ms ago)", i, chan->name, get_current_timestamp() - chan->created_timestamp
             );
         }
 
-        global_lock.unlock();
+        global_lock_.unlock();
     }
 
     void SystemManager::dump_system_stats() {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
         update_system_stats();
         SystemStats stats = get_system_stats();
 
-        Log::Info("=== System Statistics ===");
-        Log::Info("Uptime: %lu ms", stats.uptime_ms);
-        Log::Info(
+        Log::info("=== System Statistics ===");
+        Log::info("Uptime: %lu ms", stats.uptime_ms);
+        Log::info(
             "Memory: %lu MB total, %lu MB used, %lu MB free",
             stats.total_memory / 1024 / 1024,
             stats.used_memory / 1024 / 1024,
             stats.free_memory / 1024 / 1024
         );
-        Log::Info("Units: %u total, %u active", stats.total_units, stats.active_units);
-        Log::Info("Realms: %u total", stats.total_realms);
-        Log::Info("Devices: %u total", stats.total_devices);
-        Log::Info("Interrupts: %u total", stats.total_interrupts);
-        Log::Info("Last updated: %lu ms ago", get_current_timestamp() - stats.last_update_timestamp);
+        Log::info("Units: %u total, %u active", stats.total_units, stats.active_units);
+        Log::info("Realms: %u total", stats.total_realms);
+        Log::info("Devices: %u total", stats.total_devices);
+        Log::info("Interrupts: %u total", stats.total_interrupts);
+        Log::info("Last updated: %lu ms ago", get_current_timestamp() - stats.last_update_timestamp);
     }
 
     void SystemManager::enable_event_logging(bool enabled) {
-        event_logging_enabled = enabled;
-        Log::Info("SystemManager: Event logging %s", enabled ? "enabled" : "disabled");
+        event_logging_enabled_ = enabled;
+        Log::info("SystemManager: Event logging %s", enabled ? "enabled" : "disabled");
     }
 
     // Event Helper Functions
-    void SystemManager::notify_unit_lifecycle(UnitID unit_id, RealmID realm_id, bool created) {
-        if (!manager_initialized) return;
+    void SystemManager::notify_unit_lifecycle(unit_id_t unit_id, realm_id_t realm_id, bool created) {
+        if (!manager_initialized_) return;
 
         SystemEvent event = {};
         event.type = created ? SystemEventType::UNIT_CREATED : SystemEventType::UNIT_DESTROYED;
         event.timestamp = get_current_timestamp();
-        event.cpu_id = CPUManager::get_current_cpu_id();
+        event.cpu_id = cpu_manager::get_current_cpu_id();
         event.data.unit_event.unit_id = unit_id;
         event.data.unit_event.realm_id = realm_id;
 
         publish_event(event);
     }
 
-    void SystemManager::notify_realm_lifecycle(RealmID realm_id, const char *name, bool created) {
-        if (!manager_initialized) return;
+    void SystemManager::notify_realm_lifecycle(realm_id_t realm_id, const char *name, bool created) {
+        if (!manager_initialized_) return;
 
         SystemEvent event = {};
         event.type = created ? SystemEventType::REALM_CREATED : SystemEventType::REALM_DESTROYED;
         event.timestamp = get_current_timestamp();
-        event.cpu_id = CPUManager::get_current_cpu_id();
+        event.cpu_id = cpu_manager::get_current_cpu_id();
         event.data.realm_event.realm_id = realm_id;
 
         if (name) {
@@ -405,12 +405,12 @@ namespace kernel {
     }
 
     void SystemManager::notify_device_lifecycle(const char *device_name, uint32_t device_id, bool registered) {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
         SystemEvent event = {};
         event.type = registered ? SystemEventType::DEVICE_REGISTERED : SystemEventType::DEVICE_REMOVED;
         event.timestamp = get_current_timestamp();
-        event.cpu_id = CPUManager::get_current_cpu_id();
+        event.cpu_id = cpu_manager::get_current_cpu_id();
         event.data.device_event.device_id = device_id;
 
         if (device_name) {
@@ -422,25 +422,25 @@ namespace kernel {
     }
 
     void SystemManager::notify_memory_pressure(uint64_t available_bytes) {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
         SystemEvent event = {};
         event.type = SystemEventType::MEMORY_LOW;
         event.timestamp = get_current_timestamp();
-        event.cpu_id = CPUManager::get_current_cpu_id();
+        event.cpu_id = cpu_manager::get_current_cpu_id();
         event.data.memory_event.available_bytes = available_bytes;
-        event.data.memory_event.threshold_bytes = 64 * 1024 * 1024;  // 64MB threshold
+        event.data.memory_event.threshold_bytes = MEMORY_LOW_BYTES_THRESHOLD;
 
         publish_event(event);
     }
 
     void SystemManager::notify_filesystem_mount(const char *path, const char *fs_type, bool mounted) {
-        if (!manager_initialized) return;
+        if (!manager_initialized_) return;
 
         SystemEvent event = {};
         event.type = mounted ? SystemEventType::FILESYSTEM_MOUNT : SystemEventType::FILESYSTEM_UNMOUNT;
         event.timestamp = get_current_timestamp();
-        event.cpu_id = CPUManager::get_current_cpu_id();
+        event.cpu_id = cpu_manager::get_current_cpu_id();
 
         if (path) {
             strncpy(event.data.fs_event.fs_path, path, sizeof(event.data.fs_event.fs_path) - 1);
@@ -461,51 +461,51 @@ namespace kernel {
 
     void SystemManager::update_cpu_stats() {
         // TODO: Implement CPU usage calculation mithilfe CPUManager
-        memset(current_stats.cpu_usage, 0, sizeof(current_stats.cpu_usage));
+        memset(current_stats_.cpu_usage, 0, sizeof(current_stats_.cpu_usage));
         // Wenn CPUManager eine API bietet, hier auslesen:
         // uint32_t cpu_count = CPUManager::total_cpus;
         // for (uint32_t i=0; i<cpu_count && i<32; ++i) current_stats.cpu_usage[i] = CPUManager::get_usage(i);
     }
 
     void SystemManager::update_memory_stats() {
-        current_stats.total_memory = memory::get_total_ram();
-        current_stats.used_memory = memory::get_used_ram();
-        current_stats.free_memory = memory::get_free_ram();
-        current_stats.reserved_memory = memory::get_reserved_ram();
+        current_stats_.total_memory = memory::get_total_ram();
+        current_stats_.used_memory = memory::get_used_ram();
+        current_stats_.free_memory = memory::get_free_ram();
+        current_stats_.reserved_memory = memory::get_reserved_ram();
     }
 
     SystemManager::SystemChannel *SystemManager::find_channel_by_name(const char *name) {
         if (!name) return nullptr;
 
-        for (size_t i = 0; i < channel_count; i++) {
-            if (strcmp(system_channels[i].name, name) == 0) {
-                return &system_channels[i];
+        for (size_t i = 0; i < channel_count_; i++) {
+            if (strcmp(system_channels_[i].name, name) == 0) {
+                return &system_channels_[i];
             }
         }
         return nullptr;
     }
 
     void SystemManager::register_log_writer(ILogWriter *writer) {
-        global_lock.lock();
-        log_writer = writer;
-        global_lock.unlock();
+        global_lock_.lock();
+        log_writer_ = writer;
+        global_lock_.unlock();
     }
 
     void SystemManager::unregister_log_writer() {
-        global_lock.lock();
-        log_writer = nullptr;
-        global_lock.unlock();
+        global_lock_.lock();
+        log_writer_ = nullptr;
+        global_lock_.unlock();
     }
 
     void SystemManager::process_events_to_logs(size_t max_events_to_process) {
-        if (!manager_initialized || !event_channel) return;
+        if (!manager_initialized_ || !event_channel_) return;
         if (max_events_to_process == 0) return;
 
         SystemEvent evbuf{};
         size_t processed = 0;
 
         while (processed < max_events_to_process) {
-            if (const ssize_t read_bytes = event_channel->recv(&evbuf, sizeof(evbuf)); read_bytes <= 0) break;
+            if (const ssize_t read_bytes = event_channel_->recv(&evbuf, sizeof(evbuf)); read_bytes <= 0) break;
 
             char line[512];
             int n = 0;
@@ -663,17 +663,17 @@ namespace kernel {
             }
 
             if (n > 0) {
-                if (log_channel) {
-                    log_channel->send(line, static_cast<size_t>(n));
+                if (log_channel_) {
+                    log_channel_->send(line, static_cast<size_t>(n));
                 }
 
-                global_lock.lock();
-                ILogWriter *writer = log_writer;
-                global_lock.unlock();
+                global_lock_.lock();
+                ILogWriter *writer = log_writer_;
+                global_lock_.unlock();
 
                 if (writer) {
                     if (!writer->append_line(line, static_cast<size_t>(n))) {
-                        Log::Warning("SystemManager: LogWriter append failed");
+                        Log::warning("SystemManager: LogWriter append failed");
                     }
                 }
             }

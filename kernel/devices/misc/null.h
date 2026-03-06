@@ -28,7 +28,7 @@
 
 class NullDevice final : public CharDevice {
    public:
-    explicit NullDevice(const char* name);
+    explicit NullDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

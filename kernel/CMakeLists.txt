@@ -114,6 +114,9 @@ add_custom_command(
         -I binary
         -O elf64-x86-64
         -B i386:x86-64
+        --redefine-sym _binary_zap_light24_psf_start=psf_font_start
+        --redefine-sym _binary_zap_light24_psf_end=psf_font_end
+        --redefine-sym _binary_zap_light24_psf_size=psf_font_size
         --rename-section .data=.data.font,alloc,load,readonly,data,contents
         ${FONT_FILE}
         ${CMAKE_BINARY_DIR}/font.o

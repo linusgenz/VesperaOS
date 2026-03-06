@@ -28,7 +28,7 @@
 
 namespace syscalls::internal {
     int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const HandleID hid = arg0;
+        const handle_id_t hid = arg0;
 
         const Unit *current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;

@@ -50,20 +50,20 @@ namespace kernel::debug {
             //    Log::Error("%s: %s on CPU#%u on Unit#%u (%s)", type_str, extra_msg, CPUManager::get_current_cpu_id(),
             //    u->id,
             //              u->name);
-            Log::Error("%s: %s", type_str, extra_msg);
+            Log::error("%s: %s", type_str, extra_msg);
         } else {
-            Log::Error("%s", type_str);
+            Log::error("%s", type_str);
         }
 
-        Log::Error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx.rip, ctx.cs, ctx.rsp, ctx.rflags);
+        Log::error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx.rip, ctx.cs, ctx.rsp, ctx.rflags);
         uint64_t fault_addr = 0;
         asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
-        Log::Error("Page fault address (CR2): %p", fault_addr);
+        Log::error("Page fault address (CR2): %p", fault_addr);
         backtrace(ctx.rbp, ctx.rip);
         panic("FAULT");
 
         if (ctx.error_code != 0) {
-            Log::Error("  ERROR_CODE=0x%llx", ctx.error_code);
+            Log::error("  ERROR_CODE=0x%llx", ctx.error_code);
         }
 
 #if DEBUG_FAULT
@@ -77,9 +77,9 @@ namespace kernel::debug {
         Unit* u = scheduling::get_current_unit();
         Realm* r = RealmManager::get(u->rid);
 
-        Log::Error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->pml4);
-        Log::Error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);
-        Log::Error(
+        Log::error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->pml4);
+        Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);
+        Log::error(
             "  Present: %s, Write: %s, User: %s, Reserved: %s",
             (error_code & 1) ? "Yes" : "No",
             (error_code & 2) ? "Yes" : "No",
@@ -94,6 +94,6 @@ namespace kernel::debug {
         // Vorsicht: wir greifen direkt auf den Code-Speicher zu – im Fehlerfall ist das
         // ohnehin eine best-effort Debug-Ausgabe.
         const auto opcode_ptr = reinterpret_cast<const uint8_t*>(rip);
-        Log::Error("  Opcode bytes: %02x %02x %02x %02x", opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
+        Log::error("  Opcode bytes: %02x %02x %02x %02x", opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
     }
 }  // namespace kernel::debug

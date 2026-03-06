@@ -23,9 +23,9 @@
 
 #ifndef VESPERAOS_DEVICE_CTX_H
 #define VESPERAOS_DEVICE_CTX_H
-#include <cstdint>
+#include <stdint.h>
 
-struct xhci_slot_context32 {
+struct XHCI_SLOT_CONTEXT32 {
     union {
         struct {
             uint32_t route_string: 20;
@@ -85,7 +85,7 @@ struct xhci_slot_context32 {
     uint32_t rsvdz[4];
 } __attribute__((packed));
 
-struct xhci_endpoint_context32 {
+struct XHCI_ENDPOINT_CONTEXT32 {
     union {
         struct {
             /*
@@ -169,15 +169,15 @@ struct xhci_endpoint_context32 {
     uint32_t padding[3];
 } __attribute__((packed));
 
-struct xhci_device_context32 {
-    xhci_slot_context32 slot_context;
+struct XHCI_DEVICE_CONTEXT32 {
+    XHCI_SLOT_CONTEXT32 slot_context;
 
-    xhci_endpoint_context32 control_ep_context;
+    XHCI_ENDPOINT_CONTEXT32 control_ep_context;
 
-    xhci_endpoint_context32 ep[30];
+    XHCI_ENDPOINT_CONTEXT32 ep[30];
 } __attribute__((packed));
 
-struct xhci_input_control_context32 {
+struct XHCI_INPUT_CONTROL_CONTEXT32 {
     uint32_t drop_flags;
     uint32_t add_flags;
     uint32_t rsvd[5];
@@ -185,16 +185,16 @@ struct xhci_input_control_context32 {
     uint8_t interface_number;
     uint8_t alternate_setting;
 
-    uint8_t rsvdZ;
+    uint8_t rsvd_z;
 } __attribute__((packed));
 
-struct xhci_input_context32 {
-    xhci_input_control_context32 control_context;
-    xhci_device_context32 device_context;
+struct XhciInputContext32 {
+    XHCI_INPUT_CONTROL_CONTEXT32 control_context;
+    XHCI_DEVICE_CONTEXT32 device_context;
 };
 
 
-struct xhci_slot_context64 {
+struct XHCI_SLOT_CONTEXT64 {
     union {
         struct {
             uint32_t route_string: 20;
@@ -256,7 +256,7 @@ struct xhci_slot_context64 {
     uint32_t padding[8];
 } __attribute__((packed));
 
-struct xhci_endpoint_context64 {
+struct XHCI_ENDPOINT_CONTEXT64 {
     union {
         struct {
             uint32_t endpoint_state: 3;
@@ -327,15 +327,15 @@ struct xhci_endpoint_context64 {
     uint32_t padding[11];
 } __attribute__((packed));
 
-struct xhci_device_context64 {
-    xhci_slot_context64 slot_context;
+struct XHCI_DEVICE_CONTEXT64 {
+    XHCI_SLOT_CONTEXT64 slot_context;
 
-    xhci_endpoint_context64 control_ep_context;
+    XHCI_ENDPOINT_CONTEXT64 control_ep_context;
 
-    xhci_endpoint_context64 ep[30];
+    XHCI_ENDPOINT_CONTEXT64 ep[30];
 } __attribute__((packed));
 
-struct xhci_input_control_context64 {
+struct XHCI_INPUT_CONTROL_CONTEXT64 {
     uint32_t drop_flags;
     uint32_t add_flags;
     uint32_t rsvd[5];
@@ -343,13 +343,13 @@ struct xhci_input_control_context64 {
     uint8_t interface_number;
     uint8_t alternate_setting;
 
-    uint8_t rsvdZ;
+    uint8_t rsvd_z;
     uint32_t padding[8];
 } __attribute__((packed));
 
-struct xhci_input_context64 {
-    xhci_input_control_context64 control_context;
-    xhci_device_context64 device_context;
+struct XhciInputContext64 {
+    XHCI_INPUT_CONTROL_CONTEXT64 control_context;
+    XHCI_DEVICE_CONTEXT64 device_context;
 };
 
 #endif //VESPERAOS_DEVICE_CTX_H

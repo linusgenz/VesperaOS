@@ -25,7 +25,7 @@
 
 #include "../../kernel/memory/heap.h"
 #include "../framework/test_framework.h"
-#include <cstdint>
+#include <stdint.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

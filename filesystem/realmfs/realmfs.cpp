@@ -31,33 +31,33 @@
 
 #include "../../kernel/units/unit_manager.h"
 
-void RealmFS::init()
+void RealmFs::init()
 {
     VirtualFilesystem::init("/realms", "realms");
 
     // Setup operations
-    ops.read = read;
-    ops.write = write;
-    ops.find = find;
-    ops.close = close;
-    ops.opendir = open_dir;
-    ops.readdir = read_dir;
-    ops.closedir = close_dir;
-    ops.ioctl = ioctl;
-    ops.create = nullptr;
-    ops.rename = nullptr;
-    ops.mkdir = nullptr;
-    ops.rmdir = nullptr;
-    ops.unlink = nullptr;
+    ops_.read = read;
+    ops_.write = write;
+    ops_.find = find;
+    ops_.close = close;
+    ops_.opendir = open_dir;
+    ops_.readdir = read_dir;
+    ops_.closedir = close_dir;
+    ops_.ioctl = ioctl;
+    ops_.create = nullptr;
+    ops_.rename = nullptr;
+    ops_.mkdir = nullptr;
+    ops_.rmdir = nullptr;
+    ops_.unlink = nullptr;
 }
 
 
-int RealmFS::register_realm(uint64_t realm_id, const char* name, void* realm_ptr)
+int RealmFs::register_realm(uint64_t realm_id, const char* name, void* realm_ptr)
 {
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
 
-    VfsNode* realm_dir = ensure_subdirectory(name, root);
+    VfsNode* realm_dir = ensure_subdirectory(name, root_);
     ensure_subdirectory("units", realm_dir);
 
     auto* obj = static_cast<SysObject*>(kernel::memory::malloc(sizeof(SysObject)));
@@ -72,11 +72,11 @@ int RealmFS::register_realm(uint64_t realm_id, const char* name, void* realm_ptr
     return SUCCESS_CODE;
 }
 
-int RealmFS::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, const char* realm_name)
+int RealmFs::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, const char* realm_name)
 {
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    VfsNode* realm_dir = find(root, realm_name);
+    VfsNode* realm_dir = find(root_, realm_name);
     if (!realm_dir) return -ENOENT;
 
     VfsNode* units_dir = finddir(realm_dir, "units");
@@ -97,22 +97,22 @@ int RealmFS::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, c
     return SUCCESS_CODE;
 }
 
-int RealmFS::unregister_realm(uint64_t realm_id)
+int RealmFs::unregister_realm(uint64_t realm_id)
 {
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    auto* root_data = static_cast<DirData*>(root->internal_data);
+    auto* root_data = static_cast<DirData*>(root_->internal_data);
 
     for (size_t i = 0; i < root_data->subdirs.size(); i++)
     {
         VfsNode* realm_dir = root_data->subdirs[i];
 
         auto* dir_data = static_cast<DirData*>(realm_dir->internal_data);
-        RealmFSEntry* realm_entry = nullptr;
+        RealmFsEntry* realm_entry = nullptr;
 
         for (auto* file_node : dir_data->files)
         {
-            if (auto* entry = static_cast<RealmFSEntry*>(file_node->internal_data);
+            if (auto* entry = static_cast<RealmFsEntry*>(file_node->internal_data);
                 entry && entry->device && entry->device->id == realm_id)
             {
                 realm_entry = entry;
@@ -130,11 +130,11 @@ int RealmFS::unregister_realm(uint64_t realm_id)
     return -ENOENT;
 }
 
-int RealmFS::unregister_unit(uint64_t unit_id)
+int RealmFs::unregister_unit(uint64_t unit_id)
 {
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    for (auto* root_data = static_cast<DirData*>(root->internal_data); const auto* realm_dir : root_data->subdirs)
+    for (auto* root_data = static_cast<DirData*>(root_->internal_data); const auto* realm_dir : root_data->subdirs)
     {
         VfsNode* units_dir = finddir(realm_dir, "units");
         if (!units_dir) continue;
@@ -143,7 +143,7 @@ int RealmFS::unregister_unit(uint64_t unit_id)
         for (size_t i = 0; i < units_data->files.size(); i++)
         {
             VfsNode* u_node = units_data->files[i];
-            if (const auto* u_entry = static_cast<RealmFSEntry*>(u_node->internal_data);
+            if (const auto* u_entry = static_cast<RealmFsEntry*>(u_node->internal_data);
                 u_entry && u_entry->device->id == unit_id)
             {
                 units_data->files.erase(i);
@@ -156,11 +156,11 @@ int RealmFS::unregister_unit(uint64_t unit_id)
     return -ENOENT;
 }
 
-ssize_t RealmFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
+ssize_t RealmFs::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
+    auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
@@ -175,11 +175,11 @@ ssize_t RealmFS::read(const VfsNode* node, size_t offset, size_t size, void* buf
     return -ENFILE;
 }
 
-ssize_t RealmFS::write(VfsNode* node, size_t offset, size_t size, const void* buffer)
+ssize_t RealmFs::write(VfsNode* node, size_t offset, size_t size, const void* buffer)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
+    auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
@@ -194,11 +194,11 @@ ssize_t RealmFS::write(VfsNode* node, size_t offset, size_t size, const void* bu
     return -EUNSUPPORTED;
 }
 
-ssize_t RealmFS::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
+ssize_t RealmFs::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<RealmFSEntry*>(node->internal_data);
+    auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SysObject* obj = entry->device;
@@ -239,7 +239,7 @@ ssize_t RealmFS::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
     return -EUNSUPPORTED;
 }
 
-void RealmFS::close(VfsNode* node)
+void RealmFs::close(VfsNode* node)
 {
     // Cleanup if needed in the future
 }

@@ -29,31 +29,31 @@
 namespace kernel::input {
 
     void InputManager::init() {
-        s_lock.init();
-        s_head = 0;
-        s_tail = 0;
-        memset(s_buffer, 0, sizeof(s_buffer));
+        s_lock_.init();
+        s_head_ = 0;
+        s_tail_ = 0;
+        memset(s_buffer_, 0, sizeof(s_buffer_));
     }
 
     void InputManager::push_event(const InputEvent& ev) {
-        spinlock_guard_irq g(s_lock);
-        if (const size_t next = (s_head + 1) % BUFFER_SIZE; next != s_tail) {
-            s_buffer[s_head] = ev;
-            s_head = next;
+        SpinlockGuardIrq g(s_lock_);
+        if (const size_t next = (s_head_ + 1) % BUFFER_SIZE; next != s_tail_) {
+            s_buffer_[s_head_] = ev;
+            s_head_ = next;
         }
     }
 
     bool InputManager::pop_event(InputEvent& ev) {
-        spinlock_guard_irq g(s_lock);
-        if (s_head == s_tail) return false;
-        ev = s_buffer[s_tail];
-        s_tail = (s_tail + 1) % BUFFER_SIZE;
+        SpinlockGuardIrq g(s_lock_);
+        if (s_head_ == s_tail_) return false;
+        ev = s_buffer_[s_tail_];
+        s_tail_ = (s_tail_ + 1) % BUFFER_SIZE;
         return true;
     }
 
     bool InputManager::is_empty() {
-        spinlock_guard g(s_lock);
-        return s_head == s_tail;
+        SpinlockGuard g(s_lock_);
+        return s_head_ == s_tail_;
     }
 
 }  // namespace kernel::input

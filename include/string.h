@@ -4,8 +4,8 @@
 
 #ifndef STRING_H
 #define STRING_H
-#include <cstdint>
-#include <cstddef>
+#include <stdint.h>
+#include <stddef.h>
 
 constexpr size_t hex_buffer_size(const size_t bytes) {
     return bytes * 2 + 1;
@@ -17,10 +17,10 @@ constexpr size_t HEX_BUFFER_U32  = hex_buffer_size(sizeof(uint32_t)); // 9
 constexpr size_t HEX_BUFFER_U16  = hex_buffer_size(sizeof(uint16_t)); // 5
 constexpr size_t HEX_BUFFER_U8   = hex_buffer_size(sizeof(uint8_t));  // 3
 
-char* u64tohex(uint64_t value, char* buffer, size_t buffer_size);
-char* u32tohex(uint32_t value, char* buffer, size_t buffer_size);
-char* u16tohex(uint16_t value, char* buffer, size_t buffer_size);
-char* u8tohex(uint8_t value, char* buffer, size_t buffer_size);
+char* u64_tohex(uint64_t value, char* buffer, size_t buffer_size);
+char* u32_tohex(uint32_t value, char* buffer, size_t buffer_size);
+char* u16_tohex(uint16_t value, char* buffer, size_t buffer_size);
+char* u8_tohex(uint8_t value, char* buffer, size_t buffer_size);
 
 size_t strlen(const char *s);
 int strcmp(const char* a, const char* b);

@@ -25,12 +25,12 @@
 #define VESPERAOS_XHCI_KEYBOARD_DRIVER_H
 
 #include "xhci_hid_driver.h"
-#include <cstdint>
+#include <stdint.h>
 
 #include "xhci_keyboard_device.h"
 //#include <drivers/usb/hid/hid_report_parser.h>
 
-enum kbd_mod_mask : uint32_t
+enum KbdModMask : uint32_t
 {
     KBD_MOD_LCTRL = 1 << 0,
     KBD_MOD_LSHIFT = 1 << 1,
@@ -42,19 +42,19 @@ enum kbd_mod_mask : uint32_t
     KBD_MOD_RGUI = 1 << 7,
 };
 
-class xhciKeyboardDriver final : public xhciHidDriver
+class XhciKeyboardDriver final : public XhciHidDriver
 {
 public:
-    xhciKeyboardDriver() = default;
-    ~xhciKeyboardDriver() override = default;
+    XhciKeyboardDriver() = default;
+    ~XhciKeyboardDriver() override = default;
 
-    void on_device_init(USB::xhciDriver* hcd) override;
+    void on_device_init(usb::XhciDriver* hcd) override;
     void on_device_event(uint8_t* data) override;
 
     void detach() override;
 
 private:
-    struct input_data_layout
+    struct InputDataLayout
     {
         uint16_t buttons_offset;
         uint16_t buttons_size;
@@ -62,7 +62,7 @@ private:
         uint16_t x_axis_size;
         uint16_t y_axis_offset;
         uint16_t y_axis_size;
-    } m_input_layout;
+    } input_layout_;
 
     /*void initialize_input_field(
         hid::hid_report_layout& layout,
@@ -74,9 +74,9 @@ private:
     void process_input_report(const uint8_t* current_keys, uint8_t modifier_byte);
     //  void emit_key_event(uint8_t key, input::input_event_type type, uint32_t modifiers);
 
-    uint8_t m_prev_keys[6]{};
+    uint8_t prev_keys_[6]{};
 
-    UsbKeyboardDevice* device;
+    UsbKeyboardDevice* device_;
 };
 
 #endif //VESPERAOS_XHCI_KEYBOARD_DRIVER_H

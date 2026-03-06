@@ -4,7 +4,7 @@
 
 #ifndef CPU_H
 #define CPU_H
-#include <cstdint>
+#include <stdint.h>
 
 extern "C" void get_cpu_vendor(char buf[13]);
 extern "C" uint64_t check_cpu_features();

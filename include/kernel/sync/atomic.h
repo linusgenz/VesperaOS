@@ -27,7 +27,7 @@
 // ---------------------------
 // Atomic uint8_t
 // ---------------------------
-typedef struct atomic_u8 {
+typedef struct AtomicU8 {
     volatile uint8_t value{};
 
     void init(uint8_t v = 0) {
@@ -67,7 +67,7 @@ typedef struct atomic_u8 {
         return old == *expected;
     }
 
-    atomic_u8& operator++() {
+    AtomicU8& operator++() {
         fetch_add(1);
         return *this;
     }
@@ -81,7 +81,7 @@ typedef struct atomic_u8 {
 // ---------------------------
 // Atomic uint16_t
 // ---------------------------
-typedef struct atomic_u16 {
+typedef struct AtomicU16 {
     volatile uint16_t value{};
 
     void init(uint16_t v = 0) {
@@ -121,7 +121,7 @@ typedef struct atomic_u16 {
         return old == *expected;
     }
 
-    atomic_u16& operator++() {
+    AtomicU16& operator++() {
         fetch_add(1);
         return *this;
     }
@@ -134,7 +134,7 @@ typedef struct atomic_u16 {
 // ---------------------------
 // Atomic uint32_t
 // ---------------------------
-typedef struct atomic_u32 {
+typedef struct AtomicU32 {
     volatile uint32_t value{};
 
     void init(uint32_t v = 0) {
@@ -174,7 +174,7 @@ typedef struct atomic_u32 {
         return old == *expected;
     }
 
-    atomic_u32& operator++() {
+    AtomicU32& operator++() {
         fetch_add(1);
         return *this;
     }
@@ -188,7 +188,7 @@ typedef struct atomic_u32 {
 // ---------------------------
 // Atomic uint64_t
 // ---------------------------
-typedef struct atomic_u64 {
+typedef struct AtomicU64 {
     volatile uint64_t value{};
 
     void init(uint64_t v = 0) {
@@ -228,7 +228,7 @@ typedef struct atomic_u64 {
         return old == *expected;
     }
 
-    atomic_u64& operator++() {
+    AtomicU64& operator++() {
         fetch_add(1);
         return *this;
     }
@@ -242,7 +242,7 @@ typedef struct atomic_u64 {
 // Atomic flag
 // ---------------------------
 
-typedef struct atomic_flag {
+typedef struct AtomicFlag {
     volatile uint8_t value{};
 
     void init(bool v = false) {

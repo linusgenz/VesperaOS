@@ -30,13 +30,13 @@
 #include "msi.h"
 #include "pci.h"
 
-namespace PCI {
+namespace pci {
 
-    bool enable_msix(PCIHeader0* header, uint8_t irq_vector) {
+    bool enable_msix(PCI_HEADER0* header, uint8_t irq_vector) {
         auto* config_space = reinterpret_cast<uint8_t*>(&header->header);
 
         if (!(header->header.status & (1 << 4))) {
-            Log::Error("PCI: No capabilities present");
+            Log::error("PCI: No capabilities present");
             return false;
         }
 
@@ -47,7 +47,7 @@ namespace PCI {
             uint8_t next_ptr = config_space[cap_ptr + 1];
 
             if (cap_id == MSIX_CAPABILITY_ID) {
-                volatile auto* msix_cap = reinterpret_cast<volatile pci_msix_capability*>(&config_space[cap_ptr]);
+                volatile auto* msix_cap = reinterpret_cast<volatile PCI_MSIX_CAPABILITY*>(&config_space[cap_ptr]);
 
                 msix_cap->enable_bit = 0;
                 msix_cap->function_mask = 1;
@@ -59,7 +59,7 @@ namespace PCI {
 
                 BarInfo bar_info = get_bar_info(header, table_bar_index);
                 if (!bar_info.is_valid || !bar_info.is_memory) {
-                    Log::Error("MSI-X: Invalid or non-memory BAR %u", table_bar_index);
+                    Log::error("MSI-X: Invalid or non-memory BAR %u", table_bar_index);
                     return false;
                 }
 
@@ -72,7 +72,7 @@ namespace PCI {
 
                 virt_addr_t table_base = virt_add(phys_to_virt(bar_phys), table_offset);
 
-                msix_table_entry entry;
+                MSIX_TABLE_ENTRY entry;
                 entry.message_address = build_msix_address(kernel::interrupts::lapic_get_id());
                 entry.message_data = build_msix_data(irq_vector);
                 entry.vector_control = 0;
@@ -89,11 +89,11 @@ namespace PCI {
             cap_ptr = next_ptr;
         }
 
-        Log::Warning("MSI-X capability not found");
+        Log::warning("MSI-X capability not found");
         return false;
     }
 
-    bool try_enable_msi_or_msix(PCIHeader0* header, uint8_t base_vector, uint8_t wanted) {
+    bool try_enable_msi_or_msix(PCI_HEADER0* header, uint8_t base_vector, uint8_t wanted) {
         if (enable_msix(header, base_vector)) return true;
         return enable_msi(header, base_vector, wanted);
     }

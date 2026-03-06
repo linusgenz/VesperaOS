@@ -3,7 +3,7 @@
 //
 #include "bitmap.h"
 
-#include <cstdint>
+#include <stdint.h>
 
 bool Bitmap::operator[](const uint64_t index) const {
     return get(index);

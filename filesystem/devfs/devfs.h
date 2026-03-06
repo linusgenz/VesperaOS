@@ -54,7 +54,7 @@ struct DevfsEntry : VirtualFsEntry<KernelDevice>
     CharFile* cf;
 };
 
-class DevFS : public VirtualFilesystem<KernelDevice, DevfsEntry>
+class DevFs : public VirtualFilesystem<KernelDevice, DevfsEntry>
 {
 private:
     static const char* bus_to_str(BusType bus);

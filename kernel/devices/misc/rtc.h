@@ -26,9 +26,9 @@
 
 #include "../../../include/kernel/devices/char_device.h"
 
-class RTCDevice final : public CharDevice {
+class RtcDevice final : public CharDevice {
    public:
-    explicit RTCDevice(const char* name);
+    explicit RtcDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

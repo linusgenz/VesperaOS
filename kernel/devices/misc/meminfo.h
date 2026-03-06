@@ -35,7 +35,7 @@ typedef struct {
 
 class MemInfoDevice final : public CharDevice {
    public:
-    explicit MemInfoDevice(const char* name);
+    explicit MemInfoDevice();
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;

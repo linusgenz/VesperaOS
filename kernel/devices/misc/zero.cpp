@@ -27,8 +27,8 @@
 
 #include "../../../include/kernel/devices/char_device.h"
 
-ZeroDevice::ZeroDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+ZeroDevice::ZeroDevice()
+    : CharDevice(BusType::VIRTUAL) {
 }
 
 int ZeroDevice::open(CharFile**) {

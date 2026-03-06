@@ -30,7 +30,7 @@
 #include "../vfs/fs_registry.h"
 #include "../vfs/vfs_node.h"
 
-using namespace EXT4;
+using namespace ext4;
 
 int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
 {
@@ -46,30 +46,30 @@ int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
 static VfsNode* ext4_find(const VfsNode* node, const char* name)
 {
     auto* dir = static_cast<Ext4Node*>(node->internal_data);
-    if (!dir || !dir->isDir) return nullptr;
+    if (!dir || !dir->is_dir) return nullptr;
 
-    size_t entryCount = 0;
-    FileEntry* entries = dir->fs->read_directory(dir->inode, entryCount);
+    size_t entry_count = 0;
+    FileEntry* entries = dir->fs->read_directory(dir->inode, entry_count);
     if (!entries) return nullptr;
 
-    for (size_t i = 0; i < entryCount; i++)
+    for (size_t i = 0; i < entry_count; i++)
     {
-        if (const char* entryName = entries[i].GetName(); strcmp(entryName, name) == 0)
+        if (const char* entry_name = entries[i].get_name(); strcmp(entry_name, name) == 0)
         {
-            auto* childData = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
-            if (!childData)
+            auto* child_data = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
+            if (!child_data)
             {
                 kernel::memory::free(entries);
                 return nullptr;
             }
 
-            childData->fs = dir->fs;
-            childData->inode = entries[i].GetInode();
-            childData->isDir = entries[i].isDir();
-            childData->fileSize = 0; // TODO  inode_get_size()
+            child_data->fs = dir->fs;
+            child_data->inode = entries[i].get_inode();
+            child_data->is_dir = entries[i].is_dir();
+            child_data->file_size = 0; // TODO  inode_get_size()
 
             // construct path
-            snprintf(childData->path, sizeof(childData->path),
+            snprintf(child_data->path, sizeof(child_data->path),
                      "%s%s%s",
                      dir->path,
                      strcmp(dir->path, "/") == 0 ? "" : "/",
@@ -78,14 +78,14 @@ static VfsNode* ext4_find(const VfsNode* node, const char* name)
             auto* child = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
             if (!child)
             {
-                kernel::memory::free(childData);
+                kernel::memory::free(child_data);
                 kernel::memory::free(entries);
                 return nullptr;
             }
 
-            child->name = entries[i].GetName();
-            child->type = childData->isDir ? VfsNodeType::Directory : VfsNodeType::File;
-            child->internal_data = childData;
+            child->name = entries[i].get_name();
+            child->type = child_data->is_dir ? VfsNodeType::Directory : VfsNodeType::File;
+            child->internal_data = child_data;
             child->ops = node->ops;
 
             kernel::memory::free(entries);
@@ -162,14 +162,14 @@ VfsNode* wrap_ext4_root(FileSystem* fs)
 
     auto* root = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
     root->fs = fs;
-    root->isDir = true;
+    root->is_dir = true;
     root->inode = 2; // Root Inode EXT
     root->path[0] = '/';
     root->path[1] = '\0';
-    root->fileSize = 0;
+    root->file_size = 0;
     root->entries = nullptr;
-    root->entryCount = 0;
-    root->currentIndex = 0;
+    root->entry_count = 0;
+    root->current_index = 0;
 
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = "/";

@@ -291,7 +291,7 @@ Number of Device Slots (MaxSlots). This field specifies the maximum number of
 Device Context Structures and Doorbell Array entries this host controller can support.
 Valid values are in the range of 1 to 255. The value of ‘0’ is reserved.
 */
-#define XHCI_MAX_DEVICE_SLOTS(regs) ((regs->hcsparams1) & 0xFF)
+#define XHCI_MAX_DEVICE_SLOTS(regs) (((regs)->hcsparams1) & 0xFF)
 
 /*
 // xHci Spec Section 5.3.3 Table 5-10: Host Controller Structural Parameters 1 (HCSPARAMS1) (page 348)
@@ -303,7 +303,7 @@ The value of this field determines how many Interrupter Register Sets are
 addressable in the Runtime Register Space (refer to section 5.5). Valid values are in
 the range of 1h to 400h. A ‘0’ in this field is undefined.
 */
-#define XHCI_MAX_INTERRUPTERS(regs) ((regs->hcsparams1 >> 8) & 0x7FF)
+#define XHCI_MAX_INTERRUPTERS(regs) (((regs)->hcsparams1 >> 8) & 0x7FF)
 
 /*
 // xHci Spec Section 5.3.3 Table 5-10: Host Controller Structural Parameters 1 (HCSPARAMS1) (page 348)
@@ -317,7 +317,7 @@ xHCI Supported Protocol Capability, described in section 7.2. Software shall ref
 these capabilities to identify whether a specific Port Number is valid, and the protocol
 supported by the associated Port Register Set.
 */
-#define XHCI_MAX_PORTS(regs) ((regs->hcsparams1 >> 24) & 0xFF)
+#define XHCI_MAX_PORTS(regs) (((regs)->hcsparams1 >> 24) & 0xFF)
 
 /*
 // xHci Spec Section 5.3.4 Table 5-11: Host Controller Structural Parameters 2 (HCSPARAMS2) (page 349)
@@ -334,7 +334,7 @@ before that TRB is scheduled to be executed.
 Refer to Section 4.14.2 for details on how software uses this information for
 scheduling isochronous transfers.
 */
-#define XHCI_IST(regs) ((regs->hcsparams2) & 0xF)
+#define XHCI_IST(regs) (((regs)->hcsparams2) & 0xF)
 
 /*
 // xHci Spec Section 5.3.4 Table 5-11: Host Controller Structural Parameters 2 (HCSPARAMS2) (page 349)
@@ -347,7 +347,7 @@ supported the Event Ring Segment Table Base Size registers (5.5.2.3.1), where:
 For example, if the ERST Max = 7, then the xHC Event Ring Segment Table(s)
 supports up to 128 entries, 15 then 32K entries, etc.
 */
-#define XHCI_ERST_MAX(regs) ((regs->hcsparams2 >> 4) & 0xF)
+#define XHCI_ERST_MAX(regs) (((regs)->hcsparams2 >> 4) & 0xF)
 
 /*
 // xHci Spec Section 5.3.4 Table 5-11: Host Controller Structural Parameters 2 (HCSPARAMS2) (page 349)
@@ -357,7 +357,7 @@ dependent. This field indicates the high order 5 bits of the number of Scratchpa
 Buffers system software shall reserve for the xHC. Refer to section 4.20 for more
 information.
 */
-#define XHCI_MAX_SCRATCHPAD_BUFS_HI(regs) ((regs->hcsparams2 >> 21) & 0x1F)
+#define XHCI_MAX_SCRATCHPAD_BUFS_HI(regs) (((regs)->hcsparams2 >> 21) & 0x1F)
 
 /*
 // xHci Spec Section 5.3.4 Table 5-11: Host Controller Structural Parameters 2 (HCSPARAMS2) (page 349)
@@ -371,7 +371,7 @@ maintained across power events.
 A value of ‘0’ indicates that the Scratchpad Buffer space may be freed and reallocated between
 power events.
 */
-#define XHCI_SPR(regs) ((regs->hcsparams2 >> 26) & 0x1)
+#define XHCI_SPR(regs) (((regs)->hcsparams2 >> 26) & 0x1)
 
 /*
 // xHci Spec Section 5.3.4 Table 5-11: Host Controller Structural Parameters 2 (HCSPARAMS2) (page 349)
@@ -381,7 +381,7 @@ values for Max Scratchpad Buffers (Hi and Lo) are 0-1023. This field indicates t
 bits of the number of Scratchpad Buffers system software shall reserve for the xHC. Refer to
 section 4.20 for more information.
 */
-#define XHCI_MAX_SCRATCHPAD_BUFS_LO(regs) ((regs->hcsparams2 >> 27) & 0x1F)
+#define XHCI_MAX_SCRATCHPAD_BUFS_LO(regs) (((regs)->hcsparams2 >> 27) & 0x1F)
 
 // Combination of low and high bit macros for maximum scratchpad buffer count
 #define XHCI_MAX_SCRATCHPAD_BUFFERS(regs) ((XHCI_MAX_SCRATCHPAD_BUFS_HI(regs) << 5) | XHCI_MAX_SCRATCHPAD_BUFS_LO(regs))
@@ -400,7 +400,7 @@ The following are permissible values:
     0Ah Less than 10 µs.
     0B-FFh Reserved
 */
-#define XHCI_U1_DEVICE_EXIT_LATENCY(regs) ((regs->hcsparams3) & 0xFF)
+#define XHCI_U1_DEVICE_EXIT_LATENCY(regs) (((regs)->hcsparams3) & 0xFF)
 
 /*
 // xHci Spec Section 5.3.5 Table 5-12: Host Controller Structural Parameters 3 (HCSPARAMS3) (page 350)
@@ -416,7 +416,7 @@ The following are permissible values:
     07FFh Less than 2047 µs.
     0800-FFFFh Reserved
 */
-#define XHCI_U2_DEVICE_EXIT_LATENCY(regs) ((regs->hcsparams3 >> 16) & 0xFFFF)
+#define XHCI_U2_DEVICE_EXIT_LATENCY(regs) (((regs)->hcsparams3 >> 16) & 0xFFFF)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 351)
@@ -432,7 +432,7 @@ If 32-bit address memory pointers are implemented, the xHC shall ignore the high
 bit data structure pointer fields, and system software shall ignore the high order 32 bits of 64-bit xHC
 registers.
 */
-#define XHCI_AC64(regs) ((regs->hccparams1) & 0x1)
+#define XHCI_AC64(regs) (((regs)->hccparams1) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 351)
@@ -444,7 +444,7 @@ Bandwidth Negotiation. Values for this flag have the following interpretation:
     1 BW Negotiation implemented
 Refer to section 4.16 for more information on Bandwidth Negotiation.
 */
-#define XHCI_BNC(regs) ((regs->hccparams1 >> 1) & 0x1)
+#define XHCI_BNC(regs) (((regs)->hccparams1 >> 1) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 351)
@@ -453,7 +453,7 @@ Context Size (CSZ). If this bit is set to ‘1’, then the xHC uses 64 byte Con
 bit is cleared to ‘0’, then the xHC uses 32 byte Context data structures.
 This flag does not apply to Stream Contexts
 */
-#define XHCI_CSZ(regs) ((regs->hccparams1 >> 2) & 0x1)
+#define XHCI_CSZ(regs) (((regs)->hccparams1 >> 2) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 351)
@@ -463,7 +463,7 @@ port power control. A ‘1’ in this bit indicates the ports have port power sw
 indicates the port do not have port power switches. The value of this flag affects the functionality of
 the PP flag in each port status and control register (refer to Section 5.4.8).
 */
-#define XHCI_PPC(regs) ((regs->hccparams1 >> 3) & 0x1)
+#define XHCI_PPC(regs) (((regs)->hccparams1 >> 3) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -473,7 +473,7 @@ control. When this bit is a ‘1’, the port status and control registers inclu
 controlling the state of the port indicator. Refer to Section 5.4.8 for definition of the Port Indicator
 Control field.
 */
-#define XHCI_PIND(regs) ((regs->hccparams1 >> 4) & 0x1)
+#define XHCI_PIND(regs) (((regs)->hccparams1 >> 4) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -484,7 +484,7 @@ supported. A ‘0’ in this bit indicates that Light Host Controller Reset is n
 flag affects the functionality of the Light Host Controller Reset (LHCRST) flag in the USBCMD register
 (refer to Section 5.4.1).
 */
-#define XHCI_LHRC(regs) ((regs->hccparams1 >> 5) & 0x1)
+#define XHCI_LHRC(regs) (((regs)->hccparams1 >> 5) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -494,7 +494,7 @@ implementation supports Latency Tolerance Messaging (LTM). A ‘1’ in this bit
 supported. A ‘0’ in this bit indicates that LTM is not supported. Refer to section 4.13.1 for more
 information on LTM.
 */
-#define XHCI_LTC(regs) ((regs->hccparams1 >> 6) & 0x1)
+#define XHCI_LTC(regs) (((regs)->hccparams1 >> 6) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -504,7 +504,7 @@ supports Secondary Stream IDs. A ‘1’ in this bit indicates that Secondary St
 supported. A ‘0’ in this bit indicates that Secondary Stream ID decoding is supported. (refer to
 Sections 4.12.2 and 6.2.3).
 */
-#define XHCI_NSS(regs) ((regs->hccparams1 >> 7) & 0x1)
+#define XHCI_NSS(regs) (((regs)->hccparams1 >> 7) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -514,7 +514,7 @@ Event Data TRBs while advancing to the next TD after a Short Packet, or it skips
 Data TRB. A ‘1’ in this bit indicates that all Event Data TRBs are parsed. A ‘0’ in this bit indicates that
 only the first Event Data TRB is parsed (refer to section 4.10.1.1).
 */
-#define XHCI_PAE(regs) ((regs->hccparams1 >> 8) & 0x1)
+#define XHCI_PAE(regs) (((regs)->hccparams1 >> 8) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -523,7 +523,7 @@ Stopped - Short Packet Capability (SPC). This flag indicates that the host contr
 implementation is capable of generating a Stopped - Short Packet Completion Code. Refer to section
 4.6.9 for more information.
 */
-#define XHCI_SPC(regs) ((regs->hccparams1 >> 9) & 0x1)
+#define XHCI_SPC(regs) (((regs)->hccparams1 >> 9) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -534,7 +534,7 @@ information.
 Stopped EDTLA Capability support (that is, SEC = '1') shall be mandatory for all xHCI 1.1 and xHCI 1.2
 compliant xHCs.
 */
-#define XHCI_SEC(regs) ((regs->hccparams1 >> 10) & 0x1)
+#define XHCI_SEC(regs) (((regs)->hccparams1 >> 10) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -543,7 +543,7 @@ Contiguous Frame ID Capability (CFC). This flag indicates that the host controll
 is capable of matching the Frame ID of consecutive Isoch TDs. Refer to section 4.11.2.5 for more
 information.
 */
-#define XHCI_CFC(regs) ((regs->hccparams1 >> 11) & 0x1)
+#define XHCI_CFC(regs) (((regs)->hccparams1 >> 11) & 0x1)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -552,7 +552,7 @@ Maximum Primary Stream Array Size (MaxPSASize). This fields identifies the maxim
 Primary Stream Array that the xHC supports. The Primary Stream Array size = 2MaxPSASize+1. Valid
 MaxPSASize values are 0 to 15, where ‘0’ indicates that Streams are not supported.
 */
-#define XHCI_MAXPSASIZE(regs) ((regs->hccparams1 >> 12) & 0xF)
+#define XHCI_MAXPSASIZE(regs) (((regs)->hccparams1 >> 12) & 0xF)
 
 /*
 // xHci Spec Section 5.3.6 Table 5-13: Host Controller Capability 1 Parameters (HCCPARAMS1) (page 352)
@@ -564,7 +564,7 @@ For example, using the offset of Base is 1000h and the xECP value of 0068h, we c
 following effective address of the first extended capability:
 1000h + (0068h << 2) -> 1000h + 01A0h -> 11A0h
 */
-#define XHCI_XECP(regs) ((regs->hccparams1 >> 16) & 0xFFFF)
+#define XHCI_XECP(regs) (((regs)->hccparams1 >> 16) & 0xFFFF)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 354)
@@ -574,7 +574,8 @@ support port Suspend Complete notification. When this bit is '1', PLC shall be
 asserted on any transition of PLS to the U3 State. Refer to section 4.15.1 for more
 information.
 */
-#define XHCI_U3C(regs) ((regs->hccparams2) & 0x1)
+// ReSharper disable once CppInconsistentNaming
+#define XHCI_U3C(regs) (((regs)->hccparams2) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 354)
@@ -588,7 +589,7 @@ not be returned by a Configure Endpoint Command. This capability is enabled by t
 CME flag in the USBCMD register. Refer to sections 4.23.5.2 and 5.4.1 for more
 information.
 */
-#define XHCI_CMC(regs) ((regs->hccparams2 >> 1) & 0x1)
+#define XHCI_CMC(regs) (((regs)->hccparams2 >> 1) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 354)
@@ -599,7 +600,7 @@ operation shall save any cached Slot, Endpoint, Stream or other Context informat
 to memory. Refer to Implementation Note “FSC and Context handling by Save and
 Restore”, and sections 4.23.2 and 5.4.1 for more information.
 */
-#define XHCI_FSC(regs) ((regs->hccparams2 >> 2) & 0x1)
+#define XHCI_FSC(regs) (((regs)->hccparams2 >> 2) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 354)
@@ -611,7 +612,7 @@ substate shall be explicitly enabled software. When this bit is ‘0’, USB3 Ro
 state machine transitions to the Compliance substate are automatically enabled.
 Refer to section 4.19.1.2.4.1 for more information.
 */
-#define XHCI_CTC(regs) ((regs->hccparams2 >> 3) & 0x1)
+#define XHCI_CTC(regs) (((regs)->hccparams2 >> 3) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 355)
@@ -621,7 +622,7 @@ supports ESIT Payloads greater than 48K bytes. When this bit is ‘1’, ESIT Pa
 greater than 48K bytes are supported. When this bit is ‘0’, ESIT Payloads greater
 than 48K bytes are not supported. Refer to section 6.2.3.8 for more information
 */
-#define XHCI_LEC(regs) ((regs->hccparams2 >> 4) & 0x1)
+#define XHCI_LEC(regs) (((regs)->hccparams2 >> 4) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 355)
@@ -632,7 +633,7 @@ Value, Interface Number, and Alternate Setting fields in the Input Control Conte
 are supported. When this bit is 0, the extended Input Control Context fields are not
 supported. Refer to section 6.2.5.1 for more information.
 */
-#define XHCI_CIC(regs) ((regs->hccparams2 >> 5) & 0x1)
+#define XHCI_CIC(regs) (((regs)->hccparams2 >> 5) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 355)
@@ -642,7 +643,7 @@ Isoch TRB supports the definition of Burst Counts greater than 65535 bytes. When
 this bit is ‘1’, the Extended EBC capability is supported by the xHC. When this bit is
 ‘0’, it is not. Refer to section 4.11.2.3 for more information.
 */
-#define XHCI_ETC(regs) ((regs->hccparams2 >> 6) & 0x1)
+#define XHCI_ETC(regs) (((regs)->hccparams2 >> 6) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 355)
@@ -654,7 +655,7 @@ TBC/TRBSts field presents the TRBSts value. When this bit is ‘0’ then the ET
 values defines the TD Size/TBC field and TBC/RsvdZ field. This capability shall be
 enabled only if LEC = ‘1’ and ETC=’1’. Refer to section 4.11.2.3 for more information.
 */
-#define XHCI_ETC_TSC(regs) ((regs->hccparams2 >> 7) & 0x1)
+#define XHCI_ETC_TSC(regs) (((regs)->hccparams2 >> 7) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 355)
@@ -668,7 +669,7 @@ and the xHC does not support any of the associated Extended Capabilities.
 This bit shall only be set to ‘1’ if the xHC supports one or more extended capabilities
 that require the Get Extended Property and Set Extended Property commands.
 */
-#define XHCI_GSC(regs) ((regs->hccparams2 >> 8) & 0x1)
+#define XHCI_GSC(regs) (((regs)->hccparams2 >> 8) & 0x1)
 
 /*
 // xHci Spec Section 5.3.9 Table 5-16: Host Controller Capability Parameters 2 (HCCPARAMS2) (page 355)
@@ -678,7 +679,7 @@ Virtualization Based Trusted I/O Capability (VTC) – RO. This bit when set to
 Capability. When this bit is 0, the VTIO Capability is not supported. This capability is
 enabled by the VTIOE flag in the USBCMD register.
 */
-#define XHCI_VTC(regs) ((regs->hccparams2 >> 9) & 0x1)
+#define XHCI_VTC(regs) (((regs)->hccparams2 >> 9) & 0x1)
 
 /*
 // xHci Spec Section 5.4.7 Table 5-26: Configure Register Bit Definitions (CONFIG) (page 369)
@@ -1242,7 +1243,7 @@ Controller during status update if the associated error condition is detected.
 #define XHCI_TRB_COMPLETION_CODE_MAX_EXIT_LATENCY_ERROR 29
 
 // Helper macro to easily construct TRB command objects
-#define XHCI_CONSTRUCT_CMD_TRB(type) xhci_trb_t { .parameter = 0, .status = 0, .control = type << XHCI_TRB_TYPE_SHIFT }
+#define XHCI_CONSTRUCT_CMD_TRB(type) xhci_trb_t { .parameter = 0, .status = 0, .control = (type) << XHCI_TRB_TYPE_SHIFT }
 
 #define XHCI_LINK_TRB_TC_BIT (1 << 1)
 
@@ -1269,7 +1270,7 @@ Controller during status update if the associated error condition is detected.
 /*
 // xHci Spec Section 7.0 Table 7-1: Format of xHCI Extended Capability Pointer Register
 */
-#define XHCI_NEXT_EXT_CAP_PTR(ptr, next) (volatile uint32_t*)((char*)ptr + (next * sizeof(uint32_t)))
+#define XHCI_NEXT_EXT_CAP_PTR(ptr, next) (volatile uint32_t*)((char*)(ptr) + ((next) * sizeof(uint32_t)))
 
 /*
 // xHci Spec Section 6.2.2 Figure 6-2: Slot Context Data Structure (page 407)

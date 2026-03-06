@@ -27,7 +27,7 @@
 #include <vector.h>
 
 #include "driver_lifecycle.h"
-#include <cstdint>
+//#include <stdint.h>
 
 struct VfsNode;
 class CharDevice;
@@ -57,21 +57,21 @@ enum class DeviceClass : uint8_t {
 
 enum class ControllerType : uint8_t {
     None,
-    XHCI,
-    EHCI,
-    OHCI,
-    UHCI,
-    AHCI,
-    NVMe,
-    VirtIO,
-    PS2,
-    SMBus,
-    IntelGPU,
-    UefiGOP,
+    Xhci,
+    Ehci,
+    Ohci,
+    Uhci,
+    Ahci,
+    Nvme,
+    VirtIo,
+    Ps2,
+    SmBus,
+    IntelGpu,
+    UefiGop,
     Other,
 };
 
-enum class BusType : uint8_t { VIRTUAL, BUS_NONE, BUS_USB, BUS_TTY, BUS_I2C, BUS_SPI, BUS_PS2, BUS_PCI, BUS_MAX };
+enum class BusType : uint8_t { VIRTUAL, None, Usb, Tty, I2C, Spi, Ps2, Pci };
 
 struct KernelDevice {
     uint32_t id{};
@@ -79,7 +79,7 @@ struct KernelDevice {
     DeviceType type{DeviceType::Other};
     DeviceClass dev_class{DeviceClass::Unknown};
     ControllerType controller;
-    BusType bus_type{BusType::BUS_NONE};
+    BusType bus_type{BusType::None};
 
     VfsNode* vfs_node_parent{};
 
@@ -100,55 +100,55 @@ struct KernelDevice {
 class DeviceManager {
    public:
     static void init();
-    static char* GenerateSDDeviceName(char* buffer, size_t buffer_size);
+    static char* generate_sd_device_name(char* buffer, size_t buffer_size);
 
-    static char* GenerateNVMeDeviceName(
-        const KernelDevice* controller, char* buffer, size_t buffer_size, uint32_t namespaceId
+    static char* generate_nv_me_device_name(
+        const KernelDevice* controller, char* buffer, size_t buffer_size, uint32_t namespace_id
     );
-    static size_t FindAndRegisterPartitions(KernelDevice* physical_kd);
-    static bool AllocUniqueDeviceName(const char* base, char* outBuffer, size_t outBufferSize);
+    static size_t find_and_register_partitions(KernelDevice* physical_kd);
+    static bool alloc_unique_device_name(const char* base, char* out_buffer, size_t out_buffer_size);
 
     // legacy
-    static Vector<BlockDevice*> GetDevices();
-    static uint32_t GetDeviceCount();
+    static Vector<BlockDevice*> get_devices();
+    static uint32_t get_device_count();
 
-    static KernelDevice* RegisterBlockDevice(
+    static KernelDevice* register_block_device(
         BlockDevice* dev, const char* name, DeviceClass dev_class = DeviceClass::Storage,
-        BusType bus = BusType::BUS_NONE, ControllerType controller = ControllerType::Other,
+        BusType bus = BusType::None, ControllerType controller = ControllerType::Other,
         KernelDevice* parent = nullptr
     );
 
-    static KernelDevice* RegisterCharDevice(
+    static KernelDevice* register_char_device(
         CharDevice* dev, const char* name, DeviceClass dev_class, BusType bus,
         ControllerType controller = ControllerType::Other, KernelDevice* parent = nullptr
     );
 
-    static KernelDevice* RegisterController(
+    static KernelDevice* register_controller(
         const char* name, DeviceClass dev_class, BusType bus, ControllerType controller = ControllerType::Other,
         KernelDevice* parent = nullptr, CharDevice* dev = nullptr, IDriverLifecycle* lifecycle = nullptr
     );
-    static KernelDevice* RegisterGpuDevice(
+    static KernelDevice* register_gpu_device(
         IRenderDriver* driver, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
         KernelDevice* parent
     );
-    static void UnregisterDevice(KernelDevice* kd);
+    static void unregister_device(KernelDevice* kd);
 
-    static Vector<KernelDevice*> GetAllDevices();
-    static KernelDevice* FindById(uint32_t id);
-    static uint32_t GetKernelDeviceCount();
+    static Vector<KernelDevice*> get_all_devices();
+    static KernelDevice* find_by_id(uint32_t id);
+    static uint32_t get_kernel_device_count();
 
-    static void ShutdownAll();
-    static void SuspendAll();
-    static void ResumeAll();
+    static void shutdown_all();
+    static void suspend_all();
+    static void resume_all();
 
    private:
-    static Vector<BlockDevice*>* devices;
-    static Vector<KernelDevice*>* all_devices;
-    static uint32_t next_id;
-    static spinlock_t lock;
+    static Vector<BlockDevice*>* devices_;
+    static Vector<KernelDevice*>* all_devices_;
+    static uint32_t next_id_;
+    static Spinlock lock_;
 
-    static void ReleaseBlockLetter(char c);
-    static char GetNextFreeBlockLetter();
+    static void release_block_letter(char c);
+    static char get_next_free_block_letter();
 };
 
 #endif  // DEVICE_MANAGER_H

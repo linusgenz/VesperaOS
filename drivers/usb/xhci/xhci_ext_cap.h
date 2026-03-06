@@ -31,7 +31,7 @@ implementations. More than one may be defined for implementations that
 support more than one bus protocol. Refer to section 4.19.7 for more
 information.
 */
-struct xhci_usb_supported_protocol_capability {
+struct XhciUsbSupportedProtocolCapability {
     union {
         struct {
             uint8_t id;
@@ -69,9 +69,9 @@ struct xhci_usb_supported_protocol_capability {
         uint32_t dword3;
     };
 
-    xhci_usb_supported_protocol_capability() = default;
+    XhciUsbSupportedProtocolCapability() = default;
 
-    explicit xhci_usb_supported_protocol_capability(const volatile uint32_t *cap) {
+    explicit XhciUsbSupportedProtocolCapability(const volatile uint32_t *cap) {
         dword0 = cap[0];
         dword1 = cap[1];
         dword2 = cap[2];
@@ -79,7 +79,7 @@ struct xhci_usb_supported_protocol_capability {
     }
 };
 
-struct xhci_legacy_support_capability {
+struct XHCI_LEGACY_SUPPORT_CAPABILITY {
     union {
         struct {
             uint32_t capability_id: 8;
@@ -109,9 +109,9 @@ struct xhci_legacy_support_capability {
         uint32_t raw;
     } usblegctlsts;
 
-    xhci_legacy_support_capability() = default;
+    XHCI_LEGACY_SUPPORT_CAPABILITY() = default;
 
-    explicit xhci_legacy_support_capability(const volatile uint32_t *cap) {
+    explicit XHCI_LEGACY_SUPPORT_CAPABILITY(const volatile uint32_t *cap) {
         usblegsup.raw = cap[0];
         usblegctlsts.raw = cap[1];
     }

@@ -32,49 +32,51 @@
 #include "../scheduling/schedule_manager.h"
 #include "dev/unit_info.h"
 
-Unit UnitManager::units[MAX_UNITS];
-spinlock_t UnitManager::global_lock;
-UnitID UnitManager::next_id = 1;
-bool UnitManager::initialized = false;
+Unit UnitManager::units_[MAX_UNITS];
+Spinlock UnitManager::global_lock_;
+unit_id_t UnitManager::next_id_ = 1;
+bool UnitManager::initialized_ = false;
+
+constexpr uintptr_t USER_STACK_TOP = 0x00007FFFFFFF0000ULL;
 
 void UnitManager::initialize() {
-    global_lock.init("unit_manager_lock");
-    for (auto& unit : units) {
+    global_lock_.init("unit_manager_lock");
+    for (auto& unit : units_) {
         unit.active = false;
         unit.id = 0;
         unit.rid = 0;
         unit.next = nullptr;
     }
-    next_id = 1;
+    next_id_ = 1;
 }
 
 bool UnitManager::is_initialized() {
-    return initialized;
+    return initialized_;
 }
 
-UnitID UnitManager::allocate_id() {
-    return next_id++;
+unit_id_t UnitManager::allocate_id() {
+    return next_id_++;
 }
 
-static void* user_virt_to_hhdm(Unit* u, uintptr_t user_vaddr) {
+static void* user_virt_to_hhdm(const Unit* u, uintptr_t user_vaddr) {
     uintptr_t offset = user_vaddr - virt_raw(u->context.user_stack_virt_base);
     if (offset >= u->context.user_stack_size) return nullptr;
     return virt_ptr(virt_add(u->context.user_stack, offset));
 }
 
-static void write_user_ptr(Unit* u, uintptr_t user_addr, uintptr_t val) {
+static void write_user_ptr(const Unit* u, uintptr_t user_addr, uintptr_t val) {
     void* hhdm = user_virt_to_hhdm(u, user_addr);
     if (!hhdm) return;
     *static_cast<uintptr_t*>(hhdm) = val;
 }
 
-static void memcpy_to_user(Unit* u, void* user_dest, const void* src, size_t len) {
+static void memcpy_to_user(const Unit* u, void* user_dest, const void* src, size_t len) {
     void* hhdm = user_virt_to_hhdm(u, reinterpret_cast<uintptr_t>(user_dest));
     if (!hhdm) return;
     memcpy(hhdm, src, len);
 }
 
-uintptr_t SetupUserArgsAndEnv(Unit* u, const char** argv, const char** envp) {
+uintptr_t setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
     auto sp = virt_raw(u->context.user_stack_top);
 
     const char* argv_user[16];
@@ -135,15 +137,15 @@ uintptr_t SetupUserArgsAndEnv(Unit* u, const char** argv, const char** envp) {
     return sp;
 }
 
-Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, const UnitConfig* cfg) {
+Unit* UnitManager::create(realm_id_t realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg) {
     if (!cfg || !entry_point) return nullptr;
 
     Realm* realm = RealmManager::get(realm_id);
     if (!realm || !realm->active) return nullptr;
 
-    spinlock_guard g(global_lock);
+    SpinlockGuard g(global_lock_);
 
-    for (auto& i : units) {
+    for (auto& i : units_) {
         if (!i.active) {
             Unit* u = &i;
             memset(u, 0, sizeof(*u));
@@ -183,14 +185,13 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
                 virt_addr_t stack_hhdm = phys_to_virt(stack_phys);
                 memset(stack_hhdm, 0, user_stack_size);
 
-                constexpr uintptr_t USER_STACK_TOP = 0x00007FFFFFFF0000ULL;
                 virt_addr_t user_virt_base = virt_from_raw(USER_STACK_TOP - user_stack_size);
 
                 realm->page_table->map_range(
                     user_virt_base,
                     stack_phys,
                     user_stack_size,
-                    (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::ReadWrite) | (1ULL << PT_Flag::UserSuper)
+                    (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::UserSuper)
                 );
 
                 u->context.user_stack = stack_hhdm;
@@ -215,13 +216,13 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
             if (u->is_idle || u->is_kernel) {
                 setup_kernel_unit_stack(u);
             } else if (u->is_user) {
-                SetupUserArgsAndEnv(u, cfg->argv, cfg->envp);
+                setup_user_args_and_env(u, cfg->argv, cfg->envp);
                 setup_user_unit_stack(u);
             }
 
             if (cfg->initial_handles && cfg->initial_handle_count > 0) {
                 for (uint64_t j = 0; j < cfg->initial_handle_count; ++j) {
-                    HandleID h = cfg->initial_handles[j];
+                    handle_id_t h = cfg->initial_handles[j];
                     if (const handle_entry_t* he = realm->lookup_handle(h); !he) continue;
                     u->attach_handle(h);
                     realm->acquire_handle(h);
@@ -232,13 +233,13 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
                 kernel::scheduling::add_unit(u);
             }
 
-            spinlock_guard rg(realm->lock);
+            SpinlockGuard rg(realm->lock);
             u->realm_next = realm->unit_list;
             realm->unit_list = u;
             realm->unit_count++;
 
             SYS_EVENT_UNIT_CREATED(u->id, u->rid);
-            RealmFS::register_unit(u->id, u->name, u, realm->name);
+            RealmFs::register_unit(u->id, u->name, u, realm->name);
             return u;
         }
     }
@@ -246,25 +247,25 @@ Unit* UnitManager::create(RealmID realm_id, UnitEntry entry_point, void* arg, co
     return nullptr;
 }
 
-Unit* UnitManager::get(const UnitID id) {
-    spinlock_guard g(global_lock);
-    for (auto& unit : units) {
+Unit* UnitManager::get(const unit_id_t id) {
+    SpinlockGuard g(global_lock_);
+    for (auto& unit : units_) {
         if (unit.active && unit.id == id) return &unit;
     }
     return nullptr;
 }
 
-bool UnitManager::destroy(const UnitID id) {
-    spinlock_guard g(global_lock);
+bool UnitManager::destroy(const unit_id_t id) {
+    SpinlockGuard g(global_lock_);
 
-    for (auto& i : units) {
+    for (auto& i : units_) {
         if (i.active && i.id == id) {
             Unit* u = &i;
             kernel::scheduling::remove_unit(u);
 
             Realm* r = RealmManager::get(u->rid);
             if (r) {
-                spinlock_guard rg(r->lock);
+                SpinlockGuard rg(r->lock);
                 Unit** prev = &r->unit_list;
                 while (*prev) {
                     if (*prev == u) {
@@ -292,7 +293,7 @@ bool UnitManager::destroy(const UnitID id) {
             }
 
             SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
-            RealmFS::unregister_unit(id);
+            RealmFs::unregister_unit(id);
 
             if (r && r->unit_count == 0) RealmManager::destroy(r->id);
 
@@ -307,13 +308,13 @@ bool UnitManager::destroy(const UnitID id) {
 }
 
 void UnitManager::list() {
-    spinlock_guard g(global_lock);
-    for (const auto& unit : units) {
-        if (unit.active) Log::PrintLn("Unit %u (Realm %u): name=%s", unit.id, unit.rid, unit.name);
+    SpinlockGuard g(global_lock_);
+    for (const auto& unit : units_) {
+        if (unit.active) Log::print_ln("Unit %u (Realm %u): name=%s", unit.id, unit.rid, unit.name);
     }
 }
 
-ssize_t UnitManager::get_status(void* manager_ref, void* buffer, size_t size, size_t offset) {
+ssize_t UnitManager::get_status(void* manager_ref, void* buffer, size_t size, size_t) {
     if (!manager_ref || !buffer || size < sizeof(unit_info_t)) return -EINVAL;
 
     const auto u = static_cast<Unit*>(manager_ref);

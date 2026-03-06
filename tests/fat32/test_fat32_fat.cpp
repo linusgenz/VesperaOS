@@ -35,13 +35,13 @@
 
 TEST(FAT32_FAT, GetEntryReservedClusters, "Clusters 0 and 1 are reserved; GetFATEntry returns EOF") {
     WITH_FAT32(f);
-    ASSERT_EQ(static_cast<uint32_t>(0x0FFFFFFF), f.fs->GetFATEntry(0));
-    ASSERT_EQ(static_cast<uint32_t>(0x0FFFFFFF), f.fs->GetFATEntry(1));
+    ASSERT_EQ(static_cast<uint32_t>(0x0FFFFFFF), f.fs->get_fat_entry(0));
+    ASSERT_EQ(static_cast<uint32_t>(0x0FFFFFFF), f.fs->get_fat_entry(1));
 }
 
 TEST(FAT32_FAT, GetEntryOutOfRange, "Cluster number beyond clusterCount returns EOF") {
     WITH_FAT32(f);
-    ASSERT_EQ(static_cast<uint32_t>(0x0FFFFFFF), f.fs->GetFATEntry(0x0FFFFF00));
+    ASSERT_EQ(static_cast<uint32_t>(0x0FFFFFFF), f.fs->get_fat_entry(0x0FFFFF00));
 }
 
 // =============================================================================
@@ -51,19 +51,19 @@ TEST(FAT32_FAT, GetEntryOutOfRange, "Cluster number beyond clusterCount returns 
 TEST(FAT32_FAT, WriteAndReadBack, "Written FAT entry can be read back correctly") {
     WITH_FAT32(f);
 
-    uint32_t c1 = f.fs->FindFreeCluster();
+    uint32_t c1 = f.fs->find_free_cluster();
     ASSERT_NE(static_cast<uint32_t>(0), c1);
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);  // mark allocated
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);  // mark allocated
 
-    uint32_t c2 = f.fs->FindFreeCluster();
+    uint32_t c2 = f.fs->find_free_cluster();
     ASSERT_NE(static_cast<uint32_t>(0), c2);
     ASSERT_NE(c1, c2);
 
-    ASSERT_TRUE(f.fs->WriteFATEntry(c1, c2));
-    ASSERT_EQ(c2, f.fs->GetFATEntry(c1) & 0x0FFFFFFF);
+    ASSERT_TRUE(f.fs->write_fat_entry(c1, c2));
+    ASSERT_EQ(c2, f.fs->get_fat_entry(c1) & 0x0FFFFFFF);
 
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
 }
 
 TEST(FAT32_FAT, FreeCountUpdatedAfterDelete, "Free cluster count increases after a file is deleted") {
@@ -72,10 +72,10 @@ TEST(FAT32_FAT, FreeCountUpdatedAfterDelete, "Free cluster count increases after
     auto node = f.create_file("COUNTTEST.TXT");
     ASSERT_TRUE(f.write(node, "X", 1));
 
-    uint32_t before = f.fs->GetFreeClusterCount();
+    uint32_t before = f.fs->get_free_cluster_count();
     Fat32Node parent = f.root_node();
-    f.fs->DeleteFile(&parent, "COUNTTEST.TXT");
-    uint32_t after = f.fs->GetFreeClusterCount();
+    f.fs->delete_file(&parent, "COUNTTEST.TXT");
+    uint32_t after = f.fs->get_free_cluster_count();
 
     ASSERT_GE(after, before);
 }
@@ -86,23 +86,23 @@ TEST(FAT32_FAT, FreeCountUpdatedAfterDelete, "Free cluster count increases after
 
 TEST(FAT32_FAT, FindFreeClusterValid, "FindFreeCluster returns a valid cluster number >= 2") {
     WITH_FAT32(f);
-    uint32_t c = f.fs->FindFreeCluster();
+    uint32_t c = f.fs->find_free_cluster();
     ASSERT_NE(static_cast<uint32_t>(0), c);
     ASSERT_GE(c, static_cast<uint32_t>(2));
 }
 
 TEST(FAT32_FAT, FindFreeClusterDistinct, "Two consecutive FindFreeCluster calls return different clusters") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
+    uint32_t c1 = f.fs->find_free_cluster();
     ASSERT_NE(static_cast<uint32_t>(0), c1);
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
 
-    uint32_t c2 = f.fs->FindFreeCluster();
+    uint32_t c2 = f.fs->find_free_cluster();
     ASSERT_NE(static_cast<uint32_t>(0), c2);
     ASSERT_NE(c1, c2);
 
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
 }
 
 // =============================================================================
@@ -111,49 +111,49 @@ TEST(FAT32_FAT, FindFreeClusterDistinct, "Two consecutive FindFreeCluster calls 
 
 TEST(FAT32_FAT, NextClusterEOF, "NextCluster on an EOF cluster returns 0") {
     WITH_FAT32(f);
-    uint32_t c = f.fs->FindFreeCluster();
+    uint32_t c = f.fs->find_free_cluster();
     ASSERT_NE(static_cast<uint32_t>(0), c);
-    f.fs->WriteFATEntry(c, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c, 0x0FFFFFFF);
 
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->NextCluster(c));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->next_cluster(c));
 
-    f.fs->WriteFATEntry(c, 0);
+    f.fs->write_fat_entry(c, 0);
 }
 
 TEST(FAT32_FAT, NextClusterFree, "NextCluster on a free cluster (value 0) returns 0") {
     WITH_FAT32(f);
-    uint32_t c = f.fs->FindFreeCluster();
+    uint32_t c = f.fs->find_free_cluster();
     // cluster is free, do not allocate it
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->NextCluster(c));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->next_cluster(c));
 }
 
 TEST(FAT32_FAT, NextClusterChain, "NextCluster traverses a manually built three-cluster chain") {
     WITH_FAT32(f);
 
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    uint32_t c3 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c3, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
-    f.fs->WriteFATEntry(c2, c3);
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    uint32_t c3 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c3, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
+    f.fs->write_fat_entry(c2, c3);
     // c3 -> EOF
 
-    ASSERT_EQ(c2, f.fs->NextCluster(c1));
-    ASSERT_EQ(c3, f.fs->NextCluster(c2));
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->NextCluster(c3));
+    ASSERT_EQ(c2, f.fs->next_cluster(c1));
+    ASSERT_EQ(c3, f.fs->next_cluster(c2));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->next_cluster(c3));
 
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
-    f.fs->WriteFATEntry(c3, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
+    f.fs->write_fat_entry(c3, 0);
 }
 
 TEST(FAT32_FAT, NextClusterInvalidInputs, "NextCluster returns 0 for cluster 0, 1, and 0x0FFFFFFF") {
     WITH_FAT32(f);
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->NextCluster(0));
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->NextCluster(1));
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->NextCluster(0x0FFFFFFF));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->next_cluster(0));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->next_cluster(1));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->next_cluster(0x0FFFFFFF));
 }
 
 // =============================================================================
@@ -162,32 +162,32 @@ TEST(FAT32_FAT, NextClusterInvalidInputs, "NextCluster returns 0 for cluster 0, 
 
 TEST(FAT32_FAT, GetChainSingleCluster, "GetClusterChain on a one-cluster file returns a one-element array") {
     WITH_FAT32(f);
-    uint32_t c = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c, 0x0FFFFFFF);
+    uint32_t c = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c, 0x0FFFFFFF);
 
     size_t count = 0;
-    uint32_t* chain = f.fs->GetClusterChain(c, count);
+    uint32_t* chain = f.fs->get_cluster_chain(c, count);
     ASSERT_NOT_NULL(chain);
     ASSERT_EQ(static_cast<size_t>(1), count);
     ASSERT_EQ(c, chain[0]);
 
     kernel::memory::free(chain);
-    f.fs->WriteFATEntry(c, 0);
+    f.fs->write_fat_entry(c, 0);
 }
 
 TEST(FAT32_FAT, GetChainThreeClusters, "GetClusterChain returns all three clusters in order") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    uint32_t c3 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c3, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
-    f.fs->WriteFATEntry(c2, c3);
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    uint32_t c3 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c3, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
+    f.fs->write_fat_entry(c2, c3);
 
     size_t count = 0;
-    uint32_t* chain = f.fs->GetClusterChain(c1, count);
+    uint32_t* chain = f.fs->get_cluster_chain(c1, count);
     ASSERT_NOT_NULL(chain);
     ASSERT_EQ(static_cast<size_t>(3), count);
     ASSERT_EQ(c1, chain[0]);
@@ -195,34 +195,34 @@ TEST(FAT32_FAT, GetChainThreeClusters, "GetClusterChain returns all three cluste
     ASSERT_EQ(c3, chain[2]);
 
     kernel::memory::free(chain);
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
-    f.fs->WriteFATEntry(c3, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
+    f.fs->write_fat_entry(c3, 0);
 }
 
 TEST(FAT32_FAT, GetChainInvalidCluster, "GetClusterChain returns nullptr for clusters 0, 1, and EOF") {
     WITH_FAT32(f);
     size_t count = 0;
-    ASSERT_NULL(f.fs->GetClusterChain(0, count));
-    ASSERT_NULL(f.fs->GetClusterChain(1, count));
-    ASSERT_NULL(f.fs->GetClusterChain(0x0FFFFFFF, count));
+    ASSERT_NULL(f.fs->get_cluster_chain(0, count));
+    ASSERT_NULL(f.fs->get_cluster_chain(1, count));
+    ASSERT_NULL(f.fs->get_cluster_chain(0x0FFFFFFF, count));
 }
 
 TEST(FAT32_FAT, GetChainLoopDetected, "GetClusterChain returns nullptr when a FAT loop is present") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
-    f.fs->WriteFATEntry(c2, c1);  // loop: c2 -> c1
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
+    f.fs->write_fat_entry(c2, c1);  // loop: c2 -> c1
 
     size_t count = 0;
-    uint32_t* chain = f.fs->GetClusterChain(c1, count);
+    uint32_t* chain = f.fs->get_cluster_chain(c1, count);
     ASSERT_NULL(chain);
 
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
 }
 
 // =============================================================================
@@ -231,45 +231,45 @@ TEST(FAT32_FAT, GetChainLoopDetected, "GetClusterChain returns nullptr when a FA
 
 TEST(FAT32_FAT, HasLoopNormalChain, "HasFATLoop returns false for a normal chain") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
 
-    ASSERT_FALSE(f.fs->HasFATLoop(c1));
+    ASSERT_FALSE(f.fs->has_fat_loop(c1));
 
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
 }
 
 TEST(FAT32_FAT, HasLoopSelfReference, "HasFATLoop detects a self-referencing cluster (c -> c)") {
     WITH_FAT32(f);
-    uint32_t c = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c, c);  // self-loop
+    uint32_t c = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c, c);  // self-loop
 
-    ASSERT_TRUE(f.fs->HasFATLoop(c));
+    ASSERT_TRUE(f.fs->has_fat_loop(c));
 
-    f.fs->WriteFATEntry(c, 0);
+    f.fs->write_fat_entry(c, 0);
 }
 
 TEST(FAT32_FAT, HasLoopAtEnd, "HasFATLoop detects a loop at the end of a chain") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    uint32_t c3 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c3, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
-    f.fs->WriteFATEntry(c2, c3);
-    f.fs->WriteFATEntry(c3, c2);  // loop: c3 -> c2
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    uint32_t c3 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c3, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
+    f.fs->write_fat_entry(c2, c3);
+    f.fs->write_fat_entry(c3, c2);  // loop: c3 -> c2
 
-    ASSERT_TRUE(f.fs->HasFATLoop(c1));
+    ASSERT_TRUE(f.fs->has_fat_loop(c1));
 
-    f.fs->WriteFATEntry(c1, 0);
-    f.fs->WriteFATEntry(c2, 0);
-    f.fs->WriteFATEntry(c3, 0);
+    f.fs->write_fat_entry(c1, 0);
+    f.fs->write_fat_entry(c2, 0);
+    f.fs->write_fat_entry(c3, 0);
 }
 
 // =============================================================================
@@ -278,40 +278,40 @@ TEST(FAT32_FAT, HasLoopAtEnd, "HasFATLoop detects a loop at the end of a chain")
 
 TEST(FAT32_FAT, FreeChainZerosAllEntries, "FreeClusterChain sets all FAT entries in the chain to 0") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    uint32_t c3 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c3, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
-    f.fs->WriteFATEntry(c2, c3);
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    uint32_t c3 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c3, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
+    f.fs->write_fat_entry(c2, c3);
 
-    ASSERT_TRUE(f.fs->FreeClusterChain(c1));
+    ASSERT_TRUE(f.fs->free_cluster_chain(c1));
 
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->GetFATEntry(c1));
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->GetFATEntry(c2));
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->GetFATEntry(c3));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->get_fat_entry(c1));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->get_fat_entry(c2));
+    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->get_fat_entry(c3));
 }
 
 TEST(FAT32_FAT, FreeChainInvalidStartReturnsFalse, "FreeClusterChain returns false for clusters 0 and 1") {
     WITH_FAT32(f);
-    ASSERT_FALSE(f.fs->FreeClusterChain(0));
-    ASSERT_FALSE(f.fs->FreeClusterChain(1));
+    ASSERT_FALSE(f.fs->free_cluster_chain(0));
+    ASSERT_FALSE(f.fs->free_cluster_chain(1));
 }
 
 TEST(FAT32_FAT, FreeChainIncreasesCounter, "FreeClusterChain increases the free cluster count") {
     WITH_FAT32(f);
-    uint32_t c1 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c1, 0x0FFFFFFF);
-    uint32_t c2 = f.fs->FindFreeCluster();
-    f.fs->WriteFATEntry(c2, 0x0FFFFFFF);
-    f.fs->WriteFATEntry(c1, c2);
+    uint32_t c1 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c1, 0x0FFFFFFF);
+    uint32_t c2 = f.fs->find_free_cluster();
+    f.fs->write_fat_entry(c2, 0x0FFFFFFF);
+    f.fs->write_fat_entry(c1, c2);
 
-    uint32_t before = f.fs->GetFreeClusterCount();
+    uint32_t before = f.fs->get_free_cluster_count();
     if (before == 0xFFFFFFFF) return;  // count unknown — skip
 
-    f.fs->FreeClusterChain(c1);
+    f.fs->free_cluster_chain(c1);
 
-    ASSERT_GE(f.fs->GetFreeClusterCount(), before + 2);
+    ASSERT_GE(f.fs->get_free_cluster_count(), before + 2);
 }

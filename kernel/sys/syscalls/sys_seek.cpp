@@ -29,7 +29,7 @@
 
 namespace syscalls::internal {
     int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        HandleID hid = arg0;
+        handle_id_t hid = arg0;
         int64_t offset = static_cast<int64_t>(arg1);
         int whence = static_cast<int>(arg2);
 

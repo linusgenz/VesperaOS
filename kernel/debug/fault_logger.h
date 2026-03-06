@@ -12,7 +12,7 @@
 #ifndef VESPERAOS_FAULT_LOGGER_H
 #define VESPERAOS_FAULT_LOGGER_H
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace kernel::debug {
 

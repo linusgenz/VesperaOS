@@ -4,9 +4,9 @@
 
 #ifndef ACPI_H
 #define ACPI_H
-#include <cstdint>
+#include <stdint.h>
 
-namespace ACPI {
+namespace acpi {
     struct RSDP2 {
         unsigned char signature[8];
         uint8_t checksum;
@@ -19,7 +19,7 @@ namespace ACPI {
         uint8_t reserved[3];
     } __attribute__((packed));
 
-    struct SDTHeader {
+    struct SDT_HEADER {
         unsigned char signature[4];
         uint32_t length;
         uint8_t revision;
@@ -31,8 +31,8 @@ namespace ACPI {
         uint32_t creator_revision;
     } __attribute__((packed));
 
-    struct MCFGHeader {
-        SDTHeader header;
+    struct MCFG_HEADER {
+        SDT_HEADER header;
         uint64_t reserved;
     } __attribute__((packed));
 
@@ -44,36 +44,36 @@ namespace ACPI {
         uint32_t reserved;
     } __attribute__((packed));
 
-    struct MADTHeader {
-        SDTHeader header;  // ACPI Standard Header (signature = "APIC")
+    struct MADT_HEADER {
+        SDT_HEADER header;  // ACPI Standard Header (signature = "APIC")
         uint32_t lapic_address;
         uint32_t flags;  // Bit 0 = PCAT_COMPAT (Legacy PICs installed)
     } __attribute__((packed));
 
-    enum class MADTEntryType : uint8_t {
+    enum class MADT_ENTRY_TYPE : uint8_t {
         LOCAL_APIC = 0,
         IO_APIC = 1,
         INTERRUPT_OVERRIDE = 2,
         NMI_SOURCE = 3,
         LOCAL_APIC_NMI = 4,
         LOCAL_APIC_OVERRIDE = 5,
-        X2APIC = 9
+        X2_APIC = 9
     };
 
-    struct MADTEntryHeader {
+    struct MADT_ENTRY_HEADER {
         uint8_t type;
         uint8_t length;
     } __attribute__((packed));
 
-    struct LocalAPICEntry {
-        MADTEntryHeader header;
+    struct LOCAL_APIC_ENTRY {
+        MADT_ENTRY_HEADER header;
         uint8_t acpi_processor_id;
         uint8_t apic_id;
         uint32_t flags;
     } __attribute__((packed));
 
-    struct IOAPICEntry {
-        MADTEntryHeader header;
+    struct IOAPIC_ENTRY {
+        MADT_ENTRY_HEADER header;
         uint8_t ioapic_id;
         uint8_t reserved;
         uint32_t ioapic_address;
@@ -81,43 +81,35 @@ namespace ACPI {
     } __attribute__((packed));
 
     struct InterruptOverrideEntry {
-        MADTEntryHeader header;
+        MADT_ENTRY_HEADER header;
         uint8_t bus;
         uint8_t irq_source;
         uint32_t gsi;
         uint16_t flags;
     } __attribute__((packed));
 
-    struct LAPICNMIEntry {
-        MADTEntryHeader header;
+    struct LAPICNMI_ENTRY {
+        MADT_ENTRY_HEADER header;
         uint8_t acpi_processor_id;
         uint16_t flags;
         uint8_t lint;
     } __attribute__((packed));
 
-    struct LAPICOverrideEntry {
-        MADTEntryHeader header;
+    struct LAPIC_OVERRIDE_ENTRY {
+        MADT_ENTRY_HEADER header;
         uint16_t reserved;
         uint64_t lapic_address;
     } __attribute__((packed));
 
-    struct X2APICEntry {
-        MADTEntryHeader header;
+    struct X2_APIC_ENTRY {
+        MADT_ENTRY_HEADER header;
         uint16_t reserved;
-        uint32_t x2apic_id;
+        uint32_t x2_apic_id;
         uint32_t flags;
         uint32_t acpi_id;
     } __attribute__((packed));
 
-    struct GenericAddressStructure {
-        uint8_t AddressSpace;
-        uint8_t BitWidth;
-        uint8_t BitOffset;
-        uint8_t AccessSize;
-        uint64_t Address;
-    };
-
-    struct generic_address_structure {
+    struct GENERIC_ADDRESS_STRUCTURE {
         uint8_t address_space;
         uint8_t bit_width;
         uint8_t bit_offset;
@@ -126,7 +118,7 @@ namespace ACPI {
     } __attribute__((packed));
 
     struct FADT {
-        SDTHeader header;
+        SDT_HEADER header;
         uint32_t firmware_ctrl;
         uint32_t dsdt;
 
@@ -137,13 +129,13 @@ namespace ACPI {
         uint32_t smi_command_port;
         uint8_t acpi_enable;
         uint8_t acpi_disable;
-        uint8_t s4bios_req;
+        uint8_t s4_bios_req;
         uint8_t pstate_control;
 
-        uint32_t pm1a_event_block;
-        uint32_t pm1b_event_block;
-        uint32_t pm1a_control_block;
-        uint32_t pm1b_control_block;
+        uint32_t pm1_a_event_block;
+        uint32_t pm1_b_event_block;
+        uint32_t pm1_a_control_block;
+        uint32_t pm1_b_control_block;
         uint32_t pm2_control_block;
         uint32_t pm_timer_block;
         uint32_t gpe0_block;
@@ -173,24 +165,24 @@ namespace ACPI {
         uint8_t reserved2;
         uint32_t flags;
 
-        generic_address_structure reset_reg;
+        GENERIC_ADDRESS_STRUCTURE reset_reg;
         uint8_t reset_value;
         uint8_t reserved3[3];
 
         uint64_t x_firmware_ctrl;
         uint64_t x_dsdt;
 
-        generic_address_structure x_pm1a_event_block;
-        generic_address_structure x_pm1b_event_block;
-        generic_address_structure x_pm1a_control_block;
-        generic_address_structure x_pm1b_control_block;
-        generic_address_structure x_pm2_control_block;
-        generic_address_structure x_pm_timer_block;
-        generic_address_structure x_gpe0_block;
-        generic_address_structure x_gpe1_block;
+        GENERIC_ADDRESS_STRUCTURE x_pm1_a_event_block;
+        GENERIC_ADDRESS_STRUCTURE x_pm1_b_event_block;
+        GENERIC_ADDRESS_STRUCTURE x_pm1_a_control_block;
+        GENERIC_ADDRESS_STRUCTURE x_pm1_b_control_block;
+        GENERIC_ADDRESS_STRUCTURE x_pm2_control_block;
+        GENERIC_ADDRESS_STRUCTURE x_pm_timer_block;
+        GENERIC_ADDRESS_STRUCTURE x_gpe0_block;
+        GENERIC_ADDRESS_STRUCTURE x_gpe1_block;
     } __attribute__((packed));
 
-    void* find_table(SDTHeader* sdt_header, char* signature);
+    void* find_table(SDT_HEADER* sdt_header, char* signature);
 
     void acpi_reboot();
     void acpi_power_off();

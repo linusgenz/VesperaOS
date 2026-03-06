@@ -115,8 +115,8 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
 
     size_t added = 0;
     for (int i = 0; i < 4 && added < max_entries; ++i) {
-        constexpr int MBR_PART_OFF = 446;
-        const uint8_t *e = sector + MBR_PART_OFF + i * 16;
+        constexpr int mbr_part_off = 446;
+        const uint8_t *e = sector + mbr_part_off + i * 16;
         uint8_t type = e[4];
         uint32_t start = rd32(e + 8);
         uint32_t len   = rd32(e + 12);

@@ -36,9 +36,9 @@ class Unit;
 
 class Realm {
 public:
-    RealmID id;
+    realm_id_t id;
     const char *name;
-    CapabilitySet capabilities;
+    capability_set_t capabilities;
     uint64_t memory_limit;
     uint64_t max_units;
     uint64_t unit_count;
@@ -51,34 +51,34 @@ public:
 
     Unit *unit_list;
 
-    wait_queue_t wait_queue;
+    WaitQueue wait_queue;
 
     handle_table_t handle_table;
 
-    spinlock_t lock;
+    Spinlock lock;
     bool active;
     uint8_t sched_priority;
     uint64_t cpu_time_accumulated;
 
     Realm();
 
-    ErrorCode init_handle_table();
+    error_code_t init_handle_table();
 
-    ErrorCode add_handle(uint64_t type, void *resource,
-                         CapabilitySet caps, bool transferable,
-                         void (*destroy)(void *), HandleID *out_h);
+    error_code_t add_handle(uint64_t type, void *resource,
+                         capability_set_t caps, bool transferable,
+                         void (*destroy)(void *), handle_id_t *out_h);
 
-    ErrorCode add_handle_with_id(HandleID fixed_id, uint64_t type, void *resource,
-                                 CapabilitySet caps, bool transferable,
+    error_code_t add_handle_with_id(handle_id_t fixed_id, uint64_t type, void *resource,
+                                 capability_set_t caps, bool transferable,
                                  void (*destroy)(void *));
 
-    ErrorCode setup_standard_handles(TTYDevice *tty_dev);
+    error_code_t setup_standard_handles(TtyDevice *tty_dev);
 
-    handle_entry_t* lookup_handle(HandleID hid);
+    handle_entry_t* lookup_handle(handle_id_t hid);
 
-    void acquire_handle(HandleID hid);
+    void acquire_handle(handle_id_t hid);
 
-    void release_handle(HandleID hid);
+    void release_handle(handle_id_t hid);
 
     void clear_handle_table();
 

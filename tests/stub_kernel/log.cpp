@@ -38,10 +38,10 @@ static void vprint(const char* fmt, std::va_list args) {
         printf("\n");                      \
     }
 
-DEFINE_LOG_FN(Info)
-DEFINE_LOG_FN(Ok)
-DEFINE_LOG_FN(Warning)
-DEFINE_LOG_FN(Error)
+DEFINE_LOG_FN(info)
+DEFINE_LOG_FN(ok)
+DEFINE_LOG_FN(warning)
+DEFINE_LOG_FN(error)
 DEFINE_LOG_FN(debug)
-DEFINE_LOG_FN(Print)
-DEFINE_LOG_FN(PrintLn)
+DEFINE_LOG_FN(print)
+DEFINE_LOG_FN(print_ln)

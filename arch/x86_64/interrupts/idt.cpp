@@ -7,13 +7,13 @@
 #include "interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::idt {
-    void IDTDescEntry::set_offset(uint64_t offset) {
+    void IDT_DESC_ENTRY::set_offset(uint64_t offset) {
         offset0 = static_cast<uint16_t>(offset & 0x000000000000ffff);
         offset1 = static_cast<uint16_t>((offset & 0x00000000ffff0000) >> 16);
         offset2 = static_cast<uint32_t>((offset & 0xffffffff00000000) >> 32);
     }
 
-    uint64_t IDTDescEntry::get_offset() const {
+    uint64_t IDT_DESC_ENTRY::get_offset() const {
         uint64_t offset = 0;
         offset |= static_cast<uint64_t>(offset0);
         offset |= static_cast<uint64_t>(offset1) << 16;
@@ -21,8 +21,8 @@ namespace arch::x86_64::interrupts::idt {
         return offset;
     }
 
-    void set_idt_gate(ISRHandler handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector) {
-        auto* interrupt = reinterpret_cast<IDTDescEntry*>(idtr.offset + entry_offset * sizeof(IDTDescEntry));
+    void set_idt_gate(isr_handler_t handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector) {
+        auto* interrupt = reinterpret_cast<IDT_DESC_ENTRY*>(idtr.offset + entry_offset * sizeof(IDT_DESC_ENTRY));
         interrupt->set_offset(reinterpret_cast<uint64_t>(handler));
         interrupt->selector = selector;
         interrupt->ist = 0;
@@ -79,27 +79,25 @@ namespace arch::x86_64::interrupts::idt {
         irq_handler_table[vec].free = true;
     }
 
-    extern "C" ISRHandler irq_stub_table[];  // irq_stub.asm
+    extern "C" isr_handler_t irq_stub_table[];  // irq_stub.asm
     bool allocate_vector(uint8_t vector, const irq_handler_t handler, void* cookie) {
         irq_handler_table[vector].handler = handler;
         irq_handler_table[vector].cookie = cookie;
 
-        ISRHandler stub = irq_stub_table[vector];
+        isr_handler_t stub = irq_stub_table[vector];
 
-        set_idt_gate(stub, vector, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate(stub, vector, IDT_TA_INTERRUPT_GATE, 0x08);
 
         return true;
     }
 
     extern "C" void irq_common_stub_handler(uint8_t irqno) {
-        if (const irq_desc& desc = irq_handler_table[irqno]; desc.handler) {
+        if (const IrqDesc& desc = irq_handler_table[irqno]; desc.handler) {
             desc.handler(desc.cookie);
         }
 
         apic::send_eoi();
     }
-
-    extern "C" void irq_stub_0x30();
 
     void load_default_idt() {
         virt_addr_t idt_virt = kernel::memory::request_page();
@@ -110,20 +108,20 @@ namespace arch::x86_64::interrupts::idt {
         idtr.offset = virt_raw(idt_virt);
 
         // Standard Exception Handlers
-        set_idt_gate(isr_divide_error, 0x00, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_invalid_opcode, 0x06, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_double_fault, 0x08, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_segment_not_present, 0x0B, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_stack_fault, 0x0C, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_gp_fault, 0x0D, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_page_fault, 0x0E, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_machine_check, 0x12, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate(isr_divide_error, 0x00, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_invalid_opcode, 0x06, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_double_fault, 0x08, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_segment_not_present, 0x0B, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_stack_fault, 0x0C, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_gp_fault, 0x0D, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_page_fault, 0x0E, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_machine_check, 0x12, IDT_TA_INTERRUPT_GATE, 0x08);
 
-        set_idt_gate(isr_keyboard_int, 0x21, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_mouse_int, 0x22, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_apic_timer_int, IRQ_TIMER, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_spurious_int, IRQ_SPURIOUS, IDT_TA_InterruptGate, 0x08);
-        set_idt_gate(isr_panic_ipi, IRQ_PANIC, IDT_TA_InterruptGate, 0x08);
+        set_idt_gate(isr_keyboard_int, 0x21, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_mouse_int, 0x22, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_apic_timer_int, IRQ_TIMER, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_spurious_int, IRQ_SPURIOUS, IDT_TA_INTERRUPT_GATE, 0x08);
+        set_idt_gate(isr_panic_ipi, IRQ_PANIC, IDT_TA_INTERRUPT_GATE, 0x08);
 
         Log::debug("Loading IDT: %x page-offset: %p", idtr, idt_virt);
         asm("lidt %0" : : "m"(idtr));

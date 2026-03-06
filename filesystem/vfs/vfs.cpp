@@ -34,18 +34,17 @@
 #include <kernel/realm/realm_manager.h>
 #include <log.h>
 
-Vector<MountPoint*>* VFS::mount_points = nullptr;
-spinlock_t VFS::mount_points_lock;
-
+Vector<MountPoint*>* VFS::mount_points_ = nullptr;
+Spinlock VFS::mount_points_lock_;
 
 void VFS::init()
 {
-    mount_points = new Vector<MountPoint*>();
-    mount_points_lock.init("mount_points_lock");
+    mount_points_ = new Vector<MountPoint*>();
+    mount_points_lock_.init("mount_points_lock");
 
-    FilesystemDetector::Init();
+    FilesystemDetector::init();
 
-    FilesystemDetector::RegisterAllDrivers();
+    FilesystemDetector::register_all_drivers();
 
     // FilesystemDetector::ScanAndMountAll();
 
@@ -63,8 +62,8 @@ VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path)
     mp->root = root;
 
     {
-        spinlock_guard g(mount_points_lock);
-        mount_points->push_back(mp);
+        SpinlockGuard g(mount_points_lock_);
+        mount_points_->push_back(mp);
     }
 
     return root;
@@ -79,7 +78,7 @@ VfsNode* VFS::open(const char* path)
     // Relativer Pfad → prepend current_dir
     if (path[0] != '/')
     {
-        const RealmID rid = kernel::scheduling::get_current_unit()->rid;
+        const realm_id_t rid = kernel::scheduling::get_current_unit()->rid;
         const Realm* realm = RealmManager::get(rid);
         if (const char* cwd = realm->cwd_path; strcmp(cwd, "/") == 0)
             snprintf(abs_path, sizeof(abs_path), "/%s", path);
@@ -94,8 +93,8 @@ VfsNode* VFS::open(const char* path)
     size_t best_len = 0;
 
     {
-        spinlock_guard g(mount_points_lock);
-        for (const auto& mp : *mount_points)
+        SpinlockGuard g(mount_points_lock_);
+        for (const auto& mp : *mount_points_)
         {
             if (const size_t len = strlen(mp->path); strncmp(path, mp->path, len) == 0 &&
                 (strcmp(mp->path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
@@ -183,7 +182,7 @@ int VFS::create(const char* path)
 {
     if (!path) return -EINVAL;
 
-    VfsNode* parent;
+    VfsNode* parent = nullptr;
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
@@ -198,37 +197,37 @@ int VFS::create(const char* path)
     return result;
 }
 
-int VFS::rename(const char* oldPath, const char* newPath)
+int VFS::rename(const char* old_path, const char* new_path)
 {
-    if (!oldPath || !newPath) return -EINVAL;
+    if (!old_path || !new_path) return -EINVAL;
 
-    VfsNode *oldParent, *newParent;
-    char oldName[64], newName[64];
+    VfsNode *old_parent = nullptr, *new_parent = nullptr;
+    char old_name[64], new_name[64];
 
-    if (!resolve_parent(oldPath, &oldParent, oldName)) return -ENOENT;
-    if (!resolve_parent(newPath, &newParent, newName))
+    if (!resolve_parent(old_path, &old_parent, old_name)) return -ENOENT;
+    if (!resolve_parent(new_path, &new_parent, new_name))
     {
-        close(oldParent);
+        close(old_parent);
         return -ENOENT;
     }
 
-    if (oldParent != newParent)
+    if (old_parent != new_parent)
     {
-        close(oldParent);
-        close(newParent);
+        close(old_parent);
+        close(new_parent);
         return -EXDEV;
     }
 
-    if (!oldParent->ops || !oldParent->ops->rename)
+    if (!old_parent->ops || !old_parent->ops->rename)
     {
-        close(oldParent);
-        close(newParent);
+        close(old_parent);
+        close(new_parent);
         return -ENOSYS;
     }
 
-    int status = oldParent->ops->rename(oldParent, oldName, newName);
-    close(oldParent);
-    close(newParent);
+    int status = old_parent->ops->rename(old_parent, old_name, new_name);
+    close(old_parent);
+    close(new_parent);
     return status;
 }
 
@@ -236,7 +235,7 @@ int VFS::mkdir(const char* path)
 {
     if (!path) return -EINVAL;
 
-    VfsNode* parent;
+    VfsNode* parent = nullptr;
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
@@ -256,14 +255,14 @@ int VFS::rmdir(const char* path)
     if (!path) return -EINVAL;
 
     {
-        spinlock_guard guard(mount_points_lock);
-        for (const auto& mp : *mount_points)
+        SpinlockGuard guard(mount_points_lock_);
+        for (const auto& mp : *mount_points_)
         {
             if (strcmp(mp->path, path) == 0) return -EPERM;
         }
     }
 
-    VfsNode* parent;
+    VfsNode* parent = nullptr;
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
@@ -282,7 +281,7 @@ int VFS::unlink(const char* path)
 {
     if (!path) return -EINVAL;
 
-    VfsNode* parent;
+    VfsNode* parent = nullptr;
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
@@ -300,36 +299,36 @@ int VFS::unlink(const char* path)
 bool VFS::probe_filesystem(BlockDevice* device)
 {
     FilesystemInfo info{};
-    return FilesystemDetector::DetectFilesystem(device, &info);
+    return FilesystemDetector::detect_filesystem(device, &info);
 }
 
 void VFS::list_devices()
 {
-    FilesystemDetector::PrintDetectedFilesystems();
+    FilesystemDetector::print_detected_filesystems();
 }
 
 void VFS::remount_all()
 {
-    Log::Info("[VFS] Remounting all detected devices...");
-    FilesystemDetector::Init();
-    FilesystemDetector::RegisterAllDrivers();
-    FilesystemDetector::ScanAndMountAll();
-    FilesystemDetector::PrintDetectedFilesystems();
+    Log::info("[VFS] Remounting all detected devices...");
+    FilesystemDetector::init();
+    FilesystemDetector::register_all_drivers();
+    FilesystemDetector::scan_and_mount_all();
+    FilesystemDetector::print_detected_filesystems();
 }
 
 void VFS::get_stats(VfsStats* stats)
 {
     if (!stats) return;
 
-    stats->total_devices = DeviceManager::GetDeviceCount();
+    stats->total_devices = DeviceManager::get_device_count();
     stats->mounted_devices = 0;
     stats->supported_filesystems = 0;
 
-    auto devices = DeviceManager::GetDevices();
+    auto devices = DeviceManager::get_devices();
     for (size_t i = 0; i < stats->total_devices; i++)
     {
         FilesystemInfo info;
-        if (FilesystemDetector::DetectFilesystem(devices[i], &info) && info.mounted)
+        if (FilesystemDetector::detect_filesystem(devices[i], &info) && info.mounted)
         {
             stats->mounted_devices++;
         }
@@ -343,23 +342,23 @@ void VFS::get_stats(VfsStats* stats)
 
 void VFS::add_mount_point(MountPoint* mp)
 {
-    spinlock_guard g(mount_points_lock);
-    mount_points->push_back(mp);
+    SpinlockGuard g(mount_points_lock_);
+    mount_points_->push_back(mp);
 }
 
 size_t VFS::mount_points_count()
 {
-    spinlock_guard g(mount_points_lock);
-    return mount_points->size();
+    SpinlockGuard g(mount_points_lock_);
+    return mount_points_->size();
 }
 
 MountPoint* VFS::find_mount_point(const char* path)
 {
     if (!path) return nullptr;
 
-    spinlock_guard g(mount_points_lock);
+    SpinlockGuard g(mount_points_lock_);
 
-    for (auto& mp : *mount_points)
+    for (auto& mp : *mount_points_)
     {
         if (strcmp(mp->path, path) == 0)
         {
@@ -374,18 +373,18 @@ MountPoint* VFS::find_mount_point(const char* path)
 bool VFS::remove_mount_point(MountPoint* mp)
 {
     if (!mp) return false;
-    spinlock_guard g(mount_points_lock);
+    SpinlockGuard g(mount_points_lock_);
 
-    for (size_t i = 0; i < mount_points->size(); ++i)
+    for (size_t i = 0; i < mount_points_->size(); ++i)
     {
-        if (MountPoint* mp_iter = (*mount_points)[i]; mp_iter == mp)
+        if (MountPoint* mp_iter = (*mount_points_)[i]; mp_iter == mp)
         {
             if (mp_iter->device)
             {
                 delete mp_iter->device;
                 mp_iter->device = nullptr;
             }
-            mount_points->erase(i);
+            mount_points_->erase(i);
             return true;
         }
     }

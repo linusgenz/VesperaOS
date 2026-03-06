@@ -24,18 +24,18 @@
 #ifndef VESPERAOS_CHANNEL_H
 #define VESPERAOS_CHANNEL_H
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "../../../kernel/types/types.h"
 #include <kernel/sync/spinlock.h>
 
 class Channel {
-    spinlock_t lock{};
-    uint8_t *buf;          // ring buffer
-    size_t head;           // write index
-    size_t tail;           // read index
-    int refcount;
+    Spinlock lock_{};
+    uint8_t *buf_;          // ring buffer
+    size_t head_;           // write index
+    size_t tail_;           // read index
+    int refcount_;
     explicit Channel(size_t cap);
     ~Channel();
 

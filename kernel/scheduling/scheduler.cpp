@@ -10,7 +10,7 @@
 
 namespace kernel::scheduling {
 
-    global_scheduler_t global_scheduler = {{}};
+    GlobalScheduler global_scheduler = {{}};
 
     void init(uint32_t num_cpus) {
         global_scheduler.num_cpus = num_cpus;
@@ -40,7 +40,7 @@ namespace kernel::scheduling {
     }
 
     void yield() {
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
         cpu_scheduler::yield_cpu(cpu_id);
     }
 
@@ -66,12 +66,12 @@ namespace kernel::scheduling {
     }
 
     bool is_curent_cpu_enabled() {
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
         return cpu_scheduler::is_cpu_enabled(cpu_id);
     }
 
     Unit *get_current_unit() {
-        const uint32_t cpu_id = CPUManager::get_current_cpu_id();
+        const uint32_t cpu_id = cpu_manager::get_current_cpu_id();
         if (!global_scheduler.cpus[cpu_id].scheduler_enabled) return nullptr;
         return cpu_scheduler::get_current_unit_on_cpu(cpu_id);
     }
@@ -84,7 +84,7 @@ namespace kernel::scheduling {
         return global_scheduler.num_cpus;
     }
 
-    cpu_scheduler::cpu_scheduler_t *get_cpu_data(uint8_t cpu_id) {
+    cpu_scheduler::CpuScheduler *get_cpu_data(uint8_t cpu_id) {
         return cpu_scheduler::get_cpu_data(cpu_id);
     }
 
@@ -92,7 +92,7 @@ namespace kernel::scheduling {
         cpu_scheduler::wake_sleeping_units(cpu_id, current_tick);
     }
 
-    void tick_cpu(uint8_t cpu_id, trap_frame *frame) {
+    void tick_cpu(uint8_t cpu_id, TrapFrame *frame) {
         cpu_scheduler::tick_cpu(cpu_id, frame);
     }
 }  // namespace kernel::scheduling

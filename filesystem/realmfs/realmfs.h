@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_RealmFS_H
-#define VESPERAOS_RealmFS_H
+#ifndef VESPERAOS_REALM_FS_H
+#define VESPERAOS_REALM_FS_H
 
 #include "../virtual_fs.h"
 
@@ -43,14 +43,14 @@ struct SysObject
 };
 
 // Extended entry with system-specific data
-struct RealmFSEntry : VirtualFsEntry<SysObject>
+struct RealmFsEntry : VirtualFsEntry<SysObject>
 {
     SysObjectType obj_type{};
     VfsNode* units_dir{nullptr};
     VfsNode* parent_realm{nullptr};
 };
 
-class RealmFS : public VirtualFilesystem<SysObject, RealmFSEntry>
+class RealmFs : public VirtualFilesystem<SysObject, RealmFsEntry>
 {
 public:
     static void init();

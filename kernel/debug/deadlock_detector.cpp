@@ -38,7 +38,7 @@ void deadlock_detector_init() {
 void deadlock_detector_tick() {
     if (!enabled) return;
     if (lock_debug_detect_deadlocks_and_report()) {
-        Log::PrintLn("Deadlock(s) detected. See dump above.");
+        Log::print_ln("Deadlock(s) detected. See dump above.");
         kernel::SystemManager::system_panic("DEADLOCK DETECTED", -KEDEADLK);
     }
 }

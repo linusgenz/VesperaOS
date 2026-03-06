@@ -4,24 +4,24 @@
 
 #ifndef IDT_H
 #define IDT_H
-#include <cstddef>
-#include <cstdint>
-enum irqreturn_t : int {
+#include <stddef.h>
+#include <stdint.h>
+enum Irqreturn : int {
     IRQ_HANDLED = 1,
     IRQ_NONE = 0,
     IRQ_ERROR = -1
 };
-using irq_handler_t = irqreturn_t (*)(void *cookie);
+using irq_handler_t = Irqreturn (*)(void *cookie);
 
 namespace arch::x86_64::interrupts::idt {
     constexpr uint8_t VECTOR_MIN = 0x23;
     constexpr uint8_t VECTOR_MAX = 0xEF;
 
-#define IDT_TA_InterruptGate 0b10001110
-#define IDT_TA_CallGate 0b10001100
-#define IDT_TA_TrapGate 0b10001111
+#define IDT_TA_INTERRUPT_GATE 0b10001110
+#define IDT_TA_CALL_GATE 0b10001100
+#define IDT_TA_TRAP_GATE 0b10001111
 
-    struct IDTDescEntry {
+    struct IDT_DESC_ENTRY {
         uint16_t offset0;
         uint16_t selector;
         uint8_t ist;
@@ -40,14 +40,14 @@ namespace arch::x86_64::interrupts::idt {
         uint64_t offset;
     } __attribute((packed));
 
-    struct irq_desc {
+    struct IrqDesc {
         irq_handler_t handler = nullptr;
         void *cookie = nullptr;
         bool free = true;
     };
 
     constexpr int IRQ_MAX = 256;
-    inline irq_desc irq_handler_table[IRQ_MAX];
+    inline IrqDesc irq_handler_table[IRQ_MAX];
 
     void init_irq_table();
 
@@ -57,8 +57,8 @@ namespace arch::x86_64::interrupts::idt {
 
     void load_default_idt();
 
-    using ISRHandler = void (*)();
-    void set_idt_gate(ISRHandler handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
+    using isr_handler_t = void (*)();
+    void set_idt_gate(isr_handler_t handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
 
     bool allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie);
 

@@ -23,8 +23,8 @@
 
 #include "null.h"
 
-NullDevice::NullDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+NullDevice::NullDevice()
+    : CharDevice( BusType::VIRTUAL) {
 }
 
 int NullDevice::open(CharFile**) {

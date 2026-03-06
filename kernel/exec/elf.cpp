@@ -412,8 +412,8 @@ bool ElfLoader::load_segment(const Elf64_Phdr& phdr, const void* file_data, uint
         memset(virt_as<uint8_t>(virt_add(virt, page_offset + file_size)), 0, memory_size - file_size);
     }
 
-    uint64_t pt_flags = (1ULL << PT_Flag::Present) | (1ULL << PT_Flag::UserSuper);
-    if (phdr.p_flags & PF_W) pt_flags |= (1ULL << PT_Flag::ReadWrite);
+    uint64_t pt_flags = (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper);
+    if (phdr.p_flags & PF_W) pt_flags |= (1ULL << PtFlag::ReadWrite);
 
     realm->page_table->map_range(virt_from_raw(page_start), phys, map_size, pt_flags);
 

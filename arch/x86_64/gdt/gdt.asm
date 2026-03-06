@@ -1,5 +1,5 @@
 [bits 64]
-load_GDT:
+load_gdt:
     lgdt [rdi]
     mov ax, 0x10
     mov ds, ax
@@ -13,4 +13,4 @@ load_GDT:
     push rdi
     retfq
 
-GLOBAL load_GDT
+GLOBAL load_gdt

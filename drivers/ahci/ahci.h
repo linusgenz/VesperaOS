@@ -10,14 +10,14 @@
 #include "kernel/devices/device_manager.h"
 
 // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/serial-ata-ahci-spec-rev1-3-1.pdf
-namespace AHCI {
+namespace ahci {
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
 #define ATA_CMD_IDENTIFY 0xEC
 
-#define HBA_PxIS_TFES (1 << 30)
+#define HBA_PX_IS_TFES (1 << 30)
 
     // Bit 31 — AE (AHCI Enable)
 #define AHCI_GHC_AE (1u << 31)
@@ -33,14 +33,16 @@ namespace AHCI {
 
     enum PortType {
         None = 0,
-        SATA = 1,
-        SEMB = 2,
-        PM = 3,
-        SATAPI = 4,
+        Sata = 1,
+        Semb = 2,
+        Pm = 3,
+        Satapi = 4,
     };
 
     enum FIS_TYPE {
+        // ReSharper disable once CppInconsistentNaming
         FIS_TYPE_REG_H2D = 0x27,
+        // ReSharper disable once CppInconsistentNaming
         FIS_TYPE_REG_D2H = 0x34,
         FIS_TYPE_DMA_ACT = 0x39,
         FIS_TYPE_DMA_SETUP = 0x41,
@@ -50,107 +52,107 @@ namespace AHCI {
         FIS_TYPE_DEV_BITS = 0xA1,
     };
 
-    struct HBAPort {
-        uint32_t commandListBase;
-        uint32_t commandListBaseUpper;
-        uint32_t fisBaseAddress;
-        uint32_t fisBaseAddressUpper;
-        uint32_t interruptStatus;
-        uint32_t interruptEnable;
-        uint32_t cmdSts;
+    struct HBA_PORT {
+        uint32_t command_list_base;
+        uint32_t command_list_base_upper;
+        uint32_t fis_base_address;
+        uint32_t fis_base_address_upper;
+        uint32_t interrupt_status;
+        uint32_t interrupt_enable;
+        uint32_t cmd_sts;
         uint32_t rsv0;
-        uint32_t taskFileData;
+        uint32_t task_file_data;
         uint32_t signature;
-        uint32_t sataStatus;
-        uint32_t sataControl;
-        uint32_t sataError;
-        uint32_t sataActive;
-        uint32_t commandIssue;
-        uint32_t sataNotification;
-        uint32_t fisSwitchControl;
+        uint32_t sata_status;
+        uint32_t sata_control;
+        uint32_t sata_error;
+        uint32_t sata_active;
+        uint32_t command_issue;
+        uint32_t sata_notification;
+        uint32_t fis_switch_control;
         uint32_t rsv1[11];
         uint32_t vendor[4];
     };
 
-    struct HBAMemory {
-        uint32_t hostCapability;
-        uint32_t globalHostControl;
-        uint32_t interruptStatus;
-        uint32_t portsImplemented;
+    struct HBA_MEMORY {
+        uint32_t host_capability;
+        uint32_t global_host_control;
+        uint32_t interrupt_status;
+        uint32_t ports_implemented;
         uint32_t version;
-        uint32_t cccControl;
-        uint32_t cccPorts;
-        uint32_t enclosureManagementLocation;
-        uint32_t enclosureManagementControl;
-        uint32_t hostCapabilitiesExtended;
-        uint32_t biosHandoffCtrlSts;
+        uint32_t ccc_control;
+        uint32_t ccc_ports;
+        uint32_t enclosure_management_location;
+        uint32_t enclosure_management_control;
+        uint32_t host_capabilities_extended;
+        uint32_t bios_handoff_ctrl_sts;
         uint8_t rsv0[0x74];
         uint8_t vendor[0x60];
-        HBAPort ports[32];
+        HBA_PORT ports[32];
     };
 
-    struct HBACommandHeader {
-        uint8_t commandFISLength : 5;
+    struct HBA_COMMAND_HEADER {
+        uint8_t command_fis_length : 5;
         uint8_t atapi : 1;
         uint8_t write : 1;
         uint8_t prefetchable : 1;
 
         uint8_t reset : 1;
         uint8_t bist : 1;
-        uint8_t clearBusy : 1;
+        uint8_t clear_busy : 1;
         uint8_t rsv0 : 1;
-        uint8_t portMultiplier : 4;
+        uint8_t port_multiplier : 4;
 
-        uint16_t prdtLength;
-        uint32_t prdbCount;
-        uint32_t commandTableBaseAddress;
-        uint32_t commandTableBaseAddressUpper;
+        uint16_t prdt_length;
+        uint32_t prdb_count;
+        uint32_t command_table_base_address;
+        uint32_t command_table_base_address_upper;
         uint32_t rsv1[4];
     };
 
-    struct HBAPRDTEntry {
-        uint32_t dataBaseAddress;
-        uint32_t dataBaseAddressUpper;
+    struct HBA_PRDT_ENTRY {
+        uint32_t data_base_address;
+        uint32_t data_base_address_upper;
         uint32_t rsv0;
 
-        uint32_t byteCount : 22;
+        uint32_t byte_count : 22;
         uint32_t rsv1 : 9;
-        uint32_t interruptOnCompletion : 1;
+        uint32_t interrupt_on_completion : 1;
     };
 
-    struct HBACommandTable {
-        uint8_t commandFIS[64];
+    struct HbaCommandTable {
+        uint8_t command_fis[64];
 
-        uint8_t atapiCommand[16];
+        uint8_t atapi_command[16];
 
         uint8_t rsv[48];
 
-        HBAPRDTEntry prdtEntry[];
+        HBA_PRDT_ENTRY prdt_entry[];
     };
 
-    struct FIS_REG_H2D {
-        uint8_t fisType;
+    struct FisRegH2D {
+        uint8_t fis_type;
 
-        uint8_t portMultiplier : 4;
+        uint8_t port_multiplier : 4;
         uint8_t rsv0 : 3;
-        uint8_t commandControl : 1;
+        uint8_t command_control : 1;
 
         uint8_t command;
-        uint8_t featureLow;
+        uint8_t feature_low;
 
         uint8_t lba0;
         uint8_t lba1;
         uint8_t lba2;
-        uint8_t deviceRegister;
+        uint8_t device_register;
 
         uint8_t lba3;
         uint8_t lba4;
         uint8_t lba5;
-        uint8_t featureHigh;
+        uint8_t feature_high;
 
-        uint8_t countLow;
-        uint8_t countHigh;
-        uint8_t isoCommandCompletion;
+        uint8_t count_low;
+        uint8_t count_high;
+        uint8_t iso_command_completion;
         uint8_t control;
 
         uint8_t rsv1[4];
@@ -158,56 +160,56 @@ namespace AHCI {
 
     class Port final : public BlockDevice {
        private:
-        IDENTIFY_DEVICE_DATA* identify = nullptr;
-        kernel::mutex_t portMutex;
+        IDENTIFY_DEVICE_DATA* identify_ = nullptr;
+        kernel::Mutex port_mutex_;
 
        public:
         uint8_t vector = 0;
 
         ~Port() override;
 
-        HBAPort* hbaPort{};
-        PortType portType;
-        uint8_t portNumber{};
+        HBA_PORT* hba_port{};
+        PortType port_type;
+        uint8_t port_number{};
 
         uint32_t sector_size = 0;
         uint64_t total_sectors = 0;
 
-        volatile bool commandCompleted = false;
-        volatile bool lastError = false;
+        volatile bool command_completed = false;
+        volatile bool last_error = false;
 
         KernelDevice* kd;
 
-        void InterruptHandler();
-        void EnableInterrupts() const;
-        void Configure() const;
-        void StopCMD() const;
-        void StartCMD() const;
+        void interrupt_handler();
+        void enable_interrupts() const;
+        void configure() const;
+        void stop_cmd() const;
+        void start_cmd() const;
 
-        ssize_t read(uint64_t lba, size_t sectorCount, void* buffer, size_t bufferSize) override;
+        ssize_t read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) override;
 
-        ssize_t write(uint64_t sector, size_t sectorCount, void* buffer, size_t bufferSize) override;
+        ssize_t write(uint64_t sector, size_t sector_count, void* buffer, size_t buffer_size) override;
 
         [[nodiscard]] size_t get_sector_size() const override;
         [[nodiscard]] size_t get_size() const override;
-        bool Identify();
+        bool identify();
     };
 
-    class AHCIDriver {
+    class AhciDriver {
        public:
-        explicit AHCIDriver(PCI::PCIDeviceHeader* pciBaseAddress);
-        ~AHCIDriver();
-        [[nodiscard]] bool HasActivePorts() const;
-        PCI::PCIDeviceHeader* PCIBaseAddress;
-        HBAMemory* ABAR;
-        void ProbePorts();
-        static irqreturn_t GlobalInterruptHandler(const AHCIDriver* driver);
+        explicit AhciDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
+        ~AhciDriver();
+        [[nodiscard]] bool has_active_ports() const;
+        pci::PCI_DEVICE_HEADER* pci_base_address;
+        HBA_MEMORY* abar;
+        void probe_ports();
+        static Irqreturn global_interrupt_handler(const AhciDriver* driver);
         Port* ports[32]{};
-        uint8_t portCount;
+        uint8_t port_count;
 
        private:
-        KernelDevice* kd;
+        KernelDevice* kd_;
     };
-}  // namespace AHCI
+}  // namespace ahci
 
 #endif  // AHCI_H

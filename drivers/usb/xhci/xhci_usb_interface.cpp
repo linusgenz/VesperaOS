@@ -23,11 +23,11 @@
 
 #include "xhci_usb_interface.h"
 
-xhciUsbInterface::xhciUsbInterface(uint8_t dev_slot_id, const usb_interface_descriptor* desc) : m_dev_slot_id(dev_slot_id) {
+XhciUsbInterface::XhciUsbInterface(uint8_t dev_slot_id, const USB_INTERFACE_DESCRIPTOR* desc) : dev_slot_id_(dev_slot_id) {
     this->descriptor = *desc;
 }
 
-void xhciUsbInterface::setup_add_endpoint(const usb_endpoint_descriptor* ep_desc) {
-    const auto ep = new xhciEndpoint(m_dev_slot_id, ep_desc);
+void XhciUsbInterface::setup_add_endpoint(const USB_ENDPOINT_DESCRIPTOR* ep_desc) {
+    const auto ep = new XhciEndpoint(dev_slot_id_, ep_desc);
     endpoints.push_back(ep);
 }

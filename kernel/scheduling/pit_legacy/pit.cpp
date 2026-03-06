@@ -2,8 +2,8 @@
 
 #include "../../cpu/io.h"
 
-namespace PIT {
-    double time_since_boot = 0;
+namespace pit {
+   /* double time_since_boot = 0;
 
     uint16_t divisor = 65535;
 
@@ -15,7 +15,7 @@ namespace PIT {
     }
 
     void pit_wait_ms(uint32_t ms) {
-        uint32_t ticks = (base_frequency * ms) / 1000;
+        uint32_t ticks = (BASE_FREQUENCY * ms) / 1000;
         asm volatile("cli");
         outb(PIT_COMMAND, 0x34);  // Channel 0, mode 2, binary
         outb(PIT_CHANNEL0, ticks & 0xFF);
@@ -40,14 +40,14 @@ namespace PIT {
     }
 
     uint64_t get_frequency() {
-        return base_frequency / divisor;
+        return BASE_FREQUENCY / divisor;
     }
 
     void set_frequency(uint64_t frequency) {
-        set_divisor(base_frequency / frequency);
+        set_divisor(BASE_FREQUENCY / frequency);
     }
 
     void tick() {
         time_since_boot += 1 / static_cast<double>(get_frequency());
-    }
+    }*/
 }  // namespace PIT

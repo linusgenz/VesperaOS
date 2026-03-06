@@ -13,7 +13,7 @@ extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
 namespace kernel::time {
     namespace internal {
         void thread_sleep_ms(uint64_t ms) {
-            uint32_t cpu_id = CPUManager::get_current_cpu_id();
+            uint32_t cpu_id = cpu_manager::get_current_cpu_id();
 
             Unit *current = kernel::scheduling::get_current_unit();
             if (!current || current->is_idle) return;
@@ -24,7 +24,7 @@ namespace kernel::time {
         }
 
         void sleep(uint64_t ms) {
-            uint32_t cpu = CPUManager::get_current_cpu_id();
+            uint32_t cpu = cpu_manager::get_current_cpu_id();
             uint64_t target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
 
             while (interrupts::lapic_get_ticks(cpu) < target) {
@@ -42,7 +42,7 @@ namespace kernel::time {
     }
 
     uint64_t get_ticks() {
-        const uint32_t cpu = CPUManager::get_current_cpu_id();
+        const uint32_t cpu = cpu_manager::get_current_cpu_id();
         return interrupts::lapic_get_ticks(cpu);
     }
 

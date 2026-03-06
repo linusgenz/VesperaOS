@@ -1,8 +1,8 @@
 #ifndef STACK_MANAGER_H
 #define STACK_MANAGER_H
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 /*
 #define KERNEL_STACK_SIZE 16384  // 16KB per stack
 #define MAX_STACKS 64            // max 64 stacks (max 64 cores)

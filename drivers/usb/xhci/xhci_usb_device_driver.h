@@ -24,26 +24,26 @@
 #ifndef VESPERAOS_XHCI_USB_DEVICE_DRIVER_H
 #define VESPERAOS_XHCI_USB_DEVICE_DRIVER_H
 
-namespace USB {
-    class xhciDriver;
+namespace usb {
+    class XhciDriver;
 }
 
-class xhciUsbInterface;
-class xhciDevice;
+class XhciUsbInterface;
+class XhciDevice;
 
-class xhciUsbDeviceDriver {
+class XhciUsbDeviceDriver {
 public:
-    xhciUsbDeviceDriver() = default;
-    virtual ~xhciUsbDeviceDriver() = default;
+    XhciUsbDeviceDriver() = default;
+    virtual ~XhciUsbDeviceDriver() = default;
 
-    void attach_interface(xhciUsbInterface* interface);
+    void attach_interface(XhciUsbInterface* interface);
 
     virtual void detach() = 0;
-    virtual void on_startup(USB::xhciDriver* hcd, xhciDevice* dev) = 0;
-    virtual void on_event(USB::xhciDriver* hcd, xhciDevice* dev) = 0;
+    virtual void on_startup(usb::XhciDriver* hcd, XhciDevice* dev) = 0;
+    virtual void on_event(usb::XhciDriver* hcd, XhciDevice* dev) = 0;
 
 protected:
-    xhciUsbInterface* m_interface{};
+    XhciUsbInterface* interface_{};
 };
 
 

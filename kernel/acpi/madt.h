@@ -5,14 +5,14 @@
 #ifndef MADT_H
 #define MADT_H
 #include "acpi.h"
-#include <cstdint>
+#include <stdint.h>
 
 #define MAX_CPU_CORES 64
 #define MAX_IOAPICS 4
 #define MAX_OVERRIDES 32
 
-namespace MADT {
-    struct CPUCore {
+namespace madt {
+    struct CpuCore {
         uint32_t apic_id;
         uint32_t acpi_processor_id;
         bool is_bsp;  // Bootstrap Processor
@@ -33,9 +33,9 @@ namespace MADT {
         uint16_t flags;
     };
 
-    void parse_madt(ACPI::MADTHeader* madt);
+    void parse_madt(acpi::MADT_HEADER* madt);
     uint32_t get_cpu_count();
-    CPUCore* get_cpu_cores();
+    CpuCore* get_cpu_cores();
     uint32_t get_bsp_apic_id();
     IoApic* get_ioapics();
     uint32_t get_ioapic_count();

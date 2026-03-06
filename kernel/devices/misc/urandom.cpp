@@ -25,9 +25,9 @@
 
 #include "../../../include/kernel/devices/char_device.h"
 
-URandomDevice::URandomDevice(const char* name, const uint64_t seed)
-    : CharDevice(name, BusType::VIRTUAL)
-    , state(seed) {
+URandomDevice::URandomDevice(const uint64_t seed)
+    : CharDevice( BusType::VIRTUAL)
+    , state_(seed) {
 }
 
 int URandomDevice::open(CharFile**) {
@@ -54,22 +54,22 @@ ssize_t URandomDevice::write(CharFile*, const void* buffer, const size_t count) 
 }
 
 void URandomDevice::refill() {
-    uint64_t x = state;
+    uint64_t x = state_;
     x ^= x << 13;
     x ^= x >> 7;
     x ^= x << 17;
-    state = x;
+    state_ = x;
 
     // in Bytes zerlegen (Little Endian)
     for (int i = 0; i < 8; i++) {
-        dev_buffer[i] = static_cast<uint8_t>(x >> (i * 8));
+        dev_buffer_[i] = static_cast<uint8_t>(x >> (i * 8));
     }
-    buffer_index = 0;
+    buffer_index_ = 0;
 }
 
 uint8_t URandomDevice::next() {
-    if (buffer_index >= 8) {
+    if (buffer_index_ >= 8) {
         refill();
     }
-    return dev_buffer[buffer_index++];
+    return dev_buffer_[buffer_index_++];
 }

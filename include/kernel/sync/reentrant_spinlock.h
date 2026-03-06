@@ -24,9 +24,9 @@
 #ifndef VESPERAOS_REENTRANT_SPINLOCK_H
 #define VESPERAOS_REENTRANT_SPINLOCK_H
 
-#include <cstdint>
+#include <stdint.h>
 
-struct reentrant_spinlock_t
+struct ReentrantSpinlock
 {
     volatile uint32_t locked = 0; // atomic lock
     uint32_t owner_unit = 0; // Unit, die den Lock hält
@@ -58,7 +58,7 @@ struct reentrant_spinlock_t
 private:
     uint32_t xchg(volatile uint32_t* ptr, uint32_t val)
     {
-        uint32_t old;
+        uint32_t old = 0;
         __asm__ volatile (
             "lock xchg %0, %1"
             : "=r"(old), "+m"(*ptr)
@@ -70,7 +70,7 @@ private:
 
     uint64_t irq_save()
     {
-        uint64_t flags;
+        uint64_t flags = 0;
         asm volatile(
             "pushfq\n\t"
             "popq %0\n\t"
@@ -94,41 +94,41 @@ private:
     }
 };
 
-struct reentrant_spinlock_guard
+struct ReentrantSpinlockGuard
 {
-    reentrant_spinlock_t& lock_ref;
+    ReentrantSpinlock& lock_ref;
 
-    explicit reentrant_spinlock_guard(reentrant_spinlock_t& lock) : lock_ref(lock)
+    explicit ReentrantSpinlockGuard(ReentrantSpinlock& lock) : lock_ref(lock)
     {
         lock_ref.lock();
     }
 
-    ~reentrant_spinlock_guard()
+    ~ReentrantSpinlockGuard()
     {
         lock_ref.unlock();
     }
 
-    reentrant_spinlock_guard(const reentrant_spinlock_guard&) = delete;
-    reentrant_spinlock_guard& operator=(const reentrant_spinlock_guard&) = delete;
+    ReentrantSpinlockGuard(const ReentrantSpinlockGuard&) = delete;
+    ReentrantSpinlockGuard& operator=(const ReentrantSpinlockGuard&) = delete;
 };
 
-struct reentrant_spinlock_guard_irq
+struct ReentrantSpinlockGuardIrq
 {
-    reentrant_spinlock_t& lock_ref;
+    ReentrantSpinlock& lock_ref;
     uint64_t flags{};
 
-    explicit reentrant_spinlock_guard_irq(reentrant_spinlock_t& lock) : lock_ref(lock)
+    explicit ReentrantSpinlockGuardIrq(ReentrantSpinlock& lock) : lock_ref(lock)
     {
         lock_ref.lock_irqsave(flags);
     }
 
-    ~reentrant_spinlock_guard_irq()
+    ~ReentrantSpinlockGuardIrq()
     {
         lock_ref.unlock_irqrestore(flags);
     }
 
-    reentrant_spinlock_guard_irq(const reentrant_spinlock_guard_irq&) = delete;
-    reentrant_spinlock_guard_irq& operator=(const reentrant_spinlock_guard_irq&) = delete;
+    ReentrantSpinlockGuardIrq(const ReentrantSpinlockGuardIrq&) = delete;
+    ReentrantSpinlockGuardIrq& operator=(const ReentrantSpinlockGuardIrq&) = delete;
 };
 
 #endif //VESPERAOS_REENTRANT_SPINLOCK_H

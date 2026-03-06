@@ -50,28 +50,28 @@ __attribute__((used, section(".requests"))) static volatile limine_hhdm_request 
 __attribute__((used, section(".requests_end_marker"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
 extern "C" {
-extern uint8_t _binary_zap_light24_psf_start[];
-extern uint8_t _binary_zap_light24_psf_end[];
-extern uint8_t _binary_zap_light24_psf_size[];
+extern uint8_t psf_font_start[];
+extern uint8_t psf_font_end[];
+extern uint8_t psf_font_size[];
 }
 
-static Framebuffer framebuffer;
+static framebuffer_t framebuffer;
 static BootInfo boot_info;
-static FONT embedded_font;
+static font_t embedded_font;
 static EFI_MEMORY_DESCRIPTOR efi_map[512];
 
-static void hlt_forever() {
+[[noreturn]] static void hlt_forever() {
     while (true) asm volatile("cli; hlt");
 }
 
 static void parse_psf_font() {
-    uint8_t* data = _binary_zap_light24_psf_start;
+    uint8_t* data = psf_font_start;
 
     // PSF1: Magic = 0x36 0x04
     if (data[0] == 0x36 && data[1] == 0x04) {
-        auto* hdr = reinterpret_cast<PSF1_HEADER*>(data);
+        auto* hdr = reinterpret_cast<psf1_header_t*>(data);
         embedded_font.header = hdr;
-        embedded_font.glyphBuffer = data + sizeof(PSF1_HEADER);
+        embedded_font.glyph_buffer = data + sizeof(psf1_header_t);
         embedded_font.type = 1;
         embedded_font.width = 8;
         embedded_font.height = hdr->charsize;
@@ -81,9 +81,9 @@ static void parse_psf_font() {
 
     // PSF2: Magic = 0x72 0xb5 0x4a 0x86
     if (data[0] == 0x72 && data[1] == 0xb5 && data[2] == 0x4a && data[3] == 0x86) {
-        auto* hdr = reinterpret_cast<PSF2_HEADER*>(data);
+        auto* hdr = reinterpret_cast<psf2_header_t*>(data);
         embedded_font.header = hdr;
-        embedded_font.glyphBuffer = data + hdr->headersize;
+        embedded_font.glyph_buffer = data + hdr->headersize;
         embedded_font.type = 2;
         embedded_font.width = hdr->width;
         embedded_font.height = hdr->height;
@@ -166,9 +166,9 @@ extern "C" void limine_entry() {
     // --- Memory Map ---
     uint64_t map_count = 0;
     convert_memmap(&map_count);
-    boot_info.mMap = efi_map;
-    boot_info.mMapSize = map_count * sizeof(EFI_MEMORY_DESCRIPTOR);
-    boot_info.mMapDescSize = sizeof(EFI_MEMORY_DESCRIPTOR);
+    boot_info.m_map = efi_map;
+    boot_info.m_map_size = map_count * sizeof(EFI_MEMORY_DESCRIPTOR);
+    boot_info.m_map_desc_size = sizeof(EFI_MEMORY_DESCRIPTOR);
 
     // --- HHDM Offset ---
     // Alle von Limine zurückgegebenen Pointer (außer Memory-Map-Basisadressen)
@@ -184,7 +184,7 @@ extern "C" void limine_entry() {
     // --- RSDP ---
     // rsdp_request.response->address ist ebenfalls HHDM-virtuell
     if (rsdp_request.response)
-        boot_info.rsdp = static_cast<ACPI::RSDP2*>(rsdp_request.response->address);
+        boot_info.rsdp = static_cast<acpi::RSDP2*>(rsdp_request.response->address);
     else
         boot_info.rsdp = nullptr;
 

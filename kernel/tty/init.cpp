@@ -32,8 +32,8 @@ namespace kernel::tty {
         for (int i = 0; i < 6; i++) {
             tty_init(&tty_instances[i], global_terminal);
             char name[16];
-            DeviceManager::AllocUniqueDeviceName("tty", name, sizeof(name));
-            tty_devices[i] = new TTYDevice(name, &tty_instances[i]);
+            DeviceManager::alloc_unique_device_name("tty", name, sizeof(name));
+            tty_devices[i] = new TtyDevice(name, &tty_instances[i]);
         }
     }
 }  // namespace kernel::tty

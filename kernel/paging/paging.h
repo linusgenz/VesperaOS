@@ -9,9 +9,9 @@
 #include "kernel/addr.h"
 
 struct PageDirectoryEntry {
-    uint64_t Value;
-    void set_flag(PT_Flag flag, bool enabled);
-    [[nodiscard]] bool get_flag(PT_Flag flag) const;
+    uint64_t value;
+    void set_flag(PtFlag flag, bool enabled);
+    [[nodiscard]] bool get_flag(PtFlag flag) const;
     void set_address(phys_addr_t phys_addr);
     [[nodiscard]] phys_addr_t get_address() const;
 };

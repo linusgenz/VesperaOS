@@ -9,8 +9,8 @@
 
 class PageTableManager {
    public:
-    PageTableManager(PageTable* PML4Address);
-    PageTable* PML4;
+    PageTableManager(PageTable* pml4_address);
+    PageTable* pml4;
     void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, uint64_t flags) const;
   //  void map_kernel_page(void* phys_addr, uint64_t flags) const;
 

@@ -26,8 +26,8 @@
 #include <vespera_errno.h>
 #include <kernel/memory.h>
 
-FullDevice::FullDevice(const char* name)
-    : CharDevice(name, BusType::VIRTUAL) {
+FullDevice::FullDevice()
+    : CharDevice(BusType::VIRTUAL) {
 }
 
 int FullDevice::open(CharFile**) {

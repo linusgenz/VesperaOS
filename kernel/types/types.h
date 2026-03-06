@@ -29,13 +29,13 @@
 
 #define KERNEL_REALM_SYSTEM 1
 #define KERNEL_REALM_DRIVER 2
-#include <cstdint>
+#include <stdint.h>
 
 typedef long int ssize_t;
 
-typedef uint64_t HandleID;
-typedef uint64_t UnitID;
-typedef uint64_t RealmID;
+typedef uint64_t handle_id_t;
+typedef uint64_t unit_id_t;
+typedef uint64_t realm_id_t;
 
 // Handle typs (upper 16 bits)
 #define HANDLE_TYPE_MASK 0xFFFF000000000000ULL
@@ -54,7 +54,7 @@ typedef uint64_t RealmID;
 #define HANDLE_STDERR (HANDLE_TYPE_TTY | 0x0000000000000002ULL)
 
 // Capabilities
-typedef uint64_t CapabilitySet;
+typedef uint64_t capability_set_t;
 #define CAP_NONE 0x0000000000000000ULL
 #define CAP_READ 0x0000000000000001ULL
 #define CAP_WRITE 0x0000000000000002ULL
@@ -88,7 +88,7 @@ typedef enum {
     MOD_ERR_OUT_OF_MEMORY,
     MOD_ERR_UNIT_NOT_FOUND,
     MOD_ERR_INVALID_OPERATION,
-} ErrorCode;
+} error_code_t;
 
 #define PRIORITY_NONE 0
 #define DEFAULT_UNIT_STACK_SIZE 0x20000
@@ -98,7 +98,7 @@ struct UnitConfig {
     uint8_t cpu_id = 0;
     uint8_t priority = 0;
     uint64_t stack_size = DEFAULT_UNIT_STACK_SIZE;
-    HandleID *initial_handles = nullptr;
+    handle_id_t *initial_handles = nullptr;
     uint64_t initial_handle_count = 0;
     bool is_idle = false;
     bool is_user = false;
@@ -111,7 +111,7 @@ struct UnitConfig {
 struct RealmConfig {
     const char *name;
     uint64_t memory_limit;
-    CapabilitySet capabilities;
+    capability_set_t capabilities;
     uint64_t max_units;
     bool is_user;
 };

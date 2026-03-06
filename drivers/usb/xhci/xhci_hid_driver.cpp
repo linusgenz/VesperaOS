@@ -24,14 +24,14 @@
 #include "xhci_hid_driver.h"
 #include "xhci.h"
 
-void xhciHidDriver::on_startup(USB::xhciDriver* hcd, xhciDevice* dev) {
+void XhciHidDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
     this->on_device_init(hcd);
 
     request_hid_report(hcd, dev);
 }
 
-void xhciHidDriver::on_event(USB::xhciDriver* hcd, xhciDevice* dev) {
-    auto& endpoint = m_interface->endpoints[0];
+void XhciHidDriver::on_event(usb::XhciDriver* hcd, XhciDevice* dev) {
+    auto& endpoint = interface_->endpoints[0];
     uint8_t* data = endpoint->get_data_buffer();
 
     this->on_device_event(data);
@@ -39,9 +39,9 @@ void xhciHidDriver::on_event(USB::xhciDriver* hcd, xhciDevice* dev) {
     request_hid_report(hcd, dev);
 }
 
-void xhciHidDriver::request_hid_report(const USB::xhciDriver* hcd, const xhciDevice* dev) const
+void XhciHidDriver::request_hid_report(const usb::XhciDriver* hcd, const XhciDevice* dev) const
 {
-    auto endpoint = m_interface->endpoints[0];
+    auto endpoint = interface_->endpoints[0];
     auto transfer_ring = endpoint->get_transfer_ring();
 
     xhci_normal_trb_t normal_trb{};

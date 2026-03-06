@@ -29,10 +29,10 @@
 
 #define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL)
 
-static lock_debug_info lock_table[MAX_DEBUG_LOCKS];
+static LockDebugInfo lock_table[MAX_DEBUG_LOCKS];
 static uint32_t lock_table_count = 0;
 
-lock_debug_info* lock_debug_find(const void* lockptr) {
+LockDebugInfo* lock_debug_find(const void* lockptr) {
     for (uint32_t i = 0; i < lock_table_count; ++i) {
         if (lock_table[i].lock_ptr == lockptr) return &lock_table[i];
     }
@@ -44,11 +44,11 @@ void lock_debug_init() {
     lock_table_count = 0;
 }
 
-lock_debug_info* lock_debug_register(void* lockptr, const char* name) {
+LockDebugInfo* lock_debug_register(void* lockptr, const char* name) {
     if (!lockptr) return nullptr;
     if (auto* e = lock_debug_find(lockptr)) return e;
     if (lock_table_count >= MAX_DEBUG_LOCKS) return nullptr;
-    lock_debug_info& inf = lock_table[lock_table_count++];
+    LockDebugInfo& inf = lock_table[lock_table_count++];
     inf.lock_ptr = lockptr;
     strncpy(inf.name, name ? name : "<unnamed>", MAX_LOCK_NAME_LEN - 1);
     inf.owner_unit = 0;
@@ -60,7 +60,7 @@ lock_debug_info* lock_debug_register(void* lockptr, const char* name) {
 }
 
 static uint8_t capture_stack_trace(uint64_t* out_buf, uint8_t max_depth) {
-    uint64_t* rbp;
+    uint64_t* rbp = nullptr;
     asm volatile("mov %%rbp, %0" : "=r"(rbp));
     uint8_t cnt = 0;
     while (rbp && cnt < max_depth) {
@@ -90,7 +90,7 @@ void lock_debug_before_acquire(const void* lockptr, const uint32_t current_unit)
 }
 
 inline uint64_t rdtsc() {
-    uint32_t lo, hi;
+    uint32_t lo = 0, hi = 0;
     asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
     return (static_cast<uint64_t>(hi) << 32) | lo;
 }
@@ -135,10 +135,10 @@ static bool dfs_detect(uint32_t start_unit, uint32_t cur_unit, uint8_t* visited,
     // current unit is cur_unit, check what it waits for
     // find lock where cur_unit is waiter (first such lock), then follow to owner
     for (uint32_t i = 0; i < lock_table_count; ++i) {
-        lock_debug_info& L = lock_table[i];
-        for (uint8_t w = 0; w < L.waiter_count; ++w) {
-            if (L.waiters[w] == cur_unit) {
-                uint32_t owner = L.owner_unit;
+        LockDebugInfo& l = lock_table[i];
+        for (uint8_t w = 0; w < l.waiter_count; ++w) {
+            if (l.waiters[w] == cur_unit) {
+                uint32_t owner = l.owner_unit;
                 if (owner == 0) continue;
                 if (owner == start_unit) {
                     // cycle
@@ -160,15 +160,15 @@ bool lock_debug_detect_deadlocks_and_report() {
     uint8_t visited[1024];
 
     for (uint32_t i = 0; i < lock_table_count; ++i) {
-        lock_debug_info& L = lock_table[i];
-        for (uint8_t w = 0; w < L.waiter_count; ++w) {
-            uint32_t start = L.waiters[w];
+        LockDebugInfo& l = lock_table[i];
+        for (uint8_t w = 0; w < l.waiter_count; ++w) {
+            uint32_t start = l.waiters[w];
             memset(visited, 0, sizeof(visited));
             visited[start] = 1;
 
             if (dfs_detect(start, start, visited, 0)) {
                 deadlock_reported = true;
-                lock_debug_report_deadlock(&L, start);
+                lock_debug_report_deadlock(&l, start);
                 return true;  // nur 1 Meldung
             }
         }
@@ -193,27 +193,27 @@ bool lock_debug_detect_deadlocks_and_report() {
     return false;
 }
 
-void lock_debug_report_deadlock(lock_debug_info* L, uint32_t start_unit) {
-    Log::PrintLn("=== DEADLOCK DETECTED ===");
-    Log::PrintLn("Unit %u waits on lock: %s (%p)", start_unit, L->name, L->lock_ptr);
+void lock_debug_report_deadlock(LockDebugInfo* l, uint32_t start_unit) {
+    Log::print_ln("=== DEADLOCK DETECTED ===");
+    Log::print_ln("Unit %u waits on lock: %s (%p)", start_unit, l->name, l->lock_ptr);
 
     // Owner
-    if (L->owner_unit) {
-        Log::PrintLn("Current owner: %u", L->owner_unit);
-        if (L->owner_trace_len) {
-            Log::PrintLn("Owner stack (%u frames):", L->owner_trace_len);
-            for (uint8_t i = 0; i < L->owner_trace_len; ++i)
-                Log::PrintLn(" %p", reinterpret_cast<void*>(L->owner_trace[i]));
+    if (l->owner_unit) {
+        Log::print_ln("Current owner: %u", l->owner_unit);
+        if (l->owner_trace_len) {
+            Log::print_ln("Owner stack (%u frames):", l->owner_trace_len);
+            for (uint8_t i = 0; i < l->owner_trace_len; ++i)
+                Log::print_ln(" %p", reinterpret_cast<void*>(l->owner_trace[i]));
         }
     }
 
     // Waiter trace
-    if (L->waiter_trace_len) {
-        Log::PrintLn("Waiter stack (%u frames):", L->waiter_trace_len);
-        for (uint8_t i = 0; i < L->waiter_trace_len; ++i)
-            Log::PrintLn(" %p", reinterpret_cast<void*>(L->waiter_trace[i]));
+    if (l->waiter_trace_len) {
+        Log::print_ln("Waiter stack (%u frames):", l->waiter_trace_len);
+        for (uint8_t i = 0; i < l->waiter_trace_len; ++i)
+            Log::print_ln(" %p", reinterpret_cast<void*>(l->waiter_trace[i]));
     }
 
     // Optional: wie lange Lock gehalten wird
-    if (L->acquired_tsc) Log::PrintLn("Lock held for: %llu cycles", rdtsc() - L->acquired_tsc);
+    if (l->acquired_tsc) Log::print_ln("Lock held for: %llu cycles", rdtsc() - l->acquired_tsc);
 }

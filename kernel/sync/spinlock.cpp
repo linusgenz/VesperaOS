@@ -27,14 +27,14 @@
 #include "../../kernel/debug/lock_debug.h"
 #endif
 
-void spinlock_t::init(const char* name) {
-    locked = 0;
+void Spinlock::init(const char* name) {
+    locked_ = 0;
 #if DEBUG_SPINLOCK
     lock_debug_register(this, name);
 #endif
 }
 
-void spinlock_t::lock() {
+void Spinlock::lock() {
     // uint32_t uid = kernel::scheduling::get_current_unit()->id;
 
     //  auto* info = lock_debug_find(this);
@@ -47,7 +47,7 @@ void spinlock_t::lock() {
 
     //  lock_debug_before_acquire(this, uid);
 
-    while (xchg(&locked, 1)) {
+    while (xchg(&locked_, 1)) {
         //  lock_debug_before_acquire(this, uid);
         asm volatile("pause");
     }
@@ -55,10 +55,10 @@ void spinlock_t::lock() {
     // lock_debug_after_acquire(this, uid);
 }
 
-void spinlock_t::unlock() {
+void Spinlock::unlock() {
     // uint32_t uid = kernel::scheduling::get_current_unit()->id;
 
     //  lock_debug_release(this, uid);
 
-    __atomic_store_n(&locked, 0, __ATOMIC_RELEASE);
+    __atomic_store_n(&locked_, 0, __ATOMIC_RELEASE);
 }

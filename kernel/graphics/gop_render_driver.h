@@ -4,11 +4,10 @@
 
 #include "../../include/graphics.h"
 #include "../../include/kernel/terminal.h"
-#include "../memory/heap.h"
 
-class gop_render_driver final : public IRenderDriver {
+class GopRenderDriver final : public IRenderDriver {
    public:
-    gop_render_driver(Framebuffer* fb, FONT* font);
+    GopRenderDriver(framebuffer_t* fb, font_t* font);
 
     // IRenderDriver Interface
     void draw_glyph_run(const GlyphRun& run) override;
@@ -22,7 +21,7 @@ class gop_render_driver final : public IRenderDriver {
     [[nodiscard]] uint32_t bytes_per_scanline() const override;
 
     [[nodiscard]] KernelDevice* get_kd() const {
-        return kd;
+        return kd_;
     }
 
     // Niedrig-Level Funktionen für Terminal
@@ -31,12 +30,10 @@ class gop_render_driver final : public IRenderDriver {
     void clear();  // gesamten Framebuffer löschen
 
    private:
-    Framebuffer* fb;
-    FONT* font;
+    framebuffer_t* fb_;
+    font_t* font_;
 
-    KernelDevice* kd;
-
-    void scroll_down(uint32_t pixels);
+    KernelDevice* kd_;
 };
 
 #endif  // BASIC_RENDERER_H

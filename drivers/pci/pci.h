@@ -4,11 +4,11 @@
 
 #ifndef PCI_H
 #define PCI_H
-#include <cstdint>
+#include <stdint.h>
 #include "../../kernel/acpi/acpi.h"
 
-namespace PCI {
-    struct PCIDeviceHeader {
+namespace pci {
+    struct PCI_DEVICE_HEADER {
         uint16_t vendor_id;
         uint16_t device_id;
         volatile uint16_t command;
@@ -23,18 +23,18 @@ namespace PCI {
         uint8_t bist;
     };
 
-    struct PCIHeader0 {
-        PCIDeviceHeader header;
-        uint32_t BAR0;
-        uint32_t BAR1;
-        uint32_t BAR2;
-        uint32_t BAR3;
-        uint32_t BAR4;
-        uint32_t BAR5;
+    struct PCI_HEADER0 {
+        PCI_DEVICE_HEADER header;
+        uint32_t bar0;
+        uint32_t bar1;
+        uint32_t bar2;
+        uint32_t bar3;
+        uint32_t bar4;
+        uint32_t bar5;
         uint32_t cardbus_cis_ptr;
         uint16_t subsystem_vendor_id;
         uint16_t subsystem_id;
-        uint32_t expansion_rom_base_addr;
+        uint32_t expansion_robase_addr;
         uint8_t capabilities_ptr;
         uint8_t rsv0;
         uint16_t rsv1;
@@ -45,46 +45,46 @@ namespace PCI {
         uint8_t max_latency;
     };
 
-#define PCI_BAR_TYPE_32BIT    0x0
-#define PCI_BAR_TYPE_64BIT    0x4
+#define PCI_BAR_TYPE_32_BIT    0x0
+#define PCI_BAR_TYPE_64_BIT    0x4
 #define PCI_BAR_TYPE_MASK     0x6
 #define PCI_BAR_MEMORY_MASK   0x1
 
     struct BarInfo {
         uint64_t address;
         uint64_t size;
-        bool is_64bit;
+        bool is_64_bit;
         bool is_memory;
         bool is_prefetchable;
         bool is_valid;
     };
 
-    inline uint8_t pci_read8(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
+    inline uint8_t pci_read8(pci::PCI_DEVICE_HEADER *hdr, uint8_t offset) {
         volatile uint8_t *ptr = reinterpret_cast<uint8_t *>(hdr) + offset;
         return *ptr;
     }
 
-    inline void pci_write8(PCI::PCIDeviceHeader *hdr, uint8_t offset, uint8_t value) {
+    inline void pci_write8(pci::PCI_DEVICE_HEADER *hdr, uint8_t offset, uint8_t value) {
         volatile uint8_t *ptr = reinterpret_cast<uint8_t *>(hdr) + offset;
         *ptr = value;
     }
 
-    inline uint16_t pci_read16(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
+    inline uint16_t pci_read16(pci::PCI_DEVICE_HEADER *hdr, uint8_t offset) {
         volatile auto *ptr = reinterpret_cast<volatile uint16_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
         return *ptr;
     }
 
-    inline void pci_write16(PCI::PCIDeviceHeader *hdr, uint8_t offset, uint16_t value) {
+    inline void pci_write16(pci::PCI_DEVICE_HEADER *hdr, uint8_t offset, uint16_t value) {
         volatile auto *ptr = reinterpret_cast<volatile uint16_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
         *ptr = value;
     }
 
-    inline uint32_t pci_read32(PCI::PCIDeviceHeader *hdr, uint8_t offset) {
+    inline uint32_t pci_read32(pci::PCI_DEVICE_HEADER *hdr, uint8_t offset) {
         volatile auto *ptr = reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
         return *ptr;
     }
 
-    inline void pci_write32(PCI::PCIDeviceHeader *hdr, uint8_t offset, uint32_t value) {
+    inline void pci_write32(pci::PCI_DEVICE_HEADER *hdr, uint8_t offset, uint32_t value) {
         volatile auto *ptr = reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uint8_t *>(hdr) + offset);
         *ptr = value;
     }
@@ -99,9 +99,9 @@ namespace PCI {
     }
 
 
-    void enumerate_pci(ACPI::MCFGHeader *mcfg);
+    void enumerate_pci(acpi::MCFG_HEADER *mcfg);
 
-    extern const char *DeviceClasses[];
+    extern const char *device_classes[];
 
     const char *get_vendor_name(uint16_t vendor_id);
 
@@ -109,9 +109,9 @@ namespace PCI {
 
     const char *get_subclass_name(uint8_t class_code, uint8_t subclass_code);
 
-    const char *get_prog_if_Name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
+    const char *get_prog_if_name(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
 
-    BarInfo get_bar_info(PCIHeader0 *header, uint8_t bar_index);
+    BarInfo get_bar_info(PCI_HEADER0 *header, uint8_t bar_index);
 }
 
 #endif //PCI_H

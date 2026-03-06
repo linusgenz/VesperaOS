@@ -27,10 +27,10 @@
 #include "xhci_rings.h"
 #include "../usb_descriptors.h"
 
-class xhciEndpoint {
+class XhciEndpoint {
 public:
-    xhciEndpoint(uint8_t xhc_slot_id, const usb_endpoint_descriptor* desc);
-    ~xhciEndpoint() = default;
+    XhciEndpoint(uint8_t xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc);
+    ~XhciEndpoint() = default;
 
     uint8_t     usb_endpoint_addr;
     uint8_t     usb_endpoint_attributes;
@@ -39,18 +39,18 @@ public:
     uint8_t     xhc_endpoint_type;
     uint8_t     xhc_endpoint_num;
 
-    [[nodiscard]] uint8_t* get_data_buffer() const { return m_data_buffer; }
-    [[nodiscard]] uintptr_t get_data_buffer_dma() const { return m_data_buffer_dma_addr; }
+    [[nodiscard]] uint8_t* get_data_buffer() const { return data_buffer_; }
+    [[nodiscard]] uintptr_t get_data_buffer_dma() const { return data_buffer_dma_addr_; }
 
-    [[nodiscard]] xhciTransferRing* get_transfer_ring() const
+    [[nodiscard]] XhciTransferRing* get_transfer_ring() const
     {
-        return m_transfer_ring;
+        return transfer_ring_;
     }
 
 private:
-    uint8_t*    m_data_buffer;
-    uintptr_t   m_data_buffer_dma_addr;
-    xhciTransferRing* m_transfer_ring;
+    uint8_t*    data_buffer_;
+    uintptr_t   data_buffer_dma_addr_;
+    XhciTransferRing* transfer_ring_;
 
     void allocate_internal_data_buffer();
 };

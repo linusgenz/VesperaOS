@@ -29,11 +29,11 @@ namespace kernel::scheduling::manager {
 #define MSR_KERNEL_GS_BASE 0xC0000102
 #define MSR_GS_BASE 0xC0000101
 // this code here is so shit, but it works, so I advise to not touch it
-    void switch_to_unit(Unit *from, Unit *to, trap_frame *frame) {
+    void switch_to_unit(Unit *from, Unit *to, TrapFrame *frame) {
         const bool from_syscall = from && from->context.from_syscall;
 
         if (to->is_user) {
-            uint32_t cpu_id = CPUManager::get_current_cpu_id();
+            uint32_t cpu_id = cpu_manager::get_current_cpu_id();
             tss[cpu_id].rsp0 = virt_raw(to->context.stack_top);
 
             wrmsr(MSR_GS_BASE, 0);
@@ -89,8 +89,8 @@ namespace kernel::scheduling::manager {
 
     [[noreturn]] void terminate_current_unit() {
         asm volatile("cli");
-        uint8_t cpu_id = CPUManager::get_current_cpu_id();
-        cpu_scheduler::cpu_scheduler_t *cpu = cpu_scheduler::get_cpu_data(cpu_id);
+        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        cpu_scheduler::CpuScheduler *cpu = cpu_scheduler::get_cpu_data(cpu_id);
 
         if (!cpu->current_unit || cpu->current_unit->is_idle) {
             while (true) {
@@ -98,7 +98,7 @@ namespace kernel::scheduling::manager {
             }
         }
 
-        cpu->current_unit->state = UNIT_TERMINATED;
+        cpu->current_unit->state = UnitState::Terminated;
 
         cpu_scheduler::yield_cpu(cpu_id);
 
@@ -108,7 +108,7 @@ namespace kernel::scheduling::manager {
     }
 
     extern "C" void unit_trampoline() {
-        const uint8_t cpu_id = CPUManager::get_current_cpu_id();
+        const uint8_t cpu_id = cpu_manager::get_current_cpu_id();
         const Unit *current = cpu_scheduler::get_current_unit_on_cpu(cpu_id);
 
         current->context.entry(current->context.arg);

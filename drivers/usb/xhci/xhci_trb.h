@@ -2,7 +2,7 @@
 #define XHCI_TRB_H
 
 #include "xhci_common.h"
-#include <cstdint>
+#include <stdint.h>
 
 /*
 // xHci Spec Section 4.11 Figure 4-13: TRB Template (page 188)
@@ -11,7 +11,7 @@ This section discusses the properties and uses of TRBs that are outside of the
 scope of the general data structure descriptions that are provided in section
 6.4.
 */
-typedef struct xhci_transfer_request_block {
+typedef struct XHCI_TRANSFER_REQUEST_BLOCK {
     uint64_t parameter; // TRB-specific parameter
     uint32_t status;    // Status information
     union {
@@ -33,7 +33,7 @@ typedef struct xhci_transfer_request_block {
 } xhci_trb_t;
 static_assert(sizeof(xhci_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_command_completion_request_block {
+typedef struct XHCI_COMMAND_COMPLETION_REQUEST_BLOCK {
     uint64_t command_trb_pointer;
     struct {
         uint32_t rsvd0           : 24;
@@ -49,7 +49,7 @@ typedef struct xhci_command_completion_request_block {
 } xhci_command_completion_trb_t;
 static_assert(sizeof(xhci_command_completion_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_address_device_request_block {
+typedef struct XHCI_ADDRESS_DEVICE_REQUEST_BLOCK {
     uint64_t input_context_physical_base;
     uint32_t rsvd;
     struct {
@@ -65,7 +65,7 @@ typedef struct xhci_address_device_request_block {
 } xhci_address_device_command_trb_t;
 static_assert(sizeof(xhci_address_device_command_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_port_status_change_request_block {
+typedef struct XHCI_PORT_STATUS_CHANGE_REQUEST_BLOCK {
     struct {
         uint32_t rsvd0   : 24;
         uint32_t port_id : 8;
@@ -87,7 +87,7 @@ static_assert(sizeof(xhci_port_status_change_trb_t) == sizeof(uint32_t) * 4);
 /*
 // xHci Spec Section 4.11.2.2 Figure 4-14 SETUP Data, the Parameter Component of Setup Stage TRB (page 211)
 */
-struct xhci_device_request_packet {
+struct XHCI_DEVICE_REQUEST_PACKET {
     union {
         struct {
             /*
@@ -111,15 +111,15 @@ struct xhci_device_request_packet {
             */
             uint8_t transfer_direction   : 1;
         };
-        uint8_t bRequestType;
+        uint8_t b_request_type;
     };
 
-    uint8_t bRequest;
-    uint16_t wValue;
-    uint16_t wIndex;
-    uint16_t wLength;
+    uint8_t b_request;
+    uint16_t w_value;
+    uint16_t w_index;
+    uint16_t w_length;
 };
-static_assert(sizeof(xhci_device_request_packet) == 8);
+static_assert(sizeof(XHCI_DEVICE_REQUEST_PACKET) == 8);
 
 /*
 // xHci Spec Section 6.4.1.2.1 Setup Stage TRB (page 468)
@@ -129,8 +129,8 @@ on a control endpoint. Refer to section 3.2.9 for more information on Setup
 Stage TRBs and the operation of control endpoints. Also refer to section 8.5.3 in
 the USB2 spec. for a description of “Control Transfers”.
 */
-typedef struct xhci_setup_stage_transfer_request_block {
-    xhci_device_request_packet request_packet;
+typedef struct XHCI_SETUP_STAGE_TRANSFER_REQUEST_BLOCK {
+    XHCI_DEVICE_REQUEST_PACKET request_packet;
 
     struct {
         // Always 8
@@ -174,7 +174,7 @@ transfer. Refer to section 3.2.9 for more information on Control transfers and
 the operation of control endpoints. Also refer to section 8.5.3 in the USB2 spec.
 for a description of “Control Transfers”.
 */
-typedef struct xhci_data_stage_transfer_request_block {
+typedef struct XHCI_DATA_STAGE_TRANSFER_REQUEST_BLOCK {
     /*
         Data Buffer Pointer Hi and Lo. These fields represent the 64-bit address of the Data
         buffer area for this transaction.
@@ -229,7 +229,7 @@ static_assert(sizeof(xhci_data_stage_trb_t) == sizeof(uint32_t) * 4);
 /*
 Refer to section 4.11.5.2 for more information
 */
-typedef struct xhci_event_data_transfer_request_block {
+typedef struct XHCI_EVENT_DATA_TRANSFER_REQUEST_BLOCK {
     uint64_t data;
 
     struct {
@@ -258,7 +258,7 @@ A Status Stage TRB is used to generate the Status stage transaction of a USB
 Control transfer. Refer to section 3.2.9 for more information on Control transfers
 and the operation of control endpoints.
 */
-typedef struct xhci_status_stage_transfer_request_block {
+typedef struct XHCI_STATUS_STAGE_TRANSFER_REQUEST_BLOCK {
     // Reserved
     uint64_t rsvd0;
 
@@ -287,7 +287,7 @@ typedef struct xhci_status_stage_transfer_request_block {
 } xhci_status_stage_trb_t;
 static_assert(sizeof(xhci_status_stage_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_transfer_completion_request_block {
+typedef struct XHCI_TRANSFER_COMPLETION_REQUEST_BLOCK {
     uint64_t transfer_trb_pointer;
     struct {
         uint32_t transfer_length : 24;
@@ -306,7 +306,7 @@ typedef struct xhci_transfer_completion_request_block {
 } xhci_transfer_completion_trb_t;
 static_assert(sizeof(xhci_transfer_completion_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_evaluate_context_command_request_block {
+typedef struct XHCI_EVALUATE_CONTEXT_COMMAND_REQUEST_BLOCK {
     uint64_t input_context_physical_base;
     uint32_t rsvd0;
     struct {
@@ -320,7 +320,7 @@ typedef struct xhci_evaluate_context_command_request_block {
 } xhci_evaluate_context_command_trb_t;
 static_assert(sizeof(xhci_evaluate_context_command_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_configure_endpoint_command_request_block {
+typedef struct XHCI_CONFIGURE_ENDPOINT_COMMAND_REQUEST_BLOCK {
     uint64_t input_context_physical_base;
     uint32_t rsvd0;
     struct {
@@ -334,7 +334,7 @@ typedef struct xhci_configure_endpoint_command_request_block {
 } xhci_configure_endpoint_command_trb_t;
 static_assert(sizeof(xhci_configure_endpoint_command_trb_t) == sizeof(uint32_t) * 4);
 
-typedef struct xhci_normal_request_block {
+typedef struct XHCI_NORMAL_REQUEST_BLOCK {
     uint64_t data_buffer_physical_base;
     union {
         struct {

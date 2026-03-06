@@ -24,8 +24,8 @@
 #ifndef VESPERAOS_DISASM_H
 #define VESPERAOS_DISASM_H
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 struct Instruction {
     char mnemonic[128];

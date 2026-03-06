@@ -30,60 +30,60 @@
 #include "log.h"
 #include "partition_device.h"
 
-Vector<BlockDevice*>* DeviceManager::devices;
-Vector<KernelDevice*>* DeviceManager::all_devices;
-uint32_t DeviceManager::next_id = 1;
-spinlock_t DeviceManager::lock;
+Vector<BlockDevice*>* DeviceManager::devices_;
+Vector<KernelDevice*>* DeviceManager::all_devices_;
+uint32_t DeviceManager::next_id_ = 1;
+Spinlock DeviceManager::lock_;
 
-static bool blockLetterUsed[26] = {false};
+static bool block_letter_used[26] = {false};
 
 void DeviceManager::init() {
-    devices = new Vector<BlockDevice*>();
-    all_devices = new Vector<KernelDevice*>();
-    next_id = 1;
-    lock.init();
-    devices->clear();
-    all_devices->clear();
+    devices_ = new Vector<BlockDevice*>();
+    all_devices_ = new Vector<KernelDevice*>();
+    next_id_ = 1;
+    lock_.init();
+    devices_->clear();
+    all_devices_->clear();
 }
 
-char DeviceManager::GetNextFreeBlockLetter() {
+char DeviceManager::get_next_free_block_letter() {
     for (int i = 0; i < 26; i++) {
-        if (!blockLetterUsed[i]) {
-            blockLetterUsed[i] = true;
+        if (!block_letter_used[i]) {
+            block_letter_used[i] = true;
             return static_cast<char>('a' + i);
         }
     }
     return '?';
 }
 
-void DeviceManager::ReleaseBlockLetter(char c) {
+void DeviceManager::release_block_letter(char c) {
     if (c >= 'a' && c <= 'z') {
-        blockLetterUsed[c - 'a'] = false;
+        block_letter_used[c - 'a'] = false;
     }
 }
 
-char* DeviceManager::GenerateSDDeviceName(char* buffer, size_t buffer_size) {
+char* DeviceManager::generate_sd_device_name(char* buffer, size_t buffer_size) {
     if (!buffer || buffer_size < 4) return nullptr;
     buffer[0] = 's';
     buffer[1] = 'd';
-    buffer[2] = GetNextFreeBlockLetter();
+    buffer[2] = get_next_free_block_letter();
     buffer[3] = '\0';
     return buffer;
 }
 
-char* DeviceManager::GenerateNVMeDeviceName(
-    const KernelDevice* controller, char* buffer, size_t buffer_size, uint32_t namespaceId
+char* DeviceManager::generate_nv_me_device_name(
+    const KernelDevice* controller, char* buffer, size_t buffer_size, const uint32_t namespace_id
 ) {
     if (!controller || !buffer || buffer_size < 16) return nullptr;
 
-    if (controller->controller != ControllerType::NVMe) return nullptr;
+    if (controller->controller != ControllerType::Nvme) return nullptr;
 
-    snprintf(buffer, buffer_size, "%sn%u", controller->name, namespaceId);
+    snprintf(buffer, buffer_size, "%sn%u", controller->name, namespace_id);
 
     return buffer;
 }
 
-size_t DeviceManager::FindAndRegisterPartitions(KernelDevice* physical_kd) {
+size_t DeviceManager::find_and_register_partitions(KernelDevice* physical_kd) {
     if (!physical_kd || !physical_kd->block) return 0;
 
     BlockDevice* dev = physical_kd->block;
@@ -99,18 +99,18 @@ size_t DeviceManager::FindAndRegisterPartitions(KernelDevice* physical_kd) {
         auto* pdev = new PartitionDevice(dev, pe.start_lba, pe.length_lba);
 
         char part_name[64];
-        if (physical_kd->controller == ControllerType::NVMe) {
+        if (physical_kd->controller == ControllerType::Nvme) {
             // physical_kd->name = "nvme0n1" → partition: "nvme0n1p1"
             snprintf(part_name, sizeof(part_name), "%sp%zu", physical_kd->name, i + 1);
         } else {
             // physical_kd->name = "sda" → partition: "sda1"
             snprintf(part_name, sizeof(part_name), "%s%zu", physical_kd->name, i + 1);
         }
-        KernelDevice* pkd = RegisterBlockDevice(
+        KernelDevice* pkd = register_block_device(
             pdev, part_name, physical_kd->dev_class, physical_kd->bus_type, physical_kd->controller, physical_kd
         );
 
-        DevFS::register_device(pkd);
+        DevFs::register_device(pkd);
 
         pkd->driver_data = nullptr;
     }
@@ -118,21 +118,21 @@ size_t DeviceManager::FindAndRegisterPartitions(KernelDevice* physical_kd) {
     return count;
 }
 
-bool DeviceManager::AllocUniqueDeviceName(const char* base, char* outBuffer, size_t outBufferSize) {
-    spinlock_guard guard(lock);
+bool DeviceManager::alloc_unique_device_name(const char* base, char* out_buffer, const size_t out_buffer_size) {
+    SpinlockGuard guard(lock_);
 
-    if (!all_devices || !outBuffer || outBufferSize == 0) return false;
+    if (!all_devices_ || !out_buffer || out_buffer_size == 0) return false;
 
     int counter = 0;
 
     while (true) {
-        if (const int written = snprintf(outBuffer, outBufferSize, "%s%d", base, counter);
-            written < 0 || static_cast<size_t>(written) >= outBufferSize)
+        if (const int written = snprintf(out_buffer, out_buffer_size, "%s%d", base, counter);
+            written < 0 || static_cast<size_t>(written) >= out_buffer_size)
             return false;
 
         bool exists = false;
-        for (const auto* kd : *all_devices) {
-            if (kd && kd->name && strcmp(kd->name, outBuffer) == 0) {
+        for (const auto* kd : *all_devices_) {
+            if (kd && kd->name && strcmp(kd->name, out_buffer) == 0) {
                 exists = true;
                 break;
             }
@@ -144,36 +144,36 @@ bool DeviceManager::AllocUniqueDeviceName(const char* base, char* outBuffer, siz
     }
 }
 
-Vector<BlockDevice*> DeviceManager::GetDevices() {
-    spinlock_guard guard(lock);
-    Vector<BlockDevice*> snapshot = devices->copy();
+Vector<BlockDevice*> DeviceManager::get_devices() {
+    SpinlockGuard guard(lock_);
+    Vector<BlockDevice*> snapshot = devices_->copy();
     return snapshot;
 }
 
 // 1-based -> 1 == 1 device, zero == 0 devices
-uint32_t DeviceManager::GetDeviceCount() {
-    spinlock_guard guard(lock);
-    auto result = devices->size();
+uint32_t DeviceManager::get_device_count() {
+    SpinlockGuard guard(lock_);
+    auto result = devices_->size();
     return result;
 }
 
-KernelDevice* DeviceManager::RegisterBlockDevice(
+KernelDevice* DeviceManager::register_block_device(
     BlockDevice* dev, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
     KernelDevice* parent
 ) {
     if (!dev) return nullptr;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    if (!all_devices) {
-        all_devices = new Vector<KernelDevice*>();
+    if (!all_devices_) {
+        all_devices_ = new Vector<KernelDevice*>();
     }
-    if (!devices) {
-        devices = new Vector<BlockDevice*>();
+    if (!devices_) {
+        devices_ = new Vector<BlockDevice*>();
     }
 
     auto* kd = new KernelDevice();
-    kd->id = next_id++;
+    kd->id = next_id_++;
     kd->name = strdup(name);
     kd->type = DeviceType::Block;
     kd->dev_class = dev_class;
@@ -188,25 +188,25 @@ KernelDevice* DeviceManager::RegisterBlockDevice(
         parent->children.push_back(kd);
     }
 
-    devices->push_back(dev);
-    all_devices->push_back(kd);
+    devices_->push_back(dev);
+    all_devices_->push_back(kd);
     return kd;
 }
 
-KernelDevice* DeviceManager::RegisterCharDevice(
+KernelDevice* DeviceManager::register_char_device(
     CharDevice* dev, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
     KernelDevice* parent
 ) {
     if (!dev) return nullptr;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    if (!all_devices) {
-        all_devices = new Vector<KernelDevice*>();
+    if (!all_devices_) {
+        all_devices_ = new Vector<KernelDevice*>();
     }
 
     auto* kd = new KernelDevice();
-    kd->id = next_id++;
+    kd->id = next_id_++;
     kd->name = strdup(name);
     kd->type = DeviceType::Char;
     kd->dev_class = dev_class;
@@ -221,23 +221,23 @@ KernelDevice* DeviceManager::RegisterCharDevice(
         parent->children.push_back(kd);
     }
 
-    all_devices->push_back(kd);
+    all_devices_->push_back(kd);
 
     return kd;
 }
 
-KernelDevice* DeviceManager::RegisterController(
+KernelDevice* DeviceManager::register_controller(
     const char* name, DeviceClass dev_class, BusType bus, ControllerType controller, KernelDevice* parent,
     ::CharDevice* dev, IDriverLifecycle* lifecycle
 ) {
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    if (!all_devices) {
-        all_devices = new Vector<KernelDevice*>();
+    if (!all_devices_) {
+        all_devices_ = new Vector<KernelDevice*>();
     }
 
     auto* kd = new KernelDevice();
-    kd->id = next_id++;
+    kd->id = next_id_++;
     kd->name = strdup(name);
     kd->type = DeviceType::Controller;
     kd->dev_class = dev_class;
@@ -254,24 +254,24 @@ KernelDevice* DeviceManager::RegisterController(
         parent->children.push_back(kd);
     }
 
-    all_devices->push_back(kd);
+    all_devices_->push_back(kd);
     return kd;
 }
 
-KernelDevice* DeviceManager::RegisterGpuDevice(
+KernelDevice* DeviceManager::register_gpu_device(
     IRenderDriver* driver, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
     KernelDevice* parent = nullptr
 ) {
     if (!driver) return nullptr;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    if (!all_devices) {
-        all_devices = new Vector<KernelDevice*>();
+    if (!all_devices_) {
+        all_devices_ = new Vector<KernelDevice*>();
     }
 
     auto* kd = new KernelDevice();
-    kd->id = next_id++;
+    kd->id = next_id_++;
     kd->name = strdup(name);
     kd->type = DeviceType::Gpu;
     kd->dev_class = dev_class;
@@ -286,26 +286,26 @@ KernelDevice* DeviceManager::RegisterGpuDevice(
         parent->children.push_back(kd);
     }
 
-    all_devices->push_back(kd);
+    all_devices_->push_back(kd);
     return kd;
 }
 
-void DeviceManager::UnregisterDevice(KernelDevice* kd) {
+void DeviceManager::unregister_device(KernelDevice* kd) {
     if (!kd) return;
 
-    spinlock_guard guard(lock);
+    SpinlockGuard guard(lock_);
 
-    if (all_devices) {
-        for (size_t i = 0; i < all_devices->size(); ++i) {
-            if ((*all_devices)[i] == kd) {
-                all_devices->erase(i);
+    if (all_devices_) {
+        for (size_t i = 0; i < all_devices_->size(); ++i) {
+            if ((*all_devices_)[i] == kd) {
+                all_devices_->erase(i);
                 break;
             }
         }
     }
 
-    if (kd->block && devices) {
-        devices->erase_value(kd->block);
+    if (kd->block && devices_) {
+        devices_->erase_value(kd->block);
     }
 
     if (kd->parent) {
@@ -321,7 +321,7 @@ void DeviceManager::UnregisterDevice(KernelDevice* kd) {
     if (kd->name) {
         if (kd->type == DeviceType::Block) {
             const char released_char = kd->name[3];
-            ReleaseBlockLetter(released_char);
+            release_block_letter(released_char);
         }
         kernel::memory::free(const_cast<char*>(kd->name));
         kd->name = nullptr;
@@ -330,18 +330,18 @@ void DeviceManager::UnregisterDevice(KernelDevice* kd) {
     delete kd;
 }
 
-Vector<KernelDevice*> DeviceManager::GetAllDevices() {
-    spinlock_guard guard(lock);
-    if (!all_devices) {
+Vector<KernelDevice*> DeviceManager::get_all_devices() {
+    SpinlockGuard guard(lock_);
+    if (!all_devices_) {
         return Vector<KernelDevice*>();
     }
-    return all_devices->copy();
+    return all_devices_->copy();
 }
 
-KernelDevice* DeviceManager::FindById(uint32_t id) {
-    spinlock_guard guard(lock);
-    if (!all_devices) return nullptr;
-    for (auto* dev : *all_devices) {
+KernelDevice* DeviceManager::find_by_id(uint32_t id) {
+    SpinlockGuard guard(lock_);
+    if (!all_devices_) return nullptr;
+    for (auto* dev : *all_devices_) {
         if (dev && dev->id == id) {
             return dev;
         }
@@ -349,39 +349,39 @@ KernelDevice* DeviceManager::FindById(uint32_t id) {
     return nullptr;
 }
 
-uint32_t DeviceManager::GetKernelDeviceCount() {
-    spinlock_guard guard(lock);
-    if (!all_devices) return 0;
-    return all_devices->size();
+uint32_t DeviceManager::get_kernel_device_count() {
+    SpinlockGuard guard(lock_);
+    if (!all_devices_) return 0;
+    return all_devices_->size();
 }
 
-void DeviceManager::ShutdownAll() {
-    spinlock_guard guard(lock);
-    if (!all_devices) return;
+void DeviceManager::shutdown_all() {
+    SpinlockGuard guard(lock_);
+    if (!all_devices_) return;
 
-    for (const auto* kd : *all_devices) {
+    for (const auto* kd : *all_devices_) {
         if (!kd || !kd->lifecycle) continue;
         if (kd->type != DeviceType::Controller) continue;
         kd->lifecycle->on_shutdown();
     }
 }
 
-void DeviceManager::SuspendAll() {
-    spinlock_guard guard(lock);
-    if (!all_devices) return;
+void DeviceManager::suspend_all() {
+    SpinlockGuard guard(lock_);
+    if (!all_devices_) return;
 
-    for (const auto* kd : *all_devices) {
+    for (const auto* kd : *all_devices_) {
         if (!kd || !kd->lifecycle) continue;
         if (kd->type != DeviceType::Controller) continue;
         kd->lifecycle->on_suspend();
     }
 }
 
-void DeviceManager::ResumeAll() {
-    spinlock_guard guard(lock);
-    if (!all_devices) return;
+void DeviceManager::resume_all() {
+    SpinlockGuard guard(lock_);
+    if (!all_devices_) return;
 
-    for (const auto* kd : *all_devices) {
+    for (const auto* kd : *all_devices_) {
         if (!kd || !kd->lifecycle) continue;
         if (kd->type != DeviceType::Controller) continue;
         kd->lifecycle->on_resume();

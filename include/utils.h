@@ -5,7 +5,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <cstdint>
+#include <stdint.h>
 
 inline uint64_t min(const uint64_t a, const uint64_t b) {
     return (a < b) ? a : b;

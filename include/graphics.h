@@ -19,7 +19,7 @@ typedef enum {
     ORANGE  = 0x0000A5FF,
     GRAY    = 0x00808080,
     BG_COLOUR = 0x00061220,
-} Colour;
+} colour_t;
 
 typedef struct {
     void*    base_address;
@@ -28,12 +28,12 @@ typedef struct {
     uint32_t width;
     uint32_t height;
     uint32_t pixels_per_scanline;
-} Framebuffer;
+} framebuffer_t;
 
 typedef struct {
-    uint32_t X;
-    uint32_t Y;
-} Point;
+    uint32_t x;
+    uint32_t y;
+} point_t;
 
 #define PSF1_MAGIC0 0x36
 #define PSF1_MAGIC1 0x04
@@ -42,16 +42,16 @@ typedef struct {
     unsigned char magic[2];
     unsigned char mode;
     unsigned char charsize;
-} PSF1_HEADER;
+} psf1_header_t;
 
 typedef struct {
     void* header;       // PSF1_HEADER* or PSF2_HEADER*
-    void* glyphBuffer;
+    void* glyph_buffer;
     uint32_t type;      // 1 = PSF1, 2 = PSF2
     uint32_t width;
     uint32_t height;
     uint32_t charsize;
-} FONT;
+} font_t;
 
 #define PSF2_MAGIC 0x864ab572
 
@@ -64,6 +64,6 @@ typedef struct {
     uint32_t charsize;     // Bytes pro Glyph
     uint32_t height;       // Pixelhöhe
     uint32_t width;        // Pixelbreite
-} PSF2_HEADER;
+} psf2_header_t;
 
 #endif //GRAHICS_H

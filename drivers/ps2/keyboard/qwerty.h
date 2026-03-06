@@ -23,7 +23,7 @@
 
 #ifndef QWERTY_H
 #define QWERTY_H
-#include <cstdint>
+#include <stdint.h>
 
 namespace ps2::keyboard::qwerty {
 
