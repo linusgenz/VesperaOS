@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['wchar_5ft_0',['wchar_t',['../stddef_8h.html#a9c277a3fd853029cc853c877bcd32e8e',1,'stddef.h']]],
-  ['wint_5ft_1',['wint_t',['../stddef_8h.html#aae8fec8a77257a9718887040067a3f09',1,'stddef.h']]]
+  ['va_5flist_0',['va_list',['../stdarg_8h.html#af53f622e3b6c080daeb167c1955d7ec1',1,'stdarg.h']]]
 ];

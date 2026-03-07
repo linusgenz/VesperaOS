@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['dirent_5ft_0',['dirent_t',['../structdirent__t.html',1,'']]]
+  ['cpu_5finfo_0',['cpu_info',['../structcpu__info.html',1,'']]]
 ];

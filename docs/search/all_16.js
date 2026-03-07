@@ -1,8 +1,13 @@
 var searchData=
 [
-  ['wait_5frealm_0',['wait_realm',['../realm_8h.html#a59f606471b07976be9904777066defbc',1,'realm.h']]],
-  ['wchar_5ft_1',['wchar_t',['../stddef_8h.html#a9c277a3fd853029cc853c877bcd32e8e',1,'stddef.h']]],
-  ['width_2',['width',['../structimage__t.html#a0c9099a8c2e05a0cd35be6de837c8b9a',1,'image_t']]],
-  ['wint_5ft_3',['wint_t',['../stddef_8h.html#aae8fec8a77257a9718887040067a3f09',1,'stddef.h']]],
-  ['write_4',['write',['../stdio_8h.html#ac6f86db0433cd874276007d41ccaae37',1,'stdio.h']]]
+  ['v_5fsamp_5ffactor_0',['v_samp_factor',['../structjpeg__save__options__t.html#a06445193fca1fa42950df1536bf0a470',1,'jpeg_save_options_t']]],
+  ['va_5farg_1',['va_arg',['../stdarg_8h.html#a81ebe6ea6253b0c6618e29de70fe10eb',1,'stdarg.h']]],
+  ['va_5fcopy_2',['va_copy',['../stdarg_8h.html#a19fd5658c088617859d4a89c657ec5cc',1,'stdarg.h']]],
+  ['va_5fend_3',['va_end',['../stdarg_8h.html#acd9b3b9085ec072324c5fdac2b40304e',1,'stdarg.h']]],
+  ['va_5flist_4',['va_list',['../stdarg_8h.html#af53f622e3b6c080daeb167c1955d7ec1',1,'stdarg.h']]],
+  ['va_5fstart_5',['va_start',['../stdarg_8h.html#ade24ac546ea93fde2353ed2db8e89c66',1,'stdarg.h']]],
+  ['vendor_6',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info']]],
+  ['vendor_5fid_7',['vendor_id',['../structxhci__device__stat.html#a515718791dccd4d50e68ec911c475100',1,'xhci_device_stat']]],
+  ['vesperaos_20standard_20library_20vesplib_8',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
+  ['vesplib_9',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]]
 ];

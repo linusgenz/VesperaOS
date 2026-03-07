@@ -27,6 +27,7 @@ var NAVTREE =
   [ "vesplib", "index.html", [
     [ "VesperaOS Standard Library (vesplib)", "index.html", "index" ],
     [ "Todo List", "todo.html", null ],
+    [ "Topics", "topics.html", "topics" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
@@ -53,7 +54,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"realm_8h.html#ab0585566306fc83efde7a4789d0869eb"
+"jpeg_8h.html#a88358088e98874ddc24652a86cbfb7e9",
+"structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

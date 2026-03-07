@@ -1,13 +1,5 @@
 var searchData=
 [
-  ['large_5fseg_0',['large_seg',['../structlarge__seg.html',1,'large_seg'],['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'large_seg:&#160;memory.h']]],
-  ['length_1',['length',['../structheap__seg.html#a0e65284fbc1c0e7c7a8f0a0037ed0a7f',1,'heap_seg']]],
-  ['library_20vesplib_2',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
-  ['limits_2eh_3',['limits.h',['../limits_8h.html',1,'']]],
-  ['list_4',['Todo List',['../todo.html',1,'']]],
-  ['llong_5fmax_5',['LLONG_MAX',['../limits_8h.html#a23ec2cf7fc07ea8f817bbac758402baf',1,'limits.h']]],
-  ['llong_5fmin_6',['LLONG_MIN',['../limits_8h.html#af17a13b2ae0e9c24c020ac1f044f30c2',1,'limits.h']]],
-  ['long_5fmax_7',['LONG_MAX',['../limits_8h.html#a50fece4db74f09568b2938db583c5655',1,'limits.h']]],
-  ['long_5fmin_8',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]],
-  ['longjmp_9',['longjmp',['../setjmp_8h.html#aa179f45112fc35f1fef47370663d6887',1,'setjmp.h']]]
+  ['kernel_5fstack_5fend_0',['kernel_stack_end',['../structunit__info.html#a5de53b0dcfabbac001ca36a0540f641c',1,'unit_info']]],
+  ['kernel_5fstack_5fstart_1',['kernel_stack_start',['../structunit__info.html#acf5e617e0fd64757ebed9490689a2035',1,'unit_info']]]
 ];

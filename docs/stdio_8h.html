@@ -93,7 +93,6 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">stdio.h File Reference</div></div>
@@ -102,7 +101,7 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
 <div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdlib_8h_source.html">stdlib.h</a>&gt;</code><br />
-<code>#include &quot;<a class="el" href="dirent_8h_source.html">dirent.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="userspace_2lib_2include_2dirent_8h_source.html">dirent.h</a>&quot;</code><br />
 </div>
 <p><a href="stdio_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -110,27 +109,6 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structFILE.html">FILE</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:a5fdb4f034c352061cefaf15a152223d7" id="r_a5fdb4f034c352061cefaf15a152223d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a>&#160;&#160;&#160;0x1000000000000000ULL</td></tr>
-<tr class="separator:a5fdb4f034c352061cefaf15a152223d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef864574e77d6a0d5653dfae187c57e4" id="r_aef864574e77d6a0d5653dfae187c57e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aef864574e77d6a0d5653dfae187c57e4">HANDLE_TYPE_FILE</a>&#160;&#160;&#160;0x2000000000000000ULL</td></tr>
-<tr class="separator:aef864574e77d6a0d5653dfae187c57e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57fb96e74a11842469c4d71f9a38734a" id="r_a57fb96e74a11842469c4d71f9a38734a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a57fb96e74a11842469c4d71f9a38734a">HANDLE_TYPE_CHANNEL</a>&#160;&#160;&#160;0x3000000000000000ULL</td></tr>
-<tr class="separator:a57fb96e74a11842469c4d71f9a38734a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9dec1a6d452fc4aa25863f4f48db44dd" id="r_a9dec1a6d452fc4aa25863f4f48db44dd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd">HANDLE_TYPE_UNIT</a>&#160;&#160;&#160;0x4000000000000000ULL</td></tr>
-<tr class="separator:a9dec1a6d452fc4aa25863f4f48db44dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99fc691f8add17b3b3a7834779d7e641" id="r_a99fc691f8add17b3b3a7834779d7e641"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a99fc691f8add17b3b3a7834779d7e641">HANDLE_TYPE_REALM</a>&#160;&#160;&#160;0x5000000000000000ULL</td></tr>
-<tr class="separator:a99fc691f8add17b3b3a7834779d7e641"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7320acad67c37ee34fa6f28cab733f7c" id="r_a7320acad67c37ee34fa6f28cab733f7c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a>&#160;&#160;&#160;0x6000000000000000ULL</td></tr>
-<tr class="separator:a7320acad67c37ee34fa6f28cab733f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8bdf33a8a477a7f84782d4075cac16e" id="r_aa8bdf33a8a477a7f84782d4075cac16e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">HANDLE_STDIN</a>&#160;&#160;&#160;(<a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a> | 0x0000000000000000ULL)</td></tr>
-<tr class="separator:aa8bdf33a8a477a7f84782d4075cac16e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab713aac387c884999067ab2eb12eb2a3" id="r_ab713aac387c884999067ab2eb12eb2a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab713aac387c884999067ab2eb12eb2a3">HANDLE_STDOUT</a>&#160;&#160;&#160;(<a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a> | 0x0000000000000001ULL)</td></tr>
-<tr class="separator:ab713aac387c884999067ab2eb12eb2a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20f587d71e5bfe98fd92929ab61bde41" id="r_a20f587d71e5bfe98fd92929ab61bde41"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a20f587d71e5bfe98fd92929ab61bde41">HANDLE_STDERR</a>&#160;&#160;&#160;(<a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a> | 0x0000000000000002ULL)</td></tr>
-<tr class="separator:a20f587d71e5bfe98fd92929ab61bde41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -222,133 +200,6 @@ Functions</h2></td></tr>
 <tr class="memdesc:a887a2f711e90813cae7a78d79e3748bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file or directory.  <br /></td></tr>
 <tr class="separator:a887a2f711e90813cae7a78d79e3748bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="a20f587d71e5bfe98fd92929ab61bde41" name="a20f587d71e5bfe98fd92929ab61bde41"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a20f587d71e5bfe98fd92929ab61bde41">&#9670;&#160;</a></span>HANDLE_STDERR</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_STDERR&#160;&#160;&#160;(<a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a> | 0x0000000000000002ULL)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa8bdf33a8a477a7f84782d4075cac16e" name="aa8bdf33a8a477a7f84782d4075cac16e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8bdf33a8a477a7f84782d4075cac16e">&#9670;&#160;</a></span>HANDLE_STDIN</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_STDIN&#160;&#160;&#160;(<a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a> | 0x0000000000000000ULL)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab713aac387c884999067ab2eb12eb2a3" name="ab713aac387c884999067ab2eb12eb2a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab713aac387c884999067ab2eb12eb2a3">&#9670;&#160;</a></span>HANDLE_STDOUT</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_STDOUT&#160;&#160;&#160;(<a class="el" href="stdio_8h.html#a5fdb4f034c352061cefaf15a152223d7">HANDLE_TYPE_CONSOLE</a> | 0x0000000000000001ULL)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a57fb96e74a11842469c4d71f9a38734a" name="a57fb96e74a11842469c4d71f9a38734a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57fb96e74a11842469c4d71f9a38734a">&#9670;&#160;</a></span>HANDLE_TYPE_CHANNEL</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_CHANNEL&#160;&#160;&#160;0x3000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5fdb4f034c352061cefaf15a152223d7" name="a5fdb4f034c352061cefaf15a152223d7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5fdb4f034c352061cefaf15a152223d7">&#9670;&#160;</a></span>HANDLE_TYPE_CONSOLE</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_CONSOLE&#160;&#160;&#160;0x1000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7320acad67c37ee34fa6f28cab733f7c" name="a7320acad67c37ee34fa6f28cab733f7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7320acad67c37ee34fa6f28cab733f7c">&#9670;&#160;</a></span>HANDLE_TYPE_DEVICE</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_DEVICE&#160;&#160;&#160;0x6000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aef864574e77d6a0d5653dfae187c57e4" name="aef864574e77d6a0d5653dfae187c57e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef864574e77d6a0d5653dfae187c57e4">&#9670;&#160;</a></span>HANDLE_TYPE_FILE</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_FILE&#160;&#160;&#160;0x2000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a99fc691f8add17b3b3a7834779d7e641" name="a99fc691f8add17b3b3a7834779d7e641"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99fc691f8add17b3b3a7834779d7e641">&#9670;&#160;</a></span>HANDLE_TYPE_REALM</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_REALM&#160;&#160;&#160;0x5000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a9dec1a6d452fc4aa25863f4f48db44dd" name="a9dec1a6d452fc4aa25863f4f48db44dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9dec1a6d452fc4aa25863f4f48db44dd">&#9670;&#160;</a></span>HANDLE_TYPE_UNIT</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_UNIT&#160;&#160;&#160;0x4000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="a7c05f3f8b572c8bc1a699461d29fcea6" name="a7c05f3f8b572c8bc1a699461d29fcea6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7c05f3f8b572c8bc1a699461d29fcea6">&#9670;&#160;</a></span>CHANNEL_HANDLE</h2>
@@ -886,7 +737,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path to the resource (null-terminated string). </td></tr>
-    <tr><td class="paramname">flags</td><td>Open flags (bitwise OR of O_* constants, see <a class="el" href="fflags_8h.html">fflags.h</a>). </td></tr>
+    <tr><td class="paramname">flags</td><td>Open flags (bitwise OR of O_* constants, see <a class="el" href="userspace_2lib_2include_2fflags_8h.html">fflags.h</a>). </td></tr>
   </table>
   </dd>
 </dl>
