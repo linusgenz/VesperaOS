@@ -23,8 +23,8 @@
 
 #include "elf.h"
 
-#include <kernel/memory.h>
-#include <kernel/realm/realm.h>
+#include <vespera/mm/memory.h>
+#include <vespera/realm/realm.h>
 
 #include "../../filesystem/vfs/vfs.h"
 
@@ -37,7 +37,7 @@
 
 static phys_addr_t realm_get_phys(const Realm* realm, const uintptr_t vaddr) {
     uintptr_t page_vaddr = vaddr & ~0xFFFULL;
-    uintptr_t offset     = vaddr & 0xFFFULL;
+    uintptr_t offset = vaddr & 0xFFFULL;
 
     phys_addr_t phys_page = realm->page_table->get_physical_address(virt_from_raw(page_vaddr));
     if (phys_null(phys_page)) return make_phys(0);

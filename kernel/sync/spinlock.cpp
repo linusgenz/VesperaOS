@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/sync/spinlock.h>
+#include <vespera/sync/spinlock.h>
 
 #if DEBUG_SPINLOCK
 #include "../../kernel/debug/lock_debug.h"

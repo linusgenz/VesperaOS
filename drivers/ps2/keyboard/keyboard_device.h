@@ -24,8 +24,8 @@
 #ifndef VESPERAOS_KEYBOARD_DEVICE_H
 #define VESPERAOS_KEYBOARD_DEVICE_H
 
-#include <kernel/devices/char_device.h>
-#include <kernel/devices/device_manager.h>
+#include <vespera/devices/char_device.h>
+#include <vespera/devices/device_manager.h>
 
 class Ps2Controller;
 

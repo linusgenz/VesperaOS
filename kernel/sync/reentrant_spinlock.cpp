@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/scheduling.h>
-#include <kernel/sync/reentrant_spinlock.h>
+#include <vespera/scheduling.h>
+#include <vespera/sync/reentrant_spinlock.h>
 
 void ReentrantSpinlock::lock() {
     uint32_t uid = kernel::scheduling::get_current_unit()->id;

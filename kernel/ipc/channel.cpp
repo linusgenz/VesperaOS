@@ -21,11 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/ipc/channel.h>
 #include <vespera_errno.h>
-#include <kernel/ipc/channel.h>
-#include <kernel/memory.h>
-#include <log.h>
-#include <utils.h>
+
+#include <klib/utils.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 Channel::Channel(const size_t cap)
     : buf_(static_cast<uint8_t *>(kernel::memory::malloc(cap)))

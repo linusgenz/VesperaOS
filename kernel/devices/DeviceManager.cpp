@@ -21,14 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vector.h>
-
 #include "../../filesystem/devfs/devfs.h"
 #include "../../filesystem/partition/partition.h"
-#include "../../include/kernel/devices/device_manager.h"
-#include "blockdevice.h"
-#include "log.h"
+#include <vespera/devices/block.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/log.h>
 #include "partition_device.h"
+#include <klib/vector.h>
 
 Vector<BlockDevice*>* DeviceManager::devices_;
 Vector<KernelDevice*>* DeviceManager::all_devices_;

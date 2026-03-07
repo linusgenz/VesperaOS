@@ -4,8 +4,9 @@
 
 #ifndef MADT_H
 #define MADT_H
-#include "acpi.h"
 #include <stdint.h>
+
+#include <acpi/acpi.h>
 
 #define MAX_CPU_CORES 64
 #define MAX_IOAPICS 4

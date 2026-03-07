@@ -21,14 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "xhci.h"
 #include "xhci_mass_storage_driver.h"
 
-#include "../../../include/kernel/devices/device_manager.h"
-#include <log.h>
-
 #include "../../../filesystem/devfs/devfs.h"
-
+#include "vespera/devices/device_manager.h"
+#include "xhci.h"
+#include <vespera/log.h>
 
 void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev)
 {

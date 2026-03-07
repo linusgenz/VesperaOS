@@ -23,9 +23,8 @@
 
 #include "zero.h"
 
-#include <kernel/memory.h>
-
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
+#include <vespera/mm/memory.h>
 
 ZeroDevice::ZeroDevice()
     : CharDevice(BusType::VIRTUAL) {

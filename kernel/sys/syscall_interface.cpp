@@ -23,9 +23,9 @@
 
 #include "syscall_interface.h"
 
-#include <kernel/sys/syscall_numbers.h>
+#include <vespera/sys/syscall_numbers.h>
 
-#include "../../include/log.h"
+#include <vespera/log.h>
 
 constexpr int MAX_SYSCALLS = 256;
 static syscalls::internal::syscall_fn_t syscall_table[MAX_SYSCALLS];

@@ -1,9 +1,7 @@
 #include "pci.h"
 
-#include <kernel/interrupts.h>
-#include <kernel/kernel_utils.h>
-#include <kernel/memory.h>
-#include <log.h>
+#include <vespera/interrupts.h>
+#include <vespera/kernel_utils.h>
 
 #include "../../kernel/graphics/display_manager.h"
 #include "../../kernel/units/unit_manager.h"
@@ -13,6 +11,8 @@
 #include "../usb/usb_manager.h"
 #include "../usb/xhci/xhci.h"
 #include "msix.h"
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 static AtomicU8 next_usb_bus_number;
 

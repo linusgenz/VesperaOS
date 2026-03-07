@@ -22,10 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "xhci_keyboard_driver.h"
-#include <log.h>
-#include <kernel/memory.h>
 
-#include <kernel/input/input_manager.h>
+#include <vespera/input/input_manager.h>
+#include <vespera/mm/memory.h>
 
 #include "xhci.h"
 

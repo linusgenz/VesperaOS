@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/memory.h>
+#include <vespera/mm/memory.h>
 
 void* operator new(size_t size) {
     return kernel::memory::malloc(size);

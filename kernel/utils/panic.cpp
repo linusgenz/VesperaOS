@@ -1,9 +1,9 @@
 #include "panic.h"
 
-#include <kernel/kernel_utils.h>
+#include <vespera/kernel_utils.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../../include/string.h"
+#include <klib/string.h>
 #include "../cpu/cpu_manager.h"
 
 static const uint8_t SIMPLE_FONT[27][16] = {

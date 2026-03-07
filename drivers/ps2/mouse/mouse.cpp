@@ -22,9 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "mouse.h"
-#include "../../../kernel/cpu/io.h"
 
-#include "kernel/kernel_utils.h"
+#include "../../../kernel/cpu/io.h"
+#include "vespera/kernel_utils.h"
 
 namespace input::mouse {
     uint8_t pointer[] = {

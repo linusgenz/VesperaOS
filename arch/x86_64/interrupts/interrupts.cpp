@@ -1,10 +1,10 @@
-#include <kernel/interrupts.h>
-#include <kernel/kerrno.h>
-#include <kernel/system/system_manager.h>
+#include <vespera/interrupts.h>
+#include <vespera/kerrno.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../../../drivers/ps2/mouse/mouse.h"
-#include "../../../include/log.h"
+#include <vespera/log.h>
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/cpu/io.h"
 #include "../../../kernel/debug/fault_logger.h"

@@ -20,9 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "kernel/memory.h"
-#include <cstdlib>
+#include <vespera/mm/memory.h>
 
+#include <cstdlib>
 
 namespace kernel::memory {
 

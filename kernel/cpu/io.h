@@ -4,7 +4,7 @@
 
 #ifndef IO_H
 #define IO_H
-#include "cstdint"
+#include "stdint.h"
 
 inline void outw(uint16_t port, uint16_t value) {
     asm volatile("outw %0, %1" : : "a"(value), "Nd"(port));

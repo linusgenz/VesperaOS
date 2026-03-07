@@ -23,9 +23,9 @@
 
 #include "ext4.h"
 
-#include <log.h>
-#include <vector.h>
-#include <kernel/memory.h>
+#include <klib/vector.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 namespace ext4 {
     FileSystem::FileSystem(BlockDevice *device) {

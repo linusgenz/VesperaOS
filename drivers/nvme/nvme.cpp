@@ -4,12 +4,12 @@
 
 #include "nvme.h"
 
-#include <kernel/devices/device_manager.h>
-#include <kernel/memory.h>
-#include <kernel/time.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
+#include <vespera/time.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../../include/log.h"
 #include "vespera_errno.h"
 
 namespace nvme {
@@ -337,12 +337,8 @@ namespace nvme {
             return -1;
         }
 
-        kernel::memory::map_memory(
-            sq_virt, sq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled)
-        );
-        kernel::memory::map_memory(
-            cq_virt, cq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled)
-        );
+        kernel::memory::map_memory(sq_virt, sq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled));
+        kernel::memory::map_memory(cq_virt, cq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled));
 
         uint16_t queue_id = allocate_queue_id();
 
@@ -403,8 +399,6 @@ namespace nvme {
         , submission_queue_(virt_as<NVME_COMMAND>(sq))
         , completion_db_(cq_db)
         , submission_db_(sq_db)
-        , c_queue_size_(csz)
-        , s_queue_size_(ssz)
         , cq_count_(csz / sizeof(NVME_COMPLETION_ENTRY))
         , sq_count_(ssz / sizeof(NVME_COMMAND)) {
         memset(completion_queue_, 0, csz);
@@ -590,4 +584,4 @@ namespace nvme {
 
         return static_cast<ssize_t>(bytes);
     }
-}  // namespace NVMe
+}  // namespace nvme

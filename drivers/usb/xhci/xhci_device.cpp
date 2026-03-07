@@ -21,12 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "xhci.h"
 #include "xhci_device.h"
-#include <kernel/memory.h>
 
+#include "xhci.h"
 #include "xhci_device_ctx.h"
 #include "xhci_usb_interface.h"
+#include <vespera/mm/memory.h>
 
 XhciDevice::XhciDevice(const uint8_t slot_id, const uint8_t port_num, const uint8_t speed, const bool use_64_byte_ctx)
     : use_64_byte_ctx_(use_64_byte_ctx)

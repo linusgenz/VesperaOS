@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_ZERO_H
 #define VESPERAOS_ZERO_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class ZeroDevice final : public CharDevice {
    public:

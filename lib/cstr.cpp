@@ -1,7 +1,7 @@
-#include <string.h>
-#include <kernel/memory.h>
 #include <stddef.h>
 
+#include <klib/string.h>
+#include <vespera/mm/memory.h>
 
 template <typename T>
 char* itohex(T value, char* buffer, const size_t buffer_size)

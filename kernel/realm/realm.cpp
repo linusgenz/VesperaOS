@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/realm/realm.h>
+#include <vespera/realm/realm.h>
 
 Realm::Realm()
     : id(0)

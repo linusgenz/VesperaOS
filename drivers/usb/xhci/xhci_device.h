@@ -27,7 +27,7 @@
 #include "xhci_rings.h"
 #include "xhci_device_ctx.h"
 #include "xhci_usb_interface.h"
-#include <dev/usb_xhci_ioctl.h>
+#include <uapi/vespera/dev/usb_xhci_ioctl.h>
 
 class XhciDevice {
 public:
@@ -55,7 +55,7 @@ public:
 
     Vector<XhciUsbInterface *> interfaces;
 
-    XhciDeviceStat info{};
+    xhci_device_stat info{};
 
 private:
     bool use_64_byte_ctx_;

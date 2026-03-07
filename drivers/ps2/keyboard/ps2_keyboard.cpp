@@ -22,8 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ps2_keyboard.h"
+
 #include "qwerty.h"
-#include "kernel/input/input_manager.h"
+#include "vespera/input/input_manager.h"
 
 namespace ps2::keyboard {
 

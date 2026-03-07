@@ -1,9 +1,9 @@
 #include "gop_render_driver.h"
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../../include/kernel/terminal.h"
-#include "kernel/devices/device_manager.h"
-#include "kernel/memory.h"
+#include <vespera/mm/memory.h>
+#include <vespera/terminal.h>
+#include "vespera/devices/device_manager.h"
 
 GopRenderDriver::GopRenderDriver(framebuffer_t* fb, font_t* font)
     : fb_(fb)

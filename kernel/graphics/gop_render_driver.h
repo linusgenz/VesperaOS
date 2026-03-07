@@ -1,9 +1,9 @@
 #ifndef BASIC_RENDERER_H
 #define BASIC_RENDERER_H
-#include <kernel/devices/device_manager.h>
+#include <vespera/devices/device_manager.h>
 
-#include "../../include/graphics.h"
-#include "../../include/kernel/terminal.h"
+#include <vespera/graphics.h>
+#include <vespera/terminal.h>
 
 class GopRenderDriver final : public IRenderDriver {
    public:

@@ -22,8 +22,8 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../../include/log.h"
-#include "../../../include/string.h"
+#include <klib/string.h>
+#include <vespera/log.h>
 #include "vespera_errno.h"
 
 namespace syscalls::internal {

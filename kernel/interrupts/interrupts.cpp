@@ -21,13 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/memory.h>
+#include <vespera/mm/memory.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
 #include "../../arch/x86_64/interrupts/idt.h"
 #include "../../arch/x86_64/interrupts/ioapic.h"
 #include "../../arch/x86_64/interrupts/pic.h"
-#include "../../include/log.h"
 #include "../cpu/io.h"
 
 namespace kernel::interrupts {

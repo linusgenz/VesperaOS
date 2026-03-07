@@ -25,7 +25,7 @@
 
 #include <arch/x86_64/cpu/msr.h>
 
-#include "../../../include/log.h"
+#include <vespera/log.h>
 
 extern "C" void syscall_entry();
 

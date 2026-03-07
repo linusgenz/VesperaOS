@@ -24,7 +24,7 @@
 // VesperaOS — Vector<T> Tests: stress, edge cases, lifecycle tracking
 
 #include "../framework/test_framework.h"
-#include <vector.h>
+#include <klib/vector.h>
 #include <cstring>
 
 // Lifecycle tracking (construction/destruction balance)

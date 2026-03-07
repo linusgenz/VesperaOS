@@ -2,9 +2,9 @@
 #include "../../../kernel/debug/deadlock_detector.h"
 #endif
 
-#include <kernel/kerrno.h>
-#include <kernel/scheduling.h>
-#include <kernel/system/system_manager.h>
+#include <vespera/kerrno.h>
+#include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../../kernel/acpi/acpi_manager.h"
 #include "../../../kernel/acpi/madt.h"

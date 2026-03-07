@@ -23,9 +23,9 @@
 
 #include "msix.h"
 
-#include <kernel/interrupts.h>
-#include <kernel/memory.h>
-#include <log.h>
+#include <vespera/interrupts.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 #include "msi.h"
 #include "pci.h"
@@ -97,4 +97,4 @@ namespace pci {
         if (enable_msix(header, base_vector)) return true;
         return enable_msi(header, base_vector, wanted);
     }
-}  // namespace PCI
+}  // namespace pci

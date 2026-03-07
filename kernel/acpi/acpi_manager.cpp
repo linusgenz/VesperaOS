@@ -1,6 +1,6 @@
 #include "acpi_manager.h"
 
-#include <kernel/memory.h>
+#include <vespera/mm/memory.h>
 
 namespace acpi {
     // Static member initialization
@@ -31,4 +31,4 @@ namespace acpi {
 
         return nullptr;
     }
-}  // namespace ACPI
+}  // namespace acpi

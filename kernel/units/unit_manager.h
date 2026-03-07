@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_UNIT_MANAGER_H
 #define VESPERAOS_UNIT_MANAGER_H
 
-#include <kernel/sync/spinlock.h>
+#include <vespera/sync/spinlock.h>
 
 #include "../types/types.h"
 #include "unit.h"

@@ -1,10 +1,9 @@
 #include "page_table_manager.h"
 
-#include <kernel/memory.h>
-
-#include "../../include/log.h"
-#include "kernel/addr.h"
+#include <vespera/log.h>
+#include <vespera/mm/addr.h>
 #include "page_map_indexer.h"
+#include <vespera/mm/memory.h>
 
 PageTableManager::PageTableManager(PageTable* pml4_address)
     : pml4(pml4_address) {

@@ -23,11 +23,11 @@
  */
 #include "reaper.h"
 
-#include "../../include/kernel/scheduling.h"
-#include "../../include/kernel/time.h"
+#include <vespera/log.h>
+#include <vespera/scheduling.h>
+#include <vespera/time.h>
 #include "../cpu/cpu_manager.h"
 #include "../units/unit_manager.h"
-#include "log.h"
 
 [[noreturn]] void reaper_unit(void* arg) {
     while (true) {

@@ -24,10 +24,11 @@
 #ifndef VESPERAOS_PARTION_DEVICE_H
 #define VESPERAOS_PARTION_DEVICE_H
 
-#include "../types/handle.h"
-#include "blockdevice.h"
 #include <stddef.h>
 #include <stdint.h>
+
+#include <vespera/devices/block.h>
+#include "../types/handle.h"
 
 class PartitionDevice final : public BlockDevice {
    public:

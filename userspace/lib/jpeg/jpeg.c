@@ -22,7 +22,7 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "../include/jpeg/jpeg.h"
+#include <jpeg/jpeg.h>
 
 #include <fflags.h>
 #include <jpeglib.h>

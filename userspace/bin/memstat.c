@@ -21,16 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/dev/meminfo.h>
 #include <fflags.h>
 #include <realm.h>
 #include <stdio.h>
-#include <sysstd.h>
-#include <dev/usb_xhci_ioctl.h>
 #include <sys/ioctl.h>
+#include <sysstd.h>
 
 #include "stddef.h"
 #include "stdint.h"
-#include <dev/meminfo.h>
+#include <../../include/uapi/vespera/dev/usb_xhci_ioctl.h>
 
 int main(int argc, char **argv) {
     FILE_HANDLE hdl = open("/dev/meminfo", O_RDONLY);

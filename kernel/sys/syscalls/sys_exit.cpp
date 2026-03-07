@@ -21,9 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/realm/realm_manager.h>
-#include <kernel/scheduling.h>
-#include <kernel/system/system_manager.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../cpu/cpu_manager.h"
 

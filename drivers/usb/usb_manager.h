@@ -25,9 +25,9 @@
 #define VESPERAOS_USB_MANAGER_H
 
 #include <stdint.h>
-#include <kernel/sync/atomic.h>
-#include <kernel/sync/completion.h>
-#include <kernel/sync/spinlock.h>
+#include <vespera/sync/atomic.h>
+#include <vespera/sync/completion.h>
+#include <vespera/sync/spinlock.h>
 
 class UsbManager {
 private:

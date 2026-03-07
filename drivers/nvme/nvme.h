@@ -4,13 +4,11 @@
 
 #ifndef NVME_H
 #define NVME_H
-#include <vector.h>
-
-#include "../../kernel/devices/blockdevice.h"
+#include <vespera/devices/block.h>
 #include "../pci/pci.h"
-#include "kernel/devices/device_manager.h"
-#include "log.h"
 #include "nvme_defs.h"
+#include "vespera/devices/device_manager.h"
+#include <klib/vector.h>
 
 namespace nvme {
     class NvmeQueue {
@@ -24,9 +22,6 @@ namespace nvme {
 
         volatile uint32_t* completion_db_{};
         volatile uint32_t* submission_db_{};
-
-        uint16_t c_queue_size_ = 0;
-        uint16_t s_queue_size_ = 0;
 
         uint16_t cq_count_ = 0;
         uint16_t sq_count_ = 0;

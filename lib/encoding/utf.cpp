@@ -2,7 +2,8 @@
 // Created by linus on 03.07.25.
 //
 #include <stddef.h>
-#include <encoding.h>
+
+#include <klib/encoding.h>
 
 // === Konstanten & Masken ===
 

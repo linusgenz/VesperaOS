@@ -23,11 +23,11 @@
 
 #include "rtc.h"
 
-#include <kernel/memory.h>
-#include <kernel/time.h>
+#include <vespera/mm/memory.h>
+#include <vespera/time.h>
 
 RtcDevice::RtcDevice()
-    : CharDevice( BusType::VIRTUAL) {
+    : CharDevice(BusType::VIRTUAL) {
 }
 
 int RtcDevice::open(CharFile**) {

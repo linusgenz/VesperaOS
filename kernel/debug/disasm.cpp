@@ -23,11 +23,10 @@
 
 #include "disasm.h"
 
-#include <log.h>
-#include <string.h>
-
-#include "kernel/memory.h"
+#include <vespera/mm/memory.h>
 #include "symbols.h"
+#include <klib/string.h>
+#include <vespera/log.h>
 
 struct OpcodeEntry {
     uint8_t opcode;

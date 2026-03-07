@@ -23,9 +23,8 @@
 
 #include "trace.h"
 
-#include <log.h>
-
 #include "symbols.h"
+#include <vespera/log.h>
 
 void debug_capture_stack(uint64_t rbp, uint64_t rip, uint64_t* out, uint8_t* out_len, uint8_t max_depth) {
     uint8_t cnt = 0;

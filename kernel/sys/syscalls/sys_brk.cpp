@@ -21,13 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/scheduling.h>
+#include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
+#include <vespera/mm/memory.h>
 #include "/mnt/ExternerDatentraeger/VesperaOS/kernel/units/unit.h"
-#include "kernel/memory.h"
-#include "kernel/realm/realm.h"
-#include "kernel/realm/realm_manager.h"
+#include "vespera/realm/realm.h"
+#include "vespera/realm/realm_manager.h"
 
 // TODO
 static constexpr uintptr_t USER_HEAP_START = 0x40000000;

@@ -23,11 +23,11 @@
 
 #include "meminfo.h"
 
-#include <kernel/memory.h>
-#include <kernel/system/system_manager.h>
+#include <vespera/mm/memory.h>
+#include <vespera/system/system_manager.h>
 
 MemInfoDevice::MemInfoDevice()
-    : CharDevice( BusType::VIRTUAL) {
+    : CharDevice(BusType::VIRTUAL) {
 }
 
 int MemInfoDevice::open(CharFile**) {

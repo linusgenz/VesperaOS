@@ -20,19 +20,19 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#include "vfs_node.h"
-#include "../../include/path.h"
-#include "../../include/string.h"
 #include "vfs.h"
 
-#include <kernel/scheduling.h>
-
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
 #include <vespera_errno.h>
-#include "../../include/kernel/devices/device_manager.h"
-#include "fs_detection.h"
+
+#include <klib/path.h>
+#include <klib/string.h>
+#include <vespera/devices/device_manager.h>
 #include "../dirent.h"
-#include <kernel/realm/realm_manager.h>
-#include <log.h>
+#include "fs_detection.h"
+#include "vfs_node.h"
+#include <vespera/log.h>
 
 Vector<MountPoint*>* VFS::mount_points_ = nullptr;
 Spinlock VFS::mount_points_lock_;

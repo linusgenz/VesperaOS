@@ -24,12 +24,12 @@
 
 #include "realmfs.h"
 
+#include <vespera/realm/realm_manager.h>
 #include <vespera_errno.h>
-#include <kernel/memory.h>
-#include <kernel/realm/realm_manager.h>
-#include <string.h>
 
 #include "../../kernel/units/unit_manager.h"
+#include <klib/string.h>
+#include <vespera/mm/memory.h>
 
 void RealmFs::init()
 {

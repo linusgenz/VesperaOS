@@ -2,7 +2,7 @@
 // Created by Linus on 17.07.25.
 //
 
-#include <kernel/scheduling.h>
+#include <vespera/scheduling.h>
 
 #include "../cpu/cpu_manager.h"
 #include "../units/unit.h"

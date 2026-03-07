@@ -21,9 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../include/kernel/sync/wait_queue.h"
+#include <vespera/sync/wait_queue.h>
 
-#include <kernel/scheduling.h>
+#include <vespera/scheduling.h>
 
 #include "../units/unit.h"
 

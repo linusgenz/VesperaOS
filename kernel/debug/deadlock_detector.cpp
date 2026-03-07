@@ -23,11 +23,11 @@
 
 #include "deadlock_detector.h"
 
-#include <kernel/kerrno.h>
-#include <kernel/system/system_manager.h>
-#include <log.h>
+#include <vespera/kerrno.h>
+#include <vespera/system/system_manager.h>
 
 #include "lock_debug.h"
+#include <vespera/log.h>
 
 static bool enabled = false;
 

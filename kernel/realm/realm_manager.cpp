@@ -21,15 +21,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/realm/realm_manager.h>
-#include <kernel/system/system_manager.h>
-#include <log.h>
+#include <vespera/log.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/sync/atomic.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../filesystem/realmfs/realmfs.h"
-#include "../../include/kernel/sync/atomic.h"
 #include "../paging/page_table_manager.h"
 #include "../units/unit_manager.h"
-#include "dev/realm_info.h"
+#include <uapi/vespera/dev/realm_info.h>
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
@@ -169,10 +169,10 @@ bool RealmManager::destroy(const realm_id_t id) {
 }
 
 ssize_t RealmManager::get_status(void* manager_ref, void* buffer, size_t size, size_t offset) {
-    if (!manager_ref || !buffer || size < sizeof(RealmInfo)) return -EINVAL;
+    if (!manager_ref || !buffer || size < sizeof(realm_info)) return -EINVAL;
 
     auto* r = static_cast<Realm*>(manager_ref);
-    RealmInfo status{};
+    realm_info status{};
 
     status.id = r->id;
     strncpy(status.name, r->name, sizeof(status.name) - 1);
@@ -188,8 +188,8 @@ ssize_t RealmManager::get_status(void* manager_ref, void* buffer, size_t size, s
     strncpy(status.cwd_path, r->cwd_path, sizeof(status.cwd_path) - 1);
     status.cwd_path[sizeof(status.cwd_path) - 1] = '\0';
 
-    memcpy(buffer, &status, sizeof(RealmInfo));
-    return sizeof(RealmInfo);
+    memcpy(buffer, &status, sizeof(realm_info));
+    return sizeof(realm_info);
 }
 
 void RealmManager::list() {

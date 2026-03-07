@@ -21,12 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../include/kernel/sync/completion.h"
+#include <vespera/sync/completion.h>
 
-#include <kernel/sync/spinlock.h>
-#include <kernel/time.h>
+#include <vespera/sync/spinlock.h>
+#include <vespera/time.h>
 
-#include "../../include/log.h"
+#include <vespera/log.h>
 
 void Completion::init() {
     completed = false;

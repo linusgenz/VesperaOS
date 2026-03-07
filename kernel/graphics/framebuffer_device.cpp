@@ -26,7 +26,7 @@
 
 #include <vespera_errno.h>
 
-#include "log.h"
+#include <vespera/log.h>
 
 int FramebufferDevice::open(CharFile**) {
     return 0;

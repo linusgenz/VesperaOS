@@ -8,12 +8,12 @@
 #if DEBUG_FAULT
 #include "trace.h"
 #endif
-#include "trace.h"
-#include <kernel/realm/realm_manager.h>
-#include <kernel/scheduling.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
 
-#include "../../include/log.h"
+#include <vespera/log.h>
 #include "fault_logger.h"
+#include "trace.h"
 
 namespace kernel::debug {
     static const char* fault_type_to_string(FaultType type) {

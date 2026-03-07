@@ -3,15 +3,14 @@
 //
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
-#include <kernel/efi_memory.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <vespera/mm/efi_memory.h>
 
 #include "bitmap.h"
-#include <stdint.h>
-#include <stddef.h>
 
 class PageFrameAllocator {
    public:
-
     void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *m_map, size_t m_map_size, size_t m_map_desc_size);
 
     Bitmap page_bitmap{};

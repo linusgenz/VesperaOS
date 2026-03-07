@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_RTC_H
 #define VESPERAOS_RTC_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class RtcDevice final : public CharDevice {
    public:

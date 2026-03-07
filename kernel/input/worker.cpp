@@ -21,9 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/input/input_manager.h>
-#include <kernel/scheduling.h>
-#include <kernel/tty/tty.h>
+#include <vespera/input/input_manager.h>
+#include <vespera/scheduling.h>
+#include <vespera/tty/tty.h>
 
 #include "../units/unit_manager.h"
 

@@ -24,7 +24,7 @@
 
 #include "fat32_lfn.h"
 
-#include "kernel/memory.h"
+#include <vespera/mm/memory.h>
 
 namespace fat32 {
     uint8_t chk_sum(const char* short_name) {

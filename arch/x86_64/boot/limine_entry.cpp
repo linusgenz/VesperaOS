@@ -21,9 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <boot.h>
-#include <graphics.h>
 #include <limine.h>
+#include <vespera/boot/boot.h>
+#include <vespera/graphics.h>
 
 __attribute__((used, section(".requests_start_marker"))) static volatile LIMINE_REQUESTS_START_MARKER;
 

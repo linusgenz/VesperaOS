@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_LOG_WRITER_H
 #define VESPERAOS_LOG_WRITER_H
 
-#include <kernel/system/system_manager.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../filesystem/vfs/vfs.h"
 

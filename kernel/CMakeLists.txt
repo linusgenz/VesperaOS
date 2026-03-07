@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
-set(CMAKE_CXX_FLAGS "-ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse")
+set(CMAKE_CXX_FLAGS "--target=x86_64-elf -ffreestanding -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse")
 
 set(KERNEL_DIR ${CMAKE_SOURCE_DIR})
 set(KERNEL_SRC_DIR ${KERNEL_DIR}/kernel)

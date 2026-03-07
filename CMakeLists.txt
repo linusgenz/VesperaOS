@@ -7,6 +7,8 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
+set(VESPERA_UAPI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/uapi)
+
 # Subdirectories
 add_subdirectory(kernel)
 add_subdirectory(userspace)

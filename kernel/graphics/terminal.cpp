@@ -22,10 +22,10 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <graphics.h>
-#include <kernel/terminal.h>
+#include <vespera/terminal.h>
 
 #include "IRenderDriver.h"
+#include <vespera/graphics.h>
 
 font_t* system_font = nullptr;
 Terminal* global_terminal = nullptr;

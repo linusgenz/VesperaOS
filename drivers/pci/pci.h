@@ -5,7 +5,8 @@
 #ifndef PCI_H
 #define PCI_H
 #include <stdint.h>
-#include "../../kernel/acpi/acpi.h"
+
+#include <acpi/acpi.h>
 
 namespace pci {
     struct PCI_DEVICE_HEADER {

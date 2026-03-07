@@ -24,12 +24,12 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
-#include <kernel/terminal.h>
-#include <kernel/tty/tty.h>
+#include <vespera/terminal.h>
+#include <vespera/tty/tty.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../../include/kernel/devices/char_device.h"
-#include "kernel/devices/device_manager.h"
+#include <vespera/devices/char_device.h>
+#include "vespera/devices/device_manager.h"
 
 class TtyDevice final : public CharDevice {
    public:

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_FULL_H
 #define VESPERAOS_FULL_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class FullDevice final : public CharDevice {
    public:

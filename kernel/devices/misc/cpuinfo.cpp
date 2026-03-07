@@ -23,10 +23,9 @@
 
 #include "cpuinfo.h"
 
-#include <kernel/memory.h>
-#include <string.h>
-
 #include "../../cpu/cpu.h"
+#include <klib/string.h>
+#include <vespera/mm/memory.h>
 
 CpuInfoDevice::CpuInfoDevice()
     : CharDevice(BusType::VIRTUAL) {

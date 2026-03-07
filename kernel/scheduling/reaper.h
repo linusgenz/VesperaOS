@@ -24,9 +24,8 @@
 #ifndef VESPERAOS_REAPER_H
 #define VESPERAOS_REAPER_H
 
-#include <intrusive_queue.h>
-
 #include "../units/unit.h"
+#include <klib/intrusive_queue.h>
 
 [[noreturn]] void reaper_unit(void* arg);
 

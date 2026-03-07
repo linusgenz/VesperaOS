@@ -24,8 +24,8 @@
 #ifndef VESPERAOS_EXT4_H
 #define VESPERAOS_EXT4_H
 
-#include "../../kernel/devices/blockdevice.h"
-#include <vector.h>
+#include <vespera/devices/block.h>
+#include <klib/vector.h>
 
 namespace ext4 {
 #define EXT4_MAGIC 0xEF53

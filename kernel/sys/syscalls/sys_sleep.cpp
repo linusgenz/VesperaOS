@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/scheduling.h>
-#include <kernel/time.h>
+#include <vespera/scheduling.h>
+#include <vespera/time.h>
 
 namespace syscalls::internal {
     int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {

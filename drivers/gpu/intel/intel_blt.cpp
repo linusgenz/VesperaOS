@@ -24,13 +24,13 @@
 
 #include "intel_blt.h"
 
-#include <kernel/devices/device_manager.h>
-#include <kernel/kernel_utils.h>
-#include <log.h>
+#include <klib/string.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/kernel_utils.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 #include "../../../filesystem/devfs/devfs.h"
-#include "kernel/memory.h"
-#include "string.h"
 
 IntelBlt::IntelBlt(pci::PCI_DEVICE_HEADER* header)
     : ring_size_(RING_BUFFER_SIZE)

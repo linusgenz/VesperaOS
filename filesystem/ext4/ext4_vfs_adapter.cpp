@@ -22,13 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ext4_vfs_adapter.h"
-#include <log.h>
-#include <string.h>
-#include <kernel/memory.h>
 
-#include "ext4.h"
 #include "../vfs/fs_registry.h"
 #include "../vfs/vfs_node.h"
+#include "ext4.h"
+#include <klib/string.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 using namespace ext4;
 

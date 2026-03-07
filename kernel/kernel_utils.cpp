@@ -3,12 +3,10 @@
 #include "debug/lock_debug.h"
 #endif
 
-#include <kernel/input/input_manager.h>
-#include <kernel/memory.h>
-#include <kernel/realm/realm_manager.h>
-#include <kernel/scheduling.h>
-#include <kernel/system/system_manager.h>
-#include <log.h>
+#include <vespera/input/input_manager.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 
 #include "../arch/x86_64/gdt/gdt.h"
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
@@ -19,8 +17,8 @@
 #include "../filesystem/devfs/devfs.h"
 #include "../filesystem/realmfs/realmfs.h"
 #include "../filesystem/vfs/vfs.h"
-#include "../include/kernel/devices/device_manager.h"
-#include "../include/kernel/kernel_utils.h"
+#include <vespera/devices/device_manager.h>
+#include <vespera/kernel_utils.h>
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
 #include "cpu/cpu_manager.h"
@@ -29,12 +27,14 @@
 #include "graphics/framebuffer_device.h"
 #include "graphics/gop_render_driver.h"
 #include "input/worker.h"
-#include "kernel/interrupts.h"
 #include "sys/syscall_interface.h"
 #include "system/log_writer.h"
 #include "tty/init.h"
 #include "types/types.h"
 #include "units/unit_manager.h"
+#include "vespera/interrupts.h"
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 framebuffer_t* target_framebuffer = nullptr;
 

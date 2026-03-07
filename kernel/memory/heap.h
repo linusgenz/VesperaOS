@@ -4,9 +4,10 @@
 
 #ifndef HEAP_H
 #define HEAP_H
-#include "kernel/addr.h"
 #include <stddef.h>
 #include <stdint.h>
+
+#include <vespera/mm/addr.h>
 
 #define HEAP_MAGIC_FREE 0xDEADBEEF
 #define HEAP_MAGIC_USED 0xBEEFCAFE

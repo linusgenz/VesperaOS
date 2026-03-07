@@ -25,6 +25,9 @@
 #define VESPERAOS_PARTITION_H
 
 #include <stddef.h>
+#include <stdint.h>
+
+#include <vespera/devices/block.h>
 
 #define PARTITION_MAX_ENTRIES 128
 

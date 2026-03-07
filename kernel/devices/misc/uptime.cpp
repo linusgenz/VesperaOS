@@ -23,11 +23,11 @@
 
 #include "uptime.h"
 
-#include <kernel/memory.h>
-#include <kernel/time.h>
+#include <vespera/mm/memory.h>
+#include <vespera/time.h>
 
 UptimeDevice::UptimeDevice()
-    : CharDevice( BusType::VIRTUAL) {
+    : CharDevice(BusType::VIRTUAL) {
 }
 
 int UptimeDevice::open(CharFile**) {

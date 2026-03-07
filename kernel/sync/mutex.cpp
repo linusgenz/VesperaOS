@@ -2,10 +2,10 @@
 // Created by Linus on 20.07.25.
 //
 
-#include "../../include/kernel/sync/mutex.h"
+#include <vespera/sync/mutex.h>
 
-#include <kernel/scheduling.h>
-#include <kernel/sync/atomic.h>
+#include <vespera/scheduling.h>
+#include <vespera/sync/atomic.h>
 
 namespace kernel {
     inline bool scheduling_started = false;

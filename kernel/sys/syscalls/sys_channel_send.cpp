@@ -21,10 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/ipc/channel.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
 #include <vespera_errno.h>
-#include <kernel/ipc/channel.h>
-#include <kernel/realm/realm_manager.h>
-#include <kernel/scheduling.h>
 
 #include "../../types/types.h"
 #include "../../units/unit.h"

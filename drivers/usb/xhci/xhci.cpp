@@ -1,15 +1,15 @@
 #include "xhci.h"
 
-#include <dev/usb_xhci_ioctl.h>
-#include <encoding.h>
-#include <kernel/devices/device_manager.h>
-#include <kernel/interrupts.h>
-#include <kernel/system/system_manager.h>
-#include <kernel/time.h>
-#include <vector.h>
+#include <uapi/vespera/dev/usb_xhci_ioctl.h>
+#include <klib/encoding.h>
+#include <klib/vector.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/interrupts.h>
+#include <vespera/log.h>
+#include <vespera/system/system_manager.h>
+#include <vespera/time.h>
 
 #include "../../../filesystem/devfs/devfs.h"
-#include "../../../include/log.h"
 #include "../../pci/pci.h"
 #include "../usb_manager.h"
 #include "xhci_common.h"
@@ -23,10 +23,10 @@ namespace usb {
     XhciDriver::XhciDriver(uint8_t vector_num, const char* name, uint8_t bus_number)
         : CharDevice(BusType::Usb)
         , kd_(DeviceManager::register_controller(
-            name, DeviceClass::Usb, BusType::Usb, ControllerType::Xhci, nullptr, this
-        )), bus_number_(bus_number)
+              name, DeviceClass::Usb, BusType::Usb, ControllerType::Xhci, nullptr, this
+          ))
+        , bus_number_(bus_number)
         , vector_num_(vector_num) {
-
         devices_lock_.init("xhci_device_lock");
         command_lock_.init("xhci_command_lock");
         transfer_lock_.init("xhci_transfer_lock");
@@ -1412,7 +1412,8 @@ namespace usb {
 
                             // Retrieve the HID report descriptor.
 
-                            if (const int8_t interface_number = device->interfaces.back()->descriptor.b_interface_number;
+                            if (const int8_t interface_number =
+                                    device->interfaces.back()->descriptor.b_interface_number;
                                 !get_hid_report_descriptor(
                                     device,
                                     interface_number,
@@ -1585,7 +1586,7 @@ namespace usb {
             }
 
             case XHCI_IOCTL_GET_DEVICE: {
-                auto* stat = static_cast<XhciDeviceStat*>(arg);
+                auto* stat = static_cast<xhci_device_stat*>(arg);
                 //    if (stat->slot_id >= m_connected_devices.size())
                 //        return -EINVAL;
 
@@ -1605,7 +1606,7 @@ namespace usb {
         if (!cf || !buffer) return -EINVAL;
         auto* buf = static_cast<uint8_t*>(buffer);
         size_t written = 0;
-        constexpr size_t stat_size = sizeof(XhciDeviceStat);
+        constexpr size_t stat_size = sizeof(xhci_device_stat);
 
         uint8_t total_devices = 0;
 
@@ -1638,4 +1639,4 @@ namespace usb {
     ssize_t XhciDriver::write(CharFile*, const void*, size_t) {
         return -EUNSUPPORTED;
     }
-}  // namespace USB
+}  // namespace usb

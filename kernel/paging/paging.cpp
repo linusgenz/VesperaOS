@@ -1,8 +1,7 @@
 #include "paging.h"
 
-#include <kernel/memory.h>
-
-#include "kernel/addr.h"
+#include "vespera/mm/addr.h"
+#include <vespera/mm/memory.h>
 
 void PageDirectoryEntry::set_flag(PtFlag flag, bool enabled) {
     uint64_t bit_selector = static_cast<uint64_t>(1) << flag;

@@ -1,12 +1,12 @@
 #include "cpu_manager.h"
 
-#include <kernel/interrupts.h>
-#include <kernel/time.h>
+#include <vespera/interrupts.h>
+#include <vespera/time.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../../include/log.h"
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 #include "../acpi/madt.h"
-#include "kernel/memory.h"
 
 namespace cpu_manager {
     // Globale Variablen

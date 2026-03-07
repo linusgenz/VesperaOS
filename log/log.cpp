@@ -2,10 +2,9 @@
 // Created by Linus on 10.07.25.
 //
 
-#include <log.h>
-#include <string.h>
-
-#include "../include/kernel/terminal.h"
+#include <vespera/terminal.h>
+#include <klib/string.h>
+#include <vespera/log.h>
 
 Terminal* Log::t_ = nullptr;
 Spinlock Log::log_spin_ = {};

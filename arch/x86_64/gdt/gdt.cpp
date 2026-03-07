@@ -1,9 +1,8 @@
 #include "gdt.h"
 
-#include <kernel/memory.h>
-
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
+#include <vespera/mm/memory.h>
 
 GDT_ENTRY gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
 TSS_DESCRIPTOR tss_desc;

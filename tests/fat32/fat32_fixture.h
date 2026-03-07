@@ -22,12 +22,11 @@
 #ifndef VESPERAOS_FAT32_FIXTURE_H
 #define VESPERAOS_FAT32_FIXTURE_H
 
-#include "../framework/test_framework.h"
-#include "mock_blockdevice.h"
 #include "../../filesystem/fat32/fat32.h"
 #include "../../filesystem/fat32/fat32_vfs_adapter.h"
-#include "../include/kernel/memory.h"
-
+#include <vespera/mm/memory.h>
+#include "../framework/test_framework.h"
+#include "mock_blockdevice.h"
 #include <cstdio>
 #include <cstring>
 #include <vector>

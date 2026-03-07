@@ -23,9 +23,9 @@
 
 #include "lock_debug.h"
 
-#include <kernel/memory.h>
-#include <log.h>
-#include <string.h>
+#include <klib/string.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 #define LOCK_HELD_TIMEOUT_CYCLES (100ULL * 1000ULL * 1000ULL * 1000ULL)
 

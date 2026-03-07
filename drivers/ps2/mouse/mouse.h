@@ -24,7 +24,7 @@
 #ifndef MOUSE_H
 #define MOUSE_H
 
-#include "../../../include/graphics.h"
+#include <vespera/graphics.h>
 
 namespace input::mouse {
 #define PS2_LEFT_BUTTON 0b00000001

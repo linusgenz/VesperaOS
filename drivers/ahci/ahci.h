@@ -3,11 +3,11 @@
 
 #include "../../arch/x86_64/interrupts/idt.h"
 #include "../../filesystem/devfs/devfs.h"
-#include "../../include/kernel/sync/mutex.h"
-#include "../../kernel/devices/blockdevice.h"
+#include <vespera/devices/block.h>
+#include <vespera/sync/mutex.h>
 #include "../pci/pci.h"
 #include "ata.h"
-#include "kernel/devices/device_manager.h"
+#include "vespera/devices/device_manager.h"
 
 // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/serial-ata-ahci-spec-rev1-3-1.pdf
 namespace ahci {

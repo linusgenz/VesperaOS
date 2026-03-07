@@ -22,13 +22,14 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "fs_detection.h"
-#include "../../include/string.h"
-#include "../../include/kernel/devices/device_manager.h"
-#include "vfs.h"
-#include <kernel/system/system_manager.h>
-#include <log.h>
 
+#include <vespera/system/system_manager.h>
+
+#include <klib/string.h>
+#include <vespera/devices/device_manager.h>
 #include "fs_registry.h"
+#include "vfs.h"
+#include <vespera/log.h>
 
 size_t FilesystemDetector::driver_count_ = 0;
 size_t FilesystemDetector::device_count_ = 0;

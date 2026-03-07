@@ -24,7 +24,7 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include <vector.h>
+#include <klib/vector.h>
 
 // ReSharper disable CppInconsistentNaming
 

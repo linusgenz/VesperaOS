@@ -22,7 +22,8 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "fs_registry.h"
-#include "../../include/string.h"
+
+#include <klib/string.h>
 
 static FileSystemDriver* fs_drivers[MAX_FS_DRIVERS];
 static size_t driver_count = 0;

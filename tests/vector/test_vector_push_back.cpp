@@ -21,7 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "../framework/test_framework.h"
-#include <vector.h>
+#include <klib/vector.h>
 #include <cstring>
 
 // Construction

@@ -1,7 +1,6 @@
 #include "cpu_scheduler.h"
 
-#include <kernel/scheduling.h>
-#include <log.h>
+#include <vespera/scheduling.h>
 
 #include "../units/unit_manager.h"
 #include "../utils/panic.h"

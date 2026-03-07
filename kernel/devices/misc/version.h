@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_VERSION_H
 #define VESPERAOS_VERSION_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class VersionDevice final : public CharDevice {
    public:

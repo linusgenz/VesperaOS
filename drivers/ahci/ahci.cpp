@@ -1,16 +1,16 @@
 #include "ahci.h"
 
-#include <kernel/memory.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../../include/log.h"
 #include "../../kernel/types/handle.h"
 #include "../../userspace/lib/include/errno.h"
 #include "../pci/msi.h"
 #include "../pci/msix.h"
 #include "ata.h"
-#include "kernel/devices/device_manager.h"
-#include "kernel/interrupts.h"
+#include "vespera/devices/device_manager.h"
+#include "vespera/interrupts.h"
 
 namespace ahci {
 #define HBA_PORT_DEV_PRESENT 0x3
@@ -126,7 +126,8 @@ namespace ahci {
             memset(table_virt, 0, 256);
 
             cmd_list_virt[i].command_table_base_address = static_cast<uint32_t>(phys_raw(table_phys_offset));
-            cmd_list_virt[i].command_table_base_address_upper = static_cast<uint32_t>(phys_raw(table_phys_offset) >> 32);
+            cmd_list_virt[i].command_table_base_address_upper =
+                static_cast<uint32_t>(phys_raw(table_phys_offset) >> 32);
         }
 
         start_cmd();
@@ -145,7 +146,8 @@ namespace ahci {
             // Free command tables before freeing the list
             const auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
             for (int i = 0; i < 32; i++) {
-                if (!cmd_header[i].command_table_base_address && !cmd_header[i].command_table_base_address_upper) continue;
+                if (!cmd_header[i].command_table_base_address && !cmd_header[i].command_table_base_address_upper)
+                    continue;
                 const phys_addr_t table_phys = make_phys(
                     static_cast<uint64_t>(cmd_header[i].command_table_base_address_upper) << 32 |
                     cmd_header[i].command_table_base_address
@@ -216,7 +218,8 @@ namespace ahci {
         cmd_header->prdt_length = 1;
 
         const phys_addr_t cmd_table_phys = make_phys(
-            static_cast<uint64_t>(cmd_header->command_table_base_address_upper) << 32 | cmd_header->command_table_base_address
+            static_cast<uint64_t>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
         );
         auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
         memset(cmd_table, 0, sizeof(HbaCommandTable) + (cmd_header->prdt_length - 1) * sizeof(HBA_PRDT_ENTRY));
@@ -242,8 +245,8 @@ namespace ahci {
         }
 
         if (identify_->physical_logical_sector_size.logical_sector_longer_than256_words) {
-            const uint32_t words =
-                identify_->words_per_logical_sector[0] | static_cast<uint32_t>(identify_->words_per_logical_sector[1]) << 16;
+            const uint32_t words = identify_->words_per_logical_sector[0] |
+                                   static_cast<uint32_t>(identify_->words_per_logical_sector[1]) << 16;
             sector_size = words * 2;
         } else {
             sector_size = 512;
@@ -283,7 +286,8 @@ namespace ahci {
         cmd_header->prdt_length = 1;
 
         phys_addr_t cmd_table_phys = make_phys(
-            static_cast<uint64_t>(cmd_header->command_table_base_address_upper) << 32 | cmd_header->command_table_base_address
+            static_cast<uint64_t>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
         );
         auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
         memset(cmd_table, 0, sizeof(HbaCommandTable) + (cmd_header->prdt_length - 1) * sizeof(HBA_PRDT_ENTRY));
@@ -352,7 +356,8 @@ namespace ahci {
         cmd_header->prdt_length = 1;
 
         phys_addr_t cmd_table_phys = make_phys(
-            static_cast<uint64_t>(cmd_header->command_table_base_address_upper) << 32 | cmd_header->command_table_base_address
+            static_cast<uint64_t>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
         );
         auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
         memset(cmd_table, 0, sizeof(HbaCommandTable) + (cmd_header->prdt_length - 1) * sizeof(HBA_PRDT_ENTRY));
@@ -446,4 +451,4 @@ namespace ahci {
         kernel::memory::unmap_memory(make_virt(abar));
         for (int i = 0; i < port_count; i++) delete ports[i];
     }
-}  // namespace AHCI
+}  // namespace ahci

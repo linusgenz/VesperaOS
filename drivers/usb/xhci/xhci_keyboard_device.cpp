@@ -22,10 +22,11 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "xhci.h"
 #include "xhci_keyboard_device.h"
+
 #include "../../../filesystem/devfs/devfs.h"
-#include "../../../include/kernel/devices/device_manager.h"
+#include <vespera/devices/device_manager.h>
+#include "xhci.h"
 
 UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
     : CharDevice( BusType::Usb)

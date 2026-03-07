@@ -21,11 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <boot.h>
-#include <kernel/kernel_utils.h>
-#include <kernel/memory.h>
+#include <vespera/kernel_utils.h>
 
 #include "arch/x86_64/cpu/msr.h"
+#include <vespera/boot/boot.h>
+#include <vespera/mm/memory.h>
 
 namespace kernel::memory {
 void initialize_memory(BootInfo* boot_info) {

@@ -24,10 +24,10 @@
 #ifndef VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 #define VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 
-#include <kernel/devices/char_device.h>
 #include <stdint.h>
+#include <vespera/devices/char_device.h>
 
-#include "../../../include/kernel/devices/device_manager.h"
+#include <vespera/devices/device_manager.h>
 
 class UsbKeyboardDevice final : public CharDevice
 {

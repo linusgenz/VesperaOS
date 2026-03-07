@@ -20,7 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "kernel/system/system_manager.h"
+#include "vespera/system/system_manager.h"
 #include <csetjmp>
 #include <cstdio>
 #include <cstdlib>

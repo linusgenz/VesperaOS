@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <klib/vector.h>
 #include "framework/test_framework.h"
-#include "vector.h"
 
 TEST(Vector_Panic, EraseOutOfRangePanics, "erase() beyond size triggers system_panic") {
     Vector<int> v;

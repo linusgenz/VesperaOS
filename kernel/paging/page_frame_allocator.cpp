@@ -1,7 +1,7 @@
 #include "page_frame_allocator.h"
 
-#include <kernel/efi_memory.h>
-#include <kernel/memory.h>
+#include <vespera/mm/efi_memory.h>
+#include <vespera/mm/memory.h>
 
 PageFrameAllocator global_allocator;
 

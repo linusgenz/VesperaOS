@@ -1,32 +1,32 @@
 // lsusb.c
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 21.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <fflags.h>
 #include <realm.h>
 #include <stdio.h>
-#include <sysstd.h>
-#include <dev/usb_xhci_ioctl.h>
 #include <sys/ioctl.h>
+#include <sysstd.h>
+#include <vespera/dev/usb_xhci_ioctl.h>
 
 #include "stddef.h"
 #include "stdint.h"
@@ -36,7 +36,7 @@
 void main(int argc, char **argv) {
     FILE_HANDLE bus_hdl = opendir("/dev/xhci/");
     if (bus_hdl < 0) {
-        printf("lsusb: cannot open /dev/xhci/ (hdl=%lld)\n", (long long) bus_hdl);
+        printf("lsusb: cannot open /dev/xhci/ (hdl=%lld)\n", (long long)bus_hdl);
         exit(-1);
         return;
     }
@@ -44,14 +44,14 @@ void main(int argc, char **argv) {
     char entry[128];
     char devname[128];
 
-    while (sys_readdir(bus_hdl, (uint64_t) devname, sizeof(devname), 0, 0, 0) > 0) {
+    while (sys_readdir(bus_hdl, (uint64_t)devname, sizeof(devname), 0, 0, 0) > 0) {
         // build controller path e.g. /dev/xhci/xhci0
         char ctrl_path[256];
         snprintf(ctrl_path, sizeof(ctrl_path), "%s%s", "/dev/xhci/", devname);
 
         FILE_HANDLE ctrl_hdl = open(ctrl_path, O_RDONLY);
         if (ctrl_hdl < 0) {
-            printf("lsusb: cannot open controller %s (hdl=%lld)\n", ctrl_path, (long long) ctrl_hdl);
+            printf("lsusb: cannot open controller %s (hdl=%lld)\n", ctrl_path, (long long)ctrl_hdl);
             continue;
         }
 
@@ -71,21 +71,24 @@ void main(int argc, char **argv) {
 
         // iterate potential slot ids and collect dev_count devices
         int found = 0;
-        const int MAX_SLOTS = 64; // gleiche Grenze wie Treiber (sicher)
-        for (int slot = 0; slot < MAX_SLOTS && found < (int) dev_count; ++slot) {
-            xhci_device_stat stat;
+        const int MAX_SLOTS = 64;  // gleiche Grenze wie Treiber (sicher)
+        for (int slot = 0; slot < MAX_SLOTS && found < (int)dev_count; ++slot) {
+            xhci_device_stat_t stat;
             // set slot_id field as query parameter
-            stat.slot_id = (uint8_t) slot;
+            stat.slot_id = (uint8_t)slot;
 
             int64_t r2 = ioctl(ctrl_hdl, XHCI_IOCTL_GET_DEVICE, &stat);
             if (r2 == 0) {
-                printf("Bus %u Port %u: ID %04x:%04x Speed %u %s %s %s\n",
-                       (unsigned) stat.bus_number, (unsigned) stat.port_num,
-                       stat.vendor_id, stat.product_id,
-                       (unsigned) stat.speed,
-                       stat.manufacturer[0] ? stat.manufacturer : "",
-                       stat.product[0] ? stat.product : "",
-                       stat.serial_number[0] ? stat.serial_number : ""
+                printf(
+                    "Bus %u Port %u: ID %04x:%04x Speed %u %s %s %s\n",
+                    (unsigned)stat.bus_number,
+                    (unsigned)stat.port_num,
+                    stat.vendor_id,
+                    stat.product_id,
+                    (unsigned)stat.speed,
+                    stat.manufacturer[0] ? stat.manufacturer : "",
+                    stat.product[0] ? stat.product : "",
+                    stat.serial_number[0] ? stat.serial_number : ""
                 );
                 found++;
             } else {

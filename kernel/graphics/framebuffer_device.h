@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_FRAMEBUFFER_DEVICE_H
 #define VESPERAOS_FRAMEBUFFER_DEVICE_H
 
-#include <kernel/devices/char_device.h>
+#include <vespera/devices/char_device.h>
 
 #include "../types/handle.h"
 #include "display_manager.h"

@@ -23,7 +23,11 @@
 
 #ifndef VESPERAOS_XHCI_MASS_STORAGE_DRIVER_H
 #define VESPERAOS_XHCI_MASS_STORAGE_DRIVER_H
-#include "../../../kernel/devices/blockdevice.h"
+#include <vespera/devices/block.h>
+#include <vespera/devices/device_manager.h>
+
+#include "xhci_endpoint.h"
+#include "xhci_usb_device_driver.h"
 
 class XhciMassStorageDriver final : public XhciUsbDeviceDriver, public BlockDevice
 {

@@ -4,9 +4,8 @@
 #ifndef PAGING_H
 #define PAGING_H
 
-#include <kernel/memory.h>
-
-#include "kernel/addr.h"
+#include <vespera/mm/addr.h>
+#include <vespera/mm/memory.h>
 
 struct PageDirectoryEntry {
     uint64_t value;

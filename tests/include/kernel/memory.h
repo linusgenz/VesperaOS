@@ -22,10 +22,10 @@
 #pragma once
 #define MEMORY_H
 
-#include "kernel/addr.h"
-
 #include <stddef.h>
 #include <stdint.h>
+
+#include <vespera/mm/addr.h>
 #include <cstring>
 
 #define PAGE_SIZE 4096

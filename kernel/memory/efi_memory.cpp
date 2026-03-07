@@ -1,4 +1,4 @@
-#include "kernel/efi_memory.h"
+#include <vespera/mm/efi_memory.h>
 
 const char* efi_memory_type_strings[]{
 

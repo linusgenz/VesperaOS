@@ -21,10 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/interrupts.h>
-
 #include "msi.h"
-#include "../../include/log.h"
+
+#include <vespera/interrupts.h>
+
+#include <vespera/log.h>
 #include "pci.h"
 
 namespace pci

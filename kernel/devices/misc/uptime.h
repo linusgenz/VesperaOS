@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_UPTIME_H
 #define VESPERAOS_UPTIME_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class UptimeDevice final : public CharDevice {
    public:

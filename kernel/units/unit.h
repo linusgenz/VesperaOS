@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_UNIT_H
 #define VESPERAOS_UNIT_H
 
-#include <kernel/realm/realm.h>
+#include <vespera/realm/realm.h>
 
 #include "../types/handle.h"
 #include "../types/types.h"

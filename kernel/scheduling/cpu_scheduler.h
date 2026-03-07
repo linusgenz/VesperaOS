@@ -4,7 +4,7 @@
 #ifndef CPU_SCHEDULER_H
 #define CPU_SCHEDULER_H
 
-#include <kernel/scheduling.h>
+#include <vespera/scheduling.h>
 
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
 

@@ -28,28 +28,22 @@
 
 #define BUFSIZ 8192
 
-#include <string.h>
-#include <stdio.h>
-#include <fflags.h>
-#include "stdint.h"
-#include <realm.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <dev/usb_xhci_ioctl.h>
-#include <dev/unit_info.h>
-#include <dev/realm_info.h>
-#include <dev/cpuinfo.h>
-#include <dev/rtc.h>
-#include <dev/framebuffer_ioctl.h>
-#include <exec.h>
-#include <sysstd.h>
 #include <dirent.h>
 #include <errno.h>
-#include <stdbool.h>
-#include <reboot.h>
-
+#include <exec.h>
+#include <fflags.h>
 #include <jpeg/jpeg.h>
+#include <realm.h>
+#include <reboot.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sysstd.h>
 
+#include "stdint.h"
+#include <vespera/dev/framebuffer_ioctl.h>
 
 typedef struct
 {

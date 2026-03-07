@@ -24,10 +24,9 @@
 #include "usb_manager.h"
 
 #include <stdint.h>
-
-#include <kernel/sync/atomic.h>
-#include <kernel/sync/spinlock.h>
-#include <kernel/sync/completion.h>
+#include <vespera/sync/atomic.h>
+#include <vespera/sync/completion.h>
+#include <vespera/sync/spinlock.h>
 
 Completion UsbManager::all_controllers_ready_;
 AtomicU8 UsbManager::expected_controllers_;

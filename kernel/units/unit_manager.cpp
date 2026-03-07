@@ -23,14 +23,14 @@
 
 #include "unit_manager.h"
 
-#include <kernel/realm/realm_manager.h>
-#include <kernel/scheduling.h>
-#include <kernel/system/system_manager.h>
-#include <log.h>
+#include <vespera/log.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../scheduling/schedule_manager.h"
-#include "dev/unit_info.h"
+#include <uapi/vespera/dev/unit_info.h>
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;

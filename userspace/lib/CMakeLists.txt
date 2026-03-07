@@ -164,6 +164,7 @@ set_target_properties(vesplib PROPERTIES
 
 target_include_directories(vesplib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${VESPERA_UAPI_INCLUDE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/include
         ${CMAKE_CURRENT_SOURCE_DIR}/${LIBJPEG_SRC}
         ${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd

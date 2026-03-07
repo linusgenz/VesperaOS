@@ -24,7 +24,7 @@
 // VesperaOS — Vector<T> Tests: erase / erase_value / pop / pop_back
 
 #include "../framework/test_framework.h"
-#include <vector.h>
+#include <klib/vector.h>
 
 // erase
 

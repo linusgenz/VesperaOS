@@ -4,14 +4,13 @@
 
 #include "fat32.h"
 
-#include <log.h>
-#include <path.h>
-#include <sort.h>
-#include <string.h>
-
 #include "fat32_lfn.h"
 #include "fat32_time.h"
 #include "fat32_vfs_adapter.h"
+#include <klib/path.h>
+#include <klib/sort.h>
+#include <klib/string.h>
+#include <vespera/log.h>
 
 namespace fat32 {
     // ============================================================================

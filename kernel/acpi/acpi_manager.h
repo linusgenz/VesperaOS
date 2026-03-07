@@ -4,9 +4,8 @@
 
 #ifndef ACPI_MANAGER_H
 #define ACPI_MANAGER_H
-#include <boot.h>
-
-#include "acpi.h"
+#include <acpi/acpi.h>
+#include <vespera/boot/boot.h>
 
 namespace acpi {
     class TableManager {

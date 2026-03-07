@@ -24,10 +24,10 @@
 #ifndef VESPERAOS_INTEL_BLT_H
 #define VESPERAOS_INTEL_BLT_H
 
+#include <vespera/graphics.h>
+#include <vespera/mm/addr.h>
 #include "../../../kernel/graphics/IRenderDriver.h"
 #include "../../pci/pci.h"
-#include "graphics.h"
-#include "kernel/addr.h"
 
 struct KernelDevice;
 
@@ -277,16 +277,8 @@ class IntelBlt final : public IRenderDriver {
     uint32_t ring_size_;
     uint32_t ring_tail_{};
 
-    virt_addr_t context_cpu_addr_{};
-    gfx_addr_t context_gfx_addr_{};
-
-    uint64_t context_descriptor_{};
-
     gfx_addr_t hwsp_gfx_addr_;
     virt_addr_t hwsp_cpu_addr_;
-
-    virt_addr_t pattern_buffer_cpu_ = make_virt(nullptr);
-    uint64_t pattern_buffer_addr_ = 0;
 
     uint32_t gtt_next_free_{};
     uint32_t gtt_total_entries_{};

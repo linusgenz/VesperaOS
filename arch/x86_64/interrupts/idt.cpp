@@ -1,10 +1,9 @@
 #include "idt.h"
 
-#include <kernel/memory.h>
-#include <log.h>
-
 #include "apic.h"
 #include "interrupts_internal.h"
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::idt {
     void IDT_DESC_ENTRY::set_offset(uint64_t offset) {

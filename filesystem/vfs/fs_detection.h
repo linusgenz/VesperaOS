@@ -24,10 +24,10 @@
 #ifndef ENHANCED_FS_DETECTION_H
 #define ENHANCED_FS_DETECTION_H
 
-#include <vector.h>
+#include <klib/vector.h>
 
+#include <vespera/devices/block.h>
 #include "vfs_node.h"
-#include "../../kernel/devices/blockdevice.h"
 
 struct MountPoint;
 struct PendingMount;

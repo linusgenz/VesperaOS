@@ -3,8 +3,9 @@
 //
 #ifndef PAGE_MAP_INDEXER_H
 #define PAGE_MAP_INDEXER_H
-#include "kernel/addr.h"
 #include <stdint.h>
+
+#include <vespera/mm/addr.h>
 class PageMapIndexer {
    private:
    public:

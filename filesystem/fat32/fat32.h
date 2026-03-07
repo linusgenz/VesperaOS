@@ -4,10 +4,11 @@
 
 #ifndef FAT32_CPP_H
 #define FAT32_CPP_H
-#include <string.h>
-#include "../../kernel/devices/blockdevice.h"
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
+#include <vespera/devices/block.h>
+#include <klib/string.h>
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
 struct Fat32Node;

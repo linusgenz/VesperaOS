@@ -2,9 +2,9 @@
 // Created by linus on 02.07.25.
 //
 
-#include <kernel/interrupts.h>
-#include <kernel/scheduling.h>
-#include <kernel/time.h>
+#include <vespera/interrupts.h>
+#include <vespera/scheduling.h>
+#include <vespera/time.h>
 
 #include "../cpu/cpu_manager.h"
 

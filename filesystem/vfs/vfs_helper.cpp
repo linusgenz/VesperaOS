@@ -21,10 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "vfs_node.h"
-#include "../../include/string.h"
-#include "../../include/path.h"
+#include <klib/path.h>
+#include <klib/string.h>
 #include "vfs.h"
+#include "vfs_node.h"
 
 bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
 {

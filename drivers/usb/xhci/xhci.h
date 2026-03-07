@@ -1,26 +1,27 @@
 #ifndef XHCI_H
 #define XHCI_H
 
+#include <klib/vector.h>
+#include <vespera/devices/char_device.h>
+#include <vespera/sync/atomic.h>
+
+#include "../../../arch/x86_64/interrupts/idt.h"
+#include "../../../filesystem/devfs/devfs.h"
+#include "../../pci/pci.h"
+#include "vespera/devices/device_manager.h"
 #include "xhci_device.h"
+#include "xhci_ext_cap.h"
 #include "xhci_regs.h"
 #include "xhci_rings.h"
-#include <vector.h>
-#include "../../pci/pci.h"
-#include "../../../arch/x86_64/interrupts/idt.h"
-#include "xhci_ext_cap.h"
-#include "../../../filesystem/devfs/devfs.h"
-#include "../../../include/kernel/devices/char_device.h"
-#include "../../../include/kernel/sync/atomic.h"
-#include "kernel/devices/device_manager.h"
 
-namespace usb
-{
-    class XhciDriver final : public CharDevice
-    {
-    public:
+namespace usb {
+    class XhciDriver final : public CharDevice {
+       public:
         explicit XhciDriver(uint8_t vector_num, const char* name, uint8_t bus_number);
 
-        [[nodiscard]] KernelDevice* get_device() const { return kd_; }
+        [[nodiscard]] KernelDevice* get_device() const {
+            return kd_;
+        }
 
         ~XhciDriver() override = default;
 
@@ -46,7 +47,7 @@ namespace usb
         ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
         ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
 
-    private:
+       private:
         KernelDevice* kd_;
 
         Spinlock devices_lock_{};
@@ -108,9 +109,8 @@ namespace usb
         Vector<xhci_transfer_completion_trb_t*> transfer_completion_events_;
         Vector<xhci_port_status_change_trb_t*> port_status_change_events_;
 
-        struct XhciPortConnectionEvent
-        {
-            uint8_t port_id; // 1-based
+        struct XhciPortConnectionEvent {
+            uint8_t port_id;  // 1-based
             bool device_connected;
         };
 
@@ -141,8 +141,9 @@ namespace usb
 
         static void configure_ep_input_context(const XhciDevice* dev, XhciEndpoint* endpoint);
 
-        bool send_usb_request_packet(XhciDevice* device, XHCI_DEVICE_REQUEST_PACKET& req, void* output_buffer,
-                                     uint32_t length);
+        bool send_usb_request_packet(
+            XhciDevice* device, XHCI_DEVICE_REQUEST_PACKET& req, void* output_buffer, uint32_t length
+        );
 
         bool send_usb_no_data_request_packet(const XhciDevice* dev, const XHCI_DEVICE_REQUEST_PACKET& req);
 
@@ -152,8 +153,9 @@ namespace usb
 
         bool evaluate_context(const XhciDevice* dev);
 
-        bool get_string_descriptor(XhciDevice* device, uint8_t descriptor_index, uint8_t langid,
-                                   USB_STRING_DESCRIPTOR* desc);
+        bool get_string_descriptor(
+            XhciDevice* device, uint8_t descriptor_index, uint8_t langid, USB_STRING_DESCRIPTOR* desc
+        );
 
         bool get_string_language_descriptor(XhciDevice* device, USB_STRING_LANGUAGE_DESCRIPTOR* desc);
 
@@ -161,8 +163,10 @@ namespace usb
 
         bool set_device_configuration(const XhciDevice* device, uint16_t configuration_value);
 
-        bool get_hid_report_descriptor(XhciDevice* device, uint8_t interface_number, uint8_t descriptor_index,
-                                       uint8_t* report_buffer, uint16_t report_length);
+        bool get_hid_report_descriptor(
+            XhciDevice* device, uint8_t interface_number, uint8_t descriptor_index, uint8_t* report_buffer,
+            uint16_t report_length
+        );
 
         bool configure_endpoint(const XhciDevice* device);
 
@@ -206,6 +210,6 @@ namespace usb
 
         xhci_command_completion_trb_t* send_command(xhci_trb_t* cmd_trb, uint32_t timeout_ms = 200);
     };
-} // namespace USB
+}  // namespace usb
 
-#endif // XHCI_H
+#endif  // XHCI_H

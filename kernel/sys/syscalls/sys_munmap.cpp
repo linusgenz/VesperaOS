@@ -21,9 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/scheduling.h>
 #include <vespera_errno.h>
-#include <kernel/memory.h>
-#include <kernel/scheduling.h>
+
+#include <vespera/mm/memory.h>
 
 namespace syscalls::internal {
     int64_t sys_munmap(uint64_t addr, uint64_t length, uint64_t, uint64_t, uint64_t, uint64_t) {

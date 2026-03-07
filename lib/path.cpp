@@ -2,7 +2,7 @@
 // Created by linus on 06.07.25.
 //
 
-#include <string.h>
+#include <klib/string.h>
 
 //  "/foo/bar/baz" -> "foo", "bar", "baz"
 size_t split_path(const char* path, char components[][32], size_t max_components) {

@@ -1,8 +1,7 @@
 #include "xhci_rings.h"
 
-#include <vector.h>
-
-#include "../../../include/log.h"
+#include <vespera/log.h>
+#include <klib/vector.h>
 
 XhciCommandRing::XhciCommandRing(size_t max_trbs) {
     lock_.init("xhci_command_ring_lock");

@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/memory.h>
-#include <log.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size) {
     phys_addr_t mmio_phys = make_phys(pci_bar_address);

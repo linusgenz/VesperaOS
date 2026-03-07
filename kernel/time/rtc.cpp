@@ -2,8 +2,9 @@
 // Created by Linus on 12.07.25.
 //
 
-#include <kernel/time.h>
-#include <log.h>
+#include <vespera/time.h>
+
+#include <vespera/log.h>
 
 namespace kernel::time {
     uint8_t cmos_read(uint8_t reg) {

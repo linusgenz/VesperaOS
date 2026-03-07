@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_NULL_H
 #define VESPERAOS_NULL_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class NullDevice final : public CharDevice {
    public:

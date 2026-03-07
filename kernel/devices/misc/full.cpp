@@ -24,7 +24,8 @@
 #include "full.h"
 
 #include <vespera_errno.h>
-#include <kernel/memory.h>
+
+#include <vespera/mm/memory.h>
 
 FullDevice::FullDevice()
     : CharDevice(BusType::VIRTUAL) {

@@ -24,8 +24,8 @@
 #ifndef FS_REGISTRY_H
 #define FS_REGISTRY_H
 
+#include <vespera/devices/block.h>
 #include "fs_detection.h"
-#include "../../kernel/devices/blockdevice.h"
 #include "vfs_node.h"
 
 #define MAX_MOUNTS 8

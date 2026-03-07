@@ -21,16 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/sync/spinlock.h>
-#include <kernel/system/system_manager.h>
-#include <kernel/time.h>
-#include <log.h>
-#include <string.h>
+#include <klib/string.h>
+#include <vespera/log.h>
+#include <vespera/sync/spinlock.h>
+#include <vespera/system/system_manager.h>
+#include <vespera/time.h>
 
-#include "../../include/kernel/devices/device_manager.h"
+#include <vespera/devices/device_manager.h>
 #include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
-#include "kernel/scheduling.h"
+#include "vespera/scheduling.h"
 
 namespace kernel {
     bool SystemManager::manager_initialized_ = false;

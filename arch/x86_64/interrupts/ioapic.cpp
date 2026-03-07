@@ -23,9 +23,8 @@
 
 #include "ioapic.h"
 
-#include <kernel/memory.h>
-
-#include "../../../include/log.h"
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::ioapic {
     static madt::IoApic *find_ioapic_for_gsi(uint32_t gsi) {

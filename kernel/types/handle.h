@@ -28,10 +28,10 @@ typedef long int ssize_t;
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
-#include <kernel/sync/spinlock.h>
+#include <stdint.h>
+#include <vespera/sync/spinlock.h>
 
 #include "../types/types.h"
-#include <stdint.h>
 
 typedef struct HandleEntry {
     handle_id_t hid;

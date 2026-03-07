@@ -24,7 +24,7 @@
 
 #include "ps2_controller.h"
 
-#include "kernel/devices/device_manager.h"
+#include "vespera/devices/device_manager.h"
 
 Ps2Controller::Ps2Controller()
 {

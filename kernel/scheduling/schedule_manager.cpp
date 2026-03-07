@@ -4,14 +4,14 @@
 
 #include "schedule_manager.h"
 
-#include <kernel/memory.h>
-#include <kernel/realm/realm_manager.h>
+#include <vespera/realm/realm_manager.h>
 
 #include "../../arch/x86_64/gdt/gdt.h"
-#include "../../include/log.h"
+#include <vespera/log.h>
 #include "../cpu/cpu_manager.h"
 #include "../units/unit_manager.h"
 #include "cpu_scheduler.h"
+#include <vespera/mm/memory.h>
 
 namespace kernel::scheduling::manager {
     extern "C" [[noreturn]] void idle_unit_func(void *arg) {

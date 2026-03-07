@@ -1,5 +1,6 @@
 #include <stdint.h>
-#include "../../include/string.h"
+
+#include <klib/string.h>
 #include "pci_devices.h"
 
 namespace pci

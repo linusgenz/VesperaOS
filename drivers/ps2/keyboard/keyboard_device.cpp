@@ -24,11 +24,11 @@
 
 #include "keyboard_device.h"
 
-#include "../ps2_controller.h"
-#include <kernel/devices/device_manager.h>
-#include <kernel/devices/char_device.h>
+#include <vespera/devices/char_device.h>
+#include <vespera/devices/device_manager.h>
 
 #include "../../../filesystem/devfs/devfs.h"
+#include "../ps2_controller.h"
 
 Ps2KeyboardDevice::Ps2KeyboardDevice(Ps2Controller* controller)
     : CharDevice(BusType::Ps2), parent(controller)

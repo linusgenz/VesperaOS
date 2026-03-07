@@ -23,12 +23,11 @@
 
 #include "prepare_ap_trampoline.h"
 
-#include <kernel/interrupts.h>
-#include <kernel/memory.h>
-#include <log.h>
+#include <ap_trampoline_blob.h>
+#include <vespera/interrupts.h>
 
 #include "../interrupts/idt.h"
-#include <ap_trampoline_blob.h>
+#include <vespera/mm/memory.h>
 
 #define TRAMPOLINE_VIRT 0x8000
 #define IDTR_PHYS 0x1000

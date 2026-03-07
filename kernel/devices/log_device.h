@@ -24,10 +24,10 @@
 #ifndef VESPERAOS_LOG_DEVICE_H
 #define VESPERAOS_LOG_DEVICE_H
 
-#include <kernel/ipc/channel.h>
-#include <kernel/realm/realm.h>
+#include <vespera/ipc/channel.h>
+#include <vespera/realm/realm.h>
 
-#include "../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class LogDevice final : public CharDevice {
    private:

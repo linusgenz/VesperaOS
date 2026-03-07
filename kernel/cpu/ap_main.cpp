@@ -1,10 +1,10 @@
 //
 // Created by Linus on 17.07.25.
 //
-#include <kernel/interrupts.h>
-#include <kernel/kerrno.h>
-#include <kernel/scheduling.h>
-#include <kernel/system/system_manager.h>
+#include <vespera/interrupts.h>
+#include <vespera/kerrno.h>
+#include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../../arch/x86_64/syscalls/syscall.h"

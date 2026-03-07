@@ -4,11 +4,11 @@
 
 #include "madt.h"
 
-#include <kernel/memory.h>
-#include <log.h>
+#include <acpi/acpi.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "acpi.h"
 
 namespace madt {
     CpuCore cpu_cores[MAX_CPU_CORES];
@@ -31,11 +31,7 @@ namespace madt {
 
         virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
 
-        kernel::memory::map_memory(
-            virt_lapic,
-            make_phys(madt->lapic_address),
-            (1ULL << PtFlag::CacheDisabled)
-        );
+        kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled));
 
         g_local_apic_addr = static_cast<volatile uint8_t*>(virt_ptr(virt_lapic));
 
@@ -172,4 +168,4 @@ namespace madt {
     uint32_t get_override_count() {
         return override_count;
     }
-}  // namespace MADT
+}  // namespace madt

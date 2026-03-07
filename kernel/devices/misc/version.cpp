@@ -23,13 +23,13 @@
 
 #include "version.h"
 
-#include <kernel/memory.h>
-#include <string.h>
+#include <klib/string.h>
+#include <vespera/mm/memory.h>
 
 #include "../../kversion.h"
 
 VersionDevice::VersionDevice()
-    : CharDevice( BusType::VIRTUAL) {
+    : CharDevice(BusType::VIRTUAL) {
 }
 
 int VersionDevice::open(CharFile**) {

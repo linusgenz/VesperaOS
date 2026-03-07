@@ -21,10 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/memory.h>
-#include <kernel/scheduling.h>
-#include <kernel/tty/tty.h>
-#include <log.h>
+#include <vespera/scheduling.h>
+#include <vespera/tty/tty.h>
+
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 namespace kernel::tty {
     TTY* active_tty;

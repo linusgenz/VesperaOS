@@ -4,7 +4,7 @@
 #ifndef PAGE_TABLE_MANAGER_H
 #define PAGE_TABLE_MANAGER_H
 
-#include "kernel/addr.h"
+#include <vespera/mm/addr.h>
 #include "paging.h"
 
 class PageTableManager {

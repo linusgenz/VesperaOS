@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_MEMINFO_H
 #define VESPERAOS_MEMINFO_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 typedef struct {
     uint64_t total_ram;

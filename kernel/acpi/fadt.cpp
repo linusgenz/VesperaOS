@@ -21,11 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <kernel/memory.h>
-#include <log.h>
-
 #include "../cpu/io.h"
 #include "acpi_manager.h"
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 namespace acpi {
 

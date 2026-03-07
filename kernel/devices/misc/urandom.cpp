@@ -23,7 +23,7 @@
 
 #include "urandom.h"
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 URandomDevice::URandomDevice(const uint64_t seed)
     : CharDevice( BusType::VIRTUAL)

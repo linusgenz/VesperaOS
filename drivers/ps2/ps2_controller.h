@@ -25,7 +25,7 @@
 #ifndef PS2_CONTROLLER_H
 #define PS2_CONTROLLER_H
 
-#include <kernel/devices/device_manager.h>
+#include <vespera/devices/device_manager.h>
 
 class Ps2Controller {
 public:

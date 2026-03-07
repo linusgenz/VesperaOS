@@ -24,7 +24,8 @@
 #include "symbols.h"
 
 #include <kernel_symbols.h>
-#include <string.h>
+
+#include <klib/string.h>
 
 static bool parse_hex_u64(const char* s, uint64_t* out) {
     uint64_t v = 0;

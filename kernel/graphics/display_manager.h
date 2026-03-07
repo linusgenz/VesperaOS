@@ -23,7 +23,7 @@
  */
 #ifndef VESPERAOS_DISPLAY_MANAGER_H
 #define VESPERAOS_DISPLAY_MANAGER_H
-#include <kernel/sync/spinlock.h>
+#include <vespera/sync/spinlock.h>
 
 #include "IRenderDriver.h"
 

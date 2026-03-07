@@ -21,11 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/scheduling.h>
+#include <vespera/sys/mman.h>
 #include <vespera_errno.h>
-#include <kernel/memory.h>
-#include <kernel/scheduling.h>
-#include <kernel/sys/mman.h>
-#include <log.h>
+
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 
 // TODO FIX MMAP. USE PROT AND USE MAP_*
 namespace syscalls::internal {

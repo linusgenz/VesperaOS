@@ -23,7 +23,7 @@
 
 #include "xhci_regs.h"
 
-#include "../../../include/log.h"
+#include <vespera/log.h>
 #include "xhci_common.h"
 
 XhciDoorbellManager::XhciDoorbellManager(uintptr_t base)

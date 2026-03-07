@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_URANDOM_H
 #define VESPERAOS_URANDOM_H
 
-#include "../../../include/kernel/devices/char_device.h"
+#include <vespera/devices/char_device.h>
 
 class URandomDevice final : public CharDevice {
    public:
