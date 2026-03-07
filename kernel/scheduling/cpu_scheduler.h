@@ -19,32 +19,32 @@ class Unit;
 namespace kernel::scheduling::cpu_scheduler {
 
     // Per-CPU operations
-    void init_cpu(uint8_t cpu_id);
+    void init_cpu(u8 cpu_id);
 
-    void enable_cpu(uint8_t cpu_id);
+    void enable_cpu(u8 cpu_id);
 
-    void disable_cpu(uint8_t cpu_id);
+    void disable_cpu(u8 cpu_id);
 
     // Thread queue management for specific CPU
-    void add_unit_to_cpu(Unit *unit, uint8_t cpu_id);
+    void add_unit_to_cpu(Unit *unit, u8 cpu_id);
 
-    void remove_unit_from_cpu(Unit *unit, uint8_t cpu_id);
+    void remove_unit_from_cpu(Unit *unit, u8 cpu_id);
 
     // Context switching and execution
-    void yield_cpu(uint8_t cpu_id, TrapFrame *frame = nullptr);
+    void yield_cpu(u8 cpu_id, TrapFrame *frame = nullptr);
 
-    void tick_cpu(uint8_t cpu_id, TrapFrame *frame);
+    void tick_cpu(u8 cpu_id, TrapFrame *frame);
 
-    CpuScheduler *get_cpu_data(uint8_t cpu_id);
+    CpuScheduler *get_cpu_data(u8 cpu_id);
 
     // Query functions
-    Unit *get_current_unit_on_cpu(uint8_t cpu_id);
+    Unit *get_current_unit_on_cpu(u8 cpu_id);
 
-    bool is_cpu_enabled(uint8_t cpu_id);
+    bool is_cpu_enabled(u8 cpu_id);
 
-    void add_blocked_unit(Unit *unit, uint8_t cpu_id);
+    void add_blocked_unit(Unit *unit, u8 cpu_id);
 
-    void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick);
+    void wake_sleeping_units(u8 cpu_id, u64 current_tick);
 
 }  // namespace kernel::scheduling::cpu_scheduler
 

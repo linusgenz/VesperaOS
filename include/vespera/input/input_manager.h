@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_INPUT_MANAGER_H
 #define VESPERAOS_INPUT_MANAGER_H
 
-#include <stddef.h>
+
 #include <vespera/input/input_event.h>
 #include <vespera/sync/spinlock.h>
 
@@ -33,7 +33,7 @@ namespace kernel::input
     class InputManager
     {
     public:
-        static constexpr size_t BUFFER_SIZE = 256;
+        static constexpr usize BUFFER_SIZE = 256;
 
         static void push_event(const InputEvent& ev);
         static bool pop_event(InputEvent& ev);
@@ -42,8 +42,8 @@ namespace kernel::input
 
     private:
         static inline InputEvent s_buffer_[BUFFER_SIZE];
-        static volatile inline size_t s_head_ = 0;
-        static volatile inline size_t s_tail_ = 0;
+        static volatile inline usize s_head_ = 0;
+        static volatile inline usize s_tail_ = 0;
         static inline Spinlock s_lock_{};
     };
 }

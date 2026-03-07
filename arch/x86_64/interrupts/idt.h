@@ -4,8 +4,8 @@
 
 #ifndef IDT_H
 #define IDT_H
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 enum Irqreturn : int {
     IRQ_HANDLED = 1,
     IRQ_NONE = 0,
@@ -14,30 +14,30 @@ enum Irqreturn : int {
 using irq_handler_t = Irqreturn (*)(void *cookie);
 
 namespace arch::x86_64::interrupts::idt {
-    constexpr uint8_t VECTOR_MIN = 0x23;
-    constexpr uint8_t VECTOR_MAX = 0xEF;
+    constexpr u8 VECTOR_MIN = 0x23;
+    constexpr u8 VECTOR_MAX = 0xEF;
 
 #define IDT_TA_INTERRUPT_GATE 0b10001110
 #define IDT_TA_CALL_GATE 0b10001100
 #define IDT_TA_TRAP_GATE 0b10001111
 
     struct IDT_DESC_ENTRY {
-        uint16_t offset0;
-        uint16_t selector;
-        uint8_t ist;
-        uint8_t type_attr;
-        uint16_t offset1;
-        uint32_t offset2;
-        uint32_t ignore;
+        u16 offset0;
+        u16 selector;
+        u8 ist;
+        u8 type_attr;
+        u16 offset1;
+        u32 offset2;
+        u32 ignore;
 
-        void set_offset(uint64_t offset);
+        void set_offset(u64 offset);
 
-        [[nodiscard]] uint64_t get_offset() const;
+        [[nodiscard]] u64 get_offset() const;
     };
 
     struct IDTR {
-        uint16_t limit;
-        uint64_t offset;
+        u16 limit;
+        u64 offset;
     } __attribute((packed));
 
     struct IrqDesc {
@@ -58,16 +58,16 @@ namespace arch::x86_64::interrupts::idt {
     void load_default_idt();
 
     using isr_handler_t = void (*)();
-    void set_idt_gate(isr_handler_t handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector);
+    void set_idt_gate(isr_handler_t handler, u8 entry_offset, u8 type_attr, u8 selector);
 
-    bool allocate_vector(uint8_t vector, irq_handler_t handler, void *cookie);
+    bool allocate_vector(u8 vector, irq_handler_t handler, void *cookie);
 
-    void free_vector(uint8_t vec);
+    void free_vector(u8 vec);
 
-    uint8_t get_free_vector_block(size_t size);
+    u8 get_free_vector_block(usize size);
 
-    uint8_t get_free_vector();
+    u8 get_free_vector();
 
-    extern "C" void irq_common_stub(uint8_t irqno);
+    extern "C" void irq_common_stub(u8 irqno);
 }  // namespace arch::x86_64::interrupts::idt
 #endif  // IDT_H

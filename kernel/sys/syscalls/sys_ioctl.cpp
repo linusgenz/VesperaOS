@@ -30,9 +30,9 @@
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
-    int64_t sys_ioctl(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         HandleId hid = arg0;
-        uint64_t req = arg1;
+        u64 req = arg1;
         auto arg = reinterpret_cast<void*>(arg2);
 
         const Unit* u = kernel::scheduling::get_current_unit();

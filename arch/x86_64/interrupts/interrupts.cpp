@@ -28,7 +28,7 @@ static FaultContext make_fault_context(const TrapFrame *frame) {
 }
 
 void page_fault_handler(TrapFrame *frame) {
-    uint64_t fault_addr = 0;
+    u64 fault_addr = 0;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
     FaultContext ctx = make_fault_context(frame);
@@ -59,7 +59,7 @@ void gp_fault_handler(const TrapFrame *frame) {
         Log::error("  GDT referenced");
     }
 
-    const uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
+    const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Selector: 0x%x", selector);
 
     //  debug_check();
@@ -81,7 +81,7 @@ void stack_fault_handler(const TrapFrame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
 
-    const uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
+    const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Stack selector: 0x%x", selector);
 
     kernel::SystemManager::system_panic("Stack fault detected", -KESTACKFAULT);
@@ -92,7 +92,7 @@ void segment_not_present_handler(const TrapFrame *frame) {
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
 
-    uint16_t selector = (frame->error_code >> 3) & 0x1FFF;
+    u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Missing segment selector: 0x%x", selector);
 
     if (frame->error_code & 0x2) {
@@ -131,14 +131,14 @@ void unhandled_interrupt_handler(const TrapFrame *frame) {
 }
 
 void keyboard_int_handler(TrapFrame *) {
-    uint8_t scancode = inb(0x60);
+    u8 scancode = inb(0x60);
     ps2::keyboard::handle_scancode(scancode);
     arch::x86_64::interrupts::pic::end_master();
 }
 
 void mouse_int_handler(TrapFrame *) {
     global_terminal->print("mouse_int_handler");
-    uint8_t data = inb(0x60);
+    u8 data = inb(0x60);
     input::mouse::handle_byte(data);
     arch::x86_64::interrupts::pic::end_slave();
 }
@@ -154,7 +154,7 @@ void spurious_int_handler(TrapFrame *) {
 }
 
 [[noreturn]] void panic_ipi_handler(TrapFrame *) {
-    uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
+    u32 apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
     cpu_manager::halt_cpu(apic_id);
     while (true) asm volatile("cli; hlt");
 }

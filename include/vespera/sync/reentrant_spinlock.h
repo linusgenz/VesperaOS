@@ -24,13 +24,13 @@
 #ifndef VESPERAOS_REENTRANT_SPINLOCK_H
 #define VESPERAOS_REENTRANT_SPINLOCK_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 struct ReentrantSpinlock
 {
-    volatile uint32_t locked = 0; // atomic lock
-    uint32_t owner_unit = 0; // Unit, die den Lock hält
-    uint32_t recursion = 0; // Rekursionszähler
+    volatile u32 locked = 0; // atomic lock
+    u32 owner_unit = 0; // Unit, die den Lock hält
+    u32 recursion = 0; // Rekursionszähler
 
     void init()
     {
@@ -43,22 +43,22 @@ struct ReentrantSpinlock
 
     void unlock();
 
-    void lock_irqsave(uint64_t& flags)
+    void lock_irqsave(u64& flags)
     {
         flags = irq_save();
         lock();
     }
 
-    void unlock_irqrestore(uint64_t flags)
+    void unlock_irqrestore(u64 flags)
     {
         unlock();
         irq_restore(flags);
     }
 
 private:
-    uint32_t xchg(volatile uint32_t* ptr, uint32_t val)
+    u32 xchg(volatile u32* ptr, u32 val)
     {
-        uint32_t old = 0;
+        u32 old = 0;
         __asm__ volatile (
             "lock xchg %0, %1"
             : "=r"(old), "+m"(*ptr)
@@ -68,9 +68,9 @@ private:
         return old;
     }
 
-    uint64_t irq_save()
+    u64 irq_save()
     {
-        uint64_t flags = 0;
+        u64 flags = 0;
         asm volatile(
             "pushfq\n\t"
             "popq %0\n\t"
@@ -82,7 +82,7 @@ private:
         return flags;
     }
 
-    void irq_restore(uint64_t flags)
+    void irq_restore(u64 flags)
     {
         asm volatile(
             "pushq %0\n\t"
@@ -115,7 +115,7 @@ struct ReentrantSpinlockGuard
 struct ReentrantSpinlockGuardIrq
 {
     ReentrantSpinlock& lock_ref;
-    uint64_t flags{};
+    u64 flags{};
 
     explicit ReentrantSpinlockGuardIrq(ReentrantSpinlock& lock) : lock_ref(lock)
     {

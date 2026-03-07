@@ -23,8 +23,8 @@
 
 #ifndef VFS_NODE_H
 #define VFS_NODE_H
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 #include <uapi/vespera/dirent.h>
 
 #include "../../include/vespera/types.h"
@@ -40,9 +40,9 @@ enum class VfsNodeType {
 struct VfsNode;
 
 struct VfsNodeOps {
-    ssize_t (*read)(const VfsNode *node, size_t offset, size_t size, void *buffer);
+    isize (*read)(const VfsNode *node, usize offset, usize size, void *buffer);
 
-    ssize_t (*write)(VfsNode *node, size_t offset, size_t size, const void *buffer);
+    isize (*write)(VfsNode *node, usize offset, usize size, const void *buffer);
 
     VfsNode * (*find)(const VfsNode *dir, const char *name);
 
@@ -64,12 +64,12 @@ struct VfsNodeOps {
 
     int (*unlink)(const VfsNode *node, const char *name);
 
-    ssize_t (*ioctl)(const VfsNode *node, uint32_t cmd, void *arg);
+    isize (*ioctl)(const VfsNode *node, u32 cmd, void *arg);
 };
 
 struct VfsNode {
     const char *name;
-    size_t size; // size of the file is equal to fileSize field in internal_data
+    usize size; // size of the file is equal to fileSize field in internal_data
     VfsNodeType type;
     void *internal_data;
     VfsNodeOps *ops;

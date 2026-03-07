@@ -24,23 +24,23 @@
 #ifndef VESPERAOS_MSR_H
 #define VESPERAOS_MSR_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
-inline uint64_t rdmsr(uint32_t msr)
+inline u64 rdmsr(u32 msr)
 {
-    uint32_t low = 0, high = 0;
+    u32 low = 0, high = 0;
     asm volatile (
         "rdmsr"
         : "=a"(low), "=d"(high)
         : "c"(msr)
     );
-    return (static_cast<uint64_t>(high) << 32) | low;
+    return (static_cast<u64>(high) << 32) | low;
 }
 
-inline void wrmsr(uint32_t msr, uint64_t value)
+inline void wrmsr(u32 msr, u64 value)
 {
-    uint32_t low  = value & 0xFFFFFFFF;
-    uint32_t high = value >> 32;
+    u32 low  = value & 0xFFFFFFFF;
+    u32 high = value >> 32;
     asm volatile (
         "wrmsr"
         :

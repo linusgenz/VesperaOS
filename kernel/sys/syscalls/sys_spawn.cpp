@@ -30,9 +30,9 @@
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {
-    int64_t sys_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
         auto user_path = reinterpret_cast<const char*>(arg0);
-        const auto argc = static_cast<uint32_t>(arg1);
+        const auto argc = static_cast<u32>(arg1);
         auto argv = reinterpret_cast<const char**>(arg2);
         auto envp = reinterpret_cast<const char**>(arg3);
         envp = nullptr;
@@ -72,7 +72,7 @@ namespace syscalls::internal {
             return -EFAULT;
         }
 
-        /* uintptr_t user_sp = SetupUserArgsAndEnv(u, argv, envp);
+        /* uptr user_sp = SetupUserArgsAndEnv(u, argv, envp);
          if (user_sp == 0) {
              // cleanup
              UnitManager::destroy(u->id);

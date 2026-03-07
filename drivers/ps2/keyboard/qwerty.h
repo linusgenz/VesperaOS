@@ -23,17 +23,17 @@
 
 #ifndef QWERTY_H
 #define QWERTY_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace ps2::keyboard::qwerty {
 
-    constexpr uint8_t LEFT_SHIFT  = 0x2A;
-    constexpr uint8_t RIGHT_SHIFT = 0x36;
-    constexpr uint8_t ENTER       = 0x1C;
-    constexpr uint8_t BACKSPACE   = 0x0E;
-    constexpr uint8_t SPACEBAR    = 0x39;
+    constexpr u8 LEFT_SHIFT  = 0x2A;
+    constexpr u8 RIGHT_SHIFT = 0x36;
+    constexpr u8 ENTER       = 0x1C;
+    constexpr u8 BACKSPACE   = 0x0E;
+    constexpr u8 SPACEBAR    = 0x39;
 
-    char translate(uint8_t scancode, bool shift);
+    char translate(u8 scancode, bool shift);
 
 }
 

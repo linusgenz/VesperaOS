@@ -25,16 +25,16 @@
 #define VESPERAOS_SORT_H
 
 #include <klib/iterator.h>
-#include <stddef.h>
+
 
 #include <klib/type_traits.h>
 
 namespace klib
 {
-    constexpr size_t INSERTION_SORT_THRESHOLD = 16;
+    constexpr usize INSERTION_SORT_THRESHOLD = 16;
 
-constexpr size_t log2_floor(size_t n) {
-    size_t log = 0;
+constexpr usize log2_floor(usize n) {
+    usize log = 0;
     while (n >>= 1) ++log;
     return log;
 }
@@ -148,7 +148,7 @@ void heapsort(RandomIt first, RandomIt last, Compare comp) {
 }
 
 template<typename RandomIt, typename Compare>
-void introsort_impl(RandomIt first, RandomIt last, size_t depth_limit, Compare comp) {
+void introsort_impl(RandomIt first, RandomIt last, usize depth_limit, Compare comp) {
     while (last - first > INSERTION_SORT_THRESHOLD) {
         if (depth_limit == 0) {
             heapsort(first, last, comp);
@@ -173,8 +173,8 @@ template<typename RandomIt, typename Compare>
 void sort(RandomIt first, RandomIt last, Compare comp) {
     if (first == last) return;
 
-    size_t n = last - first;
-    size_t depth_limit = 2 * log2_floor(n);
+    usize n = last - first;
+    usize depth_limit = 2 * log2_floor(n);
 
     introsort_impl(first, last, depth_limit, comp);
     insertion_sort(first, last, comp);

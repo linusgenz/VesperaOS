@@ -4,8 +4,8 @@
 
 #ifndef HEAP_H
 #define HEAP_H
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 #include <vespera/mm/addr.h>
 
@@ -19,18 +19,18 @@
 #define MIN_ALLOC_SIZE 16
 
 struct HeapSegHdr {
-    uint32_t magic;  // Corruption detection
-    size_t length;   // Length of usable data (excluding header)
+    u32 magic;  // Corruption detection
+    usize length;   // Length of usable data (excluding header)
     HeapSegHdr *next;
     HeapSegHdr *last;
     bool free;
-    uint8_t guard_start;    // Guard byte at start
-    uint8_t reserved[2];    // Reserved for future use
-    uint32_t checksum;      // Additional corruption detection
-    uint64_t reserved2[3];  // Reserved space (total size = 64 bytes)
+    u8 guard_start;    // Guard byte at start
+    u8 reserved[2];    // Reserved for future use
+    u32 checksum;      // Additional corruption detection
+    u64 reserved2[3];  // Reserved space (total size = 64 bytes)
 
     // Methods
-    HeapSegHdr *split(size_t split_length);
+    HeapSegHdr *split(usize split_length);
 
     void combine_forward();
 
@@ -43,24 +43,24 @@ struct HeapSegHdr {
     bool check_guard_bytes() const;
 
     void *get_data_ptr() {
-        return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(this) + HEAP_HEADER_SIZE);
+        return reinterpret_cast<void *>(reinterpret_cast<uptr>(this) + HEAP_HEADER_SIZE);
     }
 
     static HeapSegHdr *from_data_ptr(void *ptr) {
-        return reinterpret_cast<HeapSegHdr *>(reinterpret_cast<uintptr_t>(ptr) - HEAP_HEADER_SIZE);
+        return reinterpret_cast<HeapSegHdr *>(reinterpret_cast<uptr>(ptr) - HEAP_HEADER_SIZE);
     }
 };
 
 // Minimum alignment (16 bytes)
-constexpr size_t MIN_ALIGNMENT = 16;
+constexpr usize MIN_ALIGNMENT = 16;
 
 struct AlignedSegHdr {
-    uint32_t magic;            // HEAP_MAGIC_ALIGNED
+    u32 magic;            // HEAP_MAGIC_ALIGNED
     HeapSegHdr *raw_segment;   // Pointer to the actual heap segment
-    size_t user_size;          // Original requested size
-    size_t alignment;          // Alignment used
-    uint8_t guard_pattern[4];  // Guard bytes
-    uint64_t reserved[3];
+    usize user_size;          // Original requested size
+    usize alignment;          // Alignment used
+    u8 guard_pattern[4];  // Guard bytes
+    u64 reserved[3];
 
     bool is_valid() const {
         return magic == HEAP_MAGIC_ALIGNED && guard_pattern[0] == HEAP_GUARD_PATTERN &&
@@ -79,31 +79,31 @@ struct AlignedSegHdr {
 extern bool heap_initialized;
 
 // Statistics
-extern size_t total_allocated;
-extern size_t total_freed;
-extern size_t peak_usage;
+extern usize total_allocated;
+extern usize total_freed;
+extern usize peak_usage;
 
 // Core heap functions
-bool initialize_heap(virt_addr_t heap_address, size_t page_count);
+bool initialize_heap(virt_addr_t heap_address, usize page_count);
 
-void *kmalloc(size_t size);
+void *kmalloc(usize size);
 
-void *kalloc_aligned(size_t size, size_t alignment, size_t boundary = 0);
+void *kalloc_aligned(usize size, usize alignment, usize boundary = 0);
 
-void *krealloc(void *ptr, size_t old_size, size_t new_size);
+void *krealloc(void *ptr, usize old_size, usize new_size);
 
 void kfree(void *ptr);
 
 void kfree_aligned(void *ptr);
 
 // Utility functions
-void expand_heap(size_t length);
+void expand_heap(usize length);
 
-size_t align_size(size_t size);
+usize align_size(usize size);
 
-HeapSegHdr *find_free_segment(size_t size);
+HeapSegHdr *find_free_segment(usize size);
 
-void *allocate_from_segment(HeapSegHdr *seg, size_t size);
+void *allocate_from_segment(HeapSegHdr *seg, usize size);
 
 // Debugging and validation functions
 bool validate_heap();
@@ -112,8 +112,8 @@ void print_heap_stats();
 
 bool is_valid_pointer(void *ptr);
 
-size_t get_heap_usage();
+usize get_heap_usage();
 
-size_t get_free_space();
+usize get_free_space();
 
 #endif  // HEAP_H

@@ -24,38 +24,38 @@
 #ifndef VESPERAOS_PARTION_DEVICE_H
 #define VESPERAOS_PARTION_DEVICE_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 #include <vespera/devices/block.h>
 
 class PartitionDevice final : public BlockDevice {
    public:
-    PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba);
+    PartitionDevice(BlockDevice* parent, u64 start_lba, u64 length_lba);
     ~PartitionDevice() override = default;
 
-    ssize_t read(uint64_t lba, size_t count, void* buf, size_t buf_size) override;
-    ssize_t write(uint64_t lba, size_t count, void* buf, size_t buf_size) override;
-    [[nodiscard]] size_t get_sector_size() const override {
+    isize read(u64 lba, usize count, void* buf, usize buf_size) override;
+    isize write(u64 lba, usize count, void* buf, usize buf_size) override;
+    [[nodiscard]] usize get_sector_size() const override {
         return sector_size_;
     };
-    [[nodiscard]] size_t get_size() const override {
+    [[nodiscard]] usize get_size() const override {
         return length_lba_ * get_sector_size();
     }
 
-    [[nodiscard]] uint64_t get_start_lba() const {
+    [[nodiscard]] u64 get_start_lba() const {
         return start_lba_;
     }
 
-    [[nodiscard]] uint64_t get_length_lba() const {
+    [[nodiscard]] u64 get_length_lba() const {
         return length_lba_;
     }
 
    private:
     BlockDevice* parent_;
-    uint64_t start_lba_;
-    uint64_t length_lba_;
-    uint64_t sector_size_;
+    u64 start_lba_;
+    u64 length_lba_;
+    u64 sector_size_;
 };
 
 #endif  // VESPERAOS_PARTION_DEVICE_H

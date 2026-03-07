@@ -56,7 +56,7 @@ namespace kernel::debug {
         }
 
         Log::error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx.rip, ctx.cs, ctx.rsp, ctx.rflags);
-        uint64_t fault_addr = 0;
+        u64 fault_addr = 0;
         asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
         Log::error("Page fault address (CR2): %p", fault_addr);
         backtrace(ctx.rbp, ctx.rip);
@@ -71,7 +71,7 @@ namespace kernel::debug {
 #endif
     }
 
-    void log_page_fault_detail(uint64_t fault_addr, uint64_t error_code, const FaultContext& ctx) {
+    void log_page_fault_detail(u64 fault_addr, u64 error_code, const FaultContext& ctx) {
         log_fault(FaultType::PageFault, ctx, "Page fault detected");
 
         Unit* u = scheduling::get_current_unit();
@@ -88,12 +88,12 @@ namespace kernel::debug {
         );
     }
 
-    void log_invalid_opcode_bytes(uint64_t rip, const FaultContext& ctx) {
+    void log_invalid_opcode_bytes(u64 rip, const FaultContext& ctx) {
         log_fault(FaultType::InvalidOpcode, ctx, "Invalid opcode detected");
 
         // Vorsicht: wir greifen direkt auf den Code-Speicher zu – im Fehlerfall ist das
         // ohnehin eine best-effort Debug-Ausgabe.
-        const auto opcode_ptr = reinterpret_cast<const uint8_t*>(rip);
+        const auto opcode_ptr = reinterpret_cast<const u8*>(rip);
         Log::error("  Opcode bytes: %02x %02x %02x %02x", opcode_ptr[0], opcode_ptr[1], opcode_ptr[2], opcode_ptr[3]);
     }
 }  // namespace kernel::debug

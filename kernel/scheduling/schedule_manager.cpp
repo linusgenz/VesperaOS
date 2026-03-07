@@ -20,9 +20,9 @@ namespace kernel::scheduling::manager {
         }
     }
 
-    static void wrmsr(uint32_t msr, uint64_t value) {
-        auto low = static_cast<uint32_t>(value & 0xFFFFFFFF);
-        auto high = static_cast<uint32_t>(value >> 32);
+    static void wrmsr(u32 msr, u64 value) {
+        auto low = static_cast<u32>(value & 0xFFFFFFFF);
+        auto high = static_cast<u32>(value >> 32);
         asm volatile("wrmsr" ::"c"(msr), "a"(low), "d"(high));
     }
 
@@ -33,15 +33,15 @@ namespace kernel::scheduling::manager {
         const bool from_syscall = from && from->context.from_syscall;
 
         if (to->is_user) {
-            uint32_t cpu_id = cpu_manager::get_current_cpu_id();
+            u32 cpu_id = cpu_manager::get_current_cpu_id();
             tss[cpu_id].rsp0 = virt_raw(to->context.stack_top);
 
             wrmsr(MSR_GS_BASE, 0);
             auto *ctx_ptr = &to->context;
-            wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<uint64_t>(&ctx_ptr));
+            wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<u64>(&ctx_ptr));
             if (to->rid) {
                 Realm *r = RealmManager::get(to->rid);
-                uint64_t cr3 = phys_raw(r->pml4_phys);
+                u64 cr3 = phys_raw(r->pml4_phys);
                 asm volatile("mov %0, %%cr3" ::"r"(cr3));
             }
         } else {
@@ -51,8 +51,8 @@ namespace kernel::scheduling::manager {
         void *push_args = nullptr;
         void **rdi_save_addr = nullptr;
         void *rsp_to_load = nullptr;
-        uint64_t should_iretq = 0;
-        uint64_t save_iretq = 0;
+        u64 should_iretq = 0;
+        u64 save_iretq = 0;
 
         if (from_syscall) {
             rdi_save_addr = &from->context.stack_pointer.ptr;
@@ -61,7 +61,7 @@ namespace kernel::scheduling::manager {
             if (from->is_user) {
                 save_iretq    = 1;
                 rdi_save_addr = nullptr;
-                from->context.stack_pointer = virt_from_raw(reinterpret_cast<uintptr_t>(frame));
+                from->context.stack_pointer = virt_from_raw(reinterpret_cast<uptr>(frame));
             }
         }
 
@@ -89,7 +89,7 @@ namespace kernel::scheduling::manager {
 
     [[noreturn]] void terminate_current_unit() {
         asm volatile("cli");
-        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
         cpu_scheduler::CpuScheduler *cpu = cpu_scheduler::get_cpu_data(cpu_id);
 
         if (!cpu->current_unit || cpu->current_unit->is_idle) {
@@ -108,7 +108,7 @@ namespace kernel::scheduling::manager {
     }
 
     extern "C" void unit_trampoline() {
-        const uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        const u8 cpu_id = cpu_manager::get_current_cpu_id();
         const Unit *current = cpu_scheduler::get_current_unit_on_cpu(cpu_id);
 
         current->context.entry(current->context.arg);
@@ -116,7 +116,7 @@ namespace kernel::scheduling::manager {
         terminate_current_unit();
     }
 
-    Unit *setup_idle_unit(const uint8_t cpu_id) {
+    Unit *setup_idle_unit(const u8 cpu_id) {
         const UnitConfig unit_config = {
             .name = "idle_thread",
             .cpu_id = cpu_id,

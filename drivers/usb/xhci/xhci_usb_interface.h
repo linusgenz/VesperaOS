@@ -32,7 +32,7 @@
 
 class XhciUsbInterface {
    public:
-    XhciUsbInterface(uint8_t dev_slot_id, const USB_INTERFACE_DESCRIPTOR *desc);
+    XhciUsbInterface(u8 dev_slot_id, const USB_INTERFACE_DESCRIPTOR *desc);
 
     ~XhciUsbInterface() = default;
 
@@ -43,11 +43,11 @@ class XhciUsbInterface {
     XhciUsbDeviceDriver *driver{};
 
     // HID report data for HID devices
-    uint8_t *additional_data = nullptr;
-    size_t additional_data_length = 0;
+    u8 *additional_data = nullptr;
+    usize additional_data_length = 0;
 
    private:
-    uint8_t dev_slot_id_;
+    u8 dev_slot_id_;
 };
 
 #endif  // VESPERAOS_XHCU_USB_INTERFACE_H

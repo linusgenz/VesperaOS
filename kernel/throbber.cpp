@@ -103,7 +103,7 @@ void generate_throbber() {
 
             double angle = atan2(dy, dx);
             if (angle < 0) angle += 2*M_PI;
-            uint8_t ang = static_cast<uint8_t>(angle * 255.0 / (2 * M_PI));
+            u8 ang = static_cast<u8>(angle * 255.0 / (2 * M_PI));
             segment_map[y*THROBBER_SIZE + x] = (ang * SEGMENT_COUNT) / 256;
         }
     }
@@ -114,20 +114,20 @@ void generate_throbber() {
                 throbber_frames[frame][i] = 0x00000000;
                 continue;
             }
-            uint8_t seg = segment_map[i];
+            u8 seg = segment_map[i];
             int diff = (frame - seg + SEGMENT_COUNT) % SEGMENT_COUNT;
 
-            uint32_t bg = 0xFF404040;
+            u32 bg = 0xFF404040;
             if (diff < TRAIL_LENGTH) {
-                uint8_t shade = 255 - (diff * (255 / TRAIL_LENGTH));
+                u8 shade = 255 - (diff * (255 / TRAIL_LENGTH));
 
-                uint8_t bg_r = (bg >> 16) & 0xFF;
-                uint8_t bg_g = (bg >> 8) & 0xFF;
-                uint8_t bg_b = bg & 0xFF;
+                u8 bg_r = (bg >> 16) & 0xFF;
+                u8 bg_g = (bg >> 8) & 0xFF;
+                u8 bg_b = bg & 0xFF;
 
-                uint8_t r = bg_r + ((255 - bg_r) * shade) / 255;
-                uint8_t g = bg_g + ((255 - bg_g) * shade) / 255;
-                uint8_t b = bg_b + ((255 - bg_b) * shade) / 255;
+                u8 r = bg_r + ((255 - bg_r) * shade) / 255;
+                u8 g = bg_g + ((255 - bg_g) * shade) / 255;
+                u8 b = bg_b + ((255 - bg_b) * shade) / 255;
 
                 throbber_frames[frame][i] = 0xFF000000 | (r << 16) | (g << 8) | b;
             } else {
@@ -137,21 +137,21 @@ void generate_throbber() {
     }
 }
 
-void clear_throbber(uint32_t x, uint32_t y) {
+void clear_throbber(u32 x, u32 y) {
     Framebuffer* fb = global_terminal->TargetFramebuffer;
-    uint32_t bg_color = global_terminal->get_bg_colour();
+    u32 bg_color = global_terminal->get_bg_colour();
 
-    for (uint32_t row = 0; row < THROBBER_SIZE; row++) {
-        auto* fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) *
-fb->pixels_per_scanline * 4); for (uint32_t col = 0; col < THROBBER_SIZE; col++) { fb_row[x + col] = bg_color;
+    for (u32 row = 0; row < THROBBER_SIZE; row++) {
+        auto* fb_row = reinterpret_cast<u32*>(static_cast<u8*>(fb->base_address) + (y + row) *
+fb->pixels_per_scanline * 4); for (u32 col = 0; col < THROBBER_SIZE; col++) { fb_row[x + col] = bg_color;
         }
     }
 }
 
-void draw_bitmap(const Framebuffer *fb, const uint32_t *bitmap, uint32_t w, uint32_t h, uint32_t x, uint32_t y) {
-    for (uint32_t row = 0; row < h; row++) {
-        auto *fb_row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(fb->base_address) + (y + row) *
-fb->pixels_per_scanline * 4); for (uint32_t col = 0; col < w; col++) { uint32_t px = bitmap[row * w + col]; if (px >>
+void draw_bitmap(const Framebuffer *fb, const u32 *bitmap, u32 w, u32 h, u32 x, u32 y) {
+    for (u32 row = 0; row < h; row++) {
+        auto *fb_row = reinterpret_cast<u32*>(static_cast<u8*>(fb->base_address) + (y + row) *
+fb->pixels_per_scanline * 4); for (u32 col = 0; col < w; col++) { u32 px = bitmap[row * w + col]; if (px >>
 24) {
                 // alpha > 0
                 fb_row[x + col] = px;
@@ -161,9 +161,9 @@ fb->pixels_per_scanline * 4); for (uint32_t col = 0; col < w; col++) { uint32_t 
 }
 
 void render_throbber(void *arg) {
-    uint32_t frame = 0;
-    uint32_t draw_x = (global_terminal->TargetFramebuffer->width / 2) - (THROBBER_SIZE / 2);
-    uint32_t draw_y = ((global_terminal->TargetFramebuffer->height * 3) / 4) - (THROBBER_SIZE / 2);
+    u32 frame = 0;
+    u32 draw_x = (global_terminal->TargetFramebuffer->width / 2) - (THROBBER_SIZE / 2);
+    u32 draw_y = ((global_terminal->TargetFramebuffer->height * 3) / 4) - (THROBBER_SIZE / 2);
 
     while (true) {
         if (kernel::SystemManager::is_system_initialized()) {

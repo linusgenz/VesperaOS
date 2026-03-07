@@ -38,8 +38,8 @@ struct MountPoint
     DeviceDescriptor* device{}; // null when virtual
     bool is_virtual = false;
 
-    uint8_t is_root_device = false;
-    uint8_t is_partition = false;
+    u8 is_root_device = false;
+    u8 is_partition = false;
 
     MountPoint() = default;
     ~MountPoint() = default;
@@ -52,7 +52,7 @@ struct PendingMount
 {
     char path[64];
     BlockDevice* device;
-    size_t device_size;
+    usize device_size;
     bool is_partition;
     const char* table_type;
 };
@@ -67,9 +67,9 @@ struct VfsDir
 
 struct VfsStats
 {
-    size_t total_devices; // Total number of storage devices found
-    size_t mounted_devices; // Number of successfully mounted devices
-    size_t supported_filesystems; // Number of supported filesystem types
+    usize total_devices; // Total number of storage devices found
+    usize mounted_devices; // Number of successfully mounted devices
+    usize supported_filesystems; // Number of supported filesystem types
 };
 
 
@@ -84,7 +84,7 @@ public:
 
     static VfsDir* opendir(const char* path);
 
-    static size_t read(const VfsNode* node, size_t offset, size_t size, void* buffer);
+    static usize read(const VfsNode* node, usize offset, usize size, void* buffer);
 
     static int readdir(const VfsDir* dir, dirent_t* out);
 
@@ -112,7 +112,7 @@ public:
 
     static void add_mount_point(MountPoint* mp);
 
-    static size_t mount_points_count();
+    static usize mount_points_count();
 
     static MountPoint* find_mount_point(const char* path);
 

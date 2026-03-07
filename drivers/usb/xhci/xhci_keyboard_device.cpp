@@ -52,6 +52,6 @@ int UsbKeyboardDevice::open(CharFile**) { return 0; }
 
 int UsbKeyboardDevice::release(CharFile*) { return 0; }
 
-ssize_t UsbKeyboardDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset) { return 0; }
+isize UsbKeyboardDevice::read(CharFile* cf, void* buffer, usize count, usize offset) { return 0; }
 
-ssize_t UsbKeyboardDevice::write(CharFile* cf, const void* buffer, size_t count) { return 0; }
+isize UsbKeyboardDevice::write(CharFile* cf, const void* buffer, usize count) { return 0; }

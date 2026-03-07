@@ -23,8 +23,8 @@
 #ifndef VESPERAOS_SYSTEM_MANAGER_H
 #define VESPERAOS_SYSTEM_MANAGER_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 #include <vespera/ipc/channel.h>
 #include <vespera/sync/mutex.h>
 #include <vespera/sync/spinlock.h>
@@ -33,7 +33,7 @@
 
 namespace kernel {
 
-    enum class SystemEventType : uint8_t {
+    enum class SystemEventType : u8 {
         KERNEL_LOG,
         UNIT_CREATED,
         UNIT_DESTROYED,
@@ -52,8 +52,8 @@ namespace kernel {
 
     struct SystemEvent {
         SystemEventType type;
-        uint64_t timestamp;
-        uint32_t cpu_id;
+        u64 timestamp;
+        u32 cpu_id;
         union {
             struct {
                 UnitId unit_id;
@@ -65,19 +65,19 @@ namespace kernel {
             } realm_event;
             struct {
                 char device_name[32];
-                uint32_t device_id;
+                u32 device_id;
             } device_event;
             struct {
-                uint64_t available_bytes;
-                uint64_t threshold_bytes;
+                u64 available_bytes;
+                u64 threshold_bytes;
             } memory_event;
             struct {
-                uint32_t cpu_id;
-                uint8_t usage_percent;
+                u32 cpu_id;
+                u8 usage_percent;
             } cpu_event;
             struct {
                 char message[128];
-                uint32_t error_code;
+                u32 error_code;
             } log_event;
             struct {
                 char fs_path[256];
@@ -87,23 +87,23 @@ namespace kernel {
     };
 
     struct SystemStats {
-        uint64_t uptime_ms;
-        uint64_t total_memory;
-        uint64_t used_memory;
-        uint64_t free_memory;
-        uint64_t reserved_memory;
-        uint32_t total_units;
-        uint32_t active_units;
-        uint32_t total_realms;
-        uint32_t total_devices;
-        uint32_t total_interrupts;
-        uint8_t cpu_usage[MAX_CPU_CORES];
-        uint64_t last_update_timestamp;
+        u64 uptime_ms;
+        u64 total_memory;
+        u64 used_memory;
+        u64 free_memory;
+        u64 reserved_memory;
+        u32 total_units;
+        u32 active_units;
+        u32 total_realms;
+        u32 total_devices;
+        u32 total_interrupts;
+        u8 cpu_usage[MAX_CPU_CORES];
+        u64 last_update_timestamp;
     };
 
     struct ILogWriter {
         virtual ~ILogWriter() = default;
-        virtual bool append_line(const char* line, size_t len) = 0;
+        virtual bool append_line(const char* line, usize len) = 0;
     };
 
     class SystemManager {
@@ -124,12 +124,12 @@ namespace kernel {
         static void update_system_stats();
 
         // Channel-Management für verschiedene System-Services
-        static Channel* create_system_channel(const char* name, size_t buffer_size);
+        static Channel* create_system_channel(const char* name, usize buffer_size);
         static bool destroy_system_channel(const char* name);
         static Channel* get_system_channel(const char* name);
 
         static void initiate_shutdown(const char* reason, bool reboot);
-        [[noreturn]] static void system_panic(const char* message, int32_t error_code);
+        [[noreturn]] static void system_panic(const char* message, i32 error_code);
 
         // Debug/Monitoring Funktionen
         static void list_system_channels();
@@ -139,26 +139,26 @@ namespace kernel {
         // Helper für andere Manager
         static void notify_unit_lifecycle(UnitId unit_id, RealmId realm_id, bool created);
         static void notify_realm_lifecycle(RealmId realm_id, const char* name, bool created);
-        static void notify_device_lifecycle(const char* device_name, uint32_t device_id, bool registered);
-        static void notify_memory_pressure(uint64_t available_bytes);
+        static void notify_device_lifecycle(const char* device_name, u32 device_id, bool registered);
+        static void notify_memory_pressure(u64 available_bytes);
         static void notify_filesystem_mount(const char* path, const char* fs_type, bool mounted);
 
         static void register_log_writer(ILogWriter* writer);
         static void unregister_log_writer();
 
-        static void process_events_to_logs(size_t max_events_to_process = 64);
+        static void process_events_to_logs(usize max_events_to_process = 64);
 
        private:
         struct SystemChannel {
             char name[64];
             Channel* channel;
-            uint64_t created_timestamp;
+            u64 created_timestamp;
         };
 
-        static constexpr size_t MAX_SYSTEM_CHANNELS = 32;
-        static constexpr size_t EVENT_CHANNEL_SIZE = static_cast<size_t>(64) * 1024;  // 64KB für Events
-        static constexpr size_t LOG_CHANNEL_SIZE = static_cast<size_t>(128) * 1024;   // 128KB für Logs
-        static constexpr size_t MEMORY_LOW_BYTES_THRESHOLD = static_cast<size_t>(64) * 1024 * 1024;
+        static constexpr usize MAX_SYSTEM_CHANNELS = 32;
+        static constexpr usize EVENT_CHANNEL_SIZE = static_cast<usize>(64) * 1024;  // 64KB für Events
+        static constexpr usize LOG_CHANNEL_SIZE = static_cast<usize>(128) * 1024;   // 128KB für Logs
+        static constexpr usize MEMORY_LOW_BYTES_THRESHOLD = static_cast<usize>(64) * 1024 * 1024;
 
         static bool manager_initialized_;
         static bool system_initialized_;
@@ -172,18 +172,18 @@ namespace kernel {
 
         // Managed Channels
         static SystemChannel system_channels_[MAX_SYSTEM_CHANNELS];
-        static size_t channel_count_;
+        static usize channel_count_;
 
         // System Statistics
         static SystemStats current_stats_;
-        static uint64_t boot_timestamp_;
+        static u64 boot_timestamp_;
         static bool event_logging_enabled_;
 
         static ILogWriter* log_writer_;
 
         // Interne Helper
         static void internal_publish_event(const SystemEvent& event);
-        static uint64_t get_current_timestamp();
+        static u64 get_current_timestamp();
         static void update_cpu_stats();
         static void update_memory_stats();
         static SystemChannel* find_channel_by_name(const char* name);

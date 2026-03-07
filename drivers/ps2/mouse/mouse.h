@@ -36,7 +36,7 @@ namespace input::mouse {
 #define PS2_X_OVERFLOW 0b001000000
 #define PS2_Y_OVERFLOW 0b100000000
 
-    extern uint8_t pointer[];
+    extern u8 pointer[];
 
     struct MousePacket {
         int dx;
@@ -48,7 +48,7 @@ namespace input::mouse {
     };
 
     void init();
-    void handle_byte(uint8_t data);
+    void handle_byte(u8 data);
     bool read_packet(MousePacket& out);
 
     point_t get_position();

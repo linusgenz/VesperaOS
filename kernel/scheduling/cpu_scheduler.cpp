@@ -7,11 +7,11 @@
 #include "schedule_manager.h"
 
 namespace kernel::scheduling::cpu_scheduler {
-    CpuScheduler* get_cpu_data(const uint8_t cpu_id) {
+    CpuScheduler* get_cpu_data(const u8 cpu_id) {
         return &global_scheduler.cpus[cpu_id];
     }
 
-    void init_cpu(const uint8_t cpu_id) {
+    void init_cpu(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         // Setup idle unit für this CPU
@@ -42,7 +42,7 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    void enable_cpu(const uint8_t cpu_id) {
+    void enable_cpu(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         cpu->scheduler_enabled = true;
         cpu->ticks_remaining = cpu->quantum_ticks;
@@ -50,12 +50,12 @@ namespace kernel::scheduling::cpu_scheduler {
         yield_cpu(cpu_id);
     }
 
-    void disable_cpu(const uint8_t cpu_id) {
+    void disable_cpu(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         cpu->scheduler_enabled = false;
     }
 
-    void add_unit_to_cpu(Unit* unit, const uint8_t cpu_id) {
+    void add_unit_to_cpu(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         unit->state = UnitState::Ready;
@@ -68,18 +68,18 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    void remove_unit_from_cpu(Unit* unit, const uint8_t cpu_id) {
+    void remove_unit_from_cpu(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         cpu->ready_queue.remove(unit);
         unit->next = nullptr;
     }
 
-    void yield_cpu(const uint8_t cpu_id, TrapFrame* frame) {
+    void yield_cpu(const u8 cpu_id, TrapFrame* frame) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
 
-        uint64_t flags = 0;
+        u64 flags = 0;
         cpu->lock.lock_irqsave(flags);
 
         Unit* current = cpu->current_unit;
@@ -184,7 +184,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->lock.unlock_irqrestore(flags);
     }
 
-    void tick_cpu(const uint8_t cpu_id, TrapFrame* frame) {
+    void tick_cpu(const u8 cpu_id, TrapFrame* frame) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
 
@@ -192,7 +192,7 @@ namespace kernel::scheduling::cpu_scheduler {
         bool should_yield = false;
 
         if (cpu->ticks_remaining > 0) {
-            uint32_t old_ticks = __sync_fetch_and_sub(&cpu->ticks_remaining, 1);
+            u32 old_ticks = __sync_fetch_and_sub(&cpu->ticks_remaining, 1);
             should_yield = (old_ticks == 1);  // Was 1, now 0
         }
 
@@ -206,19 +206,19 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    Unit* get_current_unit_on_cpu(const uint8_t cpu_id) {
+    Unit* get_current_unit_on_cpu(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         return cpu->current_unit;
     }
 
-    bool is_cpu_enabled(const uint8_t cpu_id) {
+    bool is_cpu_enabled(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         return cpu->scheduler_enabled;
     }
 
     // this declaration is irritating, as only units which should get waken up at a known time can be added here, using
     // sleep_context.wakeup_tick
-    void add_blocked_unit(Unit* unit, const uint8_t cpu_id) {
+    void add_blocked_unit(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         cpu->ready_queue.remove(unit);  // current unit shouldn't be in ready_queue but just in case remove it anyway
@@ -233,7 +233,7 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    void wake_sleeping_units(const uint8_t cpu_id, const uint64_t current_tick) {
+    void wake_sleeping_units(const u8 cpu_id, const u64 current_tick) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         Unit* woken = cpu->blocked_queue.extract_if([&](const Unit* unit) -> bool {

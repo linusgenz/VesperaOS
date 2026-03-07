@@ -28,7 +28,7 @@
 #include "xhci_usb_interface.h"
 #include <vespera/mm/memory.h>
 
-XhciDevice::XhciDevice(const uint8_t slot_id, const uint8_t port_num, const uint8_t speed, const bool use_64_byte_ctx)
+XhciDevice::XhciDevice(const u8 slot_id, const u8 port_num, const u8 speed, const bool use_64_byte_ctx)
     : use_64_byte_ctx_(use_64_byte_ctx)
 {
     info.port_num = port_num;
@@ -45,7 +45,7 @@ void XhciDevice::allocate_control_ep_ring()
 
 void XhciDevice::allocate_input_context()
 {
-    const uint64_t input_context_size = use_64_byte_ctx_ ? sizeof(XhciInputContext64) : sizeof(XhciInputContext32);
+    const u64 input_context_size = use_64_byte_ctx_ ? sizeof(XhciInputContext64) : sizeof(XhciInputContext32);
     input_context_ = alloc_xhci_memory(
         input_context_size,
         XHCI_INPUT_CONTROL_CONTEXT_ALIGNMENT,
@@ -89,9 +89,9 @@ XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_control_ep_ctx() const
     return &input_ctx->device_context.control_ep_context;
 }
 
-XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_ep_ctx(uint8_t endpoint_num) const
+XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_ep_ctx(u8 endpoint_num) const
 {
-    const uint8_t endpoint_index = endpoint_num - 2;
+    const u8 endpoint_index = endpoint_num - 2;
 
     if (use_64_byte_ctx_)
     {

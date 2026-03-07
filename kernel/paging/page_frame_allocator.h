@@ -3,55 +3,55 @@
 //
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 #include <vespera/mm/efi_memory.h>
 
 #include "bitmap.h"
 
 class PageFrameAllocator {
    public:
-    void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *m_map, size_t m_map_size, size_t m_map_desc_size);
+    void read_efi_memory_map(EFI_MEMORY_DESCRIPTOR *m_map, usize m_map_size, usize m_map_desc_size);
 
     Bitmap page_bitmap{};
 
-    void free_page(uint64_t phys_addr);
+    void free_page(u64 phys_addr);
 
-    void free_pages(uint64_t phys_addr, size_t page_count);
+    void free_pages(u64 phys_addr, usize page_count);
 
     void lock_page(void *address);
 
-    void lock_pages(void *address, size_t page_count);
+    void lock_pages(void *address, usize page_count);
 
-    uint64_t request_page();
+    u64 request_page();
 
-    uint64_t request_pages(size_t page_count);
+    u64 request_pages(usize page_count);
 
-    [[nodiscard]] uint64_t get_free_ram() const;
+    [[nodiscard]] u64 get_free_ram() const;
 
-    [[nodiscard]] uint64_t get_used_ram() const;
+    [[nodiscard]] u64 get_used_ram() const;
 
-    [[nodiscard]] uint64_t get_reserved_ram() const;
+    [[nodiscard]] u64 get_reserved_ram() const;
 
-    [[nodiscard]] uint64_t get_total_ram() const;
+    [[nodiscard]] u64 get_total_ram() const;
 
     void relocate_bitmap_to_hhdm();
 
    private:
-    void init_bitmap(size_t bitmap_size, void *buffer_address);
+    void init_bitmap(usize bitmap_size, void *buffer_address);
 
     void reserve_page(void *address);
 
-    void reserve_pages(void *address, size_t page_count);
+    void reserve_pages(void *address, usize page_count);
 
-    void unreserve_page(uint64_t address);
+    void unreserve_page(u64 address);
 
-    void unreserve_pages(uint64_t address, size_t page_count);
+    void unreserve_pages(u64 address, usize page_count);
 
-    uint64_t free_memory_{0};
-    uint64_t reserved_memory_{0};
-    uint64_t used_memory_{0};
-    uint64_t total_memory_{0};
+    u64 free_memory_{0};
+    u64 reserved_memory_{0};
+    u64 used_memory_{0};
+    u64 total_memory_{0};
     bool initialized_{false};
 };
 

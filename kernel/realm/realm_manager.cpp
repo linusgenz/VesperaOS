@@ -109,7 +109,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
 
 Realm* RealmManager::get(const RealmId id) {
     while (true) {
-        uint8_t begin = seq_.load();
+        u8 begin = seq_.load();
         if (begin & 1)  // Writer aktiv → retry
             continue;
 
@@ -122,7 +122,7 @@ Realm* RealmManager::get(const RealmId id) {
             }
         }
 
-        if (const uint8_t end = seq_.load(); begin == end) return result;
+        if (const u8 end = seq_.load(); begin == end) return result;
     }
 }
 
@@ -170,7 +170,7 @@ bool RealmManager::destroy(const RealmId id) {
     return ok;
 }
 
-ssize_t RealmManager::get_status(void* manager_ref, void* buffer, size_t size, size_t offset) {
+isize RealmManager::get_status(void* manager_ref, void* buffer, usize size, usize offset) {
     if (!manager_ref || !buffer || size < sizeof(realm_info)) return -EINVAL;
 
     auto* r = static_cast<Realm*>(manager_ref);
@@ -196,7 +196,7 @@ ssize_t RealmManager::get_status(void* manager_ref, void* buffer, size_t size, s
 
 void RealmManager::list() {
     while (true) {
-        uint8_t begin = seq_.load();
+        u8 begin = seq_.load();
         if (begin & 1)  // Writer aktiv
             continue;
 
@@ -206,12 +206,12 @@ void RealmManager::list() {
                     "Realm %u: name=%s, units=%llu/%llu",
                     realm.id,
                     realm.name,
-                    static_cast<uint64_t>(realm.unit_count),
-                    static_cast<uint64_t>(realm.max_units)
+                    static_cast<u64>(realm.unit_count),
+                    static_cast<u64>(realm.max_units)
                 );
             }
         }
 
-        if (const uint8_t end = seq_.load(); begin == end) return;
+        if (const u8 end = seq_.load(); begin == end) return;
     }
 }

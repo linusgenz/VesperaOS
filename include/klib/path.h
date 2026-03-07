@@ -4,8 +4,8 @@
 
 #ifndef PATH_H
 #define PATH_H
-#include <stddef.h>
+#include <vespera/types.h>
 
-size_t split_path(const char* path, char components[][32], size_t max_components);
+usize split_path(const char* path, char components[][32], usize max_components);
 
 #endif //PATH_H

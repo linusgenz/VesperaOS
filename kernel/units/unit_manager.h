@@ -41,10 +41,10 @@ class UnitManager {
     static bool destroy(UnitId id);
     static void list();
 
-    static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
+    static isize get_status(void* manager_ref, void* buffer, usize size, usize offset);
 
    private:
-    static constexpr size_t MAX_UNITS = 256;
+    static constexpr usize MAX_UNITS = 256;
     static Unit units_[MAX_UNITS];
     static Spinlock global_lock_;
     static UnitId next_id_;
@@ -56,6 +56,6 @@ class UnitManager {
     static void setup_user_unit_stack(Unit* u);
 };
 
-uintptr_t setup_user_args_and_env(Unit* u, const char** argv, const char** envp);
+uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp);
 
 #endif  // VESPERAOS_UNIT_MANAGER_H

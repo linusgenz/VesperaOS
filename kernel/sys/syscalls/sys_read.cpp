@@ -31,7 +31,7 @@
 
 namespace syscalls::internal {
     // static Unit* reader_owner = nullptr;
-    int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         // if (reader_owner != nullptr && reader_owner != kernel::scheduling::get_current_unit()) {
         //     return -EAGAIN;
         //  }
@@ -39,7 +39,7 @@ namespace syscalls::internal {
 
         HandleId hid = arg0;
         const auto buf = reinterpret_cast<void *>(arg1);
-        size_t count = arg2;
+        usize count = arg2;
 
         if (!buf || count == 0) return -EINVAL;
 
@@ -65,7 +65,7 @@ namespace syscalls::internal {
             case HANDLE_TYPE_FILE: {
                 const auto *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
-                const ssize_t bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
+                const isize bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
                 if (bytes > 0) {
                     vh->context->position += bytes;
                 }

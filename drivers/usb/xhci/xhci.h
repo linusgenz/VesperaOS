@@ -17,7 +17,7 @@
 namespace usb {
     class XhciDriver final : public CharDevice {
        public:
-        explicit XhciDriver(uint8_t vector_num, const char* name, uint8_t bus_number);
+        explicit XhciDriver(u8 vector_num, const char* name, u8 bus_number);
 
         [[nodiscard]] KernelDevice* get_device() const {
             return kd_;
@@ -27,13 +27,13 @@ namespace usb {
 
         bool init_device(pci::PCI_DEVICE_HEADER* pci_base_address);
 
-        XhciDevice* find_by_slot(uint8_t slot_id);
+        XhciDevice* find_by_slot(u8 slot_id);
 
         bool start_device();
 
         static bool shutdown_device();
 
-        void ring_doorbell(uint8_t slot, uint8_t ep) const;
+        void ring_doorbell(u8 slot, u8 ep) const;
 
         Vector<XhciDevice*> m_connected_devices;
 
@@ -42,10 +42,10 @@ namespace usb {
         int open(CharFile** out_cf) override;
         int release(CharFile* cf) override;
 
-        int ioctl(CharFile* cf, uint32_t cmd, void* arg) override;
+        int ioctl(CharFile* cf, u32 cmd, void* arg) override;
 
-        ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
-        ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
+        isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
+        isize write(CharFile* cf, const void* buffer, usize count) override;
 
        private:
         KernelDevice* kd_;
@@ -55,10 +55,10 @@ namespace usb {
         Spinlock transfer_lock_{};
         Spinlock port_connection_lock_{};
 
-        uint8_t bus_number_;
-        uint8_t vector_num_{};
+        u8 bus_number_;
+        u8 vector_num_{};
 
-        uintptr_t xhc_base_{};
+        uptr xhc_base_{};
 
         volatile XHCI_CAPABILITY_REGISTERS* cap_regs_{};
         volatile XHCI_OPERATIONAL_REGISTERS* op_regs_{};
@@ -67,17 +67,17 @@ namespace usb {
         XhciExtendedCapability* extended_capabilities_head_{};
 
         // CAPLENGTH
-        uint8_t capability_regs_length_{};
+        u8 capability_regs_length_{};
 
         // HCSPARAMS1
-        uint8_t max_device_slots_{};
-        uint8_t max_interrupters_{};
-        uint8_t max_ports_{};
+        u8 max_device_slots_{};
+        u8 max_interrupters_{};
+        u8 max_ports_{};
 
         // HCSPARAMS2
-        uint8_t isochronous_scheduling_threshold_{};
-        uint8_t erst_max_{};
-        uint8_t max_scratchpad_buffers_{};
+        u8 isochronous_scheduling_threshold_{};
+        u8 erst_max_{};
+        u8 max_scratchpad_buffers_{};
 
         // hccparams1
         bool _64bit_addressing_capability_{};
@@ -86,14 +86,14 @@ namespace usb {
         bool port_power_control_{};
         bool port_indicators_{};
         bool light_reset_capability_{};
-        uint32_t extended_capabilities_offset_{};
+        u32 extended_capabilities_offset_{};
 
         // Device context base address array's virtual address
-        uint64_t* dcbaa_{};
+        u64* dcbaa_{};
 
         // Since DCBAA stores physical addresses, we want to keep
         // track of the virtual pointers to the output device contexts.
-        uint64_t* dcbaa_virtual_addresses_{};
+        u64* dcbaa_virtual_addresses_{};
 
         // Main command ring
         XhciCommandRing* command_ring_{};
@@ -110,7 +110,7 @@ namespace usb {
         Vector<xhci_port_status_change_trb_t*> port_status_change_events_;
 
         struct XhciPortConnectionEvent {
-            uint8_t port_id;  // 1-based
+            u8 port_id;  // 1-based
             bool device_connected;
         };
 
@@ -119,62 +119,62 @@ namespace usb {
         atomic_flag_t command_irq_completed_;
         atomic_flag_t transfer_irq_completed_;
 
-        Vector<uint8_t> usb3_ports_;
+        Vector<u8> usb3_ports_;
 
         void process_events();
 
-        static const char* usb_speed_to_string(uint8_t speed);
+        static const char* usb_speed_to_string(u8 speed);
 
-        XHCI_PORTSC_REGISTER read_portsc_reg(uint8_t port_num);
+        XHCI_PORTSC_REGISTER read_portsc_reg(u8 port_num);
 
-        void write_portsc_reg(XHCI_PORTSC_REGISTER reg, uint8_t port_num);
+        void write_portsc_reg(XHCI_PORTSC_REGISTER reg, u8 port_num);
 
-        void clear_port(uint8_t port_num);
+        void clear_port(u8 port_num);
 
-        bool reset_port(uint8_t port_num);
+        bool reset_port(u8 port_num);
 
-        static uint16_t get_max_initial_packet_size(uint8_t port_speed);
+        static u16 get_max_initial_packet_size(u8 port_speed);
 
-        [[nodiscard]] bool create_device_context(uint8_t slot_id) const;
+        [[nodiscard]] bool create_device_context(u8 slot_id) const;
 
-        static void configure_control_ep_input_context(const XhciDevice* dev, uint16_t max_packet_size);
+        static void configure_control_ep_input_context(const XhciDevice* dev, u16 max_packet_size);
 
         static void configure_ep_input_context(const XhciDevice* dev, XhciEndpoint* endpoint);
 
         bool send_usb_request_packet(
-            XhciDevice* device, XHCI_DEVICE_REQUEST_PACKET& req, void* output_buffer, uint32_t length
+            XhciDevice* device, XHCI_DEVICE_REQUEST_PACKET& req, void* output_buffer, u32 length
         );
 
         bool send_usb_no_data_request_packet(const XhciDevice* dev, const XHCI_DEVICE_REQUEST_PACKET& req);
 
         xhci_transfer_completion_trb_t* start_control_endpoint_transfer(const XhciTransferRing* transfer_ring);
 
-        bool get_device_descriptor(XhciDevice* device, USB_DEVICE_DESCRIPTOR* desc, uint32_t length);
+        bool get_device_descriptor(XhciDevice* device, USB_DEVICE_DESCRIPTOR* desc, u32 length);
 
         bool evaluate_context(const XhciDevice* dev);
 
         bool get_string_descriptor(
-            XhciDevice* device, uint8_t descriptor_index, uint8_t langid, USB_STRING_DESCRIPTOR* desc
+            XhciDevice* device, u8 descriptor_index, u8 langid, USB_STRING_DESCRIPTOR* desc
         );
 
         bool get_string_language_descriptor(XhciDevice* device, USB_STRING_LANGUAGE_DESCRIPTOR* desc);
 
         bool get_configuration_descriptor(XhciDevice* device, UsbConfigurationDescriptor* desc);
 
-        bool set_device_configuration(const XhciDevice* device, uint16_t configuration_value);
+        bool set_device_configuration(const XhciDevice* device, u16 configuration_value);
 
         bool get_hid_report_descriptor(
-            XhciDevice* device, uint8_t interface_number, uint8_t descriptor_index, uint8_t* report_buffer,
-            uint16_t report_length
+            XhciDevice* device, u8 interface_number, u8 descriptor_index, u8* report_buffer,
+            u16 report_length
         );
 
         bool configure_endpoint(const XhciDevice* device);
 
-        bool setup_device(uint8_t port);
+        bool setup_device(u8 port);
 
         bool address_device_command(const XhciDevice* dev, bool bsr);
 
-        uint8_t assign_slot();
+        u8 assign_slot();
 
         void parse_capability_registers();
 
@@ -188,11 +188,11 @@ namespace usb {
 
         static void claim_legacy_ownership(XHCI_LEGACY_SUPPORT_CAPABILITY* legacy);
 
-        bool is_usb3_port(uint8_t port_num);
+        bool is_usb3_port(u8 port_num);
 
-        XhciPortRegisterManager get_port_register_set(uint8_t port_num);
+        XhciPortRegisterManager get_port_register_set(u8 port_num);
 
-        uint8_t get_port_speed(uint8_t port);
+        u8 get_port_speed(u8 port);
 
         [[nodiscard]] bool reset_host_controller() const;
 
@@ -204,11 +204,11 @@ namespace usb {
 
         void configure_runtime_registers();
 
-        void acknowledge_irq(uint8_t interrupter) const;
+        void acknowledge_irq(u8 interrupter) const;
 
         static Irqreturn xhci_irq_handler(XhciDriver* driver);
 
-        xhci_command_completion_trb_t* send_command(xhci_trb_t* cmd_trb, uint32_t timeout_ms = 200);
+        xhci_command_completion_trb_t* send_command(xhci_trb_t* cmd_trb, u32 timeout_ms = 200);
     };
 }  // namespace usb
 

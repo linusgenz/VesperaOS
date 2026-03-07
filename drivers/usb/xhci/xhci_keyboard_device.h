@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 #define VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 #include <vespera/devices/char_device.h>
 
 #include <vespera/devices/device_manager.h>
@@ -41,8 +41,8 @@ public:
     KernelDevice* kd;
 
     // CharDevice API
-    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
-    ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
+    isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
+    isize write(CharFile* cf, const void* buffer, usize count) override;
 };
 
 #endif //VESPERAOS_XHCI_KEYBOARD_DEVICE_H

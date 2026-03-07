@@ -21,10 +21,10 @@ namespace acpi {
     SDT_HEADER* TableManager::find_table(const char* signature) {
         if (!xsdt_) return nullptr;
 
-        const uint32_t entry_count = (xsdt_->length - sizeof(SDT_HEADER)) / 8;
-        const auto* entries = reinterpret_cast<uint64_t*>(reinterpret_cast<uint64_t>(xsdt_) + sizeof(SDT_HEADER));
+        const u32 entry_count = (xsdt_->length - sizeof(SDT_HEADER)) / 8;
+        const auto* entries = reinterpret_cast<u64*>(reinterpret_cast<u64>(xsdt_) + sizeof(SDT_HEADER));
 
-        for (uint32_t i = 0; i < entry_count; i++) {
+        for (u32 i = 0; i < entry_count; i++) {
             auto* header = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(make_phys(entries[i]))));
             if (memcmp(header->signature, signature, 4) == 0) return header;
         }

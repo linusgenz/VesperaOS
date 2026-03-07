@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_CPUINFO_H
 #define VESPERAOS_CPUINFO_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 /**
  * @brief Struct representing CPU information in user-space.
@@ -36,7 +36,7 @@
 typedef struct cpu_info {
     char vendor[13];   ///< CPU vendor string (null-terminated)
     char brand[49];    ///< CPU brand string (null-terminated)
-    uint64_t features; ///< CPU features bitfield
+    u64 features; ///< CPU features bitfield
 } cpu_info_t;
 
 #endif //VESPERAOS_CPUINFO_H

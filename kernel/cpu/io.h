@@ -4,24 +4,24 @@
 
 #ifndef IO_H
 #define IO_H
-#include "stdint.h"
+#include <vespera/types.h>
 
-inline void outw(uint16_t port, uint16_t value) {
+inline void outw(u16 port, u16 value) {
     asm volatile("outw %0, %1" : : "a"(value), "Nd"(port));
 }
 
-inline uint16_t inw(uint16_t port) {
-    uint16_t ret = 0;
+inline u16 inw(u16 port) {
+    u16 ret = 0;
     asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
 
-inline void outb(uint16_t port, uint8_t value) {
+inline void outb(u16 port, u8 value) {
     asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
-inline uint8_t inb(uint16_t port) {
-    uint8_t ret = 0;
+inline u8 inb(u16 port) {
+    u8 ret = 0;
     asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
@@ -30,13 +30,13 @@ inline void io_wait() {
     asm volatile("outb %%al, $0x80" : : "a"(0));
 }
 
-inline uint32_t inl(uint16_t port) {
-    uint32_t ret = 0;
+inline u32 inl(u16 port) {
+    u32 ret = 0;
     asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port) : "memory");
     return ret;
 }
 
-inline void outl(uint16_t port, uint32_t value) {
+inline void outl(u16 port, u32 value) {
     asm volatile("outl %0, %1" : : "a"(value), "Nd"(port));
 }
 

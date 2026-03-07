@@ -7,7 +7,7 @@
 #include "../../arch/x86_64/interrupts/interrupts_internal.h"
 #include "../units/unit.h"
 // argregister_t
-extern "C" void context_switch(void** old_sp, void* new_sp, uint32_t to_is_user, uint32_t from_is_user, void* args);
+extern "C" void context_switch(void** old_sp, void* new_sp, u32 to_is_user, u32 from_is_user, void* args);
 
 namespace kernel::scheduling::manager {
 
@@ -24,7 +24,7 @@ namespace kernel::scheduling::manager {
     // Internal thread operations
     void switch_to_unit(Unit* from, Unit* to, TrapFrame* frame);
 
-    Unit* setup_idle_unit(uint8_t cpu_id);
+    Unit* setup_idle_unit(u8 cpu_id);
 
 }  // namespace kernel::scheduling::manager
 

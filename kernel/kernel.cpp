@@ -144,14 +144,14 @@ void debug_print_all_devices() {
 
 void enable_sse() {
     // CR0: MP setzen, EM löschen
-    uint64_t cr0 = 0;
+    u64 cr0 = 0;
     asm volatile("mov %%cr0, %0" : "=r"(cr0));
     cr0 |= (1 << 1);   // MP - Monitor Coprocessor
     cr0 &= ~(1 << 2);  // EM löschen - kein Emulation-Flag
     asm volatile("mov %0, %%cr0" ::"r"(cr0));
 
     // CR4: OSFXSR und OSXMMEXCPT setzen
-    uint64_t cr4 = 0;
+    u64 cr4 = 0;
     asm volatile("mov %%cr4, %0" : "=r"(cr4));
     cr4 |= (1 << 9);   // OSFXSR - OS unterstützt FXSAVE/FXRSTOR
     cr4 |= (1 << 10);  // OSXMMEXCPT - OS behandelt SSE-Exceptions
@@ -161,13 +161,13 @@ void enable_sse() {
 void enable_avx() {
 
     // CR4: OSXSAVE setzen
-    uint64_t cr4 = 0;
+    u64 cr4 = 0;
     asm volatile("mov %%cr4, %0" : "=r"(cr4));
     cr4 |= (1 << 18);  // OSXSAVE
     asm volatile("mov %0, %%cr4" ::"r"(cr4));
 
     // XCR0: SSE und AVX-State für XSAVE aktivieren
-    uint64_t xcr0 = 0;
+    u64 xcr0 = 0;
     asm volatile("xgetbv" : "=A"(xcr0) : "c"(0));
     xcr0 |= (1 << 0);  // x87
     xcr0 |= (1 << 1);  // SSE

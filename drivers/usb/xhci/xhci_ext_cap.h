@@ -34,44 +34,44 @@ information.
 struct XhciUsbSupportedProtocolCapability {
     union {
         struct {
-            uint8_t id;
-            uint8_t next;
-            uint8_t minor_revision_version;
-            uint8_t major_revision_version;
+            u8 id;
+            u8 next;
+            u8 minor_revision_version;
+            u8 major_revision_version;
         };
 
         // Extended capability entries must be read as 32-bit words
-        uint32_t dword0;
+        u32 dword0;
     };
 
     union {
-        uint32_t dword1;
-        uint32_t name; // "USB "
-    };
-
-    union {
-        struct {
-            uint8_t compatible_port_offset;
-            uint8_t compatible_port_count;
-            uint8_t protocol_defined;
-            uint8_t protocol_speed_id_count; // (PSIC)
-        };
-
-        uint32_t dword2;
+        u32 dword1;
+        u32 name; // "USB "
     };
 
     union {
         struct {
-            uint32_t slot_type: 4;
-            uint32_t reserved: 28;
+            u8 compatible_port_offset;
+            u8 compatible_port_count;
+            u8 protocol_defined;
+            u8 protocol_speed_id_count; // (PSIC)
         };
 
-        uint32_t dword3;
+        u32 dword2;
+    };
+
+    union {
+        struct {
+            u32 slot_type: 4;
+            u32 reserved: 28;
+        };
+
+        u32 dword3;
     };
 
     XhciUsbSupportedProtocolCapability() = default;
 
-    explicit XhciUsbSupportedProtocolCapability(const volatile uint32_t *cap) {
+    explicit XhciUsbSupportedProtocolCapability(const volatile u32 *cap) {
         dword0 = cap[0];
         dword1 = cap[1];
         dword2 = cap[2];
@@ -82,36 +82,36 @@ struct XhciUsbSupportedProtocolCapability {
 struct XHCI_LEGACY_SUPPORT_CAPABILITY {
     union {
         struct {
-            uint32_t capability_id: 8;
-            uint32_t next_cap_ptr: 8;
-            uint32_t bios_owned: 1; // Bit 16
-            uint32_t reserved1: 7;
-            uint32_t os_owned: 1; // Bit 24
-            uint32_t reserved2: 7;
+            u32 capability_id: 8;
+            u32 next_cap_ptr: 8;
+            u32 bios_owned: 1; // Bit 16
+            u32 reserved1: 7;
+            u32 os_owned: 1; // Bit 24
+            u32 reserved2: 7;
         } __attribute__((packed));
 
-        uint32_t raw;
+        u32 raw;
     } usblegsup;
 
     union {
         struct {
-            uint32_t smi_on_eint: 1; // Bit 16
-            uint32_t reserved0: 1; // Bit 17
-            uint32_t reserved1: 1; // Bit 18
-            uint32_t reserved2: 1; // Bit 19
-            uint32_t smi_on_host_sys_error: 1; // Bit 20
-            uint32_t reserved3: 8; // Bits 21–28
-            uint32_t smi_on_os_ownership: 1; // Bit 29 (RW1C)
-            uint32_t smi_on_pci_command: 1; // Bit 30 (RW1C)
-            uint32_t smi_on_bar: 1; // Bit 31 (RW1C)
+            u32 smi_on_eint: 1; // Bit 16
+            u32 reserved0: 1; // Bit 17
+            u32 reserved1: 1; // Bit 18
+            u32 reserved2: 1; // Bit 19
+            u32 smi_on_host_sys_error: 1; // Bit 20
+            u32 reserved3: 8; // Bits 21–28
+            u32 smi_on_os_ownership: 1; // Bit 29 (RW1C)
+            u32 smi_on_pci_command: 1; // Bit 30 (RW1C)
+            u32 smi_on_bar: 1; // Bit 31 (RW1C)
         } __attribute__((packed));
 
-        uint32_t raw;
+        u32 raw;
     } usblegctlsts;
 
     XHCI_LEGACY_SUPPORT_CAPABILITY() = default;
 
-    explicit XHCI_LEGACY_SUPPORT_CAPABILITY(const volatile uint32_t *cap) {
+    explicit XHCI_LEGACY_SUPPORT_CAPABILITY(const volatile u32 *cap) {
         usblegsup.raw = cap[0];
         usblegctlsts.raw = cap[1];
     }

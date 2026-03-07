@@ -5,7 +5,7 @@
 namespace pit {
    /* double time_since_boot = 0;
 
-    uint16_t divisor = 65535;
+    u16 divisor = 65535;
 
     void sleepd(double seconds) {
         double start_time = time_since_boot;
@@ -14,8 +14,8 @@ namespace pit {
         }
     }
 
-    void pit_wait_ms(uint32_t ms) {
-        uint32_t ticks = (BASE_FREQUENCY * ms) / 1000;
+    void pit_wait_ms(u32 ms) {
+        u32 ticks = (BASE_FREQUENCY * ms) / 1000;
         asm volatile("cli");
         outb(PIT_COMMAND, 0x34);  // Channel 0, mode 2, binary
         outb(PIT_CHANNEL0, ticks & 0xFF);
@@ -23,27 +23,27 @@ namespace pit {
         asm volatile("sti");
 
         for (;;) {
-            if (uint8_t status = inb(0x61); status & 0x20) break;
+            if (u8 status = inb(0x61); status & 0x20) break;
         }
     }
 
-    void sleep(uint64_t milliseconds) {
+    void sleep(u64 milliseconds) {
         sleepd(static_cast<double>(milliseconds) / 1000);
     }
 
-    void set_divisor(uint16_t _divisor) {
+    void set_divisor(u16 _divisor) {
         if (divisor < 100) _divisor = 100;
         divisor = _divisor;
-        outb(PIT_CHANNEL0, static_cast<uint8_t>(divisor & 0x00ff));
+        outb(PIT_CHANNEL0, static_cast<u8>(divisor & 0x00ff));
         io_wait();
-        outb(PIT_CHANNEL0, static_cast<uint8_t>((divisor & 0xff00) >> 8));
+        outb(PIT_CHANNEL0, static_cast<u8>((divisor & 0xff00) >> 8));
     }
 
-    uint64_t get_frequency() {
+    u64 get_frequency() {
         return BASE_FREQUENCY / divisor;
     }
 
-    void set_frequency(uint64_t frequency) {
+    void set_frequency(u64 frequency) {
         set_divisor(BASE_FREQUENCY / frequency);
     }
 

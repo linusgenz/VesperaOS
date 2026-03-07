@@ -5,8 +5,8 @@
 #ifndef BLOCKDEVICE_H
 #define BLOCKDEVICE_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 #include "../types.h"
 
@@ -18,12 +18,12 @@ class BlockDevice {
 
     // bufferSize is not used to determine how much to read, but to assert, that the buffer is equal or greater than
     // sectorCount * sector_size
-    virtual ssize_t read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) = 0;
+    virtual isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) = 0;
     // bufferSize is not used to determine how much to write, but to assert, that the buffer is equal or greater than
     // sectorCount * sector_size
-    virtual ssize_t write(uint64_t sector, size_t sector_count, void* buffer, size_t buffer_size) = 0;
-    [[nodiscard]] virtual size_t get_size() const = 0;
-    [[nodiscard]] virtual size_t get_sector_size() const = 0;
+    virtual isize write(u64 sector, usize sector_count, void* buffer, usize buffer_size) = 0;
+    [[nodiscard]] virtual usize get_size() const = 0;
+    [[nodiscard]] virtual usize get_sector_size() const = 0;
     virtual ~BlockDevice() = default;
 };
 

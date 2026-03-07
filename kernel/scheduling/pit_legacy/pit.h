@@ -4,24 +4,24 @@
 
 #ifndef PIT_H
 #define PIT_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace pit {
     /*
     extern double time_since_boot;
 #define PIT_CHANNEL0 0x40
 #define PIT_COMMAND 0x43
-    constexpr uint64_t BASE_FREQUENCY = 1193182;
+    constexpr u64 BASE_FREQUENCY = 1193182;
 
     void sleepd(double seconds);
-    void sleep(uint64_t milliseconds);
+    void sleep(u64 milliseconds);
 
-    void set_divisor(uint16_t divisor);
-    uint64_t get_frequency();
-    void set_frequency(uint64_t frequency);
+    void set_divisor(u16 divisor);
+    u64 get_frequency();
+    void set_frequency(u64 frequency);
     void tick();
 
-    void pit_wait_ms(uint32_t ms);*/
+    void pit_wait_ms(u32 ms);*/
 }  // namespace PIT
 
 #endif  // PIT_H

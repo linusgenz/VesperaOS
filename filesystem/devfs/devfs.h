@@ -37,8 +37,8 @@ typedef int (*dev_open_t)(CharFile** out_cf);
 
 typedef int (*dev_release_t)(CharFile* cf);
 
-typedef size_t (*dev_read_t)(CharFile* cf, void* buf, size_t count);  // non-positional
-typedef size_t (*dev_write_t)(CharFile* cf, const void* buf, size_t count);
+typedef usize (*dev_read_t)(CharFile* cf, void* buf, usize count);  // non-positional
+typedef usize (*dev_write_t)(CharFile* cf, const void* buf, usize count);
 
 typedef int (*dev_ioctl_t)(CharFile* cf, unsigned long req, void* arg);
 
@@ -62,9 +62,9 @@ class DevFs : public VirtualFilesystem<KernelDevice, DevfsEntry> {
 
     static int open(const VfsNode* node);
     // VFS operations
-    static ssize_t read(const VfsNode* node, size_t offset, size_t size, void* buffer);
-    static ssize_t write(VfsNode* node, size_t offset, size_t size, const void* buffer);
-    static ssize_t ioctl(const VfsNode* node, uint32_t cmd, void* arg);
+    static isize read(const VfsNode* node, usize offset, usize size, void* buffer);
+    static isize write(VfsNode* node, usize offset, usize size, const void* buffer);
+    static isize ioctl(const VfsNode* node, u32 cmd, void* arg);
     static void close(VfsNode* node);
 };
 

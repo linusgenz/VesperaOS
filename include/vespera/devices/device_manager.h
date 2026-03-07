@@ -26,14 +26,14 @@
 
 #include "driver_lifecycle.h"
 #include <klib/vector.h>
-//#include <stdint.h>
+//#include <vespera/types.h>
 
 struct VfsNode;
 class CharDevice;
 class BlockDevice;
 class IRenderDriver;
 
-enum class DeviceType : uint8_t {
+enum class DeviceType : u8 {
     Block,
     Char,
     Controller,
@@ -43,7 +43,7 @@ enum class DeviceType : uint8_t {
     Other,
 };
 
-enum class DeviceClass : uint8_t {
+enum class DeviceClass : u8 {
     Storage,
     Usb,
     Input,
@@ -54,7 +54,7 @@ enum class DeviceClass : uint8_t {
     Unknown,
 };
 
-enum class ControllerType : uint8_t {
+enum class ControllerType : u8 {
     None,
     Xhci,
     Ehci,
@@ -70,10 +70,10 @@ enum class ControllerType : uint8_t {
     Other,
 };
 
-enum class BusType : uint8_t { VIRTUAL, None, Usb, Tty, I2C, Spi, Ps2, Pci };
+enum class BusType : u8 { VIRTUAL, None, Usb, Tty, I2C, Spi, Ps2, Pci };
 
 struct KernelDevice {
-    uint32_t id{};
+    u32 id{};
     const char* name{};
     DeviceType type{DeviceType::Other};
     DeviceClass dev_class{DeviceClass::Unknown};
@@ -90,7 +90,7 @@ struct KernelDevice {
 
     IDriverLifecycle* lifecycle{nullptr};
 
-    uint32_t next_nvme_index = 0;  // for nvme<N> controller
+    u32 next_nvme_index = 0;  // for nvme<N> controller
     Vector<bool> nvme_device_used;
 
     void* driver_data{nullptr};  // optional pointer for drivers
@@ -99,17 +99,17 @@ struct KernelDevice {
 class DeviceManager {
    public:
     static void init();
-    static char* generate_sd_device_name(char* buffer, size_t buffer_size);
+    static char* generate_sd_device_name(char* buffer, usize buffer_size);
 
     static char* generate_nv_me_device_name(
-        const KernelDevice* controller, char* buffer, size_t buffer_size, uint32_t namespace_id
+        const KernelDevice* controller, char* buffer, usize buffer_size, u32 namespace_id
     );
-    static size_t find_and_register_partitions(KernelDevice* physical_kd);
-    static bool alloc_unique_device_name(const char* base, char* out_buffer, size_t out_buffer_size);
+    static usize find_and_register_partitions(KernelDevice* physical_kd);
+    static bool alloc_unique_device_name(const char* base, char* out_buffer, usize out_buffer_size);
 
     // legacy
     static Vector<BlockDevice*> get_devices();
-    static uint32_t get_device_count();
+    static u32 get_device_count();
 
     static KernelDevice* register_block_device(
         BlockDevice* dev, const char* name, DeviceClass dev_class = DeviceClass::Storage,
@@ -133,8 +133,8 @@ class DeviceManager {
     static void unregister_device(KernelDevice* kd);
 
     static Vector<KernelDevice*> get_all_devices();
-    static KernelDevice* find_by_id(uint32_t id);
-    static uint32_t get_kernel_device_count();
+    static KernelDevice* find_by_id(u32 id);
+    static u32 get_kernel_device_count();
 
     static void shutdown_all();
     static void suspend_all();
@@ -143,7 +143,7 @@ class DeviceManager {
    private:
     static Vector<BlockDevice*>* devices_;
     static Vector<KernelDevice*>* all_devices_;
-    static uint32_t next_id_;
+    static u32 next_id_;
     static Spinlock lock_;
 
     static void release_block_letter(char c);

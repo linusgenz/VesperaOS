@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_INPUT_EVENT_H
 #define VESPERAOS_INPUT_EVENT_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace kernel::input {
 
@@ -43,8 +43,8 @@ namespace kernel::input {
 
     struct InputEvent {
         InputDeviceType device;
-        uint32_t keycode;
-        uint32_t modifiers;
+        u32 keycode;
+        u32 modifiers;
         KeyAction action;
         char ascii;
     };

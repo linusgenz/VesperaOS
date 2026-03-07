@@ -1,10 +1,9 @@
-// rtc.h
-//
+// types.h
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 26.09.25.
+// Created by Linus Genz on 07.03.26.
 //
 // This file is part of VesperaOS.
 //
@@ -21,29 +20,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_RTC_H
-#define VESPERAOS_RTC_H
+#ifndef VESPERA_UAPI_TYPES_H
+#define VESPERA_UAPI_TYPES_H
 
-#include <vespera/devices/char_device.h>
+typedef unsigned char      u8;
+typedef unsigned short     u16;
+typedef unsigned int       u32;
+typedef unsigned long long u64;
 
-class RtcDevice final : public CharDevice {
-   public:
-    explicit RtcDevice();
+typedef signed char        i8;
+typedef signed short       i16;
+typedef signed int         i32;
+typedef signed long long   i64;
 
-    int open(CharFile** out_cf) override;
-    int release(CharFile* cf) override;
-    isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
-    isize write(CharFile* cf, const void* buffer, usize count) override;
-
-   private:
-    struct RtcData {
-        u8 sec;
-        u8 min;
-        u8 hour;
-        u8 day;
-        u8 month;
-        u8 year;
-    };
-};
-
-#endif  // VESPERAOS_RTC_H
+#endif

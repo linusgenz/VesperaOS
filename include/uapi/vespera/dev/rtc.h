@@ -31,12 +31,12 @@
  * All fields use binary encoding (not BCD).
  */
 typedef struct rtc_data {
-    uint8_t sec;   ///< Seconds (0–59)
-    uint8_t min;   ///< Minutes (0–59)
-    uint8_t hour;  ///< Hours (0–23, 24h format)
-    uint8_t day;   ///< Day of the month (1–31)
-    uint8_t month; ///< Month (1–12)
-    uint8_t year;  ///< Year offset from 2000
+    u8 sec;   ///< Seconds (0–59)
+    u8 min;   ///< Minutes (0–59)
+    u8 hour;  ///< Hours (0–23, 24h format)
+    u8 day;   ///< Day of the month (1–31)
+    u8 month; ///< Month (1–12)
+    u8 year;  ///< Year offset from 2000
 } rtc_data_t;
 
 #endif //VESPERAOS_RTC_H

@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <vespera/types.h>
 
 #include <klib/string.h>
 #include "pci_devices.h"
@@ -28,7 +28,7 @@ namespace pci
         "Non Essential Instrumentation"
     };
 
-    const char* get_vendor_name(const uint16_t vendor_id)
+    const char* get_vendor_name(const u16 vendor_id)
     {
         switch (vendor_id)
         {
@@ -54,7 +54,7 @@ namespace pci
         return buffer;
     }
 
-    const char* get_device_name(const uint16_t vendor_id, const uint16_t device_id)
+    const char* get_device_name(const u16 vendor_id, const u16 device_id)
     {
         for (auto [vid, did, name] : PCI_DEVICES)
         {
@@ -69,7 +69,7 @@ namespace pci
         return buffer;
     }
 
-    const char* mass_storage_controller_subclass_name(uint8_t subclass_code)
+    const char* mass_storage_controller_subclass_name(u8 subclass_code)
     {
         switch (subclass_code)
         {
@@ -102,7 +102,7 @@ namespace pci
         return buffer;
     }
 
-    const char* serial_bus_controller_subclass_name(uint8_t subclass_code)
+    const char* serial_bus_controller_subclass_name(u8 subclass_code)
     {
         switch (subclass_code)
         {
@@ -137,7 +137,7 @@ namespace pci
         return buffer;
     }
 
-    const char* bridge_device_subclass_name(uint8_t subclass_code)
+    const char* bridge_device_subclass_name(u8 subclass_code)
     {
         switch (subclass_code)
         {
@@ -174,7 +174,7 @@ namespace pci
         return buffer;
     }
 
-    const char* get_subclass_name(const uint8_t class_code, const uint8_t subclass_code)
+    const char* get_subclass_name(const u8 class_code, const u8 subclass_code)
     {
         switch (class_code)
         {
@@ -199,7 +199,7 @@ namespace pci
         return buffer;
     }
 
-    const char* get_prog_if_name(const uint8_t class_code, const uint8_t subclass_code, const uint8_t prog_if)
+    const char* get_prog_if_name(const u8 class_code, const u8 subclass_code, const u8 prog_if)
     {
         switch (class_code)
         {

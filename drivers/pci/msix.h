@@ -25,7 +25,7 @@
 #define MSIX_H
 
 #include "pci.h"
-#include <stddef.h>
+
 
 namespace pci {
     /**
@@ -34,18 +34,18 @@ namespace pci {
      * For xAPIC mode, MSI-X interrupts are delivered to 0xFEE0'0000 (same as MSI).
      * In x2APIC mode, a different scheme may be needed.
      */
-    constexpr uint32_t MSIX_ADDRESS_BASE = 0xFEE00000;
+    constexpr u32 MSIX_ADDRESS_BASE = 0xFEE00000;
 
     /**
      * @brief MSI-X capability ID according to the PCI specification.
      */
-    constexpr uint8_t MSIX_CAPABILITY_ID = 0x11;
+    constexpr u8 MSIX_CAPABILITY_ID = 0x11;
 
     /**
      * @brief Offsets and fields in the MSI-X control register.
      */
-    constexpr uint16_t MSIX_CONTROL_ENABLE_BIT = (1 << 15);  // MSI-X Enable bit in control register
-    constexpr uint16_t MSIX_MASK_ALL_VECTORS   = (1 << 14);  // Mask all MSI-X vectors
+    constexpr u16 MSIX_CONTROL_ENABLE_BIT = (1 << 15);  // MSI-X Enable bit in control register
+    constexpr u16 MSIX_MASK_ALL_VECTORS   = (1 << 14);  // Mask all MSI-X vectors
 
     /**
      * @brief Offsets/bits in the MSI-X data (message_data).
@@ -56,17 +56,17 @@ namespace pci {
      * Bit  15:     Trigger Mode
      * etc.
      */
-    constexpr uint16_t MSIX_DELIVERY_MODE_FIXED  = (0 << 8);
-    constexpr uint16_t MSIX_DELIVERY_MODE_LOWEST = (1 << 8);
-    constexpr uint16_t MSIX_DELIVERY_MODE_NMI    = (4 << 8);
+    constexpr u16 MSIX_DELIVERY_MODE_FIXED  = (0 << 8);
+    constexpr u16 MSIX_DELIVERY_MODE_LOWEST = (1 << 8);
+    constexpr u16 MSIX_DELIVERY_MODE_NMI    = (4 << 8);
 
     /**
      * @brief Structure for an entry in the MSI-X vector table.
      */
     struct MSIX_TABLE_ENTRY {
-        uint64_t message_address;   // MSI-X message address
-        uint32_t message_data;      // MSI-X message data
-        uint32_t vector_control;    // Vector control (bit 0 is the mask bit)
+        u64 message_address;   // MSI-X message address
+        u32 message_data;      // MSI-X message data
+        u32 vector_control;    // Vector control (bit 0 is the mask bit)
 
         /**
          * @brief Masks this vector by setting the mask bit.
@@ -94,41 +94,41 @@ namespace pci {
     struct PCI_MSIX_CAPABILITY {
         union {
             struct {
-                uint8_t cap_id;
-                uint8_t next_cap_ptr;
+                u8 cap_id;
+                u8 next_cap_ptr;
                 union {
                     struct {
                         // Table Size is N - 1 encoded, and is the number of
                         // entries in the MSI-X table. This field is Read-Only.
-                        uint16_t table_size      : 11;
-                        uint16_t rsvd0           : 3;
-                        uint16_t function_mask   : 1;
-                        uint16_t enable_bit      : 1;
+                        u16 table_size      : 11;
+                        u16 rsvd0           : 3;
+                        u16 function_mask   : 1;
+                        u16 enable_bit      : 1;
                     } __attribute__((packed));
-                    uint16_t message_control;
+                    u16 message_control;
                 } __attribute__((packed));
             } __attribute__((packed));
-            uint32_t dword0;
+            u32 dword0;
         };
 
         union {
             struct {
                 // BIR specifies which BAR is used for the Message Table. This may be a 64-bit
                 // BAR, and is zero-indexed (so BIR=0, BAR0, offset 0x10 into the header).
-                uint32_t table_bir       : 3;
-                uint32_t table_offset    : 29;
+                u32 table_bir       : 3;
+                u32 table_offset    : 29;
             } __attribute__((packed));
-            uint32_t dword1;
+            u32 dword1;
         };
 
         union {
             struct {
                 // BIR specifies which BAR is used for the Message Table. This may be a 64-bit
                 // BAR, and is zero-indexed (so BIR=0, BAR0, offset 0x10 into the header).
-                uint32_t pba_bir       : 3;
-                uint32_t pba_offset    : 29;
+                u32 pba_bir       : 3;
+                u32 pba_offset    : 29;
             } __attribute__((packed));
-            uint32_t dword2;
+            u32 dword2;
         };
     } __attribute__((packed));
     static_assert(sizeof(PCI_MSIX_CAPABILITY) == 12, "PCI_MSIX_CAPABILITY must be 12 bytes");
@@ -142,9 +142,9 @@ namespace pci {
      * @param cpu_apic_id The target CPU's APIC ID.
      * @return The 64-bit message address to be written to the vector table.
      */
-    inline uint64_t build_msix_address(uint8_t cpu_apic_id) {
+    inline u64 build_msix_address(u8 cpu_apic_id) {
         // Same as MSI: place the APIC ID in bits [19..12].
-        uint32_t addr_lo = MSIX_ADDRESS_BASE | (static_cast<uint32_t>(cpu_apic_id) << 12);
+        u32 addr_lo = MSIX_ADDRESS_BASE | (static_cast<u32>(cpu_apic_id) << 12);
         return addr_lo;
     }
 
@@ -158,8 +158,8 @@ namespace pci {
      * @param delivery_mode The delivery mode (typically "fixed").
      * @return The 16-bit message data for the MSI-X vector table.
      */
-    inline uint16_t build_msix_data(uint8_t vector, uint16_t delivery_mode = MSIX_DELIVERY_MODE_FIXED) {
-        uint16_t data = vector & 0xFF;  // Bits [7..0] = vector
+    inline u16 build_msix_data(u8 vector, u16 delivery_mode = MSIX_DELIVERY_MODE_FIXED) {
+        u16 data = vector & 0xFF;  // Bits [7..0] = vector
         data |= delivery_mode;          // Bits [10..8] = delivery mode
         return data;
     }
@@ -173,13 +173,13 @@ namespace pci {
      * @param vector_index The index of the vector to read.
      * @return A copy of the msix_table_entry for the specified vector.
      */
-    inline MSIX_TABLE_ENTRY read_msix_vector_entry(void* base_address, size_t vector_index) {
-        uint8_t* entry_addr = static_cast<uint8_t*>(base_address) + (vector_index * sizeof(MSIX_TABLE_ENTRY));
+    inline MSIX_TABLE_ENTRY read_msix_vector_entry(void* base_address, usize vector_index) {
+        u8* entry_addr = static_cast<u8*>(base_address) + (vector_index * sizeof(MSIX_TABLE_ENTRY));
 
-        volatile auto* data = reinterpret_cast<volatile uint32_t*>(entry_addr);
+        volatile auto* data = reinterpret_cast<volatile u32*>(entry_addr);
 
         MSIX_TABLE_ENTRY result{};
-        result.message_address = static_cast<uint64_t>(data[1]) << 32 | data[0];
+        result.message_address = static_cast<u64>(data[1]) << 32 | data[0];
         result.message_data    = data[2];
         result.vector_control  = data[3];
         return result;
@@ -194,13 +194,13 @@ namespace pci {
      * @param vector_index The index of the vector to write.
      * @param entry The msix_table_entry to write to the table.
      */
-    inline void write_msix_vector_entry(void* base_address, size_t vector_index, const MSIX_TABLE_ENTRY& entry) {
-        volatile auto* entry_addr = reinterpret_cast<volatile uint32_t*>(
-            static_cast<uint8_t*>(base_address) + vector_index * sizeof(MSIX_TABLE_ENTRY)
+    inline void write_msix_vector_entry(void* base_address, usize vector_index, const MSIX_TABLE_ENTRY& entry) {
+        volatile auto* entry_addr = reinterpret_cast<volatile u32*>(
+            static_cast<u8*>(base_address) + vector_index * sizeof(MSIX_TABLE_ENTRY)
         );
 
-        entry_addr[0] = static_cast<uint32_t>(entry.message_address);          // Address Low
-        entry_addr[1] = static_cast<uint32_t>(entry.message_address >> 32);    // Address High
+        entry_addr[0] = static_cast<u32>(entry.message_address);          // Address Low
+        entry_addr[1] = static_cast<u32>(entry.message_address >> 32);    // Address High
         entry_addr[2] = entry.message_data;
         entry_addr[3] = entry.vector_control;
 
@@ -216,15 +216,15 @@ namespace pci {
      * @param pba_base The base address of the PBA (mapped memory).
      * @param vector_index The index of the vector to clear.
      */
-    inline void clear_msix_pending_bit(void* pba_base, size_t vector_index) {
-        size_t byte_offset = (vector_index / 8);
-        size_t bit_offset = (vector_index % 8);
-        uint8_t* byte_ptr = static_cast<uint8_t*>(pba_base) + byte_offset;
+    inline void clear_msix_pending_bit(void* pba_base, usize vector_index) {
+        usize byte_offset = (vector_index / 8);
+        usize bit_offset = (vector_index % 8);
+        u8* byte_ptr = static_cast<u8*>(pba_base) + byte_offset;
 
         // Clear the corresponding bit
         *byte_ptr &= ~(1 << bit_offset);
     }
 
-    bool try_enable_msi_or_msix(PCI_HEADER0* header, uint8_t base_vector, uint8_t wanted = 0);
+    bool try_enable_msi_or_msix(PCI_HEADER0* header, u8 base_vector, u8 wanted = 0);
 }
 #endif //MSIX_H

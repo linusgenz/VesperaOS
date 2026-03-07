@@ -23,29 +23,30 @@
 
 #ifndef VESPERAOS_ATOMIC_H
 #define VESPERAOS_ATOMIC_H
-#include "stdint.h"
+#include <vespera/types.h>
+
 // ---------------------------
-// Atomic uint8_t
+// Atomic u8
 // ---------------------------
 typedef struct AtomicU8 {
-    volatile uint8_t value{};
+    volatile u8 value{};
 
-    void init(uint8_t v = 0) {
+    void init(u8 v = 0) {
         value = v;
     }
 
-    void store(uint8_t v) {
+    void store(u8 v) {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    [[nodiscard]] uint8_t load() const {
-        uint8_t v;
+    [[nodiscard]] u8 load() const {
+        u8 v;
         asm volatile("movb %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
     }
 
-    uint8_t fetch_add(uint8_t inc) {
-        uint8_t old;
+    u8 fetch_add(u8 inc) {
+        u8 old;
         asm volatile("lock xaddb %0, %1"
                          : "=r"(old), "+m"(value)
                          : "0"(inc)
@@ -53,12 +54,12 @@ typedef struct AtomicU8 {
         return old;
     }
 
-    uint8_t fetch_sub(uint8_t dec) {
-        return fetch_add(static_cast<uint8_t>(-dec));
+    u8 fetch_sub(u8 dec) {
+        return fetch_add(static_cast<u8>(-dec));
     }
 
-    bool compare_exchange(uint8_t *expected, uint8_t desired) {
-        uint8_t old = *expected;
+    bool compare_exchange(u8 *expected, u8 desired) {
+        u8 old = *expected;
         asm volatile("lock cmpxchgb %2, %1"
                          : "=a"(old), "+m"(value)
                          : "r"(desired), "0"(old)
@@ -72,34 +73,34 @@ typedef struct AtomicU8 {
         return *this;
     }
 
-    uint8_t operator++(int) {
+    u8 operator++(int) {
         return fetch_add(1);
     }
 } atomic_u8_t;
 
 
 // ---------------------------
-// Atomic uint16_t
+// Atomic u16
 // ---------------------------
 typedef struct AtomicU16 {
-    volatile uint16_t value{};
+    volatile u16 value{};
 
-    void init(uint16_t v = 0) {
+    void init(u16 v = 0) {
         value = v;
     }
 
-    void store(uint16_t v) {
+    void store(u16 v) {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    [[nodiscard]] uint16_t load() const {
-        uint16_t v;
+    [[nodiscard]] u16 load() const {
+        u16 v;
         asm volatile("movw %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
     }
 
-    uint16_t fetch_add(uint16_t inc) {
-        uint16_t old;
+    u16 fetch_add(u16 inc) {
+        u16 old;
         asm volatile("lock xaddw %0, %1"
                          : "=r"(old), "+m"(value)
                          : "0"(inc)
@@ -107,12 +108,12 @@ typedef struct AtomicU16 {
         return old;
     }
 
-    uint16_t fetch_sub(uint16_t dec) {
-        return fetch_add(static_cast<uint16_t>(-dec));
+    u16 fetch_sub(u16 dec) {
+        return fetch_add(static_cast<u16>(-dec));
     }
 
-    bool compare_exchange(uint16_t *expected, uint16_t desired) {
-        uint16_t old = *expected;
+    bool compare_exchange(u16 *expected, u16 desired) {
+        u16 old = *expected;
         asm volatile("lock cmpxchgw %2, %1"
                          : "=a"(old), "+m"(value)
                          : "r"(desired), "0"(old)
@@ -126,33 +127,33 @@ typedef struct AtomicU16 {
         return *this;
     }
 
-    uint16_t operator++(int) {
+    u16 operator++(int) {
         return fetch_add(1);
     }
 } atomic_u16_t;
 
 // ---------------------------
-// Atomic uint32_t
+// Atomic u32
 // ---------------------------
 typedef struct AtomicU32 {
-    volatile uint32_t value{};
+    volatile u32 value{};
 
-    void init(uint32_t v = 0) {
+    void init(u32 v = 0) {
         value = v;
     }
 
-    void store(uint32_t v) {
+    void store(u32 v) {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    [[nodiscard]] uint32_t load() const {
-        uint32_t v;
+    [[nodiscard]] u32 load() const {
+        u32 v;
         asm volatile("movl %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
     }
 
-    uint32_t fetch_add(uint32_t inc) {
-        uint32_t old;
+    u32 fetch_add(u32 inc) {
+        u32 old;
         asm volatile("lock xaddl %0, %1"
                          : "=r"(old), "+m"(value)
                          : "0"(inc)
@@ -160,12 +161,12 @@ typedef struct AtomicU32 {
         return old;
     }
 
-    uint32_t fetch_sub(uint32_t dec) {
+    u32 fetch_sub(u32 dec) {
         return fetch_add(-dec);
     }
 
-    bool compare_exchange(uint32_t *expected, uint32_t desired) {
-        uint32_t old = *expected;
+    bool compare_exchange(u32 *expected, u32 desired) {
+        u32 old = *expected;
         asm volatile("lock cmpxchgl %2, %1"
                          : "=a"(old), "+m"(value)
                          : "r"(desired), "0"(old)
@@ -179,34 +180,34 @@ typedef struct AtomicU32 {
         return *this;
     }
 
-    uint32_t operator++(int) {
+    u32 operator++(int) {
         return fetch_add(1);
     }
 } atomic_u32_t;
 
 
 // ---------------------------
-// Atomic uint64_t
+// Atomic u64
 // ---------------------------
 typedef struct AtomicU64 {
-    volatile uint64_t value{};
+    volatile u64 value{};
 
-    void init(uint64_t v = 0) {
+    void init(u64 v = 0) {
         value = v;
     }
 
-    void store(uint64_t v) {
+    void store(u64 v) {
         asm volatile("xchg %0, %1" : "+r"(v), "+m"(value) :: "memory");
     }
 
-    [[nodiscard]] uint64_t load() const {
-        uint64_t v;
+    [[nodiscard]] u64 load() const {
+        u64 v;
         asm volatile("movq %1, %0" : "=r"(v) : "m"(value) : "memory");
         return v;
     }
 
-    uint64_t fetch_add(uint64_t inc) {
-        uint64_t old;
+    u64 fetch_add(u64 inc) {
+        u64 old;
         asm volatile("lock xaddq %0, %1"
                          : "=r"(old), "+m"(value)
                          : "0"(inc)
@@ -214,12 +215,12 @@ typedef struct AtomicU64 {
         return old;
     }
 
-    uint64_t fetch_sub(uint64_t dec) {
+    u64 fetch_sub(u64 dec) {
         return fetch_add(-dec);
     }
 
-    bool compare_exchange(uint64_t *expected, uint64_t desired) {
-        uint64_t old = *expected;
+    bool compare_exchange(u64 *expected, u64 desired) {
+        u64 old = *expected;
         asm volatile("lock cmpxchgq %2, %1"
                          : "=a"(old), "+m"(value)
                          : "r"(desired), "0"(old)
@@ -233,7 +234,7 @@ typedef struct AtomicU64 {
         return *this;
     }
 
-    uint64_t operator++(int) {
+    u64 operator++(int) {
         return fetch_add(1);
     }
 } atomic_u64_t;
@@ -243,14 +244,14 @@ typedef struct AtomicU64 {
 // ---------------------------
 
 typedef struct AtomicFlag {
-    volatile uint8_t value{};
+    volatile u8 value{};
 
     void init(bool v = false) {
         value = v ? 1 : 0;
     }
 
     bool test_and_set() {
-        uint8_t old = 1;
+        u8 old = 1;
         asm volatile("xchg %0, %1"
                      : "+r"(old), "+m"(value)
                      :
@@ -263,7 +264,7 @@ typedef struct AtomicFlag {
     }
 
     void clear() {
-        uint8_t v = 0;
+        u8 v = 0;
         asm volatile("xchg %0, %1"
                      : "+r"(v), "+m"(value)
                      :
@@ -271,7 +272,7 @@ typedef struct AtomicFlag {
     }
 
     [[nodiscard]] bool load() const {
-        uint8_t v;
+        u8 v;
         asm volatile("movb %1, %0"
                      : "=r"(v)
                      : "m"(value)
@@ -280,9 +281,9 @@ typedef struct AtomicFlag {
     }
 
     bool compare_exchange(bool *expected, bool desired) {
-        uint8_t exp = *expected ? 1 : 0;
-        uint8_t des = desired ? 1 : 0;
-        uint8_t old = exp;
+        u8 exp = *expected ? 1 : 0;
+        u8 des = desired ? 1 : 0;
+        u8 old = exp;
         asm volatile("lock cmpxchgb %2, %1"
                      : "=a"(old), "+m"(value)
                      : "r"(des), "0"(old)

@@ -34,7 +34,7 @@
 #include "misc/zero.h"
 
 void initialize_pseudo_devices() {
-    constexpr size_t channel_capacity = static_cast<size_t>(32) * 1024;
+    constexpr usize channel_capacity = static_cast<usize>(32) * 1024;
     Channel* kernel_log_channel = Channel::create(channel_capacity);
 
     auto* zero_dev = new ZeroDevice();

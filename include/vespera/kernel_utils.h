@@ -6,8 +6,8 @@
 #define KERNEL_UTILS_H
 #include <vespera/boot/boot.h>
 
-extern uint64_t kernel_start;
-extern uint64_t kernel_end;
+extern u64 kernel_start;
+extern u64 kernel_end;
 
 extern framebuffer_t *target_framebuffer;
 

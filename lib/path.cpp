@@ -3,15 +3,16 @@
 //
 
 #include <klib/string.h>
+#include <vespera/types.h>
 
 //  "/foo/bar/baz" -> "foo", "bar", "baz"
-size_t split_path(const char* path, char components[][32], size_t max_components) {
-    size_t count = 0;
-    size_t pos = 0;
+usize split_path(const char* path, char components[][32], usize max_components) {
+    usize count = 0;
+    usize pos = 0;
 
 
     while (path[pos] == '/') pos++;
-    size_t comp_pos = 0;
+    usize comp_pos = 0;
 
     while (path[pos] != '\0' && count < max_components) {
         char c = path[pos];

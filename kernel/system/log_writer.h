@@ -33,7 +33,7 @@ class FileLogWriter final : public kernel::ILogWriter {
     explicit FileLogWriter(const char* file_path);
     ~FileLogWriter() override;
 
-    bool append_line(const char* line, size_t len) override;
+    bool append_line(const char* line, usize len) override;
 
    private:
     VfsNode* file_handle_;

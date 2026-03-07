@@ -8,7 +8,7 @@
 #include <vespera/mm/memory.h>
 
 struct PageDirectoryEntry {
-    uint64_t value;
+    u64 value;
     void set_flag(PtFlag flag, bool enabled);
     [[nodiscard]] bool get_flag(PtFlag flag) const;
     void set_address(phys_addr_t phys_addr);

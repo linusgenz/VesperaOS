@@ -26,7 +26,7 @@
 namespace ps2::keyboard::qwerty {
 
     struct Ps2KeymapEntry {
-        uint8_t scancode;
+        u8 scancode;
         char normal;
         char shifted;
     };
@@ -49,7 +49,7 @@ namespace ps2::keyboard::qwerty {
         {0x31, 'n', 'N'}, {0x32, 'm', 'M'},
     };
 
-    char translate(uint8_t scancode, bool shift) {
+    char translate(u8 scancode, bool shift) {
         for (const auto& entry : PS2_KEYMAP) {
             if (entry.scancode == scancode) {
                 return shift ? entry.shifted : entry.normal;

@@ -31,9 +31,9 @@
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
-    int64_t sys_open(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_open(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto user_path = reinterpret_cast<const char*>(arg0);
-        const auto flags = static_cast<uint32_t>(arg1);
+        const auto flags = static_cast<u32>(arg1);
 
         if (!user_path || user_path[0] == '\0') return -EINVAL;
 
@@ -97,7 +97,7 @@ namespace syscalls::internal {
         }
 
         VfsHandle* vh = nullptr;
-        uint64_t handle_type = 0;
+        u64 handle_type = 0;
 
         switch (node->type) {
             case VfsNodeType::CharDevice:
@@ -165,7 +165,7 @@ namespace syscalls::internal {
         // Handle registrieren
         HandleId file_handle = 0;
 
-        if (const int64_t err =
+        if (const i64 err =
                 realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, &file_handle);
             err != SUCCESS_CODE) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {

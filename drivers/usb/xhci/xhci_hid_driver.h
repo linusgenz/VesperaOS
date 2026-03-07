@@ -25,7 +25,7 @@
 #define VESPERAOS_XHCI_HID_DRIVER_H
 
 #include "xhci_usb_device_driver.h"
-#include <stdint.h>
+#include <vespera/types.h>
 
 class XhciHidDriver : public XhciUsbDeviceDriver {
 public:
@@ -33,7 +33,7 @@ public:
     ~XhciHidDriver() override = default;
 
     virtual void on_device_init(usb::XhciDriver* hcd) = 0;
-    virtual void on_device_event(uint8_t* data) = 0;
+    virtual void on_device_event(u8* data) = 0;
 
     void on_startup(usb::XhciDriver* hcd, XhciDevice* dev) override;
     void on_event(usb::XhciDriver* hcd, XhciDevice* dev) override;

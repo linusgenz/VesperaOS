@@ -6,10 +6,10 @@
 #define APIC_H
 #include "../../../kernel/acpi/madt.h"
 #include "interrupts_internal.h"
-#include <stddef.h>
-#include <stdint.h>
 
-inline volatile uint8_t* g_local_apic_addr;
+#include <vespera/types.h>
+
+inline volatile u8* g_local_apic_addr;
 
 namespace arch::x86_64::interrupts::apic {
     // ------------------------------------------------------------------------------------------------
@@ -56,18 +56,18 @@ namespace arch::x86_64::interrupts::apic {
     void send_eoi();
     void timer_accounting();
     void timer_tick(TrapFrame* frame);
-    void init(uint8_t cpu_id);
-    void send_ipi(uint32_t apic_id, uint8_t vector);
-    void broadcast_ipi(uint8_t vector);
+    void init(u8 cpu_id);
+    void send_ipi(u32 apic_id, u8 vector);
+    void broadcast_ipi(u8 vector);
     void wait_for_delivery();
 
-    inline uint64_t apic_ticks[MAX_CPU_CORES] = {};
+    inline u64 apic_ticks[MAX_CPU_CORES] = {};
 
-    uint32_t local_apic_get_id();
-    void write(uint32_t offset, uint32_t value);
-    uint32_t read(uint32_t offset);
+    u32 local_apic_get_id();
+    void write(u32 offset, u32 value);
+    u32 read(u32 offset);
 
-    void pmt_delay(size_t us);
+    void pmt_delay(usize us);
 }  // namespace arch::x86_64::interrupts::apic
 
 #endif  // APIC_H

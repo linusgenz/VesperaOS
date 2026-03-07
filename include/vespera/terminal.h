@@ -25,40 +25,40 @@
 #define VESPERAOS_TERMINAL_H
 
 #include <vespera/graphics.h>
-#include <stdint.h>
+#include <vespera/types.h>
 
 #include "../../kernel/graphics/IRenderDriver.h"
 
 class Terminal {
     struct Cell {
         char ch;
-        uint32_t fg;
-        uint32_t bg;
+        u32 fg;
+        u32 bg;
         bool dirty;
     };
 
     IRenderDriver* drv_ = nullptr;
 
-    uint32_t char_w_{};
-    uint32_t char_h_{};
+    u32 char_w_{};
+    u32 char_h_{};
 
-    size_t cols_{};
-    size_t rows_{};
+    usize cols_{};
+    usize rows_{};
 
-    uint32_t cx_ = 0;
-    uint32_t cy_ = 0;
+    u32 cx_ = 0;
+    u32 cy_ = 0;
 
-    uint32_t fg_ = 0xFFFFFFFF;
-    uint32_t bg_ = 0x00000000;
+    u32 fg_ = 0xFFFFFFFF;
+    u32 bg_ = 0x00000000;
 
     Cell* cells_{};
 
    public:
-    Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height);
+    Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
     ~Terminal();
 
-    void set_colour(uint32_t new_fg, uint32_t new_bg);
-    void set_cursor(uint32_t x, uint32_t y);
+    void set_colour(u32 new_fg, u32 new_bg);
+    void set_cursor(u32 x, u32 y);
     void put_char(char c);
     void put_char_fast(char c);
     void print(const char* s);
@@ -68,8 +68,8 @@ class Terminal {
     void flush() const;
 
    private:
-    [[nodiscard]] Cell& at(uint32_t x, uint32_t y) const;
-    void draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* run_cells, uint32_t len) const;
+    [[nodiscard]] Cell& at(u32 x, u32 y) const;
+    void draw_run(u32 cell_x, u32 cell_y, const Cell* run_cells, u32 len) const;
     void advance();
     void scroll() const;
 };

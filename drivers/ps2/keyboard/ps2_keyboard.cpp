@@ -35,7 +35,7 @@ namespace ps2::keyboard {
         shift_left = shift_right = false;
     }
 
-    void handle_scancode(const uint8_t scancode) {
+    void handle_scancode(const u8 scancode) {
         using namespace qwerty;
 
         switch (scancode) {
@@ -52,7 +52,7 @@ namespace ps2::keyboard {
             const kernel::input::InputEvent ev {
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = scancode,
-                .modifiers = static_cast<uint32_t>(shift ? 1 : 0),
+                .modifiers = static_cast<u32>(shift ? 1 : 0),
                 .action = kernel::input::KeyAction::PRESS,
                 .ascii = '\b'
             };
@@ -64,7 +64,7 @@ namespace ps2::keyboard {
             const kernel::input::InputEvent ev {
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = scancode,
-                .modifiers = static_cast<uint32_t>(shift ? 1 : 0),
+                .modifiers = static_cast<u32>(shift ? 1 : 0),
                 .action = kernel::input::KeyAction::PRESS,
                 .ascii = '\n'
             };
@@ -76,7 +76,7 @@ namespace ps2::keyboard {
             const kernel::input::InputEvent ev {
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = scancode,
-                .modifiers = static_cast<uint32_t>(shift ? 1 : 0),
+                .modifiers = static_cast<u32>(shift ? 1 : 0),
                 .action = kernel::input::KeyAction::PRESS,
                 .ascii = c
             };

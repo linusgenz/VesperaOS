@@ -36,16 +36,16 @@ extern "C" void syscall_entry();
 #define EFER_SCE 1
 
 void syscall_init() {
-    constexpr uint64_t user_cs = 0x23;
-    constexpr uint64_t kernel_cs = 0x08;
-    constexpr uint64_t star = ((user_cs - 0x10) << 48) | (kernel_cs << 32);
+    constexpr u64 user_cs = 0x23;
+    constexpr u64 kernel_cs = 0x08;
+    constexpr u64 star = ((user_cs - 0x10) << 48) | (kernel_cs << 32);
     wrmsr(MSR_STAR, star);
 
-    wrmsr(MSR_LSTAR, reinterpret_cast<uint64_t>(&syscall_entry));
+    wrmsr(MSR_LSTAR, reinterpret_cast<u64>(&syscall_entry));
 
     wrmsr(MSR_FMASK, 0x0000000000000000);  // TEMP not secure. mask everything later TODO
 
-    uint64_t efer = rdmsr(MSR_EFER);
+    u64 efer = rdmsr(MSR_EFER);
     efer |= EFER_SCE;
     wrmsr(MSR_EFER, efer);  // enable syscalls
 }

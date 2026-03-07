@@ -59,15 +59,15 @@ class TtyDevice final : public CharDevice {
         return 0;
     }
 
-    ssize_t read(CharFile*, void* buffer, size_t count, size_t) override {
+    isize read(CharFile*, void* buffer, usize count, usize) override {
         if (count == 0 || !buffer) return -EINVAL;
         return kernel::tty::tty_read(static_cast<char*>(buffer), count);
     }
 
-    ssize_t write(CharFile*, const void* buffer, size_t count) override {
+    isize write(CharFile*, const void* buffer, usize count) override {
         if (count == 0 || !buffer) return -EINVAL;
         const auto buf = static_cast<const char*>(buffer);
-        for (size_t i = 0; i < count; i++) {
+        for (usize i = 0; i < count; i++) {
             kernel::tty::tty_process_output(tty, buf[i]);
         }
         tty->term->flush();

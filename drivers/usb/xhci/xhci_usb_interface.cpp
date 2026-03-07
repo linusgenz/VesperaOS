@@ -23,7 +23,7 @@
 
 #include "xhci_usb_interface.h"
 
-XhciUsbInterface::XhciUsbInterface(uint8_t dev_slot_id, const USB_INTERFACE_DESCRIPTOR* desc) : dev_slot_id_(dev_slot_id) {
+XhciUsbInterface::XhciUsbInterface(u8 dev_slot_id, const USB_INTERFACE_DESCRIPTOR* desc) : dev_slot_id_(dev_slot_id) {
     this->descriptor = *desc;
 }
 

@@ -24,30 +24,30 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 #include "../../arch/x86_64/interrupts/idt.h"
 
 namespace kernel::interrupts
 {
     void initialize(); // sets IDT, APIC, IOAPIC, PIC
-    bool allocate_vector(uint8_t vector, irq_handler_t handler, void* cookie = nullptr);
-    uint8_t get_free_vector();
-    void free_vector(uint8_t irqno);
+    bool allocate_vector(u8 vector, irq_handler_t handler, void* cookie = nullptr);
+    u8 get_free_vector();
+    void free_vector(u8 irqno);
     /**
  * @brief Finds a block of contiguous IRQ vectors.
  *
  * @param size Number of contiguous vectors required
- * @return uint8_t Start vector of the block or 0xFF if no block is available
+ * @return u8 Start vector of the block or 0xFF if no block is available
  */
-    uint8_t get_free_vector_block(size_t size);
+    u8 get_free_vector_block(usize size);
     arch::x86_64::interrupts::idt::IDTR* get_idtr_address();
     void lapic_send_eoi();
-    void lapic_init(uint32_t cpu_id);
-    void lapic_write(uint32_t offset, uint32_t value);
-    uint32_t lapic_read(uint32_t offset);
+    void lapic_init(u32 cpu_id);
+    void lapic_write(u32 offset, u32 value);
+    u32 lapic_read(u32 offset);
     void lapic_wait_for_delivery();
-    uint64_t lapic_get_ticks(uint32_t cpu_id);
-    uint32_t lapic_get_id();
+    u64 lapic_get_ticks(u32 cpu_id);
+    u32 lapic_get_id();
     void mask_pic();
 }
 

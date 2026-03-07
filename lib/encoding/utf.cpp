@@ -1,7 +1,7 @@
 //
 // Created by linus on 03.07.25.
 //
-#include <stddef.h>
+
 
 #include <klib/encoding.h>
 
@@ -45,7 +45,7 @@ static constexpr utf8_pattern_t UTF8_LEADING_BYTES[] = {
 
 
 
-static size_t calculate_utf8_len(codepoint_t cp) {
+static usize calculate_utf8_len(codepoint_t cp) {
     if (cp <= UTF8_1_MAX)  return 1;
     if (cp <= UTF8_2_MAX)  return 2;
     if (cp <= UTF8_3_MAX)  return 3;
@@ -55,7 +55,7 @@ static size_t calculate_utf8_len(codepoint_t cp) {
 
 // utf16 -> codepoint
 
-codepoint_t decode_utf16(const utf16_t* utf16, size_t len, size_t* index) {
+codepoint_t decode_utf16(const utf16_t* utf16, usize len, usize* index) {
     utf16_t high = utf16[*index];
 
     if ((high & GENERIC_SURROGATE_MASK) != GENERIC_SURROGATE_VALUE)
@@ -84,7 +84,7 @@ codepoint_t decode_utf16(const utf16_t* utf16, size_t len, size_t* index) {
 
 // codepoint -> utf8
 
-size_t encode_utf8(codepoint_t cp, utf8_t* utf8, size_t utf8_len, size_t index) {
+usize encode_utf8(codepoint_t cp, utf8_t* utf8, usize utf8_len, usize index) {
     int size = calculate_utf8_len(cp);
     if (size == 0 || index + size > utf8_len)
         return 0;
@@ -104,20 +104,20 @@ size_t encode_utf8(codepoint_t cp, utf8_t* utf8, size_t utf8_len, size_t index) 
 
 // utf16 buf -> utf8 buf
 
-size_t utf16_to_utf8(const utf16_t *utf16, size_t utf16_len,
-                     utf8_t *utf8, size_t utf8_len) {
-    size_t utf16_index = 0;
-    size_t utf8_index = 0;
+usize utf16_to_utf8(const utf16_t *utf16, usize utf16_len,
+                     utf8_t *utf8, usize utf8_len) {
+    usize utf16_index = 0;
+    usize utf8_index = 0;
 
     while (utf16_index < utf16_len) {
-        size_t old_index = utf16_index;
+        usize old_index = utf16_index;
         codepoint_t cp = decode_utf16(utf16, utf16_len, &utf16_index);
 
         if (cp > 0x7F) { // ascii range
             cp = '?';
         }
 
-        size_t needed = calculate_utf8_len(cp);
+        usize needed = calculate_utf8_len(cp);
         if (utf8_index + needed > utf8_len)
             break;
 
@@ -132,10 +132,10 @@ size_t utf16_to_utf8(const utf16_t *utf16, size_t utf16_len,
     return utf8_index;
 }
 
-size_t utf16_to_utf8(const utf16_t* in, size_t in_len,
-                             char* out, size_t out_len) {
+usize utf16_to_utf8(const utf16_t* in, usize in_len,
+                             char* out, usize out_len) {
     if (out_len == 0) return 0;
-    const size_t written = utf16_to_utf8(in, in_len, reinterpret_cast<utf8_t*>(out), out_len - 1);
+    const usize written = utf16_to_utf8(in, in_len, reinterpret_cast<utf8_t*>(out), out_len - 1);
     out[written] = '\0';
     return written;
 }

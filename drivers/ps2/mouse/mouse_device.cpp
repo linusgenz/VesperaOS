@@ -50,13 +50,13 @@ Ps2MouseDevice::~Ps2MouseDevice()
 int Ps2MouseDevice::open(CharFile**) { return 0; }
 int Ps2MouseDevice::release(CharFile*) { return 0; }
 
-ssize_t Ps2MouseDevice::read(CharFile*, void* buf, size_t count, size_t)
+isize Ps2MouseDevice::read(CharFile*, void* buf, usize count, usize)
 {
    // return kernel::input::InputManager::read_mouse(buf, count);
    return 0;
 }
 
-ssize_t Ps2MouseDevice::write(CharFile*, const void*, size_t)
+isize Ps2MouseDevice::write(CharFile*, const void*, usize)
 {
     return 0;
 }

@@ -191,8 +191,8 @@ void XhciMassStorageDriver::handle_completed_transfer()
     else if (init_phase_ == InitPhase::ReadCapacity)
     {
         auto* data = capacity_buffer_;
-        uint32_t last_lba = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-        uint32_t block_size = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
+        u32 last_lba = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+        u32 block_size = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 
         total_sectors_ = last_lba + 1;
         sector_size_ = block_size;
@@ -310,15 +310,15 @@ void XhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer* transfer)
 }
 
 
-ssize_t XhciMassStorageDriver::read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size)
+isize XhciMassStorageDriver::read(u64 lba, usize sector_count, void* buffer, usize buffer_size)
 {
-    size_t bytes = sector_count * sector_size_;
+    usize bytes = sector_count * sector_size_;
     if (!buffer || sector_count == 0 || buffer_size < bytes)
         return -EINVAL;
 
     kernel::MutexGuard guard(io_mutex_);
 
-    size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+    usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
     void* dma_phys = kernel::memory::request_pages(pages).ptr;
     if (!dma_phys) return -ENOMEM;
 
@@ -350,7 +350,7 @@ ssize_t XhciMassStorageDriver::read(uint64_t lba, size_t sector_count, void* buf
     while (!transfer.done)
         asm volatile ("pause");
 
-    ssize_t result = (transfer.status == 0) ? transfer.actual_length : -EIO;
+    isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
     if (result > 0)
         memcpy(buffer, dma_phys, bytes);
@@ -360,15 +360,15 @@ ssize_t XhciMassStorageDriver::read(uint64_t lba, size_t sector_count, void* buf
 }
 
 
-ssize_t XhciMassStorageDriver::write(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size)
+isize XhciMassStorageDriver::write(u64 lba, usize sector_count, void* buffer, usize buffer_size)
 {
-    size_t bytes = sector_count * sector_size_;
+    usize bytes = sector_count * sector_size_;
     if (!buffer || sector_count == 0 || buffer_size < bytes)
         return -EINVAL;
 
     kernel::MutexGuard guard(io_mutex_);
 
-    size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+    usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
     void* dma_phys = kernel::memory::request_pages(pages).ptr;
     if (!dma_phys) return -ENOMEM;
 
@@ -402,7 +402,7 @@ ssize_t XhciMassStorageDriver::write(uint64_t lba, size_t sector_count, void* bu
     while (!transfer.done)
         asm volatile ("pause");
 
-    ssize_t result = (transfer.status == 0) ? transfer.actual_length : -EIO;
+    isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
     kernel::memory::free_pages(make_virt(dma_phys), pages);
     return result;

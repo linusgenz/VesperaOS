@@ -55,7 +55,7 @@ static void initialize_early_boot(const BootInfo* boot_info) {
 
 static void initialize_memory_subsystem(BootInfo* boot_info) {
     kernel::memory::initialize_memory(boot_info);
-    const virt_addr_t heap_start = virt_from_raw((reinterpret_cast<uintptr_t>(&kernel_end) + 0xFFFFF) & ~0xFFFFFULL);
+    const virt_addr_t heap_start = virt_from_raw((reinterpret_cast<uptr>(&kernel_end) + 0xFFFFF) & ~0xFFFFFULL);
     kernel::memory::initialize_heap((heap_start), 0x500);
 }
 

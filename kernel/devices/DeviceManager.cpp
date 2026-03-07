@@ -31,7 +31,7 @@
 
 Vector<BlockDevice*>* DeviceManager::devices_;
 Vector<KernelDevice*>* DeviceManager::all_devices_;
-uint32_t DeviceManager::next_id_ = 1;
+u32 DeviceManager::next_id_ = 1;
 Spinlock DeviceManager::lock_;
 
 static bool block_letter_used[26] = {false};
@@ -61,7 +61,7 @@ void DeviceManager::release_block_letter(char c) {
     }
 }
 
-char* DeviceManager::generate_sd_device_name(char* buffer, size_t buffer_size) {
+char* DeviceManager::generate_sd_device_name(char* buffer, usize buffer_size) {
     if (!buffer || buffer_size < 4) return nullptr;
     buffer[0] = 's';
     buffer[1] = 'd';
@@ -71,7 +71,7 @@ char* DeviceManager::generate_sd_device_name(char* buffer, size_t buffer_size) {
 }
 
 char* DeviceManager::generate_nv_me_device_name(
-    const KernelDevice* controller, char* buffer, size_t buffer_size, const uint32_t namespace_id
+    const KernelDevice* controller, char* buffer, usize buffer_size, const u32 namespace_id
 ) {
     if (!controller || !buffer || buffer_size < 16) return nullptr;
 
@@ -82,17 +82,17 @@ char* DeviceManager::generate_nv_me_device_name(
     return buffer;
 }
 
-size_t DeviceManager::find_and_register_partitions(KernelDevice* physical_kd) {
+usize DeviceManager::find_and_register_partitions(KernelDevice* physical_kd) {
     if (!physical_kd || !physical_kd->block) return 0;
 
     BlockDevice* dev = physical_kd->block;
 
     PartitionEntry parts[16];
-    const size_t count = parse_partitions(dev, parts, 16);
+    const usize count = parse_partitions(dev, parts, 16);
 
     if (count == 0) return 0;
 
-    for (size_t i = 0; i < count; ++i) {
+    for (usize i = 0; i < count; ++i) {
         const PartitionEntry& pe = parts[i];
 
         auto* pdev = new PartitionDevice(dev, pe.start_lba, pe.length_lba);
@@ -117,7 +117,7 @@ size_t DeviceManager::find_and_register_partitions(KernelDevice* physical_kd) {
     return count;
 }
 
-bool DeviceManager::alloc_unique_device_name(const char* base, char* out_buffer, const size_t out_buffer_size) {
+bool DeviceManager::alloc_unique_device_name(const char* base, char* out_buffer, const usize out_buffer_size) {
     SpinlockGuard guard(lock_);
 
     if (!all_devices_ || !out_buffer || out_buffer_size == 0) return false;
@@ -126,7 +126,7 @@ bool DeviceManager::alloc_unique_device_name(const char* base, char* out_buffer,
 
     while (true) {
         if (const int written = snprintf(out_buffer, out_buffer_size, "%s%d", base, counter);
-            written < 0 || static_cast<size_t>(written) >= out_buffer_size)
+            written < 0 || static_cast<usize>(written) >= out_buffer_size)
             return false;
 
         bool exists = false;
@@ -150,7 +150,7 @@ Vector<BlockDevice*> DeviceManager::get_devices() {
 }
 
 // 1-based -> 1 == 1 device, zero == 0 devices
-uint32_t DeviceManager::get_device_count() {
+u32 DeviceManager::get_device_count() {
     SpinlockGuard guard(lock_);
     auto result = devices_->size();
     return result;
@@ -295,7 +295,7 @@ void DeviceManager::unregister_device(KernelDevice* kd) {
     SpinlockGuard guard(lock_);
 
     if (all_devices_) {
-        for (size_t i = 0; i < all_devices_->size(); ++i) {
+        for (usize i = 0; i < all_devices_->size(); ++i) {
             if ((*all_devices_)[i] == kd) {
                 all_devices_->erase(i);
                 break;
@@ -309,7 +309,7 @@ void DeviceManager::unregister_device(KernelDevice* kd) {
 
     if (kd->parent) {
         auto& children = kd->parent->children;
-        for (size_t i = 0; i < children.size(); ++i) {
+        for (usize i = 0; i < children.size(); ++i) {
             if (children[i] == kd) {
                 children.erase(i);
                 break;
@@ -337,7 +337,7 @@ Vector<KernelDevice*> DeviceManager::get_all_devices() {
     return all_devices_->copy();
 }
 
-KernelDevice* DeviceManager::find_by_id(uint32_t id) {
+KernelDevice* DeviceManager::find_by_id(u32 id) {
     SpinlockGuard guard(lock_);
     if (!all_devices_) return nullptr;
     for (auto* dev : *all_devices_) {
@@ -348,7 +348,7 @@ KernelDevice* DeviceManager::find_by_id(uint32_t id) {
     return nullptr;
 }
 
-uint32_t DeviceManager::get_kernel_device_count() {
+u32 DeviceManager::get_kernel_device_count() {
     SpinlockGuard guard(lock_);
     if (!all_devices_) return 0;
     return all_devices_->size();

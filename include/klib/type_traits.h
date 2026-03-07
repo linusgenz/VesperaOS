@@ -22,7 +22,7 @@
 #ifndef VESPERAOS_TYPE_TRAITS_H
 #define VESPERAOS_TYPE_TRAITS_H
 
-#include <stddef.h>
+#include <vespera/types.h>
 
 // ReSharper disable CppInconsistentNaming
 namespace klib {
@@ -242,7 +242,7 @@ namespace klib {
     struct remove_extent<T[]> {
         using type = T;
     };
-    template <typename T, size_t N>
+    template <typename T, usize N>
     struct remove_extent<T[N]> {
         using type = T;
     };
@@ -257,7 +257,7 @@ namespace klib {
     struct remove_all_extents<T[]> {
         using type = typename remove_all_extents<T>::type;
     };
-    template <typename T, size_t N>
+    template <typename T, usize N>
     struct remove_all_extents<T[N]> {
         using type = typename remove_all_extents<T>::type;
     };
@@ -354,7 +354,7 @@ namespace klib {
     struct is_array : false_type {};
     template <typename T>
     struct is_array<T[]> : true_type {};
-    template <typename T, size_t N>
+    template <typename T, usize N>
     struct is_array<T[N]> : true_type {};
     template <typename T>
     inline constexpr bool is_array_v = is_array<T>::value;
@@ -779,13 +779,13 @@ namespace klib {
     template <typename B>
     inline constexpr bool negation_v = negation<B>::value;
 
-    template <size_t Len, size_t Align = alignof(max_align_t)>
+    template <usize Len, usize Align = alignof(max_align_t)>
     struct aligned_storage {
         struct type {
             alignas(Align) unsigned char data[Len];
         };
     };
-    template <size_t Len, size_t Align = alignof(max_align_t)>
+    template <usize Len, usize Align = alignof(max_align_t)>
     using aligned_storage_t = typename aligned_storage<Len, Align>::type;
 
     namespace detail {

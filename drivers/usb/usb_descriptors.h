@@ -24,8 +24,8 @@
 #ifndef VESPERAOS_USB_DESCRIPTORS_H
 #define VESPERAOS_USB_DESCRIPTORS_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <vespera/types.h>
+
 
 #define USB_DESCRIPTOR_DEVICE                          0x01
 #define USB_DESCRIPTOR_CONFIGURATION                   0x02
@@ -65,26 +65,26 @@
 #define USB_SET_CONFIGURATION_REQ 0x9
 
 struct USB_DESCRIPTOR_HEADER {
-    uint8_t b_length;
-    uint8_t b_descriptor_type;
+    u8 b_length;
+    u8 b_descriptor_type;
 } __attribute__((packed));
 static_assert(sizeof(USB_DESCRIPTOR_HEADER) == 2);
 
 struct USB_CONFIGURATION_DESCRIPTOR_HEADER {
     USB_DESCRIPTOR_HEADER header;
-    uint16_t w_total_length;
-    uint8_t b_nuinterface_s;
-    uint8_t b_configuration_value;
-    uint8_t i_configuration;
-    uint8_t bm_attributes;
-    uint8_t b_max_power;
+    u16 w_total_length;
+    u8 b_nuinterface_s;
+    u8 b_configuration_value;
+    u8 i_configuration;
+    u8 bm_attributes;
+    u8 b_max_power;
 } __attribute__((packed));
 static_assert(sizeof(USB_CONFIGURATION_DESCRIPTOR_HEADER) == 9);
 
 struct UsbConfigurationDescriptor {
     USB_CONFIGURATION_DESCRIPTOR_HEADER header{};
-    uint8_t* data{nullptr};
-    size_t data_size{0};
+    u8* data{nullptr};
+    usize data_size{0};
 
     UsbConfigurationDescriptor() {}
     ~UsbConfigurationDescriptor() {
@@ -94,63 +94,63 @@ struct UsbConfigurationDescriptor {
 
 struct USB_INTERFACE_DESCRIPTOR {
     USB_DESCRIPTOR_HEADER header;
-    uint8_t b_interface_number;
-    uint8_t b_alternate_setting;
-    uint8_t b_num_endpoints;
-    uint8_t b_interface_class;
-    uint8_t b_interface_sub_class;
-    uint8_t b_interface_protocol;
-    uint8_t i_interface;
+    u8 b_interface_number;
+    u8 b_alternate_setting;
+    u8 b_num_endpoints;
+    u8 b_interface_class;
+    u8 b_interface_sub_class;
+    u8 b_interface_protocol;
+    u8 i_interface;
 } __attribute__((packed));
 static_assert(sizeof(USB_INTERFACE_DESCRIPTOR) == 9);
 
 struct USB_DEVICE_DESCRIPTOR {
     USB_DESCRIPTOR_HEADER header;
-    uint16_t bcd_usb;
-    uint8_t b_device_class;
-    uint8_t b_device_sub_class;
-    uint8_t b_device_protocol;
-    uint8_t b_max_packet_size0;
-    uint16_t id_vendor;
-    uint16_t id_product;
-    uint16_t bcd_device;
-    uint8_t i_manufacturer;
-    uint8_t i_product;
-    uint8_t i_serial_number;
-    uint8_t b_num_configurations;
+    u16 bcd_usb;
+    u8 b_device_class;
+    u8 b_device_sub_class;
+    u8 b_device_protocol;
+    u8 b_max_packet_size0;
+    u16 id_vendor;
+    u16 id_product;
+    u16 bcd_device;
+    u8 i_manufacturer;
+    u8 i_product;
+    u8 i_serial_number;
+    u8 b_num_configurations;
 } __attribute__((packed));
 static_assert(sizeof(USB_DEVICE_DESCRIPTOR) == 18);
 
 
 struct USB_STRING_LANGUAGE_DESCRIPTOR {
     USB_DESCRIPTOR_HEADER header;
-    uint16_t lang_ids[126];
+    u16 lang_ids[126];
 } __attribute__((packed));
 static_assert(sizeof(USB_STRING_LANGUAGE_DESCRIPTOR) == 254);
 
 struct USB_STRING_DESCRIPTOR {
     USB_DESCRIPTOR_HEADER header;
-    uint16_t unicode_string[126];
+    u16 unicode_string[126];
 } __attribute__((packed));
 static_assert(sizeof(USB_STRING_DESCRIPTOR) == 254);
 
 struct USB_ENDPOINT_DESCRIPTOR {
     USB_DESCRIPTOR_HEADER header;
-    uint8_t b_endpoint_address;
-    uint8_t bm_attributes;
-    uint16_t w_max_packet_size;
-    uint8_t b_interval;
+    u8 b_endpoint_address;
+    u8 bm_attributes;
+    u16 w_max_packet_size;
+    u8 b_interval;
 } __attribute__((packed));
 static_assert(sizeof(USB_ENDPOINT_DESCRIPTOR) == 7);
 
 struct USB_HID_DESCRIPTOR {
     USB_DESCRIPTOR_HEADER header;
-    uint16_t bcd_hid;
-    uint8_t  b_country_code;
-    uint8_t  b_num_descriptors;
+    u16 bcd_hid;
+    u8  b_country_code;
+    u8  b_num_descriptors;
     struct {
-        uint8_t  b_descriptor_type;
-        uint16_t w_descriptor_length;
+        u8  b_descriptor_type;
+        u16 w_descriptor_length;
     } __attribute__((packed)) desc[1];
 } __attribute__((packed));
 static_assert(sizeof(USB_HID_DESCRIPTOR) == 9);

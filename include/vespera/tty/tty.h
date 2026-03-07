@@ -39,27 +39,27 @@ namespace kernel::tty {
     };
 
     struct TTY {
-        static constexpr size_t BUFFER_SIZE = 1024;
-        static constexpr size_t MAX_PARAMS = 16;
+        static constexpr usize BUFFER_SIZE = 1024;
+        static constexpr usize MAX_PARAMS = 16;
 
         // Canonical
         char canon_buffer[BUFFER_SIZE];
-        size_t canon_len = 0;
+        usize canon_len = 0;
         bool line_ready = false;
 
         // Non-canonical
         char raw_buffer[BUFFER_SIZE];
-        size_t raw_len = 0;
+        usize raw_len = 0;
 
         bool canonical = false;
 
         EscapeState esc_state = EscapeState::NONE;
         int esc_param = 0;
         int esc_params[MAX_PARAMS] = {};
-        size_t esc_param_count = 0;
+        usize esc_param_count = 0;
 
-        size_t cursor_x = 0;
-        size_t cursor_y = 0;
+        usize cursor_x = 0;
+        usize cursor_y = 0;
 
         colour_t fg = WHITE;
         colour_t bg = BLACK;
@@ -80,7 +80,7 @@ namespace kernel::tty {
 
     void tty_clear(TTY *tty);
 
-    size_t tty_read(char *buf, size_t count);
+    usize tty_read(char *buf, usize count);
 }
 
 #endif //VESPERAOS_TTY_H

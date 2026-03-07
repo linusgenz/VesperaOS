@@ -50,9 +50,9 @@ __attribute__((used, section(".requests"))) static volatile limine_hhdm_request 
 __attribute__((used, section(".requests_end_marker"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
 extern "C" {
-extern uint8_t psf_font_start[];
-extern uint8_t psf_font_end[];
-extern uint8_t psf_font_size[];
+extern u8 psf_font_start[];
+extern u8 psf_font_end[];
+extern u8 psf_font_size[];
 }
 
 static framebuffer_t framebuffer;
@@ -65,7 +65,7 @@ static EFI_MEMORY_DESCRIPTOR efi_map[512];
 }
 
 static void parse_psf_font() {
-    uint8_t* data = psf_font_start;
+    u8* data = psf_font_start;
 
     // PSF1: Magic = 0x36 0x04
     if (data[0] == 0x36 && data[1] == 0x04) {
@@ -91,14 +91,14 @@ static void parse_psf_font() {
     }
 }
 
-static void convert_memmap(uint64_t* out_count) {
+static void convert_memmap(u64* out_count) {
     *out_count = 0;
     if (!memmap_request.response) return;
 
     auto* resp = memmap_request.response;
-    uint64_t n = 0;
+    u64 n = 0;
 
-    for (uint64_t i = 0; i < resp->entry_count && n < 512; i++) {
+    for (u64 i = 0; i < resp->entry_count && n < 512; i++) {
         limine_memmap_entry* src = resp->entries[i];
         EFI_MEMORY_DESCRIPTOR* dst = &efi_map[n];
 
@@ -159,12 +159,12 @@ extern "C" void limine_entry() {
 
     // Physische Adresse des Framebuffers für späteres Mapping in init.cpp
     // phys = virt - hhdm_offset (wird unten gesetzt)
-    framebuffer.phys_base_address = reinterpret_cast<uint64_t>(lfb->address);
+    framebuffer.phys_base_address = reinterpret_cast<u64>(lfb->address);
 
     boot_info.framebuffer = &framebuffer;
 
     // --- Memory Map ---
-    uint64_t map_count = 0;
+    u64 map_count = 0;
     convert_memmap(&map_count);
     boot_info.m_map = efi_map;
     boot_info.m_map_size = map_count * sizeof(EFI_MEMORY_DESCRIPTOR);
@@ -179,7 +179,7 @@ extern "C" void limine_entry() {
         boot_info.hhdm_offset = 0;
 
     // Jetzt phys_base_address korrekt setzen
-    framebuffer.phys_base_address = reinterpret_cast<uint64_t>(lfb->address) - boot_info.hhdm_offset;
+    framebuffer.phys_base_address = reinterpret_cast<u64>(lfb->address) - boot_info.hhdm_offset;
 
     // --- RSDP ---
     // rsdp_request.response->address ist ebenfalls HHDM-virtuell

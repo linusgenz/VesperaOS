@@ -31,7 +31,7 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
     if (!path || !parent_out || !name_out) return false;
 
     char components[16][32];
-    size_t count = split_path(path, components, 16);
+    usize count = split_path(path, components, 16);
     if (count == 0) return false;
 
     if (count == 1)
@@ -46,7 +46,7 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
     char parent_path[256] = {};
     parent_path[0] = '/';
 
-    for (size_t i = 0; i < count - 1; i++)
+    for (usize i = 0; i < count - 1; i++)
     {
         strncat(parent_path, components[i], sizeof(parent_path) - strlen(parent_path) - 1);
         if (i < count - 2)
@@ -84,10 +84,10 @@ void VFS::ensure_path_exists(const char* path)
     temp[sizeof(temp) - 1] = '\0';
 
     char components[16][32];
-    size_t count = split_path(temp, components, 16);
+    usize count = split_path(temp, components, 16);
 
     char current[256] = "/";
-    for (size_t i = 0; i < count; i++)
+    for (usize i = 0; i < count; i++)
     {
         if (strlen(current) > 1) strcat(current, "/");
         strcat(current, components[i]);

@@ -24,7 +24,7 @@ class Log {
     static void print(const char* fmt, ...);
 
     static void init();
-    static void log_prefix(const char* tag, uint32_t tag_fg);
+    static void log_prefix(const char* tag, u32 tag_fg);
 
     static void enable_debug();
     static void disable_debug();

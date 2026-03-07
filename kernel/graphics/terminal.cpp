@@ -30,7 +30,7 @@
 font_t* system_font = nullptr;
 Terminal* global_terminal = nullptr;
 
-Terminal::Terminal(IRenderDriver* d, uint32_t char_width, uint32_t char_height)
+Terminal::Terminal(IRenderDriver* d, u32 char_width, u32 char_height)
     : drv_(d)
     , char_w_(char_width)
     , char_h_(char_height)
@@ -44,12 +44,12 @@ Terminal::~Terminal() {
     delete[] cells_;
 }
 
-void Terminal::set_colour(uint32_t new_fg, uint32_t new_bg) {
+void Terminal::set_colour(u32 new_fg, u32 new_bg) {
     fg_ = new_fg;
     bg_ = new_bg;
 }
 
-void Terminal::set_cursor(uint32_t x, uint32_t y) {
+void Terminal::set_cursor(u32 x, u32 y) {
     cx_ = x;
     cy_ = y;
 }
@@ -85,7 +85,7 @@ void Terminal::print(const char* s) {
 }
 
 void Terminal::clear() {
-    for (uint32_t i = 0; i < cols_ * rows_; ++i) cells_[i] = {' ', fg_, bg_};
+    for (u32 i = 0; i < cols_ * rows_; ++i) cells_[i] = {' ', fg_, bg_};
 
     drv_->fill_rect(0, 0, drv_->screen_width_px(), drv_->screen_height_px(), bg_);
     cx_ = cy_ = 0;
@@ -115,8 +115,8 @@ void Terminal::new_line() {
 }
 
 void Terminal::flush() const {
-    for (uint32_t y = 0; y < rows_; ++y) {
-        uint32_t x = 0;
+    for (u32 y = 0; y < rows_; ++y) {
+        u32 x = 0;
         while (x < cols_) {
             Cell& start = at(x, y);
             if (!start.dirty) {
@@ -125,7 +125,7 @@ void Terminal::flush() const {
             }
 
             // Finde zusammenhängenden dirty run
-            uint32_t len = 1;
+            u32 len = 1;
             while (x + len < cols_ && at(x + len, y).dirty && at(x + len, y).fg == start.fg &&
                    at(x + len, y).bg == start.bg) {
                 len++;
@@ -134,22 +134,22 @@ void Terminal::flush() const {
             draw_run(x, y, &start, len);
 
             // Dirty-Flags löschen
-            for (uint32_t i = 0; i < len; ++i) at(x + i, y).dirty = false;
+            for (u32 i = 0; i < len; ++i) at(x + i, y).dirty = false;
 
             x += len;
         }
     }
 }
 
-Terminal::Cell& Terminal::at(uint32_t x, uint32_t y) const {
+Terminal::Cell& Terminal::at(u32 x, u32 y) const {
     return cells_[y * cols_ + x];
 }
 
-void Terminal::draw_run(uint32_t cell_x, uint32_t cell_y, const Cell* run_cells, uint32_t len) const {
+void Terminal::draw_run(u32 cell_x, u32 cell_y, const Cell* run_cells, u32 len) const {
     char buf[256];
     if (len >= sizeof(buf)) len = sizeof(buf) - 1;
 
-    for (uint32_t i = 0; i < len; ++i) buf[i] = run_cells[i].ch;
+    for (u32 i = 0; i < len; ++i) buf[i] = run_cells[i].ch;
 
     buf[len] = '\0';
 
@@ -173,8 +173,8 @@ void Terminal::advance() {
 void Terminal::scroll() const {
     drv_->scroll_pixels(char_h_);
 
-    for (uint32_t y = 1; y < rows_; ++y)
-        for (uint32_t x = 0; x < cols_; ++x) at(x, y - 1) = at(x, y);
+    for (u32 y = 1; y < rows_; ++y)
+        for (u32 x = 0; x < cols_; ++x) at(x, y - 1) = at(x, y);
 
-    for (uint32_t x = 0; x < cols_; ++x) at(x, rows_ - 1) = {' ', fg_, bg_};
+    for (u32 x = 0; x < cols_; ++x) at(x, rows_ - 1) = {' ', fg_, bg_};
 }

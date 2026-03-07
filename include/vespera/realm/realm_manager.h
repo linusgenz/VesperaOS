@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_REALM_MANAGER_H
 #define VESPERAOS_REALM_MANAGER_H
 
-#include <stddef.h>
+
 #include <vespera/realm/realm.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/spinlock.h>
@@ -38,11 +38,11 @@ class RealmManager {
     static Realm* create(const RealmConfig* cfg);
     static Realm* get(RealmId id);
     static bool destroy(RealmId id);
-    static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
+    static isize get_status(void* manager_ref, void* buffer, usize size, usize offset);
     static void list();
 
    private:
-    static constexpr size_t MAX_REALMS = 64;
+    static constexpr usize MAX_REALMS = 64;
     static Realm realms_[MAX_REALMS];
     static Spinlock global_lock_;
     static RealmId next_id_;

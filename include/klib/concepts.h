@@ -249,7 +249,7 @@ concept range = requires(R& r)
 template <typename R>
 concept sized_range =
     range<R> &&
-    requires(const R& r) { { r.size() } -> same_as<size_t>; };
+    requires(const R& r) { { r.size() } -> same_as<usize>; };
 
 template <typename R, typename T>
 concept range_of =

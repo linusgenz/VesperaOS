@@ -24,7 +24,7 @@
 #include "../../../filesystem/vfs/vfs.h"
 
 namespace syscalls::internal {
-    int64_t sys_rename(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_rename(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto old_path = reinterpret_cast<const char*>(arg0);
         const auto new_path = reinterpret_cast<const char*>(arg1);
         return VFS::rename(old_path, new_path);

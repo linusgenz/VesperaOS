@@ -233,7 +233,7 @@ public:
     // Directory operations
     struct DirHandle
     {
-        size_t index;
+        usize index;
         const VfsNode* dir_node;
     };
 
@@ -253,7 +253,7 @@ public:
 
         auto* data = static_cast<DirData*>(dir->internal_data);
 
-        size_t idx = h->index;
+        usize idx = h->index;
 
         if (idx < data->subdirs.size())
         {

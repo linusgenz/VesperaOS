@@ -28,16 +28,16 @@
 
 namespace acpi {
 
-    static uint8_t slp_typa = 0;
-    static uint8_t slp_typb = 0;
+    static u8 slp_typa = 0;
+    static u8 slp_typb = 0;
 
-    void parse_s5(const uint8_t* dsdt, const size_t length) {
-        for (size_t i = 0; i < length - 6; i++) {
+    void parse_s5(const u8* dsdt, const usize length) {
+        for (usize i = 0; i < length - 6; i++) {
             if (dsdt[i] == '_' && dsdt[i + 1] == 'S' && dsdt[i + 2] == '5' && dsdt[i + 3] == '_') {
                 // Expect AML: NameOp (0x08), PkgOp (0x12)
                 if (dsdt[i + 4] != 0x12) continue;  // Not a PackageOp
 
-                if (const uint8_t elem_count = dsdt[i + 6]; elem_count < 2) continue;
+                if (const u8 elem_count = dsdt[i + 6]; elem_count < 2) continue;
 
                 if (dsdt[i + 7] == 0x0A)
                     slp_typa = dsdt[i + 8];  // BytePrefix
@@ -62,8 +62,8 @@ namespace acpi {
         if (phys_null(dsdt_phys)) return;
 
         const auto* header = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(dsdt_phys)));
-        auto* dsdt = static_cast<uint8_t*>(virt_ptr(phys_to_virt(dsdt_phys)));
-        size_t length = header->length;
+        auto* dsdt = static_cast<u8*>(virt_ptr(phys_to_virt(dsdt_phys)));
+        usize length = header->length;
 
         parse_s5(dsdt, length);
     }
@@ -72,8 +72,8 @@ namespace acpi {
         FADT* fadt = TableManager::get_fadt();
         if (!fadt || slp_typa == 0) return;
 
-        uint16_t port = fadt->pm1_a_control_block;
-        uint16_t value = (slp_typa << 10) | (1 << 13);  // SLP_TYP | SLP_EN
+        u16 port = fadt->pm1_a_control_block;
+        u16 value = (slp_typa << 10) | (1 << 13);  // SLP_TYP | SLP_EN
 
         outw(port, value);
 

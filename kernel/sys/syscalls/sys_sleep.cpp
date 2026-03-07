@@ -25,7 +25,7 @@
 #include <vespera/time.h>
 
 namespace syscalls::internal {
-    int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_sleep(u64 arg0, u64, u64, u64, u64, u64) {
         Unit* current = kernel::scheduling::get_current_unit();
 
         const virt_addr_t saved_rsp = current->context.stack_pointer;

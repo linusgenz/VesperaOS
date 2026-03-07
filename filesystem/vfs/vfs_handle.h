@@ -24,13 +24,13 @@
 #ifndef VESPERAOS_VFS_HANDLE_H
 #define VESPERAOS_VFS_HANDLE_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 #include "vfs.h"
 
 struct VfsHandleContext {
-    uint32_t open_flags; // O_RDONLY, O_WRONLY, O_RDWR
-    size_t position; // used for offset
+    u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR
+    usize position; // used for offset
     capability_set required_caps;
     void *type_specific_data;
 };
@@ -39,7 +39,7 @@ struct VfsHandle {
     VfsNode *node;
     VfsHandleContext *context;
 
-    VfsHandle(VfsNode *n, uint32_t flags, capability_set caps) : node(n), context(new VfsHandleContext()) {
+    VfsHandle(VfsNode *n, u32 flags, capability_set caps) : node(n), context(new VfsHandleContext()) {
         context->open_flags = flags;
         context->position = 0;
         context->required_caps = caps;

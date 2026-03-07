@@ -23,48 +23,48 @@
 
 #ifndef VESPERAOS_DEVICE_CTX_H
 #define VESPERAOS_DEVICE_CTX_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 struct XHCI_SLOT_CONTEXT32 {
     union {
         struct {
-            uint32_t route_string: 20;
-            uint32_t speed: 4;
-            uint32_t rz: 1;
-            uint32_t mtt: 1;
-            uint32_t hub: 1;
-            uint32_t context_entries: 5;
+            u32 route_string: 20;
+            u32 speed: 4;
+            u32 rz: 1;
+            u32 mtt: 1;
+            u32 hub: 1;
+            u32 context_entries: 5;
         };
 
-        uint32_t dword0;
+        u32 dword0;
     };
 
     union {
         struct {
-            uint16_t max_exit_latency;
-            uint8_t root_hub_port_num;
-            uint8_t port_count;
+            u16 max_exit_latency;
+            u8 root_hub_port_num;
+            u8 port_count;
         };
 
-        uint32_t dword1;
+        u32 dword1;
     };
 
     union {
         struct {
-            uint32_t parent_hub_slot_id: 8;
-            uint32_t parent_port_number: 8;
-            uint32_t tt_think_time: 2;
-            uint32_t rsvd0: 4;
-            uint32_t interrupter_target: 10;
+            u32 parent_hub_slot_id: 8;
+            u32 parent_port_number: 8;
+            u32 tt_think_time: 2;
+            u32 rsvd0: 4;
+            u32 interrupter_target: 10;
         };
 
-        uint32_t dword2;
+        u32 dword2;
     };
 
     union {
         struct {
-            uint32_t device_address: 8;
-            uint32_t rsvd1: 19;
+            u32 device_address: 8;
+            u32 rsvd1: 19;
 
             /*
                 Value Slot State
@@ -76,13 +76,13 @@ struct XHCI_SLOT_CONTEXT32 {
 
                 Refer to section 4.5.3 for more information on Slot State.
             */
-            uint32_t slot_state: 5;
+            u32 slot_state: 5;
         };
 
-        uint32_t dword3;
+        u32 dword3;
     };
 
-    uint32_t rsvdz[4];
+    u32 rsvdz[4];
 } __attribute__((packed));
 
 struct XHCI_ENDPOINT_CONTEXT32 {
@@ -101,22 +101,22 @@ struct XHCI_ENDPOINT_CONTEXT32 {
                 Ring while in this state.
                 5-7 Reserved
              */
-            uint32_t endpoint_state: 3;
-            uint32_t rsvd0: 5;
-            uint32_t mult: 2;
-            uint32_t max_primary_streams: 5;
-            uint32_t linear_stream_array: 1;
-            uint32_t interval: 8;
-            uint32_t max_esit_payload_hi: 8;
+            u32 endpoint_state: 3;
+            u32 rsvd0: 5;
+            u32 mult: 2;
+            u32 max_primary_streams: 5;
+            u32 linear_stream_array: 1;
+            u32 interval: 8;
+            u32 max_esit_payload_hi: 8;
         };
 
-        uint32_t dword0;
+        u32 dword0;
     };
 
     union {
         struct {
-            uint32_t rsvd1: 1;
-            uint32_t error_count: 2;
+            u32 rsvd1: 1;
+            u32 error_count: 2;
 
             /*
                 Endpoint Type (EP Type). This field identifies whether an Endpoint Context is Valid, and if so,
@@ -132,41 +132,41 @@ struct XHCI_ENDPOINT_CONTEXT32 {
                 6      Bulk          In
                 7      Interrupt     In
             */
-            uint32_t endpoint_type: 3;
-            uint32_t rsvd2: 1;
-            uint32_t host_initiate_disable: 1;
-            uint32_t max_burst_size: 8;
-            uint32_t max_packet_size: 16;
+            u32 endpoint_type: 3;
+            u32 rsvd2: 1;
+            u32 host_initiate_disable: 1;
+            u32 max_burst_size: 8;
+            u32 max_packet_size: 16;
         };
 
-        uint32_t dword1;
+        u32 dword1;
     };
 
     union {
         struct {
-            uint64_t dcs: 1;
-            uint64_t rsvd3: 3;
-            uint64_t tr_dequeue_ptr_address_bits: 60;
+            u64 dcs: 1;
+            u64 rsvd3: 3;
+            u64 tr_dequeue_ptr_address_bits: 60;
         };
 
         struct {
-            uint32_t dword2;
-            uint32_t dword3;
+            u32 dword2;
+            u32 dword3;
         };
 
-        uint64_t transfer_ring_dequeue_ptr;
+        u64 transfer_ring_dequeue_ptr;
     };
 
     union {
         struct {
-            uint16_t average_trb_length;
-            uint16_t max_esit_payload_lo;
+            u16 average_trb_length;
+            u16 max_esit_payload_lo;
         };
 
-        uint32_t dword4;
+        u32 dword4;
     };
 
-    uint32_t padding[3];
+    u32 padding[3];
 } __attribute__((packed));
 
 struct XHCI_DEVICE_CONTEXT32 {
@@ -178,14 +178,14 @@ struct XHCI_DEVICE_CONTEXT32 {
 } __attribute__((packed));
 
 struct XHCI_INPUT_CONTROL_CONTEXT32 {
-    uint32_t drop_flags;
-    uint32_t add_flags;
-    uint32_t rsvd[5];
-    uint8_t config_value;
-    uint8_t interface_number;
-    uint8_t alternate_setting;
+    u32 drop_flags;
+    u32 add_flags;
+    u32 rsvd[5];
+    u8 config_value;
+    u8 interface_number;
+    u8 alternate_setting;
 
-    uint8_t rsvd_z;
+    u8 rsvd_z;
 } __attribute__((packed));
 
 struct XhciInputContext32 {
@@ -197,43 +197,43 @@ struct XhciInputContext32 {
 struct XHCI_SLOT_CONTEXT64 {
     union {
         struct {
-            uint32_t route_string: 20;
-            uint32_t speed: 4;
-            uint32_t rz: 1;
-            uint32_t mtt: 1;
-            uint32_t hub: 1;
-            uint32_t context_entries: 5;
+            u32 route_string: 20;
+            u32 speed: 4;
+            u32 rz: 1;
+            u32 mtt: 1;
+            u32 hub: 1;
+            u32 context_entries: 5;
         };
 
-        uint32_t dword0;
+        u32 dword0;
     };
 
     union {
         struct {
-            uint16_t max_exit_latency;
-            uint8_t root_hub_port_num;
-            uint8_t port_count;
+            u16 max_exit_latency;
+            u8 root_hub_port_num;
+            u8 port_count;
         };
 
-        uint32_t dword1;
+        u32 dword1;
     };
 
     union {
         struct {
-            uint32_t parent_hub_slot_id: 8;
-            uint32_t parent_port_number: 8;
-            uint32_t tt_think_time: 2;
-            uint32_t rsvd0: 4;
-            uint32_t interrupter_target: 10;
+            u32 parent_hub_slot_id: 8;
+            u32 parent_port_number: 8;
+            u32 tt_think_time: 2;
+            u32 rsvd0: 4;
+            u32 interrupter_target: 10;
         };
 
-        uint32_t dword2;
+        u32 dword2;
     };
 
     union {
         struct {
-            uint32_t device_address: 8;
-            uint32_t rsvd1: 19;
+            u32 device_address: 8;
+            u32 rsvd1: 19;
 
             /*
                 Value Slot State
@@ -245,36 +245,36 @@ struct XHCI_SLOT_CONTEXT64 {
 
                 Refer to section 4.5.3 for more information on Slot State.
             */
-            uint32_t slot_state: 5;
+            u32 slot_state: 5;
         };
 
-        uint32_t dword3;
+        u32 dword3;
     };
 
-    uint32_t rsvdz[4];
+    u32 rsvdz[4];
 
-    uint32_t padding[8];
+    u32 padding[8];
 } __attribute__((packed));
 
 struct XHCI_ENDPOINT_CONTEXT64 {
     union {
         struct {
-            uint32_t endpoint_state: 3;
-            uint32_t rsvd0: 5;
-            uint32_t mult: 2;
-            uint32_t max_primary_streams: 5;
-            uint32_t linear_stream_array: 1;
-            uint32_t interval: 8;
-            uint32_t max_esit_payload_hi: 8;
+            u32 endpoint_state: 3;
+            u32 rsvd0: 5;
+            u32 mult: 2;
+            u32 max_primary_streams: 5;
+            u32 linear_stream_array: 1;
+            u32 interval: 8;
+            u32 max_esit_payload_hi: 8;
         };
 
-        uint32_t dword0;
+        u32 dword0;
     };
 
     union {
         struct {
-            uint32_t rsvd1: 1;
-            uint32_t error_count: 2;
+            u32 rsvd1: 1;
+            u32 error_count: 2;
 
             /*
                 Endpoint Type (EP Type). This field identifies whether an Endpoint Context is Valid, and if so,
@@ -290,41 +290,41 @@ struct XHCI_ENDPOINT_CONTEXT64 {
                 6      Bulk          In
                 7      Interrupt     In
             */
-            uint32_t endpoint_type: 3;
-            uint32_t rsvd2: 1;
-            uint32_t host_initiate_disable: 1;
-            uint32_t max_burst_size: 8;
-            uint32_t max_packet_size: 16;
+            u32 endpoint_type: 3;
+            u32 rsvd2: 1;
+            u32 host_initiate_disable: 1;
+            u32 max_burst_size: 8;
+            u32 max_packet_size: 16;
         };
 
-        uint32_t dword1;
+        u32 dword1;
     };
 
     union {
         struct {
-            uint64_t dcs: 1;
-            uint64_t rsvd3: 3;
-            uint64_t tr_dequeue_ptr_address_bits: 60;
+            u64 dcs: 1;
+            u64 rsvd3: 3;
+            u64 tr_dequeue_ptr_address_bits: 60;
         };
 
         struct {
-            uint32_t dword2;
-            uint32_t dword3;
+            u32 dword2;
+            u32 dword3;
         };
 
-        uint64_t transfer_ring_dequeue_ptr;
+        u64 transfer_ring_dequeue_ptr;
     };
 
     union {
         struct {
-            uint16_t average_trb_length;
-            uint16_t max_esit_payload_lo;
+            u16 average_trb_length;
+            u16 max_esit_payload_lo;
         };
 
-        uint32_t dword4;
+        u32 dword4;
     };
 
-    uint32_t padding[11];
+    u32 padding[11];
 } __attribute__((packed));
 
 struct XHCI_DEVICE_CONTEXT64 {
@@ -336,15 +336,15 @@ struct XHCI_DEVICE_CONTEXT64 {
 } __attribute__((packed));
 
 struct XHCI_INPUT_CONTROL_CONTEXT64 {
-    uint32_t drop_flags;
-    uint32_t add_flags;
-    uint32_t rsvd[5];
-    uint8_t config_value;
-    uint8_t interface_number;
-    uint8_t alternate_setting;
+    u32 drop_flags;
+    u32 add_flags;
+    u32 rsvd[5];
+    u8 config_value;
+    u8 interface_number;
+    u8 alternate_setting;
 
-    uint8_t rsvd_z;
-    uint32_t padding[8];
+    u8 rsvd_z;
+    u32 padding[8];
 } __attribute__((packed));
 
 struct XhciInputContext64 {

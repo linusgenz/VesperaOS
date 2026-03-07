@@ -30,35 +30,35 @@
 
 namespace pci
 {
-    bool enable_msi(PCI_HEADER0* header, uint8_t base_vector, uint8_t wanted)
+    bool enable_msi(PCI_HEADER0* header, u8 base_vector, u8 wanted)
     {
-        auto* config_space = reinterpret_cast<uint8_t*>(&header->header);
+        auto* config_space = reinterpret_cast<u8*>(&header->header);
 
         if (!(header->header.status & (1 << 4)))
             return false;
 
-        uint8_t cap_ptr = header->capabilities_ptr;
+        u8 cap_ptr = header->capabilities_ptr;
 
         while (cap_ptr)
         {
-            uint8_t cap_id = config_space[cap_ptr];
-            uint8_t next_ptr = config_space[cap_ptr + 1];
+            u8 cap_id = config_space[cap_ptr];
+            u8 next_ptr = config_space[cap_ptr + 1];
 
             if (cap_id == MSI_CAPABILITY_ID)
             {
                 volatile auto* msi =
                     reinterpret_cast<volatile PCI_MSI_CAPABILITY*>(&config_space[cap_ptr]);
 
-                uint16_t mc = msi->message_control;
+                u16 mc = msi->message_control;
 
                 const bool is64 = mc & (1 << 7);
-                const uint8_t mmc = (mc >> 1) & 0b111;
+                const u8 mmc = (mc >> 1) & 0b111;
 
-                if (const uint8_t max_vectors = 1 << mmc; wanted > max_vectors)
+                if (const u8 max_vectors = 1 << mmc; wanted > max_vectors)
                     wanted = max_vectors;
 
                 // Translate wanted into encoded MME field
-                uint8_t mme = 0;
+                u8 mme = 0;
                 while ((1u << mme) < wanted) mme++;
 
                 // Program address

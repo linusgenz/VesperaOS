@@ -24,19 +24,19 @@
 #ifndef VESPERAOS_FRAMEBUFFER_IOCTL_H
 #define VESPERAOS_FRAMEBUFFER_IOCTL_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 /**
  * @brief Describes the framebuffer's display properties and capabilities.
  */
 typedef struct fb_info
 {
-    uint32_t width; ///< Screen width in pixels
-    uint32_t height; ///< Screen height in pixels
-    uint32_t bpp; ///< Bytes per pixel
-    uint32_t pitch;
+    u32 width; ///< Screen width in pixels
+    u32 height; ///< Screen height in pixels
+    u32 bpp; ///< Bytes per pixel
+    u32 pitch;
     ///< Bytes per scanline. There is no guarantee that bytes per scanline will correspond to “(width * bytes_per_pixel)”.
-    uint32_t is_primary; ///< 1 if this is the primary display, 0 otherwise
+    u32 is_primary; ///< 1 if this is the primary display, 0 otherwise
 } fb_info_t;
 
 /**
@@ -46,11 +46,11 @@ typedef struct fb_info
  */
 typedef struct fb_rect
 {
-    uint32_t x; ///< X coordinate of top-left corner
-    uint32_t y; ///< Y coordinate of top-left corner
-    uint32_t width; ///< Width of the rectangle in pixels
-    uint32_t height; ///< Height of the rectangle in pixels
-    uint32_t color; ///< Fill color in ARGB format (0xAARRGGBB)
+    u32 x; ///< X coordinate of top-left corner
+    u32 y; ///< Y coordinate of top-left corner
+    u32 width; ///< Width of the rectangle in pixels
+    u32 height; ///< Height of the rectangle in pixels
+    u32 color; ///< Fill color in ARGB format (0xAARRGGBB)
 } fb_rect_t;
 
 /**
@@ -60,12 +60,12 @@ typedef struct fb_rect
  */
 typedef struct
 {
-    uint32_t x; ///< X coordinate of top-left corner
-    uint32_t y; ///< Y coordinate of top-left corner
-    uint32_t width; ///< Width of the rectangle in pixels
-    uint32_t height; ///< Height of the rectangle in pixels
-    uint32_t color; ///< Border color in ARGB format (0xAARRGGBB)
-    uint32_t thickness; ///< Border thickness in pixels
+    u32 x; ///< X coordinate of top-left corner
+    u32 y; ///< Y coordinate of top-left corner
+    u32 width; ///< Width of the rectangle in pixels
+    u32 height; ///< Height of the rectangle in pixels
+    u32 color; ///< Border color in ARGB format (0xAARRGGBB)
+    u32 thickness; ///< Border thickness in pixels
 } fb_rect_outline;
 
 /**
@@ -73,7 +73,7 @@ typedef struct
  */
 typedef struct
 {
-    uint32_t color; ///< Clear color in ARGB format (0xAARRGGBB)
+    u32 color; ///< Clear color in ARGB format (0xAARRGGBB)
 } fb_clear;
 
 /**
@@ -84,10 +84,10 @@ typedef struct
  */
 typedef struct {
     const void* pixels;    ///< Pointer to pixel data in ARGB format (0xAARRGGBB)
-    uint32_t buffer_width;  ///< Width of the pixel buffer
-    uint32_t buffer_height; ///< Height of the pixel buffer
-    uint32_t dst_x;        ///< X coordinate on screen to render the buffer
-    uint32_t dst_y;        ///< Y coordinate on screen to render the buffer
+    u32 buffer_width;  ///< Width of the pixel buffer
+    u32 buffer_height; ///< Height of the pixel buffer
+    u32 dst_x;        ///< X coordinate on screen to render the buffer
+    u32 dst_y;        ///< Y coordinate on screen to render the buffer
 } fb_blit;
 
 /**
@@ -100,7 +100,7 @@ typedef struct {
 /**
  * @brief IOCTL code to get the kernel device ID of the backing device.
  *
- * Pass a pointer to uint32_t to receive the device ID.
+ * Pass a pointer to u32 to receive the device ID.
  */
 #define FB_IOCTL_GET_BACKING_DEVID  0x4601
 

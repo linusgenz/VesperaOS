@@ -30,7 +30,7 @@
 #define REBOOT_HALT 2
 
 namespace syscalls::internal {
-    int64_t sys_reboot(uint64_t magic1, uint64_t magic2, uint64_t cmd, uint64_t, uint64_t, uint64_t) {
+    i64 sys_reboot(u64 magic1, u64 magic2, u64 cmd, u64, u64, u64) {
         if (magic1 != REBOOT_MAGIC1 || magic2 != REBOOT_MAGIC2) {
             return -1;
         }

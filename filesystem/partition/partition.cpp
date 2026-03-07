@@ -28,42 +28,42 @@
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 
-inline uint16_t rd16(const void *p) {
-    return *static_cast<const uint16_t*>(p);
+inline u16 rd16(const void *p) {
+    return *static_cast<const u16*>(p);
 }
 
-inline uint32_t rd32(const void *p) {
-    return *static_cast<const uint32_t*>(p);
+inline u32 rd32(const void *p) {
+    return *static_cast<const u32*>(p);
 }
 
-inline uint64_t rd64(const void *p) {
-    return *static_cast<const uint64_t*>(p);
+inline u64 rd64(const void *p) {
+    return *static_cast<const u64*>(p);
 }
 
 
-size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_entries) {
+usize parse_partitions(BlockDevice *device, PartitionEntry *out, usize max_entries) {
     if (!device || !out || max_entries == 0) return 0;
 
-    uint8_t sector[512];
+    u8 sector[512];
 
     // try GPT header first (LBA 1)
     if (device->read(1, 1, sector, sizeof(sector))) {
         if (memcmp(sector, "EFI PART", 8) == 0) {
-            uint64_t part_lba = rd64(sector + 72);       // partition_entry_lba
-            uint32_t part_count = rd32(sector + 80);     // num_partition_entries
-            uint32_t part_size  = rd32(sector + 84);     // size_of_partition_entry
+            u64 part_lba = rd64(sector + 72);       // partition_entry_lba
+            u32 part_count = rd32(sector + 80);     // num_partition_entries
+            u32 part_size  = rd32(sector + 84);     // size_of_partition_entry
 
-            size_t added = 0;
-            uint8_t entrybuf[512];
+            usize added = 0;
+            u8 entrybuf[512];
 
-            for (uint32_t i = 0; i < part_count && added < max_entries; ++i) {
-                uint64_t entry_index = static_cast<uint64_t>(i) * part_size;
-                uint64_t sector_idx = part_lba + (entry_index / 512);
-                uint32_t offset_in_sector = entry_index % 512;
+            for (u32 i = 0; i < part_count && added < max_entries; ++i) {
+                u64 entry_index = static_cast<u64>(i) * part_size;
+                u64 sector_idx = part_lba + (entry_index / 512);
+                u32 offset_in_sector = entry_index % 512;
 
                 if (!device->read(sector_idx, 1, entrybuf, sizeof(entrybuf))) break;
 
-                const uint8_t *entry = entrybuf + offset_in_sector;
+                const u8 *entry = entrybuf + offset_in_sector;
 
                 // Partition type GUID all zero => unused
                 bool all_zero = true;
@@ -72,11 +72,11 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
                     // continue to next entry (some entries cross sector boundary - handle basic case)
                     if (offset_in_sector + part_size > 512) {
                         // read next sector to cover full entry (simple handling)
-                        uint8_t tmp[512];
+                        u8 tmp[512];
                         if (!device->read(sector_idx + 1, 1, tmp, sizeof(tmp))) break;
                         // copy combined bytes into a small buffer
-                        uint8_t full[128]; // part_size is usually 128
-                        size_t first = 512 - offset_in_sector;
+                        u8 full[128]; // part_size is usually 128
+                        usize first = 512 - offset_in_sector;
                         memcpy(full, entrybuf + offset_in_sector, first);
                         memcpy(full + first, tmp, part_size - first);
                         entry = full;
@@ -85,8 +85,8 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
                     }
                 }
 
-                uint64_t start = rd64(entry + 32);
-                uint64_t end   = rd64(entry + 40);
+                u64 start = rd64(entry + 32);
+                u64 end   = rd64(entry + 40);
                 if (start == 0 && end == 0) continue;
 
                 out[added].start_lba = start;
@@ -113,13 +113,13 @@ size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_ent
         return 0;
     }
 
-    size_t added = 0;
+    usize added = 0;
     for (int i = 0; i < 4 && added < max_entries; ++i) {
         constexpr int mbr_part_off = 446;
-        const uint8_t *e = sector + mbr_part_off + i * 16;
-        uint8_t type = e[4];
-        uint32_t start = rd32(e + 8);
-        uint32_t len   = rd32(e + 12);
+        const u8 *e = sector + mbr_part_off + i * 16;
+        u8 type = e[4];
+        u32 start = rd32(e + 8);
+        u32 len   = rd32(e + 12);
         if (type == 0 || len == 0) continue;
 
         out[added].start_lba = start;

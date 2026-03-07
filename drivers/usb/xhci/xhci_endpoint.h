@@ -29,18 +29,18 @@
 
 class XhciEndpoint {
 public:
-    XhciEndpoint(uint8_t xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc);
+    XhciEndpoint(u8 xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc);
     ~XhciEndpoint() = default;
 
-    uint8_t     usb_endpoint_addr;
-    uint8_t     usb_endpoint_attributes;
-    uint16_t    max_packet_size;
-    uint8_t     interval;
-    uint8_t     xhc_endpoint_type;
-    uint8_t     xhc_endpoint_num;
+    u8     usb_endpoint_addr;
+    u8     usb_endpoint_attributes;
+    u16    max_packet_size;
+    u8     interval;
+    u8     xhc_endpoint_type;
+    u8     xhc_endpoint_num;
 
-    [[nodiscard]] uint8_t* get_data_buffer() const { return data_buffer_; }
-    [[nodiscard]] uintptr_t get_data_buffer_dma() const { return data_buffer_dma_addr_; }
+    [[nodiscard]] u8* get_data_buffer() const { return data_buffer_; }
+    [[nodiscard]] uptr get_data_buffer_dma() const { return data_buffer_dma_addr_; }
 
     [[nodiscard]] XhciTransferRing* get_transfer_ring() const
     {
@@ -48,8 +48,8 @@ public:
     }
 
 private:
-    uint8_t*    data_buffer_;
-    uintptr_t   data_buffer_dma_addr_;
+    u8*    data_buffer_;
+    uptr   data_buffer_dma_addr_;
     XhciTransferRing* transfer_ring_;
 
     void allocate_internal_data_buffer();

@@ -12,7 +12,7 @@
 
 namespace nvme {
     class NvmeQueue {
-        uint16_t queue_id_ = 0;
+        u16 queue_id_ = 0;
 
         phys_addr_t completion_base_{};
         phys_addr_t submission_base_{};
@@ -20,24 +20,24 @@ namespace nvme {
         NVME_COMPLETION_ENTRY* completion_queue_{};
         NVME_COMMAND* submission_queue_{};
 
-        volatile uint32_t* completion_db_{};
-        volatile uint32_t* submission_db_{};
+        volatile u32* completion_db_{};
+        volatile u32* submission_db_{};
 
-        uint16_t cq_count_ = 0;
-        uint16_t sq_count_ = 0;
+        u16 cq_count_ = 0;
+        u16 sq_count_ = 0;
 
-        uint16_t next_command_id_ = 0;
+        u16 next_command_id_ = 0;
 
         kernel::Mutex queue_mutex_{};
 
        public:
         bool completion_cycle_state = true;
-        uint16_t cq_head = 0;
-        uint16_t sq_tail = 0;
+        u16 cq_head = 0;
+        u16 sq_tail = 0;
 
         NvmeQueue(
-            uint16_t qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq,
-            volatile uint32_t* cq_db, volatile uint32_t* sq_db, uint16_t csz, uint16_t ssz
+            u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq,
+            volatile u32* cq_db, volatile u32* sq_db, u16 csz, u16 ssz
         );
 
         ~NvmeQueue() = default;
@@ -50,14 +50,14 @@ namespace nvme {
 
         void submit_wait(NVME_COMMAND& cmd, NVME_COMPLETION_ENTRY& complet);
 
-        [[nodiscard]] uint16_t get_queue_id() const {
+        [[nodiscard]] u16 get_queue_id() const {
             return queue_id_;
         }
 
-        [[nodiscard]] uint16_t cq_size() const {
+        [[nodiscard]] u16 cq_size() const {
             return cq_count_;
         }
-        [[nodiscard]] uint16_t sq_size() const {
+        [[nodiscard]] u16 sq_size() const {
             return sq_count_;
         }
         [[nodiscard]] phys_addr_t cq_base() const {
@@ -70,11 +70,11 @@ namespace nvme {
 
     class NvmeNamespace final : public BlockDevice {
        public:
-        NvmeNamespace(uint32_t nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify)
+        NvmeNamespace(u32 nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify)
             : ns_id_(nsid)
             , queue_(io_queue), ncap_(identify->ncap) {
-            const uint8_t lba_format_index = identify->flbas.lba_format_index;
-            uint8_t lbads = identify->lbaf[lba_format_index].lbads;
+            const u8 lba_format_index = identify->flbas.lba_format_index;
+            u8 lbads = identify->lbaf[lba_format_index].lbads;
             sector_size_ = 1 << lbads;
 
             namespace_mutex_.init();
@@ -82,22 +82,22 @@ namespace nvme {
 
         KernelDevice* kd{};
 
-        ssize_t read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) override;
-        ssize_t write(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) override;
+        isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
+        isize write(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
 
-        [[nodiscard]] size_t get_size() const override {
+        [[nodiscard]] usize get_size() const override {
             return sector_size_ * ncap_;
         }
 
-        [[nodiscard]] size_t get_sector_size() const override {
+        [[nodiscard]] usize get_sector_size() const override {
             return sector_size_;
         }
 
        private:
-        uint32_t ns_id_;
+        u32 ns_id_;
         NvmeQueue* queue_;
-        uint32_t sector_size_;
-        uint64_t ncap_;
+        u32 sector_size_;
+        u64 ncap_;
         kernel::Mutex namespace_mutex_;
     };
 
@@ -110,7 +110,7 @@ namespace nvme {
 
         KernelDevice* kd_;
 
-        uint16_t next_queue_id_ = 1;
+        u16 next_queue_id_ = 1;
 
         Vector<NvmeNamespace*> namespaces_;
 
@@ -122,35 +122,35 @@ namespace nvme {
             c_regs_->cc.en = 1;
         }
 
-        __attribute__((always_inline)) uint16_t allocate_queue_id() {
+        __attribute__((always_inline)) u16 allocate_queue_id() {
             return next_queue_id_++;
         }
 
-        [[nodiscard]] __attribute__((always_inline)) volatile uint32_t* get_submission_doorbell(uint16_t qid) const {
-            size_t stride_words = (4 << get_doorbell_stride()) / sizeof(uint32_t);
-            return &c_regs_->doorbells[static_cast<size_t>(2) * qid * stride_words];
+        [[nodiscard]] __attribute__((always_inline)) volatile u32* get_submission_doorbell(u16 qid) const {
+            usize stride_words = (4 << get_doorbell_stride()) / sizeof(u32);
+            return &c_regs_->doorbells[static_cast<usize>(2) * qid * stride_words];
         }
 
-        [[nodiscard]] volatile __attribute__((always_inline)) uint32_t* get_completion_doorbell(uint16_t qid) const {
-            size_t stride_words = (4 << get_doorbell_stride()) / sizeof(uint32_t);
+        [[nodiscard]] volatile __attribute__((always_inline)) u32* get_completion_doorbell(u16 qid) const {
+            usize stride_words = (4 << get_doorbell_stride()) / sizeof(u32);
             return &c_regs_->doorbells[(2 * qid + 1) * stride_words];
         }
 
-        __attribute__((always_inline)) void set_admin_submission_queue_size(uint16_t sz) const {
+        __attribute__((always_inline)) void set_admin_submission_queue_size(u16 sz) const {
             c_regs_->aqa.asqs = sz - 1;
         }
 
-        __attribute__((always_inline)) void set_admin_completion_queue_size(uint16_t sz) const {
+        __attribute__((always_inline)) void set_admin_completion_queue_size(u16 sz) const {
             c_regs_->aqa.acqs = sz - 1;
         }
 
-        [[nodiscard]] __attribute__((always_inline)) uint32_t get_doorbell_stride() const {
-            return static_cast<uint32_t>(c_regs_->cap.dstrd);
+        [[nodiscard]] __attribute__((always_inline)) u32 get_doorbell_stride() const {
+            return static_cast<u32>(c_regs_->cap.dstrd);
         }
 
         long identify_controller();
 
-        long get_namespace_list(Vector<uint32_t>* namespace_ids);
+        long get_namespace_list(Vector<u32>* namespace_ids);
         void shutdown();
 
         long delete_io_queue(NvmeQueue* queue_ptr);

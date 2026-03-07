@@ -27,9 +27,9 @@
 #include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::ioapic {
-    static madt::IoApic *find_ioapic_for_gsi(uint32_t gsi) {
+    static madt::IoApic *find_ioapic_for_gsi(u32 gsi) {
         madt::IoApic *apics = madt::get_ioapics();
-        for (uint32_t i = 0; i < madt::get_ioapic_count(); ++i) {
+        for (u32 i = 0; i < madt::get_ioapic_count(); ++i) {
             auto &apic = apics[i];
             if (gsi >= apic.gsi_base && gsi < apic.gsi_base + 24) {
                 return &apic;
@@ -38,9 +38,9 @@ namespace arch::x86_64::interrupts::ioapic {
         return nullptr;
     }
 
-    static uint32_t resolve_irq_to_gsi(uint8_t irq) {
+    static u32 resolve_irq_to_gsi(u8 irq) {
         madt::InterruptOverride *overrides = madt::get_overrides();
-        for (uint32_t i = 0; i < madt::get_override_count(); ++i) {
+        for (u32 i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].gsi;
             }
@@ -48,9 +48,9 @@ namespace arch::x86_64::interrupts::ioapic {
         return irq;
     }
 
-    static uint16_t get_flags_for_irq(const uint8_t irq) {
+    static u16 get_flags_for_irq(const u8 irq) {
         madt::InterruptOverride *overrides = madt::get_overrides();
-        for (uint32_t i = 0; i < madt::get_override_count(); ++i) {
+        for (u32 i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].flags;
             }
@@ -58,31 +58,31 @@ namespace arch::x86_64::interrupts::ioapic {
         return 0;  // default flags: polarity = high, trigger = edge
     }
 
-    static volatile uint32_t *map_ioapic(const uintptr_t address) {
+    static volatile u32 *map_ioapic(const uptr address) {
         kernel::memory::map_memory(phys_to_virt(make_phys(address)),make_phys(address));
-        return reinterpret_cast<volatile uint32_t *>(address);
+        return reinterpret_cast<volatile u32 *>(address);
     }
 
-    static void write_ioapic_reg(volatile uint32_t *base, uint8_t reg, uint32_t val) {
+    static void write_ioapic_reg(volatile u32 *base, u8 reg, u32 val) {
         base[IOAPIC_REGSEL] = reg;
         base[IOAPIC_WINDOW] = val;
     }
 
     static void ioapic_set_redirect(
-        const madt::IoApic *ioapic, const uint32_t gsi, const uint8_t vector, const uint8_t dest_apic_id, uint16_t flags
+        const madt::IoApic *ioapic, const u32 gsi, const u8 vector, const u8 dest_apic_id, u16 flags
     ) {
-        volatile uint32_t *mmio = map_ioapic(ioapic->address);
-        const uint32_t index = gsi - ioapic->gsi_base;
-        const uint8_t reg = 0x10 + (index * 2);
+        volatile u32 *mmio = map_ioapic(ioapic->address);
+        const u32 index = gsi - ioapic->gsi_base;
+        const u8 reg = 0x10 + (index * 2);
 
-        uint32_t low = vector;
+        u32 low = vector;
         low |= 0 << 8;                    // delivery mode fixed
         low |= 0 << 11;                   // physical
         low |= ((flags >> 1) & 1) << 13;  // polarity
         low |= ((flags >> 3) & 1) << 15;  // trigger mode
         low |= 0 << 16;                   // mask = 0 (enabled)
 
-        uint32_t high = dest_apic_id << 24;
+        u32 high = dest_apic_id << 24;
 
         low |= 1 << 16;  // masked
         write_ioapic_reg(mmio, reg, low);
@@ -101,9 +101,9 @@ namespace arch::x86_64::interrupts::ioapic {
         );
     }
 
-    void configure_irq(uint8_t irq, uint8_t vector, uint8_t dest_apic_id) {
-        uint32_t gsi = resolve_irq_to_gsi(irq);
-        uint16_t flags = get_flags_for_irq(irq);
+    void configure_irq(u8 irq, u8 vector, u8 dest_apic_id) {
+        u32 gsi = resolve_irq_to_gsi(irq);
+        u16 flags = get_flags_for_irq(irq);
 
         madt::IoApic *ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) {
@@ -115,7 +115,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void init() {
-        for (const uint8_t default_irqs[] = {0, 5, 9, 10, 11}; uint8_t irq : default_irqs) {
+        for (const u8 default_irqs[] = {0, 5, 9, 10, 11}; u8 irq : default_irqs) {
             configure_irq(irq, 0x20 + irq, madt::get_bsp_apic_id());
         }
     }

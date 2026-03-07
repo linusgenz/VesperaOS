@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_MEMINFO_H
 #define VESPERAOS_MEMINFO_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 /**
  * @brief Memory information provided by the meminfo device.
@@ -34,10 +34,10 @@
  * at the moment of the read call.
  */
 typedef struct meminfo {
-    uint64_t total_ram;    ///< Total RAM in bytes
-    uint64_t used_ram;     ///< Used RAM in bytes
-    uint64_t free_ram;     ///< Free RAM in bytes
-    uint64_t reserved_ram; ///< Reserved RAM in bytes by the System
+    u64 total_ram;    ///< Total RAM in bytes
+    u64 used_ram;     ///< Used RAM in bytes
+    u64 free_ram;     ///< Free RAM in bytes
+    u64 reserved_ram; ///< Reserved RAM in bytes by the System
 } meminfo_t;
 
 #endif // VESPERAOS_MEMINFO_H

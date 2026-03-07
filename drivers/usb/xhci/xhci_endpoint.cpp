@@ -24,8 +24,8 @@
 #include "xhci_endpoint.h"
 #include "../usb_descriptors.h"
 
-uint8_t get_xhc_endpoint_type_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
-    uint8_t endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
+u8 get_xhc_endpoint_type_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
+    u8 endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
 
     // transfer type
     switch (desc->bm_attributes & 0x3) {
@@ -47,14 +47,14 @@ uint8_t get_xhc_endpoint_type_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* 
     return 0;
 }
 
-uint8_t get_xhc_endpoint_num_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
-    uint8_t endpoint_number_base = desc->b_endpoint_address & 0x0F;
-    uint8_t endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
+u8 get_xhc_endpoint_num_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
+    u8 endpoint_number_base = desc->b_endpoint_address & 0x0F;
+    u8 endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
 
     return (endpoint_number_base * 2) + endpoint_direction_in;
 }
 
-XhciEndpoint::XhciEndpoint(uint8_t xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc) {
+XhciEndpoint::XhciEndpoint(u8 xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc) {
     usb_endpoint_addr = desc->b_endpoint_address;
     usb_endpoint_attributes = desc->bm_attributes;
     max_packet_size = desc->w_max_packet_size;
@@ -68,7 +68,7 @@ XhciEndpoint::XhciEndpoint(uint8_t xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* d
     allocate_internal_data_buffer();
 }
 
-static size_t next_power_of_two(size_t x) {
+static usize next_power_of_two(usize x) {
     if (x <= 1) return 1;
     --x;
     x |= x >> 1;
@@ -84,15 +84,15 @@ static size_t next_power_of_two(size_t x) {
 
 
 void XhciEndpoint::allocate_internal_data_buffer() {
-    size_t alignment = next_power_of_two(max_packet_size);
-    size_t boundary  = alignment;
+    usize alignment = next_power_of_two(max_packet_size);
+    usize boundary  = alignment;
 
     if (alignment < 64) {
         alignment = 64;
         boundary  = 64;
     }
 
-    data_buffer_ = static_cast<uint8_t*>(
+    data_buffer_ = static_cast<u8*>(
         alloc_xhci_memory(max_packet_size, alignment, boundary));
 
     data_buffer_dma_addr_ = xhci_get_physical_addr(data_buffer_);

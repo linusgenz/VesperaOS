@@ -4,7 +4,7 @@
 #include <vespera/mm/memory.h>
 
 void PageDirectoryEntry::set_flag(PtFlag flag, bool enabled) {
-    uint64_t bit_selector = static_cast<uint64_t>(1) << flag;
+    u64 bit_selector = static_cast<u64>(1) << flag;
     value &= ~bit_selector;
     if (enabled) {
         value |= bit_selector;
@@ -20,7 +20,7 @@ phys_addr_t PageDirectoryEntry::get_address() const {
 }
 
 void PageDirectoryEntry::set_address(phys_addr_t phys_addr) {
-    uint64_t raw = phys_raw(phys_addr) >> 12;
+    u64 raw = phys_raw(phys_addr) >> 12;
     raw &= 0x000000ffffffffff;
     value &= 0xfff0000000000fff;
     value |= (raw << 12);

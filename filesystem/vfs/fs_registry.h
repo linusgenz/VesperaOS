@@ -38,8 +38,8 @@ struct FileSystemDriver {
     bool (*unmount)(VfsNode* root);
 };
 
-FileSystemDriver* fs_driver_at(size_t i);
-size_t fs_driver_count();
+FileSystemDriver* fs_driver_at(usize i);
+usize fs_driver_count();
 void register_fs_driver(FileSystemDriver* driver);
 FileSystemDriver* find_fs_driver(const char* name);
 VfsNode* try_mount(BlockDevice* dev);

@@ -6,7 +6,7 @@
 #include <klib/string.h>
 #include "../cpu/cpu_manager.h"
 
-static const uint8_t SIMPLE_FONT[27][16] = {
+static const u8 SIMPLE_FONT[27][16] = {
     // Space (ASCII 32)
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     // A
@@ -63,22 +63,22 @@ static const uint8_t SIMPLE_FONT[27][16] = {
     {0x7E, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x40, 0x7E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 };
 
-void put_pixel(const framebuffer_t* fb, uint32_t x, uint32_t y, uint32_t color) {
+void put_pixel(const framebuffer_t* fb, u32 x, u32 y, u32 color) {
     if (x >= fb->width || y >= fb->height) return;
-    auto* pixel_ptr = static_cast<uint32_t*>(fb->base_address);
+    auto* pixel_ptr = static_cast<u32*>(fb->base_address);
     pixel_ptr[y * fb->pixels_per_scanline + x] = color;
 }
 
-void put_char(const framebuffer_t* fb, const unsigned char c, const uint32_t x, const uint32_t y, const uint32_t color) {
+void put_char(const framebuffer_t* fb, const unsigned char c, const u32 x, const u32 y, const u32 color) {
     if (c == ' ') {
         // space
         return;
     }
     if (c >= 'A' && c <= 'Z') {
-        const uint8_t* glyph = SIMPLE_FONT[c - 'A' + 1];
-        for (uint32_t row = 0; row < 16; row++) {
-            uint8_t row_bits = glyph[row];
-            for (uint32_t bit = 0; bit < 8; bit++) {
+        const u8* glyph = SIMPLE_FONT[c - 'A' + 1];
+        for (u32 row = 0; row < 16; row++) {
+            u8 row_bits = glyph[row];
+            for (u32 bit = 0; bit < 8; bit++) {
                 if (row_bits & (0x80 >> bit)) {
                     put_pixel(fb, x + bit, y + row, color);
                 }
@@ -87,9 +87,9 @@ void put_char(const framebuffer_t* fb, const unsigned char c, const uint32_t x, 
     }
 }
 
-void put_string(const framebuffer_t* fb, const char* str, const uint32_t x, const uint32_t y, uint32_t color) {
-    uint32_t cursor_x = x;
-    uint32_t cursor_y = y;
+void put_string(const framebuffer_t* fb, const char* str, const u32 x, const u32 y, u32 color) {
+    u32 cursor_x = x;
+    u32 cursor_y = y;
     while (*str) {
         unsigned char c = *str;
         if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
@@ -107,26 +107,26 @@ void put_string(const framebuffer_t* fb, const char* str, const uint32_t x, cons
 [[noreturn]] void panic(const char* panic_msg) {
     auto fb = target_framebuffer;
 
-    uint32_t apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
+    u32 apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
     cpu_manager::halt_cpu(apic_id);
 
     arch::x86_64::interrupts::apic::broadcast_ipi(IRQ_PANIC);
 
     // Bildschirm klar machen mit Blau
-    /*  for (uint32_t y = 0; y < fb->height; y++) {
-          for (uint32_t x = 0; x < fb->width; x++) {
+    /*  for (u32 y = 0; y < fb->height; y++) {
+          for (u32 x = 0; x < fb->width; x++) {
               put_pixel(fb, x, y, Colour::RED);
           }
       }
   */
     // Text zentrieren, approx.
-    uint32_t text_width_1 = 8 * 12;  // "KERNEL PANIC"
-    uint32_t text_width_2 = 8 * strlen(panic_msg);
+    u32 text_width_1 = 8 * 12;  // "KERNEL PANIC"
+    u32 text_width_2 = 8 * strlen(panic_msg);
 
-    uint32_t x1 = (fb->width - text_width_1) / 2;
-    uint32_t x2 = (fb->width - text_width_2) / 2;
-    uint32_t y1 = fb->height / 2 - 16;
-    uint32_t y2 = y1 + 32;
+    u32 x1 = (fb->width - text_width_1) / 2;
+    u32 x2 = (fb->width - text_width_2) / 2;
+    u32 y1 = fb->height / 2 - 16;
+    u32 y2 = y1 + 32;
 
     put_string(fb, "KERNEL PANIC", x1, y1, WHITE);
     put_string(fb, panic_msg, x2, y2, WHITE);

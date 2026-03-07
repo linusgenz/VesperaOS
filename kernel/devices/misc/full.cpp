@@ -39,7 +39,7 @@ int FullDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t FullDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset) {
+isize FullDevice::read(CharFile* cf, void* buffer, usize count, usize offset) {
     (void)cf;
     (void)offset;
 
@@ -47,10 +47,10 @@ ssize_t FullDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset
     if (count == 0) return 0;
 
     memset(buffer, 0, count);
-    return static_cast<ssize_t>(count);
+    return static_cast<isize>(count);
 }
 
-ssize_t FullDevice::write(CharFile* cf, const void* buffer, size_t count) {
+isize FullDevice::write(CharFile* cf, const void* buffer, usize count) {
     (void)cf;
     (void)buffer;
     (void)count;

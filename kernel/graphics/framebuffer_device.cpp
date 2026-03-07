@@ -36,15 +36,15 @@ int FramebufferDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t FramebufferDevice::read(CharFile* /*cf*/, void* /*buffer*/, size_t /*count*/, size_t /*offset*/) {
+isize FramebufferDevice::read(CharFile* /*cf*/, void* /*buffer*/, usize /*count*/, usize /*offset*/) {
     return -EUNSUPPORTED;
 }
 
-ssize_t FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, size_t /*count*/) {
+isize FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, usize /*count*/) {
     return -EUNSUPPORTED;
 }
 
-int FramebufferDevice::ioctl(CharFile*, uint32_t cmd, void* arg) {
+int FramebufferDevice::ioctl(CharFile*, u32 cmd, void* arg) {
     if (!arg && cmd != FB_IOCTL_GET_INFO && cmd != FB_IOCTL_GET_BACKING_DEVID) {
         return -EINVAL;
     }
@@ -66,7 +66,7 @@ int FramebufferDevice::ioctl(CharFile*, uint32_t cmd, void* arg) {
 
         case FB_IOCTL_GET_BACKING_DEVID: {
             if (!arg) return -EINVAL;
-            *static_cast<uint32_t*>(arg) = backend.kd ? backend.kd->id : 0;
+            *static_cast<u32*>(arg) = backend.kd ? backend.kd->id : 0;
             return 0;
         }
 
@@ -87,12 +87,12 @@ int FramebufferDevice::ioctl(CharFile*, uint32_t cmd, void* arg) {
     }
 }
 
-bool FramebufferDevice::validate_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
+bool FramebufferDevice::validate_rect(u32 x, u32 y, u32 w, u32 h) {
     auto backend = DisplayManager::primary();
     if (!backend.drv) return false;
 
-    uint32_t screen_w = backend.drv->screen_width_px();
-    uint32_t screen_h = backend.drv->screen_height_px();
+    u32 screen_w = backend.drv->screen_width_px();
+    u32 screen_h = backend.drv->screen_height_px();
 
     // Check for overflow and bounds
     if (w == 0 || h == 0) return false;

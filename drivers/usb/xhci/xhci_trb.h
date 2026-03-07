@@ -2,7 +2,7 @@
 #define XHCI_TRB_H
 
 #include "xhci_common.h"
-#include <stdint.h>
+#include <vespera/types.h>
 
 /*
 // xHci Spec Section 4.11 Figure 4-13: TRB Template (page 188)
@@ -12,77 +12,77 @@ scope of the general data structure descriptions that are provided in section
 6.4.
 */
 typedef struct XHCI_TRANSFER_REQUEST_BLOCK {
-    uint64_t parameter; // TRB-specific parameter
-    uint32_t status;    // Status information
+    u64 parameter; // TRB-specific parameter
+    u32 status;    // Status information
     union {
         struct {
-            uint32_t cycle_bit               : 1;
-            uint32_t eval_next_trb           : 1;
-            uint32_t interrupt_on_short_pkt  : 1;
-            uint32_t no_snoop                : 1;
-            uint32_t chain_bit               : 1;
-            uint32_t interrupt_on_completion : 1;
-            uint32_t immediate_data          : 1;
-            uint32_t rsvd0                   : 2;
-            uint32_t block_event_interrupt   : 1;
-            uint32_t trb_type                : 6;
-            uint32_t rsvd1                   : 16;
+            u32 cycle_bit               : 1;
+            u32 eval_next_trb           : 1;
+            u32 interrupt_on_short_pkt  : 1;
+            u32 no_snoop                : 1;
+            u32 chain_bit               : 1;
+            u32 interrupt_on_completion : 1;
+            u32 immediate_data          : 1;
+            u32 rsvd0                   : 2;
+            u32 block_event_interrupt   : 1;
+            u32 trb_type                : 6;
+            u32 rsvd1                   : 16;
         };
-        uint32_t control; // Control bits, including the TRB type
+        u32 control; // Control bits, including the TRB type
     };
 } xhci_trb_t;
-static_assert(sizeof(xhci_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_COMMAND_COMPLETION_REQUEST_BLOCK {
-    uint64_t command_trb_pointer;
+    u64 command_trb_pointer;
     struct {
-        uint32_t rsvd0           : 24;
-        uint32_t completion_code : 8;
+        u32 rsvd0           : 24;
+        u32 completion_code : 8;
     };
     struct {
-        uint32_t cycle_bit   : 1;
-        uint32_t rsvd1       : 9;
-        uint32_t trb_type    : 6;
-        uint32_t vfid        : 8;
-        uint32_t slot_id     : 8;
+        u32 cycle_bit   : 1;
+        u32 rsvd1       : 9;
+        u32 trb_type    : 6;
+        u32 vfid        : 8;
+        u32 slot_id     : 8;
     };
 } xhci_command_completion_trb_t;
-static_assert(sizeof(xhci_command_completion_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_command_completion_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_ADDRESS_DEVICE_REQUEST_BLOCK {
-    uint64_t input_context_physical_base;
-    uint32_t rsvd;
+    u64 input_context_physical_base;
+    u32 rsvd;
     struct {
-        uint32_t cycle_bit   : 1;
-        uint32_t rsvd1       : 8;
+        u32 cycle_bit   : 1;
+        u32 rsvd1       : 8;
 
-        uint32_t bsr        : 1; // Block Set Address Request bit
+        u32 bsr        : 1; // Block Set Address Request bit
 
-        uint32_t trb_type   : 6;
-        uint32_t rsvd2      : 8;
-        uint32_t slot_id    : 8;
+        u32 trb_type   : 6;
+        u32 rsvd2      : 8;
+        u32 slot_id    : 8;
     };
 } xhci_address_device_command_trb_t;
-static_assert(sizeof(xhci_address_device_command_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_address_device_command_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_PORT_STATUS_CHANGE_REQUEST_BLOCK {
     struct {
-        uint32_t rsvd0   : 24;
-        uint32_t port_id : 8;
+        u32 rsvd0   : 24;
+        u32 port_id : 8;
     };
-    uint32_t rsvd1;
+    u32 rsvd1;
     struct {
-        uint32_t rsvd2           : 24;
-        uint32_t completion_code : 8;
+        u32 rsvd2           : 24;
+        u32 completion_code : 8;
     };
     struct {
-        uint32_t cycle_bit  : 1;
-        uint32_t rsvd3      : 9;
-        uint32_t trb_type   : 6;
-        uint32_t rsvd4      : 16;
+        u32 cycle_bit  : 1;
+        u32 rsvd3      : 9;
+        u32 trb_type   : 6;
+        u32 rsvd4      : 16;
     };
 } xhci_port_status_change_trb_t;
-static_assert(sizeof(xhci_port_status_change_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_port_status_change_trb_t) == sizeof(u32) * 4);
 
 /*
 // xHci Spec Section 4.11.2.2 Figure 4-14 SETUP Data, the Parameter Component of Setup Stage TRB (page 211)
@@ -97,27 +97,27 @@ struct XHCI_DEVICE_REQUEST_PACKET {
                 3       = Other
                 4..31   = Reserved
             */
-            uint8_t recipient           : 5;
+            u8 recipient           : 5;
             /*
                 0       = Standard
                 1       = Class
                 2       = Vendor
                 3       = Reserved
             */
-            uint8_t type                : 2;
+            u8 type                : 2;
             /*
                 0       = Host to Device
                 1       = Device to Host
             */
-            uint8_t transfer_direction   : 1;
+            u8 transfer_direction   : 1;
         };
-        uint8_t b_request_type;
+        u8 b_request_type;
     };
 
-    uint8_t b_request;
-    uint16_t w_value;
-    uint16_t w_index;
-    uint16_t w_length;
+    u8 b_request;
+    u16 w_value;
+    u16 w_index;
+    u16 w_length;
 };
 static_assert(sizeof(XHCI_DEVICE_REQUEST_PACKET) == 8);
 
@@ -134,25 +134,25 @@ typedef struct XHCI_SETUP_STAGE_TRANSFER_REQUEST_BLOCK {
 
     struct {
         // Always 8
-        uint32_t trb_transfer_length  : 17;
+        u32 trb_transfer_length  : 17;
 
         // Reserved
-        uint32_t rsvd0                : 5;
+        u32 rsvd0                : 5;
 
         /*
             This field defines the index of the Interrupter that will receive events
             generated by this TRB. Valid values are between 0 and MaxIntrs-1.
         */
-        uint32_t interrupter_target   : 10;
+        u32 interrupter_target   : 10;
     };
 
     struct {
-        uint32_t cycle_bit       : 1;
-        uint32_t rsvd1           : 4;
-        uint32_t ioc             : 1;
-        uint32_t idt             : 1;
-        uint32_t rsvd2           : 3;
-        uint32_t trb_type        : 6;
+        u32 cycle_bit       : 1;
+        u32 rsvd1           : 4;
+        u32 ioc             : 1;
+        u32 idt             : 1;
+        u32 rsvd2           : 3;
+        u32 trb_type        : 6;
         /*
             0 No Data Stage
             1 Reserved
@@ -160,11 +160,11 @@ typedef struct XHCI_SETUP_STAGE_TRANSFER_REQUEST_BLOCK {
             3 IN Data Stage
             Refer to section 4.11.2.2 for more information on the use of TRT.
         */
-        uint32_t trt            : 2;
-        uint32_t rsvd3          : 14;
+        u32 trt            : 2;
+        u32 rsvd3          : 14;
     };
 } xhci_setup_stage_trb_t;
-static_assert(sizeof(xhci_setup_stage_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_setup_stage_trb_t) == sizeof(u32) * 4);
 
 /*
 // xHci Spec Section 6.4.1.2.2 Data Stage TRB Figure 6-10: Data Stage TRB (page 470)
@@ -183,7 +183,7 @@ typedef struct XHCI_DATA_STAGE_TRANSFER_REQUEST_BLOCK {
         a byte address boundary. However, user may find other alignments, such as 64-byte or
         128-byte alignments, to be more efficient and provide better performance.
     */
-    uint64_t data_buffer;
+    u64 data_buffer;
 
     struct {
         /*
@@ -194,62 +194,62 @@ typedef struct XHCI_DATA_STAGE_TRANSFER_REQUEST_BLOCK {
             by the Data Buffer Pointer, i.e. the number of bytes the host expects the endpoint to deliver.
             Valid values are 1 to 64K.
         */
-        uint32_t trb_transfer_length  : 17;
+        u32 trb_transfer_length  : 17;
 
         /*
             TD Size. This field provides an indicator of the number of packets remaining in the TD.
             Refer to section 4.11.2.4 for how this value is calculated.
         */
-        uint32_t td_size             : 5;
+        u32 td_size             : 5;
 
         /*
             This field defines the index of the Interrupter that will receive events
             generated by this TRB. Valid values are between 0 and MaxIntrs-1.
         */
-        uint32_t interrupter_target  : 10;
+        u32 interrupter_target  : 10;
     };
 
     struct {
-        uint32_t cycle_bit       : 1;
-        uint32_t ent            : 1;
-        uint32_t isp            : 1;
-        uint32_t no_snoop        : 1;
-        uint32_t chain          : 1;
-        uint32_t ioc             : 1;
-        uint32_t idt            : 1;
-        uint32_t rsvd0          : 3;
-        uint32_t trb_type        : 6;
-        uint32_t dir            : 1;
-        uint32_t rsvd1          : 15;
+        u32 cycle_bit       : 1;
+        u32 ent            : 1;
+        u32 isp            : 1;
+        u32 no_snoop        : 1;
+        u32 chain          : 1;
+        u32 ioc             : 1;
+        u32 idt            : 1;
+        u32 rsvd0          : 3;
+        u32 trb_type        : 6;
+        u32 dir            : 1;
+        u32 rsvd1          : 15;
     };
 } xhci_data_stage_trb_t;
-static_assert(sizeof(xhci_data_stage_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_data_stage_trb_t) == sizeof(u32) * 4);
 
 
 /*
 Refer to section 4.11.5.2 for more information
 */
 typedef struct XHCI_EVENT_DATA_TRANSFER_REQUEST_BLOCK {
-    uint64_t data;
+    u64 data;
 
     struct {
-        uint32_t rsvd0              : 22;
-        uint32_t interrupter_target  : 10;
+        u32 rsvd0              : 22;
+        u32 interrupter_target  : 10;
     };
 
     struct {
-        uint32_t cycle_bit       : 1;
-        uint32_t ent            : 1;
-        uint32_t rsvd1          : 2;
-        uint32_t chain          : 1;
-        uint32_t ioc            : 1;
-        uint32_t rsvd2          : 3;
-        uint32_t bei            : 1;
-        uint32_t trb_type        : 6;
-        uint32_t rsvd3          : 16;
+        u32 cycle_bit       : 1;
+        u32 ent            : 1;
+        u32 rsvd1          : 2;
+        u32 chain          : 1;
+        u32 ioc            : 1;
+        u32 rsvd2          : 3;
+        u32 bei            : 1;
+        u32 trb_type        : 6;
+        u32 rsvd3          : 16;
     };
 } xhci_event_data_trb_t;
-static_assert(sizeof(xhci_event_data_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_event_data_trb_t) == sizeof(u32) * 4);
 
 /*
 // xHci Spec Section 6.4.1.2.3 Status Stage TRB Figure 6-11: Status Stage TRB (page 472).
@@ -260,109 +260,109 @@ and the operation of control endpoints.
 */
 typedef struct XHCI_STATUS_STAGE_TRANSFER_REQUEST_BLOCK {
     // Reserved
-    uint64_t rsvd0;
+    u64 rsvd0;
 
     struct {
         // Reserved
-        uint32_t rsvd1              : 22;
+        u32 rsvd1              : 22;
 
         /*
             This field defines the index of the Interrupter that will receive events
             generated by this TRB. Valid values are between 0 and MaxIntrs-1.
         */
-        uint32_t interrupter_target  : 10;
+        u32 interrupter_target  : 10;
     };
 
     struct {
-        uint32_t cycle_bit       : 1;
-        uint32_t ent            : 1;
-        uint32_t rsvd2          : 2;
-        uint32_t chain          : 1;
-        uint32_t ioc            : 1;
-        uint32_t rsvd3          : 4;
-        uint32_t trb_type        : 6;
-        uint32_t dir            : 1;
-        uint32_t rsvd4          : 15;
+        u32 cycle_bit       : 1;
+        u32 ent            : 1;
+        u32 rsvd2          : 2;
+        u32 chain          : 1;
+        u32 ioc            : 1;
+        u32 rsvd3          : 4;
+        u32 trb_type        : 6;
+        u32 dir            : 1;
+        u32 rsvd4          : 15;
     };
 } xhci_status_stage_trb_t;
-static_assert(sizeof(xhci_status_stage_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_status_stage_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_TRANSFER_COMPLETION_REQUEST_BLOCK {
-    uint64_t transfer_trb_pointer;
+    u64 transfer_trb_pointer;
     struct {
-        uint32_t transfer_length : 24;
-        uint32_t completion_code : 8;
+        u32 transfer_length : 24;
+        u32 completion_code : 8;
     };
     struct {
-        uint32_t cycle_bit   : 1;
-        uint32_t rsvd1       : 1;
-        uint32_t event_data  : 1;
-        uint32_t rsvd2       : 7;
-        uint32_t trb_type    : 6;
-        uint32_t endpoint_id : 5;
-        uint32_t rsvd3       : 3;
-        uint32_t slot_id     : 8;
+        u32 cycle_bit   : 1;
+        u32 rsvd1       : 1;
+        u32 event_data  : 1;
+        u32 rsvd2       : 7;
+        u32 trb_type    : 6;
+        u32 endpoint_id : 5;
+        u32 rsvd3       : 3;
+        u32 slot_id     : 8;
     };
 } xhci_transfer_completion_trb_t;
-static_assert(sizeof(xhci_transfer_completion_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_transfer_completion_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_EVALUATE_CONTEXT_COMMAND_REQUEST_BLOCK {
-    uint64_t input_context_physical_base;
-    uint32_t rsvd0;
+    u64 input_context_physical_base;
+    u32 rsvd0;
     struct {
-        uint32_t cycle_bit  : 1;
-        uint32_t rsvd1      : 8;
-        uint32_t rsvd2      : 1;
-        uint32_t trb_type   : 6;
-        uint32_t rsvd3      : 8;
-        uint32_t slot_id    : 8;
+        u32 cycle_bit  : 1;
+        u32 rsvd1      : 8;
+        u32 rsvd2      : 1;
+        u32 trb_type   : 6;
+        u32 rsvd3      : 8;
+        u32 slot_id    : 8;
     };
 } xhci_evaluate_context_command_trb_t;
-static_assert(sizeof(xhci_evaluate_context_command_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_evaluate_context_command_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_CONFIGURE_ENDPOINT_COMMAND_REQUEST_BLOCK {
-    uint64_t input_context_physical_base;
-    uint32_t rsvd0;
+    u64 input_context_physical_base;
+    u32 rsvd0;
     struct {
-        uint32_t cycle_bit    : 1;
-        uint32_t rsvd1        : 8;
-        uint32_t deconfigure  : 1;
-        uint32_t trb_type     : 6;
-        uint32_t rsvd3        : 8;
-        uint32_t slot_id      : 8;
+        u32 cycle_bit    : 1;
+        u32 rsvd1        : 8;
+        u32 deconfigure  : 1;
+        u32 trb_type     : 6;
+        u32 rsvd3        : 8;
+        u32 slot_id      : 8;
     };
 } xhci_configure_endpoint_command_trb_t;
-static_assert(sizeof(xhci_configure_endpoint_command_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_configure_endpoint_command_trb_t) == sizeof(u32) * 4);
 
 typedef struct XHCI_NORMAL_REQUEST_BLOCK {
-    uint64_t data_buffer_physical_base;
+    u64 data_buffer_physical_base;
     union {
         struct {
-            uint32_t trb_transfer_length  : 17;
-            uint32_t td_size             : 5;
-            uint32_t interrupter_target  : 10;
+            u32 trb_transfer_length  : 17;
+            u32 td_size             : 5;
+            u32 interrupter_target  : 10;
         };
-        uint32_t dword1;
+        u32 dword1;
     };
     struct {
-        uint32_t cycle_bit       : 1;
-        uint32_t ent            : 1;
-        uint32_t isp            : 1;
-        uint32_t no_snoop        : 1;
-        uint32_t chain          : 1;
-        uint32_t ioc             : 1;
-        uint32_t idt            : 1;
-        uint32_t rsvd0          : 2;
-        uint32_t bei            : 1;
-        uint32_t trb_type        : 6;
-        uint32_t dir            : 1;
-        uint32_t rsvd1          : 15;
+        u32 cycle_bit       : 1;
+        u32 ent            : 1;
+        u32 isp            : 1;
+        u32 no_snoop        : 1;
+        u32 chain          : 1;
+        u32 ioc             : 1;
+        u32 idt            : 1;
+        u32 rsvd0          : 2;
+        u32 bei            : 1;
+        u32 trb_type        : 6;
+        u32 dir            : 1;
+        u32 rsvd1          : 15;
     };
 } xhci_normal_trb_t;
-static_assert(sizeof(xhci_normal_trb_t) == sizeof(uint32_t) * 4);
+static_assert(sizeof(xhci_normal_trb_t) == sizeof(u32) * 4);
 
 
-inline const char* trb_completion_code_to_string(const uint8_t completion_code) {
+inline const char* trb_completion_code_to_string(const u8 completion_code) {
     switch (completion_code) {
     case XHCI_TRB_COMPLETION_CODE_INVALID:
         return "INVALID";
@@ -429,7 +429,7 @@ inline const char* trb_completion_code_to_string(const uint8_t completion_code) 
     }
 }
 
-inline const char* trb_type_to_string(const uint8_t trb_type) {
+inline const char* trb_type_to_string(const u8 trb_type) {
     switch (trb_type) {
     case XHCI_TRB_TYPE_RESERVED: return "XHCI_TRB_TYPE_RESERVED";
     case XHCI_TRB_TYPE_NORMAL: return "XHCI_TRB_TYPE_NORMAL";

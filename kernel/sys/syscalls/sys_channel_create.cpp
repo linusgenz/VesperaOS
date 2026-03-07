@@ -29,8 +29,8 @@
 #include <uapi/vespera/handels.h>
 
 namespace syscalls::internal {
-    int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        size_t capacity = arg0;
+    i64 sys_channel_create(u64 arg0, u64, u64, u64, u64, u64) {
+        usize capacity = arg0;
         if (capacity == 0) capacity = 4096;  // default size
 
         const Unit* current_unit = kernel::scheduling::get_current_unit();
@@ -46,7 +46,7 @@ namespace syscalls::internal {
 
         HandleId hid = 0;
 
-        if (const int64_t err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
+        if (const i64 err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
             err != SUCCESS_CODE) {
             Channel::destroy(ch);
             return -err;

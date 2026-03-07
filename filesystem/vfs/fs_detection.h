@@ -41,7 +41,7 @@ struct FilesystemInfo {
 
 struct DeviceDescriptor {
     BlockDevice *device;
-    size_t device_size;
+    usize device_size;
     FilesystemInfo fs_info;
     bool is_recognized;
     const char *partition_table_type;
@@ -64,8 +64,8 @@ public:
 private:
     static Vector<PendingMount> *pending_mounts_;
 
-    static size_t driver_count_;
-    static size_t device_count_;
+    static usize driver_count_;
+    static usize device_count_;
 
     static bool unmount(MountPoint* mp);
 

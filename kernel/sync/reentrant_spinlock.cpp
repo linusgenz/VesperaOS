@@ -25,7 +25,7 @@
 #include <vespera/sync/reentrant_spinlock.h>
 
 void ReentrantSpinlock::lock() {
-    uint32_t uid = kernel::scheduling::get_current_unit()->id;
+    u32 uid = kernel::scheduling::get_current_unit()->id;
 
     if (owner_unit == uid) {
         recursion++;

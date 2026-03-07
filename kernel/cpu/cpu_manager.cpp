@@ -11,17 +11,17 @@
 namespace cpu_manager {
     // Globale Variablen
     CpuInfo cpu_infos[MAX_CPU_CORES];
-    uint8_t total_cpus;
-    static uint8_t online_cpus;
+    u8 total_cpus;
+    static u8 online_cpus;
     static bool is_initialized = false;
-    static uint32_t bsp_apic_id;
+    static u32 bsp_apic_id;
 
     void initialize() {
         if (is_initialized) return;
 
         // Hole CPU-Informationen von MADT
         madt::CpuCore* madt_cores = madt::get_cpu_cores();
-        uint32_t madt_cpu_count = madt::get_cpu_count();
+        u32 madt_cpu_count = madt::get_cpu_count();
         bsp_apic_id = madt::get_bsp_apic_id();
 
         if (madt_cpu_count == 0) {
@@ -30,14 +30,14 @@ namespace cpu_manager {
         }
 
         // init location for cpu startup reports
-        for (uint32_t i = 0; i < total_cpus; ++i) {
+        for (u32 i = 0; i < total_cpus; ++i) {
             CPU_STARTUP_REPORTS[i].apic_id = 0;
             CPU_STARTUP_REPORTS[i].stack_pointer = 0;
             CPU_STARTUP_REPORTS[i].ready = false;
         }
 
         // Initialisiere CPU-Infos
-        for (uint32_t i = 0; i < madt_cpu_count && i < MAX_CPU_CORES; i++) {
+        for (u32 i = 0; i < madt_cpu_count && i < MAX_CPU_CORES; i++) {
             cpu_infos[i].apic_id = madt_cores[i].apic_id;
             cpu_infos[i].cpu_id = i;
             cpu_infos[i].state = CPU_STATE_OFFLINE;
@@ -69,10 +69,10 @@ namespace cpu_manager {
 
 void smp_init() {
 
-    for (uint32_t i = 0; i < total_cpus; ++i) {
+    for (u32 i = 0; i < total_cpus; ++i) {
         if (cpu_infos[i].is_bsp) continue;
 
-        uint32_t apic_id = cpu_infos[i].apic_id;
+        u32 apic_id = cpu_infos[i].apic_id;
 
         virt_addr_t stack_virt = kernel::memory::request_pages(KERNEL_STACK_SIZE / PAGE_SIZE);
         auto stack_top_virt = reinterpret_cast<void*>(virt_raw(stack_virt) + KERNEL_STACK_SIZE);
@@ -81,17 +81,17 @@ void smp_init() {
 
         volatile auto* report = &CPU_STARTUP_REPORTS[apic_id];
         report->apic_id      = apic_id;
-        report->stack_pointer = reinterpret_cast<uint64_t>(stack_top_virt);
+        report->stack_pointer = reinterpret_cast<u64>(stack_top_virt);
         report->ready        = false;
         report->go           = false;
 
         cpu_infos[i].kernel_stack     = virt_raw(stack_virt);
-        cpu_infos[i].kernel_stack_top = reinterpret_cast<uint64_t>(stack_top_virt);
+        cpu_infos[i].kernel_stack_top = reinterpret_cast<u64>(stack_top_virt);
 
         asm volatile("mfence" ::: "memory");
     }
 
-    for (uint32_t i = 0; i < total_cpus; ++i) {
+    for (u32 i = 0; i < total_cpus; ++i) {
         if (cpu_infos[i].is_bsp) continue;
         init_core(&cpu_infos[i]);
     }
@@ -99,7 +99,7 @@ void smp_init() {
     for (int i = 0; i < total_cpus; ++i) {
         if (cpu_infos[i].is_bsp) continue;
 
-        uint32_t apic_id = cpu_infos[i].apic_id;
+        u32 apic_id = cpu_infos[i].apic_id;
         volatile auto* report = &CPU_STARTUP_REPORTS[apic_id];
 
         int timeout = 0;
@@ -120,7 +120,7 @@ void smp_init() {
 }
 
     void init_core(const CpuInfo* cpu) {
-    constexpr uint32_t vector_value = 0x8;
+    constexpr u32 vector_value = 0x8;
 
         // Send INIT
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
@@ -140,10 +140,10 @@ void smp_init() {
         kernel::time::internal::sleep(10);
     }
 
-    CpuInfo* get_cpu_info(const uint32_t apic_id) {
+    CpuInfo* get_cpu_info(const u32 apic_id) {
         if (!is_initialized) return nullptr;
 
-        for (uint32_t i = 0; i < total_cpus; i++) {
+        for (u32 i = 0; i < total_cpus; i++) {
             if (cpu_infos[i].apic_id == apic_id) {
                 return &cpu_infos[i];
             }
@@ -151,12 +151,12 @@ void smp_init() {
         return nullptr;
     }
 
-    uint8_t get_current_cpu_id() {
+    u8 get_current_cpu_id() {
         if (!is_initialized) return 0;
 
-        const uint32_t current_apic_id = kernel::interrupts::lapic_get_id();
+        const u32 current_apic_id = kernel::interrupts::lapic_get_id();
 
-        for (uint8_t i = 0; i < total_cpus; i++) {
+        for (u8 i = 0; i < total_cpus; i++) {
             if (cpu_infos[i].apic_id == current_apic_id) {
                 return cpu_infos[i].cpu_id;
             }
@@ -165,21 +165,21 @@ void smp_init() {
         return 0;  // Default BSP
     }
 
-    uint8_t get_online_cpu_count() {
+    u8 get_online_cpu_count() {
         return online_cpus;
     }
 
-    uint8_t get_available_cpu_count() {
+    u8 get_available_cpu_count() {
         return total_cpus;
     }
 
-    void halt_cpu(const uint32_t apic_id) {
+    void halt_cpu(const u32 apic_id) {
         if (CpuInfo* cpu_info = get_cpu_info(apic_id)) {
             cpu_info->state = CPU_STATE_HALTED;
         }
     }
 
-    void send_ipi_to_all_aps(const uint32_t vector) {
+    void send_ipi_to_all_aps(const u32 vector) {
         // Broadcast IPI an alle APs (außer BSP)
         kernel::interrupts::lapic_write(LAPIC_ICRHI, 0);
         kernel::interrupts::lapic_write(LAPIC_ICRLO, 0xC0000 | vector);  // All except self, vector
@@ -196,7 +196,7 @@ void smp_init() {
         Log::info("Total CPUs: %u, Online: %u", total_cpus, online_cpus);
         Log::info("BSP APIC ID: %u", bsp_apic_id);
 
-        for (uint32_t i = 0; i < total_cpus; i++) {
+        for (u32 i = 0; i < total_cpus; i++) {
             const char* state_str = nullptr;
             switch (cpu_infos[i].state) {
                 case CPU_STATE_OFFLINE:
@@ -227,20 +227,20 @@ void smp_init() {
         }
     }
 
-    void update_cpu_stats(const uint32_t apic_id, const uint64_t cycles, const uint64_t idle_cycles) {
+    void update_cpu_stats(const u32 apic_id, const u64 cycles, const u64 idle_cycles) {
         if (CpuInfo* cpu_info = get_cpu_info(apic_id)) {
             cpu_info->total_cycles = cycles;
             cpu_info->idle_cycles = idle_cycles;
         }
     }
 
-    int get_cpu_usage(const uint32_t apic_id) {
+    int get_cpu_usage(const u32 apic_id) {
         CpuInfo* cpu_info = get_cpu_info(apic_id);
         if (!cpu_info || cpu_info->total_cycles == 0) {
             return 0.0;
         }
 
-        uint64_t active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
+        u64 active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
         return ((active_cycles) / cpu_info->total_cycles) * 100;
     }
 }  // namespace CPUManager

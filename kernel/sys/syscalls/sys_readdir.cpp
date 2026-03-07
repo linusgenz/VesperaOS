@@ -30,7 +30,7 @@
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
-    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_readdir(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         HandleId hid = arg0;
         auto *ent = reinterpret_cast<dirent_t *>(arg1);
 

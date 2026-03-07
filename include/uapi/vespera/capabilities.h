@@ -23,7 +23,7 @@
 */
 #ifndef VESPERAOS_CAPABILITIES_H
 #define VESPERAOS_CAPABILITIES_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 /**
  * @brief Type representing a set of capabilities.
@@ -31,7 +31,7 @@
  * Capabilities define allowed operations or privileges for a Realm and its Units.
  * Each bit in the 64-bit value represents a specific capability.
  */
-typedef uint64_t capability_set;
+typedef u64 capability_set;
 
 #define CAP_NONE          0x0000000000000000ULL ///< No capabilities
 #define CAP_READ          0x0000000000000001ULL ///< Read access

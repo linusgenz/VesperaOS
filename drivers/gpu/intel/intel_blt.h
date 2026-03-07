@@ -45,7 +45,7 @@ struct KernelDevice;
 #define BCS_SWCTRL_WAKEUP 0x01  // Force wakeup bit
 
 // GTT (Graphics Translation Table)
-constexpr size_t GTT_OFFSET = 8ull * 1024 * 1024;    // 8MB offset from MMIO base
+constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;    // 8MB offset from MMIO base
 #define GTT_TOTAL_ENTRIES (256 * 1024)  // 256K entries = 1GB
 #define GTT_START_INDEX 0x1000          // Start at entry 4096 (16MB)
 
@@ -176,7 +176,7 @@ constexpr size_t GTT_OFFSET = 8ull * 1024 * 1024;    // 8MB offset from MMIO bas
 // ============================================================================
 
 #define BAR0_ADDR_MASK ~0xFULL        // Mask to extract base address
-constexpr size_t BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
+constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 
 // ============================================================================
 // Timing and Limits
@@ -206,7 +206,7 @@ constexpr size_t BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 #define PLANE_CTL_RGBX (1u << 20)                 // Sets the Color order to RGB
 #define PLANE_CTL_TILE_Y (0b100 << 10)            // Enables Tile Y for the surface
 
-enum class TileMode : uint8_t {
+enum class TileMode : u8 {
     Linear = 0,  // 256 KB alignment
     X = 1,       // 256 KB alignment
     Y = 2        // 1 MB alignment
@@ -220,35 +220,35 @@ struct GgttAllocation {
 struct GpuFramebuffer {
     virt_addr_t cpu_addr;
     gfx_addr_t gfx_addr;
-    uint32_t width;
-    uint32_t height;
-    uint32_t bpp;
-    uint32_t pitch;
+    u32 width;
+    u32 height;
+    u32 bpp;
+    u32 pitch;
     TileMode tile_mode;
 };
 
 struct GpuTextBuffer {
     virt_addr_t cpu_addr;
     gfx_addr_t gfx_addr;
-    uint32_t width;   // in pixels
-    uint32_t height;  // in pixels
-    size_t total_size;
+    u32 width;   // in pixels
+    u32 height;  // in pixels
+    usize total_size;
 };
 
 struct BltRect {
-    uint32_t x, y;
-    uint32_t width, height;
+    u32 x, y;
+    u32 width, height;
 };
 
 class IntelBlt final : public IRenderDriver {
    public:
     explicit IntelBlt(pci::PCI_DEVICE_HEADER* header);
-    void start_device(uint32_t screen_width, uint32_t screen_height);
+    void start_device(u32 screen_width, u32 screen_height);
 
-    bool fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour) override;
+    bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
 
     bool blit_buffer(
-        const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x, uint32_t dst_y
+        const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y
     ) override;
 
     bool scroll_pixels(int dy) override;
@@ -261,51 +261,51 @@ class IntelBlt final : public IRenderDriver {
         return kd_;
     }
 
-    [[nodiscard]] uint32_t screen_width_px() const override;
-    [[nodiscard]] uint32_t screen_height_px() const override;
-    [[nodiscard]] uint32_t bytes_per_scanline() const override;
+    [[nodiscard]] u32 screen_width_px() const override;
+    [[nodiscard]] u32 screen_height_px() const override;
+    [[nodiscard]] u32 bytes_per_scanline() const override;
 
    private:
     KernelDevice* kd_;
 
-    volatile uint8_t* mmio_base_;
-    volatile uint32_t* bcs_regs_;
-    volatile uint64_t* gtt_entries_{};
+    volatile u8* mmio_base_;
+    volatile u32* bcs_regs_;
+    volatile u64* gtt_entries_{};
 
     gfx_addr_t ring_gfx_addr_;
     virt_addr_t ring_cpu_addr_;
-    uint32_t ring_size_;
-    uint32_t ring_tail_{};
+    u32 ring_size_;
+    u32 ring_tail_{};
 
     gfx_addr_t hwsp_gfx_addr_;
     virt_addr_t hwsp_cpu_addr_;
 
-    uint32_t gtt_next_free_{};
-    uint32_t gtt_total_entries_{};
+    u32 gtt_next_free_{};
+    u32 gtt_total_entries_{};
 
-    uint32_t sequence_number_;
+    u32 sequence_number_;
 
     GpuTextBuffer text_buffer_;
     GpuFramebuffer fb_;
 
-    void init_text_buffer(const font_t* font, uint32_t screen_width);
+    void init_text_buffer(const font_t* font, u32 screen_width);
 
-    void alloc_framebuffer(uint32_t width, uint32_t height, TileMode tile_mode);
-    void build_text_scanline(const char* text, size_t length, font_t* font, uint8_t* buffer, size_t buffer_stride);
-    bool draw_str(const char* text, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color);
+    void alloc_framebuffer(u32 width, u32 height, TileMode tile_mode);
+    void build_text_scanline(const char* text, usize length, font_t* font, u8* buffer, usize buffer_stride);
+    bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
     void xy_src_copy_blt(
-        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-        gfx_addr_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
+        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
+        gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
     );
     void xy_fast_copy_blt(
-        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-        gfx_addr_t src_addr, uint32_t src_pitch, uint32_t src_x1, uint32_t src_y1
+        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
+        gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
     );
 
-    void write_command(uint32_t cmd);
+    void write_command(u32 cmd);
     void set_display_framebuffer() const;
-    void mi_flush(uint32_t seqno);
-    [[nodiscard]] bool wait_for_sequence(uint32_t target_seqno, uint32_t timeout_us) const;
+    void mi_flush(u32 seqno);
+    [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us) const;
     void flush_commands() const;
     void setup_ring_buffer();
     void enable_force_wake() const;
@@ -315,17 +315,17 @@ class IntelBlt final : public IRenderDriver {
     void emergency_reset_bcs();
     void check_gpu_health();
     [[nodiscard]] bool validate_blt_params(const BltRect& rect) const;
-    [[nodiscard]] bool wait_for_ring_space(uint32_t required_bytes, uint32_t timeout_us) const;
+    [[nodiscard]] bool wait_for_ring_space(u32 required_bytes, u32 timeout_us) const;
     void xy_color_blt(
-        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2, uint32_t color
+        gfx_addr_t dest_addr, u32 dest_pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color
     );
     void xy_mono_src_copy_blt(
-        gfx_addr_t dest_addr, uint32_t dest_pitch, uint32_t dest_x1, uint32_t dest_y1, uint32_t dest_x2, uint32_t dest_y2,
-        gfx_addr_t mono_src_addr, uint32_t src_bit_position, bool transparency_enabled, uint32_t bg_color,
-        uint32_t fg_color
+        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
+        gfx_addr_t mono_src_addr, u32 src_bit_position, bool transparency_enabled, u32 bg_color,
+        u32 fg_color
     );
-    GgttAllocation alloc_and_map_to_ggtt(size_t num_pages, uint64_t flags = 0, uint8_t pat_index = GTT_PAT_UC);
-    gfx_addr_t map_to_ggtt(phys_addr_t phys_addr, size_t num_pages, uint8_t pat_index);
+    GgttAllocation alloc_and_map_to_ggtt(usize num_pages, u64 flags = 0, u8 pat_index = GTT_PAT_UC);
+    gfx_addr_t map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index);
 };
 
 #endif  // VESPERAOS_INTEL_BLT_H

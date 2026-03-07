@@ -24,56 +24,56 @@
 #ifndef SYSCALL_INTERFACE_H
 #define SYSCALL_INTERFACE_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace syscalls::internal {
-    using syscall_fn_t = int64_t (*)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    using syscall_fn_t = i64 (*)(u64, u64, u64, u64, u64, u64);
 
-    int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    int64_t sys_exit(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_exit(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_read(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_close(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_open(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_open(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_create(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_rename(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_rename(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
-    int64_t sys_mkdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_mkdir(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_rmdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_rmdir(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_unlink(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_unlink(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_reboot(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_reboot(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    int64_t sys_sleep(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_sleep(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_ioctl(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    int64_t sys_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg4, uint64_t, uint64_t);
+    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg4, u64, u64);
 
-    int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_readdir(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
-    int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
-    int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
+    i64 sys_mmap(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5);
 
-    int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_munmap(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
-    int64_t sys_brk(uint64_t addr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_brk(u64 addr, u64, u64, u64, u64, u64);
 
-    int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+    i64 sys_channel_create(u64 arg0, u64, u64, u64, u64, u64);
 
-    int64_t sys_channel_send(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_channel_send(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_channel_recv(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+    i64 sys_seek(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

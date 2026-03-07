@@ -4,7 +4,7 @@
 
 #ifndef INTERRUPTS_INTERNAL_H
 #define INTERRUPTS_INTERNAL_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 #define IRQ_SPURIOUS 0xFF
 #define IRQ_TIMER 0x20
@@ -13,20 +13,20 @@
 
 // x86_64 Interrupt Frame Structure (pushed via asm stubs)
 struct TrapFrame {
-    uint64_t rax, rbx, rcx, rdx;
-    uint64_t rbp, rsi, rdi;
-    uint64_t r8, r9, r10, r11, r12, r13, r14, r15;
+    u64 rax, rbx, rcx, rdx;
+    u64 rbp, rsi, rdi;
+    u64 r8, r9, r10, r11, r12, r13, r14, r15;
 
-    uint64_t rsv;
+    u64 rsv;
 
     // Error code (either from CPU or dummy 0)
-    uint64_t error_code;
+    u64 error_code;
 
-    uint64_t rip;
-    uint64_t cs;
-    uint64_t rflags;
-    uint64_t rsp;
-    uint64_t ss;
+    u64 rip;
+    u64 cs;
+    u64 rflags;
+    u64 rsp;
+    u64 ss;
 } __attribute__((packed));
 
 // Asm Stubs

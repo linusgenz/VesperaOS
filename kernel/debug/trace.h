@@ -24,10 +24,10 @@
 #ifndef VESPERAOS_TRACE_H
 #define VESPERAOS_TRACE_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
-void debug_capture_stack(uint64_t rbp, uint64_t rip, uint64_t *out, uint8_t *out_len, uint8_t max_depth);
+void debug_capture_stack(u64 rbp, u64 rip, u64 *out, u8 *out_len, u8 max_depth);
 
-void backtrace(uint64_t rbp_start, uint64_t rip_start);
+void backtrace(u64 rbp_start, u64 rip_start);
 
 #endif  // VESPERAOS_TRACE_H

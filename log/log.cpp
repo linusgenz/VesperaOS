@@ -21,7 +21,7 @@ void Log::init()
 
  void Log::log_prefix(
     const char* tag,
-    uint32_t tag_fg
+    u32 tag_fg
 )
 {
     t_->set_colour(WHITE, BLACK);
@@ -51,7 +51,7 @@ void Log::disable_debug()
 }
 
 
-void u_int_to_str(uint64_t value, char* buffer, uint8_t base = 10, bool prefix = false)
+void u_int_to_str(u64 value, char* buffer, u8 base = 10, bool prefix = false)
 {
     char temp[32];
     int i = 0;
@@ -212,7 +212,7 @@ static void float_to_str(float val, char* buf, int precision)
     }
 
     // Ganzzahlteil
-    const auto int_part = static_cast<uint32_t>(val);
+    const auto int_part = static_cast<u32>(val);
     float frac_part = val - static_cast<float>(int_part);
 
     char int_buf[32];
@@ -248,7 +248,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
             bool long_long = false;
             bool long_flag = false;
             char pad_char = ' ';
-            size_t min_width = 0;
+            usize min_width = 0;
             int precision = -1;
 
             // Padding: z. B. %02x → '0' erkannt
@@ -329,15 +329,15 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
             case 'u':
             case 'x':
                 {
-                    uint64_t val = (long_long || long_flag)
-                                       ? __builtin_va_arg(args, uint64_t)
-                                       : __builtin_va_arg(args, uint32_t);
+                    u64 val = (long_long || long_flag)
+                                       ? __builtin_va_arg(args, u64)
+                                       : __builtin_va_arg(args, u32);
                     int base = (specifier == 'x') ? 16 : 10;
                     u_int_to_str(val, buffer, base);
 
                     // Padding manuell
-                    const size_t len = strlen(buffer);
-                    for (size_t i = len; i < min_width; i++)
+                    const usize len = strlen(buffer);
+                    for (usize i = len; i < min_width; i++)
                         t_->put_char(pad_char);
 
                     t_->print(buffer);
@@ -351,17 +351,17 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                 }
             case 'd':
                 {
-                    int64_t val = (long_long || long_flag)
-                                      ? __builtin_va_arg(args, int64_t)
-                                      : __builtin_va_arg(args, int32_t);
+                    i64 val = (long_long || long_flag)
+                                      ? __builtin_va_arg(args, i64)
+                                      : __builtin_va_arg(args, i32);
                     if (val < 0)
                     {
                         t_->put_char('-');
                         val = -val;
                     }
-                    u_int_to_str(static_cast<uint64_t>(val), buffer, 10);
-                    size_t len = strlen(buffer);
-                    for (size_t i = len; i < min_width; i++)
+                    u_int_to_str(static_cast<u64>(val), buffer, 10);
+                    usize len = strlen(buffer);
+                    for (usize i = len; i < min_width; i++)
                         t_->put_char(pad_char);
                     t_->print(buffer);
                     break;
@@ -372,19 +372,19 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                     double val = __builtin_va_arg(args, double);
                     int frac_digits = (precision >= 0) ? precision : 6;
                     float_to_str(static_cast<float>(val), buffer, frac_digits);
-                    size_t len = strlen(buffer);
-                    for (size_t i = len; i < min_width; i++)
+                    usize len = strlen(buffer);
+                    for (usize i = len; i < min_width; i++)
                         t->put_char(pad_char);
                     t->print(buffer);
                     break;
                 }*/
             case 'p':
                 {
-                    uintptr_t val = __builtin_va_arg(args, uintptr_t);
+                    uptr val = __builtin_va_arg(args, uptr);
                     t_->print("0x");
                     u_int_to_str(val, buffer, 16);
-                    size_t len = strlen(buffer);
-                    for (size_t i = len; i < min_width; i++)
+                    usize len = strlen(buffer);
+                    for (usize i = len; i < min_width; i++)
                         t_->put_char('0');
                     t_->print(buffer);
                     break;

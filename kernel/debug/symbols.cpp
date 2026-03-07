@@ -27,20 +27,20 @@
 
 #include <klib/string.h>
 
-static bool parse_hex_u64(const char* s, uint64_t* out) {
-    uint64_t v = 0;
+static bool parse_hex_u64(const char* s, u64* out) {
+    u64 v = 0;
     while (*s && isxdigit(*s)) {
-        v = (v << 4) | static_cast<uint64_t>(isdigit(*s) ? (*s - '0') : (tolower(*s) - 'a' + 1 + 9));
+        v = (v << 4) | static_cast<u64>(isdigit(*s) ? (*s - '0') : (tolower(*s) - 'a' + 1 + 9));
         s++;
     }
     *out = v;
     return true;
 }
 
-Symbol lookup_symbol(uint64_t addr) {
+Symbol lookup_symbol(u64 addr) {
     auto best = "???";
-    size_t best_len = 3;
-    uint64_t best_addr = 0;
+    usize best_len = 3;
+    u64 best_addr = 0;
 
     auto p = reinterpret_cast<const char*>(kernel_map);
     const char* end = p + kernel_map_len;
@@ -48,7 +48,7 @@ Symbol lookup_symbol(uint64_t addr) {
     while (p < end) {
         const char* line = p;
 
-        uint64_t sym_addr;
+        u64 sym_addr;
         if (!parse_hex_u64(line, &sym_addr)) {
             while (p < end && *p != '\n') p++;
             if (p < end) p++;
@@ -71,7 +71,7 @@ Symbol lookup_symbol(uint64_t addr) {
 
         const char* name = type + 2;
         const char* line_end = strchr(name, '\n');
-        size_t len = line_end ? static_cast<size_t>(line_end - name) : static_cast<size_t>(end - name);
+        usize len = line_end ? static_cast<usize>(line_end - name) : static_cast<usize>(end - name);
 
         if (sym_addr <= addr && sym_addr > best_addr) {
             best_addr = sym_addr;

@@ -1,28 +1,28 @@
-#include <stddef.h>
+
 
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 
 template <typename T>
-char* itohex(T value, char* buffer, const size_t buffer_size)
+char* itohex(T value, char* buffer, const usize buffer_size)
 {
     // Buffer too small?
-    if (constexpr size_t required_size = sizeof(T) * 2 + 1; buffer_size < required_size)
+    if (constexpr usize required_size = sizeof(T) * 2 + 1; buffer_size < required_size)
     {
         if (buffer_size > 0) buffer[0] = '\0';
         return nullptr;
     }
 
-    const auto* bytes = reinterpret_cast<const uint8_t*>(&value);
-    constexpr size_t hex_digits = sizeof(T) * 2 - 1;
+    const auto* bytes = reinterpret_cast<const u8*>(&value);
+    constexpr usize hex_digits = sizeof(T) * 2 - 1;
 
-    for (size_t i = 0; i < sizeof(T); i++)
+    for (usize i = 0; i < sizeof(T); i++)
     {
-        const uint8_t byte = bytes[i];
-        const uint8_t high_nibble = (byte >> 4) & 0x0F;
-        const uint8_t low_nibble  = byte & 0x0F;
+        const u8 byte = bytes[i];
+        const u8 high_nibble = (byte >> 4) & 0x0F;
+        const u8 low_nibble  = byte & 0x0F;
 
-        const size_t pos = hex_digits - (i * 2) - 1;
+        const usize pos = hex_digits - (i * 2) - 1;
         buffer[pos]     = static_cast<char>(high_nibble + (high_nibble > 9 ? 'A' - 10 : '0'));
         buffer[pos + 1] = static_cast<char>(low_nibble  + (low_nibble  > 9 ? 'A' - 10 : '0'));
     }
@@ -31,22 +31,22 @@ char* itohex(T value, char* buffer, const size_t buffer_size)
     return buffer;
 }
 
-char* ptohex(void* ptr, char* buffer, const size_t buffer_size)
+char* ptohex(void* ptr, char* buffer, const usize buffer_size)
 {
-    const auto value = reinterpret_cast<uintptr_t>(ptr);
+    const auto value = reinterpret_cast<uptr>(ptr);
 
-    if (constexpr size_t required_size = sizeof(uintptr_t) * 2 + 1; buffer_size < required_size)
+    if (constexpr usize required_size = sizeof(uptr) * 2 + 1; buffer_size < required_size)
     {
         if (buffer_size > 0)
             buffer[0] = '\0';
         return nullptr;
     }
 
-    constexpr size_t hex_digits = sizeof(uintptr_t) * 2;
+    constexpr usize hex_digits = sizeof(uptr) * 2;
 
-    for (size_t i = 0; i < hex_digits; i++)
+    for (usize i = 0; i < hex_digits; i++)
     {
-        const auto nibble = static_cast<uint8_t>((value >> ((hex_digits - i - 1) * 4)) & 0x0F);
+        const auto nibble = static_cast<u8>((value >> ((hex_digits - i - 1) * 4)) & 0x0F);
         buffer[i] = static_cast<char>(nibble + (nibble > 9 ? 'A' - 10 : '0'));
     }
 
@@ -55,35 +55,35 @@ char* ptohex(void* ptr, char* buffer, const size_t buffer_size)
 }
 
 
-char* u64_tohex(const uint64_t value, char* buffer, const size_t buffer_size)
+char* u64_tohex(const u64 value, char* buffer, const usize buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
-char* u32_tohex(const uint32_t value, char* buffer, const size_t buffer_size)
+char* u32_tohex(const u32 value, char* buffer, const usize buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
-char* u16_tohex(const uint16_t value, char* buffer, const size_t buffer_size)
+char* u16_tohex(const u16 value, char* buffer, const usize buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
-char* u8_tohex(const uint8_t value, char* buffer, const size_t buffer_size)
+char* u8_tohex(const u8 value, char* buffer, const usize buffer_size)
 {
     return itohex(value, buffer, buffer_size);
 }
 
 
-size_t strlen(const char* s)
+usize strlen(const char* s)
 {
     const char* start = s;
     while (*s != '\0')
     {
         ++s;
     }
-    return static_cast<size_t>(s - start);
+    return static_cast<usize>(s - start);
 }
 
 int strcmp(const char* a, const char* b)
@@ -97,7 +97,7 @@ int strcmp(const char* a, const char* b)
         static_cast<int>(static_cast<unsigned char>(*b));
 }
 
-int strncmp(const char* a, const char* b, size_t n)
+int strncmp(const char* a, const char* b, usize n)
 {
     while (n != 0 && *a != '\0' && *b != '\0' && *a == *b)
     {
@@ -113,9 +113,9 @@ int strncmp(const char* a, const char* b, size_t n)
         static_cast<int>(static_cast<unsigned char>(*b));
 }
 
-char* strncpy(char* dest, const char* src, const size_t n)
+char* strncpy(char* dest, const char* src, const usize n)
 {
-    size_t i;
+    usize i;
     for (i = 0; i < n && src[i] != '\0'; i++)
     {
         dest[i] = src[i];
@@ -147,7 +147,7 @@ void replace_char(char* s, char old_char, char new_char) {
 
 char* strdup(const char* src)
 {
-    const size_t len = strlen(src) + 1;
+    const usize len = strlen(src) + 1;
     const auto dst = static_cast<char*>(kernel::memory::malloc(len));
 
     if (dst == nullptr)
@@ -189,12 +189,12 @@ char* strchr(const char* s, const unsigned char c)
     return nullptr;
 }
 
-char* strncat(char* dest, const char* src, const size_t max)
+char* strncat(char* dest, const char* src, const usize max)
 {
     if (!dest || !src || max == 0)
         return dest;
 
-    size_t dlen = 0;
+    usize dlen = 0;
     while (dlen < max && dest[dlen] != '\0')
     {
         ++dlen;
@@ -203,7 +203,7 @@ char* strncat(char* dest, const char* src, const size_t max)
     if (dlen == max)
         return dest;
 
-    size_t i = 0;
+    usize i = 0;
     while (i + dlen < max - 1 && src[i] != '\0')
     {
         dest[dlen + i] = src[i];
@@ -339,7 +339,7 @@ static int int_to_string(int num, char* str, const int base)
     return i;
 }
 
-static int uint64_to_string(unsigned long long value, char* buffer, const int base)
+static int u64o_string(unsigned long long value, char* buffer, const int base)
 {
     char temp[32];
     int pos = 0;
@@ -367,7 +367,7 @@ static int uint64_to_string(unsigned long long value, char* buffer, const int ba
     return pos;
 }
 
-static int int64_to_string(const long long value, char* buffer, int base)
+static int i64o_string(const long long value, char* buffer, int base)
 {
     char temp[32];
     int pos = 0;
@@ -390,7 +390,7 @@ static int int64_to_string(const long long value, char* buffer, int base)
     if (value < 0 && base == 10)
     {
         is_negative = 1;
-        uint64_t abs_value = static_cast<uint64_t>(-(value + 1)) + 1;
+        u64 abs_value = static_cast<u64>(-(value + 1)) + 1;
         while (abs_value > 0)
         {
             unsigned digit = abs_value % base;
@@ -423,7 +423,7 @@ static int int64_to_string(const long long value, char* buffer, int base)
     return pos;
 }
 
-int snprintf(char* buffer, const size_t size, const char* format, ...)
+int snprintf(char* buffer, const usize size, const char* format, ...)
 {
     if (!buffer || !format || size == 0)
     {
@@ -433,7 +433,7 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
     __builtin_va_list args;
     __builtin_va_start(args, format);
 
-    size_t buf_pos = 0;
+    usize buf_pos = 0;
     int written = 0;
 
     for (int i = 0; format[i] != '\0'; i++)
@@ -476,7 +476,7 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
                 {
                     const unsigned int val = __builtin_va_arg(args, unsigned int);
                     char temp[32];
-                    int len = uint64_to_string(val, temp, 10);
+                    int len = u64o_string(val, temp, 10);
 
                     if (plus_sign)
                     {
@@ -524,9 +524,9 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
                     if (format[i + 1] == 'u') // %zu
                     {
                         i++; // Skip 'u'
-                        size_t val = __builtin_va_arg(args, size_t);
+                        usize val = __builtin_va_arg(args, usize);
                         char temp[32];
-                        int len = uint64_to_string(val, temp, 10);
+                        int len = u64o_string(val, temp, 10);
 
                         for (int j = 0; j < len && buf_pos < size - 1; j++)
                             buffer[buf_pos++] = temp[j];
@@ -553,9 +553,9 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
             case 'p':
                 {
                     void* ptr_val = __builtin_va_arg(args, void *);
-                    const auto val = reinterpret_cast<uint64_t>(ptr_val);
+                    const auto val = reinterpret_cast<u64>(ptr_val);
                     char temp[32];
-                    const int len = uint64_to_string(val, temp, 16);
+                    const int len = u64o_string(val, temp, 16);
 
                     if (plus_sign)
                     {
@@ -593,7 +593,7 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
                             i++;
                             long long val = __builtin_va_arg(args, long long);
                             char temp[32];
-                            int len = int64_to_string(val, temp, 10);
+                            int len = i64o_string(val, temp, 10);
                             if (plus_sign && val >= 0)
                             {
                                 if (buf_pos < size - 1)
@@ -609,7 +609,7 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
                             i++;
                             unsigned long long val = __builtin_va_arg(args, unsigned long long);
                             char temp[32];
-                            int len = uint64_to_string(val, temp, 10);
+                            int len = u64o_string(val, temp, 10);
                             for (int j = 0; j < len && buf_pos < size - 1; j++)
                                 buffer[buf_pos++] = temp[j];
                             written += len;
@@ -620,7 +620,7 @@ int snprintf(char* buffer, const size_t size, const char* format, ...)
                             i++;
                             unsigned long long val = __builtin_va_arg(args, unsigned long long);
                             char temp[32];
-                            int len = uint64_to_string(val, temp, 16);
+                            int len = u64o_string(val, temp, 16);
                             for (int j = 0; j < len && buf_pos < size - 1; j++)
                                 buffer[buf_pos++] = temp[j];
                             written += len;

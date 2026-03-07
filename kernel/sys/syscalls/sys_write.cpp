@@ -29,10 +29,10 @@
 #include "../syscall_interface.h"
 
 namespace syscalls::internal {
-    int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
         auto buf = reinterpret_cast<void *>(arg1);
-        size_t count = arg2;
+        usize count = arg2;
         Unit *u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
 
@@ -58,7 +58,7 @@ namespace syscalls::internal {
             case HANDLE_TYPE_FILE: {
                 const auto *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
-                const ssize_t bytes = vh->node->ops->write(vh->node, vh->context->position, count, buf);
+                const isize bytes = vh->node->ops->write(vh->node, vh->context->position, count, buf);
                 vh->context->position += bytes;
                 return bytes;
             }

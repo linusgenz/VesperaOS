@@ -5,13 +5,13 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
-inline uint64_t min(const uint64_t a, const uint64_t b) {
+inline u64 min(const u64 a, const u64 b) {
     return (a < b) ? a : b;
 }
 
-inline uint64_t max(const uint64_t a, const uint64_t b) {
+inline u64 max(const u64 a, const u64 b) {
     return (a > b) ? a : b;
 }
 

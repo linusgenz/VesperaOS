@@ -28,8 +28,8 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-Channel::Channel(const size_t cap)
-    : buf_(static_cast<uint8_t *>(kernel::memory::malloc(cap)))
+Channel::Channel(const usize cap)
+    : buf_(static_cast<u8 *>(kernel::memory::malloc(cap)))
     , head_(0)
     , tail_(0)
     , refcount_(1)
@@ -44,7 +44,7 @@ Channel::Channel(const size_t cap)
  * @param cap capacity in bytes
  * @return a channel on success, on error nullptr
  */
-Channel *Channel::create(const size_t cap) {
+Channel *Channel::create(const usize cap) {
     auto *ch = new Channel(cap);
     if (!ch->buf_) {
         delete ch;
@@ -62,41 +62,41 @@ Channel::~Channel() {
     if (buf_) kernel::memory::free(buf_);
 }
 
-ssize_t Channel::send(const void *data, const size_t len) {
+isize Channel::send(const void *data, const usize len) {
     if (!data || len == 0) return 0;
 
     SpinlockGuard g(lock_);
-    const size_t free_space = capacity - used;
+    const usize free_space = capacity - used;
     if (free_space == 0) return -EAGAIN;
 
-    const size_t to_write = (len < free_space) ? len : free_space;
+    const usize to_write = (len < free_space) ? len : free_space;
 
-    const size_t first = min(to_write, capacity - head_);
+    const usize first = min(to_write, capacity - head_);
     memcpy(buf_ + head_, data, first);
     if (first < to_write) {
-        memcpy(buf_, static_cast<const uint8_t *>(data) + first, to_write - first);
+        memcpy(buf_, static_cast<const u8 *>(data) + first, to_write - first);
     }
     head_ = (head_ + to_write) % capacity;
     used += to_write;
 
-    return static_cast<ssize_t>(to_write);
+    return static_cast<isize>(to_write);
 }
 
-ssize_t Channel::recv(void *out, const size_t len) {
+isize Channel::recv(void *out, const usize len) {
     if (!out || len == 0) return 0;
 
     SpinlockGuard g(lock_);
     if (used == 0) return -EAGAIN;
 
-    const size_t to_read = (len < used) ? len : used;
+    const usize to_read = (len < used) ? len : used;
 
-    const size_t first = min(to_read, capacity - tail_);
+    const usize first = min(to_read, capacity - tail_);
     memcpy(out, buf_ + tail_, first);
     if (first < to_read) {
-        memcpy(static_cast<uint8_t *>(out) + first, buf_, to_read - first);
+        memcpy(static_cast<u8 *>(out) + first, buf_, to_read - first);
     }
     tail_ = (tail_ + to_read) % capacity;
     used -= to_read;
 
-    return static_cast<ssize_t>(to_read);
+    return static_cast<isize>(to_read);
 }

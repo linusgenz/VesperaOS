@@ -12,11 +12,11 @@ namespace kernel::scheduling {
 
     GlobalScheduler global_scheduler = {{}};
 
-    void init(uint32_t num_cpus) {
+    void init(u32 num_cpus) {
         global_scheduler.num_cpus = num_cpus;
         global_scheduler.initialized = true;
 
-        for (uint32_t i = 0; i < num_cpus; i++) {
+        for (u32 i = 0; i < num_cpus; i++) {
             cpu_scheduler::init_cpu(i);
         }
     }
@@ -24,7 +24,7 @@ namespace kernel::scheduling {
     void add_unit(Unit *unit) {
         if (!unit || !global_scheduler.initialized) return;
 
-        const uint8_t cpu_id = unit->cpu_id;
+        const u8 cpu_id = unit->cpu_id;
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         cpu_scheduler::add_unit_to_cpu(unit, cpu_id);
@@ -33,45 +33,45 @@ namespace kernel::scheduling {
     void remove_unit(Unit *unit) {
         if (!unit || !global_scheduler.initialized) return;
 
-        uint8_t cpu_id = unit->cpu_id;
+        u8 cpu_id = unit->cpu_id;
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         cpu_scheduler::remove_unit_from_cpu(unit, cpu_id);
     }
 
     void yield() {
-        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
         cpu_scheduler::yield_cpu(cpu_id);
     }
 
     /*    void tick() {
-            uint8_t cpu_id = CPUManager::get_current_cpu_id();
+            u8 cpu_id = CPUManager::get_current_cpu_id();
             cpu_scheduler::tick_cpu(cpu_id);
         }*/
 
-    void enable_on_cpu(uint8_t cpu_id) {
+    void enable_on_cpu(u8 cpu_id) {
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         cpu_scheduler::enable_cpu(cpu_id);
     }
 
-    void disable_on_cpu(uint8_t cpu_id) {
+    void disable_on_cpu(u8 cpu_id) {
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         cpu_scheduler::disable_cpu(cpu_id);
     }
 
-    void add_blocked_unit(Unit *unit, uint8_t cpu_id) {
+    void add_blocked_unit(Unit *unit, u8 cpu_id) {
         cpu_scheduler::add_blocked_unit(unit, cpu_id);
     }
 
     bool is_curent_cpu_enabled() {
-        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
         return cpu_scheduler::is_cpu_enabled(cpu_id);
     }
 
     Unit *get_current_unit() {
-        const uint32_t cpu_id = cpu_manager::get_current_cpu_id();
+        const u32 cpu_id = cpu_manager::get_current_cpu_id();
         if (!global_scheduler.cpus[cpu_id].scheduler_enabled) return nullptr;
         return cpu_scheduler::get_current_unit_on_cpu(cpu_id);
     }
@@ -80,19 +80,19 @@ namespace kernel::scheduling {
         return global_scheduler.initialized;
     }
 
-    uint32_t get_num_cpus() {
+    u32 get_num_cpus() {
         return global_scheduler.num_cpus;
     }
 
-    cpu_scheduler::CpuScheduler *get_cpu_data(uint8_t cpu_id) {
+    cpu_scheduler::CpuScheduler *get_cpu_data(u8 cpu_id) {
         return cpu_scheduler::get_cpu_data(cpu_id);
     }
 
-    void wake_sleeping_units(uint8_t cpu_id, uint64_t current_tick) {
+    void wake_sleeping_units(u8 cpu_id, u64 current_tick) {
         cpu_scheduler::wake_sleeping_units(cpu_id, current_tick);
     }
 
-    void tick_cpu(uint8_t cpu_id, TrapFrame *frame) {
+    void tick_cpu(u8 cpu_id, TrapFrame *frame) {
         cpu_scheduler::tick_cpu(cpu_id, frame);
     }
 }  // namespace kernel::scheduling

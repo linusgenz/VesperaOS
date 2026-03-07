@@ -4,7 +4,7 @@
 
 #ifndef VECTOR_H
 #define VECTOR_H
-#include <stddef.h>
+
 
 #include <vespera/mm/memory.h>
 #include <klib/type_traits.h>
@@ -15,7 +15,7 @@ template <typename T>
 class Vector
 {
 public:
-    explicit Vector(size_t initial_capacity = 4)
+    explicit Vector(usize initial_capacity = 4)
         : data_(nullptr)
     {
         if (initial_capacity == 0) initial_capacity = 4;
@@ -57,7 +57,7 @@ public:
     Vector copy() const
     {
         Vector result(length_);
-        for (size_t i = 0; i < length_; ++i)
+        for (usize i = 0; i < length_; ++i)
         {
             if constexpr (klib::is_trivially_copyable_v<T>)
             {
@@ -81,7 +81,7 @@ public:
     {
         if constexpr (!klib::is_trivially_destructible_v<T>)
         {
-            for (size_t i = 0; i < length_; ++i)
+            for (usize i = 0; i < length_; ++i)
             {
                 data_[i].~T();
             }
@@ -110,17 +110,17 @@ public:
     T* data() { return data_; }
     const T* data() const { return data_; }
 
-    T& operator[](size_t index)
+    T& operator[](usize index)
     {
         return data_[index];
     }
 
-    const T& operator[](size_t index) const
+    const T& operator[](usize index) const
     {
         return data_[index];
     }
 
-    void erase(size_t index)
+    void erase(usize index)
     {
         if (index >= length_)
         {
@@ -132,7 +132,7 @@ public:
             data_[index].~T();
         }
 
-        for (size_t i = index; i < length_ - 1; ++i)
+        for (usize i = index; i < length_ - 1; ++i)
         {
             if constexpr (klib::is_trivially_copyable_v<T>)
             {
@@ -150,7 +150,7 @@ public:
 
     bool erase_value(const T& value)
     {
-        for (size_t i = 0; i < length_; ++i)
+        for (usize i = 0; i < length_; ++i)
         {
             if (data_[i] == value)
             {
@@ -205,7 +205,7 @@ public:
         return data_[length_ - 1];
     }
 
-    [[nodiscard]] size_t size() const { return length_; }
+    [[nodiscard]] usize size() const { return length_; }
     [[nodiscard]] bool empty() const { return length_ == 0; }
 
     // Iterator support (raw pointers)
@@ -218,10 +218,10 @@ public:
 
 private:
     T* data_;
-    size_t capacity_{0};
-    size_t length_{0};
+    usize capacity_{0};
+    usize length_{0};
 
-    void resize(size_t new_capacity)
+    void resize(usize new_capacity)
     {
         if (new_capacity <= capacity_) return;
         T* newdata = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
@@ -230,18 +230,18 @@ private:
         if constexpr (klib::is_trivially_copyable_v<T>)
         {
             // triviale Typen
-            for (size_t i = 0; i < length_; ++i)
+            for (usize i = 0; i < length_; ++i)
             {
                 newdata[i] = data_[i];
             }
         }
         else
         {
-            for (size_t i = 0; i < length_; ++i)
+            for (usize i = 0; i < length_; ++i)
             {
                 new(&newdata[i]) T(data_[i]); // copy-construct
             }
-            for (size_t i = 0; i < length_; ++i)
+            for (usize i = 0; i < length_; ++i)
             {
                 data_[i].~T();
             }
@@ -257,7 +257,7 @@ private:
         if (!data_) return;
         if constexpr (!klib::is_trivially_destructible_v<T>)
         {
-            for (size_t i = 0; i < length_; ++i)
+            for (usize i = 0; i < length_; ++i)
             {
                 data_[i].~T();
             }

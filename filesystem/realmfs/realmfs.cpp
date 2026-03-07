@@ -52,7 +52,7 @@ void RealmFs::init()
 }
 
 
-int RealmFs::register_realm(uint64_t realm_id, const char* name, void* realm_ptr)
+int RealmFs::register_realm(u64 realm_id, const char* name, void* realm_ptr)
 {
     SpinlockGuard guard(lock_);
 
@@ -72,7 +72,7 @@ int RealmFs::register_realm(uint64_t realm_id, const char* name, void* realm_ptr
     return SUCCESS_CODE;
 }
 
-int RealmFs::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, const char* realm_name)
+int RealmFs::register_unit(u64 unit_id, const char* name, void* unit_ptr, const char* realm_name)
 {
     SpinlockGuard guard(lock_);
 
@@ -97,13 +97,13 @@ int RealmFs::register_unit(uint64_t unit_id, const char* name, void* unit_ptr, c
     return SUCCESS_CODE;
 }
 
-int RealmFs::unregister_realm(uint64_t realm_id)
+int RealmFs::unregister_realm(u64 realm_id)
 {
     SpinlockGuard guard(lock_);
 
     auto* root_data = static_cast<DirData*>(root_->internal_data);
 
-    for (size_t i = 0; i < root_data->subdirs.size(); i++)
+    for (usize i = 0; i < root_data->subdirs.size(); i++)
     {
         VfsNode* realm_dir = root_data->subdirs[i];
 
@@ -130,7 +130,7 @@ int RealmFs::unregister_realm(uint64_t realm_id)
     return -ENOENT;
 }
 
-int RealmFs::unregister_unit(uint64_t unit_id)
+int RealmFs::unregister_unit(u64 unit_id)
 {
     SpinlockGuard guard(lock_);
 
@@ -140,7 +140,7 @@ int RealmFs::unregister_unit(uint64_t unit_id)
         if (!units_dir) continue;
 
         auto* units_data = static_cast<DirData*>(units_dir->internal_data);
-        for (size_t i = 0; i < units_data->files.size(); i++)
+        for (usize i = 0; i < units_data->files.size(); i++)
         {
             VfsNode* u_node = units_data->files[i];
             if (const auto* u_entry = static_cast<RealmFsEntry*>(u_node->internal_data);
@@ -156,7 +156,7 @@ int RealmFs::unregister_unit(uint64_t unit_id)
     return -ENOENT;
 }
 
-ssize_t RealmFs::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
+isize RealmFs::read(const VfsNode* node, usize offset, usize size, void* buffer)
 {
     if (!node) return -EINVAL;
 
@@ -175,7 +175,7 @@ ssize_t RealmFs::read(const VfsNode* node, size_t offset, size_t size, void* buf
     return -ENFILE;
 }
 
-ssize_t RealmFs::write(VfsNode* node, size_t offset, size_t size, const void* buffer)
+isize RealmFs::write(VfsNode* node, usize offset, usize size, const void* buffer)
 {
     if (!node) return -EINVAL;
 
@@ -194,7 +194,7 @@ ssize_t RealmFs::write(VfsNode* node, size_t offset, size_t size, const void* bu
     return -EUNSUPPORTED;
 }
 
-ssize_t RealmFs::ioctl(const VfsNode* node, uint32_t cmd, void* arg)
+isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg)
 {
     if (!node) return -EINVAL;
 

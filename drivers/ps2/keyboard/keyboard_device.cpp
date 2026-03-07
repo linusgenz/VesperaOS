@@ -54,13 +54,13 @@ Ps2KeyboardDevice::~Ps2KeyboardDevice()
 int Ps2KeyboardDevice::open(CharFile** out_cf) { return 0; }
 int Ps2KeyboardDevice::release(CharFile*) { return 0; }
 
-ssize_t Ps2KeyboardDevice::read(CharFile*, void* buffer, size_t count, size_t)
+isize Ps2KeyboardDevice::read(CharFile*, void* buffer, usize count, usize)
 {
     //return kernel::input::InputManager::read_keyboard(buffer, count);
     return 0;
 }
 
-ssize_t Ps2KeyboardDevice::write(CharFile*, const void*, size_t)
+isize Ps2KeyboardDevice::write(CharFile*, const void*, usize)
 {
     return 0;
 }

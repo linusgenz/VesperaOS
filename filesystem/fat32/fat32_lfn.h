@@ -28,18 +28,18 @@
 
 namespace fat32
 {
-    uint8_t chk_sum(const char* short_name);
-    bool copy_lfn_part(const LongFileName* lfn, char* buffer, size_t& pos, size_t max_len);
+    u8 chk_sum(const char* short_name);
+    bool copy_lfn_part(const LongFileName* lfn, char* buffer, usize& pos, usize max_len);
     bool make_short_name(const char* input, char* output11);
-    void extract_short_name(const unsigned char* raw_name, char* short_name_buffer, size_t buffer_size);
+    void extract_short_name(const unsigned char* raw_name, char* short_name_buffer, usize buffer_size);
 
 
-    bool write_lfn_entries(DirectoryEntry* entries, size_t start_index,
+    bool write_lfn_entries(DirectoryEntry* entries, usize start_index,
                          const char* long_name, const char* short_name,
-                         size_t name_len);
+                         usize name_len);
 
 
-    size_t find_first_lfn_index(const FileEntry* entries, size_t short_name_index);
+    usize find_first_lfn_index(const FileEntry* entries, usize short_name_index);
 }
 
 #endif //VESPERAOS_FAT32_LFN_H

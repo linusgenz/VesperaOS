@@ -12,11 +12,11 @@
 #ifndef VESPERAOS_FAULT_LOGGER_H
 #define VESPERAOS_FAULT_LOGGER_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace kernel::debug {
 
-    enum class FaultType : uint8_t {
+    enum class FaultType : u8 {
         PageFault,
         DoubleFault,
         GeneralProtection,
@@ -30,19 +30,19 @@ namespace kernel::debug {
     };
 
     struct FaultContext {
-        uint64_t rip;
-        uint64_t cs;
-        uint64_t rsp;
-        uint64_t rflags;
-        uint64_t rbp;
-        uint64_t error_code;
+        u64 rip;
+        u64 cs;
+        u64 rsp;
+        u64 rflags;
+        u64 rbp;
+        u64 error_code;
     };
 
     void log_fault(FaultType type, const FaultContext& ctx, const char* extra_msg = nullptr);
 
-    void log_page_fault_detail(uint64_t fault_addr, uint64_t error_code, const FaultContext& ctx);
+    void log_page_fault_detail(u64 fault_addr, u64 error_code, const FaultContext& ctx);
 
-    void log_invalid_opcode_bytes(uint64_t rip, const FaultContext& ctx);
+    void log_invalid_opcode_bytes(u64 rip, const FaultContext& ctx);
 
 }  // namespace kernel::debug
 

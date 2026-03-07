@@ -43,10 +43,10 @@ namespace kernel {
     Channel *SystemManager::log_channel_ = nullptr;
 
     SystemManager::SystemChannel SystemManager::system_channels_[MAX_SYSTEM_CHANNELS];
-    size_t SystemManager::channel_count_ = 0;
+    usize SystemManager::channel_count_ = 0;
 
     SystemStats SystemManager::current_stats_ = {};
-    uint64_t SystemManager::boot_timestamp_ = 0;
+    u64 SystemManager::boot_timestamp_ = 0;
     bool SystemManager::event_logging_enabled_ = true;
 
     ILogWriter *SystemManager::log_writer_ = nullptr;
@@ -183,7 +183,7 @@ namespace kernel {
 
         //  mutex_acquire(&stats_mutex);
 
-        uint64_t now = get_current_timestamp();
+        u64 now = get_current_timestamp();
         current_stats_.uptime_ms = now - boot_timestamp_;
         current_stats_.last_update_timestamp = now;
 
@@ -202,7 +202,7 @@ namespace kernel {
         //  mutex_release(&stats_mutex);
     }
 
-    Channel *SystemManager::create_system_channel(const char *name, size_t buffer_size) {
+    Channel *SystemManager::create_system_channel(const char *name, usize buffer_size) {
         if (!manager_initialized_ || !name) return nullptr;
 
         global_lock_.lock();
@@ -243,12 +243,12 @@ namespace kernel {
 
         global_lock_.lock();
 
-        for (size_t i = 0; i < channel_count_; i++) {
+        for (usize i = 0; i < channel_count_; i++) {
             if (strcmp(system_channels_[i].name, name) == 0) {
                 Channel::destroy(system_channels_[i].channel);
 
                 // Array kompaktieren
-                for (size_t j = i; j < channel_count_ - 1; j++) {
+                for (usize j = i; j < channel_count_ - 1; j++) {
                     system_channels_[j] = system_channels_[j + 1];
                 }
                 channel_count_--;
@@ -306,7 +306,7 @@ namespace kernel {
         }
     }
 
-    [[noreturn]] void SystemManager::system_panic(const char *message, int32_t error_code) {
+    [[noreturn]] void SystemManager::system_panic(const char *message, i32 error_code) {
         SystemEvent panic_event = {};
         panic_event.type = SystemEventType::SYSTEM_PANIC;
         panic_event.timestamp = get_current_timestamp();
@@ -337,7 +337,7 @@ namespace kernel {
 
         Log::info("SystemManager: Active system channels (%u/%u):", channel_count_, MAX_SYSTEM_CHANNELS);
 
-        for (size_t i = 0; i < channel_count_; i++) {
+        for (usize i = 0; i < channel_count_; i++) {
             SystemChannel *chan = &system_channels_[i];
             Log::info(
                 "  [%zu] %s (created: % ms ago)", i, chan->name, get_current_timestamp() - chan->created_timestamp
@@ -404,7 +404,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_device_lifecycle(const char *device_name, uint32_t device_id, bool registered) {
+    void SystemManager::notify_device_lifecycle(const char *device_name, u32 device_id, bool registered) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -421,7 +421,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_memory_pressure(uint64_t available_bytes) {
+    void SystemManager::notify_memory_pressure(u64 available_bytes) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -455,7 +455,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    uint64_t SystemManager::get_current_timestamp() {
+    u64 SystemManager::get_current_timestamp() {
         return time::get_uptime_ms();
     }
 
@@ -463,8 +463,8 @@ namespace kernel {
         // TODO: Implement CPU usage calculation mithilfe CPUManager
         memset(current_stats_.cpu_usage, 0, sizeof(current_stats_.cpu_usage));
         // Wenn CPUManager eine API bietet, hier auslesen:
-        // uint32_t cpu_count = CPUManager::total_cpus;
-        // for (uint32_t i=0; i<cpu_count && i<32; ++i) current_stats.cpu_usage[i] = CPUManager::get_usage(i);
+        // u32 cpu_count = CPUManager::total_cpus;
+        // for (u32 i=0; i<cpu_count && i<32; ++i) current_stats.cpu_usage[i] = CPUManager::get_usage(i);
     }
 
     void SystemManager::update_memory_stats() {
@@ -477,7 +477,7 @@ namespace kernel {
     SystemManager::SystemChannel *SystemManager::find_channel_by_name(const char *name) {
         if (!name) return nullptr;
 
-        for (size_t i = 0; i < channel_count_; i++) {
+        for (usize i = 0; i < channel_count_; i++) {
             if (strcmp(system_channels_[i].name, name) == 0) {
                 return &system_channels_[i];
             }
@@ -497,15 +497,15 @@ namespace kernel {
         global_lock_.unlock();
     }
 
-    void SystemManager::process_events_to_logs(size_t max_events_to_process) {
+    void SystemManager::process_events_to_logs(usize max_events_to_process) {
         if (!manager_initialized_ || !event_channel_) return;
         if (max_events_to_process == 0) return;
 
         SystemEvent evbuf{};
-        size_t processed = 0;
+        usize processed = 0;
 
         while (processed < max_events_to_process) {
-            if (const ssize_t read_bytes = event_channel_->recv(&evbuf, sizeof(evbuf)); read_bytes <= 0) break;
+            if (const isize read_bytes = event_channel_->recv(&evbuf, sizeof(evbuf)); read_bytes <= 0) break;
 
             char line[512];
             int n = 0;
@@ -515,7 +515,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] KERNEL_LOG cpu=%u msg=\"%s\" code=%u\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.log_event.message,
                         evbuf.data.log_event.error_code
@@ -526,7 +526,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] UNIT_CREATED cpu=%u unit=%u realm=%u\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         static_cast<unsigned>(evbuf.data.unit_event.unit_id),
                         static_cast<unsigned>(evbuf.data.unit_event.realm_id)
@@ -537,7 +537,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] UNIT_DESTROYED cpu=%u unit=%u realm=%u\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         static_cast<unsigned>(evbuf.data.unit_event.unit_id),
                         static_cast<unsigned>(evbuf.data.unit_event.realm_id)
@@ -548,7 +548,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] REALM_CREATED cpu=%u realm=%u name=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         static_cast<unsigned>(evbuf.data.realm_event.realm_id),
                         evbuf.data.realm_event.name
@@ -559,7 +559,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] REALM_DESTROYED cpu=%u realm=%u name=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         static_cast<unsigned>(evbuf.data.realm_event.realm_id),
                         evbuf.data.realm_event.name
@@ -570,7 +570,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] DEVICE_REGISTERED cpu=%u id=%u name=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.device_event.device_id,
                         evbuf.data.device_event.device_name
@@ -581,7 +581,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] DEVICE_REMOVED cpu=%u id=%u name=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.device_event.device_id,
                         evbuf.data.device_event.device_name
@@ -592,7 +592,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] MEMORY_LOW cpu=%u available=%lu threshold=%lu\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.memory_event.available_bytes,
                         evbuf.data.memory_event.threshold_bytes
@@ -603,7 +603,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] CPU_HIGH_USAGE cpu=%u usage=%u%%\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.data.cpu_event.cpu_id,
                         static_cast<unsigned>(evbuf.data.cpu_event.usage_percent)
                     );
@@ -613,7 +613,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] FILESYSTEM_MOUNT cpu=%u path=\"%s\" type=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.fs_event.fs_path,
                         evbuf.data.fs_event.fs_type
@@ -624,7 +624,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] FILESYSTEM_UNMOUNT cpu=%u path=\"%s\" type=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.fs_event.fs_path,
                         evbuf.data.fs_event.fs_type
@@ -635,7 +635,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] SYSTEM_SHUTDOWN cpu=%u msg=\"%s\"\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.log_event.message
                     );
@@ -645,7 +645,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] SYSTEM_PANIC cpu=%u msg=\"%s\" code=%u\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         evbuf.cpu_id,
                         evbuf.data.log_event.message,
                         evbuf.data.log_event.error_code
@@ -656,7 +656,7 @@ namespace kernel {
                         line,
                         sizeof(line),
                         "[%llu] UNKNOWN_EVENT type=%u\n",
-                        static_cast<uint64_t>(evbuf.timestamp),
+                        static_cast<u64>(evbuf.timestamp),
                         static_cast<unsigned>(evbuf.type)
                     );
                     break;
@@ -664,7 +664,7 @@ namespace kernel {
 
             if (n > 0) {
                 if (log_channel_) {
-                    log_channel_->send(line, static_cast<size_t>(n));
+                    log_channel_->send(line, static_cast<usize>(n));
                 }
 
                 global_lock_.lock();
@@ -672,7 +672,7 @@ namespace kernel {
                 global_lock_.unlock();
 
                 if (writer) {
-                    if (!writer->append_line(line, static_cast<size_t>(n))) {
+                    if (!writer->append_line(line, static_cast<usize>(n))) {
                         Log::warning("SystemManager: LogWriter append failed");
                     }
                 }

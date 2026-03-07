@@ -25,7 +25,7 @@
 
 #include <vespera/devices/char_device.h>
 
-URandomDevice::URandomDevice(const uint64_t seed)
+URandomDevice::URandomDevice(const u64 seed)
     : CharDevice( BusType::VIRTUAL)
     , state_(seed) {
 }
@@ -38,23 +38,23 @@ int URandomDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t URandomDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
-    if (count < sizeof(uint8_t) || !buffer) return -EINVAL;
+isize URandomDevice::read(CharFile*, void* buffer, const usize count, usize) {
+    if (count < sizeof(u8) || !buffer) return -EINVAL;
 
-    auto* out = static_cast<uint8_t*>(buffer);
-    for (size_t i = 0; i < count; i++) {
+    auto* out = static_cast<u8*>(buffer);
+    for (usize i = 0; i < count; i++) {
         out[i] = next();
     }
-    return static_cast<ssize_t>(count);
+    return static_cast<isize>(count);
 }
 
-ssize_t URandomDevice::write(CharFile*, const void* buffer, const size_t count) {
+isize URandomDevice::write(CharFile*, const void* buffer, const usize count) {
     (void)buffer;
     return -EUNSUPPORTED;
 }
 
 void URandomDevice::refill() {
-    uint64_t x = state_;
+    u64 x = state_;
     x ^= x << 13;
     x ^= x >> 7;
     x ^= x << 17;
@@ -62,12 +62,12 @@ void URandomDevice::refill() {
 
     // in Bytes zerlegen (Little Endian)
     for (int i = 0; i < 8; i++) {
-        dev_buffer_[i] = static_cast<uint8_t>(x >> (i * 8));
+        dev_buffer_[i] = static_cast<u8>(x >> (i * 8));
     }
     buffer_index_ = 0;
 }
 
-uint8_t URandomDevice::next() {
+u8 URandomDevice::next() {
     if (buffer_index_ >= 8) {
         refill();
     }

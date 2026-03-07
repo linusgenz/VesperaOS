@@ -24,475 +24,475 @@
 #ifndef VESPERAOS_ATA_H
 #define VESPERAOS_ATA_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 struct IDENTIFY_DEVICE_DATA
 {
     struct
     {
-        uint16_t reserved1 : 1;
-        uint16_t retired3 : 1;
-        uint16_t response_incomplete : 1;
-        uint16_t retired2 : 3;
-        uint16_t fixed_device : 1;
-        uint16_t removable_media : 1;
-        uint16_t retired1 : 7;
-        uint16_t device_type : 1;
+        u16 reserved1 : 1;
+        u16 retired3 : 1;
+        u16 response_incomplete : 1;
+        u16 retired2 : 3;
+        u16 fixed_device : 1;
+        u16 removable_media : 1;
+        u16 retired1 : 7;
+        u16 device_type : 1;
     } general_configuration;
 
-    uint16_t num_cylinders;
-    uint16_t specific_configuration;
-    uint16_t num_heads;
-    uint16_t retired1[2];
-    uint16_t num_sectors_per_track;
-    uint16_t vendor_unique1[3];
-    uint8_t serial_number[20];
-    uint16_t retired2[2];
-    uint16_t obsolete1;
-    uint8_t firmware_revision[8];
-    uint8_t model_number[40];
-    uint8_t maximum_block_transfer;
-    uint8_t vendor_unique2;
+    u16 num_cylinders;
+    u16 specific_configuration;
+    u16 num_heads;
+    u16 retired1[2];
+    u16 num_sectors_per_track;
+    u16 vendor_unique1[3];
+    u8 serial_number[20];
+    u16 retired2[2];
+    u16 obsolete1;
+    u8 firmware_revision[8];
+    u8 model_number[40];
+    u8 maximum_block_transfer;
+    u8 vendor_unique2;
 
     struct
     {
-        uint16_t feature_supported : 1;
-        uint16_t reserved : 15;
+        u16 feature_supported : 1;
+        u16 reserved : 15;
     } trusted_computing;
 
     struct
     {
-        uint8_t current_long_physical_sector_alignment : 2;
-        uint8_t reserved_byte49 : 6;
-        uint8_t dma_supported : 1;
-        uint8_t lba_supported : 1;
-        uint8_t iordy_disable : 1;
-        uint8_t iordy_supported : 1;
-        uint8_t reserved1 : 1;
-        uint8_t standby_timer_support : 1;
-        uint8_t reserved2 : 2;
-        uint16_t reserved_word50;
+        u8 current_long_physical_sector_alignment : 2;
+        u8 reserved_byte49 : 6;
+        u8 dma_supported : 1;
+        u8 lba_supported : 1;
+        u8 iordy_disable : 1;
+        u8 iordy_supported : 1;
+        u8 reserved1 : 1;
+        u8 standby_timer_support : 1;
+        u8 reserved2 : 2;
+        u16 reserved_word50;
     } capabilities;
 
-    uint16_t obsolete_words51[2];
+    u16 obsolete_words51[2];
 
     struct
     {
-        uint16_t translation_fields_valid : 3;
-        uint16_t reserved3 : 5;
-        uint16_t free_fall_control_sensitivity : 8;
+        u16 translation_fields_valid : 3;
+        u16 reserved3 : 5;
+        u16 free_fall_control_sensitivity : 8;
     };
 
-    uint16_t number_of_current_cylinders;
-    uint16_t number_of_current_heads;
-    uint16_t current_sectors_per_track;
-    uint32_t current_sector_capacity;
-    uint8_t current_multi_sector_setting;
+    u16 number_of_current_cylinders;
+    u16 number_of_current_heads;
+    u16 current_sectors_per_track;
+    u32 current_sector_capacity;
+    u8 current_multi_sector_setting;
 
     struct
     {
-        uint8_t multi_sector_setting_valid : 1;
-        uint8_t reserved_byte59 : 3;
-        uint8_t sanitize_feature_supported : 1;
-        uint8_t crypto_scramble_ext_command_supported : 1;
-        uint8_t overwrite_ext_command_supported : 1;
-        uint8_t block_erase_ext_command_supported : 1;
+        u8 multi_sector_setting_valid : 1;
+        u8 reserved_byte59 : 3;
+        u8 sanitize_feature_supported : 1;
+        u8 crypto_scramble_ext_command_supported : 1;
+        u8 overwrite_ext_command_supported : 1;
+        u8 block_erase_ext_command_supported : 1;
     };
 
-    uint32_t user_addressable_sectors;
-    uint16_t obsolete_word62;
+    u32 user_addressable_sectors;
+    u16 obsolete_word62;
 
     struct
     {
-        uint16_t multi_word_dma_support : 8;
-        uint16_t multi_word_dma_active : 8;
+        u16 multi_word_dma_support : 8;
+        u16 multi_word_dma_active : 8;
     };
 
     struct
     {
-        uint16_t advanced_pio_modes : 8;
-        uint16_t reserved_byte64 : 8;
+        u16 advanced_pio_modes : 8;
+        u16 reserved_byte64 : 8;
     };
 
-    uint16_t minimum_mw_xfer_cycle_time;
-    uint16_t recommended_mw_xfer_cycle_time;
-    uint16_t minimum_pio_cycle_time;
-    uint16_t minimum_pio_cycle_time_iordy;
+    u16 minimum_mw_xfer_cycle_time;
+    u16 recommended_mw_xfer_cycle_time;
+    u16 minimum_pio_cycle_time;
+    u16 minimum_pio_cycle_time_iordy;
 
     struct
     {
-        uint16_t zoned_capabilities : 2;
-        uint16_t non_volatile_write_cache : 1;
-        uint16_t extended_user_addressable_sectors_supported : 1;
-        uint16_t device_encrypts_all_user_data : 1;
-        uint16_t read_zero_after_trim_supported : 1;
-        uint16_t optional28_bit_commands_supported : 1;
-        uint16_t ieee1667 : 1;
-        uint16_t download_microcode_dma_supported : 1;
-        uint16_t set_max_set_password_unlock_dma_supported : 1;
-        uint16_t write_buffer_dma_supported : 1;
-        uint16_t read_buffer_dma_supported : 1;
-        uint16_t device_config_identify_set_dma_supported : 1;
-        uint16_t lpsaerc_supported : 1;
-        uint16_t deterministic_read_after_trim_supported : 1;
-        uint16_t c_fast_spec_supported : 1;
+        u16 zoned_capabilities : 2;
+        u16 non_volatile_write_cache : 1;
+        u16 extended_user_addressable_sectors_supported : 1;
+        u16 device_encrypts_all_user_data : 1;
+        u16 read_zero_after_trim_supported : 1;
+        u16 optional28_bit_commands_supported : 1;
+        u16 ieee1667 : 1;
+        u16 download_microcode_dma_supported : 1;
+        u16 set_max_set_password_unlock_dma_supported : 1;
+        u16 write_buffer_dma_supported : 1;
+        u16 read_buffer_dma_supported : 1;
+        u16 device_config_identify_set_dma_supported : 1;
+        u16 lpsaerc_supported : 1;
+        u16 deterministic_read_after_trim_supported : 1;
+        u16 c_fast_spec_supported : 1;
     } additional_supported;
 
-    uint16_t reserved_words70[5];
+    u16 reserved_words70[5];
 
     struct
     {
-        uint16_t queue_depth : 5;
-        uint16_t reserved_word75 : 11;
+        u16 queue_depth : 5;
+        u16 reserved_word75 : 11;
     };
 
     struct
     {
-        uint16_t reserved0 : 1;
-        uint16_t sata_gen1 : 1;
-        uint16_t sata_gen2 : 1;
-        uint16_t sata_gen3 : 1;
-        uint16_t reserved1 : 4;
-        uint16_t ncq : 1;
-        uint16_t hipm : 1;
-        uint16_t phy_events : 1;
-        uint16_t ncq_unload : 1;
-        uint16_t ncq_priority : 1;
-        uint16_t host_auto_ps : 1;
-        uint16_t device_auto_ps : 1;
-        uint16_t read_log_dma : 1;
-        uint16_t reserved2 : 1;
-        uint16_t current_speed : 3;
-        uint16_t ncq_streaming : 1;
-        uint16_t ncq_queue_mgmt : 1;
-        uint16_t ncq_receive_send : 1;
-        uint16_t devsl_pto_reduced_pwr_state : 1;
-        uint16_t reserved3 : 8;
+        u16 reserved0 : 1;
+        u16 sata_gen1 : 1;
+        u16 sata_gen2 : 1;
+        u16 sata_gen3 : 1;
+        u16 reserved1 : 4;
+        u16 ncq : 1;
+        u16 hipm : 1;
+        u16 phy_events : 1;
+        u16 ncq_unload : 1;
+        u16 ncq_priority : 1;
+        u16 host_auto_ps : 1;
+        u16 device_auto_ps : 1;
+        u16 read_log_dma : 1;
+        u16 reserved2 : 1;
+        u16 current_speed : 3;
+        u16 ncq_streaming : 1;
+        u16 ncq_queue_mgmt : 1;
+        u16 ncq_receive_send : 1;
+        u16 devsl_pto_reduced_pwr_state : 1;
+        u16 reserved3 : 8;
     } serial_ata_capabilities;
 
     struct
     {
-        uint16_t reserved0 : 1;
-        uint16_t non_zero_offsets : 1;
-        uint16_t dma_setup_auto_activate : 1;
-        uint16_t dipm : 1;
-        uint16_t in_order_data : 1;
-        uint16_t hardware_feature_control : 1;
-        uint16_t software_settings_preservation : 1;
-        uint16_t ncq_autosense : 1;
-        uint16_t devslp : 1;
-        uint16_t hybrid_information : 1;
-        uint16_t reserved1 : 6;
+        u16 reserved0 : 1;
+        u16 non_zero_offsets : 1;
+        u16 dma_setup_auto_activate : 1;
+        u16 dipm : 1;
+        u16 in_order_data : 1;
+        u16 hardware_feature_control : 1;
+        u16 software_settings_preservation : 1;
+        u16 ncq_autosense : 1;
+        u16 devslp : 1;
+        u16 hybrid_information : 1;
+        u16 reserved1 : 6;
     } serial_ata_features_supported;
 
     struct
     {
-        uint16_t reserved0 : 1;
-        uint16_t non_zero_offsets : 1;
-        uint16_t dma_setup_auto_activate : 1;
-        uint16_t dipm : 1;
-        uint16_t in_order_data : 1;
-        uint16_t hardware_feature_control : 1;
-        uint16_t software_settings_preservation : 1;
-        uint16_t device_auto_ps : 1;
-        uint16_t devslp : 1;
-        uint16_t hybrid_information : 1;
-        uint16_t reserved1 : 6;
+        u16 reserved0 : 1;
+        u16 non_zero_offsets : 1;
+        u16 dma_setup_auto_activate : 1;
+        u16 dipm : 1;
+        u16 in_order_data : 1;
+        u16 hardware_feature_control : 1;
+        u16 software_settings_preservation : 1;
+        u16 device_auto_ps : 1;
+        u16 devslp : 1;
+        u16 hybrid_information : 1;
+        u16 reserved1 : 6;
     } serial_ata_features_enabled;
 
-    uint16_t major_revision;
-    uint16_t minor_revision;
+    u16 major_revision;
+    u16 minor_revision;
 
     struct
     {
-        uint16_t smart_commands : 1;
-        uint16_t security_mode : 1;
-        uint16_t removable_media_feature : 1;
-        uint16_t power_management : 1;
-        uint16_t reserved1 : 1;
-        uint16_t write_cache : 1;
-        uint16_t look_ahead : 1;
-        uint16_t release_interrupt : 1;
-        uint16_t service_interrupt : 1;
-        uint16_t device_reset : 1;
-        uint16_t host_protected_area : 1;
-        uint16_t obsolete1 : 1;
-        uint16_t write_buffer : 1;
-        uint16_t read_buffer : 1;
-        uint16_t nop : 1;
-        uint16_t obsolete2 : 1;
-        uint16_t download_microcode : 1;
-        uint16_t dma_queued : 1;
-        uint16_t cfa : 1;
-        uint16_t advanced_pm : 1;
-        uint16_t msn : 1;
-        uint16_t power_up_in_standby : 1;
-        uint16_t manual_power_up : 1;
-        uint16_t reserved2 : 1;
-        uint16_t set_max : 1;
-        uint16_t acoustics : 1;
-        uint16_t big_lba : 1;
-        uint16_t device_config_overlay : 1;
-        uint16_t flush_cache : 1;
-        uint16_t flush_cache_ext : 1;
-        uint16_t word_valid83 : 2;
-        uint16_t smart_error_log : 1;
-        uint16_t smart_self_test : 1;
-        uint16_t media_serial_number : 1;
-        uint16_t media_card_pass_through : 1;
-        uint16_t streaming_feature : 1;
-        uint16_t gp_logging : 1;
-        uint16_t write_fua : 1;
-        uint16_t write_queued_fua : 1;
-        uint16_t wwn64_bit : 1;
-        uint16_t urg_read_stream : 1;
-        uint16_t urg_write_stream : 1;
-        uint16_t reserved_for_tech_report : 2;
-        uint16_t idle_with_unload_feature : 1;
-        uint16_t word_valid : 2;
+        u16 smart_commands : 1;
+        u16 security_mode : 1;
+        u16 removable_media_feature : 1;
+        u16 power_management : 1;
+        u16 reserved1 : 1;
+        u16 write_cache : 1;
+        u16 look_ahead : 1;
+        u16 release_interrupt : 1;
+        u16 service_interrupt : 1;
+        u16 device_reset : 1;
+        u16 host_protected_area : 1;
+        u16 obsolete1 : 1;
+        u16 write_buffer : 1;
+        u16 read_buffer : 1;
+        u16 nop : 1;
+        u16 obsolete2 : 1;
+        u16 download_microcode : 1;
+        u16 dma_queued : 1;
+        u16 cfa : 1;
+        u16 advanced_pm : 1;
+        u16 msn : 1;
+        u16 power_up_in_standby : 1;
+        u16 manual_power_up : 1;
+        u16 reserved2 : 1;
+        u16 set_max : 1;
+        u16 acoustics : 1;
+        u16 big_lba : 1;
+        u16 device_config_overlay : 1;
+        u16 flush_cache : 1;
+        u16 flush_cache_ext : 1;
+        u16 word_valid83 : 2;
+        u16 smart_error_log : 1;
+        u16 smart_self_test : 1;
+        u16 media_serial_number : 1;
+        u16 media_card_pass_through : 1;
+        u16 streaming_feature : 1;
+        u16 gp_logging : 1;
+        u16 write_fua : 1;
+        u16 write_queued_fua : 1;
+        u16 wwn64_bit : 1;
+        u16 urg_read_stream : 1;
+        u16 urg_write_stream : 1;
+        u16 reserved_for_tech_report : 2;
+        u16 idle_with_unload_feature : 1;
+        u16 word_valid : 2;
     } command_set_support;
 
     struct
     {
-        uint16_t smart_commands : 1;
-        uint16_t security_mode : 1;
-        uint16_t removable_media_feature : 1;
-        uint16_t power_management : 1;
-        uint16_t reserved1 : 1;
-        uint16_t write_cache : 1;
-        uint16_t look_ahead : 1;
-        uint16_t release_interrupt : 1;
-        uint16_t service_interrupt : 1;
-        uint16_t device_reset : 1;
-        uint16_t host_protected_area : 1;
-        uint16_t obsolete1 : 1;
-        uint16_t write_buffer : 1;
-        uint16_t read_buffer : 1;
-        uint16_t nop : 1;
-        uint16_t obsolete2 : 1;
-        uint16_t download_microcode : 1;
-        uint16_t dma_queued : 1;
-        uint16_t cfa : 1;
-        uint16_t advanced_pm : 1;
-        uint16_t msn : 1;
-        uint16_t power_up_in_standby : 1;
-        uint16_t manual_power_up : 1;
-        uint16_t reserved2 : 1;
-        uint16_t set_max : 1;
-        uint16_t acoustics : 1;
-        uint16_t big_lba : 1;
-        uint16_t device_config_overlay : 1;
-        uint16_t flush_cache : 1;
-        uint16_t flush_cache_ext : 1;
-        uint16_t resrved3 : 1;
-        uint16_t words119_120_valid : 1;
-        uint16_t smart_error_log : 1;
-        uint16_t smart_self_test : 1;
-        uint16_t media_serial_number : 1;
-        uint16_t media_card_pass_through : 1;
-        uint16_t streaming_feature : 1;
-        uint16_t gp_logging : 1;
-        uint16_t write_fua : 1;
-        uint16_t write_queued_fua : 1;
-        uint16_t wwn64_bit : 1;
-        uint16_t urg_read_stream : 1;
-        uint16_t urg_write_stream : 1;
-        uint16_t reserved_for_tech_report : 2;
-        uint16_t idle_with_unload_feature : 1;
-        uint16_t reserved4 : 2;
+        u16 smart_commands : 1;
+        u16 security_mode : 1;
+        u16 removable_media_feature : 1;
+        u16 power_management : 1;
+        u16 reserved1 : 1;
+        u16 write_cache : 1;
+        u16 look_ahead : 1;
+        u16 release_interrupt : 1;
+        u16 service_interrupt : 1;
+        u16 device_reset : 1;
+        u16 host_protected_area : 1;
+        u16 obsolete1 : 1;
+        u16 write_buffer : 1;
+        u16 read_buffer : 1;
+        u16 nop : 1;
+        u16 obsolete2 : 1;
+        u16 download_microcode : 1;
+        u16 dma_queued : 1;
+        u16 cfa : 1;
+        u16 advanced_pm : 1;
+        u16 msn : 1;
+        u16 power_up_in_standby : 1;
+        u16 manual_power_up : 1;
+        u16 reserved2 : 1;
+        u16 set_max : 1;
+        u16 acoustics : 1;
+        u16 big_lba : 1;
+        u16 device_config_overlay : 1;
+        u16 flush_cache : 1;
+        u16 flush_cache_ext : 1;
+        u16 resrved3 : 1;
+        u16 words119_120_valid : 1;
+        u16 smart_error_log : 1;
+        u16 smart_self_test : 1;
+        u16 media_serial_number : 1;
+        u16 media_card_pass_through : 1;
+        u16 streaming_feature : 1;
+        u16 gp_logging : 1;
+        u16 write_fua : 1;
+        u16 write_queued_fua : 1;
+        u16 wwn64_bit : 1;
+        u16 urg_read_stream : 1;
+        u16 urg_write_stream : 1;
+        u16 reserved_for_tech_report : 2;
+        u16 idle_with_unload_feature : 1;
+        u16 reserved4 : 2;
     } command_set_active;
 
     struct
     {
-        uint16_t ultra_dma_support : 8;
-        uint16_t ultra_dma_active : 8;
+        u16 ultra_dma_support : 8;
+        u16 ultra_dma_active : 8;
     };
 
     struct
     {
-        uint16_t time_required : 15;
-        uint16_t extended_time_reported : 1;
+        u16 time_required : 15;
+        u16 extended_time_reported : 1;
     } normal_security_erase_unit;
 
     struct
     {
-        uint16_t time_required : 15;
-        uint16_t extended_time_reported : 1;
+        u16 time_required : 15;
+        u16 extended_time_reported : 1;
     } enhanced_security_erase_unit;
 
-    uint16_t current_apm_level : 8;
-    uint16_t reserved_word91 : 8;
-    uint16_t master_password_id;
-    uint16_t hardware_reset_result;
-    uint16_t current_acoustic_value : 8;
-    uint16_t recommended_acoustic_value : 8;
+    u16 current_apm_level : 8;
+    u16 reserved_word91 : 8;
+    u16 master_password_id;
+    u16 hardware_reset_result;
+    u16 current_acoustic_value : 8;
+    u16 recommended_acoustic_value : 8;
 
-    uint16_t stream_min_request_size;
-    uint16_t streaming_transfer_time_dma;
-    uint16_t streaming_access_latency_dmapio;
-    uint32_t streaming_perf_granularity;
-    uint32_t max48_bit_lba[2];
-    uint16_t streaming_transfer_time;
-    uint16_t dsm_cap;
+    u16 stream_min_request_size;
+    u16 streaming_transfer_time_dma;
+    u16 streaming_access_latency_dmapio;
+    u32 streaming_perf_granularity;
+    u32 max48_bit_lba[2];
+    u16 streaming_transfer_time;
+    u16 dsm_cap;
 
     struct
     {
-        uint16_t logical_sectors_per_physical_sector : 4;
-        uint16_t reserved0 : 8;
-        uint16_t logical_sector_longer_than256_words : 1;
-        uint16_t multiple_logical_sectors_per_physical_sector : 1;
-        uint16_t reserved1 : 2;
+        u16 logical_sectors_per_physical_sector : 4;
+        u16 reserved0 : 8;
+        u16 logical_sector_longer_than256_words : 1;
+        u16 multiple_logical_sectors_per_physical_sector : 1;
+        u16 reserved1 : 2;
     } physical_logical_sector_size;
 
-    uint16_t inter_seek_delay;
-    uint16_t world_wide_name[4];
-    uint16_t reserved_for_world_wide_name128[4];
-    uint16_t reserved_for_tlc_technical_report;
-    uint16_t words_per_logical_sector[2];
+    u16 inter_seek_delay;
+    u16 world_wide_name[4];
+    u16 reserved_for_world_wide_name128[4];
+    u16 reserved_for_tlc_technical_report;
+    u16 words_per_logical_sector[2];
 
     struct
     {
-        uint16_t reserved_for_drq_technical_report : 1;
-        uint16_t write_read_verify : 1;
-        uint16_t write_uncorrectable_ext : 1;
-        uint16_t read_write_log_dma_ext : 1;
-        uint16_t download_microcode_mode3 : 1;
-        uint16_t freefall_control : 1;
-        uint16_t sense_data_reporting : 1;
-        uint16_t extended_power_conditions : 1;
-        uint16_t reserved0 : 6;
-        uint16_t word_valid : 2;
+        u16 reserved_for_drq_technical_report : 1;
+        u16 write_read_verify : 1;
+        u16 write_uncorrectable_ext : 1;
+        u16 read_write_log_dma_ext : 1;
+        u16 download_microcode_mode3 : 1;
+        u16 freefall_control : 1;
+        u16 sense_data_reporting : 1;
+        u16 extended_power_conditions : 1;
+        u16 reserved0 : 6;
+        u16 word_valid : 2;
     } command_set_support_ext;
 
     struct
     {
-        uint16_t reserved_for_drq_technical_report : 1;
-        uint16_t write_read_verify : 1;
-        uint16_t write_uncorrectable_ext : 1;
-        uint16_t read_write_log_dma_ext : 1;
-        uint16_t download_microcode_mode3 : 1;
-        uint16_t freefall_control : 1;
-        uint16_t sense_data_reporting : 1;
-        uint16_t extended_power_conditions : 1;
-        uint16_t reserved0 : 6;
-        uint16_t reserved1 : 2;
+        u16 reserved_for_drq_technical_report : 1;
+        u16 write_read_verify : 1;
+        u16 write_uncorrectable_ext : 1;
+        u16 read_write_log_dma_ext : 1;
+        u16 download_microcode_mode3 : 1;
+        u16 freefall_control : 1;
+        u16 sense_data_reporting : 1;
+        u16 extended_power_conditions : 1;
+        u16 reserved0 : 6;
+        u16 reserved1 : 2;
     } command_set_active_ext;
 
-    uint16_t reserved_for_expanded_supportand_active[6];
+    u16 reserved_for_expanded_supportand_active[6];
 
     struct
     {
-        uint16_t msn_support : 2;
-        uint16_t reserved_word127 : 14;
+        u16 msn_support : 2;
+        u16 reserved_word127 : 14;
     };
 
     struct
     {
-        uint16_t security_supported : 1;
-        uint16_t security_enabled : 1;
-        uint16_t security_locked : 1;
-        uint16_t security_frozen : 1;
-        uint16_t security_count_expired : 1;
-        uint16_t enhanced_security_erase_supported : 1;
-        uint16_t reserved0 : 2;
-        uint16_t security_level : 1;
-        uint16_t reserved1 : 7;
+        u16 security_supported : 1;
+        u16 security_enabled : 1;
+        u16 security_locked : 1;
+        u16 security_frozen : 1;
+        u16 security_count_expired : 1;
+        u16 enhanced_security_erase_supported : 1;
+        u16 reserved0 : 2;
+        u16 security_level : 1;
+        u16 reserved1 : 7;
     } security_status;
 
-    uint16_t reserved_word129[31];
+    u16 reserved_word129[31];
 
     struct
     {
-        uint16_t maximum_current_in_ma : 12;
-        uint16_t cfa_power_mode_1disabled : 1;
-        uint16_t cfa_power_mode1_required : 1;
-        uint16_t reserved0 : 1;
-        uint16_t word160_supported : 1;
+        u16 maximum_current_in_ma : 12;
+        u16 cfa_power_mode_1disabled : 1;
+        u16 cfa_power_mode1_required : 1;
+        u16 reserved0 : 1;
+        u16 word160_supported : 1;
     } cfa_power_mode1;
 
-    uint16_t reserved_for_cfa_word161[7];
+    u16 reserved_for_cfa_word161[7];
 
-    uint16_t nominal_form_factor : 4;
-    uint16_t reserved_word168 : 12;
+    u16 nominal_form_factor : 4;
+    u16 reserved_word168 : 12;
 
     struct
     {
-        uint16_t supports_trim : 1;
-        uint16_t reserved0 : 15;
+        u16 supports_trim : 1;
+        u16 reserved0 : 15;
     } data_set_management_feature;
 
-    uint16_t additional_product_id[4];
-    uint16_t reserved_for_cfa_word174[2];
-    uint16_t current_media_serial_number[30];
+    u16 additional_product_id[4];
+    u16 reserved_for_cfa_word174[2];
+    u16 current_media_serial_number[30];
 
     struct
     {
-        uint16_t supported : 1;
-        uint16_t reserved0 : 1;
-        uint16_t write_same_suported : 1;
-        uint16_t error_recovery_control_supported : 1;
-        uint16_t feature_control_suported : 1;
-        uint16_t data_tables_suported : 1;
-        uint16_t reserved1 : 6;
-        uint16_t vendor_specific : 4;
+        u16 supported : 1;
+        u16 reserved0 : 1;
+        u16 write_same_suported : 1;
+        u16 error_recovery_control_supported : 1;
+        u16 feature_control_suported : 1;
+        u16 data_tables_suported : 1;
+        u16 reserved1 : 6;
+        u16 vendor_specific : 4;
     } sct_command_transport;
 
-    uint16_t reserved_word207[2];
+    u16 reserved_word207[2];
 
     struct
     {
-        uint16_t alignment_of_logical_within_physical : 14;
-        uint16_t word209_supported : 1;
-        uint16_t reserved0 : 1;
+        u16 alignment_of_logical_within_physical : 14;
+        u16 word209_supported : 1;
+        u16 reserved0 : 1;
     } block_alignment;
 
-    uint16_t write_read_verify_sector_count_mode3_only[2];
-    uint16_t write_read_verify_sector_count_mode2_only[2];
+    u16 write_read_verify_sector_count_mode3_only[2];
+    u16 write_read_verify_sector_count_mode2_only[2];
 
     struct
     {
-        uint16_t nv_cache_power_mode_enabled : 1;
-        uint16_t reserved0 : 3;
-        uint16_t nv_cache_feature_set_enabled : 1;
-        uint16_t reserved1 : 3;
-        uint16_t nv_cache_power_mode_version : 4;
-        uint16_t nv_cache_feature_set_version : 4;
+        u16 nv_cache_power_mode_enabled : 1;
+        u16 reserved0 : 3;
+        u16 nv_cache_feature_set_enabled : 1;
+        u16 reserved1 : 3;
+        u16 nv_cache_power_mode_version : 4;
+        u16 nv_cache_feature_set_version : 4;
     } nv_cache_capabilities;
 
-    uint16_t nv_cache_size_lsw;
-    uint16_t nv_cache_size_msw;
-    uint16_t nominal_media_rotation_rate;
-    uint16_t reserved_word218;
+    u16 nv_cache_size_lsw;
+    u16 nv_cache_size_msw;
+    u16 nominal_media_rotation_rate;
+    u16 reserved_word218;
 
     struct
     {
-        uint8_t nv_cache_estimated_time_to_spin_up_in_seconds;
-        uint8_t reserved;
+        u8 nv_cache_estimated_time_to_spin_up_in_seconds;
+        u8 reserved;
     } nv_cache_options;
 
-    uint16_t write_read_verify_sector_count_mode : 8;
-    uint16_t reserved_word220 : 8;
-    uint16_t reserved_word221;
+    u16 write_read_verify_sector_count_mode : 8;
+    u16 reserved_word220 : 8;
+    u16 reserved_word221;
 
     struct
     {
-        uint16_t major_version : 12;
-        uint16_t transport_type : 4;
+        u16 major_version : 12;
+        u16 transport_type : 4;
     } transport_major_version;
 
-    uint16_t transport_minor_version;
-    uint16_t reserved_word224[6];
+    u16 transport_minor_version;
+    u16 reserved_word224[6];
 
-    uint32_t extended_number_of_user_addressable_sectors[2];
-    uint16_t min_blocks_per_download_microcode_mode03;
-    uint16_t max_blocks_per_download_microcode_mode03;
+    u32 extended_number_of_user_addressable_sectors[2];
+    u16 min_blocks_per_download_microcode_mode03;
+    u16 max_blocks_per_download_microcode_mode03;
 
-    uint16_t reserved_word236[19];
+    u16 reserved_word236[19];
 
     struct
     {
-        uint16_t signature : 8;
-        uint16_t check_sum : 8;
+        u16 signature : 8;
+        u16 check_sum : 8;
     };
 } __attribute__((packed));
 

@@ -40,7 +40,7 @@ public:
         type = Type::Disk;
     }
 
-    ssize_t read(uint64_t lba,
+    ssize_t read(u64 lba,
                  size_t sectorCount,
                  void* buffer,
                  size_t bufferSize) override
@@ -55,7 +55,7 @@ public:
         return len;
     }
 
-    ssize_t write(uint64_t lba,
+    ssize_t write(u64 lba,
                   size_t sectorCount,
                   void* buffer,
                   size_t bufferSize) override

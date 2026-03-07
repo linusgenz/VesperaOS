@@ -25,13 +25,13 @@
 #define PS2_MOUSE_H
 
 #include "../ps2_controller.h"
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace ps2::mouse {
 
     void init();
-    void send_cmd(uint8_t byte);
-    uint8_t recv_response();
+    void send_cmd(u8 byte);
+    u8 recv_response();
 }
 
 #endif //PS2_MOUSE_H

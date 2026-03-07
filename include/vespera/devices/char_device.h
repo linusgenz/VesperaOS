@@ -48,10 +48,10 @@ class CharDevice {
     virtual int open(CharFile** out_cf) = 0;
     virtual int release(CharFile* cf) = 0;
 
-    virtual ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) = 0;
-    virtual ssize_t write(CharFile* cf, const void* buffer, size_t count) = 0;
+    virtual isize read(CharFile* cf, void* buffer, usize count, usize offset) = 0;
+    virtual isize write(CharFile* cf, const void* buffer, usize count) = 0;
 
-    virtual int ioctl(CharFile*, uint32_t, void*) {
+    virtual int ioctl(CharFile*, u32, void*) {
         return -ENOTTY;
     }
 

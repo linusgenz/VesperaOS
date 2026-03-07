@@ -28,8 +28,8 @@
 #include "../../cpu/cpu_manager.h"
 
 namespace syscalls::internal {
-    int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+    i64 sys_exit(u64 code, u64, u64, u64, u64, u64) {
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
         kernel::scheduling::cpu_scheduler::CpuScheduler* cpu = kernel::scheduling::get_cpu_data(cpu_id);
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) {

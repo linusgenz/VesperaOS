@@ -38,7 +38,7 @@ int RtcDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t RtcDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+isize RtcDevice::read(CharFile*, void* buffer, usize count, usize) {
     if (count < sizeof(RtcData) || !buffer) return -EINVAL;
 
     RtcData data{};
@@ -48,7 +48,7 @@ ssize_t RtcDevice::read(CharFile*, void* buffer, size_t count, size_t) {
     return sizeof(RtcData);
 }
 
-ssize_t RtcDevice::write(CharFile*, const void* buffer, size_t count) {
+isize RtcDevice::write(CharFile*, const void* buffer, usize count) {
     (void)buffer;
     return -EUNSUPPORTED;  // maybe add cmos write support late
 }

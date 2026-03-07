@@ -4,53 +4,53 @@
 
 #ifndef ACPI_H
 #define ACPI_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace acpi {
     struct RSDP2 {
         unsigned char signature[8];
-        uint8_t checksum;
-        uint8_t oem_id[6];
-        uint8_t revision;
-        uint32_t rsdt_address;
-        uint32_t length;
-        uint64_t xsdt_address;
-        uint8_t extended_checksum;
-        uint8_t reserved[3];
+        u8 checksum;
+        u8 oem_id[6];
+        u8 revision;
+        u32 rsdt_address;
+        u32 length;
+        u64 xsdt_address;
+        u8 extended_checksum;
+        u8 reserved[3];
     } __attribute__((packed));
 
     struct SDT_HEADER {
         unsigned char signature[4];
-        uint32_t length;
-        uint8_t revision;
-        uint8_t checksum;
-        uint8_t oem_id[6];
-        uint8_t oem_table_id[8];
-        uint32_t oem_revision;
-        uint32_t creator_id;
-        uint32_t creator_revision;
+        u32 length;
+        u8 revision;
+        u8 checksum;
+        u8 oem_id[6];
+        u8 oem_table_id[8];
+        u32 oem_revision;
+        u32 creator_id;
+        u32 creator_revision;
     } __attribute__((packed));
 
     struct MCFG_HEADER {
         SDT_HEADER header;
-        uint64_t reserved;
+        u64 reserved;
     } __attribute__((packed));
 
     struct DeviceConfig {
-        uint64_t base_address;
-        uint16_t pci_seg_group;
-        uint8_t start_bus;
-        uint8_t end_bus;
-        uint32_t reserved;
+        u64 base_address;
+        u16 pci_seg_group;
+        u8 start_bus;
+        u8 end_bus;
+        u32 reserved;
     } __attribute__((packed));
 
     struct MADT_HEADER {
         SDT_HEADER header;  // ACPI Standard Header (signature = "APIC")
-        uint32_t lapic_address;
-        uint32_t flags;  // Bit 0 = PCAT_COMPAT (Legacy PICs installed)
+        u32 lapic_address;
+        u32 flags;  // Bit 0 = PCAT_COMPAT (Legacy PICs installed)
     } __attribute__((packed));
 
-    enum class MADT_ENTRY_TYPE : uint8_t {
+    enum class MADT_ENTRY_TYPE : u8 {
         LOCAL_APIC = 0,
         IO_APIC = 1,
         INTERRUPT_OVERRIDE = 2,
@@ -61,116 +61,116 @@ namespace acpi {
     };
 
     struct MADT_ENTRY_HEADER {
-        uint8_t type;
-        uint8_t length;
+        u8 type;
+        u8 length;
     } __attribute__((packed));
 
     struct LOCAL_APIC_ENTRY {
         MADT_ENTRY_HEADER header;
-        uint8_t acpi_processor_id;
-        uint8_t apic_id;
-        uint32_t flags;
+        u8 acpi_processor_id;
+        u8 apic_id;
+        u32 flags;
     } __attribute__((packed));
 
     struct IOAPIC_ENTRY {
         MADT_ENTRY_HEADER header;
-        uint8_t ioapic_id;
-        uint8_t reserved;
-        uint32_t ioapic_address;
-        uint32_t gsi_base;
+        u8 ioapic_id;
+        u8 reserved;
+        u32 ioapic_address;
+        u32 gsi_base;
     } __attribute__((packed));
 
     struct InterruptOverrideEntry {
         MADT_ENTRY_HEADER header;
-        uint8_t bus;
-        uint8_t irq_source;
-        uint32_t gsi;
-        uint16_t flags;
+        u8 bus;
+        u8 irq_source;
+        u32 gsi;
+        u16 flags;
     } __attribute__((packed));
 
     struct LAPICNMI_ENTRY {
         MADT_ENTRY_HEADER header;
-        uint8_t acpi_processor_id;
-        uint16_t flags;
-        uint8_t lint;
+        u8 acpi_processor_id;
+        u16 flags;
+        u8 lint;
     } __attribute__((packed));
 
     struct LAPIC_OVERRIDE_ENTRY {
         MADT_ENTRY_HEADER header;
-        uint16_t reserved;
-        uint64_t lapic_address;
+        u16 reserved;
+        u64 lapic_address;
     } __attribute__((packed));
 
     struct X2_APIC_ENTRY {
         MADT_ENTRY_HEADER header;
-        uint16_t reserved;
-        uint32_t x2_apic_id;
-        uint32_t flags;
-        uint32_t acpi_id;
+        u16 reserved;
+        u32 x2_apic_id;
+        u32 flags;
+        u32 acpi_id;
     } __attribute__((packed));
 
     struct GENERIC_ADDRESS_STRUCTURE {
-        uint8_t address_space;
-        uint8_t bit_width;
-        uint8_t bit_offset;
-        uint8_t access_size;
-        uint64_t address;
+        u8 address_space;
+        u8 bit_width;
+        u8 bit_offset;
+        u8 access_size;
+        u64 address;
     } __attribute__((packed));
 
     struct FADT {
         SDT_HEADER header;
-        uint32_t firmware_ctrl;
-        uint32_t dsdt;
+        u32 firmware_ctrl;
+        u32 dsdt;
 
-        uint8_t reserved;
+        u8 reserved;
 
-        uint8_t preferred_pm_profile;
-        uint16_t sci_interrupt;
-        uint32_t smi_command_port;
-        uint8_t acpi_enable;
-        uint8_t acpi_disable;
-        uint8_t s4_bios_req;
-        uint8_t pstate_control;
+        u8 preferred_pm_profile;
+        u16 sci_interrupt;
+        u32 smi_command_port;
+        u8 acpi_enable;
+        u8 acpi_disable;
+        u8 s4_bios_req;
+        u8 pstate_control;
 
-        uint32_t pm1_a_event_block;
-        uint32_t pm1_b_event_block;
-        uint32_t pm1_a_control_block;
-        uint32_t pm1_b_control_block;
-        uint32_t pm2_control_block;
-        uint32_t pm_timer_block;
-        uint32_t gpe0_block;
-        uint32_t gpe1_block;
+        u32 pm1_a_event_block;
+        u32 pm1_b_event_block;
+        u32 pm1_a_control_block;
+        u32 pm1_b_control_block;
+        u32 pm2_control_block;
+        u32 pm_timer_block;
+        u32 gpe0_block;
+        u32 gpe1_block;
 
-        uint8_t pm1_event_length;
-        uint8_t pm1_control_length;
-        uint8_t pm2_control_length;
-        uint8_t pm_timer_length;
-        uint8_t gpe0_length;
-        uint8_t gpe1_length;
-        uint8_t gpe1_base;
+        u8 pm1_event_length;
+        u8 pm1_control_length;
+        u8 pm2_control_length;
+        u8 pm_timer_length;
+        u8 gpe0_length;
+        u8 gpe1_length;
+        u8 gpe1_base;
 
-        uint8_t cstate_control;
-        uint16_t worst_c2_latency;
-        uint16_t worst_c3_latency;
-        uint16_t flush_size;
-        uint16_t flush_stride;
-        uint8_t duty_offset;
-        uint8_t duty_width;
-        uint8_t day_alarm;
-        uint8_t month_alarm;
-        uint8_t century;
+        u8 cstate_control;
+        u16 worst_c2_latency;
+        u16 worst_c3_latency;
+        u16 flush_size;
+        u16 flush_stride;
+        u8 duty_offset;
+        u8 duty_width;
+        u8 day_alarm;
+        u8 month_alarm;
+        u8 century;
 
-        uint16_t boot_architecture_flags;
+        u16 boot_architecture_flags;
 
-        uint8_t reserved2;
-        uint32_t flags;
+        u8 reserved2;
+        u32 flags;
 
         GENERIC_ADDRESS_STRUCTURE reset_reg;
-        uint8_t reset_value;
-        uint8_t reserved3[3];
+        u8 reset_value;
+        u8 reserved3[3];
 
-        uint64_t x_firmware_ctrl;
-        uint64_t x_dsdt;
+        u64 x_firmware_ctrl;
+        u64 x_dsdt;
 
         GENERIC_ADDRESS_STRUCTURE x_pm1_a_event_block;
         GENERIC_ADDRESS_STRUCTURE x_pm1_b_event_block;

@@ -28,11 +28,11 @@
 
 #include "xhci.h"
 
-constexpr size_t MAX_KEYS = 6;
+constexpr usize MAX_KEYS = 6;
 
 struct HidKeymapEntry
 {
-    uint8_t usage;
+    u8 usage;
     char normal;
     char shifted;
 };
@@ -56,7 +56,7 @@ static constexpr HidKeymapEntry HID_KEYMAP[] = {
     {0x37, '.', '>'}, {0x38, '/', '?'}
 };
 
-static char translate_hid_usage_to_ascii(uint8_t usage_id, uint32_t modifiers)
+static char translate_hid_usage_to_ascii(u8 usage_id, u32 modifiers)
 {
     bool shift = (modifiers & (KBD_MOD_LSHIFT | KBD_MOD_RSHIFT)) != 0;
 
@@ -80,24 +80,24 @@ void XhciKeyboardDriver::on_device_init(usb::XhciDriver* hcd)
     device_ = new UsbKeyboardDevice(name, hcd->get_device());
 }
 
-void XhciKeyboardDriver::on_device_event(uint8_t* data)
+void XhciKeyboardDriver::on_device_event(u8* data)
 {
-    const uint8_t* current_keys = &data[2];
-    uint8_t modifier_byte = data[0];
+    const u8* current_keys = &data[2];
+    u8 modifier_byte = data[0];
 
     process_input_report(current_keys, modifier_byte);
 }
 
 void XhciKeyboardDriver::process_input_report(
-    const uint8_t* current_keys, uint8_t modifier_byte
+    const u8* current_keys, u8 modifier_byte
 )
 {
-    uint32_t modifiers = modifier_byte;
+    u32 modifiers = modifier_byte;
 
     // --- Handle Key Presses ---
-    for (size_t i = 0; i < MAX_KEYS; ++i)
+    for (usize i = 0; i < MAX_KEYS; ++i)
     {
-        uint8_t key = current_keys[i];
+        u8 key = current_keys[i];
         if (key == 0) continue;
 
         bool was_previously_pressed = false;
@@ -114,7 +114,7 @@ void XhciKeyboardDriver::process_input_report(
         {
             char ascii = translate_hid_usage_to_ascii(key, modifiers);
 
-            alignas(16) uint8_t ev_buffer[sizeof(kernel::input::InputEvent)];
+            alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
             auto* ev = new(ev_buffer) kernel::input::InputEvent{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = key,
@@ -133,7 +133,7 @@ void XhciKeyboardDriver::process_input_report(
         if (key == 0) continue;
 
         bool is_still_pressed = false;
-        for (size_t j = 0; j < MAX_KEYS; ++j)
+        for (usize j = 0; j < MAX_KEYS; ++j)
         {
             if (current_keys[j] == key)
             {
@@ -146,7 +146,7 @@ void XhciKeyboardDriver::process_input_report(
         {
             char ascii = translate_hid_usage_to_ascii(key, modifiers);
 
-            alignas(16) uint8_t ev_buffer[sizeof(kernel::input::InputEvent)];
+            alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
             auto* ev = new(ev_buffer) kernel::input::InputEvent{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = key,

@@ -71,16 +71,16 @@
 #define XHCI_SCRATCHPAD_BUFFER_ARRAY_ALIGNMENT   64
 #define XHCI_SCRATCHPAD_BUFFERS_ALIGNMENT        PAGE_SIZE
 
-uintptr_t xhci_map_mmio(uint64_t pci_bar_address, uint32_t bar_size);
+uptr xhci_map_mmio(u64 pci_bar_address, u32 bar_size);
 
 void* alloc_xhci_memory(
-    size_t size,
-    size_t alignment = 64,
-    size_t boundary = PAGE_SIZE
+    usize size,
+    usize alignment = 64,
+    usize boundary = PAGE_SIZE
 );
 
 void free_xhci_memory(void* ptr);
 
-uintptr_t xhci_get_physical_addr(void* virt);
+uptr xhci_get_physical_addr(void* virt);
 
 #endif //XHCI_MEM_H

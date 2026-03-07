@@ -11,21 +11,21 @@ class GopRenderDriver final : public IRenderDriver {
 
     // IRenderDriver Interface
     void draw_glyph_run(const GlyphRun& run) override;
-    bool fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour) override;
+    bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
     bool scroll_pixels(int dy) override;
     bool blit_buffer(
-        const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x, uint32_t dst_y
+        const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y
     ) override;
-    [[nodiscard]] uint32_t screen_width_px() const override;
-    [[nodiscard]] uint32_t screen_height_px() const override;
-    [[nodiscard]] uint32_t bytes_per_scanline() const override;
+    [[nodiscard]] u32 screen_width_px() const override;
+    [[nodiscard]] u32 screen_height_px() const override;
+    [[nodiscard]] u32 bytes_per_scanline() const override;
 
     [[nodiscard]] KernelDevice* get_kd() const {
         return kd_;
     }
 
     // Niedrig-Level Funktionen für Terminal
-    void put_char(char c, uint32_t x, uint32_t y, uint32_t fg_color, uint32_t bg_color) const;
+    void put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color) const;
     // explizit an Position zeichnen
     void clear();  // gesamten Framebuffer löschen
 

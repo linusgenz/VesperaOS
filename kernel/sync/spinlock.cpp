@@ -35,7 +35,7 @@ void Spinlock::init(const char* name) {
 }
 
 void Spinlock::lock() {
-    // uint32_t uid = kernel::scheduling::get_current_unit()->id;
+    // u32 uid = kernel::scheduling::get_current_unit()->id;
 
     //  auto* info = lock_debug_find(this);
 
@@ -56,7 +56,7 @@ void Spinlock::lock() {
 }
 
 void Spinlock::unlock() {
-    // uint32_t uid = kernel::scheduling::get_current_unit()->id;
+    // u32 uid = kernel::scheduling::get_current_unit()->id;
 
     //  lock_debug_release(this, uid);
 

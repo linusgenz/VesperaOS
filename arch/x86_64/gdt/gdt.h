@@ -5,51 +5,51 @@
 #ifndef GDT_H
 #define GDT_H
 #include "../../../kernel/acpi/madt.h"
-#include <stdint.h>
+#include <vespera/types.h>
 
 struct __attribute__((packed)) GDT_ENTRY {
-    uint16_t limit_low;   // Limit bits 0-15
-    uint16_t base_low;    // Base bits 0-15
-    uint8_t base_middle;  // Base bits 16-23
-    uint8_t access;       // Access byte
-    uint8_t granularity;  // Flags + Limit bits 16-19
-    uint8_t base_high;    // Base bits 24-31
+    u16 limit_low;   // Limit bits 0-15
+    u16 base_low;    // Base bits 0-15
+    u8 base_middle;  // Base bits 16-23
+    u8 access;       // Access byte
+    u8 granularity;  // Flags + Limit bits 16-19
+    u8 base_high;    // Base bits 24-31
 };
 
 // TSS Descriptor (16 bytes)
 struct __attribute__((packed)) TSS_DESCRIPTOR {
-    uint16_t limit_low;   // Limit bits 0-15
-    uint16_t base_low;    // Base bits 0-15
-    uint8_t base_middle;  // Base bits 16-23
-    uint8_t access;       // Access byte
-    uint8_t granularity;  // Flags + Limit bits 16-19
-    uint8_t base_high;    // Base bits 24-31
-    uint32_t base_upper;  // Base bits 32-63
-    uint32_t reserved;    // Must be zero
+    u16 limit_low;   // Limit bits 0-15
+    u16 base_low;    // Base bits 0-15
+    u8 base_middle;  // Base bits 16-23
+    u8 access;       // Access byte
+    u8 granularity;  // Flags + Limit bits 16-19
+    u8 base_high;    // Base bits 24-31
+    u32 base_upper;  // Base bits 32-63
+    u32 reserved;    // Must be zero
 };
 
 struct __attribute__((packed)) TSS {
-    uint32_t reserved0;
-    uint64_t rsp0;
-    uint64_t rsp1;
-    uint64_t rsp2;
-    uint64_t reserved1;
-    uint64_t ist1;
-    uint64_t ist2;
-    uint64_t ist3;
-    uint64_t ist4;
-    uint64_t ist5;
-    uint64_t ist6;
-    uint64_t ist7;
-    uint64_t reserved2;
-    uint16_t reserved3;
-    uint16_t iomap_base;
+    u32 reserved0;
+    u64 rsp0;
+    u64 rsp1;
+    u64 rsp2;
+    u64 reserved1;
+    u64 ist1;
+    u64 ist2;
+    u64 ist3;
+    u64 ist4;
+    u64 ist5;
+    u64 ist6;
+    u64 ist7;
+    u64 reserved2;
+    u16 reserved3;
+    u16 iomap_base;
 };
 
 // GDTR (GDT Register)
 struct __attribute__((packed)) GDT_PTR {
-    uint16_t limit;
-    uint64_t base;
+    u16 limit;
+    u64 base;
 };
 
 // GDT Entries
@@ -59,7 +59,7 @@ extern TSS_DESCRIPTOR tss_desc;
 extern TSS tss[MAX_CPU_CORES];
 extern GDT_PTR gdt_ptr;
 
-void setup_cpu_tss(uint32_t cpu_id);
+void setup_cpu_tss(u32 cpu_id);
 
 void gdt_install();
 

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_COMPLETION_H
 #define VESPERAOS_COMPLETION_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 #include <vespera/sync/spinlock.h>
 
 struct Completion
@@ -36,7 +36,7 @@ struct Completion
 
     void wait() const;
 
-    [[nodiscard]] bool wait_timeout(uint64_t timeout_ms) const;
+    [[nodiscard]] bool wait_timeout(u64 timeout_ms) const;
 
     void complete();
 };

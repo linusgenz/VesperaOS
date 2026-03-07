@@ -61,9 +61,9 @@ void install_syscalls() {
 }
 
 extern "C" void syscall_handler(
-    uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5
+    u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5
 ) {
-    uint64_t ret = 0;
+    u64 ret = 0;
 
     if (num < MAX_SYSCALLS && syscall_table[num]) {
         asm volatile("sti");

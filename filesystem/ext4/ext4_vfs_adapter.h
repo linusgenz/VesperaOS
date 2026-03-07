@@ -28,18 +28,18 @@
 struct Ext4Node {
     ext4::FileSystem* fs;
     char path[256];
-    uint32_t inode;
+    u32 inode;
     bool is_dir;
-    size_t file_size;
+    usize file_size;
     void* entries; // EXT struct TODO
-    size_t entry_count;
-    size_t current_index;
+    usize entry_count;
+    usize current_index;
 };
 
 struct Ext4DirHandle {
     ext4::FileEntry* entries;
-    size_t count;
-    size_t index;
+    usize count;
+    usize index;
 };
 
 

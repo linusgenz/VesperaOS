@@ -27,10 +27,10 @@
 #include <vespera/devices/char_device.h>
 
 typedef struct {
-    uint64_t total_ram;
-    uint64_t used_ram;
-    uint64_t free_ram;
-    uint64_t reserved_ram;
+    u64 total_ram;
+    u64 used_ram;
+    u64 free_ram;
+    u64 reserved_ram;
 } meminfo_t;
 
 class MemInfoDevice final : public CharDevice {
@@ -39,8 +39,8 @@ class MemInfoDevice final : public CharDevice {
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;
-    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
-    ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
+    isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
+    isize write(CharFile* cf, const void* buffer, usize count) override;
 };
 
 #endif  // VESPERAOS_MEMINFO_H

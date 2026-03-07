@@ -53,109 +53,109 @@ namespace ahci {
     };
 
     struct HBA_PORT {
-        uint32_t command_list_base;
-        uint32_t command_list_base_upper;
-        uint32_t fis_base_address;
-        uint32_t fis_base_address_upper;
-        uint32_t interrupt_status;
-        uint32_t interrupt_enable;
-        uint32_t cmd_sts;
-        uint32_t rsv0;
-        uint32_t task_file_data;
-        uint32_t signature;
-        uint32_t sata_status;
-        uint32_t sata_control;
-        uint32_t sata_error;
-        uint32_t sata_active;
-        uint32_t command_issue;
-        uint32_t sata_notification;
-        uint32_t fis_switch_control;
-        uint32_t rsv1[11];
-        uint32_t vendor[4];
+        u32 command_list_base;
+        u32 command_list_base_upper;
+        u32 fis_base_address;
+        u32 fis_base_address_upper;
+        u32 interrupt_status;
+        u32 interrupt_enable;
+        u32 cmd_sts;
+        u32 rsv0;
+        u32 task_file_data;
+        u32 signature;
+        u32 sata_status;
+        u32 sata_control;
+        u32 sata_error;
+        u32 sata_active;
+        u32 command_issue;
+        u32 sata_notification;
+        u32 fis_switch_control;
+        u32 rsv1[11];
+        u32 vendor[4];
     };
 
     struct HBA_MEMORY {
-        uint32_t host_capability;
-        uint32_t global_host_control;
-        uint32_t interrupt_status;
-        uint32_t ports_implemented;
-        uint32_t version;
-        uint32_t ccc_control;
-        uint32_t ccc_ports;
-        uint32_t enclosure_management_location;
-        uint32_t enclosure_management_control;
-        uint32_t host_capabilities_extended;
-        uint32_t bios_handoff_ctrl_sts;
-        uint8_t rsv0[0x74];
-        uint8_t vendor[0x60];
+        u32 host_capability;
+        u32 global_host_control;
+        u32 interrupt_status;
+        u32 ports_implemented;
+        u32 version;
+        u32 ccc_control;
+        u32 ccc_ports;
+        u32 enclosure_management_location;
+        u32 enclosure_management_control;
+        u32 host_capabilities_extended;
+        u32 bios_handoff_ctrl_sts;
+        u8 rsv0[0x74];
+        u8 vendor[0x60];
         HBA_PORT ports[32];
     };
 
     struct HBA_COMMAND_HEADER {
-        uint8_t command_fis_length : 5;
-        uint8_t atapi : 1;
-        uint8_t write : 1;
-        uint8_t prefetchable : 1;
+        u8 command_fis_length : 5;
+        u8 atapi : 1;
+        u8 write : 1;
+        u8 prefetchable : 1;
 
-        uint8_t reset : 1;
-        uint8_t bist : 1;
-        uint8_t clear_busy : 1;
-        uint8_t rsv0 : 1;
-        uint8_t port_multiplier : 4;
+        u8 reset : 1;
+        u8 bist : 1;
+        u8 clear_busy : 1;
+        u8 rsv0 : 1;
+        u8 port_multiplier : 4;
 
-        uint16_t prdt_length;
-        uint32_t prdb_count;
-        uint32_t command_table_base_address;
-        uint32_t command_table_base_address_upper;
-        uint32_t rsv1[4];
+        u16 prdt_length;
+        u32 prdb_count;
+        u32 command_table_base_address;
+        u32 command_table_base_address_upper;
+        u32 rsv1[4];
     };
 
     struct HBA_PRDT_ENTRY {
-        uint32_t data_base_address;
-        uint32_t data_base_address_upper;
-        uint32_t rsv0;
+        u32 data_base_address;
+        u32 data_base_address_upper;
+        u32 rsv0;
 
-        uint32_t byte_count : 22;
-        uint32_t rsv1 : 9;
-        uint32_t interrupt_on_completion : 1;
+        u32 byte_count : 22;
+        u32 rsv1 : 9;
+        u32 interrupt_on_completion : 1;
     };
 
     struct HbaCommandTable {
-        uint8_t command_fis[64];
+        u8 command_fis[64];
 
-        uint8_t atapi_command[16];
+        u8 atapi_command[16];
 
-        uint8_t rsv[48];
+        u8 rsv[48];
 
         HBA_PRDT_ENTRY prdt_entry[];
     };
 
     struct FisRegH2D {
-        uint8_t fis_type;
+        u8 fis_type;
 
-        uint8_t port_multiplier : 4;
-        uint8_t rsv0 : 3;
-        uint8_t command_control : 1;
+        u8 port_multiplier : 4;
+        u8 rsv0 : 3;
+        u8 command_control : 1;
 
-        uint8_t command;
-        uint8_t feature_low;
+        u8 command;
+        u8 feature_low;
 
-        uint8_t lba0;
-        uint8_t lba1;
-        uint8_t lba2;
-        uint8_t device_register;
+        u8 lba0;
+        u8 lba1;
+        u8 lba2;
+        u8 device_register;
 
-        uint8_t lba3;
-        uint8_t lba4;
-        uint8_t lba5;
-        uint8_t feature_high;
+        u8 lba3;
+        u8 lba4;
+        u8 lba5;
+        u8 feature_high;
 
-        uint8_t count_low;
-        uint8_t count_high;
-        uint8_t iso_command_completion;
-        uint8_t control;
+        u8 count_low;
+        u8 count_high;
+        u8 iso_command_completion;
+        u8 control;
 
-        uint8_t rsv1[4];
+        u8 rsv1[4];
     };
 
     class Port final : public BlockDevice {
@@ -164,16 +164,16 @@ namespace ahci {
         kernel::Mutex port_mutex_;
 
        public:
-        uint8_t vector = 0;
+        u8 vector = 0;
 
         ~Port() override;
 
         HBA_PORT* hba_port{};
         PortType port_type;
-        uint8_t port_number{};
+        u8 port_number{};
 
-        uint32_t sector_size = 0;
-        uint64_t total_sectors = 0;
+        u32 sector_size = 0;
+        u64 total_sectors = 0;
 
         volatile bool command_completed = false;
         volatile bool last_error = false;
@@ -186,12 +186,12 @@ namespace ahci {
         void stop_cmd() const;
         void start_cmd() const;
 
-        ssize_t read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) override;
+        isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
 
-        ssize_t write(uint64_t sector, size_t sector_count, void* buffer, size_t buffer_size) override;
+        isize write(u64 sector, usize sector_count, void* buffer, usize buffer_size) override;
 
-        [[nodiscard]] size_t get_sector_size() const override;
-        [[nodiscard]] size_t get_size() const override;
+        [[nodiscard]] usize get_sector_size() const override;
+        [[nodiscard]] usize get_size() const override;
         bool identify();
     };
 
@@ -205,7 +205,7 @@ namespace ahci {
         void probe_ports();
         static Irqreturn global_interrupt_handler(const AhciDriver* driver);
         Port* ports[32]{};
-        uint8_t port_count;
+        u8 port_count;
 
        private:
         KernelDevice* kd_;

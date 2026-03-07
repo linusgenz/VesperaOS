@@ -21,21 +21,21 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 #ifndef VESPERAOS_UNIT_CONFIG_H
 #define VESPERAOS_UNIT_CONFIG_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 #define PRIORITY_NONE 0
 #define DEFAULT_UNIT_STACK_SIZE 0x20000
 
 struct UnitConfig {
     const char *name = "unnamed_unit";
-    uint8_t cpu_id = 0;
-    uint8_t priority = 0;
-    uint64_t stack_size = DEFAULT_UNIT_STACK_SIZE;
+    u8 cpu_id = 0;
+    u8 priority = 0;
+    u64 stack_size = DEFAULT_UNIT_STACK_SIZE;
     HandleId *initial_handles = nullptr;
-    uint64_t initial_handle_count = 0;
+    u64 initial_handle_count = 0;
     bool is_idle = false;
     bool is_user = false;
-    uint64_t user_stack_size = 0;
+    u64 user_stack_size = 0;
     bool auto_schedule = true;
     const char **argv;
     const char **envp;

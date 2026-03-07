@@ -30,11 +30,11 @@
 #include "vespera/realm/realm_manager.h"
 
 // TODO
-static constexpr uintptr_t USER_HEAP_START = 0x40000000;
-static constexpr uintptr_t USER_HEAP_MAX = 0x50000000;
+static constexpr uptr USER_HEAP_START = 0x40000000;
+static constexpr uptr USER_HEAP_MAX = 0x50000000;
 
 namespace syscalls::internal {
-    int64_t sys_brk(uint64_t addr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_brk(u64 addr, u64, u64, u64, u64, u64) {
         Unit* cur = kernel::scheduling::get_current_unit();
         if (!cur || !cur->is_user) return -EACCES;
         const Realm* cur_r = RealmManager::get(cur->rid);
@@ -71,10 +71,10 @@ namespace syscalls::internal {
 
         // Grow heap
         if (addr > cur->heap_end) {
-            uintptr_t start = (cur->heap_end + 0xFFF) & ~0xFFFULL;
-            uintptr_t end = (addr + 0xFFF) & ~0xFFFULL;
+            uptr start = (cur->heap_end + 0xFFF) & ~0xFFFULL;
+            uptr end = (addr + 0xFFF) & ~0xFFFULL;
 
-            for (uintptr_t a = start; a < end; a += 0x1000) {
+            for (uptr a = start; a < end; a += 0x1000) {
                 phys_addr_t phys = kernel::memory::request_page_phys();
                 if (phys_null(phys)) return -ENOMEM;
 
@@ -103,10 +103,10 @@ namespace syscalls::internal {
 
         // Shrink heap
         else if (addr < cur->heap_end) {
-            uintptr_t start = (addr + 0xFFF) & ~0xFFFULL;
-            uintptr_t end = (cur->heap_end + 0xFFF) & ~0xFFFULL;
+            uptr start = (addr + 0xFFF) & ~0xFFFULL;
+            uptr end = (cur->heap_end + 0xFFF) & ~0xFFFULL;
 
-            for (uintptr_t a = start; a < end; a += 0x1000) {
+            for (uptr a = start; a < end; a += 0x1000) {
                 const virt_addr_t vaddr = virt_from_raw(a);
                 if (const phys_addr_t phys = cur_r->page_table->get_physical_address(vaddr); !phys_null(phys)) {
                     cur_r->page_table->unmap_memory(vaddr);

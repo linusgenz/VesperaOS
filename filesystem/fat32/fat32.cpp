@@ -17,14 +17,14 @@ namespace fat32 {
     // Helper Functions - Memory Management
     // ============================================================================
 
-    static uint8_t* alloc_cluster_buffer(uint32_t cluster_bytes) {
-        const size_t pages = (cluster_bytes + 0xFFF) / 0x1000;
+    static u8* alloc_cluster_buffer(u32 cluster_bytes) {
+        const usize pages = (cluster_bytes + 0xFFF) / 0x1000;
         virt_addr_t page = kernel::memory::request_pages(pages);
         if (!virt_null(page)) memset(page, 0, pages * 0x1000);
-        return virt_as<uint8_t>(page);
+        return virt_as<u8>(page);
     }
 
-    static void free_cluster_buffer(const uint8_t* ptr, const uint32_t cluster_bytes) {
+    static void free_cluster_buffer(const u8* ptr, const u32 cluster_bytes) {
         kernel::memory::free_pages(make_virt((void*)ptr), (cluster_bytes + 0xFFF) / 0x1000);
     }
 
@@ -37,7 +37,7 @@ namespace fat32 {
         , fs_valid(false)
         , next_free_cluster(2)
         , cache_access_counter(0) {
-        uint8_t sector[512];
+        u8 sector[512];
         if (!device->read(0, 1, sector, 512)) {
             Log::error("[FAT32] Failed to read first sector");
             return;
@@ -47,9 +47,9 @@ namespace fat32 {
 
         if (bpb.table_count < 1 || bpb.sectors_per_cluster == 0) return;
 
-        const uint32_t total_sectors = (bpb.total_sectors16 != 0) ? bpb.total_sectors16 : bpb.total_sectors32;
+        const u32 total_sectors = (bpb.total_sectors16 != 0) ? bpb.total_sectors16 : bpb.total_sectors32;
 
-        const uint32_t data_sectors = total_sectors - (bpb.reserved_sector_count + (bpb.table_count * bpb.fat_size32));
+        const u32 data_sectors = total_sectors - (bpb.reserved_sector_count + (bpb.table_count * bpb.fat_size32));
 
         cluster_count = data_sectors / bpb.sectors_per_cluster;
 
@@ -81,14 +81,14 @@ namespace fat32 {
     bool FileSystem::is_valid() const {
         return fs_valid;
     }
-    uint32_t FileSystem::get_root_cluster() const {
+    u32 FileSystem::get_root_cluster() const {
         return bpb.root_cluster;
     }
-    uint32_t FileSystem::bytes_per_cluster() const {
+    u32 FileSystem::bytes_per_cluster() const {
         return bpb.bytes_per_sector * bpb.sectors_per_cluster;
     }
 
-    uint32_t FileSystem::cluster_to_sector(const uint32_t cluster) const {
+    u32 FileSystem::cluster_to_sector(const u32 cluster) const {
         return data_start + (cluster - 2) * bpb.sectors_per_cluster;
     }
 
@@ -96,7 +96,7 @@ namespace fat32 {
     // Cache
     // ============================================================================
 
-    bool FileSystem::read_fat_sector(uint32_t fat_sector, uint8_t* buffer) const {
+    bool FileSystem::read_fat_sector(u32 fat_sector, u8* buffer) const {
         cache_access_counter++;
 
         // Search for cached entry
@@ -114,10 +114,10 @@ namespace fat32 {
         if (!device->read(fat_sector, 1, buffer, bpb.bytes_per_sector)) return false;
 
         // Find slot for new entry (LRU replacement)
-        size_t replace_idx = 0;
-        uint32_t oldest_access = fat_cache[0].valid ? fat_cache[0].last_used : 0;
+        usize replace_idx = 0;
+        u32 oldest_access = fat_cache[0].valid ? fat_cache[0].last_used : 0;
 
-        for (size_t i = 0; i < FAT_CACHE_SIZE; ++i) {
+        for (usize i = 0; i < FAT_CACHE_SIZE; ++i) {
             if (!fat_cache[i].valid) {
                 // Found empty slot
                 replace_idx = i;
@@ -145,7 +145,7 @@ namespace fat32 {
         }
     }
 
-    void FileSystem::invalidate_fat_cache_sector(uint32_t sector) const {
+    void FileSystem::invalidate_fat_cache_sector(u32 sector) const {
         for (auto& i : fat_cache) {
             if (i.valid && i.sector == sector) {
                 i.valid = false;
@@ -191,25 +191,25 @@ namespace fat32 {
         device->write(bpb.fs_info, 1, &fsinfo, sizeof(FSINFO));
     }
 
-    uint32_t FileSystem::get_free_cluster_count() {
+    u32 FileSystem::get_free_cluster_count() {
         if (free_cluster_count != 0xFFFFFFFF) return free_cluster_count;
 
-        uint32_t count = 0;
-        uint8_t buf[512];
-        uint32_t last_sector = UINT32_MAX;
+        u32 count = 0;
+        u8 buf[512];
+        u32 last_sector = U32_MAX;
 
-        for (uint32_t c = 2; c < cluster_count + 2; ++c) {
-            const uint32_t fat_offset = c * 4;
-            const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
+        for (u32 c = 2; c < cluster_count + 2; ++c) {
+            const u32 fat_offset = c * 4;
+            const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
 
-            if (const uint32_t fat_sector = bpb.reserved_sector_count + sector_offset; fat_sector != last_sector) {
+            if (const u32 fat_sector = bpb.reserved_sector_count + sector_offset; fat_sector != last_sector) {
                 if (!read_fat_sector(fat_sector, buf)) continue;
                 last_sector = fat_sector;
             }
 
-            const uint32_t offset_in_sector = fat_offset % bpb.bytes_per_sector;
+            const u32 offset_in_sector = fat_offset % bpb.bytes_per_sector;
 
-            if (const uint32_t entry = *reinterpret_cast<uint32_t*>(buf + offset_in_sector) & 0x0FFFFFFF; entry == 0) {
+            if (const u32 entry = *reinterpret_cast<u32*>(buf + offset_in_sector) & 0x0FFFFFFF; entry == 0) {
                 ++count;
             }
         }
@@ -223,18 +223,18 @@ namespace fat32 {
     // Cluster I/O Operations
     // ============================================================================
 
-    ssize_t FileSystem::read_cluster(const uint32_t cluster, void* buffer, size_t buffer_size) const {
-        const uint32_t sector = cluster_to_sector(cluster);
+    isize FileSystem::read_cluster(const u32 cluster, void* buffer, usize buffer_size) const {
+        const u32 sector = cluster_to_sector(cluster);
         return device->read(sector, bpb.sectors_per_cluster, buffer, buffer_size);
     }
 
-    bool FileSystem::write_cluster(uint32_t cluster, const void* data, size_t len, size_t offset) const {
+    bool FileSystem::write_cluster(u32 cluster, const void* data, usize len, usize offset) const {
         if (!data || len == 0) return false;
 
-        const uint32_t cluster_bytes = bytes_per_cluster();
+        const u32 cluster_bytes = bytes_per_cluster();
         if (len + offset > cluster_bytes) return false;
 
-        uint8_t* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
+        u8* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
         if (!cluster_buffer) return false;
 
         // Read existing data if partial write
@@ -247,7 +247,7 @@ namespace fat32 {
 
         memcpy(cluster_buffer + offset, data, len);
 
-        const uint32_t sector = cluster_to_sector(cluster);
+        const u32 sector = cluster_to_sector(cluster);
         bool ok = device->write(sector, bpb.sectors_per_cluster, cluster_buffer, cluster_bytes);
 
         free_cluster_buffer(cluster_buffer, cluster_bytes);
@@ -258,7 +258,7 @@ namespace fat32 {
     // FAT Table Operations
     // ============================================================================
 
-    bool FileSystem::is_valid_fat_entry(uint32_t value) const {
+    bool FileSystem::is_valid_fat_entry(u32 value) const {
         value &= 0x0FFFFFFF;
 
         if (value == 0) return true;            // free
@@ -270,14 +270,14 @@ namespace fat32 {
         return true;
     }
 
-    uint32_t FileSystem::read_fat_entry_raw(const uint32_t fat_sector, uint32_t offset) const {
-        uint8_t buf[1024];  // max 2 sectors
+    u32 FileSystem::read_fat_entry_raw(const u32 fat_sector, u32 offset) const {
+        u8 buf[1024];  // max 2 sectors
 
         // one sector
         if (offset <= sector_size - 4) {
             if (!read_fat_sector(fat_sector, buf)) return 0x0FFFFFFF;
 
-            return *reinterpret_cast<uint32_t*>(buf + offset);
+            return *reinterpret_cast<u32*>(buf + offset);
         }
 
         // two sectors
@@ -285,29 +285,29 @@ namespace fat32 {
 
         if (!read_fat_sector(fat_sector + 1, buf + sector_size)) return 0x0FFFFFFF;
 
-        return *reinterpret_cast<uint32_t*>(buf + offset);
+        return *reinterpret_cast<u32*>(buf + offset);
     }
 
-    uint32_t FileSystem::get_fat_entry(uint32_t cluster) const {
+    u32 FileSystem::get_fat_entry(u32 cluster) const {
         if (cluster < 2 || cluster >= cluster_count + 2) return 0x0FFFFFFF;
 
-        const uint32_t fat_offset = cluster * 4;
-        const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
-        const uint32_t offset = fat_offset % bpb.bytes_per_sector;
+        const u32 fat_offset = cluster * 4;
+        const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
+        const u32 offset = fat_offset % bpb.bytes_per_sector;
 
         // === FAT0 ===
-        const uint32_t fat0_sector = bpb.reserved_sector_count + sector_offset;
+        const u32 fat0_sector = bpb.reserved_sector_count + sector_offset;
 
-        uint32_t entry0 = read_fat_entry_raw(fat0_sector, offset) & 0x0FFFFFFF;
+        u32 entry0 = read_fat_entry_raw(fat0_sector, offset) & 0x0FFFFFFF;
 
         if (is_valid_fat_entry(entry0)) return entry0;
 
         // === FAT1 fallback ===
         if (bpb.table_count < 2) return entry0;
 
-        const uint32_t fat1_sector = bpb.reserved_sector_count + bpb.fat_size32 + sector_offset;
+        const u32 fat1_sector = bpb.reserved_sector_count + bpb.fat_size32 + sector_offset;
 
-        if (uint32_t entry1 = read_fat_entry_raw(fat1_sector, offset) & 0x0FFFFFFF; is_valid_fat_entry(entry1)) {
+        if (u32 entry1 = read_fat_entry_raw(fat1_sector, offset) & 0x0FFFFFFF; is_valid_fat_entry(entry1)) {
             // repair FAT0
             const_cast<FileSystem*>(this)->write_fat_entry(cluster, entry1);
             return entry1;
@@ -317,31 +317,31 @@ namespace fat32 {
         return 0x0FFFFFFF;
     }
 
-    uint32_t FileSystem::read_fat_entry(uint32_t cluster, Sector& sec) const {
-        const uint32_t fat_offset = cluster * 4;
-        const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
-        const uint32_t offset = fat_offset % bpb.bytes_per_sector;
+    u32 FileSystem::read_fat_entry(u32 cluster, Sector& sec) const {
+        const u32 fat_offset = cluster * 4;
+        const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
+        const u32 offset = fat_offset % bpb.bytes_per_sector;
 
-        if (const uint32_t fat_sector = bpb.reserved_sector_count + sector_offset; sec.sector != fat_sector) {
+        if (const u32 fat_sector = bpb.reserved_sector_count + sector_offset; sec.sector != fat_sector) {
             if (!read_fat_sector(fat_sector, sec.buf)) return 0x0FFFFFFF;
             sec.sector = fat_sector;
         }
 
-        uint32_t entry = *reinterpret_cast<uint32_t*>(sec.buf + offset) & 0x0FFFFFFF;
+        u32 entry = *reinterpret_cast<u32*>(sec.buf + offset) & 0x0FFFFFFF;
 
         if (entry >= 0x0FFFFFF8 || entry == 0 || entry == 1 || entry == 0x0FFFFFF7) return 0;
 
         return entry;
     }
 
-    bool FileSystem::write_fat_entry_raw(uint32_t fat_sector, uint32_t offset, uint32_t value) const {
-        uint8_t buf[1024];
+    bool FileSystem::write_fat_entry_raw(u32 fat_sector, u32 offset, u32 value) const {
+        u8 buf[1024];
 
         // one sector
         if (offset <= sector_size - 4) {
             if (!device->read(fat_sector, 1, buf, sector_size)) return false;
 
-            *reinterpret_cast<uint32_t*>(buf + offset) = value;
+            *reinterpret_cast<u32*>(buf + offset) = value;
 
             if (!device->write(fat_sector, 1, buf, sector_size)) return false;
 
@@ -352,7 +352,7 @@ namespace fat32 {
         // two sectors
         if (!device->read(fat_sector, 2, buf, sector_size * 2)) return false;
 
-        *reinterpret_cast<uint32_t*>(buf + offset) = value;
+        *reinterpret_cast<u32*>(buf + offset) = value;
 
         if (!device->write(fat_sector, 2, buf, sector_size * 2)) return false;
 
@@ -361,19 +361,19 @@ namespace fat32 {
         return true;
     }
 
-    bool FileSystem::write_fat_entry(uint32_t cluster, uint32_t value) {
+    bool FileSystem::write_fat_entry(u32 cluster, u32 value) {
         value &= 0x0FFFFFFF;
 
-        uint32_t old = get_fat_entry(cluster) & 0x0FFFFFFF;
+        u32 old = get_fat_entry(cluster) & 0x0FFFFFFF;
 
-        const uint32_t fat_offset = cluster * 4;
-        const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
-        const uint32_t offset_in_sector = fat_offset % bpb.bytes_per_sector;
+        const u32 fat_offset = cluster * 4;
+        const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
+        const u32 offset_in_sector = fat_offset % bpb.bytes_per_sector;
 
-        for (uint32_t fat = 0; fat < bpb.table_count; ++fat) {
-            const uint32_t fat_base = bpb.reserved_sector_count + fat * bpb.fat_size32;
+        for (u32 fat = 0; fat < bpb.table_count; ++fat) {
+            const u32 fat_base = bpb.reserved_sector_count + fat * bpb.fat_size32;
 
-            if (const uint32_t sector = fat_base + sector_offset; !write_fat_entry_raw(sector, offset_in_sector, value))
+            if (const u32 sector = fat_base + sector_offset; !write_fat_entry_raw(sector, offset_in_sector, value))
                 return false;
         }
 
@@ -389,10 +389,10 @@ namespace fat32 {
         return true;
     }
 
-    uint32_t FileSystem::next_cluster(uint32_t c) const {
+    u32 FileSystem::next_cluster(u32 c) const {
         if (c < 2 || c >= cluster_count + 2) return 0;
 
-        uint32_t next = get_fat_entry(c);
+        u32 next = get_fat_entry(c);
 
         if (next >= 0x0FFFFFF8)  // EOF
             return 0;
@@ -407,9 +407,9 @@ namespace fat32 {
     }
 
     // Floyd Cycle Detection
-    bool FileSystem::has_fat_loop(uint32_t start) const {
-        uint32_t tortoise = start;
-        uint32_t hare = start;
+    bool FileSystem::has_fat_loop(u32 start) const {
+        u32 tortoise = start;
+        u32 hare = start;
 
         while (true) {
             tortoise = next_cluster(tortoise);
@@ -425,13 +425,13 @@ namespace fat32 {
         }
     }
 
-    uint32_t FileSystem::find_free_cluster() {
+    u32 FileSystem::find_free_cluster() {
         if (cluster_count < 2) return 0;
 
-        const uint32_t start =
+        const u32 start =
             (next_free_cluster >= 2 && next_free_cluster < cluster_count + 2) ? next_free_cluster : 2;
 
-        for (uint32_t c = start; c < cluster_count + 2; ++c) {
+        for (u32 c = start; c < cluster_count + 2; ++c) {
             if (get_fat_entry(c) == 0) {
                 next_free_cluster = c + 1;
                 return c;
@@ -439,7 +439,7 @@ namespace fat32 {
         }
 
         // Fallback: complete scan
-        for (uint32_t c = 2; c < start; ++c) {
+        for (u32 c = 2; c < start; ++c) {
             if (get_fat_entry(c) == 0) {
                 next_free_cluster = c + 1;
                 return c;
@@ -449,7 +449,7 @@ namespace fat32 {
         return 0;
     }
 
-    uint32_t* FileSystem::get_cluster_chain(const uint32_t start_cluster, size_t& out_count) const {
+    u32* FileSystem::get_cluster_chain(const u32 start_cluster, usize& out_count) const {
         out_count = 0;
 
         if (start_cluster < 2 || start_cluster >= cluster_count + 2) return nullptr;
@@ -457,30 +457,30 @@ namespace fat32 {
         if (has_fat_loop(start_cluster)) return nullptr;
 
         // Phase 1: Cluster zählen mit Batch-Reads
-        const uint32_t entries_per_sector = bpb.bytes_per_sector / 4;
-        constexpr uint32_t sectors_per_read = 128;  // 64 KiB @ 512 B sectors
-        const uint32_t bytes_needed = sectors_per_read * bpb.bytes_per_sector;
-        const uint32_t pages = (bytes_needed + 0xFFF) / 0x1000;
+        const u32 entries_per_sector = bpb.bytes_per_sector / 4;
+        constexpr u32 sectors_per_read = 128;  // 64 KiB @ 512 B sectors
+        const u32 bytes_needed = sectors_per_read * bpb.bytes_per_sector;
+        const u32 pages = (bytes_needed + 0xFFF) / 0x1000;
 
         virt_addr_t batch_virt = kernel::memory::request_pages(pages);
         if (virt_null(batch_virt)) return nullptr;
-        auto* batch_buffer = virt_as<uint32_t>(batch_virt);
+        auto* batch_buffer = virt_as<u32>(batch_virt);
 
-        uint32_t cluster = start_cluster;
-        size_t count = 0;
-        uint32_t current_batch_sector = UINT32_MAX;
+        u32 cluster = start_cluster;
+        usize count = 0;
+        u32 current_batch_sector = U32_MAX;
 
         while (cluster >= 2 && cluster < cluster_count + 2) {
             ++count;
 
-            const uint32_t fat_offset = cluster * 4;
-            const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
-            const uint32_t fat_sector = bpb.reserved_sector_count + sector_offset;
-            const uint32_t batch_start = (fat_sector / sectors_per_read) * sectors_per_read;
+            const u32 fat_offset = cluster * 4;
+            const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
+            const u32 fat_sector = bpb.reserved_sector_count + sector_offset;
+            const u32 batch_start = (fat_sector / sectors_per_read) * sectors_per_read;
 
             // Load new batch if necessary
             if (batch_start != current_batch_sector) {
-                const size_t sectors_to_read =
+                const usize sectors_to_read =
                     ((bpb.reserved_sector_count + bpb.fat_size32) - batch_start < sectors_per_read)
                         ? (bpb.reserved_sector_count + bpb.fat_size32) - batch_start
                         : sectors_per_read;
@@ -492,9 +492,9 @@ namespace fat32 {
                 current_batch_sector = batch_start;
             }
 
-            const uint32_t index_in_batch =
+            const u32 index_in_batch =
                 (fat_sector - batch_start) * entries_per_sector + (fat_offset % bpb.bytes_per_sector) / 4;
-            const uint32_t entry = batch_buffer[index_in_batch] & 0x0FFFFFFF;
+            const u32 entry = batch_buffer[index_in_batch] & 0x0FFFFFFF;
 
             if (entry >= 0x0FFFFFF8 || entry == 0 || entry == 1 || entry == 0x0FFFFFF7) break;
 
@@ -506,25 +506,25 @@ namespace fat32 {
             return nullptr;
         }
 
-        auto* chain = static_cast<uint32_t*>(kernel::memory::malloc(count * sizeof(uint32_t)));
+        auto* chain = static_cast<u32*>(kernel::memory::malloc(count * sizeof(u32)));
         if (!chain) {
             kernel::memory::free_pages(batch_virt, pages);
             return nullptr;
         }
 
         cluster = start_cluster;
-        current_batch_sector = UINT32_MAX;
+        current_batch_sector = U32_MAX;
 
-        for (size_t i = 0; i < count; ++i) {
+        for (usize i = 0; i < count; ++i) {
             chain[i] = cluster;
 
-            const uint32_t fat_offset = cluster * 4;
-            const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
-            const uint32_t fat_sector = bpb.reserved_sector_count + sector_offset;
-            const uint32_t batch_start = (fat_sector / sectors_per_read) * sectors_per_read;
+            const u32 fat_offset = cluster * 4;
+            const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
+            const u32 fat_sector = bpb.reserved_sector_count + sector_offset;
+            const u32 batch_start = (fat_sector / sectors_per_read) * sectors_per_read;
 
             if (batch_start != current_batch_sector) {
-                const size_t sectors_to_read =
+                const usize sectors_to_read =
                     ((bpb.reserved_sector_count + bpb.fat_size32) - batch_start < sectors_per_read)
                         ? (bpb.reserved_sector_count + bpb.fat_size32) - batch_start
                         : sectors_per_read;
@@ -533,7 +533,7 @@ namespace fat32 {
                 current_batch_sector = batch_start;
             }
 
-            const uint32_t index_in_batch =
+            const u32 index_in_batch =
                 (fat_sector - batch_start) * entries_per_sector + (fat_offset % bpb.bytes_per_sector) / 4;
             cluster = batch_buffer[index_in_batch] & 0x0FFFFFFF;
         }
@@ -543,54 +543,54 @@ namespace fat32 {
         return chain;
     }
 
-    bool FileSystem::free_cluster_chain(const uint32_t start_cluster) {
+    bool FileSystem::free_cluster_chain(const u32 start_cluster) {
         if (start_cluster < 2 || start_cluster >= cluster_count + 2) return false;
 
-        size_t count = 0;
-        uint32_t* chain = get_cluster_chain(start_cluster, count);
+        usize count = 0;
+        u32* chain = get_cluster_chain(start_cluster, count);
         if (!chain || count == 0) return false;
 
         klib::sort(chain, chain + count);
 
-        const uint32_t entries_per_sector = bpb.bytes_per_sector / 4;
-        constexpr uint32_t sectors_per_batch = 128;  // 64KB Batches
-        const uint32_t bytes_needed = sectors_per_batch * bpb.bytes_per_sector;
-        const uint32_t pages = (bytes_needed + 0xFFF) / 0x1000;
+        const u32 entries_per_sector = bpb.bytes_per_sector / 4;
+        constexpr u32 sectors_per_batch = 128;  // 64KB Batches
+        const u32 bytes_needed = sectors_per_batch * bpb.bytes_per_sector;
+        const u32 pages = (bytes_needed + 0xFFF) / 0x1000;
 
         virt_addr_t batch_virt = kernel::memory::request_pages(pages);
         if (virt_null(batch_virt)) {
             kernel::memory::free(chain);
             return false;
         }
-        auto* batch_buffer = virt_as<uint32_t>(batch_virt);
+        auto* batch_buffer = virt_as<u32>(batch_virt);
 
         // Für jede FAT-Kopie
-        for (uint32_t fat = 0; fat < bpb.table_count; ++fat) {
-            const uint32_t fat_base = bpb.reserved_sector_count + fat * bpb.fat_size32;
+        for (u32 fat = 0; fat < bpb.table_count; ++fat) {
+            const u32 fat_base = bpb.reserved_sector_count + fat * bpb.fat_size32;
 
-            uint32_t current_batch_start = UINT32_MAX;
-            uint32_t current_batch_end = 0;
+            u32 current_batch_start = U32_MAX;
+            u32 current_batch_end = 0;
             bool batch_dirty = false;
 
-            for (size_t i = 0; i < count; ++i) {
-                const uint32_t cluster = chain[i];
-                const uint32_t fat_offset = cluster * 4;
-                const uint32_t sector_offset = fat_offset / bpb.bytes_per_sector;
-                const uint32_t fat_sector = fat_base + sector_offset;
-                const uint32_t batch_start = (fat_sector / sectors_per_batch) * sectors_per_batch;
-                const uint32_t batch_end = batch_start + sectors_per_batch;
+            for (usize i = 0; i < count; ++i) {
+                const u32 cluster = chain[i];
+                const u32 fat_offset = cluster * 4;
+                const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
+                const u32 fat_sector = fat_base + sector_offset;
+                const u32 batch_start = (fat_sector / sectors_per_batch) * sectors_per_batch;
+                const u32 batch_end = batch_start + sectors_per_batch;
 
                 // Neue Batch?
                 if (batch_start != current_batch_start) {
                     // Alte Batch schreiben
                     if (batch_dirty) {
-                        const size_t sectors_to_write = current_batch_end - current_batch_start;
+                        const usize sectors_to_write = current_batch_end - current_batch_start;
                         device->write(
                             current_batch_start, sectors_to_write, batch_buffer, sectors_to_write * bpb.bytes_per_sector
                         );
 
                         // Cache invalidieren
-                        for (uint32_t s = current_batch_start; s < current_batch_end; ++s)
+                        for (u32 s = current_batch_start; s < current_batch_end; ++s)
                             invalidate_fat_cache_sector(s);
                     }
 
@@ -598,7 +598,7 @@ namespace fat32 {
                     current_batch_start = batch_start;
                     current_batch_end = (batch_end > fat_base + bpb.fat_size32) ? fat_base + bpb.fat_size32 : batch_end;
 
-                    if (const size_t sectors_to_read = current_batch_end - current_batch_start; !device->read(
+                    if (const usize sectors_to_read = current_batch_end - current_batch_start; !device->read(
                             current_batch_start, sectors_to_read, batch_buffer, sectors_to_read * bpb.bytes_per_sector
                         )) {
                         kernel::memory::free_pages(batch_virt, pages);
@@ -610,7 +610,7 @@ namespace fat32 {
                 }
 
                 // Entry in Batch auf 0 setzen
-                const uint32_t index_in_batch =
+                const u32 index_in_batch =
                     (fat_sector - current_batch_start) * entries_per_sector + (fat_offset % bpb.bytes_per_sector) / 4;
                 batch_buffer[index_in_batch] = 0;
                 batch_dirty = true;
@@ -618,12 +618,12 @@ namespace fat32 {
 
             // Letzte Batch schreiben
             if (batch_dirty) {
-                const size_t sectors_to_write = current_batch_end - current_batch_start;
+                const usize sectors_to_write = current_batch_end - current_batch_start;
                 device->write(
                     current_batch_start, sectors_to_write, batch_buffer, sectors_to_write * bpb.bytes_per_sector
                 );
 
-                for (uint32_t s = current_batch_start; s < current_batch_end; ++s) invalidate_fat_cache_sector(s);
+                for (u32 s = current_batch_start; s < current_batch_end; ++s) invalidate_fat_cache_sector(s);
             }
         }
 
@@ -640,15 +640,15 @@ namespace fat32 {
     // Directory Operations
     // ============================================================================
 
-    FileEntry* FileSystem::read_directory(const char* path, size_t& out_count) const {
+    FileEntry* FileSystem::read_directory(const char* path, usize& out_count) const {
         out_count = 0;
-        uint32_t cluster = resolve_path_to_cluster(path);
+        u32 cluster = resolve_path_to_cluster(path);
         if (cluster == 0) return nullptr;
 
         return read_directory(cluster, out_count);
     }
 
-    FileEntry* FileSystem::read_directory(uint32_t cluster, size_t& out_count) const {
+    FileEntry* FileSystem::read_directory(u32 cluster, usize& out_count) const {
         auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
         if (!entries) {
             out_count = 0;
@@ -656,21 +656,21 @@ namespace fat32 {
         }
 
         out_count = 0;
-        size_t chain_count = 0;
-        uint32_t* chain = get_cluster_chain(cluster, chain_count);
+        usize chain_count = 0;
+        u32* chain = get_cluster_chain(cluster, chain_count);
         if (!chain) {
             kernel::memory::free(entries);
             return nullptr;
         }
 
-        const uint32_t cluster_bytes = bytes_per_cluster();
-        const size_t entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+        const u32 cluster_bytes = bytes_per_cluster();
+        const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
 
         LfnBufferEntry lfn_buffer[20];
-        size_t lfn_count = 0;
+        usize lfn_count = 0;
 
-        for (size_t ci = 0; ci < chain_count; ++ci) {
-            uint8_t* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
+        for (usize ci = 0; ci < chain_count; ++ci) {
+            u8* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
             if (!cluster_buffer) continue;
 
             if (!read_cluster(chain[ci], cluster_buffer, cluster_bytes)) {
@@ -678,7 +678,7 @@ namespace fat32 {
                 continue;
             }
 
-            for (size_t i = 0; i < entries_per_cluster; i++) {
+            for (usize i = 0; i < entries_per_cluster; i++) {
                 const auto entry = reinterpret_cast<DirectoryEntry*>(cluster_buffer + i * sizeof(DirectoryEntry));
 
                 // end
@@ -703,7 +703,7 @@ namespace fat32 {
                 // Process collected LFN entries
                 if (lfn_count > 0) {
                     char name_buffer[256];
-                    size_t pos = 0;
+                    usize pos = 0;
 
                     // LFN entries are stored in descending order in the buffer,
                     // so they are processed from back to front.
@@ -740,24 +740,24 @@ namespace fat32 {
     }
 
     bool FileSystem::overwrite_directory_entry(
-        const uint32_t parent_cluster, const size_t entry_index, const DirectoryEntry* new_entry
+        const u32 parent_cluster, const usize entry_index, const DirectoryEntry* new_entry
     ) const {
-        size_t out_cluster_count = 0;
-        uint32_t* clusters = get_cluster_chain(parent_cluster, out_cluster_count);
+        usize out_cluster_count = 0;
+        u32* clusters = get_cluster_chain(parent_cluster, out_cluster_count);
         if (!clusters) return false;
 
-        const uint32_t cluster_bytes = bytes_per_cluster();
-        const size_t entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
-        const size_t cluster_idx = entry_index / entries_per_cluster;
-        const size_t offset_in_cluster = entry_index % entries_per_cluster;
+        const u32 cluster_bytes = bytes_per_cluster();
+        const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+        const usize cluster_idx = entry_index / entries_per_cluster;
+        const usize offset_in_cluster = entry_index % entries_per_cluster;
 
         if (cluster_idx >= out_cluster_count) {
             kernel::memory::free(clusters);
             return false;
         }
 
-        const uint32_t target_cluster = clusters[cluster_idx];
-        uint8_t* buffer = alloc_cluster_buffer(cluster_bytes);
+        const u32 target_cluster = clusters[cluster_idx];
+        u8* buffer = alloc_cluster_buffer(cluster_bytes);
         if (!buffer) {
             kernel::memory::free(clusters);
             return false;
@@ -783,7 +783,7 @@ namespace fat32 {
     // File Operations
     // ============================================================================
 
-    bool FileSystem::read_file(Fat32Node* node, void* buffer, size_t len, size_t& out_actual, size_t offset) const {
+    bool FileSystem::read_file(Fat32Node* node, void* buffer, usize len, usize& out_actual, usize offset) const {
         if (!node || !buffer || len == 0) return false;
 
         if (offset >= node->file_size) {
@@ -791,20 +791,20 @@ namespace fat32 {
             return true;
         }
 
-        const uint32_t start_cluster = node->cluster;
+        const u32 start_cluster = node->cluster;
         if (start_cluster == 0) {
             out_actual = 0;
             return true;
         }
 
-        const size_t cluster_bytes = bytes_per_cluster();
-        const size_t remaining = node->file_size - offset;
-        const size_t to_read = (len < remaining) ? len : remaining;
-        const size_t cluster_index = offset / cluster_bytes;
-        const size_t offset_in_cluster = offset % cluster_bytes;
+        const usize cluster_bytes = bytes_per_cluster();
+        const usize remaining = node->file_size - offset;
+        const usize to_read = (len < remaining) ? len : remaining;
+        const usize cluster_index = offset / cluster_bytes;
+        const usize offset_in_cluster = offset % cluster_bytes;
 
-        size_t out_cluster_count = 0;
-        uint32_t* cluster_chain = get_cluster_chain(start_cluster, out_cluster_count);
+        usize out_cluster_count = 0;
+        u32* cluster_chain = get_cluster_chain(start_cluster, out_cluster_count);
         if (!cluster_chain) return false;
 
         if (cluster_index >= out_cluster_count) {
@@ -813,11 +813,11 @@ namespace fat32 {
             return true;
         }
 
-        auto* dest = static_cast<uint8_t*>(buffer);
-        size_t bytes_read = 0;
+        auto* dest = static_cast<u8*>(buffer);
+        usize bytes_read = 0;
 
-        for (size_t i = cluster_index; i < out_cluster_count && bytes_read < to_read; i++) {
-            uint8_t* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
+        for (usize i = cluster_index; i < out_cluster_count && bytes_read < to_read; i++) {
+            u8* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
             if (!cluster_buffer) {
                 kernel::memory::free(cluster_chain);
                 return false;
@@ -829,9 +829,9 @@ namespace fat32 {
                 return false;
             }
 
-            const size_t start_pos = (i == cluster_index) ? offset_in_cluster : 0;
-            const size_t available_in_cluster = cluster_bytes - start_pos;
-            const size_t to_copy =
+            const usize start_pos = (i == cluster_index) ? offset_in_cluster : 0;
+            const usize available_in_cluster = cluster_bytes - start_pos;
+            const usize to_copy =
                 (to_read - bytes_read < available_in_cluster) ? (to_read - bytes_read) : available_in_cluster;
 
             memcpy(dest + bytes_read, cluster_buffer + start_pos, to_copy);
@@ -847,20 +847,20 @@ namespace fat32 {
         return true;
     }
 
-    bool FileSystem::write_file(Fat32Node* node, const void* buffer, const size_t len, const size_t offset) {
+    bool FileSystem::write_file(Fat32Node* node, const void* buffer, const usize len, const usize offset) {
         if (!node || !buffer || len == 0) return false;
         if (is_protected(node->dir_entry)) return false;
 
         // Classic FAT32: offset > fileSize is prohibited
         if (offset > node->file_size) return false;
 
-        const size_t cluster_bytes = bytes_per_cluster();
-        const size_t new_size = (offset + len > node->file_size) ? (offset + len) : node->file_size;
-        const size_t needed_clusters = (new_size + cluster_bytes - 1) / cluster_bytes;
+        const usize cluster_bytes = bytes_per_cluster();
+        const usize new_size = (offset + len > node->file_size) ? (offset + len) : node->file_size;
+        const usize needed_clusters = (new_size + cluster_bytes - 1) / cluster_bytes;
 
-        uint32_t start_cluster = node->cluster;
-        size_t existing_clusters_count = 0;
-        uint32_t* cluster_chain = nullptr;
+        u32 start_cluster = node->cluster;
+        usize existing_clusters_count = 0;
+        u32* cluster_chain = nullptr;
 
         // Get existing cluster chain if file already has data
         if (start_cluster != 0) {
@@ -870,7 +870,7 @@ namespace fat32 {
 
         // Allocate additional clusters if needed
         if (existing_clusters_count < needed_clusters) {
-            size_t additional = needed_clusters - existing_clusters_count;
+            usize additional = needed_clusters - existing_clusters_count;
 
             // File has no cluster yet → allocate first one
             if (start_cluster == 0) {
@@ -882,9 +882,9 @@ namespace fat32 {
                 if (!cluster_chain) return false;
             }
 
-            uint32_t last_cluster = cluster_chain[existing_clusters_count - 1];
-            for (size_t i = 0; i < additional; i++) {
-                const uint32_t free_cluster = find_free_cluster();
+            u32 last_cluster = cluster_chain[existing_clusters_count - 1];
+            for (usize i = 0; i < additional; i++) {
+                const u32 free_cluster = find_free_cluster();
                 if (free_cluster == 0) {
                     kernel::memory::free(cluster_chain);
                     return false;
@@ -901,17 +901,17 @@ namespace fat32 {
 
         if (!cluster_chain) return false;
 
-        auto src = static_cast<const uint8_t*>(buffer);
-        size_t remaining = len;
-        size_t current_offset = offset;
-        size_t cluster_index = offset / cluster_bytes;
+        auto src = static_cast<const u8*>(buffer);
+        usize remaining = len;
+        usize current_offset = offset;
+        usize cluster_index = offset / cluster_bytes;
 
-        uint8_t cluster_buf[cluster_bytes];
+        u8 cluster_buf[cluster_bytes];
 
         while (remaining > 0 && cluster_index < existing_clusters_count) {
-            const size_t offset_in_cluster = current_offset % cluster_bytes;
-            const size_t space_in_cluster = cluster_bytes - offset_in_cluster;
-            const size_t to_write = (remaining < space_in_cluster) ? remaining : space_in_cluster;
+            const usize offset_in_cluster = current_offset % cluster_bytes;
+            const usize space_in_cluster = cluster_bytes - offset_in_cluster;
+            const usize to_write = (remaining < space_in_cluster) ? remaining : space_in_cluster;
 
             if ((offset_in_cluster != 0) || (to_write < cluster_bytes)) {
                 if (read_cluster(cluster_chain[cluster_index], cluster_buf, cluster_bytes) < 0) {
@@ -939,9 +939,9 @@ namespace fat32 {
         kernel::memory::free(cluster_chain);
 
         node->file_size = new_size;
-        node->dir_entry.file_size = static_cast<uint32_t>(new_size);
-        node->dir_entry.first_cluster_low = static_cast<uint16_t>(start_cluster & 0xFFFF);
-        node->dir_entry.first_cluster_high = static_cast<uint16_t>((start_cluster >> 16) & 0xFFFF);
+        node->dir_entry.file_size = static_cast<u32>(new_size);
+        node->dir_entry.first_cluster_low = static_cast<u16>(start_cluster & 0xFFFF);
+        node->dir_entry.first_cluster_high = static_cast<u16>((start_cluster >> 16) & 0xFFFF);
         update_write_time(node->dir_entry);
 
         return overwrite_directory_entry(node->parent_cluster, node->current_index, &node->dir_entry);
@@ -952,22 +952,22 @@ namespace fat32 {
     // ============================================================================
 
     bool FileSystem::write_directory_entry_with_lfn(
-        const uint32_t dir_cluster, const char* long_name, const char* short_name, const DirectoryEntry* short_entry
+        const u32 dir_cluster, const char* long_name, const char* short_name, const DirectoryEntry* short_entry
     ) {
-        const size_t name_len = strlen(long_name);
-        const size_t entries_needed = (12 + name_len) / 13;
-        const size_t total_needed = entries_needed + 1;
-        const size_t cluster_bytes = bytes_per_cluster();
-        const size_t entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+        const usize name_len = strlen(long_name);
+        const usize entries_needed = (12 + name_len) / 13;
+        const usize total_needed = entries_needed + 1;
+        const usize cluster_bytes = bytes_per_cluster();
+        const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
 
-        size_t out_cluster_count = 0;
-        uint32_t* chain = get_cluster_chain(dir_cluster, out_cluster_count);
+        usize out_cluster_count = 0;
+        u32* chain = get_cluster_chain(dir_cluster, out_cluster_count);
         if (!chain) return false;
 
         // Try to find space in existing clusters
-        for (size_t ci = 0; ci < out_cluster_count; ++ci) {
-            uint32_t cluster = chain[ci];
-            uint8_t* buffer = alloc_cluster_buffer(cluster_bytes);
+        for (usize ci = 0; ci < out_cluster_count; ++ci) {
+            u32 cluster = chain[ci];
+            u8* buffer = alloc_cluster_buffer(cluster_bytes);
             if (!buffer) continue;
 
             if (!read_cluster(cluster, buffer, cluster_bytes)) {
@@ -976,10 +976,10 @@ namespace fat32 {
             }
 
             auto* entries = reinterpret_cast<DirectoryEntry*>(buffer);
-            size_t free_count = 0;
-            size_t start_index = 0;
+            usize free_count = 0;
+            usize start_index = 0;
 
-            for (size_t i = 0; i < entries_per_cluster; ++i) {
+            for (usize i = 0; i < entries_per_cluster; ++i) {
                 if (entries[i].name[0] == 0x00 || entries[i].name[0] == 0xE5) {
                     if (entries[i].attr == ATTR_VOLUME_ID) {
                         free_count = 0;
@@ -1008,16 +1008,16 @@ namespace fat32 {
         }
 
         // Need to allocate new cluster
-        const uint32_t last_cluster = chain[out_cluster_count - 1];
+        const u32 last_cluster = chain[out_cluster_count - 1];
         kernel::memory::free(chain);
 
-        const uint32_t new_cluster = find_free_cluster();
+        const u32 new_cluster = find_free_cluster();
         if (new_cluster == 0) return false;
 
         if (!write_fat_entry(last_cluster, new_cluster)) return false;
         if (!write_fat_entry(new_cluster, 0x0FFFFFFF)) return false;
 
-        uint8_t* zero = alloc_cluster_buffer(cluster_bytes);
+        u8* zero = alloc_cluster_buffer(cluster_bytes);
         memset(zero, 0, cluster_bytes);
         device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes);
         free_cluster_buffer(zero, cluster_bytes);
@@ -1032,15 +1032,15 @@ namespace fat32 {
     bool FileSystem::create_directory(const Fat32Node* parent_dir, const char* name) {
         if (!parent_dir || !name || name[0] == '\0') return false;
 
-        const uint32_t parent_cluster = parent_dir->cluster;
-        const uint32_t cluster_bytes = bytes_per_cluster();
+        const u32 parent_cluster = parent_dir->cluster;
+        const u32 cluster_bytes = bytes_per_cluster();
 
         // Allocate new cluster
-        const uint32_t new_cluster = find_free_cluster();
+        const u32 new_cluster = find_free_cluster();
         if (new_cluster == 0) return false;
         if (!write_fat_entry(new_cluster, 0x0FFFFFFF)) return false;
 
-        uint8_t* zero = alloc_cluster_buffer(cluster_bytes);
+        u8* zero = alloc_cluster_buffer(cluster_bytes);
         if (!zero) return false;
         memset(zero, 0, cluster_bytes);
 
@@ -1086,15 +1086,15 @@ namespace fat32 {
     bool FileSystem::create_file(const Fat32Node* parent_dir, const char* name) {
         if (!parent_dir || !name || name[0] == '\0') return false;
 
-        const uint32_t parent_cluster = parent_dir->cluster;
-        const uint32_t cluster_bytes = bytes_per_cluster();
+        const u32 parent_cluster = parent_dir->cluster;
+        const u32 cluster_bytes = bytes_per_cluster();
 
         // Allocate cluster for file
-        const uint32_t new_cluster = find_free_cluster();
+        const u32 new_cluster = find_free_cluster();
         if (new_cluster == 0) return false;
 
         // Initialize cluster
-        uint8_t* zero = alloc_cluster_buffer(cluster_bytes);
+        u8* zero = alloc_cluster_buffer(cluster_bytes);
         memset(zero, 0, cluster_bytes);
         if (!device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes)) {
             free_cluster_buffer(zero, cluster_bytes);
@@ -1122,28 +1122,28 @@ namespace fat32 {
         return true;
     }
 
-    bool FileSystem::delete_directory_entry_in_directory(const uint32_t dir_cluster, const char* name) const {
-        size_t chain_count = 0;
-        uint32_t* chain = get_cluster_chain(dir_cluster, chain_count);
+    bool FileSystem::delete_directory_entry_in_directory(const u32 dir_cluster, const char* name) const {
+        usize chain_count = 0;
+        u32* chain = get_cluster_chain(dir_cluster, chain_count);
         if (!chain) return false;
 
-        const uint32_t cluster_bytes = bytes_per_cluster();
-        const size_t entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+        const u32 cluster_bytes = bytes_per_cluster();
+        const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
 
         // Struktur für gefundene Einträge
         struct FoundEntry {
-            uint32_t cluster_index;
-            size_t entry_index;
-            size_t lfn_start_index;
-            size_t lfn_count;
+            u32 cluster_index;
+            usize entry_index;
+            usize lfn_start_index;
+            usize lfn_count;
         };
 
         FoundEntry found = {0, 0, 0, 0};
         bool entry_found = false;
 
         // Phase 1: Finde den Eintrag
-        for (size_t ci = 0; ci < chain_count && !entry_found; ++ci) {
-            uint8_t* buffer = alloc_cluster_buffer(cluster_bytes);
+        for (usize ci = 0; ci < chain_count && !entry_found; ++ci) {
+            u8* buffer = alloc_cluster_buffer(cluster_bytes);
             if (!buffer) continue;
 
             if (!read_cluster(chain[ci], buffer, cluster_bytes)) {
@@ -1153,10 +1153,10 @@ namespace fat32 {
 
             auto* entries = reinterpret_cast<DirectoryEntry*>(buffer);
 
-            size_t lfn_start_idx = 0;
-            size_t lfn_count = 0;
+            usize lfn_start_idx = 0;
+            usize lfn_count = 0;
 
-            for (size_t j = 0; j < entries_per_cluster; ++j) {
+            for (usize j = 0; j < entries_per_cluster; ++j) {
                 if (entries[j].name[0] == 0x00) break;
                 if (entries[j].name[0] == 0xE5) {
                     lfn_count = 0;
@@ -1180,15 +1180,15 @@ namespace fat32 {
                 if (lfn_count > 0) {
                     // LFN Name aus gesammelten Entries
                     LfnBufferEntry lfn_buffer[20];
-                    const size_t actual_lfn_count = (lfn_count < 20) ? lfn_count : 20;
+                    const usize actual_lfn_count = (lfn_count < 20) ? lfn_count : 20;
 
-                    for (size_t l = 0; l < actual_lfn_count; ++l) {
+                    for (usize l = 0; l < actual_lfn_count; ++l) {
                         lfn_buffer[l].lfn_entry = *reinterpret_cast<LongFileName*>(&entries[lfn_start_idx + l]);
                     }
 
                     // Sort by order
-                    for (size_t a = 0; a < actual_lfn_count - 1; a++) {
-                        for (size_t b = 0; b < actual_lfn_count - 1 - a; b++) {
+                    for (usize a = 0; a < actual_lfn_count - 1; a++) {
+                        for (usize b = 0; b < actual_lfn_count - 1 - a; b++) {
                             if ((lfn_buffer[b].lfn_entry.order & 0x3F) > (lfn_buffer[b + 1].lfn_entry.order & 0x3F)) {
                                 auto tmp = lfn_buffer[b];
                                 lfn_buffer[b] = lfn_buffer[b + 1];
@@ -1197,8 +1197,8 @@ namespace fat32 {
                         }
                     }
 
-                    size_t pos = 0;
-                    for (size_t l = 0; l < actual_lfn_count; ++l)
+                    usize pos = 0;
+                    for (usize l = 0; l < actual_lfn_count; ++l)
                         copy_lfn_part(&lfn_buffer[l].lfn_entry, full_name, pos, sizeof(full_name));
                     full_name[pos] = '\0';
                 } else {
@@ -1227,7 +1227,7 @@ namespace fat32 {
         }
 
         // Phase 2: Lösche den Eintrag
-        uint8_t* buffer = alloc_cluster_buffer(cluster_bytes);
+        u8* buffer = alloc_cluster_buffer(cluster_bytes);
         if (!buffer) {
             kernel::memory::free(chain);
             return false;
@@ -1245,7 +1245,7 @@ namespace fat32 {
         entries[found.entry_index].name[0] = 0xE5;
 
         // Markiere alle LFN Entries als gelöscht
-        for (size_t i = 0; i < found.lfn_count; ++i) {
+        for (usize i = 0; i < found.lfn_count; ++i) {
             entries[found.lfn_start_index + i].name[0] = 0xE5;
         }
 
@@ -1262,17 +1262,17 @@ namespace fat32 {
     bool FileSystem::delete_file(const Fat32Node* parent_dir, const char* name) {
         if (!parent_dir || !name) return false;
 
-        const uint32_t parent_cluster = parent_dir->cluster;
+        const u32 parent_cluster = parent_dir->cluster;
 
-        size_t entry_count = 0;
+        usize entry_count = 0;
         FileEntry* entries = read_directory(parent_cluster, entry_count);
         if (!entries) return false;
 
-        uint32_t start_cluster = 0;
+        u32 start_cluster = 0;
         DirectoryEntry victim;
         bool found = false;
 
-        for (size_t i = 0; i < entry_count; ++i) {
+        for (usize i = 0; i < entry_count; ++i) {
             if (!entries[i].is_dir() && strcmp(entries[i].get_name(), name) == 0) {
                 start_cluster = entries[i].get_first_cluster();
                 victim = entries[i].get_directory_entry();
@@ -1295,16 +1295,16 @@ namespace fat32 {
     bool FileSystem::remove_directory(const Fat32Node* parent_dir, const char* name) {
         if (!parent_dir || !name) return false;
 
-        const uint32_t parent_cluster = parent_dir->cluster;
+        const u32 parent_cluster = parent_dir->cluster;
 
-        size_t entry_count = 0;
+        usize entry_count = 0;
         FileEntry* entries = read_directory(parent_cluster, entry_count);
         if (!entries) return false;
 
-        uint32_t target_cluster = 0;
+        u32 target_cluster = 0;
         bool found = false;
 
-        for (size_t i = 0; i < entry_count; ++i) {
+        for (usize i = 0; i < entry_count; ++i) {
             if (entries[i].is_dir() && strcmp(entries[i].get_name(), name) == 0) {
                 target_cluster = entries[i].get_first_cluster();
                 found = true;
@@ -1316,7 +1316,7 @@ namespace fat32 {
         if (!found) return false;
 
         // Check empty (only "." and "..")
-        size_t dir_entry_count = 0;
+        usize dir_entry_count = 0;
         FileEntry* dir_entries = read_directory(target_cluster, dir_entry_count);
         if (!dir_entries || dir_entry_count > 2) {
             kernel::memory::free(dir_entries);
@@ -1337,17 +1337,17 @@ namespace fat32 {
     bool FileSystem::rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name) {
         if (!parent_dir || !old_name || !new_name || old_name[0] == '\0' || new_name[0] == '\0') return false;
 
-        const uint32_t dir_cluster = parent_dir->cluster;
-        const uint32_t cluster_bytes = bytes_per_cluster();
-        const size_t entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+        const u32 dir_cluster = parent_dir->cluster;
+        const u32 cluster_bytes = bytes_per_cluster();
+        const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
 
-        size_t entry_count = 0;
+        usize entry_count = 0;
         FileEntry* entries = read_directory(dir_cluster, entry_count);
         if (!entries || entry_count == 0) return false;
 
         // Find the entry to rename
         int found_index = -1;
-        for (size_t i = 0; i < entry_count; ++i) {
+        for (usize i = 0; i < entry_count; ++i) {
             if (strcmp(entries[i].get_name(), old_name) == 0) {
                 found_index = static_cast<int>(i);
                 break;
@@ -1365,19 +1365,19 @@ namespace fat32 {
             return false;
         }
 
-        size_t chain_count = 0;
-        uint32_t* chain = get_cluster_chain(dir_cluster, chain_count);
+        usize chain_count = 0;
+        u32* chain = get_cluster_chain(dir_cluster, chain_count);
         if (!chain) {
             kernel::memory::free(entries);
             return false;
         }
 
         // Find the actual entry on disk
-        uint32_t target_cluster = 0;
+        u32 target_cluster = 0;
         int target_entry_index = -1;
 
-        for (size_t ci = 0; ci < chain_count && target_entry_index < 0; ++ci) {
-            uint8_t* buffer = alloc_cluster_buffer(cluster_bytes);
+        for (usize ci = 0; ci < chain_count && target_entry_index < 0; ++ci) {
+            u8* buffer = alloc_cluster_buffer(cluster_bytes);
             if (!buffer) continue;
 
             if (!read_cluster(chain[ci], buffer, cluster_bytes)) {
@@ -1386,7 +1386,7 @@ namespace fat32 {
             }
 
             const auto* dir_entries = reinterpret_cast<DirectoryEntry*>(buffer);
-            for (size_t i = 0; i < entries_per_cluster; ++i) {
+            for (usize i = 0; i < entries_per_cluster; ++i) {
                 if (dir_entries[i].name[0] == 0x00) break;
                 if (dir_entries[i].name[0] == 0xE5) continue;
                 if (dir_entries[i].attr == ATTR_VOLUME_ID) continue;
@@ -1409,7 +1409,7 @@ namespace fat32 {
             return false;
         }
 
-        uint8_t* buffer = alloc_cluster_buffer(cluster_bytes);
+        u8* buffer = alloc_cluster_buffer(cluster_bytes);
         if (!buffer) {
             kernel::memory::free(entries);
             kernel::memory::free(chain);
@@ -1435,7 +1435,7 @@ namespace fat32 {
         const int old_start_index = target_entry_index - old_lfn_count;
 
         // Calculate new LFN entries needed
-        const size_t new_name_len = strlen(new_name);
+        const usize new_name_len = strlen(new_name);
         const int new_lfn_count = static_cast<int>((new_name_len + 12) / 13);
         const int new_total_count = new_lfn_count + 1;
 
@@ -1496,16 +1496,16 @@ namespace fat32 {
     // Path Resolution
     // ============================================================================
 
-    uint32_t FileSystem::resolve_path_to_cluster(const char* path) const {
+    u32 FileSystem::resolve_path_to_cluster(const char* path) const {
         if (path[0] != '/') return 0;
 
-        uint32_t current_cluster = get_root_cluster();
+        u32 current_cluster = get_root_cluster();
 
         char components[16][32];
-        const size_t comp_count = split_path(path, components, 16);
+        const usize comp_count = split_path(path, components, 16);
 
-        for (size_t i = 0; i < comp_count; i++) {
-            const uint32_t next_cluster = find_entry_cluster(current_cluster, components[i]);
+        for (usize i = 0; i < comp_count; i++) {
+            const u32 next_cluster = find_entry_cluster(current_cluster, components[i]);
             if (next_cluster == 0) return 0;
             current_cluster = next_cluster;
         }
@@ -1513,13 +1513,13 @@ namespace fat32 {
         return current_cluster;
     }
 
-    uint32_t FileSystem::find_entry_cluster(const uint32_t dir_cluster, const char* given_name) const {
-        size_t entry_count = 0;
+    u32 FileSystem::find_entry_cluster(const u32 dir_cluster, const char* given_name) const {
+        usize entry_count = 0;
         FileEntry* entries = read_directory(dir_cluster, entry_count);
         if (!entries) return 0;
 
-        uint32_t result = 0;
-        for (size_t i = 0; i < entry_count; i++) {
+        u32 result = 0;
+        for (usize i = 0; i < entry_count; i++) {
             if (const char* entry_name = entries[i].get_name(); strcmp(entry_name, given_name) == 0) {
                 result = entries[i].get_first_cluster();
                 break;
@@ -1544,7 +1544,7 @@ namespace fat32 {
         memcpy(ext, short_name_ + 8, 3);
         for (int i = 2; i >= 0 && ext[i] == ' '; i--) ext[i] = '\0';
 
-        const size_t name_len = strlen(name);
+        const usize name_len = strlen(name);
         memcpy(formatted_short_name_, name, name_len);
 
         if (ext[0] != '\0') {

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_USB_MANAGER_H
 #define VESPERAOS_USB_MANAGER_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/completion.h>
 #include <vespera/sync/spinlock.h>
@@ -38,9 +38,9 @@ private:
 public:
     static void init();
     static void notify_controller_ready();
-    static bool wait_for_all_controllers(uint64_t timeout_ms = 10000);
-    static uint8_t get_initialized_count();
-    static uint8_t get_expected_count();
+    static bool wait_for_all_controllers(u64 timeout_ms = 10000);
+    static u8 get_initialized_count();
+    static u8 get_expected_count();
     static void increment_expected_count();
 };
 

@@ -4,8 +4,8 @@
 
 #ifndef GRAHICS_H
 #define GRAHICS_H
-#include <stdint.h>
-#include <stddef.h>
+#include <vespera/types.h>
+
 // TODO this header should be split and reworked, as it is not really fitting into the structure anymore
 typedef enum {
     BLACK   = 0x00000000,
@@ -23,16 +23,16 @@ typedef enum {
 
 typedef struct {
     void*    base_address;
-    uint64_t phys_base_address;
-    size_t   buffer_size;
-    uint32_t width;
-    uint32_t height;
-    uint32_t pixels_per_scanline;
+    u64 phys_base_address;
+    usize   buffer_size;
+    u32 width;
+    u32 height;
+    u32 pixels_per_scanline;
 } framebuffer_t;
 
 typedef struct {
-    uint32_t x;
-    uint32_t y;
+    u32 x;
+    u32 y;
 } point_t;
 
 #define PSF1_MAGIC0 0x36
@@ -47,23 +47,23 @@ typedef struct {
 typedef struct {
     void* header;       // PSF1_HEADER* or PSF2_HEADER*
     void* glyph_buffer;
-    uint32_t type;      // 1 = PSF1, 2 = PSF2
-    uint32_t width;
-    uint32_t height;
-    uint32_t charsize;
+    u32 type;      // 1 = PSF1, 2 = PSF2
+    u32 width;
+    u32 height;
+    u32 charsize;
 } font_t;
 
 #define PSF2_MAGIC 0x864ab572
 
 typedef struct {
-    uint32_t magic;        // 0x864ab572
-    uint32_t version;      // 0
-    uint32_t headersize;   // offset of bitmaps in file
-    uint32_t flags;        // 0 = keine Unicode Tabelle
-    uint32_t length;       // Anzahl der Glyphen
-    uint32_t charsize;     // Bytes pro Glyph
-    uint32_t height;       // Pixelhöhe
-    uint32_t width;        // Pixelbreite
+    u32 magic;        // 0x864ab572
+    u32 version;      // 0
+    u32 headersize;   // offset of bitmaps in file
+    u32 flags;        // 0 = keine Unicode Tabelle
+    u32 length;       // Anzahl der Glyphen
+    u32 charsize;     // Bytes pro Glyph
+    u32 height;       // Pixelhöhe
+    u32 width;        // Pixelbreite
 } psf2_header_t;
 
 #endif //GRAHICS_H

@@ -89,13 +89,13 @@ VfsNode* VFS::open(const char* path)
 
     // --- Mountpoint-Suche ---
     MountPoint* best_match = nullptr;
-    size_t best_len = 0;
+    usize best_len = 0;
 
     {
         SpinlockGuard g(mount_points_lock_);
         for (const auto& mp : *mount_points_)
         {
-            if (const size_t len = strlen(mp->path); strncmp(path, mp->path, len) == 0 &&
+            if (const usize len = strlen(mp->path); strncmp(path, mp->path, len) == 0 &&
                 (strcmp(mp->path, "/") == 0 || path[len] == '/' || path[len] == '\0') &&
                 len > best_len)
             {
@@ -116,9 +116,9 @@ VfsNode* VFS::open(const char* path)
     VfsNode* current = best_match->root;
 
     char components[16][32];
-    size_t count = split_path(sub_path, components, 16);
+    usize count = split_path(sub_path, components, 16);
 
-    for (size_t i = 0; i < count; i++)
+    for (usize i = 0; i < count; i++)
     {
         current = current->ops->find(current, components[i]);
         if (!current) return nullptr;
@@ -171,7 +171,7 @@ void VFS::closedir(VfsDir* dir)
     kernel::memory::free(dir);
 }
 
-size_t VFS::read(const VfsNode* node, size_t offset, size_t size, void* buffer)
+usize VFS::read(const VfsNode* node, usize offset, usize size, void* buffer)
 {
     if (!node || !node->ops || !node->ops->read) return 0;
     return node->ops->read(node, offset, size, buffer);
@@ -324,7 +324,7 @@ void VFS::get_stats(VfsStats* stats)
     stats->supported_filesystems = 0;
 
     auto devices = DeviceManager::get_devices();
-    for (size_t i = 0; i < stats->total_devices; i++)
+    for (usize i = 0; i < stats->total_devices; i++)
     {
         FilesystemInfo info;
         if (FilesystemDetector::detect_filesystem(devices[i], &info) && info.mounted)
@@ -345,7 +345,7 @@ void VFS::add_mount_point(MountPoint* mp)
     mount_points_->push_back(mp);
 }
 
-size_t VFS::mount_points_count()
+usize VFS::mount_points_count()
 {
     SpinlockGuard g(mount_points_lock_);
     return mount_points_->size();
@@ -374,7 +374,7 @@ bool VFS::remove_mount_point(MountPoint* mp)
     if (!mp) return false;
     SpinlockGuard g(mount_points_lock_);
 
-    for (size_t i = 0; i < mount_points_->size(); ++i)
+    for (usize i = 0; i < mount_points_->size(); ++i)
     {
         if (MountPoint* mp_iter = (*mount_points_)[i]; mp_iter == mp)
         {

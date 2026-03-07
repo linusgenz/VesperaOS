@@ -42,13 +42,13 @@ public:
     void on_event(usb::XhciDriver* hcd, XhciDevice* dev) override;
 
     // BlockDevice interface
-    ssize_t read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) override;
+    isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
 
-    ssize_t write(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) override;
+    isize write(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
 
-    [[nodiscard]] size_t get_sector_size() const override { return sector_size_; }
+    [[nodiscard]] usize get_sector_size() const override { return sector_size_; }
 
-    [[nodiscard]] size_t get_size() const override
+    [[nodiscard]] usize get_size() const override
     {
         return total_sectors_ * sector_size_;
     }
@@ -63,30 +63,30 @@ private:
 
     kernel::Mutex io_mutex_{};
 
-    uint32_t sector_size_{512};
-    uint64_t total_sectors_{0};
-    uint32_t max_lun_{0}; // Logical Unit Number
+    u32 sector_size_{512};
+    u64 total_sectors_{0};
+    u32 max_lun_{0}; // Logical Unit Number
 
     // SCSI Command structures
     struct CBW
     {
         // Command Block Wrapper
-        uint32_t signature; // 0x43425355 ("USBC")
-        uint32_t tag;
-        uint32_t data_length;
-        uint8_t flags; // Bit 7: Direction (0=Out, 1=In)
-        uint8_t lun; // Logical Unit Number
-        uint8_t cb_length; // Command Block Length
-        uint8_t cb[16]; // Command Block
+        u32 signature; // 0x43425355 ("USBC")
+        u32 tag;
+        u32 data_length;
+        u8 flags; // Bit 7: Direction (0=Out, 1=In)
+        u8 lun; // Logical Unit Number
+        u8 cb_length; // Command Block Length
+        u8 cb[16]; // Command Block
     } __attribute__((packed));
 
     struct CSW
     {
         // Command Status Wrapper
-        uint32_t signature; // 0x53425355 ("USBS")
-        uint32_t tag;
-        uint32_t data_residue;
-        uint8_t status; // 0=Success, 1=Failed, 2=Phase Error
+        u32 signature; // 0x53425355 ("USBS")
+        u32 tag;
+        u32 data_residue;
+        u8 status; // 0=Success, 1=Failed, 2=Phase Error
     } __attribute__((packed));
 
     struct MassStorageTransfer
@@ -97,8 +97,8 @@ private:
         CSW csw{};
 
         void* data_buffer{};
-        uint32_t data_length{};
-        uint32_t actual_length{};
+        u32 data_length{};
+        u32 actual_length{};
         bool is_input{};
 
         XhciEndpoint* endpoint{};
@@ -108,8 +108,8 @@ private:
     };
 
     MassStorageTransfer* current_transfer_{};
-    uint8_t inquiry_buffer_[36]{};
-    uint8_t capacity_buffer_[8]{};
+    u8 inquiry_buffer_[36]{};
+    u8 capacity_buffer_[8]{};
 
     MassStorageTransfer transfer_test_unit_ready_;
     MassStorageTransfer transfer_inquiry_;
@@ -128,7 +128,7 @@ private:
     int init_status_ = -1;
     InitPhase init_phase_ = InitPhase::TestUnitReady;
 
-    uint32_t current_tag_{1};
+    u32 current_tag_{1};
 
     void scsi_inquiry();
 

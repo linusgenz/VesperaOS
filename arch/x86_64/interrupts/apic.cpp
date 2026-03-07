@@ -14,13 +14,13 @@
 #include "interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::apic {
-    uint32_t read(const uint32_t offset) {
-        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_local_apic_addr + offset);
+    u32 read(const u32 offset) {
+        volatile auto *reg = reinterpret_cast<volatile u32 *>(g_local_apic_addr + offset);
         return *reg;
     }
 
-    void write(const uint32_t offset, const uint32_t value) {
-        volatile auto *reg = reinterpret_cast<volatile uint32_t *>(g_local_apic_addr + offset);
+    void write(const u32 offset, const u32 value) {
+        volatile auto *reg = reinterpret_cast<volatile u32 *>(g_local_apic_addr + offset);
         *reg = value;
     }
 
@@ -31,7 +31,7 @@ namespace arch::x86_64::interrupts::apic {
         }
     }
 
-    void init(const uint8_t cpu_id) {
+    void init(const u8 cpu_id) {
         write(LAPIC_TPR, 0);
 
         // Logical Destination Mode
@@ -46,7 +46,7 @@ namespace arch::x86_64::interrupts::apic {
 
         pmt_delay(10000);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
-        uint32_t calibration = 0xffffffff - read(LAPIC_TCCR);
+        u32 calibration = 0xffffffff - read(LAPIC_TCCR);
         write(LAPIC_TIMER, IRQ_TIMER | LAPIC_PERIODIC);
         write(LAPIC_TDCR, 0x3);  // 16
         write(LAPIC_TICR, calibration);
@@ -55,21 +55,21 @@ namespace arch::x86_64::interrupts::apic {
         write(LAPIC_ICRHI, 0x0);
     }
 
-    void send_ipi(const uint32_t apic_id, const uint8_t vector) {
+    void send_ipi(const u32 apic_id, const u8 vector) {
         // Set destination
         write(LAPIC_ICRHI, apic_id << 24);
 
-        const uint32_t icr_lo = static_cast<uint32_t>(vector) | APIC_ICR_LEVEL_ASSERT;
+        const u32 icr_lo = static_cast<u32>(vector) | APIC_ICR_LEVEL_ASSERT;
 
         write(LAPIC_ICRLO, icr_lo);
 
         wait_for_delivery();
     }
 
-    void broadcast_ipi(const uint8_t vector) {
-        uint32_t self_apic_id = local_apic_get_id();
+    void broadcast_ipi(const u8 vector) {
+        u32 self_apic_id = local_apic_get_id();
 
-        for (uint32_t i = 0; i < cpu_manager::total_cpus && i < MAX_CPU_CORES; i++) {
+        for (u32 i = 0; i < cpu_manager::total_cpus && i < MAX_CPU_CORES; i++) {
             const auto &cpu = cpu_manager::cpu_infos[i];
 
             if (cpu.apic_id == self_apic_id) continue;
@@ -78,28 +78,28 @@ namespace arch::x86_64::interrupts::apic {
         }
     }
 
-    void pmt_delay(const size_t us) {
+    void pmt_delay(const usize us) {
         acpi::FADT *fadt = acpi::TableManager::get_fadt();
 
         if (fadt->pm_timer_length != 4) {
             kernel::SystemManager::system_panic("ACPI Timer unavailable", -KENOACPI);
         }
 
-        const uint64_t count = inl(fadt->pm_timer_block);
-        const uint64_t target = (us * PMT_TIMER_RATE) / 1000000;
-        uint64_t current = 0;
+        const u64 count = inl(fadt->pm_timer_block);
+        const u64 target = (us * PMT_TIMER_RATE) / 1000000;
+        u64 current = 0;
 
         while (current < target) {
             current = ((inl(fadt->pm_timer_block) - count) & 0xffffff);
         }
     }
 
-    uint32_t local_apic_get_id() {
+    u32 local_apic_get_id() {
         return read(LAPIC_ID) >> 24;
     }
 
     void timer_accounting() {
-        uint32_t cpu = cpu_manager::get_current_cpu_id();
+        u32 cpu = cpu_manager::get_current_cpu_id();
         apic_ticks[cpu]++;
     }
 
@@ -109,17 +109,17 @@ namespace arch::x86_64::interrupts::apic {
 #endif
 
         if (!kernel::scheduling::is_initialized()) return;
-        uint32_t cpu = cpu_manager::get_current_cpu_id();
+        u32 cpu = cpu_manager::get_current_cpu_id();
 
         kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
 
         kernel::scheduling::tick_cpu(cpu, frame);
     }
 
-    void sleep(uint64_t ms) {
-        uint64_t ticks_to_wait = (ms + 9) / 10;
-        uint32_t cpu = cpu_manager::get_current_cpu_id();
-        uint64_t target = apic_ticks[cpu] + ticks_to_wait;
+    void sleep(u64 ms) {
+        u64 ticks_to_wait = (ms + 9) / 10;
+        u32 cpu = cpu_manager::get_current_cpu_id();
+        u64 target = apic_ticks[cpu] + ticks_to_wait;
 
         while (apic_ticks[cpu] < target) {
             asm volatile("hlt");

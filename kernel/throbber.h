@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_THROBBER_H
 #define VESPERAOS_THROBBER_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 #define THROBBER_SIZE 64
 #define THROBBER_FRAMES 8
@@ -39,9 +39,9 @@
 #define M_PI_2 1.57079632679489661923
 #define M_PI_4_P_0273 1.05839816339744830962
 
-inline uint32_t throbber_frames[SEGMENT_COUNT][THROBBER_SIZE * THROBBER_SIZE];
-inline uint8_t segment_map[THROBBER_SIZE * THROBBER_SIZE];
-inline uint8_t mask_map[THROBBER_SIZE * THROBBER_SIZE];
+inline u32 throbber_frames[SEGMENT_COUNT][THROBBER_SIZE * THROBBER_SIZE];
+inline u8 segment_map[THROBBER_SIZE * THROBBER_SIZE];
+inline u8 mask_map[THROBBER_SIZE * THROBBER_SIZE];
 
 void generate_throbber();
 void render_throbber(void *arg);

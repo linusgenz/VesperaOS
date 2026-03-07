@@ -34,7 +34,7 @@
 
 using namespace fat32;
 
-static ssize_t fat32_read(const VfsNode* node, size_t offset, size_t size, void* buffer)
+static isize fat32_read(const VfsNode* node, usize offset, usize size, void* buffer)
 {
     if (!node || !buffer) return -EFAULT;
     if (size == 0) return 0;
@@ -42,20 +42,20 @@ static ssize_t fat32_read(const VfsNode* node, size_t offset, size_t size, void*
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
     if (!fnode) return -EBADH;
 
-    size_t actual = 0;
+    usize actual = 0;
     if (!fnode->fs->read_file(fnode, buffer, size, actual, offset))
         return -EIO;
 
     // Offset can be >= actual → EOF
     if (offset >= actual) return 0;
 
-    size_t copy_size = actual - offset;
+    usize copy_size = actual - offset;
     if (copy_size > size) copy_size = size;
 
-    return static_cast<ssize_t>(copy_size);
+    return static_cast<isize>(copy_size);
 }
 
-static ssize_t fat32_write(VfsNode* node, const size_t offset, const size_t size, const void* buffer)
+static isize fat32_write(VfsNode* node, const usize offset, const usize size, const void* buffer)
 {
     if (!node || !buffer) return -EFAULT;
     if (size == 0) return 0;
@@ -73,7 +73,7 @@ static ssize_t fat32_write(VfsNode* node, const size_t offset, const size_t size
         return -EIO;
 
     node->size = fnode->file_size;
-    return static_cast<ssize_t>(size);
+    return static_cast<isize>(size);
 }
 
 static VfsNode* fat32_find(const VfsNode* node, const char* name)
@@ -81,11 +81,11 @@ static VfsNode* fat32_find(const VfsNode* node, const char* name)
     auto* dir = static_cast<Fat32Node*>(node->internal_data);
     if (!dir || !dir->is_dir) return nullptr;
 
-    size_t entry_count = 0;
+    usize entry_count = 0;
     FileEntry* entries = dir->fs->read_directory(dir->path, entry_count);
     if (!entries) return nullptr;
 
-    for (size_t i = 0; i < entry_count; i++)
+    for (usize i = 0; i < entry_count; i++)
     {
         if (const char* entry_name = entries[i].get_name(); strcmp(entry_name, name) == 0)
         {
@@ -269,7 +269,7 @@ int fat32_probe(BlockDevice* dev, FilesystemInfo *fs_info)
 {
     FileSystem fs(dev);
 
-    size_t len = 11;
+    usize len = 11;
     memcpy(fs_info->label, fs.get_bpb()->volume_label, len);
     fs_info->label[len] = '\0';
 

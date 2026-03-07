@@ -32,7 +32,7 @@ void XhciHidDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
 
 void XhciHidDriver::on_event(usb::XhciDriver* hcd, XhciDevice* dev) {
     auto& endpoint = interface_->endpoints[0];
-    uint8_t* data = endpoint->get_data_buffer();
+    u8* data = endpoint->get_data_buffer();
 
     this->on_device_event(data);
 

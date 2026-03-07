@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_UNITINFO_H
 #define VESPERAOS_UNITINFO_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 /**
  *
@@ -74,25 +74,25 @@
  * The @ref state field holds one of the @ref unit_state constants.
  */
 typedef struct unit_info {
-    uint32_t id;        ///< Unique identifier of the Unit
-    uint32_t realm_id;  ///< Identifier of the Realm this Unit belongs to
+    u32 id;        ///< Unique identifier of the Unit
+    u32 realm_id;  ///< Identifier of the Realm this Unit belongs to
 
     /**
      * @brief Current lifecycle state of the Unit.
      *
      * One of the UNIT_STATE_* constants (e.g. @ref UNIT_STATE_RUNNING).
      */
-    uint8_t state;
+    u8 state;
 
-    uint8_t priority;   ///< Scheduling priority of the Unit
-    uint8_t cpu_id;     ///< ID of the CPU the Unit is currently running on
-    int32_t exit_code;  ///< Exit code if the Unit has terminated; 0 otherwise
+    u8 priority;   ///< Scheduling priority of the Unit
+    u8 cpu_id;     ///< ID of the CPU the Unit is currently running on
+    i32 exit_code;  ///< Exit code if the Unit has terminated; 0 otherwise
 
-    uint64_t handle_count;        ///< Number of handles/resources currently held by the Unit
-    uint64_t kernel_stack_start;  ///< Start address of the Unit's kernel stack
-    uint64_t kernel_stack_end;    ///< End address of the Unit's kernel stack
-    uint64_t user_stack_start;    ///< Start address of the Unit's user stack
-    uint64_t user_stack_end;      ///< End address of the Unit's user stack
+    u64 handle_count;        ///< Number of handles/resources currently held by the Unit
+    u64 kernel_stack_start;  ///< Start address of the Unit's kernel stack
+    u64 kernel_stack_end;    ///< End address of the Unit's kernel stack
+    u64 user_stack_start;    ///< Start address of the Unit's user stack
+    u64 user_stack_end;      ///< End address of the Unit's user stack
 } unit_info_t;
 
 #endif  // VESPERAOS_UNITINFO_H

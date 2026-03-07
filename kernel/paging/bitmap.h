@@ -5,16 +5,16 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 class Bitmap {
    public:
-    size_t size;
-    uint8_t* buffer;
-    bool operator[](uint64_t index) const;
-    [[nodiscard]] bool set(uint64_t index, bool value) const;
-    [[nodiscard]] bool get(uint64_t index) const;
+    usize size;
+    u8* buffer;
+    bool operator[](u64 index) const;
+    [[nodiscard]] bool set(u64 index, bool value) const;
+    [[nodiscard]] bool get(u64 index) const;
 };
 
 #endif  // BITMAP_H

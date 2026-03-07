@@ -24,16 +24,16 @@
 #ifndef VESPERAOS_DISASM_H
 #define VESPERAOS_DISASM_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 struct Instruction {
     char mnemonic[128];
-    uint8_t size;
+    u8 size;
 };
 
-Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr);
+Instruction disasm_next(const u8* code, usize max_len, u64 instr_addr);
 
-void disassemble_frame(uint64_t addr, size_t bytes);
+void disassemble_frame(u64 addr, usize bytes);
 
 #endif  // VESPERAOS_DISASM_H

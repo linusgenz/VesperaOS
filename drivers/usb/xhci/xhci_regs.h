@@ -3,30 +3,30 @@
 #include "xhci_mem.h"
 
 struct XHCI_CAPABILITY_REGISTERS {
-    const uint8_t caplength;    // Capability Register Length
-    const uint8_t reserved0;
-    const uint16_t hciversion;  // Interface Version Number
-    const uint32_t hcsparams1;  // Structural Parameters 1
-    const uint32_t hcsparams2;  // Structural Parameters 2
-    const uint32_t hcsparams3;  // Structural Parameters 3
-    const uint32_t hccparams1;  // Capability Parameters 1
-    const uint32_t dboff;       // Doorbell Offset
-    const uint32_t rtsoff;      // Runtime Register Space Offset
-    const uint32_t hccparams2;  // Capability Parameters 2
+    const u8 caplength;    // Capability Register Length
+    const u8 reserved0;
+    const u16 hciversion;  // Interface Version Number
+    const u32 hcsparams1;  // Structural Parameters 1
+    const u32 hcsparams2;  // Structural Parameters 2
+    const u32 hcsparams3;  // Structural Parameters 3
+    const u32 hccparams1;  // Capability Parameters 1
+    const u32 dboff;       // Doorbell Offset
+    const u32 rtsoff;      // Runtime Register Space Offset
+    const u32 hccparams2;  // Capability Parameters 2
 };
 static_assert(sizeof(XHCI_CAPABILITY_REGISTERS) == 32);
 
 struct XHCI_OPERATIONAL_REGISTERS {
-    uint32_t usbcmd;        // USB Command
-    uint32_t usbsts;        // USB Status
-    uint32_t pagesize;      // Page Size
-    uint32_t reserved0[2];
-    uint32_t dnctrl;        // Device Notification Control
-    volatile uint64_t crcr; // Command Ring Control
-    uint32_t reserved1[4];
-    uint64_t dcbaap;        // Device Context Base Address Array Pointer
-    uint32_t config;        // Configure
-    uint32_t reserved2[49];
+    u32 usbcmd;        // USB Command
+    u32 usbsts;        // USB Status
+    u32 pagesize;      // Page Size
+    u32 reserved0[2];
+    u32 dnctrl;        // Device Notification Control
+    volatile u64 crcr; // Command Ring Control
+    u32 reserved1[4];
+    u64 dcbaap;        // Device Context Base Address Array Pointer
+    u32 config;        // Configure
+    u32 reserved2[49];
     // Port Register Set offset has to be calculated dynamically based on MAXPORTS
 };
 static_assert(sizeof(XHCI_OPERATIONAL_REGISTERS) == 256);
@@ -43,31 +43,31 @@ generated. Not following these rules, shall result in undefined xHC behavior.
 struct XHCI_INTERRUPTER_REGISTERS {
     union {
         struct {
-            uint32_t ip : 1;
-            uint32_t ie : 1;
-            uint32_t rsv: 30;
+            u32 ip : 1;
+            u32 ie : 1;
+            u32 rsv: 30;
         };
-        uint32_t iman;
+        u32 iman;
     };
-    uint32_t imod;         // Interrupter Moderation
-    uint32_t erstsz;       // Event Ring Segment Table Size
-    uint32_t rsvd;         // Reserved
-    uint64_t erstba;       // Event Ring Segment Table Base Address
+    u32 imod;         // Interrupter Moderation
+    u32 erstsz;       // Event Ring Segment Table Size
+    u32 rsvd;         // Reserved
+    u64 erstba;       // Event Ring Segment Table Base Address
     union {
         struct {
             // This index is used to accelerate the checking of
             // an Event Ring Full condition. This field can be 0.
-            uint64_t dequeue_erst_segment_index : 3;
+            u64 dequeue_erst_segment_index : 3;
 
             // This bit is set by the controller when it sets the
             // Interrupt Pending bit. Then once your handler is finished
             // handling the event ring, you clear it by writing a '1' to it.
-            uint64_t event_handler_busy         : 1;
+            u64 event_handler_busy         : 1;
 
             // Physical address of the _next_ item in the event ring
-            uint64_t event_ring_dequeue_pointer : 60;
+            u64 event_ring_dequeue_pointer : 60;
         };
-        uint64_t erdp;     // Event Ring Dequeue Pointer (offset 18h)
+        u64 erdp;     // Event Ring Dequeue Pointer (offset 18h)
     };
 };
 
@@ -89,8 +89,8 @@ writes to the Qword address fields shall be performed using 2 Dword
 references; low Dword-first, high-Dword second.
 */
 struct XHCI_RUNTIME_REGISTERS {
-    uint32_t mf_index;                      // Microframe Index (offset 0000h)
-    uint32_t rsvdz[7];                      // Reserved (offset 001Fh:0004h)
+    u32 mf_index;                      // Microframe Index (offset 0000h)
+    u32 rsvdz[7];                      // Reserved (offset 001Fh:0004h)
     XHCI_INTERRUPTER_REGISTERS ir[1024];    // Interrupter Register Sets (offset 0020h to 8000h)
 };
 
@@ -120,25 +120,25 @@ Command Completion Event.
 struct XHCI_DOORBELL_REGISTER {
     union {
         struct {
-            uint8_t     db_target;
-            uint8_t     rsvd;
-            uint16_t    db_stream_id;
+            u8     db_target;
+            u8     rsvd;
+            u16    db_stream_id;
         };
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
 
 class XhciDoorbellManager {
 public:
-    explicit XhciDoorbellManager(uintptr_t base);
+    explicit XhciDoorbellManager(uptr base);
 
     // TargeValue = 2 + (ZeroBasedEndpoint * 2) + (isOutEp ? 0 : 1)
-    void ring_doorbell(uint8_t doorbell, uint8_t target) const;
+    void ring_doorbell(u8 doorbell, u8 target) const;
 
     void ring_command_doorbell() const;
-    void ring_control_endpoint_doorbell(uint8_t doorbell) const;
+    void ring_control_endpoint_doorbell(u8 doorbell) const;
 
 private:
     XHCI_DOORBELL_REGISTER* doorbell_registers_;
@@ -147,53 +147,53 @@ private:
 struct XHCI_EXTENDED_CAPABILITY_ENTRY {
     union {
         struct {
-            uint8_t id;
-            uint8_t next;
+            u8 id;
+            u8 next;
 
-            uint16_t cap_specific;
+            u16 cap_specific;
         };
-        uint32_t raw;
+        u32 raw;
     };
 };
-#define XHCI_NEXT_EXT_CAP_PTR(ptr, next) (volatile uint32_t*)((char*)(ptr) + ((next) * sizeof(uint32_t)))
+#define XHCI_NEXT_EXT_CAP_PTR(ptr, next) (volatile u32*)((char*)(ptr) + ((next) * sizeof(u32)))
 
 struct XHCI_PORTSC_REGISTER {
     union {
         struct {
             // Current connect status (RO), if PP is 0, this bit is also 0
-            uint32_t    ccs         : 1;
+            u32    ccs         : 1;
 
             // Port Enable/Disable (R/WC), if PP is 0, this bit is also 0
-            uint32_t    ped         : 1;
+            u32    ped         : 1;
 
             // Reserved and zeroed
-            uint32_t    rsvd0       : 1;
+            u32    rsvd0       : 1;
 
             // Over-current active (RO)
-            uint32_t    oca         : 1;
+            u32    oca         : 1;
 
             // Port reset (R/W), if PP is 0, this bit is also 0
-            uint32_t    pr          : 1;
+            u32    pr          : 1;
 
             // Port link state (R/W), if PP is 0, this bit is also 0
-            uint32_t    pls         : 4;
+            u32    pls         : 4;
 
             // Port power (R/W)
-            uint32_t    pp          : 1;
+            u32    pp          : 1;
 
             // Port speed (RO)
-            uint32_t    port_speed  : 4;
+            u32    port_speed  : 4;
 
             // Port indicator control (R/W), if PP is 0, this bit is also 0
-            uint32_t    pic         : 2;
+            u32    pic         : 2;
 
             // Port link state write strobe (R/W), if PP is 0, this bit is also 0
-            uint32_t    lws         : 1;
+            u32    lws         : 1;
 
             // Connect status change (R/WC), if PP is 0, this bit is also 0.
             // ** When transitioning from 0 to a 1, will trigger a Port Status Change Event.
             // ** Clear this bit by writing a '1' to it.
-            uint32_t    csc         : 1;
+            u32    csc         : 1;
 
             /*
             Port enable/disable change (R/WC), if PP is 0, this bit is also 0.
@@ -202,62 +202,62 @@ struct XHCI_PORTSC_REGISTER {
             ** For a USB3 protocol port, this bit shall never be set to ‘1’
             ** Software shall clear this bit by writing a ‘1’ to it. Refer to section 4.19.2
             */
-            uint32_t    pec         : 1;
+            u32    pec         : 1;
 
             // Warm port reset change (R/WC), if PP is 0, this bit is also 0.
             // ** When transitioning from 0 to a 1, will trigger a Port Status Change Event.
             // ** Reserved and zeroed on USB2 ports.
             // ** Software shall clear this bit by writing a '1' to it.
-            uint32_t    wrc         : 1;
+            u32    wrc         : 1;
 
             // Over-current change (R/WC), if PP is 0, this bit is also 0.
             // ** When transitioning from 0 to a 1, will trigger a Port Status Change Event.
             // ** Software shall clear this bit by writing a '1' to it.
-            uint32_t    occ         : 1;
+            u32    occ         : 1;
 
             // Port reset change (R/WC), if PP is 0, this bit is also 0.
             // ** When transitioning from 0 to a 1, will trigger a Port Status Change Event.
             // ** Software shall clear this bit by writing a '1' to it.
-            uint32_t    prc         : 1;
+            u32    prc         : 1;
 
             // Port link state change (R/WC), if PP is 0, this bit is also 0.
             // ** When transitioning from 0 to a 1, will trigger a Port Status Change Event.
-            uint32_t    plc         : 1;
+            u32    plc         : 1;
 
             // Port config error change (R/WC), if PP is 0, this bit is also 0.
             // ** When transitioning from 0 to a 1, will trigger a Port Status Change Event.
             // ** Reserved and zeroed on USB2 ports.
             // ** Software shall clear this bit by writing a '1' to it.
-            uint32_t    cec         : 1;
+            u32    cec         : 1;
 
             // Cold attach status (R/O), if PP is 0, this bit is also 0.
-            uint32_t    cas         : 1;
+            u32    cas         : 1;
 
             // Wake on connect enable (R/W)
-            uint32_t    wce         : 1;
+            u32    wce         : 1;
 
             // Wake on disconnect enable (R/W)
-            uint32_t    wde         : 1;
+            u32    wde         : 1;
 
             // Wake on over-current enable (R/W)
-            uint32_t    woe         : 1;
+            u32    woe         : 1;
 
             // Reserved and zeroed
-            uint32_t    rsvd1        : 2;
+            u32    rsvd1        : 2;
 
             // Device removable (RO)
-            uint32_t    dr          : 1;
+            u32    dr          : 1;
 
             // Warm port reset (R/WC).
             // ** Reserved and zeroed on USB2 ports.
-            uint32_t    wpr         : 1;
+            u32    wpr         : 1;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(XHCI_PORTSC_REGISTER) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTSC_REGISTER) == sizeof(u32));
 
 enum class XHCI_EXTENDED_CAPABILITY_CODE {
     REVD = 0,
@@ -273,16 +273,16 @@ enum class XHCI_EXTENDED_CAPABILITY_CODE {
 
 class XhciExtendedCapability {
 public:
-    explicit XhciExtendedCapability(volatile uint32_t* cap_ptr);
+    explicit XhciExtendedCapability(volatile u32* cap_ptr);
 
-    [[nodiscard]] volatile uint32_t* base() const {return base_;}
+    [[nodiscard]] volatile u32* base() const {return base_;}
 
     [[nodiscard]]  XHCI_EXTENDED_CAPABILITY_CODE id() const {
         return static_cast<XHCI_EXTENDED_CAPABILITY_CODE>(entry_.id);
     }
     [[nodiscard]] XhciExtendedCapability* next() const {return next_;}
 private:
-    volatile uint32_t* base_;
+    volatile u32* base_;
     XHCI_EXTENDED_CAPABILITY_ENTRY entry_{};
 
     XhciExtendedCapability* next_;
@@ -294,83 +294,83 @@ private:
 struct XHCI_PORTLI_REGISTER {
     union {
         struct {
-            uint32_t link_error_count   : 16;
-            uint32_t rx_lane_count      : 4;
-            uint32_t tx_lane_count      : 4;
-            uint32_t rsvd               : 8;
+            u32 link_error_count   : 16;
+            u32 rx_lane_count      : 4;
+            u32 tx_lane_count      : 4;
+            u32 rsvd               : 8;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(XHCI_PORTLI_REGISTER) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTLI_REGISTER) == sizeof(u32));
 
 struct XHCI_PORTPMSC_REGISTER_USB2 {
     union {
         struct {
-            uint32_t l1_status                       : 3;
-            uint32_t remote_wake_enable             : 1;
-            uint32_t host_initiated_resume_duration : 4;
-            uint32_t l1device_slot                  : 8;
-            uint32_t hardware_lpm_enable            : 1;
-            uint32_t rsvd                           : 11;
-            uint32_t port_test_control                : 4;
+            u32 l1_status                       : 3;
+            u32 remote_wake_enable             : 1;
+            u32 host_initiated_resume_duration : 4;
+            u32 l1device_slot                  : 8;
+            u32 hardware_lpm_enable            : 1;
+            u32 rsvd                           : 11;
+            u32 port_test_control                : 4;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(XHCI_PORTPMSC_REGISTER_USB2) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTPMSC_REGISTER_USB2) == sizeof(u32));
 
 struct XHCI_PORTPMSC_REGISTER_USB3 {
     union {
         struct {
-            uint32_t u1_timeout              : 8;
-            uint32_t u2_timeout              : 8;
-            uint32_t force_link_pm_accept   : 1;
-            uint32_t rsvd                   : 15;
+            u32 u1_timeout              : 8;
+            u32 u2_timeout              : 8;
+            u32 force_link_pm_accept   : 1;
+            u32 rsvd                   : 15;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(XHCI_PORTPMSC_REGISTER_USB3) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTPMSC_REGISTER_USB3) == sizeof(u32));
 
 // Port Hardware LPM Control Register
 struct XHCI_PORTHLPMC_REGISTER_USB2 {
     union {
         struct {
-            uint32_t hirdm      : 2;
-            uint32_t l1_timeout  : 8;
-            uint32_t besld      : 4;
-            uint32_t rsvd       : 18;
+            u32 hirdm      : 2;
+            u32 l1_timeout  : 8;
+            u32 besld      : 4;
+            u32 rsvd       : 18;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(XHCI_PORTHLPMC_REGISTER_USB2) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTHLPMC_REGISTER_USB2) == sizeof(u32));
 
 struct XHCI_PORTHLPMC_REGISTER_USB3 {
     union {
         struct {
-            uint16_t link_soft_error_count;
-            uint16_t rsvd;
+            u16 link_soft_error_count;
+            u16 rsvd;
         } __attribute__((packed));
 
         // Must be accessed using 32-bit dwords
-        uint32_t raw;
+        u32 raw;
     };
 } __attribute__((packed));
-static_assert(sizeof(XHCI_PORTHLPMC_REGISTER_USB3) == sizeof(uint32_t));
+static_assert(sizeof(XHCI_PORTHLPMC_REGISTER_USB3) == sizeof(u32));
 
 class XhciPortRegisterManager {
 public:
-    explicit XhciPortRegisterManager(uintptr_t base) : base_(base) {}
+    explicit XhciPortRegisterManager(uptr base) : base_(base) {}
 
     void read_portsc_reg(XHCI_PORTSC_REGISTER& reg) const;
     void write_portsc_reg(const XHCI_PORTSC_REGISTER& reg) const;
@@ -391,12 +391,12 @@ public:
     void write_porthlpmc_reg_usb3(const XHCI_PORTHLPMC_REGISTER_USB3& reg) const;
 
 private:
-    uintptr_t base_;
+    uptr base_;
 
-    const size_t portsc_offset_     = 0x00;
-    const size_t portpmsc_offset_   = 0x04;
-    const size_t portli_offset_     = 0x08;
-    const size_t porthlpmc_offset_  = 0x0C;
+    const usize portsc_offset_     = 0x00;
+    const usize portpmsc_offset_   = 0x04;
+    const usize portli_offset_     = 0x08;
+    const usize porthlpmc_offset_  = 0x0C;
 };
 
 

@@ -29,34 +29,34 @@
 namespace fat32 {
 
     struct FsTime {
-        uint16_t date;
-        uint16_t time;
-        uint8_t tenths;
+        u16 date;
+        u16 time;
+        u8 tenths;
     };
 
-    static uint16_t encode_fat_date(uint8_t day, uint8_t month, uint16_t year) {
+    static u16 encode_fat_date(u8 day, u8 month, u16 year) {
         if (year < 1980) year = 1980;
         if (year > 2107) year = 2107;
 
-        return static_cast<uint16_t>(((year - 1980) << 9) | (month << 5) | day);
+        return static_cast<u16>(((year - 1980) << 9) | (month << 5) | day);
     }
 
-    static uint16_t encode_fat_time(uint8_t hour, uint8_t minute, uint8_t second) {
-        return static_cast<uint16_t>((hour << 11) | (minute << 5) | (second / 2));
+    static u16 encode_fat_time(u8 hour, u8 minute, u8 second) {
+        return static_cast<u16>((hour << 11) | (minute << 5) | (second / 2));
     }
 
     static FsTime get_current_fat_time() {
-        uint8_t sec = 0, min = 0, hour = 0, day = 0, month = 0, year = 0;
+        u8 sec = 0, min = 0, hour = 0, day = 0, month = 0, year = 0;
 
         kernel::time::read_rtc(sec, min, hour, day, month, year);
 
         // RTC just delivers year since 2000 so we have to add 2000 here
-        uint16_t full_year = 2000 + year;
+        u16 full_year = 2000 + year;
 
         FsTime t{};
         t.date = encode_fat_date(day, month, full_year);
         t.time = encode_fat_time(hour, min, sec);
-        t.tenths = static_cast<uint8_t>((sec % 2) * 100);  // FAT: 0–199
+        t.tenths = static_cast<u8>((sec % 2) * 100);  // FAT: 0–199
 
         return t;
     }

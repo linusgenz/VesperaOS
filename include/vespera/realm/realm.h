@@ -41,10 +41,10 @@ class Unit;
 
 struct HandleEntry {
     HandleId hid;
-    uint64_t type;
+    u64 type;
     void *resource;
     capability_set capabilities;
-    volatile uint64_t refcount;
+    volatile u64 refcount;
     bool transferable;
     Spinlock lock;
 
@@ -53,7 +53,7 @@ struct HandleEntry {
 
 struct HandleTable {
     HandleEntry entries[MAX_HANDLES_PER_REALM];
-    uint8_t bitmap[MAX_HANDLES_PER_REALM / 8];
+    u8 bitmap[MAX_HANDLES_PER_REALM / 8];
     RealmId owner_realm;
     Spinlock lock;
 };
@@ -63,9 +63,9 @@ class Realm {
     RealmId id;
     const char *name;
     capability_set capabilities;
-    uint64_t memory_limit;
-    uint64_t max_units;
-    uint64_t unit_count;
+    u64 memory_limit;
+    u64 max_units;
+    u64 unit_count;
 
     PageTable *pml4;
     phys_addr_t pml4_phys;
@@ -81,23 +81,23 @@ class Realm {
 
     Spinlock lock;
     bool active;
-    uint8_t sched_priority;
-    uint64_t cpu_time_accumulated;
+    u8 sched_priority;
+    u64 cpu_time_accumulated;
 
     Realm();
 
-    int64_t init_handle_table();
+    i64 init_handle_table();
 
-    int64_t add_handle(
-        uint64_t type, void *resource, capability_set caps, bool transferable, void (*destroy)(void *), HandleId *out_h
+    i64 add_handle(
+        u64 type, void *resource, capability_set caps, bool transferable, void (*destroy)(void *), HandleId *out_h
     );
 
-    int64_t add_handle_with_id(
-        HandleId fixed_id, uint64_t type, void *resource, capability_set caps, bool transferable,
+    i64 add_handle_with_id(
+        HandleId fixed_id, u64 type, void *resource, capability_set caps, bool transferable,
         void (*destroy)(void *)
     );
 
-    int64_t setup_standard_handles(TtyDevice *tty_dev);
+    i64 setup_standard_handles(TtyDevice *tty_dev);
 
     HandleEntry *lookup_handle(HandleId hid);
 
@@ -108,9 +108,9 @@ class Realm {
     void clear_handle_table();
 
    private:
-    [[nodiscard]] bool test_bit(size_t i) const;
-    void set_bit(size_t i);
-    void clear_bit(size_t i);
+    [[nodiscard]] bool test_bit(usize i) const;
+    void set_bit(usize i);
+    void clear_bit(usize i);
     [[nodiscard]] int find_free_slot() const;
 };
 

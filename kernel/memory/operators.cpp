@@ -23,11 +23,11 @@
 
 #include <vespera/mm/memory.h>
 
-void* operator new(size_t size) {
+void* operator new(usize size) {
     return kernel::memory::malloc(size);
 }
 
-void* operator new[](size_t size) {
+void* operator new[](usize size) {
     return kernel::memory::malloc(size);
 }
 
@@ -35,7 +35,7 @@ void operator delete(void* p) noexcept {
     kernel::memory::free(p);
 }
 
-void operator delete(void* p, size_t) noexcept {
+void operator delete(void* p, usize) noexcept {
     kernel::memory::free(p);
 }
 
@@ -43,6 +43,6 @@ void operator delete[](void* p) noexcept {
     kernel::memory::free(p);
 }
 
-void operator delete[](void* p, size_t) noexcept {
+void operator delete[](void* p, usize) noexcept {
     kernel::memory::free(p);
 }

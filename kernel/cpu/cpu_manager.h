@@ -1,22 +1,22 @@
 #ifndef CPU_MANAGER_H
 #define CPU_MANAGER_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 #define KERNEL_STACK_BASE 0x20000
 #define KERNEL_STACK_SIZE 0x1000
 #define CPU_ID_REG 0x6008
 #define CPU_READY_REG 0x600C
 #define SIPI_VECTOR 0x8
-extern volatile uint8_t g_active_cpu_count;
+extern volatile u8 g_active_cpu_count;
 
 struct __attribute__((packed)) CpuStartupReport {
-    uint32_t apic_id;
-    uint32_t rsv0;
-    uint64_t stack_pointer;
+    u32 apic_id;
+    u32 rsv0;
+    u64 stack_pointer;
     bool ready;
     bool go;
-    uint8_t rsv1[6];
+    u8 rsv1[6];
 };
 
 #define CPU_STARTUP_REPORTS ((CpuStartupReport*)0x7000)
@@ -26,15 +26,15 @@ namespace cpu_manager {
     enum CpuState { CPU_STATE_OFFLINE = 0, CPU_STATE_STARTING = 1, CPU_STATE_ONLINE = 2, CPU_STATE_HALTED = 3 };
 
     struct CpuInfo {
-        uint32_t apic_id;
-        uint32_t cpu_id;
+        u32 apic_id;
+        u32 cpu_id;
         CpuState state;
         // StackManager::StackInfo* kernel_stack;
-        uintptr_t kernel_stack;
-        uintptr_t kernel_stack_top;
-        uint64_t total_cycles;
-        uint64_t idle_cycles;
-        uint32_t current_task_id;
+        uptr kernel_stack;
+        uptr kernel_stack_top;
+        u64 total_cycles;
+        u64 idle_cycles;
+        u32 current_task_id;
         bool is_bsp;
     };
 
@@ -43,25 +43,25 @@ namespace cpu_manager {
     void smp_init();
     void init_core(const CpuInfo* cpu);
 
-    CpuInfo* get_cpu_info(uint32_t apic_id);
+    CpuInfo* get_cpu_info(u32 apic_id);
 
-    uint8_t get_current_cpu_id();
+    u8 get_current_cpu_id();
 
-    uint8_t get_online_cpu_count();
+    u8 get_online_cpu_count();
 
-    uint8_t get_available_cpu_count();
+    u8 get_available_cpu_count();
 
-    void halt_cpu(uint32_t apic_id);
+    void halt_cpu(u32 apic_id);
 
-    void send_ipi_to_all_aps(uint32_t vector);
+    void send_ipi_to_all_aps(u32 vector);
 
     void print_cpu_info();
 
-    void update_cpu_stats(uint32_t apic_id, uint64_t cycles, uint64_t idle_cycles);
-    int get_cpu_usage(uint32_t apic_id);
+    void update_cpu_stats(u32 apic_id, u64 cycles, u64 idle_cycles);
+    int get_cpu_usage(u32 apic_id);
 
     extern CpuInfo cpu_infos[];
-    extern uint8_t total_cpus;
+    extern u8 total_cpus;
 }  // namespace CPUManager
 
 #endif  // CPU_MANAGER_H

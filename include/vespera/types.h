@@ -24,11 +24,81 @@
 #ifndef VESPERAOS_TYPES_H
 #define VESPERAOS_TYPES_H
 
-#include <stdint.h>
+#if !defined(__x86_64__)
+#error "This kernel targets x86-64 only."
+#endif
 
-typedef long int ssize_t;
-typedef uint64_t RealmId;
-typedef uint64_t HandleId;
-typedef uint64_t UnitId;
+#if !defined(__cplusplus) || (__cplusplus < 202002L)
+#error "This kernel requires C++20 or later."
+#endif
+
+typedef signed char i8;
+typedef signed short i16;
+typedef signed int i32;
+typedef signed long long i64;
+
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
+typedef unsigned long long u64;
+
+typedef __UINTPTR_TYPE__ uptr;
+typedef __INTPTR_TYPE__ iptr;
+
+typedef i8 int8_t;
+typedef i16 int16_t;
+typedef i32 int32_t;
+typedef i64 int64_t;
+
+typedef u8 uint8_t;
+typedef u16 uint16_t;
+typedef u32 uint32_t;
+typedef u64 uint64_t;
+
+typedef long int isize;
+typedef __SIZE_TYPE__ usize;
+
+typedef isize ssize_t;
+typedef usize size_t;
+typedef i64     ptrdiff_t;
+
+typedef __attribute__((__aligned__(__BIGGEST_ALIGNMENT__))) struct {
+    long long   __ll;
+    long double __ld;
+} max_align_t;
+
+#if defined(__SIZEOF_INT128__)
+typedef __int128 i128;
+typedef unsigned __int128 u128;
+#endif
+
+#define offsetof(type, member) __builtin_offsetof(type, member)
+
+#define I8_MIN (-(127) - 1)
+#define I8_MAX (127)
+#define I16_MIN (-(32767) - 1)
+#define I16_MAX (32767)
+#define I32_MIN (-(2147483647) - 1)
+#define I32_MAX (2147483647)
+#define I64_MIN (-(9223372036854775807LL) - 1)
+#define I64_MAX (9223372036854775807LL)
+
+#define U8_MAX (255U)
+#define U16_MAX (65535U)
+#define U32_MAX (4294967295U)
+#define U64_MAX (18446744073709551615ULL)
+
+
+#define IPTR_MIN  I64_MIN
+#define IPTR_MAX  I64_MAX
+#define UPTR_MAX  U64_MAX
+
+#define SIZE_MAX    U64_MAX
+#define PTRDIFF_MIN I64_MIN
+#define PTRDIFF_MAX I64_MAX
+
+typedef u64 RealmId;
+typedef u64 HandleId;
+typedef u64 UnitId;
 
 #endif  // VESPERAOS_TYPES_H

@@ -39,11 +39,11 @@ int LogDevice::release(CharFile* cf) {
     return 0;
 }
 
-ssize_t LogDevice::write(CharFile* cf, const void* buffer, size_t count) {
+isize LogDevice::write(CharFile* cf, const void* buffer, usize count) {
     if (!cf || !buffer || count == 0) return -EINVAL;
     auto* channel = static_cast<Channel*>(cf->driver_private);
 
-    ssize_t w;
+    isize w;
     while ((w = channel->send(buffer, count)) == -EAGAIN) {
         asm volatile("pause");
     }
@@ -51,11 +51,11 @@ ssize_t LogDevice::write(CharFile* cf, const void* buffer, size_t count) {
     return w;
 }
 
-ssize_t LogDevice::read(CharFile* cf, void* buffer, size_t count, size_t offset) {
+isize LogDevice::read(CharFile* cf, void* buffer, usize count, usize offset) {
     if (!cf || !buffer || count == 0) return -EINVAL;
     auto* channel = static_cast<Channel*>(cf->driver_private);
 
-    ssize_t r;
+    isize r;
     while ((r = channel->recv(buffer, count)) == -EAGAIN) {
         asm volatile("pause");
     }

@@ -39,7 +39,7 @@ int CpuInfoDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t CpuInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t) {
+isize CpuInfoDevice::read(CharFile*, void* buffer, const usize count, usize) {
     if (!buffer || count < sizeof(CpuInfo)) return -EINVAL;
 
     CpuInfo info{};
@@ -48,7 +48,7 @@ ssize_t CpuInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t)
     info.features = check_cpu_features();
 
     // trim white space
-    size_t len = strlen(info.brand);
+    usize len = strlen(info.brand);
     while (len > 0 && info.brand[len - 1] == ' ') {
         info.brand[len - 1] = '\0';
         len--;
@@ -58,6 +58,6 @@ ssize_t CpuInfoDevice::read(CharFile*, void* buffer, const size_t count, size_t)
     return sizeof(CpuInfo);
 }
 
-ssize_t CpuInfoDevice::write(CharFile*, const void*, const size_t /*count*/) {
+isize CpuInfoDevice::write(CharFile*, const void*, const usize /*count*/) {
     return -EUNSUPPORTED;
 }

@@ -24,15 +24,15 @@
 #ifndef VESPERAOS_SYMBOLS_H
 #define VESPERAOS_SYMBOLS_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 struct Symbol {
     const char* name{};
-    size_t len{};
-    uint64_t addr{};
+    usize len{};
+    u64 addr{};
 };
 
-Symbol lookup_symbol(uint64_t addr);
+Symbol lookup_symbol(u64 addr);
 
 #endif  // VESPERAOS_SYMBOLS_H

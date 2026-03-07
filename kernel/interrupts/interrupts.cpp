@@ -48,19 +48,19 @@ namespace kernel::interrupts {
         arch::x86_64::interrupts::apic::init(0);  // bsp
     }
 
-    void allocate_vector(uint8_t vector, irq_handler_t handler, void* cookie) {
+    void allocate_vector(u8 vector, irq_handler_t handler, void* cookie) {
         arch::x86_64::interrupts::idt::allocate_vector(vector, handler, cookie);
     }
 
-    void free_vector(uint8_t vec) {
+    void free_vector(u8 vec) {
         arch::x86_64::interrupts::idt::free_vector(vec);
     }
 
-    uint8_t get_free_vector_block(size_t size) {
+    u8 get_free_vector_block(usize size) {
         return arch::x86_64::interrupts::idt::get_free_vector_block(size);
     }
 
-    uint8_t get_free_vector() {
+    u8 get_free_vector() {
         return arch::x86_64::interrupts::idt::get_free_vector();
     }
 
@@ -68,15 +68,15 @@ namespace kernel::interrupts {
         return arch::x86_64::interrupts::idt::get_idtr_address();
     }
 
-    void lapic_init(const uint32_t cpu_id) {
+    void lapic_init(const u32 cpu_id) {
         arch::x86_64::interrupts::apic::init(cpu_id);
     }
 
-    void lapic_write(uint32_t offset, uint32_t value) {
+    void lapic_write(u32 offset, u32 value) {
         arch::x86_64::interrupts::apic::write(offset, value);
     }
 
-    uint32_t lapic_read(uint32_t offset) {
+    u32 lapic_read(u32 offset) {
         return arch::x86_64::interrupts::apic::read(offset);
     }
 
@@ -84,11 +84,11 @@ namespace kernel::interrupts {
         arch::x86_64::interrupts::apic::wait_for_delivery();
     }
 
-    uint64_t lapic_get_ticks(uint32_t cpu_id) {
+    u64 lapic_get_ticks(u32 cpu_id) {
         return arch::x86_64::interrupts::apic::apic_ticks[cpu_id];
     }
 
-    uint32_t lapic_get_id() {
+    u32 lapic_get_id() {
         return arch::x86_64::interrupts::apic::local_apic_get_id();
     }
 

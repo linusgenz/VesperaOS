@@ -31,7 +31,7 @@ namespace arch::x86_64::interrupts::ioapic {
 
     void init();
 
-    void configure_irq(uint8_t irq, uint8_t vector, uint8_t dest_apic_id);
+    void configure_irq(u8 irq, u8 vector, u8 dest_apic_id);
 
 }  // namespace arch::x86_64::interrupts::ioapic
 

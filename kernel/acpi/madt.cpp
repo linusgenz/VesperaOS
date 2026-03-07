@@ -12,14 +12,14 @@
 
 namespace madt {
     CpuCore cpu_cores[MAX_CPU_CORES];
-    uint32_t cpu_count;
-    uint32_t bsp_apic_id = 0;
+    u32 cpu_count;
+    u32 bsp_apic_id = 0;
 
     IoApic ioapics[MAX_IOAPICS];
-    uint32_t ioapic_count = 0;
+    u32 ioapic_count = 0;
 
     InterruptOverride overrides[MAX_OVERRIDES];
-    uint32_t override_count = 0;
+    u32 override_count = 0;
 
     void parse_madt(acpi::MADT_HEADER* madt) {
         if ((madt->flags & 0x1) != 0)  // has legacy pic (support)?
@@ -33,10 +33,10 @@ namespace madt {
 
         kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled));
 
-        g_local_apic_addr = static_cast<volatile uint8_t*>(virt_ptr(virt_lapic));
+        g_local_apic_addr = static_cast<volatile u8*>(virt_ptr(virt_lapic));
 
-        auto* entries = reinterpret_cast<uint8_t*>(madt) + sizeof(acpi::MADT_HEADER);
-        const auto* end = reinterpret_cast<uint8_t*>(madt) + madt->header.length;
+        auto* entries = reinterpret_cast<u8*>(madt) + sizeof(acpi::MADT_HEADER);
+        const auto* end = reinterpret_cast<u8*>(madt) + madt->header.length;
 
         while (entries < end) {
             auto* header = reinterpret_cast<acpi::MADT_ENTRY_HEADER*>(entries);
@@ -102,7 +102,7 @@ namespace madt {
 
                     if (ioapic_count < MAX_IOAPICS) {
                         ioapics[ioapic_count].id = entry->ioapic_id;
-                        ioapics[ioapic_count].address = static_cast<uintptr_t>(entry->ioapic_address);
+                        ioapics[ioapic_count].address = static_cast<uptr>(entry->ioapic_address);
                         ioapics[ioapic_count].gsi_base = entry->gsi_base;
                         ioapic_count++;
                     } else {
@@ -141,7 +141,7 @@ namespace madt {
         Log::info("Detected %u CPU cores", cpu_count);
     }
 
-    uint32_t get_cpu_count() {
+    u32 get_cpu_count() {
         return cpu_count;
     }
 
@@ -149,7 +149,7 @@ namespace madt {
         return cpu_cores;
     }
 
-    uint32_t get_bsp_apic_id() {
+    u32 get_bsp_apic_id() {
         return bsp_apic_id;
     }
 
@@ -157,7 +157,7 @@ namespace madt {
         return ioapics;
     }
 
-    uint32_t get_ioapic_count() {
+    u32 get_ioapic_count() {
         return ioapic_count;
     }
 
@@ -165,7 +165,7 @@ namespace madt {
         return overrides;
     }
 
-    uint32_t get_override_count() {
+    u32 get_override_count() {
         return override_count;
     }
 }  // namespace madt

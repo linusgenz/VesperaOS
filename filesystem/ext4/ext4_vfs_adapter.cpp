@@ -37,7 +37,7 @@ int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
     return 0;
     FileSystem fs(dev);
 
-    size_t len = 16;
+    usize len = 16;
     memcpy(fs_info->label, fs.get_superblock()->s_volume_name, len);
 
     return fs.is_valid();
@@ -48,11 +48,11 @@ static VfsNode* ext4_find(const VfsNode* node, const char* name)
     auto* dir = static_cast<Ext4Node*>(node->internal_data);
     if (!dir || !dir->is_dir) return nullptr;
 
-    size_t entry_count = 0;
+    usize entry_count = 0;
     FileEntry* entries = dir->fs->read_directory(dir->inode, entry_count);
     if (!entries) return nullptr;
 
-    for (size_t i = 0; i < entry_count; i++)
+    for (usize i = 0; i < entry_count; i++)
     {
         if (const char* entry_name = entries[i].get_name(); strcmp(entry_name, name) == 0)
         {
@@ -103,7 +103,7 @@ void* ext4_opendir(const VfsNode* dir)
     const auto* node = static_cast<Ext4Node*>(dir->internal_data);
     if (!node) return nullptr;
 
-    size_t count = 0;
+    usize count = 0;
     FileEntry* entries = node->fs->read_directory(node->inode, count);
     Log::debug("dir->fs->read_directory: %d entries", count);
     if (!entries) return nullptr;
@@ -120,7 +120,7 @@ int ext4_readdir(void* dir_handle, dirent_t* out)
     if (const auto* h = static_cast<Ext4DirHandle*>(dir_handle); !h || h->index >= h->count) return 0;
     /*
         FileEntry& fe = h->entries[h->index++];
-        size_t len = strlen(fe.GetName());
+        usize len = strlen(fe.GetName());
         memcpy(entry, fe.GetName(), len);
         entry[len] = '\0';
     */

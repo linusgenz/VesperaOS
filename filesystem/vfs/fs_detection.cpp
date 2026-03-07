@@ -31,8 +31,8 @@
 #include "vfs.h"
 #include <vespera/log.h>
 
-size_t FilesystemDetector::driver_count_ = 0;
-size_t FilesystemDetector::device_count_ = 0;
+usize FilesystemDetector::driver_count_ = 0;
+usize FilesystemDetector::device_count_ = 0;
 
 extern FileSystemDriver fat32_driver;
 extern FileSystemDriver ext4_driver;
@@ -71,7 +71,7 @@ bool FilesystemDetector::detect_filesystem(BlockDevice* device, FilesystemInfo* 
     info->description = nullptr;
     info->mounted = false;
 
-    for (size_t i = 0; i < fs_driver_count(); i++)
+    for (usize i = 0; i < fs_driver_count(); i++)
     {
         if (const FileSystemDriver* drv = fs_driver_at(i); drv && drv->probe && drv->probe(device, info))
         {
@@ -216,7 +216,7 @@ void FilesystemDetector::scan_and_mount_all()
 {
     auto devices = DeviceManager::get_all_devices();
 
-    if (size_t device_count_actual = DeviceManager::get_device_count(); device_count_actual == 0)
+    if (usize device_count_actual = DeviceManager::get_device_count(); device_count_actual == 0)
     {
         Log::warning("[FS] No storage devices found");
         return;
@@ -225,7 +225,7 @@ void FilesystemDetector::scan_and_mount_all()
     int successful_mounts = 0;
     static bool root_assigned = false;
 
-    for (size_t i = 0; i < devices.size(); ++i)
+    for (usize i = 0; i < devices.size(); ++i)
     {
         const KernelDevice* kd = devices[i];
 

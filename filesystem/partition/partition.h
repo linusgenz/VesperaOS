@@ -24,21 +24,21 @@
 #ifndef VESPERAOS_PARTITION_H
 #define VESPERAOS_PARTITION_H
 
-#include <stddef.h>
-#include <stdint.h>
+
+#include <vespera/types.h>
 
 #include <vespera/devices/block.h>
 
 #define PARTITION_MAX_ENTRIES 128
 
 struct PartitionEntry {
-    uint64_t start_lba;
-    uint64_t length_lba;
-    uint64_t sector_size;
-    uint8_t mbr_type;  // for MBR partitions (0 == unused). For GPT may be 0.
+    u64 start_lba;
+    u64 length_lba;
+    u64 sector_size;
+    u8 mbr_type;  // for MBR partitions (0 == unused). For GPT may be 0.
     char name[72];     // GPT name (in utf-8)
 };
 
-size_t parse_partitions(BlockDevice *device, PartitionEntry *out, size_t max_entries);
+usize parse_partitions(BlockDevice *device, PartitionEntry *out, usize max_entries);
 
 #endif  // VESPERAOS_PARTITION_H

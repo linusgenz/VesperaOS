@@ -10,9 +10,9 @@ PageTableManager::PageTableManager(PageTable* pml4_address)
 }
 
 void PageTableManager::map_range(
-    virt_addr_t virt_start, phys_addr_t phys_start, const size_t size, const uint64_t flags
+    virt_addr_t virt_start, phys_addr_t phys_start, const usize size, const u64 flags
 ) const {
-    for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
+    for (usize offset = 0; offset < size; offset += PAGE_SIZE) {
         map_memory(virt_add(virt_start, offset), phys_add(phys_start, offset), flags);
     }
 }
@@ -21,10 +21,10 @@ static void invlpg(virt_addr_t addr) {
     asm volatile("invlpg (%0)" : : "r"(virt_raw(addr)) : "memory");
 }
 
-void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, uint64_t flags) const {
+void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, u64 flags) const {
     PageMapIndexer indexer(virt_addr);
 
-    auto ensure_table = [&](PageTable* parent, uint16_t index) -> PageTable* {
+    auto ensure_table = [&](PageTable* parent, u16 index) -> PageTable* {
         PageDirectoryEntry& entry = parent->entries[index];
 
         if (!entry.get_flag(PtFlag::Present)) {
@@ -43,7 +43,7 @@ void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, 
         return static_cast<PageTable*>(virt_ptr(phys_to_virt(entry.get_address())));
     };
 
-    phys_addr_t pml4_phys = make_phys(reinterpret_cast<uint64_t>(pml4));
+    phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
     auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
 
     PageTable* pdp = ensure_table(pml4_virt, indexer.pdp_i);
@@ -75,8 +75,8 @@ static bool is_table_empty(PageTable* table) {
     return true;
 }
 
-void PageTableManager::unmap_range(virt_addr_t virt_start, size_t size) const {
-    for (size_t offset = 0; offset < size; offset += PAGE_SIZE) {
+void PageTableManager::unmap_range(virt_addr_t virt_start, usize size) const {
+    for (usize offset = 0; offset < size; offset += PAGE_SIZE) {
         unmap_memory(virt_add(virt_start, offset));
     }
 }
@@ -84,7 +84,7 @@ void PageTableManager::unmap_range(virt_addr_t virt_start, size_t size) const {
 void PageTableManager::unmap_memory(virt_addr_t virt_addr) const {
     PageMapIndexer indexer(virt_addr);
 
-    phys_addr_t pml4_phys = make_phys(reinterpret_cast<uint64_t>(pml4));
+    phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
     auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
 
     PageDirectoryEntry& pml4_entry = pml4_virt->entries[indexer.pdp_i];
@@ -126,7 +126,7 @@ void PageTableManager::unmap_memory(virt_addr_t virt_addr) const {
 bool PageTableManager::is_mapped(virt_addr_t virt_addr) const {
     PageMapIndexer indexer(virt_addr);
 
-    phys_addr_t pml4_phys = make_phys(reinterpret_cast<uint64_t>(pml4));
+    phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
     auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
 
     PageDirectoryEntry pde = pml4_virt->entries[indexer.pdp_i];
@@ -148,7 +148,7 @@ bool PageTableManager::is_mapped(virt_addr_t virt_addr) const {
 phys_addr_t PageTableManager::get_physical_address(virt_addr_t virt_addr) const {
     PageMapIndexer indexer(virt_addr);
 
-    phys_addr_t pml4_phys = make_phys(reinterpret_cast<uint64_t>(pml4));
+    phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
     auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
 
     PageDirectoryEntry pde = pml4_virt->entries[indexer.pdp_i];
@@ -166,6 +166,6 @@ phys_addr_t PageTableManager::get_physical_address(virt_addr_t virt_addr) const 
     pde = pt->entries[indexer.p_i];
     if (!pde.get_flag(PtFlag::Present)) return make_phys(0);
 
-    uint64_t offset = virt_raw(virt_addr) & 0xFFF;
+    u64 offset = virt_raw(virt_addr) & 0xFFF;
     return phys_add(pde.get_address(), offset);
 }

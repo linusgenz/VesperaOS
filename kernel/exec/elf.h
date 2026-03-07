@@ -29,32 +29,32 @@
 // ReSharper disable CppInconsistentNaming
 
 /* Type for a 16-bit quantity.  */
-typedef uint16_t Elf32_Half;
-typedef uint16_t Elf64_Half;
+typedef u16 Elf32_Half;
+typedef u16 Elf64_Half;
 
 /* Types for signed and unsigned 32-bit quantities.  */
-typedef uint32_t Elf32_Word;
-typedef int32_t Elf32_Sword;
-typedef uint32_t Elf64_Word;
-typedef int32_t Elf64_Sword;
+typedef u32 Elf32_Word;
+typedef i32 Elf32_Sword;
+typedef u32 Elf64_Word;
+typedef i32 Elf64_Sword;
 
 /* Types for signed and unsigned 64-bit quantities.  */
-typedef uint64_t Elf32_Xword;
-typedef int64_t Elf32_Sxword;
-typedef uint64_t Elf64_Xword;
-typedef int64_t Elf64_Sxword;
+typedef u64 Elf32_Xword;
+typedef i64 Elf32_Sxword;
+typedef u64 Elf64_Xword;
+typedef i64 Elf64_Sxword;
 
 /* Type of addresses.  */
-typedef uint32_t Elf32_Addr;
-typedef uint64_t Elf64_Addr;
+typedef u32 Elf32_Addr;
+typedef u64 Elf64_Addr;
 
 /* Type of file offsets.  */
-typedef uint32_t Elf32_Off;
-typedef uint64_t Elf64_Off;
+typedef u32 Elf32_Off;
+typedef u64 Elf64_Off;
 
 /* Type for section indices, which are 16-bit quantities.  */
-typedef uint16_t Elf32_Section;
-typedef uint16_t Elf64_Section;
+typedef u16 Elf32_Section;
+typedef u16 Elf64_Section;
 
 /* Type for version symbol information.  */
 typedef Elf32_Half Elf32_Versym;
@@ -387,48 +387,48 @@ class ElfLoader {
    public:
     struct LoadResult {
         void* entry_point;
-        uintptr_t load_base;
-        uintptr_t load_end;
-        uintptr_t vaddr_base;
-        uintptr_t load_bias;
+        uptr load_base;
+        uptr load_end;
+        uptr vaddr_base;
+        uptr load_bias;
         bool success;
         const char* error_message;
 
         bool is_pie;
     };
 
-    static LoadResult load(const char* path, uintptr_t preferred_base, const Realm* realm);
+    static LoadResult load(const char* path, uptr preferred_base, const Realm* realm);
     static bool apply_relocations(
-        const Elf64_Ehdr* header, const void* file_data, uintptr_t load_bias, const Realm* realm
+        const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm
     );
 
    private:
     struct ElfSegment {
         void* vaddr;
         void* data_ptr;
-        size_t file_size;
-        size_t memory_size;
-        uint64_t flags;
+        usize file_size;
+        usize memory_size;
+        u64 flags;
     };
 
     struct FileData {
         void* data;
-        size_t size;
+        usize size;
         const char* error_message;
     };
 
     struct AddressRange {
-        uintptr_t vaddr_min;
-        uintptr_t vaddr_max;
-        size_t total_size;
+        uptr vaddr_min;
+        uptr vaddr_max;
+        usize total_size;
     };
 
     struct SegmentMapping {
-        const uintptr_t page_start;
-        const size_t page_offset;
-        const size_t map_size;
-        const size_t file_size;
-        const size_t memory_size;
+        const uptr page_start;
+        const usize page_offset;
+        const usize map_size;
+        const usize file_size;
+        const usize memory_size;
     };
 
     static bool validate_magic(const Elf64_Ehdr* header);
@@ -437,14 +437,14 @@ class ElfLoader {
     static FileData load_file_from_vfs(const char* path);
     static bool calculate_address_range(const Elf64_Ehdr* header, const void* file_data, AddressRange& range);
 
-    static uintptr_t calculate_load_bias(const Elf64_Ehdr* header, const AddressRange& range, uintptr_t preferred_base);
-    static SegmentMapping calculate_segment_mapping(const Elf64_Phdr& ph, uintptr_t base_addr);
-    static bool load_segment(const Elf64_Phdr& phdr, const void* file_data, uintptr_t load_bias, const Realm* realm);
+    static uptr calculate_load_bias(const Elf64_Ehdr* header, const AddressRange& range, uptr preferred_base);
+    static SegmentMapping calculate_segment_mapping(const Elf64_Phdr& ph, uptr base_addr);
+    static bool load_segment(const Elf64_Phdr& phdr, const void* file_data, uptr load_bias, const Realm* realm);
     static bool process_all_segments(
-        const Elf64_Ehdr* header, const void* file_data, uintptr_t load_bias, const Realm* realm
+        const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm
     );
-    static uintptr_t align_down(uintptr_t v, size_t align);
-    static uintptr_t align_up(uintptr_t v, size_t align);
+    static uptr align_down(uptr v, usize align);
+    static uptr align_up(uptr v, usize align);
 };
 
 #endif  // ELF_H

@@ -147,7 +147,7 @@ namespace kernel::tty {
     }
 
     static void tty_apply_sgr(TTY* tty) {
-        size_t i = 0;
+        usize i = 0;
         while (i < tty->esc_param_count) {
             switch (const int code = tty->esc_params[i++]) {
                 case 0:  // Reset
@@ -270,8 +270,8 @@ namespace kernel::tty {
         tty->esc_param_count = 0;
     }
 
-    size_t tty_read(char* buf, size_t count) {
-        size_t read = 0;
+    usize tty_read(char* buf, usize count) {
+        usize read = 0;
 
         if (active_tty->canonical) {
             // Zeilenmodus
@@ -279,7 +279,7 @@ namespace kernel::tty {
                 kernel::scheduling::yield();
             }
 
-            const size_t to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
+            const usize to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
             memcpy(buf, active_tty->canon_buffer, to_copy);
             read = to_copy;
 
@@ -292,7 +292,7 @@ namespace kernel::tty {
                 kernel::scheduling::yield();
             }
 
-            const size_t to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
+            const usize to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
             memcpy(buf, active_tty->raw_buffer, to_copy);
             read = to_copy;
 

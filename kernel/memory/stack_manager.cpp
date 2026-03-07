@@ -4,14 +4,14 @@
 namespace StackManager {
 
     static StackInfo stacks[MAX_STACKS];
-    static uint32_t stack_count = 0;
+    static u32 stack_count = 0;
     static bool is_initialized = false;
 
     void initialize() {
         if (is_initialized) return;
 
         // Alle Stacks als nicht allokiert markieren
-        for (uint32_t i = 0; i < MAX_STACKS; i++) {
+        for (u32 i = 0; i < MAX_STACKS; i++) {
             stacks[i].stack_base = nullptr;
             stacks[i].stack_top = nullptr;
             stacks[i].stack_size = 0;
@@ -26,10 +26,10 @@ namespace StackManager {
         Log::Ok("Stack Manager initialized");
     }
 
-    StackInfo* allocate_kernel_stack(uint32_t cpu_id) {
+    StackInfo* allocate_kernel_stack(u32 cpu_id) {
         if (!is_initialized) initialize();
 
-        for (uint32_t i = 0; i < stack_count; i++) {
+        for (u32 i = 0; i < stack_count; i++) {
             if (stacks[i].is_allocated && stacks[i].cpu_id == cpu_id) {
                 Log::Warning("Stack for CPU %u already allocated", cpu_id);
                 return &stacks[i];
@@ -41,7 +41,7 @@ namespace StackManager {
             return nullptr;
         }
 
-        size_t pages_needed = (KERNEL_STACK_SIZE + 0xFFF) / 0x1000;
+        usize pages_needed = (KERNEL_STACK_SIZE + 0xFFF) / 0x1000;
 
         void* stack_base = kernel::memory::request_pages(pages_needed);
         if (!stack_base) {
@@ -49,9 +49,9 @@ namespace StackManager {
             return nullptr;
         }
 
-        for (size_t i = 0; i < pages_needed; i++) {
-            void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
+        for (usize i = 0; i < pages_needed; i++) {
+            void* virt_addr = (void*)((u64)stack_base + (i * 0x1000));
+            void* phys_addr = (void*)((u64)stack_base + (i * 0x1000));
             kernel::memory::map_memory(virt_addr, phys_addr, (1ULL << PT_Flag::WriteThrough) | (1ULL <<
 PT_Flag::CacheDisabled));
         }
@@ -59,7 +59,7 @@ PT_Flag::CacheDisabled));
         // Initialisiere Stack-Info
         StackInfo* stack_info = &stacks[stack_count];
         stack_info->stack_base = stack_base;
-        stack_info->stack_top = (void*)((uint64_t)stack_base + KERNEL_STACK_SIZE);
+        stack_info->stack_top = (void*)((u64)stack_base + KERNEL_STACK_SIZE);
         stack_info->stack_size = KERNEL_STACK_SIZE;
         stack_info->cpu_id = cpu_id;
         stack_info->is_allocated = true;
@@ -76,7 +76,7 @@ PT_Flag::CacheDisabled));
         return stack_info;
     }
 
-    StackInfo* allocate_user_stack(size_t stack_size) {
+    StackInfo* allocate_user_stack(usize stack_size) {
         if (!is_initialized) initialize();
 
         if (stack_count >= MAX_STACKS) {
@@ -89,7 +89,7 @@ PT_Flag::CacheDisabled));
             stack_size = (stack_size + 0xFFF) & ~0xFFF;
         }
 
-        size_t pages_needed = stack_size / 0x1000;
+        usize pages_needed = stack_size / 0x1000;
 
         // Allokiere Pages für den Stack
         void* stack_base = kernel::memory::request_pages(pages_needed);
@@ -99,9 +99,9 @@ PT_Flag::CacheDisabled));
         }
 
         // Mappe die Pages in den virtuellen Adressraum
-        for (size_t i = 0; i < pages_needed; i++) {
-            void* virt_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
-            void* phys_addr = (void*)((uint64_t)stack_base + (i * 0x1000));
+        for (usize i = 0; i < pages_needed; i++) {
+            void* virt_addr = (void*)((u64)stack_base + (i * 0x1000));
+            void* phys_addr = (void*)((u64)stack_base + (i * 0x1000));
             kernel::memory::map_memory(virt_addr, phys_addr, (1ULL << PT_Flag::WriteThrough) | (1ULL <<
 PT_Flag::CacheDisabled));
         }
@@ -109,7 +109,7 @@ PT_Flag::CacheDisabled));
         // Initialisiere Stack-Info
         StackInfo* stack_info = &stacks[stack_count];
         stack_info->stack_base = stack_base;
-        stack_info->stack_top = (void*)((uint64_t)stack_base + stack_size);
+        stack_info->stack_top = (void*)((u64)stack_base + stack_size);
         stack_info->stack_size = stack_size;
         stack_info->cpu_id = 0; // User-Stacks haben keine feste CPU-ID
         stack_info->is_allocated = true;
@@ -133,11 +133,11 @@ PT_Flag::CacheDisabled));
         }
 
         // Berechne die Anzahl der Pages
-        size_t pages_needed = (stack_info->stack_size + 0xFFF) / 0x1000;
+        usize pages_needed = (stack_info->stack_size + 0xFFF) / 0x1000;
 
         // TODO: Unmap Pages (optional - für jetzt nicht kritisch)
-        // for (size_t i = 0; i < pages_needed; i++) {
-        //     void* virt_addr = (void*)((uint64_t)stack_info->stack_base + (i * 0x1000));
+        // for (usize i = 0; i < pages_needed; i++) {
+        //     void* virt_addr = (void*)((u64)stack_info->stack_base + (i * 0x1000));
         //     global_page_table_manager.unmap_memory(virt_addr);
         // }
 
@@ -155,10 +155,10 @@ PT_Flag::CacheDisabled));
         Log::Info("Freed stack");
     }
 
-    StackInfo* get_stack_for_cpu(uint32_t cpu_id) {
+    StackInfo* get_stack_for_cpu(u32 cpu_id) {
         if (!is_initialized) return nullptr;
 
-        for (uint32_t i = 0; i < stack_count; i++) {
+        for (u32 i = 0; i < stack_count; i++) {
             if (stacks[i].is_allocated && stacks[i].cpu_id == cpu_id && stacks[i].is_kernel_stack) {
                 return &stacks[i];
             }
@@ -181,7 +181,7 @@ PT_Flag::CacheDisabled));
         if (!stack_info || !stack_info->is_allocated) return;
 
         // Erstelle eine Guard-Page am unteren Ende des Stacks
-        void* guard_page = (void*)((uint64_t)stack_info->stack_base - 0x1000);
+        void* guard_page = (void*)((u64)stack_info->stack_base - 0x1000);
 
         // Allokiere eine Page für den Guard
         void* guard_phys = kernel::memory::request_page();
@@ -205,7 +205,7 @@ PT_Flag::CacheDisabled));
         Log::Info("=== Stack Manager Info ===");
         Log::Info("Total stacks: %u/%u", stack_count, MAX_STACKS);
 
-        for (uint32_t i = 0; i < stack_count; i++) {
+        for (u32 i = 0; i < stack_count; i++) {
             if (stacks[i].is_allocated) {
                 Log::Info("Stack %u: CPU %u, %s, base=%p, top=%p, size=%u",
                           i,
@@ -218,15 +218,15 @@ PT_Flag::CacheDisabled));
         }
     }
 
-    size_t get_stack_usage(StackInfo* stack_info) {
+    usize get_stack_usage(StackInfo* stack_info) {
         if (!stack_info || !stack_info->is_allocated) return 0;
 
         // Einfache Heuristik: Schaue, wie viele Bytes am Anfang noch das Debug-Pattern haben
-        uint8_t* stack_ptr = (uint8_t*)stack_info->stack_base;
-        uint8_t pattern = stack_info->is_kernel_stack ? 0xCC : 0xAA;
+        u8* stack_ptr = (u8*)stack_info->stack_base;
+        u8 pattern = stack_info->is_kernel_stack ? 0xCC : 0xAA;
 
-        size_t unused_bytes = 0;
-        for (size_t i = 0; i < stack_info->stack_size; i++) {
+        usize unused_bytes = 0;
+        for (usize i = 0; i < stack_info->stack_size; i++) {
             if (stack_ptr[i] == pattern) {
                 unused_bytes++;
             } else {

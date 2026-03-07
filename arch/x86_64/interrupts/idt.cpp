@@ -6,23 +6,23 @@
 #include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::idt {
-    void IDT_DESC_ENTRY::set_offset(uint64_t offset) {
-        offset0 = static_cast<uint16_t>(offset & 0x000000000000ffff);
-        offset1 = static_cast<uint16_t>((offset & 0x00000000ffff0000) >> 16);
-        offset2 = static_cast<uint32_t>((offset & 0xffffffff00000000) >> 32);
+    void IDT_DESC_ENTRY::set_offset(u64 offset) {
+        offset0 = static_cast<u16>(offset & 0x000000000000ffff);
+        offset1 = static_cast<u16>((offset & 0x00000000ffff0000) >> 16);
+        offset2 = static_cast<u32>((offset & 0xffffffff00000000) >> 32);
     }
 
-    uint64_t IDT_DESC_ENTRY::get_offset() const {
-        uint64_t offset = 0;
-        offset |= static_cast<uint64_t>(offset0);
-        offset |= static_cast<uint64_t>(offset1) << 16;
-        offset |= static_cast<uint64_t>(offset2) << 32;
+    u64 IDT_DESC_ENTRY::get_offset() const {
+        u64 offset = 0;
+        offset |= static_cast<u64>(offset0);
+        offset |= static_cast<u64>(offset1) << 16;
+        offset |= static_cast<u64>(offset2) << 32;
         return offset;
     }
 
-    void set_idt_gate(isr_handler_t handler, uint8_t entry_offset, uint8_t type_attr, uint8_t selector) {
+    void set_idt_gate(isr_handler_t handler, u8 entry_offset, u8 type_attr, u8 selector) {
         auto* interrupt = reinterpret_cast<IDT_DESC_ENTRY*>(idtr.offset + entry_offset * sizeof(IDT_DESC_ENTRY));
-        interrupt->set_offset(reinterpret_cast<uint64_t>(handler));
+        interrupt->set_offset(reinterpret_cast<u64>(handler));
         interrupt->selector = selector;
         interrupt->ist = 0;
         interrupt->type_attr = type_attr;
@@ -37,13 +37,13 @@ namespace arch::x86_64::interrupts::idt {
         }
     }
 
-    uint8_t get_free_vector_block(size_t size) {
+    u8 get_free_vector_block(usize size) {
         if (size == 0 || size > (VECTOR_MAX - VECTOR_MIN + 1)) return 0xFF;
 
-        for (uint16_t vec = VECTOR_MIN; vec + size - 1 <= VECTOR_MAX; ++vec) {
+        for (u16 vec = VECTOR_MIN; vec + size - 1 <= VECTOR_MAX; ++vec) {
             bool block_free = true;
 
-            for (size_t i = 0; i < size; ++i) {
+            for (usize i = 0; i < size; ++i) {
                 if (!irq_handler_table[vec + i].free) {
                     block_free = false;
                     vec += i;
@@ -52,34 +52,34 @@ namespace arch::x86_64::interrupts::idt {
             }
 
             if (block_free) {
-                for (size_t i = 0; i < size; ++i) {
+                for (usize i = 0; i < size; ++i) {
                     irq_handler_table[vec + i].free = false;
                 }
-                return static_cast<uint8_t>(vec);
+                return static_cast<u8>(vec);
             }
         }
 
         return 0xFF;
     }
 
-    uint8_t get_free_vector() {
-        for (uint16_t vec = VECTOR_MIN; vec <= VECTOR_MAX; ++vec) {
+    u8 get_free_vector() {
+        for (u16 vec = VECTOR_MIN; vec <= VECTOR_MAX; ++vec) {
             if (irq_handler_table[vec].free) {
                 irq_handler_table[vec].free = false;
-                return static_cast<uint8_t>(vec);
+                return static_cast<u8>(vec);
             }
         }
         return 0xFF;  // no vector available
     }
 
-    void free_vector(const uint8_t vec) {
+    void free_vector(const u8 vec) {
         irq_handler_table[vec].handler = nullptr;
         irq_handler_table[vec].cookie = nullptr;
         irq_handler_table[vec].free = true;
     }
 
     extern "C" isr_handler_t irq_stub_table[];  // irq_stub.asm
-    bool allocate_vector(uint8_t vector, const irq_handler_t handler, void* cookie) {
+    bool allocate_vector(u8 vector, const irq_handler_t handler, void* cookie) {
         irq_handler_table[vector].handler = handler;
         irq_handler_table[vector].cookie = cookie;
 
@@ -90,7 +90,7 @@ namespace arch::x86_64::interrupts::idt {
         return true;
     }
 
-    extern "C" void irq_common_stub_handler(uint8_t irqno) {
+    extern "C" void irq_common_stub_handler(u8 irqno) {
         if (const IrqDesc& desc = irq_handler_table[irqno]; desc.handler) {
             desc.handler(desc.cookie);
         }

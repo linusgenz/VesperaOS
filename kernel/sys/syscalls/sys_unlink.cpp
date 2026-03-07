@@ -25,7 +25,7 @@
 #include "vespera_errno.h"
 
 namespace syscalls::internal {
-    int64_t sys_unlink(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_unlink(u64 path_ptr, u64, u64, u64, u64, u64) {
         const auto path = reinterpret_cast<const char*>(path_ptr);
         if (!path) return -EINVAL;
 

@@ -7,18 +7,18 @@
 #include <vespera/log.h>
 
 namespace kernel::time {
-    uint8_t cmos_read(uint8_t reg) {
+    u8 cmos_read(u8 reg) {
         asm volatile("outb %0, %1" : : "a"(reg), "Nd"(CMOS_ADDRESS));
-        uint8_t value;
+        u8 value;
         asm volatile("inb %1, %0" : "=a"(value) : "Nd"(CMOS_DATA));
         return value;
     }
 
-    uint8_t bcd_to_binary(uint8_t bcd) {
+    u8 bcd_to_binary(u8 bcd) {
         return ((bcd / 16) * 10) + (bcd & 0x0F);
     }
 
-    void read_rtc(uint8_t& second, uint8_t& minute, uint8_t& hour, uint8_t& day, uint8_t& month, uint8_t& year) {
+    void read_rtc(u8& second, u8& minute, u8& hour, u8& day, u8& month, u8& year) {
         while (cmos_read(0x0A) & 0x80) {
         }
 
@@ -29,7 +29,7 @@ namespace kernel::time {
         month = cmos_read(0x08);
         year = cmos_read(0x09);
 
-        uint8_t status_b = cmos_read(0x0B);
+        u8 status_b = cmos_read(0x0B);
 
         if (!(status_b & 0x04)) {
             second = bcd_to_binary(second);
@@ -47,7 +47,7 @@ namespace kernel::time {
     }
 
     void print_current_time() {
-        uint8_t sec, min, hour, day, month, year;
+        u8 sec, min, hour, day, month, year;
         read_rtc(sec, min, hour, day, month, year);
 
         Log::info("Time: %u:%u:%u Date: %u.%u.%u", hour, min, sec, day, month, year);

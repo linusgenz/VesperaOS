@@ -23,7 +23,7 @@
 
 #ifndef SYSCALL_H
 #define SYSCALL_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 void syscall_init();
 

@@ -38,7 +38,7 @@
 extern "C" void ap_main();
 
 void prepare_ap_trampoline() {
-    for (uint64_t phys = 0x1000; phys <= 0x9000; phys += 0x1000) {
+    for (u64 phys = 0x1000; phys <= 0x9000; phys += 0x1000) {
         kernel::memory::map_memory(
             virt_from_raw(phys),
             make_phys(phys),
@@ -54,9 +54,9 @@ void prepare_ap_trampoline() {
 
     memcpy(reinterpret_cast<void*>(TRAMPOLINE_VIRT), ap_trampoline_bin, ap_trampoline_bin_len);
 
-    *reinterpret_cast<uint32_t*>(PML4_PHYS)    = static_cast<uint32_t>(kernel::memory::get_pagetable_address());
+    *reinterpret_cast<u32*>(PML4_PHYS)    = static_cast<u32>(kernel::memory::get_pagetable_address());
     *reinterpret_cast<arch::x86_64::interrupts::idt::IDTR*>(IDTR_PHYS) = *kernel::interrupts::get_idtr_address();
-    *reinterpret_cast<uint64_t*>(ENTRY_PTR_PHYS) = reinterpret_cast<uint64_t>(ap_main);
+    *reinterpret_cast<u64*>(ENTRY_PTR_PHYS) = reinterpret_cast<u64>(ap_main);
 
     asm volatile("wbinvd" ::: "memory");
 }

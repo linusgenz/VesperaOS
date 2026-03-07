@@ -24,11 +24,11 @@
 #ifndef PS2_KEYBOARD_H
 #define PS2_KEYBOARD_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 namespace ps2::keyboard {
     void init();
-    void handle_scancode(uint8_t scancode);
+    void handle_scancode(u8 scancode);
 }
 
 #endif //PS2_KEYBOARD_H

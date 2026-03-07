@@ -5,32 +5,32 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <stddef.h>
+
 #include <vespera/boot/boot.h>
 
 #include "addr.h"
 #include "efi_memory.h"
 
-constexpr size_t PAGE_SIZE = 0x1000;
-inline uint64_t g_hhdm_offset = 0;
-inline uint64_t g_kernel_phys_base = 0;
-inline uint64_t g_kernel_virt_base = 0;
+constexpr usize PAGE_SIZE = 0x1000;
+inline u64 g_hhdm_offset = 0;
+inline u64 g_kernel_phys_base = 0;
+inline u64 g_kernel_virt_base = 0;
 
 struct PageTable;
 
-uint64_t get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, size_t m_map_entries, size_t m_map_desc_size);
+u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, usize m_map_entries, usize m_map_desc_size);
 
 extern "C" {
-void memset(void* dest, uint8_t val, uint64_t num);
+void memset(void* dest, u8 val, u64 num);
 
-void* memcpy(void* dest, const void* src, size_t len);
+void* memcpy(void* dest, const void* src, usize len);
 
-int memcmp(const void* ptr1, const void* ptr2, size_t num);
+int memcmp(const void* ptr1, const void* ptr2, usize num);
 
-void* memmove(void* dest, const void* src, size_t len);
+void* memmove(void* dest, const void* src, usize len);
 }
 
-inline void memset(const virt_addr_t dest, const uint8_t val, const uint64_t num) {
+inline void memset(const virt_addr_t dest, const u8 val, const u64 num) {
     memset(virt_ptr(dest), val, num);
 }
 
@@ -59,36 +59,36 @@ namespace kernel::memory {
     // Page Table Management
     void initialize_page_table_manager(BootInfo* boot_info);
 
-    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, uint64_t flags = 0);
+    void map_memory(virt_addr_t virtual_addr, phys_addr_t physical_addr, u64 flags = 0);
 
-    // void set_user_flags(void* virtual_memory, size_t size);
+    // void set_user_flags(void* virtual_memory, usize size);
 
-    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, size_t size, uint64_t flags = 0);
+    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, usize size, u64 flags = 0);
 
-    void unmap_range(virt_addr_t virt_start, size_t size);
+    void unmap_range(virt_addr_t virt_start, usize size);
 
     void unmap_memory(virt_addr_t virtual_addr);
 
     bool is_mapped(virt_addr_t virtual_addr);
 
-    uintptr_t get_pagetable_address();
+    uptr get_pagetable_address();
 
     phys_addr_t get_physical_address(virt_addr_t virtual_addr);
 
     // Page Frame Allocator
-    void initialize_page_frame_allocator(void* efi_memory_map, size_t map_size, size_t desc_size);
+    void initialize_page_frame_allocator(void* efi_memory_map, usize map_size, usize desc_size);
 
     void free_page(virt_addr_t virtual_addr);
 
     void free_page_phys(phys_addr_t phys_addr);
 
-    void free_pages(virt_addr_t virtual_addr, uint64_t page_count);
+    void free_pages(virt_addr_t virtual_addr, u64 page_count);
 
-    void free_pages_phys(phys_addr_t phys_addr, uint64_t page_count);
+    void free_pages_phys(phys_addr_t phys_addr, u64 page_count);
 
     void lock_page(phys_addr_t phys_addr);
 
-    void lock_pages(phys_addr_t phys_addr, uint64_t page_count);
+    void lock_pages(phys_addr_t phys_addr, u64 page_count);
 
     void relocate_bitmap_to_hhdm();
 
@@ -96,42 +96,42 @@ namespace kernel::memory {
 
     [[nodiscard]] phys_addr_t request_page_phys();
 
-    [[nodiscard]] virt_addr_t request_pages(size_t page_count);
+    [[nodiscard]] virt_addr_t request_pages(usize page_count);
 
-    [[nodiscard]] phys_addr_t request_pages_phys(size_t page_count);
+    [[nodiscard]] phys_addr_t request_pages_phys(usize page_count);
 
-    [[nodiscard]] uint64_t get_free_ram();
+    [[nodiscard]] u64 get_free_ram();
 
-    [[nodiscard]] uint64_t get_used_ram();
+    [[nodiscard]] u64 get_used_ram();
 
-    [[nodiscard]] uint64_t get_reserved_ram();
+    [[nodiscard]] u64 get_reserved_ram();
 
-    [[nodiscard]] uint64_t get_total_ram();
+    [[nodiscard]] u64 get_total_ram();
 
     // Heap Allocator
-    void initialize_heap(virt_addr_t heap_start, size_t page_count);
+    void initialize_heap(virt_addr_t heap_start, usize page_count);
 
-    void* alloc_aligned(size_t size, size_t alignment, size_t boundary = 0);
+    void* alloc_aligned(usize size, usize alignment, usize boundary = 0);
 
     void free_aligned(void* aligned_ptr);
 
-    [[nodiscard]] void* malloc(size_t size);
+    [[nodiscard]] void* malloc(usize size);
 
     void free(void* addr);
 
-    void* realloc(void* old_ptr, size_t old_size, size_t new_size);
+    void* realloc(void* old_ptr, usize old_size, usize new_size);
 
     void print_heap_stats();
 }  // namespace kernel::memory
 
-void* operator new(size_t size);
-void* operator new[](size_t size);
-inline void* operator new(size_t, void* ptr) noexcept {
+void* operator new(usize size);
+void* operator new[](usize size);
+inline void* operator new(usize, void* ptr) noexcept {
     return ptr;
 }
 void operator delete(void* p) noexcept;
-void operator delete(void* p, size_t) noexcept;
+void operator delete(void* p, usize) noexcept;
 void operator delete[](void* p) noexcept;
-void operator delete[](void* p, size_t) noexcept;
+void operator delete[](void* p, usize) noexcept;
 
 #endif  // MEMORY_H

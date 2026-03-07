@@ -34,10 +34,10 @@
  * @brief Kernel-internal Unit lifecycle state.
  *
  * Mirrors the UNIT_STATE_* constants from uapi/vespera/unit_info.h with a
- * type-safe enum class. Always cast to uint8_t when writing into
+ * type-safe enum class. Always cast to u8 when writing into
  * a unit_info_t struct.
  */
-enum class UnitState : uint8_t {
+enum class UnitState : u8 {
     New = UNIT_STATE_NEW,
     Ready = UNIT_STATE_READY,
     Running = UNIT_STATE_RUNNING,
@@ -47,17 +47,17 @@ enum class UnitState : uint8_t {
 };
 
 struct ArgRegisters {
-    uint64_t rdi, rsi, rdx, rcx, r8, r9;
+    u64 rdi, rsi, rdx, rcx, r8, r9;
 };
 
 /// @warning when changing this struct syscall might break as offsets are hardcoded!
 // TODO refactor this struct
 typedef struct ExecutionContext {
-    uint64_t stack_size;
+    u64 stack_size;
     virt_addr_t stack;
     virt_addr_t stack_top;
     virt_addr_t stack_pointer;
-    uint64_t user_stack_size;
+    u64 user_stack_size;
     virt_addr_t user_stack;
     virt_addr_t user_stack_top;
     virt_addr_t user_stack_pointer;
@@ -79,16 +79,16 @@ typedef struct ExecutionContext {
 } execution_context_t;
 
 typedef struct SleepContext {
-    uint64_t wakeup_tick;
+    u64 wakeup_tick;
     void* kernel_rsp_after_sleep;
 } sleep_context_t;
 
 struct VmArea {
-    uintptr_t start;
-    size_t length;
-    uint64_t prot;
-    uint64_t flags;
-    uintptr_t file_off;
+    uptr start;
+    usize length;
+    u64 prot;
+    u64 flags;
+    uptr file_off;
     HandleId handle;
 
     VmArea* next;
@@ -96,7 +96,7 @@ struct VmArea {
 
 struct UnitHandleTable {
     HandleId slots[MAX_UNIT_HANDLE_SLOTS];
-    uint64_t count;
+    u64 count;
     Spinlock lock;
 };
 
@@ -114,10 +114,10 @@ class Unit {
     Unit* realm_next{};
 
     UnitState state{UnitState::New};
-    uint64_t creation_time{0};
+    u64 creation_time{0};
 
-    uint8_t priority{0};
-    uint8_t cpu_id{0};
+    u8 priority{0};
+    u8 cpu_id{0};
 
     int exit_code{0};
     bool active{false};
@@ -126,9 +126,9 @@ class Unit {
     bool is_user{false};
     bool is_kernel{false};
 
-    uint64_t heap_end{};
+    u64 heap_end{};
 
-    uint64_t handle_count{0};
+    u64 handle_count{0};
 
     execution_context_t context{};
     sleep_context_t sleep_context{};
@@ -143,7 +143,7 @@ class Unit {
         vma_list_ = vma;
     }
 
-    [[nodiscard]] VmArea* find_vma(uintptr_t addr, size_t len) const {
+    [[nodiscard]] VmArea* find_vma(uptr addr, usize len) const {
         for (VmArea* v = vma_list_; v; v = v->next) {
             if (addr >= v->start && (addr + len) <= (v->start + v->length)) {
                 return v;
@@ -152,7 +152,7 @@ class Unit {
         return nullptr;
     }
 
-    bool remove_vma(uintptr_t addr, size_t len) {
+    bool remove_vma(uptr addr, usize len) {
         VmArea* prev = nullptr;
         VmArea* cur = vma_list_;
 
@@ -184,13 +184,13 @@ class Unit {
         vma_list_ = nullptr;
     }
 
-    int64_t attach_handle(HandleId h) {
+    i64 attach_handle(HandleId h) {
         handle_table_.lock.lock();
         if (handle_table_.count >= MAX_UNIT_HANDLE_SLOTS) {
             handle_table_.lock.unlock();
             return -ENOMEM;
         }
-        for (unsigned long& slot : handle_table_.slots) {
+        for (HandleId& slot : handle_table_.slots) {
             if (slot == 0) {
                 slot = h;
                 handle_table_.count++;
@@ -203,9 +203,9 @@ class Unit {
         return -ENOMEM;
     }
 
-    int64_t detach_handle(HandleId h) {
+    i64 detach_handle(HandleId h) {
         handle_table_.lock.lock();
-        for (unsigned long& slot : handle_table_.slots) {
+        for (HandleId& slot : handle_table_.slots) {
             if (slot == h) {
                 slot = 0;
                 handle_table_.count--;
@@ -218,9 +218,9 @@ class Unit {
         return -EBADH;
     }
 
-    int64_t detach_all_handles() {
+    i64 detach_all_handles() {
         handle_table_.lock.lock();
-        for (uint64_t& slot : handle_table_.slots) {
+        for (u64& slot : handle_table_.slots) {
             if (const HandleId h = slot; h != 0) {
                 slot = 0;
             }
@@ -232,8 +232,8 @@ class Unit {
         return SUCCESS_CODE;
     }
 
-    [[nodiscard]] uint32_t find_handle_slot(HandleId h) const {
-        for (uint32_t i = 0; i < MAX_UNIT_HANDLE_SLOTS; ++i) {
+    [[nodiscard]] u32 find_handle_slot(HandleId h) const {
+        for (u32 i = 0; i < MAX_UNIT_HANDLE_SLOTS; ++i) {
             if (handle_table_.slots[i] == h) return i;
         }
         return -1;

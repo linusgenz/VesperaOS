@@ -39,14 +39,14 @@ namespace ps2::mouse {
         }
     }
 
-    void send_cmd(uint8_t byte) {
+    void send_cmd(u8 byte) {
         wait_write();
         outb(0x64, 0xD4);
         wait_write();
         outb(0x60, byte);
     }
 
-    uint8_t recv_response() {
+    u8 recv_response() {
         wait_read();
         return inb(0x60);
     }
@@ -58,7 +58,7 @@ namespace ps2::mouse {
 
         outb(0x64, 0x20);
         wait_read();
-        uint8_t status = inb(0x60);
+        u8 status = inb(0x60);
         status |= 0b10;
         wait_write();
         outb(0x64, 0x60);

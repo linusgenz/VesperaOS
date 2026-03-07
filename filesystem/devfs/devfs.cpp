@@ -132,7 +132,7 @@ int DevFs::unregister_device(KernelDevice* kd) {
 
     auto* root_data = static_cast<DirData*>(node->internal_data);
     auto& devices = root_data->files;
-    for (size_t i = 0; i < devices.size(); ++i) {
+    for (usize i = 0; i < devices.size(); ++i) {
         if (devices[i] == node) {
             devices.erase(i);
             break;
@@ -163,7 +163,7 @@ int DevFs::open(const VfsNode* node) {
     return SUCCESS_CODE;
 }
 
-ssize_t DevFs::read(const VfsNode* node, size_t offset, size_t size, void* buffer) {
+isize DevFs::read(const VfsNode* node, usize offset, usize size, void* buffer) {
     if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -177,16 +177,16 @@ ssize_t DevFs::read(const VfsNode* node, size_t offset, size_t size, void* buffe
         return kd->chardev->read(entry->cf, buffer, size, offset);
     }
     if (kd->block) {
-        size_t sector_size = kd->block->get_sector_size();
-        uint64_t lba = offset / sector_size;
-        uint32_t sectors = (size + sector_size - 1) / sector_size;
+        usize sector_size = kd->block->get_sector_size();
+        u64 lba = offset / sector_size;
+        u32 sectors = (size + sector_size - 1) / sector_size;
         return kd->block->read(lba, sectors, buffer, sizeof(buffer));
     }
 
     return -EINVAL;
 }
 
-ssize_t DevFs::write(VfsNode* node, size_t offset, const size_t size, const void* buffer) {
+isize DevFs::write(VfsNode* node, usize offset, const usize size, const void* buffer) {
     if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
@@ -206,16 +206,16 @@ ssize_t DevFs::write(VfsNode* node, size_t offset, const size_t size, const void
 
     // BlockDevice
     if (kd->block) {
-        size_t sector_size = kd->block->get_sector_size();
-        uint64_t lba = offset / sector_size;
-        uint32_t sectors = (size + sector_size - 1) / sector_size;
+        usize sector_size = kd->block->get_sector_size();
+        u64 lba = offset / sector_size;
+        u32 sectors = (size + sector_size - 1) / sector_size;
         return kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer));
     }
 
     return -EINVAL;
 }
 
-ssize_t DevFs::ioctl(const VfsNode* node, const uint32_t cmd, void* arg) {
+isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);

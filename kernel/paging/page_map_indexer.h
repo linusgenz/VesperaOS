@@ -3,17 +3,17 @@
 //
 #ifndef PAGE_MAP_INDEXER_H
 #define PAGE_MAP_INDEXER_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 #include <vespera/mm/addr.h>
 class PageMapIndexer {
    private:
    public:
     explicit PageMapIndexer(virt_addr_t virt_addr);
-    uint64_t pdp_i;
-    uint64_t pd_i;
-    uint64_t pt_i;
-    uint64_t p_i;
+    u64 pdp_i;
+    u64 pd_i;
+    u64 pt_i;
+    u64 p_i;
 };
 
 #endif  // PAGE_MAP_INDEXER_H

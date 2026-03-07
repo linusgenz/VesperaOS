@@ -29,7 +29,7 @@
 #include "uapi/vespera/handels.h"
 
 namespace syscalls::internal {
-    int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    i64 sys_channel_recv(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const auto hid = arg0;
         auto buf = reinterpret_cast<void *>(arg1);
         const auto len = arg2;

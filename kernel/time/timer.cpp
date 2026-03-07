@@ -8,12 +8,12 @@
 
 #include "../cpu/cpu_manager.h"
 
-extern volatile uint64_t apic_ticks[MAX_CPU_CORES];
+extern volatile u64 apic_ticks[MAX_CPU_CORES];
 
 namespace kernel::time {
     namespace internal {
-        void thread_sleep_ms(uint64_t ms) {
-            uint32_t cpu_id = cpu_manager::get_current_cpu_id();
+        void thread_sleep_ms(u64 ms) {
+            u32 cpu_id = cpu_manager::get_current_cpu_id();
 
             Unit *current = kernel::scheduling::get_current_unit();
             if (!current || current->is_idle) return;
@@ -23,9 +23,9 @@ namespace kernel::time {
             kernel::scheduling::yield();
         }
 
-        void sleep(uint64_t ms) {
-            uint32_t cpu = cpu_manager::get_current_cpu_id();
-            uint64_t target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
+        void sleep(u64 ms) {
+            u32 cpu = cpu_manager::get_current_cpu_id();
+            u64 target = interrupts::lapic_get_ticks(cpu) + (ms + 9) / 10;
 
             while (interrupts::lapic_get_ticks(cpu) < target) {
                 asm volatile("hlt");
@@ -33,7 +33,7 @@ namespace kernel::time {
         }
     }  // namespace internal
 
-    void sleep_ms(const uint64_t ms) {
+    void sleep_ms(const u64 ms) {
         if (const Unit *current = scheduling::get_current_unit(); scheduling::is_initialized() && current) {
             internal::thread_sleep_ms(ms);
         } else {
@@ -41,12 +41,12 @@ namespace kernel::time {
         }
     }
 
-    uint64_t get_ticks() {
-        const uint32_t cpu = cpu_manager::get_current_cpu_id();
+    u64 get_ticks() {
+        const u32 cpu = cpu_manager::get_current_cpu_id();
         return interrupts::lapic_get_ticks(cpu);
     }
 
-    uint64_t get_uptime_ms() {
+    u64 get_uptime_ms() {
         return get_ticks() * 10;
     }
 }  // namespace kernel::time

@@ -15,7 +15,7 @@
 namespace nvme {
     NvmeDriver::NvmeDriver(pci::PCI_DEVICE_HEADER* pci_base_address) {
         const auto* pci = reinterpret_cast<const pci::PCI_HEADER0*>(pci_base_address);
-        phys_addr_t mmio = make_phys(((static_cast<uint64_t>(pci->bar1) << 32) | (pci->bar0 & 0xFFFFFFF0)));
+        phys_addr_t mmio = make_phys(((static_cast<u64>(pci->bar1) << 32) | (pci->bar0 & 0xFFFFFFF0)));
         virt_addr_t addr = kernel::memory::request_pages(4);
         c_regs_ = virt_as<NVME_CONTROLLER_REGISTERS>(addr);
         kernel::memory::map_range(addr, mmio, PAGE_SIZE * 4, (1ULL << WriteThrough) | (1ULL << CacheDisabled));
@@ -102,7 +102,7 @@ namespace nvme {
             return;
         }
 
-        Vector<uint32_t> namespace_ids;
+        Vector<u32> namespace_ids;
 
         if (get_namespace_list(&namespace_ids)) {
             Log::error("[NVMe] Failed to get namespace list");
@@ -120,7 +120,7 @@ namespace nvme {
         );
         DevFs::register_device(kd_);
 
-        for (uint32_t namespace_id : namespace_ids) {
+        for (u32 namespace_id : namespace_ids) {
             Log::log_msg("[NVMe] Namespace ID %u", namespace_id);
 
             phys_addr_t phys_buffer = kernel::memory::request_page_phys();
@@ -212,14 +212,14 @@ namespace nvme {
         return 0;
     }
 
-    long NvmeDriver::get_namespace_list(Vector<uint32_t>* namespace_ids) {
+    long NvmeDriver::get_namespace_list(Vector<u32>* namespace_ids) {
         virt_addr_t namespace_list_virt = kernel::memory::request_page();
         phys_addr_t namespace_list_phys = virt_to_phys(namespace_list_virt);
         kernel::memory::map_memory(
             namespace_list_virt, namespace_list_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled)
         );
 
-        auto* namespace_list = virt_as<uint32_t>(namespace_list_virt);
+        auto* namespace_list = virt_as<u32>(namespace_list_virt);
 
         NVME_COMMAND identify_ns_list{};
         memset(&identify_ns_list, 0, sizeof(NVME_COMMAND));
@@ -237,7 +237,7 @@ namespace nvme {
             return completion.dw3.status;
         }
 
-        uint32_t* namespace_list_end = namespace_list + (PAGE_SIZE / sizeof(uint32_t));
+        u32* namespace_list_end = namespace_list + (PAGE_SIZE / sizeof(u32));
         while (*namespace_list && namespace_list < namespace_list_end) {
             namespace_ids->push_back(*namespace_list++);
         }
@@ -263,16 +263,16 @@ namespace nvme {
 
             // Wait for shutdown to complete
             // Spec recommends waiting RTD3 Entry Latency, or 1 second minimum
-            uint32_t timeout_ms = 1000;
+            u32 timeout_ms = 1000;
             if (controller_identity_ && controller_identity_->rtd3_e > 0) {
                 timeout_ms = controller_identity_->rtd3_e;
             }
 
-            uint32_t elapsed = 0;
+            u32 elapsed = 0;
 
             // Poll CSTS.SHST for shutdown complete (10b)
             while (elapsed < timeout_ms) {
-                constexpr uint32_t poll_interval_ms = 10;
+                constexpr u32 poll_interval_ms = 10;
                 if (c_regs_->csts.shst == 0x2)  // 10b = shutdown complete
                 {
                     Log::ok("[NVMe] Controller shutdown complete");
@@ -293,7 +293,7 @@ namespace nvme {
             return 0;
         }
 
-        uint16_t queue_id = queue_ptr->get_queue_id();
+        u16 queue_id = queue_ptr->get_queue_id();
 
         NVME_COMPLETION_ENTRY completion{};
 
@@ -340,7 +340,7 @@ namespace nvme {
         kernel::memory::map_memory(sq_virt, sq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled));
         kernel::memory::map_memory(cq_virt, cq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled));
 
-        uint16_t queue_id = allocate_queue_id();
+        u16 queue_id = allocate_queue_id();
 
         NVME_COMPLETION_ENTRY completion{};
 
@@ -389,8 +389,8 @@ namespace nvme {
     }
 
     NvmeQueue::NvmeQueue(
-        uint16_t qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq,
-        volatile uint32_t* cq_db, volatile uint32_t* sq_db, uint16_t csz, uint16_t ssz
+        u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq,
+        volatile u32* cq_db, volatile u32* sq_db, u16 csz, u16 ssz
     )
         : queue_id_(qid)
         , completion_base_(cq_base)
@@ -468,7 +468,7 @@ namespace nvme {
         *completion_db_ = cq_head;
     }
 
-    static uint64_t setup_prp2(phys_addr_t dma_phys, size_t pages) {
+    static u64 setup_prp2(phys_addr_t dma_phys, usize pages) {
         if (pages <= 1) {
             return 0;
         }
@@ -483,22 +483,22 @@ namespace nvme {
         }
 
         virt_addr_t prp_list_virt = phys_to_virt(prp_list_phys);
-        auto* prp_list = virt_as<uint64_t>(prp_list_virt);
+        auto* prp_list = virt_as<u64>(prp_list_virt);
 
-        for (size_t i = 1; i < pages; i++) {
+        for (usize i = 1; i < pages; i++) {
             prp_list[i - 1] = phys_raw(phys_add(dma_phys, i * PAGE_SIZE));
         }
 
         return phys_raw(prp_list_phys);
     }
 
-    ssize_t NvmeNamespace::read(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) {
-        size_t bytes = sector_count * sector_size_;
+    isize NvmeNamespace::read(u64 lba, usize sector_count, void* buffer, usize buffer_size) {
+        usize bytes = sector_count * sector_size_;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 
         kernel::MutexGuard guard(namespace_mutex_);
 
-        size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
         phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
         if (phys_null(dma_phys)) return -ENOMEM;
 
@@ -509,8 +509,8 @@ namespace nvme {
         read_cmd.nsid = ns_id_;
         read_cmd.prp1 = phys_raw(dma_phys);
         read_cmd.prp2 = setup_prp2(dma_phys, pages);
-        read_cmd.u.readwrite.lbalow = static_cast<uint32_t>(lba & 0xFFFFFFFFULL);
-        read_cmd.u.readwrite.lbahigh = static_cast<uint32_t>(lba >> 32);
+        read_cmd.u.readwrite.lbalow = static_cast<u32>(lba & 0xFFFFFFFFULL);
+        read_cmd.u.readwrite.lbahigh = static_cast<u32>(lba >> 32);
         read_cmd.u.readwrite.cdw12.nlb = sector_count - 1;
 
         if (read_cmd.prp2 == 0 && pages > 1) {
@@ -536,16 +536,16 @@ namespace nvme {
 
         kernel::memory::free_pages_phys(dma_phys, pages);
 
-        return static_cast<ssize_t>(bytes);
+        return static_cast<isize>(bytes);
     }
 
-    ssize_t NvmeNamespace::write(uint64_t lba, size_t sector_count, void* buffer, size_t buffer_size) {
-        size_t bytes = sector_count * sector_size_;
+    isize NvmeNamespace::write(u64 lba, usize sector_count, void* buffer, usize buffer_size) {
+        usize bytes = sector_count * sector_size_;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 
         kernel::MutexGuard guard(namespace_mutex_);
 
-        size_t pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
         phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
         if (phys_null(dma_phys)) return -ENOMEM;
 
@@ -558,8 +558,8 @@ namespace nvme {
         write_cmd.nsid = ns_id_;
         write_cmd.prp1 = phys_raw(dma_phys);
         write_cmd.prp2 = setup_prp2(dma_phys, pages);
-        write_cmd.u.readwrite.lbalow = static_cast<uint32_t>(lba & 0xFFFFFFFFULL);
-        write_cmd.u.readwrite.lbahigh = static_cast<uint32_t>(lba >> 32);
+        write_cmd.u.readwrite.lbalow = static_cast<u32>(lba & 0xFFFFFFFFULL);
+        write_cmd.u.readwrite.lbahigh = static_cast<u32>(lba >> 32);
         write_cmd.u.readwrite.cdw12.nlb = sector_count - 1;
 
         if (write_cmd.prp2 == 0 && pages > 1) {
@@ -582,6 +582,6 @@ namespace nvme {
             return -EIO;
         }
 
-        return static_cast<ssize_t>(bytes);
+        return static_cast<isize>(bytes);
     }
 }  // namespace nvme

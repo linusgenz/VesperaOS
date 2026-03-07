@@ -32,12 +32,12 @@ struct BootInfo {
     framebuffer_t*           framebuffer;
     font_t*                  font;
     EFI_MEMORY_DESCRIPTOR* m_map;
-    uint64_t               m_map_size;
-    uint64_t               m_map_desc_size;
+    u64               m_map_size;
+    u64               m_map_desc_size;
     acpi::RSDP2*           rsdp;
-    uint64_t               hhdm_offset;
-    uint64_t               kernel_phys_base;
-    uint64_t               kernel_virt_base;
+    u64               hhdm_offset;
+    u64               kernel_phys_base;
+    u64               kernel_virt_base;
 };
 
 #endif //VESPERAOS_BOOT_H

@@ -4,11 +4,11 @@
 
 #ifndef PCI_DEVICES_H
 #define PCI_DEVICES_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 struct PciDevice {
-    uint16_t vendor_id;
-    uint16_t device_id;
+    u16 vendor_id;
+    u16 device_id;
     const char* name;
 };
 

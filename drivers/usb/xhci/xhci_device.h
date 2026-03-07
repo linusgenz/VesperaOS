@@ -31,14 +31,14 @@
 
 class XhciDevice {
 public:
-    explicit XhciDevice(uint8_t slot_id, uint8_t port_num, uint8_t speed, bool use_64_byte_ctx);
+    explicit XhciDevice(u8 slot_id, u8 port_num, u8 speed, bool use_64_byte_ctx);
 
     void allocate_control_ep_ring();
 
-    [[nodiscard]] uint8_t get_slot_id() const { return info.slot_id; }
-    [[nodiscard]] uint8_t get_port_id() const { return info.port_num; }
-    [[nodiscard]] uint8_t get_speed() const { return info.speed; }
-    [[nodiscard]] uintptr_t get_input_context_phys() const { return input_context_phys_; }
+    [[nodiscard]] u8 get_slot_id() const { return info.slot_id; }
+    [[nodiscard]] u8 get_port_id() const { return info.port_num; }
+    [[nodiscard]] u8 get_speed() const { return info.speed; }
+    [[nodiscard]] uptr get_input_context_phys() const { return input_context_phys_; }
     [[nodiscard]] XhciTransferRing *get_control_transfer_ring() const { return control_transfer_ring_; }
 
     [[nodiscard]] XHCI_INPUT_CONTROL_CONTEXT32 *get_input_control_ctx() const;
@@ -47,7 +47,7 @@ public:
 
     [[nodiscard]] XHCI_ENDPOINT_CONTEXT32 *get_input_control_ep_ctx() const;
 
-    [[nodiscard]] XHCI_ENDPOINT_CONTEXT32 *get_input_ep_ctx(uint8_t endpoint_num) const;
+    [[nodiscard]] XHCI_ENDPOINT_CONTEXT32 *get_input_ep_ctx(u8 endpoint_num) const;
 
     void setup_add_interface(const USB_INTERFACE_DESCRIPTOR *desc);
 
@@ -61,7 +61,7 @@ private:
     bool use_64_byte_ctx_;
 
     void *input_context_{};
-    uintptr_t input_context_phys_{};
+    uptr input_context_phys_{};
     XhciTransferRing *control_transfer_ring_{};
 
     void allocate_input_context();

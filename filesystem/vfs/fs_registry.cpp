@@ -26,7 +26,7 @@
 #include <klib/string.h>
 
 static FileSystemDriver* fs_drivers[MAX_FS_DRIVERS];
-static size_t driver_count = 0;
+static usize driver_count = 0;
 
 void register_fs_driver(FileSystemDriver* driver) {
     if (driver_count >= MAX_FS_DRIVERS) return;
@@ -35,7 +35,7 @@ void register_fs_driver(FileSystemDriver* driver) {
 }
 
 FileSystemDriver* find_fs_driver(const char* name) {
-    for (size_t i = 0; i < driver_count; ++i) {
+    for (usize i = 0; i < driver_count; ++i) {
         if (strcmp(fs_drivers[i]->name, name) == 0) {
             return fs_drivers[i];
         }
@@ -43,11 +43,11 @@ FileSystemDriver* find_fs_driver(const char* name) {
     return nullptr;
 }
 
-size_t fs_driver_count() {
+usize fs_driver_count() {
     return driver_count;
 }
 
-FileSystemDriver* fs_driver_at(size_t i) {
+FileSystemDriver* fs_driver_at(usize i) {
     if (i >= driver_count) return nullptr;
     return fs_drivers[i];
 }

@@ -36,40 +36,40 @@
 #define FB_IOCTL_BLIT 0x4605
 
 struct FbInfo {
-    uint32_t width;
-    uint32_t height;
-    uint32_t bpp;
-    uint32_t pitch;
-    uint32_t is_primary;  // 1 = yes, 0 = no
+    u32 width;
+    u32 height;
+    u32 bpp;
+    u32 pitch;
+    u32 is_primary;  // 1 = yes, 0 = no
 };
 
 struct FbRect {
-    uint32_t x;
-    uint32_t y;
-    uint32_t width;
-    uint32_t height;
-    uint32_t color;  // ARGB format: 0xAARRGGBB
+    u32 x;
+    u32 y;
+    u32 width;
+    u32 height;
+    u32 color;  // ARGB format: 0xAARRGGBB
 };
 
 struct FbRectOutline {
-    uint32_t x;
-    uint32_t y;
-    uint32_t width;
-    uint32_t height;
-    uint32_t color;      // ARGB format
-    uint32_t thickness;  // border thickness in pixels
+    u32 x;
+    u32 y;
+    u32 width;
+    u32 height;
+    u32 color;      // ARGB format
+    u32 thickness;  // border thickness in pixels
 };
 
 struct FbClear {
-    uint32_t color;  // ARGB format
+    u32 color;  // ARGB format
 };
 
 struct FbBlit {
     const void *pixels;
-    uint32_t buffer_width;
-    uint32_t buffer_height;
-    uint32_t dst_x;
-    uint32_t dst_y;
+    u32 buffer_width;
+    u32 buffer_height;
+    u32 dst_x;
+    u32 dst_y;
 };
 
 class FramebufferDevice final : public CharDevice {
@@ -81,14 +81,14 @@ class FramebufferDevice final : public CharDevice {
     int open(CharFile **out_cf) override;
     int release(CharFile *cf) override;
 
-    ssize_t read(CharFile *cf, void *buffer, size_t count, size_t offset) override;
-    ssize_t write(CharFile *cf, const void *buffer, size_t count) override;
+    isize read(CharFile *cf, void *buffer, usize count, usize offset) override;
+    isize write(CharFile *cf, const void *buffer, usize count) override;
 
-    int ioctl(CharFile *cf, uint32_t cmd, void *arg) override;
+    int ioctl(CharFile *cf, u32 cmd, void *arg) override;
 
    private:
     // Validation helpers
-    bool validate_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+    bool validate_rect(u32 x, u32 y, u32 w, u32 h);
     bool validate_blit(const FbBlit *blit);
 
     // Drawing helpers

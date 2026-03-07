@@ -21,14 +21,14 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 #ifndef VESPERAOS_REALM_CONFIG_H
 #define VESPERAOS_REALM_CONFIG_H
-#include <stdint.h>
+#include <vespera/types.h>
 #include <uapi/vespera/capabilities.h>
 
 struct RealmConfig {
     const char *name;
-    uint64_t memory_limit;
+    u64 memory_limit;
     capability_set capabilities;
-    uint64_t max_units;
+    u64 max_units;
     bool is_user;
 };
 

@@ -19,12 +19,12 @@ static AtomicU8 next_usb_bus_number;
 void usb_enable(void* arg)
 {
     const auto pci_device_header = static_cast<pci::PCI_DEVICE_HEADER*>(arg);
-    uint16_t command = pci::pci_read16(pci_device_header, 0x04);
+    u16 command = pci::pci_read16(pci_device_header, 0x04);
     command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
     command |= (1 << 10); // Disable INTx
     pci::pci_write16(pci_device_header, 0x04, command);
 
-    if (const uint8_t vector = kernel::interrupts::get_free_vector();
+    if (const u8 vector = kernel::interrupts::get_free_vector();
         try_enable_msi_or_msix(reinterpret_cast<pci::PCI_HEADER0*>(pci_device_header),
                                vector))
     {
@@ -43,7 +43,7 @@ void usb_enable(void* arg)
 
 namespace pci
 {
-    void enumerate_function(const uint64_t device_address, const uint64_t function)
+    void enumerate_function(const u64 device_address, const u64 function)
     {
         virt_addr_t func_virt = virt_from_raw(device_address + (function << 12));
         phys_addr_t func_phys = make_phys(virt_raw(func_virt));  // identity mapped
@@ -73,7 +73,7 @@ namespace pci
                 case 0x01: // AHCI 1.0 device
                     {
                         if (function != 0) return; // only accept function 0 (main function) for now
-                        uint16_t command = pci::pci_read16(pci_device_header, 0x04);
+                        u16 command = pci::pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         command |= (1 << 10); // Disable INTx
                         pci::pci_write16(pci_device_header, 0x04, command);
@@ -88,7 +88,7 @@ namespace pci
                 {
                 case 0x02:
                     {
-                        uint16_t command = pci_read16(pci_device_header, 0x04);
+                        u16 command = pci_read16(pci_device_header, 0x04);
                         command |= (1 << 2) | (1 << 1); // Bus Master + Memory Space Enable
                         pci_write16(pci_device_header, 0x04, command);
 
@@ -181,7 +181,7 @@ namespace pci
     }
 
 
-    void enumerate_device(uint64_t bus_address, uint64_t device) {
+    void enumerate_device(u64 bus_address, u64 device) {
         virt_addr_t dev_virt = virt_from_raw(bus_address + (device << 15));
         phys_addr_t dev_phys = make_phys(virt_raw(dev_virt));
 
@@ -192,11 +192,11 @@ namespace pci
         if (pci_device_header->device_id == 0)      return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-        for (uint64_t function = 0; function < 8; function++)
+        for (u64 function = 0; function < 8; function++)
             enumerate_function(virt_raw(dev_virt), function);
     }
 
-    void enumerate_bus(uint64_t base_address, uint64_t bus) {
+    void enumerate_bus(u64 base_address, u64 bus) {
         virt_addr_t bus_virt = virt_from_raw(base_address + (bus << 20));
         phys_addr_t bus_phys = make_phys(virt_raw(bus_virt));
 
@@ -207,28 +207,28 @@ namespace pci
         if (pci_device_header->device_id == 0)      return;
         if (pci_device_header->device_id == 0xFFFF) return;
 
-        for (uint64_t device = 0; device < 32; device++)
+        for (u64 device = 0; device < 32; device++)
             enumerate_device(virt_raw(bus_virt), device);
     }
 
     void enumerate_pci(acpi::MCFG_HEADER* mcfg)
     {
         next_usb_bus_number.init(1);
-        const uint32_t entries = ((mcfg->header.length) - sizeof(acpi::MCFG_HEADER)) / sizeof(acpi::DeviceConfig);
+        const u32 entries = ((mcfg->header.length) - sizeof(acpi::MCFG_HEADER)) / sizeof(acpi::DeviceConfig);
 
         UsbManager::init();
 
-        for (size_t t = 0; t < entries; t++)
+        for (usize t = 0; t < entries; t++)
         {
-            const auto* new_device_config = reinterpret_cast<acpi::DeviceConfig*>(reinterpret_cast<uint64_t>(mcfg) + sizeof(
+            const auto* new_device_config = reinterpret_cast<acpi::DeviceConfig*>(reinterpret_cast<u64>(mcfg) + sizeof(
                 acpi::MCFG_HEADER) + (sizeof(acpi::DeviceConfig) * t));
-            for (uint64_t bus = new_device_config->start_bus; bus < new_device_config->end_bus; bus++)
+            for (u64 bus = new_device_config->start_bus; bus < new_device_config->end_bus; bus++)
             {
                 enumerate_bus(new_device_config->base_address, bus);
             }
         }
 
-        if (const uint8_t count = UsbManager::get_expected_count(); count > 0)
+        if (const u8 count = UsbManager::get_expected_count(); count > 0)
         {
             Log::info("Found %u XHCI controller(s)", count);
         }
@@ -239,7 +239,7 @@ namespace pci
  * @param bar_value Der Wert der BAR (z.B. header->BAR0)
  * @return true wenn 64-bit BAR, false wenn 32-bit BAR oder I/O BAR
  */
-    bool is_bar_64_bit(uint32_t bar_value)
+    bool is_bar_64_bit(u32 bar_value)
     {
         // Erstmal prüfen ob es eine Memory BAR ist (Bit 0 = 0)
         if (bar_value & PCI_BAR_MEMORY_MASK)
@@ -249,12 +249,12 @@ namespace pci
         }
 
         // Bits 2:1 prüfen für Memory BAR Type
-        uint32_t bar_type = (bar_value >> 1) & 0x3;
+        u32 bar_type = (bar_value >> 1) & 0x3;
         return (bar_type == 0x2); // 0x2 = 64-bit Memory BAR
     }
 
 
-    BarInfo get_bar_info(PCI_HEADER0* header, uint8_t bar_index)
+    BarInfo get_bar_info(PCI_HEADER0* header, u8 bar_index)
     {
         BarInfo info = {};
 
@@ -263,8 +263,8 @@ namespace pci
             return info; // is_valid = false
         }
 
-        volatile uint32_t* bar_registers = &header->bar0;
-        uint32_t bar_value = bar_registers[bar_index];
+        volatile u32* bar_registers = &header->bar0;
+        u32 bar_value = bar_registers[bar_index];
 
         if (bar_value == 0)
         {
@@ -282,9 +282,9 @@ namespace pci
             info.is_prefetchable = false;
 
             // Calculate I/O BAR size
-            uint32_t original = bar_registers[bar_index];
+            u32 original = bar_registers[bar_index];
             bar_registers[bar_index] = 0xFFFFFFFF;
-            uint32_t size_mask = bar_registers[bar_index] & ~0x3;
+            u32 size_mask = bar_registers[bar_index] & ~0x3;
             bar_registers[bar_index] = original;
             info.size = ~size_mask + 1;
         }
@@ -302,23 +302,23 @@ namespace pci
                     return info;
                 }
 
-                uint32_t bar_high = bar_registers[bar_index + 1];
-                info.address = (static_cast<uint64_t>(bar_high) << 32) | (bar_value & ~0xFULL);
+                u32 bar_high = bar_registers[bar_index + 1];
+                info.address = (static_cast<u64>(bar_high) << 32) | (bar_value & ~0xFULL);
 
                 // Calculate 64-bit BAR size
-                uint32_t original_low = bar_registers[bar_index];
-                uint32_t original_high = bar_registers[bar_index + 1];
+                u32 original_low = bar_registers[bar_index];
+                u32 original_high = bar_registers[bar_index + 1];
 
                 bar_registers[bar_index] = 0xFFFFFFFF;
                 bar_registers[bar_index + 1] = 0xFFFFFFFF;
 
-                uint32_t size_low = bar_registers[bar_index] & ~0xF;
-                uint32_t size_high = bar_registers[bar_index + 1];
+                u32 size_low = bar_registers[bar_index] & ~0xF;
+                u32 size_high = bar_registers[bar_index + 1];
 
                 bar_registers[bar_index] = original_low;
                 bar_registers[bar_index + 1] = original_high;
 
-                uint64_t size_mask = (static_cast<uint64_t>(size_high) << 32) | size_low;
+                u64 size_mask = (static_cast<u64>(size_high) << 32) | size_low;
                 info.size = ~size_mask + 1;
             }
             else
@@ -326,9 +326,9 @@ namespace pci
                 info.address = bar_value & ~0xFULL;
 
                 // Calculate 32-bit BAR size
-                uint32_t original = bar_registers[bar_index];
+                u32 original = bar_registers[bar_index];
                 bar_registers[bar_index] = 0xFFFFFFFF;
-                uint32_t size_mask = bar_registers[bar_index] & ~0xF;
+                u32 size_mask = bar_registers[bar_index] & ~0xF;
                 bar_registers[bar_index] = original;
                 info.size = ~size_mask + 1;
             }

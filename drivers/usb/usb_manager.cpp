@@ -23,7 +23,7 @@
 
 #include "usb_manager.h"
 
-#include <stdint.h>
+#include <vespera/types.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/completion.h>
 #include <vespera/sync/spinlock.h>
@@ -53,15 +53,15 @@ void UsbManager::notify_controller_ready() {
     }
 }
 
-bool UsbManager::wait_for_all_controllers(const uint64_t timeout_ms) {
-    if (const uint8_t expected = expected_controllers_.load(); expected == 0) return true;
+bool UsbManager::wait_for_all_controllers(const u64 timeout_ms) {
+    if (const u8 expected = expected_controllers_.load(); expected == 0) return true;
     return all_controllers_ready_.wait_timeout(timeout_ms);
 }
 
-uint8_t UsbManager::get_initialized_count() {
+u8 UsbManager::get_initialized_count() {
     return initialized_controllers_.load();
 }
 
-uint8_t UsbManager::get_expected_count() {
+u8 UsbManager::get_expected_count() {
     return expected_controllers_.load();
 }

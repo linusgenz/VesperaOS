@@ -38,8 +38,8 @@ public:
 
     int open(CharFile** out_cf) override;
     int release(CharFile* cf) override;
-    ssize_t read(CharFile* cf, void* buffer, size_t count, size_t offset) override;
-    ssize_t write(CharFile* cf, const void* buffer, size_t count) override;
+    isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
+    isize write(CharFile* cf, const void* buffer, usize count) override;
 };
 
 #endif //VESPERAOS_MOUSE_DEVICE_H

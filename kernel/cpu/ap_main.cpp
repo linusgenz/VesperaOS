@@ -11,7 +11,7 @@
 #include "cpu_manager.h"
 
 extern "C" void ap_main() {
-    const uint32_t cpu_id = cpu_manager::get_current_cpu_id();
+    const u32 cpu_id = cpu_manager::get_current_cpu_id();
 
     if (!cpu_id) {
         kernel::SystemManager::system_panic("Failed to find CPU ID", -KENOCPUID);

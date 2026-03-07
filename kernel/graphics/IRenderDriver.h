@@ -24,17 +24,17 @@
 #ifndef VESPERAOS_IRENDERDRIVER_H
 #define VESPERAOS_IRENDERDRIVER_H
 
-#include <stdint.h>
+#include <vespera/types.h>
 
 struct GlyphRun {
     const char* text;
-    uint32_t length;
+    u32 length;
 
-    uint32_t px;
-    uint32_t py;
+    u32 px;
+    u32 py;
 
-    uint32_t fg;
-    uint32_t bg;
+    u32 fg;
+    u32 bg;
 };
 
 class IRenderDriver {
@@ -43,17 +43,17 @@ class IRenderDriver {
 
     virtual void draw_glyph_run(const GlyphRun& run) = 0;
 
-    virtual bool fill_rect(uint32_t px, uint32_t py, uint32_t w, uint32_t h, uint32_t colour) = 0;
+    virtual bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) = 0;
 
     virtual bool blit_buffer(
-        const void* pixels, uint32_t buffer_width, uint32_t buffer_height, uint32_t dst_x, uint32_t dst_y
+        const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y
     ) = 0;
 
     virtual bool scroll_pixels(int dy) = 0;
 
-    [[nodiscard]] virtual uint32_t screen_width_px() const = 0;
-    [[nodiscard]] virtual uint32_t screen_height_px() const = 0;
-    [[nodiscard]] virtual uint32_t bytes_per_scanline() const = 0;
+    [[nodiscard]] virtual u32 screen_width_px() const = 0;
+    [[nodiscard]] virtual u32 screen_height_px() const = 0;
+    [[nodiscard]] virtual u32 bytes_per_scanline() const = 0;
 };
 
 #endif  // VESPERAOS_IRENDERDRIVER_H

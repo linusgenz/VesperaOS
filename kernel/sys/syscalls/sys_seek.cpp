@@ -30,9 +30,9 @@
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
-    int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    i64 sys_seek(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         HandleId hid = arg0;
-        int64_t offset = static_cast<int64_t>(arg1);
+        i64 offset = static_cast<i64>(arg1);
         int whence = static_cast<int>(arg2);
 
         Unit *u = kernel::scheduling::get_current_unit();
@@ -54,7 +54,7 @@ namespace syscalls::internal {
                 const VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh || !vh->node) return -EBADH;
 
-                int64_t new_pos = 0;
+                i64 new_pos = 0;
 
                 switch (whence) {
                     case SEEK_SET:

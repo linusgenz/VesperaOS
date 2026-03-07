@@ -25,7 +25,7 @@
 #include "vespera_errno.h"
 
 namespace syscalls::internal {
-    int64_t sys_mkdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_mkdir(u64 arg0, u64, u64, u64, u64, u64) {
         const auto path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 

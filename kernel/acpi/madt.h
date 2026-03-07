@@ -4,7 +4,7 @@
 
 #ifndef MADT_H
 #define MADT_H
-#include <stdint.h>
+#include <vespera/types.h>
 
 #include <acpi/acpi.h>
 
@@ -14,33 +14,33 @@
 
 namespace madt {
     struct CpuCore {
-        uint32_t apic_id;
-        uint32_t acpi_processor_id;
+        u32 apic_id;
+        u32 acpi_processor_id;
         bool is_bsp;  // Bootstrap Processor
         bool is_online;
         bool is_enabled;
     };
 
     struct IoApic {
-        uint8_t id;
-        uintptr_t address;
-        uint32_t gsi_base;
+        u8 id;
+        uptr address;
+        u32 gsi_base;
     };
 
     struct InterruptOverride {
-        uint8_t bus;
-        uint8_t source_irq;
-        uint32_t gsi;
-        uint16_t flags;
+        u8 bus;
+        u8 source_irq;
+        u32 gsi;
+        u16 flags;
     };
 
     void parse_madt(acpi::MADT_HEADER* madt);
-    uint32_t get_cpu_count();
+    u32 get_cpu_count();
     CpuCore* get_cpu_cores();
-    uint32_t get_bsp_apic_id();
+    u32 get_bsp_apic_id();
     IoApic* get_ioapics();
-    uint32_t get_ioapic_count();
+    u32 get_ioapic_count();
     InterruptOverride* get_overrides();
-    uint32_t get_override_count();
+    u32 get_override_count();
 }  // namespace MADT
 #endif  // MADT_H

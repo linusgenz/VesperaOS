@@ -32,7 +32,7 @@
 [[noreturn]] void reaper_unit(void* arg) {
     while (true) {
         asm volatile("cli");
-        uint8_t cpu_id = cpu_manager::get_current_cpu_id();
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
         if (auto* cpu = kernel::scheduling::get_cpu_data(cpu_id); !cpu->reaper.empty()) {
             cpu->reaper.reap();
         }

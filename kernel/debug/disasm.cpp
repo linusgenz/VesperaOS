@@ -29,9 +29,9 @@
 #include <vespera/log.h>
 
 struct OpcodeEntry {
-    uint8_t opcode;
+    u8 opcode;
     const char* mnemonic;
-    uint8_t size;
+    u8 size;
     bool needs_modrm;
     bool is_prefix;
 };
@@ -58,12 +58,12 @@ struct RexPrefix {
 };
 
 struct ModRm {
-    uint8_t mod;
-    uint8_t reg;
-    uint8_t rm;
+    u8 mod;
+    u8 reg;
+    u8 rm;
 };
 
-ModRm decode_modrm(uint8_t byte) {
+ModRm decode_modrm(u8 byte) {
     ModRm m{};
     m.mod = (byte >> 6) & 0x3;
     m.reg = (byte >> 3) & 0x7;
@@ -71,7 +71,7 @@ ModRm decode_modrm(uint8_t byte) {
     return m;
 }
 
-const char* get_reg_name(uint8_t reg_idx, int operand_size) {
+const char* get_reg_name(u8 reg_idx, int operand_size) {
     switch (operand_size) {
         case 1:
             return reg8[reg_idx & 15];
@@ -87,11 +87,11 @@ const char* get_reg_name(uint8_t reg_idx, int operand_size) {
 }
 
 // Returns extra bytes consumed AFTER the ModR/M byte (SIB, displacement, etc.)
-size_t decode_rm_operand(
-    const uint8_t* code, size_t offset, size_t max_len, ModRm modrm, RexPrefix rex, int operand_size,
-    uint64_t instr_addr, size_t instr_len, char* output, size_t output_size, bool show_size_prefix = true
+usize decode_rm_operand(
+    const u8* code, usize offset, usize max_len, ModRm modrm, RexPrefix rex, int operand_size,
+    u64 instr_addr, usize instr_len, char* output, usize output_size, bool show_size_prefix = true
 ) {
-    uint8_t rm = modrm.rm | (rex.b ? 8 : 0);
+    u8 rm = modrm.rm | (rex.b ? 8 : 0);
 
     // Register direct
     if (modrm.mod == 3) {
@@ -112,11 +112,11 @@ size_t decode_rm_operand(
             size_prefix = "qword ptr ";
     }
 
-    auto fmt_disp = [](char* buf, size_t buf_size, int64_t disp) {
+    auto fmt_disp = [](char* buf, usize buf_size, i64 disp) {
         if (disp > 0)
-            snprintf(buf, buf_size, "+0x%llx", static_cast<uint64_t>(disp));
+            snprintf(buf, buf_size, "+0x%llx", static_cast<u64>(disp));
         else if (disp < 0)
-            snprintf(buf, buf_size, "-0x%llx", static_cast<uint64_t>(-disp));
+            snprintf(buf, buf_size, "-0x%llx", static_cast<u64>(-disp));
         else
             buf[0] = '\0';
     };
@@ -130,17 +130,17 @@ size_t decode_rm_operand(
                 return 0;
             }
 
-            int32_t disp = 0;
-            memcpy(&disp, code + offset + 1, sizeof(int32_t));
+            i32 disp = 0;
+            memcpy(&disp, code + offset + 1, sizeof(i32));
 
-            const uint64_t rip = instr_addr + instr_len;
-            const uint64_t target = rip + disp;
+            const u64 rip = instr_addr + instr_len;
+            const u64 target = rip + disp;
 
             char disp_str[32];
             fmt_disp(disp_str, sizeof(disp_str), disp);
 
             auto [name, len, addr] = lookup_symbol(target);
-            const uint64_t l_offset = target - addr;
+            const u64 l_offset = target - addr;
 
             snprintf(
                 output,
@@ -162,15 +162,15 @@ size_t decode_rm_operand(
                 return 0;
             }
 
-            uint8_t sib = code[offset];
-            uint8_t scale = 1 << ((sib >> 6) & 3);
-            uint8_t index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
-            uint8_t base = (sib & 7) | (rex.b ? 8 : 0);
+            u8 sib = code[offset];
+            u8 scale = 1 << ((sib >> 6) & 3);
+            u8 index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
+            u8 base = (sib & 7) | (rex.b ? 8 : 0);
 
-            int32_t disp = 0;
+            i32 disp = 0;
             char disp_str[32] = "";
             if ((sib & 7) == 5) {
-                memcpy(&disp, code + offset + 1, sizeof(int32_t));
+                memcpy(&disp, code + offset + 1, sizeof(i32));
                 fmt_disp(disp_str, sizeof(disp_str), disp);
                 if (index == 4)
                     snprintf(output, output_size, "%s[%s]", size_prefix, disp_str);
@@ -211,20 +211,20 @@ size_t decode_rm_operand(
         }
 
         if (modrm.rm == 4) {
-            uint8_t sib = code[offset];
-            uint8_t scale = 1 << ((sib >> 6) & 3);
-            uint8_t index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
-            uint8_t base = (sib & 7) | (rex.b ? 8 : 0);
+            u8 sib = code[offset];
+            u8 scale = 1 << ((sib >> 6) & 3);
+            u8 index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
+            u8 base = (sib & 7) | (rex.b ? 8 : 0);
 
-            int64_t disp = 0;
+            i64 disp = 0;
             if (disp_bytes == 1) {
-                int8_t raw;
+                i8 raw;
                 memcpy(&raw, code + offset + 1, sizeof(raw));
-                disp = static_cast<uint8_t>(raw);
+                disp = static_cast<u8>(raw);
             } else {
-                int32_t raw;
+                i32 raw;
                 memcpy(&raw, code + offset + 1, sizeof(raw));
-                disp = static_cast<int64_t>(raw);
+                disp = static_cast<i64>(raw);
             }
 
             char disp_str[32] = "";
@@ -248,15 +248,15 @@ size_t decode_rm_operand(
         }
 
         // simple reg + disp
-        int64_t disp = 0;
+        i64 disp = 0;
         if (disp_bytes == 1) {
-            int8_t raw;
+            i8 raw;
             memcpy(&raw, code + offset + 1, sizeof(raw));
-            disp = static_cast<uint8_t>(raw);
+            disp = static_cast<u8>(raw);
         } else {
-            int32_t raw;
+            i32 raw;
             memcpy(&raw, code + offset + 1, sizeof(raw));
-            disp = static_cast<int64_t>(raw);
+            disp = static_cast<i64>(raw);
         }
 
         char disp_str[32] = "";
@@ -271,7 +271,7 @@ size_t decode_rm_operand(
     return 0;
 }
 
-const char* get_group_mnemonic(uint8_t opcode, uint8_t reg_field) {
+const char* get_group_mnemonic(u8 opcode, u8 reg_field) {
     if (opcode == 0xFE) {
         return (reg_field == 0) ? "inc" : (reg_field == 1) ? "dec" : "???";
     }
@@ -290,11 +290,11 @@ const char* get_group_mnemonic(uint8_t opcode, uint8_t reg_field) {
     return "???";
 }
 
-Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr) {
+Instruction disasm_next(const u8* code, usize max_len, u64 instr_addr) {
     Instruction result = {"invalid", 0};
     if (max_len == 0) return result;
 
-    size_t offset = 0;
+    usize offset = 0;
     RexPrefix rex = {false, false, false, false, false};
 
     // Parse REX prefix (0x40-0x4F)
@@ -324,7 +324,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
         }
     }
 
-    uint8_t opcode = code[offset];
+    u8 opcode = code[offset];
     offset++;
 
     int default_size = rex.w ? 8 : 4;
@@ -348,12 +348,12 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             ModRm modrm = decode_modrm(code[offset]);
             offset++;  // Consume ModR/M
 
-            uint8_t reg = modrm.reg | (rex.r ? 8 : 0);
+            u8 reg = modrm.reg | (rex.r ? 8 : 0);
             int src_size = (opcode == 0xB6 || opcode == 0xBE) ? 1 : 2;
             int dst_size = rex.w ? 8 : 4;
 
             char rm_str[128];
-            size_t extra = decode_rm_operand(
+            usize extra = decode_rm_operand(
                 code,
                 offset,
                 max_len,
@@ -404,7 +404,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 result.size = offset;
                 return result;
             }
-            int32_t rel = 0;
+            i32 rel = 0;
             memcpy(&rel, code + offset, sizeof(rel));
 
             offset += 4;
@@ -446,7 +446,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             };
 
             char rm_str[128];
-            size_t extra_bytes =
+            usize extra_bytes =
                 decode_rm_operand(code, offset, max_len, modrm, rex, 1, instr_addr, 0, rm_str, sizeof(rm_str));
             offset += extra_bytes;
 
@@ -465,9 +465,9 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             ModRm modrm = decode_modrm(code[offset]);
             offset++;
 
-            uint8_t reg = modrm.reg | (rex.r ? 8 : 0);
+            u8 reg = modrm.reg | (rex.r ? 8 : 0);
             char rm_str[128];
-            size_t extra_bytes = decode_rm_operand(
+            usize extra_bytes = decode_rm_operand(
                 code, offset, max_len, modrm, rex, default_size, instr_addr, 0, rm_str, sizeof(rm_str)
             );
             offset += extra_bytes;
@@ -503,7 +503,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
 
     // PUSH/POP register: 0x50-0x5F
     if (opcode >= 0x50 && opcode <= 0x5F) {
-        uint8_t reg = (opcode & 0x7) | (rex.b ? 8 : 0);
+        u8 reg = (opcode & 0x7) | (rex.b ? 8 : 0);
         const char* mnemonic = (opcode < 0x58) ? "push" : "pop";
         snprintf(result.mnemonic, sizeof(result.mnemonic), "%s %s", mnemonic, get_reg_name(reg, 8));
         result.size = offset;
@@ -512,12 +512,12 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
 
     // MOV immediate to register: 0xB0-0xBF
     if (opcode >= 0xB0 && opcode <= 0xBF) {
-        uint8_t reg = (opcode & 0x7) | (rex.b ? 8 : 0);
+        u8 reg = (opcode & 0x7) | (rex.b ? 8 : 0);
 
         if ((opcode < 0xB8))  // is 8 bit?
         {
             if (offset < max_len) {
-                uint8_t imm = code[offset++];
+                u8 imm = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "mov %s, 0x%x", get_reg_name(reg, 1), imm);
             } else {
                 strcpy(result.mnemonic, "mov (incomplete)");
@@ -525,7 +525,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
         } else {
             if (rex.w) {
                 if (offset + 8 <= max_len) {
-                    uint64_t imm = 0;
+                    u64 imm = 0;
                     memcpy(&imm, code + offset, sizeof(imm));
                     offset += 8;
                     snprintf(result.mnemonic, sizeof(result.mnemonic), "mov %s, 0x%lx", get_reg_name(reg, 8), imm);
@@ -534,7 +534,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 }
             } else {
                 if (offset + 4 <= max_len) {
-                    uint32_t imm = 0;
+                    u32 imm = 0;
                     memcpy(&imm, code + offset, sizeof(imm));
                     offset += 4;
                     snprintf(result.mnemonic, sizeof(result.mnemonic), "mov %s, 0x%x", get_reg_name(reg, 4), imm);
@@ -557,13 +557,13 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
     // CALL/JMP near: 0xE8/0xE9
     if (opcode == 0xE8 || opcode == 0xE9) {
         if (offset + 4 <= max_len) {
-            int32_t rel = code[offset] | (code[offset + 1] << 8) | (code[offset + 2] << 16) | (code[offset + 3] << 24);
+            i32 rel = code[offset] | (code[offset + 1] << 8) | (code[offset + 2] << 16) | (code[offset + 3] << 24);
             offset += 4;
-            uint64_t target = instr_addr + 1 + 4 + rel;
+            u64 target = instr_addr + 1 + 4 + rel;
 
             auto [name, len, addr] = lookup_symbol(target);
 
-            if (uint64_t l_offset = target - addr; l_offset == 0) {
+            if (u64 l_offset = target - addr; l_offset == 0) {
                 snprintf(
                     result.mnemonic,
                     sizeof(result.mnemonic),
@@ -596,13 +596,13 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
     // Short  /Jcc: 0xEB, 0x70-0x7F
     if (opcode == 0xEB || (opcode >= 0x70 && opcode <= 0x7F)) {
         if (offset < max_len) {
-            int8_t rel = 0;
+            i8 rel = 0;
             memcpy(&rel, code + offset++, sizeof(rel));
-            uint64_t target = instr_addr + offset + rel;  // absolute Adresse berechnen
+            u64 target = instr_addr + offset + rel;  // absolute Adresse berechnen
 
             auto [name, len, addr] = lookup_symbol(target);
 
-            if (uint64_t l_offset = target - addr; l_offset == 0) {
+            if (u64 l_offset = target - addr; l_offset == 0) {
                 snprintf(
                     result.mnemonic,
                     sizeof(result.mnemonic),
@@ -736,14 +736,14 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             const char* mnemonic = shift_ops[modrm.reg & 0x7];
 
             char rm_str[128];
-            size_t extra_bytes = decode_rm_operand(
+            usize extra_bytes = decode_rm_operand(
                 code, offset, max_len, modrm, rex, operand_size, instr_addr, 0, rm_str, sizeof(rm_str), true
             );
             offset += extra_bytes;
 
             // Immediate-Byte folgt
             if (offset < max_len) {
-                uint8_t imm = code[offset++];
+                u8 imm = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "%s %s, 0x%x", mnemonic, rm_str, imm);
             } else {
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "%s %s, ?", mnemonic, rm_str);
@@ -761,7 +761,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             }
 
             char rm_str[128];
-            size_t extra_bytes =
+            usize extra_bytes =
                 decode_rm_operand(code, offset, max_len, modrm, rex, 1, instr_addr, 0, rm_str, sizeof(rm_str), true);
             offset += extra_bytes;
 
@@ -771,13 +771,13 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 return result;
             }
 
-            uint8_t imm = code[offset++];
+            u8 imm = code[offset++];
             snprintf(result.mnemonic, sizeof(result.mnemonic), "movb %s, 0x%x", rm_str, imm);
             result.size = offset;
             return result;
         }
 
-        uint8_t reg = modrm.reg | (rex.r ? 8 : 0);
+        u8 reg = modrm.reg | (rex.r ? 8 : 0);
 
         if (is_group) {
             base_mnemonic = get_group_mnemonic(opcode, modrm.reg);
@@ -785,7 +785,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
         }
 
         char rm_str[128];
-        size_t extra_bytes = decode_rm_operand(
+        usize extra_bytes = decode_rm_operand(
             code, offset, max_len, modrm, rex, operand_size, instr_addr, 0, rm_str, sizeof(rm_str), true
         );
         offset += extra_bytes;
@@ -805,7 +805,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
 
         // Handle immediates for group opcodes
         if ((opcode == 0x80 || opcode == 0x83 || opcode == 0xC6) && offset < max_len) {
-            uint8_t imm = code[offset++];
+            u8 imm = code[offset++];
             snprintf(
                 result.mnemonic + strlen(result.mnemonic),
                 sizeof(result.mnemonic) - strlen(result.mnemonic),
@@ -813,7 +813,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
                 imm
             );
         } else if ((opcode == 0x81 || opcode == 0xC7) && offset + 4 <= max_len) {
-            uint32_t imm = 0;
+            u32 imm = 0;
             memcpy(&imm, code + offset, sizeof(imm));
             offset += 4;
             snprintf(
@@ -840,7 +840,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             break;
         case 0xCD:
             if (offset < max_len) {
-                uint8_t int_num = code[offset++];
+                u8 int_num = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "int 0x%x", int_num);
             } else {
                 strcpy(result.mnemonic, "int (incomplete)");
@@ -963,7 +963,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
         // I/O Instructions
         case 0xE4:
             if (offset < max_len) {
-                uint8_t port = code[offset++];
+                u8 port = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "in al, 0x%x", port);
             } else {
                 strcpy(result.mnemonic, "in (incomplete)");
@@ -971,7 +971,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             break;
         case 0xE5:
             if (offset < max_len) {
-                uint8_t port = code[offset++];
+                u8 port = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "in eax, 0x%x", port);
             } else {
                 strcpy(result.mnemonic, "in (incomplete)");
@@ -979,7 +979,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             break;
         case 0xE6:
             if (offset < max_len) {
-                uint8_t port = code[offset++];
+                u8 port = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "out 0x%x, al", port);
             } else {
                 strcpy(result.mnemonic, "out (incomplete)");
@@ -987,7 +987,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             break;
         case 0xE7:
             if (offset < max_len) {
-                uint8_t port = code[offset++];
+                u8 port = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "out 0x%x, eax", port);
             } else {
                 strcpy(result.mnemonic, "out (incomplete)");
@@ -1021,7 +1021,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             break;
         case 0xD4:
             if (offset < max_len) {
-                uint8_t base = code[offset++];
+                u8 base = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "aam 0x%x", base);
             } else {
                 strcpy(result.mnemonic, "aam");
@@ -1029,7 +1029,7 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
             break;
         case 0xD5:
             if (offset < max_len) {
-                uint8_t base = code[offset++];
+                u8 base = code[offset++];
                 snprintf(result.mnemonic, sizeof(result.mnemonic), "aad 0x%x", base);
             } else {
                 strcpy(result.mnemonic, "aad");
@@ -1076,12 +1076,12 @@ Instruction disasm_next(const uint8_t* code, size_t max_len, uint64_t instr_addr
     return result;
 }
 
-void disassemble_frame(uint64_t addr, size_t bytes) {
-    const auto* ptr = reinterpret_cast<const uint8_t*>(addr);
-    size_t offset = 0;
+void disassemble_frame(u64 addr, usize bytes) {
+    const auto* ptr = reinterpret_cast<const u8*>(addr);
+    usize offset = 0;
 
     while (offset < bytes) {
-        uint64_t instr_addr = addr + offset;
+        u64 instr_addr = addr + offset;
         auto [mnemonic, size] = disasm_next(ptr + offset, bytes, instr_addr);
         Log::print_ln("    %p: %s", reinterpret_cast<void*>(instr_addr), mnemonic);
         offset += size;

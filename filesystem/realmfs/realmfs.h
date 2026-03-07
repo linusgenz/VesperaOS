@@ -38,7 +38,7 @@ struct SysObject
 {
     char name[64];
     SysObjectType type;
-    uint64_t id;
+    u64 id;
     void* manager_ref; // Pointer to realm/unit in manager
 };
 
@@ -55,16 +55,16 @@ class RealmFs : public VirtualFilesystem<SysObject, RealmFsEntry>
 public:
     static void init();
 
-    static int register_realm(uint64_t realm_id, const char* name, void* realm_ptr);
-    static int register_unit(uint64_t unit_id, const char* name, void* unit_ptr, const char* realm_name);
+    static int register_realm(u64 realm_id, const char* name, void* realm_ptr);
+    static int register_unit(u64 unit_id, const char* name, void* unit_ptr, const char* realm_name);
 
-    static int unregister_realm(uint64_t realm_id);
-    static int unregister_unit(uint64_t unit_id);
+    static int unregister_realm(u64 realm_id);
+    static int unregister_unit(u64 unit_id);
 
     // VFS operations
-    static ssize_t read(const VfsNode* node, size_t offset, size_t size, void* buffer);
-    static ssize_t write(VfsNode* node, size_t offset, size_t size, const void* buffer);
-    static ssize_t ioctl(const VfsNode* node, uint32_t cmd, void* arg);
+    static isize read(const VfsNode* node, usize offset, usize size, void* buffer);
+    static isize write(VfsNode* node, usize offset, usize size, const void* buffer);
+    static isize ioctl(const VfsNode* node, u32 cmd, void* arg);
     static void close(VfsNode* node);
 };
 

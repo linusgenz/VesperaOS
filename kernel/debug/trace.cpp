@@ -26,20 +26,20 @@
 #include "symbols.h"
 #include <vespera/log.h>
 
-void debug_capture_stack(uint64_t rbp, uint64_t rip, uint64_t* out, uint8_t* out_len, uint8_t max_depth) {
-    uint8_t cnt = 0;
+void debug_capture_stack(u64 rbp, u64 rip, u64* out, u8* out_len, u8 max_depth) {
+    u8 cnt = 0;
 
     out[cnt++] = rip;
 
     while (rbp && cnt < max_depth) {
         if (rbp & 0xF) break;
 
-        uint64_t ret = *reinterpret_cast<uint64_t*>(rbp + 8);
+        u64 ret = *reinterpret_cast<u64*>(rbp + 8);
         if (!ret) break;
 
         out[cnt++] = ret;
 
-        uint64_t next_rbp = *reinterpret_cast<uint64_t*>(rbp);
+        u64 next_rbp = *reinterpret_cast<u64*>(rbp);
         if (next_rbp <= rbp) break;
 
         rbp = next_rbp;
@@ -48,17 +48,17 @@ void debug_capture_stack(uint64_t rbp, uint64_t rip, uint64_t* out, uint8_t* out
     *out_len = cnt;
 }
 
-void backtrace(uint64_t rbp_start, uint64_t rip_start) {
-    uint64_t frames[32];
-    uint8_t count = 0;
+void backtrace(u64 rbp_start, u64 rip_start) {
+    u64 frames[32];
+    u8 count = 0;
 
     debug_capture_stack(rbp_start, rip_start, frames, &count, 32);
 
     Log::print_ln("Backtrace (frames: %u, most recent call last)", count);
 
-    for (uint8_t i = 0; i < count; i++) {
+    for (u8 i = 0; i < count; i++) {
         Symbol s = lookup_symbol(frames[i]);
-        uint64_t offset = frames[i] - s.addr;
+        u64 offset = frames[i] - s.addr;
 
         Log::print_ln(
             "  #%u  %p  <%.*s+0x%llx>", i, reinterpret_cast<void*>(frames[i]), static_cast<int>(s.len), s.name, offset

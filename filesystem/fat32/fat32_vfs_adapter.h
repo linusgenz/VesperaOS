@@ -30,20 +30,20 @@
     struct Fat32Node {
         fat32::FileSystem *fs;
         char path[256];
-        uint32_t parent_cluster;
-        uint32_t cluster;
+        u32 parent_cluster;
+        u32 cluster;
         bool is_dir;
-        size_t file_size;
-        size_t entry_count;
-        size_t first_lfn_index;
-        size_t current_index;
+        usize file_size;
+        usize entry_count;
+        usize first_lfn_index;
+        usize current_index;
         fat32::DirectoryEntry dir_entry;
     };
 
     struct Fat32DirHandle {
         fat32::FileEntry* entries;
-        size_t count;
-        size_t index;
+        usize count;
+        usize index;
     };
 
     VfsNode *wrap_fat32_root(fat32::FileSystem * fs);

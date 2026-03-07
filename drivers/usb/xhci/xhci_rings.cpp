@@ -3,14 +3,14 @@
 #include <vespera/log.h>
 #include <klib/vector.h>
 
-XhciCommandRing::XhciCommandRing(size_t max_trbs) {
+XhciCommandRing::XhciCommandRing(usize max_trbs) {
     lock_.init("xhci_command_ring_lock");
 
     max_trb_count_ = max_trbs;
     rcs_bit_ = XHCI_CRCR_RING_CYCLE_STATE;
     enqueue_ptr_ = 0;
 
-    const uint64_t ring_size = max_trbs * sizeof(xhci_trb_t);
+    const u64 ring_size = max_trbs * sizeof(xhci_trb_t);
 
     trbs_ = static_cast<xhci_trb_t*>(
         alloc_xhci_memory(ring_size, XHCI_COMMAND_RING_SEGMENTS_ALIGNMENT, XHCI_COMMAND_RING_SEGMENTS_BOUNDARY)
@@ -41,17 +41,17 @@ void XhciCommandRing::enqueue(xhci_trb_t* trb) {
     }
 }
 
-XhciEventRing::XhciEventRing(size_t max_trbs, volatile XHCI_INTERRUPTER_REGISTERS* interrupter)
+XhciEventRing::XhciEventRing(usize max_trbs, volatile XHCI_INTERRUPTER_REGISTERS* interrupter)
     : interrupter_regs_(interrupter)
     , segment_trb_count_(max_trbs)
     , dequeue_ptr_(0)
     , rcs_bit_(XHCI_CRCR_RING_CYCLE_STATE) {
     lock_.init("xhci_event_ring_lock");
 
-    constexpr uint64_t segment_count = 1;  // TODO use more seg's later
+    constexpr u64 segment_count = 1;  // TODO use more seg's later
 
-    const uint64_t segment_size = max_trbs * sizeof(xhci_trb_t);
-    constexpr uint64_t segment_table_size = segment_count * sizeof(XHCI_ERST_ENTRY);
+    const u64 segment_size = max_trbs * sizeof(xhci_trb_t);
+    constexpr u64 segment_table_size = segment_count * sizeof(XHCI_ERST_ENTRY);
 
     trbs_ = static_cast<xhci_trb_t*>(
         alloc_xhci_memory(segment_size, XHCI_EVENT_RING_SEGMENTS_ALIGNMENT, XHCI_EVENT_RING_SEGMENTS_BOUNDARY)
@@ -104,7 +104,7 @@ void xhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
 
     // Clear the EHB (Event Handler Busy) bit
 
-    uint64_t dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
+    u64 dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
     dequeue_address |= XHCI_ERDP_EHB; // Event Handler Busy Bit setzen
     interrupter_regs_->erdp = dequeue_address;
 }*/
@@ -125,13 +125,13 @@ void XhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
     update_erdp();
 
     // Clear the EHB (Event Handler Busy) bit
-    uint64_t dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
+    u64 dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
     dequeue_address |= XHCI_ERDP_EHB;  // Event Handler Busy Bit setzen
     interrupter_regs_->erdp = dequeue_address;
 }
 
 void XhciEventRing::update_erdp() const {
-    uint64_t dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
+    u64 dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
     interrupter_regs_->erdp = dequeue_address;
 }
 
@@ -153,15 +153,15 @@ xhci_trb_t* XhciEventRing::dequeue_trb() {
     return ret;
 }
 
-uint64_t XhciEventRing::get_current_dequeue_physical() const {
+u64 XhciEventRing::get_current_dequeue_physical() const {
     return dequeue_ptr_;
 }
 
-XhciTransferRing* XhciTransferRing::allocate(uint8_t slot_id) {
+XhciTransferRing* XhciTransferRing::allocate(u8 slot_id) {
     return new XhciTransferRing(XHCI_TRANSFER_RING_TRB_COUNT, slot_id);
 }
 
-XhciTransferRing::XhciTransferRing(size_t max_trbs, uint8_t doorbell_id)
+XhciTransferRing::XhciTransferRing(usize max_trbs, u8 doorbell_id)
     : max_trb_count_(max_trbs)
     , dequeue_ptr_(0)
     , enqueue_ptr_(0)
@@ -169,7 +169,7 @@ XhciTransferRing::XhciTransferRing(size_t max_trbs, uint8_t doorbell_id)
     , doorbell_id_(doorbell_id) {
     lock_.init("xhci_transfer_ring_lock");
 
-    const uint64_t ring_size = max_trbs * sizeof(xhci_trb_t);
+    const u64 ring_size = max_trbs * sizeof(xhci_trb_t);
 
     // Create the transfer ring memory block
     trbs_ = static_cast<xhci_trb_t*>(
@@ -182,7 +182,7 @@ XhciTransferRing::XhciTransferRing(size_t max_trbs, uint8_t doorbell_id)
     trbs_[max_trb_count_ - 1].control = (XHCI_TRB_TYPE_LINK << XHCI_TRB_TYPE_SHIFT) | XHCI_LINK_TRB_TC_BIT | rcs_bit_;
 }
 
-uintptr_t XhciTransferRing::get_physical_dequeue_pointer_base() const {
+uptr XhciTransferRing::get_physical_dequeue_pointer_base() const {
     return xhci_get_physical_addr(&trbs_[enqueue_ptr_]);
 }
 

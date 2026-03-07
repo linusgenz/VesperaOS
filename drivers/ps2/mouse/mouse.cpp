@@ -27,7 +27,7 @@
 #include "vespera/kernel_utils.h"
 
 namespace input::mouse {
-    uint8_t pointer[] = {
+    u8 pointer[] = {
         0b10000000, 0b00000000,
         0b11000000, 0b00000000,
         0b11100000, 0b00000000,
@@ -53,7 +53,7 @@ namespace input::mouse {
     }
 
     void mouse_wait() {
-        uint64_t timeout = 100000;
+        u64 timeout = 100000;
         while (timeout--) {
             if ((inb(0x64) & 0b10) == 0) {
                 return;
@@ -62,7 +62,7 @@ namespace input::mouse {
     }
 
     void mouse_wait_input() {
-        uint64_t timeout = 100000;
+        u64 timeout = 100000;
         while (timeout--) {
             if (inb(0x64) & 0b1) {
                 return;
@@ -70,24 +70,24 @@ namespace input::mouse {
         }
     }
 
-    void mouse_write(uint8_t value) {
+    void mouse_write(u8 value) {
         mouse_wait();
         outb(0x64, 0xD4);
         mouse_wait();
         outb(0x60, value);
     }
 
-    uint8_t mouse_read() {
+    u8 mouse_read() {
         mouse_wait_input();
         return inb(0x60);
     }
 
-    uint8_t mouse_cycle = 0;
-    uint8_t mouse_packet[4];
+    u8 mouse_cycle = 0;
+    u8 mouse_packet[4];
     bool mouse_packet_ready = false;
     point_t mouse_position_old;
 
-    void handle_byte(uint8_t data) {
+    void handle_byte(u8 data) {
         static bool skip = true;
         if (skip) {
             skip = false;
@@ -160,7 +160,7 @@ namespace input::mouse {
         if (position.y > target_framebuffer->height - 1)
             position.y = target_framebuffer->height - 1;
 
-        if (const int8_t wheel_movement = static_cast<int8_t>(mouse_packet[3]); wheel_movement > 0) {
+        if (const i8 wheel_movement = static_cast<i8>(mouse_packet[3]); wheel_movement > 0) {
             //scroll down
         } else if (wheel_movement < 0) {
             //scroll up

@@ -38,12 +38,12 @@ int ZeroDevice::release(CharFile*) {
     return 0;
 }
 
-ssize_t ZeroDevice::read(CharFile*, void* buffer, size_t count, size_t) {
+isize ZeroDevice::read(CharFile*, void* buffer, usize count, usize) {
     if (!buffer) return -EINVAL;
     memset(buffer, 0, count);
     return count;
 }
 
-ssize_t ZeroDevice::write(CharFile*, const void*, size_t count) {
+isize ZeroDevice::write(CharFile*, const void*, usize count) {
     return count;
 }

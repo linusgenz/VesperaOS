@@ -11,14 +11,14 @@ class PageTableManager {
    public:
     PageTableManager(PageTable* pml4_address);
     PageTable* pml4;
-    void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, uint64_t flags) const;
-  //  void map_kernel_page(void* phys_addr, uint64_t flags) const;
+    void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, u64 flags) const;
+  //  void map_kernel_page(void* phys_addr, u64 flags) const;
 
-//    void set_user_flags(void* virtual_memory, size_t size) const;
+//    void set_user_flags(void* virtual_memory, usize size) const;
 
-    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, size_t size, uint64_t flags) const;
+    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, usize size, u64 flags) const;
 
-    void unmap_range(virt_addr_t virt_start, size_t size) const;
+    void unmap_range(virt_addr_t virt_start, usize size) const;
 
     void unmap_memory(virt_addr_t virt_addr) const;
     [[nodiscard]] bool is_mapped(virt_addr_t virt_addr) const;

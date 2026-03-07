@@ -27,7 +27,7 @@
 #include <vespera/mm/memory.h>
 
 namespace syscalls::internal {
-    int64_t sys_munmap(uint64_t addr, uint64_t length, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_munmap(u64 addr, u64 length, u64, u64, u64, u64) {
         if (length == 0 || addr % PAGE_SIZE != 0) {
             return -EINVAL;
         }

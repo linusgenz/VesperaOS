@@ -27,9 +27,9 @@
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
-    int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         RealmId child_rid = arg0;
-        int64_t status_user_ptr = static_cast<int64_t>(arg1);
+        i64 status_user_ptr = static_cast<i64>(arg1);
 
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;

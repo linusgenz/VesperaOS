@@ -27,7 +27,7 @@
 #include "../../../include/vespera/types.h"
 
 namespace syscalls::internal {
-    int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    i64 sys_close(u64 arg0, u64, u64, u64, u64, u64) {
         const HandleId hid = arg0;
 
         const Unit *current_unit = kernel::scheduling::get_current_unit();
