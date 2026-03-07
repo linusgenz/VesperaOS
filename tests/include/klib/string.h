@@ -1,16 +1,9 @@
 #pragma once
 #define STRING_H
 
-
-extern "C" {
-#include "/usr/include/string.h"
-#include "/usr/include/stdio.h"
-}
-
 #include <stdint.h>
 #include <stddef.h>
-
-int strcmp(const char* a, const char* b);
+#include <string.h>
 
 // Kernel-eigene Extras
 constexpr size_t hex_buffer_size(const size_t bytes) { return bytes * 2 + 1; }

@@ -20,10 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <cerrno>
 #include <cassert>
 #include <cstdio>
-#include <cstring>
 #include "fat32_fixture.h"
 
 #include "test_fat32_directory.cpp"

@@ -24,9 +24,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <vespera/mm/addr.h>
-#include <cstring>
 
 #define PAGE_SIZE 4096
 
