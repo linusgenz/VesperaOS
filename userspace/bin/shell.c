@@ -41,9 +41,10 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sysstd.h>
+#include <vespera/dev/framebuffer_ioctl.h>
 
 #include "stdint.h"
-#include <vespera/dev/framebuffer_ioctl.h>
+#include <vespera/handels.h>
 
 typedef struct
 {

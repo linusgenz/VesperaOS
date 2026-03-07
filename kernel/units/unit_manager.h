@@ -25,8 +25,9 @@
 #define VESPERAOS_UNIT_MANAGER_H
 
 #include <vespera/sync/spinlock.h>
+#include <vespera/types.h>
+#include <vespera/unit_config.h>
 
-#include "../types/types.h"
 #include "unit.h"
 
 using unit_entry_t = void (*)(void*);
@@ -35,9 +36,9 @@ class UnitManager {
    public:
     static void initialize();
     static bool is_initialized();
-    static Unit* create(realm_id_t realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg);
-    static Unit* get(unit_id_t id);
-    static bool destroy(unit_id_t id);
+    static Unit* create(RealmId realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg);
+    static Unit* get(UnitId id);
+    static bool destroy(UnitId id);
     static void list();
 
     static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
@@ -46,10 +47,10 @@ class UnitManager {
     static constexpr size_t MAX_UNITS = 256;
     static Unit units_[MAX_UNITS];
     static Spinlock global_lock_;
-    static unit_id_t next_id_;
+    static UnitId next_id_;
     static bool initialized_;
 
-    static unit_id_t allocate_id();
+    static UnitId allocate_id();
 
     static void setup_kernel_unit_stack(Unit* u);
     static void setup_user_unit_stack(Unit* u);

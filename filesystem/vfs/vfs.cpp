@@ -29,7 +29,6 @@
 #include <klib/path.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
-#include "../dirent.h"
 #include "fs_detection.h"
 #include "vfs_node.h"
 #include <vespera/log.h>
@@ -78,7 +77,7 @@ VfsNode* VFS::open(const char* path)
     // Relativer Pfad → prepend current_dir
     if (path[0] != '/')
     {
-        const realm_id_t rid = kernel::scheduling::get_current_unit()->rid;
+        const RealmId rid = kernel::scheduling::get_current_unit()->rid;
         const Realm* realm = RealmManager::get(rid);
         if (const char* cwd = realm->cwd_path; strcmp(cwd, "/") == 0)
             snprintf(abs_path, sizeof(abs_path), "/%s", path);

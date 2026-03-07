@@ -21,6 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/fflags.h>
+#include <uapi/vespera/handels.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -63,7 +65,7 @@ namespace syscalls::internal {
             }
         }
 
-        capability_set_t required_caps = CAP_NONE;
+        capability_set required_caps = CAP_NONE;
 
         switch (flags & 0x3) {
             case O_RDONLY:
@@ -161,11 +163,11 @@ namespace syscalls::internal {
         }
 
         // Handle registrieren
-        handle_id_t file_handle = 0;
+        HandleId file_handle = 0;
 
-        if (const error_code_t err =
+        if (const int64_t err =
                 realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, &file_handle);
-            err != MOD_SUCCESS) {
+            err != SUCCESS_CODE) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {
                 node->ops->closedir(vh->node->internal_data);
             }

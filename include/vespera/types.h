@@ -1,4 +1,4 @@
-// realm_manager.h
+// types.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 //
@@ -21,33 +21,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_REALM_MANAGER_H
-#define VESPERAOS_REALM_MANAGER_H
+#ifndef VESPERAOS_TYPES_H
+#define VESPERAOS_TYPES_H
 
-#include <stddef.h>
-#include <vespera/realm/realm.h>
-#include <vespera/sync/atomic.h>
-#include <vespera/sync/spinlock.h>
+#include <stdint.h>
 
-#include <vespera/realm/realm_config.h>
+typedef long int ssize_t;
+typedef uint64_t RealmId;
+typedef uint64_t HandleId;
+typedef uint64_t UnitId;
 
-class RealmManager {
-   public:
-    static void initialize();
-    static bool is_initialized();
-    static Realm* create(const RealmConfig* cfg);
-    static Realm* get(RealmId id);
-    static bool destroy(RealmId id);
-    static ssize_t get_status(void* manager_ref, void* buffer, size_t size, size_t offset);
-    static void list();
-
-   private:
-    static constexpr size_t MAX_REALMS = 64;
-    static Realm realms_[MAX_REALMS];
-    static Spinlock global_lock_;
-    static RealmId next_id_;
-    static atomic_u8_t seq_;
-    static bool initialized_;
-};
-
-#endif  // VESPERAOS_REALM_MANAGER_H
+#endif  // VESPERAOS_TYPES_H

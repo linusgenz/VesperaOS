@@ -28,7 +28,7 @@
 
 namespace syscalls::internal {
     int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-        realm_id_t child_rid = arg0;
+        RealmId child_rid = arg0;
         int64_t status_user_ptr = static_cast<int64_t>(arg1);
 
         Unit* current = kernel::scheduling::get_current_unit();

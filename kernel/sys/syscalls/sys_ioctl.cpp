@@ -21,16 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/handels.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../types/types.h"
+#include "../../../include/vespera/types.h"
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
     int64_t sys_ioctl(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        handle_id_t hid = arg0;
+        HandleId hid = arg0;
         uint64_t req = arg1;
         auto arg = reinterpret_cast<void*>(arg2);
 
@@ -40,7 +41,7 @@ namespace syscalls::internal {
         Realm* realm = RealmManager::get(u->rid);
         if (!realm) return -EUNKNOWN;
 
-        handle_entry_t* he = realm->lookup_handle(hid);
+        const HandleEntry* he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_DEVICE_ACCESS)) {

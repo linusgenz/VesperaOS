@@ -25,8 +25,8 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include "../../types/types.h"
 #include "../../units/unit.h"
+#include "uapi/vespera/handels.h"
 
 namespace syscalls::internal {
     int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
@@ -39,7 +39,7 @@ namespace syscalls::internal {
         Realm *realm = RealmManager::get(u->rid);
         if (!realm) return -EINVAL;
 
-        handle_entry_t *he = realm->lookup_handle(hid);
+        HandleEntry *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) return -EACCES;

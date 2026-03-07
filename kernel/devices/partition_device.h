@@ -28,7 +28,6 @@
 #include <stdint.h>
 
 #include <vespera/devices/block.h>
-#include "../types/handle.h"
 
 class PartitionDevice final : public BlockDevice {
    public:

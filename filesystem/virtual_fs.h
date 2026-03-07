@@ -24,12 +24,12 @@
 #ifndef VESPERAOS_VIRTUAL_FS_H
 #define VESPERAOS_VIRTUAL_FS_H
 
+#include <klib/string.h>
+#include <klib/vector.h>
 #include <vespera/sync/spinlock.h>
 
-#include <klib/string.h>
-#include "../kernel/cpu/io.h"
+#include <uapi/vespera/dirent.h>
 #include "vfs/vfs.h"
-#include <klib/vector.h>
 
 struct DirData
 {

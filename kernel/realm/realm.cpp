@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/handels.h>
 #include <vespera/realm/realm.h>
 
 Realm::Realm()
@@ -49,24 +50,24 @@ Realm::Realm()
     handle_table.lock.init(buf2);
 }
 
-error_code_t Realm::init_handle_table() {
-    memset(&handle_table, 0, sizeof(handle_table_t));
+int64_t Realm::init_handle_table() {
+    memset(&handle_table, 0, sizeof(HandleTable));
     handle_table.owner_realm = id;
-    return MOD_SUCCESS;
+    return SUCCESS_CODE;
 }
 
-error_code_t Realm::add_handle(
-    uint64_t type, void* resource, capability_set_t caps, bool transferable, void (*destroy)(void*), handle_id_t* out_h
+int64_t Realm::add_handle(
+    uint64_t type, void* resource, capability_set caps, bool transferable, void (*destroy)(void*), HandleId* out_h
 ) {
     SpinlockGuard guard(lock);
     int slot = find_free_slot();
     if (slot < 0) {
-        return MOD_ERR_OUT_OF_MEMORY;
+        return -ENOMEM;
     }
 
     set_bit(slot);
-    handle_entry_t& he = handle_table.entries[slot];
-    he.hid = type | static_cast<handle_id_t>(slot & HANDLE_ID_MASK);
+    HandleEntry& he = handle_table.entries[slot];
+    he.hid = type | static_cast<HandleId>(slot & HANDLE_ID_MASK);
     he.type = type;
     he.resource = resource;
     he.capabilities = caps;
@@ -75,25 +76,25 @@ error_code_t Realm::add_handle(
     he.destroy = destroy;
 
     *out_h = he.hid;
-    return MOD_SUCCESS;
+    return SUCCESS_CODE;
 }
 
-error_code_t Realm::add_handle_with_id(
-    handle_id_t fixed_id, uint64_t type, void* resource, capability_set_t caps, bool transferable, void (*destroy)(void*)
+int64_t Realm::add_handle_with_id(
+    HandleId fixed_id, uint64_t type, void* resource, capability_set caps, bool transferable, void (*destroy)(void*)
 ) {
     uint64_t slot = fixed_id & HANDLE_ID_MASK;
     if (slot >= MAX_HANDLES_PER_REALM) {
-        return MOD_ERR_INVALID_HANDLE;
+        return -EBADH;
     }
 
     SpinlockGuard guard(lock);
 
     if (test_bit(slot)) {
-        return MOD_ERR_INVALID_HANDLE;
+        return -EBADH;
     }
 
     set_bit(slot);
-    handle_entry_t& he = handle_table.entries[slot];
+    HandleEntry& he = handle_table.entries[slot];
     he.hid = fixed_id;
     he.type = type;
     he.resource = resource;
@@ -102,48 +103,48 @@ error_code_t Realm::add_handle_with_id(
     he.transferable = transferable;
     he.destroy = destroy;
 
-    return MOD_SUCCESS;
+    return SUCCESS_CODE;
 }
 
-error_code_t Realm::setup_standard_handles(TtyDevice* tty_dev) {
-    error_code_t err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ, false, nullptr);
-    if (err != MOD_SUCCESS) return err;
+int64_t Realm::setup_standard_handles(TtyDevice* tty_dev) {
+    int64_t err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ, false, nullptr);
+    if (err != SUCCESS_CODE) return err;
 
     err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE, false, nullptr);
-    if (err != MOD_SUCCESS) return err;
+    if (err != SUCCESS_CODE) return err;
 
     err = add_handle_with_id(HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE, false, nullptr);
-    if (err != MOD_SUCCESS) return err;
+    if (err != SUCCESS_CODE) return err;
 
-    return MOD_SUCCESS;
+    return SUCCESS_CODE;
 }
 
-handle_entry_t* Realm::lookup_handle(handle_id_t hid) {
+HandleEntry* Realm::lookup_handle(HandleId hid) {
     uint64_t raw = hid & HANDLE_ID_MASK;
 
     if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
     if (!test_bit(raw)) return nullptr;
 
-    handle_entry_t& he = handle_table.entries[raw];
+    HandleEntry& he = handle_table.entries[raw];
     if (he.hid != hid) return nullptr;
     return &he;
 }
 
-void Realm::acquire_handle(handle_id_t hid) {
+void Realm::acquire_handle(HandleId hid) {
     if (auto he = lookup_handle(hid)) {
         __sync_add_and_fetch(&he->refcount, 1);
     }
 }
 
-void Realm::release_handle(handle_id_t hid) {
-    handle_entry_t* he = lookup_handle(hid);
+void Realm::release_handle(HandleId hid) {
+    HandleEntry* he = lookup_handle(hid);
     if (!he) return;
 
     if (const uint64_t v = __sync_sub_and_fetch(&he->refcount, 1); v == 0) {
         SpinlockGuard guard(lock);
         const auto raw = static_cast<uint64_t>(he->hid & HANDLE_ID_MASK);
         if (he->destroy && he->resource) he->destroy(he->resource);
-        memset(he, 0, sizeof(handle_entry_t));
+        memset(he, 0, sizeof(HandleEntry));
         clear_bit(raw);
     }
 }
@@ -151,10 +152,10 @@ void Realm::release_handle(handle_id_t hid) {
 void Realm::clear_handle_table() {
     for (size_t i = 0; i < MAX_HANDLES_PER_REALM; ++i) {
         if (test_bit(i)) {
-            handle_entry_t& he = handle_table.entries[i];
+            HandleEntry& he = handle_table.entries[i];
             if (he.destroy && he.resource) he.destroy(he.resource);
             clear_bit(i);
-            memset(&he, 0, sizeof(handle_entry_t));
+            memset(&he, 0, sizeof(HandleEntry));
         }
     }
 }

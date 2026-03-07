@@ -24,11 +24,11 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include "../../types/types.h"
+#include "../../../include/vespera/types.h"
 
 namespace syscalls::internal {
     int64_t sys_close(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-        const handle_id_t hid = arg0;
+        const HandleId hid = arg0;
 
         const Unit *current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
@@ -36,7 +36,7 @@ namespace syscalls::internal {
         Realm *realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
-        if (const handle_entry_t *he = realm->lookup_handle(hid); !he) return -EBADH;  // invalid handle
+        if (const HandleEntry *he = realm->lookup_handle(hid); !he) return -EBADH;  // invalid handle
 
         realm->release_handle(hid);
 

@@ -24,18 +24,33 @@
 #ifndef VESPERAOS_UNIT_H
 #define VESPERAOS_UNIT_H
 
+#include <uapi/vespera/dev/unit_info.h>
 #include <vespera/realm/realm.h>
 
-#include "../types/handle.h"
-#include "../types/types.h"
+#define MAX_UNIT_HANDLE_SLOTS 64
 
-enum class UnitState : uint8_t { New, Ready, Running, Blocked, Zombie, Terminated };
+
+/**
+ * @brief Kernel-internal Unit lifecycle state.
+ *
+ * Mirrors the UNIT_STATE_* constants from uapi/vespera/unit_info.h with a
+ * type-safe enum class. Always cast to uint8_t when writing into
+ * a unit_info_t struct.
+ */
+enum class UnitState : uint8_t {
+    New = UNIT_STATE_NEW,
+    Ready = UNIT_STATE_READY,
+    Running = UNIT_STATE_RUNNING,
+    Blocked = UNIT_STATE_BLOCKED,
+    Zombie = UNIT_STATE_ZOMBIE,
+    Terminated = UNIT_STATE_TERMINATED,
+};
 
 struct ArgRegisters {
     uint64_t rdi, rsi, rdx, rcx, r8, r9;
 };
 
-// WARNING when changing this struct syscall might break as offsets are hardcoded!
+/// @warning when changing this struct syscall might break as offsets are hardcoded!
 // TODO refactor this struct
 typedef struct ExecutionContext {
     uint64_t stack_size;
@@ -74,19 +89,25 @@ struct VmArea {
     uint64_t prot;
     uint64_t flags;
     uintptr_t file_off;
-    handle_id_t handle;
+    HandleId handle;
 
     VmArea* next;
 };
 
+struct UnitHandleTable {
+    HandleId slots[MAX_UNIT_HANDLE_SLOTS];
+    uint64_t count;
+    Spinlock lock;
+};
+
 class Unit {
    private:
-    unit_handle_table_t handle_table_{};
+    UnitHandleTable handle_table_{};
     VmArea* vma_list_{};
 
    public:
-    unit_id_t id{0};
-    realm_id_t rid{0};
+    UnitId id{0};
+    RealmId rid{0};
     const char* name{nullptr};
 
     Unit* next{nullptr};
@@ -150,11 +171,24 @@ class Unit {
         return false;
     }
 
-    error_code_t attach_handle(handle_id_t h) {
+    void free_vma_list() {
+        VmArea* next = nullptr;
+        VmArea* cur = vma_list_;
+
+        while (cur) {
+            next = cur->next;
+            delete cur;
+            cur = next;
+        }
+
+        vma_list_ = nullptr;
+    }
+
+    int64_t attach_handle(HandleId h) {
         handle_table_.lock.lock();
         if (handle_table_.count >= MAX_UNIT_HANDLE_SLOTS) {
             handle_table_.lock.unlock();
-            return MOD_ERR_OUT_OF_MEMORY;
+            return -ENOMEM;
         }
         for (unsigned long& slot : handle_table_.slots) {
             if (slot == 0) {
@@ -162,14 +196,14 @@ class Unit {
                 handle_table_.count++;
                 handle_count = handle_table_.count;
                 handle_table_.lock.unlock();
-                return MOD_SUCCESS;
+                return SUCCESS_CODE;
             }
         }
         handle_table_.lock.unlock();
-        return MOD_ERR_OUT_OF_MEMORY;
+        return -ENOMEM;
     }
 
-    error_code_t detach_handle(handle_id_t h) {
+    int64_t detach_handle(HandleId h) {
         handle_table_.lock.lock();
         for (unsigned long& slot : handle_table_.slots) {
             if (slot == h) {
@@ -177,17 +211,17 @@ class Unit {
                 handle_table_.count--;
                 handle_count = handle_table_.count;
                 handle_table_.lock.unlock();
-                return MOD_SUCCESS;
+                return SUCCESS_CODE;
             }
         }
         handle_table_.lock.unlock();
-        return MOD_ERR_INVALID_HANDLE;
+        return -EBADH;
     }
 
-    error_code_t detach_all_handles() {
+    int64_t detach_all_handles() {
         handle_table_.lock.lock();
         for (uint64_t& slot : handle_table_.slots) {
-            if (const handle_id_t h = slot; h != 0) {
+            if (const HandleId h = slot; h != 0) {
                 slot = 0;
             }
         }
@@ -195,10 +229,10 @@ class Unit {
         handle_count = 0;
 
         handle_table_.lock.unlock();
-        return MOD_SUCCESS;
+        return SUCCESS_CODE;
     }
 
-    [[nodiscard]] uint32_t find_handle_slot(handle_id_t h) const {
+    [[nodiscard]] uint32_t find_handle_slot(HandleId h) const {
         for (uint32_t i = 0; i < MAX_UNIT_HANDLE_SLOTS; ++i) {
             if (handle_table_.slots[i] == h) return i;
         }

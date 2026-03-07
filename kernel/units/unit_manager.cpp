@@ -23,6 +23,7 @@
 
 #include "unit_manager.h"
 
+#include <uapi/vespera/dev/unit_info.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
@@ -30,11 +31,11 @@
 
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../scheduling/schedule_manager.h"
-#include <uapi/vespera/dev/unit_info.h>
+#include <vespera/unit_config.h>
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;
-unit_id_t UnitManager::next_id_ = 1;
+UnitId UnitManager::next_id_ = 1;
 bool UnitManager::initialized_ = false;
 
 constexpr uintptr_t USER_STACK_TOP = 0x00007FFFFFFF0000ULL;
@@ -54,7 +55,7 @@ bool UnitManager::is_initialized() {
     return initialized_;
 }
 
-unit_id_t UnitManager::allocate_id() {
+UnitId UnitManager::allocate_id() {
     return next_id_++;
 }
 
@@ -137,7 +138,7 @@ uintptr_t setup_user_args_and_env(Unit* u, const char** argv, const char** envp)
     return sp;
 }
 
-Unit* UnitManager::create(realm_id_t realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg) {
+Unit* UnitManager::create(RealmId realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg) {
     if (!cfg || !entry_point) return nullptr;
 
     Realm* realm = RealmManager::get(realm_id);
@@ -222,8 +223,8 @@ Unit* UnitManager::create(realm_id_t realm_id, unit_entry_t entry_point, void* a
 
             if (cfg->initial_handles && cfg->initial_handle_count > 0) {
                 for (uint64_t j = 0; j < cfg->initial_handle_count; ++j) {
-                    handle_id_t h = cfg->initial_handles[j];
-                    if (const handle_entry_t* he = realm->lookup_handle(h); !he) continue;
+                    HandleId h = cfg->initial_handles[j];
+                    if (const HandleEntry* he = realm->lookup_handle(h); !he) continue;
                     u->attach_handle(h);
                     realm->acquire_handle(h);
                 }
@@ -247,7 +248,7 @@ Unit* UnitManager::create(realm_id_t realm_id, unit_entry_t entry_point, void* a
     return nullptr;
 }
 
-Unit* UnitManager::get(const unit_id_t id) {
+Unit* UnitManager::get(const UnitId id) {
     SpinlockGuard g(global_lock_);
     for (auto& unit : units_) {
         if (unit.active && unit.id == id) return &unit;
@@ -255,7 +256,7 @@ Unit* UnitManager::get(const unit_id_t id) {
     return nullptr;
 }
 
-bool UnitManager::destroy(const unit_id_t id) {
+bool UnitManager::destroy(const UnitId id) {
     SpinlockGuard g(global_lock_);
 
     for (auto& i : units_) {
@@ -278,6 +279,8 @@ bool UnitManager::destroy(const unit_id_t id) {
             }
 
             u->detach_all_handles();
+
+            u->free_vma_list();
 
             if (!virt_null(u->context.stack)) {
                 size_t pages = (u->context.stack_size + 0xFFF) / 0x1000;

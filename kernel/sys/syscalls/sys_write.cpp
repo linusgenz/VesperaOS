@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/handels.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -29,7 +30,7 @@
 
 namespace syscalls::internal {
     int64_t sys_write(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
-        const handle_id_t hid = arg0;
+        const HandleId hid = arg0;
         auto buf = reinterpret_cast<void *>(arg1);
         size_t count = arg2;
         Unit *u = kernel::scheduling::get_current_unit();
@@ -39,7 +40,7 @@ namespace syscalls::internal {
 
         if (!realm || !u->active) return -EUNKNOWN;
 
-        handle_entry_t *he = realm->lookup_handle(hid);
+        HandleEntry *he = realm->lookup_handle(hid);
         if (!he || !he->resource) return -EBADH;
 
         const auto user_buf = reinterpret_cast<const char *>(arg1);

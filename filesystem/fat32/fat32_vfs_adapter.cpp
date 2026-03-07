@@ -24,12 +24,13 @@
 #include "fat32_vfs_adapter.h"
 
 #include <vespera/log.h>
-#include "../../kernel/types/types.h"
+#include <vespera/mm/memory.h>
+
+#include "../../include/vespera/types.h"
 #include "../vfs/fs_registry.h"
 #include "fat32.h"
 #include "fat32_lfn.h"
 #include "vespera_errno.h"
-#include <vespera/mm/memory.h>
 
 using namespace fat32;
 

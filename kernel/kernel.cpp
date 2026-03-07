@@ -21,21 +21,21 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/boot/boot.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/kernel_utils.h>
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/tty/tty.h>
 
-#include <vespera/boot/boot.h>
-#include <vespera/devices/device_manager.h>
-#include <vespera/kernel_utils.h>
+#include "../include/vespera/types.h"
 #include "./cpu/cpu.h"
 #include "cpu/io.h"
 #include "exec/elf.h"
 #include "kversion.h"
-#include "types/types.h"
 #include "units/unit_manager.h"
 #include "vespera/scheduling.h"
-#include <vespera/log.h>
 
 static const char* envp0[] = {"PATH=/bin", nullptr};
 

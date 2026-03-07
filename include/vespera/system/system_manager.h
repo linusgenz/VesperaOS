@@ -30,7 +30,6 @@
 #include <vespera/sync/spinlock.h>
 
 #include "../../../kernel/acpi/madt.h"
-#include "../../../kernel/types/types.h"
 
 namespace kernel {
 
@@ -57,11 +56,11 @@ namespace kernel {
         uint32_t cpu_id;
         union {
             struct {
-                unit_id_t unit_id;
-                realm_id_t realm_id;
+                UnitId unit_id;
+                RealmId realm_id;
             } unit_event;
             struct {
-                realm_id_t realm_id;
+                RealmId realm_id;
                 char name[32];
             } realm_event;
             struct {
@@ -108,7 +107,7 @@ namespace kernel {
     };
 
     class SystemManager {
-    public:
+       public:
         static void initialize();
 
         static void set_system_initialized();
@@ -138,8 +137,8 @@ namespace kernel {
         static void enable_event_logging(bool enabled);
 
         // Helper für andere Manager
-        static void notify_unit_lifecycle(unit_id_t unit_id, realm_id_t realm_id, bool created);
-        static void notify_realm_lifecycle(realm_id_t realm_id, const char* name, bool created);
+        static void notify_unit_lifecycle(UnitId unit_id, RealmId realm_id, bool created);
+        static void notify_realm_lifecycle(RealmId realm_id, const char* name, bool created);
         static void notify_device_lifecycle(const char* device_name, uint32_t device_id, bool registered);
         static void notify_memory_pressure(uint64_t available_bytes);
         static void notify_filesystem_mount(const char* path, const char* fs_type, bool mounted);
@@ -149,7 +148,7 @@ namespace kernel {
 
         static void process_events_to_logs(size_t max_events_to_process = 64);
 
-    private:
+       private:
         struct SystemChannel {
             char name[64];
             Channel* channel;
@@ -168,8 +167,8 @@ namespace kernel {
         static Mutex stats_mutex_;
 
         // Core System Channels
-        static Channel* event_channel_;     // Für SystemEvent structs
-        static Channel* log_channel_;       // Für Kernel-Logs
+        static Channel* event_channel_;  // Für SystemEvent structs
+        static Channel* log_channel_;    // Für Kernel-Logs
 
         // Managed Channels
         static SystemChannel system_channels_[MAX_SYSTEM_CHANNELS];
@@ -190,31 +189,24 @@ namespace kernel {
         static SystemChannel* find_channel_by_name(const char* name);
     };
 
-    // Convenience Macros für Event-Publishing
-    #define SYS_EVENT_UNIT_CREATED(unit_id, realm_id) \
-        kernel::SystemManager::notify_unit_lifecycle(unit_id, realm_id, true)
+// Convenience Macros für Event-Publishing
+#define SYS_EVENT_UNIT_CREATED(unit_id, realm_id) kernel::SystemManager::notify_unit_lifecycle(unit_id, realm_id, true)
 
-    #define SYS_EVENT_UNIT_DESTROYED(unit_id, realm_id) \
-        kernel::SystemManager::notify_unit_lifecycle(unit_id, realm_id, false)
+#define SYS_EVENT_UNIT_DESTROYED(unit_id, realm_id) \
+    kernel::SystemManager::notify_unit_lifecycle(unit_id, realm_id, false)
 
-    #define SYS_EVENT_REALM_CREATED(realm_id, name) \
-        kernel::SystemManager::notify_realm_lifecycle(realm_id, name, true)
+#define SYS_EVENT_REALM_CREATED(realm_id, name) kernel::SystemManager::notify_realm_lifecycle(realm_id, name, true)
 
-    #define SYS_EVENT_REALM_DESTROYED(realm_id, name) \
-        kernel::SystemManager::notify_realm_lifecycle(realm_id, name, false)
+#define SYS_EVENT_REALM_DESTROYED(realm_id, name) kernel::SystemManager::notify_realm_lifecycle(realm_id, name, false)
 
-    #define SYS_EVENT_DEVICE_REGISTERED(name, id) \
-        kernel::SystemManager::notify_device_lifecycle(name, id, true)
+#define SYS_EVENT_DEVICE_REGISTERED(name, id) kernel::SystemManager::notify_device_lifecycle(name, id, true)
 
-    #define SYS_EVENT_DEVICE_REMOVED(name, id) \
-        kernel::SystemManager::notify_device_lifecycle(name, id, false)
+#define SYS_EVENT_DEVICE_REMOVED(name, id) kernel::SystemManager::notify_device_lifecycle(name, id, false)
 
-    #define SYS_EVENT_FILESYSTEM_MOUNT(path, fs_type) \
-        kernel::SystemManager::notify_filesystem_mount(path, fs_type, true)
+#define SYS_EVENT_FILESYSTEM_MOUNT(path, fs_type) kernel::SystemManager::notify_filesystem_mount(path, fs_type, true)
 
-    #define SYS_EVENT_FILESYSTEM_UNMOUNT(path, fs_type) \
-        kernel::SystemManager::notify_filesystem_mount(path, fs_type, false)
+#define SYS_EVENT_FILESYSTEM_UNMOUNT(path, fs_type) kernel::SystemManager::notify_filesystem_mount(path, fs_type, false)
 
-} // namespace kernel
+}  // namespace kernel
 
-#endif // VESPERAOS_SYSTEM_MANAGER_H
+#endif  // VESPERAOS_SYSTEM_MANAGER_H

@@ -26,6 +26,7 @@
 #include <vespera/scheduling.h>
 
 #include "../../units/unit.h"
+#include <uapi/vespera/handels.h>
 
 namespace syscalls::internal {
     int64_t sys_channel_create(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
@@ -41,12 +42,12 @@ namespace syscalls::internal {
         if (!ch) return -ENOMEM;
 
         // set required caps for channels: read+write for owner
-        capability_set_t caps = CAP_READ | CAP_WRITE;
+        capability_set caps = CAP_READ | CAP_WRITE;
 
-        handle_id_t hid;
+        HandleId hid = 0;
 
-        if (const error_code_t err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
-            err != MOD_SUCCESS) {
+        if (const int64_t err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
+            err != SUCCESS_CODE) {
             Channel::destroy(ch);
             return -err;
         }

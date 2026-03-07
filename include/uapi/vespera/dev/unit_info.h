@@ -1,5 +1,5 @@
 /**
- * @file unitinfo.h
+ * @file unit_info.h
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
@@ -20,11 +20,48 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #ifndef VESPERAOS_UNITINFO_H
 #define VESPERAOS_UNITINFO_H
 
 #include <stdint.h>
+
+/**
+ *
+ * @defgroup unit_state Unit State Constants
+ * @brief Possible lifecycle states of a Unit.
+ *
+ * These constants describe the current execution state of a Unit and are
+ * stored in the @ref unit_info::state field. The values are stable across
+ * kernel versions and safe to use in userspace.
+ *
+ * @{
+ */
+
+/** @brief Unit has been created but not yet scheduled for the first time. */
+#define UNIT_STATE_NEW 0
+
+/** @brief Unit is ready to run and waiting to be picked up by the scheduler. */
+#define UNIT_STATE_READY 1
+
+/** @brief Unit is currently executing on a CPU. */
+#define UNIT_STATE_RUNNING 2
+
+/** @brief Unit is blocked, waiting for a resource, event, or I/O. */
+#define UNIT_STATE_BLOCKED 3
+
+/**
+ * @brief Unit has finished execution but its exit code has not yet been collected.
+ *
+ * A Unit stays in this state until its Realm or a parent Unit reads
+ * the exit code, after which it transitions to @ref UNIT_STATE_TERMINATED.
+ */
+#define UNIT_STATE_ZOMBIE 4
+
+/** @brief Unit has fully terminated and all its resources have been released. */
+#define UNIT_STATE_TERMINATED 5
+
+/** @} */
 
 /**
  * @brief Structure representing information about a Unit.
@@ -33,21 +70,29 @@
  * A Unit is conceptually similar to a thread, running inside a Realm
  * (which acts like a process). It contains runtime and scheduling
  * information, resource handles, stack layout, and termination state.
+ *
+ * The @ref state field holds one of the @ref unit_state constants.
  */
 typedef struct unit_info {
-    uint32_t id; ///< Unique identifier of the Unit
-    uint32_t realm_id; ///< Identifier of the Realm this Unit belongs to
-    uint8_t state; ///< Current state of the Unit (e.g., running, blocked, terminated)
-    uint8_t priority; ///< Scheduling priority of the Unit
-    uint8_t cpu_id; ///< ID of the CPU the Unit is currently running on
-    int32_t exit_code; ///< Exit code if the Unit has terminated
+    uint32_t id;        ///< Unique identifier of the Unit
+    uint32_t realm_id;  ///< Identifier of the Realm this Unit belongs to
 
-    uint64_t handle_count; ///< Number of handles/resources currently held by the Unit
-    uint64_t kernel_stack_start; ///< Start address of the Unit's kernel stack
-    uint64_t kernel_stack_end; ///< End address of the Unit's kernel stack
-    uint64_t user_stack_start; ///< Start address of the Unit's user stack
-    uint64_t user_stack_end; ///< End address of the Unit's user stack
+    /**
+     * @brief Current lifecycle state of the Unit.
+     *
+     * One of the UNIT_STATE_* constants (e.g. @ref UNIT_STATE_RUNNING).
+     */
+    uint8_t state;
+
+    uint8_t priority;   ///< Scheduling priority of the Unit
+    uint8_t cpu_id;     ///< ID of the CPU the Unit is currently running on
+    int32_t exit_code;  ///< Exit code if the Unit has terminated; 0 otherwise
+
+    uint64_t handle_count;        ///< Number of handles/resources currently held by the Unit
+    uint64_t kernel_stack_start;  ///< Start address of the Unit's kernel stack
+    uint64_t kernel_stack_end;    ///< End address of the Unit's kernel stack
+    uint64_t user_stack_start;    ///< Start address of the Unit's user stack
+    uint64_t user_stack_end;      ///< End address of the Unit's user stack
 } unit_info_t;
 
-
-#endif //VESPERAOS_UNITINFO_H
+#endif  // VESPERAOS_UNITINFO_H

@@ -4,7 +4,6 @@
 #include <vespera/mm/memory.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../../kernel/types/handle.h"
 #include "../../userspace/lib/include/errno.h"
 #include "../pci/msi.h"
 #include "../pci/msix.h"

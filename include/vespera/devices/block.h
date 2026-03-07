@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../../kernel/types/types.h"
+#include "../types.h"
 
 class BlockDevice {
    public:

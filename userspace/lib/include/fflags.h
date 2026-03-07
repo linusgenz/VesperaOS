@@ -21,25 +21,12 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_FCNTL_H
-#define VESPERAOS_FCNTL_H
+#ifndef VESPLIBC_FCNTL_H
+#define VESPLIBC_FCNTL_H
 
-#define O_RDONLY    0x0000  /**< Open for reading only */
-#define O_WRONLY    0x0001  /**< Open for writing only */
-#define O_RDWR      0x0002  /**< Open for reading and writing */
-
-#define O_CREAT     0x0040  /**< Create file if it does not exist */
-#define O_EXCL      0x0080  /**< Exclusive use flag */
-#define O_TRUNC     0x0200  /**< Truncate file to zero length */
-#define O_APPEND    0x0400  /**< Append mode */
-
-#define O_DIRECTORY 0x2000  /**< The target should be a directory */
+#include <vespera/fflags.h>
 
 #define C_FILE      0x00    /**< The target should be a file */
 #define C_DIR       0x01    /**< The target should be a directory */
 
-#define SEEK_SET    0       /**< Seek relative to start of file */
-#define SEEK_CUR    1       /**< Seek relative to current position */
-#define SEEK_END    2       /**< Seek relative to end of file */
-
-#endif //VESPERAOS_FCNTL_H
+#endif //VESPLIBC_FCNTL_H

@@ -25,8 +25,9 @@
 #include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs.h"
-#include "../../types/types.h"
+#include "../../../include/vespera/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
+#include <uapi/vespera/handels.h>
 
 namespace syscalls::internal {
     // static Unit* reader_owner = nullptr;
@@ -36,7 +37,7 @@ namespace syscalls::internal {
         //  }
         //  reader_owner = kernel::scheduling::get_current_unit();
 
-        handle_id_t hid = arg0;
+        HandleId hid = arg0;
         const auto buf = reinterpret_cast<void *>(arg1);
         size_t count = arg2;
 
@@ -48,7 +49,7 @@ namespace syscalls::internal {
         Realm *realm = RealmManager::get(u->rid);
         if (!realm) return -EUNKNOWN;
 
-        handle_entry_t *he = realm->lookup_handle(hid);
+        HandleEntry *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) {

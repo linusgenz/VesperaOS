@@ -25,9 +25,9 @@
 #define VFS_NODE_H
 #include <stddef.h>
 #include <stdint.h>
+#include <uapi/vespera/dirent.h>
 
-#include "../../kernel/types/types.h"
-#include "../dirent.h"
+#include "../../include/vespera/types.h"
 
 enum class VfsNodeType {
     File,

@@ -21,24 +21,24 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/handels.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../types/types.h"
+#include "../../../include/vespera/types.h"
 #include "../../units/unit.h"
-#include "../filesystem/dirent.h"
 
 namespace syscalls::internal {
     int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-        handle_id_t hid = arg0;
+        HandleId hid = arg0;
         auto *ent = reinterpret_cast<dirent_t *>(arg1);
 
         if (!ent) return -EINVAL;
 
         Unit *u = kernel::scheduling::get_current_unit();
         Realm *realm = RealmManager::get(u->rid);
-        handle_entry_t *he = realm->lookup_handle(hid);
+        HandleEntry *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) return -EACCES;

@@ -21,35 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_DIRENT_H
-#define VESPERAOS_DIRENT_H
+#ifndef VESPLIBC_DIRENT_H
+#define VESPLIBC_DIRENT_H
 
-/**
- * @brief Enumeration of possible directory entry types.
- *
- * This enumeration defines the type of an entry returned by `sys_readdir()`
- * or higher-level wrappers (e.g. `readdir()`).
- */
-typedef enum {
-    DT_UNKNOWN = 0, ///< Unknown entry type (not determined)
-    DT_FILE,        ///< Regular file
-    DT_DIR,         ///< Directory
-    DT_SYMLINK,     ///< Symbolic link
-    DT_CHARDEV,     ///< Character device
-    DT_BLOCKDEV,    ///< Block device
-    DT_FIFO,        ///< Named pipe (FIFO)
-    DT_SOCKET,      ///< Socket
-    DT_EXEC         ///< Executable file
-} dirent_type_t;
+#include <vespera/dirent.h>
 
-/**
- * @brief Structure representing a directory entry.
- *
- * Contains information about a single directory entry.
- */
-typedef struct {
-    char name[128];      ///< Null-terminated entry name (up to 127 characters)
-    dirent_type_t type;  ///< Type of the directory entry (see ::dirent_type_t)
-} dirent_t;
-
-#endif //VESPERAOS_DIRENT_H
+#endif //VESPLIBC_DIRENT_H

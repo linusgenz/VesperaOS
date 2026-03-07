@@ -31,7 +31,7 @@
 struct VfsHandleContext {
     uint32_t open_flags; // O_RDONLY, O_WRONLY, O_RDWR
     size_t position; // used for offset
-    capability_set_t required_caps;
+    capability_set required_caps;
     void *type_specific_data;
 };
 
@@ -39,7 +39,7 @@ struct VfsHandle {
     VfsNode *node;
     VfsHandleContext *context;
 
-    VfsHandle(VfsNode *n, uint32_t flags, capability_set_t caps) : node(n), context(new VfsHandleContext()) {
+    VfsHandle(VfsNode *n, uint32_t flags, capability_set caps) : node(n), context(new VfsHandleContext()) {
         context->open_flags = flags;
         context->position = 0;
         context->required_caps = caps;

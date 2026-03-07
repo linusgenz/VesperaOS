@@ -374,7 +374,7 @@ namespace kernel {
     }
 
     // Event Helper Functions
-    void SystemManager::notify_unit_lifecycle(unit_id_t unit_id, realm_id_t realm_id, bool created) {
+    void SystemManager::notify_unit_lifecycle(UnitId unit_id, RealmId realm_id, bool created) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -387,7 +387,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_realm_lifecycle(realm_id_t realm_id, const char *name, bool created) {
+    void SystemManager::notify_realm_lifecycle(RealmId realm_id, const char *name, bool created) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};

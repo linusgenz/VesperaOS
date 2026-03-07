@@ -21,7 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/dev/realm_info.h>
 #include <vespera/log.h>
+#include <vespera/realm/realm_config.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/system/system_manager.h>
@@ -29,11 +31,10 @@
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../paging/page_table_manager.h"
 #include "../units/unit_manager.h"
-#include <uapi/vespera/dev/realm_info.h>
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
-realm_id_t RealmManager::next_id_ = 1;
+RealmId RealmManager::next_id_ = 1;
 atomic_u8_t RealmManager::seq_;
 bool RealmManager::initialized_ = false;
 
@@ -85,7 +86,8 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
                 auto* new_pml4 = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
                 memset(new_pml4, 0, 0x1000);
 
-                const auto* kernel_pml4 = static_cast<PageTable*>(virt_ptr(phys_to_virt(make_phys(kernel::memory::get_pagetable_address()))));
+                const auto* kernel_pml4 =
+                    static_cast<PageTable*>(virt_ptr(phys_to_virt(make_phys(kernel::memory::get_pagetable_address()))));
 
                 for (int i = 256; i < 512; i++) new_pml4->entries[i] = kernel_pml4->entries[i];
 
@@ -105,7 +107,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
     return result;
 }
 
-Realm* RealmManager::get(const realm_id_t id) {
+Realm* RealmManager::get(const RealmId id) {
     while (true) {
         uint8_t begin = seq_.load();
         if (begin & 1)  // Writer aktiv → retry
@@ -124,7 +126,7 @@ Realm* RealmManager::get(const realm_id_t id) {
     }
 }
 
-bool RealmManager::destroy(const realm_id_t id) {
+bool RealmManager::destroy(const RealmId id) {
     SpinlockGuard g(global_lock_);
 
     seq_.fetch_add(1);  // writer begin
@@ -210,7 +212,6 @@ void RealmManager::list() {
             }
         }
 
-        if (const uint8_t end = seq_.load(); begin == end)
-            return;
+        if (const uint8_t end = seq_.load(); begin == end) return;
     }
 }

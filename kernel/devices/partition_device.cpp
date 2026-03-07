@@ -23,7 +23,6 @@
 
 #include "partition_device.h"
 
-#include "../types/handle.h"
 #include "vespera_errno.h"
 
 PartitionDevice::PartitionDevice(BlockDevice* parent, uint64_t start_lba, uint64_t length_lba)

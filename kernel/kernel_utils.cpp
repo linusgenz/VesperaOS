@@ -3,7 +3,11 @@
 #include "debug/lock_debug.h"
 #endif
 
+#include <vespera/devices/device_manager.h>
 #include <vespera/input/input_manager.h>
+#include <vespera/kernel_utils.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
@@ -17,8 +21,7 @@
 #include "../filesystem/devfs/devfs.h"
 #include "../filesystem/realmfs/realmfs.h"
 #include "../filesystem/vfs/vfs.h"
-#include <vespera/devices/device_manager.h>
-#include <vespera/kernel_utils.h>
+#include "../include/vespera/types.h"
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
 #include "cpu/cpu_manager.h"
@@ -30,11 +33,8 @@
 #include "sys/syscall_interface.h"
 #include "system/log_writer.h"
 #include "tty/init.h"
-#include "types/types.h"
 #include "units/unit_manager.h"
 #include "vespera/interrupts.h"
-#include <vespera/log.h>
-#include <vespera/mm/memory.h>
 
 framebuffer_t* target_framebuffer = nullptr;
 
