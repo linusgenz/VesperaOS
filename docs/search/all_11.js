@@ -1,4 +1,27 @@
 var searchData=
 [
-  ['quality_0',['quality',['../structjpeg__save__options__t.html#a5ce1c03ddbece6fb718ed1d27b33f938',1,'jpeg_save_options_t']]]
+  ['r12_0',['r12',['../structjmp__buf.html#afd0a0949461f475b1a182710324f5238',1,'jmp_buf']]],
+  ['r13_1',['r13',['../structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c',1,'jmp_buf']]],
+  ['r14_2',['r14',['../structjmp__buf.html#adc2aef99200faee28a4cf1348257d4b4',1,'jmp_buf']]],
+  ['r15_3',['r15',['../structjmp__buf.html#ab844c9a6e0f401e1c1d65712928dd233',1,'jmp_buf']]],
+  ['rbp_4',['rbp',['../structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8',1,'jmp_buf']]],
+  ['rbx_5',['rbx',['../structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8',1,'jmp_buf']]],
+  ['read_6',['read',['../stdio_8h.html#ac01dfe00c38b79b1f2ab3d1cd870dd0b',1,'stdio.h']]],
+  ['readdir_7',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
+  ['realloc_8',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
+  ['realm_2eh_9',['realm.h',['../realm_8h.html',1,'']]],
+  ['realmid_10',['RealmID',['../realm_8h.html#ab0585566306fc83efde7a4789d0869eb',1,'realm.h']]],
+  ['reboot_11',['reboot',['../reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5',1,'reboot.h']]],
+  ['reboot_2eh_12',['reboot.h',['../reboot_8h.html',1,'']]],
+  ['reboot_5fhalt_13',['reboot_halt',['../reboot_8h.html#a6f95ffcf13be063c8af8e67ab7973e26',1,'reboot.h']]],
+  ['reboot_5fmode_5fhalt_14',['REBOOT_MODE_HALT',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4',1,'reboot.h']]],
+  ['reboot_5fmode_5fpower_5foff_15',['REBOOT_MODE_POWER_OFF',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491',1,'reboot.h']]],
+  ['reboot_5fmode_5frestart_16',['REBOOT_MODE_RESTART',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50',1,'reboot.h']]],
+  ['reboot_5fmode_5ft_17',['reboot_mode_t',['../reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38',1,'reboot.h']]],
+  ['reboot_5fpoweroff_18',['reboot_poweroff',['../reboot_8h.html#a3d2e382d1acf7eb5fe273f1b69050209',1,'reboot.h']]],
+  ['reboot_5frestart_19',['reboot_restart',['../reboot_8h.html#aa1843d7f616e462b9cf039ab14629f95',1,'reboot.h']]],
+  ['rewind_20',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
+  ['rip_21',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rmdir_22',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]],
+  ['rsp_23',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['name_0',['name',['../structrealm__info__t.html#a7b03250f77ec66209a3b038b37e2dda1',1,'realm_info_t::name'],['../structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10',1,'dirent_t::name']]],
-  ['next_1',['next',['../structheap__seg.html#a628682b06341bbbd876a6e42656815c5',1,'heap_seg::next'],['../structlarge__seg.html#aedc3113af2d8caa0195a871a5cb0aa89',1,'large_seg::next']]]
+  ['precision_0',['precision',['../structimage__t.html#ad13fa2b67f6b9e0dd76983345b627df7',1,'image_t']]],
+  ['prev_1',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
+  ['progressive_2',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]]
 ];

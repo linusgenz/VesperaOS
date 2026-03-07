@@ -1,27 +1,6 @@
 var searchData=
 [
-  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg']]],
-  ['mainpage_2edox_1',['mainpage.dox',['../mainpage_8dox.html',1,'']]],
-  ['malloc_2',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
-  ['manufacturer_3',['manufacturer',['../structxhci__device__stat.html#ae0a011a7b97a3a013be94cdff227a242',1,'xhci_device_stat']]],
-  ['map_5fanonymous_4',['MAP_ANONYMOUS',['../mman_8h.html#ae4f86bff73414c5fc08c058f957212f0',1,'mman.h']]],
-  ['map_5ffailed_5',['MAP_FAILED',['../mman_8h.html#a8523dcf952f6ff059a3bed717e4f1296',1,'mman.h']]],
-  ['map_5ffixed_6',['MAP_FIXED',['../mman_8h.html#a387ec707b30c5e78cf20a14517a63b96',1,'mman.h']]],
-  ['map_5fprivate_7',['MAP_PRIVATE',['../mman_8h.html#a398ef47a991a44389aa9818c98a28d24',1,'mman.h']]],
-  ['map_5fshared_8',['MAP_SHARED',['../mman_8h.html#a57028962c2a7c0c802ca6613492f2ef3',1,'mman.h']]],
-  ['max_5funits_9',['max_units',['../structrealm__info__t.html#adf12592b21c0fe68aac90c15e5e5d8e8',1,'realm_info_t']]],
-  ['mb_5flen_5fmax_10',['MB_LEN_MAX',['../limits_8h.html#a88a1b2d6ac46174ac7b571dca5b1f274',1,'limits.h']]],
-  ['memcmp_11',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
-  ['memcpy_12',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
-  ['meminfo_2eh_13',['meminfo.h',['../meminfo_8h.html',1,'']]],
-  ['meminfo_5ft_14',['meminfo_t',['../structmeminfo__t.html',1,'']]],
-  ['memory_2eh_15',['memory.h',['../memory_8h.html',1,'']]],
-  ['memory_5flimit_16',['memory_limit',['../structrealm__info__t.html#a9319545feba6a5d826c30dfcb9942e13',1,'realm_info_t']]],
-  ['memset_17',['memset',['../string_8h.html#a7b790200c268c08dc4429094ad149853',1,'string.h']]],
-  ['min_18',['min',['../structrtc__data.html#afb1985b369bafba67c3c376d2120fef4',1,'rtc_data']]],
-  ['mkdir_19',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
-  ['mman_2eh_20',['mman.h',['../mman_8h.html',1,'']]],
-  ['mmap_21',['mmap',['../mman_8h.html#adce60d6da219bfd77ddbe177533942e8',1,'mman.h']]],
-  ['month_22',['month',['../structrtc__data.html#af7d5c74fbf9a5b85c7ce89863d3cb9f1',1,'rtc_data']]],
-  ['munmap_23',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
+  ['name_0',['name',['../structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10',1,'dirent_t']]],
+  ['next_1',['next',['../structheap__seg.html#a628682b06341bbbd876a6e42656815c5',1,'heap_seg::next'],['../structlarge__seg.html#aedc3113af2d8caa0195a871a5cb0aa89',1,'large_seg::next']]],
+  ['null_2',['NULL',['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'stddef.h']]]
 ];

@@ -1,9 +1,7 @@
 var dir_248bf60b518f6803bea125e4c4a2da53 =
 [
-    [ "dev", "dir_7386e92f7ad4f15f5aea0d0cd8b337c4.html", "dir_7386e92f7ad4f15f5aea0d0cd8b337c4" ],
     [ "jpeg", "dir_360327f5f81a46906102c67b7d80d0bd.html", "dir_360327f5f81a46906102c67b7d80d0bd" ],
     [ "sys", "dir_699c0620a471c520d0efc35d8d04f138.html", "dir_699c0620a471c520d0efc35d8d04f138" ],
-    [ "capabilities.h", "capabilities_8h.html", "capabilities_8h" ],
     [ "channel.h", "channel_8h.html", "channel_8h" ],
     [ "ctype.h", "ctype_8h.html", "ctype_8h" ],
     [ "dirent.h", "dirent_8h.html", "dirent_8h" ],

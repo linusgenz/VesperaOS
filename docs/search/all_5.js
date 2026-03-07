@@ -50,6 +50,5 @@ var searchData=
   ['ewouldblock_47',['EWOULDBLOCK',['../errno_8h.html#a4a3a0b3605fd3b2336455062ee8e25f0',1,'errno.h']]],
   ['exdev_48',['EXDEV',['../errno_8h.html#a3396cf9fb0ff5af3a18dd2a2bbdb21e1',1,'errno.h']]],
   ['exec_2eh_49',['exec.h',['../exec_8h.html',1,'']]],
-  ['exit_5fcode_50',['exit_code',['../structunit__info__t.html#a1baa7dbd06610a3576bf1762e9c26d84',1,'unit_info_t']]],
-  ['exit_5frealm_51',['exit_realm',['../realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686',1,'realm.h']]]
+  ['exit_5frealm_50',['exit_realm',['../realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686',1,'realm.h']]]
 ];

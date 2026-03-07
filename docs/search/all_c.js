@@ -1,13 +1,20 @@
 var searchData=
 [
-  ['large_5fseg_0',['large_seg',['../structlarge__seg.html',1,'large_seg'],['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'large_seg:&#160;memory.h']]],
-  ['length_1',['length',['../structheap__seg.html#a0e65284fbc1c0e7c7a8f0a0037ed0a7f',1,'heap_seg']]],
-  ['library_20vesplib_2',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
-  ['limits_2eh_3',['limits.h',['../limits_8h.html',1,'']]],
-  ['list_4',['Todo List',['../todo.html',1,'']]],
-  ['llong_5fmax_5',['LLONG_MAX',['../limits_8h.html#a23ec2cf7fc07ea8f817bbac758402baf',1,'limits.h']]],
-  ['llong_5fmin_6',['LLONG_MIN',['../limits_8h.html#af17a13b2ae0e9c24c020ac1f044f30c2',1,'limits.h']]],
-  ['long_5fmax_7',['LONG_MAX',['../limits_8h.html#a50fece4db74f09568b2938db583c5655',1,'limits.h']]],
-  ['long_5fmin_8',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]],
-  ['longjmp_9',['longjmp',['../setjmp_8h.html#aa179f45112fc35f1fef47370663d6887',1,'setjmp.h']]]
+  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg']]],
+  ['mainpage_2edox_1',['mainpage.dox',['../mainpage_8dox.html',1,'']]],
+  ['malloc_2',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
+  ['map_5fanonymous_3',['MAP_ANONYMOUS',['../mman_8h.html#ae4f86bff73414c5fc08c058f957212f0',1,'mman.h']]],
+  ['map_5ffailed_4',['MAP_FAILED',['../mman_8h.html#a8523dcf952f6ff059a3bed717e4f1296',1,'mman.h']]],
+  ['map_5ffixed_5',['MAP_FIXED',['../mman_8h.html#a387ec707b30c5e78cf20a14517a63b96',1,'mman.h']]],
+  ['map_5fprivate_6',['MAP_PRIVATE',['../mman_8h.html#a398ef47a991a44389aa9818c98a28d24',1,'mman.h']]],
+  ['map_5fshared_7',['MAP_SHARED',['../mman_8h.html#a57028962c2a7c0c802ca6613492f2ef3',1,'mman.h']]],
+  ['mb_5flen_5fmax_8',['MB_LEN_MAX',['../limits_8h.html#a88a1b2d6ac46174ac7b571dca5b1f274',1,'limits.h']]],
+  ['memcmp_9',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
+  ['memcpy_10',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
+  ['memory_2eh_11',['memory.h',['../memory_8h.html',1,'']]],
+  ['memset_12',['memset',['../string_8h.html#a7b790200c268c08dc4429094ad149853',1,'string.h']]],
+  ['mkdir_13',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
+  ['mman_2eh_14',['mman.h',['../mman_8h.html',1,'']]],
+  ['mmap_15',['mmap',['../mman_8h.html#adce60d6da219bfd77ddbe177533942e8',1,'mman.h']]],
+  ['munmap_16',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];
