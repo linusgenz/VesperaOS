@@ -571,7 +571,14 @@ namespace klib {
     inline constexpr bool is_convertible_v = is_convertible<From, To>::value;
 
     template <typename T>
-    struct is_trivially_destructible : bool_constant<__is_trivially_destructible(T)> {};
+    struct is_trivially_destructible
+#if defined(__clang__)
+        : bool_constant<__is_trivially_destructible(T)> {
+    };
+#else
+        : bool_constant<__has_trivial_destructor(T)> {
+    };
+#endif
     template <typename T>
     inline constexpr bool is_trivially_destructible_v = is_trivially_destructible<T>::value;
 

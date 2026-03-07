@@ -20,38 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef BLOCKDEVICE_H
-#define BLOCKDEVICE_H
+#ifndef MOCK_BLOCKDEVICE_H
+#define MOCK_BLOCKDEVICE_H
 
 #include <stdint.h>
 #include <cstring>
 #include <vector>
 #include <cassert>
-
-// Dein Kernel-Interface
-class BlockDevice {
-public:
-    enum class Type { Disk, Partition };
-
-    Type type{Type::Disk};
-
-    virtual ssize_t read(uint64_t lba,
-                         uint32_t sectorCount,
-                         void* buffer,
-                         size_t bufferSize) = 0;
-
-    virtual ssize_t write(uint64_t lba,
-                          uint32_t sectorCount,
-                          void* buffer,
-                          size_t bufferSize) = 0;
-
-    [[nodiscard]] virtual size_t get_size() const = 0;
-    [[nodiscard]] virtual size_t get_sector_size() const = 0;
-
-    virtual ~BlockDevice() = default;
-};
-
-
 
 // ===== MOCK IMPLEMENTIERUNG =====
 
@@ -66,7 +41,7 @@ public:
     }
 
     ssize_t read(uint64_t lba,
-                 uint32_t sectorCount,
+                 size_t sectorCount,
                  void* buffer,
                  size_t bufferSize) override
     {
@@ -81,7 +56,7 @@ public:
     }
 
     ssize_t write(uint64_t lba,
-                  uint32_t sectorCount,
+                  size_t sectorCount,
                   void* buffer,
                   size_t bufferSize) override
     {
@@ -112,4 +87,4 @@ private:
     std::vector<uint8_t> storage;
 };
 
-#endif  // BLOCKDEVICE_H
+#endif  // MOCK_BLOCKDEVICE_H

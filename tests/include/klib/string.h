@@ -10,6 +10,8 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
+int strcmp(const char* a, const char* b);
+
 // Kernel-eigene Extras
 constexpr size_t hex_buffer_size(const size_t bytes) { return bytes * 2 + 1; }
 constexpr size_t HEX_BUFFER_PTR = hex_buffer_size(sizeof(void*));

@@ -25,6 +25,7 @@ add_library(kernel_stubs STATIC
         stub_kernel/log.cpp
         stub_kernel/time.cpp
         stub_kernel/systemmanager.cpp
+        stub_kernel/string.cpp
 )
 target_include_directories(kernel_stubs PUBLIC
         ${CMAKE_SOURCE_DIR}
