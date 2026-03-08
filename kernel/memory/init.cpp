@@ -38,7 +38,6 @@ void initialize_memory(BootInfo* boot_info) {
     const u64 kernel_pages = (kernel_phys_end - kernel_phys_start) / 4096 + 1;
 
     lock_pages(make_phys(kernel_phys_start), kernel_pages);
-    lock_pages(make_phys(0), 256);
 
     initialize_page_table_manager(boot_info);
 

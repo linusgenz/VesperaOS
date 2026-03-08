@@ -30,13 +30,7 @@
 #include <uapi/vespera/handels.h>
 
 namespace syscalls::internal {
-    // static Unit* reader_owner = nullptr;
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        // if (reader_owner != nullptr && reader_owner != kernel::scheduling::get_current_unit()) {
-        //     return -EAGAIN;
-        //  }
-        //  reader_owner = kernel::scheduling::get_current_unit();
-
         HandleId hid = arg0;
         const auto buf = reinterpret_cast<void *>(arg1);
         usize count = arg2;

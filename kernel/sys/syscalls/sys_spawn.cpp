@@ -35,19 +35,24 @@ namespace syscalls::internal {
         const auto argc = static_cast<u32>(arg1);
         auto argv = reinterpret_cast<const char**>(arg2);
         auto envp = reinterpret_cast<const char**>(arg3);
-        envp = nullptr;
 
         if (!user_path) return -EINVAL;
 
+        const Unit* caller = kernel::scheduling::get_current_unit();
+        Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
+        TtyDevice* tty_dev = parent_realm
+            ? parent_realm->get_tty_device()
+            : kernel::tty::tty_devices[0];
+
         RealmConfig cfg = {
-            .name = user_path,  // TODO change name (clashing with fs)
+            .name = user_path,
             .capabilities = CAP_RW | CAP_DEVICE_ACCESS,
             .is_user = true
         };
 
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
-        TtyDevice* tty_dev = kernel::tty::tty_devices[0];
+
         new_realm->setup_standard_handles(tty_dev);
 
         const ElfLoader::LoadResult elf = ElfLoader::load(user_path, 0x500000, new_realm);
@@ -75,6 +80,10 @@ namespace syscalls::internal {
         const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
         u->heap_start = heap_begin;
         u->heap_end   = heap_begin;
+
+        if (tty_dev) {
+            tty_dev->tty->fg_realm_id = new_realm->id;
+        }
 
         kernel::scheduling::add_unit(u);
 

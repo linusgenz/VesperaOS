@@ -26,7 +26,6 @@
 
 Realm::Realm()
     : id(0)
-    , name(nullptr)
     , capabilities(CAP_NONE)
     , memory_limit(0)
     , max_units(0)
@@ -45,7 +44,7 @@ Realm::Realm()
     lock.init(buf);
 
     char buf2[100];
-    snprintf(buf2, sizeof(buf), "realm_%s:%u_handle_table_lock", name, id);  // TODO absichern
+    snprintf(buf2, sizeof(buf2), "realm_%s:%u_handle_table_lock", name, id);  // TODO absichern
     memset(&handle_table, 0, sizeof(handle_table));
     handle_table.lock.init(buf2);
 }
@@ -147,6 +146,12 @@ void Realm::release_handle(HandleId hid) {
         memset(he, 0, sizeof(HandleEntry));
         clear_bit(raw);
     }
+}
+
+TtyDevice* Realm::get_tty_device() const {
+    HandleEntry* he = const_cast<Realm*>(this)->lookup_handle(HANDLE_STDIN);
+    if (!he || he->type != HANDLE_TYPE_TTY) return nullptr;
+    return static_cast<TtyDevice*>(he->resource);
 }
 
 void Realm::clear_handle_table() {

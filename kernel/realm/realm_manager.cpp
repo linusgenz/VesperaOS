@@ -70,7 +70,10 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
         if (!realm.active) {
             Realm* r = &realm;
             r->id = next_id_++;
-            r->name = cfg->name;
+            if (cfg->name) {
+                strncpy(realm.name, cfg->name, sizeof(realm.name) - 1);
+                realm.name[sizeof(realm.name) - 1] = '\0';
+            }
             r->memory_limit = cfg->memory_limit;
             r->max_units = cfg->max_units;
             r->unit_list = nullptr;
@@ -151,7 +154,6 @@ bool RealmManager::destroy(const RealmId id) {
             }
             delete realm.page_table;
 
-            delete realm.page_table;
             realm.page_table = nullptr;
 
             realm.unit_list = nullptr;

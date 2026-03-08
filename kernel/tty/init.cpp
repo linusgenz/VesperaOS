@@ -28,7 +28,7 @@
 
 namespace kernel::tty {
     void initialize_ttys() {
-        active_tty = &tty_instances[0];
+        keyboard_focus_tty = &tty_instances[0];
         for (int i = 0; i < 6; i++) {
             tty_init(&tty_instances[i], global_terminal);
             char name[16];

@@ -64,13 +64,15 @@ namespace kernel::tty {
         colour_t fg = WHITE;
         colour_t bg = BLACK;
 
+        RealmId fg_realm_id{0};
+
         Terminal *term;
     };
 
 
     extern TTY tty_instances[6];
     extern TtyDevice *tty_devices[6];
-    extern TTY *active_tty;
+    extern TTY *keyboard_focus_tty;
 
     void tty_init(TTY *tty, Terminal *term);
 
@@ -80,7 +82,7 @@ namespace kernel::tty {
 
     void tty_clear(TTY *tty);
 
-    usize tty_read(char *buf, usize count);
+    usize tty_read(TTY* tty, char *buf, usize count);
 }
 
 #endif //VESPERAOS_TTY_H

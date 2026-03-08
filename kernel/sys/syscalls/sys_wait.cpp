@@ -34,12 +34,23 @@ namespace syscalls::internal {
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;
 
+        Realm* parent_realm = RealmManager::get(current->rid);
+
         Realm* target = RealmManager::get(child_rid);
         if (!target) {
             return -ECHILD;
         }
 
+        auto restore_tty_focus = [&]() {
+            if (!parent_realm) return;
+            TtyDevice* tty_dev = parent_realm->get_tty_device();
+            if (tty_dev && tty_dev->tty->fg_realm_id == child_rid) {
+                tty_dev->tty->fg_realm_id = parent_realm->id;
+            }
+        };
+
         if (target->unit_count == 0) {
+            restore_tty_focus();
             if (status_user_ptr != 0) {
                 constexpr int status_val = 0;
                 (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
@@ -48,8 +59,9 @@ namespace syscalls::internal {
         }
 
         target->wait_queue.add_wait(current);
-
         kernel::scheduling::yield();
+
+        restore_tty_focus();
 
         if (status_user_ptr != 0) {
             int status_val = 0;

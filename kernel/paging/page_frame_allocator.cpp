@@ -6,7 +6,7 @@
 PageFrameAllocator global_allocator;
 
 void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* m_map, usize m_map_size, usize m_map_desc_size) {
-    // if (initialized) return;
+     if (initialized_) return;
     initialized_ = true;
 
     const usize m_map_entries = m_map_size / m_map_desc_size;
@@ -36,12 +36,18 @@ void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* m_map, usize
 
     reserve_pages(nullptr, memory_size / 4096 + 1);
     for (usize i = 0; i < m_map_entries; i++) {
-        if (const auto* desc =
-                reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(reinterpret_cast<u64>(m_map) + (i * m_map_desc_size));
-            desc->type == 7) {  // efiConventionalMemory
+        const auto* desc =
+            reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(reinterpret_cast<u64>(m_map) + (i * m_map_desc_size));
+
+        if (desc->type == 7 ||  // EfiConventionalMemory
+            desc->type == 1 ||  // EfiLoaderCode
+            desc->type == 2 ||  // EfiLoaderData
+            desc->type == 3 ||  // EfiBootServicesCode
+            desc->type == 4) {  // EfiBootServicesData
             unreserve_pages(desc->phys_addr, desc->num_pages);
-        }
+            }
     }
+
     reserve_pages(nullptr, 0x100);  // reserve between 0 and 0x100000
     lock_pages(page_bitmap.buffer, page_bitmap.size / 4096 + 1);
 }

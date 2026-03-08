@@ -61,7 +61,7 @@ class TtyDevice final : public CharDevice {
 
     isize read(CharFile*, void* buffer, usize count, usize) override {
         if (count == 0 || !buffer) return -EINVAL;
-        return kernel::tty::tty_read(static_cast<char*>(buffer), count);
+        return kernel::tty::tty_read(tty, static_cast<char*>(buffer), count);
     }
 
     isize write(CharFile*, const void* buffer, usize count) override {

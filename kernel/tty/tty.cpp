@@ -21,14 +21,33 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
 
-#include <vespera/log.h>
-#include <vespera/mm/memory.h>
-
 namespace kernel::tty {
-    TTY* active_tty;
+    /**
+     * @brief Points to the TTY instance that currently holds keyboard focus.
+     *
+     * This pointer determines which TTY receives characters from keyboard
+     * interrupt events. It is set during TTY initialization and updated
+     * when the user switches the tty.
+     *
+     * @note This is strictly an input-routing concept and has no relation
+     *       to which realm or unit is currently scheduled. The keyboard
+     *       interrupt fires asynchronously — the unit running at interrupt
+     *       time is arbitrary and must never be used to infer focus.
+     *
+     * @note This is intentionally separate from the per-realm TTY handle
+     *       stored in each realm's handle table. Read access control
+     *       (i.e. which realm may consume TTY input) is governed by
+     *       TTY::fg_realm_id, not by this pointer.
+     *
+     * @see TTY::fg_realm_id
+     * @see tty_handle_input()
+     */
+    TTY* keyboard_focus_tty;
     TTY tty_instances[6];
     TtyDevice* tty_devices[6];
 
@@ -51,39 +70,39 @@ namespace kernel::tty {
         if (!c) return;
 
         if (c == '\b') {
-            if (active_tty->canonical) {
-                if (active_tty->canon_len > 0 && !active_tty->line_ready) {
-                    active_tty->canon_len--;
-                    active_tty->term->clear_char();
+            if (keyboard_focus_tty->canonical) {
+                if (keyboard_focus_tty->canon_len > 0 && !keyboard_focus_tty->line_ready) {
+                    keyboard_focus_tty->canon_len--;
+                    keyboard_focus_tty->term->clear_char();
                 }
             } else {
-                if (active_tty->raw_len > 0) {
-                    active_tty->raw_len--;
-                    active_tty->term->clear_char();
+                if (keyboard_focus_tty->raw_len > 0) {
+                    keyboard_focus_tty->raw_len--;
+                    keyboard_focus_tty->term->clear_char();
                 }
             }
             return;
         }
 
-        if (active_tty->canonical) {
+        if (keyboard_focus_tty->canonical) {
             // Canonical Mode
             if (c == '\n') {
-                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
-                    active_tty->canon_buffer[active_tty->canon_len++] = '\n';
-                    active_tty->canon_buffer[active_tty->canon_len] = '\0';
-                    active_tty->line_ready = true;
+                if (!keyboard_focus_tty->line_ready && keyboard_focus_tty->canon_len < TTY::BUFFER_SIZE - 1) {
+                    keyboard_focus_tty->canon_buffer[keyboard_focus_tty->canon_len++] = '\n';
+                    keyboard_focus_tty->canon_buffer[keyboard_focus_tty->canon_len] = '\0';
+                    keyboard_focus_tty->line_ready = true;
                 }
             } else {
-                if (!active_tty->line_ready && active_tty->canon_len < TTY::BUFFER_SIZE - 1) {
-                    active_tty->canon_buffer[active_tty->canon_len++] = c;
-                    active_tty->term->put_char_fast(c);
+                if (!keyboard_focus_tty->line_ready && keyboard_focus_tty->canon_len < TTY::BUFFER_SIZE - 1) {
+                    keyboard_focus_tty->canon_buffer[keyboard_focus_tty->canon_len++] = c;
+                    keyboard_focus_tty->term->put_char_fast(c);
                 }
             }
         } else {
             // Non-canonical Mode
-            if (active_tty->raw_len < TTY::BUFFER_SIZE - 1) {
-                active_tty->raw_buffer[active_tty->raw_len++] = c;
-                active_tty->term->put_char_fast(c);  // Echo
+            if (keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1) {
+                keyboard_focus_tty->raw_buffer[keyboard_focus_tty->raw_len++] = c;
+                keyboard_focus_tty->term->put_char_fast(c);  // Echo
             }
         }
     }
@@ -270,36 +289,37 @@ namespace kernel::tty {
         tty->esc_param_count = 0;
     }
 
-    usize tty_read(char* buf, usize count) {
-        usize read = 0;
+    usize tty_read(TTY* tty, char* buf, usize count) {
+        const Unit* u = kernel::scheduling::get_current_unit();
+        const RealmId my_realm = u ? u->rid : 0;
 
-        if (active_tty->canonical) {
-            // Zeilenmodus
-            while (!active_tty->line_ready) {
+        usize bytes_read = 0;
+
+        if (tty->canonical) {
+            while (!tty->line_ready || (tty->fg_realm_id != 0 && tty->fg_realm_id != my_realm)) {
                 kernel::scheduling::yield();
             }
 
-            const usize to_copy = (active_tty->canon_len < count) ? active_tty->canon_len : count;
-            memcpy(buf, active_tty->canon_buffer, to_copy);
-            read = to_copy;
+            const usize to_copy = (tty->canon_len < count) ? tty->canon_len : count;
+            memcpy(buf, tty->canon_buffer, to_copy);
+            bytes_read = to_copy;
 
-            active_tty->canon_len = 0;
-            active_tty->line_ready = false;
-            memset(active_tty->canon_buffer, 0, TTY::BUFFER_SIZE);
+            tty->canon_len = 0;
+            tty->line_ready = false;
+            memset(tty->canon_buffer, 0, TTY::BUFFER_SIZE);
         } else {
-            // Non-Canonical (charweise)
-            while (active_tty->raw_len == 0) {
+            while (tty->raw_len == 0 || (tty->fg_realm_id != 0 && tty->fg_realm_id != my_realm)) {
                 kernel::scheduling::yield();
             }
 
-            const usize to_copy = (active_tty->raw_len < count) ? active_tty->raw_len : count;
-            memcpy(buf, active_tty->raw_buffer, to_copy);
-            read = to_copy;
+            const usize to_copy = (tty->raw_len < count) ? tty->raw_len : count;
+            memcpy(buf, tty->raw_buffer, to_copy);
+            bytes_read = to_copy;
 
-            memmove(active_tty->raw_buffer, active_tty->raw_buffer + to_copy, active_tty->raw_len - to_copy);
-            active_tty->raw_len -= to_copy;
+            memmove(tty->raw_buffer, tty->raw_buffer + to_copy, tty->raw_len - to_copy);
+            tty->raw_len -= to_copy;
         }
 
-        return read;
+        return bytes_read;
     }
 }  // namespace kernel::tty

@@ -61,7 +61,7 @@ struct HandleTable {
 class Realm {
    public:
     RealmId id;
-    const char *name;
+    char name[64];
     capability_set capabilities;
     u64 memory_limit;
     u64 max_units;
@@ -104,6 +104,7 @@ class Realm {
     void acquire_handle(HandleId hid);
 
     void release_handle(HandleId hid);
+    TtyDevice *get_tty_device() const;
 
     void clear_handle_table();
 

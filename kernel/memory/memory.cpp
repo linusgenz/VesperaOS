@@ -8,13 +8,12 @@
 #include "heap.h"
 
 u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, const usize m_map_entries, const usize m_map_desc_size) {
-    u64 memory_size_bytes = 0;  // static
-    // if (memory_size_bytes > 0) return memory_size_bytes;
+    static u64 memory_size_bytes = 0;
+    if (memory_size_bytes > 0) return memory_size_bytes;
 
     for (usize i = 0; i < m_map_entries; i++) {
         const auto* desc =
             reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(reinterpret_cast<u64>(m_map) + (i * m_map_desc_size));
-        if (desc->type != 7) continue;
         memory_size_bytes += desc->num_pages * 4096;
     }
 
