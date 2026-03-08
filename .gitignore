@@ -19,6 +19,7 @@ gnu-efi/*
 *.elf
 *.iso
 /userspace/bin/*
+!/userspace/bin/*.c
 
 tests/build/fat32/test.img
 tests/build
