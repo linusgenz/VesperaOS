@@ -53,15 +53,15 @@ bool HeapSegHdr::check_guard_bytes() const {
 }
 
 HeapSegHdr* HeapSegHdr::split(const usize split_length) {
-    if (!is_valid()) {
+    if (!is_valid()) [[unlikely]] {
         Log::error("Split failed: invalid segment header at %p", this);
         return nullptr;
     }
-    if (!free) {
+    if (!free) [[unlikely]] {
         Log::error("Split failed: can only split free segments");
         return nullptr;
     }
-    if (split_length < MIN_ALLOC_SIZE) {
+    if (split_length < MIN_ALLOC_SIZE) [[unlikely]] {
         Log::error("Split failed: split length %zu too small (min: %u)", split_length, MIN_ALLOC_SIZE);
         return nullptr;
     }
@@ -195,7 +195,7 @@ HeapSegHdr* find_free_segment(usize size) {
     auto* current_seg = virt_as<HeapSegHdr>(heap_start);
 
     while (current_seg) {
-        if (!current_seg->is_valid()) {
+        if (!current_seg->is_valid()) [[unlikely]] {
             Log::error("Heap segment is not valid");
             return nullptr;
         }
@@ -234,20 +234,20 @@ void* allocate_from_segment(HeapSegHdr* seg, usize size) {
 }
 
 void* kmalloc(usize size) {
-    if (!heap_initialized || size == 0) {
+    if (!heap_initialized || size == 0) [[unlikely]] {
         return nullptr;
     }
 
     size = align_size(size);
 
     HeapSegHdr* seg = find_free_segment(size);
-    if (seg) {
+    if (seg) [[likely]] {
         return allocate_from_segment(seg, size);
     }
 
     expand_heap(size);
     seg = find_free_segment(size);
-    if (seg) {
+    if (seg) [[likely]] {
         return allocate_from_segment(seg, size);
     }
 
@@ -327,18 +327,18 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
 }
 
 void kfree(void* ptr) {
-    if (!ptr || !heap_initialized) {
+    if (!ptr || !heap_initialized) [[unlikely]] {
         return;
     }
 
     HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
 
-    if (!seg->is_valid() || seg->magic != HEAP_MAGIC_USED || seg->free) {
+    if (!seg->is_valid() || seg->magic != HEAP_MAGIC_USED || seg->free) [[unlikely]] {
         Log::error("Invalid free or double free at %p", ptr);
         return;
     }
 
-    if (!seg->check_guard_bytes()) {
+    if (!seg->check_guard_bytes()) [[unlikely]] {
         Log::error("Buffer overflow detected at %p", ptr);
         return;
     }

@@ -80,16 +80,18 @@ static void combine_segments(heap_seg *seg) {
 void heap_lazy_init() {
     if (heap_head) return;
 
-    // Get current break (sollte die Heap-Basis zurückgeben)
     heap_base = sys_brk(0, 0, 0, 0, 0, 0);
-    heap_end = heap_base + 0x20000; // every unit has a standard heap size of 0x20000 bytes
+    uintptr_t new_brk = heap_base + 0x20000;
 
-    heap_head = (heap_seg *) heap_base;
+    if ((uintptr_t)sys_brk(new_brk, 0, 0, 0, 0, 0) != new_brk) return;
+
+    heap_end  = new_brk;
+    heap_head = (heap_seg*) heap_base;
     heap_head->length = 0x20000 - sizeof(heap_seg);
-    heap_head->free = 1;
-    heap_head->magic = HEAP_MAGIC;
-    heap_head->next = NULL;
-    heap_head->prev = NULL;
+    heap_head->free   = 1;
+    heap_head->magic  = HEAP_MAGIC;
+    heap_head->next   = NULL;
+    heap_head->prev   = NULL;
 }
 
 void *malloc(size_t size) {

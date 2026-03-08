@@ -126,6 +126,7 @@ class Unit {
     bool is_user{false};
     bool is_kernel{false};
 
+    u64 heap_start{};
     u64 heap_end{};
 
     u64 handle_count{0};

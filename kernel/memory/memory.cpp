@@ -163,7 +163,7 @@ namespace kernel::memory {
 
     virt_addr_t request_pages(usize page_count) {
         u64 phys = page_frame_allocator.request_pages(page_count);
-        if (!phys) return make_virt(nullptr);
+        if (!phys) [[unlikely]] return make_virt(nullptr);
         return phys_to_virt(make_phys(phys));
     }
 

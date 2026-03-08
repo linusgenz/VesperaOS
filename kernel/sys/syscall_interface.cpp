@@ -65,7 +65,7 @@ extern "C" void syscall_handler(
 ) {
     u64 ret = 0;
 
-    if (num < MAX_SYSCALLS && syscall_table[num]) {
+    if (num < MAX_SYSCALLS && syscall_table[num]) [[likely]] {
         asm volatile("sti");
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {

@@ -726,6 +726,7 @@ void shell_main(int argc, char** argv)
         printf("Error loading JPEG: %s\n", jpeg_error_string(result));
         return;
     }
+    printf("environ: %p", environ);
 
     printf("Loaded image: %lu x %lu, %d channels\n",
            img.width, img.height, img.channels);

@@ -159,7 +159,6 @@ void enable_sse() {
 }
 
 void enable_avx() {
-
     // CR4: OSXSAVE setzen
     u64 cr4 = 0;
     asm volatile("mov %%cr4, %0" : "=r"(cr4));
@@ -219,7 +218,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         .argv = argv_example,
         .envp = envp0
     };
-    UnitManager::create(shell_realm->id, reinterpret_cast<unit_entry_t>(result.entry_point), nullptr, &uc);
+
+    if (Unit* shell_unit =
+            UnitManager::create(shell_realm->id, reinterpret_cast<unit_entry_t>(result.entry_point), nullptr, &uc)) {
+        const uptr heap_begin = (result.load_end + 0xFFFULL) & ~0xFFFULL;
+        shell_unit->heap_start = heap_begin;
+        shell_unit->heap_end = heap_begin;
+    }
 
     kernel::SystemManager::set_system_initialized();
 

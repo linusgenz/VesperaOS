@@ -72,15 +72,10 @@ namespace syscalls::internal {
             return -EFAULT;
         }
 
-        /* uptr user_sp = SetupUserArgsAndEnv(u, argv, envp);
-         if (user_sp == 0) {
-             // cleanup
-             UnitManager::destroy(u->id);
-             RealmManager::destroy(new_realm->id);
-             return -EFAULT;
-         }
+        const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
+        u->heap_start = heap_begin;
+        u->heap_end   = heap_begin;
 
-         u->context.user_stack_pointer = reinterpret_cast<void*>(user_sp);*/
         kernel::scheduling::add_unit(u);
 
         return new_realm->id;
