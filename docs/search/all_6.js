@@ -16,7 +16,7 @@ var searchData=
   ['fb_5frect_5foutline_13',['fb_rect_outline',['../structfb__rect__outline.html',1,'']]],
   ['fb_5frect_5ft_14',['fb_rect_t',['../framebuffer__ioctl_8h.html#a5a53c0d62c7edfd99ef6fd6e48c1af13',1,'framebuffer_ioctl.h']]],
   ['fclose_15',['fclose',['../stdio_8h.html#a16899976ac8e865813485db3d5f5186f',1,'stdio.h']]],
-  ['features_16',['features',['../structcpu__info.html#aeac8d8efb615531a37df263f38a52cbd',1,'cpu_info']]],
+  ['features_16',['features',['../structcpu__info.html#a07bea1218e56bc623767fa103b9c1da5',1,'cpu_info']]],
   ['ferror_17',['ferror',['../stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c',1,'stdio.h']]],
   ['fflags_2eh_18',['fflags.h',['../userspace_2lib_2include_2fflags_8h.html',1,'(Global Namespace)'],['../include_2uapi_2vespera_2fflags_8h.html',1,'(Global Namespace)']]],
   ['fflush_19',['fflush',['../stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf',1,'stdio.h']]],
@@ -31,7 +31,7 @@ var searchData=
   ['framebuffer_5fioctl_2eh_28',['framebuffer_ioctl.h',['../framebuffer__ioctl_8h.html',1,'']]],
   ['fread_29',['fread',['../stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450',1,'stdio.h']]],
   ['free_30',['free',['../structheap__seg.html#a5e1d84ac164308cd5c60cfa0fa114e50',1,'heap_seg::free'],['../stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711',1,'free():&#160;stdlib.h']]],
-  ['free_5fram_31',['free_ram',['../structmeminfo.html#aaecdd28f48269a82f91f1795c59c3621',1,'meminfo']]],
+  ['free_5fram_31',['free_ram',['../structmeminfo.html#acaff872782c28f9f4d227c0af72492d1',1,'meminfo']]],
   ['fseek_32',['fseek',['../stdio_8h.html#a80e78c532ed8ab399eeb65dc038a7e9b',1,'stdio.h']]],
   ['ftell_33',['ftell',['../stdio_8h.html#ae59138fe11b4a9c00f858c3287f549e9',1,'stdio.h']]],
   ['fwrite_34',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]

@@ -3,7 +3,7 @@ var searchData=
   ['h_5fsamp_5ffactor_0',['h_samp_factor',['../structjpeg__save__options__t.html#a521f508a3c9014ef9d74a323eeb1a0cf',1,'jpeg_save_options_t']]],
   ['handels_2eh_1',['handels.h',['../handels_8h.html',1,'']]],
   ['handle_2',['handle',['../structFILE.html#a176663d9f8ea25f12e3d233a0da3cc2b',1,'FILE::handle'],['../stdio_8h.html#abde3cbf1668871d9de26df8950501220',1,'HANDLE:&#160;stdio.h']]],
-  ['handle_5fcount_3',['handle_count',['../structunit__info.html#a4f182823bbd511d16c506d8cf1d7ab17',1,'unit_info']]],
+  ['handle_5fcount_3',['handle_count',['../structunit__info.html#a1f3272002ca1e7ed5805805c4a64aa99',1,'unit_info']]],
   ['handle_5fid_5fmask_4',['HANDLE_ID_MASK',['../handels_8h.html#a452c27ff81cc8d963a8b945d0202a9ce',1,'handels.h']]],
   ['handle_5fstderr_5',['HANDLE_STDERR',['../handels_8h.html#a20f587d71e5bfe98fd92929ab61bde41',1,'handels.h']]],
   ['handle_5fstdin_6',['HANDLE_STDIN',['../handels_8h.html#aa8bdf33a8a477a7f84782d4075cac16e',1,'handels.h']]],
@@ -17,6 +17,6 @@ var searchData=
   ['handle_5ftype_5ftty_14',['HANDLE_TYPE_TTY',['../handels_8h.html#aabd7399c3d6a12733e2d2ac179716a64',1,'handels.h']]],
   ['handle_5ftype_5funit_15',['HANDLE_TYPE_UNIT',['../handels_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handels.h']]],
   ['heap_5fseg_16',['heap_seg',['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'heap_seg:&#160;memory.h'],['../structheap__seg.html',1,'heap_seg']]],
-  ['height_17',['height',['../structimage__t.html#a067e25b338ae9863688c1d6e928ebb62',1,'image_t::height'],['../structfb__info.html#ac512f9325cad40bb0d556a2b2f605a0b',1,'fb_info::height'],['../structfb__rect__outline.html#afc00a5cf143b759a9a0d220942bcd192',1,'fb_rect_outline::height'],['../structfb__rect.html#ad10892ca7a09f36735fe1bf52e96765c',1,'fb_rect::height']]],
-  ['hour_18',['hour',['../structrtc__data.html#ab364b6e0f535de7459b09ee71db47e15',1,'rtc_data']]]
+  ['height_17',['height',['../structimage__t.html#a067e25b338ae9863688c1d6e928ebb62',1,'image_t::height'],['../structfb__info.html#a3d491b7ecdacd951309777eabf6d593a',1,'fb_info::height'],['../structfb__rect__outline.html#a4f8f0fbbac43d849f35f932672478039',1,'fb_rect_outline::height'],['../structfb__rect.html#adca653e1d571d918b9447fbf39055846',1,'fb_rect::height']]],
+  ['hour_18',['hour',['../structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e',1,'rtc_data']]]
 ];

@@ -1,9 +1,9 @@
 var structrtc__data =
 [
-    [ "day", "structrtc__data.html#a74b0bfc04b7236fecefd87aaceb61d6b", null ],
-    [ "hour", "structrtc__data.html#ab364b6e0f535de7459b09ee71db47e15", null ],
-    [ "min", "structrtc__data.html#afb1985b369bafba67c3c376d2120fef4", null ],
-    [ "month", "structrtc__data.html#af7d5c74fbf9a5b85c7ce89863d3cb9f1", null ],
-    [ "sec", "structrtc__data.html#a74497aa2ff01749912cd64a36ee07844", null ],
-    [ "year", "structrtc__data.html#ae1f6e8da2c753702a452d6be44dbc5e5", null ]
+    [ "day", "structrtc__data.html#a49faf5ebdd956fe002b0a8f9f09a7c0d", null ],
+    [ "hour", "structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e", null ],
+    [ "min", "structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860", null ],
+    [ "month", "structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac", null ],
+    [ "sec", "structrtc__data.html#ac12598497fbf097555e42113814934c8", null ],
+    [ "year", "structrtc__data.html#a90678beabd0a4930083601d7854b0d7e", null ]
 ];

@@ -9,5 +9,5 @@ var capabilities_8h =
     [ "CAP_RW", "capabilities_8h.html#a43c399ba202c4a12183cacfc3212e660", null ],
     [ "CAP_UNIT_SPAWN", "capabilities_8h.html#a77e98be56da768faf7ac679435e4e529", null ],
     [ "CAP_WRITE", "capabilities_8h.html#a2238825f4466c863d89ed0451562af61", null ],
-    [ "capability_set", "capabilities_8h.html#ac74599b7cbe014e0c1e132e6e225bc2e", null ]
+    [ "capability_set", "capabilities_8h.html#a815887e087d487f64e0e9fdaf860af5b", null ]
 ];

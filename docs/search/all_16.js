@@ -7,7 +7,7 @@ var searchData=
   ['va_5flist_4',['va_list',['../stdarg_8h.html#af53f622e3b6c080daeb167c1955d7ec1',1,'stdarg.h']]],
   ['va_5fstart_5',['va_start',['../stdarg_8h.html#ade24ac546ea93fde2353ed2db8e89c66',1,'stdarg.h']]],
   ['vendor_6',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info']]],
-  ['vendor_5fid_7',['vendor_id',['../structxhci__device__stat.html#a515718791dccd4d50e68ec911c475100',1,'xhci_device_stat']]],
+  ['vendor_5fid_7',['vendor_id',['../structxhci__device__stat.html#aa139918597ad554609c2f150147df58d',1,'xhci_device_stat']]],
   ['vesperaos_20standard_20library_20vesplib_8',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
   ['vesplib_9',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]]
 ];

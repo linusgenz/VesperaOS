@@ -6,8 +6,8 @@ var searchData=
   ['r15_3',['r15',['../structjmp__buf.html#ab844c9a6e0f401e1c1d65712928dd233',1,'jmp_buf']]],
   ['rbp_4',['rbp',['../structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8',1,'jmp_buf']]],
   ['rbx_5',['rbx',['../structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8',1,'jmp_buf']]],
-  ['realm_5fid_6',['realm_id',['../structunit__info.html#a95fed90805d1da302039408378f81dc4',1,'unit_info']]],
-  ['reserved_5fram_7',['reserved_ram',['../structmeminfo.html#a6bb07e886786f1c64bd709e46c9a6db9',1,'meminfo']]],
+  ['realm_5fid_6',['realm_id',['../structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3',1,'unit_info']]],
+  ['reserved_5fram_7',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
   ['rip_8',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
   ['rsp_9',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

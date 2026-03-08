@@ -1,7 +1,7 @@
 var structmeminfo =
 [
-    [ "free_ram", "structmeminfo.html#aaecdd28f48269a82f91f1795c59c3621", null ],
-    [ "reserved_ram", "structmeminfo.html#a6bb07e886786f1c64bd709e46c9a6db9", null ],
-    [ "total_ram", "structmeminfo.html#a573035b009b279f2af2be0d5972c1350", null ],
-    [ "used_ram", "structmeminfo.html#a02f6b4bc20cda7c7ca20f98aaaff6cf5", null ]
+    [ "free_ram", "structmeminfo.html#acaff872782c28f9f4d227c0af72492d1", null ],
+    [ "reserved_ram", "structmeminfo.html#adb57cb508483ff38c0fef17d826f4657", null ],
+    [ "total_ram", "structmeminfo.html#a568f1ff0eb141fab01680030ee43e5e4", null ],
+    [ "used_ram", "structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595", null ]
 ];
