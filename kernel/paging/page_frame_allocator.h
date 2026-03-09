@@ -49,7 +49,7 @@ class PageFrameAllocator {
     void unreserve_pages(u64 address, usize page_count);
 
     u64 free_memory_{0};
-    i64 reserved_memory_{0};
+    u64 reserved_memory_{0};
     u64 used_memory_{0};
     u64 total_memory_{0};
     bool initialized_{false};

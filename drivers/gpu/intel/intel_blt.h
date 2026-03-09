@@ -26,8 +26,10 @@
 
 #include <vespera/graphics.h>
 #include <vespera/mm/addr.h>
+
 #include "../../../kernel/graphics/IRenderDriver.h"
 #include "../../pci/pci.h"
+#include "ggtt_allocator.h"
 
 struct KernelDevice;
 
@@ -45,9 +47,9 @@ struct KernelDevice;
 #define BCS_SWCTRL_WAKEUP 0x01  // Force wakeup bit
 
 // GTT (Graphics Translation Table)
-constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;    // 8MB offset from MMIO base
-#define GTT_TOTAL_ENTRIES (256 * 1024)  // 256K entries = 1GB
-#define GTT_START_INDEX 0x1000          // Start at entry 4096 (16MB)
+constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;  // 8MB offset from MMIO base
+#define GTT_TOTAL_ENTRIES (256 * 1024)            // 256K entries = 1GB
+#define GTT_START_INDEX 0x1000                    // Start at entry 4096 (16MB)
 
 // ============================================================================
 // BCS Ring Buffer Registers (Base: 0x22000)
@@ -84,98 +86,31 @@ constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;    // 8MB offset from MMIO base
 #define MOCS_DISPLAY_BUFFER 0x03  // Für Display: LLC cacheable
 #define MOCS_CACHED_WB 0x09       // L3 + LLC Write-Back (default für Texturen)
 
-// ============================================================================
-// MI (Memory Interface) Commands
-// ============================================================================
-
 #define MI_NOOP 0x00000000  // No operation
-
-// MI_FLUSH_DW - Flush and write immediate data
-#define MI_COMMAND_TYPE (0x0 << 29)
-#define MI_FLUSH_DW_OPCODE (0x26 << 23)
-#define MI_FLUSH_STORE_INDEX (1 << 21)  // Store to HWSP index
-#define MI_FLUSH_POST_SYNC (1 << 14)    // Write immediate data
-#define MI_FLUSH_DW_LEN 0x3             // Length field
-
-#define MI_STORE_DATA_IMM_OPCODE (0x20 << 23)
 
 #define HWSP_SEQNO_OFFSET_DWORDS 4
 #define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
 
-// ============================================================================
-// XY_SRC_COPY_BLT Command - 2D Source Copy
-// ============================================================================
-
-#define XY_SRC_COPY_BLT_CMD (2u << 29)        // Command type: 2D processor
-#define XY_SRC_COPY_BLT_OPCODE (0x53u << 22)  // Opcode: XY_SRC_COPY_BLT
-#define XY_SRC_COPY_WRITE_RGB (1u << 20)      // Write RGB
-#define XY_SRC_COPY_WRITE_ALPHA (1u << 21)    // Write Alpha
-#define XY_SRC_TILING_ENABLE (1u << 15)       // Source tiling enable
-#define XY_DEST_TILING_ENABLE (1u << 11)      // Destination tiling enable
-#define XY_SRC_COPY_BLT_LEN 8                 // DWord length = 8 (10 DWords total)
-
-// ============================================================================
-// XY_COLOR_BLT Command - 2D Color Fill
-// ============================================================================
-
-#define XY_COLOR_BLT_CMD (2u << 29)          // Command type: 2D processor
-#define XY_COLOR_BLT_OPCODE (0x50u << 22)    // Opcode: XY_COLOR_BLT
-#define XY_COLOR_BLT_WRITE_RGB (1u << 20)    // Write RGB
-#define XY_COLOR_BLT_WRITE_ALPHA (1u << 21)  // Write Alpha
-#define XY_COLOR_TILING_ENABLE (1u << 11)
+#define XY_SRC_COPY_BLT_LEN 8    // DWord length = 8 (10 DWords total)
 #define XY_COLOR_BLT_LEN 5  // DWord length = 5 (7 DWords total)
-
-// BR13 - Color Depth
-#define COLOR_DEPTH_8888 (0b11 << 24)  // 32-bit ARGB
+#define XY_MONO_SRC_COPY_LEN 0x08             // DWord Length: 8
+#define XY_FAST_COPY_BLT_LEN 8 // Length: 8 DWORDs *after* DW0/1 → total 10 DWORDs
+#define MI_FLUSH_DW_LEN 0x3             // Length field
 
 // BR13 - Raster Operation
 #define ROP_PATCOPY 0xF0  // Copy solid color to destination
-#define ROP_SHIFT 16      // ROP position in BR13
-#define PATCOPY (ROP_PATCOPY << ROP_SHIFT)
 
 // Coordinate Masks
 #define COORD_MASK 0xFFFF  // 16-bit coordinate mask
-#define COORD_Y_SHIFT 16   // Y coordinate position
 
 // ROP codes (must involve source, no pattern)
 #define SRCCOPY 0xCC
 
 // ============================================================================
-// XY_MONO_SRC_COPY_BLT Command
-// ============================================================================
-
-#define XY_MONO_SRC_COPY_CMD 0x2 << 29        // Client: 2D Processor
-#define XY_MONO_SRC_COPY_OPCODE 0x54 << 22    // Opcode: 0x54
-#define XY_MONO_SRC_COPY_WRITE_ALPHA 1 << 21  // Write Alpha Channel
-#define XY_MONO_SRC_COPY_WRITE_RGB 1 << 20    // Write RGB Channel
-#define XY_MONO_SRC_COPY_LEN 0x08             // DWord Length: 8
-
-// BR13 bits
-#define MONO_SRC_TRANSPARENCY 1 << 29    // Transparency Enabled
-#define MONO_SRC_USE_BACKGROUND 0 << 29  // Use Background
-
-// ============================================================================
-// XY_FAST_COPY_BLT Command
-// ============================================================================
-
-#define XY_FAST_COPY_BLT_CMD (2u << 29)        // 2D Processor
-#define XY_FAST_COPY_BLT_OPCODE (0x42u << 22)  // XY_FAST_COPY_BLT
-
-// DW0 tiling bits
-#define FAST_SRC_TILING_LINEAR (0u << 20)
-#define FAST_DST_TILING_LINEAR (0u << 13)
-
-// Length: 8 DWORDs *after* DW0/1 → total 10 DWORDs
-#define XY_FAST_COPY_BLT_LEN 8
-
-// BR13
-#define FAST_COLOR_DEPTH_8888 (0b011u << 24)  // 32bpp
-
-// ============================================================================
 // BAR0 Configuration
 // ============================================================================
 
-#define BAR0_ADDR_MASK ~0xFULL        // Mask to extract base address
+#define BAR0_ADDR_MASK ~0xFULL                    // Mask to extract base address
 constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 
 // ============================================================================
@@ -206,126 +141,131 @@ constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 #define PLANE_CTL_RGBX (1u << 20)                 // Sets the Color order to RGB
 #define PLANE_CTL_TILE_Y (0b100 << 10)            // Enables Tile Y for the surface
 
-enum class TileMode : u8 {
-    Linear = 0,  // 256 KB alignment
-    X = 1,       // 256 KB alignment
-    Y = 2        // 1 MB alignment
-};
+namespace blt {
+    enum class TileMode : u8 {
+        Linear = 0,  // 256 KB alignment
+        X = 1,       // 256 KB alignment
+        Y = 2        // 1 MB alignment
+    };
 
-struct GgttAllocation {
-    virt_addr_t cpu_addr;
-    gfx_addr_t gfx_addr;
-};
+    struct GgttAllocation {
+        virt_addr_t cpu_addr;
+        gfx_addr_t gfx_addr;
+    };
 
-struct GpuFramebuffer {
-    virt_addr_t cpu_addr;
-    gfx_addr_t gfx_addr;
-    u32 width;
-    u32 height;
-    u32 bpp;
-    u32 pitch;
-    TileMode tile_mode;
-};
+    struct GpuFramebuffer {
+        virt_addr_t cpu_addr;
+        gfx_addr_t gfx_addr;
+        u32 width;
+        u32 height;
+        u32 bpp;
+        u32 pitch;
+        TileMode tile_mode;
+    };
 
-struct GpuTextBuffer {
-    virt_addr_t cpu_addr;
-    gfx_addr_t gfx_addr;
-    u32 width;   // in pixels
-    u32 height;  // in pixels
-    usize total_size;
-};
+    struct GpuTextBuffer {
+        virt_addr_t cpu_addr;
+        gfx_addr_t gfx_addr;
+        u32 width;   // in pixels
+        u32 height;  // in pixels
+        usize total_size;
+    };
 
-struct BltRect {
-    u32 x, y;
-    u32 width, height;
-};
+    struct BltRect {
+        u32 x, y;
+        u32 width, height;
+    };
 
-class IntelBlt final : public IRenderDriver {
-   public:
-    explicit IntelBlt(pci::PCI_DEVICE_HEADER* header);
-    void start_device(u32 screen_width, u32 screen_height);
+    class IntelBlt final : public IRenderDriver {
+       public:
+        explicit IntelBlt(pci::PCI_DEVICE_HEADER* header);
+        void start_device(u32 screen_width, u32 screen_height);
+        static u32 tile_mode_to_blt_flag(TileMode mode);
 
-    bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
+        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
 
-    bool blit_buffer(
-        const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y
-    ) override;
+        bool blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) override;
 
-    bool scroll_pixels(int dy) override;
+        bool scroll_pixels(int dy) override;
 
-    void draw_glyph_run(const GlyphRun& r) override {
-        draw_str(r.text, r.px, r.py, r.fg, r.bg);
-    }
+        void draw_glyph_run(const GlyphRun& r) override {
+            draw_str(r.text, r.px, r.py, r.fg, r.bg);
+        }
 
-    [[nodiscard]] KernelDevice* get_kd() const {
-        return kd_;
-    }
+        [[nodiscard]] KernelDevice* get_kd() const {
+            return kd_;
+        }
 
-    [[nodiscard]] u32 screen_width_px() const override;
-    [[nodiscard]] u32 screen_height_px() const override;
-    [[nodiscard]] u32 bytes_per_scanline() const override;
+        [[nodiscard]] u32 screen_width_px() const override;
+        [[nodiscard]] u32 screen_height_px() const override;
+        [[nodiscard]] u32 bytes_per_scanline() const override;
 
-   private:
-    KernelDevice* kd_;
+       private:
+        KernelDevice* kd_;
 
-    volatile u8* mmio_base_;
-    volatile u32* bcs_regs_;
-    volatile u64* gtt_entries_{};
+        volatile u8* mmio_base_;
+        volatile u32* bcs_regs_;
+        volatile u64* gtt_entries_{};
 
-    gfx_addr_t ring_gfx_addr_;
-    virt_addr_t ring_cpu_addr_;
-    u32 ring_size_;
-    u32 ring_tail_{};
+        GgttAllocator ggtt_alloc_;
 
-    gfx_addr_t hwsp_gfx_addr_;
-    virt_addr_t hwsp_cpu_addr_;
+        gfx_addr_t ring_gfx_addr_;
+        virt_addr_t ring_cpu_addr_;
+        u32 ring_size_;
+        u32 ring_tail_{};
 
-    u32 gtt_next_free_{};
-    u32 gtt_total_entries_{};
+        gfx_addr_t hwsp_gfx_addr_;
+        virt_addr_t hwsp_cpu_addr_;
 
-    u32 sequence_number_;
+        u32 gtt_next_free_{};
+        u32 gtt_total_entries_{};
 
-    GpuTextBuffer text_buffer_;
-    GpuFramebuffer fb_;
+        u32 sequence_number_;
 
-    void init_text_buffer(const font_t* font, u32 screen_width);
+        GpuTextBuffer text_buffer_;
+        GpuFramebuffer fb_;
 
-    void alloc_framebuffer(u32 width, u32 height, TileMode tile_mode);
-    void build_text_scanline(const char* text, usize length, font_t* font, u8* buffer, usize buffer_stride);
-    bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
-    void xy_src_copy_blt(
-        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-        gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
-    );
-    void xy_fast_copy_blt(
-        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-        gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
-    );
+        void init_text_buffer(const font_t* font, u32 screen_width);
+        template <class T>
+        void write_command_struct(const T& cmd);
 
-    void write_command(u32 cmd);
-    void set_display_framebuffer() const;
-    void mi_flush(u32 seqno);
-    [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us) const;
-    void flush_commands() const;
-    void setup_ring_buffer();
-    void enable_force_wake() const;
-    void enable_bcs_power() const;
-    void reset_bcs() const;
-    void init_gtt();
-    void emergency_reset_bcs();
-    void check_gpu_health();
-    [[nodiscard]] bool validate_blt_params(const BltRect& rect) const;
-    [[nodiscard]] bool wait_for_ring_space(u32 required_bytes, u32 timeout_us) const;
-    void xy_color_blt(
-        gfx_addr_t dest_addr, u32 dest_pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color
-    );
-    void xy_mono_src_copy_blt(
-        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-        gfx_addr_t mono_src_addr, u32 src_bit_position, bool transparency_enabled, u32 bg_color,
-        u32 fg_color
-    );
-    GgttAllocation alloc_and_map_to_ggtt(usize num_pages, u64 flags = 0, u8 pat_index = GTT_PAT_UC);
-    gfx_addr_t map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index);
-};
+        void alloc_framebuffer(u32 width, u32 height, TileMode tile_mode);
+        void build_text_scanline(const char* text, usize length, font_t* font, u8* buffer, usize buffer_stride);
+        bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
+        void xy_src_copy_blt(
+            gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
+            gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
+        );
+        void xy_fast_copy_blt(
+            gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
+            gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
+        );
 
+        void write_command(u32 cmd);
+        void set_display_framebuffer() const;
+        void mi_flush(u32 seqno);
+        [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us) const;
+        void flush_commands() const;
+        void setup_ring_buffer();
+        void enable_force_wake() const;
+        void enable_bcs_power() const;
+        void reset_bcs() const;
+        void init_gtt();
+        void map_to_ggtt_at(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const;
+        void unmap_from_ggtt(u32 gtt_index, usize num_pages);
+        void emergency_reset_bcs();
+        void check_gpu_health();
+        [[nodiscard]] bool validate_blt_params(const BltRect& rect) const;
+        [[nodiscard]] bool wait_for_ring_space(u32 required_bytes, u32 timeout_us) const;
+        void xy_color_blt(gfx_addr_t dest_addr, u32 dest_pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color);
+        void xy_mono_src_copy_blt(
+            gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
+            gfx_addr_t mono_src_addr, u32 src_bit_position, bool transparency_enabled, u32 bg_color, u32 fg_color
+        );
+        GgttAllocation alloc_and_map_to_ggtt(usize num_pages, u64 flags = 0, u8 pat_index = GTT_PAT_UC);
+        GgttAllocation alloc_and_map_to_ggtt_transient(usize num_pages, u64 flags, u8 pat_index);
+        void free_ggtt_transient(const GgttAllocation& alloc, usize num_pages);
+        gfx_addr_t map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index);
+    };
+}  // namespace blt
 #endif  // VESPERAOS_INTEL_BLT_H
