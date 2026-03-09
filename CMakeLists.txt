@@ -34,6 +34,23 @@ add_custom_command(
 add_custom_target(splash_header DEPENDS ${CMAKE_SOURCE_DIR}/splash.h)
 
 # ────────────────────────────────────────────────────────────────
+# Convenience aliases
+# ────────────────────────────────────────────────────────────────
+
+# Build kernel only (kernel.elf is already defined in kernel/CMakeLists.txt,
+# this target just gives it a short top-level name)
+add_custom_target(build-kernel
+        DEPENDS kernel.elf
+        COMMENT "Building kernel only"
+)
+
+# Build userspace only
+add_custom_target(build-userspace
+        DEPENDS elfs
+        COMMENT "Building userspace only"
+)
+
+# ────────────────────────────────────────────────────────────────
 # Disk Image
 # ────────────────────────────────────────────────────────────────
 
@@ -50,12 +67,26 @@ add_custom_target(disk_image
 
 # ────────────────────────────────────────────────────────────────
 # img (write to device)
+#
+# Usage:
+#   make img                        # uses flash.sh — interactive USB picker
+#   make img DEVICE=/dev/sdX        # write directly to the given device
 # ────────────────────────────────────────────────────────────────
 
-add_custom_target(img
-        COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=/dev/sdc bs=4M status=progress conv=fsync
-        DEPENDS disk_image
-)
+if(DEFINED DEVICE)
+    add_custom_target(img
+            COMMAND ${CMAKE_COMMAND} -E echo "Writing to ${DEVICE}..."
+            COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=${DEVICE} bs=4M status=progress conv=fsync
+            DEPENDS disk_image
+            COMMENT "Flashing boot image to ${DEVICE}"
+    )
+else()
+    add_custom_target(img
+            COMMAND bash ${CMAKE_SOURCE_DIR}/flash.sh ${CMAKE_BINARY_DIR}/boot.img
+            DEPENDS disk_image
+            COMMENT "Launching interactive USB flash tool"
+    )
+endif()
 
 # ────────────────────────────────────────────────────────────────
 # QEMU test target
@@ -78,16 +109,41 @@ add_custom_target(test
         -device usb-storage,drive=usbstick
         -device nvme,id=nvme0,serial=deadbeef
         -device nvme-ns,drive=fat32drive,bus=nvme0
-        # -device usb-storage,drive=usbstick2
-
-        #     -device ahci,id=ahci0
-        #     -device ide-hd,drive=usbstick2,bus=ahci0.0
         -device usb-kbd
         -trace *msi*
         -D qemu.log
         -no-reboot
         -no-shutdown
         DEPENDS disk_image
+)
+
+# ────────────────────────────────────────────────────────────────
+# QEMU run target (no rebuild — just launch what's already built)
+# ────────────────────────────────────────────────────────────────
+
+add_custom_target(run
+        COMMAND qemu-system-x86_64
+        -m 4G
+        -smp 8
+        -machine q35
+        -enable-kvm
+        -cpu qemu64
+        -vga std
+        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
+        -net none
+        -monitor stdio
+        -device qemu-xhci,id=xhci1
+        -drive id=usbstick,file=${CMAKE_BINARY_DIR}/boot.img,if=none,format=raw
+        -drive id=fat32drive,file=${CMAKE_SOURCE_DIR}/disk.img,if=none,format=raw
+        -device usb-storage,drive=usbstick
+        -device nvme,id=nvme0,serial=deadbeef
+        -device nvme-ns,drive=fat32drive,bus=nvme0
+        -device usb-kbd
+        -trace *msi*
+        -D qemu.log
+        -no-reboot
+        -no-shutdown
+        COMMENT "Launching QEMU (no rebuild)"
 )
 
 # ────────────────────────────────────────────────────────────────
