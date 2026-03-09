@@ -50,7 +50,7 @@ sudo mkdir -p "$EFI_MNT"
 sudo mount "${LOOPDEV}p1" "$EFI_MNT"
 sudo mkdir -p "$EFI_MNT/EFI/BOOT"
 
-sudo cp "$SRC_DIR/build/startup.nsh"    "$EFI_MNT/startup.nsh"
+sudo cp "$SRC_DIR/assets/startup.nsh"    "$EFI_MNT/startup.nsh"
 sudo cp "$LIMINE_DIR/BOOTX64.EFI"       "$EFI_MNT/EFI/BOOT/BOOTX64.EFI"
 sudo cp "$SRC_DIR/limine.conf"          "$EFI_MNT/limine.conf"
 sudo cp "$KERNEL_ELF"                   "$EFI_MNT/kernel.elf"
@@ -80,7 +80,7 @@ sudo cp "$SRC_DIR/userspace/bin/lsusb"   "$ROOT_MNT/bin/lsusb"
 sudo cp "$SRC_DIR/userspace/bin/memstat" "$ROOT_MNT/bin/memstat"
 sudo cp "$SRC_DIR/userspace/bin/logd"    "$ROOT_MNT/bin/logd"
 sudo cp "$SRC_DIR/userspace/bin/uptime"  "$ROOT_MNT/bin/uptime"
-sudo cp "$SRC_DIR/build/test.jpg"        "$ROOT_MNT/"
+sudo cp "$SRC_DIR/assets/test.jpg"        "$ROOT_MNT/"
 
 sudo umount "$ROOT_MNT"
 

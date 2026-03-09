@@ -4,8 +4,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
-# set(CMAKE_CXX_FLAGS "-ffreestanding -nostdinc -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse")
-
 set(KERNEL_DIR ${CMAKE_SOURCE_DIR})
 set(KERNEL_SRC_DIR ${KERNEL_DIR}/kernel)
 set(ARCH_SRC_DIR ${KERNEL_DIR}/arch)
@@ -103,7 +101,7 @@ add_custom_command(
 add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 
 
-set(FONT_DIR "${CMAKE_SOURCE_DIR}/build")
+set(FONT_DIR "${CMAKE_SOURCE_DIR}/assets")
 set(FONT_FILE "zap-light24.psf")
 set(FONT_PSF "${FONT_DIR}/${FONT_FILE}")
 

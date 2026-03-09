@@ -16,6 +16,8 @@ namespace ahci {
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
 #define ATA_CMD_IDENTIFY 0xEC
+#define ATA_CMD_FLUSH_CACHE     0xE7
+#define ATA_CMD_FLUSH_CACHE_EXT 0xEA
 
 #define HBA_PX_IS_TFES (1 << 30)
 
@@ -163,6 +165,9 @@ namespace ahci {
         IDENTIFY_DEVICE_DATA* identify_ = nullptr;
         kernel::Mutex port_mutex_;
 
+        bool has_flush_cache_ext_ = false;
+        bool has_write_cache_     = false;
+
        public:
         u8 vector = 0;
 
@@ -186,6 +191,9 @@ namespace ahci {
         void stop_cmd() const;
         void start_cmd() const;
 
+        bool flush();
+        [[nodiscard]] bool write_cache_enabled() const;
+
         isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
 
         isize write(u64 sector, usize sector_count, void* buffer, usize buffer_size) override;
@@ -195,10 +203,10 @@ namespace ahci {
         bool identify();
     };
 
-    class AhciDriver {
+    class AhciDriver final : public IDriverLifecycle {
        public:
         explicit AhciDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
-        ~AhciDriver();
+        ~AhciDriver() override;
         [[nodiscard]] bool has_active_ports() const;
         pci::PCI_DEVICE_HEADER* pci_base_address;
         HBA_MEMORY* abar;
@@ -206,6 +214,9 @@ namespace ahci {
         static Irqreturn global_interrupt_handler(const AhciDriver* driver);
         Port* ports[32]{};
         u8 port_count;
+
+        void on_shutdown() override;
+        void on_suspend()  override;
 
        private:
         KernelDevice* kd_;

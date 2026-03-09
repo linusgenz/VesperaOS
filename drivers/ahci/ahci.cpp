@@ -200,6 +200,57 @@ namespace ahci {
         return sector_size;
     }
 
+    bool Port::flush() {
+        if (!has_write_cache_) return true;
+
+        kernel::MutexGuard guard(port_mutex_);
+
+        hba_port->interrupt_status = 0xFFFFFFFF;
+
+        const phys_addr_t cmd_list_phys =
+            make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32
+                      | hba_port->command_list_base);
+        auto* cmd_header =
+            static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
+
+        cmd_header->command_fis_length = sizeof(FisRegH2D) / sizeof(u32);
+        cmd_header->write    = 0;
+        cmd_header->prdt_length = 0; // no data transfer
+
+        const phys_addr_t cmd_table_phys = make_phys(
+            static_cast<u64>(cmd_header->command_table_base_address_upper) << 32
+            | cmd_header->command_table_base_address
+        );
+        auto* cmd_table =
+            static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
+        memset(cmd_table, 0, sizeof(HbaCommandTable));
+
+        auto* cmd_fis = reinterpret_cast<FisRegH2D*>(&cmd_table->command_fis);
+        cmd_fis->fis_type        = FIS_TYPE_REG_H2D;
+        cmd_fis->command_control = 1;
+        cmd_fis->command = has_flush_cache_ext_
+                           ? ATA_CMD_FLUSH_CACHE_EXT
+                           : ATA_CMD_FLUSH_CACHE;
+
+        command_completed = false;
+        last_error        = false;
+        hba_port->command_issue = 1 << 0;
+
+        while (!command_completed) asm volatile("pause");
+
+        if (last_error) {
+            Log::error("[ AHCI ] Port %u: FLUSH CACHE failed", port_number);
+            return false;
+        }
+
+        Log::debug("[ AHCI ] Port %u: FLUSH CACHE ok", port_number);
+        return true;
+    }
+
+    bool Port::write_cache_enabled() const {
+        return has_write_cache_;
+    }
+
     bool Port::identify() {
         const phys_addr_t identify_phys = kernel::memory::request_page_phys();
         identify_ = static_cast<IDENTIFY_DEVICE_DATA*>(virt_ptr(phys_to_virt(identify_phys)));
@@ -241,6 +292,20 @@ namespace ahci {
                 Log::error("[ AHCI ] IDENTIFY error");
                 return false;
             }
+        }
+
+        has_write_cache_ = identify_->command_set_support.write_cache
+                && identify_->command_set_active.write_cache;
+
+        has_flush_cache_ext_ = identify_->command_set_support.flush_cache_ext
+                            && identify_->command_set_active.flush_cache_ext;
+
+        if (has_write_cache_) {
+            Log::info(
+                "[ AHCI ] Port %u: write cache enabled, flush_cache_ext=%s",
+                port_number,
+                has_flush_cache_ext_ ? "yes" : "no"
+            );
         }
 
         if (identify_->physical_logical_sector_size.logical_sector_longer_than256_words) {
@@ -363,7 +428,7 @@ namespace ahci {
 
         cmd_table->prdt_entry[0].data_base_address = static_cast<u32>(phys_raw(dma_phys));
         cmd_table->prdt_entry[0].data_base_address_upper = static_cast<u32>(phys_raw(dma_phys) >> 32);
-        cmd_table->prdt_entry[0].byte_count = sector_count * 512 - 1;
+        cmd_table->prdt_entry[0].byte_count = sector_count * sector_size - 1;
         cmd_table->prdt_entry[0].interrupt_on_completion = 1;
 
         auto* cmd_fis = reinterpret_cast<FisRegH2D*>(&cmd_table->command_fis);
@@ -405,7 +470,7 @@ namespace ahci {
 
         char name[16];
         DeviceManager::alloc_unique_device_name("ahci", name, sizeof(name));
-        kd_ = DeviceManager::register_controller(name, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci);
+        kd_ = DeviceManager::register_controller(name, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, nullptr, nullptr, this);
 
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
@@ -449,5 +514,41 @@ namespace ahci {
     AhciDriver::~AhciDriver() {
         kernel::memory::unmap_memory(make_virt(abar));
         for (int i = 0; i < port_count; i++) delete ports[i];
+    }
+
+    void AhciDriver::on_shutdown() {
+        Log::info("[ AHCI ] Shutdown: flushing and stopping all ports...");
+
+        for (int i = 0; i < port_count; i++) {
+            Port* port = ports[i];
+
+            port->flush();
+
+            u32 timeout = 500000;
+            while (port->hba_port->command_issue != 0 && --timeout) {
+                asm volatile("pause");
+            }
+            if (timeout == 0) {
+                Log::warning("[ AHCI ] Port %u: commands did not drain on shutdown", port->port_number);
+            }
+
+            port->stop_cmd();
+
+            port->hba_port->interrupt_enable = 0;
+            port->hba_port->interrupt_status = 0xFFFFFFFF; // clear pending Bits  (W1C)
+        }
+
+        abar->global_host_control &= ~AHCI_GHC_IE;
+        abar->global_host_control &= ~AHCI_GHC_AE;
+        abar->interrupt_status = 0xFFFFFFFF;
+
+        Log::ok("[ AHCI ] Shutdown complete");
+    }
+
+    void AhciDriver::on_suspend() {
+        Log::info("[ AHCI ] Flushing all ports before suspend...");
+        for (int i = 0; i < port_count; i++) {
+            ports[i]->flush();
+        }
     }
 }  // namespace ahci
