@@ -116,7 +116,7 @@ namespace nvme {
         char name[16];
         DeviceManager::alloc_unique_device_name("nvme", name, sizeof(name));
         kd_ = DeviceManager::register_controller(
-            name, DeviceClass::Storage, BusType::Pci, ControllerType::Nvme, nullptr, nullptr, this
+            name, DeviceClass::Storage, BusType::Pci, ControllerType::Nvme, nullptr, nullptr, this, this
         );
         DevFs::register_device(kd_);
 
@@ -389,8 +389,8 @@ namespace nvme {
     }
 
     NvmeQueue::NvmeQueue(
-        u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq,
-        volatile u32* cq_db, volatile u32* sq_db, u16 csz, u16 ssz
+        u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq, volatile u32* cq_db,
+        volatile u32* sq_db, u16 csz, u16 ssz
     )
         : queue_id_(qid)
         , completion_base_(cq_base)
@@ -490,6 +490,55 @@ namespace nvme {
         }
 
         return phys_raw(prp_list_phys);
+    }
+
+    bool NvmeDriver::smart_read_data(u8* out_buf) {
+        phys_addr_t phys = kernel::memory::request_page_phys();
+        if (phys_null(phys)) return false;
+
+        memset(virt_ptr(phys_to_virt(phys)), 0, 512);
+
+        NVME_COMMAND cmd{};
+        cmd.cdw0.opc = NVME_ADMIN_COMMAND_GET_LOG_PAGE;
+        cmd.nsid = 0xFFFFFFFF;  // controller-wide
+        cmd.prp1 = phys_raw(phys);
+
+        // CDW10: LID=0x02, NUMDL=511/4=127 dwords (512 bytes)
+        cmd.u.getlogpage.cdw10_v13.lid = 0x02;   // Health Information
+        cmd.u.getlogpage.cdw10_v13.numdl = 127;  // (512/4) - 1
+
+        NVME_COMPLETION_ENTRY completion{};
+        admin_queue_.submit_wait(cmd, completion);
+
+        if (completion.dw3.status > 0) {
+            kernel::memory::free_page_phys(phys);
+            return false;
+        }
+
+        memcpy(out_buf, virt_ptr(phys_to_virt(phys)), 512);
+        kernel::memory::free_page_phys(phys);
+        return true;
+    }
+
+    constexpr u16 KELVIN_TO_CELSIUS_OFFSET = 273;
+    bool NvmeDriver::smart_get_attributes(SmartAttributes* out) {
+        u8 raw[512]{};
+        if (!smart_read_data(raw)) return false;
+
+        const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);
+
+        // Kelvin → Celsius
+        const u16 kelvin = static_cast<u16>(h->temperature[0]) | static_cast<u16>(h->temperature[1]) << 8;
+        out->temperature_celsius =
+            (kelvin > KELVIN_TO_CELSIUS_OFFSET) ? static_cast<u8>(kelvin - KELVIN_TO_CELSIUS_OFFSET) : 0;
+
+        out->power_on_hours = h->power_on_hours;
+        out->reallocated_sectors = 0;
+        out->pending_sectors = static_cast<u32>(h->media_errors);
+        out->health_ok = h->critical_warning.raw == 0;
+
+        out->attr_count = 0;
+        return true;
     }
 
     isize NvmeNamespace::read(u64 lba, usize sector_count, void* buffer, usize buffer_size) {

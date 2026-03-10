@@ -1,15 +1,16 @@
 #include "ahci.h"
 
+#include <uapi/vespera/dev/ioctl_smart.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera_errno.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../../userspace/lib/include/errno.h"
 #include "../pci/msi.h"
 #include "../pci/msix.h"
 #include "ata.h"
-#include "vespera/devices/device_manager.h"
-#include "vespera/interrupts.h"
 
 namespace ahci {
 #define HBA_PORT_DEV_PRESENT 0x3
@@ -125,8 +126,7 @@ namespace ahci {
             memset(table_virt, 0, 256);
 
             cmd_list_virt[i].command_table_base_address = static_cast<u32>(phys_raw(table_phys_offset));
-            cmd_list_virt[i].command_table_base_address_upper =
-                static_cast<u32>(phys_raw(table_phys_offset) >> 32);
+            cmd_list_virt[i].command_table_base_address_upper = static_cast<u32>(phys_raw(table_phys_offset) >> 32);
         }
 
         start_cmd();
@@ -187,6 +187,7 @@ namespace ahci {
 
     void Port::start_cmd() const {
         while (hba_port->cmd_sts & HBA_PX_CMD_CR) {
+            asm volatile("pause");
         }
 
         hba_port->cmd_sts |= HBA_PX_CMD_FRE;
@@ -200,6 +201,110 @@ namespace ahci {
         return sector_size;
     }
 
+    bool Port::smart_read_data(u8* out_buf) {
+        if (!has_smart_) return false;
+
+        kernel::MutexGuard guard(port_mutex_);
+
+        const phys_addr_t dma_phys = kernel::memory::request_page_phys();
+        void* dma = virt_ptr(phys_to_virt(dma_phys));
+        memset(dma, 0, 512);
+
+        hba_port->interrupt_status = 0xFFFFFFFF;
+
+        const phys_addr_t cmd_list_phys =
+            make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
+        auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
+        cmd_header->write = 0;
+        cmd_header->prdt_length = 1;
+
+        const phys_addr_t cmd_table_phys = make_phys(
+            static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
+        );
+        auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
+        memset(cmd_table, 0, sizeof(HbaCommandTable));
+
+        cmd_table->prdt_entry[0].data_base_address = static_cast<u32>(phys_raw(dma_phys));
+        cmd_table->prdt_entry[0].data_base_address_upper = static_cast<u32>(phys_raw(dma_phys) >> 32);
+        cmd_table->prdt_entry[0].byte_count = 511;  // 512 - 1
+        cmd_table->prdt_entry[0].interrupt_on_completion = 1;
+
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
+        cmd_fis->fis_type = FIS_TYPE_REG_H2D;
+        cmd_fis->command_control = 1;
+        cmd_fis->command = ATA_CMD_SMART;            // 0xB0
+        cmd_fis->feature_low = ATA_SMART_READ_DATA;  // 0xD0
+        cmd_fis->lba1 = 0x4F;                        // SMART signature
+        cmd_fis->lba2 = 0xC2;                        // SMART signature
+
+        command_completed = false;
+        last_error = false;
+        hba_port->command_issue = 1 << 0;
+
+        while (!command_completed) asm volatile("pause");
+
+        if (last_error) {
+            kernel::memory::free_page_phys(dma_phys);
+            return false;
+        }
+
+        memcpy(out_buf, dma, 512);
+        kernel::memory::free_page_phys(dma_phys);
+        return true;
+    }
+
+    bool Port::smart_get_attributes(SmartAttributes* out) {
+        u8 raw[512];
+        if (!smart_read_data(raw)) return false;
+
+        // SMART READ DATA Layout:
+        // Byte 0-1:  Version
+        // Byte 2-361: 30x attribute structs
+        out->version = raw[0] | (static_cast<u16>(raw[1]) << 8);
+        out->attr_count = 0;
+
+        out->temperature_celsius = 0;
+        out->power_on_hours = 0;
+        out->reallocated_sectors = 0;
+        out->pending_sectors = 0;
+        out->health_ok = 1;
+
+        for (int i = 0; i < 30; i++) {
+            const u8* entry = &raw[2 + i * 12];
+            const u8 id = entry[0];
+            if (id == 0) continue;
+
+            SmartAttribute& a = out->attrs[out->attr_count++];
+            a.id = id;
+            a.flags = entry[1] | (static_cast<u16>(entry[2]) << 8);
+            a.current = entry[3];
+            a.worst = entry[4];
+            memcpy(a.raw, &entry[5], 6);
+
+            switch (id) {
+                case 0x05:
+                    out->reallocated_sectors = a.raw[0] | static_cast<u32>(a.raw[1]) << 8;
+                    if (out->reallocated_sectors > 0) out->health_ok = 0;
+                    break;
+                case 0x09:
+                    out->power_on_hours = a.raw[0] | static_cast<u64>(a.raw[1]) << 8 |
+                                          static_cast<u64>(a.raw[2]) << 16 | static_cast<u64>(a.raw[3]) << 24;
+                    break;
+                case 0xBE:
+                    out->temperature_celsius = a.raw[0];
+                    break;
+                case 0xC5:
+                    out->pending_sectors = a.raw[0] | static_cast<u32>(a.raw[1]) << 8;
+                    if (out->pending_sectors > 0) out->health_ok = 0;
+                    break;
+                default:;
+            }
+        }
+        return true;
+    }
+
     bool Port::flush() {
         if (!has_write_cache_) return true;
 
@@ -208,32 +313,27 @@ namespace ahci {
         hba_port->interrupt_status = 0xFFFFFFFF;
 
         const phys_addr_t cmd_list_phys =
-            make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32
-                      | hba_port->command_list_base);
-        auto* cmd_header =
-            static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
+            make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
+        auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
 
-        cmd_header->command_fis_length = sizeof(FisRegH2D) / sizeof(u32);
-        cmd_header->write    = 0;
-        cmd_header->prdt_length = 0; // no data transfer
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
+        cmd_header->write = 0;
+        cmd_header->prdt_length = 0;  // no data transfer
 
         const phys_addr_t cmd_table_phys = make_phys(
-            static_cast<u64>(cmd_header->command_table_base_address_upper) << 32
-            | cmd_header->command_table_base_address
+            static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
         );
-        auto* cmd_table =
-            static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
+        auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
         memset(cmd_table, 0, sizeof(HbaCommandTable));
 
-        auto* cmd_fis = reinterpret_cast<FisRegH2D*>(&cmd_table->command_fis);
-        cmd_fis->fis_type        = FIS_TYPE_REG_H2D;
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
+        cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
-        cmd_fis->command = has_flush_cache_ext_
-                           ? ATA_CMD_FLUSH_CACHE_EXT
-                           : ATA_CMD_FLUSH_CACHE;
+        cmd_fis->command = has_flush_cache_ext_ ? ATA_CMD_FLUSH_CACHE_EXT : ATA_CMD_FLUSH_CACHE;
 
         command_completed = false;
-        last_error        = false;
+        last_error = false;
         hba_port->command_issue = 1 << 0;
 
         while (!command_completed) asm volatile("pause");
@@ -263,7 +363,7 @@ namespace ahci {
             make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
 
-        cmd_header->command_fis_length = sizeof(FisRegH2D) / sizeof(u32);
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 0;
         cmd_header->prdt_length = 1;
 
@@ -279,7 +379,7 @@ namespace ahci {
         cmd_table->prdt_entry[0].byte_count = 511;
         cmd_table->prdt_entry[0].interrupt_on_completion = 1;
 
-        auto* cmd_fis = reinterpret_cast<FisRegH2D*>(&cmd_table->command_fis);
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_IDENTIFY;
@@ -294,11 +394,10 @@ namespace ahci {
             }
         }
 
-        has_write_cache_ = identify_->command_set_support.write_cache
-                && identify_->command_set_active.write_cache;
+        has_write_cache_ = identify_->command_set_support.write_cache && identify_->command_set_active.write_cache;
 
-        has_flush_cache_ext_ = identify_->command_set_support.flush_cache_ext
-                            && identify_->command_set_active.flush_cache_ext;
+        has_flush_cache_ext_ =
+            identify_->command_set_support.flush_cache_ext && identify_->command_set_active.flush_cache_ext;
 
         if (has_write_cache_) {
             Log::info(
@@ -309,8 +408,8 @@ namespace ahci {
         }
 
         if (identify_->physical_logical_sector_size.logical_sector_longer_than256_words) {
-            const u32 words = identify_->words_per_logical_sector[0] |
-                                   static_cast<u32>(identify_->words_per_logical_sector[1]) << 16;
+            const u32 words =
+                identify_->words_per_logical_sector[0] | static_cast<u32>(identify_->words_per_logical_sector[1]) << 16;
             sector_size = words * 2;
         } else {
             sector_size = 512;
@@ -321,6 +420,11 @@ namespace ahci {
                             identify_->extended_number_of_user_addressable_sectors[0];
         } else {
             total_sectors = identify_->user_addressable_sectors;
+        }
+
+        has_smart_ = identify_->command_set_support.smart_commands && identify_->command_set_active.smart_commands;
+        if (has_smart_) {
+            Log::info("[ AHCI ] Port %u: SMART supported", port_number);
         }
 
         return true;
@@ -345,7 +449,7 @@ namespace ahci {
         phys_addr_t cmd_list_phys =
             make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
-        cmd_header->command_fis_length = sizeof(FisRegH2D) / sizeof(u32);
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 0;
         cmd_header->prdt_length = 1;
 
@@ -361,7 +465,7 @@ namespace ahci {
         cmd_table->prdt_entry[0].byte_count = sector_count * sector_size - 1;
         cmd_table->prdt_entry[0].interrupt_on_completion = 1;
 
-        auto* cmd_fis = reinterpret_cast<FisRegH2D*>(&cmd_table->command_fis);
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_READ_DMA_EX;
@@ -415,7 +519,7 @@ namespace ahci {
         phys_addr_t cmd_list_phys =
             make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
-        cmd_header->command_fis_length = sizeof(FisRegH2D) / sizeof(u32);
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 1;
         cmd_header->prdt_length = 1;
 
@@ -431,7 +535,7 @@ namespace ahci {
         cmd_table->prdt_entry[0].byte_count = sector_count * sector_size - 1;
         cmd_table->prdt_entry[0].interrupt_on_completion = 1;
 
-        auto* cmd_fis = reinterpret_cast<FisRegH2D*>(&cmd_table->command_fis);
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_WRITE_DMA_EX;
@@ -470,7 +574,9 @@ namespace ahci {
 
         char name[16];
         DeviceManager::alloc_unique_device_name("ahci", name, sizeof(name));
-        kd_ = DeviceManager::register_controller(name, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, nullptr, nullptr, this);
+        kd_ = DeviceManager::register_controller(
+            name, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, nullptr, nullptr, this
+        );
 
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
@@ -500,7 +606,7 @@ namespace ahci {
             char name_buf[16] = {};
             DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
             port->kd = DeviceManager::register_block_device(
-                port, name_buf, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, kd_
+                port, name_buf, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, kd_, port
             );
             DevFs::register_device(port->kd);
             DeviceManager::find_and_register_partitions(port->kd);
@@ -535,7 +641,7 @@ namespace ahci {
             port->stop_cmd();
 
             port->hba_port->interrupt_enable = 0;
-            port->hba_port->interrupt_status = 0xFFFFFFFF; // clear pending Bits  (W1C)
+            port->hba_port->interrupt_status = 0xFFFFFFFF;  // clear pending Bits  (W1C)
         }
 
         abar->global_host_control &= ~AHCI_GHC_IE;

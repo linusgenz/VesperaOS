@@ -10,6 +10,8 @@
 
 #include "../types.h"
 
+#define IID_SMART 0x0001
+
 class BlockDevice {
    public:
     enum class Type { Disk, Partition };

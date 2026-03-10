@@ -1,8 +1,8 @@
 #include "xhci.h"
 
-#include <uapi/vespera/dev/usb_xhci_ioctl.h>
 #include <klib/encoding.h>
 #include <klib/vector.h>
+#include <uapi/vespera/dev/ioctl_usb_xhci.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>

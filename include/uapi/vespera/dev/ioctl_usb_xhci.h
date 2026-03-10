@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_USB_XHCI_IOCTL_H
-#define VESPERAOS_USB_XHCI_IOCTL_H
+#ifndef VESPERAOS_IOCTL_USB_XHCI_H
+#define VESPERAOS_IOCTL_USB_XHCI_H
 
 #include <vespera/types.h>
 
@@ -53,4 +53,4 @@ typedef struct xhci_device_stat {
  */
 #define XHCI_IOCTL_GET_DEVICE  2
 
-#endif //VESPERAOS_USB_XHCI_IOCTL_H
+#endif //VESPERAOS_IOCTL_USB_XHCI_H

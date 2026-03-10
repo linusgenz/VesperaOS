@@ -158,7 +158,7 @@ u32 DeviceManager::get_device_count() {
 
 KernelDevice* DeviceManager::register_block_device(
     BlockDevice* dev, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,
-    KernelDevice* parent
+    KernelDevice* parent, ISmartDevice* smart
 ) {
     if (!dev) return nullptr;
 
@@ -227,7 +227,7 @@ KernelDevice* DeviceManager::register_char_device(
 
 KernelDevice* DeviceManager::register_controller(
     const char* name, DeviceClass dev_class, BusType bus, ControllerType controller, KernelDevice* parent,
-    ::CharDevice* dev, IDriverLifecycle* lifecycle
+    ::CharDevice* dev, IDriverLifecycle* lifecycle, ISmartDevice* smart
 ) {
     SpinlockGuard guard(lock_);
 
@@ -246,6 +246,7 @@ KernelDevice* DeviceManager::register_controller(
     kd->block = nullptr;
     kd->chardev = dev;
     kd->lifecycle = lifecycle;
+    kd->smart = smart;
 
     kd->driver_data = nullptr;
 

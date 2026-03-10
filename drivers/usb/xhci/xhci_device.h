@@ -24,10 +24,11 @@
 #ifndef VESPERAOS_XHCI_DEVICE_H
 #define VESPERAOS_XHCI_DEVICE_H
 
-#include "xhci_rings.h"
+#include <uapi/vespera/dev/ioctl_usb_xhci.h>
+
 #include "xhci_device_ctx.h"
+#include "xhci_rings.h"
 #include "xhci_usb_interface.h"
-#include <uapi/vespera/dev/usb_xhci_ioctl.h>
 
 class XhciDevice {
 public:

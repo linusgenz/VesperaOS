@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_FRAMEBUFFER_IOCTL_H
-#define VESPERAOS_FRAMEBUFFER_IOCTL_H
+#ifndef VESPERAOS_IOCTL_FRAMEBUFFER_H
+#define VESPERAOS_IOCTL_FRAMEBUFFER_H
 
 #include <vespera/types.h>
 
@@ -132,4 +132,4 @@ typedef struct {
  * The buffer must contain ARGB pixels (0xAARRGGBB format).
  */
 #define FB_IOCTL_BLIT               0x4605
-#endif //VESPERAOS_FRAMEBUFFER_IOCTL_H
+#endif //VESPERAOS_IOCTL_FRAMEBUFFER_H

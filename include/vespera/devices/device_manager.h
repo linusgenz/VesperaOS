@@ -24,9 +24,11 @@
 #ifndef DEVICE_MANAGER_H
 #define DEVICE_MANAGER_H
 
-#include "driver_lifecycle.h"
 #include <klib/vector.h>
-//#include <vespera/types.h>
+
+#include "driver_lifecycle.h"
+#include "smart_device.h"
+// #include <vespera/types.h>
 
 struct VfsNode;
 class CharDevice;
@@ -88,6 +90,8 @@ struct KernelDevice {
     BlockDevice* block{nullptr};
     CharDevice* chardev{nullptr};
 
+    ISmartDevice* smart{nullptr};
+
     IDriverLifecycle* lifecycle{nullptr};
 
     u32 next_nvme_index = 0;  // for nvme<N> controller
@@ -112,9 +116,8 @@ class DeviceManager {
     static u32 get_device_count();
 
     static KernelDevice* register_block_device(
-        BlockDevice* dev, const char* name, DeviceClass dev_class = DeviceClass::Storage,
-        BusType bus = BusType::None, ControllerType controller = ControllerType::Other,
-        KernelDevice* parent = nullptr
+        BlockDevice* dev, const char* name, DeviceClass dev_class = DeviceClass::Storage, BusType bus = BusType::None,
+        ControllerType controller = ControllerType::Other, KernelDevice* parent = nullptr, ISmartDevice* smart = nullptr
     );
 
     static KernelDevice* register_char_device(
@@ -124,7 +127,8 @@ class DeviceManager {
 
     static KernelDevice* register_controller(
         const char* name, DeviceClass dev_class, BusType bus, ControllerType controller = ControllerType::Other,
-        KernelDevice* parent = nullptr, CharDevice* dev = nullptr, IDriverLifecycle* lifecycle = nullptr
+        KernelDevice* parent = nullptr, CharDevice* dev = nullptr, IDriverLifecycle* lifecycle = nullptr,
+        ISmartDevice* smart = nullptr
     );
     static KernelDevice* register_gpu_device(
         IRenderDriver* driver, const char* name, DeviceClass dev_class, BusType bus, ControllerType controller,

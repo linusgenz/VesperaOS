@@ -7,6 +7,8 @@
 
 #include <vespera/types.h>
 
+// For reference see: https://nvmexpress.org/specifications/ "NVM Express® Base Specification"
+
 namespace nvme {
     enum NVME_ADMIN_COMMANDS {
         NVME_ADMIN_COMMAND_DELETE_IO_SQ = 0x00,
@@ -203,8 +205,8 @@ namespace nvme {
     struct NVME_CONTROLLER_REGISTERS {
         NVME_CONTROLLER_CAPABILITIES cap;  // Controller Capabilities; 8 bytes
         NVME_VERSION vs;                   // Version
-        u32 intms;                    // Interrupt Mask Set
-        u32 intmc;                    // Interrupt Mask Clear
+        u32 intms;                         // Interrupt Mask Set
+        u32 intmc;                         // Interrupt Mask Clear
         NVME_CONTROLLER_CONFIGURATION cc;  // Controller Configuration
         u32 reserved0;
         NVME_CONTROLLER_STATUS csts;    // Controller Status
@@ -221,6 +223,58 @@ namespace nvme {
         u32 reserved3[64];   // F00h ~ FFFh, Command Set Specific
 
         u32 doorbells[0];  // Start of the first Doorbell register. (Admin SQ Tail Doorbell)
+    };
+
+    struct NVME_HEALTH_INFO_LOG {
+        union {
+            struct {
+                u8 available_space_low : 1;  // =1: Available spare capacity has fallen below the threshold.
+                u8 temperature_threshold
+                    : 1;  // =1: Device temperature is above the over-temp threshold or below the under-temp threshold.
+                u8 reliability_degraded
+                    : 1;           // =1: Device reliability degraded due to media errors or internal failures.
+                u8 read_only : 1;  // =1: Media has been placed into read-only mode.
+                u8 volatile_memory_backup_device_failed
+                    : 1;          // =1: Volatile memory backup device failed (only valid if controller supports it).
+                u8 reserved : 3;  // Reserved bits.
+            };
+            u8 raw;          // Raw critical warning byte.
+        } critical_warning;  // Bitfield representing controller critical warning states.
+
+        u8 temperature[2];   // Composite device temperature in Kelvin (controller + NVM). May trigger async event if
+                             // thresholds are exceeded.
+        u8 available_spare;  // Normalized percentage (0–100%) of remaining spare capacity.
+        u8 available_spare_threshold;  // Threshold (0–100%). Async event may occur when available_spare drops below
+                                       // this value.
+        u8 percentage_used;            // Estimated percentage of NVM subsystem life used.
+        u8 reserved0[26];              // Reserved.
+        u128 data_unit_read;  // Number of 512-byte data units read by host (excluding metadata). Value is reported in
+                              // thousands (1 = 1000 units of 512 bytes) and rounded up.
+        u128 data_unit_written;   // Number of 512-byte data units written by host (excluding metadata). Value reported
+                                  // in thousands; controller converts non-512 LBA sizes accordingly.
+        u128 host_read_commands;  // Total number of read commands completed by controller (Compare + Read).
+        u128 host_written_commands;       // Total number of write commands completed by controller.
+        u128 controller_busy_time;        // Time controller was busy processing I/O commands.
+                                          // Unit: minutes.
+        u128 power_cycle;                 // Number of controller power cycles.
+        u128 power_on_hours;              // Total number of hours the controller has been powered on
+                                          // (excluding time spent in low power states).
+        u128 unsafe_shutdowns;            // Number of unsafe shutdowns (power lost without shutdown notification).
+        u128 media_errors;                // Count of unrecoverable data integrity errors
+                                          // (e.g. uncorrectable ECC, CRC failure, LBA tag mismatch).
+        u128 error_info_log_entry_count;  // Total number of Error Information log entries recorded by the controller.
+        u32 warning_composite_temperature_time;   // Time in minutes device temperature was >= WCTEMP and < CCTEMP.
+        u32 critical_composite_temperature_time;  // Time in minutes device temperature exceeded CCTEMP.
+        u16 temperature_sensor1;                  // Temperature reported by sensor 1 (Kelvin).
+        u16 temperature_sensor2;                  // Temperature reported by sensor 2 (Kelvin).
+        u16 temperature_sensor3;                  // Temperature reported by sensor 3 (Kelvin).
+        u16 temperature_sensor4;                  // Temperature reported by sensor 4 (Kelvin).
+        u16 temperature_sensor5;                  // Temperature reported by sensor 5 (Kelvin).
+        u16 temperature_sensor6;                  // Temperature reported by sensor 6 (Kelvin).
+        u16 temperature_sensor7;                  // Temperature reported by sensor 7 (Kelvin).
+        u16 temperature_sensor8;                  // Temperature reported by sensor 8 (Kelvin).
+
+        u8 reserved1[296];  // Reserved (for future NVMe spec extensions).
     };
 
     enum DRIVER_STATUS { CONTROLLER_NOT_READY, CONTROLLER_ERROR, CONTROLLER_READY, CONTROLLER_SHUTDOWN };
@@ -1006,14 +1060,14 @@ namespace nvme {
             u8 reserved : 7;
         } apsta;
 
-        u16 wctemp;
-        u16 cctemp;
-        u16 mtfa;
-        u32 hmpre;
-        u32 hmmin;
+        u16 wctemp; // byte 266:267. M - Warning Composite Temperature Threshold (WCTEMP)
+        u16 cctemp; // byte 268:269. M - Critical Composite Temperature Threshold (CCTEMP)
+        u16 mtfa; // byte 270:271. O - Maximum Time for Firmware Activation (MTFA)
+        u32 hmpre; // byte 272:275. O - Host Memory Buffer Preferred Size (HMPRE)
+        u32 hmmin; // byte 276:279. O - Host Memory Buffer Minimum Size (HMMIN)
 
-        u8 tnvmcap[16];
-        u8 unvmcap[16];
+        u8 tnvmcap[16]; // byte 280:295. O - Total NVM Capacity (TNVMCAP)
+        u8 unvmcap[16]; // byte 296:311. O - Unallocated NVM Capacity (UNVMCAP)
 
         struct __attribute__((packed)) {
             u32 rpmb_unit_count : 3;
@@ -1158,8 +1212,7 @@ namespace nvme {
         struct {
             u16 ms;
             u8 lbads;
-            u8
-            rp : 2;
+            u8 rp : 2;
             u8 reserved0 : 6;
         };
 

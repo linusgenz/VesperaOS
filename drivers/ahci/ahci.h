@@ -1,12 +1,14 @@
 #ifndef AHCI_H
 #define AHCI_H
 
-#include "../../arch/x86_64/interrupts/idt.h"
-#include "../../filesystem/devfs/devfs.h"
 #include <vespera/devices/block.h>
 #include <vespera/sync/mutex.h>
+
+#include "../../arch/x86_64/interrupts/idt.h"
+#include "../../filesystem/devfs/devfs.h"
 #include "../pci/pci.h"
 #include "ata.h"
+#include "uapi/vespera/dev/ioctl_smart.h"
 #include "vespera/devices/device_manager.h"
 
 // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/serial-ata-ahci-spec-rev1-3-1.pdf
@@ -16,8 +18,10 @@ namespace ahci {
 #define ATA_CMD_READ_DMA_EX 0x25
 #define ATA_CMD_WRITE_DMA_EX 0x35
 #define ATA_CMD_IDENTIFY 0xEC
-#define ATA_CMD_FLUSH_CACHE     0xE7
+#define ATA_CMD_FLUSH_CACHE 0xE7
 #define ATA_CMD_FLUSH_CACHE_EXT 0xEA
+#define ATA_CMD_SMART 0xB0
+#define ATA_SMART_READ_DATA 0xD0
 
 #define HBA_PX_IS_TFES (1 << 30)
 
@@ -132,7 +136,8 @@ namespace ahci {
         HBA_PRDT_ENTRY prdt_entry[];
     };
 
-    struct FisRegH2D {
+    // ReSharper disable once CppInconsistentNaming
+    struct FIS_REG_H2D {
         u8 fis_type;
 
         u8 port_multiplier : 4;
@@ -160,17 +165,18 @@ namespace ahci {
         u8 rsv1[4];
     };
 
-    class Port final : public BlockDevice {
+    class Port final : public BlockDevice, public ISmartDevice {
        private:
         IDENTIFY_DEVICE_DATA* identify_ = nullptr;
         kernel::Mutex port_mutex_;
 
-        bool has_flush_cache_ext_ = false;
-        bool has_write_cache_     = false;
+
 
        public:
         u8 vector = 0;
-
+        bool has_flush_cache_ext_ = false;
+        bool has_write_cache_ = false;
+        bool has_smart_ = false;
         ~Port() override;
 
         HBA_PORT* hba_port{};
@@ -199,6 +205,8 @@ namespace ahci {
         isize write(u64 sector, usize sector_count, void* buffer, usize buffer_size) override;
 
         [[nodiscard]] usize get_sector_size() const override;
+        bool smart_read_data(u8* out_buf) override;
+        bool smart_get_attributes(SmartAttributes* out) override;
         [[nodiscard]] usize get_size() const override;
         bool identify();
     };
@@ -216,7 +224,7 @@ namespace ahci {
         u8 port_count;
 
         void on_shutdown() override;
-        void on_suspend()  override;
+        void on_suspend() override;
 
        private:
         KernelDevice* kd_;

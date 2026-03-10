@@ -101,7 +101,7 @@ namespace nvme {
         kernel::Mutex namespace_mutex_;
     };
 
-    class NvmeDriver final : public IDriverLifecycle {
+    class NvmeDriver final : public IDriverLifecycle, public ISmartDevice {
         volatile NVME_CONTROLLER_REGISTERS* c_regs_ = nullptr;
         NvmeQueue admin_queue_;
         NvmeQueue io_queue_;
@@ -164,6 +164,9 @@ namespace nvme {
 
         void on_shutdown() override { shutdown(); }
         void on_suspend()  override { /* optional */ }
+
+        bool smart_read_data(u8* out_buf) override;
+        bool smart_get_attributes(SmartAttributes* out) override;
 
         [[nodiscard]] const Vector<NvmeNamespace*>& get_namespaces() const {
             return namespaces_;

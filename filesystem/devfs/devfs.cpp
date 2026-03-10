@@ -23,12 +23,14 @@
 
 #include "devfs.h"
 
+#include <uapi/vespera/dev/ioctl_smart.h>
 #include <vespera/devices/char_device.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
 #include "../../kernel/cpu/io.h"
+#include "../drivers/ahci/ahci.h"
 #include "../vfs/vfs.h"
 
 const char* DevFs::bus_to_str(const BusType bus) {
@@ -233,9 +235,26 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
         return kd->chardev->ioctl(entry->cf, cmd, arg);
     }
 
-    // Block device does not support ioctl (maybe implement later necessary)
     if (kd->block) {
-        return -ENOTTY;
+        ISmartDevice* smart = kd->smart;
+        if (!smart && kd->parent) {
+            smart = kd->parent->smart;
+        }
+
+        switch (cmd) {
+            case IOCTL_SMART_GET_RAW: {
+                if (!smart) return -ENOTTY;
+                if (!arg) return -EINVAL;
+                return smart->smart_read_data(static_cast<SmartRawData*>(arg)->data) ? 0 : -EIO;
+            }
+            case IOCTL_SMART_GET_ATTRS: {
+                if (!smart) return -ENOTTY;
+                if (!arg) return -EINVAL;
+                return smart->smart_get_attributes(static_cast<SmartAttributes*>(arg)) ? 0 : -EIO;
+            }
+            default:
+                return -ENOTTY;
+        }
     }
 
     return -EINVAL;
