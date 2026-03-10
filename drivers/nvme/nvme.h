@@ -166,7 +166,8 @@ namespace nvme {
         void on_suspend()  override { /* optional */ }
 
         bool smart_read_data(u8* out_buf) override;
-        bool smart_get_attributes(SmartAttributes* out) override;
+        bool smart_get_common(SmartCommon* out) override;
+        bool smart_get_nvme(SmartNvme* out) override;
 
         [[nodiscard]] const Vector<NvmeNamespace*>& get_namespaces() const {
             return namespaces_;

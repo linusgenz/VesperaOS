@@ -22,6 +22,7 @@ namespace ahci {
 #define ATA_CMD_FLUSH_CACHE_EXT 0xEA
 #define ATA_CMD_SMART 0xB0
 #define ATA_SMART_READ_DATA 0xD0
+#define ATA_SMART_RETURN_STATUS 0xDA
 
 #define HBA_PX_IS_TFES (1 << 30)
 
@@ -165,12 +166,40 @@ namespace ahci {
         u8 rsv1[4];
     };
 
+    // ReSharper disable once CppInconsistentNaming
+    struct FIS_REG_D2H {
+        u8 fis_type;  // FIS_TYPE_REG_D2H
+
+        u8 pmport : 4;     // Port multiplier
+        u8 rsv0 : 2;       // Reserved
+        u8 interrupt : 1;  // Interrupt bit
+        u8 rsv1 : 1;       // Reserved
+
+        u8 status;  // Status register
+        u8 error;   // Error register
+
+        u8 lba0;    // LBA low register, 7:0
+        u8 lba1;    // LBA mid register, 15:8
+        u8 lba2;    // LBA high register, 23:16
+        u8 device;  // Device register
+
+        u8 lba3;  // LBA register, 31:24
+        u8 lba4;  // LBA register, 39:32
+        u8 lba5;  // LBA register, 47:40
+        u8 rsv2;  // Reserved
+
+        u8 count_low;   // Count register, 7:0
+        u8 count_high;  // Count register, 15:8
+        u8 rsv3[2];     // Reserved
+
+        uint8_t rsv4[4];  // Reserved
+    };
+
     class Port final : public BlockDevice, public ISmartDevice {
        private:
         IDENTIFY_DEVICE_DATA* identify_ = nullptr;
         kernel::Mutex port_mutex_;
-
-
+        bool smart_return_status();
 
        public:
         u8 vector = 0;
@@ -206,7 +235,9 @@ namespace ahci {
 
         [[nodiscard]] usize get_sector_size() const override;
         bool smart_read_data(u8* out_buf) override;
-        bool smart_get_attributes(SmartAttributes* out) override;
+        bool smart_get_common(SmartCommon* out) override;
+        bool smart_get_ata(SmartAta* out) override;
+
         [[nodiscard]] usize get_size() const override;
         bool identify();
     };

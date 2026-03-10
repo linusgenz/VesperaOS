@@ -255,54 +255,124 @@ namespace ahci {
         return true;
     }
 
-    bool Port::smart_get_attributes(SmartAttributes* out) {
+    bool Port::smart_get_common(SmartCommon* out) {
+        SmartAta ata{};
+        if (!smart_get_ata(&ata)) return false;
+
+        out->driver_type = SMART_DRIVER_ATA;
+        out->temperature_celsius = ata.temperature_celsius;
+        out->power_on_hours = ata.power_on_hours;
+        out->health_ok = ata.health_ok;
+        out->critical_warning_raw = ata.health_ok ? 0 : 0xFF;  // synthesized
+        return true;
+    }
+
+    bool Port::smart_get_ata(SmartAta* out) {
         u8 raw[512];
         if (!smart_read_data(raw)) return false;
 
-        // SMART READ DATA Layout:
-        // Byte 0-1:  Version
-        // Byte 2-361: 30x attribute structs
-        out->version = raw[0] | (static_cast<u16>(raw[1]) << 8);
-        out->attr_count = 0;
+        const auto* s = reinterpret_cast<const ATA_SMART_DATA*>(raw);
+        const auto* area = &s->vendor_specific_0;
 
+        out->version = area->version;
+        out->attr_count = 0;
         out->temperature_celsius = 0;
         out->power_on_hours = 0;
+        out->power_cycles = 0;
         out->reallocated_sectors = 0;
         out->pending_sectors = 0;
-        out->health_ok = 1;
+        out->uncorrectable_sectors = 0;
+        out->health_ok = smart_return_status();
 
-        for (int i = 0; i < 30; i++) {
-            const u8* entry = &raw[2 + i * 12];
-            const u8 id = entry[0];
-            if (id == 0) continue;
+        for (auto src : area->attributes) {
+            if (src.id == 0) continue;
 
-            SmartAttribute& a = out->attrs[out->attr_count++];
-            a.id = id;
-            a.flags = entry[1] | (static_cast<u16>(entry[2]) << 8);
-            a.current = entry[3];
-            a.worst = entry[4];
-            memcpy(a.raw, &entry[5], 6);
+            SmartAttribute& dst = out->attrs[out->attr_count++];
+            dst.id = src.id;
+            dst.flags = src.flags;
+            dst.current = src.current;
+            dst.worst = src.worst;
+            dst.threshold = 0; // vendor specific typeshit, is marked as obsolete in ACS-4
+            memcpy(dst.raw, src.raw, 6);
 
-            switch (id) {
+            switch (src.id) {
                 case 0x05:
-                    out->reallocated_sectors = a.raw[0] | static_cast<u32>(a.raw[1]) << 8;
+                    out->reallocated_sectors = src.raw[0] | static_cast<u32>(src.raw[1]) << 8;
                     if (out->reallocated_sectors > 0) out->health_ok = 0;
                     break;
                 case 0x09:
-                    out->power_on_hours = a.raw[0] | static_cast<u64>(a.raw[1]) << 8 |
-                                          static_cast<u64>(a.raw[2]) << 16 | static_cast<u64>(a.raw[3]) << 24;
+                    out->power_on_hours = src.raw[0] | static_cast<u64>(src.raw[1]) << 8 |
+                                          static_cast<u64>(src.raw[2]) << 16 | static_cast<u64>(src.raw[3]) << 24;
+                    break;
+                case 0x0C:
+                    out->power_cycles = src.raw[0] | static_cast<u32>(src.raw[1]) << 8;
                     break;
                 case 0xBE:
-                    out->temperature_celsius = a.raw[0];
+                    out->temperature_celsius = src.raw[0];
                     break;
                 case 0xC5:
-                    out->pending_sectors = a.raw[0] | static_cast<u32>(a.raw[1]) << 8;
+                    out->pending_sectors = src.raw[0] | static_cast<u32>(src.raw[1]) << 8;
                     if (out->pending_sectors > 0) out->health_ok = 0;
                     break;
-                default:;
+                case 0xC6:
+                    out->uncorrectable_sectors = src.raw[0] | static_cast<u32>(src.raw[1]) << 8;
+                    break;
+                default:
+                    break;
             }
         }
         return true;
+    }
+
+    bool Port::smart_return_status() {
+        if (!has_smart_) return false;
+
+        kernel::MutexGuard guard(port_mutex_);
+
+        hba_port->interrupt_status = 0xFFFFFFFF;
+
+        const phys_addr_t cmd_list_phys =
+            make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
+        auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
+        cmd_header->write = 0;
+        cmd_header->prdt_length = 0;  // kein DMA, keine Daten
+
+        const phys_addr_t cmd_table_phys = make_phys(
+            static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
+        );
+        auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
+        memset(cmd_table, 0, sizeof(HbaCommandTable));
+
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
+        cmd_fis->fis_type = FIS_TYPE_REG_H2D;
+        cmd_fis->command_control = 1;
+        cmd_fis->command = ATA_CMD_SMART;
+        cmd_fis->feature_low = ATA_SMART_RETURN_STATUS;  // 0xDA
+        cmd_fis->lba1 = 0x4F;                            // C24Fh signature: lba1=4F, lba2=C2
+        cmd_fis->lba2 = 0xC2;
+
+        command_completed = false;
+        last_error = false;
+        hba_port->command_issue = 1 << 0;
+
+        while (!command_completed) asm volatile("pause");
+
+        if (last_error) return false;
+
+        const phys_addr_t fis_phys =
+            make_phys(static_cast<u64>(hba_port->fis_base_address_upper) << 32 | hba_port->fis_base_address);
+        const auto* dev_to_host =
+            reinterpret_cast<const FIS_REG_D2H*>(static_cast<u8*>(virt_ptr(phys_to_virt(fis_phys))) + 0x40);
+
+        // 0x4F / 0xC2 = healthy
+        // 0xF4 / 0x2C = threshold exceeded
+        const u8 lba_mid = dev_to_host->lba1;
+        const u8 lba_high = dev_to_host->lba2;
+
+        if (lba_mid == 0xF4 && lba_high == 0x2C) return false;  // threshold exceeded
+        return true;                                            // 0x4F / 0xC2 = healthy
     }
 
     bool Port::flush() {

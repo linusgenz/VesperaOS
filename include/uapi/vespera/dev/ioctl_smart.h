@@ -24,33 +24,73 @@
 
 #include <vespera/types.h>
 
-#define IOCTL_SMART_GET_RAW     0x5301  // → SmartRawData (512 bytes)
-#define IOCTL_SMART_GET_ATTRS   0x5302  // → SmartAttributes
+#define IOCTL_SMART_GET_RAW     0x5301
+#define IOCTL_SMART_GET_COMMON  0x5302
+#define IOCTL_SMART_GET_NVME    0x5303
+#define IOCTL_SMART_GET_ATA     0x5304
+
+typedef enum SmartDriverType {
+    SMART_DRIVER_UNKNOWN = 0,
+    SMART_DRIVER_NVME    = 1,
+    SMART_DRIVER_ATA     = 2,
+} SmartDriverType;
+
+typedef struct SmartCommon {
+    SmartDriverType driver_type;
+    u8  temperature_celsius;
+    u64 power_on_hours;
+    u8  health_ok;
+    u8  critical_warning_raw;
+} SmartCommon;
+
+typedef struct SmartNvme {
+    u8  critical_warning_raw;
+    u8  available_spare;            // 0-100%
+    u8  available_spare_threshold;  // 0-100%
+    u8  percentage_used;            // 0-255%
+    u8  temperature_celsius;
+    u16 temperature_sensor[8];      // Kelvin, 0 = nicht vorhanden
+
+    u64 data_units_read;
+    u64 data_units_written;
+    u64 host_read_commands;
+    u64 host_write_commands;
+    u64 controller_busy_time_min;
+    u64 power_cycles;
+    u64 power_on_hours;
+    u64 unsafe_shutdowns;
+    u64 media_errors;
+    u64 error_log_entries;
+
+    u32 warning_temp_time_min;
+    u32 critical_temp_time_min;
+} SmartNvme;
 
 typedef struct SmartAttribute {
     u8  id;
     u16 flags;
-    u8  current;    // normalisierter Wert (höher = besser)
+    u8  current;
     u8  worst;
-    u8  raw[6];     // roher Wert, z.B. raw[0] = Temperatur in °C
-    u8  reserved;
-}__attribute__((packed)) SmartAttribute;
+    u8  threshold;
+    u8  raw[6];
+} __attribute__((packed)) SmartAttribute;
 
-typedef struct SmartAttributes {
-    u8             version;
-    SmartAttribute attrs[30];  // max 30 Attribute
+typedef struct SmartAta {
+    u16            version;
     u8             attr_count;
+    SmartAttribute attrs[30];
 
-    // Geparste Convenience-Felder
-    u8  temperature_celsius;   // Attr 0xBE
-    u64 power_on_hours;        // Attr 0x09
-    u32 reallocated_sectors;   // Attr 0x05
-    u32 pending_sectors;       // Attr 0xC5
-    u8  health_ok;             // 1 wenn keine kritischen Attribute
-}SmartAttributes;
+    u8  temperature_celsius;
+    u64 power_on_hours;
+    u32 power_cycles;
+    u32 reallocated_sectors;
+    u32 pending_sectors;
+    u32 uncorrectable_sectors;
+    u8  health_ok;
+} SmartAta;
 
 typedef struct SmartRawData {
     u8 data[512];
 } SmartRawData;
 
-#endif  // VESPERAOS_IOCTL_SMART_H
+#endif

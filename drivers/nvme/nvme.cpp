@@ -521,23 +521,59 @@ namespace nvme {
     }
 
     constexpr u16 KELVIN_TO_CELSIUS_OFFSET = 273;
-    bool NvmeDriver::smart_get_attributes(SmartAttributes* out) {
+    static u8 kelvin_to_celsius(const u8 lo, const u8 hi) {
+        const u16 kelvin = static_cast<u16>(lo) | static_cast<u16>(hi) << 8;
+        return kelvin > KELVIN_TO_CELSIUS_OFFSET ? static_cast<u8>(kelvin - KELVIN_TO_CELSIUS_OFFSET) : 0;
+    }
+
+    bool NvmeDriver::smart_get_common(SmartCommon* out) {
         u8 raw[512]{};
         if (!smart_read_data(raw)) return false;
-
         const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);
 
-        // Kelvin → Celsius
+        out->driver_type          = SMART_DRIVER_NVME;
+        out->temperature_celsius  = kelvin_to_celsius(h->temperature[0], h->temperature[1]);
+        out->power_on_hours       = static_cast<u64>(h->power_on_hours);
+        out->health_ok            = h->critical_warning.raw == 0;
+        out->critical_warning_raw = h->critical_warning.raw;
+        return true;
+    }
+
+    bool NvmeDriver::smart_get_nvme(SmartNvme* out) {
+        u8 raw[512]{};
+        if (!smart_read_data(raw)) return false;
+        const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);
+
         const u16 kelvin = static_cast<u16>(h->temperature[0]) | static_cast<u16>(h->temperature[1]) << 8;
-        out->temperature_celsius =
-            (kelvin > KELVIN_TO_CELSIUS_OFFSET) ? static_cast<u8>(kelvin - KELVIN_TO_CELSIUS_OFFSET) : 0;
 
-        out->power_on_hours = h->power_on_hours;
-        out->reallocated_sectors = 0;
-        out->pending_sectors = static_cast<u32>(h->media_errors);
-        out->health_ok = h->critical_warning.raw == 0;
+        out->critical_warning_raw = h->critical_warning.raw;
+        out->temperature_celsius = kelvin > 273 ? static_cast<u8>(kelvin - 273) : 0;
+        out->available_spare = h->available_spare;
+        out->available_spare_threshold = h->available_spare_threshold;
+        out->percentage_used = h->percentage_used;
 
-        out->attr_count = 0;
+        out->temperature_sensor[0] = h->temperature_sensor1;
+        out->temperature_sensor[1] = h->temperature_sensor2;
+        out->temperature_sensor[2] = h->temperature_sensor3;
+        out->temperature_sensor[3] = h->temperature_sensor4;
+        out->temperature_sensor[4] = h->temperature_sensor5;
+        out->temperature_sensor[5] = h->temperature_sensor6;
+        out->temperature_sensor[6] = h->temperature_sensor7;
+        out->temperature_sensor[7] = h->temperature_sensor8;
+
+        out->data_units_read = static_cast<u64>(h->data_unit_read);
+        out->data_units_written = static_cast<u64>(h->data_unit_written);
+        out->host_read_commands = static_cast<u64>(h->host_read_commands);
+        out->host_write_commands = static_cast<u64>(h->host_written_commands);
+        out->controller_busy_time_min = static_cast<u64>(h->controller_busy_time);
+        out->power_cycles = static_cast<u64>(h->power_cycle);
+        out->power_on_hours = static_cast<u64>(h->power_on_hours);
+        out->unsafe_shutdowns = static_cast<u64>(h->unsafe_shutdowns);
+        out->media_errors = static_cast<u64>(h->media_errors);
+        out->error_log_entries = static_cast<u64>(h->error_info_log_entry_count);
+        out->warning_temp_time_min = h->warning_composite_temperature_time;
+        out->critical_temp_time_min = h->critical_composite_temperature_time;
+
         return true;
     }
 

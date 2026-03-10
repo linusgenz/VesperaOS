@@ -25,10 +25,11 @@
 #include <uapi/vespera/dev/ioctl_smart.h>
 
 class ISmartDevice {
-   public:
-    virtual bool smart_read_data(u8* out_buf) = 0;  // 512 raw bytes
-    virtual bool smart_get_attributes(SmartAttributes* out) = 0;
-
+public:
+    virtual bool smart_read_data(u8* out_buf)          = 0;
+    virtual bool smart_get_common(SmartCommon* out)    = 0;
+    virtual bool smart_get_nvme(SmartNvme* out)        { return false; }
+    virtual bool smart_get_ata(SmartAta* out)          { return false; }
     virtual ~ISmartDevice() = default;
 };
 

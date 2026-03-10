@@ -247,11 +247,17 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
                 if (!arg) return -EINVAL;
                 return smart->smart_read_data(static_cast<SmartRawData*>(arg)->data) ? 0 : -EIO;
             }
-            case IOCTL_SMART_GET_ATTRS: {
-                if (!smart) return -ENOTTY;
-                if (!arg) return -EINVAL;
-                return smart->smart_get_attributes(static_cast<SmartAttributes*>(arg)) ? 0 : -EIO;
-            }
+            case IOCTL_SMART_GET_COMMON:
+                if (!smart || !arg) return smart ? -EINVAL : -ENOTTY;
+                return smart->smart_get_common(static_cast<SmartCommon*>(arg)) ? 0 : -EIO;
+
+            case IOCTL_SMART_GET_NVME:
+                if (!smart || !arg) return smart ? -EINVAL : -ENOTTY;
+                return smart->smart_get_nvme(static_cast<SmartNvme*>(arg)) ? 0 : -ENOTTY;
+
+            case IOCTL_SMART_GET_ATA:
+                if (!smart || !arg) return smart ? -EINVAL : -ENOTTY;
+                return smart->smart_get_ata(static_cast<SmartAta*>(arg)) ? 0 : -ENOTTY;
             default:
                 return -ENOTTY;
         }

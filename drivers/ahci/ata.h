@@ -20,16 +20,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #ifndef VESPERAOS_ATA_H
 #define VESPERAOS_ATA_H
 
 #include <vespera/types.h>
 
-struct IDENTIFY_DEVICE_DATA
-{
-    struct
-    {
+struct IDENTIFY_DEVICE_DATA {
+    struct {
         u16 reserved1 : 1;
         u16 retired3 : 1;
         u16 response_incomplete : 1;
@@ -54,14 +52,12 @@ struct IDENTIFY_DEVICE_DATA
     u8 maximum_block_transfer;
     u8 vendor_unique2;
 
-    struct
-    {
+    struct {
         u16 feature_supported : 1;
         u16 reserved : 15;
     } trusted_computing;
 
-    struct
-    {
+    struct {
         u8 current_long_physical_sector_alignment : 2;
         u8 reserved_byte49 : 6;
         u8 dma_supported : 1;
@@ -76,8 +72,7 @@ struct IDENTIFY_DEVICE_DATA
 
     u16 obsolete_words51[2];
 
-    struct
-    {
+    struct {
         u16 translation_fields_valid : 3;
         u16 reserved3 : 5;
         u16 free_fall_control_sensitivity : 8;
@@ -89,8 +84,7 @@ struct IDENTIFY_DEVICE_DATA
     u32 current_sector_capacity;
     u8 current_multi_sector_setting;
 
-    struct
-    {
+    struct {
         u8 multi_sector_setting_valid : 1;
         u8 reserved_byte59 : 3;
         u8 sanitize_feature_supported : 1;
@@ -102,14 +96,12 @@ struct IDENTIFY_DEVICE_DATA
     u32 user_addressable_sectors;
     u16 obsolete_word62;
 
-    struct
-    {
+    struct {
         u16 multi_word_dma_support : 8;
         u16 multi_word_dma_active : 8;
     };
 
-    struct
-    {
+    struct {
         u16 advanced_pio_modes : 8;
         u16 reserved_byte64 : 8;
     };
@@ -119,8 +111,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 minimum_pio_cycle_time;
     u16 minimum_pio_cycle_time_iordy;
 
-    struct
-    {
+    struct {
         u16 zoned_capabilities : 2;
         u16 non_volatile_write_cache : 1;
         u16 extended_user_addressable_sectors_supported : 1;
@@ -140,14 +131,12 @@ struct IDENTIFY_DEVICE_DATA
 
     u16 reserved_words70[5];
 
-    struct
-    {
+    struct {
         u16 queue_depth : 5;
         u16 reserved_word75 : 11;
     };
 
-    struct
-    {
+    struct {
         u16 reserved0 : 1;
         u16 sata_gen1 : 1;
         u16 sata_gen2 : 1;
@@ -170,8 +159,7 @@ struct IDENTIFY_DEVICE_DATA
         u16 reserved3 : 8;
     } serial_ata_capabilities;
 
-    struct
-    {
+    struct {
         u16 reserved0 : 1;
         u16 non_zero_offsets : 1;
         u16 dma_setup_auto_activate : 1;
@@ -185,8 +173,7 @@ struct IDENTIFY_DEVICE_DATA
         u16 reserved1 : 6;
     } serial_ata_features_supported;
 
-    struct
-    {
+    struct {
         u16 reserved0 : 1;
         u16 non_zero_offsets : 1;
         u16 dma_setup_auto_activate : 1;
@@ -203,8 +190,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 major_revision;
     u16 minor_revision;
 
-    struct
-    {
+    struct {
         u16 smart_commands : 1;
         u16 security_mode : 1;
         u16 removable_media_feature : 1;
@@ -252,8 +238,7 @@ struct IDENTIFY_DEVICE_DATA
         u16 word_valid : 2;
     } command_set_support;
 
-    struct
-    {
+    struct {
         u16 smart_commands : 1;
         u16 security_mode : 1;
         u16 removable_media_feature : 1;
@@ -302,20 +287,17 @@ struct IDENTIFY_DEVICE_DATA
         u16 reserved4 : 2;
     } command_set_active;
 
-    struct
-    {
+    struct {
         u16 ultra_dma_support : 8;
         u16 ultra_dma_active : 8;
     };
 
-    struct
-    {
+    struct {
         u16 time_required : 15;
         u16 extended_time_reported : 1;
     } normal_security_erase_unit;
 
-    struct
-    {
+    struct {
         u16 time_required : 15;
         u16 extended_time_reported : 1;
     } enhanced_security_erase_unit;
@@ -335,8 +317,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 streaming_transfer_time;
     u16 dsm_cap;
 
-    struct
-    {
+    struct {
         u16 logical_sectors_per_physical_sector : 4;
         u16 reserved0 : 8;
         u16 logical_sector_longer_than256_words : 1;
@@ -350,8 +331,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 reserved_for_tlc_technical_report;
     u16 words_per_logical_sector[2];
 
-    struct
-    {
+    struct {
         u16 reserved_for_drq_technical_report : 1;
         u16 write_read_verify : 1;
         u16 write_uncorrectable_ext : 1;
@@ -364,8 +344,7 @@ struct IDENTIFY_DEVICE_DATA
         u16 word_valid : 2;
     } command_set_support_ext;
 
-    struct
-    {
+    struct {
         u16 reserved_for_drq_technical_report : 1;
         u16 write_read_verify : 1;
         u16 write_uncorrectable_ext : 1;
@@ -380,14 +359,12 @@ struct IDENTIFY_DEVICE_DATA
 
     u16 reserved_for_expanded_supportand_active[6];
 
-    struct
-    {
+    struct {
         u16 msn_support : 2;
         u16 reserved_word127 : 14;
     };
 
-    struct
-    {
+    struct {
         u16 security_supported : 1;
         u16 security_enabled : 1;
         u16 security_locked : 1;
@@ -401,8 +378,7 @@ struct IDENTIFY_DEVICE_DATA
 
     u16 reserved_word129[31];
 
-    struct
-    {
+    struct {
         u16 maximum_current_in_ma : 12;
         u16 cfa_power_mode_1disabled : 1;
         u16 cfa_power_mode1_required : 1;
@@ -415,8 +391,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 nominal_form_factor : 4;
     u16 reserved_word168 : 12;
 
-    struct
-    {
+    struct {
         u16 supports_trim : 1;
         u16 reserved0 : 15;
     } data_set_management_feature;
@@ -425,8 +400,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 reserved_for_cfa_word174[2];
     u16 current_media_serial_number[30];
 
-    struct
-    {
+    struct {
         u16 supported : 1;
         u16 reserved0 : 1;
         u16 write_same_suported : 1;
@@ -439,8 +413,7 @@ struct IDENTIFY_DEVICE_DATA
 
     u16 reserved_word207[2];
 
-    struct
-    {
+    struct {
         u16 alignment_of_logical_within_physical : 14;
         u16 word209_supported : 1;
         u16 reserved0 : 1;
@@ -449,8 +422,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 write_read_verify_sector_count_mode3_only[2];
     u16 write_read_verify_sector_count_mode2_only[2];
 
-    struct
-    {
+    struct {
         u16 nv_cache_power_mode_enabled : 1;
         u16 reserved0 : 3;
         u16 nv_cache_feature_set_enabled : 1;
@@ -464,8 +436,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 nominal_media_rotation_rate;
     u16 reserved_word218;
 
-    struct
-    {
+    struct {
         u8 nv_cache_estimated_time_to_spin_up_in_seconds;
         u8 reserved;
     } nv_cache_options;
@@ -474,8 +445,7 @@ struct IDENTIFY_DEVICE_DATA
     u16 reserved_word220 : 8;
     u16 reserved_word221;
 
-    struct
-    {
+    struct {
         u16 major_version : 12;
         u16 transport_type : 4;
     } transport_major_version;
@@ -489,12 +459,48 @@ struct IDENTIFY_DEVICE_DATA
 
     u16 reserved_word236[19];
 
-    struct
-    {
+    struct {
         u16 signature : 8;
         u16 check_sum : 8;
     };
 } __attribute__((packed));
 
+struct ATA_SMART_ATTRIBUTE {
+    u8 id;
+    u16 flags;
+    u8 current;
+    u8 worst;
+    u8 raw[6];
+    u8 reserved;
+} __attribute__((packed));
 
-#endif //VESPERAOS_ATA_H
+struct ATA_SMART_ATTRIBUTES_AREA {
+    u16 version;                         // Byte 0-1
+    ATA_SMART_ATTRIBUTE attributes[30];  // Byte 2-361 (30 * 12 = 360 Bytes)
+} __attribute__((packed));
+
+struct ATA_SMART_DATA {
+    ATA_SMART_ATTRIBUTES_AREA vendor_specific_0;  // Byte 0-361:   Vendor specific (inkl. Attribute structs)
+    u8 offline_collection_status;                 // Byte 362:     V - Off-line data collection status
+    u8 self_test_execution_status;                // Byte 363:     X - Self-test execution status byte
+    u8 vendor_specific_1[2];                      // Byte 364-365: X - Vendor specific
+    u8 vendor_specific_2;                         // Byte 366:     X - Vendor specific
+    u8 offline_collection_capability;             // Byte 367:     F - Off-line data collection capability
+    u16 smart_capability;                         // Byte 368-369: F - SMART capability
+    u8 error_logging_capability;                  // Byte 370:     F - Error logging capability
+                                                  //               Bit 0: 1=Device error logging supported
+                                                  //               Bit 7:1 Reserved
+    u8 vendor_specific_3;                         // Byte 371:     X - Vendor specific
+    u8 short_self_test_polling_minutes;  // Byte 372:     F - Short self-test routine recommended polling time (minutes)
+    u8 extended_self_test_polling_minutes;    // Byte 373:     F - Extended self-test polling time (minutes), FFh = use
+                                              // word at 375-376
+    u8 conveyance_self_test_polling_minutes;  // Byte 374:     F - Conveyance self-test routine recommended polling time
+                                              // (minutes)
+    u16 extended_self_test_polling_minutes_word;  // Byte 375-376: F - Extended self-test routine recommended polling
+                                                  // time (word)
+    u8 reserved[9];                               // Byte 377-385: R - Reserved, shall be zero
+    u8 vendor_specific_4[125];                    // Byte 386-510: X - Vendor specific
+    u8 checksum;                                  // Byte 511:     V - Data structure checksum
+} __attribute__((packed));
+
+#endif  // VESPERAOS_ATA_H
