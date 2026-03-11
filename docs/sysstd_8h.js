@@ -19,7 +19,7 @@ var sysstd_8h =
     [ "sys_rmdir", "sysstd_8h.html#a98a4a38800fb99619b72783c1ed307a5", null ],
     [ "sys_seek", "sysstd_8h.html#abcef91f070ba25d57c74fc1695184270", null ],
     [ "sys_sleep", "sysstd_8h.html#acd84101f8bc1b8627a8490e7240afebc", null ],
-    [ "sys_spawn", "sysstd_8h.html#a0bbbdf2a3e5c94dc1ee5a64abb74b35d", null ],
+    [ "sys_spawn", "sysstd_8h.html#ac4698ee684a6fbc758214c9354c978d8", null ],
     [ "sys_unlink", "sysstd_8h.html#a7195de760b75f180c04c5a41dd5a5960", null ],
     [ "sys_wait", "sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8", null ],
     [ "sys_write", "sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa", null ],

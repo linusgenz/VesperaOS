@@ -17,6 +17,11 @@ var annotated_dup =
     [ "meminfo", "structmeminfo.html", "structmeminfo" ],
     [ "realm_info", "structrealm__info.html", "structrealm__info" ],
     [ "rtc_data", "structrtc__data.html", "structrtc__data" ],
+    [ "SmartAta", "structSmartAta.html", "structSmartAta" ],
+    [ "SmartAttribute", "structSmartAttribute.html", "structSmartAttribute" ],
+    [ "SmartCommon", "structSmartCommon.html", "structSmartCommon" ],
+    [ "SmartNvme", "structSmartNvme.html", "structSmartNvme" ],
+    [ "SmartRawData", "structSmartRawData.html", "structSmartRawData" ],
     [ "unit_info", "structunit__info.html", "structunit__info" ],
     [ "xhci_device_stat", "structxhci__device__stat.html", "structxhci__device__stat" ]
 ];

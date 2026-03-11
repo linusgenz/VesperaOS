@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['unit_5finfo_0',['unit_info',['../structunit__info.html',1,'']]]
+  ['smartata_0',['SmartAta',['../structSmartAta.html',1,'']]],
+  ['smartattribute_1',['SmartAttribute',['../structSmartAttribute.html',1,'']]],
+  ['smartcommon_2',['SmartCommon',['../structSmartCommon.html',1,'']]],
+  ['smartnvme_3',['SmartNvme',['../structSmartNvme.html',1,'']]],
+  ['smartrawdata_4',['SmartRawData',['../structSmartRawData.html',1,'']]]
 ];

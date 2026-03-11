@@ -9,7 +9,6 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "exec.h", "exec_8h.html", "exec_8h" ],
     [ "fflags.h", "userspace_2lib_2include_2fflags_8h.html", "userspace_2lib_2include_2fflags_8h" ],
     [ "file.h", "file_8h.html", "file_8h" ],
-    [ "internal.h", "internal_8h.html", "internal_8h" ],
     [ "limits.h", "limits_8h.html", "limits_8h" ],
     [ "memory.h", "memory_8h.html", "memory_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],

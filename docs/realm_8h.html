@@ -97,8 +97,8 @@ $(document).ready(function(){initNavTree('realm_8h.html',''); initResizable(); }
   <div class="headertitle"><div class="title">realm.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
-<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
 </div>
 <p><a href="realm_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -113,9 +113,9 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6fd325d702bccc2940cc3de76c0b4281" id="r_a6fd325d702bccc2940cc3de76c0b4281"><td class="memItemLeft" align="right" valign="top"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a6fd325d702bccc2940cc3de76c0b4281">spawn_realm</a> (const char *path_ptr, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> argc, const char **argv, char **envp)</td></tr>
-<tr class="memdesc:a6fd325d702bccc2940cc3de76c0b4281"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new realm (isolated execution context).  <br /></td></tr>
-<tr class="separator:a6fd325d702bccc2940cc3de76c0b4281"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26a222533b12f7cba65299fea24aa5f8" id="r_a26a222533b12f7cba65299fea24aa5f8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#a26a222533b12f7cba65299fea24aa5f8">spawn_realm</a> (const char *path_ptr, char *const argv[], char *const envp[])</td></tr>
+<tr class="memdesc:a26a222533b12f7cba65299fea24aa5f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new realm (isolated execution context).  <br /></td></tr>
+<tr class="separator:a26a222533b12f7cba65299fea24aa5f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa709d08cf793b0c97ec0c870bf2ea314" id="r_aa709d08cf793b0c97ec0c870bf2ea314"><td class="memItemLeft" align="right" valign="top"><a class="el" href="realm_8h.html#ad4a7e3111654c8366cd31c6c5580883c">UnitID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="realm_8h.html#aa709d08cf793b0c97ec0c870bf2ea314">spawn_unit</a> (<a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> realm_id, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> entry_point, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg_ptr)</td></tr>
 <tr class="memdesc:aa709d08cf793b0c97ec0c870bf2ea314"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new unit (thread) inside an existing realm.  <br /></td></tr>
 <tr class="separator:aa709d08cf793b0c97ec0c870bf2ea314"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -198,8 +198,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6fd325d702bccc2940cc3de76c0b4281" name="a6fd325d702bccc2940cc3de76c0b4281"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6fd325d702bccc2940cc3de76c0b4281">&#9670;&#160;</a></span>spawn_realm()</h2>
+<a id="a26a222533b12f7cba65299fea24aa5f8" name="a26a222533b12f7cba65299fea24aa5f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26a222533b12f7cba65299fea24aa5f8">&#9670;&#160;</a></span>spawn_realm()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -213,20 +213,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
+          <td class="paramtype">char *const&#160;</td>
+          <td class="paramname"><em>argv</em>[], </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const char **&#160;</td>
-          <td class="paramname"><em>argv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char **&#160;</td>
-          <td class="paramname"><em>envp</em>&#160;</td>
+          <td class="paramtype">char *const&#160;</td>
+          <td class="paramname"><em>envp</em>[]&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -241,7 +235,6 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path_ptr</td><td>Pointer to the path of the executable binary. </td></tr>
-    <tr><td class="paramname">argc</td><td>Number of arguments. </td></tr>
     <tr><td class="paramname">argv</td><td>Pointer to an array of argument strings. </td></tr>
     <tr><td class="paramname">envp</td><td>Pointer to a NULL-terminated array of strings representing the environment variables for the new realm. Can be <code>NULL</code> if no environment variables are needed. </td></tr>
   </table>

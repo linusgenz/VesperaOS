@@ -143,7 +143,8 @@ var menudata={children:[
 {text:"d",url:"globals_eval.html#index_d"},
 {text:"j",url:"globals_eval.html#index_j"},
 {text:"p",url:"globals_eval.html#index_p"},
-{text:"r",url:"globals_eval.html#index_r"}]},
+{text:"r",url:"globals_eval.html#index_r"},
+{text:"s",url:"globals_eval.html#index_s"}]},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"_",url:"globals_defs.html#index__5F"},
 {text:"c",url:"globals_defs.html#index_c"},
