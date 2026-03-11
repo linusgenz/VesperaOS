@@ -20,13 +20,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
-#ifndef VESPLIBC_FCNTL_H
-#define VESPLIBC_FCNTL_H
+ */
+#ifndef VESPLIBC_FFLAGS_H
+#define VESPLIBC_FFLAGS_H
 
 #include <vespera/fflags.h>
 
-#define C_FILE      0x00    /**< The target should be a file */
-#define C_DIR       0x01    /**< The target should be a directory */
+#define C_FILE 0x00 /**< The target should be a file */
+#define C_DIR 0x01  /**< The target should be a directory */
 
-#endif //VESPLIBC_FCNTL_H
+#endif  // VESPLIBC_FFLAGS_H

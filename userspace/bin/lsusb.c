@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <sysstd.h>
-#include <vespera/dev/usb_xhci_ioctl.h>
+#include <vespera/dev/ioctl_usb_xhci.h>
 
 #include "stddef.h"
 #include "stdint.h"

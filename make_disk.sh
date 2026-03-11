@@ -80,6 +80,7 @@ sudo cp "$SRC_DIR/userspace/bin/lsusb"   "$ROOT_MNT/bin/lsusb"
 sudo cp "$SRC_DIR/userspace/bin/memstat" "$ROOT_MNT/bin/memstat"
 sudo cp "$SRC_DIR/userspace/bin/logd"    "$ROOT_MNT/bin/logd"
 sudo cp "$SRC_DIR/userspace/bin/uptime"  "$ROOT_MNT/bin/uptime"
+sudo cp "$SRC_DIR/userspace/bin/diskinfo"  "$ROOT_MNT/bin/diskinfo"
 sudo cp "$SRC_DIR/assets/test.jpg"        "$ROOT_MNT/"
 
 sudo umount "$ROOT_MNT"

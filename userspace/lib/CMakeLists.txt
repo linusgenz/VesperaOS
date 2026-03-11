@@ -30,7 +30,6 @@ set(LIB_SOURCES
         src/channel.c
         src/exec.c
         src/file.c
-        src/internal.c
         src/malloc.c
         src/realm.c
         src/reboot.c

@@ -183,6 +183,8 @@ KernelDevice* DeviceManager::register_block_device(
     kd->chardev = nullptr;
     kd->driver_data = nullptr;
 
+    kd->smart = smart;
+
     if (parent) {
         parent->children.push_back(kd);
     }

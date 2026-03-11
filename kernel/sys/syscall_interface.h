@@ -55,7 +55,7 @@ namespace syscalls::internal {
 
     i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg4, u64, u64);
+    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
     i64 sys_readdir(u64 arg0, u64 arg1, u64, u64, u64, u64);
 

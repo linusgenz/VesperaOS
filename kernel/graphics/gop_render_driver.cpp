@@ -101,6 +101,7 @@ colour)
 }*/
 
 void GopRenderDriver::put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color) const {
+    if (c >= ((psf2_header_t*)font_->header)->length) c = '?';
     if (!c) return;
 
     auto pix_ptr = static_cast<u32*>(fb_->base_address);

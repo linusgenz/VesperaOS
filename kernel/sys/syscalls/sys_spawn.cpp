@@ -30,25 +30,18 @@
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {
-    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
+    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         auto user_path = reinterpret_cast<const char*>(arg0);
-        const auto argc = static_cast<u32>(arg1);
-        auto argv = reinterpret_cast<const char**>(arg2);
-        auto envp = reinterpret_cast<const char**>(arg3);
+        auto argv = reinterpret_cast<const char**>(arg1);
+        auto envp = reinterpret_cast<const char**>(arg2);
 
         if (!user_path) return -EINVAL;
 
         const Unit* caller = kernel::scheduling::get_current_unit();
         Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
-        TtyDevice* tty_dev = parent_realm
-            ? parent_realm->get_tty_device()
-            : kernel::tty::tty_devices[0];
+        TtyDevice* tty_dev = parent_realm ? parent_realm->get_tty_device() : kernel::tty::tty_devices[0];
 
-        RealmConfig cfg = {
-            .name = user_path,
-            .capabilities = CAP_RW | CAP_DEVICE_ACCESS,
-            .is_user = true
-        };
+        RealmConfig cfg = {.name = user_path, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
 
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
@@ -68,10 +61,11 @@ namespace syscalls::internal {
             .priority = 5,
             .is_user = true,
             .auto_schedule = false,
+            .argv = argv,
+            .envp = envp,
         };
-        Unit* u = UnitManager::create(
-            new_realm->id, reinterpret_cast<unit_entry_t>(elf.entry_point), reinterpret_cast<void*>(arg1), &ucfg
-        );
+
+        Unit* u = UnitManager::create(new_realm->id, reinterpret_cast<unit_entry_t>(elf.entry_point), nullptr, &ucfg);
         if (!u) {
             RealmManager::destroy(new_realm->id);
             return -EFAULT;
@@ -79,7 +73,7 @@ namespace syscalls::internal {
 
         const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
         u->heap_start = heap_begin;
-        u->heap_end   = heap_begin;
+        u->heap_end = heap_begin;
 
         if (tty_dev) {
             tty_dev->tty->fg_realm_id = new_realm->id;

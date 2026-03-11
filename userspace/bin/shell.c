@@ -41,10 +41,11 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sysstd.h>
-#include <vespera/dev/framebuffer_ioctl.h>
+#include <vespera/dev/ioctl_framebuffer.h>
+#include <vespera/handels.h>
 
 #include "stdint.h"
-#include <vespera/handels.h>
+#include "vespera/dev/ioctl_smart.h"
 
 typedef struct
 {
@@ -256,7 +257,7 @@ void cmd_ls(command_t* cmd)
         {
         case DT_DIR: color = "\033[38;2;66;117;245m";
             break;
-        case DT_EXEC: color = "\033[38;2;66;245;81";
+        case DT_EXEC: color = "\033[38;2;66;245;81m";
             break;
         case DT_SYMLINK: color = "\033[1;36m";
             break;
@@ -606,8 +607,8 @@ int execute_command(command_t* cmd)
         if (prog)
         {
             int64_t rid = 0;
-            const char* argv[] = {"lsusb", NULL};
-            rid = spawn_realm(prog, 1, argv, NULL);
+            char** argv = cmd->args;
+            rid = spawn_realm(prog, argv, NULL);
             if (rid < 0)
             {
                 printf("spawn failed: %d\n", (int32_t)rid);
@@ -718,7 +719,7 @@ void shell_main(int argc, char** argv)
     printf("Type 'help' for available commands.\n\n");
 
 
-    image_t img;
+   /* image_t img;
     int result = jpeg_load_from_file("test.jpg", &img, NULL);
 
     if (result != JPEG_OK)
@@ -741,8 +742,7 @@ void shell_main(int argc, char** argv)
     HANDLE hdl = open("/dev/fb0", O_RDWR);
     ioctl(hdl, FB_IOCTL_BLIT, &bltcmd);
 
-    image_free(&img);
-
+    image_free(&img);*/
 
     while (1)
     {

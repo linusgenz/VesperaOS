@@ -134,12 +134,11 @@ int64_t sys_sleep(uint64_t ms, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)
 /**
  * @brief Spawn a new realm/unit.
  *
- * @param path Path to binary.
- * @param argc Argument count.
- * @param argv Argument vector.
+ * @param path_ptr Path to binary.
+ * @param argv_ptr Argument vector.
  * @return New realm ID on success, or negative error code.
  */
-int64_t sys_spawn(uint64_t path_ptr, uint64_t argc, uint64_t argv_ptr, uint64_t, uint64_t, uint64_t);
+int64_t sys_spawn(uint64_t path_ptr, uint64_t argv_ptr, uint64_t, uint64_t, uint64_t, uint64_t);
 
 /**
  * @brief Unlink (delete) a file.

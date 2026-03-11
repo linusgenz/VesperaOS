@@ -336,7 +336,7 @@ namespace ahci {
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
         cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 0;
-        cmd_header->prdt_length = 0;  // kein DMA, keine Daten
+        cmd_header->prdt_length = 0;
 
         const phys_addr_t cmd_table_phys = make_phys(
             static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |

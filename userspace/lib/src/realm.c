@@ -27,9 +27,9 @@
 #include <stdlib.h>
 #include "stdint.h"
 
-RealmID spawn_realm(const char* path_ptr, uint32_t argc, const char** argv, char** envp)
+RealmID spawn_realm(const char* path_ptr, char *const argv[], char *const envp[])
 {
-    return sys_spawn((uint64_t)path_ptr, argc, (uint64_t)argv, (uint64_t)envp, 0, 0);
+    return sys_spawn((uint64_t)path_ptr, (uint64_t)argv, (uint64_t)envp, 0, 0, 0);
 }
 
 UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr)
