@@ -15,7 +15,7 @@ var structSmartNvme =
     [ "power_cycles", "structSmartNvme.html#a14d658316b7e8d00e89a7d89d6264ad5", null ],
     [ "power_on_hours", "structSmartNvme.html#add02ac63fb1b254c2138098be4a43602", null ],
     [ "temperature_celsius", "structSmartNvme.html#aa7ab3f31d729a3397983296e82d4b294", null ],
-    [ "temperature_sensor", "structSmartNvme.html#aac5ee932f506ee14911234076e7713fd", null ],
+    [ "temperature_sensor", "structSmartNvme.html#a4ab00536d411eb26262cc37c5bd50c17", null ],
     [ "unsafe_shutdowns", "structSmartNvme.html#aea768d6a0e068a157db7aa30d8ceb5a9", null ],
     [ "warning_temp_time_min", "structSmartNvme.html#a6ac813339f4b8d6d3ca161a9c889aa4a", null ]
 ];

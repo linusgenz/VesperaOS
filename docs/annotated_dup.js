@@ -1,6 +1,8 @@
 var annotated_dup =
 [
     [ "cpu_info", "structcpu__info.html", "structcpu__info" ],
+    [ "devinfo_string_t", "structdevinfo__string__t.html", "structdevinfo__string__t" ],
+    [ "devinfo_t", "structdevinfo__t.html", "structdevinfo__t" ],
     [ "dirent_t", "structdirent__t.html", "structdirent__t" ],
     [ "fb_blit", "structfb__blit.html", "structfb__blit" ],
     [ "fb_clear", "structfb__clear.html", "structfb__clear" ],

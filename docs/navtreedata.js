@@ -54,8 +54,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"jpeg_8h.html#a198cda1221b69303955212a59f22677aa4cdcf7a8ba122f88f48248718bac1920",
-"structSmartNvme.html#a33f4ef862be33df11fa01f972bc7a408"
+"ioctl__usb__xhci_8h_source.html",
+"structSmartCommon.html#af0c9ec26bc870c3eaf1e4840f1f8a201"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
