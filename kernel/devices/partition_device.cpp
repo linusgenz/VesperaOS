@@ -50,3 +50,22 @@ isize PartitionDevice::write(const u64 lba, const usize count, void* buf, usize 
 
     return ret;
 }
+
+bool PartitionDevice::trim(const TrimRange* ranges, usize count) {
+    if (!parent_ || !ranges || count == 0) return false;
+
+    const auto translated = new TrimRange[count];
+
+    for (usize i = 0; i < count; i++) {
+        if (ranges[i].lba + ranges[i].sector_count > length_lba_) {
+            delete[] translated;
+            return false;
+        }
+        translated[i].lba          = start_lba_ + ranges[i].lba;
+        translated[i].sector_count = ranges[i].sector_count;
+    }
+
+    const bool result = parent_->trim(translated, count);
+    delete[] translated;
+    return result;
+}

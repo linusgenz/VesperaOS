@@ -51,6 +51,12 @@ class PartitionDevice final : public BlockDevice {
         return length_lba_;
     }
 
+    [[nodiscard]] bool supports_trim() const override {
+        return parent_ && parent_->supports_trim();
+    }
+
+    bool trim(const TrimRange* ranges, usize count) override;
+
    private:
     BlockDevice* parent_;
     u64 start_lba_;

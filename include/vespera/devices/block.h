@@ -5,12 +5,12 @@
 #ifndef BLOCKDEVICE_H
 #define BLOCKDEVICE_H
 
-
 #include <vespera/types.h>
 
-#include "../types.h"
-
-#define IID_SMART 0x0001
+struct TrimRange {
+    u64 lba;
+    u32 sector_count;
+};
 
 class BlockDevice {
    public:
@@ -26,6 +26,15 @@ class BlockDevice {
     virtual isize write(u64 sector, usize sector_count, void* buffer, usize buffer_size) = 0;
     [[nodiscard]] virtual usize get_size() const = 0;
     [[nodiscard]] virtual usize get_sector_size() const = 0;
+
+    [[nodiscard]] virtual bool supports_trim() const {
+        return false;
+    }
+
+    virtual bool trim(const TrimRange*, usize) {
+        return false;
+    }
+
     virtual ~BlockDevice() = default;
 };
 

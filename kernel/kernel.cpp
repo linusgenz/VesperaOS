@@ -180,10 +180,10 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
-    // Log::Info("CPU Vendor: %s", vendor); WHY DOES THIS NOT WORK? investigate
+     Log::info("CPU Vendor: %s", vendor);
     char brand[49];
     get_cpu_brand(brand);
-    //  Log::Info("CPU Brand: %s", brand);
+    Log::info("CPU Brand: %s", brand);
     Log::ok("Kernel initialized successfully");
     Log::info("Kernel version: %s", get_kernel_version());
 

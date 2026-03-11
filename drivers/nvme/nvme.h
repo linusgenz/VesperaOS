@@ -70,9 +70,9 @@ namespace nvme {
 
     class NvmeNamespace final : public BlockDevice {
        public:
-        NvmeNamespace(u32 nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify)
+        NvmeNamespace(u32 nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify, bool controller_supports_dsm)
             : ns_id_(nsid)
-            , queue_(io_queue), ncap_(identify->ncap) {
+            , queue_(io_queue), ncap_(identify->ncap), has_trim_(controller_supports_dsm) {
             const u8 lba_format_index = identify->flbas.lba_format_index;
             u8 lbads = identify->lbaf[lba_format_index].lbads;
             sector_size_ = 1 << lbads;
@@ -93,12 +93,17 @@ namespace nvme {
             return sector_size_;
         }
 
+        [[nodiscard]] bool supports_trim() const override { return has_trim_; }
+        bool trim(const TrimRange* ranges, usize count) override;
+
        private:
         u32 ns_id_;
         NvmeQueue* queue_;
         u32 sector_size_;
         u64 ncap_;
         kernel::Mutex namespace_mutex_;
+
+        bool has_trim_ = false;
     };
 
     class NvmeDriver final : public IDriverLifecycle, public ISmartDevice {

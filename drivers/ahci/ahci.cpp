@@ -292,7 +292,7 @@ namespace ahci {
             dst.flags = src.flags;
             dst.current = src.current;
             dst.worst = src.worst;
-            dst.threshold = 0; // vendor specific typeshit, is marked as obsolete in ACS-4
+            dst.threshold = 0;  // vendor specific typeshit, is marked as obsolete in ACS-4
             memcpy(dst.raw, src.raw, 6);
 
             switch (src.id) {
@@ -375,6 +375,77 @@ namespace ahci {
         return true;                                            // 0x4F / 0xC2 = healthy
     }
 
+    bool Port::trim(const TrimRange* ranges, usize count) {
+        if (!has_trim_) return false;
+        if (!ranges || count == 0) return false;
+
+        kernel::MutexGuard guard(port_mutex_);
+
+        const usize blocks = (count + 63) / 64;
+        const usize pages = (blocks * 512 + PAGE_SIZE - 1) / PAGE_SIZE;
+
+        const phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
+        if (phys_null(dma_phys)) return false;
+
+        auto* payload = static_cast<ATA_DSM_RANGE*>(virt_ptr(phys_to_virt(dma_phys)));
+        memset(payload, 0, blocks * 512);
+
+        for (usize i = 0; i < count; i++) {
+            payload[i].lba = ranges[i].lba;
+            payload[i].count = static_cast<u16>(ranges[i].sector_count);
+        }
+
+        hba_port->interrupt_status = 0xFFFFFFFF;
+
+        const phys_addr_t cmd_list_phys =
+            make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
+        auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
+        cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
+        cmd_header->write = 1;  // Host -> Device
+        cmd_header->prdt_length = 1;
+
+        const phys_addr_t cmd_table_phys = make_phys(
+            static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
+            cmd_header->command_table_base_address
+        );
+        auto* cmd_table = static_cast<HbaCommandTable*>(virt_ptr(phys_to_virt(cmd_table_phys)));
+        memset(cmd_table, 0, sizeof(HbaCommandTable));
+
+        cmd_table->prdt_entry[0].data_base_address = static_cast<u32>(phys_raw(dma_phys));
+        cmd_table->prdt_entry[0].data_base_address_upper = static_cast<u32>(phys_raw(dma_phys) >> 32);
+        cmd_table->prdt_entry[0].byte_count = blocks * 512 - 1;  // 0-based
+        cmd_table->prdt_entry[0].interrupt_on_completion = 1;
+
+        auto* cmd_fis = reinterpret_cast<FIS_REG_H2D*>(&cmd_table->command_fis);
+        cmd_fis->fis_type = FIS_TYPE_REG_H2D;
+        cmd_fis->command_control = 1;
+        cmd_fis->command = ATA_CMD_DATA_SET_MANAGEMENT;
+        cmd_fis->feature_low = ATA_DSM_TRIM;  // Bit 0 = TRIM bit
+        cmd_fis->feature_high = 0;            // DSM FUNCTION reserved if TRIM=1
+        cmd_fis->count_low = static_cast<u8>(blocks & 0xFF);
+        cmd_fis->count_high = static_cast<u8>((blocks >> 8) & 0xFF);
+        cmd_fis->device_register = 0;
+
+        command_completed = false;
+        last_error = false;
+        hba_port->command_issue = 1 << 0;
+
+        while (!command_completed) asm volatile("pause");
+
+        kernel::memory::free_pages_phys(dma_phys, pages);
+
+        if (last_error) {
+            Log::error("[ AHCI ] Port %u: TRIM failed", port_number);
+            return false;
+        }
+
+        for (usize i = 0; i < count; i++) {
+            Log::debug("[FAT32] TRIM range %u: lba=%llu sectors=%u",
+                       i, ranges[i].lba, ranges[i].sector_count);
+        }
+        return true;
+    }
+
     bool Port::flush() {
         if (!has_write_cache_) return true;
 
@@ -419,6 +490,10 @@ namespace ahci {
 
     bool Port::write_cache_enabled() const {
         return has_write_cache_;
+    }
+
+    bool Port::supports_trim() const {
+        return has_trim_;
     }
 
     bool Port::identify() {
@@ -495,6 +570,11 @@ namespace ahci {
         has_smart_ = identify_->command_set_support.smart_commands && identify_->command_set_active.smart_commands;
         if (has_smart_) {
             Log::info("[ AHCI ] Port %u: SMART supported", port_number);
+        }
+
+        has_trim_ = identify_->data_set_management_feature.supports_trim;
+        if (has_trim_) {
+            Log::info("[ AHCI ] Port %u: TRIM supported", port_number);
         }
 
         return true;

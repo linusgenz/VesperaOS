@@ -265,14 +265,14 @@ namespace nvme {
         u128 error_info_log_entry_count;  // Total number of Error Information log entries recorded by the controller.
         u32 warning_composite_temperature_time;   // Time in minutes device temperature was >= WCTEMP and < CCTEMP.
         u32 critical_composite_temperature_time;  // Time in minutes device temperature exceeded CCTEMP.
-        u16 temperature_sensor1;                  // Temperature reported by sensor 1 (Kelvin).
-        u16 temperature_sensor2;                  // Temperature reported by sensor 2 (Kelvin).
-        u16 temperature_sensor3;                  // Temperature reported by sensor 3 (Kelvin).
-        u16 temperature_sensor4;                  // Temperature reported by sensor 4 (Kelvin).
-        u16 temperature_sensor5;                  // Temperature reported by sensor 5 (Kelvin).
-        u16 temperature_sensor6;                  // Temperature reported by sensor 6 (Kelvin).
-        u16 temperature_sensor7;                  // Temperature reported by sensor 7 (Kelvin).
-        u16 temperature_sensor8;                  // Temperature reported by sensor 8 (Kelvin).
+        u8 temperature_sensor1[2];                // Temperature reported by sensor 1 (Kelvin).
+        u8 temperature_sensor2[2];                // Temperature reported by sensor 2 (Kelvin).
+        u8 temperature_sensor3[2];                // Temperature reported by sensor 3 (Kelvin).
+        u8 temperature_sensor4[2];                // Temperature reported by sensor 4 (Kelvin).
+        u8 temperature_sensor5[2];                // Temperature reported by sensor 5 (Kelvin).
+        u8 temperature_sensor6[2];                // Temperature reported by sensor 6 (Kelvin).
+        u8 temperature_sensor7[2];                // Temperature reported by sensor 7 (Kelvin).
+        u8 temperature_sensor8[2];                // Temperature reported by sensor 8 (Kelvin).
 
         u8 reserved1[296];  // Reserved (for future NVMe spec extensions).
     };
@@ -648,7 +648,8 @@ namespace nvme {
     };
 
     struct NVME_LBA_RANGE {
-        NVME_CONTEXT_ATTRIBUTES attributes;
+        NVME_CONTEXT_ATTRIBUTES attributes;  // The use of this information is optional and the controller is not
+                                             // required to perform any specific action.
         u32 logical_block_count;
         u64 starting_lba;
     };
@@ -1060,14 +1061,14 @@ namespace nvme {
             u8 reserved : 7;
         } apsta;
 
-        u16 wctemp; // byte 266:267. M - Warning Composite Temperature Threshold (WCTEMP)
-        u16 cctemp; // byte 268:269. M - Critical Composite Temperature Threshold (CCTEMP)
-        u16 mtfa; // byte 270:271. O - Maximum Time for Firmware Activation (MTFA)
-        u32 hmpre; // byte 272:275. O - Host Memory Buffer Preferred Size (HMPRE)
-        u32 hmmin; // byte 276:279. O - Host Memory Buffer Minimum Size (HMMIN)
+        u16 wctemp;  // byte 266:267. M - Warning Composite Temperature Threshold (WCTEMP)
+        u16 cctemp;  // byte 268:269. M - Critical Composite Temperature Threshold (CCTEMP)
+        u16 mtfa;    // byte 270:271. O - Maximum Time for Firmware Activation (MTFA)
+        u32 hmpre;   // byte 272:275. O - Host Memory Buffer Preferred Size (HMPRE)
+        u32 hmmin;   // byte 276:279. O - Host Memory Buffer Minimum Size (HMMIN)
 
-        u8 tnvmcap[16]; // byte 280:295. O - Total NVM Capacity (TNVMCAP)
-        u8 unvmcap[16]; // byte 296:311. O - Unallocated NVM Capacity (UNVMCAP)
+        u8 tnvmcap[16];  // byte 280:295. O - Total NVM Capacity (TNVMCAP)
+        u8 unvmcap[16];  // byte 296:311. O - Unallocated NVM Capacity (UNVMCAP)
 
         struct __attribute__((packed)) {
             u32 rpmb_unit_count : 3;
@@ -1146,12 +1147,12 @@ namespace nvme {
             u16 timestamp : 1;
             u16 verify : 1;
             u16 reserved : 8;
-        } oncs;
+        } oncs; // Optional NVM Command Support (ONCS)
 
         struct __attribute__((packed)) {
             u16 compare_and_write : 1;
             u16 reserved : 15;
-        } fuses;
+        } fuses; // Fused Operation Support (FUSES)
 
         struct __attribute__((packed)) {
             u8 format_apply_to_all : 1;
@@ -1159,21 +1160,21 @@ namespace nvme {
             u8 cryptographic_erase_supported : 1;
             u8 format_support_nsid_all_f : 1;
             u8 reserved : 4;
-        } fna;
+        } fna; // Format NVM Attributes (FNA)
 
         struct __attribute__((packed)) {
             u8 present : 1;
             u8 flush_behavior : 2;
             u8 reserved : 5;
-        } vwc;
+        } vwc; // Volatile Write Cache (VWC)
 
-        u16 awun;
-        u16 awupf;
+        u16 awun; // Atomic Write Unit Normal (AWUN)
+        u16 awupf; // Atomic Write Unit Power Fail (AWUPF)
 
         struct __attribute__((packed)) {
             u8 command_format_in_spec : 1;
             u8 reserved : 7;
-        } nvscc;
+        } nvscc; // NVM Vendor Specific Command Configuration (NVSCC)
 
         struct __attribute__((packed)) {
             u8 write_protect : 1;
@@ -1182,7 +1183,7 @@ namespace nvme {
             u8 reserved : 5;
         } nwpc;
 
-        u16 acwu;
+        u16 acwu; // Atomic Compare & Write Unit (ACWU)
         u8 reserved4[2];
 
         struct __attribute__((packed)) {
@@ -1196,7 +1197,7 @@ namespace nvme {
             u32 address_field_sgl_data_block : 1;
             u32 transport_sgl_data : 1;
             u32 reserved1 : 10;
-        } sgls;
+        } sgls; // SGL Support (SGLS)
 
         u32 mnan;
         u8 reserved6[224];

@@ -1,3 +1,4 @@
+#include "cpu/cpu.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
 #include "debug/lock_debug.h"
@@ -47,6 +48,8 @@ static void initialize_early_boot(const BootInfo* boot_info) {
     system_font = boot_info->font;
     target_framebuffer = boot_info->framebuffer;
     memset(target_framebuffer->base_address, 0, target_framebuffer->buffer_size);
+
+    detect_qemu();
 
     kernel::input::InputManager::init();
     Log::enable_debug();

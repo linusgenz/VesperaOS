@@ -23,6 +23,8 @@ namespace ahci {
 #define ATA_CMD_SMART 0xB0
 #define ATA_SMART_READ_DATA 0xD0
 #define ATA_SMART_RETURN_STATUS 0xDA
+#define ATA_CMD_DATA_SET_MANAGEMENT 0x06
+#define ATA_DSM_TRIM 0x01
 
 #define HBA_PX_IS_TFES (1 << 30)
 
@@ -200,12 +202,14 @@ namespace ahci {
         IDENTIFY_DEVICE_DATA* identify_ = nullptr;
         kernel::Mutex port_mutex_;
         bool smart_return_status();
-
-       public:
-        u8 vector = 0;
         bool has_flush_cache_ext_ = false;
         bool has_write_cache_ = false;
         bool has_smart_ = false;
+        bool has_trim_ = false;
+
+       public:
+        u8 vector = 0;
+
         ~Port() override;
 
         HBA_PORT* hba_port{};
@@ -237,7 +241,8 @@ namespace ahci {
         bool smart_read_data(u8* out_buf) override;
         bool smart_get_common(SmartCommon* out) override;
         bool smart_get_ata(SmartAta* out) override;
-
+        bool trim(const TrimRange* ranges, usize count) override;
+        [[nodiscard]] bool supports_trim() const override;
         [[nodiscard]] usize get_size() const override;
         bool identify();
     };

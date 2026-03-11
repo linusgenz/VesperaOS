@@ -503,4 +503,9 @@ struct ATA_SMART_DATA {
     u8 checksum;                                  // Byte 511:     V - Data structure checksum
 } __attribute__((packed));
 
+struct ATA_DSM_RANGE {
+    u64 lba    : 48;  // Start LBA
+    u64 count  : 16;  // Sector count (0 = skip)
+} __attribute__((packed));
+
 #endif  // VESPERAOS_ATA_H

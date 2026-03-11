@@ -4,13 +4,14 @@
 
 #include "fat32.h"
 
-#include "fat32_lfn.h"
-#include "fat32_time.h"
-#include "fat32_vfs_adapter.h"
 #include <klib/path.h>
 #include <klib/sort.h>
 #include <klib/string.h>
 #include <vespera/log.h>
+
+#include "fat32_lfn.h"
+#include "fat32_time.h"
+#include "fat32_vfs_adapter.h"
 
 namespace fat32 {
     // ============================================================================
@@ -428,8 +429,7 @@ namespace fat32 {
     u32 FileSystem::find_free_cluster() {
         if (cluster_count < 2) return 0;
 
-        const u32 start =
-            (next_free_cluster >= 2 && next_free_cluster < cluster_count + 2) ? next_free_cluster : 2;
+        const u32 start = (next_free_cluster >= 2 && next_free_cluster < cluster_count + 2) ? next_free_cluster : 2;
 
         for (u32 c = start; c < cluster_count + 2; ++c) {
             if (get_fat_entry(c) == 0) {
@@ -590,8 +590,7 @@ namespace fat32 {
                         );
 
                         // Cache invalidieren
-                        for (u32 s = current_batch_start; s < current_batch_end; ++s)
-                            invalidate_fat_cache_sector(s);
+                        for (u32 s = current_batch_start; s < current_batch_end; ++s) invalidate_fat_cache_sector(s);
                     }
 
                     // Neue Batch laden
@@ -634,6 +633,41 @@ namespace fat32 {
 
         kernel::memory::free(chain);
         return true;
+    }
+
+    void FileSystem::trim_cluster_chain(const u32 start_cluster) const {
+        if (!device->supports_trim()) return;
+
+        usize count = 0;
+        u32* chain = get_cluster_chain(start_cluster, count);
+        if (!chain || count == 0) return;
+
+        // Sort so that consecutive clusters can be grouped together
+        klib::sort(chain, chain + count);
+
+        auto* ranges = static_cast<TrimRange*>(kernel::memory::malloc(count * sizeof(TrimRange)));
+        if (!ranges) {
+            kernel::memory::free(chain);
+            return;
+        }
+
+        usize range_count = 0;
+
+        for (usize i = 0; i < count; i++) {
+            const u64 lba = cluster_to_sector(chain[i]);
+            const u32 sector_count = bpb.sectors_per_cluster;
+
+            if (range_count > 0 && ranges[range_count - 1].lba + ranges[range_count - 1].sector_count == lba) {
+                ranges[range_count - 1].sector_count += sector_count;
+            } else {
+                ranges[range_count++] = {lba, sector_count};
+            }
+        }
+
+        device->trim(ranges, range_count);
+
+        kernel::memory::free(ranges);
+        kernel::memory::free(chain);
     }
 
     // ============================================================================
@@ -1286,7 +1320,10 @@ namespace fat32 {
 
         if (is_protected(victim)) return false;
 
-        if (start_cluster != 0) free_cluster_chain(start_cluster);
+        if (start_cluster != 0) {
+            trim_cluster_chain(start_cluster);
+            free_cluster_chain(start_cluster);
+        }
 
         write_fs_info();
         return delete_directory_entry_in_directory(parent_cluster, name);
@@ -1324,6 +1361,7 @@ namespace fat32 {
         }
         kernel::memory::free(dir_entries);
 
+        trim_cluster_chain(target_cluster);
         free_cluster_chain(target_cluster);
 
         write_fs_info();

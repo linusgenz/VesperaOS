@@ -136,7 +136,8 @@ namespace nvme {
 
             auto ns_identify = virt_as<NVME_IDENTIFY_NAMESPACE_DATA>(virt_buffer);
 
-            auto* ns = new NvmeNamespace(namespace_id, &io_queue_, ns_identify);
+            bool supports_dsm = controller_identity_->oncs.dataset_management;
+            auto* ns = new NvmeNamespace(namespace_id, &io_queue_, ns_identify, supports_dsm);
 
             char name_namespace[32];
             DeviceManager::generate_nv_me_device_name(kd_, name_namespace, sizeof(name_namespace), namespace_id);
@@ -158,21 +159,14 @@ namespace nvme {
     }
 
     long NvmeDriver::identify_controller() {
-        controller_identity_phys_ = kernel::memory::request_page_phys();
-        if (phys_null(controller_identity_phys_)) {
-            Log::error("[NVMe] No physical memory for controller identifiy");
-            return -1;
-        }
-
         virt_addr_t controller_identity_virt = kernel::memory::request_page();
         if (virt_null(controller_identity_virt)) {
             Log::error("[NVMe] No virtual memory for controller identify");
             return -1;
         }
 
+        controller_identity_phys_ = virt_to_phys(controller_identity_virt);
         controller_identity_ = virt_as<NVME_IDENTIFY_CONTROLLER_DATA>(controller_identity_virt);
-
-        kernel::memory::map_memory(controller_identity_virt, controller_identity_phys_);
 
         NVME_COMMAND identify_command{};
         memset(&identify_command, 0, sizeof(NVME_COMMAND));
@@ -531,10 +525,10 @@ namespace nvme {
         if (!smart_read_data(raw)) return false;
         const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);
 
-        out->driver_type          = SMART_DRIVER_NVME;
-        out->temperature_celsius  = kelvin_to_celsius(h->temperature[0], h->temperature[1]);
-        out->power_on_hours       = static_cast<u64>(h->power_on_hours);
-        out->health_ok            = h->critical_warning.raw == 0;
+        out->driver_type = SMART_DRIVER_NVME;
+        out->temperature_celsius = kelvin_to_celsius(h->temperature[0], h->temperature[1]);
+        out->power_on_hours = static_cast<u64>(h->power_on_hours);
+        out->health_ok = h->critical_warning.raw == 0;
         out->critical_warning_raw = h->critical_warning.raw;
         return true;
     }
@@ -544,22 +538,20 @@ namespace nvme {
         if (!smart_read_data(raw)) return false;
         const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);
 
-        const u16 kelvin = static_cast<u16>(h->temperature[0]) | static_cast<u16>(h->temperature[1]) << 8;
-
         out->critical_warning_raw = h->critical_warning.raw;
-        out->temperature_celsius = kelvin > 273 ? static_cast<u8>(kelvin - 273) : 0;
+        out->temperature_celsius = kelvin_to_celsius(h->temperature[0], h->temperature[1]);
         out->available_spare = h->available_spare;
         out->available_spare_threshold = h->available_spare_threshold;
         out->percentage_used = h->percentage_used;
 
-        out->temperature_sensor[0] = h->temperature_sensor1;
-        out->temperature_sensor[1] = h->temperature_sensor2;
-        out->temperature_sensor[2] = h->temperature_sensor3;
-        out->temperature_sensor[3] = h->temperature_sensor4;
-        out->temperature_sensor[4] = h->temperature_sensor5;
-        out->temperature_sensor[5] = h->temperature_sensor6;
-        out->temperature_sensor[6] = h->temperature_sensor7;
-        out->temperature_sensor[7] = h->temperature_sensor8;
+        out->temperature_sensor[0] = kelvin_to_celsius(h->temperature_sensor1[0], h->temperature_sensor1[1]);
+        out->temperature_sensor[1] = kelvin_to_celsius(h->temperature_sensor2[0], h->temperature_sensor2[1]);
+        out->temperature_sensor[2] = kelvin_to_celsius(h->temperature_sensor3[0], h->temperature_sensor3[1]);
+        out->temperature_sensor[3] = kelvin_to_celsius(h->temperature_sensor4[0], h->temperature_sensor4[1]);
+        out->temperature_sensor[4] = kelvin_to_celsius(h->temperature_sensor5[0], h->temperature_sensor5[1]);
+        out->temperature_sensor[5] = kelvin_to_celsius(h->temperature_sensor6[0], h->temperature_sensor6[1]);
+        out->temperature_sensor[6] = kelvin_to_celsius(h->temperature_sensor7[0], h->temperature_sensor7[1]);
+        out->temperature_sensor[7] = kelvin_to_celsius(h->temperature_sensor8[0], h->temperature_sensor8[1]);
 
         out->data_units_read = static_cast<u64>(h->data_unit_read);
         out->data_units_written = static_cast<u64>(h->data_unit_written);
@@ -668,5 +660,50 @@ namespace nvme {
         }
 
         return static_cast<isize>(bytes);
+    }
+
+    bool NvmeNamespace::trim(const TrimRange* ranges, usize count) {
+        if (!has_trim_ || !ranges || count == 0) return false;
+
+        kernel::MutexGuard guard(namespace_mutex_);
+
+        usize offset = 0;
+        while (offset < count) {
+            constexpr usize max_ranges_per_cmd = 256;
+            const usize batch = (count - offset < max_ranges_per_cmd) ? (count - offset) : max_ranges_per_cmd;
+
+            const phys_addr_t dma_phys = kernel::memory::request_page_phys();
+            if (phys_null(dma_phys)) return false;
+
+            auto* payload = static_cast<NVME_LBA_RANGE*>(virt_ptr(phys_to_virt(dma_phys)));
+            memset(payload, 0, PAGE_SIZE);
+
+            for (usize i = 0; i < batch; i++) {
+                payload[i].starting_lba = ranges[offset + i].lba;
+                payload[i].logical_block_count = ranges[offset + i].sector_count;
+                // no need fro attributes, just simple deallocate
+            }
+
+            NVME_COMMAND cmd{};
+            cmd.cdw0.opc = NVME_NVM_COMMAND_DATASET_MANAGEMENT;
+            cmd.nsid = ns_id_;
+            cmd.prp1 = phys_raw(dma_phys);
+            cmd.u.datasetmanagement.cdw10.nr = static_cast<u8>(batch - 1);  // 0-based
+            cmd.u.datasetmanagement.cdw11.ad = 1;
+
+            NVME_COMPLETION_ENTRY completion{};
+            queue_->submit_wait(cmd, completion);
+
+            kernel::memory::free_page_phys(dma_phys);
+
+            if (completion.dw3.status > 0) {
+                Log::warning("[NVMe] TRIM failed, status %u", completion.dw3.status);
+                return false;
+            }
+
+            offset += batch;
+        }
+
+        return true;
     }
 }  // namespace nvme

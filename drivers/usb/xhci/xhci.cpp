@@ -10,6 +10,7 @@
 #include <vespera/time.h>
 
 #include "../../../filesystem/devfs/devfs.h"
+#include "../../../kernel/cpu/cpu.h"
 #include "../../pci/pci.h"
 #include "../usb_manager.h"
 #include "xhci_common.h"
@@ -104,7 +105,7 @@ namespace usb {
 
         kernel::time::sleep_ms(100);
 
-        if (true) {
+        if (in_qemu()) {
             for (u8 i = 0; i < max_ports_; i++) {
                 XhciPortRegisterManager regman = get_port_register_set(i);
                 XHCI_PORTSC_REGISTER portsc{};
@@ -916,8 +917,7 @@ namespace usb {
         // If you are using QEMU, do not ring the doorbell here.  Ring the doorbell
         //  *after* you place the STATUS TRB on the ring.
         // (See bug report: https://bugs.launchpad.net/qemu/+bug/1859378 )
-        bool in_qemu = true;
-        if (!in_qemu) {
+        if (!in_qemu()) {
             if (auto completion_trb = start_control_endpoint_transfer(transfer_ring); !completion_trb) {
                 free_xhci_memory(transfer_status_buffer);
                 free_xhci_memory(descriptor_buffer);

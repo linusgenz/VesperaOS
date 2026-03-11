@@ -10,10 +10,10 @@ COMPILER=$1
 
 if [ "$COMPILER" == "clang" ]; then
     CMAKE_COMPILER_FLAGS="-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_LINKER=ld.lld"
-    CMAKE_CXX_FLAGS="--target=x86_64-elf -ffreestanding -nostdinc -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse"
+    CMAKE_CXX_FLAGS="--target=x86_64-elf -ffreestanding -nostdinc -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse -fno-pic -fno-pie"
 elif [ "$COMPILER" == "gcc" ]; then
     CMAKE_COMPILER_FLAGS=""
-    CMAKE_CXX_FLAGS="-ffreestanding -nostdinc -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse"
+    CMAKE_CXX_FLAGS="-ffreestanding -nostdinc -fno-stack-protector -fno-omit-frame-pointer -mno-red-zone -fshort-wchar -fno-exceptions -fno-rtti -g -O0 -fno-inline -Wall -mcmodel=kernel -mno-sse -fno-pic -fno-pie"
 else
     echo "Unknown compiler: $COMPILER"
     exit 1

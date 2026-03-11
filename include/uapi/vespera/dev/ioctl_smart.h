@@ -24,32 +24,32 @@
 
 #include <vespera/types.h>
 
-#define IOCTL_SMART_GET_RAW     0x5301
-#define IOCTL_SMART_GET_COMMON  0x5302
-#define IOCTL_SMART_GET_NVME    0x5303
-#define IOCTL_SMART_GET_ATA     0x5304
+#define IOCTL_SMART_GET_RAW 0x5301
+#define IOCTL_SMART_GET_COMMON 0x5302
+#define IOCTL_SMART_GET_NVME 0x5303
+#define IOCTL_SMART_GET_ATA 0x5304
 
 typedef enum SmartDriverType {
     SMART_DRIVER_UNKNOWN = 0,
-    SMART_DRIVER_NVME    = 1,
-    SMART_DRIVER_ATA     = 2,
+    SMART_DRIVER_NVME = 1,
+    SMART_DRIVER_ATA = 2,
 } SmartDriverType;
 
 typedef struct SmartCommon {
     SmartDriverType driver_type;
-    u8  temperature_celsius;
+    u8 temperature_celsius;
     u64 power_on_hours;
-    u8  health_ok;
-    u8  critical_warning_raw;
+    u8 health_ok;
+    u8 critical_warning_raw;
 } SmartCommon;
 
 typedef struct SmartNvme {
-    u8  critical_warning_raw;
-    u8  available_spare;            // 0-100%
-    u8  available_spare_threshold;  // 0-100%
-    u8  percentage_used;            // 0-255%
-    u8  temperature_celsius;
-    u16 temperature_sensor[8];      // Kelvin, 0 = nicht vorhanden
+    u8 critical_warning_raw;
+    u8 available_spare;            // 0-100%
+    u8 available_spare_threshold;  // 0-100%
+    u8 percentage_used;            // 0-255%
+    u8 temperature_celsius;
+    u8 temperature_sensor[8];  // Celsius, 0 = not available/existing
 
     u64 data_units_read;
     u64 data_units_written;
@@ -67,26 +67,26 @@ typedef struct SmartNvme {
 } SmartNvme;
 
 typedef struct SmartAttribute {
-    u8  id;
+    u8 id;
     u16 flags;
-    u8  current;
-    u8  worst;
-    u8  threshold;
-    u8  raw[6];
+    u8 current;
+    u8 worst;
+    u8 threshold;
+    u8 raw[6];
 } __attribute__((packed)) SmartAttribute;
 
 typedef struct SmartAta {
-    u16            version;
-    u8             attr_count;
+    u16 version;
+    u8 attr_count;
     SmartAttribute attrs[30];
 
-    u8  temperature_celsius;
+    u8 temperature_celsius;
     u64 power_on_hours;
     u32 power_cycles;
     u32 reallocated_sectors;
     u32 pending_sectors;
     u32 uncorrectable_sectors;
-    u8  health_ok;
+    u8 health_ok;
 } SmartAta;
 
 typedef struct SmartRawData {
