@@ -2,6 +2,7 @@
 #define AHCI_H
 
 #include <vespera/devices/block.h>
+#include <vespera/devices/driver_lifecycle.h>
 #include <vespera/sync/mutex.h>
 
 #include "../../arch/x86_64/interrupts/idt.h"
@@ -9,7 +10,9 @@
 #include "../pci/pci.h"
 #include "ata.h"
 #include "uapi/vespera/dev/ioctl_smart.h"
-#include "vespera/devices/device_manager.h"
+#include "vespera/devices/char_device.h"
+#include "vespera/devices/device_info.h"
+#include "vespera/devices/smart_device.h"
 
 // https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/serial-ata-ahci-spec-rev1-3-1.pdf
 namespace ahci {
@@ -197,11 +200,13 @@ namespace ahci {
         uint8_t rsv4[4];  // Reserved
     };
 
-    class Port final : public BlockDevice, public ISmartDevice {
+    class Port final : public BlockDevice, public ISmartDevice, public IDeviceInfo {
        private:
         IDENTIFY_DEVICE_DATA* identify_ = nullptr;
         kernel::Mutex port_mutex_;
         bool smart_return_status();
+        static void copy_ata_string(char* dst, usize dst_len, const u8* src, usize src_chars);
+
         bool has_flush_cache_ext_ = false;
         bool has_write_cache_ = false;
         bool has_smart_ = false;
@@ -243,13 +248,18 @@ namespace ahci {
         bool smart_get_ata(SmartAta* out) override;
         bool trim(const TrimRange* ranges, usize count) override;
         [[nodiscard]] bool supports_trim() const override;
+        bool get_model(char* out, usize len) override;
+        bool get_serial(char* out, usize len) override;
+        bool get_firmware(char* out, usize len) override;
         [[nodiscard]] usize get_size() const override;
         bool identify();
     };
 
-    class AhciDriver final : public IDriverLifecycle {
+    class AhciDriver final : public IDriverLifecycle, public IDeviceInfo {
        public:
         explicit AhciDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
+        bool get_vendor(char* out, usize len) override;
+        bool get_model(char* out, usize len) override;
         ~AhciDriver() override;
         [[nodiscard]] bool has_active_ports() const;
         pci::PCI_DEVICE_HEADER* pci_base_address;

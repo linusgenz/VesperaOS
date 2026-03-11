@@ -28,13 +28,14 @@
 
 Ps2Controller::Ps2Controller()
 {
-    devnode = DeviceManager::register_controller(
-        "i8042",
-        DeviceClass::Misc,
-        BusType::Ps2,
-        ControllerType::Ps2,
-        nullptr
-    );
+    devnode = DeviceManager::register_device(
+    DeviceDescriptor{}
+        .set_name("i8042")
+        .set_type(DeviceType::Controller)
+        .set_class(DeviceClass::Misc)
+        .set_bus(BusType::Ps2)
+        .set_controller(ControllerType::Ps2)
+);
 }
 
 Ps2Controller::~Ps2Controller()

@@ -33,18 +33,20 @@ namespace pci
         switch (vendor_id)
         {
         case 0x8086:
-            return "Intel Corporation";
+                return "Intel Corporation";
         case 0x1002:
         case 0x1022:
-            return "Advanced Micro Devices, Inc. [AMD/ATI]";
+                return "Advanced Micro Devices, Inc. [AMD/ATI]";
         case 0x10DE:
-            return "Nvidia Corporation";
+                return "Nvidia Corporation";
         case 0x144D:
-            return "Samsung Electronics Co Ltd";
+                return "Samsung Electronics Co Ltd";
         case 0x10EC:
-            return "Realtek Semiconductor Co., Ltd.";
+                return "Realtek Semiconductor Co., Ltd.";
         case 0x1B21:
-            return "ASMedia Technology Inc.";
+                return "ASMedia Technology Inc.";
+        case 0x1b36:
+                return"Red Hat, Inc.";
         default:
             break;
         }

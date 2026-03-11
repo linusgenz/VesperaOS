@@ -122,7 +122,6 @@ namespace arch::x86_64::interrupts::idt {
         set_idt_gate(isr_spurious_int, IRQ_SPURIOUS, IDT_TA_INTERRUPT_GATE, 0x08);
         set_idt_gate(isr_panic_ipi, IRQ_PANIC, IDT_TA_INTERRUPT_GATE, 0x08);
 
-        Log::debug("Loading IDT: %x page-offset: %p", idtr, idt_virt);
         asm("lidt %0" : : "m"(idtr));
         asm("cli");
     }

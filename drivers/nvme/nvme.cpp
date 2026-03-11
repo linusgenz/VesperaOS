@@ -115,8 +115,16 @@ namespace nvme {
 
         char name[16];
         DeviceManager::alloc_unique_device_name("nvme", name, sizeof(name));
-        kd_ = DeviceManager::register_controller(
-            name, DeviceClass::Storage, BusType::Pci, ControllerType::Nvme, nullptr, nullptr, this, this
+        kd_ = DeviceManager::register_device(
+            DeviceDescriptor{}
+                .set_name(name)
+                .set_type(DeviceType::Controller)
+                .set_class(DeviceClass::Storage)
+                .set_bus(BusType::Pci)
+                .set_controller(ControllerType::Nvme)
+                .with_lifecycle(this)
+                .with_smart(this)
+                .with_info(this)
         );
         DevFs::register_device(kd_);
 
@@ -140,9 +148,16 @@ namespace nvme {
             auto* ns = new NvmeNamespace(namespace_id, &io_queue_, ns_identify, supports_dsm);
 
             char name_namespace[32];
-            DeviceManager::generate_nv_me_device_name(kd_, name_namespace, sizeof(name_namespace), namespace_id);
-            ns->kd = DeviceManager::register_block_device(
-                ns, name_namespace, DeviceClass::Storage, BusType::Pci, ControllerType::Nvme, kd_
+            DeviceManager::generate_nvme_device_name(kd_, name_namespace, sizeof(name_namespace), namespace_id);
+            ns->kd = DeviceManager::register_device(
+                DeviceDescriptor{}
+                    .set_name(name_namespace)
+                    .set_type(DeviceType::Block)
+                    .set_class(DeviceClass::Storage)
+                    .set_bus(BusType::Pci)
+                    .set_controller(ControllerType::Nvme)
+                    .with_block(ns)
+                    .with_parent(kd_)
             );
             DevFs::register_device(ns->kd);
             DeviceManager::find_and_register_partitions(ns->kd);
@@ -566,6 +581,34 @@ namespace nvme {
         out->warning_temp_time_min = h->warning_composite_temperature_time;
         out->critical_temp_time_min = h->critical_composite_temperature_time;
 
+        return true;
+    }
+
+    void NvmeDriver::copy_nvme_string(char* dst, usize dst_len, const u8* src, usize src_len) {
+        usize n = src_len < dst_len - 1 ? src_len : dst_len - 1;
+        memcpy(dst, src, n);
+        dst[n] = '\0';
+        for (isize i = static_cast<isize>(n) - 1; i >= 0 && dst[i] == ' '; i--) dst[i] = '\0';
+    }
+
+    bool NvmeDriver::get_vendor(char* out, usize len) {
+        strncpy(out, pci::get_vendor_name(controller_identity_->vid), len);
+        out[len - 1] = '\0';
+        return true;
+    }
+
+    bool NvmeDriver::get_model(char* out, usize len) {
+        copy_nvme_string(out, len, controller_identity_->mn, sizeof(controller_identity_->mn));
+        return true;
+    }
+
+    bool NvmeDriver::get_serial(char* out, usize len) {
+        copy_nvme_string(out, len, controller_identity_->sn, sizeof(controller_identity_->sn));
+        return true;
+    }
+
+    bool NvmeDriver::get_firmware(char* out, usize len) {
+        copy_nvme_string(out, len, controller_identity_->fr, sizeof(controller_identity_->fr));
         return true;
     }
 

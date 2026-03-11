@@ -53,14 +53,16 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev)
 
         char name_buf[16] = {};
         DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
-        kd_ = DeviceManager::register_block_device(
-            this,
-            name_buf,
-            DeviceClass::Storage,
-            BusType::Usb,
-            ControllerType::Xhci,
-            hcd->get_device()
-        );
+        kd_ = DeviceManager::register_device(
+    DeviceDescriptor{}
+        .set_name(name_buf)
+        .set_type(DeviceType::Block)
+        .set_class(DeviceClass::Storage)
+        .set_bus(BusType::Usb)
+        .set_controller(ControllerType::Xhci)
+        .with_block(this)
+        .with_parent(hcd->get_device())
+);
         DevFs::register_device(kd_);
         DeviceManager::find_and_register_partitions(kd_);
     }

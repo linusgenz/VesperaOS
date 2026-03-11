@@ -23,8 +23,10 @@
 
 #include "devfs.h"
 
+#include <uapi/vespera/dev/ioctl_devinfo.h>
 #include <uapi/vespera/dev/ioctl_smart.h>
 #include <vespera/devices/char_device.h>
+#include <vespera/devices/device_info.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
@@ -182,7 +184,7 @@ isize DevFs::read(const VfsNode* node, usize offset, usize size, void* buffer) {
         usize sector_size = kd->block->get_sector_size();
         u64 lba = offset / sector_size;
         u32 sectors = (size + sector_size - 1) / sector_size;
-        return kd->block->read(lba, sectors, buffer, sizeof(buffer));
+        return kd->block->read(lba, sectors, buffer, size);
     }
 
     return -EINVAL;
@@ -226,6 +228,41 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     SpinlockGuard guard(lock_);
 
     KernelDevice* kd = entry->device;
+
+    if (cmd >= IOCTL_DEVINFO_GET_ALL && cmd <= IOCTL_DEVINFO_GET_FW) {
+        IDeviceInfo* info = kd->info;
+        if (!info && kd->parent) info = kd->parent->info;
+
+        switch (cmd) {
+            case IOCTL_DEVINFO_GET_ALL: {
+                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                auto* d = static_cast<devinfo_t*>(arg);
+                info->get_model(d->model, sizeof(d->model));
+                info->get_serial(d->serial, sizeof(d->serial));
+                info->get_vendor(d->vendor, sizeof(d->vendor));
+                info->get_firmware(d->firmware, sizeof(d->firmware));
+                return 0;
+            }
+            case IOCTL_DEVINFO_GET_MODEL: {
+                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                return info->get_model(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
+            }
+            case IOCTL_DEVINFO_GET_SERIAL: {
+                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                return info->get_serial(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
+            }
+            case IOCTL_DEVINFO_GET_VENDOR: {
+                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                return info->get_vendor(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
+            }
+            case IOCTL_DEVINFO_GET_FW: {
+                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                return info->get_firmware(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
+            }
+            default:
+                return -ENOTTY;
+        }
+    }
 
     // CharDevice
     if (kd->chardev) {

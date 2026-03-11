@@ -35,7 +35,7 @@ struct MountPoint
 {
     char path[64]{};
     VfsNode* root{};
-    DeviceDescriptor* device{}; // null when virtual
+    BlkDeviceDescriptor* device{}; // null when virtual
     bool is_virtual = false;
 
     u8 is_root_device = false;

@@ -935,13 +935,13 @@ namespace nvme {
     };
 
     struct NVME_IDENTIFY_CONTROLLER_DATA {
-        u16 vid;
-        u16 ssvid;
-        u8 sn[20];
-        u8 mn[40];
-        u8 fr[8];
-        u8 rab;
-        u8 ieee[3];
+        u16 vid;     // PCI Vendor ID (VID)
+        u16 ssvid;   // PCI Subsystem Vendor ID (SSVID)
+        u8 sn[20];   // Serial Number (SN)
+        u8 mn[40];   // Model Number (MN)
+        u8 fr[8];    // Firmware Revision (FR)
+        u8 rab;      // Recommended Arbitration Burst (RAB)
+        u8 ieee[3];  // IEEE OUI Identifier (IEEE). Controller Vendor code.
 
         struct __attribute__((packed)) {
             u8 multi_pc_ie_ports : 1;
@@ -1147,12 +1147,12 @@ namespace nvme {
             u16 timestamp : 1;
             u16 verify : 1;
             u16 reserved : 8;
-        } oncs; // Optional NVM Command Support (ONCS)
+        } oncs;  // Optional NVM Command Support (ONCS)
 
         struct __attribute__((packed)) {
             u16 compare_and_write : 1;
             u16 reserved : 15;
-        } fuses; // Fused Operation Support (FUSES)
+        } fuses;  // Fused Operation Support (FUSES)
 
         struct __attribute__((packed)) {
             u8 format_apply_to_all : 1;
@@ -1160,21 +1160,21 @@ namespace nvme {
             u8 cryptographic_erase_supported : 1;
             u8 format_support_nsid_all_f : 1;
             u8 reserved : 4;
-        } fna; // Format NVM Attributes (FNA)
+        } fna;  // Format NVM Attributes (FNA)
 
         struct __attribute__((packed)) {
             u8 present : 1;
             u8 flush_behavior : 2;
             u8 reserved : 5;
-        } vwc; // Volatile Write Cache (VWC)
+        } vwc;  // Volatile Write Cache (VWC)
 
-        u16 awun; // Atomic Write Unit Normal (AWUN)
-        u16 awupf; // Atomic Write Unit Power Fail (AWUPF)
+        u16 awun;   // Atomic Write Unit Normal (AWUN)
+        u16 awupf;  // Atomic Write Unit Power Fail (AWUPF)
 
         struct __attribute__((packed)) {
             u8 command_format_in_spec : 1;
             u8 reserved : 7;
-        } nvscc; // NVM Vendor Specific Command Configuration (NVSCC)
+        } nvscc;  // NVM Vendor Specific Command Configuration (NVSCC)
 
         struct __attribute__((packed)) {
             u8 write_protect : 1;
@@ -1183,7 +1183,7 @@ namespace nvme {
             u8 reserved : 5;
         } nwpc;
 
-        u16 acwu; // Atomic Compare & Write Unit (ACWU)
+        u16 acwu;  // Atomic Compare & Write Unit (ACWU)
         u8 reserved4[2];
 
         struct __attribute__((packed)) {
@@ -1197,7 +1197,7 @@ namespace nvme {
             u32 address_field_sgl_data_block : 1;
             u32 transport_sgl_data : 1;
             u32 reserved1 : 10;
-        } sgls; // SGL Support (SGLS)
+        } sgls;  // SGL Support (SGLS)
 
         u32 mnan;
         u8 reserved6[224];

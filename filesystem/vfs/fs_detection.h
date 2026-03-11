@@ -39,7 +39,7 @@ struct FilesystemInfo {
     char label[16];
 };
 
-struct DeviceDescriptor {
+struct BlkDeviceDescriptor {
     BlockDevice *device;
     usize device_size;
     FilesystemInfo fs_info;

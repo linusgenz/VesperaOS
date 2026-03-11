@@ -190,7 +190,7 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
 
     fs_info.mounted = true;
 
-    DeviceDescriptor desc{};
+    BlkDeviceDescriptor desc{};
     desc.device = device;
     desc.device_size = device->get_size();
     desc.is_recognized = true;
@@ -200,7 +200,7 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
     auto* mp = new MountPoint();
     strncpy(mp->path, suggested_path, sizeof(mp->path) - 1);
     mp->root = root;
-    mp->device = new DeviceDescriptor(desc);
+    mp->device = new BlkDeviceDescriptor(desc);
     mp->is_virtual = false;
     mp->is_partition = is_partition;
     mp->is_root_device = is_root_device;
@@ -214,9 +214,9 @@ bool FilesystemDetector::mount_device(BlockDevice* device, const char* suggested
 
 void FilesystemDetector::scan_and_mount_all()
 {
-    auto devices = DeviceManager::get_all_devices();
+    auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
 
-    if (usize device_count_actual = DeviceManager::get_device_count(); device_count_actual == 0)
+    if (usize device_count_actual = devices.size(); device_count_actual == 0)
     {
         Log::warning("[FS] No storage devices found");
         return;
@@ -229,18 +229,14 @@ void FilesystemDetector::scan_and_mount_all()
     {
         const KernelDevice* kd = devices[i];
 
-        if (!kd || kd->type != DeviceType::Block) continue;
-        BlockDevice* device = kd->block;
-        if (!device) continue;
-
-        if (device->type == BlockDevice::Type::Disk && kd->children.empty())
+        if (BlockDevice* blk = kd->block; blk->type == BlockDevice::Type::Disk && kd->children.empty())
         {
             const char* table_type = nullptr;
             char mount_path[64];
             if (!root_assigned)
             {
                 snprintf(mount_path, sizeof(mount_path), "/");
-                if (mount_device(device, mount_path, false, table_type, true))
+                if (mount_device(blk, mount_path, false, table_type, true))
                 {
                     root_assigned = true;
                     successful_mounts++;
@@ -252,7 +248,7 @@ void FilesystemDetector::scan_and_mount_all()
                 if (root_assigned)
                 {
                     VFS::ensure_path_exists(mount_path);
-                    if (mount_device(device, mount_path, false, table_type, false))
+                    if (mount_device(blk, mount_path, false, table_type, false))
                     {
                         successful_mounts++;
                     }
@@ -266,7 +262,7 @@ void FilesystemDetector::scan_and_mount_all()
                     // remember
                     PendingMount pm{};
                     strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
-                    pm.device = device;
+                    pm.device = blk;
                     pm.device_size = 0;
                     pm.is_partition = false;
                     pm.table_type = nullptr;
@@ -277,15 +273,8 @@ void FilesystemDetector::scan_and_mount_all()
         else if (kd->block->type == BlockDevice::Type::Partition)
         {
             {
-                if (kd->type != DeviceType::Block)
-                    continue;
-
-                BlockDevice* pdev = kd->block;
-                if (!pdev)
-                    continue;
-
                 FilesystemInfo fs_info{};
-                if (detect_filesystem(pdev, &fs_info))
+                if (detect_filesystem(blk, &fs_info))
                 {
                     const char* label = fs_info.label;
 
@@ -304,7 +293,7 @@ void FilesystemDetector::scan_and_mount_all()
                     if (is_root && !root_assigned)
                     {
                         snprintf(mount_path, sizeof(mount_path), "/");
-                        if (mount_device(pdev, "/", true, nullptr, true))
+                        if (mount_device(blk, "/", true, nullptr, true))
                         {
                             root_assigned = true;
                             successful_mounts++;
@@ -320,7 +309,7 @@ void FilesystemDetector::scan_and_mount_all()
                     if (root_assigned)
                     {
                         VFS::ensure_path_exists(mount_path);
-                        if (mount_device(pdev, mount_path, true, nullptr, false))
+                        if (mount_device(blk, mount_path, true, nullptr, false))
                             successful_mounts++;
                         else
                             VFS::rmdir(mount_path);
@@ -329,7 +318,7 @@ void FilesystemDetector::scan_and_mount_all()
                     {
                         PendingMount pm{};
                         strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
-                        pm.device = pdev;
+                        pm.device = blk;
                         pm.device_size = 0;
                         pm.is_partition = true;
                         pm.table_type = nullptr;
@@ -377,7 +366,7 @@ void FilesystemDetector::print_detected_filesystems()
     for (Vector<MountPoint*> snapshot = VFS::get_mount_points_snapshot(); auto& mp : snapshot)
     {
         if (mp->is_virtual) continue;
-        const DeviceDescriptor* dev = mp->device;
+        const BlkDeviceDescriptor* dev = mp->device;
         if (!dev) continue;
 
         if (dev->partition_table_type)

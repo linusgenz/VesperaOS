@@ -24,11 +24,11 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
+#include <vespera/devices/char_device.h>
 #include <vespera/terminal.h>
 #include <vespera/tty/tty.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include <vespera/devices/char_device.h>
 #include "vespera/devices/device_manager.h"
 
 class TtyDevice final : public CharDevice {
@@ -36,11 +36,17 @@ class TtyDevice final : public CharDevice {
     kernel::tty::TTY* tty;
 
     explicit TtyDevice(const char* name, kernel::tty::TTY* tty_ptr)
-        : CharDevice( BusType::Tty)
-        , tty(tty_ptr)
-        , kd_(DeviceManager::register_char_device(
-              this, name, DeviceClass::Pseudo, BusType::Tty, ControllerType::None, nullptr
-          )) {
+        : CharDevice(BusType::Tty)
+        , tty(tty_ptr) {
+        kd_ = DeviceManager::register_device(
+            DeviceDescriptor{}
+                .set_name(name)
+                .set_type(DeviceType::Char)
+                .set_class(DeviceClass::Pseudo)
+                .with_char(this)
+                .set_controller(ControllerType::None)
+                .set_bus(BusType::Tty)
+        );
         DevFs::register_device(kd_);
     }
 

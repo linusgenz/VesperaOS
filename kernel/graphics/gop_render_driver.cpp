@@ -1,8 +1,9 @@
 #include "gop_render_driver.h"
 
-#include "../../filesystem/devfs/devfs.h"
 #include <vespera/mm/memory.h>
 #include <vespera/terminal.h>
+
+#include "../../filesystem/devfs/devfs.h"
 #include "vespera/devices/device_manager.h"
 
 GopRenderDriver::GopRenderDriver(framebuffer_t* fb, font_t* font)
@@ -10,8 +11,14 @@ GopRenderDriver::GopRenderDriver(framebuffer_t* fb, font_t* font)
     , font_(font) {
     char name[10];
     DeviceManager::alloc_unique_device_name("uefi_gop", name, sizeof(name));
-    kd_ = DeviceManager::register_gpu_device(
-        this, name, DeviceClass::Graphics, BusType::VIRTUAL, ControllerType::UefiGop, nullptr
+    kd_ = DeviceManager::register_device(
+        DeviceDescriptor{}
+            .set_name(name)
+            .set_type(DeviceType::Gpu)
+            .set_class(DeviceClass::Graphics)
+            .set_bus(BusType::VIRTUAL)
+            .set_controller(ControllerType::UefiGop)
+            .with_gpu(this)
     );
     DevFs::register_device(kd_);
 }
@@ -154,9 +161,7 @@ void gop_render_driver::clear_cursor(u64 x_pos, u64 y_pos) const
     }
 }*/
 
-bool GopRenderDriver::blit_buffer(
-    const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y
-) {
+bool GopRenderDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) {
     if (!pixels) return false;
 
     u32 max_w = buffer_width;

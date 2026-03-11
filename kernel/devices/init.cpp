@@ -48,9 +48,10 @@ void initialize_pseudo_devices() {
     auto* meminfo_dev = new MemInfoDevice();
     auto* log_dev = new LogDevice(kernel_log_channel);
 
-    auto register_char_device = [](CharDevice* dev, const char* name, DeviceClass cls) -> KernelDevice* {
-        KernelDevice* kd =
-            DeviceManager::register_char_device(dev, name, cls, BusType::None, ControllerType::None, nullptr);
+    auto register_char_device = [](CharDevice* dev, const char* name, DeviceClass cls) {
+        KernelDevice* kd = DeviceManager::register_device(
+            DeviceDescriptor{}.set_name(name).set_type(DeviceType::Char).set_class(cls).with_char(dev)
+        );
         if (kd) DevFs::register_device(kd);
         return kd;
     };

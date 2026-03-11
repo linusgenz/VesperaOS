@@ -23,11 +23,18 @@
 namespace usb {
     XhciDriver::XhciDriver(u8 vector_num, const char* name, u8 bus_number)
         : CharDevice(BusType::Usb)
-        , kd_(DeviceManager::register_controller(
-              name, DeviceClass::Usb, BusType::Usb, ControllerType::Xhci, nullptr, this
-          ))
         , bus_number_(bus_number)
         , vector_num_(vector_num) {
+        kd_ = DeviceManager::register_device(
+            DeviceDescriptor{}
+                .set_name(name)
+                .set_type(DeviceType::Controller)
+                .set_class(DeviceClass::Usb)
+                .set_bus(BusType::Usb)
+                .set_controller(ControllerType::Xhci)
+                .with_char(this)
+            //    .with_lifecycle(this)
+        );
         devices_lock_.init("xhci_device_lock");
         command_lock_.init("xhci_command_lock");
         transfer_lock_.init("xhci_transfer_lock");
@@ -772,8 +779,7 @@ namespace usb {
 
     bool XhciDriver::create_device_context(u8 slot_id) const {
         // Allocate a memory block for the device context
-        u64 device_context_size =
-            _64byte_context_size_ ? sizeof(XHCI_DEVICE_CONTEXT64) : sizeof(XHCI_DEVICE_CONTEXT32);
+        u64 device_context_size = _64byte_context_size_ ? sizeof(XHCI_DEVICE_CONTEXT64) : sizeof(XHCI_DEVICE_CONTEXT32);
 
         void* ctx = alloc_xhci_memory(device_context_size, XHCI_DEVICE_CONTEXT_ALIGNMENT, XHCI_DEVICE_CONTEXT_BOUNDARY);
         memset(ctx, 0, device_context_size);
@@ -1205,8 +1211,7 @@ namespace usb {
     }
 
     bool XhciDriver::get_hid_report_descriptor(
-        XhciDevice* device, u8 interface_number, u8 descriptor_index, u8* report_buffer,
-        u16 report_length
+        XhciDevice* device, u8 interface_number, u8 descriptor_index, u8* report_buffer, u16 report_length
     ) {
         XHCI_DEVICE_REQUEST_PACKET req{};
         memset(&req, 0, sizeof(req));
@@ -1412,8 +1417,7 @@ namespace usb {
 
                             // Retrieve the HID report descriptor.
 
-                            if (const i8 interface_number =
-                                    device->interfaces.back()->descriptor.b_interface_number;
+                            if (const i8 interface_number = device->interfaces.back()->descriptor.b_interface_number;
                                 !get_hid_report_descriptor(
                                     device,
                                     interface_number,

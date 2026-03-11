@@ -76,9 +76,16 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
 
     // Register framebuffer device
     auto* fbdev = new FramebufferDevice("fb0", BusType::VIRTUAL);
-    auto* fb_kd = DeviceManager::register_char_device(
-        fbdev, "fb0", DeviceClass::Graphics, BusType::VIRTUAL, ControllerType::None, nullptr
+    auto* fb_kd = DeviceManager::register_device(
+        DeviceDescriptor{}
+            .set_name("fb0")
+            .set_type(DeviceType::Char)
+            .set_class(DeviceClass::Graphics)
+            .with_char(fbdev)
+            .set_bus(BusType::VIRTUAL)
+            .set_controller(ControllerType::None)
     );
+
     DevFs::register_device(fb_kd);
 
     // Setup terminal for logging

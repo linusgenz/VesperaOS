@@ -102,6 +102,13 @@ void Terminal::clear_char() {
     }
 
     put_char_fast(' ');
+
+    if (cx_ == 0) {
+        cy_--;
+        cx_ = cols_ - 1;
+    } else {
+        cx_--;
+    }
 }
 
 void Terminal::new_line() {

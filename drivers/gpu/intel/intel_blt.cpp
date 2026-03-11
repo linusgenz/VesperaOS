@@ -87,9 +87,15 @@ namespace blt {
 
         char name[16];
         DeviceManager::alloc_unique_device_name("intel_blt", name, sizeof(name));
-        kd_ = DeviceManager::register_gpu_device(
-            this, name, DeviceClass::Graphics, BusType::Pci, ControllerType::IntelGpu, nullptr
-        );
+        kd_ = DeviceManager::register_device(
+        DeviceDescriptor{}
+            .set_name(name)
+            .set_type(DeviceType::Gpu)
+            .set_class(DeviceClass::Graphics)
+            .set_bus(BusType::Pci)
+            .set_controller(ControllerType::IntelGpu)
+            .with_gpu(this)
+    );
 
         DevFs::register_device(kd_);
     }

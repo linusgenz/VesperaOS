@@ -33,13 +33,15 @@
 Ps2KeyboardDevice::Ps2KeyboardDevice(Ps2Controller* controller)
     : CharDevice(BusType::Ps2), parent(controller)
 {
-    devnode = DeviceManager::register_char_device(
-        this,
-        "ps2kbd",
-        DeviceClass::Input,
-        BusType::Ps2,
-        ControllerType::Ps2,
-        parent->devnode
+    devnode = DeviceManager::register_device(
+        DeviceDescriptor{}
+            .set_name("ps2kbd")
+            .set_type(DeviceType::Char)
+            .set_class(DeviceClass::Input)
+            .with_char(this)
+            .set_bus(BusType::Ps2)
+            .with_parent(parent->devnode)
+            .set_controller(ControllerType::Ps2)
     );
     DevFs::register_device(devnode);
 }

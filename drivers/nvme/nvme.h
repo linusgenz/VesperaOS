@@ -4,11 +4,15 @@
 
 #ifndef NVME_H
 #define NVME_H
+#include <klib/vector.h>
 #include <vespera/devices/block.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/devices/driver_lifecycle.h>
+#include <vespera/devices/smart_device.h>
+
 #include "../pci/pci.h"
 #include "nvme_defs.h"
-#include "vespera/devices/device_manager.h"
-#include <klib/vector.h>
+#include "vespera/devices/device_info.h"
 
 namespace nvme {
     class NvmeQueue {
@@ -36,8 +40,8 @@ namespace nvme {
         u16 sq_tail = 0;
 
         NvmeQueue(
-            u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq,
-            volatile u32* cq_db, volatile u32* sq_db, u16 csz, u16 ssz
+            u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq, volatile u32* cq_db,
+            volatile u32* sq_db, u16 csz, u16 ssz
         );
 
         ~NvmeQueue() = default;
@@ -70,9 +74,13 @@ namespace nvme {
 
     class NvmeNamespace final : public BlockDevice {
        public:
-        NvmeNamespace(u32 nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify, bool controller_supports_dsm)
+        NvmeNamespace(
+            u32 nsid, NvmeQueue* io_queue, const NVME_IDENTIFY_NAMESPACE_DATA* identify, bool controller_supports_dsm
+        )
             : ns_id_(nsid)
-            , queue_(io_queue), ncap_(identify->ncap), has_trim_(controller_supports_dsm) {
+            , queue_(io_queue)
+            , ncap_(identify->ncap)
+            , has_trim_(controller_supports_dsm) {
             const u8 lba_format_index = identify->flbas.lba_format_index;
             u8 lbads = identify->lbaf[lba_format_index].lbads;
             sector_size_ = 1 << lbads;
@@ -93,7 +101,9 @@ namespace nvme {
             return sector_size_;
         }
 
-        [[nodiscard]] bool supports_trim() const override { return has_trim_; }
+        [[nodiscard]] bool supports_trim() const override {
+            return has_trim_;
+        }
         bool trim(const TrimRange* ranges, usize count) override;
 
        private:
@@ -106,7 +116,7 @@ namespace nvme {
         bool has_trim_ = false;
     };
 
-    class NvmeDriver final : public IDriverLifecycle, public ISmartDevice {
+    class NvmeDriver final : public IDriverLifecycle, public ISmartDevice, public IDeviceInfo {
         volatile NVME_CONTROLLER_REGISTERS* c_regs_ = nullptr;
         NvmeQueue admin_queue_;
         NvmeQueue io_queue_;
@@ -161,23 +171,33 @@ namespace nvme {
         long delete_io_queue(NvmeQueue* queue_ptr);
         long create_io_queue(NvmeQueue* queue_ptr);
 
+        static void copy_nvme_string(char* dst, usize dst_len, const u8* src, usize src_len);
+
        public:
         DRIVER_STATUS d_status = CONTROLLER_NOT_READY;
 
         explicit NvmeDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
         ~NvmeDriver() override;
 
-        void on_shutdown() override { shutdown(); }
-        void on_suspend()  override { /* optional */ }
+        void on_shutdown() override {
+            shutdown();
+        }
+        void on_suspend() override { /* optional */
+        }
 
         bool smart_read_data(u8* out_buf) override;
         bool smart_get_common(SmartCommon* out) override;
         bool smart_get_nvme(SmartNvme* out) override;
 
+        bool get_vendor(char* out, usize len) override;
+        bool get_model(char* out, usize len) override;
+        bool get_firmware(char* out, usize len) override;
+        bool get_serial(char* out, usize len) override;
+
         [[nodiscard]] const Vector<NvmeNamespace*>& get_namespaces() const {
             return namespaces_;
         }
     };
-}  // namespace NVMe
+}  // namespace nvme
 
 #endif  // NVME_H

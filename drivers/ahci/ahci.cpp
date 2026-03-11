@@ -60,7 +60,7 @@ namespace ahci {
             ports[port_count] = new Port();
             ports[port_count]->port_type = port_type;
             ports[port_count]->hba_port = &abar->ports[i];
-            ports[port_count]->port_number = port_count;
+            ports[port_count]->port_number = i;
             port_count++;
         }
     }
@@ -440,8 +440,7 @@ namespace ahci {
         }
 
         for (usize i = 0; i < count; i++) {
-            Log::debug("[FAT32] TRIM range %u: lba=%llu sectors=%u",
-                       i, ranges[i].lba, ranges[i].sector_count);
+            Log::debug("[FAT32] TRIM range %u: lba=%llu sectors=%u", i, ranges[i].lba, ranges[i].sector_count);
         }
         return true;
     }
@@ -494,6 +493,37 @@ namespace ahci {
 
     bool Port::supports_trim() const {
         return has_trim_;
+    }
+
+    bool Port::get_model(char* out, usize len) {
+        if (!identify_) return false;
+        copy_ata_string(out, len, identify_->model_number, 40);
+        return true;
+    }
+
+    bool Port::get_serial(char* out, usize len) {
+        if (!identify_) return false;
+        copy_ata_string(out, len, identify_->serial_number, 20);
+        return true;
+    }
+
+    bool Port::get_firmware(char* out, usize len) {
+        if (!identify_) return false;
+        copy_ata_string(out, len, identify_->firmware_revision, 8);
+        return true;
+    }
+
+    void Port::copy_ata_string(char* dst, usize dst_len, const u8* src, usize src_chars) {
+        usize n = src_chars < dst_len - 1 ? src_chars : dst_len - 1;
+
+        for (usize i = 0; i + 1 < n; i += 2) {
+            dst[i] = static_cast<char>(src[i + 1]);
+            dst[i + 1] = static_cast<char>(src[i]);
+        }
+        if (n % 2 != 0) dst[n - 1] = static_cast<char>(src[n - 1]);
+
+        dst[n] = '\0';
+        for (isize i = static_cast<isize>(n) - 1; i >= 0 && dst[i] == ' '; i--) dst[i] = '\0';
     }
 
     bool Port::identify() {
@@ -724,8 +754,15 @@ namespace ahci {
 
         char name[16];
         DeviceManager::alloc_unique_device_name("ahci", name, sizeof(name));
-        kd_ = DeviceManager::register_controller(
-            name, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, nullptr, nullptr, this
+        kd_ = DeviceManager::register_device(
+            DeviceDescriptor{}
+                .set_name(name)
+                .set_type(DeviceType::Controller)
+                .set_class(DeviceClass::Storage)
+                .set_bus(BusType::Pci)
+                .set_controller(ControllerType::Ahci)
+                .with_lifecycle(this)
+                .with_info(this)
         );
 
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address)->bar5);
@@ -755,12 +792,33 @@ namespace ahci {
 
             char name_buf[16] = {};
             DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
-            port->kd = DeviceManager::register_block_device(
-                port, name_buf, DeviceClass::Storage, BusType::Pci, ControllerType::Ahci, kd_, port
+            port->kd = DeviceManager::register_device(
+                DeviceDescriptor{}
+                    .set_name(name_buf)
+                    .set_type(DeviceType::Block)
+                    .set_class(DeviceClass::Storage)
+                    .set_bus(BusType::Pci)
+                    .set_controller(ControllerType::Ahci)
+                    .with_block(port)
+                    .with_smart(port)
+                    .with_info(port)
+                    .with_parent(kd_)
             );
             DevFs::register_device(port->kd);
             DeviceManager::find_and_register_partitions(port->kd);
         }
+    }
+
+    bool AhciDriver::get_vendor(char* out, usize len) {
+        strncpy(out, pci::get_vendor_name(pci_base_address->vendor_id), len);
+        out[len - 1] = '\0';
+        return true;
+    }
+
+    bool AhciDriver::get_model(char* out, usize len) {
+        strncpy(out, pci::get_device_name(pci_base_address->vendor_id, pci_base_address->device_id), len);
+        out[len - 1] = '\0';
+        return true;
     }
 
     bool AhciDriver::has_active_ports() const {

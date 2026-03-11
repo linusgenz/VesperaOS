@@ -27,6 +27,7 @@
 #include <sys/ioctl.h>
 #include <fflags.h>
 #include <vespera/dev/ioctl_smart.h>
+#include <vespera/dev/ioctl_devinfo.h>
 #include <dirent.h>
 #include <errno.h>
 
@@ -107,8 +108,7 @@ static void show_nvme(int64_t handle) {
                 has_sensors = 1;
             }
             char sbuf[64];
-            int celsius = (int)nvme.temperature_sensor[i] - 273;
-            snprintf(sbuf, sizeof(sbuf), "  Sensor %d:             %d °C\n", i + 1, celsius);
+            snprintf(sbuf, sizeof(sbuf), "  Sensor %d:             %d °C\n", i + 1, nvme.temperature_sensor[i]);
             puts(sbuf);
         }
     }
@@ -184,6 +184,26 @@ static void show_common(int64_t handle) {
     }
 }
 
+static void show_devinfo(int64_t handle) {
+    devinfo_t info;
+    if (ioctl((uint64_t)handle, IOCTL_DEVINFO_GET_ALL, &info) < 0)
+        return;
+
+    if (info.model[0] == '\0' && info.serial[0] == '\0' &&
+        info.vendor[0] == '\0' && info.firmware[0] == '\0')
+        return;
+
+    puts("  [Device Information]\n");
+
+    char buf[192];
+    if (info.vendor[0])   { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Vendor:",   info.vendor);   puts(buf); }
+    if (info.model[0])    { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Model:",    info.model);    puts(buf); }
+    if (info.serial[0])   { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Serial:",   info.serial);   puts(buf); }
+    if (info.firmware[0]) { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Firmware:", info.firmware); puts(buf); }
+
+    puts("\n");
+}
+
 static void inspect_device(const char* dev_path) {
     print_separator();
 
@@ -197,6 +217,8 @@ static void inspect_device(const char* dev_path) {
         printf("  Cannot open device (error %ld)\n", handle);
         return;
     }
+
+    show_devinfo(handle);
 
     SmartCommon common;
     int64_t rc = ioctl((uint64_t)handle, IOCTL_SMART_GET_COMMON, &common);
