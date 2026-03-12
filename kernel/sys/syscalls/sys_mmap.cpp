@@ -21,12 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
-#include <vespera/log.h>
-#include <vespera/mm/memory.h>
+#include <vespera/realm/realm_manager.h>
 
 // TODO FIX MMAP. USE PROT AND USE MAP_*
 namespace syscalls::internal {
@@ -42,6 +43,8 @@ namespace syscalls::internal {
         Unit* cur = kernel::scheduling::get_current_unit();
         if (!cur || !cur->is_user) return -EACCES;
 
+        const Realm* cur_r = RealmManager::get(cur->rid);
+
         static uptr next_base = 0x4000000000;
         uptr base = (addr != 0) ? addr : next_base;
         if (addr == 0) next_base += length;
@@ -52,16 +55,16 @@ namespace syscalls::internal {
             phys_addr_t phys = kernel::memory::request_page_phys();
             if (phys_null(phys)) {
                 for (usize j = 0; j < i; j++)
-                    kernel::memory::unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
+                     cur_r->page_table->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
                 return -ENOMEM;
             }
-            kernel::memory::map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper));
+            cur_r->page_table->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper)| (1ULL << ReadWrite));
         }
 
         auto* area = static_cast<VmArea*>(kernel::memory::malloc(sizeof(VmArea)));
         if (!area) {
             for (usize i = 0; i < npages; i++)
-                kernel::memory::unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
+                 cur_r->page_table->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
             return -ENOMEM;
         }
 

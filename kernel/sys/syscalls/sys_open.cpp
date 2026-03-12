@@ -143,6 +143,16 @@ namespace syscalls::internal {
                 handle_type = HANDLE_TYPE_DIRECTORY;
                 break;
             }
+            case VfsNodeType::OtherDevice: {
+                required_caps |= CAP_DEVICE_ACCESS;
+                vh = new VfsHandle(node, flags, required_caps);
+                if (!vh) {
+                    VFS::close(node);
+                    return -ENOMEM;
+                }
+                handle_type = HANDLE_TYPE_DEVICE;
+                break;
+            }
 
             default:
                 VFS::close(node);

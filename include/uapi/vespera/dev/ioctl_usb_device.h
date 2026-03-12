@@ -42,7 +42,7 @@ typedef struct usb_device_info {
     u8 b_device_class;
     u8 b_device_subclass;
     u8 b_device_protocol;
-    u8 _pad;
+    u8 b_max_packet_size0;
 
     u16 vendor_id;   // idVendor
     u16 product_id;  // idProduct
@@ -51,7 +51,12 @@ typedef struct usb_device_info {
 
     u8 num_configurations;
     u8 num_interfaces;
-    u8 _pad2[2];
+
+    u8 b_configuration_value;
+    u8 bm_attributes;
+    u8 b_max_power;
+
+    u8 _pad[3];
 } usb_device_info_t;
 
 #endif  // VESPERAOS_IOCTL_USB_DEVICE_H

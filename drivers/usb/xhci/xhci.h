@@ -44,6 +44,8 @@ namespace usb {
        private:
         KernelDevice* kd_;
 
+        UsbDeviceInfo* controller_info_;
+
         pci::PCI_HEADER0* pci_hdr_;
 
         Spinlock devices_lock_{};

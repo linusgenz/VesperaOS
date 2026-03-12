@@ -69,10 +69,13 @@ namespace fat32 {
         sector_size = bpb.bytes_per_sector;
 
         fs_valid = true;
+        device_lost_ = false;
     }
 
     FileSystem::~FileSystem() {
-        write_fs_info();
+        if (!device_lost_) {
+            write_fs_info();
+        }
     }
 
     bool FileSystem::probe_fs() const {

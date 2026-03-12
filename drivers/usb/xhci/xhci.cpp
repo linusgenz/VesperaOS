@@ -21,9 +21,18 @@
 
 namespace usb {
     XhciDriver::XhciDriver(u8 vector_num, const char* name, u8 bus_number)
-        : pci_hdr_(nullptr)
+        : controller_info_(new UsbDeviceInfo())
+        , pci_hdr_(nullptr)
         , bus_number_(bus_number)
         , vector_num_(vector_num) {
+        // strncpy(controller_info_->model, "xHCI Host Controller", sizeof(controller_info_->model) - 1);
+
+        controller_info_->usb_info.bus_number = bus_number;
+        controller_info_->usb_info.slot_id = 0;  // controller sentinel
+        controller_info_->usb_info.port_num = 0;
+        controller_info_->usb_info.speed = USB_SPEED_SUPER_SPEED;
+        controller_info_->usb_info.b_device_class = 0x09;  // Hub class
+
         kd_ = DeviceManager::register_device(
             DeviceDescriptor{}
                 .set_name(name)
@@ -31,6 +40,8 @@ namespace usb {
                 .set_class(DeviceClass::Usb)
                 .set_bus(BusType::Usb)
                 .set_controller(ControllerType::Xhci)
+                .with_info(controller_info_)
+                .with_usb_info(controller_info_)
             //    .with_lifecycle(this)
         );
         devices_lock_.init("xhci_device_lock");
@@ -85,6 +96,22 @@ namespace usb {
         //   log_operational_registers();
 
         kernel::interrupts::allocate_vector(vector_num_, reinterpret_cast<irq_handler_t>(xhci_irq_handler), this);
+
+        if (controller_info_) {
+            strncpy(
+                controller_info_->vendor,
+                pci::get_vendor_name(pci_base_address->vendor_id),
+                sizeof(controller_info_->vendor) - 1
+            );
+            strncpy(
+                controller_info_->model,
+                pci::get_device_name(pci_base_address->vendor_id, pci_base_address->device_id),
+                sizeof(controller_info_->model) - 1
+            );
+
+            controller_info_->usb_info.vendor_id = pci_base_address->vendor_id;
+            controller_info_->usb_info.product_id = pci_base_address->device_id;
+        }
 
         // Setup runtime registers
         configure_runtime_registers();
@@ -1334,6 +1361,11 @@ namespace usb {
             return false;
         }
 
+        auto* configuration_descriptor = new UsbConfigurationDescriptor();
+        if (!get_configuration_descriptor(device, configuration_descriptor)) {
+            return false;
+        }
+
         u16 product_str[126];
         u16 manufacturer_str[126];
         u16 serial_str[126];
@@ -1348,37 +1380,38 @@ namespace usb {
         utf16_to_utf8(manufacturer_str, sizeof(manufacturer_str), dev_info->vendor);
         utf16_to_utf8(serial_str, sizeof(serial_str), dev_info->serial);
 
-        if (dev_info->model[0] == '?' && dev_info->vendor[0] == '?' &&
-            dev_info->serial[0] == '?') {
+        if (dev_info->model[0] == '?' && dev_info->vendor[0] == '?' && dev_info->serial[0] == '?') {
             Log::log_msg("Unknown USB device, canceling setup...");
             return false;
         }
 
         device->set_model_name(dev_info->model);
 
-        snprintf(dev_info->firmware, sizeof(dev_info->firmware), "%u.%02u",
-                 device_descriptor->bcd_device >> 8,
-                 device_descriptor->bcd_device & 0xFF);
+        snprintf(
+            dev_info->firmware,
+            sizeof(dev_info->firmware),
+            "%u.%02u",
+            device_descriptor->bcd_device >> 8,
+            device_descriptor->bcd_device & 0xFF
+        );
 
-        dev_info->usb_info.bus_number          = bus_number_;
-        dev_info->usb_info.slot_id             = slot_id;
-        dev_info->usb_info.port_num            = port_id;
-        dev_info->usb_info.speed               = port_speed;
-        dev_info->usb_info.vendor_id           = device_descriptor->id_vendor;
-        dev_info->usb_info.product_id          = device_descriptor->id_product;
-        dev_info->usb_info.bcd_device          = device_descriptor->bcd_device;
-        dev_info->usb_info.bcd_usb             = device_descriptor->bcd_usb;
-        dev_info->usb_info.b_device_class      = device_descriptor->b_device_class;
-        dev_info->usb_info.b_device_subclass   = device_descriptor->b_device_sub_class;
-        dev_info->usb_info.b_device_protocol   = device_descriptor->b_device_protocol;
-        dev_info->usb_info.num_configurations  = device_descriptor->b_num_configurations;
-        dev_info->usb_info.num_interfaces      = 0; // gets filled below after parsing the config descriptor
-
-
-        auto* configuration_descriptor = new UsbConfigurationDescriptor();
-        if (!get_configuration_descriptor(device, configuration_descriptor)) {
-            return false;
-        }
+        dev_info->usb_info.bus_number = bus_number_;
+        dev_info->usb_info.slot_id = slot_id;
+        dev_info->usb_info.port_num = port_id;
+        dev_info->usb_info.speed = port_speed;
+        dev_info->usb_info.vendor_id = device_descriptor->id_vendor;
+        dev_info->usb_info.product_id = device_descriptor->id_product;
+        dev_info->usb_info.bcd_device = device_descriptor->bcd_device;
+        dev_info->usb_info.bcd_usb = device_descriptor->bcd_usb;
+        dev_info->usb_info.b_device_class = device_descriptor->b_device_class;
+        dev_info->usb_info.b_device_subclass = device_descriptor->b_device_sub_class;
+        dev_info->usb_info.b_device_protocol = device_descriptor->b_device_protocol;
+        dev_info->usb_info.b_max_packet_size0 = device_descriptor->b_max_packet_size0;
+        dev_info->usb_info.num_configurations = device_descriptor->b_num_configurations;
+        dev_info->usb_info.num_interfaces = 0;  // gets filled below after parsing the config descriptor
+        dev_info->usb_info.b_configuration_value = configuration_descriptor->header.b_configuration_value;
+        dev_info->usb_info.bm_attributes = configuration_descriptor->header.bm_attributes;
+        dev_info->usb_info.b_max_power = configuration_descriptor->header.b_max_power;
 
         device->sync_input_ctx(reinterpret_cast<void*>(dcbaa_virtual_addresses_[device->get_slot_id()]));
 

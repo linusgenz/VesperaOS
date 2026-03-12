@@ -59,6 +59,10 @@ public:
 
     static void unmount_all();
 
+    static bool unmount(MountPoint* mp);
+
+    static void emergency_detach_device(const BlockDevice * device);
+
     static void print_detected_filesystems();
 
 private:
@@ -67,7 +71,6 @@ private:
     static usize driver_count_;
     static usize device_count_;
 
-    static bool unmount(MountPoint* mp);
 
     static VfsNode *mount_filesystem(BlockDevice *device, FilesystemInfo* fs_info);
 

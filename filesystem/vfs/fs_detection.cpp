@@ -23,13 +23,15 @@
 
 #include "fs_detection.h"
 
-#include <vespera/system/system_manager.h>
-
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/log.h>
+#include <vespera/system/system_manager.h>
+#include "../kernel/devices/partition_device.h"
+
 #include "fs_registry.h"
 #include "vfs.h"
-#include <vespera/log.h>
+
 
 usize FilesystemDetector::driver_count_ = 0;
 usize FilesystemDetector::device_count_ = 0;
@@ -153,6 +155,44 @@ void FilesystemDetector::unmount_all()
     if (root_mp)
     {
         unmount(root_mp);
+    }
+}
+
+void FilesystemDetector::emergency_detach_device(const BlockDevice* physical_device)
+{
+    if (!physical_device) return;
+
+    Vector<MountPoint*> snapshot = VFS::get_mount_points_snapshot();
+
+    for (auto& mp : snapshot)
+    {
+        if (mp->is_virtual || !mp->device || !mp->device->device) continue;
+
+        BlockDevice* mp_device = mp->device->device;
+
+        bool is_affected = (mp_device == physical_device);
+
+        if (!is_affected && mp->is_partition)
+        {
+            auto* part = static_cast<PartitionDevice*>(mp_device);
+            is_affected = (part->get_parent() == physical_device);
+        }
+
+        if (!is_affected) continue;
+
+        if (mp->device->fs_info.mounted)
+        {
+            if (FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name);
+                driver && driver->force_unmount)
+            {
+                driver->force_unmount(mp->root);
+            }
+            mp->device->fs_info.mounted = false;
+        }
+
+        VFS::remove_mount_point(mp);
+
+        Log::warning("[FS] Emergency detach: forcefully unmounted %s", mp->path);
     }
 }
 

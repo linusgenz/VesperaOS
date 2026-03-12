@@ -55,6 +55,10 @@ class PartitionDevice final : public BlockDevice {
         return parent_ && parent_->supports_trim();
     }
 
+    [[nodiscard]] BlockDevice* get_parent() const {
+        return parent_;
+    }
+
     bool trim(const TrimRange* ranges, usize count) override;
 
    private:

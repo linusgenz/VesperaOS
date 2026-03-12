@@ -212,10 +212,18 @@ namespace fat32 {
             return &bpb;
         }
 
+        void write_fs_info() const;
+
+        void mark_device_lost() {
+            device_lost_ = true;
+        }
+
         //   private:
         BlockDevice* device;
         BPB_FAT32 bpb{};
         bool fs_valid;
+
+        bool device_lost_ = false;
 
         u32 sector_size;
         u32 data_start;
@@ -265,7 +273,6 @@ namespace fat32 {
 
         [[nodiscard]] u32 cluster_to_sector(u32 cluster) const;
         bool load_fs_info();
-        void write_fs_info() const;
         u32 get_free_cluster_count();
 
         isize read_cluster(u32 cluster, void* buffer, usize buffer_size) const;

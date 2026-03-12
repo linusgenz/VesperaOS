@@ -302,9 +302,27 @@ bool fat32_unmount(VfsNode* root)
     return true;
 }
 
+bool fat32_force_unmount(VfsNode* root) {
+    if (!root) return false;
+
+    auto* fatnode = static_cast<Fat32Node*>(root->internal_data);
+    if (!fatnode) return false;
+
+    FileSystem* fs = fatnode->fs;
+    if (!fs) return false;
+
+    fs->mark_device_lost();
+    delete fs;
+
+    kernel::memory::free(fatnode);
+    kernel::memory::free(root);
+    return true;
+}
+
 FileSystemDriver fat32_driver = {
     .name = "fat32",
     .probe = fat32_probe,
     .mount = fat32_mount,
-    .unmount = fat32_unmount
+    .unmount = fat32_unmount,
+    .force_unmount = fat32_force_unmount
 };
