@@ -30,7 +30,9 @@ void setup_cpu_tss(u32 cpu_id) {
     // Index: 5 + (cpu_id * 2) weil TSS 16 bytes = 2 GDT entries braucht
     u32 gdt_index = 5 + (cpu_id * 2);
 
-    TSS_DESCRIPTOR temp_desc{};
+    TSS_DESCRIPTOR temp_desc;
+    memset(&temp_desc, 0, sizeof(TSS_DESCRIPTOR));
+
     auto base = reinterpret_cast<u64>(&tss[cpu_id]);
     u32 limit = sizeof(TSS) - 1;
 

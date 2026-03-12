@@ -128,39 +128,6 @@ void GopRenderDriver::put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color)
     }
 }
 
-/*
-void gop_render_driver::draw_cursor() const
-{
-    auto* pix_ptr = static_cast<u32*>(TargetFramebuffer->base_address);
-
-    u64 max_y = min(cursor_position.Y + PSF_Font->height, TargetFramebuffer->height);
-    u64 max_x = min(cursor_position.X + PSF_Font->width, TargetFramebuffer->width);
-
-    for (u64 y = cursor_position.Y; y < max_y; y++)
-    {
-        for (u64 x = cursor_position.X; x < max_x; x++)
-        {
-            *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = WHITE;
-        }
-    }
-}
-
-void gop_render_driver::clear_cursor(u64 x_pos, u64 y_pos) const
-{
-    auto* pix_ptr = static_cast<u32*>(TargetFramebuffer->base_address);
-
-    u64 max_y = min(y_pos + PSF_Font->height, TargetFramebuffer->height);
-    u64 max_x = min(x_pos + PSF_Font->width, TargetFramebuffer->width);
-
-    for (u64 y = y_pos; y < max_y; y++)
-    {
-        for (u64 x = x_pos; x < max_x; x++)
-        {
-            *(pix_ptr + x + y * TargetFramebuffer->pixels_per_scanline) = BLACK;
-        }
-    }
-}*/
-
 bool GopRenderDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) {
     if (!pixels) return false;
 

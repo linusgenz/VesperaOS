@@ -25,8 +25,6 @@ namespace usb {
         , pci_hdr_(nullptr)
         , bus_number_(bus_number)
         , vector_num_(vector_num) {
-        // strncpy(controller_info_->model, "xHCI Host Controller", sizeof(controller_info_->model) - 1);
-
         controller_info_->usb_info.bus_number = bus_number;
         controller_info_->usb_info.slot_id = 0;  // controller sentinel
         controller_info_->usb_info.port_num = 0;

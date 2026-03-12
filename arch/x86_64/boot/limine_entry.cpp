@@ -25,6 +25,8 @@
 #include <vespera/boot/boot.h>
 #include <vespera/graphics.h>
 
+#include "vespera/cpu/simd.h"
+
 __attribute__((used, section(".requests_start_marker"))) static volatile LIMINE_REQUESTS_START_MARKER;
 
 __attribute__((used, section(".requests"))) static volatile limine_framebuffer_request fb_request = {
@@ -139,10 +141,6 @@ static void convert_memmap(u64* out_count) {
     *out_count = n;
 }
 
-// ============================================================================
-// Kernel Entry Point
-// ============================================================================
-
 extern "C" void kernel_main(BootInfo* info);
 
 extern "C" void limine_entry() {
@@ -171,39 +169,34 @@ extern "C" void limine_entry() {
     boot_info.m_map_desc_size = sizeof(EFI_MEMORY_DESCRIPTOR);
 
     // --- HHDM Offset ---
-    // Alle von Limine zurückgegebenen Pointer (außer Memory-Map-Basisadressen)
-    // sind HHDM-virtuell. phys = virt - hhdm_offset.
     if (hhdm_request.response)
         boot_info.hhdm_offset = hhdm_request.response->offset;
     else
         boot_info.hhdm_offset = 0;
 
-    // Jetzt phys_base_address korrekt setzen
     framebuffer.phys_base_address = reinterpret_cast<u64>(lfb->address) - boot_info.hhdm_offset;
 
     // --- RSDP ---
-    // rsdp_request.response->address ist ebenfalls HHDM-virtuell
     if (rsdp_request.response)
         boot_info.rsdp = static_cast<acpi::RSDP2*>(rsdp_request.response->address);
     else
         boot_info.rsdp = nullptr;
 
     // --- Kernel-Adressen ---
-    // Wichtig für KERNEL_BASE-Berechnungen in init.cpp
     if (kaddr_request.response) {
         boot_info.kernel_phys_base = kaddr_request.response->physical_base;
         boot_info.kernel_virt_base = kaddr_request.response->virtual_base;
     } else {
-        // Fallback: linker.ld Werte
+        // Fallback: linker.ld
         boot_info.kernel_phys_base = 0x100000;
         boot_info.kernel_virt_base = 0xFFFFFFFF80100000ULL;
     }
 
-    // --- Font ---
+    simd_init();
+
     parse_psf_font();
     boot_info.font = &embedded_font;
 
-    // --- Kernel starten ---
     kernel_main(&boot_info);
 
     hlt_forever();

@@ -24,7 +24,7 @@
 %macro IRQ_STUB 1
 global irq_stub_%1
 irq_stub_%1:
-    push %1
+    mov edi, %1
     jmp irq_common_stub
 %endmacro
 
@@ -38,8 +38,9 @@ global irq_common_stub
 extern irq_common_stub_handler
 
 irq_common_stub:
-    pop rdi              ; irqno → 1. arg
+    sub rsp, 8
     call irq_common_stub_handler
+    add rsp, 8
     iretq
 
 section .data

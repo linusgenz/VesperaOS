@@ -22,14 +22,15 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/boot/boot.h>
+#include <vespera/cpu/simd.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/tty/tty.h>
+#include <vespera/types.h>
 
-#include "../include/vespera/types.h"
 #include "./cpu/cpu.h"
 #include "cpu/io.h"
 #include "exec/elf.h"
@@ -142,52 +143,20 @@ void debug_print_all_devices() {
     Log::print_ln("==============================");
 }
 
-void enable_sse() {
-    // CR0: MP setzen, EM löschen
-    u64 cr0 = 0;
-    asm volatile("mov %%cr0, %0" : "=r"(cr0));
-    cr0 |= (1 << 1);   // MP - Monitor Coprocessor
-    cr0 &= ~(1 << 2);  // EM löschen - kein Emulation-Flag
-    asm volatile("mov %0, %%cr0" ::"r"(cr0));
-
-    // CR4: OSFXSR und OSXMMEXCPT setzen
-    u64 cr4 = 0;
-    asm volatile("mov %%cr4, %0" : "=r"(cr4));
-    cr4 |= (1 << 9);   // OSFXSR - OS unterstützt FXSAVE/FXRSTOR
-    cr4 |= (1 << 10);  // OSXMMEXCPT - OS behandelt SSE-Exceptions
-    asm volatile("mov %0, %%cr4" ::"r"(cr4));
-}
-
-void enable_avx() {
-    // CR4: OSXSAVE setzen
-    u64 cr4 = 0;
-    asm volatile("mov %%cr4, %0" : "=r"(cr4));
-    cr4 |= (1 << 18);  // OSXSAVE
-    asm volatile("mov %0, %%cr4" ::"r"(cr4));
-
-    // XCR0: SSE und AVX-State für XSAVE aktivieren
-    u64 xcr0 = 0;
-    asm volatile("xgetbv" : "=A"(xcr0) : "c"(0));
-    xcr0 |= (1 << 0);  // x87
-    xcr0 |= (1 << 1);  // SSE
-    xcr0 |= (1 << 2);  // AVX
-    asm volatile("xsetbv" ::"A"(xcr0), "c"(0));
-}
-
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     outb(0x3F8, 'A');
     Log::disable_debug();
     initialize_kernel(boot_info);
     char vendor[13];
     get_cpu_vendor(vendor);
-     Log::info("CPU Vendor: %s", vendor);
+    Log::info("CPU Vendor: %s", vendor);
     char brand[49];
     get_cpu_brand(brand);
     Log::info("CPU Brand: %s", brand);
     Log::ok("Kernel initialized successfully");
     Log::info("Kernel version: %s", get_kernel_version());
 
-    RealmConfig realm_config_shell = {
+    constexpr RealmConfig realm_config_shell = {
         .name = "shell_realm",
         .memory_limit = 0,
         .capabilities = CAP_DEVICE_ACCESS | CAP_RW,
@@ -205,7 +174,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
 
     const char* argv_example[] = {"shell", "-v", "--config=config.txt", nullptr};
 
-    UnitConfig uc = {
+    const UnitConfig uc = {
         .name = "shell",
         .cpu_id = 0,
         .priority = 10,
@@ -227,9 +196,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     }
 
     kernel::SystemManager::set_system_initialized();
-
-    //  enable_avx();
-    enable_sse();
 
     //  Debug_PrintAllDevices();
 

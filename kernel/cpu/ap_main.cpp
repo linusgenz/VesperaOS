@@ -9,8 +9,11 @@
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../../arch/x86_64/syscalls/syscall.h"
 #include "cpu_manager.h"
+#include "vespera/cpu/simd.h"
 
 extern "C" void ap_main() {
+    simd_enable_on_current_core();
+
     const u32 cpu_id = cpu_manager::get_current_cpu_id();
 
     if (!cpu_id) {
@@ -20,6 +23,7 @@ extern "C" void ap_main() {
     load_gdt(&gdt_ptr);
 
     setup_cpu_tss(cpu_id);
+
     syscall_init();
 
     kernel::interrupts::lapic_init(cpu_id);

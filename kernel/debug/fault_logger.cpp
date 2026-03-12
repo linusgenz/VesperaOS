@@ -4,14 +4,15 @@
 // Nutzt das bestehende Log-System, kapselt aber ein konsistentes,
 // auf Faults zugeschnittenes Ausgabeformat.
 //
+#include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 #if DEBUG_FAULT
 #include "trace.h"
 #endif
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include <vespera/log.h>
 #include "fault_logger.h"
 #include "trace.h"
 
@@ -46,11 +47,15 @@ namespace kernel::debug {
         const char* type_str = fault_type_to_string(type);
 
         if (extra_msg && *extra_msg) {
-            //   auto u = scheduling::get_current_unit();
-            //    Log::Error("%s: %s on CPU#%u on Unit#%u (%s)", type_str, extra_msg, CPUManager::get_current_cpu_id(),
-            //    u->id,
-            //              u->name);
-            Log::error("%s: %s", type_str, extra_msg);
+            auto u = scheduling::get_current_unit();
+            Log::error(
+                "%s: %s on CPU#%u on Unit#%u (%s)",
+                type_str,
+                extra_msg,
+                cpu_manager::get_current_cpu_id(),
+                u->id,
+                u->name
+            );
         } else {
             Log::error("%s", type_str);
         }

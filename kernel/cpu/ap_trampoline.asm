@@ -60,6 +60,11 @@ ap32:
 
 bits 64
 ap64:
+    ; enable write protect
+    mov rax, cr0
+    or  rax, (1 << 16)
+    mov cr0, rax
+
     mov ax, 0x10
     mov ds, ax
     mov es, ax
