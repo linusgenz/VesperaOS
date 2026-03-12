@@ -32,6 +32,7 @@ class IRenderDriver;
 class ISmartDevice;
 class IDriverLifecycle;
 class IDeviceInfo;
+class IUsbDeviceInfo;
 
 enum class DeviceType : u8 {
     Other,
@@ -91,6 +92,7 @@ struct KernelDevice {
     ISmartDevice*     smart{nullptr};
     IDriverLifecycle* lifecycle{nullptr};
     IDeviceInfo*      info{nullptr};
+    IUsbDeviceInfo*   usb_info{nullptr};
 
     u32          next_nvme_index{0};
     Vector<bool> nvme_device_used;

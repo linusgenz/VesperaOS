@@ -2,7 +2,6 @@
 
 #include <klib/encoding.h>
 #include <klib/vector.h>
-#include <uapi/vespera/dev/ioctl_usb_xhci.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
@@ -22,7 +21,7 @@
 
 namespace usb {
     XhciDriver::XhciDriver(u8 vector_num, const char* name, u8 bus_number)
-        : CharDevice(BusType::Usb)
+        : pci_hdr_(nullptr)
         , bus_number_(bus_number)
         , vector_num_(vector_num) {
         kd_ = DeviceManager::register_device(
@@ -32,7 +31,6 @@ namespace usb {
                 .set_class(DeviceClass::Usb)
                 .set_bus(BusType::Usb)
                 .set_controller(ControllerType::Xhci)
-                .with_char(this)
             //    .with_lifecycle(this)
         );
         devices_lock_.init("xhci_device_lock");
@@ -46,22 +44,22 @@ namespace usb {
     }
 
     bool XhciDriver::init_device(pci::PCI_DEVICE_HEADER* pci_base_address) {
-        auto* pci_hdr = reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address);
-        u64 bar0 = pci_hdr->bar0 & ~0xF;
-        u64 bar1 = pci_hdr->bar1;
+        pci_hdr_ = reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address);
+        u64 bar0 = pci_hdr_->bar0 & ~0xF;
+        u64 bar1 = pci_hdr_->bar1;
         u64 bar = ((bar1 << 32) | bar0);
 
-        u32 original_bar0 = pci_hdr->bar0;
-        u32 original_bar1 = pci_hdr->bar1;
+        u32 original_bar0 = pci_hdr_->bar0;
+        u32 original_bar1 = pci_hdr_->bar1;
 
-        pci_hdr->bar0 = 0xFFFFFFFF;
-        pci_hdr->bar1 = 0xFFFFFFFF;
+        pci_hdr_->bar0 = 0xFFFFFFFF;
+        pci_hdr_->bar1 = 0xFFFFFFFF;
 
-        u32 size_mask_lo = pci_hdr->bar0;
-        u32 size_mask_hi = pci_hdr->bar1;
+        u32 size_mask_lo = pci_hdr_->bar0;
+        u32 size_mask_hi = pci_hdr_->bar1;
 
-        pci_hdr->bar0 = original_bar0;
-        pci_hdr->bar1 = original_bar1;
+        pci_hdr_->bar0 = original_bar0;
+        pci_hdr_->bar1 = original_bar1;
 
         u64 mask = (static_cast<u64>(size_mask_hi) << 32) | (size_mask_lo & ~0xF);
         if (mask == 0) {
@@ -96,7 +94,7 @@ namespace usb {
     XhciDevice* XhciDriver::find_by_slot(const u8 slot_id) {
         SpinlockGuardIrq guard(devices_lock_);
         for (auto* dev : m_connected_devices) {
-            if (dev && dev->info.slot_id == slot_id) {
+            if (dev && dev->get_slot_id() == slot_id) {
                 return dev;
             }
         }
@@ -183,9 +181,9 @@ namespace usb {
                         for (usize i = 0; i < m_connected_devices.size(); i++) {
                             auto* dev = m_connected_devices[i];
 
-                            SYS_EVENT_DEVICE_REMOVED(dev->info.product, port);
+                            SYS_EVENT_DEVICE_REMOVED(dev->get_model_name(), port);
 
-                            if (dev && dev->info.port_num == port) {
+                            if (dev && dev->get_port_id() == port) {
                                 for (auto* iface : dev->interfaces) {
                                     if (iface->driver) {
                                         iface->driver->detach();
@@ -1269,7 +1267,6 @@ namespace usb {
         }
 
         auto* device = new XhciDevice(slot_id, port_id, port_speed, _64byte_context_size_);
-        device->info.bus_number = bus_number_;
 
         configure_control_ep_input_context(device, max_packet_size);
 
@@ -1299,9 +1296,6 @@ namespace usb {
             Log::error("Failed to get full device descriptor");
             return false;
         }
-
-        device->info.vendor_id = device_descriptor->id_vendor;
-        device->info.product_id = device_descriptor->id_product;
 
 #if 0
         Log::info("USB Device Descriptor:");
@@ -1348,33 +1342,43 @@ namespace usb {
         memcpy(manufacturer_str, manufacturer_name->unicode_string, sizeof(manufacturer_str));
         memcpy(serial_str, serial_number_string->unicode_string, sizeof(serial_str));
 
-        utf16_to_utf8(product_str, sizeof(product_str), device->info.product);
-        utf16_to_utf8(manufacturer_str, sizeof(manufacturer_str), device->info.manufacturer);
-        utf16_to_utf8(serial_str, sizeof(serial_str), device->info.serial_number);
+        auto* dev_info = new UsbDeviceInfo();
 
-        if (device->info.product[0] == '?' && device->info.manufacturer[0] == '?' &&
-            device->info.serial_number[0] == '?') {
+        utf16_to_utf8(product_str, sizeof(product_str), dev_info->model);
+        utf16_to_utf8(manufacturer_str, sizeof(manufacturer_str), dev_info->vendor);
+        utf16_to_utf8(serial_str, sizeof(serial_str), dev_info->serial);
+
+        if (dev_info->model[0] == '?' && dev_info->vendor[0] == '?' &&
+            dev_info->serial[0] == '?') {
             Log::log_msg("Unknown USB device, canceling setup...");
             return false;
         }
 
-        /* Log::PrintLn("---- USB Device Info ----");
-         Log::PrintLn("  Product Name    : %s", product);
-         Log::PrintLn("  Manufacturer    : %s", manufacturer);
-         Log::PrintLn("  Serial Number   : %s", serial_number);*/
+        device->set_model_name(dev_info->model);
+
+        snprintf(dev_info->firmware, sizeof(dev_info->firmware), "%u.%02u",
+                 device_descriptor->bcd_device >> 8,
+                 device_descriptor->bcd_device & 0xFF);
+
+        dev_info->usb_info.bus_number          = bus_number_;
+        dev_info->usb_info.slot_id             = slot_id;
+        dev_info->usb_info.port_num            = port_id;
+        dev_info->usb_info.speed               = port_speed;
+        dev_info->usb_info.vendor_id           = device_descriptor->id_vendor;
+        dev_info->usb_info.product_id          = device_descriptor->id_product;
+        dev_info->usb_info.bcd_device          = device_descriptor->bcd_device;
+        dev_info->usb_info.bcd_usb             = device_descriptor->bcd_usb;
+        dev_info->usb_info.b_device_class      = device_descriptor->b_device_class;
+        dev_info->usb_info.b_device_subclass   = device_descriptor->b_device_sub_class;
+        dev_info->usb_info.b_device_protocol   = device_descriptor->b_device_protocol;
+        dev_info->usb_info.num_configurations  = device_descriptor->b_num_configurations;
+        dev_info->usb_info.num_interfaces      = 0; // gets filled below after parsing the config descriptor
+
 
         auto* configuration_descriptor = new UsbConfigurationDescriptor();
         if (!get_configuration_descriptor(device, configuration_descriptor)) {
             return false;
         }
-        /*
-                Log::PrintLn("  Configuration   :");
-                Log::PrintLn("      wTotalLength        - %u", configuration_descriptor->wTotalLength);
-                Log::PrintLn("      bNumInterfaces      - %u", configuration_descriptor->bNumInterfaces);
-                Log::PrintLn("      bConfigurationValue - %u", configuration_descriptor->bConfigurationValue);
-                Log::PrintLn("      iConfiguration      - %u", configuration_descriptor->iConfiguration);
-                Log::PrintLn("      bmAttributes        - %u", configuration_descriptor->bmAttributes);
-                Log::PrintLn("      bMaxPower           - %u milliamps", configuration_descriptor->bMaxPower * 2);*/
 
         device->sync_input_ctx(reinterpret_cast<void*>(dcbaa_virtual_addresses_[device->get_slot_id()]));
 
@@ -1394,6 +1398,7 @@ namespace usb {
                 case USB_DESCRIPTOR_INTERFACE: {
                     auto* iface_desc = reinterpret_cast<USB_INTERFACE_DESCRIPTOR*>(header);
                     device->setup_add_interface(iface_desc);
+                    dev_info->usb_info.num_interfaces++;
                     break;
                 }
                 case USB_DESCRIPTOR_HID: {
@@ -1490,6 +1495,10 @@ namespace usb {
                     iface->driver->attach_interface(iface);
                 }
             }
+
+            if (iface->driver) {
+                iface->driver->set_device_info(dev_info);
+            }
         }
 
         if (!configure_endpoint(device)) {
@@ -1501,7 +1510,7 @@ namespace usb {
         m_connected_devices.push_back(device);
         Log::print_ln("Device setup complete");
 
-        SYS_EVENT_DEVICE_REGISTERED(device->info.product, port_id);
+        SYS_EVENT_DEVICE_REGISTERED(device->get_model_name(), port_id);
 
         if (device->interfaces[0]->driver) {
             device->interfaces[0]->driver->on_startup(this, device);
@@ -1564,83 +1573,14 @@ namespace usb {
         return cce->slot_id & 0xFF;
     }
 
-    int XhciDriver::open(CharFile**) {
-        return 0;
+    bool XhciDriver::get_vendor(char* out, usize len) {
+        strncpy(out, pci::get_vendor_name(pci_hdr_->header.vendor_id), len);
+        out[len - 1] = '\0';
+        return true;
     }
-
-    int XhciDriver::release(CharFile*) {
-        return 0;
-    }
-
-    int XhciDriver::ioctl(CharFile*, const u32 cmd, void* arg) {
-        if (!arg) return -EINVAL;
-
-        switch (cmd) {
-            case XHCI_IOCTL_GET_COUNT: {
-                auto* out = static_cast<usize*>(arg);
-                usize count = 0;
-                {
-                    SpinlockGuardIrq guard(devices_lock_);
-                    for (auto dev : m_connected_devices) {
-                        if (dev) count++;
-                    }
-                }
-                *out = count;
-                return 0;
-            }
-
-            case XHCI_IOCTL_GET_DEVICE: {
-                auto* stat = static_cast<xhci_device_stat*>(arg);
-                //    if (stat->slot_id >= m_connected_devices.size())
-                //        return -EINVAL;
-
-                XhciDevice* dev = find_by_slot(stat->slot_id);
-                if (!dev) return -ENOENT;
-
-                *stat = dev->info;
-                return 0;
-            }
-
-            default:
-                return -ENOTTY;
-        }
-    }
-
-    isize XhciDriver::read(CharFile* cf, void* buffer, usize count, usize offset) {
-        if (!cf || !buffer) return -EINVAL;
-        auto* buf = static_cast<u8*>(buffer);
-        usize written = 0;
-        constexpr usize stat_size = sizeof(xhci_device_stat);
-
-        u8 total_devices = 0;
-
-        SpinlockGuardIrq guard(devices_lock_);
-
-        for (const auto& m_connected_device : m_connected_devices) {
-            if (m_connected_device) total_devices++;
-        }
-
-        if (total_devices == 0 || offset >= total_devices) return 0;
-
-        usize dev_index = 0;
-        for (usize i = 0; i < 64 && written + stat_size <= count; i++) {
-            XhciDevice* dev = m_connected_devices[i];
-            if (!dev) continue;
-
-            if (dev_index < offset) {
-                dev_index++;
-                continue;
-            }
-
-            memcpy(buf + written, &dev->info, stat_size);
-            written += stat_size;
-            dev_index++;
-        }
-
-        return static_cast<isize>(written);
-    }
-
-    isize XhciDriver::write(CharFile*, const void*, usize) {
-        return -EUNSUPPORTED;
+    bool XhciDriver::get_model(char* out, usize len) {
+        strncpy(out, pci::get_device_name(pci_hdr_->header.vendor_id, pci_hdr_->header.device_id), len);
+        out[len - 1] = '\0';
+        return true;
     }
 }  // namespace usb

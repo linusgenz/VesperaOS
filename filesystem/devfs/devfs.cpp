@@ -34,6 +34,8 @@
 #include "../../kernel/cpu/io.h"
 #include "../drivers/ahci/ahci.h"
 #include "../vfs/vfs.h"
+#include "uapi/vespera/dev/ioctl_usb_device.h"
+#include "vespera/devices/usb_device_info.h"
 
 const char* DevFs::bus_to_str(const BusType bus) {
     switch (bus) {
@@ -262,6 +264,16 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
             default:
                 return -ENOTTY;
         }
+    }
+
+    if (cmd == IOCTL_USB_GET_DEVICE_INFO) {
+        IUsbDeviceInfo* usb_info = kd->usb_info;
+        if (!usb_info && kd->parent) usb_info = kd->parent->usb_info;
+
+        if (!usb_info) return -ENOTTY;
+        if (!arg)      return -EINVAL;
+
+        return usb_info->get_usb_device_info(static_cast<usb_device_info_t*>(arg)) ? 0 : -EIO;
     }
 
     // CharDevice

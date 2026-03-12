@@ -162,6 +162,7 @@ KernelDevice* DeviceManager::register_device(const DeviceDescriptor& desc) {
     kd->smart = desc.smart;
     kd->lifecycle = desc.lifecycle;
     kd->info = desc.info;
+    kd->usb_info  = desc.usb_info;
 
     if (desc.parent) desc.parent->children.push_back(kd);
 

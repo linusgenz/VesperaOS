@@ -29,7 +29,7 @@
 #include "../../../filesystem/devfs/devfs.h"
 #include "xhci.h"
 
-UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
+UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent, UsbDeviceInfo* info)
     : CharDevice(BusType::Usb) {
     kd = DeviceManager::register_device(
         DeviceDescriptor{}
@@ -39,6 +39,8 @@ UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent)
             .with_char(this)
             .set_bus(BusType::Usb)
             .set_controller(ControllerType::Xhci)
+            .with_info(info)
+            .with_usb_info(info)
 
     );
     DevFs::register_device(kd);

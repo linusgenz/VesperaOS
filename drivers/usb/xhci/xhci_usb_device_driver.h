@@ -24,6 +24,8 @@
 #ifndef VESPERAOS_XHCI_USB_DEVICE_DRIVER_H
 #define VESPERAOS_XHCI_USB_DEVICE_DRIVER_H
 
+#include "../usb_device_info.h"
+
 namespace usb {
     class XhciDriver;
 }
@@ -38,12 +40,20 @@ public:
 
     void attach_interface(XhciUsbInterface* interface);
 
+    void set_device_info(UsbDeviceInfo* info) {
+        delete device_info_;
+        device_info_ = info;
+    }
+
+    [[nodiscard]] UsbDeviceInfo* device_info() const { return device_info_; }
+
     virtual void detach() = 0;
     virtual void on_startup(usb::XhciDriver* hcd, XhciDevice* dev) = 0;
     virtual void on_event(usb::XhciDriver* hcd, XhciDevice* dev) = 0;
 
 protected:
     XhciUsbInterface* interface_{};
+    UsbDeviceInfo* device_info_{};
 };
 
 

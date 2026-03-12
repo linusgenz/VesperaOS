@@ -66,7 +66,7 @@ i64 Realm::add_handle(
 
     set_bit(slot);
     HandleEntry& he = handle_table.entries[slot];
-    he.hid = type | static_cast<HandleId>(slot & HANDLE_ID_MASK);
+    he.hid = type | (slot & HANDLE_ID_MASK);
     he.type = type;
     he.resource = resource;
     he.capabilities = caps;

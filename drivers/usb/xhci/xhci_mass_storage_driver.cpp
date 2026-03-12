@@ -62,6 +62,8 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev)
         .set_controller(ControllerType::Xhci)
         .with_block(this)
         .with_parent(hcd->get_device())
+        .with_info(device_info_)
+        .with_usb_info(device_info_)
 );
         DevFs::register_device(kd_);
         DeviceManager::find_and_register_partitions(kd_);

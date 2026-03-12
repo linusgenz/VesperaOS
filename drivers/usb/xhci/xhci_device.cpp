@@ -29,18 +29,15 @@
 #include <vespera/mm/memory.h>
 
 XhciDevice::XhciDevice(const u8 slot_id, const u8 port_num, const u8 speed, const bool use_64_byte_ctx)
-    : use_64_byte_ctx_(use_64_byte_ctx)
+    : use_64_byte_ctx_(use_64_byte_ctx), slot_id_(slot_id), port_num_(port_num), speed_(speed)
 {
-    info.port_num = port_num;
-    info.slot_id = slot_id;
-    info.speed = speed;
     allocate_input_context();
     allocate_control_ep_ring();
 }
 
 void XhciDevice::allocate_control_ep_ring()
 {
-    control_transfer_ring_ = XhciTransferRing::allocate(info.slot_id);
+    control_transfer_ring_ = XhciTransferRing::allocate(slot_id_);
 }
 
 void XhciDevice::allocate_input_context()
@@ -104,7 +101,7 @@ XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_ep_ctx(u8 endpoint_num) const
 
 void XhciDevice::setup_add_interface(const USB_INTERFACE_DESCRIPTOR* desc)
 {
-    const auto iface = new XhciUsbInterface(info.slot_id, desc);
+    const auto iface = new XhciUsbInterface(slot_id_, desc);
     interfaces.push_back(iface);
 }
 

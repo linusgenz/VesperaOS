@@ -8,6 +8,7 @@
 #include "../../../arch/x86_64/interrupts/idt.h"
 #include "../../../filesystem/devfs/devfs.h"
 #include "../../pci/pci.h"
+#include "vespera/devices/device_info.h"
 #include "vespera/devices/device_manager.h"
 #include "xhci_device.h"
 #include "xhci_ext_cap.h"
@@ -15,7 +16,7 @@
 #include "xhci_rings.h"
 
 namespace usb {
-    class XhciDriver final : public CharDevice {
+    class XhciDriver final : public IDeviceInfo{
        public:
         explicit XhciDriver(u8 vector_num, const char* name, u8 bus_number);
 
@@ -37,18 +38,13 @@ namespace usb {
 
         Vector<XhciDevice*> m_connected_devices;
 
-        // Char device
-
-        int open(CharFile** out_cf) override;
-        int release(CharFile* cf) override;
-
-        int ioctl(CharFile* cf, u32 cmd, void* arg) override;
-
-        isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
-        isize write(CharFile* cf, const void* buffer, usize count) override;
+        bool get_vendor(char* out, usize len) override;
+        bool get_model(char* out, usize len) override;
 
        private:
         KernelDevice* kd_;
+
+        pci::PCI_HEADER0* pci_hdr_;
 
         Spinlock devices_lock_{};
         Spinlock command_lock_{};

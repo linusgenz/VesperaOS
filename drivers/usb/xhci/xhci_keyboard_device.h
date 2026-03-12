@@ -24,15 +24,15 @@
 #ifndef VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 #define VESPERAOS_XHCI_KEYBOARD_DEVICE_H
 
-#include <vespera/types.h>
 #include <vespera/devices/char_device.h>
-
 #include <vespera/devices/device_manager.h>
+#include <vespera/types.h>
 
+class UsbDeviceInfo;
 class UsbKeyboardDevice final : public CharDevice
 {
 public:
-    explicit UsbKeyboardDevice(const char* name, KernelDevice* parent);
+    explicit UsbKeyboardDevice(const char* name, KernelDevice* parent, UsbDeviceInfo* info = nullptr);
     int open(CharFile**) override;
     int release(CharFile*) override;
 

@@ -38,6 +38,7 @@ struct DeviceDescriptor {
     ISmartDevice*     smart     = nullptr;
     IDriverLifecycle* lifecycle = nullptr;
     IDeviceInfo*      info      = nullptr;
+    IUsbDeviceInfo*   usb_info  = nullptr;
 
     DeviceDescriptor& set_name(const char* n)          { name       = n; return *this; }
     DeviceDescriptor& set_type(DeviceType t)            { type       = t; return *this; }
@@ -52,6 +53,7 @@ struct DeviceDescriptor {
     DeviceDescriptor& with_smart(ISmartDevice* s)         { smart     = s; return *this; }
     DeviceDescriptor& with_lifecycle(IDriverLifecycle* l) { lifecycle = l; return *this; }
     DeviceDescriptor& with_info(IDeviceInfo* i)           { info      = i; return *this; }
+    DeviceDescriptor& with_usb_info(IUsbDeviceInfo* u)     { usb_info  = u; return *this; }
 };
 
 
