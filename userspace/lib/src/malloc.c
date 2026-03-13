@@ -208,3 +208,20 @@ void *realloc(void *ptr, size_t new_size) {
     free(ptr);
     return new_ptr;
 }
+
+void* calloc(size_t nmemb, size_t size) {
+    if (nmemb == 0 || size == 0) return NULL;
+
+    // Overflow check
+    if (size > SIZE_MAX / nmemb) return NULL;
+
+    size_t total = nmemb * size;
+    void* ptr = malloc(total);
+    if (!ptr) return NULL;
+
+    if (total < LARGE_ALLOC_THRESHOLD) {
+        memset(ptr, 0, total);
+    }
+
+    return ptr;
+}

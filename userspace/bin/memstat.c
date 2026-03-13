@@ -30,7 +30,6 @@
 
 #include "stddef.h"
 #include "stdint.h"
-#include <../../include/uapi/vespera/dev/ioctl_usb_xhci.h>
 
 int main(int argc, char **argv) {
     FILE_HANDLE hdl = open("/dev/meminfo", O_RDONLY);
