@@ -25,5 +25,5 @@ var annotated_dup =
     [ "SmartNvme", "structSmartNvme.html", "structSmartNvme" ],
     [ "SmartRawData", "structSmartRawData.html", "structSmartRawData" ],
     [ "unit_info", "structunit__info.html", "structunit__info" ],
-    [ "xhci_device_stat", "structxhci__device__stat.html", "structxhci__device__stat" ]
+    [ "usb_device_info", "structusb__device__info.html", "structusb__device__info" ]
 ];

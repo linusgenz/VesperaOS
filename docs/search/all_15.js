@@ -41,8 +41,15 @@ var searchData=
   ['urandom_2eh_38',['urandom.h',['../urandom_8h.html',1,'']]],
   ['urandom_5fu32_39',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
   ['urandom_5fu64_40',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
-  ['used_5fram_41',['used_ram',['../structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595',1,'meminfo']]],
-  ['user_5fstack_5fend_42',['user_stack_end',['../structunit__info.html#abee8ab3ec0124ed0fbfc51ed109becd4',1,'unit_info']]],
-  ['user_5fstack_5fstart_43',['user_stack_start',['../structunit__info.html#a7b19e43c35fcd0763b1f8397774c1892',1,'unit_info']]],
-  ['ushrt_5fmax_44',['USHRT_MAX',['../limits_8h.html#a689b119da994dece91d44b5aeac643ed',1,'limits.h']]]
+  ['usb_5fdevice_5finfo_41',['usb_device_info',['../structusb__device__info.html',1,'']]],
+  ['usb_5fdevice_5finfo_5ft_42',['usb_device_info_t',['../ioctl__usb__device_8h.html#aa993bd81bf252104e7432ebe3acc42f6',1,'ioctl_usb_device.h']]],
+  ['usb_5fspeed_5ffull_5fspeed_43',['USB_SPEED_FULL_SPEED',['../ioctl__usb__device_8h.html#a0862ceeed2a8b2a8097d86acba5de7ce',1,'ioctl_usb_device.h']]],
+  ['usb_5fspeed_5fhigh_5fspeed_44',['USB_SPEED_HIGH_SPEED',['../ioctl__usb__device_8h.html#abac97738e9ce403bf39d4e6a9d9c9e72',1,'ioctl_usb_device.h']]],
+  ['usb_5fspeed_5flow_5fspeed_45',['USB_SPEED_LOW_SPEED',['../ioctl__usb__device_8h.html#a419f2d9be63cf0c28cc871e4aa05df1e',1,'ioctl_usb_device.h']]],
+  ['usb_5fspeed_5fsuper_5fspeed_46',['USB_SPEED_SUPER_SPEED',['../ioctl__usb__device_8h.html#a521e503f3c29f40edafa3d7033f7316c',1,'ioctl_usb_device.h']]],
+  ['usb_5fspeed_5fsuper_5fspeed_5fplus_47',['USB_SPEED_SUPER_SPEED_PLUS',['../ioctl__usb__device_8h.html#a9cf739fb6f01bacab2119b4d1cbb4d83',1,'ioctl_usb_device.h']]],
+  ['used_5fram_48',['used_ram',['../structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595',1,'meminfo']]],
+  ['user_5fstack_5fend_49',['user_stack_end',['../structunit__info.html#abee8ab3ec0124ed0fbfc51ed109becd4',1,'unit_info']]],
+  ['user_5fstack_5fstart_50',['user_stack_start',['../structunit__info.html#a7b19e43c35fcd0763b1f8397774c1892',1,'unit_info']]],
+  ['ushrt_5fmax_51',['USHRT_MAX',['../limits_8h.html#a689b119da994dece91d44b5aeac643ed',1,'limits.h']]]
 ];

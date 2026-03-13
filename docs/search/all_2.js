@@ -1,12 +1,21 @@
 var searchData=
 [
-  ['bool_0',['bool',['../stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9',1,'stdbool.h']]],
-  ['bpp_1',['bpp',['../structfb__info.html#a92ce894e1f0a7e27ec85f6838881a39e',1,'fb_info']]],
-  ['brand_2',['brand',['../structcpu__info.html#a261213bcaadbe50b5ac85a91021a0cff',1,'cpu_info']]],
-  ['buf_5fpos_3',['buf_pos',['../structFILE.html#a91ee47d34efcc4136d468b8485e1700c',1,'FILE']]],
-  ['buf_5fsize_4',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],
-  ['buffer_5',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
-  ['buffer_5fheight_6',['buffer_height',['../structfb__blit.html#afde7d9c9c1f4a590643088fab7ff71ee',1,'fb_blit']]],
-  ['buffer_5fwidth_7',['buffer_width',['../structfb__blit.html#a6276662ce4e9e5f3831830d7eeb0a8cd',1,'fb_blit']]],
-  ['bus_5fnumber_8',['bus_number',['../structxhci__device__stat.html#a46f52c99a1e2f5a7ba0e34cf15089676',1,'xhci_device_stat']]]
+  ['b_5fconfiguration_5fvalue_0',['b_configuration_value',['../structusb__device__info.html#a5d8009757eedc2e8821428240b305a6f',1,'usb_device_info']]],
+  ['b_5fdevice_5fclass_1',['b_device_class',['../structusb__device__info.html#ada12547916ac725e53fe39266050a587',1,'usb_device_info']]],
+  ['b_5fdevice_5fprotocol_2',['b_device_protocol',['../structusb__device__info.html#a3496a6ab32a255e89e48b149a44b2a8e',1,'usb_device_info']]],
+  ['b_5fdevice_5fsubclass_3',['b_device_subclass',['../structusb__device__info.html#a3ffc20e62dedf91b05177f00f285f0ac',1,'usb_device_info']]],
+  ['b_5fmax_5fpacket_5fsize0_4',['b_max_packet_size0',['../structusb__device__info.html#ad9f7ab443d141d49a373a0aff45abffc',1,'usb_device_info']]],
+  ['b_5fmax_5fpower_5',['b_max_power',['../structusb__device__info.html#ad851f58b57d37792fdf0b2f521f340fc',1,'usb_device_info']]],
+  ['bcd_5fdevice_6',['bcd_device',['../structusb__device__info.html#af03082f593c79e7e2649d5266bc620e3',1,'usb_device_info']]],
+  ['bcd_5fusb_7',['bcd_usb',['../structusb__device__info.html#ac326db8808dd694f18effb634f6afc49',1,'usb_device_info']]],
+  ['bm_5fattributes_8',['bm_attributes',['../structusb__device__info.html#a7243aa5862b20c1255cf8fd945c7cda9',1,'usb_device_info']]],
+  ['bool_9',['bool',['../stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9',1,'stdbool.h']]],
+  ['bpp_10',['bpp',['../structfb__info.html#a92ce894e1f0a7e27ec85f6838881a39e',1,'fb_info']]],
+  ['brand_11',['brand',['../structcpu__info.html#a261213bcaadbe50b5ac85a91021a0cff',1,'cpu_info']]],
+  ['buf_5fpos_12',['buf_pos',['../structFILE.html#a91ee47d34efcc4136d468b8485e1700c',1,'FILE']]],
+  ['buf_5fsize_13',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],
+  ['buffer_14',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
+  ['buffer_5fheight_15',['buffer_height',['../structfb__blit.html#afde7d9c9c1f4a590643088fab7ff71ee',1,'fb_blit']]],
+  ['buffer_5fwidth_16',['buffer_width',['../structfb__blit.html#a6276662ce4e9e5f3831830d7eeb0a8cd',1,'fb_blit']]],
+  ['bus_5fnumber_17',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]]
 ];

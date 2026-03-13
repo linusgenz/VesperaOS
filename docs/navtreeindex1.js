@@ -1,6 +1,9 @@
 var NAVTREEINDEX1 =
 {
-"ioctl__usb__xhci_8h_source.html":[4,0,0,0,0,0,4],
+"ioctl__usb__device_8h.html#a9cf739fb6f01bacab2119b4d1cbb4d83":[4,0,0,0,0,0,4,6],
+"ioctl__usb__device_8h.html#aa993bd81bf252104e7432ebe3acc42f6":[4,0,0,0,0,0,4,7],
+"ioctl__usb__device_8h.html#abac97738e9ce403bf39d4e6a9d9c9e72":[4,0,0,0,0,0,4,3],
+"ioctl__usb__device_8h_source.html":[4,0,0,0,0,0,4],
 "jpeg_8h.html":[4,0,1,0,0,0,0],
 "jpeg_8h.html#a0539c9bc0649cf3a7f67b762184125da":[4,0,1,0,0,0,0,11],
 "jpeg_8h.html#a08d80216f8844e7ff05ac82454325a38":[4,0,1,0,0,0,0,16],
@@ -246,8 +249,5 @@ var NAVTREEINDEX1 =
 "structSmartAttribute.html#a987bb51020e785e77d72db8222caceed":[3,0,20,3],
 "structSmartAttribute.html#a9b1536fbe151560b1652661ef4fcad1b":[3,0,20,4],
 "structSmartAttribute.html#ae01d2d8780d1971562a5ddf6aef092e5":[3,0,20,1],
-"structSmartCommon.html":[3,0,21],
-"structSmartCommon.html#a7787f67cf0c2e62e90f58fe5f12cb58a":[3,0,21,4],
-"structSmartCommon.html#ad1cd6c8a28d64d3c8157049309027733":[3,0,21,1],
-"structSmartCommon.html#ae00426b07c87f94218bd2c22ab28df92":[3,0,21,3]
+"structSmartCommon.html":[3,0,21]
 };
