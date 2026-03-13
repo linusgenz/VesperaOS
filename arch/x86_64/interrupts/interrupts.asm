@@ -12,6 +12,23 @@ extern apic_timer_int_handler
 extern spurious_int_handler
 extern panic_ipi_handler
 
+%macro SAVE_SIMD 0
+    ; Align the stack to 64 bytes for FXSAVE/XSAVE
+    push    rbp
+    mov     rbp, rsp
+    and     rsp, ~63        ; 64 byte alignment
+
+    sub     rsp, 512        ; FXSAVE braucht 512 Bytes (aligned)
+    fxsave  [rsp]           ; saves: x87, MMX, xmm0–xmm15, MXCSR
+%endmacro
+
+%macro RESTORE_SIMD 0
+    fxrstor [rsp]
+    add     rsp, 512
+    mov     rsp, rbp        ; Restore original RSP
+    pop     rbp
+%endmacro
+
 %macro ISR_NOERRCODE 1
 global isr_%1
 isr_%1:
@@ -34,8 +51,12 @@ isr_%1:
     push rbx
     push rax
 
+    SAVE_SIMD
+
     mov rdi, rsp        ; trap_frame* as 1. argument
     call %1_handler
+
+    RESTORE_SIMD
 
     ; Restore registers
     pop rax

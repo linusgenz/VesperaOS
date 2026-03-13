@@ -6,6 +6,7 @@
 #include <vespera/terminal.h>
 
 #include "../../filesystem/devfs/devfs.h"
+#include "../debug/trace.h"
 #include "vespera/devices/device_manager.h"
 #include "vespera/log.h"
 
@@ -16,10 +17,12 @@ static void* scalar_memcpy(void* dst, const void* src, usize len) {
     return dst;
 }
 
-static void scalar_memset_u32(void* dst, u32 value, usize len_bytes) {
-    auto* d = static_cast<u32*>(dst);
-    usize count = len_bytes / 4;
-    while (count--) *d++ = value;
+static void scalar_fill_rect(void* base, u32 stride, u32 px, u32 py, u32 w, u32 h, u32 colour) {
+    auto* fb = static_cast<u32*>(base);
+    for (u32 y = 0; y < h; y++) {
+        u32* row = fb + (py + y) * stride + px;
+        for (u32 x = 0; x < w; x++) row[x] = colour;
+    }
 }
 
 static void* scalar_memmove(void* dst, const void* src, usize len) {
@@ -58,16 +61,16 @@ void GopRenderDriver::init_simd() noexcept {
     if (f.avx2) {
         using_avx = true;
         fn_memcpy_ = fb_memcpy_avx2;
-        fn_memset_ = fb_memset_avx2;
+        fn_fill_rect_ = fb_fill_rect_sse2; // there is an issue with fb_fill_rect_avx2 and interrupt handlers, so we use sse2 for now
         fn_memmove_ = fb_memmove_avx2;
     } else if (f.sse2) {
         using_sse = true;
         fn_memcpy_ = fb_memcpy_sse2;
-        fn_memset_ = fb_memset_sse2;
+        fn_fill_rect_ = fb_fill_rect_sse2;
         fn_memmove_ = scalar_memmove;
     } else {
         fn_memcpy_ = scalar_memcpy;
-        fn_memset_ = scalar_memset_u32;
+        fn_fill_rect_ = scalar_fill_rect;
         fn_memmove_ = scalar_memmove;
     }
 }
@@ -80,24 +83,12 @@ void GopRenderDriver::draw_glyph_run(const GlyphRun& run) {
 
 bool GopRenderDriver::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
     if (px + w > fb_->width || py + h > fb_->height) return false;
-
-    for (u32 y = 0; y < h; y++) {
-        u32* row = static_cast<u32*>(fb_->base_address) + (py + y) * fb_->pixels_per_scanline + px;
-        fn_memset_(row, colour, w * sizeof(u32));
-    }
-
+    fn_fill_rect_(fb_->base_address, fb_->pixels_per_scanline, px, py, w, h, colour);
     return true;
 }
 
 void GopRenderDriver::clear() {
     fill_rect(0, 0, fb_->width, fb_->height, 0x00000000);
-}
-
-void GopRenderDriver::flush() {
-    asm volatile("sfence" ::: "memory");
-    if (simd_features().avx) {
-        asm volatile("vzeroupper");
-    }
 }
 
 /*

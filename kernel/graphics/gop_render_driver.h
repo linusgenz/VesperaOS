@@ -37,7 +37,7 @@ class GopRenderDriver final : public IRenderDriver {
     font_t* font_;
 
     void* (*fn_memcpy_)(void*, const void*, usize) = nullptr;
-    void (*fn_memset_)(void*, u32, usize) = nullptr;
+    void (*fn_fill_rect_)(void*, u32, u32, u32, u32, u32, u32) = nullptr;
     void* (*fn_memmove_)(void*, const void*, usize) = nullptr;
 
     KernelDevice* kd_;

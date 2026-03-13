@@ -207,56 +207,82 @@ fb_memcpy_sse2:
 
 
 ; ============================================================
-; fb_memset_avx2(void* dst, u32 value, usize len)
-;
-; Fills dst with a repeated u32 value.
-; 4xYMM unrolled, 128 bytes/iter, NT-stores, no prefetch needed
-; (no src reads — prefetch would have no effect)
+; fb_fill_rect_avx2(
+;     void*  fb_base,          rdi
+;     u32    stride_pixels,    rsi
+;     u32    px,               rdx
+;     u32    py,               rcx
+;     u32    w,                r8
+;     u32    h,                r9
+;     u32    colour            [rsp+8] nach call  → r10
+; )
 ; ============================================================
-global fb_memset_avx2
-fb_memset_avx2:
-    test    rdx, rdx
-    jz      .done
+global fb_fill_rect_avx2
+fb_fill_rect_avx2:
+    ; colour vom Stack holen (7. Argument)
+    mov     r10d, [rsp + 8]
 
-    ; broadcast u32 value across all 8 lanes of ymm0
-    vmovd           xmm0, esi
-    vpbroadcastd    ymm0, xmm0          ; ymm0 = [val * 8]
+    ; row_start = fb_base + (py * stride + px) * 4
+    mov     rax, rcx                ; rax = py
+    imul    rax, rsi                ; rax = py * stride_pixels
+    add     rax, rdx                ; rax = py * stride + px
+    shl     rax, 2                  ; * sizeof(u32)
+    add     rdi, rax                ; rdi = Zeiger auf erste Zeile
+
+    ; stride_bytes = stride_pixels * 4
+    shl     rsi, 2                  ; rsi = stride in bytes
+
+    ; w_bytes = w * 4
+    mov     r11, r8
+    shl     r11, 2                  ; r11 = Breite in bytes
+
+    ; colour in ymm0 broadcasten
+    vmovd           xmm0, r10d
+    vpbroadcastd    ymm0, xmm0
     vmovdqa         ymm1, ymm0
     vmovdqa         ymm2, ymm0
     vmovdqa         ymm3, ymm0
 
-    ; Phase 1: u32-wise prefix until dst is 32-byte aligned
+    ; h == 0 check
+    test    r9, r9
+    jz      .done
+
+.row_loop:
+    push    rdi                     ; Zeilenbeginn sichern
+    mov     rdx, r11                ; rdx = w_bytes für diese Zeile
+
+    ; Phase 1: Prefix bis 32-Byte-Alignment
     mov     rcx, rdi
     and     rcx, 31
-    jz      .main
+    jz      .line_main
 
     neg     rcx
-    and     rcx, 31                     ; bytes to boundary
-    and     rcx, ~3                     ; round down to u32 granularity
+    and     rcx, 31
+    and     rcx, ~3
 
     cmp     rcx, rdx
     cmova   rcx, rdx
     and     rcx, ~3
 
     sub     rdx, rcx
-    shr     rcx, 2                      ; convert to u32 count
-    jz      .main
+    shr     rcx, 2
+    jz      .line_main
 
 .prefix_loop:
-    mov     [rdi], esi
+    mov     [rdi], r10d
     add     rdi, 4
     dec     rcx
     jnz     .prefix_loop
 
     test    rdx, rdx
-    jz      .flush
+    jz      .line_flush
 
-    ; Phase 2a: 4xYMM NT loop (128 bytes/iter)
-.main:
+    ; Phase 2: 4×YMM NT-Loop (128 Bytes/iter)
+.line_main:
     cmp     rdx, 128
-    jb      .tail_32
+    jb      .line_tail32
 
-.loop128:
+.line_loop128:
     vmovntdq    [rdi +   0], ymm0
     vmovntdq    [rdi +  32], ymm1
     vmovntdq    [rdi +  64], ymm2
@@ -264,61 +290,87 @@ fb_memset_avx2:
     add         rdi, 128
     sub         rdx, 128
     cmp         rdx, 128
-    jae         .loop128
+    jae         .line_loop128
 
-    ; Phase 2b: 1xYMM loop for 32..127 remaining bytes
-.tail_32:
+.line_tail32:
     cmp     rdx, 32
-    jb      .tail_u32
+    jb      .line_tail_u32
 
-.loop32:
+.line_loop32:
     vmovntdq    [rdi], ymm0
     add         rdi, 32
     sub         rdx, 32
     cmp         rdx, 32
-    jae         .loop32
+    jae         .line_loop32
 
-    ; Phase 3: u32 tail
-.tail_u32:
+    ; Phase 3: u32-Tail
+.line_tail_u32:
     cmp     rdx, 4
-    jb      .flush
+    jb      .line_flush
 
-.tail_u32_loop:
-    mov     [rdi], esi
+.line_tail_loop:
+    mov     [rdi], r10d
     add     rdi, 4
     sub     rdx, 4
     cmp     rdx, 4
-    jae     .tail_u32_loop
+    jae     .line_tail_loop
 
-.flush:
-    sfence
-    vzeroupper
+.line_flush:
+    pop     rdi                     ; Zeilenbeginn wiederherstellen
+    add     rdi, rsi                ; nächste Zeile: + stride_bytes
+
+    dec     r9
+    jnz     .row_loop
+
+  ;  sfence
+  ;  vzeroupper
 .done:
     ret
 
 
 ; ============================================================
-; fb_memset_sse2(void* dst, u32 value, usize len)
-;
-; SSE2 fallback for fb_memset_avx2.
-; 4xXMM unrolled, 64 bytes/iter
+; fb_fill_rect_sse2(
+;     void*  fb_base,          rdi
+;     u32    stride_pixels,    rsi
+;     u32    px,               rdx
+;     u32    py,               rcx
+;     u32    w,                r8
+;     u32    h,                r9
+;     u32    colour            [rsp+8]  → r10
+; )
 ; ============================================================
-global fb_memset_sse2
-fb_memset_sse2:
-    test    rdx, rdx
-    jz      .done
+global fb_fill_rect_sse2
+fb_fill_rect_sse2:
+    mov     r10d, [rsp + 8]
 
-    ; broadcast u32 value across all 4 lanes of xmm0
-    movd        xmm0, esi
+    mov     rax, rcx
+    imul    rax, rsi
+    add     rax, rdx
+    shl     rax, 2
+    add     rdi, rax
+
+    shl     rsi, 2                  ; stride → bytes
+    mov     r11, r8
+    shl     r11, 2                  ; w → bytes
+
+    ; colour in xmm0–xmm3 broadcasten
+    movd        xmm0, r10d
     pshufd      xmm0, xmm0, 0x00
     movdqa      xmm1, xmm0
     movdqa      xmm2, xmm0
     movdqa      xmm3, xmm0
 
-    ; Phase 1: u32-wise prefix until dst is 16-byte aligned
+    test    r9, r9
+    jz      .done
+
+.row_loop:
+    push    rdi
+    mov     rdx, r11
+
+    ; Phase 1: Prefix bis 16-Byte-Alignment
     mov     rcx, rdi
     and     rcx, 15
-    jz      .main
+    jz      .line_main
 
     neg     rcx
     and     rcx, 15
@@ -330,23 +382,23 @@ fb_memset_sse2:
 
     sub     rdx, rcx
     shr     rcx, 2
-    jz      .main
+    jz      .line_main
 
 .prefix_loop:
-    mov     [rdi], esi
+    mov     [rdi], r10d
     add     rdi, 4
     dec     rcx
     jnz     .prefix_loop
 
     test    rdx, rdx
-    jz      .flush
+    jz      .line_flush
 
-    ; Phase 2a: 4xXMM NT loop (64 bytes/iter)
-.main:
+    ; Phase 2: 4×XMM NT-Loop (64 Bytes/iter)
+.line_main:
     cmp     rdx, 64
-    jb      .tail_16
+    jb      .line_tail16
 
-.loop64:
+.line_loop64:
     movntdq     [rdi +  0], xmm0
     movntdq     [rdi + 16], xmm1
     movntdq     [rdi + 32], xmm2
@@ -354,33 +406,37 @@ fb_memset_sse2:
     add         rdi, 64
     sub         rdx, 64
     cmp         rdx, 64
-    jae         .loop64
+    jae         .line_loop64
 
-    ; Phase 2b: 1xXMM loop for 16..63 remaining bytes
-.tail_16:
+.line_tail16:
     cmp     rdx, 16
-    jb      .tail_u32
+    jb      .line_tail_u32
 
-.loop16:
+.line_loop16:
     movntdq     [rdi], xmm0
     add         rdi, 16
     sub         rdx, 16
     cmp         rdx, 16
-    jae         .loop16
+    jae         .line_loop16
 
-    ; Phase 3: u32 tail
-.tail_u32:
+    ; Phase 3: u32-Tail
+.line_tail_u32:
     cmp     rdx, 4
-    jb      .flush
+    jb      .line_flush
 
-.tail_u32_loop:
-    mov     [rdi], esi
+.line_tail_loop:
+    mov     [rdi], r10d
     add     rdi, 4
     sub     rdx, 4
     cmp     rdx, 4
-    jae     .tail_u32_loop
+    jae     .line_tail_loop
 
-.flush:
+.line_flush:
+    pop     rdi
+    add     rdi, rsi
+    dec     r9
+    jnz     .row_loop
+
     sfence
 .done:
     ret

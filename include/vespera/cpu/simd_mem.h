@@ -32,10 +32,10 @@ extern "C" {
     void  simd_memset_sse2 (void* dst, u32 value, usize len);
 
     void* fb_memcpy_avx2(void* dst, const void* src, usize len);
-    void  fb_memset_avx2(void* dst, u32 value, usize len);
+    void  fb_fill_rect_avx2(void*, u32, u32, u32, u32, u32, u32);
     void* fb_memmove_avx2(void* dst, const void* src, usize len);
     void* fb_memcpy_sse2(void* dst, const void* src, usize len);
-    void  fb_memset_sse2(void* dst, u32 value, usize len);
+    void  fb_fill_rect_sse2(void*, u32, u32, u32, u32, u32, u32);
 }
 
 

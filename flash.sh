@@ -55,19 +55,26 @@ echo ""
 declare -a DEVICES
 declare -a DESCRIPTIONS
 
+MAX_SIZE=$((100 * 1024 * 1024 * 1024))
+
 while IFS= read -r line; do
     DEV=$(echo "$line" | awk '{print $1}')
-    SIZE=$(echo "$line" | awk '{print $4}')
-    MODEL=$(cat "/sys/block/${DEV}/device/model" 2>/dev/null | xargs || echo "Unknown")
-    TRAN=$(cat "/sys/block/${DEV}/queue/rotational" 2>/dev/null || echo "?")
+    SIZE_BYTES=$(echo "$line" | awk '{print $4}')
 
-    # Only include USB-connected devices
+    # Skip drives larger than 100 GB
+    if (( SIZE_BYTES > MAX_SIZE )); then
+        continue
+    fi
+
+    SIZE=$(lsblk -dn -o SIZE "/dev/${DEV}")
+    MODEL=$(cat "/sys/block/${DEV}/device/model" 2>/dev/null | xargs || echo "Unknown")
+
     SYSPATH=$(readlink -f "/sys/block/${DEV}" 2>/dev/null || true)
     if echo "$SYSPATH" | grep -q "usb"; then
         DEVICES+=("/dev/${DEV}")
         DESCRIPTIONS+=("${DEV}   ${SIZE}   ${MODEL}")
     fi
-done < <(lsblk -dno NAME,TYPE,HOTPLUG,SIZE | awk '$2=="disk" && $3=="1"')
+done < <(lsblk -bdno NAME,TYPE,HOTPLUG,SIZE | awk '$2=="disk" && $3=="1"')
 
 if [[ ${#DEVICES[@]} -eq 0 ]]; then
     warn "No USB drives detected automatically."
