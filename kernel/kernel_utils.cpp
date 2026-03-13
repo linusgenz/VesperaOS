@@ -94,6 +94,7 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
     global_terminal = terminal;
 
     Log::info("Vespera booting...");
+    Log::debug("using simd extentions: %s", renderer->using_avx ? "AVX2" : (renderer->using_sse ? "SSE" : "None"));
 }
 
 static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
