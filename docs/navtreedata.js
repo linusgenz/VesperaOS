@@ -55,7 +55,7 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "ioctl__usb__device_8h.html#a9cf739fb6f01bacab2119b4d1cbb4d83",
-"structSmartCommon.html#a7787f67cf0c2e62e90f58fe5f12cb58a"
+"structSmartAttribute.html#ae01d2d8780d1971562a5ddf6aef092e5"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

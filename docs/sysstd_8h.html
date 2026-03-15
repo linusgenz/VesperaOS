@@ -173,6 +173,12 @@ Functions</h2></td></tr>
 <tr class="memitem:abcef91f070ba25d57c74fc1695184270" id="r_abcef91f070ba25d57c74fc1695184270"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#abcef91f070ba25d57c74fc1695184270">sys_seek</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg2, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
 <tr class="memdesc:abcef91f070ba25d57c74fc1695184270"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition the file offset for a file or device handle.  <br /></td></tr>
 <tr class="separator:abcef91f070ba25d57c74fc1695184270"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08adbc74eb703f7d4eb0bf62a21e0fcd" id="r_a08adbc74eb703f7d4eb0bf62a21e0fcd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a08adbc74eb703f7d4eb0bf62a21e0fcd">sys_chdir</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
+<tr class="memdesc:a08adbc74eb703f7d4eb0bf62a21e0fcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the current working directory of the calling realm.  <br /></td></tr>
+<tr class="separator:a08adbc74eb703f7d4eb0bf62a21e0fcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7d2c6121d4b4651e1a312e1de49bb0c" id="r_aa7d2c6121d4b4651e1a312e1de49bb0c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#aa7d2c6121d4b4651e1a312e1de49bb0c">sys_getcwd</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
+<tr class="memdesc:aa7d2c6121d4b4651e1a312e1de49bb0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current working directory of the calling realm.  <br /></td></tr>
+<tr class="separator:aa7d2c6121d4b4651e1a312e1de49bb0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ae3cf90fbca8a7077eff9721ab4f93630" name="ae3cf90fbca8a7077eff9721ab4f93630"></a>
@@ -427,6 +433,68 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a08adbc74eb703f7d4eb0bf62a21e0fcd" name="a08adbc74eb703f7d4eb0bf62a21e0fcd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08adbc74eb703f7d4eb0bf62a21e0fcd">&#9670;&#160;</a></span>sys_chdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> sys_chdir </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Change the current working directory of the calling realm. </p>
+<p>Resolves the given path (relative or absolute), normalizes any "." and ".." components, and updates the realm's current working directory if the target exists and is a directory.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>Pointer to a null-terminated path string (user address). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns 0. On error, returns negative errno: -EINVAL : path is null or empty -ENOENT : path does not exist -ENOTDIR : path exists but is not a directory -ERANGE : resolved path exceeds cwd_path buffer size </dd></dl>
+
+</div>
+</div>
 <a id="aba1a18094b538aa055e144f694578315" name="aba1a18094b538aa055e144f694578315"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aba1a18094b538aa055e144f694578315">&#9670;&#160;</a></span>sys_close()</h2>
 
@@ -607,6 +675,69 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>This function does not return; halts the unit. </dd></dl>
+
+</div>
+</div>
+<a id="aa7d2c6121d4b4651e1a312e1de49bb0c" name="aa7d2c6121d4b4651e1a312e1de49bb0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7d2c6121d4b4651e1a312e1de49bb0c">&#9670;&#160;</a></span>sys_getcwd()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> sys_getcwd </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the current working directory of the calling realm. </p>
+<p>Copies the null-terminated absolute path of the realm's current working directory into the provided user buffer. The buffer must be large enough to hold the path including the null terminator.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>Pointer to the user buffer to store the path string. </td></tr>
+    <tr><td class="paramname">arg1</td><td>Size of the user buffer in bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, returns the number of bytes written (including the null terminator). On error, returns negative errno: -EINVAL : buffer pointer is null or size is zero -ERANGE : buffer is too small to hold the current path </dd></dl>
 
 </div>
 </div>
