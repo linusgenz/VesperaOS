@@ -14,8 +14,8 @@ struct TrapFrame;
 namespace kernel::scheduling::cpu_scheduler
 {
     struct CpuScheduler {
-        IntrusiveQueue<Unit, QueueLockIrq> ready_queue;
-        IntrusiveQueue<Unit, QueueLockIrq> blocked_queue;
+        IntrusiveQueue<Unit> ready_queue;
+        IntrusiveQueue<Unit> blocked_queue;
         Reaper reaper;
         Unit *current_unit;
         Unit *idle_unit;

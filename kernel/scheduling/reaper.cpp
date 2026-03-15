@@ -26,35 +26,42 @@
 #include <vespera/log.h>
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
+
 #include "../cpu/cpu_manager.h"
 #include "../units/unit_manager.h"
 
 [[noreturn]] void reaper_unit(void* arg) {
     while (true) {
-        asm volatile("cli");
-        u8 cpu_id = cpu_manager::get_current_cpu_id();
-        if (auto* cpu = kernel::scheduling::get_cpu_data(cpu_id); !cpu->reaper.empty()) {
-            cpu->reaper.reap();
-        }
-        asm volatile("sti");
         kernel::time::sleep_ms(1000);
-        // kernel::scheduling::yield();
+
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
+
+        if (cpu->reaper.empty()) continue;
+
+        cpu->reaper.reap();
     }
 }
 
 void Reaper::enqueue(Unit* unit) {
+    SpinlockGuard guard(lock_);
     pending_.push(unit);
 }
 
 void Reaper::reap() {
-    Unit* unit = pending_.pop();
+    const Unit* unit = nullptr;
+    {
+        SpinlockGuard guard(lock_);
+        unit = pending_.pop();
+    }
     while (unit) {
-        Unit* next = unit->next;
+        const Unit* next = unit->next;
         UnitManager::destroy(unit->id);
         unit = next;
     }
 }
 
-bool Reaper::empty() const {
+bool Reaper::empty() {
+    SpinlockGuard guard(lock_);
     return pending_.empty();
 }

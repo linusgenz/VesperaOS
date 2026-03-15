@@ -37,10 +37,11 @@ struct Reaper {
 
     void reap();
 
-    [[nodiscard]] bool empty() const;
+    [[nodiscard]] bool empty();
 
    private:
     IntrusiveQueue<Unit> pending_;
+    Spinlock lock_;
 };
 
 #endif  // VESPERAOS_REAPER_H

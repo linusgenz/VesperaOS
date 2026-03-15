@@ -10,6 +10,7 @@
 #include <vespera/time.h>
 
 #include "../../filesystem/devfs/devfs.h"
+#include "vespera/scheduling.h"
 #include "vespera_errno.h"
 
 namespace nvme {
@@ -454,7 +455,7 @@ namespace nvme {
 
         auto start = 0;
         while (completion_cycle_state == !completion_queue_[cq_head].dw3.p) {
-            if (start > 50) {
+            if (start > 500000) {
                 //   NVME_COMMAND_STATUS timeout_status{};
                 //  timeout_status.P = 1;
                 //  timeout_status.SCT = 1;
@@ -465,7 +466,8 @@ namespace nvme {
                 return;
             }
             start++;
-            kernel::time::sleep_ms(10);
+            //kernel::time::sleep_ms(10);
+            kernel::scheduling::yield();
         }
         complet = completion_queue_[cq_head];
 

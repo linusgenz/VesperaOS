@@ -21,7 +21,6 @@
 
 global context_switch
 context_switch:
-    cli
     ; Check if we need to save current context
     test    rdi, rdi
     jz      .restore_only
@@ -96,7 +95,6 @@ context_switch:
 
         .skip_args:
 
-        sti
         iretq
         hlt
         jmp $           ; shouldn't reach here

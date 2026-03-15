@@ -2,10 +2,9 @@
 // Created by Linus on 20.07.25.
 //
 
-#include <vespera/sync/mutex.h>
-
 #include <vespera/scheduling.h>
 #include <vespera/sync/atomic.h>
+#include <vespera/sync/mutex.h>
 
 namespace kernel {
     inline bool scheduling_started = false;
@@ -28,14 +27,21 @@ namespace kernel {
 
             current->state = UnitState::Blocked;
 
-            waiters_.push(current);
+            {
+                SpinlockGuard guard(lock_);
+                waiters_.push(current);
+            }
 
             scheduling::yield();
         }
     }
 
     void Mutex::unlock() {
-        Unit *to_wake = waiters_.pop();
+        Unit *to_wake = nullptr;
+        {
+            SpinlockGuard guard(lock_);
+            to_wake = waiters_.pop();
+        }
 
         locked_.clear();
 

@@ -27,6 +27,7 @@
 
 #include "../../../filesystem/devfs/devfs.h"
 #include "vespera/devices/device_manager.h"
+#include "vespera/scheduling.h"
 #include "xhci.h"
 
 void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
@@ -307,7 +308,10 @@ isize XhciMassStorageDriver::read(u64 lba, usize sector_count, void* buffer, usi
 
     start_bulk_transfer(&transfer);
 
-    while (!transfer.done) asm volatile("pause");
+   // while (!transfer.done) asm volatile("pause");
+    while (!transfer.done) {
+        kernel::scheduling::yield();
+    }
 
     isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
@@ -354,7 +358,10 @@ isize XhciMassStorageDriver::write(u64 lba, usize sector_count, void* buffer, us
 
     start_bulk_transfer(&transfer);
 
-    while (!transfer.done) asm volatile("pause");
+    //while (!transfer.done) asm volatile("pause");
+    while (!transfer.done) {
+        kernel::scheduling::yield();
+    }
 
     isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 

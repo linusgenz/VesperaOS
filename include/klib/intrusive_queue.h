@@ -33,26 +33,13 @@ concept IntrusiveNode = requires(T t)
     { t.next } -> klib::same_as<T *>;
 };
 
-struct QueueLockNormal {
-    using guard_t = SpinlockGuard;
-};
-
-struct QueueLockIrq {
-    using guard_t = SpinlockGuardIrq;
-};
-
-template<typename Node, typename LockPolicy = QueueLockNormal>
+template<typename Node>
 class IntrusiveQueue {
-    using guard_t = LockPolicy::guard_t;
-
-    Spinlock lock_{};
     Node *head_ = nullptr;
     Node *tail_ = nullptr;
 
 public:
-    IntrusiveQueue() : head_(nullptr), tail_(nullptr) {
-        lock_.init();
-    }
+    IntrusiveQueue() : head_(nullptr), tail_(nullptr) {}
 
 
     IntrusiveQueue(const IntrusiveQueue &) = delete;
@@ -61,7 +48,6 @@ public:
 
     // FIFO
     void push(Node *element) {
-        guard_t g(lock_);
 
         if (!head_) {
             head_ = tail_ = element;
@@ -75,10 +61,6 @@ public:
 
     // LIFO
     void push_front(Node *element) {
-        guard_t g(lock_);
-        if (element->cpu_id == 5) {
-        //    Log::debug("ADDED: %u %u cpu: %u", element->is_idle, element->id, element->cpu_id);
-        }
         element->next = head_;
         head_ = element;
         if (!tail_) tail_ = element;
@@ -86,7 +68,6 @@ public:
 
     // FIFO
     Node *pop() {
-        guard_t g(lock_);
         if (!head_) return nullptr;
 
         Node *element = head_;
@@ -98,7 +79,6 @@ public:
 
     // Remove specific element
     bool remove(Node *target) {
-        guard_t g(lock_);
         if (!head_) return false;
 
         if (head_ == target) {
@@ -125,8 +105,6 @@ public:
 
     template<typename Predicate>
     Node *extract_if(Predicate &&pred, Node **out_tail = nullptr) {
-        guard_t g(lock_);
-
         Node *result_head = nullptr;
         Node *result_tail = nullptr;
 
@@ -164,12 +142,10 @@ public:
     }
 
     [[nodiscard]] Node *front() {
-        guard_t g(lock_);
         return head_;
     }
 
     void clear() {
-        guard_t g(lock_);
         head_ = nullptr;
         tail_ = nullptr;
     }

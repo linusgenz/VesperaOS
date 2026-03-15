@@ -23,7 +23,9 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->quantum_ticks = SCHEDULER_TICKS;
         cpu->ticks_remaining = cpu->quantum_ticks;
         cpu->scheduler_enabled = false;
-        cpu->lock.init();
+        char buffer[32];
+        snprintf(buffer, sizeof(buffer), "cpu%u", cpu_id);
+        cpu->lock.init(buffer);
 
         //  if (cpu_id == 2 || cpu_id == 4 || cpu_id == 5 || cpu_id == 6 || cpu_id == 7 || cpu_id == 1)
         {
@@ -93,7 +95,7 @@ namespace kernel::scheduling::cpu_scheduler {
             next_unit->state = UnitState::Running;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock_irqrestore(flags);
+            cpu->lock.unlock();
             manager::switch_to_unit(nullptr, next_unit, frame);
             return;
         }
@@ -126,7 +128,7 @@ namespace kernel::scheduling::cpu_scheduler {
             next_unit->state = UnitState::Running;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock_irqrestore(flags);
+            cpu->lock.unlock();
             manager::switch_to_unit(current, next_unit, frame);
             return;
         }
@@ -136,7 +138,7 @@ namespace kernel::scheduling::cpu_scheduler {
             next_unit->state = UnitState::Running;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock_irqrestore(flags);
+            cpu->lock.unlock();
             manager::switch_to_unit(current, next_unit, frame);
             return;
         }
@@ -155,7 +157,7 @@ namespace kernel::scheduling::cpu_scheduler {
             next_unit->state = UnitState::Running;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock_irqrestore(flags);
+            cpu->lock.unlock();
             manager::switch_to_unit(current, next_unit, frame);
             return;
         }
@@ -174,7 +176,7 @@ namespace kernel::scheduling::cpu_scheduler {
             next_unit->state = UnitState::Running;
             cpu->current_unit = next_unit;
             cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock_irqrestore(flags);
+            cpu->lock.unlock();
             manager::switch_to_unit(current, next_unit, frame);
             return;
         }

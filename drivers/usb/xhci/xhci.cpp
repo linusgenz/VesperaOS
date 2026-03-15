@@ -12,6 +12,7 @@
 #include "../../../kernel/cpu/cpu.h"
 #include "../../pci/pci.h"
 #include "../usb_manager.h"
+#include "vespera/scheduling.h"
 #include "xhci_common.h"
 #include "xhci_device.h"
 #include "xhci_device_ctx.h"
@@ -145,7 +146,10 @@ namespace usb {
                     XhciPortConnectionEvent conn_evt{};
                     conn_evt.port_id = i + 1;
                     conn_evt.device_connected = (portsc.ccs == 1);
-                    port_connection_events_.push_back(conn_evt);
+                    {
+                        SpinlockGuardIrq guard(port_connection_lock_);
+                        port_connection_events_.push_back(conn_evt);
+                    }
                 }
             }
         }
@@ -174,13 +178,17 @@ namespace usb {
         UsbManager::notify_controller_ready();
 
         while (true) {
-            kernel::time::sleep_ms(100);
+            kernel::time::sleep_ms(1000);
 
-            if (port_connection_events_.empty()) {
-                continue;
+            Vector<XhciPortConnectionEvent> snapshot(0);
+
+            {
+                SpinlockGuardIrq guard(port_connection_lock_);
+                if (port_connection_events_.empty()) continue;
+                snapshot = klib::move(port_connection_events_);
             }
 
-            for (auto [port_id, device_connected] : port_connection_events_) {
+            for (auto [port_id, device_connected] : snapshot) {
                 const u8 port = port_id;
                 const u8 port_reg_idx = port - 1;
 
@@ -227,8 +235,6 @@ namespace usb {
                     clear_port(port_reg_idx);
                 }
             }
-
-            port_connection_events_.clear();
         }
     }
 
@@ -628,7 +634,10 @@ namespace usb {
                         XhciPortConnectionEvent conn_evt{};
                         conn_evt.port_id = port_evt->port_id;
                         conn_evt.device_connected = (portsc.ccs == 1);
-                        port_connection_events_.push_back(conn_evt);
+                        {
+                            SpinlockGuardIrq guard(port_connection_lock_);
+                            port_connection_events_.push_back(conn_evt);
+                        }
                     }
                     break;
                 }

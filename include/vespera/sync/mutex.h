@@ -19,7 +19,8 @@ namespace kernel {
      */
     class Mutex {
         atomic_flag_t locked_{};
-        IntrusiveQueue<Unit, QueueLockIrq> waiters_{};
+        Spinlock lock_;
+        IntrusiveQueue<Unit> waiters_{};
 
        public:
         void init();
