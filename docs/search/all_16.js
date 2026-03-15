@@ -10,6 +10,19 @@ var searchData=
   ['vendor_7',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info::vendor'],['../structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee',1,'devinfo_t::vendor']]],
   ['vendor_5fid_8',['vendor_id',['../structusb__device__info.html#ad6ac117b3b090a41c045fc1dc28bb411',1,'usb_device_info']]],
   ['version_9',['version',['../structSmartAta.html#ac219bee1e39de9f156e57d891b51d699',1,'SmartAta']]],
-  ['vesperaos_20standard_20library_20vesplib_10',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
-  ['vesplib_11',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]]
+  ['vespera_5fstat_10',['vespera_stat',['../structvespera__stat.html',1,'']]],
+  ['vespera_5fstat_5ft_11',['vespera_stat_t',['../include_2uapi_2vespera_2stat_8h.html#a41eb14a51dcbebfb8143dbde0a227440',1,'stat.h']]],
+  ['vesperaos_20standard_20library_20vesplib_12',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
+  ['vesplib_13',['VesperaOS Standard Library (vesplib)',['../index.html',1,'']]],
+  ['vstat_5fflag_5fexec_14',['VSTAT_FLAG_EXEC',['../include_2uapi_2vespera_2stat_8h.html#a7194859a8aba349d4c3988f054686019',1,'stat.h']]],
+  ['vstat_5fflag_5fpermanent_15',['VSTAT_FLAG_PERMANENT',['../include_2uapi_2vespera_2stat_8h.html#a6a0ba79309c7e8a89b8d254d0d601873',1,'stat.h']]],
+  ['vstat_5fflag_5freadable_16',['VSTAT_FLAG_READABLE',['../include_2uapi_2vespera_2stat_8h.html#ad9b07bda86ed34ffc8460ff82282fd80',1,'stat.h']]],
+  ['vstat_5fflag_5fvirtual_17',['VSTAT_FLAG_VIRTUAL',['../include_2uapi_2vespera_2stat_8h.html#a0d0ca000b6da5a1c723ec95bfa8dbfde',1,'stat.h']]],
+  ['vstat_5fflag_5fwritable_18',['VSTAT_FLAG_WRITABLE',['../include_2uapi_2vespera_2stat_8h.html#a7e7ac15ec3949032329983166e82cd9f',1,'stat.h']]],
+  ['vstat_5ftype_5fblockdev_19',['VSTAT_TYPE_BLOCKDEV',['../include_2uapi_2vespera_2stat_8h.html#a66d166b41f7000d56f1fbb5b25fb1273',1,'stat.h']]],
+  ['vstat_5ftype_5fchardev_20',['VSTAT_TYPE_CHARDEV',['../include_2uapi_2vespera_2stat_8h.html#a640fc71643be70105c42f2cd91b4c32f',1,'stat.h']]],
+  ['vstat_5ftype_5fdir_21',['VSTAT_TYPE_DIR',['../include_2uapi_2vespera_2stat_8h.html#a2711bcd89fcd38965d61c6d2f17e7543',1,'stat.h']]],
+  ['vstat_5ftype_5ffile_22',['VSTAT_TYPE_FILE',['../include_2uapi_2vespera_2stat_8h.html#a7bb81fe5da918b70a96a86b19daa5ab1',1,'stat.h']]],
+  ['vstat_5ftype_5fsymlink_23',['VSTAT_TYPE_SYMLINK',['../include_2uapi_2vespera_2stat_8h.html#a8e59402442efbb0abf9da8eabdd3bbd9',1,'stat.h']]],
+  ['vstat_5ftype_5funknown_24',['VSTAT_TYPE_UNKNOWN',['../include_2uapi_2vespera_2stat_8h.html#a1133193f6979ae136184d7048c4d4e36',1,'stat.h']]]
 ];

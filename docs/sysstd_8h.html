@@ -179,6 +179,9 @@ Functions</h2></td></tr>
 <tr class="memitem:aa7d2c6121d4b4651e1a312e1de49bb0c" id="r_aa7d2c6121d4b4651e1a312e1de49bb0c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#aa7d2c6121d4b4651e1a312e1de49bb0c">sys_getcwd</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
 <tr class="memdesc:aa7d2c6121d4b4651e1a312e1de49bb0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current working directory of the calling realm.  <br /></td></tr>
 <tr class="separator:aa7d2c6121d4b4651e1a312e1de49bb0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f21dc15ed3796200d4f350aede19757" id="r_a3f21dc15ed3796200d4f350aede19757"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757">sys_stat</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
+<tr class="memdesc:a3f21dc15ed3796200d4f350aede19757"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query metadata about a file or node.  <br /></td></tr>
+<tr class="separator:a3f21dc15ed3796200d4f350aede19757"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ae3cf90fbca8a7077eff9721ab4f93630" name="ae3cf90fbca8a7077eff9721ab4f93630"></a>
@@ -1551,6 +1554,68 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>New realm ID on success, or negative error code. </dd></dl>
+
+</div>
+</div>
+<a id="a3f21dc15ed3796200d4f350aede19757" name="a3f21dc15ed3796200d4f350aede19757"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f21dc15ed3796200d4f350aede19757">&#9670;&#160;</a></span>sys_stat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> sys_stat </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Query metadata about a file or node. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>Pointer to path string. </td></tr>
+    <tr><td class="paramname">arg1</td><td>Pointer to vespera_stat_t buffer to fill. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, negative errno: -EINVAL : null path or buffer -EFAULT : buffer pointer invalid -ENOENT : path does not exist </dd></dl>
 
 </div>
 </div>

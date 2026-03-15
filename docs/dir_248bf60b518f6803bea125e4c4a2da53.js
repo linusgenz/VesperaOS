@@ -14,6 +14,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "realm.h", "realm_8h.html", "realm_8h" ],
     [ "reboot.h", "reboot_8h.html", "reboot_8h" ],
     [ "setjmp.h", "setjmp_8h.html", "setjmp_8h" ],
+    [ "stat.h", "userspace_2lib_2include_2stat_8h.html", "userspace_2lib_2include_2stat_8h" ],
     [ "stdarg.h", "stdarg_8h.html", "stdarg_8h" ],
     [ "stdbool.h", "stdbool_8h.html", "stdbool_8h" ],
     [ "stddef.h", "stddef_8h.html", "stddef_8h" ],
