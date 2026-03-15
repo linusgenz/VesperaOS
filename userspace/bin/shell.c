@@ -46,6 +46,7 @@
 
 #include "stdint.h"
 #include "vespera/dev/ioctl_smart.h"
+#include "vespera/stat.h"
 
 typedef struct
 {
@@ -234,45 +235,98 @@ void cmd_clear(command_t* cmd)
     printf("\033[2J\033[H"); // ANSI escape codes
 }
 
-void cmd_ls(command_t* cmd)
-{
-    const char* path = cmd->args[1] ? cmd->args[1] : current_dir;
+static void format_size(uint64_t size, char* buf, size_t buf_size) {
+    if (size >= 1024 * 1024 * 1024)
+        snprintf(buf, buf_size, "%6.1fG", (double)size / (1024*1024*1024));
+    else if (size >= 1024 * 1024)
+        snprintf(buf, buf_size, "%6.1fM", (double)size / (1024*1024));
+    else if (size >= 1024)
+        snprintf(buf, buf_size, "%6.1fK", (double)size / 1024);
+    else
+        snprintf(buf, buf_size, "%6lluB", (unsigned long long)size);
+}
+
+void cmd_ls(command_t* cmd) {
+    int long_fmt = 0;
+    const char* path = NULL;
+
+    for (int i = 1; i < cmd->argc; i++) {
+        if (strcmp(cmd->args[i], "-l") == 0)
+            long_fmt = 1;
+        else if (cmd->args[i][0] != '-')
+            path = cmd->args[i];
+    }
+
+    if (!path) path = current_dir;
+
     DIR_HANDLE hdl = opendir(path);
-    if (hdl < 0)
-    {
-        if (hdl == -2)
-        {
-            printf("ls: Cannot open '%s': File or directory not found\n", path);
-            return;
-        }
-        printf("ls: Cannot open '%s' due to an unknown error (hdl=%ld)\n", path, hdl);
+    if (hdl < 0) {
+        if (hdl == -ENOENT)
+            printf("ls: cannot open '%s': No such file or directory\n", path);
+        else
+            printf("ls: cannot open '%s' (error %ld)\n", path, hdl);
         return;
     }
 
     dirent_t ent;
-    while (readdir(hdl, &ent) > 0)
-    {
-        const char* color = "\033[0m"; // reset
-        switch (ent.type)
-        {
-        case DT_DIR: color = "\033[38;2;66;117;245m";
-            break;
-        case DT_EXEC: color = "\033[38;2;66;245;81m";
-            break;
-        case DT_SYMLINK: color = "\033[1;36m";
-            break;
-        case DT_BLOCKDEV: color = "\033[38;2;100;200;255m";
-            break;
-        case DT_CHARDEV: color = "\033[38;2;245;212;8m";
-            break;
-        default: color = "\033[0m";
-            break;
+    while (readdir(hdl, &ent) > 0) {
+        const char* color = NULL;
+        const char* indicator = "";
+        switch (ent.type) {
+            case DT_DIR:      color = "\033[38;2;66;117;245m";  indicator = "/"; break;
+            case DT_EXEC:     color = "\033[38;2;66;245;81m";   indicator = "*"; break;
+            case DT_SYMLINK:  color = "\033[1;36m";             indicator = "@"; break;
+            case DT_BLOCKDEV: color = "\033[38;2;100;200;255m"; break;
+            case DT_CHARDEV:  color = "\033[38;2;245;212;8m";   break;
+            default:          color = "\033[0m";                break;
         }
-        printf("%s%s\033[0m ", color, ent.name);
+
+        if (!long_fmt) {
+            printf("%s%s%s%s ", color, ent.name, indicator, "\033[0m");
+            continue;
+        }
+
+        char full_path[512];
+        if (strcmp(path, "/") == 0)
+            snprintf(full_path, sizeof(full_path), "/%s", ent.name);
+        else
+            snprintf(full_path, sizeof(full_path), "%s/%s", path, ent.name);
+
+        vespera_stat_t st;
+        int has_stat = (sys_stat((uint64_t)full_path, (uint64_t)&st, 0,0,0,0) == 0);
+
+        char type_char;
+        switch (ent.type) {
+            case DT_DIR:      type_char = 'd'; break;
+            case DT_CHARDEV:  type_char = 'c'; break;
+            case DT_BLOCKDEV: type_char = 'b'; break;
+            case DT_SYMLINK:  type_char = 'l'; break;
+            case DT_EXEC:     type_char = '-'; break;
+            default:          type_char = '-'; break;
+        }
+
+        char rw[4];
+        if (has_stat) {
+            rw[0] = (st.flags & VSTAT_FLAG_READABLE) ? 'r' : '-';
+            rw[1] = (st.flags & VSTAT_FLAG_WRITABLE) ? 'w' : '-';
+            rw[2] = (st.flags & VSTAT_FLAG_EXEC)     ? 'x' : '-';
+            rw[3] = '\0';
+        } else {
+            rw[0] = 'r'; rw[1] = '-'; rw[2] = '-'; rw[3] = '\0';
+        }
+
+        char size_buf[16] = "     -";
+        if (has_stat && ent.type != DT_DIR)
+            format_size(st.size, size_buf, sizeof(size_buf));
+
+        printf("%c%s  %s  %s%s%s%s\n",
+               type_char, rw,
+               size_buf,
+               color, ent.name, indicator, "\033[0m");
     }
 
-    putchar('\n');
-    close(hdl);
+    if (!long_fmt) putchar('\n');
+    closedir(hdl);
 }
 
 void cmd_cat(command_t* cmd)

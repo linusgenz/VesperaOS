@@ -30,6 +30,8 @@
 #include "../vfs/fs_registry.h"
 #include "fat32.h"
 #include "fat32_lfn.h"
+#include "vespera/devices/device_manager.h"
+#include "vespera/devices/kernel_device.h"
 #include "vespera_errno.h"
 
 using namespace fat32;
@@ -228,6 +230,26 @@ static int fat32_unlink(const VfsNode* node, const char* name)
     return dir->fs->delete_file(dir, name) ? 0 : -1;
 }
 
+static int fat32_stat(const VfsNode* node, vespera_stat_t* out) {
+    const auto* fnode = static_cast<Fat32Node*>(node->internal_data);
+    if (!fnode) return -EINVAL;
+
+    out->inode_id   = fnode->cluster;
+    out->block_size = fnode->fs->bytes_per_cluster();
+
+    // Anzahl belegter Cluster * Sektoren pro Cluster * 512
+    // (klassische 512-Byte-Block-Konvention für st_blocks)
+    if (fnode->file_size > 0 && out->block_size > 0) {
+        const u64 clusters_used = (fnode->file_size + out->block_size - 1) / out->block_size;
+        const u32 sectors_per_cluster = fnode->fs->get_bpb()->sectors_per_cluster;
+        out->blocks = clusters_used * sectors_per_cluster;
+    }
+
+    out->dev_id = fnode->fs->get_device_id();
+
+    return 0;
+}
+
 static VfsNodeOps fat32_ops = {
     .read = fat32_read,
     .write = fat32_write,
@@ -242,6 +264,7 @@ static VfsNodeOps fat32_ops = {
     .rmdir = fat32_rmdir,
     .unlink = fat32_unlink,
     .ioctl = nullptr,
+    .stat = fat32_stat
 };
 
 VfsNode* wrap_fat32_root(FileSystem* fs)
@@ -280,6 +303,13 @@ VfsNode* fat32_mount(BlockDevice* dev)
 {
     auto* fs = new FileSystem(dev);
     if (!fs->is_valid()) return nullptr;
+
+    auto devices = DeviceManager::query([dev](const KernelDevice* kd) {
+    return kd->block == dev;
+});
+    if (!devices.empty())
+        fs->set_device_id(devices[0]->id);
+
     return wrap_fat32_root(fs);
 }
 

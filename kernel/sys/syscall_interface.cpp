@@ -60,6 +60,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_SEEK] = syscalls::internal::sys_seek;
     syscall_table[SYSCALL_CHDIR] = syscalls::internal::sys_chdir;
     syscall_table[SYSCALL_GETCWD] = syscalls::internal::sys_getcwd;
+    syscall_table[SYSCALL_STAT] = syscalls::internal::sys_stat;
 }
 
 extern "C" void syscall_handler(

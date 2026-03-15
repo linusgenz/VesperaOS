@@ -78,6 +78,8 @@ namespace syscalls::internal {
     i64 sys_chdir(u64 arg0, u64, u64, u64, u64, u64);
 
     i64 sys_getcwd(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_stat(u64 arg0, u64 arg1, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

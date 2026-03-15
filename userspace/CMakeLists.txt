@@ -21,12 +21,10 @@ add_executable(logd ${CMAKE_SOURCE_DIR}/userspace/bin/logd.c)
 add_executable(uptime ${CMAKE_SOURCE_DIR}/userspace/bin/uptime.c)
 add_executable(memstat ${CMAKE_SOURCE_DIR}/userspace/bin/memstat.c)
 add_executable(diskinfo ${CMAKE_SOURCE_DIR}/userspace/bin/diskinfo.c)
-
-target_include_directories (diskinfo PUBLIC ${VESPERA_UAPI_INCLUDE_DIR})
-target_include_directories (diskinfo PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/include)
+add_executable(stat ${CMAKE_SOURCE_DIR}/userspace/bin/stat.c)
 
 
-foreach(bin IN ITEMS shell lsusb logd uptime memstat diskinfo)
+foreach(bin IN ITEMS shell lsusb logd uptime memstat diskinfo stat)
     target_link_libraries(${bin} PRIVATE vesplib)
     target_include_directories(${bin} PRIVATE
             ${CMAKE_SOURCE_DIR}/userspace/lib/include
@@ -38,4 +36,4 @@ foreach(bin IN ITEMS shell lsusb logd uptime memstat diskinfo)
     )
 endforeach()
 
-add_custom_target(elfs DEPENDS shell lsusb logd uptime memstat diskinfo)
+add_custom_target(elfs DEPENDS shell lsusb logd uptime memstat diskinfo stat)

@@ -300,7 +300,7 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
             continue;
         }
 
-        // ── flags ────────────────────────────────────────────────────────────
+        // flags
         bool left_align = false;
         bool zero_pad = false;
 
@@ -323,11 +323,18 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
         // Per C standard: '-' overrides '0'
         if (left_align) zero_pad = false;
 
-        // ── width ─────────────────────────────────────────────────────────────
+        // width
         int min_width = 0;
         while (*fmt >= '0' && *fmt <= '9') min_width = min_width * 10 + (*fmt++ - '0');
 
-        // ── length modifier ───────────────────────────────────────────────────
+        int precision = -1;  // -1 = not specified
+        if (*fmt == '.') {
+            fmt++;
+            precision = 0;
+            while (*fmt >= '0' && *fmt <= '9') precision = precision * 10 + (*fmt++ - '0');
+        }
+
+        // length modifier
         bool is_long = false;
         bool is_long_long = false;
         if (*fmt == 'l') {
@@ -414,10 +421,10 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
             }
             case 'f': {
                 double val = __builtin_va_arg(args, double);
-                float_to_str((float)val, tmp, 6);
+                int prec = (precision >= 0) ? precision : 6;
+                float_to_str((float)val, tmp, prec);
                 len = strlen(tmp);
                 p = (min_width > (int)len) ? min_width - (int)len : 0;
-
                 if (!left_align) pad(s, p, zero_pad ? '0' : ' ');
                 sink_puts(s, tmp);
                 if (left_align) pad(s, p, ' ');

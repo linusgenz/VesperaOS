@@ -130,6 +130,7 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
     sp -= sizeof(uptr);
     write_user_ptr(u, sp, argc);
 
+    sp &= ~0xFULL;
     u->context.regs.rdi = argc;
     u->context.regs.rsi = argv_ptr;
     u->context.regs.rdx = envp_ptr;

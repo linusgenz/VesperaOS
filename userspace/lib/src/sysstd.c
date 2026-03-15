@@ -167,3 +167,7 @@ int64_t sys_chdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_
 int64_t sys_getcwd(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_GETCWD, arg0, arg1, 0, 0, 0, 0);
 }
+
+int64_t sys_stat(uint64_t path, uint64_t buf, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_STAT, path, buf, 0, 0, 0, 0);
+}

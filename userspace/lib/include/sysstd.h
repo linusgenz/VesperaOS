@@ -1,39 +1,32 @@
 // sysstd.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 22.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
 
 #ifndef SYSSTD_H
 #define SYSSTD_H
 
 #include <stdint.h>
 
-int64_t syscall(uint64_t num,
-                uint64_t arg0,
-                uint64_t arg1,
-                uint64_t arg2,
-                uint64_t arg3,
-                uint64_t arg4,
-                uint64_t arg5);
+int64_t syscall(uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 /**
  * @brief Close a handle.
@@ -187,7 +180,6 @@ int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, 
  */
 int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
-
 /**
  * @brief Maps memory pages into the virtual address space of the calling unit.
  *
@@ -209,9 +201,7 @@ int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
  *           -EACCES       : Not allowed in current context (e.g. kernel-only)
  *           -ENOMEM       : Out of memory (physical pages not available)
  */
-int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2,
-                 uint64_t arg3, uint64_t arg4, uint64_t arg5);
-
+int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
 
 /**
  * @brief Unmaps memory pages from the virtual address space of the calling unit.
@@ -229,7 +219,6 @@ int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2,
  *           -EACCES : Region cannot be unmapped (e.g., kernel-only mapping)
  */
 int64_t sys_munmap(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t);
-
 
 /**
  * @brief Adjust the program break (end of heap) for the current unit.
@@ -297,7 +286,6 @@ int64_t sys_channel_recv(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, 
  */
 int64_t sys_channel_send(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
 
-
 /**
  * @brief Reposition the file offset for a file or device handle.
  *
@@ -355,4 +343,16 @@ int64_t sys_chdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_
  */
 int64_t sys_getcwd(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
-#endif //SYSSTD_H
+/**
+ * @brief Query metadata about a file or node.
+ *
+ * @param arg0 Pointer to path string.
+ * @param arg1 Pointer to vespera_stat_t buffer to fill.
+ * @return 0 on success, negative errno:
+ *   -EINVAL : null path or buffer
+ *   -EFAULT : buffer pointer invalid
+ *   -ENOENT : path does not exist
+ */
+int64_t sys_stat(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+#endif  // SYSSTD_H
