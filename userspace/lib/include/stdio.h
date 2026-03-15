@@ -1,23 +1,23 @@
 // stdio.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 22.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -35,8 +35,7 @@ typedef HANDLE FILE_HANDLE;
 typedef HANDLE CHANNEL_HANDLE;
 typedef HANDLE DIR_HANDLE;
 
-typedef struct FILE
-{
+typedef struct FILE {
     FILE_HANDLE handle;
     int error;
     uint8_t* buffer;
@@ -46,8 +45,6 @@ typedef struct FILE
 
 #ifdef __cplusplus
 extern "C" {
-
-
 
 #endif
 
@@ -101,20 +98,20 @@ int getchar(void);
 void printf(const char* fmt, ...);
 
 /**
-* @brief Formatted output to a buffer with size limit.
-*
-* Writes at most @p size - 1 characters to @p buffer, always null-terminating.
-* Supports format specifiers: %s, %c, %d, %x, %llu, %%.
-*
-* @param buffer Destination buffer.
-* @param size Size of buffer (including null terminator).
-* @param format Format string.
-* @param ... Variable arguments matching format specifiers.
-* @return Total number of characters that would have been written (excluding null),
-*         or @c -1 on error.
-*
-* @see printf()
-*/
+ * @brief Formatted output to a buffer with size limit.
+ *
+ * Writes at most @p size - 1 characters to @p buffer, always null-terminating.
+ * Supports format specifiers: %s, %c, %d, %x, %llu, %%.
+ *
+ * @param buffer Destination buffer.
+ * @param size Size of buffer (including null terminator).
+ * @param format Format string.
+ * @param ... Variable arguments matching format specifiers.
+ * @return Total number of characters that would have been written (excluding null),
+ *         or @c -1 on error.
+ *
+ * @see printf()
+ */
 size_t snprintf(char* buffer, size_t size, const char* format, ...);
 
 /**
@@ -236,17 +233,17 @@ int closedir(DIR_HANDLE handle);
 ssize_t readdir(DIR_HANDLE handle, dirent_t* entry);
 
 /**
-* @brief Open a resource (generic handle).
-*
-* Lower-level version of fopen() that returns a generic handle.
-*
-* @param path Path to the resource (null-terminated string).
-* @param flags Open flags (bitwise OR of O_* constants, see @ref fflags.h).
-* @return Handle on success, or negative error code on failure.
-*
-* @see close()
-* @see fopen()
-*/
+ * @brief Open a resource (generic handle).
+ *
+ * Lower-level version of fopen() that returns a generic handle.
+ *
+ * @param path Path to the resource (null-terminated string).
+ * @param flags Open flags (bitwise OR of O_* constants, see @ref fflags.h).
+ * @return Handle on success, or negative error code on failure.
+ *
+ * @see close()
+ * @see fopen()
+ */
 HANDLE open(const char* path, int flags);
 
 /**
@@ -263,46 +260,46 @@ HANDLE open(const char* path, int flags);
 int close(HANDLE handle);
 
 /**
-* @brief Read data from a generic handle.
-*
-* Lower-level version of fread() for generic handles.
-*
-* @param handle File handle returned by open().
-* @param buf Buffer to store read data.
-* @param count Maximum number of bytes to read.
-* @return Number of bytes read on success, or negative error code on failure.
-*
-* @see write()
-* @see open()
-*/
+ * @brief Read data from a generic handle.
+ *
+ * Lower-level version of fread() for generic handles.
+ *
+ * @param handle File handle returned by open().
+ * @param buf Buffer to store read data.
+ * @param count Maximum number of bytes to read.
+ * @return Number of bytes read on success, or negative error code on failure.
+ *
+ * @see write()
+ * @see open()
+ */
 ssize_t read(HANDLE handle, void* buf, size_t count);
 
 /**
-* @brief Write data to a generic handle.
-*
-* Lower-level version of fwrite() for generic handles.
-*
-* @param handle File handle returned by open().
-* @param buf Buffer containing data to write.
-* @param count Number of bytes to write.
-* @return Number of bytes written on success, or negative error code on failure.
-*
-* @see read()
-* @see open()
-*/
+ * @brief Write data to a generic handle.
+ *
+ * Lower-level version of fwrite() for generic handles.
+ *
+ * @param handle File handle returned by open().
+ * @param buf Buffer containing data to write.
+ * @param count Number of bytes to write.
+ * @return Number of bytes written on success, or negative error code on failure.
+ *
+ * @see read()
+ * @see open()
+ */
 ssize_t write(FILE_HANDLE handle, const void* buf, size_t count);
 
 /**
-* @brief Create a new file.
-*
-* Creates a new empty file at @p path.
-*
-* @param path Path where the file should be created.
-* @return @c 0 on success, or negative error code on failure.
-*
-* @see fopen()
-* @see mkdir()
-*/
+ * @brief Create a new file.
+ *
+ * Creates a new empty file at @p path.
+ *
+ * @param path Path where the file should be created.
+ * @return @c 0 on success, or negative error code on failure.
+ *
+ * @see fopen()
+ * @see mkdir()
+ */
 int creat(const char* path);
 
 /**
@@ -317,7 +314,6 @@ int creat(const char* path);
  * @see creat()
  */
 int mkdir(const char* path);
-
 
 /**
  * @brief Remove a file.
@@ -345,23 +341,56 @@ int unlink(const char* path);
  */
 int rmdir(const char* path);
 
+/**
+ * @brief Create a new file or directory.
+ *
+ * Creates a new file or directory at @p path. The type is determined by flags.
+ *
+ * @param path Path where the file/directory should be created.
+ * @param flags Creation flags .
+ * @return @c 0 on success, or negative error code on failure.
+ *
+ * @see fopen()
+ * @see opendir()
+ */
+int create(const char* path, int flags);
 
 /**
-* @brief Create a new file or directory.
-*
-* Creates a new file or directory at @p path. The type is determined by flags.
-*
-* @param path Path where the file/directory should be created.
-* @param flags Creation flags .
-* @return @c 0 on success, or negative error code on failure.
-*
-* @see fopen()
-* @see opendir()
-*/
-int create(const char* path, int flags);
+ * @brief Change the current working directory.
+ *
+ * Resolves the given path (relative or absolute) and updates the
+ * calling realm's working directory if the target exists and is
+ * a directory.
+ *
+ * @param path Null-terminated path string (absolute or relative).
+ * @return 0 on success, or negative errno:
+ *           -EINVAL  : path is null or empty
+ *           -ENOENT  : path does not exist
+ *           -ENOTDIR : path exists but is not a directory
+ *
+ * @see getcwd()
+ */
+int chdir(const char* path);
+
+/**
+ * @brief Get the current working directory.
+ *
+ * Copies the absolute path of the calling realm's current working
+ * directory into @p buf. The buffer must be large enough to hold
+ * the full path including the null terminator.
+ *
+ * @param buf  Buffer to store the path string.
+ * @param size Size of @p buf in bytes.
+ * @return @p buf on success, or @c NULL on failure (errno set):
+ *           EINVAL : buf is null or size is zero
+ *           ERANGE : buffer too small to hold the current path
+ *
+ * @see chdir()
+ */
+char* getcwd(char* buf, size_t size);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //VESPERAOS_STDIO_H
+#endif  // VESPERAOS_STDIO_H

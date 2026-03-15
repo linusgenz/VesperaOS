@@ -58,6 +58,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_CHANNEL_SEND] = syscalls::internal::sys_channel_send;
     syscall_table[SYSCALL_CHANNEL_RECEIVE] = syscalls::internal::sys_channel_recv;
     syscall_table[SYSCALL_SEEK] = syscalls::internal::sys_seek;
+    syscall_table[SYSCALL_CHDIR] = syscalls::internal::sys_chdir;
+    syscall_table[SYSCALL_GETCWD] = syscalls::internal::sys_getcwd;
 }
 
 extern "C" void syscall_handler(

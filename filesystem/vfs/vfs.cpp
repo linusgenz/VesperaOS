@@ -83,6 +83,10 @@ VfsNode* VFS::open(const char* path) {
         path = abs_path;
     }
 
+    char norm_path[256];
+    normalize_path(path, norm_path, sizeof(norm_path));
+    path = norm_path;
+
     // --- Mountpoint-Suche ---
     MountPoint* best_match = nullptr;
     usize best_len = 0;

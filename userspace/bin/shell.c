@@ -197,24 +197,24 @@ void cmd_echo(command_t* cmd)
 void cmd_pwd(command_t* cmd)
 {
     char cwd[MAX_PATH];
-    /*if (sys_getcwd(cwd, sizeof(cwd)) >= 0) {
+    if (getcwd(cwd, sizeof(cwd)) >= 0) {
         printf(cwd);
         printf("\n");
     } else {
         printf(current_dir);
         printf("\n");
-    }*/
+    }
 }
 
 void cmd_cd(command_t* cmd)
 {
     const char* path = (cmd->argc > 1) ? cmd->args[1] : "/";
 
-    /* if (sys_chdir(path) == 0) {
+     if (chdir(path) == 0) {
          strcpy(current_dir, path);
      } else {
          printf("cd: cannot change directory to '%s'\n", path);
-     }*/
+     }
 }
 
 

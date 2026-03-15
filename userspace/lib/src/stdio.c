@@ -30,6 +30,8 @@
 #include <string.h>
 #include <sysstd.h>
 
+#include "errno.h"
+
 static size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
     char temp[32];
     int i = 0;
@@ -624,4 +626,21 @@ int closedir(DIR_HANDLE handle) {
 ssize_t readdir(DIR_HANDLE handle, dirent_t* entry) {
     if (!entry) return -1;
     return sys_readdir(handle, (uint64_t)entry, sizeof(dirent_t), 0, 0, 0);
+}
+
+int chdir(const char* path) {
+    return (int)sys_chdir((uint64_t)path, 0, 0, 0, 0, 0);
+}
+
+char* getcwd(char* buf, size_t size) {
+    if (!buf || size == 0) {
+        errno = EINVAL;
+        return NULL;
+    }
+    int64_t ret = sys_getcwd((uint64_t)buf, size, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)-ret;
+        return NULL;
+    }
+    return buf;
 }

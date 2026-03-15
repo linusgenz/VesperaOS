@@ -2,7 +2,7 @@
 
 VERSION_MAJOR=0
 VERSION_MINOR=23
-VERSION_PATCH=10
+VERSION_PATCH=11
 VERSION_STAGE="dev"
 VERSION_NAME="maokai tree"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

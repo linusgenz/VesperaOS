@@ -1,0 +1,70 @@
+// sys_chdir.cpp
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 15.03.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <klib/path.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
+#include <vespera/types.h>
+
+#include "../../../filesystem/vfs/vfs.h"
+
+namespace syscalls::internal {
+    i64 sys_chdir(u64 arg0, u64, u64, u64, u64, u64) {
+        const auto user_path = reinterpret_cast<const char*>(arg0);
+        if (!user_path || user_path[0] == '\0') return -EINVAL;
+
+        const Unit* cur = kernel::scheduling::get_current_unit();
+        if (!cur) return -EINVAL;
+
+        Realm* realm = RealmManager::get(cur->rid);
+        if (!realm) return -EINVAL;
+
+        char abs[256];
+        if (user_path[0] != '/') {
+            if (strcmp(realm->cwd_path, "/") == 0)
+                snprintf(abs, sizeof(abs), "/%s", user_path);
+            else
+                snprintf(abs, sizeof(abs), "%s/%s", realm->cwd_path, user_path);
+        } else {
+            strncpy(abs, user_path, sizeof(abs) - 1);
+            abs[sizeof(abs) - 1] = '\0';
+        }
+
+        char norm[256];
+        normalize_path(abs, norm, sizeof(norm));
+
+        VfsNode* node = VFS::open(norm);
+        if (!node) return -ENOENT;
+
+        if (node->type != VfsNodeType::Directory) {
+            VFS::close(node);
+            return -ENOTDIR;
+        }
+        VFS::close(node);
+
+        SpinlockGuard g(realm->lock);
+        strncpy(realm->cwd_path, norm, sizeof(realm->cwd_path) - 1);
+        realm->cwd_path[sizeof(realm->cwd_path) - 1] = '\0';
+
+        return SUCCESS_CODE;
+    }
+}  // namespace syscalls::internal

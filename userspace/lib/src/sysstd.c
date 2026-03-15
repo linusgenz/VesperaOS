@@ -159,3 +159,11 @@ int64_t sys_channel_send(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, 
 int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_SEEK, arg0, arg1, arg2, 0, 0, 0);
 }
+
+int64_t sys_chdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHDIR, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_getcwd(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETCWD, arg0, arg1, 0, 0, 0, 0);
+}

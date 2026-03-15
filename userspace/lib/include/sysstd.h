@@ -321,4 +321,38 @@ int64_t sys_channel_send(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, 
  *           -EUNKNOWN: realm not found
  */
 int64_t sys_seek(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Change the current working directory of the calling realm.
+ *
+ * Resolves the given path (relative or absolute), normalizes any
+ * "." and ".." components, and updates the realm's current working directory if the
+ * target exists and is a directory.
+ *
+ * @param arg0 Pointer to a null-terminated path string (user address).
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -EINVAL  : path is null or empty
+ *           -ENOENT  : path does not exist
+ *           -ENOTDIR : path exists but is not a directory
+ *           -ERANGE  : resolved path exceeds cwd_path buffer size
+ */
+int64_t sys_chdir(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the current working directory of the calling realm.
+ *
+ * Copies the null-terminated absolute path of the realm's current
+ * working directory into the provided user buffer. The buffer must
+ * be large enough to hold the path including the null terminator.
+ *
+ * @param arg0 Pointer to the user buffer to store the path string.
+ * @param arg1 Size of the user buffer in bytes.
+ * @return On success, returns the number of bytes written (including
+ *         the null terminator). On error, returns negative errno:
+ *           -EINVAL  : buffer pointer is null or size is zero
+ *           -ERANGE  : buffer is too small to hold the current path
+ */
+int64_t sys_getcwd(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
 #endif //SYSSTD_H

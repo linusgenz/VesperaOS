@@ -8,4 +8,6 @@
 
 usize split_path(const char* path, char components[][32], usize max_components);
 
+void normalize_path(const char* in, char* out, usize out_size);
+
 #endif //PATH_H
