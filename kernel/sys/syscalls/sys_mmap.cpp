@@ -29,6 +29,41 @@
 
 #include <vespera/realm/realm_manager.h>
 
+static uptr find_free_range(Unit* u, usize length) {
+    constexpr uptr MMAP_BASE = 0x0000600000000000ULL;
+    constexpr uptr MMAP_END  = 0x00007FFFFFF00000ULL;
+
+    uptr current = MMAP_BASE;
+
+    while (true) {
+        VmArea* next = nullptr;
+        uptr next_start = MMAP_END;
+
+        for (VmArea* v = u->get_vma_list(); v; v = v->next) {
+            if (v->start >= current && v->start < next_start) {
+                next = v;
+                next_start = v->start;
+            }
+        }
+
+        if (!next) {
+            if (current + length <= MMAP_END)
+                return current;
+            return 0;
+        }
+
+        if (current + length <= next->start) {
+            return current;
+        }
+
+        uptr end = next->start + next->length;
+        current = (end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+
+        if (current >= MMAP_END)
+            return 0;
+    }
+}
+
 // TODO FIX MMAP. USE PROT AND USE MAP_*
 namespace syscalls::internal {
     i64 sys_mmap(u64 addr, u64 length, u64 prot, u64 flags, u64 handle, u64 offset) {
@@ -45,11 +80,15 @@ namespace syscalls::internal {
 
         const Realm* cur_r = RealmManager::get(cur->rid);
 
-        static uptr next_base = 0x4000000000;
-        uptr base = (addr != 0) ? addr : next_base;
-        if (addr == 0) next_base += length;
+        uptr base;
 
-        Log::debug("base %p, next %p\n", base, next_base);
+        if (addr != 0) {
+            // TODO, do bound/security checks etc.
+            base = addr;
+        } else {
+            base = find_free_range(cur, length);
+            if (base == 0) return -ENOMEM;
+        }
 
         for (usize i = 0; i < npages; i++) {
             phys_addr_t phys = kernel::memory::request_page_phys();
@@ -76,7 +115,6 @@ namespace syscalls::internal {
         area->handle  = handle;
 
         cur->add_vma(area);
-        Log::debug("ret: %p", base);
         return static_cast<i64>(base);
     }
 }  // namespace syscalls::internal

@@ -26,22 +26,9 @@
 
 #include <vespera/types.h>
 
-struct GlyphRun {
-    const char* text;
-    u32 length;
-
-    u32 px;
-    u32 py;
-
-    u32 fg;
-    u32 bg;
-};
-
 class IRenderDriver {
    public:
     virtual ~IRenderDriver() = default;
-
-    virtual void draw_glyph_run(const GlyphRun& run) = 0;
 
     virtual bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) = 0;
 

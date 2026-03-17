@@ -28,57 +28,82 @@
 
 namespace ps2::keyboard {
 
-    static bool shift_left = false;
-    static bool shift_right = false;
+
+    struct KeyboardState {
+        kernel::input::ModMask modifiers = 0;
+    };
+    static KeyboardState g_keyboard;
+    static bool e0_prefix = false;
 
     void init() {
-        shift_left = shift_right = false;
+        g_keyboard.modifiers = 0;
     }
 
     void handle_scancode(const u8 scancode) {
         using namespace qwerty;
 
-        switch (scancode) {
-        case LEFT_SHIFT:  shift_left = true; return;
-        case RIGHT_SHIFT: shift_right = true; return;
-        case LEFT_SHIFT + 0x80:  shift_left = false; return;
-        case RIGHT_SHIFT + 0x80: shift_right = false; return;
-        default: ;
+        if (scancode == 0xE0) {
+            e0_prefix = true;
+            return;
         }
 
-        bool shift = shift_left || shift_right;
+        const bool pressed = (scancode & 0x80) == 0;
+        const u8 base_scancode = scancode & 0x7F;
+        const bool e0_was_set   = e0_prefix;
 
-        if (scancode == BACKSPACE) {
-            const kernel::input::InputEvent ev {
-                .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = scancode,
-                .modifiers = static_cast<u32>(shift ? 1 : 0),
-                .action = kernel::input::KeyAction::PRESS,
-                .ascii = '\b'
+        kernel::input::ModMask mod = 0;
+        if (e0_prefix) {
+            switch (base_scancode) {
+                case RIGHT_CTRL:  mod = kernel::input::MOD_RCTRL;  break;
+                case RIGHT_ALT:   mod = kernel::input::MOD_RALT;   break;
+                case LEFT_SUPER:  mod = kernel::input::MOD_LSUPER; break;
+                case RIGHT_SUPER: mod = kernel::input::MOD_RSUPER; break;
+                default: break;
+            }
+            e0_prefix = false;
+        } else {
+            switch (base_scancode) {
+                case LEFT_SHIFT:  mod = kernel::input::MOD_LSHIFT; break;
+                case RIGHT_SHIFT: mod = kernel::input::MOD_RSHIFT; break;
+                case LEFT_CTRL:   mod = kernel::input::MOD_LCTRL;  break;
+                case LEFT_ALT:    mod = kernel::input::MOD_LALT;   break;
+                default: break;
+            }
+        }
+
+        if (mod) {
+            if (pressed)
+                g_keyboard.modifiers |= mod;
+            else
+                g_keyboard.modifiers &= ~mod;
+
+            kernel::input::InputEvent ev {
+                .device    = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode   = ps2_to_keycode(base_scancode, e0_was_set),
+                .modifiers = g_keyboard.modifiers,
+                .action    = pressed ? kernel::input::KeyAction::PRESS
+                                     : kernel::input::KeyAction::RELEASE,
+                .ascii     = 0
             };
             kernel::input::InputManager::push_event(ev);
             return;
         }
 
-        if (scancode == ENTER) {
-            const kernel::input::InputEvent ev {
-                .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = scancode,
-                .modifiers = static_cast<u32>(shift ? 1 : 0),
-                .action = kernel::input::KeyAction::PRESS,
-                .ascii = '\n'
-            };
-            kernel::input::InputManager::push_event(ev);
-            return;
-        }
+        char ascii = 0;
 
-        if (const char c = translate(scancode, shift); c != 0) {
-            const kernel::input::InputEvent ev {
-                .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = scancode,
-                .modifiers = static_cast<u32>(shift ? 1 : 0),
-                .action = kernel::input::KeyAction::PRESS,
-                .ascii = c
+        if (base_scancode == BACKSPACE)       ascii = '\b';
+        else if (base_scancode == ENTER)      ascii = '\n';
+        else if (base_scancode == SPACEBAR)   ascii = ' ';
+        else ascii = translate(base_scancode, (g_keyboard.modifiers & kernel::input::MOD_SHIFT) != 0);
+
+        if (ascii != 0) {
+            kernel::input::InputEvent ev {
+                .device    = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode   = ps2_to_keycode(base_scancode, e0_was_set),
+                .modifiers = g_keyboard.modifiers,
+                .action    = pressed ? kernel::input::KeyAction::PRESS
+                                     : kernel::input::KeyAction::RELEASE,
+                .ascii     = ascii
             };
             kernel::input::InputManager::push_event(ev);
         }

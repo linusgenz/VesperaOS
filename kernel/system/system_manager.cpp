@@ -22,12 +22,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <klib/string.h>
+#include <vespera/devices/device_manager.h>
 #include <vespera/log.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
-#include <vespera/devices/device_manager.h>
 #include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 #include "vespera/scheduling.h"
@@ -38,6 +38,8 @@ namespace kernel {
     Spinlock SystemManager::global_lock_;
 
     Mutex SystemManager::stats_mutex_;
+
+    Terminal *SystemManager::system_terminal_;
 
     Channel *SystemManager::event_channel_ = nullptr;
     Channel *SystemManager::log_channel_ = nullptr;

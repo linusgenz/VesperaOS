@@ -137,7 +137,6 @@ void keyboard_int_handler(TrapFrame *) {
 }
 
 void mouse_int_handler(TrapFrame *) {
-    global_terminal->print("mouse_int_handler");
     u8 data = inb(0x60);
     input::mouse::handle_byte(data);
     arch::x86_64::interrupts::pic::end_slave();

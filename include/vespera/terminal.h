@@ -29,16 +29,10 @@
 
 #include "../../kernel/graphics/IRenderDriver.h"
 
+class ScrollbackBuffer;
 class IGlyphProvider;
 class GlyphCache;
 class Terminal {
-    struct Cell {
-        u32 codepoint;
-        u32 fg;
-        u32 bg;
-        bool dirty;
-    };
-
     IRenderDriver* drv_ = nullptr;
     IGlyphProvider* glyphs_ = nullptr;
     GlyphCache* cache_ = nullptr;
@@ -49,17 +43,24 @@ class Terminal {
     usize cols_{};
     usize rows_{};
 
-    u32 cx_ = 0;
-    u32 cy_ = 0;
+    u32 cx_ = 0;  // Column cursor
 
     u32 fg_ = 0xFFFFFFFF;
     u32 bg_ = 0x00000000;
 
-    Cell* cells_{};
+    ScrollbackBuffer* sb_;
 
    public:
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
     ~Terminal();
+
+    void scrollback_up(usize lines = 3) const;
+    void scrollback_down(usize lines = 3) const;
+    void scrollback_to_bottom() const;
+    [[nodiscard]] bool is_at_bottom() const;
+    [[nodiscard]] usize visible_rows() const {
+        return rows_;
+    }
 
     void set_glyph_provider(IGlyphProvider* provider);
 
@@ -75,13 +76,11 @@ class Terminal {
     void flush() const;
 
    private:
-    [[nodiscard]] Cell& at(u32 x, u32 y) const;
     void draw_cell(u32 cx, u32 cy) const;
     void advance();
     void scroll() const;
 };
 
 extern font_t* system_font;
-extern Terminal* global_terminal;
 
 #endif  // VESPERAOS_TERMINAL_H

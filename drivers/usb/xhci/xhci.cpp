@@ -1548,7 +1548,6 @@ namespace usb {
         device->sync_input_ctx(reinterpret_cast<void*>(dcbaa_virtual_addresses_[device->get_slot_id()]));
 
         m_connected_devices.push_back(device);
-        Log::print_ln("Device setup complete");
 
         SYS_EVENT_DEVICE_REGISTERED(device->get_model_name(), port_id);
 

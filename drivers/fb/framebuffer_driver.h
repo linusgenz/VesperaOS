@@ -6,14 +6,13 @@
 
 #include "vespera/cpu/simd.h"
 
-class GopRenderDriver final : public IRenderDriver {
+class FramebufferDriver final : public IRenderDriver {
    public:
     void simd_gop_init(const SimdFeatures& f);
-    GopRenderDriver(framebuffer_t* fb, font_t* font);
+    FramebufferDriver(framebuffer_t* fb, font_t* font);
     void init_simd() noexcept;
 
     // IRenderDriver Interface
-    void draw_glyph_run(const GlyphRun& run) override;
     bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
     bool scroll_pixels(int dy) override;
     bool blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) override;

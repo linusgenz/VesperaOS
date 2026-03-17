@@ -1,5 +1,5 @@
+#include "../drivers/fb/framebuffer_driver.h"
 #include "cpu/cpu.h"
-#include "cpu/io.h"
 #include "graphics/font/ttf_glyph_provider.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
@@ -31,7 +31,6 @@
 #include "devices/init.h"
 #include "graphics/display_manager.h"
 #include "graphics/framebuffer_device.h"
-#include "graphics/gop_render_driver.h"
 #include "input/worker.h"
 #include "sys/syscall_interface.h"
 #include "system/log_writer.h"
@@ -72,7 +71,7 @@ static void initialize_device_manager_and_vfs() {
 }
 
 static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
-    auto* renderer = new GopRenderDriver(boot_info->framebuffer, boot_info->font);
+    auto* renderer = new FramebufferDriver(boot_info->framebuffer, boot_info->font);
     DisplayBackend be{renderer, renderer->get_kd()};
     DisplayManager::init(be);
 
@@ -93,7 +92,7 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
     // Setup terminal for logging
     auto terminal = new Terminal(renderer, system_font->width, system_font->height);
     Log::set_terminal(terminal);
-    global_terminal = terminal;
+    kernel::SystemManager::set_system_terminal(terminal);
 
     Log::info("Vespera booting...");
     Log::debug("using simd extentions: %s", renderer->using_avx ? "AVX2" : (renderer->using_sse ? "SSE" : "None"));
@@ -166,17 +165,15 @@ static void initialize_user_space_interfaces() {
     initialize_pseudo_devices();
     VFS::remount_all();
 
-    VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf");
-    if (font_node) {
+    if (VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf")) {
         const usize font_size = font_node->size;
-        auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size));
-        if (font_data) {
+        if (auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size))) {
             VFS::read(font_node, 0, font_size, font_data);
             VFS::close(font_node);
 
             auto* ttf = new TtfGlyphProvider(font_data, font_size, 20.0f);
             if (ttf->is_valid()) {
-                global_terminal->set_glyph_provider(ttf);
+                kernel::SystemManager::get_system_terminal()->set_glyph_provider(ttf);
                 Log::ok("[TTF] Terminal font switched to CascadiaCode 16px");
             } else {
                 delete ttf;

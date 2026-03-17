@@ -23,13 +23,26 @@ syscall_entry:
 
     mov [r15 + KERNEL_RSP_AFTER_SYSCALL], rsp
 
-    ; Argumente umordnen
-    xchg rax, rdi
-    xchg rax, rsi
-    xchg rax, rdx
-    xchg rax, rcx
-    xchg rax, r8
-    xchg rax, r9
+    mov r11, rax
+    mov rax, rdi
+    mov rdi, r11
+
+    mov r11, rsi
+    mov rsi, rax
+    mov rax, r11
+
+    mov r11, rdx
+    mov rdx, rax
+    mov rax, r11
+
+    mov rcx, rax
+
+    mov r11, r8
+    mov r8, r10
+    mov rax, r11
+
+    mov r11, r9
+    mov r9, rax
 
     ; arg5 auf Stack
     sub rsp, 8

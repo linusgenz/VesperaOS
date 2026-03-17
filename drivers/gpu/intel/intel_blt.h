@@ -188,10 +188,6 @@ namespace blt {
 
         bool scroll_pixels(int dy) override;
 
-        void draw_glyph_run(const GlyphRun& r) override {
-            draw_str(r.text, r.px, r.py, r.fg, r.bg);
-        }
-
         [[nodiscard]] KernelDevice* get_kd() const {
             return kd_;
         }

@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/input/keycode.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
@@ -63,9 +64,24 @@ namespace kernel::tty {
         term->set_colour(tty->fg, tty->bg);
     }
 
-    void tty_handle_input(const kernel::input::InputEvent& ev) {
-        if (ev.device != kernel::input::InputDeviceType::KEYBOARD) return;
-        if (ev.action != kernel::input::KeyAction::PRESS) return;
+    void tty_handle_input(const input::InputEvent& ev) {
+        if (ev.device != input::InputDeviceType::KEYBOARD) return;
+        if (ev.action != input::KeyAction::PRESS) return;
+
+        if (ev.modifiers & input::MOD_SHIFT) {
+            if (ev.keycode == KeyCode::PAGE_UP) {
+                keyboard_focus_tty->term->scrollback_up(keyboard_focus_tty->term->visible_rows() / 4);
+                return;
+            }
+            if (ev.keycode == KeyCode::PAGE_DOWN) {
+                keyboard_focus_tty->term->scrollback_down(keyboard_focus_tty->term->visible_rows() / 4);
+                return;
+            }
+        }
+
+        if (!keyboard_focus_tty->term->is_at_bottom()) {
+            keyboard_focus_tty->term->scrollback_to_bottom();
+        }
 
         const char c = ev.ascii;
         if (!c) return;

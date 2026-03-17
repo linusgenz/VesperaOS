@@ -28,9 +28,9 @@
 #include "IRenderDriver.h"
 #include "font/glyph_cache.h"
 #include "font/psf_glyph_provider.h"
+#include "scrollback_buffer.h"
 
 font_t* system_font = nullptr;
-Terminal* global_terminal = nullptr;
 
 static u32 blend(const u32 fg, const u32 bg, const u8 alpha) {
     if (alpha == 0) return bg;
@@ -55,20 +55,69 @@ Terminal::Terminal(IRenderDriver* d, const u32 char_width, const u32 char_height
     , char_h_(char_height)
     , cols_(d->screen_width_px() / char_width)
     , rows_(d->screen_height_px() / char_height)
-    , cells_(new Cell[cols_ * rows_]) {
+    , sb_(new ScrollbackBuffer(cols_, rows_, 2000)) {
     clear();
 }
 
 Terminal::~Terminal() {
-    delete[] cells_;
+    delete sb_;
     delete cache_;
     delete glyphs_;
+}
+
+void Terminal::put_codepoint(const u32 cp) {
+    if (cp == '\n') {
+        new_line();
+        return;
+    }
+    if (cp == '\r') {
+        cx_ = 0;
+        return;
+    }
+
+    Cell& cell = sb_->write_at(cx_);
+    cell = {cp, fg_, bg_, true};
+    advance();
+}
+
+void Terminal::put_char_fast(char c) {
+    if (c == '\n') {
+        new_line();
+        return;
+    }
+    if (c == '\r') {
+        cx_ = 0;
+        return;
+    }
+
+    Cell& cell = sb_->write_at(cx_);
+    cell = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
+
+    const usize row = sb_->write_row();
+    draw_cell(cx_, row);
+    cell.dirty = false;
+
+    advance();
+}
+
+void Terminal::put_char(const char c) {
+    if (c == '\n') {
+        new_line();
+        return;
+    }
+    Cell& cell = sb_->write_at(cx_);
+    cell = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
+    advance();
+}
+
+void Terminal::print(const char* s) {
+    while (*s) put_char(*s++);
 }
 
 void Terminal::set_glyph_provider(IGlyphProvider* provider) {
     if (!provider) return;
 
-    for (usize i = 0; i < cols_ * rows_; i++) cells_[i].dirty = true;
+    sb_->mark_viewport_dirty();
 
     flush();
 
@@ -82,11 +131,10 @@ void Terminal::set_glyph_provider(IGlyphProvider* provider) {
     const usize new_cols = drv_->screen_width_px() / new_char_w;
     const usize new_rows = drv_->screen_height_px() / new_char_h;
 
-    delete[] cells_;
-    cells_ = new Cell[new_cols * new_rows];
+    delete sb_;
+    sb_ = new ScrollbackBuffer(cols_, rows_, 2000);
 
     cx_ = 0;
-    cy_ = 0;
 
     char_w_ = new_char_w;
     char_h_ = new_char_h;
@@ -103,69 +151,25 @@ void Terminal::set_colour(const u32 new_fg, const u32 new_bg) {
 
 void Terminal::set_cursor(const u32 x, const u32 y) {
     cx_ = x;
-    cy_ = y;
-}
-
-void Terminal::put_char(const char c) {
-    if (c == '\n') {
-        new_line();
-        return;
-    }
-    at(cx_, cy_) = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
-    advance();
-}
-
-void Terminal::put_char_fast(char c) {
-    if (c == '\n') {
-        new_line();
-        return;
-    }
-    if (c == '\r') {
-        cx_ = 0;
-        return;
-    }
-    at(cx_, cy_) = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
-    draw_cell(cx_, cy_);
-    advance();
-}
-
-void Terminal::print(const char* s) {
-    while (*s) put_char(*s++);
-}
-
-void Terminal::put_codepoint(const u32 cp)
-{
-    if (cp == '\n') {
-        new_line();
-        return;
-    }
-    if (cp == '\r') {
-        cx_ = 0;
-        return;
-    }
-
-    at(cx_, cy_) = {cp, fg_, bg_, true};
-    advance();
+    sb_->set_write_row(y);
 }
 
 void Terminal::clear() {
-    for (u32 i = 0; i < cols_ * rows_; ++i) cells_[i] = {' ', fg_, bg_};
-
+    sb_->clear(fg_, bg_);
+    cx_ = 0;
     drv_->fill_rect(0, 0, drv_->screen_width_px(), drv_->screen_height_px(), bg_);
-    cx_ = cy_ = 0;
 }
 
 void Terminal::clear_char() {
-    if (cx_ == 0 && cy_ == 0) return;
+    if (cx_ == 0 && sb_->write_row() == 0) return;
     if (cx_ == 0) {
-        cy_--;
+        sb_->retreat_line();
         cx_ = cols_ - 1;
     } else {
         cx_--;
     }
     put_char_fast(' ');
     if (cx_ == 0) {
-        cy_--;
         cx_ = cols_ - 1;
     } else {
         cx_--;
@@ -174,31 +178,23 @@ void Terminal::clear_char() {
 
 void Terminal::new_line() {
     cx_ = 0;
-    cy_++;
-
-    if (cy_ >= rows_) {
-        scroll();
-        cy_ = rows_ - 1;
-    }
+    sb_->new_line(fg_, bg_);
 }
 
 void Terminal::flush() const {
-    for (u32 y = 0; y < rows_; y++) {
-        for (u32 x = 0; x < cols_; x++) {
-            if (at(x, y).dirty) {
+    for (usize y = 0; y < rows_; y++) {
+        for (usize x = 0; x < cols_; x++) {
+            Cell& c = sb_->at(x, y);  // war: at(x, y)
+            if (c.dirty) {
                 draw_cell(x, y);
-                at(x, y).dirty = false;
+                c.dirty = false;
             }
         }
     }
 }
 
-Terminal::Cell& Terminal::at(const u32 x, const u32 y) const {
-    return cells_[y * cols_ + x];
-}
-
 void Terminal::draw_cell(const u32 cx, const u32 cy) const {
-    const Cell& cell = at(cx, cy);
+    const Cell& cell = sb_->at(cx, cy);
     const u32 px = cx * char_w_;
     const u32 py = cy * char_h_;
 
@@ -244,19 +240,24 @@ void Terminal::draw_cell(const u32 cx, const u32 cy) const {
     cache_->insert(key, pixels, bw, bh);
 }
 
+void Terminal::scrollback_up(usize lines) const {
+    sb_->scroll_up(lines);
+    flush();
+}
+void Terminal::scrollback_down(usize lines) const {
+    sb_->scroll_down(lines);
+    flush();
+}
+void Terminal::scrollback_to_bottom() const {
+    sb_->scroll_to_bottom();
+    flush();
+}
+
+bool Terminal::is_at_bottom() const {
+    return sb_->is_at_bottom();
+}
+
 void Terminal::advance() {
     cx_++;
     if (cx_ >= cols_) new_line();
-}
-
-void Terminal::scroll() const {
-    drv_->scroll_pixels(char_h_);
-    for (u32 y = 1; y < rows_; y++) {
-        for (u32 x = 0; x < cols_; x++) {
-            at(x, y - 1) = at(x, y);
-        }
-    }
-    for (u32 x = 0; x < cols_; x++) {
-        cells_[(rows_ - 1) * cols_ + x] = {' ', fg_, bg_, false};
-    }
 }

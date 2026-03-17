@@ -47,7 +47,7 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
     }
 
     if (init_status_ == 0) {
-        Log::ok("USB Mass Storage initialized: %u sectors, %u bytes/sector", total_sectors_, sector_size_);
+        //Log::ok("USB Mass Storage initialized: %u sectors, %u bytes/sector", total_sectors_, sector_size_);
 
         char name_buf[16] = {};
         DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
@@ -66,7 +66,7 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
         DevFs::register_device(kd_);
         DeviceManager::find_and_register_partitions(kd_);
     } else {
-        Log::error("Mass storage initialization failed");
+        //Log::error("Mass storage initialization failed");
     }
 }
 
@@ -147,7 +147,7 @@ void XhciMassStorageDriver::initialize_device() {
     }
 
     if (!bulk_in_endpoint_ || !bulk_out_endpoint_) {
-        Log::error("USB Mass Storage: Required bulk endpoints missing");
+       // Log::error("USB Mass Storage: Required bulk endpoints missing");
         return;
     }
 
@@ -308,10 +308,10 @@ isize XhciMassStorageDriver::read(u64 lba, usize sector_count, void* buffer, usi
 
     start_bulk_transfer(&transfer);
 
-   // while (!transfer.done) asm volatile("pause");
-    while (!transfer.done) {
+    while (!transfer.done) asm volatile("pause");
+    /*while (!transfer.done) {
         kernel::scheduling::yield();
-    }
+    }*/
 
     isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
@@ -358,10 +358,10 @@ isize XhciMassStorageDriver::write(u64 lba, usize sector_count, void* buffer, us
 
     start_bulk_transfer(&transfer);
 
-    //while (!transfer.done) asm volatile("pause");
-    while (!transfer.done) {
+    while (!transfer.done) asm volatile("pause");
+    /*while (!transfer.done) {
         kernel::scheduling::yield();
-    }
+    }*/
 
     isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 

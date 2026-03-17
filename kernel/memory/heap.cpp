@@ -54,20 +54,20 @@ bool HeapSegHdr::check_guard_bytes() const {
 
 HeapSegHdr* HeapSegHdr::split(const usize split_length) {
     if (!is_valid()) [[unlikely]] {
-        Log::error("Split failed: invalid segment header at %p", this);
+      //  Log::error("Split failed: invalid segment header at %p", this);
         return nullptr;
     }
     if (!free) [[unlikely]] {
-        Log::error("Split failed: can only split free segments");
+      //  Log::error("Split failed: can only split free segments");
         return nullptr;
     }
     if (split_length < MIN_ALLOC_SIZE) [[unlikely]] {
-        Log::error("Split failed: split length %zu too small (min: %u)", split_length, MIN_ALLOC_SIZE);
+    //    Log::error("Split failed: split length %zu too small (min: %u)", split_length, MIN_ALLOC_SIZE);
         return nullptr;
     }
 
     if (length < split_length + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE) {
-        Log::debug("Split not possible: remaining would be too small (seg len=%zu, req=%zu)", length, split_length);
+      //  Log::debug("Split not possible: remaining would be too small (seg len=%zu, req=%zu)", length, split_length);
         return nullptr;
     }
 
@@ -78,7 +78,7 @@ HeapSegHdr* HeapSegHdr::split(const usize split_length) {
         reinterpret_cast<uptr>(this) + HEAP_HEADER_SIZE + this->length - new_seg_addr - HEAP_HEADER_SIZE;
 
     if (remaining_length < MIN_ALLOC_SIZE) {
-        Log::error("Split failed: remaining length %zu too small after split", remaining_length);
+     //   Log::error("Split failed: remaining length %zu too small after split", remaining_length);
         return nullptr;
     }
 
@@ -132,15 +132,15 @@ void HeapSegHdr::combine_backward() const {
 
 bool initialize_heap(virt_addr_t heap_address, usize page_count) {
     if (heap_initialized) {
-        Log::error("Heap already initialized");
+       // Log::error("Heap already initialized");
         return false;
     }
     if (virt_null(heap_address)) {
-        Log::error("Invalid heap address (null pointer)");
+     //   Log::error("Invalid heap address (null pointer)");
         return false;
     }
     if (page_count == 0) {
-        Log::error("Invalid page count (zero pages)");
+     //   Log::error("Invalid page count (zero pages)");
         return false;
     }
 
@@ -196,7 +196,7 @@ HeapSegHdr* find_free_segment(usize size) {
 
     while (current_seg) {
         if (!current_seg->is_valid()) [[unlikely]] {
-            Log::error("Heap segment is not valid");
+        //    Log::error("Heap segment is not valid");
             return nullptr;
         }
 
@@ -217,7 +217,7 @@ void* allocate_from_segment(HeapSegHdr* seg, usize size) {
 
     if (seg->length >= size + HEAP_HEADER_SIZE + MIN_ALLOC_SIZE) {
         if (const HeapSegHdr* new_seg = seg->split(size); !new_seg) {
-            Log::warning("Split failed, taking whole segment");
+        //    Log::warning("Split failed, taking whole segment");
         }
     }
 
@@ -260,12 +260,12 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
     }
 
     if ((alignment & (alignment - 1)) != 0) {
-        Log::error("Alignment must be a power of 2: %u", alignment);
+     //   Log::error("Alignment must be a power of 2: %u", alignment);
         return nullptr;
     }
 
     if (boundary != 0 && (boundary & (boundary - 1)) != 0) {
-        Log::error("Bounds must be a power of 2");
+     //   Log::error("Bounds must be a power of 2");
         return nullptr;
     }
 
@@ -285,7 +285,7 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
 
     void* raw_ptr = kmalloc(total_size);
     if (!raw_ptr) {
-        Log::error("Aligned alloc failed: could not allocate %u bytes for aligned allocation", total_size);
+        //Log::error("Aligned alloc failed: could not allocate %u bytes for aligned allocation", total_size);
         return nullptr;
     }
 
@@ -310,7 +310,7 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
         }
 
         if (!found) {
-            Log::error("Aligned alloc failed: could not satisfy boundary constraint %u", boundary);
+          //  Log::error("Aligned alloc failed: could not satisfy boundary constraint %u", boundary);
             kfree(raw_ptr);
             return nullptr;
         }
@@ -334,12 +334,12 @@ void kfree(void* ptr) {
     HeapSegHdr* seg = HeapSegHdr::from_data_ptr(ptr);
 
     if (!seg->is_valid() || seg->magic != HEAP_MAGIC_USED || seg->free) [[unlikely]] {
-        Log::error("Invalid free or double free at %p", ptr);
+      //  Log::error("Invalid free or double free at %p", ptr);
         return;
     }
 
     if (!seg->check_guard_bytes()) [[unlikely]] {
-        Log::error("Buffer overflow detected at %p", ptr);
+      //  Log::error("Buffer overflow detected at %p", ptr);
         return;
     }
 
@@ -361,7 +361,7 @@ void kfree_aligned(void* ptr) {
     auto* aligned_hdr = reinterpret_cast<AlignedSegHdr*>(reinterpret_cast<uptr>(ptr) - sizeof(AlignedSegHdr));
 
     if (!aligned_hdr->is_valid()) {
-        Log::error("Tried to free invalid memory");
+     //   Log::error("Tried to free invalid memory");
         return;
     }
 
@@ -396,7 +396,7 @@ void* krealloc(void* ptr, const usize old_size, usize new_size) {
 
     void* new_ptr = kmalloc(new_size);
     if (!new_ptr) {
-        Log::error("Realloc failed: could not allocate %u bytes", new_size);
+    //    Log::error("Realloc failed: could not allocate %u bytes", new_size);
         return nullptr;
     }
 
@@ -411,7 +411,7 @@ void* krealloc(void* ptr, const usize old_size, usize new_size) {
 
 void expand_heap(usize length) {
     if (!heap_initialized) {
-        Log::error("Expand heap called before heap initialization");
+     //   Log::error("Expand heap called before heap initialization");
         return;
     }
 
@@ -445,7 +445,7 @@ void expand_heap(usize length) {
     }
     last_hdr = new_segment;
 
-    Log::print_ln("Heap expanded by %u bytes (%u pages)", length, page_count);
+  //  Log::print_ln("Heap expanded by %u bytes (%u pages)", length, page_count);
 
     new_segment->combine_backward();
 }

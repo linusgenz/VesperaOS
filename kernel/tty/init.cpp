@@ -29,8 +29,9 @@
 namespace kernel::tty {
     void initialize_ttys() {
         keyboard_focus_tty = &tty_instances[0];
+        auto term = kernel::SystemManager::get_system_terminal();
         for (int i = 0; i < 6; i++) {
-            tty_init(&tty_instances[i], global_terminal);
+            tty_init(&tty_instances[i], term);
             char name[16];
             DeviceManager::alloc_unique_device_name("tty", name, sizeof(name));
             tty_devices[i] = new TtyDevice(name, &tty_instances[i]);

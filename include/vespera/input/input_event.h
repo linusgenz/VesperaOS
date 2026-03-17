@@ -26,7 +26,25 @@
 
 #include <vespera/types.h>
 
+#include "keycode.h"
+
 namespace kernel::input {
+
+    using ModMask = u32;
+
+    static constexpr ModMask MOD_LCTRL  = (1 << 0);
+    static constexpr ModMask MOD_LSHIFT = (1 << 1);
+    static constexpr ModMask MOD_LALT   = (1 << 2);
+    static constexpr ModMask MOD_LSUPER = (1 << 3);
+    static constexpr ModMask MOD_RCTRL  = (1 << 4);
+    static constexpr ModMask MOD_RSHIFT = (1 << 5);
+    static constexpr ModMask MOD_RALT   = (1 << 6);
+    static constexpr ModMask MOD_RSUPER = (1 << 7);
+
+    static constexpr ModMask MOD_SHIFT = MOD_LSHIFT | MOD_RSHIFT;
+    static constexpr ModMask MOD_CTRL  = MOD_LCTRL  | MOD_RCTRL;
+    static constexpr ModMask MOD_ALT   = MOD_LALT   | MOD_RALT;
+    static constexpr ModMask MOD_SUPER = MOD_LSUPER | MOD_RSUPER;
 
     enum class InputDeviceType {
         KEYBOARD,
@@ -43,8 +61,8 @@ namespace kernel::input {
 
     struct InputEvent {
         InputDeviceType device;
-        u32 keycode;
-        u32 modifiers;
+        KeyCode keycode;
+        ModMask modifiers;
         KeyAction action;
         char ascii;
     };

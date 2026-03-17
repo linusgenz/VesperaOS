@@ -1,14 +1,11 @@
-#include "gop_render_driver.h"
+#include "framebuffer_driver.h"
 
 #include <vespera/cpu/simd.h>
 #include <vespera/cpu/simd_mem.h>
-#include <vespera/mm/memory.h>
 #include <vespera/terminal.h>
 
 #include "../../filesystem/devfs/devfs.h"
-#include "../debug/trace.h"
 #include "vespera/devices/device_manager.h"
-#include "vespera/log.h"
 
 static void* scalar_memcpy(void* dst, const void* src, usize len) {
     auto* d = static_cast<u8*>(dst);
@@ -38,7 +35,7 @@ static void* scalar_memmove(void* dst, const void* src, usize len) {
     return dst;
 }
 
-GopRenderDriver::GopRenderDriver(framebuffer_t* fb, font_t* font)
+FramebufferDriver::FramebufferDriver(framebuffer_t* fb, font_t* font)
     : fb_(fb)
     , font_(font) {
     char name[10];
@@ -56,7 +53,7 @@ GopRenderDriver::GopRenderDriver(framebuffer_t* fb, font_t* font)
     init_simd();
 }
 
-void GopRenderDriver::init_simd() noexcept {
+void FramebufferDriver::init_simd() noexcept {
     const auto& f = simd_features();
     if (f.avx2) {
         using_avx = true;
@@ -75,19 +72,13 @@ void GopRenderDriver::init_simd() noexcept {
     }
 }
 
-void GopRenderDriver::draw_glyph_run(const GlyphRun& run) {
-    for (u32 i = 0; i < run.length; i++) {
-        put_char(run.text[i], run.px + i * font_->width, run.py, run.fg, run.bg);
-    }
-}
-
-bool GopRenderDriver::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
+bool FramebufferDriver::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
     if (px + w > fb_->width || py + h > fb_->height) return false;
     fn_fill_rect_(fb_->base_address, fb_->pixels_per_scanline, px, py, w, h, colour);
     return true;
 }
 
-void GopRenderDriver::clear() {
+void FramebufferDriver::clear() {
     fill_rect(0, 0, fb_->width, fb_->height, 0x00000000);
 }
 
@@ -152,7 +143,7 @@ colour)
 
 }*/
 
-void GopRenderDriver::put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color) const {
+void FramebufferDriver::put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color) const {
     if (c >= ((psf2_header_t*)font_->header)->length) c = '?';
     if (!c) return;
 
@@ -173,7 +164,7 @@ void GopRenderDriver::put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color)
     }
 }
 
-bool GopRenderDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) {
+bool FramebufferDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) {
     if (!pixels) return false;
     if (dst_x >= fb_->width || dst_y >= fb_->height) return false;
 
@@ -189,7 +180,7 @@ bool GopRenderDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 buff
     return true;
 }
 
-bool GopRenderDriver::scroll_pixels(int dy) {
+bool FramebufferDriver::scroll_pixels(int dy) {
     if (dy <= 0 || static_cast<u32>(dy) >= fb_->height) return false;
 
     u32 bps = fb_->pixels_per_scanline * 4;
@@ -198,12 +189,12 @@ bool GopRenderDriver::scroll_pixels(int dy) {
     return true;
 }
 
-u32 GopRenderDriver::screen_width_px() const {
+u32 FramebufferDriver::screen_width_px() const {
     return fb_->width;
 }
-u32 GopRenderDriver::screen_height_px() const {
+u32 FramebufferDriver::screen_height_px() const {
     return fb_->height;
 }
-u32 GopRenderDriver::bytes_per_scanline() const {
+u32 FramebufferDriver::bytes_per_scanline() const {
     return fb_->pixels_per_scanline * 4;
 }

@@ -153,6 +153,10 @@ class Unit {
         return nullptr;
     }
 
+    VmArea* get_vma_list() const {
+        return vma_list_;
+    }
+
     bool remove_vma(uptr addr, usize len) {
         VmArea* prev = nullptr;
         VmArea* cur = vma_list_;

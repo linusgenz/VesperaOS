@@ -28,6 +28,7 @@
 #include <vespera/ipc/channel.h>
 #include <vespera/sync/mutex.h>
 #include <vespera/sync/spinlock.h>
+#include <vespera/terminal.h>
 
 #include "../../../kernel/acpi/madt.h"
 
@@ -114,6 +115,14 @@ namespace kernel {
 
         static bool is_system_initialized();
 
+        static void set_system_terminal(Terminal* term) {
+            system_terminal_ = term;
+        }
+
+        static Terminal* get_system_terminal() {
+            return system_terminal_;
+        }
+
         // Event-System
         static void publish_event(const SystemEvent& event);
         static Channel* get_event_channel();
@@ -154,6 +163,8 @@ namespace kernel {
             Channel* channel;
             u64 created_timestamp;
         };
+
+        static Terminal* system_terminal_;
 
         static constexpr usize MAX_SYSTEM_CHANNELS = 32;
         static constexpr usize EVENT_CHANNEL_SIZE = static_cast<usize>(64) * 1024;  // 64KB für Events
