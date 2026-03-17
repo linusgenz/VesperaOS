@@ -1,42 +1,38 @@
 // tty.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 09.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #ifndef VESPERAOS_TTY_H
 #define VESPERAOS_TTY_H
 
-#include <vespera/input/input_event.h>
-
 #include <vespera/graphics.h>
+#include <vespera/input/input_event.h>
+#include <klib/decoding.h>
 
 class TtyDevice;
 class Terminal;
 
 namespace kernel::tty {
-    enum class EscapeState {
-        NONE,
-        ESC_RECEIVED,
-        CSI_RECEIVED
-    };
+    enum class EscapeState { NONE, ESC_RECEIVED, CSI_RECEIVED };
 
     struct TTY {
         static constexpr usize BUFFER_SIZE = 1024;
@@ -64,11 +60,12 @@ namespace kernel::tty {
         colour_t fg = WHITE;
         colour_t bg = BLACK;
 
+        utf8_state_t utf8;
+
         RealmId fg_realm_id{0};
 
         Terminal *term;
     };
-
 
     extern TTY tty_instances[6];
     extern TtyDevice *tty_devices[6];
@@ -82,7 +79,7 @@ namespace kernel::tty {
 
     void tty_clear(TTY *tty);
 
-    usize tty_read(TTY* tty, char *buf, usize count);
-}
+    usize tty_read(TTY *tty, char *buf, usize count);
+}  // namespace kernel::tty
 
-#endif //VESPERAOS_TTY_H
+#endif  // VESPERAOS_TTY_H

@@ -32,7 +32,7 @@
 #include <errno.h>
 
 static void print_separator() {
-    puts("====================================================\n");
+    puts("───────────────────────────────────────────────────\n");
 }
 
 static void print_health(uint8_t ok) {
@@ -44,8 +44,17 @@ static void print_health(uint8_t ok) {
 
 static void print_temp(uint8_t celsius) {
     char buf[64];
-    const char* label = celsius >= 70 ? "\033[31m" : celsius >= 55 ? "\033[33m" : "\033[32m";
-    snprintf(buf, sizeof(buf), "  Temperature:         %s%u C\033[0m\n", label, celsius); // TODO add this here when we support more glyphs "°"
+    const char* label =
+        celsius >= 70 ? "\033[31m" :
+        celsius >= 55 ? "\033[33m" :
+                        "\033[32m";
+
+    snprintf(buf, sizeof(buf),
+        "  %-22s%s%u °C\033[0m\n",
+        "Temperature:",
+        label,
+        celsius);
+
     puts(buf);
 }
 
@@ -67,7 +76,7 @@ static void print_u8_pct(const char* label, uint8_t val) {
     puts(buf);
 }
 
-// ─── NVMe display ─────────────────────────────────────────────────────────────
+// NVMe display
 
 static void show_nvme(int64_t handle) {
     SmartNvme nvme;
@@ -114,7 +123,7 @@ static void show_nvme(int64_t handle) {
     }
 }
 
-// ─── ATA display ──────────────────────────────────────────────────────────────
+// ATA display
 
 static void show_ata(int64_t handle) {
     SmartAta ata;
@@ -156,7 +165,7 @@ static void show_ata(int64_t handle) {
     }
 }
 
-// ─── common display ───────────────────────────────────────────────────────────
+// common display
 
 static void show_common(int64_t handle) {
     SmartCommon common;

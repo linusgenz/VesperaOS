@@ -1,8 +1,8 @@
 #!/bin/bash
 
 VERSION_MAJOR=0
-VERSION_MINOR=23
-VERSION_PATCH=13
+VERSION_MINOR=24
+VERSION_PATCH=0
 VERSION_STAGE="dev"
 VERSION_NAME="maokai tree"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)

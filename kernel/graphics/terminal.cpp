@@ -22,45 +22,96 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <vespera/graphics.h>
 #include <vespera/terminal.h>
 
 #include "IRenderDriver.h"
-#include <vespera/graphics.h>
+#include "font/glyph_cache.h"
+#include "font/psf_glyph_provider.h"
 
 font_t* system_font = nullptr;
 Terminal* global_terminal = nullptr;
 
-Terminal::Terminal(IRenderDriver* d, u32 char_width, u32 char_height)
+static u32 blend(const u32 fg, const u32 bg, const u8 alpha) {
+    if (alpha == 0) return bg;
+    if (alpha == 255) return fg;
+
+    u32 rb_fg = fg & 0x00FF00FF;
+    u32 g_fg = fg & 0x0000FF00;
+    u32 rb_bg = bg & 0x00FF00FF;
+    u32 g_bg = bg & 0x0000FF00;
+
+    u32 rb = (rb_fg * alpha + rb_bg * (255 - alpha)) >> 8;
+    u32 g = (g_fg * alpha + g_bg * (255 - alpha)) >> 8;
+
+    return (rb & 0x00FF00FF) | (g & 0x0000FF00) | 0xFF000000;
+}
+
+Terminal::Terminal(IRenderDriver* d, const u32 char_width, const u32 char_height)
     : drv_(d)
+    , glyphs_(new PsfGlyphProvider(system_font))
+    , cache_(new GlyphCache())
     , char_w_(char_width)
     , char_h_(char_height)
-    , cols_(drv_->screen_width_px() / char_w_)
-    , rows_(drv_->screen_height_px() / char_h_)
+    , cols_(d->screen_width_px() / char_width)
+    , rows_(d->screen_height_px() / char_height)
     , cells_(new Cell[cols_ * rows_]) {
     clear();
 }
 
 Terminal::~Terminal() {
     delete[] cells_;
+    delete cache_;
+    delete glyphs_;
 }
 
-void Terminal::set_colour(u32 new_fg, u32 new_bg) {
+void Terminal::set_glyph_provider(IGlyphProvider* provider) {
+    if (!provider) return;
+
+    for (usize i = 0; i < cols_ * rows_; i++) cells_[i].dirty = true;
+
+    flush();
+
+    delete glyphs_;
+    glyphs_ = provider;
+
+    cache_->invalidate_all();
+
+    const u32 new_char_w = glyphs_->char_width();
+    const u32 new_char_h = glyphs_->line_height();
+    const usize new_cols = drv_->screen_width_px() / new_char_w;
+    const usize new_rows = drv_->screen_height_px() / new_char_h;
+
+    delete[] cells_;
+    cells_ = new Cell[new_cols * new_rows];
+
+    cx_ = 0;
+    cy_ = 0;
+
+    char_w_ = new_char_w;
+    char_h_ = new_char_h;
+    cols_ = new_cols;
+    rows_ = new_rows;
+
+    clear();
+}
+
+void Terminal::set_colour(const u32 new_fg, const u32 new_bg) {
     fg_ = new_fg;
     bg_ = new_bg;
 }
 
-void Terminal::set_cursor(u32 x, u32 y) {
+void Terminal::set_cursor(const u32 x, const u32 y) {
     cx_ = x;
     cy_ = y;
 }
 
-void Terminal::put_char(char c) {
+void Terminal::put_char(const char c) {
     if (c == '\n') {
         new_line();
         return;
     }
-
-    at(cx_, cy_) = {c, fg_, bg_, true};
+    at(cx_, cy_) = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
     advance();
 }
 
@@ -73,15 +124,28 @@ void Terminal::put_char_fast(char c) {
         cx_ = 0;
         return;
     }
-
-    at(cx_, cy_) = {c, fg_, bg_, true};
-    GlyphRun run{&c, 1, cx_ * char_w_, cy_ * char_h_, fg_, bg_};
-    drv_->draw_glyph_run(run);
+    at(cx_, cy_) = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
+    draw_cell(cx_, cy_);
     advance();
 }
 
 void Terminal::print(const char* s) {
     while (*s) put_char(*s++);
+}
+
+void Terminal::put_codepoint(const u32 cp)
+{
+    if (cp == '\n') {
+        new_line();
+        return;
+    }
+    if (cp == '\r') {
+        cx_ = 0;
+        return;
+    }
+
+    at(cx_, cy_) = {cp, fg_, bg_, true};
+    advance();
 }
 
 void Terminal::clear() {
@@ -93,16 +157,13 @@ void Terminal::clear() {
 
 void Terminal::clear_char() {
     if (cx_ == 0 && cy_ == 0) return;
-
     if (cx_ == 0) {
         cy_--;
         cx_ = cols_ - 1;
     } else {
         cx_--;
     }
-
     put_char_fast(' ');
-
     if (cx_ == 0) {
         cy_--;
         cx_ = cols_ - 1;
@@ -122,54 +183,65 @@ void Terminal::new_line() {
 }
 
 void Terminal::flush() const {
-    for (u32 y = 0; y < rows_; ++y) {
-        u32 x = 0;
-        while (x < cols_) {
-            Cell& start = at(x, y);
-            if (!start.dirty) {
-                x++;
-                continue;
+    for (u32 y = 0; y < rows_; y++) {
+        for (u32 x = 0; x < cols_; x++) {
+            if (at(x, y).dirty) {
+                draw_cell(x, y);
+                at(x, y).dirty = false;
             }
-
-            // Finde zusammenhängenden dirty run
-            u32 len = 1;
-            while (x + len < cols_ && at(x + len, y).dirty && at(x + len, y).fg == start.fg &&
-                   at(x + len, y).bg == start.bg) {
-                len++;
-            }
-
-            draw_run(x, y, &start, len);
-
-            // Dirty-Flags löschen
-            for (u32 i = 0; i < len; ++i) at(x + i, y).dirty = false;
-
-            x += len;
         }
     }
 }
 
-Terminal::Cell& Terminal::at(u32 x, u32 y) const {
+Terminal::Cell& Terminal::at(const u32 x, const u32 y) const {
     return cells_[y * cols_ + x];
 }
 
-void Terminal::draw_run(u32 cell_x, u32 cell_y, const Cell* run_cells, u32 len) const {
-    char buf[256];
-    if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+void Terminal::draw_cell(const u32 cx, const u32 cy) const {
+    const Cell& cell = at(cx, cy);
+    const u32 px = cx * char_w_;
+    const u32 py = cy * char_h_;
 
-    for (u32 i = 0; i < len; ++i) buf[i] = run_cells[i].ch;
+    const GlyphCacheKey key{cell.codepoint, cell.fg, cell.bg};
+    if (const GlyphCacheEntry* cached = cache_->find(key)) {
+        drv_->blit_buffer(cached->pixels, cached->width, cached->height, px, py);
+        return;
+    }
 
-    buf[len] = '\0';
+    // Rasterize glyph
+    const RenderedGlyph* g = glyphs_->get_glyph(cell.codepoint);
+    if (!g) {
+        drv_->fill_rect(px, py, char_w_, char_h_, cell.bg);
+        return;
+    }
 
-    GlyphRun run{
-        .text = buf,
-        .length = len,
-        .px = cell_x * char_w_,
-        .py = cell_y * char_h_,
-        .fg = run_cells[0].fg,
-        .bg = run_cells[0].bg
-    };
+    const usize bw = char_w_;
+    const usize bh = char_h_;
+    auto* pixels = static_cast<u32*>(kernel::memory::malloc(bw * bh * sizeof(u32)));
 
-    drv_->draw_glyph_run(run);
+    for (usize i = 0; i < bw * bh; i++) pixels[i] = cell.bg;
+
+    // Glyph-Bitmap mit bearing in die Zelle malen
+    const i32 base_y = static_cast<i32>(glyphs_->baseline()) - g->bearing_y;
+    const i32 base_x = g->bearing_x;
+
+    for (u32 row = 0; row < g->height; row++) {
+        i32 dst_y = base_y + static_cast<i32>(row);
+        if (dst_y < 0 || static_cast<u32>(dst_y) >= bh) continue;
+
+        for (u32 col = 0; col < g->width; col++) {
+            i32 dst_x = base_x + static_cast<i32>(col);
+            if (dst_x < 0 || static_cast<u32>(dst_x) >= bw) continue;
+
+            u8 alpha = g->bitmap[row * g->width + col];
+            pixels[dst_y * bw + dst_x] = blend(cell.fg, cell.bg, alpha);
+        }
+    }
+
+    drv_->blit_buffer(pixels, bw, bh, px, py);
+
+    // Add to cache, cache takes ownership of the pixels
+    cache_->insert(key, pixels, bw, bh);
 }
 
 void Terminal::advance() {
@@ -179,9 +251,12 @@ void Terminal::advance() {
 
 void Terminal::scroll() const {
     drv_->scroll_pixels(char_h_);
-
-    for (u32 y = 1; y < rows_; ++y)
-        for (u32 x = 0; x < cols_; ++x) at(x, y - 1) = at(x, y);
-
-    for (u32 x = 0; x < cols_; ++x) at(x, rows_ - 1) = {' ', fg_, bg_};
+    for (u32 y = 1; y < rows_; y++) {
+        for (u32 x = 0; x < cols_; x++) {
+            at(x, y - 1) = at(x, y);
+        }
+    }
+    for (u32 x = 0; x < cols_; x++) {
+        cells_[(rows_ - 1) * cols_ + x] = {' ', fg_, bg_, false};
+    }
 }

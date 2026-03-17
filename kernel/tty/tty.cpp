@@ -58,6 +58,7 @@ namespace kernel::tty {
         tty->fg = WHITE;
         tty->bg = BLACK;
         tty->term = term;
+        tty->utf8 = {};
 
         term->set_colour(tty->fg, tty->bg);
     }
@@ -231,8 +232,12 @@ namespace kernel::tty {
                     tty->term->flush();
                     tty->cursor_x = 0;
                 } else {
-                    tty->term->put_char(c);
-                    tty->cursor_x++;
+                    uint32_t cp = 0;
+
+                    if (utf8_decode(&tty->utf8, static_cast<uint8_t>(c), &cp)) {
+                        tty->term->put_codepoint(cp);
+                        tty->cursor_x++;
+                    }
                 }
                 break;
 

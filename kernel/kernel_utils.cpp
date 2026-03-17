@@ -1,4 +1,6 @@
 #include "cpu/cpu.h"
+#include "cpu/io.h"
+#include "graphics/font/ttf_glyph_provider.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
 #include "debug/lock_debug.h"
@@ -22,7 +24,7 @@
 #include "../filesystem/devfs/devfs.h"
 #include "../filesystem/realmfs/realmfs.h"
 #include "../filesystem/vfs/vfs.h"
-#include "../include/vespera/types.h"
+#include <vespera/types.h>
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
 #include "cpu/cpu_manager.h"
@@ -164,6 +166,29 @@ static void initialize_user_space_interfaces() {
     initialize_pseudo_devices();
     VFS::remount_all();
 
+    VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf");
+    if (font_node) {
+        const usize font_size = font_node->size;
+        auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size));
+        if (font_data) {
+            VFS::read(font_node, 0, font_size, font_data);
+            VFS::close(font_node);
+
+            auto* ttf = new TtfGlyphProvider(font_data, font_size, 20.0f);
+            if (ttf->is_valid()) {
+                global_terminal->set_glyph_provider(ttf);
+                Log::ok("[TTF] Terminal font switched to CascadiaCode 16px");
+            } else {
+                delete ttf;
+                kernel::memory::free(font_data);
+                Log::warning("[TTF] Font load failed, keeping PSF");
+            }
+        } else {
+            VFS::close(font_node);
+        }
+    } else {
+        Log::warning("[TTF] /etc/fonts/CaskaydiaCoveNerdFontMono.ttf not found, keeping PSF");
+    }
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
 

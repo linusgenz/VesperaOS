@@ -29,15 +29,19 @@
 
 #include "../../kernel/graphics/IRenderDriver.h"
 
+class IGlyphProvider;
+class GlyphCache;
 class Terminal {
     struct Cell {
-        char ch;
+        u32 codepoint;
         u32 fg;
         u32 bg;
         bool dirty;
     };
 
     IRenderDriver* drv_ = nullptr;
+    IGlyphProvider* glyphs_ = nullptr;
+    GlyphCache* cache_ = nullptr;
 
     u32 char_w_{};
     u32 char_h_{};
@@ -57,11 +61,14 @@ class Terminal {
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
     ~Terminal();
 
+    void set_glyph_provider(IGlyphProvider* provider);
+
     void set_colour(u32 new_fg, u32 new_bg);
     void set_cursor(u32 x, u32 y);
     void put_char(char c);
     void put_char_fast(char c);
     void print(const char* s);
+    void put_codepoint(uint32_t cp);
     void clear();
     void clear_char();
     void new_line();
@@ -69,7 +76,7 @@ class Terminal {
 
    private:
     [[nodiscard]] Cell& at(u32 x, u32 y) const;
-    void draw_run(u32 cell_x, u32 cell_y, const Cell* run_cells, u32 len) const;
+    void draw_cell(u32 cx, u32 cy) const;
     void advance();
     void scroll() const;
 };

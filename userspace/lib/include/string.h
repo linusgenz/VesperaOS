@@ -70,7 +70,7 @@ char *strchr(const char *s, unsigned char c);
 /**
  * @brief Set N bytes of DEST to C.
  */
-void memset(void* dest, uint8_t c, uint64_t n);
+void memset(void* dest, uint8_t c, size_t n);
 
 /**
  * @brief Copy N bytes of SRC to DEST.

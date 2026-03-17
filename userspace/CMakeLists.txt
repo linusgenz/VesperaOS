@@ -1,39 +1,55 @@
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(COMMON_C_FLAGS
-        "-ffreestanding -nostdlib -nostdinc -fno-stack-protector -fPIE -g -O0 -Wall"
-)
+set(SYSROOT ${CMAKE_SOURCE_DIR}/sysroot)
 
+set(COMMON_C_FLAGS
+        "-ffreestanding -nostdlib -nostdinc -fno-stack-protector -fPIE -g -O0 -Wall \
+     --sysroot=${SYSROOT} \
+     -isystem ${SYSROOT}/usr/include"
+)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_C_FLAGS}")
+
+set(USER_LD_FLAGS
+        "-nostdlib -ffreestanding -fno-stack-protector -pie \
+     --sysroot=${SYSROOT} \
+     -L${SYSROOT}/usr/lib"
+)
 
 add_subdirectory(lib)
 
-set(USER_LD_FLAGS
-        "-nostdlib -ffreestanding -fno-stack-protector -pie"
-)
+function(vespera_bin name)
+    cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
 
-add_executable(shell ${CMAKE_SOURCE_DIR}/userspace/bin/shell.c)
-add_executable(lsusb ${CMAKE_SOURCE_DIR}/userspace/bin/lsusb.c)
-add_executable(logd ${CMAKE_SOURCE_DIR}/userspace/bin/logd.c)
-add_executable(uptime ${CMAKE_SOURCE_DIR}/userspace/bin/uptime.c)
-add_executable(memstat ${CMAKE_SOURCE_DIR}/userspace/bin/memstat.c)
-add_executable(diskinfo ${CMAKE_SOURCE_DIR}/userspace/bin/diskinfo.c)
-add_executable(stat ${CMAKE_SOURCE_DIR}/userspace/bin/stat.c)
+    if (ARG_SOURCES)
+        set(sources ${ARG_SOURCES})
+    else ()
+        set(sources ${CMAKE_SOURCE_DIR}/userspace/bin/${name}.c)
+    endif ()
 
+    add_executable(${name} ${sources})
 
-foreach(bin IN ITEMS shell lsusb logd uptime memstat diskinfo stat)
-    target_link_libraries(${bin} PRIVATE vesplib)
-    target_include_directories(${bin} PRIVATE
-            ${CMAKE_SOURCE_DIR}/userspace/lib/include
-            ${VESPERA_UAPI_INCLUDE_DIR}
+    add_dependencies(${name} sysroot_install)
+
+    target_link_libraries(${name} PRIVATE
+            ${SYSROOT}/usr/lib/libvesp.a
     )
-    set_target_properties(${bin} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/userspace/bin
+
+    set_target_properties(${name} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${SYSROOT}/bin
             LINK_FLAGS "${USER_LD_FLAGS}"
     )
-endforeach()
+endfunction()
 
-add_custom_target(elfs DEPENDS shell lsusb logd uptime memstat diskinfo stat)
+vespera_bin(shell)
+vespera_bin(lsusb)
+vespera_bin(logd)
+vespera_bin(uptime)
+vespera_bin(memstat)
+vespera_bin(diskinfo)
+vespera_bin(stat)
+
+add_custom_target(elfs DEPENDS
+        shell lsusb logd uptime memstat diskinfo stat
+)

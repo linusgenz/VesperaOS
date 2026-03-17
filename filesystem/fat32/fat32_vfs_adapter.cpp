@@ -237,8 +237,7 @@ static int fat32_stat(const VfsNode* node, vespera_stat_t* out) {
     out->inode_id   = fnode->cluster;
     out->block_size = fnode->fs->bytes_per_cluster();
 
-    // Anzahl belegter Cluster * Sektoren pro Cluster * 512
-    // (klassische 512-Byte-Block-Konvention für st_blocks)
+    // Number of allocated clusters * sectors per cluster * 512
     if (fnode->file_size > 0 && out->block_size > 0) {
         const u64 clusters_used = (fnode->file_size + out->block_size - 1) / out->block_size;
         const u32 sectors_per_cluster = fnode->fs->get_bpb()->sectors_per_cluster;

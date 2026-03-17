@@ -27,7 +27,6 @@
 #include "vespera/dev/ioctl_usb_device.h"
 #include "vespera/fflags.h"
 
-/* ---- ANSI colours -------------------------------------------------------- */
 #define C_RESET   "\033[0m"
 #define C_BOLD    "\033[1m"
 #define C_DIM     "\033[2m"
@@ -36,15 +35,13 @@
 #define C_CYAN    "\033[36m"
 #define C_BLUE    "\033[34m"
 
-/* ---- constants ----------------------------------------------------------- */
-#define MAX_DEVICES 128
+#define MAX_DEVICES 32
 #define DEV_DIR     "/dev"
 
 /* slot_id == 0 is our sentinel for "this is a controller, not a USB device".
    Real xHCI slot IDs start at 1. */
 #define SLOT_ID_CONTROLLER 0
 
-/* ---- string helpers ------------------------------------------------------ */
 static const char* speed_str(uint8_t s) {
     switch (s) {
         case USB_SPEED_LOW_SPEED:        return "1.5 Mb/s  (LS)";
@@ -74,9 +71,8 @@ static const char* class_str(uint8_t c) {
     }
 }
 
-/* ---- one discovered entry ------------------------------------------------ */
 typedef struct {
-    char              dev_path[256];
+    char              dev_path[128];
     char              dev_name[64];
     char              model[128];
     char              vendor[128];
@@ -86,7 +82,6 @@ typedef struct {
     int               is_controller;
 } UsbEntry;
 
-/* ---- probe one /dev entry ------------------------------------------------ */
 static int probe(const char* path, const char* name, UsbEntry* out) {
     HANDLE fd = open(path, O_RDONLY);
     if (fd < 0) {

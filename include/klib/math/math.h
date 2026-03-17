@@ -92,6 +92,13 @@ double cos(double x);
 
 double scalbn(double x, int n);
 
+double round(double x);
+
+float roundf(float x);
+
+long lround(double x);
+
+long lroundf(float x);
 }
 
 #endif  // VESPERAOS_MATH_H

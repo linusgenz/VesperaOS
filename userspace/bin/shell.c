@@ -207,18 +207,17 @@ void cmd_pwd(command_t* cmd)
     }
 }
 
-void cmd_cd(command_t* cmd)
-{
+void cmd_cd(command_t* cmd) {
     const char* path = (cmd->argc > 1) ? cmd->args[1] : "/";
 
-     if (chdir(path) == 0) {
-         strcpy(current_dir, path);
-     } else {
-         printf("cd: cannot change directory to '%s'\n", path);
-     }
+    if (chdir(path) == 0) {
+        if (!getcwd(current_dir, sizeof(current_dir))) {
+            strcpy(current_dir, "/");
+        }
+    } else {
+        printf("cd: cannot change directory to '%s'\n", path);
+    }
 }
-
-
 void cmd_history(command_t* cmd)
 {
     int start = (history_count > HISTORY_SIZE) ? history_count - HISTORY_SIZE : 0;
@@ -248,13 +247,22 @@ static void format_size(uint64_t size, char* buf, size_t buf_size) {
 
 void cmd_ls(command_t* cmd) {
     int long_fmt = 0;
+    int classify = 0;
+    int show_all = 0;
     const char* path = NULL;
 
     for (int i = 1; i < cmd->argc; i++) {
-        if (strcmp(cmd->args[i], "-l") == 0)
-            long_fmt = 1;
-        else if (cmd->args[i][0] != '-')
+        if (cmd->args[i][0] == '-') {
+            for (int j = 1; cmd->args[i][j]; j++) {
+                switch (cmd->args[i][j]) {
+                    case 'l': long_fmt  = 1; break;
+                    case 'F': classify  = 1; break;
+                    case 'a': show_all  = 1; break;
+                }
+            }
+        } else {
             path = cmd->args[i];
+        }
     }
 
     if (!path) path = current_dir;
@@ -270,22 +278,42 @@ void cmd_ls(command_t* cmd) {
 
     dirent_t ent;
     while (readdir(hdl, &ent) > 0) {
-        const char* color = NULL;
+
+        // . und .. ausblenden wenn kein -a
+        if (!show_all) {
+            if (ent.name[0] == '.' &&
+               (ent.name[1] == '\0' ||
+               (ent.name[1] == '.' && ent.name[2] == '\0')))
+                continue;
+        }
+
+        const char* color = "\033[0m";
         const char* indicator = "";
+
         switch (ent.type) {
-            case DT_DIR:      color = "\033[38;2;66;117;245m";  indicator = "/"; break;
-            case DT_EXEC:     color = "\033[38;2;66;245;81m";   indicator = "*"; break;
-            case DT_SYMLINK:  color = "\033[1;36m";             indicator = "@"; break;
+            case DT_DIR:
+                color = "\033[38;2;66;117;245m";
+                if (classify) indicator = "/";
+                break;
+            case DT_EXEC:
+                color = "\033[38;2;66;245;81m";
+                if (classify) indicator = "*";
+                break;
+            case DT_SYMLINK:
+                color = "\033[1;36m";
+                if (classify) indicator = "@";
+                break;
             case DT_BLOCKDEV: color = "\033[38;2;100;200;255m"; break;
             case DT_CHARDEV:  color = "\033[38;2;245;212;8m";   break;
-            default:          color = "\033[0m";                break;
+            default:          color = "\033[0m";                 break;
         }
 
         if (!long_fmt) {
-            printf("%s%s%s%s ", color, ent.name, indicator, "\033[0m");
+            printf("%s%s%s\033[0m ", color, ent.name, indicator);
             continue;
         }
 
+        // -l: stat für Größe und Flags
         char full_path[512];
         if (strcmp(path, "/") == 0)
             snprintf(full_path, sizeof(full_path), "/%s", ent.name);
@@ -301,7 +329,6 @@ void cmd_ls(command_t* cmd) {
             case DT_CHARDEV:  type_char = 'c'; break;
             case DT_BLOCKDEV: type_char = 'b'; break;
             case DT_SYMLINK:  type_char = 'l'; break;
-            case DT_EXEC:     type_char = '-'; break;
             default:          type_char = '-'; break;
         }
 
@@ -319,10 +346,10 @@ void cmd_ls(command_t* cmd) {
         if (has_stat && ent.type != DT_DIR)
             format_size(st.size, size_buf, sizeof(size_buf));
 
-        printf("%c%s  %s  %s%s%s%s\n",
+        printf("%c%s  %s  %s%s%s\033[0m\n",
                type_char, rw,
                size_buf,
-               color, ent.name, indicator, "\033[0m");
+               color, ent.name, indicator);
     }
 
     if (!long_fmt) putchar('\n');

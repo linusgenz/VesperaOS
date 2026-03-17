@@ -1,3 +1,5 @@
+// Copyright: see musl copyright notice
+
 #include <klib/math/float.h>
 #include <klib/math/math.h>
 #include <klib/math/libm.h>

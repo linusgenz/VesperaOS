@@ -21,7 +21,7 @@ u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, const usize m_map_entries, con
 }
 
 extern "C" {
-    void memset(void* dest, u8 val, u64 num) {
+    void memset(void* dest, u32 val, u64 num) {
         for (u64 i = 0; i < num; i++) {
             *reinterpret_cast<u8*>(reinterpret_cast<u64>(dest) + i) = val;
         }

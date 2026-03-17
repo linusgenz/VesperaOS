@@ -41,7 +41,7 @@ void strcpy(char *dest, const char *src) {
 }
 
 char *strncpy(char *dest, const char *src, size_t n) {
-    size_t i;
+    size_t i = 0;
     for (i = 0; i < n && src[i] != '\0'; i++) {
         dest[i] = src[i];
     }
@@ -134,7 +134,7 @@ char *strchr(const char *s, unsigned char c) {
     return NULL;
 }
 
-void memset(void* dest, uint8_t c, uint64_t num) {
+void memset(void* dest, uint8_t c, size_t num) {
     for (uint64_t i = 0; i < num; i++) {
         *(uint8_t*)((uint64_t)dest + i) = c;
     }

@@ -20,11 +20,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <fflags.h>
 #include <vespera/stat.h>
 
 #define C_RESET  "\033[0m"

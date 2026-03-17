@@ -63,26 +63,21 @@ sudo umount "$EFI_MNT"
 # RootFS Partition
 # ────────────────────────────────────────────────────────────────
 
+
+SYSROOT_DIR="$SRC_DIR/sysroot"
+
 sudo mkdir -p "$ROOT_MNT"
 sudo mount "${LOOPDEV}p2" "$ROOT_MNT"
 
-sudo mkdir -p \
-    "$ROOT_MNT/bin" \
-    "$ROOT_MNT/lib" \
-    "$ROOT_MNT/etc" \
-    "$ROOT_MNT/tmp" \
-    "$ROOT_MNT/mnt" \
-    "$ROOT_MNT/var" \
-    "$ROOT_MNT/var/log"
+sudo cp -r "$SYSROOT_DIR/bin"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/lib"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/etc"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/tmp"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/mnt"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/var"     "$ROOT_MNT/"
 
-sudo cp "$SRC_DIR/userspace/bin/shell"   "$ROOT_MNT/bin/shell"
-sudo cp "$SRC_DIR/userspace/bin/lsusb"   "$ROOT_MNT/bin/lsusb"
-sudo cp "$SRC_DIR/userspace/bin/memstat" "$ROOT_MNT/bin/memstat"
-sudo cp "$SRC_DIR/userspace/bin/logd"    "$ROOT_MNT/bin/logd"
-sudo cp "$SRC_DIR/userspace/bin/uptime"  "$ROOT_MNT/bin/uptime"
-sudo cp "$SRC_DIR/userspace/bin/diskinfo"  "$ROOT_MNT/bin/diskinfo"
-sudo cp "$SRC_DIR/userspace/bin/stat"  "$ROOT_MNT/bin/stat"
-sudo cp "$SRC_DIR/assets/test.jpg"        "$ROOT_MNT/"
+sudo cp "$SRC_DIR/assets/test.jpg" "$ROOT_MNT/"
+sudo cp "$SRC_DIR/assets/CaskaydiaCoveNerdFontMono.ttf" "$ROOT_MNT/etc/fonts/"
 
 sudo umount "$ROOT_MNT"
 

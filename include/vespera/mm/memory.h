@@ -21,7 +21,7 @@ struct PageTable;
 u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, usize m_map_entries, usize m_map_desc_size);
 
 extern "C" {
-void memset(void* dest, u8 val, u64 num);
+void memset(void* dest, u32 val, u64 num);
 
 void* memcpy(void* dest, const void* src, usize len);
 

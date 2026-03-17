@@ -53,6 +53,7 @@ static constexpr PciDevice PCI_DEVICES[] = {
     {0x1002, 0x164E, "Raphael"},
     {0x1002, 0x1640, "Rembrandt Radeon High Definition Audio Controller"},
     {0x1002, 0x1649, "VanGogh PSP/CCP"},
+    {0x1B36, 0x000D, "QEMU XHCI Host Controller"}
 
 
 };

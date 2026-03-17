@@ -22,6 +22,12 @@
 #ifndef FLOAT_H
 #define FLOAT_H
 
+#ifdef __FLT_EVAL_METHOD__
+#define FLT_EVAL_METHOD __FLT_EVAL_METHOD__
+#else
+#define FLT_EVAL_METHOD 0
+#endif
+
 #define DBL_DIG         15                      /* # of decimal digits of precision */
 #define DBL_EPSILON     2.2204460492503131e-016 /* smallest such that 1.0+DBL_EPSILON != 1.0 */
 #define DBL_MANT_DIG    53                      /* # of bits in mantissa */

@@ -1,47 +1,34 @@
-// stddef.h
-//
+// decoding.h
 // VesperaOS - operating system for the x86_64 architecture
-// 
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
-// Created by Linus Genz on 02.12.25.
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 17.03.26.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_DECODING_H
+#define VESPERAOS_DECODING_H
 
-#ifndef VESPERAOS_STDDEF_H
-#define VESPERAOS_STDDEF_H
+#include <vespera/types.h>
 
-/* Signed type for pointer differences */
-typedef long ptrdiff_t;
+typedef struct {
+    u32 codepoint;
+    u8 remaining;
+} utf8_state_t;
 
-/* Unsigned type for sizes */
-typedef unsigned long size_t;
+bool utf8_decode(utf8_state_t *s, u8 byte, u32 *out);
 
-/* Wide character type */
-typedef int wchar_t;
-
-/* Wide integer type */
-typedef unsigned int wint_t;
-
-/* Null pointer */
-#ifndef NULL
-#define NULL ((void*)0)
-#endif
-
-/* Offset of member MEMBER in struct TYPE */
-#define offsetof(TYPE, MEMBER) __builtin_offsetof(TYPE, MEMBER)
-
-#endif //VESPERAOS_STDDEF_H
+#endif  // VESPERAOS_DECODING_H

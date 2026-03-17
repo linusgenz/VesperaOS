@@ -144,7 +144,6 @@ void debug_print_all_devices() {
 }
 
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
-    outb(0x3F8, 'A');
     Log::disable_debug();
     initialize_kernel(boot_info);
     char vendor[13];

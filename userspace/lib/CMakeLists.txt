@@ -181,3 +181,38 @@ target_compile_options(vesplib PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-O0>
         $<$<COMPILE_LANGUAGE:C>:-fPIC>
 )
+
+
+
+set(SYSROOT ${CMAKE_SOURCE_DIR}/sysroot)
+
+add_custom_target(sysroot_install
+        DEPENDS vesplib
+
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${SYSROOT}/usr/include
+        ${SYSROOT}/usr/include/vespera/dev
+        ${SYSROOT}/usr/include/sys
+        ${SYSROOT}/usr/lib
+        ${SYSROOT}/bin
+        ${SYSROOT}/lib
+        ${SYSROOT}/etc
+        ${SYSROOT}/etc/fonts
+        ${SYSROOT}/tmp
+        ${SYSROOT}/mnt
+        ${SYSROOT}/var/log
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/userspace/lib/include
+        ${SYSROOT}/usr/include
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/include/uapi/vespera
+        ${SYSROOT}/usr/include/vespera
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:vesplib>
+        ${SYSROOT}/usr/lib/libvesp.a
+
+        COMMENT "Populating sysroot"
+)
