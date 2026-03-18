@@ -11,6 +11,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "file.h", "file_8h.html", "file_8h" ],
     [ "limits.h", "limits_8h.html", "limits_8h" ],
     [ "memory.h", "memory_8h.html", "memory_8h" ],
+    [ "readline.h", "readline_8h.html", "readline_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],
     [ "reboot.h", "reboot_8h.html", "reboot_8h" ],
     [ "setjmp.h", "setjmp_8h.html", "setjmp_8h" ],
@@ -23,5 +24,6 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "stdlib.h", "stdlib_8h.html", "stdlib_8h" ],
     [ "string.h", "string_8h.html", "string_8h" ],
     [ "sysstd.h", "sysstd_8h.html", "sysstd_8h" ],
+    [ "termios.h", "termios_8h.html", "termios_8h" ],
     [ "urandom.h", "urandom_8h.html", "urandom_8h" ]
 ];

@@ -24,6 +24,8 @@ var annotated_dup =
     [ "SmartCommon", "structSmartCommon.html", "structSmartCommon" ],
     [ "SmartNvme", "structSmartNvme.html", "structSmartNvme" ],
     [ "SmartRawData", "structSmartRawData.html", "structSmartRawData" ],
+    [ "tty_mode_t", "structtty__mode__t.html", "structtty__mode__t" ],
+    [ "tty_size_t", "structtty__size__t.html", "structtty__size__t" ],
     [ "unit_info", "structunit__info.html", "structunit__info" ],
     [ "usb_device_info", "structusb__device__info.html", "structusb__device__info" ],
     [ "vespera_stat", "structvespera__stat.html", "structvespera__stat" ]
