@@ -132,9 +132,9 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:adce60d6da219bfd77ddbe177533942e8" id="r_adce60d6da219bfd77ddbe177533942e8"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mman_8h.html#adce60d6da219bfd77ddbe177533942e8">mmap</a> (void *addr, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, int prot, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>, int handle, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> offset)</td></tr>
-<tr class="memdesc:adce60d6da219bfd77ddbe177533942e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map pages into the process address space.  <br /></td></tr>
-<tr class="separator:adce60d6da219bfd77ddbe177533942e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a943cf73b816880433935f7055d4fe72f" id="r_a943cf73b816880433935f7055d4fe72f"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mman_8h.html#a943cf73b816880433935f7055d4fe72f">mmap</a> (void *addr, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> prot, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> handle, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> offset)</td></tr>
+<tr class="memdesc:a943cf73b816880433935f7055d4fe72f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Map pages into the process address space.  <br /></td></tr>
+<tr class="separator:a943cf73b816880433935f7055d4fe72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1343e4aa663c9e8bb7d1b16d367f0b08" id="r_a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08">munmap</a> (void *addr, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length)</td></tr>
 <tr class="memdesc:a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unmap a previously mapped memory region.  <br /></td></tr>
 <tr class="separator:a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -287,8 +287,8 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="adce60d6da219bfd77ddbe177533942e8" name="adce60d6da219bfd77ddbe177533942e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adce60d6da219bfd77ddbe177533942e8">&#9670;&#160;</a></span>mmap()</h2>
+<a id="a943cf73b816880433935f7055d4fe72f" name="a943cf73b816880433935f7055d4fe72f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a943cf73b816880433935f7055d4fe72f">&#9670;&#160;</a></span>mmap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -308,19 +308,19 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>prot</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>flags</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
           <td class="paramname"><em>handle</em>, </td>
         </tr>
         <tr>
@@ -382,7 +382,7 @@ Functions</h2></td></tr>
 <p>Unmap a previously mapped memory region. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">addr</td><td>Address returned by <a class="el" href="mman_8h.html#adce60d6da219bfd77ddbe177533942e8" title="Map pages into the process address space.">mmap()</a>. </td></tr>
+    <tr><td class="paramname">addr</td><td>Address returned by <a class="el" href="mman_8h.html#a943cf73b816880433935f7055d4fe72f" title="Map pages into the process address space.">mmap()</a>. </td></tr>
     <tr><td class="paramname">length</td><td>Length of mapping (must match the original length).</td></tr>
   </table>
   </dd>
