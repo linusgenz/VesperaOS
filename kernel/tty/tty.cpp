@@ -215,6 +215,10 @@ namespace kernel::tty {
                     }
                     break;
 
+                case 39:  // Reset FG to default
+                    tty->fg = WHITE;
+                    break;
+
                 case 48:  // Extended BG
                     if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
                         int r = tty->esc_params[i + 1];
@@ -223,6 +227,10 @@ namespace kernel::tty {
                         tty->bg = static_cast<colour_t>((r << 16) | (g << 8) | b);
                         i += 4;
                     }
+                    break;
+
+                case 49:  // Reset BG to default
+                    tty->bg = BLACK;
                     break;
 
                 default:

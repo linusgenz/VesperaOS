@@ -174,7 +174,7 @@ static void initialize_user_space_interfaces() {
             auto* ttf = new TtfGlyphProvider(font_data, font_size, 20.0f);
             if (ttf->is_valid()) {
                 kernel::SystemManager::get_system_terminal()->set_glyph_provider(ttf);
-                Log::ok("[TTF] Terminal font switched to CascadiaCode 16px");
+                Log::ok("[TTF] Terminal font switched to CascadiaCode");
             } else {
                 delete ttf;
                 kernel::memory::free(font_data);

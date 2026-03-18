@@ -35,7 +35,7 @@
 #define C_CYAN    "\033[36m"
 #define C_BLUE    "\033[34m"
 
-#define MAX_DEVICES 32
+#define MAX_DEVICES 128
 #define DEV_DIR     "/dev"
 
 /* slot_id == 0 is our sentinel for "this is a controller, not a USB device".
@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
     DIR_HANDLE dir = opendir(DEV_DIR);
     if (!dir) { printf("lsusb: cannot open " DEV_DIR); return 1; }
 
-    UsbEntry* entries = (UsbEntry*)malloc(MAX_DEVICES*sizeof(UsbEntry));
+    UsbEntry* entries = (UsbEntry*)calloc(MAX_DEVICES, sizeof(UsbEntry));
     if (!entries) { printf("lsusb: malloc"); return 1; }
 
     int count = 0;

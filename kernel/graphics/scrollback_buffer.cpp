@@ -53,7 +53,7 @@ Cell& ScrollbackBuffer::write_at(usize col) const {
 
 void ScrollbackBuffer::new_line(u32 default_fg, u32 default_bg) {
     if (scroll_offset_ == 0) {
-        const bool viewport_scrolls = (write_line_ >= rows_ - 1); // ← wird viewport_top() gleich +1?
+        const bool viewport_scrolls = (write_line_ >= rows_ - 1);
         write_line_++;
         clear_line(write_line_, default_fg, default_bg);
 

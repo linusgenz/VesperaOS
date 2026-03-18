@@ -33,12 +33,11 @@ Realm::Realm()
     , pml4(nullptr)
     , pml4_phys()
     , page_table(nullptr)
+    , cwd_path{}
     , unit_list(nullptr)
     , active(false)
     , sched_priority(0)
     , cpu_time_accumulated(0) {
-    const auto path = "/";
-    memcpy(cwd_path, path, strlen(path));
     char buf[50];
     snprintf(buf, sizeof(buf), "realm_%s:%u_lock", name, id);
     lock.init(buf);

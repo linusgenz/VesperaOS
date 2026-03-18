@@ -54,7 +54,7 @@
  * @return On success: pointer to mapped memory.
  *         On error: (void*) -1 with errno set.
  */
-void* mmap(void* addr, size_t length, int prot, int flags, int handle, size_t offset);
+void* mmap(void* addr, size_t length, uint64_t prot, uint64_t flags, uint64_t handle, size_t offset);
 
 /**
  * @brief Unmap a previously mapped memory region.

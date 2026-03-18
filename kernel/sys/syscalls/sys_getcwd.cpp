@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-
 #include <klib/string.h>
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
@@ -44,8 +44,7 @@ namespace syscalls::internal {
         const usize len = strlen(realm->cwd_path);
         if (len + 1 > size) return -ERANGE;
 
-        strncpy(buf, realm->cwd_path, size - 1);
-        buf[size - 1] = '\0';
+        memcpy(buf, realm->cwd_path, len + 1);
 
         return static_cast<i64>(len + 1);
     }

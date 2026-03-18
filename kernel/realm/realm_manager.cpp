@@ -74,6 +74,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
                 strncpy(realm.name, cfg->name, sizeof(realm.name) - 1);
                 realm.name[sizeof(realm.name) - 1] = '\0';
             }
+            strcpy(r->cwd_path, "/");
             r->memory_limit = cfg->memory_limit;
             r->max_units = cfg->max_units;
             r->unit_list = nullptr;
