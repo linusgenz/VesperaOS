@@ -1,13 +1,15 @@
 #include <vespera/interrupts.h>
 #include <vespera/kerrno.h>
+#include <vespera/log.h>
+#include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
 
 #include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../../../drivers/ps2/mouse/mouse.h"
-#include <vespera/log.h>
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/cpu/io.h"
 #include "../../../kernel/debug/fault_logger.h"
+#include "../../../kernel/scheduling/unit_termination.h"
 #include "../../../kernel/utils/panic.h"
 #include "apic.h"
 #include "interrupts_internal.h"
@@ -31,6 +33,26 @@ void page_fault_handler(TrapFrame *frame) {
     u64 fault_addr = 0;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
+    if (frame->cs & 0x3) {
+        Unit *u = kernel::scheduling::get_current_unit();
+
+        u64 stack_top = virt_raw(u->context.user_stack_top);
+        u64 stack_bottom = stack_top - u->context.user_stack_size;
+
+        const char *reason = nullptr;
+        if (fault_addr >= stack_bottom - PAGE_SIZE && fault_addr < stack_bottom) {
+            reason = "stack overflow (guard page)";
+        } else if (fault_addr < stack_bottom) {
+            reason = "stack overflow (below stack)";
+        } else if (fault_addr >= stack_top) {
+            reason = "invalid stack access (above stack)";
+        } else {
+            reason = "segmentation fault";
+        }
+
+        kernel::scheduling::kill_current_realm(Signal::SIGSEGV, reason);
+    }
+
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_page_fault_detail(fault_addr, ctx.error_code, ctx);
 
@@ -45,6 +67,10 @@ void double_fault_handler(const TrapFrame *frame) {
 }
 
 void gp_fault_handler(const TrapFrame *frame) {
+    if (frame->cs & 0x3) {
+        kernel::scheduling::kill_current_realm(Signal::SIGSEGV, "segmentation fault");
+    }
+
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
 
@@ -70,6 +96,10 @@ void gp_fault_handler(const TrapFrame *frame) {
 
 // Invalid Opcode Fault (Vector 6)
 extern "C" void invalid_opcode_handler(const TrapFrame *frame) {
+    if (frame->cs & 0x3) {
+        kernel::scheduling::kill_current_realm(Signal::SIGILL, "illegal instruction");
+    }
+
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
     panic("Invalid opcode detected");
@@ -78,6 +108,10 @@ extern "C" void invalid_opcode_handler(const TrapFrame *frame) {
 
 // Stack Segment Fault (Vector 12)
 void stack_fault_handler(const TrapFrame *frame) {
+    if (frame->cs & 0x3) {
+        kernel::scheduling::kill_current_realm(Signal::SIGSEGV, "stack fault");
+    }
+
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
 
@@ -89,6 +123,10 @@ void stack_fault_handler(const TrapFrame *frame) {
 
 // Segment Not Present (Vector 11)
 void segment_not_present_handler(const TrapFrame *frame) {
+    if (frame->cs & 0x3) {
+        kernel::scheduling::kill_current_realm(Signal::SIGBUS, "bus error");
+    }
+
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
 
@@ -108,6 +146,9 @@ void segment_not_present_handler(const TrapFrame *frame) {
 
 // Divide by Zero (Vector 0)
 void divide_error_handler(const TrapFrame *frame) {
+    if (frame->cs & 0x3) {
+        kernel::scheduling::kill_current_realm(Signal::SIGFPE, "floating point exception");
+    }
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
 

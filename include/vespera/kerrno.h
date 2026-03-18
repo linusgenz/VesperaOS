@@ -58,8 +58,9 @@
 // Scheduling/Context Errors
 #define KEAPRETURN      22   // Application processor returned unexpectedly
 #define KECTXSWITCH     23   // Context switch error
+#define KENOCTXFLT      24   // Fault from unit where the realm cannot be found
 
 // C++ Runtime Errors
-#define KECXAPURE       24   // __cxa_pure_virtual called (abstract method invoked)
+#define KECXAPURE       25   // __cxa_pure_virtual called (abstract method invoked)
 
 #endif //VESPERAOS_KERRNO_H

@@ -51,9 +51,9 @@ isr_%1:
     push rbx
     push rax
 
+    mov rdi, rsp        ; trap_frame* as 1. argument
     SAVE_SIMD
 
-    mov rdi, rsp        ; trap_frame* as 1. argument
     call %1_handler
 
     RESTORE_SIMD
