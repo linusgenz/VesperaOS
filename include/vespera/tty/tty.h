@@ -53,6 +53,7 @@ namespace kernel::tty {
         int esc_param = 0;
         int esc_params[MAX_PARAMS] = {};
         usize esc_param_count = 0;
+        bool echo = true;
         bool esc_private_mode = false;
 
         usize cursor_x = 0;

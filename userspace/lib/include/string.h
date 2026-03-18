@@ -83,6 +83,12 @@ void *memcpy (void *dest, const void *src, size_t len);
 int memcmp(const void* s1, const void* s2, size_t n);
 
 /**
+ * @brief Copy N bytes of SRC to DEST, guaranteeing
+ * correct behavior for overlapping strings.
+ */
+void* memmove(void* dest, const void* src, size_t len);
+
+/**
  * @brief Split a string into tokens using a delimiter.
  */
 char* strtok(char* s, char delim);

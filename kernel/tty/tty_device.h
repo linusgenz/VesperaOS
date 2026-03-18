@@ -27,7 +27,7 @@
 #include <vespera/devices/char_device.h>
 #include <vespera/terminal.h>
 #include <vespera/tty/tty.h>
-
+#include <uapi/vespera/dev/ioctl_tty.h>
 #include "../../filesystem/devfs/devfs.h"
 #include "vespera/devices/device_manager.h"
 
@@ -64,6 +64,37 @@ class TtyDevice final : public CharDevice {
         delete cf;
         return 0;
     }
+
+    int ioctl(CharFile* cf, u32 cmd, void* arg) override {
+        if (!arg && cmd != IOCTL_TTY_GET_MODE && cmd != IOCTL_TTY_GET_SIZE)
+            return -EINVAL;
+
+        switch (cmd) {
+            case IOCTL_TTY_GET_MODE: {
+                auto* m = static_cast<tty_mode_t*>(arg);
+                m->mode = tty->canonical ? TTY_MODE_CANONICAL : TTY_MODE_RAW;
+                m->echo = tty->echo;
+                return 0;
+            }
+            case IOCTL_TTY_SET_MODE: {
+                const auto* m = static_cast<const tty_mode_t*>(arg);
+                tty->canonical = (m->mode == TTY_MODE_CANONICAL);
+                tty->echo      = (m->echo != 0);
+                tty->canon_len   = 0;
+                tty->line_ready  = false;
+                tty->raw_len     = 0;
+                return 0;
+            }
+            case IOCTL_TTY_GET_SIZE: {
+                auto* s = static_cast<tty_size_t*>(arg);
+                s->rows = static_cast<unsigned short>(tty->term->visible_rows());
+                s->cols = static_cast<unsigned short>(tty->term->visible_cols());
+                return 0;
+            }
+            default:
+                return -ENOTTY;
+        }
+    };
 
     isize read(CharFile*, void* buffer, usize count, usize) override {
         if (count == 0 || !buffer) return -EINVAL;

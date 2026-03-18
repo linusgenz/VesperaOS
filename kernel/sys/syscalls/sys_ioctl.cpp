@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handels.h>
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -53,6 +54,13 @@ namespace syscalls::internal {
                 const auto* vh = static_cast<VfsHandle*>(he->resource);
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->ioctl) return -ENOTTY;
                 return vh->node->ops->ioctl(vh->node, req, arg);
+            }
+            case HANDLE_TYPE_TTY: {
+                auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+                if (!tty_dev) return -ENODEV;
+                CharFile cf{};
+                cf.driver_private = tty_dev;
+                return tty_dev->ioctl(&cf, static_cast<u32>(req), arg);
             }
             case HANDLE_TYPE_FILE:
                 return -ENOTTY;

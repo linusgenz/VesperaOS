@@ -78,6 +78,8 @@ void Terminal::put_codepoint(const u32 cp) {
     Cell& cell = sb_->write_at(cursor_col_);
     cell = {cp, fg_, bg_, true};
     advance();
+    cursor_activity();
+    draw_cursor();
 }
 
 void Terminal::put_char_fast(char c) {
@@ -100,6 +102,7 @@ void Terminal::put_char_fast(char c) {
     cell.dirty = false;
 
     advance();
+    cursor_activity();
     draw_cursor();
 }
 
@@ -157,6 +160,7 @@ void Terminal::set_cursor(const u32 x, const u32 y) {
     cursor_col_ = x;
     cursor_row_ = y;
     sb_->set_write_row(y);
+    cursor_activity();
     draw_cursor();
 }
 
@@ -186,6 +190,7 @@ void Terminal::clear_char() {
     draw_cell(cursor_col_, cursor_row_);
     cell.dirty = false;
 
+    cursor_activity();
     draw_cursor();
 }
 
@@ -194,6 +199,7 @@ void Terminal::new_line() {
     cursor_col_ = 0;
     sb_->new_line(fg_, bg_);
     cursor_row_ = sb_->write_row();
+    cursor_activity();
     draw_cursor();
 }
 
@@ -338,6 +344,15 @@ void Terminal::erase_cursor_under() const {
 }
 
 void Terminal::tick_cursor() {
+    if (!cursor_visible_) return;
+
+    if (blink_idle_ticks_ < blink_pause_ticks_) {
+        blink_idle_ticks_++;
+        draw_cell(cursor_col_, cursor_row_);
+        draw_cursor();
+        return;
+    }
+
     cursor_blink_on_ = !cursor_blink_on_;
     draw_cell(cursor_col_, cursor_row_);
     if (cursor_blink_on_) draw_cursor();
@@ -346,4 +361,9 @@ void Terminal::tick_cursor() {
 void Terminal::set_cursor_visible(bool v) {
     cursor_visible_ = v;
     draw_cell(cursor_col_, cursor_row_);
+}
+
+void Terminal::cursor_activity() {
+    blink_idle_ticks_ = 0;
+    cursor_blink_on_  = true;
 }

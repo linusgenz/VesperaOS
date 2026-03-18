@@ -32,20 +32,16 @@
 #include <errno.h>
 #include <exec.h>
 #include <fflags.h>
-#include <jpeg/jpeg.h>
+#include <readline.h>
 #include <realm.h>
 #include <reboot.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sysstd.h>
-#include <vespera/dev/ioctl_framebuffer.h>
-#include <vespera/handels.h>
 
-#include "stdint.h"
-#include "vespera/dev/ioctl_smart.h"
 #include "vespera/stat.h"
 
 typedef struct {
@@ -238,6 +234,7 @@ void cmd_ls(command_t* cmd) {
                     case 'a':
                         show_all = 1;
                         break;
+                    default:;
                 }
             }
         } else {
@@ -305,7 +302,7 @@ void cmd_ls(command_t* cmd) {
         vespera_stat_t st;
         int has_stat = (sys_stat((uint64_t)full_path, (uint64_t)&st, 0, 0, 0, 0) == 0);
 
-        char type_char;
+        char type_char = 0;
         switch (ent.type) {
             case DT_DIR:
                 type_char = 'd';
@@ -368,7 +365,7 @@ void cmd_cat(command_t* cmd) {
     }
 
     char buffer[BUFSIZ];
-    ssize_t bytes_read;
+    ssize_t bytes_read = 0;
 
     printf("reading from '%s'\n", path);
     while ((bytes_read = read(fd, buffer, sizeof(buffer) - 1)) > 0) {
@@ -498,7 +495,7 @@ void cmd_cp(command_t* cmd) {
     }
 
     char buffer[4096];
-    ssize_t bytes;
+    ssize_t bytes = 0;
     while ((bytes = read(src, buffer, sizeof(buffer))) > 0) {
         if (write(dst, buffer, bytes) != bytes) {
             printf("cp: write error\n");
@@ -606,7 +603,7 @@ int execute_command(command_t* cmd) {
             if (rid < 0) {
                 printf("spawn failed: %d\n", (int32_t)rid);
             } else {
-                int status;
+                int status = 0;
                 wait_realm(rid, &status);
                 if (status != 0) {
                     printf("realm exited with status %d", status);
@@ -631,7 +628,7 @@ int execute_command(command_t* cmd) {
     return 0;
 }
 
-void show_prompt(void) {
+void build_prompt(char* prompt_buf, size_t buf_size) {
     const char* dir = current_dir;
     const char* last_slash = NULL;
 
@@ -641,7 +638,7 @@ void show_prompt(void) {
     }
 
     char name[64];  // ausreichend für Prompt
-    const char* src;
+    const char* src = NULL;
 
     if (last_slash && *(last_slash + 1))
         src = last_slash + 1;
@@ -656,7 +653,9 @@ void show_prompt(void) {
     }
     name[i] = '\0';
 
-    printf(
+    snprintf(
+        prompt_buf,
+        buf_size,
         "\033[38;2;100;149;237m\033[48;2;30;30;46m  VesperaOS "   // blauer Block
         "\033[38;2;30;30;46m\033[48;2;66;117;245m\ue0b0"          // Pfeil-Transition
         "\033[38;2;255;255;255m\033[48;2;66;117;245m \uf07c %s "  // Ordner + Name
@@ -713,10 +712,9 @@ void shell_main(int argc, char** argv) {
      image_free(&img);*/
 
     while (1) {
-        show_prompt();
-
-        FILE_HANDLE n = read(HANDLE_STDIN, buf, MAX_INPUT - 1);
-        putchar('\n');
+        char prompt_str[256];
+        build_prompt(prompt_str, sizeof(prompt_str));
+        int n = readline(prompt_str, buf, MAX_INPUT);
         if (n <= 0) continue;
 
         buf[n] = '\0';

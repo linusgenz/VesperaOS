@@ -53,6 +53,9 @@ class Terminal {
 
     bool cursor_visible_ = false;
     bool cursor_blink_on_ = true;
+    u32 blink_idle_ticks_ = 0;
+    u32 blink_pause_ticks_ =
+        2; /* this is not based on the apic interval, but on the interval in which tick_cursor cursor gets called*/
 
     void draw_cursor() const;
     void erase_cursor_under() const;
@@ -60,6 +63,8 @@ class Terminal {
     void draw_cell(u32 cx, u32 cy) const;
     void advance();
     void scroll() const;
+
+    void cursor_activity();
 
    public:
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);

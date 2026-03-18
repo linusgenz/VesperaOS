@@ -105,13 +105,13 @@ i64 Realm::add_handle_with_id(
 }
 
 i64 Realm::setup_standard_handles(TtyDevice* tty_dev) {
-    i64 err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ, false, nullptr);
+    i64 err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ | CAP_DEVICE_ACCESS, false, nullptr);
     if (err != SUCCESS_CODE) return err;
 
-    err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE, false, nullptr);
+    err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr);
     if (err != SUCCESS_CODE) return err;
 
-    err = add_handle_with_id(HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE, false, nullptr);
+    err = add_handle_with_id(HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr);
     if (err != SUCCESS_CODE) return err;
 
     return SUCCESS_CODE;

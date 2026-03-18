@@ -157,3 +157,17 @@ int memcmp(const void* s1, const void* s2, size_t n) {
     }
     return 0;
 }
+
+void* memmove(void* dest, const void* src, size_t len) {
+    char* d = (char*)(dest);
+    const char* s = src;
+    if (d < s) {
+        while (len--) *d++ = *s++;
+    }
+    else {
+        char* lasts = (char*)(s + (len - 1));
+        char* lastd = d + (len - 1);
+        while (len--) *lastd-- = *lasts--;
+    }
+    return dest;
+}

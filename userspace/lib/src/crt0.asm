@@ -6,10 +6,10 @@ extern stdout
 extern stderr
 extern sys_exit
 
-%define HANDLE_TYPE_CONSOLE 0x1000000000000000
-%define HANDLE_STDIN        (HANDLE_TYPE_CONSOLE | 0)
-%define HANDLE_STDOUT       (HANDLE_TYPE_CONSOLE | 1)
-%define HANDLE_STDERR       (HANDLE_TYPE_CONSOLE | 2)
+%define HANDLE_TYPE_TTY 0x1000000000000000
+%define HANDLE_STDIN        (HANDLE_TYPE_TTY | 0)
+%define HANDLE_STDOUT       (HANDLE_TYPE_TTY | 1)
+%define HANDLE_STDERR       (HANDLE_TYPE_TTY | 2)
 
 section .text
 

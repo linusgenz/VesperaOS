@@ -107,15 +107,47 @@ namespace ps2::keyboard {
 
         char ascii = 0;
 
+        const bool ctrl = (g_keyboard.modifiers & kernel::input::MOD_CTRL) != 0;
+        const bool alt = (g_keyboard.modifiers & kernel::input::MOD_ALT) != 0;
+        const bool super = (g_keyboard.modifiers & kernel::input::MOD_SUPER) != 0;
+        const bool shift = (g_keyboard.modifiers & kernel::input::MOD_SHIFT) != 0;
+
         if (base_scancode == BACKSPACE)
             ascii = '\b';
         else if (base_scancode == ENTER)
             ascii = '\n';
         else if (base_scancode == SPACEBAR)
-            ascii = ' ';
-        else if (!(g_keyboard.modifiers &
-                   (kernel::input::MOD_CTRL | kernel::input::MOD_ALT | kernel::input::MOD_SUPER)))
-            ascii = translate(base_scancode, (g_keyboard.modifiers & kernel::input::MOD_SHIFT) != 0);
+            ascii = ctrl ? 0x00 : ' ';
+        else if (!alt && !super) {
+            if (ctrl) {
+                char base = translate(base_scancode, shift);
+                if (base >= 'a' && base <= 'z')
+                    ascii = base - 'a' + 1;
+                else if (base >= 'A' && base <= 'Z')
+                    ascii = base - 'A' + 1;
+                else if (base == '[')
+                    ascii = 0x1B;  // Ctrl+[ → ESC
+                else if (base == '\\')
+                    ascii = 0x1C;  // Ctrl+\ → FS
+                else if (base == ']')
+                    ascii = 0x1D;  // Ctrl+] → GS
+            } else {
+                ascii = translate(base_scancode, shift);
+            }
+        }
+
+        // E0-prefixed keys have no ascii, keycode-only event
+        if (e0_was_set) {
+            kernel::input::InputEvent ev{
+                .device = kernel::input::InputDeviceType::KEYBOARD,
+                .keycode = ps2_to_keycode(base_scancode, true),
+                .modifiers = g_keyboard.modifiers,
+                .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
+                .ascii = 0
+            };
+            kernel::input::InputManager::push_event(ev);
+            return;
+        }
 
         if (ascii != 0) {
             kernel::input::InputEvent ev{

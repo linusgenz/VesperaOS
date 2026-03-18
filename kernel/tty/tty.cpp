@@ -119,9 +119,8 @@ namespace kernel::tty {
             }
         }
 
-
         const char c = ev.ascii;
-        if (!c) return;
+        if (!c) return; // If we input CTRL+Space (NULL) this gets swallowed here.
 
         if (c == '\b') {
             if (keyboard_focus_tty->canonical) {
@@ -129,12 +128,8 @@ namespace kernel::tty {
                     keyboard_focus_tty->canon_len--;
                     keyboard_focus_tty->term->clear_char();
                 }
-            } else {
-                if (keyboard_focus_tty->raw_len > 0) {
-                    keyboard_focus_tty->raw_len--;
-                }
+                return;
             }
-            return;
         }
 
         if (keyboard_focus_tty->canonical) {
