@@ -31,7 +31,7 @@
  * Both the PS/2 and xHCI drivers translate their raw scancodes / HID
  * usages into this enum before publishing an InputEvent.
  *
- * Reference: USB HID Usage Tables 1.3, Section 10 "Keyboard/Keypad Page"
+ * Reference: USB HID Usage Tables, Section 10 "Keyboard/Keypad Page"
  * https://usb.org/sites/default/files/hut1_3_0.pdf  (page 88 ff.)
  */
 enum class KeyCode : u32 {

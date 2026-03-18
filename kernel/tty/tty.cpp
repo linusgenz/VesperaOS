@@ -22,7 +22,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/input/keycode.h>
-#include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
@@ -83,6 +82,44 @@ namespace kernel::tty {
             keyboard_focus_tty->term->scrollback_to_bottom();
         }
 
+        if (!keyboard_focus_tty->canonical) {
+            struct SpecialKey { KeyCode key; const char* seq; usize len; };
+            static constexpr SpecialKey table[] = {
+                { KeyCode::ARROW_UP,    "\033[A",   3 },
+                { KeyCode::ARROW_DOWN,  "\033[B",   3 },
+                { KeyCode::ARROW_RIGHT, "\033[C",   3 },
+                { KeyCode::ARROW_LEFT,  "\033[D",   3 },
+                { KeyCode::HOME,        "\033[H",   3 },
+                { KeyCode::END,         "\033[F",   3 },
+                { KeyCode::INSERT,      "\033[2~",  4 },
+                { KeyCode::DELETE,      "\033[3~",  4 },
+                { KeyCode::PAGE_UP,     "\033[5~",  4 },
+                { KeyCode::PAGE_DOWN,   "\033[6~",  4 },
+                { KeyCode::F1,          "\033OP",   3 },
+                { KeyCode::F2,          "\033OQ",   3 },
+                { KeyCode::F3,          "\033OR",   3 },
+                { KeyCode::F4,          "\033OS",   3 },
+                { KeyCode::F5,          "\033[15~", 5 },
+                { KeyCode::F6,          "\033[17~", 5 },
+                { KeyCode::F7,          "\033[18~", 5 },
+                { KeyCode::F8,          "\033[19~", 5 },
+                { KeyCode::F9,          "\033[20~", 5 },
+                { KeyCode::F10,         "\033[21~", 5 },
+                { KeyCode::F11,         "\033[23~", 5 },
+                { KeyCode::F12,         "\033[24~", 5 },
+            };
+            for (const auto& sk : table) {
+                if (ev.keycode == sk.key) {
+                    for (usize i = 0;
+                         i < sk.len && keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1;
+                         i++)
+                        keyboard_focus_tty->raw_buffer[keyboard_focus_tty->raw_len++] = sk.seq[i];
+                    return;
+                }
+            }
+        }
+
+
         const char c = ev.ascii;
         if (!c) return;
 
@@ -95,7 +132,6 @@ namespace kernel::tty {
             } else {
                 if (keyboard_focus_tty->raw_len > 0) {
                     keyboard_focus_tty->raw_len--;
-                    keyboard_focus_tty->term->clear_char();
                 }
             }
             return;
@@ -119,7 +155,6 @@ namespace kernel::tty {
             // Non-canonical Mode
             if (keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1) {
                 keyboard_focus_tty->raw_buffer[keyboard_focus_tty->raw_len++] = c;
-                keyboard_focus_tty->term->put_char_fast(c);  // Echo
             }
         }
     }
@@ -255,6 +290,7 @@ namespace kernel::tty {
                 } else if (c == '\r') {
                     tty->term->flush();
                     tty->cursor_x = 0;
+                    tty->term->set_cursor(0, tty->cursor_y);
                 } else {
                     uint32_t cp = 0;
 
@@ -276,31 +312,181 @@ namespace kernel::tty {
                 break;
 
             case EscapeState::CSI_RECEIVED:
+                if (c == '?') {
+                    tty->esc_private_mode = true;
+                    break;
+                }
                 if (c >= '0' && c <= '9') {
                     tty->esc_param = tty->esc_param * 10 + (c - '0');
-                } else if (c == ';') {
-                    if (tty->esc_param_count < TTY::MAX_PARAMS)
-                        tty->esc_params[tty->esc_param_count++] = tty->esc_param;
-                    tty->esc_param = 0;
-                } else {
-                    if (tty->esc_param_count < TTY::MAX_PARAMS)
-                        tty->esc_params[tty->esc_param_count++] = tty->esc_param;
-
-                    // CSI abschließen
-                    if (c == 'm') {
-                        tty_apply_sgr(tty);
-                    } else if (c == 'J' && tty->esc_params[0] == 2) {
-                        tty_clear(tty);
-                    } else if (c == 'H') {
-                        tty->cursor_x = tty->cursor_y = 0;
-                        tty->term->set_cursor(0, 0);
-                    }
-
-                    tty->esc_state = EscapeState::NONE;
-                    tty->esc_param = 0;
-                    tty->esc_param_count = 0;
+                    break;
                 }
-                break;
+                if (c == ';') {
+                    if (tty->esc_param_count < TTY::MAX_PARAMS)
+                        tty->esc_params[tty->esc_param_count++] = tty->esc_param;
+                    tty->esc_param = 0;
+                    break;
+                }
+                    if (tty->esc_param_count < TTY::MAX_PARAMS)
+                        tty->esc_params[tty->esc_param_count++] = tty->esc_param;
+
+
+            {
+                // Helper: return params[idx], defaulting to `def` when
+                // the parameter was omitted (ANSI default = 0 stored).
+                auto p = [&](usize idx, int def) -> int {
+                    if (idx >= tty->esc_param_count) return def;
+                    const int v = tty->esc_params[idx];
+                    return v == 0 ? def : v;
+                };
+
+                const usize cols = tty->term->visible_cols();
+                const usize rows = tty->term->visible_rows();
+
+                if (tty->esc_private_mode) {
+                    // DEC private sequences
+                    const int mode = (tty->esc_param_count > 0)
+                                     ? tty->esc_params[0] : 0;
+                    switch (c) {
+                        case 'h':
+                            if (mode == 25) tty->term->set_cursor_visible(true);
+                            break;
+                        case 'l':
+                            if (mode == 25) tty->term->set_cursor_visible(false);
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                    // CSI sequences
+                    switch (c) {
+
+                        // SGR
+                        case 'm':
+                            tty_apply_sgr(tty);
+                            break;
+                        case 'H':  // ESC[row;colH  — cursor position (1-indexed)
+                        case 'f': {
+                            int row = p(0, 1) - 1;
+                            int col = p(1, 1) - 1;
+                            if (row < 0) row = 0;
+                            if (col < 0) col = 0;
+                            if (static_cast<usize>(row) >= rows) row = static_cast<int>(rows) - 1;
+                            if (static_cast<usize>(col) >= cols) col = static_cast<int>(cols) - 1;
+                            tty->cursor_y = row;
+                            tty->cursor_x = col;
+                            tty->term->set_cursor(col, row);
+                            break;
+                        }
+
+                        case 'A': { // ESC[nA — cursor up
+                            int n = p(0, 1);
+                            int r = static_cast<int>(tty->cursor_y) - n;
+                            if (r < 0) r = 0;
+                            tty->cursor_y = r;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        }
+
+                        case 'B': { // ESC[nB — cursor down
+                            usize r = tty->cursor_y + p(0, 1);
+                            if (r >= rows) r = rows - 1;
+                            tty->cursor_y = r;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        }
+
+                        case 'C': { // ESC[nC — cursor forward (right)
+                            usize col = tty->cursor_x + p(0, 1);
+                            if (col >= cols) col = cols - 1;
+                            tty->cursor_x = col;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        }
+
+                        case 'D': { // ESC[nD — cursor back (left)
+                            int col = static_cast<int>(tty->cursor_x) - p(0, 1);
+                            if (col < 0) col = 0;
+                            tty->cursor_x = col;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        }
+
+                        case 'E': { // ESC[nE — cursor next line
+                            usize r = tty->cursor_y + p(0, 1);
+                            if (r >= rows) r = rows - 1;
+                            tty->cursor_y = r;
+                            tty->cursor_x = 0;
+                            tty->term->set_cursor(0, tty->cursor_y);
+                            break;
+                        }
+                        case 'F': { // ESC[nF — cursor previous line
+                            int r = (int)tty->cursor_y - p(0, 1);
+                            if (r < 0) r = 0;
+                            tty->cursor_y = r;
+                            tty->cursor_x = 0;
+                            tty->term->set_cursor(0, tty->cursor_y);
+                            break;
+                        }
+                        case 'G': { // ESC[nG — cursor horizontal absolute (1-indexed)
+                            int col = p(0, 1) - 1;
+                            if (col < 0) col = 0;
+                            if (static_cast<usize>(col) >= cols) col = static_cast<int>(cols) - 1;
+                            tty->cursor_x = col;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        }
+                        case 'd': { // ESC[nd — line position absolute (1-indexed)
+                            int row = p(0, 1) - 1;
+                            if (row < 0) row = 0;
+                            if (static_cast<usize>(row) >= rows) row = static_cast<int>(rows) - 1;
+                            tty->cursor_y = row;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        }
+                        case 's':
+                            tty->saved_cursor_x = tty->cursor_x;
+                            tty->saved_cursor_y = tty->cursor_y;
+                            break;
+
+                        case 'u':
+                            tty->cursor_x = tty->saved_cursor_x;
+                            tty->cursor_y = tty->saved_cursor_y;
+                            tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
+                            break;
+                        case 'J': { // ESC[nJ — erase in display
+                            const int mode = (tty->esc_param_count > 0)
+                                             ? tty->esc_params[0] : 0;
+                            if (mode == 2) {
+                                tty_clear(tty);
+                            } else {
+                                tty->term->erase_in_display(
+                                    mode, tty->cursor_x, tty->cursor_y);
+                                tty->term->flush();
+                            }
+                            break;
+                        }
+
+                        case 'K': { // ESC[nK — erase in line
+                            const int mode = (tty->esc_param_count > 0)
+                                             ? tty->esc_params[0] : 0;
+                            tty->term->erase_in_line(
+                                mode, tty->cursor_x, tty->cursor_y);
+                            tty->term->flush();
+                            break;
+                        }
+
+                        default:
+                            break; // If we don't know the sequence, we don't process it lol
+                    }
+                }
+            }
+
+            // Reset CSI state.
+            tty->esc_state        = EscapeState::NONE;
+            tty->esc_param        = 0;
+            tty->esc_param_count  = 0;
+            tty->esc_private_mode = false;
+            break;
         }
     }
 

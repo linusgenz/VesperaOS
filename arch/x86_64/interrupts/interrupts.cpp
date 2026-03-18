@@ -146,6 +146,11 @@ void apic_timer_int_handler(TrapFrame *frame) {
     arch::x86_64::interrupts::apic::timer_accounting();
     arch::x86_64::interrupts::apic::send_eoi();
     arch::x86_64::interrupts::apic::timer_tick(frame);
+
+    static u64 cursor_tick = 0;
+    if (++cursor_tick % 500 == 0) {
+        kernel::SystemManager::get_system_terminal()->tick_cursor();
+    }
 }
 
 void spurious_int_handler(TrapFrame *) {

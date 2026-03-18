@@ -43,12 +43,23 @@ class Terminal {
     usize cols_{};
     usize rows_{};
 
-    u32 cx_ = 0;  // Column cursor
+    u32 cursor_col_ = 0;
+    u32 cursor_row_ = 0;
 
     u32 fg_ = 0xFFFFFFFF;
     u32 bg_ = 0x00000000;
 
     ScrollbackBuffer* sb_;
+
+    bool cursor_visible_ = false;
+    bool cursor_blink_on_ = true;
+
+    void draw_cursor() const;
+    void erase_cursor_under() const;
+
+    void draw_cell(u32 cx, u32 cy) const;
+    void advance();
+    void scroll() const;
 
    public:
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
@@ -61,8 +72,17 @@ class Terminal {
     [[nodiscard]] usize visible_rows() const {
         return rows_;
     }
+    [[nodiscard]] usize visible_cols() const {
+        return cols_;
+    }
+
+    void erase_in_line(int mode, u32 col, u32 row) const;
+    void erase_in_display(int mode, u32 col, u32 row);
 
     void set_glyph_provider(IGlyphProvider* provider);
+
+    void tick_cursor();
+    void set_cursor_visible(bool v);
 
     void set_colour(u32 new_fg, u32 new_bg);
     void set_cursor(u32 x, u32 y);
@@ -74,11 +94,6 @@ class Terminal {
     void clear_char();
     void new_line();
     void flush() const;
-
-   private:
-    void draw_cell(u32 cx, u32 cy) const;
-    void advance();
-    void scroll() const;
 };
 
 extern font_t* system_font;

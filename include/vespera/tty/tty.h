@@ -24,9 +24,9 @@
 #ifndef VESPERAOS_TTY_H
 #define VESPERAOS_TTY_H
 
+#include <klib/decoding.h>
 #include <vespera/graphics.h>
 #include <vespera/input/input_event.h>
-#include <klib/decoding.h>
 
 class TtyDevice;
 class Terminal;
@@ -53,9 +53,12 @@ namespace kernel::tty {
         int esc_param = 0;
         int esc_params[MAX_PARAMS] = {};
         usize esc_param_count = 0;
+        bool esc_private_mode = false;
 
         usize cursor_x = 0;
         usize cursor_y = 0;
+        usize saved_cursor_x = 0;
+        usize saved_cursor_y = 0;
 
         colour_t fg = WHITE;
         colour_t bg = BLACK;

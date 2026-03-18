@@ -71,11 +71,11 @@ void Terminal::put_codepoint(const u32 cp) {
         return;
     }
     if (cp == '\r') {
-        cx_ = 0;
+        cursor_col_ = 0;
         return;
     }
 
-    Cell& cell = sb_->write_at(cx_);
+    Cell& cell = sb_->write_at(cursor_col_);
     cell = {cp, fg_, bg_, true};
     advance();
 }
@@ -86,18 +86,21 @@ void Terminal::put_char_fast(char c) {
         return;
     }
     if (c == '\r') {
-        cx_ = 0;
+        erase_cursor_under();
+        cursor_col_ = 0;
+        draw_cursor();
         return;
     }
 
-    Cell& cell = sb_->write_at(cx_);
-    cell = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
+    erase_cursor_under();
 
-    const usize row = sb_->write_row();
-    draw_cell(cx_, row);
+    Cell& cell = sb_->write_at(cursor_col_);
+    cell = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
+    draw_cell(cursor_col_, cursor_row_);
     cell.dirty = false;
 
     advance();
+    draw_cursor();
 }
 
 void Terminal::put_char(const char c) {
@@ -105,7 +108,7 @@ void Terminal::put_char(const char c) {
         new_line();
         return;
     }
-    Cell& cell = sb_->write_at(cx_);
+    Cell& cell = sb_->write_at(cursor_col_);
     cell = {static_cast<u32>(static_cast<u8>(c)), fg_, bg_, true};
     advance();
 }
@@ -134,7 +137,7 @@ void Terminal::set_glyph_provider(IGlyphProvider* provider) {
     delete sb_;
     sb_ = new ScrollbackBuffer(cols_, rows_, 2000);
 
-    cx_ = 0;
+    cursor_col_ = 0;
 
     char_w_ = new_char_w;
     char_h_ = new_char_h;
@@ -150,35 +153,48 @@ void Terminal::set_colour(const u32 new_fg, const u32 new_bg) {
 }
 
 void Terminal::set_cursor(const u32 x, const u32 y) {
-    cx_ = x;
+    erase_cursor_under();
+    cursor_col_ = x;
+    cursor_row_ = y;
     sb_->set_write_row(y);
+    draw_cursor();
 }
 
 void Terminal::clear() {
     sb_->clear(fg_, bg_);
-    cx_ = 0;
+    cursor_col_ = 0;
+    cursor_row_ = 0;
     drv_->fill_rect(0, 0, drv_->screen_width_px(), drv_->screen_height_px(), bg_);
 }
 
 void Terminal::clear_char() {
-    if (cx_ == 0 && sb_->write_row() == 0) return;
-    if (cx_ == 0) {
+    if (cursor_col_ == 0 && cursor_row_ == 0) return;
+
+    erase_cursor_under();
+
+    if (cursor_col_ == 0) {
         sb_->retreat_line();
-        cx_ = cols_ - 1;
+        cursor_row_ = sb_->write_row();
+        cursor_col_ = cols_ - 1;
     } else {
-        cx_--;
+        cursor_col_--;
     }
-    put_char_fast(' ');
-    if (cx_ == 0) {
-        cx_ = cols_ - 1;
-    } else {
-        cx_--;
-    }
+    sb_->set_write_row(cursor_row_);
+
+    Cell& cell = sb_->write_at(cursor_col_);
+    cell = {' ', fg_, bg_, true};
+    draw_cell(cursor_col_, cursor_row_);
+    cell.dirty = false;
+
+    draw_cursor();
 }
 
 void Terminal::new_line() {
-    cx_ = 0;
+    erase_cursor_under();
+    cursor_col_ = 0;
     sb_->new_line(fg_, bg_);
+    cursor_row_ = sb_->write_row();
+    draw_cursor();
 }
 
 void Terminal::flush() const {
@@ -191,6 +207,8 @@ void Terminal::flush() const {
             }
         }
     }
+
+    draw_cursor();
 }
 
 void Terminal::draw_cell(const u32 cx, const u32 cy) const {
@@ -258,6 +276,74 @@ bool Terminal::is_at_bottom() const {
 }
 
 void Terminal::advance() {
-    cx_++;
-    if (cx_ >= cols_) new_line();
+    cursor_col_++;
+    if (cursor_col_ >= cols_) new_line();
+}
+
+void Terminal::erase_in_line(const int mode, const u32 col, const u32 row) const {
+    usize start_col = 0, end_col = 0;
+    switch (mode) {
+        case 0:
+            start_col = col;
+            end_col = cols_;
+            break;  // cursor → EOL
+        case 1:
+            start_col = 0;
+            end_col = col + 1;
+            break;  // BOL → cursor
+        case 2:
+            start_col = 0;
+            end_col = cols_;
+            break;  // entire line
+        default:
+            return;
+    }
+    for (usize c = start_col; c < end_col; c++) {
+        Cell& cell = sb_->at(c, row);
+        cell = {' ', fg_, bg_, true};
+    }
+}
+
+void Terminal::erase_in_display(const int mode, const u32 col, const u32 row) {
+    switch (mode) {
+        case 0: {  // cursor -> end of screen
+            erase_in_line(0, col, row);
+            for (usize r = row + 1; r < rows_; r++) erase_in_line(2, 0, r);
+            break;
+        }
+        case 1: {  // start of screen -> cursor
+            for (usize r = 0; r < row; r++) erase_in_line(2, 0, r);
+            erase_in_line(1, col, row);
+            break;
+        }
+        case 2:
+            clear();
+            break;
+        default:
+            break;
+    }
+}
+
+void Terminal::draw_cursor() const {
+    if (!cursor_visible_ || !cursor_blink_on_) return;
+    if (!sb_->is_at_bottom()) return;
+
+    const u32 px = cursor_col_ * char_w_;
+    const u32 py = cursor_row_ * char_h_;
+    drv_->fill_rect(px, py, 2, char_h_, fg_);
+}
+
+void Terminal::erase_cursor_under() const {
+    draw_cell(cursor_col_, cursor_row_);
+}
+
+void Terminal::tick_cursor() {
+    cursor_blink_on_ = !cursor_blink_on_;
+    draw_cell(cursor_col_, cursor_row_);
+    if (cursor_blink_on_) draw_cursor();
+}
+
+void Terminal::set_cursor_visible(bool v) {
+    cursor_visible_ = v;
+    draw_cell(cursor_col_, cursor_row_);
 }

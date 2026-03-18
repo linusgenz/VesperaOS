@@ -195,6 +195,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     }
 
     kernel::SystemManager::set_system_initialized();
+    kernel::SystemManager::get_system_terminal()->set_cursor_visible(true);
 
     //  Debug_PrintAllDevices();
 

@@ -119,7 +119,7 @@ static char translate_hid_usage_to_ascii(u8 usage_id, u32 modifiers) {
         }
     }
 
-    return '?';  // Unknown
+    return 0;  // Unknown
 }
 
 static KeyCode hid_to_keycode(u8 usage) {
@@ -167,7 +167,10 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, u8 modifie
         }
 
         if (!was_previously_pressed) {
-            char ascii = translate_hid_usage_to_ascii(key, modifiers);
+            char ascii = 0;
+            if (!(modifiers & (kernel::input::MOD_CTRL | kernel::input::MOD_ALT | kernel::input::MOD_SUPER))) {
+                ascii = translate_hid_usage_to_ascii(key, modifiers);
+            }
             const KeyCode kc = hid_to_keycode(key);
 
             alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
@@ -196,7 +199,10 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, u8 modifie
         }
 
         if (!is_still_pressed) {
-            const char ascii = translate_hid_usage_to_ascii(key, modifiers);
+            char ascii = 0;
+            if (!(modifiers & (kernel::input::MOD_CTRL | kernel::input::MOD_ALT | kernel::input::MOD_SUPER))) {
+                ascii = translate_hid_usage_to_ascii(key, modifiers);
+            }
             const KeyCode kc = hid_to_keycode(key);
 
             alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
