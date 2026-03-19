@@ -22,7 +22,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/boot/boot.h>
-#include <vespera/cpu/simd.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
@@ -32,7 +31,6 @@
 #include <vespera/types.h>
 
 #include "./cpu/cpu.h"
-#include "cpu/io.h"
 #include "exec/elf.h"
 #include "kversion.h"
 #include "units/unit_manager.h"
@@ -166,7 +164,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     TtyDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
-    ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
+    const ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
     if (!result.success) {
         Log::error("Failed to load elf binary: %s", result.error_message);
     }

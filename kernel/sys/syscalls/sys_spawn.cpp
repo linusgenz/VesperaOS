@@ -31,17 +31,17 @@
 
 namespace syscalls::internal {
     i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        auto user_path = reinterpret_cast<const char*>(arg0);
-        auto argv = reinterpret_cast<const char**>(arg1);
-        auto envp = reinterpret_cast<const char**>(arg2);
+        const auto user_path = reinterpret_cast<const char*>(arg0);
+        const auto argv = reinterpret_cast<const char**>(arg1);
+        const auto envp = reinterpret_cast<const char**>(arg2);
 
         if (!user_path) return -EINVAL;
 
         const Unit* caller = kernel::scheduling::get_current_unit();
-        Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
+        const Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
         TtyDevice* tty_dev = parent_realm ? parent_realm->get_tty_device() : kernel::tty::tty_devices[0];
 
-        RealmConfig cfg = {.name = user_path, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
+        const RealmConfig cfg = {.name = user_path, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
 
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
@@ -55,7 +55,7 @@ namespace syscalls::internal {
             return -ENOEXEC;
         }
 
-        UnitConfig ucfg = {
+        const UnitConfig ucfg = {
             .name = "main_unit",
             .cpu_id = 6,
             .priority = 5,

@@ -56,13 +56,13 @@ char DeviceManager::get_next_free_block_letter() {
     return '?';
 }
 
-void DeviceManager::release_block_letter(char c) {
+void DeviceManager::release_block_letter(const char c) {
     if (c >= 'a' && c <= 'z') {
         block_letter_used[c - 'a'] = false;
     }
 }
 
-char* DeviceManager::generate_sd_device_name(char* buffer, usize buffer_size) {
+char* DeviceManager::generate_sd_device_name(char* buffer, const usize buffer_size) {
     if (!buffer || buffer_size < 4) return nullptr;
     buffer[0] = 's';
     buffer[1] = 'd';
@@ -72,7 +72,7 @@ char* DeviceManager::generate_sd_device_name(char* buffer, usize buffer_size) {
 }
 
 char* DeviceManager::generate_nvme_device_name(
-    const KernelDevice* controller, char* buffer, usize buffer_size, const u32 namespace_id
+    const KernelDevice* controller, char* buffer, const usize buffer_size, const u32 namespace_id
 ) {
     if (!controller || !buffer || buffer_size < 16) return nullptr;
     if (controller->controller != ControllerType::Nvme) return nullptr;
@@ -222,7 +222,7 @@ Vector<KernelDevice*> DeviceManager::get_all_devices() {
     return all_devices_->copy();
 }
 
-KernelDevice* DeviceManager::find_by_id(u32 id) {
+KernelDevice* DeviceManager::find_by_id(const u32 id) {
     SpinlockGuard guard(lock_);
     if (!all_devices_) return nullptr;
     for (auto* dev : *all_devices_) {

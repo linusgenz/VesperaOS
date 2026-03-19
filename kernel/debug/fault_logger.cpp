@@ -17,7 +17,7 @@
 #include "trace.h"
 
 namespace kernel::debug {
-    static const char* fault_type_to_string(FaultType type) {
+    static const char* fault_type_to_string(const FaultType type) {
         switch (type) {
             case FaultType::PageFault:
                 return "PAGE FAULT";
@@ -76,11 +76,11 @@ namespace kernel::debug {
 #endif
     }
 
-    void log_page_fault_detail(u64 fault_addr, u64 error_code, const FaultContext& ctx) {
+    void log_page_fault_detail(const u64 fault_addr, const u64 error_code, const FaultContext& ctx) {
         log_fault(FaultType::PageFault, ctx, "Page fault detected");
 
-        Unit* u = scheduling::get_current_unit();
-        Realm* r = RealmManager::get(u->rid);
+        const Unit* u = scheduling::get_current_unit();
+        const Realm* r = RealmManager::get(u->rid);
 
         Log::error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->pml4);
         Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);
@@ -93,7 +93,7 @@ namespace kernel::debug {
         );
     }
 
-    void log_invalid_opcode_bytes(u64 rip, const FaultContext& ctx) {
+    void log_invalid_opcode_bytes(const u64 rip, const FaultContext& ctx) {
         log_fault(FaultType::InvalidOpcode, ctx, "Invalid opcode detected");
 
         // Vorsicht: wir greifen direkt auf den Code-Speicher zu – im Fehlerfall ist das

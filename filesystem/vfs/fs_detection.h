@@ -72,7 +72,7 @@ private:
     static usize device_count_;
 
 
-    static VfsNode *mount_filesystem(BlockDevice *device, FilesystemInfo* fs_info);
+    static VfsNode *mount_filesystem(BlockDevice *device, const FilesystemInfo * fs_info);
 
     static bool mount_device(BlockDevice *device, const char *suggested_path, bool is_partition,
                              const char *table_type, bool is_root_device);

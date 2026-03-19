@@ -52,7 +52,7 @@ void RealmFs::init()
 }
 
 
-int RealmFs::register_realm(u64 realm_id, const char* name, void* realm_ptr)
+int RealmFs::register_realm(const u64 realm_id, const char* name, void* realm_ptr)
 {
     SpinlockGuard guard(lock_);
 
@@ -72,7 +72,7 @@ int RealmFs::register_realm(u64 realm_id, const char* name, void* realm_ptr)
     return SUCCESS_CODE;
 }
 
-int RealmFs::register_unit(u64 unit_id, const char* name, void* unit_ptr, const char* realm_name)
+int RealmFs::register_unit(const u64 unit_id, const char* name, void* unit_ptr, const char* realm_name)
 {
     SpinlockGuard guard(lock_);
 
@@ -97,7 +97,7 @@ int RealmFs::register_unit(u64 unit_id, const char* name, void* unit_ptr, const 
     return SUCCESS_CODE;
 }
 
-int RealmFs::unregister_realm(u64 realm_id)
+int RealmFs::unregister_realm(const u64 realm_id)
 {
     SpinlockGuard guard(lock_);
 
@@ -108,11 +108,11 @@ int RealmFs::unregister_realm(u64 realm_id)
         VfsNode* realm_dir = root_data->subdirs[i];
 
         auto* dir_data = static_cast<DirData*>(realm_dir->internal_data);
-        RealmFsEntry* realm_entry = nullptr;
+        const RealmFsEntry* realm_entry = nullptr;
 
-        for (auto* file_node : dir_data->files)
+        for (const auto* file_node : dir_data->files)
         {
-            if (auto* entry = static_cast<RealmFsEntry*>(file_node->internal_data);
+            if (const auto* entry = static_cast<RealmFsEntry*>(file_node->internal_data);
                 entry && entry->device && entry->device->id == realm_id)
             {
                 realm_entry = entry;
@@ -130,13 +130,13 @@ int RealmFs::unregister_realm(u64 realm_id)
     return -ENOENT;
 }
 
-int RealmFs::unregister_unit(u64 unit_id)
+int RealmFs::unregister_unit(const u64 unit_id)
 {
     SpinlockGuard guard(lock_);
 
     for (auto* root_data = static_cast<DirData*>(root_->internal_data); const auto* realm_dir : root_data->subdirs)
     {
-        VfsNode* units_dir = finddir(realm_dir, "units");
+        const VfsNode* units_dir = finddir(realm_dir, "units");
         if (!units_dir) continue;
 
         auto* units_data = static_cast<DirData*>(units_dir->internal_data);
@@ -156,11 +156,11 @@ int RealmFs::unregister_unit(u64 unit_id)
     return -ENOENT;
 }
 
-isize RealmFs::read(const VfsNode* node, usize offset, usize size, void* buffer)
+isize RealmFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
+    const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
@@ -179,7 +179,7 @@ isize RealmFs::write(VfsNode* node, usize offset, usize size, const void* buffer
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
+    const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
@@ -198,7 +198,7 @@ isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg)
 {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
+    const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SysObject* obj = entry->device;

@@ -12,8 +12,8 @@ extern volatile u64 apic_ticks[MAX_CPU_CORES];
 
 namespace kernel::time {
     namespace internal {
-        void thread_sleep_ms(u64 ms) {
-            u32 cpu_id = cpu_manager::get_current_cpu_id();
+        void thread_sleep_ms(const u64 ms) {
+            const u32 cpu_id = cpu_manager::get_current_cpu_id();
 
             Unit *current = kernel::scheduling::get_current_unit();
             if (!current || current->is_idle) return;

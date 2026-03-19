@@ -49,7 +49,7 @@ namespace ps2::keyboard::qwerty {
         {0x31, 'n', 'N'}, {0x32, 'm', 'M'},
     };
 
-    char translate(u8 scancode, bool shift) {
+    char translate(const u8 scancode, const bool shift) {
         for (const auto& entry : PS2_KEYMAP) {
             if (entry.scancode == scancode) {
                 return shift ? entry.shifted : entry.normal;

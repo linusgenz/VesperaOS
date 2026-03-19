@@ -248,7 +248,7 @@ namespace blt {
         void reset_bcs() const;
         void init_gtt();
         void map_to_ggtt_at(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const;
-        void unmap_from_ggtt(u32 gtt_index, usize num_pages);
+        void unmap_from_ggtt(u32 gtt_index, usize num_pages) const;
         void emergency_reset_bcs();
         void check_gpu_health();
         [[nodiscard]] bool validate_blt_params(const BltRect& rect) const;

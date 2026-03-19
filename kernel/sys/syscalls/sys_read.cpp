@@ -31,19 +31,19 @@
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        HandleId hid = arg0;
+        const HandleId hid = arg0;
         const auto buf = reinterpret_cast<void *>(arg1);
-        usize count = arg2;
+        const usize count = arg2;
 
         if (!buf || count == 0) return -EINVAL;
 
-        Unit *u = kernel::scheduling::get_current_unit();
+        const Unit *u = kernel::scheduling::get_current_unit();
         if (!u || !u->active) return -EINVAL;
 
         Realm *realm = RealmManager::get(u->rid);
         if (!realm) return -EUNKNOWN;
 
-        HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) {

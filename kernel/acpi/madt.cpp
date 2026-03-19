@@ -29,7 +29,7 @@ namespace madt {
             Log::info("No Pic detected");
         }
 
-        virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
+        const virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
 
         kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled));
 
@@ -111,7 +111,7 @@ namespace madt {
                     break;
                 }
                 case acpi::MADT_ENTRY_TYPE::INTERRUPT_OVERRIDE: {
-                    auto* entry = reinterpret_cast<acpi::InterruptOverrideEntry*>(entries);
+                    const auto* entry = reinterpret_cast<acpi::InterruptOverrideEntry*>(entries);
 
                     if (override_count < MAX_OVERRIDES) {
                         overrides[override_count].bus = entry->bus;

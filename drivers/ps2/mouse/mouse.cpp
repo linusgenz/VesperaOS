@@ -70,7 +70,7 @@ namespace input::mouse {
         }
     }
 
-    void mouse_write(u8 value) {
+    void mouse_write(const u8 value) {
         mouse_wait();
         outb(0x64, 0xD4);
         mouse_wait();
@@ -87,7 +87,7 @@ namespace input::mouse {
     bool mouse_packet_ready = false;
     point_t mouse_position_old;
 
-    void handle_byte(u8 data) {
+    void handle_byte(const u8 data) {
         static bool skip = true;
         if (skip) {
             skip = false;
@@ -127,10 +127,10 @@ namespace input::mouse {
         mouse_packet_ready = false;
 
 
-        bool x_negative = mouse_packet[0] & PS2_X_SIGN;
-        bool y_negative = mouse_packet[0] & PS2_Y_SIGN;
-        bool x_overflow = mouse_packet[0] & PS2_X_OVERFLOW;
-        bool y_overflow = mouse_packet[0] & PS2_Y_OVERFLOW;
+        const bool x_negative = mouse_packet[0] & PS2_X_SIGN;
+        const bool y_negative = mouse_packet[0] & PS2_Y_SIGN;
+        const bool x_overflow = mouse_packet[0] & PS2_X_OVERFLOW;
+        const bool y_overflow = mouse_packet[0] & PS2_Y_OVERFLOW;
 
         // Calculate X movement
         if (!x_negative) {

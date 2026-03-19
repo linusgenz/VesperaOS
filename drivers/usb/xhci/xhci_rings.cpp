@@ -3,7 +3,7 @@
 #include <vespera/log.h>
 #include <klib/vector.h>
 
-XhciCommandRing::XhciCommandRing(usize max_trbs) {
+XhciCommandRing::XhciCommandRing(const usize max_trbs) {
     lock_.init("xhci_command_ring_lock");
 
     max_trb_count_ = max_trbs;
@@ -41,7 +41,7 @@ void XhciCommandRing::enqueue(xhci_trb_t* trb) {
     }
 }
 
-XhciEventRing::XhciEventRing(usize max_trbs, volatile XHCI_INTERRUPTER_REGISTERS* interrupter)
+XhciEventRing::XhciEventRing(const usize max_trbs, volatile XHCI_INTERRUPTER_REGISTERS* interrupter)
     : interrupter_regs_(interrupter)
     , segment_trb_count_(max_trbs)
     , dequeue_ptr_(0)
@@ -131,7 +131,7 @@ void XhciEventRing::dequeue_events(Vector<xhci_trb_t*>& trbs) {
 }
 
 void XhciEventRing::update_erdp() const {
-    u64 dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
+    const u64 dequeue_address = physical_base_ + (dequeue_ptr_ * sizeof(xhci_trb_t));
     interrupter_regs_->erdp = dequeue_address;
 }
 
@@ -157,11 +157,11 @@ u64 XhciEventRing::get_current_dequeue_physical() const {
     return dequeue_ptr_;
 }
 
-XhciTransferRing* XhciTransferRing::allocate(u8 slot_id) {
+XhciTransferRing* XhciTransferRing::allocate(const u8 slot_id) {
     return new XhciTransferRing(XHCI_TRANSFER_RING_TRB_COUNT, slot_id);
 }
 
-XhciTransferRing::XhciTransferRing(usize max_trbs, u8 doorbell_id)
+XhciTransferRing::XhciTransferRing(const usize max_trbs, const u8 doorbell_id)
     : max_trb_count_(max_trbs)
     , dequeue_ptr_(0)
     , enqueue_ptr_(0)

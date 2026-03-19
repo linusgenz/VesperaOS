@@ -26,8 +26,6 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/time.h>
 
-#include <vespera/log.h>
-
 void Completion::init() {
     completed = false;
     lock.init();
@@ -39,8 +37,8 @@ void Completion::wait() const {
     }
 }
 
-bool Completion::wait_timeout(u64 timeout_ms) const {
-    u64 start = kernel::time::get_ticks();
+bool Completion::wait_timeout(const u64 timeout_ms) const {
+    const u64 start = kernel::time::get_ticks();
     while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
         if (const u64 elapsed = kernel::time::get_ticks() - start; elapsed > timeout_ms / 10) {  // ticks sind 10ms
             return false;

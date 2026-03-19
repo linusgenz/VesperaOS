@@ -27,7 +27,7 @@
 #include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::ioapic {
-    static madt::IoApic *find_ioapic_for_gsi(u32 gsi) {
+    static madt::IoApic *find_ioapic_for_gsi(const u32 gsi) {
         madt::IoApic *apics = madt::get_ioapics();
         for (u32 i = 0; i < madt::get_ioapic_count(); ++i) {
             auto &apic = apics[i];
@@ -38,8 +38,8 @@ namespace arch::x86_64::interrupts::ioapic {
         return nullptr;
     }
 
-    static u32 resolve_irq_to_gsi(u8 irq) {
-        madt::InterruptOverride *overrides = madt::get_overrides();
+    static u32 resolve_irq_to_gsi(const u8 irq) {
+        const madt::InterruptOverride *overrides = madt::get_overrides();
         for (u32 i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].gsi;
@@ -49,7 +49,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static u16 get_flags_for_irq(const u8 irq) {
-        madt::InterruptOverride *overrides = madt::get_overrides();
+        const madt::InterruptOverride *overrides = madt::get_overrides();
         for (u32 i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].flags;
@@ -63,13 +63,13 @@ namespace arch::x86_64::interrupts::ioapic {
         return reinterpret_cast<volatile u32 *>(address);
     }
 
-    static void write_ioapic_reg(volatile u32 *base, u8 reg, u32 val) {
+    static void write_ioapic_reg(volatile u32 *base, const u8 reg, const u32 val) {
         base[IOAPIC_REGSEL] = reg;
         base[IOAPIC_WINDOW] = val;
     }
 
     static void ioapic_set_redirect(
-        const madt::IoApic *ioapic, const u32 gsi, const u8 vector, const u8 dest_apic_id, u16 flags
+        const madt::IoApic *ioapic, const u32 gsi, const u8 vector, const u8 dest_apic_id, const u16 flags
     ) {
         volatile u32 *mmio = map_ioapic(ioapic->address);
         const u32 index = gsi - ioapic->gsi_base;
@@ -82,7 +82,7 @@ namespace arch::x86_64::interrupts::ioapic {
         low |= ((flags >> 3) & 1) << 15;  // trigger mode
         low |= 0 << 16;                   // mask = 0 (enabled)
 
-        u32 high = dest_apic_id << 24;
+        const u32 high = dest_apic_id << 24;
 
         low |= 1 << 16;  // masked
         write_ioapic_reg(mmio, reg, low);
@@ -101,11 +101,11 @@ namespace arch::x86_64::interrupts::ioapic {
         );
     }
 
-    void configure_irq(u8 irq, u8 vector, u8 dest_apic_id) {
-        u32 gsi = resolve_irq_to_gsi(irq);
-        u16 flags = get_flags_for_irq(irq);
+    void configure_irq(const u8 irq, const u8 vector, const u8 dest_apic_id) {
+        const u32 gsi = resolve_irq_to_gsi(irq);
+        const u16 flags = get_flags_for_irq(irq);
 
-        madt::IoApic *ioapic = find_ioapic_for_gsi(gsi);
+        const madt::IoApic *ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) {
             Log::error("IOAPIC: No APIC found for GSI %u (IRQ 0x%x)", gsi, irq);
             return;
@@ -115,7 +115,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void init() {
-        for (const u8 default_irqs[] = {0, 5, 9, 10, 11}; u8 irq : default_irqs) {
+        for (const u8 default_irqs[] = {0, 5, 9, 10, 11}; const u8 irq : default_irqs) {
             configure_irq(irq, 0x20 + irq, madt::get_bsp_apic_id());
         }
     }

@@ -33,14 +33,14 @@ namespace kernel::scheduling {
     void remove_unit(Unit *unit) {
         if (!unit || !global_scheduler.initialized) return;
 
-        u8 cpu_id = unit->cpu_id;
+        const u8 cpu_id = unit->cpu_id;
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         cpu_scheduler::remove_unit_from_cpu(unit, cpu_id);
     }
 
     void yield() {
-        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        const u8 cpu_id = cpu_manager::get_current_cpu_id();
         cpu_scheduler::yield_cpu(cpu_id);
     }
 
@@ -66,7 +66,7 @@ namespace kernel::scheduling {
     }
 
     bool is_curent_cpu_enabled() {
-        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        const u8 cpu_id = cpu_manager::get_current_cpu_id();
         return cpu_scheduler::is_cpu_enabled(cpu_id);
     }
 

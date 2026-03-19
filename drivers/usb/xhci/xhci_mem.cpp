@@ -24,16 +24,16 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-uptr xhci_map_mmio(u64 pci_bar_address, u32 bar_size) {
-    phys_addr_t mmio_phys = make_phys(pci_bar_address);
-    virt_addr_t mmio_virt = phys_to_virt(mmio_phys);
+uptr xhci_map_mmio(const u64 pci_bar_address, const u32 bar_size) {
+    const phys_addr_t mmio_phys = make_phys(pci_bar_address);
+    const virt_addr_t mmio_virt = phys_to_virt(mmio_phys);
     kernel::memory::map_range(mmio_virt, mmio_phys, bar_size, (1ULL << CacheDisabled));
 
     return virt_raw(mmio_virt);
 }
 
 
-void *alloc_xhci_memory(usize size, usize alignment, usize boundary) {
+void *alloc_xhci_memory(const usize size, const usize alignment, const usize boundary) {
     if (size == 0 || alignment == 0 || boundary == 0) {
         Log::error("Invalid memory alignment");
     }

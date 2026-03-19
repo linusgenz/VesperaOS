@@ -14,7 +14,7 @@ static void* scalar_memcpy(void* dst, const void* src, usize len) {
     return dst;
 }
 
-static void scalar_fill_rect(void* base, u32 stride, u32 px, u32 py, u32 w, u32 h, u32 colour) {
+static void scalar_fill_rect(void* base, const u32 stride, const u32 px, const u32 py, const u32 w, const u32 h, const u32 colour) {
     auto* fb = static_cast<u32*>(base);
     for (u32 y = 0; y < h; y++) {
         u32* row = fb + (py + y) * stride + px;
@@ -72,7 +72,7 @@ void FramebufferDriver::init_simd() noexcept {
     }
 }
 
-bool FramebufferDriver::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
+bool FramebufferDriver::fill_rect(const u32 px, const u32 py, const u32 w, const u32 h, const u32 colour) {
     if (px + w > fb_->width || py + h > fb_->height) return false;
     fn_fill_rect_(fb_->base_address, fb_->pixels_per_scanline, px, py, w, h, colour);
     return true;
@@ -143,33 +143,33 @@ colour)
 
 }*/
 
-void FramebufferDriver::put_char(char c, u32 x, u32 y, u32 fg_color, u32 bg_color) const {
-    if (c >= ((psf2_header_t*)font_->header)->length) c = '?';
+void FramebufferDriver::put_char(char c, const u32 x, const u32 y, const u32 fg_color, const u32 bg_color) const {
+    if (c >= static_cast<psf2_header_t*>(font_->header)->length) c = '?';
     if (!c) return;
 
-    auto pix_ptr = static_cast<u32*>(fb_->base_address);
+    const auto pix_ptr = static_cast<u32*>(fb_->base_address);
     const char* glyph = static_cast<char*>(font_->glyph_buffer) + (c * font_->charsize);
 
     for (u32 row = 0; row < font_->height; row++) {
         for (u32 bx = 0; bx < (font_->width + 7) / 8; bx++) {
-            u8 byte = glyph[row * ((font_->width + 7) / 8) + bx];
+            const u8 byte = glyph[row * ((font_->width + 7) / 8) + bx];
             for (u32 bit = 0; bit < 8; bit++) {
-                u32 xpix = bx * 8 + bit;
+                const u32 xpix = bx * 8 + bit;
                 if (xpix >= font_->width) break;
 
-                u32 color_to_draw = (byte & (0x80 >> bit)) ? fg_color : bg_color;
+               const  u32 color_to_draw = (byte & (0x80 >> bit)) ? fg_color : bg_color;
                 *(pix_ptr + (x + xpix) + (y + row) * fb_->pixels_per_scanline) = color_to_draw;
             }
         }
     }
 }
 
-bool FramebufferDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) {
+bool FramebufferDriver::blit_buffer(const void* pixels, const u32 buffer_width, const u32 buffer_height, const u32 dst_x, const u32 dst_y) {
     if (!pixels) return false;
     if (dst_x >= fb_->width || dst_y >= fb_->height) return false;
 
-    u32 max_w = (dst_x + buffer_width > fb_->width) ? fb_->width - dst_x : buffer_width;
-    u32 max_h = (dst_y + buffer_height > fb_->height) ? fb_->height - dst_y : buffer_height;
+    const u32 max_w = (dst_x + buffer_width > fb_->width) ? fb_->width - dst_x : buffer_width;
+    const u32 max_h = (dst_y + buffer_height > fb_->height) ? fb_->height - dst_y : buffer_height;
 
     const auto* src = static_cast<const u32*>(pixels);
     auto* dst = static_cast<u32*>(fb_->base_address);
@@ -180,10 +180,10 @@ bool FramebufferDriver::blit_buffer(const void* pixels, u32 buffer_width, u32 bu
     return true;
 }
 
-bool FramebufferDriver::scroll_pixels(int dy) {
+bool FramebufferDriver::scroll_pixels(const int dy) {
     if (dy <= 0 || static_cast<u32>(dy) >= fb_->height) return false;
 
-    u32 bps = fb_->pixels_per_scanline * 4;
+    const u32 bps = fb_->pixels_per_scanline * 4;
     fn_memmove_(fb_->base_address, static_cast<u8*>(fb_->base_address) + bps * dy, bps * (fb_->height - dy));
     fill_rect(0, fb_->height - dy, fb_->width, dy, 0x00000000);
     return true;

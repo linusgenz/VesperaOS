@@ -45,7 +45,7 @@ static constexpr utf8_pattern_t UTF8_LEADING_BYTES[] = {
 
 
 
-static usize calculate_utf8_len(codepoint_t cp) {
+static usize calculate_utf8_len(const codepoint_t cp) {
     if (cp <= UTF8_1_MAX)  return 1;
     if (cp <= UTF8_2_MAX)  return 2;
     if (cp <= UTF8_3_MAX)  return 3;
@@ -55,8 +55,8 @@ static usize calculate_utf8_len(codepoint_t cp) {
 
 // utf16 -> codepoint
 
-codepoint_t decode_utf16(const utf16_t* utf16, usize len, usize* index) {
-    utf16_t high = utf16[*index];
+codepoint_t decode_utf16(const utf16_t* utf16, const usize len, usize* index) {
+    const utf16_t high = utf16[*index];
 
     if ((high & GENERIC_SURROGATE_MASK) != GENERIC_SURROGATE_VALUE)
         return high;
@@ -67,7 +67,7 @@ codepoint_t decode_utf16(const utf16_t* utf16, usize len, usize* index) {
     if (*index == len - 1)
         return INVALID_CODEPOINT;
 
-    utf16_t low = utf16[*index + 1];
+    const utf16_t low = utf16[*index + 1];
 
     if ((low & SURROGATE_MASK) != LOW_SURROGATE_VALUE)
         return INVALID_CODEPOINT;
@@ -84,19 +84,19 @@ codepoint_t decode_utf16(const utf16_t* utf16, usize len, usize* index) {
 
 // codepoint -> utf8
 
-usize encode_utf8(codepoint_t cp, utf8_t* utf8, usize utf8_len, usize index) {
-    int size = calculate_utf8_len(cp);
+usize encode_utf8(codepoint_t cp, utf8_t* utf8, const usize utf8_len, const usize index) {
+    const int size = calculate_utf8_len(cp);
     if (size == 0 || index + size > utf8_len)
         return 0;
 
     for (int i = size - 1; i > 0; i--) {
-        utf8_t cont = (cp & ((1 << UTF8_CONTINUATION_CODEPOINT_BITS) - 1)) | UTF8_CONTINUATION_VALUE;
+        const utf8_t cont = (cp & ((1 << UTF8_CONTINUATION_CODEPOINT_BITS) - 1)) | UTF8_CONTINUATION_VALUE;
         utf8[index + i] = cont;
         cp >>= UTF8_CONTINUATION_CODEPOINT_BITS;
     }
 
     utf8_pattern_t pattern = UTF8_LEADING_BYTES[size - 1];
-    utf8_t lead = (cp & ~pattern.mask) | pattern.value;
+    const utf8_t lead = (cp & ~pattern.mask) | pattern.value;
     utf8[index] = lead;
 
     return size;
@@ -104,20 +104,20 @@ usize encode_utf8(codepoint_t cp, utf8_t* utf8, usize utf8_len, usize index) {
 
 // utf16 buf -> utf8 buf
 
-usize utf16_to_utf8(const utf16_t *utf16, usize utf16_len,
-                     utf8_t *utf8, usize utf8_len) {
+usize utf16_to_utf8(const utf16_t *utf16, const usize utf16_len,
+                     utf8_t *utf8, const usize utf8_len) {
     usize utf16_index = 0;
     usize utf8_index = 0;
 
     while (utf16_index < utf16_len) {
-        usize old_index = utf16_index;
+        const usize old_index = utf16_index;
         codepoint_t cp = decode_utf16(utf16, utf16_len, &utf16_index);
 
         if (cp > 0x7F) { // ascii range
             cp = '?';
         }
 
-        usize needed = calculate_utf8_len(cp);
+        const usize needed = calculate_utf8_len(cp);
         if (utf8_index + needed > utf8_len)
             break;
 
@@ -132,8 +132,8 @@ usize utf16_to_utf8(const utf16_t *utf16, usize utf16_len,
     return utf8_index;
 }
 
-usize utf16_to_utf8(const utf16_t* in, usize in_len,
-                             char* out, usize out_len) {
+usize utf16_to_utf8(const utf16_t* in, const usize in_len,
+                             char* out, const usize out_len) {
     if (out_len == 0) return 0;
     const usize written = utf16_to_utf8(in, in_len, reinterpret_cast<utf8_t*>(out), out_len - 1);
     out[written] = '\0';

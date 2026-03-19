@@ -156,7 +156,7 @@ namespace kernel {
         if (!event_channel_->send(&event, sizeof(SystemEvent))) {
             if (log_channel_) {
                 char buf[128];
-                int n = snprintf(
+                const int n = snprintf(
                     buf, sizeof(buf), "SystemManager: Dropped event type %u\n", static_cast<unsigned>(event.type)
                 );
                 log_channel_->send(buf, n);
@@ -175,7 +175,7 @@ namespace kernel {
     SystemStats SystemManager::get_system_stats() {
         // Kopie zurückgeben (thread-safe)
         //  mutex_acquire(&stats_mutex);
-        SystemStats copy = current_stats_;
+        const SystemStats copy = current_stats_;
         //  mutex_release(&stats_mutex);
         return copy;
     }
@@ -185,7 +185,7 @@ namespace kernel {
 
         //  mutex_acquire(&stats_mutex);
 
-        u64 now = get_current_timestamp();
+        const u64 now = get_current_timestamp();
         current_stats_.uptime_ms = now - boot_timestamp_;
         current_stats_.last_update_timestamp = now;
 
@@ -204,7 +204,7 @@ namespace kernel {
         //  mutex_release(&stats_mutex);
     }
 
-    Channel *SystemManager::create_system_channel(const char *name, usize buffer_size) {
+    Channel *SystemManager::create_system_channel(const char *name, const usize buffer_size) {
         if (!manager_initialized_ || !name) return nullptr;
 
         global_lock_.lock();
@@ -269,14 +269,14 @@ namespace kernel {
         if (!manager_initialized_ || !name) return nullptr;
 
         global_lock_.lock();
-        SystemChannel *sys_chan = find_channel_by_name(name);
+        const SystemChannel *sys_chan = find_channel_by_name(name);
         Channel *result = sys_chan ? sys_chan->channel : nullptr;
         global_lock_.unlock();
 
         return result;
     }
 
-    void SystemManager::initiate_shutdown(const char *reason, bool reboot) {
+    void SystemManager::initiate_shutdown(const char *reason, const bool reboot) {
         SystemEvent shutdown_event = {};
         shutdown_event.type = SystemEventType::SYSTEM_SHUTDOWN;
         shutdown_event.timestamp = get_current_timestamp();
@@ -308,7 +308,7 @@ namespace kernel {
         }
     }
 
-    [[noreturn]] void SystemManager::system_panic(const char *message, i32 error_code) {
+    [[noreturn]] void SystemManager::system_panic(const char *message, const i32 error_code) {
         SystemEvent panic_event = {};
         panic_event.type = SystemEventType::SYSTEM_PANIC;
         panic_event.timestamp = get_current_timestamp();
@@ -353,7 +353,7 @@ namespace kernel {
         if (!manager_initialized_) return;
 
         update_system_stats();
-        SystemStats stats = get_system_stats();
+        const SystemStats stats = get_system_stats();
 
         Log::info("=== System Statistics ===");
         Log::info("Uptime: %lu ms", stats.uptime_ms);
@@ -370,13 +370,13 @@ namespace kernel {
         Log::info("Last updated: %lu ms ago", get_current_timestamp() - stats.last_update_timestamp);
     }
 
-    void SystemManager::enable_event_logging(bool enabled) {
+    void SystemManager::enable_event_logging(const bool enabled) {
         event_logging_enabled_ = enabled;
         Log::info("SystemManager: Event logging %s", enabled ? "enabled" : "disabled");
     }
 
     // Event Helper Functions
-    void SystemManager::notify_unit_lifecycle(UnitId unit_id, RealmId realm_id, bool created) {
+    void SystemManager::notify_unit_lifecycle(const UnitId unit_id, const RealmId realm_id, const bool created) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -389,7 +389,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_realm_lifecycle(RealmId realm_id, const char *name, bool created) {
+    void SystemManager::notify_realm_lifecycle(const RealmId realm_id, const char *name, const bool created) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -406,7 +406,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_device_lifecycle(const char *device_name, u32 device_id, bool registered) {
+    void SystemManager::notify_device_lifecycle(const char *device_name, const u32 device_id, const bool registered) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -423,7 +423,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_memory_pressure(u64 available_bytes) {
+    void SystemManager::notify_memory_pressure(const u64 available_bytes) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -436,7 +436,7 @@ namespace kernel {
         publish_event(event);
     }
 
-    void SystemManager::notify_filesystem_mount(const char *path, const char *fs_type, bool mounted) {
+    void SystemManager::notify_filesystem_mount(const char *path, const char *fs_type, const bool mounted) {
         if (!manager_initialized_) return;
 
         SystemEvent event = {};
@@ -499,7 +499,7 @@ namespace kernel {
         global_lock_.unlock();
     }
 
-    void SystemManager::process_events_to_logs(usize max_events_to_process) {
+    void SystemManager::process_events_to_logs(const usize max_events_to_process) {
         if (!manager_initialized_ || !event_channel_) return;
         if (max_events_to_process == 0) return;
 

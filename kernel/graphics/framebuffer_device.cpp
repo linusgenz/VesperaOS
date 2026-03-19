@@ -26,8 +26,6 @@
 
 #include <vespera_errno.h>
 
-#include <vespera/log.h>
-
 int FramebufferDevice::open(CharFile**) {
     return 0;
 }
@@ -44,29 +42,29 @@ isize FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, usize /
     return -EUNSUPPORTED;
 }
 
-int FramebufferDevice::ioctl(CharFile*, u32 cmd, void* arg) {
+int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
     if (!arg && cmd != FB_IOCTL_GET_INFO && cmd != FB_IOCTL_GET_BACKING_DEVID) {
         return -EINVAL;
     }
 
-    auto backend = DisplayManager::primary();
-    if (!backend.drv) return -ENODEV;
+    auto [drv, kd] = DisplayManager::primary();
+    if (!drv) return -ENODEV;
 
     switch (cmd) {
         case FB_IOCTL_GET_INFO: {
             if (!arg) return -EINVAL;
             auto* info = static_cast<FbInfo*>(arg);
-            info->width = backend.drv->screen_width_px();
-            info->height = backend.drv->screen_height_px();
+            info->width = drv->screen_width_px();
+            info->height = drv->screen_height_px();
             info->bpp = 4;
-            info->pitch = backend.drv->bytes_per_scanline();
+            info->pitch = drv->bytes_per_scanline();
             info->is_primary = 1;
             return 0;
         }
 
         case FB_IOCTL_GET_BACKING_DEVID: {
             if (!arg) return -EINVAL;
-            *static_cast<u32*>(arg) = backend.kd ? backend.kd->id : 0;
+            *static_cast<u32*>(arg) = kd ? kd->id : 0;
             return 0;
         }
 
@@ -87,12 +85,12 @@ int FramebufferDevice::ioctl(CharFile*, u32 cmd, void* arg) {
     }
 }
 
-bool FramebufferDevice::validate_rect(u32 x, u32 y, u32 w, u32 h) {
+bool FramebufferDevice::validate_rect(const u32 x, const u32 y, const u32 w, const u32 h) {
     auto backend = DisplayManager::primary();
     if (!backend.drv) return false;
 
-    u32 screen_w = backend.drv->screen_width_px();
-    u32 screen_h = backend.drv->screen_height_px();
+    const u32 screen_w = backend.drv->screen_width_px();
+    const u32 screen_h = backend.drv->screen_height_px();
 
     // Check for overflow and bounds
     if (w == 0 || h == 0) return false;

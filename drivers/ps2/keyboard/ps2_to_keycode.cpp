@@ -28,7 +28,7 @@ namespace ps2::keyboard {
     /**
      * Reference: https://wiki.osdev.org/PS/2_Keyboard#Scan_Code_Sets
      */
-    KeyCode ps2_to_keycode(u8 base_scancode, bool e0) {
+    KeyCode ps2_to_keycode(const u8 base_scancode, const bool e0) {
         if (e0) {
             switch (base_scancode) {
                 case 0x1D:

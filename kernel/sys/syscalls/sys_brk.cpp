@@ -46,11 +46,11 @@ namespace syscalls::internal {
 
         // Grow heap
         if (addr > cur->heap_end) {
-            uptr start = (cur->heap_end + 0xFFF) & ~0xFFFULL;
-            uptr end   = (addr + 0xFFF)          & ~0xFFFULL;
+            const uptr start = (cur->heap_end + 0xFFF) & ~0xFFFULL;
+            const uptr end   = (addr + 0xFFF)          & ~0xFFFULL;
 
             for (uptr a = start; a < end; a += 0x1000) {
-                phys_addr_t phys = kernel::memory::request_page_phys();
+                const phys_addr_t phys = kernel::memory::request_page_phys();
                 if (phys_null(phys)) return -ENOMEM;
 
                 memset(phys_to_virt(phys), 0, 0x1000);
@@ -76,8 +76,8 @@ namespace syscalls::internal {
 
         // Shrink heap
         else if (addr < cur->heap_end) {
-            uptr start = (addr + 0xFFF)          & ~0xFFFULL;
-            uptr end   = (cur->heap_end + 0xFFF) & ~0xFFFULL;
+            const uptr start = (addr + 0xFFF)          & ~0xFFFULL;
+            const uptr end   = (cur->heap_end + 0xFFF) & ~0xFFFULL;
 
             for (uptr a = start; a < end; a += 0x1000) {
                 const virt_addr_t vaddr = virt_from_raw(a);

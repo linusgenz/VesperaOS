@@ -5,7 +5,7 @@
 
 PageFrameAllocator global_allocator;
 
-void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* m_map, usize m_map_size, usize m_map_desc_size) {
+void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* m_map, const usize m_map_size, const usize m_map_desc_size) {
      if (initialized_) return;
     initialized_ = true;
 
@@ -102,8 +102,8 @@ u64 PageFrameAllocator::request_pages(const usize page_count) {
     return 0;  // nothing found
 }
 
-void PageFrameAllocator::free_page(u64 phys_addr) {
-    u64 index = phys_addr / 4096;
+void PageFrameAllocator::free_page(const u64 phys_addr) {
+    const u64 index = phys_addr / 4096;
     if (page_bitmap[index] == false) return;
     if (page_bitmap.set(index, false)) {
         free_memory_ += 4096;
@@ -119,7 +119,7 @@ void PageFrameAllocator::free_pages(u64 address, const usize page_count) {
 }
 
 void PageFrameAllocator::lock_page(void* address) {
-    u64 index = reinterpret_cast<u64>(address) / 4096;
+    const u64 index = reinterpret_cast<u64>(address) / 4096;
     if (page_bitmap[index] == true) return;
     if (page_bitmap.set(index, true)) {
         free_memory_ -= 4096;
@@ -133,7 +133,7 @@ void PageFrameAllocator::lock_pages(void* address, const usize page_count) {
     }
 }
 
-void PageFrameAllocator::unreserve_page(u64 address) {
+void PageFrameAllocator::unreserve_page(const u64 address) {
     const u64 index = address / 4096;
     if (page_bitmap[index] == false) return;
     if (page_bitmap.set(index, false)) {
@@ -143,14 +143,14 @@ void PageFrameAllocator::unreserve_page(u64 address) {
     }
 }
 
-void PageFrameAllocator::unreserve_pages(u64 address, const usize page_count) {
+void PageFrameAllocator::unreserve_pages(const u64 address, const usize page_count) {
     for (usize t = 0; t < page_count; t++) {
         unreserve_page(address + (t * 4096));
     }
 }
 
 void PageFrameAllocator::reserve_page(void* address) {
-    u64 index = reinterpret_cast<u64>(address) / 4096;
+    const u64 index = reinterpret_cast<u64>(address) / 4096;
     if (page_bitmap[index] == true) return;
     if (page_bitmap.set(index, true)) {
         free_memory_ -= 4096;

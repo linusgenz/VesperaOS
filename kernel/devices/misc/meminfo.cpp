@@ -38,7 +38,7 @@ int MemInfoDevice::release(CharFile*) {
     return 0;
 }
 
-isize MemInfoDevice::read(CharFile*, void* buffer, usize count, usize) {
+isize MemInfoDevice::read(CharFile*, void* buffer, const usize count, usize) {
     if (count < sizeof(meminfo_t) || !buffer) return -EINVAL;
 
     kernel::SystemManager::update_system_stats();

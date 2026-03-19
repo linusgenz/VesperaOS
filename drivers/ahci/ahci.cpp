@@ -26,7 +26,7 @@ namespace ahci {
 #define HBA_PX_CMD_FR 0x4000
 
     PortType check_port_type(const HBA_PORT* port) {
-        u32 sata_status = port->sata_status;
+        const u32 sata_status = port->sata_status;
 
         const u8 interface_power_management = sata_status >> 8 & 0b111;
 
@@ -49,7 +49,7 @@ namespace ahci {
 
     void AhciDriver::probe_ports() {
         for (int i = 0; i < 32; i++) {
-            if (!(abar->ports_implemented & (1 << i))) continue;
+            if (!(abar->ports_implemented & 1 << i)) continue;
 
             const PortType port_type = check_port_type(&abar->ports[i]);
             if (port_type != Sata && port_type != Satapi) continue;
@@ -66,7 +66,7 @@ namespace ahci {
     }
 
     void Port::interrupt_handler() {
-        u32 is = hba_port->interrupt_status;
+        const u32 is = hba_port->interrupt_status;
 
         if (!is) return;  // no Interrupt
 
@@ -85,7 +85,7 @@ namespace ahci {
         if (!is) return IRQ_NONE;  // no Interrupt
 
         for (int i = 0; i < driver->port_count; i++) {
-            if (is & (1 << driver->ports[i]->port_number)) driver->ports[i]->interrupt_handler();
+            if (is & 1 << driver->ports[i]->port_number) driver->ports[i]->interrupt_handler();
         }
 
         driver->abar->interrupt_status = is;
@@ -284,7 +284,7 @@ namespace ahci {
         out->uncorrectable_sectors = 0;
         out->health_ok = smart_return_status();
 
-        for (auto src : area->attributes) {
+        for (const auto src : area->attributes) {
             if (src.id == 0) continue;
 
             SmartAttribute& dst = out->attrs[out->attr_count++];
@@ -495,26 +495,26 @@ namespace ahci {
         return has_trim_;
     }
 
-    bool Port::get_model(char* out, usize len) {
+    bool Port::get_model(char* out, const usize len) {
         if (!identify_) return false;
         copy_ata_string(out, len, identify_->model_number, 40);
         return true;
     }
 
-    bool Port::get_serial(char* out, usize len) {
+    bool Port::get_serial(char* out, const usize len) {
         if (!identify_) return false;
         copy_ata_string(out, len, identify_->serial_number, 20);
         return true;
     }
 
-    bool Port::get_firmware(char* out, usize len) {
+    bool Port::get_firmware(char* out, const usize len) {
         if (!identify_) return false;
         copy_ata_string(out, len, identify_->firmware_revision, 8);
         return true;
     }
 
-    void Port::copy_ata_string(char* dst, usize dst_len, const u8* src, usize src_chars) {
-        usize n = src_chars < dst_len - 1 ? src_chars : dst_len - 1;
+    void Port::copy_ata_string(char* dst, const usize dst_len, const u8* src, const usize src_chars) {
+        const usize n = src_chars < dst_len - 1 ? src_chars : dst_len - 1;
 
         for (usize i = 0; i + 1 < n; i += 2) {
             dst[i] = static_cast<char>(src[i + 1]);
@@ -768,7 +768,7 @@ namespace ahci {
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
         kernel::memory::map_memory(
-            make_virt(abar), abar_phys, (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::WriteThrough)
+            make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough
         );
 
         probe_ports();
@@ -809,13 +809,13 @@ namespace ahci {
         }
     }
 
-    bool AhciDriver::get_vendor(char* out, usize len) {
+    bool AhciDriver::get_vendor(char* out, const usize len) {
         strncpy(out, pci::get_vendor_name(pci_base_address->vendor_id), len);
         out[len - 1] = '\0';
         return true;
     }
 
-    bool AhciDriver::get_model(char* out, usize len) {
+    bool AhciDriver::get_model(char* out, const usize len) {
         strncpy(out, pci::get_device_name(pci_base_address->vendor_id, pci_base_address->device_id), len);
         out[len - 1] = '\0';
         return true;

@@ -109,7 +109,7 @@ char* strcpy(char* dest, const char* src) {
     return temp;
 }
 
-void replace_char(char* s, char old_char, char new_char) {
+void replace_char(char* s, const char old_char, const char new_char) {
     while (*s) {
         if (*s == old_char) {
             *s = new_char;
@@ -257,7 +257,7 @@ static int int_to_string(int num, char* str, const int base) {
     }
 
     while (num != 0) {
-        int rem = num % base;
+        const int rem = num % base;
         str[i++] = static_cast<char>((rem > 9) ? (rem - 10) + 'a' : rem + '0');
         num = num / base;
     }
@@ -283,7 +283,7 @@ static int u64o_string(unsigned long long value, char* buffer, const int base) {
     }
 
     while (value > 0) {
-        unsigned digit = value % base;
+        const unsigned digit = value % base;
         temp[pos++] = static_cast<char>((digit < 10) ? ('0' + digit) : ('a' + (digit - 10)));
         value /= base;
     }
@@ -317,14 +317,14 @@ static int i64o_string(const long long value, char* buffer, int base) {
         is_negative = 1;
         u64 abs_value = static_cast<u64>(-(value + 1)) + 1;
         while (abs_value > 0) {
-            unsigned digit = abs_value % base;
+            const unsigned digit = abs_value % base;
             temp[pos++] = static_cast<char>((digit < 10) ? ('0' + digit) : ('a' + (digit - 10)));
             abs_value /= base;
         }
     } else {
         unsigned long long abs_value = (value < 0) ? -value : value;
         while (abs_value > 0) {
-            unsigned digit = abs_value % base;
+            const unsigned digit = abs_value % base;
             temp[pos++] = static_cast<char>((digit < 10) ? ('0' + digit) : ('a' + (digit - 10)));
             abs_value /= base;
         }

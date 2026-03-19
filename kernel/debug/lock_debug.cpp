@@ -77,7 +77,7 @@ void lock_debug_before_acquire(const void* lockptr, const u32 current_unit) {
     if (!lockptr) return;
     if (auto* e = lock_debug_find(lockptr)) {
         // if lock has owner and owner != current, register current as waiter
-        if (u32 owner = e->owner_unit; owner != 0 && owner != current_unit) {
+        if (const u32 owner = e->owner_unit; owner != 0 && owner != current_unit) {
             if (e->waiter_count < MAX_WAITERS_PER_LOCK) {
                 e->waiters[e->waiter_count++] = current_unit;
             }
@@ -130,15 +130,15 @@ void lock_debug_release(const void* lockptr, const u32 current_unit) {
     }
 }
 
-static bool dfs_detect(u32 start_unit, u32 cur_unit, u8* visited, u8 depth) {
+static bool dfs_detect(const u32 start_unit, const u32 cur_unit, u8* visited, const u8 depth) {
     if (depth > 128) return false;  // safety
     // current unit is cur_unit, check what it waits for
     // find lock where cur_unit is waiter (first such lock), then follow to owner
     for (u32 i = 0; i < lock_table_count; ++i) {
-        LockDebugInfo& l = lock_table[i];
+        const LockDebugInfo& l = lock_table[i];
         for (u8 w = 0; w < l.waiter_count; ++w) {
             if (l.waiters[w] == cur_unit) {
-                u32 owner = l.owner_unit;
+                const u32 owner = l.owner_unit;
                 if (owner == 0) continue;
                 if (owner == start_unit) {
                     // cycle
@@ -162,7 +162,7 @@ bool lock_debug_detect_deadlocks_and_report() {
     for (u32 i = 0; i < lock_table_count; ++i) {
         LockDebugInfo& l = lock_table[i];
         for (u8 w = 0; w < l.waiter_count; ++w) {
-            u32 start = l.waiters[w];
+            const u32 start = l.waiters[w];
             memset(visited, 0, sizeof(visited));
             visited[start] = 1;
 
@@ -193,7 +193,7 @@ bool lock_debug_detect_deadlocks_and_report() {
     return false;
 }
 
-void lock_debug_report_deadlock(LockDebugInfo* l, u32 start_unit) {
+void lock_debug_report_deadlock(LockDebugInfo* l, const u32 start_unit) {
     Log::print_ln("=== DEADLOCK DETECTED ===");
     Log::print_ln("Unit %u waits on lock: %s (%p)", start_unit, l->name, l->lock_ptr);
 

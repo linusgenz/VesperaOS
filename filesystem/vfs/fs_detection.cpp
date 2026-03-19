@@ -94,7 +94,7 @@ bool FilesystemDetector::unmount(MountPoint* mp) {
 
     // If not virtual, unmount via the driver
     if (!mp->is_virtual && mp->root && mp->device && mp->device->fs_info.mounted) {
-        if (FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name); driver && driver->unmount) {
+        if (const FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name); driver && driver->unmount) {
             if (!driver->unmount(mp->root)) {
                 Log::error("[FS] Failed to unmount %s using driver %s", mp->device, driver->name);
                 return false;
@@ -117,7 +117,7 @@ void FilesystemDetector::unmount_all() {
     Vector<MountPoint*> snapshot = VFS::get_mount_points_snapshot();
     MountPoint* root_mp = nullptr;
 
-    for (auto& mp : snapshot) {
+    for (const auto& mp : snapshot) {
         if (mp->is_root_device) {
             root_mp = VFS::find_mount_point(mp->path);
             continue;
@@ -133,27 +133,27 @@ void FilesystemDetector::unmount_all() {
     }
 }
 
-void FilesystemDetector::emergency_detach_device(const BlockDevice* physical_device) {
-    if (!physical_device) return;
+void FilesystemDetector::emergency_detach_device(const BlockDevice* device) {
+    if (!device) return;
 
     Vector<MountPoint*> snapshot = VFS::get_mount_points_snapshot();
 
-    for (auto& mp : snapshot) {
+    for (const auto& mp : snapshot) {
         if (mp->is_virtual || !mp->device || !mp->device->device) continue;
 
         BlockDevice* mp_device = mp->device->device;
 
-        bool is_affected = (mp_device == physical_device);
+        bool is_affected = (mp_device == device);
 
         if (!is_affected && mp->is_partition) {
-            auto* part = static_cast<PartitionDevice*>(mp_device);
-            is_affected = (part->get_parent() == physical_device);
+            const auto* part = static_cast<PartitionDevice*>(mp_device);
+            is_affected = (part->get_parent() == device);
         }
 
         if (!is_affected) continue;
 
         if (mp->device->fs_info.mounted) {
-            if (FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name);
+            if (const FileSystemDriver* driver = find_fs_driver(mp->device->fs_info.type_name);
                 driver && driver->force_unmount) {
                 driver->force_unmount(mp->root);
             }
@@ -166,10 +166,10 @@ void FilesystemDetector::emergency_detach_device(const BlockDevice* physical_dev
     }
 }
 
-VfsNode* FilesystemDetector::mount_filesystem(BlockDevice* device, FilesystemInfo* fs_info) {
+VfsNode* FilesystemDetector::mount_filesystem(BlockDevice* device, const FilesystemInfo* fs_info) {
     if (!device || !fs_info) return nullptr;
 
-    FileSystemDriver* driver = find_fs_driver(fs_info->type_name);
+    const FileSystemDriver* driver = find_fs_driver(fs_info->type_name);
     if (!driver || !driver->mount) {
         Log::error("[FS] No driver for %s", fs_info->type_name);
         return nullptr;
@@ -179,7 +179,7 @@ VfsNode* FilesystemDetector::mount_filesystem(BlockDevice* device, FilesystemInf
 }
 
 bool FilesystemDetector::mount_device(
-    BlockDevice* device, const char* suggested_path, bool is_partition, const char* table_type, bool is_root_device
+    BlockDevice* device, const char* suggested_path, const bool is_partition, const char* table_type, const bool is_root_device
 ) {
     FilesystemInfo fs_info{};
     if (!detect_filesystem(device, &fs_info)) {
@@ -220,7 +220,7 @@ bool FilesystemDetector::mount_device(
 void FilesystemDetector::scan_and_mount_all() {
     auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
 
-    if (usize device_count_actual = devices.size(); device_count_actual == 0) {
+    if (const usize device_count_actual = devices.size(); device_count_actual == 0) {
         Log::warning("[FS] No storage devices found");
         return;
     }
@@ -321,7 +321,7 @@ void FilesystemDetector::scan_and_mount_all() {
         }
         pending_mounts_->clear();
 
-        for (MountPoint* mp : VFS::get_mount_points_snapshot()) {
+        for (const MountPoint* mp : VFS::get_mount_points_snapshot()) {
             if (mp->is_virtual) VFS::mkdir(mp->path);
         }
     }
@@ -337,7 +337,7 @@ void FilesystemDetector::print_detected_filesystems() {
         return;
     }
 
-    for (Vector<MountPoint*> snapshot = VFS::get_mount_points_snapshot(); auto& mp : snapshot) {
+    for (Vector<MountPoint*> snapshot = VFS::get_mount_points_snapshot(); const auto& mp : snapshot) {
         if (mp->is_virtual) continue;
         const BlkDeviceDescriptor* dev = mp->device;
         if (!dev) continue;
@@ -362,7 +362,7 @@ void FilesystemDetector::print_detected_filesystems() {
         }
 
         if (!mp->is_partition) {
-            for (auto& part : snapshot) {
+            for (const auto& part : snapshot) {
                 if (part->is_partition && part->device && part->device->device == dev->device) {
                     Log::info("  Partition: %s", part->path);
                     if (part->device->is_recognized) {

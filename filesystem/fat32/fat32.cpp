@@ -18,9 +18,9 @@ namespace fat32 {
     // Helper Functions - Memory Management
     // ============================================================================
 
-    static u8* alloc_cluster_buffer(u32 cluster_bytes) {
+    static u8* alloc_cluster_buffer(const u32 cluster_bytes) {
         const usize pages = (cluster_bytes + 0xFFF) / 0x1000;
-        virt_addr_t page = kernel::memory::request_pages(pages);
+        const virt_addr_t page = kernel::memory::request_pages(pages);
         if (!virt_null(page)) memset(page, 0, pages * 0x1000);
         return virt_as<u8>(page);
     }
@@ -100,7 +100,7 @@ namespace fat32 {
     // Cache
     // ============================================================================
 
-    bool FileSystem::read_fat_sector(u32 fat_sector, u8* buffer) const {
+    bool FileSystem::read_fat_sector(const u32 fat_sector, u8* buffer) const {
         cache_access_counter++;
 
         // Search for cached entry
@@ -149,7 +149,7 @@ namespace fat32 {
         }
     }
 
-    void FileSystem::invalidate_fat_cache_sector(u32 sector) const {
+    void FileSystem::invalidate_fat_cache_sector(const u32 sector) const {
         for (auto& i : fat_cache) {
             if (i.valid && i.sector == sector) {
                 i.valid = false;
@@ -227,12 +227,12 @@ namespace fat32 {
     // Cluster I/O Operations
     // ============================================================================
 
-    isize FileSystem::read_cluster(const u32 cluster, void* buffer, usize buffer_size) const {
+    isize FileSystem::read_cluster(const u32 cluster, void* buffer, const usize buffer_size) const {
         const u32 sector = cluster_to_sector(cluster);
         return device->read(sector, bpb.sectors_per_cluster, buffer, buffer_size);
     }
 
-    bool FileSystem::write_cluster(u32 cluster, const void* data, usize len, usize offset) const {
+    bool FileSystem::write_cluster(const u32 cluster, const void* data, const usize len, const usize offset) const {
         if (!data || len == 0) return false;
 
         const u32 cluster_bytes = bytes_per_cluster();
@@ -252,7 +252,7 @@ namespace fat32 {
         memcpy(cluster_buffer + offset, data, len);
 
         const u32 sector = cluster_to_sector(cluster);
-        bool ok = device->write(sector, bpb.sectors_per_cluster, cluster_buffer, cluster_bytes);
+        const bool ok = device->write(sector, bpb.sectors_per_cluster, cluster_buffer, cluster_bytes);
 
         free_cluster_buffer(cluster_buffer, cluster_bytes);
         return ok;
@@ -274,7 +274,7 @@ namespace fat32 {
         return true;
     }
 
-    u32 FileSystem::read_fat_entry_raw(const u32 fat_sector, u32 offset) const {
+    u32 FileSystem::read_fat_entry_raw(const u32 fat_sector, const u32 offset) const {
         u8 buf[1024];  // max 2 sectors
 
         // one sector
@@ -292,7 +292,7 @@ namespace fat32 {
         return *reinterpret_cast<u32*>(buf + offset);
     }
 
-    u32 FileSystem::get_fat_entry(u32 cluster) const {
+    u32 FileSystem::get_fat_entry(const u32 cluster) const {
         if (cluster < 2 || cluster >= cluster_count + 2) return 0x0FFFFFFF;
 
         const u32 fat_offset = cluster * 4;
@@ -302,7 +302,7 @@ namespace fat32 {
         // === FAT0 ===
         const u32 fat0_sector = bpb.reserved_sector_count + sector_offset;
 
-        u32 entry0 = read_fat_entry_raw(fat0_sector, offset) & 0x0FFFFFFF;
+        const u32 entry0 = read_fat_entry_raw(fat0_sector, offset) & 0x0FFFFFFF;
 
         if (is_valid_fat_entry(entry0)) return entry0;
 
@@ -311,7 +311,7 @@ namespace fat32 {
 
         const u32 fat1_sector = bpb.reserved_sector_count + bpb.fat_size32 + sector_offset;
 
-        if (u32 entry1 = read_fat_entry_raw(fat1_sector, offset) & 0x0FFFFFFF; is_valid_fat_entry(entry1)) {
+        if (const u32 entry1 = read_fat_entry_raw(fat1_sector, offset) & 0x0FFFFFFF; is_valid_fat_entry(entry1)) {
             // repair FAT0
             const_cast<FileSystem*>(this)->write_fat_entry(cluster, entry1);
             return entry1;
@@ -321,7 +321,7 @@ namespace fat32 {
         return 0x0FFFFFFF;
     }
 
-    u32 FileSystem::read_fat_entry(u32 cluster, Sector& sec) const {
+    u32 FileSystem::read_fat_entry(const u32 cluster, Sector& sec) const {
         const u32 fat_offset = cluster * 4;
         const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
         const u32 offset = fat_offset % bpb.bytes_per_sector;
@@ -331,14 +331,14 @@ namespace fat32 {
             sec.sector = fat_sector;
         }
 
-        u32 entry = *reinterpret_cast<u32*>(sec.buf + offset) & 0x0FFFFFFF;
+        const u32 entry = *reinterpret_cast<u32*>(sec.buf + offset) & 0x0FFFFFFF;
 
         if (entry >= 0x0FFFFFF8 || entry == 0 || entry == 1 || entry == 0x0FFFFFF7) return 0;
 
         return entry;
     }
 
-    bool FileSystem::write_fat_entry_raw(u32 fat_sector, u32 offset, u32 value) const {
+    bool FileSystem::write_fat_entry_raw(const u32 fat_sector, const u32 offset, const u32 value) const {
         u8 buf[1024];
 
         // one sector
@@ -365,10 +365,10 @@ namespace fat32 {
         return true;
     }
 
-    bool FileSystem::write_fat_entry(u32 cluster, u32 value) {
+    bool FileSystem::write_fat_entry(const u32 cluster, u32 value) {
         value &= 0x0FFFFFFF;
 
-        u32 old = get_fat_entry(cluster) & 0x0FFFFFFF;
+        const u32 old = get_fat_entry(cluster) & 0x0FFFFFFF;
 
         const u32 fat_offset = cluster * 4;
         const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
@@ -393,10 +393,10 @@ namespace fat32 {
         return true;
     }
 
-    u32 FileSystem::next_cluster(u32 c) const {
+    u32 FileSystem::next_cluster(const u32 c) const {
         if (c < 2 || c >= cluster_count + 2) return 0;
 
-        u32 next = get_fat_entry(c);
+        const u32 next = get_fat_entry(c);
 
         if (next >= 0x0FFFFFF8)  // EOF
             return 0;
@@ -411,7 +411,7 @@ namespace fat32 {
     }
 
     // Floyd Cycle Detection
-    bool FileSystem::has_fat_loop(u32 start) const {
+    bool FileSystem::has_fat_loop(const u32 start) const {
         u32 tortoise = start;
         u32 hare = start;
 
@@ -465,7 +465,7 @@ namespace fat32 {
         const u32 bytes_needed = sectors_per_read * bpb.bytes_per_sector;
         const u32 pages = (bytes_needed + 0xFFF) / 0x1000;
 
-        virt_addr_t batch_virt = kernel::memory::request_pages(pages);
+        const virt_addr_t batch_virt = kernel::memory::request_pages(pages);
         if (virt_null(batch_virt)) return nullptr;
         auto* batch_buffer = virt_as<u32>(batch_virt);
 
@@ -560,7 +560,7 @@ namespace fat32 {
         const u32 bytes_needed = sectors_per_batch * bpb.bytes_per_sector;
         const u32 pages = (bytes_needed + 0xFFF) / 0x1000;
 
-        virt_addr_t batch_virt = kernel::memory::request_pages(pages);
+        const virt_addr_t batch_virt = kernel::memory::request_pages(pages);
         if (virt_null(batch_virt)) {
             kernel::memory::free(chain);
             return false;
@@ -679,13 +679,13 @@ namespace fat32 {
 
     FileEntry* FileSystem::read_directory(const char* path, usize& out_count) const {
         out_count = 0;
-        u32 cluster = resolve_path_to_cluster(path);
+        const u32 cluster = resolve_path_to_cluster(path);
         if (cluster == 0) return nullptr;
 
         return read_directory(cluster, out_count);
     }
 
-    FileEntry* FileSystem::read_directory(u32 cluster, usize& out_count) const {
+    FileEntry* FileSystem::read_directory(const u32 cluster, usize& out_count) const {
         auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
         if (!entries) {
             out_count = 0;
@@ -809,7 +809,7 @@ namespace fat32 {
         auto* entries = reinterpret_cast<DirectoryEntry*>(buffer);
         entries[offset_in_cluster] = *new_entry;
 
-        bool ok = device->write(cluster_to_sector(target_cluster), bpb.sectors_per_cluster, buffer, cluster_bytes);
+        const bool ok = device->write(cluster_to_sector(target_cluster), bpb.sectors_per_cluster, buffer, cluster_bytes);
 
         free_cluster_buffer(buffer, cluster_bytes);
         kernel::memory::free(clusters);
@@ -820,7 +820,7 @@ namespace fat32 {
     // File Operations
     // ============================================================================
 
-    bool FileSystem::read_file(Fat32Node* node, void* buffer, usize len, usize& out_actual, usize offset) const {
+    bool FileSystem::read_file(Fat32Node* node, void* buffer, const usize len, usize& out_actual, const usize offset) const {
         if (!node || !buffer || len == 0) return false;
 
         if (offset >= node->file_size) {
@@ -907,7 +907,7 @@ namespace fat32 {
 
         // Allocate additional clusters if needed
         if (existing_clusters_count < needed_clusters) {
-            usize additional = needed_clusters - existing_clusters_count;
+            const usize additional = needed_clusters - existing_clusters_count;
 
             // File has no cluster yet → allocate first one
             if (start_cluster == 0) {
@@ -1003,7 +1003,7 @@ namespace fat32 {
 
         // Try to find space in existing clusters
         for (usize ci = 0; ci < out_cluster_count; ++ci) {
-            u32 cluster = chain[ci];
+            const u32 cluster = chain[ci];
             u8* buffer = alloc_cluster_buffer(cluster_bytes);
             if (!buffer) continue;
 
@@ -1030,7 +1030,7 @@ namespace fat32 {
                         write_lfn_entries(entries, start_index, long_name, short_name, name_len);
                         memcpy(&entries[start_index + entries_needed], short_entry, sizeof(DirectoryEntry));
 
-                        bool ok =
+                        const bool ok =
                             device->write(cluster_to_sector(cluster), bpb.sectors_per_cluster, buffer, cluster_bytes);
                         free_cluster_buffer(buffer, cluster_bytes);
                         kernel::memory::free(chain);
@@ -1099,7 +1099,7 @@ namespace fat32 {
         dir->first_cluster_high = (parent_cluster >> 16) & 0xFFFF;
         update_create_time(*dir);
 
-        bool write_ok = device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes);
+        const bool write_ok = device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes);
         free_cluster_buffer(zero, cluster_bytes);
         if (!write_ok) return false;
 
@@ -1227,7 +1227,7 @@ namespace fat32 {
                     for (usize a = 0; a < actual_lfn_count - 1; a++) {
                         for (usize b = 0; b < actual_lfn_count - 1 - a; b++) {
                             if ((lfn_buffer[b].lfn_entry.order & 0x3F) > (lfn_buffer[b + 1].lfn_entry.order & 0x3F)) {
-                                auto tmp = lfn_buffer[b];
+                                const auto tmp = lfn_buffer[b];
                                 lfn_buffer[b] = lfn_buffer[b + 1];
                                 lfn_buffer[b + 1] = tmp;
                             }
@@ -1286,7 +1286,7 @@ namespace fat32 {
             entries[found.lfn_start_index + i].name[0] = 0xE5;
         }
 
-        bool success = device->write(
+        const bool success = device->write(
             cluster_to_sector(chain[found.cluster_index]), bpb.sectors_per_cluster, buffer, cluster_bytes
         );
 

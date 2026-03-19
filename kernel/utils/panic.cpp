@@ -63,7 +63,7 @@ static const u8 SIMPLE_FONT[27][16] = {
     {0x7E, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x40, 0x7E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 };
 
-void put_pixel(const framebuffer_t* fb, u32 x, u32 y, u32 color) {
+void put_pixel(const framebuffer_t* fb, const u32 x, const u32 y, const u32 color) {
     if (x >= fb->width || y >= fb->height) return;
     auto* pixel_ptr = static_cast<u32*>(fb->base_address);
     pixel_ptr[y * fb->pixels_per_scanline + x] = color;
@@ -77,7 +77,7 @@ void put_char(const framebuffer_t* fb, const unsigned char c, const u32 x, const
     if (c >= 'A' && c <= 'Z') {
         const u8* glyph = SIMPLE_FONT[c - 'A' + 1];
         for (u32 row = 0; row < 16; row++) {
-            u8 row_bits = glyph[row];
+            const u8 row_bits = glyph[row];
             for (u32 bit = 0; bit < 8; bit++) {
                 if (row_bits & (0x80 >> bit)) {
                     put_pixel(fb, x + bit, y + row, color);
@@ -87,7 +87,7 @@ void put_char(const framebuffer_t* fb, const unsigned char c, const u32 x, const
     }
 }
 
-void put_string(const framebuffer_t* fb, const char* str, const u32 x, const u32 y, u32 color) {
+void put_string(const framebuffer_t* fb, const char* str, const u32 x, const u32 y, const u32 color) {
     u32 cursor_x = x;
     u32 cursor_y = y;
     while (*str) {

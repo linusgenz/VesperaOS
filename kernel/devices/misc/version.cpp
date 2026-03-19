@@ -40,7 +40,7 @@ int VersionDevice::release(CharFile*) {
     return 0;
 }
 
-isize VersionDevice::read(CharFile*, void* buffer, usize count, usize) {
+isize VersionDevice::read(CharFile*, void* buffer, const usize count, usize) {
     if (!buffer || count == 0) return -EINVAL;
 
     const char* ver = get_kernel_version();

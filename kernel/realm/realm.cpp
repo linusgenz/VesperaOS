@@ -55,10 +55,10 @@ i64 Realm::init_handle_table() {
 }
 
 i64 Realm::add_handle(
-    u64 type, void* resource, capability_set caps, bool transferable, void (*destroy)(void*), HandleId* out_h
+    const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*), HandleId* out_h
 ) {
     SpinlockGuard guard(lock);
-    int slot = find_free_slot();
+    const int slot = find_free_slot();
     if (slot < 0) {
         return -ENOMEM;
     }
@@ -78,9 +78,9 @@ i64 Realm::add_handle(
 }
 
 i64 Realm::add_handle_with_id(
-    HandleId fixed_id, u64 type, void* resource, capability_set caps, bool transferable, void (*destroy)(void*)
+    const HandleId fixed_id, const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*)
 ) {
-    u64 slot = fixed_id & HANDLE_ID_MASK;
+    const u64 slot = fixed_id & HANDLE_ID_MASK;
     if (slot >= MAX_HANDLES_PER_REALM) {
         return -EBADH;
     }
@@ -117,8 +117,8 @@ i64 Realm::setup_standard_handles(TtyDevice* tty_dev) {
     return SUCCESS_CODE;
 }
 
-HandleEntry* Realm::lookup_handle(HandleId hid) {
-    u64 raw = hid & HANDLE_ID_MASK;
+HandleEntry* Realm::lookup_handle(const HandleId hid) {
+    const u64 raw = hid & HANDLE_ID_MASK;
 
     if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
     if (!test_bit(raw)) return nullptr;
@@ -128,19 +128,19 @@ HandleEntry* Realm::lookup_handle(HandleId hid) {
     return &he;
 }
 
-void Realm::acquire_handle(HandleId hid) {
-    if (auto he = lookup_handle(hid)) {
+void Realm::acquire_handle(const HandleId hid) {
+    if (const auto he = lookup_handle(hid)) {
         __sync_add_and_fetch(&he->refcount, 1);
     }
 }
 
-void Realm::release_handle(HandleId hid) {
+void Realm::release_handle(const HandleId hid) {
     HandleEntry* he = lookup_handle(hid);
     if (!he) return;
 
     if (const u64 v = __sync_sub_and_fetch(&he->refcount, 1); v == 0) {
         SpinlockGuard guard(lock);
-        const auto raw = static_cast<u64>(he->hid & HANDLE_ID_MASK);
+        const auto raw = he->hid & HANDLE_ID_MASK;
         if (he->destroy && he->resource) he->destroy(he->resource);
         memset(he, 0, sizeof(HandleEntry));
         clear_bit(raw);
@@ -148,7 +148,7 @@ void Realm::release_handle(HandleId hid) {
 }
 
 TtyDevice* Realm::get_tty_device() const {
-    HandleEntry* he = const_cast<Realm*>(this)->lookup_handle(HANDLE_STDIN);
+    const HandleEntry* he = const_cast<Realm*>(this)->lookup_handle(HANDLE_STDIN);
     if (!he || he->type != HANDLE_TYPE_TTY) return nullptr;
     return static_cast<TtyDevice*>(he->resource);
 }
@@ -164,15 +164,15 @@ void Realm::clear_handle_table() {
     }
 }
 
-bool Realm::test_bit(usize i) const {
+bool Realm::test_bit(const usize i) const {
     return (handle_table.bitmap[i >> 3] >> (i & 7)) & 1;
 }
 
-void Realm::set_bit(usize i) {
+void Realm::set_bit(const usize i) {
     handle_table.bitmap[i >> 3] |= (1 << (i & 7));
 }
 
-void Realm::clear_bit(usize i) {
+void Realm::clear_bit(const usize i) {
     handle_table.bitmap[i >> 3] &= ~(1 << (i & 7));
 }
 

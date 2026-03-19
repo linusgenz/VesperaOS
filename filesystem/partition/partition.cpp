@@ -40,7 +40,7 @@ inline u64 rd64(const void *p) {
     return *static_cast<const u64 *>(p);
 }
 
-usize parse_partitions(BlockDevice *device, PartitionEntry *out, usize max_entries) {
+usize parse_partitions(BlockDevice *device, PartitionEntry *out, const usize max_entries) {
     if (!device || !out || max_entries == 0) return 0;
 
     u8 sector[512];

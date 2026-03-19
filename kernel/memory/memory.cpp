@@ -21,7 +21,7 @@ u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, const usize m_map_entries, con
 }
 
 extern "C" {
-    void memset(void* dest, u32 val, u64 num) {
+    void memset(void* dest, const u32 val, const u64 num) {
         for (u64 i = 0; i < num; i++) {
             *reinterpret_cast<u8*>(reinterpret_cast<u64>(dest) + i) = val;
         }
@@ -56,11 +56,11 @@ extern "C" {
     }
 }
 
-virt_addr_t phys_to_virt(phys_addr_t addr) {
+virt_addr_t phys_to_virt(const phys_addr_t addr) {
     return virt_from_raw(addr.raw + g_hhdm_offset);
 }
 
-phys_addr_t virt_to_phys(virt_addr_t addr) {
+phys_addr_t virt_to_phys(const virt_addr_t addr) {
     return make_phys(virt_raw(addr) - g_hhdm_offset);
 }
 
@@ -86,7 +86,7 @@ namespace kernel::memory {
         u64 max_phys = 0;
         const u64 entries = boot_info->m_map_size / boot_info->m_map_desc_size;
         for (u64 i = 0; i < entries; i++) {
-            auto* desc = reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(
+            const auto* desc = reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(
                 reinterpret_cast<u64>(boot_info->m_map) + i * boot_info->m_map_desc_size
             );
             if (const u64 end = desc->phys_addr + desc->num_pages * 0x1000; end > max_phys) max_phys = end;
@@ -101,7 +101,7 @@ namespace kernel::memory {
         const u64 k_virt_start = reinterpret_cast<u64>(&kernel_start);
         const u64 k_virt_end = reinterpret_cast<u64>(&kernel_end);
         for (u64 virt = k_virt_start; virt < k_virt_end; virt += 0x1000) {
-            u64 phys = virt - g_kernel_virt_base + g_kernel_phys_base;
+            const u64 phys = virt - g_kernel_virt_base + g_kernel_phys_base;
             page_table_manager.map_memory(virt_from_raw(virt), make_phys(phys), 0);
         }
     }
@@ -112,7 +112,7 @@ namespace kernel::memory {
         page_table_manager.map_memory(virt_addr, phys_addr, flags);
     }
 
-    void map_range(virt_addr_t virt_start, phys_addr_t phys_start, const usize size, const u64 flags) {
+    void map_range(const virt_addr_t virt_start, const phys_addr_t phys_start, const usize size, const u64 flags) {
         page_table_manager.map_range(virt_start, phys_start, size, flags);
     }
 
@@ -120,7 +120,7 @@ namespace kernel::memory {
         page_table_manager.unmap_memory(virt_addr);
     }
 
-    void unmap_range(virt_addr_t virt_start, const usize size) {
+    void unmap_range(const virt_addr_t virt_start, const usize size) {
         page_table_manager.unmap_range(virt_start, size);
     }
 
@@ -138,11 +138,11 @@ namespace kernel::memory {
 
     // Page Frame Allocator
 
-    void lock_page(phys_addr_t phys_addr) {
+    void lock_page(const phys_addr_t phys_addr) {
         page_frame_allocator.lock_page(reinterpret_cast<void*>(phys_raw(phys_addr)));
     }
 
-    void lock_pages(phys_addr_t phys_addr, u64 page_count) {
+    void lock_pages(const phys_addr_t phys_addr, const u64 page_count) {
         page_frame_allocator.lock_pages(reinterpret_cast<void*>(phys_raw(phys_addr)), page_count);
     }
 
@@ -151,17 +151,17 @@ namespace kernel::memory {
     }
 
     virt_addr_t request_page() {
-        u64 phys = page_frame_allocator.request_page();
+        const u64 phys = page_frame_allocator.request_page();
         if (!phys) return make_virt(nullptr);
         return phys_to_virt(make_phys(phys));
     }
 
-    phys_addr_t request_pages_phys(usize page_count) {
+    phys_addr_t request_pages_phys(const usize page_count) {
         return make_phys(page_frame_allocator.request_pages(page_count));
     }
 
-    virt_addr_t request_pages(usize page_count) {
-        u64 phys = page_frame_allocator.request_pages(page_count);
+    virt_addr_t request_pages(const usize page_count) {
+        const u64 phys = page_frame_allocator.request_pages(page_count);
         if (!phys) [[unlikely]] return make_virt(nullptr);
         return phys_to_virt(make_phys(phys));
     }
@@ -170,15 +170,15 @@ namespace kernel::memory {
         page_frame_allocator.free_page(phys_raw(virt_to_phys(virt_addr)));
     }
 
-    void free_page_phys(phys_addr_t phys_addr) {
+    void free_page_phys(const phys_addr_t phys_addr) {
         page_frame_allocator.free_page(phys_raw(phys_addr));
     }
 
-    void free_pages(virt_addr_t virt_addr, u64 page_count) {
+    void free_pages(const virt_addr_t virt_addr, const u64 page_count) {
         page_frame_allocator.free_pages(phys_raw(virt_to_phys(virt_addr)), page_count);
     }
 
-    void free_pages_phys(phys_addr_t phys_addr, u64 page_count) {
+    void free_pages_phys(const phys_addr_t phys_addr, const u64 page_count) {
         page_frame_allocator.free_pages(phys_raw(phys_addr), page_count);
     }
 
@@ -204,7 +204,7 @@ namespace kernel::memory {
     static bool heap_initialized = false;
     static Spinlock heap_lock;
 
-    void initialize_heap(virt_addr_t heap_start, usize page_count) {
+    void initialize_heap(const virt_addr_t heap_start, const usize page_count) {
         ::initialize_heap(heap_start, page_count);
         heap_lock.init("kernel_heap_lock");
         heap_initialized = true;

@@ -63,7 +63,7 @@ struct ModRm {
     u8 rm;
 };
 
-ModRm decode_modrm(u8 byte) {
+ModRm decode_modrm(const u8 byte) {
     ModRm m{};
     m.mod = (byte >> 6) & 0x3;
     m.reg = (byte >> 3) & 0x7;
@@ -71,7 +71,7 @@ ModRm decode_modrm(u8 byte) {
     return m;
 }
 
-const char* get_reg_name(u8 reg_idx, int operand_size) {
+const char* get_reg_name(const u8 reg_idx, const int operand_size) {
     switch (operand_size) {
         case 1:
             return reg8[reg_idx & 15];
@@ -88,10 +88,10 @@ const char* get_reg_name(u8 reg_idx, int operand_size) {
 
 // Returns extra bytes consumed AFTER the ModR/M byte (SIB, displacement, etc.)
 usize decode_rm_operand(
-    const u8* code, usize offset, usize max_len, ModRm modrm, RexPrefix rex, int operand_size,
-    u64 instr_addr, usize instr_len, char* output, usize output_size, bool show_size_prefix = true
+    const u8* code, usize const offset, usize const max_len, ModRm const modrm, const RexPrefix rex, const int operand_size,
+    u64 const instr_addr, usize const instr_len, char* output, const usize output_size, const bool show_size_prefix = true
 ) {
-    u8 rm = modrm.rm | (rex.b ? 8 : 0);
+    const u8 rm = modrm.rm | (rex.b ? 8 : 0);
 
     // Register direct
     if (modrm.mod == 3) {
@@ -112,7 +112,7 @@ usize decode_rm_operand(
             size_prefix = "qword ptr ";
     }
 
-    auto fmt_disp = [](char* buf, usize buf_size, i64 disp) {
+    auto fmt_disp = [](char* buf, const usize buf_size, const i64 disp) {
         if (disp > 0)
             snprintf(buf, buf_size, "+0x%llx", static_cast<u64>(disp));
         else if (disp < 0)
@@ -162,10 +162,10 @@ usize decode_rm_operand(
                 return 0;
             }
 
-            u8 sib = code[offset];
-            u8 scale = 1 << ((sib >> 6) & 3);
-            u8 index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
-            u8 base = (sib & 7) | (rex.b ? 8 : 0);
+            const u8 sib = code[offset];
+            const u8 scale = 1 << ((sib >> 6) & 3);
+            const u8 index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
+            const u8 base = (sib & 7) | (rex.b ? 8 : 0);
 
             i32 disp = 0;
             char disp_str[32] = "";
@@ -203,7 +203,7 @@ usize decode_rm_operand(
 
     // mod=1 or mod=2: [reg + disp8/32]
     if (modrm.mod == 1 || modrm.mod == 2) {
-        int disp_bytes = (modrm.mod == 1) ? 1 : 4;
+        const int disp_bytes = (modrm.mod == 1) ? 1 : 4;
         if (offset + 1 + disp_bytes > max_len) {
             // +1 wegen SIB
             snprintf(output, output_size, "%s[?]", size_prefix);
@@ -211,10 +211,10 @@ usize decode_rm_operand(
         }
 
         if (modrm.rm == 4) {
-            u8 sib = code[offset];
-            u8 scale = 1 << ((sib >> 6) & 3);
-            u8 index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
-            u8 base = (sib & 7) | (rex.b ? 8 : 0);
+            const u8 sib = code[offset];
+            const u8 scale = 1 << ((sib >> 6) & 3);
+            const u8 index = ((sib >> 3) & 7) | (rex.x ? 8 : 0);
+            const u8 base = (sib & 7) | (rex.b ? 8 : 0);
 
             i64 disp = 0;
             if (disp_bytes == 1) {
@@ -271,7 +271,7 @@ usize decode_rm_operand(
     return 0;
 }
 
-const char* get_group_mnemonic(u8 opcode, u8 reg_field) {
+const char* get_group_mnemonic(const u8 opcode, const u8 reg_field) {
     if (opcode == 0xFE) {
         return (reg_field == 0) ? "inc" : (reg_field == 1) ? "dec" : "???";
     }
@@ -1076,12 +1076,12 @@ Instruction disasm_next(const u8* code, usize max_len, u64 instr_addr) {
     return result;
 }
 
-void disassemble_frame(u64 addr, usize bytes) {
+void disassemble_frame(const u64 addr, const usize bytes) {
     const auto* ptr = reinterpret_cast<const u8*>(addr);
     usize offset = 0;
 
     while (offset < bytes) {
-        u64 instr_addr = addr + offset;
+        const u64 instr_addr = addr + offset;
         auto [mnemonic, size] = disasm_next(ptr + offset, bytes, instr_addr);
         Log::print_ln("    %p: %s", reinterpret_cast<void*>(instr_addr), mnemonic);
         offset += size;

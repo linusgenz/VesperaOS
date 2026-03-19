@@ -21,7 +21,7 @@ void Log::init()
 
  void Log::log_prefix(
     const char* tag,
-    u32 tag_fg
+    const u32 tag_fg
 )
 {
     t_->set_colour(WHITE, BLACK);
@@ -51,7 +51,7 @@ void Log::disable_debug()
 }
 
 
-void u_int_to_str(u64 value, char* buffer, u8 base = 10, bool prefix = false)
+void u_int_to_str(u64 value, char* buffer, const u8 base = 10, const bool prefix = false)
 {
     char temp[32];
     int i = 0;
@@ -211,7 +211,6 @@ static void float_to_str(float val, char* buf, int precision)
         val = -val;
     }
 
-    // Ganzzahlteil
     const auto int_part = static_cast<u32>(val);
     float frac_part = val - static_cast<float>(int_part);
 
@@ -225,7 +224,6 @@ static void float_to_str(float val, char* buf, int precision)
 
     *buf++ = '.';
 
-    // Nachkommateil
     for (int i = 0; i < precision; i++)
     {
         frac_part *= 10.0f;
@@ -237,7 +235,7 @@ static void float_to_str(float val, char* buf, int precision)
     *buf = '\0';
 }
 */
-void Log::print_formatted(const char* fmt, __builtin_va_list args)
+void Log::print_formatted(const char* fmt,  __builtin_va_list args)
 {
     char chr = 0;
     while ((chr = *fmt++) != 0)
@@ -300,7 +298,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                 }
             }
 
-            char specifier = *fmt++;
+            const char specifier = *fmt++;
             char buffer[64];
 
             switch (specifier)
@@ -329,10 +327,10 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
             case 'u':
             case 'x':
                 {
-                    u64 val = (long_long || long_flag)
+                    const u64 val = (long_long || long_flag)
                                        ? __builtin_va_arg(args, u64)
                                        : __builtin_va_arg(args, u32);
-                    int base = (specifier == 'x') ? 16 : 10;
+                    const int base = (specifier == 'x') ? 16 : 10;
                     u_int_to_str(val, buffer, base);
 
                     // Padding manuell
@@ -345,7 +343,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                 }
             case 'c':
                 {
-                    int val = __builtin_va_arg(args, int);
+                    const int val = __builtin_va_arg(args, int);
                     t_->put_char(static_cast<char>(val));
                     break;
                 }
@@ -360,7 +358,7 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                         val = -val;
                     }
                     u_int_to_str(static_cast<u64>(val), buffer, 10);
-                    usize len = strlen(buffer);
+                    const usize len = strlen(buffer);
                     for (usize i = len; i < min_width; i++)
                         t_->put_char(pad_char);
                     t_->print(buffer);
@@ -380,10 +378,10 @@ void Log::print_formatted(const char* fmt, __builtin_va_list args)
                 }*/
             case 'p':
                 {
-                    uptr val = __builtin_va_arg(args, uptr);
+                    const uptr val = __builtin_va_arg(args, uptr);
                     t_->print("0x");
                     u_int_to_str(val, buffer, 16);
-                    usize len = strlen(buffer);
+                    const usize len = strlen(buffer);
                     for (usize i = len; i < min_width; i++)
                         t_->put_char('0');
                     t_->print(buffer);

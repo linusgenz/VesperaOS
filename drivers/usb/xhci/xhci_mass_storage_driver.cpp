@@ -166,9 +166,9 @@ void XhciMassStorageDriver::handle_completed_transfer() {
         init_phase_ = InitPhase::ReadCapacity;
         scsi_read_capacity();
     } else if (init_phase_ == InitPhase::ReadCapacity) {
-        auto* data = capacity_buffer_;
-        u32 last_lba = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-        u32 block_size = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
+        const auto* data = capacity_buffer_;
+        const u32 last_lba = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+        const u32 block_size = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 
         total_sectors_ = last_lba + 1;
         sector_size_ = block_size;
@@ -262,7 +262,7 @@ void XhciMassStorageDriver::start_bulk_transfer(MassStorageTransfer* transfer) {
     current_transfer_ = transfer;
     transfer->phase = MassStorageTransfer::Phase::SentCbw;
 
-    auto* ep_out = bulk_out_endpoint_;
+    const auto* ep_out = bulk_out_endpoint_;
 
     xhci_trb_t cbw_trb{};
     cbw_trb.parameter = xhci_get_physical_addr(&transfer->cbw);

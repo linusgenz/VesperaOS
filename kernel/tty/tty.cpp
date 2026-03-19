@@ -84,7 +84,7 @@ namespace kernel::tty {
 
         if (!keyboard_focus_tty->canonical) {
             struct SpecialKey { KeyCode key; const char* seq; usize len; };
-            static constexpr SpecialKey table[] = {
+            static constexpr SpecialKey TABLE[] = {
                 { KeyCode::ARROW_UP,    "\033[A",   3 },
                 { KeyCode::ARROW_DOWN,  "\033[B",   3 },
                 { KeyCode::ARROW_RIGHT, "\033[C",   3 },
@@ -108,7 +108,7 @@ namespace kernel::tty {
                 { KeyCode::F11,         "\033[23~", 5 },
                 { KeyCode::F12,         "\033[24~", 5 },
             };
-            for (const auto& sk : table) {
+            for (const auto& sk : TABLE) {
                 if (ev.keycode == sk.key) {
                     for (usize i = 0;
                          i < sk.len && keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1;
@@ -251,9 +251,9 @@ namespace kernel::tty {
 
                 case 48:  // Extended BG
                     if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
-                        int r = tty->esc_params[i + 1];
-                        int g = tty->esc_params[i + 2];
-                        int b = tty->esc_params[i + 3];
+                        const int r = tty->esc_params[i + 1];
+                        const int g = tty->esc_params[i + 2];
+                        const int b = tty->esc_params[i + 3];
                         tty->bg = static_cast<colour_t>((r << 16) | (g << 8) | b);
                         i += 4;
                     }
@@ -328,7 +328,7 @@ namespace kernel::tty {
             {
                 // Helper: return params[idx], defaulting to `def` when
                 // the parameter was omitted (ANSI default = 0 stored).
-                auto p = [&](usize idx, int def) -> int {
+                auto p = [&](const usize idx, const int def) -> int {
                     if (idx >= tty->esc_param_count) return def;
                     const int v = tty->esc_params[idx];
                     return v == 0 ? def : v;
@@ -374,7 +374,7 @@ namespace kernel::tty {
                         }
 
                         case 'A': { // ESC[nA — cursor up
-                            int n = p(0, 1);
+                            const int n = p(0, 1);
                             int r = static_cast<int>(tty->cursor_y) - n;
                             if (r < 0) r = 0;
                             tty->cursor_y = r;
@@ -415,7 +415,7 @@ namespace kernel::tty {
                             break;
                         }
                         case 'F': { // ESC[nF — cursor previous line
-                            int r = (int)tty->cursor_y - p(0, 1);
+                            int r = static_cast<int>(tty->cursor_y) - p(0, 1);
                             if (r < 0) r = 0;
                             tty->cursor_y = r;
                             tty->cursor_x = 0;
@@ -499,7 +499,7 @@ namespace kernel::tty {
         tty->esc_param_count = 0;
     }
 
-    usize tty_read(TTY* tty, char* buf, usize count) {
+    usize tty_read(TTY* tty, char* buf, const usize count) {
         const Unit* u = kernel::scheduling::get_current_unit();
         const RealmId my_realm = u ? u->rid : 0;
 

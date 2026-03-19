@@ -72,7 +72,7 @@ static void initialize_device_manager_and_vfs() {
 
 static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
     auto* renderer = new FramebufferDriver(boot_info->framebuffer, boot_info->font);
-    DisplayBackend be{renderer, renderer->get_kd()};
+    const DisplayBackend be{renderer, renderer->get_kd()};
     DisplayManager::init(be);
 
     // Register framebuffer device
@@ -90,7 +90,7 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
     DevFs::register_device(fb_kd);
 
     // Setup terminal for logging
-    auto terminal = new Terminal(renderer, system_font->width, system_font->height);
+    const auto terminal = new Terminal(renderer, system_font->width, system_font->height);
     Log::set_terminal(terminal);
     kernel::SystemManager::set_system_terminal(terminal);
 
@@ -114,7 +114,7 @@ static void initialize_cpu_and_realms() {
     RealmManager::initialize();
 
     // Create system realm
-    RealmConfig realm_config_sys = {
+    const RealmConfig realm_config_sys = {
         .name = "systemv",
         .memory_limit = 0,
         .max_units = 32,
@@ -123,7 +123,7 @@ static void initialize_cpu_and_realms() {
     RealmManager::create(&realm_config_sys);
 
     // Create driver realm
-    RealmConfig realm_config_drv = {
+    const RealmConfig realm_config_drv = {
         .name = "driverv",
         .memory_limit = 0,
         .max_units = 32,

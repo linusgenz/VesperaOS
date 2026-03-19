@@ -94,7 +94,7 @@ namespace ps2::keyboard {
             else
                 g_keyboard.modifiers &= ~mod;
 
-            kernel::input::InputEvent ev{
+            const kernel::input::InputEvent ev{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = ps2_to_keycode(base_scancode, e0_was_set),
                 .modifiers = g_keyboard.modifiers,
@@ -138,7 +138,7 @@ namespace ps2::keyboard {
 
         // E0-prefixed keys have no ascii, keycode-only event
         if (e0_was_set) {
-            kernel::input::InputEvent ev{
+            const kernel::input::InputEvent ev{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = ps2_to_keycode(base_scancode, true),
                 .modifiers = g_keyboard.modifiers,
@@ -150,7 +150,7 @@ namespace ps2::keyboard {
         }
 
         if (ascii != 0) {
-            kernel::input::InputEvent ev{
+            const kernel::input::InputEvent ev{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = ps2_to_keycode(base_scancode, e0_was_set),
                 .modifiers = g_keyboard.modifiers,

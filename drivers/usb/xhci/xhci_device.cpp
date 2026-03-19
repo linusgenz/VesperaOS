@@ -86,7 +86,7 @@ XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_control_ep_ctx() const
     return &input_ctx->device_context.control_ep_context;
 }
 
-XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_ep_ctx(u8 endpoint_num) const
+XHCI_ENDPOINT_CONTEXT32* XhciDevice::get_input_ep_ctx(const u8 endpoint_num) const
 {
     const u8 endpoint_index = endpoint_num - 2;
 

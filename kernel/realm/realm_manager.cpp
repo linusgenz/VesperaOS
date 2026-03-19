@@ -85,7 +85,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->init_handle_table();
 
             if (cfg->is_user) {
-                phys_addr_t pml4_phys = kernel::memory::request_page_phys();
+                const phys_addr_t pml4_phys = kernel::memory::request_page_phys();
 
                 auto* new_pml4 = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
                 memset(new_pml4, 0, 0x1000);
@@ -113,7 +113,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
 
 Realm* RealmManager::get(const RealmId id) {
     while (true) {
-        u8 begin = seq_.load();
+        const u8 begin = seq_.load();
         if (begin & 1)  // Writer aktiv → retry
             continue;
 
@@ -141,9 +141,9 @@ bool RealmManager::destroy(const RealmId id) {
             SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
             RealmFs::unregister_realm(realm.id);
 
-            Unit* u = realm.unit_list;
+            const Unit* u = realm.unit_list;
             while (u) {
-                Unit* next = u->next;
+                const Unit* next = u->next;
                 UnitManager::destroy(u->id);
                 u = next;
             }
@@ -173,10 +173,10 @@ bool RealmManager::destroy(const RealmId id) {
     return ok;
 }
 
-isize RealmManager::get_status(void* manager_ref, void* buffer, usize size, usize offset) {
+isize RealmManager::get_status(void* manager_ref, void* buffer, const usize size, usize offset) {
     if (!manager_ref || !buffer || size < sizeof(realm_info)) return -EINVAL;
 
-    auto* r = static_cast<Realm*>(manager_ref);
+    const auto* r = static_cast<Realm*>(manager_ref);
     realm_info status{};
 
     status.id = r->id;
@@ -199,7 +199,7 @@ isize RealmManager::get_status(void* manager_ref, void* buffer, usize size, usiz
 
 void RealmManager::list() {
     while (true) {
-        u8 begin = seq_.load();
+        const u8 begin = seq_.load();
         if (begin & 1)  // Writer aktiv
             continue;
 

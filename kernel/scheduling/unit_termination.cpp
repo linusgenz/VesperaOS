@@ -32,7 +32,7 @@ static void do_terminate_unit(Unit* unit, Signal fault_sig) {
     unit->exit_code = -static_cast<i32>(fault_sig);
     unit->state = UnitState::Terminated;
 
-    u8 cpu_id = unit->cpu_id;
+    const u8 cpu_id = unit->cpu_id;
     auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
     cpu->ready_queue.remove(unit);
     cpu->blocked_queue.remove(unit);

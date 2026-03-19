@@ -71,7 +71,7 @@ namespace pci
         return buffer;
     }
 
-    const char* mass_storage_controller_subclass_name(u8 subclass_code)
+    const char* mass_storage_controller_subclass_name(const u8 subclass_code)
     {
         switch (subclass_code)
         {
@@ -104,7 +104,7 @@ namespace pci
         return buffer;
     }
 
-    const char* serial_bus_controller_subclass_name(u8 subclass_code)
+    const char* serial_bus_controller_subclass_name(const u8 subclass_code)
     {
         switch (subclass_code)
         {
@@ -139,7 +139,7 @@ namespace pci
         return buffer;
     }
 
-    const char* bridge_device_subclass_name(u8 subclass_code)
+    const char* bridge_device_subclass_name(const u8 subclass_code)
     {
         switch (subclass_code)
         {

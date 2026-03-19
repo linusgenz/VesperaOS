@@ -31,7 +31,7 @@ void XhciHidDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
 }
 
 void XhciHidDriver::on_event(usb::XhciDriver* hcd, XhciDevice* dev) {
-    auto& endpoint = interface_->endpoints[0];
+    const auto& endpoint = interface_->endpoints[0];
     u8* data = endpoint->get_data_buffer();
 
     this->on_device_event(data);
@@ -41,8 +41,8 @@ void XhciHidDriver::on_event(usb::XhciDriver* hcd, XhciDevice* dev) {
 
 void XhciHidDriver::request_hid_report(const usb::XhciDriver* hcd, const XhciDevice* dev) const
 {
-    auto endpoint = interface_->endpoints[0];
-    auto transfer_ring = endpoint->get_transfer_ring();
+    const auto endpoint = interface_->endpoints[0];
+    const auto transfer_ring = endpoint->get_transfer_ring();
 
     xhci_normal_trb_t normal_trb{};
     normal_trb.trb_type = XHCI_TRB_TYPE_NORMAL;

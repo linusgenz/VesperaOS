@@ -32,9 +32,9 @@
 
 namespace syscalls::internal {
     i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        HandleId hid = arg0;
-        u64 req = arg1;
-        auto arg = reinterpret_cast<void*>(arg2);
+        const HandleId hid = arg0;
+        const u64 req = arg1;
+        const auto arg = reinterpret_cast<void*>(arg2);
 
         const Unit* u = kernel::scheduling::get_current_unit();
         if (!u || !u->active) return -EINVAL;

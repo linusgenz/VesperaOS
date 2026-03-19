@@ -31,14 +31,14 @@
 
 namespace syscalls::internal {
     i64 sys_readdir(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        HandleId hid = arg0;
+        const HandleId hid = arg0;
         auto *ent = reinterpret_cast<dirent_t *>(arg1);
 
         if (!ent) return -EINVAL;
 
-        Unit *u = kernel::scheduling::get_current_unit();
+        const Unit *u = kernel::scheduling::get_current_unit();
         Realm *realm = RealmManager::get(u->rid);
-        HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) return -EACCES;

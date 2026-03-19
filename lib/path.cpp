@@ -7,7 +7,7 @@
 #include <vespera/mm/memory.h>
 
 //  "/foo/bar/baz" -> "foo", "bar", "baz"
-usize split_path(const char* path, char components[][32], usize max_components) {
+usize split_path(const char* path, char components[][32], const usize max_components) {
     usize count = 0;
     usize pos = 0;
 
@@ -16,7 +16,7 @@ usize split_path(const char* path, char components[][32], usize max_components) 
     usize comp_pos = 0;
 
     while (path[pos] != '\0' && count < max_components) {
-        char c = path[pos];
+        const char c = path[pos];
         if (c == '/') {
             if (comp_pos > 0) {
                 components[count][comp_pos] = '\0';
@@ -55,7 +55,7 @@ usize split_path(const char* path, char components[][32], usize max_components) 
     return count;
 }
 
-void normalize_path(const char* in, char* out, usize out_size) {
+void normalize_path(const char* in, char* out, const usize out_size) {
     char segments[16][64];
     int depth = 0;
 
@@ -83,7 +83,7 @@ void normalize_path(const char* in, char* out, usize out_size) {
     out[pos++] = '/';
     for (int i = 0; i < depth; i++) {
         if (i > 0) out[pos++] = '/';
-        usize clen = strlen(segments[i]);
+        const usize clen = strlen(segments[i]);
         if (pos + clen + 2 >= out_size) break;
         memcpy(out + pos, segments[i], clen);
         pos += clen;

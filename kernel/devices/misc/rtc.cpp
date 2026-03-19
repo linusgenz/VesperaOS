@@ -38,7 +38,7 @@ int RtcDevice::release(CharFile*) {
     return 0;
 }
 
-isize RtcDevice::read(CharFile*, void* buffer, usize count, usize) {
+isize RtcDevice::read(CharFile*, void* buffer, const usize count, usize) {
     if (count < sizeof(RtcData) || !buffer) return -EINVAL;
 
     RtcData data{};

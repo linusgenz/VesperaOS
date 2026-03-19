@@ -36,13 +36,13 @@ static u32 blend(const u32 fg, const u32 bg, const u8 alpha) {
     if (alpha == 0) return bg;
     if (alpha == 255) return fg;
 
-    u32 rb_fg = fg & 0x00FF00FF;
-    u32 g_fg = fg & 0x0000FF00;
-    u32 rb_bg = bg & 0x00FF00FF;
-    u32 g_bg = bg & 0x0000FF00;
+    const u32 rb_fg = fg & 0x00FF00FF;
+    const u32 g_fg = fg & 0x0000FF00;
+    const u32 rb_bg = bg & 0x00FF00FF;
+    const u32 g_bg = bg & 0x0000FF00;
 
-    u32 rb = (rb_fg * alpha + rb_bg * (255 - alpha)) >> 8;
-    u32 g = (g_fg * alpha + g_bg * (255 - alpha)) >> 8;
+    const u32 rb = (rb_fg * alpha + rb_bg * (255 - alpha)) >> 8;
+    const u32 g = (g_fg * alpha + g_bg * (255 - alpha)) >> 8;
 
     return (rb & 0x00FF00FF) | (g & 0x0000FF00) | 0xFF000000;
 }
@@ -82,7 +82,7 @@ void Terminal::put_codepoint(const u32 cp) {
     draw_cursor();
 }
 
-void Terminal::put_char_fast(char c) {
+void Terminal::put_char_fast(const char c) {
     if (c == '\n') {
         new_line();
         return;
@@ -246,14 +246,14 @@ void Terminal::draw_cell(const u32 cx, const u32 cy) const {
     const i32 base_x = g->bearing_x;
 
     for (u32 row = 0; row < g->height; row++) {
-        i32 dst_y = base_y + static_cast<i32>(row);
+        const i32 dst_y = base_y + static_cast<i32>(row);
         if (dst_y < 0 || static_cast<u32>(dst_y) >= bh) continue;
 
         for (u32 col = 0; col < g->width; col++) {
-            i32 dst_x = base_x + static_cast<i32>(col);
+            const i32 dst_x = base_x + static_cast<i32>(col);
             if (dst_x < 0 || static_cast<u32>(dst_x) >= bw) continue;
 
-            u8 alpha = g->bitmap[row * g->width + col];
+            const u8 alpha = g->bitmap[row * g->width + col];
             pixels[dst_y * bw + dst_x] = blend(cell.fg, cell.bg, alpha);
         }
     }
@@ -264,11 +264,11 @@ void Terminal::draw_cell(const u32 cx, const u32 cy) const {
     cache_->insert(key, pixels, bw, bh);
 }
 
-void Terminal::scrollback_up(usize lines) const {
+void Terminal::scrollback_up(const usize lines) const {
     sb_->scroll_up(lines);
     flush();
 }
-void Terminal::scrollback_down(usize lines) const {
+void Terminal::scrollback_down(const usize lines) const {
     sb_->scroll_down(lines);
     flush();
 }
@@ -358,7 +358,7 @@ void Terminal::tick_cursor() {
     if (cursor_blink_on_) draw_cursor();
 }
 
-void Terminal::set_cursor_visible(bool v) {
+void Terminal::set_cursor_visible(const bool v) {
     cursor_visible_ = v;
     draw_cell(cursor_col_, cursor_row_);
 }

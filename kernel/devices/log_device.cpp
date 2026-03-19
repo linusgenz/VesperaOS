@@ -65,7 +65,7 @@ isize LogDevice::read(CharFile* cf, void* buffer, usize count, usize offset) {
 
 int LogDevice::poll(CharFile* cf) {
     if (!cf) return 0;
-    auto* channel = static_cast<Channel*>(cf->driver_private);
+    const auto* channel = static_cast<Channel*>(cf->driver_private);
     int mask = 0;
     if (channel->used > 0) mask |= POLLIN;
     if (channel->used < channel->capacity) mask |= POLLOUT;

@@ -22,7 +22,7 @@
 
 #include <klib/decoding.h>
 
-bool utf8_decode(utf8_state_t *s, u8 byte, u32 *out) {
+bool utf8_decode(utf8_state_t *s, const u8 byte, u32 *out) {
     if (s->remaining == 0) {
         if (byte < 0x80) {
             *out = byte;

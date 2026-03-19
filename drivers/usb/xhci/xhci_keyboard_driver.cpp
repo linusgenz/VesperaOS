@@ -97,7 +97,7 @@ static constexpr HidKeymapEntry HID_KEYMAP[] = {
     {0x38, '/',  '?' }
 };
 
-static void update_modifiers(u8 modifier_byte) {
+static void update_modifiers(const u8 modifier_byte) {
     g_keyboard.modifiers = 0;
 
     if (modifier_byte & (1 << 0)) g_keyboard.modifiers |= kernel::input::MOD_LCTRL;
@@ -110,7 +110,7 @@ static void update_modifiers(u8 modifier_byte) {
     if (modifier_byte & (1 << 7)) g_keyboard.modifiers |= kernel::input::MOD_RSUPER;
 }
 
-static char translate_hid_usage_to_ascii(u8 usage_id, bool shift) {
+static char translate_hid_usage_to_ascii(const u8 usage_id, const bool shift) {
 
     for (const auto& entry : HID_KEYMAP) {
         if (entry.usage == usage_id) {
@@ -144,22 +144,22 @@ void XhciKeyboardDriver::on_device_init(usb::XhciDriver* hcd) {
 
 void XhciKeyboardDriver::on_device_event(u8* data) {
     const u8* current_keys = &data[2];
-    u8 modifier_byte = data[0];
+    const u8 modifier_byte = data[0];
 
     process_input_report(current_keys, modifier_byte);
 }
 
-void XhciKeyboardDriver::process_input_report(const u8* current_keys, u8 modifier_byte) {
+void XhciKeyboardDriver::process_input_report(const u8* current_keys, const u8 modifier_byte) {
     update_modifiers(modifier_byte);
-    u32 modifiers = g_keyboard.modifiers;
+    const u32 modifiers = g_keyboard.modifiers;
 
     // --- Handle Key Presses ---
     for (usize i = 0; i < MAX_KEYS; ++i) {
-        u8 key = current_keys[i];
+        const u8 key = current_keys[i];
         if (key == 0) continue;
 
         bool was_previously_pressed = false;
-        for (unsigned char m_prev_key : prev_keys_) {
+        for (const unsigned char m_prev_key : prev_keys_) {
             if (m_prev_key == key) {
                 was_previously_pressed = true;
                 break;
@@ -191,7 +191,7 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, u8 modifie
             const KeyCode kc = hid_to_keycode(key);
 
             alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
-            auto* ev = new (ev_buffer) kernel::input::InputEvent{
+            const auto* ev = new (ev_buffer) kernel::input::InputEvent{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = kc,
                 .modifiers = modifiers,
@@ -238,7 +238,7 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, u8 modifie
             const KeyCode kc = hid_to_keycode(key);
 
             alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
-            auto* ev = new (ev_buffer) kernel::input::InputEvent{
+            const auto* ev = new (ev_buffer) kernel::input::InputEvent{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
                 .keycode = kc,
                 .modifiers = modifiers,

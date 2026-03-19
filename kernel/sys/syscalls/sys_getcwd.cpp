@@ -30,7 +30,7 @@
 
 namespace syscalls::internal {
     i64 sys_getcwd(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        auto buf = reinterpret_cast<char*>(arg0);
+        const auto buf = reinterpret_cast<char*>(arg0);
         const usize size = arg1;
 
         if (!buf || size == 0) return -EINVAL;

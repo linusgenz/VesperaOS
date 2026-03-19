@@ -39,7 +39,7 @@ namespace ps2::mouse {
         }
     }
 
-    void send_cmd(u8 byte) {
+    void send_cmd(const u8 byte) {
         wait_write();
         outb(0x64, 0xD4);
         wait_write();

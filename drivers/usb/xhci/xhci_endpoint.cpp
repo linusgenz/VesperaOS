@@ -25,7 +25,7 @@
 #include "../usb_descriptors.h"
 
 u8 get_xhc_endpoint_type_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
-    u8 endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
+    const u8 endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
 
     // transfer type
     switch (desc->bm_attributes & 0x3) {
@@ -48,13 +48,13 @@ u8 get_xhc_endpoint_type_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc)
 }
 
 u8 get_xhc_endpoint_num_from_ep_descriptor(const USB_ENDPOINT_DESCRIPTOR* desc) {
-    u8 endpoint_number_base = desc->b_endpoint_address & 0x0F;
-    u8 endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
+    const u8 endpoint_number_base = desc->b_endpoint_address & 0x0F;
+    const u8 endpoint_direction_in = (desc->b_endpoint_address & 0x80) ? 1 : 0;
 
     return (endpoint_number_base * 2) + endpoint_direction_in;
 }
 
-XhciEndpoint::XhciEndpoint(u8 xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc) {
+XhciEndpoint::XhciEndpoint(const u8 xhc_slot_id, const USB_ENDPOINT_DESCRIPTOR* desc) {
     usb_endpoint_addr = desc->b_endpoint_address;
     usb_endpoint_attributes = desc->bm_attributes;
     max_packet_size = desc->w_max_packet_size;

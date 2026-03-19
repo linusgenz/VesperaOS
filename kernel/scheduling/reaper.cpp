@@ -34,7 +34,7 @@
     while (true) {
         kernel::time::sleep_ms(1000);
 
-        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        const u8 cpu_id = cpu_manager::get_current_cpu_id();
         auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
 
         if (cpu->reaper.empty()) continue;

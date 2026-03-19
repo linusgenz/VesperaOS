@@ -39,7 +39,7 @@ namespace blt {
         , sequence_number_(0) {
         const auto* pci = reinterpret_cast<pci::PCI_HEADER0*>(header);
 
-        phys_addr_t bar0 = make_phys(pci->bar0 & BAR0_ADDR_MASK);
+        const phys_addr_t bar0 = make_phys(pci->bar0 & BAR0_ADDR_MASK);
         kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
 
         mmio_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(bar0)));
@@ -193,7 +193,7 @@ namespace blt {
 
     bool IntelBlt::wait_for_ring_space(u32 required_bytes, u32 timeout_us) const {
         for (u32 i = 0; i < timeout_us; i++) {
-            u32 head = bcs_regs_[BCS_RING_HEAD / 4];
+            const u32 head = bcs_regs_[BCS_RING_HEAD / 4];
             u32 available = 0;
 
             if (ring_tail_ >= head) {
@@ -299,7 +299,7 @@ namespace blt {
         memset(ring_cpu_addr_, 0, ring_size_);
         setup_ring_buffer();
 
-        u32 ring_ctl = ((ring_size_ - PAGE_SIZE) & RING_SIZE_MASK) | RING_CTL_ENABLED;
+        const u32 ring_ctl = ((ring_size_ - PAGE_SIZE) & RING_SIZE_MASK) | RING_CTL_ENABLED;
         bcs_regs_[BCS_RING_CTL / 4] = ring_ctl;
         bcs_regs_[BCS_RING_HEAD / 4] = 0;
         bcs_regs_[BCS_RING_TAIL / 4] = 0;
@@ -337,7 +337,7 @@ namespace blt {
     }
 
     bool IntelBlt::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
-        BltRect rect{.x = px, .y = py, .width = w, .height = h};
+        const BltRect rect{.x = px, .y = py, .width = w, .height = h};
 
         if (!validate_blt_params(rect)) {
             return false;
@@ -463,7 +463,7 @@ namespace blt {
 
     void IntelBlt::enable_force_wake() const {
         volatile auto* forcewake_mt = reinterpret_cast<volatile u32*>(mmio_base_ + FORCEWAKE_MT);
-        volatile auto* forcewake_ack = reinterpret_cast<volatile u32*>(mmio_base_ + FORCEWAKE_ACK);
+        const volatile auto* forcewake_ack = reinterpret_cast<volatile u32*>(mmio_base_ + FORCEWAKE_ACK);
 
         *forcewake_mt = FORCEWAKE_ENABLE;
 
@@ -483,13 +483,13 @@ namespace blt {
     }
 
     void IntelBlt::enable_bcs_power() const {
-        auto bcs_swctrl = reinterpret_cast<volatile u32*>(mmio_base_ + BCS_SWCTRL);
+        const auto bcs_swctrl = reinterpret_cast<volatile u32*>(mmio_base_ + BCS_SWCTRL);
         *bcs_swctrl |= BCS_SWCTRL_WAKEUP;
         Log::debug("BCS Power enabled");
     }
 
     void IntelBlt::reset_bcs() const {
-        auto reset_ctl = reinterpret_cast<volatile u32*>(mmio_base_ + RESET_CTL);
+        const auto reset_ctl = reinterpret_cast<volatile u32*>(mmio_base_ + RESET_CTL);
 
         // Request BCS reset
         *reset_ctl |= RESET_BCS_BIT;
@@ -520,7 +520,7 @@ namespace blt {
         }
     }
 
-    void IntelBlt::unmap_from_ggtt(u32 gtt_index, usize num_pages) {
+    void IntelBlt::unmap_from_ggtt(u32 gtt_index, usize num_pages) const {
         for (usize i = 0; i < num_pages; i++) {
             gtt_entries_[gtt_index + i] = 0;  // clear GTT_VALID
             asm volatile("mfence" ::: "memory");
@@ -528,8 +528,8 @@ namespace blt {
     }
 
     GgttAllocation IntelBlt::alloc_and_map_to_ggtt(usize num_pages, u64 flags, u8 pat_index) {
-        phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
-        virt_addr_t cpu  = phys_to_virt(phys);
+        const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
+        const virt_addr_t cpu  = phys_to_virt(phys);
         kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
 
         const u32 gtt_index = ggtt_alloc_.alloc_persistent(static_cast<u32>(num_pages));

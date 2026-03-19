@@ -34,12 +34,12 @@ void debug_capture_stack(u64 rbp, u64 rip, u64* out, u8* out_len, u8 max_depth) 
     while (rbp && cnt < max_depth) {
         if (rbp & 0xF) break;
 
-        u64 ret = *reinterpret_cast<u64*>(rbp + 8);
+        const u64 ret = *reinterpret_cast<u64*>(rbp + 8);
         if (!ret) break;
 
         out[cnt++] = ret;
 
-        u64 next_rbp = *reinterpret_cast<u64*>(rbp);
+        const u64 next_rbp = *reinterpret_cast<u64*>(rbp);
         if (next_rbp <= rbp) break;
 
         rbp = next_rbp;
@@ -58,7 +58,7 @@ void backtrace(u64 rbp_start, u64 rip_start) {
 
     for (u8 i = 0; i < count; i++) {
         Symbol s = lookup_symbol(frames[i]);
-        u64 offset = frames[i] - s.addr;
+        const u64 offset = frames[i] - s.addr;
 
         Log::print_ln(
             "  #%u  %p  <%.*s+0x%llx>", i, reinterpret_cast<void*>(frames[i]), static_cast<int>(s.len), s.name, offset

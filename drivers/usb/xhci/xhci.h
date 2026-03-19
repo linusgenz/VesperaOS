@@ -137,7 +137,7 @@ namespace usb {
 
         static void configure_control_ep_input_context(const XhciDevice* dev, u16 max_packet_size);
 
-        static void configure_ep_input_context(const XhciDevice* dev, XhciEndpoint* endpoint);
+        static void configure_ep_input_context(const XhciDevice* dev, const XhciEndpoint* endpoint);
 
         bool send_usb_request_packet(
             XhciDevice* device, XHCI_DEVICE_REQUEST_PACKET& req, void* output_buffer, u32 length

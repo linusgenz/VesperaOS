@@ -34,14 +34,14 @@ namespace fat32 {
         u8 tenths;
     };
 
-    static u16 encode_fat_date(u8 day, u8 month, u16 year) {
+    static u16 encode_fat_date(const u8 day, const u8 month, u16 year) {
         if (year < 1980) year = 1980;
         if (year > 2107) year = 2107;
 
         return static_cast<u16>(((year - 1980) << 9) | (month << 5) | day);
     }
 
-    static u16 encode_fat_time(u8 hour, u8 minute, u8 second) {
+    static u16 encode_fat_time(const u8 hour, const u8 minute, const u8 second) {
         return static_cast<u16>((hour << 11) | (minute << 5) | (second / 2));
     }
 
@@ -51,7 +51,7 @@ namespace fat32 {
         kernel::time::read_rtc(sec, min, hour, day, month, year);
 
         // RTC just delivers year since 2000 so we have to add 2000 here
-        u16 full_year = 2000 + year;
+        const u16 full_year = 2000 + year;
 
         FsTime t{};
         t.date = encode_fat_date(day, month, full_year);
@@ -72,14 +72,14 @@ namespace fat32 {
     }
 
     void update_write_time(DirectoryEntry& e) {
-        FsTime t = get_current_fat_time();
+        const FsTime t = get_current_fat_time();
         e.write_date = t.date;
         e.write_time = t.time;
         e.last_access_date = t.date;
     }
 
     void update_access_time(DirectoryEntry& e) {
-        FsTime t = get_current_fat_time();
+        const FsTime t = get_current_fat_time();
         e.last_access_date = t.date;
     }
 }  // namespace fat32

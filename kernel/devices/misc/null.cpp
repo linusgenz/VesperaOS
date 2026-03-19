@@ -40,6 +40,6 @@ isize NullDevice::read(CharFile*, void* buffer, usize, usize) {
     return 0;
 }
 
-isize NullDevice::write(CharFile*, const void*, usize count) {
+isize NullDevice::write(CharFile*, const void*, const usize count) {
     return static_cast<isize>(count);
 }

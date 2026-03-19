@@ -58,7 +58,7 @@ const char* DevFs::bus_to_str(const BusType bus) {
     }
 }
 
-VfsNodeType map_device_type(DeviceType type) {
+VfsNodeType map_device_type(const DeviceType type) {
     switch (type) {
         case DeviceType::Char:
             return VfsNodeType::CharDevice;
@@ -169,38 +169,38 @@ int DevFs::open(const VfsNode* node) {
     return SUCCESS_CODE;
 }
 
-isize DevFs::read(const VfsNode* node, usize offset, usize size, void* buffer) {
+isize DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<DevfsEntry*>(node->internal_data);
+    const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SpinlockGuard guard(lock_);
 
-    KernelDevice* kd = entry->device;
+    const KernelDevice* kd = entry->device;
     if (kd->chardev) {
         if (!entry->cf) open(node);
         return kd->chardev->read(entry->cf, buffer, size, offset);
     }
     if (kd->block) {
-        usize sector_size = kd->block->get_sector_size();
-        u64 lba = offset / sector_size;
-        u32 sectors = (size + sector_size - 1) / sector_size;
+        const usize sector_size = kd->block->get_sector_size();
+        const u64 lba = offset / sector_size;
+        const u32 sectors = (size + sector_size - 1) / sector_size;
         return kd->block->read(lba, sectors, buffer, size);
     }
 
     return -EINVAL;
 }
 
-isize DevFs::write(VfsNode* node, usize offset, const usize size, const void* buffer) {
+isize DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<DevfsEntry*>(node->internal_data);
+    const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SpinlockGuard guard(lock_);
 
-    KernelDevice* kd = entry->device;
+    const KernelDevice* kd = entry->device;
 
     // CharDevice
     if (kd->chardev) {
@@ -212,9 +212,9 @@ isize DevFs::write(VfsNode* node, usize offset, const usize size, const void* bu
 
     // BlockDevice
     if (kd->block) {
-        usize sector_size = kd->block->get_sector_size();
-        u64 lba = offset / sector_size;
-        u32 sectors = (size + sector_size - 1) / sector_size;
+        const usize sector_size = kd->block->get_sector_size();
+        const u64 lba = offset / sector_size;
+        const u32 sectors = (size + sector_size - 1) / sector_size;
         return kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer));
     }
 
@@ -224,12 +224,12 @@ isize DevFs::write(VfsNode* node, usize offset, const usize size, const void* bu
 isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     if (!node) return -EINVAL;
 
-    auto* entry = static_cast<DevfsEntry*>(node->internal_data);
+    const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
     if (!entry || !entry->device) return -EINVAL;
 
     SpinlockGuard guard(lock_);
 
-    KernelDevice* kd = entry->device;
+    const KernelDevice* kd = entry->device;
 
     if (cmd >= IOCTL_DEVINFO_GET_ALL && cmd <= IOCTL_DEVINFO_GET_FW) {
         IDeviceInfo* info = kd->info;
@@ -267,7 +267,7 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     }
 
     if (cmd == IOCTL_USB_GET_DEVICE_INFO) {
-        IUsbDeviceInfo* usb_info = kd->usb_info;
+        const IUsbDeviceInfo* usb_info = kd->usb_info;
         if (!usb_info && kd->parent) usb_info = kd->parent->usb_info;
 
         if (!usb_info) return -ENOTTY;

@@ -21,25 +21,23 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
-#include <vespera/realm/realm_manager.h>
-
-static uptr find_free_range(Unit* u, usize length) {
-    constexpr uptr MMAP_BASE = 0x0000600000000000ULL;
-    constexpr uptr MMAP_END  = 0x00007FFFFFF00000ULL;
+static uptr find_free_range(const Unit* u, const usize length) {
+    static constexpr uptr MMAP_BASE = 0x0000600000000000ULL;
+    static constexpr uptr MMAP_END  = 0x00007FFFFFF00000ULL;
 
     uptr current = MMAP_BASE;
 
     while (true) {
-        VmArea* next = nullptr;
+        const VmArea* next = nullptr;
         uptr next_start = MMAP_END;
 
-        for (VmArea* v = u->get_vma_list(); v; v = v->next) {
+        for (const VmArea* v = u->get_vma_list(); v; v = v->next) {
             if (v->start >= current && v->start < next_start) {
                 next = v;
                 next_start = v->start;
@@ -56,7 +54,7 @@ static uptr find_free_range(Unit* u, usize length) {
             return current;
         }
 
-        uptr end = next->start + next->length;
+        const uptr end = next->start + next->length;
         current = (end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 
         if (current >= MMAP_END)
@@ -71,7 +69,7 @@ namespace syscalls::internal {
 
         addr   = addr & ~(PAGE_SIZE - 1);
         length = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-        usize npages = length / PAGE_SIZE;
+        const usize npages = length / PAGE_SIZE;
 
         if (!(flags & MAP_ANONYMOUS)) return -EUNSUPPORTED;
 
@@ -80,7 +78,7 @@ namespace syscalls::internal {
 
         const Realm* cur_r = RealmManager::get(cur->rid);
 
-        uptr base;
+        uptr base = 0;
 
         if (addr != 0) {
             // TODO, do bound/security checks etc.
@@ -91,7 +89,7 @@ namespace syscalls::internal {
         }
 
         for (usize i = 0; i < npages; i++) {
-            phys_addr_t phys = kernel::memory::request_page_phys();
+            const phys_addr_t phys = kernel::memory::request_page_phys();
             if (phys_null(phys)) {
                 for (usize j = 0; j < i; j++)
                      cur_r->page_table->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));

@@ -46,7 +46,7 @@ namespace arch::x86_64::interrupts::apic {
 
         pmt_delay(10000);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
-        u32 calibration = 0xffffffff - read(LAPIC_TCCR);
+        const u32 calibration = 0xffffffff - read(LAPIC_TCCR);
         write(LAPIC_TIMER, IRQ_TIMER | LAPIC_PERIODIC);
         write(LAPIC_TDCR, 0x3);  // 16
         write(LAPIC_TICR, calibration);
@@ -67,7 +67,7 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void broadcast_ipi(const u8 vector) {
-        u32 self_apic_id = local_apic_get_id();
+        const u32 self_apic_id = local_apic_get_id();
 
         for (u32 i = 0; i < cpu_manager::total_cpus && i < MAX_CPU_CORES; i++) {
             const auto &cpu = cpu_manager::cpu_infos[i];
@@ -79,7 +79,7 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void pmt_delay(const usize us) {
-        acpi::FADT *fadt = acpi::TableManager::get_fadt();
+        const acpi::FADT *fadt = acpi::TableManager::get_fadt();
 
         if (fadt->pm_timer_length != 4) {
             kernel::SystemManager::system_panic("ACPI Timer unavailable", -KENOACPI);
@@ -99,7 +99,7 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void timer_accounting() {
-        u32 cpu = cpu_manager::get_current_cpu_id();
+        const u32 cpu = cpu_manager::get_current_cpu_id();
         apic_ticks[cpu]++;
     }
 
@@ -109,7 +109,7 @@ namespace arch::x86_64::interrupts::apic {
 #endif
 
         if (!kernel::scheduling::is_initialized()) return;
-        u32 cpu = cpu_manager::get_current_cpu_id();
+        const u32 cpu = cpu_manager::get_current_cpu_id();
 
         kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
 

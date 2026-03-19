@@ -37,7 +37,7 @@ static bool parse_hex_u64(const char* s, u64* out) {
     return true;
 }
 
-Symbol lookup_symbol(u64 addr) {
+Symbol lookup_symbol(const u64 addr) {
     auto best = "???";
     usize best_len = 3;
     u64 best_addr = 0;
@@ -71,7 +71,7 @@ Symbol lookup_symbol(u64 addr) {
 
         const char* name = type + 2;
         const char* line_end = strchr(name, '\n');
-        usize len = line_end ? static_cast<usize>(line_end - name) : static_cast<usize>(end - name);
+        const usize len = line_end ? static_cast<usize>(line_end - name) : static_cast<usize>(end - name);
 
         if (sym_addr <= addr && sym_addr > best_addr) {
             best_addr = sym_addr;

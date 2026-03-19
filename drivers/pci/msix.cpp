@@ -32,7 +32,7 @@
 
 namespace pci {
 
-    bool enable_msix(PCI_HEADER0* header, u8 irq_vector) {
+    bool enable_msix(PCI_HEADER0* header, const u8 irq_vector) {
         auto* config_space = reinterpret_cast<u8*>(&header->header);
 
         if (!(header->header.status & (1 << 4))) {
@@ -43,8 +43,8 @@ namespace pci {
         u8 cap_ptr = header->capabilities_ptr;
 
         while (cap_ptr) {
-            u8 cap_id = config_space[cap_ptr];
-            u8 next_ptr = config_space[cap_ptr + 1];
+            const u8 cap_id = config_space[cap_ptr];
+            const u8 next_ptr = config_space[cap_ptr + 1];
 
             if (cap_id == MSIX_CAPABILITY_ID) {
                 volatile auto* msix_cap = reinterpret_cast<volatile PCI_MSIX_CAPABILITY*>(&config_space[cap_ptr]);
@@ -53,24 +53,24 @@ namespace pci {
                 msix_cap->function_mask = 1;
                 msix_cap->message_control = msix_cap->message_control;
 
-                u8 table_bar_index = msix_cap->table_bir;
-                u32 table_raw = *reinterpret_cast<volatile u32*>(&config_space[cap_ptr + 4]);
-                u32 table_offset = table_raw & ~0x7u;
+                const u8 table_bar_index = msix_cap->table_bir;
+                const u32 table_raw = *reinterpret_cast<volatile u32*>(&config_space[cap_ptr + 4]);
+                const u32 table_offset = table_raw & ~0x7u;
 
-                BarInfo bar_info = get_bar_info(header, table_bar_index);
+                const BarInfo bar_info = get_bar_info(header, table_bar_index);
                 if (!bar_info.is_valid || !bar_info.is_memory) {
                     Log::error("MSI-X: Invalid or non-memory BAR %u", table_bar_index);
                     return false;
                 }
 
-                phys_addr_t bar_phys = make_phys(bar_info.address);
-                u64 bar_size = bar_info.size;
+                const phys_addr_t bar_phys = make_phys(bar_info.address);
+                const u64 bar_size = bar_info.size;
 
                 kernel::memory::map_range(
                     phys_to_virt(bar_phys), bar_phys, bar_size, (1ULL << WriteThrough) | (1ULL << CacheDisabled)
                 );
 
-                virt_addr_t table_base = virt_add(phys_to_virt(bar_phys), table_offset);
+                const virt_addr_t table_base = virt_add(phys_to_virt(bar_phys), table_offset);
 
                 MSIX_TABLE_ENTRY entry;
                 entry.message_address = build_msix_address(kernel::interrupts::lapic_get_id());
@@ -93,7 +93,7 @@ namespace pci {
         return false;
     }
 
-    bool try_enable_msi_or_msix(PCI_HEADER0* header, u8 base_vector, u8 wanted) {
+    bool try_enable_msi_or_msix(PCI_HEADER0* header, const u8 base_vector, const u8 wanted) {
         if (enable_msix(header, base_vector)) return true;
         return enable_msi(header, base_vector, wanted);
     }

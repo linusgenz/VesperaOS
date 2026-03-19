@@ -47,7 +47,7 @@ usize fs_driver_count() {
     return driver_count;
 }
 
-FileSystemDriver* fs_driver_at(usize i) {
+FileSystemDriver* fs_driver_at(const usize i) {
     if (i >= driver_count) return nullptr;
     return fs_drivers[i];
 }

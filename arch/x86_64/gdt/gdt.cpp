@@ -9,7 +9,7 @@ TSS_DESCRIPTOR tss_desc;
 TSS tss[MAX_CPU_CORES] __attribute__((aligned(4096)));
 GDT_PTR gdt_ptr;
 
-static void set_gdt_entry(int idx, u32 base, u32 limit, u8 access, u8 gran) {
+static void set_gdt_entry(const int idx, const u32 base, const u32 limit, const u8 access, const u8 gran) {
     gdt[idx].limit_low = limit & 0xFFFF;
     gdt[idx].base_low = base & 0xFFFF;
     gdt[idx].base_middle = (base >> 16) & 0xFF;
@@ -51,7 +51,7 @@ void setup_cpu_tss(u32 cpu_id) {
     asm volatile("ltr %w0" ::"r"(tss_selector));
 }
 
-u16 get_tss_selector(u32 cpu_id) {
+u16 get_tss_selector(const u32 cpu_id) {
     return (5 + (cpu_id * 2)) << 3;
 }
 

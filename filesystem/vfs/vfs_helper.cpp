@@ -31,7 +31,7 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
     if (!path || !parent_out || !name_out) return false;
 
     char components[16][32];
-    usize count = split_path(path, components, 16);
+    const usize count = split_path(path, components, 16);
     if (count == 0) return false;
 
     if (count == 1)
@@ -61,7 +61,7 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
     return true;
 }
 
-dirent_type_t VFS::node_type_to_dirent_type(VfsNodeType type)
+dirent_type_t VFS::node_type_to_dirent_type(const VfsNodeType type)
 {
     switch (type)
     {
@@ -84,7 +84,7 @@ void VFS::ensure_path_exists(const char* path)
     temp[sizeof(temp) - 1] = '\0';
 
     char components[16][32];
-    usize count = split_path(temp, components, 16);
+    const usize count = split_path(temp, components, 16);
 
     char current[256] = "/";
     for (usize i = 0; i < count; i++)

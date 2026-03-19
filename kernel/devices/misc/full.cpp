@@ -39,7 +39,7 @@ int FullDevice::release(CharFile*) {
     return 0;
 }
 
-isize FullDevice::read(CharFile* cf, void* buffer, usize count, usize offset) {
+isize FullDevice::read(CharFile* cf, void* buffer, const usize count, const usize offset) {
     (void)cf;
     (void)offset;
 
@@ -50,7 +50,7 @@ isize FullDevice::read(CharFile* cf, void* buffer, usize count, usize offset) {
     return static_cast<isize>(count);
 }
 
-isize FullDevice::write(CharFile* cf, const void* buffer, usize count) {
+isize FullDevice::write(CharFile* cf, const void* buffer, const usize count) {
     (void)cf;
     (void)buffer;
     (void)count;

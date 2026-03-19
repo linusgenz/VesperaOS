@@ -47,7 +47,7 @@
 #define NULL nullptr
 #include "../../../lib/stb/stb_truetype.h"
 
-TtfGlyphProvider::TtfGlyphProvider(const u8* font_data, usize, float size_px)
+TtfGlyphProvider::TtfGlyphProvider(const u8* font_data, usize, const float size_px)
     : info_(static_cast<stbtt_fontinfo*>(kernel::memory::malloc(sizeof(stbtt_fontinfo)))) {
     if (!stbtt_InitFont(info_, font_data, 0)) {
         Log::error("[TTF] stbtt_InitFont failed");
@@ -89,7 +89,7 @@ TtfGlyphProvider::~TtfGlyphProvider() {
     if (info_) kernel::memory::free(info_);
 }
 
-const RenderedGlyph* TtfGlyphProvider::get_glyph(u32 codepoint) {
+const RenderedGlyph* TtfGlyphProvider::get_glyph(const u32 codepoint) {
     if (!valid_) return nullptr;
 
     int w = 0, h = 0, off_x = 0, off_y = 0;
@@ -110,7 +110,7 @@ const RenderedGlyph* TtfGlyphProvider::get_glyph(u32 codepoint) {
     }
 
     // Make sure the buffer is large enough
-    usize needed = static_cast<usize>(w) * h;
+    const usize needed = static_cast<usize>(w) * h;
     if (needed > bitmap_buf_size_) {
         kernel::memory::free(bitmap_buf_);
         bitmap_buf_size_ = needed * 2;

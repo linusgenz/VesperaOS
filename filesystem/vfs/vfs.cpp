@@ -88,7 +88,7 @@ VfsNode* VFS::open(const char* path) {
     path = norm_path;
 
     // --- Mountpoint-Suche ---
-    MountPoint* best_match = nullptr;
+    const MountPoint* best_match = nullptr;
     usize best_len = 0;
 
     {
@@ -113,7 +113,7 @@ VfsNode* VFS::open(const char* path) {
     VfsNode* current = best_match->root;
 
     char components[16][32];
-    usize count = split_path(sub_path, components, 16);
+    const usize count = split_path(sub_path, components, 16);
 
     for (usize i = 0; i < count; i++) {
         current = current->ops->find(current, components[i]);
@@ -159,7 +159,7 @@ void VFS::closedir(VfsDir* dir) {
     kernel::memory::free(dir);
 }
 
-usize VFS::read(const VfsNode* node, usize offset, usize size, void* buffer) {
+usize VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
     if (!node || !node->ops || !node->ops->read) return 0;
     return node->ops->read(node, offset, size, buffer);
 }
@@ -176,7 +176,7 @@ int VFS::create(const char* path) {
         return -ENOSYS;
     }
 
-    int result = parent->ops->create(parent, name);
+    const int result = parent->ops->create(parent, name);
     close(parent);
     return result;
 }
@@ -205,7 +205,7 @@ int VFS::rename(const char* old_path, const char* new_path) {
         return -ENOSYS;
     }
 
-    int status = old_parent->ops->rename(old_parent, old_name, new_name);
+    const int status = old_parent->ops->rename(old_parent, old_name, new_name);
     close(old_parent);
     close(new_parent);
     return status;
@@ -223,7 +223,7 @@ int VFS::mkdir(const char* path) {
         return -ENOSYS;
     }
 
-    int result = parent->ops->mkdir(parent, name);
+    const int result = parent->ops->mkdir(parent, name);
     close(parent);
     return result;
 }
@@ -247,7 +247,7 @@ int VFS::rmdir(const char* path) {
         return -ENOSYS;
     }
 
-    int result = parent->ops->rmdir(parent, name);
+    const int result = parent->ops->rmdir(parent, name);
     close(parent);
     return result;
 }
@@ -264,7 +264,7 @@ int VFS::unlink(const char* path) {
         return -ENOSYS;
     }
 
-    int result = parent->ops->unlink(parent, name);
+    const int result = parent->ops->unlink(parent, name);
     close(parent);
     return result;
 }
@@ -323,7 +323,7 @@ MountPoint* VFS::find_mount_point(const char* path) {
 
     SpinlockGuard g(mount_points_lock_);
 
-    for (auto& mp : *mount_points_) {
+    for (const auto& mp : *mount_points_) {
         if (strcmp(mp->path, path) == 0) {
             return mp;
         }
@@ -332,7 +332,7 @@ MountPoint* VFS::find_mount_point(const char* path) {
     return nullptr;  // not found
 }
 
-bool VFS::remove_mount_point(MountPoint* mp) {
+bool VFS::remove_mount_point(const MountPoint* mp) {
     if (!mp) return false;
     SpinlockGuard g(mount_points_lock_);
 

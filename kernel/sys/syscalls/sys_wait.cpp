@@ -28,13 +28,13 @@
 
 namespace syscalls::internal {
     i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        RealmId child_rid = arg0;
-        i64 status_user_ptr = static_cast<i64>(arg1);
+        const RealmId child_rid = arg0;
+        const i64 status_user_ptr = static_cast<i64>(arg1);
 
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;
 
-        Realm* parent_realm = RealmManager::get(current->rid);
+        const Realm* parent_realm = RealmManager::get(current->rid);
 
         Realm* target = RealmManager::get(child_rid);
         if (!target) {
@@ -64,7 +64,7 @@ namespace syscalls::internal {
         restore_tty_focus();
 
         if (status_user_ptr != 0) {
-            int status_val = 0;
+            constexpr int status_val = 0;
             (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
         }
 

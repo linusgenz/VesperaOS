@@ -55,15 +55,15 @@ namespace acpi {
     }
 
     void parse_fadt() {
-        FADT* fadt = TableManager::get_fadt();
+        const FADT* fadt = TableManager::get_fadt();
         if (!fadt) return;
 
-        phys_addr_t dsdt_phys = make_phys(fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt);
+        const phys_addr_t dsdt_phys = make_phys(fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt);
         if (phys_null(dsdt_phys)) return;
 
         const auto* header = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(dsdt_phys)));
-        auto* dsdt = static_cast<u8*>(virt_ptr(phys_to_virt(dsdt_phys)));
-        usize length = header->length;
+        const auto* dsdt = static_cast<u8*>(virt_ptr(phys_to_virt(dsdt_phys)));
+        const usize length = header->length;
 
         parse_s5(dsdt, length);
     }

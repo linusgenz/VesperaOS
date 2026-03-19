@@ -1,9 +1,6 @@
 #include "pci.h"
 
 #include <vespera/interrupts.h>
-#include <vespera/kernel_utils.h>
-
-#include "../../kernel/graphics/display_manager.h"
 #include "../../kernel/units/unit_manager.h"
 #include "../ahci/ahci.h"
 #include "../gpu/intel/intel_blt.h"
@@ -31,7 +28,7 @@ void usb_enable(void* arg)
         char name[16];
         DeviceManager::alloc_unique_device_name("xhci", name, sizeof(name));
 
-        auto usb_driver = new usb::XhciDriver(vector, name, next_usb_bus_number++);
+        const auto usb_driver = new usb::XhciDriver(vector, name, next_usb_bus_number++);
         if (!usb_driver->init_device(pci_device_header))
         {
             Log::error("Could not initalize xhci driver");
@@ -45,8 +42,8 @@ namespace pci
 {
     void enumerate_function(const u64 device_address, const u64 function)
     {
-        virt_addr_t func_virt = virt_from_raw(device_address + (function << 12));
-        phys_addr_t func_phys = make_phys(virt_raw(func_virt));  // identity mapped
+        const virt_addr_t func_virt = virt_from_raw(device_address + (function << 12));
+        const phys_addr_t func_phys = make_phys(virt_raw(func_virt));  // identity mapped
 
         kernel::memory::map_memory(func_virt, func_phys, 0);
 
@@ -181,9 +178,9 @@ namespace pci
     }
 
 
-    void enumerate_device(u64 bus_address, u64 device) {
-        virt_addr_t dev_virt = virt_from_raw(bus_address + (device << 15));
-        phys_addr_t dev_phys = make_phys(virt_raw(dev_virt));
+    void enumerate_device(const u64 bus_address, const u64 device) {
+        const virt_addr_t dev_virt = virt_from_raw(bus_address + (device << 15));
+        const phys_addr_t dev_phys = make_phys(virt_raw(dev_virt));
 
         kernel::memory::map_memory(dev_virt, dev_phys, 0);
 
@@ -196,9 +193,9 @@ namespace pci
             enumerate_function(virt_raw(dev_virt), function);
     }
 
-    void enumerate_bus(u64 base_address, u64 bus) {
-        virt_addr_t bus_virt = virt_from_raw(base_address + (bus << 20));
-        phys_addr_t bus_phys = make_phys(virt_raw(bus_virt));
+    void enumerate_bus(const u64 base_address, const u64 bus) {
+        const virt_addr_t bus_virt = virt_from_raw(base_address + (bus << 20));
+        const phys_addr_t bus_phys = make_phys(virt_raw(bus_virt));
 
         kernel::memory::map_memory(bus_virt, bus_phys, 0);
 
@@ -239,7 +236,7 @@ namespace pci
  * @param bar_value Der Wert der BAR (z.B. header->BAR0)
  * @return true wenn 64-bit BAR, false wenn 32-bit BAR oder I/O BAR
  */
-    bool is_bar_64_bit(u32 bar_value)
+    bool is_bar_64_bit(const u32 bar_value)
     {
         // Erstmal prüfen ob es eine Memory BAR ist (Bit 0 = 0)
         if (bar_value & PCI_BAR_MEMORY_MASK)
@@ -249,12 +246,12 @@ namespace pci
         }
 
         // Bits 2:1 prüfen für Memory BAR Type
-        u32 bar_type = (bar_value >> 1) & 0x3;
+        const u32 bar_type = (bar_value >> 1) & 0x3;
         return (bar_type == 0x2); // 0x2 = 64-bit Memory BAR
     }
 
 
-    BarInfo get_bar_info(PCI_HEADER0* header, u8 bar_index)
+    BarInfo get_bar_info(PCI_HEADER0* header, const u8 bar_index)
     {
         BarInfo info = {};
 
@@ -264,7 +261,7 @@ namespace pci
         }
 
         volatile u32* bar_registers = &header->bar0;
-        u32 bar_value = bar_registers[bar_index];
+        const u32 bar_value = bar_registers[bar_index];
 
         if (bar_value == 0)
         {
@@ -282,9 +279,9 @@ namespace pci
             info.is_prefetchable = false;
 
             // Calculate I/O BAR size
-            u32 original = bar_registers[bar_index];
+            const u32 original = bar_registers[bar_index];
             bar_registers[bar_index] = 0xFFFFFFFF;
-            u32 size_mask = bar_registers[bar_index] & ~0x3;
+            const u32 size_mask = bar_registers[bar_index] & ~0x3;
             bar_registers[bar_index] = original;
             info.size = ~size_mask + 1;
         }
@@ -302,23 +299,23 @@ namespace pci
                     return info;
                 }
 
-                u32 bar_high = bar_registers[bar_index + 1];
+                const u32 bar_high = bar_registers[bar_index + 1];
                 info.address = (static_cast<u64>(bar_high) << 32) | (bar_value & ~0xFULL);
 
                 // Calculate 64-bit BAR size
-                u32 original_low = bar_registers[bar_index];
-                u32 original_high = bar_registers[bar_index + 1];
+                const u32 original_low = bar_registers[bar_index];
+                const u32 original_high = bar_registers[bar_index + 1];
 
                 bar_registers[bar_index] = 0xFFFFFFFF;
                 bar_registers[bar_index + 1] = 0xFFFFFFFF;
 
-                u32 size_low = bar_registers[bar_index] & ~0xF;
-                u32 size_high = bar_registers[bar_index + 1];
+                const u32 size_low = bar_registers[bar_index] & ~0xF;
+                const u32 size_high = bar_registers[bar_index + 1];
 
                 bar_registers[bar_index] = original_low;
                 bar_registers[bar_index + 1] = original_high;
 
-                u64 size_mask = (static_cast<u64>(size_high) << 32) | size_low;
+                const u64 size_mask = (static_cast<u64>(size_high) << 32) | size_low;
                 info.size = ~size_mask + 1;
             }
             else
@@ -326,9 +323,9 @@ namespace pci
                 info.address = bar_value & ~0xFULL;
 
                 // Calculate 32-bit BAR size
-                u32 original = bar_registers[bar_index];
+                const u32 original = bar_registers[bar_index];
                 bar_registers[bar_index] = 0xFFFFFFFF;
-                u32 size_mask = bar_registers[bar_index] & ~0xF;
+                const u32 size_mask = bar_registers[bar_index] & ~0xF;
                 bar_registers[bar_index] = original;
                 info.size = ~size_mask + 1;
             }

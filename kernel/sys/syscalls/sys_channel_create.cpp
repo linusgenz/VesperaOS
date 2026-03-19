@@ -41,8 +41,7 @@ namespace syscalls::internal {
         Channel* ch = Channel::create(capacity);
         if (!ch) return -ENOMEM;
 
-        // set required caps for channels: read+write for owner
-        capability_set caps = CAP_READ | CAP_WRITE;
+        const capability_set caps = CAP_READ | CAP_WRITE;
 
         HandleId hid = 0;
 

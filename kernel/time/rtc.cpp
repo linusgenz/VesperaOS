@@ -14,7 +14,7 @@ namespace kernel::time {
         return value;
     }
 
-    u8 bcd_to_binary(u8 bcd) {
+    u8 bcd_to_binary(const u8 bcd) {
         return ((bcd / 16) * 10) + (bcd & 0x0F);
     }
 
@@ -29,7 +29,7 @@ namespace kernel::time {
         month = cmos_read(0x08);
         year = cmos_read(0x09);
 
-        u8 status_b = cmos_read(0x0B);
+        const u8 status_b = cmos_read(0x0B);
 
         if (!(status_b & 0x04)) {
             second = bcd_to_binary(second);

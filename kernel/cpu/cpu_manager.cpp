@@ -19,9 +19,8 @@ namespace cpu_manager {
     void initialize() {
         if (is_initialized) return;
 
-        // Hole CPU-Informationen von MADT
-        madt::CpuCore* madt_cores = madt::get_cpu_cores();
-        u32 madt_cpu_count = madt::get_cpu_count();
+        const madt::CpuCore* madt_cores = madt::get_cpu_cores();
+        const u32 madt_cpu_count = madt::get_cpu_count();
         bsp_apic_id = madt::get_bsp_apic_id();
 
         if (madt_cpu_count == 0) {
@@ -235,12 +234,12 @@ void smp_init() {
     }
 
     int get_cpu_usage(const u32 apic_id) {
-        CpuInfo* cpu_info = get_cpu_info(apic_id);
+        const CpuInfo* cpu_info = get_cpu_info(apic_id);
         if (!cpu_info || cpu_info->total_cycles == 0) {
             return 0.0;
         }
 
-        u64 active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
+        const u64 active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
         return ((active_cycles) / cpu_info->total_cycles) * 100;
     }
 }  // namespace CPUManager

@@ -116,7 +116,7 @@ public:
 
     static MountPoint* find_mount_point(const char* path);
 
-    static bool remove_mount_point(MountPoint* mp);
+    static bool remove_mount_point(const MountPoint* mp);
 
     static Vector<MountPoint*> get_mount_points_snapshot()
     {

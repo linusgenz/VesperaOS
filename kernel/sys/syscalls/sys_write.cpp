@@ -31,16 +31,16 @@
 namespace syscalls::internal {
     i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
-        auto buf = reinterpret_cast<void *>(arg1);
-        usize count = arg2;
-        Unit *u = kernel::scheduling::get_current_unit();
+        const auto buf = reinterpret_cast<void *>(arg1);
+        const usize count = arg2;
+        const Unit *u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
 
         Realm *realm = RealmManager::get(u->rid);
 
         if (!realm || !u->active) return -EUNKNOWN;
 
-        HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->lookup_handle(hid);
         if (!he || !he->resource) return -EBADH;
 
         const auto user_buf = reinterpret_cast<const char *>(arg1);

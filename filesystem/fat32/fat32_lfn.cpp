@@ -59,7 +59,7 @@ namespace fat32 {
         memcpy(name2, lfn->name2, sizeof(name2));
         memcpy(name3, lfn->name3, sizeof(name3));
 
-        auto copy_chars = [&](const u16* src, usize count) {
+        auto copy_chars = [&](const u16* src, const usize count) {
             for (usize i = 0; i < count; i++) {
                 if (src[i] == 0x0000 || src[i] == 0xFFFF) {
                     return false;
@@ -89,7 +89,7 @@ namespace fat32 {
         usize out_pos = 0;
         for (usize i = 0; i < name_len && out_pos < 8;
             i++) {
-            char c = input[i];
+            const char c = input[i];
             if (c == ' ' || c == '.' || c == '+' || c == ',' || c == ';') continue;
             output11[out_pos++] = to_upper(c);
         }
@@ -103,7 +103,7 @@ namespace fat32 {
         if (dot && ext_len > 0) {
             usize ext_pos = 0;
             for (usize i = 0; i < 3 && dot[1 + i]; i++) {
-                char c = dot[1 + i];
+                const char c = dot[1 + i];
                 if (c == ' ' || c == '.' || c == '+' || c == ',' || c == ';') continue;
                 output11[8 + ext_pos++] = to_upper(c);
             }

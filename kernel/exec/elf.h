@@ -438,7 +438,7 @@ class ElfLoader {
     static bool calculate_address_range(const Elf64_Ehdr* header, const void* file_data, AddressRange& range);
 
     static uptr calculate_load_bias(const Elf64_Ehdr* header, const AddressRange& range, uptr preferred_base);
-    static SegmentMapping calculate_segment_mapping(const Elf64_Phdr& ph, uptr base_addr);
+    static SegmentMapping calculate_segment_mapping(const Elf64_Phdr& ph, uptr load_bias);
     static bool load_segment(const Elf64_Phdr& phdr, const void* file_data, uptr load_bias, const Realm* realm);
     static bool process_all_segments(
         const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm

@@ -2,11 +2,10 @@
 
 #include "apic.h"
 #include "interrupts_internal.h"
-#include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::idt {
-    void IDT_DESC_ENTRY::set_offset(u64 offset) {
+    void IDT_DESC_ENTRY::set_offset(const u64 offset) {
         offset0 = static_cast<u16>(offset & 0x000000000000ffff);
         offset1 = static_cast<u16>((offset & 0x00000000ffff0000) >> 16);
         offset2 = static_cast<u32>((offset & 0xffffffff00000000) >> 32);
@@ -20,7 +19,7 @@ namespace arch::x86_64::interrupts::idt {
         return offset;
     }
 
-    void set_idt_gate(isr_handler_t handler, u8 entry_offset, u8 type_attr, u8 selector) {
+    void set_idt_gate(isr_handler_t handler, const u8 entry_offset, const u8 type_attr, const u8 selector) {
         auto* interrupt = reinterpret_cast<IDT_DESC_ENTRY*>(idtr.offset + entry_offset * sizeof(IDT_DESC_ENTRY));
         interrupt->set_offset(reinterpret_cast<u64>(handler));
         interrupt->selector = selector;
@@ -37,7 +36,7 @@ namespace arch::x86_64::interrupts::idt {
         }
     }
 
-    u8 get_free_vector_block(usize size) {
+    u8 get_free_vector_block(const usize size) {
         if (size == 0 || size > (VECTOR_MAX - VECTOR_MIN + 1)) return 0xFF;
 
         for (u16 vec = VECTOR_MIN; vec + size - 1 <= VECTOR_MAX; ++vec) {
@@ -79,18 +78,18 @@ namespace arch::x86_64::interrupts::idt {
     }
 
     extern "C" isr_handler_t irq_stub_table[];  // irq_stub.asm
-    bool allocate_vector(u8 vector, const irq_handler_t handler, void* cookie) {
+    bool allocate_vector(const u8 vector, const irq_handler_t handler, void* cookie) {
         irq_handler_table[vector].handler = handler;
         irq_handler_table[vector].cookie = cookie;
 
-        isr_handler_t stub = irq_stub_table[vector];
+        const isr_handler_t stub = irq_stub_table[vector];
 
         set_idt_gate(stub, vector, IDT_TA_INTERRUPT_GATE, 0x08);
 
         return true;
     }
 
-    extern "C" void irq_common_stub_handler(u8 irqno) {
+    extern "C" void irq_common_stub_handler(const u8 irqno) {
         if (const IrqDesc& desc = irq_handler_table[irqno]; desc.handler) {
             desc.handler(desc.cookie);
         }

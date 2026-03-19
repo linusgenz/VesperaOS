@@ -97,11 +97,11 @@ static void convert_memmap(u64* out_count) {
     *out_count = 0;
     if (!memmap_request.response) return;
 
-    auto* resp = memmap_request.response;
+    const auto* resp = memmap_request.response;
     u64 n = 0;
 
     for (u64 i = 0; i < resp->entry_count && n < 512; i++) {
-        limine_memmap_entry* src = resp->entries[i];
+        const limine_memmap_entry* src = resp->entries[i];
         EFI_MEMORY_DESCRIPTOR* dst = &efi_map[n];
 
         switch (src->type) {

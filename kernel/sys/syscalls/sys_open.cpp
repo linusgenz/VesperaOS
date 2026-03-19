@@ -47,7 +47,7 @@ namespace syscalls::internal {
 
         if (!node) {
             if (flags & O_CREAT) {
-                if (int result = VFS::create(user_path); result != 0) {
+                if (const int result = VFS::create(user_path); result != 0) {
                     return result;
                 }
 

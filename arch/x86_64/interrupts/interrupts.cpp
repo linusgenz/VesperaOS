@@ -71,7 +71,7 @@ void gp_fault_handler(const TrapFrame *frame) {
         kernel::scheduling::kill_current_realm(Signal::SIGSEGV, "segmentation fault");
     }
 
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
 
     if (frame->error_code & 0x1) {
@@ -100,7 +100,7 @@ extern "C" void invalid_opcode_handler(const TrapFrame *frame) {
         kernel::scheduling::kill_current_realm(Signal::SIGILL, "illegal instruction");
     }
 
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
     panic("Invalid opcode detected");
     kernel::SystemManager::system_panic("Invalid opcode detected", -KEINVOP);
@@ -112,7 +112,7 @@ void stack_fault_handler(const TrapFrame *frame) {
         kernel::scheduling::kill_current_realm(Signal::SIGSEGV, "stack fault");
     }
 
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
 
     const u16 selector = (frame->error_code >> 3) & 0x1FFF;
@@ -127,10 +127,10 @@ void segment_not_present_handler(const TrapFrame *frame) {
         kernel::scheduling::kill_current_realm(Signal::SIGBUS, "bus error");
     }
 
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
 
-    u16 selector = (frame->error_code >> 3) & 0x1FFF;
+    const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Missing segment selector: 0x%x", selector);
 
     if (frame->error_code & 0x2) {
@@ -149,7 +149,7 @@ void divide_error_handler(const TrapFrame *frame) {
     if (frame->cs & 0x3) {
         kernel::scheduling::kill_current_realm(Signal::SIGFPE, "floating point exception");
     }
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
 
     kernel::SystemManager::system_panic("Divide by zero", -KEDIVZERO);
@@ -157,7 +157,7 @@ void divide_error_handler(const TrapFrame *frame) {
 
 // Machine Check Exception (Vector 18)
 void machine_check_handler(const TrapFrame *frame) {
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::MachineCheck, ctx, "Machine check exception");
 
     kernel::SystemManager::system_panic("Machine check exception", -KEMACHCHECK);
@@ -165,20 +165,20 @@ void machine_check_handler(const TrapFrame *frame) {
 
 // Generic unhandled interrupt handler
 void unhandled_interrupt_handler(const TrapFrame *frame) {
-    FaultContext ctx = make_fault_context(frame);
+    const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::UnhandledInterrupt, ctx, "Unhandled interrupt");
 
     kernel::SystemManager::system_panic("Unhandled interrupt", -KEUNHANDLED);
 }
 
 void keyboard_int_handler(TrapFrame *) {
-    u8 scancode = inb(0x60);
+    const u8 scancode = inb(0x60);
     ps2::keyboard::handle_scancode(scancode);
     arch::x86_64::interrupts::pic::end_master();
 }
 
 void mouse_int_handler(TrapFrame *) {
-    u8 data = inb(0x60);
+    const u8 data = inb(0x60);
     input::mouse::handle_byte(data);
     arch::x86_64::interrupts::pic::end_slave();
 }

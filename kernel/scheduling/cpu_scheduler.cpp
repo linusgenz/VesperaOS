@@ -194,7 +194,7 @@ namespace kernel::scheduling::cpu_scheduler {
         bool should_yield = false;
 
         if (cpu->ticks_remaining > 0) {
-            u32 old_ticks = __sync_fetch_and_sub(&cpu->ticks_remaining, 1);
+            const u32 old_ticks = __sync_fetch_and_sub(&cpu->ticks_remaining, 1);
             should_yield = (old_ticks == 1);  // Was 1, now 0
         }
 
@@ -209,12 +209,12 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
     Unit* get_current_unit_on_cpu(const u8 cpu_id) {
-        CpuScheduler* cpu = get_cpu_data(cpu_id);
+        const CpuScheduler* cpu = get_cpu_data(cpu_id);
         return cpu->current_unit;
     }
 
     bool is_cpu_enabled(const u8 cpu_id) {
-        CpuScheduler* cpu = get_cpu_data(cpu_id);
+        const CpuScheduler* cpu = get_cpu_data(cpu_id);
         return cpu->scheduler_enabled;
     }
 

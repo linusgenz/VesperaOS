@@ -36,7 +36,7 @@
 
 using namespace fat32;
 
-static isize fat32_read(const VfsNode* node, usize offset, usize size, void* buffer)
+static isize fat32_read(const VfsNode* node, const usize offset, const usize size, void* buffer)
 {
     if (!node || !buffer) return -EFAULT;
     if (size == 0) return 0;
@@ -135,7 +135,7 @@ static VfsNode* fat32_find(const VfsNode* node, const char* name)
 
 void* fat32_opendir(const VfsNode* dir)
 {
-    auto* fat_node = static_cast<Fat32Node*>(dir->internal_data);
+    const auto* fat_node = static_cast<Fat32Node*>(dir->internal_data);
     auto* handle = new Fat32DirHandle();
     handle->entries = fat_node->fs->read_directory(fat_node->cluster, handle->count);
     handle->index = 0;
@@ -147,7 +147,7 @@ int fat32_readdir(void* h, dirent_t* out)
     auto* handle = static_cast<Fat32DirHandle*>(h);
     if (!handle || handle->index >= handle->count) return 0;
 
-    auto& entry = handle->entries[handle->index];
+    const auto& entry = handle->entries[handle->index];
     const char* name = entry.get_name();
     if (!name) return 0;
 
@@ -171,7 +171,7 @@ int fat32_readdir(void* h, dirent_t* out)
 
 void fat32_closedir(void* h)
 {
-    auto* handle = static_cast<Fat32DirHandle*>(h);
+    const auto* handle = static_cast<Fat32DirHandle*>(h);
     if (!handle) return;
 
     if (handle->entries)
@@ -195,13 +195,13 @@ static void fat32_close(VfsNode* node)
 
 static int fat32_create(const VfsNode* node, const char* name)
 {
-    auto* dir = static_cast<Fat32Node*>(node->internal_data);
+    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->create_file(dir, name) ? 0 : -1;
 }
 
 static int fat32_rename(const VfsNode* node, const char* old_name, const char* new_name)
 {
-    auto* dir = static_cast<Fat32Node*>(node->internal_data);
+    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
     if (!dir || !old_name || !new_name) return -EINVAL;
 
     if (!dir->fs->rename(dir, old_name, new_name))
@@ -214,19 +214,19 @@ static int fat32_rename(const VfsNode* node, const char* old_name, const char* n
 
 static int fat32_mkdir(const VfsNode* node, const char* name)
 {
-    auto* dir = static_cast<Fat32Node*>(node->internal_data);
+    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->create_directory(dir, name) ? 0 : -1;
 }
 
 static int fat32_rmdir(const VfsNode* node, const char* name)
 {
-    auto* dir = static_cast<Fat32Node*>(node->internal_data);
+    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->remove_directory(dir, name) ? 0 : -1;
 }
 
 static int fat32_unlink(const VfsNode* node, const char* name)
 {
-    auto* dir = static_cast<Fat32Node*>(node->internal_data);
+    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
     return dir->fs->delete_file(dir, name) ? 0 : -1;
 }
 
@@ -291,7 +291,7 @@ int fat32_probe(BlockDevice* dev, FilesystemInfo *fs_info)
 {
     FileSystem fs(dev);
 
-    usize len = 11;
+    constexpr usize len = 11;
     memcpy(fs_info->label, fs.get_bpb()->volume_label, len);
     fs_info->label[len] = '\0';
 

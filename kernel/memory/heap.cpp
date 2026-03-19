@@ -13,7 +13,7 @@ usize total_allocated = 0;
 usize total_freed = 0;
 usize peak_usage = 0;
 
-static uptr align_up(uptr x) {
+static uptr align_up(const uptr x) {
     return (x + MIN_ALIGNMENT - 1) & ~(MIN_ALIGNMENT - 1);
 }
 
@@ -28,7 +28,7 @@ void HeapSegHdr::set_guard_bytes() {
         if (auto* end_guard = reinterpret_cast<u8*>(reinterpret_cast<uptr>(this) + HEAP_HEADER_SIZE + length);
             reinterpret_cast<uptr>(end_guard) < virt_raw(heap_end)) {
             *end_guard = HEAP_GUARD_PATTERN;
-        };
+        }
     }
 
     checksum = magic ^ static_cast<u32>(length) ^ static_cast<u32>(reinterpret_cast<uptr>(next) >> 32) ^
@@ -71,10 +71,10 @@ HeapSegHdr* HeapSegHdr::split(const usize split_length) {
         return nullptr;
     }
 
-    uptr new_seg_addr = align_up(reinterpret_cast<uptr>(this) + HEAP_HEADER_SIZE + split_length);
+    const uptr new_seg_addr = align_up(reinterpret_cast<uptr>(this) + HEAP_HEADER_SIZE + split_length);
     auto* new_seg = reinterpret_cast<HeapSegHdr*>(new_seg_addr);
 
-    usize remaining_length =
+    const usize remaining_length =
         reinterpret_cast<uptr>(this) + HEAP_HEADER_SIZE + this->length - new_seg_addr - HEAP_HEADER_SIZE;
 
     if (remaining_length < MIN_ALLOC_SIZE) {
@@ -130,7 +130,7 @@ void HeapSegHdr::combine_backward() const {
     }
 }
 
-bool initialize_heap(virt_addr_t heap_address, usize page_count) {
+bool initialize_heap(const virt_addr_t heap_address, const usize page_count) {
     if (heap_initialized) {
        // Log::error("Heap already initialized");
         return false;
@@ -154,8 +154,8 @@ bool initialize_heap(virt_addr_t heap_address, usize page_count) {
 
     usize heap_length = page_count * 0x1000;
 
-    uptr aligned_start = align_up(virt_raw(heap_address));
-    usize adjustment = aligned_start - virt_raw(heap_address);
+    const uptr aligned_start = align_up(virt_raw(heap_address));
+    const usize adjustment = aligned_start - virt_raw(heap_address);
 
     heap_start = virt_from_raw(aligned_start);
     heap_end = virt_add(heap_address, heap_length);
@@ -189,7 +189,7 @@ usize align_size(usize size) {
     return size < MIN_ALLOC_SIZE ? MIN_ALLOC_SIZE : size;
 }
 
-HeapSegHdr* find_free_segment(usize size) {
+HeapSegHdr* find_free_segment(const usize size) {
     if (!heap_initialized) return nullptr;
 
     auto* current_seg = virt_as<HeapSegHdr>(heap_start);
@@ -210,7 +210,7 @@ HeapSegHdr* find_free_segment(usize size) {
     return nullptr;
 }
 
-void* allocate_from_segment(HeapSegHdr* seg, usize size) {
+void* allocate_from_segment(HeapSegHdr* seg, const usize size) {
     if (!seg || !seg->free || seg->length < size) {
         return nullptr;
     }
@@ -254,7 +254,7 @@ void* kmalloc(usize size) {
     return nullptr;
 }
 
-void* kalloc_aligned(usize size, usize alignment, usize boundary) {
+void* kalloc_aligned(usize size, usize alignment, const usize boundary) {
     if (!heap_initialized || size == 0 || alignment == 0) {
         return nullptr;
     }
@@ -275,8 +275,8 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
 
     size = align_size(size);
 
-    usize header_size = sizeof(AlignedSegHdr);
-    usize max_padding = alignment - 1 + header_size;
+    const usize header_size = sizeof(AlignedSegHdr);
+    const usize max_padding = alignment - 1 + header_size;
     usize total_size = size + max_padding;
 
     if (boundary > 0) {
@@ -291,7 +291,7 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
 
     HeapSegHdr* raw_seg = HeapSegHdr::from_data_ptr(raw_ptr);
 
-    auto raw_addr = reinterpret_cast<uptr>(raw_ptr);
+    const auto raw_addr = reinterpret_cast<uptr>(raw_ptr);
     uptr aligned_addr = (raw_addr + header_size + alignment - 1) & ~(alignment - 1);
 
     if (boundary > 0) {
@@ -299,7 +299,7 @@ void* kalloc_aligned(usize size, usize alignment, usize boundary) {
 
         bool found = false;
         for (uptr candidate = aligned_addr; candidate + size <= end_addr; candidate += alignment) {
-            uptr start_boundary = candidate & ~(boundary - 1);
+            const uptr start_boundary = candidate & ~(boundary - 1);
 
             if (const uptr end_boundary = (candidate + size - 1) & ~(boundary - 1);
                 start_boundary == end_boundary) {
@@ -358,7 +358,7 @@ void kfree_aligned(void* ptr) {
         return;
     }
 
-    auto* aligned_hdr = reinterpret_cast<AlignedSegHdr*>(reinterpret_cast<uptr>(ptr) - sizeof(AlignedSegHdr));
+    const auto* aligned_hdr = reinterpret_cast<AlignedSegHdr*>(reinterpret_cast<uptr>(ptr) - sizeof(AlignedSegHdr));
 
     if (!aligned_hdr->is_valid()) {
      //   Log::error("Tried to free invalid memory");
@@ -419,11 +419,11 @@ void expand_heap(usize length) {
         length = (length + 0x1000 - 1) & ~(0x1000 - 1);
     }
 
-    usize page_count = length / 0x1000;
+    const usize page_count = length / 0x1000;
     auto* new_segment = static_cast<HeapSegHdr*>(virt_ptr(heap_end));
 
     for (usize i = 0; i < page_count; i++) {
-        phys_addr_t phys = kernel::memory::request_page_phys();
+        const phys_addr_t phys = kernel::memory::request_page_phys();
         if (phys_null(phys)) {
             length = i * 0x1000;
             break;

@@ -25,7 +25,7 @@
 
 #include "vespera_errno.h"
 
-PartitionDevice::PartitionDevice(BlockDevice* parent, u64 start_lba, u64 length_lba)
+PartitionDevice::PartitionDevice(BlockDevice* parent, const u64 start_lba, const u64 length_lba)
     : parent_(parent)
     , start_lba_(start_lba)
     , length_lba_(length_lba), sector_size_(parent->get_sector_size()) {
@@ -33,25 +33,25 @@ PartitionDevice::PartitionDevice(BlockDevice* parent, u64 start_lba, u64 length_
     type = Type::Partition;
 }
 
-isize PartitionDevice::read(const u64 lba, const usize count, void* buf, usize buf_size) {
+isize PartitionDevice::read(const u64 lba, const usize count, void* buf, const usize buf_size) {
     if (!parent_) return false;
     if (lba + count > length_lba_) return false;
 
-    isize ret = parent_->read(start_lba_ + lba, count, buf, buf_size);
+    const isize ret = parent_->read(start_lba_ + lba, count, buf, buf_size);
 
     return ret;
 }
 
-isize PartitionDevice::write(const u64 lba, const usize count, void* buf, usize buf_size) {
+isize PartitionDevice::write(const u64 lba, const usize count, void* buf, const usize buf_size) {
     if (!parent_ || !buf) return -EINVAL;
     if (lba + count > length_lba_) return -EINVAL;
 
-    isize ret = parent_->write(start_lba_ + lba, count, buf, buf_size);
+    const isize ret = parent_->write(start_lba_ + lba, count, buf, buf_size);
 
     return ret;
 }
 
-bool PartitionDevice::trim(const TrimRange* ranges, usize count) {
+bool PartitionDevice::trim(const TrimRange* ranges, const usize count) {
     if (!parent_ || !ranges || count == 0) return false;
 
     const auto translated = new TrimRange[count];

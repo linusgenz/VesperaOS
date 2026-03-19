@@ -399,8 +399,8 @@ namespace nvme {
     }
 
     NvmeQueue::NvmeQueue(
-        u16 qid, phys_addr_t cq_base, phys_addr_t sq_base, virt_addr_t cq, virt_addr_t sq, volatile u32* cq_db,
-        volatile u32* sq_db, u16 csz, u16 ssz
+        const u16 qid, const phys_addr_t cq_base, const phys_addr_t sq_base, const virt_addr_t cq, const virt_addr_t sq, volatile u32* cq_db,
+        volatile u32* sq_db, const u16 csz, const u16 ssz
     )
         : queue_id_(qid)
         , completion_base_(cq_base)
@@ -479,7 +479,7 @@ namespace nvme {
         *completion_db_ = cq_head;
     }
 
-    static u64 setup_prp2(phys_addr_t dma_phys, usize pages) {
+    static u64 setup_prp2(const phys_addr_t dma_phys, const usize pages) {
         if (pages <= 1) {
             return 0;
         }
@@ -493,7 +493,7 @@ namespace nvme {
             return 0;  // Allocation failed
         }
 
-        virt_addr_t prp_list_virt = phys_to_virt(prp_list_phys);
+        const virt_addr_t prp_list_virt = phys_to_virt(prp_list_phys);
         auto* prp_list = virt_as<u64>(prp_list_virt);
 
         for (usize i = 1; i < pages; i++) {
@@ -586,30 +586,30 @@ namespace nvme {
         return true;
     }
 
-    void NvmeDriver::copy_nvme_string(char* dst, usize dst_len, const u8* src, usize src_len) {
-        usize n = src_len < dst_len - 1 ? src_len : dst_len - 1;
+    void NvmeDriver::copy_nvme_string(char* dst, const usize dst_len, const u8* src, const usize src_len) {
+        const usize n = src_len < dst_len - 1 ? src_len : dst_len - 1;
         memcpy(dst, src, n);
         dst[n] = '\0';
         for (isize i = static_cast<isize>(n) - 1; i >= 0 && dst[i] == ' '; i--) dst[i] = '\0';
     }
 
-    bool NvmeDriver::get_vendor(char* out, usize len) {
+    bool NvmeDriver::get_vendor(char* out, const usize len) {
         strncpy(out, pci::get_vendor_name(controller_identity_->vid), len);
         out[len - 1] = '\0';
         return true;
     }
 
-    bool NvmeDriver::get_model(char* out, usize len) {
+    bool NvmeDriver::get_model(char* out, const usize len) {
         copy_nvme_string(out, len, controller_identity_->mn, sizeof(controller_identity_->mn));
         return true;
     }
 
-    bool NvmeDriver::get_serial(char* out, usize len) {
+    bool NvmeDriver::get_serial(char* out, const usize len) {
         copy_nvme_string(out, len, controller_identity_->sn, sizeof(controller_identity_->sn));
         return true;
     }
 
-    bool NvmeDriver::get_firmware(char* out, usize len) {
+    bool NvmeDriver::get_firmware(char* out, const usize len) {
         copy_nvme_string(out, len, controller_identity_->fr, sizeof(controller_identity_->fr));
         return true;
     }

@@ -31,17 +31,17 @@
 
 namespace syscalls::internal {
     i64 sys_seek(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        HandleId hid = arg0;
-        i64 offset = static_cast<i64>(arg1);
-        int whence = static_cast<int>(arg2);
+        const HandleId hid = arg0;
+        const i64 offset = static_cast<i64>(arg1);
+        const int whence = static_cast<int>(arg2);
 
-        Unit *u = kernel::scheduling::get_current_unit();
+        const Unit *u = kernel::scheduling::get_current_unit();
         if (!u || !u->active) return -EINVAL;
 
         Realm *realm = RealmManager::get(u->rid);
         if (!realm) return -EUNKNOWN;
 
-        HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         switch (he->type & HANDLE_TYPE_MASK) {

@@ -26,7 +26,7 @@
 
 namespace blt {
 
-    void GgttAllocator::init(u32 total_entries, u32 start_index) {
+    void GgttAllocator::init(const u32 total_entries, const u32 start_index) {
         const u32 usable = total_entries - start_index;
         const u32 transient_sz = usable / GGTT_TRANSIENT_FRACTION;
         const u32 persistent_sz = usable - transient_sz;
@@ -60,7 +60,7 @@ namespace blt {
     }
 
 
-    u32 GgttAllocator::alloc_persistent(u32 num_pages) {
+    u32 GgttAllocator::alloc_persistent(const u32 num_pages) {
         SpinlockGuardIrq guard(lock_);
 
         if (persistent_next_ + num_pages > persistent_limit_) {
@@ -75,7 +75,7 @@ namespace blt {
         return index;
     }
 
-    u32 GgttAllocator::alloc_transient(u32 num_pages) {
+    u32 GgttAllocator::alloc_transient(const u32 num_pages) {
         SpinlockGuardIrq guard(lock_);
 
         for (usize i = 0; i < free_list_count_; i++) {
@@ -122,7 +122,7 @@ namespace blt {
         return U32_MAX;
     }
 
-    void GgttAllocator::free_transient(u32 start_index) {
+    void GgttAllocator::free_transient(const u32 start_index) {
         SpinlockGuardIrq guard(lock_);
 
         const int idx = find_block(start_index);
@@ -190,7 +190,7 @@ namespace blt {
         }
     }
 
-    int GgttAllocator::find_block(u32 start_index) const {
+    int GgttAllocator::find_block(const u32 start_index) const {
         for (usize i = 0; i < free_list_count_; i++) {
             if (free_list_[i].start_index == start_index) {
                 return static_cast<int>(i);

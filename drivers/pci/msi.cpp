@@ -30,7 +30,7 @@
 
 namespace pci
 {
-    bool enable_msi(PCI_HEADER0* header, u8 base_vector, u8 wanted)
+    bool enable_msi(PCI_HEADER0* header, const u8 base_vector, u8 wanted)
     {
         auto* config_space = reinterpret_cast<u8*>(&header->header);
 
@@ -41,8 +41,8 @@ namespace pci
 
         while (cap_ptr)
         {
-            u8 cap_id = config_space[cap_ptr];
-            u8 next_ptr = config_space[cap_ptr + 1];
+            const u8 cap_id = config_space[cap_ptr];
+            const u8 next_ptr = config_space[cap_ptr + 1];
 
             if (cap_id == MSI_CAPABILITY_ID)
             {

@@ -35,12 +35,12 @@ namespace syscalls::internal {
         const auto data = reinterpret_cast<const void*>(arg1);
         const auto len = arg2;
 
-        Unit* u = kernel::scheduling::get_current_unit();
+        const Unit* u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
         Realm* realm = RealmManager::get(u->rid);
         if (!realm) return -EINVAL;
 
-        HandleEntry* he = realm->lookup_handle(hid);
+        const HandleEntry* he = realm->lookup_handle(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_WRITE)) return -EACCES;
@@ -49,7 +49,7 @@ namespace syscalls::internal {
         auto* ch = static_cast<Channel*>(he->resource);
         if (!ch) return -EINVAL;
 
-        int res = ch->send(data, len);
+        const int res = ch->send(data, len);
         if (res < 0) return -EAGAIN;
         return res;  // bytes written
     }
