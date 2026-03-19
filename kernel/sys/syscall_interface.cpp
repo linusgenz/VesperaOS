@@ -23,9 +23,8 @@
 
 #include "syscall_interface.h"
 
-#include <vespera/sys/syscall_numbers.h>
-
 #include <vespera/log.h>
+#include <vespera/sys/syscall_numbers.h>
 
 constexpr int MAX_SYSCALLS = 256;
 static syscalls::internal::syscall_fn_t syscall_table[MAX_SYSCALLS];
@@ -61,11 +60,10 @@ void install_syscalls() {
     syscall_table[SYSCALL_CHDIR] = syscalls::internal::sys_chdir;
     syscall_table[SYSCALL_GETCWD] = syscalls::internal::sys_getcwd;
     syscall_table[SYSCALL_STAT] = syscalls::internal::sys_stat;
+    syscall_table[SYSCALL_POLL] = syscalls::internal::sys_poll;
 }
 
-extern "C" void syscall_handler(
-    u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5
-) {
+extern "C" void syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
     u64 ret = 0;
 
     if (num < MAX_SYSCALLS && syscall_table[num]) [[likely]] {

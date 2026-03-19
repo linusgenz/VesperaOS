@@ -68,6 +68,10 @@ struct VfsNodeOps {
     isize (*ioctl)(const VfsNode *node, u32 cmd, void *arg);
 
     int (*stat)(const VfsNode *, vespera_stat_t *out);
+
+    int (*truncate)(VfsNode* node, usize new_size);
+
+    int (*poll)(const VfsNode* node);
 };
 
 struct VfsNode {

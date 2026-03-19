@@ -132,20 +132,16 @@ void Terminal::set_glyph_provider(IGlyphProvider* provider) {
 
     cache_->invalidate_all();
 
-    const u32 new_char_w = glyphs_->char_width();
-    const u32 new_char_h = glyphs_->line_height();
-    const usize new_cols = drv_->screen_width_px() / new_char_w;
-    const usize new_rows = drv_->screen_height_px() / new_char_h;
+    char_w_ = glyphs_->char_width();
+    char_h_ = glyphs_->line_height();
+    cols_ = drv_->screen_width_px() / char_w_;
+    rows_ = drv_->screen_height_px() / char_h_;
 
     delete sb_;
     sb_ = new ScrollbackBuffer(cols_, rows_, 2000);
 
     cursor_col_ = 0;
-
-    char_w_ = new_char_w;
-    char_h_ = new_char_h;
-    cols_ = new_cols;
-    rows_ = new_rows;
+    cursor_row_ = 0;
 
     clear();
 }

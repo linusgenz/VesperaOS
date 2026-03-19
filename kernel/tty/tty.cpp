@@ -469,6 +469,30 @@ namespace kernel::tty {
                             tty->term->flush();
                             break;
                         }
+                        case 'n': { // ESC[6n - Cursor Position Report
+                            if (const int mode = p(0, 0); mode == 6) {
+                                // ESC [ row ; col R  (1-indexed)
+                                char response[32];
+                                const int len = snprintf(
+                                    response, sizeof(response),
+                                    "\033[%zu;%zuR",
+                                    tty->cursor_y + 1,
+                                    tty->cursor_x + 1
+                                );
+
+                                for (int i = 0; i < len && tty->raw_len < TTY::BUFFER_SIZE - 1; ++i) {
+                                    tty->raw_buffer[tty->raw_len++] = response[i];
+                                }
+
+                                if (tty->canonical) {
+                                    for (int i = 0; i < len && tty->canon_len < TTY::BUFFER_SIZE - 1; ++i)
+                                        tty->canon_buffer[tty->canon_len++] = response[i];
+                                    tty->canon_buffer[tty->canon_len] = '\0';
+                                    tty->line_ready = true;
+                                }
+                            }
+                            break;
+                        }
 
                         default:
                             break; // If we don't know the sequence, we don't process it lol

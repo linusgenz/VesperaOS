@@ -154,6 +154,9 @@ static VfsNodeOps ext4_ops = {
     .rmdir = nullptr,
     .unlink = nullptr,
     .ioctl = nullptr,
+    .stat = nullptr,
+    .truncate = nullptr,
+    .poll = nullptr,
 };
 
 VfsNode* wrap_ext4_root(FileSystem* fs)

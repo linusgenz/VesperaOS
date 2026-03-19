@@ -33,9 +33,6 @@ struct CharFile {
     void* driver_private;
 };
 
-// Flags for poll()
-enum PollMask : int { POLLIN = 0x01, POLLOUT = 0x02 };
-
 class CharDevice {
    public:
     BusType bus_type;

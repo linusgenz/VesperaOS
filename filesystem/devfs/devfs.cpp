@@ -25,6 +25,7 @@
 
 #include <uapi/vespera/dev/ioctl_devinfo.h>
 #include <uapi/vespera/dev/ioctl_smart.h>
+#include <uapi/vespera/poll.h>
 #include <vespera/devices/char_device.h>
 #include <vespera/devices/device_info.h>
 #include <vespera/log.h>
@@ -85,6 +86,8 @@ void DevFs::init() {
     ops_.mkdir = nullptr;
     ops_.rmdir = nullptr;
     ops_.unlink = nullptr;
+    ops_.truncate = nullptr;
+    ops_.poll = poll;
 }
 
 int DevFs::register_device(KernelDevice* kd) {
@@ -326,4 +329,24 @@ void DevFs::close(VfsNode* node) {
     if (const KernelDevice* kd = entry->device; kd->chardev) kd->chardev->release(entry->cf);
 
     entry->cf = nullptr;
+}
+
+int DevFs::poll(const VfsNode* node) {
+    if (!node) return -EINVAL;
+
+    const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
+    if (!entry || !entry->device) return -EINVAL;
+
+    const KernelDevice* kd = entry->device;
+
+    if (kd->chardev) {
+        if (!entry->cf) {
+            if (const int res = open(node); res < 0) return res;
+        }
+        return kd->chardev->poll(entry->cf);
+    }
+
+    if (kd->block) return POLLIN | POLLOUT;
+
+    return POLLERR;
 }

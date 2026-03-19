@@ -29,6 +29,7 @@
 #define SYSCALL_OPEN      2
 #define SYSCALL_CLOSE     3
 #define SYSCALL_STAT      4
+#define SYSCALL_POLL      7
 #define SYSCALL_SEEK      8
 #define SYSCALL_MMAP      9
 #define SYSCALL_MUNMAP    11

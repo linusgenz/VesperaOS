@@ -24,10 +24,12 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
+#include <uapi/vespera/dev/ioctl_tty.h>
+#include <uapi/vespera/poll.h>
 #include <vespera/devices/char_device.h>
 #include <vespera/terminal.h>
 #include <vespera/tty/tty.h>
-#include <uapi/vespera/dev/ioctl_tty.h>
+
 #include "../../filesystem/devfs/devfs.h"
 #include "vespera/devices/device_manager.h"
 
@@ -109,6 +111,15 @@ class TtyDevice final : public CharDevice {
         }
         tty->term->flush();
         return static_cast<int>(count);
+    }
+
+    int poll(CharFile *) override {
+        int mask = POLLOUT;
+
+        if (tty->canonical && tty->line_ready)  mask |= POLLIN;
+        if (!tty->canonical && tty->raw_len > 0) mask |= POLLIN;
+
+        return mask;
     }
 
    private:

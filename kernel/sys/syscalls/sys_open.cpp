@@ -112,6 +112,14 @@ namespace syscalls::internal {
                 break;
 
             case VfsNodeType::File:
+                if (flags & O_TRUNC) {
+                    if (node->ops && node->ops->truncate) {
+                        if (const int r = node->ops->truncate(node, 0); r < 0) {
+                            VFS::close(node);
+                            return r;
+                        }
+                    }
+                }
 
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
