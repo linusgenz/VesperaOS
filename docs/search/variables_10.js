@@ -10,7 +10,8 @@ var searchData=
   ['reallocated_5fsectors_7',['reallocated_sectors',['../structSmartAta.html#a27e71defba1bd04b5e2e2ab337533893',1,'SmartAta']]],
   ['realm_5fid_8',['realm_id',['../structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3',1,'unit_info']]],
   ['reserved_5fram_9',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
-  ['rip_10',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
-  ['rows_11',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
-  ['rsp_12',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
+  ['revents_10',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
+  ['rip_11',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rows_12',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
+  ['rsp_13',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

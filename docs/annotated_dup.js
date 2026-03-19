@@ -17,6 +17,7 @@ var annotated_dup =
     [ "jpeg_save_options_t", "structjpeg__save__options__t.html", "structjpeg__save__options__t" ],
     [ "large_seg", "structlarge__seg.html", "structlarge__seg" ],
     [ "meminfo", "structmeminfo.html", "structmeminfo" ],
+    [ "pollhdl", "structpollhdl.html", "structpollhdl" ],
     [ "realm_info", "structrealm__info.html", "structrealm__info" ],
     [ "rtc_data", "structrtc__data.html", "structrtc__data" ],
     [ "SmartAta", "structSmartAta.html", "structSmartAta" ],

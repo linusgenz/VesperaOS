@@ -34,6 +34,6 @@ var searchData=
   ['_5fisspace_31',['_ISspace',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba1c6af7b71f8931d22cfcaed9314f6b45',1,'ctype.h']]],
   ['_5fisupper_32',['_ISupper',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba8413ab9d1b454a9b2f9d1547de21c284',1,'ctype.h']]],
   ['_5fisxdigit_33',['_ISxdigit',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55bac6d2e9ed4139a3f7ae9a4e7c81411760',1,'ctype.h']]],
-  ['_5fpad_34',['_pad',['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info']]],
+  ['_5fpad_34',['_pad',['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad']]],
   ['_5fpad0_35',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]]
 ];

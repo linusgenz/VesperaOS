@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['unit_5finfo_0',['unit_info',['../structunit__info.html',1,'']]],
-  ['usb_5fdevice_5finfo_1',['usb_device_info',['../structusb__device__info.html',1,'']]]
+  ['tty_5fmode_5ft_0',['tty_mode_t',['../structtty__mode__t.html',1,'']]],
+  ['tty_5fsize_5ft_1',['tty_size_t',['../structtty__size__t.html',1,'']]]
 ];

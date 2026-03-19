@@ -49,9 +49,10 @@ var searchData=
   ['etxtbsy_46',['ETXTBSY',['../errno_8h.html#aaed12e82224923d599b6f1939c8e0971',1,'errno.h']]],
   ['eunknown_47',['EUNKNOWN',['../errno_8h.html#aad18b90ecda2b87a7736ec120f46fd58',1,'errno.h']]],
   ['eunsupported_48',['EUNSUPPORTED',['../errno_8h.html#a6512098135b57dfc1ba40525ded08bca',1,'errno.h']]],
-  ['ewouldblock_49',['EWOULDBLOCK',['../errno_8h.html#a4a3a0b3605fd3b2336455062ee8e25f0',1,'errno.h']]],
-  ['exdev_50',['EXDEV',['../errno_8h.html#a3396cf9fb0ff5af3a18dd2a2bbdb21e1',1,'errno.h']]],
-  ['exec_2eh_51',['exec.h',['../exec_8h.html',1,'']]],
-  ['exit_5fcode_52',['exit_code',['../structunit__info.html#a07779b2699d71da869a714d920acee65',1,'unit_info']]],
-  ['exit_5frealm_53',['exit_realm',['../realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686',1,'realm.h']]]
+  ['events_49',['events',['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl']]],
+  ['ewouldblock_50',['EWOULDBLOCK',['../errno_8h.html#a4a3a0b3605fd3b2336455062ee8e25f0',1,'errno.h']]],
+  ['exdev_51',['EXDEV',['../errno_8h.html#a3396cf9fb0ff5af3a18dd2a2bbdb21e1',1,'errno.h']]],
+  ['exec_2eh_52',['exec.h',['../exec_8h.html',1,'']]],
+  ['exit_5fcode_53',['exit_code',['../structunit__info.html#a07779b2699d71da869a714d920acee65',1,'unit_info']]],
+  ['exit_5frealm_54',['exit_realm',['../realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686',1,'realm.h']]]
 ];

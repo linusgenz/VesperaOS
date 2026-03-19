@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['tty_5fmode_5ft_0',['tty_mode_t',['../structtty__mode__t.html',1,'']]],
-  ['tty_5fsize_5ft_1',['tty_size_t',['../structtty__size__t.html',1,'']]]
+  ['smartata_0',['SmartAta',['../structSmartAta.html',1,'']]],
+  ['smartattribute_1',['SmartAttribute',['../structSmartAttribute.html',1,'']]],
+  ['smartcommon_2',['SmartCommon',['../structSmartCommon.html',1,'']]],
+  ['smartnvme_3',['SmartNvme',['../structSmartNvme.html',1,'']]],
+  ['smartrawdata_4',['SmartRawData',['../structSmartRawData.html',1,'']]]
 ];
