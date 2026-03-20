@@ -38,8 +38,8 @@ struct MountPoint
     BlkDeviceDescriptor* device{}; // null when virtual
     bool is_virtual = false;
 
-    u8 is_root_device = false;
-    u8 is_partition = false;
+    bool is_root_device = false;
+    bool is_partition = false;
 
     MountPoint() = default;
     ~MountPoint() = default;

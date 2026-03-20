@@ -321,15 +321,23 @@ usize VFS::mount_points_count() {
 MountPoint* VFS::find_mount_point(const char* path) {
     if (!path) return nullptr;
 
+    char norm[256];
+    normalize_path(path, norm, sizeof(norm));
+    strip_trailing_slash(norm);
+
     SpinlockGuard g(mount_points_lock_);
 
     for (const auto& mp : *mount_points_) {
-        if (strcmp(mp->path, path) == 0) {
+        char mp_norm[256];
+        normalize_path(mp->path, mp_norm, sizeof(mp_norm));
+        strip_trailing_slash(mp_norm);
+
+        if (strcmp(mp_norm, norm) == 0) {
             return mp;
         }
     }
 
-    return nullptr;  // not found
+    return nullptr;
 }
 
 bool VFS::remove_mount_point(const MountPoint* mp) {

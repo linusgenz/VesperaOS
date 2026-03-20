@@ -35,7 +35,7 @@ uptr xhci_map_mmio(const u64 pci_bar_address, const u32 bar_size) {
 
 void *alloc_xhci_memory(const usize size, const usize alignment, const usize boundary) {
     if (size == 0 || alignment == 0 || boundary == 0) {
-        Log::error("Invalid memory alignment");
+        Log::error("Invalid memory alignment: %u, %u, %u, caller: %p", alignment, boundary, size, __builtin_return_address(0));
     }
 
     void *memblock = kernel::memory::alloc_aligned(size, alignment, boundary);

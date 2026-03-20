@@ -76,7 +76,7 @@ static usize next_power_of_two(usize x) {
     x |= x >> 4;
     x |= x >> 8;
     x |= x >> 16;
-#if UINTPTR_MAX > 0xffffffff
+#if UPTR_MAX > 0xffffffff
     x |= x >> 32; // für 64bit
 #endif
     return x + 1;

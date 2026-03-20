@@ -124,7 +124,7 @@ private:
         Completed
     };
 
-    bool init_done_ = false;
+    volatile bool init_done_ = false;
     int init_status_ = -1;
     InitPhase init_phase_ = InitPhase::TestUnitReady;
 

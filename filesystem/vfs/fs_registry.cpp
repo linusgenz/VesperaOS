@@ -24,6 +24,7 @@
 #include "fs_registry.h"
 
 #include <klib/string.h>
+#include <vespera/log.h>
 
 static FileSystemDriver* fs_drivers[MAX_FS_DRIVERS];
 static usize driver_count = 0;

@@ -805,7 +805,6 @@ namespace ahci {
                     .with_parent(kd_)
             );
             DevFs::register_device(port->kd);
-            DeviceManager::find_and_register_partitions(port->kd);
         }
     }
 

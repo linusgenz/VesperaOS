@@ -47,8 +47,6 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
     }
 
     if (init_status_ == 0) {
-        //Log::ok("USB Mass Storage initialized: %u sectors, %u bytes/sector", total_sectors_, sector_size_);
-
         char name_buf[16] = {};
         DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
         kd_ = DeviceManager::register_device(
@@ -64,9 +62,9 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
                 .with_usb_info(device_info_)
         );
         DevFs::register_device(kd_);
-        DeviceManager::find_and_register_partitions(kd_);
+        Log::ok("USB Mass Storage initialized: %u sectors, %u bytes/sector", total_sectors_, sector_size_);
     } else {
-        //Log::error("Mass storage initialization failed");
+        Log::error("Mass storage initialization failed");
     }
 }
 
@@ -147,7 +145,7 @@ void XhciMassStorageDriver::initialize_device() {
     }
 
     if (!bulk_in_endpoint_ || !bulk_out_endpoint_) {
-       // Log::error("USB Mass Storage: Required bulk endpoints missing");
+        Log::error("USB Mass Storage: Required bulk endpoints missing");
         return;
     }
 

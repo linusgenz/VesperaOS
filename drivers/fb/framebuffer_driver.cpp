@@ -82,67 +82,6 @@ void FramebufferDriver::clear() {
     fill_rect(0, 0, fb_->width, fb_->height, 0x00000000);
 }
 
-/*
-void gop_render_driver::clear_mouse_cursor(const u8* mouse_cursor, const Point position) const
-{
-      if (!mouse_drawn) return;
-
-      i32 x_max = 16;
-      i32 y_max = 16;
-      i32 diffrence_x = TargetFramebuffer->width - position.X;
-      i32 diffrence_y = TargetFramebuffer->height - position.Y;
-
-      if (diffrence_x < 16) x_max = diffrence_x;
-      if (diffrence_y < 16) y_max = diffrence_y;
-
-      for (i32 y = 0; y < y_max; y++)
-      {
-          for (i32 x = 0; x < x_max; x++)
-          {
-              i32 bit = y * 16 + x;
-              i32 byte = bit / 8;
-              if ((mouse_cursor[byte] & (0b10000000 >> (x % 8))))
-              {
-                  if (get_pixel(position.X + x, position.Y + y) == mouse_cursor_buffer_after[x + y * 16])
-                  {
-                      put_pixel(position.X + x, position.Y + y, mouse_cursor_buffer[x + y * 16]);
-                  }
-              }
-          }
-      }
-}
-
-
-void gop_render_driver::draw_overlay_mouse_cursor(const u8* mouse_cursor, const Point position, const u32
-colour)
-{
-      i32 x_max = 16;
-      i32 y_max = 16;
-      i32 diffrence_x = TargetFramebuffer->width - position.X;
-      i32 diffrence_y = TargetFramebuffer->height - position.Y;
-
-      if (diffrence_x < 16) x_max = diffrence_x;
-      if (diffrence_y < 16) y_max = diffrence_y;
-
-      for (i32 y = 0; y < y_max; y++)
-      {
-          for (i32 x = 0; x < x_max; x++)
-          {
-              i32 bit = y * 16 + x;
-              i32 byte = bit / 8;
-              if ((mouse_cursor[byte] & (0b10000000 >> (x % 8))))
-              {
-                  mouse_cursor_buffer[x + y * 16] = get_pixel(position.X + x, position.Y + y);
-                  put_pixel(position.X + x, position.Y + y, colour);
-                  mouse_cursor_buffer_after[x + y * 16] = get_pixel(position.X + x, position.Y + y);
-              }
-          }
-      }
-
-      mouse_drawn = true;
-
-}*/
-
 void FramebufferDriver::put_char(char c, const u32 x, const u32 y, const u32 fg_color, const u32 bg_color) const {
     if (c >= static_cast<psf2_header_t*>(font_->header)->length) c = '?';
     if (!c) return;

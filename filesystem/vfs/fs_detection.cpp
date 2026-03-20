@@ -27,6 +27,7 @@
 #include <vespera/devices/device_manager.h>
 #include <vespera/log.h>
 #include <vespera/system/system_manager.h>
+#include <vespera_errno.h>
 
 #include "../kernel/devices/partition_device.h"
 #include "fs_registry.h"
@@ -179,7 +180,8 @@ VfsNode* FilesystemDetector::mount_filesystem(BlockDevice* device, const Filesys
 }
 
 bool FilesystemDetector::mount_device(
-    BlockDevice* device, const char* suggested_path, const bool is_partition, const char* table_type, const bool is_root_device
+    BlockDevice* device, const char* suggested_path, const bool is_partition, const char* table_type,
+    const bool is_root_device
 ) {
     FilesystemInfo fs_info{};
     if (!detect_filesystem(device, &fs_info)) {
@@ -219,6 +221,12 @@ bool FilesystemDetector::mount_device(
 
 void FilesystemDetector::scan_and_mount_all() {
     auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
+
+    for (const auto& device : devices) {
+        DeviceManager::find_and_register_partitions(device);
+    }
+
+    devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
 
     if (const usize device_count_actual = devices.size(); device_count_actual == 0) {
         Log::warning("[FS] No storage devices found");
@@ -327,6 +335,47 @@ void FilesystemDetector::scan_and_mount_all() {
     }
 
     if (successful_mounts == 0) Log::warning("[FS] No filesystems could be mounted automatically");
+}
+
+i64 FilesystemDetector::mount_manual(BlockDevice* device, const char* target, const char* fstype) {
+    if (!target) return -EINVAL;
+
+    FilesystemInfo fs_info{};
+
+    if (fstype) {
+        const FileSystemDriver* drv = find_fs_driver(fstype);
+        if (!drv) return -EINVAL;
+
+        fs_info.type_name = drv->name;
+    } else {
+        if (!detect_filesystem(device, &fs_info)) return -EUNSUPPORTED;
+    }
+
+    VfsNode* root = mount_filesystem(device, &fs_info);
+    if (!root) return -EIO;
+
+    if (strcmp(target, "/") != 0) VFS::ensure_path_exists(target);
+
+    fs_info.mounted = true;
+
+    auto* desc = new BlkDeviceDescriptor{};
+    desc->device = device;
+    desc->device_size = device ? device->get_size() : 0;
+    desc->is_recognized = true;
+    desc->fs_info = fs_info;
+    desc->partition_table_type = nullptr;
+
+    auto* mp = new MountPoint();
+    strncpy(mp->path, target, sizeof(mp->path) - 1);
+    mp->root = root;
+    mp->device = desc;
+    mp->is_virtual = (device == nullptr);
+    mp->is_partition = false;
+    mp->is_root_device = (strcmp(target, "/") == 0);
+
+    VFS::add_mount_point(mp);
+
+    return SUCCESS_CODE;
 }
 
 void FilesystemDetector::print_detected_filesystems() {

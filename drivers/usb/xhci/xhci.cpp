@@ -284,7 +284,7 @@ namespace usb {
                 const XhciUsbSupportedProtocolCapability cap(node->base());
 
                 const u8 first_port = cap.compatible_port_offset - 1;
-                const u8 last_port = cap.compatible_port_offset - 1;
+                const u8 last_port  = cap.compatible_port_offset + cap.compatible_port_count - 2;
 
                 if (cap.major_revision_version == 3) {
                     for (u8 port = first_port; port <= last_port; port++) {
@@ -907,6 +907,9 @@ namespace usb {
     bool XhciDriver::send_usb_request_packet(
         XhciDevice* device, XHCI_DEVICE_REQUEST_PACKET& req, void* output_buffer, u32 length
     ) {
+        if (length == 0) {
+            return false;
+        }
         XhciTransferRing* transfer_ring = device->get_control_transfer_ring();
 
         auto* transfer_status_buffer = static_cast<u32*>(alloc_xhci_memory(sizeof(u32), 16, 16));
@@ -1050,13 +1053,15 @@ namespace usb {
             }
         }
 
+        SpinlockGuardIrq guard(transfer_lock_);
         xhci_transfer_completion_trb_t* completion_trb = nullptr;
-        {
-            SpinlockGuardIrq guard(transfer_lock_);
-            completion_trb = !transfer_completion_events_.empty() ? transfer_completion_events_[0] : nullptr;
 
-            // Reset the irq flag and clear out the command completion event queue
-            transfer_completion_events_.clear();
+        for (usize i = 0; i < transfer_completion_events_.size(); i++) {
+            if (transfer_completion_events_[i]->slot_id == transfer_ring->get_doorbell_id()) {
+                completion_trb = transfer_completion_events_[i];
+                transfer_completion_events_.erase(i);
+                break;
+            }
         }
         transfer_irq_completed_.clear();
 

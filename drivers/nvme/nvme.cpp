@@ -161,7 +161,6 @@ namespace nvme {
                     .with_parent(kd_)
             );
             DevFs::register_device(ns->kd);
-            DeviceManager::find_and_register_partitions(ns->kd);
 
             namespaces_.push_back(ns);
         }
