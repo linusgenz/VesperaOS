@@ -11,7 +11,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "file.h", "file_8h.html", "file_8h" ],
     [ "limits.h", "limits_8h.html", "limits_8h" ],
     [ "memory.h", "memory_8h.html", "memory_8h" ],
-    [ "poll.h", "userspace_2lib_2include_2poll_8h.html", null ],
+    [ "poll.h", "userspace_2lib_2include_2poll_8h.html", "userspace_2lib_2include_2poll_8h" ],
     [ "readline.h", "readline_8h.html", "readline_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],
     [ "reboot.h", "reboot_8h.html", "reboot_8h" ],

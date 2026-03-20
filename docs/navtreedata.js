@@ -56,7 +56,7 @@ var NAVTREEINDEX =
 "annotated.html",
 "ioctl__smart_8h.html#a476ae9093e2c8a4e7827c72d101d16e6",
 "string_8h.html#a617eed2430471abc2c2ac192bd280869",
-"todo.html"
+"termios_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

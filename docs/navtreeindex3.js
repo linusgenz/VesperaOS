@@ -1,5 +1,6 @@
 var NAVTREEINDEX3 =
 {
+"termios_8h_source.html":[4,0,1,0,0,25],
 "todo.html":[1],
 "topics.html":[2],
 "types_8h.html":[4,0,0,0,0,7],
@@ -27,10 +28,11 @@ var NAVTREEINDEX3 =
 "userspace_2lib_2include_2fflags_8h.html#a25f6c486bbaf73d1927017276f6038a3":[4,0,1,0,0,7,0],
 "userspace_2lib_2include_2fflags_8h_source.html":[4,0,1,0,0,7],
 "userspace_2lib_2include_2poll_8h.html":[4,0,1,0,0,11],
+"userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53":[4,0,1,0,0,11,0],
 "userspace_2lib_2include_2poll_8h_source.html":[4,0,1,0,0,11],
 "userspace_2lib_2include_2stat_8h.html":[4,0,1,0,0,16],
 "userspace_2lib_2include_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade":[4,0,1,0,0,16,0],
+"userspace_2lib_2include_2stat_8h.html#acece949d9d865e98e9c23c1f95b8066e":[4,0,1,0,0,16,2],
 "userspace_2lib_2include_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81":[4,0,1,0,0,16,1],
-"userspace_2lib_2include_2stat_8h.html#af5ddaee901366b60c1f2f7ba6e66d4b8":[4,0,1,0,0,16,2],
 "userspace_2lib_2include_2stat_8h_source.html":[4,0,1,0,0,16]
 };

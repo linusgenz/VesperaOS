@@ -140,7 +140,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Read a line of input from the terminal with editing support. </p>
-<p>Displays <code>prompt</code> (if non-NUL), then reads characters from <code>stdin</code> in raw, no-echo mode until the user presses Enter or Ctrl+C. The following editing keys are supported during input:</p>
+<p>Displays <code>prompt</code> (if non-NULL), then reads characters from <code>stdin</code> in raw, no-echo mode until the user presses Enter or Ctrl+C. The following editing keys are supported during input:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Key   </th><th class="markdownTableHeadNone">Action    </th></tr>
@@ -159,6 +159,8 @@ Functions</h2></td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">↑ / ↓   </td><td class="markdownTableBodyNone">Walk history (32 entries, LRU)    </td></tr>
 <tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">PageUp / PageDown   </td><td class="markdownTableBodyNone">Walk history (32 entries, LRU)    </td></tr>
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Ctrl+C   </td><td class="markdownTableBodyNone">Cancel input, return empty line   </td></tr>
 </table>
 <p>The completed line (without trailing newline) is written into <code>out</code> and NUL-terminated. The line is also pushed onto the internal history ring buffer, deduplicating consecutive identical entries.</p>

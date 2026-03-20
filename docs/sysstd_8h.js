@@ -14,6 +14,7 @@ var sysstd_8h =
     [ "sys_mmap", "sysstd_8h.html#a90df8bbe76fb71b09d4f11a26d731aa4", null ],
     [ "sys_munmap", "sysstd_8h.html#a0b4571041296a4972a34098c18b802fc", null ],
     [ "sys_open", "sysstd_8h.html#aec8842c92992b9470ba675d7109b419c", null ],
+    [ "sys_poll", "sysstd_8h.html#a25ef6a476bf50bc58be0dd2bbe9aabd7", null ],
     [ "sys_read", "sysstd_8h.html#a7166a7249135d5c8db774be86fc02286", null ],
     [ "sys_readdir", "sysstd_8h.html#a1ca4b3eb6d4c4bbc6e96de71899035d2", null ],
     [ "sys_reboot", "sysstd_8h.html#a7760fa106444c95639e69e852f60d6f9", null ],

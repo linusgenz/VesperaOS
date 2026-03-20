@@ -120,10 +120,27 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2poll_8h_sourc
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// You should have received a copy of the GNU General Public License</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// along with VesperaOS. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_POLL_H</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_POLL_H</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPLIBC_POLL_H</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPLIBC_POLL_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_POLL_H</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="include_2uapi_2vespera_2poll_8h.html">vespera/poll.h</a>&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;<a class="code" href="stddef_8h.html">stddef.h</a>&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;<a class="code" href="sysstd_8h.html">sysstd.h</a>&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="foldopen" id="foldopen00029" data-start="{" data-end="}">
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53">   29</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">int</span> <a class="code hl_function" href="userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53">poll</a>(<span class="keyword">struct</span> <a class="code hl_struct" href="structpollhdl.html">pollhdl</a>* hdls, <span class="keywordtype">size_t</span> nhdls, <span class="keywordtype">int</span> timeout_ms) {</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)<a class="code hl_function" href="sysstd_8h.html#a25ef6a476bf50bc58be0dd2bbe9aabd7">sys_poll</a>((<a class="code hl_typedef" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)hdls, (<a class="code hl_typedef" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)nhdls, (<a class="code hl_typedef" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)timeout_ms, 0, 0, 0);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>}</div>
+</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#endif  </span><span class="comment">// VESPLIBC_POLL_H</span></div>
+<div class="ttc" id="ainclude_2uapi_2vespera_2poll_8h_html"><div class="ttname"><a href="include_2uapi_2vespera_2poll_8h.html">poll.h</a></div></div>
+<div class="ttc" id="astddef_8h_html"><div class="ttname"><a href="stddef_8h.html">stddef.h</a></div></div>
+<div class="ttc" id="astdint_8h_html_aaa5d1cd013383c889537491c3cfd9aad"><div class="ttname"><a href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a></div><div class="ttdeci">unsigned long long uint64_t</div><div class="ttdef"><b>Definition</b> stdint.h:38</div></div>
+<div class="ttc" id="astructpollhdl_html"><div class="ttname"><a href="structpollhdl.html">pollhdl</a></div><div class="ttdef"><b>Definition</b> poll.h:31</div></div>
+<div class="ttc" id="asysstd_8h_html"><div class="ttname"><a href="sysstd_8h.html">sysstd.h</a></div></div>
+<div class="ttc" id="asysstd_8h_html_a25ef6a476bf50bc58be0dd2bbe9aabd7"><div class="ttname"><a href="sysstd_8h.html#a25ef6a476bf50bc58be0dd2bbe9aabd7">sys_poll</a></div><div class="ttdeci">int64_t sys_poll(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t)</div><div class="ttdoc">Wait for events on a set of handles.</div></div>
+<div class="ttc" id="auserspace_2lib_2include_2poll_8h_html_a6c066ea4558fca56640102ec24491a53"><div class="ttname"><a href="userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53">poll</a></div><div class="ttdeci">static int poll(struct pollhdl *hdls, size_t nhdls, int timeout_ms)</div><div class="ttdef"><b>Definition</b> poll.h:29</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
