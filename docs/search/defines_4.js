@@ -9,7 +9,8 @@ var searchData=
   ['handle_5ftype_5fdirectory_6',['HANDLE_TYPE_DIRECTORY',['../handels_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83',1,'handels.h']]],
   ['handle_5ftype_5ffile_7',['HANDLE_TYPE_FILE',['../handels_8h.html#aef864574e77d6a0d5653dfae187c57e4',1,'handels.h']]],
   ['handle_5ftype_5fmask_8',['HANDLE_TYPE_MASK',['../handels_8h.html#a5adb7fdca00e5c5f3f1808742a2b8f49',1,'handels.h']]],
-  ['handle_5ftype_5frealm_9',['HANDLE_TYPE_REALM',['../handels_8h.html#a99fc691f8add17b3b3a7834779d7e641',1,'handels.h']]],
-  ['handle_5ftype_5ftty_10',['HANDLE_TYPE_TTY',['../handels_8h.html#aabd7399c3d6a12733e2d2ac179716a64',1,'handels.h']]],
-  ['handle_5ftype_5funit_11',['HANDLE_TYPE_UNIT',['../handels_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handels.h']]]
+  ['handle_5ftype_5fpipe_9',['HANDLE_TYPE_PIPE',['../handels_8h.html#a65919b76b3a0374e90b230646cd91c64',1,'handels.h']]],
+  ['handle_5ftype_5frealm_10',['HANDLE_TYPE_REALM',['../handels_8h.html#a99fc691f8add17b3b3a7834779d7e641',1,'handels.h']]],
+  ['handle_5ftype_5ftty_11',['HANDLE_TYPE_TTY',['../handels_8h.html#aabd7399c3d6a12733e2d2ac179716a64',1,'handels.h']]],
+  ['handle_5ftype_5funit_12',['HANDLE_TYPE_UNIT',['../handels_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handels.h']]]
 ];

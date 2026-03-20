@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vesplib: include/uapi/vespera/handels.h Source File</title>
+<title>vesplib: include/uapi/vespera/spawn.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -70,7 +70,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('handels_8h_source.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('spawn_8h_source.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -96,15 +96,15 @@ $(document).ready(function(){initNavTree('handels_8h_source.html',''); initResiz
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">handels.h</div></div>
+  <div class="headertitle"><div class="title">spawn.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="handels_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// handels.h</span></div>
+<a href="spawn_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// spawn.h</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// VesperaOS - operating system for the x86_64 architecture</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment">//</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// Copyright (c) 2026 Linus Genz &lt;linuslinuxgenz@gmail.com&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment">//</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">// Created by Linus Genz on 07.03.26.</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">// Created by Linus Genz on 20.03.26.</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment">//</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// This file is part of VesperaOS.</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">//</span></div>
@@ -120,35 +120,32 @@ $(document).ready(function(){initNavTree('handels_8h_source.html',''); initResiz
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// You should have received a copy of the GNU General Public License</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// along with VesperaOS. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_HANDELS_H</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_HANDELS_H</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// Handle typs (upper 16 bits)</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="handels_8h.html#a5adb7fdca00e5c5f3f1808742a2b8f49">   26</a></span><span class="preprocessor">#define HANDLE_TYPE_MASK 0xFFFF000000000000ULL</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="handels_8h.html#a452c27ff81cc8d963a8b945d0202a9ce">   27</a></span><span class="preprocessor">#define HANDLE_ID_MASK 0x0000FFFFFFFFFFFFULL</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">/* Handle type definitions */</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="handels_8h.html#aabd7399c3d6a12733e2d2ac179716a64">   30</a></span><span class="preprocessor">#define HANDLE_TYPE_TTY 0x1000000000000000ULL</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="handels_8h.html#aef864574e77d6a0d5653dfae187c57e4">   31</a></span><span class="preprocessor">#define HANDLE_TYPE_FILE 0x2000000000000000ULL</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="handels_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83">   32</a></span><span class="preprocessor">#define HANDLE_TYPE_DIRECTORY 0x3000000000000000ULL</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="handels_8h.html#a57fb96e74a11842469c4d71f9a38734a">   33</a></span><span class="preprocessor">#define HANDLE_TYPE_CHANNEL 0x4000000000000000ULL</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="handels_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd">   34</a></span><span class="preprocessor">#define HANDLE_TYPE_UNIT 0x5000000000000000ULL</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="handels_8h.html#a99fc691f8add17b3b3a7834779d7e641">   35</a></span><span class="preprocessor">#define HANDLE_TYPE_REALM 0x6000000000000000ULL</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="handels_8h.html#a7320acad67c37ee34fa6f28cab733f7c">   36</a></span><span class="preprocessor">#define HANDLE_TYPE_DEVICE 0x7000000000000000ULL</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="handels_8h.html#a65919b76b3a0374e90b230646cd91c64">   37</a></span><span class="preprocessor">#define HANDLE_TYPE_PIPE 0x8000000000000000ULL</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_SPAWN_H</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_SPAWN_H</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;<a class="code" href="types_8h.html">vespera/types.h</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structspawn__config.html">   33</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structspawn__config.html">spawn_config</a> {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42">   34</a></span>    <a class="code hl_typedef" href="types_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a> <a class="code hl_variable" href="structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42">stdin_handle</a>;   </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="structspawn__config.html#a09fb2863c15fdcda17932e0896168faf">   35</a></span>    <a class="code hl_typedef" href="types_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a> <a class="code hl_variable" href="structspawn__config.html#a09fb2863c15fdcda17932e0896168faf">stdout_handle</a>;  </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="structspawn__config.html#a2affb9c994b7522808b99af8e9138514">   36</a></span>    <a class="code hl_typedef" href="types_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a> <a class="code hl_variable" href="structspawn__config.html#a2affb9c994b7522808b99af8e9138514">stderr_handle</a>;  </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b">   37</a></span>} <a class="code hl_typedef" href="spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b">spawn_config_t</a>;</div>
+</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">/* Standard stream handles */</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="handels_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">   40</a></span><span class="preprocessor">#define HANDLE_STDIN   (HANDLE_TYPE_TTY | 0x0000000000000000ULL)</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="handels_8h.html#ab713aac387c884999067ab2eb12eb2a3">   41</a></span><span class="preprocessor">#define HANDLE_STDOUT  (HANDLE_TYPE_TTY | 0x0000000000000001ULL)</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="handels_8h.html#a20f587d71e5bfe98fd92929ab61bde41">   42</a></span><span class="preprocessor">#define HANDLE_STDERR  (HANDLE_TYPE_TTY | 0x0000000000000002ULL)</span></div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_HANDELS_H</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_SPAWN_H</span></div>
+<div class="ttc" id="aspawn_8h_html_a4aa52f5ab4b04a4abcfb683294b68d6b"><div class="ttname"><a href="spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b">spawn_config_t</a></div><div class="ttdeci">struct spawn_config spawn_config_t</div></div>
+<div class="ttc" id="astructspawn__config_html"><div class="ttname"><a href="structspawn__config.html">spawn_config</a></div><div class="ttdef"><b>Definition</b> spawn.h:33</div></div>
+<div class="ttc" id="astructspawn__config_html_a09fb2863c15fdcda17932e0896168faf"><div class="ttname"><a href="structspawn__config.html#a09fb2863c15fdcda17932e0896168faf">spawn_config::stdout_handle</a></div><div class="ttdeci">i64 stdout_handle</div><div class="ttdoc">Replace HANDLE_STDOUT in child (0 = inherit TTY)</div><div class="ttdef"><b>Definition</b> spawn.h:35</div></div>
+<div class="ttc" id="astructspawn__config_html_a2affb9c994b7522808b99af8e9138514"><div class="ttname"><a href="structspawn__config.html#a2affb9c994b7522808b99af8e9138514">spawn_config::stderr_handle</a></div><div class="ttdeci">i64 stderr_handle</div><div class="ttdoc">Replace HANDLE_STDERR in child (0 = inherit TTY)</div><div class="ttdef"><b>Definition</b> spawn.h:36</div></div>
+<div class="ttc" id="astructspawn__config_html_ac5c0285b740b317d43649c65c2a40e42"><div class="ttname"><a href="structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42">spawn_config::stdin_handle</a></div><div class="ttdeci">i64 stdin_handle</div><div class="ttdoc">Replace HANDLE_STDIN in child (0 = inherit TTY)</div><div class="ttdef"><b>Definition</b> spawn.h:34</div></div>
+<div class="ttc" id="atypes_8h_html"><div class="ttname"><a href="types_8h.html">types.h</a></div></div>
+<div class="ttc" id="atypes_8h_html_ada59a0de67c44384c6faa924ca63c2aa"><div class="ttname"><a href="types_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a></div><div class="ttdeci">signed long long i64</div><div class="ttdef"><b>Definition</b> types.h:34</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_fb42a3b80b368a2ced97e36eea6bf3da.html">uapi</a></li><li class="navelem"><a class="el" href="dir_e2b52b92f5077a849e2a3072fb331546.html">vespera</a></li><li class="navelem"><a class="el" href="handels_8h.html">handels.h</a></li>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_fb42a3b80b368a2ced97e36eea6bf3da.html">uapi</a></li><li class="navelem"><a class="el" href="dir_e2b52b92f5077a849e2a3072fb331546.html">vespera</a></li><li class="navelem"><a class="el" href="spawn_8h.html">spawn.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

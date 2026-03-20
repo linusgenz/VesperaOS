@@ -45,5 +45,6 @@ var errno_8h =
     [ "EUNSUPPORTED", "errno_8h.html#a6512098135b57dfc1ba40525ded08bca", null ],
     [ "EWOULDBLOCK", "errno_8h.html#a4a3a0b3605fd3b2336455062ee8e25f0", null ],
     [ "EXDEV", "errno_8h.html#a3396cf9fb0ff5af3a18dd2a2bbdb21e1", null ],
-    [ "SUCCESS_CODE", "errno_8h.html#af552599b46244712be9567e1c81b099b", null ]
+    [ "SUCCESS_CODE", "errno_8h.html#af552599b46244712be9567e1c81b099b", null ],
+    [ "strerror", "errno_8h.html#a700bf4ccd78bf6decf0511b443926969", null ]
 ];
