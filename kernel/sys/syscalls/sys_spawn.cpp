@@ -21,6 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/handels.h>
+#include <uapi/vespera/spawn.h>
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
@@ -30,15 +33,16 @@
 #include "../../units/unit_manager.h"
 
 namespace syscalls::internal {
-    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
+    i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
         const auto user_path = reinterpret_cast<const char*>(arg0);
         const auto argv = reinterpret_cast<const char**>(arg1);
         const auto envp = reinterpret_cast<const char**>(arg2);
+        const auto cfg_ptr   = reinterpret_cast<const spawn_config_t*>(arg3);
 
         if (!user_path) return -EINVAL;
 
         const Unit* caller = kernel::scheduling::get_current_unit();
-        const Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
+        Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
         TtyDevice* tty_dev = parent_realm ? parent_realm->get_tty_device() : kernel::tty::tty_devices[0];
 
         const RealmConfig cfg = {.name = user_path, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
@@ -47,6 +51,47 @@ namespace syscalls::internal {
         if (!new_realm) return -ENOMEM;
 
         new_realm->setup_standard_handles(tty_dev);
+
+        if (cfg_ptr && parent_realm) {
+            auto transfer = [&](i64 src_hid, HandleId dst_fixed_id) -> bool {
+                if (src_hid == 0) return true;
+
+                HandleEntry* he = parent_realm->lookup_handle(static_cast<HandleId>(src_hid));
+                if (!he || !he->transferable) return false;
+
+                if (he->acquire) {
+                    he->acquire(he->resource);
+                }
+
+                if (HandleEntry* existing = new_realm->lookup_handle(dst_fixed_id)) {
+                    new_realm->release_handle(dst_fixed_id);
+                }
+
+                new_realm->add_handle_with_id(
+                    dst_fixed_id,
+                    he->type,
+                    he->resource,
+                    he->capabilities,
+                    he->transferable,
+                    he->destroy,
+                    he->acquire
+                );
+                return true;
+            };
+
+            if (!transfer(cfg_ptr->stdin_handle,  HANDLE_STDIN))  {
+                RealmManager::destroy(new_realm->id);
+                return -EBADH;
+            }
+            if (!transfer(cfg_ptr->stdout_handle, HANDLE_STDOUT)) {
+                RealmManager::destroy(new_realm->id);
+                return -EBADH;
+            }
+            if (!transfer(cfg_ptr->stderr_handle, HANDLE_STDERR)) {
+                RealmManager::destroy(new_realm->id);
+                return -EBADH;
+            }
+        }
 
         const ElfLoader::LoadResult elf = ElfLoader::load(user_path, 0x500000, new_realm);
 

@@ -33,6 +33,11 @@ namespace syscalls::internal {
         const HandleId hid = arg0;
         const auto buf = reinterpret_cast<void *>(arg1);
         const usize count = arg2;
+
+        if (count == 0) {
+            return 0;
+        }
+
         const Unit *u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
 
@@ -43,8 +48,7 @@ namespace syscalls::internal {
         const HandleEntry *he = realm->lookup_handle(hid);
         if (!he || !he->resource) return -EBADH;
 
-        const auto user_buf = reinterpret_cast<const char *>(arg1);
-        if (!user_buf || arg2 == 0) return -EINVAL;
+        if (!buf) return -EINVAL;
 
         if (!(he->capabilities & CAP_WRITE)) {
             return -EACCES;
@@ -52,7 +56,7 @@ namespace syscalls::internal {
         switch (he->type) {
             case HANDLE_TYPE_TTY: {
                 auto *tty_dev = static_cast<TtyDevice *>(he->resource);
-                return tty_dev->write(nullptr, user_buf, arg2);
+                return tty_dev->write(nullptr, buf, count);
             }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
@@ -61,6 +65,15 @@ namespace syscalls::internal {
                 const isize bytes = vh->node->ops->write(vh->node, vh->context->position, count, buf);
                 vh->context->position += bytes;
                 return bytes;
+            }
+            case HANDLE_TYPE_PIPE: {
+                auto* ch = static_cast<Channel*>(he->resource);
+                isize r;
+                while ((r = ch->send(buf, count)) == -EAGAIN) {
+                   // kernel::scheduling::yield();
+                    asm volatile("pause");
+                }
+                return r;
             }
             default:
                 return -EBADH;

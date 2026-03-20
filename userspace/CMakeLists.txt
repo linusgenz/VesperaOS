@@ -50,7 +50,13 @@ vespera_bin(memstat)
 vespera_bin(diskinfo)
 vespera_bin(stat)
 vespera_bin(vedit)
+vespera_bin(pipetest)
+vespera_bin(pipespawntest)
+vespera_bin(pipewriter)
+vespera_bin(pipereader)
+vespera_bin(mount)
+vespera_bin(umount)
 
 add_custom_target(elfs DEPENDS
-        shell lsusb logd uptime memstat diskinfo stat vedit
+        shell lsusb logd uptime memstat diskinfo stat vedit pipetest pipespawntest pipereader pipewriter mount umount
 )

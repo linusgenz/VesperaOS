@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
@@ -36,16 +37,17 @@ namespace syscalls::internal {
             kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -KENOUNIT);
         }
 
-        current->exit_code = static_cast<int>(code);
-        current->state = UnitState::Terminated;
-
-        cpu->reaper.enqueue(current);
-
         if (Realm* realm = RealmManager::get(current->rid)) {
+            SpinlockGuard g(realm->lock);
             if (realm->unit_count == 1) {
+                realm->exited = true;
                 realm->wait_queue.wake_all();
             }
         }
+
+        current->exit_code = static_cast<int>(code);
+        current->state = UnitState::Terminated;
+        cpu->reaper.enqueue(current);
 
         cpu->current_unit = nullptr;
 

@@ -44,12 +44,14 @@
 
 #include "vespera/stat.h"
 
-typedef struct {
+typedef struct command {
     char* args[MAX_ARGS];
     int argc;
     char* input_file;
     char* output_file;
     bool append_output;
+    bool has_pipe;          // true if this command is followed by '|'
+    struct command* next;   // next command in pipeline (if has_pipe)
 } command_t;
 
 static char history[HISTORY_SIZE][MAX_INPUT];
@@ -83,13 +85,66 @@ void add_to_history(const char* cmd) {
     history_index = history_count;
 }
 
+// Forward declaration
+static int parse_single_command(char* input, command_t* cmd);
+
 int parse_command(char* input, command_t* cmd) {
+    if (!input || !cmd) return -1;
+
+    // Initialize first command
+    cmd->has_pipe = false;
+    cmd->next = NULL;
+
+    char* pipe_pos = NULL;
+    int depth = 0;
+    char* scan = input;
+
+    // Find first '|' at depth 0 (not inside redirects)
+    while (*scan) {
+        if (*scan == '<' || *scan == '>') {
+            depth++;
+            scan++;
+            continue;
+        }
+        if (depth > 0 && (*scan == ' ' || *scan == '\t')) {
+            depth--;
+            scan++;
+            continue;
+        }
+        if (*scan == '|' && depth == 0) {
+            pipe_pos = scan;
+            break;
+        }
+        scan++;
+    }
+
+    if (pipe_pos) {
+        // Split at pipe
+        *pipe_pos = '\0';
+        cmd->has_pipe = true;
+        cmd->next = (command_t*)malloc(sizeof(command_t));
+        if (!cmd->next) return -1;
+        memset(cmd->next, 0, sizeof(command_t));
+
+        // Parse this command
+        parse_single_command(input, cmd);
+
+        // Parse next command
+        return parse_command(pipe_pos + 1, cmd->next);
+    }
+
+    return parse_single_command(input, cmd);
+}
+
+static int parse_single_command(char* input, command_t* cmd) {
     if (!input || !cmd) return -1;
 
     cmd->argc = 0;
     cmd->input_file = NULL;
     cmd->output_file = NULL;
     cmd->append_output = false;
+    cmd->has_pipe = false;
+    cmd->next = NULL;
 
     char* token = input;
 
@@ -149,6 +204,13 @@ void cmd_help(command_t* cmd) {
     printf("  \033[38;2;66;245;81m\uf1da\033[0m  history   - Command history\n");
     printf("  \033[38;2;66;245;81m\uf12d\033[0m  clear     - Clear screen\n");
     printf("  \033[38;2;245;100;80m\uf011\033[0m  shutdown  - Shutdown the PC\n");
+
+    printf("\n\033[38;2;180;180;180mRedirection & Pipes:\033[0m\n");
+    printf("  < file     - Redirect stdin from file\n");
+    printf("  > file     - Redirect stdout to file (truncate)\n");
+    printf("  >> file    - Redirect stdout to file (append)\n");
+    printf("  | cmd      - Pipe stdout to next command's stdin\n");
+    printf("\n  Example: ls -l | grep '.c' | cat > files.txt\n");
 }
 
 void cmd_hello(command_t* cmd) {
@@ -520,11 +582,173 @@ void cmd_rm(command_t* cmd) {
     }
 }
 
+// Execute a pipeline of commands
+static int execute_pipeline(command_t* head) {
+    if (!head) return 0;
+
+    command_t* current = head;
+    FILE_HANDLE pipe_read = -1;
+    FILE_HANDLE pipe_write = -1;
+    int result = 0;
+
+    while (current) {
+        command_t* next = current->next;
+        FILE_HANDLE saved_stdin = stdin;
+        FILE_HANDLE saved_stdout = stdout;
+        FILE_HANDLE redirect_in = -1;
+        FILE_HANDLE redirect_out = -1;
+
+        // If we have a previous pipe, set up read end as stdin
+        if (pipe_read >= 0) {
+            stdin = pipe_read;
+            pipe_read = -1;  // consumed
+        }
+
+        // If this command feeds into next, create pipe
+        if (next && current->has_pipe) {
+            int fds[2];
+            if (sys_pipe((uint64_t)fds, 0, 0, 0, 0, 0) < 0) {
+                printf("pipe: creation failed\n");
+                if (pipe_read >= 0) close(pipe_read);
+                if (pipe_write >= 0) close(pipe_write);
+                return -1;
+            }
+            pipe_read = fds[0];
+            pipe_write = fds[1];
+            // Wire up write end to stdout
+            redirect_out = pipe_write;
+            stdout = redirect_out;
+        }
+
+        // Handle file redirects
+        if (current->input_file && pipe_read < 0) {
+            redirect_in = open(current->input_file, O_RDONLY);
+            if (redirect_in < 0) {
+                printf("Cannot open input file '%s'\n", current->input_file);
+                if (pipe_write >= 0) close(pipe_write);
+                stdin = saved_stdin;
+                current = next;
+                continue;
+            }
+            stdin = redirect_in;
+        }
+
+        if (current->output_file && !pipe_write) {
+            int flags = O_WRONLY | O_CREAT;
+            if (current->append_output) {
+                flags |= O_APPEND;
+            } else {
+                flags |= O_TRUNC;
+            }
+
+            redirect_out = open(current->output_file, flags);
+            if (redirect_out < 0) {
+                printf("Cannot open output file '%s'\n", current->output_file);
+                if (redirect_in >= 0) {
+                    close(redirect_in);
+                    stdin = saved_stdin;
+                }
+                if (pipe_write >= 0) close(pipe_write);
+                current = next;
+                continue;
+            }
+            stdout = redirect_out;
+        }
+
+        // Execute the command
+        const char* command = current->args[0];
+
+        if (strcmp(command, "help") == 0) {
+            cmd_help(current);
+        } else if (strcmp(command, "ls") == 0) {
+            cmd_ls(current);
+        } else if (strcmp(command, "cp") == 0) {
+            cmd_cp(current);
+        } else if (strcmp(command, "rm") == 0) {
+            cmd_rm(current);
+        } else if (strcmp(command, "hello") == 0) {
+            cmd_hello(current);
+        } else if (strcmp(command, "echo") == 0) {
+            cmd_echo(current);
+        } else if (strcmp(command, "cat") == 0) {
+            cmd_cat(current);
+        } else if (strcmp(command, "pwd") == 0) {
+            cmd_pwd(current);
+        } else if (strcmp(command, "cd") == 0) {
+            cmd_cd(current);
+        } else if (strcmp(command, "history") == 0) {
+            cmd_history(current);
+        } else if (strcmp(command, "clear") == 0) {
+            cmd_clear(current);
+        } else if (strcmp(command, "mkdir") == 0) {
+            cmd_mkdir(current);
+        } else if (strcmp(command, "rmdir") == 0) {
+            cmd_rmdir(current);
+        } else if (strcmp(command, "touch") == 0) {
+            cmd_touch(current);
+        } else if (strcmp(command, "shutdown") == 0) {
+            reboot_poweroff();
+        } else if (strcmp(command, "reboot") == 0) {
+            puts("Rebooting...\n");
+            reboot_restart();
+        } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
+            result = -1;
+        } else {
+            const char* prog = find_executable(command);
+            if (prog) {
+                int64_t rid = spawn_realm(prog, current->args, NULL, NULL);
+                if (rid < 0) {
+                    printf("spawn failed: %d\n", (int32_t)rid);
+                } else {
+                    int status = 0;
+                    wait_realm(rid, &status);
+                    if (status != 0 && result >= 0) {
+                        result = status;
+                    }
+                }
+            } else {
+                printf("Unknown command: %s\n", command);
+                printf("Type 'help' for available commands.\n");
+            }
+        }
+
+        // Restore stdio
+        if (redirect_in >= 0) {
+            close(redirect_in);
+            stdin = saved_stdin;
+        }
+
+        if (redirect_out >= 0 && redirect_out != pipe_write) {
+            close(redirect_out);
+            stdout = saved_stdout;
+        }
+
+        // Close write end after command completes
+        if (pipe_write >= 0) {
+            close(pipe_write);
+            pipe_write = -1;
+        }
+
+        // Move to next command
+        current = next;
+    }
+
+    // Cleanup any remaining pipe fds
+    if (pipe_read >= 0) close(pipe_read);
+    if (pipe_write >= 0) close(pipe_write);
+
+    return result;
+}
+
 int execute_command(command_t* cmd) {
     if (cmd->argc == 0) return 0;
 
-    const char* command = cmd->args[0];
+    // Check if this is a pipeline
+    if (cmd->has_pipe || cmd->next) {
+        return execute_pipeline(cmd);
+    }
 
+    // Single command - use original logic
     FILE_HANDLE saved_stdin = stdin;
     FILE_HANDLE saved_stdout = stdout;
     FILE_HANDLE redirect_in = -1;
@@ -558,6 +782,8 @@ int execute_command(command_t* cmd) {
         }
         stdout = redirect_out;
     }
+
+    const char* command = cmd->args[0];
 
     if (strcmp(command, "help") == 0) {
         cmd_help(cmd);
@@ -599,7 +825,7 @@ int execute_command(command_t* cmd) {
         if (prog) {
             int64_t rid = 0;
             char** argv = cmd->args;
-            rid = spawn_realm(prog, argv, NULL);
+            rid = spawn_realm(prog, argv, NULL, NULL);
             if (rid < 0) {
                 printf("spawn failed: %d\n", (int32_t)rid);
             } else {

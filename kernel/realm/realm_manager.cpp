@@ -83,6 +83,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->lock.init();
             r->capabilities = cfg->capabilities;
             r->init_handle_table();
+            r->exited = false;
 
             if (cfg->is_user) {
                 const phys_addr_t pml4_phys = kernel::memory::request_page_phys();

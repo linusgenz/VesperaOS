@@ -65,6 +65,14 @@ namespace syscalls::internal {
                 }
                 return bytes;
             }
+            case HANDLE_TYPE_PIPE: {
+                auto* ch = static_cast<Channel*>(he->resource);
+                isize r;
+                while ((r = ch->recv(buf, count)) == -EAGAIN) {
+                    kernel::scheduling::yield();
+                }
+                return r;
+            }
             default:
                 return -EBADH;
         }

@@ -49,6 +49,7 @@ struct HandleEntry {
     Spinlock lock;
 
     void (*destroy)(void *);
+    void (*acquire)(void*);
 };
 
 struct HandleTable {
@@ -73,6 +74,8 @@ class Realm {
 
     char cwd_path[256];
 
+    bool exited;
+
     Unit *unit_list;
 
     WaitQueue wait_queue;
@@ -89,12 +92,12 @@ class Realm {
     i64 init_handle_table();
 
     i64 add_handle(
-        u64 type, void *resource, capability_set caps, bool transferable, void (*destroy)(void *), HandleId *out_h
+        u64 type, void *resource, capability_set caps, bool transferable, void (*destroy)(void *), void (*acquire)(void*), HandleId *out_h
     );
 
     i64 add_handle_with_id(
         HandleId fixed_id, u64 type, void *resource, capability_set caps, bool transferable,
-        void (*destroy)(void *)
+        void (*destroy)(void *), void (*acquire)(void*)
     );
 
     i64 setup_standard_handles(TtyDevice *tty_dev);

@@ -90,3 +90,11 @@ void normalize_path(const char* in, char* out, const usize out_size) {
     }
     out[pos] = '\0';
 }
+
+void strip_trailing_slash(char* path) {
+    size_t len = strlen(path);
+    while (len > 1 && path[len - 1] == '/') {
+        path[len - 1] = '\0';
+        len--;
+    }
+}

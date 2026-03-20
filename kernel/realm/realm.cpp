@@ -55,7 +55,8 @@ i64 Realm::init_handle_table() {
 }
 
 i64 Realm::add_handle(
-    const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*), HandleId* out_h
+    const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*), void (*acquire)(void*),
+    HandleId* out_h
 ) {
     SpinlockGuard guard(lock);
     const int slot = find_free_slot();
@@ -72,13 +73,15 @@ i64 Realm::add_handle(
     he.refcount = 1;
     he.transferable = transferable;
     he.destroy = destroy;
+    he.acquire = acquire;
 
     *out_h = he.hid;
     return SUCCESS_CODE;
 }
 
 i64 Realm::add_handle_with_id(
-    const HandleId fixed_id, const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*)
+    const HandleId fixed_id, const u64 type, void* resource, const capability_set caps, const bool transferable,
+    void (*destroy)(void*), void (*acquire)(void*)
 ) {
     const u64 slot = fixed_id & HANDLE_ID_MASK;
     if (slot >= MAX_HANDLES_PER_REALM) {
@@ -100,18 +103,19 @@ i64 Realm::add_handle_with_id(
     he.refcount = 1;
     he.transferable = transferable;
     he.destroy = destroy;
+    he.acquire = acquire;
 
     return SUCCESS_CODE;
 }
 
 i64 Realm::setup_standard_handles(TtyDevice* tty_dev) {
-    i64 err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ | CAP_DEVICE_ACCESS, false, nullptr);
+    i64 err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ | CAP_DEVICE_ACCESS, false, nullptr, nullptr);
     if (err != SUCCESS_CODE) return err;
 
-    err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr);
+    err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr);
     if (err != SUCCESS_CODE) return err;
 
-    err = add_handle_with_id(HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr);
+    err = add_handle_with_id(HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr);
     if (err != SUCCESS_CODE) return err;
 
     return SUCCESS_CODE;
