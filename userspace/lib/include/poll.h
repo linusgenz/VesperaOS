@@ -19,7 +19,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_POLL_H
-#define VESPERAOS_POLL_H
+#ifndef VESPLIBC_POLL_H
+#define VESPLIBC_POLL_H
 
-#endif  // VESPERAOS_POLL_H
+#include <vespera/poll.h>
+#include <stddef.h>
+#include <sysstd.h>
+
+static inline int poll(struct pollhdl* hdls, size_t nhdls, int timeout_ms) {
+    return (int)sys_poll((uint64_t)hdls, (uint64_t)nhdls, (uint64_t)timeout_ms, 0, 0, 0);
+}
+
+#endif  // VESPLIBC_POLL_H

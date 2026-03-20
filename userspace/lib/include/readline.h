@@ -27,20 +27,21 @@
 /**
  * @brief Read a line of input from the terminal with editing support.
  *
- * Displays @p prompt (if non-NUL), then reads characters from @c stdin in
+ * Displays @p prompt (if non-NULL), then reads characters from @c stdin in
  * raw, no-echo mode until the user presses Enter or Ctrl+C. The following
  * editing keys are supported during input:
  *
- * | Key          | Action                          |
- * |--------------|---------------------------------|
- * | ← / →        | Move cursor left / right        |
- * | Home / Ctrl+A| Move to start of line           |
- * | End  / Ctrl+E| Move to end of line             |
- * | Backspace    | Delete character before cursor  |
- * | Delete       | Delete character under cursor   |
- * | Ctrl+K       | Kill text from cursor to EOL    |
- * | ↑ / ↓        | Walk history (32 entries, LRU)  |
- * | Ctrl+C       | Cancel input, return empty line |
+ * | Key                | Action                          |
+ * |--------------------|---------------------------------|
+ * | ← / →              | Move cursor left / right        |
+ * | Home / Ctrl+A      | Move to start of line           |
+ * | End  / Ctrl+E      | Move to end of line             |
+ * | Backspace          | Delete character before cursor  |
+ * | Delete             | Delete character under cursor   |
+ * | Ctrl+K             | Kill text from cursor to EOL    |
+ * | ↑ / ↓              | Walk history (32 entries, LRU)  |
+ * | PageUp / PageDown  | Walk history (32 entries, LRU)  |
+ * | Ctrl+C             | Cancel input, return empty line |
  *
  * The completed line (without trailing newline) is written into @p out and
  * NUL-terminated. The line is also pushed onto the internal history ring

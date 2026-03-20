@@ -683,7 +683,7 @@ void shell_main(int argc, char** argv) {
         "    ==      ===    ===   ==      ===   ==        ====    ====     ======  \n\n\033[0m"
     );
     printf(
-        "    running on x86_64  \ue0b1  type \033[38;2;66;245;81mhelp\033[38;2;180;180;180m for commands\033[0m\n\n"
+        "    running on x86_64  \ue0b1 \033[38;2;180;180;180m type \033[38;2;66;245;81mhelp\033[38;2;180;180;180m for commands\033[0m\n\n"
     );
 
     /* image_t img;

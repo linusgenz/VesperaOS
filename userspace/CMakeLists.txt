@@ -49,7 +49,8 @@ vespera_bin(uptime)
 vespera_bin(memstat)
 vespera_bin(diskinfo)
 vespera_bin(stat)
+vespera_bin(vedit)
 
 add_custom_target(elfs DEPENDS
-        shell lsusb logd uptime memstat diskinfo stat
+        shell lsusb logd uptime memstat diskinfo stat vedit
 )

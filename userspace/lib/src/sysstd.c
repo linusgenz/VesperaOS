@@ -29,6 +29,7 @@
 #define SYSCALL_CLOSE 3
 #define SYSCALL_STAT 4
 #define SYSCALL_SEEK 8
+#define SYSCALL_POLL 7
 #define SYSCALL_MMAP 9
 #define SYSCALL_MUNMAP 11
 #define SYSCALL_BRK 12
@@ -170,4 +171,8 @@ int64_t sys_getcwd(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, u
 
 int64_t sys_stat(uint64_t path, uint64_t buf, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_STAT, path, buf, 0, 0, 0, 0);
+}
+
+int64_t sys_poll(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_POLL, arg0, arg1, arg2, 0, 0, 0);
 }

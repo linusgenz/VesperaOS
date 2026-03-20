@@ -355,4 +355,38 @@ int64_t sys_getcwd(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, u
  */
 int64_t sys_stat(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
+/**
+ * @brief Wait for events on a set of handles.
+ *
+ * Monitors the handles in @p hdls for the requested events. The call blocks
+ * until at least one handle becomes ready, the timeout expires, or an error
+ * occurs. Each entry in @p hdls describes one handle to watch and receives
+ * the events that actually occurred in its @c revents field.
+ *
+ * Supported event flags:
+ * | Flag     | Value | Meaning                          |
+ * |----------|-------|----------------------------------|
+ * | POLLIN   | 0x01  | Data available for reading       |
+ * | POLLOUT  | 0x02  | Space available for writing      |
+ * | POLLERR  | 0x04  | Error condition (output only)    |
+ * | POLLHUP  | 0x08  | Handle closed / not found        |
+ *
+ * @param arg0 Pointer to an array of @c pollhdl structures. Each element
+ *             specifies a handle ID and the events to watch for.
+ *             The @c revents field of each element is filled by the kernel.
+ * @param arg1 Number of @c pollhdl entries in the array pointed to by @p arg0.
+ * @param arg2 Timeout in milliseconds:
+ *             -  @c >0 : block for at most this many milliseconds
+ *             -  @c  0 : return immediately (non-blocking check)
+ *             -  @c -1 : block indefinitely until an event occurs
+ *
+ * @return On success, returns the number of handles with non-zero @c revents
+ *         (i.e. handles that are ready or have an error/hangup).
+ *         Returns @c 0 if the timeout expired before any handle became ready.
+ *         On error, returns negative errno:
+ *           -EINVAL : @p hdls is null or @p nhdls is zero
+ *           -EFAULT : @p hdls pointer is not accessible
+ */
+int64_t sys_poll(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
 #endif  // SYSSTD_H
