@@ -27,6 +27,7 @@ add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
 
 # --- C Sources ---
 set(LIB_SOURCES
+        src/errno.c
         src/channel.c
         src/exec.c
         src/file.c

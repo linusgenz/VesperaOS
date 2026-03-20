@@ -24,26 +24,25 @@
 #ifndef VESPERAOS_CHANNEL_H
 #define VESPERAOS_CHANNEL_H
 
-
-#include <vespera/types.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
 class Channel {
     Spinlock lock_{};
-    u8* buf_;  // ring buffer
-    usize head_;   // write index
-    usize tail_;   // read index
-    int refcount_;
+    u8* buf_;     // ring buffer
+    usize head_;  // write index
+    usize tail_;  // read index
     explicit Channel(usize cap);
     ~Channel();
 
    public:
+    int refcount;
     usize used;      // wieviel bytes verfügbar sind
     usize capacity;  // totale Kapazität in bytes
 
     static Channel* create(usize cap);
     static void destroy(void* res);
+    static void ref(Channel* c);
 
     // return: bytes written (>=0) or negative errno
     isize send(const void* data, usize len);

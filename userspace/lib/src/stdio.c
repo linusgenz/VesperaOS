@@ -229,10 +229,18 @@ int putchar(int c) {
 
 int puts(const char* s) {
     if (!s) return -1;
+
     size_t len = 0;
     while (s[len]) len++;
+
     int ret = (int)sys_write(stdout, (uint64_t)s, len, 0, 0, 0);
-    return ret;
+    if (ret < 0) return ret;
+
+    char nl = '\n';
+    int ret2 = (int)sys_write(stdout, (uint64_t)&nl, 1, 0, 0, 0);
+    if (ret2 < 0) return ret2;
+
+    return 0;
 }
 
 int getchar(void) {

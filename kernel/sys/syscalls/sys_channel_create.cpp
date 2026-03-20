@@ -45,7 +45,7 @@ namespace syscalls::internal {
 
         HandleId hid = 0;
 
-        if (const i64 err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, &hid);
+        if (const i64 err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, nullptr, &hid);
             err != SUCCESS_CODE) {
             Channel::destroy(ch);
             return -err;

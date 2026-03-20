@@ -389,4 +389,14 @@ int64_t sys_stat(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
  */
 int64_t sys_poll(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
 
+int64_t sys_pipe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_getrid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_getuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_mount(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
+
+int64_t sys_umount(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
 #endif  // SYSSTD_H

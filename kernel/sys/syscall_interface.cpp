@@ -61,6 +61,11 @@ void install_syscalls() {
     syscall_table[SYSCALL_GETCWD] = syscalls::internal::sys_getcwd;
     syscall_table[SYSCALL_STAT] = syscalls::internal::sys_stat;
     syscall_table[SYSCALL_POLL] = syscalls::internal::sys_poll;
+    syscall_table[SYSCALL_PIPE] = syscalls::internal::sys_pipe;
+    syscall_table[SYSCALL_GETRID] = syscalls::internal::sys_getrid;
+    syscall_table[SYSCALL_GETUID] = syscalls::internal::sys_getuid;
+    syscall_table[SYSCALL_MOUNT] = syscalls::internal::sys_mount;
+    syscall_table[SYSCALL_UMOUNT] = syscalls::internal::sys_umount;
 }
 
 extern "C" void syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

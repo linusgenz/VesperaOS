@@ -32,12 +32,15 @@ Channel::Channel(const usize cap)
     : buf_(static_cast<u8 *>(kernel::memory::malloc(cap)))
     , head_(0)
     , tail_(0)
-    , refcount_(1)
+    , refcount(1)
     , used(0)
     , capacity(cap) {
     lock_.init("channel_lock");
 }
 
+void Channel::ref(Channel* c) {
+    __sync_add_and_fetch(&c->refcount, 1);
+}
 
 /**
  *
@@ -54,8 +57,10 @@ Channel *Channel::create(const usize cap) {
 }
 
 void Channel::destroy(void *res) {
-    const auto *c = static_cast<Channel *>(res);
-    delete c;
+    auto *c = static_cast<Channel *>(res);
+    if (__sync_sub_and_fetch(&c->refcount, 1) == 0) {
+        delete c;
+    }
 }
 
 Channel::~Channel() {

@@ -35,7 +35,9 @@
 #define SYSCALL_BRK 12
 #define SYSCALL_CREATE 13
 #define SYSCALL_IOCTL 16
+#define SYSCALL_PIPE 22
 #define SYSCALL_SLEEP 35
+#define SYSCALL_GETRID 39
 #define SYSCALL_EXIT 60
 #define SYSCALL_WAIT 61
 #define SYSCALL_SPAWN 69
@@ -45,7 +47,10 @@
 #define SYSCALL_MKDIR 83
 #define SYSCALL_RMDIR 84
 #define SYSCALL_UNLINK 87
+#define SYSCALL_MOUNT     165
+#define SYSCALL_UMOUNT    166
 #define SYSCALL_REBOOT 169
+#define SYSCALL_GETUID    186
 #define SYSCALL_READDIR 217
 
 #define SYSCALL_CHANNEL_CREATE 130
@@ -101,8 +106,8 @@ int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t
     return syscall(SYSCALL_EXIT, code, 0, 0, 0, 0, 0);
 }
 
-int64_t sys_spawn(uint64_t path_ptr, uint64_t argv_ptr, uint64_t envp, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_SPAWN, path_ptr, argv_ptr, envp, 0, 0, 0);
+int64_t sys_spawn(uint64_t path_ptr, uint64_t argv_ptr, uint64_t envp, uint64_t cfg, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SPAWN, path_ptr, argv_ptr, envp, cfg, 0, 0);
 }
 
 int64_t sys_rename(uint64_t oldPath_ptr, uint64_t newPath_ptr, uint64_t, uint64_t, uint64_t, uint64_t) {
@@ -175,4 +180,24 @@ int64_t sys_stat(uint64_t path, uint64_t buf, uint64_t, uint64_t, uint64_t, uint
 
 int64_t sys_poll(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_POLL, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_pipe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_PIPE, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_getrid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETRID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_getuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETUID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_mount(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MOUNT, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_umount(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_UMOUNT, arg0, arg1, 0, 0, 0, 0);
 }

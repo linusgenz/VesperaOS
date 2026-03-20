@@ -82,6 +82,16 @@ namespace syscalls::internal {
     i64 sys_stat(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
     i64 sys_poll(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_pipe(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_getrid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_getuid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_mount(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64);
+
+    i64 sys_umount(u64 arg0, u64 arg1, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

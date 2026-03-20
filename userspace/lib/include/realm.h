@@ -26,6 +26,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <vespera/spawn.h>
 
 typedef uint64_t RealmID;  ///< type representing a realm identifier
 typedef uint64_t UnitID;   ///< type representing a unit (thread) identifier
@@ -41,7 +42,7 @@ typedef uint64_t UnitID;   ///< type representing a unit (thread) identifier
  * Can be @c NULL if no environment variables are needed.
  * @return Realm ID on success, negative error code on failure.
  */
-RealmID spawn_realm(const char* path_ptr, char* const argv[], char* const envp[]);
+RealmID spawn_realm(const char* path_ptr, char* const argv[], char* const envp[], spawn_config_t* cfg);
 
 /**
  * @brief Spawn a new unit (thread) inside an existing realm.

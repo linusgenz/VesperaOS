@@ -79,4 +79,6 @@
 #define EDEADLOCK     1002  // Would cause deadlock
 #define EWOULDBLOCK   EAGAIN // alias
 
+const char* strerror(int err);
+
 #endif //ERROR_CODES_H
