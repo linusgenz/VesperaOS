@@ -20,10 +20,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <errno.h>
+#include <mount.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-#include <errno.h>
 #include <sysstd.h>
 
 static void usage() {
@@ -38,7 +39,6 @@ static void usage() {
 }
 
 int main(int argc, char* argv[]) {
-
     if (argc < 2) {
         usage();
         return 1;
@@ -51,13 +51,18 @@ int main(int argc, char* argv[]) {
 
     const char* target = argv[1];
 
-    int64_t ret = sys_umount(
-        (uint64_t)target,
-        0, 0, 0, 0, 0
-    );
+    const int64_t ret = umount(target, 0);
 
     if (ret < 0) {
-        printf("umount failed: %s\n", strerror(ret));
+        if (ret == -EBUSY) {
+            printf("Mount failed: device still in use\n");
+        } else if (ret == -EINVAL) {
+            printf("Mount failed: invalid filesystem\n");
+        } else if (ret == -ENODEV) {
+            printf("Mount failed: no such blockdev\n");
+        } else {
+            printf("Mount failed (error=%ld)\n", ret);
+        }
         return 1;
     }
 

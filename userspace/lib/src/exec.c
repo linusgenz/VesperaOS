@@ -31,8 +31,10 @@ static char path_buf[256];
 const char *find_executable(const char *name) {
     if (!name || !*name) return NULL;
 
-    if (name[0] == '/') {
-        if (file_exists(name)) return name;
+    if (strchr(name, '/')) {
+        if (file_exists(name)) {
+            return name;
+        };
         return NULL;
     }
 
@@ -60,6 +62,15 @@ const char *find_executable(const char *name) {
 
         if (!end) break;
         start = end + 1;
+    }
+
+    if (strlen(name) + 3 <= sizeof(path_buf)) {
+        strcpy(path_buf, "./");
+        strcat(path_buf, name);
+
+        if (file_exists(path_buf)) {
+            return path_buf;
+        }
     }
 
     return NULL;

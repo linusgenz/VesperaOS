@@ -62,7 +62,12 @@ namespace syscalls::internal {
 
         if (!path || !*path || !out_buf) return -EINVAL;
 
-        VfsNode* node = VFS::open(path);
+        char norm[256];
+        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
+            return -EINVAL;
+        }
+
+        VfsNode* node = VFS::open(norm);
         if (!node) return -ENOENT;
 
         vespera_stat_t st{};

@@ -110,7 +110,6 @@ bool FilesystemDetector::unmount(MountPoint* mp) {
         return false;
     }
 
-    Log::info("[FS] Successfully unmounted %s", mp->path);
     return true;
 }
 
@@ -208,6 +207,7 @@ bool FilesystemDetector::mount_device(
     auto* mp = new MountPoint();
     strncpy(mp->path, suggested_path, sizeof(mp->path) - 1);
     mp->root = root;
+    mp->root->mount = mp;
     mp->device = new BlkDeviceDescriptor(desc);
     mp->is_virtual = false;
     mp->is_partition = is_partition;
@@ -337,7 +337,7 @@ void FilesystemDetector::scan_and_mount_all() {
     if (successful_mounts == 0) Log::warning("[FS] No filesystems could be mounted automatically");
 }
 
-i64 FilesystemDetector::mount_manual(BlockDevice* device, const char* target, const char* fstype) {
+i64 FilesystemDetector::mount_manual(BlockDevice* device, const char* target, const char* fstype, u64 flags) {
     if (!target) return -EINVAL;
 
     FilesystemInfo fs_info{};
@@ -368,10 +368,14 @@ i64 FilesystemDetector::mount_manual(BlockDevice* device, const char* target, co
     auto* mp = new MountPoint();
     strncpy(mp->path, target, sizeof(mp->path) - 1);
     mp->root = root;
+    mp->root->mount = mp;
     mp->device = desc;
     mp->is_virtual = (device == nullptr);
     mp->is_partition = false;
     mp->is_root_device = (strcmp(target, "/") == 0);
+    mp->flags = flags;
+
+    Log::debug("mounting, mount entry: %p, %s, flags: %x", root->mount, root->name, mp->flags);
 
     VFS::add_mount_point(mp);
 

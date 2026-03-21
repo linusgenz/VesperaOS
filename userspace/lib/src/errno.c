@@ -22,7 +22,7 @@
 
 #include <errno.h>
 
-const char* strerror(int err) {
+const char* strerror(const int err) {
     switch (-err) {
         case SUCCESS_CODE: return "Success";
         case EPERM:        return "Operation not permitted";

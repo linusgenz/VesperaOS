@@ -43,7 +43,7 @@ int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
     return fs.is_valid();
 }
 
-static VfsNode* ext4_find(const VfsNode* node, const char* name)
+static VfsNode* ext4_find(VfsNode* node, const char* name)
 {
     auto* dir = static_cast<Ext4Node*>(node->internal_data);
     if (!dir || !dir->is_dir) return nullptr;
@@ -177,6 +177,7 @@ VfsNode* wrap_ext4_root(FileSystem* fs)
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = "/";
     node->type = VfsNodeType::Directory;
+    node->mount = nullptr;
     node->internal_data = root;
     node->permanent = true;
     node->ops = &ext4_ops; // TODO

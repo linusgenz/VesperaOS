@@ -29,8 +29,12 @@ namespace syscalls::internal {
         const auto path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 
-        const int result = VFS::mkdir(path);
-        return result < 0 ? -result : 0;  // Negative result already uses errno codes
+        char norm[256];
+        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
+            return -EINVAL;
+        }
+
+        return VFS::mkdir(norm);
     }
 
 }  // namespace syscalls::internal

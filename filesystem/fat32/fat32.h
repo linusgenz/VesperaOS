@@ -7,6 +7,7 @@
 
 #include <klib/string.h>
 #include <vespera/devices/block.h>
+#include <vespera/mm/memory.h>
 #include <vespera/types.h>
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
@@ -96,12 +97,16 @@ namespace fat32 {
             if (!name || name[0] == '\0') {
                 long_name_[0] = '\0';
             } else {
-                strncpy(long_name_, name, sizeof(long_name_));
+                strncpy(long_name_, name, sizeof(long_name_)-1);
+                long_name_[sizeof(long_name_) - 1] = '\0';
             }
         }
 
         void set_short_name(const char* name) {
-            strncpy(short_name_, name, sizeof(short_name_));
+            memset(short_name_, 0, sizeof(short_name_));
+
+            strncpy(short_name_, name, sizeof(short_name_) - 1);
+
             format_short_name();
         }
 
@@ -185,7 +190,7 @@ namespace fat32 {
 
         u32 resolve_path_to_cluster(const char* path) const;
 
-        bool read_file(Fat32Node* node, void* buffer, usize len, usize& out_actual, usize offset = 0) const;
+        bool read_file(Fat32Node* node, void* buffer, usize len, usize& out_actual, usize offset = 0, bool update_atime = true) const;
 
         bool write_file(Fat32Node* node, const void* buffer, usize len, usize offset);
 

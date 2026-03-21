@@ -93,4 +93,15 @@ void* memmove(void* dest, const void* src, size_t len);
  */
 char* strtok(char* s, char delim);
 
+/**
+ * @brief Return the length of the maximum initial segment
+   of S which contains only characters in ACCEPT.
+ */
+size_t strspn(const char *s, const char *accept);
+
+/**
+ * @brief Find the first occurrence in S of any character in ACCEPT.
+ */
+char *strpbrk(const char *s, const char *accept);
+
 #endif //VESPERAOS_STRING_H

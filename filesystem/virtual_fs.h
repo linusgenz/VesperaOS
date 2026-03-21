@@ -101,6 +101,7 @@ protected:
 
         auto* dir = new VfsNode();
         dir->name = name;
+        dir->mount = nullptr;
         dir->type = VfsNodeType::Directory;
         dir->ops = &ops_;
         dir->permanent = true;
@@ -191,6 +192,7 @@ public:
         root_ = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
         root_->name = strdup(name);
         root_->type = VfsNodeType::Directory;
+        root_->mount = nullptr;
         root_->permanent = true;
         root_->ops = &ops_;
 
@@ -200,7 +202,7 @@ public:
         VFS::mount_virtual(root_, mount_point);
     }
 
-    static VfsNode* find(const VfsNode* dir, const char* name)
+    static VfsNode* find(VfsNode* dir, const char* name)
     {
         if (!dir || !name) return nullptr;
         auto* data = static_cast<DirData*>(dir->internal_data);
@@ -208,11 +210,15 @@ public:
 
         for (auto* sub : data->subdirs)
         {
-            if (strcmp(sub->name, name) == 0) return sub;
+            if (strcmp(sub->name, name) == 0) {
+                return sub;
+            }
         }
         for (auto* file_node : data->files)
         {
-            if (strcmp(file_node->name, name) == 0) return file_node;
+            if (strcmp(file_node->name, name) == 0) {
+                return file_node;
+            }
         }
         return nullptr;
     }

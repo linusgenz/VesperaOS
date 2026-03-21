@@ -23,6 +23,9 @@
 
 #include <klib/path.h>
 #include <klib/string.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
+
 #include "vfs.h"
 #include "vfs_node.h"
 
@@ -97,4 +100,27 @@ void VFS::ensure_path_exists(const char* path)
             VFS::mkdir(current);
         }
     }
+}
+
+bool VFS::resolve_to_absolute(const char* user_path, char* out, usize out_size) {
+    if (!user_path || user_path[0] == '\0') return false;
+
+    const Unit* cur = kernel::scheduling::get_current_unit();
+    if (!cur) return false;
+    const Realm* realm = RealmManager::get(cur->rid);
+    if (!realm) return false;
+
+    char abs[256];
+    if (user_path[0] != '/') {
+        if (strcmp(realm->cwd_path, "/") == 0)
+            snprintf(abs, sizeof(abs), "/%s", user_path);
+        else
+            snprintf(abs, sizeof(abs), "%s/%s", realm->cwd_path, user_path);
+    } else {
+        strncpy(abs, user_path, sizeof(abs) - 1);
+        abs[sizeof(abs) - 1] = '\0';
+    }
+
+    normalize_path(abs, out, out_size);
+    return true;
 }

@@ -65,7 +65,7 @@ class FilesystemDetector {
 
     static void print_detected_filesystems();
 
-    static i64 mount_manual(BlockDevice *device, const char *target, const char *fstype);
+    static i64 mount_manual(BlockDevice *device, const char *target, const char *fstype, u64 flags);
 
    private:
     static Vector<PendingMount> *pending_mounts_;

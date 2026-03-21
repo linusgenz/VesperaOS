@@ -31,6 +31,7 @@
 #include <vespera_errno.h>
 
 #include "fs_detection.h"
+#include "uapi/vespera/mount.h"
 #include "vfs_node.h"
 
 Vector<MountPoint*>* VFS::mount_points_ = nullptr;
@@ -57,6 +58,7 @@ VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path) {
     mp->path[sizeof(mp->path) - 1] = '\0';
     mp->is_virtual = true;
     mp->root = root;
+    mp->root->mount = mp;
 
     {
         SpinlockGuard g(mount_points_lock_);
@@ -68,24 +70,6 @@ VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path) {
 
 VfsNode* VFS::open(const char* path) {
     if (!path || !*path) return nullptr;
-
-    char abs_path[256];
-
-    // Relativer Pfad → prepend current_dir
-    if (path[0] != '/') {
-        const RealmId rid = kernel::scheduling::get_current_unit()->rid;
-        const Realm* realm = RealmManager::get(rid);
-        if (const char* cwd = realm->cwd_path; strcmp(cwd, "/") == 0)
-            snprintf(abs_path, sizeof(abs_path), "/%s", path);
-        else
-            snprintf(abs_path, sizeof(abs_path), "%s/%s", cwd, path);
-
-        path = abs_path;
-    }
-
-    char norm_path[256];
-    normalize_path(path, norm_path, sizeof(norm_path));
-    path = norm_path;
 
     // --- Mountpoint-Suche ---
     const MountPoint* best_match = nullptr;
@@ -111,6 +95,7 @@ VfsNode* VFS::open(const char* path) {
     if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
 
     VfsNode* current = best_match->root;
+    current->mount = best_match;
 
     char components[16][32];
     const usize count = split_path(sub_path, components, 16);
@@ -164,12 +149,31 @@ usize VFS::read(const VfsNode* node, const usize offset, const usize size, void*
     return node->ops->read(node, offset, size, buffer);
 }
 
+static bool is_read_only(const VfsNode* node) {
+    if (!node->mount) return false;
+    return (node->mount->flags & MS_RDONLY);
+}
+
+isize VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
+    if (!node || !node->ops || !node->ops->write) return 0;
+
+    if (is_read_only(node)) {
+        return -EROFS;
+    }
+
+    return node->ops->write(node, offset, size, buffer);
+}
+
 int VFS::create(const char* path) {
     if (!path) return -EINVAL;
 
     VfsNode* parent = nullptr;
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
+
+    if (is_read_only(parent)) {
+        return -EROFS;
+    }
 
     if (!parent->ops || !parent->ops->create) {
         close(parent);
@@ -191,6 +195,10 @@ int VFS::rename(const char* old_path, const char* new_path) {
     if (!resolve_parent(new_path, &new_parent, new_name)) {
         close(old_parent);
         return -ENOENT;
+    }
+
+    if (is_read_only(old_parent)) {
+        return -EROFS;
     }
 
     if (old_parent != new_parent) {
@@ -218,6 +226,10 @@ int VFS::mkdir(const char* path) {
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
+    if (is_read_only(parent)) {
+        return -EROFS;
+    }
+
     if (!parent->ops || !parent->ops->mkdir) {
         close(parent);
         return -ENOSYS;
@@ -242,6 +254,10 @@ int VFS::rmdir(const char* path) {
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
+    if (is_read_only(parent)) {
+        return -EROFS;
+    }
+
     if (!parent->ops || !parent->ops->rmdir) {
         close(parent);
         return -ENOSYS;
@@ -259,6 +275,10 @@ int VFS::unlink(const char* path) {
     char name[64];
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
+    if (is_read_only(parent)) {
+        return -EROFS;
+    }
+
     if (!parent->ops || !parent->ops->unlink) {
         close(parent);
         return -ENOSYS;
@@ -267,6 +287,14 @@ int VFS::unlink(const char* path) {
     const int result = parent->ops->unlink(parent, name);
     close(parent);
     return result;
+}
+
+int VFS::truncate(VfsNode* node, const usize new_size) {
+    if (is_read_only(node)) {
+        return -EROFS;
+    }
+
+    return node->ops->truncate(node, new_size);
 }
 
 bool VFS::probe_filesystem(BlockDevice* device) {

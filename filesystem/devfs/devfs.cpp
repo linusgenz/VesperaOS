@@ -102,6 +102,7 @@ int DevFs::register_device(KernelDevice* kd) {
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = kd->name;
     node->type = map_device_type(kd->type);
+    node->mount = nullptr;
 
     node->ops = &ops_;
     node->permanent = false;

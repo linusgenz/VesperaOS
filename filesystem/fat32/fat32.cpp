@@ -820,7 +820,7 @@ namespace fat32 {
     // File Operations
     // ============================================================================
 
-    bool FileSystem::read_file(Fat32Node* node, void* buffer, const usize len, usize& out_actual, const usize offset) const {
+    bool FileSystem::read_file(Fat32Node* node, void* buffer, const usize len, usize& out_actual, const usize offset, bool update_atime) const {
         if (!node || !buffer || len == 0) return false;
 
         if (offset >= node->file_size) {
@@ -877,7 +877,10 @@ namespace fat32 {
             free_cluster_buffer(cluster_buffer, cluster_bytes);
         }
 
-        update_access_time(node->dir_entry);
+        if (update_atime) {
+            update_access_time(node->dir_entry);
+            overwrite_directory_entry(node->parent_cluster, node->current_index, &node->dir_entry);
+        }
 
         kernel::memory::free(cluster_chain);
         out_actual = bytes_read;
@@ -1576,24 +1579,41 @@ namespace fat32 {
     // ============================================================================
 
     void FileEntry::format_short_name() {
+        formatted_short_name_[0] = '\0';
         char name[9] = {};
         char ext[4] = {};
 
         memcpy(name, short_name_, 8);
-        for (int i = 7; i >= 0 && name[i] == ' '; i--) name[i] = '\0';
+        name[8] = '\0';
+
+        for (int i = 7; i >= 0 && name[i] == ' '; i--)
+            name[i] = '\0';
 
         memcpy(ext, short_name_ + 8, 3);
-        for (int i = 2; i >= 0 && ext[i] == ' '; i--) ext[i] = '\0';
+        ext[3] = '\0';
 
-        const usize name_len = strlen(name);
+        for (int i = 2; i >= 0 && ext[i] == ' '; i--)
+            ext[i] = '\0';
+
+        size_t name_len = strlen(name);
+
+        if (name_len >= sizeof(formatted_short_name_) - 1)
+            name_len = sizeof(formatted_short_name_) - 1;
+
         memcpy(formatted_short_name_, name, name_len);
+        formatted_short_name_[name_len] = '\0';
 
         if (ext[0] != '\0') {
-            formatted_short_name_[name_len] = '.';
-            memcpy(formatted_short_name_ + name_len + 1, ext, strlen(ext));
-            formatted_short_name_[name_len + 1 + strlen(ext)] = '\0';
-        } else {
-            formatted_short_name_[name_len] = '\0';
+            if (name_len + 1 < sizeof(formatted_short_name_) - 1) {
+                formatted_short_name_[name_len] = '.';
+                size_t ext_len = strlen(ext);
+
+                if (name_len + 1 + ext_len >= sizeof(formatted_short_name_))
+                    ext_len = sizeof(formatted_short_name_) - name_len - 2;
+
+                memcpy(formatted_short_name_ + name_len + 1, ext, ext_len);
+                formatted_short_name_[name_len + 1 + ext_len] = '\0';
+            }
         }
     }
 

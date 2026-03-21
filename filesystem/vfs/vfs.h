@@ -41,6 +41,8 @@ struct MountPoint
     bool is_root_device = false;
     bool is_partition = false;
 
+    u64 flags = 0;
+
     MountPoint() = default;
     ~MountPoint() = default;
 
@@ -85,6 +87,7 @@ public:
     static VfsDir* opendir(const char* path);
 
     static usize read(const VfsNode* node, usize offset, usize size, void* buffer);
+    static isize write(VfsNode* node, usize offset, usize size, const void* buffer);
 
     static int readdir(const VfsDir* dir, dirent_t* out);
 
@@ -101,6 +104,7 @@ public:
     static int rmdir(const char* path);
 
     static int unlink(const char* path);
+    static int truncate(VfsNode* node, usize new_size);
 
     static bool probe_filesystem(BlockDevice* device);
 
@@ -127,8 +131,9 @@ public:
     static bool resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
     static dirent_type_t node_type_to_dirent_type(VfsNodeType type);
     static void ensure_path_exists(const char* path);
+    static bool resolve_to_absolute(const char* user_path, char* out, usize out_size);
 
-private:
+   private:
     static Spinlock mount_points_lock_;
     static Vector<MountPoint*>* mount_points_;
 };

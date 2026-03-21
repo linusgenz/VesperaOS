@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handels.h>
+#include <uapi/vespera/mount.h>
 #include <uapi/vespera/spawn.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
@@ -93,7 +94,25 @@ namespace syscalls::internal {
             }
         }
 
-        const ElfLoader::LoadResult elf = ElfLoader::load(user_path, 0x500000, new_realm);
+        char norm[256];
+        if (!VFS::resolve_to_absolute(user_path, norm, sizeof(norm))) {
+            return -EINVAL;
+        }
+
+        // set the cwd to the caller cwd
+        strncpy(new_realm->cwd_path, parent_realm->cwd_path, sizeof(new_realm->cwd_path));
+
+        VfsNode* exec_node = VFS::open(norm);
+        if (!exec_node) return -ENOENT;
+
+        if (exec_node->mount && (exec_node->mount->flags & MS_NOEXEC)) {
+            VFS::close(exec_node);
+            RealmManager::destroy(new_realm->id);
+            return -EACCES;
+        }
+        VFS::close(exec_node);
+
+        const ElfLoader::LoadResult elf = ElfLoader::load(norm, 0x500000, new_realm);
 
         if (!elf.success) {
             RealmManager::destroy(new_realm->id);

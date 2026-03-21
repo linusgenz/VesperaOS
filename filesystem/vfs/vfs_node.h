@@ -30,7 +30,8 @@
 #include "../../include/vespera/types.h"
 #include "uapi/vespera/stat.h"
 
-enum class VfsNodeType {
+struct MountPoint;
+enum class VfsNodeType : u8 {
     File,
     Directory,
     CharDevice,
@@ -45,7 +46,7 @@ struct VfsNodeOps {
 
     isize (*write)(VfsNode *node, usize offset, usize size, const void *buffer);
 
-    VfsNode *(*find)(const VfsNode *dir, const char *name);
+    VfsNode *(*find)(VfsNode *dir, const char *name);
 
     void (*close)(VfsNode *node);
 
@@ -77,9 +78,10 @@ struct VfsNodeOps {
 struct VfsNode {
     const char *name;
     usize size;  // size of the file is equal to fileSize field in internal_data
-    VfsNodeType type;
+    const MountPoint* mount = nullptr;
     void *internal_data;
     VfsNodeOps *ops;
+    VfsNodeType type;
     bool permanent;
 };
 

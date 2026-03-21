@@ -21,12 +21,24 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera_errno.h>
+
 #include "../../../filesystem/vfs/vfs.h"
 
 namespace syscalls::internal {
     i64 sys_rename(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto old_path = reinterpret_cast<const char*>(arg0);
         const auto new_path = reinterpret_cast<const char*>(arg1);
-        return VFS::rename(old_path, new_path);
+
+        char norm_old[256];
+        if (!VFS::resolve_to_absolute(old_path, norm_old, sizeof(norm_old))) {
+            return -EINVAL;
+        }
+        char norm_new[256];
+        if (!VFS::resolve_to_absolute(new_path, norm_new, sizeof(norm_new))) {
+            return -EINVAL;
+        }
+
+        return VFS::rename(norm_old, norm_new);
     }
 }  // namespace syscalls::internal

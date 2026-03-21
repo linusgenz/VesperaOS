@@ -23,6 +23,7 @@
 
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handels.h>
+#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -43,15 +44,20 @@ namespace syscalls::internal {
         Realm* realm = RealmManager::get(current_unit->rid);
         if (!realm) return -EINVAL;
 
-        VfsNode* node = VFS::open(user_path);
+        char norm[256];
+        if (!VFS::resolve_to_absolute(user_path, norm, sizeof(norm))) {
+            return -EINVAL;
+        }
+
+        VfsNode* node = VFS::open(norm);
 
         if (!node) {
             if (flags & O_CREAT) {
-                if (const int result = VFS::create(user_path); result != 0) {
+                if (const int result = VFS::create(norm); result != 0) {
                     return result;
                 }
 
-                node = VFS::open(user_path);
+                node = VFS::open(norm);
                 if (!node) {
                     return -ENOENT;
                 }
@@ -114,7 +120,7 @@ namespace syscalls::internal {
             case VfsNodeType::File:
                 if (flags & O_TRUNC) {
                     if (node->ops && node->ops->truncate) {
-                        if (const int r = node->ops->truncate(node, 0); r < 0) {
+                        if (const int r = VFS::truncate(node, 0); r < 0) {
                             VFS::close(node);
                             return r;
                         }

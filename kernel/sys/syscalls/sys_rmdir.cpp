@@ -31,11 +31,12 @@ namespace syscalls::internal {
         const auto user_path = reinterpret_cast<const char*>(arg0);
         if (!user_path) return -1;
 
-        char path_buf[256];
-        strncpy(path_buf, user_path, sizeof(path_buf) - 1);
-        path_buf[sizeof(path_buf) - 1] = '\0';
+        char norm[256];
+        if (!VFS::resolve_to_absolute(user_path, norm, sizeof(norm))) {
+            return -EINVAL;
+        }
 
-        if (const int status = VFS::rmdir(path_buf); status < 0) return -ENOTEMPTY;
+        if (const int status = VFS::rmdir(norm); status < 0) return -ENOTEMPTY;
 
         return SUCCESS_CODE;
     }

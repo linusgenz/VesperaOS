@@ -23,6 +23,7 @@
 
 #include "fat32_vfs_adapter.h"
 
+#include <uapi/vespera/mount.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
@@ -44,8 +45,10 @@ static isize fat32_read(const VfsNode* node, const usize offset, const usize siz
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
     if (!fnode) return -EBADH;
 
+    const bool update_atime = !node->mount || !(node->mount->flags & MS_NOATIME);
+
     usize actual = 0;
-    if (!fnode->fs->read_file(fnode, buffer, size, actual, offset)) return -EIO;
+    if (!fnode->fs->read_file(fnode, buffer, size, actual, offset, update_atime)) return -EIO;
 
     // Offset can be >= actual → EOF
     if (offset >= actual) return 0;
@@ -74,7 +77,7 @@ static isize fat32_write(VfsNode* node, const usize offset, const usize size, co
     return static_cast<isize>(size);
 }
 
-static VfsNode* fat32_find(const VfsNode* node, const char* name) {
+static VfsNode* fat32_find(VfsNode* node, const char* name) {
     auto* dir = static_cast<Fat32Node*>(node->internal_data);
     if (!dir || !dir->is_dir) return nullptr;
 
@@ -115,6 +118,7 @@ static VfsNode* fat32_find(const VfsNode* node, const char* name) {
             auto* child = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
             child->name = entries[i].get_name();
             child->type = child_data->is_dir ? VfsNodeType::Directory : VfsNodeType::File;
+            child->mount = node->mount;
             child->internal_data = child_data;
             child->ops = node->ops;
             child->size = entries[i].get_file_size();
@@ -295,6 +299,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
 
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = "/";
+    node->mount = nullptr;
     node->type = VfsNodeType::Directory;
     node->internal_data = root;
     node->permanent = true;

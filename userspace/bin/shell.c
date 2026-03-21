@@ -50,8 +50,8 @@ typedef struct command {
     char* input_file;
     char* output_file;
     bool append_output;
-    bool has_pipe;          // true if this command is followed by '|'
-    struct command* next;   // next command in pipeline (if has_pipe)
+    bool has_pipe;         // true if this command is followed by '|'
+    struct command* next;  // next command in pipeline (if has_pipe)
 } command_t;
 
 static char history[HISTORY_SIZE][MAX_INPUT];
@@ -485,23 +485,7 @@ void cmd_rmdir(command_t* cmd) {
     int64_t res = rmdir(path);
 
     if (res < 0) {
-        switch ((int)res) {
-            case -ENOENT:
-                printf("rmdir: failed to remove '%s': No such file or directory\n", path);
-                break;
-            case -ENOTDIR:
-                printf("rmdir: failed to remove '%s': Not a directory\n", path);
-                break;
-            case -ENOTEMPTY:
-                printf("rmdir: failed to remove '%s': Directory not empty\n", path);
-                break;
-            case -EACCES:
-                printf("rmdir: failed to remove '%s': Permission denied\n", path);
-                break;
-            default:
-                printf("rmdir: failed to remove '%s' (error %ld)\n", path, res);
-                break;
-        }
+        printf("rmdir: failed to remove '%s': %s\n", path, strerror(res));
         return;
     }
 
@@ -518,21 +502,10 @@ void cmd_touch(command_t* cmd) {
     FILE_HANDLE fd = open(path, O_CREAT | O_RDWR);
 
     if (fd < 0) {
-        switch ((int)fd) {
-            case -EACCES:
-                printf("touch: cannot create file '%s': Permission denied\n", path);
-                break;
-            case -EROFS:
-                printf("touch: cannot create file '%s': Read-only filesystem\n", path);
-                break;
-            default:
-                printf("touch: cannot create file '%s' (error %ld)\n", path, fd);
-                break;
-        }
+        printf("touch: cannot create file '%s': %s\n", path, strerror(fd));
         return;
     }
 
-    // Datei existiert -> eventuell Zeitstempel aktualisieren (optional)
     close(fd);
     printf("File '%s' created or updated successfully.\n", path);
 }
@@ -575,11 +548,13 @@ void cmd_rm(command_t* cmd) {
         return;
     }
 
-    if (unlink(cmd->args[1]) == 0) {
-        printf("Removed '%s'\n", cmd->args[1]);
-    } else {
-        printf("rm: cannot remove '%s'\n", cmd->args[1]);
+    int res = unlink(cmd->args[1]);
+
+    if (res < 0) {
+        printf("rm: failed to remove '%s': %s\n", cmd->args[1], strerror(res));
+        return;
     }
+    printf("Removed '%s'\n", cmd->args[1]);
 }
 
 // Execute a pipeline of commands
@@ -698,7 +673,7 @@ static int execute_pipeline(command_t* head) {
             if (prog) {
                 int64_t rid = spawn_realm(prog, current->args, NULL, NULL);
                 if (rid < 0) {
-                    printf("spawn failed: %d\n", (int32_t)rid);
+                    printf("spawn failed: %s\n", strerror(rid));
                 } else {
                     int status = 0;
                     wait_realm(rid, &status);
@@ -827,7 +802,11 @@ int execute_command(command_t* cmd) {
             char** argv = cmd->args;
             rid = spawn_realm(prog, argv, NULL, NULL);
             if (rid < 0) {
-                printf("spawn failed: %d\n", (int32_t)rid);
+                if (rid == -ENOEXEC) {
+                    printf("%s: Not a valid executable\n", prog);
+                } else {
+                    printf("spawn failed: %s\n", strerror(rid));
+                }
             } else {
                 int status = 0;
                 wait_realm(rid, &status);
@@ -909,7 +888,8 @@ void shell_main(int argc, char** argv) {
         "    ==      ===    ===   ==      ===   ==        ====    ====     ======  \n\n\033[0m"
     );
     printf(
-        "    running on x86_64  \ue0b1 \033[38;2;180;180;180m type \033[38;2;66;245;81mhelp\033[38;2;180;180;180m for commands\033[0m\n\n"
+        "    running on x86_64  \ue0b1 \033[38;2;180;180;180m type \033[38;2;66;245;81mhelp\033[38;2;180;180;180m for "
+        "commands\033[0m\n\n"
     );
 
     /* image_t img;

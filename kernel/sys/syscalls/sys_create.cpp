@@ -21,6 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/log.h>
+
 #include "../../../filesystem/vfs/vfs.h"
 #include "vespera_errno.h"
 
@@ -29,12 +31,16 @@ namespace syscalls::internal {
         const auto path = reinterpret_cast<const char*>(arg0);
         if (!path) return -EINVAL;
 
+        char norm[256];
+        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
+            return -EINVAL;
+        }
+        Log::debug("ABS PATH: %s %s", norm, path);
         if (VFS::open(path)) {
             return -EEXIST;
         }
 
-        const int result = VFS::create(path);
-        return result < 0 ? -result : 0;
+        return VFS::create(norm);
     }
 
 }  // namespace syscalls::internal

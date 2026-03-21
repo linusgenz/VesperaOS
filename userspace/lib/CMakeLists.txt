@@ -41,6 +41,7 @@ set(LIB_SOURCES
         src/urandom.c
         src/ctype.c
         src/readline.c
+        src/mount.c
 
         src/sys/ioctl.c
         src/sys/mman.c

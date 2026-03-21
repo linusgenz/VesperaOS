@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <uapi/vespera/mount.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -53,8 +54,16 @@ namespace syscalls::internal {
         const auto fstype = reinterpret_cast<const char*>(arg2);
         const u64 flags = arg3;
 
-        if (target[0] != '/') {
+        if (!target || target[0] != '/') {
             return -EINVAL;
+        }
+
+        if (flags & MS_REMOUNT) {
+            MountPoint* mp = VFS::find_mount_point(target);
+            if (!mp) return -EINVAL;
+
+            mp->flags = flags & ~MS_REMOUNT;
+            return 0;
         }
 
         BlockDevice* device = nullptr;
@@ -70,6 +79,6 @@ namespace syscalls::internal {
             }
         }
 
-        return FilesystemDetector::mount_manual(device, target, fstype ? fstype : nullptr);
+        return FilesystemDetector::mount_manual(device, target, fstype ? fstype : nullptr, flags);
     }
 }  // namespace syscalls::internal

@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <errno.h>
 #include <fflags.h>
 #include <poll.h>
 #include <stdbool.h>
@@ -946,7 +947,9 @@ static void file_save(const char* path) {
 
     int64_t fd = open(path, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
-        set_msg(true, "Save failed: cannot open file for writing");
+        char buf[100];
+        snprintf(buf, sizeof(buf),"Save failed: %s (%d)",strerror(fd), fd);
+        set_msg(true, buf);
         return;
     }
 

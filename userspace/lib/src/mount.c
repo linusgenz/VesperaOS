@@ -1,10 +1,9 @@
-// sys_unlink.cpp
-//
+// mount.c
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 21.03.26.
 //
 // This file is part of VesperaOS.
 //
@@ -21,20 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../../filesystem/vfs/vfs.h"
-#include "vespera_errno.h"
+#include <stdint.h>
+#include <sysstd.h>
 
-namespace syscalls::internal {
-    i64 sys_unlink(u64 path_ptr, u64, u64, u64, u64, u64) {
-        const auto path = reinterpret_cast<const char*>(path_ptr);
-        if (!path) return -EINVAL;
+int64_t mount(const char* source, const char* target, const char* fstype, int64_t flags) {
+    return sys_mount((uint64_t)source, (uint64_t)target, (uint64_t)fstype, flags, 0, 0);
+}
 
-        char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
-            return -EINVAL;
-        }
-
-        return VFS::unlink(norm);
-    }
-
-}  // namespace syscalls::internal
+int64_t umount(const char* target, int64_t flags) {
+    return sys_umount((uint64_t)target, (uint64_t)flags, 0, 0, 0, 0);
+}
