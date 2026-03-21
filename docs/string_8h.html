@@ -142,6 +142,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a493c478d061f31856b22410b0c1b7b8d" id="r_a493c478d061f31856b22410b0c1b7b8d"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a493c478d061f31856b22410b0c1b7b8d">strtok</a> (char *s, char delim)</td></tr>
 <tr class="memdesc:a493c478d061f31856b22410b0c1b7b8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split a string into tokens using a delimiter.  <br /></td></tr>
 <tr class="separator:a493c478d061f31856b22410b0c1b7b8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a900a0edfa51f601d479244f7451cedd1" id="r_a900a0edfa51f601d479244f7451cedd1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a900a0edfa51f601d479244f7451cedd1">strspn</a> (const char *s, const char *accept)</td></tr>
+<tr class="memdesc:a900a0edfa51f601d479244f7451cedd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the length of the maximum initial segment of S which contains only characters in ACCEPT.  <br /></td></tr>
+<tr class="separator:a900a0edfa51f601d479244f7451cedd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b03665d9d996518692af71c3dceb971" id="r_a5b03665d9d996518692af71c3dceb971"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a5b03665d9d996518692af71c3dceb971">strpbrk</a> (const char *s, const char *accept)</td></tr>
+<tr class="memdesc:a5b03665d9d996518692af71c3dceb971"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the first occurrence in S of any character in ACCEPT.  <br /></td></tr>
+<tr class="separator:a5b03665d9d996518692af71c3dceb971"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a9e6df54ee04e18a3772335580e2ed872" name="a9e6df54ee04e18a3772335580e2ed872"></a>
@@ -533,6 +539,66 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Copy no more than N characters of SRC to DEST. </p>
+
+</div>
+</div>
+<a id="a5b03665d9d996518692af71c3dceb971" name="a5b03665d9d996518692af71c3dceb971"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b03665d9d996518692af71c3dceb971">&#9670;&#160;</a></span>strpbrk()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * strpbrk </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>accept</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Find the first occurrence in S of any character in ACCEPT. </p>
+
+</div>
+</div>
+<a id="a900a0edfa51f601d479244f7451cedd1" name="a900a0edfa51f601d479244f7451cedd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a900a0edfa51f601d479244f7451cedd1">&#9670;&#160;</a></span>strspn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strspn </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>accept</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return the length of the maximum initial segment of S which contains only characters in ACCEPT. </p>
 
 </div>
 </div>

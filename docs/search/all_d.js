@@ -27,5 +27,11 @@ var searchData=
   ['mode_24',['mode',['../structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336',1,'tty_mode_t']]],
   ['model_25',['model',['../structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44',1,'devinfo_t']]],
   ['month_26',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]],
-  ['munmap_27',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
+  ['mount_27',['mount',['../userspace_2lib_2include_2mount_8h.html#a5768534c4fe10ec7968b7cbc3ea57121',1,'mount.h']]],
+  ['mount_2eh_28',['mount.h',['../include_2uapi_2vespera_2mount_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2mount_8h.html',1,'(Global Namespace)']]],
+  ['ms_5fnoatime_29',['MS_NOATIME',['../include_2uapi_2vespera_2mount_8h.html#ac880b4fe92ddcb8e13b3a7f5be1874d9',1,'mount.h']]],
+  ['ms_5fnoexec_30',['MS_NOEXEC',['../include_2uapi_2vespera_2mount_8h.html#ac1afc3dd404e32a8243b20c5e2098b46',1,'mount.h']]],
+  ['ms_5frdonly_31',['MS_RDONLY',['../include_2uapi_2vespera_2mount_8h.html#a8e7a9d539a0b19e807c0886d6e068ebe',1,'mount.h']]],
+  ['ms_5fremount_32',['MS_REMOUNT',['../include_2uapi_2vespera_2mount_8h.html#a6f2370947d60e3a39113f30c318c81da',1,'mount.h']]],
+  ['munmap_33',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

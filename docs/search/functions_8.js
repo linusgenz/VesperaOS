@@ -7,5 +7,6 @@ var searchData=
   ['memset_4',['memset',['../string_8h.html#a22dc85290d58fa0ca8bf414728ec61c2',1,'string.h']]],
   ['mkdir_5',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
   ['mmap_6',['mmap',['../mman_8h.html#a943cf73b816880433935f7055d4fe72f',1,'mman.h']]],
-  ['munmap_7',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
+  ['mount_7',['mount',['../userspace_2lib_2include_2mount_8h.html#a5768534c4fe10ec7968b7cbc3ea57121',1,'mount.h']]],
+  ['munmap_8',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];
