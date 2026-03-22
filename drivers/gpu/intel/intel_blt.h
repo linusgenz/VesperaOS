@@ -24,7 +24,8 @@
 #ifndef VESPERAOS_INTEL_BLT_H
 #define VESPERAOS_INTEL_BLT_H
 
-#include <vespera/graphics.h>
+
+#include <vespera/graphics/psf.h>
 #include <vespera/mm/addr.h>
 
 #include "../../../kernel/graphics/IRenderDriver.h"
@@ -221,12 +222,12 @@ namespace blt {
         GpuTextBuffer text_buffer_;
         GpuFramebuffer fb_;
 
-        void init_text_buffer(const font_t* font, u32 screen_width);
+        void init_text_buffer(const PsfFont* font, u32 screen_width);
         template <class T>
         void write_command_struct(const T& cmd);
 
         void alloc_framebuffer(u32 width, u32 height, TileMode tile_mode);
-        void build_text_scanline(const char* text, usize length, font_t* font, u8* buffer, usize buffer_stride);
+        void build_text_scanline(const char* text, usize length, PsfFont* font, u8* buffer, usize buffer_stride);
         bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
         void xy_src_copy_blt(
             gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,

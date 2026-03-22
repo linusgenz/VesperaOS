@@ -1,9 +1,9 @@
-// sys_umount.cpp
+// colors.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 20.03.26.
+// Created by Linus Genz on 22.03.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,32 +19,21 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_COLORS_H
+#define VESPERAOS_COLORS_H
 
-#include <vespera_errno.h>
+#include <vespera/types.h>
 
-#include "../../../filesystem/vfs/fs_detection.h"
-#include <vespera/filesystem/vfs.h>
+constexpr u32 BLACK = 0x00000000;
+constexpr u32 WHITE = 0x00FFFFFF;
+constexpr u32 RED = 0x00FF0000;
+constexpr u32 GREEN = 0x0000FF00;
+constexpr u32 BLUE = 0x000000FF;
+constexpr u32 YELLOW = 0x00FFFF00;
+constexpr u32 CYAN = 0x0000FFFF;
+constexpr u32 MAGENTA = 0x00FF00FF;
+constexpr u32 ORANGE = 0x0000A5FF;
+constexpr u32 GRAY = 0x00808080;
+constexpr u32 BG_COLOUR = 0x00061220;
 
-namespace syscalls::internal {
-    i64 sys_umount(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const auto target = reinterpret_cast<const char*>(arg0);
-
-        if (!target) return -EINVAL;
-
-        if (target[0] != '/') {
-            return -EINVAL;
-        }
-
-        MountPoint* mp = VFS::find_mount_point(target);
-        if (!mp) return -ENOENT;
-        if (mp->is_root_device || mp->is_virtual) return -EACCES;
-
-        if (!FilesystemDetector::unmount(mp))
-            return -EBUSY;
-
-        VFS::remove_mount_point(mp);
-        delete mp;
-
-        return 0;
-    }
-}
+#endif  // VESPERAOS_COLORS_H

@@ -23,7 +23,7 @@
 
 #include "log_writer.h"
 
-#include "../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 FileLogWriter::FileLogWriter(const char *file_path)
     : file_handle_(nullptr)

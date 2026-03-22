@@ -26,25 +26,12 @@
 
 #include <vespera/devices/device_manager.h>
 
-#include "../virtual_fs.h"
+#include "../../../filesystem/virtual_fs.h"
 
 #define DEVFS_NAME_MAX 64
 
 struct CharFile;
 class CharDevice;
-
-typedef int (*dev_open_t)(CharFile** out_cf);
-
-typedef int (*dev_release_t)(CharFile* cf);
-
-typedef usize (*dev_read_t)(CharFile* cf, void* buf, usize count);  // non-positional
-typedef usize (*dev_write_t)(CharFile* cf, const void* buf, usize count);
-
-typedef int (*dev_ioctl_t)(CharFile* cf, unsigned long req, void* arg);
-
-typedef int (*dev_poll_t)(CharFile* cf);  // returns POLLIN/POLLOUT mask-ish
-
-// handle for device drivers
 
 struct DevfsEntry : VirtualFsEntry<KernelDevice> {
     CharFile* cf;

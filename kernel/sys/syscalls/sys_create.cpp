@@ -23,7 +23,7 @@
 
 #include <vespera/log.h>
 
-#include "../../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 #include "vespera_errno.h"
 
 namespace syscalls::internal {

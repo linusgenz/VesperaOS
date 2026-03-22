@@ -24,7 +24,7 @@
 #ifndef MOUSE_H
 #define MOUSE_H
 
-#include <vespera/graphics.h>
+#include <vespera/types.h>
 
 namespace input::mouse {
 #define PS2_LEFT_BUTTON 0b00000001
@@ -51,7 +51,7 @@ namespace input::mouse {
     void handle_byte(u8 data);
     bool read_packet(MousePacket& out);
 
-    point_t get_position();
+    //point_t get_position();
 
     void process_mouse_packet();
 }

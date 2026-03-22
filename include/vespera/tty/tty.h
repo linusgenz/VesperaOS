@@ -25,7 +25,7 @@
 #define VESPERAOS_TTY_H
 
 #include <klib/decoding.h>
-#include <vespera/graphics.h>
+
 #include <vespera/input/input_event.h>
 
 class TtyDevice;
@@ -61,8 +61,8 @@ namespace kernel::tty {
         usize saved_cursor_x = 0;
         usize saved_cursor_y = 0;
 
-        colour_t fg = WHITE;
-        colour_t bg = BLACK;
+        u64 fg = 0x00FFFFFF;
+        u64 bg = 0x00000000;
 
         utf8_state_t utf8;
 

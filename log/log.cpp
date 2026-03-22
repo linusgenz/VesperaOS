@@ -2,9 +2,10 @@
 // Created by Linus on 10.07.25.
 //
 
-#include <vespera/terminal.h>
 #include <klib/string.h>
+#include <vespera/graphics/colors.h>
 #include <vespera/log.h>
+#include <vespera/terminal.h>
 
 Terminal* Log::t_ = nullptr;
 Spinlock Log::log_spin_ = {};

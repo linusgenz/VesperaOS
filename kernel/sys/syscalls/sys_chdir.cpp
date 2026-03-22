@@ -25,7 +25,7 @@
 #include <vespera/scheduling.h>
 #include <vespera/types.h>
 
-#include "../../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 namespace syscalls::internal {
     i64 sys_chdir(u64 arg0, u64, u64, u64, u64, u64) {

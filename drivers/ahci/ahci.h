@@ -6,7 +6,7 @@
 #include <vespera/sync/mutex.h>
 
 #include "../../arch/x86_64/interrupts/idt.h"
-#include "../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "../pci/pci.h"
 #include "ata.h"
 #include "uapi/vespera/dev/ioctl_smart.h"

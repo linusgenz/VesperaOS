@@ -29,9 +29,9 @@
 #include <vespera/system/system_manager.h>
 #include <vespera_errno.h>
 
+#include <vespera/filesystem/vfs.h>
 #include "../kernel/devices/partition_device.h"
 #include "fs_registry.h"
-#include "vfs.h"
 
 usize FilesystemDetector::driver_count_ = 0;
 usize FilesystemDetector::device_count_ = 0;

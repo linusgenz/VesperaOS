@@ -26,11 +26,12 @@
 
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/graphics/colors.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include "../../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "blt_commands.h"
 
 namespace blt {
@@ -113,7 +114,7 @@ namespace blt {
         }
     }
 
-    void IntelBlt::init_text_buffer(const font_t* font, const u32 screen_width) {
+    void IntelBlt::init_text_buffer(const PsfFont* font, const u32 screen_width) {
         if (!font) {
             Log::error("Invalid font for text buffer initialization");
             return;
@@ -706,7 +707,7 @@ namespace blt {
         write_command_struct(cmd);
     }
 
-    void IntelBlt::build_text_scanline(const char* text, usize length, font_t* font, u8* buffer, usize buffer_stride) {
+    void IntelBlt::build_text_scanline(const char* text, usize length, PsfFont* font, u8* buffer, usize buffer_stride) {
         const usize glyph_width = font->width;
         const usize glyph_height = font->height;
         const usize glyph_stride = (glyph_width + 7) / 8;

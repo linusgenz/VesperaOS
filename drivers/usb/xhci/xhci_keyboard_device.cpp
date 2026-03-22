@@ -26,7 +26,7 @@
 
 #include <vespera/devices/device_manager.h>
 
-#include "../../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "xhci.h"
 
 UsbKeyboardDevice::UsbKeyboardDevice(const char* name, KernelDevice* parent, UsbDeviceInfo* info)

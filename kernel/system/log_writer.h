@@ -26,7 +26,7 @@
 
 #include <vespera/system/system_manager.h>
 
-#include "../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 class FileLogWriter final : public kernel::ILogWriter {
    public:

@@ -26,8 +26,8 @@
 #include <vespera/devices/device_manager.h>
 #include <vespera/devices/driver_lifecycle.h>
 
-#include "../../filesystem/devfs/devfs.h"
 #include "../../filesystem/partition/partition.h"
+#include <vespera/filesystem/devfs.h>
 #include "partition_device.h"
 
 Vector<BlockDevice*>* DeviceManager::devices_;

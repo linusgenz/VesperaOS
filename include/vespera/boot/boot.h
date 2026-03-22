@@ -25,12 +25,13 @@
 #define VESPERAOS_BOOT_H
 
 #include <acpi/acpi.h>
-#include <vespera/graphics.h>
+#include <vespera/graphics/psf.h>
+#include <vespera/graphics/fb.h>
 #include <vespera/mm/efi_memory.h>
 
 struct BootInfo {
-    framebuffer_t*           framebuffer;
-    font_t*                  font;
+    Framebuffer*           framebuffer;
+    PsfFont*                  font;
     EFI_MEMORY_DESCRIPTOR* m_map;
     u64               m_map_size;
     u64               m_map_desc_size;

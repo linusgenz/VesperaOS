@@ -26,10 +26,10 @@
 
 #include <klib/string.h>
 #include <klib/vector.h>
+#include <uapi/vespera/dirent.h>
 #include <vespera/sync/spinlock.h>
 
-#include <uapi/vespera/dirent.h>
-#include "vfs/vfs.h"
+#include "../include/vespera/filesystem/vfs.h"
 
 struct DirData
 {

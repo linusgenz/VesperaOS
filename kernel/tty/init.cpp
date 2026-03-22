@@ -23,7 +23,7 @@
 
 #include "init.h"
 
-#include "../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "tty_device.h"
 
 namespace kernel::tty {

@@ -27,7 +27,7 @@
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
 
-#include "../../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 #include "../../../include/vespera/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
 

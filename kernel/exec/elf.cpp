@@ -26,7 +26,7 @@
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm.h>
 
-#include "../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 #if ENABLE_ELF_LOGGING
 #include <log.h>

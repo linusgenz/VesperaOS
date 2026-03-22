@@ -20,7 +20,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#include "vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 #include <klib/path.h>
 #include <klib/string.h>

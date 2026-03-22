@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/graphics/colors.h>
 #include <vespera/input/keycode.h>
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
@@ -155,57 +156,57 @@ namespace kernel::tty {
     }
 
     // reference: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-    static colour_t ansi_to_colour(const int code, bool is_bg, const bool bright = false) {
+    static u64 ansi_to_colour(const int code, bool is_bg, const bool bright = false) {
         switch (code) {
             case 30:
             case 40:
-                return bright ? static_cast<colour_t>(0x00808080) : BLACK;  // gray for bright black
+                return bright ? 0x00808080 : BLACK;  // gray for bright black
             case 31:
             case 41:
-                return bright ? static_cast<colour_t>(0x00FF6060) : RED;
+                return bright ? 0x00FF6060 : RED;
             case 32:
             case 42:
-                return bright ? static_cast<colour_t>(0x0060FF60) : GREEN;
+                return bright ? 0x0060FF60 : GREEN;
             case 33:
             case 43:
-                return bright ? static_cast<colour_t>(0x00FFFF60) : YELLOW;
+                return bright ? 0x00FFFF60 : YELLOW;
             case 34:
             case 44:
-                return bright ? static_cast<colour_t>(0x0060A0FF) : BLUE;
+                return bright ? 0x0060A0FF : BLUE;
             case 35:
             case 45:
-                return bright ? static_cast<colour_t>(0x00FF60FF) : MAGENTA;
+                return bright ? 0x00FF60FF : MAGENTA;
             case 36:
             case 46:
-                return bright ? static_cast<colour_t>(0x0060FFFF) : CYAN;
+                return bright ? 0x0060FFFF : CYAN;
             case 37:
             case 47:
-                return bright ? static_cast<colour_t>(0x00FFFFFF) : WHITE;
+                return bright ? 0x00FFFFFF : WHITE;
 
             case 90:
             case 100:
-                return static_cast<colour_t>(0x00808080);  // Bright Black (→ Gray)
+                return 0x00808080;  // Bright Black (→ Gray)
             case 91:
             case 101:
-                return static_cast<colour_t>(0x00FF6060);  // Bright Red
+                return 0x00FF6060;  // Bright Red
             case 92:
             case 102:
-                return static_cast<colour_t>(0x0060FF60);  // Bright Green
+                return 0x0060FF60;  // Bright Green
             case 93:
             case 103:
-                return static_cast<colour_t>(0x00FFFF60);  // Bright Yellow
+                return 0x00FFFF60;  // Bright Yellow
             case 94:
             case 104:
-                return static_cast<colour_t>(0x0060A0FF);  // Bright Blue
+                return 0x0060A0FF;  // Bright Blue
             case 95:
             case 105:
-                return static_cast<colour_t>(0x00FF60FF);  // Bright Magenta
+                return 0x00FF60FF;  // Bright Magenta
             case 96:
             case 106:
-                return static_cast<colour_t>(0x0060FFFF);  // Bright Cyan
+                return 0x0060FFFF;  // Bright Cyan
             case 97:
             case 107:
-                return static_cast<colour_t>(0x00FFFFFF);  // Bright White
+                return 0x00FFFFFF;  // Bright White
 
             default:
                 return WHITE;  // fallback
@@ -240,7 +241,7 @@ namespace kernel::tty {
                         const int r = tty->esc_params[i + 1];
                         const int g = tty->esc_params[i + 2];
                         const int b = tty->esc_params[i + 3];
-                        tty->fg = static_cast<colour_t>((r << 16) | (g << 8) | b);
+                        tty->fg = ((r << 16) | (g << 8) | b);
                         i += 4;
                     }
                     break;
@@ -254,7 +255,7 @@ namespace kernel::tty {
                         const int r = tty->esc_params[i + 1];
                         const int g = tty->esc_params[i + 2];
                         const int b = tty->esc_params[i + 3];
-                        tty->bg = static_cast<colour_t>((r << 16) | (g << 8) | b);
+                        tty->bg = ((r << 16) | (g << 8) | b);
                         i += 4;
                     }
                     break;

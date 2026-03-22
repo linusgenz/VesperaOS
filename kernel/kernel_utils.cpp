@@ -14,6 +14,7 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
+#include <vespera/types.h>
 
 #include "../arch/x86_64/gdt/gdt.h"
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
@@ -21,10 +22,9 @@
 #include "../drivers/pci/msi.h"
 #include "../drivers/ps2/ps2_init.h"
 #include "../drivers/usb/usb_manager.h"
-#include "../filesystem/devfs/devfs.h"
 #include "../filesystem/realmfs/realmfs.h"
-#include "../filesystem/vfs/vfs.h"
-#include <vespera/types.h>
+#include <vespera/filesystem/devfs.h>
+#include "../include/vespera/filesystem/vfs.h"
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
 #include "cpu/cpu_manager.h"
@@ -38,7 +38,7 @@
 #include "units/unit_manager.h"
 #include "vespera/interrupts.h"
 
-framebuffer_t* target_framebuffer = nullptr;
+Framebuffer* target_framebuffer = nullptr;
 
 static void initialize_early_boot(const BootInfo* boot_info) {
 #if DEBUG_SPINLOCK

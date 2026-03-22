@@ -26,8 +26,8 @@
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
-#include "../../../filesystem/vfs/vfs.h"
 #include "../../../filesystem/vfs/vfs_node.h"
+#include <vespera/filesystem/vfs.h>
 
 namespace syscalls::internal {
 

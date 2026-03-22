@@ -2,11 +2,9 @@
 #define XHCI_H
 
 #include <klib/vector.h>
-#include <vespera/devices/char_device.h>
 #include <vespera/sync/atomic.h>
 
 #include "../../../arch/x86_64/interrupts/idt.h"
-#include "../../../filesystem/devfs/devfs.h"
 #include "../../pci/pci.h"
 #include "vespera/devices/device_info.h"
 #include "vespera/devices/device_manager.h"

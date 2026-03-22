@@ -24,10 +24,11 @@
 #ifndef VFS_H
 #define VFS_H
 
-#include "fs_detection.h"
-#include "vespera/sync/spinlock.h"
-#include "vfs_node.h"
 #include <klib/vector.h>
+
+#include "../../../filesystem/vfs/fs_detection.h"
+#include "../../../filesystem/vfs/vfs_node.h"
+#include "vespera/sync/spinlock.h"
 
 struct FilesystemInfo;
 

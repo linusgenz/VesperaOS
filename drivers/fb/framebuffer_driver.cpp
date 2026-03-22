@@ -4,7 +4,7 @@
 #include <vespera/cpu/simd_mem.h>
 #include <vespera/terminal.h>
 
-#include "../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "vespera/devices/device_manager.h"
 
 static void* scalar_memcpy(void* dst, const void* src, usize len) {
@@ -35,7 +35,7 @@ static void* scalar_memmove(void* dst, const void* src, usize len) {
     return dst;
 }
 
-FramebufferDriver::FramebufferDriver(framebuffer_t* fb, font_t* font)
+FramebufferDriver::FramebufferDriver(Framebuffer* fb, PsfFont* font)
     : fb_(fb)
     , font_(font) {
     char name[10];

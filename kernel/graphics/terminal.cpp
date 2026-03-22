@@ -22,7 +22,7 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <vespera/graphics.h>
+
 #include <vespera/terminal.h>
 
 #include "IRenderDriver.h"
@@ -30,7 +30,7 @@
 #include "font/psf_glyph_provider.h"
 #include "scrollback_buffer.h"
 
-font_t* system_font = nullptr;
+PsfFont* system_font = nullptr;
 
 static u32 blend(const u32 fg, const u32 bg, const u8 alpha) {
     if (alpha == 0) return bg;

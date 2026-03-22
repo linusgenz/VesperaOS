@@ -25,7 +25,7 @@
 
 #include <vespera/log.h>
 
-#include "../../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "vespera/devices/device_manager.h"
 #include "vespera/scheduling.h"
 #include "xhci.h"

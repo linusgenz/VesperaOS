@@ -9,7 +9,7 @@
 #include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
-#include "../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "vespera/scheduling.h"
 #include "vespera_errno.h"
 

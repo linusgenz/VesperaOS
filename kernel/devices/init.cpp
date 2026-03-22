@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "log_device.h"
 #include "misc/cpuinfo.h"
 #include "misc/full.h"

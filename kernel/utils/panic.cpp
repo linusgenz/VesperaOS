@@ -63,13 +63,13 @@ static const u8 SIMPLE_FONT[27][16] = {
     {0x7E, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x40, 0x7E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 };
 
-void put_pixel(const framebuffer_t* fb, const u32 x, const u32 y, const u32 color) {
+void put_pixel(const Framebuffer* fb, const u32 x, const u32 y, const u32 color) {
     if (x >= fb->width || y >= fb->height) return;
     auto* pixel_ptr = static_cast<u32*>(fb->base_address);
     pixel_ptr[y * fb->pixels_per_scanline + x] = color;
 }
 
-void put_char(const framebuffer_t* fb, const unsigned char c, const u32 x, const u32 y, const u32 color) {
+void put_char(const Framebuffer* fb, const unsigned char c, const u32 x, const u32 y, const u32 color) {
     if (c == ' ') {
         // space
         return;
@@ -87,7 +87,7 @@ void put_char(const framebuffer_t* fb, const unsigned char c, const u32 x, const
     }
 }
 
-void put_string(const framebuffer_t* fb, const char* str, const u32 x, const u32 y, const u32 color) {
+void put_string(const Framebuffer* fb, const char* str, const u32 x, const u32 y, const u32 color) {
     u32 cursor_x = x;
     u32 cursor_y = y;
     while (*str) {
@@ -128,8 +128,8 @@ void put_string(const framebuffer_t* fb, const char* str, const u32 x, const u32
     u32 y1 = fb->height / 2 - 16;
     u32 y2 = y1 + 32;
 
-    put_string(fb, "KERNEL PANIC", x1, y1, WHITE);
-    put_string(fb, panic_msg, x2, y2, WHITE);
+    put_string(fb, "KERNEL PANIC", x1, y1, 0x00FFFFFF);
+    put_string(fb, panic_msg, x2, y2, 0x00FFFFFF);
 
     while (true) asm volatile("cli; hlt");
 }

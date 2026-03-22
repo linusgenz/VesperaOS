@@ -21,9 +21,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../../filesystem/vfs/vfs.h"
 #include <klib/string.h>
 #include <vespera/log.h>
+
+#include <vespera/filesystem/vfs.h>
 #include "vespera_errno.h"
 
 namespace syscalls::internal {

@@ -23,7 +23,7 @@
 
 #include <limine.h>
 #include <vespera/boot/boot.h>
-#include <vespera/graphics.h>
+
 
 #include "vespera/cpu/simd.h"
 
@@ -57,9 +57,9 @@ extern u8 psf_font_end[];
 extern u8 psf_font_size[];
 }
 
-static framebuffer_t framebuffer;
+static Framebuffer framebuffer;
 static BootInfo boot_info;
-static font_t embedded_font;
+static PsfFont embedded_font;
 static EFI_MEMORY_DESCRIPTOR efi_map[512];
 
 [[noreturn]] static void hlt_forever() {

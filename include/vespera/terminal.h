@@ -24,10 +24,11 @@
 #ifndef VESPERAOS_TERMINAL_H
 #define VESPERAOS_TERMINAL_H
 
-#include <vespera/graphics.h>
+
 #include <vespera/types.h>
 
 #include "../../kernel/graphics/IRenderDriver.h"
+#include "graphics/psf.h"
 
 class ScrollbackBuffer;
 class IGlyphProvider;
@@ -101,6 +102,6 @@ class Terminal {
     void flush() const;
 };
 
-extern font_t* system_font;
+extern PsfFont* system_font;
 
 #endif  // VESPERAOS_TERMINAL_H

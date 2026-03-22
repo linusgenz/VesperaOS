@@ -26,6 +26,11 @@
 #include "../../../kernel/cpu/io.h"
 #include "vespera/kernel_utils.h"
 
+typedef struct {
+    u32 x;
+    u32 y;
+} point_t;
+
 namespace input::mouse {
     u8 pointer[] = {
         0b10000000, 0b00000000,

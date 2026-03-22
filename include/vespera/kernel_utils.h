@@ -9,7 +9,7 @@
 extern u64 kernel_start;
 extern u64 kernel_end;
 
-extern framebuffer_t *target_framebuffer;
+extern Framebuffer *target_framebuffer;
 
 void initialize_kernel(BootInfo* boot_info);
 

@@ -28,7 +28,6 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/sync/wait_queue.h>
 
-#include "../../../filesystem/vfs/vfs.h"
 #include "../../../kernel/paging/page_table_manager.h"
 #include "../../../kernel/tty/tty_device.h"
 #include "../types.h"

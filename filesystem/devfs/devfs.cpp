@@ -21,20 +21,20 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "devfs.h"
+#include <vespera/filesystem/devfs.h>
 
 #include <uapi/vespera/dev/ioctl_devinfo.h>
 #include <uapi/vespera/dev/ioctl_smart.h>
 #include <uapi/vespera/poll.h>
 #include <vespera/devices/char_device.h>
 #include <vespera/devices/device_info.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
 #include "../../kernel/cpu/io.h"
 #include "../drivers/ahci/ahci.h"
-#include "../vfs/vfs.h"
 #include "uapi/vespera/dev/ioctl_usb_device.h"
 #include "vespera/devices/usb_device_info.h"
 

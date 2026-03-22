@@ -1,7 +1,7 @@
 #ifndef BASIC_RENDERER_H
 #define BASIC_RENDERER_H
 #include <vespera/devices/device_manager.h>
-#include <vespera/graphics.h>
+
 #include <vespera/terminal.h>
 
 #include "vespera/cpu/simd.h"
@@ -9,7 +9,7 @@
 class FramebufferDriver final : public IRenderDriver {
    public:
     void simd_gop_init(const SimdFeatures& f);
-    FramebufferDriver(framebuffer_t* fb, font_t* font);
+    FramebufferDriver(Framebuffer* fb, PsfFont* font);
     void init_simd() noexcept;
 
     // IRenderDriver Interface
@@ -32,8 +32,8 @@ class FramebufferDriver final : public IRenderDriver {
 
 
    private:
-    framebuffer_t* fb_;
-    font_t* font_;
+    Framebuffer* fb_;
+    PsfFont* font_;
 
     void* (*fn_memcpy_)(void*, const void*, usize) = nullptr;
     void (*fn_fill_rect_)(void*, u32, u32, u32, u32, u32, u32) = nullptr;

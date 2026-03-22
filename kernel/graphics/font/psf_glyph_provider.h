@@ -23,11 +23,11 @@
 #define VESPERAOS_PSF_GLYPH_PROVIDER_H
 
 #include "iglyph_provider.h"
-#include <vespera/graphics.h>
+
 
 class PsfGlyphProvider final : public IGlyphProvider {
 public:
-    explicit PsfGlyphProvider(font_t* font) : font_(font) {
+    explicit PsfGlyphProvider(PsfFont* font) : font_(font) {
         glyph_.bitmap   = static_cast<u8*>(kernel::memory::malloc(font->width * font->height));
         glyph_.width    = font->width;
         glyph_.height   = font->height;
@@ -64,7 +64,7 @@ public:
     bool is_monospace() const override { return true; }
 
 private:
-    font_t*       font_;
+    PsfFont*       font_;
     RenderedGlyph glyph_{};
 };
 

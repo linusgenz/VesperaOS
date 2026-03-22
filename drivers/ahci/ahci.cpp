@@ -7,7 +7,7 @@
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
-#include "../../filesystem/devfs/devfs.h"
+#include <vespera/filesystem/devfs.h>
 #include "../pci/msi.h"
 #include "../pci/msix.h"
 #include "ata.h"

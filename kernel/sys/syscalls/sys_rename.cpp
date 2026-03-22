@@ -23,7 +23,7 @@
 
 #include <vespera_errno.h>
 
-#include "../../../filesystem/vfs/vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 namespace syscalls::internal {
     i64 sys_rename(u64 arg0, u64 arg1, u64, u64, u64, u64) {

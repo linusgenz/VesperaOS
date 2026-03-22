@@ -26,7 +26,7 @@
 
 #include <vespera/types.h>
 
-#include "vfs.h"
+#include <vespera/filesystem/vfs.h>
 
 struct VfsHandleContext {
     u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR
