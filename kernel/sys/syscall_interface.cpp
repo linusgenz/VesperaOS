@@ -72,7 +72,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_SIGRETURN] = syscalls::internal::sys_sigreturn;
 }
 
-extern "C" void syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
+extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
     u64 ret = 0;
 
     if (num < MAX_SYSCALLS && syscall_table[num]) [[likely]] {
@@ -89,5 +89,5 @@ extern "C" void syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3,
         signal_dispatch(u, trap);
     }
 
-    asm volatile("mov %0, %%rax" ::"r"(ret));
+    return ret;
 }

@@ -66,6 +66,6 @@ namespace syscalls::internal {
         trap->rsp = frame->rsp;
         trap->rflags = frame->rflags;
 
-        return 0;
+        return -EINTR;
     }
 }  // namespace syscalls::internal

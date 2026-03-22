@@ -18,35 +18,31 @@ syscall_entry:
     mov byte [r15 + FROM_SYSCALL_BOOL], 1
     mov rsp, qword [r15 + STACK_POINTER]
 
-  ;  push r11                      ; Save user RFLAGS
-  ;  push rcx                      ; Save user RIP
+    mov qword [r15 + TRAP_FRAME + 0x00], rax       ; rax (syscall number)
+    mov qword [r15 + TRAP_FRAME + 0x08], rbx
+    mov qword [r15 + TRAP_FRAME + 0x10], rcx       ; user RIP (gesichert von syscall)
+    mov qword [r15 + TRAP_FRAME + 0x18], rdx
+    mov qword [r15 + TRAP_FRAME + 0x20], rbp
+    mov qword [r15 + TRAP_FRAME + 0x28], rsi
+    mov qword [r15 + TRAP_FRAME + 0x30], rdi
+    mov qword [r15 + TRAP_FRAME + 0x38], r8
+    mov qword [r15 + TRAP_FRAME + 0x40], r9
+    mov qword [r15 + TRAP_FRAME + 0x48], r10
+    mov qword [r15 + TRAP_FRAME + 0x50], r11       ; user RFLAGS (gesichert von syscall)
+    mov qword [r15 + TRAP_FRAME + 0x58], r12
+    mov qword [r15 + TRAP_FRAME + 0x60], r13
+    mov qword [r15 + TRAP_FRAME + 0x68], r14
 
-        mov qword [r15 + TRAP_FRAME + 0x00], rax       ; rax (syscall number)
-        mov qword [r15 + TRAP_FRAME + 0x08], rbx
-        mov qword [r15 + TRAP_FRAME + 0x10], rcx       ; user RIP (gesichert von syscall)
-        mov qword [r15 + TRAP_FRAME + 0x18], rdx
-        mov qword [r15 + TRAP_FRAME + 0x20], rbp
-        mov qword [r15 + TRAP_FRAME + 0x28], rsi
-        mov qword [r15 + TRAP_FRAME + 0x30], rdi
-        mov qword [r15 + TRAP_FRAME + 0x38], r8
-        mov qword [r15 + TRAP_FRAME + 0x40], r9
-        mov qword [r15 + TRAP_FRAME + 0x48], r10
-        mov qword [r15 + TRAP_FRAME + 0x50], r11       ; user RFLAGS (gesichert von syscall)
-        mov qword [r15 + TRAP_FRAME + 0x58], r12
-        mov qword [r15 + TRAP_FRAME + 0x60], r13
-        mov qword [r15 + TRAP_FRAME + 0x68], r14
-        mov qword [r15 + TRAP_FRAME + 0x70], r15
+    mov qword [r15 + TRAP_FRAME + 0x78], 0         ; rsv
+    mov qword [r15 + TRAP_FRAME + 0x80], 0         ; error_code (kein Fehlercode bei syscall)
 
-        mov qword [r15 + TRAP_FRAME + 0x78], 0         ; rsv
-        mov qword [r15 + TRAP_FRAME + 0x80], 0         ; error_code (kein Fehlercode bei syscall)
+    mov qword [r15 + TRAP_FRAME + 0x88], rcx       ; rip = user RIP
+    mov qword [r15 + TRAP_FRAME + 0x90], 0x23      ; cs = user code segment
+    mov qword [r15 + TRAP_FRAME + 0x98], r11       ; rflags = user RFLAGS
 
-        mov qword [r15 + TRAP_FRAME + 0x88], rcx       ; rip = user RIP
-        mov qword [r15 + TRAP_FRAME + 0x90], 0x23      ; cs = user code segment
-        mov qword [r15 + TRAP_FRAME + 0x98], r11       ; rflags = user RFLAGS
-
-        mov r14, [r15 + SAVED_USER_RSP]
-        mov qword [r15 + TRAP_FRAME + 0xA0], r14       ; rsp = user RSP
-        mov qword [r15 + TRAP_FRAME + 0xA8], 0x1b      ; ss = user data segment
+    mov r14, [r15 + SAVED_USER_RSP]
+    mov qword [r15 + TRAP_FRAME + 0xA0], r14       ; rsp = user RSP
+    mov qword [r15 + TRAP_FRAME + 0xA8], 0x1b      ; ss = user data segment
 
     mov [r15 + KERNEL_RSP_AFTER_SYSCALL], rsp
 
@@ -93,7 +89,6 @@ syscall_entry:
     mov r12, qword [r15 + TRAP_FRAME + 0x58]
     mov r13, qword [r15 + TRAP_FRAME + 0x60]
     mov r14, qword [r15 + TRAP_FRAME + 0x68]
-    mov r15, qword [r15 + TRAP_FRAME + 0x70]
 
     mov rcx, qword [r15 + TRAP_FRAME + 0x88]  ; user RIP
     mov r11, qword [r15 + TRAP_FRAME + 0x98]  ; user RFLAGS
