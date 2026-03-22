@@ -83,7 +83,7 @@ namespace kernel::tty {
 
     void tty_clear(TTY *tty);
 
-    usize tty_read(TTY *tty, char *buf, usize count);
+    isize tty_read(TTY *tty, char *buf, usize count);
 }  // namespace kernel::tty
 
 #endif  // VESPERAOS_TTY_H

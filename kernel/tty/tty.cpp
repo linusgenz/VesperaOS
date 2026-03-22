@@ -23,8 +23,11 @@
 
 #include <vespera/graphics/colors.h>
 #include <vespera/input/keycode.h>
+#include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <vespera/signals.h>
 #include <vespera/tty/tty.h>
 
 namespace kernel::tty {
@@ -131,6 +134,19 @@ namespace kernel::tty {
                 }
                 return;
             }
+        }
+
+        if (c == 3 && keyboard_focus_tty->canonical) {
+            if (const RealmId fg = keyboard_focus_tty->fg_realm_id; fg != 0) {
+                if (const Realm* realm = RealmManager::get(fg)) {
+                    Unit* u = realm->unit_list;
+                    while (u) {
+                        signal_send(u, Signal::SIGINT);
+                        u = u->realm_next;
+                    }
+                }
+            }
+            return;
         }
 
         if (keyboard_focus_tty->canonical) {
@@ -524,7 +540,7 @@ namespace kernel::tty {
         tty->esc_param_count = 0;
     }
 
-    usize tty_read(TTY* tty, char* buf, const usize count) {
+    isize tty_read(TTY* tty, char* buf, const usize count) {
         const Unit* u = kernel::scheduling::get_current_unit();
         const RealmId my_realm = u ? u->rid : 0;
 
@@ -532,6 +548,9 @@ namespace kernel::tty {
 
         if (tty->canonical) {
             while (!tty->line_ready || (tty->fg_realm_id != 0 && tty->fg_realm_id != my_realm)) {
+                if (u && (u->signals_pending & ~u->signals_masked)) {
+                    return -EINTR;
+                }
                 kernel::scheduling::yield();
             }
 
@@ -544,6 +563,9 @@ namespace kernel::tty {
             memset(tty->canon_buffer, 0, TTY::BUFFER_SIZE);
         } else {
             while (tty->raw_len == 0 || (tty->fg_realm_id != 0 && tty->fg_realm_id != my_realm)) {
+                if (u && (u->signals_pending & ~u->signals_masked)) {
+                    return -EINTR;
+                }
                 kernel::scheduling::yield();
             }
 

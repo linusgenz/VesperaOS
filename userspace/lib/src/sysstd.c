@@ -33,19 +33,22 @@
 #define SYSCALL_MMAP 9
 #define SYSCALL_MUNMAP 11
 #define SYSCALL_BRK 12
-#define SYSCALL_CREATE 13
+#define SYSCALL_SIGACTION 13
+#define SYSCALL_SIGRETURN 15
 #define SYSCALL_IOCTL 16
 #define SYSCALL_PIPE 22
 #define SYSCALL_SLEEP 35
 #define SYSCALL_GETRID 39
 #define SYSCALL_EXIT 60
 #define SYSCALL_WAIT 61
+#define SYSCALL_KILL  62
 #define SYSCALL_SPAWN 69
 #define SYSCALL_GETCWD 79
 #define SYSCALL_CHDIR 80
 #define SYSCALL_RENAME 82
 #define SYSCALL_MKDIR 83
 #define SYSCALL_RMDIR 84
+#define SYSCALL_CREATE    85
 #define SYSCALL_UNLINK 87
 #define SYSCALL_MOUNT     165
 #define SYSCALL_UMOUNT    166
@@ -200,4 +203,16 @@ int64_t sys_mount(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, ui
 
 int64_t sys_umount(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_UMOUNT, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_kill(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_KILL, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_sigaction(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SIGACTION, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_sigreturn(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SIGRETURN, 0, 0, 0, 0, 0, 0);
 }

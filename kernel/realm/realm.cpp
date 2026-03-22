@@ -34,6 +34,8 @@ Realm::Realm()
     , pml4_phys()
     , page_table(nullptr)
     , cwd_path{}
+    , exit_code(0)
+    , exited(false)
     , unit_list(nullptr)
     , active(false)
     , sched_priority(0)
@@ -55,8 +57,8 @@ i64 Realm::init_handle_table() {
 }
 
 i64 Realm::add_handle(
-    const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*), void (*acquire)(void*),
-    HandleId* out_h
+    const u64 type, void* resource, const capability_set caps, const bool transferable, void (*destroy)(void*),
+    void (*acquire)(void*), HandleId* out_h
 ) {
     SpinlockGuard guard(lock);
     const int slot = find_free_slot();
@@ -109,13 +111,19 @@ i64 Realm::add_handle_with_id(
 }
 
 i64 Realm::setup_standard_handles(TtyDevice* tty_dev) {
-    i64 err = add_handle_with_id(HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ | CAP_DEVICE_ACCESS, false, nullptr, nullptr);
+    i64 err = add_handle_with_id(
+        HANDLE_STDIN, HANDLE_TYPE_TTY, tty_dev, CAP_READ | CAP_DEVICE_ACCESS, false, nullptr, nullptr
+    );
     if (err != SUCCESS_CODE) return err;
 
-    err = add_handle_with_id(HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr);
+    err = add_handle_with_id(
+        HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr
+    );
     if (err != SUCCESS_CODE) return err;
 
-    err = add_handle_with_id(HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr);
+    err = add_handle_with_id(
+        HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev, CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr
+    );
     if (err != SUCCESS_CODE) return err;
 
     return SUCCESS_CODE;

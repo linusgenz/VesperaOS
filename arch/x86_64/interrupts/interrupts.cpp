@@ -1,6 +1,7 @@
 #include <vespera/interrupts.h>
 #include <vespera/kerrno.h>
 #include <vespera/log.h>
+#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
 
@@ -29,17 +30,24 @@ static FaultContext make_fault_context(const TrapFrame *frame) {
     return ctx;
 }
 
-void page_fault_handler(TrapFrame *frame) {
+void double_fault_handler(const TrapFrame *frame) {
+    const FaultContext ctx = make_fault_context(frame);
+    kernel::debug::log_fault(FaultType::DoubleFault, ctx, "Double fault detected");
+    kernel::SystemManager::system_panic("Double fault detected", -KEDOUBLEFAULT);
+}
+
+void page_fault_handler(TrapFrame* frame) {
     u64 fault_addr = 0;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
     if (frame->cs & 0x3) {
-        Unit *u = kernel::scheduling::get_current_unit();
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
 
-        u64 stack_top = virt_raw(u->context.user_stack_top);
-        u64 stack_bottom = stack_top - u->context.user_stack_size;
+        const u64 stack_top    = virt_raw(u->context.user_stack_top);
+        const u64 stack_bottom = stack_top - u->context.user_stack_size;
 
-        const char *reason = nullptr;
+        const char* reason;
         if (fault_addr >= stack_bottom - PAGE_SIZE && fault_addr < stack_bottom) {
             reason = "stack overflow (guard page)";
         } else if (fault_addr < stack_bottom) {
@@ -50,108 +58,125 @@ void page_fault_handler(TrapFrame *frame) {
             reason = "segmentation fault";
         }
 
-        kernel::scheduling::kill_current_realm(Signal::SIGSEGV, reason);
+        if (realm) {
+            Log::print_ln("[%llu]  %s (core dumped)  %s",
+                static_cast<u64>(realm->id), reason, realm->name);
+        }
+
+        signal_send(u, Signal::SIGSEGV);
+        signal_dispatch(u, frame);
+        __builtin_unreachable();
     }
 
+    // Kernel-seitiger Page Fault
     FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_page_fault_detail(fault_addr, ctx.error_code, ctx);
-
-    panic("Page fault");
-    // kernel::SystemManager::system_panic("Page fault detected", -EPAGEFAULT);
+    kernel::SystemManager::system_panic("Page fault detected", -KEPAGEFAULT);
 }
 
-void double_fault_handler(const TrapFrame *frame) {
-    const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::DoubleFault, ctx, "Double fault detected");
-    kernel::SystemManager::system_panic("Double fault detected", -KEDOUBLEFAULT);
-}
-
-void gp_fault_handler(const TrapFrame *frame) {
+void gp_fault_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
-        kernel::scheduling::kill_current_realm(Signal::SIGSEGV, "segmentation fault");
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
+        if (realm) {
+            Log::print_ln("[%llu]  segmentation fault (core dumped)  %s",
+                static_cast<u64>(realm->id), realm->name);
+        }
+        signal_send(u, Signal::SIGSEGV);
+        signal_dispatch(u, frame);
+        __builtin_unreachable();
     }
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
 
-    if (frame->error_code & 0x1) {
-        Log::error("  External event caused fault");
-    }
-    if (frame->error_code & 0x2) {
-        Log::error("  IDT referenced");
-    } else if (frame->error_code & 0x4) {
-        Log::error("  LDT referenced");
-    } else {
-        Log::error("  GDT referenced");
-    }
+    if (frame->error_code & 0x1) Log::error("  External event caused fault");
+    if (frame->error_code & 0x2) Log::error("  IDT referenced");
+    else if (frame->error_code & 0x4) Log::error("  LDT referenced");
+    else Log::error("  GDT referenced");
 
     const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Selector: 0x%x", selector);
 
-    //  debug_check();
-
-    panic("General protection fault detected");
     kernel::SystemManager::system_panic("General protection fault detected", -KEGPF);
 }
 
-// Invalid Opcode Fault (Vector 6)
-extern "C" void invalid_opcode_handler(const TrapFrame *frame) {
+extern "C" void invalid_opcode_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
-        kernel::scheduling::kill_current_realm(Signal::SIGILL, "illegal instruction");
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
+        if (realm) {
+            Log::print_ln("[%llu]  illegal instruction (core dumped)  %s",
+                static_cast<u64>(realm->id), realm->name);
+        }
+        signal_send(u, Signal::SIGILL);
+        signal_dispatch(u, frame);
+        __builtin_unreachable();
     }
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
-    panic("Invalid opcode detected");
     kernel::SystemManager::system_panic("Invalid opcode detected", -KEINVOP);
 }
 
-// Stack Segment Fault (Vector 12)
-void stack_fault_handler(const TrapFrame *frame) {
+void stack_fault_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
-        kernel::scheduling::kill_current_realm(Signal::SIGSEGV, "stack fault");
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
+        if (realm) {
+            Log::print_ln("[%llu]  stack fault (core dumped)  %s",
+                static_cast<u64>(realm->id), realm->name);
+        }
+        signal_send(u, Signal::SIGSEGV);
+        signal_dispatch(u, frame);
+        __builtin_unreachable();
     }
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
-
     const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Stack selector: 0x%x", selector);
-
     kernel::SystemManager::system_panic("Stack fault detected", -KESTACKFAULT);
 }
 
-// Segment Not Present (Vector 11)
-void segment_not_present_handler(const TrapFrame *frame) {
+void segment_not_present_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
-        kernel::scheduling::kill_current_realm(Signal::SIGBUS, "bus error");
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
+        if (realm) {
+            Log::print_ln("[%llu]  bus error (core dumped)  %s",
+                static_cast<u64>(realm->id), realm->name);
+        }
+        signal_send(u, Signal::SIGBUS);
+        signal_dispatch(u, frame);
+        __builtin_unreachable();
     }
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
-
     const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Missing segment selector: 0x%x", selector);
-
-    if (frame->error_code & 0x2) {
-        Log::error("  IDT referenced");
-    } else if (frame->error_code & 0x4) {
-        Log::error("  LDT referenced");
-    } else {
-        Log::error("  GDT referenced");
-    }
-
+    if (frame->error_code & 0x2) Log::error("  IDT referenced");
+    else if (frame->error_code & 0x4) Log::error("  LDT referenced");
+    else Log::error("  GDT referenced");
     kernel::SystemManager::system_panic("Segment not present", -KESEGNOTPRES);
 }
 
-// Divide by Zero (Vector 0)
-void divide_error_handler(const TrapFrame *frame) {
+void divide_error_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
-        kernel::scheduling::kill_current_realm(Signal::SIGFPE, "floating point exception");
+        Unit* u = kernel::scheduling::get_current_unit();
+        Realm* realm = RealmManager::get(u->rid);
+        if (realm) {
+            Log::print_ln("[%llu]  floating point exception (core dumped)  %s",
+                static_cast<u64>(realm->id), realm->name);
+        }
+        signal_send(u, Signal::SIGFPE);
+        signal_dispatch(u, frame);
+        __builtin_unreachable();
     }
+
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
-
     kernel::SystemManager::system_panic("Divide by zero", -KEDIVZERO);
 }
 
@@ -186,6 +211,13 @@ void mouse_int_handler(TrapFrame *) {
 void apic_timer_int_handler(TrapFrame *frame) {
     arch::x86_64::interrupts::apic::timer_accounting();
     arch::x86_64::interrupts::apic::send_eoi();
+
+    if (frame->cs & 0x3) {
+        Unit* u = kernel::scheduling::get_current_unit();
+        if (u && u->is_user && u->state == UnitState::Running)
+            signal_dispatch(u, frame);
+    }
+
     arch::x86_64::interrupts::apic::timer_tick(frame);
 
     static u64 cursor_tick = 0;

@@ -24,12 +24,43 @@
 
 #include <vespera/types.h>
 
+#include "interrupts.h"
+
+constexpr uptr SIGNAL_TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
+
+class Unit;
 enum class Signal : i32 {
-  SIGFPE  = 8,
-  SIGKILL = 9,
-  SIGSEGV = 11,
-  SIGBUS  = 7,
-  SIGILL  = 4,
+    SIGINT  = 2,
+    SIGFPE = 8,
+    SIGKILL = 9,
+    SIGSEGV = 11,
+    SIGBUS = 7,
+    SIGILL = 4,
+    SIGTERM = 15,
+    SIGCHLD = 17,
+    SIGALRM = 14,
+    SIGPIPE = 13,
 };
+
+struct SignalFrame {
+    u64 rax, rbx, rcx, rdx;
+    u64 rbp, rsi, rdi;
+    u64 r8, r9, r10, r11, r12, r13, r14, r15;
+    u64 rip;
+    u64 rsp;
+    u64 rflags;
+    i32 signum;
+    u32 _pad;
+};
+
+struct SignalAction {
+    enum class Disposition : u8 { Default, Ignore, Handler } disposition;
+    void (*handler)(int);
+};
+
+bool is_valid_signal(i32 signum);
+void signal_send(Unit* u, Signal sig);
+void signal_dispatch(Unit* u, TrapFrame* trap);
+void signal_default(Unit* unit, Signal sig);
 
 #endif  // VESPERAOS_SIGNALS_H

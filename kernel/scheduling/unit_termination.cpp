@@ -24,6 +24,7 @@
 
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/exit_code_table.h>
 #include <vespera/scheduling.h>
 
 #include "../../kernel/cpu/cpu_manager.h"
@@ -40,7 +41,7 @@ static void do_terminate_unit(Unit* unit, Signal fault_sig) {
     cpu->reaper.enqueue(unit);
 }
 
-namespace  kernel::scheduling {
+namespace kernel::scheduling {
     [[noreturn]] void kill_current_realm(Signal fault_sig, const char* fault_name) {
         asm volatile("cli");
 
@@ -55,7 +56,10 @@ namespace  kernel::scheduling {
             SystemManager::system_panic("Uncontexted fault", -KENOCTXFLT);
         }
 
-        Log::print_ln("[%llu]  %s (core dumped)  %s", static_cast<u64>(realm->id), fault_name, realm->name); // future TODO: build core dumper
+        realm->exit_code = -static_cast<i32>(fault_sig);
+        ExitCodeTable::store(realm->id, realm->exit_code);
+
+        // future TODO: build core dumper
 
         {
             SpinlockGuard guard(cpu->lock);
@@ -65,15 +69,15 @@ namespace  kernel::scheduling {
             Unit* u = realm->unit_list;
             while (u) {
                 Unit* next = u->next;
-                    do_terminate_unit(u, fault_sig);
+                do_terminate_unit(u, fault_sig);
                 u = next;
             }
         }
 
-        realm->unit_count = 0;
         realm->wait_queue.wake_all();
+        realm->unit_count = 0;
 
         yield();
         __builtin_unreachable();
     }
-}
+}  // namespace kernel::scheduling

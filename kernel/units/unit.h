@@ -26,6 +26,7 @@
 
 #include <uapi/vespera/dev/unit_info.h>
 #include <vespera/realm/realm.h>
+#include <vespera/signals.h>
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
@@ -76,6 +77,8 @@ typedef struct ExecutionContext {
 
     phys_addr_t user_stack_phys;
     virt_addr_t user_stack_virt_base;
+
+    TrapFrame current_trap_frame;
 } execution_context_t;
 
 typedef struct SleepContext {
@@ -93,6 +96,8 @@ struct VmArea {
 
     VmArea* next;
 };
+
+
 
 struct UnitHandleTable {
     HandleId slots[MAX_UNIT_HANDLE_SLOTS];
@@ -134,6 +139,10 @@ class Unit {
     execution_context_t context{};
     sleep_context_t sleep_context{};
 
+    u64 signals_pending;
+    u64 signals_masked;
+    SignalAction signal_actions[32];
+
     Unit() {
         memset(&handle_table_, 0, sizeof(handle_table_));
         handle_table_.lock.init();
@@ -153,7 +162,7 @@ class Unit {
         return nullptr;
     }
 
-    VmArea* get_vma_list() const {
+    [[nodiscard]] VmArea* get_vma_list() const {
         return vma_list_;
     }
 

@@ -38,6 +38,7 @@ RealmId RealmManager::next_id_ = 1;
 atomic_u8_t RealmManager::seq_;
 bool RealmManager::initialized_ = false;
 
+
 void RealmManager::initialize() {
     global_lock_.init("realm_manager_lock");
 
@@ -55,6 +56,26 @@ void RealmManager::initialize() {
 
 bool RealmManager::is_initialized() {
     return initialized_;
+}
+
+void setup_signal_trampoline(Realm* r) {
+    const phys_addr_t phys = kernel::memory::request_page_phys();
+    auto* page = static_cast<u8*>(virt_ptr(phys_to_virt(phys)));
+    memset(page, 0, 0x1000);
+
+    u8 trampoline[] = {
+        0x48, 0xC7, 0xC0, 15, 0x00, 0x00, 0x00,  // mov rax, 36
+        0x0F, 0x05,                                 // syscall
+        0xF4                                        // hlt
+    };
+    memcpy(page, trampoline, sizeof(trampoline));
+
+    r->page_table->map_range(
+        virt_from_raw(SIGNAL_TRAMPOLINE_VADDR),
+        phys,
+        0x1000,
+        (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper)
+    );
 }
 
 Realm* RealmManager::create(const RealmConfig* cfg) {
@@ -99,6 +120,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
                 r->pml4_phys = pml4_phys;
                 r->pml4 = new_pml4;
                 r->page_table = new PageTableManager(reinterpret_cast<PageTable*>(phys_raw(pml4_phys)));
+                setup_signal_trampoline(r);
             }
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);

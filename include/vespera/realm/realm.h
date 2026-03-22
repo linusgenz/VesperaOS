@@ -73,6 +73,7 @@ class Realm {
 
     char cwd_path[256];
 
+    int exit_code;
     bool exited;
 
     Unit *unit_list;

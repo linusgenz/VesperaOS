@@ -811,7 +811,7 @@ int execute_command(command_t* cmd) {
                 int status = 0;
                 wait_realm(rid, &status);
                 if (status != 0) {
-                    printf("realm exited with status %d", status);
+                    printf("realm exited with status %d\n", status);
                 }
             }
         } else {

@@ -24,6 +24,8 @@
 #include "syscall_interface.h"
 
 #include <vespera/log.h>
+#include <vespera/scheduling.h>
+#include <vespera/signals.h>
 #include <vespera/sys/syscall_numbers.h>
 
 constexpr int MAX_SYSCALLS = 256;
@@ -66,6 +68,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_GETUID] = syscalls::internal::sys_getuid;
     syscall_table[SYSCALL_MOUNT] = syscalls::internal::sys_mount;
     syscall_table[SYSCALL_UMOUNT] = syscalls::internal::sys_umount;
+    syscall_table[SYSCALL_SIGACTION] = syscalls::internal::sys_sigaction;
+    syscall_table[SYSCALL_SIGRETURN] = syscalls::internal::sys_sigreturn;
 }
 
 extern "C" void syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
@@ -76,6 +80,13 @@ extern "C" void syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3,
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {
         Log::print_ln("[SYSCALL] Invalid syscall number: %u", num);
+    }
+
+    Unit* u = kernel::scheduling::get_current_unit();
+    if (u && u->is_user) {
+        TrapFrame* trap = &u->context.current_trap_frame;
+        trap->rax = ret;
+        signal_dispatch(u, trap);
     }
 
     asm volatile("mov %0, %%rax" ::"r"(ret));

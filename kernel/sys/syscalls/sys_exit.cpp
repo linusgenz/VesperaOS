@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/log.h>
+#include <vespera/realm/exit_code_table.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
@@ -40,6 +41,8 @@ namespace syscalls::internal {
         if (Realm* realm = RealmManager::get(current->rid)) {
             SpinlockGuard g(realm->lock);
             if (realm->unit_count == 1) {
+                ExitCodeTable::store(realm->id, static_cast<int>(code));
+                realm->exit_code = code;
                 realm->exited = true;
                 realm->wait_queue.wake_all();
             }

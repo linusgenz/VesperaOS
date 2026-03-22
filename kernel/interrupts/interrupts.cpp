@@ -48,8 +48,8 @@ namespace kernel::interrupts {
         arch::x86_64::interrupts::apic::init(0);  // bsp
     }
 
-    void allocate_vector(const u8 vector, const irq_handler_t handler, void* cookie) {
-        arch::x86_64::interrupts::idt::allocate_vector(vector, handler, cookie);
+    bool allocate_vector(const u8 vector, const irq_handler_t handler, void* cookie) {
+        return arch::x86_64::interrupts::idt::allocate_vector(vector, handler, cookie);
     }
 
     void free_vector(const u8 vec) {

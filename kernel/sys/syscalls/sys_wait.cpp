@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/log.h>
+#include <vespera/realm/exit_code_table.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -53,10 +53,9 @@ namespace syscalls::internal {
             SpinlockGuard g(target->lock);
             if (target->unit_count == 0 || target->exited) {
                 restore_tty_focus();
-                if (status_user_ptr != 0) {
-                    constexpr int status_val = 0;
-                    (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
-                }
+                int exit_code = 0;
+                ExitCodeTable::consume(child_rid, &exit_code);
+                (*reinterpret_cast<int*>(status_user_ptr)) = exit_code;
                 return 0;
             }
         }
@@ -64,12 +63,11 @@ namespace syscalls::internal {
         target->wait_queue.add_wait(current);
         kernel::scheduling::yield();
 
-        restore_tty_focus();
+        int exit_code = 0;
+        ExitCodeTable::consume(child_rid, &exit_code);
+        (*reinterpret_cast<int*>(status_user_ptr)) = exit_code;
 
-        if (status_user_ptr != 0) {
-            constexpr int status_val = 0;
-            (*reinterpret_cast<int*>(status_user_ptr)) = status_val;
-        }
+        restore_tty_focus();
 
         return 0;
     }
