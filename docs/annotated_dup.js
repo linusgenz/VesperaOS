@@ -20,6 +20,7 @@ var annotated_dup =
     [ "pollhdl", "structpollhdl.html", "structpollhdl" ],
     [ "realm_info", "structrealm__info.html", "structrealm__info" ],
     [ "rtc_data", "structrtc__data.html", "structrtc__data" ],
+    [ "sigaction_t", "structsigaction__t.html", "structsigaction__t" ],
     [ "SmartAta", "structSmartAta.html", "structSmartAta" ],
     [ "SmartAttribute", "structSmartAttribute.html", "structSmartAttribute" ],
     [ "SmartCommon", "structSmartCommon.html", "structSmartCommon" ],
