@@ -136,6 +136,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a8fbb78b7e72ea7263d5f0ca3bb21bdd2" id="r_a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">__attribute__</a> ((noreturn)) void exit(<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
 <tr class="memdesc:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
 <tr class="separator:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30670a60464f77af17dfb353353d6df8" id="r_a30670a60464f77af17dfb353353d6df8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a30670a60464f77af17dfb353353d6df8">atoi</a> (const char *s)</td></tr>
+<tr class="memdesc:a30670a60464f77af17dfb353353d6df8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a string to an integer.  <br /></td></tr>
+<tr class="separator:a30670a60464f77af17dfb353353d6df8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a825c37450147a643edbcb1a435518307" id="r_a825c37450147a643edbcb1a435518307"><td class="memItemLeft" align="right" valign="top">long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a825c37450147a643edbcb1a435518307">atol</a> (const char *s)</td></tr>
+<tr class="memdesc:a825c37450147a643edbcb1a435518307"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a string to a long integer.  <br /></td></tr>
+<tr class="separator:a825c37450147a643edbcb1a435518307"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -209,6 +215,65 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Does not return; halts the unit. </dd></dl>
+
+</div>
+</div>
+<a id="a30670a60464f77af17dfb353353d6df8" name="a30670a60464f77af17dfb353353d6df8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30670a60464f77af17dfb353353d6df8">&#9670;&#160;</a></span>atoi()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int atoi </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Convert a string to an integer. </p>
+<p>Parses the string <code>s</code> as a decimal integer, optionally preceded by whitespace and a sign character ('+' or '-'). Parsing stops at the first character that is not a valid digit.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>Null-terminated string to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Converted integer value, or 0 if no valid conversion exists.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdlib_8h.html#a825c37450147a643edbcb1a435518307" title="Convert a string to a long integer.">atol()</a> </dd>
+<dd>
+strtol() </dd></dl>
+
+</div>
+</div>
+<a id="a825c37450147a643edbcb1a435518307" name="a825c37450147a643edbcb1a435518307"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a825c37450147a643edbcb1a435518307">&#9670;&#160;</a></span>atol()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">long atol </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Convert a string to a long integer. </p>
+<p>Behaves like <a class="el" href="stdlib_8h.html#a30670a60464f77af17dfb353353d6df8" title="Convert a string to an integer.">atoi()</a> but returns a long.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>Null-terminated string to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Converted long value, or 0 if no valid conversion exists. </dd></dl>
 
 </div>
 </div>

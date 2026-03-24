@@ -1,12 +1,5 @@
 var searchData=
 [
-  ['calloc_0',['calloc',['../stdlib_8h.html#a2807e26a012717736641384f91ab2563',1,'stdlib.h']]],
-  ['channel_5fcreate_1',['channel_create',['../channel_8h.html#a1c2bb722aefc71e77414183049de2922',1,'channel.h']]],
-  ['channel_5frecv_2',['channel_recv',['../channel_8h.html#a27367d39e205bf5664047cf9f2575d12',1,'channel.h']]],
-  ['channel_5fsend_3',['channel_send',['../channel_8h.html#ab2b9bb58c6dab6a292168791513911d6',1,'channel.h']]],
-  ['chdir_4',['chdir',['../stdio_8h.html#a03af571dfb595681bfa203c83385c07b',1,'stdio.h']]],
-  ['close_5',['close',['../stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676',1,'stdio.h']]],
-  ['closedir_6',['closedir',['../stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0',1,'stdio.h']]],
-  ['creat_7',['creat',['../stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc',1,'stdio.h']]],
-  ['create_8',['create',['../stdio_8h.html#a887a2f711e90813cae7a78d79e3748bf',1,'stdio.h']]]
+  ['atoi_0',['atoi',['../stdlib_8h.html#a30670a60464f77af17dfb353353d6df8',1,'stdlib.h']]],
+  ['atol_1',['atol',['../stdlib_8h.html#a825c37450147a643edbcb1a435518307',1,'stdlib.h']]]
 ];

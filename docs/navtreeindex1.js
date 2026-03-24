@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"ioctl_8h.html#ad9edf266656ca64984f397c280c111af":[4,0,1,0,0,1,0,0],
 "ioctl_8h_source.html":[4,0,1,0,0,1,0],
 "ioctl__devinfo_8h.html":[4,0,0,0,0,0,1],
 "ioctl__devinfo_8h.html#a26bb99a8dea4d39424787b68d7be087a":[4,0,0,0,0,0,1,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "stdint_8h_source.html":[4,0,1,0,0,21],
 "stdio_8h.html":[4,0,1,0,0,22],
 "stdio_8h.html#a03af571dfb595681bfa203c83385c07b":[4,0,1,0,0,22,6],
-"stdio_8h.html#a0aff7311d684a0e0ef33125616a73385":[4,0,1,0,0,22,24],
-"stdio_8h.html#a152a43e71b495278570e5790af9b5043":[4,0,1,0,0,22,18]
+"stdio_8h.html#a0aff7311d684a0e0ef33125616a73385":[4,0,1,0,0,22,24]
 };

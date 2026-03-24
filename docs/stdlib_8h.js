@@ -3,6 +3,8 @@ var stdlib_8h =
     [ "FILE_HANDLE", "stdlib_8h.html#a3ee5b18ee064f2825435983e23ebf976", null ],
     [ "ssize_t", "stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1", null ],
     [ "__attribute__", "stdlib_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2", null ],
+    [ "atoi", "stdlib_8h.html#a30670a60464f77af17dfb353353d6df8", null ],
+    [ "atol", "stdlib_8h.html#a825c37450147a643edbcb1a435518307", null ],
     [ "calloc", "stdlib_8h.html#a2807e26a012717736641384f91ab2563", null ],
     [ "free", "stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711", null ],
     [ "getenv", "stdlib_8h.html#ab1ec8cf93b9478de49bb3e77465ab4af", null ],

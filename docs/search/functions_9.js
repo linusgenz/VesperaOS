@@ -1,5 +1,12 @@
 var searchData=
 [
-  ['open_0',['open',['../stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851',1,'stdio.h']]],
-  ['opendir_1',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]]
+  ['malloc_0',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
+  ['memcmp_1',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
+  ['memcpy_2',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
+  ['memmove_3',['memmove',['../string_8h.html#a4522f53cff2fef09001e4d34227463a9',1,'string.h']]],
+  ['memset_4',['memset',['../string_8h.html#a22dc85290d58fa0ca8bf414728ec61c2',1,'string.h']]],
+  ['mkdir_5',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
+  ['mmap_6',['mmap',['../mman_8h.html#a943cf73b816880433935f7055d4fe72f',1,'mman.h']]],
+  ['mount_7',['mount',['../userspace_2lib_2include_2mount_8h.html#a5768534c4fe10ec7968b7cbc3ea57121',1,'mount.h']]],
+  ['munmap_8',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

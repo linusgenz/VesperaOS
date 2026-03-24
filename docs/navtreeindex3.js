@@ -1,5 +1,8 @@
 var NAVTREEINDEX3 =
 {
+"structunit__info.html#ab13c4e1a7bd339b357051c9a1631138f":[3,0,29,0],
+"structunit__info.html#ab610e79675851d8dc5b052fcf9cef85b":[3,0,29,5],
+"structunit__info.html#abee8ab3ec0124ed0fbfc51ed109becd4":[3,0,29,9],
 "structunit__info.html#ac900a8e465f4681da840eb79b93659ac":[3,0,29,4],
 "structunit__info.html#af243e2b0e86ac66d98d0ce468020d907":[3,0,29,6],
 "structusb__device__info.html":[3,0,30],
