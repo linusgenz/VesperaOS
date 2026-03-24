@@ -234,9 +234,10 @@ var NAVTREEINDEX2 =
 "structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee":[3,0,20,0],
 "structsigaction__t.html#a83438ecc68511faa716b601b3c9075c7":[3,0,20,1],
 "structspawn__config.html":[3,0,26],
-"structspawn__config.html#a09fb2863c15fdcda17932e0896168faf":[3,0,26,2],
-"structspawn__config.html#a2affb9c994b7522808b99af8e9138514":[3,0,26,0],
-"structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42":[3,0,26,1],
+"structspawn__config.html#a09fb2863c15fdcda17932e0896168faf":[3,0,26,3],
+"structspawn__config.html#a2affb9c994b7522808b99af8e9138514":[3,0,26,1],
+"structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253":[3,0,26,0],
+"structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42":[3,0,26,2],
 "structtty__mode__t.html":[3,0,27],
 "structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc":[3,0,27,0],
 "structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336":[3,0,27,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "structunit__info.html#a07779b2699d71da869a714d920acee65":[3,0,29,1],
 "structunit__info.html#a1f3272002ca1e7ed5805805c4a64aa99":[3,0,29,2],
 "structunit__info.html#a312611eacd8b7fe7ee54c65ba058eff5":[3,0,29,3],
-"structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3":[3,0,29,7],
-"structunit__info.html#a7b19e43c35fcd0763b1f8397774c1892":[3,0,29,10]
+"structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3":[3,0,29,7]
 };
