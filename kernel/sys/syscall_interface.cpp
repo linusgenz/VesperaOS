@@ -70,6 +70,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_UMOUNT] = syscalls::internal::sys_umount;
     syscall_table[SYSCALL_SIGACTION] = syscalls::internal::sys_sigaction;
     syscall_table[SYSCALL_SIGRETURN] = syscalls::internal::sys_sigreturn;
+    syscall_table[SYSCALL_KILL] = syscalls::internal::sys_kill;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

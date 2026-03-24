@@ -74,6 +74,10 @@ static const char* signal_name(Signal sig) {
             return "child exited";
         case Signal::SIGALRM:
             return "alarm";
+        case Signal::SIGUSR1:
+            return "user 1";
+        case Signal::SIGUSR2:
+            return "user 2";
         default:
             return "signal";
     }
@@ -91,6 +95,8 @@ bool is_valid_signal(i32 signum) {
         case Signal::SIGCHLD:
         case Signal::SIGALRM:
         case Signal::SIGPIPE:
+        case Signal::SIGUSR1:
+        case Signal::SIGUSR2:
             return true;
         default:
             return false;

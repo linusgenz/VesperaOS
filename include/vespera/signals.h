@@ -40,6 +40,8 @@ enum class Signal : i32 {
     SIGCHLD = 17,
     SIGALRM = 14,
     SIGPIPE = 13,
+    SIGUSR1 =  20,
+    SIGUSR2 =  21,
 };
 
 struct SignalFrame {

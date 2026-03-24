@@ -387,7 +387,7 @@ int chdir(const char* path);
  *
  * @see chdir()
  */
-char* getcwd(char* buf, size_t size);
+int getcwd(char* buf, size_t size);
 
 #ifdef __cplusplus
 }

@@ -1,23 +1,23 @@
 // stdlib.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 23.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -31,8 +31,6 @@ extern int errno;
 
 #ifdef __cplusplus
 extern "C" {
-
-
 
 #endif
 
@@ -158,18 +156,42 @@ void* realloc(void* ptr, size_t new_size);
 void* calloc(size_t nmemb, size_t size);
 
 /**
-* @brief Terminate the current unit.
-*
-* This will stop the unit and remove it from its realm.
-*
-* @param code Exit code for the unit.
-* @return Does not return; halts the unit.
-*/
-__attribute__((noreturn))
-void exit(uint64_t code);
+ * @brief Terminate the current unit.
+ *
+ * This will stop the unit and remove it from its realm.
+ *
+ * @param code Exit code for the unit.
+ * @return Does not return; halts the unit.
+ */
+__attribute__((noreturn)) void exit(uint64_t code);
+
+/**
+ * @brief Convert a string to an integer.
+ *
+ * Parses the string @p s as a decimal integer, optionally preceded by
+ * whitespace and a sign character ('+' or '-'). Parsing stops at the
+ * first character that is not a valid digit.
+ *
+ * @param s Null-terminated string to convert.
+ * @return Converted integer value, or 0 if no valid conversion exists.
+ *
+ * @see atol()
+ * @see strtol()
+ */
+int atoi(const char* s);
+
+/**
+ * @brief Convert a string to a long integer.
+ *
+ * Behaves like atoi() but returns a long.
+ *
+ * @param s Null-terminated string to convert.
+ * @return Converted long value, or 0 if no valid conversion exists.
+ */
+long atol(const char* s);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //VESPERAOS_STDLIB_H
+#endif  // VESPERAOS_STDLIB_H

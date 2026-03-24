@@ -42,34 +42,30 @@ static void do_terminate_unit(Unit* unit, Signal fault_sig) {
 }
 
 namespace kernel::scheduling {
-    [[noreturn]] void kill_current_realm(Signal fault_sig, const char* fault_name) {
-        asm volatile("cli");
-
-        u8 cpu_id = cpu_manager::get_current_cpu_id();
-        auto* cpu = get_cpu_data(cpu_id);
-
-        Unit* dying = cpu->current_unit;
-        Realm* realm = dying ? RealmManager::get(dying->rid) : nullptr;
-
+    [[noreturn]] static void kill_realm_internal(Realm* realm, Signal sig, const char* reason) {
         if (!realm) {
-            Log::error("Fatal fault without realm context: %s", fault_name);
-            SystemManager::system_panic("Uncontexted fault", -KENOCTXFLT);
+            Log::error("kill_realm_internal: null realm (%s)", reason);
+            SystemManager::system_panic("Null realm", -KENOCTXFLT);
         }
 
-        realm->exit_code = -static_cast<i32>(fault_sig);
+        realm->exit_code = -static_cast<i32>(sig);
         ExitCodeTable::store(realm->id, realm->exit_code);
 
-        // future TODO: build core dumper
+        // TODO: core dump
 
         {
+            const u8 cpu_id = cpu_manager::get_current_cpu_id();
+            auto* cpu = get_cpu_data(cpu_id);
             SpinlockGuard guard(cpu->lock);
 
-            cpu->current_unit = nullptr;
+            if (cpu->current_unit && cpu->current_unit->rid == realm->id) {
+                cpu->current_unit = nullptr;
+            }
 
             Unit* u = realm->unit_list;
             while (u) {
                 Unit* next = u->next;
-                do_terminate_unit(u, fault_sig);
+                do_terminate_unit(u, sig);
                 u = next;
             }
         }
@@ -79,5 +75,55 @@ namespace kernel::scheduling {
 
         yield();
         __builtin_unreachable();
+    }
+
+    [[noreturn]] void kill_current_realm(Signal sig, const char* reason) {
+        asm volatile("cli");
+
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        auto* cpu = get_cpu_data(cpu_id);
+
+        Unit* current = cpu->current_unit;
+        Realm* realm = current ? RealmManager::get(current->rid) : nullptr;
+
+        if (!realm) {
+            Log::error("Fatal fault without realm context: %s", reason);
+            SystemManager::system_panic("Uncontexted fault", -KENOCTXFLT);
+        }
+
+        kill_realm_internal(realm, sig, reason);
+    }
+
+    i64 kill_realm_by_id(u64 rid, Signal sig) {
+        Realm* realm = RealmManager::get(rid);
+        if (!realm) return -ESRCH;
+
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        auto* cpu = get_cpu_data(cpu_id);
+
+        Unit* current = cpu->current_unit;
+
+        if (current && current->rid == rid) {
+            kill_realm_internal(realm, sig, "self kill");
+        }
+
+        {
+            SpinlockGuard guard(cpu->lock);
+
+            Unit* u = realm->unit_list;
+            while (u) {
+                Unit* next = u->next;
+                do_terminate_unit(u, sig);
+                u = next;
+            }
+        }
+
+        realm->exit_code = -static_cast<i32>(sig);
+        ExitCodeTable::store(realm->id, realm->exit_code);
+
+        realm->wait_queue.wake_all();
+        realm->unit_count = 0;
+
+        return SUCCESS_CODE;
     }
 }  // namespace kernel::scheduling

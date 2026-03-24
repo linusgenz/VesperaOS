@@ -647,15 +647,15 @@ int chdir(const char* path) {
     return (int)sys_chdir((uint64_t)path, 0, 0, 0, 0, 0);
 }
 
-char* getcwd(char* buf, size_t size) {
+int getcwd(char* buf, size_t size) {
     if (!buf || size == 0) {
         errno = EINVAL;
-        return NULL;
+        return -EINVAL;
     }
     int64_t ret = sys_getcwd((uint64_t)buf, size, 0, 0, 0, 0);
     if (ret < 0) {
-        errno = (int)-ret;
-        return NULL;
+        errno = ret;
+        return ret;
     }
-    return buf;
+    return 0;
 }

@@ -1,9 +1,9 @@
-// unit_termination.h
+// shutdown.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 18.03.26.
+// Created by Linus Genz on 24.03.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,14 +19,31 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_UNIT_TERMINATION_H
-#define VESPERAOS_UNIT_TERMINATION_H
 
-#include <vespera/signals.h>
+#include <reboot.h>
+#include <stdio.h>
+#include <string.h>
 
-namespace  kernel::scheduling {
-    [[noreturn]] void kill_current_realm(Signal sig, const char* reason);
-    i64 kill_realm_by_id(u64 rid, Signal sig);
+static void usage(void) {
+    puts("Usage: shutdown");
+    puts("       shutdown --help");
+    puts("");
+    puts("Shut down the system.");
 }
 
-#endif  // VESPERAOS_UNIT_TERMINATION_H
+int main(int argc, char** argv) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            usage();
+            return 0;
+        }
+        printf("shutdown: invalid option -- '%s'\n", argv[i]);
+        return 1;
+    }
+
+    puts("Shutting down...");
+    reboot_poweroff();
+
+    // Should not be reached
+    return 0;
+}
