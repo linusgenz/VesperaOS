@@ -46,7 +46,9 @@ namespace syscalls::internal {
         Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
         TtyDevice* tty_dev = parent_realm ? parent_realm->get_tty_device() : kernel::tty::tty_devices[0];
 
-        const RealmConfig cfg = {.name = user_path, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
+        const char* base = strrchr(user_path, '/');
+        base = base ? base + 1 : user_path;
+        const RealmConfig cfg = {.name = base, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
 
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;

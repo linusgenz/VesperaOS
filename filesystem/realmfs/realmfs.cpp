@@ -49,6 +49,7 @@ void RealmFs::init()
     ops_.mkdir = nullptr;
     ops_.rmdir = nullptr;
     ops_.unlink = nullptr;
+    ops_.stat = stat;
 }
 
 

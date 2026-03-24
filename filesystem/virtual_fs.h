@@ -294,6 +294,15 @@ public:
     {
         kernel::memory::free(dir_handle);
     }
+
+    static int stat(const VfsNode*, vespera_stat_t* out) {
+        out->dev_id = 0;
+        out->inode_id = 0;
+        out->block_size = 0;
+        out->blocks = 0;
+        out->size = 0;
+        return 0;
+    }
 };
 
 template <typename D, typename E>

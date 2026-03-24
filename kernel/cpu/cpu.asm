@@ -14,6 +14,7 @@ get_cpu_vendor:
     mov dword [rdi], ebx
     mov dword [rdi+4], edx
     mov dword [rdi+8], ecx
+    mov byte  [rdi+12], 0
     ret
 
 GLOBAL get_cpu_vendor
@@ -66,6 +67,7 @@ get_cpu_brand:
     mov [rdi+40], ecx
     mov [rdi+44], edx
 
+    mov byte [rdi+48], 0
     ret
 
 GLOBAL get_cpu_brand

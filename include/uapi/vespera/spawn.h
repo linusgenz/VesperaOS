@@ -34,6 +34,7 @@ typedef struct spawn_config {
     i64 stdin_handle;   ///< Replace HANDLE_STDIN  in child (0 = inherit TTY)
     i64 stdout_handle;  ///< Replace HANDLE_STDOUT in child (0 = inherit TTY)
     i64 stderr_handle;  ///< Replace HANDLE_STDERR in child (0 = inherit TTY)
+    char* realm_name;
 } spawn_config_t;
 
 #endif  // VESPERAOS_SPAWN_H

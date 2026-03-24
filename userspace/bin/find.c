@@ -124,23 +124,27 @@ static int do_find(const char* path, int depth, const find_opts_t* opts) {
         if (opts->type == TYPE_FILE && ent.type == DT_DIR)  goto recurse;
         if (opts->type == TYPE_DIR  && ent.type != DT_DIR)  goto skip;
 
-        if (opts->name_pattern && !glob_match(opts->name_pattern, ent.name))
+        if (opts->name_pattern && !glob_match(opts->name_pattern, ent.name)) {
             goto recurse;
+        }
 
         if ((opts->min_size >= 0 || opts->max_size >= 0) && ent.type != DT_DIR) {
             vespera_stat_t st;
             if (sys_stat((uint64_t)full, (uint64_t)&st, 0, 0, 0, 0) == 0) {
-                if (opts->min_size >= 0 && (int64_t)st.size <= opts->min_size)
+                if (opts->min_size >= 0 && (int64_t)st.size <= opts->min_size) {
                     goto recurse;
-                if (opts->max_size >= 0 && (int64_t)st.size >= opts->max_size)
+                }
+                if (opts->max_size >= 0 && (int64_t)st.size >= opts->max_size) {
                     goto recurse;
+                }
             }
         }
 
-        if (opts->print_null)
+        if (opts->print_null) {
             printf("%s%c", full, '\0');
-        else
+        } else {
             printf("%s\n", full);
+        }
 
     recurse:
         if (ent.type == DT_DIR) {

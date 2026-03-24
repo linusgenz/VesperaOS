@@ -36,7 +36,7 @@
 #include "units/unit_manager.h"
 #include "vespera/scheduling.h"
 
-static const char* envp0[] = {"PATH=/bin", nullptr};
+static const char* envp0[] = {"PATH=/bin", "TERM=tty0", nullptr};
 
 static const char* dev_type_to_str(DeviceType t) {
     switch (t) {
@@ -164,7 +164,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     TtyDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
-    const ElfLoader::LoadResult result = ElfLoader::load("/bin/shell", 0x400000, shell_realm);
+    const ElfLoader::LoadResult result = ElfLoader::load("/bin/nox", 0x400000, shell_realm);
     if (!result.success) {
         Log::error("Failed to load elf binary: %s", result.error_message);
     }

@@ -88,6 +88,7 @@ void DevFs::init() {
     ops_.unlink = nullptr;
     ops_.truncate = nullptr;
     ops_.poll = poll;
+    ops_.stat = stat;
 }
 
 int DevFs::register_device(KernelDevice* kd) {
