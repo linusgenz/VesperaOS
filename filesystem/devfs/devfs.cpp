@@ -23,6 +23,7 @@
 
 #include <vespera/filesystem/devfs.h>
 
+#include <klib/string.h>
 #include <uapi/vespera/dev/ioctl_devinfo.h>
 #include <uapi/vespera/dev/ioctl_smart.h>
 #include <uapi/vespera/poll.h>
@@ -34,6 +35,7 @@
 #include <vespera_errno.h>
 
 #include "../../kernel/cpu/io.h"
+#include "../../kernel/graphics/display_manager.h"
 #include "../drivers/ahci/ahci.h"
 #include "uapi/vespera/dev/ioctl_usb_device.h"
 #include "vespera/devices/usb_device_info.h"
@@ -238,6 +240,12 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
 
     if (cmd >= IOCTL_DEVINFO_GET_ALL && cmd <= IOCTL_DEVINFO_GET_FW) {
         IDeviceInfo* info = kd->info;
+
+        if (!info && kd->dev_class == DeviceClass::Pseudo && strcmp(kd->name, "gpu") == 0) {
+            auto primary = DisplayManager::primary();
+            if (primary.kd) info = primary.kd->info;
+        }
+
         if (!info && kd->parent) info = kd->parent->info;
 
         switch (cmd) {

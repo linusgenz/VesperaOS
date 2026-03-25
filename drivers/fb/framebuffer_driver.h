@@ -1,12 +1,13 @@
 #ifndef BASIC_RENDERER_H
 #define BASIC_RENDERER_H
+#include <klib/string.h>
+#include <vespera/devices/device_info.h>
 #include <vespera/devices/device_manager.h>
-
 #include <vespera/terminal.h>
 
 #include "vespera/cpu/simd.h"
 
-class FramebufferDriver final : public IRenderDriver {
+class FramebufferDriver final : public IRenderDriver, public IDeviceInfo {
    public:
     void simd_gop_init(const SimdFeatures& f);
     FramebufferDriver(Framebuffer* fb, PsfFont* font);
@@ -30,6 +31,20 @@ class FramebufferDriver final : public IRenderDriver {
     bool using_avx;
     bool using_sse;
 
+    bool get_vendor(char* out, usize len) override {
+        strcpy(out, "UEFI");
+        return true;
+    }
+
+    bool get_model(char* out, usize len) override {
+        strcpy(out, "Software Rendering");
+        return true;
+    }
+
+    bool get_firmware(char* out, usize len) override {
+        strcpy(out, "UEFI GOP");
+        return true;
+    }
 
    private:
     Framebuffer* fb_;
@@ -40,7 +55,6 @@ class FramebufferDriver final : public IRenderDriver {
     void* (*fn_memmove_)(void*, const void*, usize) = nullptr;
 
     KernelDevice* kd_;
-
 };
 
 #endif  // BASIC_RENDERER_H

@@ -293,13 +293,6 @@ static void pad(sink_t* s, int count, char ch) {
     for (int i = 0; i < count; i++) sink_putc(s, ch);
 }
 
-// ─── core formatter ───────────────────────────────────────────────────────────
-//
-// Supported specifiers:   %s  %c  %d  %i  %u  %x  %X  %f  %p  %%
-// Flags:                  -   0
-// Width:                  any decimal integer
-// Length modifiers:       l   ll
-
 static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
     char c;
     while ((c = *fmt++) != '\0') {
@@ -333,7 +326,18 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
 
         // width
         int min_width = 0;
-        while (*fmt >= '0' && *fmt <= '9') min_width = min_width * 10 + (*fmt++ - '0');
+        if (*fmt == '*') {
+            min_width = __builtin_va_arg(args, int);
+            fmt++;
+
+            if (min_width < 0) {
+                left_align = true;
+                min_width = -min_width;
+            }
+        } else {
+            while (*fmt >= '0' && *fmt <= '9')
+                min_width = min_width * 10 + (*fmt++ - '0');
+        }
 
         int precision = -1;  // -1 = not specified
         if (*fmt == '.') {

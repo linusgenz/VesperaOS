@@ -36,11 +36,10 @@
 
 namespace blt {
     IntelBlt::IntelBlt(pci::PCI_DEVICE_HEADER* header)
-        : ring_size_(RING_BUFFER_SIZE)
+        : pci_header_(reinterpret_cast<pci::PCI_HEADER0*>(header)), ring_size_(RING_BUFFER_SIZE)
         , sequence_number_(0) {
-        const auto* pci = reinterpret_cast<pci::PCI_HEADER0*>(header);
 
-        const phys_addr_t bar0 = make_phys(pci->bar0 & BAR0_ADDR_MASK);
+        const phys_addr_t bar0 = make_phys(pci_header_->bar0 & BAR0_ADDR_MASK);
         kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
 
         mmio_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(bar0)));
@@ -96,6 +95,7 @@ namespace blt {
             .set_bus(BusType::Pci)
             .set_controller(ControllerType::IntelGpu)
             .with_gpu(this)
+            .with_info(this)
     );
 
         DevFs::register_device(kd_);
@@ -985,5 +985,17 @@ namespace blt {
 
     u32 IntelBlt::bytes_per_scanline() const {
         return fb_.pitch;
+    }
+
+    bool IntelBlt::get_vendor(char* out, const usize len) {
+        strncpy(out, pci::get_vendor_name(pci_header_->header.vendor_id), len);
+        out[len - 1] = '\0';
+        return true;
+    }
+
+    bool IntelBlt::get_model(char* out, const usize len) {
+        strncpy(out, pci::get_device_name(pci_header_->header.vendor_id, pci_header_->header.device_id), len);
+        out[len - 1] = '\0';
+        return true;
     }
 }  // namespace blt

@@ -44,7 +44,7 @@ namespace usb {
 
         UsbDeviceInfo* controller_info_;
 
-        pci::PCI_HEADER0* pci_hdr_;
+        pci::PCI_HEADER0* pci_header_;
 
         Spinlock devices_lock_{};
         Spinlock command_lock_{};

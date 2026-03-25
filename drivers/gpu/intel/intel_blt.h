@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_INTEL_BLT_H
 #define VESPERAOS_INTEL_BLT_H
 
-
+#include <vespera/devices/device_info.h>
 #include <vespera/graphics/psf.h>
 #include <vespera/mm/addr.h>
 
@@ -177,7 +177,7 @@ namespace blt {
         u32 width, height;
     };
 
-    class IntelBlt final : public IRenderDriver {
+    class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
         explicit IntelBlt(pci::PCI_DEVICE_HEADER* header);
         void start_device(u32 screen_width, u32 screen_height);
@@ -197,7 +197,12 @@ namespace blt {
         [[nodiscard]] u32 screen_height_px() const override;
         [[nodiscard]] u32 bytes_per_scanline() const override;
 
+        bool get_vendor(char* out, usize len) override;
+        bool get_model(char* out, usize len) override;
+
        private:
+        pci::PCI_HEADER0* pci_header_;
+
         KernelDevice* kd_;
 
         volatile u8* mmio_base_;

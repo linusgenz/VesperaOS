@@ -23,7 +23,7 @@
 namespace usb {
     XhciDriver::XhciDriver(u8 vector_num, const char* name, u8 bus_number)
         : controller_info_(new UsbDeviceInfo())
-        , pci_hdr_(nullptr)
+        , pci_header_(nullptr)
         , bus_number_(bus_number)
         , vector_num_(vector_num) {
         controller_info_->usb_info.bus_number = bus_number;
@@ -54,22 +54,22 @@ namespace usb {
     }
 
     bool XhciDriver::init_device(pci::PCI_DEVICE_HEADER* pci_base_address) {
-        pci_hdr_ = reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address);
-        const u64 bar0 = pci_hdr_->bar0 & ~0xF;
-        const u64 bar1 = pci_hdr_->bar1;
+        pci_header_ = reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address);
+        const u64 bar0 = pci_header_->bar0 & ~0xF;
+        const u64 bar1 = pci_header_->bar1;
         const u64 bar = ((bar1 << 32) | bar0);
 
-        const u32 original_bar0 = pci_hdr_->bar0;
-        const u32 original_bar1 = pci_hdr_->bar1;
+        const u32 original_bar0 = pci_header_->bar0;
+        const u32 original_bar1 = pci_header_->bar1;
 
-        pci_hdr_->bar0 = 0xFFFFFFFF;
-        pci_hdr_->bar1 = 0xFFFFFFFF;
+        pci_header_->bar0 = 0xFFFFFFFF;
+        pci_header_->bar1 = 0xFFFFFFFF;
 
-        const u32 size_mask_lo = pci_hdr_->bar0;
-        const u32 size_mask_hi = pci_hdr_->bar1;
+        const u32 size_mask_lo = pci_header_->bar0;
+        const u32 size_mask_hi = pci_header_->bar1;
 
-        pci_hdr_->bar0 = original_bar0;
-        pci_hdr_->bar1 = original_bar1;
+        pci_header_->bar0 = original_bar0;
+        pci_header_->bar1 = original_bar1;
 
         const u64 mask = (static_cast<u64>(size_mask_hi) << 32) | (size_mask_lo & ~0xF);
         if (mask == 0) {
@@ -1618,12 +1618,12 @@ namespace usb {
     }
 
     bool XhciDriver::get_vendor(char* out, const usize len) {
-        strncpy(out, pci::get_vendor_name(pci_hdr_->header.vendor_id), len);
+        strncpy(out, pci::get_vendor_name(pci_header_->header.vendor_id), len);
         out[len - 1] = '\0';
         return true;
     }
     bool XhciDriver::get_model(char* out, const usize len) {
-        strncpy(out, pci::get_device_name(pci_hdr_->header.vendor_id, pci_hdr_->header.device_id), len);
+        strncpy(out, pci::get_device_name(pci_header_->header.vendor_id, pci_header_->header.device_id), len);
         out[len - 1] = '\0';
         return true;
     }

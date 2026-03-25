@@ -48,6 +48,7 @@ FramebufferDriver::FramebufferDriver(Framebuffer* fb, PsfFont* font)
             .set_bus(BusType::VIRTUAL)
             .set_controller(ControllerType::UefiGop)
             .with_gpu(this)
+            .with_info(this)
     );
     DevFs::register_device(kd_);
     init_simd();

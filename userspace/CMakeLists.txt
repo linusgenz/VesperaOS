@@ -42,12 +42,13 @@ function(vespera_bin name)
     )
 endfunction()
 
-vespera_bin(shell)
+vespera_bin(nox)
 vespera_bin(lsusb)
 vespera_bin(logd)
 vespera_bin(uptime)
 vespera_bin(memstat)
 vespera_bin(diskinfo)
+vespera_bin(gpuinfo)
 vespera_bin(stat)
 vespera_bin(vedit)
 vespera_bin(pipetest)
@@ -69,13 +70,15 @@ vespera_bin(shutdown)
 vespera_bin(reboot)
 vespera_bin(pwd)
 vespera_bin(kill)
+vespera_bin(find)
+vespera_bin(vesfetch)
 vespera_bin(env      SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
 vespera_bin(printenv SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
 
 add_custom_target(elfs DEPENDS
-        shell lsusb logd uptime memstat diskinfo
+        nox lsusb logd uptime memstat diskinfo gpuinfo
         stat vedit pipetest pipespawntest pipereader
         pipewriter mount umount mv sleep ls cat rm cp
         mkdir rmdir touch shutdown reboot pwd
-        kill env printenv
+        kill env printenv find vesfetch
 )

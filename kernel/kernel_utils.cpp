@@ -7,6 +7,7 @@
 #endif
 
 #include <vespera/devices/device_manager.h>
+#include <vespera/filesystem/devfs.h>
 #include <vespera/input/input_manager.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
@@ -23,7 +24,6 @@
 #include "../drivers/ps2/ps2_init.h"
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/realmfs/realmfs.h"
-#include <vespera/filesystem/devfs.h>
 #include "../include/vespera/filesystem/vfs.h"
 #include "acpi/acpi_manager.h"
 #include "acpi/madt.h"
@@ -88,6 +88,15 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
     );
 
     DevFs::register_device(fb_kd);
+
+    auto* gpu_kd = DeviceManager::register_device(
+        DeviceDescriptor{}
+            .set_name("gpu")
+            .set_class(DeviceClass::Pseudo)
+            .set_bus(BusType::VIRTUAL)
+            .set_controller(ControllerType::None)
+    );
+    DevFs::register_device(gpu_kd);
 
     // Setup terminal for logging
     const auto terminal = new Terminal(renderer, system_font->width, system_font->height);
