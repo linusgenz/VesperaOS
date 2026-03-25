@@ -26,7 +26,7 @@
 #include "../../filesystem/fat32/fat32_vfs_adapter.h"
 #include <vespera/mm/memory.h>
 #include "../framework/test_framework.h"
-#include "mock_blockdevice.h"
+#include "../stub_kernel/mock_blockdevice.h"
 #include <cstdio>
 #include <cstring>
 #include <vector>

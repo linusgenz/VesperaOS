@@ -54,7 +54,7 @@ struct MountPoint
 struct PendingMount
 {
     char path[64];
-    BlkDeviceDescriptor* desc;
+    BlkDeviceDescriptor desc;
     bool is_partition;
     const char* table_type;
 };

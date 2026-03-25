@@ -70,8 +70,6 @@ class FilesystemDetector {
     static i64 mount_manual(const KernelDevice *device, const char *target, const char *fstype, u64 flags);
 
    private:
-    static Vector<PendingMount> *pending_mounts_;
-
     static usize driver_count_;
     static usize device_count_;
 

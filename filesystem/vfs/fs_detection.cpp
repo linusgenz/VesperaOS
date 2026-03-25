@@ -25,11 +25,11 @@
 
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/system/system_manager.h>
 #include <vespera_errno.h>
 
-#include <vespera/filesystem/vfs.h>
 #include "../kernel/devices/partition_device.h"
 #include "fs_registry.h"
 
@@ -41,11 +41,9 @@ extern FileSystemDriver ext4_driver;
 // TODO: Add other drivers when implemented
 // extern FileSystemDriver ntfs_driver;
 
-Vector<PendingMount>* FilesystemDetector::pending_mounts_;
 
 void FilesystemDetector::init() {
     device_count_ = 0;
-    pending_mounts_ = new Vector<PendingMount>();
 }
 
 void FilesystemDetector::register_all_drivers() {
@@ -178,11 +176,8 @@ VfsNode* FilesystemDetector::mount_filesystem(const BlkDeviceDescriptor* blk_des
 }
 
 bool FilesystemDetector::mount_device(
-    BlkDeviceDescriptor* blk_desc, const char* suggested_path, const bool is_partition,
-    const bool is_root_device
+    BlkDeviceDescriptor* blk_desc, const char* suggested_path, const bool is_partition, const bool is_root_device
 ) {
-
-
     if (!detect_filesystem(blk_desc)) {
         Log::warning("[FS] No supported filesystem detected on %s", suggested_path);
         return false;
@@ -230,6 +225,8 @@ void FilesystemDetector::scan_and_mount_all() {
     int successful_mounts = 0;
     static bool root_assigned = false;
 
+    auto pending_mounts = Vector<PendingMount>{};
+
     for (usize i = 0; i < devices.size(); ++i) {
         const KernelDevice* kd = devices[i];
         BlockDevice* blk = kd->block;
@@ -243,30 +240,23 @@ void FilesystemDetector::scan_and_mount_all() {
 
         if (blk->type == BlockDevice::Type::Disk && kd->children.empty()) {
             char mount_path[64];
-            if (!root_assigned) {
-                snprintf(mount_path, sizeof(mount_path), "/");
-                if (mount_device(&desc, mount_path, false, true)) {
-                    root_assigned = true;
+
+            snprintf(mount_path, sizeof(mount_path), "/mnt/dev%d", i);
+            if (root_assigned) {
+                VFS::ensure_path_exists(mount_path);
+                if (mount_device(&desc, mount_path, false, false)) {
                     successful_mounts++;
+                } else {
+                    VFS::rmdir(mount_path);
                 }
             } else {
-                snprintf(mount_path, sizeof(mount_path), "/mnt/dev%d", i);
-                if (root_assigned) {
-                    VFS::ensure_path_exists(mount_path);
-                    if (mount_device(&desc, mount_path, false, false)) {
-                        successful_mounts++;
-                    } else {
-                        VFS::rmdir(mount_path);
-                    }
-                } else {
-                    // remember
-                    PendingMount pm{};
-                    strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
-                    pm.desc = &desc;
-                    pm.is_partition = false;
-                    pm.table_type = nullptr;
-                    pending_mounts_->push_back(pm);
-                }
+                // remember
+                auto pm = PendingMount{};
+                strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
+                pm.desc = desc;
+                pm.is_partition = false;
+                pm.table_type = nullptr;
+                pending_mounts.push_back(pm);
             }
         } else if (kd->block->type == BlockDevice::Type::Partition) {
             {
@@ -305,12 +295,12 @@ void FilesystemDetector::scan_and_mount_all() {
                         else
                             VFS::rmdir(mount_path);
                     } else {
-                        PendingMount pm{};
+                        auto pm = PendingMount{};
                         strncpy(pm.path, mount_path, sizeof(pm.path) - 1);
-                        pm.desc = &desc;
+                        pm.desc = desc;
                         pm.is_partition = true;
                         pm.table_type = nullptr;
-                        pending_mounts_->push_back(pm);
+                        pending_mounts.push_back(pm);
                     }
                 }
             }
@@ -318,14 +308,14 @@ void FilesystemDetector::scan_and_mount_all() {
     }
 
     if (root_assigned) {
-        for (const auto& pm : *pending_mounts_) {
+        for (auto& pm : pending_mounts) {
             VFS::ensure_path_exists(pm.path);
-            if (mount_device(pm.desc, pm.path, pm.is_partition, false))
+            if (mount_device(&pm.desc, pm.path, pm.is_partition, false))
                 successful_mounts++;
             else
                 VFS::rmdir(pm.path);
         }
-        pending_mounts_->clear();
+        pending_mounts.clear();
 
         for (const MountPoint* mp : VFS::get_mount_points_snapshot()) {
             if (mp->is_virtual) VFS::mkdir(mp->path);

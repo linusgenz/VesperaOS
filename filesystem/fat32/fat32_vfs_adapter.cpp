@@ -78,6 +78,7 @@ static isize fat32_write(VfsNode* node, const usize offset, const usize size, co
 }
 
 static VfsNode* fat32_find(VfsNode* node, const char* name) {
+    if (!node) return nullptr;
     auto* dir = static_cast<Fat32Node*>(node->internal_data);
     if (!dir || !dir->is_dir) return nullptr;
 
@@ -133,6 +134,7 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
 }
 
 void* fat32_opendir(const VfsNode* dir) {
+    if (!dir) return nullptr;
     const auto* fat_node = static_cast<Fat32Node*>(dir->internal_data);
     auto* handle = new Fat32DirHandle();
     handle->entries = fat_node->fs->read_directory(fat_node->cluster, handle->count);
@@ -290,12 +292,16 @@ static VfsNodeOps fat32_ops = {
 VfsNode* wrap_fat32_root(FileSystem* fs) {
     if (!fs) return nullptr;
 
+    const u64 usable_clusters = fs->cluster_count - 2;
+    const u64 total_fs_size = usable_clusters * fs->bytes_per_cluster();
+
     auto* root = static_cast<Fat32Node*>(kernel::memory::malloc(sizeof(Fat32Node)));
     root->fs = fs;
     root->is_dir = true;
     root->path[0] = '/';
     root->path[1] = '\0';
     root->cluster = fs->get_root_cluster();
+    root->file_size = total_fs_size;
 
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
     node->name = "/";
@@ -304,6 +310,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
     node->internal_data = root;
     node->permanent = true;
     node->ops = &fat32_ops;
+    node->size = total_fs_size;
 
     return node;
 }

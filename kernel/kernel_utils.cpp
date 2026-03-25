@@ -148,7 +148,6 @@ static void initialize_scheduling_and_smp() {
     prepare_ap_trampoline();
     cpu_manager::smp_init();
 
-    // Threading now available - upgrade log to use mutex
     Log::init();
 }
 

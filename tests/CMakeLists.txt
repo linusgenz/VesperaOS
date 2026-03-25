@@ -44,5 +44,6 @@ enable_testing()
 # =============================================================================
 
 add_subdirectory(fat32)
+add_subdirectory(ext4)
 add_subdirectory(heap)
 add_subdirectory(vector)

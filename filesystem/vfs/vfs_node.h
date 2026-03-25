@@ -80,7 +80,7 @@ struct VfsNode {
     usize size;  // size of the file is equal to fileSize field in internal_data
     const MountPoint* mount = nullptr;
     void *internal_data;
-    VfsNodeOps *ops;
+    const VfsNodeOps *ops;
     VfsNodeType type;
     bool permanent;
 };
