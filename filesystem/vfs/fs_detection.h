@@ -26,6 +26,7 @@
 
 #include <klib/vector.h>
 #include <vespera/devices/block.h>
+#include <vespera/devices/kernel_device.h>
 
 #include "vfs_node.h"
 
@@ -41,6 +42,7 @@ struct FilesystemInfo {
 
 struct BlkDeviceDescriptor {
     BlockDevice *device;
+    u8 device_id;
     usize device_size;
     FilesystemInfo fs_info;
     bool is_recognized;
@@ -53,7 +55,7 @@ class FilesystemDetector {
 
     static void register_all_drivers();
 
-    static bool detect_filesystem(BlockDevice *device, FilesystemInfo *info);
+    static bool detect_filesystem(BlkDeviceDescriptor* blk_desc);
 
     static void scan_and_mount_all();
 
@@ -65,7 +67,7 @@ class FilesystemDetector {
 
     static void print_detected_filesystems();
 
-    static i64 mount_manual(BlockDevice *device, const char *target, const char *fstype, u64 flags);
+    static i64 mount_manual(const KernelDevice *device, const char *target, const char *fstype, u64 flags);
 
    private:
     static Vector<PendingMount> *pending_mounts_;
@@ -73,10 +75,10 @@ class FilesystemDetector {
     static usize driver_count_;
     static usize device_count_;
 
-    static VfsNode *mount_filesystem(BlockDevice *device, const FilesystemInfo *fs_info);
+    static VfsNode *mount_filesystem(const BlkDeviceDescriptor * blk_desc);
 
     static bool mount_device(
-        BlockDevice *device, const char *suggested_path, bool is_partition, const char *table_type, bool is_root_device
+        BlkDeviceDescriptor *blk_desc, const char *suggested_path, bool is_partition, bool is_root_device
     );
 };
 

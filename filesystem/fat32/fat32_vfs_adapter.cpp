@@ -230,7 +230,7 @@ static int fat32_stat(const VfsNode* node, vespera_stat_t* out) {
         out->blocks = clusters_used * sectors_per_cluster;
     }
 
-    out->dev_id = fnode->fs->get_device_id();
+    out->dev_id = node->mount->device->device_id;
 
     return 0;
 }
@@ -320,10 +320,10 @@ int fat32_probe(BlockDevice* dev, FilesystemInfo* fs_info) {
 
 VfsNode* fat32_mount(BlockDevice* dev) {
     auto* fs = new FileSystem(dev);
-    if (!fs->is_valid()) return nullptr;
-
-    auto devices = DeviceManager::query([dev](const KernelDevice* kd) { return kd->block == dev; });
-    if (!devices.empty()) fs->set_device_id(devices[0]->id);
+    if (!fs->is_valid()) {
+        delete fs;
+        return nullptr;
+    };
 
     return wrap_fat32_root(fs);
 }

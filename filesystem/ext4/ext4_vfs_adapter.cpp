@@ -23,18 +23,20 @@
 
 #include "ext4_vfs_adapter.h"
 
+#include <klib/string.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/devices/kernel_device.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
+
 #include "../vfs/fs_registry.h"
 #include "../vfs/vfs_node.h"
 #include "ext4.h"
-#include <klib/string.h>
-#include <vespera/log.h>
-#include <vespera/mm/memory.h>
 
 using namespace ext4;
 
 int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info)
 {
-    return 0;
     FileSystem fs(dev);
 
     usize len = 16;
@@ -142,7 +144,7 @@ static void ext_volume_name(const VfsNode* node, char* out, int out_size)
 
 static VfsNodeOps ext4_ops = {
     .read = nullptr,
-    .write = nullptr, // TODO
+    .write = nullptr,
     .find = ext4_find,
     .close = nullptr,
     .opendir = ext4_opendir,
@@ -194,13 +196,13 @@ bool ext4_unmount(VfsNode* node)
 
 VfsNode* ext4_mount(BlockDevice* dev)
 {
-    return nullptr;
     auto* fs = new FileSystem(dev);
     if (!fs->is_valid())
     {
         delete fs;
         return nullptr;
     }
+
     return wrap_ext4_root(fs);
 }
 

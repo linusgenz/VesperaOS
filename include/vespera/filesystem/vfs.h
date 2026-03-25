@@ -54,8 +54,7 @@ struct MountPoint
 struct PendingMount
 {
     char path[64];
-    BlockDevice* device;
-    usize device_size;
+    BlkDeviceDescriptor* desc;
     bool is_partition;
     const char* table_type;
 };
@@ -107,13 +106,13 @@ public:
     static int unlink(const char* path);
     static int truncate(VfsNode* node, usize new_size);
 
-    static bool probe_filesystem(BlockDevice* device);
+   // static bool probe_filesystem(BlockDevice* device);
 
     static void list_devices();
 
     static void remount_all();
 
-    static void get_stats(VfsStats* stats);
+    //static void get_stats(VfsStats* stats);
 
     static void add_mount_point(MountPoint* mp);
 

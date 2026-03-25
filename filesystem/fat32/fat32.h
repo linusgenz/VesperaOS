@@ -223,14 +223,10 @@ namespace fat32 {
             device_lost_ = true;
         }
 
-        void set_device_id(u32 id) { device_id_ = id; }
-        u32  get_device_id() const  { return device_id_; }
-
         //   private:
         BlockDevice* device;
         BPB_FAT32 bpb{};
         bool fs_valid;
-        u32 device_id_ = 0;
 
         bool device_lost_ = false;
 

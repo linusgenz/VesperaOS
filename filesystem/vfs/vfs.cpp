@@ -296,11 +296,11 @@ int VFS::truncate(VfsNode* node, const usize new_size) {
 
     return node->ops->truncate(node, new_size);
 }
-
+/*
 bool VFS::probe_filesystem(BlockDevice* device) {
     FilesystemInfo info{};
     return FilesystemDetector::detect_filesystem(device, &info);
-}
+}*/
 
 void VFS::list_devices() {
     FilesystemDetector::print_detected_filesystems();
@@ -313,7 +313,7 @@ void VFS::remount_all() {
     FilesystemDetector::scan_and_mount_all();
     FilesystemDetector::print_detected_filesystems();
 }
-
+/*
 void VFS::get_stats(VfsStats* stats) {
     if (!stats) return;
 
@@ -334,7 +334,7 @@ void VFS::get_stats(VfsStats* stats) {
     // For now, just count the registered drivers
     stats->supported_filesystems = 1;  // FAT32 is always supported
     // TODO: Add count of other registered drivers when implemented
-}
+}*/
 
 void VFS::add_mount_point(MountPoint* mp) {
     SpinlockGuard g(mount_points_lock_);

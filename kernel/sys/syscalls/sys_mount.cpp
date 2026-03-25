@@ -27,7 +27,7 @@
 #include "../../../filesystem/vfs/fs_registry.h"
 #include "../../units/unit.h"
 
-static BlockDevice* find_block_device_by_name(const char* name) {
+static KernelDevice* find_block_device_by_name(const char* name) {
     auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
 
     // normalize path
@@ -41,7 +41,7 @@ static BlockDevice* find_block_device_by_name(const char* name) {
     for (auto* kd : devices) {
         if (!kd || !kd->name) continue;
 
-        if (strcmp(kd->name, name) == 0) return kd->block;
+        if (strcmp(kd->name, name) == 0) return kd;
     }
 
     return nullptr;
@@ -66,19 +66,19 @@ namespace syscalls::internal {
             return 0;
         }
 
-        BlockDevice* device = nullptr;
+        KernelDevice* kd = nullptr;
 
-        if (source) {
-            device = find_block_device_by_name(source);
-            if (!device) return -ENODEV;
-        }
+        if (!source) return -EINVAL;
+
+        kd = find_block_device_by_name(source);
+        if (!kd) return -ENODEV;
 
         for (const auto& mp : VFS::get_mount_points_snapshot()) {
-            if (mp->device && mp->device->device == device) {
+            if (mp->device && mp->device->device == kd->block) {
                 return -EBUSY;
             }
         }
 
-        return FilesystemDetector::mount_manual(device, target, fstype ? fstype : nullptr, flags);
+        return FilesystemDetector::mount_manual(kd, target, fstype ? fstype : nullptr, flags);
     }
 }  // namespace syscalls::internal
