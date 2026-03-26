@@ -22,12 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handels.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include <vespera/filesystem/vfs.h>
 #include "../../../include/vespera/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
+#include "vespera/log.h"
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -58,8 +59,8 @@ namespace syscalls::internal {
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 const auto *vh = static_cast<VfsHandle *>(he->resource);
-                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
-                const isize bytes = vh->node->ops->read(vh->node, vh->context->position, count, buf);
+                if (!vh) return -EBADH;
+                const isize bytes = VFS::read(vh->node, vh->context->position, count, buf);
                 if (bytes > 0) {
                     vh->context->position += bytes;
                 }

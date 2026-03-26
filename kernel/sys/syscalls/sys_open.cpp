@@ -119,12 +119,10 @@ namespace syscalls::internal {
 
             case VfsNodeType::File:
                 if (flags & O_TRUNC) {
-                    if (node->ops && node->ops->truncate) {
                         if (const int r = VFS::truncate(node, 0); r < 0) {
                             VFS::close(node);
                             return r;
                         }
-                    }
                 }
 
                 vh = new VfsHandle(node, flags, required_caps);
@@ -136,19 +134,15 @@ namespace syscalls::internal {
                 break;
 
             case VfsNodeType::Directory: {
-                if (!node->ops || !node->ops->opendir) {
+                VfsDir* dir_handle = nullptr;
+                if (const int ret = VFS::opendir(node, &dir_handle); ret < 0) {
                     VFS::close(node);
-                    return -ENOTDIR;
-                }
-                void* dir_handle = node->ops->opendir(node);
-                if (!dir_handle) {
-                    VFS::close(node);
-                    return -ENOMEM;
+                    return ret;
                 }
 
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
-                    node->ops->closedir(dir_handle);
+                    VFS::closedir(dir_handle);
                     VFS::close(node);
                     return -ENOMEM;
                 }

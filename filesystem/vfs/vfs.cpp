@@ -20,11 +20,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#include <vespera/filesystem/vfs.h>
-
 #include <klib/path.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
@@ -92,6 +91,7 @@ VfsNode* VFS::open(const char* path) {
     const char* sub_path = path + best_len;
     if (*sub_path == '/') sub_path++;
 
+    Log::debug("bm: %p, bmr: %p, bmro: %p, bmrof: %p", best_match, best_match->root, best_match->root->ops, best_match->root->ops->find);
     if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
 
     VfsNode* current = best_match->root;
@@ -108,25 +108,28 @@ VfsNode* VFS::open(const char* path) {
     return current;
 }
 
-VfsDir* VFS::opendir(const char* path) {
-    VfsNode* node = open(path);
-    if (!node || node->type != VfsNodeType::Directory) return nullptr;
-    if (!node->ops || !node->ops->opendir) return nullptr;
+int VFS::opendir(VfsNode* node, VfsDir** out_dir) {
+    if (!node) return -EINVAL;
+
+    if (node->type != VfsNodeType::Directory) return -ENOTDIR;
+
+    if (!node->ops || !node->ops->opendir) return -ENOSYS;
 
     void* handle = node->ops->opendir(node);
-    if (!handle) {
-        close(node);
-        return nullptr;
-    }
+    if (!handle) return -EIO;
 
     auto* dir = static_cast<VfsDir*>(kernel::memory::malloc(sizeof(VfsDir)));
+    if (!dir) return -ENOMEM;
+
     dir->node = node;
     dir->handle = handle;
-    return dir;
+
+    *out_dir = dir;
+    return 0;
 }
 
 int VFS::readdir(const VfsDir* dir, dirent_t* out) {
-    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return 0;
+    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return -ENOSYS;
     return dir->node->ops->readdir(dir->handle, out);
 }
 
@@ -144,8 +147,8 @@ void VFS::closedir(VfsDir* dir) {
     kernel::memory::free(dir);
 }
 
-usize VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
-    if (!node || !node->ops || !node->ops->read) return 0;
+isize VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
+    if (!node || !node->ops || !node->ops->read) return -ENOSYS;
     return node->ops->read(node, offset, size, buffer);
 }
 
@@ -155,7 +158,8 @@ static bool is_read_only(const VfsNode* node) {
 }
 
 isize VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    if (!node || !node->ops || !node->ops->write) return 0;
+    Log::debug("n: %p, %p %p", node, node->ops, node->ops->write);
+    if (!node || !node->ops || !node->ops->write) return -ENOSYS;
 
     if (is_read_only(node)) {
         return -EROFS;
@@ -290,6 +294,10 @@ int VFS::unlink(const char* path) {
 }
 
 int VFS::truncate(VfsNode* node, const usize new_size) {
+    if (!node ||!node->ops || !node->ops->truncate) {
+        return -ENOSYS;
+    }
+
     if (is_read_only(node)) {
         return -EROFS;
     }

@@ -3,6 +3,7 @@
 add_executable(ext4_tests
         ${PROJECT_ROOT}/filesystem/ext4/ext4.cpp
         ${PROJECT_ROOT}/filesystem/ext4/ext4_vfs_adapter.cpp
+        ${PROJECT_ROOT}/filesystem/ext4/ext4_time.cpp
         ext4_tests_main.cpp
 )
 target_link_libraries(ext4_tests PRIVATE kernel_stubs)

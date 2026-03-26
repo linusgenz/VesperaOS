@@ -117,7 +117,7 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
             child_data->cluster = entries[i].get_first_cluster();
 
             auto* child = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
-            child->name = entries[i].get_name();
+            child->name = strdup(entries[i].get_name());
             child->type = child_data->is_dir ? VfsNodeType::Directory : VfsNodeType::File;
             child->mount = node->mount;
             child->internal_data = child_data;
@@ -184,6 +184,7 @@ static void fat32_close(VfsNode* node) {
         kernel::memory::free(data);
     }
 
+    kernel::memory::free(const_cast<char*>(node->name));
     kernel::memory::free(node);
 }
 
@@ -296,6 +297,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
     const u64 total_fs_size = usable_clusters * fs->bytes_per_cluster();
 
     auto* root = static_cast<Fat32Node*>(kernel::memory::malloc(sizeof(Fat32Node)));
+    if (!root) return nullptr;
     root->fs = fs;
     root->is_dir = true;
     root->path[0] = '/';
@@ -304,6 +306,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
     root->file_size = total_fs_size;
 
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+    if (!node) return nullptr;
     node->name = "/";
     node->mount = nullptr;
     node->type = VfsNodeType::Directory;
@@ -332,7 +335,13 @@ VfsNode* fat32_mount(BlockDevice* dev) {
         return nullptr;
     };
 
-    return wrap_fat32_root(fs);
+    VfsNode* root = wrap_fat32_root(fs);
+    if (!root) {
+        delete fs;
+        return nullptr;
+    }
+
+    return root;
 }
 
 bool fat32_unmount(VfsNode* root) {

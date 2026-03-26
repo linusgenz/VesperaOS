@@ -57,7 +57,7 @@ public:
 
     ssize_t write(u64 lba,
                   size_t sectorCount,
-                  void* buffer,
+                  const void* buffer,
                   size_t bufferSize) override
     {
         size_t len = sectorCount * SECTOR_SIZE;

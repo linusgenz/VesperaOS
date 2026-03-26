@@ -678,7 +678,7 @@ namespace ahci {
         return static_cast<isize>(bytes);
     }
 
-    isize Port::write(const u64 sector, const usize sector_count, void* buffer, usize buffer_size) {
+    isize Port::write(const u64 sector, const usize sector_count, const void* buffer, usize buffer_size) {
         usize bytes = static_cast<usize>(sector_count) * sector_size;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 

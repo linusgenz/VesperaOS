@@ -33,64 +33,73 @@
 
 using namespace ext4;
 
-static VfsNode* make_vfs_node(
-    FileSystem* fs, u32 inode, bool is_dir, const char* path, const char* name, const VfsNodeOps* ops
-) {
-    auto* data = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
-    if (!data) return nullptr;
-
-    data->fs = fs;
-    data->inode = inode;
-    data->is_dir = is_dir;
-    data->file_size = 0;  // TODO: populate via inode_get_size()
-    data->entries = nullptr;
-    data->entry_count = 0;
-    data->current_index = 0;
-    snprintf(data->path, sizeof(data->path), "%s", path);
-
-    auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
-    if (!node) {
-        kernel::memory::free(data);
-        return nullptr;
-    }
-
-    node->name = name;
-    node->type = is_dir ? VfsNodeType::Directory : VfsNodeType::File;
-    node->mount = nullptr;
-    node->internal_data = data;
-    node->permanent = false;
-    node->ops = ops;
-
-    return node;
-}
-
 static VfsNode* ext4_find(VfsNode* node, const char* name) {
     if (!node) return nullptr;
-    const auto* dir = static_cast<Ext4Node*>(node->internal_data);
+
+    auto* dir = static_cast<Ext4Node*>(node->internal_data);
     if (!dir || !dir->is_dir) return nullptr;
 
     usize entry_count = 0;
     FileEntry* entries = dir->fs->read_directory(dir->inode, entry_count);
     if (!entries) return nullptr;
 
-    VfsNode* result = nullptr;
-
     for (usize i = 0; i < entry_count; ++i) {
         if (strcmp(entries[i].get_name(), name) != 0) continue;
 
-        // Build the full path for the child.
-        char child_path[512];
-        const bool root = (dir->path[0] == '/' && dir->path[1] == '\0');
-        snprintf(child_path, sizeof(child_path), "%s%s%s", dir->path, root ? "" : "/", name);
+        auto* child_data = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
+        if (!child_data) {
+            kernel::memory::free(entries);
+            return nullptr;
+        }
 
-        result = make_vfs_node(
-            dir->fs, entries[i].get_inode(), entries[i].is_dir(), child_path, entries[i].get_name(), node->ops
-        );
-        break;
+        child_data->fs = dir->fs;
+        child_data->inode = entries[i].get_inode();
+        child_data->is_dir = entries[i].is_dir();
+        child_data->file_size = entries[i].get_size();
+        child_data->entries = nullptr;
+        child_data->entry_count = 0;
+        child_data->current_index = 0;
+
+        const bool root = (dir->path[0] == '/' && dir->path[1] == '\0');
+        snprintf(child_data->path, sizeof(child_data->path), "%s%s%s",
+                 dir->path, root ? "" : "/", name);
+
+        auto* child_node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+        if (!child_node) {
+            kernel::memory::free(child_data);
+            kernel::memory::free(entries);
+            return nullptr;
+        }
+
+        child_node->name = strdup(entries[i].get_name());
+        child_node->type = child_data->is_dir ? VfsNodeType::Directory : VfsNodeType::File;
+        child_node->mount = node->mount;
+        child_node->internal_data = child_data;
+        child_node->ops = node->ops;
+        child_node->size = entries[i].get_size();
+
+        kernel::memory::free(entries);
+        return child_node;
     }
 
     kernel::memory::free(entries);
-    return result;
+    return nullptr;
+}
+
+static isize ext4_read(const VfsNode* node, usize offset, usize size, void* buf) {
+    if (!node) return -1;
+    const auto* en = static_cast<Ext4Node*>(node->internal_data);
+    if (!en || en->is_dir) return -1;
+
+    return en->fs->read_file(en->inode, offset, size, buf);
+}
+
+static isize ext4_write(VfsNode* node, usize offset, usize size, const void* buf) {
+    if (!node) return -1;
+    const auto* en = static_cast<Ext4Node*>(node->internal_data);
+    if (!en || en->is_dir) return -1;
+
+    return en->fs->write_file(en->inode, offset, size, buf);
 }
 
 static void* ext4_opendir(const VfsNode* node) {
@@ -102,9 +111,7 @@ static void* ext4_opendir(const VfsNode* node) {
     FileEntry* entries = dir->fs->read_directory(dir->inode, count);
     if (!entries) return nullptr;
 
-    Log::debug("[ext4] opendir: %zu entries in inode=%u", count, dir->inode);
-
-    auto* handle = static_cast<Ext4DirHandle*>(kernel::memory::malloc(sizeof(Ext4DirHandle)));
+    auto* handle = new Ext4DirHandle();
     if (!handle) {
         kernel::memory::free(entries);
         return nullptr;
@@ -133,14 +140,25 @@ static void ext4_closedir(void* dir_handle) {
     if (!h) return;
 
     kernel::memory::free(h->entries);
-    kernel::memory::free(h);
+    delete h;
+}
+
+static void ext4_close(VfsNode* node) {
+    if (!node) return;
+
+    if (auto* data = static_cast<Ext4Node*>(node->internal_data)) {
+        kernel::memory::free(data);
+    }
+
+    kernel::memory::free(const_cast<char*>(node->name));
+    kernel::memory::free(node);
 }
 
 static VfsNodeOps ext4_ops = {
-    .read = nullptr,
-    .write = nullptr,
+    .read = ext4_read,
+    .write = ext4_write,
     .find = ext4_find,
-    .close = nullptr,
+    .close = ext4_close,
     .opendir = ext4_opendir,
     .readdir = ext4_readdir,
     .closedir = ext4_closedir,
@@ -154,6 +172,42 @@ static VfsNodeOps ext4_ops = {
     .truncate = nullptr,
     .poll = nullptr,
 };
+
+static VfsNode* wrap_ext4_root(FileSystem* fs) {
+    if (!fs) return nullptr;
+
+    const u32 block_size = fs->get_block_size();
+    const u64 total_fs_size = static_cast<u64>(fs->get_superblock()->s_blocks_count_lo) * block_size;
+
+
+    auto* root_data = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
+    if (!root_data) return nullptr;
+
+    root_data->fs = fs;
+    root_data->inode = EXT4_ROOT_INODE;
+    root_data->is_dir = true;
+    root_data->file_size = total_fs_size;
+    root_data->entries = nullptr;
+    root_data->entry_count = 0;
+    root_data->current_index = 0;
+    snprintf(root_data->path, sizeof(root_data->path), "/");
+
+    auto* root_node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+    if (!root_node) {
+        kernel::memory::free(root_data);
+        return nullptr;
+    }
+
+    root_node->name = "/";
+    root_node->type = VfsNodeType::Directory;
+    root_node->mount = nullptr;
+    root_node->internal_data = root_data;
+    root_node->size = total_fs_size;
+    root_node->permanent = true;
+    root_node->ops = &ext4_ops;
+
+    return root_node;
+}
 
 static int ext4_probe(BlockDevice* dev, FilesystemInfo* fs_info) {
     FileSystem fs(dev);
@@ -171,13 +225,12 @@ static VfsNode* ext4_mount(BlockDevice* dev) {
         return nullptr;
     }
 
-    VfsNode* root = make_vfs_node(fs, EXT4_ROOT_INODE, true, "/", "/", &ext4_ops);
+    VfsNode* root = wrap_ext4_root(fs);
     if (!root) {
         delete fs;
         return nullptr;
     }
 
-    root->permanent = true;
     return root;
 }
 

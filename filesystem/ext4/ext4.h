@@ -34,9 +34,12 @@ namespace ext4 {
     constexpr u32 EXT4_ROOT_INODE = 2;
     constexpr u32 EXT4_FIRST_INODE = 11;
     constexpr u32 EXT4_MAX_DIR_ENTRIES = 256;
-
     constexpr u32 SUPERBLOCK_OFFSET = 1024;
     constexpr u32 DEFAULT_INODE_SIZE = 128;
+
+    // The i_block area is 60 bytes: 12 bytes for the ExtentHeader leave room for
+    // (60 - 12) / 12 = 4 Extent entries at depth 0.
+    constexpr u16 EXT4_MAX_INLINE_EXTENTS = 4;
 
     enum class InodeType : u16 {
         Unknown = 0x0000,
@@ -195,11 +198,11 @@ namespace ext4 {
             name_[len] = '\0';
         }
 
-        void set_inode(u32 inode) {
+        void set_inode(const u32 inode) {
             inode_ = inode;
         }
 
-        void set_type(DirEntryType type) {
+        void set_type(const DirEntryType type) {
             type_ = type;
         }
 
@@ -220,8 +223,16 @@ namespace ext4 {
             return type_ == DirEntryType::Directory;
         }
 
+        void set_size(u64 sz) {
+            size_ = sz;
+        }
+        [[nodiscard]] u64 get_size() const {
+            return size_;
+        }
+
        private:
         char name_[256] = {};
+        usize size_ = 0;
         u32 inode_ = 0;
         DirEntryType type_ = DirEntryType::Unknown;
     };
@@ -239,9 +250,15 @@ namespace ext4 {
             return &superblock_;
         }
 
+        [[nodiscard]] u32 get_block_size() const {
+            return 1024u << superblock_.s_log_block_size;
+        }
+
         // Returns a heap-allocated array of up to EXT4_MAX_DIR_ENTRIES entries.
         // The caller is responsible for freeing the array with kernel::memory::free().
         FileEntry* read_directory(u32 inode_number, usize& out_count) const;
+        i64 read_file(u32 inode_number, u64 offset, usize size, void* buf) const;
+        i64 write_file(u32 inode_number, u64 offset, usize size, const void* buf);
 
        private:
         BlockDevice* device_;
@@ -249,12 +266,13 @@ namespace ext4 {
         u32 sector_size_;
         bool valid_;
 
-        [[nodiscard]] u32 get_block_size() const {
-            return 1024u << superblock_.s_log_block_size;
-        }
-
         [[nodiscard]] static u64 inode_get_size(const Inode& inode) {
             return (static_cast<u64>(inode.i_size_high) << 32) | inode.i_size_lo;
+        }
+
+        static void inode_set_size(Inode& inode, u64 size) {
+            inode.i_size_lo = static_cast<u32>(size & 0xFFFFFFFFu);
+            inode.i_size_high = static_cast<u32>(size >> 32);
         }
 
         [[nodiscard]] static InodeType inode_get_type(const Inode& inode) {
@@ -262,12 +280,19 @@ namespace ext4 {
         }
 
         bool read_superblock();
+        bool write_superblock() const;
         bool read_block(u64 block, void* out_buf, u32 buf_size) const;
+        bool write_block(u64 block, const void* buf, u32 buf_size) const;
         bool read_group_desc(u32 group, GroupDesc& out_gd) const;
+        bool write_group_desc(u32 group, const GroupDesc& gd) const;
+        u64 inode_disk_offset(u32 inode_no, u32& out_inode_size) const;
         bool read_inode(u32 inode_no, Inode& out_inode) const;
+        bool write_inode(u32 inode_no, const Inode& inode) const;
 
         static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
         bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;
+        u64 alloc_block(u64 near_block);
+        bool extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block);
     };
 }  // namespace ext4
 

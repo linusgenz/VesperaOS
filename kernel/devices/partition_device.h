@@ -35,7 +35,7 @@ class PartitionDevice final : public BlockDevice {
     ~PartitionDevice() override = default;
 
     isize read(u64 lba, usize count, void* buf, usize buf_size) override;
-    isize write(u64 lba, usize count, void* buf, usize buf_size) override;
+    isize write(u64 lba, usize count, const void* buf, usize buf_size) override;
     [[nodiscard]] usize get_sector_size() const override {
         return sector_size_;
     };

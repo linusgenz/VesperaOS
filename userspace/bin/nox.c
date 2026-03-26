@@ -577,6 +577,14 @@ void shell_main(int argc, char** argv) {
         "commands\033[0m\n\n"
     );
 
+    HANDLE hdl = open("/mnt/dev0/hello.txt", O_WRONLY);
+    if (hdl < 0) {
+        printf("Cannot open: %s", strerror(hdl));
+    }
+    ssize_t n = write(hdl, "Hello from write io", 20);
+    if (hdl < 0) {
+        printf("Cannot write: %s", strerror(n));
+    }
     while (1) {
         char prompt_str[256];
         build_prompt(prompt_str, sizeof(prompt_str));

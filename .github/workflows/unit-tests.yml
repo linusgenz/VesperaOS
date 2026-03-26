@@ -20,7 +20,7 @@ jobs:
       - name: Install build deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++ dosfstools
+          sudo apt-get install -y cmake ninja-build g++ dosfstools e2fsprogs
 
       - name: Create FAT32 test image
         run: |

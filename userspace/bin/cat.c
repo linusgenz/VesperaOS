@@ -37,32 +37,26 @@ static void usage(void) {
 }
 
 static int cat_file(const char* path) {
-    FILE_HANDLE fd = open(path, O_RDONLY);
-    if (fd < 0) {
-        if (fd == -ENOENT)
-            printf("cat: %s: No such file or directory\n", path);
-        else if (fd == -EISDIR)
-            printf("cat: %s: Is a directory\n", path);
-        else
-            printf("cat: %s: Cannot open file (error %ld)\n", path, fd);
+    FILE_HANDLE hdl = open(path, O_RDONLY);
+    if (hdl < 0) {
+        printf("cat: Cannot open file: %s", strerror(hdl));
         return 1;
     }
 
     char buffer[BUFSIZ];
     ssize_t bytes_read;
-
-    while ((bytes_read = read(fd, buffer, sizeof(buffer) - 1)) > 0) {
+    while ((bytes_read = read(hdl, buffer, sizeof(buffer) - 1)) > 0) {
         buffer[bytes_read] = '\0';
         printf("%s", buffer);
     }
 
     if (bytes_read < 0) {
-        printf("cat: %s: Error reading file\n", path);
-        close(fd);
+        printf("cat: Cannot read file %s: %s\n", path, strerror(bytes_read));
+        close(hdl);
         return 1;
     }
 
-    close(fd);
+    close(hdl);
     return 0;
 }
 

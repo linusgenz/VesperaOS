@@ -660,7 +660,7 @@ namespace nvme {
         return static_cast<isize>(bytes);
     }
 
-    isize NvmeNamespace::write(u64 lba, usize sector_count, void* buffer, usize buffer_size) {
+    isize NvmeNamespace::write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) {
         usize bytes = sector_count * sector_size_;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 

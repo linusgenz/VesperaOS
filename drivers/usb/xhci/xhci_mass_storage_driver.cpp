@@ -319,7 +319,7 @@ isize XhciMassStorageDriver::read(u64 lba, usize sector_count, void* buffer, usi
     return result;
 }
 
-isize XhciMassStorageDriver::write(u64 lba, usize sector_count, void* buffer, usize buffer_size) {
+isize XhciMassStorageDriver::write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) {
     usize bytes = sector_count * sector_size_;
     if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 

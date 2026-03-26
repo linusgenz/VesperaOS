@@ -32,7 +32,7 @@ struct VfsHandleContext {
     u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR
     usize position; // used for offset
     capability_set required_caps;
-    void *type_specific_data;
+    VfsDir *type_specific_data;
 };
 
 struct VfsHandle {

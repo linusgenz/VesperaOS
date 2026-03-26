@@ -91,7 +91,7 @@ namespace nvme {
         KernelDevice* kd{};
 
         isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
-        isize write(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
+        isize write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) override;
 
         [[nodiscard]] usize get_size() const override {
             return sector_size_ * ncap_;

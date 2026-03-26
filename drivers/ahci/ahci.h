@@ -240,7 +240,7 @@ namespace ahci {
 
         isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
 
-        isize write(u64 sector, usize sector_count, void* buffer, usize buffer_size) override;
+        isize write(u64 sector, usize sector_count, const void* buffer, usize buffer_size) override;
 
         [[nodiscard]] usize get_sector_size() const override;
         bool smart_read_data(u8* out_buf) override;

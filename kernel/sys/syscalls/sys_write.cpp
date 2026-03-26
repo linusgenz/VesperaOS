@@ -61,7 +61,7 @@ namespace syscalls::internal {
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 const auto *vh = static_cast<VfsHandle *>(he->resource);
-                if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->read) return -EBADH;
+                if (!vh) return -EBADH;
                 const isize bytes = VFS::write(vh->node, vh->context->position, count, buf);
                 if (bytes > 0) {
                     vh->context->position += bytes;

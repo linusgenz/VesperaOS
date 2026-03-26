@@ -42,7 +42,7 @@ isize PartitionDevice::read(const u64 lba, const usize count, void* buf, const u
     return ret;
 }
 
-isize PartitionDevice::write(const u64 lba, const usize count, void* buf, const usize buf_size) {
+isize PartitionDevice::write(const u64 lba, const usize count, const void* buf, const usize buf_size) {
     if (!parent_ || !buf) return -EINVAL;
     if (lba + count > length_lba_) return -EINVAL;
 
