@@ -91,7 +91,6 @@ VfsNode* VFS::open(const char* path) {
     const char* sub_path = path + best_len;
     if (*sub_path == '/') sub_path++;
 
-    Log::debug("bm: %p, bmr: %p, bmro: %p, bmrof: %p", best_match, best_match->root, best_match->root->ops, best_match->root->ops->find);
     if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
 
     VfsNode* current = best_match->root;
@@ -118,7 +117,7 @@ int VFS::opendir(VfsNode* node, VfsDir** out_dir) {
     void* handle = node->ops->opendir(node);
     if (!handle) return -EIO;
 
-    auto* dir = static_cast<VfsDir*>(kernel::memory::malloc(sizeof(VfsDir)));
+    auto* dir = new VfsDir();
     if (!dir) return -ENOMEM;
 
     dir->node = node;
@@ -143,8 +142,7 @@ void VFS::closedir(VfsDir* dir) {
     if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) {
         dir->node->ops->closedir(dir->handle);
     }
-    if (dir->node) close(dir->node);
-    kernel::memory::free(dir);
+    delete dir;
 }
 
 isize VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
@@ -158,7 +156,6 @@ static bool is_read_only(const VfsNode* node) {
 }
 
 isize VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    Log::debug("n: %p, %p %p", node, node->ops, node->ops->write);
     if (!node || !node->ops || !node->ops->write) return -ENOSYS;
 
     if (is_read_only(node)) {
@@ -294,7 +291,7 @@ int VFS::unlink(const char* path) {
 }
 
 int VFS::truncate(VfsNode* node, const usize new_size) {
-    if (!node ||!node->ops || !node->ops->truncate) {
+    if (!node || !node->ops || !node->ops->truncate) {
         return -ENOSYS;
     }
 

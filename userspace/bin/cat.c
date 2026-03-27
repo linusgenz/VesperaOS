@@ -39,7 +39,7 @@ static void usage(void) {
 static int cat_file(const char* path) {
     FILE_HANDLE hdl = open(path, O_RDONLY);
     if (hdl < 0) {
-        printf("cat: Cannot open file: %s", strerror(hdl));
+        printf("cat: Cannot open file: %s\n", strerror(hdl));
         return 1;
     }
 

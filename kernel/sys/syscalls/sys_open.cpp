@@ -187,7 +187,7 @@ namespace syscalls::internal {
                 realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr, &file_handle);
             err != SUCCESS_CODE) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {
-                node->ops->closedir(vh->node->internal_data);
+                VFS::closedir(static_cast<VfsDir*>(vh->node->internal_data));
             }
             delete vh;
             return -err;

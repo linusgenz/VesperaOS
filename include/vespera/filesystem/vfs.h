@@ -35,7 +35,7 @@ struct FilesystemInfo;
 struct MountPoint
 {
     char path[64]{};
-    VfsNode* root{};
+    VfsNode* root = nullptr;
     BlkDeviceDescriptor* device{}; // null when virtual
     bool is_virtual = false;
 

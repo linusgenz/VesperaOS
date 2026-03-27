@@ -49,9 +49,8 @@ struct VfsHandle {
     ~VfsHandle() {
         if (node) {
             if (node->type == VfsNodeType::Directory &&
-                context && context->type_specific_data &&
-                node->ops && node->ops->closedir) {
-                node->ops->closedir(context->type_specific_data);
+                context && context->type_specific_data) {
+                VFS::closedir(context->type_specific_data);
                 context->type_specific_data = nullptr;
             }
 
