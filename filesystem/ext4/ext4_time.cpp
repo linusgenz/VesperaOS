@@ -22,9 +22,10 @@
 
 #include <vespera/types.h>
 #include <vespera/time.h>
+#include "ext4.h"
 
-namespace ext4 {
-    u64 rtc_to_unix_time() {
+namespace ext4::time {
+    static u64 rtc_to_unix_time() {
         u8 sec, min, hour, day, month, year;
         kernel::time::read_rtc(sec, min, hour, day, month, year);
 
@@ -49,5 +50,23 @@ namespace ext4 {
 
         u64 total_seconds = days * 86400 + hour * 3600 + min * 60 + sec;
         return total_seconds;
+    }
+
+    void update_write(Inode& inode) {
+        const u32 t = static_cast<u32>(rtc_to_unix_time());
+        inode.i_mtime = t;
+        inode.i_ctime = t;
+    }
+
+    void set_creation(Inode& inode) {
+        const u32 t = static_cast<u32>(rtc_to_unix_time());
+        inode.i_mtime = t;
+        inode.i_ctime = t;
+        inode.i_atime = t;
+        inode.i_crtime =t;
+    }
+
+    void update_access(Inode& inode) {
+        inode.i_atime = static_cast<u32>(rtc_to_unix_time());
     }
 }

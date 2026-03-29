@@ -30,23 +30,32 @@
 #include "../vfs/fs_registry.h"
 #include "../vfs/vfs_node.h"
 #include "ext4.h"
+#include "uapi/vespera/mount.h"
+#include "vespera/filesystem/vfs.h"
 
 using namespace ext4;
 
 static VfsNode* ext4_find(VfsNode* node, const char* name) {
-    if (!node) return nullptr;
+    if (!node) {
+        Log::debug("no node");
+        return nullptr;
+    };
 
     auto* dir = static_cast<Ext4Node*>(node->internal_data);
-    if (!dir || !dir->is_dir) return nullptr;
+    if (!dir || !dir->is_dir) {
+        Log::debug("not dir: %p, %u", dir, dir ? dir->is_dir : 0);
+        return nullptr;
+    };
 
     usize entry_count = 0;
     FileEntry* entries = dir->fs->read_directory(dir->inode, entry_count);
+   // Log::debug("entries=%p", entries);
     if (!entries) return nullptr;
 
     for (usize i = 0; i < entry_count; ++i) {
         if (strcmp(entries[i].get_name(), name) != 0) continue;
 
-        auto* child_data = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
+        auto* child_data = new Ext4Node();
         if (!child_data) {
             kernel::memory::free(entries);
             return nullptr;
@@ -61,12 +70,11 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
         child_data->current_index = 0;
 
         const bool root = (dir->path[0] == '/' && dir->path[1] == '\0');
-        snprintf(child_data->path, sizeof(child_data->path), "%s%s%s",
-                 dir->path, root ? "" : "/", name);
+        snprintf(child_data->path, sizeof(child_data->path), "%s%s%s", dir->path, root ? "" : "/", name);
 
-        auto* child_node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+        auto* child_node = new VfsNode();
         if (!child_node) {
-            kernel::memory::free(child_data);
+            delete child_data;
             kernel::memory::free(entries);
             return nullptr;
         }
@@ -91,7 +99,9 @@ static isize ext4_read(const VfsNode* node, usize offset, usize size, void* buf)
     const auto* en = static_cast<Ext4Node*>(node->internal_data);
     if (!en || en->is_dir) return -1;
 
-    return en->fs->read_file(en->inode, offset, size, buf);
+    const bool update_atime = !node->mount || !(node->mount->flags & MS_NOATIME);
+
+    return en->fs->read_file(en->inode, offset, size, buf, update_atime);
 }
 
 static isize ext4_write(VfsNode* node, usize offset, usize size, const void* buf) {
@@ -123,6 +133,28 @@ static void* ext4_opendir(const VfsNode* node) {
     return handle;
 }
 
+static dirent_type_t map_ext4_type(DirEntryType type) {
+    switch (type) {
+        case DirEntryType::RegularFile:
+            return DT_FILE;
+        case DirEntryType::Directory:
+            return DT_DIR;
+        case DirEntryType::SymbolicLink:
+            return DT_SYMLINK;
+        case DirEntryType::CharDevice:
+            return DT_CHARDEV;
+        case DirEntryType::BlockDevice:
+            return DT_BLOCKDEV;
+        case DirEntryType::Fifo:
+            return DT_FIFO;
+        case DirEntryType::Socket:
+            return DT_SOCKET;
+        case DirEntryType::Unknown:
+        default:
+            return DT_UNKNOWN;
+    }
+}
+
 static int ext4_readdir(void* dir_handle, dirent_t* out) {
     auto* h = static_cast<Ext4DirHandle*>(dir_handle);
     if (!h || h->index >= h->count) return 0;
@@ -131,40 +163,63 @@ static int ext4_readdir(void* dir_handle, dirent_t* out) {
     const usize len = strlen(fe.get_name());
     memcpy(out->name, fe.get_name(), len);
     out->name[len] = '\0';
+    out->type = map_ext4_type(fe.get_type());
 
     return 1;
 }
 
-static void ext4_closedir(void* dir_handle) {
-    auto* h = static_cast<Ext4DirHandle*>(dir_handle);
-    if (!h) return;
+static void ext4_closedir(void* h) {
+    const auto* handle = static_cast<Ext4DirHandle*>(h);
+    if (!handle) return;
 
-    kernel::memory::free(h->entries);
-    delete h;
+    if (handle->entries) {
+        kernel::memory::free(handle->entries);
+    }
+    delete handle;
 }
 
 static void ext4_close(VfsNode* node) {
     if (!node) return;
 
     if (auto* data = static_cast<Ext4Node*>(node->internal_data)) {
-        kernel::memory::free(data);
+        delete data;
     }
 
     kernel::memory::free(const_cast<char*>(node->name));
-    kernel::memory::free(node);
+    delete node;
+}
+
+static int ext4_create(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return 1;
+    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return 1;
+
+    if (const u32 new_inode = dir->fs->create_file(dir->inode, name); new_inode == 0) return 1;
+
+    return 0;
+}
+
+static int ext4_mkdir(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return 1;
+    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return 1;
+
+    if (const u32 new_inode = dir->fs->create_dir(dir->inode, name); new_inode == 0) return 1;
+
+    return 0;
 }
 
 static VfsNodeOps ext4_ops = {
     .read = ext4_read,
     .write = ext4_write,
     .find = ext4_find,
-    .close = ext4_close,
+    .close = nullptr,
     .opendir = ext4_opendir,
     .readdir = ext4_readdir,
     .closedir = ext4_closedir,
-    .create = nullptr,
+    .create = ext4_create,
     .rename = nullptr,
-    .mkdir = nullptr,
+    .mkdir = ext4_mkdir,
     .rmdir = nullptr,
     .unlink = nullptr,
     .ioctl = nullptr,
@@ -179,8 +234,7 @@ static VfsNode* wrap_ext4_root(FileSystem* fs) {
     const u32 block_size = fs->get_block_size();
     const u64 total_fs_size = static_cast<u64>(fs->get_superblock()->s_blocks_count_lo) * block_size;
 
-
-    auto* root_data = static_cast<Ext4Node*>(kernel::memory::malloc(sizeof(Ext4Node)));
+    auto* root_data = new Ext4Node();
     if (!root_data) return nullptr;
 
     root_data->fs = fs;
@@ -192,9 +246,9 @@ static VfsNode* wrap_ext4_root(FileSystem* fs) {
     root_data->current_index = 0;
     snprintf(root_data->path, sizeof(root_data->path), "/");
 
-    auto* root_node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+    auto* root_node = new VfsNode();
     if (!root_node) {
-        kernel::memory::free(root_data);
+        delete root_data;
         return nullptr;
     }
 

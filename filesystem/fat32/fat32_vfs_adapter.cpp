@@ -88,8 +88,7 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
 
     for (usize i = 0; i < entry_count; i++) {
         if (const char* entry_name = entries[i].get_name(); strcmp(entry_name, name) == 0) {
-            auto* child_data = static_cast<Fat32Node*>(kernel::memory::malloc(sizeof(Fat32Node)));
-            memset(child_data, 0, sizeof(Fat32Node));
+            auto* child_data = new Fat32Node();
             if (!child_data) {
                 kernel::memory::free(entries);
                 return nullptr;
@@ -116,7 +115,7 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
 
             child_data->cluster = entries[i].get_first_cluster();
 
-            auto* child = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+            auto* child = new VfsNode();
             child->name = strdup(entries[i].get_name());
             child->type = child_data->is_dir ? VfsNodeType::Directory : VfsNodeType::File;
             child->mount = node->mount;
@@ -181,11 +180,11 @@ static void fat32_close(VfsNode* node) {
     if (!node) return;
 
     if (auto* data = static_cast<Fat32Node*>(node->internal_data)) {
-        kernel::memory::free(data);
+        delete data;
     }
 
     kernel::memory::free(const_cast<char*>(node->name));
-    kernel::memory::free(node);
+    delete node;
 }
 
 static int fat32_create(const VfsNode* node, const char* name) {
@@ -296,7 +295,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
     const u64 usable_clusters = fs->cluster_count - 2;
     const u64 total_fs_size = usable_clusters * fs->bytes_per_cluster();
 
-    auto* root = static_cast<Fat32Node*>(kernel::memory::malloc(sizeof(Fat32Node)));
+    auto* root = new Fat32Node();
     if (!root) return nullptr;
     root->fs = fs;
     root->is_dir = true;
@@ -305,7 +304,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
     root->cluster = fs->get_root_cluster();
     root->file_size = total_fs_size;
 
-    auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
+    auto* node = new VfsNode();
     if (!node) return nullptr;
     node->name = "/";
     node->mount = nullptr;
@@ -355,9 +354,8 @@ bool fat32_unmount(VfsNode* root) {
 
     delete fs;
 
-    kernel::memory::free(fatnode);
-
-    kernel::memory::free(root);
+    delete fatnode;
+    delete root;
 
     return true;
 }
@@ -374,8 +372,8 @@ bool fat32_force_unmount(VfsNode* root) {
     fs->mark_device_lost();
     delete fs;
 
-    kernel::memory::free(fatnode);
-    kernel::memory::free(root);
+    delete fatnode;
+    delete root;
     return true;
 }
 

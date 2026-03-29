@@ -22,10 +22,12 @@
 #ifndef VESPERAOS_EXT4_TIME_H
 #define VESPERAOS_EXT4_TIME_H
 
-#include <vespera/types.h>
+#include "ext4.h"
 
-namespace ext4 {
-    u64 rtc_to_unix_time();
-}
+namespace ext4::time {
+    void update_write(Inode& inode);
+    void set_creation(Inode& inode);
+    void update_access(Inode& inode);
+}  // namespace ext4::time
 
 #endif  // VESPERAOS_EXT4_TIME_H

@@ -23,6 +23,7 @@
 
 #include "ext4.h"
 
+#include <klib/string.h>
 #include <klib/vector.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
@@ -129,7 +130,7 @@ namespace ext4 {
                 out_gd.bg_inode_bitmap_lo
             );*/
         } else {
-            Log::debug("[ext4] read_group_desc: device read failed");
+            // Log::debug("[ext4] read_group_desc: device read failed");
         }
 
         kernel::memory::free(buf);
@@ -173,7 +174,7 @@ namespace ext4 {
         if (inode_table_block == 0) {
             // Fallback for raw images without a partition table.
             inode_table_block = (get_block_size() == 1024) ? 5 : 1;
-            Log::debug("[ext4] inode_disk_offset: fallback inode_table_block=%llu", inode_table_block);
+            //   Log::debug("[ext4] inode_disk_offset: fallback inode_table_block=%llu", inode_table_block);
         }
 
         out_inode_size = (superblock_.s_inode_size == 0) ? DEFAULT_INODE_SIZE : superblock_.s_inode_size;
@@ -182,7 +183,7 @@ namespace ext4 {
 
     bool FileSystem::read_inode(u32 inode_no, Inode& out_inode) const {
         if (inode_no == 0) {
-            Log::debug("[ext4] read_inode: inode 0 is invalid");
+            //     Log::debug("[ext4] read_inode: inode 0 is invalid");
             return false;
         }
 
@@ -200,14 +201,14 @@ namespace ext4 {
         const bool ok = device_->read(start_sector, count, buf, buf_size);
         if (ok) {
             memcpy(&out_inode, buf + (inode_offset % sector_size_), sizeof(Inode));
-            Log::debug(
-                "[ext4] read_inode: ok inode=%u i_mode=0x%x i_size_lo=%u",
-                inode_no,
-                out_inode.i_mode,
-                out_inode.i_size_lo
-            );
+            // Log::debug(
+            //     "[ext4] read_inode: ok inode=%u i_mode=0x%x i_size_lo=%u",
+            //     inode_no,
+            //     out_inode.i_mode,
+            //     out_inode.i_size_lo
+            // );
         } else {
-            Log::debug("[ext4] read_inode: device read failed");
+            //  Log::debug("[ext4] read_inode: device read failed");
         }
 
         kernel::memory::free(buf);
@@ -235,6 +236,199 @@ namespace ext4 {
 
         kernel::memory::free(buf);
         return ok;
+    }
+
+    u32 FileSystem::alloc_inode(u32 preferred_group) {
+        const u32 bsize = get_block_size();
+        const u32 inodes_per_group = superblock_.s_inodes_per_group;
+        const u32 total_groups = (superblock_.s_inodes_count + inodes_per_group - 1) / inodes_per_group;
+
+        auto* bitmap = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!bitmap) return 0;
+
+        for (u32 pass = 0; pass < total_groups; ++pass) {
+            const u32 group = (preferred_group + pass) % total_groups;
+
+            GroupDesc gd{};
+            if (!read_group_desc(group, gd)) continue;
+            if (gd.bg_free_inodes_count_lo == 0) continue;
+            if (!read_block(gd.bg_inode_bitmap_lo, bitmap, bsize)) continue;
+
+            // Scan the inode bitmap for the first free bit.
+            const u32 inodes_in_group = (group == total_groups - 1)
+                                            ? ((superblock_.s_inodes_count - 1) % inodes_per_group + 1)
+                                            : inodes_per_group;
+
+            for (u32 byte = 0; byte < (inodes_in_group + 7) / 8; ++byte) {
+                if (bitmap[byte] == 0xFF) continue;
+
+                for (u32 bit = 0; bit < 8; ++bit) {
+                    if (bitmap[byte] & (1u << bit)) continue;
+
+                    // Inode numbers are 1-based.
+                    const u32 inode_no = group * inodes_per_group + byte * 8 + bit + 1;
+                    if (inode_no < EXT4_FIRST_INODE) continue;  // reserved inodes
+
+                    // Mark as used.
+                    bitmap[byte] |= (1u << bit);
+                    if (!write_block(gd.bg_inode_bitmap_lo, bitmap, bsize)) {
+                        kernel::memory::free(bitmap);
+                        return 0;
+                    }
+
+                    gd.bg_free_inodes_count_lo--;
+                    write_group_desc(group, gd);
+
+                    superblock_.s_free_inodes_count--;
+                    write_superblock();
+
+                    kernel::memory::free(bitmap);
+                    Log::debug("[ext4] alloc_inode: allocated inode=%u (group=%u)", inode_no, group);
+                    return inode_no;
+                }
+            }
+        }
+
+        kernel::memory::free(bitmap);
+        Log::debug("[ext4] alloc_inode: no free inodes");
+        return 0;
+    }
+
+    bool FileSystem::init_inode(u32 inode_no, u16 mode) {
+        Inode inode{};
+        memset(&inode, 0, sizeof(Inode));
+
+        inode.i_mode = mode;
+        inode.i_links_count = 1;
+        time::set_creation(inode);
+
+        // Initialize the inline extent tree header so the inode is extent-based
+        // from the start.  This must happen before any write_inode call.
+        auto* eh = reinterpret_cast<ExtentHeader*>(&inode.i_block[0]);
+        eh->eh_magic = EXT4_EXTENT_MAGIC;
+        eh->eh_entries = 0;
+        eh->eh_max = EXT4_MAX_INLINE_EXTENTS;
+        eh->eh_depth = 0;
+        eh->eh_generation = 0;
+
+        // EXT4_EXTENTS_FL — tells the kernel this inode uses extents.
+        inode.i_flags |= 0x00080000u;
+
+        return write_inode(inode_no, inode);
+    }
+
+    // directory entry insert
+
+    bool FileSystem::dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type) {
+        const u32 bsize = get_block_size();
+        const u8 name_len = static_cast<u8>(strlen(name));
+
+        // A DirEntry must be 4-byte aligned; minimum record length for this name.
+        const u16 needed = static_cast<u16>((sizeof(DirEntry) + name_len + 3u) & ~3u);
+
+        Inode dir_inode{};
+        if (!read_inode(dir_inode_no, dir_inode)) return false;
+
+        auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!block_buf) return false;
+
+        const u64 dir_size = inode_get_size(dir_inode);
+        const u32 block_count = static_cast<u32>((dir_size + bsize - 1) / bsize);
+
+        // -----------------------------------------------------------------------
+        // Pass 1: find slack space inside an existing directory block.
+        // -----------------------------------------------------------------------
+        for (u32 lblock = 0; lblock < block_count; ++lblock) {
+            u64 pblock = 0;
+            if (!map_logical_to_physical(dir_inode, lblock, pblock)) continue;
+            if (!read_block(pblock, block_buf, bsize)) continue;
+
+            usize offset = 0;
+            while (offset + sizeof(DirEntry) <= bsize) {
+                auto* de = reinterpret_cast<DirEntry*>(block_buf + offset);
+                if (de->rec_len == 0) break;  // corrupted
+
+                // Minimum space that de actually needs for its own name.
+                const u16 de_min = static_cast<u16>((sizeof(DirEntry) + de->name_len + 3u) & ~3u);
+                const u16 slack = de->rec_len - de_min;
+
+                if (de->inode == 0) {
+                    // Deleted entry — reuse it entirely if it fits.
+                    if (de->rec_len >= needed) {
+                        de->inode = child_inode;
+                        de->file_type = static_cast<u8>(type);
+                        de->name_len = name_len;
+                        memcpy(de->name, name, name_len);
+                        // rec_len stays as-is so we reuse all the slack.
+
+                        bool ok = write_block(pblock, block_buf, bsize);
+                        kernel::memory::free(block_buf);
+                        return ok;
+                    }
+                } else if (slack >= needed) {
+                    // Split: shrink de to its minimum size, place the new entry
+                    // in the freed slack.
+                    const u16 old_rec = de->rec_len;
+                    de->rec_len = de_min;
+
+                    auto* ne = reinterpret_cast<DirEntry*>(block_buf + offset + de_min);
+                    ne->inode = child_inode;
+                    ne->rec_len = old_rec - de_min;
+                    ne->name_len = name_len;
+                    ne->file_type = static_cast<u8>(type);
+                    memcpy(ne->name, name, name_len);
+
+                    bool ok = write_block(pblock, block_buf, bsize);
+                    kernel::memory::free(block_buf);
+                    return ok;
+                }
+
+                offset += de->rec_len;
+            }
+        }
+
+        // -----------------------------------------------------------------------
+        // Pass 2: no slack found — allocate a new directory block.
+        // -----------------------------------------------------------------------
+        const u64 new_pblock = alloc_block(0);
+        if (new_pblock == 0) {
+            kernel::memory::free(block_buf);
+            return false;
+        }
+
+        // Zero the new block and place the entry at the start.
+        memset(block_buf, 0, bsize);
+        auto* de = reinterpret_cast<DirEntry*>(block_buf);
+        de->inode = child_inode;
+        de->rec_len = static_cast<u16>(bsize);  // entry spans the whole block
+        de->name_len = name_len;
+        de->file_type = static_cast<u8>(type);
+        memcpy(de->name, name, name_len);
+
+        if (!write_block(new_pblock, block_buf, bsize)) {
+            kernel::memory::free(block_buf);
+            return false;
+        }
+
+        kernel::memory::free(block_buf);
+
+        // Register the new block in the directory inode's extent tree.
+        const u32 new_lblock = block_count;  // next logical block index
+        if (!extent_tree_append(dir_inode, new_lblock, new_pblock)) {
+            Log::debug("[ext4] dir_add_entry: extent_tree_append failed");
+            return false;
+        }
+
+        // Update i_blocks (512-byte units) and i_size.
+        const u64 old_blocks_512 =
+            static_cast<u64>(dir_inode.i_blocks_lo) | (static_cast<u64>(dir_inode.i_blocks_high) << 32);
+        const u64 new_blocks_512 = old_blocks_512 + bsize / 512;
+        dir_inode.i_blocks_lo = static_cast<u32>(new_blocks_512 & 0xFFFFFFFFu);
+        dir_inode.i_blocks_high = static_cast<u16>(new_blocks_512 >> 32);
+
+        inode_set_size(dir_inode, dir_size + bsize);
+
+        return write_inode(dir_inode_no, dir_inode);
     }
 
     // extend tree
@@ -481,7 +675,7 @@ namespace ext4 {
         return entries;
     }
 
-    i64 FileSystem::read_file(u32 inode_number, u64 offset, usize size, void* buf) const {
+    i64 FileSystem::read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const {
         //  Log::debug("[ext4] read_file: inode=%u offset=%llu size=%zu", inode_number, offset, size);
 
         Inode inode{};
@@ -528,19 +722,24 @@ namespace ext4 {
             remaining -= chunk;
         }
 
+        if (update_atime) {
+            time::update_access(inode);
+            write_inode(inode_number, inode);
+        }
+
         kernel::memory::free(block_buf);
-        Log::debug("[ext4] read_file: done, read %zu bytes", size);
+        //    Log::debug("[ext4] read_file: done, read %zu bytes", size);
         return static_cast<i64>(size);
     }
 
     i64 FileSystem::write_file(u32 inode_number, u64 offset, usize size, const void* buf) {
-        Log::debug("[ext4] write_file: inode=%u offset=%llu size=%zu", inode_number, offset, size);
+        //    Log::debug("[ext4] write_file: inode=%u offset=%llu size=%zu", inode_number, offset, size);
 
         Inode inode{};
         if (!read_inode(inode_number, inode)) return -1;
 
         if (inode_get_type(inode) != InodeType::RegularFile) {
-            Log::debug("[ext4] write_file: inode=%u is not a regular file", inode_number);
+            //        Log::debug("[ext4] write_file: inode=%u is not a regular file", inode_number);
             return -1;
         }
 
@@ -559,9 +758,8 @@ namespace ext4 {
             const usize chunk = (remaining < bsize - block_off) ? remaining : (bsize - block_off);
 
             u64 pblock = 0;
-            const bool block_exists = map_logical_to_physical(inode, lblock, pblock);
 
-            if (!block_exists) {
+            if (const bool block_exists = map_logical_to_physical(inode, lblock, pblock); !block_exists) {
                 // Allocate a new physical block.
                 pblock = alloc_block(last_phys);
                 if (pblock == 0) {
@@ -626,7 +824,7 @@ namespace ext4 {
         const u64 new_end = offset + size;
         if (new_end > inode_get_size(inode)) inode_set_size(inode, new_end);
 
-        inode.i_mtime = static_cast<u32>(rtc_to_unix_time());
+        time::update_write(inode);
 
         if (!write_inode(inode_number, inode)) return -1;
 
@@ -634,4 +832,108 @@ namespace ext4 {
         return static_cast<i64>(size);
     }
 
+    u32 FileSystem::create_file(u32 dir_inode_no, const char* name) {
+        Log::debug("[ext4] create_file: dir=%u name=%s", dir_inode_no, name);
+
+        // Allocate a new inode in the same group as the parent directory.
+        const u32 parent_group = (dir_inode_no - 1) / superblock_.s_inodes_per_group;
+        const u32 new_inode = alloc_inode(parent_group);
+        if (new_inode == 0) return 0;
+
+        // Regular file, rw-r--r-- (0644).
+        constexpr u16 mode = static_cast<u16>(InodeType::RegularFile) | 0644u;
+        if (!init_inode(new_inode, mode)) return 0;
+
+        if (!dir_add_entry(dir_inode_no, name, new_inode, DirEntryType::RegularFile)) {
+            // TODO: free the inode again on partial failure.
+            Log::debug("[ext4] create_file: dir_add_entry failed");
+            return 0;
+        }
+
+        Log::debug("[ext4] create_file: created inode=%u", new_inode);
+        return new_inode;
+    }
+
+    u32 FileSystem::create_dir(u32 dir_inode_no, const char* name) {
+        Log::debug("[ext4] create_dir: dir=%u name=%s", dir_inode_no, name);
+
+        const u32 parent_group = (dir_inode_no - 1) / superblock_.s_inodes_per_group;
+        const u32 new_inode = alloc_inode(parent_group);
+        if (new_inode == 0) return 0;
+
+        // Directory, rwxr-xr-x (0755).
+        constexpr u16 mode = static_cast<u16>(InodeType::Directory) | 0755u;
+        if (!init_inode(new_inode, mode)) return 0;
+
+        // Write the mandatory "." and ".." entries into the first directory block.
+        const u32 bsize = get_block_size();
+        const u64 new_pblock = alloc_block(0);
+        if (new_pblock == 0) return 0;
+
+        auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!block_buf) return 0;
+        memset(block_buf, 0, bsize);
+
+        // "." — points to new_inode itself.
+        constexpr u16 dot_rec = (sizeof(DirEntry) + 1u + 3u) & ~3u;  // 12 bytes
+        auto* dot = reinterpret_cast<DirEntry*>(block_buf);
+        dot->inode = new_inode;
+        dot->rec_len = dot_rec;
+        dot->name_len = 1;
+        dot->file_type = static_cast<u8>(DirEntryType::Directory);
+        dot->name[0] = '.';
+
+        // ".." — points to the parent directory inode.
+        constexpr u16 dotdot_rec = (sizeof(DirEntry) + 2u + 3u) & ~3u;  // 12 bytes
+        auto* dotdot = reinterpret_cast<DirEntry*>(block_buf + dot_rec);
+        dotdot->inode = dir_inode_no;
+        dotdot->rec_len = static_cast<u16>(bsize - dot_rec);  // fills the rest of the block
+        dotdot->name_len = 2;
+        dotdot->file_type = static_cast<u8>(DirEntryType::Directory);
+        dotdot->name[0] = '.';
+        dotdot->name[1] = '.';
+
+        if (!write_block(new_pblock, block_buf, bsize)) {
+            kernel::memory::free(block_buf);
+            return 0;
+        }
+        kernel::memory::free(block_buf);
+
+        // Wire the new block into the new directory's extent tree.
+        Inode new_dir_inode{};
+        if (!read_inode(new_inode, new_dir_inode)) return 0;
+
+        if (!extent_tree_append(new_dir_inode, 0, new_pblock)) return 0;
+
+        const u64 blocks_512 = bsize / 512;
+        new_dir_inode.i_blocks_lo = static_cast<u32>(blocks_512);
+        new_dir_inode.i_blocks_high = 0;
+        new_dir_inode.i_links_count = 2;  // "." inside + the entry in the parent
+        inode_set_size(new_dir_inode, bsize);
+
+        if (!write_inode(new_inode, new_dir_inode)) return 0;
+
+        // Add the new directory to the parent.
+        if (!dir_add_entry(dir_inode_no, name, new_inode, DirEntryType::Directory)) {
+            Log::debug("[ext4] create_dir: dir_add_entry failed");
+            return 0;
+        }
+
+        // Increment the parent's link count for the ".." back-reference.
+        Inode parent_inode{};
+        if (read_inode(dir_inode_no, parent_inode)) {
+            parent_inode.i_links_count++;
+            write_inode(dir_inode_no, parent_inode);
+        }
+
+        // Increment the group's used-directory count.
+        GroupDesc gd{};
+        if (read_group_desc(parent_group, gd)) {
+            gd.bg_used_dirs_count_lo++;
+            write_group_desc(parent_group, gd);
+        }
+
+        Log::debug("[ext4] create_dir: created inode=%u", new_inode);
+        return new_inode;
+    }
 }  // namespace ext4

@@ -257,8 +257,10 @@ namespace ext4 {
         // Returns a heap-allocated array of up to EXT4_MAX_DIR_ENTRIES entries.
         // The caller is responsible for freeing the array with kernel::memory::free().
         FileEntry* read_directory(u32 inode_number, usize& out_count) const;
-        i64 read_file(u32 inode_number, u64 offset, usize size, void* buf) const;
+        i64 read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const;
         i64 write_file(u32 inode_number, u64 offset, usize size, const void* buf);
+        u32 create_file(u32 dir_inode_no, const char* name);
+        u32 create_dir(u32 dir_inode_no, const char* name);
 
        private:
         BlockDevice* device_;
@@ -288,6 +290,9 @@ namespace ext4 {
         u64 inode_disk_offset(u32 inode_no, u32& out_inode_size) const;
         bool read_inode(u32 inode_no, Inode& out_inode) const;
         bool write_inode(u32 inode_no, const Inode& inode) const;
+        u32 alloc_inode(u32 preferred_group);
+        bool init_inode(u32 inode_no, u16 mode);
+        bool dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type);
 
         static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
         bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;
