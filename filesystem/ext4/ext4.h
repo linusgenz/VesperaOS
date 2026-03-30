@@ -27,6 +27,8 @@
 #include <klib/vector.h>
 #include <vespera/devices/block.h>
 
+#include "uapi/vespera/stat.h"
+
 namespace ext4 {
 
     constexpr u16 EXT4_MAGIC = 0xEF53;
@@ -230,11 +232,19 @@ namespace ext4 {
             return size_;
         }
 
+        void set_executable(bool exec) {
+            executable_ = exec;
+        }
+        [[nodiscard]] bool is_executable() const {
+            return executable_;
+        }
+
        private:
         char name_[256] = {};
         usize size_ = 0;
         u32 inode_ = 0;
         DirEntryType type_ = DirEntryType::Unknown;
+        bool executable_ = false;
     };
 
     class FileSystem {
@@ -261,6 +271,10 @@ namespace ext4 {
         i64 write_file(u32 inode_number, u64 offset, usize size, const void* buf);
         u32 create_file(u32 dir_inode_no, const char* name);
         u32 create_dir(u32 dir_inode_no, const char* name);
+        bool unlink(u32 dir_inode_no, const char* name);
+        bool rmdir(u32 dir_inode_no, const char* name);
+        bool stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
+        bool truncate(u32 inode_no, u64 new_size);
 
        private:
         BlockDevice* device_;
@@ -292,11 +306,16 @@ namespace ext4 {
         bool write_inode(u32 inode_no, const Inode& inode) const;
         u32 alloc_inode(u32 preferred_group);
         bool init_inode(u32 inode_no, u16 mode);
+        bool free_inode(u32 inode_no);
         bool dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type);
+        bool dir_remove_entry(u32 dir_inode_no, const char* name) const;
+        bool dir_is_empty(u32 inode_no) const;
 
         static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
         bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;
         u64 alloc_block(u64 near_block);
+        bool free_block(u64 phys_block);
+        bool free_blocks_for_inode(const Inode& inode);
         bool extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block);
     };
 }  // namespace ext4

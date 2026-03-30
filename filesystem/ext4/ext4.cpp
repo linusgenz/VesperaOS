@@ -29,6 +29,7 @@
 #include <vespera/mm/memory.h>
 
 #include "ext4_time.h"
+#include "uapi/vespera/stat.h"
 
 namespace ext4 {
 
@@ -317,6 +318,52 @@ namespace ext4 {
         return write_inode(inode_no, inode);
     }
 
+    bool FileSystem::free_inode(u32 inode_no) {
+        if (inode_no == 0) return false;
+
+        const u32 bsize = get_block_size();
+        const u32 inodes_per_group = superblock_.s_inodes_per_group;
+        const u32 group = (inode_no - 1) / inodes_per_group;
+        const u32 index = (inode_no - 1) % inodes_per_group;
+
+        GroupDesc gd{};
+        if (!read_group_desc(group, gd)) return false;
+
+        auto* bitmap = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!bitmap) return false;
+
+        if (!read_block(gd.bg_inode_bitmap_lo, bitmap, bsize)) {
+            kernel::memory::free(bitmap);
+            return false;
+        }
+
+        const u32 byte = index / 8;
+        const u32 bit = index % 8;
+
+        if (!(bitmap[byte] & (1u << bit))) {
+            kernel::memory::free(bitmap);
+            return true;  // Already free.
+        }
+
+        bitmap[byte] &= ~(1u << bit);
+
+        if (!write_block(gd.bg_inode_bitmap_lo, bitmap, bsize)) {
+            kernel::memory::free(bitmap);
+            return false;
+        }
+
+        kernel::memory::free(bitmap);
+
+        gd.bg_free_inodes_count_lo++;
+        write_group_desc(group, gd);
+
+        superblock_.s_free_inodes_count++;
+        write_superblock();
+
+        Log::debug("[ext4] free_inode: freed inode=%u (group=%u)", inode_no, group);
+        return true;
+    }
+
     // directory entry insert
 
     bool FileSystem::dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type) {
@@ -431,6 +478,72 @@ namespace ext4 {
         return write_inode(dir_inode_no, dir_inode);
     }
 
+    bool FileSystem::dir_remove_entry(u32 dir_inode_no, const char* name) const {
+        const u32 bsize = get_block_size();
+        const u8 name_len = static_cast<u8>(strlen(name));
+
+        Inode dir_inode{};
+        if (!read_inode(dir_inode_no, dir_inode)) return false;
+
+        auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!block_buf) return false;
+
+        const u64 dir_size = inode_get_size(dir_inode);
+        const u32 block_count = static_cast<u32>((dir_size + bsize - 1) / bsize);
+
+        for (u32 lblock = 0; lblock < block_count; ++lblock) {
+            u64 pblock = 0;
+            if (!map_logical_to_physical(dir_inode, lblock, pblock)) continue;
+            if (!read_block(pblock, block_buf, bsize)) continue;
+
+            usize offset = 0;
+            DirEntry* prev = nullptr;
+
+            while (offset + sizeof(DirEntry) <= bsize) {
+                auto* de = reinterpret_cast<DirEntry*>(block_buf + offset);
+                if (de->rec_len == 0) break;
+
+                if (de->inode != 0 && de->name_len == name_len && memcmp(de->name, name, name_len) == 0) {
+                    if (prev) {
+                        // Coalesce: give our rec_len to the predecessor.
+                        prev->rec_len += de->rec_len;
+                    } else {
+                        // First entry in block: just zero the inode field.
+                        de->inode = 0;
+                    }
+
+                    bool ok = write_block(pblock, block_buf, bsize);
+                    kernel::memory::free(block_buf);
+                    return ok;
+                }
+
+                prev = de;
+                offset += de->rec_len;
+            }
+        }
+
+        kernel::memory::free(block_buf);
+        return false;  // Entry not found.
+    }
+
+    bool FileSystem::dir_is_empty(u32 inode_no) const {
+        usize count = 0;
+        FileEntry* entries = read_directory(inode_no, count);
+        if (!entries) return true;  // Unreadable → treat as empty (safe default for callers).
+
+        bool empty = true;
+        for (usize i = 0; i < count; ++i) {
+            const char* n = entries[i].get_name();
+            if (strcmp(n, ".") != 0 && strcmp(n, "..") != 0) {
+                empty = false;
+                break;
+            }
+        }
+
+        kernel::memory::free(entries);
+        return empty;
+    }
+
     // extend tree
 
     bool FileSystem::parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents) {
@@ -542,6 +655,69 @@ namespace ext4 {
         kernel::memory::free(bitmap);
         Log::debug("[ext4] alloc_block: no free blocks");
         return 0;
+    }
+
+    bool FileSystem::free_block(u64 phys_block) {
+        const u32 bsize = get_block_size();
+        const u32 blocks_per_group = superblock_.s_blocks_per_group;
+
+        const u64 relative = phys_block - superblock_.s_first_data_block;
+        const u32 group = static_cast<u32>(relative / blocks_per_group);
+        const u32 index = static_cast<u32>(relative % blocks_per_group);
+
+        GroupDesc gd{};
+        if (!read_group_desc(group, gd)) return false;
+
+        auto* bitmap = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!bitmap) return false;
+
+        if (!read_block(gd.bg_block_bitmap_lo, bitmap, bsize)) {
+            kernel::memory::free(bitmap);
+            return false;
+        }
+
+        const u32 byte = index / 8;
+        const u32 bit = index % 8;
+
+        // prevent double free, just in case
+        if (!(bitmap[byte] & (1u << bit))) {
+            kernel::memory::free(bitmap);
+            return true;
+        }
+
+        bitmap[byte] &= ~(1u << bit);
+
+        if (!write_block(gd.bg_block_bitmap_lo, bitmap, bsize)) {
+            kernel::memory::free(bitmap);
+            return false;
+        }
+
+        kernel::memory::free(bitmap);
+
+        gd.bg_free_blocks_count_lo++;
+        write_group_desc(group, gd);
+
+        superblock_.s_free_blocks_count_lo++;
+        write_superblock();
+
+        Log::debug("[ext4] free_block: freed block=%llu (group=%u)", phys_block, group);
+        return true;
+    }
+
+    bool FileSystem::free_blocks_for_inode(const Inode& inode) {
+        Vector<ExtentMap> extents;
+        if (!parse_extents(inode, extents)) {
+            // Fallback: direct block pointers.
+            for (u32 i = 0; i < 12; ++i) {
+                if (inode.i_block[i] != 0) free_block(inode.i_block[i]);
+            }
+            return true;
+        }
+
+        for (const ExtentMap& em : extents) {
+            for (u32 i = 0; i < em.length; ++i) free_block(em.phys_start + i);
+        }
+        return true;
     }
 
     // append new lead extent
@@ -662,6 +838,10 @@ namespace ext4 {
                 fe.set_name(de->name, de->name_len);
                 if (Inode file_inode{}; read_inode(de->inode, file_inode)) {
                     fe.set_size(inode_get_size(file_inode));
+
+                    if (inode_get_type(file_inode) == InodeType::RegularFile) {
+                        fe.set_executable((file_inode.i_mode & 0x0040u) != 0);
+                    }
                 } else {
                     fe.set_size(0);
                 }
@@ -935,5 +1115,255 @@ namespace ext4 {
 
         Log::debug("[ext4] create_dir: created inode=%u", new_inode);
         return new_inode;
+    }
+
+    bool FileSystem::unlink(u32 dir_inode_no, const char* name) {
+        Log::debug("[ext4] unlink: dir=%u name=%s", dir_inode_no, name);
+
+        // Resolve the entry to get its inode number.
+        usize count = 0;
+        FileEntry* entries = read_directory(dir_inode_no, count);
+        if (!entries) return false;
+
+        u32 target_inode = 0;
+        for (usize i = 0; i < count; ++i) {
+            if (strcmp(entries[i].get_name(), name) == 0) {
+                if (entries[i].is_dir()) {
+                    // unlink() must not be used on directories.
+                    kernel::memory::free(entries);
+                    return false;
+                }
+                target_inode = entries[i].get_inode();
+                break;
+            }
+        }
+        kernel::memory::free(entries);
+
+        if (target_inode == 0) {
+            Log::debug("[ext4] unlink: entry not found");
+            return false;
+        }
+
+        // Remove the directory entry first.
+        if (!dir_remove_entry(dir_inode_no, name)) return false;
+
+        // Decrement the hard-link count.
+        Inode inode{};
+        if (!read_inode(target_inode, inode)) return false;
+
+        if (inode.i_links_count > 0) inode.i_links_count--;
+
+        if (inode.i_links_count == 0) {
+            // No more hard links — free the data blocks and the inode.
+            free_blocks_for_inode(inode);
+
+            // Mark as deleted: zero the inode on disk before freeing the slot.
+            inode.i_dtime = 0;  // Could set to current time if desired.
+            write_inode(target_inode, inode);
+            free_inode(target_inode);
+        } else {
+            write_inode(target_inode, inode);
+        }
+
+        Log::debug("[ext4] unlink: ok, inode=%u links_left=%u", target_inode, inode.i_links_count);
+        return true;
+    }
+
+    bool FileSystem::rmdir(u32 dir_inode_no, const char* name) {
+        Log::debug("[ext4] rmdir: dir=%u name=%s", dir_inode_no, name);
+
+        usize count = 0;
+        FileEntry* entries = read_directory(dir_inode_no, count);
+        if (!entries) return false;
+
+        u32 target_inode = 0;
+        for (usize i = 0; i < count; ++i) {
+            if (strcmp(entries[i].get_name(), name) == 0) {
+                if (!entries[i].is_dir()) {
+                    kernel::memory::free(entries);
+                    return false;  // Not a directory.
+                }
+                target_inode = entries[i].get_inode();
+                break;
+            }
+        }
+        kernel::memory::free(entries);
+
+        if (target_inode == 0) {
+            Log::debug("[ext4] rmdir: entry not found");
+            return false;
+        }
+
+        // Refuse to remove a non-empty directory.
+        if (!dir_is_empty(target_inode)) {
+            Log::debug("[ext4] rmdir: directory not empty");
+            return false;
+        }
+
+        if (!dir_remove_entry(dir_inode_no, name)) return false;
+
+        // Free the directory's own blocks and inode.
+        Inode target{};
+        if (read_inode(target_inode, target)) {
+            free_blocks_for_inode(target);
+            free_inode(target_inode);
+        }
+
+        // The ".." entry inside the removed directory held a link to the parent,
+        // so decrement the parent's link count.
+        Inode parent{};
+        if (read_inode(dir_inode_no, parent)) {
+            if (parent.i_links_count > 0) parent.i_links_count--;
+            write_inode(dir_inode_no, parent);
+        }
+
+        // Decrement used-directory count in the group descriptor.
+        const u32 group = (target_inode - 1) / superblock_.s_inodes_per_group;
+        GroupDesc gd{};
+        if (read_group_desc(group, gd)) {
+            if (gd.bg_used_dirs_count_lo > 0) gd.bg_used_dirs_count_lo--;
+            write_group_desc(group, gd);
+        }
+
+        Log::debug("[ext4] rmdir: ok, removed inode=%u", target_inode);
+        return true;
+    }
+
+    bool FileSystem::stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const {
+        if (!out || inode_no == 0) return false;
+
+        Inode inode{};
+        if (!read_inode(inode_no, inode)) return false;
+
+        out->inode_id = inode_no;
+
+        out->size = inode_get_size(inode);
+
+        out->blocks = static_cast<u64>(inode.i_blocks_lo) | (static_cast<u64>(inode.i_blocks_high) << 32);
+
+        out->block_size = get_block_size();
+
+        out->dev_id = dev_id;
+
+        out->atime = inode.i_atime;
+        out->mtime = inode.i_mtime;
+        out->ctime = inode.i_ctime;
+        out->crtime = inode.i_crtime;
+
+        // Unix permission bits
+        out->perm_mode = inode.i_mode & 0x0FFFu;
+
+        out->links_count = inode.i_links_count;
+
+        // UID / GID (assemble 32-bit values from lo + hi halves)
+        out->uid = static_cast<u32>(inode.i_uid) | (static_cast<u32>(inode.i_uid_high) << 16);
+        out->gid = static_cast<u32>(inode.i_gid) | (static_cast<u32>(inode.i_gid_high) << 16);
+
+        out->flags = VSTAT_FLAG_READABLE;
+        if (inode.i_mode & 0x0080u) out->flags |= VSTAT_FLAG_WRITABLE;
+
+        switch (inode_get_type(inode)) {
+            case InodeType::RegularFile:
+                if (inode.i_mode & 0x0040u) {
+                    out->flags |= VSTAT_FLAG_EXEC;
+                }
+                out->node_type = VSTAT_TYPE_FILE;
+                break;
+            case InodeType::Directory:
+                out->node_type = VSTAT_TYPE_DIR;
+                break;
+            case InodeType::SymbolicLink:
+                out->node_type = VSTAT_TYPE_SYMLINK;
+                break;
+            case InodeType::CharDevice:
+                out->node_type = VSTAT_TYPE_CHARDEV;
+                break;
+            case InodeType::BlockDevice:
+                out->node_type = VSTAT_TYPE_BLOCKDEV;
+                break;
+            default:
+                out->node_type = VSTAT_TYPE_UNKNOWN;
+                break;
+        }
+
+        return true;
+    }
+
+    bool FileSystem::truncate(u32 inode_no, u64 new_size) {
+        Log::debug("[ext4] truncate: inode=%u new_size=%llu", inode_no, new_size);
+
+        Inode inode{};
+        if (!read_inode(inode_no, inode)) return false;
+        if (inode_get_type(inode) != InodeType::RegularFile) return false;
+
+        const u64 old_size = inode_get_size(inode);
+        const u32 bsize = get_block_size();
+
+        if (new_size == old_size) return true;
+
+        if (new_size < old_size) {
+            const u32 new_last_lblock = (new_size == 0) ? 0 : static_cast<u32>((new_size - 1) / bsize);
+
+            Vector<ExtentMap> extents;
+            if (!parse_extents(inode, extents)) return false;
+
+            // Walk extents and free blocks beyond new_last_lblock.
+            for (const ExtentMap& em : extents) {
+                for (u32 i = 0; i < em.length; ++i) {
+                    const u32 lblock = em.logical_start + i;
+
+                    if (new_size == 0 || lblock > new_last_lblock) {
+                        free_block(em.phys_start + i);
+                    }
+                }
+            }
+
+            // Rebuild the inline extent tree from scratch keeping only
+            // extents that are fully or partially within new_size.
+            auto* eh = reinterpret_cast<ExtentHeader*>(&inode.i_block[0]);
+            eh->eh_magic = EXT4_EXTENT_MAGIC;
+            eh->eh_entries = 0;
+            eh->eh_max = EXT4_MAX_INLINE_EXTENTS;
+            eh->eh_depth = 0;
+            eh->eh_generation = 0;
+
+            if (new_size > 0) {
+                for (const ExtentMap& em : extents) {
+                    // How many blocks of this extent survive?
+                    u32 surviving = 0;
+                    for (u32 i = 0; i < em.length; ++i) {
+                        if (em.logical_start + i <= new_last_lblock) ++surviving;
+                    }
+                    if (surviving == 0) continue;
+
+                    // Re-append the surviving portion.
+                    // extent_tree_append adds one block at a time and coalesces,
+                    // so we call it per-block (safe for depth-0 trees).
+                    for (u32 i = 0; i < surviving; ++i) {
+                        extent_tree_append(inode, em.logical_start + i, em.phys_start + i);
+                    }
+                }
+            }
+
+            // Recalculate i_blocks (512-byte units).
+            const u32 surviving_blocks = (new_size == 0) ? 0 : (new_last_lblock + 1);
+            const u64 new_blocks_512 = static_cast<u64>(surviving_blocks) * (bsize / 512);
+            inode.i_blocks_lo = static_cast<u32>(new_blocks_512 & 0xFFFFFFFFu);
+            inode.i_blocks_high = static_cast<u16>(new_blocks_512 >> 32);
+
+        } else {
+            // ---------------------------------------------------------------
+            // Grow: just update the size — sparse holes are read as zeroes
+            // by read_file already. No blocks need allocating until someone
+            // actually writes into the gap.
+            // ---------------------------------------------------------------
+            // (Eager preallocation wäre eine mögliche Optimierung, ist aber
+            //  für ein Hobby-OS nicht nötig.)
+        }
+
+        inode_set_size(inode, new_size);
+        time::update_write(inode);
+
+        return write_inode(inode_no, inode);
     }
 }  // namespace ext4

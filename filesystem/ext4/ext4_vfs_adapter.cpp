@@ -32,6 +32,7 @@
 #include "ext4.h"
 #include "uapi/vespera/mount.h"
 #include "vespera/filesystem/vfs.h"
+#include "vespera_errno.h"
 
 using namespace ext4;
 
@@ -49,7 +50,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
 
     usize entry_count = 0;
     FileEntry* entries = dir->fs->read_directory(dir->inode, entry_count);
-   // Log::debug("entries=%p", entries);
+    // Log::debug("entries=%p", entries);
     if (!entries) return nullptr;
 
     for (usize i = 0; i < entry_count; ++i) {
@@ -133,25 +134,19 @@ static void* ext4_opendir(const VfsNode* node) {
     return handle;
 }
 
-static dirent_type_t map_ext4_type(DirEntryType type) {
-    switch (type) {
-        case DirEntryType::RegularFile:
-            return DT_FILE;
-        case DirEntryType::Directory:
-            return DT_DIR;
-        case DirEntryType::SymbolicLink:
-            return DT_SYMLINK;
-        case DirEntryType::CharDevice:
-            return DT_CHARDEV;
-        case DirEntryType::BlockDevice:
-            return DT_BLOCKDEV;
-        case DirEntryType::Fifo:
-            return DT_FIFO;
-        case DirEntryType::Socket:
-            return DT_SOCKET;
-        case DirEntryType::Unknown:
-        default:
-            return DT_UNKNOWN;
+static dirent_type_t map_ext4_type(const FileEntry& fe) {
+    if (fe.get_type() == DirEntryType::RegularFile && fe.is_executable())
+        return DT_EXEC;
+
+    switch (fe.get_type()) {
+        case DirEntryType::RegularFile:  return DT_FILE;
+        case DirEntryType::Directory:    return DT_DIR;
+        case DirEntryType::SymbolicLink: return DT_SYMLINK;
+        case DirEntryType::CharDevice:   return DT_CHARDEV;
+        case DirEntryType::BlockDevice:  return DT_BLOCKDEV;
+        case DirEntryType::Fifo:         return DT_FIFO;
+        case DirEntryType::Socket:       return DT_SOCKET;
+        default:                         return DT_UNKNOWN;
     }
 }
 
@@ -163,7 +158,7 @@ static int ext4_readdir(void* dir_handle, dirent_t* out) {
     const usize len = strlen(fe.get_name());
     memcpy(out->name, fe.get_name(), len);
     out->name[len] = '\0';
-    out->type = map_ext4_type(fe.get_type());
+    out->type = map_ext4_type(fe);
 
     return 1;
 }
@@ -209,22 +204,58 @@ static int ext4_mkdir(const VfsNode* parent, const char* name) {
     return 0;
 }
 
+static int ext4_rmdir(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return 1;
+    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return 1;
+    return dir->fs->rmdir(dir->inode, name) ? 0 : 1;
+}
+
+static int ext4_unlink(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return 1;
+    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return 1;
+    return dir->fs->unlink(dir->inode, name) ? 0 : 1;
+}
+
+static int ext4_stat(const VfsNode* node, vespera_stat_t* out) {
+    if (!node || !out) return -EINVAL;
+    const auto* en = static_cast<const Ext4Node*>(node->internal_data);
+    if (!en) return -EINVAL;
+
+    const u32 dev_id = (node->mount && node->mount->device) ? node->mount->device->device_id : 0;
+
+    return en->fs->stat(en->inode, out, dev_id) ? 0 : -EIO;
+}
+
+static int ext4_truncate(VfsNode* node, const usize new_size) {
+    if (!node) return -EINVAL;
+    auto* en = static_cast<Ext4Node*>(node->internal_data);
+    if (!en || en->is_dir) return -EINVAL;
+
+    if (!en->fs->truncate(en->inode, new_size)) return -EIO;
+
+    en->file_size = new_size;
+    node->size = new_size;
+    return 0;
+}
+
 static VfsNodeOps ext4_ops = {
     .read = ext4_read,
     .write = ext4_write,
     .find = ext4_find,
-    .close = nullptr,
+    .close = ext4_close,
     .opendir = ext4_opendir,
     .readdir = ext4_readdir,
     .closedir = ext4_closedir,
     .create = ext4_create,
     .rename = nullptr,
     .mkdir = ext4_mkdir,
-    .rmdir = nullptr,
-    .unlink = nullptr,
+    .rmdir = ext4_rmdir,
+    .unlink = ext4_unlink,
     .ioctl = nullptr,
-    .stat = nullptr,
-    .truncate = nullptr,
+    .stat = ext4_stat,
+    .truncate = ext4_truncate,
     .poll = nullptr,
 };
 
