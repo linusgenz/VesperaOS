@@ -57,6 +57,14 @@ typedef struct vespera_stat {
     u64 inode_id;     ///< Filesystem-assigned inode/cluster number (0 if none)
     u64 size;         ///< File size in bytes (0 for directories/devices)
     u64 blocks;       ///< Number of 512-byte blocks allocated (0 if not applicable)
+    u32 atime;       ///< Last access time (Unix seconds)
+    u32 mtime;       ///< Last modification time (Unix seconds)
+    u32 ctime;       ///< Last status change time (Unix seconds)
+    u32 crtime;      ///< Creation time (Unix seconds)
+    u16 perm_mode;   ///< Raw Unix permission bits (0644 etc.), (0 if not applicable)
+    u16 links_count; ///< Hard link count
+    u32 uid;         ///< Owner UID (0 if not applicable)
+    u32 gid;         ///< Owner GID (0 if not applicable)
 } vespera_stat_t;
 
 #endif  // VESPERAOS_STAT_H
