@@ -22,8 +22,10 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/filesystem/devfs.h>
+
 #include "log_device.h"
 #include "misc/cpuinfo.h"
+#include "misc/cpustat.h"
 #include "misc/full.h"
 #include "misc/meminfo.h"
 #include "misc/null.h"
@@ -45,6 +47,7 @@ void initialize_pseudo_devices() {
     auto* uptime_dev = new UptimeDevice();
     auto* version_dev = new VersionDevice();
     auto* cpuinfo_dev = new CpuInfoDevice();
+    auto* cpustat_dev = new CpuStatDevice();
     auto* meminfo_dev = new MemInfoDevice();
     auto* log_dev = new LogDevice(kernel_log_channel);
 
@@ -64,6 +67,7 @@ void initialize_pseudo_devices() {
     register_char_device(uptime_dev, "uptime", DeviceClass::Pseudo);
     register_char_device(version_dev, "version", DeviceClass::Pseudo);
     register_char_device(cpuinfo_dev, "cpuinfo", DeviceClass::Pseudo);
+    register_char_device(cpustat_dev, "cpustat", DeviceClass::Pseudo);
     register_char_device(meminfo_dev, "meminfo", DeviceClass::Pseudo);
     register_char_device(log_dev, "log", DeviceClass::Pseudo);
 }

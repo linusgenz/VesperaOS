@@ -1,4 +1,4 @@
-// handels.h
+// handles.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_HANDELS_H
-#define VESPERAOS_HANDELS_H
+#ifndef VESPERAOS_HANDLES_H
+#define VESPERAOS_HANDLES_H
 
 // Handle typs (upper 16 bits)
 #define HANDLE_TYPE_MASK 0xFFFF000000000000ULL
@@ -41,4 +41,4 @@
 #define HANDLE_STDOUT  (HANDLE_TYPE_TTY | 0x0000000000000001ULL)
 #define HANDLE_STDERR  (HANDLE_TYPE_TTY | 0x0000000000000002ULL)
 
-#endif  // VESPERAOS_HANDELS_H
+#endif  // VESPERAOS_HANDLES_H

@@ -59,3 +59,9 @@ void detect_qemu() {
 bool in_qemu() {
     return running_in_qemu;
 }
+
+u64 rdtsc() {
+    u32 lo = 0, hi = 0;
+    asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
+    return (static_cast<u64>(hi) << 32) | lo;
+}

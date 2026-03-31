@@ -1,12 +1,13 @@
 #include "cpu_manager.h"
 
 #include <vespera/interrupts.h>
+#include <vespera/log.h>
+#include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include <vespera/log.h>
-#include <vespera/mm/memory.h>
 #include "../acpi/madt.h"
+#include "cpu.h"
 
 namespace cpu_manager {
     // Globale Variablen
@@ -41,8 +42,9 @@ namespace cpu_manager {
             cpu_infos[i].cpu_id = i;
             cpu_infos[i].state = CPU_STATE_OFFLINE;
             cpu_infos[i].kernel_stack = 0;
-            cpu_infos[i].total_cycles = 0;
-            cpu_infos[i].idle_cycles = 0;
+            cpu_infos[i].accounting.last_tick_tsc = rdtsc();
+            cpu_infos[i].accounting.total_cycles = 0;
+            cpu_infos[i].accounting.idle_cycles = 0;
             cpu_infos[i].current_task_id = 0;
             cpu_infos[i].is_bsp = madt_cores[i].is_bsp;
 
@@ -226,20 +228,24 @@ void smp_init() {
         }
     }
 
-    void update_cpu_stats(const u32 apic_id, const u64 cycles, const u64 idle_cycles) {
-        if (CpuInfo* cpu_info = get_cpu_info(apic_id)) {
-            cpu_info->total_cycles = cycles;
-            cpu_info->idle_cycles = idle_cycles;
-        }
+    void accounting_tick(const u32 cpu_id, const bool is_idle) {
+        if (cpu_id >= total_cpus) return;
+        auto& [last_tick_tsc, total_cycles, idle_cycles] = cpu_infos[cpu_id].accounting;
+
+        const u64 now = rdtsc();
+        const u64 delta = now - last_tick_tsc;
+        last_tick_tsc = now;
+
+        total_cycles += delta;
+        if (is_idle) idle_cycles += delta;
     }
 
-    int get_cpu_usage(const u32 apic_id) {
-        const CpuInfo* cpu_info = get_cpu_info(apic_id);
-        if (!cpu_info || cpu_info->total_cycles == 0) {
-            return 0.0;
-        }
+    int get_cpu_usage_percent(const u32 cpu_id) {
+        if (cpu_id >= total_cpus) return 0;
+        const CpuAccounting& acc = cpu_infos[cpu_id].accounting;
+        if (acc.total_cycles == 0) return 0;
 
-        const u64 active_cycles = cpu_info->total_cycles - cpu_info->idle_cycles;
-        return ((active_cycles) / cpu_info->total_cycles) * 100;
+        const u64 active = acc.total_cycles - acc.idle_cycles;
+        return static_cast<int>((active * 100) / acc.total_cycles);
     }
 }  // namespace CPUManager

@@ -63,6 +63,7 @@ namespace kernel::tty {
 
         u64 fg = 0x00FFFFFF;
         u64 bg = 0x00000000;
+        bool reverse;
 
         utf8_state_t utf8;
 

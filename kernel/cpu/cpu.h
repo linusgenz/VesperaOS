@@ -9,6 +9,8 @@
 void detect_qemu();
 bool in_qemu();
 
+u64 rdtsc();
+
 extern "C" void get_cpu_vendor(char buf[13]);
 extern "C" u64 check_cpu_features();
 extern "C" void get_cpu_brand(char buf[49]);

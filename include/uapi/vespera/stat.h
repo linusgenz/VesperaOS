@@ -61,7 +61,7 @@ typedef struct vespera_stat {
     u32 mtime;       ///< Last modification time (Unix seconds)
     u32 ctime;       ///< Last status change time (Unix seconds)
     u32 crtime;      ///< Creation time (Unix seconds)
-    u16 perm_mode;   ///< Raw Unix permission bits (0644 etc.), (0 if not applicable)
+    u16 mode;   ///< Raw Unix permission bits (0644 etc.), (0 if not applicable)
     u16 links_count; ///< Hard link count
     u32 uid;         ///< Owner UID (0 if not applicable)
     u32 gid;         ///< Owner GID (0 if not applicable)
