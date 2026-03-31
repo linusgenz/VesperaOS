@@ -22,9 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <klib/string.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
 
-#include <vespera/filesystem/vfs.h>
 #include "vespera_errno.h"
 
 namespace syscalls::internal {
@@ -37,8 +37,6 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        if (const int status = VFS::rmdir(norm); status < 0) return -ENOTEMPTY;
-
-        return SUCCESS_CODE;
+        return VFS::rmdir(norm);
     }
 }  // namespace syscalls::internal

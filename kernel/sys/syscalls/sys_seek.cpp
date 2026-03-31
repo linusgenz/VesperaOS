@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/fflags.h>
-#include <uapi/vespera/handels.h>
+#include <uapi/vespera/handles.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 

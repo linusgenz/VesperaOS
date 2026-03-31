@@ -22,13 +22,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/fflags.h>
-#include <uapi/vespera/handels.h>
+#include <uapi/vespera/handles.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_node.h"
-#include <vespera/filesystem/vfs.h>
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {

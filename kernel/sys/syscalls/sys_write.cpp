@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <uapi/vespera/handels.h>
+#include <uapi/vespera/handles.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 

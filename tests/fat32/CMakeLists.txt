@@ -5,6 +5,7 @@ add_executable(fat32_tests
         ${PROJECT_ROOT}/filesystem/fat32/fat32_lfn.cpp
         ${PROJECT_ROOT}/filesystem/fat32/fat32_time.cpp
         ${PROJECT_ROOT}/lib/path.cpp
+        ${PROJECT_ROOT}/lib/time.cpp
         fat32_tests_main.cpp
 )
 target_link_libraries(fat32_tests PRIVATE kernel_stubs)

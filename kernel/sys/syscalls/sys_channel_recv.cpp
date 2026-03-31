@@ -26,7 +26,7 @@
 #include <vespera/scheduling.h>
 
 #include "../../units/unit.h"
-#include "uapi/vespera/handels.h"
+#include "uapi/vespera/handles.h"
 
 namespace syscalls::internal {
     i64 sys_channel_recv(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {

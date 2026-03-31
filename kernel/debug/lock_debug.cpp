@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "lock_debug.h"
+#include "../cpu/cpu.h"
 
 #include <klib/string.h>
 #include <vespera/log.h>
@@ -89,11 +90,7 @@ void lock_debug_before_acquire(const void* lockptr, const u32 current_unit) {
     }
 }
 
-inline u64 rdtsc() {
-    u32 lo = 0, hi = 0;
-    asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
-    return (static_cast<u64>(hi) << 32) | lo;
-}
+
 
 void lock_debug_after_acquire(const void* lockptr, const u32 current_unit) {
     if (current_unit == 0) return;
