@@ -403,4 +403,6 @@ int64_t sys_kill(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
 
 int64_t sys_sigaction(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
+int64_t sys_clock_gettime(uint64_t clk_id, uint64_t ts, uint64_t, uint64_t, uint64_t, uint64_t);
+
 #endif  // SYSSTD_H

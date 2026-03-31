@@ -98,6 +98,8 @@ namespace syscalls::internal {
     i64 sys_sigreturn(u64, u64, u64, u64, u64, u64);
 
     i64 sys_kill(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_clock_gettime(u64 arg0, u64 arg1, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

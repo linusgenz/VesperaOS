@@ -55,6 +55,7 @@
 #define SYSCALL_REBOOT 169
 #define SYSCALL_GETUID    186
 #define SYSCALL_READDIR 217
+#define SYSCALL_CLOCK_GETTIME 228
 
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
@@ -215,4 +216,8 @@ int64_t sys_sigaction(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t
 
 int64_t sys_sigreturn(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_SIGRETURN, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_clock_gettime(uint64_t clk_id, uint64_t ts, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CLOCK_GETTIME, clk_id, ts, 0, 0, 0, 0);
 }
