@@ -25,5 +25,11 @@
 #include "ext4_fixture.h"
 
 #include "test_ext4_vfs.cpp"
+#include "test_ext4_fileio.cpp"
+#include "test_ext4_create_delete.cpp"
+#include "test_ext4_rename.cpp"
+#include "test_ext4_stat.cpp"
+#include "test_ext4_truncate.cpp"
+#include "test_ext4_fs.cpp"
 
 TEST_MAIN()
