@@ -214,7 +214,7 @@ int VFS::rename(const char* old_path, const char* new_path) {
         return -ENOSYS;
     }
 
-    const int status = old_parent->ops->rename(old_parent, old_name, new_name);
+    const int status = old_parent->ops->rename(old_parent, old_name, new_parent, new_name);
     close(old_parent);
     close(new_parent);
     return status;
@@ -266,6 +266,7 @@ int VFS::rmdir(const char* path) {
 
     const int result = parent->ops->rmdir(parent, name);
     close(parent);
+    if (result == 1) return -ENOTEMPTY;
     return result;
 }
 
@@ -287,6 +288,7 @@ int VFS::unlink(const char* path) {
 
     const int result = parent->ops->unlink(parent, name);
     close(parent);
+    if (result == 1) return -EIO;
     return result;
 }
 

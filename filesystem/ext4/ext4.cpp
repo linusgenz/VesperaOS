@@ -1229,6 +1229,165 @@ namespace ext4 {
         return true;
     }
 
+    bool FileSystem::rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name) {
+        Log::debug(
+            "[ext4] rename: old_dir=%u old=%s  new_dir=%u new=%s", old_dir_inode, old_name, new_dir_inode, new_name
+        );
+
+        usize src_count = 0;
+        FileEntry* src_entries = read_directory(old_dir_inode, src_count);
+        if (!src_entries) return false;
+
+        u32 src_inode = 0;
+        bool src_is_dir = false;
+        DirEntryType src_type = DirEntryType::Unknown;
+
+        for (usize i = 0; i < src_count; ++i) {
+            if (strcmp(src_entries[i].get_name(), old_name) == 0) {
+                src_inode = src_entries[i].get_inode();
+                src_is_dir = src_entries[i].is_dir();
+                src_type = src_entries[i].get_type();
+                break;
+            }
+        }
+        kernel::memory::free(src_entries);
+
+        if (src_inode == 0) {
+            Log::debug("[ext4] rename: source not found");
+            return false;
+        }
+
+        usize dst_count = 0;
+        FileEntry* dst_entries = read_directory(new_dir_inode, dst_count);
+        // dst_entries may be null if the directory is empty — that is fine.
+
+        u32 dst_inode = 0;
+        bool dst_is_dir = false;
+
+        if (dst_entries) {
+            for (usize i = 0; i < dst_count; ++i) {
+                if (strcmp(dst_entries[i].get_name(), new_name) == 0) {
+                    dst_inode = dst_entries[i].get_inode();
+                    dst_is_dir = dst_entries[i].is_dir();
+                    break;
+                }
+            }
+            kernel::memory::free(dst_entries);
+        }
+
+        if (src_inode == dst_inode && old_dir_inode == new_dir_inode) return true;
+
+        if (dst_inode != 0) {
+            if (src_is_dir && !dst_is_dir) {
+                Log::debug("[ext4] rename: cannot replace file with directory");
+                return false;
+            }
+            if (!src_is_dir && dst_is_dir) {
+                Log::debug("[ext4] rename: cannot replace directory with file");
+                return false;
+            }
+            // Replacing a directory: it must be empty.
+            if (dst_is_dir && !dir_is_empty(dst_inode)) {
+                Log::debug("[ext4] rename: destination directory not empty");
+                return false;
+            }
+        }
+
+        if (dst_inode != 0) {
+            // Remove the dir entry from the destination directory.
+            if (!dir_remove_entry(new_dir_inode, new_name)) return false;
+
+            if (dst_is_dir) {
+                // Free the replaced directory's blocks and inode.
+                Inode dst_inode_data{};
+                if (read_inode(dst_inode, dst_inode_data)) {
+                    free_blocks_for_inode(dst_inode_data);
+                    free_inode(dst_inode);
+                }
+
+                // Removing a directory takes one link from the parent (the ".." inside).
+                Inode new_dir{};
+                if (read_inode(new_dir_inode, new_dir)) {
+                    if (new_dir.i_links_count > 0) new_dir.i_links_count--;
+                    write_inode(new_dir_inode, new_dir);
+                }
+
+                const u32 group = (dst_inode - 1) / superblock_.s_inodes_per_group;
+                GroupDesc gd{};
+                if (read_group_desc(group, gd)) {
+                    if (gd.bg_used_dirs_count_lo > 0) gd.bg_used_dirs_count_lo--;
+                    write_group_desc(group, gd);
+                }
+            } else {
+                // Replacing a regular file: decrement its link count / free if zero.
+                Inode dst_inode_data{};
+                if (read_inode(dst_inode, dst_inode_data)) {
+                    if (dst_inode_data.i_links_count > 0) dst_inode_data.i_links_count--;
+                    if (dst_inode_data.i_links_count == 0) {
+                        free_blocks_for_inode(dst_inode_data);
+                        write_inode(dst_inode, dst_inode_data);
+                        free_inode(dst_inode);
+                    } else {
+                        write_inode(dst_inode, dst_inode_data);
+                    }
+                }
+            }
+        }
+
+        if (!dir_add_entry(new_dir_inode, new_name, src_inode, src_type)) {
+            Log::debug("[ext4] rename: dir_add_entry failed");
+            return false;
+        }
+
+        if (!dir_remove_entry(old_dir_inode, old_name)) {
+            // Partial failure — the entry now exists in both dirs.
+            // Best-effort rollback: remove the entry we just added.
+            dir_remove_entry(new_dir_inode, new_name);
+            Log::debug("[ext4] rename: dir_remove_entry failed, rolled back");
+            return false;
+        }
+
+        if (src_is_dir && old_dir_inode != new_dir_inode) {
+            // Patch ".." inside src_inode to point to new_dir_inode.
+            const u32 bsize = get_block_size();
+            auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+            if (block_buf) {
+                Inode src_inode_data{};
+                if (read_inode(src_inode, src_inode_data)) {
+                    u64 pblock = 0;
+                    if (map_logical_to_physical(src_inode_data, 0, pblock) && read_block(pblock, block_buf, bsize)) {
+                        auto* dot = reinterpret_cast<DirEntry*>(block_buf);
+                        auto* dotdot = reinterpret_cast<DirEntry*>(block_buf + dot->rec_len);
+                        dotdot->inode = new_dir_inode;
+                        write_block(pblock, block_buf, bsize);
+                    }
+                }
+                kernel::memory::free(block_buf);
+            }
+
+            Inode old_parent{};
+            if (read_inode(old_dir_inode, old_parent)) {
+                if (old_parent.i_links_count > 0) old_parent.i_links_count--;
+                write_inode(old_dir_inode, old_parent);
+            }
+
+            Inode new_parent{};
+            if (read_inode(new_dir_inode, new_parent)) {
+                new_parent.i_links_count++;
+                write_inode(new_dir_inode, new_parent);
+            }
+        }
+
+        Inode src_inode_data{};
+        if (read_inode(src_inode, src_inode_data)) {
+            time::update_write(src_inode_data);
+            write_inode(src_inode, src_inode_data);
+        }
+
+        Log::debug("[ext4] rename: ok, inode=%u", src_inode);
+        return true;
+    }
+
     bool FileSystem::stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const {
         if (!out || inode_no == 0) return false;
 
@@ -1250,8 +1409,7 @@ namespace ext4 {
         out->ctime = inode.i_ctime;
         out->crtime = inode.i_crtime;
 
-        // Unix permission bits
-        out->perm_mode = inode.i_mode & 0x0FFFu;
+        out->mode = inode.i_mode;
 
         out->links_count = inode.i_links_count;
 
@@ -1318,8 +1476,6 @@ namespace ext4 {
                 }
             }
 
-            // Rebuild the inline extent tree from scratch keeping only
-            // extents that are fully or partially within new_size.
             auto* eh = reinterpret_cast<ExtentHeader*>(&inode.i_block[0]);
             eh->eh_magic = EXT4_EXTENT_MAGIC;
             eh->eh_entries = 0;
@@ -1336,9 +1492,6 @@ namespace ext4 {
                     }
                     if (surviving == 0) continue;
 
-                    // Re-append the surviving portion.
-                    // extent_tree_append adds one block at a time and coalesces,
-                    // so we call it per-block (safe for depth-0 trees).
                     for (u32 i = 0; i < surviving; ++i) {
                         extent_tree_append(inode, em.logical_start + i, em.phys_start + i);
                     }
@@ -1351,14 +1504,6 @@ namespace ext4 {
             inode.i_blocks_lo = static_cast<u32>(new_blocks_512 & 0xFFFFFFFFu);
             inode.i_blocks_high = static_cast<u16>(new_blocks_512 >> 32);
 
-        } else {
-            // ---------------------------------------------------------------
-            // Grow: just update the size — sparse holes are read as zeroes
-            // by read_file already. No blocks need allocating until someone
-            // actually writes into the gap.
-            // ---------------------------------------------------------------
-            // (Eager preallocation wäre eine mögliche Optimierung, ist aber
-            //  für ein Hobby-OS nicht nötig.)
         }
 
         inode_set_size(inode, new_size);

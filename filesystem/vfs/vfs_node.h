@@ -58,7 +58,7 @@ struct VfsNodeOps {
 
     int (*create)(const VfsNode *node, const char *name);
 
-    int (*rename)(const VfsNode *, const char *old_name, const char *new_name);
+    int (*rename)(const VfsNode *, const char *old_name, const VfsNode *new_parent, const char *new_name);
 
     int (*mkdir)(const VfsNode *node, const char *name);
 
@@ -70,15 +70,15 @@ struct VfsNodeOps {
 
     int (*stat)(const VfsNode *, vespera_stat_t *out);
 
-    int (*truncate)(VfsNode* node, usize new_size);
+    int (*truncate)(VfsNode *node, usize new_size);
 
-    int (*poll)(const VfsNode* node);
+    int (*poll)(const VfsNode *node);
 };
 
 struct VfsNode {
     const char *name;
     usize size;  // size of the file is equal to fileSize field in internal_data
-    const MountPoint* mount = nullptr;
+    const MountPoint *mount = nullptr;
     void *internal_data;
     const VfsNodeOps *ops;
     VfsNodeType type;

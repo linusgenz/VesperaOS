@@ -240,6 +240,20 @@ static int ext4_truncate(VfsNode* node, const usize new_size) {
     return 0;
 }
 
+static int ext4_rename(const VfsNode* old_parent, const char* old_name,
+                       const VfsNode* new_parent, const char* new_name) {
+    if (!old_parent || !old_name || !new_parent || !new_name) return 1;
+
+    const auto* old_dir = static_cast<Ext4Node*>(old_parent->internal_data);
+    const auto* new_dir = static_cast<Ext4Node*>(new_parent->internal_data);
+    if (!old_dir || !old_dir->is_dir || !new_dir || !new_dir->is_dir) return 1;
+
+    if (old_dir->fs != new_dir->fs) return 1;
+
+    return old_dir->fs->rename(old_dir->inode, old_name,
+                               new_dir->inode, new_name) ? 0 : 1;
+}
+
 static VfsNodeOps ext4_ops = {
     .read = ext4_read,
     .write = ext4_write,
@@ -249,7 +263,7 @@ static VfsNodeOps ext4_ops = {
     .readdir = ext4_readdir,
     .closedir = ext4_closedir,
     .create = ext4_create,
-    .rename = nullptr,
+    .rename = ext4_rename,
     .mkdir = ext4_mkdir,
     .rmdir = ext4_rmdir,
     .unlink = ext4_unlink,

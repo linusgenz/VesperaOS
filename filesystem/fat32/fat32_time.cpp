@@ -25,6 +25,7 @@
 #include <vespera/time.h>
 
 #include "fat32.h"
+#include <klib/time.h>
 
 namespace fat32 {
 
@@ -81,5 +82,19 @@ namespace fat32 {
     void update_access_time(DirectoryEntry& e) {
         const FsTime t = get_current_fat_time();
         e.last_access_date = t.date;
+    }
+
+    u32 fat32_time_to_unix(u16 date, u16 time) {
+        if (date == 0) return 0;
+
+        const u8 day   =  date        & 0x1F;
+        const u8 month = (date >>  5) & 0x0F;
+        const u32 year = (date >>  9) + 1980;
+
+        const u8 sec  = (time & 0x1F) * 2;
+        const u8 min  = (time >>  5) & 0x3F;
+        const u8 hour = (time >> 11) & 0x1F;
+
+        return static_cast<u32>(klib::time::to_unix(year, month, day, hour, min, sec));
     }
 }  // namespace fat32

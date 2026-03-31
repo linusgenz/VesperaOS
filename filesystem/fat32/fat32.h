@@ -9,6 +9,8 @@
 #include <vespera/devices/block.h>
 #include <vespera/mm/memory.h>
 #include <vespera/types.h>
+
+#include "uapi/vespera/stat.h"
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
 struct Fat32Node;
@@ -304,6 +306,8 @@ namespace fat32 {
         bool overwrite_directory_entry(u32 parent_cluster, usize entry_index, const DirectoryEntry* new_entry) const;
 
         u32 find_entry_cluster(u32 dir_cluster, const char* given_name) const;
+        bool stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const;
+        u32 truncate(Fat32Node* node, usize new_size);
         static bool is_protected(const DirectoryEntry& e);
     };
 }  // namespace fat32

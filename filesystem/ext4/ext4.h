@@ -273,6 +273,7 @@ namespace ext4 {
         u32 create_dir(u32 dir_inode_no, const char* name);
         bool unlink(u32 dir_inode_no, const char* name);
         bool rmdir(u32 dir_inode_no, const char* name);
+        bool rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);
         bool stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
         bool truncate(u32 inode_no, u64 new_size);
 
@@ -296,20 +297,20 @@ namespace ext4 {
         }
 
         bool read_superblock();
-        bool write_superblock() const;
+        [[nodiscard]] bool write_superblock() const;
         bool read_block(u64 block, void* out_buf, u32 buf_size) const;
         bool write_block(u64 block, const void* buf, u32 buf_size) const;
         bool read_group_desc(u32 group, GroupDesc& out_gd) const;
-        bool write_group_desc(u32 group, const GroupDesc& gd) const;
+        [[nodiscard]] bool write_group_desc(u32 group, const GroupDesc& gd) const;
         u64 inode_disk_offset(u32 inode_no, u32& out_inode_size) const;
         bool read_inode(u32 inode_no, Inode& out_inode) const;
-        bool write_inode(u32 inode_no, const Inode& inode) const;
+        [[nodiscard]] bool write_inode(u32 inode_no, const Inode& inode) const;
         u32 alloc_inode(u32 preferred_group);
         bool init_inode(u32 inode_no, u16 mode);
         bool free_inode(u32 inode_no);
         bool dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type);
         bool dir_remove_entry(u32 dir_inode_no, const char* name) const;
-        bool dir_is_empty(u32 inode_no) const;
+        [[nodiscard]] bool dir_is_empty(u32 inode_no) const;
 
         static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
         bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;

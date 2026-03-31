@@ -31,5 +31,7 @@ namespace fat32
     void update_create_time(DirectoryEntry& e);
     void update_write_time(DirectoryEntry& e);
     void update_access_time(DirectoryEntry& e);
+
+    u32 fat32_time_to_unix(u16 date, u16 time);
 }
 #endif //VESPERAOS_FS_TIME_H

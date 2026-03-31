@@ -22,34 +22,14 @@
 
 #include <vespera/types.h>
 #include <vespera/time.h>
+#include <klib/time.h>
 #include "ext4.h"
 
 namespace ext4::time {
     static u64 rtc_to_unix_time() {
-        u8 sec, min, hour, day, month, year;
+        u8 sec = 0, min = 0, hour = 0, day = 0, month = 0, year = 0;
         kernel::time::read_rtc(sec, min, hour, day, month, year);
-
-        // RTC just delivers year since 2000 so we have to add 2000 here
-        const u16 full_year = 2000 + year;
-
-        // Days since 01/01/1970
-        auto is_leap = [](u16 y) { return (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0)); };
-
-        u64 days = 0;
-        for (u16 y = 1970; y < full_year; ++y) {
-            days += is_leap(y) ? 366 : 365;
-        }
-
-        static const u8 month_days[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
-        for (u8 m = 1; m < month; ++m) {
-            days += month_days[m-1];
-            if (m == 2 && is_leap(full_year)) days += 1;
-        }
-
-        days += (day - 1);
-
-        u64 total_seconds = days * 86400 + hour * 3600 + min * 60 + sec;
-        return total_seconds;
+        return klib::time::to_unix(2000u + year, month, day, hour, min, sec);
     }
 
     void update_write(Inode& inode) {

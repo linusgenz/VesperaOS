@@ -189,10 +189,10 @@ static void fat32_close(VfsNode* node) {
 
 static int fat32_create(const VfsNode* node, const char* name) {
     const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->create_file(dir, name) ? 0 : -1;
+    return dir->fs->create_file(dir, name) ? 0 : 1;
 }
 
-static int fat32_rename(const VfsNode* node, const char* old_name, const char* new_name) {
+static int fat32_rename(const VfsNode* node, const char* old_name, const VfsNode* new_parent, const char* new_name) {
     const auto* dir = static_cast<Fat32Node*>(node->internal_data);
     if (!dir || !old_name || !new_name) return -EINVAL;
 
@@ -205,69 +205,37 @@ static int fat32_rename(const VfsNode* node, const char* old_name, const char* n
 
 static int fat32_mkdir(const VfsNode* node, const char* name) {
     const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->create_directory(dir, name) ? 0 : -1;
+    return dir->fs->create_directory(dir, name) ? 0 : 1;
 }
 
 static int fat32_rmdir(const VfsNode* node, const char* name) {
     const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->remove_directory(dir, name) ? 0 : -1;
+    return dir->fs->remove_directory(dir, name) ? 0 : 1;
 }
 
 static int fat32_unlink(const VfsNode* node, const char* name) {
     const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->delete_file(dir, name) ? 0 : -1;
+    return dir->fs->delete_file(dir, name) ? 0 : 1;
 }
 
 static int fat32_stat(const VfsNode* node, vespera_stat_t* out) {
-    const auto* fnode = static_cast<Fat32Node*>(node->internal_data);
+    if (!node || !out) return -EINVAL;
+    const auto* fnode = static_cast<const Fat32Node*>(node->internal_data);
     if (!fnode) return -EINVAL;
 
-    out->inode_id = fnode->cluster;
-    out->block_size = fnode->fs->bytes_per_cluster();
+    const u32 dev_id = (node->mount && node->mount->device)
+                       ? node->mount->device->device_id : 0;
 
-    // Number of allocated clusters * sectors per cluster * 512
-    if (fnode->file_size > 0 && out->block_size > 0) {
-        const u64 clusters_used = (fnode->file_size + out->block_size - 1) / out->block_size;
-        const u32 sectors_per_cluster = fnode->fs->get_bpb()->sectors_per_cluster;
-        out->blocks = clusters_used * sectors_per_cluster;
-    }
-
-    out->dev_id = node->mount->device->device_id;
-
-    return 0;
+    return fnode->fs->stat(fnode, out, dev_id) ? 0 : -EIO;
 }
 
 static int fat32_truncate(VfsNode* node, usize new_size) {
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
     if (!fnode) return -EINVAL;
-
-    const u32 cluster_bytes = fnode->fs->bytes_per_cluster();
-
-    if (new_size == 0) {
-        if (fnode->cluster != 0) {
-            fnode->fs->trim_cluster_chain(fnode->cluster);
-            fnode->fs->free_cluster_chain(fnode->cluster);
-            fnode->cluster = 0;
-        }
-    } else {
-        const usize needed = (new_size + cluster_bytes - 1) / cluster_bytes;
-        usize count = 0;
-        if (u32* chain = fnode->fs->get_cluster_chain(fnode->cluster, count); chain && count > needed) {
-            fnode->fs->write_fat_entry(chain[needed - 1], 0x0FFFFFFF);
-            for (usize i = needed; i < count; ++i) fnode->fs->write_fat_entry(chain[i], 0);
-            kernel::memory::free(chain);
-        }
-    }
-
-    fnode->file_size = new_size;
-    fnode->dir_entry.file_size = static_cast<u32>(new_size);
-    fnode->dir_entry.first_cluster_low = static_cast<u16>(fnode->cluster & 0xFFFF);
-    fnode->dir_entry.first_cluster_high = static_cast<u16>((fnode->cluster >> 16) & 0xFFFF);
-    update_write_time(fnode->dir_entry);
-
+    u32 status = fnode->fs->truncate(fnode, new_size);
+    if (status == 1) return -EIO;
     node->size = new_size;
-    return fnode->fs->overwrite_directory_entry(fnode->parent_cluster, fnode->current_index, &fnode->dir_entry) ? 0
-                                                                                                                : -EIO;
+    return 0;
 }
 
 static VfsNodeOps fat32_ops = {
