@@ -1,8 +1,13 @@
 var searchData=
 [
-  ['name_0',['name',['../structrealm__info.html#a94ffed55ca8f366d704a95c4fbff30ab',1,'realm_info::name'],['../structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10',1,'dirent_t::name']]],
-  ['next_1',['next',['../structheap__seg.html#a628682b06341bbbd876a6e42656815c5',1,'heap_seg::next'],['../structlarge__seg.html#aedc3113af2d8caa0195a871a5cb0aa89',1,'large_seg::next']]],
-  ['node_5ftype_2',['node_type',['../structvespera__stat.html#a02b928b0e429df7ce23d4516b670a6ca',1,'vespera_stat']]],
-  ['num_5fconfigurations_3',['num_configurations',['../structusb__device__info.html#a18e5d2888c081b12a42ee813fcdc8010',1,'usb_device_info']]],
-  ['num_5finterfaces_4',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]]
+  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg']]],
+  ['mask_1',['mask',['../structsigaction__t.html#a83438ecc68511faa716b601b3c9075c7',1,'sigaction_t']]],
+  ['max_5funits_2',['max_units',['../structrealm__info.html#a8a8d62f8ea58d74dc11ed43488bbf62b',1,'realm_info']]],
+  ['media_5ferrors_3',['media_errors',['../structSmartNvme.html#a6d855fb2020cb3315d99a13a1d495a60',1,'SmartNvme']]],
+  ['memory_5flimit_4',['memory_limit',['../structrealm__info.html#a7028b33fa1fb99d4e4788c02b15ed667',1,'realm_info']]],
+  ['min_5',['min',['../structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860',1,'rtc_data']]],
+  ['mode_6',['mode',['../structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336',1,'tty_mode_t']]],
+  ['model_7',['model',['../structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44',1,'devinfo_t']]],
+  ['month_8',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]],
+  ['mtime_9',['mtime',['../structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea',1,'vespera_stat']]]
 ];

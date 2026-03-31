@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['warning_5ftemp_5ftime_5fmin_0',['warning_temp_time_min',['../structSmartNvme.html#a6ac813339f4b8d6d3ca161a9c889aa4a',1,'SmartNvme']]],
-  ['width_1',['width',['../structimage__t.html#a0c9099a8c2e05a0cd35be6de837c8b9a',1,'image_t::width'],['../structfb__info.html#a6af69c9c6d737cb22583b57297e1f677',1,'fb_info::width'],['../structfb__rect.html#af384250f540139dec4f1fd952f1b5da8',1,'fb_rect::width'],['../structfb__rect__outline.html#a4e15bf38995174c0d89c05641df4707c',1,'fb_rect_outline::width']]],
-  ['worst_2',['worst',['../structSmartAttribute.html#a0a9ecc721151ae5fe85d82baa69672f6',1,'SmartAttribute::worst'],['../ioctl__smart_8h.html#a08037e0ec1e487b545f67c117edb390f',1,'worst:&#160;ioctl_smart.h']]]
+  ['v_5fsamp_5ffactor_0',['v_samp_factor',['../structjpeg__save__options__t.html#a06445193fca1fa42950df1536bf0a470',1,'jpeg_save_options_t']]],
+  ['value_1',['value',['../structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319',1,'devinfo_string_t']]],
+  ['vendor_2',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info::vendor'],['../structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee',1,'devinfo_t::vendor']]],
+  ['vendor_5fid_3',['vendor_id',['../structusb__device__info.html#ad6ac117b3b090a41c045fc1dc28bb411',1,'usb_device_info']]],
+  ['version_4',['version',['../structSmartAta.html#ac219bee1e39de9f156e57d891b51d699',1,'SmartAta']]]
 ];

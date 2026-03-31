@@ -5,6 +5,7 @@ var sysstd_8h =
     [ "sys_channel_recv", "sysstd_8h.html#a25a050125489b789a9ff0572061cd23c", null ],
     [ "sys_channel_send", "sysstd_8h.html#af11ef46b1f21a4f819fd9130bed53ed1", null ],
     [ "sys_chdir", "sysstd_8h.html#a08adbc74eb703f7d4eb0bf62a21e0fcd", null ],
+    [ "sys_clock_gettime", "sysstd_8h.html#a5929be7b4c4b04dbdb75dbe441befcd0", null ],
     [ "sys_close", "sysstd_8h.html#aba1a18094b538aa055e144f694578315", null ],
     [ "sys_create", "sysstd_8h.html#a950db4373c087ab28cf9acec58370c17", null ],
     [ "sys_exit", "sysstd_8h.html#a974b07ccc1d324a15ba8805c156a6695", null ],

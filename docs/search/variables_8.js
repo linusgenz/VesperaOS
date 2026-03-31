@@ -1,6 +1,13 @@
 var searchData=
 [
-  ['id_0',['id',['../structSmartAttribute.html#a69c16c92eef9c0f9ccf17cb55dd6e509',1,'SmartAttribute::id'],['../structrealm__info.html#a1979e3af3f207de06782e84ec2cfa9d6',1,'realm_info::id'],['../structunit__info.html#a312611eacd8b7fe7ee54c65ba058eff5',1,'unit_info::id'],['../ioctl__smart_8h.html#a06b0c1fe0b3340c9767270a44106fff3',1,'id:&#160;ioctl_smart.h']]],
-  ['inode_5fid_1',['inode_id',['../structvespera__stat.html#a9312490bca8dece1ba862e7008eedddc',1,'vespera_stat']]],
-  ['is_5fprimary_2',['is_primary',['../structfb__info.html#abe50b4d7e7f13ab2776516d046408a71',1,'fb_info']]]
+  ['h_5fsamp_5ffactor_0',['h_samp_factor',['../structjpeg__save__options__t.html#a521f508a3c9014ef9d74a323eeb1a0cf',1,'jpeg_save_options_t']]],
+  ['handle_1',['handle',['../structFILE.html#a176663d9f8ea25f12e3d233a0da3cc2b',1,'FILE']]],
+  ['handle_5fcount_2',['handle_count',['../structunit__info.html#a1f3272002ca1e7ed5805805c4a64aa99',1,'unit_info']]],
+  ['handler_3',['handler',['../structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee',1,'sigaction_t']]],
+  ['hdl_4',['hdl',['../structpollhdl.html#ae7a5cc68d60cc8d9d2d79c310da4e5a5',1,'pollhdl']]],
+  ['health_5fok_5',['health_ok',['../structSmartCommon.html#af0c9ec26bc870c3eaf1e4840f1f8a201',1,'SmartCommon::health_ok'],['../structSmartAta.html#a0aa901bb49e11f4811a565d3ea753164',1,'SmartAta::health_ok']]],
+  ['height_6',['height',['../structimage__t.html#a067e25b338ae9863688c1d6e928ebb62',1,'image_t::height'],['../structfb__info.html#a3d491b7ecdacd951309777eabf6d593a',1,'fb_info::height'],['../structfb__rect.html#adca653e1d571d918b9447fbf39055846',1,'fb_rect::height'],['../structfb__rect__outline.html#a4f8f0fbbac43d849f35f932672478039',1,'fb_rect_outline::height']]],
+  ['host_5fread_5fcommands_7',['host_read_commands',['../structSmartNvme.html#aec06bb750e6dae19faa3d9fe1cd2d43f',1,'SmartNvme']]],
+  ['host_5fwrite_5fcommands_8',['host_write_commands',['../structSmartNvme.html#ab71e78c9558d3800bd802f781e340c72',1,'SmartNvme']]],
+  ['hour_9',['hour',['../structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e',1,'rtc_data']]]
 ];
