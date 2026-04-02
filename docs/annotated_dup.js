@@ -1,6 +1,8 @@
 var annotated_dup =
 [
     [ "cpu_info", "structcpu__info.html", "structcpu__info" ],
+    [ "cpu_usage_info", "structcpu__usage__info.html", "structcpu__usage__info" ],
+    [ "cpu_usage_stat", "structcpu__usage__stat.html", "structcpu__usage__stat" ],
     [ "devinfo_string_t", "structdevinfo__string__t.html", "structdevinfo__string__t" ],
     [ "devinfo_t", "structdevinfo__t.html", "structdevinfo__t" ],
     [ "dirent_t", "structdirent__t.html", "structdirent__t" ],
@@ -27,6 +29,8 @@ var annotated_dup =
     [ "SmartNvme", "structSmartNvme.html", "structSmartNvme" ],
     [ "SmartRawData", "structSmartRawData.html", "structSmartRawData" ],
     [ "spawn_config", "structspawn__config.html", "structspawn__config" ],
+    [ "timespec", "structtimespec.html", "structtimespec" ],
+    [ "tm", "structtm.html", "structtm" ],
     [ "tty_mode_t", "structtty__mode__t.html", "structtty__mode__t" ],
     [ "tty_size_t", "structtty__size__t.html", "structtty__size__t" ],
     [ "unit_info", "structunit__info.html", "structunit__info" ],

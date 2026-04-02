@@ -13,5 +13,8 @@ var searchData=
   ['cap_5fwrite_10',['CAP_WRITE',['../capabilities_8h.html#a2238825f4466c863d89ed0451562af61',1,'capabilities.h']]],
   ['char_5fbit_11',['CHAR_BIT',['../limits_8h.html#a308d9dd2c0028ddb184b455bbd7865de',1,'limits.h']]],
   ['char_5fmax_12',['CHAR_MAX',['../limits_8h.html#a778eefd6535a9d4b752fca5dd0af58db',1,'limits.h']]],
-  ['char_5fmin_13',['CHAR_MIN',['../limits_8h.html#a5d707bd32338557ced18c6ac76ca1b3a',1,'limits.h']]]
+  ['char_5fmin_13',['CHAR_MIN',['../limits_8h.html#a5d707bd32338557ced18c6ac76ca1b3a',1,'limits.h']]],
+  ['clock_5fmonotonic_14',['CLOCK_MONOTONIC',['../include_2uapi_2vespera_2time_8h.html#a6fb83f5e91e704391ff796553d5e0f46',1,'time.h']]],
+  ['clock_5fmonotonic_5fraw_15',['CLOCK_MONOTONIC_RAW',['../include_2uapi_2vespera_2time_8h.html#abc28c2ee4e33ae055ef2f737110a7020',1,'time.h']]],
+  ['clock_5frealtime_16',['CLOCK_REALTIME',['../include_2uapi_2vespera_2time_8h.html#a922ce1ae64374c9410c8a999e25e82af',1,'time.h']]]
 ];

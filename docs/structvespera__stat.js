@@ -11,9 +11,9 @@ var structvespera__stat =
     [ "gid", "structvespera__stat.html#a3eca9a6216a713ae1b7a79943a362869", null ],
     [ "inode_id", "structvespera__stat.html#a9312490bca8dece1ba862e7008eedddc", null ],
     [ "links_count", "structvespera__stat.html#aa04896d3128812aac9fc25cefd927254", null ],
+    [ "mode", "structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51", null ],
     [ "mtime", "structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea", null ],
     [ "node_type", "structvespera__stat.html#a02b928b0e429df7ce23d4516b670a6ca", null ],
-    [ "perm_mode", "structvespera__stat.html#aa9c33fde2d55df3fc790dd6862c63552", null ],
     [ "size", "structvespera__stat.html#a2f4c2397c85c1e406c419d378c094d11", null ],
     [ "uid", "structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c", null ]
 ];

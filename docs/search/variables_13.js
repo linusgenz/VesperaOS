@@ -1,9 +1,21 @@
 var searchData=
 [
-  ['temperature_5fcelsius_0',['temperature_celsius',['../structSmartCommon.html#a7787f67cf0c2e62e90f58fe5f12cb58a',1,'SmartCommon::temperature_celsius'],['../structSmartNvme.html#aa7ab3f31d729a3397983296e82d4b294',1,'SmartNvme::temperature_celsius'],['../structSmartAta.html#a7ff162bf9c66a7c8c3206ede8d04dd2e',1,'SmartAta::temperature_celsius']]],
+  ['temperature_5fcelsius_0',['temperature_celsius',['../structSmartNvme.html#aa7ab3f31d729a3397983296e82d4b294',1,'SmartNvme::temperature_celsius'],['../structSmartAta.html#a7ff162bf9c66a7c8c3206ede8d04dd2e',1,'SmartAta::temperature_celsius'],['../structSmartCommon.html#a7787f67cf0c2e62e90f58fe5f12cb58a',1,'SmartCommon::temperature_celsius']]],
   ['temperature_5fsensor_1',['temperature_sensor',['../structSmartNvme.html#a4ab00536d411eb26262cc37c5bd50c17',1,'SmartNvme']]],
   ['thickness_2',['thickness',['../structfb__rect__outline.html#ab45c6f42741b060c2fec8bfd81645649',1,'fb_rect_outline']]],
-  ['threshold_3',['threshold',['../structSmartAttribute.html#a9b1536fbe151560b1652661ef4fcad1b',1,'SmartAttribute::threshold'],['../ioctl__smart_8h.html#adf2aa66759fbad0b6b6a1f6d355bbbfa',1,'threshold:&#160;ioctl_smart.h']]],
-  ['total_5fram_4',['total_ram',['../structmeminfo.html#a568f1ff0eb141fab01680030ee43e5e4',1,'meminfo']]],
-  ['type_5',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t']]]
+  ['threshold_3',['threshold',['../ioctl__smart_8h.html#adf2aa66759fbad0b6b6a1f6d355bbbfa',1,'threshold:&#160;ioctl_smart.h'],['../structSmartAttribute.html#a9b1536fbe151560b1652661ef4fcad1b',1,'SmartAttribute::threshold']]],
+  ['tm_5fhour_4',['tm_hour',['../structtm.html#a3e7ca4e37f1abcaf56b8a916c38eb9fe',1,'tm']]],
+  ['tm_5fisdst_5',['tm_isdst',['../structtm.html#a5645ca0580c8ab2c24f6c2965d9c9f9c',1,'tm']]],
+  ['tm_5fmday_6',['tm_mday',['../structtm.html#ab8d8904bad43b0c8b96e61941c5b5310',1,'tm']]],
+  ['tm_5fmin_7',['tm_min',['../structtm.html#af414eb7c86cc3099595211eee4d4211b',1,'tm']]],
+  ['tm_5fmon_8',['tm_mon',['../structtm.html#a112ac36fa2f593777138a417cf031e17',1,'tm']]],
+  ['tm_5fsec_9',['tm_sec',['../structtm.html#a4d098a9a5c03a00b2ee61e10851de81e',1,'tm']]],
+  ['tm_5fwday_10',['tm_wday',['../structtm.html#afe81a8c46f1c693c43f259b288859f4f',1,'tm']]],
+  ['tm_5fyday_11',['tm_yday',['../structtm.html#a93a0ba77cc23796df84405dcbcc57eb1',1,'tm']]],
+  ['tm_5fyear_12',['tm_year',['../structtm.html#a33adf78fd6476b2120ce3b9c4a852053',1,'tm']]],
+  ['total_5fcycles_13',['total_cycles',['../structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a',1,'cpu_usage_stat']]],
+  ['total_5fram_14',['total_ram',['../structmeminfo.html#a568f1ff0eb141fab01680030ee43e5e4',1,'meminfo']]],
+  ['tv_5fnsec_15',['tv_nsec',['../structtimespec.html#a6d9d14e9cdae880583f79d3b4a7fd42a',1,'timespec']]],
+  ['tv_5fsec_16',['tv_sec',['../structtimespec.html#aeee94728b745f1726486b7e2eab1eb78',1,'timespec']]],
+  ['type_17',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t']]]
 ];

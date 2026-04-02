@@ -4,11 +4,12 @@ var dir_e2b52b92f5077a849e2a3072fb331546 =
     [ "capabilities.h", "capabilities_8h.html", "capabilities_8h" ],
     [ "dirent.h", "include_2uapi_2vespera_2dirent_8h.html", "include_2uapi_2vespera_2dirent_8h" ],
     [ "fflags.h", "include_2uapi_2vespera_2fflags_8h.html", "include_2uapi_2vespera_2fflags_8h" ],
-    [ "handels.h", "handels_8h.html", "handels_8h" ],
+    [ "handles.h", "handles_8h.html", "handles_8h" ],
     [ "mount.h", "include_2uapi_2vespera_2mount_8h.html", "include_2uapi_2vespera_2mount_8h" ],
     [ "poll.h", "include_2uapi_2vespera_2poll_8h.html", "include_2uapi_2vespera_2poll_8h" ],
     [ "signal.h", "signal_8h.html", "signal_8h" ],
     [ "spawn.h", "spawn_8h.html", "spawn_8h" ],
     [ "stat.h", "include_2uapi_2vespera_2stat_8h.html", "include_2uapi_2vespera_2stat_8h" ],
+    [ "time.h", "include_2uapi_2vespera_2time_8h.html", "include_2uapi_2vespera_2time_8h" ],
     [ "types.h", "types_8h.html", "types_8h" ]
 ];

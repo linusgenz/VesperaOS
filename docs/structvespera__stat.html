@@ -140,9 +140,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a393468be52f9b5f33c74d12ed7743842" id="r_a393468be52f9b5f33c74d12ed7743842"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvespera__stat.html#a393468be52f9b5f33c74d12ed7743842">crtime</a></td></tr>
 <tr class="memdesc:a393468be52f9b5f33c74d12ed7743842"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creation time (Unix seconds)  <br /></td></tr>
 <tr class="separator:a393468be52f9b5f33c74d12ed7743842"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9c33fde2d55df3fc790dd6862c63552" id="r_aa9c33fde2d55df3fc790dd6862c63552"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvespera__stat.html#aa9c33fde2d55df3fc790dd6862c63552">perm_mode</a></td></tr>
-<tr class="memdesc:aa9c33fde2d55df3fc790dd6862c63552"><td class="mdescLeft">&#160;</td><td class="mdescRight">Raw Unix permission bits (0644 etc.), (0 if not applicable)  <br /></td></tr>
-<tr class="separator:aa9c33fde2d55df3fc790dd6862c63552"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8ffbb76242c2737114a3bb6e4654b51" id="r_ad8ffbb76242c2737114a3bb6e4654b51"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51">mode</a></td></tr>
+<tr class="memdesc:ad8ffbb76242c2737114a3bb6e4654b51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Raw Unix permission bits (0644 etc.), (0 if not applicable)  <br /></td></tr>
+<tr class="separator:ad8ffbb76242c2737114a3bb6e4654b51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa04896d3128812aac9fc25cefd927254" id="r_aa04896d3128812aac9fc25cefd927254"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvespera__stat.html#aa04896d3128812aac9fc25cefd927254">links_count</a></td></tr>
 <tr class="memdesc:aa04896d3128812aac9fc25cefd927254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hard link count.  <br /></td></tr>
 <tr class="separator:aa04896d3128812aac9fc25cefd927254"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -331,6 +331,22 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ad8ffbb76242c2737114a3bb6e4654b51" name="ad8ffbb76242c2737114a3bb6e4654b51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8ffbb76242c2737114a3bb6e4654b51">&#9670;&#160;</a></span>mode</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a> vespera_stat::mode</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Raw Unix permission bits (0644 etc.), (0 if not applicable) </p>
+
+</div>
+</div>
 <a id="a9d76990beddd300702cb96c9b8bd6fea" name="a9d76990beddd300702cb96c9b8bd6fea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9d76990beddd300702cb96c9b8bd6fea">&#9670;&#160;</a></span>mtime</h2>
 
@@ -360,22 +376,6 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>VSTAT_TYPE_*. </p>
-
-</div>
-</div>
-<a id="aa9c33fde2d55df3fc790dd6862c63552" name="aa9c33fde2d55df3fc790dd6862c63552"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9c33fde2d55df3fc790dd6862c63552">&#9670;&#160;</a></span>perm_mode</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="types_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a> vespera_stat::perm_mode</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Raw Unix permission bits (0644 etc.), (0 if not applicable) </p>
 
 </div>
 </div>
