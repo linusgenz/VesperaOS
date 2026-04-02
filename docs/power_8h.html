@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vesplib: userspace/lib/include/reboot.h File Reference</title>
+<title>vesplib: userspace/lib/include/power.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -65,7 +65,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('reboot_8h.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('power_8h.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -95,48 +95,40 @@ $(document).ready(function(){initNavTree('reboot_8h.html',''); initResizable(); 
 <a href="#define-members">Macros</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
-  <div class="headertitle"><div class="title">reboot.h File Reference</div></div>
+  <div class="headertitle"><div class="title">power.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p><a href="reboot_8h_source.html">Go to the source code of this file.</a></p>
+<p><a href="power_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:aa1843d7f616e462b9cf039ab14629f95" id="r_aa1843d7f616e462b9cf039ab14629f95"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="reboot_8h.html#aa1843d7f616e462b9cf039ab14629f95">reboot_restart</a>()&#160;&#160;&#160;<a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a>)</td></tr>
+<tr class="memitem:aa1843d7f616e462b9cf039ab14629f95" id="r_aa1843d7f616e462b9cf039ab14629f95"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="power_8h.html#aa1843d7f616e462b9cf039ab14629f95">reboot_restart</a>()&#160;&#160;&#160;<a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a>)</td></tr>
 <tr class="memdesc:aa1843d7f616e462b9cf039ab14629f95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience wrapper to restart the system.  <br /></td></tr>
 <tr class="separator:aa1843d7f616e462b9cf039ab14629f95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d2e382d1acf7eb5fe273f1b69050209" id="r_a3d2e382d1acf7eb5fe273f1b69050209"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="reboot_8h.html#a3d2e382d1acf7eb5fe273f1b69050209">reboot_poweroff</a>()&#160;&#160;&#160;<a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a>)</td></tr>
+<tr class="memitem:a3d2e382d1acf7eb5fe273f1b69050209" id="r_a3d2e382d1acf7eb5fe273f1b69050209"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="power_8h.html#a3d2e382d1acf7eb5fe273f1b69050209">reboot_poweroff</a>()&#160;&#160;&#160;<a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a>)</td></tr>
 <tr class="memdesc:a3d2e382d1acf7eb5fe273f1b69050209"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience wrapper to power off the system.  <br /></td></tr>
 <tr class="separator:a3d2e382d1acf7eb5fe273f1b69050209"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f95ffcf13be063c8af8e67ab7973e26" id="r_a6f95ffcf13be063c8af8e67ab7973e26"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="reboot_8h.html#a6f95ffcf13be063c8af8e67ab7973e26">reboot_halt</a>()&#160;&#160;&#160;<a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a>)</td></tr>
+<tr class="memitem:a6f95ffcf13be063c8af8e67ab7973e26" id="r_a6f95ffcf13be063c8af8e67ab7973e26"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="power_8h.html#a6f95ffcf13be063c8af8e67ab7973e26">reboot_halt</a>()&#160;&#160;&#160;<a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a>)</td></tr>
 <tr class="memdesc:a6f95ffcf13be063c8af8e67ab7973e26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience wrapper to halt the system.  <br /></td></tr>
 <tr class="separator:a6f95ffcf13be063c8af8e67ab7973e26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a942f6ccb83747ae83ff3037d4e9c3e38" id="r_a942f6ccb83747ae83ff3037d4e9c3e38"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a> { <a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a> = 0
-, <a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a> = 1
-, <a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a> = 2
+<tr class="memitem:a942f6ccb83747ae83ff3037d4e9c3e38" id="r_a942f6ccb83747ae83ff3037d4e9c3e38"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a> { <a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a> = 0
+, <a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a> = 1
+, <a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a> = 2
  }</td></tr>
-<tr class="memdesc:a942f6ccb83747ae83ff3037d4e9c3e38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Possible reboot operation modes.  <a href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">More...</a><br /></td></tr>
+<tr class="memdesc:a942f6ccb83747ae83ff3037d4e9c3e38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Possible reboot operation modes.  <a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">More...</a><br /></td></tr>
 <tr class="separator:a942f6ccb83747ae83ff3037d4e9c3e38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a525043be9f01d8ddd2cd7988c271e8d5" id="r_a525043be9f01d8ddd2cd7988c271e8d5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a> (<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a> mode)</td></tr>
+<tr class="memitem:a525043be9f01d8ddd2cd7988c271e8d5" id="r_a525043be9f01d8ddd2cd7988c271e8d5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a> (<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a> mode)</td></tr>
 <tr class="memdesc:a525043be9f01d8ddd2cd7988c271e8d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a system reboot, shutdown or halt.  <br /></td></tr>
 <tr class="separator:a525043be9f01d8ddd2cd7988c271e8d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>VesperaOS - operating system for the x86_64 architecture</p>
-<p>Copyright (c) 2025 Linus Genz <a href="#" onclick="location.href='mai'+'lto:'+'mai'+'l@'+'lin'+'us'+'gen'+'z.'+'dev'; return false;">mail@<span class="obfuscator">.nosp@m.</span>linu<span class="obfuscator">.nosp@m.</span>sgenz<span class="obfuscator">.nosp@m.</span>.dev</a></p>
-<p>Created by Linus Genz on 06.12.25.</p>
-<p>This file is part of VesperaOS.</p>
-<p>VesperaOS is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
-<p>VesperaOS is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
-<p>You should have received a copy of the GNU General Public License along with VesperaOS. If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>. </p>
-</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a6f95ffcf13be063c8af8e67ab7973e26" name="a6f95ffcf13be063c8af8e67ab7973e26"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6f95ffcf13be063c8af8e67ab7973e26">&#9670;&#160;</a></span>reboot_halt</h2>
 
@@ -147,14 +139,14 @@ Functions</h2></td></tr>
           <td class="memname">#define reboot_halt</td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td>&#160;&#160;&#160;<a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Convenience wrapper to halt the system. </p>
 <p>Equivalent to calling <code>reboot(REBOOT_MODE_HALT)</code>.</p>
-<dl class="section return"><dt>Returns</dt><dd>Same return value as <code><a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Same return value as <code><a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -168,14 +160,14 @@ Functions</h2></td></tr>
           <td class="memname">#define reboot_poweroff</td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td>&#160;&#160;&#160;<a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Convenience wrapper to power off the system. </p>
 <p>Equivalent to calling <code>reboot(REBOOT_MODE_POWER_OFF)</code>.</p>
-<dl class="section return"><dt>Returns</dt><dd>Same return value as <code><a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Same return value as <code><a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -189,14 +181,14 @@ Functions</h2></td></tr>
           <td class="memname">#define reboot_restart</td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td>&#160;&#160;&#160;<a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Convenience wrapper to restart the system. </p>
 <p>Equivalent to calling <code>reboot(REBOOT_MODE_RESTART)</code>.</p>
-<dl class="section return"><dt>Returns</dt><dd>Same return value as <code><a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code>. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Same return value as <code><a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code>. </dd></dl>
 
 </div>
 </div>
@@ -208,13 +200,13 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a></td>
+          <td class="memname">enum <a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Possible reboot operation modes. </p>
-<p>This enumeration defines the action the system should take when <code><a class="el" href="reboot_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code> is invoked. Higher-level convenience macros (such as <code><a class="el" href="reboot_8h.html#aa1843d7f616e462b9cf039ab14629f95" title="Convenience wrapper to restart the system.">reboot_restart()</a></code>) map directly to these modes. </p>
+<p>This enumeration defines the action the system should take when <code><a class="el" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5" title="Perform a system reboot, shutdown or halt.">reboot()</a></code> is invoked. Higher-level convenience macros (such as <code><a class="el" href="power_8h.html#aa1843d7f616e462b9cf039ab14629f95" title="Convenience wrapper to restart the system.">reboot_restart()</a></code>) map directly to these modes. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50" name="a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50"></a>REBOOT_MODE_RESTART&#160;</td><td class="fielddoc"><p>Reboot the system normally. </p>
 </td></tr>
@@ -236,7 +228,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">int reboot </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a>&#160;</td>
           <td class="paramname"><em>mode</em></td><td>)</td>
           <td></td>
         </tr>
@@ -247,16 +239,16 @@ Functions</h2></td></tr>
 <p>Executes the low-level system call responsible for restarting, shutting down, or halting the machine depending on the requested <code>mode</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">mode</td><td>Reboot mode specifying the type of shutdown action to perform. See <a class="el" href="reboot_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38" title="Possible reboot operation modes.">reboot_mode_t</a> for available modes.</td></tr>
+    <tr><td class="paramname">mode</td><td>Reboot mode specifying the type of shutdown action to perform. See <a class="el" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38" title="Possible reboot operation modes.">reboot_mode_t</a> for available modes.</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>does</code> not return on success, or a negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="reboot_8h.html#aa1843d7f616e462b9cf039ab14629f95" title="Convenience wrapper to restart the system.">reboot_restart()</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="power_8h.html#aa1843d7f616e462b9cf039ab14629f95" title="Convenience wrapper to restart the system.">reboot_restart()</a> </dd>
 <dd>
-<a class="el" href="reboot_8h.html#a3d2e382d1acf7eb5fe273f1b69050209" title="Convenience wrapper to power off the system.">reboot_poweroff()</a> </dd>
+<a class="el" href="power_8h.html#a3d2e382d1acf7eb5fe273f1b69050209" title="Convenience wrapper to power off the system.">reboot_poweroff()</a> </dd>
 <dd>
-<a class="el" href="reboot_8h.html#a6f95ffcf13be063c8af8e67ab7973e26" title="Convenience wrapper to halt the system.">reboot_halt()</a> </dd></dl>
+<a class="el" href="power_8h.html#a6f95ffcf13be063c8af8e67ab7973e26" title="Convenience wrapper to halt the system.">reboot_halt()</a> </dd></dl>
 
 </div>
 </div>
@@ -265,7 +257,7 @@ Functions</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_e97933879fd7fd8a82ba7d3e7b04caa6.html">userspace</a></li><li class="navelem"><a class="el" href="dir_caca541db38907716bcacd7a4b5a3aa5.html">lib</a></li><li class="navelem"><a class="el" href="dir_248bf60b518f6803bea125e4c4a2da53.html">include</a></li><li class="navelem"><a class="el" href="reboot_8h.html">reboot.h</a></li>
+    <li class="navelem"><a class="el" href="dir_e97933879fd7fd8a82ba7d3e7b04caa6.html">userspace</a></li><li class="navelem"><a class="el" href="dir_caca541db38907716bcacd7a4b5a3aa5.html">lib</a></li><li class="navelem"><a class="el" href="dir_248bf60b518f6803bea125e4c4a2da53.html">include</a></li><li class="navelem"><a class="el" href="power_8h.html">power.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

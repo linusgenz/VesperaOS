@@ -1,7 +1,5 @@
 var NAVTREEINDEX2 =
 {
-"stddef_8h.html#a9c277a3fd853029cc853c877bcd32e8e":[4,0,1,0,0,20,4],
-"stddef_8h.html#aae8fec8a77257a9718887040067a3f09":[4,0,1,0,0,20,5],
 "stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984":[4,0,1,0,0,20,3],
 "stddef_8h_source.html":[4,0,1,0,0,20],
 "stdint_8h.html":[4,0,1,0,0,21],
@@ -249,5 +247,7 @@ var NAVTREEINDEX2 =
 "structjmp__buf.html":[3,0,14],
 "structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8":[3,0,14,4],
 "structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b":[3,0,14,6],
-"structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c":[3,0,14,1]
+"structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c":[3,0,14,1],
+"structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9":[3,0,14,7],
+"structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8":[3,0,14,5]
 };
