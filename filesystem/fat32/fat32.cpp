@@ -321,23 +321,6 @@ namespace fat32 {
         return 0x0FFFFFFF;
     }
 
-    u32 FileSystem::read_fat_entry(const u32 cluster, Sector& sec) const {
-        const u32 fat_offset = cluster * 4;
-        const u32 sector_offset = fat_offset / bpb.bytes_per_sector;
-        const u32 offset = fat_offset % bpb.bytes_per_sector;
-
-        if (const u32 fat_sector = bpb.reserved_sector_count + sector_offset; sec.sector != fat_sector) {
-            if (!read_fat_sector(fat_sector, sec.buf)) return 0x0FFFFFFF;
-            sec.sector = fat_sector;
-        }
-
-        const u32 entry = *reinterpret_cast<u32*>(sec.buf + offset) & 0x0FFFFFFF;
-
-        if (entry >= 0x0FFFFFF8 || entry == 0 || entry == 1 || entry == 0x0FFFFFF7) return 0;
-
-        return entry;
-    }
-
     bool FileSystem::write_fat_entry_raw(const u32 fat_sector, const u32 offset, const u32 value) const {
         u8 buf[1024];
 
@@ -706,69 +689,94 @@ namespace fat32 {
         LfnBufferEntry lfn_buffer[20];
         usize lfn_count = 0;
 
-        for (usize ci = 0; ci < chain_count; ++ci) {
-            u8* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
-            if (!cluster_buffer) continue;
+        usize ci = 0;
+        while (ci < chain_count) {
+            usize run_end = ci;
+            while (run_end + 1 < chain_count && chain[run_end] + 1 == chain[run_end + 1]) {
+                run_end++;
+            }
 
-            if (!read_cluster(chain[ci], cluster_buffer, cluster_bytes)) {
-                free_cluster_buffer(cluster_buffer, cluster_bytes);
+            const usize run_clusters = run_end - ci + 1;
+            const usize run_bytes = run_clusters * cluster_bytes;
+            const u32 run_lba = cluster_to_sector(chain[ci]);
+            const u32 run_sectors = static_cast<u32>(run_clusters) * bpb.sectors_per_cluster;
+            const usize run_pages = (run_bytes + 0xFFF) / 0x1000;
+
+            const virt_addr_t run_virt = kernel::memory::request_pages(run_pages);
+            if (virt_null(run_virt)) {
+                ci = run_end + 1;
+                continue;
+            }
+            auto* run_buffer = virt_as<u8>(run_virt);
+
+            if (!device->read(run_lba, run_sectors, run_buffer, run_bytes)) {
+                kernel::memory::free_pages(run_virt, run_pages);
+                ci = run_end + 1;
                 continue;
             }
 
-            for (usize i = 0; i < entries_per_cluster; i++) {
-                const auto entry = reinterpret_cast<DirectoryEntry*>(cluster_buffer + i * sizeof(DirectoryEntry));
+            bool stop = false;
+            for (usize r = 0; r < run_clusters && !stop; ++r) {
+                const usize actual_ci = ci + r;
+                const u8* cluster_buffer = run_buffer + r * cluster_bytes;
 
-                // end
-                if (entry->name[0] == 0x00) {
-                    break;
-                }  // deleted or volume label
-                if (entry->name[0] == 0xE5 || entry->attr == ATTR_VOLUME_ID) {
-                    continue;
-                }
+                for (usize i = 0; i < entries_per_cluster; i++) {
+                    const auto entry =
+                        reinterpret_cast<const DirectoryEntry*>(cluster_buffer + i * sizeof(DirectoryEntry));
 
-                // Handle LFN entries
-                if (entry->attr == ATTR_LONG_NAME) {
-                    if (lfn_count < 20) {
-                        lfn_buffer[lfn_count++].lfn_entry = *reinterpret_cast<LongFileName*>(entry);
+                    if (entry->name[0] == 0x00) {
+                        stop = true;
+                        break;
                     }
-                    continue;
-                }
-
-                // Regular entry
-                entries[out_count].set_is_dir((entry->attr & ATTR_DIRECTORY) != 0);
-
-                // Process collected LFN entries
-                if (lfn_count > 0) {
-                    char name_buffer[256];
-                    usize pos = 0;
-
-                    // LFN entries are stored in descending order in the buffer,
-                    // so they are processed from back to front.
-                    for (int j = static_cast<int>(lfn_count) - 1; j >= 0; --j) {
-                        copy_lfn_part(&lfn_buffer[j].lfn_entry, name_buffer, pos, sizeof(name_buffer));
+                    if (entry->name[0] == 0xE5 || entry->attr == ATTR_VOLUME_ID) {
+                        continue;
                     }
 
-                    name_buffer[pos] = '\0';
-                    entries[out_count].set_long_name(name_buffer);
-                    lfn_count = 0;
+                    // Handle LFN entries
+                    if (entry->attr == ATTR_LONG_NAME) {
+                        if (lfn_count < 20) {
+                            lfn_buffer[lfn_count++].lfn_entry = *reinterpret_cast<const LongFileName*>(entry);
+                        }
+                        continue;
+                    }
+
+                    // Regular entry
+                    entries[out_count].set_is_dir((entry->attr & ATTR_DIRECTORY) != 0);
+
+                    // Process collected LFN entries
+                    if (lfn_count > 0) {
+                        char name_buffer[256];
+                        usize pos = 0;
+                        // LFN entries are stored in descending order in the buffer,
+                        // so they are processed from back to front.
+                        for (int j = static_cast<int>(lfn_count) - 1; j >= 0; --j) {
+                            copy_lfn_part(&lfn_buffer[j].lfn_entry, name_buffer, pos, sizeof(name_buffer));
+                        }
+                        name_buffer[pos] = '\0';
+                        entries[out_count].set_long_name(name_buffer);
+                        lfn_count = 0;
+                    } else {
+                        entries[out_count].set_long_name(nullptr);
+                    }
+
+                    // Set short name
+                    char short_name[13];
+                    extract_short_name(entry->name, short_name, sizeof(short_name));
+                    entries[out_count].set_directory_entry(*entry);
+                    entries[out_count].set_short_name(short_name);
+                    entries[out_count].set_index_in_cluster(actual_ci * entries_per_cluster + i);
+
+                    out_count++;
+                    if (out_count >= READ_DIR_MAX_ENTRIES) {
+                        stop = true;
+                        break;
+                    }
                 }
-
-                else {
-                    entries[out_count].set_long_name(nullptr);
-                }
-
-                // Set short name
-                char short_name[13];
-                extract_short_name(entry->name, short_name, sizeof(short_name));
-                entries[out_count].set_directory_entry(*entry);
-                entries[out_count].set_short_name(short_name);
-                entries[out_count].set_index_in_cluster(ci * entries_per_cluster + i);
-
-                out_count++;
-                if (out_count >= READ_DIR_MAX_ENTRIES) break;
             }
 
-            free_cluster_buffer(cluster_buffer, cluster_bytes);
+            kernel::memory::free_pages(run_virt, run_pages);
+            ci = run_end + 1;
+
             if (out_count >= READ_DIR_MAX_ENTRIES) break;
         }
 
@@ -856,28 +864,79 @@ namespace fat32 {
         auto* dest = static_cast<u8*>(buffer);
         usize bytes_read = 0;
 
-        for (usize i = cluster_index; i < out_cluster_count && bytes_read < to_read; i++) {
-            u8* cluster_buffer = alloc_cluster_buffer(cluster_bytes);
-            if (!cluster_buffer) {
-                kernel::memory::free(cluster_chain);
-                return false;
+        usize i = cluster_index;
+        while (i < out_cluster_count && bytes_read < to_read) {
+            usize run_end = i;
+            while (run_end + 1 < out_cluster_count && cluster_chain[run_end] + 1 == cluster_chain[run_end + 1]) {
+                run_end++;
             }
 
-            if (!read_cluster(cluster_chain[i], cluster_buffer, cluster_bytes)) {
-                free_cluster_buffer(cluster_buffer, cluster_bytes);
-                kernel::memory::free(cluster_chain);
-                return false;
-            }
+            const usize run_clusters = run_end - i + 1;
+            const usize run_bytes = run_clusters * cluster_bytes;
+            const u32 run_lba = cluster_to_sector(cluster_chain[i]);
+            const u32 run_sectors = static_cast<u32>(run_clusters) * bpb.sectors_per_cluster;
+
 
             const usize start_pos = (i == cluster_index) ? offset_in_cluster : 0;
-            const usize available_in_cluster = cluster_bytes - start_pos;
-            const usize to_copy =
-                (to_read - bytes_read < available_in_cluster) ? (to_read - bytes_read) : available_in_cluster;
+            const usize available = run_bytes - start_pos;
+            const usize to_copy = (to_read - bytes_read < available) ? (to_read - bytes_read) : available;
 
-            memcpy(dest + bytes_read, cluster_buffer + start_pos, to_copy);
+            constexpr usize MAX_USB_TRANSFER = 64 * 1024;
+
+            if (start_pos == 0 && to_copy == run_bytes) {
+                usize remaining = run_bytes;
+                u32 cur_lba = run_lba;
+                u8* cur_dest = dest + bytes_read;
+
+                while (remaining > 0) {
+                    usize chunk_bytes = remaining > MAX_USB_TRANSFER ? MAX_USB_TRANSFER : remaining;
+                    u32 chunk_sectors = chunk_bytes / bpb.bytes_per_sector;
+
+                    if (!device->read(cur_lba, chunk_sectors, cur_dest, chunk_bytes)) {
+                        kernel::memory::free(cluster_chain);
+                        return false;
+                    }
+
+                    cur_lba += chunk_sectors;
+                    cur_dest += chunk_bytes;
+                    remaining -= chunk_bytes;
+                }
+
+            } else {
+                const usize pages = (run_bytes + 0xFFF) / 0x1000;
+                const virt_addr_t virt = kernel::memory::request_pages(pages);
+                if (virt_null(virt)) {
+                    kernel::memory::free(cluster_chain);
+                    return false;
+                }
+
+                auto* tmp = virt_as<u8>(virt);
+
+                usize remaining = run_bytes;
+                u32 cur_lba = run_lba;
+                u8* cur_tmp = tmp;
+
+                while (remaining > 0) {
+                    usize chunk_bytes = remaining > MAX_USB_TRANSFER ? MAX_USB_TRANSFER : remaining;
+                    u32 chunk_sectors = chunk_bytes / bpb.bytes_per_sector;
+
+                    if (!device->read(cur_lba, chunk_sectors, cur_tmp, chunk_bytes)) {
+                        kernel::memory::free_pages(virt, pages);
+                        kernel::memory::free(cluster_chain);
+                        return false;
+                    }
+
+                    cur_lba += chunk_sectors;
+                    cur_tmp += chunk_bytes;
+                    remaining -= chunk_bytes;
+                }
+
+                memcpy(dest + bytes_read, tmp + start_pos, to_copy);
+                kernel::memory::free_pages(virt, pages);
+            }
+
             bytes_read += to_copy;
-
-            free_cluster_buffer(cluster_buffer, cluster_bytes);
+            i = run_end + 1;
         }
 
         if (update_atime) {

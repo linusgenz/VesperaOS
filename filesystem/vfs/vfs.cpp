@@ -318,7 +318,7 @@ void VFS::remount_all() {
     FilesystemDetector::init();
     FilesystemDetector::register_all_drivers();
     FilesystemDetector::scan_and_mount_all();
-    FilesystemDetector::print_detected_filesystems();
+   // FilesystemDetector::print_detected_filesystems();
 }
 /*
 void VFS::get_stats(VfsStats* stats) {

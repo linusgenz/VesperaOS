@@ -26,6 +26,7 @@
 
 #include <klib/vector.h>
 #include <vespera/devices/block.h>
+#include <klib/string.h>
 
 #include "uapi/vespera/stat.h"
 

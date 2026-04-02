@@ -265,11 +265,6 @@ namespace fat32 {
             bool valid;
         };
 
-        struct Sector {
-            u32 sector = U32_MAX;
-            u8 buf[512]{};
-        };
-
         static constexpr usize FAT_CACHE_SIZE = 10;
         mutable CacheEntry fat_cache[FAT_CACHE_SIZE];
         mutable u32 cache_access_counter;
@@ -291,7 +286,6 @@ namespace fat32 {
         u32 read_fat_entry_raw(u32 fat_sector, u32 offset) const;
 
         [[nodiscard]] u32 get_fat_entry(u32 cluster) const;
-        u32 read_fat_entry(u32 cluster, Sector& sec) const;
         bool write_fat_entry_raw(u32 fat_sector, u32 offset, u32 value) const;
 
         u32* get_cluster_chain(u32 start_cluster, usize& out_count) const;
