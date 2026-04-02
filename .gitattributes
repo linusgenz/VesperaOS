@@ -1,0 +1,5 @@
+kernel/acpi/acpica/**  linguist-vendored=true
+kernel/acpi/acpica/**  -diff
+
+userspace/lib/libjpeg/**  linguist-vendored=true
+userspace/lib/libjpeg/**  -diff

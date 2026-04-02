@@ -8,6 +8,8 @@
 #include <vespera/boot/boot.h>
 
 namespace acpi {
+    inline u64 rsdp_phys = 0;
+
     class TableManager {
        public:
         static void init(const BootInfo* boot_info);
@@ -23,9 +25,6 @@ namespace acpi {
         }
 
        private:
-        static SDT_HEADER* find_table(const char* signature);
-
-        static SDT_HEADER* xsdt_;
         static FADT* fadt_;
         static MADT_HEADER* madt_;
         static MCFG_HEADER* mcfg_;

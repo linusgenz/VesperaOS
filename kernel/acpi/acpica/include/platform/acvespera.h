@@ -1,0 +1,41 @@
+#ifndef __ACVESPERA_H__
+#define __ACVESPERA_H__
+
+#define ACPI_USE_SYSTEM_CLIBRARY
+#define ACPI_USE_DO_WHILE_0
+#define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
+
+#define ACPI_MUTEX_TYPE             ACPI_BINARY_SEMAPHORE
+#define ACPI_USE_NATIVE_DIVIDE
+#define ACPI_USE_NATIVE_MATH64
+
+#undef ACPI_USE_SYSTEM_CLIBRARY
+
+#define ACPI_REDUCED_HARDWARE       0
+#define ACPI_DEBUGGER_SUPPORT       0
+#define ACPI_DISASSEMBLER_SUPPORT   0
+
+#define ACPI_MACHINE_WIDTH          64
+#define ACPI_USE_NATIVE_DIVIDE
+#define ACPI_USE_NATIVE_MATH64
+
+#define ACPI_CACHE_T                ACPI_MEMORY_LIST
+#define ACPI_USE_LOCAL_CACHE        1
+
+#undef __linux__
+#undef _LINUX
+#undef linux
+#undef __DragonFly__
+#undef _AED_EFI
+#undef _GNU_EFI
+#undef _EDK2_EFI
+
+#define ACPI_DEBUG_OUTPUT           0
+
+#undef ACPI_APPLICATION
+#undef ACPI_LIBRARY
+#undef ACPI_USE_STANDARD_HEADERS
+#undef ACPI_USE_SYSTEM_CLIBRARY
+#undef ACPI_DISASSEMBLER
+
+#endif

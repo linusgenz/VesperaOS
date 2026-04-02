@@ -21,83 +21,41 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../cpu/io.h"
-#include "acpi_manager.h"
+#include <vespera/cpu/io.h>
 #include <vespera/log.h>
-#include <vespera/mm/memory.h>
+#include <acpi/acpi.h>
 
 namespace acpi {
-
-    static u8 slp_typa = 0;
-    static u8 slp_typb = 0;
-
-    void parse_s5(const u8* dsdt, const usize length) {
-        for (usize i = 0; i < length - 6; i++) {
-            if (dsdt[i] == '_' && dsdt[i + 1] == 'S' && dsdt[i + 2] == '5' && dsdt[i + 3] == '_') {
-                // Expect AML: NameOp (0x08), PkgOp (0x12)
-                if (dsdt[i + 4] != 0x12) continue;  // Not a PackageOp
-
-                if (const u8 elem_count = dsdt[i + 6]; elem_count < 2) continue;
-
-                if (dsdt[i + 7] == 0x0A)
-                    slp_typa = dsdt[i + 8];  // BytePrefix
-                else
-                    slp_typa = dsdt[i + 7];
-
-                if (dsdt[i + 9] == 0x0A)
-                    slp_typb = dsdt[i + 10];
-                else
-                    slp_typb = dsdt[i + 9];
-
-                return;
-            }
-        }
-    }
-
-    void parse_fadt() {
-        const FADT* fadt = TableManager::get_fadt();
-        if (!fadt) return;
-
-        const phys_addr_t dsdt_phys = make_phys(fadt->x_dsdt != 0 ? fadt->x_dsdt : fadt->dsdt);
-        if (phys_null(dsdt_phys)) return;
-
-        const auto* header = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(dsdt_phys)));
-        const auto* dsdt = static_cast<u8*>(virt_ptr(phys_to_virt(dsdt_phys)));
-        const usize length = header->length;
-
-        parse_s5(dsdt, length);
-    }
-
     void acpi_power_off() {
-        FADT* fadt = TableManager::get_fadt();
-        if (!fadt || slp_typa == 0) return;
+        ACPI_STATUS status = AcpiEnterSleepStatePrep(ACPI_STATE_S5);
+        if (ACPI_FAILURE(status)) {
+            Log::error("acpi_power_off: AcpiEnterSleepStatePrep failed: %u", status);
+        }
 
-        u16 port = fadt->pm1_a_control_block;
-        u16 value = (slp_typa << 10) | (1 << 13);  // SLP_TYP | SLP_EN
+        asm volatile("cli");
 
-        outw(port, value);
+        status = AcpiEnterSleepState(ACPI_STATE_S5);
+        if (ACPI_FAILURE(status)) {
+            Log::error("acpi_power_off: AcpiEnterSleepState failed: %u", status);
+        }
 
-        if (fadt->pm1_b_control_block) outw(fadt->pm1_b_control_block, value);
-
-        Log::debug("acpi_power_off");
+        Log::error("acpi_power_off: system did not power off");
         while (true) {
             asm volatile("cli; hlt");
         }
     }
 
     void acpi_reboot() {
-        FADT* fadt = TableManager::get_fadt();
-        if (!fadt) return;
-
-        // Use ACPI reset register (if supported)
-        if (fadt->reset_reg.address_space == 1 && fadt->reset_reg.address != 0) {
-            outb(fadt->reset_reg.address, fadt->reset_value);
+        ACPI_STATUS status = AcpiReset();
+        if (ACPI_FAILURE(status)) {
+            Log::error("acpi_reboot: AcpiReset failed: %u, trying keyboard controller fallback", status);
+            outb(0x64, 0xFE);
         }
 
-        Log::debug("acpi_reboot");
+        Log::error("acpi_reboot: system did not reboot");
         while (true) {
             asm volatile("cli; hlt");
         }
     }
 
-}  // namespace ACPI
+}  // namespace acpi

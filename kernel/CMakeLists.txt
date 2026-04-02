@@ -15,6 +15,7 @@ set(LIB_SRC_DIR ${KERNEL_DIR}/lib)
 set(LOG_SRC_DIR ${KERNEL_DIR}/log)
 set(INCLUDE_SRC_DIR ${KERNEL_DIR}/include)
 
+add_subdirectory(${KERNEL_DIR}/kernel/acpi acpi_build)
 
 function(add_debug_option name description default_value)
     option(${name} ${description} ${default_value})
@@ -76,6 +77,7 @@ collect_asm(KERNEL_ASM_SOURCES
 )
 
 list(FILTER KERNEL_ASM_SOURCES EXCLUDE REGEX ".*/ap_trampoline\\.asm")
+list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/kernel/acpi/.*")
 
 # REMOVE debug source files when disabled
 if (NOT ENABLE_DEBUG_SPINLOCK)
@@ -179,6 +181,8 @@ if (ENABLE_DEBUG_FAULT)
             ${KERNEL_CPP_SOURCES}
             ${KERNEL_ASM_SOURCES}
             ${CMAKE_BINARY_DIR}/font.o
+            $<TARGET_OBJECTS:acpica>
+            $<TARGET_OBJECTS:acpi_kernel>
     )
     set_target_properties(kernel_stage1 PROPERTIES
             OUTPUT_NAME "kernel_stage1"
@@ -235,6 +239,8 @@ add_executable(kernel.elf
         ${KERNEL_ASM_SOURCES}
         ${KERNEL_EXTRA}
         ${CMAKE_BINARY_DIR}/font.o
+        $<TARGET_OBJECTS:acpica>
+        $<TARGET_OBJECTS:acpi_kernel>
 )
 
 set_target_properties(kernel.elf PROPERTIES
