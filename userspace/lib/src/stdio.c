@@ -32,7 +32,7 @@
 
 #include "errno.h"
 
-static size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefix) {
+static size_t uint_to_str(uint64_t value, char* buffer, uint8_t base, bool prefix) {
     char temp[32];
     int i = 0;
 
@@ -40,7 +40,7 @@ static size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefi
         temp[i++] = '0';
     } else {
         while (value > 0) {
-            const char *digits = "0123456789ABCDEF";
+            const char* digits = "0123456789ABCDEF";
             temp[i++] = digits[value % base];
             value /= base;
         }
@@ -61,7 +61,7 @@ static size_t uint_to_str(uint64_t value, char *buffer, uint8_t base, bool prefi
     return j;
 }
 
-static void float_to_str(float val, char *buf, int precision) {
+static void float_to_str(float val, char* buf, int precision) {
     if (val < 0) {
         *buf++ = '-';
         val = -val;
@@ -72,7 +72,7 @@ static void float_to_str(float val, char *buf, int precision) {
 
     char int_buf[32];
     uint_to_str(int_part, int_buf, 10, false);
-    char *p = int_buf;
+    char* p = int_buf;
     while (*p) {
         *buf++ = *p++;
     }
@@ -335,8 +335,7 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
                 min_width = -min_width;
             }
         } else {
-            while (*fmt >= '0' && *fmt <= '9')
-                min_width = min_width * 10 + (*fmt++ - '0');
+            while (*fmt >= '0' && *fmt <= '9') min_width = min_width * 10 + (*fmt++ - '0');
         }
 
         int precision = -1;  // -1 = not specified
@@ -437,6 +436,19 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
                 float_to_str((float)val, tmp, prec);
                 len = strlen(tmp);
                 p = (min_width > (int)len) ? min_width - (int)len : 0;
+                if (!left_align) pad(s, p, zero_pad ? '0' : ' ');
+                sink_puts(s, tmp);
+                if (left_align) pad(s, p, ' ');
+                break;
+            }
+            case 'o': {
+                const uint64_t val = (is_long_long || is_long) ? __builtin_va_arg(args, uint64_t)
+                                                         : (uint64_t)__builtin_va_arg(args, uint32_t);
+
+                uint_to_str(val, tmp, 8, false);
+                len = strlen(tmp);
+                p = (min_width > (int)len) ? min_width - (int)len : 0;
+
                 if (!left_align) pad(s, p, zero_pad ? '0' : ' ');
                 sink_puts(s, tmp);
                 if (left_align) pad(s, p, ' ');

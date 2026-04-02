@@ -19,3 +19,274 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+
+#include <time.h>
+#include <string.h>
+#include <stdio.h>
+
+int64_t clock_gettime(clockid_t clk_id, timespec_t* ts) {
+    return sys_clock_gettime((uint64_t)clk_id, (uint64_t)ts, 0, 0, 0, 0);
+}
+
+static const int DAYS_PER_MONTH[12] = {
+    31, 28, 31, 30, 31, 30,
+    31, 31, 30, 31, 30, 31
+};
+
+static int is_leap(int year) {
+    return (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+}
+
+static int days_in_month(int mon, int year) {
+    if (mon == 1 && is_leap(year)) return 29;
+    return DAYS_PER_MONTH[mon];
+}
+
+struct tm* gmtime(const time_t* timep) {
+    static struct tm result;
+
+    if (!timep) return 0;
+
+    uint32_t t = *timep;
+
+    result.tm_sec  = (int)(t % 60); t /= 60;
+    result.tm_min  = (int)(t % 60); t /= 60;
+    result.tm_hour = (int)(t % 24); t /= 24;
+
+    // t is now days since 1970-01-01
+    // Calculate weekday (1970-01-01 was a Thursday = 4)
+    result.tm_wday = (int)((t + 4) % 7);
+
+    // Walk through years
+    int year = 1970;
+    while (1) {
+        int days_this_year = is_leap(year) ? 366 : 365;
+        if (t < (uint32_t)days_this_year) break;
+        t -= days_this_year;
+        year++;
+    }
+
+    result.tm_year = year - 1900;
+    result.tm_yday = (int)t;
+
+    // Walk through months
+    int mon = 0;
+    while (mon < 12) {
+        int dim = days_in_month(mon, year);
+        if (t < (uint32_t)dim) break;
+        t -= dim;
+        mon++;
+    }
+
+    result.tm_mon  = mon;
+    result.tm_mday = (int)t + 1;
+    result.tm_isdst = 0;
+
+    return &result;
+}
+
+static const char* const weekday_full[7] = {
+    "Sunday", "Monday", "Tuesday", "Wednesday",
+    "Thursday", "Friday", "Saturday"
+};
+
+static const char* const weekday_abbr[7] = {
+    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+};
+
+static const char* const month_full[12] = {
+    "January", "February", "March",     "April",   "May",      "June",
+    "July",    "August",   "September", "October", "November", "December"
+};
+
+static const char* const month_abbr[12] = {
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+static int append_str(char* buf, size_t* pos, size_t max, const char* s) {
+    while (*s) {
+        if (*pos >= max - 1) return 0;
+        buf[(*pos)++] = *s++;
+    }
+    return 1;
+}
+
+static int append_int(char* buf, size_t* pos, size_t max, int val, int width, char pad) {
+    char tmp[16];
+    // Build the number string right-to-left.
+    int i = sizeof(tmp) - 1;
+    tmp[i] = '\0';
+    if (val == 0) {
+        tmp[--i] = '0';
+    } else {
+        int v = val < 0 ? -val : val;
+        while (v > 0) { tmp[--i] = '0' + v % 10; v /= 10; }
+        if (val < 0)  tmp[--i] = '-';
+    }
+    // Pad on the left.
+    int len = (int)(sizeof(tmp) - 1 - i);
+    while (len < width) { tmp[--i] = pad; len++; }
+
+    return append_str(buf, pos, max, &tmp[i]);
+}
+
+static size_t strftime_impl(char* s, size_t max, const char* fmt, const struct tm* tm) {
+    size_t pos = 0;
+
+    while (*fmt) {
+        if (*fmt != '%') {
+            if (pos >= max - 1) return 0;
+            s[pos++] = *fmt++;
+            continue;
+        }
+
+        fmt++;  // skip '%'
+        char spec = *fmt++;
+
+        switch (spec) {
+            case '%':
+                if (pos >= max - 1) return 0;
+                s[pos++] = '%';
+                break;
+
+            case 'Y':
+                if (!append_int(s, &pos, max, tm->tm_year + 1900, 4, '0')) return 0;
+                break;
+            case 'y':
+                if (!append_int(s, &pos, max, (tm->tm_year + 1900) % 100, 2, '0')) return 0;
+                break;
+            case 'm':
+                if (!append_int(s, &pos, max, tm->tm_mon + 1, 2, '0')) return 0;
+                break;
+            case 'd':
+                if (!append_int(s, &pos, max, tm->tm_mday, 2, '0')) return 0;
+                break;
+            case 'e':
+                if (!append_int(s, &pos, max, tm->tm_mday, 2, ' ')) return 0;
+                break;
+            case 'H':
+                if (!append_int(s, &pos, max, tm->tm_hour, 2, '0')) return 0;
+                break;
+            case 'I': {
+                int h12 = tm->tm_hour % 12;
+                if (h12 == 0) h12 = 12;
+                if (!append_int(s, &pos, max, h12, 2, '0')) return 0;
+                break;
+            }
+            case 'M':
+                if (!append_int(s, &pos, max, tm->tm_min, 2, '0')) return 0;
+                break;
+            case 'S':
+                if (!append_int(s, &pos, max, tm->tm_sec, 2, '0')) return 0;
+                break;
+            case 'j':
+                if (!append_int(s, &pos, max, tm->tm_yday + 1, 3, '0')) return 0;
+                break;
+            case 'u': {
+                int u = tm->tm_wday == 0 ? 7 : tm->tm_wday;
+                if (!append_int(s, &pos, max, u, 1, '0')) return 0;
+                break;
+            }
+            case 'w':
+                if (!append_int(s, &pos, max, tm->tm_wday, 1, '0')) return 0;
+                break;
+
+            case 'A':
+                if (tm->tm_wday < 0 || tm->tm_wday > 6) return 0;
+                if (!append_str(s, &pos, max, weekday_full[tm->tm_wday])) return 0;
+                break;
+            case 'a':
+                if (tm->tm_wday < 0 || tm->tm_wday > 6) return 0;
+                if (!append_str(s, &pos, max, weekday_abbr[tm->tm_wday])) return 0;
+                break;
+            case 'B':
+                if (tm->tm_mon < 0 || tm->tm_mon > 11) return 0;
+                if (!append_str(s, &pos, max, month_full[tm->tm_mon])) return 0;
+                break;
+            case 'b': case 'h':
+                if (tm->tm_mon < 0 || tm->tm_mon > 11) return 0;
+                if (!append_str(s, &pos, max, month_abbr[tm->tm_mon])) return 0;
+                break;
+
+            case 'p':
+                if (!append_str(s, &pos, max, tm->tm_hour < 12 ? "AM" : "PM")) return 0;
+                break;
+            case 'P':
+                if (!append_str(s, &pos, max, tm->tm_hour < 12 ? "am" : "pm")) return 0;
+                break;
+
+            case 'n':
+                if (!append_str(s, &pos, max, "\n")) return 0;
+                break;
+            case 't':
+                if (!append_str(s, &pos, max, "\t")) return 0;
+                break;
+
+            case 'F': {  // %Y-%m-%d
+                size_t n = strftime_impl(s + pos, max - pos, "%Y-%m-%d", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+            case 'T': {  // %H:%M:%S
+                size_t n = strftime_impl(s + pos, max - pos, "%H:%M:%S", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+            case 'R': {  // %H:%M
+                size_t n = strftime_impl(s + pos, max - pos, "%H:%M", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+            case 'D': {  // %m/%d/%y
+                size_t n = strftime_impl(s + pos, max - pos, "%m/%d/%y", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+            case 'c': {  // locale date+time
+                size_t n = strftime_impl(s + pos, max - pos, "%F %T", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+            case 'x': {  // locale date
+                size_t n = strftime_impl(s + pos, max - pos, "%F", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+            case 'X': {  // locale time
+                size_t n = strftime_impl(s + pos, max - pos, "%T", tm);
+                if (n == 0 && max - pos > 1) return 0;
+                pos += n;
+                break;
+            }
+
+            default:
+                if (pos >= max - 1) return 0;
+                s[pos++] = '%';
+                if (pos >= max - 1) return 0;
+                s[pos++] = spec;
+                break;
+        }
+    }
+
+    s[pos] = '\0';
+    return pos;
+}
+
+size_t strftime(char* s, size_t max, const char* fmt, const struct tm* tm) {
+    if (!s || max == 0 || !fmt || !tm) return 0;
+    return strftime_impl(s, max, fmt, tm);
+}
+
+size_t strftime_unix(char* s, size_t max, const char* fmt, time_t t) {
+    struct tm* tm = gmtime(&t);
+    if (!tm) return 0;
+    return strftime(s, max, fmt, tm);
+}

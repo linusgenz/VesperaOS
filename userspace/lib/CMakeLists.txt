@@ -42,6 +42,7 @@ set(LIB_SOURCES
         src/ctype.c
         src/readline.c
         src/mount.c
+        src/time.c
 
         src/sys/ioctl.c
         src/sys/mman.c

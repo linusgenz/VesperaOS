@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sysstd.h>
+#include <time.h>
 #include <vespera/stat.h>
 
 #define MAX_PATH 512
@@ -53,6 +54,26 @@ static void format_size(uint64_t size, char* buf, size_t buf_size) {
         snprintf(buf, buf_size, "%6.1fK", (double)size / 1024);
     else
         snprintf(buf, buf_size, "%6lluB", (unsigned long long)size);
+}
+
+static void format_mode(uint16_t mode, char* buf) {
+    // Type
+    switch (mode & 0xF000) {
+        case 0x4000: buf[0] = 'd'; break;
+        case 0x8000: buf[0] = '-'; break;
+        case 0xA000: buf[0] = 'l'; break;
+        case 0x2000: buf[0] = 'c'; break;
+        case 0x6000: buf[0] = 'b'; break;
+        default:     buf[0] = '?'; break;
+    }
+
+    const char bits[] = "rwxrwxrwx";
+
+    for (int i = 0; i < 9; i++) {
+        buf[i + 1] = (mode & (1 << (8 - i))) ? bits[i] : '-';
+    }
+
+    buf[10] = '\0';
 }
 
 static int list_dir(const char* path, int long_fmt, int classify, int show_all) {
@@ -126,24 +147,32 @@ static int list_dir(const char* path, int long_fmt, int classify, int show_all) 
             default:          type_char = '-'; break;
         }
 
-        char rw[4];
+        char mode_buf[11] = "----------";
         if (has_stat) {
-            rw[0] = (st.flags & VSTAT_FLAG_READABLE) ? 'r' : '-';
-            rw[1] = (st.flags & VSTAT_FLAG_WRITABLE) ? 'w' : '-';
-            rw[2] = (st.flags & VSTAT_FLAG_EXEC) ? 'x' : '-';
-            rw[3] = '\0';
-        } else {
-            rw[0] = 'r';
-            rw[1] = '-';
-            rw[2] = '-';
-            rw[3] = '\0';
+            format_mode(st.mode, mode_buf);
         }
 
+
         char size_buf[16] = "     -";
-        if (has_stat && ent.type != DT_DIR)
+        if (has_stat)
             format_size(st.size, size_buf, sizeof(size_buf));
 
-        printf("%c%s  %s  %s%s%s\033[0m\n", type_char, rw, size_buf, color, ent.name, indicator);
+        char time_buf[32] = "???";
+
+        if (has_stat) {
+            strftime_unix(time_buf, sizeof(time_buf), "%b %e %H:%M", st.mtime);
+        }
+
+        u32 links = has_stat ? st.links_count : 1;
+
+        printf("%s %2u %6s %12s %s%s%s\033[0m\n",
+               mode_buf,
+               links,
+               size_buf,
+               time_buf,
+               color,
+               ent.name,
+               indicator);
     }
 
     if (!long_fmt) putchar('\n');

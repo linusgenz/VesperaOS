@@ -74,11 +74,12 @@ vespera_bin(find)
 vespera_bin(vesfetch)
 vespera_bin(env      SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
 vespera_bin(printenv SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
+vespera_bin(cal)
 
 add_custom_target(elfs DEPENDS
         nox lsusb logd uptime memstat diskinfo gpuinfo
         stat vedit pipetest pipespawntest pipereader
         pipewriter mount umount mv sleep ls cat rm cp
         mkdir rmdir touch shutdown reboot pwd
-        kill env printenv find vesfetch
+        kill env printenv find vesfetch cal
 )
