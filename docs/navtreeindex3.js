@@ -214,5 +214,13 @@ var NAVTREEINDEX3 =
 "userspace_2lib_2include_2time_8h.html#a49a1866c7618fef74c0cc900be1f1c45":[4,0,1,0,0,27,4],
 "userspace_2lib_2include_2time_8h.html#a4bc4ff58d4ac838a36ba939747e5833e":[4,0,1,0,0,27,3],
 "userspace_2lib_2include_2time_8h.html#acc55008fab3654d2d0c9d4b69e732e7c":[4,0,1,0,0,27,2],
-"userspace_2lib_2include_2time_8h_source.html":[4,0,1,0,0,27]
+"userspace_2lib_2include_2time_8h_source.html":[4,0,1,0,0,27],
+"vbus_8h.html":[4,0,1,0,0,29],
+"vbus_8h.html#a48ce13a947c919ec0ec70654eb8b66c5":[4,0,1,0,0,29,3],
+"vbus_8h.html#a9a6ab293f8132e3752d29ecb13cb1605":[4,0,1,0,0,29,0],
+"vbus_8h.html#aa421a78779b3364f4649db198021fca1":[4,0,1,0,0,29,2],
+"vbus_8h.html#ad61429d795f173935e44094c6e6d0eb0":[4,0,1,0,0,29,1],
+"vbus_8h.html#ade0f57a56ed976153562365456a01702":[4,0,1,0,0,29,5],
+"vbus_8h.html#afa22fa8e9f653512906cf8f6f99804c7":[4,0,1,0,0,29,4],
+"vbus_8h_source.html":[4,0,1,0,0,29]
 };

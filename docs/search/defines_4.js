@@ -12,5 +12,6 @@ var searchData=
   ['handle_5ftype_5fpipe_9',['HANDLE_TYPE_PIPE',['../handles_8h.html#a65919b76b3a0374e90b230646cd91c64',1,'handles.h']]],
   ['handle_5ftype_5frealm_10',['HANDLE_TYPE_REALM',['../handles_8h.html#a99fc691f8add17b3b3a7834779d7e641',1,'handles.h']]],
   ['handle_5ftype_5ftty_11',['HANDLE_TYPE_TTY',['../handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64',1,'handles.h']]],
-  ['handle_5ftype_5funit_12',['HANDLE_TYPE_UNIT',['../handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handles.h']]]
+  ['handle_5ftype_5funit_12',['HANDLE_TYPE_UNIT',['../handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handles.h']]],
+  ['handle_5fvbus_13',['HANDLE_VBUS',['../vbus_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'vbus.h']]]
 ];

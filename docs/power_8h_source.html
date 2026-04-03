@@ -24,7 +24,6 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
-  <td id="projectlogo"><img alt="Logo" src="logo_docs.png"/></td>
   <td id="projectalign">
    <div id="projectname">vesplib<span id="projectnumber">&#160;1.2</span>
    </div>
@@ -100,33 +99,35 @@ $(document).ready(function(){initNavTree('power_8h_source.html',''); initResizab
 </div><!--header-->
 <div class="contents">
 <a href="power_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#ifndef VESPERAOS_REBOOT_H</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#define VESPERAOS_REBOOT_H</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#ifndef VESPLIB_POWER_H</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#define VESPLIB_POWER_H</span></div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="foldopen" id="foldopen00034" data-start="{" data-end="};">
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">   34</a></span><span class="keyword">typedef</span> <span class="keyword">enum</span> {</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">   35</a></span>    <a class="code hl_enumvalue" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a> = 0,   </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">   36</a></span>    <a class="code hl_enumvalue" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a> = 1, </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <a class="code hl_enumvalue" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a> = 2       </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">   38</a></span>} <a class="code hl_enumeration" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a>;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;vespera/dev/power.h&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="foldopen" id="foldopen00036" data-start="{" data-end="};">
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">   36</a></span><span class="keyword">typedef</span> <span class="keyword">enum</span> {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">   37</a></span>    <a class="code hl_enumvalue" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a> = 0,   </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">   38</a></span>    <a class="code hl_enumvalue" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a> = 1, </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <a class="code hl_enumvalue" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a> = 2       </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">   40</a></span>} <a class="code hl_enumeration" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a>;</div>
 </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">   55</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="code hl_enumeration" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a> mode);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="power_8h.html#aa1843d7f616e462b9cf039ab14629f95">   65</a></span><span class="preprocessor">#define reboot_restart()   reboot(REBOOT_MODE_RESTART)</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="power_8h.html#a3d2e382d1acf7eb5fe273f1b69050209">   74</a></span><span class="preprocessor">#define reboot_poweroff()  reboot(REBOOT_MODE_POWER_OFF)</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="power_8h.html#a6f95ffcf13be063c8af8e67ab7973e26">   83</a></span><span class="preprocessor">#define reboot_halt()      reboot(REBOOT_MODE_HALT)</span></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="preprocessor">#endif </span><span class="comment">//VESPERAOS_REBOOT_H</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">   57</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a>(<a class="code hl_enumeration" href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a> mode);</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="power_8h.html#aa1843d7f616e462b9cf039ab14629f95">   67</a></span><span class="preprocessor">#define reboot_restart()   reboot(REBOOT_MODE_RESTART)</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="power_8h.html#a3d2e382d1acf7eb5fe273f1b69050209">   76</a></span><span class="preprocessor">#define reboot_poweroff()  reboot(REBOOT_MODE_POWER_OFF)</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="power_8h.html#a6f95ffcf13be063c8af8e67ab7973e26">   85</a></span><span class="preprocessor">#define reboot_halt()      reboot(REBOOT_MODE_HALT)</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="preprocessor">#endif </span><span class="comment">//VESPLIB_POWER_H</span></div>
 <div class="ttc" id="apower_8h_html_a525043be9f01d8ddd2cd7988c271e8d5"><div class="ttname"><a href="power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5">reboot</a></div><div class="ttdeci">int reboot(reboot_mode_t mode)</div><div class="ttdoc">Perform a system reboot, shutdown or halt.</div></div>
-<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a></div><div class="ttdeci">reboot_mode_t</div><div class="ttdoc">Possible reboot operation modes.</div><div class="ttdef"><b>Definition</b> power.h:34</div></div>
-<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a></div><div class="ttdeci">@ REBOOT_MODE_RESTART</div><div class="ttdoc">Reboot the system normally.</div><div class="ttdef"><b>Definition</b> power.h:35</div></div>
-<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a></div><div class="ttdeci">@ REBOOT_MODE_HALT</div><div class="ttdoc">Halt the CPU without powering off.</div><div class="ttdef"><b>Definition</b> power.h:37</div></div>
-<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a></div><div class="ttdeci">@ REBOOT_MODE_POWER_OFF</div><div class="ttdoc">Power off the system completely.</div><div class="ttdef"><b>Definition</b> power.h:36</div></div>
+<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38">reboot_mode_t</a></div><div class="ttdeci">reboot_mode_t</div><div class="ttdoc">Possible reboot operation modes.</div><div class="ttdef"><b>Definition</b> power.h:36</div></div>
+<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50">REBOOT_MODE_RESTART</a></div><div class="ttdeci">@ REBOOT_MODE_RESTART</div><div class="ttdoc">Reboot the system normally.</div><div class="ttdef"><b>Definition</b> power.h:37</div></div>
+<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4">REBOOT_MODE_HALT</a></div><div class="ttdeci">@ REBOOT_MODE_HALT</div><div class="ttdoc">Halt the CPU without powering off.</div><div class="ttdef"><b>Definition</b> power.h:39</div></div>
+<div class="ttc" id="apower_8h_html_a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491"><div class="ttname"><a href="power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491">REBOOT_MODE_POWER_OFF</a></div><div class="ttdeci">@ REBOOT_MODE_POWER_OFF</div><div class="ttdoc">Power off the system completely.</div><div class="ttdef"><b>Definition</b> power.h:38</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

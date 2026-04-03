@@ -28,5 +28,6 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "sysstd.h", "sysstd_8h.html", "sysstd_8h" ],
     [ "termios.h", "termios_8h.html", "termios_8h" ],
     [ "time.h", "userspace_2lib_2include_2time_8h.html", "userspace_2lib_2include_2time_8h" ],
-    [ "urandom.h", "urandom_8h.html", "urandom_8h" ]
+    [ "urandom.h", "urandom_8h.html", "urandom_8h" ],
+    [ "vbus.h", "vbus_8h.html", "vbus_8h" ]
 ];
