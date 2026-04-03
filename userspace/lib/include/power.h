@@ -21,8 +21,10 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_REBOOT_H
-#define VESPERAOS_REBOOT_H
+#ifndef VESPLIB_POWER_H
+#define VESPLIB_POWER_H
+
+#include <vespera/dev/power.h>
 
 /**
  * @brief Possible reboot operation modes.
@@ -83,4 +85,4 @@ int reboot(reboot_mode_t mode);
 #define reboot_halt()      reboot(REBOOT_MODE_HALT)
 
 
-#endif //VESPERAOS_REBOOT_H
+#endif //VESPLIB_POWER_H

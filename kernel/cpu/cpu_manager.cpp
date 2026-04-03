@@ -3,6 +3,7 @@
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 #include <vespera/time.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"

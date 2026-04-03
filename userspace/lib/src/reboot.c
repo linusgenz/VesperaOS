@@ -24,7 +24,7 @@
 
 #include <stdint.h>
 #include <sysstd.h>
-#include <reboot.h>
+#include <power.h>
 
 #define REBOOT_MAGIC1 0xfee1dead
 #define REBOOT_MAGIC2 672274793

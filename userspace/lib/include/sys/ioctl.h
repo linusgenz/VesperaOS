@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_IOCTL_H
-#define VESPERAOS_IOCTL_H
+#ifndef VESPLIB_IOCTL_H
+#define VESPLIB_IOCTL_H
 
 typedef uint64_t ioctl_request_t;
 
@@ -35,4 +35,4 @@ typedef uint64_t ioctl_request_t;
  */
 int64_t ioctl(uint64_t hid, ioctl_request_t request, void* arg);
 
-#endif //VESPERAOS_IOCTL_H
+#endif //VESPLIB_IOCTL_H

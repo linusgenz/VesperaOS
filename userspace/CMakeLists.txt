@@ -42,7 +42,7 @@ function(vespera_bin name)
     )
 endfunction()
 
-vespera_bin(nox)
+vespera_bin(nox SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/nox/nox.c ${CMAKE_SOURCE_DIR}/userspace/bin/nox/statusbar.c)
 vespera_bin(lsusb)
 vespera_bin(logd)
 vespera_bin(uptime)

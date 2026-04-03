@@ -21,7 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "cpu.h"
-#include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 bool running_in_qemu = false;
 

@@ -79,7 +79,7 @@ static void print_u8_pct(const char* label, uint8_t val) {
 // NVMe display
 
 static void show_nvme(int64_t handle) {
-    SmartNvme nvme;
+    smart_nvme_t nvme;
     if (ioctl((uint64_t)handle, IOCTL_SMART_GET_NVME, &nvme) < 0) {
         puts("  [Could not retrieve NVMe SMART data]\n");
         return;
@@ -126,7 +126,7 @@ static void show_nvme(int64_t handle) {
 // ATA display
 
 static void show_ata(int64_t handle) {
-    SmartAta ata;
+    smart_ata_t ata;
     if (ioctl((uint64_t)handle, IOCTL_SMART_GET_ATA, &ata) < 0) {
         puts("  [Could not retrieve ATA SMART data]\n");
         return;
@@ -147,7 +147,7 @@ static void show_ata(int64_t handle) {
         puts("  ====================================================\n");
 
         for (uint8_t i = 0; i < ata.attr_count && i < 30; i++) {
-            SmartAttribute* a = &ata.attrs[i];
+            smart_attribute_t* a = &ata.attrs[i];
             if (a->id == 0) continue;
 
             // Raw value as 48-bit little-endian
@@ -168,7 +168,7 @@ static void show_ata(int64_t handle) {
 // common display
 
 static void show_common(int64_t handle) {
-    SmartCommon common;
+    smart_common_t common;
     if (ioctl((uint64_t)handle, IOCTL_SMART_GET_COMMON, &common) < 0) {
         puts("  [Could not retrieve common SMART data]\n");
         return;
@@ -229,7 +229,7 @@ static void inspect_device(const char* dev_path) {
 
     show_devinfo(handle);
 
-    SmartCommon common;
+    smart_common_t common;
     int64_t rc = ioctl((uint64_t)handle, IOCTL_SMART_GET_COMMON, &common);
     if (rc < 0) {
         printf("  No SMART support detected for this device. (error=%ld)\n", rc);
@@ -246,11 +246,11 @@ static void inspect_device(const char* dev_path) {
         show_ata(handle);
     } else {
         // Try both, show whichever works
-        SmartNvme nvme;
+        smart_nvme_t nvme;
         if (ioctl((uint64_t)handle, IOCTL_SMART_GET_NVME, &nvme) == 0) {
             show_nvme(handle);
         } else {
-            SmartAta ata;
+            smart_ata_t ata;
             if (ioctl((uint64_t)handle, IOCTL_SMART_GET_ATA, &ata) == 0)
                 show_ata(handle);
         }

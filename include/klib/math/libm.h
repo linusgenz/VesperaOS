@@ -1,7 +1,7 @@
 #ifndef VESPERAOS_LIBM_H
 #define VESPERAOS_LIBM_H
 
-#include <vespera/mm/memory.h>
+#include <klib/string.h>
 #include <vespera/types.h>
 
 extern "C" {
