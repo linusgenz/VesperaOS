@@ -100,6 +100,10 @@ namespace syscalls::internal {
     i64 sys_kill(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
     i64 sys_clock_gettime(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_vbus_subscribe(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_vbus_unsubscribe(u64, u64, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

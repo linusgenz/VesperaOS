@@ -27,6 +27,7 @@
 #include <klib/utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 Channel::Channel(const usize cap)
     : buf_(static_cast<u8 *>(kernel::memory::malloc(cap)))
@@ -65,6 +66,11 @@ void Channel::destroy(void *res) {
 
 Channel::~Channel() {
     if (buf_) kernel::memory::free(buf_);
+}
+
+usize Channel::free_space() {
+    SpinlockGuard g(lock_);
+    return capacity - used;
 }
 
 isize Channel::send(const void *data, const usize len) {

@@ -28,7 +28,7 @@
 #include <vespera/signals.h>
 #include <vespera/sys/syscall_numbers.h>
 
-constexpr int MAX_SYSCALLS = 256;
+constexpr int MAX_SYSCALLS = 512;
 static syscalls::internal::syscall_fn_t syscall_table[MAX_SYSCALLS];
 
 void install_syscalls() {
@@ -72,6 +72,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_SIGRETURN] = syscalls::internal::sys_sigreturn;
     syscall_table[SYSCALL_KILL] = syscalls::internal::sys_kill;
     syscall_table[SYSCALL_CLOCK_GETTIME] = syscalls::internal::sys_clock_gettime;
+    syscall_table[SYSCALL_VBUS_SUBSCRIBE] = syscalls::internal::sys_vbus_subscribe;
+    syscall_table[SYSCALL_VBUS_UNSUBSCRIBE] = syscalls::internal::sys_vbus_unsubscribe;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

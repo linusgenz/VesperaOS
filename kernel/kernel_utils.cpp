@@ -1,5 +1,7 @@
 #include "../drivers/fb/framebuffer_driver.h"
+#include "acpi/ec.h"
 #include "cpu/cpu.h"
+#include "drivers/power/power_driver.h"
 #include "graphics/font/ttf_glyph_provider.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
@@ -108,12 +110,14 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
 }
 
 static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
-    acpi::TableManager::init(boot_info);
-    madt::parse_madt(acpi::TableManager::get_madt());
-    acpi::parse_fadt();
+    acpi::rsdp_phys = phys_raw(virt_to_phys(make_virt(boot_info->rsdp)));
+
+    acpi::early_parse_madt(boot_info);
+    acpi::TableManager::fadt_ = reinterpret_cast<acpi::FADT*>(acpi::TableManager::find_table("FACP"));
 
     kernel::interrupts::initialize();
     asm("sti");
+   // madt::parse_madt(acpi::TableManager::get_madt());
 }
 
 static void initialize_cpu_and_realms() {
@@ -123,7 +127,7 @@ static void initialize_cpu_and_realms() {
     RealmManager::initialize();
 
     // Create system realm
-    const RealmConfig realm_config_sys = {
+    constexpr RealmConfig realm_config_sys = {
         .name = "systemv",
         .memory_limit = 0,
         .max_units = 32,
@@ -132,7 +136,7 @@ static void initialize_cpu_and_realms() {
     RealmManager::create(&realm_config_sys);
 
     // Create driver realm
-    const RealmConfig realm_config_drv = {
+    constexpr RealmConfig realm_config_drv = {
         .name = "driverv",
         .memory_limit = 0,
         .max_units = 32,
@@ -149,6 +153,11 @@ static void initialize_scheduling_and_smp() {
     cpu_manager::smp_init();
 
     Log::init();
+
+    acpi::TableManager::init();
+    Log::debug("acpi::TableManager::init()");
+    while (1);
+
 }
 
 static void initialize_hardware_buses() {
@@ -168,18 +177,24 @@ static void initialize_hardware_buses() {
     }
 }
 
+bool test = false;
 static void initialize_user_space_interfaces() {
     kernel::tty::initialize_ttys();
     initialize_pseudo_devices();
     VFS::remount_all();
-
     if (VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf")) {
+        Log::debug("font node: %p", font_node);
         const usize font_size = font_node->size;
+        Log::debug("font size: %u", font_size);
         if (auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size))) {
-            VFS::read(font_node, 0, font_size, font_data);
+            Log::debug("font data: %p", font_data);
+            test = true;
+            usize i = VFS::read(font_node, 0, font_size, font_data);
+            Log::debug("read: %lu", i);
             VFS::close(font_node);
 
             auto* ttf = new TtfGlyphProvider(font_data, font_size, 20.0f);
+            Log::debug("ttf: %p", ttf);
             if (ttf->is_valid()) {
                 kernel::SystemManager::get_system_terminal()->set_glyph_provider(ttf);
                 Log::ok("[TTF] Terminal font switched to CascadiaCode");
