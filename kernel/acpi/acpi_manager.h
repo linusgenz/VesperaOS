@@ -9,10 +9,12 @@
 
 namespace acpi {
     inline u64 rsdp_phys = 0;
+    void early_parse_madt(const BootInfo* boot_info);
 
     class TableManager {
        public:
-        static void init(const BootInfo* boot_info);
+        static SDT_HEADER* find_table(const char* signature);
+        static void init();
 
         static FADT* get_fadt() {
             return fadt_;
@@ -23,9 +25,9 @@ namespace acpi {
         static MCFG_HEADER* get_mcfg() {
             return mcfg_;
         }
+        static FADT* fadt_;
 
        private:
-        static FADT* fadt_;
         static MADT_HEADER* madt_;
         static MCFG_HEADER* mcfg_;
     };

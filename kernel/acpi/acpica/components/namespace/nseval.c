@@ -254,9 +254,9 @@ AcpiNsEvaluate (
 
     /* Optional object evaluation log */
 
-    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION,
+   /* ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION,
         "%-26s:  %s (%s)\n", "   Enter evaluation",
-        &Info->FullPathname[1], AcpiUtGetTypeName (Info->Node->Type)));
+        &Info->FullPathname[1], AcpiUtGetTypeName (Info->Node->Type)));*/
 
     /* Count the number of arguments being passed in */
 
@@ -446,9 +446,9 @@ AcpiNsEvaluate (
 Cleanup:
     /* Optional object evaluation log */
 
-    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION,
+   /* ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION,
         "%-26s:  %s\n", "   Exit evaluation",
-        &Info->FullPathname[1]));
+        &Info->FullPathname[1]));*/
 
     /*
      * Namespace was unlocked by the handling AcpiNs* function, so we

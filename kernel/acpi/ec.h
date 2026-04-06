@@ -24,7 +24,8 @@
 
 namespace acpi::ec {
 
-    void install_handler();
+    void install_space_handler();
+    void install_gpe_handler();
 
 }  // namespace acpi::ec
 

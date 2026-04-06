@@ -641,10 +641,10 @@ AcpiPsParseAml (
         {
             /* Optional object evaluation log */
 
-            ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION, "%-26s:  %*s%s\n",
+           /* ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION, "%-26s:  %*s%s\n",
                 "   Exit nested method",
                 (WalkState->MethodNestingDepth + 1) * 3, " ",
-                &WalkState->MethodPathname[1]));
+                &WalkState->MethodPathname[1]));*/
 
             ACPI_FREE (WalkState->MethodPathname);
             WalkState->MethodIsNested = FALSE;

@@ -752,10 +752,10 @@ AcpiDsCallControlMethod (
 
     /* Optional object evaluation log */
 
-    ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION,
+   /* ACPI_DEBUG_PRINT_RAW ((ACPI_DB_EVALUATION,
         "%-26s:  %*s%s\n", "   Nested method call",
         NextWalkState->MethodNestingDepth * 3, " ",
-        &ThisWalkState->MethodPathname[1]));
+        &ThisWalkState->MethodPathname[1]));*/
 
     /* Invoke an internal method if necessary */
 
