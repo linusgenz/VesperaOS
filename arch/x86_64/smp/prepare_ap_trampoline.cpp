@@ -28,6 +28,7 @@
 
 #include "../interrupts/idt.h"
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 #define TRAMPOLINE_VIRT 0x8000
 #define IDTR_PHYS 0x1000

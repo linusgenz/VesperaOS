@@ -7,8 +7,8 @@
 
 #include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../../../drivers/ps2/mouse/mouse.h"
+#include "../../../include/vespera/cpu/io.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/cpu/io.h"
 #include "../../../kernel/debug/fault_logger.h"
 #include "../../../kernel/scheduling/unit_termination.h"
 #include "../../../kernel/utils/panic.h"
@@ -40,7 +40,7 @@ void page_fault_handler(TrapFrame* frame) {
     u64 fault_addr = 0;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-    if (frame->cs & 0x3) {
+  /*  if (frame->cs & 0x3) {
         Unit* u = kernel::scheduling::get_current_unit();
         Realm* realm = RealmManager::get(u->rid);
 
@@ -66,7 +66,7 @@ void page_fault_handler(TrapFrame* frame) {
         signal_send(u, Signal::SIGSEGV);
         signal_dispatch(u, frame);
         __builtin_unreachable();
-    }
+    }*/
 
     // Kernel-seitiger Page Fault
     FaultContext ctx = make_fault_context(frame);
@@ -75,7 +75,7 @@ void page_fault_handler(TrapFrame* frame) {
 }
 
 void gp_fault_handler(TrapFrame* frame) {
-    if (frame->cs & 0x3) {
+   /* if (frame->cs & 0x3) {
         Unit* u = kernel::scheduling::get_current_unit();
         Realm* realm = RealmManager::get(u->rid);
         if (realm) {
@@ -85,7 +85,7 @@ void gp_fault_handler(TrapFrame* frame) {
         signal_send(u, Signal::SIGSEGV);
         signal_dispatch(u, frame);
         __builtin_unreachable();
-    }
+    }*/
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
@@ -102,7 +102,7 @@ void gp_fault_handler(TrapFrame* frame) {
 }
 
 extern "C" void invalid_opcode_handler(TrapFrame* frame) {
-    if (frame->cs & 0x3) {
+   /* if (frame->cs & 0x3) {
         Unit* u = kernel::scheduling::get_current_unit();
         Realm* realm = RealmManager::get(u->rid);
         if (realm) {
@@ -112,7 +112,7 @@ extern "C" void invalid_opcode_handler(TrapFrame* frame) {
         signal_send(u, Signal::SIGILL);
         signal_dispatch(u, frame);
         __builtin_unreachable();
-    }
+    }*/
 
     const FaultContext ctx = make_fault_context(frame);
     kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);

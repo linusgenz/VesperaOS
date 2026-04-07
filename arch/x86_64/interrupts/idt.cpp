@@ -3,6 +3,7 @@
 #include "apic.h"
 #include "interrupts_internal.h"
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 namespace arch::x86_64::interrupts::idt {
     void IDT_DESC_ENTRY::set_offset(const u64 offset) {

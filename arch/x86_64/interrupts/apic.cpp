@@ -1,3 +1,4 @@
+#include "vespera/log.h"
 #if DEBUG_SPINLOCK
 #include "../../../kernel/debug/deadlock_detector.h"
 #endif
@@ -6,10 +7,10 @@
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
 
+#include "../../../include/vespera/cpu/io.h"
 #include "../../../kernel/acpi/acpi_manager.h"
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/cpu/io.h"
 #include "apic.h"
 #include "interrupts_internal.h"
 
@@ -111,8 +112,12 @@ namespace arch::x86_64::interrupts::apic {
         if (!kernel::scheduling::is_initialized()) return;
         const u32 cpu = cpu_manager::get_current_cpu_id();
 
-        kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
+        const Unit* current = kernel::scheduling::get_current_unit();
+        const bool is_idle = !current || current->is_idle;
 
+        cpu_manager::accounting_tick(cpu, is_idle);
+
+        kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
         kernel::scheduling::tick_cpu(cpu, frame);
     }
 

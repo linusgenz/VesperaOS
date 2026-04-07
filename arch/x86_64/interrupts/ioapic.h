@@ -26,12 +26,57 @@
 #include "../../../kernel/acpi/madt.h"
 
 namespace arch::x86_64::interrupts::ioapic {
-#define IOAPIC_REGSEL 0x00
-#define IOAPIC_WINDOW 0x10
 
+    // IOAPIC MMIO register offsets (index into u32 array)
+    static constexpr u32 IOAPIC_REGSEL = 0x00 / 4;
+    static constexpr u32 IOAPIC_WINDOW = 0x10 / 4;
+
+    // IOAPIC internal register indices
+    static constexpr u8 IOAPIC_REG_ID = 0x00;
+    static constexpr u8 IOAPIC_REG_VER = 0x01;
+    static constexpr u8 IOAPIC_REG_ARB = 0x02;
+    static constexpr u8 IOAPIC_REDTBL_BASE = 0x10;
+
+    // Redirection entry flags
+    static constexpr u32 IOAPIC_REDIR_MASKED = (1u << 16);
+    static constexpr u32 IOAPIC_REDIR_TRIGGER_LEVEL = (1u << 15);
+    static constexpr u32 IOAPIC_REDIR_POLARITY_LOW = (1u << 13);
+    static constexpr u32 IOAPIC_REDIR_DESTMODE_LOG = (1u << 11);
+
+    // MADT override flag bits
+    static constexpr u16 MADT_FLAG_POLARITY_MASK = 0x03;
+    static constexpr u16 MADT_FLAG_TRIGGER_MASK = 0x0C;
+    static constexpr u16 MADT_FLAG_POLARITY_LOW = 0x03;
+    static constexpr u16 MADT_FLAG_TRIGGER_LEVEL = 0x0C;
+
+    /**
+     * Initialize all IOAPICs found in the MADT.
+     * Maps all 16 legacy ISA IRQs to vectors 0x20–0x2F on the BSP,
+     * initially masked. Caller should enable specific IRQs via configure_irq().
+     */
     void init();
 
+    /**
+     * Route a legacy IRQ (0–15) to the given IDT vector on dest_apic_id.
+     * Resolves GSI via MADT overrides and unmasks the entry.
+     */
     void configure_irq(u8 irq, u8 vector, u8 dest_apic_id);
+
+    /**
+     * Mask a GSI in the IOAPIC redirection table (disables the IRQ).
+     */
+    void mask_gsi(u32 gsi);
+
+    /**
+     * Unmask a GSI in the IOAPIC redirection table (enables the IRQ).
+     */
+    void unmask_gsi(u32 gsi);
+
+    /**
+     * Read the maximum number of redirection entries from an IOAPIC's VER register.
+     * Returns the actual hardware value, not a hardcoded constant.
+     */
+    u32 get_max_redirects(const madt::IoApic* ioapic);
 
 }  // namespace arch::x86_64::interrupts::ioapic
 

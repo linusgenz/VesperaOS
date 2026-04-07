@@ -27,11 +27,37 @@
 #include <vespera/mm/memory.h>
 
 namespace arch::x86_64::interrupts::ioapic {
-    static madt::IoApic *find_ioapic_for_gsi(const u32 gsi) {
-        madt::IoApic *apics = madt::get_ioapics();
+
+    static volatile u32* map_ioapic(const uptr phys_address) {
+        const phys_addr_t phys = make_phys(phys_address);
+        const virt_addr_t virt = phys_to_virt(phys);
+        kernel::memory::map_memory(virt, phys, (1ULL << PtFlag::CacheDisabled));
+        return reinterpret_cast<volatile u32*>(virt_raw(virt));
+    }
+
+    static u32 ioapic_read(volatile u32* base, const u8 reg) {
+        base[IOAPIC_REGSEL] = reg;
+        return base[IOAPIC_WINDOW];
+    }
+
+    static void ioapic_write(volatile u32* base, const u8 reg, const u32 val) {
+        base[IOAPIC_REGSEL] = reg;
+        base[IOAPIC_WINDOW] = val;
+    }
+
+    u32 get_max_redirects(const madt::IoApic* ioapic) {
+        volatile u32* mmio = map_ioapic(ioapic->address);
+        // Bits [23:16] of the VER register hold (max_redir_entry), which is the number of entries minus one.
+        const u32 ver = ioapic_read(mmio, IOAPIC_REG_VER);
+        return ((ver >> 16) & 0xFF) + 1;
+    }
+
+    static madt::IoApic* find_ioapic_for_gsi(const u32 gsi) {
+        madt::IoApic* apics = madt::get_ioapics();
         for (u32 i = 0; i < madt::get_ioapic_count(); ++i) {
-            auto &apic = apics[i];
-            if (gsi >= apic.gsi_base && gsi < apic.gsi_base + 24) {
+            madt::IoApic& apic = apics[i];
+            const u32 max_entries = get_max_redirects(&apic);
+            if (gsi >= apic.gsi_base && gsi < apic.gsi_base + max_entries) {
                 return &apic;
             }
         }
@@ -39,84 +65,122 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static u32 resolve_irq_to_gsi(const u8 irq) {
-        const madt::InterruptOverride *overrides = madt::get_overrides();
+        const madt::InterruptOverride* overrides = madt::get_overrides();
         for (u32 i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].gsi;
             }
         }
-        return irq;
+        return irq;  // identity mapping if no override exists
     }
 
     static u16 get_flags_for_irq(const u8 irq) {
-        const madt::InterruptOverride *overrides = madt::get_overrides();
+        const madt::InterruptOverride* overrides = madt::get_overrides();
         for (u32 i = 0; i < madt::get_override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].flags;
             }
         }
-        return 0;  // default flags: polarity = high, trigger = edge
+        return 0;
     }
 
-    static volatile u32 *map_ioapic(const uptr address) {
-        kernel::memory::map_memory(phys_to_virt(make_phys(address)),make_phys(address));
-        return reinterpret_cast<volatile u32 *>(address);
-    }
-
-    static void write_ioapic_reg(volatile u32 *base, const u8 reg, const u32 val) {
-        base[IOAPIC_REGSEL] = reg;
-        base[IOAPIC_WINDOW] = val;
-    }
-
-    static void ioapic_set_redirect(
-        const madt::IoApic *ioapic, const u32 gsi, const u8 vector, const u8 dest_apic_id, const u16 flags
-    ) {
-        volatile u32 *mmio = map_ioapic(ioapic->address);
-        const u32 index = gsi - ioapic->gsi_base;
-        const u8 reg = 0x10 + (index * 2);
-
+    /**
+     * Build the low 32 bits of a redirection entry from a vector, MADT flags,
+     * and masked state.
+     *
+     * MADT override flags layout (ACPI spec 6.4, §5.2.12.5):
+     *   bits [1:0]  polarity  — 00/01 = bus default/active-high, 11 = active-low
+     *   bits [3:2]  trigger   — 00/01 = bus default/edge,        11 = level
+     */
+    static u32 build_redir_low(const u8 vector, const u16 madt_flags, const bool masked) {
         u32 low = vector;
-        low |= 0 << 8;                    // delivery mode fixed
-        low |= 0 << 11;                   // physical
-        low |= ((flags >> 1) & 1) << 13;  // polarity
-        low |= ((flags >> 3) & 1) << 15;  // trigger mode
-        low |= 0 << 16;                   // mask = 0 (enabled)
+        low |= 0u << 8;   // delivery mode = Fixed (000)
+        low |= 0u << 11;  // destination mode = Physical
 
-        const u32 high = dest_apic_id << 24;
+        // Polarity: active-low if bits[1:0] == 11
+        if ((madt_flags & MADT_FLAG_POLARITY_MASK) == MADT_FLAG_POLARITY_LOW) {
+            low |= IOAPIC_REDIR_POLARITY_LOW;
+        }
 
-        low |= 1 << 16;  // masked
-        write_ioapic_reg(mmio, reg, low);
-        write_ioapic_reg(mmio, reg + 1, high);
+        // Trigger: level-triggered if bits[3:2] == 11
+        if ((madt_flags & MADT_FLAG_TRIGGER_MASK) == MADT_FLAG_TRIGGER_LEVEL) {
+            low |= IOAPIC_REDIR_TRIGGER_LEVEL;
+        }
 
-        low &= ~(1 << 16);
-        write_ioapic_reg(mmio, reg, low);
+        if (masked) {
+            low |= IOAPIC_REDIR_MASKED;
+        }
 
-        Log::info(
-            "IOAPIC: Redirect GSI %u (IRQ 0x%x) -> vec 0x%x on CPU %u (flags: 0x%x)",
-            gsi,
-            gsi,
-            vector,
-            dest_apic_id,
-            flags
-        );
+        return low;
+    }
+
+    static void write_redir_entry(volatile u32* mmio, const u32 index, const u32 low, const u32 high) {
+        const u8 reg = static_cast<u8>(IOAPIC_REDTBL_BASE + index * 2);
+        ioapic_write(mmio, reg + 1, high);
+        ioapic_write(mmio, reg, low);
     }
 
     void configure_irq(const u8 irq, const u8 vector, const u8 dest_apic_id) {
         const u32 gsi = resolve_irq_to_gsi(irq);
         const u16 flags = get_flags_for_irq(irq);
 
-        const madt::IoApic *ioapic = find_ioapic_for_gsi(gsi);
+        const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) {
-            Log::error("IOAPIC: No APIC found for GSI %u (IRQ 0x%x)", gsi, irq);
+            Log::error("IOAPIC: No IOAPIC found for GSI %u (IRQ %u)", gsi, irq);
             return;
         }
 
-        ioapic_set_redirect(ioapic, gsi, vector, dest_apic_id, flags);
+        volatile u32* mmio = map_ioapic(ioapic->address);
+        const u32 index = gsi - ioapic->gsi_base;
+        const u32 low = build_redir_low(vector, flags, false /*unmasked*/);
+        const u32 high = static_cast<u32>(dest_apic_id) << 24;
+
+        write_redir_entry(mmio, index, low, high);
+
+        Log::info(
+            "IOAPIC: IRQ %u -> GSI %u -> vec 0x%x on APIC %u (flags 0x%x)", irq, gsi, vector, dest_apic_id, flags
+        );
+    }
+
+    void mask_gsi(const u32 gsi) {
+        const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+        if (!ioapic) return;
+
+        volatile u32* mmio = map_ioapic(ioapic->address);
+        const u8 reg = static_cast<u8>(IOAPIC_REDTBL_BASE + (gsi - ioapic->gsi_base) * 2);
+        const u32 low = ioapic_read(mmio, reg);
+        ioapic_write(mmio, reg, low | IOAPIC_REDIR_MASKED);
+    }
+
+    void unmask_gsi(const u32 gsi) {
+        const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+        if (!ioapic) return;
+
+        volatile u32* mmio = map_ioapic(ioapic->address);
+        const u8 reg = static_cast<u8>(IOAPIC_REDTBL_BASE + (gsi - ioapic->gsi_base) * 2);
+        const u32 low = ioapic_read(mmio, reg);
+        ioapic_write(mmio, reg, low & ~IOAPIC_REDIR_MASKED);
     }
 
     void init() {
-        for (const u8 default_irqs[] = {0, 5, 9, 10, 11}; const u8 irq : default_irqs) {
-            configure_irq(irq, 0x20 + irq, madt::get_bsp_apic_id());
+        Log::info("IOAPIC: Initializing %u IOAPIC(s)", madt::get_ioapic_count());
+
+        // All legacy irqs are masked by default
+        // Subsystems call configure_irq() to activate what they need.
+        const u8 bsp = static_cast<u8>(madt::get_bsp_apic_id());
+        for (u8 irq = 0; irq < 16; ++irq) {
+            const u32 gsi = resolve_irq_to_gsi(irq);
+            const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+            if (!ioapic) continue;
+
+            const u16 flags = get_flags_for_irq(irq);
+            volatile u32* mmio = map_ioapic(ioapic->address);
+            const u32 index = gsi - ioapic->gsi_base;
+            // Vector 0x20 + irq is the standard PIC-compatible mapping.
+            const u32 low = build_redir_low(0x20 + irq, flags, true);
+            const u32 high = static_cast<u32>(bsp) << 24;
+            write_redir_entry(mmio, index, low, high);
         }
     }
+
 }  // namespace arch::x86_64::interrupts::ioapic
