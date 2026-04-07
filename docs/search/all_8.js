@@ -16,14 +16,15 @@ var searchData=
   ['handle_5ftype_5frealm_13',['HANDLE_TYPE_REALM',['../handles_8h.html#a99fc691f8add17b3b3a7834779d7e641',1,'handles.h']]],
   ['handle_5ftype_5ftty_14',['HANDLE_TYPE_TTY',['../handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64',1,'handles.h']]],
   ['handle_5ftype_5funit_15',['HANDLE_TYPE_UNIT',['../handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd',1,'handles.h']]],
-  ['handle_5fvbus_16',['HANDLE_VBUS',['../vbus_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'vbus.h']]],
+  ['handle_5fvbus_16',['handle_vbus',['../userspace_2lib_2include_2vbus_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'HANDLE_VBUS:&#160;vbus.h'],['../handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605',1,'HANDLE_VBUS:&#160;handles.h']]],
   ['handler_17',['handler',['../structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee',1,'sigaction_t']]],
   ['handles_2eh_18',['handles.h',['../handles_8h.html',1,'']]],
   ['hdl_19',['hdl',['../structpollhdl.html#ae7a5cc68d60cc8d9d2d79c310da4e5a5',1,'pollhdl']]],
-  ['health_5fok_20',['health_ok',['../structSmartAta.html#a0aa901bb49e11f4811a565d3ea753164',1,'SmartAta::health_ok'],['../structSmartCommon.html#af0c9ec26bc870c3eaf1e4840f1f8a201',1,'SmartCommon::health_ok']]],
-  ['heap_5fseg_21',['heap_seg',['../structheap__seg.html',1,'heap_seg'],['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'heap_seg:&#160;memory.h']]],
-  ['height_22',['height',['../structfb__rect__outline.html#a4f8f0fbbac43d849f35f932672478039',1,'fb_rect_outline::height'],['../structfb__rect.html#adca653e1d571d918b9447fbf39055846',1,'fb_rect::height'],['../structfb__info.html#a3d491b7ecdacd951309777eabf6d593a',1,'fb_info::height'],['../structimage__t.html#a067e25b338ae9863688c1d6e928ebb62',1,'image_t::height']]],
-  ['host_5fread_5fcommands_23',['host_read_commands',['../structSmartNvme.html#aec06bb750e6dae19faa3d9fe1cd2d43f',1,'SmartNvme']]],
-  ['host_5fwrite_5fcommands_24',['host_write_commands',['../structSmartNvme.html#ab71e78c9558d3800bd802f781e340c72',1,'SmartNvme']]],
-  ['hour_25',['hour',['../structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e',1,'rtc_data']]]
+  ['header_5fsize_20',['header_size',['../structvbus__header.html#adcc939dbf3f561e292565b0d4992ff4d',1,'vbus_header']]],
+  ['health_5fok_21',['health_ok',['../structsmart__ata.html#abcd1109f5d344a99baaecb8aa73d9e7c',1,'smart_ata::health_ok'],['../structsmart__common.html#a3ee80f4d67c8c127ae7a8d7fb46c18dc',1,'smart_common::health_ok']]],
+  ['heap_5fseg_22',['heap_seg',['../structheap__seg.html',1,'heap_seg'],['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'heap_seg:&#160;memory.h']]],
+  ['height_23',['height',['../structfb__rect__outline.html#a4f8f0fbbac43d849f35f932672478039',1,'fb_rect_outline::height'],['../structfb__rect.html#adca653e1d571d918b9447fbf39055846',1,'fb_rect::height'],['../structfb__info.html#a3d491b7ecdacd951309777eabf6d593a',1,'fb_info::height'],['../structimage__t.html#a067e25b338ae9863688c1d6e928ebb62',1,'image_t::height']]],
+  ['host_5fread_5fcommands_24',['host_read_commands',['../structsmart__nvme.html#a9266e2aeb484c0b6489cec7bb2b21ddd',1,'smart_nvme']]],
+  ['host_5fwrite_5fcommands_25',['host_write_commands',['../structsmart__nvme.html#a6a7b4831e6d6f183093aec45d7856d85',1,'smart_nvme']]],
+  ['hour_26',['hour',['../structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e',1,'rtc_data']]]
 ];

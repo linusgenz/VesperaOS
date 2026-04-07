@@ -43,7 +43,7 @@ var searchData=
   ['errno_40',['errno',['../stdlib_8h.html#ad65a8842cc674e3ddf69355898c0ecbf',1,'stdlib.h']]],
   ['errno_2eh_41',['errno.h',['../errno_8h.html',1,'']]],
   ['error_42',['error',['../structFILE.html#a53285086088ad9f3c1e4f59accf8e1c4',1,'FILE']]],
-  ['error_5flog_5fentries_43',['error_log_entries',['../structSmartNvme.html#afa87b98c540de1c116635ff24e9dac3d',1,'SmartNvme']]],
+  ['error_5flog_5fentries_43',['error_log_entries',['../structsmart__nvme.html#a52cd2b03488f7d23a22b0a0082754abe',1,'smart_nvme']]],
   ['espipe_44',['ESPIPE',['../errno_8h.html#a0e42d4f9fecdcf5fcca2b333252173c3',1,'errno.h']]],
   ['esrch_45',['ESRCH',['../errno_8h.html#a462e47a8af6288232a5df548221ada4c',1,'errno.h']]],
   ['etxtbsy_46',['ETXTBSY',['../errno_8h.html#aaed12e82224923d599b6f1939c8e0971',1,'errno.h']]],

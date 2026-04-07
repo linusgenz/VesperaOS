@@ -101,45 +101,46 @@ $(document).ready(function(){initNavTree('ioctl__smart_8h.html',''); initResizab
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="types_8h_source.html">vespera/types.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="include_2uapi_2vespera_2ioctl_8h_source.html">vespera/ioctl.h</a>&gt;</code><br />
 </div>
 <p><a href="ioctl__smart_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSmartCommon.html">SmartCommon</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsmart__common.html">smart_common</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSmartNvme.html">SmartNvme</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsmart__nvme.html">smart_nvme</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSmartAttribute.html">SmartAttribute</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsmart__attribute.html">smart_attribute</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSmartAta.html">SmartAta</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsmart__ata.html">smart_ata</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSmartRawData.html">SmartRawData</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsmart__raw.html">smart_raw</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ae24d675d6e41efd1de72bc6f8d4c65c2" id="r_ae24d675d6e41efd1de72bc6f8d4c65c2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#ae24d675d6e41efd1de72bc6f8d4c65c2">IOCTL_SMART_GET_RAW</a>&#160;&#160;&#160;0x5301</td></tr>
+<tr class="memitem:ae24d675d6e41efd1de72bc6f8d4c65c2" id="r_ae24d675d6e41efd1de72bc6f8d4c65c2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#ae24d675d6e41efd1de72bc6f8d4c65c2">IOCTL_SMART_GET_RAW</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x01, <a class="el" href="ioctl__smart_8h.html#ab009bdef85960862907a36fac8c897c5">smart_raw_t</a>)</td></tr>
 <tr class="separator:ae24d675d6e41efd1de72bc6f8d4c65c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a476ae9093e2c8a4e7827c72d101d16e6" id="r_a476ae9093e2c8a4e7827c72d101d16e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a476ae9093e2c8a4e7827c72d101d16e6">IOCTL_SMART_GET_COMMON</a>&#160;&#160;&#160;0x5302</td></tr>
+<tr class="memitem:a476ae9093e2c8a4e7827c72d101d16e6" id="r_a476ae9093e2c8a4e7827c72d101d16e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a476ae9093e2c8a4e7827c72d101d16e6">IOCTL_SMART_GET_COMMON</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x02, <a class="el" href="ioctl__smart_8h.html#a2bc4a17cf8e090254429218d1ec54aec">smart_common_t</a>)</td></tr>
 <tr class="separator:a476ae9093e2c8a4e7827c72d101d16e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add5329735e4c1f99a0812569e6e50215" id="r_add5329735e4c1f99a0812569e6e50215"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#add5329735e4c1f99a0812569e6e50215">IOCTL_SMART_GET_NVME</a>&#160;&#160;&#160;0x5303</td></tr>
+<tr class="memitem:add5329735e4c1f99a0812569e6e50215" id="r_add5329735e4c1f99a0812569e6e50215"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#add5329735e4c1f99a0812569e6e50215">IOCTL_SMART_GET_NVME</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x03, <a class="el" href="ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0">smart_nvme_t</a>)</td></tr>
 <tr class="separator:add5329735e4c1f99a0812569e6e50215"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0fd6ed76851cfc08ebb9954e4c4aba3c" id="r_a0fd6ed76851cfc08ebb9954e4c4aba3c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a0fd6ed76851cfc08ebb9954e4c4aba3c">IOCTL_SMART_GET_ATA</a>&#160;&#160;&#160;0x5304</td></tr>
+<tr class="memitem:a0fd6ed76851cfc08ebb9954e4c4aba3c" id="r_a0fd6ed76851cfc08ebb9954e4c4aba3c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a0fd6ed76851cfc08ebb9954e4c4aba3c">IOCTL_SMART_GET_ATA</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x04, <a class="el" href="ioctl__smart_8h.html#aeccb85e30c85aa4c214d3d1cb37d1026">smart_ata_t</a>)</td></tr>
 <tr class="separator:a0fd6ed76851cfc08ebb9954e4c4aba3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a5e86ab11dd74d6adb4e9d4b703fd0a1a" id="r_a5e86ab11dd74d6adb4e9d4b703fd0a1a"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44">SmartDriverType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a5e86ab11dd74d6adb4e9d4b703fd0a1a">SmartDriverType</a></td></tr>
 <tr class="separator:a5e86ab11dd74d6adb4e9d4b703fd0a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c9392e54c5773b7b13cdf1291798c69" id="r_a9c9392e54c5773b7b13cdf1291798c69"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structSmartCommon.html">SmartCommon</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a9c9392e54c5773b7b13cdf1291798c69">SmartCommon</a></td></tr>
-<tr class="separator:a9c9392e54c5773b7b13cdf1291798c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa331155dce757b264ee469dfde7f5f5e" id="r_aa331155dce757b264ee469dfde7f5f5e"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structSmartNvme.html">SmartNvme</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#aa331155dce757b264ee469dfde7f5f5e">SmartNvme</a></td></tr>
-<tr class="separator:aa331155dce757b264ee469dfde7f5f5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d87a84003f6e95fec68dbb2a772da13" id="r_a0d87a84003f6e95fec68dbb2a772da13"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structSmartAta.html">SmartAta</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a0d87a84003f6e95fec68dbb2a772da13">SmartAta</a></td></tr>
-<tr class="separator:a0d87a84003f6e95fec68dbb2a772da13"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a101589202d545df845f17007111c084c" id="r_a101589202d545df845f17007111c084c"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structSmartRawData.html">SmartRawData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a101589202d545df845f17007111c084c">SmartRawData</a></td></tr>
-<tr class="separator:a101589202d545df845f17007111c084c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2bc4a17cf8e090254429218d1ec54aec" id="r_a2bc4a17cf8e090254429218d1ec54aec"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structsmart__common.html">smart_common</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a2bc4a17cf8e090254429218d1ec54aec">smart_common_t</a></td></tr>
+<tr class="separator:a2bc4a17cf8e090254429218d1ec54aec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65c29b3f8495d4428278928929d240a0" id="r_a65c29b3f8495d4428278928929d240a0"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structsmart__nvme.html">smart_nvme</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0">smart_nvme_t</a></td></tr>
+<tr class="separator:a65c29b3f8495d4428278928929d240a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeccb85e30c85aa4c214d3d1cb37d1026" id="r_aeccb85e30c85aa4c214d3d1cb37d1026"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structsmart__ata.html">smart_ata</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#aeccb85e30c85aa4c214d3d1cb37d1026">smart_ata_t</a></td></tr>
+<tr class="separator:aeccb85e30c85aa4c214d3d1cb37d1026"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab009bdef85960862907a36fac8c897c5" id="r_ab009bdef85960862907a36fac8c897c5"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structsmart__raw.html">smart_raw</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#ab009bdef85960862907a36fac8c897c5">smart_raw_t</a></td></tr>
+<tr class="separator:ab009bdef85960862907a36fac8c897c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -151,8 +152,8 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa714acf2af60296df0c8ea01f1b0bad4" id="r_aa714acf2af60296df0c8ea01f1b0bad4"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structSmartAttribute.html">SmartAttribute</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#aa714acf2af60296df0c8ea01f1b0bad4">__attribute__</a> ((packed)) <a class="el" href="structSmartAttribute.html">SmartAttribute</a></td></tr>
-<tr class="separator:aa714acf2af60296df0c8ea01f1b0bad4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a196cda52d434f758bfedffcc33b442ab" id="r_a196cda52d434f758bfedffcc33b442ab"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structsmart__attribute.html">smart_attribute</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__smart_8h.html#a196cda52d434f758bfedffcc33b442ab">__attribute__</a> ((packed)) smart_attribute_t</td></tr>
+<tr class="separator:a196cda52d434f758bfedffcc33b442ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -177,7 +178,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define IOCTL_SMART_GET_ATA&#160;&#160;&#160;0x5304</td>
+          <td class="memname">#define IOCTL_SMART_GET_ATA&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x04, <a class="el" href="ioctl__smart_8h.html#aeccb85e30c85aa4c214d3d1cb37d1026">smart_ata_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -191,7 +192,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define IOCTL_SMART_GET_COMMON&#160;&#160;&#160;0x5302</td>
+          <td class="memname">#define IOCTL_SMART_GET_COMMON&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x02, <a class="el" href="ioctl__smart_8h.html#a2bc4a17cf8e090254429218d1ec54aec">smart_common_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -205,7 +206,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define IOCTL_SMART_GET_NVME&#160;&#160;&#160;0x5303</td>
+          <td class="memname">#define IOCTL_SMART_GET_NVME&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x03, <a class="el" href="ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0">smart_nvme_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -219,7 +220,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define IOCTL_SMART_GET_RAW&#160;&#160;&#160;0x5301</td>
+          <td class="memname">#define IOCTL_SMART_GET_RAW&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('S', 0x01, <a class="el" href="ioctl__smart_8h.html#ab009bdef85960862907a36fac8c897c5">smart_raw_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -227,28 +228,56 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="a0d87a84003f6e95fec68dbb2a772da13" name="a0d87a84003f6e95fec68dbb2a772da13"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d87a84003f6e95fec68dbb2a772da13">&#9670;&#160;</a></span>SmartAta</h2>
+<a id="aeccb85e30c85aa4c214d3d1cb37d1026" name="aeccb85e30c85aa4c214d3d1cb37d1026"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeccb85e30c85aa4c214d3d1cb37d1026">&#9670;&#160;</a></span>smart_ata_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="structSmartAta.html">SmartAta</a> <a class="el" href="structSmartAta.html">SmartAta</a></td>
+          <td class="memname">typedef struct <a class="el" href="structsmart__ata.html">smart_ata</a> <a class="el" href="ioctl__smart_8h.html#aeccb85e30c85aa4c214d3d1cb37d1026">smart_ata_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a9c9392e54c5773b7b13cdf1291798c69" name="a9c9392e54c5773b7b13cdf1291798c69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c9392e54c5773b7b13cdf1291798c69">&#9670;&#160;</a></span>SmartCommon</h2>
+<a id="a2bc4a17cf8e090254429218d1ec54aec" name="a2bc4a17cf8e090254429218d1ec54aec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2bc4a17cf8e090254429218d1ec54aec">&#9670;&#160;</a></span>smart_common_t</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="structSmartCommon.html">SmartCommon</a> <a class="el" href="structSmartCommon.html">SmartCommon</a></td>
+          <td class="memname">typedef struct <a class="el" href="structsmart__common.html">smart_common</a> <a class="el" href="ioctl__smart_8h.html#a2bc4a17cf8e090254429218d1ec54aec">smart_common_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65c29b3f8495d4428278928929d240a0" name="a65c29b3f8495d4428278928929d240a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65c29b3f8495d4428278928929d240a0">&#9670;&#160;</a></span>smart_nvme_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structsmart__nvme.html">smart_nvme</a> <a class="el" href="ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0">smart_nvme_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab009bdef85960862907a36fac8c897c5" name="ab009bdef85960862907a36fac8c897c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab009bdef85960862907a36fac8c897c5">&#9670;&#160;</a></span>smart_raw_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structsmart__raw.html">smart_raw</a> <a class="el" href="ioctl__smart_8h.html#ab009bdef85960862907a36fac8c897c5">smart_raw_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -263,34 +292,6 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef enum <a class="el" href="ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44">SmartDriverType</a> <a class="el" href="ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44">SmartDriverType</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa331155dce757b264ee469dfde7f5f5e" name="aa331155dce757b264ee469dfde7f5f5e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa331155dce757b264ee469dfde7f5f5e">&#9670;&#160;</a></span>SmartNvme</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct <a class="el" href="structSmartNvme.html">SmartNvme</a> <a class="el" href="structSmartNvme.html">SmartNvme</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a101589202d545df845f17007111c084c" name="a101589202d545df845f17007111c084c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a101589202d545df845f17007111c084c">&#9670;&#160;</a></span>SmartRawData</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct <a class="el" href="structSmartRawData.html">SmartRawData</a> <a class="el" href="structSmartRawData.html">SmartRawData</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -318,14 +319,14 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="aa714acf2af60296df0c8ea01f1b0bad4" name="aa714acf2af60296df0c8ea01f1b0bad4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa714acf2af60296df0c8ea01f1b0bad4">&#9670;&#160;</a></span>__attribute__()</h2>
+<a id="a196cda52d434f758bfedffcc33b442ab" name="a196cda52d434f758bfedffcc33b442ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a196cda52d434f758bfedffcc33b442ab">&#9670;&#160;</a></span>__attribute__()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">struct <a class="el" href="structSmartAttribute.html">SmartAttribute</a> __attribute__ </td>
+          <td class="memname">struct <a class="el" href="structsmart__attribute.html">smart_attribute</a> __attribute__ </td>
           <td>(</td>
           <td class="paramtype">(packed)&#160;</td>
           <td class="paramname"></td><td>)</td>

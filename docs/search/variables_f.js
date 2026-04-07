@@ -1,15 +1,20 @@
 var searchData=
 [
-  ['pending_5fsectors_0',['pending_sectors',['../structSmartAta.html#adc0b03d01356193d9b371544fa31bf8b',1,'SmartAta']]],
-  ['percentage_5fused_1',['percentage_used',['../structSmartNvme.html#a316ac5c0ac0e007a2aa7d995af9fc0f1',1,'SmartNvme']]],
-  ['pitch_2',['pitch',['../structfb__info.html#a2faa3403275fb2930a0b01865a3484f4',1,'fb_info']]],
-  ['pixels_3',['pixels',['../structfb__blit.html#a1865017c8e34ba456777064246b08713',1,'fb_blit']]],
-  ['port_5fnum_4',['port_num',['../structusb__device__info.html#a464d8f07ed895adebff3f3be1c19845d',1,'usb_device_info']]],
-  ['power_5fcycles_5',['power_cycles',['../structSmartNvme.html#a14d658316b7e8d00e89a7d89d6264ad5',1,'SmartNvme::power_cycles'],['../structSmartAta.html#a73d9b4ba1bb2cb9fcf69bfc249f309c1',1,'SmartAta::power_cycles']]],
-  ['power_5fon_5fhours_6',['power_on_hours',['../structSmartCommon.html#ae00426b07c87f94218bd2c22ab28df92',1,'SmartCommon::power_on_hours'],['../structSmartNvme.html#add02ac63fb1b254c2138098be4a43602',1,'SmartNvme::power_on_hours'],['../structSmartAta.html#a12022cfeb67e45b7beba3673bbc27a41',1,'SmartAta::power_on_hours']]],
-  ['precision_7',['precision',['../structimage__t.html#ad13fa2b67f6b9e0dd76983345b627df7',1,'image_t']]],
-  ['prev_8',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
-  ['priority_9',['priority',['../structunit__info.html#af243e2b0e86ac66d98d0ce468020d907',1,'unit_info']]],
-  ['product_5fid_10',['product_id',['../structusb__device__info.html#a542f8985c766c27a08dccb4dc4cf23e1',1,'usb_device_info']]],
-  ['progressive_11',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]]
+  ['payload_5fsize_0',['payload_size',['../structvbus__header.html#a5aa3d3b6a5dd0c1cafd4f031615866e6',1,'vbus_header']]],
+  ['pending_5fsectors_1',['pending_sectors',['../structsmart__ata.html#a25e1a5678be60b315e9598baa0ac4aea',1,'smart_ata']]],
+  ['percent_2',['percent',['../structbattery__status.html#a74fc633f4780deb315ac340eeee9b08c',1,'battery_status::percent'],['../structvbus__battery.html#a47cbbd21c0348907414b4d0f6fa0e14e',1,'vbus_battery::percent']]],
+  ['percentage_5fused_3',['percentage_used',['../structsmart__nvme.html#a5bf161de7deb9832bf42a2a1cd7046c3',1,'smart_nvme']]],
+  ['pitch_4',['pitch',['../structfb__info.html#a2faa3403275fb2930a0b01865a3484f4',1,'fb_info']]],
+  ['pixels_5',['pixels',['../structfb__blit.html#a1865017c8e34ba456777064246b08713',1,'fb_blit']]],
+  ['port_5fnum_6',['port_num',['../structusb__device__info.html#a464d8f07ed895adebff3f3be1c19845d',1,'usb_device_info']]],
+  ['power_5fcycles_7',['power_cycles',['../structsmart__nvme.html#a71a9609a2c6d6885c89a19c3f060ca05',1,'smart_nvme::power_cycles'],['../structsmart__ata.html#a8a7bd48eccbd02628d9dbeeac69b3524',1,'smart_ata::power_cycles']]],
+  ['power_5fon_5fhours_8',['power_on_hours',['../structsmart__nvme.html#a03bfeaafc8747fc6298fe8cd8b3190d3',1,'smart_nvme::power_on_hours'],['../structsmart__ata.html#a894e5930ac34e9e182ffc27047bbb065',1,'smart_ata::power_on_hours'],['../structsmart__common.html#a2ba0661d31bd4fe8204a1b8ea2abd792',1,'smart_common::power_on_hours']]],
+  ['precision_9',['precision',['../structimage__t.html#ad13fa2b67f6b9e0dd76983345b627df7',1,'image_t']]],
+  ['present_10',['present',['../structbattery__status.html#ad8a6f6af19ce72822c03fc99300dfcb5',1,'battery_status::present'],['../structvbus__battery.html#a52b532af60ee185b7e6d0b6ac2e08628',1,'vbus_battery::present']]],
+  ['present_5frate_11',['present_rate',['../structbattery__status.html#a24c6f945928e73006ef7182bb5c7b9df',1,'battery_status']]],
+  ['present_5fvoltage_12',['present_voltage',['../structbattery__status.html#a44e1bb0ca8bb55308969d3314e4f2ca3',1,'battery_status']]],
+  ['prev_13',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
+  ['priority_14',['priority',['../structunit__info.html#af243e2b0e86ac66d98d0ce468020d907',1,'unit_info']]],
+  ['product_5fid_15',['product_id',['../structusb__device__info.html#a542f8985c766c27a08dccb4dc4cf23e1',1,'usb_device_info']]],
+  ['progressive_16',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]]
 ];

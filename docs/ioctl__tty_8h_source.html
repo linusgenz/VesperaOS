@@ -122,35 +122,37 @@ $(document).ready(function(){initNavTree('ioctl__tty_8h_source.html',''); initRe
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_IOCTL_TTY_H</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_IOCTL_TTY_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a2cd4beda57c7c9b0696cd2860c7d0a0a">   25</a></span><span class="preprocessor">#define IOCTL_TTY_GET_MODE  0x5401</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a7a53367e8fae9c437ba85b459ae8b7c9">   26</a></span><span class="preprocessor">#define IOCTL_TTY_SET_MODE  0x5402</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a53d6e936abb574516ede1cf81e3f7697">   27</a></span><span class="preprocessor">#define IOCTL_TTY_GET_SIZE  0x5403</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a4cc06d2f4a6337c4702c46ff53ecf182">   29</a></span><span class="preprocessor">#define TTY_MODE_CANONICAL  0</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a">   30</a></span><span class="preprocessor">#define TTY_MODE_RAW        1</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structtty__mode__t.html">   33</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336">   34</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336">mode</a>;        <span class="comment">// TTY_MODE_*</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">   35</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">echo</a>;        <span class="comment">// 1 = echo input, 0 = no echo</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>} <a class="code hl_struct" href="structtty__mode__t.html">tty_mode_t</a>;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="include_2uapi_2vespera_2ioctl_8h.html">vespera/ioctl.h</a>&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a4cc06d2f4a6337c4702c46ff53ecf182">   27</a></span><span class="preprocessor">#define TTY_MODE_CANONICAL  0</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a">   28</a></span><span class="preprocessor">#define TTY_MODE_RAW        1</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="};">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="structtty__mode__t.html">   30</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336">   31</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336">mode</a>;        <span class="comment">// TTY_MODE_*</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">   32</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">echo</a>;        <span class="comment">// 1 = echo input, 0 = no echo</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>} <a class="code hl_struct" href="structtty__mode__t.html">tty_mode_t</a>;</div>
 </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="foldopen" id="foldopen00038" data-start="{" data-end="};">
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="structtty__size__t.html">   38</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="structtty__size__t.html#ad639278e7517a2858e9e566cce057cab">   39</a></span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> <a class="code hl_variable" href="structtty__size__t.html#ad639278e7517a2858e9e566cce057cab">rows</a>;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2">   40</a></span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> <a class="code hl_variable" href="structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2">cols</a>;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>} <a class="code hl_struct" href="structtty__size__t.html">tty_size_t</a>;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="foldopen" id="foldopen00035" data-start="{" data-end="};">
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="structtty__size__t.html">   35</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="structtty__size__t.html#ad639278e7517a2858e9e566cce057cab">   36</a></span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> <a class="code hl_variable" href="structtty__size__t.html#ad639278e7517a2858e9e566cce057cab">rows</a>;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2">   37</a></span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> <a class="code hl_variable" href="structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2">cols</a>;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>} <a class="code hl_struct" href="structtty__size__t.html">tty_size_t</a>;</div>
 </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_TTY_H</span></div>
-<div class="ttc" id="astructtty__mode__t_html"><div class="ttname"><a href="structtty__mode__t.html">tty_mode_t</a></div><div class="ttdef"><b>Definition</b> ioctl_tty.h:33</div></div>
-<div class="ttc" id="astructtty__mode__t_html_a77f631f319bb290247e49346ba12adcc"><div class="ttname"><a href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">tty_mode_t::echo</a></div><div class="ttdeci">int echo</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:35</div></div>
-<div class="ttc" id="astructtty__mode__t_html_ad313a33d80336ecd38d1c8cb03883336"><div class="ttname"><a href="structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336">tty_mode_t::mode</a></div><div class="ttdeci">int mode</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:34</div></div>
-<div class="ttc" id="astructtty__size__t_html"><div class="ttname"><a href="structtty__size__t.html">tty_size_t</a></div><div class="ttdef"><b>Definition</b> ioctl_tty.h:38</div></div>
-<div class="ttc" id="astructtty__size__t_html_a7cc56f2ce229e2e2b6c950f51a4c07a2"><div class="ttname"><a href="structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2">tty_size_t::cols</a></div><div class="ttdeci">unsigned short cols</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:40</div></div>
-<div class="ttc" id="astructtty__size__t_html_ad639278e7517a2858e9e566cce057cab"><div class="ttname"><a href="structtty__size__t.html#ad639278e7517a2858e9e566cce057cab">tty_size_t::rows</a></div><div class="ttdeci">unsigned short rows</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:39</div></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a2cd4beda57c7c9b0696cd2860c7d0a0a">   40</a></span><span class="preprocessor">#define IOCTL_TTY_GET_MODE IOR(&#39;T&#39;, 0x01, tty_mode_t)</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a7a53367e8fae9c437ba85b459ae8b7c9">   41</a></span><span class="preprocessor">#define IOCTL_TTY_SET_MODE IOW(&#39;T&#39;, 0x02, tty_mode_t)</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a53d6e936abb574516ede1cf81e3f7697">   42</a></span><span class="preprocessor">#define IOCTL_TTY_GET_SIZE IOR(&#39;T&#39;, 0x03, tty_size_t)</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_TTY_H</span></div>
+<div class="ttc" id="ainclude_2uapi_2vespera_2ioctl_8h_html"><div class="ttname"><a href="include_2uapi_2vespera_2ioctl_8h.html">ioctl.h</a></div></div>
+<div class="ttc" id="astructtty__mode__t_html"><div class="ttname"><a href="structtty__mode__t.html">tty_mode_t</a></div><div class="ttdef"><b>Definition</b> ioctl_tty.h:30</div></div>
+<div class="ttc" id="astructtty__mode__t_html_a77f631f319bb290247e49346ba12adcc"><div class="ttname"><a href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">tty_mode_t::echo</a></div><div class="ttdeci">int echo</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:32</div></div>
+<div class="ttc" id="astructtty__mode__t_html_ad313a33d80336ecd38d1c8cb03883336"><div class="ttname"><a href="structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336">tty_mode_t::mode</a></div><div class="ttdeci">int mode</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:31</div></div>
+<div class="ttc" id="astructtty__size__t_html"><div class="ttname"><a href="structtty__size__t.html">tty_size_t</a></div><div class="ttdef"><b>Definition</b> ioctl_tty.h:35</div></div>
+<div class="ttc" id="astructtty__size__t_html_a7cc56f2ce229e2e2b6c950f51a4c07a2"><div class="ttname"><a href="structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2">tty_size_t::cols</a></div><div class="ttdeci">unsigned short cols</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:37</div></div>
+<div class="ttc" id="astructtty__size__t_html_ad639278e7517a2858e9e566cce057cab"><div class="ttname"><a href="structtty__size__t.html#ad639278e7517a2858e9e566cce057cab">tty_size_t::rows</a></div><div class="ttdeci">unsigned short rows</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:36</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

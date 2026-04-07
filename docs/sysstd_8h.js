@@ -33,6 +33,8 @@ var sysstd_8h =
     [ "sys_stat", "sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757", null ],
     [ "sys_umount", "sysstd_8h.html#a30033bb9d09fb019a2e16651914dbf5c", null ],
     [ "sys_unlink", "sysstd_8h.html#a7195de760b75f180c04c5a41dd5a5960", null ],
+    [ "sys_vbus_subscribe", "sysstd_8h.html#add7a427c443a5bfc11d90831d25b61ef", null ],
+    [ "sys_vbus_unsubscribe", "sysstd_8h.html#acee7bae6bac5777d08b99907e9a2137d", null ],
     [ "sys_wait", "sysstd_8h.html#afdc475f51b903fd0dabea0dc3281aee8", null ],
     [ "sys_write", "sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa", null ],
     [ "syscall", "sysstd_8h.html#a470cf057765ab491541502bb6b47717d", null ]

@@ -122,33 +122,33 @@ $(document).ready(function(){initNavTree('ioctl__devinfo_8h_source.html',''); in
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_IOCTL_DEVINFO_H</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_IOCTL_DEVINFO_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="types_8h.html">vespera/types.h</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="include_2uapi_2vespera_2ioctl_8h.html">vespera/ioctl.h</a>&gt;</span></div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#a7c600ae8fdbc34d52e48c10c073ed806">   27</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_ALL     0x4900</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#a26bb99a8dea4d39424787b68d7be087a">   28</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_MODEL   0x4901</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#aa289bf1e416d4c5416d6f7e41cd6a4ef">   29</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_SERIAL  0x4902</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#a92175cf2d11e273b01565182f43b189d">   30</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_VENDOR  0x4903</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#ae70c3f47c60d5e8237ed5432119bd897">   31</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_FW      0x4904</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structdevinfo__t.html">   33</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44">   34</a></span>    <span class="keywordtype">char</span> model[128];</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#a29cd773523ce6820568b02f5515e2dca">   35</a></span>    <span class="keywordtype">char</span> serial[64];</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee">   36</a></span>    <span class="keywordtype">char</span> vendor[64];</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#a85eb7f4607f25d0b27a4ccbebfa4ad06">   37</a></span>    <span class="keywordtype">char</span> firmware[32];</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>} <a class="code hl_struct" href="structdevinfo__t.html">devinfo_t</a>;</div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="};">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="structdevinfo__t.html">   27</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44">   28</a></span>    <span class="keywordtype">char</span> model[128];</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#a29cd773523ce6820568b02f5515e2dca">   29</a></span>    <span class="keywordtype">char</span> serial[64];</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee">   30</a></span>    <span class="keywordtype">char</span> vendor[64];</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structdevinfo__t.html#a85eb7f4607f25d0b27a4ccbebfa4ad06">   31</a></span>    <span class="keywordtype">char</span> firmware[32];</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>} <a class="code hl_struct" href="structdevinfo__t.html">devinfo_t</a>;</div>
 </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="foldopen" id="foldopen00040" data-start="{" data-end="};">
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="structdevinfo__string__t.html">   40</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319">   41</a></span>    <span class="keywordtype">char</span> value[128];</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>} <a class="code hl_struct" href="structdevinfo__string__t.html">devinfo_string_t</a>;</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="foldopen" id="foldopen00034" data-start="{" data-end="};">
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structdevinfo__string__t.html">   34</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319">   35</a></span>    <span class="keywordtype">char</span> value[128];</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>} <a class="code hl_struct" href="structdevinfo__string__t.html">devinfo_string_t</a>;</div>
 </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#a7c600ae8fdbc34d52e48c10c073ed806">   38</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_ALL    IOR(&#39;D&#39;, 0x00, devinfo_t)</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#a26bb99a8dea4d39424787b68d7be087a">   39</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_MODEL  IOR(&#39;D&#39;, 0x01, devinfo_string_t)</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#aa289bf1e416d4c5416d6f7e41cd6a4ef">   40</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_SERIAL IOR(&#39;D&#39;, 0x02, devinfo_string_t)</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#a92175cf2d11e273b01565182f43b189d">   41</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_VENDOR IOR(&#39;D&#39;, 0x03, devinfo_string_t)</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="ioctl__devinfo_8h.html#ae70c3f47c60d5e8237ed5432119bd897">   42</a></span><span class="preprocessor">#define IOCTL_DEVINFO_GET_FW     IOR(&#39;D&#39;, 0x04, devinfo_string_t)</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_DEVINFO_H</span></div>
-<div class="ttc" id="astructdevinfo__string__t_html"><div class="ttname"><a href="structdevinfo__string__t.html">devinfo_string_t</a></div><div class="ttdef"><b>Definition</b> ioctl_devinfo.h:40</div></div>
-<div class="ttc" id="astructdevinfo__t_html"><div class="ttname"><a href="structdevinfo__t.html">devinfo_t</a></div><div class="ttdef"><b>Definition</b> ioctl_devinfo.h:33</div></div>
-<div class="ttc" id="atypes_8h_html"><div class="ttname"><a href="types_8h.html">types.h</a></div></div>
+<div class="ttc" id="ainclude_2uapi_2vespera_2ioctl_8h_html"><div class="ttname"><a href="include_2uapi_2vespera_2ioctl_8h.html">ioctl.h</a></div></div>
+<div class="ttc" id="astructdevinfo__string__t_html"><div class="ttname"><a href="structdevinfo__string__t.html">devinfo_string_t</a></div><div class="ttdef"><b>Definition</b> ioctl_devinfo.h:34</div></div>
+<div class="ttc" id="astructdevinfo__t_html"><div class="ttname"><a href="structdevinfo__t.html">devinfo_t</a></div><div class="ttdef"><b>Definition</b> ioctl_devinfo.h:27</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

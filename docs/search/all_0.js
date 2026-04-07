@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['_5f_5fattribute_5f_5f_0',['__attribute__',['../stdlib_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2',1,'__attribute__((noreturn)) void exit(uint64_t code):&#160;stdlib.h'],['../ioctl__smart_8h.html#aa714acf2af60296df0c8ea01f1b0bad4',1,'__attribute__((packed)) SmartAttribute:&#160;ioctl_smart.h']]],
+  ['_5f_5fattribute_5f_5f_0',['__attribute__',['../stdlib_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2',1,'__attribute__((noreturn)) void exit(uint64_t code):&#160;stdlib.h'],['../ioctl__smart_8h.html#a196cda52d434f758bfedffcc33b442ab',1,'__attribute__((packed)) smart_attribute_t:&#160;ioctl_smart.h']]],
   ['_5f_5fbool_5ftrue_5ffalse_5fare_5fdefined_1',['__bool_true_false_are_defined',['../stdbool_8h.html#a665b0cc9ee2ced31785321d55cde349e',1,'stdbool.h']]],
   ['_5f_5fctype_5fb_5floc_2',['__ctype_b_loc',['../ctype_8h.html#a0c8f9e31f37a923c6211c1b0556fd5e1',1,'ctype.h']]],
   ['_5f_5fctype_5ftolower_5floc_3',['__ctype_tolower_loc',['../ctype_8h.html#a95a7d0e1c94524c9fe8d0ab9b9fbade7',1,'ctype.h']]],
@@ -34,6 +34,6 @@ var searchData=
   ['_5fisspace_31',['_ISspace',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba1c6af7b71f8931d22cfcaed9314f6b45',1,'ctype.h']]],
   ['_5fisupper_32',['_ISupper',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba8413ab9d1b454a9b2f9d1547de21c284',1,'ctype.h']]],
   ['_5fisxdigit_33',['_ISxdigit',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55bac6d2e9ed4139a3f7ae9a4e7c81411760',1,'ctype.h']]],
-  ['_5fpad_34',['_pad',['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad']]],
+  ['_5fpad_34',['_pad',['../structvbus__lid.html#a77be469deba56e2d3f948139090a1cdf',1,'vbus_lid::_pad'],['../structvbus__ac.html#a4d16aa4e946ab65625d302762bc75126',1,'vbus_ac::_pad'],['../structvbus__battery.html#a3d5f3b1baa9e7325ebecb9dcc38ee447',1,'vbus_battery::_pad'],['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structbattery__status.html#a86c90a6b3f253d979acb29e28d70c0d0',1,'battery_status::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad']]],
   ['_5fpad0_35',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]]
 ];

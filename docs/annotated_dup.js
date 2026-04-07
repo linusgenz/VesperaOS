@@ -1,5 +1,7 @@
 var annotated_dup =
 [
+    [ "battery_info", "structbattery__info.html", "structbattery__info" ],
+    [ "battery_status", "structbattery__status.html", "structbattery__status" ],
     [ "cpu_info", "structcpu__info.html", "structcpu__info" ],
     [ "cpu_usage_info", "structcpu__usage__info.html", "structcpu__usage__info" ],
     [ "cpu_usage_stat", "structcpu__usage__stat.html", "structcpu__usage__stat" ],
@@ -23,11 +25,11 @@ var annotated_dup =
     [ "realm_info", "structrealm__info.html", "structrealm__info" ],
     [ "rtc_data", "structrtc__data.html", "structrtc__data" ],
     [ "sigaction_t", "structsigaction__t.html", "structsigaction__t" ],
-    [ "SmartAta", "structSmartAta.html", "structSmartAta" ],
-    [ "SmartAttribute", "structSmartAttribute.html", "structSmartAttribute" ],
-    [ "SmartCommon", "structSmartCommon.html", "structSmartCommon" ],
-    [ "SmartNvme", "structSmartNvme.html", "structSmartNvme" ],
-    [ "SmartRawData", "structSmartRawData.html", "structSmartRawData" ],
+    [ "smart_ata", "structsmart__ata.html", "structsmart__ata" ],
+    [ "smart_attribute", "structsmart__attribute.html", "structsmart__attribute" ],
+    [ "smart_common", "structsmart__common.html", "structsmart__common" ],
+    [ "smart_nvme", "structsmart__nvme.html", "structsmart__nvme" ],
+    [ "smart_raw", "structsmart__raw.html", "structsmart__raw" ],
     [ "spawn_config", "structspawn__config.html", "structspawn__config" ],
     [ "timespec", "structtimespec.html", "structtimespec" ],
     [ "tm", "structtm.html", "structtm" ],
@@ -35,5 +37,10 @@ var annotated_dup =
     [ "tty_size_t", "structtty__size__t.html", "structtty__size__t" ],
     [ "unit_info", "structunit__info.html", "structunit__info" ],
     [ "usb_device_info", "structusb__device__info.html", "structusb__device__info" ],
+    [ "vbus_ac", "structvbus__ac.html", "structvbus__ac" ],
+    [ "vbus_battery", "structvbus__battery.html", "structvbus__battery" ],
+    [ "vbus_header", "structvbus__header.html", "structvbus__header" ],
+    [ "vbus_lid", "structvbus__lid.html", "structvbus__lid" ],
+    [ "vbus_subscribe_args", "structvbus__subscribe__args.html", "structvbus__subscribe__args" ],
     [ "vespera_stat", "structvespera__stat.html", "structvespera__stat" ]
 ];

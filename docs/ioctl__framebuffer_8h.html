@@ -98,6 +98,7 @@ $(document).ready(function(){initNavTree('ioctl__framebuffer_8h.html',''); initR
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="types_8h_source.html">vespera/types.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="include_2uapi_2vespera_2ioctl_8h_source.html">vespera/ioctl.h</a>&gt;</code><br />
 </div>
 <p><a href="ioctl__framebuffer_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -121,22 +122,22 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a9be178b83e5dfe599c703c6a0b9f176e" id="r_a9be178b83e5dfe599c703c6a0b9f176e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a9be178b83e5dfe599c703c6a0b9f176e">FB_IOCTL_GET_INFO</a>&#160;&#160;&#160;0x4600</td></tr>
+<tr class="memitem:a9be178b83e5dfe599c703c6a0b9f176e" id="r_a9be178b83e5dfe599c703c6a0b9f176e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a9be178b83e5dfe599c703c6a0b9f176e">FB_IOCTL_GET_INFO</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('F', 0x00, <a class="el" href="ioctl__framebuffer_8h.html#a69e8e2e2faa5877637d7a731db7d1269">fb_info_t</a>)</td></tr>
 <tr class="memdesc:a9be178b83e5dfe599c703c6a0b9f176e"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to retrieve framebuffer information.  <br /></td></tr>
 <tr class="separator:a9be178b83e5dfe599c703c6a0b9f176e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a313add0175936708a5bdbb65b32d44df" id="r_a313add0175936708a5bdbb65b32d44df"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a313add0175936708a5bdbb65b32d44df">FB_IOCTL_GET_BACKING_DEVID</a>&#160;&#160;&#160;0x4601</td></tr>
+<tr class="memitem:a313add0175936708a5bdbb65b32d44df" id="r_a313add0175936708a5bdbb65b32d44df"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a313add0175936708a5bdbb65b32d44df">FB_IOCTL_GET_BACKING_DEVID</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('F', 0x01, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>)</td></tr>
 <tr class="memdesc:a313add0175936708a5bdbb65b32d44df"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to get the kernel device ID of the backing device.  <br /></td></tr>
 <tr class="separator:a313add0175936708a5bdbb65b32d44df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adbb883d05fb5ec89b95915f0b53f1827" id="r_adbb883d05fb5ec89b95915f0b53f1827"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#adbb883d05fb5ec89b95915f0b53f1827">FB_IOCTL_FILL_RECT</a>&#160;&#160;&#160;0x4602</td></tr>
+<tr class="memitem:adbb883d05fb5ec89b95915f0b53f1827" id="r_adbb883d05fb5ec89b95915f0b53f1827"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#adbb883d05fb5ec89b95915f0b53f1827">FB_IOCTL_FILL_RECT</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x02, <a class="el" href="ioctl__framebuffer_8h.html#a5a53c0d62c7edfd99ef6fd6e48c1af13">fb_rect_t</a>)</td></tr>
 <tr class="memdesc:adbb883d05fb5ec89b95915f0b53f1827"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to draw a filled rectangle.  <br /></td></tr>
 <tr class="separator:adbb883d05fb5ec89b95915f0b53f1827"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21fa9a7e620366e144e02b7d1ca8ff11" id="r_a21fa9a7e620366e144e02b7d1ca8ff11"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a21fa9a7e620366e144e02b7d1ca8ff11">FB_IOCTL_DRAW_RECT</a>&#160;&#160;&#160;0x4603</td></tr>
+<tr class="memitem:a21fa9a7e620366e144e02b7d1ca8ff11" id="r_a21fa9a7e620366e144e02b7d1ca8ff11"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a21fa9a7e620366e144e02b7d1ca8ff11">FB_IOCTL_DRAW_RECT</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x03, <a class="el" href="ioctl__framebuffer_8h.html#a2a3236d323f8bdedf6d53513274310b7">fb_rect_outline_t</a>)</td></tr>
 <tr class="memdesc:a21fa9a7e620366e144e02b7d1ca8ff11"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to draw a rectangle outline (border only).  <br /></td></tr>
 <tr class="separator:a21fa9a7e620366e144e02b7d1ca8ff11"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35cc9883ccfa2e21ff7e26766cb868e4" id="r_a35cc9883ccfa2e21ff7e26766cb868e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a35cc9883ccfa2e21ff7e26766cb868e4">FB_IOCTL_CLEAR</a>&#160;&#160;&#160;0x4604</td></tr>
+<tr class="memitem:a35cc9883ccfa2e21ff7e26766cb868e4" id="r_a35cc9883ccfa2e21ff7e26766cb868e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a35cc9883ccfa2e21ff7e26766cb868e4">FB_IOCTL_CLEAR</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x04, <a class="el" href="ioctl__framebuffer_8h.html#acc934f8223d7254f710f446c2b4c7654">fb_clear_t</a>)</td></tr>
 <tr class="memdesc:a35cc9883ccfa2e21ff7e26766cb868e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to clear the entire screen with a solid color.  <br /></td></tr>
 <tr class="separator:a35cc9883ccfa2e21ff7e26766cb868e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad71190457db3eb8efc3c39ca2bb49fea" id="r_ad71190457db3eb8efc3c39ca2bb49fea"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#ad71190457db3eb8efc3c39ca2bb49fea">FB_IOCTL_BLIT</a>&#160;&#160;&#160;0x4605</td></tr>
+<tr class="memitem:ad71190457db3eb8efc3c39ca2bb49fea" id="r_ad71190457db3eb8efc3c39ca2bb49fea"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#ad71190457db3eb8efc3c39ca2bb49fea">FB_IOCTL_BLIT</a>&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x05, fb_blit_t)</td></tr>
 <tr class="memdesc:ad71190457db3eb8efc3c39ca2bb49fea"><td class="mdescLeft">&#160;</td><td class="mdescRight">IOCTL code to copy a pixel buffer to the framebuffer.  <br /></td></tr>
 <tr class="separator:ad71190457db3eb8efc3c39ca2bb49fea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -148,6 +149,12 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a5a53c0d62c7edfd99ef6fd6e48c1af13" id="r_a5a53c0d62c7edfd99ef6fd6e48c1af13"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structfb__rect.html">fb_rect</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a5a53c0d62c7edfd99ef6fd6e48c1af13">fb_rect_t</a></td></tr>
 <tr class="memdesc:a5a53c0d62c7edfd99ef6fd6e48c1af13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines a filled rectangle to be drawn on the framebuffer.  <br /></td></tr>
 <tr class="separator:a5a53c0d62c7edfd99ef6fd6e48c1af13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a3236d323f8bdedf6d53513274310b7" id="r_a2a3236d323f8bdedf6d53513274310b7"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structfb__rect__outline.html">fb_rect_outline</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#a2a3236d323f8bdedf6d53513274310b7">fb_rect_outline_t</a></td></tr>
+<tr class="memdesc:a2a3236d323f8bdedf6d53513274310b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines a rectangle outline (border) to be drawn on the framebuffer.  <br /></td></tr>
+<tr class="separator:a2a3236d323f8bdedf6d53513274310b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc934f8223d7254f710f446c2b4c7654" id="r_acc934f8223d7254f710f446c2b4c7654"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structfb__clear.html">fb_clear</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioctl__framebuffer_8h.html#acc934f8223d7254f710f446c2b4c7654">fb_clear_t</a></td></tr>
+<tr class="memdesc:acc934f8223d7254f710f446c2b4c7654"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies a color to clear the entire screen with.  <br /></td></tr>
+<tr class="separator:acc934f8223d7254f710f446c2b4c7654"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ad71190457db3eb8efc3c39ca2bb49fea" name="ad71190457db3eb8efc3c39ca2bb49fea"></a>
@@ -157,7 +164,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define FB_IOCTL_BLIT&#160;&#160;&#160;0x4605</td>
+          <td class="memname">#define FB_IOCTL_BLIT&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x05, fb_blit_t)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -174,7 +181,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define FB_IOCTL_CLEAR&#160;&#160;&#160;0x4604</td>
+          <td class="memname">#define FB_IOCTL_CLEAR&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x04, <a class="el" href="ioctl__framebuffer_8h.html#acc934f8223d7254f710f446c2b4c7654">fb_clear_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -191,7 +198,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define FB_IOCTL_DRAW_RECT&#160;&#160;&#160;0x4603</td>
+          <td class="memname">#define FB_IOCTL_DRAW_RECT&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x03, <a class="el" href="ioctl__framebuffer_8h.html#a2a3236d323f8bdedf6d53513274310b7">fb_rect_outline_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -208,7 +215,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define FB_IOCTL_FILL_RECT&#160;&#160;&#160;0x4602</td>
+          <td class="memname">#define FB_IOCTL_FILL_RECT&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91">IOW</a>('F', 0x02, <a class="el" href="ioctl__framebuffer_8h.html#a5a53c0d62c7edfd99ef6fd6e48c1af13">fb_rect_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -225,7 +232,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define FB_IOCTL_GET_BACKING_DEVID&#160;&#160;&#160;0x4601</td>
+          <td class="memname">#define FB_IOCTL_GET_BACKING_DEVID&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('F', 0x01, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -242,7 +249,7 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define FB_IOCTL_GET_INFO&#160;&#160;&#160;0x4600</td>
+          <td class="memname">#define FB_IOCTL_GET_INFO&#160;&#160;&#160;<a class="el" href="include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306">IOR</a>('F', 0x00, <a class="el" href="ioctl__framebuffer_8h.html#a69e8e2e2faa5877637d7a731db7d1269">fb_info_t</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -253,6 +260,22 @@ Typedefs</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="acc934f8223d7254f710f446c2b4c7654" name="acc934f8223d7254f710f446c2b4c7654"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc934f8223d7254f710f446c2b4c7654">&#9670;&#160;</a></span>fb_clear_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structfb__clear.html">fb_clear</a> <a class="el" href="ioctl__framebuffer_8h.html#acc934f8223d7254f710f446c2b4c7654">fb_clear_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Specifies a color to clear the entire screen with. </p>
+
+</div>
+</div>
 <a id="a69e8e2e2faa5877637d7a731db7d1269" name="a69e8e2e2faa5877637d7a731db7d1269"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a69e8e2e2faa5877637d7a731db7d1269">&#9670;&#160;</a></span>fb_info_t</h2>
 
@@ -266,6 +289,23 @@ Typedefs</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Describes the framebuffer's display properties and capabilities. </p>
+
+</div>
+</div>
+<a id="a2a3236d323f8bdedf6d53513274310b7" name="a2a3236d323f8bdedf6d53513274310b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a3236d323f8bdedf6d53513274310b7">&#9670;&#160;</a></span>fb_rect_outline_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structfb__rect__outline.html">fb_rect_outline</a> <a class="el" href="ioctl__framebuffer_8h.html#a2a3236d323f8bdedf6d53513274310b7">fb_rect_outline_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Defines a rectangle outline (border) to be drawn on the framebuffer. </p>
+<p>Only the border of the rectangle is drawn, with configurable thickness. </p>
 
 </div>
 </div>

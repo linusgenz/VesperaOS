@@ -1,0 +1,27 @@
+var include_2uapi_2vespera_2ioctl_8h =
+[
+    [ "IO", "include_2uapi_2vespera_2ioctl_8h.html#af4c2af5d9d0f423792c40a43aad3b703", null ],
+    [ "IOC", "include_2uapi_2vespera_2ioctl_8h.html#a7ef3c63b24a6c7903383dfe01b494bda", null ],
+    [ "IOC_DIR_BITS", "include_2uapi_2vespera_2ioctl_8h.html#a0882efdb82625fc69807c830209be4f3", null ],
+    [ "IOC_DIR_MASK", "include_2uapi_2vespera_2ioctl_8h.html#aa2d353812391a91a481ebb03109da634", null ],
+    [ "IOC_DIR_SHIFT", "include_2uapi_2vespera_2ioctl_8h.html#aed61eb553e18ebde08531e79491e1e22", null ],
+    [ "IOC_GET_DIR", "include_2uapi_2vespera_2ioctl_8h.html#aa6aa30149bb505d2ee92177f3a2d7e09", null ],
+    [ "IOC_GET_NR", "include_2uapi_2vespera_2ioctl_8h.html#ae8d76be53322f63312af8896ebf0490f", null ],
+    [ "IOC_GET_SIZE", "include_2uapi_2vespera_2ioctl_8h.html#af1f192ee4d18a50e7240ec8fda99b150", null ],
+    [ "IOC_GET_TYPE", "include_2uapi_2vespera_2ioctl_8h.html#acc6e720b720a59d6dbd2c68bec899c80", null ],
+    [ "IOC_NONE", "include_2uapi_2vespera_2ioctl_8h.html#a9a910e370776fa7624f1490c6e7cebf1", null ],
+    [ "IOC_NR_BITS", "include_2uapi_2vespera_2ioctl_8h.html#a705103fa83164f103e50270f30b4628a", null ],
+    [ "IOC_NR_MASK", "include_2uapi_2vespera_2ioctl_8h.html#a3c04ee5f936a4ec0a31c33497cf36d22", null ],
+    [ "IOC_NR_SHIFT", "include_2uapi_2vespera_2ioctl_8h.html#aafc9be59b503f02d43dd7450607a4b6d", null ],
+    [ "IOC_READ", "include_2uapi_2vespera_2ioctl_8h.html#af2fe75b95ad9a331ce0bbf82c694acdd", null ],
+    [ "IOC_SIZE_BITS", "include_2uapi_2vespera_2ioctl_8h.html#ac44e6cd4431ec9ec8e22c8e2b65f6977", null ],
+    [ "IOC_SIZE_MASK", "include_2uapi_2vespera_2ioctl_8h.html#acffb1d41a6f8672a99a1faa061035765", null ],
+    [ "IOC_SIZE_SHIFT", "include_2uapi_2vespera_2ioctl_8h.html#a7f16a570d5c5e03e02cf9d5ff0b40983", null ],
+    [ "IOC_TYPE_BITS", "include_2uapi_2vespera_2ioctl_8h.html#aff36200c93f40079b04600f173809e11", null ],
+    [ "IOC_TYPE_MASK", "include_2uapi_2vespera_2ioctl_8h.html#a1bf4e88793674ba25ed4371669075af4", null ],
+    [ "IOC_TYPE_SHIFT", "include_2uapi_2vespera_2ioctl_8h.html#a6d1b03419cc93ccca338ce10a35e5f75", null ],
+    [ "IOC_WRITE", "include_2uapi_2vespera_2ioctl_8h.html#aa4ddeaf002da6c88825ae14c76e707f5", null ],
+    [ "IOR", "include_2uapi_2vespera_2ioctl_8h.html#a945e5e598fe152a10508bab9e8943306", null ],
+    [ "IOW", "include_2uapi_2vespera_2ioctl_8h.html#aaeaa9a3c5d36256209ca5c628b75df91", null ],
+    [ "IOWR", "include_2uapi_2vespera_2ioctl_8h.html#aff3864fa34e2475dde335a390493f24f", null ]
+];

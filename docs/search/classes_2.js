@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['fb_5fblit_0',['fb_blit',['../structfb__blit.html',1,'']]],
-  ['fb_5fclear_1',['fb_clear',['../structfb__clear.html',1,'']]],
-  ['fb_5finfo_2',['fb_info',['../structfb__info.html',1,'']]],
-  ['fb_5frect_3',['fb_rect',['../structfb__rect.html',1,'']]],
-  ['fb_5frect_5foutline_4',['fb_rect_outline',['../structfb__rect__outline.html',1,'']]],
-  ['file_5',['FILE',['../structFILE.html',1,'']]]
+  ['devinfo_5fstring_5ft_0',['devinfo_string_t',['../structdevinfo__string__t.html',1,'']]],
+  ['devinfo_5ft_1',['devinfo_t',['../structdevinfo__t.html',1,'']]],
+  ['dirent_5ft_2',['dirent_t',['../structdirent__t.html',1,'']]]
 ];

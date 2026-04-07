@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pollhdl_0',['pollhdl',['../structpollhdl.html',1,'']]]
+  ['meminfo_0',['meminfo',['../structmeminfo.html',1,'']]]
 ];
