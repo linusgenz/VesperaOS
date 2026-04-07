@@ -1,11 +1,12 @@
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
+#include <vespera/mm/addr.h>
 #include <vespera/mm/memory.h>
 
-#include <vespera/mm/addr.h>
 #include "../paging/page_frame_allocator.h"
 #include "../paging/page_table_manager.h"
 #include "heap.h"
+#include "klib/string.h"
 
 u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, const usize m_map_entries, const usize m_map_desc_size) {
     static u64 memory_size_bytes = 0;
@@ -18,42 +19,6 @@ u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, const usize m_map_entries, con
     }
 
     return memory_size_bytes;
-}
-
-extern "C" {
-    void memset(void* dest, const u32 val, const u64 num) {
-        for (u64 i = 0; i < num; i++) {
-            *reinterpret_cast<u8*>(reinterpret_cast<u64>(dest) + i) = val;
-        }
-    }
-
-    void* memcpy(void* dest, const void* src, usize len) {
-        auto* d = static_cast<char*>(dest);
-        auto* s = static_cast<const char*>(src);
-        while (len--) *d++ = *s++;
-        return dest;
-    }
-
-    int memcmp(const void* ptr1, const void* ptr2, const usize num) {
-        const auto* a = static_cast<const u8*>(ptr1);
-        const auto* b = static_cast<const u8*>(ptr2);
-        for (usize i = 0; i < num; i++) {
-            if (a[i] != b[i]) return (a[i] < b[i]) ? -1 : 1;
-        }
-        return 0;
-    }
-
-    void* memmove(void* dest, const void* src, usize len) {
-        auto* d = static_cast<char*>(dest);
-        if (auto s = static_cast<const char*>(src); d < s)
-            while (len--) *d++ = *s++;
-        else {
-            auto lasts = const_cast<char*>(s + (len - 1));
-            auto* lastd = d + (len - 1);
-            while (len--) *lastd-- = *lasts--;
-        }
-        return dest;
-    }
 }
 
 virt_addr_t phys_to_virt(const phys_addr_t addr) {

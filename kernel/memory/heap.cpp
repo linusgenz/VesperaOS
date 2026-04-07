@@ -2,6 +2,7 @@
 
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 virt_addr_t heap_start = make_virt(nullptr);
 virt_addr_t heap_end = make_virt(nullptr);

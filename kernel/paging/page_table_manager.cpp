@@ -3,6 +3,7 @@
 #include <vespera/mm/addr.h>
 #include "page_map_indexer.h"
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 PageTableManager::PageTableManager(PageTable* pml4_address)
     : pml4(pml4_address) {

@@ -126,6 +126,12 @@ i64 Realm::setup_standard_handles(TtyDevice* tty_dev) {
     );
     if (err != SUCCESS_CODE) return err;
 
+    Channel* vbus_ch = Channel::create(8192);
+    if (!vbus_ch) return -ENOMEM;
+
+    err = add_handle_with_id(HANDLE_VBUS, HANDLE_TYPE_CHANNEL, vbus_ch, CAP_READ, false, Channel::destroy, nullptr);
+    if (err != SUCCESS_CODE) return err;
+
     return SUCCESS_CODE;
 }
 

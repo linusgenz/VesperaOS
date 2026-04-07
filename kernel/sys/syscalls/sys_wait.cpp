@@ -26,6 +26,7 @@
 #include <vespera/scheduling.h>
 
 #include "../../units/unit.h"
+#include "vespera/time.h"
 
 namespace syscalls::internal {
     i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -61,7 +62,8 @@ namespace syscalls::internal {
         }
 
         target->wait_queue.add_wait(current);
-        kernel::scheduling::yield();
+        //kernel::scheduling::yield();
+        kernel::time::sleep_ms(10);
 
         int exit_code = 0;
         ExitCodeTable::consume(child_rid, &exit_code);

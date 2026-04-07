@@ -26,6 +26,7 @@
 #include <vespera/tty/tty.h>
 
 #include "../units/unit_manager.h"
+#include "vespera/time.h"
 
 [[noreturn]] void input_poll_thread(void *arg) {
     kernel::input::InputEvent ev{};
@@ -33,7 +34,8 @@
         while (kernel::input::InputManager::pop_event(ev)) {
             kernel::tty::tty_handle_input(ev);
         }
-        kernel::scheduling::yield();
+       // kernel::scheduling::yield();
+        kernel::time::sleep_ms(10);
     }
 }
 

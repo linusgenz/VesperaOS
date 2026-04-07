@@ -21,13 +21,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/ipc/channel.h>
-#include <vespera_errno.h>
-
+#include <klib/string.h>
 #include <klib/utils.h>
+#include <vespera/ipc/channel.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
-#include <klib/string.h>
+#include <vespera_errno.h>
+
+#include "uapi/vespera/poll.h"
 
 Channel::Channel(const usize cap)
     : buf_(static_cast<u8 *>(kernel::memory::malloc(cap)))
@@ -39,7 +40,7 @@ Channel::Channel(const usize cap)
     lock_.init("channel_lock");
 }
 
-void Channel::ref(Channel* c) {
+void Channel::ref(Channel *c) {
     __sync_add_and_fetch(&c->refcount, 1);
 }
 
@@ -71,6 +72,18 @@ Channel::~Channel() {
 usize Channel::free_space() {
     SpinlockGuard g(lock_);
     return capacity - used;
+}
+
+int Channel::poll() {
+    SpinlockGuard g(lock_);
+
+    int mask = 0;
+
+    if (used > 0) mask |= POLLIN;
+
+    if (used < capacity) mask |= POLLOUT;
+
+    return mask;
 }
 
 isize Channel::send(const void *data, const usize len) {

@@ -24,7 +24,7 @@
 #include <vespera/input/input_event.h>
 #include <vespera/input/input_manager.h>
 #include <vespera/log.h>
-#include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 namespace kernel::input {
 

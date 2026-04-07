@@ -71,6 +71,15 @@ namespace syscalls::internal {
                     }
                     mask = tty_dev->poll(nullptr);
 
+                } else if (he->type == HANDLE_TYPE_CHANNEL) {
+                    auto* ch = static_cast<Channel*>(he->resource);
+                    if (!ch) {
+                        hdls[i].revents = POLLHUP;
+                        ready++;
+                        continue;
+                    }
+
+                    mask = ch->poll();
                 } else {
                     const auto* vh = static_cast<VfsHandle*>(he->resource);
                     if (!vh || !vh->node) {
@@ -90,7 +99,8 @@ namespace syscalls::internal {
             if (timeout_ms == 0) return 0;
             if (kernel::time::get_uptime_ms() >= deadline) return 0;
 
-            kernel::scheduling::yield();
+            //kernel::scheduling::yield();
+            kernel::time::sleep_ms(10);
         }
     }
 }  // namespace syscalls::internal

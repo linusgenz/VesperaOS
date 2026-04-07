@@ -1,6 +1,6 @@
 #include "pit.h"
 
-#include "../../cpu/io.h"
+#include "../../../include/vespera/cpu/io.h"
 
 namespace pit {
    /* double time_since_boot = 0;

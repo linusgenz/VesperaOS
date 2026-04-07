@@ -3,6 +3,40 @@
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 
+void memset(void* dest, const u32 val, const u64 num) {
+    for (u64 i = 0; i < num; i++) {
+        *reinterpret_cast<u8*>(reinterpret_cast<u64>(dest) + i) = val;
+    }
+}
+
+void* memcpy(void* dest, const void* src, usize len) {
+    auto* d = static_cast<char*>(dest);
+    auto* s = static_cast<const char*>(src);
+    while (len--) *d++ = *s++;
+    return dest;
+}
+
+int memcmp(const void* ptr1, const void* ptr2, const usize num) {
+    const auto* a = static_cast<const u8*>(ptr1);
+    const auto* b = static_cast<const u8*>(ptr2);
+    for (usize i = 0; i < num; i++) {
+        if (a[i] != b[i]) return (a[i] < b[i]) ? -1 : 1;
+    }
+    return 0;
+}
+
+void* memmove(void* dest, const void* src, usize len) {
+    auto* d = static_cast<char*>(dest);
+    if (auto s = static_cast<const char*>(src); d < s)
+        while (len--) *d++ = *s++;
+    else {
+        auto lasts = const_cast<char*>(s + (len - 1));
+        auto* lastd = d + (len - 1);
+        while (len--) *lastd-- = *lasts--;
+    }
+    return dest;
+}
+
 template <typename T>
 char* itohex(T value, char* buffer, const usize buffer_size) {
     // Buffer too small?
@@ -227,364 +261,247 @@ char to_upper(const char c) {
     return c;
 }
 
-static void reverse_string(char* str, const int length) {
-    int start = 0;
-    int end = length - 1;
-
-    while (start < end) {
-        const char tmp = str[start];
-        str[start] = str[end];
-        str[end] = tmp;
-        ++start;
-        --end;
-    }
+static void write_str(fmt_write_fn write, void* ctx, const char* s, int len) {
+    for (int i = 0; i < len; i++) write(ctx, s[i]);
 }
 
-// Helper function to convert integer to string
-static int int_to_string(int num, char* str, const int base) {
-    int i = 0;
-    int is_negative = 0;
-
-    if (num == 0) {
-        str[i++] = '0';
-        str[i] = '\0';
-        return i;
-    }
-
-    if (num < 0 && base == 10) {
-        is_negative = 1;
-        num = -num;
-    }
-
-    while (num != 0) {
-        const int rem = num % base;
-        str[i++] = static_cast<char>((rem > 9) ? (rem - 10) + 'a' : rem + '0');
-        num = num / base;
-    }
-
-    if (is_negative) {
-        str[i++] = '-';
-    }
-
-    str[i] = '\0';
-    reverse_string(str, i);
-
-    return i;
+static void write_pad(fmt_write_fn write, void* ctx, char pad_char, int count) {
+    for (int i = 0; i < count; i++) write(ctx, pad_char);
 }
 
-static int u64o_string(unsigned long long value, char* buffer, const int base) {
-    char temp[32];
-    int pos = 0;
-
-    if (value == 0) {
-        buffer[0] = '0';
-        buffer[1] = '\0';
-        return 1;
-    }
-
-    while (value > 0) {
-        const unsigned digit = value % base;
-        temp[pos++] = static_cast<char>((digit < 10) ? ('0' + digit) : ('a' + (digit - 10)));
-        value /= base;
-    }
-
-    // reverse
-    for (int i = 0; i < pos; i++) {
-        buffer[i] = temp[pos - i - 1];
-    }
-    buffer[pos] = '\0';
-    return pos;
+static int fmt_uint(u64 val, char* buf, int base, bool upper) {
+    if (val == 0) { buf[0] = '0'; buf[1] = '\0'; return 1; }
+    const char* digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
+    int len = 0;
+    char tmp[32];
+    while (val > 0) { tmp[len++] = digits[val % base]; val /= base; }
+    for (int i = 0; i < len; i++) buf[i] = tmp[len - 1 - i];
+    buf[len] = '\0';
+    return len;
 }
 
-static int i64o_string(const long long value, char* buffer, int base) {
-    char temp[32];
-    int pos = 0;
-    int is_negative = 0;
-
-    // Basis prüfen
-    if (base < 2 || base > 16) {
-        buffer[0] = '\0';
-        return 0;
-    }
-
-    if (value == 0) {
-        buffer[0] = '0';
-        buffer[1] = '\0';
-        return 1;
-    }
-
-    if (value < 0 && base == 10) {
-        is_negative = 1;
-        u64 abs_value = static_cast<u64>(-(value + 1)) + 1;
-        while (abs_value > 0) {
-            const unsigned digit = abs_value % base;
-            temp[pos++] = static_cast<char>((digit < 10) ? ('0' + digit) : ('a' + (digit - 10)));
-            abs_value /= base;
-        }
-    } else {
-        unsigned long long abs_value = (value < 0) ? -value : value;
-        while (abs_value > 0) {
-            const unsigned digit = abs_value % base;
-            temp[pos++] = static_cast<char>((digit < 10) ? ('0' + digit) : ('a' + (digit - 10)));
-            abs_value /= base;
-        }
-    }
-
-    if (is_negative) {
-        temp[pos++] = '-';
-    }
-
-    for (int i = 0; i < pos; i++) {
-        buffer[i] = temp[pos - i - 1];
-    }
-
-    buffer[pos] = '\0';
-    return pos;
+static int fmt_int(i64 val, char* buf) {
+    if (val == 0) { buf[0] = '0'; buf[1] = '\0'; return 1; }
+    int len = 0;
+    bool neg = val < 0;
+    if (neg) { buf[len++] = '-'; val = -val; }
+    char tmp[32];
+    int digits = 0;
+    while (val > 0) { tmp[digits++] = '0' + (val % 10); val /= 10; }
+    for (int i = 0; i < digits; i++) buf[len++] = tmp[digits - 1 - i];
+    buf[len] = '\0';
+    return len;
 }
 
-int snprintf(char* buffer, const usize size, const char* format, ...) {
-    if (!buffer || !format || size == 0) {
-        return -1;
-    }
-
-    __builtin_va_list args;
-    __builtin_va_start(args, format);
-
-    usize buf_pos = 0;
+int vformat(fmt_write_fn write, void* ctx, const char* fmt, __builtin_va_list args) {
     int written = 0;
+    char buf[32];
 
-    for (int i = 0; format[i] != '\0'; i++) {
-        if (format[i] == '%' && format[i + 1] != '\0') {
-            i++;  // Skip '%'
-            int precision = -1;
-            bool plus_sign = false;
-
-            // Check for prefix
-            if (format[i] == '+') {
-                plus_sign = true;
-                i++;
-            }
-
-            bool zero_pad = false;
-            if (format[i] == '0') {
-                zero_pad = true;
-                i++;
-            }
-
-            // Minimum width
-            int width = 0;
-            while (format[i] >= '0' && format[i] <= '9') {
-                width = width * 10 + (format[i] - '0');
-                i++;
-            }
-
-            if (format[i] == '.') {
-                i++;  // skip '.'
-                if (format[i] == '*') {
-                    precision = __builtin_va_arg(args, int);
-                    i++;  // skip '*'
-                } else {
-                    precision = 0;
-                    while (format[i] >= '0' && format[i] <= '9') {
-                        precision = precision * 10 + (format[i] - '0');
-                        i++;
-                    }
-                }
-            }
-
-            switch (format[i]) {
-                case 'u': {
-                    const unsigned int val = __builtin_va_arg(args, unsigned int);
-                    char temp[32];
-                    int len = u64o_string(val, temp, 10);
-
-                    if (plus_sign) {
-                        if (buf_pos < size - 1) buffer[buf_pos++] = '+';
-                        written++;
-                    }
-
-                    if (width > len) {
-                        int pad = width - len;
-                        char pad_char = zero_pad ? '0' : ' ';
-                        for (int p = 0; p < pad && buf_pos < size - 1; p++) {
-                            buffer[buf_pos++] = pad_char;
-                            written++;
-                        }
-                    }
-
-                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
-                        buffer[buf_pos++] = temp[j];
-                    }
-                    written += len;
-                    break;
-                }
-                case 'd': {
-                    int val = __builtin_va_arg(args, int);
-                    char temp[32];
-                    int len = int_to_string(val, temp, 10);
-
-                    if (width > len) {
-                        int pad = width - len;
-                        char pad_char = zero_pad ? '0' : ' ';
-                        for (int p = 0; p < pad && buf_pos < size - 1; p++) {
-                            buffer[buf_pos++] = pad_char;
-                            written++;
-                        }
-                    }
-
-                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
-                        buffer[buf_pos++] = temp[j];
-                    }
-                    written += len;
-                    break;
-                }
-
-                case 'x': {
-                    int val = __builtin_va_arg(args, int);
-                    char temp[32];
-                    int len = int_to_string(val, temp, 16);
-
-                    if (width > len) {
-                        int pad = width - len;
-                        char pad_char = zero_pad ? '0' : ' ';
-                        for (int p = 0; p < pad && buf_pos < size - 1; p++) {
-                            buffer[buf_pos++] = pad_char;
-                            written++;
-                        }
-                    }
-
-                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
-                        buffer[buf_pos++] = temp[j];
-                    }
-                    written += len;
-                    break;
-                }
-                case 'z': {
-                    if (format[i + 1] == 'u')  // %zu
-                    {
-                        i++;  // Skip 'u'
-                        usize val = __builtin_va_arg(args, usize);
-                        char temp[32];
-                        int len = u64o_string(val, temp, 10);
-
-                        if (width > len) {
-                            int pad = width - len;
-                            char pad_char = zero_pad ? '0' : ' ';
-                            for (int p = 0; p < pad && buf_pos < size - 1; p++) {
-                                buffer[buf_pos++] = pad_char;
-                                written++;
-                            }
-                        }
-
-                        for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
-                        written += len;
-                    }
-                    break;
-                }
-                case 's': {
-                    const char* str = __builtin_va_arg(args, const char*);
-                    if (!str) str = "<null>";
-
-                    int count = 0;
-                    while (str[count] && (precision < 0 || count < precision) && buf_pos < size - 1) {
-                        buffer[buf_pos++] = str[count++];
-                    }
-                    written += count;
-                    break;
-                }
-
-                case 'p': {
-                    void* ptr_val = __builtin_va_arg(args, void*);
-                    const auto val = reinterpret_cast<u64>(ptr_val);
-                    char temp[32];
-                    const int len = u64o_string(val, temp, 16);
-
-                    if (plus_sign) {
-                        if (buf_pos < size - 1) buffer[buf_pos++] = '+';
-                        written++;
-                    }
-
-                    for (int j = 0; j < len && buf_pos < size - 1; j++) {
-                        buffer[buf_pos++] = temp[j];
-                    }
-                    written += len;
-                    break;
-                }
-
-                case 'c': {
-                    const char ch = static_cast<char>(__builtin_va_arg(args, int));
-                    if (buf_pos < size - 1) {
-                        buffer[buf_pos++] = ch;
-                    }
-                    written++;
-                    break;
-                }
-
-                case 'l': {
-                    if (format[i + 1] == 'l') {
-                        i++;
-                        if (format[i + 1] == 'd') {
-                            i++;
-                            long long val = __builtin_va_arg(args, long long);
-                            char temp[32];
-                            int len = i64o_string(val, temp, 10);
-                            if (plus_sign && val >= 0) {
-                                if (buf_pos < size - 1) buffer[buf_pos++] = '+';
-                                written++;
-                            }
-                            for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
-                            written += len;
-                        } else if (format[i + 1] == 'u') {
-                            i++;
-                            unsigned long long val = __builtin_va_arg(args, unsigned long long);
-                            char temp[32];
-                            int len = u64o_string(val, temp, 10);
-                            for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
-                            written += len;
-                        } else if (format[i + 1] == 'x') {
-                            // HEX 64-bit
-                            i++;
-                            unsigned long long val = __builtin_va_arg(args, unsigned long long);
-                            char temp[32];
-                            int len = u64o_string(val, temp, 16);
-                            for (int j = 0; j < len && buf_pos < size - 1; j++) buffer[buf_pos++] = temp[j];
-                            written += len;
-                        }
-                    }
-                    break;
-                }
-
-                case '%': {
-                    if (buf_pos < size - 1) {
-                        buffer[buf_pos++] = '%';
-                    }
-                    written++;
-                    break;
-                }
-
-                default:
-                    // Unknown format specifier, just copy it
-                    if (buf_pos < size - 1) {
-                        buffer[buf_pos++] = '%';
-                    }
-                    if (buf_pos < size - 1) {
-                        buffer[buf_pos++] = format[i];
-                    }
-                    written += 2;
-                    break;
-            }
-        } else {
-            // Regular character
-            if (buf_pos < size - 1) {
-                buffer[buf_pos++] = format[i];
-            }
+    while (*fmt) {
+        if (*fmt != '%') {
+            write(ctx, *fmt++);
             written++;
+            continue;
+        }
+        fmt++; // skip '%'
+
+        // ── Flags ──
+        bool left_align = false;
+        bool zero_pad   = false;
+        bool plus_sign  = false;
+        bool space_sign = false;
+        bool alt_form   = false;
+
+        bool parsing_flags = true;
+        while (parsing_flags) {
+            switch (*fmt) {
+                case '-': left_align = true; fmt++; break;
+                case '0': zero_pad   = true; fmt++; break;
+                case '+': plus_sign  = true; fmt++; break;
+                case ' ': space_sign = true; fmt++; break;
+                case '#': alt_form   = true; fmt++; break;
+                default:  parsing_flags = false;    break;
+            }
+        }
+
+        // ── Breite ──
+        int width = 0;
+        if (*fmt == '*') {
+            width = __builtin_va_arg(args, int);
+            if (width < 0) { left_align = true; width = -width; }
+            fmt++;
+        } else {
+            while (*fmt >= '0' && *fmt <= '9')
+                width = width * 10 + (*fmt++ - '0');
+        }
+
+        // ── Precision ──
+        int precision = -1;
+        if (*fmt == '.') {
+            fmt++;
+            precision = 0;
+            if (*fmt == '*') {
+                precision = __builtin_va_arg(args, int);
+                fmt++;
+            } else {
+                while (*fmt >= '0' && *fmt <= '9')
+                    precision = precision * 10 + (*fmt++ - '0');
+            }
+        }
+
+        // ── Längen-Modifier ──
+        bool is_long      = false;
+        bool is_long_long = false;
+        bool is_size_t    = false;
+
+        if (*fmt == 'l') {
+            fmt++;
+            if (*fmt == 'l') { is_long_long = true; fmt++; }
+            else               is_long      = true;
+        } else if (*fmt == 'z') {
+            is_size_t = true; fmt++;
+        }
+
+        // ── Specifier ──
+        const char spec = *fmt++;
+        char pad_char = (zero_pad && !left_align) ? '0' : ' ';
+
+        switch (spec) {
+            // ── Strings ──
+            case 's': {
+                const char* s = __builtin_va_arg(args, const char*);
+                if (!s) s = "(null)";
+
+                int slen = 0;
+                while (s[slen]) slen++;
+                if (precision >= 0 && slen > precision) slen = precision;
+
+                int pad = (width > slen) ? width - slen : 0;
+
+                if (!left_align) write_pad(write, ctx, ' ', pad);
+                write_str(write, ctx, s, slen);
+                if  (left_align) write_pad(write, ctx, ' ', pad);
+
+                written += slen + pad;
+                break;
+            }
+
+            // ── Zeichen ──
+            case 'c': {
+                char c = static_cast<char>(__builtin_va_arg(args, int));
+                int pad = (width > 1) ? width - 1 : 0;
+                if (!left_align) write_pad(write, ctx, ' ', pad);
+                write(ctx, c);
+                if  (left_align) write_pad(write, ctx, ' ', pad);
+                written += 1 + pad;
+                break;
+            }
+
+            // ── Vorzeichenbehaftete Integer ──
+            case 'd':
+            case 'i': {
+                i64 val = is_long_long ? __builtin_va_arg(args, i64)
+                        : is_long      ? __builtin_va_arg(args, long)
+                        : is_size_t    ? __builtin_va_arg(args, isize)
+                                       : __builtin_va_arg(args, i32);
+                int len = fmt_int(val, buf);
+
+                // Vorzeichen-Präfix
+                const char* prefix = "";
+                if (val >= 0 && plus_sign)  prefix = "+";
+                if (val >= 0 && space_sign) prefix = " ";
+                int plen = (prefix[0] != '\0') ? 1 : 0;
+
+                int pad = (width > len + plen) ? width - len - plen : 0;
+
+                if (!left_align && pad_char == ' ') write_pad(write, ctx, ' ', pad);
+                write_str(write, ctx, prefix, plen);
+                if (!left_align && pad_char == '0') write_pad(write, ctx, '0', pad);
+                write_str(write, ctx, buf + (val < 0 ? 0 : 0), len);
+                if  (left_align)                    write_pad(write, ctx, ' ', pad);
+
+                written += len + plen + pad;
+                break;
+            }
+
+            // ── Vorzeichenlose Integer ──
+            case 'u':
+            case 'x':
+            case 'X':
+            case 'o':
+            case 'p': {
+                u64 val;
+                if (spec == 'p') {
+                    val = reinterpret_cast<u64>(__builtin_va_arg(args, void*));
+                } else {
+                    val = is_long_long ? __builtin_va_arg(args, u64)
+                        : is_long      ? __builtin_va_arg(args, unsigned long)
+                        : is_size_t    ? __builtin_va_arg(args, usize)
+                                       : __builtin_va_arg(args, u32);
+                }
+
+                int base  = (spec == 'o') ? 8
+                          : (spec == 'u') ? 10
+                          :                 16;
+                bool upper = (spec == 'X');
+
+                int len = fmt_uint(val, buf, base, upper);
+
+                // Präfix für %# oder %p
+                const char* prefix = "";
+                if (spec == 'p')                      prefix = "0x";
+                else if (alt_form && spec == 'x')     prefix = "0x";
+                else if (alt_form && spec == 'X')     prefix = "0X";
+                else if (alt_form && spec == 'o')     prefix = "0";
+                int plen = 0;
+                while (prefix[plen]) plen++;
+
+                int pad = (width > len + plen) ? width - len - plen : 0;
+
+                if (!left_align && pad_char == ' ') write_pad(write, ctx, ' ', pad);
+                write_str(write, ctx, prefix, plen);
+                if (!left_align && pad_char == '0') write_pad(write, ctx, '0', pad);
+                write_str(write, ctx, buf, len);
+                if  (left_align)                    write_pad(write, ctx, ' ', pad);
+
+                written += len + plen + pad;
+                break;
+            }
+
+            case '%':
+                write(ctx, '%');
+                written++;
+                break;
+
+            default:
+                write(ctx, '%');
+                write(ctx, spec);
+                written += 2;
+                break;
         }
     }
 
-    // Null terminate
-    buffer[buf_pos] = '\0';
-
-    __builtin_va_end(args);
     return written;
+}
+
+struct buf_ctx {
+    char*  buf;
+    usize  pos;
+    usize  max;
+};
+
+static void buf_write(void* ctx, char c) {
+    auto* b = static_cast<buf_ctx*>(ctx);
+    if (b->pos < b->max) b->buf[b->pos++] = c;
+}
+
+int snprintf(char* buffer, usize size, const char* fmt, ...) {
+    if (!buffer || !fmt || size == 0) return -1;
+    buf_ctx ctx{ buffer, 0, size - 1 };
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
+    int n = vformat(buf_write, &ctx, fmt, args);
+    __builtin_va_end(args);
+    buffer[ctx.pos] = '\0';
+    return n;
 }

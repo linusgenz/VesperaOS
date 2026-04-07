@@ -1,4 +1,6 @@
-# VesperaOS
+<p align="center">
+  <img width="80%" height="80%" src="https://raw.githubusercontent.com/linusgenz/VesperaOS/refs/heads/limine/assets/vespera/logo_standard_transparent.png"  alt="vesperaos logo"/>
+</p>
 
 ## Workflows
 
