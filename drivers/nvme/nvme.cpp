@@ -465,8 +465,8 @@ namespace nvme {
                 return;
             }
             start++;
-            //kernel::time::sleep_ms(10);
-            kernel::scheduling::yield();
+            kernel::time::sleep_ms(10);
+            //kernel::scheduling::yield();
         }
         complet = completion_queue_[cq_head];
 
@@ -536,7 +536,7 @@ namespace nvme {
         return kelvin > KELVIN_TO_CELSIUS_OFFSET ? static_cast<u8>(kelvin - KELVIN_TO_CELSIUS_OFFSET) : 0;
     }
 
-    bool NvmeDriver::smart_get_common(SmartCommon* out) {
+    bool NvmeDriver::smart_get_common(smart_common* out) {
         u8 raw[512]{};
         if (!smart_read_data(raw)) return false;
         const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);
@@ -549,7 +549,7 @@ namespace nvme {
         return true;
     }
 
-    bool NvmeDriver::smart_get_nvme(SmartNvme* out) {
+    bool NvmeDriver::smart_get_nvme(smart_nvme* out) {
         u8 raw[512]{};
         if (!smart_read_data(raw)) return false;
         const auto* h = reinterpret_cast<const NVME_HEALTH_INFO_LOG*>(raw);

@@ -23,14 +23,13 @@
 #define VESPERAOS_IOCTL_USB_DEVICE_H
 
 #include <vespera/types.h>
+#include <vespera/ioctl.h>
 
 #define USB_SPEED_FULL_SPEED 1
 #define USB_SPEED_LOW_SPEED 2
 #define USB_SPEED_HIGH_SPEED 3
 #define USB_SPEED_SUPER_SPEED 4
 #define USB_SPEED_SUPER_SPEED_PLUS 5
-
-#define IOCTL_USB_GET_DEVICE_INFO 0x5500u
 
 typedef struct usb_device_info {
     // Bus topology
@@ -58,5 +57,7 @@ typedef struct usb_device_info {
 
     u8 _pad[3];
 } usb_device_info_t;
+
+#define IOCTL_USB_GET_DEVICE_INFO IOR('U', 0x00, usb_device_info_t)
 
 #endif  // VESPERAOS_IOCTL_USB_DEVICE_H

@@ -27,9 +27,9 @@
 class ISmartDevice {
 public:
     virtual bool smart_read_data(u8* out_buf)          = 0;
-    virtual bool smart_get_common(SmartCommon* out)    = 0;
-    virtual bool smart_get_nvme(SmartNvme* out)        { return false; }
-    virtual bool smart_get_ata(SmartAta* out)          { return false; }
+    virtual bool smart_get_common(smart_common* out)    = 0;
+    virtual bool smart_get_nvme(smart_nvme* out)        { return false; }
+    virtual bool smart_get_ata(smart_ata* out)          { return false; }
     virtual ~ISmartDevice() = default;
 };
 

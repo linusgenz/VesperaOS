@@ -1,9 +1,9 @@
-// ioctl.h
+// power_driver.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 02.04.26.
+// Created by Linus Genz on 01.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,5 +19,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_POWER_DRIVER_H
+#define VESPERAOS_POWER_DRIVER_H
 
-#include <uapi/vespera/ioctl.h>
+#include <vespera/types.h>
+
+namespace power {
+
+    // Discovers all ACPI batteries and registers:
+    //   /dev/bat0, /dev/bat1 etc., one CharDevice per battery
+    //   /dev/power                 system-level power control
+    void init();
+
+    u32 get_battery_count();
+
+}  // namespace power
+
+#endif  // VESPERAOS_POWER_DRIVER_H

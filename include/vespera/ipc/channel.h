@@ -44,6 +44,9 @@ class Channel {
     static void destroy(void* res);
     static void ref(Channel* c);
 
+    usize free_space();
+    int poll();
+
     // return: bytes written (>=0) or negative errno
     isize send(const void* data, usize len);
 

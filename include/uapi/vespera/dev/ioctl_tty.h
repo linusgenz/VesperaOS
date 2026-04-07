@@ -22,13 +22,10 @@
 #ifndef VESPERAOS_IOCTL_TTY_H
 #define VESPERAOS_IOCTL_TTY_H
 
-#define IOCTL_TTY_GET_MODE  0x5401
-#define IOCTL_TTY_SET_MODE  0x5402
-#define IOCTL_TTY_GET_SIZE  0x5403
+#include <vespera/ioctl.h>
 
 #define TTY_MODE_CANONICAL  0
 #define TTY_MODE_RAW        1
-
 
 typedef struct {
     int mode;        // TTY_MODE_*
@@ -39,5 +36,9 @@ typedef struct {
     unsigned short rows;
     unsigned short cols;
 } tty_size_t;
+
+#define IOCTL_TTY_GET_MODE IOR('T', 0x01, tty_mode_t)
+#define IOCTL_TTY_SET_MODE IOW('T', 0x02, tty_mode_t)
+#define IOCTL_TTY_GET_SIZE IOR('T', 0x03, tty_size_t)
 
 #endif  // VESPERAOS_IOCTL_TTY_H

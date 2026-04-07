@@ -255,8 +255,8 @@ namespace ahci {
         return true;
     }
 
-    bool Port::smart_get_common(SmartCommon* out) {
-        SmartAta ata{};
+    bool Port::smart_get_common(smart_common* out) {
+        smart_ata ata{};
         if (!smart_get_ata(&ata)) return false;
 
         out->driver_type = SMART_DRIVER_ATA;
@@ -267,7 +267,7 @@ namespace ahci {
         return true;
     }
 
-    bool Port::smart_get_ata(SmartAta* out) {
+    bool Port::smart_get_ata(smart_ata* out) {
         u8 raw[512];
         if (!smart_read_data(raw)) return false;
 
@@ -287,7 +287,7 @@ namespace ahci {
         for (const auto src : area->attributes) {
             if (src.id == 0) continue;
 
-            SmartAttribute& dst = out->attrs[out->attr_count++];
+            smart_attribute& dst = out->attrs[out->attr_count++];
             dst.id = src.id;
             dst.flags = src.flags;
             dst.current = src.current;

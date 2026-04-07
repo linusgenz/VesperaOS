@@ -23,11 +23,7 @@
 #define VESPERAOS_IOCTL_SMART_H
 
 #include <vespera/types.h>
-
-#define IOCTL_SMART_GET_RAW 0x5301
-#define IOCTL_SMART_GET_COMMON 0x5302
-#define IOCTL_SMART_GET_NVME 0x5303
-#define IOCTL_SMART_GET_ATA 0x5304
+#include <vespera/ioctl.h>
 
 typedef enum SmartDriverType {
     SMART_DRIVER_UNKNOWN = 0,
@@ -35,15 +31,15 @@ typedef enum SmartDriverType {
     SMART_DRIVER_ATA = 2,
 } SmartDriverType;
 
-typedef struct SmartCommon {
+typedef struct smart_common {
     SmartDriverType driver_type;
     u8 temperature_celsius;
     u64 power_on_hours;
     u8 health_ok;
     u8 critical_warning_raw;
-} SmartCommon;
+} smart_common_t;
 
-typedef struct SmartNvme {
+typedef struct smart_nvme {
     u8 critical_warning_raw;
     u8 available_spare;            // 0-100%
     u8 available_spare_threshold;  // 0-100%
@@ -64,21 +60,21 @@ typedef struct SmartNvme {
 
     u32 warning_temp_time_min;
     u32 critical_temp_time_min;
-} SmartNvme;
+} smart_nvme_t;
 
-typedef struct SmartAttribute {
+typedef struct smart_attribute {
     u8 id;
     u16 flags;
     u8 current;
     u8 worst;
     u8 threshold;
     u8 raw[6];
-} __attribute__((packed)) SmartAttribute;
+} __attribute__((packed)) smart_attribute_t;
 
-typedef struct SmartAta {
+typedef struct smart_ata {
     u16 version;
     u8 attr_count;
-    SmartAttribute attrs[30];
+    smart_attribute_t attrs[30];
 
     u8 temperature_celsius;
     u64 power_on_hours;
@@ -87,10 +83,15 @@ typedef struct SmartAta {
     u32 pending_sectors;
     u32 uncorrectable_sectors;
     u8 health_ok;
-} SmartAta;
+} smart_ata_t;
 
-typedef struct SmartRawData {
+typedef struct smart_raw {
     u8 data[512];
-} SmartRawData;
+} smart_raw_t;
+
+#define IOCTL_SMART_GET_RAW    IOR('S', 0x01, smart_raw_t)
+#define IOCTL_SMART_GET_COMMON IOR('S', 0x02, smart_common_t)
+#define IOCTL_SMART_GET_NVME   IOR('S', 0x03, smart_nvme_t)
+#define IOCTL_SMART_GET_ATA    IOR('S', 0x04, smart_ata_t)
 
 #endif

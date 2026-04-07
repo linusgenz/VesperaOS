@@ -23,8 +23,8 @@
 
 #include "xhci_regs.h"
 
-#include <vespera/log.h>
 #include "xhci_common.h"
+#include <klib/string.h>
 
 XhciDoorbellManager::XhciDoorbellManager(const uptr base)
     : doorbell_registers_(reinterpret_cast<XHCI_DOORBELL_REGISTER*>(base)) {

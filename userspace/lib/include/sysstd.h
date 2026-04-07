@@ -405,4 +405,19 @@ int64_t sys_sigaction(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t
 
 int64_t sys_clock_gettime(uint64_t clk_id, uint64_t ts, uint64_t, uint64_t, uint64_t, uint64_t);
 
+/**
+ * @brief Subscribe the calling realm to vbus events.
+ *
+ * @param arg0 Pointer to vbus_subscribe_args_t.
+ * @return 0 on success, negative errno on failure.
+ */
+int64_t sys_vbus_subscribe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Remove all vbus subscriptions for the calling realm.
+ *
+ * @return 0 on success.
+ */
+int64_t sys_vbus_unsubscribe(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
 #endif  // SYSSTD_H

@@ -22,13 +22,7 @@
 #ifndef VESPERAOS_IOCTL_DEVINFO_H
 #define VESPERAOS_IOCTL_DEVINFO_H
 
-#include <vespera/types.h>
-
-#define IOCTL_DEVINFO_GET_ALL     0x4900
-#define IOCTL_DEVINFO_GET_MODEL   0x4901
-#define IOCTL_DEVINFO_GET_SERIAL  0x4902
-#define IOCTL_DEVINFO_GET_VENDOR  0x4903
-#define IOCTL_DEVINFO_GET_FW      0x4904
+#include <vespera/ioctl.h>
 
 typedef struct {
     char model[128];
@@ -40,5 +34,11 @@ typedef struct {
 typedef struct {
     char value[128];
 } devinfo_string_t;
+
+#define IOCTL_DEVINFO_GET_ALL    IOR('D', 0x00, devinfo_t)
+#define IOCTL_DEVINFO_GET_MODEL  IOR('D', 0x01, devinfo_string_t)
+#define IOCTL_DEVINFO_GET_SERIAL IOR('D', 0x02, devinfo_string_t)
+#define IOCTL_DEVINFO_GET_VENDOR IOR('D', 0x03, devinfo_string_t)
+#define IOCTL_DEVINFO_GET_FW     IOR('D', 0x04, devinfo_string_t)
 
 #endif  // VESPERAOS_IOCTL_DEVINFO_H

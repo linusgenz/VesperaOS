@@ -23,6 +23,8 @@ class Log {
     static void print_ln(const char* fmt, ...);
     static void print(const char* fmt, ...);
 
+    static void print(const char* fmt, __builtin_va_list args);
+
     static void init();
     static void log_prefix(const char* tag, u32 tag_fg);
 

@@ -186,8 +186,8 @@ namespace nvme {
         }
 
         bool smart_read_data(u8* out_buf) override;
-        bool smart_get_common(SmartCommon* out) override;
-        bool smart_get_nvme(SmartNvme* out) override;
+        bool smart_get_common(smart_common* out) override;
+        bool smart_get_nvme(smart_nvme* out) override;
 
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;

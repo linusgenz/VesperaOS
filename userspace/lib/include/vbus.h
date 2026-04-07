@@ -24,23 +24,14 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <uapi/vespera/vbus.h>
-#include <sysstd.h>   // sys_vbus_subscribe, sys_vbus_unsubscribe, sys_channel_recv
+#include <sysstd.h>
+#include <vespera/vbus.h>
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  HANDLE_VBUS – always slot 3 in every user realm.
-//  Present from process start; no open() needed.
-// ─────────────────────────────────────────────────────────────────────────────
-
-#define HANDLE_VBUS  ((int64_t)(0x4000000000000003ULL))  // HANDLE_TYPE_CHANNEL | 3
+#define HANDLE_VBUS ((int64_t)(0x4000000000000003ULL))  // HANDLE_TYPE_CHANNEL | 3
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Subscription
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @brief Subscribe to a vbus signal.
@@ -56,9 +47,17 @@ static inline int vbus_subscribe(const char* interface, const char* member) {
     vbus_subscribe_args_t args = {};
     // safe string copy
     int i = 0;
-    while (interface[i] && i < 47) { args.interface[i] = interface[i]; i++; }
+    while (interface[i] && i < 47) {
+        args.interface[i] = interface[i];
+        i++;
+    }
     i = 0;
-    if (member) { while (member[i] && i < 47) { args.member[i] = member[i]; i++; } }
+    if (member) {
+        while (member[i] && i < 47) {
+            args.member[i] = member[i];
+            i++;
+        }
+    }
     return (int)sys_vbus_subscribe((uint64_t)&args, 0, 0, 0, 0, 0);
 }
 
@@ -68,10 +67,6 @@ static inline int vbus_subscribe(const char* interface, const char* member) {
 static inline int vbus_unsubscribe(void) {
     return (int)sys_vbus_unsubscribe(0, 0, 0, 0, 0, 0);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Receiving
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @brief Read one complete vbus message (header + payload) from HANDLE_VBUS.
@@ -89,7 +84,7 @@ static inline int vbus_recv(vbus_header_t* hdr, void* payload_buf, size_t payloa
 
     // Read header
     int r = (int)sys_channel_recv(HANDLE_VBUS, (uint64_t)hdr, sizeof(vbus_header_t), 0, 0, 0);
-    if (r < 0) return r;                    // -EAGAIN if empty
+    if (r < 0) return r;                                 // -EAGAIN if empty
     if ((uint32_t)r < sizeof(vbus_header_t)) return -5;  // EIO, truncated
 
     // Validate magic
@@ -113,10 +108,6 @@ static inline int vbus_recv(vbus_header_t* hdr, void* payload_buf, size_t payloa
     }
     return 1;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  Convenience: typed recv helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 static inline int vbus_recv_battery(vbus_header_t* hdr, vbus_battery_t* out) {
     return vbus_recv(hdr, out, sizeof(vbus_battery_t));

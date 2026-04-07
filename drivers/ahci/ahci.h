@@ -244,8 +244,8 @@ namespace ahci {
 
         [[nodiscard]] usize get_sector_size() const override;
         bool smart_read_data(u8* out_buf) override;
-        bool smart_get_common(SmartCommon* out) override;
-        bool smart_get_ata(SmartAta* out) override;
+        bool smart_get_common(smart_common* out) override;
+        bool smart_get_ata(smart_ata* out) override;
         bool trim(const TrimRange* ranges, usize count) override;
         [[nodiscard]] bool supports_trim() const override;
         bool get_model(char* out, usize len) override;

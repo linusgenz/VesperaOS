@@ -41,25 +41,28 @@
 #define SYSCALL_GETRID 39
 #define SYSCALL_EXIT 60
 #define SYSCALL_WAIT 61
-#define SYSCALL_KILL  62
+#define SYSCALL_KILL 62
 #define SYSCALL_SPAWN 69
 #define SYSCALL_GETCWD 79
 #define SYSCALL_CHDIR 80
 #define SYSCALL_RENAME 82
 #define SYSCALL_MKDIR 83
 #define SYSCALL_RMDIR 84
-#define SYSCALL_CREATE    85
+#define SYSCALL_CREATE 85
 #define SYSCALL_UNLINK 87
-#define SYSCALL_MOUNT     165
-#define SYSCALL_UMOUNT    166
+#define SYSCALL_MOUNT 165
+#define SYSCALL_UMOUNT 166
 #define SYSCALL_REBOOT 169
-#define SYSCALL_GETUID    186
+#define SYSCALL_GETUID 186
 #define SYSCALL_READDIR 217
 #define SYSCALL_CLOCK_GETTIME 228
 
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
 #define SYSCALL_CHANNEL_RECEIVE 132
+
+#define SYSCALL_VBUS_SUBSCRIBE 300
+#define SYSCALL_VBUS_UNSUBSCRIBE 301
 
 int64_t syscall(
     uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5
@@ -220,4 +223,12 @@ int64_t sys_sigreturn(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t
 
 int64_t sys_clock_gettime(uint64_t clk_id, uint64_t ts, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_CLOCK_GETTIME, clk_id, ts, 0, 0, 0, 0);
+}
+
+int64_t sys_vbus_subscribe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_VBUS_SUBSCRIBE, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_vbus_unsubscribe(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_VBUS_UNSUBSCRIBE, 0, 0, 0, 0, 0, 0);
 }

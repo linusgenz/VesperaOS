@@ -6,13 +6,27 @@
 #define ACPI_H
 #include <vespera/types.h>
 
+extern "C" {
+#include "../kernel/acpi/acpica/include/acpi.h"
+}
+
 namespace acpi {
+
+    struct RSDP {
+        unsigned char signature[8];  // "RSD PTR "
+        u8 checksum;
+        u8 oem_id[6];
+        u8 revision;  // 0 = ACPI 1.0, 2 = ACPI 2.0+
+        u32 rsdt_address;
+    } __attribute__((packed));
+
     struct RSDP2 {
         unsigned char signature[8];
         u8 checksum;
         u8 oem_id[6];
         u8 revision;
         u32 rsdt_address;
+        // ACPI 2.0+ extension
         u32 length;
         u64 xsdt_address;
         u8 extended_checksum;
@@ -29,6 +43,16 @@ namespace acpi {
         u32 oem_revision;
         u32 creator_id;
         u32 creator_revision;
+    } __attribute__((packed));
+
+    struct RSDT {
+        SDT_HEADER header;
+        u32 entries[];
+    } __attribute__((packed));
+
+    struct XSDT {
+        SDT_HEADER header;
+        u64 entries[];
     } __attribute__((packed));
 
     struct MCFG_HEADER {
@@ -182,11 +206,8 @@ namespace acpi {
         GENERIC_ADDRESS_STRUCTURE x_gpe1_block;
     } __attribute__((packed));
 
-    void* find_table(SDT_HEADER* sdt_header, char* signature);
-
     void acpi_reboot();
     void acpi_power_off();
-    void parse_fadt();
-}  // namespace ACPI
+}  // namespace acpi
 
 #endif  // ACPI_H

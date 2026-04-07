@@ -25,6 +25,7 @@
 #define VESPERAOS_IOCTL_FRAMEBUFFER_H
 
 #include <vespera/types.h>
+#include <vespera/ioctl.h>
 
 /**
  * @brief Describes the framebuffer's display properties and capabilities.
@@ -58,7 +59,7 @@ typedef struct fb_rect
  *
  * Only the border of the rectangle is drawn, with configurable thickness.
  */
-typedef struct
+typedef struct fb_rect_outline
 {
     u32 x; ///< X coordinate of top-left corner
     u32 y; ///< Y coordinate of top-left corner
@@ -66,15 +67,15 @@ typedef struct
     u32 height; ///< Height of the rectangle in pixels
     u32 color; ///< Border color in ARGB format (0xAARRGGBB)
     u32 thickness; ///< Border thickness in pixels
-} fb_rect_outline;
+} fb_rect_outline_t;
 
 /**
  * @brief Specifies a color to clear the entire screen with.
  */
-typedef struct
+typedef struct fb_clear
 {
     u32 color; ///< Clear color in ARGB format (0xAARRGGBB)
-} fb_clear;
+} fb_clear_t;
 
 /**
  * @brief Describes a pixel buffer transfer (blit) operation.
@@ -95,35 +96,35 @@ typedef struct {
  *
  * Pass a pointer to fb_info struct to receive display properties.
  */
-#define FB_IOCTL_GET_INFO           0x4600
+#define FB_IOCTL_GET_INFO           IOR('F', 0x00, fb_info_t)
 
 /**
  * @brief IOCTL code to get the kernel device ID of the backing device.
  *
  * Pass a pointer to u32 to receive the device ID.
  */
-#define FB_IOCTL_GET_BACKING_DEVID  0x4601
+#define FB_IOCTL_GET_BACKING_DEVID  IOR('F', 0x01, uint32_t)
 
 /**
  * @brief IOCTL code to draw a filled rectangle.
  *
  * Pass a pointer to fb_rect struct with rectangle parameters.
  */
-#define FB_IOCTL_FILL_RECT          0x4602
+#define FB_IOCTL_FILL_RECT          IOW('F', 0x02, fb_rect_t)
 
 /**
  * @brief IOCTL code to draw a rectangle outline (border only).
  *
  * Pass a pointer to fb_rect_outline struct with border parameters.
  */
-#define FB_IOCTL_DRAW_RECT          0x4603
+#define FB_IOCTL_DRAW_RECT          IOW('F', 0x03, fb_rect_outline_t)
 
 /**
  * @brief IOCTL code to clear the entire screen with a solid color.
  *
  * Pass a pointer to fb_clear struct with the clear color.
  */
-#define FB_IOCTL_CLEAR              0x4604
+#define FB_IOCTL_CLEAR              IOW('F', 0x04, fb_clear_t)
 
 /**
  * @brief IOCTL code to copy a pixel buffer to the framebuffer.
@@ -131,5 +132,5 @@ typedef struct {
  * Pass a pointer to fb_blit struct containing the buffer and destination.
  * The buffer must contain ARGB pixels (0xAARRGGBB format).
  */
-#define FB_IOCTL_BLIT               0x4605
+#define FB_IOCTL_BLIT               IOW('F', 0x05, fb_blit_t)
 #endif //VESPERAOS_IOCTL_FRAMEBUFFER_H

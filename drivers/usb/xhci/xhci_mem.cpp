@@ -23,6 +23,7 @@
 
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <klib/string.h>
 
 uptr xhci_map_mmio(const u64 pci_bar_address, const u32 bar_size) {
     const phys_addr_t mmio_phys = make_phys(pci_bar_address);

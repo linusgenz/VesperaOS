@@ -22,8 +22,9 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ps2_mouse.h"
+
+#include "../../../include/vespera/cpu/io.h"
 #include "mouse.h"
-#include "../../../kernel/cpu/io.h"
 
 namespace ps2::mouse {
 

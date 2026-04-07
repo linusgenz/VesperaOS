@@ -20,20 +20,6 @@ struct PageTable;
 
 u64 get_memory_size(EFI_MEMORY_DESCRIPTOR* m_map, usize m_map_entries, usize m_map_desc_size);
 
-extern "C" {
-void memset(void* dest, u32 val, u64 num);
-
-void* memcpy(void* dest, const void* src, usize len);
-
-int memcmp(const void* ptr1, const void* ptr2, usize num);
-
-void* memmove(void* dest, const void* src, usize len);
-}
-
-inline void memset(const virt_addr_t dest, const u8 val, const u64 num) {
-    memset(virt_ptr(dest), val, num);
-}
-
 virt_addr_t phys_to_virt(phys_addr_t addr);
 phys_addr_t virt_to_phys(virt_addr_t addr);
 
