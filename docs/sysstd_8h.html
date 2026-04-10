@@ -206,6 +206,9 @@ Functions</h2></td></tr>
 <tr class="memitem:acee7bae6bac5777d08b99907e9a2137d" id="r_acee7bae6bac5777d08b99907e9a2137d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#acee7bae6bac5777d08b99907e9a2137d">sys_vbus_unsubscribe</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
 <tr class="memdesc:acee7bae6bac5777d08b99907e9a2137d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove all vbus subscriptions for the calling realm.  <br /></td></tr>
 <tr class="separator:acee7bae6bac5777d08b99907e9a2137d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b44c312453927c07afe69dcc7b1f191" id="r_a9b44c312453927c07afe69dcc7b1f191"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a9b44c312453927c07afe69dcc7b1f191">sys_unit_spawn</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg2, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg3, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg4, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
+<tr class="memdesc:a9b44c312453927c07afe69dcc7b1f191"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn a new unit (thread) inside an existing realm.  <br /></td></tr>
+<tr class="separator:a9b44c312453927c07afe69dcc7b1f191"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ae3cf90fbca8a7077eff9721ab4f93630" name="ae3cf90fbca8a7077eff9721ab4f93630"></a>
@@ -2137,6 +2140,72 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9b44c312453927c07afe69dcc7b1f191" name="a9b44c312453927c07afe69dcc7b1f191"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b44c312453927c07afe69dcc7b1f191">&#9670;&#160;</a></span>sys_unit_spawn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> sys_unit_spawn </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg3</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg4</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Spawn a new unit (thread) inside an existing realm. </p>
+<p>The new unit shares the realm's virtual address space (page table) and starts executing at <code>entry</code> with <code>arg_ptr</code> in RDI. It gets its own kernel stack and user stack.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">arg0</td><td>realm_id - target realm ID; 0 = caller's own realm. </td></tr>
+    <tr><td class="paramname">arg1</td><td>entry - user-space virtual address of the entry function. The function must have signature void fn(void*). </td></tr>
+    <tr><td class="paramname">arg2</td><td>arg_ptr - opaque value forwarded as the first argument (RDI) to the entry function. </td></tr>
+    <tr><td class="paramname">arg3</td><td>stack_size - user-stack size in bytes; 0 = kernel default. may not be smaller than 16kb and not larger than 8mb </td></tr>
+    <tr><td class="paramname">arg4</td><td>flags - reserved, must be 0.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>New UnitID (&gt; 0) on success, or negative errno: -EINVAL : entry is NULL, flags != 0, or no current unit -EACCES : caller does not own the target realm -ECHILD : target realm does not exist or is inactive -ENOMEM : could not allocate stack or unit slot </dd></dl>
 
 </div>
 </div>
