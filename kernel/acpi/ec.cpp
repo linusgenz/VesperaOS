@@ -106,7 +106,6 @@ namespace acpi::ec {
 
         char method[5];
         snprintf(method, sizeof(method), "_Q%02X", query_code);
-        Log::debug("EC: Query 0x%02X -> %s", query_code, method);
 
         const ACPI_STATUS st = AcpiEvaluateObject(s_ec_handle, method, nullptr, nullptr);
         if (ACPI_FAILURE(st) && st != AE_NOT_FOUND) {

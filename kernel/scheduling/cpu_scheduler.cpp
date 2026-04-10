@@ -2,9 +2,14 @@
 
 #include <vespera/scheduling.h>
 
+#include "../../arch/x86_64/gdt/gdt.h"
 #include "../units/unit_manager.h"
-#include "../utils/panic.h"
+#include "arch/x86_64/cpu/msr.h"
+#include "per_cpu.h"
 #include "schedule_manager.h"
+#include "vespera/realm/realm_manager.h"
+
+GsData g_per_cpu[MAX_CPU_CORES];
 
 namespace kernel::scheduling::cpu_scheduler {
     CpuScheduler* get_cpu_data(const u8 cpu_id) {
@@ -27,29 +32,24 @@ namespace kernel::scheduling::cpu_scheduler {
         snprintf(buffer, sizeof(buffer), "cpu%u", cpu_id);
         cpu->lock.init(buffer);
 
-        //  if (cpu_id == 2 || cpu_id == 4 || cpu_id == 5 || cpu_id == 6 || cpu_id == 7 || cpu_id == 1)
-        {
-            const UnitConfig uc = {
-                .name = "reaper_unit",
-                .cpu_id = cpu_id,
-                .priority = 5,
-                .stack_size = DEFAULT_UNIT_STACK_SIZE,
-                .initial_handles = nullptr,
-                .initial_handle_count = 0,
-                .is_idle = false,
-                .is_user = false,
-                .user_stack_size = 0
-            };
-            UnitManager::create(KERNEL_REALM_SYSTEM, reaper_unit, nullptr, &uc);
-        }
+        const UnitConfig uc = {
+            .name = "reaper_unit",
+            .cpu_id = cpu_id,
+            .priority = 5,
+            .stack_size = DEFAULT_UNIT_STACK_SIZE,
+            .initial_handles = nullptr,
+            .initial_handle_count = 0,
+            .is_idle = false,
+            .is_user = false,
+            .user_stack_size = 0
+        };
+        UnitManager::create(KERNEL_REALM_SYSTEM, reaper_unit, nullptr, &uc);
     }
 
     void enable_cpu(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         cpu->scheduler_enabled = true;
         cpu->ticks_remaining = cpu->quantum_ticks;
-
-        yield_cpu(cpu_id);
     }
 
     void disable_cpu(const u8 cpu_id) {
@@ -77,113 +77,81 @@ namespace kernel::scheduling::cpu_scheduler {
         unit->next = nullptr;
     }
 
-    void yield_cpu(const u8 cpu_id, TrapFrame* frame) {
+    static void do_switch(Unit* prev, Unit* next, TrapFrame* tf) {
+        if (prev) {
+            cpu_context_save(tf, &prev->context.cpu_ctx);
+            fpu_save(&prev->context.fpu_ctx);
+        }
+
+        fpu_restore(&next->context.fpu_ctx);
+
+        cpu_context_load(&next->context.cpu_ctx, tf);
+
+        const u8 cpu_id = next->cpu_id;
+        g_per_cpu[cpu_id].current_ctx = &next->context;
+
+        wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
+        if (next->is_user) {
+            wrmsr(MSR_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
+        }
+
+        if (next->is_user && next->rid) {
+            Realm* r = RealmManager::get(next->rid);
+            if (r) {
+                u64 cr3 = phys_raw(r->pml4_phys);
+                asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
+            }
+        } else {
+            asm volatile("mov %0, %%cr3" ::"r"(kernel::memory::get_pagetable_address()) : "memory");
+        }
+
+        tss_set_rsp0(next->cpu_id, virt_raw(next->context.stack_pointer));
+    }
+
+    static Unit* pick_next(CpuScheduler* cpu) {
+        Unit* next = cpu->ready_queue.pop();
+        if (!next) next = cpu->idle_unit;
+        return next;
+    }
+
+    void yield_cpu(u8 cpu_id, TrapFrame* tf) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
         if (!cpu->scheduler_enabled) return;
+        if (!tf) {
+            return;
+        }
 
         u64 flags = 0;
         cpu->lock.lock_irqsave(flags);
 
-        Unit* current = cpu->current_unit;
+        Unit* prev = cpu->current_unit;
+        bool prev_terminated = prev && (prev->state == UnitState::Terminated);
+        bool prev_blocked = prev && (prev->state == UnitState::Blocked);
+        bool prev_idle = prev && prev->is_idle;
+        bool prev_can_requeue =
+            prev && !prev_terminated && !prev_blocked && !prev_idle && prev->state == UnitState::Running;
 
-        // Special case: no current thread
-        if (current == nullptr) {
-            Unit* next_unit = cpu->ready_queue.pop();
-            if (!next_unit) {
-                next_unit = cpu->idle_unit;
-            }
-            next_unit->state = UnitState::Running;
-            cpu->current_unit = next_unit;
-            cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock();
-            manager::switch_to_unit(nullptr, next_unit, frame);
-            return;
+        if (prev_can_requeue) {
+            prev->state = UnitState::Ready;
+            cpu->ready_queue.push(prev);
         }
 
-        const bool current_terminated = (current->state == UnitState::Terminated);
-        const bool current_blocked = (current->state == UnitState::Blocked);
-        const bool current_is_idle = current->is_idle;
-        const bool current_can_continue = (!current_terminated && !current_blocked && current->state == UnitState::Running);
+        Unit* next = pick_next(cpu);
 
-        // Get next unit from ready queue
-        Unit* next_unit = cpu->ready_queue.pop();
-
-        if (next_unit == current) {
-            panic("yield_cpu: current thread was in ready queue!");
-            next_unit = cpu->ready_queue.pop();
-        }
-
-        // Case 1: Idle is running and nothing to do
-        if (!next_unit && current_is_idle) {
+        if (next == prev && !prev_terminated && !prev_blocked) {
+            prev->state = UnitState::Running;
             cpu->ticks_remaining = cpu->quantum_ticks;
             cpu->lock.unlock_irqrestore(flags);
             return;
         }
 
-        // Case 2: Current is terminated or blocked -> MUST switch
-        if (current_terminated || current_blocked) {
-            if (!next_unit) {
-                next_unit = cpu->idle_unit;
-            }
-            next_unit->state = UnitState::Running;
-            cpu->current_unit = next_unit;
-            cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock();
-            manager::switch_to_unit(current, next_unit, frame);
-            return;
-        }
-
-        // Case 3: Current is idle and we have a real thread waiting
-        if (current_is_idle && next_unit && !next_unit->is_idle) {
-            next_unit->state = UnitState::Running;
-            cpu->current_unit = next_unit;
-            cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock();
-            manager::switch_to_unit(current, next_unit, frame);
-            return;
-        }
-
-        // Case 4: No next thread available
-        if (!next_unit) {
-            // Current continues running
-            if (current_can_continue) {
-                cpu->ticks_remaining = cpu->quantum_ticks;
-                cpu->lock.unlock_irqrestore(flags);
-                return;
-            }
-
-            // Current can't continue -> go to idle
-            next_unit = cpu->idle_unit;
-            next_unit->state = UnitState::Running;
-            cpu->current_unit = next_unit;
-            cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock();
-            manager::switch_to_unit(current, next_unit, frame);
-            return;
-        }
-
-        // Case 6: We have a real next thread -> ALWAYS switch
-        // This is the normal case for yield() and time slice expiration
-        if (next_unit && next_unit != current) {
-            // Re-queue current if it can continue
-            if (current_can_continue && !current_is_idle) {
-                cpu->ready_queue.remove(current);
-
-                current->state = UnitState::Ready;
-                cpu->ready_queue.push(current);
-            }
-
-            next_unit->state = UnitState::Running;
-            cpu->current_unit = next_unit;
-            cpu->ticks_remaining = cpu->quantum_ticks;
-            cpu->lock.unlock();
-            manager::switch_to_unit(current, next_unit, frame);
-            return;
-        }
-
-        // Fallback: continue with current
+        next->state = UnitState::Running;
+        cpu->current_unit = next;
         cpu->ticks_remaining = cpu->quantum_ticks;
-        cpu->lock.unlock_irqrestore(flags);
+
+        cpu->lock.unlock();  // unlock before touching TrapFrame (irqs are already off)
+
+        do_switch(prev, next, tf);
     }
 
     void tick_cpu(const u8 cpu_id, TrapFrame* frame) {

@@ -28,10 +28,10 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
+#include <vespera/unit_config.h>
 
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../scheduling/schedule_manager.h"
-#include <vespera/unit_config.h>
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;
@@ -57,6 +57,47 @@ bool UnitManager::is_initialized() {
 
 UnitId UnitManager::allocate_id() {
     return next_id_++;
+}
+
+#define KERNEL_CS_SEL 0x08
+#define KERNEL_DS_SEL 0x10
+#define USER_CS_SEL 0x23  // ring-3 code segment
+#define USER_SS_SEL 0x1B  // ring-3 data segment
+#define INITIAL_RFLAGS 0x202ULL
+
+static void setup_kernel_unit_context(Unit* u) {
+    uptr rsp = virt_raw(u->context.stack_top);
+    rsp &= ~0xFULL;
+    rsp -= 8;
+
+    auto& ctx = u->context.cpu_ctx;
+    memset(&ctx, 0, sizeof(ctx));
+
+    ctx.rip = reinterpret_cast<u64>(kernel::scheduling::manager::unit_trampoline);
+    ctx.cs = KERNEL_CS_SEL;
+    ctx.rflags = INITIAL_RFLAGS;
+    ctx.rsp = rsp;
+    ctx.ss = KERNEL_DS_SEL;
+    ctx.rbp = rsp;
+}
+
+static void setup_user_unit_context(Unit* u) {
+    auto& ctx = u->context.cpu_ctx;
+    memset(&ctx, 0, sizeof(ctx));
+
+    ctx.rip = reinterpret_cast<u64>(u->context.entry);
+    ctx.cs = USER_CS_SEL;
+    ctx.rflags = INITIAL_RFLAGS;
+    ctx.rsp = virt_raw(u->context.user_stack_pointer);
+    ctx.ss = USER_SS_SEL;
+
+    // Pass initial arguments via registers
+    ctx.rdi = u->context.regs.rdi;
+    ctx.rsi = u->context.regs.rsi;
+    ctx.rdx = u->context.regs.rdx;
+    ctx.rcx = u->context.regs.rcx;
+    ctx.r8 = u->context.regs.r8;
+    ctx.r9 = u->context.regs.r9;
 }
 
 static void* user_virt_to_hhdm(const Unit* u, const uptr user_vaddr) {
@@ -154,7 +195,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
 
             u->id = allocate_id();
             u->rid = realm_id;
-            u->name = cfg->name;
+            u->name = strdup(cfg->name);
             u->exit_code = 0;
             u->active = true;
             u->next = nullptr;
@@ -174,8 +215,8 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
 
             if (u->is_user) {
                 const u64 user_stack_size = cfg->user_stack_size
-                                               ? cfg->user_stack_size
-                                               : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
+                                                ? cfg->user_stack_size
+                                                : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
                 const usize pages = (user_stack_size + 0xFFF) / 0x1000;
 
                 const phys_addr_t stack_phys = kernel::memory::request_pages_phys(pages);
@@ -215,11 +256,15 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
             u->context.stack_top = virt_add(u->context.stack, stack_size);
             u->context.stack_pointer = u->context.stack_top;
 
-            if (u->is_idle || u->is_kernel) {
-                setup_kernel_unit_stack(u);
-            } else if (u->is_user) {
-                setup_user_args_and_env(u, cfg->argv, cfg->envp);
-                setup_user_unit_stack(u);
+            fpu_init_state(&u->context.fpu_ctx);
+
+            if (u->is_user) {
+                if (cfg->argv || cfg->envp) {
+                    setup_user_args_and_env(u, cfg->argv, cfg->envp);
+                }
+                setup_user_unit_context(u);
+            } else {
+                setup_kernel_unit_context(u);
             }
 
             if (cfg->initial_handles && cfg->initial_handle_count > 0) {
@@ -277,6 +322,10 @@ bool UnitManager::destroy(const UnitId id) {
                     }
                     prev = &(*prev)->realm_next;
                 }
+            }
+
+            if (u->name) {
+                kernel::memory::free(u->name);
             }
 
             u->detach_all_handles();
@@ -339,37 +388,4 @@ isize UnitManager::get_status(void* manager_ref, void* buffer, const usize size,
 
     memcpy(buffer, &status, sizeof(unit_info_t));
     return sizeof(unit_info_t);
-}
-
-void UnitManager::setup_kernel_unit_stack(Unit* u) {
-    uptr sp_val = virt_raw(u->context.stack_top);
-    sp_val = (sp_val & ~0xF) - 8;
-    auto* sp = reinterpret_cast<uptr*>(sp_val);
-
-    // Setup stack for context switching
-    *(--sp) = reinterpret_cast<uptr>(kernel::scheduling::manager::unit_trampoline);  // Return RIP
-    *(--sp) = 0x202;                                                                      // RFLAGS
-    *(--sp) = 0;                                                                          // R15
-    *(--sp) = 0;                                                                          // R14
-    *(--sp) = 0;                                                                          // R13
-    *(--sp) = 0;                                                                          // R12
-    *(--sp) = 0;                                                                          // RBX
-    *(--sp) = virt_raw(u->context.stack_pointer);                                         // RBP
-
-    u->context.stack_pointer = virt_from_raw(reinterpret_cast<uptr>(sp));
-}
-
-void UnitManager::setup_user_unit_stack(Unit* u) {
-    uptr sp_val = virt_raw(u->context.stack_top);
-    sp_val &= ~0xF;
-    sp_val -= 8;
-    auto* sp = reinterpret_cast<uptr*>(sp_val);
-
-    *(--sp) = 0x1b;
-    *(--sp) = virt_raw(u->context.user_stack_pointer);
-    *(--sp) = 0x202;
-    *(--sp) = 0x23;
-    *(--sp) = reinterpret_cast<uptr>(u->context.entry);
-
-    u->context.stack_pointer = virt_from_raw(reinterpret_cast<uptr>(sp));
 }

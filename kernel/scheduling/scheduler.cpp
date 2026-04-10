@@ -40,19 +40,14 @@ namespace kernel::scheduling {
     }
 
     void yield() {
-        const u8 cpu_id = cpu_manager::get_current_cpu_id();
-        cpu_scheduler::yield_cpu(cpu_id);
+        asm volatile("int $0x23");
     }
-
-    /*    void tick() {
-            u8 cpu_id = CPUManager::get_current_cpu_id();
-            cpu_scheduler::tick_cpu(cpu_id);
-        }*/
 
     void enable_on_cpu(u8 cpu_id) {
         if (cpu_id >= global_scheduler.num_cpus) return;
 
         cpu_scheduler::enable_cpu(cpu_id);
+        yield();
     }
 
     void disable_on_cpu(u8 cpu_id) {

@@ -27,7 +27,8 @@
 #include "../../arch/x86_64/interrupts/idt.h"
 #include "../../arch/x86_64/interrupts/ioapic.h"
 #include "../../arch/x86_64/interrupts/pic.h"
-#include "../cpu/io.h"
+#include <vespera/cpu/io.h>
+#include <klib/string.h>
 
 namespace kernel::interrupts {
     void initialize() {

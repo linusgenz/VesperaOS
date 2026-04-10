@@ -60,6 +60,7 @@ extern TSS tss[MAX_CPU_CORES];
 extern GDT_PTR gdt_ptr;
 
 void setup_cpu_tss(u32 cpu_id);
+void tss_set_rsp0(u8 cpu_id, u64 rsp0);
 
 void gdt_install();
 

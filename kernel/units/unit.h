@@ -27,6 +27,7 @@
 #include <uapi/vespera/dev/unit_info.h>
 #include <vespera/realm/realm.h>
 #include <vespera/signals.h>
+#include "../scheduling/unit_context.h"
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
@@ -79,6 +80,9 @@ typedef struct ExecutionContext {
     virt_addr_t user_stack_virt_base;
 
     TrapFrame current_trap_frame;
+
+    UnitCpuContext cpu_ctx;
+    UnitFpuState   fpu_ctx;
 } execution_context_t;
 
 typedef struct SleepContext {
@@ -113,7 +117,7 @@ class Unit {
    public:
     UnitId id{0};
     RealmId rid{0};
-    const char* name{nullptr};
+    char* name{nullptr};
 
     Unit* next{nullptr};
     Unit* realm_next{};

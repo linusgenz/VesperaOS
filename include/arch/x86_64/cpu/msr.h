@@ -26,6 +26,13 @@
 
 #include <vespera/types.h>
 
+#define MSR_KERNEL_GS_BASE 0xC0000102
+#define MSR_GS_BASE 0xC0000101
+#define MSR_EFER 0xC0000080
+#define MSR_STAR 0xC0000081
+#define MSR_LSTAR 0xC0000082
+#define MSR_FMASK 0xC0000084
+
 inline u64 rdmsr(u32 msr)
 {
     u32 low = 0, high = 0;

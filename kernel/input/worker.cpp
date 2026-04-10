@@ -34,15 +34,14 @@
         while (kernel::input::InputManager::pop_event(ev)) {
             kernel::tty::tty_handle_input(ev);
         }
-       // kernel::scheduling::yield();
-        kernel::time::sleep_ms(10);
+        kernel::scheduling::yield();
     }
 }
 
 void initialize_input_bus() {
     constexpr UnitConfig uc = {
         .name = "input_bus",
-        .cpu_id = 3,
+        .cpu_id = 2,
         .priority = 5,
         .stack_size = DEFAULT_UNIT_STACK_SIZE,
         .initial_handles = nullptr,

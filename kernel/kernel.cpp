@@ -33,6 +33,7 @@
 #include "./cpu/cpu.h"
 #include "exec/elf.h"
 #include "kversion.h"
+#include "scheduling/per_cpu.h"
 #include "units/unit_manager.h"
 #include "vespera/scheduling.h"
 
@@ -190,13 +191,13 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         const uptr heap_begin = (result.load_end + 0xFFFULL) & ~0xFFFULL;
         shell_unit->heap_start = heap_begin;
         shell_unit->heap_end = heap_begin;
+        Log::debug("sp: %p", shell_unit->context.user_stack_phys);
     }
 
     kernel::SystemManager::set_system_initialized();
     kernel::SystemManager::get_system_terminal()->set_cursor_visible(true);
-
     //  Debug_PrintAllDevices();
-
+    per_cpu_init(0);
     kernel::scheduling::enable_on_cpu(0);
 
     while (true);

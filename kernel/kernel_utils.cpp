@@ -1,7 +1,5 @@
 #include "../drivers/fb/framebuffer_driver.h"
-#include "acpi/ec.h"
 #include "cpu/cpu.h"
-#include "drivers/power/power_driver.h"
 #include "graphics/font/ttf_glyph_provider.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
@@ -28,7 +26,6 @@
 #include "../filesystem/realmfs/realmfs.h"
 #include "../include/vespera/filesystem/vfs.h"
 #include "acpi/acpi_manager.h"
-#include "acpi/madt.h"
 #include "cpu/cpu_manager.h"
 #include "devices/init.h"
 #include "graphics/display_manager.h"
@@ -155,9 +152,6 @@ static void initialize_scheduling_and_smp() {
     Log::init();
 
     acpi::TableManager::init();
-    Log::debug("acpi::TableManager::init()");
-    while (1);
-
 }
 
 static void initialize_hardware_buses() {

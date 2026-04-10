@@ -28,23 +28,62 @@
 
 #include "../../arch/x86_64/interrupts/idt.h"
 
-// x86_64 Interrupt Frame Structure (pushed via asm stubs)
 struct TrapFrame {
-    u64 rax, rbx, rcx, rdx;
-    u64 rbp, rsi, rdi;
-    u64 r8, r9, r10, r11, r12, r13, r14, r15;
+    // Callee-saved + scratch registers
+    u64 r15;
+    u64 r14;
+    u64 r13;
+    u64 r12;
+    u64 r11;
+    u64 r10;
+    u64 r9;
+    u64 r8;
+    u64 rbp;
+    u64 rdi;
+    u64 rsi;
+    u64 rdx;
+    u64 rcx;
+    u64 rbx;
+    u64 rax;
 
-    u64 rsv;
-
-    // Error code (either from CPU or dummy 0)
+    u64 vector;
     u64 error_code;
 
+    // IRET frame
     u64 rip;
     u64 cs;
     u64 rflags;
     u64 rsp;
     u64 ss;
-} __attribute__((packed));
+};
+
+static_assert(__builtin_offsetof(TrapFrame, r15)        == 0x00);
+static_assert(__builtin_offsetof(TrapFrame, r14)        == 0x08);
+static_assert(__builtin_offsetof(TrapFrame, r13)        == 0x10);
+static_assert(__builtin_offsetof(TrapFrame, r12)        == 0x18);
+static_assert(__builtin_offsetof(TrapFrame, r11)        == 0x20);
+static_assert(__builtin_offsetof(TrapFrame, r10)        == 0x28);
+static_assert(__builtin_offsetof(TrapFrame, r9)         == 0x30);
+static_assert(__builtin_offsetof(TrapFrame, r8)         == 0x38);
+static_assert(__builtin_offsetof(TrapFrame, rbp)        == 0x40);
+static_assert(__builtin_offsetof(TrapFrame, rdi)        == 0x48);
+static_assert(__builtin_offsetof(TrapFrame, rsi)        == 0x50);
+static_assert(__builtin_offsetof(TrapFrame, rdx)        == 0x58);
+static_assert(__builtin_offsetof(TrapFrame, rcx)        == 0x60);
+static_assert(__builtin_offsetof(TrapFrame, rbx)        == 0x68);
+static_assert(__builtin_offsetof(TrapFrame, rax)        == 0x70);
+static_assert(__builtin_offsetof(TrapFrame, vector)     == 0x78);
+static_assert(__builtin_offsetof(TrapFrame, error_code) == 0x80);
+static_assert(__builtin_offsetof(TrapFrame, rip)        == 0x88);
+static_assert(__builtin_offsetof(TrapFrame, cs)         == 0x90);
+static_assert(__builtin_offsetof(TrapFrame, rflags)     == 0x98);
+static_assert(__builtin_offsetof(TrapFrame, rsp)        == 0xA0);
+static_assert(__builtin_offsetof(TrapFrame, ss)         == 0xA8);
+static_assert(sizeof(TrapFrame)                         == 0xB0);
+
+inline bool trap_frame_from_user(const TrapFrame* tf) {
+    return (tf->cs & 3) == 3;
+}
 
 namespace kernel::interrupts {
     void initialize();  // sets IDT, APIC, IOAPIC, PIC

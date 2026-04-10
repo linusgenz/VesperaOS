@@ -1,8 +1,10 @@
 #include "gdt.h"
 
+#include <klib/string.h>
+
 #include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
-#include <klib/string.h>
+#include "vespera/log.h"
 
 GDT_ENTRY gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
 TSS_DESCRIPTOR tss_desc;
@@ -53,6 +55,16 @@ void setup_cpu_tss(u32 cpu_id) {
 
 u16 get_tss_selector(const u32 cpu_id) {
     return (5 + (cpu_id * 2)) << 3;
+}
+
+void tss_set_rsp0(u8 cpu_id, u64 rsp0) {
+    if (cpu_id >= MAX_CPU_CORES) return;
+
+    if (rsp0 & 0xF) {
+        Log::warning("tss_set_rsp0: stack not aligned");
+    }
+
+    tss[cpu_id].rsp0 = rsp0;
 }
 
 void gdt_install() {

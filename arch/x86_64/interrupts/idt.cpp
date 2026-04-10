@@ -20,11 +20,11 @@ namespace arch::x86_64::interrupts::idt {
         return offset;
     }
 
-    void set_idt_gate(isr_handler_t handler, const u8 entry_offset, const u8 type_attr, const u8 selector) {
+    void set_idt_gate(isr_handler_t handler, const u8 entry_offset, const u8 type_attr, const u8 selector, const u8 ist) {
         auto* interrupt = reinterpret_cast<IDT_DESC_ENTRY*>(idtr.offset + entry_offset * sizeof(IDT_DESC_ENTRY));
         interrupt->set_offset(reinterpret_cast<u64>(handler));
         interrupt->selector = selector;
-        interrupt->ist = 0;
+        interrupt->ist = ist;
         interrupt->type_attr = type_attr;
         interrupt->ignore = 0;
     }
@@ -78,52 +78,33 @@ namespace arch::x86_64::interrupts::idt {
         irq_handler_table[vec].free = true;
     }
 
-    extern "C" isr_handler_t irq_stub_table[];  // irq_stub.asm
     bool allocate_vector(const u8 vector, const irq_handler_t handler, void* cookie) {
         irq_handler_table[vector].handler = handler;
         irq_handler_table[vector].cookie = cookie;
 
-        const isr_handler_t stub = irq_stub_table[vector];
-
-        set_idt_gate(stub, vector, IDT_TA_INTERRUPT_GATE, 0x08);
-
         return true;
     }
 
-    extern "C" void irq_common_stub_handler(const u8 irqno) {
-        if (const IrqDesc& desc = irq_handler_table[irqno]; desc.handler) {
-            desc.handler(desc.cookie);
+    void load_default_idt() {
+        virt_addr_t page = kernel::memory::request_page();
+        memset(page, 0, 0x1000);
+
+        idtr.limit  = 0x0FFF;
+        idtr.offset = virt_raw(page);
+
+        for (u16 v = 0; v < 256; ++v) {
+            u8 type  = IDT_TA_INTERRUPT_GATE;
+            u8 ist   = 0;
+
+            if (v == 0x08) ist = 1;
+            if (v == 0x02) ist = 2;
+            if (v == 0x12) ist = 3;
+
+            set_idt_gate(isr_stub_table[v], static_cast<u8>(v), type, 0x08, ist);
         }
 
-        apic::send_eoi();
-    }
-
-    void load_default_idt() {
-        virt_addr_t idt_virt = kernel::memory::request_page();
-
-        memset(idt_virt, 0, 0x1000);
-
-        idtr.limit = 0x0FFF;
-        idtr.offset = virt_raw(idt_virt);
-
-        // Standard Exception Handlers
-        set_idt_gate(isr_divide_error, 0x00, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_invalid_opcode, 0x06, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_double_fault, 0x08, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_segment_not_present, 0x0B, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_stack_fault, 0x0C, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_gp_fault, 0x0D, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_page_fault, 0x0E, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_machine_check, 0x12, IDT_TA_INTERRUPT_GATE, 0x08);
-
-        set_idt_gate(isr_keyboard_int, 0x21, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_mouse_int, 0x22, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_apic_timer_int, IRQ_TIMER, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_spurious_int, IRQ_SPURIOUS, IDT_TA_INTERRUPT_GATE, 0x08);
-        set_idt_gate(isr_panic_ipi, IRQ_PANIC, IDT_TA_INTERRUPT_GATE, 0x08);
-
-        asm("lidt %0" : : "m"(idtr));
-        asm("cli");
+        asm volatile("lidt %0" : : "m"(idtr));
+        asm volatile("cli");
     }
 
     IDTR* get_idtr_address() {

@@ -1,10 +1,9 @@
-// syscall.cpp
-//
+// per_cpu.h
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 10.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,29 +19,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_PER_CPU_H
+#define VESPERAOS_PER_CPU_H
 
-#include "syscall.h"
-
+#include "../kernel/acpi/madt.h"
+#include <../kernel/units/unit.h>
+#include <vespera/types.h>
 #include <arch/x86_64/cpu/msr.h>
 
-#include <vespera/log.h>
+struct GsData {
+    execution_context_t* current_ctx;
+    u64 cpu_id;
+};
 
-extern "C" void syscall_entry();
+extern GsData g_per_cpu[MAX_CPU_CORES];
 
-
-#define EFER_SCE 1
-
-void syscall_init() {
-    constexpr u64 user_cs = 0x23;
-    constexpr u64 kernel_cs = 0x08;
-    constexpr u64 star = ((user_cs - 0x10) << 48) | (kernel_cs << 32);
-    wrmsr(MSR_STAR, star);
-
-    wrmsr(MSR_LSTAR, reinterpret_cast<u64>(&syscall_entry));
-
-    wrmsr(MSR_FMASK, 0x0000000000000000);  // TEMP not secure. mask everything later TODO
-
-    u64 efer = rdmsr(MSR_EFER);
-    efer |= EFER_SCE;
-    wrmsr(MSR_EFER, efer);  // enable syscalls
+inline void per_cpu_init(u8 cpu_id) {
+    g_per_cpu[cpu_id].cpu_id = cpu_id;
+    g_per_cpu[cpu_id].current_ctx = nullptr;
+    wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
 }
+
+#endif  // VESPERAOS_PER_CPU_H

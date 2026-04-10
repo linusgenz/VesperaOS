@@ -18,7 +18,7 @@ namespace kernel::scheduling::manager {
     [[noreturn]] void terminate_current_unit();
 
     // Thread execution helpers
-    extern "C" void unit_trampoline();
+    extern "C" [[noreturn]] void unit_trampoline();
     //  extern "C" [[noreturn]] void idle_unit_func(void* arg);
 
     // Internal thread operations

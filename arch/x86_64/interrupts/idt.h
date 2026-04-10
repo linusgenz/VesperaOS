@@ -14,7 +14,7 @@ enum Irqreturn : int {
 using irq_handler_t = Irqreturn (*)(void *cookie);
 
 namespace arch::x86_64::interrupts::idt {
-    constexpr u8 VECTOR_MIN = 0x23;
+    constexpr u8 VECTOR_MIN = 0x24;
     constexpr u8 VECTOR_MAX = 0xEF;
 
 #define IDT_TA_INTERRUPT_GATE 0b10001110
@@ -58,7 +58,7 @@ namespace arch::x86_64::interrupts::idt {
     void load_default_idt();
 
     using isr_handler_t = void (*)();
-    void set_idt_gate(isr_handler_t handler, u8 entry_offset, u8 type_attr, u8 selector);
+    void set_idt_gate(isr_handler_t handler, u8 entry_offset, u8 type_attr, u8 selector, u8 ist = 0);
 
     bool allocate_vector(u8 vector, irq_handler_t handler, void *cookie);
 
@@ -68,6 +68,5 @@ namespace arch::x86_64::interrupts::idt {
 
     u8 get_free_vector();
 
-    extern "C" void irq_common_stub(u8 irqno);
 }  // namespace arch::x86_64::interrupts::idt
 #endif  // IDT_H
