@@ -176,11 +176,12 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         .name = "shell",
         .cpu_id = 0,
         .priority = 10,
-        .stack_size = 0x1000000,
+        .stack_size = DEFAULT_UNIT_STACK_SIZE,
         .initial_handles = nullptr,
         .initial_handle_count = 0,
         .is_idle = false,
         .is_user = true,
+        .is_main_unit = true,
         .user_stack_size = 0,
         .argv = argv_example,
         .envp = envp0
@@ -191,7 +192,6 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         const uptr heap_begin = (result.load_end + 0xFFFULL) & ~0xFFFULL;
         shell_unit->heap_start = heap_begin;
         shell_unit->heap_end = heap_begin;
-        Log::debug("sp: %p", shell_unit->context.user_stack_phys);
     }
 
     kernel::SystemManager::set_system_initialized();

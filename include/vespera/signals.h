@@ -26,7 +26,6 @@
 
 #include "interrupts.h"
 
-constexpr uptr SIGNAL_TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
 
 class Unit;
 enum class Signal : i32 {

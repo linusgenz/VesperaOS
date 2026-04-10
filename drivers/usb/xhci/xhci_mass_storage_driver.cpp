@@ -306,10 +306,9 @@ isize XhciMassStorageDriver::read(u64 lba, usize sector_count, void* buffer, usi
 
     start_bulk_transfer(&transfer);
 
-    while (!transfer.done) asm volatile("pause");
-    /*while (!transfer.done) {
+    while (!transfer.done) {
         kernel::scheduling::yield();
-    }*/
+    }
 
     isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 
@@ -356,10 +355,9 @@ isize XhciMassStorageDriver::write(u64 lba, usize sector_count, const void* buff
 
     start_bulk_transfer(&transfer);
 
-    while (!transfer.done) asm volatile("pause");
-    /*while (!transfer.done) {
+    while (!transfer.done) {
         kernel::scheduling::yield();
-    }*/
+    }
 
     isize result = (transfer.status == 0) ? transfer.actual_length : -EIO;
 

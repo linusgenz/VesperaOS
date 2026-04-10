@@ -89,7 +89,6 @@ namespace pci {
             cap_ptr = next_ptr;
         }
 
-        Log::warning("MSI-X capability not found");
         return false;
     }
 

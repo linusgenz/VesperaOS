@@ -74,6 +74,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_CLOCK_GETTIME] = syscalls::internal::sys_clock_gettime;
     syscall_table[SYSCALL_VBUS_SUBSCRIBE] = syscalls::internal::sys_vbus_subscribe;
     syscall_table[SYSCALL_VBUS_UNSUBSCRIBE] = syscalls::internal::sys_vbus_unsubscribe;
+    syscall_table[SYSCALL_UNIT_SPAWN] = syscalls::internal::sys_unit_spawn;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

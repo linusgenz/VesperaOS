@@ -67,6 +67,8 @@ namespace acpi {
     }
 
     void TableManager::init() {
+        AcpiDbgLayer = 0;
+        AcpiDbgLevel = 0;
         acpi_osl_init_worker();
 
         ACPI_STATUS status = AcpiInitializeSubsystem();

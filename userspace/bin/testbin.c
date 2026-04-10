@@ -1,9 +1,9 @@
-// unit_config.h
+// test.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 07.03.26.
+// Created by Linus Genz on 10.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,27 +19,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_UNIT_CONFIG_H
-#define VESPERAOS_UNIT_CONFIG_H
-#include <vespera/types.h>
 
-#define PRIORITY_NONE 0
-constexpr size_t DEFAULT_UNIT_STACK_SIZE = 8 * 1024 * 1024; // 8MB
+#include <stdio.h>
 
-struct UnitConfig {
-    const char *name = "unnamed_unit";
-    u8 cpu_id = 0;
-    u8 priority = 0;
-    u64 stack_size = DEFAULT_UNIT_STACK_SIZE;
-    HandleId *initial_handles = nullptr;
-    u64 initial_handle_count = 0;
-    bool is_idle = false;
-    bool is_user = false;
-    bool is_main_unit = false;
-    u64 user_stack_size = 0;
-    bool auto_schedule = true;
-    const char **argv;
-    const char **envp;
-};
+int main(int argc, char **argv) {
+    puts("started");
+    while (1) {
 
-#endif  // VESPERAOS_UNIT_CONFIG_H
+    }
+}

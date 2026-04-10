@@ -126,6 +126,7 @@ namespace syscalls::internal {
             .cpu_id = 6,
             .priority = 5,
             .is_user = true,
+            .is_main_unit = true,
             .auto_schedule = false,
             .argv = argv,
             .envp = envp,

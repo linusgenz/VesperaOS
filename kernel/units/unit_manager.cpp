@@ -32,13 +32,12 @@
 
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../scheduling/schedule_manager.h"
+#include "vespera/realm/user_stack_allocator.h"
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;
 UnitId UnitManager::next_id_ = 1;
 bool UnitManager::initialized_ = false;
-
-constexpr uptr USER_STACK_TOP = 0x00007FFFFFFF0000ULL;
 
 void UnitManager::initialize() {
     global_lock_.init("unit_manager_lock");
@@ -80,7 +79,7 @@ static void setup_kernel_unit_context(Unit* u) {
     ctx.ss = KERNEL_DS_SEL;
     ctx.rbp = rsp;
 }
-
+extern phys_addr_t g_trampoline_page;
 static void setup_user_unit_context(Unit* u) {
     auto& ctx = u->context.cpu_ctx;
     memset(&ctx, 0, sizeof(ctx));
@@ -92,12 +91,18 @@ static void setup_user_unit_context(Unit* u) {
     ctx.ss = USER_SS_SEL;
 
     // Pass initial arguments via registers
-    ctx.rdi = u->context.regs.rdi;
-    ctx.rsi = u->context.regs.rsi;
-    ctx.rdx = u->context.regs.rdx;
-    ctx.rcx = u->context.regs.rcx;
-    ctx.r8 = u->context.regs.r8;
-    ctx.r9 = u->context.regs.r9;
+    if (u->is_main_unit) {
+        ctx.rdi = u->context.regs.rdi;
+        ctx.rsi = u->context.regs.rsi;
+        ctx.rdx = u->context.regs.rdx;
+        ctx.rcx = u->context.regs.rcx;
+        ctx.r8 = u->context.regs.r8;
+        ctx.r9 = u->context.regs.r9;
+    } else {
+        ctx.rdi = reinterpret_cast<u64>(u->context.arg);    // arg
+        ctx.rsi = reinterpret_cast<u64>(u->context.entry);  // entry
+        ctx.rip = USER_UNIT_TRAMPOLINE_VADDR;
+    }
 }
 
 static void* user_virt_to_hhdm(const Unit* u, const uptr user_vaddr) {
@@ -204,6 +209,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
 
             u->is_idle = cfg->is_idle;
             u->is_user = cfg->is_user;
+            u->is_main_unit = cfg->is_main_unit;
             u->is_kernel = !cfg->is_user;
 
             u->handle_count = cfg->initial_handle_count;
@@ -217,21 +223,28 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
                 const u64 user_stack_size = cfg->user_stack_size
                                                 ? cfg->user_stack_size
                                                 : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
-                const usize pages = (user_stack_size + 0xFFF) / 0x1000;
 
+                UserStackAllocator::StackSlot slot;
+                if (!realm->stack_alloc.alloc(slot)) {
+                    Log::warning("UnitManager::create: no user stack slots left in realm %u", realm_id);
+                    u->active = false;
+                    return nullptr;
+                }
+                u->user_stack_slot = slot.index;
+
+                const usize pages = (user_stack_size + 0xFFF) / 0x1000;
                 const phys_addr_t stack_phys = kernel::memory::request_pages_phys(pages);
                 if (phys_null(stack_phys)) {
+                    realm->stack_alloc.free(slot.index);
                     u->active = false;
                     return nullptr;
                 }
 
                 const virt_addr_t stack_hhdm = phys_to_virt(stack_phys);
-                memset(stack_hhdm, 0, user_stack_size);
-
-                const virt_addr_t user_virt_base = virt_from_raw(USER_STACK_TOP - user_stack_size);
+                memset(virt_ptr(stack_hhdm), 0, user_stack_size);
 
                 realm->page_table->map_range(
-                    user_virt_base,
+                    slot.virt_base,
                     stack_phys,
                     user_stack_size,
                     (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::UserSuper)
@@ -240,9 +253,9 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
                 u->context.user_stack = stack_hhdm;
                 u->context.user_stack_phys = stack_phys;
                 u->context.user_stack_size = user_stack_size;
-                u->context.user_stack_virt_base = user_virt_base;
-                u->context.user_stack_top = virt_from_raw(USER_STACK_TOP);
-                u->context.user_stack_pointer = u->context.user_stack_top;
+                u->context.user_stack_virt_base = slot.virt_base;
+                u->context.user_stack_top = slot.virt_top;  // rsp starts here
+                u->context.user_stack_pointer = slot.virt_top;
             }
 
             u->context.stack = kernel::memory::request_pages((stack_size + 0xFFF) / 0x1000);
@@ -259,7 +272,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
             fpu_init_state(&u->context.fpu_ctx);
 
             if (u->is_user) {
-                if (cfg->argv || cfg->envp) {
+                if (cfg->is_main_unit && (cfg->argv || cfg->envp)) {
                     setup_user_args_and_env(u, cfg->argv, cfg->envp);
                 }
                 setup_user_unit_context(u);
@@ -341,8 +354,10 @@ bool UnitManager::destroy(const UnitId id) {
             if (u->is_user && !virt_null(u->context.user_stack)) {
                 const usize user_pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
                 kernel::memory::unmap_range(u->context.user_stack_virt_base, u->context.user_stack_size);
-                kernel::memory::free_pages(u->context.user_stack, user_pages);
+                kernel::memory::free_pages_phys(u->context.user_stack_phys, user_pages);
                 u->context.user_stack = make_virt(nullptr);
+
+                if (r) r->stack_alloc.free(u->user_stack_slot);
             }
 
             SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);

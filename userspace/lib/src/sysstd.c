@@ -39,6 +39,7 @@
 #define SYSCALL_PIPE 22
 #define SYSCALL_SLEEP 35
 #define SYSCALL_GETRID 39
+#define SYSCALL_UNIT_SPAWN 59
 #define SYSCALL_EXIT 60
 #define SYSCALL_WAIT 61
 #define SYSCALL_KILL 62
@@ -231,4 +232,8 @@ int64_t sys_vbus_subscribe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t
 
 int64_t sys_vbus_unsubscribe(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_VBUS_UNSUBSCRIBE, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_unit_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t) {
+    return syscall(SYSCALL_UNIT_SPAWN, arg0, arg1, arg2, arg3, arg4, 0);
 }

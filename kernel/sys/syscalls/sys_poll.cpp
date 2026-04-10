@@ -99,8 +99,7 @@ namespace syscalls::internal {
             if (timeout_ms == 0) return 0;
             if (kernel::time::get_uptime_ms() >= deadline) return 0;
 
-            //kernel::scheduling::yield();
-            kernel::time::sleep_ms(10);
+            kernel::scheduling::yield();
         }
     }
 }  // namespace syscalls::internal

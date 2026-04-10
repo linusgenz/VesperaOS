@@ -27,10 +27,10 @@
 #include <uapi/vespera/dev/unit_info.h>
 #include <vespera/realm/realm.h>
 #include <vespera/signals.h>
+
 #include "../scheduling/unit_context.h"
 
 #define MAX_UNIT_HANDLE_SLOTS 64
-
 
 /**
  * @brief Kernel-internal Unit lifecycle state.
@@ -82,7 +82,7 @@ typedef struct ExecutionContext {
     TrapFrame current_trap_frame;
 
     UnitCpuContext cpu_ctx;
-    UnitFpuState   fpu_ctx;
+    UnitFpuState fpu_ctx;
 } execution_context_t;
 
 typedef struct SleepContext {
@@ -100,8 +100,6 @@ struct VmArea {
 
     VmArea* next;
 };
-
-
 
 struct UnitHandleTable {
     HandleId slots[MAX_UNIT_HANDLE_SLOTS];
@@ -133,10 +131,13 @@ class Unit {
 
     bool is_idle{false};
     bool is_user{false};
+    bool is_main_unit{false};
     bool is_kernel{false};
 
     u64 heap_start{};
     u64 heap_end{};
+
+    u32 user_stack_slot{0};
 
     u64 handle_count{0};
 

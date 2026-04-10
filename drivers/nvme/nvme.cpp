@@ -465,8 +465,7 @@ namespace nvme {
                 return;
             }
             start++;
-            kernel::time::sleep_ms(10);
-            //kernel::scheduling::yield();
+            kernel::scheduling::yield();
         }
         complet = completion_queue_[cq_head];
 

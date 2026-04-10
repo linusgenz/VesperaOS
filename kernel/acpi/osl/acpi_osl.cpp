@@ -184,8 +184,7 @@ ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE type, ACPI_OSD_EXEC_CALLBACK fn, voi
 void AcpiOsWaitEventsComplete() {
     while (__atomic_load_n(&g_pending_async_tasks, __ATOMIC_ACQUIRE) != 0) {
         if (kernel::scheduling::is_curent_cpu_enabled()) {
-            asm volatile("pause");  // kernel::scheduling::yield();
-            // yield is currently not working correctly, we wait till the timer interrupts switches units
+            kernel::scheduling::yield();
         } else {
             asm volatile("pause");
         }
@@ -327,14 +326,14 @@ ACPI_STATUS AcpiOsWriteMemory(ACPI_PHYSICAL_ADDRESS address, UINT64 value, UINT3
 }
 
 void ACPI_INTERNAL_VAR_XFACE AcpiOsPrintf(const char* fmt, ...) {
-    __builtin_va_list args;
+    /*__builtin_va_list args;
     __builtin_va_start(args, fmt);
     Log::print(fmt, args);
-    __builtin_va_end(args);
+    __builtin_va_end(args);*/
 }
 
 void ACPI_INTERNAL_VAR_XFACE AcpiOsVprintf(const char* fmt, va_list args) {
-    Log::print(fmt, args);
+   // Log::print(fmt, args);
 }
 
 void AcpiOsRedirectOutput(void* destination) {

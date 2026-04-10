@@ -31,8 +31,15 @@
 #include "../../../kernel/paging/page_table_manager.h"
 #include "../../../kernel/tty/tty_device.h"
 #include "../types.h"
+#include "user_stack_allocator.h"
 
 class Unit;
+
+constexpr uptr TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
+constexpr uptr TRAMP_SIGNAL_OFF   = 0x000;
+constexpr uptr TRAMP_UNIT_OFF     = 0x100;
+constexpr uptr SIGNAL_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_SIGNAL_OFF);
+constexpr uptr USER_UNIT_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_UNIT_OFF);
 
 #define MAX_HANDLES_PER_REALM 4096
 #define KERNEL_REALM_SYSTEM 1
@@ -81,6 +88,8 @@ class Realm {
     WaitQueue wait_queue;
 
     HandleTable handle_table;
+
+    UserStackAllocator stack_alloc;
 
     Spinlock lock;
     bool active;

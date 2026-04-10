@@ -62,8 +62,7 @@ namespace syscalls::internal {
         }
 
         target->wait_queue.add_wait(current);
-        //kernel::scheduling::yield();
-        kernel::time::sleep_ms(10);
+        kernel::scheduling::yield();
 
         int exit_code = 0;
         ExitCodeTable::consume(child_rid, &exit_code);

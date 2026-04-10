@@ -93,6 +93,10 @@ endif()
 # ────────────────────────────────────────────────────────────────
 
 add_custom_target(test
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
+        ${CMAKE_BINARY_DIR}/OVMF_VARS.fd
+
         COMMAND qemu-system-x86_64
         -m 4G
         -smp 8
@@ -100,7 +104,8 @@ add_custom_target(test
         -enable-kvm
         -cpu qemu64
         -vga std
-        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
+        -drive if=pflash,format=raw,unit=0,readonly=on,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd
+        -drive if=pflash,format=raw,unit=1,file=${CMAKE_BINARY_DIR}/OVMF_VARS.fd
         -net none
         -monitor stdio
         -device qemu-xhci,id=xhci1

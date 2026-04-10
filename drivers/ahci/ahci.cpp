@@ -2,15 +2,16 @@
 
 #include <uapi/vespera/dev/ioctl_smart.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/filesystem/devfs.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
-#include <vespera/filesystem/devfs.h>
 #include "../pci/msi.h"
 #include "../pci/msix.h"
 #include "ata.h"
+#include "vespera/scheduling.h"
 
 namespace ahci {
 #define HBA_PORT_DEV_PRESENT 0x3
@@ -243,7 +244,9 @@ namespace ahci {
         last_error = false;
         hba_port->command_issue = 1 << 0;
 
-        while (!command_completed) asm volatile("pause");
+        while (!command_completed) {
+            kernel::scheduling::yield();
+        }
 
         if (last_error) {
             kernel::memory::free_page_phys(dma_phys);
@@ -357,7 +360,9 @@ namespace ahci {
         last_error = false;
         hba_port->command_issue = 1 << 0;
 
-        while (!command_completed) asm volatile("pause");
+        while (!command_completed) {
+            kernel::scheduling::yield();
+        }
 
         if (last_error) return false;
 
@@ -430,7 +435,9 @@ namespace ahci {
         last_error = false;
         hba_port->command_issue = 1 << 0;
 
-        while (!command_completed) asm volatile("pause");
+        while (!command_completed) {
+            kernel::scheduling::yield();
+        }
 
         kernel::memory::free_pages_phys(dma_phys, pages);
 
@@ -476,7 +483,9 @@ namespace ahci {
         last_error = false;
         hba_port->command_issue = 1 << 0;
 
-        while (!command_completed) asm volatile("pause");
+        while (!command_completed) {
+            kernel::scheduling::yield();
+        }
 
         if (last_error) {
             Log::error("[ AHCI ] Port %u: FLUSH CACHE failed", port_number);

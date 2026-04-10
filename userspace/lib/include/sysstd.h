@@ -420,4 +420,28 @@ int64_t sys_vbus_subscribe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t
  */
 int64_t sys_vbus_unsubscribe(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
+/**
+ * @brief Spawn a new unit (thread) inside an existing realm.
+ *
+ * The new unit shares the realm's virtual address space (page table) and
+ * starts executing at @p entry with @p arg_ptr in RDI. It gets its own
+ * kernel stack and user stack.
+ *
+ * @param arg0  realm_id   - target realm ID; 0 = caller's own realm.
+ * @param arg1  entry      - user-space virtual address of the entry function.
+ *                           The function must have signature  void fn(void*).
+ * @param arg2  arg_ptr    - opaque value forwarded as the first argument (RDI)
+ *                           to the entry function.
+ * @param arg3  stack_size - user-stack size in bytes; 0 = kernel default. may not be smaller than 16kb and not larger
+ * than 8mb
+ * @param arg4  flags      - reserved, must be 0.
+ *
+ * @return New UnitID (> 0) on success, or negative errno:
+ *   -EINVAL  : entry is NULL, flags != 0, or no current unit
+ *   -EACCES  : caller does not own the target realm
+ *   -ECHILD  : target realm does not exist or is inactive
+ *   -ENOMEM  : could not allocate stack or unit slot
+ */
+int64_t sys_unit_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t);
+
 #endif  // SYSSTD_H
