@@ -27,9 +27,10 @@
 #include <vespera/log.h>
 
 #include "klib/string.h"
+#include "vespera/time.h"
 
 namespace acpi::ec {
-
+    static Spinlock s_ec_lock;
     static u16 s_data_port = 0x62;
     static u16 s_command_port = 0x66;
     static ACPI_HANDLE s_ec_handle = nullptr;
@@ -47,16 +48,18 @@ namespace acpi::ec {
         for (int i = 0; i < 256; i++) {
             if (!(inb(s_command_port) & EC_OBF)) break;
             inb(s_data_port);
-            asm volatile("pause");
+            AcpiOsStall(10);
         }
+
         for (u32 i = 0; i < EC_TIMEOUT_US; i++) {
             if (!(inb(s_command_port) & EC_IBF)) break;
-            asm volatile("pause");
+            AcpiOsStall(1);
         }
     }
 
     static bool wait_ibf_clear() {
-        for (u32 i = 0; i < EC_TIMEOUT_US; i++) {
+        const u64 deadline = kernel::time::get_uptime_ms() + 10;
+        while (kernel::time::get_uptime_ms() < deadline) {
             if (!(inb(s_command_port) & EC_IBF)) return true;
             asm volatile("pause");
         }
@@ -65,7 +68,8 @@ namespace acpi::ec {
     }
 
     static bool wait_obf_set() {
-        for (u32 i = 0; i < EC_TIMEOUT_US; i++) {
+        const u64 deadline = kernel::time::get_uptime_ms() + 10;
+        while (kernel::time::get_uptime_ms() < deadline) {
             if (inb(s_command_port) & EC_OBF) return true;
             asm volatile("pause");
         }
@@ -74,33 +78,55 @@ namespace acpi::ec {
     }
 
     static bool ec_read(u8 offset, u8& value) {
-        if (!wait_ibf_clear()) return false;
-        outb(s_command_port, EC_CMD_READ);
-        if (!wait_ibf_clear()) return false;
-        outb(s_data_port, offset);
-        if (!wait_obf_set()) return false;
-        value = inb(s_data_port);
-        return true;
-    }
-
-    static bool ec_query_pending(u8& query_code) {
-        if (!wait_ibf_clear()) return false;
-        outb(s_command_port, EC_CMD_QUERY);
-        if (!wait_obf_set()) return false;
-        query_code = inb(s_data_port);
-        return true;
+        u64 flags = 0;
+        s_ec_lock.lock_irqsave(flags);
+        bool ok = false;
+        if (wait_ibf_clear()) {
+            outb(s_command_port, EC_CMD_READ);
+            if (wait_ibf_clear()) {
+                outb(s_data_port, offset);
+                if (wait_obf_set()) {
+                    value = inb(s_data_port);
+                    ok = true;
+                }
+            }
+        }
+        s_ec_lock.unlock_irqrestore(flags);
+        return ok;
     }
 
     static bool ec_write(u8 offset, u8 value) {
-        if (!wait_ibf_clear()) return false;
-        outb(s_command_port, EC_CMD_WRITE);
-        if (!wait_ibf_clear()) return false;
-        outb(s_data_port, offset);
-        if (!wait_ibf_clear()) return false;
-        outb(s_data_port, value);
-        return true;
+        u64 flags = 0;
+        s_ec_lock.lock_irqsave(flags);
+        bool ok = false;
+        if (wait_ibf_clear()) {
+            outb(s_command_port, EC_CMD_WRITE);
+            if (wait_ibf_clear()) {
+                outb(s_data_port, offset);
+                if (wait_ibf_clear()) {
+                    outb(s_data_port, value);
+                    ok = true;
+                }
+            }
+        }
+        s_ec_lock.unlock_irqrestore(flags);
+        return ok;
     }
 
+    static bool ec_query_pending(u8& query_code) {
+        u64 flags = 0;
+        s_ec_lock.lock_irqsave(flags);
+        bool ok = false;
+        if (wait_ibf_clear()) {
+            outb(s_command_port, EC_CMD_QUERY);
+            if (wait_obf_set()) {
+                query_code = inb(s_data_port);
+                ok = true;
+            }
+        }
+        s_ec_lock.unlock_irqrestore(flags);
+        return ok;
+    }
     static void ec_dispatch_query(u8 query_code) {
         if (query_code == 0) return;
 
@@ -216,6 +242,7 @@ namespace acpi::ec {
     }
 
     void install_space_handler() {
+        s_ec_lock.init("ec_lock");
         const ACPI_STATUS st = AcpiGetDevices(const_cast<char*>("PNP0C09"), on_ec_found_phase1, nullptr, nullptr);
         if (ACPI_FAILURE(st)) Log::error("EC: install_space_handler failed: %s", AcpiFormatException(st));
     }

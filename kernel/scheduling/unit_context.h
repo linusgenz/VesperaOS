@@ -24,11 +24,7 @@
 
 #include <vespera/types.h>
 
-// -----------------------------------------------------------------------
-// All general-purpose + iret registers saved/restored on switch
-// -----------------------------------------------------------------------
 struct UnitCpuContext {
-    // GPRs
     u64 r15, r14, r13, r12;
     u64 r11, r10, r9,  r8;
     u64 rbp, rdi, rsi, rdx, rcx, rbx, rax;
@@ -37,13 +33,11 @@ struct UnitCpuContext {
     u64 rip;
     u64 cs;
     u64 rflags;
-    u64 rsp;    // user RSP (for user units) or kernel RSP (for kernel units)
+    u64 rsp;
     u64 ss;
 };
 
-// -----------------------------------------------------------------------
-// x87 / SSE / AVX state — saved with FXSAVE, 512 bytes, must be 16-byte aligned
-// -----------------------------------------------------------------------
+
 struct alignas(16) UnitFpuState {
     u8 fxsave_area[512];
 };
@@ -57,7 +51,6 @@ inline void fpu_restore(const UnitFpuState* s) {
 }
 
 inline void fpu_init_state(UnitFpuState* s) {
-    // Zero the area then set sane FCW and MXCSR defaults
     for (usize i = 0; i < 512; ++i) s->fxsave_area[i] = 0;
     // FCW @ offset 0: 0x037F — mask all x87 exceptions, round-to-nearest, 64-bit prec
     s->fxsave_area[0] = 0x7F;
@@ -67,9 +60,6 @@ inline void fpu_init_state(UnitFpuState* s) {
     s->fxsave_area[25] = 0x1F;
 }
 
-// -----------------------------------------------------------------------
-// Save / restore between TrapFrame and UnitCpuContext
-// -----------------------------------------------------------------------
 struct TrapFrame;
 
 inline void cpu_context_save(const TrapFrame* tf, UnitCpuContext* ctx) {
