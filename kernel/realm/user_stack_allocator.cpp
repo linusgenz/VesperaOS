@@ -28,10 +28,8 @@ static constexpr uptr page_align_up(uptr v) {
 }
 
 void UserStackAllocator::init(usize slot_stack_size) {
-    // Ensure the stack size is at least one page and page-aligned.
     slot_stack_size_ = page_align_up(slot_stack_size ? slot_stack_size : 0x1000);
 
-    // Each slot = usable stack + one guard page below it.
     slot_size_ = slot_stack_size_ + GUARD_SIZE;
 
     const uptr region_size = REGION_TOP - REGION_BASE;

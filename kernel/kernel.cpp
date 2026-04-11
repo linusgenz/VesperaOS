@@ -170,10 +170,10 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         Log::error("Failed to load elf binary: %s", result.error_message);
     }
 
-    const char* argv_example[] = {"shell", "-v", "--config=config.txt", nullptr};
+    const char* argv_example[] = {"nox", "-v", "--config=config.txt", nullptr};
 
     const UnitConfig uc = {
-        .name = "shell",
+        .name = "nox",
         .cpu_id = 0,
         .priority = 10,
         .stack_size = DEFAULT_UNIT_STACK_SIZE,

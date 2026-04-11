@@ -42,7 +42,7 @@ function(vespera_bin name)
     )
 endfunction()
 
-vespera_bin(nox SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/nox/nox.c ${CMAKE_SOURCE_DIR}/userspace/bin/nox/statusbar.c)
+vespera_bin(nox SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/nox/nox.c ${CMAKE_SOURCE_DIR}/userspace/bin/nox/statusbar.c ${CMAKE_SOURCE_DIR}/userspace/bin/nox/powermon.c)
 vespera_bin(lsusb)
 vespera_bin(logd)
 vespera_bin(uptime)
@@ -75,12 +75,11 @@ vespera_bin(vesfetch)
 vespera_bin(env      SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
 vespera_bin(printenv SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
 vespera_bin(cal)
-vespera_bin(testbin)
 
 add_custom_target(elfs DEPENDS
         nox lsusb logd uptime memstat diskinfo gpuinfo
         stat vedit pipetest pipespawntest pipereader
         pipewriter mount umount mv sleep ls cat rm cp
         mkdir rmdir touch shutdown reboot pwd
-        kill env printenv find vesfetch cal testbin
+        kill env printenv find vesfetch cal
 )

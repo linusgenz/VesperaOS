@@ -1,9 +1,9 @@
-// test.c
+// powermon.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 10.04.26.
+// Created by Linus Genz on 11.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,12 +19,17 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_POWERMON_H
+#define VESPERAOS_POWERMON_H
 
-#include <stdio.h>
+/**
+ * @brief Entry point for the power-monitor background unit.
+ *
+ * Subscribes to VBUS_IFACE_POWER (BatteryChanged, AcChanged, LidChanged)
+ * and redraws the status bar on every relevant event. Additionally, polls
+ * the battery devices every POWER_MONITOR_POLL_MS milliseconds so that
+ * slow charge-percentage drift is reflected even when ACPI stays silent.
+ */
+void power_monitor_unit(void* arg);
 
-int main(int argc, char **argv) {
-    puts("started");
-    while (1) {
-
-    }
-}
+#endif  // VESPERAOS_POWERMON_H

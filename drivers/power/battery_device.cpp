@@ -89,13 +89,13 @@ void BatteryDevice::on_notify(UINT32 event) {
         batt.full_capacity_mwh = info.last_full_capacity;
     }
 
-    Log::debug(
+  /*  Log::debug(
         "[bat%u] %u%% %s%s",
         index_,
         batt.percent,
         batt.charging ? "charging" : "discharging",
         batt.critical ? " [CRITICAL]" : ""
-    );
+    );*/
 
     VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_BATTERY_CHANGED, &batt, sizeof(batt));
 }

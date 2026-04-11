@@ -82,6 +82,7 @@ namespace power {
     };
 
     static u32 s_battery_count = 0;
+    static BatteryDevice* s_batteries[8] = {};
 
     struct BatteryContext {
         u32 index;
@@ -92,7 +93,6 @@ namespace power {
         ACPI_HANDLE object, u32 /* nesting_level */, void* context, void** /* return_value */
     ) {
         auto* ctx = static_cast<BatteryContext*>(context);
-
 
         // Build device name: bat0, bat1, …
         char name[8];
@@ -113,6 +113,7 @@ namespace power {
             DevFs::register_device(kd);
             Log::ok("power: registered /dev/%s", name);
             ctx->devices[ctx->index] = bat;
+            s_batteries[ctx->index] = bat;
         } else {
             Log::error("power: failed to register /dev/%s", name);
             delete bat;
@@ -136,8 +137,14 @@ namespace power {
             AcpiOsFree(result.Pointer);
         }
 
-        Log::debug("[AC] adapter %s", ac.online ? "online" : "offline");
+      //  Log::debug("[AC] adapter %s", ac.online ? "online" : "offline");
         VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_AC_CHANGED, &ac, sizeof(ac));
+
+        for (u32 i = 0; i < s_battery_count; i++) {
+            if (s_batteries[i]) {
+                s_batteries[i]->on_notify(0x80);
+            }
+        }
     }
 
     struct AcContext {
@@ -147,8 +154,7 @@ namespace power {
 
     static ACPI_STATUS on_ac_found(ACPI_HANDLE object, u32, void* context, void**) {
         auto* ctx = static_cast<AcContext*>(context);
-        if (ctx->count < 4)
-            ctx->handles[ctx->count] = object;
+        if (ctx->count < 4) ctx->handles[ctx->count] = object;
         ctx->count++;
         return AE_OK;
     }
@@ -167,7 +173,7 @@ namespace power {
             AcpiOsFree(result.Pointer);
         }
 
-        Log::debug("[LID] %s", lid.open ? "opened" : "closed");
+        //Log::debug("[LID] %s", lid.open ? "opened" : "closed");
         VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_LID_CHANGED, &lid, sizeof(lid));
     }
 
@@ -198,8 +204,8 @@ namespace power {
         AcpiGetDevices(const_cast<char*>("ACPI0003"), on_ac_found, &ac_ctx, nullptr);
 
         for (u32 i = 0; i < ac_ctx.count; i++) {
-            const ACPI_STATUS st = AcpiInstallNotifyHandler(
-                ac_ctx.handles[i], ACPI_ALL_NOTIFY, ac_notify_handler, nullptr);
+            const ACPI_STATUS st =
+                AcpiInstallNotifyHandler(ac_ctx.handles[i], ACPI_ALL_NOTIFY, ac_notify_handler, nullptr);
             if (ACPI_FAILURE(st)) {
                 Log::warning("power: AC notify install failed: %u", st);
             }

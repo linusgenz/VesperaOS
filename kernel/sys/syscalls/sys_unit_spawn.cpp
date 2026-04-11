@@ -26,11 +26,9 @@
 #include <vespera_errno.h>
 
 #include "../kernel/units/unit_manager.h"
-#include "vespera/log.h"
 
 namespace syscalls::internal {
-
-    constexpr size_t MIN_STACK_SIZE = 16 * 1024;
+    constexpr size_t MIN_STACK_SIZE = static_cast<usize>(16) * 1024;
     i64 sys_unit_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64) {
         const u64 entry = arg1;
         const u64 arg_ptr = arg2;
@@ -40,13 +38,12 @@ namespace syscalls::internal {
         // flags, for future use
         if (flags != 0) return -EINVAL;
         if (entry == 0) return -EINVAL;
-        if (stack_sz < MIN_STACK_SIZE || stack_sz > DEFAULT_UNIT_STACK_SIZE)
-            return -EINVAL;
+        if ((stack_sz < MIN_STACK_SIZE && stack_sz != 0) || stack_sz > DEFAULT_UNIT_STACK_SIZE) return -EINVAL;
 
         const Unit* caller = kernel::scheduling::get_current_unit();
         if (!caller) return -EINVAL;
 
-        const RealmId target_rid = (arg0 == 0) ? caller->rid : static_cast<RealmId>(arg0);
+        const RealmId target_rid = (arg0 == 0) ? caller->rid : arg0;
 
         // adding cross-realm spawning later
         if (target_rid != caller->rid) return -EACCES;

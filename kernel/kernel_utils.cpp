@@ -176,6 +176,7 @@ static void initialize_user_space_interfaces() {
     kernel::tty::initialize_ttys();
     initialize_pseudo_devices();
     VFS::remount_all();
+    Log::debug("remount done");
     if (VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf")) {
         Log::debug("font node: %p", font_node);
         const usize font_size = font_node->size;
