@@ -10,6 +10,7 @@
 #include <vespera/devices/driver_lifecycle.h>
 #include <vespera/devices/smart_device.h>
 
+#include "../../kernel/io/block_io_queue.h"
 #include "../pci/pci.h"
 #include "nvme_defs.h"
 #include "vespera/devices/device_info.h"
@@ -88,10 +89,20 @@ namespace nvme {
             namespace_mutex_.init();
         }
 
+        ~NvmeNamespace() override {
+            stop_io_worker();
+        }
+
         KernelDevice* kd{};
 
+        void start_io_worker(u8 cpu_id);
+        void stop_io_worker();
+        static void io_worker_entry(void* arg);
         isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
         isize write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) override;
+
+        isize do_read(u64 lba, usize sector_count, void* buffer, usize buffer_size) const;
+        isize do_write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) const;
 
         [[nodiscard]] usize get_size() const override {
             return sector_size_ * ncap_;
@@ -104,10 +115,12 @@ namespace nvme {
         [[nodiscard]] bool supports_trim() const override {
             return has_trim_;
         }
+
         bool trim(const TrimRange* ranges, usize count) override;
 
        private:
         u32 ns_id_;
+        BlockIoQueue io_queue_;
         NvmeQueue* queue_;
         u32 sector_size_;
         u64 ncap_;

@@ -117,9 +117,8 @@ bool Semaphore::wait(u16 timeout_ms) {
         lock_.unlock();
 
         while (cur->state == UnitState::Blocked) {
-            asm volatile("pause");
+            kernel::scheduling::yield();
         }
-        // use yield later here
 
         return true;
     }

@@ -5,12 +5,15 @@
 #include "nvme.h"
 
 #include <vespera/devices/device_manager.h>
+#include <vespera/filesystem/devfs.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
-#include <vespera/filesystem/devfs.h>
+#include "../../kernel/io/block_io_queue.h"
+#include "../../kernel/units/unit_manager.h"
 #include "vespera/scheduling.h"
+#include "vespera/unit_config.h"
 #include "vespera_errno.h"
 
 namespace nvme {
@@ -147,6 +150,7 @@ namespace nvme {
 
             bool supports_dsm = controller_identity_->oncs.dataset_management;
             auto* ns = new NvmeNamespace(namespace_id, &io_queue_, ns_identify, supports_dsm);
+            ns->start_io_worker(4);
 
             char name_namespace[32];
             DeviceManager::generate_nvme_device_name(kd_, name_namespace, sizeof(name_namespace), namespace_id);
@@ -398,8 +402,8 @@ namespace nvme {
     }
 
     NvmeQueue::NvmeQueue(
-        const u16 qid, const phys_addr_t cq_base, const phys_addr_t sq_base, const virt_addr_t cq, const virt_addr_t sq, volatile u32* cq_db,
-        volatile u32* sq_db, const u16 csz, const u16 ssz
+        const u16 qid, const phys_addr_t cq_base, const phys_addr_t sq_base, const virt_addr_t cq, const virt_addr_t sq,
+        volatile u32* cq_db, volatile u32* sq_db, const u16 csz, const u16 ssz
     )
         : queue_id_(qid)
         , completion_base_(cq_base)
@@ -612,17 +616,94 @@ namespace nvme {
         return true;
     }
 
-    isize NvmeNamespace::read(u64 lba, usize sector_count, void* buffer, usize buffer_size) {
-        usize bytes = sector_count * sector_size_;
+    void NvmeNamespace::start_io_worker(const u8 cpu_id) {
+        io_queue_.init();
+
+        char unit_name[28];
+        snprintf(unit_name, sizeof(unit_name), "nvme-io-ns%u", ns_id_);
+
+        const UnitConfig cfg = {
+            .name = unit_name,
+            .cpu_id = cpu_id,
+            .priority = 4,
+            .stack_size = 0x4000,
+            .initial_handles = nullptr,
+            .initial_handle_count = 0,
+            .is_idle = false,
+            .is_user = false,
+            .user_stack_size = 0,
+        };
+
+        const Unit* unit = UnitManager::create(KERNEL_REALM_DRIVER, io_worker_entry, this, &cfg);
+        if (!unit) {
+            Log::error("[NVMe] Namespace %u: failed to spawn I/O worker", ns_id_);
+        }
+    }
+
+    void NvmeNamespace::stop_io_worker() {
+        io_queue_.shutdown();
+    }
+
+    void NvmeNamespace::io_worker_entry(void* arg) {
+        auto* ns = static_cast<NvmeNamespace*>(arg);
+
+        while (true) {
+            BlockIoRequest* req = ns->io_queue_.dequeue_blocking();
+            if (!req) break;
+
+            switch (req->op) {
+                case BlockIoOp::Read:
+                    req->result = ns->do_read(req->lba, req->sector_count, req->buffer, req->buffer_size);
+                    break;
+                case BlockIoOp::Write:
+                    req->result = ns->do_write(req->lba, req->sector_count, req->buffer, req->buffer_size);
+                    break;
+                case BlockIoOp::Flush:
+                    req->result = 0;  // NVMe flushes implicitly; add FUA if needed
+                    break;
+            }
+
+            req->done.signal();
+        }
+    }
+
+    isize NvmeNamespace::read(const u64 lba, const usize sector_count, void* buffer, const usize buffer_size) {
+        BlockIoRequest req;
+        req.op = BlockIoOp::Read;
+        req.lba = lba;
+        req.sector_count = sector_count;
+        req.buffer = buffer;
+        req.buffer_size = buffer_size;
+        req.done.init(1, 0);
+
+        io_queue_.submit(&req);
+        req.done.wait();
+        return req.result;
+    }
+
+    isize NvmeNamespace::write(const u64 lba, const usize sector_count, const void* buffer, const usize buffer_size) {
+        BlockIoRequest req;
+        req.op = BlockIoOp::Write;
+        req.lba = lba;
+        req.sector_count = sector_count;
+        req.buffer = const_cast<void*>(buffer);
+        req.buffer_size = buffer_size;
+        req.done.init(1, 0);
+
+        io_queue_.submit(&req);
+        req.done.wait();
+        return req.result;
+    }
+
+    isize NvmeNamespace::do_read(const u64 lba, const usize sector_count, void* buffer, const usize buffer_size) const {
+        const usize bytes = sector_count * sector_size_;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 
-        kernel::MutexGuard guard(namespace_mutex_);
-
-        usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
-        phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
+        const usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        const phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
         if (phys_null(dma_phys)) return -ENOMEM;
 
-        virt_addr_t dma_virt = phys_to_virt(dma_phys);
+        const virt_addr_t dma_virt = phys_to_virt(dma_phys);
 
         NVME_COMMAND read_cmd = {};
         read_cmd.cdw0.opc = NVME_NVM_COMMAND_READ;
@@ -642,8 +723,7 @@ namespace nvme {
         queue_->submit_wait(read_cmd, completion);
 
         if (pages > 2) {
-            phys_addr_t prp_list = make_phys(read_cmd.prp2);
-            kernel::memory::free_page_phys(prp_list);
+            kernel::memory::free_page_phys(make_phys(read_cmd.prp2));
         }
 
         if (completion.dw3.status > 0) {
@@ -653,28 +733,25 @@ namespace nvme {
         }
 
         memcpy(buffer, virt_ptr(dma_virt), bytes);
-
         kernel::memory::free_pages_phys(dma_phys, pages);
-
         return static_cast<isize>(bytes);
     }
 
-    isize NvmeNamespace::write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) {
-        usize bytes = sector_count * sector_size_;
+    isize NvmeNamespace::do_write(
+        const u64 lba, const usize sector_count, const void* buffer, const usize buffer_size
+    ) const {
+        const usize bytes = sector_count * sector_size_;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 
-        kernel::MutexGuard guard(namespace_mutex_);
-
-        usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
-        phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
+        const usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+        const phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
         if (phys_null(dma_phys)) return -ENOMEM;
 
-        virt_addr_t dma_virt = phys_to_virt(dma_phys);
-
+        const virt_addr_t dma_virt = phys_to_virt(dma_phys);
         memcpy(virt_ptr(dma_virt), buffer, bytes);
 
         NVME_COMMAND write_cmd = {};
-        write_cmd.cdw0.opc = NVME_NVM_COMMAND_WRITE;  // NVM Write
+        write_cmd.cdw0.opc = NVME_NVM_COMMAND_WRITE;
         write_cmd.nsid = ns_id_;
         write_cmd.prp1 = phys_raw(dma_phys);
         write_cmd.prp2 = setup_prp2(dma_phys, pages);
@@ -691,8 +768,7 @@ namespace nvme {
         queue_->submit_wait(write_cmd, completion);
 
         if (pages > 2) {
-            phys_addr_t prp_list = make_phys(write_cmd.prp2);
-            kernel::memory::free_page_phys(prp_list);
+            kernel::memory::free_page_phys(make_phys(write_cmd.prp2));
         }
 
         kernel::memory::free_pages_phys(dma_phys, pages);

@@ -6,7 +6,7 @@
 #include <vespera/sync/mutex.h>
 
 #include "../../arch/x86_64/interrupts/idt.h"
-#include <vespera/filesystem/devfs.h>
+#include "../../kernel/io/block_io_queue.h"
 #include "../pci/pci.h"
 #include "ata.h"
 #include "uapi/vespera/dev/ioctl_smart.h"
@@ -212,6 +212,8 @@ namespace ahci {
         bool has_smart_ = false;
         bool has_trim_ = false;
 
+        BlockIoQueue io_queue_;
+
        public:
         u8 vector = 0;
 
@@ -239,8 +241,14 @@ namespace ahci {
         [[nodiscard]] bool write_cache_enabled() const;
 
         isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;
-
         isize write(u64 sector, usize sector_count, const void* buffer, usize buffer_size) override;
+
+        isize do_write(u64 sector, usize sector_count, const void* buffer, usize buffer_size);
+        isize do_read(u64 lba, usize sector_count, void* buffer, usize buffer_size);
+
+        void start_io_worker(u8 cpu_id);
+        void stop_io_worker();
+        static void io_worker_entry(void* arg);
 
         [[nodiscard]] usize get_sector_size() const override;
         bool smart_read_data(u8* out_buf) override;

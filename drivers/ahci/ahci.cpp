@@ -8,10 +8,12 @@
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
+#include "../../kernel/units/unit_manager.h"
 #include "../pci/msi.h"
 #include "../pci/msix.h"
 #include "ata.h"
 #include "vespera/scheduling.h"
+#include "vespera/unit_config.h"
 
 namespace ahci {
 #define HBA_PORT_DEV_PRESENT 0x3
@@ -174,6 +176,8 @@ namespace ahci {
 
         DevFs::unregister_device(kd);
         DeviceManager::unregister_device(kd);
+
+        stop_io_worker();
     }
 
     void Port::stop_cmd() const {
@@ -619,11 +623,37 @@ namespace ahci {
         return true;
     }
 
-    isize Port::read(const u64 lba, const usize sector_count, void* buffer, usize buffer_size) {
-        usize bytes = static_cast<usize>(sector_count) * sector_size;
-        if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
+    isize Port::read(const u64 lba, const usize sector_count, void* buffer, const usize buffer_size) {
+        BlockIoRequest req;
+        req.op = BlockIoOp::Read;
+        req.lba = lba;
+        req.sector_count = sector_count;
+        req.buffer = buffer;
+        req.buffer_size = buffer_size;
+        req.done.init(1, 0);
 
-        kernel::MutexGuard guard(port_mutex_);
+        io_queue_.submit(&req);
+        req.done.wait();
+        return req.result;
+    }
+
+    isize Port::write(const u64 sector, const usize sector_count, const void* buffer, const usize buffer_size) {
+        BlockIoRequest req;
+        req.op = BlockIoOp::Write;
+        req.lba = sector;
+        req.sector_count = sector_count;
+        req.buffer = const_cast<void*>(buffer);
+        req.buffer_size = buffer_size;
+        req.done.init(1, 0);
+
+        io_queue_.submit(&req);
+        req.done.wait();
+        return req.result;
+    }
+
+    isize Port::do_read(const u64 lba, const usize sector_count, void* buffer, const usize buffer_size) {
+        const usize bytes = sector_count * sector_size;
+        if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
 
         usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
         phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
@@ -635,14 +665,14 @@ namespace ahci {
 
         hba_port->interrupt_status = 0xFFFFFFFF;
 
-        phys_addr_t cmd_list_phys =
+        const phys_addr_t cmd_list_phys =
             make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
         cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 0;
         cmd_header->prdt_length = 1;
 
-        phys_addr_t cmd_table_phys = make_phys(
+        const phys_addr_t cmd_table_phys = make_phys(
             static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
             cmd_header->command_table_base_address
         );
@@ -658,14 +688,12 @@ namespace ahci {
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_READ_DMA_EX;
-
         cmd_fis->lba0 = static_cast<u8>(sector_l);
         cmd_fis->lba1 = static_cast<u8>(sector_l >> 8);
         cmd_fis->lba2 = static_cast<u8>(sector_l >> 16);
         cmd_fis->lba3 = static_cast<u8>(sector_l >> 24);
         cmd_fis->lba4 = static_cast<u8>(sector_h & 0xFF);
         cmd_fis->lba5 = static_cast<u8>(sector_h >> 8 & 0xFF);
-
         cmd_fis->device_register = 1 << 6;
         cmd_fis->count_low = sector_count & 0xFF;
         cmd_fis->count_high = sector_count >> 8 & 0xFF;
@@ -674,7 +702,9 @@ namespace ahci {
         last_error = false;
         hba_port->command_issue = 1 << 0;
 
-        while (!command_completed) asm volatile("pause");
+        while (!command_completed) {
+            kernel::scheduling::yield();
+        };
 
         if (last_error) {
             kernel::memory::free_pages_phys(dma_phys, pages);
@@ -687,11 +717,9 @@ namespace ahci {
         return static_cast<isize>(bytes);
     }
 
-    isize Port::write(const u64 sector, const usize sector_count, const void* buffer, usize buffer_size) {
-        usize bytes = static_cast<usize>(sector_count) * sector_size;
+    isize Port::do_write(const u64 sector, const usize sector_count, const void* buffer, const usize buffer_size) {
+        const usize bytes = sector_count * sector_size;
         if (!buffer || sector_count == 0 || buffer_size < bytes) return -EINVAL;
-
-        kernel::MutexGuard guard(port_mutex_);
 
         usize pages = (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
         phys_addr_t dma_phys = kernel::memory::request_pages_phys(pages);
@@ -705,14 +733,14 @@ namespace ahci {
 
         hba_port->interrupt_status = static_cast<u32>(-1);
 
-        phys_addr_t cmd_list_phys =
+        const phys_addr_t cmd_list_phys =
             make_phys(static_cast<u64>(hba_port->command_list_base_upper) << 32 | hba_port->command_list_base);
         auto* cmd_header = static_cast<HBA_COMMAND_HEADER*>(virt_ptr(phys_to_virt(cmd_list_phys)));
         cmd_header->command_fis_length = sizeof(FIS_REG_H2D) / sizeof(u32);
         cmd_header->write = 1;
         cmd_header->prdt_length = 1;
 
-        phys_addr_t cmd_table_phys = make_phys(
+        const phys_addr_t cmd_table_phys = make_phys(
             static_cast<u64>(cmd_header->command_table_base_address_upper) << 32 |
             cmd_header->command_table_base_address
         );
@@ -728,14 +756,12 @@ namespace ahci {
         cmd_fis->fis_type = FIS_TYPE_REG_H2D;
         cmd_fis->command_control = 1;
         cmd_fis->command = ATA_CMD_WRITE_DMA_EX;
-
         cmd_fis->lba0 = static_cast<u8>(sector_l);
         cmd_fis->lba1 = static_cast<u8>(sector_l >> 8);
         cmd_fis->lba2 = static_cast<u8>(sector_l >> 16);
         cmd_fis->lba3 = static_cast<u8>(sector_l >> 24);
         cmd_fis->lba4 = static_cast<u8>(sector_h & 0xFF);
         cmd_fis->lba5 = static_cast<u8>(sector_h >> 8 & 0xFF);
-
         cmd_fis->device_register = 1 << 6;
         cmd_fis->count_low = sector_count & 0xFF;
         cmd_fis->count_high = sector_count >> 8 & 0xFF;
@@ -744,7 +770,9 @@ namespace ahci {
         last_error = false;
         hba_port->command_issue = 1 << 0;
 
-        while (!command_completed) asm volatile("pause");
+        while (!command_completed) {
+            kernel::scheduling::yield();
+        };
 
         if (last_error) {
             kernel::memory::free_pages_phys(dma_phys, pages);
@@ -754,6 +782,57 @@ namespace ahci {
 
         kernel::memory::free_pages_phys(dma_phys, pages);
         return static_cast<isize>(bytes);
+    }
+
+    void Port::start_io_worker(const u8 cpu_id) {
+        io_queue_.init();
+
+        char unit_name[24];
+        snprintf(unit_name, sizeof(unit_name), "ahci-io-%u", port_number);
+
+        const UnitConfig cfg = {
+            .name = unit_name,
+            .cpu_id = cpu_id,
+            .priority = 4,
+            .stack_size = 0x4000,
+            .initial_handles = nullptr,
+            .initial_handle_count = 0,
+            .is_idle = false,
+            .is_user = false,
+            .user_stack_size = 0,
+        };
+
+        const Unit* unit = UnitManager::create(KERNEL_REALM_DRIVER, io_worker_entry, this, &cfg);
+        if (!unit) {
+            Log::error("[ AHCI ] Port %u: failed to spawn I/O worker", port_number);
+        }
+    }
+
+    void Port::stop_io_worker() {
+        io_queue_.shutdown();
+    }
+
+    void Port::io_worker_entry(void* arg) {
+        auto* port = static_cast<Port*>(arg);
+
+        while (true) {
+            BlockIoRequest* req = port->io_queue_.dequeue_blocking();
+            if (!req) break;  // shutdown() was called
+
+            switch (req->op) {
+                case BlockIoOp::Read:
+                    req->result = port->do_read(req->lba, req->sector_count, req->buffer, req->buffer_size);
+                    break;
+                case BlockIoOp::Write:
+                    req->result = port->do_write(req->lba, req->sector_count, req->buffer, req->buffer_size);
+                    break;
+                case BlockIoOp::Flush:
+                    req->result = port->flush() ? 0 : -EIO;
+                    break;
+            }
+
+            req->done.signal();
+        }
     }
 
     AhciDriver::AhciDriver(pci::PCI_DEVICE_HEADER* pci_base_address)
@@ -776,9 +855,7 @@ namespace ahci {
 
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
-        kernel::memory::map_memory(
-            make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough
-        );
+        kernel::memory::map_memory(make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough);
 
         probe_ports();
 
@@ -798,6 +875,7 @@ namespace ahci {
             port->configure();
             port->enable_interrupts();
             port->identify();
+            port->start_io_worker(4);
 
             char name_buf[16] = {};
             DeviceManager::generate_sd_device_name(name_buf, sizeof(name_buf));
