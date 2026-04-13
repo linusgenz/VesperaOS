@@ -222,27 +222,6 @@ int sscanf(const char* str, const char* format, ...) {
     return matches;
 }
 
-int putchar(int c) {
-    char ch = (char)c;
-    return (int)sys_write(stdout, (uint64_t)&ch, 1, 0, 0, 0);
-}
-
-int puts(const char* s) {
-    if (!s) return -1;
-
-    size_t len = 0;
-    while (s[len]) len++;
-
-    int ret = (int)sys_write(stdout, (uint64_t)s, len, 0, 0, 0);
-    if (ret < 0) return ret;
-
-    char nl = '\n';
-    int ret2 = (int)sys_write(stdout, (uint64_t)&nl, 1, 0, 0, 0);
-    if (ret2 < 0) return ret2;
-
-    return 0;
-}
-
 int getchar(void) {
     char ch = 0;
     int ret = (int)sys_read(stdin, (uint64_t)&ch, 1, 0, 0, 0);
@@ -276,7 +255,9 @@ static void sink_putc(sink_t* s, char c) {
     s->written++;
     if (s->type == SINK_CONSOLE) {
         printf_buffer[printf_pos++] = c;
-        if (printf_pos == PRINTF_BUFFER_SIZE) flush_printf_buffer();
+        if (printf_pos == PRINTF_BUFFER_SIZE || c == '\n') {
+            flush_printf_buffer();
+        }
     } else {
         if (s->pos < s->size - 1) s->buf[s->pos++] = c;
     }
@@ -477,6 +458,22 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
     }
 }
 
+int puts(const char* s) {
+    if (!s) return -1;
+
+    sink_t sk = {.type = SINK_CONSOLE};
+    sink_puts(&sk, s);
+    sink_putc(&sk, '\n');
+    flush_printf_buffer();
+    return 0;
+}
+
+int putchar(int c) {
+    sink_t s = {.type = SINK_CONSOLE};
+    sink_putc(&s, (char)c);
+    return c;
+}
+
 void printf(const char* fmt, ...) {
     sink_t s;
     s.type = SINK_CONSOLE;
@@ -484,7 +481,6 @@ void printf(const char* fmt, ...) {
     __builtin_va_start(args, fmt);
     vformat_write(&s, fmt, args);
     __builtin_va_end(args);
-    flush_printf_buffer();
 }
 
 size_t snprintf(char* buffer, size_t size, const char* fmt, ...) {
@@ -589,9 +585,11 @@ int ferror(FILE* f) {
     return f->error;
 }
 
-// stub
 int fflush(FILE* f) {
-    if (!f) return -1;
+    if (f == NULL || (FILE_HANDLE)(uintptr_t)f == stdout) {
+        flush_printf_buffer();
+        return 0;
+    }
     return 0;
 }
 

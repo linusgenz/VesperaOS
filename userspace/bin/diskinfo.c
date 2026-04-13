@@ -60,19 +60,19 @@ static void print_temp(uint8_t celsius) {
 
 static void print_u64(const char* label, uint64_t val) {
     char buf[128];
-    snprintf(buf, sizeof(buf), "  %-22s%lu\n", label, (uint64_t)val);
+    snprintf(buf, sizeof(buf), "  %-22s%lu", label, (uint64_t)val);
     puts(buf);
 }
 
 static void print_u32(const char* label, uint32_t val) {
     char buf[128];
-    snprintf(buf, sizeof(buf), "  %-22s%u\n", label, val);
+    snprintf(buf, sizeof(buf), "  %-22s%u", label, val);
     puts(buf);
 }
 
 static void print_u8_pct(const char* label, uint8_t val) {
     char buf[128];
-    snprintf(buf, sizeof(buf), "  %-22s%u %%\n", label, val);
+    snprintf(buf, sizeof(buf), "  %-22s%u %%", label, val);
     puts(buf);
 }
 

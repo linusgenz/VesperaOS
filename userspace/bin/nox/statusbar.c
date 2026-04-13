@@ -171,6 +171,7 @@ void statusbar_draw(void) {
     printf(C_RESET);
 
     printf("\033[u");
+    fflush(NULL);
 }
 
 void statusbar_set_message(const char* msg) {

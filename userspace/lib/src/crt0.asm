@@ -4,7 +4,7 @@ extern init_environ
 extern stdin
 extern stdout
 extern stderr
-extern sys_exit
+extern exit
 
 %define HANDLE_TYPE_TTY 0x1000000000000000
 %define HANDLE_STDIN        (HANDLE_TYPE_TTY | 0)
@@ -38,11 +38,6 @@ _start:
     call main
 
     mov  rdi, rax            ; return code
-    xor  rsi, rsi
-    xor  rdx, rdx
-    xor  rcx, rcx
-    xor  r8,  r8
-    xor  r9,  r9
-    call sys_exit
+    call exit
 
     jmp $
