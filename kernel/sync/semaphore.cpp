@@ -106,10 +106,10 @@ bool Semaphore::wait(u16 timeout_ms) {
             }
         }
 
-        auto* w  = static_cast<Waiter*>(kernel::memory::malloc(sizeof(Waiter)));
-        w->unit  = cur;
-        w->next  = nullptr;
-        push_waiter(w);
+        Waiter w;
+        w.unit = cur;
+        w.next = nullptr;
+        push_waiter(&w);
 
         cur->state = UnitState::Blocked;
         kernel::scheduling::remove_unit(cur);
@@ -134,7 +134,6 @@ void Semaphore::signal(u32 units) {
             Waiter* w = pop_waiter();
             if (w) {
                 to_wake = w->unit;
-                kernel::memory::free(w);
             } else {
                 if (count_ < max_count_) {
                     ++count_;

@@ -25,42 +25,45 @@
 #include <acpi/acpi.h>
 #include <vespera/cpu/io.h>
 #include <vespera/log.h>
+#include <vespera/sync/semaphore.h>
+#include <vespera/time.h>
+#include <vespera/unit_config.h>
 
+#include "../units/unit_manager.h"
 #include "klib/string.h"
-#include "vespera/time.h"
 
 namespace acpi::ec {
-    static Spinlock s_ec_lock;
-    static u16 s_data_port = 0x62;
-    static u16 s_command_port = 0x66;
-    static ACPI_HANDLE s_ec_handle = nullptr;
-    static u32 s_ec_gpe = 0x16;
 
-    static constexpr u32 EC_TIMEOUT_US = 10000;
-    static constexpr u8 EC_OBF = (1 << 0);
-    static constexpr u8 EC_IBF = (1 << 1);
+    static constexpr u8 EC_SC_OBF = (1u << 0);      // Output Buffer Full
+    static constexpr u8 EC_SC_IBF = (1u << 1);      // Input Buffer Full
+    static constexpr u8 EC_SC_SCI_EVT = (1u << 5);  // SCI Event pending
+
+    // EC commands (ACPI Spec 12.4)
     static constexpr u8 EC_CMD_READ = 0x80;
     static constexpr u8 EC_CMD_WRITE = 0x81;
-    static constexpr u8 EC_CMD_QUERY = 0x84;
+    static constexpr u8 EC_CMD_QUERY = 0x84;  // QR_EC
 
-    // Drains any stale OBF bytes and waits for IBF to clear.
-    static void ec_reset_state() {
-        for (int i = 0; i < 256; i++) {
-            if (!(inb(s_command_port) & EC_OBF)) break;
-            inb(s_data_port);
-            AcpiOsStall(10);
-        }
+    static constexpr u64 EC_POLL_TIMEOUT_MS = 500;
 
-        for (u32 i = 0; i < EC_TIMEOUT_US; i++) {
-            if (!(inb(s_command_port) & EC_IBF)) break;
-            AcpiOsStall(1);
-        }
+    // Maximale Queries pro Worker-Durchlauf (Schutz gegen Event-Akkumulation)
+    static constexpr int EC_MAX_DRAIN = 16;
+
+    static Spinlock s_ec_lock;
+    static Semaphore s_gpe_sem;
+
+    static u16 s_data_port = 0x62;
+    static u16 s_cmd_port = 0x66;
+    static u32 s_ec_gpe = 0x16;
+    static ACPI_HANDLE s_ec_handle = nullptr;
+
+    static u8 ec_read_status() {
+        return inb(s_cmd_port);
     }
 
     static bool wait_ibf_clear() {
-        const u64 deadline = kernel::time::get_uptime_ms() + 10;
+        const u64 deadline = kernel::time::get_uptime_ms() + EC_POLL_TIMEOUT_MS;
         while (kernel::time::get_uptime_ms() < deadline) {
-            if (!(inb(s_command_port) & EC_IBF)) return true;
+            if (!(ec_read_status() & EC_SC_IBF)) return true;
             asm volatile("pause");
         }
         Log::error("EC: IBF timeout");
@@ -68,65 +71,62 @@ namespace acpi::ec {
     }
 
     static bool wait_obf_set() {
-        const u64 deadline = kernel::time::get_uptime_ms() + 10;
+        const u64 deadline = kernel::time::get_uptime_ms() + EC_POLL_TIMEOUT_MS;
         while (kernel::time::get_uptime_ms() < deadline) {
-            if (inb(s_command_port) & EC_OBF) return true;
+            if (ec_read_status() & EC_SC_OBF) return true;
             asm volatile("pause");
         }
         Log::error("EC: OBF timeout");
         return false;
     }
 
-    static bool ec_read(u8 offset, u8& value) {
-        u64 flags = 0;
-        s_ec_lock.lock_irqsave(flags);
-        bool ok = false;
-        if (wait_ibf_clear()) {
-            outb(s_command_port, EC_CMD_READ);
-            if (wait_ibf_clear()) {
-                outb(s_data_port, offset);
-                if (wait_obf_set()) {
-                    value = inb(s_data_port);
-                    ok = true;
-                }
-            }
+    // Leert den Output-Buffer des EC, falls er beim Start bereits Daten enthält.
+    // Muss vor der ersten Transaktion aufgerufen werden.
+    static void ec_drain_obf() {
+        for (int i = 0; i < 256; i++) {
+            if (!(ec_read_status() & EC_SC_OBF)) break;
+            inb(s_data_port);
+            AcpiOsStall(10);
         }
-        s_ec_lock.unlock_irqrestore(flags);
-        return ok;
+    }
+
+    // -------------------------------------------------------------------------
+    // EC-Protokoll
+    // -------------------------------------------------------------------------
+
+    static bool ec_read(u8 offset, u8& value) {
+        SpinlockGuard g(s_ec_lock);
+        if (!wait_ibf_clear()) return false;
+        outb(s_cmd_port, EC_CMD_READ);
+        if (!wait_ibf_clear()) return false;
+        outb(s_data_port, offset);
+        if (!wait_obf_set()) return false;
+        value = inb(s_data_port);
+        return true;
     }
 
     static bool ec_write(u8 offset, u8 value) {
-        u64 flags = 0;
-        s_ec_lock.lock_irqsave(flags);
-        bool ok = false;
-        if (wait_ibf_clear()) {
-            outb(s_command_port, EC_CMD_WRITE);
-            if (wait_ibf_clear()) {
-                outb(s_data_port, offset);
-                if (wait_ibf_clear()) {
-                    outb(s_data_port, value);
-                    ok = true;
-                }
-            }
-        }
-        s_ec_lock.unlock_irqrestore(flags);
-        return ok;
+        SpinlockGuard g(s_ec_lock);
+        if (!wait_ibf_clear()) return false;
+        outb(s_cmd_port, EC_CMD_WRITE);
+        if (!wait_ibf_clear()) return false;
+        outb(s_data_port, offset);
+        if (!wait_ibf_clear()) return false;
+        outb(s_data_port, value);
+        return true;
     }
 
-    static bool ec_query_pending(u8& query_code) {
-        u64 flags = 0;
-        s_ec_lock.lock_irqsave(flags);
-        bool ok = false;
-        if (wait_ibf_clear()) {
-            outb(s_command_port, EC_CMD_QUERY);
-            if (wait_obf_set()) {
-                query_code = inb(s_data_port);
-                ok = true;
-            }
+    static u8 ec_query() {
+        SpinlockGuard g(s_ec_lock);
+        if (!wait_ibf_clear()) return 0;
+        outb(s_cmd_port, EC_CMD_QUERY);
+
+        for (int retry = 0; retry < 3; retry++) {
+            if (wait_obf_set()) return inb(s_data_port);
         }
-        s_ec_lock.unlock_irqrestore(flags);
-        return ok;
+        return 0;
     }
+
     static void ec_dispatch_query(u8 query_code) {
         if (query_code == 0) return;
 
@@ -135,39 +135,51 @@ namespace acpi::ec {
 
         const ACPI_STATUS st = AcpiEvaluateObject(s_ec_handle, method, nullptr, nullptr);
         if (ACPI_FAILURE(st) && st != AE_NOT_FOUND) {
-            Log::warning("EC: %s failed: %s", method, AcpiFormatException(st));
+            Log::warning("EC: %s: %s", method, AcpiFormatException(st));
         }
     }
 
-    struct EcQueryTask {
-        u8 query_code;
-    };
+    static bool ec_drain_queries() {
+        bool handled_any = false;
 
-    static void ec_query_task(void* ctx) {
-        auto* task = static_cast<EcQueryTask*>(ctx);
-        ec_dispatch_query(task->query_code);
-        AcpiOsFree(task);
-    }
+        for (int i = 0; i < EC_MAX_DRAIN; i++) {
+            // Prüfe zuerst ob noch SCI_EVT gesetzt ist (ohne Lock, nur Hint)
+            if (!(ec_read_status() & EC_SC_SCI_EVT)) break;
 
-    // Installed via AcpiInstallGpeRawHandler so ACPICA never touches this
-    // GPE entry again — it will not auto-disable it after the first firing.
-    static UINT32 ec_gpe_handler(ACPI_HANDLE /*device*/, UINT32 /*gpe*/, void* /*ctx*/) {
-        u8 query_code = 0;
-        if (!ec_query_pending(query_code)) {
-            return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
+            const u8 query_code = ec_query();
+            if (query_code == 0) break;
+
+            ec_dispatch_query(query_code);
+            handled_any = true;
         }
 
-        if (query_code != 0) {
-            auto* task = static_cast<EcQueryTask*>(AcpiOsAllocate(sizeof(EcQueryTask)));
-            if (task) {
-                task->query_code = query_code;
-                AcpiOsExecute(OSL_EC_POLL_HANDLER, ec_query_task, task);
-            } else {
-                Log::error("EC: GPE handler OOM");
+        return handled_any;
+    }
+
+    static void ec_worker_thread(void* /*arg*/) {
+        while (true) {
+            s_gpe_sem.wait(0xFFFF);
+
+            ec_drain_queries();
+
+            const ACPI_STATUS st = AcpiFinishGpe(nullptr, s_ec_gpe);
+            if (ACPI_FAILURE(st)) {
+                Log::error("EC: AcpiFinishGpe failed: %s", AcpiFormatException(st));
+                AcpiEnableGpe(nullptr, s_ec_gpe);
             }
         }
+    }
 
-        return ACPI_INTERRUPT_HANDLED | ACPI_REENABLE_GPE;
+    static UINT32 ec_gpe_handler(ACPI_HANDLE /*device*/, UINT32 /*gpe*/, void* /*ctx*/) {
+        const u8 status = ec_read_status();
+        if (!(status & EC_SC_SCI_EVT)) {
+            AcpiFinishGpe(nullptr, s_ec_gpe);
+            return ACPI_INTERRUPT_HANDLED;
+        }
+
+        s_gpe_sem.signal(1);
+
+        return ACPI_INTERRUPT_HANDLED;
     }
 
     static ACPI_STATUS ec_space_handler(
@@ -193,10 +205,8 @@ namespace acpi::ec {
         return AE_OK;
     }
 
-    static ACPI_STATUS on_ec_found_phase1(ACPI_HANDLE object, UINT32, void*, void**) {
-        ec_reset_state();
-
-        // Read port addresses from _CRS
+    static ACPI_STATUS on_ec_found(ACPI_HANDLE object, UINT32 /*level*/, void* /*ctx*/, void** /*ret*/) {
+        // I/O-Ports aus _CRS lesen
         {
             ACPI_BUFFER buf = {ACPI_ALLOCATE_BUFFER, nullptr};
             if (ACPI_SUCCESS(AcpiGetCurrentResources(object, &buf)) && buf.Pointer) {
@@ -205,28 +215,42 @@ namespace acpi::ec {
                 int port_idx = 0;
 
                 while (res->Type != ACPI_RESOURCE_TYPE_END_TAG && port_idx < 2) {
-                    if (res->Type == ACPI_RESOURCE_TYPE_IO) ports[port_idx++] = res->Data.Io.Minimum;
+                    if (res->Type == ACPI_RESOURCE_TYPE_IO) {
+                        ports[port_idx++] = res->Data.Io.Minimum;
+                    }
                     res = ACPI_NEXT_RESOURCE(res);
                 }
+
                 if (port_idx == 2) {
                     s_data_port = ports[0];
-                    s_command_port = ports[1];
-                    Log::info("EC: ports from _CRS — data=0x%x, cmd=0x%x", s_data_port, s_command_port);
+                    s_cmd_port = ports[1];
+                    Log::info("EC: _CRS ports — data=0x%x, cmd=0x%x", s_data_port, s_cmd_port);
+                } else {
+                    Log::warning("EC: _CRS incomplete (%d ports found), using defaults 0x62/0x66", port_idx);
                 }
                 AcpiOsFree(buf.Pointer);
             }
         }
 
-        // Read GPE number from _GPE
+        // GPE-Nummer aus _GPE lesen
         {
             ACPI_BUFFER gpe_buf = {ACPI_ALLOCATE_BUFFER, nullptr};
             if (ACPI_SUCCESS(AcpiEvaluateObject(object, "_GPE", nullptr, &gpe_buf)) && gpe_buf.Pointer) {
                 const auto* obj = static_cast<ACPI_OBJECT*>(gpe_buf.Pointer);
-                if (obj->Type == ACPI_TYPE_INTEGER) s_ec_gpe = static_cast<u32>(obj->Integer.Value);
+                if (obj->Type == ACPI_TYPE_INTEGER) {
+                    s_ec_gpe = static_cast<u32>(obj->Integer.Value);
+                }
                 AcpiOsFree(gpe_buf.Pointer);
             }
         }
-        Log::info("EC: GPE = %u (0x%x)", s_ec_gpe, s_ec_gpe);
+
+        Log::info("EC: GPE=%u (0x%x)", s_ec_gpe, s_ec_gpe);
+
+        ec_drain_obf();
+        for (int i = 0; i < 100; i++) {
+            if (!(ec_read_status() & EC_SC_IBF)) break;
+            AcpiOsStall(10);
+        }
 
         s_ec_handle = object;
 
@@ -243,8 +267,12 @@ namespace acpi::ec {
 
     void install_space_handler() {
         s_ec_lock.init("ec_lock");
-        const ACPI_STATUS st = AcpiGetDevices(const_cast<char*>("PNP0C09"), on_ec_found_phase1, nullptr, nullptr);
-        if (ACPI_FAILURE(st)) Log::error("EC: install_space_handler failed: %s", AcpiFormatException(st));
+        s_gpe_sem.init(32, 0);
+
+        const ACPI_STATUS st = AcpiGetDevices(const_cast<char*>("PNP0C09"), on_ec_found, nullptr, nullptr);
+        if (ACPI_FAILURE(st)) {
+            Log::error("EC: install_space_handler failed: %s", AcpiFormatException(st));
+        }
     }
 
     void install_gpe_handler() {
@@ -253,18 +281,35 @@ namespace acpi::ec {
             return;
         }
 
-        ACPI_STATUS st = AcpiInstallGpeRawHandler(nullptr, s_ec_gpe, ACPI_GPE_EDGE_TRIGGERED, ec_gpe_handler, nullptr);
+        static constexpr UnitConfig kEcWorkerCfg = {
+            .name = "ec_worker",
+            .cpu_id = 7,
+            .priority = 5,
+            .stack_size = 0x4000,
+            .initial_handles = nullptr,
+            .initial_handle_count = 0,
+            .is_idle = false,
+            .is_user = false,
+            .user_stack_size = 0,
+            .auto_schedule = true,
+            .argv = nullptr,
+            .envp = nullptr,
+        };
+        UnitManager::create(KERNEL_REALM_SYSTEM, ec_worker_thread, nullptr, &kEcWorkerCfg);
+
+        ACPI_STATUS st = AcpiInstallGpeRawHandler(nullptr, s_ec_gpe, ACPI_GPE_LEVEL_TRIGGERED, ec_gpe_handler, nullptr);
         if (ACPI_FAILURE(st)) {
             Log::error("EC: AcpiInstallGpeRawHandler(%u) failed: %s", s_ec_gpe, AcpiFormatException(st));
             return;
         }
-        Log::ok("EC: GPE %u raw handler installed", s_ec_gpe);
+        Log::ok("EC: GPE %u raw handler installed (level-triggered)", s_ec_gpe);
 
         st = AcpiEnableGpe(nullptr, s_ec_gpe);
-        if (ACPI_FAILURE(st))
+        if (ACPI_FAILURE(st)) {
             Log::error("EC: AcpiEnableGpe(%u) failed: %s", s_ec_gpe, AcpiFormatException(st));
-        else
+        } else {
             Log::ok("EC: GPE %u enabled", s_ec_gpe);
+        }
     }
 
 }  // namespace acpi::ec
