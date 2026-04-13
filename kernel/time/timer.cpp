@@ -8,7 +8,7 @@
 
 #include "../cpu/cpu_manager.h"
 
-extern volatile u64 apic_ticks[MAX_CPU_CORES];
+extern volatile u64 apic_ticks[kernel::acpi::madt::MAX_CPU_CORES];
 
 namespace kernel::time {
     namespace internal {

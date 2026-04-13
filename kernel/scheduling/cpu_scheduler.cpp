@@ -9,7 +9,7 @@
 #include "schedule_manager.h"
 #include "vespera/realm/realm_manager.h"
 
-GsData g_per_cpu[MAX_CPU_CORES];
+GsData g_per_cpu[kernel::acpi::madt::MAX_CPU_CORES];
 
 namespace kernel::scheduling::cpu_scheduler {
     CpuScheduler* get_cpu_data(const u8 cpu_id) {

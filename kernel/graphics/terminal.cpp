@@ -78,8 +78,6 @@ void Terminal::put_codepoint(const u32 cp) {
     Cell& cell = sb_->write_at(cursor_col_);
     cell = {cp, fg_, bg_, true};
     advance();
-    cursor_activity();
-    draw_cursor();
 }
 
 void Terminal::put_char_fast(const char c) {

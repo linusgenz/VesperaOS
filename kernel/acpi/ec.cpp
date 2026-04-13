@@ -32,7 +32,7 @@
 #include "../units/unit_manager.h"
 #include "klib/string.h"
 
-namespace acpi::ec {
+namespace kernel::acpi::ec {
 
     static constexpr u8 EC_SC_OBF = (1u << 0);      // Output Buffer Full
     static constexpr u8 EC_SC_IBF = (1u << 1);      // Input Buffer Full
@@ -43,9 +43,8 @@ namespace acpi::ec {
     static constexpr u8 EC_CMD_WRITE = 0x81;
     static constexpr u8 EC_CMD_QUERY = 0x84;  // QR_EC
 
-    static constexpr u64 EC_POLL_TIMEOUT_MS = 500;
+    static constexpr u64 EC_POLL_TIMEOUT_MS = 20;
 
-    // Maximale Queries pro Worker-Durchlauf (Schutz gegen Event-Akkumulation)
     static constexpr int EC_MAX_DRAIN = 16;
 
     static Spinlock s_ec_lock;
@@ -156,7 +155,7 @@ namespace acpi::ec {
         return handled_any;
     }
 
-    static void ec_worker_thread(void* /*arg*/) {
+    [[noreturn]] static void ec_worker_thread(void* /*arg*/) {
         while (true) {
             s_gpe_sem.wait(0xFFFF);
 
@@ -235,7 +234,7 @@ namespace acpi::ec {
         // GPE-Nummer aus _GPE lesen
         {
             ACPI_BUFFER gpe_buf = {ACPI_ALLOCATE_BUFFER, nullptr};
-            if (ACPI_SUCCESS(AcpiEvaluateObject(object, "_GPE", nullptr, &gpe_buf)) && gpe_buf.Pointer) {
+            if (ACPI_SUCCESS(AcpiEvaluateObject(object, const_cast<ACPI_STRING>("_GPE"), nullptr, &gpe_buf)) && gpe_buf.Pointer) {
                 const auto* obj = static_cast<ACPI_OBJECT*>(gpe_buf.Pointer);
                 if (obj->Type == ACPI_TYPE_INTEGER) {
                     s_ec_gpe = static_cast<u32>(obj->Integer.Value);

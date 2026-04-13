@@ -2,13 +2,13 @@
 
 #include <klib/string.h>
 
-#include "../../../kernel/acpi/madt.h"
+#include "../../../include/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "vespera/log.h"
 
-GDT_ENTRY gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
+GDT_ENTRY gdt[GDT_ENTRIES + (kernel::acpi::madt::MAX_CPU_CORES * 2)];
 TSS_DESCRIPTOR tss_desc;
-TSS tss[MAX_CPU_CORES] __attribute__((aligned(4096)));
+TSS tss[kernel::acpi::madt::MAX_CPU_CORES] __attribute__((aligned(4096)));
 GDT_PTR gdt_ptr;
 
 static void set_gdt_entry(const int idx, const u32 base, const u32 limit, const u8 access, const u8 gran) {
@@ -21,7 +21,7 @@ static void set_gdt_entry(const int idx, const u32 base, const u32 limit, const 
 }
 
 void setup_cpu_tss(u32 cpu_id) {
-    if (cpu_id >= MAX_CPU_CORES) return;
+    if (cpu_id >= kernel::acpi::madt::MAX_CPU_CORES) return;
 
     memset(&tss[cpu_id], 0, sizeof(TSS));
 
@@ -58,7 +58,7 @@ u16 get_tss_selector(const u32 cpu_id) {
 }
 
 void tss_set_rsp0(u8 cpu_id, u64 rsp0) {
-    if (cpu_id >= MAX_CPU_CORES) return;
+    if (cpu_id >= kernel::acpi::madt::MAX_CPU_CORES) return;
 
     if (rsp0 & 0xF) {
         Log::warning("tss_set_rsp0: stack not aligned");

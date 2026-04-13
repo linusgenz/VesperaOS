@@ -22,17 +22,18 @@
 #ifndef VESPERAOS_PER_CPU_H
 #define VESPERAOS_PER_CPU_H
 
-#include "../kernel/acpi/madt.h"
-#include <../kernel/units/unit.h>
-#include <vespera/types.h>
+#include <acpi/madt.h>
 #include <arch/x86_64/cpu/msr.h>
+#include <vespera/types.h>
+
+#include <../kernel/units/unit.h>
 
 struct GsData {
     execution_context_t* current_ctx;
     u64 cpu_id;
 };
 
-extern GsData g_per_cpu[MAX_CPU_CORES];
+extern GsData g_per_cpu[kernel::acpi::madt::MAX_CPU_CORES];
 
 inline void per_cpu_init(u8 cpu_id) {
     g_per_cpu[cpu_id].cpu_id = cpu_id;

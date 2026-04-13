@@ -1,128 +1,136 @@
+// ec.cpp
+// VesperaOS - operating system for the x86_64 architecture
 //
-// Created by linus on 30.06.25.
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
+// Created by Linus Genz on 30.06.25.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "madt.h"
+#include "../../include/acpi/madt.h"
 
-#include <acpi/acpi.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
+#include "acpi_tables.h"
 
-namespace madt {
-    CpuCore cpu_cores[MAX_CPU_CORES];
-    u32 cpu_count;
-    u32 bsp_apic_id = 0;
+namespace kernel::acpi::madt {
 
-    IoApic ioapics[MAX_IOAPICS];
-    u32 ioapic_count = 0;
+    namespace {
+        cpu_core g_cpu_cores[MAX_CPU_CORES];
+        u32 g_cpu_count = 0;
+        u32 g_bsp_apic_id = 0;
 
-    InterruptOverride overrides[MAX_OVERRIDES];
-    u32 override_count = 0;
+        io_apic g_ioapics[MAX_IOAPICS];
+        u32 g_ioapic_count = 0;
 
-    void parse_madt(acpi::MADT_HEADER* madt) {
-        if ((madt->flags & 0x1) != 0)  // has legacy pic (support)?
-        {
-            Log::info("Pic detected");
-        } else {
-            Log::info("No Pic detected");
+        interrupt_override g_overrides[MAX_OVERRIDES];
+        u32 g_override_count = 0;
+    }  // namespace
+
+    void parse(MADT_HEADER* madt) {
+        if (madt->flags & 0x1) {
+            Log::info("MADT: legacy PIC present");
         }
 
         const virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
-
         kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled));
-
         g_local_apic_addr = static_cast<volatile u8*>(virt_ptr(virt_lapic));
 
-        auto* entries = reinterpret_cast<u8*>(madt) + sizeof(acpi::MADT_HEADER);
+        auto* entry_ptr = reinterpret_cast<u8*>(madt) + sizeof(MADT_HEADER);
         const auto* end = reinterpret_cast<u8*>(madt) + madt->header.length;
 
-        while (entries < end) {
-            auto* header = reinterpret_cast<acpi::MADT_ENTRY_HEADER*>(entries);
+        while (entry_ptr < end) {
+            auto* entry_hdr = reinterpret_cast<MADT_ENTRY_HEADER*>(entry_ptr);
 
-            switch (static_cast<acpi::MADT_ENTRY_TYPE>(header->type)) {
-                case acpi::MADT_ENTRY_TYPE::LOCAL_APIC: {
-                    // only available cores
-                    if (const auto* entry = reinterpret_cast<acpi::LOCAL_APIC_ENTRY*>(entries);
-                        (entry->flags & 0x1) || (entry->flags & 0x2)) {
-                        if (cpu_count < MAX_CPU_CORES) {
-                            cpu_cores[cpu_count].apic_id = entry->apic_id;
-                            cpu_cores[cpu_count].acpi_processor_id = entry->acpi_processor_id;
-                            cpu_cores[cpu_count].is_bsp = (cpu_count == 0);  // Erster ist BSP
-                            cpu_cores[cpu_count].is_online = (entry->flags & 0x1) != 0;
-                            cpu_cores[cpu_count].is_enabled = true;
+            if (entry_hdr->length == 0) {
+                Log::error("MADT: entry with length 0 - stopping parse");
+                break;
+            }
 
-                            if (cpu_cores[cpu_count].is_bsp) {
-                                bsp_apic_id = entry->apic_id;
+            switch (static_cast<MADT_ENTRY_TYPE>(entry_hdr->type)) {
+                case MADT_ENTRY_TYPE::LOCAL_APIC: {
+                    auto* e = reinterpret_cast<LOCAL_APIC_ENTRY*>(entry_ptr);
+                    if ((e->flags & 0x1) || (e->flags & 0x2)) {
+                        if (g_cpu_count < MAX_CPU_CORES) {
+                            cpu_core& core = g_cpu_cores[g_cpu_count];
+                            core.apic_id = e->apic_id;
+                            core.acpi_processor_id = e->acpi_processor_id;
+                            core.is_bsp = (g_cpu_count == 0);
+                            core.is_online = (e->flags & 0x1) != 0;
+                            core.is_enabled = true;
+
+                            if (core.is_bsp) {
+                                g_bsp_apic_id = e->apic_id;
                             }
-
-                            /*      Log::Info("CPU %u: APIC ID %u, %s, %s",
-                                           cpu_count,
-                                           entry->apic_id,
-                                           cpu_cores[cpu_count].is_bsp ? "BSP" : "AP",
-                                           cpu_cores[cpu_count].is_online ? "Online" : "Offline");
-                                  */
-                            cpu_count++;
+                            g_cpu_count++;
                         }
                     }
                     break;
                 }
-                case acpi::MADT_ENTRY_TYPE::X2_APIC: {
-                    Log::info("X2APIC entry detected");
+                case MADT_ENTRY_TYPE::X2_APIC: {
+                    auto* e = reinterpret_cast<X2APIC_ENTRY*>(entry_ptr);
+                    if ((e->flags & 0x1) || (e->flags & 0x2)) {
+                        if (g_cpu_count < MAX_CPU_CORES) {
+                            cpu_core& core = g_cpu_cores[g_cpu_count];
+                            core.apic_id = e->x2_apic_id;
+                            core.acpi_processor_id = e->acpi_id;
+                            core.is_bsp = (g_cpu_count == 0);
+                            core.is_online = (e->flags & 0x1) != 0;
+                            core.is_enabled = true;
 
-                    if (const auto* entry = reinterpret_cast<acpi::X2_APIC_ENTRY*>(entries);
-                        (entry->flags & 0x1) || (entry->flags & 0x2)) {
-                        if (cpu_count < MAX_CPU_CORES) {
-                            cpu_cores[cpu_count].apic_id = entry->x2_apic_id;
-                            cpu_cores[cpu_count].acpi_processor_id = entry->acpi_id;
-                            cpu_cores[cpu_count].is_bsp = (cpu_count == 0);
-                            cpu_cores[cpu_count].is_online = (entry->flags & 0x1) != 0;
-                            cpu_cores[cpu_count].is_enabled = true;
-
-                            if (cpu_cores[cpu_count].is_bsp) {
-                                bsp_apic_id = entry->x2_apic_id;
+                            if (core.is_bsp) {
+                                g_bsp_apic_id = e->x2_apic_id;
                             }
 
                             Log::info(
-                                "CPU %u: X2APIC ID %u, %s, %s",
-                                cpu_count,
-                                entry->x2_apic_id,
-                                cpu_cores[cpu_count].is_bsp ? "BSP" : "AP",
-                                cpu_cores[cpu_count].is_online ? "Online" : "Offline"
+                                "MADT: X2APIC CPU %u — APIC ID %u, %s, %s",
+                                g_cpu_count,
+                                e->x2_apic_id,
+                                core.is_bsp ? "BSP" : "AP",
+                                core.is_online ? "online" : "offline"
                             );
-
-                            cpu_count++;
+                            g_cpu_count++;
                         }
                     }
                     break;
                 }
-                case acpi::MADT_ENTRY_TYPE::IO_APIC: {
-                    const auto* entry = reinterpret_cast<acpi::IOAPIC_ENTRY*>(entries);
-
-                    if (ioapic_count < MAX_IOAPICS) {
-                        ioapics[ioapic_count].id = entry->ioapic_id;
-                        ioapics[ioapic_count].address = static_cast<uptr>(entry->ioapic_address);
-                        ioapics[ioapic_count].gsi_base = entry->gsi_base;
-                        ioapic_count++;
+                case MADT_ENTRY_TYPE::IO_APIC: {
+                    auto* e = reinterpret_cast<IOAPIC_ENTRY*>(entry_ptr);
+                    if (g_ioapic_count < MAX_IOAPICS) {
+                        io_apic& apic = g_ioapics[g_ioapic_count];
+                        apic.id = e->ioapic_id;
+                        apic.address = static_cast<uptr>(e->ioapic_address);
+                        apic.gsi_base = e->gsi_base;
+                        g_ioapic_count++;
                     } else {
-                        Log::error("Too many IOAPICs detected (limit: %u)", MAX_IOAPICS);
+                        Log::error("MADT: too many IOAPICs (limit %u)", MAX_IOAPICS);
                     }
                     break;
                 }
-                case acpi::MADT_ENTRY_TYPE::INTERRUPT_OVERRIDE: {
-                    const auto* entry = reinterpret_cast<acpi::InterruptOverrideEntry*>(entries);
-
-                    if (override_count < MAX_OVERRIDES) {
-                        overrides[override_count].bus = entry->bus;
-                        overrides[override_count].source_irq = entry->irq_source;
-                        overrides[override_count].gsi = entry->gsi;
-                        overrides[override_count].flags = entry->flags;
-
-                        //     Log::debug("IRQ Override: IRQ %u -> GSI %u (flags 0x%x)",
-                        //               entry->irq_source, entry->gsi, entry->flags);
-
-                        override_count++;
+                case MADT_ENTRY_TYPE::INTERRUPT_OVERRIDE: {
+                    auto* e = reinterpret_cast<INTERRUPT_OVERRIDE_ENTRY*>(entry_ptr);
+                    if (g_override_count < MAX_OVERRIDES) {
+                        interrupt_override& ov = g_overrides[g_override_count];
+                        ov.bus = e->bus;
+                        ov.source_irq = e->irq_source;
+                        ov.gsi = e->gsi;
+                        ov.flags = e->flags;
+                        g_override_count++;
                     }
                     break;
                 }
@@ -130,42 +138,32 @@ namespace madt {
                     break;
             }
 
-            if (header->length == 0) {
-                Log::error("MADT entry with length 0 detected - stopping parse");
-                break;
-            }
-
-            entries += header->length;
+            entry_ptr += entry_hdr->length;
         }
 
-        Log::info("Detected %u CPU cores", cpu_count);
+        Log::info("MADT: %u CPU cores, %u IOAPICs, %u IRQ overrides", g_cpu_count, g_ioapic_count, g_override_count);
     }
 
-    u32 get_cpu_count() {
-        return cpu_count;
+    u32 cpu_count() {
+        return g_cpu_count;
+    }
+    cpu_core* cpu_cores() {
+        return g_cpu_cores;
+    }
+    u32 bsp_apic_id() {
+        return g_bsp_apic_id;
+    }
+    io_apic* ioapics() {
+        return g_ioapics;
+    }
+    u32 ioapic_count() {
+        return g_ioapic_count;
+    }
+    interrupt_override* overrides() {
+        return g_overrides;
+    }
+    u32 override_count() {
+        return g_override_count;
     }
 
-    CpuCore* get_cpu_cores() {
-        return cpu_cores;
-    }
-
-    u32 get_bsp_apic_id() {
-        return bsp_apic_id;
-    }
-
-    IoApic* get_ioapics() {
-        return ioapics;
-    }
-
-    u32 get_ioapic_count() {
-        return ioapic_count;
-    }
-
-    InterruptOverride* get_overrides() {
-        return overrides;
-    }
-
-    u32 get_override_count() {
-        return override_count;
-    }
-}  // namespace madt
+}  // namespace kernel::acpi::madt

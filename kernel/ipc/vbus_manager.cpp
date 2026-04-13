@@ -32,7 +32,6 @@ u64 VBusManager::serial_ = 0;
 
 void VBusManager::init() {
     lock_.init("vbus_lock");
-    Log::ok("[VBus] manager initialized (max %u subscriptions)", VBUS_MAX_SUBSCRIPTIONS);
 }
 
 i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interface, const char* member) {
@@ -61,9 +60,9 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
             subs_[i].member[47] = '\0';
             subs_[i].active = true;
             sub_count_++;
-            Log::debug(
+            /*Log::debug(
                 "[VBus] realm %llu subscribed to %s.%s", realm_id, interface, member && member[0] ? member : "*"
-            );
+            );*/
             return SUCCESS_CODE;
         }
     }

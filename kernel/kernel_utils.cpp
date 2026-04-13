@@ -1,6 +1,8 @@
 #include "../drivers/fb/framebuffer_driver.h"
+#include "acpi/acpi_subsystem.h"
 #include "cpu/cpu.h"
 #include "graphics/font/ttf_glyph_provider.h"
+#include "vespera/ipc/vbus_manager.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
 #include "debug/lock_debug.h"
@@ -25,7 +27,6 @@
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/realmfs/realmfs.h"
 #include "../include/vespera/filesystem/vfs.h"
-#include "acpi/acpi_manager.h"
 #include "cpu/cpu_manager.h"
 #include "devices/init.h"
 #include "graphics/display_manager.h"
@@ -107,14 +108,11 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
 }
 
 static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
-    acpi::rsdp_phys = phys_raw(virt_to_phys(make_virt(boot_info->rsdp)));
-
-    acpi::early_parse_madt(boot_info);
-    acpi::TableManager::fadt_ = reinterpret_cast<acpi::FADT*>(acpi::TableManager::find_table("FACP"));
+    kernel::acpi::set_rsdp_phys(phys_raw(virt_to_phys(make_virt(boot_info->rsdp))));
+    kernel::acpi::early_init(boot_info);
 
     kernel::interrupts::initialize();
     asm("sti");
-   // madt::parse_madt(acpi::TableManager::get_madt());
 }
 
 static void initialize_cpu_and_realms() {
@@ -123,7 +121,6 @@ static void initialize_cpu_and_realms() {
     setup_cpu_tss(0);
     RealmManager::initialize();
 
-    // Create system realm
     constexpr RealmConfig realm_config_sys = {
         .name = "systemv",
         .memory_limit = 0,
@@ -132,7 +129,6 @@ static void initialize_cpu_and_realms() {
     };
     RealmManager::create(&realm_config_sys);
 
-    // Create driver realm
     constexpr RealmConfig realm_config_drv = {
         .name = "driverv",
         .memory_limit = 0,
@@ -151,13 +147,13 @@ static void initialize_scheduling_and_smp() {
 
     Log::init();
 
-    acpi::TableManager::init();
+    kernel::acpi::init();
 }
 
 static void initialize_hardware_buses() {
     ps2_init();
     initialize_input_bus();
-    pci::enumerate_pci(acpi::TableManager::get_mcfg());
+    pci::enumerate_pci(kernel::acpi::get_mcfg());
 
     if (UsbManager::wait_for_all_controllers(10000))  // TODO
     {
@@ -171,19 +167,15 @@ static void initialize_hardware_buses() {
     }
 }
 
-bool test = false;
 static void initialize_user_space_interfaces() {
     kernel::tty::initialize_ttys();
     initialize_pseudo_devices();
     VFS::remount_all();
-    Log::debug("remount done");
+
     if (VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf")) {
-        Log::debug("font node: %p", font_node);
         const usize font_size = font_node->size;
-        Log::debug("font size: %u", font_size);
         if (auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size))) {
             Log::debug("font data: %p", font_data);
-            test = true;
             usize i = VFS::read(font_node, 0, font_size, font_data);
             Log::debug("read: %lu", i);
             VFS::close(font_node);
@@ -206,6 +198,8 @@ static void initialize_user_space_interfaces() {
     }
     auto* fw = new FileLogWriter("/var/log/system.log");
     kernel::SystemManager::register_log_writer(fw);
+
+    VBusManager::init();
 
     syscall_init();
     install_syscalls();

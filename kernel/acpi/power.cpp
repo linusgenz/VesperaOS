@@ -1,4 +1,4 @@
-// fadt.cpp
+// power.cpp
 //
 // VesperaOS - operating system for the x86_64 architecture
 //
@@ -21,41 +21,46 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include "power.h"
+
+#include <acpi/acpi.h>
 #include <vespera/cpu/io.h>
 #include <vespera/log.h>
-#include <acpi/acpi.h>
 
-namespace acpi {
-    void acpi_power_off() {
+namespace kernel::acpi {
+
+    [[noreturn]] void power_off() {
         ACPI_STATUS status = AcpiEnterSleepStatePrep(ACPI_STATE_S5);
         if (ACPI_FAILURE(status)) {
-            Log::error("acpi_power_off: AcpiEnterSleepStatePrep failed: %u", status);
+            Log::error("power_off: AcpiEnterSleepStatePrep failed: %s", AcpiFormatException(status));
         }
 
         asm volatile("cli");
 
         status = AcpiEnterSleepState(ACPI_STATE_S5);
         if (ACPI_FAILURE(status)) {
-            Log::error("acpi_power_off: AcpiEnterSleepState failed: %u", status);
+            Log::error("power_off: AcpiEnterSleepState failed: %s", AcpiFormatException(status));
         }
 
-        Log::error("acpi_power_off: system did not power off");
+        Log::error("power_off: system did not power off — halting");
         while (true) {
             asm volatile("cli; hlt");
         }
     }
 
-    void acpi_reboot() {
+    [[noreturn]] void reboot() {
         ACPI_STATUS status = AcpiReset();
         if (ACPI_FAILURE(status)) {
-            Log::error("acpi_reboot: AcpiReset failed: %u, trying keyboard controller fallback", status);
+            Log::error(
+                "reboot: AcpiReset failed: %s — trying keyboard controller fallback", AcpiFormatException(status)
+            );
             outb(0x64, 0xFE);
         }
 
-        Log::error("acpi_reboot: system did not reboot");
+        Log::error("reboot: system did not reboot — halting");
         while (true) {
             asm volatile("cli; hlt");
         }
     }
 
-}  // namespace acpi
+}  // namespace kernel::acpi

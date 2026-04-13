@@ -3,13 +3,12 @@
 #include "../../../kernel/debug/deadlock_detector.h"
 #endif
 
+#include <acpi/madt.h>
+#include <vespera/cpu/io.h>
 #include <vespera/kerrno.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
 
-#include "../../../include/vespera/cpu/io.h"
-#include "../../../kernel/acpi/acpi_manager.h"
-#include "../../../kernel/acpi/madt.h"
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "apic.h"
 #include "interrupts_internal.h"
@@ -70,7 +69,7 @@ namespace arch::x86_64::interrupts::apic {
     void broadcast_ipi(const u8 vector) {
         const u32 self_apic_id = local_apic_get_id();
 
-        for (u32 i = 0; i < cpu_manager::total_cpus && i < MAX_CPU_CORES; i++) {
+        for (u32 i = 0; i < cpu_manager::total_cpus && i < kernel::acpi::madt::MAX_CPU_CORES; i++) {
             const auto &cpu = cpu_manager::cpu_infos[i];
 
             if (cpu.apic_id == self_apic_id) continue;
@@ -80,7 +79,7 @@ namespace arch::x86_64::interrupts::apic {
     }
 
     void pmt_delay(const usize us) {
-        const acpi::FADT *fadt = acpi::TableManager::get_fadt();
+        const kernel::acpi::FADT *fadt = kernel::acpi::get_fadt();
 
         if (fadt->pm_timer_length != 4) {
             kernel::SystemManager::system_panic("ACPI Timer unavailable", -KENOACPI);
@@ -112,7 +111,7 @@ namespace arch::x86_64::interrupts::apic {
         if (!kernel::scheduling::is_initialized()) return;
         const u32 cpu = cpu_manager::get_current_cpu_id();
 
-        const Unit* current = kernel::scheduling::get_current_unit();
+        const Unit *current = kernel::scheduling::get_current_unit();
         const bool is_idle = !current || current->is_idle;
 
         cpu_manager::accounting_tick(cpu, is_idle);

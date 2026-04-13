@@ -23,14 +23,13 @@
 #ifndef VESPERAOS_SYSTEM_MANAGER_H
 #define VESPERAOS_SYSTEM_MANAGER_H
 
-
-#include <vespera/types.h>
 #include <vespera/ipc/channel.h>
 #include <vespera/sync/mutex.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/terminal.h>
+#include <vespera/types.h>
 
-#include "../../../kernel/acpi/madt.h"
+#include "acpi/madt.h"
 
 namespace kernel {
 
@@ -98,7 +97,7 @@ namespace kernel {
         u32 total_realms;
         u32 total_devices;
         u32 total_interrupts;
-        u8 cpu_usage[MAX_CPU_CORES];
+        u8 cpu_usage[acpi::madt::MAX_CPU_CORES];
         u64 last_update_timestamp;
     };
 

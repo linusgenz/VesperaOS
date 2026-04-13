@@ -302,6 +302,8 @@ void FilesystemDetector::scan_and_mount_all() {
                         pm.table_type = nullptr;
                         pending_mounts.push_back(pm);
                     }
+                } else {
+                    Log::debug("partition has incompatible fs");
                 }
             }
         }

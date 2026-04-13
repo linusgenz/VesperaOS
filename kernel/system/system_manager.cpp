@@ -28,6 +28,7 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
+#include "../acpi/power.h"
 #include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 #include "vespera/scheduling.h"
@@ -302,9 +303,9 @@ namespace kernel {
         DeviceManager::shutdown_all();
 
         if (reboot) {
-            acpi::acpi_reboot();
+            acpi::reboot();
         } else {
-            acpi::acpi_power_off();
+            acpi::power_off();
         }
     }
 

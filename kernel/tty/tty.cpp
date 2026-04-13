@@ -312,15 +312,12 @@ namespace kernel::tty {
         switch (tty->esc_state) {
             case EscapeState::NONE:
                 if (c == 0x1B) {
-                    tty->term->flush();
                     tty->esc_state = EscapeState::ESC_RECEIVED;
                 } else if (c == '\n') {
-                    tty->term->flush();
                     tty->term->new_line();
                     tty->cursor_x = 0;
                     tty->cursor_y++;
                 } else if (c == '\r') {
-                    tty->term->flush();
                     tty->cursor_x = 0;
                     tty->term->set_cursor(0, tty->cursor_y);
                 } else {
@@ -487,7 +484,6 @@ namespace kernel::tty {
                                     tty_clear(tty);
                                 } else {
                                     tty->term->erase_in_display(mode, tty->cursor_x, tty->cursor_y);
-                                    tty->term->flush();
                                 }
                                 break;
                             }
@@ -495,7 +491,6 @@ namespace kernel::tty {
                             case 'K': {  // ESC[nK — erase in line
                                 const int mode = (tty->esc_param_count > 0) ? tty->esc_params[0] : 0;
                                 tty->term->erase_in_line(mode, tty->cursor_x, tty->cursor_y);
-                                tty->term->flush();
                                 break;
                             }
                             case 'n': {  // ESC[6n - Cursor Position Report

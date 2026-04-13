@@ -4,8 +4,9 @@
 
 #ifndef GDT_H
 #define GDT_H
-#include "../../../kernel/acpi/madt.h"
 #include <vespera/types.h>
+
+#include "../../../include/acpi/madt.h"
 
 struct __attribute__((packed)) GDT_ENTRY {
     u16 limit_low;   // Limit bits 0-15
@@ -54,9 +55,9 @@ struct __attribute__((packed)) GDT_PTR {
 
 // GDT Entries
 #define GDT_ENTRIES 7
-extern GDT_ENTRY gdt[GDT_ENTRIES + (MAX_CPU_CORES * 2)];
+extern GDT_ENTRY gdt[GDT_ENTRIES + (kernel::acpi::madt::MAX_CPU_CORES * 2)];
 extern TSS_DESCRIPTOR tss_desc;
-extern TSS tss[MAX_CPU_CORES];
+extern TSS tss[kernel::acpi::madt::MAX_CPU_CORES];
 extern GDT_PTR gdt_ptr;
 
 void setup_cpu_tss(u32 cpu_id);

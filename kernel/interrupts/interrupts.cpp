@@ -32,7 +32,7 @@
 
 namespace kernel::interrupts {
     void initialize() {
-        for (int i = 0; i < MAX_CPU_CORES; i++) {
+        for (int i = 0; i < kernel::acpi::madt::MAX_CPU_CORES; i++) {
             arch::x86_64::interrupts::apic::apic_ticks[i] = 0;
         }
         memset(

@@ -59,11 +59,11 @@ target_include_directories(acpica PRIVATE
 
 
 set(ACPI_KERNEL_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/osl/acpi_osl.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/acpi_manager.cpp"
+        "acpi_osl.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/acpi_subsystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/ec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/madt.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/fadt.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/power.cpp"
 )
 
 add_library(acpi_kernel OBJECT ${ACPI_KERNEL_SOURCES})

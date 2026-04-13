@@ -1,9 +1,9 @@
-// ec.h
+// acpi_subsystem.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 02.04.26.
+// Created by Linus Genz on 13.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,18 +20,28 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_KERNEL_ACPI_EC_H
-#define VESPERAOS_KERNEL_ACPI_EC_H
+#ifndef VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
+#define VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
 
-// ACPI Embedded Controller driver.
-// Implements the ACPI EC protocol (ACPI spec §12.4) using port I/O and
-// a GPE-driven worker unit.
+#include <vespera/types.h>
 
-namespace kernel::acpi::ec {
+#include "acpi_tables.h"
 
-    void install_space_handler();
-    void install_gpe_handler();
+struct BootInfo;
 
-}  // namespace kernel::acpi::ec
+namespace kernel::acpi {
+    void set_rsdp_phys(u64 phys);
 
-#endif  // VESPERAOS_KERNEL_ACPI_EC_H
+    void early_init(const BootInfo* boot_info);
+
+    void init();
+
+    [[nodiscard]] u64 get_rsdp_phys();
+
+    [[nodiscard]] FADT* get_fadt();
+    [[nodiscard]] MADT_HEADER* get_madt();
+    [[nodiscard]] MCFG_HEADER* get_mcfg();
+
+}  // namespace kernel::acpi
+
+#endif  // VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H

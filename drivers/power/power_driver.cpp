@@ -31,6 +31,7 @@
 #include <vespera/log.h>
 #include <vespera_errno.h>
 
+#include "../../kernel/acpi/power.h"
 #include "uapi/vespera/vbus.h"
 #include "vespera/ipc/vbus_manager.h"
 
@@ -59,12 +60,12 @@ namespace power {
             switch (request) {
                 case IOCTL_POWER_SHUTDOWN:
                     Log::info("power: shutdown requested via ioctl");
-                    acpi::acpi_power_off();
+                    kernel::acpi::power_off();
                     return 0;
 
                 case IOCTL_POWER_REBOOT:
                     Log::info("power: reboot requested via ioctl");
-                    acpi::acpi_reboot();
+                    kernel::acpi::reboot();
                     return 0;
 
                 case IOCTL_POWER_GET_COUNT:

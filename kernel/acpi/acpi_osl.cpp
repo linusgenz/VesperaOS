@@ -1,12 +1,12 @@
-#include "../../../arch/x86_64/interrupts/ioapic.h"
-#include "../../units/unit_manager.h"
-#include "../acpi_manager.h"
+#include "../../arch/x86_64/interrupts/ioapic.h"
+#include "../units/unit_manager.h"
 #include "vespera/interrupts.h"
 #include "vespera/scheduling.h"
 #include "vespera/sync/semaphore.h"
 #include "vespera/unit_config.h"
+
 extern "C" {
-#include "../acpica/include/acpi.h"
+#include "acpica/include/acpi.h"
 }
 
 #include <vespera/cpu/io.h>
@@ -41,7 +41,7 @@ ACPI_STATUS AcpiOsTerminate() {
 }
 
 ACPI_PHYSICAL_ADDRESS AcpiOsGetRootPointer() {
-    return acpi::rsdp_phys;
+    return kernel::acpi::get_rsdp_phys();
 }
 
 // memory
@@ -150,7 +150,7 @@ void acpi_osl_init_worker() {
         .envp = nullptr,
     };
 
-    UnitManager::create(1 /*kSystemRealm*/, acpi_worker_thread, nullptr, &kWorkerCfg);
+    UnitManager::create(KERNEL_REALM_SYSTEM, acpi_worker_thread, nullptr, &kWorkerCfg);
 }
 
 ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE type, ACPI_OSD_EXEC_CALLBACK fn, void* context) {
@@ -225,10 +225,9 @@ ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 irq, ACPI_OSD_HANDLER handler, 
 
     arch::x86_64::interrupts::idt::allocate_vector(vector, sci_irq_shim, &g_sci);
 
-    const u8 bsp_apic_id = static_cast<u8>(madt::get_bsp_apic_id());
+    const u8 bsp_apic_id = static_cast<u8>(kernel::acpi::madt::bsp_apic_id());
     arch::x86_64::interrupts::ioapic::configure_irq(static_cast<u8>(irq), vector, bsp_apic_id);
 
-    Log::info("ACPI OSL: SCI IRQ %u -> IDT vector 0x%x installed", irq, vector);
     return AE_OK;
 }
 
@@ -333,7 +332,7 @@ void ACPI_INTERNAL_VAR_XFACE AcpiOsPrintf(const char* fmt, ...) {
 }
 
 void ACPI_INTERNAL_VAR_XFACE AcpiOsVprintf(const char* fmt, va_list args) {
-   // Log::print(fmt, args);
+    // Log::print(fmt, args);
 }
 
 void AcpiOsRedirectOutput(void* destination) {

@@ -23,7 +23,7 @@
 
 #ifndef IOAPIC_H
 #define IOAPIC_H
-#include "../../../kernel/acpi/madt.h"
+#include "../../../include/acpi/madt.h"
 
 namespace arch::x86_64::interrupts::ioapic {
 
@@ -76,7 +76,7 @@ namespace arch::x86_64::interrupts::ioapic {
      * Read the maximum number of redirection entries from an IOAPIC's VER register.
      * Returns the actual hardware value, not a hardcoded constant.
      */
-    u32 get_max_redirects(const madt::IoApic* ioapic);
+    u32 get_max_redirects(const kernel::acpi::madt::io_apic* ioapic);
 
 }  // namespace arch::x86_64::interrupts::ioapic
 

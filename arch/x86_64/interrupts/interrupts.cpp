@@ -297,6 +297,7 @@ extern "C" void vespera_trap_handler(TrapFrame* tf) {
             u8 cpu_id = cpu_manager::get_current_cpu_id();
             kernel::scheduling::cpu_scheduler::yield_cpu(cpu_id, tf);
             arch::x86_64::interrupts::apic::send_eoi();
+            break;
         }
 
         default:

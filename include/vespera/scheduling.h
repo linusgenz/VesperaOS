@@ -30,7 +30,7 @@ namespace kernel::scheduling::cpu_scheduler
 namespace kernel::scheduling {
 
     struct GlobalScheduler {
-        cpu_scheduler::CpuScheduler cpus[MAX_CPU_CORES];
+        cpu_scheduler::CpuScheduler cpus[kernel::acpi::madt::MAX_CPU_CORES];
         u32 num_cpus;
         bool initialized;
     };

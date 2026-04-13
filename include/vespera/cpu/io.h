@@ -11,7 +11,7 @@ inline void outw(u16 port, u16 value) {
 }
 
 inline u16 inw(u16 port) {
-    u16 ret = 0;
+    u16 ret;
     asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
@@ -21,7 +21,7 @@ inline void outb(u16 port, u8 value) {
 }
 
 inline u8 inb(u16 port) {
-    u8 ret = 0;
+    u8 ret;
     asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
@@ -31,7 +31,7 @@ inline void io_wait() {
 }
 
 inline u32 inl(u16 port) {
-    u32 ret = 0;
+    u32 ret;
     asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port) : "memory");
     return ret;
 }

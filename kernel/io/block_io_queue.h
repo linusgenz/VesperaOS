@@ -33,40 +33,27 @@ enum class BlockIoOp : u8 {
     Flush,
 };
 
-// Stack-allocated by the caller — lives until done.wait() returns.
 struct BlockIoRequest {
-    // ── intrusive linkage (required by IntrusiveQueue) ──────────────────
     BlockIoRequest* next = nullptr;
 
-    // ── request payload ─────────────────────────────────────────────────
     BlockIoOp op;
     u64 lba;
     usize sector_count;
-    void* buffer;  // caller-owned; must stay valid until done
+    void* buffer;
     usize buffer_size;
 
-    // ── result written by the worker ─────────────────────────────────────
     isize result = 0;
 
-    // ── synchronisation ──────────────────────────────────────────────────
-    Semaphore done;  // init(0) before submit; wait() after submit
+    Semaphore done;
 };
 
-// One queue per block device (Port / NvmeNamespace / UsbMassStorage).
-// Thread-safe: submit() may be called from any unit/context;
-// dequeue_blocking() is meant for the single dedicated I/O worker.
 class BlockIoQueue {
    public:
     void init();
     void shutdown();
 
-    // Called by the device owner — submits a request and returns immediately.
-    // The caller must afterwards call req->done.wait() to get the result.
     void submit(BlockIoRequest* req);
 
-    // Called exclusively by the I/O worker thread.
-    // Blocks until a request is available, then returns it.
-    // Returns nullptr when shutdown() has been called.
     BlockIoRequest* dequeue_blocking();
 
     [[nodiscard]] bool is_running() const {

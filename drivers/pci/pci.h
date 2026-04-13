@@ -8,6 +8,9 @@
 
 #include <acpi/acpi.h>
 
+namespace kernel::acpi {
+    struct MCFG_HEADER;
+}
 namespace pci {
     struct PCI_DEVICE_HEADER {
         u16 vendor_id;
@@ -100,7 +103,7 @@ namespace pci {
     }
 
 
-    void enumerate_pci(acpi::MCFG_HEADER *mcfg);
+    void enumerate_pci(kernel::acpi::MCFG_HEADER *mcfg);
 
     extern const char *device_classes[];
 

@@ -178,7 +178,7 @@ extern "C" void limine_entry() {
 
     // --- RSDP ---
     if (rsdp_request.response)
-        boot_info.rsdp = static_cast<acpi::RSDP2*>(rsdp_request.response->address);
+        boot_info.rsdp = static_cast<kernel::acpi::RSDP2*>(rsdp_request.response->address);
     else
         boot_info.rsdp = nullptr;
 

@@ -1,4 +1,26 @@
-#include "acpi_manager.h"
+// acpi_subsystem.cpp
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 30.06.25.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include "acpi_subsystem.h"
 
 #include <acpi/acpi.h>
 #include <drivers/power/power_driver.h>
@@ -6,16 +28,25 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
+#include "../../include/acpi/madt.h"
+#include "acpi_osl.h"
+#include "acpi_tables.h"
 #include "ec.h"
-#include "madt.h"
-#include "osl/acpi_osl.h"
 
-namespace acpi {
-    FADT* TableManager::fadt_ = nullptr;
-    MADT_HEADER* TableManager::madt_ = nullptr;
-    MCFG_HEADER* TableManager::mcfg_ = nullptr;
+namespace kernel::acpi {
 
-    void early_parse_madt(const BootInfo* boot_info) {
+    namespace {
+        u64          g_rsdp_phys = 0;
+        FADT*        g_fadt      = nullptr;
+        MADT_HEADER* g_madt      = nullptr;
+        MCFG_HEADER* g_mcfg      = nullptr;
+    }  // namespace
+
+    void set_rsdp_phys(u64 phys) {
+        g_rsdp_phys = phys;
+    }
+
+    void early_init(const BootInfo* boot_info) {
         auto* rsdp = reinterpret_cast<RSDP2*>(boot_info->rsdp);
 
         MADT_HEADER* madt = nullptr;
@@ -27,8 +58,10 @@ namespace acpi {
             for (usize i = 0; i < entry_count; ++i) {
                 auto* sdt = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(make_phys(xsdt->entries[i]))));
                 if (memcmp(sdt->signature, "APIC", 4) == 0) {
-                    madt = reinterpret_cast<acpi::MADT_HEADER*>(sdt);
-                    break;
+                    madt = reinterpret_cast<MADT_HEADER*>(sdt);
+                }
+                if (memcmp(sdt->signature, "FACP", 4) == 0) {
+                    g_fadt = reinterpret_cast<FADT*>(sdt);
                 }
             }
         } else {
@@ -39,34 +72,23 @@ namespace acpi {
                 auto* sdt = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(make_phys(rsdt->entries[i]))));
                 if (memcmp(sdt->signature, "APIC", 4) == 0) {
                     madt = reinterpret_cast<MADT_HEADER*>(sdt);
-                    break;
+                }
+                if (memcmp(sdt->signature, "FACP", 4) == 0) {
+                    g_fadt = reinterpret_cast<FADT*>(sdt);
                 }
             }
         }
 
         if (!madt) {
-            Log::error("ACPI early init: MADT not found!");
+            Log::error("ACPI early_init: MADT not found");
             return;
         }
 
-        madt::parse_madt(madt);
-        Log::ok("ACPI early init: MADT parsed (%u CPUs, %u IOAPICs)", madt::get_cpu_count(), madt::get_ioapic_count());
+        madt::parse(madt);
+        Log::ok("ACPI early_init: MADT parsed (%u CPUs, %u IOAPICs)", madt::cpu_count(), madt::ioapic_count());
     }
 
-    SDT_HEADER* TableManager::find_table(const char* signature) {
-        auto* rsdp = static_cast<RSDP2*>(virt_ptr(phys_to_virt(make_phys(rsdp_phys))));
-        auto* xsdt = static_cast<XSDT*>(virt_ptr(phys_to_virt(make_phys(rsdp->xsdt_address))));
-        const u32 entry_count = (xsdt->header.length - sizeof(SDT_HEADER)) / 8;
-        const auto* entries = reinterpret_cast<u64*>(reinterpret_cast<u64>(xsdt) + sizeof(SDT_HEADER));
-
-        for (u32 i = 0; i < entry_count; i++) {
-            auto* header = static_cast<SDT_HEADER*>(virt_ptr(phys_to_virt(make_phys(entries[i]))));
-            if (memcmp(header->signature, signature, 4) == 0) return header;
-        }
-        return nullptr;
-    }
-
-    void TableManager::init() {
+    void init() {
         AcpiDbgLayer = 0;
         AcpiDbgLevel = 0;
         acpi_osl_init_worker();
@@ -83,9 +105,9 @@ namespace acpi {
             return;
         }
 
-        AcpiGetTable(ACPI_SIG_MADT, 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&madt_));
-        AcpiGetTable(ACPI_SIG_FADT, 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&fadt_));
-        AcpiGetTable(ACPI_SIG_MCFG, 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&mcfg_));
+        AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_MADT), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_madt));
+        AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_FADT), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_fadt));
+        AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_MCFG), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_mcfg));
 
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status)) {
@@ -121,7 +143,7 @@ namespace acpi {
         AcpiInstallFixedEventHandler(
             ACPI_EVENT_POWER_BUTTON,
             [](void*) -> UINT32 {
-                Log::info("ACPI: Power button event received");
+                Log::info("ACPI: power button event received");
                 return ACPI_INTERRUPT_HANDLED;
             },
             nullptr
@@ -131,4 +153,20 @@ namespace acpi {
         Log::ok("ACPICA initialized");
     }
 
-}  // namespace acpi
+    u64 get_rsdp_phys() {
+        return g_rsdp_phys;
+    }
+
+    FADT* get_fadt() {
+        return g_fadt;
+    }
+
+    MADT_HEADER* get_madt() {
+        return g_madt;
+    }
+
+    MCFG_HEADER* get_mcfg() {
+        return g_mcfg;
+    }
+
+}  // namespace kernel::acpi

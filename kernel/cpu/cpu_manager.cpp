@@ -1,18 +1,17 @@
 #include "cpu_manager.h"
 
+#include <klib/string.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
-#include <klib/string.h>
 #include <vespera/time.h>
 
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "../acpi/madt.h"
+#include "../../include/acpi/madt.h"
 #include "cpu.h"
 
 namespace cpu_manager {
-    // Globale Variablen
-    CpuInfo cpu_infos[MAX_CPU_CORES];
+    CpuInfo cpu_infos[kernel::acpi::madt::MAX_CPU_CORES];
     u8 total_cpus;
     static u8 online_cpus;
     static bool is_initialized = false;
@@ -21,9 +20,9 @@ namespace cpu_manager {
     void initialize() {
         if (is_initialized) return;
 
-        const madt::CpuCore* madt_cores = madt::get_cpu_cores();
-        const u32 madt_cpu_count = madt::get_cpu_count();
-        bsp_apic_id = madt::get_bsp_apic_id();
+        const kernel::acpi::madt::cpu_core* madt_cores = kernel::acpi::madt::cpu_cores();
+        const u32 madt_cpu_count = kernel::acpi::madt::cpu_count();
+        bsp_apic_id = kernel::acpi::madt::bsp_apic_id();
 
         if (madt_cpu_count == 0) {
             Log::error("No CPUs found in MADT");
@@ -38,7 +37,7 @@ namespace cpu_manager {
         }
 
         // Initialisiere CPU-Infos
-        for (u32 i = 0; i < madt_cpu_count && i < MAX_CPU_CORES; i++) {
+        for (u32 i = 0; i < madt_cpu_count && i < kernel::acpi::madt::MAX_CPU_CORES; i++) {
             cpu_infos[i].apic_id = madt_cores[i].apic_id;
             cpu_infos[i].cpu_id = i;
             cpu_infos[i].state = CPU_STATE_OFFLINE;

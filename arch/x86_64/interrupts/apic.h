@@ -4,10 +4,10 @@
 
 #ifndef APIC_H
 #define APIC_H
-#include "../../../kernel/acpi/madt.h"
-#include "interrupts_internal.h"
-
 #include <vespera/types.h>
+
+#include "../../../include/acpi/madt.h"
+#include "interrupts_internal.h"
 
 inline volatile u8* g_local_apic_addr;
 
@@ -61,7 +61,7 @@ namespace arch::x86_64::interrupts::apic {
     void broadcast_ipi(u8 vector);
     void wait_for_delivery();
 
-    inline u64 apic_ticks[MAX_CPU_CORES] = {};
+    inline u64 apic_ticks[kernel::acpi::madt::MAX_CPU_CORES] = {};
 
     u32 local_apic_get_id();
     void write(u32 offset, u32 value);

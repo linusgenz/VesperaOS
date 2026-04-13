@@ -2,9 +2,9 @@
 
 #include <vespera/cpu/simd.h>
 #include <vespera/cpu/simd_mem.h>
+#include <vespera/filesystem/devfs.h>
 #include <vespera/terminal.h>
 
-#include <vespera/filesystem/devfs.h>
 #include "vespera/devices/device_manager.h"
 
 static void* scalar_memcpy(void* dst, const void* src, usize len) {
@@ -14,7 +14,9 @@ static void* scalar_memcpy(void* dst, const void* src, usize len) {
     return dst;
 }
 
-static void scalar_fill_rect(void* base, const u32 stride, const u32 px, const u32 py, const u32 w, const u32 h, const u32 colour) {
+static void scalar_fill_rect(
+    void* base, const u32 stride, const u32 px, const u32 py, const u32 w, const u32 h, const u32 colour
+) {
     auto* fb = static_cast<u32*>(base);
     for (u32 y = 0; y < h; y++) {
         u32* row = fb + (py + y) * stride + px;
@@ -38,6 +40,12 @@ static void* scalar_memmove(void* dst, const void* src, usize len) {
 FramebufferDriver::FramebufferDriver(Framebuffer* fb, PsfFont* font)
     : fb_(fb)
     , font_(font) {
+    kernel::memory::map_memory(
+        make_virt(fb->base_address),
+        make_phys(fb->phys_base_address),
+        (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled)
+    );
+
     char name[10];
     DeviceManager::alloc_unique_device_name("uefi_gop", name, sizeof(name));
     kd_ = DeviceManager::register_device(
@@ -59,7 +67,8 @@ void FramebufferDriver::init_simd() noexcept {
     if (f.avx2) {
         using_avx = true;
         fn_memcpy_ = fb_memcpy_avx2;
-        fn_fill_rect_ = fb_fill_rect_sse2; // there is an issue with fb_fill_rect_avx2 and interrupt handlers, so we use sse2 for now
+        fn_fill_rect_ = fb_fill_rect_sse2;  // there is an issue with fb_fill_rect_avx2 and interrupt handlers, so we
+                                            // use sse2 for now
         fn_memmove_ = fb_memmove_avx2;
     } else if (f.sse2) {
         using_sse = true;
@@ -97,14 +106,16 @@ void FramebufferDriver::put_char(char c, const u32 x, const u32 y, const u32 fg_
                 const u32 xpix = bx * 8 + bit;
                 if (xpix >= font_->width) break;
 
-               const  u32 color_to_draw = (byte & (0x80 >> bit)) ? fg_color : bg_color;
+                const u32 color_to_draw = (byte & (0x80 >> bit)) ? fg_color : bg_color;
                 *(pix_ptr + (x + xpix) + (y + row) * fb_->pixels_per_scanline) = color_to_draw;
             }
         }
     }
 }
 
-bool FramebufferDriver::blit_buffer(const void* pixels, const u32 buffer_width, const u32 buffer_height, const u32 dst_x, const u32 dst_y) {
+bool FramebufferDriver::blit_buffer(
+    const void* pixels, const u32 buffer_width, const u32 buffer_height, const u32 dst_x, const u32 dst_y
+) {
     if (!pixels) return false;
     if (dst_x >= fb_->width || dst_y >= fb_->height) return false;
 

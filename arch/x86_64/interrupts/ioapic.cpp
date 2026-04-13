@@ -45,17 +45,17 @@ namespace arch::x86_64::interrupts::ioapic {
         base[IOAPIC_WINDOW] = val;
     }
 
-    u32 get_max_redirects(const madt::IoApic* ioapic) {
+    u32 get_max_redirects(const kernel::acpi::madt::io_apic* ioapic) {
         volatile u32* mmio = map_ioapic(ioapic->address);
         // Bits [23:16] of the VER register hold (max_redir_entry), which is the number of entries minus one.
         const u32 ver = ioapic_read(mmio, IOAPIC_REG_VER);
         return ((ver >> 16) & 0xFF) + 1;
     }
 
-    static madt::IoApic* find_ioapic_for_gsi(const u32 gsi) {
-        madt::IoApic* apics = madt::get_ioapics();
-        for (u32 i = 0; i < madt::get_ioapic_count(); ++i) {
-            madt::IoApic& apic = apics[i];
+    static kernel::acpi::madt::io_apic* find_ioapic_for_gsi(const u32 gsi) {
+        kernel::acpi::madt::io_apic* apics = kernel::acpi::madt::ioapics();
+        for (u32 i = 0; i < kernel::acpi::madt::ioapic_count(); ++i) {
+            kernel::acpi::madt::io_apic& apic = apics[i];
             const u32 max_entries = get_max_redirects(&apic);
             if (gsi >= apic.gsi_base && gsi < apic.gsi_base + max_entries) {
                 return &apic;
@@ -65,8 +65,8 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static u32 resolve_irq_to_gsi(const u8 irq) {
-        const madt::InterruptOverride* overrides = madt::get_overrides();
-        for (u32 i = 0; i < madt::get_override_count(); ++i) {
+        const kernel::acpi::madt::interrupt_override* overrides = kernel::acpi::madt::overrides();
+        for (u32 i = 0; i < kernel::acpi::madt::override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].gsi;
             }
@@ -75,8 +75,8 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     static u16 get_flags_for_irq(const u8 irq) {
-        const madt::InterruptOverride* overrides = madt::get_overrides();
-        for (u32 i = 0; i < madt::get_override_count(); ++i) {
+        const kernel::acpi::madt::interrupt_override* overrides = kernel::acpi::madt::overrides();
+        for (u32 i = 0; i < kernel::acpi::madt::override_count(); ++i) {
             if (overrides[i].source_irq == irq) {
                 return overrides[i].flags;
             }
@@ -124,7 +124,7 @@ namespace arch::x86_64::interrupts::ioapic {
         const u32 gsi = resolve_irq_to_gsi(irq);
         const u16 flags = get_flags_for_irq(irq);
 
-        const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+        const kernel::acpi::madt::io_apic* ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) {
             Log::error("IOAPIC: No IOAPIC found for GSI %u (IRQ %u)", gsi, irq);
             return;
@@ -143,7 +143,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void mask_gsi(const u32 gsi) {
-        const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+        const kernel::acpi::madt::io_apic* ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) return;
 
         volatile u32* mmio = map_ioapic(ioapic->address);
@@ -153,7 +153,7 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void unmask_gsi(const u32 gsi) {
-        const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+        const kernel::acpi::madt::io_apic* ioapic = find_ioapic_for_gsi(gsi);
         if (!ioapic) return;
 
         volatile u32* mmio = map_ioapic(ioapic->address);
@@ -163,14 +163,14 @@ namespace arch::x86_64::interrupts::ioapic {
     }
 
     void init() {
-        Log::info("IOAPIC: Initializing %u IOAPIC(s)", madt::get_ioapic_count());
+        Log::info("IOAPIC: Initializing %u IOAPIC(s)", kernel::acpi::madt::ioapic_count());
 
         // All legacy irqs are masked by default
         // Subsystems call configure_irq() to activate what they need.
-        const u8 bsp = static_cast<u8>(madt::get_bsp_apic_id());
+        const u8 bsp = static_cast<u8>(kernel::acpi::madt::bsp_apic_id());
         for (u8 irq = 0; irq < 16; ++irq) {
             const u32 gsi = resolve_irq_to_gsi(irq);
-            const madt::IoApic* ioapic = find_ioapic_for_gsi(gsi);
+            const kernel::acpi::madt::io_apic* ioapic = find_ioapic_for_gsi(gsi);
             if (!ioapic) continue;
 
             const u16 flags = get_flags_for_irq(irq);
