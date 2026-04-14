@@ -13,17 +13,35 @@ void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* m_map, const
 
     void* largest_free_mem_seg = nullptr;
     usize largest_free_mem_seg_size = 0;
+    void* bitmap_seg      = nullptr;
+    usize bitmap_seg_size = 0;
 
     for (usize i = 0; i < m_map_entries; i++) {
-        if (const auto* desc =
-                reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(reinterpret_cast<u64>(m_map) + (i * m_map_desc_size));
-            desc->type == 7) {  // type = EfiConventionalMemory
-            if (desc->num_pages * 4096 > largest_free_mem_seg_size) {
-                largest_free_mem_seg = reinterpret_cast<void*>(desc->phys_addr);
-                largest_free_mem_seg_size = desc->num_pages * 4096;
-            }
+        constexpr u64 four_gb = 0x100000000ULL;
+
+        const auto* desc =
+            reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(
+                reinterpret_cast<u64>(m_map) + i * m_map_desc_size
+            );
+
+        if (desc->type != 7) continue;  // nur EfiConventionalMemory
+
+        const usize seg_size = desc->num_pages * 4096;
+
+        if (seg_size > largest_free_mem_seg_size) {
+            largest_free_mem_seg      = reinterpret_cast<void*>(desc->phys_addr);
+            largest_free_mem_seg_size = seg_size;
+        }
+
+        const bool fits_below_4g = (desc->phys_addr + seg_size) <= four_gb;
+        if (fits_below_4g && seg_size > bitmap_seg_size) {
+            bitmap_seg      = reinterpret_cast<void*>(desc->phys_addr);
+            bitmap_seg_size = seg_size;
         }
     }
+
+    if (!bitmap_seg) bitmap_seg = largest_free_mem_seg;
+
     const u64 memory_size = get_memory_size(m_map, m_map_entries, m_map_desc_size);
 
     total_memory_ = memory_size;
@@ -32,7 +50,7 @@ void PageFrameAllocator::read_efi_memory_map(EFI_MEMORY_DESCRIPTOR* m_map, const
     used_memory_ = 0;
     const u64 bitmap_size = memory_size / 4096 / 8 + 1;
 
-    init_bitmap(bitmap_size, largest_free_mem_seg);
+    init_bitmap(bitmap_size, bitmap_seg);
 
     reserve_pages(nullptr, memory_size / 4096 + 1);
     for (usize i = 0; i < m_map_entries; i++) {

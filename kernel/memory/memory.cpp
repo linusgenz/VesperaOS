@@ -28,6 +28,7 @@ virt_addr_t phys_to_virt(const phys_addr_t addr) {
 phys_addr_t virt_to_phys(const virt_addr_t addr) {
     return make_phys(virt_raw(addr) - g_hhdm_offset);
 }
+        extern Framebuffer* target_framebuffer;
 
 namespace kernel::memory {
     static PageFrameAllocator page_frame_allocator;
@@ -54,9 +55,23 @@ namespace kernel::memory {
             const auto* desc = reinterpret_cast<EFI_MEMORY_DESCRIPTOR*>(
                 reinterpret_cast<u64>(boot_info->m_map) + i * boot_info->m_map_desc_size
             );
-            if (const u64 end = desc->phys_addr + desc->num_pages * 0x1000; end > max_phys) max_phys = end;
-        }
 
+            switch (desc->type) {
+                case 1:   // EfiLoaderCode
+                case 2:   // EfiLoaderData
+                case 3:   // EfiBootServicesCode
+                case 4:   // EfiBootServicesData
+                case 7:   // EfiConventionalMemory
+                case 9:   // EfiACPIReclaimMemory
+                case 10:  // EfiACPIMemoryNVS
+                    break;
+                default:
+                    continue;  // MMIO, Reserved, etc. überspringen
+            }
+
+            if (const u64 end = desc->phys_addr + desc->num_pages * 0x1000; end > max_phys)
+                max_phys = end;
+        }
         max_phys = (max_phys + 0x1FFFFF) & ~0x1FFFFFULL;
 
         for (u64 phys = 0; phys < max_phys; phys += 0x1000) {
@@ -127,7 +142,8 @@ namespace kernel::memory {
 
     virt_addr_t request_pages(const usize page_count) {
         const u64 phys = page_frame_allocator.request_pages(page_count);
-        if (!phys) [[unlikely]] return make_virt(nullptr);
+        if (!phys) [[unlikely]]
+            return make_virt(nullptr);
         return phys_to_virt(make_phys(phys));
     }
 
