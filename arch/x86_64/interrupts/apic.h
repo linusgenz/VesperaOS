@@ -6,7 +6,7 @@
 #define APIC_H
 #include <vespera/types.h>
 
-#include "../../../include/acpi/madt.h"
+#include <acpi/madt.h>
 #include "interrupts_internal.h"
 
 inline volatile u8* g_local_apic_addr;

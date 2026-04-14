@@ -7,7 +7,7 @@
 
 #include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
 #include "../../../drivers/ps2/mouse/mouse.h"
-#include "../../../include/vespera/cpu/io.h"
+#include <vespera/cpu/io.h>
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "../../../kernel/debug/fault_logger.h"
 #include "../../../kernel/scheduling/cpu_scheduler.h"

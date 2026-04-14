@@ -26,6 +26,7 @@
 #include <vespera/devices/block.h>
 #include <vespera/devices/device_manager.h>
 
+#include "vespera/sync/semaphore.h"
 #include "xhci_endpoint.h"
 #include "xhci_usb_device_driver.h"
 
@@ -124,7 +125,7 @@ private:
         Completed
     };
 
-    volatile bool init_done_ = false;
+    Semaphore init_semaphore_;
     int init_status_ = -1;
     InitPhase init_phase_ = InitPhase::TestUnitReady;
 

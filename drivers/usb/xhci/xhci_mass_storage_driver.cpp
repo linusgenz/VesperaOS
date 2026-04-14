@@ -34,16 +34,16 @@ void XhciMassStorageDriver::on_startup(usb::XhciDriver* hcd, XhciDevice* dev) {
     this->hcd_ = hcd;
     this->device_ = dev;
 
-    init_done_ = false;
     init_status_ = -1;
     init_phase_ = InitPhase::TestUnitReady;
-
+    init_semaphore_.init(1, 0);
     io_mutex_.init();
 
     initialize_device();
 
-    while (!init_done_) {
-        asm volatile("pause");
+    if (!init_semaphore_.wait(5000)) {
+        Log::error("Mass storage init timed out");
+        return;
     }
 
     if (init_status_ == 0) {
@@ -174,8 +174,8 @@ void XhciMassStorageDriver::handle_completed_transfer() {
         current_transfer_ = nullptr;
         init_phase_ = InitPhase::Completed;
 
-        init_done_ = true;
         init_status_ = 0;
+        init_semaphore_.signal();
     } else {
         current_transfer_->actual_length = current_transfer_->cbw.data_length - current_transfer_->csw.data_residue;
 
@@ -384,7 +384,6 @@ void XhciMassStorageDriver::detach() {
     device_ = nullptr;
 
     // Flags zurücksetzen
-    init_done_ = false;
     init_status_ = -1;
     init_phase_ = InitPhase::Completed;
 }

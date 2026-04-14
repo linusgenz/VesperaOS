@@ -6,7 +6,7 @@
 #define GDT_H
 #include <vespera/types.h>
 
-#include "../../../include/acpi/madt.h"
+#include <acpi/madt.h>
 
 struct __attribute__((packed)) GDT_ENTRY {
     u16 limit_low;   // Limit bits 0-15

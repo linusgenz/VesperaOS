@@ -66,7 +66,7 @@ namespace kernel::memory {
                 case 10:  // EfiACPIMemoryNVS
                     break;
                 default:
-                    continue;  // MMIO, Reserved, etc. überspringen
+                    continue;  // MMIO, Reserved, etc.
             }
 
             if (const u64 end = desc->phys_addr + desc->num_pages * 0x1000; end > max_phys)

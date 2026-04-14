@@ -27,8 +27,8 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
+#include <vespera/types.h>
 
-#include "../../../include/vespera/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {

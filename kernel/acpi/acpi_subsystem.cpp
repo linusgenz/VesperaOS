@@ -28,7 +28,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include "../../include/acpi/madt.h"
+#include <acpi/madt.h>
 #include "acpi_osl.h"
 #include "acpi_tables.h"
 #include "ec.h"
@@ -36,10 +36,10 @@
 namespace kernel::acpi {
 
     namespace {
-        u64          g_rsdp_phys = 0;
-        FADT*        g_fadt      = nullptr;
-        MADT_HEADER* g_madt      = nullptr;
-        MCFG_HEADER* g_mcfg      = nullptr;
+        u64 g_rsdp_phys = 0;
+        FADT* g_fadt = nullptr;
+        MADT_HEADER* g_madt = nullptr;
+        MCFG_HEADER* g_mcfg = nullptr;
     }  // namespace
 
     void set_rsdp_phys(u64 phys) {

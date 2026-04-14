@@ -29,13 +29,14 @@
 
 #include "msi.h"
 #include "pci.h"
+#include "pci_bar.h"
 
 namespace pci {
 
     bool enable_msix(PCI_HEADER0* header, const u8 irq_vector) {
         auto* config_space = reinterpret_cast<u8*>(&header->header);
 
-        if (!(header->header.status & (1 << 4))) {
+        if (!(header->header.status & (1u << 4))) {
             Log::error("PCI: No capabilities present");
             return false;
         }
@@ -57,7 +58,7 @@ namespace pci {
                 const u32 table_raw = *reinterpret_cast<volatile u32*>(&config_space[cap_ptr + 4]);
                 const u32 table_offset = table_raw & ~0x7u;
 
-                const BarInfo bar_info = get_bar_info(header, table_bar_index);
+                const BarInfo bar_info = pci::bar::read(header, table_bar_index);
                 if (!bar_info.is_valid || !bar_info.is_memory) {
                     Log::error("MSI-X: Invalid or non-memory BAR %u", table_bar_index);
                     return false;
@@ -78,7 +79,7 @@ namespace pci {
                 entry.vector_control = 0;
 
                 write_msix_vector_entry(virt_ptr(table_base), 0, entry);
-                // Re-enable MSI-X
+
                 msix_cap->function_mask = 0;
                 msix_cap->enable_bit = 1;
                 msix_cap->message_control = msix_cap->message_control;

@@ -2,7 +2,7 @@
 
 #include <klib/string.h>
 
-#include "../../../include/acpi/madt.h"
+#include <acpi/madt.h>
 #include "../../../kernel/cpu/cpu_manager.h"
 #include "vespera/log.h"
 

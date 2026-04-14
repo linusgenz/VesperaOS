@@ -25,10 +25,9 @@
 #include <vespera/filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <vespera/types.h>
 
-#include "../../../include/vespera/types.h"
 #include "../filesystem/vfs/vfs_handle.h"
-#include "vespera/log.h"
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {

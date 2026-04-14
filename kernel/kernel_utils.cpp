@@ -1,6 +1,7 @@
 #include "../drivers/fb/framebuffer_driver.h"
 #include "acpi/acpi_subsystem.h"
 #include "cpu/cpu.h"
+#include "drivers/pci/pci_driver.h"
 #include "graphics/font/ttf_glyph_provider.h"
 #include "vespera/ipc/vbus_manager.h"
 #if DEBUG_SPINLOCK
@@ -153,6 +154,7 @@ static void initialize_scheduling_and_smp() {
 static void initialize_hardware_buses() {
     ps2_init();
     initialize_input_bus();
+    pci::driver_registry::init_drivers();
     pci::enumerate_pci(kernel::acpi::get_mcfg());
 
     if (UsbManager::wait_for_all_controllers(10000))  // TODO

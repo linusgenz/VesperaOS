@@ -4,13 +4,14 @@
 
 #ifndef PCI_H
 #define PCI_H
-#include <vespera/types.h>
-
 #include <acpi/acpi.h>
+#include <vespera/types.h>
 
 namespace kernel::acpi {
     struct MCFG_HEADER;
-}
+    struct DEVICE_CONFIG;
+}  // namespace kernel::acpi
+
 namespace pci {
     struct PCI_DEVICE_HEADER {
         u16 vendor_id;
@@ -49,10 +50,10 @@ namespace pci {
         u8 max_latency;
     };
 
-#define PCI_BAR_TYPE_32_BIT    0x0
-#define PCI_BAR_TYPE_64_BIT    0x4
-#define PCI_BAR_TYPE_MASK     0x6
-#define PCI_BAR_MEMORY_MASK   0x1
+    constexpr u32 PCI_BAR_MEMORY_MASK = 0x1u;  // bit 0: 0 = memory, 1 = I/O
+    constexpr u32 PCI_BAR_TYPE_MASK = 0x6u;    // bits [2:1]: memory BAR type
+    constexpr u32 PCI_BAR_TYPE_32_BIT = 0x0u;
+    constexpr u32 PCI_BAR_TYPE_64_BIT = 0x4u;  // bits [2:1] == 0b10
 
     struct BarInfo {
         u64 address;
@@ -63,59 +64,42 @@ namespace pci {
         bool is_valid;
     };
 
-    inline u8 pci_read8(pci::PCI_DEVICE_HEADER *hdr, u8 offset) {
-        volatile u8 *ptr = reinterpret_cast<u8 *>(hdr) + offset;
-        return *ptr;
+    inline u8 pci_read8(PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<volatile u8*>(reinterpret_cast<u8*>(hdr) + offset);
     }
 
-    inline void pci_write8(pci::PCI_DEVICE_HEADER *hdr, u8 offset, u8 value) {
-        volatile u8 *ptr = reinterpret_cast<u8 *>(hdr) + offset;
-        *ptr = value;
+    inline void pci_write8(PCI_DEVICE_HEADER* hdr, u8 offset, u8 value) {
+        *reinterpret_cast<volatile u8*>(reinterpret_cast<u8*>(hdr) + offset) = value;
     }
 
-    inline u16 pci_read16(pci::PCI_DEVICE_HEADER *hdr, u8 offset) {
-        volatile auto *ptr = reinterpret_cast<volatile u16 *>(reinterpret_cast<u8 *>(hdr) + offset);
-        return *ptr;
+    inline u16 pci_read16(PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<volatile u16*>(reinterpret_cast<u8*>(hdr) + offset);
     }
 
-    inline void pci_write16(pci::PCI_DEVICE_HEADER *hdr, u8 offset, u16 value) {
-        volatile auto *ptr = reinterpret_cast<volatile u16 *>(reinterpret_cast<u8 *>(hdr) + offset);
-        *ptr = value;
+    inline void pci_write16(PCI_DEVICE_HEADER* hdr, u8 offset, u16 value) {
+        *reinterpret_cast<volatile u16*>(reinterpret_cast<u8*>(hdr) + offset) = value;
     }
 
-    inline u32 pci_read32(pci::PCI_DEVICE_HEADER *hdr, u8 offset) {
-        volatile auto *ptr = reinterpret_cast<volatile u32 *>(reinterpret_cast<u8 *>(hdr) + offset);
-        return *ptr;
+    inline u32 pci_read32(PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<volatile u32*>(reinterpret_cast<u8*>(hdr) + offset);
     }
 
-    inline void pci_write32(pci::PCI_DEVICE_HEADER *hdr, u8 offset, u32 value) {
-        volatile auto *ptr = reinterpret_cast<volatile u32 *>(reinterpret_cast<u8 *>(hdr) + offset);
-        *ptr = value;
+    inline void pci_write32(PCI_DEVICE_HEADER* hdr, u8 offset, u32 value) {
+        *reinterpret_cast<volatile u32*>(reinterpret_cast<u8*>(hdr) + offset) = value;
     }
-
 
     inline u32 pci_config_address(u8 bus, u8 device, u8 function, u8 offset) {
-        return 1U << 31 // enable bit
-               | (static_cast<u32>(bus) << 16)
-               | (static_cast<u32>(device) << 11)
-               | (static_cast<u32>(function) << 8)
-               | (offset & 0xFC);
+        return 1U << 31  // enable bit
+               | (static_cast<u32>(bus) << 16) | (static_cast<u32>(device) << 11) | (static_cast<u32>(function) << 8) |
+               (offset & 0xFC);
     }
 
+    void enumerate_pci(kernel::acpi::MCFG_HEADER* mcfg);
 
-    void enumerate_pci(kernel::acpi::MCFG_HEADER *mcfg);
+    const char* get_vendor_name(u16 vendor_id);
+    const char* get_device_name(u16 vendor_id, u16 device_id);
+    const char* get_subclass_name(u8 class_code, u8 subclass_code);
+    const char* get_prog_if_name(u8 class_code, u8 subclass_code, u8 prog_if);
+}  // namespace pci
 
-    extern const char *device_classes[];
-
-    const char *get_vendor_name(u16 vendor_id);
-
-    const char *get_device_name(u16 vendor_id, u16 device_id);
-
-    const char *get_subclass_name(u8 class_code, u8 subclass_code);
-
-    const char *get_prog_if_name(u8 class_code, u8 subclass_code, u8 prog_if);
-
-    BarInfo get_bar_info(PCI_HEADER0 *header, u8 bar_index);
-}
-
-#endif //PCI_H
+#endif  // PCI_H

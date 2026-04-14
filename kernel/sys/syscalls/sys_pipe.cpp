@@ -24,8 +24,7 @@
 #include <vespera/filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-
-#include "../../../include/vespera/types.h"
+#include <vespera/types.h>
 
 static void ref_void(void* p) { Channel::ref(static_cast<Channel*>(p)); }
 

@@ -651,19 +651,14 @@ namespace usb {
                 }
                 case XHCI_TRB_TYPE_TRANSFER_EVENT: {
                     transfer_completion_status = 1;
-                    auto transfer_event = reinterpret_cast<xhci_transfer_completion_trb_t*>(event);
-                    {
+                    auto* transfer_event = reinterpret_cast<xhci_transfer_completion_trb_t*>(event);
+
+                    if (const auto device = find_by_slot(transfer_event->slot_id);
+                        device && device->interfaces[0]->driver) {
+                        device->interfaces[0]->driver->on_event(this, device);
+                    } else {
                         SpinlockGuardIrq guard(transfer_lock_);
                         transfer_completion_events_.push_back(transfer_event);
-                    }
-
-                    const auto device = find_by_slot(transfer_event->slot_id);
-                    if (!device) {
-                        break;
-                    }
-
-                    if (const auto& primary_interface = device->interfaces[0]; primary_interface->driver) {
-                        primary_interface->driver->on_event(this, device);
                     }
                     break;
                 }
@@ -1039,45 +1034,45 @@ namespace usb {
         return true;
     }
 
-    xhci_transfer_completion_trb_t* XhciDriver::start_control_endpoint_transfer(const XhciTransferRing* transfer_ring) {
+    xhci_transfer_completion_trb_t* XhciDriver::start_control_endpoint_transfer(
+        const XhciTransferRing* transfer_ring)
+    {
         doorbell_manager_->ring_control_endpoint_doorbell(transfer_ring->get_doorbell_id());
 
+        const u8 target_slot = transfer_ring->get_doorbell_id();
         u64 sleep_passed = 0;
+        constexpr u64 timeout_ms = 400;
 
-        while (!transfer_irq_completed_.load()) {
-            kernel::time::sleep_ms(10);
-            sleep_passed += 10;
+        while (sleep_passed <= timeout_ms) {
+            while (!transfer_irq_completed_.load()) {
+                kernel::time::sleep_ms(10);
+                sleep_passed += 10;
+                if (sleep_passed > timeout_ms) goto timed_out;
+            }
 
-            if (constexpr u64 timeout_ms = 400; sleep_passed > timeout_ms) {
-                break;
+            {
+                SpinlockGuardIrq guard(transfer_lock_);
+                for (usize i = 0; i < transfer_completion_events_.size(); i++) {
+                    if (transfer_completion_events_[i]->slot_id == target_slot) {
+                        auto* trb = transfer_completion_events_[i];
+                        transfer_completion_events_.erase(i);
+                        transfer_irq_completed_.clear();
+
+                        if (trb->completion_code != XHCI_TRB_COMPLETION_CODE_SUCCESS) {
+                            Log::warning("Transfer TRB failed: %s",
+                                trb_completion_code_to_string(trb->completion_code));
+                            return nullptr;
+                        }
+                        return trb;
+                    }
+                }
+                transfer_irq_completed_.clear();
             }
         }
 
-        SpinlockGuardIrq guard(transfer_lock_);
-        xhci_transfer_completion_trb_t* completion_trb = nullptr;
-
-        for (usize i = 0; i < transfer_completion_events_.size(); i++) {
-            if (transfer_completion_events_[i]->slot_id == transfer_ring->get_doorbell_id()) {
-                completion_trb = transfer_completion_events_[i];
-                transfer_completion_events_.erase(i);
-                break;
-            }
-        }
-        transfer_irq_completed_.clear();
-
-        if (!completion_trb) {
-            Log::warning("Failed to find transfer completion TRB");
-            return nullptr;
-        }
-
-        if (completion_trb->completion_code != XHCI_TRB_COMPLETION_CODE_SUCCESS) {
-            Log::warning(
-                "Transfer TRB failed with error: %s", trb_completion_code_to_string(completion_trb->completion_code)
-            );
-            return nullptr;
-        }
-
-        return completion_trb;
+        timed_out:
+            Log::warning("Control endpoint transfer timed out for slot %u", target_slot);
+        return nullptr;
     }
 
     bool XhciDriver::get_device_descriptor(XhciDevice* device, USB_DEVICE_DESCRIPTOR* desc, const u32 length) {
@@ -1552,7 +1547,10 @@ namespace usb {
 
         device->sync_input_ctx(reinterpret_cast<void*>(dcbaa_virtual_addresses_[device->get_slot_id()]));
 
-        m_connected_devices.push_back(device);
+        {
+            SpinlockGuardIrq guard(devices_lock_);
+            m_connected_devices.push_back(device);
+        }
 
         SYS_EVENT_DEVICE_REGISTERED(device->get_model_name(), port_id);
 
