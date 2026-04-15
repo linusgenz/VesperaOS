@@ -30,6 +30,7 @@
 #include "misc/meminfo.h"
 #include "misc/null.h"
 #include "misc/rtc.h"
+#include "misc/thermal.h"
 #include "misc/uptime.h"
 #include "misc/urandom.h"
 #include "misc/version.h"
@@ -49,6 +50,7 @@ void initialize_pseudo_devices() {
     auto* cpuinfo_dev = new CpuInfoDevice();
     auto* cpustat_dev = new CpuStatDevice();
     auto* meminfo_dev = new MemInfoDevice();
+    auto* thermal_dev = new ThermalDevice();
     auto* log_dev = new LogDevice(kernel_log_channel);
 
     auto register_char_device = [](CharDevice* dev, const char* name, const DeviceClass cls) {
@@ -69,5 +71,6 @@ void initialize_pseudo_devices() {
     register_char_device(cpuinfo_dev, "cpuinfo", DeviceClass::Pseudo);
     register_char_device(cpustat_dev, "cpustat", DeviceClass::Pseudo);
     register_char_device(meminfo_dev, "meminfo", DeviceClass::Pseudo);
+    register_char_device(thermal_dev, "thermal", DeviceClass::Pseudo);
     register_char_device(log_dev, "log", DeviceClass::Pseudo);
 }

@@ -35,11 +35,6 @@ namespace pci {
      *
      * Subclasses declare their match table and implement probe() / remove().
      *
-     * Registration example (in the driver's .cpp):
-     *
-     *   static XhciPciDriver g_xhci_driver;
-     *   PCI_DRIVER_REGISTER(g_xhci_driver);
-     *
      * Matching is attempted in registration order.  The first driver whose
      * matches() returns true claims the device and its probe() is called.
      */
@@ -51,9 +46,6 @@ namespace pci {
         PciDriver(const PciDriver&) = delete;
         PciDriver& operator=(const PciDriver&) = delete;
 
-        /**
-         * @brief Human-readable name shown in lspci / kernel logs.
-         */
         [[nodiscard]] virtual const char* name() const = 0;
 
         /**
@@ -76,8 +68,6 @@ namespace pci {
 
         /**
          * @brief Called when a device is removed or the driver is unloaded.
-         *
-         * May be a no-op for drivers that do not support hot-unplug.
          */
         virtual void remove(pci_device& dev) = 0;
 
@@ -103,17 +93,12 @@ namespace pci {
         }
     };
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Driver registry
-    // ─────────────────────────────────────────────────────────────────────────
-
     /**
      * @brief Static registry of all PCI drivers.
-     *
-     * Drivers register themselves at startup via PCI_DRIVER_REGISTER().
-     * The enumerator calls driver_registry::bind() for each discovered device.
      */
     namespace driver_registry {
+
+        void init_drivers();
 
         /**
          * @brief Register a driver instance.
@@ -139,18 +124,8 @@ namespace pci {
 
 /**
  * @brief Register a statically-allocated PciDriver instance.
- *
- * Place this in the driver's .cpp file, at file scope, after the driver
- * class definition:
- *
- *   static XhciPciDriver g_xhci_driver;
- *   PCI_DRIVER_REGISTER(g_xhci_driver);
- *
- * Uses a constructor-priority attribute to run before main() / kernel_main().
  */
-#define PCI_DRIVER_REGISTER(instance)                                     \
-    __attribute__((constructor)) static void _pci_register_##instance() { \
-        pci::driver_registry::register_driver(&(instance));               \
-    }
+#define PCI_DRIVER_REGISTER(instance) \
+    static ::pci::PciDriver* _pci_drv_ptr_##instance __attribute__((section(".pci_drivers"), used)) = &(instance);
 
 #endif  // VESPERAOS_DRIVERS_PCI_PCI_DRIVER_H
