@@ -38,9 +38,9 @@ void Completion::wait() const {
 }
 
 bool Completion::wait_timeout(const u64 timeout_ms) const {
-    const u64 start = kernel::time::get_ticks();
+    const u64 start = kernel::time::get_uptime_ms();
     while (!__atomic_load_n(&completed, __ATOMIC_ACQUIRE)) {
-        if (const u64 elapsed = kernel::time::get_ticks() - start; elapsed > timeout_ms / 10) {  // ticks sind 10ms
+        if (const u64 elapsed = kernel::time::get_uptime_ms() - start; elapsed > timeout_ms) {
             return false;
         }
         kernel::time::sleep_ms(10);

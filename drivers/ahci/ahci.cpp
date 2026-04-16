@@ -863,7 +863,7 @@ namespace ahci {
         kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(global_interrupt_handler), this);
         if (!pci::try_enable_msi_or_msix(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address), vector)) {
             Log::debug("[ AHCI ] AHCI Driver instance failed to enable MSI");
-            this->~AhciDriver();
+            delete this;
         }
 
         abar->global_host_control |= AHCI_GHC_AE;
@@ -912,6 +912,8 @@ namespace ahci {
     }
 
     AhciDriver::~AhciDriver() {
+        DevFs::unregister_device(kd_);
+        DeviceManager::unregister_device(kd_);
         kernel::memory::unmap_memory(make_virt(abar));
         for (int i = 0; i < port_count; i++) delete ports[i];
     }

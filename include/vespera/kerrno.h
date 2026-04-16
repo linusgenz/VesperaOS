@@ -63,4 +63,7 @@
 // C++ Runtime Errors
 #define KECXAPURE       25   // __cxa_pure_virtual called (abstract method invoked)
 
+// EINVAL
+#define KEINVAL         26
+
 #endif //VESPERAOS_KERRNO_H

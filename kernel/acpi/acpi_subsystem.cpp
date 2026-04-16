@@ -23,12 +23,12 @@
 #include "acpi_subsystem.h"
 
 #include <acpi/acpi.h>
+#include <acpi/madt.h>
 #include <drivers/power/power_driver.h>
 #include <klib/string.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include <acpi/madt.h>
 #include "acpi_osl.h"
 #include "acpi_tables.h"
 #include "ec.h"
@@ -40,13 +40,11 @@ namespace kernel::acpi {
         FADT* g_fadt = nullptr;
         MADT_HEADER* g_madt = nullptr;
         MCFG_HEADER* g_mcfg = nullptr;
+        HPET* g_hpet = nullptr;
     }  // namespace
 
-    void set_rsdp_phys(u64 phys) {
-        g_rsdp_phys = phys;
-    }
-
     void early_init(const BootInfo* boot_info) {
+        g_rsdp_phys = phys_raw(virt_to_phys(make_virt(boot_info->rsdp)));
         auto* rsdp = reinterpret_cast<RSDP2*>(boot_info->rsdp);
 
         MADT_HEADER* madt = nullptr;
@@ -63,6 +61,9 @@ namespace kernel::acpi {
                 if (memcmp(sdt->signature, "FACP", 4) == 0) {
                     g_fadt = reinterpret_cast<FADT*>(sdt);
                 }
+                if (memcmp(sdt->signature, "HPET", 4) == 0) {
+                    g_hpet = reinterpret_cast<HPET*>(sdt);
+                }
             }
         } else {
             auto* rsdt = static_cast<RSDT*>(virt_ptr(phys_to_virt(make_phys(rsdp->rsdt_address))));
@@ -75,6 +76,9 @@ namespace kernel::acpi {
                 }
                 if (memcmp(sdt->signature, "FACP", 4) == 0) {
                     g_fadt = reinterpret_cast<FADT*>(sdt);
+                }
+                if (memcmp(sdt->signature, "HPET", 4) == 0) {
+                    g_hpet = reinterpret_cast<HPET*>(sdt);
                 }
             }
         }
@@ -108,6 +112,7 @@ namespace kernel::acpi {
         AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_MADT), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_madt));
         AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_FADT), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_fadt));
         AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_MCFG), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_mcfg));
+        AcpiGetTable(const_cast<ACPI_STRING>(ACPI_SIG_HPET), 1, reinterpret_cast<ACPI_TABLE_HEADER**>(&g_hpet));
 
         status = AcpiLoadTables();
         if (ACPI_FAILURE(status)) {
@@ -167,6 +172,10 @@ namespace kernel::acpi {
 
     MCFG_HEADER* get_mcfg() {
         return g_mcfg;
+    }
+
+    HPET* get_hpet() {
+        return g_hpet;
     }
 
 }  // namespace kernel::acpi

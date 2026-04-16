@@ -1,9 +1,9 @@
-// acpi_subsystem.h
+// clock_manager.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 13.04.26.
+// Created by Linus Genz on 16.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,27 +20,33 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
-#define VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
+#ifndef VESPERAOS_KERNEL_TIME_CLOCK_MANAGER_H
+#define VESPERAOS_KERNEL_TIME_CLOCK_MANAGER_H
 
 #include <vespera/types.h>
 
-#include "acpi_tables.h"
+#include "clock_source.h"
 
-struct BootInfo;
-
-namespace kernel::acpi {
-    void early_init(const BootInfo* boot_info);
+namespace kernel::time::clock_manager {
 
     void init();
 
-    [[nodiscard]] u64 get_rsdp_phys();
+    [[nodiscard]] const char* active_source_name();
 
-    [[nodiscard]] FADT* get_fadt();
-    [[nodiscard]] MADT_HEADER* get_madt();
-    [[nodiscard]] MCFG_HEADER* get_mcfg();
-    [[nodiscard]] HPET* get_hpet();
+    [[nodiscard]] IClockSource* active_source();
 
-}  // namespace kernel::acpi
+    // Raw ticks from the active clock source.
+    [[nodiscard]] u64 read_ticks();
 
-#endif  // VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
+    // Nanoseconds since boot (monotonic).
+    [[nodiscard]] u64 read_ns();
+
+    // Microseconds since boot.
+    [[nodiscard]] u64 read_us();
+
+    // Milliseconds since boot.
+    [[nodiscard]] u64 read_ms();
+
+}  // namespace kernel::time::clock_manager
+
+#endif  // VESPERAOS_KERNEL_TIME_CLOCK_MANAGER_H

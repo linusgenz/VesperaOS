@@ -128,17 +128,18 @@ void smp_init() {
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, APIC_ICR_INIT | APIC_ICR_LEVEL_ASSERT);
         kernel::interrupts::lapic_wait_for_delivery();
 
-        kernel::time::internal::sleep(10);
+        kernel::time::sleep_ms(10);
 
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, APIC_ICR_INIT | ICR_DEASSERT);
         kernel::interrupts::lapic_wait_for_delivery();
 
-        kernel::time::internal::sleep(10);
+        kernel::time::sleep_ms(10);
+
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_HIGH, cpu->apic_id << 24);
         kernel::interrupts::lapic_write(APIC_REGISTER_INT_COMMAND_LOW, vector_value | APIC_ICR_SIPI);
 
-        kernel::time::internal::sleep(10);
+        kernel::time::sleep_ms(10);
     }
 
     CpuInfo* get_cpu_info(const u32 apic_id) {

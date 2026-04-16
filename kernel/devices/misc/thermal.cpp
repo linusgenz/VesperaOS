@@ -22,20 +22,17 @@
 
 #include "thermal.h"
 
+#include <acpi/acpi.h>
 #include <arch/x86_64/cpu/msr.h>
 #include <klib/string.h>
 #include <uapi/vespera/dev/thermal.h>
 
-#include <acpi/acpi.h>
-
+// Reference: Volume 3B: System Programming Guide, Part 2 (14.8)
 
 /// Intel MSR: Package Thermal Status.
-/// Bits 22:16 — Package Digital Readout (degrees below TCC activation).
-/// Bit 31 — Reading valid flag (1 = valid).
 constexpr u32 MSR_PACKAGE_THERM_STATUS = 0x1B1u;
 
 /// Intel MSR: Temperature Target.
-/// Bits 23:16 — TJMAX (TCC activation temperature in degrees Celsius).
 constexpr u32 MSR_TEMPERATURE_TARGET = 0x1A2u;
 
 namespace {
@@ -49,8 +46,6 @@ namespace {
         return (eax & (1 << 6));
     }
 
-    /// Reads TJMAX from MSR_TEMPERATURE_TARGET bits 23:16.
-    /// Returns 100 °C as a safe fallback if the MSR read yields zero.
     u32 read_tjmax_celsius() {
         u64 val = rdmsr(MSR_TEMPERATURE_TARGET);
         u32 tjmax = static_cast<u32>((val >> 16) & 0xFFu);
@@ -90,9 +85,6 @@ namespace {
         u32 max_zones;
     };
 
-    /// ACPI namespace walk callback — called once per ACPI object.
-    /// Filters for ThermalZone objects (type ACPI_TYPE_THERMAL) and evaluates
-    /// their _TMP method to obtain the current temperature.
     ACPI_STATUS
     acpi_thermal_walk_cb(ACPI_HANDLE object, UINT32 /*nesting_level*/, void* context, void** /*return_value*/) {
         auto* ctx = static_cast<acpi_tz_ctx*>(context);

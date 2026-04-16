@@ -4,6 +4,7 @@
 #include "drivers/pci/pci_driver.h"
 #include "graphics/font/ttf_glyph_provider.h"
 #include "vespera/ipc/vbus_manager.h"
+#include "vespera/time.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
 #include "debug/lock_debug.h"
@@ -109,11 +110,12 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
 }
 
 static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
-    kernel::acpi::set_rsdp_phys(phys_raw(virt_to_phys(make_virt(boot_info->rsdp))));
     kernel::acpi::early_init(boot_info);
 
     kernel::interrupts::initialize();
     asm("sti");
+
+    kernel::time::init_clock();
 }
 
 static void initialize_cpu_and_realms() {

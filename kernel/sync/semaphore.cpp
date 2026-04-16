@@ -56,7 +56,7 @@ void Semaphore::init(u32 max_count, u32 init_count) {
 
 bool Semaphore::wait(u16 timeout_ms) {
     if (!kernel::scheduling::is_curent_cpu_enabled()) {
-        const u64 start = kernel::time::get_ticks();
+        const u64 start = kernel::time::get_uptime_ms();
 
         while (true) {
             {
@@ -69,7 +69,7 @@ bool Semaphore::wait(u16 timeout_ms) {
             if (timeout_ms == 0) return false;
 
             if (timeout_ms != 0xFFFF) {
-                const u64 elapsed_ms = (kernel::time::get_ticks() - start) * 10ULL;
+                const u64 elapsed_ms = (kernel::time::get_uptime_ms() - start) * 10ULL;
                 if (elapsed_ms >= timeout_ms) return false;
             }
 
@@ -78,7 +78,7 @@ bool Semaphore::wait(u16 timeout_ms) {
     }
 
     const u64 start_tick = (timeout_ms != 0xFFFF && timeout_ms != 0)
-                               ? kernel::time::get_ticks()
+                               ? kernel::time::get_uptime_ms()
                                : 0;
 
     while (true) {
@@ -99,7 +99,7 @@ bool Semaphore::wait(u16 timeout_ms) {
 
         // Timeout already expired before we even try to block.
         if (timeout_ms != 0xFFFF) {
-            const u64 elapsed_ms = (kernel::time::get_ticks() - start_tick) * 10ULL;
+            const u64 elapsed_ms = (kernel::time::get_uptime_ms() - start_tick) * 10ULL;
             if (elapsed_ms >= timeout_ms) {
                 lock_.unlock();
                 return false;

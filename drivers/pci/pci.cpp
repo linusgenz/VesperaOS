@@ -39,7 +39,7 @@ namespace pci {
         pci_device dev = make_device(header, id);
 
         if (!driver_registry::bind(dev)) {
-            Log::debug(
+          /*  Log::debug(
                 "pci: no driver for %04x:%02x:%02x.%x (vid=%04x did=%04x class=%02x/%02x/%02x)",
                 id.domain,
                 id.bus,
@@ -50,7 +50,7 @@ namespace pci {
                 dev.class_code,
                 dev.subclass,
                 dev.prog_if
-            );
+            );*/
         }
     }
 

@@ -12,7 +12,9 @@
 inline volatile u8* g_local_apic_addr;
 
 namespace arch::x86_64::interrupts::apic {
-    // ------------------------------------------------------------------------------------------------
+    constexpr u64 APIC_TICK_HZ = 100;
+
+        // ------------------------------------------------------------------------------------------------
     // Local APIC Registers
 #define LAPIC_ID 0x0020       // Local APIC ID
 #define LAPIC_VER 0x0030      // Local APIC Version

@@ -44,7 +44,7 @@ namespace arch::x86_64::interrupts::apic {
         write(LAPIC_TDCR, 0x3);  // Divide by 16
         write(LAPIC_TICR, 0xFFFFFFFF);
 
-        pmt_delay(10000);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
+        pmt_delay(APIC_TICK_HZ*100);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
         const u32 calibration = 0xffffffff - read(LAPIC_TCCR);
         write(LAPIC_TIMER, IRQ_TIMER | LAPIC_PERIODIC);

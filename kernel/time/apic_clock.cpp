@@ -1,9 +1,9 @@
-// acpi_subsystem.h
+// apic_clock.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 13.04.26.
+// Created by Linus Genz on 16.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,27 +20,25 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
-#define VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
+#include "apic_clock.h"
 
-#include <vespera/types.h>
+#include "../arch/x86_64/interrupts/apic.h"
+#include <vespera/log.h>
 
-#include "acpi_tables.h"
+namespace kernel::time {
 
-struct BootInfo;
+    int ApicClock::init() {
+        available_ = true;
+        Log::ok("[APIC] Clock source registered: %llu Hz", arch::x86_64::interrupts::apic::APIC_TICK_HZ);
+        return 0;
+    }
 
-namespace kernel::acpi {
-    void early_init(const BootInfo* boot_info);
+    u64 ApicClock::read_ticks() {
+        return arch::x86_64::interrupts::apic::apic_ticks[0];
+    }
 
-    void init();
+    u64 ApicClock::read_ns() {
+        return read_ticks() * (1'000'000'000ULL / arch::x86_64::interrupts::apic::APIC_TICK_HZ);
+    }
 
-    [[nodiscard]] u64 get_rsdp_phys();
-
-    [[nodiscard]] FADT* get_fadt();
-    [[nodiscard]] MADT_HEADER* get_madt();
-    [[nodiscard]] MCFG_HEADER* get_mcfg();
-    [[nodiscard]] HPET* get_hpet();
-
-}  // namespace kernel::acpi
-
-#endif  // VESPERAOS_KERNEL_ACPI_ACPI_SUBSYSTEM_H
+} // namespace kernel::time

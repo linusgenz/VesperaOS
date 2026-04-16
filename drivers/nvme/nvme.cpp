@@ -174,6 +174,8 @@ namespace nvme {
     }
 
     NvmeDriver::~NvmeDriver() {
+        DevFs::unregister_device(kd_);
+        DeviceManager::unregister_device(kd_);
         shutdown();
     }
 

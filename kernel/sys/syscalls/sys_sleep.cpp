@@ -29,7 +29,7 @@ namespace syscalls::internal {
         Unit* current = kernel::scheduling::get_current_unit();
 
         const virt_addr_t saved_rsp = current->context.stack_pointer;
-        kernel::time::internal::thread_sleep_ms(arg0);
+        kernel::time::sleep_ms(10);
         current->context.stack_pointer = saved_rsp;
 
         return SUCCESS_CODE;
