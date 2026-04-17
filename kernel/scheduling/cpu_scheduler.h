@@ -44,7 +44,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
     void add_blocked_unit(Unit *unit, u8 cpu_id);
 
-    void wake_sleeping_units(u8 cpu_id, u64 current_tick);
+    void wake_sleeping_units(u8 cpu_id);
 
 }  // namespace kernel::scheduling::cpu_scheduler
 

@@ -86,7 +86,7 @@ typedef struct ExecutionContext {
 } execution_context_t;
 
 typedef struct SleepContext {
-    u64 wakeup_tick;
+    u64 wakeup_ns;
     void* kernel_rsp_after_sleep;
 } sleep_context_t;
 

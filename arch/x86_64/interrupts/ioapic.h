@@ -49,6 +49,8 @@ namespace arch::x86_64::interrupts::ioapic {
     static constexpr u16 MADT_FLAG_POLARITY_LOW = 0x03;
     static constexpr u16 MADT_FLAG_TRIGGER_LEVEL = 0x0C;
 
+    constexpr u8 PIT_ISA_IRQ = 0;
+
     /**
      * Initialize all IOAPICs found in the MADT.
      * Maps all 16 legacy ISA IRQs to vectors 0x20–0x2F on the BSP,

@@ -116,7 +116,7 @@ namespace arch::x86_64::interrupts::apic {
 
         cpu_manager::accounting_tick(cpu, is_idle);
 
-        kernel::scheduling::wake_sleeping_units(cpu, apic_ticks[cpu]);
+        kernel::scheduling::wake_sleeping_units(cpu);
         kernel::scheduling::tick_cpu(cpu, frame);
     }
 

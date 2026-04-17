@@ -61,7 +61,7 @@ namespace kernel::scheduling {
     cpu_scheduler::CpuScheduler *get_cpu_data(u8 cpu_id);
 
 
-    void wake_sleeping_units(u8 cpu_id, u64 current_tick);
+    void wake_sleeping_units(u8 cpu_id);
 
     void tick_cpu(u8 cpu_id, TrapFrame *frame);
 } // namespace kernel::scheduling::scheduler

@@ -26,6 +26,9 @@
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 
+#include "../../arch/x86_64/interrupts/ioapic.h"
+#include "acpi/madt.h"
+
 namespace kernel::time {
 
     u16 PitClock::latch_read() {
@@ -37,14 +40,27 @@ namespace kernel::time {
         return static_cast<u16>(lo) | (static_cast<u16>(hi) << 8);
     }
 
+    static Irqreturn pit_irq_handler(void* cookie) {
+        static_cast<PitClock*>(cookie)->on_irq();
+        return IRQ_HANDLED;
+    }
+
     int PitClock::init() {
-        outb(PIT_PORT_COMMAND,
-             PIT_CMD_CHANNEL0 | PIT_CMD_ACCESS_LOH | PIT_CMD_MODE2 | PIT_CMD_BINARY);
+        outb(PIT_PORT_COMMAND, PIT_CMD_CHANNEL0 | PIT_CMD_ACCESS_LOH | PIT_CMD_MODE2 | PIT_CMD_BINARY);
 
         outb(PIT_PORT_CHANNEL0, PIT_DIVISOR & 0xFF);
         outb(PIT_PORT_CHANNEL0, PIT_DIVISOR >> 8 & 0xFF);
 
-        // TODO setup irq here
+        const u8 bsp = static_cast<u8>(kernel::acpi::madt::bsp_apic_id());
+
+        const u8 vector = kernel::interrupts::get_free_vector();
+        if (vector == 0xFF) {
+            Log::error("[PIT] No free IDT vector for IRQ");
+            return -1;
+        }
+
+        arch::x86_64::interrupts::idt::allocate_vector(vector, &pit_irq_handler, this);
+        arch::x86_64::interrupts::ioapic::configure_irq(arch::x86_64::interrupts::ioapic::PIT_ISA_IRQ, vector, bsp);
 
         available_ = true;
 
@@ -53,12 +69,11 @@ namespace kernel::time {
     }
 
     u64 PitClock::read_ticks() {
-
         const u64 coarse = irq_ticks_ * static_cast<u64>(PIT_DIVISOR);
-        const u16 hw     = latch_read();
+        const u16 hw = latch_read();
         // hw counts down from PIT_DIVISOR; clamp to divisor in case of a race
         // between the latch read and the coarse increment.
-        const u16 fine   = (hw < PIT_DIVISOR) ? static_cast<u16>(PIT_DIVISOR - hw) : 0;
+        const u16 fine = (hw < PIT_DIVISOR) ? static_cast<u16>(PIT_DIVISOR - hw) : 0;
         return coarse + static_cast<u64>(fine);
     }
 
@@ -74,7 +89,7 @@ namespace kernel::time {
     void PitClock::busy_wait_us(const u32 us) {
         // Cap at one full counter period to avoid 16-bit rollover complexity.
         // For longer delays the caller should loop.
-        constexpr u32 MAX_US = 54'000; // ~54 ms max for a 16-bit 1.193 MHz counter
+        constexpr u32 MAX_US = 54'000;  // ~54 ms max for a 16-bit 1.193 MHz counter
         const u32 clamped_us = (us > MAX_US) ? MAX_US : us;
 
         const u32 counts = (static_cast<u32>(PIT_BASE_FREQ_HZ) * clamped_us + 999'999U) / 1'000'000U;
@@ -82,12 +97,11 @@ namespace kernel::time {
 
         // Gate off channel 2 (bit 0 of port 0x61) before loading the count.
         u8 gate = inb(PIT_PORT_GATE);
-        gate &= ~0x01u; // clear GATE2
+        gate &= ~0x01u;  // clear GATE2
         outb(PIT_PORT_GATE, gate);
 
         // Programme channel 2: mode 0 (interrupt on terminal count), access lo+hi.
-        outb(PIT_PORT_COMMAND,
-             PIT_CMD_CHANNEL2 | PIT_CMD_ACCESS_LOH | PIT_CMD_MODE0 | PIT_CMD_BINARY);
+        outb(PIT_PORT_COMMAND, PIT_CMD_CHANNEL2 | PIT_CMD_ACCESS_LOH | PIT_CMD_MODE0 | PIT_CMD_BINARY);
 
         outb(PIT_PORT_CHANNEL2, static_cast<u8>(reload & 0xFF));
         outb(PIT_PORT_CHANNEL2, static_cast<u8>((reload >> 8) & 0xFF));
@@ -107,4 +121,4 @@ namespace kernel::time {
         outb(PIT_PORT_GATE, gate);
     }
 
-} // namespace kernel::time
+}  // namespace kernel::time

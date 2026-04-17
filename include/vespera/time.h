@@ -33,6 +33,12 @@ namespace kernel::time {
     // Sleep for at least ms milliseconds.
     void sleep_ms(u64 ms);
 
+    // Sleep for at least us microsecond.
+    void sleep_us(const u64 us);
+
+    // Sleep for at least ns nanoseconds.
+    void sleep_ns(const u64 ns);
+
     // Read current wall-clock time from the CMOS RTC.
     // All output values are in binary (BCD is converted internally).
     void read_rtc(u8& second, u8& minute, u8& hour, u8& day, u8& month, u8& year);

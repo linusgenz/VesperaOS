@@ -8,6 +8,7 @@
 #include "per_cpu.h"
 #include "schedule_manager.h"
 #include "vespera/realm/realm_manager.h"
+#include "vespera/time.h"
 
 GsData g_per_cpu[kernel::acpi::madt::MAX_CPU_CORES];
 
@@ -203,11 +204,11 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
-    void wake_sleeping_units(const u8 cpu_id, const u64 current_tick) {
+    void wake_sleeping_units(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         Unit* woken = cpu->blocked_queue.extract_if([&](const Unit* unit) -> bool {
-            return current_tick >= unit->sleep_context.wakeup_tick;
+            return unit->sleep_context.wakeup_ns <= kernel::time::get_uptime_ns();
         });
 
         while (woken) {

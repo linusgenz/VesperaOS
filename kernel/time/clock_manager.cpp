@@ -27,6 +27,8 @@
 #include "apic_clock.h"
 #include "hpet.h"
 #include "pit.h"
+#include "tsc_clock.h"
+kernel::time::PitClock g_pit;
 
 namespace kernel::time::clock_manager {
 
@@ -34,7 +36,7 @@ namespace kernel::time::clock_manager {
 
         HpetClock g_hpet;
         ApicClock g_apic;
-        PitClock g_pit;
+        TscClock g_tsc;
 
         IClockSource* g_active = nullptr;
 
@@ -42,6 +44,7 @@ namespace kernel::time::clock_manager {
             &g_pit,
             &g_apic,
             &g_hpet,
+            &g_tsc,
         };
     }  // namespace
 
