@@ -3,6 +3,7 @@
 #include <vespera/scheduling.h>
 
 #include "../../arch/x86_64/gdt/gdt.h"
+#include "../../arch/x86_64/interrupts/apic.h"
 #include "../units/unit_manager.h"
 #include "arch/x86_64/cpu/msr.h"
 #include "per_cpu.h"
@@ -150,6 +151,10 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->current_unit = next;
         cpu->ticks_remaining = cpu->quantum_ticks;
 
+        time::sleep_timer::set_quantum_deadline(
+            cpu_id, time::get_uptime_ns() + arch::x86_64::interrupts::apic::APIC_QUANTUM_NS
+        );
+
         cpu->lock.unlock();  // unlock before touching TrapFrame (irqs are already off)
 
         do_switch(prev, next, tf);
@@ -208,7 +213,7 @@ namespace kernel::scheduling::cpu_scheduler {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         Unit* woken = cpu->blocked_queue.extract_if([&](const Unit* unit) -> bool {
-            return unit->sleep_context.wakeup_ns <= kernel::time::get_uptime_ns();
+            return unit->sleep_context.wakeup_ns <= time::get_uptime_ns();
         });
 
         while (woken) {
@@ -216,5 +221,8 @@ namespace kernel::scheduling::cpu_scheduler {
             add_unit_to_cpu(woken, cpu_id);
             woken = next;
         }
+
+        u64 new_min = 0;
+        time::sleep_timer::update_min_wakeup(cpu_id, new_min);
     }
 }  // namespace kernel::scheduling::cpu_scheduler

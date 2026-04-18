@@ -116,6 +116,7 @@ static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
     asm("sti");
 
     kernel::time::init_clock();
+    kernel::time::epoch_init();
 }
 
 static void initialize_cpu_and_realms() {

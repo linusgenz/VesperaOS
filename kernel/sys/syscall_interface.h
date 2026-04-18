@@ -51,7 +51,7 @@ namespace syscalls::internal {
 
     i64 sys_reboot(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
-    i64 sys_sleep(u64 arg0, u64, u64, u64, u64, u64);
+    i64 sys_nanosleep(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
     i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
@@ -106,6 +106,13 @@ namespace syscalls::internal {
     i64 sys_vbus_unsubscribe(u64, u64, u64, u64, u64, u64);
 
     i64 sys_unit_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64);
+
+    i64 sys_gettimeofday(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_time(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_clock_nanosleep(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
+
 }  // namespace syscalls::internal
 
 void install_syscalls();

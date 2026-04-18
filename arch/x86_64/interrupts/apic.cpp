@@ -1,4 +1,5 @@
 #include "vespera/log.h"
+#include "vespera/time.h"
 #if DEBUG_SPINLOCK
 #include "../../../kernel/debug/deadlock_detector.h"
 #endif
@@ -31,6 +32,32 @@ namespace arch::x86_64::interrupts::apic {
         }
     }
 
+    static u32 ns_to_counts(const u8 cpu_id, const u64 ns) {
+        const u32 cal = g_apic_cal[cpu_id];
+        if (cal == 0) return 1;
+
+        // Use 128-bit-wide intermediate to avoid overflow at high TSC rates.
+        // cal_window_ns = APIC_CAL_WINDOW_US * 1000
+        constexpr u64 CAL_WINDOW_NS = static_cast<u64>(APIC_CAL_WINDOW_US) * 1'000ULL;
+
+        const u64 counts = (ns * static_cast<u64>(cal)) / CAL_WINDOW_NS;
+        if (counts == 0) return 1;
+        if (counts > 0xFFFF'FFFFull) return 0xFFFF'FFFFu;
+        return static_cast<u32>(counts);
+    }
+
+    void arm_oneshot_ns(u64 ns) {
+        if (ns < APIC_MIN_DELAY_NS) ns = APIC_MIN_DELAY_NS;
+
+        const u8 cpu_id = static_cast<u8>(cpu_manager::get_current_cpu_id());
+        const u32 counts = ns_to_counts(cpu_id, ns);
+
+        // One-shot mode: LAPIC_TIMER_ONESHOT (= 0) – no periodic bit.
+        write(LAPIC_TIMER, IRQ_TIMER | LAPIC_TIMER_ONESHOT);
+        write(LAPIC_TDCR, 0x3);  // divide by 16 (same as calibration)
+        write(LAPIC_TICR, counts);
+    }
+
     void init(const u8 cpu_id) {
         write(LAPIC_TPR, 0);
 
@@ -44,15 +71,24 @@ namespace arch::x86_64::interrupts::apic {
         write(LAPIC_TDCR, 0x3);  // Divide by 16
         write(LAPIC_TICR, 0xFFFFFFFF);
 
-        pmt_delay(APIC_TICK_HZ*100);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
+        pmt_delay(APIC_CAL_WINDOW_US);  // TODO eventuell auf 1ms gehen, für mehr präzision [every 10 ms = 1 interrupt]
 
-        const u32 calibration = 0xffffffff - read(LAPIC_TCCR);
-        write(LAPIC_TIMER, IRQ_TIMER | LAPIC_PERIODIC);
-        write(LAPIC_TDCR, 0x3);  // 16
-        write(LAPIC_TICR, calibration);
+        const u32 calibration = 0xFFFF'FFFFu - read(LAPIC_TCCR);
+        g_apic_cal[cpu_id] = calibration;
+
+        Log::ok(
+            "[APIC] CPU %u calibrated: %u counts / %u µs  (~%llu MHz)",
+            cpu_id,
+            calibration,
+            APIC_CAL_WINDOW_US,
+            (static_cast<u64>(calibration) * 16ULL) /  // ×16 for divisor
+                (APIC_CAL_WINDOW_US)
+        );
 
         write(LAPIC_ICRLO, 0x0);  // zero this shit
         write(LAPIC_ICRHI, 0x0);
+
+       kernel::time::sleep_timer::start(cpu_id);
     }
 
     void send_ipi(const u32 apic_id, const u8 vector) {
@@ -107,8 +143,12 @@ namespace arch::x86_64::interrupts::apic {
 #if DEBUG_SPINLOCK
         deadlock_detector_tick();
 #endif
+        if (!kernel::scheduling::is_initialized()) {
+            // Scheduler not ready yet – just re-arm and return.
+            arm_oneshot_ns(APIC_QUANTUM_NS);
+            return;
+        }
 
-        if (!kernel::scheduling::is_initialized()) return;
         const u32 cpu = cpu_manager::get_current_cpu_id();
 
         const Unit *current = kernel::scheduling::get_current_unit();
@@ -116,8 +156,15 @@ namespace arch::x86_64::interrupts::apic {
 
         cpu_manager::accounting_tick(cpu, is_idle);
 
+        // 1. Wake any units whose deadline has passed.
         kernel::scheduling::wake_sleeping_units(cpu);
+
+        // 2. Run the scheduler quantum tick (may call yield_cpu internally).
         kernel::scheduling::tick_cpu(cpu, frame);
+
+        // 3. Re-arm the APIC for the next event (quantum OR earliest sleep).
+        //    This is the core of the one-shot tickless design.
+        kernel::time::sleep_timer::arm_next_event(static_cast<u8>(cpu));
     }
 
     void sleep(u64 ms) {

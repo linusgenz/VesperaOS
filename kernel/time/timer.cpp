@@ -11,6 +11,8 @@
 
 namespace kernel::time {
 
+    static u64 g_rtc_epoch_ns = 0;
+
     void init_clock() {
         clock_manager::init();
     }
@@ -33,6 +35,14 @@ namespace kernel::time {
 
     const char* clock_source_name() {
         return clock_manager::active_source_name();
+    }
+
+    void init_wall_clock(const u64 unix_epoch_ns) {
+        g_rtc_epoch_ns = unix_epoch_ns;
+    }
+
+    u64 get_realtime_ns() {
+        return get_uptime_ns() + g_rtc_epoch_ns;
     }
 
     namespace internal {

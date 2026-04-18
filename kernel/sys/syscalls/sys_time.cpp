@@ -1,9 +1,9 @@
-// apic_clock.cpp
+// sys_time.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 16.04.26.
+// Created by Linus Genz on 17.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,25 +20,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "apic_clock.h"
+#include <uapi/vespera/time.h>
+#include <vespera/time.h>
 
-#include "../arch/x86_64/interrupts/apic.h"
-#include <vespera/log.h>
+namespace syscalls::internal {
+    i64 sys_time(u64 arg0, u64, u64, u64, u64, u64) {
+        const u64 unix_sec =
+            kernel::time::get_realtime_ns() / 1'000'000'000ULL;
 
-namespace kernel::time {
+        auto* tloc = reinterpret_cast<u64*>(arg0);
+        if (tloc) *tloc = unix_sec;
 
-    int ApicClock::init() {
-        available_ = true;
-        Log::ok("[APIC] Clock source registered: %llu Hz", arch::x86_64::interrupts::apic::APIC_TICK_HZ);
-        return 0;
+        return static_cast<i64>(unix_sec);
     }
-
-    u64 ApicClock::read_ticks() {
-        return arch::x86_64::interrupts::apic::apic_ticks[0];
-    }
-
-    u64 ApicClock::read_ns() {
-        return read_ticks() * (1'000'000'000ULL / arch::x86_64::interrupts::apic::APIC_TICK_HZ);
-    }
-
-} // namespace kernel::time
+}

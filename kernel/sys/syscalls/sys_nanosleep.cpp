@@ -21,17 +21,30 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/scheduling.h>
+#include <uapi/vespera/time.h>
 #include <vespera/time.h>
 
+#include "vespera/log.h"
+
 namespace syscalls::internal {
-    i64 sys_sleep(u64 arg0, u64, u64, u64, u64, u64) {
-        Unit* current = kernel::scheduling::get_current_unit();
+    i64 sys_nanosleep(u64 arg0, u64 arg1, u64, u64, u64, u64) {
+        const auto* req = reinterpret_cast<const timespec_t*>(arg0);
+        auto* rem = reinterpret_cast<timespec_t*>(arg1);
 
-        const virt_addr_t saved_rsp = current->context.stack_pointer;
-        kernel::time::sleep_ms(10);
-        current->context.stack_pointer = saved_rsp;
+        const u64 sleep_ns = static_cast<u64>(req->tv_sec) * 1'000'000'000ULL + static_cast<u64>(req->tv_nsec);
 
-        return SUCCESS_CODE;
+        const u64 deadline_ns = kernel::time::get_uptime_ns() + sleep_ns;
+
+        kernel::time::sleep_ns(sleep_ns);
+
+        // TODO signal support here, if interrupted by SIG write remaining here
+        if (rem) {
+            const u64 now = kernel::time::get_uptime_ns();
+            const u64 left = (now < deadline_ns) ? (deadline_ns - now) : 0ULL;
+            rem->tv_sec = static_cast<i64>(left / 1'000'000'000ULL);
+            rem->tv_nsec = static_cast<i64>(left % 1'000'000'000ULL);
+        }
+
+        return 0;
     }
 }  // namespace syscalls::internal

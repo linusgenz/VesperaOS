@@ -24,25 +24,22 @@
 
 #include <vespera/log.h>
 
-#include "apic_clock.h"
 #include "hpet.h"
 #include "pit.h"
 #include "tsc_clock.h"
-kernel::time::PitClock g_pit;
 
 namespace kernel::time::clock_manager {
 
     namespace {
 
         HpetClock g_hpet;
-        ApicClock g_apic;
-        TscClock g_tsc;
+        PitClock g_pit;
+        TscClock  g_tsc;
 
         IClockSource* g_active = nullptr;
 
         constexpr IClockSource* const G_SOURCES[] = {
             &g_pit,
-            &g_apic,
             &g_hpet,
             &g_tsc,
         };

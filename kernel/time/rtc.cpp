@@ -5,6 +5,7 @@
 #include <vespera/time.h>
 
 #include <vespera/log.h>
+#include <klib/time.h>
 
 namespace kernel::time {
     u8 cmos_read(u8 reg) {
@@ -44,6 +45,19 @@ namespace kernel::time {
         if (!(status_b & 0x02) && (hour & 0x80)) {
             hour = ((hour & 0x7F) + 12) % 24;
         }
+    }
+
+    void epoch_init() {
+        u8 sec, min, hour, day, month, year;
+        read_rtc(sec, min, hour, day, month, year);
+
+        const u64 unix_sec = klib::time::to_unix(sec, min, hour, day, month, year);
+        const u64 epoch_ns = unix_sec * 1'000'000'000ULL;
+
+        init_wall_clock(epoch_ns);
+
+        Log::ok("[RTC ] Epoch set: %u-%02u-%02u %02u:%02u:%02u UTC  (%llu s)",
+                2000u + year, month, day, hour, min, sec, unix_sec);
     }
 
     void print_current_time() {

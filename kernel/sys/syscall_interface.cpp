@@ -47,7 +47,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_RMDIR] = syscalls::internal::sys_rmdir;
     syscall_table[SYSCALL_UNLINK] = syscalls::internal::sys_unlink;
     syscall_table[SYSCALL_REBOOT] = syscalls::internal::sys_reboot;
-    syscall_table[SYSCALL_SLEEP] = syscalls::internal::sys_sleep;
+    syscall_table[SYSCALL_NANOSLEEP] = syscalls::internal::sys_nanosleep;
     syscall_table[SYSCALL_IOCTL] = syscalls::internal::sys_ioctl;
     syscall_table[SYSCALL_SPAWN] = syscalls::internal::sys_spawn;
     syscall_table[SYSCALL_READDIR] = syscalls::internal::sys_readdir;
@@ -75,6 +75,9 @@ void install_syscalls() {
     syscall_table[SYSCALL_VBUS_SUBSCRIBE] = syscalls::internal::sys_vbus_subscribe;
     syscall_table[SYSCALL_VBUS_UNSUBSCRIBE] = syscalls::internal::sys_vbus_unsubscribe;
     syscall_table[SYSCALL_UNIT_SPAWN] = syscalls::internal::sys_unit_spawn;
+    syscall_table[SYSCALL_GETTIMEOFDAY] = syscalls::internal::sys_gettimeofday;
+    syscall_table[SYSCALL_TIME] = syscalls::internal::sys_time;
+    syscall_table[SYSCALL_CLOCK_NANOSLEEP] = syscalls::internal::sys_clock_nanosleep;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

@@ -32,14 +32,21 @@ typedef struct timespec {
     i64 tv_nsec;  ///< Nanoseconds (0–999999999)
 } timespec_t;
 
+typedef struct timeval {
+    i64 tv_sec;   ///< seconds
+    i64 tv_usec;  ///< microseconds [0, 999'999]
+} timeval_t;
+
 /**
  * @brief Clock source identifiers for sys_clock_gettime.
  */
 typedef i32 clockid_t;
 
-#define CLOCK_REALTIME           0  ///< Wall-clock time (from RTC)
-#define CLOCK_MONOTONIC          1  ///< Monotonic uptime; never jumps backwards
-#define CLOCK_MONOTONIC_RAW      4  ///< Like CLOCK_MONOTONIC, not adjusted
+#define TIMER_ABSTIME 1
 
+#define CLOCK_REALTIME 0       ///< Wall-clock time (from RTC)
+#define CLOCK_MONOTONIC 1      ///< Monotonic uptime; never jumps backwards
+#define CLOCK_MONOTONIC_RAW 4  ///< Like CLOCK_MONOTONIC, not adjusted
+#define CLOCK_BOOTTIME 7
 
 #endif  // VESPERAOS_UAPI_TIME_H
