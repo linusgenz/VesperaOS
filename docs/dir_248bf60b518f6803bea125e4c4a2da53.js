@@ -2,6 +2,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
 [
     [ "jpeg", "dir_360327f5f81a46906102c67b7d80d0bd.html", "dir_360327f5f81a46906102c67b7d80d0bd" ],
     [ "sys", "dir_699c0620a471c520d0efc35d8d04f138.html", "dir_699c0620a471c520d0efc35d8d04f138" ],
+    [ "assert.h", "assert_8h.html", null ],
     [ "channel.h", "channel_8h.html", "channel_8h" ],
     [ "ctype.h", "ctype_8h.html", "ctype_8h" ],
     [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", null ],

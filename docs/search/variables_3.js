@@ -8,14 +8,15 @@ var searchData=
   ['cols_5',['cols',['../structtty__size__t.html#a7cc56f2ce229e2e2b6c950f51a4c07a2',1,'tty_size_t']]],
   ['controller_5fbusy_5ftime_5fmin_6',['controller_busy_time_min',['../structsmart__nvme.html#a2b0e86418c4af2f2261d03ccbec2b0ca',1,'smart_nvme']]],
   ['cpu_5fcount_7',['cpu_count',['../structcpu__usage__info.html#a77efef4f9c11db9aad0002f23d6f88b7',1,'cpu_usage_info']]],
-  ['cpu_5fid_8',['cpu_id',['../structunit__info.html#ab13c4e1a7bd339b357051c9a1631138f',1,'unit_info::cpu_id'],['../structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720',1,'cpu_usage_stat::cpu_id']]],
+  ['cpu_5fid_8',['cpu_id',['../structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720',1,'cpu_usage_stat::cpu_id'],['../structunit__info.html#ab13c4e1a7bd339b357051c9a1631138f',1,'unit_info::cpu_id']]],
   ['cpu_5ftime_5faccumulated_9',['cpu_time_accumulated',['../structrealm__info.html#ab47c88a2fd9054cca9c6609a39eee226',1,'realm_info']]],
   ['cpus_10',['cpus',['../structcpu__usage__info.html#ae6dae227e3dccf969c3215a4e7923d72',1,'cpu_usage_info']]],
-  ['critical_11',['critical',['../structvbus__battery.html#a40ca3173dae209e763df9cd328d77dc9',1,'vbus_battery']]],
-  ['critical_5ftemp_5ftime_5fmin_12',['critical_temp_time_min',['../structsmart__nvme.html#aef7aabff1a55960351a95974c938efaf',1,'smart_nvme']]],
-  ['critical_5fwarning_5fraw_13',['critical_warning_raw',['../structsmart__common.html#a69be251f4a6a74ed0ce2ea85a12e4c0f',1,'smart_common::critical_warning_raw'],['../structsmart__nvme.html#a71011ac09e360b9c06519b994a2102e5',1,'smart_nvme::critical_warning_raw']]],
-  ['crtime_14',['crtime',['../structvespera__stat.html#a393468be52f9b5f33c74d12ed7743842',1,'vespera_stat']]],
-  ['ctime_15',['ctime',['../structvespera__stat.html#a81049eae510c129c361060e3d88938a2',1,'vespera_stat']]],
-  ['current_16',['current',['../structsmart__attribute.html#a12c027ca5635e77dea8d83b617902f17',1,'smart_attribute::current'],['../ioctl__smart_8h.html#aad208c2841c850a17d4907aecc675ebc',1,'current:&#160;ioctl_smart.h']]],
-  ['cwd_5fpath_17',['cwd_path',['../structrealm__info.html#ac9e79797488506468ab2014c548146d1',1,'realm_info']]]
+  ['crit_5fmc_11',['crit_mc',['../structthermal__zone.html#a35bd7933ad5f727bdead651469d2ae0c',1,'thermal_zone']]],
+  ['critical_12',['critical',['../structvbus__battery.html#a40ca3173dae209e763df9cd328d77dc9',1,'vbus_battery']]],
+  ['critical_5ftemp_5ftime_5fmin_13',['critical_temp_time_min',['../structsmart__nvme.html#aef7aabff1a55960351a95974c938efaf',1,'smart_nvme']]],
+  ['critical_5fwarning_5fraw_14',['critical_warning_raw',['../structsmart__common.html#a69be251f4a6a74ed0ce2ea85a12e4c0f',1,'smart_common::critical_warning_raw'],['../structsmart__nvme.html#a71011ac09e360b9c06519b994a2102e5',1,'smart_nvme::critical_warning_raw']]],
+  ['crtime_15',['crtime',['../structvespera__stat.html#a393468be52f9b5f33c74d12ed7743842',1,'vespera_stat']]],
+  ['ctime_16',['ctime',['../structvespera__stat.html#a81049eae510c129c361060e3d88938a2',1,'vespera_stat']]],
+  ['current_17',['current',['../structsmart__attribute.html#a12c027ca5635e77dea8d83b617902f17',1,'smart_attribute::current'],['../ioctl__smart_8h.html#aad208c2841c850a17d4907aecc675ebc',1,'current:&#160;ioctl_smart.h']]],
+  ['cwd_5fpath_18',['cwd_path',['../structrealm__info.html#ac9e79797488506468ab2014c548146d1',1,'realm_info']]]
 ];

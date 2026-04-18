@@ -9,13 +9,14 @@ var searchData=
   ['size_6',['size',['../structimage__t.html#a59f1805a29e1060950754281201301fa',1,'image_t::size'],['../structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710',1,'large_seg::size'],['../structvespera__stat.html#a2f4c2397c85c1e406c419d378c094d11',1,'vespera_stat::size']]],
   ['slot_5fid_7',['slot_id',['../structusb__device__info.html#a9faa4f1cac303b29a4221b8780c0cd0f',1,'usb_device_info']]],
   ['smoothing_5ffactor_8',['smoothing_factor',['../structjpeg__save__options__t.html#a1a549137c32b3e4572950bad49dcf356',1,'jpeg_save_options_t']]],
-  ['speed_9',['speed',['../structusb__device__info.html#ada38a8a1426b57d88576db9be4cfb975',1,'usb_device_info']]],
-  ['state_10',['state',['../structbattery__status.html#a67e6b34d20307e8052e01ff23c477301',1,'battery_status::state'],['../structunit__info.html#a050c9494c34c55115841a0b4f952f233',1,'unit_info::state']]],
-  ['stderr_11',['stderr',['../stdlib_8h.html#a68d8bb041a7c69667bcd076557b84de1',1,'stdlib.h']]],
-  ['stderr_5fhandle_12',['stderr_handle',['../structspawn__config.html#a2affb9c994b7522808b99af8e9138514',1,'spawn_config']]],
-  ['stdin_13',['stdin',['../stdlib_8h.html#aad7e0a39be21b2491dd86fed4fdac3a9',1,'stdlib.h']]],
-  ['stdin_5fhandle_14',['stdin_handle',['../structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42',1,'spawn_config']]],
-  ['stdout_15',['stdout',['../stdlib_8h.html#ae1e629f812b37fb991dabc7f62c3232d',1,'stdlib.h']]],
-  ['stdout_5fhandle_16',['stdout_handle',['../structspawn__config.html#a09fb2863c15fdcda17932e0896168faf',1,'spawn_config']]],
-  ['stride_17',['stride',['../structimage__t.html#a6eeb20227a04718347b735ea8eee9c53',1,'image_t']]]
+  ['source_9',['source',['../structthermal__zone.html#a9ebf65f49fbf6e58be1c3e8f473876f6',1,'thermal_zone']]],
+  ['speed_10',['speed',['../structusb__device__info.html#ada38a8a1426b57d88576db9be4cfb975',1,'usb_device_info']]],
+  ['state_11',['state',['../structbattery__status.html#a67e6b34d20307e8052e01ff23c477301',1,'battery_status::state'],['../structunit__info.html#a050c9494c34c55115841a0b4f952f233',1,'unit_info::state']]],
+  ['stderr_12',['stderr',['../stdlib_8h.html#a68d8bb041a7c69667bcd076557b84de1',1,'stdlib.h']]],
+  ['stderr_5fhandle_13',['stderr_handle',['../structspawn__config.html#a2affb9c994b7522808b99af8e9138514',1,'spawn_config']]],
+  ['stdin_14',['stdin',['../stdlib_8h.html#aad7e0a39be21b2491dd86fed4fdac3a9',1,'stdlib.h']]],
+  ['stdin_5fhandle_15',['stdin_handle',['../structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42',1,'spawn_config']]],
+  ['stdout_16',['stdout',['../stdlib_8h.html#ae1e629f812b37fb991dabc7f62c3232d',1,'stdlib.h']]],
+  ['stdout_5fhandle_17',['stdout_handle',['../structspawn__config.html#a09fb2863c15fdcda17932e0896168faf',1,'spawn_config']]],
+  ['stride_18',['stride',['../structimage__t.html#a6eeb20227a04718347b735ea8eee9c53',1,'image_t']]]
 ];
