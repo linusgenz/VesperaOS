@@ -23,15 +23,21 @@
 #include "unit_termination.h"
 
 #include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/realm/exit_code_table.h>
+#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
 #include "../../kernel/cpu/cpu_manager.h"
+#include "vespera/time.h"
 
 static void do_terminate_unit(Unit* unit, Signal fault_sig) {
     unit->exit_code = -static_cast<i32>(fault_sig);
     unit->state = UnitState::Terminated;
+
+    if (unit->run_start_ns != 0) {
+        unit->cpu_time_ns += kernel::time::get_uptime_ns() - unit->run_start_ns;
+        unit->run_start_ns = 0;
+    }
 
     const u8 cpu_id = unit->cpu_id;
     auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);

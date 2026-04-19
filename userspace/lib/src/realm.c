@@ -41,7 +41,7 @@ UnitID spawn_unit_ex(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr, u
     return sys_unit_spawn(realm_id, entry_point, arg_ptr, stack_size, 0, 0);
 }
 
-__attribute__((noreturn)) void exit(uint64_t code) {
+_Noreturn void exit(uint64_t code) {
     fflush(NULL);
     sys_exit(code, 0, 0, 0, 0, 0);
     __builtin_unreachable();

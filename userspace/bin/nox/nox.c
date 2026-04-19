@@ -29,7 +29,8 @@
 #include <errno.h>
 #include <exec.h>
 #include <poll.h>
-#include <readline.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <realm.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -289,23 +290,23 @@ void cmd_clear(command_t* cmd) {
 // Execute a pipeline of commands
 static int execute_pipeline(command_t* head) {
     if (!head) return 0;
-
+/*
     command_t* current = head;
-    FILE_HANDLE pipe_read = -1;
-    FILE_HANDLE pipe_write = -1;
+    FILE* pipe_read = NULL;
+    FILE* pipe_write = NULL;
     int result = 0;
 
     while (current) {
         command_t* next = current->next;
-        FILE_HANDLE saved_stdin = stdin;
-        FILE_HANDLE saved_stdout = stdout;
-        FILE_HANDLE redirect_in = -1;
-        FILE_HANDLE redirect_out = -1;
+        FILE* saved_stdin = stdin;
+        FILE* saved_stdout = stdout;
+        FILE* redirect_in = NULL;
+        FILE* redirect_out = NULL;
 
         // If we have a previous pipe, set up read end as stdin
         if (pipe_read >= 0) {
             stdin = pipe_read;
-            pipe_read = -1;  // consumed
+            pipe_read = NULL;  // consumed
         }
 
         // If this command feeds into next, create pipe
@@ -313,8 +314,8 @@ static int execute_pipeline(command_t* head) {
             int fds[2];
             if (sys_pipe((uint64_t)fds, 0, 0, 0, 0, 0) < 0) {
                 printf("pipe: creation failed\n");
-                if (pipe_read >= 0) close(pipe_read);
-                if (pipe_write >= 0) close(pipe_write);
+                if (pipe_read >= 0) fclose(pipe_read);
+                if (pipe_write >= 0) fclose(pipe_write);
                 return -1;
             }
             pipe_read = fds[0];
@@ -326,10 +327,10 @@ static int execute_pipeline(command_t* head) {
 
         // Handle file redirects
         if (current->input_file && pipe_read < 0) {
-            redirect_in = open(current->input_file, O_RDONLY);
+            redirect_in = fopen(current->input_file, "r");
             if (redirect_in < 0) {
                 printf("Cannot open input file '%s'\n", current->input_file);
-                if (pipe_write >= 0) close(pipe_write);
+                if (pipe_write >= 0) fclose(pipe_write);
                 stdin = saved_stdin;
                 current = next;
                 continue;
@@ -345,14 +346,14 @@ static int execute_pipeline(command_t* head) {
                 flags |= O_TRUNC;
             }
 
-            redirect_out = open(current->output_file, flags);
+            redirect_out = fopen(current->output_file, flags);
             if (redirect_out < 0) {
                 printf("Cannot open output file '%s'\n", current->output_file);
                 if (redirect_in >= 0) {
-                    close(redirect_in);
+                    fclose(redirect_in);
                     stdin = saved_stdin;
                 }
-                if (pipe_write >= 0) close(pipe_write);
+                if (pipe_write >= 0) fclose(pipe_write);
                 current = next;
                 continue;
             }
@@ -399,19 +400,19 @@ static int execute_pipeline(command_t* head) {
 
         // Restore stdio
         if (redirect_in >= 0) {
-            close(redirect_in);
+            fclose(redirect_in);
             stdin = saved_stdin;
         }
 
         if (redirect_out >= 0 && redirect_out != pipe_write) {
-            close(redirect_out);
+            fclose(redirect_out);
             stdout = saved_stdout;
         }
 
         // Close write end after command completes
         if (pipe_write >= 0) {
-            close(pipe_write);
-            pipe_write = -1;
+            fclose(pipe_write);
+            pipe_write = NULL;
         }
 
         // Move to next command
@@ -419,10 +420,11 @@ static int execute_pipeline(command_t* head) {
     }
 
     // Cleanup any remaining pipe fds
-    if (pipe_read >= 0) close(pipe_read);
-    if (pipe_write >= 0) close(pipe_write);
+    if (pipe_read >= 0) fclose(pipe_read);
+    if (pipe_write >= 0) fclose(pipe_write);
 
-    return result;
+    return result;*/
+    return 0;
 }
 
 int execute_command(command_t* cmd) {
@@ -434,13 +436,13 @@ int execute_command(command_t* cmd) {
     }
 
     // Single command - use original logic
-    FILE_HANDLE saved_stdin = stdin;
-    FILE_HANDLE saved_stdout = stdout;
-    FILE_HANDLE redirect_in = -1;
-    FILE_HANDLE redirect_out = -1;
+    FILE* saved_stdin = stdin;
+    FILE* saved_stdout = stdout;
+    FILE* redirect_in = NULL;
+    FILE* redirect_out = NULL;
 
     if (cmd->input_file) {
-        redirect_in = open(cmd->input_file, O_RDONLY);
+        redirect_in = fopen(cmd->input_file, "r");
         if (redirect_in < 0) {
             printf("Cannot open input file '%s'\n", cmd->input_file);
             return 0;
@@ -456,11 +458,11 @@ int execute_command(command_t* cmd) {
             flags |= O_TRUNC;
         }
 
-        redirect_out = open(cmd->output_file, flags);
+        redirect_out = fopen(cmd->output_file, "rw"); // TODO flags
         if (redirect_out < 0) {
             printf("Cannot open output file '%s'\n", cmd->output_file);
             if (redirect_in >= 0) {
-                close(redirect_in);
+                fclose(redirect_in);
                 stdin = saved_stdin;
             }
             return 0;
@@ -512,12 +514,12 @@ int execute_command(command_t* cmd) {
     }
 
     if (redirect_in >= 0) {
-        close(redirect_in);
+        fclose(redirect_in);
         stdin = saved_stdin;
     }
 
     if (redirect_out >= 0) {
-        close(redirect_out);
+        fclose(redirect_out);
         stdout = saved_stdout;
     }
 
@@ -595,9 +597,8 @@ void shell_main(int argc, char** argv) {
     while (1) {
         char prompt_str[256];
         build_prompt(prompt_str, sizeof(prompt_str));
-        int n = readline(prompt_str, buf, MAX_INPUT);
+        int n = readline_buf(prompt_str, buf, MAX_INPUT);
         if (n <= 0) continue;
-
         buf[n] = '\0';
 
         // Strip trailing newline(s)

@@ -20,19 +20,20 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <dirent.h>
+#include <fflags.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <fflags.h>
-#include <termios.h>
 #include <sys/ioctl.h>
+#include <termios.h>
 #include <vespera/dev/cpuinfo.h>
-#include <vespera/dev/meminfo.h>
-#include <vespera/dev/ioctl_framebuffer.h>
 #include <vespera/dev/ioctl_devinfo.h>
-#include <dirent.h>
+#include <vespera/dev/ioctl_framebuffer.h>
+#include <vespera/dev/meminfo.h>
 
+#include "vespera/handles.h"
 
 #define RST   "\033[0m"
 #define BD    "\033[1m"
@@ -255,7 +256,7 @@ int main(void)
     }
 
     tty_size_t tsz = {0, 0};
-    tty_get_size(stdin, &tsz);
+    tty_get_size(HANDLE_STDIN, &tsz);
 
 
     const char *user = getenv("USER");

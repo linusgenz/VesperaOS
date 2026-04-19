@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFSIZ 8192
+#include "../../include/uapi/vespera/handles.h"
 
 static void usage(void) {
     puts("Usage: cat [FILE]...");
@@ -64,7 +64,7 @@ static int cat_stdin(void) {
     char buffer[BUFSIZ];
     ssize_t bytes_read;
 
-    while ((bytes_read = read(stdin, buffer, sizeof(buffer) - 1)) > 0) {
+    while ((bytes_read = read(HANDLE_STDIN, buffer, sizeof(buffer) - 1)) > 0) {
         buffer[bytes_read] = '\0';
         printf("%s", buffer);
     }

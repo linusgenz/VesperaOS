@@ -31,6 +31,8 @@
 class TtyDevice;
 class Terminal;
 
+constexpr usize TTY_TAB_WIDTH = 8;
+
 namespace kernel::tty {
     enum class EscapeState { NONE, ESC_RECEIVED, CSI_RECEIVED };
 

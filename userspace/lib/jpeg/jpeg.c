@@ -22,15 +22,14 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <jpeg/jpeg.h>
-
 #include <fflags.h>
-#include <jpeglib.h>
 #include <jerror.h>
+#include <jpeg/jpeg.h>
+#include <jpeglib.h>
 #include <setjmp.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 typedef struct
 {
@@ -557,11 +556,11 @@ int jpeg_load_from_file(const char* filename, image_t* out_image,
 {
     if (!filename || !out_image) return JPEG_ERROR_INVALID_PARAM;
 
-    HANDLE hdl = open(filename, O_RDONLY);
-    if (hdl < 0) return JPEG_ERROR_FILE_OPEN;
-    fseek(hdl, 0, SEEK_END);
-    size_t size = ftell(hdl);
-    fseek(hdl, 0, SEEK_SET);
+    FILE* fp = fopen(filename, "r");
+    if (fp == NULL) return JPEG_ERROR_FILE_OPEN;
+    fseek(fp, 0, SEEK_END);
+    size_t size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
 
     printf("size %u\n", size);
 
@@ -569,17 +568,17 @@ int jpeg_load_from_file(const char* filename, image_t* out_image,
 
     if (!buffer)
     {
-        close(hdl);
+        fclose(fp);
         return JPEG_ERROR_MEMORY;
     }
 
-    if ((size_t)read(hdl, buffer, size) != size)
+    if ((size_t)fread(buffer, 1, size, fp) != size)
     {
         free(buffer);
-        close(hdl);
+        fclose(fp);
         return JPEG_ERROR_FILE_READ;
     }
-    close(hdl);
+    fclose(fp);
 
     int result = jpeg_load_from_memory(buffer, size, out_image, opts);
     free(buffer);

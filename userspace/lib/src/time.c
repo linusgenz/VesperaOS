@@ -20,19 +20,53 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-
-#include <time.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 int64_t clock_gettime(clockid_t clk_id, timespec_t* ts) {
     return sys_clock_gettime((uint64_t)clk_id, (uint64_t)ts, 0, 0, 0, 0);
 }
 
-static const int DAYS_PER_MONTH[12] = {
-    31, 28, 31, 30, 31, 30,
-    31, 31, 30, 31, 30, 31
-};
+int64_t clock_settime(clockid_t clk_id, const timespec_t* ts) {
+    return -1;
+}
+
+int nanosleep(const timespec_t* req, timespec_t* rem) {
+    return (int)sys_nanosleep((uint64_t)req, (uint64_t)rem, 0, 0, 0, 0);
+}
+
+int clock_nanosleep(clockid_t clk_id, int flags, const timespec_t* req, timespec_t* rem) {
+    return (int)sys_clock_nanosleep((uint64_t)clk_id, (uint64_t)flags, (uint64_t)req, (uint64_t)rem, 0, 0);
+}
+
+time_t time(time_t* tloc) {
+    return (time_t)sys_time((uint64_t)tloc, 0, 0, 0, 0, 0);
+}
+
+int gettimeofday(timeval_t* tv, void* tz) {
+    return (int)sys_gettimeofday((uint64_t)tv, (uint64_t)tz, 0, 0, 0, 0);
+}
+
+double difftime(time_t t1, time_t t0) {
+    return (double)(t1 - t0);
+}
+
+clock_t clock(void) {
+    timespec_t ts;
+
+    if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts) == 0) {
+        return (clock_t)(ts.tv_sec * 1000000LL + ts.tv_nsec / 1000LL);
+    }
+
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+        return (clock_t)(ts.tv_sec * 1000000LL + ts.tv_nsec / 1000LL);
+    }
+
+    return (clock_t)-1;
+}
+
+static const int DAYS_PER_MONTH[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 static int is_leap(int year) {
     return (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
@@ -50,9 +84,12 @@ struct tm* gmtime(const time_t* timep) {
 
     uint32_t t = *timep;
 
-    result.tm_sec  = (int)(t % 60); t /= 60;
-    result.tm_min  = (int)(t % 60); t /= 60;
-    result.tm_hour = (int)(t % 24); t /= 24;
+    result.tm_sec = (int)(t % 60);
+    t /= 60;
+    result.tm_min = (int)(t % 60);
+    t /= 60;
+    result.tm_hour = (int)(t % 24);
+    t /= 24;
 
     // t is now days since 1970-01-01
     // Calculate weekday (1970-01-01 was a Thursday = 4)
@@ -79,30 +116,114 @@ struct tm* gmtime(const time_t* timep) {
         mon++;
     }
 
-    result.tm_mon  = mon;
+    result.tm_mon = mon;
     result.tm_mday = (int)t + 1;
     result.tm_isdst = 0;
 
     return &result;
 }
 
+struct tm* localtime(const time_t* timep) {
+    return gmtime(timep);
+}
+
+time_t mktime(struct tm* tm) {
+    if (!tm) return (time_t)-1;
+
+    tm->tm_min += tm->tm_sec / 60;
+    tm->tm_sec %= 60;
+    tm->tm_hour += tm->tm_min / 60;
+    tm->tm_min %= 60;
+    tm->tm_mday += tm->tm_hour / 24;
+    tm->tm_hour %= 24;
+
+    // Fix negative remainders
+    if (tm->tm_sec < 0) {
+        tm->tm_min--;
+        tm->tm_sec += 60;
+    }
+    if (tm->tm_min < 0) {
+        tm->tm_hour--;
+        tm->tm_min += 60;
+    }
+    if (tm->tm_hour < 0) {
+        tm->tm_mday--;
+        tm->tm_hour += 24;
+    }
+
+    tm->tm_year += tm->tm_mon / 12;
+    tm->tm_mon %= 12;
+    if (tm->tm_mon < 0) {
+        tm->tm_year--;
+        tm->tm_mon += 12;
+    }
+
+    // Walk backwards when tm_mday < 1.
+    while (tm->tm_mday < 1) {
+        tm->tm_mon--;
+        if (tm->tm_mon < 0) {
+            tm->tm_year--;
+            tm->tm_mon = 11;
+        }
+        tm->tm_mday += days_in_month(tm->tm_mon, tm->tm_year + 1900);
+    }
+    // Walk forwards when tm_mday > days in the current month.
+    for (;;) {
+        int dim = days_in_month(tm->tm_mon, tm->tm_year + 1900);
+        if (tm->tm_mday <= dim) break;
+        tm->tm_mday -= dim;
+        tm->tm_mon++;
+        if (tm->tm_mon > 11) {
+            tm->tm_year++;
+            tm->tm_mon = 0;
+        }
+    }
+
+    int full_year = tm->tm_year + 1900;
+    if (full_year < 1970) return (time_t)-1;
+
+    uint64_t days = 0;
+    for (int y = 1970; y < full_year; y++) days += (uint64_t)(is_leap(y) ? 366 : 365);
+
+    tm->tm_yday = 0;
+    for (int m = 0; m < tm->tm_mon; m++) {
+        int d = days_in_month(m, full_year);
+        days += (uint64_t)d;
+        tm->tm_yday += d;
+    }
+    days += (uint64_t)(tm->tm_mday - 1);
+    tm->tm_yday += tm->tm_mday - 1;
+
+    tm->tm_wday = (int)((days + 4) % 7);
+    tm->tm_isdst = 0;
+
+    return (time_t)(days * 86400ULL + (uint64_t)tm->tm_hour * 3600ULL + (uint64_t)tm->tm_min * 60ULL +
+                    (uint64_t)tm->tm_sec);
+}
+
 static const char* const weekday_full[7] = {
-    "Sunday", "Monday", "Tuesday", "Wednesday",
-    "Thursday", "Friday", "Saturday"
+    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 };
 
-static const char* const weekday_abbr[7] = {
-    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-};
+static const char* const weekday_abbr[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 static const char* const month_full[12] = {
-    "January", "February", "March",     "April",   "May",      "June",
-    "July",    "August",   "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
 };
 
 static const char* const month_abbr[12] = {
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
 static int append_str(char* buf, size_t* pos, size_t max, const char* s) {
@@ -122,12 +243,18 @@ static int append_int(char* buf, size_t* pos, size_t max, int val, int width, ch
         tmp[--i] = '0';
     } else {
         int v = val < 0 ? -val : val;
-        while (v > 0) { tmp[--i] = '0' + v % 10; v /= 10; }
-        if (val < 0)  tmp[--i] = '-';
+        while (v > 0) {
+            tmp[--i] = '0' + v % 10;
+            v /= 10;
+        }
+        if (val < 0) tmp[--i] = '-';
     }
     // Pad on the left.
     int len = (int)(sizeof(tmp) - 1 - i);
-    while (len < width) { tmp[--i] = pad; len++; }
+    while (len < width) {
+        tmp[--i] = pad;
+        len++;
+    }
 
     return append_str(buf, pos, max, &tmp[i]);
 }
@@ -205,7 +332,8 @@ static size_t strftime_impl(char* s, size_t max, const char* fmt, const struct t
                 if (tm->tm_mon < 0 || tm->tm_mon > 11) return 0;
                 if (!append_str(s, &pos, max, month_full[tm->tm_mon])) return 0;
                 break;
-            case 'b': case 'h':
+            case 'b':
+            case 'h':
                 if (tm->tm_mon < 0 || tm->tm_mon > 11) return 0;
                 if (!append_str(s, &pos, max, month_abbr[tm->tm_mon])) return 0;
                 break;

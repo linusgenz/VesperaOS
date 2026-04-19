@@ -27,12 +27,12 @@
 /**
  * @brief Represents a point in time with nanosecond precision.
  */
-typedef struct timespec {
+typedef struct {
     i64 tv_sec;   ///< Seconds
     i64 tv_nsec;  ///< Nanoseconds (0–999999999)
 } timespec_t;
 
-typedef struct timeval {
+typedef struct {
     i64 tv_sec;   ///< seconds
     i64 tv_usec;  ///< microseconds [0, 999'999]
 } timeval_t;
@@ -46,6 +46,7 @@ typedef i32 clockid_t;
 
 #define CLOCK_REALTIME 0       ///< Wall-clock time (from RTC)
 #define CLOCK_MONOTONIC 1      ///< Monotonic uptime; never jumps backwards
+#define CLOCK_PROCESS_CPUTIME_ID 2
 #define CLOCK_MONOTONIC_RAW 4  ///< Like CLOCK_MONOTONIC, not adjusted
 #define CLOCK_BOOTTIME 7
 

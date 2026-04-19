@@ -19,67 +19,97 @@ set(USER_LD_FLAGS
 
 add_subdirectory(lib)
 
+
 function(vespera_bin name)
-    cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "READLINE" "" "SOURCES;EXTRA_LIBS" ${ARGN})
 
     if (ARG_SOURCES)
         set(sources ${ARG_SOURCES})
     else ()
-        set(sources ${CMAKE_SOURCE_DIR}/userspace/bin/${name}.c)
+        set(sources ${CMAKE_CURRENT_SOURCE_DIR}/bin/${name}.c)
     endif ()
 
     add_executable(${name} ${sources})
 
-    add_dependencies(${name} sysroot_install)
+    set(_link_libs "")
+    if (ARG_EXTRA_LIBS)
+        list(APPEND _link_libs ${ARG_EXTRA_LIBS})
+    endif ()
+    if (ARG_READLINE)
+        list(APPEND _link_libs ${SYSROOT}/usr/lib/libreadline.a)
+        add_dependencies(${name} sysroot_install sysroot_install_readline)
+    else ()
+        add_dependencies(${name} sysroot_install)
+    endif ()
+    list(APPEND _link_libs ${SYSROOT}/usr/lib/libvesp.a)
 
-    target_link_libraries(${name} PRIVATE
-            ${SYSROOT}/usr/lib/libvesp.a
-    )
+    target_link_libraries(${name} PRIVATE ${_link_libs})
 
     set_target_properties(${name} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${SYSROOT}/bin
-            LINK_FLAGS "${USER_LD_FLAGS}"
+            LINK_FLAGS               "${USER_LD_FLAGS}"
     )
+
+    # Self-register so 'elfs' never needs a manual update
+    set_property(GLOBAL APPEND PROPERTY VESPERA_BIN_TARGETS ${name})
 endfunction()
 
-vespera_bin(nox SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/nox/nox.c ${CMAKE_SOURCE_DIR}/userspace/bin/nox/statusbar.c ${CMAKE_SOURCE_DIR}/userspace/bin/nox/powermon.c)
-vespera_bin(lsusb)
-vespera_bin(logd)
-vespera_bin(uptime)
-vespera_bin(memstat)
-vespera_bin(diskinfo)
-vespera_bin(gpuinfo)
-vespera_bin(stat)
-vespera_bin(vedit)
-vespera_bin(pipetest)
-vespera_bin(pipespawntest)
-vespera_bin(pipewriter)
-vespera_bin(pipereader)
-vespera_bin(mount)
-vespera_bin(umount)
-vespera_bin(mv)
-vespera_bin(sleep)
-vespera_bin(ls)
-vespera_bin(cat)
-vespera_bin(rm)
-vespera_bin(cp)
-vespera_bin(mkdir)
-vespera_bin(rmdir)
-vespera_bin(touch)
-vespera_bin(shutdown)
-vespera_bin(reboot)
-vespera_bin(pwd)
-vespera_bin(kill)
-vespera_bin(find)
-vespera_bin(vesfetch)
-vespera_bin(env      SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
-vespera_bin(printenv SOURCES ${CMAKE_SOURCE_DIR}/userspace/bin/env.c)
-vespera_bin(cal)
+# ---------------------------------------------------------------------------
+# Explicit registrations
+# Only needed for: multi-source binaries, READLINE, EXTRA_LIBS, or aliased
+# sources (multiple targets from the same .c file).
+#
+# Single-source binaries that follow the default bin/<name>.c convention are
+# auto-discovered below — just add the .c file, nothing else.
+# ---------------------------------------------------------------------------
 
-add_custom_target(elfs DEPENDS
-        nox lsusb logd uptime memstat diskinfo gpuinfo
-        stat vedit pipetest pipespawntest pipereader
-        pipewriter mount umount mv sleep ls cat rm cp
-        mkdir rmdir touch shutdown reboot pwd
-        kill env printenv find vesfetch cal
+# Multi-source
+vespera_bin(nox
+        READLINE
+        SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/nox/nox.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/nox/statusbar.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/nox/powermon.c
 )
+
+# Two binaries sharing one source file — must be explicit
+vespera_bin(env      SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
+vespera_bin(printenv SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
+
+add_executable(lua ${CMAKE_CURRENT_SOURCE_DIR}/bin/lua.c)
+add_dependencies(lua sysroot_install sysroot_install_readline)
+target_include_directories(lua PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/lua/include
+        ${SYSROOT}/usr/include
+)
+target_link_libraries(lua PRIVATE
+        liblua
+        ${SYSROOT}/usr/lib/libreadline.a
+        ${SYSROOT}/usr/lib/libvesp.a
+)
+set_target_properties(lua PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${SYSROOT}/bin
+        LINK_FLAGS               "${USER_LD_FLAGS}"
+)
+set_property(GLOBAL APPEND PROPERTY VESPERA_BIN_TARGETS lua)
+
+# ---------------------------------------------------------------------------
+# Auto-discovery
+# Every bin/<name>.c that is NOT in the explicit list above becomes a
+# vespera_bin(<name>) automatically.
+# ---------------------------------------------------------------------------
+set(_EXPLICIT_BINS nox env printenv lua)
+
+file(GLOB _auto_sources CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/*.c
+)
+
+foreach(_src ${_auto_sources})
+    get_filename_component(_name ${_src} NAME_WE)
+    if (NOT _name IN_LIST _EXPLICIT_BINS)
+        vespera_bin(${_name})
+    endif ()
+endforeach()
+
+get_property(_all_bins GLOBAL PROPERTY VESPERA_BIN_TARGETS)
+add_custom_target(elfs DEPENDS ${_all_bins})

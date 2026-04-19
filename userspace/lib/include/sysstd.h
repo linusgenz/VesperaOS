@@ -117,12 +117,9 @@ int64_t sys_rename(uint64_t oldPath_ptr, uint64_t newPath_ptr, uint64_t, uint64_
 int64_t sys_rmdir(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
 /**
- * @brief Sleep the current unit for a number of milliseconds.
- *
- * @param ms Milliseconds to sleep.
- * @return 0 on success.
+ * @todo add doc
  */
-int64_t sys_sleep(uint64_t ms, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+int64_t sys_nanosleep(uint64_t ms, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
 /**
  * @brief Spawn a new realm/unit.
@@ -443,5 +440,11 @@ int64_t sys_vbus_unsubscribe(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, u
  *   -ENOMEM  : could not allocate stack or unit slot
  */
 int64_t sys_unit_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t);
+
+int64_t sys_gettimeofday(uint64_t clk_id, uint64_t ts, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_time(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_clock_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
 #endif  // SYSSTD_H

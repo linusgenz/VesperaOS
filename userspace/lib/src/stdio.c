@@ -29,8 +29,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <sysstd.h>
+#include <vespera/handles.h>
 
 #include "errno.h"
+
+static FILE __stdin_file;
+static FILE __stdout_file;
+static FILE __stderr_file;
+
+FILE* stdin = &__stdin_file;
+FILE* stdout = &__stdout_file;
+FILE* stderr = &__stderr_file;
+
+void __stdio_init(FILE_HANDLE in, FILE_HANDLE out, FILE_HANDLE err) {
+    __stdin_file = (FILE){.handle = in, .error = 0, .eof = 0, .unget_char = -1};
+    __stdout_file = (FILE){.handle = out, .error = 0, .eof = 0, .unget_char = -1};
+    __stderr_file = (FILE){.handle = err, .error = 0, .eof = 0, .unget_char = -1};
+}
 
 static size_t uint_to_str(uint64_t value, char* buffer, uint8_t base, bool prefix) {
     char temp[32];
@@ -224,9 +239,37 @@ int sscanf(const char* str, const char* format, ...) {
 
 int getchar(void) {
     char ch = 0;
-    int ret = (int)sys_read(stdin, (uint64_t)&ch, 1, 0, 0, 0);
-    if (ret <= 0) return -1;
+    int ret = (int)sys_read(HANDLE_STDIN, (uint64_t)&ch, 1, 0, 0, 0);
+    if (ret <= 0) return EOF;
     return (int)ch;
+}
+
+int fgetc(FILE* f) {
+    if (!f) return -1;
+    if (f->unget_char != -1) {
+        int c = f->unget_char;
+        f->unget_char = -1;
+        return c;
+    }
+    if (f->eof) return -1;
+    unsigned char c;
+    ssize_t r = sys_read(f->handle, (uint64_t)&c, 1, 0, 0, 0);
+    if (r == 0) {
+        f->eof = 1;
+        return -1;
+    }
+    if (r < 0) {
+        f->error = 1;
+        return -1;
+    }
+    return (int)c;
+}
+
+int ungetc(int c, FILE* f) {
+    if (!f || c == -1) return -1;
+    f->unget_char = (unsigned char)c;
+    f->eof = 0;
+    return (unsigned char)c;
 }
 
 #define PRINTF_BUFFER_SIZE 1024
@@ -236,7 +279,7 @@ static size_t printf_pos = 0;
 
 static void flush_printf_buffer() {
     if (printf_pos > 0) {
-        sys_write(stdout, (uint64_t)printf_buffer, printf_pos, 0, 0, 0);
+        sys_write(HANDLE_STDOUT, (uint64_t)printf_buffer, printf_pos, 0, 0, 0);
         printf_pos = 0;
     }
 }
@@ -348,10 +391,13 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
                 const char* str = __builtin_va_arg(args, const char*);
                 if (!str) str = "<null>";
                 len = strlen(str);
+
+                if (precision >= 0 && (int)len > precision) len = (size_t)precision;
+
                 p = (min_width > (int)len) ? min_width - (int)len : 0;
 
                 if (!left_align) pad(s, p, ' ');
-                sink_puts(s, str);
+                for (size_t k = 0; k < len; k++) sink_putc(s, str[k]);
                 if (left_align) pad(s, p, ' ');
                 break;
             }
@@ -422,9 +468,25 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
                 if (left_align) pad(s, p, ' ');
                 break;
             }
+            case 'g':
+            case 'G':
+            case 'e':
+            case 'E': {
+                double val = __builtin_va_arg(args, double);
+                int prec = (precision >= 0) ? precision : 6;
+                if (prec == 0) prec = 1;
+
+                float_to_str((float)val, tmp, prec);
+                len = strlen(tmp);
+                p = (min_width > (int)len) ? min_width - (int)len : 0;
+                if (!left_align) pad(s, p, zero_pad ? '0' : ' ');
+                sink_puts(s, tmp);
+                if (left_align) pad(s, p, ' ');
+                break;
+            }
             case 'o': {
                 const uint64_t val = (is_long_long || is_long) ? __builtin_va_arg(args, uint64_t)
-                                                         : (uint64_t)__builtin_va_arg(args, uint32_t);
+                                                               : (uint64_t)__builtin_va_arg(args, uint32_t);
 
                 uint_to_str(val, tmp, 8, false);
                 len = strlen(tmp);
@@ -458,6 +520,29 @@ static void vformat_write(sink_t* s, const char* fmt, __builtin_va_list args) {
     }
 }
 
+int vfprintf(FILE* f, const char* fmt, va_list args) {
+    if (!f || !fmt) return -1;
+
+    char buf[4096];
+    sink_t s = {
+        .type = SINK_BUFFER,
+        .buf = buf,
+        .size = sizeof(buf),
+        .pos = 0,
+        .written = 0,
+    };
+
+    vformat_write(&s, fmt, args);
+    buf[s.pos] = '\0';
+
+    ssize_t written = sys_write(f->handle, (uint64_t)buf, s.pos, 0, 0, 0);
+    if (written < 0) {
+        f->error = 1;
+        return -1;
+    }
+    return (int)s.written;
+}
+
 int puts(const char* s) {
     if (!s) return -1;
 
@@ -472,15 +557,6 @@ int putchar(int c) {
     sink_t s = {.type = SINK_CONSOLE};
     sink_putc(&s, (char)c);
     return c;
-}
-
-void printf(const char* fmt, ...) {
-    sink_t s;
-    s.type = SINK_CONSOLE;
-    __builtin_va_list args;
-    __builtin_va_start(args, fmt);
-    vformat_write(&s, fmt, args);
-    __builtin_va_end(args);
 }
 
 size_t snprintf(char* buffer, size_t size, const char* fmt, ...) {
@@ -501,6 +577,50 @@ size_t snprintf(char* buffer, size_t size, const char* fmt, ...) {
 
     buffer[s.pos] = '\0';
     return s.written;  // total chars (same semantics as standard snprintf)
+}
+
+char* fgets(char* buf, int n, FILE* f) {
+    if (!buf || n <= 0 || !f) return NULL;
+    int i = 0;
+    while (i < n - 1) {
+        char c;
+        ssize_t r = sys_read(f->handle, (uint64_t)&c, 1, 0, 0, 0);
+        if (r == 0) {
+            f->eof = 1;
+            break;
+        }
+        if (r < 0) {
+            f->error = 1;
+            return NULL;
+        }
+        buf[i++] = c;
+        if (c == '\n') break;
+    }
+    if (i == 0) return NULL;
+    buf[i] = '\0';
+    return buf;
+}
+
+int fprintf(FILE* f, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int ret = vfprintf(f, fmt, args);
+    va_end(args);
+    return ret;
+}
+
+int vprintf(const char* fmt, va_list args) {
+    sink_t s = {.type = SINK_CONSOLE};
+    vformat_write(&s, fmt, args);
+    flush_printf_buffer();
+    return (int)s.written;
+}
+
+void printf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
 }
 
 FILE* fopen(const char* path, const char* mode) {
@@ -537,8 +657,43 @@ FILE* fopen(const char* path, const char* mode) {
 
     f->handle = handle;
     f->error = 0;
+    f->eof = 0;
+    f->unget_char = -1;
     f->buffer = NULL;
     f->buf_size = 0;
+    f->buf_pos = 0;
+
+    return f;
+}
+
+FILE* freopen(const char* path, const char* mode, FILE* f) {
+    if (!f) return NULL;
+
+    fflush(f);
+    sys_close(f->handle, 0, 0, 0, 0, 0);
+
+    int flags = 0;
+    switch (mode[0]) {
+        case 'r':
+            flags = O_RDONLY;
+            break;
+        case 'w':
+            flags = O_WRONLY | O_CREAT | O_TRUNC;
+            break;
+        case 'a':
+            flags = O_WRONLY | O_CREAT | O_APPEND;
+            break;
+        default:
+            return NULL;
+    }
+    if (mode[1] == '+') flags = O_RDWR | (flags & (O_CREAT | O_TRUNC | O_APPEND));
+
+    FILE_HANDLE handle = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
+    if (handle < 0) return NULL;
+
+    f->handle = handle;
+    f->error = 0;
+    f->eof = 0;
     f->buf_pos = 0;
 
     return f;
@@ -561,6 +716,10 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* f) {
     if (!f || !ptr) return 0;
     size_t total = size * nmemb;
     ssize_t read_bytes = sys_read(f->handle, (uint64_t)ptr, total, 0, 0, 0);
+    if (read_bytes == 0) {
+        f->eof = 1;
+        return 0;
+    }
     if (read_bytes < 0) {
         f->error = 1;
         return 0;
@@ -585,8 +744,13 @@ int ferror(FILE* f) {
     return f->error;
 }
 
+int feof(FILE* f) {
+    if (!f) return 1;
+    return f->eof;
+}
+
 int fflush(FILE* f) {
-    if (f == NULL || (FILE_HANDLE)(uintptr_t)f == stdout) {
+    if (f == NULL || f == stdout) {
         flush_printf_buffer();
         return 0;
     }
@@ -632,16 +796,25 @@ int rmdir(const char* path) {
     return (int)sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
 }
 
-ssize_t fseek(FILE_HANDLE stream, long offset, int whence) {
-    return sys_seek(stream, offset, whence, 0, 0, 0);
+int fseek(FILE* f, long offset, int whence) {
+    if (!f) return -1;
+    f->unget_char = -1;  // ← neu
+    ssize_t ret = sys_seek(f->handle, offset, whence, 0, 0, 0);
+    if (ret >= 0) f->eof = 0;
+    return (ret < 0) ? -1 : 0;
 }
 
-ssize_t ftell(FILE_HANDLE stream) {
-    return sys_seek(stream, 0, SEEK_CUR, 0, 0, 0);
+ssize_t ftell(FILE* f) {
+    if (!f) return -1;
+    return sys_seek(f->handle, 0, SEEK_CUR, 0, 0, 0);
 }
 
-int rewind(FILE_HANDLE stream) {
-    return (int)sys_seek(stream, 0, SEEK_SET, 0, 0, 0);
+void rewind(FILE* f) {
+    if (!f) return;
+    f->unget_char = -1;
+    sys_seek(f->handle, 0, SEEK_SET, 0, 0, 0);
+    f->eof = 0;
+    f->error = 0;
 }
 
 DIR_HANDLE opendir(const char* path) {
@@ -670,6 +843,56 @@ int getcwd(char* buf, size_t size) {
     if (ret < 0) {
         errno = ret;
         return ret;
+    }
+    return 0;
+}
+
+FILE* tmpfile(void) {
+    static int counter = 0;
+    char path[32];
+    snprintf(path, sizeof(path), "/tmp/tmp%d", counter++);
+
+    int ret = creat(path);
+    if (ret < 0) return NULL;
+
+    FILE* f = fopen(path, "w+");
+    unlink(path);
+    return f;
+}
+
+void clearerr(FILE* f) {
+    if (!f) return;
+    f->error = 0;
+    f->eof = 0;
+    f->unget_char = -1;
+}
+
+int setvbuf(FILE* f, char* buf, int mode, size_t size) {
+    if (!f) return -1;
+
+    (void)buf;
+    (void)mode;
+    (void)size;
+    return 0;
+}
+
+int remove(const char* path) {
+    if (!path) return -1;
+    int ret = (int)sys_unlink((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) ret = (int)sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+}
+
+int rename(const char* oldpath, const char* newpath) {
+    if (!oldpath || !newpath) return -1;
+    int ret = (int)sys_rename((uint64_t)oldpath, (uint64_t)newpath, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
     }
     return 0;
 }

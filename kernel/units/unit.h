@@ -134,6 +134,9 @@ class Unit {
     bool is_main_unit{false};
     bool is_kernel{false};
 
+    u64 cpu_time_ns  = 0;
+    u64 run_start_ns = 0;
+
     u64 heap_start{};
     u64 heap_end{};
 

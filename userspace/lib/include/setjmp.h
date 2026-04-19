@@ -53,7 +53,7 @@ extern "C" {
      * Does not return normally - jumps back to setjmp location
      * val: value to be returned by setjmp (must be non-zero)
      */
-    void longjmp(jmp_buf env, int val) __attribute__((noreturn));
+    _Noreturn void longjmp(jmp_buf env, int val);
 
 
 #ifdef __cplusplus

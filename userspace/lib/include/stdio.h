@@ -24,13 +24,23 @@
 #ifndef VESPERAOS_STDIO_H
 #define VESPERAOS_STDIO_H
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 #include "dirent.h"
 
-typedef int64_t HANDLE;
+/* Default buffer size.  */
+#define BUFSIZ 8192
+
+/* The value returned by fgetc and similar functions to indicate the
+   end of the file.  */
+#define EOF (-1)
+
+#define getc(f) fgetc(f)
+
+typedef uint64_t HANDLE;
 typedef HANDLE FILE_HANDLE;
 typedef HANDLE CHANNEL_HANDLE;
 typedef HANDLE DIR_HANDLE;
@@ -38,10 +48,23 @@ typedef HANDLE DIR_HANDLE;
 typedef struct FILE {
     FILE_HANDLE handle;
     int error;
+    int eof;
+    int unget_char;
     uint8_t* buffer;
     size_t buf_size;
     size_t buf_pos;
 } FILE;
+
+extern FILE* stdin;  /* Standard input stream.  */
+extern FILE* stdout; /* Standard output stream.  */
+extern FILE* stderr; /* Standard error output stream.  */
+#define stdin stdin
+#define stdout stdout
+#define stderr stderr
+
+#define SEEK_SET 0 /**< Seek relative to start of file */
+#define SEEK_CUR 1 /**< Seek relative to current position */
+#define SEEK_END 2 /**< Seek relative to end of file */
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,6 +106,12 @@ int puts(const char* s);
  */
 int getchar(void);
 
+int fgetc(FILE* f);
+
+int ungetc(int c, FILE* f);
+
+char* fgets(char* buf, int n, FILE* f);
+
 /**
  * @brief Formatted output to stdout.
  *
@@ -96,6 +125,10 @@ int getchar(void);
  * @see snprintf()
  */
 void printf(const char* fmt, ...);
+
+int vfprintf(FILE* f, const char* fmt, va_list args);
+int fprintf(FILE* f, const char* fmt, ...);
+int vprintf(const char* fmt, va_list args);
 
 /**
  * @brief Formatted output to a buffer with size limit.
@@ -119,6 +152,8 @@ size_t snprintf(char* buffer, size_t size, const char* format, ...);
  */
 FILE* fopen(const char* path, const char* mode);
 
+FILE* freopen(const char* path, const char* mode, FILE* f);
+
 /**
  * @todo add docs
  */
@@ -133,6 +168,21 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* f);
  * @todo add docs
  */
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* f);
+
+/**
+ * @brief Test the end-of-file indicator.
+ *
+ * Returns non-zero if the EOF indicator is set on @p f, i.e. the last
+ * read operation reached the end of the file.  The indicator is cleared
+ * by a successful seek (fseek / rewind).
+ *
+ * @param f File pointer returned by fopen().
+ * @return Non-zero if EOF has been reached, @c 0 otherwise.
+ *
+ * @see ferror()
+ * @see fseek()
+ */
+int feof(FILE* f);
 
 int ferror(FILE* f);
 int fflush(FILE* f);
@@ -155,7 +205,7 @@ int fflush(FILE* f);
  * @see ftell()
  * @see rewind()
  */
-ssize_t fseek(FILE_HANDLE stream, long offset, int whence);
+int fseek(FILE* stream, long offset, int whence);
 
 /**
  * @brief Get current position in stream.
@@ -172,7 +222,7 @@ ssize_t fseek(FILE_HANDLE stream, long offset, int whence);
  * @see fseek()
  * @see rewind()
  */
-ssize_t ftell(FILE_HANDLE stream);
+ssize_t ftell(FILE* stream);
 
 /**
  * @brief Reset file position to the beginning.
@@ -180,16 +230,10 @@ ssize_t ftell(FILE_HANDLE stream);
  * Equivalent to fseek(stream, 0, SEEK_SET).
  *
  * @param stream File handle returned by fopen().
- * @return On success returns 0
- *        On error, returns negative errno:
- *           -EINVAL  : invalid handle
- *           -EBADH   : handle not found or invalid resource
- *           -ESPIPE  : handle refers to a TTY or directory
- *           -EUNKNOWN: realm not found
  * @see fseek()
  * @see ftell()
  */
-int rewind(FILE_HANDLE stream);
+void rewind(FILE* stream);
 
 /**
  * @brief Open a directory.
@@ -388,6 +432,19 @@ int chdir(const char* path);
  * @see chdir()
  */
 int getcwd(char* buf, size_t size);
+
+FILE* tmpfile(void);
+
+void clearerr(FILE* f);
+
+#define _IOFBF 0  // fully buffered
+#define _IOLBF 1  // line buffered
+#define _IONBF 2  // unbuffered
+
+int setvbuf(FILE* f, char* buf, int mode, size_t size);
+
+int remove(const char* path);
+int rename(const char* oldpath, const char* newpath);
 
 #ifdef __cplusplus
 }

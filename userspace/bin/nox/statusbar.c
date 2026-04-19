@@ -29,6 +29,7 @@
 #include <sys/ioctl.h>
 #include <vespera/fflags.h>
 
+#include "../../../include/uapi/vespera/handles.h"
 #include "termios.h"
 
 #define MAX_BATTERIES 4
@@ -40,7 +41,7 @@ static int term_width = 80;
 static int get_term_width(void) {
     tty_size_t sz;
 
-    if (tty_get_size(stdin, &sz) == 0 && sz.cols > 0) {
+    if (tty_get_size(HANDLE_STDIN, &sz) == 0 && sz.cols > 0) {
         return sz.cols;
     }
 

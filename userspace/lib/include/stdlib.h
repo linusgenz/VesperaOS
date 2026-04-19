@@ -26,8 +26,11 @@
 #include <stddef.h>
 #include <sysstd.h>
 
-typedef int64_t FILE_HANDLE;
+typedef uint64_t FILE_HANDLE;
 extern int errno;
+
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,21 +48,6 @@ extern "C" {
  * @see putenv()
  */
 extern char** environ;
-
-/**
- * @brief Standard input file handle.
- */
-extern FILE_HANDLE stdin;
-
-/**
- * @brief Standard output file handle.
- */
-extern FILE_HANDLE stdout;
-
-/**
- * @brief Standard error file handle.
- */
-extern FILE_HANDLE stderr;
 
 typedef long int ssize_t;
 
@@ -163,7 +151,7 @@ void* calloc(size_t nmemb, size_t size);
  * @param code Exit code for the unit.
  * @return Does not return; halts the unit.
  */
-__attribute__((noreturn)) void exit(uint64_t code);
+_Noreturn void exit(uint64_t code);
 
 /**
  * @brief Convert a string to an integer.
@@ -189,6 +177,27 @@ int atoi(const char* s);
  * @return Converted long value, or 0 if no valid conversion exists.
  */
 long atol(const char* s);
+
+double strtod(const char* str, char** endptr);
+float strtof(const char* str, char** endptr);
+long double strtold(const char* str, char** endptr);
+
+static inline int abs(int x) {
+    return x < 0 ? -x : x;
+}
+static inline long labs(long x) {
+    return x < 0 ? -x : x;
+}
+static inline long long llabs(long long x) {
+    return x < 0 ? -x : x;
+}
+
+_Noreturn void abort(void);
+
+int system(const char* cmd);
+char* tmpnam(char* buf);
+
+#define L_tmpnam 32
 
 #ifdef __cplusplus
 }

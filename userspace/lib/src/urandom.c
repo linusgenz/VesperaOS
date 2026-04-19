@@ -22,11 +22,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "urandom.h"
-#include <string.h>
-#include <fflags.h>
+
 #include <errno.h>
+#include <fflags.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define UDEV_PATH "/dev/urandom"
 

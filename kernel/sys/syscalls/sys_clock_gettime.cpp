@@ -25,7 +25,9 @@
 #include <vespera/time.h>
 #include <vespera/types.h>
 
+#include "../../cpu/cpu_manager.h"
 #include "klib/time.h"
+#include "vespera/scheduling.h"
 
 namespace syscalls::internal {
 
@@ -33,7 +35,7 @@ namespace syscalls::internal {
         u8 sec = 0, min = 0, hour = 0, day = 0, month = 0, year = 0;
         kernel::time::read_rtc(sec, min, hour, day, month, year);
 
-        ts->tv_sec  = static_cast<i64>(klib::time::to_unix(2000u + year, month, day, hour, min, sec));
+        ts->tv_sec = static_cast<i64>(klib::time::to_unix(2000u + year, month, day, hour, min, sec));
         ts->tv_nsec = 0;  // fill this field when we have more precise timer
         return SUCCESS_CODE;
     }
@@ -42,6 +44,26 @@ namespace syscalls::internal {
         const u64 uptime_ms = kernel::time::get_uptime_ms();
         ts->tv_sec = static_cast<i64>(uptime_ms / 1000);
         ts->tv_nsec = static_cast<i64>((uptime_ms % 1000) * 1'000'000LL);
+        return SUCCESS_CODE;
+    }
+
+    static i64 fill_process_cputime(timespec_t* ts) {
+        const Unit* current = kernel::scheduling::get_current_unit();
+        if (!current) return -EINVAL;
+
+        const Realm* realm = RealmManager::get(current->rid);
+        if (!realm) return -EINVAL;
+
+        u64 total_ns = 0;
+        const Unit* u = realm->unit_list;
+        while (u) {
+            total_ns += u->cpu_time_ns;
+            if (u == current && u->run_start_ns != 0) total_ns += kernel::time::get_uptime_ns() - u->run_start_ns;
+            u = u->next;
+        }
+
+        ts->tv_sec = static_cast<i64>(total_ns / 1'000'000'000ULL);
+        ts->tv_nsec = static_cast<i64>(total_ns % 1'000'000'000ULL);
         return SUCCESS_CODE;
     }
 
@@ -58,6 +80,8 @@ namespace syscalls::internal {
             case CLOCK_MONOTONIC:
             case CLOCK_MONOTONIC_RAW:
                 return fill_monotonic(ts);
+            case CLOCK_PROCESS_CPUTIME_ID:
+                return fill_process_cputime(ts);
 
             default:
                 return -EINVAL;

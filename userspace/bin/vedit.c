@@ -30,8 +30,10 @@
 #include <string.h>
 #include <termios.h>
 
+#include "../../include/uapi/vespera/handles.h"
+
 static inline int tty_has_input(int timeout_ms) {
-    pollhdl_t ph = {.hdl = stdin, .events = POLLIN, .revents = 0, ._pad = 0};
+    pollhdl_t ph = {.hdl = HANDLE_STDIN, .events = POLLIN, .revents = 0, ._pad = 0};
     return (int)sys_poll((uintptr_t)&ph, 1, (uint32_t)timeout_ms, 0, 0, 0);
 }
 
@@ -167,7 +169,7 @@ static void rb_c(char c) {
 }
 
 static void rb_flush(void) {
-    write(stdout, E.rbuf, E.rlen);
+    write(HANDLE_STDOUT, E.rbuf, E.rlen);
     E.rlen = 0;
 }
 
@@ -192,7 +194,7 @@ static void mark_all_dirty(void) {
 static void term_restore(void) {
     rb_s(SHOW_CUR CSI "2J" CSI "1;1H" RESET);
     rb_flush();
-    tcsetattr(stdin, &E.orig_mode);
+    tcsetattr(HANDLE_STDIN, &E.orig_mode);
 }
 
 static void die(const char* msg) {
@@ -202,12 +204,12 @@ static void die(const char* msg) {
 }
 
 static void term_init(void) {
-    if (tcgetattr(stdin, &E.orig_mode) < 0) die("tcgetattr failed");
+    if (tcgetattr(HANDLE_STDIN, &E.orig_mode) < 0) die("tcgetattr failed");
     tty_mode_t raw = {.mode = TTY_MODE_RAW, .echo = 0};
-    if (tcsetattr(stdin, &raw) < 0) die("tcsetattr failed");
+    if (tcsetattr(HANDLE_STDIN, &raw) < 0) die("tcsetattr failed");
 
     tty_size_t sz;
-    if (tty_get_size(stdin, &sz) < 0 || sz.rows < 4 || sz.cols < 20) {
+    if (tty_get_size(HANDLE_STDIN, &sz) < 0 || sz.rows < 4 || sz.cols < 20) {
         sz.rows = 24;
         sz.cols = 80;
     }
@@ -230,7 +232,7 @@ static void term_init(void) {
 
 static int read_byte(void) {
     char c;
-    return (read(stdin, &c, 1) == 1) ? (unsigned char)c : -1;
+    return (read(HANDLE_STDIN, &c, 1) == 1) ? (unsigned char)c : -1;
 }
 
 static int read_key(void) {

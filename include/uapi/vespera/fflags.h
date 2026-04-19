@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_FFLAGS_H
-#define VESPERAOS_FFLAGS_H
+#ifndef VESPLIB_FFLAGS_H
+#define VESPLIB_FFLAGS_H
 
 #define O_RDONLY    0x0000  /**< Open for reading only */
 #define O_WRONLY    0x0001  /**< Open for writing only */
@@ -37,4 +37,4 @@
 #define SEEK_CUR    1       /**< Seek relative to current position */
 #define SEEK_END    2       /**< Seek relative to end of file */
 
-#endif  // VESPERAOS_FFLAGS_H
+#endif  // VESPLIB_FFLAGS_H

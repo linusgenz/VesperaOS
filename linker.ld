@@ -39,6 +39,12 @@ SECTIONS
         *(.rodata*)
     } :rodata
 
+    .pci_drivers : ALIGN(8) {
+        __start_pci_drivers = .;
+        KEEP(*(.pci_drivers))
+        __stop_pci_drivers = .;
+    } :rodata
+
     .data.font : ALIGN(0x1000) {
         *(.data.font)
     } :rodata

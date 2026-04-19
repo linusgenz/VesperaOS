@@ -37,7 +37,7 @@
 #define SYSCALL_SIGRETURN 15
 #define SYSCALL_IOCTL 16
 #define SYSCALL_PIPE 22
-#define SYSCALL_SLEEP 35
+#define SYSCALL_NANOSLEEP 35
 #define SYSCALL_GETRID 39
 #define SYSCALL_UNIT_SPAWN 59
 #define SYSCALL_EXIT 60
@@ -51,12 +51,15 @@
 #define SYSCALL_RMDIR 84
 #define SYSCALL_CREATE 85
 #define SYSCALL_UNLINK 87
+#define SYSCALL_GETTIMEOFDAY 96
 #define SYSCALL_MOUNT 165
 #define SYSCALL_UMOUNT 166
 #define SYSCALL_REBOOT 169
 #define SYSCALL_GETUID 186
+#define SYSCALL_TIME 201
 #define SYSCALL_READDIR 217
 #define SYSCALL_CLOCK_GETTIME 228
+#define SYSCALL_CLOCK_NANOSLEEP 230
 
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
@@ -106,8 +109,8 @@ int64_t sys_ioctl(uint64_t hid, uint64_t request, uint64_t arg, uint64_t, uint64
     return syscall(SYSCALL_IOCTL, hid, request, arg, 0, 0, 0);
 }
 
-int64_t sys_sleep(uint64_t ms, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_SLEEP, ms, 0, 0, 0, 0, 0);
+int64_t sys_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_NANOSLEEP, arg0, arg1, 0, 0, 0, 0);
 }
 
 int64_t sys_exit(uint64_t code, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
@@ -236,4 +239,16 @@ int64_t sys_vbus_unsubscribe(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, u
 
 int64_t sys_unit_spawn(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t) {
     return syscall(SYSCALL_UNIT_SPAWN, arg0, arg1, arg2, arg3, arg4, 0);
+}
+
+int64_t sys_gettimeofday(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETTIMEOFDAY, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_time(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_TIME, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_clock_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CLOCK_NANOSLEEP, arg0, arg1, arg2, arg3, 0, 0);
 }

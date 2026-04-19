@@ -1,9 +1,7 @@
 global _start
 extern main
 extern init_environ
-extern stdin
-extern stdout
-extern stderr
+extern __stdio_init
 extern exit
 
 %define HANDLE_TYPE_TTY 0x1000000000000000
@@ -20,20 +18,13 @@ _start:
     mov rdi, rdx            ; rdx = envp
     call init_environ
 
+    mov rdi, HANDLE_STDIN
+    mov rsi, HANDLE_STDOUT
+    mov rdx, HANDLE_STDERR
+    call __stdio_init
+
     pop rsi
     pop rdi
-
-    mov  rcx, HANDLE_STDIN
-    lea  rax, [rel stdin]
-    mov  [rax], rcx
-
-    mov  rcx, HANDLE_STDOUT
-    lea  rax, [rel stdout]
-    mov  [rax], rcx
-
-    mov  rcx, HANDLE_STDERR
-    lea  rax, [rel stderr]
-    mov  [rax], rcx
 
     call main
 

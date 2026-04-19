@@ -25,6 +25,48 @@ set(SIMD_X86_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/x86_64")
 string(TIMESTAMP BUILD_DATE "%Y%m%d")
 add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
 
+add_subdirectory(lua)
+add_subdirectory(readline)
+
+set(MATH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
+
+file(GLOB MATH_GENERIC_C   ${MATH_DIR}/*.c)
+file(GLOB MATH_X86_64_C    ${MATH_DIR}/x86_64/*.c)
+file(GLOB MATH_X86_64_S    ${MATH_DIR}/x86_64/*.s)
+
+foreach(_override ${MATH_X86_64_C} ${MATH_X86_64_S})
+    get_filename_component(_name ${_override} NAME_WE)  # z.B. "sqrt"
+    foreach(_generic ${MATH_GENERIC_C})
+        get_filename_component(_gname ${_generic} NAME_WE)
+        if(_gname STREQUAL _name)
+            list(REMOVE_ITEM MATH_GENERIC_C ${_generic})
+        endif()
+    endforeach()
+endforeach()
+
+set(MATH_SOURCES
+        ${MATH_GENERIC_C}
+        ${MATH_X86_64_C}
+        ${MATH_X86_64_S}
+)
+
+foreach(_src ${MATH_SOURCES})
+    get_filename_component(_ext ${_src} EXT)
+    if(_ext STREQUAL ".s")
+        set_source_files_properties(${_src} PROPERTIES
+                COMPILE_FLAGS "-ffreestanding"
+        )
+    else()
+        set_source_files_properties(${_src} PROPERTIES
+                COMPILE_FLAGS "-ffreestanding -nostdinc -fno-stack-protector -O2 \
+                           -I${MATH_DIR} \
+                           -include ${MATH_DIR}/features.h \
+                           --sysroot=${SYSROOT} \
+                           -isystem ${SYSROOT}/usr/include"
+        )
+    endif()
+endforeach()
+
 # --- C Sources ---
 set(LIB_SOURCES
         src/errno.c
@@ -40,9 +82,10 @@ set(LIB_SOURCES
         src/sysstd.c
         src/urandom.c
         src/ctype.c
-        src/readline.c
         src/mount.c
         src/time.c
+        src/signal.c
+        src/locale.c
 
         src/sys/ioctl.c
         src/sys/mman.c
@@ -151,6 +194,7 @@ add_library(vesplib STATIC
         ${SIMD_ASM_SOURCES}
         ${LIB_SOURCES}
         ${ASM_SOURCES}
+        ${MATH_SOURCES}
 )
 
 set_source_files_properties(
@@ -191,7 +235,7 @@ target_compile_options(vesplib PRIVATE
 set(SYSROOT ${CMAKE_SOURCE_DIR}/sysroot)
 
 add_custom_target(sysroot_install
-        DEPENDS vesplib
+        DEPENDS vesplib sysroot_install_readline
 
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${SYSROOT}/usr/include

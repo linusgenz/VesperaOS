@@ -22,8 +22,8 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../lib/include/fflags.h"
 #include "../lib/include/stdio.h"

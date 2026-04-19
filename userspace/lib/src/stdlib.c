@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,10 +31,6 @@ int errno = 0;
 char** environ = NULL;
 size_t env_count = 0;
 size_t env_capacity = 0;
-
-FILE_HANDLE stdin;
-FILE_HANDLE stdout;
-FILE_HANDLE stderr;
 
 void init_environ(char** envp) {
     size_t count = 0;
@@ -205,4 +202,157 @@ long atol(const char* s) {
     }
 
     return sign * result;
+}
+
+double strtod(const char* str, char** endptr) {
+    if (!str) {
+        if (endptr) *endptr = (char*)str;
+        return 0.0;
+    }
+
+    // skip whitespace
+    while (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\r' || *str == '\f' || *str == '\v') str++;
+
+    double result = 0.0;
+    double sign = 1.0;
+
+    // Sign
+    if (*str == '-') {
+        sign = -1.0;
+        str++;
+    } else if (*str == '+') {
+        str++;
+    }
+
+    // NaN / Inf
+    if (str[0] == 'i' || str[0] == 'I') {
+        if (endptr) *endptr = (char*)str + 3;
+        return sign * __builtin_inf();
+    }
+    if (str[0] == 'n' || str[0] == 'N') {
+        if (endptr) *endptr = (char*)str + 3;
+        return __builtin_nan("");
+    }
+
+    // Hex: 0x...
+    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+        str += 2;
+        double hex = 0.0;
+        while ((*str >= '0' && *str <= '9') || (*str >= 'a' && *str <= 'f') || (*str >= 'A' && *str <= 'F')) {
+            int digit;
+            if (*str >= '0' && *str <= '9')
+                digit = *str - '0';
+            else if (*str >= 'a' && *str <= 'f')
+                digit = *str - 'a' + 10;
+            else
+                digit = *str - 'A' + 10;
+            hex = hex * 16.0 + digit;
+            str++;
+        }
+        if (*str == '.') {
+            str++;
+            double frac = 1.0 / 16.0;
+            while ((*str >= '0' && *str <= '9') || (*str >= 'a' && *str <= 'f') || (*str >= 'A' && *str <= 'F')) {
+                int digit;
+                if (*str >= '0' && *str <= '9')
+                    digit = *str - '0';
+                else if (*str >= 'a' && *str <= 'f')
+                    digit = *str - 'a' + 10;
+                else
+                    digit = *str - 'A' + 10;
+                hex += digit * frac;
+                frac /= 16.0;
+                str++;
+            }
+        }
+        if (*str == 'p' || *str == 'P') {
+            str++;
+            int esign = 1;
+            if (*str == '-') {
+                esign = -1;
+                str++;
+            } else if (*str == '+')
+                str++;
+            int exp = 0;
+            while (*str >= '0' && *str <= '9') exp = exp * 10 + (*str++ - '0');
+            // scalbn: hex * 2^(esign*exp)
+            hex = __builtin_scalbn(hex, esign * exp);
+        }
+        if (endptr) *endptr = (char*)str;
+        return sign * hex;
+    }
+
+    // decimal part
+    while (*str >= '0' && *str <= '9') result = result * 10.0 + (*str++ - '0');
+
+    // decimal places
+    if (*str == '.') {
+        str++;
+        double frac = 0.1;
+        while (*str >= '0' && *str <= '9') {
+            result += (*str++ - '0') * frac;
+            frac *= 0.1;
+        }
+    }
+
+    // exponent
+    if (*str == 'e' || *str == 'E') {
+        str++;
+        int esign = 1;
+        if (*str == '-') {
+            esign = -1;
+            str++;
+        } else if (*str == '+')
+            str++;
+        int exp = 0;
+        while (*str >= '0' && *str <= '9') exp = exp * 10 + (*str++ - '0');
+        // result * 10^exp
+        double base = 10.0;
+        int e = esign * exp;
+        if (e < 0) {
+            base = 0.1;
+            e = -e;
+        }
+        double factor = 1.0;
+        for (int i = 0; i < e; i++) factor *= base;
+        result *= factor;
+    }
+
+    if (endptr) *endptr = (char*)str;
+    return sign * result;
+}
+
+float strtof(const char* str, char** endptr) {
+    return (float)strtod(str, endptr);
+}
+long double strtold(const char* str, char** endptr) {
+    return (long double)strtod(str, endptr);
+}
+
+void abort(void) {
+    raise(SIGABRT);
+    sys_exit(134, 0, 0, 0, 0, 0);
+    __builtin_unreachable();
+}
+
+int system(const char* cmd) {
+    if (!cmd) return 1;
+
+    const char* argv[] = { cmd, NULL };
+    int64_t rid = sys_spawn((uint64_t)cmd, (uint64_t)argv, 0, 0, 0, 0);
+    if (rid < 0) return -1;
+
+    int status = 0;
+    sys_wait((uint64_t)rid, (uint64_t)&status, 0, 0, 0, 0);
+    return status;
+}
+
+
+char* tmpnam(char* buf) {
+    static char internal[L_tmpnam];
+    static int  counter = 0;
+
+    char* dst = buf ? buf : internal;
+    snprintf(dst, L_tmpnam, "/tmp/tmp%d", counter++);
+    return dst;
 }

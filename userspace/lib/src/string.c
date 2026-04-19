@@ -24,15 +24,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-size_t strlen(const char *s) {
-    const char *start = s;
+size_t strlen(const char* s) {
+    const char* start = s;
     while (*s) {
         ++s;
     }
     return s - start;
 }
 
-void strcpy(char *dest, const char *src) {
+void strcpy(char* dest, const char* src) {
     if (!dest || !src) return;
     while (*src) {
         *dest++ = *src++;
@@ -40,7 +40,7 @@ void strcpy(char *dest, const char *src) {
     *dest = '\0';
 }
 
-char *strncpy(char *dest, const char *src, size_t n) {
+char* strncpy(char* dest, const char* src, size_t n) {
     size_t i = 0;
     for (i = 0; i < n && src[i] != '\0'; i++) {
         dest[i] = src[i];
@@ -51,35 +51,28 @@ char *strncpy(char *dest, const char *src, size_t n) {
     return dest;
 }
 
-char* strtok(char* s, const char delim)
-{
+char* strtok(char* s, const char delim) {
     static char* next = NULL;
 
-    if (s != NULL)
-        next = s;
+    if (s != NULL) next = s;
 
-    if (next == NULL)
-        return NULL;
+    if (next == NULL) return NULL;
 
     char* start = next;
 
-    while (*next != '\0' && *next != delim)
-        ++next;
+    while (*next != '\0' && *next != delim) ++next;
 
-    if (*next == delim)
-    {
+    if (*next == delim) {
         *next = '\0';
         ++next;
-    }
-    else
-    {
+    } else {
         next = NULL;
     }
 
     return start;
 }
 
-void strcat(char *dest, const char *src) {
+void strcat(char* dest, const char* src) {
     if (!dest || !src) return;
     while (*dest) dest++;
     strcpy(dest, src);
@@ -105,7 +98,7 @@ char* strncat(char* dest, const char* src, size_t max) {
     return dest;
 }
 
-int strcmp(const char *a, const char *b) {
+int strcmp(const char* a, const char* b) {
     while (*a && *b && *a == *b) {
         a++;
         b++;
@@ -113,8 +106,8 @@ int strcmp(const char *a, const char *b) {
     return *a - *b;
 }
 
-int strncmp(const char *a, const char *b, size_t n) {
-    while (n != 0 && *a != '\0' && *b != '\0'  && *a == *b) {
+int strncmp(const char* a, const char* b, size_t n) {
+    while (n != 0 && *a != '\0' && *b != '\0' && *a == *b) {
         a++;
         b++;
         n--;
@@ -122,15 +115,151 @@ int strncmp(const char *a, const char *b, size_t n) {
     return n == 0 ? 0 : (*a - *b);
 }
 
-char *strchr(const char *s, unsigned char c) {
+int strcoll(const char* s1, const char* s2) {
+    return strcmp(s1, s2);
+}
+
+char* strchr(const char* s, int c) {
     while (*s) {
         if ((unsigned char)*s == c) {
-            return (char *)s;
+            return (char*)s;
         }
         ++s;
     }
 
-    if (c == '\0') return (char *)s;
+    if (c == '\0') return (char*)s;
+    return NULL;
+}
+
+char* strstr(const char* haystack, const char* needle) {
+    if (!haystack || !needle) return NULL;
+    if (*needle == '\0') return (char*)haystack;
+
+    for (; *haystack; haystack++) {
+        const char* h = haystack;
+        const char* n = needle;
+        while (*h && *n && *h == *n) {
+            h++;
+            n++;
+        }
+        if (*n == '\0') return (char*)haystack;
+    }
+    return NULL;
+}
+
+static char* strchrnul_c(const char* s, int c) {
+    unsigned char ch = (unsigned char)c;
+
+    while (*s && (unsigned char)*s != ch) {
+        ++s;
+    }
+
+    return (char*)s;
+}
+
+size_t strcspn(const char* s, const char* reject) {
+    /* Fast path: leeres oder 1-Zeichen-Set */
+    if (reject[0] == '\0') {
+        const char* p = s;
+        while (*p) ++p;
+        return (size_t)(p - s);
+    }
+
+    if (reject[1] == '\0') {
+        return (size_t)(strchrnul_c(s, reject[0]) - s);
+    }
+
+    /* Allgemeiner Fall: Lookup-Table (256 Bytes) */
+    uint8_t table[256] = {0};
+
+    for (const unsigned char* r = (const unsigned char*)reject; *r; ++r) {
+        table[*r] = 1;
+    }
+
+    const unsigned char* p = (const unsigned char*)s;
+    while (*p && !table[*p]) {
+        ++p;
+    }
+
+    return (size_t)(p - (const unsigned char*)s);
+}
+
+size_t strspn(const char* s, const char* accept) {
+    if (accept[0] == '\0') {
+        return 0;
+    }
+
+    if (accept[1] == '\0') {
+        const char* p = s;
+        while (*p == accept[0]) {
+            ++p;
+        }
+        return (size_t)(p - s);
+    }
+
+    uint8_t table[256] = {0};
+
+    for (const unsigned char* a = (const unsigned char*)accept; *a; ++a) {
+        table[*a] = 1;
+    }
+
+    const unsigned char* p = (const unsigned char*)s;
+    while (*p && table[*p]) {
+        ++p;
+    }
+
+    return (size_t)(p - (const unsigned char*)s);
+}
+
+char* strpbrk(const char* s, const char* accept) {
+    s += strcspn(s, accept);
+    return *s ? (char*)s : NULL;
+}
+
+static int has_zero(size_t x) {
+    size_t ones = (size_t)-1 / 0xFF;
+    size_t highs = ones * 0x80;
+    return ((x - ones) & ~x & highs) != 0;
+}
+
+void* memchr(const void* src, int c, size_t n) {
+    const unsigned char* s = (const unsigned char*)src;
+    unsigned char target = (unsigned char)c;
+
+    while (((uintptr_t)s % sizeof(size_t)) != 0 && n > 0) {
+        if (*s == target) return (void*)s;
+        s++;
+        n--;
+    }
+
+    if (n >= sizeof(size_t)) {
+        size_t repeated = 0;
+        for (size_t i = 0; i < sizeof(size_t); i++) {
+            repeated = (repeated << 8) | target;
+        }
+
+        const size_t* w = (const size_t*)s;
+
+        while (n >= sizeof(size_t)) {
+            size_t x = *w ^ repeated;
+
+            if (has_zero(x)) {
+                break;
+            }
+
+            w++;
+            n -= sizeof(size_t);
+        }
+
+        s = (const unsigned char*)w;
+    }
+
+    while (n > 0) {
+        if (*s == target) return (void*)s;
+        s++;
+        n--;
+    }
+
     return NULL;
 }
 
@@ -140,11 +269,10 @@ void memset(void* dest, uint8_t c, size_t num) {
     }
 }
 
-void *memcpy (void *dest, const void *src, size_t len) {
-    char *d = (char*)dest;
-    const char *s = (char*)src;
-    while (len--)
-        *d++ = *s++;
+void* memcpy(void* dest, const void* src, size_t len) {
+    char* d = (char*)dest;
+    const char* s = (char*)src;
+    while (len--) *d++ = *s++;
     return dest;
 }
 
@@ -152,8 +280,7 @@ int memcmp(const void* s1, const void* s2, size_t n) {
     const uint8_t* a = (const uint8_t*)s1;
     const uint8_t* b = (const uint8_t*)s2;
     for (size_t i = 0; i < n; i++) {
-        if (a[i] != b[i])
-            return (a[i] < b[i]) ? -1 : 1;
+        if (a[i] != b[i]) return (a[i] < b[i]) ? -1 : 1;
     }
     return 0;
 }
@@ -163,8 +290,7 @@ void* memmove(void* dest, const void* src, size_t len) {
     const char* s = src;
     if (d < s) {
         while (len--) *d++ = *s++;
-    }
-    else {
+    } else {
         char* lasts = (char*)(s + (len - 1));
         char* lastd = d + (len - 1);
         while (len--) *lastd-- = *lasts--;

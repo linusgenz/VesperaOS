@@ -19,7 +19,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
 #ifndef VESPERAOS_ASSERT_H
 #define VESPERAOS_ASSERT_H
+
+#ifdef NDEBUG
+#define assert(x) ((void)0)
+#else
+#define assert(x) ((x) ? (void)0 : __builtin_trap())
+#endif
 
 #endif  // VESPERAOS_ASSERT_H

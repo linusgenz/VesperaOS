@@ -106,12 +106,12 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    int64_t result = sys_sleep(ms, 0, 0, 0, 0, 0);
-
+//    int64_t result = sys_sleep(ms, 0, 0, 0, 0, 0);
+/*
     if (result < 0) {
         printf("sleep: error: %s\n", strerror((int)result));
         return 1;
-    }
+    }*/
 
     return 0;
 }

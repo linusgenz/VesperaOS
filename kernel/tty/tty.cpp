@@ -320,6 +320,15 @@ namespace kernel::tty {
                 } else if (c == '\r') {
                     tty->cursor_x = 0;
                     tty->term->set_cursor(0, tty->cursor_y);
+                } else if (c == '\t') {
+                    const usize cols = tty->term->visible_cols();
+                    const usize next_tab = (tty->cursor_x / TTY_TAB_WIDTH + 1) * TTY_TAB_WIDTH;
+                    const usize target = (next_tab < cols) ? next_tab : cols - 1;
+
+                    while (tty->cursor_x < target) {
+                        tty->term->put_char(' ');
+                        tty->cursor_x++;
+                    }
                 } else {
                     uint32_t cp = 0;
 

@@ -13,6 +13,8 @@ syscall_entry:
     swapgs
     cli
 
+    push r15
+
     mov r15, qword [gs:0]
     mov [r15 + SAVED_USER_RSP], rsp
     mov byte [r15 + FROM_SYSCALL_BOOL], 1
@@ -96,6 +98,8 @@ syscall_entry:
 
     or r11, 0x200
     mov byte [r15 + FROM_SYSCALL_BOOL], 0
+
+    pop r15
 
     swapgs
     o64 sysret

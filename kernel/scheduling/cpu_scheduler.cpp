@@ -80,10 +80,17 @@ namespace kernel::scheduling::cpu_scheduler {
     }
 
     static void do_switch(Unit* prev, Unit* next, TrapFrame* tf) {
+        const u64 now = kernel::time::get_uptime_ns();
         if (prev) {
+            if (prev->run_start_ns != 0) {
+                prev->cpu_time_ns += now - prev->run_start_ns;
+            }
+
             cpu_context_save(tf, &prev->context.cpu_ctx);
             fpu_save(&prev->context.fpu_ctx);
         }
+
+        next->run_start_ns = now;
 
         fpu_restore(&next->context.fpu_ctx);
 

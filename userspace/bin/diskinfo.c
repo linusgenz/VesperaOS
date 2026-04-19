@@ -32,14 +32,14 @@
 #include <errno.h>
 
 static void print_separator() {
-    puts("───────────────────────────────────────────────────\n");
+    puts("───────────────────────────────────────────────────");
 }
 
 static void print_health(uint8_t ok) {
     if (ok)
-        puts("  Health:               \033[32mOK\033[0m\n");
+        puts("  Health:               \033[32mOK\033[0m");
     else
-        puts("  Health:               \033[31mFAILED\033[0m\n");
+        puts("  Health:               \033[31mFAILED\033[0m");
 }
 
 static void print_temp(uint8_t celsius) {
@@ -85,7 +85,7 @@ static void show_nvme(int64_t handle) {
         return;
     }
 
-    puts("  [NVMe SMART Data]\n");
+    puts("  [NVMe SMART Data]");
     print_temp(nvme.temperature_celsius);
     print_u8_pct("Available Spare:", nvme.available_spare);
     print_u8_pct("Spare Threshold:", nvme.available_spare_threshold);
@@ -95,7 +95,7 @@ static void show_nvme(int64_t handle) {
     snprintf(warn_buf, sizeof(warn_buf), "  %-22s0x%02X\n", "Critical Warning:", nvme.critical_warning_raw);
     puts(warn_buf);
 
-    puts("\n  [NVMe Statistics]\n");
+    puts("\n  [NVMe Statistics]");
     print_u64("Data Units Read:", nvme.data_units_read);
     print_u64("Data Units Written:", nvme.data_units_written);
     print_u64("Host Read Cmds:", nvme.host_read_commands);
@@ -117,7 +117,7 @@ static void show_nvme(int64_t handle) {
                 has_sensors = 1;
             }
             char sbuf[64];
-            snprintf(sbuf, sizeof(sbuf), "  Sensor %d:             %d °C\n", i + 1, nvme.temperature_sensor[i]);
+            snprintf(sbuf, sizeof(sbuf), "  Sensor %d:             %d °C", i + 1, nvme.temperature_sensor[i]);
             puts(sbuf);
         }
     }
@@ -143,8 +143,8 @@ static void show_ata(int64_t handle) {
 
     if (ata.attr_count > 0) {
         puts("\n  [ATA SMART Attributes]\n");
-        puts("  ID   Name (raw id)         Cur  Wst  Thr  Flags   Raw\n");
-        puts("  ====================================================\n");
+        puts("  ID   Name (raw id)         Cur  Wst  Thr  Flags   Raw");
+        puts("  ====================================================");
 
         for (uint8_t i = 0; i < ata.attr_count && i < 30; i++) {
             smart_attribute_t* a = &ata.attrs[i];
@@ -157,7 +157,7 @@ static void show_ata(int64_t handle) {
 
             char row[128];
             snprintf(row, sizeof(row),
-                "  %-4u %-20s %-4u %-4u %-4u 0x%04X  %llu\n",
+                "  %-4u %-20s %-4u %-4u %-4u 0x%04X  %llu",
                 a->id, "---", a->current, a->worst, a->threshold, a->flags,
                 (unsigned long long)raw);
             puts(row);
@@ -205,10 +205,10 @@ static void show_devinfo(int64_t handle) {
     puts("  [Device Information]\n");
 
     char buf[192];
-    if (info.vendor[0])   { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Vendor:",   info.vendor);   puts(buf); }
-    if (info.model[0])    { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Model:",    info.model);    puts(buf); }
-    if (info.serial[0])   { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Serial:",   info.serial);   puts(buf); }
-    if (info.firmware[0]) { snprintf(buf, sizeof(buf), "  %-22s%s\n", "Firmware:", info.firmware); puts(buf); }
+    if (info.vendor[0])   { snprintf(buf, sizeof(buf), "  %-22s%s", "Vendor:",   info.vendor);   puts(buf); }
+    if (info.model[0])    { snprintf(buf, sizeof(buf), "  %-22s%s", "Model:",    info.model);    puts(buf); }
+    if (info.serial[0])   { snprintf(buf, sizeof(buf), "  %-22s%s", "Serial:",   info.serial);   puts(buf); }
+    if (info.firmware[0]) { snprintf(buf, sizeof(buf), "  %-22s%s", "Firmware:", info.firmware); puts(buf); }
 
     puts("\n");
 }
@@ -217,9 +217,10 @@ static void inspect_device(const char* dev_path) {
     print_separator();
 
     char header[128];
-    snprintf(header, sizeof(header), "Device: %s\n", dev_path);
+    snprintf(header, sizeof(header), "Device: %s", dev_path);
     puts(header);
     print_separator();
+    printf("\n");
 
     int64_t handle = open(dev_path, O_RDONLY);
     if (handle < 0) {
@@ -267,7 +268,7 @@ static void usage() {
 }
 
 int main(int argc, const char** argv) {
-    puts("\033[1mdiskinfo - VesperaOS Disk Health Monitor\033[0m\n\n");
+    puts("\033[1mdiskinfo - VesperaOS Disk Health Monitor\033[0m\n");
 
     if (argc > 1) {
         if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
