@@ -1,21 +1,6 @@
 var searchData=
 [
-  ['uchar_5fmax_0',['UCHAR_MAX',['../limits_8h.html#a4066e640ee269d5d8f83ff6643b7af5f',1,'limits.h']]],
-  ['uint16_5fmax_1',['UINT16_MAX',['../stdint_8h.html#a3ea490c9b3617d4479bd80ef93cd5602',1,'stdint.h']]],
-  ['uint32_5fmax_2',['UINT32_MAX',['../stdint_8h.html#ab5eb23180f7cc12b7d6c04a8ec067fdd',1,'stdint.h']]],
-  ['uint64_5fmax_3',['UINT64_MAX',['../stdint_8h.html#a30654b4b67d97c42ca3f9b6052dda916',1,'stdint.h']]],
-  ['uint8_5fmax_4',['UINT8_MAX',['../stdint_8h.html#aeb4e270a084ee26fe73e799861bd0252',1,'stdint.h']]],
-  ['uint_5fleast16_5fmax_5',['UINT_LEAST16_MAX',['../stdint_8h.html#a6ef6a1a518bbf516ca8b0180b11c358f',1,'stdint.h']]],
-  ['uint_5fleast32_5fmax_6',['UINT_LEAST32_MAX',['../stdint_8h.html#a70cad8bacc9a6db301e1cdc86cc8d571',1,'stdint.h']]],
-  ['uint_5fleast64_5fmax_7',['UINT_LEAST64_MAX',['../stdint_8h.html#aab530113fa96e280e49c3c138b0f917d',1,'stdint.h']]],
-  ['uint_5fleast8_5fmax_8',['UINT_LEAST8_MAX',['../stdint_8h.html#a2a80bde77ee1698d0f42f334adad4f2b',1,'stdint.h']]],
-  ['uint_5fmax_9',['UINT_MAX',['../limits_8h.html#ac998ea02fbd821fc123d60445ce76f38',1,'limits.h']]],
-  ['ullong_5fmax_10',['ULLONG_MAX',['../limits_8h.html#aa1dd7166a75b73ad62b111ae6fc17c59',1,'limits.h']]],
-  ['ulong_5fmax_11',['ULONG_MAX',['../limits_8h.html#a41c51926a1997aab3503f9083935e06c',1,'limits.h']]],
-  ['usb_5fspeed_5ffull_5fspeed_12',['USB_SPEED_FULL_SPEED',['../ioctl__usb__device_8h.html#a0862ceeed2a8b2a8097d86acba5de7ce',1,'ioctl_usb_device.h']]],
-  ['usb_5fspeed_5fhigh_5fspeed_13',['USB_SPEED_HIGH_SPEED',['../ioctl__usb__device_8h.html#abac97738e9ce403bf39d4e6a9d9c9e72',1,'ioctl_usb_device.h']]],
-  ['usb_5fspeed_5flow_5fspeed_14',['USB_SPEED_LOW_SPEED',['../ioctl__usb__device_8h.html#a419f2d9be63cf0c28cc871e4aa05df1e',1,'ioctl_usb_device.h']]],
-  ['usb_5fspeed_5fsuper_5fspeed_15',['USB_SPEED_SUPER_SPEED',['../ioctl__usb__device_8h.html#a521e503f3c29f40edafa3d7033f7316c',1,'ioctl_usb_device.h']]],
-  ['usb_5fspeed_5fsuper_5fspeed_5fplus_16',['USB_SPEED_SUPER_SPEED_PLUS',['../ioctl__usb__device_8h.html#a9cf739fb6f01bacab2119b4d1cbb4d83',1,'ioctl_usb_device.h']]],
-  ['ushrt_5fmax_17',['USHRT_MAX',['../limits_8h.html#a689b119da994dece91d44b5aeac643ed',1,'limits.h']]]
+  ['reboot_5fhalt_0',['reboot_halt',['../userspace_2lib_2include_2power_8h.html#a6f95ffcf13be063c8af8e67ab7973e26',1,'power.h']]],
+  ['reboot_5fpoweroff_1',['reboot_poweroff',['../userspace_2lib_2include_2power_8h.html#a3d2e382d1acf7eb5fe273f1b69050209',1,'power.h']]],
+  ['reboot_5frestart_2',['reboot_restart',['../userspace_2lib_2include_2power_8h.html#aa1843d7f616e462b9cf039ab14629f95',1,'power.h']]]
 ];

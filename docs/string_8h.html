@@ -95,60 +95,105 @@ $(document).ready(function(){initNavTree('string_8h.html',''); initResizable(); 
   <div class="headertitle"><div class="title">string.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
-<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
 </div>
 <p><a href="string_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa383452fe445bfae989358c9d7d96f4f" id="r_aa383452fe445bfae989358c9d7d96f4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aa383452fe445bfae989358c9d7d96f4f">strlen</a> (const char *s)</td></tr>
+<tr class="memitem:aa383452fe445bfae989358c9d7d96f4f" id="r_aa383452fe445bfae989358c9d7d96f4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aa383452fe445bfae989358c9d7d96f4f">strlen</a> (const char *s)</td></tr>
 <tr class="memdesc:aa383452fe445bfae989358c9d7d96f4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the length of S.  <br /></td></tr>
 <tr class="separator:aa383452fe445bfae989358c9d7d96f4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a20a1b028f768fea8345e330d841dbfe1" id="r_a20a1b028f768fea8345e330d841dbfe1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a20a1b028f768fea8345e330d841dbfe1">strcpy</a> (char *dest, const char *src)</td></tr>
 <tr class="memdesc:a20a1b028f768fea8345e330d841dbfe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy SRC to DEST.  <br /></td></tr>
 <tr class="separator:a20a1b028f768fea8345e330d841dbfe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9380f4a95b2c4e3d979b1634d3a8bcc9" id="r_a9380f4a95b2c4e3d979b1634d3a8bcc9"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a9380f4a95b2c4e3d979b1634d3a8bcc9">strncpy</a> (char *dest, const char *src, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
+<tr class="memitem:a9380f4a95b2c4e3d979b1634d3a8bcc9" id="r_a9380f4a95b2c4e3d979b1634d3a8bcc9"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a9380f4a95b2c4e3d979b1634d3a8bcc9">strncpy</a> (char *dest, const char *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
 <tr class="memdesc:a9380f4a95b2c4e3d979b1634d3a8bcc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy no more than N characters of SRC to DEST.  <br /></td></tr>
 <tr class="separator:a9380f4a95b2c4e3d979b1634d3a8bcc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab51518e1ff8475f3f16d911d24c65aee" id="r_ab51518e1ff8475f3f16d911d24c65aee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#ab51518e1ff8475f3f16d911d24c65aee">strcat</a> (char *dest, const char *src)</td></tr>
 <tr class="memdesc:ab51518e1ff8475f3f16d911d24c65aee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Append SRC onto DEST.  <br /></td></tr>
 <tr class="separator:ab51518e1ff8475f3f16d911d24c65aee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4eafd6e1198841f898f0aa61ef86e2a" id="r_af4eafd6e1198841f898f0aa61ef86e2a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#af4eafd6e1198841f898f0aa61ef86e2a">strncat</a> (char *dest, const char *src, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> max)</td></tr>
+<tr class="memitem:af4eafd6e1198841f898f0aa61ef86e2a" id="r_af4eafd6e1198841f898f0aa61ef86e2a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#af4eafd6e1198841f898f0aa61ef86e2a">strncat</a> (char *dest, const char *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> max)</td></tr>
 <tr class="memdesc:af4eafd6e1198841f898f0aa61ef86e2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Append no more than N characters from SRC onto DEST.  <br /></td></tr>
 <tr class="separator:af4eafd6e1198841f898f0aa61ef86e2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14e6581584b7433c4440fdc7ecf86aea" id="r_a14e6581584b7433c4440fdc7ecf86aea"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a14e6581584b7433c4440fdc7ecf86aea">strcmp</a> (const char *a, const char *b)</td></tr>
 <tr class="memdesc:a14e6581584b7433c4440fdc7ecf86aea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare A and B.  <br /></td></tr>
 <tr class="separator:a14e6581584b7433c4440fdc7ecf86aea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a617eed2430471abc2c2ac192bd280869" id="r_a617eed2430471abc2c2ac192bd280869"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a617eed2430471abc2c2ac192bd280869">strncmp</a> (const char *a, const char *b, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
+<tr class="memitem:a617eed2430471abc2c2ac192bd280869" id="r_a617eed2430471abc2c2ac192bd280869"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a617eed2430471abc2c2ac192bd280869">strncmp</a> (const char *a, const char *b, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
 <tr class="memdesc:a617eed2430471abc2c2ac192bd280869"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare N characters of A and B.  <br /></td></tr>
 <tr class="separator:a617eed2430471abc2c2ac192bd280869"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b6f97d145465b0670cf9fc83ea55d0a" id="r_a6b6f97d145465b0670cf9fc83ea55d0a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a6b6f97d145465b0670cf9fc83ea55d0a">strchr</a> (const char *s, unsigned char c)</td></tr>
-<tr class="memdesc:a6b6f97d145465b0670cf9fc83ea55d0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the first occurrence of C in S.  <br /></td></tr>
-<tr class="separator:a6b6f97d145465b0670cf9fc83ea55d0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22dc85290d58fa0ca8bf414728ec61c2" id="r_a22dc85290d58fa0ca8bf414728ec61c2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a22dc85290d58fa0ca8bf414728ec61c2">memset</a> (void *dest, <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> c, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
+<tr class="memitem:aa4718e50ed45c2275c5d85a121d68097" id="r_aa4718e50ed45c2275c5d85a121d68097"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aa4718e50ed45c2275c5d85a121d68097">strcoll</a> (const char *s1, const char *s2)</td></tr>
+<tr class="memdesc:aa4718e50ed45c2275c5d85a121d68097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stub, same as strcmp.  <br /></td></tr>
+<tr class="separator:aa4718e50ed45c2275c5d85a121d68097"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7c16a2447154107d5ecd28434993443" id="r_ad7c16a2447154107d5ecd28434993443"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#ad7c16a2447154107d5ecd28434993443">strchr</a> (const char *s, int c)</td></tr>
+<tr class="memdesc:ad7c16a2447154107d5ecd28434993443"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the first occurrence of C in S.  <br /></td></tr>
+<tr class="separator:ad7c16a2447154107d5ecd28434993443"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab57319b670052e4c93c1f6822c28d5ce" id="r_ab57319b670052e4c93c1f6822c28d5ce"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#ab57319b670052e4c93c1f6822c28d5ce">strstr</a> (const char *haystack, const char *needle)</td></tr>
+<tr class="memdesc:ab57319b670052e4c93c1f6822c28d5ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the first occurrence of NEEDLE in HAYSTACK.  <br /></td></tr>
+<tr class="separator:ab57319b670052e4c93c1f6822c28d5ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22dc85290d58fa0ca8bf414728ec61c2" id="r_a22dc85290d58fa0ca8bf414728ec61c2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a22dc85290d58fa0ca8bf414728ec61c2">memset</a> (void *dest, <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> c, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
 <tr class="memdesc:a22dc85290d58fa0ca8bf414728ec61c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set N bytes of DEST to C.  <br /></td></tr>
 <tr class="separator:a22dc85290d58fa0ca8bf414728ec61c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee2cb14f63e73acc45996f71718121b1" id="r_aee2cb14f63e73acc45996f71718121b1"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aee2cb14f63e73acc45996f71718121b1">memcpy</a> (void *dest, const void *src, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
+<tr class="memitem:aee2cb14f63e73acc45996f71718121b1" id="r_aee2cb14f63e73acc45996f71718121b1"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aee2cb14f63e73acc45996f71718121b1">memcpy</a> (void *dest, const void *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
 <tr class="memdesc:aee2cb14f63e73acc45996f71718121b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy N bytes of SRC to DEST.  <br /></td></tr>
 <tr class="separator:aee2cb14f63e73acc45996f71718121b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e6df54ee04e18a3772335580e2ed872" id="r_a9e6df54ee04e18a3772335580e2ed872"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a9e6df54ee04e18a3772335580e2ed872">memcmp</a> (const void *s1, const void *s2, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
+<tr class="memitem:a9e6df54ee04e18a3772335580e2ed872" id="r_a9e6df54ee04e18a3772335580e2ed872"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a9e6df54ee04e18a3772335580e2ed872">memcmp</a> (const void *s1, const void *s2, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
 <tr class="memdesc:a9e6df54ee04e18a3772335580e2ed872"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare N bytes of S1 and S2.  <br /></td></tr>
 <tr class="separator:a9e6df54ee04e18a3772335580e2ed872"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4522f53cff2fef09001e4d34227463a9" id="r_a4522f53cff2fef09001e4d34227463a9"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a4522f53cff2fef09001e4d34227463a9">memmove</a> (void *dest, const void *src, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
+<tr class="memitem:a4522f53cff2fef09001e4d34227463a9" id="r_a4522f53cff2fef09001e4d34227463a9"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a4522f53cff2fef09001e4d34227463a9">memmove</a> (void *dest, const void *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
 <tr class="memdesc:a4522f53cff2fef09001e4d34227463a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy N bytes of SRC to DEST, guaranteeing correct behavior for overlapping strings.  <br /></td></tr>
 <tr class="separator:a4522f53cff2fef09001e4d34227463a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a493c478d061f31856b22410b0c1b7b8d" id="r_a493c478d061f31856b22410b0c1b7b8d"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a493c478d061f31856b22410b0c1b7b8d">strtok</a> (char *s, char delim)</td></tr>
 <tr class="memdesc:a493c478d061f31856b22410b0c1b7b8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split a string into tokens using a delimiter.  <br /></td></tr>
 <tr class="separator:a493c478d061f31856b22410b0c1b7b8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a900a0edfa51f601d479244f7451cedd1" id="r_a900a0edfa51f601d479244f7451cedd1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a900a0edfa51f601d479244f7451cedd1">strspn</a> (const char *s, const char *accept)</td></tr>
+<tr class="memitem:a900a0edfa51f601d479244f7451cedd1" id="r_a900a0edfa51f601d479244f7451cedd1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a900a0edfa51f601d479244f7451cedd1">strspn</a> (const char *s, const char *accept)</td></tr>
 <tr class="memdesc:a900a0edfa51f601d479244f7451cedd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the length of the maximum initial segment of S which contains only characters in ACCEPT.  <br /></td></tr>
 <tr class="separator:a900a0edfa51f601d479244f7451cedd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb6c449e5d77477c057abf00eaaf88fe" id="r_aeb6c449e5d77477c057abf00eaaf88fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aeb6c449e5d77477c057abf00eaaf88fe">strcspn</a> (const char *s, const char *reject)</td></tr>
+<tr class="memdesc:aeb6c449e5d77477c057abf00eaaf88fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the length of the initial segment of S which consists entirely of characters not in REJECT.  <br /></td></tr>
+<tr class="separator:aeb6c449e5d77477c057abf00eaaf88fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b03665d9d996518692af71c3dceb971" id="r_a5b03665d9d996518692af71c3dceb971"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a5b03665d9d996518692af71c3dceb971">strpbrk</a> (const char *s, const char *accept)</td></tr>
 <tr class="memdesc:a5b03665d9d996518692af71c3dceb971"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the first occurrence in S of any character in ACCEPT.  <br /></td></tr>
 <tr class="separator:a5b03665d9d996518692af71c3dceb971"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02d89f48610ff69547e936f7ed4fd2f2" id="r_a02d89f48610ff69547e936f7ed4fd2f2"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a02d89f48610ff69547e936f7ed4fd2f2">memchr</a> (const void *src, int c, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
+<tr class="separator:a02d89f48610ff69547e936f7ed4fd2f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a02d89f48610ff69547e936f7ed4fd2f2" name="a02d89f48610ff69547e936f7ed4fd2f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02d89f48610ff69547e936f7ed4fd2f2">&#9670;&#160;</a></span>memchr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * memchr </td>
+          <td>(</td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>n</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a9e6df54ee04e18a3772335580e2ed872" name="a9e6df54ee04e18a3772335580e2ed872"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9e6df54ee04e18a3772335580e2ed872">&#9670;&#160;</a></span>memcmp()</h2>
 
@@ -170,7 +215,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>n</em>&#160;</td>
         </tr>
         <tr>
@@ -206,7 +251,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>len</em>&#160;</td>
         </tr>
         <tr>
@@ -242,7 +287,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>len</em>&#160;</td>
         </tr>
         <tr>
@@ -278,7 +323,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>n</em>&#160;</td>
         </tr>
         <tr>
@@ -323,8 +368,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6b6f97d145465b0670cf9fc83ea55d0a" name="a6b6f97d145465b0670cf9fc83ea55d0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b6f97d145465b0670cf9fc83ea55d0a">&#9670;&#160;</a></span>strchr()</h2>
+<a id="ad7c16a2447154107d5ecd28434993443" name="ad7c16a2447154107d5ecd28434993443"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7c16a2447154107d5ecd28434993443">&#9670;&#160;</a></span>strchr()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -338,7 +383,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">unsigned char&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>c</em>&#160;</td>
         </tr>
         <tr>
@@ -383,6 +428,36 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aa4718e50ed45c2275c5d85a121d68097" name="aa4718e50ed45c2275c5d85a121d68097"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4718e50ed45c2275c5d85a121d68097">&#9670;&#160;</a></span>strcoll()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int strcoll </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stub, same as strcmp. </p>
+
+</div>
+</div>
 <a id="a20a1b028f768fea8345e330d841dbfe1" name="a20a1b028f768fea8345e330d841dbfe1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a20a1b028f768fea8345e330d841dbfe1">&#9670;&#160;</a></span>strcpy()</h2>
 
@@ -413,6 +488,36 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aeb6c449e5d77477c057abf00eaaf88fe" name="aeb6c449e5d77477c057abf00eaaf88fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb6c449e5d77477c057abf00eaaf88fe">&#9670;&#160;</a></span>strcspn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strcspn </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>reject</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Return the length of the initial segment of S which consists entirely of characters not in REJECT. </p>
+
+</div>
+</div>
 <a id="aa383452fe445bfae989358c9d7d96f4f" name="aa383452fe445bfae989358c9d7d96f4f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa383452fe445bfae989358c9d7d96f4f">&#9670;&#160;</a></span>strlen()</h2>
 
@@ -420,7 +525,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strlen </td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strlen </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>s</em></td><td>)</td>
@@ -454,7 +559,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>max</em>&#160;</td>
         </tr>
         <tr>
@@ -490,7 +595,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>n</em>&#160;</td>
         </tr>
         <tr>
@@ -526,7 +631,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>n</em>&#160;</td>
         </tr>
         <tr>
@@ -578,7 +683,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strspn </td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strspn </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>s</em>, </td>
@@ -598,6 +703,36 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Return the length of the maximum initial segment of S which contains only characters in ACCEPT. </p>
+
+</div>
+</div>
+<a id="ab57319b670052e4c93c1f6822c28d5ce" name="ab57319b670052e4c93c1f6822c28d5ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab57319b670052e4c93c1f6822c28d5ce">&#9670;&#160;</a></span>strstr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * strstr </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>haystack</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>needle</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Find the first occurrence of NEEDLE in HAYSTACK. </p>
 
 </div>
 </div>

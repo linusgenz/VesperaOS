@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['tcgetattr_0',['tcgetattr',['../termios_8h.html#a83ebd0c34137b695538d83ab81d7e5cc',1,'termios.h']]],
-  ['tcsetattr_1',['tcsetattr',['../termios_8h.html#a6b3f86aae7149e9c1ad39b75fa412078',1,'termios.h']]],
-  ['tty_5fget_5fsize_2',['tty_get_size',['../termios_8h.html#acf1b231a5a7579fc576dc2fb8f4d6c6f',1,'termios.h']]]
+  ['open_0',['open',['../stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851',1,'stdio.h']]],
+  ['opendir_1',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]]
 ];

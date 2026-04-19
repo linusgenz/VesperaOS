@@ -1,5 +1,5 @@
 var structtimespec =
 [
-    [ "tv_nsec", "structtimespec.html#a6d9d14e9cdae880583f79d3b4a7fd42a", null ],
-    [ "tv_sec", "structtimespec.html#aeee94728b745f1726486b7e2eab1eb78", null ]
+    [ "tv_nsec", "structtimespec.html#ae3c7510dafa8cbcaede866ed13c99683", null ],
+    [ "tv_sec", "structtimespec.html#afc3302668d7cb5952f590da69fdd4955", null ]
 ];

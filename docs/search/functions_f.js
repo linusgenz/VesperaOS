@@ -1,8 +1,12 @@
 var searchData=
 [
-  ['umount_0',['umount',['../userspace_2lib_2include_2mount_8h.html#addc8952edc6a174d7877b2a60fc1946e',1,'mount.h']]],
-  ['unlink_1',['unlink',['../stdio_8h.html#a28af9471bbdf262321af663e02899a47',1,'stdio.h']]],
-  ['unsetenv_2',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
-  ['urandom_5fu32_3',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
-  ['urandom_5fu64_4',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]]
+  ['pixel_5fformat_5fget_5fbpp_0',['pixel_format_get_bpp',['../jpeg_8h.html#a08d80216f8844e7ff05ac82454325a38',1,'jpeg.h']]],
+  ['pixel_5fformat_5fget_5fchannels_1',['pixel_format_get_channels',['../jpeg_8h.html#a3438af56a876195f903949c227c191ef',1,'jpeg.h']]],
+  ['poll_2',['poll',['../userspace_2lib_2include_2poll_8h.html#a6c066ea4558fca56640102ec24491a53',1,'poll.h']]],
+  ['pow_3',['pow',['../math_8h.html#a96ae9abed439401fd6dd28a1e2c2f94e',1,'math.h']]],
+  ['powf_4',['powf',['../math_8h.html#a30cf3c2db02d68d51ad8a81ea7b8e8d8',1,'math.h']]],
+  ['powl_5',['powl',['../math_8h.html#a1843725b3ee331c39ae10349940875db',1,'math.h']]],
+  ['printf_6',['printf',['../stdio_8h.html#a0aff7311d684a0e0ef33125616a73385',1,'stdio.h']]],
+  ['putchar_7',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
+  ['puts_8',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
 ];

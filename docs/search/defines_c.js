@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['reboot_5fhalt_0',['reboot_halt',['../userspace_2lib_2include_2power_8h.html#a6f95ffcf13be063c8af8e67ab7973e26',1,'power.h']]],
-  ['reboot_5fpoweroff_1',['reboot_poweroff',['../userspace_2lib_2include_2power_8h.html#a3d2e382d1acf7eb5fe273f1b69050209',1,'power.h']]],
-  ['reboot_5frestart_2',['reboot_restart',['../userspace_2lib_2include_2power_8h.html#aa1843d7f616e462b9cf039ab14629f95',1,'power.h']]]
+  ['nan_0',['NAN',['../math_8h.html#a8abfcc76130f3f991d124dd22d7e69bc',1,'math.h']]],
+  ['nsig_1',['NSIG',['../userspace_2lib_2include_2signal_8h.html#ab83b88daaecc469d1edb90a527ab4a39',1,'signal.h']]],
+  ['null_2',['NULL',['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'stddef.h']]]
 ];

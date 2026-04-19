@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['realm_5finfo_5ft_0',['realm_info_t',['../realm__info_8h.html#ab8e402909e2061faa02774427fd13b17',1,'realm_info.h']]],
-  ['realmid_1',['RealmID',['../realm_8h.html#ab0585566306fc83efde7a4789d0869eb',1,'realm.h']]],
-  ['rtc_5fdata_5ft_2',['rtc_data_t',['../rtc_8h.html#a363a8726c6dfd911f706633f7ccd31c6',1,'rtc.h']]]
+  ['large_5fseg_0',['large_seg',['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'memory.h']]],
+  ['locale_5ft_1',['locale_t',['../alltypes_8h.html#a2f6b92d5be3056babe7009d3b7e49a9f',1,'alltypes.h']]]
 ];

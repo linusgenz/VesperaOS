@@ -1,7 +1,7 @@
 var searchData=
 [
   ['setjmp_2eh_0',['setjmp.h',['../setjmp_8h.html',1,'']]],
-  ['signal_2eh_1',['signal.h',['../signal_8h.html',1,'']]],
+  ['signal_2eh_1',['signal.h',['../include_2uapi_2vespera_2signal_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2signal_8h.html',1,'(Global Namespace)']]],
   ['spawn_2eh_2',['spawn.h',['../spawn_8h.html',1,'']]],
   ['stat_2eh_3',['stat.h',['../include_2uapi_2vespera_2stat_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2stat_8h.html',1,'(Global Namespace)']]],
   ['stdarg_2eh_4',['stdarg.h',['../stdarg_8h.html',1,'']]],

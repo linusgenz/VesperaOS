@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['exit_5frealm_0',['exit_realm',['../realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686',1,'realm.h']]]
+  ['difftime_0',['difftime',['../userspace_2lib_2include_2time_8h.html#a780ca0a18ad4b4e6501eca77626dd2a1',1,'time.h']]]
 ];

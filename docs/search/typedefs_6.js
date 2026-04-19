@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['large_5fseg_0',['large_seg',['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'memory.h']]]
+  ['handle_0',['HANDLE',['../stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72',1,'stdio.h']]],
+  ['heap_5fseg_1',['heap_seg',['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'memory.h']]]
 ];

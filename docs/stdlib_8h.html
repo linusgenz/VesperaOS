@@ -91,6 +91,7 @@ $(document).ready(function(){initNavTree('stdlib_8h.html',''); initResizable(); 
 
 <div class="header">
   <div class="summary">
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
@@ -102,10 +103,19 @@ $(document).ready(function(){initNavTree('stdlib_8h.html',''); initResizable(); 
 </div>
 <p><a href="stdlib_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a687984f47d8cce148d1b914d2b79612a" id="r_a687984f47d8cce148d1b914d2b79612a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a687984f47d8cce148d1b914d2b79612a">EXIT_SUCCESS</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:a687984f47d8cce148d1b914d2b79612a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73efe787c131b385070f25d18b7c9aa4" id="r_a73efe787c131b385070f25d18b7c9aa4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a73efe787c131b385070f25d18b7c9aa4">EXIT_FAILURE</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a73efe787c131b385070f25d18b7c9aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2560a07a7528c4975660f391320faca" id="r_ad2560a07a7528c4975660f391320faca"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#ad2560a07a7528c4975660f391320faca">L_tmpnam</a>&#160;&#160;&#160;32</td></tr>
+<tr class="separator:ad2560a07a7528c4975660f391320faca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a3ee5b18ee064f2825435983e23ebf976" id="r_a3ee5b18ee064f2825435983e23ebf976"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a3ee5b18ee064f2825435983e23ebf976">FILE_HANDLE</a></td></tr>
-<tr class="separator:a3ee5b18ee064f2825435983e23ebf976"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dbf9050303df6c7facc0c5faed80d11" id="r_a2dbf9050303df6c7facc0c5faed80d11"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a></td></tr>
+<tr class="separator:a2dbf9050303df6c7facc0c5faed80d11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a725ad8f32fd52878db75ae0efa60c3a1" id="r_a725ad8f32fd52878db75ae0efa60c3a1"><td class="memItemLeft" align="right" valign="top">typedef long int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a></td></tr>
 <tr class="separator:a725ad8f32fd52878db75ae0efa60c3a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -120,27 +130,45 @@ Functions</h2></td></tr>
 <tr class="memitem:a17a3a11d20a551951a4acbc3872b280c" id="r_a17a3a11d20a551951a4acbc3872b280c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c">unsetenv</a> (const char *name)</td></tr>
 <tr class="memdesc:a17a3a11d20a551951a4acbc3872b280c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove an environment variable.  <br /></td></tr>
 <tr class="separator:a17a3a11d20a551951a4acbc3872b280c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c36d0fe3ec4675cbffdc9b52f5fb399" id="r_a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399">malloc</a> (<a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
+<tr class="memitem:a9c36d0fe3ec4675cbffdc9b52f5fb399" id="r_a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399">malloc</a> (<a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
 <tr class="memdesc:a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a block of memory of the specified size.  <br /></td></tr>
 <tr class="separator:a9c36d0fe3ec4675cbffdc9b52f5fb399"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbedc913aa4651b3c3b4b3aecd9b4711" id="r_afbedc913aa4651b3c3b4b3aecd9b4711"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711">free</a> (void *ptr)</td></tr>
 <tr class="memdesc:afbedc913aa4651b3c3b4b3aecd9b4711"><td class="mdescLeft">&#160;</td><td class="mdescRight">Releases a block of memory previously allocated by <a class="el" href="stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399" title="Allocates a block of memory of the specified size.">malloc()</a>.  <br /></td></tr>
 <tr class="separator:afbedc913aa4651b3c3b4b3aecd9b4711"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f723f009d0b6f246530cbbac3ec1dd4" id="r_a0f723f009d0b6f246530cbbac3ec1dd4"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4">realloc</a> (void *ptr, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> new_size)</td></tr>
+<tr class="memitem:a0f723f009d0b6f246530cbbac3ec1dd4" id="r_a0f723f009d0b6f246530cbbac3ec1dd4"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4">realloc</a> (void *ptr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> new_size)</td></tr>
 <tr class="memdesc:a0f723f009d0b6f246530cbbac3ec1dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reallocates a memory block to a new size.  <br /></td></tr>
 <tr class="separator:a0f723f009d0b6f246530cbbac3ec1dd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2807e26a012717736641384f91ab2563" id="r_a2807e26a012717736641384f91ab2563"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2807e26a012717736641384f91ab2563">calloc</a> (<a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
+<tr class="memitem:a2807e26a012717736641384f91ab2563" id="r_a2807e26a012717736641384f91ab2563"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2807e26a012717736641384f91ab2563">calloc</a> (<a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
 <tr class="memdesc:a2807e26a012717736641384f91ab2563"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates zero-initialized memory for an array.  <br /></td></tr>
 <tr class="separator:a2807e26a012717736641384f91ab2563"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fbb78b7e72ea7263d5f0ca3bb21bdd2" id="r_a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">__attribute__</a> ((noreturn)) void exit(<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
-<tr class="memdesc:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
-<tr class="separator:a8fbb78b7e72ea7263d5f0ca3bb21bdd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23f2855efce14b5fc2e29c0d1b4762e0" id="r_a23f2855efce14b5fc2e29c0d1b4762e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="features_8h.html#afdc60192553b70b37149691b71022d5a">_Noreturn</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a23f2855efce14b5fc2e29c0d1b4762e0">exit</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> code)</td></tr>
+<tr class="memdesc:a23f2855efce14b5fc2e29c0d1b4762e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
+<tr class="separator:a23f2855efce14b5fc2e29c0d1b4762e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30670a60464f77af17dfb353353d6df8" id="r_a30670a60464f77af17dfb353353d6df8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a30670a60464f77af17dfb353353d6df8">atoi</a> (const char *s)</td></tr>
 <tr class="memdesc:a30670a60464f77af17dfb353353d6df8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a string to an integer.  <br /></td></tr>
 <tr class="separator:a30670a60464f77af17dfb353353d6df8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a825c37450147a643edbcb1a435518307" id="r_a825c37450147a643edbcb1a435518307"><td class="memItemLeft" align="right" valign="top">long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a825c37450147a643edbcb1a435518307">atol</a> (const char *s)</td></tr>
 <tr class="memdesc:a825c37450147a643edbcb1a435518307"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a string to a long integer.  <br /></td></tr>
 <tr class="separator:a825c37450147a643edbcb1a435518307"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab017280f95ea769b9422688105f02653" id="r_ab017280f95ea769b9422688105f02653"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#ab017280f95ea769b9422688105f02653">strtod</a> (const char *str, char **endptr)</td></tr>
+<tr class="separator:ab017280f95ea769b9422688105f02653"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8cf9a69dd4ef0e36fb08425fff9cc59d" id="r_a8cf9a69dd4ef0e36fb08425fff9cc59d"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a8cf9a69dd4ef0e36fb08425fff9cc59d">strtof</a> (const char *str, char **endptr)</td></tr>
+<tr class="separator:a8cf9a69dd4ef0e36fb08425fff9cc59d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fb0bb1a4be5c0865b119ce0d89145a7" id="r_a2fb0bb1a4be5c0865b119ce0d89145a7"><td class="memItemLeft" align="right" valign="top">long double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2fb0bb1a4be5c0865b119ce0d89145a7">strtold</a> (const char *str, char **endptr)</td></tr>
+<tr class="separator:a2fb0bb1a4be5c0865b119ce0d89145a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a182ab0d37b2885d8da8f6364fb6d37ec" id="r_a182ab0d37b2885d8da8f6364fb6d37ec"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a182ab0d37b2885d8da8f6364fb6d37ec">abs</a> (int x)</td></tr>
+<tr class="separator:a182ab0d37b2885d8da8f6364fb6d37ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3102965969578ae09e43dfc53996e90e" id="r_a3102965969578ae09e43dfc53996e90e"><td class="memItemLeft" align="right" valign="top">static long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a3102965969578ae09e43dfc53996e90e">labs</a> (long x)</td></tr>
+<tr class="separator:a3102965969578ae09e43dfc53996e90e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79e098ceca824091ed146f1c25c89dd9" id="r_a79e098ceca824091ed146f1c25c89dd9"><td class="memItemLeft" align="right" valign="top">static long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a79e098ceca824091ed146f1c25c89dd9">llabs</a> (long long x)</td></tr>
+<tr class="separator:a79e098ceca824091ed146f1c25c89dd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d78319026a43c0a5f942436ad3f09a1" id="r_a7d78319026a43c0a5f942436ad3f09a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="features_8h.html#afdc60192553b70b37149691b71022d5a">_Noreturn</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a7d78319026a43c0a5f942436ad3f09a1">abort</a> (void)</td></tr>
+<tr class="separator:a7d78319026a43c0a5f942436ad3f09a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e43287e1dd4097af9094206a00d8806" id="r_a5e43287e1dd4097af9094206a00d8806"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a5e43287e1dd4097af9094206a00d8806">system</a> (const char *cmd)</td></tr>
+<tr class="separator:a5e43287e1dd4097af9094206a00d8806"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaff28d1d411bc932ad8120940f0d0c96" id="r_aaff28d1d411bc932ad8120940f0d0c96"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aaff28d1d411bc932ad8120940f0d0c96">tmpnam</a> (char *buf)</td></tr>
+<tr class="separator:aaff28d1d411bc932ad8120940f0d0c96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -149,25 +177,59 @@ Variables</h2></td></tr>
 <tr class="memitem:aa006daaf11f1e2e45a6ababaf463212b" id="r_aa006daaf11f1e2e45a6ababaf463212b"><td class="memItemLeft" align="right" valign="top">char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b">environ</a></td></tr>
 <tr class="memdesc:aa006daaf11f1e2e45a6ababaf463212b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of environment variables in "NAME=VALUE" format.  <br /></td></tr>
 <tr class="separator:aa006daaf11f1e2e45a6ababaf463212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad7e0a39be21b2491dd86fed4fdac3a9" id="r_aad7e0a39be21b2491dd86fed4fdac3a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#aad7e0a39be21b2491dd86fed4fdac3a9">stdin</a></td></tr>
-<tr class="memdesc:aad7e0a39be21b2491dd86fed4fdac3a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard input file handle.  <br /></td></tr>
-<tr class="separator:aad7e0a39be21b2491dd86fed4fdac3a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae1e629f812b37fb991dabc7f62c3232d" id="r_ae1e629f812b37fb991dabc7f62c3232d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#ae1e629f812b37fb991dabc7f62c3232d">stdout</a></td></tr>
-<tr class="memdesc:ae1e629f812b37fb991dabc7f62c3232d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard output file handle.  <br /></td></tr>
-<tr class="separator:ae1e629f812b37fb991dabc7f62c3232d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68d8bb041a7c69667bcd076557b84de1" id="r_a68d8bb041a7c69667bcd076557b84de1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a68d8bb041a7c69667bcd076557b84de1">stderr</a></td></tr>
-<tr class="memdesc:a68d8bb041a7c69667bcd076557b84de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard error file handle.  <br /></td></tr>
-<tr class="separator:a68d8bb041a7c69667bcd076557b84de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a3ee5b18ee064f2825435983e23ebf976" name="a3ee5b18ee064f2825435983e23ebf976"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ee5b18ee064f2825435983e23ebf976">&#9670;&#160;</a></span>FILE_HANDLE</h2>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a73efe787c131b385070f25d18b7c9aa4" name="a73efe787c131b385070f25d18b7c9aa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73efe787c131b385070f25d18b7c9aa4">&#9670;&#160;</a></span>EXIT_FAILURE</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> <a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a></td>
+          <td class="memname">#define EXIT_FAILURE&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a687984f47d8cce148d1b914d2b79612a" name="a687984f47d8cce148d1b914d2b79612a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a687984f47d8cce148d1b914d2b79612a">&#9670;&#160;</a></span>EXIT_SUCCESS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define EXIT_SUCCESS&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad2560a07a7528c4975660f391320faca" name="ad2560a07a7528c4975660f391320faca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2560a07a7528c4975660f391320faca">&#9670;&#160;</a></span>L_tmpnam</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define L_tmpnam&#160;&#160;&#160;32</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="a2dbf9050303df6c7facc0c5faed80d11" name="a2dbf9050303df6c7facc0c5faed80d11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dbf9050303df6c7facc0c5faed80d11">&#9670;&#160;</a></span>FILE_HANDLE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -181,7 +243,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef long int <a class="el" href="stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1">ssize_t</a></td>
+          <td class="memname">typedef long int <a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -189,31 +251,47 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a8fbb78b7e72ea7263d5f0ca3bb21bdd2" name="a8fbb78b7e72ea7263d5f0ca3bb21bdd2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8fbb78b7e72ea7263d5f0ca3bb21bdd2">&#9670;&#160;</a></span>__attribute__()</h2>
+<a id="a7d78319026a43c0a5f942436ad3f09a1" name="a7d78319026a43c0a5f942436ad3f09a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d78319026a43c0a5f942436ad3f09a1">&#9670;&#160;</a></span>abort()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">__attribute__ </td>
+          <td class="memname"><a class="el" href="features_8h.html#afdc60192553b70b37149691b71022d5a">_Noreturn</a> void abort </td>
           <td>(</td>
-          <td class="paramtype">(noreturn)&#160;</td>
+          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Terminate the current unit. </p>
-<p>This will stop the unit and remove it from its realm.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">code</td><td>Exit code for the unit. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Does not return; halts the unit. </dd></dl>
+</div>
+</div>
+<a id="a182ab0d37b2885d8da8f6364fb6d37ec" name="a182ab0d37b2885d8da8f6364fb6d37ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a182ab0d37b2885d8da8f6364fb6d37ec">&#9670;&#160;</a></span>abs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int abs </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -285,13 +363,13 @@ strtol() </dd></dl>
         <tr>
           <td class="memname">void * calloc </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>nmemb</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>size</em>&#160;</td>
         </tr>
         <tr>
@@ -312,6 +390,34 @@ strtol() </dd></dl>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to zero-initialized memory, or NULL on failure. </dd></dl>
+
+</div>
+</div>
+<a id="a23f2855efce14b5fc2e29c0d1b4762e0" name="a23f2855efce14b5fc2e29c0d1b4762e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23f2855efce14b5fc2e29c0d1b4762e0">&#9670;&#160;</a></span>exit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="features_8h.html#afdc60192553b70b37149691b71022d5a">_Noreturn</a> void exit </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>code</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Terminate the current unit. </p>
+<p>This will stop the unit and remove it from its realm.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">code</td><td>Exit code for the unit. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Does not return; halts the unit. </dd></dl>
 
 </div>
 </div>
@@ -373,6 +479,58 @@ strtol() </dd></dl>
 
 </div>
 </div>
+<a id="a3102965969578ae09e43dfc53996e90e" name="a3102965969578ae09e43dfc53996e90e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3102965969578ae09e43dfc53996e90e">&#9670;&#160;</a></span>labs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static long labs </td>
+          <td>(</td>
+          <td class="paramtype">long&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a79e098ceca824091ed146f1c25c89dd9" name="a79e098ceca824091ed146f1c25c89dd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79e098ceca824091ed146f1c25c89dd9">&#9670;&#160;</a></span>llabs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static long long llabs </td>
+          <td>(</td>
+          <td class="paramtype">long long&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a9c36d0fe3ec4675cbffdc9b52f5fb399" name="a9c36d0fe3ec4675cbffdc9b52f5fb399"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9c36d0fe3ec4675cbffdc9b52f5fb399">&#9670;&#160;</a></span>malloc()</h2>
 
@@ -382,7 +540,7 @@ strtol() </dd></dl>
         <tr>
           <td class="memname">void * malloc </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>size</em></td><td>)</td>
           <td></td>
         </tr>
@@ -416,7 +574,7 @@ strtol() </dd></dl>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
           <td class="paramname"><em>new_size</em>&#160;</td>
         </tr>
         <tr>
@@ -486,6 +644,126 @@ strtol() </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdlib_8h.html#ab1ec8cf93b9478de49bb3e77465ab4af" title="Get the value of an environment variable.">getenv()</a> </dd>
 <dd>
 <a class="el" href="stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c" title="Remove an environment variable.">unsetenv()</a> </dd></dl>
+
+</div>
+</div>
+<a id="ab017280f95ea769b9422688105f02653" name="ab017280f95ea769b9422688105f02653"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab017280f95ea769b9422688105f02653">&#9670;&#160;</a></span>strtod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double strtod </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>endptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8cf9a69dd4ef0e36fb08425fff9cc59d" name="a8cf9a69dd4ef0e36fb08425fff9cc59d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8cf9a69dd4ef0e36fb08425fff9cc59d">&#9670;&#160;</a></span>strtof()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float strtof </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>endptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2fb0bb1a4be5c0865b119ce0d89145a7" name="a2fb0bb1a4be5c0865b119ce0d89145a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2fb0bb1a4be5c0865b119ce0d89145a7">&#9670;&#160;</a></span>strtold()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">long double strtold </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>endptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5e43287e1dd4097af9094206a00d8806" name="a5e43287e1dd4097af9094206a00d8806"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e43287e1dd4097af9094206a00d8806">&#9670;&#160;</a></span>system()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int system </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>cmd</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaff28d1d411bc932ad8120940f0d0c96" name="aaff28d1d411bc932ad8120940f0d0c96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaff28d1d411bc932ad8120940f0d0c96">&#9670;&#160;</a></span>tmpnam()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * tmpnam </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -570,78 +848,6 @@ putenv() </dd></dl>
   </tr>
 </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="a68d8bb041a7c69667bcd076557b84de1" name="a68d8bb041a7c69667bcd076557b84de1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68d8bb041a7c69667bcd076557b84de1">&#9670;&#160;</a></span>stderr</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a> stderr</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">extern</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Standard error file handle. </p>
-
-</div>
-</div>
-<a id="aad7e0a39be21b2491dd86fed4fdac3a9" name="aad7e0a39be21b2491dd86fed4fdac3a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad7e0a39be21b2491dd86fed4fdac3a9">&#9670;&#160;</a></span>stdin</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a> stdin</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">extern</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Standard input file handle. </p>
-
-</div>
-</div>
-<a id="ae1e629f812b37fb991dabc7f62c3232d" name="ae1e629f812b37fb991dabc7f62c3232d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae1e629f812b37fb991dabc7f62c3232d">&#9670;&#160;</a></span>stdout</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a> stdout</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">extern</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Standard output file handle. </p>
 
 </div>
 </div>

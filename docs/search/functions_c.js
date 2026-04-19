@@ -1,10 +1,17 @@
 var searchData=
 [
-  ['read_0',['read',['../stdio_8h.html#ac01dfe00c38b79b1f2ab3d1cd870dd0b',1,'stdio.h']]],
-  ['readdir_1',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
-  ['readline_2',['readline',['../readline_8h.html#abb5c0a1f7052588a7a892e9e0e6752e6',1,'readline.h']]],
-  ['realloc_3',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
-  ['reboot_4',['reboot',['../userspace_2lib_2include_2power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5',1,'power.h']]],
-  ['rewind_5',['rewind',['../stdio_8h.html#af5ff712c81d4fa6c2bab64f231247934',1,'stdio.h']]],
-  ['rmdir_6',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]]
+  ['malloc_0',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
+  ['memchr_1',['memchr',['../string_8h.html#a02d89f48610ff69547e936f7ed4fd2f2',1,'string.h']]],
+  ['memcmp_2',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
+  ['memcpy_3',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
+  ['memmove_4',['memmove',['../string_8h.html#a4522f53cff2fef09001e4d34227463a9',1,'string.h']]],
+  ['memset_5',['memset',['../string_8h.html#a22dc85290d58fa0ca8bf414728ec61c2',1,'string.h']]],
+  ['mkdir_6',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
+  ['mktime_7',['mktime',['../userspace_2lib_2include_2time_8h.html#afc0e3f373a3ea00b37714f1b621ae0b1',1,'time.h']]],
+  ['mmap_8',['mmap',['../mman_8h.html#a943cf73b816880433935f7055d4fe72f',1,'mman.h']]],
+  ['modf_9',['modf',['../math_8h.html#a660dd661ca1336737739215f835447f8',1,'math.h']]],
+  ['modff_10',['modff',['../math_8h.html#a7a6da394f9bb299615662c0ea45d7eea',1,'math.h']]],
+  ['modfl_11',['modfl',['../math_8h.html#adb02d773d43f38b33a82d962adc3a6f6',1,'math.h']]],
+  ['mount_12',['mount',['../userspace_2lib_2include_2mount_8h.html#a5768534c4fe10ec7968b7cbc3ea57121',1,'mount.h']]],
+  ['munmap_13',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

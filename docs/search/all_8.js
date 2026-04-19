@@ -1,7 +1,7 @@
 var searchData=
 [
   ['h_5fsamp_5ffactor_0',['h_samp_factor',['../structjpeg__save__options__t.html#a521f508a3c9014ef9d74a323eeb1a0cf',1,'jpeg_save_options_t']]],
-  ['handle_1',['handle',['../structFILE.html#a176663d9f8ea25f12e3d233a0da3cc2b',1,'FILE::handle'],['../stdio_8h.html#abde3cbf1668871d9de26df8950501220',1,'HANDLE:&#160;stdio.h']]],
+  ['handle_1',['handle',['../structFILE.html#a176663d9f8ea25f12e3d233a0da3cc2b',1,'FILE::handle'],['../stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72',1,'HANDLE:&#160;stdio.h']]],
   ['handle_5fcount_2',['handle_count',['../structunit__info.html#a1f3272002ca1e7ed5805805c4a64aa99',1,'unit_info']]],
   ['handle_5fid_5fmask_3',['HANDLE_ID_MASK',['../handles_8h.html#a452c27ff81cc8d963a8b945d0202a9ce',1,'handles.h']]],
   ['handle_5fstderr_4',['HANDLE_STDERR',['../handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41',1,'handles.h']]],
@@ -22,9 +22,21 @@ var searchData=
   ['hdl_19',['hdl',['../structpollhdl.html#ae7a5cc68d60cc8d9d2d79c310da4e5a5',1,'pollhdl']]],
   ['header_5fsize_20',['header_size',['../structvbus__header.html#adcc939dbf3f561e292565b0d4992ff4d',1,'vbus_header']]],
   ['health_5fok_21',['health_ok',['../structsmart__ata.html#abcd1109f5d344a99baaecb8aa73d9e7c',1,'smart_ata::health_ok'],['../structsmart__common.html#a3ee80f4d67c8c127ae7a8d7fb46c18dc',1,'smart_common::health_ok']]],
-  ['heap_5fseg_22',['heap_seg',['../structheap__seg.html',1,'heap_seg'],['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'heap_seg:&#160;memory.h']]],
+  ['heap_5fseg_22',['heap_seg',['../memory_8h.html#a444ebafa5217af6818dc3027ff06f945',1,'heap_seg:&#160;memory.h'],['../structheap__seg.html',1,'heap_seg']]],
   ['height_23',['height',['../structfb__rect__outline.html#a4f8f0fbbac43d849f35f932672478039',1,'fb_rect_outline::height'],['../structfb__rect.html#adca653e1d571d918b9447fbf39055846',1,'fb_rect::height'],['../structfb__info.html#a3d491b7ecdacd951309777eabf6d593a',1,'fb_info::height'],['../structimage__t.html#a067e25b338ae9863688c1d6e928ebb62',1,'image_t::height']]],
   ['host_5fread_5fcommands_24',['host_read_commands',['../structsmart__nvme.html#a9266e2aeb484c0b6489cec7bb2b21ddd',1,'smart_nvme']]],
   ['host_5fwrite_5fcommands_25',['host_write_commands',['../structsmart__nvme.html#a6a7b4831e6d6f183093aec45d7856d85',1,'smart_nvme']]],
-  ['hour_26',['hour',['../structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e',1,'rtc_data']]]
+  ['hour_26',['hour',['../structrtc__data.html#aa260bd7055e4087519bb08c82eecfc3e',1,'rtc_data']]],
+  ['htobe16_27',['htobe16',['../endian_8h.html#a4b9167199621b390f82c3e5361ba6df6',1,'endian.h']]],
+  ['htobe32_28',['htobe32',['../endian_8h.html#aa65407014913309932b9a5ea3c16a86d',1,'endian.h']]],
+  ['htobe64_29',['htobe64',['../endian_8h.html#a5c81b75e6da4507e0a90b6f6169c4787',1,'endian.h']]],
+  ['htole16_30',['htole16',['../endian_8h.html#a3ea73a6089f61223b225c46e2ba58a47',1,'endian.h']]],
+  ['htole32_31',['htole32',['../endian_8h.html#a9bea1e76e277f13ae39ac86095510bfa',1,'endian.h']]],
+  ['htole64_32',['htole64',['../endian_8h.html#a3070a5f8867dbc37bdafcb1a7cd491bf',1,'endian.h']]],
+  ['huge_5fval_33',['HUGE_VAL',['../math_8h.html#af2164b2db92d8a0ed3838ad5c28db971',1,'math.h']]],
+  ['huge_5fvalf_34',['HUGE_VALF',['../math_8h.html#acd69981d54c27fe0ff514645dbfc6359',1,'math.h']]],
+  ['huge_5fvall_35',['HUGE_VALL',['../math_8h.html#ab8b359c356d4311bf5d4ae6c03f43182',1,'math.h']]],
+  ['hypot_36',['hypot',['../math_8h.html#a0cdb0b447bb2bd586b5a58bc9b61e285',1,'math.h']]],
+  ['hypotf_37',['hypotf',['../math_8h.html#a7fe3c55715d009b5241104514f2123bc',1,'math.h']]],
+  ['hypotl_38',['hypotl',['../math_8h.html#a3cfe33ff660410f54b4d20e6ea37f156',1,'math.h']]]
 ];

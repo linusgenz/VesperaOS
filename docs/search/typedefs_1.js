@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['capability_5fset_0',['capability_set',['../capabilities_8h.html#a815887e087d487f64e0e9fdaf860af5b',1,'capabilities.h']]],
-  ['channel_5fhandle_1',['CHANNEL_HANDLE',['../stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6',1,'stdio.h']]],
-  ['clockid_5ft_2',['clockid_t',['../include_2uapi_2vespera_2time_8h.html#a3a9a21353df3a31724626a63ddb0b236',1,'time.h']]],
-  ['cpu_5finfo_5ft_3',['cpu_info_t',['../cpuinfo_8h.html#aef20e3ec2c8e5b968374b68aeab40953',1,'cpuinfo.h']]],
-  ['cpu_5fusage_5finfo_5ft_4',['cpu_usage_info_t',['../cpustat_8h.html#a28b26ca6af8805a1cfd7c474f956681b',1,'cpustat.h']]],
-  ['cpu_5fusage_5fstat_5ft_5',['cpu_usage_stat_t',['../cpustat_8h.html#a6186b2a46eec53e11e8873b4fe133fb3',1,'cpustat.h']]]
+  ['battery_5finfo_5ft_0',['battery_info_t',['../include_2uapi_2vespera_2dev_2power_8h.html#a7443d918b2f9d277a9a55030482a69b2',1,'power.h']]],
+  ['battery_5fstatus_5ft_1',['battery_status_t',['../include_2uapi_2vespera_2dev_2power_8h.html#af360125affb170138481f85b787ce112',1,'power.h']]],
+  ['blkcnt_5ft_2',['blkcnt_t',['../alltypes_8h.html#aa5ff4180417cac99f330bcaefcfe06b9',1,'alltypes.h']]],
+  ['blksize_5ft_3',['blksize_t',['../alltypes_8h.html#ab698f2cc3c8e553234975e1f9bf10f3e',1,'alltypes.h']]],
+  ['bool_4',['bool',['../stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9',1,'stdbool.h']]]
 ];

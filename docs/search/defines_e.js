@@ -1,10 +1,12 @@
 var searchData=
 [
-  ['thermal_5fmax_5fzones_0',['THERMAL_MAX_ZONES',['../thermal_8h.html#aea60df6c9725da3d1f66f3b0dc3b9aa9',1,'thermal.h']]],
-  ['timer_5fabstime_1',['TIMER_ABSTIME',['../include_2uapi_2vespera_2time_8h.html#adde83d9ea51f12d4149f016eededde54',1,'time.h']]],
-  ['tolower_2',['tolower',['../ctype_8h.html#a422175620f52b1ca4dbc39d627296d83',1,'ctype.h']]],
-  ['toupper_3',['toupper',['../ctype_8h.html#adda03014c30b02d7b496fce96f37951b',1,'ctype.h']]],
-  ['true_4',['true',['../stdbool_8h.html#a41f9c5fb8b08eb5dc3edce4dcb37fee7',1,'stdbool.h']]],
-  ['tty_5fmode_5fcanonical_5',['TTY_MODE_CANONICAL',['../ioctl__tty_8h.html#a4cc06d2f4a6337c4702c46ff53ecf182',1,'ioctl_tty.h']]],
-  ['tty_5fmode_5fraw_6',['TTY_MODE_RAW',['../ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a',1,'ioctl_tty.h']]]
+  ['pdp_5fendian_0',['PDP_ENDIAN',['../endian_8h.html#a2026615c7441e0b093ff7389f46f7654',1,'endian.h']]],
+  ['pollerr_1',['POLLERR',['../include_2uapi_2vespera_2poll_8h.html#ab1c532446408c98559d4aaaeeeb99820',1,'poll.h']]],
+  ['pollhup_2',['POLLHUP',['../include_2uapi_2vespera_2poll_8h.html#a262754fe6bdf27c2cd3da43284ec8536',1,'poll.h']]],
+  ['pollin_3',['POLLIN',['../include_2uapi_2vespera_2poll_8h.html#a52ac479a805051f59643588b096024ff',1,'poll.h']]],
+  ['pollout_4',['POLLOUT',['../include_2uapi_2vespera_2poll_8h.html#a91b3c67129ac7675062f316b840a0d58',1,'poll.h']]],
+  ['prot_5fexec_5',['PROT_EXEC',['../mman_8h.html#a77848f068638e916c72cd543f5ecb815',1,'mman.h']]],
+  ['prot_5fnone_6',['PROT_NONE',['../mman_8h.html#a6a982b48b8d3eb8eccd17e0d54ee5379',1,'mman.h']]],
+  ['prot_5fread_7',['PROT_READ',['../mman_8h.html#a15bf68ce8b590838b3a5c0b639d8d519',1,'mman.h']]],
+  ['prot_5fwrite_8',['PROT_WRITE',['../mman_8h.html#a2a79c8ceefb8fc25a940ae07a3d94429',1,'mman.h']]]
 ];

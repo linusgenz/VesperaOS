@@ -1,21 +1,12 @@
 var searchData=
 [
-  ['c_5fdir_0',['C_DIR',['../userspace_2lib_2include_2fflags_8h.html#a25f6c486bbaf73d1927017276f6038a3',1,'fflags.h']]],
-  ['c_5ffile_1',['C_FILE',['../userspace_2lib_2include_2fflags_8h.html#a06df2208247096abdd71b9d673d05198',1,'fflags.h']]],
-  ['cap_5fall_2',['CAP_ALL',['../capabilities_8h.html#a8bd0b7fb7f6f1d9c92addb5b3224724d',1,'capabilities.h']]],
-  ['cap_5fdevice_5faccess_3',['CAP_DEVICE_ACCESS',['../capabilities_8h.html#a7e372ed5af855168e1a3656a66f2951e',1,'capabilities.h']]],
-  ['cap_5fexecute_4',['CAP_EXECUTE',['../capabilities_8h.html#a853b6dc9985610721765c39f40293a3f',1,'capabilities.h']]],
-  ['cap_5fnetwork_5fbind_5',['CAP_NETWORK_BIND',['../capabilities_8h.html#aaeecb9cd1f851e2b5472955de1b9d285',1,'capabilities.h']]],
-  ['cap_5fnone_6',['CAP_NONE',['../capabilities_8h.html#ae8f6550924dafbd4d4173e14aef67eb6',1,'capabilities.h']]],
-  ['cap_5fread_7',['CAP_READ',['../capabilities_8h.html#a9cdd03c912c9f2d0095ed3ac54e3cc4e',1,'capabilities.h']]],
-  ['cap_5frw_8',['CAP_RW',['../capabilities_8h.html#a43c399ba202c4a12183cacfc3212e660',1,'capabilities.h']]],
-  ['cap_5funit_5fspawn_9',['CAP_UNIT_SPAWN',['../capabilities_8h.html#a77e98be56da768faf7ac679435e4e529',1,'capabilities.h']]],
-  ['cap_5fwrite_10',['CAP_WRITE',['../capabilities_8h.html#a2238825f4466c863d89ed0451562af61',1,'capabilities.h']]],
-  ['char_5fbit_11',['CHAR_BIT',['../limits_8h.html#a308d9dd2c0028ddb184b455bbd7865de',1,'limits.h']]],
-  ['char_5fmax_12',['CHAR_MAX',['../limits_8h.html#a778eefd6535a9d4b752fca5dd0af58db',1,'limits.h']]],
-  ['char_5fmin_13',['CHAR_MIN',['../limits_8h.html#a5d707bd32338557ced18c6ac76ca1b3a',1,'limits.h']]],
-  ['clock_5fboottime_14',['CLOCK_BOOTTIME',['../include_2uapi_2vespera_2time_8h.html#a178a9965a4481e583b0b4a559c950567',1,'time.h']]],
-  ['clock_5fmonotonic_15',['CLOCK_MONOTONIC',['../include_2uapi_2vespera_2time_8h.html#a6fb83f5e91e704391ff796553d5e0f46',1,'time.h']]],
-  ['clock_5fmonotonic_5fraw_16',['CLOCK_MONOTONIC_RAW',['../include_2uapi_2vespera_2time_8h.html#abc28c2ee4e33ae055ef2f737110a7020',1,'time.h']]],
-  ['clock_5frealtime_17',['CLOCK_REALTIME',['../include_2uapi_2vespera_2time_8h.html#a922ce1ae64374c9410c8a999e25e82af',1,'time.h']]]
+  ['bat_5fstate_5fcharging_0',['BAT_STATE_CHARGING',['../include_2uapi_2vespera_2dev_2power_8h.html#a682555d7e487505c3cb8e4179593ec2e',1,'power.h']]],
+  ['bat_5fstate_5fcritical_1',['BAT_STATE_CRITICAL',['../include_2uapi_2vespera_2dev_2power_8h.html#aee5b86658eaafaffc997edb7a8b3d751',1,'power.h']]],
+  ['bat_5fstate_5fdischarging_2',['BAT_STATE_DISCHARGING',['../include_2uapi_2vespera_2dev_2power_8h.html#a4f12db3a164bc6a171d59c455517010d',1,'power.h']]],
+  ['be16toh_3',['be16toh',['../endian_8h.html#abb9b3120f6457dc04471c134fee1d221',1,'endian.h']]],
+  ['be32toh_4',['be32toh',['../endian_8h.html#a6acac399720b3a57d9050420aa0aac41',1,'endian.h']]],
+  ['be64toh_5',['be64toh',['../endian_8h.html#af94eb043f5be14b4f260fb9b4c89ca2e',1,'endian.h']]],
+  ['big_5fendian_6',['BIG_ENDIAN',['../endian_8h.html#a23eb5e058a210efdde3d64e69679fafa',1,'endian.h']]],
+  ['bufsiz_7',['BUFSIZ',['../stdio_8h.html#a72a591cf0a96cf23c63df5c78712dabe',1,'stdio.h']]],
+  ['byte_5forder_8',['BYTE_ORDER',['../endian_8h.html#a1771b7fb65ee640524d0052f229768c3',1,'endian.h']]]
 ];

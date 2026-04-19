@@ -1,8 +1,24 @@
 var searchData=
 [
-  ['vbus_5frecv_0',['vbus_recv',['../userspace_2lib_2include_2vbus_8h.html#ad61429d795f173935e44094c6e6d0eb0',1,'vbus.h']]],
-  ['vbus_5frecv_5fac_1',['vbus_recv_ac',['../userspace_2lib_2include_2vbus_8h.html#aa421a78779b3364f4649db198021fca1',1,'vbus.h']]],
-  ['vbus_5frecv_5fbattery_2',['vbus_recv_battery',['../userspace_2lib_2include_2vbus_8h.html#a48ce13a947c919ec0ec70654eb8b66c5',1,'vbus.h']]],
-  ['vbus_5fsubscribe_3',['vbus_subscribe',['../userspace_2lib_2include_2vbus_8h.html#afa22fa8e9f653512906cf8f6f99804c7',1,'vbus.h']]],
-  ['vbus_5funsubscribe_4',['vbus_unsubscribe',['../userspace_2lib_2include_2vbus_8h.html#ade0f57a56ed976153562365456a01702',1,'vbus.h']]]
+  ['raise_0',['raise',['../userspace_2lib_2include_2signal_8h.html#a350675984ca13ce9b056e69098bda5c6',1,'signal.h']]],
+  ['read_1',['read',['../stdio_8h.html#ac01dfe00c38b79b1f2ab3d1cd870dd0b',1,'stdio.h']]],
+  ['readdir_2',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
+  ['realloc_3',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
+  ['reboot_4',['reboot',['../userspace_2lib_2include_2power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5',1,'power.h']]],
+  ['remainder_5',['remainder',['../math_8h.html#a26f64146ba639b4a470e879fd85014ef',1,'math.h']]],
+  ['remainderf_6',['remainderf',['../math_8h.html#aae76e6106300326523a83eae1e14b118',1,'math.h']]],
+  ['remainderl_7',['remainderl',['../math_8h.html#a5e6f0106ff5f8b6d02b4e2e2d352b968',1,'math.h']]],
+  ['remove_8',['remove',['../stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276',1,'stdio.h']]],
+  ['remquo_9',['remquo',['../math_8h.html#a73919caa22d736ca943417fc2be4d827',1,'math.h']]],
+  ['remquof_10',['remquof',['../math_8h.html#a3c043da18e33ea6d976f0669abc488a8',1,'math.h']]],
+  ['remquol_11',['remquol',['../math_8h.html#a182f6e3d64183e5f9e90a44445bd2dc4',1,'math.h']]],
+  ['rename_12',['rename',['../stdio_8h.html#a4d4709508ed7604103d77c3fdc5ea4a2',1,'stdio.h']]],
+  ['rewind_13',['rewind',['../stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819',1,'stdio.h']]],
+  ['rint_14',['rint',['../math_8h.html#a0364527e19933b0d20e969ee6191c320',1,'math.h']]],
+  ['rintf_15',['rintf',['../math_8h.html#a97cfd342ec93dc89a64349dbe312c01d',1,'math.h']]],
+  ['rintl_16',['rintl',['../math_8h.html#a6c5315869cdd2c0812af4ffcb2dc3e48',1,'math.h']]],
+  ['rmdir_17',['rmdir',['../stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'stdio.h']]],
+  ['round_18',['round',['../math_8h.html#a002ab605b795c95e31c67b037f8c0e30',1,'math.h']]],
+  ['roundf_19',['roundf',['../math_8h.html#a4f48da4925df1ba027b5f96eb9bd2878',1,'math.h']]],
+  ['roundl_20',['roundl',['../math_8h.html#a7f1c285e73fe63752bb20236af82cd44',1,'math.h']]]
 ];
