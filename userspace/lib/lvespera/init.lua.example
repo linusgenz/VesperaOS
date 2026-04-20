@@ -1,0 +1,117 @@
+-- /etc/init.lua - VesperaOS System Initialization Script
+--
+-- This script is executed by the init system during boot.
+-- It sets up the system environment and starts essential services.
+--
+-- Usage: lua /etc/init.lua
+
+local vesp = require("vespera")
+
+-- Helper: log with prefix
+local function log(msg)
+    vesp.log("[init] " .. msg)
+end
+
+-- Helper: safe function call with error logging
+local function pcall_log(fn, desc)
+    local ok, err = pcall(fn)
+    if not ok then
+        vesp.logf("[init] ERROR: %s failed: %s", desc, tostring(err))
+    end
+    return ok
+end
+
+--------------------------------------------------------------------------------
+-- System Information
+--------------------------------------------------------------------------------
+
+local realm, unit = vesp.getrid()
+log("Starting init (realm=" .. realm .. ", unit=" .. unit .. ")")
+
+--------------------------------------------------------------------------------
+-- Mount Essential Filesystems
+--------------------------------------------------------------------------------
+
+pcall_log(function()
+    log("Mounting devfs...")
+    assert(vesp.mount("devfs", "/dev"))
+end, "mount devfs")
+
+pcall_log(function()
+    log("Mounting procfs...")
+    assert(vesp.mount("procfs", "/proc"))
+end, "mount procfs")
+
+--------------------------------------------------------------------------------
+-- Set Up Environment
+--------------------------------------------------------------------------------
+
+log("Setting up environment...")
+
+-- Create /tmp if it doesn't exist
+vesp.mkdir("/tmp")
+
+-- Set up basic PATH
+-- (Note: setenv would need to be implemented in libvesp)
+
+--------------------------------------------------------------------------------
+-- Start System Services
+--------------------------------------------------------------------------------
+
+-- Start log daemon
+pcall_log(function()
+    log("Starting logd...")
+    local unit_handle = vesp.spawn("/bin/logd")
+    if unit_handle then
+        log("logd started (unit=" .. unit_handle .. ")")
+    end
+end, "spawn logd")
+
+-- Start battery monitor (if available)
+pcall_log(function()
+    log("Starting batmon...")
+    local unit_handle = vesp.spawn("/bin/batmon")
+    if unit_handle then
+        log("batmon started (unit=" .. unit_handle .. ")")
+    end
+end, "spawn batmon")
+
+-- Start thermal monitor
+pcall_log(function()
+    log("Starting thermalinfo...")
+    local unit_handle = vesp.spawn("/bin/thermalinfo")
+    if unit_handle then
+        log("thermalinfo started (unit=" .. unit_handle .. ")")
+    end
+end, "spawn thermalinfo")
+
+--------------------------------------------------------------------------------
+-- Start User Shell
+--------------------------------------------------------------------------------
+
+log("System initialization complete. Starting shell...")
+
+-- Get current directory
+local cwd = vesp.getcwd()
+log("Current working directory: " .. cwd)
+
+-- Spawn interactive shell
+local shell_handle = vesp.spawn("/bin/shell")
+if shell_handle then
+    log("Shell started (unit=" .. shell_handle .. ")")
+
+    -- Wait for shell to exit
+    local exit_code = vesp.wait(shell_handle)
+    log("Shell exited with code: " .. (exit_code or "unknown"))
+else
+    vesp.log("[init] ERROR: Failed to spawn shell")
+end
+
+--------------------------------------------------------------------------------
+-- Post-Shell Cleanup
+--------------------------------------------------------------------------------
+
+log("Init script complete. System halting...")
+
+-- Optional: reboot system
+-- vesp.reboot()

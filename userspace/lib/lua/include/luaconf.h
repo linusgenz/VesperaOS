@@ -50,8 +50,6 @@
 #define LUA_USE_LONGJMP   1
 #undef  LUA_USE_DLOPEN
 #define LUA_USE_READLINE  1
-#define LUA_INT_TYPE      LUA_INT_LONGLONG
-#define LUA_FLOAT_TYPE    LUA_FLOAT_DOUBLE
 
 /*
 ** By default, Lua on Windows use (some) specific Windows features

@@ -27,6 +27,7 @@ add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
 
 add_subdirectory(lua)
 add_subdirectory(readline)
+add_subdirectory(lvespera)
 
 set(MATH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
 

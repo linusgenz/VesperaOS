@@ -32,11 +32,9 @@
 namespace syscalls::internal {
 
     static i64 fill_realtime(timespec_t* ts) {
-        u8 sec = 0, min = 0, hour = 0, day = 0, month = 0, year = 0;
-        kernel::time::read_rtc(sec, min, hour, day, month, year);
-
-        ts->tv_sec = static_cast<i64>(klib::time::to_unix(2000u + year, month, day, hour, min, sec));
-        ts->tv_nsec = 0;  // fill this field when we have more precise timer
+        const u64 realtime_ns = kernel::time::get_realtime_ns();
+        ts->tv_sec  = static_cast<i64>(realtime_ns / 1'000'000'000ULL);
+        ts->tv_nsec = static_cast<i64>(realtime_ns % 1'000'000'000ULL);
         return SUCCESS_CODE;
     }
 
