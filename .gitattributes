@@ -3,3 +3,6 @@ kernel/acpi/acpica/**  -diff
 
 userspace/lib/libjpeg/**  linguist-vendored=true
 userspace/lib/libjpeg/**  -diff
+
+userspace/lib/lua/**  linguist-vendored=true
+userspace/lib/lua/**  -diff
