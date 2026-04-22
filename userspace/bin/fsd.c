@@ -1,10 +1,9 @@
-// sys_create.cpp
-//
+// fsd.c
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 03.08.25.
+// Created by Linus Genz on 21.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,27 +19,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
-#include <vespera/log.h>
-
-#include <vespera/filesystem/vfs.h>
-#include "vespera_errno.h"
-
-namespace syscalls::internal {
-    i64 sys_create(u64 arg0, u64, u64, u64, u64, u64) {
-        const auto path = reinterpret_cast<const char*>(arg0);
-        if (!path) return -EINVAL;
-
-        char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
-            return -EINVAL;
-        }
-
-        if (VFS::open(path)) {
-            return -EEXIST;
-        }
-
-        return VFS::create(norm);
-    }
-
-}  // namespace syscalls::internal

@@ -137,8 +137,9 @@ i64 Realm::setup_standard_handles(TtyDevice* tty_dev) {
 
 HandleEntry* Realm::lookup_handle(const HandleId hid) {
     const u64 raw = hid & HANDLE_ID_MASK;
-
     if (raw >= MAX_HANDLES_PER_REALM) return nullptr;
+
+    SpinlockGuard guard(lock);
     if (!test_bit(raw)) return nullptr;
 
     HandleEntry& he = handle_table.entries[raw];
@@ -153,14 +154,17 @@ void Realm::acquire_handle(const HandleId hid) {
 }
 
 void Realm::release_handle(const HandleId hid) {
-    HandleEntry* he = lookup_handle(hid);
-    if (!he) return;
+    SpinlockGuard guard(lock);
 
-    if (const u64 v = __sync_sub_and_fetch(&he->refcount, 1); v == 0) {
-        SpinlockGuard guard(lock);
-        const auto raw = he->hid & HANDLE_ID_MASK;
-        if (he->destroy && he->resource) he->destroy(he->resource);
-        memset(he, 0, sizeof(HandleEntry));
+    const u64 raw = hid & HANDLE_ID_MASK;
+    if (raw >= MAX_HANDLES_PER_REALM || !test_bit(raw)) return;
+
+    HandleEntry& he = handle_table.entries[raw];
+    if (he.hid != hid) return;
+
+    if (__sync_sub_and_fetch(&he.refcount, 1) == 0) {
+        if (he.destroy && he.resource) he.destroy(he.resource);
+        memset(&he, 0, sizeof(HandleEntry));
         clear_bit(raw);
     }
 }

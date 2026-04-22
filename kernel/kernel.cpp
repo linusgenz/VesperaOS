@@ -165,15 +165,16 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     TtyDevice* tty_dev = kernel::tty::tty_devices[0];
     shell_realm->setup_standard_handles(tty_dev);
 
-    const ElfLoader::LoadResult result = ElfLoader::load("/bin/nox", 0x400000, shell_realm);
+    const ElfLoader::LoadResult result = ElfLoader::load("/bin/lua", 0x400000, shell_realm);
     if (!result.success) {
         Log::error("Failed to load elf binary: %s", result.error_message);
     }
 
-    const char* argv_example[] = {"nox", "-v", "--config=config.txt", nullptr};
+    const char* argv_init[] = {"lua", "/etc/init.lua", nullptr};
+    const char* envp_init[] = {"PATH=/bin", "LUA_PATH=/etc/lib/?.lua", nullptr};
 
     const UnitConfig uc = {
-        .name = "nox",
+        .name = "init",
         .cpu_id = 0,
         .priority = 10,
         .stack_size = DEFAULT_UNIT_STACK_SIZE,
@@ -183,8 +184,8 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         .is_user = true,
         .is_main_unit = true,
         .user_stack_size = 0,
-        .argv = argv_example,
-        .envp = envp0
+        .argv = argv_init,
+        .envp = envp_init
     };
 
     if (Unit* shell_unit =

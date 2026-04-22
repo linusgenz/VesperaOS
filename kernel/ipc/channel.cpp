@@ -59,6 +59,7 @@ Channel *Channel::create(const usize cap) {
 }
 
 void Channel::destroy(void *res) {
+    if (!res) return;
     auto *c = static_cast<Channel *>(res);
     if (__sync_sub_and_fetch(&c->refcount, 1) == 0) {
         delete c;

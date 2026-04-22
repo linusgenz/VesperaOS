@@ -50,13 +50,7 @@ static isize fat32_read(const VfsNode* node, const usize offset, const usize siz
     usize actual = 0;
     if (!fnode->fs->read_file(fnode, buffer, size, actual, offset, update_atime)) return -EIO;
 
-    // Offset can be >= actual → EOF
-    if (offset >= actual) return 0;
-
-    usize copy_size = actual - offset;
-    if (copy_size > size) copy_size = size;
-
-    return static_cast<isize>(copy_size);
+    return static_cast<isize>(actual);
 }
 
 static isize fat32_write(VfsNode* node, const usize offset, const usize size, const void* buffer) {

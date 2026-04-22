@@ -271,6 +271,7 @@ void FilesystemDetector::scan_and_mount_all() {
                             is_esp = true;
                         else if (strncmp(label, "VesperaRoot", strlen("VesperaRoot")) == 0)
                             is_root = true;
+                        else continue;
                     }
 
                     char mount_path[64];
@@ -362,8 +363,6 @@ i64 FilesystemDetector::mount_manual(const KernelDevice* device, const char* tar
     mp->is_partition = false;
     mp->is_root_device = (strcmp(target, "/") == 0);
     mp->flags = flags;
-
-    Log::debug("mounting, mount entry: %p, %s, flags: %x", root->mount, root->name, mp->flags);
 
     VFS::add_mount_point(mp);
 

@@ -78,6 +78,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_GETTIMEOFDAY] = syscalls::internal::sys_gettimeofday;
     syscall_table[SYSCALL_TIME] = syscalls::internal::sys_time;
     syscall_table[SYSCALL_CLOCK_NANOSLEEP] = syscalls::internal::sys_clock_nanosleep;
+    syscall_table[SYSCALL_HANDLE_TRANSFER] = syscalls::internal::sys_handle_transfer;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
