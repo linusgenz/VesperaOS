@@ -119,18 +119,6 @@ int strcoll(const char* s1, const char* s2) {
     return strcmp(s1, s2);
 }
 
-char* strchr(const char* s, int c) {
-    while (*s) {
-        if ((unsigned char)*s == c) {
-            return (char*)s;
-        }
-        ++s;
-    }
-
-    if (c == '\0') return (char*)s;
-    return NULL;
-}
-
 char* strstr(const char* haystack, const char* needle) {
     if (!haystack || !needle) return NULL;
     if (*needle == '\0') return (char*)haystack;
@@ -261,6 +249,22 @@ void* memchr(const void* src, int c, size_t n) {
     }
 
     return NULL;
+}
+
+char* strchr(const char* s, int c) {
+    while (*s) {
+        if ((unsigned char)*s == c) {
+            return (char*)s;
+        }
+        ++s;
+    }
+
+    if (c == '\0') return (char*)s;
+    return NULL;
+}
+
+char* strrchr(const char* s, int c) {
+    return memchr(s, c, strlen(s) + 1);
 }
 
 void memset(void* dest, uint8_t c, size_t num) {

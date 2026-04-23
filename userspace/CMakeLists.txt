@@ -72,7 +72,6 @@ vespera_bin(nox
         ${CMAKE_CURRENT_SOURCE_DIR}/bin/nox/powermon.c
 )
 
-# Two binaries sharing one source file — must be explicit
 vespera_bin(env      SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
 vespera_bin(printenv SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
 
@@ -83,6 +82,7 @@ target_include_directories(lua PRIVATE
         ${SYSROOT}/usr/include
 )
 target_link_libraries(lua PRIVATE
+        liblvespera
         liblua
         ${SYSROOT}/usr/lib/libreadline.a
         ${SYSROOT}/usr/lib/libvesp.a

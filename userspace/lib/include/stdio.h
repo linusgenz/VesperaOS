@@ -74,6 +74,8 @@ extern "C" {
 /* Read formatted input from S.  */
 int sscanf(const char* str, const char* format, ...);
 
+int fscanf(FILE* f, const char* format, ...);
+
 /**
  * @brief Write a single character to stdout.
  *
@@ -168,6 +170,16 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* f);
  * @todo add docs
  */
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* f);
+
+/**
+ * @todo add docs
+ */
+int fputs(const char* s, FILE* f);
+
+/**
+ * @todo add docs
+ */
+int fputc(int c, FILE* f);
 
 /**
  * @brief Test the end-of-file indicator.

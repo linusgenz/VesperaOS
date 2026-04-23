@@ -72,6 +72,8 @@ int strcoll(const char *s1, const char *s2);
  */
 char *strchr(const char *s, int c);
 
+char *strrchr(const char *s, int c);
+
 /**
  * @brief Find the first occurrence of NEEDLE in HAYSTACK.
  */

@@ -111,130 +111,375 @@ static const char* skip_whitespace(const char* str) {
     return str;
 }
 
-static bool parse_long(const char** str, long* result) {
-    const char* s = *str;
-    long val = 0;
-    int sign = 1;
+static bool parse_uint64(const char** s, uint64_t* result, int base) {
+    const char* p = *s;
+    uint64_t val = 0;
     bool has_digits = false;
 
-    if (*s == '-') {
-        sign = -1;
-        s++;
-    } else if (*s == '+') {
-        s++;
-    }
+    while (*p) {
+        int digit;
+        if (*p >= '0' && *p <= '9')
+            digit = *p - '0';
+        else if (*p >= 'a' && *p <= 'f')
+            digit = 10 + (*p - 'a');
+        else if (*p >= 'A' && *p <= 'F')
+            digit = 10 + (*p - 'A');
+        else
+            break;
 
-    while (*s && isdigit((unsigned char)*s)) {
-        const int digit = *s - '0';
+        if (digit >= base) break;
 
-        if (val > (LONG_MAX - digit) / 10) {
-            return false;
-        }
+        /* Overflow check */
+        if (val > (UINT64_MAX - (uint64_t)digit) / (uint64_t)base) return false;
 
-        val = val * 10 + digit;
-        s++;
+        val = val * (uint64_t)base + (uint64_t)digit;
+        p++;
         has_digits = true;
     }
 
-    if (!has_digits) {
-        return false;
-    }
-
-    *result = sign * val;
-    *str = s;
+    if (!has_digits) return false;
+    *result = val;
+    *s = p;
     return true;
 }
 
-int sscanf(const char* str, const char* format, ...) {
-    if (!str || !format) {
-        return -1;
+static bool parse_int64(const char** s, int64_t* result) {
+    const char* p = *s;
+    int sign = 1;
+
+    if (*p == '-') {
+        sign = -1;
+        p++;
+    } else if (*p == '+') {
+        p++;
     }
 
-    va_list args;
-    va_start(args, format);
+    uint64_t uval = 0;
+    if (!parse_uint64(&p, &uval, 10)) return false;
+
+    if (uval > (uint64_t)INT64_MAX + (sign < 0 ? 1u : 0u)) return false;
+
+    *result = (int64_t)uval * sign;
+    *s = p;
+    return true;
+}
+
+static bool parse_float(const char** s, double* result) {
+    const char* p = *s;
+    double sign = 1.0;
+
+    if (*p == '-') {
+        sign = -1.0;
+        p++;
+    } else if (*p == '+') {
+        p++;
+    }
+
+    /* Integer part */
+    double val = 0.0;
+    bool has_digits = false;
+    while (*p >= '0' && *p <= '9') {
+        val = val * 10.0 + (*p - '0');
+        p++;
+        has_digits = true;
+    }
+
+    /* Fractional part */
+    if (*p == '.') {
+        p++;
+        double frac = 0.1;
+        while (*p >= '0' && *p <= '9') {
+            val += (*p - '0') * frac;
+            frac *= 0.1;
+            p++;
+            has_digits = true;
+        }
+    }
+
+    if (!has_digits) return false;
+    *result = sign * val;
+    *s = p;
+    return true;
+}
+
+/* ── Core ────────────────────────────────────────────────────────────── */
+
+static int vsscanf_internal(const char* str, const char* fmt, va_list args) {
+    if (!str || !fmt) return -1;
 
     int matches = 0;
     const char* s = str;
-    const char* f = format;
 
-    while (*f && *s) {
-        // Whitespace im Format überspringt beliebig viel Whitespace im String
-        if (isspace((unsigned char)*f)) {
+    while (*fmt) {
+        if (isspace((unsigned char)*fmt)) {
             s = skip_whitespace(s);
-            f++;
+            fmt++;
             continue;
         }
 
-        // Konvertierungsspezifikation
-        if (*f == '%') {
-            f++;
-
-            if (*f == '%') {
-                // Literales '%'
-                if (*s != '%') {
-                    break;
-                }
-                s++;
-                f++;
-                continue;
-            }
-
-            // Whitespace vor Konvertierung überspringen (außer bei %c)
-            if (*f != 'c') {
-                s = skip_whitespace(s);
-            }
-
-            if (*f == 'l') {
-                f++;
-                if (*f == 'd') {
-                    // %ld - long int
-                    long* ptr = va_arg(args, long*);
-                    if (!ptr) {
-                        va_end(args);
-                        return -1;
-                    }
-
-                    long val = 0;
-                    if (parse_long(&s, &val)) {
-                        *ptr = val;
-                        matches++;
-                    } else {
-                        break;  // Parsing fehlgeschlagen
-                    }
-                    f++;
-                }
-            } else if (*f == 'c') {
-                // %c - einzelnes Zeichen (überspringt KEIN Whitespace)
-                char* ptr = va_arg(args, char*);
-                if (!ptr) {
-                    va_end(args);
-                    return -1;
-                }
-
-                if (*s) {
-                    *ptr = *s;
-                    s++;
-                    matches++;
-                } else {
-                    break;  // Keine Zeichen mehr verfügbar
-                }
-                f++;
-            } else {
-                // Unbekannter Format-Spezifizierer
-                break;
-            }
-        } else {
-            // Literales Zeichen im Format muss übereinstimmen
-            if (*f != *s) {
-                break;
-            }
-            f++;
+        if (*fmt != '%') {
+            if (*s != *fmt) break;
             s++;
+            fmt++;
+            continue;
+        }
+        fmt++;
+
+        /* %% */
+        if (*fmt == '%') {
+            if (*s != '%') break;
+            s++;
+            fmt++;
+            continue;
+        }
+
+        bool suppress = false;
+        while (*fmt == '*') {
+            suppress = true;
+            fmt++;
+        }
+
+        int width = 0;
+        while (*fmt >= '0' && *fmt <= '9') width = width * 10 + (*fmt++ - '0');
+
+        bool is_long = false;
+        bool is_long_long = false;
+        bool is_short = false;
+
+        if (*fmt == 'h') {
+            is_short = true;
+            fmt++;
+        } else if (*fmt == 'l') {
+            fmt++;
+            if (*fmt == 'l') {
+                is_long_long = true;
+                fmt++;
+            } else
+                is_long = true;
+        } else if (*fmt == 'z') {
+            is_long_long = (sizeof(size_t) == 8);
+            is_long = (sizeof(size_t) == 4);
+            fmt++;
+        }
+
+        const char spec = *fmt++;
+
+        /* %c does NOT skip whitespace */
+        if (spec != 'c') s = skip_whitespace(s);
+        if (!*s && spec != 'n') break;
+
+        switch (spec) {
+            case 'd':
+            case 'i': {
+                int64_t val = 0;
+                const char* tmp = s;
+                if (!parse_int64(&tmp, &val)) goto done;
+
+                if (width > 0 && (int)(tmp - s) > width) {
+                    /* Re-parse with capped input */
+                    char wbuf[32];
+                    int wlen = width < 31 ? width : 31;
+                    memcpy(wbuf, s, (size_t)wlen);
+                    wbuf[wlen] = '\0';
+                    const char* wp = wbuf;
+                    if (!parse_int64(&wp, &val)) goto done;
+                    s += (wp - wbuf);
+                } else {
+                    s = tmp;
+                }
+
+                if (!suppress) {
+                    if (is_long_long)
+                        *va_arg(args, long long*) = (long long)val;
+                    else if (is_long)
+                        *va_arg(args, long*) = (long)val;
+                    else if (is_short)
+                        *va_arg(args, short*) = (short)val;
+                    else
+                        *va_arg(args, int*) = (int)val;
+                    matches++;
+                }
+                break;
+            }
+
+            case 'u': {
+                uint64_t val = 0;
+                const char* tmp = s;
+                if (!parse_uint64(&tmp, &val, 10)) goto done;
+                s = tmp;
+
+                if (!suppress) {
+                    if (is_long_long)
+                        *va_arg(args, unsigned long long*) = (unsigned long long)val;
+                    else if (is_long)
+                        *va_arg(args, unsigned long*) = (unsigned long)val;
+                    else if (is_short)
+                        *va_arg(args, unsigned short*) = (unsigned short)val;
+                    else
+                        *va_arg(args, unsigned int*) = (unsigned int)val;
+                    matches++;
+                }
+                break;
+            }
+
+            case 'x':
+            case 'X': {
+                /* Skip optional 0x prefix */
+                if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) s += 2;
+
+                uint64_t val = 0;
+                const char* tmp = s;
+                if (!parse_uint64(&tmp, &val, 16)) goto done;
+                s = tmp;
+
+                if (!suppress) {
+                    if (is_long_long)
+                        *va_arg(args, unsigned long long*) = (unsigned long long)val;
+                    else if (is_long)
+                        *va_arg(args, unsigned long*) = (unsigned long)val;
+                    else
+                        *va_arg(args, unsigned int*) = (unsigned int)val;
+                    matches++;
+                }
+                break;
+            }
+
+            case 'o': {
+                uint64_t val = 0;
+                const char* tmp = s;
+                if (!parse_uint64(&tmp, &val, 8)) goto done;
+                s = tmp;
+
+                if (!suppress) {
+                    if (is_long_long)
+                        *va_arg(args, unsigned long long*) = (unsigned long long)val;
+                    else if (is_long)
+                        *va_arg(args, unsigned long*) = (unsigned long)val;
+                    else
+                        *va_arg(args, unsigned int*) = (unsigned int)val;
+                    matches++;
+                }
+                break;
+            }
+
+            case 'p': {
+                if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) s += 2;
+                uint64_t val = 0;
+                const char* tmp = s;
+                if (!parse_uint64(&tmp, &val, 16)) goto done;
+                s = tmp;
+                if (!suppress) {
+                    *va_arg(args, void**) = (void*)(uintptr_t)val;
+                    matches++;
+                }
+                break;
+            }
+
+            case 'f':
+            case 'g':
+            case 'G':
+            case 'e':
+            case 'E': {
+                double val = 0.0;
+                const char* tmp = s;
+                if (!parse_float(&tmp, &val)) goto done;
+                s = tmp;
+                if (!suppress) {
+                    /* vformat reads double, always store as double/float */
+                    if (is_long)
+                        *va_arg(args, double*) = val;
+                    else
+                        *va_arg(args, float*) = (float)val;
+                    matches++;
+                }
+                break;
+            }
+
+            case 's': {
+                char* ptr = suppress ? NULL : va_arg(args, char*);
+                int n = 0;
+
+                while (*s && !isspace((unsigned char)*s)) {
+                    if (width > 0 && n >= width) break;
+                    if (ptr) *ptr++ = *s;
+                    s++;
+                    n++;
+                }
+
+                if (n == 0) goto done;
+                if (ptr) {
+                    *ptr = '\0';
+                }
+                if (!suppress) matches++;
+                break;
+            }
+
+            case 'c': {
+                /* With width: read exactly width chars into array (no NUL) */
+                int count = (width > 0) ? width : 1;
+                char* ptr = suppress ? NULL : va_arg(args, char*);
+
+                for (int k = 0; k < count; k++) {
+                    if (!*s) goto done;
+                    if (ptr) *ptr++ = *s;
+                    s++;
+                }
+                if (!suppress) matches++;
+                break;
+            }
+
+            case 'n': {
+                if (!suppress) {
+                    if (is_long_long)
+                        *va_arg(args, long long*) = (long long)(s - str);
+                    else if (is_long)
+                        *va_arg(args, long*) = (long)(s - str);
+                    else
+                        *va_arg(args, int*) = (int)(s - str);
+                }
+                break;
+            }
+
+            default:
+                goto done;
         }
     }
 
-    va_end(args);
+done:
     return matches;
+}
+
+int sscanf(const char* str, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    int ret = vsscanf_internal(str, format, args);
+    va_end(args);
+    return ret;
+}
+
+int fscanf(FILE* f, const char* format, ...) {
+    if (!f || !format) return -1;
+
+    char buf[1024];
+    size_t pos = 0;
+
+    while (pos < sizeof(buf) - 1) {
+        int c = fgetc(f);
+        if (c == EOF) break;
+
+        buf[pos++] = (char)c;
+
+        if (isspace(c)) break;
+    }
+
+    buf[pos] = '\0';
+
+    va_list args;
+    va_start(args, format);
+    int ret = vsscanf_internal(buf, format, args);
+    va_end(args);
+
+    return ret;
 }
 
 int getchar(void) {
@@ -646,8 +891,12 @@ FILE* fopen(const char* path, const char* mode) {
         flags = O_RDWR | (flags & (O_CREAT | O_TRUNC | O_APPEND));
     }
 
-    FILE_HANDLE handle = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
-    if (handle < 0) return NULL;
+    int64_t res = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
+    if (res < 0) {
+        errno = res;
+        return NULL;
+    };
+    const FILE_HANDLE handle = res;
 
     FILE* f = malloc(sizeof(FILE));
     if (!f) {
@@ -727,15 +976,119 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* f) {
     return read_bytes / size;
 }
 
-size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* f) {
-    if (!f || !ptr) return 0;
-    size_t total = size * nmemb;
-    ssize_t written = sys_write(f->handle, (uint64_t)ptr, total, 0, 0, 0);
+#define FILE_BUFFER_SIZE 4096
+
+static int ensure_buffer(FILE* f) {
+    if (!f->buffer) {
+        f->buffer = malloc(FILE_BUFFER_SIZE);
+        if (!f->buffer) {
+            f->error = 1;
+            return -1;
+        }
+        f->buf_size = FILE_BUFFER_SIZE;
+        f->buf_pos = 0;
+    }
+    return 0;
+}
+
+static int flush_file_buffer(FILE* f) {
+    if (!f || !f->buffer || f->buf_pos == 0) return 0;
+
+    ssize_t written = sys_write(f->handle, (uint64_t)f->buffer, f->buf_pos, 0, 0, 0);
+
     if (written < 0) {
         f->error = 1;
+        return -1;
+    }
+
+    f->buf_pos = 0;
+    return 0;
+}
+
+size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* f) {
+    if (!f || !ptr) return 0;
+
+    size_t total = size * nmemb;
+    const unsigned char* p = (const unsigned char*)ptr;
+
+    if (total >= f->buf_size) {
+        if (flush_file_buffer(f) < 0) return 0;
+
+        ssize_t written = sys_write(f->handle, (uint64_t)ptr, total, 0, 0, 0);
+        if (written < 0) {
+            f->error = 1;
+            return 0;
+        }
+        return written / size;
+    }
+
+    if (ensure_buffer(f) < 0) return 0;
+
+    size_t written_total = 0;
+
+    while (written_total < total) {
+        size_t space = f->buf_size - f->buf_pos;
+
+        if (space == 0) {
+            if (flush_file_buffer(f) < 0) return written_total / size;
+            space = f->buf_size;
+        }
+
+        size_t to_copy = total - written_total;
+        if (to_copy > space) to_copy = space;
+
+        memcpy(f->buffer + f->buf_pos, p + written_total, to_copy);
+        f->buf_pos += to_copy;
+        written_total += to_copy;
+    }
+
+    return nmemb;
+}
+
+int fputc(int c, FILE* f) {
+    if (!f) return EOF;
+
+    if (ensure_buffer(f) < 0) return EOF;
+
+    if (f->buf_pos >= f->buf_size) {
+        if (flush_file_buffer(f) < 0) return EOF;
+    }
+
+    f->buffer[f->buf_pos++] = (char)c;
+
+    if (c == '\n') {
+        flush_file_buffer(f);
+    }
+
+    return (unsigned char)c;
+}
+
+int fputs(const char* s, FILE* f) {
+    if (!s || !f) return EOF;
+
+    size_t len = strlen(s);
+
+    if (ensure_buffer(f) < 0) return EOF;
+
+    if (len >= f->buf_size) {
+        if (flush_file_buffer(f) < 0) return EOF;
+
+        ssize_t written = sys_write(f->handle, (uint64_t)s, len, 0, 0, 0);
+        if (written < 0) {
+            f->error = 1;
+            return EOF;
+        }
         return 0;
     }
-    return written / size;
+
+    if (f->buf_pos + len > f->buf_size) {
+        if (flush_file_buffer(f) < 0) return EOF;
+    }
+
+    memcpy(f->buffer + f->buf_pos, s, len);
+    f->buf_pos += len;
+
+    return 0;
 }
 
 // stub
@@ -754,6 +1107,9 @@ int fflush(FILE* f) {
         flush_printf_buffer();
         return 0;
     }
+
+    if (flush_file_buffer(f) < 0) return EOF;
+
     return 0;
 }
 

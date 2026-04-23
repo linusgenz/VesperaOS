@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_STAT_H
-#define VESPERAOS_STAT_H
+#ifndef VESPLIB_STAT_H
+#define VESPLIB_STAT_H
 
 #include <stdint.h>
 #include <sysstd.h>
@@ -34,4 +34,4 @@ int is_directory(const char* path);
 
 int is_file(const char* path);
 
-#endif  // VESPERAOS_STAT_H
+#endif  // VESPLIB_STAT_H

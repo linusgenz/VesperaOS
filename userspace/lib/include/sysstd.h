@@ -447,4 +447,26 @@ int64_t sys_time(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t
 
 int64_t sys_clock_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
+/** Copies a handle from the calling realm into another realm.
+ * The underlying resource is shared — the same Channel* object is
+ * registered in both handle tables, with its refcount incremented.
+ *
+ * Only handles marked @code transferable = true@endcode may be transferred.
+ * The caller may restrict the capability set: the target never gets
+ * more capabilities than the source entry holds.
+ *
+ * @param arg0  hid             Handle ID in the calling realm.
+ * @param arg1  target_realm_id The destination realm.
+ * @param arg2  caps_mask       Capability bits to grant (subset of source caps).
+ *                              Pass CAP_ALL (0xFF…) to forward all source caps.
+ *
+ * @return  The new HandleId in the target realm on success, or negative errno:
+ *   -EINVAL  : invalid arguments or no current unit
+ *   -EBADH   : hid not found in calling realm
+ *   -EACCES  : handle is not transferable, or caps_mask exceeds source caps
+ *   -ECHILD  : target_realm_id does not exist
+ *   -ENOMEM  : no free slot in target handle table
+ */
+int64_t sys_handle_transfer(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
 #endif  // SYSSTD_H

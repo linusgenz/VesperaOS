@@ -61,6 +61,8 @@
 #define SYSCALL_CLOCK_GETTIME 228
 #define SYSCALL_CLOCK_NANOSLEEP 230
 
+
+#define SYSCALL_HANDLE_TRANSFER  120
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
 #define SYSCALL_CHANNEL_RECEIVE 132
@@ -251,4 +253,8 @@ int64_t sys_time(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t
 
 int64_t sys_clock_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
     return syscall(SYSCALL_CLOCK_NANOSLEEP, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_handle_transfer(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_HANDLE_TRANSFER, arg0, arg1, arg2, 0, 0, 0);
 }

@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_MEMORY_H
 #define VESPERAOS_MEMORY_H
 #include <stddef.h>
-
+#include <stdint.h>
 
 /**
  * @brief Header for a heap segment.

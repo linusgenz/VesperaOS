@@ -256,6 +256,10 @@ add_custom_target(sysroot_install
         ${SYSROOT}/usr/include
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/userspace/etc/
+        ${SYSROOT}/etc/
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/include/uapi/vespera
         ${SYSROOT}/usr/include/vespera
 
