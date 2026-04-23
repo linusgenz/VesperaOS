@@ -14,6 +14,7 @@ var sysstd_8h =
     [ "sys_getrid", "sysstd_8h.html#a091f01c4efcb294d26fbe4acd67ccb1e", null ],
     [ "sys_gettimeofday", "sysstd_8h.html#ab6df909b985faba7ed9cd881d20aec2e", null ],
     [ "sys_getuid", "sysstd_8h.html#aae36ba127d19661091389127b17131db", null ],
+    [ "sys_handle_transfer", "sysstd_8h.html#a5754412df56fd063be365e53d2dcbca1", null ],
     [ "sys_ioctl", "sysstd_8h.html#a4a4c215ccf856cb8ed4b82329bf729f9", null ],
     [ "sys_kill", "sysstd_8h.html#a33604b8ea36876168ea59ad5277b467b", null ],
     [ "sys_mkdir", "sysstd_8h.html#a5ae7ad8f83c25086b7f012cda63f43be", null ],

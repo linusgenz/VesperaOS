@@ -33,6 +33,8 @@ var searchData=
   ['_5fctype_5fclass_5fxdigit_30',['_ctype_class_xdigit',['../ctype_8h.html#a2679dc2a55142dcaa3c29ec5537c1f96',1,'ctype.h']]],
   ['_5fctype_5ftolower_31',['_ctype_tolower',['../ctype_8h.html#a63783fbbca43c7763e503f47cf8dfec1',1,'ctype.h']]],
   ['_5fctype_5ftoupper_32',['_ctype_toupper',['../ctype_8h.html#a8d65ee3751b3f6c40b042683663efd9b',1,'ctype.h']]],
-  ['_5fpad_33',['_pad',['../structvbus__lid.html#a77be469deba56e2d3f948139090a1cdf',1,'vbus_lid::_pad'],['../structvbus__ac.html#a4d16aa4e946ab65625d302762bc75126',1,'vbus_ac::_pad'],['../structvbus__battery.html#a3d5f3b1baa9e7325ebecb9dcc38ee447',1,'vbus_battery::_pad'],['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structthermal__zone.html#ad5c2185ea8a63d217d602b4261510e45',1,'thermal_zone::_pad'],['../structbattery__status.html#a86c90a6b3f253d979acb29e28d70c0d0',1,'battery_status::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad']]],
-  ['_5fpad0_34',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]]
+  ['_5flc_5fchan_33',['_lc_chan',['../log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b',1,'log_client.h']]],
+  ['_5flc_5ftag_34',['_lc_tag',['../log__client_8h.html#a8205142563646361eb4cc6333d40cbf9',1,'log_client.h']]],
+  ['_5fpad_35',['_pad',['../structvbus__lid.html#a77be469deba56e2d3f948139090a1cdf',1,'vbus_lid::_pad'],['../structvbus__ac.html#a4d16aa4e946ab65625d302762bc75126',1,'vbus_ac::_pad'],['../structvbus__battery.html#a3d5f3b1baa9e7325ebecb9dcc38ee447',1,'vbus_battery::_pad'],['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structthermal__zone.html#ad5c2185ea8a63d217d602b4261510e45',1,'thermal_zone::_pad'],['../structbattery__status.html#a86c90a6b3f253d979acb29e28d70c0d0',1,'battery_status::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad']]],
+  ['_5fpad0_36',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]]
 ];

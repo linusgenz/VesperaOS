@@ -156,6 +156,8 @@ Typedefs</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:aec1e54556dca3bd701d44395d34818dd" id="r_aec1e54556dca3bd701d44395d34818dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aec1e54556dca3bd701d44395d34818dd">sscanf</a> (const char *str, const char *format,...)</td></tr>
 <tr class="separator:aec1e54556dca3bd701d44395d34818dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcbffe326e16df540ec298ab884c8dd0" id="r_afcbffe326e16df540ec298ab884c8dd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0">fscanf</a> (<a class="el" href="structFILE.html">FILE</a> *f, const char *format,...)</td></tr>
+<tr class="separator:afcbffe326e16df540ec298ab884c8dd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4de2514b7778805db3815e8dd6cf09a" id="r_af4de2514b7778805db3815e8dd6cf09a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a">putchar</a> (int c)</td></tr>
 <tr class="memdesc:af4de2514b7778805db3815e8dd6cf09a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a single character to stdout.  <br /></td></tr>
 <tr class="separator:af4de2514b7778805db3815e8dd6cf09a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -193,6 +195,10 @@ Functions</h2></td></tr>
 <tr class="separator:a58171c5b12ceca32c28fd878fe8a5450"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a152a43e71b495278570e5790af9b5043" id="r_a152a43e71b495278570e5790af9b5043"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a152a43e71b495278570e5790af9b5043">fwrite</a> (const void *ptr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
 <tr class="separator:a152a43e71b495278570e5790af9b5043"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37f8a04ff44af73c18cb3e43e7a1f752" id="r_a37f8a04ff44af73c18cb3e43e7a1f752"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752">fputs</a> (const char *s, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="separator:a37f8a04ff44af73c18cb3e43e7a1f752"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a260faecc8c64f08f4f3d3801c3f71a" id="r_a0a260faecc8c64f08f4f3d3801c3f71a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a">fputc</a> (int c, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="separator:a0a260faecc8c64f08f4f3d3801c3f71a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f7feada471a178fa9b019e70b54bf4b" id="r_a2f7feada471a178fa9b019e70b54bf4b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2f7feada471a178fa9b019e70b54bf4b">feof</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
 <tr class="memdesc:a2f7feada471a178fa9b019e70b54bf4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test the end-of-file indicator.  <br /></td></tr>
 <tr class="separator:a2f7feada471a178fa9b019e70b54bf4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -902,6 +908,64 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a0a260faecc8c64f08f4f3d3801c3f71a" name="a0a260faecc8c64f08f4f3d3801c3f71a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a260faecc8c64f08f4f3d3801c3f71a">&#9670;&#160;</a></span>fputc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fputc </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structFILE.html">FILE</a> *&#160;</td>
+          <td class="paramname"><em>f</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000006">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+</div>
+</div>
+<a id="a37f8a04ff44af73c18cb3e43e7a1f752" name="a37f8a04ff44af73c18cb3e43e7a1f752"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37f8a04ff44af73c18cb3e43e7a1f752">&#9670;&#160;</a></span>fputs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fputs </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structFILE.html">FILE</a> *&#160;</td>
+          <td class="paramname"><em>f</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+</div>
+</div>
 <a id="a58171c5b12ceca32c28fd878fe8a5450" name="a58171c5b12ceca32c28fd878fe8a5450"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a58171c5b12ceca32c28fd878fe8a5450">&#9670;&#160;</a></span>fread()</h2>
 
@@ -966,6 +1030,40 @@ Variables</h2></td></tr>
           <td></td>
           <td class="paramtype"><a class="el" href="structFILE.html">FILE</a> *&#160;</td>
           <td class="paramname"><em>f</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afcbffe326e16df540ec298ab884c8dd0" name="afcbffe326e16df540ec298ab884c8dd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcbffe326e16df540ec298ab884c8dd0">&#9670;&#160;</a></span>fscanf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fscanf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structFILE.html">FILE</a> *&#160;</td>
+          <td class="paramname"><em>f</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

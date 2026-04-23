@@ -90,11 +90,417 @@ $(document).ready(function(){initNavTree('log__client_8h.html',''); initResizabl
 </div>
 
 <div class="header">
+  <div class="summary">
+<a href="#define-members">Macros</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">log_client.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &lt;<a class="el" href="channel_8h_source.html">channel.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stdio_8h_source.html">stdio.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="string_8h_source.html">string.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="sysstd_8h_source.html">sysstd.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="userspace_2lib_2include_2time_8h_source.html">time.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="handles_8h_source.html">vespera/handles.h</a>&gt;</code><br />
+</div>
 <p><a href="log__client_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a158a8c64f24645c7478298399825737f" id="r_a158a8c64f24645c7478298399825737f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a158a8c64f24645c7478298399825737f">LOG</a>(msg)&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;LOG&quot;, (msg))</td></tr>
+<tr class="separator:a158a8c64f24645c7478298399825737f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2332264037abe02c8041a498b2fa1627" id="r_a2332264037abe02c8041a498b2fa1627"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a2332264037abe02c8041a498b2fa1627">LOG_DEBUG</a>(msg)&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;DEBUG&quot;, (msg))</td></tr>
+<tr class="separator:a2332264037abe02c8041a498b2fa1627"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8e803773221119947b55f6ae85a9c63" id="r_ac8e803773221119947b55f6ae85a9c63"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#ac8e803773221119947b55f6ae85a9c63">LOG_INFO</a>(msg)&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;INFO&quot;, (msg))</td></tr>
+<tr class="separator:ac8e803773221119947b55f6ae85a9c63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaf09e51c5a1f84078e5c6aa59dc48de" id="r_aeaf09e51c5a1f84078e5c6aa59dc48de"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#aeaf09e51c5a1f84078e5c6aa59dc48de">LOG_WARN</a>(msg)&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;WARN&quot;, (msg))</td></tr>
+<tr class="separator:aeaf09e51c5a1f84078e5c6aa59dc48de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ebf4c3b4fb05d6f9094089ded75cbdd" id="r_a7ebf4c3b4fb05d6f9094089ded75cbdd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a7ebf4c3b4fb05d6f9094089ded75cbdd">LOG_ERROR</a>(msg)&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;ERROR&quot;, (msg))</td></tr>
+<tr class="separator:a7ebf4c3b4fb05d6f9094089ded75cbdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf90b9a1dd511a996bcba0a746281601" id="r_abf90b9a1dd511a996bcba0a746281601"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#abf90b9a1dd511a996bcba0a746281601">LOGF</a>(fmt, ...)</td></tr>
+<tr class="separator:abf90b9a1dd511a996bcba0a746281601"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac428fb4fc0fb5a883f6a5d21323a4e70" id="r_ac428fb4fc0fb5a883f6a5d21323a4e70"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#ac428fb4fc0fb5a883f6a5d21323a4e70">LOG_INFOF</a>(fmt, ...)</td></tr>
+<tr class="separator:ac428fb4fc0fb5a883f6a5d21323a4e70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc945dcfe8db568e9843b894253fde61" id="r_abc945dcfe8db568e9843b894253fde61"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#abc945dcfe8db568e9843b894253fde61">LOG_WARNF</a>(fmt, ...)</td></tr>
+<tr class="separator:abc945dcfe8db568e9843b894253fde61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a808ed84a263b3c9279afd2cac13a0e71" id="r_a808ed84a263b3c9279afd2cac13a0e71"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a808ed84a263b3c9279afd2cac13a0e71">LOG_ERRORF</a>(fmt, ...)</td></tr>
+<tr class="separator:a808ed84a263b3c9279afd2cac13a0e71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a67503fcd69fd9b53f771e54ce85c3458" id="r_a67503fcd69fd9b53f771e54ce85c3458"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458">_lc_read_chan_file</a> (const char *service_name)</td></tr>
+<tr class="separator:a67503fcd69fd9b53f771e54ce85c3458"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b07f62012e1d4272b4c67af2693bccb" id="r_a4b07f62012e1d4272b4c67af2693bccb"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a4b07f62012e1d4272b4c67af2693bccb">log_client_init</a> (const char *service_name)</td></tr>
+<tr class="separator:a4b07f62012e1d4272b4c67af2693bccb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a643d259c7dc3b5812d87f60737be4ebe" id="r_a643d259c7dc3b5812d87f60737be4ebe"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a> (const char *level, const char *msg)</td></tr>
+<tr class="separator:a643d259c7dc3b5812d87f60737be4ebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a332195241fcffdca5deb20ecc7b2740b" id="r_a332195241fcffdca5deb20ecc7b2740b"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">_lc_chan</a> = 0</td></tr>
+<tr class="separator:a332195241fcffdca5deb20ecc7b2740b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8205142563646361eb4cc6333d40cbf9" id="r_a8205142563646361eb4cc6333d40cbf9"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log__client_8h.html#a8205142563646361eb4cc6333d40cbf9">_lc_tag</a> = &quot;?&quot;</td></tr>
+<tr class="separator:a8205142563646361eb4cc6333d40cbf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a158a8c64f24645c7478298399825737f" name="a158a8c64f24645c7478298399825737f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a158a8c64f24645c7478298399825737f">&#9670;&#160;</a></span>LOG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">msg</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;LOG&quot;, (msg))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2332264037abe02c8041a498b2fa1627" name="a2332264037abe02c8041a498b2fa1627"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2332264037abe02c8041a498b2fa1627">&#9670;&#160;</a></span>LOG_DEBUG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_DEBUG</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">msg</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;DEBUG&quot;, (msg))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7ebf4c3b4fb05d6f9094089ded75cbdd" name="a7ebf4c3b4fb05d6f9094089ded75cbdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ebf4c3b4fb05d6f9094089ded75cbdd">&#9670;&#160;</a></span>LOG_ERROR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_ERROR</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">msg</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;ERROR&quot;, (msg))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a808ed84a263b3c9279afd2cac13a0e71" name="a808ed84a263b3c9279afd2cac13a0e71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a808ed84a263b3c9279afd2cac13a0e71">&#9670;&#160;</a></span>LOG_ERRORF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_ERRORF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">fmt, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">do</span> {                                              \</div>
+<div class="line">        <span class="keywordtype">char</span> _b[1024];                                \</div>
+<div class="line">        snprintf(_b, <span class="keyword">sizeof</span>(_b), (fmt), __VA_ARGS__); \</div>
+<div class="line">        log_write(<span class="stringliteral">&quot;ERROR&quot;</span>, _b);                       \</div>
+<div class="line">    } <span class="keywordflow">while</span> (0)</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ac8e803773221119947b55f6ae85a9c63" name="ac8e803773221119947b55f6ae85a9c63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8e803773221119947b55f6ae85a9c63">&#9670;&#160;</a></span>LOG_INFO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_INFO</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">msg</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;INFO&quot;, (msg))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac428fb4fc0fb5a883f6a5d21323a4e70" name="ac428fb4fc0fb5a883f6a5d21323a4e70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac428fb4fc0fb5a883f6a5d21323a4e70">&#9670;&#160;</a></span>LOG_INFOF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_INFOF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">fmt, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">do</span> {                                              \</div>
+<div class="line">        <span class="keywordtype">char</span> _b[1024];                                \</div>
+<div class="line">        snprintf(_b, <span class="keyword">sizeof</span>(_b), (fmt), __VA_ARGS__); \</div>
+<div class="line">        log_write(<span class="stringliteral">&quot;INFO&quot;</span>, _b);                        \</div>
+<div class="line">    } <span class="keywordflow">while</span> (0)</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="aeaf09e51c5a1f84078e5c6aa59dc48de" name="aeaf09e51c5a1f84078e5c6aa59dc48de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeaf09e51c5a1f84078e5c6aa59dc48de">&#9670;&#160;</a></span>LOG_WARN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_WARN</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">msg</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(&quot;WARN&quot;, (msg))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abc945dcfe8db568e9843b894253fde61" name="abc945dcfe8db568e9843b894253fde61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc945dcfe8db568e9843b894253fde61">&#9670;&#160;</a></span>LOG_WARNF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOG_WARNF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">fmt, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">do</span> {                                              \</div>
+<div class="line">        <span class="keywordtype">char</span> _b[1024];                                \</div>
+<div class="line">        snprintf(_b, <span class="keyword">sizeof</span>(_b), (fmt), __VA_ARGS__); \</div>
+<div class="line">        log_write(<span class="stringliteral">&quot;WARN&quot;</span>, _b);                        \</div>
+<div class="line">    } <span class="keywordflow">while</span> (0)</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="abf90b9a1dd511a996bcba0a746281601" name="abf90b9a1dd511a996bcba0a746281601"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf90b9a1dd511a996bcba0a746281601">&#9670;&#160;</a></span>LOGF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define LOGF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">fmt, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">do</span> {                                              \</div>
+<div class="line">        <span class="keywordtype">char</span> _b[1024];                                \</div>
+<div class="line">        snprintf(_b, <span class="keyword">sizeof</span>(_b), (fmt), __VA_ARGS__); \</div>
+<div class="line">        log_write(<span class="stringliteral">&quot;LOG&quot;</span>, _b);                         \</div>
+<div class="line">    } <span class="keywordflow">while</span> (0)</div>
+</div><!-- fragment -->
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a67503fcd69fd9b53f771e54ce85c3458" name="a67503fcd69fd9b53f771e54ce85c3458"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67503fcd69fd9b53f771e54ce85c3458">&#9670;&#160;</a></span>_lc_read_chan_file()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a> _lc_read_chan_file </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>service_name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4b07f62012e1d4272b4c67af2693bccb" name="a4b07f62012e1d4272b4c67af2693bccb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b07f62012e1d4272b4c67af2693bccb">&#9670;&#160;</a></span>log_client_init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void log_client_init </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>service_name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a643d259c7dc3b5812d87f60737be4ebe" name="a643d259c7dc3b5812d87f60737be4ebe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a643d259c7dc3b5812d87f60737be4ebe">&#9670;&#160;</a></span>log_write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void log_write </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>level</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>msg</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="a332195241fcffdca5deb20ecc7b2740b" name="a332195241fcffdca5deb20ecc7b2740b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a332195241fcffdca5deb20ecc7b2740b">&#9670;&#160;</a></span>_lc_chan</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a> _lc_chan = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8205142563646361eb4cc6333d40cbf9" name="a8205142563646361eb4cc6333d40cbf9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8205142563646361eb4cc6333d40cbf9">&#9670;&#160;</a></span>_lc_tag</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* _lc_tag = &quot;?&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

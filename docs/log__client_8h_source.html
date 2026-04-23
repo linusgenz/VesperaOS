@@ -119,10 +119,140 @@ $(document).ready(function(){initNavTree('log__client_8h_source.html',''); initR
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// You should have received a copy of the GNU General Public License</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// along with VesperaOS. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_LOG_CLIENT_H</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_LOG_CLIENT_H</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_LOG_CLIENT_H</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifndef VESPERAOS_USERSPACE_LIB_LOG_CLIENT_H</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#define VESPERAOS_USERSPACE_LIB_LOG_CLIENT_H</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;<a class="code" href="channel_8h.html">channel.h</a>&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;<a class="code" href="stddef_8h.html">stddef.h</a>&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;<a class="code" href="stdio_8h.html">stdio.h</a>&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#include &lt;<a class="code" href="string_8h.html">string.h</a>&gt;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#include &lt;<a class="code" href="sysstd_8h.html">sysstd.h</a>&gt;</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#include &lt;<a class="code" href="userspace_2lib_2include_2time_8h.html">time.h</a>&gt;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#include &lt;<a class="code" href="handles_8h.html">vespera/handles.h</a>&gt;</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">   34</a></span><span class="keyword">static</span> <a class="code hl_typedef" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a> <a class="code hl_variable" href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">_lc_chan</a> = 0;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="log__client_8h.html#a8205142563646361eb4cc6333d40cbf9">   35</a></span><span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code hl_variable" href="log__client_8h.html#a8205142563646361eb4cc6333d40cbf9">_lc_tag</a> = <span class="stringliteral">&quot;?&quot;</span>;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="foldopen" id="foldopen00037" data-start="{" data-end="}">
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458">   37</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <a class="code hl_typedef" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a> <a class="code hl_function" href="log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458">_lc_read_chan_file</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* service_name) {</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordtype">char</span> path[128];</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <a class="code hl_function" href="stdio_8h.html#a304ea6ce0f310fd8ed15648139819680">snprintf</a>(path, <span class="keyword">sizeof</span>(path), <span class="stringliteral">&quot;/run/services/%s.log_chan&quot;</span>, service_name);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; i++) {</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>        <a class="code hl_struct" href="structFILE.html">FILE</a>* f = <a class="code hl_function" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen</a>(path, <span class="stringliteral">&quot;r&quot;</span>);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        <span class="keywordflow">if</span> (f) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>            <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> hid = 0;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>            <span class="keywordflow">if</span> (<a class="code hl_function" href="stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0">fscanf</a>(f, <span class="stringliteral">&quot;%llu&quot;</span>, &amp;hid) == 1 &amp;&amp; hid &gt; 0) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                <a class="code hl_function" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose</a>(f);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>                <span class="keywordflow">return</span> (<a class="code hl_typedef" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a>)hid;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>            }</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>            <a class="code hl_function" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose</a>(f);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        }</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keyword">struct </span><a class="code hl_struct" href="structtimespec.html">timespec</a> ts = {.<a class="code hl_variable" href="structtimespec.html#afc3302668d7cb5952f590da69fdd4955">tv_sec</a> = 0, .tv_nsec = 50000000LL};</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <a class="code hl_function" href="sysstd_8h.html#a484528041a9ee34ec89471aa5aed5397">sys_nanosleep</a>((<a class="code hl_typedef" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)&amp;ts, 0, 0, 0, 0, 0);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    }</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>}</div>
+</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="foldopen" id="foldopen00057" data-start="{" data-end="}">
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="log__client_8h.html#a4b07f62012e1d4272b4c67af2693bccb">   57</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="log__client_8h.html#a4b07f62012e1d4272b4c67af2693bccb">log_client_init</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* service_name) {</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_variable" href="log__client_8h.html#a8205142563646361eb4cc6333d40cbf9">_lc_tag</a> = service_name;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <a class="code hl_variable" href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">_lc_chan</a> = <a class="code hl_function" href="log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458">_lc_read_chan_file</a>(service_name);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>}</div>
+</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="foldopen" id="foldopen00062" data-start="{" data-end="}">
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">   62</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* level, <span class="keyword">const</span> <span class="keywordtype">char</span>* msg) {</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keyword">struct </span><a class="code hl_struct" href="structtimespec.html">timespec</a> ts;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <a class="code hl_function" href="sysstd_8h.html#a5929be7b4c4b04dbdb75dbe441befcd0">sys_clock_gettime</a>(0, (<a class="code hl_typedef" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)&amp;ts, 0, 0, 0, 0);</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keywordtype">unsigned</span> sd = (unsigned)(ts.<a class="code hl_variable" href="structtimespec.html#afc3302668d7cb5952f590da69fdd4955">tv_sec</a> % 86400);</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keywordtype">char</span> buf[4096];</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">int</span> n = <a class="code hl_function" href="stdio_8h.html#a304ea6ce0f310fd8ed15648139819680">snprintf</a>(</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        buf, <span class="keyword">sizeof</span>(buf), <span class="stringliteral">&quot;[%02u:%02u:%02u] [%-5s] [%s] %s\n&quot;</span>, sd / 3600, (sd % 3600) / 60, sd % 60, level, <a class="code hl_variable" href="log__client_8h.html#a8205142563646361eb4cc6333d40cbf9">_lc_tag</a>, msg</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    );</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordflow">if</span> (n &lt;= 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keywordflow">if</span> ((<span class="keywordtype">size_t</span>)n &gt;= <span class="keyword">sizeof</span>(buf)) n = (int)<span class="keyword">sizeof</span>(buf) - 1;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">_lc_chan</a>) {</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        <span class="keywordflow">if</span> (<a class="code hl_function" href="channel_8h.html#ab2b9bb58c6dab6a292168791513911d6">channel_send</a>(<a class="code hl_variable" href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">_lc_chan</a>, buf, (<span class="keywordtype">size_t</span>)n) &gt;= 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    }</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_function" href="sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa">sys_write</a>(<a class="code hl_define" href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">HANDLE_STDERR</a>, (<a class="code hl_typedef" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)buf, (<span class="keywordtype">size_t</span>)n, 0, 0, 0);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>}</div>
+</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno"><a class="line" href="log__client_8h.html#a158a8c64f24645c7478298399825737f">   81</a></span><span class="preprocessor">#define LOG(msg) log_write(&quot;LOG&quot;, (msg))</span></div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="log__client_8h.html#a2332264037abe02c8041a498b2fa1627">   82</a></span><span class="preprocessor">#define LOG_DEBUG(msg) log_write(&quot;DEBUG&quot;, (msg))</span></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="log__client_8h.html#ac8e803773221119947b55f6ae85a9c63">   83</a></span><span class="preprocessor">#define LOG_INFO(msg) log_write(&quot;INFO&quot;, (msg))</span></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="log__client_8h.html#aeaf09e51c5a1f84078e5c6aa59dc48de">   84</a></span><span class="preprocessor">#define LOG_WARN(msg) log_write(&quot;WARN&quot;, (msg))</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="log__client_8h.html#a7ebf4c3b4fb05d6f9094089ded75cbdd">   85</a></span><span class="preprocessor">#define LOG_ERROR(msg) log_write(&quot;ERROR&quot;, (msg))</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="foldopen" id="foldopen00087" data-start="" data-end="">
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="log__client_8h.html#abf90b9a1dd511a996bcba0a746281601">   87</a></span><span class="preprocessor">#define LOGF(fmt, ...)                                \</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="preprocessor">    do {                                              \</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="preprocessor">        char _b[1024];                                \</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="preprocessor">        snprintf(_b, sizeof(_b), (fmt), __VA_ARGS__); \</span></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span><span class="preprocessor">        log_write(&quot;LOG&quot;, _b);                         \</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="preprocessor">    } while (0)</span></div>
+</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
+<div class="foldopen" id="foldopen00094" data-start="" data-end="">
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="log__client_8h.html#ac428fb4fc0fb5a883f6a5d21323a4e70">   94</a></span><span class="preprocessor">#define LOG_INFOF(fmt, ...)                           \</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="preprocessor">    do {                                              \</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="preprocessor">        char _b[1024];                                \</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="preprocessor">        snprintf(_b, sizeof(_b), (fmt), __VA_ARGS__); \</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="preprocessor">        log_write(&quot;INFO&quot;, _b);                        \</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="preprocessor">    } while (0)</span></div>
+</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="foldopen" id="foldopen00101" data-start="" data-end="">
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="log__client_8h.html#abc945dcfe8db568e9843b894253fde61">  101</a></span><span class="preprocessor">#define LOG_WARNF(fmt, ...)                           \</span></div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="preprocessor">    do {                                              \</span></div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="preprocessor">        char _b[1024];                                \</span></div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span><span class="preprocessor">        snprintf(_b, sizeof(_b), (fmt), __VA_ARGS__); \</span></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="preprocessor">        log_write(&quot;WARN&quot;, _b);                        \</span></div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="preprocessor">    } while (0)</span></div>
+</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
+<div class="foldopen" id="foldopen00108" data-start="" data-end="">
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="log__client_8h.html#a808ed84a263b3c9279afd2cac13a0e71">  108</a></span><span class="preprocessor">#define LOG_ERRORF(fmt, ...)                          \</span></div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="preprocessor">    do {                                              \</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="preprocessor">        char _b[1024];                                \</span></div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span><span class="preprocessor">        snprintf(_b, sizeof(_b), (fmt), __VA_ARGS__); \</span></div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="preprocessor">        log_write(&quot;ERROR&quot;, _b);                       \</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="preprocessor">    } while (0)</span></div>
+</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_USERSPACE_LIB_LOG_CLIENT_H</span></div>
+<div class="ttc" id="achannel_8h_html"><div class="ttname"><a href="channel_8h.html">channel.h</a></div></div>
+<div class="ttc" id="achannel_8h_html_ab2b9bb58c6dab6a292168791513911d6"><div class="ttname"><a href="channel_8h.html#ab2b9bb58c6dab6a292168791513911d6">channel_send</a></div><div class="ttdeci">ssize_t channel_send(CHANNEL_HANDLE hid, const void *data, size_t len)</div><div class="ttdoc">Send data to a channel.</div></div>
+<div class="ttc" id="ahandles_8h_html"><div class="ttname"><a href="handles_8h.html">handles.h</a></div></div>
+<div class="ttc" id="ahandles_8h_html_a20f587d71e5bfe98fd92929ab61bde41"><div class="ttname"><a href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">HANDLE_STDERR</a></div><div class="ttdeci">#define HANDLE_STDERR</div><div class="ttdef"><b>Definition</b> handles.h:42</div></div>
+<div class="ttc" id="alog__client_8h_html_a332195241fcffdca5deb20ecc7b2740b"><div class="ttname"><a href="log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b">_lc_chan</a></div><div class="ttdeci">static CHANNEL_HANDLE _lc_chan</div><div class="ttdef"><b>Definition</b> log_client.h:34</div></div>
+<div class="ttc" id="alog__client_8h_html_a4b07f62012e1d4272b4c67af2693bccb"><div class="ttname"><a href="log__client_8h.html#a4b07f62012e1d4272b4c67af2693bccb">log_client_init</a></div><div class="ttdeci">static void log_client_init(const char *service_name)</div><div class="ttdef"><b>Definition</b> log_client.h:57</div></div>
+<div class="ttc" id="alog__client_8h_html_a643d259c7dc3b5812d87f60737be4ebe"><div class="ttname"><a href="log__client_8h.html#a643d259c7dc3b5812d87f60737be4ebe">log_write</a></div><div class="ttdeci">static void log_write(const char *level, const char *msg)</div><div class="ttdef"><b>Definition</b> log_client.h:62</div></div>
+<div class="ttc" id="alog__client_8h_html_a67503fcd69fd9b53f771e54ce85c3458"><div class="ttname"><a href="log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458">_lc_read_chan_file</a></div><div class="ttdeci">static CHANNEL_HANDLE _lc_read_chan_file(const char *service_name)</div><div class="ttdef"><b>Definition</b> log_client.h:37</div></div>
+<div class="ttc" id="alog__client_8h_html_a8205142563646361eb4cc6333d40cbf9"><div class="ttname"><a href="log__client_8h.html#a8205142563646361eb4cc6333d40cbf9">_lc_tag</a></div><div class="ttdeci">static const char * _lc_tag</div><div class="ttdef"><b>Definition</b> log_client.h:35</div></div>
+<div class="ttc" id="astddef_8h_html"><div class="ttname"><a href="stddef_8h.html">stddef.h</a></div></div>
+<div class="ttc" id="astdint_8h_html_aaa5d1cd013383c889537491c3cfd9aad"><div class="ttname"><a href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a></div><div class="ttdeci">unsigned long long uint64_t</div><div class="ttdef"><b>Definition</b> stdint.h:38</div></div>
+<div class="ttc" id="astdio_8h_html"><div class="ttname"><a href="stdio_8h.html">stdio.h</a></div></div>
+<div class="ttc" id="astdio_8h_html_a16899976ac8e865813485db3d5f5186f"><div class="ttname"><a href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose</a></div><div class="ttdeci">int fclose(FILE *f)</div></div>
+<div class="ttc" id="astdio_8h_html_a2537fcdb9f2f543f6167b296fcffb23f"><div class="ttname"><a href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen</a></div><div class="ttdeci">FILE * fopen(const char *path, const char *mode)</div></div>
+<div class="ttc" id="astdio_8h_html_a304ea6ce0f310fd8ed15648139819680"><div class="ttname"><a href="stdio_8h.html#a304ea6ce0f310fd8ed15648139819680">snprintf</a></div><div class="ttdeci">size_t snprintf(char *buffer, size_t size, const char *format,...)</div><div class="ttdoc">Formatted output to a buffer with size limit.</div></div>
+<div class="ttc" id="astdio_8h_html_a7c05f3f8b572c8bc1a699461d29fcea6"><div class="ttname"><a href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a></div><div class="ttdeci">HANDLE CHANNEL_HANDLE</div><div class="ttdef"><b>Definition</b> stdio.h:45</div></div>
+<div class="ttc" id="astdio_8h_html_afcbffe326e16df540ec298ab884c8dd0"><div class="ttname"><a href="stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0">fscanf</a></div><div class="ttdeci">int fscanf(FILE *f, const char *format,...)</div></div>
+<div class="ttc" id="astring_8h_html"><div class="ttname"><a href="string_8h.html">string.h</a></div></div>
+<div class="ttc" id="astructFILE_html"><div class="ttname"><a href="structFILE.html">FILE</a></div><div class="ttdef"><b>Definition</b> stdio.h:48</div></div>
+<div class="ttc" id="astructtimespec_html"><div class="ttname"><a href="structtimespec.html">timespec</a></div><div class="ttdef"><b>Definition</b> alltypes.h:75</div></div>
+<div class="ttc" id="astructtimespec_html_afc3302668d7cb5952f590da69fdd4955"><div class="ttname"><a href="structtimespec.html#afc3302668d7cb5952f590da69fdd4955">timespec::tv_sec</a></div><div class="ttdeci">time_t tv_sec</div><div class="ttdef"><b>Definition</b> alltypes.h:75</div></div>
+<div class="ttc" id="asysstd_8h_html"><div class="ttname"><a href="sysstd_8h.html">sysstd.h</a></div></div>
+<div class="ttc" id="asysstd_8h_html_a484528041a9ee34ec89471aa5aed5397"><div class="ttname"><a href="sysstd_8h.html#a484528041a9ee34ec89471aa5aed5397">sys_nanosleep</a></div><div class="ttdeci">int64_t sys_nanosleep(uint64_t ms, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t)</div></div>
+<div class="ttc" id="asysstd_8h_html_a5929be7b4c4b04dbdb75dbe441befcd0"><div class="ttname"><a href="sysstd_8h.html#a5929be7b4c4b04dbdb75dbe441befcd0">sys_clock_gettime</a></div><div class="ttdeci">int64_t sys_clock_gettime(uint64_t clk_id, uint64_t ts, uint64_t, uint64_t, uint64_t, uint64_t)</div></div>
+<div class="ttc" id="asysstd_8h_html_ac0d25831cf3cd6d29e7ea92633d26dfa"><div class="ttname"><a href="sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa">sys_write</a></div><div class="ttdeci">int64_t sys_write(uint64_t hid, uint64_t buf_ptr, uint64_t count, uint64_t, uint64_t, uint64_t)</div><div class="ttdoc">Write data to a handle.</div></div>
+<div class="ttc" id="auserspace_2lib_2include_2time_8h_html"><div class="ttname"><a href="userspace_2lib_2include_2time_8h.html">time.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -88,11 +88,14 @@ var searchData=
   ['_5fisspace_85',['_ISspace',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba1c6af7b71f8931d22cfcaed9314f6b45',1,'ctype.h']]],
   ['_5fisupper_86',['_ISupper',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55ba8413ab9d1b454a9b2f9d1547de21c284',1,'ctype.h']]],
   ['_5fisxdigit_87',['_ISxdigit',['../ctype_8h.html#a06fc87d81c62e9abb8790b6e5713c55bac6d2e9ed4139a3f7ae9a4e7c81411760',1,'ctype.h']]],
-  ['_5fldbl_5fradix_88',['_LDBL_RADIX',['../float_8h.html#aefed04d48fe715685771c6a549f924de',1,'float.h']]],
-  ['_5fldbl_5frounds_89',['_LDBL_ROUNDS',['../float_8h.html#a91c72f5fe1e1e77346061d1e65dd7630',1,'float.h']]],
-  ['_5fnoreturn_90',['_Noreturn',['../features_8h.html#afdc60192553b70b37149691b71022d5a',1,'features.h']]],
-  ['_5fpad_91',['_pad',['../structvbus__lid.html#a77be469deba56e2d3f948139090a1cdf',1,'vbus_lid::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad'],['../structbattery__status.html#a86c90a6b3f253d979acb29e28d70c0d0',1,'battery_status::_pad'],['../structthermal__zone.html#ad5c2185ea8a63d217d602b4261510e45',1,'thermal_zone::_pad'],['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structvbus__battery.html#a3d5f3b1baa9e7325ebecb9dcc38ee447',1,'vbus_battery::_pad'],['../structvbus__ac.html#a4d16aa4e946ab65625d302762bc75126',1,'vbus_ac::_pad']]],
-  ['_5fpad0_92',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]],
-  ['_5freg_93',['_Reg',['../alltypes_8h.html#a3c1fcb7d5d764d85ea6cd5fc18e4fbfe',1,'alltypes.h']]],
-  ['_5fxopen_5fsource_94',['_XOPEN_SOURCE',['../features_8h.html#a78c99ffd76a7bb3c8c74db76207e9ab4',1,'features.h']]]
+  ['_5flc_5fchan_88',['_lc_chan',['../log__client_8h.html#a332195241fcffdca5deb20ecc7b2740b',1,'log_client.h']]],
+  ['_5flc_5fread_5fchan_5ffile_89',['_lc_read_chan_file',['../log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458',1,'log_client.h']]],
+  ['_5flc_5ftag_90',['_lc_tag',['../log__client_8h.html#a8205142563646361eb4cc6333d40cbf9',1,'log_client.h']]],
+  ['_5fldbl_5fradix_91',['_LDBL_RADIX',['../float_8h.html#aefed04d48fe715685771c6a549f924de',1,'float.h']]],
+  ['_5fldbl_5frounds_92',['_LDBL_ROUNDS',['../float_8h.html#a91c72f5fe1e1e77346061d1e65dd7630',1,'float.h']]],
+  ['_5fnoreturn_93',['_Noreturn',['../features_8h.html#afdc60192553b70b37149691b71022d5a',1,'features.h']]],
+  ['_5fpad_94',['_pad',['../structvbus__lid.html#a77be469deba56e2d3f948139090a1cdf',1,'vbus_lid::_pad'],['../structusb__device__info.html#a4d32e429e0386265620c88cf56ff7ee8',1,'usb_device_info::_pad'],['../structbattery__status.html#a86c90a6b3f253d979acb29e28d70c0d0',1,'battery_status::_pad'],['../structthermal__zone.html#ad5c2185ea8a63d217d602b4261510e45',1,'thermal_zone::_pad'],['../structpollhdl.html#a28663a180682d5678a817937c12d7004',1,'pollhdl::_pad'],['../structvbus__battery.html#a3d5f3b1baa9e7325ebecb9dcc38ee447',1,'vbus_battery::_pad'],['../structvbus__ac.html#a4d16aa4e946ab65625d302762bc75126',1,'vbus_ac::_pad']]],
+  ['_5fpad0_95',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]],
+  ['_5freg_96',['_Reg',['../alltypes_8h.html#a3c1fcb7d5d764d85ea6cd5fc18e4fbfe',1,'alltypes.h']]],
+  ['_5fxopen_5fsource_97',['_XOPEN_SOURCE',['../features_8h.html#a78c99ffd76a7bb3c8c74db76207e9ab4',1,'features.h']]]
 ];
