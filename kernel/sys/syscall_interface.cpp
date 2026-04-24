@@ -85,9 +85,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_TCSETPGRP] = syscalls::internal::sys_tcsetpgrp;
     syscall_table[SYSCALL_TCGETPGRP] = syscalls::internal::sys_tcgetpgrp;
 }
-u64 sys_calls = 0;
+
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
-    sys_calls++;
     u64 ret = 0;
 
     if (num < MAX_SYSCALLS && syscall_table[num]) [[likely]] {
@@ -104,5 +103,6 @@ extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, 
         signal_dispatch(u, trap);
     }
 
+    asm volatile("cli"); // disable interrupts again, as the syscall epilog has to be interrupt free
     return ret;
 }
