@@ -96,6 +96,12 @@ class Realm {
     u8 sched_priority;
     u64 cpu_time_accumulated;
 
+    RealmId    pgid;
+    RealmId    sid;
+    RealmId    parent_id;
+    TtyDevice* controlling_tty;
+
+
     Realm();
 
     i64 init_handle_table();

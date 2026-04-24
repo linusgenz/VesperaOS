@@ -193,25 +193,25 @@ namespace kernel::memory {
 
     void* malloc(const usize size) {
         if (!heap_initialized) return nullptr;
-        SpinlockGuard guard(heap_lock);
+        SpinlockGuardIrq guard(heap_lock);
         return ::kmalloc(size);
     }
 
     void free(void* addr) {
         if (!heap_initialized) return;
-        SpinlockGuard guard(heap_lock);
+        SpinlockGuardIrq guard(heap_lock);
         ::kfree(addr);
     }
 
     void* alloc_aligned(const usize size, const usize alignment, const usize boundary) {
         if (!heap_initialized) return nullptr;
-        SpinlockGuard guard(heap_lock);
+        SpinlockGuardIrq guard(heap_lock);
         return ::kalloc_aligned(size, alignment, boundary);
     }
 
     void free_aligned(void* aligned_ptr) {
         if (!heap_initialized) return;
-        SpinlockGuard guard(heap_lock);
+        SpinlockGuardIrq guard(heap_lock);
         return ::kfree_aligned(aligned_ptr);
     }
 
@@ -221,7 +221,7 @@ namespace kernel::memory {
 
     void* realloc(void* old_ptr, const usize old_size, const usize new_size) {
         if (!heap_initialized) return nullptr;
-        SpinlockGuard guard(heap_lock);
+        SpinlockGuardIrq guard(heap_lock);
         return ::krealloc(old_ptr, old_size, new_size);
     }
 }  // namespace kernel::memory

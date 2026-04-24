@@ -38,7 +38,7 @@ namespace syscalls::internal {
         const auto user_path = reinterpret_cast<const char*>(arg0);
         const auto argv = reinterpret_cast<const char**>(arg1);
         const auto envp = reinterpret_cast<const char**>(arg2);
-        const auto cfg_ptr   = reinterpret_cast<const spawn_config_t*>(arg3);
+        const auto cfg_ptr = reinterpret_cast<const spawn_config_t*>(arg3);
 
         if (!user_path) return -EINVAL;
 
@@ -48,12 +48,37 @@ namespace syscalls::internal {
 
         const char* base = strrchr(user_path, '/');
         base = base ? base + 1 : user_path;
-        const RealmConfig cfg = {.name = base, .capabilities = CAP_RW | CAP_DEVICE_ACCESS, .is_user = true};
+
+        const RealmConfig cfg = {
+            .name = base,
+            .capabilities = CAP_RW | CAP_DEVICE_ACCESS,
+            .is_user = true,
+        };
 
         Realm* new_realm = RealmManager::create(&cfg);
         if (!new_realm) return -ENOMEM;
 
-        new_realm->setup_standard_handles(tty_dev);
+        new_realm->parent_id = parent_realm ? parent_realm->id : 0;
+        new_realm->pgid = new_realm->id;  // always a new process group
+
+        if (cfg_ptr && cfg_ptr->bg_realm) {
+            new_realm->sid = new_realm->id;
+            new_realm->controlling_tty = nullptr;
+            new_realm->setup_standard_handles(nullptr);
+        } else {
+            new_realm->sid = parent_realm ? parent_realm->sid : new_realm->id;
+            new_realm->controlling_tty = tty_dev;
+
+            if (tty_dev) {
+                const RealmId parent_pgid = parent_realm ? parent_realm->pgid : 0;
+                kernel::tty::TTY* tty = tty_dev->tty;
+                if (tty->fg_pgid == 0 || tty->fg_pgid == parent_pgid) {
+                    tty->fg_pgid = new_realm->pgid;
+                }
+
+                new_realm->setup_standard_handles(tty_dev);
+            }
+        }
 
         if (cfg_ptr && parent_realm) {
             auto transfer = [&](i64 src_hid, HandleId dst_fixed_id) -> bool {
@@ -62,27 +87,18 @@ namespace syscalls::internal {
                 HandleEntry* he = parent_realm->lookup_handle(static_cast<HandleId>(src_hid));
                 if (!he || !he->transferable) return false;
 
-                if (he->acquire) {
-                    he->acquire(he->resource);
-                }
+                if (he->acquire) he->acquire(he->resource);
 
-                if (HandleEntry* existing = new_realm->lookup_handle(dst_fixed_id)) {
+                if (HandleEntry* existing = new_realm->lookup_handle(dst_fixed_id))
                     new_realm->release_handle(dst_fixed_id);
-                }
 
                 new_realm->add_handle_with_id(
-                    dst_fixed_id,
-                    he->type,
-                    he->resource,
-                    he->capabilities,
-                    he->transferable,
-                    he->destroy,
-                    he->acquire
+                    dst_fixed_id, he->type, he->resource, he->capabilities, he->transferable, he->destroy, he->acquire
                 );
                 return true;
             };
 
-            if (!transfer(cfg_ptr->stdin_handle,  HANDLE_STDIN))  {
+            if (!transfer(cfg_ptr->stdin_handle, HANDLE_STDIN)) {
                 RealmManager::destroy(new_realm->id);
                 return -EBADH;
             }
@@ -98,14 +114,18 @@ namespace syscalls::internal {
 
         char norm[256];
         if (!VFS::resolve_to_absolute(user_path, norm, sizeof(norm))) {
+            RealmManager::destroy(new_realm->id);
             return -EINVAL;
         }
 
-        // set the cwd to the caller cwd
-        strncpy(new_realm->cwd_path, parent_realm->cwd_path, sizeof(new_realm->cwd_path));
+        // Inherit cwd from caller.
+        if (parent_realm) strncpy(new_realm->cwd_path, parent_realm->cwd_path, sizeof(new_realm->cwd_path));
 
         VfsNode* exec_node = VFS::open(norm);
-        if (!exec_node) return -ENOENT;
+        if (!exec_node) {
+            RealmManager::destroy(new_realm->id);
+            return -ENOENT;
+        }
 
         if (exec_node->mount && (exec_node->mount->flags & MS_NOEXEC)) {
             VFS::close(exec_node);
@@ -115,7 +135,6 @@ namespace syscalls::internal {
         VFS::close(exec_node);
 
         const ElfLoader::LoadResult elf = ElfLoader::load(norm, 0x500000, new_realm);
-
         if (!elf.success) {
             RealmManager::destroy(new_realm->id);
             return -ENOEXEC;
@@ -141,10 +160,6 @@ namespace syscalls::internal {
         const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
         u->heap_start = heap_begin;
         u->heap_end = heap_begin;
-
-        if (tty_dev) {
-            tty_dev->tty->fg_realm_id = new_realm->id;
-        }
 
         kernel::scheduling::add_unit(u);
 

@@ -68,6 +68,7 @@ class TtyDevice final : public CharDevice {
     }
 
     int ioctl(CharFile* cf, u32 cmd, void* arg) override {
+        if (!tty) return -ENOTTY;
         if (!arg && cmd != IOCTL_TTY_GET_MODE && cmd != IOCTL_TTY_GET_SIZE)
             return -EINVAL;
 
@@ -100,11 +101,13 @@ class TtyDevice final : public CharDevice {
 
     isize read(CharFile*, void* buffer, usize count, usize) override {
         if (count == 0 || !buffer) return -EINVAL;
+        if (!tty) return 0;
         return kernel::tty::tty_read(tty, static_cast<char*>(buffer), count);
     }
 
     isize write(CharFile*, const void* buffer, usize count) override {
         if (count == 0 || !buffer) return -EINVAL;
+        if (!tty) return count;
         const auto buf = static_cast<const char*>(buffer);
         for (usize i = 0; i < count; i++) {
             kernel::tty::tty_process_output(tty, buf[i]);
@@ -114,6 +117,7 @@ class TtyDevice final : public CharDevice {
     }
 
     int poll(CharFile *) override {
+        if (!tty) return -ENODEV;
         int mask = POLLOUT;
 
         if (tty->canonical && tty->line_ready)  mask |= POLLIN;

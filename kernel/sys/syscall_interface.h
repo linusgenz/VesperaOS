@@ -115,6 +115,15 @@ namespace syscalls::internal {
 
     i64 sys_handle_transfer(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
+    i64 sys_setsid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_setpgid(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_getpgid(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_tcsetpgrp(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_tcgetpgrp(u64 arg0, u64, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

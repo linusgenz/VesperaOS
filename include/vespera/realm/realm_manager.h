@@ -24,12 +24,12 @@
 #ifndef VESPERAOS_REALM_MANAGER_H
 #define VESPERAOS_REALM_MANAGER_H
 
-
 #include <vespera/realm/realm.h>
+#include <vespera/realm/realm_config.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/spinlock.h>
 
-#include <vespera/realm/realm_config.h>
+#include "vespera/signals.h"
 
 class RealmManager {
    public:
@@ -38,11 +38,13 @@ class RealmManager {
     static Realm* create(const RealmConfig* cfg);
     static Realm* get(RealmId id);
     static bool destroy(RealmId id);
+    static void signal_pgid(RealmId pgid, Signal sig);
     static isize get_status(void* manager_ref, void* buffer, usize size, usize offset);
     static void list();
+    static constexpr usize MAX_REALMS = 64;
 
    private:
-    static constexpr usize MAX_REALMS = 64;
+    static Realm* find_realm_locked(RealmId id);
     static Realm realms_[MAX_REALMS];
     static Spinlock global_lock_;
     static RealmId next_id_;

@@ -15,7 +15,7 @@
 
 #include "fault_logger.h"
 #include "trace.h"
-
+extern u64 sys_calls;
 namespace kernel::debug {
     static const char* fault_type_to_string(const FaultType type) {
         switch (type) {
@@ -43,7 +43,7 @@ namespace kernel::debug {
         }
     }
 
-    void log_fault(FaultType type, const FaultContext& ctx, const char* extra_msg) {
+    void log_fault(FaultType type, const TrapFrame* ctx, const char* extra_msg) {
         const char* type_str = fault_type_to_string(type);
 
         if (extra_msg && *extra_msg) {
@@ -60,23 +60,25 @@ namespace kernel::debug {
             Log::error("%s", type_str);
         }
 
-        Log::error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx.rip, ctx.cs, ctx.rsp, ctx.rflags);
+        Log::error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx->rip, ctx->cs, ctx->rsp, ctx->rflags);
         u64 fault_addr = 0;
         asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
         Log::error("Page fault address (CR2): %p", fault_addr);
-        backtrace(ctx.rbp, ctx.rip);
+        Log::error("rax: 0x%llx rbx: 0x%llx rcx: 0x%llx, rdx: 0x%llx rsi: 0x%llx, rdi: 0x%llx rbp: 0x%llx r8: 0x%llx", ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx, ctx->rsi, ctx->rdi, ctx->rbp, ctx->r8);
+        Log::error("sys calls: %llu", sys_calls);
+        backtrace(ctx->rbp, ctx->rip);
         panic("FAULT");
 
-        if (ctx.error_code != 0) {
-            Log::error("  ERROR_CODE=0x%llx", ctx.error_code);
+        if (ctx->error_code != 0) {
+            Log::error("  ERROR_CODE=0x%llx", ctx->error_code);
         }
 
 #if DEBUG_FAULT
-        backtrace(ctx.rbp, ctx.rip);
+        backtrace(ctx->rbp, ctx->rip);
 #endif
     }
 
-    void log_page_fault_detail(const u64 fault_addr, const u64 error_code, const FaultContext& ctx) {
+    void log_page_fault_detail(const u64 fault_addr, const u64 error_code, const TrapFrame* ctx) {
         log_fault(FaultType::PageFault, ctx, "Page fault detected");
 
         const Unit* u = scheduling::get_current_unit();
@@ -93,7 +95,7 @@ namespace kernel::debug {
         );
     }
 
-    void log_invalid_opcode_bytes(const u64 rip, const FaultContext& ctx) {
+    void log_invalid_opcode_bytes(const u64 rip, const TrapFrame* ctx) {
         log_fault(FaultType::InvalidOpcode, ctx, "Invalid opcode detected");
 
         // Vorsicht: wir greifen direkt auf den Code-Speicher zu – im Fehlerfall ist das

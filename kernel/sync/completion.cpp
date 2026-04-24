@@ -28,7 +28,6 @@
 
 void Completion::init() {
     completed = false;
-    lock.init();
 }
 
 void Completion::wait() const {
@@ -49,6 +48,5 @@ bool Completion::wait_timeout(const u64 timeout_ms) const {
 }
 
 void Completion::complete() {
-    SpinlockGuard guard(lock);
     __atomic_store_n(&completed, true, __ATOMIC_RELEASE);
 }

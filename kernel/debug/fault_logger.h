@@ -38,11 +38,11 @@ namespace kernel::debug {
         u64 error_code;
     };
 
-    void log_fault(FaultType type, const FaultContext& ctx, const char* extra_msg = nullptr);
+    void log_fault(FaultType type, const TrapFrame* ctx, const char* extra_msg = nullptr);
 
-    void log_page_fault_detail(u64 fault_addr, u64 error_code, const FaultContext& ctx);
+    void log_page_fault_detail(u64 fault_addr, u64 error_code, const TrapFrame* ctx);
 
-    void log_invalid_opcode_bytes(u64 rip, const FaultContext& ctx);
+    void log_invalid_opcode_bytes(u64 rip, const TrapFrame* ctx);
 
 }  // namespace kernel::debug
 

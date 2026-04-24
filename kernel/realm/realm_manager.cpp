@@ -42,19 +42,35 @@ bool RealmManager::initialized_ = false;
 phys_addr_t g_trampoline_page;
 static u8* g_trampoline_virt;
 
-
 static u8 signal_trampoline[] = {
-    0x48, 0xC7, 0xC0, 15, 0x00, 0x00, 0x00,  // mov rax, 36
-    0x0F, 0x05,                                 // syscall
-    0xF4                                        // hlt
+    0x48,
+    0xC7,
+    0xC0,
+    15,
+    0x00,
+    0x00,
+    0x00,  // mov rax, 36
+    0x0F,
+    0x05,  // syscall
+    0xF4   // hlt
 };
 
 static u8 unit_trampoline[] = {
-    0xFF, 0xD6,                               // call rsi
-    0x48, 0x89, 0xC7,                         // mov rdi, rax
-    0x48, 0xC7, 0xC0, SYSCALL_EXIT, 0x00, 0x00, 0x00,  // mov rax, SYSCALL_EXIT
-    0x0F, 0x05,                               // syscall
-    0xF4                                      // hlt
+    0xFF,
+    0xD6,  // call rsi
+    0x48,
+    0x89,
+    0xC7,  // mov rdi, rax
+    0x48,
+    0xC7,
+    0xC0,
+    SYSCALL_EXIT,
+    0x00,
+    0x00,
+    0x00,  // mov rax, SYSCALL_EXIT
+    0x0F,
+    0x05,  // syscall
+    0xF4   // hlt
 };
 
 void RealmManager::initialize() {
@@ -72,19 +88,13 @@ void RealmManager::initialize() {
     initialized_ = true;
 
     g_trampoline_page = kernel::memory::request_page_phys();
-    g_trampoline_virt = static_cast<u8*>(
-        virt_ptr(phys_to_virt(g_trampoline_page))
-    );
+    g_trampoline_virt = static_cast<u8*>(virt_ptr(phys_to_virt(g_trampoline_page)));
 
     memset(g_trampoline_virt, 0, 0x1000);
 
-    memcpy(g_trampoline_virt + TRAMP_SIGNAL_OFF,
-       signal_trampoline,
-       sizeof(signal_trampoline));
+    memcpy(g_trampoline_virt + TRAMP_SIGNAL_OFF, signal_trampoline, sizeof(signal_trampoline));
 
-    memcpy(g_trampoline_virt + TRAMP_UNIT_OFF,
-       unit_trampoline,
-       sizeof(unit_trampoline));
+    memcpy(g_trampoline_virt + TRAMP_UNIT_OFF, unit_trampoline, sizeof(unit_trampoline));
 }
 
 bool RealmManager::is_initialized() {
@@ -93,7 +103,7 @@ bool RealmManager::is_initialized() {
 
 static void map_trampolines(Realm* r) {
     r->page_table->map_range(
-    virt_from_raw(TRAMPOLINE_VADDR),
+        virt_from_raw(TRAMPOLINE_VADDR),
         g_trampoline_page,
         0x1000,
         (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper)
@@ -177,6 +187,10 @@ Realm* RealmManager::get(const RealmId id) {
     }
 }
 
+Realm* RealmManager::find_realm_locked(const RealmId id) {
+    return nullptr;
+}
+
 bool RealmManager::destroy(const RealmId id) {
     SpinlockGuard g(global_lock_);
 
@@ -184,40 +198,75 @@ bool RealmManager::destroy(const RealmId id) {
 
     bool ok = false;
     for (auto& realm : realms_) {
-        if (realm.active && realm.id == id) {
-            SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
-            RealmFs::unregister_realm(realm.id);
+        if (!realm.active || realm.id != id) continue;
 
-            const Unit* u = realm.unit_list;
-            while (u) {
-                const Unit* next = u->next;
-                UnitManager::destroy(u->id);
-                u = next;
+        if (realm.controlling_tty) {
+            kernel::tty::TTY* tty = realm.controlling_tty->tty;
+            if (tty && tty->fg_pgid == realm.pgid) {
+                const Realm* parent = nullptr;
+                for (auto& r : realms_) {
+                    if (r.active && r.id == id) parent = &r;
+                }
+                if (parent && parent->controlling_tty == realm.controlling_tty) {
+                    tty->fg_pgid = parent->pgid;
+                } else {
+                    tty->fg_pgid = 0;
+                }
             }
-
-            if (!phys_null(realm.pml4_phys)) {
-                kernel::memory::free_page_phys(realm.pml4_phys);
-                realm.pml4_phys = make_phys(0);
-                realm.pml4 = nullptr;
-            }
-            delete realm.page_table;
-
-            realm.page_table = nullptr;
-
-            realm.unit_list = nullptr;
-            realm.unit_count = 0;
-            realm.clear_handle_table();
-            realm.active = false;
-            realm.id = 0;
-
-            ok = true;
-            break;
         }
+
+        SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
+        RealmFs::unregister_realm(realm.id);
+
+        const Unit* u = realm.unit_list;
+        while (u) {
+            const Unit* next = u->next;
+            UnitManager::destroy(u->id);
+            u = next;
+        }
+
+        if (!phys_null(realm.pml4_phys)) {
+            kernel::memory::free_page_phys(realm.pml4_phys);
+            realm.pml4_phys = make_phys(0);
+            realm.pml4 = nullptr;
+        }
+        delete realm.page_table;
+
+        realm.page_table = nullptr;
+
+        realm.unit_list = nullptr;
+        realm.unit_count = 0;
+        realm.clear_handle_table();
+        realm.active = false;
+        realm.id = 0;
+
+        ok = true;
+        break;
     }
 
     seq_.fetch_add(1);  // writer end
 
     return ok;
+}
+
+void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {
+    if (pgid == 0) return;
+
+    while (true) {
+        const u8 begin = seq_.load();
+        if (begin & 1) continue;
+
+        for (auto& realm : realms_) {
+            if (!realm.active || realm.pgid != pgid) continue;
+            Unit* u = realm.unit_list;
+            while (u) {
+                signal_send(u, sig);
+                u = u->realm_next;
+            }
+        }
+
+        if (const u8 end = seq_.load(); begin == end) return;
+    }
 }
 
 isize RealmManager::get_status(void* manager_ref, void* buffer, const usize size, usize offset) {

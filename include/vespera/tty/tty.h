@@ -69,7 +69,7 @@ namespace kernel::tty {
 
         utf8_state_t utf8;
 
-        RealmId fg_realm_id{0};
+        RealmId fg_pgid{0};
 
         Terminal *term;
     };

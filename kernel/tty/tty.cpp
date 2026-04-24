@@ -21,10 +21,19 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+// tty.cpp
+//
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+//
+// This file is part of VesperaOS (GPL-3.0-or-later).
+
 #include <vespera/graphics/colors.h>
 #include <vespera/input/keycode.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/signals.h>
@@ -34,21 +43,11 @@ namespace kernel::tty {
     /**
      * @brief Points to the TTY instance that currently holds keyboard focus.
      *
-     * This pointer determines which TTY receives characters from keyboard
-     * interrupt events. It is set during TTY initialization and updated
-     * when the user switches the tty.
+     * Input-routing only — has no relation to scheduling or foreground
+     * process groups.  The keyboard interrupt fires asynchronously; the unit
+     * running at interrupt time is arbitrary.
      *
-     * @note This is strictly an input-routing concept and has no relation
-     *       to which realm or unit is currently scheduled. The keyboard
-     *       interrupt fires asynchronously — the unit running at interrupt
-     *       time is arbitrary and must never be used to infer focus.
-     *
-     * @note This is intentionally separate from the per-realm TTY handle
-     *       stored in each realm's handle table. Read access control
-     *       (i.e. which realm may consume TTY input) is governed by
-     *       TTY::fg_realm_id, not by this pointer.
-     *
-     * @see TTY::fg_realm_id
+     * @see TTY::fg_pgid
      * @see tty_handle_input()
      */
     TTY* keyboard_focus_tty;
@@ -63,6 +62,7 @@ namespace kernel::tty {
         tty->bg = BLACK;
         tty->term = term;
         tty->utf8 = {};
+        tty->fg_pgid = 0;
 
         term->set_colour(tty->fg, tty->bg);
     }
@@ -118,15 +118,16 @@ namespace kernel::tty {
             };
             for (const auto& sk : TABLE) {
                 if (ev.keycode == sk.key) {
-                    for (usize i = 0; i < sk.len && keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1; i++)
+                    for (usize i = 0; i < sk.len && keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1; i++) {
                         keyboard_focus_tty->raw_buffer[keyboard_focus_tty->raw_len++] = sk.seq[i];
+                    }
                     return;
                 }
             }
         }
 
         const char c = ev.ascii;
-        if (!c) return;  // If we input CTRL+Space (NULL) this gets swallowed here.
+        if (!c) return;  // CTRL+Space (NUL) silently swallowed
 
         if (c == '\b') {
             if (keyboard_focus_tty->canonical) {
@@ -139,20 +140,11 @@ namespace kernel::tty {
         }
 
         if (c == 3 && keyboard_focus_tty->canonical) {
-            if (const RealmId fg = keyboard_focus_tty->fg_realm_id; fg != 0) {
-                if (const Realm* realm = RealmManager::get(fg)) {
-                    Unit* u = realm->unit_list;
-                    while (u) {
-                        signal_send(u, Signal::SIGINT);
-                        u = u->realm_next;
-                    }
-                }
-            }
+            RealmManager::signal_pgid(keyboard_focus_tty->fg_pgid, Signal::SIGINT);
             return;
         }
 
         if (keyboard_focus_tty->canonical) {
-            // Canonical Mode
             if (c == '\n') {
                 if (!keyboard_focus_tty->line_ready && keyboard_focus_tty->canon_len < TTY::BUFFER_SIZE - 1) {
                     keyboard_focus_tty->canon_buffer[keyboard_focus_tty->canon_len++] = '\n';
@@ -166,7 +158,6 @@ namespace kernel::tty {
                 }
             }
         } else {
-            // Non-canonical Mode
             if (keyboard_focus_tty->raw_len < TTY::BUFFER_SIZE - 1) {
                 keyboard_focus_tty->raw_buffer[keyboard_focus_tty->raw_len++] = c;
             }
@@ -178,7 +169,7 @@ namespace kernel::tty {
         switch (code) {
             case 30:
             case 40:
-                return bright ? 0x00808080 : BLACK;  // gray for bright black
+                return bright ? 0x00808080 : BLACK;
             case 31:
             case 41:
                 return bright ? 0x00FF6060 : RED;
@@ -200,34 +191,32 @@ namespace kernel::tty {
             case 37:
             case 47:
                 return bright ? 0x00FFFFFF : WHITE;
-
             case 90:
             case 100:
-                return 0x00808080;  // Bright Black (→ Gray)
+                return 0x00808080;
             case 91:
             case 101:
-                return 0x00FF6060;  // Bright Red
+                return 0x00FF6060;
             case 92:
             case 102:
-                return 0x0060FF60;  // Bright Green
+                return 0x0060FF60;
             case 93:
             case 103:
-                return 0x00FFFF60;  // Bright Yellow
+                return 0x00FFFF60;
             case 94:
             case 104:
-                return 0x0060A0FF;  // Bright Blue
+                return 0x0060A0FF;
             case 95:
             case 105:
-                return 0x00FF60FF;  // Bright Magenta
+                return 0x00FF60FF;
             case 96:
             case 106:
-                return 0x0060FFFF;  // Bright Cyan
+                return 0x0060FFFF;
             case 97:
             case 107:
-                return 0x00FFFFFF;  // Bright White
-
+                return 0x00FFFFFF;
             default:
-                return WHITE;  // fallback
+                return WHITE;
         }
     }
 
@@ -235,62 +224,49 @@ namespace kernel::tty {
         usize i = 0;
         while (i < tty->esc_param_count) {
             switch (const int code = tty->esc_params[i++]) {
-                case 0:  // Reset
+                case 0:
                     tty->fg = WHITE;
                     tty->bg = BLACK;
                     tty->reverse = false;
                     break;
-
-                case 7:  // Reverse video
+                case 7:
                     tty->reverse = true;
                     break;
-
-                case 27:  // Reset reverse
+                case 27:
                     tty->reverse = false;
                     break;
-
-                case 30 ... 37:  // Standard FG
+                case 30 ... 37:
                     tty->fg = ansi_to_colour(code, false);
                     break;
-                case 40 ... 47:  // Standard BG
+                case 40 ... 47:
                     tty->bg = ansi_to_colour(code, true);
                     break;
-
-                case 90 ... 97:  // Bright FG
+                case 90 ... 97:
                     tty->fg = ansi_to_colour(code, false, true);
                     break;
-                case 100 ... 107:  // Bright BG
+                case 100 ... 107:
                     tty->bg = ansi_to_colour(code, true, true);
                     break;
-
-                case 38:  // Extended FG
+                case 38:
                     if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
-                        const int r = tty->esc_params[i + 1];
-                        const int g = tty->esc_params[i + 2];
-                        const int b = tty->esc_params[i + 3];
-                        tty->fg = ((r << 16) | (g << 8) | b);
+                        tty->fg =
+                            ((tty->esc_params[i + 1] << 16) | (tty->esc_params[i + 2] << 8) | tty->esc_params[i + 3]);
                         i += 4;
                     }
                     break;
-
-                case 39:  // Reset FG to default
+                case 39:
                     tty->fg = WHITE;
                     break;
-
-                case 48:  // Extended BG
+                case 48:
                     if (i < tty->esc_param_count && tty->esc_params[i] == 2 && i + 3 < tty->esc_param_count) {
-                        const int r = tty->esc_params[i + 1];
-                        const int g = tty->esc_params[i + 2];
-                        const int b = tty->esc_params[i + 3];
-                        tty->bg = ((r << 16) | (g << 8) | b);
+                        tty->bg =
+                            ((tty->esc_params[i + 1] << 16) | (tty->esc_params[i + 2] << 8) | tty->esc_params[i + 3]);
                         i += 4;
                     }
                     break;
-
-                case 49:  // Reset BG to default
+                case 49:
                     tty->bg = BLACK;
                     break;
-
                 default:
                     break;
             }
@@ -298,13 +274,11 @@ namespace kernel::tty {
 
         u32 fg = tty->fg;
         u32 bg = tty->bg;
-
         if (tty->reverse) {
-            u32 tmp = fg;
+            const u32 tmp = fg;
             fg = bg;
             bg = tmp;
         }
-
         tty->term->set_colour(fg, bg);
     }
 
@@ -324,14 +298,12 @@ namespace kernel::tty {
                     const usize cols = tty->term->visible_cols();
                     const usize next_tab = (tty->cursor_x / TTY_TAB_WIDTH + 1) * TTY_TAB_WIDTH;
                     const usize target = (next_tab < cols) ? next_tab : cols - 1;
-
                     while (tty->cursor_x < target) {
                         tty->term->put_char(' ');
                         tty->cursor_x++;
                     }
                 } else {
                     uint32_t cp = 0;
-
                     if (utf8_decode(&tty->utf8, static_cast<uint8_t>(c), &cp)) {
                         tty->term->put_codepoint(cp);
                         tty->cursor_x++;
@@ -367,8 +339,6 @@ namespace kernel::tty {
                 if (tty->esc_param_count < TTY::MAX_PARAMS) tty->esc_params[tty->esc_param_count++] = tty->esc_param;
 
                 {
-                    // Helper: return params[idx], defaulting to `def` when
-                    // the parameter was omitted (ANSI default = 0 stored).
                     auto p = [&](const usize idx, const int def) -> int {
                         if (idx >= tty->esc_param_count) return def;
                         const int v = tty->esc_params[idx];
@@ -379,7 +349,6 @@ namespace kernel::tty {
                     const usize rows = tty->term->visible_rows();
 
                     if (tty->esc_private_mode) {
-                        // DEC private sequences
                         const int mode = (tty->esc_param_count > 0) ? tty->esc_params[0] : 0;
                         switch (c) {
                             case 'h':
@@ -392,13 +361,11 @@ namespace kernel::tty {
                                 break;
                         }
                     } else {
-                        // CSI sequences
                         switch (c) {
-                            // SGR
                             case 'm':
                                 tty_apply_sgr(tty);
                                 break;
-                            case 'H':  // ESC[row;colH  — cursor position (1-indexed)
+                            case 'H':
                             case 'f': {
                                 int row = p(0, 1) - 1;
                                 int col = p(1, 1) - 1;
@@ -411,41 +378,35 @@ namespace kernel::tty {
                                 tty->term->set_cursor(col, row);
                                 break;
                             }
-
-                            case 'A': {  // ESC[nA — cursor up
-                                const int n = p(0, 1);
-                                int r = static_cast<int>(tty->cursor_y) - n;
+                            case 'A': {
+                                int r = (int)tty->cursor_y - p(0, 1);
                                 if (r < 0) r = 0;
                                 tty->cursor_y = r;
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
                             }
-
-                            case 'B': {  // ESC[nB — cursor down
+                            case 'B': {
                                 usize r = tty->cursor_y + p(0, 1);
                                 if (r >= rows) r = rows - 1;
                                 tty->cursor_y = r;
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
                             }
-
-                            case 'C': {  // ESC[nC — cursor forward (right)
+                            case 'C': {
                                 usize col = tty->cursor_x + p(0, 1);
                                 if (col >= cols) col = cols - 1;
                                 tty->cursor_x = col;
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
                             }
-
-                            case 'D': {  // ESC[nD — cursor back (left)
+                            case 'D': {
                                 int col = static_cast<int>(tty->cursor_x) - p(0, 1);
                                 if (col < 0) col = 0;
                                 tty->cursor_x = col;
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
                             }
-
-                            case 'E': {  // ESC[nE — cursor next line
+                            case 'E': {
                                 usize r = tty->cursor_y + p(0, 1);
                                 if (r >= rows) r = rows - 1;
                                 tty->cursor_y = r;
@@ -453,7 +414,7 @@ namespace kernel::tty {
                                 tty->term->set_cursor(0, tty->cursor_y);
                                 break;
                             }
-                            case 'F': {  // ESC[nF — cursor previous line
+                            case 'F': {
                                 int r = static_cast<int>(tty->cursor_y) - p(0, 1);
                                 if (r < 0) r = 0;
                                 tty->cursor_y = r;
@@ -461,7 +422,7 @@ namespace kernel::tty {
                                 tty->term->set_cursor(0, tty->cursor_y);
                                 break;
                             }
-                            case 'G': {  // ESC[nG — cursor horizontal absolute (1-indexed)
+                            case 'G': {
                                 int col = p(0, 1) - 1;
                                 if (col < 0) col = 0;
                                 if (static_cast<usize>(col) >= cols) col = static_cast<int>(cols) - 1;
@@ -469,10 +430,10 @@ namespace kernel::tty {
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
                             }
-                            case 'd': {  // ESC[nd — line position absolute (1-indexed)
+                            case 'd': {
                                 int row = p(0, 1) - 1;
                                 if (row < 0) row = 0;
-                                if (static_cast<usize>(row) >= rows) row = static_cast<int>(rows) - 1;
+                                if ((usize)row >= rows) row = (int)rows - 1;
                                 tty->cursor_y = row;
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
@@ -481,30 +442,26 @@ namespace kernel::tty {
                                 tty->saved_cursor_x = tty->cursor_x;
                                 tty->saved_cursor_y = tty->cursor_y;
                                 break;
-
                             case 'u':
                                 tty->cursor_x = tty->saved_cursor_x;
                                 tty->cursor_y = tty->saved_cursor_y;
                                 tty->term->set_cursor(tty->cursor_x, tty->cursor_y);
                                 break;
-                            case 'J': {  // ESC[nJ — erase in display
+                            case 'J': {
                                 const int mode = (tty->esc_param_count > 0) ? tty->esc_params[0] : 0;
-                                if (mode == 2) {
+                                if (mode == 2)
                                     tty_clear(tty);
-                                } else {
+                                else
                                     tty->term->erase_in_display(mode, tty->cursor_x, tty->cursor_y);
-                                }
                                 break;
                             }
-
-                            case 'K': {  // ESC[nK — erase in line
+                            case 'K': {
                                 const int mode = (tty->esc_param_count > 0) ? tty->esc_params[0] : 0;
                                 tty->term->erase_in_line(mode, tty->cursor_x, tty->cursor_y);
                                 break;
                             }
-                            case 'n': {  // ESC[6n - Cursor Position Report
+                            case 'n': {
                                 if (const int mode = p(0, 0); mode == 6) {
-                                    // ESC [ row ; col R  (1-indexed)
                                     char response[32];
                                     const int len = snprintf(
                                         response,
@@ -513,11 +470,8 @@ namespace kernel::tty {
                                         tty->cursor_y + 1,
                                         tty->cursor_x + 1
                                     );
-
-                                    for (int i = 0; i < len && tty->raw_len < TTY::BUFFER_SIZE - 1; ++i) {
+                                    for (int i = 0; i < len && tty->raw_len < TTY::BUFFER_SIZE - 1; ++i)
                                         tty->raw_buffer[tty->raw_len++] = response[i];
-                                    }
-
                                     if (tty->canonical) {
                                         for (int i = 0; i < len && tty->canon_len < TTY::BUFFER_SIZE - 1; ++i)
                                             tty->canon_buffer[tty->canon_len++] = response[i];
@@ -527,14 +481,12 @@ namespace kernel::tty {
                                 }
                                 break;
                             }
-
                             default:
-                                break;  // If we don't know the sequence, we don't process it lol
+                                break;
                         }
                     }
                 }
 
-                // Reset CSI state.
                 tty->esc_state = EscapeState::NONE;
                 tty->esc_param = 0;
                 tty->esc_param_count = 0;
@@ -545,13 +497,10 @@ namespace kernel::tty {
 
     void tty_clear(TTY* tty) {
         tty->term->clear();
-
         tty->canon_len = 0;
         tty->line_ready = false;
         memset(tty->canon_buffer, 0, TTY::BUFFER_SIZE);
-
         tty->cursor_x = tty->cursor_y = 0;
-
         tty->esc_state = EscapeState::NONE;
         tty->esc_param = 0;
         tty->esc_param_count = 0;
@@ -559,15 +508,15 @@ namespace kernel::tty {
 
     isize tty_read(TTY* tty, char* buf, const usize count) {
         const Unit* u = kernel::scheduling::get_current_unit();
-        const RealmId my_realm = u ? u->rid : 0;
+        const RealmId my_rid = u ? u->rid : 0;
+        Realm* my_realm = my_rid ? RealmManager::get(my_rid) : nullptr;
+        const RealmId my_pgid = my_realm ? my_realm->pgid : 0;
 
         usize bytes_read = 0;
 
         if (tty->canonical) {
-            while (!tty->line_ready || (tty->fg_realm_id != 0 && tty->fg_realm_id != my_realm)) {
-                if (u && (u->signals_pending & ~u->signals_masked)) {
-                    return -EINTR;
-                }
+            while (!tty->line_ready || (tty->fg_pgid != 0 && tty->fg_pgid != my_pgid)) {
+                if (u && (u->signals_pending & ~u->signals_masked)) return -EINTR;
                 kernel::scheduling::yield();
             }
 
@@ -579,10 +528,8 @@ namespace kernel::tty {
             tty->line_ready = false;
             memset(tty->canon_buffer, 0, TTY::BUFFER_SIZE);
         } else {
-            while (tty->raw_len == 0 || (tty->fg_realm_id != 0 && tty->fg_realm_id != my_realm)) {
-                if (u && (u->signals_pending & ~u->signals_masked)) {
-                    return -EINTR;
-                }
+            while (tty->raw_len == 0 || (tty->fg_pgid != 0 && tty->fg_pgid != my_pgid)) {
+                if (u && (u->signals_pending & ~u->signals_masked)) return -EINTR;
                 kernel::scheduling::yield();
             }
 

@@ -53,6 +53,7 @@ namespace syscalls::internal {
         switch (he->type & HANDLE_TYPE_MASK) {
             case HANDLE_TYPE_TTY: {
                 auto *tty_dev = static_cast<TtyDevice *>(he->resource);
+                if (!tty_dev) return 0;
                 return tty_dev->read(nullptr, buf, count, 0);
             }
             case HANDLE_TYPE_DEVICE:

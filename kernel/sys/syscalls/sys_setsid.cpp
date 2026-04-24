@@ -1,10 +1,9 @@
-// syscall.cpp
-//
+// sys_setsid.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 23.04.26.
 //
 // This file is part of VesperaOS.
 //
@@ -21,28 +20,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "syscall.h"
+#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/scheduling.h>
+#include <vespera_errno.h>
 
-#include <arch/x86_64/cpu/msr.h>
+namespace syscalls::internal {
+    i64 sys_setsid(u64, u64, u64, u64, u64, u64) {
+        const Unit* caller = kernel::scheduling::get_current_unit();
+        if (!caller) return -ESRCH;
 
-#include <vespera/log.h>
+        Realm* r = RealmManager::get(caller->rid);
+        if (!r) return -ESRCH;
 
-extern "C" void syscall_entry();
+        if (r->sid == r->id) return -EPERM;
 
+        r->controlling_tty = nullptr;
 
-#define EFER_SCE 1
+        r->sid  = r->id;
+        r->pgid = r->id;
 
-void syscall_init() {
-    constexpr u64 user_cs = 0x23;
-    constexpr u64 kernel_cs = 0x08;
-    constexpr u64 star = ((user_cs - 0x10) << 48) | (kernel_cs << 32);
-    wrmsr(MSR_STAR, star);
-
-    wrmsr(MSR_LSTAR, reinterpret_cast<u64>(&syscall_entry));
-
-    wrmsr(MSR_FMASK, 0x200);  // TEMP not secure. mask everything later TODO
-
-    u64 efer = rdmsr(MSR_EFER);
-    efer |= EFER_SCE;
-    wrmsr(MSR_EFER, efer);  // enable syscalls
-}
+        return static_cast<i64>(r->id);
+    }
+}  // namespace syscalls::internal

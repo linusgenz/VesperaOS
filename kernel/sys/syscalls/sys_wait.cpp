@@ -43,17 +43,9 @@ namespace syscalls::internal {
             return -ECHILD;
         }
 
-        auto restore_tty_focus = [&]() {
-            if (!parent_realm) return;
-            TtyDevice* tty_dev = parent_realm->get_tty_device();
-            if (tty_dev && tty_dev->tty->fg_realm_id == child_rid) {
-                tty_dev->tty->fg_realm_id = parent_realm->id;
-            }
-        };
         {
             SpinlockGuard g(target->lock);
             if (target->unit_count == 0 || target->exited) {
-                restore_tty_focus();
                 int exit_code = 0;
                 ExitCodeTable::consume(child_rid, &exit_code);
                 (*reinterpret_cast<int*>(status_user_ptr)) = exit_code;
@@ -67,8 +59,6 @@ namespace syscalls::internal {
         int exit_code = 0;
         ExitCodeTable::consume(child_rid, &exit_code);
         (*reinterpret_cast<int*>(status_user_ptr)) = exit_code;
-
-        restore_tty_focus();
 
         return 0;
     }
