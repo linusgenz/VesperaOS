@@ -207,7 +207,7 @@ namespace fat32 {
         );
         bool delete_directory_entry_in_directory(u32 dir_cluster, const char* name) const;
 
-        bool create_directory(const Fat32Node* parent_dir, const char* name);
+        int create_directory(const Fat32Node* parent_dir, const char* name);
 
         bool remove_directory(const Fat32Node* parent_dir, const char* name);
 

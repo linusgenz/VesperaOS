@@ -12,6 +12,7 @@
 #include "fat32_lfn.h"
 #include "fat32_time.h"
 #include "fat32_vfs_adapter.h"
+#include "vespera_errno.h"
 
 namespace fat32 {
     // ============================================================================
@@ -1131,19 +1132,24 @@ namespace fat32 {
     // Create/Delete Operations
     // ============================================================================
 
-    bool FileSystem::create_directory(const Fat32Node* parent_dir, const char* name) {
-        if (!parent_dir || !name || name[0] == '\0') return false;
+
+    int FileSystem::create_directory(const Fat32Node* parent_dir, const char* name) {
+        if (!parent_dir || !name || name[0] == '\0') return -EINVAL;
 
         const u32 parent_cluster = parent_dir->cluster;
         const u32 cluster_bytes = bytes_per_cluster();
 
+        if (find_entry_cluster(parent_cluster, name) != 0) {
+            return -EEXIST;
+        }
+
         // Allocate new cluster
         const u32 new_cluster = find_free_cluster();
-        if (new_cluster == 0) return false;
-        if (!write_fat_entry(new_cluster, 0x0FFFFFFF)) return false;
+        if (new_cluster == 0) return -ENOSPC;
+        if (!write_fat_entry(new_cluster, 0x0FFFFFFF)) return -EIO;
 
         u8* zero = alloc_cluster_buffer(cluster_bytes);
-        if (!zero) return false;
+        if (!zero) return -ENOMEM;
         memset(zero, 0, cluster_bytes);
 
         // Create "." and ".." entries
@@ -1167,11 +1173,11 @@ namespace fat32 {
         const bool write_ok =
             device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes);
         free_cluster_buffer(zero, cluster_bytes);
-        if (!write_ok) return false;
+        if (!write_ok) return -EIO;
 
         // Create directory entry
         char short_name[12] = {};
-        if (!make_short_name(name, short_name)) return false;
+        if (!make_short_name(name, short_name)) return -EINVAL;
 
         DirectoryEntry new_entry = {};
         memcpy(new_entry.name, short_name, 11);
@@ -1183,7 +1189,11 @@ namespace fat32 {
 
         write_fs_info();
 
-        return write_directory_entry_with_lfn(parent_cluster, name, short_name, &new_entry);
+        if (!write_directory_entry_with_lfn(parent_cluster, name, short_name, &new_entry)) {
+            return -EIO;
+        }
+
+        return 0;
     }
 
     bool FileSystem::create_file(const Fat32Node* parent_dir, const char* name) {

@@ -199,7 +199,7 @@ static int fat32_rename(const VfsNode* node, const char* old_name, const VfsNode
 
 static int fat32_mkdir(const VfsNode* node, const char* name) {
     const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->create_directory(dir, name) ? 0 : 1;
+    return dir->fs->create_directory(dir, name);
 }
 
 static int fat32_rmdir(const VfsNode* node, const char* name) {
