@@ -41,4 +41,6 @@ typedef struct {
 #define IOCTL_TTY_SET_MODE IOW('T', 0x02, tty_mode_t)
 #define IOCTL_TTY_GET_SIZE IOR('T', 0x03, tty_size_t)
 
+#define TIOCSCTTY   IO('T', 0x04)
+
 #endif  // VESPERAOS_IOCTL_TTY_H

@@ -49,6 +49,15 @@ namespace syscalls::internal {
             return -EACCES;
         }
 
+        if ((he->type & HANDLE_TYPE_MASK) == HANDLE_TYPE_TTY && req == TIOCSCTTY) {
+            if (realm->sid != realm->id) return -EPERM;
+            if (realm->controlling_tty != nullptr) return -EPERM;
+            auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+            if (!tty_dev) return -ENOTTY;
+            realm->controlling_tty = tty_dev;
+            return 0;
+        }
+
         switch (he->type & HANDLE_TYPE_MASK) {
             case HANDLE_TYPE_DEVICE: {
                 const auto* vh = static_cast<VfsHandle*>(he->resource);

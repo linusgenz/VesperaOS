@@ -112,6 +112,7 @@ void signal_send(Unit* u, Signal sig) {
 
     __sync_or_and_fetch(&u->signals_pending, 1ULL << n);
     if (u->state == UnitState::Blocked) {
+        u->sleep_context.interrupted = true;
         u->state = UnitState::Ready;
     }
 }

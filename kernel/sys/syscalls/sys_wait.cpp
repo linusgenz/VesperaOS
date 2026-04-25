@@ -37,8 +37,6 @@ namespace syscalls::internal {
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;
 
-        const Realm* parent_realm = RealmManager::get(current->rid);
-
         Realm* target = RealmManager::get(child_rid);
         if (!target) {
             return -ECHILD;

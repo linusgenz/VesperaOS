@@ -155,7 +155,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     Log::info("Kernel version: %s", get_kernel_version());
 
     constexpr RealmConfig realm_config_shell = {
-        .name = "shell_realm",
+        .name = "initium",
         .memory_limit = 0,
         .capabilities = CAP_DEVICE_ACCESS | CAP_RW,
         .max_units = 16,

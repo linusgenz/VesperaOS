@@ -23,11 +23,8 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sysstd.h>
-
-#include "../lib/include/time.h"
+#include <time.h>
 
 static void usage(void) {
     puts("Usage: sleep <seconds>");

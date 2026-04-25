@@ -85,10 +85,10 @@ typedef struct ExecutionContext {
     UnitFpuState fpu_ctx;
 } execution_context_t;
 
-typedef struct SleepContext {
+struct SleepContext {
     u64 wakeup_ns;
-    void* kernel_rsp_after_sleep;
-} sleep_context_t;
+    bool interrupted = false;
+};
 
 struct VmArea {
     uptr start;
@@ -145,7 +145,7 @@ class Unit {
     u64 handle_count{0};
 
     execution_context_t context{};
-    sleep_context_t sleep_context{};
+    SleepContext sleep_context{};
 
     u64 signals_pending;
     u64 signals_masked;

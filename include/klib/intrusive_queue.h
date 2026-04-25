@@ -137,6 +137,16 @@ public:
         return result_head;
     }
 
+    template<typename Predicate>
+    void for_each(Predicate&& pred) const {
+        Node* cur = head_;
+        while (cur) {
+            Node* next = cur->next;
+            pred(cur);
+            cur = next;
+        }
+    }
+
     [[nodiscard]] bool empty() const {
         return head_ == nullptr;
     }

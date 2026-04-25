@@ -21,7 +21,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handles.h>
-#include <vespera/devices/char_device.h>
 #include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
@@ -42,7 +41,7 @@ namespace syscalls::internal {
         const RealmId new_pgid = arg1;
         if (new_pgid == 0) return -EINVAL;
 
-        HandleEntry* he = self->lookup_handle(hid);
+        const HandleEntry* he = self->lookup_handle(hid);
         if (!he || he->type != HANDLE_TYPE_TTY) return -ENOTTY;
 
         auto* tty_dev = static_cast<TtyDevice*>(he->resource);

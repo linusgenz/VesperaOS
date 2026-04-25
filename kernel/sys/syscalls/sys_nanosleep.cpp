@@ -25,26 +25,26 @@
 #include <vespera/time.h>
 
 #include "vespera/log.h"
+#include "vespera_errno.h"
 
 namespace syscalls::internal {
     i64 sys_nanosleep(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto* req = reinterpret_cast<const timespec_t*>(arg0);
         auto* rem = reinterpret_cast<timespec_t*>(arg1);
 
-        const u64 sleep_ns = static_cast<u64>(req->tv_sec) * 1'000'000'000ULL + static_cast<u64>(req->tv_nsec);
+        const u64 sleep_ns_val = static_cast<u64>(req->tv_sec) * 1'000'000'000ULL + static_cast<u64>(req->tv_nsec);
 
-        const u64 deadline_ns = kernel::time::get_uptime_ns() + sleep_ns;
+        const u64 deadline_ns = kernel::time::get_uptime_ns() + sleep_ns_val;
 
-        kernel::time::sleep_ns(sleep_ns);
+        const bool completed = kernel::time::sleep_ns(sleep_ns_val);
 
-        // TODO signal support here, if interrupted by SIG write remaining here
         if (rem) {
-            const u64 now = kernel::time::get_uptime_ns();
+            const u64 now  = kernel::time::get_uptime_ns();
             const u64 left = (now < deadline_ns) ? (deadline_ns - now) : 0ULL;
-            rem->tv_sec = static_cast<i64>(left / 1'000'000'000ULL);
-            rem->tv_nsec = static_cast<i64>(left % 1'000'000'000ULL);
+            rem->tv_sec    = static_cast<i64>(left / 1'000'000'000ULL);
+            rem->tv_nsec   = static_cast<i64>(left % 1'000'000'000ULL);
         }
 
-        return 0;
+        return completed ? 0 : -EINTR;
     }
 }  // namespace syscalls::internal

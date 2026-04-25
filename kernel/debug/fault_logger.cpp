@@ -15,7 +15,7 @@
 
 #include "fault_logger.h"
 #include "trace.h"
-extern u64 sys_calls;
+
 namespace kernel::debug {
     static const char* fault_type_to_string(const FaultType type) {
         switch (type) {
@@ -49,12 +49,13 @@ namespace kernel::debug {
         if (extra_msg && *extra_msg) {
             auto u = scheduling::get_current_unit();
             Log::error(
-                "%s: %s on CPU#%u on Unit#%u (%s)",
+                "%s: %s on CPU#%u on Unit#%u (%s) (%s)",
                 type_str,
                 extra_msg,
                 cpu_manager::get_current_cpu_id(),
                 u->id,
-                u->name
+                u->name,
+                RealmManager::get(u->rid)->name
             );
         } else {
             Log::error("%s", type_str);
@@ -63,9 +64,9 @@ namespace kernel::debug {
         Log::error("  RIP=0x%llx CS=0x%llx RSP=0x%llx RFLAGS=0x%llx", ctx->rip, ctx->cs, ctx->rsp, ctx->rflags);
         u64 fault_addr = 0;
         asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
-        Log::error("Page fault address (CR2): %p", fault_addr);
+        Log::error("pml4 kernel: %p", memory::get_pagetable_address());
+        Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, ctx->error_code);
         Log::error("rax: 0x%llx rbx: 0x%llx rcx: 0x%llx, rdx: 0x%llx rsi: 0x%llx, rdi: 0x%llx rbp: 0x%llx r8: 0x%llx", ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx, ctx->rsi, ctx->rdi, ctx->rbp, ctx->r8);
-        Log::error("sys calls: %llu", sys_calls);
         backtrace(ctx->rbp, ctx->rip);
         panic("FAULT");
 

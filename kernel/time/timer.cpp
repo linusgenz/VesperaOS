@@ -46,16 +46,19 @@ namespace kernel::time {
     }
 
     namespace internal {
-        void thread_sleep_ns(const u64 ns) {
+        bool thread_sleep_ns(const u64 ns) {
             const u32 cpu_id = cpu_manager::get_current_cpu_id();
 
             Unit* current = kernel::scheduling::get_current_unit();
-            if (!current || current->is_idle) return;
+            if (!current || current->is_idle) return true;
 
             current->sleep_context.wakeup_ns = get_uptime_ns() + ns;
+            current->sleep_context.interrupted  = false;
 
             kernel::scheduling::add_blocked_unit(current, cpu_id);
             kernel::scheduling::yield();
+
+            return !current->sleep_context.interrupted;
         }
 
         void busy_sleep_ns(const u64 ns) {
@@ -84,11 +87,12 @@ namespace kernel::time {
         }
     }
 
-    void sleep_ns(const u64 ns) {
+    bool sleep_ns(const u64 ns) {
         if (scheduling::is_curent_cpu_enabled()) {
-            internal::thread_sleep_ns(ns);
+            return internal::thread_sleep_ns(ns);
         } else {
             internal::busy_sleep_ns(ns);
+            return true;
         }
     }
 }  // namespace kernel::time

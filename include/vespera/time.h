@@ -37,7 +37,7 @@ namespace kernel::time {
     void sleep_us(const u64 us);
 
     // Sleep for at least ns nanoseconds.
-    void sleep_ns(const u64 ns);
+    bool sleep_ns(const u64 ns);
 
     u64 get_realtime_ns();
 

@@ -4,6 +4,7 @@
 
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../../arch/x86_64/interrupts/apic.h"
+#include "vespera/log.h"
 #include "../units/unit_manager.h"
 #include "arch/x86_64/cpu/msr.h"
 #include "per_cpu.h"
@@ -109,6 +110,8 @@ namespace kernel::scheduling::cpu_scheduler {
             if (r) {
                 u64 cr3 = phys_raw(r->pml4_phys);
                 asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
+            } else {
+                return;
             }
         } else {
             asm volatile("mov %0, %%cr3" ::"r"(kernel::memory::get_pagetable_address()) : "memory");
@@ -220,7 +223,7 @@ namespace kernel::scheduling::cpu_scheduler {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
         Unit* woken = cpu->blocked_queue.extract_if([&](const Unit* unit) -> bool {
-            return unit->sleep_context.wakeup_ns <= time::get_uptime_ns();
+            return unit->sleep_context.wakeup_ns <= time::get_uptime_ns()|| unit->state == UnitState::Ready;;
         });
 
         while (woken) {
@@ -230,6 +233,11 @@ namespace kernel::scheduling::cpu_scheduler {
         }
 
         u64 new_min = 0;
+        cpu->blocked_queue.for_each([&](const Unit* unit) {
+            if (new_min == 0 || unit->sleep_context.wakeup_ns < new_min) {
+                new_min = unit->sleep_context.wakeup_ns;
+            }
+        });
         time::sleep_timer::update_min_wakeup(cpu_id, new_min);
     }
 }  // namespace kernel::scheduling::cpu_scheduler
