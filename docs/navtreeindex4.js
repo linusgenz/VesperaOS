@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d":[4,0,1,0,0,30,27],
+"stdint_8h.html#a9b7386d4af0e20ee32296d9a158c9f3a":[4,0,1,0,0,30,29],
 "stdint_8h.html#aa05109908fb2770f632d2b646b9f85bf":[4,0,1,0,0,30,14],
 "stdint_8h.html#aa343fa3b3d06292b959ffdd4c4703b06":[4,0,1,0,0,30,25],
 "stdint_8h.html#aa9e7b0ed8f34f9c482a7a32d7f18c054":[4,0,1,0,0,30,38],
@@ -247,7 +249,5 @@ var NAVTREEINDEX4 =
 "structiovec.html":[3,0,17],
 "structiovec.html#a07aeddeccf80f14520fdd7ef0759442b":[3,0,17,0],
 "structiovec.html#a17b5ac2078fd1adfabb262a95808a07d":[3,0,17,1],
-"structjmp__buf.html":[3,0,18],
-"structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8":[3,0,18,4],
-"structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b":[3,0,18,6]
+"structjmp__buf.html":[3,0,18]
 };

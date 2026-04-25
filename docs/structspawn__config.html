@@ -110,6 +110,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a2affb9c994b7522808b99af8e9138514" id="r_a2affb9c994b7522808b99af8e9138514"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#a2affb9c994b7522808b99af8e9138514">stderr_handle</a></td></tr>
 <tr class="memdesc:a2affb9c994b7522808b99af8e9138514"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replace HANDLE_STDERR in child (0 = inherit TTY)  <br /></td></tr>
 <tr class="separator:a2affb9c994b7522808b99af8e9138514"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea54dcebbf797298e07b5140f070124c" id="r_aea54dcebbf797298e07b5140f070124c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#aed742c436da53c1080638ce6ef7d13de">u8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#aea54dcebbf797298e07b5140f070124c">bg_realm</a></td></tr>
+<tr class="memdesc:aea54dcebbf797298e07b5140f070124c"><td class="mdescLeft">&#160;</td><td class="mdescRight">If set true, detach from controlling tty.  <br /></td></tr>
+<tr class="separator:aea54dcebbf797298e07b5140f070124c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bde2da8147fd7605b9423f7eba58253" id="r_a6bde2da8147fd7605b9423f7eba58253"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253">realm_name</a></td></tr>
 <tr class="separator:a6bde2da8147fd7605b9423f7eba58253"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -117,6 +120,22 @@ Public Attributes</h2></td></tr>
 <div class="textblock"><p>Optional configuration for sys_spawn. Pass nullptr to get default behavior (inherit TTY stdin/stdout/stderr).</p>
 <p>Handle IDs refer to handles in the CALLING realm. Use 0 to mean "use default" for each field. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="aea54dcebbf797298e07b5140f070124c" name="aea54dcebbf797298e07b5140f070124c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea54dcebbf797298e07b5140f070124c">&#9670;&#160;</a></span>bg_realm</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#aed742c436da53c1080638ce6ef7d13de">u8</a> spawn_config::bg_realm</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>If set true, detach from controlling tty. </p>
+
+</div>
+</div>
 <a id="a6bde2da8147fd7605b9423f7eba58253" name="a6bde2da8147fd7605b9423f7eba58253"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6bde2da8147fd7605b9423f7eba58253">&#9670;&#160;</a></span>realm_name</h2>
 

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vesplib: include/uapi/vespera/signal.h Source File</title>
+<title>vesplib: userspace/lib/include/sys/wait.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('include_2uapi_2vespera_2signal_8h_source.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('wait_8h_source.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -95,15 +95,15 @@ $(document).ready(function(){initNavTree('include_2uapi_2vespera_2signal_8h_sour
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">signal.h</div></div>
+  <div class="headertitle"><div class="title">wait.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="include_2uapi_2vespera_2signal_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// signal.h</span></div>
+<a href="wait_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// wait.h</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// VesperaOS - operating system for the x86_64 architecture</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment">//</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// Copyright (c) 2026 Linus Genz &lt;linuslinuxgenz@gmail.com&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment">//</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">// Created by Linus Genz on 22.03.26.</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">// Created by Linus Genz on 25.04.26.</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment">//</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">// This file is part of VesperaOS.</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">//</span></div>
@@ -119,35 +119,21 @@ $(document).ready(function(){initNavTree('include_2uapi_2vespera_2signal_8h_sour
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// You should have received a copy of the GNU General Public License</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// along with VesperaOS. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_SIGNAL_H</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_SIGNAL_H</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_WAIT_H</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_WAIT_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="types_8h.html">vespera/types.h</a>&gt;</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2signal_8h.html#a27d5dc561093d6243542e6a2465bc0f8">   27</a></span><span class="preprocessor">#define SIG_DFL ((void(*)(int))0)</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2signal_8h.html#acf0e499b0ac946b366b4f47a3b3e8b9e">   28</a></span><span class="preprocessor">#define SIG_IGN ((void(*)(int))1)</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="wait_8h.html#af840540f1b7be5831f9dcca7ca2f656d">   25</a></span><span class="preprocessor">#define WIFEXITED(s)    (((s) &amp; 0x7f) == 0)</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="wait_8h.html#ac12790c67befecfcd8cc28bd53be2899">   26</a></span><span class="preprocessor">#define WEXITSTATUS(s)  (((s) &gt;&gt; 8) &amp; 0xff)</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="wait_8h.html#ae67566e76143e34dbdb295cf00e8b275">   27</a></span><span class="preprocessor">#define WIFSIGNALED(s)  (((s) &amp; 0x7f) != 0 &amp;&amp; ((s) &amp; 0x7f) != 0x7f)</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="wait_8h.html#ae1ee738b884803f9df25133825025528">   28</a></span><span class="preprocessor">#define WTERMSIG(s)     ((s) &amp; 0x7f)</span></div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="foldopen" id="foldopen00030" data-start="{" data-end="};">
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="structsigaction__t.html">   30</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structsigaction__t.html">sigaction_t</a> {</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee">   31</a></span>     void (*<a class="code hl_variable" href="structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee">handler</a>)(int);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="structsigaction__t.html#a7c9824e41d89a7dc2799eea7a6609e01">   32</a></span>     <a class="code hl_typedef" href="types_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> <a class="code hl_variable" href="structsigaction__t.html#a7c9824e41d89a7dc2799eea7a6609e01">sa_mask</a>;</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structsigaction__t.html#afebf24c2c4be8c90dbea43c46a484e01">   33</a></span>     <span class="keywordtype">int</span> <a class="code hl_variable" href="structsigaction__t.html#afebf24c2c4be8c90dbea43c46a484e01">sa_flags</a>;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>};</div>
-</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_SIGNAL_H</span></div>
-<div class="ttc" id="astructsigaction__t_html"><div class="ttname"><a href="structsigaction__t.html">sigaction_t</a></div><div class="ttdef"><b>Definition</b> signal.h:30</div></div>
-<div class="ttc" id="astructsigaction__t_html_a08c1eb64d1d471efcf5ea17184523bee"><div class="ttname"><a href="structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee">sigaction_t::handler</a></div><div class="ttdeci">void(* handler)(int)</div><div class="ttdef"><b>Definition</b> signal.h:31</div></div>
-<div class="ttc" id="astructsigaction__t_html_a7c9824e41d89a7dc2799eea7a6609e01"><div class="ttname"><a href="structsigaction__t.html#a7c9824e41d89a7dc2799eea7a6609e01">sigaction_t::sa_mask</a></div><div class="ttdeci">u64 sa_mask</div><div class="ttdef"><b>Definition</b> signal.h:32</div></div>
-<div class="ttc" id="astructsigaction__t_html_afebf24c2c4be8c90dbea43c46a484e01"><div class="ttname"><a href="structsigaction__t.html#afebf24c2c4be8c90dbea43c46a484e01">sigaction_t::sa_flags</a></div><div class="ttdeci">int sa_flags</div><div class="ttdef"><b>Definition</b> signal.h:33</div></div>
-<div class="ttc" id="atypes_8h_html"><div class="ttname"><a href="types_8h.html">types.h</a></div></div>
-<div class="ttc" id="atypes_8h_html_ad758b7a5c3f18ed79d2fcd23d9f16357"><div class="ttname"><a href="types_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a></div><div class="ttdeci">unsigned long long u64</div><div class="ttdef"><b>Definition</b> types.h:29</div></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_WAIT_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_fb42a3b80b368a2ced97e36eea6bf3da.html">uapi</a></li><li class="navelem"><a class="el" href="dir_e2b52b92f5077a849e2a3072fb331546.html">vespera</a></li><li class="navelem"><a class="el" href="include_2uapi_2vespera_2signal_8h.html">signal.h</a></li>
+    <li class="navelem"><a class="el" href="dir_e97933879fd7fd8a82ba7d3e7b04caa6.html">userspace</a></li><li class="navelem"><a class="el" href="dir_caca541db38907716bcacd7a4b5a3aa5.html">lib</a></li><li class="navelem"><a class="el" href="dir_248bf60b518f6803bea125e4c4a2da53.html">include</a></li><li class="navelem"><a class="el" href="dir_699c0620a471c520d0efc35d8d04f138.html">sys</a></li><li class="navelem"><a class="el" href="wait_8h.html">wait.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

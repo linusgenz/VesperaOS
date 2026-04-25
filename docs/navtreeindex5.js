@@ -1,5 +1,7 @@
 var NAVTREEINDEX5 =
 {
+"structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8":[3,0,18,4],
+"structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b":[3,0,18,6],
 "structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c":[3,0,18,1],
 "structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9":[3,0,18,7],
 "structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8":[3,0,18,5],
@@ -82,7 +84,8 @@ var NAVTREEINDEX5 =
 "structsigaction.html#aff7f084aa4099423967033151cec9474":[3,0,29,1],
 "structsigaction__t.html":[3,0,30],
 "structsigaction__t.html#a08c1eb64d1d471efcf5ea17184523bee":[3,0,30,0],
-"structsigaction__t.html#a83438ecc68511faa716b601b3c9075c7":[3,0,30,1],
+"structsigaction__t.html#a7c9824e41d89a7dc2799eea7a6609e01":[3,0,30,2],
+"structsigaction__t.html#afebf24c2c4be8c90dbea43c46a484e01":[3,0,30,1],
 "structsmart__ata.html":[3,0,31],
 "structsmart__ata.html#a0b5c5aa270acd92e6491d20aedb439cb":[3,0,31,1],
 "structsmart__ata.html#a19859ef7c106c2dd5779538823bd862e":[3,0,31,9],
@@ -129,10 +132,11 @@ var NAVTREEINDEX5 =
 "structsmart__raw.html":[3,0,35],
 "structsmart__raw.html#a45d7f490e7671654de97677beaadcc88":[3,0,35,0],
 "structspawn__config.html":[3,0,36],
-"structspawn__config.html#a09fb2863c15fdcda17932e0896168faf":[3,0,36,3],
-"structspawn__config.html#a2affb9c994b7522808b99af8e9138514":[3,0,36,1],
-"structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253":[3,0,36,0],
-"structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42":[3,0,36,2],
+"structspawn__config.html#a09fb2863c15fdcda17932e0896168faf":[3,0,36,4],
+"structspawn__config.html#a2affb9c994b7522808b99af8e9138514":[3,0,36,2],
+"structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253":[3,0,36,1],
+"structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42":[3,0,36,3],
+"structspawn__config.html#aea54dcebbf797298e07b5140f070124c":[3,0,36,0],
 "structthermal__info.html":[3,0,37],
 "structthermal__info.html#a0b7c931515c3a87e86a418faebb3fd4f":[3,0,37,1],
 "structthermal__info.html#a53a363cf5d674ef3e8a352ca6ab71861":[3,0,37,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX5 =
 "structvespera__stat.html#a81049eae510c129c361060e3d88938a2":[3,0,53,5],
 "structvespera__stat.html#a9312490bca8dece1ba862e7008eedddc":[3,0,53,9],
 "structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea":[3,0,53,12],
-"structvespera__stat.html#aa04896d3128812aac9fc25cefd927254":[3,0,53,10],
-"structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1":[3,0,53,0],
-"structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51":[3,0,53,11],
-"structvespera__stat.html#aefa00e27ef7dfd7c327c2686ef458eba":[3,0,53,7],
-"structwinsize.html":[3,0,54]
+"structvespera__stat.html#aa04896d3128812aac9fc25cefd927254":[3,0,53,10]
 };

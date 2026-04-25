@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['sa_5fflags_0',['sa_flags',['../structsigaction.html#aea0dabe7a03641c8b426521f4406b425',1,'sigaction']]],
+  ['sa_5fflags_0',['sa_flags',['../structsigaction__t.html#afebf24c2c4be8c90dbea43c46a484e01',1,'sigaction_t::sa_flags'],['../structsigaction.html#aea0dabe7a03641c8b426521f4406b425',1,'sigaction::sa_flags']]],
   ['sa_5fhandler_1',['sa_handler',['../structsigaction.html#aff7f084aa4099423967033151cec9474',1,'sigaction']]],
-  ['sa_5fmask_2',['sa_mask',['../structsigaction.html#a684e70081d03d46ce70af097ea5cfd49',1,'sigaction']]],
+  ['sa_5fmask_2',['sa_mask',['../structsigaction.html#a684e70081d03d46ce70af097ea5cfd49',1,'sigaction::sa_mask'],['../structsigaction__t.html#a7c9824e41d89a7dc2799eea7a6609e01',1,'sigaction_t::sa_mask']]],
   ['scale_5fdenom_3',['scale_denom',['../structjpeg__load__options__t.html#acb0882ec1a0422b6fbee5104e50724b1',1,'jpeg_load_options_t']]],
   ['scale_5fnum_4',['scale_num',['../structjpeg__load__options__t.html#a56185da9d48ee5c87f06d563254cb1bc',1,'jpeg_load_options_t']]],
   ['sched_5fpriority_5',['sched_priority',['../structrealm__info.html#ac92eff1380891027043eed312a2d791f',1,'realm_info']]],
@@ -10,7 +10,7 @@ var searchData=
   ['sender_7',['sender',['../structvbus__header.html#a6ed0d6d82c6716c6c61c9942ef93bd37',1,'vbus_header']]],
   ['serial_8',['serial',['../structdevinfo__t.html#a29cd773523ce6820568b02f5515e2dca',1,'devinfo_t::serial'],['../structbattery__info.html#a34155cd3ad340753b4dbada0beda39f8',1,'battery_info::serial'],['../structvbus__header.html#aa92b6cde16a410ca60ab129218579cf7',1,'vbus_header::serial']]],
   ['signal_9',['signal',['../userspace_2lib_2include_2signal_8h.html#a19103eb697d9a373dba3b285da607263',1,'signal.h']]],
-  ['size_10',['size',['../structimage__t.html#a59f1805a29e1060950754281201301fa',1,'image_t::size'],['../structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710',1,'large_seg::size'],['../structvespera__stat.html#a2f4c2397c85c1e406c419d378c094d11',1,'vespera_stat::size']]],
+  ['size_10',['size',['../structvespera__stat.html#a2f4c2397c85c1e406c419d378c094d11',1,'vespera_stat::size'],['../structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710',1,'large_seg::size'],['../structimage__t.html#a59f1805a29e1060950754281201301fa',1,'image_t::size']]],
   ['slot_5fid_11',['slot_id',['../structusb__device__info.html#a9faa4f1cac303b29a4221b8780c0cd0f',1,'usb_device_info']]],
   ['smoothing_5ffactor_12',['smoothing_factor',['../structjpeg__save__options__t.html#a1a549137c32b3e4572950bad49dcf356',1,'jpeg_save_options_t']]],
   ['source_13',['source',['../structthermal__zone.html#a9ebf65f49fbf6e58be1c3e8f473876f6',1,'thermal_zone']]],
