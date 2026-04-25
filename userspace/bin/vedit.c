@@ -30,7 +30,7 @@
 #include <string.h>
 #include <termios.h>
 
-#include "../../include/uapi/vespera/handles.h"
+#include "vespera/handles.h"
 
 static inline int tty_has_input(int timeout_ms) {
     pollhdl_t ph = {.hdl = HANDLE_STDIN, .events = POLLIN, .revents = 0, ._pad = 0};

@@ -29,18 +29,23 @@
 #include <errno.h>
 #include <exec.h>
 #include <poll.h>
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 #include <realm.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <sys/wait.h>
 #include <vbus.h>
 #include <vespera/fflags.h>
 
-#include "statusbar.h"
+#include "log_client.h"
 #include "powermon.h"
+#include "statusbar.h"
+#include "termios.h"
+#include "time.h"
 
 typedef struct command {
     char* args[MAX_ARGS];
@@ -290,140 +295,140 @@ void cmd_clear(command_t* cmd) {
 // Execute a pipeline of commands
 static int execute_pipeline(command_t* head) {
     if (!head) return 0;
-/*
-    command_t* current = head;
-    FILE* pipe_read = NULL;
-    FILE* pipe_write = NULL;
-    int result = 0;
+    /*
+        command_t* current = head;
+        FILE* pipe_read = NULL;
+        FILE* pipe_write = NULL;
+        int result = 0;
 
-    while (current) {
-        command_t* next = current->next;
-        FILE* saved_stdin = stdin;
-        FILE* saved_stdout = stdout;
-        FILE* redirect_in = NULL;
-        FILE* redirect_out = NULL;
+        while (current) {
+            command_t* next = current->next;
+            FILE* saved_stdin = stdin;
+            FILE* saved_stdout = stdout;
+            FILE* redirect_in = NULL;
+            FILE* redirect_out = NULL;
 
-        // If we have a previous pipe, set up read end as stdin
-        if (pipe_read >= 0) {
-            stdin = pipe_read;
-            pipe_read = NULL;  // consumed
-        }
-
-        // If this command feeds into next, create pipe
-        if (next && current->has_pipe) {
-            int fds[2];
-            if (sys_pipe((uint64_t)fds, 0, 0, 0, 0, 0) < 0) {
-                printf("pipe: creation failed\n");
-                if (pipe_read >= 0) fclose(pipe_read);
-                if (pipe_write >= 0) fclose(pipe_write);
-                return -1;
-            }
-            pipe_read = fds[0];
-            pipe_write = fds[1];
-            // Wire up write end to stdout
-            redirect_out = pipe_write;
-            stdout = redirect_out;
-        }
-
-        // Handle file redirects
-        if (current->input_file && pipe_read < 0) {
-            redirect_in = fopen(current->input_file, "r");
-            if (redirect_in < 0) {
-                printf("Cannot open input file '%s'\n", current->input_file);
-                if (pipe_write >= 0) fclose(pipe_write);
-                stdin = saved_stdin;
-                current = next;
-                continue;
-            }
-            stdin = redirect_in;
-        }
-
-        if (current->output_file && !pipe_write) {
-            int flags = O_WRONLY | O_CREAT;
-            if (current->append_output) {
-                flags |= O_APPEND;
-            } else {
-                flags |= O_TRUNC;
+            // If we have a previous pipe, set up read end as stdin
+            if (pipe_read >= 0) {
+                stdin = pipe_read;
+                pipe_read = NULL;  // consumed
             }
 
-            redirect_out = fopen(current->output_file, flags);
-            if (redirect_out < 0) {
-                printf("Cannot open output file '%s'\n", current->output_file);
-                if (redirect_in >= 0) {
-                    fclose(redirect_in);
+            // If this command feeds into next, create pipe
+            if (next && current->has_pipe) {
+                int fds[2];
+                if (sys_pipe((uint64_t)fds, 0, 0, 0, 0, 0) < 0) {
+                    printf("pipe: creation failed\n");
+                    if (pipe_read >= 0) fclose(pipe_read);
+                    if (pipe_write >= 0) fclose(pipe_write);
+                    return -1;
+                }
+                pipe_read = fds[0];
+                pipe_write = fds[1];
+                // Wire up write end to stdout
+                redirect_out = pipe_write;
+                stdout = redirect_out;
+            }
+
+            // Handle file redirects
+            if (current->input_file && pipe_read < 0) {
+                redirect_in = fopen(current->input_file, "r");
+                if (redirect_in < 0) {
+                    printf("Cannot open input file '%s'\n", current->input_file);
+                    if (pipe_write >= 0) fclose(pipe_write);
                     stdin = saved_stdin;
+                    current = next;
+                    continue;
                 }
-                if (pipe_write >= 0) fclose(pipe_write);
-                current = next;
-                continue;
+                stdin = redirect_in;
             }
-            stdout = redirect_out;
-        }
 
-        // Execute the command
-        const char* command = current->args[0];
-
-        // Built-in commands (only those that must be built-in)
-        if (strcmp(command, "help") == 0) {
-            cmd_help(current);
-        } else if (strcmp(command, "hello") == 0) {
-            cmd_hello(current);
-        } else if (strcmp(command, "echo") == 0) {
-            cmd_echo(current);
-        } else if (strcmp(command, "cd") == 0) {
-            cmd_cd(current);
-        } else if (strcmp(command, "history") == 0) {
-            cmd_history(current);
-        } else if (strcmp(command, "clear") == 0) {
-            cmd_clear(current);
-        } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
-            result = -1;
-        } else {
-            // External command
-            const char* prog = find_executable(command);
-            if (prog) {
-                int64_t rid = spawn_realm(prog, current->args, environ, NULL);
-                if (rid < 0) {
-                    printf("spawn failed: %s\n", strerror(rid));
+            if (current->output_file && !pipe_write) {
+                int flags = O_WRONLY | O_CREAT;
+                if (current->append_output) {
+                    flags |= O_APPEND;
                 } else {
-                    int status = 0;
-                    wait_realm(rid, &status);
-                    if (status != 0 && result >= 0) {
-                        result = status;
-                    }
+                    flags |= O_TRUNC;
                 }
-            } else {
-                printf("Unknown command: %s\n", command);
-                printf("Type 'help' for available commands.\n");
+
+                redirect_out = fopen(current->output_file, flags);
+                if (redirect_out < 0) {
+                    printf("Cannot open output file '%s'\n", current->output_file);
+                    if (redirect_in >= 0) {
+                        fclose(redirect_in);
+                        stdin = saved_stdin;
+                    }
+                    if (pipe_write >= 0) fclose(pipe_write);
+                    current = next;
+                    continue;
+                }
+                stdout = redirect_out;
             }
+
+            // Execute the command
+            const char* command = current->args[0];
+
+            // Built-in commands (only those that must be built-in)
+            if (strcmp(command, "help") == 0) {
+                cmd_help(current);
+            } else if (strcmp(command, "hello") == 0) {
+                cmd_hello(current);
+            } else if (strcmp(command, "echo") == 0) {
+                cmd_echo(current);
+            } else if (strcmp(command, "cd") == 0) {
+                cmd_cd(current);
+            } else if (strcmp(command, "history") == 0) {
+                cmd_history(current);
+            } else if (strcmp(command, "clear") == 0) {
+                cmd_clear(current);
+            } else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
+                result = -1;
+            } else {
+                // External command
+                const char* prog = find_executable(command);
+                if (prog) {
+                    int64_t rid = spawn_realm(prog, current->args, environ, NULL);
+                    if (rid < 0) {
+                        printf("spawn failed: %s\n", strerror(rid));
+                    } else {
+                        int status = 0;
+                        wait_realm(rid, &status);
+                        if (status != 0 && result >= 0) {
+                            result = status;
+                        }
+                    }
+                } else {
+                    printf("Unknown command: %s\n", command);
+                    printf("Type 'help' for available commands.\n");
+                }
+            }
+
+            // Restore stdio
+            if (redirect_in >= 0) {
+                fclose(redirect_in);
+                stdin = saved_stdin;
+            }
+
+            if (redirect_out >= 0 && redirect_out != pipe_write) {
+                fclose(redirect_out);
+                stdout = saved_stdout;
+            }
+
+            // Close write end after command completes
+            if (pipe_write >= 0) {
+                fclose(pipe_write);
+                pipe_write = NULL;
+            }
+
+            // Move to next command
+            current = next;
         }
 
-        // Restore stdio
-        if (redirect_in >= 0) {
-            fclose(redirect_in);
-            stdin = saved_stdin;
-        }
+        // Cleanup any remaining pipe fds
+        if (pipe_read >= 0) fclose(pipe_read);
+        if (pipe_write >= 0) fclose(pipe_write);
 
-        if (redirect_out >= 0 && redirect_out != pipe_write) {
-            fclose(redirect_out);
-            stdout = saved_stdout;
-        }
-
-        // Close write end after command completes
-        if (pipe_write >= 0) {
-            fclose(pipe_write);
-            pipe_write = NULL;
-        }
-
-        // Move to next command
-        current = next;
-    }
-
-    // Cleanup any remaining pipe fds
-    if (pipe_read >= 0) fclose(pipe_read);
-    if (pipe_write >= 0) fclose(pipe_write);
-
-    return result;*/
+        return result;*/
     return 0;
 }
 
@@ -458,7 +463,7 @@ int execute_command(command_t* cmd) {
             flags |= O_TRUNC;
         }
 
-        redirect_out = fopen(cmd->output_file, "rw"); // TODO flags
+        redirect_out = fopen(cmd->output_file, "rw");  // TODO flags
         if (redirect_out < 0) {
             printf("Cannot open output file '%s'\n", cmd->output_file);
             if (redirect_in >= 0) {
@@ -501,10 +506,19 @@ int execute_command(command_t* cmd) {
                     printf("spawn failed: %s\n", strerror(rid));
                 }
             } else {
+                sys_tcsetpgrp(HANDLE_STDOUT, (uint64_t)rid, 0, 0, 0, 0);
                 int status = 0;
                 wait_realm(rid, &status);
-                if (status != 0) {
-                    printf("realm exited with status %d\n", status);
+
+                int64_t my_id = get_realm_id();
+                sys_tcsetpgrp(HANDLE_STDOUT, (uint64_t)my_id, 0, 0, 0, 0);
+
+                if (WIFSIGNALED(status)) {
+                    if (WTERMSIG(status) != 2) {
+                        printf("killed by signal %d\n", WTERMSIG(status));
+                    }
+                } else if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+                    printf("realm exited with status %d\n", WEXITSTATUS(status));
                 }
             }
         } else {
@@ -563,13 +577,21 @@ void build_prompt(char* prompt_buf, size_t buf_size) {
 }
 
 void shell_main(int argc, char** argv) {
+    sys_setsid(0, 0, 0, 0, 0, 0);
+    ioctl(HANDLE_STDOUT, TIOCSCTTY, 0);
+
+    int64_t my_id = get_realm_id();
+    sys_setpgid(0, my_id, 0, 0, 0, 0);
+
+    sys_tcsetpgrp(HANDLE_STDOUT, my_id, 0, 0, 0, 0);
+
     (void)argc;
     (void)argv;
     char buf[MAX_INPUT] = {0};
     command_t cmd;
 
     printf("\033[2J\033[H");
-    statusbar_init();
+    //   statusbar_init();
 
     printf(
         "\033[38;2;66;117;245m\n"
@@ -588,11 +610,11 @@ void shell_main(int argc, char** argv) {
         "commands\033[0m\n\n"
     );
 
-    int64_t unitid = spawn_unit(0, (uint64_t)power_monitor_unit, 0);
+    /*int64_t unitid = spawn_unit(0, (uint64_t)power_monitor_unit, 0);
     if (unitid < 0) {
         statusbar_set_message("vbus thread failed");
         printf("tid: %ld", unitid);
-    }
+    }*/
 
     while (1) {
         char prompt_str[256];
@@ -626,6 +648,8 @@ void shell_main(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     setenv("SHELL", "/bin/nox", true);
+    log_client_init("nox");
+    LOG_INFO("nox shell initialized");
     shell_main(argc, argv);
     return 0;
 }

@@ -2,6 +2,8 @@
 -- VesperaOS PID-1 supervisor.
 
 local U = dofile("/etc/lib/init_utils.lua")
+local base_env
+
 U.info("init.lua starting")
 
 local services_def  = {}
@@ -66,6 +68,34 @@ local function transfer_log_channel_to(name, realm_id)
     return child_hid
 end
 
+local function parse_env_list(env_list)
+    local out = {}
+    if not env_list then return out end
+
+    for _, entry in ipairs(env_list) do
+        local k, v = entry:match("^([^=]+)=(.*)$")
+        if k then
+            out[k] = v
+        end
+    end
+
+    return out
+end
+
+local function merge_env(base, override_list)
+    local merged = {}
+
+    for k, v in pairs(base or {}) do
+        merged[k] = v
+    end
+
+    local override = parse_env_list(override_list)
+    for k, v in pairs(override) do
+        merged[k] = v
+    end
+
+    return merged
+end
 local function spawn_service(name)
     local def = services_def[name]
     if not def then
@@ -76,7 +106,11 @@ local function spawn_service(name)
     local args = { def.exec }
     for _, a in ipairs(def.args or {}) do args[#args + 1] = a end
 
-    local realm_id, err = vespera.proc.spawn(def.exec, args, def.env or {})
+    local env = merge_env(base_env, def.env)
+    local is_umbra = (def.umbra ~= false)
+    local cfg = { bg = is_umbra }
+
+    local realm_id, err = vespera.proc.spawn(def.exec, args, env, cfg)
     if not realm_id then
         U.err(string.format("spawn %s (%s) failed: errno %d", name, def.exec, err))
         return nil
@@ -255,6 +289,7 @@ local function main()
     local ok, err = pcall(function()
         local rc = dofile("/etc/rc.lua")
         rc.run()
+        base_env = rc.get_env()
     end)
     if not ok then
         vespera.log.error("FATAL: rc.lua: " .. tostring(err))

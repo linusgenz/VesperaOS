@@ -252,6 +252,14 @@ vespera.VBUS_SUB_WILDCARD = VBUS_SUB_WILDCARD
 vespera.proc = {}
 
 ---Spawns a new realm from the given executable.
+---config_table (optional):
+---{
+---stdin  = i64,   -- replace STDIN handle in child (0 = inherit TTY)
+---stdout = i64,   -- replace STDOUT handle in child (0 = inherit TTY)
+---stderr = i64,   -- replace STDERR handle in child (0 = inherit TTY)
+---bg     = bool,  -- if true, realm detaches from controlling TTY
+---name   = string -- optional realm name (debug / tooling)
+---}
 ---@param path string
 ---@param args_table? table array of strings  {"arg0", "arg1", …}  (optional)
 ---@param env_table? table array of "K=V" strings                 (optional)
@@ -298,6 +306,15 @@ function vespera.proc.getuid() end
 ---@param flags? number SA_* bitmask (optional, default 0)
 ---@return true|nil, number? # true on success, or nil + error_code.
 function vespera.proc.sigaction(signum, handler_fn, flags) end
+
+---Transfer a handle (channel or pipe) to another realm.
+---The actually granted caps are (src_caps & caps_mask).
+---or nil + error_code on failure.
+---@param handle number handle to transfer (must be transferable)
+---@param target_realm_id string destination realm
+---@param caps_mask? any capability bitmask to grant (default CAP_ALL)
+---@return number|nil, number? # the new handle_id in the target realm on success,
+function vespera.proc.handle_transfer(handle, target_realm_id, caps_mask) end
 
 -- ---------------------------------------------------------------------------
 -- vespera.io  —  Low-level file and device I/O

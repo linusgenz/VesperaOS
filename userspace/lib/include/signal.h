@@ -40,13 +40,17 @@ typedef uint64_t        sigset_t;
 #define SIGBUS    7   /* Bus error                                         */
 #define SIGFPE    8   /* Floating-point exception                          */
 #define SIGKILL   9   /* Kill (cannot be caught)                           */
-#define SIGUSR1   20  /* User-defined signal 1                             */
+#define SIGUSR1   10  /* User-defined signal 1                             */
 #define SIGSEGV   11  /* Segmentation fault                                */
-#define SIGUSR2   21  /* User-defined signal 2                             */
+#define SIGUSR2   12  /* User-defined signal 2                             */
 #define SIGPIPE   13  /* Broken pipe                                       */
 #define SIGALRM   14  /* Alarm clock                                       */
 #define SIGTERM   15  /* Termination signal                                */
 #define SIGCHLD   17  /* Child process exited                              */
+#define SIGCONT   18  /* Continue stopped process                          */
+#define SIGTSTP   20  /* Stop from terminal (Ctrl-Z, can be caught)        */
+#define SIGTTIN   21  /* Background read from terminal (reserved)          */
+#define SIGTTOU   22  /* Background write to terminal (reserved)           */
 
 #define NSIG      32  /* Number of supported signals                       */
 

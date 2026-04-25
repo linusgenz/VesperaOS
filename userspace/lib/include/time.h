@@ -67,7 +67,7 @@ int64_t clock_settime(clockid_t clk_id, const timespec_t* ts);
  *
  * @param req  Requested sleep duration (relative).
  * @param rem  Remaining time on interruption, or NULL.
- * @return     0 on success, -KEINVAL on bad arguments, -KEINTER if interrupted.
+ * @return     0 on success, -EINVAL on bad arguments, -EINTER if interrupted.
  */
 int nanosleep(const timespec_t* req, timespec_t* rem);
 

@@ -55,3 +55,7 @@ int64_t exit_realm(RealmID realm_id, uint64_t code) {
 int wait_realm(RealmID realm_id, int* status) {
     return (int)sys_wait(realm_id, (uintptr_t)status, 0, 0, 0, 0);
 }
+
+int64_t get_realm_id() {
+    return sys_getrid(0,0,0,0,0,0);
+}

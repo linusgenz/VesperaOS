@@ -25,7 +25,6 @@
 //
 // Provides Lua bindings for VesperaOS syscalls
 
-
 #define lvespera_c
 #define LUA_LIB
 
@@ -92,6 +91,17 @@ static int push_result(lua_State *L, int64_t result) {
 ** args_table  : array of strings  {"arg0", "arg1", …}  (optional)
 ** env_table   : array of "K=V" strings                 (optional)
 **
+** config_table (optional):
+**   {
+**     stdin  = i64,   -- replace STDIN handle in child (0 = inherit TTY)
+**     stdout = i64,   -- replace STDOUT handle in child (0 = inherit TTY)
+**     stderr = i64,   -- replace STDERR handle in child (0 = inherit TTY)
+**
+**     bg     = bool,  -- if true, realm detaches from controlling TTY
+**
+**     name   = string -- optional realm name (debug / tooling)
+**   }
+**
 ** Returns realm_id on success, or nil + error_code.
 */
 static int lproc_spawn(lua_State *L) {
@@ -119,16 +129,62 @@ static int lproc_spawn(lua_State *L) {
     int envc = 0;
 
     if (lua_type(L, 3) == LUA_TTABLE) {
-        int n = (int)luaL_len(L, 3);
-        for (int i = 1; i <= n && envc < 63; i++) {
-            lua_rawgeti(L, 3, i);
-            envp[envc++] = lua_tostring(L, -1);
-            lua_pop(L, 1);
+        if (luaL_len(L, 3) > 0) {
+            int n = (int)luaL_len(L, 3);
+            for (int i = 1; i <= n && envc < 63; i++) {
+                lua_rawgeti(L, 3, i);
+                envp[envc++] = lua_tostring(L, -1);
+                lua_pop(L, 1);
+            }
+        } else {
+            lua_pushnil(L);
+            while (lua_next(L, 3) != 0 && envc < 63) {
+                const char *key = lua_tostring(L, -2);
+                const char *val = lua_tostring(L, -1);
+
+                if (key && val) {
+                    static char buf[64][256];
+                    snprintf(buf[envc], sizeof(buf[envc]), "%s=%s", key, val);
+                    envp[envc++] = buf[envc];
+                }
+
+                lua_pop(L, 1);
+            }
         }
     }
     envp[envc] = NULL;
 
-    int64_t result = sys_spawn((uint64_t)path, (uint64_t)argv, (uint64_t)envp, 0, 0, 0);
+    spawn_config_t cfg = {};
+
+    if (lua_type(L, 4) == LUA_TTABLE) {
+        cfg.stdin_handle  = 0;
+        cfg.stdout_handle = 0;
+        cfg.stderr_handle = 0;
+        cfg.bg_realm      = 0;
+        cfg.realm_name    = NULL;
+
+        lua_getfield(L, 4, "stdin");
+        if (lua_isnumber(L, -1)) cfg.stdin_handle = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, 4, "stdout");
+        if (lua_isnumber(L, -1)) cfg.stdout_handle = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, 4, "stderr");
+        if (lua_isnumber(L, -1)) cfg.stderr_handle = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, 4, "bg");
+        if (lua_isboolean(L, -1)) cfg.bg_realm = lua_toboolean(L, -1) ? 1 : 0;
+        lua_pop(L, 1);
+
+        lua_getfield(L, 4, "name");
+        if (lua_isstring(L, -1)) cfg.realm_name = (char *)lua_tostring(L, -1);
+        lua_pop(L, 1);
+    }
+
+    int64_t result = sys_spawn((uint64_t)path, (uint64_t)argv, (uint64_t)envp, (uint64_t)&cfg, 0, 0);
     return push_result(L, result);
 }
 
@@ -283,16 +339,38 @@ static int lproc_sigaction(lua_State *L) {
     return push_ok(L);
 }
 
+/*
+** proc.handle_transfer(handle, target_realm_id [, caps_mask])
+**
+** Transfer a handle (channel or pipe) to another realm.
+** handle          : handle to transfer (must be transferable)
+** target_realm_id : destination realm
+** caps_mask       : capability bitmask to grant (default CAP_ALL)
+**                   The actually granted caps are (src_caps & caps_mask).
+**
+** Returns the new handle_id in the target realm on success,
+** or nil + error_code on failure.
+*/
+static int lproc_handle_transfer(lua_State *L) {
+    uint64_t hid = (uint64_t)luaL_checkinteger(L, 1);
+    uint64_t target_realm_id = (uint64_t)luaL_checkinteger(L, 2);
+    uint64_t caps_mask = (uint64_t)luaL_optinteger(L, 3, (lua_Integer)CAP_ALL);
+
+    int64_t result = sys_handle_transfer(hid, target_realm_id, caps_mask, 0, 0, 0);
+    return push_result(L, result);
+}
+
 static const luaL_Reg proc_lib[] = {
-    {"spawn",      lproc_spawn     },
-    {"spawn_unit", lproc_spawn_unit},
-    {"exit",       lproc_exit      },
-    {"wait",       lproc_wait      },
-    {"kill",       lproc_kill      },
-    {"getrid",     lproc_getrid    },
-    {"getuid",     lproc_getuid    },
-    {"sigaction",  lproc_sigaction },
-    {NULL,         NULL            }
+    {"spawn",           lproc_spawn          },
+    {"spawn_unit",      lproc_spawn_unit     },
+    {"exit",            lproc_exit           },
+    {"wait",            lproc_wait           },
+    {"kill",            lproc_kill           },
+    {"getrid",          lproc_getrid         },
+    {"getuid",          lproc_getuid         },
+    {"sigaction",       lproc_sigaction      },
+    {"handle_transfer", lproc_handle_transfer},
+    {NULL,              NULL                 }
 };
 
 /* ============================================================================
@@ -1462,7 +1540,9 @@ static void register_submodule(lua_State *L, const char *name, const luaL_Reg *l
     lua_setfield(L, -2, name);
 }
 
-static const luaL_Reg vesp_lib_root[] = {    {NULL, NULL}};
+static const luaL_Reg vesp_lib_root[] = {
+    {NULL, NULL}
+};
 
 LUAMOD_API int luaopen_vespera(lua_State *L) {
     luaL_newlib(L, vesp_lib_root);

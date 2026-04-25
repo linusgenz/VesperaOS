@@ -3,6 +3,7 @@
 -- Called once by init.lua before any service is spawned.
 
 local rc = {}
+local base_env = {}
 local U = dofile("/etc/lib/init_utils.lua")
 
 local function create_run_tree()
@@ -12,24 +13,33 @@ local function create_run_tree()
     U.info("rc: /run tree ready")
 end
 
+local function set(k, v)
+    vespera.sys.setenv(k, v, 0)
+    base_env[k] = v
+end
+
+function rc.get_env()
+    return base_env
+end
 
 local function setup_environment()
     local V = vespera.sys
-    V.setenv("PATH",     "/bin:/usr/bin",                     0)
-    V.setenv("LUA_PATH", "/etc/lib/?.lua;/usr/lib/lua/?.lua", 0)
-    V.setenv("TZ",       "UTC",                               0)
-    V.setenv("TERM",     "vespera-256",                       0)
-    V.setenv("HOME",     "/root",                             0)
-    V.setenv("USER",     "root",                              0)
-    V.setenv("SHELL",    "/bin/nox",                          0)
+    set("PATH",     "/bin:/usr/bin")
+    set("LUA_PATH", "/etc/lib/?.lua;/usr/lib/lua/?.lua")
+    set("TZ",       "UTC")
+    set("TERM",     "vespera-256")
+    set("HOME",     "/root")
+    set("USER",     "root")
+    set("SHELL",    "/bin/nox")
 
     local hn = "vespera"
     local raw = U.read_file("/etc/hostname")
     if raw then hn = U.trim(raw) end
-    V.setenv("HOSTNAME", hn, 0)
+    set("HOSTNAME", hn)
 
     U.info("rc: env ready (hostname=" .. hn .. ")")
 end
+
 
 local function apply_sysconfig()
     if not vespera.fs.exists("/etc/sysconfig") then return end

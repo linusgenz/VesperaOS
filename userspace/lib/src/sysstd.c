@@ -67,6 +67,12 @@
 #define SYSCALL_CHANNEL_SEND 131
 #define SYSCALL_CHANNEL_RECEIVE 132
 
+#define SYSCALL_SETSID      140
+#define SYSCALL_SETPGID     141
+#define SYSCALL_GETPGID     142
+#define SYSCALL_TCSETPGRP   143
+#define SYSCALL_TCGETPGRP   144
+
 #define SYSCALL_VBUS_SUBSCRIBE 300
 #define SYSCALL_VBUS_UNSUBSCRIBE 301
 
@@ -257,4 +263,24 @@ int64_t sys_clock_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_
 
 int64_t sys_handle_transfer(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_HANDLE_TRANSFER, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_setsid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETSID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_setpgid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETPGID, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_getpgid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETPGID, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_tcsetpgrp(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_TCSETPGRP, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_tcgetpgrp(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_TCGETPGRP, arg0, 0, 0, 0, 0, 0);
 }

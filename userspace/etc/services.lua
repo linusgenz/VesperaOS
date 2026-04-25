@@ -13,39 +13,43 @@
 --   restart_max      number    0 = unlimited                       (default: 0)
 --   oneshot          bool      exits after task; never restarted   (default: false)
 --   critical         bool      reboot if permanently dead          (default: false)
+--   umbra            bool      run as background daemon (umbra)           (default: true)
 
 local S = {}
 
-S.logd = {
-    name     = "logd",
-    exec     = "/bin/logd",
+S.memoria = {
+    name     = "memoria",
+    exec     = "/bin/memoria",
     restart  = "always",
     critical = true,
+    umbra    = true
 }
 
-S.fsd = {
-    name     = "fsd",
-    exec     = "/bin/fsd",
+S.structa = {
+    name     = "structa",
+    exec     = "/bin/structa",
     restart  = "on-failure",
-    requires = { "logd" },
+    requires = { "memoria" },
+    umbra    = true
 }
 
-S.powerd = {
-    name             = "powerd",
-    exec             = "/bin/powerd",
+S.ignis = {
+    name             = "ignis",
+    exec             = "/bin/ignis",
     restart          = "always",
     restart_delay_ms = 500,
-    requires         = { "logd" },
+    requires         = { "memoria" },
+    umbra            = true
 }
 
 S.nox = {
     name             = "nox",
     exec             = "/bin/nox",
-    env              = {"PATH=/bin"},
     args             = { "-v" },
     restart          = "always",
     restart_delay_ms = 2000,
-    requires         = { "logd", "powerd", "fsd" },
+    requires         = { "memoria" },
+    umbra            = false
 }
 
 return S

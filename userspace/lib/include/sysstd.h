@@ -128,7 +128,7 @@ int64_t sys_nanosleep(uint64_t ms, uint64_t, uint64_t, uint64_t, uint64_t, uint6
  * @param argv_ptr Argument vector.
  * @return New realm ID on success, or negative error code.
  */
-int64_t sys_spawn(uint64_t path_ptr, uint64_t argv_ptr, uint64_t, uint64_t, uint64_t, uint64_t);
+int64_t sys_spawn(uint64_t path_ptr, uint64_t argv_ptr, uint64_t envp, uint64_t cfg, uint64_t, uint64_t);
 
 /**
  * @brief Unlink (delete) a file.
@@ -468,5 +468,15 @@ int64_t sys_clock_nanosleep(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, ui
  *   -ENOMEM  : no free slot in target handle table
  */
 int64_t sys_handle_transfer(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_setsid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_setpgid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_getpgid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_tcsetpgrp(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_tcgetpgrp(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
 #endif  // SYSSTD_H

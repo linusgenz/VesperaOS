@@ -20,12 +20,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysstd.h>
-#include <errno.h>
+
+#include "../lib/include/time.h"
 
 static void usage(void) {
     puts("Usage: sleep <seconds>");
@@ -106,12 +108,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-//    int64_t result = sys_sleep(ms, 0, 0, 0, 0, 0);
-/*
+    timespec_t ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    const int64_t result = nanosleep(&ts, NULL);
+
     if (result < 0) {
         printf("sleep: error: %s\n", strerror((int)result));
         return 1;
-    }*/
+    }
 
     return 0;
 }
