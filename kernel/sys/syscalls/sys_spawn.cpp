@@ -70,12 +70,6 @@ namespace syscalls::internal {
             new_realm->controlling_tty = tty_dev;
 
             if (tty_dev) {
-                const RealmId parent_pgid = parent_realm ? parent_realm->pgid : 0;
-                kernel::tty::TTY* tty = tty_dev->tty;
-                if (tty->fg_pgid == 0 || tty->fg_pgid == parent_pgid) {
-                    tty->fg_pgid = new_realm->pgid;
-                }
-
                 new_realm->setup_standard_handles(tty_dev);
             }
         }

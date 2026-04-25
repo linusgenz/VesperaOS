@@ -54,7 +54,7 @@ namespace syscalls::internal {
             action.handler = reinterpret_cast<void (*)(int)>(handler_addr);
         }
 
-        u->signals_masked |= user_act->mask;
+        u->signals_masked |= user_act->sa_mask;
 
         return SUCCESS_CODE;
     }

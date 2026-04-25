@@ -58,7 +58,7 @@ class UserStackAllocator {
 
     void free(u32 slot_index);
 
-    usize used_count() const;
+    [[nodiscard]] usize used_count() const;
 
    private:
     usize slot_stack_size_{0};

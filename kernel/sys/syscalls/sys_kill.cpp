@@ -29,24 +29,33 @@
 
 namespace syscalls::internal {
     i64 sys_kill(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const RealmId target_rid = arg0;
-        const i32 signum = static_cast<i32>(arg1);
-
         if (!is_valid_signal(static_cast<i32>(arg1))) return -EINVAL;
 
-        const auto sig = static_cast<Signal>(signum);
+        const Unit* caller = kernel::scheduling::get_current_unit();
+        if (!caller) return -EINVAL;
 
-        if (const Unit* caller = kernel::scheduling::get_current_unit(); !caller) return -EINVAL;
+        const auto sig = static_cast<Signal>(static_cast<i32>(arg1));
 
-        const Realm* target = RealmManager::get(target_rid);
-        if (!target) return -ESRCH;
+        // If `target` is negative, it is interpreted as a PGID.
+        const i64 target = static_cast<i64>(arg0);
 
-        // TODO change signaling so realm gets signal and delegates it do a unit
+        if (target < 0) {
+            const RealmId pgid = static_cast<RealmId>(-target);
+            RealmManager::signal_pgid(pgid, sig);
+            return SUCCESS_CODE;
+        }
+
+        const RealmId target_rid = static_cast<RealmId>(target);
+        if (target_rid == 0) return -EINVAL;
+
         if (sig == Signal::SIGKILL) {
             return kernel::scheduling::kill_realm_by_id(target_rid, sig);
         }
 
-        Unit* u = target->unit_list;
+        const Realm* target_realm = RealmManager::get(target_rid);
+        if (!target_realm) return -ESRCH;
+
+        Unit* u = target_realm->unit_list;
         if (!u) return -ESRCH;
         signal_send(u, sig);
 

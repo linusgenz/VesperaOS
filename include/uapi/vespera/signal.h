@@ -29,7 +29,8 @@
 
 struct sigaction_t {
      void (*handler)(int);
-     u64 mask;
+     u64 sa_mask;
+     int sa_flags;
 };
 
 #endif  // VESPERAOS_SIGNAL_H

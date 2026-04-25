@@ -128,10 +128,10 @@ isr_common_entry:
 .from_kernel:
 
     mov     rdi, rsp
-    mov     r12, rsp
+    push    rdi
     and     rsp, -16
     call    vespera_trap_handler
-    mov     rsp, r12
+    pop     rsp
 
     lea     rsi, [rsp + TF_SIZE]
     mov     rax, [rsp + TF_RIP]

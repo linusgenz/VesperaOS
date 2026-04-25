@@ -1,23 +1,23 @@
 // xhci_mass_storage_driver.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 02.09.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -30,10 +30,8 @@
 #include "xhci_endpoint.h"
 #include "xhci_usb_device_driver.h"
 
-class XhciMassStorageDriver final : public XhciUsbDeviceDriver, public BlockDevice
-{
-public:
-
+class XhciMassStorageDriver final : public XhciUsbDeviceDriver, public BlockDevice {
+   public:
     ~XhciMassStorageDriver() override = default;
 
     void detach() override;
@@ -47,14 +45,15 @@ public:
 
     isize write(u64 lba, usize sector_count, const void* buffer, usize buffer_size) override;
 
-    [[nodiscard]] usize get_sector_size() const override { return sector_size_; }
+    [[nodiscard]] usize get_sector_size() const override {
+        return sector_size_;
+    }
 
-    [[nodiscard]] usize get_size() const override
-    {
+    [[nodiscard]] usize get_size() const override {
         return total_sectors_ * sector_size_;
     }
 
-private:
+   private:
     KernelDevice* kd_ = nullptr;
 
     usb::XhciDriver* hcd_{};
@@ -66,32 +65,29 @@ private:
 
     u32 sector_size_{512};
     u64 total_sectors_{0};
-    u32 max_lun_{0}; // Logical Unit Number
+    u32 max_lun_{0};  // Logical Unit Number
 
     // SCSI Command structures
-    struct CBW
-    {
+    struct CBW {
         // Command Block Wrapper
-        u32 signature; // 0x43425355 ("USBC")
+        u32 signature;  // 0x43425355 ("USBC")
         u32 tag;
         u32 data_length;
-        u8 flags; // Bit 7: Direction (0=Out, 1=In)
-        u8 lun; // Logical Unit Number
-        u8 cb_length; // Command Block Length
-        u8 cb[16]; // Command Block
+        u8 flags;      // Bit 7: Direction (0=Out, 1=In)
+        u8 lun;        // Logical Unit Number
+        u8 cb_length;  // Command Block Length
+        u8 cb[16];     // Command Block
     } __attribute__((packed));
 
-    struct CSW
-    {
+    struct CSW {
         // Command Status Wrapper
-        u32 signature; // 0x53425355 ("USBS")
+        u32 signature;  // 0x53425355 ("USBS")
         u32 tag;
         u32 data_residue;
-        u8 status; // 0=Success, 1=Failed, 2=Phase Error
+        u8 status;  // 0=Success, 1=Failed, 2=Phase Error
     } __attribute__((packed));
 
-    struct MassStorageTransfer
-    {
+    struct MassStorageTransfer {
         enum class Phase { Idle, SentCbw, DataPhase, ReceivedCsw, Completed, Error } phase = Phase::Idle;
 
         CBW cbw{};
@@ -117,13 +113,7 @@ private:
     MassStorageTransfer transfer_capacity_;
     MassStorageTransfer transfer_rw_;
 
-    enum class InitPhase
-    {
-        TestUnitReady,
-        Inquiry,
-        ReadCapacity,
-        Completed
-    };
+    enum class InitPhase { TestUnitReady, Inquiry, ReadCapacity, Completed };
 
     Semaphore init_semaphore_;
     int init_status_ = -1;
@@ -144,4 +134,4 @@ private:
     void handle_completed_transfer();
 };
 
-#endif //VESPERAOS_XHCI_MASS_STORAGE_DRIVER_H
+#endif  // VESPERAOS_XHCI_MASS_STORAGE_DRIVER_H

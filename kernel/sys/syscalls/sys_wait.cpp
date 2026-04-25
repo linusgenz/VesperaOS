@@ -26,6 +26,7 @@
 #include <vespera/scheduling.h>
 
 #include "../../units/unit.h"
+#include "vespera/log.h"
 #include "vespera/time.h"
 
 namespace syscalls::internal {

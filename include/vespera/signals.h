@@ -26,21 +26,24 @@
 
 #include "interrupts.h"
 
-
 class Unit;
 enum class Signal : i32 {
-    SIGINT  = 2,
+    SIGINT = 2,
+    SIGILL = 4,
+    SIGBUS = 7,
     SIGFPE = 8,
     SIGKILL = 9,
     SIGSEGV = 11,
-    SIGBUS = 7,
-    SIGILL = 4,
+    SIGPIPE = 13,
+    SIGALRM = 14,
     SIGTERM = 15,
     SIGCHLD = 17,
-    SIGALRM = 14,
-    SIGPIPE = 13,
-    SIGUSR1 =  20,
-    SIGUSR2 =  21,
+    SIGTSTP = 20,
+    SIGUSR1 = 10,
+    SIGUSR2 = 12,
+    SIGCONT = 18,
+    SIGTTOU = 22,
+    SIGTTIN = 21,
 };
 
 struct SignalFrame {

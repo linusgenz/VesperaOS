@@ -203,15 +203,7 @@ bool RealmManager::destroy(const RealmId id) {
         if (realm.controlling_tty) {
             kernel::tty::TTY* tty = realm.controlling_tty->tty;
             if (tty && tty->fg_pgid == realm.pgid) {
-                const Realm* parent = nullptr;
-                for (auto& r : realms_) {
-                    if (r.active && r.id == id) parent = &r;
-                }
-                if (parent && parent->controlling_tty == realm.controlling_tty) {
-                    tty->fg_pgid = parent->pgid;
-                } else {
-                    tty->fg_pgid = 0;
-                }
+                tty->fg_pgid = 0;
             }
         }
 

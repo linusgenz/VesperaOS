@@ -33,7 +33,7 @@ static FaultContext make_fault_context(const TrapFrame* frame) {
 
 void double_fault_handler(const TrapFrame* frame) {
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::DoubleFault, ctx, "Double fault detected");
+    kernel::debug::log_fault(FaultType::DoubleFault, frame, "Double fault detected");
     kernel::SystemManager::system_panic("Double fault detected", -KEDOUBLEFAULT);
 }
 
@@ -71,7 +71,7 @@ void page_fault_handler(TrapFrame* frame) {
 
     // Kernel-seitiger Page Fault
     FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_page_fault_detail(fault_addr, ctx.error_code, ctx);
+    kernel::debug::log_page_fault_detail(fault_addr, ctx.error_code, frame);
     kernel::SystemManager::system_panic("Page fault detected", -KEPAGEFAULT);
 }
 
@@ -89,7 +89,7 @@ void gp_fault_handler(TrapFrame* frame) {
      }*/
 
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::GeneralProtection, ctx, "General protection fault detected");
+    kernel::debug::log_fault(FaultType::GeneralProtection, frame, "General protection fault detected");
 
     if (frame->error_code & 0x1) Log::error("  External event caused fault");
     if (frame->error_code & 0x2)
@@ -119,7 +119,7 @@ extern "C" void invalid_opcode_handler(TrapFrame* frame) {
      }*/
 
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_invalid_opcode_bytes(frame->rip, ctx);
+    kernel::debug::log_invalid_opcode_bytes(frame->rip, frame);
     kernel::SystemManager::system_panic("Invalid opcode detected", -KEINVOP);
 }
 
@@ -136,7 +136,7 @@ void stack_fault_handler(TrapFrame* frame) {
     }
 
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::StackFault, ctx, "Stack fault detected");
+    kernel::debug::log_fault(FaultType::StackFault, frame, "Stack fault detected");
     const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Stack selector: 0x%x", selector);
     kernel::SystemManager::system_panic("Stack fault detected", -KESTACKFAULT);
@@ -155,7 +155,7 @@ void segment_not_present_handler(TrapFrame* frame) {
     }
 
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::SegmentNotPresent, ctx, "Segment not present");
+    kernel::debug::log_fault(FaultType::SegmentNotPresent, frame, "Segment not present");
     const u16 selector = (frame->error_code >> 3) & 0x1FFF;
     Log::error("  Missing segment selector: 0x%x", selector);
     if (frame->error_code & 0x2)
@@ -182,14 +182,14 @@ void divide_error_handler(TrapFrame* frame) {
     }
 
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::DivideByZero, ctx, "Divide by zero");
+    kernel::debug::log_fault(FaultType::DivideByZero, frame, "Divide by zero");
     kernel::SystemManager::system_panic("Divide by zero", -KEDIVZERO);
 }
 
 // Machine Check Exception (Vector 18)
 void machine_check_handler(const TrapFrame* frame) {
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::MachineCheck, ctx, "Machine check exception");
+    kernel::debug::log_fault(FaultType::MachineCheck, frame, "Machine check exception");
 
     kernel::SystemManager::system_panic("Machine check exception", -KEMACHCHECK);
 }
@@ -197,7 +197,7 @@ void machine_check_handler(const TrapFrame* frame) {
 // Generic unhandled interrupt handler
 void unhandled_interrupt_handler(const TrapFrame* frame) {
     const FaultContext ctx = make_fault_context(frame);
-    kernel::debug::log_fault(FaultType::UnhandledInterrupt, ctx, "Unhandled interrupt");
+    kernel::debug::log_fault(FaultType::UnhandledInterrupt, frame, "Unhandled interrupt");
 
     kernel::SystemManager::system_panic("Unhandled interrupt", -KEUNHANDLED);
 }
