@@ -28,6 +28,7 @@
 // =============================================================================
 
 #include "fat32_fixture.h"
+#include "vespera/log.h"
 
 // =============================================================================
 // CreateFile
@@ -90,7 +91,7 @@ TEST(FAT32_Dir, CreateFileInitialSizeZero, "Newly created file has fileSize == 0
 TEST(FAT32_Dir, CreateDirAppearsInListing, "Created directory appears in directory listing") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    ASSERT_TRUE(f.fs->create_directory(&parent, "MYDIR"));
+    ASSERT_EQ(0, f.fs->create_directory(&parent, "MYDIR"));
     ASSERT_TRUE(f.list_contains(f.list_root(), "MYDIR"));
 }
 
@@ -116,16 +117,16 @@ TEST(FAT32_Dir, CreateDirHasDotEntries, "New directory contains '.' and '..' ent
 TEST(FAT32_Dir, CreateDirLFN, "Create a directory with a long LFN name") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    ASSERT_TRUE(f.fs->create_directory(&parent, "my_long_directory_name"));
+    ASSERT_EQ(0, f.fs->create_directory(&parent, "my_long_directory_name"));
     ASSERT_TRUE(f.list_contains(f.list_root(), "my_long_directory_name"));
 }
 
 TEST(FAT32_Dir, CreateDirNullRejected, "CreateDirectory rejects null parent, null name, and empty name") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    ASSERT_FALSE(f.fs->create_directory(nullptr,  "dir"));
-    ASSERT_FALSE(f.fs->create_directory(&parent,  nullptr));
-    ASSERT_FALSE(f.fs->create_directory(&parent,  ""));
+    ASSERT_TRUE(f.fs->create_directory(nullptr,  "dir")<0);
+    ASSERT_TRUE(f.fs->create_directory(&parent,  nullptr)<0);
+    ASSERT_TRUE(f.fs->create_directory(&parent,  "")<0);
 }
 
 // =============================================================================
@@ -191,15 +192,16 @@ TEST(FAT32_Dir, DeleteLFNFileFullyRemoved, "Deleting an LFN file removes all its
 TEST(FAT32_Dir, RemoveDirEmpty, "Removing an empty directory succeeds") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    ASSERT_TRUE(f.fs->create_directory(&parent, "EMPTYDIR"));
+    ASSERT_EQ(0, f.fs->create_directory(&parent, "EMPTYDIR"));
     ASSERT_TRUE(f.fs->remove_directory(&parent, "EMPTYDIR"));
     ASSERT_FALSE(f.list_contains(f.list_root(), "EMPTYDIR"));
 }
 
+
 TEST(FAT32_Dir, RemoveDirNonEmptyRejected, "Removing a non-empty directory is rejected") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    ASSERT_TRUE(f.fs->create_directory(&parent, "FULLDIR"));
+    ASSERT_EQ(0, f.fs->create_directory(&parent, "FULLDIR"));
 
     auto dir = f.find_dir_node("FULLDIR");
     ASSERT_TRUE(f.fs->create_file(&dir, "INSIDE.TXT"));
@@ -216,13 +218,13 @@ TEST(FAT32_Dir, RemoveDirMissingReturnsFalse, "Removing a non-existent directory
 TEST(FAT32_Dir, RemoveDirFreesCluster, "Removing a directory marks its cluster as free in the FAT") {
     WITH_FAT32(f);
     Fat32Node parent = f.root_node();
-    ASSERT_TRUE(f.fs->create_directory(&parent, "FREETEST"));
+    ASSERT_EQ(0, f.fs->create_directory(&parent, "FREETEST"));
 
     auto     dir     = f.find_dir_node("FREETEST");
-    uint32_t cluster = dir.cluster;
+    u32      cluster = dir.cluster;
 
     ASSERT_TRUE(f.fs->remove_directory(&parent, "FREETEST"));
-    ASSERT_EQ(static_cast<uint32_t>(0), f.fs->get_fat_entry(cluster));
+    ASSERT_EQ(static_cast<u32>(0), f.fs->get_fat_entry(cluster));
 }
 
 // =============================================================================

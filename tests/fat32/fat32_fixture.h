@@ -83,7 +83,7 @@ struct Fat32Fixture {
 
     Fat32Node create_dir(const char* name) {
         Fat32Node parent = root_node();
-        if (!fs->create_directory(&parent, name)) {
+        if (fs->create_directory(&parent, name)<0) {
             TestFramework::fail_test(__FILE__, __LINE__,
                 (std::string("CreateDirectory failed: ") + name).c_str());
             return {};
