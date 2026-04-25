@@ -99,10 +99,11 @@ var NAVTREEINDEX2 =
 "ioctl__smart_8h_source.html":[4,0,0,0,0,0,4],
 "ioctl__tty_8h.html":[4,0,0,0,0,0,5],
 "ioctl__tty_8h.html#a2cd4beda57c7c9b0696cd2860c7d0a0a":[4,0,0,0,0,0,5,2],
-"ioctl__tty_8h.html#a4cc06d2f4a6337c4702c46ff53ecf182":[4,0,0,0,0,0,5,5],
+"ioctl__tty_8h.html#a4cc06d2f4a6337c4702c46ff53ecf182":[4,0,0,0,0,0,5,6],
 "ioctl__tty_8h.html#a53d6e936abb574516ede1cf81e3f7697":[4,0,0,0,0,0,5,3],
+"ioctl__tty_8h.html#a6190b01427a76620b36670123372f442":[4,0,0,0,0,0,5,5],
 "ioctl__tty_8h.html#a7a53367e8fae9c437ba85b459ae8b7c9":[4,0,0,0,0,0,5,4],
-"ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a":[4,0,0,0,0,0,5,6],
+"ioctl__tty_8h.html#ace6b2fe789d6bd8db3fc84e36554f31a":[4,0,0,0,0,0,5,7],
 "ioctl__tty_8h_source.html":[4,0,0,0,0,0,5],
 "ioctl__usb__device_8h.html":[4,0,0,0,0,0,6],
 "ioctl__usb__device_8h.html#a0862ceeed2a8b2a8097d86acba5de7ce":[4,0,0,0,0,0,6,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "math_8h.html#a36afc77dc4704cf6ef6ddd06a7d08758":[4,0,1,0,0,18,197],
 "math_8h.html#a37bde043e94a6f074c78f10518fb5d99":[4,0,1,0,0,18,196],
 "math_8h.html#a39550a267ea4a380d0a701f55d132f3c":[4,0,1,0,0,18,1],
-"math_8h.html#a399348e6ec90eb493065063539563a97":[4,0,1,0,0,18,63],
-"math_8h.html#a39f382de6e150469726a9be25395a410":[4,0,1,0,0,18,119]
+"math_8h.html#a399348e6ec90eb493065063539563a97":[4,0,1,0,0,18,63]
 };

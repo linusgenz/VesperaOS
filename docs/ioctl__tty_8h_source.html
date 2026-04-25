@@ -145,7 +145,9 @@ $(document).ready(function(){initNavTree('ioctl__tty_8h_source.html',''); initRe
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a7a53367e8fae9c437ba85b459ae8b7c9">   41</a></span><span class="preprocessor">#define IOCTL_TTY_SET_MODE IOW(&#39;T&#39;, 0x02, tty_mode_t)</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a53d6e936abb574516ede1cf81e3f7697">   42</a></span><span class="preprocessor">#define IOCTL_TTY_GET_SIZE IOR(&#39;T&#39;, 0x03, tty_size_t)</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_TTY_H</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="ioctl__tty_8h.html#a6190b01427a76620b36670123372f442">   44</a></span><span class="preprocessor">#define TIOCSCTTY   IO(&#39;T&#39;, 0x04)</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_IOCTL_TTY_H</span></div>
 <div class="ttc" id="ainclude_2uapi_2vespera_2ioctl_8h_html"><div class="ttname"><a href="include_2uapi_2vespera_2ioctl_8h.html">ioctl.h</a></div></div>
 <div class="ttc" id="astructtty__mode__t_html"><div class="ttname"><a href="structtty__mode__t.html">tty_mode_t</a></div><div class="ttdef"><b>Definition</b> ioctl_tty.h:30</div></div>
 <div class="ttc" id="astructtty__mode__t_html_a77f631f319bb290247e49346ba12adcc"><div class="ttname"><a href="structtty__mode__t.html#a77f631f319bb290247e49346ba12adcc">tty_mode_t::echo</a></div><div class="ttdeci">int echo</div><div class="ttdef"><b>Definition</b> ioctl_tty.h:32</div></div>

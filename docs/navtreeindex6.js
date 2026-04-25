@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"structvespera__stat.html#aa04896d3128812aac9fc25cefd927254":[3,0,53,10],
 "structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1":[3,0,53,0],
 "structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51":[3,0,53,11],
 "structvespera__stat.html#aefa00e27ef7dfd7c327c2686ef458eba":[3,0,53,7],
