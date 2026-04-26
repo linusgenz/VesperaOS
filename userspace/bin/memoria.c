@@ -37,7 +37,7 @@
 #define MAX_LINE 4096
 #define POLL_TIMEOUT_MS 500
 #define LOGFILE_PATH "/var/log/system.log"
-#define CHAN_FILE "/run/services/logd.log_chan"
+#define CHAN_FILE "/run/services/memoria.log_chan"
 #define RETRY_ATTEMPTS 10
 #define RETRY_DELAY_MS 50
 
@@ -74,7 +74,7 @@ static void try_open_logfile(void) {
 
 /*
  * Lines from log_client already carry a [HH:MM:SS] prefix.
- * logd forwards them unchanged. Only lines generated internally by logd
+ * memoria forwards them unchanged. Only lines generated internally by memoria
  * (which start with a non-'[' character) get a timestamp prepended here.
  */
 static void emit(const char* line, size_t len) {
@@ -113,7 +113,7 @@ int main(void) {
     unsigned tick = 0;
     char line_buf[MAX_LINE];
 
-    emit("[INFO ] logd started", 20);
+    emit("[INFO ] memoria started", 23);
 
     while (g_running) {
         if (g_chan) {
@@ -138,7 +138,7 @@ int main(void) {
         }
     }
 
-    emit("[INFO ] logd shutting down", 25);
+    emit("[INFO ] memoria shutting down", 28);
     if (g_logfile) fclose(g_logfile);
     return 0;
 }

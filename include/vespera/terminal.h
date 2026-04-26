@@ -63,7 +63,6 @@ class Terminal {
 
     void draw_cell(u32 cx, u32 cy) const;
     void advance();
-    void scroll() const;
 
     void cursor_activity();
 

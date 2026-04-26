@@ -9,11 +9,17 @@ U.LOG_WARN  = 2
 U.LOG_ERROR = 3
 U.log_level = U.LOG_INFO
 
-local TAGS = { "[DEBUG] ", "[INFO]  ", "[WARN]  ", "[ERROR] " }
+local TAGS = { "[DEBUG] ", "[INFO ]  ", "[WARN ]  ", "[ERROR] " }
+
+local writer = vespera.log.write
+
+function U.set_writer(fn)
+    writer = fn
+end
 
 function U.log(level, msg)
     if level < U.log_level then return end
-    vespera.log.write((TAGS[level + 1] or "[?]     ") .. tostring(msg))
+    writer((TAGS[level + 1] or "[?]     ") .. tostring(msg))
 end
 
 function U.debug(m) U.log(U.LOG_DEBUG, m) end

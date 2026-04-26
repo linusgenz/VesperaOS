@@ -30,7 +30,7 @@ local function track(name, realm_id)
         started_at = vespera.sys.uptime(),
     }
     realm_to_name[realm_id] = name
-    U.info(string.format("started  %-16s realm=%d  restarts=%d",
+    U.info(string.format("started  %-16s realm=%d  restarts=%d\n",
             name, realm_id, running[name].restarts))
 end
 
@@ -54,6 +54,14 @@ local function create_log_channel()
     end
     U.info("log channel created: handle=" .. tostring(hid))
     return hid
+end
+
+local function init_log_write(msg)
+    if g_log_channel then
+        vespera.ipc.channel_send(g_log_channel, msg)
+    else
+        vespera.log.write(msg)
+    end
 end
 
 local function transfer_log_channel_to(name, realm_id)
@@ -96,6 +104,7 @@ local function merge_env(base, override_list)
 
     return merged
 end
+
 local function spawn_service(name)
     local def = services_def[name]
     if not def then
@@ -222,7 +231,7 @@ local function start_all()
         order = {}
         for n in pairs(services_def) do order[#order + 1] = n end
     end
-    U.info(string.format("starting %d services: %s",
+    U.info(string.format("starting %d services: %s\n",
             #order, table.concat(order, " → ")))
     for _, name in ipairs(order) do
         local def = services_def[name]
@@ -298,6 +307,7 @@ local function main()
     end
 
     g_log_channel = create_log_channel()
+    U.set_writer(init_log_write)
 
     local ok2, svc_or_err = pcall(dofile, "/etc/services.lua")
     if not ok2 then

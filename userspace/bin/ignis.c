@@ -114,7 +114,7 @@ static void write_state(const power_state_t* s) {
 }
 
 int main(void) {
-    log_client_init("powerd");
+    log_client_init("ignis");
     signal(SIGTERM, on_sigterm);
 
     LOG_INFO("powerd starting");

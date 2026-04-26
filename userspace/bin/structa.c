@@ -243,7 +243,7 @@ static void handle_hotplug_remove(const char* dev_path) {
 }
 
 int main(void) {
-    log_client_init("fsd");
+    log_client_init("structa");
     signal(SIGTERM, on_sigterm);
 
     LOG_INFO("fsd starting");
