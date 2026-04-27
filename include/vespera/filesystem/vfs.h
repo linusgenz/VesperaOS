@@ -105,8 +105,10 @@ public:
 
     static int unlink(const char* path);
     static int truncate(VfsNode* node, usize new_size);
+    static int chown(VfsNode* node, u32 uid, u32 gid);
+    static int chmod(VfsNode* node, u16 mode);
 
-   // static bool probe_filesystem(BlockDevice* device);
+    // static bool probe_filesystem(BlockDevice* device);
 
     static void list_devices();
 

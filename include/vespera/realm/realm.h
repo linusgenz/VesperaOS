@@ -32,6 +32,7 @@
 #include "../../../kernel/tty/tty_device.h"
 #include "../types.h"
 #include "user_stack_allocator.h"
+#include "vespera/security/credentials.h"
 
 class Unit;
 
@@ -101,6 +102,7 @@ class Realm {
     RealmId    parent_id;
     TtyDevice* controlling_tty;
 
+    kernel::security::process_credentials cred;
 
     Realm();
 

@@ -397,7 +397,7 @@ class ElfLoader {
         bool is_pie;
     };
 
-    static LoadResult load(const char* path, uptr preferred_base, const Realm* realm);
+    static LoadResult load(const char* path, uptr preferred_base, Realm* realm);
     static bool apply_relocations(
         const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm
     );
@@ -434,7 +434,7 @@ class ElfLoader {
     static bool validate_magic(const Elf64_Ehdr* header);
     static bool validate_type(const Elf64_Ehdr* header);
     static bool validate_architecture(const Elf64_Ehdr* header);
-    static FileData load_file_from_vfs(const char* path);
+    static FileData load_file_from_vfs(const char* path, Realm* realm);
     static bool calculate_address_range(const Elf64_Ehdr* header, const void* file_data, AddressRange& range);
 
     static uptr calculate_load_bias(const Elf64_Ehdr* header, const AddressRange& range, uptr preferred_base);

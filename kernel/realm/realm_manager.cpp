@@ -133,6 +133,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->unit_list = nullptr;
             r->unit_count = 0;
             r->active = true;
+            r->cred = kernel::security::process_credentials{};
             r->lock.init();
             r->capabilities = cfg->capabilities;
             r->init_handle_table();

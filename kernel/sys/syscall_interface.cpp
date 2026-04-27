@@ -65,7 +65,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_POLL] = syscalls::internal::sys_poll;
     syscall_table[SYSCALL_PIPE] = syscalls::internal::sys_pipe;
     syscall_table[SYSCALL_GETRID] = syscalls::internal::sys_getrid;
-    syscall_table[SYSCALL_GETUID] = syscalls::internal::sys_getuid;
+    syscall_table[SYSCALL_GETUNID] = syscalls::internal::sys_getunid;
     syscall_table[SYSCALL_MOUNT] = syscalls::internal::sys_mount;
     syscall_table[SYSCALL_UMOUNT] = syscalls::internal::sys_umount;
     syscall_table[SYSCALL_SIGACTION] = syscalls::internal::sys_sigaction;
@@ -84,6 +84,22 @@ void install_syscalls() {
     syscall_table[SYSCALL_GETPGID] = syscalls::internal::sys_getpgid;
     syscall_table[SYSCALL_TCSETPGRP] = syscalls::internal::sys_tcsetpgrp;
     syscall_table[SYSCALL_TCGETPGRP] = syscalls::internal::sys_tcgetpgrp;
+    syscall_table[SYSCALL_GETUID] = syscalls::internal::sys_getuid;
+    syscall_table[SYSCALL_GETEUID] = syscalls::internal::sys_geteuid;
+    syscall_table[SYSCALL_SETUID] = syscalls::internal::sys_setuid;
+    syscall_table[SYSCALL_SETREUID] = syscalls::internal::sys_setreuid;
+    syscall_table[SYSCALL_SETRESUID] = syscalls::internal::sys_setresuid;
+    syscall_table[SYSCALL_GETRESUID] = syscalls::internal::sys_getresuid;
+    syscall_table[SYSCALL_GETGID] = syscalls::internal::sys_getgid;
+    syscall_table[SYSCALL_GETEGID] = syscalls::internal::sys_getegid;
+    syscall_table[SYSCALL_SETGID] = syscalls::internal::sys_setgid;
+    syscall_table[SYSCALL_SETREGID] = syscalls::internal::sys_setregid;
+    syscall_table[SYSCALL_SETRESGID] = syscalls::internal::sys_setresgid;
+    syscall_table[SYSCALL_GETRESGID] = syscalls::internal::sys_getresgid;
+    syscall_table[SYSCALL_CHOWN] = syscalls::internal::sys_chown;
+    syscall_table[SYSCALL_FCHOWN] = syscalls::internal::sys_fchown;
+    syscall_table[SYSCALL_CHMOD] = syscalls::internal::sys_chmod;
+    syscall_table[SYSCALL_FCHMOD] = syscalls::internal::sys_fchmod;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

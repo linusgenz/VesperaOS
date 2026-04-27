@@ -303,6 +303,19 @@ int VFS::truncate(VfsNode* node, const usize new_size) {
 
     return node->ops->truncate(node, new_size);
 }
+
+int VFS::chown(VfsNode* node, const u32 uid, const u32 gid) {
+    if (!node || !node->ops || !node->ops->chown) return -ENOSYS;
+    if (is_read_only(node)) return -EROFS;
+    return node->ops->chown(node, uid, gid);
+}
+
+int VFS::chmod(VfsNode* node, const u16 mode) {
+    if (!node || !node->ops || !node->ops->chmod) return -ENOSYS;
+    if (is_read_only(node)) return -EROFS;
+    return node->ops->chmod(node, mode);
+}
+
 /*
 bool VFS::probe_filesystem(BlockDevice* device) {
     FilesystemInfo info{};

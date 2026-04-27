@@ -23,10 +23,11 @@
 
 #include "elf.h"
 
+#include <vespera/filesystem/vfs.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm.h>
 
-#include <vespera/filesystem/vfs.h>
+#include "../security/setuid_exec.h"
 
 #if ENABLE_ELF_LOGGING
 #include <log.h>
@@ -45,7 +46,7 @@ static phys_addr_t realm_get_phys(const Realm* realm, const uptr vaddr) {
     return phys_add(phys_page, offset);
 }
 
-ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_base, const Realm* realm) {
+ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_base, Realm* realm) {
     if (!path || !realm) {
         return {
             .entry_point = nullptr,
@@ -61,7 +62,7 @@ ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_bas
 
     ELF_LOG("[ELF] Loading binary from: %s", path);
 
-    const FileData file_data = load_file_from_vfs(path);
+    const FileData file_data = load_file_from_vfs(path, realm);
     if (!file_data.data) {
         return {
             .entry_point = nullptr,
@@ -243,9 +244,7 @@ done_dyn:
         if (ph.p_type != PT_LOAD) continue;
         if (rela_vaddr >= ph.p_vaddr && rela_vaddr < ph.p_vaddr + ph.p_filesz) {
             const uptr offset_in_seg = rela_vaddr - ph.p_vaddr;
-            rela = reinterpret_cast<const Elf64_Rela*>(
-                static_cast<const u8*>(file_data) + ph.p_offset + offset_in_seg
-            );
+            rela = reinterpret_cast<const Elf64_Rela*>(static_cast<const u8*>(file_data) + ph.p_offset + offset_in_seg);
             break;
         }
     }
@@ -286,7 +285,7 @@ bool ElfLoader::validate_architecture(const Elf64_Ehdr* header) {
     return header->e_machine == EM_X86_64;
 }
 
-ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path) {
+ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path, Realm* realm) {
     VfsNode* file = VFS::open(path);
     if (!file) {
         return {nullptr, 0, "Failed to open file"};
@@ -299,6 +298,8 @@ ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path) {
         VFS::close(file);
         return {nullptr, 0, "Failed to allocate memory for file"};
     }
+
+    kernel::security::apply_exec_credentials(realm->cred, file);
 
     VFS::read(file, 0, size, data);
     VFS::close(file);
@@ -341,9 +342,7 @@ bool ElfLoader::calculate_address_range(const Elf64_Ehdr* header, const void* fi
     return true;
 }
 
-uptr ElfLoader::calculate_load_bias(
-    const Elf64_Ehdr* header, const AddressRange& range, const uptr preferred_base
-) {
+uptr ElfLoader::calculate_load_bias(const Elf64_Ehdr* header, const AddressRange& range, const uptr preferred_base) {
     if (header->e_type == ET_EXEC) {
         // ET_EXEC, no Bias
         return 0;
@@ -401,11 +400,7 @@ bool ElfLoader::load_segment(const Elf64_Phdr& phdr, const void* file_data, cons
     memset(virt, 0, map_size);
 
     if (file_size > 0) {
-        memcpy(
-            virt_as<u8>(virt_add(virt, page_offset)),
-            static_cast<const u8*>(file_data) + phdr.p_offset,
-            file_size
-        );
+        memcpy(virt_as<u8>(virt_add(virt, page_offset)), static_cast<const u8*>(file_data) + phdr.p_offset, file_size);
     }
 
     if (memory_size > file_size) {

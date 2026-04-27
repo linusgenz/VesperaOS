@@ -72,6 +72,10 @@ struct VfsNodeOps {
 
     int (*truncate)(VfsNode *node, usize new_size);
 
+    int (*chown)(VfsNode *node, u32 uid, u32 gid);
+
+    int (*chmod)(VfsNode *node, u16 mode);
+
     int (*poll)(const VfsNode *node);
 };
 

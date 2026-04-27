@@ -1,4 +1,4 @@
-// getuid.cpp
+// getunid.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -25,7 +25,7 @@
 #include "../../units/unit.h"
 
 namespace syscalls::internal {
-    i64 sys_getuid(u64, u64, u64, u64, u64, u64) {
+    i64 sys_getunid(u64, u64, u64, u64, u64, u64) {
 
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EUNKNOWN;

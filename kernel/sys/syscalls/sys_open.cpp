@@ -28,6 +28,7 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
+#include "../../security/permission.h"
 #include "../../../filesystem/vfs/vfs_node.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
@@ -53,6 +54,7 @@ namespace syscalls::internal {
 
         if (!node) {
             if (flags & O_CREAT) {
+                // TODO check with vfs_check_write on parent dir
                 if (const int result = VFS::create(norm); result != 0) {
                     return result;
                 }
@@ -71,21 +73,30 @@ namespace syscalls::internal {
             }
         }
 
+        u32 vfs_access     = 0;
         capability_set required_caps = CAP_NONE;
 
         switch (flags & 0x3) {
             case O_RDONLY:
-                required_caps |= CAP_READ;
+                vfs_access    = kernel::security::VFS_ACCESS_READ;
+                required_caps = CAP_READ;
                 break;
             case O_WRONLY:
-                required_caps |= CAP_WRITE;
+                vfs_access    = kernel::security::VFS_ACCESS_WRITE;
+                required_caps = CAP_WRITE;
                 break;
             case O_RDWR:
-                required_caps |= CAP_READ | CAP_WRITE;
+                vfs_access    = kernel::security::VFS_ACCESS_READ | kernel::security::VFS_ACCESS_WRITE;
+                required_caps = CAP_READ | CAP_WRITE;
                 break;
             default:
                 VFS::close(node);
                 return -EINVAL;
+        }
+
+        if (const int err = kernel::security::vfs_check_permission(node, vfs_access, realm->cred); err != 0) {
+            VFS::close(node);
+            return err;  // -EACCES
         }
 
         if (node->type == VfsNodeType::Directory) {

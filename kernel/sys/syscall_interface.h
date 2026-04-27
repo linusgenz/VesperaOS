@@ -87,7 +87,7 @@ namespace syscalls::internal {
 
     i64 sys_getrid(u64, u64, u64, u64, u64, u64);
 
-    i64 sys_getuid(u64, u64, u64, u64, u64, u64);
+    i64 sys_getunid(u64, u64, u64, u64, u64, u64);
 
     i64 sys_mount(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64);
 
@@ -124,6 +124,38 @@ namespace syscalls::internal {
     i64 sys_tcsetpgrp(u64 arg0, u64 arg1, u64, u64, u64, u64);
 
     i64 sys_tcgetpgrp(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_getuid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_geteuid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_setuid(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_setreuid(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_setresuid(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_getresuid(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_getgid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_getegid(u64, u64, u64, u64, u64, u64);
+
+    i64 sys_setgid(u64 arg0, u64, u64, u64, u64, u64);
+
+    i64 sys_setregid(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_setresgid(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_getresgid(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_chown(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_fchown(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
+
+    i64 sys_chmod(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_fchmod(u64 arg0, u64 arg1, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();
