@@ -1,5 +1,6 @@
 var NAVTREEINDEX5 =
 {
+"structiovec.html#a17b5ac2078fd1adfabb262a95808a07d":[3,0,17,1],
 "structjmp__buf.html":[3,0,18],
 "structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8":[3,0,18,4],
 "structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b":[3,0,18,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX5 =
 "structvespera__stat.html#a6444c92a2cfe279a6670476fb9d1fe8e":[3,0,53,1],
 "structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c":[3,0,53,15],
 "structvespera__stat.html#a81049eae510c129c361060e3d88938a2":[3,0,53,5],
-"structvespera__stat.html#a9312490bca8dece1ba862e7008eedddc":[3,0,53,9],
-"structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea":[3,0,53,12]
+"structvespera__stat.html#a9312490bca8dece1ba862e7008eedddc":[3,0,53,9]
 };

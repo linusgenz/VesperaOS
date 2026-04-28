@@ -21,6 +21,7 @@ var stdlib_8h =
     [ "strtod", "stdlib_8h.html#ab017280f95ea769b9422688105f02653", null ],
     [ "strtof", "stdlib_8h.html#a8cf9a69dd4ef0e36fb08425fff9cc59d", null ],
     [ "strtold", "stdlib_8h.html#a2fb0bb1a4be5c0865b119ce0d89145a7", null ],
+    [ "strtoul", "stdlib_8h.html#a6d257fc3f00865d0556ed7327c312b55", null ],
     [ "system", "stdlib_8h.html#a5e43287e1dd4097af9094206a00d8806", null ],
     [ "tmpnam", "stdlib_8h.html#aaff28d1d411bc932ad8120940f0d0c96", null ],
     [ "unsetenv", "stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c", null ],
