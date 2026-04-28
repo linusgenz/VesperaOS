@@ -181,6 +181,7 @@ long atol(const char* s);
 double strtod(const char* str, char** endptr);
 float strtof(const char* str, char** endptr);
 long double strtold(const char* str, char** endptr);
+unsigned long strtoul(const char* nptr, char** endptr, int base);
 
 static inline int abs(int x) {
     return x < 0 ? -x : x;

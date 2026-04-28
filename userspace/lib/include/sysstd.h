@@ -390,7 +390,7 @@ int64_t sys_pipe(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t
 
 int64_t sys_getrid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
-int64_t sys_getuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+int64_t sys_getunid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
 int64_t sys_mount(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t);
 
@@ -478,5 +478,222 @@ int64_t sys_getpgid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, 
 int64_t sys_tcsetpgrp(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
 int64_t sys_tcgetpgrp(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the real user ID of the calling realm.
+ *
+ * @return The real user ID (always succeeds).
+ */
+int64_t sys_getuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the effective user ID of the calling realm.
+ *
+ * @return The effective user ID (always succeeds).
+ */
+int64_t sys_geteuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Set the user ID of the calling realm.
+ *
+ * POSIX semantics:
+ *   - If euid == 0 (root): sets uid, euid, and suid to @p arg0.
+ *   - Otherwise: may only set euid to the current uid or suid (privilege drop/restore).
+ *
+ * @param arg0 The target user ID.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EPERM  : caller is not root and @p arg0 is not uid or suid
+ */
+int64_t sys_setuid(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Set the real and effective user IDs independently.
+ *
+ * Pass (uint32_t)-1 for a field to leave it unchanged.
+ * The saved set-user-ID is updated to the new euid whenever ruid changes
+ * or euid is set to a value other than the old real uid.
+ *
+ * @param arg0 New real user ID, or (uint32_t)-1 to leave unchanged.
+ * @param arg1 New effective user ID, or (uint32_t)-1 to leave unchanged.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EPERM  : unprivileged caller attempted a disallowed change
+ */
+int64_t sys_setreuid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Set the real, effective, and saved set-user-IDs.
+ *
+ * Each field may be set independently. Pass (uint32_t)-1 to leave a field unchanged.
+ * A non-root caller may only set each field to one of its current uid, euid, or suid.
+ *
+ * @param arg0 New real user ID, or (uint32_t)-1 to leave unchanged.
+ * @param arg1 New effective user ID, or (uint32_t)-1 to leave unchanged.
+ * @param arg2 New saved set-user-ID, or (uint32_t)-1 to leave unchanged.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EPERM  : one or more requested values are not permitted
+ */
+int64_t sys_setresuid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the real, effective, and saved set-user-IDs.
+ *
+ * @param arg0 Pointer to uint32_t to receive the real user ID.
+ * @param arg1 Pointer to uint32_t to receive the effective user ID.
+ * @param arg2 Pointer to uint32_t to receive the saved set-user-ID.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -EINVAL : one or more output pointers are null
+ *           -ESRCH  : no current realm found
+ */
+int64_t sys_getresuid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the real group ID of the calling realm.
+ *
+ * @return The real group ID (always succeeds).
+ */
+int64_t sys_getgid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the effective group ID of the calling realm.
+ *
+ * @return The effective group ID (always succeeds).
+ */
+int64_t sys_getegid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Set the group ID of the calling realm.
+ *
+ * POSIX semantics:
+ *   - If euid == 0 (root): sets gid, egid, and sgid to @p arg0.
+ *   - Otherwise: may only set egid to the current gid or sgid.
+ *
+ * @param arg0 The target group ID.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EPERM  : caller is not root and @p arg0 is not gid or sgid
+ */
+int64_t sys_setgid(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Set the real and effective group IDs independently.
+ *
+ * Pass (uint32_t)-1 for a field to leave it unchanged.
+ * The saved set-group-ID is updated to the new egid whenever rgid changes
+ * or egid is set to a value other than the old real gid.
+ *
+ * @param arg0 New real group ID, or (uint32_t)-1 to leave unchanged.
+ * @param arg1 New effective group ID, or (uint32_t)-1 to leave unchanged.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EPERM  : unprivileged caller attempted a disallowed change
+ */
+int64_t sys_setregid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Set the real, effective, and saved set-group-IDs.
+ *
+ * Each field may be set independently. Pass (uint32_t)-1 to leave a field unchanged.
+ * A non-root caller may only set each field to one of its current gid, egid, or sgid.
+ *
+ * @param arg0 New real group ID, or (uint32_t)-1 to leave unchanged.
+ * @param arg1 New effective group ID, or (uint32_t)-1 to leave unchanged.
+ * @param arg2 New saved set-group-ID, or (uint32_t)-1 to leave unchanged.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EPERM  : one or more requested values are not permitted
+ */
+int64_t sys_setresgid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Get the real, effective, and saved set-group-IDs.
+ *
+ * @param arg0 Pointer to uint32_t to receive the real group ID.
+ * @param arg1 Pointer to uint32_t to receive the effective group ID.
+ * @param arg2 Pointer to uint32_t to receive the saved set-group-ID.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -EINVAL : one or more output pointers are null
+ *           -ESRCH  : no current realm found
+ */
+int64_t sys_getresgid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Change the owner and group of a file by path.
+ *
+ * A non-root caller may not change the owner (uid) of a file.
+ * A non-root caller may only change the group to their own egid or gid.
+ *
+ * @param arg0 Pointer to a null-terminated path string (user address).
+ * @param arg1 New owner user ID.
+ * @param arg2 New owner group ID.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -EINVAL : path is null
+ *           -ESRCH  : no current realm found
+ *           -ENOENT : path does not exist
+ *           -EPERM  : caller lacks permission to change owner or group
+ */
+int64_t sys_chown(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Change the owner and group of an open file by handle.
+ *
+ * Same permission rules as sys_chown, but operates on an already-open handle
+ * instead of a path.
+ *
+ * @param arg0 Handle ID of the open file or directory.
+ * @param arg1 New owner user ID.
+ * @param arg2 New owner group ID.
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EBADH  : handle is invalid or not a file/directory handle
+ *           -EPERM  : caller lacks permission to change owner or group
+ */
+int64_t sys_fchown(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Change the permission mode bits of a file by path.
+ *
+ * Only the file owner or root may change the mode. The setuid/setgid bits
+ * in @p arg1 are silently cleared for non-root callers if the file's group
+ * does not match the caller's egid.
+ *
+ * @param arg0 Pointer to a null-terminated path string (user address).
+ * @param arg1 New mode bits (lower 12 bits used: setuid, setgid, sticky, rwxrwxrwx).
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -EINVAL : path is null
+ *           -ESRCH  : no current realm found
+ *           -ENOENT : path does not exist
+ *           -EPERM  : caller is not the file owner or root
+ */
+int64_t sys_chmod(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+/**
+ * @brief Change the permission mode bits of an open file by handle.
+ *
+ * Same permission rules as sys_chmod, but operates on an already-open handle
+ * instead of a path.
+ *
+ * @param arg0 Handle ID of the open file or directory.
+ * @param arg1 New mode bits (lower 12 bits used: setuid, setgid, sticky, rwxrwxrwx).
+ * @return On success, returns 0.
+ *         On error, returns negative errno:
+ *           -ESRCH  : no current realm found
+ *           -EBADH  : handle is invalid or not a file/directory handle
+ *           -EPERM  : caller is not the file owner or root
+ */
+int64_t sys_fchmod(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
 
 #endif  // SYSSTD_H

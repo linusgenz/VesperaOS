@@ -21,6 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -329,6 +332,76 @@ long double strtold(const char* str, char** endptr) {
     return (long double)strtod(str, endptr);
 }
 
+unsigned long strtoul(const char* nptr, char** endptr, int base) {
+    const char* s = nptr;
+    unsigned long result = 0;
+    int neg = 0;
+
+    while (isspace((unsigned char)*s)) s++;
+
+    if (*s == '+' || *s == '-') {
+        if (*s == '-') neg = 1;
+        s++;
+    }
+
+    if (base == 0) {
+        if (*s == '0') {
+            if ((s[1] == 'x' || s[1] == 'X') && isxdigit(s[2])) {
+                base = 16;
+                s += 2;
+            } else {
+                base = 8;
+                s++;
+            }
+        } else {
+            base = 10;
+        }
+    } else if (base == 16) {
+        if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+            s += 2;
+        }
+    }
+
+    int any = 0;
+    while (*s) {
+        int digit;
+
+        if (*s >= '0' && *s <= '9')
+            digit = *s - '0';
+        else if (*s >= 'a' && *s <= 'z')
+            digit = *s - 'a' + 10;
+        else if (*s >= 'A' && *s <= 'Z')
+            digit = *s - 'A' + 10;
+        else
+            break;
+
+        if (digit >= base) break;
+
+        if (result > (ULONG_MAX - digit) / base) {
+            errno = ERANGE;
+            result = ULONG_MAX;
+            any = 1;
+            break;
+        }
+
+        result = result * base + digit;
+        any = 1;
+        s++;
+    }
+
+    if (!any) {
+        errno = EINVAL;
+        if (endptr) *endptr = (char*)nptr;
+        return 0;
+    }
+
+    if (endptr) *endptr = (char*)s;
+
+    if (neg) return (unsigned long)(-(long)result);
+
+    return result;
+}
+
 void abort(void) {
     raise(SIGABRT);
     sys_exit(134, 0, 0, 0, 0, 0);
@@ -338,7 +411,7 @@ void abort(void) {
 int system(const char* cmd) {
     if (!cmd) return 1;
 
-    const char* argv[] = { cmd, NULL };
+    const char* argv[] = {cmd, NULL};
     int64_t rid = sys_spawn((uint64_t)cmd, (uint64_t)argv, 0, 0, 0, 0);
     if (rid < 0) return -1;
 
@@ -347,10 +420,9 @@ int system(const char* cmd) {
     return status;
 }
 
-
 char* tmpnam(char* buf) {
     static char internal[L_tmpnam];
-    static int  counter = 0;
+    static int counter = 0;
 
     char* dst = buf ? buf : internal;
     snprintf(dst, L_tmpnam, "/tmp/tmp%d", counter++);

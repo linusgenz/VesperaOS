@@ -55,23 +55,39 @@
 #define SYSCALL_MOUNT 165
 #define SYSCALL_UMOUNT 166
 #define SYSCALL_REBOOT 169
-#define SYSCALL_GETUID 186
+#define SYSCALL_GETUNID 186
 #define SYSCALL_TIME 201
 #define SYSCALL_READDIR 217
 #define SYSCALL_CLOCK_GETTIME 228
 #define SYSCALL_CLOCK_NANOSLEEP 230
 
+#define SYSCALL_GETUID 102
+#define SYSCALL_GETEUID 107
+#define SYSCALL_SETUID 105
+#define SYSCALL_SETREUID 113
+#define SYSCALL_SETRESUID 117
+#define SYSCALL_GETRESUID 118
+#define SYSCALL_GETGID 104
+#define SYSCALL_GETEGID 108
+#define SYSCALL_SETGID 106
+#define SYSCALL_SETREGID 114
+#define SYSCALL_SETRESGID 119
+#define SYSCALL_GETRESGID 120
+#define SYSCALL_CHOWN 92
+#define SYSCALL_FCHOWN 93
+#define SYSCALL_CHMOD 90
+#define SYSCALL_FCHMOD 91
 
-#define SYSCALL_HANDLE_TRANSFER  120
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
 #define SYSCALL_CHANNEL_RECEIVE 132
+#define SYSCALL_HANDLE_TRANSFER 133
 
-#define SYSCALL_SETSID      140
-#define SYSCALL_SETPGID     141
-#define SYSCALL_GETPGID     142
-#define SYSCALL_TCSETPGRP   143
-#define SYSCALL_TCGETPGRP   144
+#define SYSCALL_SETSID 140
+#define SYSCALL_SETPGID 141
+#define SYSCALL_GETPGID 142
+#define SYSCALL_TCSETPGRP 143
+#define SYSCALL_TCGETPGRP 144
 
 #define SYSCALL_VBUS_SUBSCRIBE 300
 #define SYSCALL_VBUS_UNSUBSCRIBE 301
@@ -209,7 +225,7 @@ int64_t sys_getrid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_GETRID, 0, 0, 0, 0, 0, 0);
 }
 
-int64_t sys_getuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+int64_t sys_getunid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_GETUID, 0, 0, 0, 0, 0, 0);
 }
 
@@ -283,4 +299,68 @@ int64_t sys_tcsetpgrp(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t
 
 int64_t sys_tcgetpgrp(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_TCGETPGRP, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_getuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETUID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_geteuid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETEUID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_setuid(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETUID, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_setreuid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETREUID, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_setresuid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETRESUID, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_getresuid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETRESUID, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_getgid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETGID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_getegid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETEGID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_setgid(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETGID, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_setregid(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETREGID, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_setresgid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SETRESGID, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_getresgid(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETRESGID, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_chown(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHOWN, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_fchown(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_FCHOWN, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_chmod(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHMOD, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_fchmod(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_FCHMOD, arg0, arg1, 0, 0, 0, 0);
 }
