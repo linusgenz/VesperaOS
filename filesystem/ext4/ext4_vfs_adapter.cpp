@@ -135,18 +135,25 @@ static void* ext4_opendir(const VfsNode* node) {
 }
 
 static dirent_type_t map_ext4_type(const FileEntry& fe) {
-    if (fe.get_type() == DirEntryType::RegularFile && fe.is_executable())
-        return DT_EXEC;
+    if (fe.get_type() == DirEntryType::RegularFile && fe.is_executable()) return DT_EXEC;
 
     switch (fe.get_type()) {
-        case DirEntryType::RegularFile:  return DT_FILE;
-        case DirEntryType::Directory:    return DT_DIR;
-        case DirEntryType::SymbolicLink: return DT_SYMLINK;
-        case DirEntryType::CharDevice:   return DT_CHARDEV;
-        case DirEntryType::BlockDevice:  return DT_BLOCKDEV;
-        case DirEntryType::Fifo:         return DT_FIFO;
-        case DirEntryType::Socket:       return DT_SOCKET;
-        default:                         return DT_UNKNOWN;
+        case DirEntryType::RegularFile:
+            return DT_FILE;
+        case DirEntryType::Directory:
+            return DT_DIR;
+        case DirEntryType::SymbolicLink:
+            return DT_SYMLINK;
+        case DirEntryType::CharDevice:
+            return DT_CHARDEV;
+        case DirEntryType::BlockDevice:
+            return DT_BLOCKDEV;
+        case DirEntryType::Fifo:
+            return DT_FIFO;
+        case DirEntryType::Socket:
+            return DT_SOCKET;
+        default:
+            return DT_UNKNOWN;
     }
 }
 
@@ -240,8 +247,9 @@ static int ext4_truncate(VfsNode* node, const usize new_size) {
     return 0;
 }
 
-static int ext4_rename(const VfsNode* old_parent, const char* old_name,
-                       const VfsNode* new_parent, const char* new_name) {
+static int ext4_rename(
+    const VfsNode* old_parent, const char* old_name, const VfsNode* new_parent, const char* new_name
+) {
     if (!old_parent || !old_name || !new_parent || !new_name) return 1;
 
     const auto* old_dir = static_cast<Ext4Node*>(old_parent->internal_data);
@@ -250,8 +258,21 @@ static int ext4_rename(const VfsNode* old_parent, const char* old_name,
 
     if (old_dir->fs != new_dir->fs) return 1;
 
-    return old_dir->fs->rename(old_dir->inode, old_name,
-                               new_dir->inode, new_name) ? 0 : 1;
+    return old_dir->fs->rename(old_dir->inode, old_name, new_dir->inode, new_name) ? 0 : 1;
+}
+
+int ext4_chown(VfsNode* node, u32 uid, u32 gid) {
+    if (!node) return -EINVAL;
+    const auto* en = static_cast<const Ext4Node*>(node->internal_data);
+    if (!en) return -EINVAL;
+    return en->fs->chown(en->inode, uid, gid) ? 0 : -EIO;
+}
+
+int ext4_chmod(VfsNode* node, u16 new_mode) {
+    if (!node) return -EINVAL;
+    const auto* en = static_cast<const Ext4Node*>(node->internal_data);
+    if (!en) return -EINVAL;
+    return en->fs->chmod(en->inode, new_mode) ? 0 : -EIO;
 }
 
 static VfsNodeOps ext4_ops = {
@@ -270,6 +291,8 @@ static VfsNodeOps ext4_ops = {
     .ioctl = nullptr,
     .stat = ext4_stat,
     .truncate = ext4_truncate,
+    .chown = ext4_chown,
+    .chmod = ext4_chmod,
     .poll = nullptr,
 };
 

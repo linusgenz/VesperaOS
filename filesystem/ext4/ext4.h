@@ -277,6 +277,8 @@ namespace ext4 {
         bool rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);
         bool stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
         bool truncate(u32 inode_no, u64 new_size);
+        bool chown(u32 inode_no, u32 uid, u32 gid) const;
+        bool chmod(u32 inode_no, u16 new_mode) const;
 
        private:
         BlockDevice* device_;

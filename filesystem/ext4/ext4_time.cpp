@@ -38,6 +38,11 @@ namespace ext4::time {
         inode.i_ctime = t;
     }
 
+    void update_change(Inode& inode) {
+        const u32 t = static_cast<u32>(rtc_to_unix_time());
+        inode.i_ctime = t;
+    }
+
     void set_creation(Inode& inode) {
         const u32 t = static_cast<u32>(rtc_to_unix_time());
         inode.i_mtime = t;
