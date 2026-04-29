@@ -38,28 +38,27 @@ namespace kernel::security {
     /// Update @p cred for an exec() of @p exec_node.
     inline void apply_exec_credentials(process_credentials& cred, const VfsNode* exec_node) {
         if (!exec_node || !exec_node->ops || !exec_node->ops->stat) {
-            cred.suid = cred.euid;
-            cred.sgid = cred.egid;
             return;
         }
 
         vespera_stat_t st{};
         if (exec_node->ops->stat(exec_node, &st) != 0) {
-            cred.suid = cred.euid;
-            cred.sgid = cred.egid;
             return;
         }
 
         if (st.mode & S_ISUID) {
             cred.euid = st.uid;
+            cred.suid = st.uid;
+        } else {
+            cred.suid = cred.euid;
         }
 
         if (st.mode & S_ISGID) {
             cred.egid = st.gid;
+            cred.sgid = st.gid;
+        } else {
+            cred.sgid = cred.egid;
         }
-
-        cred.suid = cred.euid;
-        cred.sgid = cred.egid;
     }
 
 }  // namespace kernel::security

@@ -49,8 +49,10 @@ namespace syscalls::internal {
         const char* base = strrchr(user_path, '/');
         base = base ? base + 1 : user_path;
 
+        const char* rname = (cfg_ptr && cfg_ptr->realm_name) ? cfg_ptr->realm_name : base;
+
         const RealmConfig cfg = {
-            .name = base,
+            .name = rname,
             .capabilities = CAP_RW | CAP_DEVICE_ACCESS,
             .is_user = true,
         };
@@ -74,35 +76,61 @@ namespace syscalls::internal {
             }
         }
 
-        if (cfg_ptr && parent_realm) {
-            auto transfer = [&](i64 src_hid, HandleId dst_fixed_id) -> bool {
-                if (src_hid == 0) return true;
-
-                HandleEntry* he = parent_realm->lookup_handle(static_cast<HandleId>(src_hid));
-                if (!he || !he->transferable) return false;
-
-                if (he->acquire) he->acquire(he->resource);
-
-                if (HandleEntry* existing = new_realm->lookup_handle(dst_fixed_id))
-                    new_realm->release_handle(dst_fixed_id);
-
-                new_realm->add_handle_with_id(
-                    dst_fixed_id, he->type, he->resource, he->capabilities, he->transferable, he->destroy, he->acquire
-                );
-                return true;
-            };
-
-            if (!transfer(cfg_ptr->stdin_handle, HANDLE_STDIN)) {
-                RealmManager::destroy(new_realm->id);
-                return -EBADH;
+        if (cfg_ptr) {
+            if (cfg_ptr->uid != 0) {
+                new_realm->cred.uid = cfg_ptr->uid;
+                new_realm->cred.euid = cfg_ptr->uid;
+                new_realm->cred.suid = cfg_ptr->uid;
             }
-            if (!transfer(cfg_ptr->stdout_handle, HANDLE_STDOUT)) {
-                RealmManager::destroy(new_realm->id);
-                return -EBADH;
+
+            if (cfg_ptr->gid != 0) {
+                new_realm->cred.gid = cfg_ptr->gid;
+                new_realm->cred.egid = cfg_ptr->gid;
+                new_realm->cred.sgid = cfg_ptr->gid;
             }
-            if (!transfer(cfg_ptr->stderr_handle, HANDLE_STDERR)) {
-                RealmManager::destroy(new_realm->id);
-                return -EBADH;
+
+            if (parent_realm) {
+                auto transfer = [&](i64 src_hid, HandleId dst_fixed_id) -> bool {
+                    if (src_hid == 0) return true;
+
+                    const HandleEntry* he = parent_realm->lookup_handle(static_cast<HandleId>(src_hid));
+                    if (!he || !he->transferable) return false;
+
+                    if (he->acquire) he->acquire(he->resource);
+
+                    if (HandleEntry* existing = new_realm->lookup_handle(dst_fixed_id))
+                        new_realm->release_handle(dst_fixed_id);
+
+                    new_realm->add_handle_with_id(
+                        dst_fixed_id,
+                        he->type,
+                        he->resource,
+                        he->capabilities,
+                        he->transferable,
+                        he->destroy,
+                        he->acquire
+                    );
+                    return true;
+                };
+
+                if (!transfer(cfg_ptr->stdin_handle, HANDLE_STDIN)) {
+                    RealmManager::destroy(new_realm->id);
+                    return -EBADH;
+                }
+                if (!transfer(cfg_ptr->stdout_handle, HANDLE_STDOUT)) {
+                    RealmManager::destroy(new_realm->id);
+                    return -EBADH;
+                }
+                if (!transfer(cfg_ptr->stderr_handle, HANDLE_STDERR)) {
+                    RealmManager::destroy(new_realm->id);
+                    return -EBADH;
+                }
+            }
+        } else {
+            if (parent_realm) {
+                memcpy(&new_realm->cred, &parent_realm->cred, sizeof(kernel::security::process_credentials));
+            } else {
+                memset(&new_realm->cred, 0, sizeof(kernel::security::process_credentials));
             }
         }
 
@@ -112,8 +140,12 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        // Inherit cwd from caller.
-        if (parent_realm) strncpy(new_realm->cwd_path, parent_realm->cwd_path, sizeof(new_realm->cwd_path));
+        char resolved[256];
+        if (cfg_ptr && cfg_ptr->home && VFS::resolve_to_absolute(cfg_ptr->home, resolved, sizeof(resolved))) {
+            strncpy(new_realm->cwd_path, resolved, sizeof(new_realm->cwd_path));
+        } else if (parent_realm) {  // Inherit cwd from caller.
+            strncpy(new_realm->cwd_path, parent_realm->cwd_path, sizeof(new_realm->cwd_path));
+        }
 
         VfsNode* exec_node = VFS::open(norm);
         if (!exec_node) {
