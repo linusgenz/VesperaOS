@@ -45,6 +45,7 @@ S.ignis = {
 S.nox = {
     name             = "nox",
     exec             = "/bin/nox",
+    user             = "vespera",
     args             = { "-v" },
     restart          = "always",
     restart_delay_ms = 2000,

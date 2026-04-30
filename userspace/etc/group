@@ -1,0 +1,7 @@
+# /etc/group
+# VesperaOS group database
+#
+# Format: name:x:gid:members
+#
+root:x:0:root
+vespera:x:1000:vespera

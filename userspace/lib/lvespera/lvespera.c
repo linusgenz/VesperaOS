@@ -157,11 +157,14 @@ static int lproc_spawn(lua_State *L) {
     spawn_config_t cfg = {};
 
     if (lua_type(L, 4) == LUA_TTABLE) {
-        cfg.stdin_handle  = 0;
+        cfg.stdin_handle = 0;
         cfg.stdout_handle = 0;
         cfg.stderr_handle = 0;
-        cfg.bg_realm      = 0;
-        cfg.realm_name    = NULL;
+        cfg.bg_realm = 0;
+        cfg.realm_name = NULL;
+        cfg.uid = 0;
+        cfg.gid = 0;
+        cfg.home = NULL;
 
         lua_getfield(L, 4, "stdin");
         if (lua_isnumber(L, -1)) cfg.stdin_handle = lua_tointeger(L, -1);
@@ -181,6 +184,18 @@ static int lproc_spawn(lua_State *L) {
 
         lua_getfield(L, 4, "name");
         if (lua_isstring(L, -1)) cfg.realm_name = (char *)lua_tostring(L, -1);
+
+        lua_getfield(L, 4, "home");
+        if (lua_isstring(L, -1)) cfg.home = (char *)lua_tostring(L, -1);
+
+        lua_getfield(L, 4, "uid");
+        if (lua_isnumber(L, -1)) cfg.uid = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, 4, "gid");
+        if (lua_isnumber(L, -1)) cfg.gid = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
         lua_pop(L, 1);
     }
 
