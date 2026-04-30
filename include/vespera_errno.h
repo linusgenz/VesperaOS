@@ -24,59 +24,57 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
-#define SUCCESS_CODE 0
+inline constexpr int SUCCESS_CODE = 0;
 
-#define EPERM           1   // Operation not permitted
-#define ENOENT          2   // No such file or directory
-#define ESRCH           3   // No such process
-#define EINTR           4   // Interrupted system call
-#define EIO             5   // I/O error
-#define ENXIO           6   // No such device or address
-// ReSharper disable once CppInconsistentNaming
-#define E2BIG           7   // Argument list too long
-#define ENOEXEC         8   // Exec format error
-#define EBADH           9   // Bad handle id
-#define ECHILD         10   // No child processes
-#define EAGAIN         11   // Try again (resource unavailable)
-#define ENOMEM         12   // Out of memory
-#define EACCES         13   // Permission denied
-#define EFAULT         14   // Bad address (pointer error)
-#define EBUSY          16   // Device or resource busy
-#define EEXIST         17   // File exists
-#define EXDEV          18   // Cross-device link
-#define ENODEV         19   // No such device
-#define ENOTDIR        20   // Not a directory
-#define EISDIR         21   // Is a directory
-#define EINVAL         22   // Invalid argument
-#define ENFILE         23   // Too many open files in system
-#define EMFILE         24   // Too many open files
-#define ENOTTY         25   // Inappropriate ioctl for device
-#define ETXTBSY        26   // Text file busy
-#define EFBIG          27   // File too large
-#define ENOSPC         28   // No space left on device
-#define ESPIPE         29   // Illegal seek
-#define EROFS          30   // Read-only file system
-#define EMLINK         31   // Too many links
-#define EPIPE          32   // Broken pipe
+inline constexpr int EPERM  = 1;
+inline constexpr int ENOENT = 2;
+inline constexpr int ESRCH  = 3;
+inline constexpr int EINTR  = 4;
+inline constexpr int EIO    = 5;
+inline constexpr int ENXIO  = 6;
+inline constexpr int E2BIG  = 7;
+inline constexpr int ENOEXEC= 8;
+inline constexpr int EBADH  = 9;
+inline constexpr int ECHILD = 10;
+inline constexpr int EAGAIN = 11;
+inline constexpr int ENOMEM = 12;
+inline constexpr int EACCES = 13;
+inline constexpr int EFAULT = 14;
+inline constexpr int EBUSY  = 16;
+inline constexpr int EEXIST = 17;
+inline constexpr int EXDEV  = 18;
+inline constexpr int ENODEV = 19;
+inline constexpr int ENOTDIR= 20;
+inline constexpr int EISDIR = 21;
+inline constexpr int EINVAL = 22;
+inline constexpr int ENFILE = 23;
+inline constexpr int EMFILE = 24;
+inline constexpr int ENOTTY = 25;
+inline constexpr int ETXTBSY= 26;
+inline constexpr int EFBIG  = 27;
+inline constexpr int ENOSPC = 28;
+inline constexpr int ESPIPE = 29;
+inline constexpr int EROFS  = 30;
+inline constexpr int EMLINK = 31;
+inline constexpr int EPIPE  = 32;
 
-// Advanced I/O or FS-related
-#define EDOM           33   // Math argument out of domain
-#define ERANGE         34   // Math result not representable
-#define ENAMETOOLONG   36   // File name too long
-#define ENOLCK         37   // No record locks available
-#define ENOSYS         38   // Function not implemented
-#define ENOTEMPTY      39   // Directory not empty
-#define ELOOP          40   // Too many symbolic links
+inline constexpr int EDOM         = 33;
+inline constexpr int ERANGE       = 34;
+inline constexpr int ENAMETOOLONG = 36;
+inline constexpr int ENOLCK       = 37;
+inline constexpr int ENOSYS       = 38;
+inline constexpr int ENOTEMPTY    = 39;
+inline constexpr int ELOOP        = 40;
 
-// Custom or Extended Kernel/Internal Errors
-#define ENOMSG         42   // No message of desired type
-#define EOVERFLOW      75   // Value too large
-#define EILSEQ         84   // Invalid multibyte sequence
+inline constexpr int ENOMSG    = 42;
+inline constexpr int EOVERFLOW = 75;
+inline constexpr int EILSEQ    = 84;
 
-// Nonstandard / OS-specific
-#define EUNKNOWN      1000  // Unknown error
-#define EUNSUPPORTED  1001  // Operation not supported
-#define EDEADLOCK     1002  // Would cause deadlock
-#define EWOULDBLOCK   EAGAIN // alias
+inline constexpr int EUNKNOWN     = 1000;
+inline constexpr int EUNSUPPORTED = 1001;
+inline constexpr int EDEADLOCK    = 1002;
+
+// Alias
+inline constexpr int EWOULDBLOCK = EAGAIN;
 
 #endif //ERROR_CODES_H

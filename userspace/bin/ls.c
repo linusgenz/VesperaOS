@@ -78,7 +78,7 @@ static void format_mode(uint16_t mode, char* buf) {
 
 static int list_dir(const char* path, int long_fmt, int classify, int show_all) {
     DIR_HANDLE hdl = opendir(path);
-    if (hdl < 0) {
+    if ((int64_t)hdl < 0) {
         if (hdl == -ENOENT)
             printf("ls: cannot access '%s': No such file or directory\n", path);
         else
