@@ -159,60 +159,50 @@ int DevFs::unregister_device(KernelDevice* kd) {
     return SUCCESS_CODE;
 }
 
-Result<void> DevFs::open(const VfsNode* node) {
-    if (!node) return Result<void>::err(Error::EINVAL);
+int DevFs::open(const VfsNode* node) {
+    if (!node) return -EINVAL;
 
     auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return Result<void>::err(Error::EINVAL);
+    if (!entry || !entry->device) return -EINVAL;
 
     if (const KernelDevice* kd = entry->device; kd->chardev && !entry->cf) {
         CharFile* cf = nullptr;
-        if (const int ret = kd->chardev->open(&cf); ret != 0) {
-            return Result<void>::err(static_cast<Error>(ret));
-        };
+        if (const int ret = kd->chardev->open(&cf); ret != 0) return ret;
 
         entry->cf = cf;
     }
 
-    return Result<void>::ok();
+    return SUCCESS_CODE;
 }
 
-Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
-    if (!node) return Result<usize>::err(Error::EINVAL);
+isize DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
+    if (!node) return -EINVAL;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return Result<usize>::err(Error::EINVAL);
+    if (!entry || !entry->device) return -EINVAL;
 
     SpinlockGuard guard(lock_);
 
     const KernelDevice* kd = entry->device;
     if (kd->chardev) {
         if (!entry->cf) open(node);
-        if (isize i = kd->chardev->read(entry->cf, buffer, size, offset); i != 0) {
-            return Result<usize>::err(static_cast<Error>(i));
-        } else {
-            return Result<usize>::ok(i);
-        }
+        return kd->chardev->read(entry->cf, buffer, size, offset);
     }
     if (kd->block) {
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
-        if (isize i = kd->block->read(lba, sectors, buffer, size); i != 0) {
-            return Result<usize>::err(static_cast<Error>(i));
-        } else {
-            return Result<usize>::ok(i);
-        }
+        return kd->block->read(lba, sectors, buffer, size);
     }
 
-    return Result<usize>::err(Error::EINVAL);
+    return -EINVAL;
 }
 
-Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    if (!node) return Result<usize>::err(Error::EINVAL);
+isize DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
+    if (!node) return -EINVAL;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return Result<usize>::err(Error::EINVAL);
+    if (!entry || !entry->device) return -EINVAL;
 
     SpinlockGuard guard(lock_);
 
@@ -221,13 +211,9 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
     // CharDevice
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const auto res = open(node); res.is_err()) return Result<usize>::err(res.err_code());
+            if (const int res = open(node); res < 0) return res;
         }
-        if (isize i = kd->chardev->write(entry->cf, buffer, size); i != 0) {
-            return Result<usize>::err(static_cast<Error>(i));
-        } else {
-            return Result<usize>::ok(i);
-        }
+        return kd->chardev->write(entry->cf, buffer, size);
     }
 
     // BlockDevice
@@ -235,14 +221,10 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
-        if (isize i = kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer)); i != 0) {
-            return Result<usize>::err(static_cast<Error>(i));
-        } else {
-            return Result<usize>::ok(i);
-        }
+        return kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer));
     }
 
-    return Result<usize>::err(Error::EINVAL);
+    return -EINVAL;
 }
 
 isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
@@ -309,7 +291,7 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     // CharDevice
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const auto res = open(node); res.is_err()) return -static_cast<isize>(res.err_code());
+            if (const int res = open(node); res < 0) return res;
         }
         return kd->chardev->ioctl(entry->cf, cmd, arg);
     }
@@ -368,7 +350,7 @@ int DevFs::poll(const VfsNode* node) {
 
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const auto res = open(node); res.is_err()) return -static_cast<isize>(res.err_code());
+            if (const int res = open(node); res < 0) return res;
         }
         return kd->chardev->poll(entry->cf);
     }

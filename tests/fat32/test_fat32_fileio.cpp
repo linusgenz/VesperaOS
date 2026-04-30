@@ -68,9 +68,9 @@ TEST(FAT32_FileIO, ReadEmptyFile, "Reading an empty file returns 0 bytes") {
     auto node = f.create_file("EMPTYRD.TXT");
 
     char buf[16] = {};
-    Result<usize> r = f.fs->read_file(&node, buf, sizeof(buf), 0);
-    ASSERT_TRUE(r.is_ok());
-    ASSERT_EQ(static_cast<size_t>(0), r.value());
+    size_t actual = 99;
+    ASSERT_TRUE(f.fs->read_file(&node, buf, sizeof(buf), actual));
+    ASSERT_EQ(static_cast<size_t>(0), actual);
 }
 
 TEST(FAT32_FileIO, ReadExactSize, "Read exactly fileSize bytes") {
@@ -81,9 +81,9 @@ TEST(FAT32_FileIO, ReadExactSize, "Read exactly fileSize bytes") {
     ASSERT_TRUE(f.write(node, data, 5));
 
     char buf[8] = {};
-    Result<usize> r =f.fs->read_file(&node, buf, 5, 0);
-    ASSERT_TRUE(r.is_ok());
-    ASSERT_EQ(static_cast<size_t>(5), r.value());
+    size_t actual = 0;
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 5, actual));
+    ASSERT_EQ(static_cast<size_t>(5), actual);
     ASSERT_MEM_EQ(data, buf, 5);
 }
 
@@ -93,16 +93,15 @@ TEST(FAT32_FileIO, ReadOffsetAtEOF, "Read with offset >= fileSize returns 0 byte
     ASSERT_TRUE(f.write(node, "12345", 5));
 
     char buf[8];
+    size_t actual = 99;
 
     // offset == fileSize
-    Result<usize> r = f.fs->read_file(&node, buf, 8, 5);
-    ASSERT_TRUE(r.is_ok());
-    ASSERT_EQ(static_cast<size_t>(0), r.value());
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 8, actual, 5));
+    ASSERT_EQ(static_cast<size_t>(0), actual);
 
     // offset far past EOF
-    Result<usize> rr = f.fs->read_file(&node, buf, 8,  100);
-    ASSERT_TRUE(rr.is_ok());
-    ASSERT_EQ(static_cast<size_t>(0), rr.value());
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 8, actual, 100));
+    ASSERT_EQ(static_cast<size_t>(0), actual);
 }
 
 TEST(FAT32_FileIO, PartialOverwrite, "Overwrite bytes in the middle of a file") {
@@ -211,9 +210,9 @@ TEST(FAT32_FileIO, ReadClampedToFileSize, "Read with len > fileSize reads only f
     ASSERT_TRUE(f.write(node, "ABC", 3));
 
     char buf[64] = {};
-    Result<usize> r = f.fs->read_file(&node, buf, 64, 0);
-    ASSERT_TRUE(r.is_ok());
-    ASSERT_EQ(static_cast<size_t>(3), r.value());
+    size_t actual = 0;
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 64, actual));
+    ASSERT_EQ(static_cast<size_t>(3), actual);
 }
 
 TEST(FAT32_FileIO, OverwriteSameSize, "Overwriting with same size replaces content") {
@@ -234,9 +233,8 @@ TEST(FAT32_FileIO, ReadAtOffset, "Read with non-zero offset returns correct byte
 
     char buf[8] = {};
     size_t actual = 0;
-    Result<usize> r = f.fs->read_file(&node, buf, 4, 3);
-    ASSERT_TRUE(r.is_ok());
-    ASSERT_EQ(static_cast<size_t>(4), r.value());
+    ASSERT_TRUE(f.fs->read_file(&node, buf, 4, actual, 3));
+    ASSERT_EQ(static_cast<size_t>(4), actual);
     ASSERT_MEM_EQ("3456", buf, 4);
 }
 

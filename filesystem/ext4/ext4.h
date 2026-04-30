@@ -24,11 +24,10 @@
 #ifndef VESPERAOS_EXT4_H
 #define VESPERAOS_EXT4_H
 
-#include <klib/string.h>
 #include <klib/vector.h>
 #include <vespera/devices/block.h>
+#include <klib/string.h>
 
-#include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
 namespace ext4 {
@@ -257,29 +256,29 @@ namespace ext4 {
         [[nodiscard]] bool is_valid() const {
             return valid_;
         }
+
         [[nodiscard]] Ext4Superblock* get_superblock() {
             return &superblock_;
         }
+
         [[nodiscard]] u32 get_block_size() const {
             return 1024u << superblock_.s_log_block_size;
         }
 
-        [[nodiscard]] Result<FileEntry*> read_directory(u32 inode_number, usize& out_count) const;
-        [[nodiscard]] Result<usize> read_file(
-            u32 inode_number, u64 offset, usize size, void* buf, bool update_atime
-        ) const;
-        [[nodiscard]] Result<usize> write_file(u32 inode_number, u64 offset, usize size, const void* buf);
-        [[nodiscard]] Result<void> create_file(u32 dir_inode_no, const char* name);
-        [[nodiscard]] Result<void> create_dir(u32 dir_inode_no, const char* name);
-        [[nodiscard]] Result<void> unlink(u32 dir_inode_no, const char* name);
-        [[nodiscard]] Result<void> rmdir(u32 dir_inode_no, const char* name);
-        [[nodiscard]] Result<void> rename(
-            u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name
-        );
-        [[nodiscard]] Result<void> stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
-        [[nodiscard]] Result<void> truncate(u32 inode_no, u64 new_size);
-        [[nodiscard]] Result<void> chown(u32 inode_no, u32 uid, u32 gid) const;
-        [[nodiscard]] Result<void> chmod(u32 inode_no, u16 new_mode) const;
+        // Returns a heap-allocated array of up to EXT4_MAX_DIR_ENTRIES entries.
+        // The caller is responsible for freeing the array with kernel::memory::free().
+        FileEntry* read_directory(u32 inode_number, usize& out_count) const;
+        i64 read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const;
+        i64 write_file(u32 inode_number, u64 offset, usize size, const void* buf);
+        u32 create_file(u32 dir_inode_no, const char* name);
+        u32 create_dir(u32 dir_inode_no, const char* name);
+        bool unlink(u32 dir_inode_no, const char* name);
+        bool rmdir(u32 dir_inode_no, const char* name);
+        bool rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);
+        bool stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
+        bool truncate(u32 inode_no, u64 new_size);
+        bool chown(u32 inode_no, u32 uid, u32 gid) const;
+        bool chmod(u32 inode_no, u16 new_mode) const;
 
        private:
         BlockDevice* device_;
@@ -300,41 +299,29 @@ namespace ext4 {
             return static_cast<InodeType>(inode.i_mode & static_cast<u16>(InodeType::Mask));
         }
 
-        [[nodiscard]] Result<void> read_superblock();
-        [[nodiscard]] Result<void> write_superblock() const;
-        [[nodiscard]] Result<void> read_block(u64 block, void* out_buf, u32 buf_size) const;
-        [[nodiscard]] Result<void> write_block(u64 block, const void* buf, u32 buf_size) const;
-        [[nodiscard]] Result<void> read_group_desc(u32 group, GroupDesc& out_gd) const;
-        [[nodiscard]] Result<void> write_group_desc(u32 group, const GroupDesc& gd) const;
-
-        [[nodiscard]] Result<u64> inode_disk_offset(u32 inode_no, u32& out_inode_size) const;
-        [[nodiscard]] Result<void> read_inode(u32 inode_no, Inode& out_inode) const;
-        [[nodiscard]] Result<void> write_inode(u32 inode_no, const Inode& inode) const;
-        [[nodiscard]] Result<u32> alloc_inode(u32 preferred_group);
-        [[nodiscard]] Result<void> init_inode(u32 inode_no, u16 mode);
-        [[nodiscard]] Result<void> free_inode(u32 inode_no);
-
-        [[nodiscard]] Result<void> dir_add_entry(
-            u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type
-        );
-        [[nodiscard]] Result<void> dir_remove_entry(u32 dir_inode_no, const char* name) const;
-        // Returns false if the directory is non-empty or cannot be read (safe default).
+        bool read_superblock();
+        [[nodiscard]] bool write_superblock() const;
+        bool read_block(u64 block, void* out_buf, u32 buf_size) const;
+        bool write_block(u64 block, const void* buf, u32 buf_size) const;
+        bool read_group_desc(u32 group, GroupDesc& out_gd) const;
+        [[nodiscard]] bool write_group_desc(u32 group, const GroupDesc& gd) const;
+        u64 inode_disk_offset(u32 inode_no, u32& out_inode_size) const;
+        bool read_inode(u32 inode_no, Inode& out_inode) const;
+        [[nodiscard]] bool write_inode(u32 inode_no, const Inode& inode) const;
+        u32 alloc_inode(u32 preferred_group);
+        bool init_inode(u32 inode_no, u16 mode);
+        bool free_inode(u32 inode_no);
+        bool dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type);
+        bool dir_remove_entry(u32 dir_inode_no, const char* name) const;
         [[nodiscard]] bool dir_is_empty(u32 inode_no) const;
 
-        // Populates out_extents from the inode's inline extent tree.
-        // Depth > 0 trees are not yet supported and return EUNSUPPORTED.
-        [[nodiscard]] static Result<void> parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
-
-        // Returns the physical block number for a given logical block.
-        // Returns ENOENT if the block is not mapped (sparse hole).
-        [[nodiscard]] Result<u64> map_logical_to_physical(const Inode& inode, u32 lblock) const;
-
-        [[nodiscard]] Result<u64> alloc_block(u64 near_block);
-        [[nodiscard]] Result<void> free_block(u64 phys_block);
-        [[nodiscard]] Result<void> free_blocks_for_inode(const Inode& inode);
-        [[nodiscard]] Result<void> extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block);
+        static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
+        bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;
+        u64 alloc_block(u64 near_block);
+        bool free_block(u64 phys_block);
+        bool free_blocks_for_inode(const Inode& inode);
+        bool extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block);
     };
-
 }  // namespace ext4
 
 #endif  // VESPERAOS_EXT4_H

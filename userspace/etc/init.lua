@@ -16,35 +16,6 @@ local g_log_channel = nil
 
 local LOG_CHANNEL_CAP = 128 * 1024
 
-local passwd_db = {}
-
-local function load_passwd()
-    local f = io.open("/etc/passwd", "r")
-    if not f then
-        U.warn("init: cannot open /etc/passwd — all services will run as root")
-        return
-    end
-    for line in f:lines() do
-        if line ~= "" and line:sub(1, 1) ~= "#" then
-            -- name:x:uid:gid:gecos:home:shell
-            local name, uid, gid, home, shell =
-            line:match("^([^:]+):[^:]*:(%d+):(%d+):[^:]*:([^:]*):([^:]*)$")
-            if name then
-                passwd_db[name] = {
-                    uid   = tonumber(uid),
-                    gid   = tonumber(gid),
-                    home  = home,
-                    shell = shell,
-                }
-            end
-        end
-    end
-    f:close()
-    U.info(string.format("passwd: loaded %d entries", (function()
-        local n = 0; for _ in pairs(passwd_db) do n = n + 1 end; return n
-    end)()))
-end
-
 local function svc_count()
     local n = 0
     for _ in pairs(running) do n = n + 1 end
@@ -145,24 +116,8 @@ local function spawn_service(name)
     for _, a in ipairs(def.args or {}) do args[#args + 1] = a end
 
     local env = merge_env(base_env, def.env)
-
     local is_umbra = (def.umbra ~= false)
     local cfg = { bg = is_umbra }
-
-    if def.user then
-        local pw = passwd_db[def.user]
-        if pw then
-            cfg.uid  = pw.uid
-            cfg.gid  = pw.gid
-            cfg.home = pw.home
-            env["HOME"] = pw.home
-            env["USER"] = def.user
-        else
-            U.warn(string.format(
-                    "spawn %s: user '%s' not in passwd — running as root",
-                    name, def.user))
-        end
-    end
 
     local realm_id, err = vespera.proc.spawn(def.exec, args, env, cfg)
     if not realm_id then
@@ -340,8 +295,6 @@ local function supervisor_loop()
 end
 
 local function main()
-    load_passwd()
-
     local ok, err = pcall(function()
         local rc = dofile("/etc/rc.lua")
         rc.run()

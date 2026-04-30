@@ -262,8 +262,8 @@ void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {
     }
 }
 
-Result<usize> RealmManager::get_status(void* manager_ref, void* buffer, const usize size, usize offset) {
-    if (!manager_ref || !buffer || size < sizeof(realm_info)) return Result<usize>::err(Error::EINVAL);
+isize RealmManager::get_status(void* manager_ref, void* buffer, const usize size, usize offset) {
+    if (!manager_ref || !buffer || size < sizeof(realm_info)) return -EINVAL;
 
     const auto* r = static_cast<Realm*>(manager_ref);
     realm_info status{};
@@ -283,7 +283,7 @@ Result<usize> RealmManager::get_status(void* manager_ref, void* buffer, const us
     status.cwd_path[sizeof(status.cwd_path) - 1] = '\0';
 
     memcpy(buffer, &status, sizeof(realm_info));
-    return Result<usize>::ok(sizeof(realm_info));
+    return sizeof(realm_info);
 }
 
 void RealmManager::list() {

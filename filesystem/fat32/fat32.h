@@ -10,7 +10,6 @@
 #include <vespera/mm/memory.h>
 #include <vespera/types.h>
 
-#include "klib/result.h"
 #include "uapi/vespera/stat.h"
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
@@ -100,7 +99,7 @@ namespace fat32 {
             if (!name || name[0] == '\0') {
                 long_name_[0] = '\0';
             } else {
-                strncpy(long_name_, name, sizeof(long_name_) - 1);
+                strncpy(long_name_, name, sizeof(long_name_)-1);
                 long_name_[sizeof(long_name_) - 1] = '\0';
             }
         }
@@ -184,44 +183,37 @@ namespace fat32 {
     class FileSystem {
        public:
         explicit FileSystem(BlockDevice* device);
+
         ~FileSystem();
 
         [[nodiscard]] bool is_valid() const;
+
         [[nodiscard]] u32 get_root_cluster() const;
 
         u32 resolve_path_to_cluster(const char* path) const;
 
-        [[nodiscard]] Result<usize> read_file(
-            Fat32Node* node, void* buffer, usize len, usize offset = 0, bool update_atime = true
-        ) const;
+        bool read_file(Fat32Node* node, void* buffer, usize len, usize& out_actual, usize offset = 0, bool update_atime = true) const;
 
-        [[nodiscard]] Result<void> write_file(Fat32Node* node, const void* buffer, usize len, usize offset);
+        bool write_file(Fat32Node* node, const void* buffer, usize len, usize offset);
 
-        [[nodiscard]] Result<void> create_file(const Fat32Node* parent_dir, const char* name);
+        FileEntry* read_directory(const char* path, usize& out_count) const;
 
-        [[nodiscard]] Result<void> create_directory(const Fat32Node* parent_dir, const char* name);
+        FileEntry* read_directory(u32 cluster, usize& out_count) const;
 
-        [[nodiscard]] Result<void> delete_file(const Fat32Node* parent_dir, const char* name);
-
-        [[nodiscard]] Result<void> remove_directory(const Fat32Node* parent_dir, const char* name);
-
-        [[nodiscard]] Result<void> rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name);
-
-        [[nodiscard]] Result<void> stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const;
-
-        [[nodiscard]] Result<void> truncate(Fat32Node* node, usize new_size);
-
-        // ---- Directory reading (returns owned heap allocation) ----
-
-        Result<FileEntry*> read_directory(const char* path, usize& out_count) const;
-        Result<FileEntry*> read_directory(u32 cluster, usize& out_count) const;
-
-        // ---- LFN / entry helpers ----
+        bool create_file(const Fat32Node* parent_dir, const char* name);
 
         bool write_directory_entry_with_lfn(
             u32 dir_cluster, const char* long_name, const char* short_name, const DirectoryEntry* short_entry
         );
         bool delete_directory_entry_in_directory(u32 dir_cluster, const char* name) const;
+
+        int create_directory(const Fat32Node* parent_dir, const char* name);
+
+        bool remove_directory(const Fat32Node* parent_dir, const char* name);
+
+        bool rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name);
+
+        bool delete_file(const Fat32Node* parent_dir, const char* name);
 
         [[nodiscard]] BPB_FAT32* get_bpb() {
             return &bpb;
@@ -235,15 +227,16 @@ namespace fat32 {
 
         [[nodiscard]] u32 bytes_per_cluster() const;
 
-        // ---- Fields (intentionally accessible for adapter / wrap helpers) ----
-
+        //   private:
         BlockDevice* device;
         BPB_FAT32 bpb{};
         bool fs_valid;
+
         bool device_lost_ = false;
 
         u32 sector_size;
         u32 data_start;
+
         u32 cluster_count;
         u32 free_cluster_count;
         u32 next_free_cluster;
@@ -268,7 +261,7 @@ namespace fat32 {
         struct CacheEntry {
             u32 sector;
             u8 data[512];
-            u32 last_used;
+            u32 last_used;  // LRU counter
             bool valid;
         };
 
@@ -276,7 +269,6 @@ namespace fat32 {
         mutable CacheEntry fat_cache[FAT_CACHE_SIZE];
         mutable u32 cache_access_counter;
 
-    //   private:
         bool read_fat_sector(u32 fat_sector, u8* buffer) const;
         void invalidate_fat_cache() const;
         void invalidate_fat_cache_sector(u32 sector) const;
@@ -288,19 +280,19 @@ namespace fat32 {
         u32 get_free_cluster_count();
 
         isize read_cluster(u32 cluster, void* buffer, usize buffer_size) const;
-        bool write_cluster(u32 cluster, const void* data, usize len, usize offset = 0) const;
 
+        bool write_cluster(u32 cluster, const void* data, usize len, usize offset = 0) const;
         bool is_valid_fat_entry(u32 value) const;
         u32 read_fat_entry_raw(u32 fat_sector, u32 offset) const;
 
         [[nodiscard]] u32 get_fat_entry(u32 cluster) const;
         bool write_fat_entry_raw(u32 fat_sector, u32 offset, u32 value) const;
-        bool write_fat_entry(u32 cluster, u32 value);
 
         u32* get_cluster_chain(u32 start_cluster, usize& out_count) const;
         bool free_cluster_chain(u32 start_cluster);
         void trim_cluster_chain(u32 start_cluster) const;
 
+        bool write_fat_entry(u32 cluster, u32 value);
         [[nodiscard]] u32 next_cluster(u32 c) const;
         bool has_fat_loop(u32 start) const;
         u32 find_free_cluster();
@@ -308,10 +300,10 @@ namespace fat32 {
         bool overwrite_directory_entry(u32 parent_cluster, usize entry_index, const DirectoryEntry* new_entry) const;
 
         u32 find_entry_cluster(u32 dir_cluster, const char* given_name) const;
-
+        bool stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const;
+        u32 truncate(Fat32Node* node, usize new_size);
         static bool is_protected(const DirectoryEntry& e);
     };
-
 }  // namespace fat32
 
 #endif  // FAT32_CPP_H

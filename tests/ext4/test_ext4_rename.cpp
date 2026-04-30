@@ -199,7 +199,7 @@ TEST(Ext4_Rename, FsRenameRoundTrip,
     WITH_EXT4(f);
 
     u32 dir_inode = ext4::EXT4_ROOT_INODE;
-    ASSERT_TRUE(f.fs->create_file(dir_inode, "fs_rename_src.txt").is_ok());
+    ASSERT_TRUE(f.fs->create_file(dir_inode, "fs_rename_src.txt") != 0);
     ASSERT_TRUE(f.fs->rename(dir_inode, "fs_rename_src.txt",
                               dir_inode, "fs_rename_dst.txt"));
 

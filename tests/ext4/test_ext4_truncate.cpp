@@ -230,8 +230,8 @@ TEST(Ext4_Truncate, FsTruncateShrinksFile,
     ASSERT_TRUE(f.fs->truncate(inode_no, 5));
 
     char buf[32] = {};
-    auto r_res = f.fs->read_file(inode_no, 0, sizeof(buf), buf, false);
-    ASSERT_TRUE(r_res.is_ok());
+    i64 r = f.fs->read_file(inode_no, 0, sizeof(buf), buf, false);
+    ASSERT_EQ(static_cast<i64>(5), r);
     // First 5 bytes of "truncation test content here\n" = "trunc"
     ASSERT_MEM_EQ("trunc", buf, 5);
 }

@@ -42,7 +42,7 @@ namespace kernel::security {
         }
 
         vespera_stat_t st{};
-        if (VFS::stat(exec_node, &st) != 0) {
+        if (exec_node->ops->stat(exec_node, &st) != 0) {
             return;
         }
 

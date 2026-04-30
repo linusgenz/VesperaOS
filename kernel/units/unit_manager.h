@@ -41,7 +41,7 @@ class UnitManager {
     static bool destroy(UnitId id);
     static void list();
 
-    static Result<usize> get_status(void* manager_ref, void* buffer, usize size, usize offset);
+    static isize get_status(void* manager_ref, void* buffer, usize size, usize offset);
 
    private:
     static constexpr usize MAX_UNITS = 256;
