@@ -374,13 +374,6 @@ TEST(Ext4_FileIO, FsReadFileReturnsCorrectBytes,
      "fs->read_file() on hello.txt returns the known content") {
     WITH_EXT4(f);
 
-    char buf[32] = {};
-    i64 n = f.fs->read_file(ext4::EXT4_ROOT_INODE + 1,
-                             /* try inode 3 for hello.txt – will vary, use API */
-                             0, sizeof(buf), buf, false);
-    // We can't guarantee inode 3 is hello.txt, so test via VFS path instead.
-    // The raw-API test below uses the inode obtained via find.
-
     VfsNode* node = f.find_root("hello.txt");
     ASSERT_NOT_NULL(node);
 
@@ -388,8 +381,14 @@ TEST(Ext4_FileIO, FsReadFileReturnsCorrectBytes,
     u32 inode_no = nd->inode;
     Ext4Fixture::free_node(node);
 
+    char buf[32] = {};
     memset(buf, 0, sizeof(buf));
-    i64 bytes = f.fs->read_file(inode_no, 0, sizeof(buf), buf, false);
+
+    auto r = f.fs->read_file(inode_no, 0, sizeof(buf), buf, false);
+    ASSERT_TRUE(r.is_ok());
+
+    i64 bytes = r.value();
+
     ASSERT_EQ(static_cast<i64>(HELLO_TXT_SIZE), bytes);
     ASSERT_MEM_EQ("hello from ext4\n", buf, HELLO_TXT_SIZE);
 }
@@ -400,6 +399,7 @@ TEST(Ext4_FileIO, FsWriteFilePersistsAcrossRead,
 
     VfsNode* node = f.find_root("hello.txt");
     ASSERT_NOT_NULL(node);
+
     auto* nd = static_cast<Ext4Node*>(node->internal_data);
     u32 inode_no = nd->inode;
     Ext4Fixture::free_node(node);
@@ -407,12 +407,17 @@ TEST(Ext4_FileIO, FsWriteFilePersistsAcrossRead,
     constexpr char payload[] = "overwritten!";
     constexpr usize plen = sizeof(payload) - 1;
 
-    i64 w = f.fs->write_file(inode_no, 0, plen, payload);
-    ASSERT_EQ(static_cast<i64>(plen), w);
+    auto w = f.fs->write_file(inode_no, 0, plen, payload);
+    ASSERT_TRUE(w.is_ok());
+
+    ASSERT_EQ(static_cast<i64>(plen), w.value());
 
     char buf[32] = {};
-    i64 r = f.fs->read_file(inode_no, 0, plen, buf, false);
-    ASSERT_EQ(static_cast<i64>(plen), r);
+    auto r = f.fs->read_file(inode_no, 0, plen, buf, false);
+
+    ASSERT_TRUE(r.is_ok());
+    ASSERT_EQ(static_cast<i64>(plen), r.value());
+
     ASSERT_MEM_EQ(payload, buf, plen);
 }
 

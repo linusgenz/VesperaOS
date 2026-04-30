@@ -382,8 +382,8 @@ void UnitManager::list() {
     }
 }
 
-isize UnitManager::get_status(void* manager_ref, void* buffer, const usize size, usize) {
-    if (!manager_ref || !buffer || size < sizeof(unit_info_t)) return -EINVAL;
+Result<usize> UnitManager::get_status(void* manager_ref, void* buffer, const usize size, usize) {
+    if (!manager_ref || !buffer || size < sizeof(unit_info_t)) return Result<usize>::err(Error::EINVAL);;
 
     const auto u = static_cast<Unit*>(manager_ref);
     unit_info_t status;
@@ -402,5 +402,5 @@ isize UnitManager::get_status(void* manager_ref, void* buffer, const usize size,
     status.user_stack_end = virt_raw(u->context.user_stack_top);
 
     memcpy(buffer, &status, sizeof(unit_info_t));
-    return sizeof(unit_info_t);
+    return Result<usize>::ok(sizeof(unit_info_t));
 }

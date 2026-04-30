@@ -20,19 +20,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 #include "realmfs.h"
 
+#include <klib/string.h>
+#include <vespera/mm/memory.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera_errno.h>
 
 #include "../../kernel/units/unit_manager.h"
-#include <klib/string.h>
-#include <vespera/mm/memory.h>
 
-void RealmFs::init()
-{
+void RealmFs::init() {
     VirtualFilesystem::init("/realms", "realms");
 
     // Setup operations
@@ -52,11 +51,8 @@ void RealmFs::init()
     ops_.stat = stat;
 }
 
-
-int RealmFs::register_realm(const u64 realm_id, const char* name, void* realm_ptr)
-{
+int RealmFs::register_realm(const u64 realm_id, const char* name, void* realm_ptr) {
     SpinlockGuard guard(lock_);
-
 
     VfsNode* realm_dir = ensure_subdirectory(name, root_);
     ensure_subdirectory("units", realm_dir);
@@ -73,8 +69,7 @@ int RealmFs::register_realm(const u64 realm_id, const char* name, void* realm_pt
     return SUCCESS_CODE;
 }
 
-int RealmFs::register_unit(const u64 unit_id, const char* name, void* unit_ptr, const char* realm_name)
-{
+int RealmFs::register_unit(const u64 unit_id, const char* name, void* unit_ptr, const char* realm_name) {
     SpinlockGuard guard(lock_);
 
     VfsNode* realm_dir = find(root_, realm_name);
@@ -98,24 +93,20 @@ int RealmFs::register_unit(const u64 unit_id, const char* name, void* unit_ptr, 
     return SUCCESS_CODE;
 }
 
-int RealmFs::unregister_realm(const u64 realm_id)
-{
+int RealmFs::unregister_realm(const u64 realm_id) {
     SpinlockGuard guard(lock_);
 
     auto* root_data = static_cast<DirData*>(root_->internal_data);
 
-    for (usize i = 0; i < root_data->subdirs.size(); i++)
-    {
+    for (usize i = 0; i < root_data->subdirs.size(); i++) {
         VfsNode* realm_dir = root_data->subdirs[i];
 
         auto* dir_data = static_cast<DirData*>(realm_dir->internal_data);
         const RealmFsEntry* realm_entry = nullptr;
 
-        for (const auto* file_node : dir_data->files)
-        {
+        for (const auto* file_node : dir_data->files) {
             if (const auto* entry = static_cast<RealmFsEntry*>(file_node->internal_data);
-                entry && entry->device && entry->device->id == realm_id)
-            {
+                entry && entry->device && entry->device->id == realm_id) {
                 realm_entry = entry;
                 break;
             }
@@ -131,22 +122,18 @@ int RealmFs::unregister_realm(const u64 realm_id)
     return -ENOENT;
 }
 
-int RealmFs::unregister_unit(const u64 unit_id)
-{
+int RealmFs::unregister_unit(const u64 unit_id) {
     SpinlockGuard guard(lock_);
 
-    for (auto* root_data = static_cast<DirData*>(root_->internal_data); const auto* realm_dir : root_data->subdirs)
-    {
+    for (auto* root_data = static_cast<DirData*>(root_->internal_data); const auto* realm_dir : root_data->subdirs) {
         const VfsNode* units_dir = finddir(realm_dir, "units");
         if (!units_dir) continue;
 
         auto* units_data = static_cast<DirData*>(units_dir->internal_data);
-        for (usize i = 0; i < units_data->files.size(); i++)
-        {
+        for (usize i = 0; i < units_data->files.size(); i++) {
             VfsNode* u_node = units_data->files[i];
             if (const auto* u_entry = static_cast<RealmFsEntry*>(u_node->internal_data);
-                u_entry && u_entry->device->id == unit_id)
-            {
+                u_entry && u_entry->device->id == unit_id) {
                 units_data->files.erase(i);
                 delete_entry_node(u_node);
                 return SUCCESS_CODE;
@@ -157,46 +144,43 @@ int RealmFs::unregister_unit(const u64 unit_id)
     return -ENOENT;
 }
 
-isize RealmFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer)
-{
-    if (!node) return -EINVAL;
+Result<usize> RealmFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
+    if (!node) return Result<usize>::err(Error::EINVAL);
 
     const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return -EINVAL;
+    if (!entry || !entry->device) return Result<usize>::err(Error::EINVAL);
 
-    if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
-    {
+    const SysObject* obj = entry->device;
+
+    if (obj->type == SYS_OBJ_REALM) {
         return RealmManager::get_status(obj->manager_ref, buffer, size, offset);
-    }
-    else if (obj->type == SYS_OBJ_UNIT)
-    {
+    } else if (obj->type == SYS_OBJ_UNIT) {
         return UnitManager::get_status(obj->manager_ref, buffer, size, offset);
     }
 
-    return -ENFILE;
+    return Result<usize>::err(Error::ENFILE);
 }
 
-isize RealmFs::write(VfsNode* node, usize offset, usize size, const void* buffer)
-{
-    if (!node) return -EINVAL;
+Result<usize> RealmFs::write(VfsNode* node, usize offset, usize size, const void* buffer) {
+    if (!node) return Result<usize>::err(Error::EINVAL);
 
     const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return -EINVAL;
+    if (!entry || !entry->device) return Result<usize>::err(Error::EINVAL);
 
-    if (const SysObject* obj = entry->device; obj->type == SYS_OBJ_REALM)
-    {
-        //      return RealmManager::control(obj->manager_ref, buffer, size);
-    }
-    else if (obj->type == SYS_OBJ_UNIT)
-    {
-        //      return UnitManager::control(obj->manager_ref, buffer, size);
+    const SysObject* obj = entry->device;
+
+    if (obj->type == SYS_OBJ_REALM) {
+        // return RealmManager::control(...);
+        return Result<usize>::err(Error::EUNSUPPORTED);
+    } else if (obj->type == SYS_OBJ_UNIT) {
+        // return UnitManager::control(...);
+        return Result<usize>::err(Error::EUNSUPPORTED);
     }
 
-    return -EUNSUPPORTED;
+    return Result<usize>::err(Error::EUNSUPPORTED);
 }
 
-isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg)
-{
+isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg) {
     if (!node) return -EINVAL;
 
     const auto* entry = static_cast<RealmFsEntry*>(node->internal_data);
@@ -240,7 +224,6 @@ isize RealmFs::ioctl(const VfsNode* node, u32 cmd, void* arg)
     return -EUNSUPPORTED;
 }
 
-void RealmFs::close(VfsNode* node)
-{
+void RealmFs::close(VfsNode* node) {
     // Cleanup if needed in the future
 }

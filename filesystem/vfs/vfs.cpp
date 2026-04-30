@@ -25,7 +25,6 @@
 #include <vespera/devices/device_manager.h>
 #include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
@@ -41,12 +40,7 @@ void VFS::init() {
     mount_points_lock_.init("mount_points_lock");
 
     FilesystemDetector::init();
-
     FilesystemDetector::register_all_drivers();
-
-    // FilesystemDetector::ScanAndMountAll();
-
-    // FilesystemDetector::PrintDetectedFilesystems();
 }
 
 VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path) {
@@ -70,7 +64,6 @@ VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path) {
 VfsNode* VFS::open(const char* path) {
     if (!path || !*path) return nullptr;
 
-    // --- Mountpoint-Suche ---
     const MountPoint* best_match = nullptr;
     usize best_len = 0;
 
@@ -109,21 +102,24 @@ VfsNode* VFS::open(const char* path) {
 
 int VFS::opendir(VfsNode* node, VfsDir** out_dir) {
     if (!node) return -EINVAL;
-
     if (node->type != VfsNodeType::Directory) return -ENOTDIR;
-
     if (!node->ops || !node->ops->opendir) return -ENOSYS;
 
-    void* handle = node->ops->opendir(node);
-    if (!handle) return -EIO;
+    auto result = node->ops->opendir(node);
+
+    if (result.is_err()) {
+        return -result.to_errno();
+    }
+
+    void* handle = result.value();
 
     auto* dir = new VfsDir();
     if (!dir) return -ENOMEM;
 
     dir->node = node;
     dir->handle = handle;
-
     *out_dir = dir;
+
     return 0;
 }
 
@@ -147,7 +143,10 @@ void VFS::closedir(VfsDir* dir) {
 
 isize VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
     if (!node || !node->ops || !node->ops->read) return -ENOSYS;
-    return node->ops->read(node, offset, size, buffer);
+
+    const auto r = node->ops->read(node, offset, size, buffer);
+    if (r.is_err()) return r.to_errno();
+    return static_cast<isize>(r.value());
 }
 
 static bool is_read_only(const VfsNode* node) {
@@ -157,12 +156,11 @@ static bool is_read_only(const VfsNode* node) {
 
 isize VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
     if (!node || !node->ops || !node->ops->write) return -ENOSYS;
+    if (is_read_only(node)) return -EROFS;
 
-    if (is_read_only(node)) {
-        return -EROFS;
-    }
-
-    return node->ops->write(node, offset, size, buffer);
+    const auto r = node->ops->write(node, offset, size, buffer);
+    if (r.is_err()) return r.to_errno();
+    return static_cast<isize>(r.value());
 }
 
 int VFS::create(const char* path) {
@@ -173,15 +171,15 @@ int VFS::create(const char* path) {
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (is_read_only(parent)) {
+        close(parent);
         return -EROFS;
     }
-
     if (!parent->ops || !parent->ops->create) {
         close(parent);
         return -ENOSYS;
     }
 
-    const int result = parent->ops->create(parent, name);
+    const int result = parent->ops->create(parent, name).to_errno();
     close(parent);
     return result;
 }
@@ -199,25 +197,25 @@ int VFS::rename(const char* old_path, const char* new_path) {
     }
 
     if (is_read_only(old_parent)) {
+        close(old_parent);
+        close(new_parent);
         return -EROFS;
     }
-
     if (old_parent != new_parent) {
         close(old_parent);
         close(new_parent);
         return -EXDEV;
     }
-
     if (!old_parent->ops || !old_parent->ops->rename) {
         close(old_parent);
         close(new_parent);
         return -ENOSYS;
     }
 
-    const int status = old_parent->ops->rename(old_parent, old_name, new_parent, new_name);
+    const int result = old_parent->ops->rename(old_parent, old_name, new_parent, new_name).to_errno();
     close(old_parent);
     close(new_parent);
-    return status;
+    return result;
 }
 
 int VFS::mkdir(const char* path) {
@@ -228,15 +226,15 @@ int VFS::mkdir(const char* path) {
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (is_read_only(parent)) {
+        close(parent);
         return -EROFS;
     }
-
     if (!parent->ops || !parent->ops->mkdir) {
         close(parent);
         return -ENOSYS;
     }
 
-    const int result = parent->ops->mkdir(parent, name);
+    const int result = parent->ops->mkdir(parent, name).to_errno();
     close(parent);
     return result;
 }
@@ -256,17 +254,16 @@ int VFS::rmdir(const char* path) {
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (is_read_only(parent)) {
+        close(parent);
         return -EROFS;
     }
-
     if (!parent->ops || !parent->ops->rmdir) {
         close(parent);
         return -ENOSYS;
     }
 
-    const int result = parent->ops->rmdir(parent, name);
+    const int result = parent->ops->rmdir(parent, name).to_errno();
     close(parent);
-    if (result == 1) return -ENOTEMPTY;
     return result;
 }
 
@@ -278,49 +275,46 @@ int VFS::unlink(const char* path) {
     if (!resolve_parent(path, &parent, name)) return -ENOENT;
 
     if (is_read_only(parent)) {
+        close(parent);
         return -EROFS;
     }
-
     if (!parent->ops || !parent->ops->unlink) {
         close(parent);
         return -ENOSYS;
     }
 
-    const int result = parent->ops->unlink(parent, name);
+    const int result = parent->ops->unlink(parent, name).to_errno();
     close(parent);
-    if (result == 1) return -EIO;
     return result;
 }
 
 int VFS::truncate(VfsNode* node, const usize new_size) {
-    if (!node || !node->ops || !node->ops->truncate) {
-        return -ENOSYS;
-    }
+    if (!node || !node->ops || !node->ops->truncate) return -ENOSYS;
+    if (is_read_only(node)) return -EROFS;
 
-    if (is_read_only(node)) {
-        return -EROFS;
-    }
+    return node->ops->truncate(node, new_size).to_errno();
+}
 
-    return node->ops->truncate(node, new_size);
+int VFS::stat(const VfsNode* node, vespera_stat_t* out) {
+    if (!node || !out) return -EINVAL;
+    if (!node->ops || !node->ops->stat) return -ENOSYS;
+
+    return node->ops->stat(node, out).to_errno();
 }
 
 int VFS::chown(VfsNode* node, const u32 uid, const u32 gid) {
     if (!node || !node->ops || !node->ops->chown) return -ENOSYS;
     if (is_read_only(node)) return -EROFS;
-    return node->ops->chown(node, uid, gid);
+
+    return node->ops->chown(node, uid, gid).to_errno();
 }
 
 int VFS::chmod(VfsNode* node, const u16 mode) {
     if (!node || !node->ops || !node->ops->chmod) return -ENOSYS;
     if (is_read_only(node)) return -EROFS;
-    return node->ops->chmod(node, mode);
-}
 
-/*
-bool VFS::probe_filesystem(BlockDevice* device) {
-    FilesystemInfo info{};
-    return FilesystemDetector::detect_filesystem(device, &info);
-}*/
+    return node->ops->chmod(node, mode).to_errno();
+}
 
 void VFS::list_devices() {
     FilesystemDetector::print_detected_filesystems();
@@ -331,30 +325,7 @@ void VFS::remount_all() {
     FilesystemDetector::init();
     FilesystemDetector::register_all_drivers();
     FilesystemDetector::scan_and_mount_all();
-   // FilesystemDetector::print_detected_filesystems();
 }
-/*
-void VFS::get_stats(VfsStats* stats) {
-    if (!stats) return;
-
-    auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
-
-    stats->total_devices = devices.size();
-    stats->mounted_devices = 0;
-    stats->supported_filesystems = 0;
-
-    for (const KernelDevice* dev : devices) {
-        FilesystemInfo info;
-        if (FilesystemDetector::detect_filesystem(dev->block, &info) && info.mounted) {
-            stats->mounted_devices++;
-        }
-    }
-
-    // Count supported filesystem types
-    // For now, just count the registered drivers
-    stats->supported_filesystems = 1;  // FAT32 is always supported
-    // TODO: Add count of other registered drivers when implemented
-}*/
 
 void VFS::add_mount_point(MountPoint* mp) {
     SpinlockGuard g(mount_points_lock_);
@@ -380,9 +351,7 @@ MountPoint* VFS::find_mount_point(const char* path) {
         normalize_path(mp->path, mp_norm, sizeof(mp_norm));
         strip_trailing_slash(mp_norm);
 
-        if (strcmp(mp_norm, norm) == 0) {
-            return mp;
-        }
+        if (strcmp(mp_norm, norm) == 0) return mp;
     }
 
     return nullptr;
@@ -402,5 +371,5 @@ bool VFS::remove_mount_point(const MountPoint* mp) {
             return true;
         }
     }
-    return false;  // Not found
+    return false;
 }

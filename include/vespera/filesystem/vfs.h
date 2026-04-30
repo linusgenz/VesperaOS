@@ -105,6 +105,7 @@ public:
 
     static int unlink(const char* path);
     static int truncate(VfsNode* node, usize new_size);
+    static int stat(const VfsNode* node, vespera_stat_t* out);
     static int chown(VfsNode* node, u32 uid, u32 gid);
     static int chmod(VfsNode* node, u16 mode);
 

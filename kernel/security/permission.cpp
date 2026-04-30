@@ -26,12 +26,13 @@
 
 #include "../../filesystem/vfs/vfs_node.h"
 #include "uapi/vespera/stat.h"
+#include "vespera/filesystem/vfs.h"
 
 namespace kernel::security {
 
     static bool get_node_stat(const VfsNode* node, vespera_stat_t& out_st) {
         if (!node || !node->ops || !node->ops->stat) return false;
-        return node->ops->stat(node, &out_st) == 0;
+        return VFS::stat(node, &out_st) == 0;
     }
 
     int vfs_check_permission(const VfsNode* node, const u32 access, const process_credentials& cred) {

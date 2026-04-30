@@ -23,33 +23,32 @@
 #ifndef VESPERAOS_EXT4_FIXTURE_H
 #define VESPERAOS_EXT4_FIXTURE_H
 
-#include "../../filesystem/vfs/fs_registry.h"
 #include "../../filesystem/ext4/ext4.h"
 #include "../../filesystem/ext4/ext4_vfs_adapter.h"
+#include "../../filesystem/vfs/fs_registry.h"
 #include "../framework/test_framework.h"
 #include "../stub_kernel/mock_blockdevice.h"
-
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
-static constexpr usize HELLO_TXT_SIZE    = 16;   // "hello from ext4\n"
-static constexpr usize EMPTY_TXT_SIZE    = 0;
-static constexpr usize BINARY_BIN_SIZE   = 8192;
-static constexpr usize BIG_BIN_SIZE      = 65536;
-static constexpr usize NESTED_TXT_SIZE   = 15;   // "nested content\n"
-static constexpr usize ANOTHER_TXT_SIZE  = 13;   // "another file\n"
-static constexpr usize LEAF_TXT_SIZE     = 10;   // "deep leaf\n"
-static constexpr usize TRUNCTEST_SIZE    = 29;   // "truncation test content here\n"
+static constexpr usize HELLO_TXT_SIZE = 16;  // "hello from ext4\n"
+static constexpr usize EMPTY_TXT_SIZE = 0;
+static constexpr usize BINARY_BIN_SIZE = 8192;
+static constexpr usize BIG_BIN_SIZE = 65536;
+static constexpr usize NESTED_TXT_SIZE = 15;   // "nested content\n"
+static constexpr usize ANOTHER_TXT_SIZE = 13;  // "another file\n"
+static constexpr usize LEAF_TXT_SIZE = 10;     // "deep leaf\n"
+static constexpr usize TRUNCTEST_SIZE = 29;    // "truncation test content here\n"
 
 // Forward-declare the driver symbol exposed by ext4_vfs_adapter.cpp.
 extern FileSystemDriver ext4_driver;
 
 struct Ext4Fixture {
-    BlockDevice*      dev  = nullptr;
-    ext4::FileSystem* fs   = nullptr;
-    VfsNode*          root = nullptr;
+    BlockDevice* dev = nullptr;
+    ext4::FileSystem* fs = nullptr;
+    VfsNode* root = nullptr;
 
     Ext4Fixture() {
         FILE* f = fopen("test_ext4.img", "rb");
@@ -70,7 +69,7 @@ struct Ext4Fixture {
         }
 
         size_t sectors = size / MockBlockDevice::SECTOR_SIZE;
-        auto*  mdev    = new MockBlockDevice(sectors);
+        auto* mdev = new MockBlockDevice(sectors);
         fread(mdev->raw(), 1, size, f);
         fclose(f);
 
@@ -105,11 +104,9 @@ struct Ext4Fixture {
     // Does NOT free the "name" field when it matches a literal (root "/").
     static void free_node(VfsNode* node) {
         if (!node) return;
-        if (node->internal_data)
-            kernel::memory::free(node->internal_data);
+        if (node->internal_data) kernel::memory::free(node->internal_data);
         // Child nodes have strdup'd names; free them.
-        if (node->name && node->name[0] != '\0')
-            kernel::memory::free(const_cast<char*>(node->name));
+        if (node->name && node->name[0] != '\0') kernel::memory::free(const_cast<char*>(node->name));
         kernel::memory::free(node);
     }
 
@@ -127,48 +124,55 @@ struct Ext4Fixture {
 
     isize read(VfsNode* node, usize offset, usize size, void* buf) const {
         if (!node || !node->ops || !node->ops->read) return -1;
-        return node->ops->read(node, offset, size, buf);
+        Result<usize> r = node->ops->read(node, offset, size, buf);
+        if (r.is_err()) {
+            return -r.to_errno();
+        }
+        return r.value();
     }
 
     isize write(VfsNode* node, usize offset, usize size, const void* buf) const {
         if (!node || !node->ops || !node->ops->write) return -1;
-        return node->ops->write(node, offset, size, buf);
+        Result<usize> r = node->ops->write(node, offset, size, buf);
+        if (r.is_err()) {
+            return -r.to_errno();
+        }
+        return r.value();
     }
 
     int stat(VfsNode* node, vespera_stat_t* out) const {
         if (!node || !node->ops || !node->ops->stat) return -1;
-        return node->ops->stat(node, out);
+        return -node->ops->stat(node, out).to_errno();
     }
 
     int truncate(VfsNode* node, usize new_size) const {
         if (!node || !node->ops || !node->ops->truncate) return -1;
-        return node->ops->truncate(node, new_size);
+        return -node->ops->truncate(node, new_size).to_errno();
     }
 
     int create(VfsNode* parent, const char* name) const {
         if (!parent || !parent->ops || !parent->ops->create) return 1;
-        return parent->ops->create(parent, name);
+        return -parent->ops->create(parent, name).to_errno();
     }
 
     int mkdir(VfsNode* parent, const char* name) const {
         if (!parent || !parent->ops || !parent->ops->mkdir) return 1;
-        return parent->ops->mkdir(parent, name);
+        return -parent->ops->mkdir(parent, name).to_errno();
     }
 
     int unlink(VfsNode* parent, const char* name) const {
         if (!parent || !parent->ops || !parent->ops->unlink) return 1;
-        return parent->ops->unlink(parent, name);
+        return -parent->ops->unlink(parent, name).to_errno();
     }
 
     int rmdir(VfsNode* parent, const char* name) const {
         if (!parent || !parent->ops || !parent->ops->rmdir) return 1;
-        return parent->ops->rmdir(parent, name);
+        return -parent->ops->rmdir(parent, name).to_errno();
     }
 
-    int rename(VfsNode* old_parent, const char* old_name,
-               VfsNode* new_parent, const char* new_name) const {
+    int rename(VfsNode* old_parent, const char* old_name, VfsNode* new_parent, const char* new_name) const {
         if (!old_parent || !old_parent->ops || !old_parent->ops->rename) return 1;
-        return old_parent->ops->rename(old_parent, old_name, new_parent, new_name);
+        return -old_parent->ops->rename(old_parent, old_name, new_parent, new_name).to_errno();
     }
 
     // ── Directory listing helpers ─────────────────────────────────────────────
@@ -177,18 +181,20 @@ struct Ext4Fixture {
         std::vector<std::string> names;
         if (!node || !node->ops) return names;
 
-        void* handle = node->ops->opendir(node);
-        if (!handle) return names;
+        Result<void*> handle_r = node->ops->opendir(node);
+        if (handle_r.is_err()) return names;
+        void* handle = handle_r.value();
 
         dirent_t de{};
-        while (node->ops->readdir(handle, &de) == 1)
-            names.emplace_back(de.name);
+        while (node->ops->readdir(handle, &de) == 1) names.emplace_back(de.name);
 
         node->ops->closedir(handle);
         return names;
     }
 
-    std::vector<std::string> list_root() const { return list(root); }
+    std::vector<std::string> list_root() const {
+        return list(root);
+    }
 
     static bool list_contains(const std::vector<std::string>& lst, const char* name) {
         for (auto& s : lst)
@@ -210,32 +216,38 @@ struct Ext4Fixture {
 };
 
 // ── Macro: set up a fixture and abort on failure ──────────────────────────────
-#define WITH_EXT4(var)                                                                               \
-    Ext4Fixture var;                                                                                  \
-    if (!(var).valid()) {                                                                             \
-        TestFramework::fail_test(__FILE__, __LINE__,                                                  \
-            "Ext4Fixture invalid — is test_ext4.img present and valid?");                             \
-        return;                                                                                       \
+#define WITH_EXT4(var)                                                                                             \
+    Ext4Fixture var;                                                                                               \
+    if (!(var).valid()) {                                                                                          \
+        TestFramework::fail_test(__FILE__, __LINE__, "Ext4Fixture invalid — is test_ext4.img present and valid?"); \
+        return;                                                                                                    \
     }
 
 // ── Macro: find a file/dir inside the fixture root; fail test on nullptr ──────
-#define EXT4_FIND(fixture, name, var)                                          \
-    VfsNode* var = (fixture).find_root(name);                                  \
-    if (!(var)) {                                                               \
-        TestFramework::fail_test(__FILE__, __LINE__,                            \
-            "find_root(\"" name "\") returned nullptr");                        \
-        return;                                                                 \
+#define EXT4_FIND(fixture, name, var)                                                             \
+    VfsNode* var = (fixture).find_root(name);                                                     \
+    if (!(var)) {                                                                                 \
+        TestFramework::fail_test(__FILE__, __LINE__, "find_root(\"" name "\") returned nullptr"); \
+        return;                                                                                   \
     }
 
 // ── RAII wrapper for a found VfsNode ─────────────────────────────────────────
 struct NodeGuard {
     VfsNode* node;
-    explicit NodeGuard(VfsNode* n) : node(n) {}
-    ~NodeGuard() { Ext4Fixture::free_node(node); }
+    explicit NodeGuard(VfsNode* n)
+        : node(n) {
+    }
+    ~NodeGuard() {
+        Ext4Fixture::free_node(node);
+    }
     NodeGuard(const NodeGuard&) = delete;
     NodeGuard& operator=(const NodeGuard&) = delete;
-    VfsNode* operator->() const { return node; }
-    explicit operator bool() const { return node != nullptr; }
+    VfsNode* operator->() const {
+        return node;
+    }
+    explicit operator bool() const {
+        return node != nullptr;
+    }
 };
 
-#endif // VESPERAOS_EXT4_FIXTURE_H
+#endif  // VESPERAOS_EXT4_FIXTURE_H

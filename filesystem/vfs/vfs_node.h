@@ -28,6 +28,7 @@
 #include <vespera/types.h>
 
 #include "../../include/vespera/types.h"
+#include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
 struct MountPoint;
@@ -42,40 +43,29 @@ enum class VfsNodeType : u8 {
 struct VfsNode;
 
 struct VfsNodeOps {
-    isize (*read)(const VfsNode *node, usize offset, usize size, void *buffer);
-
-    isize (*write)(VfsNode *node, usize offset, usize size, const void *buffer);
+    Result<usize> (*read)(const VfsNode *node, usize offset, usize size, void *buffer);
+    Result<usize> (*write)(VfsNode *node, usize offset, usize size, const void *buffer);
 
     VfsNode *(*find)(VfsNode *dir, const char *name);
 
     void (*close)(VfsNode *node);
-
-    void *(*opendir)(const VfsNode *dir);
-
-    int (*readdir)(void *dir_handle, dirent_t *out_name);
-
+    Result<void*> (*opendir)(const VfsNode *dir);
+    int (*readdir)(void *dir_handle, dirent_t *out);  // 1 = entry written, 0 = done
     void (*closedir)(void *dir_handle);
 
-    int (*create)(const VfsNode *node, const char *name);
-
-    int (*rename)(const VfsNode *, const char *old_name, const VfsNode *new_parent, const char *new_name);
-
-    int (*mkdir)(const VfsNode *node, const char *name);
-
-    int (*rmdir)(const VfsNode *node, const char *name);
-
-    int (*unlink)(const VfsNode *node, const char *name);
+    Result<void> (*create)(const VfsNode *node, const char *name);
+    Result<void> (*rename)(
+        const VfsNode *old_parent, const char *old_name, const VfsNode *new_parent, const char *new_name
+    );
+    Result<void> (*mkdir)(const VfsNode *node, const char *name);
+    Result<void> (*rmdir)(const VfsNode *node, const char *name);
+    Result<void> (*unlink)(const VfsNode *node, const char *name);
+    Result<void> (*stat)(const VfsNode *node, vespera_stat_t *out);
+    Result<void> (*truncate)(VfsNode *node, usize new_size);
+    Result<void> (*chown)(VfsNode *node, u32 uid, u32 gid);
+    Result<void> (*chmod)(VfsNode *node, u16 mode);
 
     isize (*ioctl)(const VfsNode *node, u32 cmd, void *arg);
-
-    int (*stat)(const VfsNode *, vespera_stat_t *out);
-
-    int (*truncate)(VfsNode *node, usize new_size);
-
-    int (*chown)(VfsNode *node, u32 uid, u32 gid);
-
-    int (*chmod)(VfsNode *node, u16 mode);
-
     int (*poll)(const VfsNode *node);
 };
 

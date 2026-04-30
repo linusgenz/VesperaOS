@@ -44,6 +44,7 @@ S.ignis = {
 
 S.nox = {
     name             = "nox",
+    user             = "vespera",
     exec             = "/bin/nox",
     args             = { "-v" },
     restart          = "always",

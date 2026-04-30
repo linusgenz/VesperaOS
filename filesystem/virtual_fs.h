@@ -243,12 +243,13 @@ public:
         const VfsNode* dir_node;
     };
 
-    static void* open_dir(const VfsNode* dir)
+    static Result<void*> open_dir(const VfsNode* dir)
     {
         auto* h = static_cast<DirHandle*>(kernel::memory::malloc(sizeof(DirHandle)));
+        if (!h) return Result<void*>::err(Error::ENOMEM);
         h->index = 0;
         h->dir_node = dir;
-        return h;
+        return Result<void*>::ok(h);
     }
 
     static int read_dir(void* dir_handle, dirent_t* out)
@@ -295,13 +296,13 @@ public:
         kernel::memory::free(dir_handle);
     }
 
-    static int stat(const VfsNode*, vespera_stat_t* out) {
+    static Result<void> stat(const VfsNode*, vespera_stat_t* out) {
         out->dev_id = 0;
         out->inode_id = 0;
         out->block_size = 0;
         out->blocks = 0;
         out->size = 0;
-        return 0;
+        return Result<void>::ok();
     }
 };
 
