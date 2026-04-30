@@ -114,7 +114,17 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:aea54dcebbf797298e07b5140f070124c"><td class="mdescLeft">&#160;</td><td class="mdescRight">If set true, detach from controlling tty.  <br /></td></tr>
 <tr class="separator:aea54dcebbf797298e07b5140f070124c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bde2da8147fd7605b9423f7eba58253" id="r_a6bde2da8147fd7605b9423f7eba58253"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253">realm_name</a></td></tr>
+<tr class="memdesc:a6bde2da8147fd7605b9423f7eba58253"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional explicit name for the new realm.  <br /></td></tr>
 <tr class="separator:a6bde2da8147fd7605b9423f7eba58253"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e6c0763c8a87bd13cbb5617de66e97d" id="r_a2e6c0763c8a87bd13cbb5617de66e97d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d">uid</a></td></tr>
+<tr class="memdesc:a2e6c0763c8a87bd13cbb5617de66e97d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Real user ID for the new process (0 = inherit)  <br /></td></tr>
+<tr class="separator:a2e6c0763c8a87bd13cbb5617de66e97d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af54a60971d2d85fa034ed059d086b20f" id="r_af54a60971d2d85fa034ed059d086b20f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#af54a60971d2d85fa034ed059d086b20f">gid</a></td></tr>
+<tr class="memdesc:af54a60971d2d85fa034ed059d086b20f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Real group ID for the new process (0 = inherit)  <br /></td></tr>
+<tr class="separator:af54a60971d2d85fa034ed059d086b20f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e84f6c44fff46d194ba1da496949b81" id="r_a7e84f6c44fff46d194ba1da496949b81"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structspawn__config.html#a7e84f6c44fff46d194ba1da496949b81">home</a></td></tr>
+<tr class="memdesc:a7e84f6c44fff46d194ba1da496949b81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optional home directory (sets initial cwd if provided)  <br /></td></tr>
+<tr class="separator:a7e84f6c44fff46d194ba1da496949b81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Optional configuration for sys_spawn. Pass nullptr to get default behavior (inherit TTY stdin/stdout/stderr).</p>
@@ -136,6 +146,38 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="af54a60971d2d85fa034ed059d086b20f" name="af54a60971d2d85fa034ed059d086b20f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af54a60971d2d85fa034ed059d086b20f">&#9670;&#160;</a></span>gid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> spawn_config::gid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Real group ID for the new process (0 = inherit) </p>
+
+</div>
+</div>
+<a id="a7e84f6c44fff46d194ba1da496949b81" name="a7e84f6c44fff46d194ba1da496949b81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e84f6c44fff46d194ba1da496949b81">&#9670;&#160;</a></span>home</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* spawn_config::home</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Optional home directory (sets initial cwd if provided) </p>
+
+</div>
+</div>
 <a id="a6bde2da8147fd7605b9423f7eba58253" name="a6bde2da8147fd7605b9423f7eba58253"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6bde2da8147fd7605b9423f7eba58253">&#9670;&#160;</a></span>realm_name</h2>
 
@@ -147,6 +189,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Optional explicit name for the new realm. </p>
 
 </div>
 </div>
@@ -195,6 +239,22 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Replace HANDLE_STDOUT in child (0 = inherit TTY) </p>
+
+</div>
+</div>
+<a id="a2e6c0763c8a87bd13cbb5617de66e97d" name="a2e6c0763c8a87bd13cbb5617de66e97d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e6c0763c8a87bd13cbb5617de66e97d">&#9670;&#160;</a></span>uid</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> spawn_config::uid</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Real user ID for the new process (0 = inherit) </p>
 
 </div>
 </div>

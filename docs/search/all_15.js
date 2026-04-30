@@ -5,7 +5,7 @@ var searchData=
   ['u64_2',['u64',['../types_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357',1,'types.h']]],
   ['u8_3',['u8',['../types_8h.html#aed742c436da53c1080638ce6ef7d13de',1,'types.h']]],
   ['uchar_5fmax_4',['UCHAR_MAX',['../limits_8h.html#a4066e640ee269d5d8f83ff6643b7af5f',1,'limits.h']]],
-  ['uid_5',['uid',['../structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c',1,'vespera_stat']]],
+  ['uid_5',['uid',['../structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d',1,'spawn_config::uid'],['../structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c',1,'vespera_stat::uid']]],
   ['uid_5ft_6',['uid_t',['../alltypes_8h.html#a6e28f77f9ed84a3dc1ff80d2124e1212',1,'alltypes.h']]],
   ['uint16_5fmax_7',['UINT16_MAX',['../stdint_8h.html#a3ea490c9b3617d4479bd80ef93cd5602',1,'stdint.h']]],
   ['uint16_5ft_8',['uint16_t',['../stdint_8h.html#a273cf69d639a59973b6019625df33e30',1,'stdint.h']]],

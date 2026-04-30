@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['uid_0',['uid',['../structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c',1,'vespera_stat']]],
+  ['uid_0',['uid',['../structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d',1,'spawn_config::uid'],['../structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c',1,'vespera_stat::uid']]],
   ['uncorrectable_5fsectors_1',['uncorrectable_sectors',['../structsmart__ata.html#a3696dd2012f0a202ce4254e3a547afaf',1,'smart_ata']]],
   ['unget_5fchar_2',['unget_char',['../structFILE.html#a2e89f8ab8f1bb17b57f9b3158963eeb4',1,'FILE']]],
   ['unit_5fcount_3',['unit_count',['../structrealm__info.html#a5451f0261ccff72ef8bb0003bf1ce41d',1,'realm_info']]],

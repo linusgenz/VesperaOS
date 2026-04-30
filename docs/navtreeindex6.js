@@ -1,5 +1,8 @@
 var NAVTREEINDEX6 =
 {
+"structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c":[3,0,53,15],
+"structvespera__stat.html#a81049eae510c129c361060e3d88938a2":[3,0,53,5],
+"structvespera__stat.html#a9312490bca8dece1ba862e7008eedddc":[3,0,53,9],
 "structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea":[3,0,53,12],
 "structvespera__stat.html#aa04896d3128812aac9fc25cefd927254":[3,0,53,10],
 "structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1":[3,0,53,0],
