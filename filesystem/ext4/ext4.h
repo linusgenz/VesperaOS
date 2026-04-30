@@ -313,6 +313,7 @@ namespace ext4 {
         bool free_inode(u32 inode_no);
         bool dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type);
         bool dir_remove_entry(u32 dir_inode_no, const char* name) const;
+        u32 dir_find_entry(u32 dir_inode_no, const char* name) const;
         [[nodiscard]] bool dir_is_empty(u32 inode_no) const;
 
         static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);

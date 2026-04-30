@@ -478,6 +478,41 @@ namespace ext4 {
         return write_inode(dir_inode_no, dir_inode);
     }
 
+    u32 FileSystem::dir_find_entry(const u32 dir_inode_no, const char* name) const {
+        const auto name_len = static_cast<u8>(strlen(name));
+
+        Inode dir_inode{};
+        if (!read_inode(dir_inode_no, dir_inode)) return 0;
+
+        const u32 bsize = get_block_size();
+        const u32 block_count = static_cast<u32>((inode_get_size(dir_inode) + bsize - 1) / bsize);
+
+        auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
+        if (!block_buf) return 0;
+
+        for (u32 lblock = 0; lblock < block_count; ++lblock) {
+            u64 pblock = 0;
+            if (!map_logical_to_physical(dir_inode, lblock, pblock)) continue;
+            if (!read_block(pblock, block_buf, bsize)) continue;
+
+            usize offset = 0;
+            while (offset + sizeof(DirEntry) <= bsize) {
+                const auto* de = reinterpret_cast<const DirEntry*>(block_buf + offset);
+                if (de->rec_len == 0) break;
+
+                if (de->inode != 0 && de->name_len == name_len && memcmp(de->name, name, name_len) == 0) {
+                    const u32 found = de->inode;
+                    kernel::memory::free(block_buf);
+                    return found;  // early exit
+                }
+                offset += de->rec_len;
+            }
+        }
+
+        kernel::memory::free(block_buf);
+        return 0;
+    }
+
     bool FileSystem::dir_remove_entry(u32 dir_inode_no, const char* name) const {
         const u32 bsize = get_block_size();
         const u8 name_len = static_cast<u8>(strlen(name));
@@ -1015,6 +1050,9 @@ namespace ext4 {
     u32 FileSystem::create_file(u32 dir_inode_no, const char* name) {
         //  Log::debug("[ext4] create_file: dir=%u name=%s", dir_inode_no, name);
 
+        const u32 existing = dir_find_entry(dir_inode_no, name);
+        if (existing != 0) return existing;
+
         // Allocate a new inode in the same group as the parent directory.
         const u32 parent_group = (dir_inode_no - 1) / superblock_.s_inodes_per_group;
         const u32 new_inode = alloc_inode(parent_group);
@@ -1036,6 +1074,9 @@ namespace ext4 {
 
     u32 FileSystem::create_dir(u32 dir_inode_no, const char* name) {
         // Log::debug("[ext4] create_dir: dir=%u name=%s", dir_inode_no, name);
+
+        const u32 existing = dir_find_entry(dir_inode_no, name);
+        if (existing != 0) return existing;
 
         const u32 parent_group = (dir_inode_no - 1) / superblock_.s_inodes_per_group;
         const u32 new_inode = alloc_inode(parent_group);

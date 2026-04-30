@@ -301,6 +301,7 @@ public:
         out->block_size = 0;
         out->blocks = 0;
         out->size = 0;
+        out->mode = 0x41ED; // 0100755 octal — dir + rwxr-xr-x
         return 0;
     }
 };
