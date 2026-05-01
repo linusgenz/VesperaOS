@@ -43,7 +43,7 @@ namespace syscalls::internal {
         if (!user_path) return -EINVAL;
 
         const Unit* caller = kernel::scheduling::get_current_unit();
-        Realm* parent_realm = caller ? RealmManager::get(caller->rid) : nullptr;
+        Realm* parent_realm = caller->parent;
         TtyDevice* tty_dev = parent_realm ? parent_realm->get_tty_device() : kernel::tty::tty_devices[0];
 
         const char* base = strrchr(user_path, '/');

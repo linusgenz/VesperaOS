@@ -38,7 +38,7 @@ namespace syscalls::internal {
             kernel::SystemManager::system_panic("Attempt to exit a unit that no longer exists", -KENOUNIT);
         }
 
-        if (Realm* realm = RealmManager::get(current->rid)) {
+        if (Realm* realm = current->parent) {
             SpinlockGuard g(realm->lock);
             if (realm->unit_count == 1) {
                 ExitCodeTable::store(realm->id, static_cast<int>(code));

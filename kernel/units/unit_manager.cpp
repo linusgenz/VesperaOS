@@ -200,7 +200,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
 
             u->id = allocate_id();
             u->rid = realm_id;
-            u->parent = RealmManager::get(realm_id);
+            u->parent = realm;
             u->name = strdup(cfg->name);
             u->exit_code = 0;
             u->active = true;
@@ -324,7 +324,7 @@ bool UnitManager::destroy(const UnitId id) {
             Unit* u = &i;
             kernel::scheduling::remove_unit(u);
 
-            Realm* r = RealmManager::get(u->rid);
+            Realm* r = u->parent;
             if (r) {
                 SpinlockGuard rg(r->lock);
                 Unit** prev = &r->unit_list;

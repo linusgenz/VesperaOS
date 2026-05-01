@@ -90,7 +90,7 @@ namespace kernel::scheduling {
         auto* cpu = get_cpu_data(cpu_id);
 
         Unit* current = cpu->current_unit;
-        Realm* realm = current ? RealmManager::get(current->rid) : nullptr;
+        Realm* realm = current ? current->parent : nullptr;
 
         if (!realm) {
             Log::error("Fatal fault without realm context: %s", reason);

@@ -28,18 +28,17 @@
 
 #include "../../units/unit.h"
 
-
 namespace syscalls::internal {
 
     i64 sys_handle_transfer(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
-        const HandleId   hid            = arg0;
-        const RealmId    target_realm_id = arg1;
-        const capability_set caps_mask  = static_cast<capability_set>(arg2);
+        const HandleId hid = arg0;
+        const RealmId target_realm_id = arg1;
+        const capability_set caps_mask = static_cast<capability_set>(arg2);
 
         const Unit* caller = kernel::scheduling::get_current_unit();
         if (!caller) return -EINVAL;
 
-        Realm* src_realm = RealmManager::get(caller->rid);
+        Realm* src_realm = caller->parent;
         if (!src_realm) return -EINVAL;
 
         HandleEntry* src_he = src_realm->lookup_handle(hid);
@@ -50,9 +49,8 @@ namespace syscalls::internal {
         const capability_set granted = src_he->capabilities & caps_mask;
         if (granted == 0) return -EACCES;
 
-        Realm* dst_realm = RealmManager::get(arg1);
+        Realm* dst_realm = RealmManager::get(target_realm_id);
         if (!dst_realm) return -ECHILD;
-
 
         const u64 type_tag = src_he->type & HANDLE_TYPE_MASK;
 
@@ -67,7 +65,6 @@ namespace syscalls::internal {
         Channel::ref(ch);
 
         HandleId new_hid = 0;
-
 
         const i64 err = dst_realm->add_handle(
             type_tag,

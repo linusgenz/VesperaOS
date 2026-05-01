@@ -76,7 +76,7 @@ namespace syscalls::internal {
         Unit* cur = kernel::scheduling::get_current_unit();
         if (!cur || !cur->is_user) return -EACCES;
 
-        const Realm* cur_r = RealmManager::get(cur->rid);
+        const Realm* cur_r = cur->parent;
 
         uptr base = 0;
 

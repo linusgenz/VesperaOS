@@ -34,7 +34,7 @@ namespace syscalls::internal {
         if (!hdls) return -EINVAL;
 
         const Unit* u = kernel::scheduling::get_current_unit();
-        Realm* realm = RealmManager::get(u->rid);
+        Realm* realm = u->parent;
         if (!realm) return -EINVAL;
 
         Channel* ch = Channel::create(65536);

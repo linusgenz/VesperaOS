@@ -35,7 +35,7 @@ namespace syscalls::internal {
         const Unit* cur = kernel::scheduling::get_current_unit();
         if (!cur) return -EINVAL;
 
-        Realm* realm = RealmManager::get(cur->rid);
+        Realm* realm = cur->parent;
         if (!realm) return -EINVAL;
 
         char abs[256];

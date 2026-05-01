@@ -30,7 +30,7 @@ namespace syscalls::internal {
         const Unit* caller = kernel::scheduling::get_current_unit();
         if (!caller) return -ESRCH;
 
-        Realm* r = RealmManager::get(caller->rid);
+        Realm* r = caller->parent;
         if (!r) return -ESRCH;
 
         if (r->sid == r->id) return -EPERM;

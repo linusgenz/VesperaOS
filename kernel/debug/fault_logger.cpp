@@ -55,7 +55,7 @@ namespace kernel::debug {
                 cpu_manager::get_current_cpu_id(),
                 u->id,
                 u->name,
-                RealmManager::get(u->rid)->name
+                u->parent->name
             );
         } else {
             Log::error("%s", type_str);
@@ -83,7 +83,7 @@ namespace kernel::debug {
         log_fault(FaultType::PageFault, ctx, "Page fault detected");
 
         const Unit* u = scheduling::get_current_unit();
-        const Realm* r = RealmManager::get(u->rid);
+        const Realm* r = u->parent;
 
         Log::error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->pml4);
         Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);

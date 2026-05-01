@@ -508,8 +508,7 @@ namespace kernel::tty {
 
     isize tty_read(TTY* tty, char* buf, const usize count) {
         const Unit* u = kernel::scheduling::get_current_unit();
-        const RealmId my_rid = u ? u->rid : 0;
-        Realm* my_realm = my_rid ? RealmManager::get(my_rid) : nullptr;
+        Realm* my_realm = u->parent;
         const RealmId my_pgid = my_realm ? my_realm->pgid : 0;
 
         usize bytes_read = 0;

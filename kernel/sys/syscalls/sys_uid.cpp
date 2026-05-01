@@ -35,7 +35,7 @@ using namespace kernel::security;
 static Realm* current_realm() {
     const Unit* u = kernel::scheduling::get_current_unit();
     if (!u) return nullptr;
-    return RealmManager::get(u->rid);
+    return u->parent;
 }
 
 namespace syscalls::internal {

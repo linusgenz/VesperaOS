@@ -38,7 +38,7 @@ namespace syscalls::internal {
         const Unit *u = kernel::scheduling::get_current_unit();
         if (!u || !u->active) return -EINVAL;
 
-        Realm *realm = RealmManager::get(u->rid);
+        Realm *realm = u->parent;
         if (!realm) return -EUNKNOWN;
 
         const HandleEntry *he = realm->lookup_handle(hid);

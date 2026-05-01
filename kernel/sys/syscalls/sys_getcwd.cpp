@@ -38,7 +38,7 @@ namespace syscalls::internal {
         const Unit* cur = kernel::scheduling::get_current_unit();
         if (!cur) return -EINVAL;
 
-        const Realm* realm = RealmManager::get(cur->rid);
+        const Realm* realm = cur->parent;
         if (!realm) return -EINVAL;
 
         const usize len = strlen(realm->cwd_path);

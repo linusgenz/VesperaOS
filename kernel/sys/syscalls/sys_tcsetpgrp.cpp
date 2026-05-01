@@ -34,7 +34,7 @@ namespace syscalls::internal {
         const Unit* caller = kernel::scheduling::get_current_unit();
         if (!caller) return -ESRCH;
 
-        Realm* self = RealmManager::get(caller->rid);
+        Realm* self = caller->parent;
         if (!self) return -ESRCH;
 
         const HandleId hid = arg0;

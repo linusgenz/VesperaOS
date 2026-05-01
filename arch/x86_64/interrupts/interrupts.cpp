@@ -126,7 +126,7 @@ extern "C" void invalid_opcode_handler(TrapFrame* frame) {
 void stack_fault_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
         Unit* u = kernel::scheduling::get_current_unit();
-        Realm* realm = RealmManager::get(u->rid);
+        Realm* realm = u->parent;
         if (realm) {
             Log::print_ln("[%llu]  stack fault (core dumped)  %s", static_cast<u64>(realm->id), realm->name);
         }
@@ -145,7 +145,7 @@ void stack_fault_handler(TrapFrame* frame) {
 void segment_not_present_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
         Unit* u = kernel::scheduling::get_current_unit();
-        Realm* realm = RealmManager::get(u->rid);
+        Realm* realm = u->parent;
         if (realm) {
             Log::print_ln("[%llu]  bus error (core dumped)  %s", static_cast<u64>(realm->id), realm->name);
         }
@@ -170,7 +170,7 @@ void segment_not_present_handler(TrapFrame* frame) {
 void divide_error_handler(TrapFrame* frame) {
     if (frame->cs & 0x3) {
         Unit* u = kernel::scheduling::get_current_unit();
-        Realm* realm = RealmManager::get(u->rid);
+        Realm* realm = u->parent;
         if (realm) {
             Log::print_ln(
                 "[%llu]  floating point exception (core dumped)  %s", static_cast<u64>(realm->id), realm->name

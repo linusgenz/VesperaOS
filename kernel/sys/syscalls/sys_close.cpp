@@ -33,7 +33,7 @@ namespace syscalls::internal {
         const Unit *current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
 
-        Realm *realm = RealmManager::get(current_unit->rid);
+        Realm *realm = current_unit->parent;
         if (!realm) return -EINVAL;
 
         if (const HandleEntry *he = realm->lookup_handle(hid); !he) return -EBADH;  // invalid handle

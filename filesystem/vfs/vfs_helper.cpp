@@ -107,7 +107,7 @@ bool VFS::resolve_to_absolute(const char* user_path, char* out, usize out_size) 
 
     const Unit* cur = kernel::scheduling::get_current_unit();
     if (!cur) return false;
-    const Realm* realm = RealmManager::get(cur->rid);
+    const Realm* realm = cur->parent;
     if (!realm) return false;
 
     char abs[256];

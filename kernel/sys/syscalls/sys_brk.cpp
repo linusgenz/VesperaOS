@@ -38,7 +38,7 @@ namespace syscalls::internal {
 
         if (cur->heap_start == 0) return -EINVAL;
 
-        const Realm* cur_r = RealmManager::get(cur->rid);
+        const Realm* cur_r = cur->parent;
 
         if (addr == 0) return cur->heap_end;
         if (addr < cur->heap_start) return cur->heap_end;

@@ -49,7 +49,7 @@ namespace syscalls::internal {
         const Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EINVAL;
 
-        const Realm* realm = RealmManager::get(current->rid);
+        const Realm* realm = current->parent;
         if (!realm) return -EINVAL;
 
         u64 total_ns = 0;

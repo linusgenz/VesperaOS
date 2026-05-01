@@ -42,7 +42,7 @@ namespace syscalls::internal {
         const Unit* unit = kernel::scheduling::get_current_unit();
         if (!unit) return -EINVAL;
 
-        Realm* realm = RealmManager::get(unit->rid);
+        Realm* realm = unit->parent;
         if (!realm) return -EINVAL;
 
         const u64 deadline = (timeout_ms >= 0) ? kernel::time::get_uptime_ms() + static_cast<u64>(timeout_ms) : U64_MAX;

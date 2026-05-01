@@ -36,7 +36,7 @@ namespace syscalls::internal {
 
         const Unit* u = kernel::scheduling::get_current_unit();
         if (!u) return -EINVAL;
-        Realm* realm = RealmManager::get(u->rid);
+        Realm* realm = u->parent;
         if (!realm) return -EINVAL;
 
         // Retrieve the realm's vbus channel (HANDLE_VBUS, slot 3)
