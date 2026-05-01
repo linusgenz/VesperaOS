@@ -112,25 +112,34 @@ static void format_unix_time(uint32_t t, char* buf, size_t n) {
 }
 
 static void format_perm(uint16_t mode, char* buf) {
+    // File type (POSIX S_IFMT)
     switch (mode & 0xF000) {
-        case 0x4000:
-            buf[0] = 'd';
-            break;  // directory
-        case 0x8000:
-            buf[0] = '-';
-            break;  // regular file
-        case 0xA000:
-            buf[0] = 'l';
-            break;  // symlink
-        default:
-            buf[0] = '?';
-            break;
+        case 0x1000: buf[0] = 'p'; break; // FIFO
+        case 0x2000: buf[0] = 'c'; break; // character device
+        case 0x4000: buf[0] = 'd'; break; // directory
+        case 0x6000: buf[0] = 'b'; break; // block device
+        case 0x8000: buf[0] = '-'; break; // regular file
+        case 0xA000: buf[0] = 'l'; break; // symlink
+        case 0xC000: buf[0] = 's'; break; // socket
+        default:     buf[0] = '?'; break;
     }
 
     const char bits[] = "rwxrwxrwx";
 
     for (int i = 0; i < 9; i++) {
         buf[i + 1] = (mode & (1 << (8 - i))) ? bits[i] : '-';
+    }
+
+    if (mode & 0x0800) { // setuid
+        buf[3] = (buf[3] == 'x') ? 's' : 'S';
+    }
+
+    if (mode & 0x0400) { // setgid
+        buf[6] = (buf[6] == 'x') ? 's' : 'S';
+    }
+
+    if (mode & 0x0200) { // sticky bit
+        buf[9] = (buf[9] == 'x') ? 't' : 'T';
     }
 
     buf[10] = '\0';
@@ -176,7 +185,7 @@ static void show_stat(const char* path) {
     if (st.dev_id != 0) printf("  %-18s%u\n", "Device ID:", st.dev_id);
 
     if (st.mode != 0) {
-        char perm[10];
+        char perm[11];
         format_perm(st.mode, perm);
         printf("  %-18s%s  %s(0%04o)%s\n", "Permissions:", perm, C_DIM, st.mode, C_RESET);
     }
