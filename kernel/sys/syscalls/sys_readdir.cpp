@@ -47,7 +47,8 @@ namespace syscalls::internal {
         const auto *vh = static_cast<VfsHandle *>(he->resource);
         if (!vh->context || !vh->context->type_specific_data) return -EINVAL;
 
-        VfsDir *dir = vh->context->type_specific_data;
-        return VFS::readdir(dir, ent);
+        const VfsDir * dir = vh->context->type_specific_data;
+        const bool has_entry = SYSCALL_TRY(VFS::readdir(dir, ent));
+        return has_entry ? 1 : 0;
     }
 }  // namespace syscalls::internal

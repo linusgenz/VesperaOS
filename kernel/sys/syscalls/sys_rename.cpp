@@ -21,9 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera_errno.h>
-
 #include <vespera/filesystem/vfs.h>
+#include <vespera_errno.h>
 
 namespace syscalls::internal {
     i64 sys_rename(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -39,6 +38,7 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        return VFS::rename(norm_old, norm_new);
+        SYSCALL_TRY_VOID(VFS::rename(norm_old, norm_new));
+        return SUCCESS_CODE;
     }
 }  // namespace syscalls::internal

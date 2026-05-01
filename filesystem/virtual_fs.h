@@ -20,7 +20,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 #ifndef VESPERAOS_VIRTUAL_FS_H
 #define VESPERAOS_VIRTUAL_FS_H
 
@@ -31,16 +31,14 @@
 
 #include "../include/vespera/filesystem/vfs.h"
 
-struct DirData
-{
+struct DirData {
     Vector<VfsNode*> subdirs;
     Vector<VfsNode*> files;
 };
 
 // Base entry structure
 template <typename DeviceType>
-struct VirtualFsEntry
-{
+struct VirtualFsEntry {
     DeviceType* device;
     VfsNode* node;
     void* handle;
@@ -50,53 +48,43 @@ struct VirtualFsEntry
 
 // Template base class for virtual filesystems
 template <typename DeviceType, typename EntryType = VirtualFsEntry<DeviceType>>
-class VirtualFilesystem
-{
-protected:
+class VirtualFilesystem {
+   protected:
     static VfsNode* root_;
     static Spinlock lock_;
     static VfsNodeOps ops_;
 
     // Lookup a device by name
-    static VfsNode* lookup_device(const VfsNode* dir, const char* name)
-    {
+    static VfsNode* lookup_device(const VfsNode* dir, const char* name) {
         if (!dir || !name) return nullptr;
 
         auto* data = static_cast<DirData*>(dir->internal_data);
         if (!data) return nullptr;
 
-        for (auto* file_node : data->files)
-        {
+        for (auto* file_node : data->files) {
             auto* entry = static_cast<EntryType*>(file_node->internal_data);
-            if (entry && entry->device && strcmp(entry->device->name, name) == 0)
-                return file_node;
+            if (entry && entry->device && strcmp(entry->device->name, name) == 0) return file_node;
         }
 
-        for (auto* subdir : data->subdirs)
-        {
-            if (auto* found = lookup_device(subdir, name))
-                return found;
+        for (auto* subdir : data->subdirs) {
+            if (auto* found = lookup_device(subdir, name)) return found;
         }
 
         return nullptr;
     }
 
     // Create a subdirectory within the virtual filesystem
-    static VfsNode* ensure_subdirectory(const char* name, VfsNode* parent = nullptr)
-    {
+    static VfsNode* ensure_subdirectory(const char* name, VfsNode* parent = nullptr) {
         if (!parent) parent = root_;
 
         auto* parent_data = static_cast<DirData*>(parent->internal_data);
-        if (!parent_data)
-        {
+        if (!parent_data) {
             parent_data = new DirData();
             parent->internal_data = parent_data;
         }
 
-        for (auto* sub : parent_data->subdirs)
-        {
-            if (strcmp(sub->name, name) == 0)
-                return sub;
+        for (auto* sub : parent_data->subdirs) {
+            if (strcmp(sub->name, name) == 0) return sub;
         }
 
         auto* dir = new VfsNode();
@@ -114,10 +102,8 @@ protected:
         return dir;
     }
 
-
     // Create a node for a device entry
-    static EntryType* create_entry_node(const char* name, VfsNode* parent, DeviceType* dev, VfsNodeType type)
-    {
+    static EntryType* create_entry_node(const char* name, VfsNode* parent, DeviceType* dev, VfsNodeType type) {
         auto* n = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
         n->name = name;
         n->type = type;
@@ -134,8 +120,7 @@ protected:
         n->internal_data = e;
 
         auto* parent_data = static_cast<DirData*>(parent->internal_data);
-        if (!parent_data)
-        {
+        if (!parent_data) {
             parent_data = new DirData();
             parent->internal_data = parent_data;
         }
@@ -144,23 +129,17 @@ protected:
         return e;
     }
 
-    static void delete_entry_node(VfsNode* node)
-    {
+    static void delete_entry_node(VfsNode* node) {
         if (!node) return;
 
-        if (node->type == VfsNodeType::Directory)
-        {
-            if (auto* dir_data = static_cast<DirData*>(node->internal_data))
-            {
-                for (auto* sub : dir_data->subdirs)
-                    delete_entry_node(sub);
+        if (node->type == VfsNodeType::Directory) {
+            if (auto* dir_data = static_cast<DirData*>(node->internal_data)) {
+                for (auto* sub : dir_data->subdirs) delete_entry_node(sub);
                 dir_data->subdirs.clear();
 
-                for (auto* file : dir_data->files)
-                {
+                for (auto* file : dir_data->files) {
                     auto* entry = static_cast<EntryType*>(file->internal_data);
-                    if (entry)
-                    {
+                    if (entry) {
                         delete entry->device;
                         delete entry;
                     }
@@ -170,12 +149,9 @@ protected:
 
                 delete dir_data;
             }
-        }
-        else
-        {
+        } else {
             auto* entry = static_cast<EntryType*>(node->internal_data);
-            if (entry)
-            {
+            if (entry) {
                 delete entry->device;
                 delete entry;
             }
@@ -184,9 +160,8 @@ protected:
         delete node;
     }
 
-public:
-    static void init(const char* mount_point, const char* name)
-    {
+   public:
+    static void init(const char* mount_point, const char* name) {
         lock_.init("vfs_lock");
 
         root_ = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
@@ -202,107 +177,92 @@ public:
         VFS::mount_virtual(root_, mount_point);
     }
 
-    static VfsNode* find(VfsNode* dir, const char* name)
-    {
-        if (!dir || !name) return nullptr;
+    static Result<VfsNode*> find(VfsNode* dir, const char* name) {
+        if (!dir || !name) return Error::Inval;
         auto* data = static_cast<DirData*>(dir->internal_data);
-        if (!data) return nullptr;
+        if (!data) return Error::Inval;
 
         for (auto* sub : data->subdirs)
-        {
-            if (strcmp(sub->name, name) == 0) {
-                return sub;
-            }
-        }
+            if (strcmp(sub->name, name) == 0) return Result<VfsNode*>::ok(sub);
+
         for (auto* file_node : data->files)
-        {
-            if (strcmp(file_node->name, name) == 0) {
-                return file_node;
-            }
-        }
-        return nullptr;
+            if (strcmp(file_node->name, name) == 0) return Result<VfsNode*>::ok(file_node);
+
+        return Error::NoEnt;
     }
 
-    static VfsNode* finddir(const VfsNode* dir, const char* name)
-    {
-        if (!dir || !name) return nullptr;
-        auto* data = static_cast<DirData*>(dir->internal_data);
-        if (!data) return nullptr;
+    static Result<VfsNode*> finddir(const VfsNode* dir, const char* name) {
+        if (!dir || !name) return Result<VfsNode*>::err(Error::Inval);
 
-        for (auto* sub : data->subdirs)
-        {
-            if (strcmp(sub->name, name) == 0) return sub;
+        auto* data = static_cast<DirData*>(dir->internal_data);
+        if (!data) return Result<VfsNode*>::err(Error::Inval);
+
+        for (auto* sub : data->subdirs) {
+            if (strcmp(sub->name, name) == 0) return Result<VfsNode*>::ok(sub);
         }
-        return nullptr;
+
+        return Result<VfsNode*>::err(Error::NoEnt);
     }
 
     // Directory operations
-    struct DirHandle
-    {
+    struct DirHandle {
         usize index;
         const VfsNode* dir_node;
     };
 
-    static void* open_dir(const VfsNode* dir)
-    {
+    static Result<void*> open_dir(const VfsNode* dir) {
         auto* h = static_cast<DirHandle*>(kernel::memory::malloc(sizeof(DirHandle)));
+        if (!h) return Error::NoMem;
         h->index = 0;
         h->dir_node = dir;
-        return h;
+        return Result<void*>::ok(h);
     }
 
-    static int read_dir(void* dir_handle, dirent_t* out)
-    {
+    static Result<bool> read_dir(void* dir_handle, dirent_t* out) {
         auto* h = static_cast<DirHandle*>(dir_handle);
+        if (!h) return Error::Inval;
+
         auto* dir = h->dir_node;
-        if (!dir || !dir->internal_data) return 0;
+        if (!dir || !dir->internal_data) return Error::Inval;
 
         auto* data = static_cast<DirData*>(dir->internal_data);
-
         usize idx = h->index;
 
-        if (idx < data->subdirs.size())
-        {
+        if (idx < data->subdirs.size()) {
             VfsNode* sub = data->subdirs[idx];
-
             strncpy(out->name, sub->name, sizeof(out->name) - 1);
             out->name[sizeof(out->name) - 1] = '\0';
             out->type = DT_DIR;
-
             ++h->index;
-            return 1;
+            return Result<bool>::ok(true);
         }
 
         idx -= data->subdirs.size();
 
-        if (idx < data->files.size())
-        {
+        if (idx < data->files.size()) {
             VfsNode* file = data->files[idx];
-
             strncpy(out->name, file->name, sizeof(out->name) - 1);
             out->name[sizeof(out->name) - 1] = '\0';
             out->type = VFS::node_type_to_dirent_type(file->type);
-
             ++h->index;
-            return 1;
+            return Result<bool>::ok(true);
         }
 
-        return 0;
+        return Result<bool>::ok(false);
     }
 
-    static void close_dir(void* dir_handle)
-    {
+    static void close_dir(void* dir_handle) {
         kernel::memory::free(dir_handle);
     }
 
-    static int stat(const VfsNode*, vespera_stat_t* out) {
+    static VoidResult stat(const VfsNode*, vespera_stat_t* out) {
         out->dev_id = 0;
         out->inode_id = 0;
         out->block_size = 0;
         out->blocks = 0;
         out->size = 0;
-        out->mode = 0x41ED; // 0100755 octal — dir + rwxr-xr-x
-        return 0;
+        out->mode = 0x41ED;  // 0100755 octal — dir + rwxr-xr-x
+        return VoidResult::ok();
     }
 };
 
@@ -315,4 +275,4 @@ Spinlock VirtualFilesystem<D, E>::lock_;
 template <typename D, typename E>
 VfsNodeOps VirtualFilesystem<D, E>::ops_ = {};
 
-#endif //VESPERAOS_VIRTUAL_FS_H
+#endif  // VESPERAOS_VIRTUAL_FS_H

@@ -52,8 +52,7 @@ namespace syscalls::internal {
         char norm[256];
         normalize_path(abs, norm, sizeof(norm));
 
-        VfsNode* node = VFS::open(norm);
-        if (!node) return -ENOENT;
+        VfsNode* node = SYSCALL_TRY(VFS::open(norm));
 
         if (node->type != VfsNodeType::Directory) {
             VFS::close(node);

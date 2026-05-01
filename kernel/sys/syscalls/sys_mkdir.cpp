@@ -30,11 +30,10 @@ namespace syscalls::internal {
         if (!path) return -EINVAL;
 
         char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
-            return -EINVAL;
-        }
+        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) return -EINVAL;
 
-        return VFS::mkdir(norm);
+        SYSCALL_TRY_VOID(VFS::mkdir(norm));
+        return SUCCESS_CODE;
     }
 
 }  // namespace syscalls::internal

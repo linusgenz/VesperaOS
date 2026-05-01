@@ -36,22 +36,13 @@
 
 using namespace ext4;
 
-static VfsNode* ext4_find(VfsNode* node, const char* name) {
-    if (!node) {
-        Log::debug("no node");
-        return nullptr;
-    };
-
+static Result<VfsNode*> ext4_find(VfsNode* node, const char* name) {
+    if (!node) return Error::Inval;
     auto* dir = static_cast<Ext4Node*>(node->internal_data);
-    if (!dir || !dir->is_dir) {
-        Log::debug("not dir: %p, %u", dir, dir ? dir->is_dir : 0);
-        return nullptr;
-    };
+    if (!dir || !dir->is_dir) return Error::NotDir;
 
     usize entry_count = 0;
-    FileEntry* entries = dir->fs->read_directory(dir->inode, entry_count);
-    // Log::debug("entries=%p", entries);
-    if (!entries) return nullptr;
+    FileEntry* entries = TRY(dir->fs->read_directory(dir->inode, entry_count));
 
     for (usize i = 0; i < entry_count; ++i) {
         if (strcmp(entries[i].get_name(), name) != 0) continue;
@@ -59,7 +50,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
         auto* child_data = new Ext4Node();
         if (!child_data) {
             kernel::memory::free(entries);
-            return nullptr;
+            return Error::NoMem;
         }
 
         child_data->fs = dir->fs;
@@ -77,7 +68,7 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
         if (!child_node) {
             delete child_data;
             kernel::memory::free(entries);
-            return nullptr;
+            return Error::NoMem;
         }
 
         child_node->name = strdup(entries[i].get_name());
@@ -88,50 +79,52 @@ static VfsNode* ext4_find(VfsNode* node, const char* name) {
         child_node->size = entries[i].get_size();
 
         kernel::memory::free(entries);
-        return child_node;
+        return Result<VfsNode*>::ok(child_node);
     }
 
     kernel::memory::free(entries);
-    return nullptr;
+    return Error::NoEnt;
 }
 
-static isize ext4_read(const VfsNode* node, usize offset, usize size, void* buf) {
-    if (!node) return -1;
-    const auto* en = static_cast<Ext4Node*>(node->internal_data);
-    if (!en || en->is_dir) return -1;
+static Result<usize> ext4_read(const VfsNode* node, usize offset, usize size, void* buf) {
+    if (!node) return Error::Inval;
+    const auto* en = static_cast<const Ext4Node*>(node->internal_data);
+    if (!en) return Error::Inval;
+    if (en->is_dir) return Error::IsDir;
 
     const bool update_atime = !node->mount || !(node->mount->flags & MS_NOATIME);
-
     return en->fs->read_file(en->inode, offset, size, buf, update_atime);
 }
 
-static isize ext4_write(VfsNode* node, usize offset, usize size, const void* buf) {
-    if (!node) return -1;
-    const auto* en = static_cast<Ext4Node*>(node->internal_data);
-    if (!en || en->is_dir) return -1;
+static Result<usize> ext4_write(VfsNode* node, usize offset, usize size, const void* buf) {
+    if (!node) return Error::Inval;
+    const auto* en = static_cast<const Ext4Node*>(node->internal_data);
+    if (!en) return Error::Inval;
+    if (en->is_dir) return Error::IsDir;
 
-    return en->fs->write_file(en->inode, offset, size, buf);
+    usize written = TRY(en->fs->write_file(en->inode, offset, size, buf));
+    node->size += written;
+    return Result<usize>::ok(written);
 }
 
-static void* ext4_opendir(const VfsNode* node) {
-    if (!node) return nullptr;
+static Result<void*> ext4_opendir(const VfsNode* node) {
+    if (!node) return Error::Inval;
     const auto* dir = static_cast<const Ext4Node*>(node->internal_data);
-    if (!dir) return nullptr;
+    if (!dir) return Error::Inval;
 
     usize count = 0;
-    FileEntry* entries = dir->fs->read_directory(dir->inode, count);
-    if (!entries) return nullptr;
+    FileEntry* entries = TRY(dir->fs->read_directory(dir->inode, count));
 
     auto* handle = new Ext4DirHandle();
     if (!handle) {
         kernel::memory::free(entries);
-        return nullptr;
+        return Error::NoMem;
     }
 
     handle->entries = entries;
     handle->count = count;
     handle->index = 0;
-    return handle;
+    return Result<void*>::ok(handle);
 }
 
 static dirent_type_t map_ext4_type(const FileEntry& fe) {
@@ -157,9 +150,11 @@ static dirent_type_t map_ext4_type(const FileEntry& fe) {
     }
 }
 
-static int ext4_readdir(void* dir_handle, dirent_t* out) {
+static Result<bool> ext4_readdir(void* dir_handle, dirent_t* out) {
     auto* h = static_cast<Ext4DirHandle*>(dir_handle);
-    if (!h || h->index >= h->count) return 0;
+    if (!h) return Error::Inval;
+
+    if (h->index >= h->count) return Result<bool>::ok(false);  // end of directory
 
     const FileEntry& fe = h->entries[h->index++];
     const usize len = strlen(fe.get_name());
@@ -167,112 +162,105 @@ static int ext4_readdir(void* dir_handle, dirent_t* out) {
     out->name[len] = '\0';
     out->type = map_ext4_type(fe);
 
-    return 1;
+    return Result<bool>::ok(true);
 }
 
 static void ext4_closedir(void* h) {
     const auto* handle = static_cast<Ext4DirHandle*>(h);
     if (!handle) return;
-
-    if (handle->entries) {
-        kernel::memory::free(handle->entries);
-    }
+    if (handle->entries) kernel::memory::free(handle->entries);
     delete handle;
 }
 
 static void ext4_close(VfsNode* node) {
     if (!node) return;
-
-    if (auto* data = static_cast<Ext4Node*>(node->internal_data)) {
-        delete data;
-    }
-
+    if (auto* data = static_cast<Ext4Node*>(node->internal_data)) delete data;
     kernel::memory::free(const_cast<char*>(node->name));
     delete node;
 }
 
-static int ext4_create(const VfsNode* parent, const char* name) {
-    if (!parent || !name) return 1;
-    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
-    if (!dir || !dir->is_dir) return 1;
+static VoidResult ext4_create(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return Error::Inval;
+    const auto* dir = static_cast<const Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return Error::NotDir;
 
-    if (const u32 new_inode = dir->fs->create_file(dir->inode, name); new_inode == 0) return 1;
-
-    return 0;
+    TRY(dir->fs->create_file(dir->inode, name));
+    return VoidResult::ok();
 }
 
-static int ext4_mkdir(const VfsNode* parent, const char* name) {
-    if (!parent || !name) return 1;
-    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
-    if (!dir || !dir->is_dir) return 1;
+static VoidResult ext4_mkdir(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return Error::Inval;
+    const auto* dir = static_cast<const Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return Error::NotDir;
 
-    if (const u32 new_inode = dir->fs->create_dir(dir->inode, name); new_inode == 0) return 1;
-
-    return 0;
+    TRY(dir->fs->create_dir(dir->inode, name));
+    return VoidResult::ok();
 }
 
-static int ext4_rmdir(const VfsNode* parent, const char* name) {
-    if (!parent || !name) return 1;
-    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
-    if (!dir || !dir->is_dir) return 1;
-    return dir->fs->rmdir(dir->inode, name) ? 0 : 1;
+static VoidResult ext4_rmdir(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return Error::Inval;
+    const auto* dir = static_cast<const Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return Error::NotDir;
+
+    return dir->fs->rmdir(dir->inode, name);
 }
 
-static int ext4_unlink(const VfsNode* parent, const char* name) {
-    if (!parent || !name) return 1;
-    const auto* dir = static_cast<Ext4Node*>(parent->internal_data);
-    if (!dir || !dir->is_dir) return 1;
-    return dir->fs->unlink(dir->inode, name) ? 0 : 1;
+static VoidResult ext4_unlink(const VfsNode* parent, const char* name) {
+    if (!parent || !name) return Error::Inval;
+    const auto* dir = static_cast<const Ext4Node*>(parent->internal_data);
+    if (!dir || !dir->is_dir) return Error::NotDir;
+
+    return dir->fs->unlink(dir->inode, name);
 }
 
-static int ext4_stat(const VfsNode* node, vespera_stat_t* out) {
-    if (!node || !out) return -EINVAL;
+static VoidResult ext4_stat(const VfsNode* node, vespera_stat_t* out) {
+    if (!node || !out) return Error::Inval;
     const auto* en = static_cast<const Ext4Node*>(node->internal_data);
-    if (!en) return -EINVAL;
+    if (!en) return Error::Inval;
 
     const u32 dev_id = (node->mount && node->mount->device) ? node->mount->device->device_id : 0;
-
-    return en->fs->stat(en->inode, out, dev_id) ? 0 : -EIO;
+    return en->fs->stat(en->inode, out, dev_id);
 }
 
-static int ext4_truncate(VfsNode* node, const usize new_size) {
-    if (!node) return -EINVAL;
+static VoidResult ext4_truncate(VfsNode* node, usize new_size) {
+    if (!node) return Error::Inval;
     auto* en = static_cast<Ext4Node*>(node->internal_data);
-    if (!en || en->is_dir) return -EINVAL;
+    if (!en || en->is_dir) return Error::Inval;
 
-    if (!en->fs->truncate(en->inode, new_size)) return -EIO;
+    TRY_VOID(en->fs->truncate(en->inode, new_size));
 
     en->file_size = new_size;
     node->size = new_size;
-    return 0;
+    return VoidResult::ok();
 }
 
-static int ext4_rename(
+static VoidResult ext4_rename(
     const VfsNode* old_parent, const char* old_name, const VfsNode* new_parent, const char* new_name
 ) {
-    if (!old_parent || !old_name || !new_parent || !new_name) return 1;
+    if (!old_parent || !old_name || !new_parent || !new_name) return Error::Inval;
 
-    const auto* old_dir = static_cast<Ext4Node*>(old_parent->internal_data);
-    const auto* new_dir = static_cast<Ext4Node*>(new_parent->internal_data);
-    if (!old_dir || !old_dir->is_dir || !new_dir || !new_dir->is_dir) return 1;
+    const auto* old_dir = static_cast<const Ext4Node*>(old_parent->internal_data);
+    const auto* new_dir = static_cast<const Ext4Node*>(new_parent->internal_data);
+    if (!old_dir || !old_dir->is_dir || !new_dir || !new_dir->is_dir) return Error::NotDir;
+    if (old_dir->fs != new_dir->fs) return Error::XDev;
 
-    if (old_dir->fs != new_dir->fs) return 1;
-
-    return old_dir->fs->rename(old_dir->inode, old_name, new_dir->inode, new_name) ? 0 : 1;
+    return old_dir->fs->rename(old_dir->inode, old_name, new_dir->inode, new_name);
 }
 
-int ext4_chown(VfsNode* node, u32 uid, u32 gid) {
-    if (!node) return -EINVAL;
+static VoidResult ext4_chown(VfsNode* node, u32 uid, u32 gid) {
+    if (!node) return Error::Inval;
     const auto* en = static_cast<const Ext4Node*>(node->internal_data);
-    if (!en) return -EINVAL;
-    return en->fs->chown(en->inode, uid, gid) ? 0 : -EIO;
+    if (!en) return Error::Inval;
+
+    return en->fs->chown(en->inode, uid, gid);
 }
 
-int ext4_chmod(VfsNode* node, u16 new_mode) {
-    if (!node) return -EINVAL;
+static VoidResult ext4_chmod(VfsNode* node, u16 new_mode) {
+    if (!node) return Error::Inval;
     const auto* en = static_cast<const Ext4Node*>(node->internal_data);
-    if (!en) return -EINVAL;
-    return en->fs->chmod(en->inode, new_mode) ? 0 : -EIO;
+    if (!en) return Error::Inval;
+
+    return en->fs->chmod(en->inode, new_mode);
 }
 
 static VfsNodeOps ext4_ops = {

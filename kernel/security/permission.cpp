@@ -26,13 +26,9 @@
 
 #include "../../filesystem/vfs/vfs_node.h"
 #include "uapi/vespera/stat.h"
+#include "vespera/filesystem/vfs.h"
 
 namespace kernel::security {
-
-    static bool get_node_stat(const VfsNode* node, vespera_stat_t& out_st) {
-        if (!node || !node->ops || !node->ops->stat) return false;
-        return node->ops->stat(node, &out_st) == 0;
-    }
 
     int vfs_check_permission(const VfsNode* node, const u32 access, const process_credentials& cred) {
         if (!node) return -EINVAL;
@@ -41,7 +37,7 @@ namespace kernel::security {
         if (is_root(cred)) return 0;
 
         vespera_stat_t st{};
-        if (!get_node_stat(node, st)) return 0;
+        if (VFS::stat(node, &st).is_err()) return 0;
 
         // Determine which 3-bit permission field applies.
         u8 perm_bits = 0;
@@ -71,7 +67,7 @@ namespace kernel::security {
         if (is_root(cred)) return 0;
 
         vespera_stat_t st{};
-        if (!get_node_stat(node, st)) return 0;
+        if (VFS::stat(node, &st).is_err()) return 0;
 
         if (new_uid != st.uid) return -EPERM;
 
@@ -86,7 +82,7 @@ namespace kernel::security {
         if (is_root(cred)) return 0;
 
         vespera_stat_t st{};
-        if (!get_node_stat(node, st)) return 0;
+        if (VFS::stat(node, &st).is_err()) return 0;
 
         if (cred.euid != st.uid) return -EPERM;
 

@@ -25,24 +25,23 @@
 
 #include <vespera/filesystem/vfs.h>
 
-FileLogWriter::FileLogWriter(const char *file_path)
+FileLogWriter::FileLogWriter(const char* file_path)
     : file_handle_(nullptr)
     , path_(file_path) {
-    file_handle_ = VFS::open(path_);
-    if (!file_handle_) {
+    auto res = VFS::open(path_);
+    if (res.is_err()) {
         VFS::create(path_);
-        file_handle_ = VFS::open(path_);
+        res = VFS::open(path_);
     }
+    if (res.is_ok()) file_handle_ = res.unwrap();
 }
 
 FileLogWriter::~FileLogWriter() {
-    if (file_handle_) {
-        VFS::close(file_handle_);
-    }
+    if (file_handle_) VFS::close(file_handle_);
 }
 
-bool FileLogWriter::append_line(const char *line, const usize len) {
+bool FileLogWriter::append_line(const char* line, const usize len) {
     if (!file_handle_) return false;
-    const isize w = file_handle_->ops->write(file_handle_, file_handle_->size, len, line);
-    return (w == static_cast<isize>(len));
+    auto res = file_handle_->ops->write(file_handle_, file_handle_->size, len, line);
+    return res.is_ok() && res.unwrap() == len;
 }

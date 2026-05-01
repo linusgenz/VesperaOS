@@ -177,11 +177,12 @@ static void initialize_user_space_interfaces() {
     initialize_pseudo_devices();
     VFS::remount_all();
 
-    if (VfsNode* font_node = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf")) {
+    if (Result<VfsNode*> font_result = VFS::open("/etc/fonts/CaskaydiaCoveNerdFontMono.ttf"); font_result.is_ok()) {
+        VfsNode* font_node = font_result.unwrap();
         const usize font_size = font_node->size;
         if (auto* font_data = static_cast<u8*>(kernel::memory::malloc(font_size))) {
             Log::debug("font data: %p", font_data);
-            usize i = VFS::read(font_node, 0, font_size, font_data);
+            Result<usize> i = VFS::read(font_node, 0, font_size, font_data);
             Log::debug("read: %lu", i);
             VFS::close(font_node);
 

@@ -67,10 +67,14 @@ VfsNode* VFS::mount_virtual(VfsNode* root, const char* mount_path) {
     return root;
 }
 
-VfsNode* VFS::open(const char* path) {
-    if (!path || !*path) return nullptr;
+static bool is_read_only(const VfsNode* node) {
+    if (!node->mount) return false;
+    return (node->mount->flags & MS_RDONLY);
+}
 
-    // --- Mountpoint-Suche ---
+Result<VfsNode*> VFS::open(const char* path) {
+    if (!path || !*path) return Error::Inval;
+
     const MountPoint* best_match = nullptr;
     usize best_len = 0;
 
@@ -86,12 +90,12 @@ VfsNode* VFS::open(const char* path) {
         }
     }
 
-    if (!best_match) return nullptr;
+    if (!best_match) return Error::NoEnt;
 
     const char* sub_path = path + best_len;
     if (*sub_path == '/') sub_path++;
 
-    if (!best_match->root->ops || !best_match->root->ops->find) return nullptr;
+    if (!best_match->root->ops || !best_match->root->ops->find) return Error::NoSys;
 
     VfsNode* current = best_match->root;
     current->mount = best_match;
@@ -100,35 +104,29 @@ VfsNode* VFS::open(const char* path) {
     const usize count = split_path(sub_path, components, 16);
 
     for (usize i = 0; i < count; i++) {
-        current = current->ops->find(current, components[i]);
-        if (!current) return nullptr;
+        current = TRY(current->ops->find(current, components[i]));
     }
 
-    return current;
+    return Result<VfsNode*>::ok(current);
 }
 
-int VFS::opendir(VfsNode* node, VfsDir** out_dir) {
-    if (!node) return -EINVAL;
+Result<VfsDir*> VFS::opendir(VfsNode* node) {
+    if (!node) return Error::Inval;
+    if (node->type != VfsNodeType::Directory) return Error::NotDir;
+    if (!node->ops || !node->ops->opendir) return Error::NoSys;
 
-    if (node->type != VfsNodeType::Directory) return -ENOTDIR;
-
-    if (!node->ops || !node->ops->opendir) return -ENOSYS;
-
-    void* handle = node->ops->opendir(node);
-    if (!handle) return -EIO;
+    void* handle = TRY(node->ops->opendir(node));
 
     auto* dir = new VfsDir();
-    if (!dir) return -ENOMEM;
+    if (!dir) return Error::NoMem;
 
     dir->node = node;
     dir->handle = handle;
-
-    *out_dir = dir;
-    return 0;
+    return Result<VfsDir*>::ok(dir);
 }
 
-int VFS::readdir(const VfsDir* dir, dirent_t* out) {
-    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return -ENOSYS;
+Result<bool> VFS::readdir(const VfsDir* dir, dirent_t* out) {
+    if (!dir || !dir->node || !dir->node->ops || !dir->node->ops->readdir) return Error::NoSys;
     return dir->node->ops->readdir(dir->handle, out);
 }
 
@@ -139,180 +137,167 @@ void VFS::close(VfsNode* node) {
 
 void VFS::closedir(VfsDir* dir) {
     if (!dir) return;
-    if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) {
-        dir->node->ops->closedir(dir->handle);
-    }
+    if (dir->node && dir->node->ops && dir->node->ops->closedir && dir->handle) dir->node->ops->closedir(dir->handle);
     delete dir;
 }
 
-isize VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
-    if (!node || !node->ops || !node->ops->read) return -ENOSYS;
+Result<usize> VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
+    if (!node || !node->ops || !node->ops->read) return Error::NoSys;
     return node->ops->read(node, offset, size, buffer);
 }
 
-static bool is_read_only(const VfsNode* node) {
-    if (!node->mount) return false;
-    return (node->mount->flags & MS_RDONLY);
-}
-
-isize VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    if (!node || !node->ops || !node->ops->write) return -ENOSYS;
-
-    if (is_read_only(node)) {
-        return -EROFS;
-    }
-
+Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
+    if (!node || !node->ops || !node->ops->write) return Error::NoSys;
+    if (is_read_only(node)) return Error::RoFs;
     return node->ops->write(node, offset, size, buffer);
 }
 
-int VFS::create(const char* path) {
-    if (!path) return -EINVAL;
+VoidResult VFS::create(const char* path) {
+    if (!path) return Error::Inval;
 
     VfsNode* parent = nullptr;
     char name[64];
-    if (!resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return Error::NoEnt;
 
     if (is_read_only(parent)) {
-        return -EROFS;
+        close(parent);
+        return Error::RoFs;
     }
-
     if (!parent->ops || !parent->ops->create) {
         close(parent);
-        return -ENOSYS;
+        return Error::NoSys;
     }
 
-    const int result = parent->ops->create(parent, name);
+    const auto result = parent->ops->create(parent, name);
     close(parent);
     return result;
 }
 
-int VFS::rename(const char* old_path, const char* new_path) {
-    if (!old_path || !new_path) return -EINVAL;
+VoidResult VFS::rename(const char* old_path, const char* new_path) {
+    if (!old_path || !new_path) return Error::Inval;
 
     VfsNode *old_parent = nullptr, *new_parent = nullptr;
     char old_name[64], new_name[64];
 
-    if (!resolve_parent(old_path, &old_parent, old_name)) return -ENOENT;
+    if (!resolve_parent(old_path, &old_parent, old_name)) return Error::NoEnt;
     if (!resolve_parent(new_path, &new_parent, new_name)) {
         close(old_parent);
-        return -ENOENT;
+        return Error::NoEnt;
     }
 
     if (is_read_only(old_parent)) {
-        return -EROFS;
+        close(old_parent);
+        close(new_parent);
+        return Error::RoFs;
     }
 
     if (old_parent != new_parent) {
         close(old_parent);
         close(new_parent);
-        return -EXDEV;
+        return Error::XDev;
     }
 
     if (!old_parent->ops || !old_parent->ops->rename) {
         close(old_parent);
         close(new_parent);
-        return -ENOSYS;
+        return Error::NoSys;
     }
 
-    const int status = old_parent->ops->rename(old_parent, old_name, new_parent, new_name);
+    const auto result = old_parent->ops->rename(old_parent, old_name, new_parent, new_name);
     close(old_parent);
     close(new_parent);
-    return status;
+    return result;
 }
 
-int VFS::mkdir(const char* path) {
-    if (!path) return -EINVAL;
+VoidResult VFS::mkdir(const char* path) {
+    if (!path) return Error::Inval;
 
     VfsNode* parent = nullptr;
     char name[64];
-    if (!resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return Error::NoEnt;
 
     if (is_read_only(parent)) {
-        return -EROFS;
+        close(parent);
+        return Error::RoFs;
     }
-
     if (!parent->ops || !parent->ops->mkdir) {
         close(parent);
-        return -ENOSYS;
+        return Error::NoSys;
     }
 
-    const int result = parent->ops->mkdir(parent, name);
+    const auto result = parent->ops->mkdir(parent, name);
     close(parent);
     return result;
 }
 
-int VFS::rmdir(const char* path) {
-    if (!path) return -EINVAL;
+VoidResult VFS::rmdir(const char* path) {
+    if (!path) return Error::Inval;
 
     {
         SpinlockGuard guard(mount_points_lock_);
-        for (const auto& mp : *mount_points_) {
-            if (strcmp(mp->path, path) == 0) return -EPERM;
-        }
+        for (const auto& mp : *mount_points_)
+            if (strcmp(mp->path, path) == 0) return Error::Perm;
     }
 
     VfsNode* parent = nullptr;
     char name[64];
-    if (!resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return Error::NoEnt;
 
     if (is_read_only(parent)) {
-        return -EROFS;
+        close(parent);
+        return Error::RoFs;
     }
-
     if (!parent->ops || !parent->ops->rmdir) {
         close(parent);
-        return -ENOSYS;
+        return Error::NoSys;
     }
 
-    const int result = parent->ops->rmdir(parent, name);
+    const auto result = parent->ops->rmdir(parent, name);
     close(parent);
-    if (result == 1) return -ENOTEMPTY;
     return result;
 }
 
-int VFS::unlink(const char* path) {
-    if (!path) return -EINVAL;
+VoidResult VFS::unlink(const char* path) {
+    if (!path) return Error::Inval;
 
     VfsNode* parent = nullptr;
     char name[64];
-    if (!resolve_parent(path, &parent, name)) return -ENOENT;
+    if (!resolve_parent(path, &parent, name)) return Error::NoEnt;
 
     if (is_read_only(parent)) {
-        return -EROFS;
+        close(parent);
+        return Error::RoFs;
     }
-
     if (!parent->ops || !parent->ops->unlink) {
         close(parent);
-        return -ENOSYS;
+        return Error::NoSys;
     }
 
-    const int result = parent->ops->unlink(parent, name);
+    const auto result = parent->ops->unlink(parent, name);
     close(parent);
-    if (result == 1) return -EIO;
     return result;
 }
 
-int VFS::truncate(VfsNode* node, const usize new_size) {
-    if (!node || !node->ops || !node->ops->truncate) {
-        return -ENOSYS;
-    }
-
-    if (is_read_only(node)) {
-        return -EROFS;
-    }
-
+VoidResult VFS::truncate(VfsNode* node, const usize new_size) {
+    if (!node || !node->ops || !node->ops->truncate) return Error::NoSys;
+    if (is_read_only(node)) return Error::RoFs;
     return node->ops->truncate(node, new_size);
 }
 
-int VFS::chown(VfsNode* node, const u32 uid, const u32 gid) {
-    if (!node || !node->ops || !node->ops->chown) return -ENOSYS;
-    if (is_read_only(node)) return -EROFS;
+VoidResult VFS::stat(const VfsNode* node, vespera_stat_t* out) {
+    if (!node || !node->ops || !node->ops->stat) return Error::NoSys;
+    return node->ops->stat(node, out);
+}
+
+VoidResult VFS::chown(VfsNode* node, const u32 uid, const u32 gid) {
+    if (!node || !node->ops || !node->ops->chown) return Error::NoSys;
+    if (is_read_only(node)) return Error::RoFs;
     return node->ops->chown(node, uid, gid);
 }
 
-int VFS::chmod(VfsNode* node, const u16 mode) {
-    if (!node || !node->ops || !node->ops->chmod) return -ENOSYS;
-    if (is_read_only(node)) return -EROFS;
+VoidResult VFS::chmod(VfsNode* node, const u16 mode) {
+    if (!node || !node->ops || !node->ops->chmod) return Error::NoSys;
+    if (is_read_only(node)) return Error::RoFs;
     return node->ops->chmod(node, mode);
 }
 
@@ -331,7 +316,7 @@ void VFS::remount_all() {
     FilesystemDetector::init();
     FilesystemDetector::register_all_drivers();
     FilesystemDetector::scan_and_mount_all();
-   // FilesystemDetector::print_detected_filesystems();
+    // FilesystemDetector::print_detected_filesystems();
 }
 /*
 void VFS::get_stats(VfsStats* stats) {

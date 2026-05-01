@@ -29,6 +29,7 @@
 #include <vespera/mm/memory.h>
 
 #include "ext4_time.h"
+#include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
 namespace ext4 {
@@ -563,8 +564,9 @@ namespace ext4 {
 
     bool FileSystem::dir_is_empty(u32 inode_no) const {
         usize count = 0;
-        FileEntry* entries = read_directory(inode_no, count);
-        if (!entries) return true;  // Unreadable → treat as empty (safe default for callers).
+        Result<FileEntry*> entries_result = read_directory(inode_no, count);
+        if (entries_result.is_err()) return true;  // Unreadable → treat as empty (safe default for callers).
+        FileEntry* entries = entries_result.unwrap();
 
         bool empty = true;
         for (usize i = 0; i < count; ++i) {
@@ -811,29 +813,16 @@ namespace ext4 {
 
     // fs ops
 
-    FileEntry* FileSystem::read_directory(const u32 inode_number, usize& out_count) const {
+    Result<FileEntry*> FileSystem::read_directory(const u32 inode_number, usize& out_count) const {
         out_count = 0;
-        //   Log::debug("[ext4] read_directory: inode=%u", inode_number);
 
         Inode dir_inode{};
-        if (!read_inode(inode_number, dir_inode)) {
-            //       Log::debug("[ext4] read_directory: read_inode failed for inode=%u", inode_number);
-            return nullptr;
-        }
+        if (!read_inode(inode_number, dir_inode)) return Result<FileEntry*>::err(Error::Io);
 
-        if (inode_get_type(dir_inode) != InodeType::Directory) {
-            //      Log::debug(
-            //          "[ext4] read_directory: inode=%u is not a directory (i_mode=0x%x)", inode_number,
-            //          dir_inode.i_mode
-            //       );
-            return nullptr;
-        }
+        if (inode_get_type(dir_inode) != InodeType::Directory) return Result<FileEntry*>::err(Error::NotDir);
 
         auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * EXT4_MAX_DIR_ENTRIES));
-        if (!entries) {
-            // Log::debug("[ext4] read_directory: malloc failed");
-            return nullptr;
-        }
+        if (!entries) return Result<FileEntry*>::err(Error::NoMem);
 
         const u32 bsize = get_block_size();
         const u64 dir_size = inode_get_size(dir_inode);
@@ -842,27 +831,20 @@ namespace ext4 {
         auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
         if (!block_buf) {
             kernel::memory::free(entries);
-            return nullptr;
+            return Result<FileEntry*>::err(Error::NoMem);
         }
 
         for (u32 lblock = 0; lblock < block_count && out_count < EXT4_MAX_DIR_ENTRIES; ++lblock) {
             u64 pblock = 0;
-            if (!map_logical_to_physical(dir_inode, lblock, pblock)) {
-                //        Log::debug("[ext4] read_directory: logical block %u not mapped", lblock);
-                continue;
-            }
-
-            if (!read_block(pblock, block_buf, bsize)) {
-                //      Log::debug("[ext4] read_directory: failed to read physical block %llu", pblock);
-                continue;
-            }
+            if (!map_logical_to_physical(dir_inode, lblock, pblock)) continue;
+            if (!read_block(pblock, block_buf, bsize)) continue;
 
             usize offset = 0;
             while (offset + sizeof(DirEntry) <= bsize && out_count < EXT4_MAX_DIR_ENTRIES) {
                 const auto* de = reinterpret_cast<const DirEntry*>(block_buf + offset);
 
-                if (de->rec_len == 0) break;  // corrupted entry; stop parsing this block
-                if (de->inode == 0) {         // deleted entry; skip
+                if (de->rec_len == 0) break;
+                if (de->inode == 0) {
                     offset += de->rec_len;
                     continue;
                 }
@@ -871,12 +853,11 @@ namespace ext4 {
                 fe.set_inode(de->inode);
                 fe.set_type(de->file_type);
                 fe.set_name(de->name, de->name_len);
+
                 if (Inode file_inode{}; read_inode(de->inode, file_inode)) {
                     fe.set_size(inode_get_size(file_inode));
-
-                    if (inode_get_type(file_inode) == InodeType::RegularFile) {
+                    if (inode_get_type(file_inode) == InodeType::RegularFile)
                         fe.set_executable((file_inode.i_mode & 0x0040u) != 0);
-                    }
                 } else {
                     fe.set_size(0);
                 }
@@ -886,30 +867,23 @@ namespace ext4 {
         }
 
         kernel::memory::free(block_buf);
-        //      Log::debug("[ext4] read_directory: found %zu entries", out_count);
-        return entries;
+        return Result<FileEntry*>::ok(entries);
     }
 
-    i64 FileSystem::read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const {
-        //  Log::debug("[ext4] read_file: inode=%u offset=%llu size=%zu", inode_number, offset, size);
-
+    Result<usize> FileSystem::read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const {
         Inode inode{};
-        if (!read_inode(inode_number, inode)) return -1;
+        if (!read_inode(inode_number, inode)) return Result<usize>::err(Error::Io);
 
-        if (inode_get_type(inode) != InodeType::RegularFile) {
-            //      Log::debug("[ext4] read_file: inode=%u is not a regular file", inode_number);
-            return -1;
-        }
+        if (inode_get_type(inode) != InodeType::RegularFile) return Result<usize>::err(Error::IsDir);
 
         const u64 file_size = inode_get_size(inode);
-        if (offset >= file_size) return 0;
+        if (offset >= file_size) return Result<usize>::ok(0);
 
-        // Clamp to end of file.
         if (offset + size > file_size) size = static_cast<usize>(file_size - offset);
 
         const u32 bsize = get_block_size();
         auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
-        if (!block_buf) return -1;
+        if (!block_buf) return Result<usize>::err(Error::NoMem);
 
         auto* out = static_cast<u8*>(buf);
         usize remaining = size;
@@ -922,12 +896,11 @@ namespace ext4 {
 
             u64 pblock = 0;
             if (!map_logical_to_physical(inode, lblock, pblock)) {
-                // Sparse hole — return zeroes.
-                memset(out, 0, chunk);
+                memset(out, 0, chunk);  // sparse hole
             } else {
                 if (!read_block(pblock, block_buf, bsize)) {
                     kernel::memory::free(block_buf);
-                    return -1;
+                    return Result<usize>::err(Error::Io);
                 }
                 memcpy(out, block_buf + block_off, chunk);
             }
@@ -943,29 +916,23 @@ namespace ext4 {
         }
 
         kernel::memory::free(block_buf);
-        //    Log::debug("[ext4] read_file: done, read %zu bytes", size);
-        return static_cast<i64>(size);
+        return Result<usize>::ok(static_cast<i64>(size));
     }
 
-    i64 FileSystem::write_file(u32 inode_number, u64 offset, usize size, const void* buf) {
-        //    Log::debug("[ext4] write_file: inode=%u offset=%llu size=%zu", inode_number, offset, size);
-
+    Result<usize> FileSystem::write_file(u32 inode_number, u64 offset, usize size, const void* buf) {
         Inode inode{};
-        if (!read_inode(inode_number, inode)) return -1;
+        if (!read_inode(inode_number, inode)) return Result<usize>::err(Error::Io);
 
-        if (inode_get_type(inode) != InodeType::RegularFile) {
-            //        Log::debug("[ext4] write_file: inode=%u is not a regular file", inode_number);
-            return -1;
-        }
+        if (inode_get_type(inode) != InodeType::RegularFile) return Result<usize>::err(Error::IsDir);
 
         const u32 bsize = get_block_size();
         auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
-        if (!block_buf) return -1;
+        if (!block_buf) return Result<usize>::err(Error::NoMem);
 
         const auto* src = static_cast<const u8*>(buf);
         usize remaining = size;
         u64 cur_off = offset;
-        u64 last_phys = 0;  // hint for block allocator locality
+        u64 last_phys = 0;
 
         while (remaining > 0) {
             const u32 lblock = static_cast<u32>(cur_off / bsize);
@@ -974,37 +941,27 @@ namespace ext4 {
 
             u64 pblock = 0;
 
-            if (const bool block_exists = map_logical_to_physical(inode, lblock, pblock); !block_exists) {
-                // Allocate a new physical block.
+            if (!map_logical_to_physical(inode, lblock, pblock)) {
                 pblock = alloc_block(last_phys);
                 if (pblock == 0) {
-                    // Log::debug("[ext4] write_file: alloc_block failed at lblock=%u", lblock);
                     kernel::memory::free(block_buf);
-
-                    // Return bytes written so far, or -1 if nothing was written.
                     const usize written = size - remaining;
-                    if (written == 0) return -1;
-                    // Persist what we have so far before bailing out.
+                    if (written == 0) return Result<usize>::err(Error::NoSpc);
                     write_inode(inode_number, inode);
-                    return static_cast<i64>(written);
+                    return Result<usize>::ok(written);
                 }
 
-                // Zero-initialise the newly allocated block so partial writes
-                // don't expose stale data.
                 memset(block_buf, 0, bsize);
                 if (!write_block(pblock, block_buf, bsize)) {
                     kernel::memory::free(block_buf);
-                    return -1;
+                    return Result<usize>::err(Error::Io);
                 }
 
-                // Register the new block in the inode's extent tree.
                 if (!extent_tree_append(inode, lblock, pblock)) {
-                    //  Log::debug("[ext4] write_file: extent_tree_append failed (tree full?)");
                     kernel::memory::free(block_buf);
-                    return -1;
+                    return Result<usize>::err(Error::NoSpc);
                 }
 
-                // Update i_blocks (stored in 512-byte units).
                 const u64 blocks_512 =
                     static_cast<u64>(inode.i_blocks_lo) | (static_cast<u64>(inode.i_blocks_high) << 32);
                 const u64 new_blocks = blocks_512 + bsize / 512;
@@ -1012,12 +969,10 @@ namespace ext4 {
                 inode.i_blocks_high = static_cast<u16>(new_blocks >> 32);
             }
 
-            // For partial block writes we must read the existing content first
-            // so we don't clobber bytes we are not meant to touch.
             if (block_off != 0 || chunk != bsize) {
                 if (!read_block(pblock, block_buf, bsize)) {
                     kernel::memory::free(block_buf);
-                    return -1;
+                    return Result<usize>::err(Error::Io);
                 }
             }
 
@@ -1025,7 +980,7 @@ namespace ext4 {
 
             if (!write_block(pblock, block_buf, bsize)) {
                 kernel::memory::free(block_buf);
-                return -1;
+                return Result<usize>::err(Error::Io);
             }
 
             last_phys = pblock;
@@ -1041,62 +996,57 @@ namespace ext4 {
 
         time::update_write(inode);
 
-        if (!write_inode(inode_number, inode)) return -1;
+        if (!write_inode(inode_number, inode)) return Result<usize>::err(Error::Io);
 
-        // Log::debug("[ext4] write_file: done, wrote %zu bytes", size);
-        return static_cast<i64>(size);
+        return Result<usize>::ok(static_cast<i64>(size));
     }
 
-    u32 FileSystem::create_file(u32 dir_inode_no, const char* name) {
-        //  Log::debug("[ext4] create_file: dir=%u name=%s", dir_inode_no, name);
+    Result<u32> FileSystem::create_file(u32 dir_inode_no, const char* name) {
+        if (!name || name[0] == '\0') return Result<u32>::err(Error::Inval);
+        if (strlen(name) > EXT4_NAME_LEN) return Result<u32>::err(Error::NameTooLong);
 
         const u32 existing = dir_find_entry(dir_inode_no, name);
-        if (existing != 0) return existing;
+        if (existing != 0) return Result<u32>::err(Error::Exist);
 
-        // Allocate a new inode in the same group as the parent directory.
         const u32 parent_group = (dir_inode_no - 1) / superblock_.s_inodes_per_group;
         const u32 new_inode = alloc_inode(parent_group);
-        if (new_inode == 0) return 0;
+        if (new_inode == 0) return Result<u32>::err(Error::NoSpc);
 
-        // Regular file, rw-r--r-- (0644).
         constexpr u16 mode = static_cast<u16>(InodeType::RegularFile) | 0644u;
-        if (!init_inode(new_inode, mode)) return 0;
+        if (!init_inode(new_inode, mode)) return Result<u32>::err(Error::Io);
 
         if (!dir_add_entry(dir_inode_no, name, new_inode, DirEntryType::RegularFile)) {
-            // TODO: free the inode again on partial failure.
-            // Log::debug("[ext4] create_file: dir_add_entry failed");
-            return 0;
+            free_inode(new_inode);
+            return Result<u32>::err(Error::Io);
         }
 
-        //  Log::debug("[ext4] create_file: created inode=%u", new_inode);
-        return new_inode;
+        return Result<u32>::ok(new_inode);
     }
 
-    u32 FileSystem::create_dir(u32 dir_inode_no, const char* name) {
-        // Log::debug("[ext4] create_dir: dir=%u name=%s", dir_inode_no, name);
+    Result<u32> FileSystem::create_dir(u32 dir_inode_no, const char* name) {
+        if (!name || name[0] == '\0') return Result<u32>::err(Error::Inval);
+        if (strlen(name) > EXT4_NAME_LEN) return Result<u32>::err(Error::NameTooLong);
 
         const u32 existing = dir_find_entry(dir_inode_no, name);
-        if (existing != 0) return existing;
+        if (existing != 0) return Result<u32>::err(Error::Exist);
 
         const u32 parent_group = (dir_inode_no - 1) / superblock_.s_inodes_per_group;
         const u32 new_inode = alloc_inode(parent_group);
-        if (new_inode == 0) return 0;
+        if (new_inode == 0) return Result<u32>::err(Error::NoSpc);
 
-        // Directory, rwxr-xr-x (0755).
         constexpr u16 mode = static_cast<u16>(InodeType::Directory) | 0755u;
-        if (!init_inode(new_inode, mode)) return 0;
+        if (!init_inode(new_inode, mode)) return Result<u32>::err(Error::Io);
 
-        // Write the mandatory "." and ".." entries into the first directory block.
         const u32 bsize = get_block_size();
         const u64 new_pblock = alloc_block(0);
-        if (new_pblock == 0) return 0;
+        if (new_pblock == 0) return Result<u32>::err(Error::NoSpc);
 
         auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
-        if (!block_buf) return 0;
+        if (!block_buf) return Result<u32>::err(Error::NoMem);
         memset(block_buf, 0, bsize);
 
         // "." — points to new_inode itself.
-        constexpr u16 dot_rec = (sizeof(DirEntry) + 1u + 3u) & ~3u;  // 12 bytes
+        constexpr u16 dot_rec = (sizeof(DirEntry) + 1u + 3u) & ~3u;
         auto* dot = reinterpret_cast<DirEntry*>(block_buf);
         dot->inode = new_inode;
         dot->rec_len = dot_rec;
@@ -1105,10 +1055,10 @@ namespace ext4 {
         dot->name[0] = '.';
 
         // ".." — points to the parent directory inode.
-        constexpr u16 dotdot_rec = (sizeof(DirEntry) + 2u + 3u) & ~3u;  // 12 bytes
+        constexpr u16 dotdot_rec = (sizeof(DirEntry) + 2u + 3u) & ~3u;
         auto* dotdot = reinterpret_cast<DirEntry*>(block_buf + dot_rec);
         dotdot->inode = dir_inode_no;
-        dotdot->rec_len = static_cast<u16>(bsize - dot_rec);  // fills the rest of the block
+        dotdot->rec_len = static_cast<u16>(bsize - dot_rec);
         dotdot->name_len = 2;
         dotdot->file_type = static_cast<u8>(DirEntryType::Directory);
         dotdot->name[0] = '.';
@@ -1116,29 +1066,24 @@ namespace ext4 {
 
         if (!write_block(new_pblock, block_buf, bsize)) {
             kernel::memory::free(block_buf);
-            return 0;
+            return Result<u32>::err(Error::Io);
         }
         kernel::memory::free(block_buf);
 
-        // Wire the new block into the new directory's extent tree.
         Inode new_dir_inode{};
-        if (!read_inode(new_inode, new_dir_inode)) return 0;
+        if (!read_inode(new_inode, new_dir_inode)) return Result<u32>::err(Error::Io);
 
-        if (!extent_tree_append(new_dir_inode, 0, new_pblock)) return 0;
+        if (!extent_tree_append(new_dir_inode, 0, new_pblock)) return Result<u32>::err(Error::NoSpc);
 
         const u64 blocks_512 = bsize / 512;
         new_dir_inode.i_blocks_lo = static_cast<u32>(blocks_512);
         new_dir_inode.i_blocks_high = 0;
-        new_dir_inode.i_links_count = 2;  // "." inside + the entry in the parent
+        new_dir_inode.i_links_count = 2;
         inode_set_size(new_dir_inode, bsize);
 
-        if (!write_inode(new_inode, new_dir_inode)) return 0;
+        if (!write_inode(new_inode, new_dir_inode)) return Result<u32>::err(Error::Io);
 
-        // Add the new directory to the parent.
-        if (!dir_add_entry(dir_inode_no, name, new_inode, DirEntryType::Directory)) {
-            // Log::debug("[ext4] create_dir: dir_add_entry failed");
-            return 0;
-        }
+        if (!dir_add_entry(dir_inode_no, name, new_inode, DirEntryType::Directory)) return Result<u32>::err(Error::Io);
 
         // Increment the parent's link count for the ".." back-reference.
         Inode parent_inode{};
@@ -1154,25 +1099,22 @@ namespace ext4 {
             write_group_desc(parent_group, gd);
         }
 
-        // Log::debug("[ext4] create_dir: created inode=%u", new_inode);
-        return new_inode;
+        return Result<u32>::ok(new_inode);
     }
 
-    bool FileSystem::unlink(u32 dir_inode_no, const char* name) {
-        // Log::debug("[ext4] unlink: dir=%u name=%s", dir_inode_no, name);
-
-        // Resolve the entry to get its inode number.
+    VoidResult FileSystem::unlink(u32 dir_inode_no, const char* name) {
         usize count = 0;
-        FileEntry* entries = read_directory(dir_inode_no, count);
-        if (!entries) return false;
+        auto dir_res = read_directory(dir_inode_no, count);
+        if (dir_res.is_err()) return VoidResult::err(dir_res.error());
 
+        FileEntry* entries = dir_res.unwrap();
         u32 target_inode = 0;
+
         for (usize i = 0; i < count; ++i) {
             if (strcmp(entries[i].get_name(), name) == 0) {
                 if (entries[i].is_dir()) {
-                    // unlink() must not be used on directories.
                     kernel::memory::free(entries);
-                    return false;
+                    return VoidResult::err(Error::IsDir);
                 }
                 target_inode = entries[i].get_inode();
                 break;
@@ -1180,49 +1122,40 @@ namespace ext4 {
         }
         kernel::memory::free(entries);
 
-        if (target_inode == 0) {
-            // Log::debug("[ext4] unlink: entry not found");
-            return false;
-        }
+        if (target_inode == 0) return VoidResult::err(Error::NoEnt);
 
-        // Remove the directory entry first.
-        if (!dir_remove_entry(dir_inode_no, name)) return false;
+        if (!dir_remove_entry(dir_inode_no, name)) return VoidResult::err(Error::Io);
 
-        // Decrement the hard-link count.
         Inode inode{};
-        if (!read_inode(target_inode, inode)) return false;
+        if (!read_inode(target_inode, inode)) return VoidResult::err(Error::Io);
 
         if (inode.i_links_count > 0) inode.i_links_count--;
 
         if (inode.i_links_count == 0) {
-            // No more hard links — free the data blocks and the inode.
             free_blocks_for_inode(inode);
-
-            // Mark as deleted: zero the inode on disk before freeing the slot.
-            inode.i_dtime = 0;  // Could set to current time if desired.
+            inode.i_dtime = 0;
             write_inode(target_inode, inode);
             free_inode(target_inode);
         } else {
             write_inode(target_inode, inode);
         }
 
-        // Log::debug("[ext4] unlink: ok, inode=%u links_left=%u", target_inode, inode.i_links_count);
-        return true;
+        return VoidResult::ok();
     }
 
-    bool FileSystem::rmdir(u32 dir_inode_no, const char* name) {
-        // Log::debug("[ext4] rmdir: dir=%u name=%s", dir_inode_no, name);
-
+    VoidResult FileSystem::rmdir(u32 dir_inode_no, const char* name) {
         usize count = 0;
-        FileEntry* entries = read_directory(dir_inode_no, count);
-        if (!entries) return false;
+        auto dir_res = read_directory(dir_inode_no, count);
+        if (dir_res.is_err()) return VoidResult::err(dir_res.error());
 
+        FileEntry* entries = dir_res.unwrap();
         u32 target_inode = 0;
+
         for (usize i = 0; i < count; ++i) {
             if (strcmp(entries[i].get_name(), name) == 0) {
                 if (!entries[i].is_dir()) {
                     kernel::memory::free(entries);
-                    return false;  // Not a directory.
+                    return VoidResult::err(Error::NotDir);
                 }
                 target_inode = entries[i].get_inode();
                 break;
@@ -1230,35 +1163,25 @@ namespace ext4 {
         }
         kernel::memory::free(entries);
 
-        if (target_inode == 0) {
-            // Log::debug("[ext4] rmdir: entry not found");
-            return false;
-        }
+        if (target_inode == 0) return VoidResult::err(Error::NoEnt);
 
-        // Refuse to remove a non-empty directory.
-        if (!dir_is_empty(target_inode)) {
-            // Log::debug("[ext4] rmdir: directory not empty");
-            return false;
-        }
+        if (!dir_is_empty(target_inode)) return VoidResult::err(Error::NotEmpty);
 
-        if (!dir_remove_entry(dir_inode_no, name)) return false;
+        if (!dir_remove_entry(dir_inode_no, name)) return VoidResult::err(Error::Io);
 
-        // Free the directory's own blocks and inode.
         Inode target{};
         if (read_inode(target_inode, target)) {
             free_blocks_for_inode(target);
             free_inode(target_inode);
         }
 
-        // The ".." entry inside the removed directory held a link to the parent,
-        // so decrement the parent's link count.
+        // ".." inside the removed dir held a link to the parent.
         Inode parent{};
         if (read_inode(dir_inode_no, parent)) {
             if (parent.i_links_count > 0) parent.i_links_count--;
             write_inode(dir_inode_no, parent);
         }
 
-        // Decrement used-directory count in the group descriptor.
         const u32 group = (target_inode - 1) / superblock_.s_inodes_per_group;
         GroupDesc gd{};
         if (read_group_desc(group, gd)) {
@@ -1266,19 +1189,16 @@ namespace ext4 {
             write_group_desc(group, gd);
         }
 
-        ////Log::debug("[ext4] rmdir: ok, removed inode=%u", target_inode);
-        return true;
+        return VoidResult::ok();
     }
 
-    bool FileSystem::rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name) {
-        /*Log::debug(
-            "[ext4] rename: old_dir=%u old=%s  new_dir=%u new=%s", old_dir_inode, old_name, new_dir_inode, new_name
-        );*/
-
+    VoidResult FileSystem::rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name) {
+        // --- Resolve source -----------------------------------------------------
         usize src_count = 0;
-        FileEntry* src_entries = read_directory(old_dir_inode, src_count);
-        if (!src_entries) return false;
+        auto src_res = read_directory(old_dir_inode, src_count);
+        if (src_res.is_err()) return VoidResult::err(src_res.error());
 
+        FileEntry* src_entries = src_res.unwrap();
         u32 src_inode = 0;
         bool src_is_dir = false;
         DirEntryType src_type = DirEntryType::Unknown;
@@ -1293,19 +1213,17 @@ namespace ext4 {
         }
         kernel::memory::free(src_entries);
 
-        if (src_inode == 0) {
-            //   Log::debug("[ext4] rename: source not found");
-            return false;
-        }
+        if (src_inode == 0) return VoidResult::err(Error::NoEnt);
 
+        // --- Resolve optional destination ---------------------------------------
         usize dst_count = 0;
-        FileEntry* dst_entries = read_directory(new_dir_inode, dst_count);
-        // dst_entries may be null if the directory is empty — that is fine.
+        auto dst_res = read_directory(new_dir_inode, dst_count);
 
         u32 dst_inode = 0;
         bool dst_is_dir = false;
 
-        if (dst_entries) {
+        if (dst_res.is_ok()) {
+            FileEntry* dst_entries = dst_res.unwrap();
             for (usize i = 0; i < dst_count; ++i) {
                 if (strcmp(dst_entries[i].get_name(), new_name) == 0) {
                     dst_inode = dst_entries[i].get_inode();
@@ -1316,37 +1234,27 @@ namespace ext4 {
             kernel::memory::free(dst_entries);
         }
 
-        if (src_inode == dst_inode && old_dir_inode == new_dir_inode) return true;
+        // No-op rename.
+        if (src_inode == dst_inode && old_dir_inode == new_dir_inode) return VoidResult::ok();
 
+        // --- Type conflict checks -----------------------------------------------
         if (dst_inode != 0) {
-            if (src_is_dir && !dst_is_dir) {
-                // Log::debug("[ext4] rename: cannot replace file with directory");
-                return false;
-            }
-            if (!src_is_dir && dst_is_dir) {
-                // Log::debug("[ext4] rename: cannot replace directory with file");
-                return false;
-            }
-            // Replacing a directory: it must be empty.
-            if (dst_is_dir && !dir_is_empty(dst_inode)) {
-                // Log::debug("[ext4] rename: destination directory not empty");
-                return false;
-            }
+            if (src_is_dir && !dst_is_dir) return VoidResult::err(Error::NotDir);
+            if (!src_is_dir && dst_is_dir) return VoidResult::err(Error::IsDir);
+            if (dst_is_dir && !dir_is_empty(dst_inode)) return VoidResult::err(Error::NotEmpty);
         }
 
+        // --- Remove existing destination ----------------------------------------
         if (dst_inode != 0) {
-            // Remove the dir entry from the destination directory.
-            if (!dir_remove_entry(new_dir_inode, new_name)) return false;
+            if (!dir_remove_entry(new_dir_inode, new_name)) return VoidResult::err(Error::Io);
 
             if (dst_is_dir) {
-                // Free the replaced directory's blocks and inode.
                 Inode dst_inode_data{};
                 if (read_inode(dst_inode, dst_inode_data)) {
                     free_blocks_for_inode(dst_inode_data);
                     free_inode(dst_inode);
                 }
 
-                // Removing a directory takes one link from the parent (the ".." inside).
                 Inode new_dir{};
                 if (read_inode(new_dir_inode, new_dir)) {
                     if (new_dir.i_links_count > 0) new_dir.i_links_count--;
@@ -1360,7 +1268,6 @@ namespace ext4 {
                     write_group_desc(group, gd);
                 }
             } else {
-                // Replacing a regular file: decrement its link count / free if zero.
                 Inode dst_inode_data{};
                 if (read_inode(dst_inode, dst_inode_data)) {
                     if (dst_inode_data.i_links_count > 0) dst_inode_data.i_links_count--;
@@ -1375,21 +1282,16 @@ namespace ext4 {
             }
         }
 
-        if (!dir_add_entry(new_dir_inode, new_name, src_inode, src_type)) {
-            // Log::debug("[ext4] rename: dir_add_entry failed");
-            return false;
-        }
+        // --- Move the entry -----------------------------------------------------
+        if (!dir_add_entry(new_dir_inode, new_name, src_inode, src_type)) return VoidResult::err(Error::Io);
 
         if (!dir_remove_entry(old_dir_inode, old_name)) {
-            // Partial failure — the entry now exists in both dirs.
-            // Best-effort rollback: remove the entry we just added.
-            dir_remove_entry(new_dir_inode, new_name);
-            // Log::debug("[ext4] rename: dir_remove_entry failed, rolled back");
-            return false;
+            dir_remove_entry(new_dir_inode, new_name);  // best-effort rollback
+            return VoidResult::err(Error::Io);
         }
 
+        // --- Fix ".." if a directory moved between parents ----------------------
         if (src_is_dir && old_dir_inode != new_dir_inode) {
-            // Patch ".." inside src_inode to point to new_dir_inode.
             const u32 bsize = get_block_size();
             auto* block_buf = static_cast<u8*>(kernel::memory::malloc(bsize));
             if (block_buf) {
@@ -1425,36 +1327,26 @@ namespace ext4 {
             write_inode(src_inode, src_inode_data);
         }
 
-        // Log::debug("[ext4] rename: ok, inode=%u", src_inode);
-        return true;
+        return VoidResult::ok();
     }
 
-    bool FileSystem::stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const {
-        if (!out || inode_no == 0) return false;
+    VoidResult FileSystem::stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const {
+        if (!out || inode_no == 0) return VoidResult::err(Error::Inval);
 
         Inode inode{};
-        if (!read_inode(inode_no, inode)) return false;
+        if (!read_inode(inode_no, inode)) return VoidResult::err(Error::Io);
 
         out->inode_id = inode_no;
-
         out->size = inode_get_size(inode);
-
         out->blocks = static_cast<u64>(inode.i_blocks_lo) | (static_cast<u64>(inode.i_blocks_high) << 32);
-
         out->block_size = get_block_size();
-
         out->dev_id = dev_id;
-
         out->atime = inode.i_atime;
         out->mtime = inode.i_mtime;
         out->ctime = inode.i_ctime;
         out->crtime = inode.i_crtime;
-
         out->mode = inode.i_mode;
-
         out->links_count = inode.i_links_count;
-
-        // UID / GID (assemble 32-bit values from lo + hi halves)
         out->uid = static_cast<u32>(inode.i_uid) | (static_cast<u32>(inode.i_uid_high) << 16);
         out->gid = static_cast<u32>(inode.i_gid) | (static_cast<u32>(inode.i_gid_high) << 16);
 
@@ -1463,9 +1355,7 @@ namespace ext4 {
 
         switch (inode_get_type(inode)) {
             case InodeType::RegularFile:
-                if (inode.i_mode & 0x0040u) {
-                    out->flags |= VSTAT_FLAG_EXEC;
-                }
+                if (inode.i_mode & 0x0040u) out->flags |= VSTAT_FLAG_EXEC;
                 out->node_type = VSTAT_TYPE_FILE;
                 break;
             case InodeType::Directory:
@@ -1485,35 +1375,28 @@ namespace ext4 {
                 break;
         }
 
-        return true;
+        return VoidResult::ok();
     }
 
-    bool FileSystem::truncate(u32 inode_no, u64 new_size) {
-        // Log::debug("[ext4] truncate: inode=%u new_size=%llu", inode_no, new_size);
-
+    VoidResult FileSystem::truncate(u32 inode_no, u64 new_size) {
         Inode inode{};
-        if (!read_inode(inode_no, inode)) return false;
-        if (inode_get_type(inode) != InodeType::RegularFile) return false;
+        if (!read_inode(inode_no, inode)) return VoidResult::err(Error::Io);
+        if (inode_get_type(inode) != InodeType::RegularFile) return VoidResult::err(Error::IsDir);
 
         const u64 old_size = inode_get_size(inode);
         const u32 bsize = get_block_size();
 
-        if (new_size == old_size) return true;
+        if (new_size == old_size) return VoidResult::ok();
 
         if (new_size < old_size) {
             const u32 new_last_lblock = (new_size == 0) ? 0 : static_cast<u32>((new_size - 1) / bsize);
 
             Vector<ExtentMap> extents;
-            if (!parse_extents(inode, extents)) return false;
+            if (!parse_extents(inode, extents)) return VoidResult::err(Error::Io);
 
-            // Walk extents and free blocks beyond new_last_lblock.
             for (const ExtentMap& em : extents) {
                 for (u32 i = 0; i < em.length; ++i) {
-                    const u32 lblock = em.logical_start + i;
-
-                    if (new_size == 0 || lblock > new_last_lblock) {
-                        free_block(em.phys_start + i);
-                    }
+                    if (new_size == 0 || (em.logical_start + i) > new_last_lblock) free_block(em.phys_start + i);
                 }
             }
 
@@ -1526,20 +1409,14 @@ namespace ext4 {
 
             if (new_size > 0) {
                 for (const ExtentMap& em : extents) {
-                    // How many blocks of this extent survive?
                     u32 surviving = 0;
-                    for (u32 i = 0; i < em.length; ++i) {
+                    for (u32 i = 0; i < em.length; ++i)
                         if (em.logical_start + i <= new_last_lblock) ++surviving;
-                    }
-                    if (surviving == 0) continue;
-
-                    for (u32 i = 0; i < surviving; ++i) {
+                    for (u32 i = 0; i < surviving; ++i)
                         extent_tree_append(inode, em.logical_start + i, em.phys_start + i);
-                    }
                 }
             }
 
-            // Recalculate i_blocks (512-byte units).
             const u32 surviving_blocks = (new_size == 0) ? 0 : (new_last_lblock + 1);
             const u64 new_blocks_512 = static_cast<u64>(surviving_blocks) * (bsize / 512);
             inode.i_blocks_lo = static_cast<u32>(new_blocks_512 & 0xFFFFFFFFu);
@@ -1549,14 +1426,16 @@ namespace ext4 {
         inode_set_size(inode, new_size);
         time::update_write(inode);
 
-        return write_inode(inode_no, inode);
+        if (!write_inode(inode_no, inode)) return VoidResult::err(Error::Io);
+
+        return VoidResult::ok();
     }
 
-    bool FileSystem::chown(u32 inode_no, u32 uid, u32 gid) const {
-        if (inode_no == 0) return false;
+    VoidResult FileSystem::chown(u32 inode_no, u32 uid, u32 gid) const {
+        if (inode_no == 0) return VoidResult::err(Error::Inval);
 
         Inode inode{};
-        if (!read_inode(inode_no, inode)) return false;
+        if (!read_inode(inode_no, inode)) return VoidResult::err(Error::Io);
 
         inode.i_uid = static_cast<u16>(uid & 0xFFFFu);
         inode.i_uid_high = static_cast<u16>(uid >> 16);
@@ -1565,14 +1444,16 @@ namespace ext4 {
 
         time::update_change(inode);
 
-        return write_inode(inode_no, inode);
+        if (!write_inode(inode_no, inode)) return VoidResult::err(Error::Io);
+
+        return VoidResult::ok();
     }
 
-    bool FileSystem::chmod(u32 inode_no, u16 new_mode) const {
-        if (inode_no == 0) return false;
+    VoidResult FileSystem::chmod(u32 inode_no, u16 new_mode) const {
+        if (inode_no == 0) return VoidResult::err(Error::Inval);
 
         Inode inode{};
-        if (!read_inode(inode_no, inode)) return false;
+        if (!read_inode(inode_no, inode)) return VoidResult::err(Error::Io);
 
         constexpr u16 type_mask = 0xF000u;
         constexpr u16 perm_mask = 0x0FFFu;
@@ -1580,6 +1461,9 @@ namespace ext4 {
 
         time::update_change(inode);
 
-        return write_inode(inode_no, inode);
+        if (!write_inode(inode_no, inode)) return VoidResult::err(Error::Io);
+
+        return VoidResult::ok();
     }
+
 }  // namespace ext4

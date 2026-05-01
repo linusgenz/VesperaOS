@@ -28,8 +28,8 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include "../../security/permission.h"
 #include "../../../filesystem/vfs/vfs_node.h"
+#include "../../security/permission.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {
@@ -50,43 +50,39 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        VfsNode* node = VFS::open(norm);
+        auto node_res = VFS::open(norm);
 
-        if (!node) {
+        if (node_res.is_err()) {
             if (flags & O_CREAT) {
-                // TODO check with vfs_check_write on parent dir
-                if (const int result = VFS::create(norm); result != 0) {
-                    return result;
-                }
-
-                node = VFS::open(norm);
-                if (!node) {
-                    return -ENOENT;
-                }
+                SYSCALL_TRY_VOID(VFS::create(norm));
+                node_res = VFS::open(norm);
+                if (node_res.is_err()) return -ENOENT;
             } else {
-                return -ENOENT;
+                return node_res.to_errno();
             }
         } else {
             if ((flags & O_CREAT) && (flags & O_EXCL)) {
-                VFS::close(node);
+                VFS::close(node_res.unwrap());
                 return -EEXIST;
             }
         }
 
-        u32 vfs_access     = 0;
+        VfsNode* node = node_res.unwrap();
+
+        u32 vfs_access = 0;
         capability_set required_caps = CAP_NONE;
 
         switch (flags & 0x3) {
             case O_RDONLY:
-                vfs_access    = kernel::security::VFS_ACCESS_READ;
+                vfs_access = kernel::security::VFS_ACCESS_READ;
                 required_caps = CAP_READ;
                 break;
             case O_WRONLY:
-                vfs_access    = kernel::security::VFS_ACCESS_WRITE;
+                vfs_access = kernel::security::VFS_ACCESS_WRITE;
                 required_caps = CAP_WRITE;
                 break;
             case O_RDWR:
-                vfs_access    = kernel::security::VFS_ACCESS_READ | kernel::security::VFS_ACCESS_WRITE;
+                vfs_access = kernel::security::VFS_ACCESS_READ | kernel::security::VFS_ACCESS_WRITE;
                 required_caps = CAP_READ | CAP_WRITE;
                 break;
             default:
@@ -96,17 +92,15 @@ namespace syscalls::internal {
 
         if (const int err = kernel::security::vfs_check_permission(node, vfs_access, realm->cred); err != 0) {
             VFS::close(node);
-            return err;  // -EACCES
+            return err;
         }
 
         if (node->type == VfsNodeType::Directory) {
-            // User did not want a directory → EISDIR
             if (!(flags & O_DIRECTORY)) {
                 VFS::close(node);
                 return -EISDIR;
             }
         } else {
-            // User WANTS a directory, but the target is not one
             if (flags & O_DIRECTORY) {
                 VFS::close(node);
                 return -ENOTDIR;
@@ -130,12 +124,12 @@ namespace syscalls::internal {
 
             case VfsNodeType::File:
                 if (flags & O_TRUNC) {
-                        if (const int r = VFS::truncate(node, 0); r < 0) {
-                            VFS::close(node);
-                            return r;
-                        }
+                    auto trunc_res = VFS::truncate(node, 0);
+                    if (trunc_res.is_err()) {
+                        VFS::close(node);
+                        return trunc_res.to_errno();
+                    }
                 }
-
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
                     VFS::close(node);
@@ -145,11 +139,12 @@ namespace syscalls::internal {
                 break;
 
             case VfsNodeType::Directory: {
-                VfsDir* dir_handle = nullptr;
-                if (const int ret = VFS::opendir(node, &dir_handle); ret < 0) {
+                auto dir_res = VFS::opendir(node);
+                if (dir_res.is_err()) {
                     VFS::close(node);
-                    return ret;
+                    return dir_res.to_errno();
                 }
+                VfsDir* dir_handle = dir_res.unwrap();
 
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
@@ -157,12 +152,12 @@ namespace syscalls::internal {
                     VFS::close(node);
                     return -ENOMEM;
                 }
-
                 vh->context->type_specific_data = dir_handle;
                 handle_type = HANDLE_TYPE_DIRECTORY;
                 break;
             }
-            case VfsNodeType::OtherDevice: {
+
+            case VfsNodeType::OtherDevice:
                 required_caps |= CAP_DEVICE_ACCESS;
                 vh = new VfsHandle(node, flags, required_caps);
                 if (!vh) {
@@ -171,35 +166,26 @@ namespace syscalls::internal {
                 }
                 handle_type = HANDLE_TYPE_DEVICE;
                 break;
-            }
 
             default:
                 VFS::close(node);
                 return -EINVAL;
         }
 
-        // Capability-Check
         if ((realm->capabilities & required_caps) != required_caps) {
             delete vh;
             VFS::close(node);
             return -EACCES;
         }
 
-        if (flags & O_APPEND) {
-            if (node->type == VfsNodeType::File) {
-                vh->context->position = node->size;
-            }
-        }
+        if ((flags & O_APPEND) && node->type == VfsNodeType::File) vh->context->position = node->size;
 
-        // Handle registrieren
         HandleId file_handle = 0;
-
         if (const i64 err =
                 realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr, &file_handle);
             err != SUCCESS_CODE) {
-            if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir) {
+            if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)
                 VFS::closedir(static_cast<VfsDir*>(vh->node->internal_data));
-            }
             delete vh;
             return -err;
         }

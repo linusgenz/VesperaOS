@@ -82,31 +82,32 @@ public:
 
     static VfsNode* mount_virtual(VfsNode* root, const char* mount_path);
 
-    static VfsNode* open(const char* path);
+    static Result<VfsNode*> open(const char* path);
 
-    static int opendir(VfsNode* node, VfsDir** out_dir);
+    static Result<VfsDir*> opendir(VfsNode* node);
 
-    static isize read(const VfsNode* node, usize offset, usize size, void* buffer);
-    static isize write(VfsNode* node, usize offset, usize size, const void* buffer);
+    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer);
+    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer);
 
-    static int readdir(const VfsDir* dir, dirent_t* out);
+    static Result<bool> readdir(const VfsDir* dir, dirent_t* out);
 
     static void close(VfsNode* node);
 
     static void closedir(VfsDir* dir);
 
-    static int create(const char* path);
+    static VoidResult create(const char* path);
 
-    static int rename(const char* old_path, const char* new_path);
+    static VoidResult rename(const char* old_path, const char* new_path);
 
-    static int mkdir(const char* path);
+    static VoidResult mkdir(const char* path);
 
-    static int rmdir(const char* path);
+    static VoidResult rmdir(const char* path);
 
-    static int unlink(const char* path);
-    static int truncate(VfsNode* node, usize new_size);
-    static int chown(VfsNode* node, u32 uid, u32 gid);
-    static int chmod(VfsNode* node, u16 mode);
+    static VoidResult unlink(const char* path);
+    static VoidResult truncate(VfsNode* node, usize new_size);
+    static VoidResult stat(const VfsNode* node, vespera_stat_t* out);
+    static VoidResult chown(VfsNode* node, u32 uid, u32 gid);
+    static VoidResult chmod(VfsNode* node, u16 mode);
 
     // static bool probe_filesystem(BlockDevice* device);
 

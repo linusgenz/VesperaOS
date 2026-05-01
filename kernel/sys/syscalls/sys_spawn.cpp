@@ -147,11 +147,12 @@ namespace syscalls::internal {
             strncpy(new_realm->cwd_path, parent_realm->cwd_path, sizeof(new_realm->cwd_path));
         }
 
-        VfsNode* exec_node = VFS::open(norm);
-        if (!exec_node) {
+        auto exec_res = VFS::open(norm);
+        if (exec_res.is_err()) {
             RealmManager::destroy(new_realm->id);
-            return -ENOENT;
+            return exec_res.to_errno();
         }
+        VfsNode* exec_node = exec_res.unwrap();
 
         if (exec_node->mount && (exec_node->mount->flags & MS_NOEXEC)) {
             VFS::close(exec_node);

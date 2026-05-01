@@ -37,6 +37,7 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        return VFS::rmdir(norm);
+        SYSCALL_TRY_VOID(VFS::rmdir(norm));
+        return SUCCESS_CODE;
     }
 }  // namespace syscalls::internal

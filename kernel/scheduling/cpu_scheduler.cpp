@@ -106,9 +106,8 @@ namespace kernel::scheduling::cpu_scheduler {
         }
 
         if (next->is_user && next->rid) {
-            Realm* r = RealmManager::get(next->rid);
-            if (r) {
-                u64 cr3 = phys_raw(r->pml4_phys);
+            if (next->parent) {
+                u64 cr3 = phys_raw(next->parent->pml4_phys);
                 asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
             } else {
                 return;

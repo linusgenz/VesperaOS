@@ -10,6 +10,7 @@
 #include <vespera/mm/memory.h>
 #include <vespera/types.h>
 
+#include "klib/result.h"
 #include "uapi/vespera/stat.h"
 // https://academy.cba.mit.edu/classes/networking_communications/SD/FAT.pdf
 
@@ -192,28 +193,28 @@ namespace fat32 {
 
         u32 resolve_path_to_cluster(const char* path) const;
 
-        bool read_file(Fat32Node* node, void* buffer, usize len, usize& out_actual, usize offset = 0, bool update_atime = true) const;
+        Result<usize> read_file(Fat32Node* node, void* buffer, usize len, usize offset = 0, bool update_atime = true) const;
 
-        bool write_file(Fat32Node* node, const void* buffer, usize len, usize offset);
+        VoidResult write_file(Fat32Node* node, const void* buffer, usize len, usize offset);
 
-        FileEntry* read_directory(const char* path, usize& out_count) const;
+        Result<FileEntry*> read_directory(const char* path, usize& out_count) const;
 
-        FileEntry* read_directory(u32 cluster, usize& out_count) const;
+        Result<FileEntry*> read_directory(u32 cluster, usize& out_count) const;
 
-        bool create_file(const Fat32Node* parent_dir, const char* name);
+        VoidResult create_file(const Fat32Node* parent_dir, const char* name);
 
         bool write_directory_entry_with_lfn(
             u32 dir_cluster, const char* long_name, const char* short_name, const DirectoryEntry* short_entry
         );
         bool delete_directory_entry_in_directory(u32 dir_cluster, const char* name) const;
 
-        int create_directory(const Fat32Node* parent_dir, const char* name);
+        VoidResult create_directory(const Fat32Node* parent_dir, const char* name);
 
-        bool remove_directory(const Fat32Node* parent_dir, const char* name);
+        VoidResult remove_directory(const Fat32Node* parent_dir, const char* name);
 
-        bool rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name);
+        VoidResult rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name);
 
-        bool delete_file(const Fat32Node* parent_dir, const char* name);
+        VoidResult delete_file(const Fat32Node* parent_dir, const char* name);
 
         [[nodiscard]] BPB_FAT32* get_bpb() {
             return &bpb;
@@ -300,8 +301,8 @@ namespace fat32 {
         bool overwrite_directory_entry(u32 parent_cluster, usize entry_index, const DirectoryEntry* new_entry) const;
 
         u32 find_entry_cluster(u32 dir_cluster, const char* given_name) const;
-        bool stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const;
-        u32 truncate(Fat32Node* node, usize new_size);
+        VoidResult stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const;
+        VoidResult truncate(Fat32Node* node, usize new_size);
         static bool is_protected(const DirectoryEntry& e);
     };
 }  // namespace fat32

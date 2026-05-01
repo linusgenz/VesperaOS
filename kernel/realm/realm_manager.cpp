@@ -262,8 +262,8 @@ void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {
     }
 }
 
-isize RealmManager::get_status(void* manager_ref, void* buffer, const usize size, usize offset) {
-    if (!manager_ref || !buffer || size < sizeof(realm_info)) return -EINVAL;
+Result<usize> RealmManager::get_status(void* manager_ref, void* buffer, usize size, usize offset) {
+    if (!manager_ref || !buffer || size < sizeof(realm_info)) return Error::Inval;
 
     const auto* r = static_cast<Realm*>(manager_ref);
     realm_info status{};
@@ -271,19 +271,17 @@ isize RealmManager::get_status(void* manager_ref, void* buffer, const usize size
     status.id = r->id;
     strncpy(status.name, r->name, sizeof(status.name) - 1);
     status.name[sizeof(status.name) - 1] = '\0';
-
     status.memory_limit = r->memory_limit;
     status.max_units = r->max_units;
     status.unit_count = r->unit_count;
     status.sched_priority = r->sched_priority;
     status.cpu_time_accumulated = r->cpu_time_accumulated;
     status.capabilities = r->capabilities;
-
     strncpy(status.cwd_path, r->cwd_path, sizeof(status.cwd_path) - 1);
     status.cwd_path[sizeof(status.cwd_path) - 1] = '\0';
 
     memcpy(buffer, &status, sizeof(realm_info));
-    return sizeof(realm_info);
+    return Result<usize>::ok(sizeof(realm_info));
 }
 
 void RealmManager::list() {

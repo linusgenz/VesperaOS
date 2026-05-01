@@ -1,0 +1,696 @@
+
+Result<FileEntry*> FileSystem::read_directory(const char* path, usize& out_count) const {
+    out_count = 0;
+    const u32 cluster = resolve_path_to_cluster(path);
+    if (cluster == 0) return Error::NoEnt;
+    return read_directory(cluster, out_count);
+}
+
+Result<FileEntry*> FileSystem::read_directory(const u32 cluster, usize& out_count) const {
+    auto* entries = static_cast<FileEntry*>(
+        kernel::memory::malloc(sizeof(FileEntry) * READ_DIR_MAX_ENTRIES));
+    if (!entries) return Error::NoMem;
+
+    out_count = 0;
+    usize chain_count = 0;
+    u32*  chain = get_cluster_chain(cluster, chain_count);
+    if (!chain) {
+        kernel::memory::free(entries);
+        return Error::Io;
+    }
+
+    const u32   cluster_bytes      = bytes_per_cluster();
+    const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+
+    LfnBufferEntry lfn_buffer[20];
+    usize          lfn_count = 0;
+
+    usize ci = 0;
+    while (ci < chain_count) {
+        usize run_end = ci;
+        while (run_end + 1 < chain_count && chain[run_end] + 1 == chain[run_end + 1]) run_end++;
+
+        const usize      run_clusters = run_end - ci + 1;
+        const usize      run_bytes    = run_clusters * cluster_bytes;
+        const u32        run_lba      = cluster_to_sector(chain[ci]);
+        const u32        run_sectors  = static_cast<u32>(run_clusters) * bpb.sectors_per_cluster;
+        const usize      run_pages    = (run_bytes + 0xFFF) / 0x1000;
+        const virt_addr_t run_virt    = kernel::memory::request_pages(run_pages);
+
+        if (virt_null(run_virt)) { ci = run_end + 1; continue; }
+        auto* run_buffer = virt_as<u8>(run_virt);
+
+        if (!device->read(run_lba, run_sectors, run_buffer, run_bytes)) {
+            kernel::memory::free_pages(run_virt, run_pages);
+            ci = run_end + 1;
+            continue;
+        }
+
+        bool stop = false;
+        for (usize r = 0; r < run_clusters && !stop; ++r) {
+            const usize actual_ci     = ci + r;
+            const u8*   cluster_buffer = run_buffer + r * cluster_bytes;
+
+            for (usize i = 0; i < entries_per_cluster; i++) {
+                const auto* entry =
+                    reinterpret_cast<const DirectoryEntry*>(cluster_buffer + i * sizeof(DirectoryEntry));
+
+                if (entry->name[0] == 0x00)                        { stop = true; break; }
+                if (entry->name[0] == 0xE5 || entry->attr == ATTR_VOLUME_ID) continue;
+
+                if (entry->attr == ATTR_LONG_NAME) {
+                    if (lfn_count < 20) lfn_buffer[lfn_count++].lfn_entry = *reinterpret_cast<const LongFileName*>(entry);
+                    continue;
+                }
+
+                entries[out_count].set_is_dir((entry->attr & ATTR_DIRECTORY) != 0);
+
+                if (lfn_count > 0) {
+                    char  name_buffer[256];
+                    usize pos = 0;
+                    for (int j = static_cast<int>(lfn_count) - 1; j >= 0; --j)
+                        copy_lfn_part(&lfn_buffer[j].lfn_entry, name_buffer, pos, sizeof(name_buffer));
+                    name_buffer[pos] = '\0';
+                    entries[out_count].set_long_name(name_buffer);
+                    lfn_count = 0;
+                } else {
+                    entries[out_count].set_long_name(nullptr);
+                }
+
+                char short_name[13];
+                extract_short_name(entry->name, short_name, sizeof(short_name));
+                entries[out_count].set_directory_entry(*entry);
+                entries[out_count].set_short_name(short_name);
+                entries[out_count].set_index_in_cluster(actual_ci * entries_per_cluster + i);
+
+                out_count++;
+                if (out_count >= READ_DIR_MAX_ENTRIES) { stop = true; break; }
+            }
+        }
+
+        kernel::memory::free_pages(run_virt, run_pages);
+        ci = run_end + 1;
+        if (out_count >= READ_DIR_MAX_ENTRIES) break;
+    }
+
+    kernel::memory::free(chain);
+    return Result<FileEntry*>::ok(entries);
+}
+
+// ---------------------------------------------------------------------------
+
+Result<usize> FileSystem::read_file(
+    Fat32Node* node, void* buffer, const usize len, const usize offset, bool update_atime) const {
+
+    if (!node || !buffer || len == 0) return Error::Inval;
+    if (offset >= node->file_size)    return Result<usize>::ok(0);
+
+    const u32 start_cluster = node->cluster;
+    if (start_cluster == 0)           return Result<usize>::ok(0);
+
+    const usize cluster_bytes     = bytes_per_cluster();
+    const usize remaining         = node->file_size - offset;
+    const usize to_read           = (len < remaining) ? len : remaining;
+    const usize cluster_index     = offset / cluster_bytes;
+    const usize offset_in_cluster = offset % cluster_bytes;
+
+    usize out_cluster_count = 0;
+    u32*  cluster_chain     = get_cluster_chain(start_cluster, out_cluster_count);
+    if (!cluster_chain) return Error::Io;
+
+    if (cluster_index >= out_cluster_count) {
+        kernel::memory::free(cluster_chain);
+        return Result<usize>::ok(0);
+    }
+
+    auto*  dest       = static_cast<u8*>(buffer);
+    usize  bytes_read = 0;
+    usize  i          = cluster_index;
+
+    constexpr usize MAX_USB_TRANSFER = 64 * 1024;
+
+    while (i < out_cluster_count && bytes_read < to_read) {
+        usize run_end = i;
+        while (run_end + 1 < out_cluster_count && cluster_chain[run_end] + 1 == cluster_chain[run_end + 1])
+            run_end++;
+
+        const usize run_clusters = run_end - i + 1;
+        const usize run_bytes    = run_clusters * cluster_bytes;
+        const u32   run_lba      = cluster_to_sector(cluster_chain[i]);
+        const u32   run_sectors  = static_cast<u32>(run_clusters) * bpb.sectors_per_cluster;
+        const usize start_pos    = (i == cluster_index) ? offset_in_cluster : 0;
+        const usize available    = run_bytes - start_pos;
+        const usize to_copy      = (to_read - bytes_read < available) ? (to_read - bytes_read) : available;
+
+        if (start_pos == 0 && to_copy == run_bytes) {
+            usize rem     = run_bytes;
+            u32   cur_lba = run_lba;
+            u8*   cur_dst = dest + bytes_read;
+            while (rem > 0) {
+                const usize chunk_bytes   = rem > MAX_USB_TRANSFER ? MAX_USB_TRANSFER : rem;
+                const u32   chunk_sectors = chunk_bytes / bpb.bytes_per_sector;
+                if (!device->read(cur_lba, chunk_sectors, cur_dst, chunk_bytes)) {
+                    kernel::memory::free(cluster_chain);
+                    return Error::Io;
+                }
+                cur_lba += chunk_sectors;
+                cur_dst += chunk_bytes;
+                rem     -= chunk_bytes;
+            }
+        } else {
+            const usize      pages = (run_bytes + 0xFFF) / 0x1000;
+            const virt_addr_t virt = kernel::memory::request_pages(pages);
+            if (virt_null(virt)) { kernel::memory::free(cluster_chain); return Error::NoMem; }
+            auto* tmp = virt_as<u8>(virt);
+
+            usize rem     = run_bytes;
+            u32   cur_lba = run_lba;
+            u8*   cur_tmp = tmp;
+            while (rem > 0) {
+                const usize chunk_bytes   = rem > MAX_USB_TRANSFER ? MAX_USB_TRANSFER : rem;
+                const u32   chunk_sectors = chunk_bytes / bpb.bytes_per_sector;
+                if (!device->read(cur_lba, chunk_sectors, cur_tmp, chunk_bytes)) {
+                    kernel::memory::free_pages(virt, pages);
+                    kernel::memory::free(cluster_chain);
+                    return Error::Io;
+                }
+                cur_lba += chunk_sectors;
+                cur_tmp += chunk_bytes;
+                rem     -= chunk_bytes;
+            }
+            memcpy(dest + bytes_read, tmp + start_pos, to_copy);
+            kernel::memory::free_pages(virt, pages);
+        }
+
+        bytes_read += to_copy;
+        i = run_end + 1;
+    }
+
+    if (update_atime) {
+        update_access_time(node->dir_entry);
+        overwrite_directory_entry(node->parent_cluster, node->current_index, &node->dir_entry);
+    }
+
+    kernel::memory::free(cluster_chain);
+    return Result<usize>::ok(bytes_read);
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::write_file(Fat32Node* node, const void* buffer, const usize len, const usize offset) {
+    if (!node || !buffer || len == 0)    return Error::Inval;
+    if (is_protected(node->dir_entry))   return Error::Acces;
+    if (offset > node->file_size)        return Error::Inval;
+
+    const usize cluster_bytes       = bytes_per_cluster();
+    const usize new_size            = (offset + len > node->file_size) ? (offset + len) : node->file_size;
+    const usize needed_clusters     = (new_size + cluster_bytes - 1) / cluster_bytes;
+
+    u32   start_cluster           = node->cluster;
+    usize existing_clusters_count = 0;
+    u32*  cluster_chain           = nullptr;
+
+    if (start_cluster != 0) {
+        cluster_chain = get_cluster_chain(start_cluster, existing_clusters_count);
+        if (!cluster_chain || existing_clusters_count == 0) return Error::Io;
+    }
+
+    if (existing_clusters_count < needed_clusters) {
+        const usize additional = needed_clusters - existing_clusters_count;
+
+        if (start_cluster == 0) {
+            start_cluster = find_free_cluster();
+            if (start_cluster == 0) return Error::NoSpc;
+            write_fat_entry(start_cluster, 0x0FFFFFFF);
+            node->cluster = start_cluster;
+            cluster_chain = get_cluster_chain(start_cluster, existing_clusters_count);
+            if (!cluster_chain) return Error::Io;
+        }
+
+        u32 last_cluster = cluster_chain[existing_clusters_count - 1];
+        for (usize i = 0; i < additional; i++) {
+            const u32 free_cluster = find_free_cluster();
+            if (free_cluster == 0) {
+                kernel::memory::free(cluster_chain);
+                return Error::NoSpc;
+            }
+            write_fat_entry(last_cluster, free_cluster);
+            write_fat_entry(free_cluster, 0x0FFFFFFF);
+            last_cluster = free_cluster;
+        }
+
+        kernel::memory::free(cluster_chain);
+        cluster_chain = get_cluster_chain(start_cluster, existing_clusters_count);
+        if (!cluster_chain || existing_clusters_count < needed_clusters) return Error::Io;
+    }
+
+    if (!cluster_chain) return Error::Io;
+
+    auto*  src             = static_cast<const u8*>(buffer);
+    usize  remaining       = len;
+    usize  current_offset  = offset;
+    usize  cluster_index   = offset / cluster_bytes;
+
+    u8 cluster_buf[cluster_bytes];
+
+    while (remaining > 0 && cluster_index < existing_clusters_count) {
+        const usize offset_in_cluster = current_offset % cluster_bytes;
+        const usize space_in_cluster  = cluster_bytes - offset_in_cluster;
+        const usize to_write          = (remaining < space_in_cluster) ? remaining : space_in_cluster;
+
+        if (offset_in_cluster != 0 || to_write < cluster_bytes) {
+            if (read_cluster(cluster_chain[cluster_index], cluster_buf, cluster_bytes) < 0) {
+                kernel::memory::free(cluster_chain);
+                return Error::Io;
+            }
+            memcpy(cluster_buf + offset_in_cluster, src, to_write);
+            if (!write_cluster(cluster_chain[cluster_index], cluster_buf, cluster_bytes)) {
+                kernel::memory::free(cluster_chain);
+                return Error::Io;
+            }
+        } else {
+            if (!write_cluster(cluster_chain[cluster_index], src, cluster_bytes)) {
+                kernel::memory::free(cluster_chain);
+                return Error::Io;
+            }
+        }
+
+        src            += to_write;
+        remaining      -= to_write;
+        current_offset += to_write;
+        cluster_index++;
+    }
+
+    kernel::memory::free(cluster_chain);
+
+    node->file_size                    = new_size;
+    node->dir_entry.file_size          = static_cast<u32>(new_size);
+    node->dir_entry.first_cluster_low  = static_cast<u16>(start_cluster & 0xFFFF);
+    node->dir_entry.first_cluster_high = static_cast<u16>((start_cluster >> 16) & 0xFFFF);
+    update_write_time(node->dir_entry);
+
+    if (!overwrite_directory_entry(node->parent_cluster, node->current_index, &node->dir_entry))
+        return Error::Io;
+
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::create_file(const Fat32Node* parent_dir, const char* name) {
+    if (!parent_dir || !name || name[0] == '\0') return Error::Inval;
+
+    const u32 parent_cluster = parent_dir->cluster;
+    const u32 cluster_bytes  = bytes_per_cluster();
+
+    const u32 new_cluster = find_free_cluster();
+    if (new_cluster == 0) return Error::NoSpc;
+
+    u8* zero = alloc_cluster_buffer(cluster_bytes);
+    if (!zero) return Error::NoMem;
+    memset(zero, 0, cluster_bytes);
+
+    if (!device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes)) {
+        free_cluster_buffer(zero, cluster_bytes);
+        return Error::Io;
+    }
+    free_cluster_buffer(zero, cluster_bytes);
+
+    char short_name[11];
+    if (!make_short_name(name, short_name)) return Error::Inval;
+
+    DirectoryEntry new_entry = {};
+    memcpy(new_entry.name, short_name, 11);
+    new_entry.attr               = ATTR_ARCHIVE;
+    new_entry.first_cluster_low  = new_cluster & 0xFFFF;
+    new_entry.first_cluster_high = (new_cluster >> 16) & 0xFFFF;
+    new_entry.file_size          = 0;
+    update_create_time(new_entry);
+
+    if (!write_directory_entry_with_lfn(parent_cluster, name, short_name, &new_entry)) return Error::Io;
+    if (!write_fat_entry(new_cluster, 0x0FFFFFFF))                                      return Error::Io;
+
+    write_fs_info();
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::create_directory(const Fat32Node* parent_dir, const char* name) {
+    if (!parent_dir || !name || name[0] == '\0') return Error::Inval;
+
+    const u32 parent_cluster = parent_dir->cluster;
+    const u32 cluster_bytes  = bytes_per_cluster();
+
+    if (find_entry_cluster(parent_cluster, name) != 0) return Error::Exist;
+
+    const u32 new_cluster = find_free_cluster();
+    if (new_cluster == 0)                          return Error::NoSpc;
+    if (!write_fat_entry(new_cluster, 0x0FFFFFFF)) return Error::Io;
+
+    u8* zero = alloc_cluster_buffer(cluster_bytes);
+    if (!zero) return Error::NoMem;
+    memset(zero, 0, cluster_bytes);
+
+    auto* dir = reinterpret_cast<DirectoryEntry*>(zero);
+    memset(dir, 0, sizeof(DirectoryEntry));
+    memcpy(dir->name, ".          ", 11);
+    dir->attr               = ATTR_DIRECTORY;
+    dir->first_cluster_low  = new_cluster & 0xFFFF;
+    dir->first_cluster_high = (new_cluster >> 16) & 0xFFFF;
+    update_create_time(*dir);
+
+    dir++;
+    memset(dir, 0, sizeof(DirectoryEntry));
+    memcpy(dir->name, "..         ", 11);
+    dir->attr               = ATTR_DIRECTORY;
+    dir->first_cluster_low  = parent_cluster & 0xFFFF;
+    dir->first_cluster_high = (parent_cluster >> 16) & 0xFFFF;
+    update_create_time(*dir);
+
+    const bool write_ok =
+        device->write(cluster_to_sector(new_cluster), bpb.sectors_per_cluster, zero, cluster_bytes);
+    free_cluster_buffer(zero, cluster_bytes);
+    if (!write_ok) return Error::Io;
+
+    char short_name[12] = {};
+    if (!make_short_name(name, short_name)) return Error::Inval;
+
+    DirectoryEntry new_entry = {};
+    memcpy(new_entry.name, short_name, 11);
+    new_entry.attr               = ATTR_DIRECTORY;
+    new_entry.first_cluster_low  = new_cluster & 0xFFFF;
+    new_entry.first_cluster_high = (new_cluster >> 16) & 0xFFFF;
+    new_entry.file_size          = 0;
+    update_create_time(new_entry);
+
+    write_fs_info();
+
+    if (!write_directory_entry_with_lfn(parent_cluster, name, short_name, &new_entry)) return Error::Io;
+
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::delete_file(const Fat32Node* parent_dir, const char* name) {
+    if (!parent_dir || !name) return Error::Inval;
+
+    const u32 parent_cluster = parent_dir->cluster;
+
+    usize      entry_count = 0;
+    auto       dir_res     = read_directory(parent_cluster, entry_count);
+    if (dir_res.is_err()) return VoidResult::err(dir_res.error());
+    FileEntry* entries = dir_res.unwrap();
+
+    u32            start_cluster = 0;
+    DirectoryEntry victim;
+    bool           found = false;
+
+    for (usize i = 0; i < entry_count; ++i) {
+        if (!entries[i].is_dir() && strcmp(entries[i].get_name(), name) == 0) {
+            start_cluster = entries[i].get_first_cluster();
+            victim        = entries[i].get_directory_entry();
+            found         = true;
+            break;
+        }
+    }
+    kernel::memory::free(entries);
+
+    if (!found)              return Error::NoEnt;
+    if (is_protected(victim)) return Error::Acces;
+
+    if (start_cluster != 0) {
+        trim_cluster_chain(start_cluster);
+        free_cluster_chain(start_cluster);
+    }
+
+    write_fs_info();
+
+    if (!delete_directory_entry_in_directory(parent_cluster, name)) return Error::Io;
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::remove_directory(const Fat32Node* parent_dir, const char* name) {
+    if (!parent_dir || !name) return Error::Inval;
+
+    const u32 parent_cluster = parent_dir->cluster;
+
+    usize      entry_count = 0;
+    auto       dir_res     = read_directory(parent_cluster, entry_count);
+    if (dir_res.is_err()) return VoidResult::err(dir_res.error());
+    FileEntry* entries = dir_res.unwrap();
+
+    u32  target_cluster = 0;
+    bool found          = false;
+
+    for (usize i = 0; i < entry_count; ++i) {
+        if (entries[i].is_dir() && strcmp(entries[i].get_name(), name) == 0) {
+            target_cluster = entries[i].get_first_cluster();
+            found          = true;
+            break;
+        }
+    }
+    kernel::memory::free(entries);
+
+    if (!found) return Error::NoEnt;
+
+    usize      dir_entry_count = 0;
+    auto       sub_res         = read_directory(target_cluster, dir_entry_count);
+    if (sub_res.is_err()) return VoidResult::err(sub_res.error());
+    kernel::memory::free(sub_res.unwrap());
+
+    if (dir_entry_count > 2) return Error::NotEmpty;  // more than "." and ".."
+
+    trim_cluster_chain(target_cluster);
+    free_cluster_chain(target_cluster);
+    write_fs_info();
+
+    if (!delete_directory_entry_in_directory(parent_cluster, name)) return Error::Io;
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::rename(const Fat32Node* parent_dir, const char* old_name, const char* new_name) {
+    if (!parent_dir || !old_name || !new_name || old_name[0] == '\0' || new_name[0] == '\0')
+        return Error::Inval;
+
+    const u32   dir_cluster        = parent_dir->cluster;
+    const u32   cluster_bytes      = bytes_per_cluster();
+    const usize entries_per_cluster = cluster_bytes / sizeof(DirectoryEntry);
+
+    usize      entry_count = 0;
+    auto       dir_res     = read_directory(dir_cluster, entry_count);
+    if (dir_res.is_err() || entry_count == 0) return Error::NoEnt;
+    FileEntry* entries = dir_res.unwrap();
+
+    int found_index = -1;
+    for (usize i = 0; i < entry_count; ++i) {
+        if (strcmp(entries[i].get_name(), old_name) == 0) {
+            found_index = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (found_index < 0) {
+        kernel::memory::free(entries);
+        return Error::NoEnt;
+    }
+
+    const DirectoryEntry old_entry = entries[found_index].get_directory_entry();
+    if (is_protected(old_entry)) {
+        kernel::memory::free(entries);
+        return Error::Acces;
+    }
+
+    usize chain_count = 0;
+    u32*  chain       = get_cluster_chain(dir_cluster, chain_count);
+    if (!chain) {
+        kernel::memory::free(entries);
+        return Error::Io;
+    }
+
+    u32 target_cluster     = 0;
+    int target_entry_index = -1;
+
+    for (usize ci = 0; ci < chain_count && target_entry_index < 0; ++ci) {
+        u8* buffer = alloc_cluster_buffer(cluster_bytes);
+        if (!buffer) continue;
+
+        if (!read_cluster(chain[ci], buffer, cluster_bytes)) {
+            free_cluster_buffer(buffer, cluster_bytes);
+            continue;
+        }
+
+        const auto* dir_entries = reinterpret_cast<DirectoryEntry*>(buffer);
+        for (usize i = 0; i < entries_per_cluster; ++i) {
+            if (dir_entries[i].name[0] == 0x00) break;
+            if (dir_entries[i].name[0] == 0xE5) continue;
+            if (dir_entries[i].attr == ATTR_VOLUME_ID) continue;
+
+            if (dir_entries[i].file_size == old_entry.file_size &&
+                dir_entries[i].first_cluster_low  == old_entry.first_cluster_low &&
+                dir_entries[i].first_cluster_high == old_entry.first_cluster_high) {
+                target_cluster     = chain[ci];
+                target_entry_index = static_cast<int>(i);
+                break;
+            }
+        }
+        free_cluster_buffer(buffer, cluster_bytes);
+    }
+
+    if (target_entry_index < 0) {
+        kernel::memory::free(entries);
+        kernel::memory::free(chain);
+        return Error::NoEnt;
+    }
+
+    u8* buffer = alloc_cluster_buffer(cluster_bytes);
+    if (!buffer) {
+        kernel::memory::free(entries);
+        kernel::memory::free(chain);
+        return Error::NoMem;
+    }
+
+    if (!read_cluster(target_cluster, buffer, cluster_bytes)) {
+        free_cluster_buffer(buffer, cluster_bytes);
+        kernel::memory::free(entries);
+        kernel::memory::free(chain);
+        return Error::Io;
+    }
+
+    auto* dir_entries = reinterpret_cast<DirectoryEntry*>(buffer);
+
+    int old_lfn_count = 0;
+    for (int i = target_entry_index - 1; i >= 0; --i) {
+        if ((dir_entries[i].attr & ATTR_LONG_NAME) != ATTR_LONG_NAME) break;
+        old_lfn_count++;
+    }
+    const int old_total_count = old_lfn_count + 1;
+    const int old_start_index = target_entry_index - old_lfn_count;
+
+    const usize new_name_len   = strlen(new_name);
+    const int   new_lfn_count  = static_cast<int>((new_name_len + 12) / 13);
+    const int   new_total_count = new_lfn_count + 1;
+
+    char new_short_name[12] = {};
+    if (!make_short_name(new_name, new_short_name)) {
+        free_cluster_buffer(buffer, cluster_bytes);
+        kernel::memory::free(entries);
+        kernel::memory::free(chain);
+        return Error::Inval;
+    }
+
+    bool can_overwrite = true;
+    if (new_total_count > old_total_count) {
+        const int extra = new_total_count - old_total_count;
+        for (int i = old_start_index - 1; i >= old_start_index - extra; --i) {
+            if (i < 0 || (dir_entries[i].name[0] != 0x00 && dir_entries[i].name[0] != 0xE5)) {
+                can_overwrite = false;
+                break;
+            }
+        }
+    }
+
+    bool success = false;
+    if (can_overwrite) {
+        for (int i = old_start_index; i < old_start_index + old_total_count; ++i)
+            dir_entries[i].name[0] = 0xE5;
+
+        write_lfn_entries(dir_entries, old_start_index, new_name, new_short_name, new_name_len);
+
+        DirectoryEntry updated = old_entry;
+        memcpy(updated.name, new_short_name, 11);
+        dir_entries[old_start_index + new_lfn_count] = updated;
+
+        success = device->write(cluster_to_sector(target_cluster), bpb.sectors_per_cluster, buffer, cluster_bytes);
+    } else {
+        for (int i = old_start_index; i < old_start_index + old_total_count; ++i)
+            dir_entries[i].name[0] = 0xE5;
+
+        device->write(cluster_to_sector(target_cluster), bpb.sectors_per_cluster, buffer, cluster_bytes);
+
+        DirectoryEntry new_entry = old_entry;
+        memcpy(new_entry.name, new_short_name, 11);
+        success = write_directory_entry_with_lfn(dir_cluster, new_name, new_short_name, &new_entry);
+    }
+
+    free_cluster_buffer(buffer, cluster_bytes);
+    kernel::memory::free(entries);
+    kernel::memory::free(chain);
+
+    if (!success) return Error::Io;
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const {
+    if (!node || !out) return Error::Inval;
+
+    out->inode_id   = node->cluster;
+    out->block_size = bytes_per_cluster();
+    out->dev_id     = dev_id;
+    out->size       = node->file_size;
+
+    if (node->file_size > 0 && out->block_size > 0) {
+        const u64 clusters_used = (node->file_size + out->block_size - 1) / out->block_size;
+        out->blocks = clusters_used * bpb.sectors_per_cluster;
+    }
+
+    out->atime  = fat32_time_to_unix(node->dir_entry.last_access_date, 0);
+    out->mtime  = fat32_time_to_unix(node->dir_entry.write_date, node->dir_entry.write_time);
+    out->ctime  = out->mtime;
+    out->crtime = fat32_time_to_unix(node->dir_entry.creation_date, node->dir_entry.creation_time);
+
+    constexpr u32 mode_dir = 0x4000;
+    constexpr u32 mode_reg = 0x8000;
+    const u16 type = (node->dir_entry.attr & ATTR_DIRECTORY) ? mode_dir : mode_reg;
+    const u16 perm = (node->dir_entry.attr & ATTR_DIRECTORY) ? 0755u : 0644u;
+    out->mode = type | perm;
+
+    out->links_count = 1;
+    out->uid         = 0;
+    out->gid         = 0;
+    out->flags       = VSTAT_FLAG_READABLE;
+    if (!(node->dir_entry.attr & ATTR_READ_ONLY)) out->flags |= VSTAT_FLAG_WRITABLE;
+    out->node_type   = (node->dir_entry.attr & ATTR_DIRECTORY) ? VSTAT_TYPE_DIR : VSTAT_TYPE_FILE;
+
+    return VoidResult::ok();
+}
+
+// ---------------------------------------------------------------------------
+
+VoidResult FileSystem::truncate(Fat32Node* node, usize new_size) {
+    const u32 cluster_bytes = bytes_per_cluster();
+
+    if (new_size == 0) {
+        if (node->cluster != 0) {
+            trim_cluster_chain(node->cluster);
+            free_cluster_chain(node->cluster);
+            node->cluster = 0;
+        }
+    } else {
+        const usize needed = (new_size + cluster_bytes - 1) / cluster_bytes;
+        usize count = 0;
+        if (u32* chain = get_cluster_chain(node->cluster, count); chain && count > needed) {
+            write_fat_entry(chain[needed - 1], 0x0FFFFFFF);
+            for (usize i = needed; i < count; ++i) write_fat_entry(chain[i], 0);
+            kernel::memory::free(chain);
+        }
+    }
+
+    node->file_size                    = new_size;
+    node->dir_entry.file_size          = static_cast<u32>(new_size);
+    node->dir_entry.first_cluster_low  = static_cast<u16>(node->cluster & 0xFFFF);
+    node->dir_entry.first_cluster_high = static_cast<u16>((node->cluster >> 16) & 0xFFFF);
+    update_write_time(node->dir_entry);
+
+    if (!overwrite_directory_entry(node->parent_cluster, node->current_index, &node->dir_entry))
+        return Error::Io;
+
+    return VoidResult::ok();
+}

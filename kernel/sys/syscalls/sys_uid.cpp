@@ -249,18 +249,17 @@ namespace syscalls::internal {
         char abs_path[256];
         if (!VFS::resolve_to_absolute(path, abs_path, sizeof(abs_path))) return -EINVAL;
 
-        VfsNode* node = VFS::open(abs_path);
-        if (!node) return -ENOENT;
+        VfsNode* node = SYSCALL_TRY(VFS::open(abs_path));
 
-        const int perm = vfs_check_chown(node, uid, gid, r->cred);
-        if (perm != 0) {
+        if (const int perm = vfs_check_chown(node, uid, gid, r->cred); perm != 0) {
             VFS::close(node);
             return perm;
         }
 
-        const int result = VFS::chown(node, uid, gid);
+        auto res = VFS::chown(node, uid, gid);
         VFS::close(node);
-        return result;
+        if (res.is_err()) return res.to_errno();
+        return SUCCESS_CODE;
     }
 
     i64 sys_fchown(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -272,15 +271,16 @@ namespace syscalls::internal {
         if (!r) return -ESRCH;
 
         const HandleEntry* he = r->lookup_handle(hid);
-        if (!he || he->type != HANDLE_TYPE_FILE || he->type != HANDLE_TYPE_DIRECTORY) return -EBADH;
+        if (!he || (he->type != HANDLE_TYPE_FILE && he->type != HANDLE_TYPE_DIRECTORY)) return -EBADH;
 
         const auto* vh = static_cast<VfsHandle*>(he->resource);
         if (!vh || !vh->node) return -EBADH;
 
-        const int perm = vfs_check_chown(vh->node, uid, gid, r->cred);
-        if (perm != 0) return perm;
+        if (const int perm = vfs_check_chown(vh->node, uid, gid, r->cred); perm != 0) return perm;
 
-        return VFS::chown(vh->node, uid, gid);
+        auto res = VFS::chown(vh->node, uid, gid);
+        if (res.is_err()) return res.to_errno();
+        return SUCCESS_CODE;
     }
 
     i64 sys_chmod(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -295,35 +295,36 @@ namespace syscalls::internal {
         char abs_path[256];
         if (!VFS::resolve_to_absolute(path, abs_path, sizeof(abs_path))) return -EINVAL;
 
-        VfsNode* node = VFS::open(abs_path);
-        if (!node) return -ENOENT;
+        VfsNode* node = SYSCALL_TRY(VFS::open(abs_path));
 
-        const int perm = vfs_check_chmod(node, mode, r->cred);
-        if (perm != 0) {
+        if (const int perm = vfs_check_chmod(node, mode, r->cred); perm != 0) {
             VFS::close(node);
             return perm;
         }
 
-        const int result = VFS::chmod(node, mode);
+        auto res = VFS::chmod(node, mode);
         VFS::close(node);
-        return result;
+        if (res.is_err()) return res.to_errno();
+        return SUCCESS_CODE;
     }
 
     i64 sys_fchmod(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const HandleId hid = arg0;
         const u16 mode = arg1;
+
         Realm* r = current_realm();
         if (!r) return -ESRCH;
 
         const HandleEntry* he = r->lookup_handle(hid);
-        if (!he || he->type != HANDLE_TYPE_FILE || he->type != HANDLE_TYPE_DIRECTORY) return -EBADH;
+        if (!he || (he->type != HANDLE_TYPE_FILE && he->type != HANDLE_TYPE_DIRECTORY)) return -EBADH;
 
         const auto* vh = static_cast<VfsHandle*>(he->resource);
         if (!vh || !vh->node) return -EBADH;
 
-        const int perm = vfs_check_chmod(vh->node, mode, r->cred);
-        if (perm != 0) return perm;
+        if (const int perm = vfs_check_chmod(vh->node, mode, r->cred); perm != 0) return perm;
 
-        return VFS::chmod(vh->node, mode);
+        auto res = VFS::chmod(vh->node, mode);
+        if (res.is_err()) return res.to_errno();
+        return SUCCESS_CODE;
     }
 }  // namespace syscalls::internal

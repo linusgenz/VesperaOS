@@ -34,7 +34,8 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        return VFS::unlink(norm);
+        SYSCALL_TRY_VOID(VFS::unlink(norm));
+        return SUCCESS_CODE;
     }
 
 }  // namespace syscalls::internal

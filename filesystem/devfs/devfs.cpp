@@ -175,34 +175,34 @@ int DevFs::open(const VfsNode* node) {
     return SUCCESS_CODE;
 }
 
-isize DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
-    if (!node) return -EINVAL;
+Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
+    if (!node) return Error::Inval;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return -EINVAL;
+    if (!entry || !entry->device) return Error::Inval;
 
     SpinlockGuard guard(lock_);
 
     const KernelDevice* kd = entry->device;
     if (kd->chardev) {
         if (!entry->cf) open(node);
-        return kd->chardev->read(entry->cf, buffer, size, offset);
+        return Result<usize>::ok(kd->chardev->read(entry->cf, buffer, size, offset));
     }
     if (kd->block) {
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
-        return kd->block->read(lba, sectors, buffer, size);
+        return Result<usize>::ok(kd->block->read(lba, sectors, buffer, size));
     }
 
-    return -EINVAL;
+    return Error::Inval;
 }
 
-isize DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    if (!node) return -EINVAL;
+Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
+    if (!node) return Error::Inval;
 
     const auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry || !entry->device) return -EINVAL;
+    if (!entry || !entry->device) return Error::Inval;
 
     SpinlockGuard guard(lock_);
 
@@ -211,9 +211,9 @@ isize DevFs::write(VfsNode* node, const usize offset, const usize size, const vo
     // CharDevice
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const int res = open(node); res < 0) return res;
+            if (const int res = open(node); res < 0) return Error::Inval; // TODO adapt chardevs
         }
-        return kd->chardev->write(entry->cf, buffer, size);
+        return Result<usize>::ok(kd->chardev->write(entry->cf, buffer, size));
     }
 
     // BlockDevice
@@ -221,10 +221,10 @@ isize DevFs::write(VfsNode* node, const usize offset, const usize size, const vo
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
-        return kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer));
+        return Result<usize>::ok(kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer)));
     }
 
-    return -EINVAL;
+    return Error::Inval;
 }
 
 isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
@@ -283,7 +283,7 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
         if (!usb_info && kd->parent) usb_info = kd->parent->usb_info;
 
         if (!usb_info) return -ENOTTY;
-        if (!arg)      return -EINVAL;
+        if (!arg) return -EINVAL;
 
         return usb_info->get_usb_device_info(static_cast<usb_device_info_t*>(arg)) ? 0 : -EIO;
     }

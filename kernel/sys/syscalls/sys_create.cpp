@@ -21,9 +21,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/filesystem/vfs.h>
 #include <vespera/log.h>
 
-#include <vespera/filesystem/vfs.h>
 #include "vespera_errno.h"
 
 namespace syscalls::internal {
@@ -36,11 +36,13 @@ namespace syscalls::internal {
             return -EINVAL;
         }
 
-        if (VFS::open(path)) {
+        if (auto res = VFS::open(norm); res.is_ok()) {
+            VFS::close(res.unwrap());
             return -EEXIST;
         }
 
-        return VFS::create(norm);
+        SYSCALL_TRY_VOID(VFS::create(norm));
+        return SUCCESS_CODE;
     }
 
 }  // namespace syscalls::internal

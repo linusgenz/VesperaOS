@@ -24,10 +24,11 @@
 #ifndef VESPERAOS_EXT4_H
 #define VESPERAOS_EXT4_H
 
+#include <klib/string.h>
 #include <klib/vector.h>
 #include <vespera/devices/block.h>
-#include <klib/string.h>
 
+#include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
 namespace ext4 {
@@ -39,6 +40,7 @@ namespace ext4 {
     constexpr u32 EXT4_MAX_DIR_ENTRIES = 256;
     constexpr u32 SUPERBLOCK_OFFSET = 1024;
     constexpr u32 DEFAULT_INODE_SIZE = 128;
+    constexpr u32 EXT4_NAME_LEN = 255;
 
     // The i_block area is 60 bytes: 12 bytes for the ExtentHeader leave room for
     // (60 - 12) / 12 = 4 Extent entries at depth 0.
@@ -267,18 +269,18 @@ namespace ext4 {
 
         // Returns a heap-allocated array of up to EXT4_MAX_DIR_ENTRIES entries.
         // The caller is responsible for freeing the array with kernel::memory::free().
-        FileEntry* read_directory(u32 inode_number, usize& out_count) const;
-        i64 read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const;
-        i64 write_file(u32 inode_number, u64 offset, usize size, const void* buf);
-        u32 create_file(u32 dir_inode_no, const char* name);
-        u32 create_dir(u32 dir_inode_no, const char* name);
-        bool unlink(u32 dir_inode_no, const char* name);
-        bool rmdir(u32 dir_inode_no, const char* name);
-        bool rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);
-        bool stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
-        bool truncate(u32 inode_no, u64 new_size);
-        bool chown(u32 inode_no, u32 uid, u32 gid) const;
-        bool chmod(u32 inode_no, u16 new_mode) const;
+        Result<FileEntry*> read_directory(u32 inode_number, usize& out_count) const;
+        Result<usize> read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const;
+        Result<usize> write_file(u32 inode_number, u64 offset, usize size, const void* buf);
+        Result<u32> create_file(u32 dir_inode_no, const char* name);
+        Result<u32> create_dir(u32 dir_inode_no, const char* name);
+        VoidResult unlink(u32 dir_inode_no, const char* name);
+        VoidResult rmdir(u32 dir_inode_no, const char* name);
+        VoidResult rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);
+        VoidResult stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
+        VoidResult truncate(u32 inode_no, u64 new_size);
+        VoidResult chown(u32 inode_no, u32 uid, u32 gid) const;
+        VoidResult chmod(u32 inode_no, u16 new_mode) const;
 
        private:
         BlockDevice* device_;

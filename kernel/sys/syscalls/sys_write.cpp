@@ -63,17 +63,16 @@ namespace syscalls::internal {
             case HANDLE_TYPE_FILE: {
                 const auto *vh = static_cast<VfsHandle *>(he->resource);
                 if (!vh) return -EBADH;
-                const isize bytes = VFS::write(vh->node, vh->context->position, count, buf);
-                if (bytes > 0) {
-                    vh->context->position += bytes;
-                }
-                return bytes;
+
+                const usize bytes = SYSCALL_TRY(VFS::write(vh->node, vh->context->position, count, buf));
+                if (bytes > 0) vh->context->position += bytes;
+                return static_cast<isize>(bytes);
             }
             case HANDLE_TYPE_PIPE: {
-                auto* ch = static_cast<Channel*>(he->resource);
+                auto *ch = static_cast<Channel *>(he->resource);
                 isize r;
                 while ((r = ch->send(buf, count)) == -EAGAIN) {
-                   // kernel::scheduling::yield();
+                    // kernel::scheduling::yield();
                     asm volatile("pause");
                 }
                 return r;

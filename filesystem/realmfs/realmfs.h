@@ -56,14 +56,14 @@ public:
     static void init();
 
     static int register_realm(u64 realm_id, const char* name, void* realm_ptr);
-    static int register_unit(u64 unit_id, const char* name, void* unit_ptr, const char* realm_name);
+    static VoidResult register_unit(u64 unit_id, const char* name, void* unit_ptr, const char* realm_name);
 
     static int unregister_realm(u64 realm_id);
-    static int unregister_unit(u64 unit_id);
+    static VoidResult unregister_unit(u64 unit_id);
 
     // VFS operations
-    static isize read(const VfsNode* node, usize offset, usize size, void* buffer);
-    static isize write(VfsNode* node, usize offset, usize size, const void* buffer);
+    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer);
+    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer);
     static isize ioctl(const VfsNode* node, u32 cmd, void* arg);
     static void close(VfsNode* node);
 };

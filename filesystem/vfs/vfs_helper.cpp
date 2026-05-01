@@ -39,7 +39,7 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
 
     if (count == 1)
     {
-        *parent_out = open("/"); // root dir
+        *parent_out = open("/").value_or(nullptr); // root dir
         strncpy(name_out, components[0], 31);
         name_out[31] = '\0';
         return *parent_out != nullptr;
@@ -56,7 +56,7 @@ bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)
             strncat(parent_path, "/", sizeof(parent_path) - strlen(parent_path) - 1);
     }
 
-    *parent_out = open(parent_path);
+    *parent_out = open(parent_path).value_or(nullptr);;
     if (!*parent_out) return false;
 
     strncpy(name_out, components[count - 1], 31);
@@ -95,7 +95,7 @@ void VFS::ensure_path_exists(const char* path)
         if (strlen(current) > 1) strcat(current, "/");
         strcat(current, components[i]);
 
-        if (const VfsNode* node = VFS::open(current); !node)
+        if (const VfsNode* node = VFS::open(current).value_or(nullptr); !node)
         {
             VFS::mkdir(current);
         }

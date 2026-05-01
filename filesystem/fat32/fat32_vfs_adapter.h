@@ -41,8 +41,8 @@
     };
 
     struct Fat32DirHandle {
-        fat32::FileEntry* entries;
-        usize count;
+        fat32::FileEntry* entries = nullptr;
+        usize count = 0;
         usize index;
     };
 

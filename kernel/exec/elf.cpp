@@ -286,10 +286,11 @@ bool ElfLoader::validate_architecture(const Elf64_Ehdr* header) {
 }
 
 ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path, Realm* realm) {
-    VfsNode* file = VFS::open(path);
-    if (!file) {
+    Result<VfsNode*> file_result = VFS::open(path);
+    if (file_result.is_err()) {
         return {nullptr, 0, "Failed to open file"};
     }
+    VfsNode* file = file_result.unwrap();
 
     const usize size = file->size;
     void* data = kernel::memory::malloc(size);

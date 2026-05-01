@@ -115,6 +115,7 @@ class Unit {
    public:
     UnitId id{0};
     RealmId rid{0};
+    Realm* parent{nullptr};
     char* name{nullptr};
 
     Unit* next{nullptr};

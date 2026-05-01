@@ -22,12 +22,13 @@
 
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/stat.h>
+#include <vespera/filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
 #include "../../../filesystem/vfs/vfs_node.h"
-#include <vespera/filesystem/vfs.h>
+#include "vespera/log.h"
 
 namespace syscalls::internal {
 
@@ -63,26 +64,22 @@ namespace syscalls::internal {
         if (!path || !*path || !out_buf) return -EINVAL;
 
         char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
-            return -EINVAL;
-        }
+        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) return -EINVAL;
 
-        VfsNode* node = VFS::open(norm);
-        if (!node) return -ENOENT;
+        VfsNode* node = SYSCALL_TRY(VFS::open(norm));
 
         vespera_stat_t st{};
-
         st.node_type = vfs_type_to_stat_type(node->type);
         st.flags = node_flags_from_vfs(node);
         st.size = node->size;
 
-        if (node->ops && node->ops->stat) {
-            node->ops->stat(node, &st);
-        }
-
+        auto stat_res = VFS::stat(node, &st);
         VFS::close(node);
+
+        if (stat_res.is_err()) return stat_res.to_errno();
+
         memcpy(out_buf, &st, sizeof(st));
-        return 0;
+        return SUCCESS_CODE;
     }
 
 }  // namespace syscalls::internal

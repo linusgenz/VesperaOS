@@ -200,6 +200,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
 
             u->id = allocate_id();
             u->rid = realm_id;
+            u->parent = RealmManager::get(realm_id);
             u->name = strdup(cfg->name);
             u->exit_code = 0;
             u->active = true;
@@ -382,11 +383,11 @@ void UnitManager::list() {
     }
 }
 
-isize UnitManager::get_status(void* manager_ref, void* buffer, const usize size, usize) {
-    if (!manager_ref || !buffer || size < sizeof(unit_info_t)) return -EINVAL;
+Result<usize> UnitManager::get_status(void* manager_ref, void* buffer, usize size, usize) {
+    if (!manager_ref || !buffer || size < sizeof(unit_info_t)) return Error::Inval;
 
-    const auto u = static_cast<Unit*>(manager_ref);
-    unit_info_t status;
+    const auto* u = static_cast<Unit*>(manager_ref);
+    unit_info_t status{};
 
     status.id = u->id;
     status.realm_id = u->rid;
@@ -395,12 +396,11 @@ isize UnitManager::get_status(void* manager_ref, void* buffer, const usize size,
     status.cpu_id = u->cpu_id;
     status.exit_code = u->exit_code;
     status.handle_count = u->handle_count;
-
     status.kernel_stack_start = virt_raw(u->context.stack);
     status.kernel_stack_end = virt_raw(u->context.stack_top);
     status.user_stack_start = virt_raw(u->context.user_stack);
     status.user_stack_end = virt_raw(u->context.user_stack_top);
 
     memcpy(buffer, &status, sizeof(unit_info_t));
-    return sizeof(unit_info_t);
+    return Result<usize>::ok(sizeof(unit_info_t));
 }

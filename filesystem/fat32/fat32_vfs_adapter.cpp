@@ -38,54 +38,53 @@
 
 using namespace fat32;
 
-static isize fat32_read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
-    if (!node || !buffer) return -EFAULT;
-    if (size == 0) return 0;
+static Result<usize> fat32_read(const VfsNode* node, usize offset, usize size, void* buffer) {
+    if (!node || !buffer) return Error::Fault;
+    if (size == 0) return Result<usize>::ok(0);
 
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
-    if (!fnode) return -EBADH;
+    if (!fnode) return Error::BadH;
 
     const bool update_atime = !node->mount || !(node->mount->flags & MS_NOATIME);
-
-    usize actual = 0;
-    if (!fnode->fs->read_file(fnode, buffer, size, actual, offset, update_atime)) return -EIO;
-
-    return static_cast<isize>(actual);
+    return fnode->fs->read_file(fnode, buffer, size, offset, update_atime);
 }
 
-static isize fat32_write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    if (!node || !buffer) return -EFAULT;
-    if (size == 0) return 0;
+static Result<usize> fat32_write(VfsNode* node, usize offset, usize size, const void* buffer) {
+    if (!node || !buffer) return Error::Fault;
+    if (size == 0) return Result<usize>::ok(0);
 
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
-    if (!fnode) return -EBADH;
+    if (!fnode) return Error::BadH;
 
     if (offset > fnode->file_size) {
         Log::debug("fat32_write: offset beyond file size (hole not supported)");
-        return -EINVAL;
+        return Error::Inval;
     }
 
-    if (!fnode->fs->write_file(fnode, buffer, size, offset)) return -EIO;
+    if (VoidResult r = fnode->fs->write_file(fnode, buffer, size, offset); r.is_err()) return r.error();
 
     node->size = fnode->file_size;
-    return static_cast<isize>(size);
+    return Result<usize>::ok(size);
 }
 
-static VfsNode* fat32_find(VfsNode* node, const char* name) {
-    if (!node) return nullptr;
+static Result<VfsNode*> fat32_find(VfsNode* node, const char* name) {
+    if (!node) return Error::Fault;
+
     auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    if (!dir || !dir->is_dir) return nullptr;
+    if (!dir || !dir->is_dir) return Error::NotDir;
 
     usize entry_count = 0;
-    FileEntry* entries = dir->fs->read_directory(dir->path, entry_count);
-    if (!entries) return nullptr;
+    Result<FileEntry*> entries_result = dir->fs->read_directory(dir->path, entry_count);
+    if (entries_result.is_err()) return entries_result.error();
+
+    FileEntry* entries = entries_result.unwrap();
 
     for (usize i = 0; i < entry_count; i++) {
         if (const char* entry_name = entries[i].get_name(); strcmp(entry_name, name) == 0) {
             auto* child_data = new Fat32Node();
             if (!child_data) {
                 kernel::memory::free(entries);
-                return nullptr;
+                return Error::NoMem;
             }
 
             child_data->fs = dir->fs;
@@ -96,8 +95,8 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
             child_data->file_size = entries[i].get_file_size();
             child_data->dir_entry = entries[i].get_directory_entry();
             child_data->first_lfn_index = find_first_lfn_index(entries, i);
+            child_data->cluster = entries[i].get_first_cluster();
 
-            // neuen Pfad bauen: "/EFI/BOOT" + "/" + "foo.txt"
             snprintf(
                 child_data->path,
                 sizeof(child_data->path),
@@ -106,8 +105,6 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
                 strcmp(dir->path, "/") == 0 ? "" : "/",
                 name
             );
-
-            child_data->cluster = entries[i].get_first_cluster();
 
             auto* child = new VfsNode();
             child->name = strdup(entries[i].get_name());
@@ -118,118 +115,112 @@ static VfsNode* fat32_find(VfsNode* node, const char* name) {
             child->size = entries[i].get_file_size();
 
             kernel::memory::free(entries);
-            return child;
+            return Result<VfsNode*>::ok(child);
         }
     }
 
     kernel::memory::free(entries);
-    return nullptr;
+    return Error::NoEnt;
 }
 
-void* fat32_opendir(const VfsNode* dir) {
-    if (!dir) return nullptr;
-    const auto* fat_node = static_cast<Fat32Node*>(dir->internal_data);
+static Result<void*> fat32_opendir(const VfsNode* dir) {
+    if (!dir) return Error::Fault;
+
+    auto* fat_node = static_cast<const Fat32Node*>(dir->internal_data);
     auto* handle = new Fat32DirHandle();
-    handle->entries = fat_node->fs->read_directory(fat_node->cluster, handle->count);
+
+    Result<FileEntry*> entries_result = fat_node->fs->read_directory(fat_node->cluster, handle->count);
+    if (entries_result.is_err()) {
+        delete handle;
+        return Result<void*>::err(entries_result.error());
+    }
+
+    handle->entries = entries_result.unwrap();
     handle->index = 0;
-    return handle;
+    return Result<void*>::ok(handle);
 }
 
-int fat32_readdir(void* h, dirent_t* out) {
+static Result<bool> fat32_readdir(void* h, dirent_t* out) {
     auto* handle = static_cast<Fat32DirHandle*>(h);
-    if (!handle || handle->index >= handle->count) return 0;
+    if (!handle) return Error::Fault;
+    if (handle->index >= handle->count) return Result<bool>::ok(false);
 
-    const auto& entry = handle->entries[handle->index];
+    const FileEntry& entry = handle->entries[handle->index];
     const char* name = entry.get_name();
-    if (!name) return 0;
+    if (!name) return Result<bool>::ok(false);
 
     strncpy(out->name, name, sizeof(out->name) - 1);
     out->name[sizeof(out->name) - 1] = '\0';
-
-    // FAT32 attribute byte
-    if (entry.is_dir()) {
-        out->type = DT_DIR;
-    } /*else if (attr & 0x08) {
-        out->type = DT_EXEC; // optional: Volume Label / System
-    }*/
-    else {
-        out->type = DT_FILE;
-    }
+    out->type = entry.is_dir() ? DT_DIR : DT_FILE;
 
     handle->index++;
-    return 1;
+    return Result<bool>::ok(true);
 }
 
-void fat32_closedir(void* h) {
-    const auto* handle = static_cast<Fat32DirHandle*>(h);
+static void fat32_closedir(void* h) {
+    auto* handle = static_cast<Fat32DirHandle*>(h);
     if (!handle) return;
 
-    if (handle->entries) {
-        kernel::memory::free(handle->entries);
-    }
+    if (handle->entries) kernel::memory::free(handle->entries);
     delete handle;
 }
 
 static void fat32_close(VfsNode* node) {
     if (!node) return;
 
-    if (auto* data = static_cast<Fat32Node*>(node->internal_data)) {
-        delete data;
-    }
+    if (auto* data = static_cast<Fat32Node*>(node->internal_data)) delete data;
 
     kernel::memory::free(const_cast<char*>(node->name));
     delete node;
 }
 
-static int fat32_create(const VfsNode* node, const char* name) {
-    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->create_file(dir, name) ? 0 : 1;
+static VoidResult fat32_create(const VfsNode* node, const char* name) {
+    auto* dir = static_cast<const Fat32Node*>(node->internal_data);
+    return dir->fs->create_file(dir, name);
 }
 
-static int fat32_rename(const VfsNode* node, const char* old_name, const VfsNode* new_parent, const char* new_name) {
-    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    if (!dir || !old_name || !new_name) return -EINVAL;
+static VoidResult fat32_rename(
+    const VfsNode* node, const char* old_name, const VfsNode* new_parent, const char* new_name
+) {
+    auto* dir = static_cast<const Fat32Node*>(node->internal_data);
+    if (!dir || !old_name || !new_name) return Error::Inval;
 
-    if (!dir->fs->rename(dir, old_name, new_name)) {
-        return -EIO;  // Could not rename entry
-    }
-
-    return 0;
+    return dir->fs->rename(dir, old_name, new_name);
 }
 
-static int fat32_mkdir(const VfsNode* node, const char* name) {
-    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
+static VoidResult fat32_mkdir(const VfsNode* node, const char* name) {
+    auto* dir = static_cast<const Fat32Node*>(node->internal_data);
     return dir->fs->create_directory(dir, name);
 }
 
-static int fat32_rmdir(const VfsNode* node, const char* name) {
-    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->remove_directory(dir, name) ? 0 : 1;
+static VoidResult fat32_rmdir(const VfsNode* node, const char* name) {
+    auto* dir = static_cast<const Fat32Node*>(node->internal_data);
+    return dir->fs->remove_directory(dir, name);
 }
 
-static int fat32_unlink(const VfsNode* node, const char* name) {
-    const auto* dir = static_cast<Fat32Node*>(node->internal_data);
-    return dir->fs->delete_file(dir, name) ? 0 : 1;
+static VoidResult fat32_unlink(const VfsNode* node, const char* name) {
+    auto* dir = static_cast<const Fat32Node*>(node->internal_data);
+    return dir->fs->delete_file(dir, name);
 }
 
-static int fat32_stat(const VfsNode* node, vespera_stat_t* out) {
-    if (!node || !out) return -EINVAL;
-    const auto* fnode = static_cast<const Fat32Node*>(node->internal_data);
-    if (!fnode) return -EINVAL;
+static VoidResult fat32_stat(const VfsNode* node, vespera_stat_t* out) {
+    if (!node || !out) return Error::Inval;
 
-    const u32 dev_id = (node->mount && node->mount->device)
-                       ? node->mount->device->device_id : 0;
+    auto* fnode = static_cast<const Fat32Node*>(node->internal_data);
+    if (!fnode) return Error::Inval;
 
-    return fnode->fs->stat(fnode, out, dev_id) ? 0 : -EIO;
+    const u32 dev_id = (node->mount && node->mount->device) ? node->mount->device->device_id : 0;
+
+    return fnode->fs->stat(fnode, out, dev_id);
 }
 
-static int fat32_truncate(VfsNode* node, usize new_size) {
+static VoidResult fat32_truncate(VfsNode* node, usize new_size) {
     auto* fnode = static_cast<Fat32Node*>(node->internal_data);
-    if (!fnode) return -EINVAL;
-    u32 status = fnode->fs->truncate(fnode, new_size);
-    if (status == 1) return -EIO;
+    if (!fnode) return Error::Inval;
+
+    TRY_VOID(fnode->fs->truncate(fnode, new_size));
     node->size = new_size;
-    return 0;
+    return VoidResult::ok();
 }
 
 static VfsNodeOps fat32_ops = {
