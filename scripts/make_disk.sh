@@ -7,7 +7,7 @@ KERNEL_ELF="$3"
 SRC_DIR="$4"
 
 # Größen
-IMG_SIZE_MB=128
+IMG_SIZE_MB=256
 EFI_SIZE_MB=64
 
 MNT_DIR=$(mktemp -d)
@@ -75,6 +75,16 @@ sudo cp -r "$SYSROOT_DIR/etc"     "$ROOT_MNT/"
 sudo cp -r "$SYSROOT_DIR/tmp"     "$ROOT_MNT/"
 sudo cp -r "$SYSROOT_DIR/mnt"     "$ROOT_MNT/"
 sudo cp -r "$SYSROOT_DIR/var"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/root"     "$ROOT_MNT/"
+sudo cp -r "$SYSROOT_DIR/home"     "$ROOT_MNT/"
+
+sudo cp "$SYSROOT_DIR/main.lua" "$ROOT_MNT/"
+
+if [ -f "$ROOT_MNT/bin/su" ]; then
+    echo "[make_disk] Setting setuid bit on /bin/su"
+    sudo chown root:root "$ROOT_MNT/bin/su"
+    sudo chmod 4755 "$ROOT_MNT/bin/su"
+fi
 
 sudo cp "$SRC_DIR/assets/test.jpg" "$ROOT_MNT/"
 sudo cp "$SRC_DIR/assets/CaskaydiaCoveNerdFontMono.ttf" "$ROOT_MNT/etc/fonts/"

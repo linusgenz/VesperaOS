@@ -250,6 +250,9 @@ add_custom_target(sysroot_install
         ${SYSROOT}/tmp
         ${SYSROOT}/mnt
         ${SYSROOT}/var/log
+        ${SYSROOT}/home
+        ${SYSROOT}/home/vespera
+        ${SYSROOT}/root
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/userspace/lib/include

@@ -24,15 +24,6 @@ add_custom_target(bootloader
         COMMENT "Building Limine bootloader"
 )
 
-# splash.h
-add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/splash.h
-        COMMAND xxd -i ${CMAKE_SOURCE_DIR}/Splash_VesperaOS.raw > ${CMAKE_SOURCE_DIR}/splash.h
-        DEPENDS ${CMAKE_SOURCE_DIR}/Splash_VesperaOS.raw
-        COMMENT "Generating splash.h"
-)
-add_custom_target(splash_header DEPENDS ${CMAKE_SOURCE_DIR}/splash.h)
-
 # ────────────────────────────────────────────────────────────────
 # Convenience aliases
 # ────────────────────────────────────────────────────────────────
@@ -56,7 +47,7 @@ add_custom_target(build-userspace
 
 add_custom_target(disk_image
         COMMAND ${CMAKE_COMMAND} -E echo "Creating partitioned disk image..."
-        COMMAND bash ${CMAKE_SOURCE_DIR}/make_disk.sh
+        COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/make_disk.sh
         ${CMAKE_BINARY_DIR}/boot.img
         ${LIMINE_DIR}
         ${CMAKE_BINARY_DIR}/kernel/kernel.elf
@@ -82,7 +73,7 @@ if(DEFINED DEVICE)
     )
 else()
     add_custom_target(img
-            COMMAND bash ${CMAKE_SOURCE_DIR}/flash.sh ${CMAKE_BINARY_DIR}/boot.img
+            COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/flash.sh ${CMAKE_BINARY_DIR}/boot.img
             DEPENDS disk_image
             COMMENT "Launching interactive USB flash tool"
     )
@@ -102,7 +93,7 @@ add_custom_target(test
         -smp 8
         -machine q35
         -enable-kvm
-        -cpu qemu64
+        -cpu host
         -vga std
         -drive if=pflash,format=raw,unit=0,readonly=on,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd
         -drive if=pflash,format=raw,unit=1,file=${CMAKE_BINARY_DIR}/OVMF_VARS.fd
@@ -114,6 +105,8 @@ add_custom_target(test
         -device usb-storage,drive=usbstick
         -device nvme,id=nvme0,serial=deadbeef
         -device nvme-ns,drive=fat32drive,bus=nvme0
+        #  -device ahci,id=ahci0
+        # -device ide-hd,drive=usbstick2,bus=ahci0.0
         -device usb-kbd
         -trace *msi*
         -D qemu.log
