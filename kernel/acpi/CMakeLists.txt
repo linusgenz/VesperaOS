@@ -21,15 +21,13 @@ list(FILTER ACPICA_SOURCES EXCLUDE REGEX ".*/decompiler/.*")
 
 message(STATUS "ACPICA: ${CMAKE_CURRENT_SOURCE_DIR}")
 
+# ─── acpica: raw C library, no VesperaOS headers ─────────────────────────────
+
 add_library(acpica OBJECT ${ACPICA_SOURCES})
 
-set_target_properties(acpica PROPERTIES
-        LINKER_LANGUAGE C
-)
+set_target_properties(acpica PROPERTIES LINKER_LANGUAGE C)
 
-set_source_files_properties(${ACPICA_SOURCES}
-        PROPERTIES LANGUAGE C
-)
+set_source_files_properties(${ACPICA_SOURCES} PROPERTIES LANGUAGE C)
 
 target_compile_options(acpica PRIVATE
         -w
@@ -60,10 +58,10 @@ target_include_directories(acpica PRIVATE
 
 set(ACPI_KERNEL_SOURCES
         "acpi_osl.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/acpi.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/acpi_subsystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/ec.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/madt.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/power.cpp"
 )
 
 add_library(acpi_kernel OBJECT ${ACPI_KERNEL_SOURCES})

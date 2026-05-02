@@ -1,3 +1,5 @@
+#include <acpi/acpi_subsystem.h>
+
 #include "../../arch/x86_64/interrupts/ioapic.h"
 #include "../units/unit_manager.h"
 #include "vespera/interrupts.h"

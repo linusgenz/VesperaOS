@@ -22,7 +22,10 @@
 
 #include "ec.h"
 
-#include <acpi/acpi.h>
+extern "C" {
+#include "acpica/include/acpi.h"
+}
+
 #include <vespera/cpu/io.h>
 #include <vespera/log.h>
 #include <vespera/sync/semaphore.h>

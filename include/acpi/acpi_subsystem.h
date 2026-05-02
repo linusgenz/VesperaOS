@@ -1,4 +1,4 @@
-// power.h
+// acpi_subsystem.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -20,15 +20,27 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_KERNEL_ACPI_POWER_H
-#define VESPERAOS_KERNEL_ACPI_POWER_H
+#ifndef VESPERAOS_INCLUDE_ACPI_ACPI_SUBSYSTEM_H
+#define VESPERAOS_INCLUDE_ACPI_ACPI_SUBSYSTEM_H
+
+#include <vespera/types.h>
+
+#include "../../kernel/acpi/acpi_tables.h"
+
+struct BootInfo;
 
 namespace kernel::acpi {
+    void early_init(const BootInfo* boot_info);
 
-    [[noreturn]] void reboot();
+    void init();
 
-    [[noreturn]] void power_off();
+    [[nodiscard]] u64 get_rsdp_phys();
+
+    [[nodiscard]] FADT* get_fadt();
+    [[nodiscard]] MADT_HEADER* get_madt();
+    [[nodiscard]] MCFG_HEADER* get_mcfg();
+    [[nodiscard]] HPET* get_hpet();
 
 }  // namespace kernel::acpi
 
-#endif  // VESPERAOS_KERNEL_ACPI_POWER_H
+#endif  // VESPERAOS_INCLUDE_ACPI_ACPI_SUBSYSTEM_H

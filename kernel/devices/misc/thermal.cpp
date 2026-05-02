@@ -37,37 +37,29 @@ constexpr u32 MSR_TEMPERATURE_TARGET = 0x1A2u;
 
 namespace {
 
-    /// Returns true if the CPU advertises digital thermal sensor support
-    /// via CPUID.06H:EAX[0] (per-core DTS) and package thermal MSR support
-    /// via CPUID.06H:EAX[6].
+    // Returns true if the CPU advertises package thermal MSR support via
+    // CPUID.06H:EAX[6].
     bool cpu_has_package_thermal() {
         u32 eax = 0;
         asm volatile("cpuid" : "=a"(eax) : "a"(0x06u) : "ebx", "ecx", "edx");
-        return (eax & (1 << 6));
+        return (eax & (1u << 6)) != 0;
     }
 
     u32 read_tjmax_celsius() {
-        u64 val = rdmsr(MSR_TEMPERATURE_TARGET);
-        u32 tjmax = static_cast<u32>((val >> 16) & 0xFFu);
+        const u64 val = rdmsr(MSR_TEMPERATURE_TARGET);
+        const u32 tjmax = static_cast<u32>((val >> 16) & 0xFFu);
         return (tjmax != 0) ? tjmax : 100u;
     }
 
     bool read_package_thermal_msr(thermal_zone_t* zone) {
-        if (!cpu_has_package_thermal()) {
-            return false;
-        }
+        if (!cpu_has_package_thermal()) return false;
 
-        u64 status = rdmsr(MSR_PACKAGE_THERM_STATUS);
+        const u64 status = rdmsr(MSR_PACKAGE_THERM_STATUS);
+        if (!(status & (1ull << 31))) return false;  // reading not valid
 
-        // Bit 31: reading valid
-        if (!(status & (1ull << 31))) {
-            return false;
-        }
-
-        // Bits 22:16: degrees below TJMAX (higher readout = cooler)
-        u32 readout = static_cast<u32>((status >> 16) & 0x7Fu);
-        u32 tjmax = read_tjmax_celsius();
-        u32 temp_c = (readout <= tjmax) ? (tjmax - readout) : tjmax;
+        const u32 readout = static_cast<u32>((status >> 16) & 0x7Fu);
+        const u32 tjmax = read_tjmax_celsius();
+        const u32 temp_c = (readout <= tjmax) ? (tjmax - readout) : tjmax;
 
         memset(zone->name, 0, sizeof(zone->name));
         memcpy(zone->name, "pkg0", 4);
@@ -80,76 +72,40 @@ namespace {
         return true;
     }
 
-    struct acpi_tz_ctx {
+    // ─── ACPI thermal zone enumeration ───────────────────────────────────────
+
+    struct tz_walk_ctx {
         thermal_info_t* info;
         u32 max_zones;
     };
 
-    ACPI_STATUS
-    acpi_thermal_walk_cb(ACPI_HANDLE object, UINT32 /*nesting_level*/, void* context, void** /*return_value*/) {
-        auto* ctx = static_cast<acpi_tz_ctx*>(context);
+    static bool acpi_tz_walk(kernel::acpi::acpi_handle_t object, u32 /*nesting*/, void* context) {
+        auto* ctx = static_cast<tz_walk_ctx*>(context);
         thermal_info_t* info = ctx->info;
 
-        if (info->zone_count >= ctx->max_zones) {
-            return AE_OK;
-        }
+        if (info->zone_count >= ctx->max_zones) return false;
 
-        // temperature in tenths of Kelvin
-        ACPI_BUFFER result{};
-        result.Length = ACPI_ALLOCATE_BUFFER;
-        result.Pointer = nullptr;
+        // _TMP: temperature in tenths of Kelvin.
+        const kernel::acpi::eval_result tmp = kernel::acpi::evaluate_integer(object, "_TMP");
+        if (!tmp.ok) return true;  // skip this zone, continue walk
 
-        ACPI_STATUS status =
-            AcpiEvaluateObjectTyped(object, const_cast<ACPI_STRING>("_TMP"), nullptr, &result, ACPI_TYPE_INTEGER);
+        const u64 tenths_k = tmp.integer;
+        if (tenths_k < 2732u) return true;  // below 0 °C — spurious, skip
 
-        if (ACPI_FAILURE(status)) {
-            return AE_OK;
-        }
+        const u64 temp_mc = (tenths_k - 2732u) * 100u;
 
-        auto* obj = static_cast<ACPI_OBJECT*>(result.Pointer);
-        // ACPI temperature: tenths of Kelvin.  Convert to milli-Celsius:
-        //   T_mc = (T_tenths_K - 2732) * 100
-        u64 tenths_k = obj->Integer.Value;
-        AcpiOsFree(result.Pointer);
-
-        if (tenths_k < 2732u) {
-            // idk how this should happen but we catch this anyway
-            return AE_OK;
-        }
-
-        u64 temp_mc = (tenths_k - 2732u) * 100u;
-
-        // Retrieve _CRT (critical trip point) if available; ignore on failure.
+        // _CRT: critical trip point (optional).
         u32 crit_mc = 0;
-        ACPI_BUFFER crit_buf{};
-        crit_buf.Length = ACPI_ALLOCATE_BUFFER;
-        crit_buf.Pointer = nullptr;
-
-        if (ACPI_SUCCESS(
-                AcpiEvaluateObjectTyped(object, const_cast<ACPI_STRING>("_CRT"), nullptr, &crit_buf, ACPI_TYPE_INTEGER)
-            )) {
-            auto* cobj = static_cast<ACPI_OBJECT*>(crit_buf.Pointer);
-            if (cobj->Integer.Value >= 2732u) {
-                crit_mc = static_cast<u32>((cobj->Integer.Value - 2732u) * 100u);
-            }
-            AcpiOsFree(crit_buf.Pointer);
+        const kernel::acpi::eval_result crt = kernel::acpi::evaluate_integer(object, "_CRT");
+        if (crt.ok && crt.integer >= 2732u) {
+            crit_mc = static_cast<u32>((crt.integer - 2732u) * 100u);
         }
 
-        // Build a zone name from the ACPI object path (last 4 chars).
         thermal_zone_t* zone = &info->zones[info->zone_count];
         memset(zone->name, 0, sizeof(zone->name));
 
-        ACPI_BUFFER name_buf{};
-        name_buf.Length = ACPI_ALLOCATE_BUFFER;
-        name_buf.Pointer = nullptr;
-        if (ACPI_SUCCESS(AcpiGetName(object, ACPI_SINGLE_NAME, &name_buf))) {
-            const char* src = static_cast<const char*>(name_buf.Pointer);
-            usize len = strlen(src);
-            usize copy = (len < 15u) ? len : 15u;
-            memcpy(zone->name, src, copy);
-            AcpiOsFree(name_buf.Pointer);
-        } else {
-            // Fallback name
+        if (!kernel::acpi::get_object_name(object, zone->name, sizeof(zone->name))) {
+            // Fallback: tzN
             zone->name[0] = 't';
             zone->name[1] = 'z';
             zone->name[2] = static_cast<char>('0' + info->zone_count);
@@ -162,14 +118,12 @@ namespace {
         zone->_pad = 0;
 
         info->zone_count++;
-        return AE_OK;
+        return true;
     }
 
     void enumerate_acpi_thermal_zones(thermal_info_t* info, u32 max_zones) {
-        acpi_tz_ctx ctx{info, max_zones};
-        AcpiWalkNamespace(
-            ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT, ACPI_UINT32_MAX, acpi_thermal_walk_cb, nullptr, &ctx, nullptr
-        );
+        tz_walk_ctx ctx{info, max_zones};
+        kernel::acpi::walk_namespace(kernel::acpi::acpi_object_type::thermal, acpi_tz_walk, &ctx);
     }
 
 }  // namespace
@@ -187,14 +141,11 @@ int ThermalDevice::release(CharFile*) {
 }
 
 isize ThermalDevice::read(CharFile*, void* buffer, const usize count, usize) {
-    if (!buffer || count < sizeof(thermal_info_t)) {
-        return -EINVAL;
-    }
+    if (!buffer || count < sizeof(thermal_info_t)) return -EINVAL;
 
     thermal_info_t info{};
     info.zone_count = 0;
 
-    // Zone 0 is always Intel Package Thermal MSR (if available)
     if (read_package_thermal_msr(&info.zones[0])) {
         info.zone_count = 1;
     }

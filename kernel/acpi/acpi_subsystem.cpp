@@ -20,7 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "acpi_subsystem.h"
+extern "C" {
+#include "acpica/include/acpi.h"
+}
 
 #include <acpi/acpi.h>
 #include <acpi/madt.h>
@@ -29,6 +31,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
+#include "acpi/acpi_subsystem.h"
 #include "acpi_osl.h"
 #include "acpi_tables.h"
 #include "ec.h"

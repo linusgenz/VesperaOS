@@ -99,8 +99,8 @@ set_source_files_properties(
 # version header
 add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/kernel/kversion.h
-        COMMAND bash ${CMAKE_SOURCE_DIR}/generate_version_header.sh
-        DEPENDS ${CMAKE_SOURCE_DIR}/generate_version_header.sh
+        COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/generate_version_header.sh
+        DEPENDS ${CMAKE_SOURCE_DIR}/scripts/generate_version_header.sh
 )
 add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 

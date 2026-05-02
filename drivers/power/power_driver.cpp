@@ -28,14 +28,19 @@
 #include <vespera/devices/char_device.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/filesystem/devfs.h>
+#include <vespera/ipc/vbus_manager.h>
 #include <vespera/log.h>
 #include <vespera_errno.h>
 
-#include "../../kernel/acpi/power.h"
 #include "uapi/vespera/vbus.h"
-#include "vespera/ipc/vbus_manager.h"
 
 namespace power {
+    struct ac_notify_ctx {
+        BatteryDevice** batteries;
+        u32 count;
+    };
+    static ac_notify_ctx s_ac_ctx;
+
     class PowerDevice final : public CharDevice {
        public:
         explicit PowerDevice(u32 battery_count)
@@ -61,12 +66,10 @@ namespace power {
                 case IOCTL_POWER_SHUTDOWN:
                     Log::info("power: shutdown requested via ioctl");
                     kernel::acpi::power_off();
-                    return 0;
 
                 case IOCTL_POWER_REBOOT:
                     Log::info("power: reboot requested via ioctl");
                     kernel::acpi::reboot();
-                    return 0;
 
                 case IOCTL_POWER_GET_COUNT:
                     if (!arg) return -EINVAL;
@@ -85,21 +88,49 @@ namespace power {
     static u32 s_battery_count = 0;
     static BatteryDevice* s_batteries[8] = {};
 
-    struct BatteryContext {
+    static void ac_notify(kernel::acpi::acpi_handle_t device, u32 event, void* context) {
+        if (event != 0x80) return;  // 0x80 = AC status changed
+
+        const kernel::acpi::eval_result psr = kernel::acpi::evaluate_integer(device, "_PSR");
+        vbus_ac_t ac{};
+        if (psr.ok) {
+            ac.online = psr.integer ? 1 : 0;
+        }
+        VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_AC_CHANGED, &ac, sizeof(ac));
+
+        // Trigger a battery status refresh so consumers get updated SOC.
+        auto* ctx = static_cast<ac_notify_ctx*>(context);
+        for (u32 i = 0; i < ctx->count; i++) {
+            if (ctx->batteries[i]) {
+                ctx->batteries[i]->on_notify(0x80);
+            }
+        }
+    }
+
+    static void lid_notify(kernel::acpi::acpi_handle_t device, u32 event, void* /*context*/) {
+        if (event != 0x80) return;
+
+        const kernel::acpi::eval_result lid_val = kernel::acpi::evaluate_integer(device, "_LID");
+        vbus_lid_t lid{};
+        if (lid_val.ok) {
+            lid.open = lid_val.integer ? 1 : 0;
+        }
+        VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_LID_CHANGED, &lid, sizeof(lid));
+    }
+
+    struct battery_enum_ctx {
         u32 index;
         BatteryDevice* devices[8];
     };
 
-    static ACPI_STATUS on_battery_found(
-        ACPI_HANDLE object, u32 /* nesting_level */, void* context, void** /* return_value */
-    ) {
-        auto* ctx = static_cast<BatteryContext*>(context);
+    static bool on_battery_found(kernel::acpi::acpi_handle_t device, void* context) {
+        auto* ctx = static_cast<battery_enum_ctx*>(context);
+        if (ctx->index >= 8) return false;
 
-        // Build device name: bat0, bat1, …
         char name[8];
         snprintf(name, sizeof(name), "bat%u", ctx->index);
 
-        auto* bat = new BatteryDevice(object, ctx->index);
+        auto* bat = new BatteryDevice(device, ctx->index);
 
         KernelDevice* kd = DeviceManager::register_device(
             DeviceDescriptor{}
@@ -121,100 +152,47 @@ namespace power {
         }
 
         ctx->index++;
-        return AE_OK;
+        return true;
     }
 
-    static void ac_notify_handler(ACPI_HANDLE device, UINT32 event, void* /*context*/) {
-        if (event != 0x80) return;  // 0x80 = AC status changed
-
-        ACPI_BUFFER result = {ACPI_ALLOCATE_BUFFER, nullptr};
-        vbus_ac_t ac{};
-
-        if (ACPI_SUCCESS(AcpiEvaluateObject(device, "_PSR", nullptr, &result)) && result.Pointer) {
-            const auto* obj = static_cast<ACPI_OBJECT*>(result.Pointer);
-            if (obj->Type == ACPI_TYPE_INTEGER) {
-                ac.online = obj->Integer.Value ? 1 : 0;
-            }
-            AcpiOsFree(result.Pointer);
+    static bool on_ac_found(kernel::acpi::acpi_handle_t device, void* context) {
+        auto* ctx = static_cast<ac_notify_ctx*>(context);
+        if (!kernel::acpi::install_notify(device, kernel::acpi::notify_type::all, ac_notify, ctx)) {
+            Log::warning("power: AC notify install failed");
         }
-
-      //  Log::debug("[AC] adapter %s", ac.online ? "online" : "offline");
-        VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_AC_CHANGED, &ac, sizeof(ac));
-
-        for (u32 i = 0; i < s_battery_count; i++) {
-            if (s_batteries[i]) {
-                s_batteries[i]->on_notify(0x80);
-            }
-        }
+        return true;
     }
 
-    struct AcContext {
-        u32 count;
-        ACPI_HANDLE handles[4];
-    };
-
-    static ACPI_STATUS on_ac_found(ACPI_HANDLE object, u32, void* context, void**) {
-        auto* ctx = static_cast<AcContext*>(context);
-        if (ctx->count < 4) ctx->handles[ctx->count] = object;
-        ctx->count++;
-        return AE_OK;
-    }
-
-    static void lid_notify_handler(ACPI_HANDLE device, UINT32 event, void*) {
-        if (event != 0x80) return;
-
-        ACPI_BUFFER result = {ACPI_ALLOCATE_BUFFER, nullptr};
-        vbus_lid_t lid{};
-
-        if (ACPI_SUCCESS(AcpiEvaluateObject(device, "_LID", nullptr, &result)) && result.Pointer) {
-            const auto* obj = static_cast<ACPI_OBJECT*>(result.Pointer);
-            if (obj->Type == ACPI_TYPE_INTEGER) {
-                lid.open = obj->Integer.Value ? 1 : 0;
-            }
-            AcpiOsFree(result.Pointer);
-        }
-
-        //Log::debug("[LID] %s", lid.open ? "opened" : "closed");
-        VBusManager::emit(VBUS_IFACE_POWER, VBUS_SIG_LID_CHANGED, &lid, sizeof(lid));
-    }
-
-    static ACPI_STATUS on_lid_found(ACPI_HANDLE object, u32, void*, void**) {
-        AcpiInstallNotifyHandler(object, ACPI_ALL_NOTIFY, lid_notify_handler, nullptr);
-        return AE_OK;
+    static bool on_lid_found(kernel::acpi::acpi_handle_t device, void* /*context*/) {
+        kernel::acpi::install_notify(device, kernel::acpi::notify_type::all, lid_notify, nullptr);
+        return true;
     }
 
     void init() {
-        BatteryContext ctx{.index = 0};
-        AcpiGetDevices(const_cast<char*>("PNP0C0A"), on_battery_found, &ctx, nullptr);
-        s_battery_count = ctx.index;
+        battery_enum_ctx bat_ctx{.index = 0};
+        kernel::acpi::enumerate_devices("PNP0C0A", on_battery_found, &bat_ctx);
+        s_battery_count = bat_ctx.index;
 
         if (s_battery_count == 0) {
             Log::info("power: no ACPI batteries found (desktop or VM?)");
         } else {
             Log::ok("power: found %u batter%s", s_battery_count, s_battery_count == 1 ? "y" : "ies");
-
             for (u32 i = 0; i < s_battery_count; i++) {
-                if (ctx.devices[i]) {
-                    ctx.devices[i]->install_notify_handler();
+                if (bat_ctx.devices[i]) {
+                    bat_ctx.devices[i]->install_notify_handler();
                 }
             }
         }
 
-        // Power supply (connected or not)
-        AcContext ac_ctx{.count = 0};
-        AcpiGetDevices(const_cast<char*>("ACPI0003"), on_ac_found, &ac_ctx, nullptr);
+        // AC adapters — pass battery array so the AC notify can refresh SOC.
+        s_ac_ctx.batteries = s_batteries;
+        s_ac_ctx.count     = s_battery_count;
+        kernel::acpi::enumerate_devices("ACPI0003", on_ac_found, &s_ac_ctx);
 
-        for (u32 i = 0; i < ac_ctx.count; i++) {
-            const ACPI_STATUS st =
-                AcpiInstallNotifyHandler(ac_ctx.handles[i], ACPI_ALL_NOTIFY, ac_notify_handler, nullptr);
-            if (ACPI_FAILURE(st)) {
-                Log::warning("power: AC notify install failed: %u", st);
-            }
-        }
+        // Lid
+        kernel::acpi::enumerate_devices("PNP0C0D", on_lid_found, nullptr);
 
-        // Laptop lid
-        AcpiGetDevices(const_cast<char*>("PNP0C0D"), on_lid_found, nullptr, nullptr);
-
+        // /dev/power
         auto* pwr = new PowerDevice(s_battery_count);
         KernelDevice* kd = DeviceManager::register_device(
             DeviceDescriptor{}

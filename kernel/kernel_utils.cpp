@@ -1,5 +1,5 @@
 #include "../drivers/fb/framebuffer_driver.h"
-#include "acpi/acpi_subsystem.h"
+#include "../include/acpi/acpi_subsystem.h"
 #include "cpu/cpu.h"
 #include "drivers/pci/pci_driver.h"
 #include "graphics/font/ttf_glyph_provider.h"

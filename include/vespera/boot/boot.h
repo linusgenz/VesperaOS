@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_BOOT_H
 #define VESPERAOS_BOOT_H
 
-#include <acpi/acpi.h>
+#include <acpi/acpi_subsystem.h>
 #include <vespera/graphics/fb.h>
 #include <vespera/graphics/psf.h>
 #include <vespera/mm/efi_memory.h>
