@@ -144,7 +144,7 @@ TEST(Ext4_Rename, RenameCrossDirectoryPreservesContent,
 
     ASSERT_EQ(0, f.rename(f.root, "cross_content.txt", subdir, "cross_content.txt"));
 
-    VfsNode* dst = subdir->ops->find(subdir, "cross_content.txt");
+    VfsNode* dst = subdir->ops->find(subdir, "cross_content.txt").value_or(nullptr);
     ASSERT_NOT_NULL(dst);
     NodeGuard dg(dst);
     Ext4Fixture::free_node(subdir);
@@ -199,7 +199,7 @@ TEST(Ext4_Rename, FsRenameRoundTrip,
     WITH_EXT4(f);
 
     u32 dir_inode = ext4::EXT4_ROOT_INODE;
-    ASSERT_TRUE(f.fs->create_file(dir_inode, "fs_rename_src.txt") != 0);
+    ASSERT_TRUE(f.fs->create_file(dir_inode, "fs_rename_src.txt").is_ok());
     ASSERT_TRUE(f.fs->rename(dir_inode, "fs_rename_src.txt",
                               dir_inode, "fs_rename_dst.txt"));
 

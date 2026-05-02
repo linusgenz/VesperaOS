@@ -21,7 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <klib/vector.h>
-#include "framework/test_framework.h"
+#include "../framework/test_framework.h"
 
 TEST(Vector_Panic, EraseOutOfRangePanics, "erase() beyond size triggers system_panic") {
     Vector<int> v;

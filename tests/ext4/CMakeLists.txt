@@ -1,10 +1,10 @@
 # ext4 Tests Module
 
 add_executable(ext4_tests
-        ${PROJECT_ROOT}/filesystem/ext4/ext4.cpp
-        ${PROJECT_ROOT}/filesystem/ext4/ext4_vfs_adapter.cpp
-        ${PROJECT_ROOT}/filesystem/ext4/ext4_time.cpp
-        ${PROJECT_ROOT}/lib/time.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../filesystem/ext4/ext4.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../filesystem/ext4/ext4_vfs_adapter.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../filesystem/ext4/ext4_time.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../lib/time.cpp
         ext4_tests_main.cpp
 )
 target_link_libraries(ext4_tests PRIVATE kernel_stubs)

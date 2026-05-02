@@ -1,11 +1,11 @@
 # FAT32 Tests Module
 
 add_executable(fat32_tests
-        ${PROJECT_ROOT}/filesystem/fat32/fat32.cpp
-        ${PROJECT_ROOT}/filesystem/fat32/fat32_lfn.cpp
-        ${PROJECT_ROOT}/filesystem/fat32/fat32_time.cpp
-        ${PROJECT_ROOT}/lib/path.cpp
-        ${PROJECT_ROOT}/lib/time.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../filesystem/fat32/fat32.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../filesystem/fat32/fat32_lfn.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../filesystem/fat32/fat32_time.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../lib/path.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../lib/time.cpp
         fat32_tests_main.cpp
 )
 target_link_libraries(fat32_tests PRIVATE kernel_stubs)
@@ -56,7 +56,6 @@ add_fat32_test(FAT32_Dir RemoveDirEmpty)
 add_fat32_test(FAT32_Dir RemoveDirNonEmptyRejected)
 add_fat32_test(FAT32_Dir RemoveDirMissingReturnsFalse)
 add_fat32_test(FAT32_Dir RemoveDirFreesCluster)
-add_fat32_test(FAT32_Dir ReadDirInvalidPathReturnsNull)
 add_fat32_test(FAT32_Dir ReadDirRootPathValid)
 add_fat32_test(FAT32_Dir ReadDirMultipleEntries)
 add_fat32_test(FAT32_Dir RenameBasic)

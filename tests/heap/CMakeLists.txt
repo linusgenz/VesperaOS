@@ -1,7 +1,7 @@
 # Heap Tests Module
 
 add_executable(heap_tests
-        ${PROJECT_ROOT}/kernel/memory/heap.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/../../kernel/memory/heap.cpp
         heap_tests_main.cpp
 )
 target_link_libraries(heap_tests PRIVATE kernel_stubs)
@@ -13,9 +13,8 @@ target_compile_options(heap_tests PRIVATE
 )
 target_include_directories(heap_tests PRIVATE
         ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/
         ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/../
-        ${PROJECT_ROOT}/include
         .
 )
 

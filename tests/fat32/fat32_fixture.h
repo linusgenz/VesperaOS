@@ -22,6 +22,7 @@
 #ifndef VESPERAOS_FAT32_FIXTURE_H
 #define VESPERAOS_FAT32_FIXTURE_H
 
+#include <new>
 #include "../../filesystem/fat32/fat32.h"
 #include "../../filesystem/fat32/fat32_vfs_adapter.h"
 #include <vespera/mm/memory.h>
@@ -83,7 +84,7 @@ struct Fat32Fixture {
 
     Fat32Node create_dir(const char* name) {
         Fat32Node parent = root_node();
-        if (fs->create_directory(&parent, name)<0) {
+        if (fs->create_directory(&parent, name).is_err()) {
             TestFramework::fail_test(__FILE__, __LINE__,
                 (std::string("CreateDirectory failed: ") + name).c_str());
             return {};
@@ -97,23 +98,25 @@ struct Fat32Fixture {
     Fat32Node find_dir_node(const char* name) { return find_node(name, true); }
 
     bool write(Fat32Node& node, const void* data, size_t len, size_t offset = 0) const {
-        return fs->write_file(&node, data, len, offset);
+        return fs->write_file(&node, data, len, offset).is_ok();
     }
 
 
     std::vector<uint8_t> read(Fat32Node& node, size_t len, size_t offset = 0) {
         std::vector<uint8_t> buf(len, 0);
-        size_t actual = 0;
-        if (!fs->read_file(&node, buf.data(), len, actual, offset)) return {};
-        buf.resize(actual);
+
+        Result<usize> r = fs->read_file(&node, buf.data(), len, offset);
+        if (r.is_err()) return {};
+        buf.resize(r.unwrap());
         return buf;
     }
 
     // Returns all entry names in the root directory.
     std::vector<std::string> list_root() const {
         size_t count = 0;
-        fat32::FileEntry* entries = fs->read_directory(fs->get_root_cluster(), count);
-        if (!entries) return {};
+        Result<fat32::FileEntry*> entries_r = fs->read_directory(fs->get_root_cluster(), count);
+        if (!entries_r) return {};
+        fat32::FileEntry* entries = entries_r.unwrap();
 
         std::vector<std::string> names;
         for (size_t i = 0; i < count; i++)
@@ -133,8 +136,9 @@ private:
     Fat32Node find_node(const char* name, bool is_dir) const {
         uint32_t root = fs->get_root_cluster();
         size_t count = 0;
-        fat32::FileEntry* entries = fs->read_directory(root, count);
-        if (!entries) return {};
+        Result<fat32::FileEntry*> entries_r = fs->read_directory(root, count);
+        if (!entries_r) return {};
+        fat32::FileEntry* entries = entries_r.unwrap();
 
         Fat32Node node{};
         for (size_t i = 0; i < count; i++) {
