@@ -186,14 +186,16 @@ Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize s
     const KernelDevice* kd = entry->device;
     if (kd->chardev) {
         if (!entry->cf) open(node);
-        return Result<usize>::ok(kd->chardev->read(entry->cf, buffer, size, offset));
-    }
+        const isize r = kd->chardev->read(entry->cf, buffer, size, offset);
+        if (r < 0) return Error::Io;
+        return Result<usize>::ok(static_cast<usize>(r));    }
     if (kd->block) {
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
-        return Result<usize>::ok(kd->block->read(lba, sectors, buffer, size));
-    }
+        const isize r = kd->block->read(lba, sectors, buffer, size);
+        if (r < 0) return Error::Io;
+        return Result<usize>::ok(static_cast<usize>(r));    }
 
     return Error::Inval;
 }
@@ -213,7 +215,9 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
         if (!entry->cf) {
             if (const int res = open(node); res < 0) return Error::Inval; // TODO adapt chardevs
         }
-        return Result<usize>::ok(kd->chardev->write(entry->cf, buffer, size));
+        const isize r = kd->chardev->write(entry->cf, buffer, size);
+        if (r < 0) return Error::Io;
+        return Result<usize>::ok(static_cast<usize>(r));
     }
 
     // BlockDevice
@@ -221,7 +225,10 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
-        return Result<usize>::ok(kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer)));
+
+        const isize r = kd->block->write(lba, sectors, const_cast<void*>(buffer), sizeof(buffer));
+        if (r < 0) return Error::Io;
+        return Result<usize>::ok(static_cast<usize>(r));
     }
 
     return Error::Inval;

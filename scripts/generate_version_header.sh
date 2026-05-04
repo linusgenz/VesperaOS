@@ -8,7 +8,7 @@ VERSION_NAME="empty moon"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
 
 
-cat <<EOF > "$(dirname "$0")/kernel/kversion.h"
+cat <<EOF > "$(dirname "$0")/../kernel/kversion.h"
 #ifndef VESPERAOS_KVERSION_H
 #define VESPERAOS_KVERSION_H
 

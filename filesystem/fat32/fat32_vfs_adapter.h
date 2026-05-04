@@ -43,7 +43,7 @@
     struct Fat32DirHandle {
         fat32::FileEntry* entries = nullptr;
         usize count = 0;
-        usize index;
+        usize index = 0;
     };
 
     VfsNode *wrap_fat32_root(fat32::FileSystem * fs);

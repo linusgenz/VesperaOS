@@ -31,13 +31,13 @@ dd if=/dev/zero of="$IMG_FILE" bs=1M count=$IMG_SIZE_MB
 parted --script "$IMG_FILE" mklabel gpt
 parted --script "$IMG_FILE" mkpart EFI  fat32 1MiB     ${EFI_SIZE_MB}MiB
 parted --script "$IMG_FILE" set 1 esp on
-parted --script "$IMG_FILE" mkpart ROOT fat32 ${EFI_SIZE_MB}MiB 100%
+parted --script "$IMG_FILE" mkpart ROOT ext4 ${EFI_SIZE_MB}MiB 100%
 
 LOOPDEV=$(sudo losetup -fP --show "$IMG_FILE")
 echo "[make_disk] Using loop device: $LOOPDEV"
 
 sudo mkfs.fat -F 32 -n "VesperaEFI"  "${LOOPDEV}p1"
-sudo mkfs.fat -F 32 -n "VesperaRoot" "${LOOPDEV}p2"
+sudo mkfs.ext4 -L "VesperaRoot" "${LOOPDEV}p2"
 
 # ────────────────────────────────────────────────────────────────
 # EFI Partition
