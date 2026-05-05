@@ -29,9 +29,10 @@
 
 #include "../security/setuid_exec.h"
 
+#define ENABLE_ELF_LOGGING 1
 #if ENABLE_ELF_LOGGING
-#include <log.h>
-#define ELF_LOG(fmt, ...) Log::Info(fmt, ##__VA_ARGS__)
+#include <vespera/log.h>
+#define ELF_LOG(fmt, ...) Log::info(fmt, ##__VA_ARGS__)
 #else
 #define ELF_LOG(fmt, ...)
 #endif
@@ -181,6 +182,30 @@ ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_bas
     ELF_LOG("[ELF] Entry point: 0x%lx -> 0x%lx (relocated)", header->e_entry, entry_point);
     ELF_LOG("[ELF] Loaded range: 0x%lx - 0x%lx", load_base, load_end);
 
+    uptr tls_base = 0;
+    const TlsInfo tls = find_tls_segment(header, file_data.data);
+    if (tls.present) {
+        ELF_LOG(
+            "[ELF] PT_TLS found: file_off=0x%lx file_sz=0x%lx mem_sz=0x%lx align=0x%lx",
+            tls.file_offset, tls.file_size, tls.mem_size, tls.align
+        );
+
+        // Place TLS block directly after the last load segment, page-aligned
+        const uptr tls_hint = align_up(load_end, PAGE_SIZE);
+        ELF_LOG("[ELF] TLS vaddr hint: 0x%lx", tls_hint);
+
+        tls_base = setup_tls(tls, file_data.data, realm, tls_hint);
+        if (tls_base == 0) {
+            ELF_LOG("[ELF] Failed to allocate TLS block");
+            kernel::memory::free(file_data.data);
+            return {.success = false, .error_message = "Failed to allocate TLS block"};
+        }
+
+        ELF_LOG("[ELF] TLS ready: tcb_uaddr=0x%lx (will be written to fs_base)", tls_base);
+    } else {
+        ELF_LOG("[ELF] No PT_TLS segment — skipping TLS setup");
+    }
+
     kernel::memory::free(file_data.data);
 
     return {
@@ -189,6 +214,7 @@ ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_bas
         .load_end = load_end,
         .vaddr_base = range.vaddr_min,
         .load_bias = load_bias,
+        .tls_base = tls_base,  // 0 if no PT_TLS — wrmsr(FS_BASE, 0) is safe
         .success = true,
         .error_message = nullptr,
         .is_pie = is_pie
@@ -433,6 +459,90 @@ bool ElfLoader::process_all_segments(
     }
 
     return true;
+}
+
+uptr ElfLoader::setup_tls(const ElfLoader::TlsInfo& tls, const void* file_data, Realm* realm, uptr tls_vaddr_hint) {
+    // TLS Variant II (x86_64 ABI) layout:
+    //
+    //   [ tls_block (mem_size, aligned) ] [ TCB (16 bytes) ]
+    //   ^user_vaddr                        ^tcb_uaddr  = fs:0
+    //
+    // The compiler emits accesses like [fs:0] -> self-ptr, then negative offsets
+    // for thread_local variables. fs:0 must contain the TCB self-pointer.
+
+    // Align TLS block size to the segment's alignment requirement
+    const usize tls_block_size = (tls.mem_size + tls.align - 1) & ~(tls.align - 1);
+
+    // TCB: 2 x u64 — [0] self-pointer, [1] DTV pointer (reserved, set to 0)
+    constexpr usize TCB_SIZE = 16;
+
+    const usize total_size = tls_block_size + TCB_SIZE;
+    const usize pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    ELF_LOG(
+        "[ELF][TLS] setup_tls: tls_block=0x%lx TCB=0x%lx total=0x%lx pages=%lu vaddr_hint=0x%lx",
+        tls_block_size, TCB_SIZE, total_size, pages, tls_vaddr_hint
+    );
+
+    const phys_addr_t phys = kernel::memory::request_pages_phys(pages);
+    if (phys_null(phys)) {
+        ELF_LOG("[ELF][TLS] Failed to allocate %lu pages for TLS", pages);
+        return 0;
+    }
+
+    ELF_LOG("[ELF][TLS] Allocated phys=0x%lx", phys_raw(phys));
+
+    const virt_addr_t virt = phys_to_virt(phys);
+    memset(virt, 0, pages * PAGE_SIZE);
+
+    // Copy initialized TLS data (.tdata) — placed at the start of the block
+    if (tls.file_size > 0) {
+        ELF_LOG("[ELF][TLS] Copying %lu bytes of .tdata from file offset 0x%lx", tls.file_size, tls.file_offset);
+        memcpy(
+            virt_as<u8>(virt),
+            static_cast<const u8*>(file_data) + tls.file_offset,
+            tls.file_size
+        );
+    }
+    // .tbss portion (mem_size - file_size) is already zeroed by memset above
+
+    // TCB sits directly after the TLS data block
+    const uptr tcb_phys_offset = tls_block_size;
+    auto* tcb = reinterpret_cast<u64*>(virt_raw(virt_add(virt, tcb_phys_offset)));
+
+    // Map the whole block (TLS data + TCB) into the realm's address space
+    const u64 pt_flags = (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper) | (1ULL << PtFlag::ReadWrite);
+    realm->page_table->map_range(virt_from_raw(tls_vaddr_hint), phys, pages * PAGE_SIZE, pt_flags);
+
+    // TCB user-space address — this is what fs_base will point to (fs:0)
+    const uptr tcb_uaddr = tls_vaddr_hint + tls_block_size;
+
+    // Variant II self-pointer: [fs:0] must equal fs_base itself
+    tcb[0] = tcb_uaddr;
+    tcb[1] = 0;  // DTV pointer — not needed for static TLS, set to null
+
+    ELF_LOG(
+        "[ELF][TLS] TCB at uaddr=0x%lx self_ptr=0x%lx tls_data=[0x%lx..0x%lx)",
+        tcb_uaddr, tcb[0], tls_vaddr_hint, tls_vaddr_hint + tls_block_size
+    );
+
+    return tcb_uaddr;  // written into unit->context.fs_base → wrmsr(MSR_FS_BASE)
+}
+
+ElfLoader::TlsInfo ElfLoader::find_tls_segment(const Elf64_Ehdr* header, const void* file_data) {
+    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(static_cast<const u8*>(file_data) + header->e_phoff);
+    for (int i = 0; i < header->e_phnum; ++i) {
+        if (phdrs[i].p_type == PT_TLS) {
+            return {
+                .file_offset = phdrs[i].p_offset,
+                .file_size = phdrs[i].p_filesz,
+                .mem_size = phdrs[i].p_memsz,
+                .align = phdrs[i].p_align ? phdrs[i].p_align : 1,
+                .present = true
+            };
+        }
+    }
+    return {0, 0, 0, 1, false};
 }
 
 uptr ElfLoader::align_down(const uptr v, const usize align) {

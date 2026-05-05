@@ -391,6 +391,7 @@ class ElfLoader {
         uptr load_end;
         uptr vaddr_base;
         uptr load_bias;
+        uptr tls_base;
         bool success;
         const char* error_message;
 
@@ -398,9 +399,7 @@ class ElfLoader {
     };
 
     static LoadResult load(const char* path, uptr preferred_base, Realm* realm);
-    static bool apply_relocations(
-        const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm
-    );
+    static bool apply_relocations(const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm);
 
    private:
     struct ElfSegment {
@@ -431,6 +430,14 @@ class ElfLoader {
         const usize memory_size;
     };
 
+    struct TlsInfo {
+        uptr file_offset;
+        usize file_size;
+        usize mem_size;
+        usize align;
+        bool present;
+    };
+
     static bool validate_magic(const Elf64_Ehdr* header);
     static bool validate_type(const Elf64_Ehdr* header);
     static bool validate_architecture(const Elf64_Ehdr* header);
@@ -443,6 +450,8 @@ class ElfLoader {
     static bool process_all_segments(
         const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm
     );
+    static uptr setup_tls(const TlsInfo& tls, const void* file_data, Realm* realm, uptr tls_vaddr_hint);
+    static TlsInfo find_tls_segment(const Elf64_Ehdr* header, const void* file_data);
     static uptr align_down(uptr v, usize align);
     static uptr align_up(uptr v, usize align);
 };
