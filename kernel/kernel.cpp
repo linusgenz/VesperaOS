@@ -37,8 +37,6 @@
 #include "units/unit_manager.h"
 #include "vespera/scheduling.h"
 
-static const char* envp0[] = {"PATH=/bin", "TERM=tty0", nullptr};
-
 static const char* dev_type_to_str(DeviceType t) {
     switch (t) {
         case DeviceType::Block:
@@ -142,6 +140,13 @@ void debug_print_all_devices() {
     Log::print_ln("==============================");
 }
 
+static inline void enable_fsgsbase() {
+    u64 cr4;
+    asm volatile("mov %%cr4, %0" : "=r"(cr4));
+    cr4 |= (1ULL << 16); // FSGSBASE
+    asm volatile("mov %0, %%cr4" :: "r"(cr4));
+}
+
 extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     Log::disable_debug();
     initialize_kernel(boot_info);
@@ -193,7 +198,10 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         const uptr heap_begin = (result.load_end + 0xFFFULL) & ~0xFFFULL;
         shell_unit->heap_start = heap_begin;
         shell_unit->heap_end = heap_begin;
+        shell_unit->context.fs_base = result.tls_base;
     }
+
+    enable_fsgsbase();
 
     kernel::SystemManager::set_system_initialized();
     kernel::SystemManager::get_system_terminal()->set_cursor_visible(true);

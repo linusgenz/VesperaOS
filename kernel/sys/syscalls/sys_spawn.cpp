@@ -183,6 +183,7 @@ namespace syscalls::internal {
             RealmManager::destroy(new_realm->id);
             return -EFAULT;
         }
+        u->context.fs_base = elf.tls_base;
 
         const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
         u->heap_start = heap_begin;

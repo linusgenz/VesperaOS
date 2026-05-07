@@ -23,6 +23,7 @@
 
 #include "syscall_interface.h"
 
+#include <arch/x86_64/cpu/msr.h>
 #include <vespera/log.h>
 #include <vespera/scheduling.h>
 #include <vespera/signals.h>
@@ -100,6 +101,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_FCHOWN] = syscalls::internal::sys_fchown;
     syscall_table[SYSCALL_CHMOD] = syscalls::internal::sys_chmod;
     syscall_table[SYSCALL_FCHMOD] = syscalls::internal::sys_fchmod;
+    syscall_table[SYSCALL_ARCH_PRCTL] = syscalls::internal::sys_arch_prctl;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

@@ -77,7 +77,7 @@ namespace syscalls::internal {
         );
 
         if (err != SUCCESS_CODE) {
-            Channel::destroy(nullptr);
+            Channel::destroy(ch);
             return err;
         }
 

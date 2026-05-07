@@ -4,11 +4,12 @@
 
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "vespera/log.h"
+#include "vespera/mm/memory.h"
 #include "../units/unit_manager.h"
 #include "arch/x86_64/cpu/msr.h"
 #include "per_cpu.h"
 #include "schedule_manager.h"
+#include "vespera/log.h"
 #include "vespera/realm/realm_manager.h"
 #include "vespera/time.h"
 
@@ -80,12 +81,25 @@ namespace kernel::scheduling::cpu_scheduler {
         unit->next = nullptr;
     }
 
+    static phys_addr_t realm_get_phys(Realm* realm, const uptr vaddr) {
+        const uptr page_vaddr = vaddr & ~0xFFFULL;
+        const uptr offset = vaddr & 0xFFFULL;
+
+        const phys_addr_t phys_page = realm->page_table->get_physical_address(virt_from_raw(page_vaddr));
+        if (phys_null(phys_page)) return make_phys(0);
+
+        return phys_add(phys_page, offset);
+    }
+
+    bool once = false;
     static void do_switch(Unit* prev, Unit* next, TrapFrame* tf) {
         const u64 now = kernel::time::get_uptime_ns();
         if (prev) {
             if (prev->run_start_ns != 0) {
                 prev->cpu_time_ns += now - prev->run_start_ns;
             }
+
+            prev->context.fs_base = rdmsr(MSR_FS_BASE);
 
             cpu_context_save(tf, &prev->context.cpu_ctx);
             fpu_save(&prev->context.fpu_ctx);
@@ -100,9 +114,22 @@ namespace kernel::scheduling::cpu_scheduler {
         const u8 cpu_id = next->cpu_id;
         g_per_cpu[cpu_id].current_ctx = &next->context;
 
-        wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
+        // GS/KERNEL_GS invariant for isr_common_entry's conditional swapgs:
+        //
+        // We always leave MSRs in "kernel layout" here, regardless of whether next is a
+        // user or kernel unit:
+        //   GS_BASE        = GsData*   (kernel pointer)
+        //   KERNEL_GS_BASE = 0         (user placeholder)
+        //
+        // isr_common_entry will swapgs before iretq if and only if CS has RPL=3.
+        // That swapgs flips the two, resulting in the correct "user layout":
+        //   GS_BASE        = 0         (user GS / future TLS)
+        //   KERNEL_GS_BASE = GsData*   (restored by swapgs on next syscall/interrupt entry)
+        //
+        // For kernel units isr_common_entry skips swapgs, so GS_BASE stays as GsData* directly. :)
+        wrmsr(MSR_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
         if (next->is_user) {
-            wrmsr(MSR_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
+            wrmsr(MSR_KERNEL_GS_BASE, 0);
         }
 
         if (next->is_user && next->rid) {
@@ -117,6 +144,8 @@ namespace kernel::scheduling::cpu_scheduler {
         }
 
         tss_set_rsp0(next->cpu_id, virt_raw(next->context.stack_pointer));
+
+        wrmsr(MSR_FS_BASE, next->context.fs_base);
     }
 
     static Unit* pick_next(CpuScheduler* cpu) {

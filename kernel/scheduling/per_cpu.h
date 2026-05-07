@@ -38,7 +38,8 @@ extern GsData g_per_cpu[kernel::acpi::madt::MAX_CPU_CORES];
 inline void per_cpu_init(u8 cpu_id) {
     g_per_cpu[cpu_id].cpu_id = cpu_id;
     g_per_cpu[cpu_id].current_ctx = nullptr;
-    wrmsr(MSR_KERNEL_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
+    wrmsr(MSR_GS_BASE, reinterpret_cast<u64>(&g_per_cpu[cpu_id]));
+    wrmsr(MSR_KERNEL_GS_BASE, 0);
 }
 
 #endif  // VESPERAOS_PER_CPU_H

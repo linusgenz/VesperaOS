@@ -68,6 +68,21 @@ namespace kernel::debug {
         Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, ctx->error_code);
         Log::error("rax: 0x%llx rbx: 0x%llx rcx: 0x%llx, rdx: 0x%llx rsi: 0x%llx, rdi: 0x%llx rbp: 0x%llx r8: 0x%llx", ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx, ctx->rsi, ctx->rdi, ctx->rbp, ctx->r8);
         backtrace(ctx->rbp, ctx->rip);
+
+        scheduling::cpu_scheduler::CpuScheduler* cpu = scheduling::get_cpu_data(6);
+
+        auto print_unit_backtrace = [](const Unit* u) {
+            if (!u || u->state == UnitState::Terminated) return;
+            Log::error("=== Unit#%u (%s) state=%u ===", u->id, u->name, (u8)u->state);
+            backtrace(
+                u->context.cpu_ctx.rbp,
+                u->context.cpu_ctx.rip
+            );
+        };
+
+        cpu->ready_queue.for_each(print_unit_backtrace);
+        cpu->blocked_queue.for_each(print_unit_backtrace);
+
         panic("FAULT");
 
         if (ctx->error_code != 0) {

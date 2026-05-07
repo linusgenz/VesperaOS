@@ -83,6 +83,8 @@ typedef struct ExecutionContext {
 
     UnitCpuContext cpu_ctx;
     UnitFpuState fpu_ctx;
+
+    u64 fs_base;
 } execution_context_t;
 
 struct SleepContext {

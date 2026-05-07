@@ -76,6 +76,19 @@ collect_asm(KERNEL_ASM_SOURCES
         ${ARCH_SRC_DIR}
 )
 
+
+file(GLOB_RECURSE LIBMATH_SOURCES "${LIB_SRC_DIR}/math/*.cpp")
+
+add_library(libmath OBJECT ${LIBMATH_SOURCES})
+
+target_compile_options(libmath PRIVATE -w -ffreestanding -fno-stack-protector
+        -fno-pic -mno-red-zone -mcmodel=kernel -O2)
+target_include_directories(libmath PRIVATE
+        "${CMAKE_SOURCE_DIR}/include"
+        "${CMAKE_BINARY_DIR}"
+)
+
+list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/lib/math/.*")
 list(FILTER KERNEL_ASM_SOURCES EXCLUDE REGEX ".*/ap_trampoline\\.asm")
 list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/kernel/acpi/.*")
 
@@ -183,6 +196,7 @@ if (ENABLE_DEBUG_FAULT)
             ${CMAKE_BINARY_DIR}/font.o
             $<TARGET_OBJECTS:acpica>
             $<TARGET_OBJECTS:acpi_kernel>
+            $<TARGET_OBJECTS:libmath>
     )
     set_target_properties(kernel_stage1 PROPERTIES
             OUTPUT_NAME "kernel_stage1"
@@ -241,6 +255,7 @@ add_executable(kernel.elf
         ${CMAKE_BINARY_DIR}/font.o
         $<TARGET_OBJECTS:acpica>
         $<TARGET_OBJECTS:acpi_kernel>
+        $<TARGET_OBJECTS:libmath>
 )
 
 set_target_properties(kernel.elf PROPERTIES

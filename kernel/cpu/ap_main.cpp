@@ -13,9 +13,16 @@
 #include "vespera/cpu/simd.h"
 #include "vespera/log.h"
 
+static inline void enable_fsgsbase() {
+    u64 cr4;
+    asm volatile("mov %%cr4, %0" : "=r"(cr4));
+    cr4 |= (1ULL << 16); // FSGSBASE
+    asm volatile("mov %0, %%cr4" :: "r"(cr4));
+}
+
 extern "C" void ap_main() {
     simd_enable_on_current_core();
-
+    enable_fsgsbase();
     const u32 cpu_id = cpu_manager::get_current_cpu_id();
 
     if (!cpu_id) {

@@ -98,7 +98,7 @@ namespace kernel::time {
 
     u64 HpetClock::read_ns() {
         const u64 ticks = read_ticks();
-        const u64 ps    = ticks * (period_fs_ / 1'000ULL);
+        const u64 ps = (ticks * period_fs_) / 1000ULL;
         return ps / 1'000ULL;
     }
 
