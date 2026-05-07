@@ -151,7 +151,6 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
                 for (int i = 256; i < 512; i++) new_pml4->entries[i] = kernel_pml4->entries[i];
 
                 r->pml4_phys = pml4_phys;
-                r->pml4 = new_pml4;
                 r->page_table = new PageTableManager(reinterpret_cast<PageTable*>(phys_raw(pml4_phys)));
                 r->stack_alloc.init(DEFAULT_UNIT_STACK_SIZE);
 
@@ -218,10 +217,8 @@ bool RealmManager::destroy(const RealmId id) {
             u = next;
         }
 
-        if (!phys_null(realm.pml4_phys)) {
-            kernel::memory::free_page_phys(realm.pml4_phys);
-            realm.pml4_phys = make_phys(0);
-            realm.pml4 = nullptr;
+        if (realm.page_table) {
+            realm.page_table->destroy_userspace();
         }
         delete realm.page_table;
 

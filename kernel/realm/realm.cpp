@@ -30,7 +30,6 @@ Realm::Realm()
     , memory_limit(0)
     , max_units(0)
     , unit_count(0)
-    , pml4(nullptr)
     , pml4_phys()
     , page_table(nullptr)
     , cwd_path{}

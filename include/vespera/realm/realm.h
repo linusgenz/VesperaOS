@@ -75,7 +75,6 @@ class Realm {
     u64 max_units;
     u64 unit_count;
 
-    PageTable *pml4;
     phys_addr_t pml4_phys;
     PageTableManager *page_table;
 

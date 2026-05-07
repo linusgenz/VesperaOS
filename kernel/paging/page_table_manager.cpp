@@ -169,3 +169,55 @@ phys_addr_t PageTableManager::get_physical_address(const virt_addr_t virt_addr) 
     const u64 offset = virt_raw(virt_addr) & 0xFFF;
     return phys_add(pde.get_address(), offset);
 }
+
+void PageTableManager::destroy_userspace() const {
+    if (!pml4) return;
+
+    // only lower half (userspace)
+    for (usize i = 0; i < 256; ++i) {
+        auto& entry = pml4->entries[i];
+
+        if (!entry.get_flag(PtFlag::Present))
+            continue;
+
+        auto* pdp = static_cast<PageTable*>(
+            virt_ptr(phys_to_virt(entry.get_address()))
+        );
+
+        destroy_level(pdp, 3);
+
+        kernel::memory::free_page_phys(entry.get_address());
+
+        entry.value = 0;
+    }
+
+    kernel::memory::free_page_phys(
+        make_phys(reinterpret_cast<u64>(pml4))
+    );
+}
+
+void PageTableManager::destroy_level(PageTable* table, int level) const {
+    if (!table) return;
+
+    for (auto & entry : table->entries) {
+        if (!entry.get_flag(PtFlag::Present))
+            continue;
+
+        const phys_addr_t phys = entry.get_address();
+
+        if (level == 1) {
+            // PT level -> actual mapped user page
+            kernel::memory::free_page_phys(phys);
+        } else {
+            auto* next = static_cast<PageTable*>(
+                virt_ptr(phys_to_virt(phys))
+            );
+
+            destroy_level(next, level - 1);
+
+            kernel::memory::free_page_phys(phys);
+        }
+
+        entry.value = 0;
+    }
+}
