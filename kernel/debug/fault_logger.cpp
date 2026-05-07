@@ -5,6 +5,7 @@
 // auf Faults zugeschnittenes Ausgabeformat.
 //
 #include "../cpu/cpu_manager.h"
+#include "../realm/address_space.h"
 #include "../utils/panic.h"
 #if DEBUG_FAULT
 #include "trace.h"
@@ -100,7 +101,7 @@ namespace kernel::debug {
         const Unit* u = scheduling::get_current_unit();
         const Realm* r = u->parent;
 
-        Log::error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->page_table->pml4);
+        Log::error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->address_space->pml4_phys());
         Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);
         Log::error(
             "  Present: %s, Write: %s, User: %s, Reserved: %s",

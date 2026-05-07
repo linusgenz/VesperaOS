@@ -21,10 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
-#include <vespera/mm/memory.h>
+#include "../../realm/address_space.h"
 #include "/mnt/ExternerDatentraeger/VesperaOS/kernel/units/unit.h"
 #include "vespera/realm/realm.h"
 #include "vespera/realm/realm_manager.h"
@@ -39,6 +40,7 @@ namespace syscalls::internal {
         if (cur->heap_start == 0) return -EINVAL;
 
         const Realm* cur_r = cur->parent;
+        PageTableManager* r_ptm = cur_r->address_space->page_table();
 
         if (addr == 0) return cur->heap_end;
         if (addr < cur->heap_start) return cur->heap_end;
@@ -54,7 +56,7 @@ namespace syscalls::internal {
                 if (phys_null(phys)) return -ENOMEM;
 
                 memset(phys_to_virt(phys), 0, 0x1000);
-                cur_r->page_table->map_memory(
+                r_ptm->map_memory(
                     virt_from_raw(a), phys,
                     (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::UserSuper)
                 );
@@ -81,8 +83,8 @@ namespace syscalls::internal {
 
             for (uptr a = start; a < end; a += 0x1000) {
                 const virt_addr_t vaddr = virt_from_raw(a);
-                if (const phys_addr_t phys = cur_r->page_table->get_physical_address(vaddr); !phys_null(phys)) {
-                    cur_r->page_table->unmap_memory(vaddr);
+                if (const phys_addr_t phys = r_ptm->get_physical_address(vaddr); !phys_null(phys)) {
+                    r_ptm->unmap_memory(vaddr);
                     kernel::memory::free_page_phys(phys);
                 }
             }

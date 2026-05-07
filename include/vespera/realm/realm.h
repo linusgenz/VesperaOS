@@ -31,10 +31,10 @@
 #include "../../../kernel/paging/page_table_manager.h"
 #include "../../../kernel/tty/tty_device.h"
 #include "../types.h"
-#include "user_stack_allocator.h"
 #include "vespera/security/credentials.h"
 
 class Unit;
+namespace kernel::realm { class AddressSpace; }
 
 constexpr uptr TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
 constexpr uptr TRAMP_SIGNAL_OFF   = 0x000;
@@ -75,8 +75,7 @@ class Realm {
     u64 max_units;
     u64 unit_count;
 
-    phys_addr_t pml4_phys;
-    PageTableManager *page_table;
+    kernel::realm::AddressSpace* address_space{nullptr};
 
     char cwd_path[256];
 
@@ -89,7 +88,6 @@ class Realm {
 
     HandleTable handle_table;
 
-    UserStackAllocator stack_alloc;
 
     Spinlock lock;
     bool active;

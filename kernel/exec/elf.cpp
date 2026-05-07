@@ -27,6 +27,8 @@
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm.h>
 
+#include "../paging/page_table_manager.h"
+#include "../realm/address_space.h"
 #include "../security/setuid_exec.h"
 
 #if ENABLE_ELF_LOGGING
@@ -40,7 +42,7 @@ static phys_addr_t realm_get_phys(const Realm* realm, const uptr vaddr) {
     const uptr page_vaddr = vaddr & ~0xFFFULL;
     const uptr offset = vaddr & 0xFFFULL;
 
-    const phys_addr_t phys_page = realm->page_table->get_physical_address(virt_from_raw(page_vaddr));
+    const phys_addr_t phys_page = realm->address_space->page_table()->get_physical_address(virt_from_raw(page_vaddr));
     if (phys_null(phys_page)) return make_phys(0);
 
     return phys_add(phys_page, offset);
@@ -453,7 +455,7 @@ bool ElfLoader::load_segment(const Elf64_Phdr& phdr, const void* file_data, cons
     u64 pt_flags = (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper);
     if (phdr.p_flags & PF_W) pt_flags |= (1ULL << PtFlag::ReadWrite);
 
-    realm->page_table->map_range(virt_from_raw(page_start), phys, map_size, pt_flags);
+    realm->address_space->page_table()->map_range(virt_from_raw(page_start), phys, map_size, pt_flags);
 
     return true;
 }
@@ -524,7 +526,7 @@ uptr ElfLoader::setup_tls(const ElfLoader::TlsInfo& tls, const void* file_data, 
 
     constexpr u64 pt_flags = (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper) | (1ULL << PtFlag::ReadWrite);
     ELF_LOG("[ELF][TLS] IS MAPPED (HINT%)? %d", kernel::memory::is_mapped(virt_from_raw(tls_vaddr_hint)));
-    realm->page_table->map_range(virt_from_raw(tls_vaddr_hint), phys, pages * PAGE_SIZE, pt_flags);
+    realm->address_space->page_table()->map_range(virt_from_raw(tls_vaddr_hint), phys, pages * PAGE_SIZE, pt_flags);
 
     ELF_LOG(
         "[ELF][TLS] TCB at uaddr=0x%lx self_ptr=0x%lx tls_data=[0x%lx..0x%lx)",

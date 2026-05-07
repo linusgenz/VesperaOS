@@ -27,6 +27,8 @@
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
+#include "../../realm/address_space.h"
+
 static uptr find_free_range(const Unit* u, const usize length) {
     static constexpr uptr MMAP_BASE = 0x0000600000000000ULL;
     static constexpr uptr MMAP_END  = 0x00007FFFFFF00000ULL;
@@ -77,6 +79,7 @@ namespace syscalls::internal {
         if (!cur || !cur->is_user) return -EACCES;
 
         const Realm* cur_r = cur->parent;
+        PageTableManager* r_ptm = cur_r->address_space->page_table();
 
         uptr base = 0;
 
@@ -92,16 +95,16 @@ namespace syscalls::internal {
             const phys_addr_t phys = kernel::memory::request_page_phys();
             if (phys_null(phys)) {
                 for (usize j = 0; j < i; j++)
-                     cur_r->page_table->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
+                     r_ptm->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
                 return -ENOMEM;
             }
-            cur_r->page_table->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper)| (1ULL << ReadWrite));
+            r_ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper)| (1ULL << ReadWrite));
         }
 
         auto* area = static_cast<VmArea*>(kernel::memory::malloc(sizeof(VmArea)));
         if (!area) {
             for (usize i = 0; i < npages; i++)
-                 cur_r->page_table->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
+                 r_ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
             return -ENOMEM;
         }
 

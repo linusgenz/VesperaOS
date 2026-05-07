@@ -31,6 +31,7 @@
 #include <vespera/unit_config.h>
 
 #include "../../filesystem/realmfs/realmfs.h"
+#include "../realm/address_space.h"
 #include "../scheduling/schedule_manager.h"
 #include "vespera/realm/user_stack_allocator.h"
 
@@ -226,7 +227,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
                                                 : (cfg->stack_size ? cfg->stack_size : DEFAULT_UNIT_STACK_SIZE);
 
                 UserStackAllocator::StackSlot slot;
-                if (!realm->stack_alloc.alloc(slot)) {
+                if (!realm->address_space->stack_alloc().alloc(slot)) {
                     Log::warning("UnitManager::create: no user stack slots left in realm %u", realm_id);
                     u->active = false;
                     return nullptr;
@@ -236,7 +237,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
                 const usize pages = (user_stack_size + 0xFFF) / 0x1000;
                 const phys_addr_t stack_phys = kernel::memory::request_pages_phys(pages);
                 if (phys_null(stack_phys)) {
-                    realm->stack_alloc.free(slot.index);
+                    realm->address_space->stack_alloc().free(slot.index);
                     u->active = false;
                     return nullptr;
                 }
@@ -244,7 +245,7 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
                 const virt_addr_t stack_hhdm = phys_to_virt(stack_phys);
                 memset(virt_ptr(stack_hhdm), 0, user_stack_size);
 
-                realm->page_table->map_range(
+                realm->address_space->page_table()->map_range(
                     slot.virt_base,
                     stack_phys,
                     user_stack_size,
@@ -358,7 +359,7 @@ bool UnitManager::destroy(const UnitId id) {
                 kernel::memory::free_pages_phys(u->context.user_stack_phys, user_pages);
                 u->context.user_stack = make_virt(nullptr);
 
-                if (r) r->stack_alloc.free(u->user_stack_slot);
+                if (r) r->address_space->stack_alloc().free(u->user_stack_slot);
             }
 
             SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);

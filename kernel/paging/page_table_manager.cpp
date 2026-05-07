@@ -171,11 +171,12 @@ phys_addr_t PageTableManager::get_physical_address(const virt_addr_t virt_addr) 
 }
 
 void PageTableManager::destroy_userspace() const {
-    if (!pml4) return;
+    const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
+    const auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
 
     // only lower half (userspace)
     for (usize i = 0; i < 256; ++i) {
-        auto& entry = pml4->entries[i];
+        PageDirectoryEntry entry = pml4_virt->entries[i];
 
         if (!entry.get_flag(PtFlag::Present))
             continue;

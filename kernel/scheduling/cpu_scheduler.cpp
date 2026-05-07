@@ -4,12 +4,13 @@
 
 #include "../../arch/x86_64/gdt/gdt.h"
 #include "../../arch/x86_64/interrupts/apic.h"
-#include "vespera/mm/memory.h"
+#include "../realm/address_space.h"
 #include "../units/unit_manager.h"
 #include "arch/x86_64/cpu/msr.h"
 #include "per_cpu.h"
 #include "schedule_manager.h"
 #include "vespera/log.h"
+#include "vespera/mm/memory.h"
 #include "vespera/realm/realm_manager.h"
 #include "vespera/time.h"
 
@@ -81,16 +82,6 @@ namespace kernel::scheduling::cpu_scheduler {
         unit->next = nullptr;
     }
 
-    static phys_addr_t realm_get_phys(Realm* realm, const uptr vaddr) {
-        const uptr page_vaddr = vaddr & ~0xFFFULL;
-        const uptr offset = vaddr & 0xFFFULL;
-
-        const phys_addr_t phys_page = realm->page_table->get_physical_address(virt_from_raw(page_vaddr));
-        if (phys_null(phys_page)) return make_phys(0);
-
-        return phys_add(phys_page, offset);
-    }
-
     bool once = false;
     static void do_switch(Unit* prev, Unit* next, TrapFrame* tf) {
         const u64 now = kernel::time::get_uptime_ns();
@@ -134,7 +125,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
         if (next->is_user && next->rid) {
             if (next->parent) {
-                u64 cr3 = phys_raw(next->parent->pml4_phys);
+                u64 cr3 = phys_raw(next->parent->address_space->pml4_phys());
                 asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
             } else {
                 return;

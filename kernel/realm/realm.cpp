@@ -30,8 +30,6 @@ Realm::Realm()
     , memory_limit(0)
     , max_units(0)
     , unit_count(0)
-    , pml4_phys()
-    , page_table(nullptr)
     , cwd_path{}
     , exit_code(0)
     , exited(false)

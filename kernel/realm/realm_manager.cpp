@@ -32,6 +32,7 @@
 #include "../paging/page_table_manager.h"
 #include "../units/unit_manager.h"
 #include "vespera/sys/syscall_numbers.h"
+#include "address_space.h"
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
@@ -101,15 +102,6 @@ bool RealmManager::is_initialized() {
     return initialized_;
 }
 
-static void map_trampolines(Realm* r) {
-    r->page_table->map_range(
-        virt_from_raw(TRAMPOLINE_VADDR),
-        g_trampoline_page,
-        0x1000,
-        (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper)
-    );
-}
-
 Realm* RealmManager::create(const RealmConfig* cfg) {
     if (!cfg) return nullptr;
 
@@ -140,22 +132,17 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->exited = false;
 
             if (cfg->is_user) {
-                const phys_addr_t pml4_phys = kernel::memory::request_page_phys();
+                auto* as = new kernel::realm::AddressSpace();
+                if (!as) return nullptr;
 
-                auto* new_pml4 = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
-                memset(new_pml4, 0, 0x1000);
+                if (as->init(g_trampoline_page, DEFAULT_UNIT_STACK_SIZE) != SUCCESS_CODE) {
+                    delete as;
+                    return nullptr;
+                }
 
-                const auto* kernel_pml4 =
-                    static_cast<PageTable*>(virt_ptr(phys_to_virt(make_phys(kernel::memory::get_pagetable_address()))));
-
-                for (int i = 256; i < 512; i++) new_pml4->entries[i] = kernel_pml4->entries[i];
-
-                r->pml4_phys = pml4_phys;
-                r->page_table = new PageTableManager(reinterpret_cast<PageTable*>(phys_raw(pml4_phys)));
-                r->stack_alloc.init(DEFAULT_UNIT_STACK_SIZE);
-
-                map_trampolines(r);
+                r->address_space = as;
             }
+
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);
             RealmFs::register_realm(r->id, r->name, r);
@@ -217,12 +204,11 @@ bool RealmManager::destroy(const RealmId id) {
             u = next;
         }
 
-        if (realm.page_table) {
-            realm.page_table->destroy_userspace();
+        if (realm.address_space) {
+            realm.address_space->destroy();
+            delete realm.address_space;
+            realm.address_space = nullptr;
         }
-        delete realm.page_table;
-
-        realm.page_table = nullptr;
 
         realm.unit_list = nullptr;
         realm.unit_count = 0;
