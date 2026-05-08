@@ -36,9 +36,9 @@ namespace syscalls::internal {
         Realm *realm = current_unit->parent;
         if (!realm) return -EINVAL;
 
-        if (const HandleEntry *he = realm->lookup_handle(hid); !he) return -EBADH;  // invalid handle
+        if (const HandleEntry *he = realm->handle_table.lookup(hid); !he) return -EBADH;  // invalid handle
 
-        realm->release_handle(hid);
+        realm->handle_table.release(hid);
 
         return SUCCESS_CODE;
     }

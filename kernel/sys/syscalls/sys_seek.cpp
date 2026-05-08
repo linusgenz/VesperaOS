@@ -41,7 +41,7 @@ namespace syscalls::internal {
         Realm *realm = u->parent;
         if (!realm) return -EUNKNOWN;
 
-        const HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->handle_table.lookup(hid);
         if (!he) return -EBADH;
 
         switch (he->type & HANDLE_TYPE_MASK) {

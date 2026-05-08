@@ -41,7 +41,7 @@ namespace syscalls::internal {
         Realm* src_realm = caller->parent;
         if (!src_realm) return -EINVAL;
 
-        HandleEntry* src_he = src_realm->lookup_handle(hid);
+        HandleEntry* src_he = src_realm->handle_table.lookup(hid);
         if (!src_he) return -EBADH;
 
         if (!src_he->transferable) return -EACCES;
@@ -66,22 +66,15 @@ namespace syscalls::internal {
 
         HandleId new_hid = 0;
 
-        const i64 err = dst_realm->add_handle(
-            type_tag,
-            ch,
-            CAP_RW,
-            /*transferable=*/true,
-            Channel::destroy,
-            /*acquire=*/nullptr,
-            &new_hid
+        const Result<HandleId> result = dst_realm->handle_table.add(
+            type_tag, ch, CAP_RW, /*transferable=*/true, Channel::destroy, /*acquire=*/nullptr
         );
 
-        if (err != SUCCESS_CODE) {
+        if (result.is_err()) {
             Channel::destroy(ch);
-            return err;
+            return result.to_errno();
         }
 
-        return static_cast<i64>(new_hid);
+        return static_cast<i64>(result.unwrap());
     }
-
 }  // namespace syscalls::internal

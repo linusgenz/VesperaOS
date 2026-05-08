@@ -41,16 +41,16 @@ namespace syscalls::internal {
         Channel* ch = Channel::create(capacity);
         if (!ch) return -ENOMEM;
 
-        const capability_set caps = CAP_READ | CAP_WRITE;
+        constexpr capability_set caps = CAP_READ | CAP_WRITE;
 
-        HandleId hid = 0;
+        const Result<HandleId> result =
+            realm->handle_table.add(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, nullptr);
 
-        if (const i64 err = realm->add_handle(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, nullptr, &hid);
-            err != SUCCESS_CODE) {
+        if (result.is_err()) {
             Channel::destroy(ch);
-            return -err;
+            return result.to_errno();
         }
 
-        return hid;
+        return result.unwrap();
     }
 }  // namespace syscalls::internal

@@ -128,7 +128,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->cred = kernel::security::process_credentials{};
             r->lock.init();
             r->capabilities = cfg->capabilities;
-            r->init_handle_table();
+            r->handle_table.init(r->id);
             r->exited = false;
 
             if (cfg->is_user) {
@@ -142,7 +142,6 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
 
                 r->address_space = as;
             }
-
 
             SYS_EVENT_REALM_CREATED(r->id, r->name);
             RealmFs::register_realm(r->id, r->name, r);
@@ -212,7 +211,7 @@ bool RealmManager::destroy(const RealmId id) {
 
         realm.unit_list = nullptr;
         realm.unit_count = 0;
-        realm.clear_handle_table();
+        realm.handle_table.clear();
         realm.active = false;
         realm.id = 0;
 
@@ -232,7 +231,7 @@ void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {
         const u8 begin = seq_.load();
         if (begin & 1) continue;
 
-        for (auto& realm : realms_) {
+        for (const auto& realm : realms_) {
             if (!realm.active || realm.pgid != pgid) continue;
             Unit* u = realm.unit_list;
             while (u) {

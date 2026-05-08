@@ -45,7 +45,7 @@ namespace syscalls::internal {
 
         if (!realm || !u->active) return -EUNKNOWN;
 
-        const HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->handle_table.lookup(hid);
         if (!he || !he->resource) return -EBADH;
 
         if (!buf) return -EINVAL;

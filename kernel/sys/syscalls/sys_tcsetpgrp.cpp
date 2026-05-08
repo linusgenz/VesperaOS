@@ -41,7 +41,7 @@ namespace syscalls::internal {
         const RealmId new_pgid = arg1;
         if (new_pgid == 0) return -EINVAL;
 
-        const HandleEntry* he = self->lookup_handle(hid);
+        const HandleEntry* he = self->handle_table.lookup(hid);
         if (!he || he->type != HANDLE_TYPE_TTY) return -ENOTTY;
 
         auto* tty_dev = static_cast<TtyDevice*>(he->resource);

@@ -29,42 +29,25 @@
 #include <vespera/sync/wait_queue.h>
 
 #include "../../../kernel/paging/page_table_manager.h"
+#include "../../../kernel/realm/handle_table.h"
 #include "../../../kernel/tty/tty_device.h"
 #include "../types.h"
 #include "vespera/security/credentials.h"
 
 class Unit;
-namespace kernel::realm { class AddressSpace; }
+namespace kernel::realm {
+    class AddressSpace;
+}
 
 constexpr uptr TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
-constexpr uptr TRAMP_SIGNAL_OFF   = 0x000;
-constexpr uptr TRAMP_UNIT_OFF     = 0x100;
+constexpr uptr TRAMP_SIGNAL_OFF = 0x000;
+constexpr uptr TRAMP_UNIT_OFF = 0x100;
 constexpr uptr SIGNAL_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_SIGNAL_OFF);
 constexpr uptr USER_UNIT_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_UNIT_OFF);
 
 #define MAX_HANDLES_PER_REALM 4096
 #define KERNEL_REALM_SYSTEM 1
 #define KERNEL_REALM_DRIVER 2
-
-struct HandleEntry {
-    HandleId hid;
-    u64 type;
-    void *resource;
-    capability_set capabilities;
-    volatile u64 refcount;
-    bool transferable;
-    Spinlock lock;
-
-    void (*destroy)(void *);
-    void (*acquire)(void*);
-};
-
-struct HandleTable {
-    HandleEntry entries[MAX_HANDLES_PER_REALM];
-    u8 bitmap[MAX_HANDLES_PER_REALM / 8];
-    RealmId owner_realm;
-    Spinlock lock;
-};
 
 class Realm {
    public:
@@ -82,54 +65,26 @@ class Realm {
     int exit_code;
     bool exited;
 
-    Unit *unit_list;
+    Unit* unit_list;
 
     WaitQueue wait_queue;
 
     HandleTable handle_table;
-
 
     Spinlock lock;
     bool active;
     u8 sched_priority;
     u64 cpu_time_accumulated;
 
-    RealmId    pgid;
-    RealmId    sid;
-    RealmId    parent_id;
+    RealmId pgid;
+    RealmId sid;
+    RealmId parent_id;
     TtyDevice* controlling_tty;
 
     kernel::security::process_credentials cred;
 
     Realm();
-
-    i64 init_handle_table();
-
-    i64 add_handle(
-        u64 type, void *resource, capability_set caps, bool transferable, void (*destroy)(void *), void (*acquire)(void*), HandleId *out_h
-    );
-
-    i64 add_handle_with_id(
-        HandleId fixed_id, u64 type, void *resource, capability_set caps, bool transferable,
-        void (*destroy)(void *), void (*acquire)(void*)
-    );
-
-    i64 setup_standard_handles(TtyDevice *tty_dev);
-
-    HandleEntry *lookup_handle(HandleId hid);
-
-    void acquire_handle(HandleId hid);
-
-    void release_handle(HandleId hid);
-    TtyDevice *get_tty_device() const;
-
-    void clear_handle_table();
-
-   private:
-    [[nodiscard]] bool test_bit(usize i) const;
-    void set_bit(usize i);
-    void clear_bit(usize i);
-    [[nodiscard]] int find_free_slot() const;
+    TtyDevice* get_tty_device();
 };
 
 #endif  // VESPERAOS_KERNEL_REALM_H

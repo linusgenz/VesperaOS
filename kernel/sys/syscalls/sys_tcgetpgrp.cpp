@@ -39,7 +39,7 @@ namespace syscalls::internal {
 
         const HandleId hid = arg0;
 
-        HandleEntry* he = self->lookup_handle(hid);
+        HandleEntry* he = self->handle_table.lookup(hid);
         if (!he || he->type != HANDLE_TYPE_TTY) return -ENOTTY;
 
         const auto* tty_dev = static_cast<TtyDevice*>(he->resource);

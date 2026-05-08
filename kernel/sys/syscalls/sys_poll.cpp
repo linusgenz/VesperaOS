@@ -53,7 +53,7 @@ namespace syscalls::internal {
             for (usize i = 0; i < nhdls; ++i) {
                 hdls[i].revents = 0;
 
-                const HandleEntry* he = realm->lookup_handle(hdls[i].hdl);
+                const HandleEntry* he = realm->handle_table.lookup(hdls[i].hdl);
                 if (!he) {
                     hdls[i].revents = POLLHUP;
                     ready++;

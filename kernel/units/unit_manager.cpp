@@ -285,9 +285,9 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
             if (cfg->initial_handles && cfg->initial_handle_count > 0) {
                 for (u64 j = 0; j < cfg->initial_handle_count; ++j) {
                     const HandleId h = cfg->initial_handles[j];
-                    if (const HandleEntry* he = realm->lookup_handle(h); !he) continue;
+                    if (const HandleEntry* he = realm->handle_table.lookup(h); !he) continue;
                     u->attach_handle(h);
-                    realm->acquire_handle(h);
+                    realm->handle_table.acquire(h);
                 }
             }
 

@@ -180,16 +180,16 @@ namespace syscalls::internal {
 
         if ((flags & O_APPEND) && node->type == VfsNodeType::File) vh->context->position = node->size;
 
-        HandleId file_handle = 0;
-        if (const i64 err =
-                realm->add_handle(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr, &file_handle);
-            err != SUCCESS_CODE) {
+        const Result<HandleId> result =
+            realm->handle_table.add(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr);
+
+        if (result.is_err()) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)
                 VFS::closedir(static_cast<VfsDir*>(vh->node->internal_data));
             delete vh;
-            return -err;
+            return result.to_errno();
         }
 
-        return file_handle;
+        return static_cast<i64>(result.unwrap());
     }
 }  // namespace syscalls::internal

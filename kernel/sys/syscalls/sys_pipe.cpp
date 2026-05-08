@@ -26,7 +26,9 @@
 #include <vespera/scheduling.h>
 #include <vespera/types.h>
 
-static void ref_void(void* p) { Channel::ref(static_cast<Channel*>(p)); }
+static void ref_void(void* p) {
+    Channel::ref(static_cast<Channel*>(p));
+}
 
 namespace syscalls::internal {
     i64 sys_pipe(u64 arg0, u64, u64, u64, u64, u64) {
@@ -40,21 +42,26 @@ namespace syscalls::internal {
         Channel* ch = Channel::create(65536);
         if (!ch) return -ENOMEM;
 
-        HandleId read_hid = 0, write_hid = 0;
+        const Result<HandleId> read_result =
+            realm->handle_table.add(HANDLE_TYPE_PIPE, ch, CAP_READ, true, Channel::destroy, ref_void);
 
-        if (realm->add_handle(HANDLE_TYPE_PIPE, ch, CAP_READ, true, Channel::destroy, ref_void, &read_hid) != SUCCESS_CODE) {
+        if (read_result.is_err()) {
             Channel::destroy(ch);
             return -ENOMEM;
         }
 
         Channel::ref(ch);
-        if (realm->add_handle(HANDLE_TYPE_PIPE, ch, CAP_WRITE, true, Channel::destroy, ref_void, &write_hid) != SUCCESS_CODE) {
-            realm->release_handle(read_hid);
+
+        const Result<HandleId> write_result =
+            realm->handle_table.add(HANDLE_TYPE_PIPE, ch, CAP_WRITE, true, Channel::destroy, ref_void);
+
+        if (write_result.is_err()) {
+            realm->handle_table.release(read_result.unwrap());
             return -ENOMEM;
         }
 
-        hdls[0] = read_hid;
-        hdls[1] = write_hid;
+        hdls[0] = read_result.unwrap();
+        hdls[1] = write_result.unwrap();
         return 0;
     }
 }  // namespace syscalls::internal

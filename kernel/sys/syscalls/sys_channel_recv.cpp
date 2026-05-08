@@ -39,7 +39,7 @@ namespace syscalls::internal {
         Realm *realm = u->parent;
         if (!realm) return -EINVAL;
 
-        const HandleEntry *he = realm->lookup_handle(hid);
+        const HandleEntry *he = realm->handle_table.lookup(hid);
         if (!he) return -EBADH;
 
         if (!(he->capabilities & CAP_READ)) return -EACCES;

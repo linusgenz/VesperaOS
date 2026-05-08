@@ -40,7 +40,7 @@ namespace syscalls::internal {
         if (!realm) return -EINVAL;
 
         // Retrieve the realm's vbus channel (HANDLE_VBUS, slot 3)
-        const HandleEntry* he = realm->lookup_handle(HANDLE_VBUS);
+        const HandleEntry* he = realm->handle_table.lookup(HANDLE_VBUS);
         if (!he) return -EBADH;
         if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_CHANNEL) return -EINVAL;
 

@@ -66,13 +66,13 @@ namespace syscalls::internal {
         if (cfg_ptr && cfg_ptr->bg_realm) {
             new_realm->sid = new_realm->id;
             new_realm->controlling_tty = nullptr;
-            new_realm->setup_standard_handles(nullptr);
+            new_realm->handle_table.setup_standard_handles(nullptr);
         } else {
             new_realm->sid = parent_realm ? parent_realm->sid : new_realm->id;
             new_realm->controlling_tty = tty_dev;
 
             if (tty_dev) {
-                new_realm->setup_standard_handles(tty_dev);
+                new_realm->handle_table.setup_standard_handles(tty_dev);
             }
         }
 
@@ -93,15 +93,15 @@ namespace syscalls::internal {
                 auto transfer = [&](i64 src_hid, HandleId dst_fixed_id) -> bool {
                     if (src_hid == 0) return true;
 
-                    const HandleEntry* he = parent_realm->lookup_handle(static_cast<HandleId>(src_hid));
+                    const HandleEntry* he = parent_realm->handle_table.lookup(static_cast<HandleId>(src_hid));
                     if (!he || !he->transferable) return false;
 
                     if (he->acquire) he->acquire(he->resource);
 
-                    if (HandleEntry* existing = new_realm->lookup_handle(dst_fixed_id))
-                        new_realm->release_handle(dst_fixed_id);
+                    if (HandleEntry* existing = new_realm->handle_table.lookup(dst_fixed_id))
+                        new_realm->handle_table.release(dst_fixed_id);
 
-                    new_realm->add_handle_with_id(
+                    new_realm->handle_table.add_at(
                         dst_fixed_id,
                         he->type,
                         he->resource,

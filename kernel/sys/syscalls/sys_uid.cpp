@@ -270,7 +270,7 @@ namespace syscalls::internal {
         Realm* r = current_realm();
         if (!r) return -ESRCH;
 
-        const HandleEntry* he = r->lookup_handle(hid);
+        const HandleEntry* he = r->handle_table.lookup(hid);
         if (!he || (he->type != HANDLE_TYPE_FILE && he->type != HANDLE_TYPE_DIRECTORY)) return -EBADH;
 
         const auto* vh = static_cast<VfsHandle*>(he->resource);
@@ -315,7 +315,7 @@ namespace syscalls::internal {
         Realm* r = current_realm();
         if (!r) return -ESRCH;
 
-        const HandleEntry* he = r->lookup_handle(hid);
+        const HandleEntry* he = r->handle_table.lookup(hid);
         if (!he || (he->type != HANDLE_TYPE_FILE && he->type != HANDLE_TYPE_DIRECTORY)) return -EBADH;
 
         const auto* vh = static_cast<VfsHandle*>(he->resource);
