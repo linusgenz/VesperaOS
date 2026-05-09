@@ -4,11 +4,9 @@ extern syscall_handler
 section .text
 bits 64
 
-%define SAVED_USER_RSP 0x50
+%define SAVED_USER_RSP 0x38
 %define STACK_POINTER 0x18
-%define KERNEL_RSP_AFTER_SYSCALL 0x68
-%define FROM_SYSCALL_BOOL 0x98
-%define TRAP_FRAME 184
+%define TRAP_FRAME 152
 syscall_entry:
     swapgs
     cli
@@ -17,7 +15,7 @@ syscall_entry:
 
     mov r15, qword [gs:0]
     mov [r15 + SAVED_USER_RSP], rsp
-    mov byte [r15 + FROM_SYSCALL_BOOL], 1
+
     mov rsp, qword [r15 + STACK_POINTER]
 
     mov qword [r15 + TRAP_FRAME + 0x00], rax       ; rax (syscall number)
@@ -45,8 +43,6 @@ syscall_entry:
     mov r14, [r15 + SAVED_USER_RSP]
     mov qword [r15 + TRAP_FRAME + 0xA0], r14       ; rsp = user RSP
     mov qword [r15 + TRAP_FRAME + 0xA8], 0x1b      ; ss = user data segment
-
-    mov [r15 + KERNEL_RSP_AFTER_SYSCALL], rsp
 
     mov r11, rax
     mov rax, rdi
@@ -97,7 +93,6 @@ syscall_entry:
     mov rsp, qword [r15 + TRAP_FRAME + 0xA0]  ; user RSP
 
     or r11, 0x200
-    mov byte [r15 + FROM_SYSCALL_BOOL], 0
 
     pop r15
 

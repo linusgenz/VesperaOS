@@ -101,7 +101,7 @@ namespace syscalls::internal {
                     if (HandleEntry* existing = new_realm->handle_table.lookup(dst_fixed_id))
                         new_realm->handle_table.release(dst_fixed_id);
 
-                    new_realm->handle_table.add_at(
+                    return new_realm->handle_table.add_at(
                         dst_fixed_id,
                         he->type,
                         he->resource,
@@ -109,8 +109,7 @@ namespace syscalls::internal {
                         he->transferable,
                         he->destroy,
                         he->acquire
-                    );
-                    return true;
+                    ).is_ok();
                 };
 
                 if (!transfer(cfg_ptr->stdin_handle, HANDLE_STDIN)) {

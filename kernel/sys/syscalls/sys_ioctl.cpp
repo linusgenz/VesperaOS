@@ -22,13 +22,10 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handles.h>
-#include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../../include/vespera/types.h"
-#include "../../units/unit.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_ioctl(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -36,36 +33,27 @@ namespace syscalls::internal {
         const u64 req = arg1;
         const auto arg = reinterpret_cast<void*>(arg2);
 
-        const Unit* u = kernel::scheduling::get_current_unit();
-        if (!u || !u->active) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_DEVICE_ACCESS));
 
-        Realm* realm = u->parent;
-        if (!realm) return -EUNKNOWN;
-
-        const HandleEntry* he = realm->handle_table.lookup(hid);
-        if (!he) return -EBADH;
-
-        if (!(he->capabilities & CAP_DEVICE_ACCESS)) {
-            return -EACCES;
-        }
-
-        if ((he->type & HANDLE_TYPE_MASK) == HANDLE_TYPE_TTY && req == TIOCSCTTY) {
+        // TIOCSCTTY is special: must be session leader, no controlling TTY yet.
+        if (rh.type() == HANDLE_TYPE_TTY && req == TIOCSCTTY) {
+            Realm* realm = rh.realm;
             if (realm->sid != realm->id) return -EPERM;
             if (realm->controlling_tty != nullptr) return -EPERM;
-            auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+            auto* tty_dev = rh.resource_as<TtyDevice>();
             if (!tty_dev) return -ENOTTY;
             realm->controlling_tty = tty_dev;
             return 0;
         }
 
-        switch (he->type & HANDLE_TYPE_MASK) {
+        switch (rh.type()) {
             case HANDLE_TYPE_DEVICE: {
-                const auto* vh = static_cast<VfsHandle*>(he->resource);
+                const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->ioctl) return -ENOTTY;
                 return vh->node->ops->ioctl(vh->node, req, arg);
             }
             case HANDLE_TYPE_TTY: {
-                auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+                auto* tty_dev = rh.resource_as<TtyDevice>();
                 if (!tty_dev) return -ENODEV;
                 CharFile cf{};
                 cf.driver_private = tty_dev;

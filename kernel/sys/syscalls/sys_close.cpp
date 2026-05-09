@@ -25,20 +25,17 @@
 #include <vespera/scheduling.h>
 
 #include "../../../include/vespera/types.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_close(u64 arg0, u64, u64, u64, u64, u64) {
         const HandleId hid = arg0;
 
-        const Unit *current_unit = kernel::scheduling::get_current_unit();
-        if (!current_unit) return -EINVAL;
+        const auto rh = SYSCALL_TRY(
+            resolve_handle(hid, /*type_mask=*/0, /*required_caps=*/0)
+        );
 
-        Realm *realm = current_unit->parent;
-        if (!realm) return -EINVAL;
-
-        if (const HandleEntry *he = realm->handle_table.lookup(hid); !he) return -EBADH;  // invalid handle
-
-        realm->handle_table.release(hid);
+        rh.realm->handle_table.release(hid);
 
         return SUCCESS_CODE;
     }

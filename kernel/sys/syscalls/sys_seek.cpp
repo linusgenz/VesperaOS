@@ -23,11 +23,10 @@
 
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handles.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
 #include "../../units/unit.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_seek(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -35,23 +34,16 @@ namespace syscalls::internal {
         const i64 offset = static_cast<i64>(arg1);
         const int whence = static_cast<int>(arg2);
 
-        const Unit *u = kernel::scheduling::get_current_unit();
-        if (!u || !u->active) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid));
 
-        Realm *realm = u->parent;
-        if (!realm) return -EUNKNOWN;
-
-        const HandleEntry *he = realm->handle_table.lookup(hid);
-        if (!he) return -EBADH;
-
-        switch (he->type & HANDLE_TYPE_MASK) {
+        switch (rh.type()) {
             case HANDLE_TYPE_DIRECTORY:
             case HANDLE_TYPE_TTY:
-                return -ESPIPE;  // Illegal seek
+                return -ESPIPE;
 
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-                const VfsHandle *vh = static_cast<VfsHandle *>(he->resource);
+                const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh || !vh->node) return -EBADH;
 
                 i64 new_pos = 0;
@@ -60,21 +52,16 @@ namespace syscalls::internal {
                     case SEEK_SET:
                         new_pos = offset;
                         break;
-
                     case SEEK_CUR:
                         new_pos = vh->context->position + offset;
                         break;
-
-                    case SEEK_END: {
+                    case SEEK_END:
                         new_pos = vh->node->size + offset;
                         break;
-                    }
-
                     default:
                         return -EINVAL;
                 }
 
-                // negative seek is invalid
                 if (new_pos < 0) return -EINVAL;
 
                 vh->context->position = new_pos;

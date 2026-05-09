@@ -27,6 +27,7 @@
 #include <vespera_errno.h>
 
 #include "../../units/unit.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
 
@@ -35,36 +36,23 @@ namespace syscalls::internal {
         const RealmId target_realm_id = arg1;
         const capability_set caps_mask = static_cast<capability_set>(arg2);
 
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid));
 
-        Realm* src_realm = caller->parent;
-        if (!src_realm) return -EINVAL;
+        if (!rh.entry->transferable) return -EACCES;
 
-        HandleEntry* src_he = src_realm->handle_table.lookup(hid);
-        if (!src_he) return -EBADH;
-
-        if (!src_he->transferable) return -EACCES;
-
-        const capability_set granted = src_he->capabilities & caps_mask;
+        const capability_set granted = rh.entry->capabilities & caps_mask;
         if (granted == 0) return -EACCES;
+
+        const u64 type_tag = rh.type();
+        if (type_tag != HANDLE_TYPE_CHANNEL && type_tag != HANDLE_TYPE_PIPE) return -EACCES;
 
         Realm* dst_realm = RealmManager::get(target_realm_id);
         if (!dst_realm) return -ECHILD;
 
-        const u64 type_tag = src_he->type & HANDLE_TYPE_MASK;
-
-        if (type_tag != HANDLE_TYPE_CHANNEL && type_tag != HANDLE_TYPE_PIPE) {
-            // Only ref-counted kernel objects make sense to transfer.
-            return -EACCES;
-        }
-
-        auto* ch = static_cast<Channel*>(src_he->resource);
+        auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
         Channel::ref(ch);
-
-        HandleId new_hid = 0;
 
         const Result<HandleId> result = dst_realm->handle_table.add(
             type_tag, ch, CAP_RW, /*transferable=*/true, Channel::destroy, /*acquire=*/nullptr

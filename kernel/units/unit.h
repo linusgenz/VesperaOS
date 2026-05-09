@@ -54,7 +54,7 @@ struct ArgRegisters {
 
 /// @warning when changing this struct syscall might break as offsets are hardcoded!
 // TODO refactor this struct
-typedef struct ExecutionContext {
+struct ExecutionContext {
     u64 stack_size;
     virt_addr_t stack;
     virt_addr_t stack_top;
@@ -71,10 +71,6 @@ typedef struct ExecutionContext {
     bool initialized;
 
     void* arg;
-    void* saved_user_rsp;
-    void* kernel_rsp;
-    bool from_syscall;
-    void* kernel_rsp_after_syscall;
 
     phys_addr_t user_stack_phys;
     virt_addr_t user_stack_virt_base;
@@ -85,10 +81,10 @@ typedef struct ExecutionContext {
     UnitFpuState fpu_ctx;
 
     u64 fs_base;
-} execution_context_t;
+};
 
 struct SleepContext {
-    u64 wakeup_ns;
+    u64 wakeup_ns{};
     bool interrupted = false;
 };
 
@@ -104,8 +100,8 @@ struct VmArea {
 };
 
 struct UnitHandleTable {
-    HandleId slots[MAX_UNIT_HANDLE_SLOTS];
-    u64 count;
+    HandleId slots[MAX_UNIT_HANDLE_SLOTS]{};
+    u64 count{};
     Spinlock lock;
 };
 
@@ -147,12 +143,12 @@ class Unit {
 
     u64 handle_count{0};
 
-    execution_context_t context{};
+    ExecutionContext context{};
     SleepContext sleep_context{};
 
-    u64 signals_pending;
-    u64 signals_masked;
-    SignalAction signal_actions[32];
+    u64 signals_pending{};
+    u64 signals_masked{};
+    SignalAction signal_actions[32]{};
 
     Unit() {
         memset(&handle_table_, 0, sizeof(handle_table_));
@@ -197,13 +193,13 @@ class Unit {
     }
 
     void free_vma_list() {
-        VmArea* next = nullptr;
+        VmArea* next_vm_area = nullptr;
         VmArea* cur = vma_list_;
 
         while (cur) {
-            next = cur->next;
+            next_vm_area = cur->next;
             delete cur;
-            cur = next;
+            cur = next_vm_area;
         }
 
         vma_list_ = nullptr;

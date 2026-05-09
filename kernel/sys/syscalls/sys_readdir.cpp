@@ -22,32 +22,26 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handles.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
 #include <vespera/types.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
 #include "../../units/unit.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_readdir(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const HandleId hid = arg0;
-        auto *ent = reinterpret_cast<dirent_t *>(arg1);
+        auto* ent = reinterpret_cast<dirent_t*>(arg1);
 
         if (!ent) return -EINVAL;
 
-        const Unit *u = kernel::scheduling::get_current_unit();
-        Realm *realm = u->parent;
-        const HandleEntry *he = realm->handle_table.lookup(hid);
-        if (!he) return -EBADH;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_DIRECTORY, CAP_READ));
 
-        if (!(he->capabilities & CAP_READ)) return -EACCES;
-        if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_DIRECTORY) return -EINVAL;
+        const auto* vh = rh.resource_as<VfsHandle>();
+        if (!vh || !vh->context || !vh->context->type_specific_data) return -EINVAL;
 
-        const auto *vh = static_cast<VfsHandle *>(he->resource);
-        if (!vh->context || !vh->context->type_specific_data) return -EINVAL;
+        const VfsDir* dir = vh->context->type_specific_data;
 
-        const VfsDir * dir = vh->context->type_specific_data;
         const bool has_entry = SYSCALL_TRY(VFS::readdir(dir, ent));
         return has_entry ? 1 : 0;
     }

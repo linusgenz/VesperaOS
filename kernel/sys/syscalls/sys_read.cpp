@@ -28,46 +28,35 @@
 #include <vespera/types.h>
 
 #include "../filesystem/vfs/vfs_handle.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
-        const auto buf = reinterpret_cast<void *>(arg1);
+        const auto buf = reinterpret_cast<void*>(arg1);
         const usize count = arg2;
 
         if (!buf || count == 0) return -EINVAL;
 
-        const Unit *u = kernel::scheduling::get_current_unit();
-        if (!u || !u->active) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_READ));
 
-        Realm *realm = u->parent;
-        if (!realm) return -EUNKNOWN;
-
-        const HandleEntry *he = realm->handle_table.lookup(hid);
-        if (!he) return -EBADH;
-
-        if (!(he->capabilities & CAP_READ)) {
-            return -EACCES;
-        }
-
-        switch (he->type & HANDLE_TYPE_MASK) {
+        switch (rh.type()) {
             case HANDLE_TYPE_TTY: {
-                auto *tty_dev = static_cast<TtyDevice *>(he->resource);
+                auto* tty_dev = rh.resource_as<TtyDevice>();
                 if (!tty_dev) return 0;
                 return tty_dev->read(nullptr, buf, count, 0);
             }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-                const auto* vh = static_cast<VfsHandle*>(he->resource);
+                const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh) return -EBADH;
-
                 const usize bytes = SYSCALL_TRY(VFS::read(vh->node, vh->context->position, count, buf));
                 if (bytes > 0) vh->context->position += bytes;
                 return static_cast<isize>(bytes);
             }
             case HANDLE_TYPE_PIPE: {
-                auto* ch = static_cast<Channel*>(he->resource);
-                isize r;
+                auto* ch = rh.resource_as<Channel>();
+                isize r = 0;
                 while ((r = ch->recv(buf, count)) == -EAGAIN) {
                     kernel::scheduling::yield();
                 }

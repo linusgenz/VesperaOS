@@ -253,7 +253,6 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry_point
                 );
 
                 u->context.user_stack = stack_hhdm;
-                u->context.user_stack_phys = stack_phys;
                 u->context.user_stack_size = user_stack_size;
                 u->context.user_stack_virt_base = slot.virt_base;
                 u->context.user_stack_top = slot.virt_top;  // rsp starts here
@@ -355,8 +354,8 @@ bool UnitManager::destroy(const UnitId id) {
 
             if (u->is_user && !virt_null(u->context.user_stack)) {
                 const usize user_pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
-                kernel::memory::unmap_range(u->context.user_stack_virt_base, u->context.user_stack_size);
-                kernel::memory::free_pages_phys(u->context.user_stack_phys, user_pages);
+                kernel::memory::unmap_range(u->context.user_stack_virt_base, user_pages);
+                kernel::memory::free_pages(u->context.user_stack_virt_base, user_pages);
                 u->context.user_stack = make_virt(nullptr);
 
                 if (r) r->address_space->stack_alloc().free(u->user_stack_slot);

@@ -22,33 +22,23 @@
 
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/realm.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
 #include <vespera_errno.h>
 
 #include "../../tty/tty_device.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_tcsetpgrp(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -ESRCH;
-
-        Realm* self = caller->parent;
-        if (!self) return -ESRCH;
-
-        const HandleId hid = arg0;
         const RealmId new_pgid = arg1;
         if (new_pgid == 0) return -EINVAL;
 
-        const HandleEntry* he = self->handle_table.lookup(hid);
-        if (!he || he->type != HANDLE_TYPE_TTY) return -ENOTTY;
+        const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_TTY));
 
-        auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+        auto* tty_dev = rh.resource_as<TtyDevice>();
         if (!tty_dev || !tty_dev->tty) return -ENOTTY;
 
-        // Only the session that controls this TTY may change fg_pgid.
-        if (self->controlling_tty != tty_dev) return -EPERM;
+        if (rh.realm->controlling_tty != tty_dev) return -EPERM;
 
         tty_dev->tty->fg_pgid = new_pgid;
         return 0;

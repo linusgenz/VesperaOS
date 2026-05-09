@@ -22,58 +22,40 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handles.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
 #include "../../../filesystem/vfs/vfs_handle.h"
-#include "../syscall_interface.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
-        const auto buf = reinterpret_cast<void *>(arg1);
+        const auto buf = reinterpret_cast<void*>(arg1);
         const usize count = arg2;
 
-        if (count == 0) {
-            return 0;
-        }
+        if (!buf || count == 0) return 0;
 
-        const Unit *u = kernel::scheduling::get_current_unit();
-        if (!u) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_WRITE));
 
-        Realm *realm = u->parent;
-
-        if (!realm || !u->active) return -EUNKNOWN;
-
-        const HandleEntry *he = realm->handle_table.lookup(hid);
-        if (!he || !he->resource) return -EBADH;
-
-        if (!buf) return -EINVAL;
-
-        if (!(he->capabilities & CAP_WRITE)) {
-            return -EACCES;
-        }
-        switch (he->type) {
+        switch (rh.type()) {
             case HANDLE_TYPE_TTY: {
-                auto *tty_dev = static_cast<TtyDevice *>(he->resource);
-                if (!tty_dev) return count;
+                auto* tty_dev = rh.resource_as<TtyDevice>();
+                if (!tty_dev) return static_cast<i64>(count);
                 return tty_dev->write(nullptr, buf, count);
             }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
-                const auto *vh = static_cast<VfsHandle *>(he->resource);
+                const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh) return -EBADH;
-
                 const usize bytes = SYSCALL_TRY(VFS::write(vh->node, vh->context->position, count, buf));
                 if (bytes > 0) vh->context->position += bytes;
                 return static_cast<isize>(bytes);
             }
             case HANDLE_TYPE_PIPE: {
-                auto *ch = static_cast<Channel *>(he->resource);
-                isize r;
+                auto* ch = rh.resource_as<Channel>();
+                isize r = 0;
                 while ((r = ch->send(buf, count)) == -EAGAIN) {
-                    // kernel::scheduling::yield();
-                    asm volatile("pause");
+                    kernel::scheduling::yield();
                 }
                 return r;
             }

@@ -23,11 +23,9 @@
 
 #include <uapi/vespera/handles.h>
 #include <vespera/ipc/channel.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
-#include "../../units/unit.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_channel_send(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -35,22 +33,14 @@ namespace syscalls::internal {
         const auto data = reinterpret_cast<const void*>(arg1);
         const auto len = arg2;
 
-        const Unit* u = kernel::scheduling::get_current_unit();
-        if (!u) return -EINVAL;
-        Realm* realm = u->parent;
-        if (!realm) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_CHANNEL, CAP_WRITE));
 
-        const HandleEntry* he = realm->handle_table.lookup(hid);
-        if (!he) return -EBADH;
-
-        if (!(he->capabilities & CAP_WRITE)) return -EACCES;
-        if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_CHANNEL) return -EINVAL;
-
-        auto* ch = static_cast<Channel*>(he->resource);
+        auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
         const int res = ch->send(data, len);
         if (res < 0) return -EAGAIN;
+
         return res;  // bytes written
     }
 }  // namespace syscalls::internal

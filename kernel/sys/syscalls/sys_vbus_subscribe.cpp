@@ -20,13 +20,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/ipc/vbus_manager.h>
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/vbus.h>
 #include <vespera/ipc/channel.h>
-#include <vespera/realm/realm_manager.h>
+#include <vespera/ipc/vbus_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
+
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
 
@@ -34,20 +35,12 @@ namespace syscalls::internal {
         const auto* args = reinterpret_cast<const vbus_subscribe_args_t*>(arg0);
         if (!args) return -EINVAL;
 
-        const Unit* u = kernel::scheduling::get_current_unit();
-        if (!u) return -EINVAL;
-        Realm* realm = u->parent;
-        if (!realm) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(HANDLE_VBUS, HANDLE_TYPE_CHANNEL));
 
-        // Retrieve the realm's vbus channel (HANDLE_VBUS, slot 3)
-        const HandleEntry* he = realm->handle_table.lookup(HANDLE_VBUS);
-        if (!he) return -EBADH;
-        if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_CHANNEL) return -EINVAL;
-
-        auto* ch = static_cast<Channel*>(he->resource);
+        auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
-        return VBusManager::subscribe(u->rid, ch, args->interface, args->member);
+        return VBusManager::subscribe(rh.unit->rid, ch, args->interface, args->member);
     }
 
     i64 sys_vbus_unsubscribe(u64, u64, u64, u64, u64, u64) {

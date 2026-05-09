@@ -45,7 +45,7 @@ namespace kernel::interrupts {
 
         arch::x86_64::interrupts::idt::load_default_idt();
         arch::x86_64::interrupts::pic::remap();
-        //  arch::x86_64::interrupts::ioapic::init();
+        arch::x86_64::interrupts::ioapic::init();
         arch::x86_64::interrupts::apic::init(0);  // bsp
     }
 

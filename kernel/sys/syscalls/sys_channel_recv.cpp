@@ -26,30 +26,23 @@
 #include <vespera/scheduling.h>
 
 #include "../../units/unit.h"
+#include "../handle_resolution.h"
 #include "uapi/vespera/handles.h"
 
 namespace syscalls::internal {
     i64 sys_channel_recv(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const auto hid = arg0;
-        const auto buf = reinterpret_cast<void *>(arg1);
+        const auto buf = reinterpret_cast<void*>(arg1);
         const auto len = arg2;
 
-        const Unit *u = kernel::scheduling::get_current_unit();
-        if (!u) return -EINVAL;
-        Realm *realm = u->parent;
-        if (!realm) return -EINVAL;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_CHANNEL, CAP_READ));
 
-        const HandleEntry *he = realm->handle_table.lookup(hid);
-        if (!he) return -EBADH;
-
-        if (!(he->capabilities & CAP_READ)) return -EACCES;
-        if ((he->type & HANDLE_TYPE_MASK) != HANDLE_TYPE_CHANNEL) return -EINVAL;
-
-        auto *ch = static_cast<Channel *>(he->resource);
+        auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
         const int res = ch->recv(buf, len);
         if (res < 0) return -EAGAIN;
+
         return res;
     }
 }  // namespace syscalls::internal

@@ -28,6 +28,7 @@
 #include "../../../filesystem/vfs/vfs_handle.h"
 #include "../../../filesystem/vfs/vfs_node.h"
 #include "../../security/permission.h"
+#include "../handle_resolution.h"
 #include "uapi/vespera/handles.h"
 
 using namespace kernel::security;
@@ -264,23 +265,20 @@ namespace syscalls::internal {
 
     i64 sys_fchown(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
-        const u32 uid = arg1;
-        const u32 gid = arg2;
+        const u32 uid = static_cast<u32>(arg1);
+        const u32 gid = static_cast<u32>(arg2);
 
-        Realm* r = current_realm();
-        if (!r) return -ESRCH;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid));
 
-        const HandleEntry* he = r->handle_table.lookup(hid);
-        if (!he || (he->type != HANDLE_TYPE_FILE && he->type != HANDLE_TYPE_DIRECTORY)) return -EBADH;
+        if (rh.type() != HANDLE_TYPE_FILE && rh.type() != HANDLE_TYPE_DIRECTORY) return -EBADH;
 
-        const auto* vh = static_cast<VfsHandle*>(he->resource);
+        const auto* vh = rh.resource_as<VfsHandle>();
         if (!vh || !vh->node) return -EBADH;
 
-        if (const int perm = vfs_check_chown(vh->node, uid, gid, r->cred); perm != 0) return perm;
+        if (const int perm = vfs_check_chown(vh->node, uid, gid, rh.realm->cred); perm != 0) return perm;
 
-        auto res = VFS::chown(vh->node, uid, gid);
-        if (res.is_err()) return res.to_errno();
-        return SUCCESS_CODE;
+        const auto res = VFS::chown(vh->node, uid, gid);
+        return res.is_err() ? res.to_errno() : SUCCESS_CODE;
     }
 
     i64 sys_chmod(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -310,21 +308,18 @@ namespace syscalls::internal {
 
     i64 sys_fchmod(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const HandleId hid = arg0;
-        const u16 mode = arg1;
+        const u16 mode = static_cast<u16>(arg1);
 
-        Realm* r = current_realm();
-        if (!r) return -ESRCH;
+        const auto rh = SYSCALL_TRY(resolve_handle(hid));
 
-        const HandleEntry* he = r->handle_table.lookup(hid);
-        if (!he || (he->type != HANDLE_TYPE_FILE && he->type != HANDLE_TYPE_DIRECTORY)) return -EBADH;
+        if (rh.type() != HANDLE_TYPE_FILE && rh.type() != HANDLE_TYPE_DIRECTORY) return -EBADH;
 
-        const auto* vh = static_cast<VfsHandle*>(he->resource);
+        const auto* vh = rh.resource_as<VfsHandle>();
         if (!vh || !vh->node) return -EBADH;
 
-        if (const int perm = vfs_check_chmod(vh->node, mode, r->cred); perm != 0) return perm;
+        if (const int perm = vfs_check_chmod(vh->node, mode, rh.realm->cred); perm != 0) return perm;
 
-        auto res = VFS::chmod(vh->node, mode);
-        if (res.is_err()) return res.to_errno();
-        return SUCCESS_CODE;
+        const auto res = VFS::chmod(vh->node, mode);
+        return res.is_err() ? res.to_errno() : SUCCESS_CODE;
     }
 }  // namespace syscalls::internal

@@ -24,9 +24,9 @@
 #ifndef VESPERAOS_VFS_HANDLE_H
 #define VESPERAOS_VFS_HANDLE_H
 
-#include <vespera/types.h>
-
+#include <uapi/vespera/capabilities.h>
 #include <vespera/filesystem/vfs.h>
+#include <vespera/types.h>
 
 struct VfsHandleContext {
     u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR

@@ -21,28 +21,17 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handles.h>
-#include <vespera/realm/realm.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
 #include <vespera_errno.h>
 
 #include "../../tty/tty_device.h"
+#include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_tcgetpgrp(u64 arg0, u64, u64, u64, u64, u64) {
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -ESRCH;
+        const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_TTY));
 
-        Realm* self = caller->parent;
-        if (!self) return -ESRCH;
-
-        const HandleId hid = arg0;
-
-        HandleEntry* he = self->handle_table.lookup(hid);
-        if (!he || he->type != HANDLE_TYPE_TTY) return -ENOTTY;
-
-        const auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+        const auto* tty_dev = rh.resource_as<TtyDevice>();
         if (!tty_dev || !tty_dev->tty) return -ENOTTY;
 
         return static_cast<i64>(tty_dev->tty->fg_pgid);

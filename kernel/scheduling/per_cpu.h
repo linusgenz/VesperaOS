@@ -29,7 +29,7 @@
 #include <../kernel/units/unit.h>
 
 struct GsData {
-    execution_context_t* current_ctx;
+    ExecutionContext* current_ctx;
     u64 cpu_id;
 };
 
