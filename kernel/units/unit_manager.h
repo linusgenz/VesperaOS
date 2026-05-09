@@ -32,11 +32,16 @@
 
 using unit_entry_t = void (*)(void*);
 
+// UnitManager — creates, owns, and destroys all Unit instances.
 class UnitManager {
    public:
     static void initialize();
     static bool is_initialized();
-    static Unit* create(RealmId realm_id, unit_entry_t entry_point, void* arg, const UnitConfig* cfg);
+
+    // Create a unit in the given realm and add it to the scheduler if
+    // cfg->auto_schedule is set. Returns nullptr on failure.
+    static Unit* create(RealmId realm_id, unit_entry_t entry, void* arg, const UnitConfig* cfg);
+
     static Unit* get(UnitId id);
     static bool destroy(UnitId id);
     static void list();
@@ -45,6 +50,7 @@ class UnitManager {
 
    private:
     static constexpr usize MAX_UNITS = 256;
+
     static Unit units_[MAX_UNITS];
     static Spinlock global_lock_;
     static UnitId next_id_;
@@ -52,8 +58,27 @@ class UnitManager {
 
     static UnitId allocate_id();
 
-    static void setup_kernel_unit_stack(Unit* u);
-    static void setup_user_unit_stack(Unit* u);
+    // Find an inactive slot and zero-initialize it.
+    // Returns nullptr if the pool is exhausted.
+    static Unit* alloc_slot(Realm* realm, const char* name, unit_entry_t entry, void* arg, const UnitConfig* cfg);
+
+    // Allocate and map the kernel stack. For user units, also
+    // allocates a user stack slot from the realm's AddressSpace and maps
+    // the physical pages into the user page table.
+    // Returns false and marks the unit inactive on failure.
+    static bool setup_stacks(Unit* u, Realm* realm, const UnitConfig* cfg);
+
+    // Push argv/envp onto the user stack (main unit only), then
+    // initialize the cpu_ctx (kernel or user segment selectors, rip, rsp).
+    static void setup_context(Unit* u, const UnitConfig* cfg);
+
+    // Attach initial handles from cfg->initial_handles to the
+    // unit's handle set and increment the realm HandleTable refcount.
+    static void attach_initial_handles(Unit* u, Realm* realm, const UnitConfig* cfg);
+
+    // Add the unit to the scheduler run queue, link it into the
+    // realm's unit list, and register it with the RealmFs.
+    static void register_unit(Unit* u, Realm* realm, const UnitConfig* cfg);
 };
 
 uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp);

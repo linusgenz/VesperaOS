@@ -24,6 +24,8 @@
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/realm.h>
 
+#include "klib/string.h"
+
 Realm::Realm()
     : id(0)
     , capabilities(CAP_NONE)
@@ -36,7 +38,11 @@ Realm::Realm()
     , unit_list(nullptr)
     , active(false)
     , sched_priority(0)
-    , cpu_time_accumulated(0) {
+    , cpu_time_accumulated(0)
+    , pgid(0)
+    , sid(0)
+    , parent_id(0)
+    , controlling_tty(nullptr) {
     char buf[50];
     snprintf(buf, sizeof(buf), "realm_%s:%u_lock", name, id);
     lock.init(buf);

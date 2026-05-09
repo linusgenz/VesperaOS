@@ -62,10 +62,10 @@ namespace syscalls::internal {
                 );
             }
 
-            if (VmArea* vma = cur->find_vma(cur->heap_end, 0)) {
+            if (kernel::units::VmArea* vma = cur->find_vma(cur->heap_end, 0)) {
                 vma->length = addr - vma->start;
             } else {
-                const auto new_vma = new VmArea();
+                const auto new_vma = new kernel::units::VmArea();
                 new_vma->start   = cur->heap_end;
                 new_vma->length  = addr - cur->heap_end;
                 new_vma->prot    = 0;
@@ -89,7 +89,7 @@ namespace syscalls::internal {
                 }
             }
 
-            if (VmArea* vma = cur->find_vma(addr, 0)) {
+            if (kernel::units::VmArea* vma = cur->find_vma(addr, 0)) {
                 vma->length = addr - vma->start;
                 if (vma->length == 0) cur->remove_vma(vma->start, 0);
             }

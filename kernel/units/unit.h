@@ -28,7 +28,9 @@
 #include <vespera/realm/realm.h>
 #include <vespera/signals.h>
 
-#include "../scheduling/unit_context.h"
+#include "execution_context.h"
+#include "unit_handle_set.h"
+#include "vm_area_list.h"
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
@@ -48,84 +50,47 @@ enum class UnitState : u8 {
     Terminated = UNIT_STATE_TERMINATED,
 };
 
-struct ArgRegisters {
-    u64 rdi, rsi, rdx, rcx, r8, r9;
-};
-
-/// @warning when changing this struct syscall might break as offsets are hardcoded!
-// TODO refactor this struct
-struct ExecutionContext {
-    u64 stack_size;
-    virt_addr_t stack;
-    virt_addr_t stack_top;
-    virt_addr_t stack_pointer;
-    u64 user_stack_size;
-    virt_addr_t user_stack;
-    virt_addr_t user_stack_top;
-    virt_addr_t user_stack_pointer;
-
-    void (*entry)(void*);
-
-    ArgRegisters regs;
-
-    bool initialized;
-
-    void* arg;
-
-    phys_addr_t user_stack_phys;
-    virt_addr_t user_stack_virt_base;
-
-    TrapFrame current_trap_frame;
-
-    UnitCpuContext cpu_ctx;
-    UnitFpuState fpu_ctx;
-
-    u64 fs_base;
-};
-
+// SleepContext — transient state while a unit is sleeping.
 struct SleepContext {
-    u64 wakeup_ns{};
+    u64 wakeup_ns;
     bool interrupted = false;
 };
 
-struct VmArea {
-    uptr start;
-    usize length;
-    u64 prot;
-    u64 flags;
-    uptr file_off;
-    HandleId handle;
-
-    VmArea* next;
-};
-
-struct UnitHandleTable {
-    HandleId slots[MAX_UNIT_HANDLE_SLOTS]{};
-    u64 count{};
-    Spinlock lock;
-};
-
+// ---------------------------------------------------------------------------
+// Unit — kernel-internal representation of a schedulable execution context.
+//
+// Ownership model:
+//   - UnitManager owns the static Unit array and is the sole allocator.
+//   - The parent Realm holds a non-owning pointer to the Unit via unit_list.
+//   - unit_handle_set_ tracks which handles this unit holds; the Realm-level
+//     HandleTable owns the actual resources and reference counts.
+//   - vm_areas_ owns its VmArea chain and frees it on destroy.
+//
+// Struct layout:
+//   [1] Identity & linkage
+//   [2] Scheduling & classification
+//   [3] Execution context
+//   [4] Virtual memory areas
+//   [5] Handle set
+//   [6] Signal state
+// ---------------------------------------------------------------------------
 class Unit {
-   private:
-    UnitHandleTable handle_table_{};
-    VmArea* vma_list_{};
-
    public:
     UnitId id{0};
     RealmId rid{0};
     Realm* parent{nullptr};
     char* name{nullptr};
 
+    // Intrusive list links: next is the global UnitManager chain,
+    // realm_next is the per-Realm chain.
     Unit* next{nullptr};
-    Unit* realm_next{};
+    Unit* realm_next{nullptr};
 
     UnitState state{UnitState::New};
     u64 creation_time{0};
 
     u8 priority{0};
     u8 cpu_id{0};
-
-    int exit_code{0};
     bool active{false};
 
     bool is_idle{false};
@@ -133,132 +98,65 @@ class Unit {
     bool is_main_unit{false};
     bool is_kernel{false};
 
-    u64 cpu_time_ns  = 0;
-    u64 run_start_ns = 0;
+    u64 cpu_time_ns{0};
+    u64 run_start_ns{0};
 
-    u64 heap_start{};
-    u64 heap_end{};
-
+    int exit_code{0};
     u32 user_stack_slot{0};
-
-    u64 handle_count{0};
 
     ExecutionContext context{};
     SleepContext sleep_context{};
 
-    u64 signals_pending{};
-    u64 signals_masked{};
+    u64 heap_start{};
+    u64 heap_end{};
+
+
+    u64 signals_pending{0};
+    u64 signals_masked{0};
     SignalAction signal_actions[32]{};
 
     Unit() {
-        memset(&handle_table_, 0, sizeof(handle_table_));
-        handle_table_.lock.init();
+        handle_set_.init();
     }
 
-    void add_vma(VmArea* vma) {
-        vma->next = vma_list_;
-        vma_list_ = vma;
-    }
+    Unit(const Unit&) = delete;
+    Unit& operator=(const Unit&) = delete;
 
-    [[nodiscard]] VmArea* find_vma(uptr addr, usize len) const {
-        for (VmArea* v = vma_list_; v; v = v->next) {
-            if (addr >= v->start && (addr + len) <= (v->start + v->length)) {
-                return v;
-            }
-        }
-        return nullptr;
+    void add_vma(kernel::units::VmArea* vma) {
+        vm_areas_.add(vma);
     }
-
-    [[nodiscard]] VmArea* get_vma_list() const {
-        return vma_list_;
+    [[nodiscard]] kernel::units::VmArea* find_vma(uptr addr, usize len) const {
+        return vm_areas_.find(addr, len);
     }
-
     bool remove_vma(uptr addr, usize len) {
-        VmArea* prev = nullptr;
-        VmArea* cur = vma_list_;
-
-        while (cur) {
-            if (cur->start == addr && cur->length == len) {
-                if (prev)
-                    prev->next = cur->next;
-                else
-                    vma_list_ = cur->next;
-                delete cur;  // Achtung: später evtl. eigener Allocator
-                return true;
-            }
-            prev = cur;
-            cur = cur->next;
-        }
-        return false;
+        return vm_areas_.remove(addr, len);
     }
-
     void free_vma_list() {
-        VmArea* next_vm_area = nullptr;
-        VmArea* cur = vma_list_;
-
-        while (cur) {
-            next_vm_area = cur->next;
-            delete cur;
-            cur = next_vm_area;
-        }
-
-        vma_list_ = nullptr;
+        vm_areas_.free_all();
+    }
+    [[nodiscard]] kernel::units::VmArea* get_vma_list() const {
+        return vm_areas_.head();
     }
 
-    i64 attach_handle(HandleId h) {
-        handle_table_.lock.lock();
-        if (handle_table_.count >= MAX_UNIT_HANDLE_SLOTS) {
-            handle_table_.lock.unlock();
-            return -ENOMEM;
-        }
-        for (HandleId& slot : handle_table_.slots) {
-            if (slot == 0) {
-                slot = h;
-                handle_table_.count++;
-                handle_count = handle_table_.count;
-                handle_table_.lock.unlock();
-                return SUCCESS_CODE;
-            }
-        }
-        handle_table_.lock.unlock();
-        return -ENOMEM;
+    [[nodiscard]] i64 attach_handle(HandleId h) {
+        return handle_set_.attach(h);
     }
-
-    i64 detach_handle(HandleId h) {
-        handle_table_.lock.lock();
-        for (HandleId& slot : handle_table_.slots) {
-            if (slot == h) {
-                slot = 0;
-                handle_table_.count--;
-                handle_count = handle_table_.count;
-                handle_table_.lock.unlock();
-                return SUCCESS_CODE;
-            }
-        }
-        handle_table_.lock.unlock();
-        return -EBADH;
+    [[nodiscard]] i64 detach_handle(HandleId h) {
+        return handle_set_.detach(h);
     }
-
-    i64 detach_all_handles() {
-        handle_table_.lock.lock();
-        for (u64& slot : handle_table_.slots) {
-            if (const HandleId h = slot; h != 0) {
-                slot = 0;
-            }
-        }
-        handle_table_.count = 0;
-        handle_count = 0;
-
-        handle_table_.lock.unlock();
-        return SUCCESS_CODE;
+    void detach_all_handles() {
+        handle_set_.detach_all();
     }
-
     [[nodiscard]] u32 find_handle_slot(HandleId h) const {
-        for (u32 i = 0; i < MAX_UNIT_HANDLE_SLOTS; ++i) {
-            if (handle_table_.slots[i] == h) return i;
-        }
-        return -1;
+        return handle_set_.find_slot(h);
     }
+    [[nodiscard]] u64 handle_count() const {
+        return handle_set_.count();
+    }
+
+   private:
+    kernel::units::VmAreaList vm_areas_;
+    kernel::units::UnitHandleSet handle_set_;
 };
 
 #endif  // VESPERAOS_UNIT_H

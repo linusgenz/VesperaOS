@@ -307,6 +307,7 @@ extern "C" void vespera_trap_handler(TrapFrame* tf) {
             } else if (vec >= 0x20) {
                 arch::x86_64::interrupts::apic::send_eoi();
             } else {
+                Log::debug("UNHANDLED INTERRUPT: %u", vec);
                 unhandled_interrupt_handler(tf);
             }
             break;

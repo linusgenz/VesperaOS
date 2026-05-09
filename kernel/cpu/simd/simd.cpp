@@ -28,7 +28,7 @@ struct CpuidResult {
 };
 
 [[nodiscard]] static inline CpuidResult cpuid(u32 leaf, u32 subleaf = 0) noexcept {
-    CpuidResult r;
+    CpuidResult r{};
     asm volatile (
         "cpuid"
         : "=a"(r.eax), "=b"(r.ebx), "=c"(r.ecx), "=d"(r.edx)

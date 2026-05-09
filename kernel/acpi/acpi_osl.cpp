@@ -198,7 +198,7 @@ void AcpiOsSleep(UINT64 ms) {
 }
 
 void AcpiOsStall(UINT32 us) {
-    for (volatile u32 i = 0; i < us * 10; i++) asm volatile("pause");
+    for (u32 i = 0; i < us * 10; i++) asm volatile("pause");
 }
 
 // interrupts

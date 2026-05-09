@@ -27,7 +27,7 @@
 #include <vespera/realm/user_stack_allocator.h>
 #include <vespera/types.h>
 
-class PageTableManager;
+#include "../paging/page_table_manager.h"
 
 namespace kernel::realm {
 

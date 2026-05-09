@@ -6,7 +6,7 @@ bits 64
 
 %define SAVED_USER_RSP 0x38
 %define STACK_POINTER 0x18
-%define TRAP_FRAME 152
+%define TRAP_FRAME 144
 syscall_entry:
     swapgs
     cli

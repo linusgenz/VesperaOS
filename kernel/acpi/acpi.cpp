@@ -28,7 +28,6 @@ extern "C" {
 
 #include <klib/string.h>
 #include <vespera/log.h>
-#include <vespera/mm/memory.h>
 
 namespace kernel::acpi {
 
@@ -44,10 +43,6 @@ namespace kernel::acpi {
         return obj.Type == ACPI_TYPE_INTEGER
             ? static_cast<u32>(obj.Integer.Value)
             : 0xFFFFFFFFu;
-    }
-
-    static u64 acpi_int64(const ACPI_OBJECT& obj) {
-        return obj.Type == ACPI_TYPE_INTEGER ? obj.Integer.Value : ~0ULL;
     }
 
     static void copy_acpi_string(const ACPI_OBJECT& obj, char* dst, usize dst_size) {
@@ -314,7 +309,7 @@ namespace kernel::acpi {
             if (dst && dst_size > 0) dst[0] = '\0';
             return false;
         }
-        const char* src = static_cast<const char*>(buf.Pointer);
+        const auto src = static_cast<const char*>(buf.Pointer);
         const usize len  = strlen(src);
         const usize copy = len < dst_size - 1 ? len : dst_size - 1;
         memcpy(dst, src, copy);

@@ -28,11 +28,9 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/sync/wait_queue.h>
 
-#include "../../../kernel/paging/page_table_manager.h"
 #include "../../../kernel/realm/handle_table.h"
-#include "../../../kernel/tty/tty_device.h"
-#include "../types.h"
 #include "vespera/security/credentials.h"
+#include "vespera/types.h"
 
 class Unit;
 namespace kernel::realm {
@@ -52,7 +50,7 @@ constexpr uptr USER_UNIT_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_UNIT_OFF);
 class Realm {
    public:
     RealmId id;
-    char name[64];
+    char name[64]{};
     capability_set capabilities;
     u64 memory_limit;
     u64 max_units;

@@ -36,10 +36,10 @@ static uptr find_free_range(const Unit* u, const usize length) {
     uptr current = MMAP_BASE;
 
     while (true) {
-        const VmArea* next = nullptr;
+        const kernel::units::VmArea* next = nullptr;
         uptr next_start = MMAP_END;
 
-        for (const VmArea* v = u->get_vma_list(); v; v = v->next) {
+        for (const kernel::units::VmArea* v = u->get_vma_list(); v; v = v->next) {
             if (v->start >= current && v->start < next_start) {
                 next = v;
                 next_start = v->start;
@@ -101,7 +101,7 @@ namespace syscalls::internal {
             r_ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper)| (1ULL << ReadWrite));
         }
 
-        auto* area = static_cast<VmArea*>(kernel::memory::malloc(sizeof(VmArea)));
+        auto* area = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
         if (!area) {
             for (usize i = 0; i < npages; i++)
                  r_ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
