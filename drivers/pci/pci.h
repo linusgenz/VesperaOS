@@ -13,6 +13,12 @@ namespace kernel::acpi {
 }  // namespace kernel::acpi
 
 namespace pci {
+
+    /**
+     * @brief Common PCI device/function header (first 16 bytes of config space).
+     *
+     * Shared by all header types (0, 1, 2). Mapped directly from MMIO config space.
+     */
     struct PCI_DEVICE_HEADER {
         u16 vendor_id;
         u16 device_id;
@@ -27,6 +33,15 @@ namespace pci {
         u8 header_type;
         u8 bist;
     };
+
+    /**
+     * @brief PCI Type-0 (endpoint) configuration space header.
+     *
+     * Covers the full 64-byte Type-0 layout including all six BARs and the
+     * capabilities pointer. Mapped directly from MMIO config space via MCFG.
+     *
+     * @note The capabilities pointer is valid only when bit 4 of @c status is set.
+     */
 
     struct PCI_HEADER0 {
         PCI_DEVICE_HEADER header;
@@ -50,18 +65,21 @@ namespace pci {
         u8 max_latency;
     };
 
-    constexpr u32 PCI_BAR_MEMORY_MASK = 0x1u;  // bit 0: 0 = memory, 1 = I/O
-    constexpr u32 PCI_BAR_TYPE_MASK = 0x6u;    // bits [2:1]: memory BAR type
-    constexpr u32 PCI_BAR_TYPE_32_BIT = 0x0u;
-    constexpr u32 PCI_BAR_TYPE_64_BIT = 0x4u;  // bits [2:1] == 0b10
+    constexpr u32 PCI_BAR_MEMORY_MASK = 0x1u;  ///< Bit 0: 0 = memory BAR, 1 = I/O BAR.
+    constexpr u32 PCI_BAR_TYPE_MASK = 0x6u;    ///< Bits [2:1]: memory BAR type field.
+    constexpr u32 PCI_BAR_TYPE_32_BIT = 0x0u;  ///< Bits [2:1] == 0b00 — 32-bit memory BAR.
+    constexpr u32 PCI_BAR_TYPE_64_BIT = 0x4u;  ///< Bits [2:1] == 0b10 — 64-bit memory BAR.
 
+    /**
+     * @brief Decoded BAR descriptor returned by @ref pci::bar::read.
+     */
     struct BarInfo {
-        u64 address;
-        u64 size;
-        bool is_64_bit;
-        bool is_memory;
-        bool is_prefetchable;
-        bool is_valid;
+        u64 address;           ///< Base address (physical, already masked).
+        u64 size;              ///< BAR aperture size in bytes.
+        bool is_64_bit;        ///< True if this is a 64-bit BAR (spans two config-space slots).
+        bool is_memory;        ///< True for memory BARs, false for I/O BARs.
+        bool is_prefetchable;  ///< True if the memory range is marked prefetchable.
+        bool is_valid;         ///< False when the BAR is absent or the index is out of range.
     };
 
     inline u8 pci_read8(PCI_DEVICE_HEADER* hdr, u8 offset) {
@@ -88,11 +106,34 @@ namespace pci {
         *reinterpret_cast<volatile u32*>(reinterpret_cast<u8*>(hdr) + offset) = value;
     }
 
+    /**
+     * @brief Builds a CF8 configuration address for legacy I/O-port PCI access.
+     *
+     * The returned value is suitable for writing to I/O port 0xCF8. Bit 31 is
+     * the enable bit; bus/device/function/offset are placed per the PCI spec.
+     *
+     * @note This is only needed for legacy I/O-port access. MMIO (MCFG) access
+     *       simply indexes into the mapped config space directly.
+     */
+
     inline u32 pci_config_address(u8 bus, u8 device, u8 function, u8 offset) {
         return 1U << 31  // enable bit
                | (static_cast<u32>(bus) << 16) | (static_cast<u32>(device) << 11) | (static_cast<u32>(function) << 8) |
                (offset & 0xFC);
     }
+
+    /**
+     * @brief Enumerates all PCI devices described by the ACPI MCFG table.
+     *
+     * Iterates every MCFG segment, walks buses, devices, and functions, maps
+     * each config space page, and calls @ref driver_registry::bind for every
+     * present function.
+     *
+     * @param mcfg  Pointer to the MCFG table header, as returned by ACPICA.
+     *
+     * @note Must be called after the MMIO address space is available and the
+     *       driver registry has been populated via @ref driver_registry::init_drivers.
+     */
 
     void enumerate_pci(kernel::acpi::MCFG_HEADER* mcfg);
 

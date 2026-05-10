@@ -35,8 +35,13 @@ namespace pci {
     /**
      * @brief Represents a single discovered PCI function.
      *
-     * Created during enumeration and passed to matching drivers via probe().
-     * Owns the mapped config-space pointer and the bus address.
+     * Created by the enumerator and passed to a matching driver via
+     * @ref PciDriver::probe. The shortcut fields (@c vendor_id, @c device_id,
+     * etc.) mirror values in @c header and are provided for convenient matching
+     * without repeated MMIO reads.
+     *
+     * @note Non-copyable. Move is allowed so the object can be stored in a flat
+     *       registry array without heap allocation.
      */
     struct pci_device {
         pci_id id;
@@ -51,7 +56,7 @@ namespace pci {
         u8 prog_if = 0;
         u8 revision = 0;
 
-        PciDriver* driver = nullptr;
+        PciDriver* driver = nullptr;  ///< Bound driver after a successful @ref PciDriver::probe, else nullptr.
 
         pci_device() = default;
         pci_device(const pci_device&) = delete;

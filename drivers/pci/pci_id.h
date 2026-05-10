@@ -50,17 +50,17 @@ namespace pci {
     };
 
     /**
-     * @brief Vendor/device ID pair for driver matching.
+     * @brief Vendor/device ID pair for ID-based driver matching.
      *
-     * Set either field to PCI_ID_ANY (0xFFFF) to match any value.
+     * Set either field to @ref PCI_ID_ANY (0xFFFF) to match any value.
      */
     struct pci_device_match {
         u16 vendor_id = 0xFFFF;
         u16 device_id = 0xFFFF;
     };
 
-    constexpr u8 PCI_CLASS_ANY = 0xFF;
-    constexpr u16 PCI_ID_ANY = 0xFFFF;
+    constexpr u8 PCI_CLASS_ANY = 0xFF;  ///< Wildcard for @ref pci_class_match fields.
+    constexpr u16 PCI_ID_ANY = 0xFFFF;  ///< Wildcard for @ref pci_device_match fields.
 
 }  // namespace pci
 

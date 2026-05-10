@@ -1,23 +1,23 @@
 // msi.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 22.07.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
@@ -25,7 +25,6 @@
 #define MSIX_H
 
 #include "pci.h"
-
 
 namespace pci {
     /**
@@ -45,7 +44,7 @@ namespace pci {
      * @brief Offsets and fields in the MSI-X control register.
      */
     constexpr u16 MSIX_CONTROL_ENABLE_BIT = (1 << 15);  // MSI-X Enable bit in control register
-    constexpr u16 MSIX_MASK_ALL_VECTORS   = (1 << 14);  // Mask all MSI-X vectors
+    constexpr u16 MSIX_MASK_ALL_VECTORS = (1 << 14);    // Mask all MSI-X vectors
 
     /**
      * @brief Offsets/bits in the MSI-X data (message_data).
@@ -56,17 +55,17 @@ namespace pci {
      * Bit  15:     Trigger Mode
      * etc.
      */
-    constexpr u16 MSIX_DELIVERY_MODE_FIXED  = (0 << 8);
+    constexpr u16 MSIX_DELIVERY_MODE_FIXED = (0 << 8);
     constexpr u16 MSIX_DELIVERY_MODE_LOWEST = (1 << 8);
-    constexpr u16 MSIX_DELIVERY_MODE_NMI    = (4 << 8);
+    constexpr u16 MSIX_DELIVERY_MODE_NMI = (4 << 8);
 
     /**
      * @brief Structure for an entry in the MSI-X vector table.
      */
     struct MSIX_TABLE_ENTRY {
-        u64 message_address;   // MSI-X message address
-        u32 message_data;      // MSI-X message data
-        u32 vector_control;    // Vector control (bit 0 is the mask bit)
+        u64 message_address;  // MSI-X message address
+        u32 message_data;     // MSI-X message data
+        u32 vector_control;   // Vector control (bit 0 is the mask bit)
 
         /**
          * @brief Masks this vector by setting the mask bit.
@@ -100,10 +99,10 @@ namespace pci {
                     struct {
                         // Table Size is N - 1 encoded, and is the number of
                         // entries in the MSI-X table. This field is Read-Only.
-                        u16 table_size      : 11;
-                        u16 rsvd0           : 3;
-                        u16 function_mask   : 1;
-                        u16 enable_bit      : 1;
+                        u16 table_size : 11;
+                        u16 rsvd0 : 3;
+                        u16 function_mask : 1;
+                        u16 enable_bit : 1;
                     } __attribute__((packed));
                     u16 message_control;
                 } __attribute__((packed));
@@ -115,8 +114,8 @@ namespace pci {
             struct {
                 // BIR specifies which BAR is used for the Message Table. This may be a 64-bit
                 // BAR, and is zero-indexed (so BIR=0, BAR0, offset 0x10 into the header).
-                u32 table_bir       : 3;
-                u32 table_offset    : 29;
+                u32 table_bir : 3;
+                u32 table_offset : 29;
             } __attribute__((packed));
             u32 dword1;
         };
@@ -125,8 +124,8 @@ namespace pci {
             struct {
                 // BIR specifies which BAR is used for the Message Table. This may be a 64-bit
                 // BAR, and is zero-indexed (so BIR=0, BAR0, offset 0x10 into the header).
-                u32 pba_bir       : 3;
-                u32 pba_offset    : 29;
+                u32 pba_bir : 3;
+                u32 pba_offset : 29;
             } __attribute__((packed));
             u32 dword2;
         };
@@ -160,7 +159,7 @@ namespace pci {
      */
     inline u16 build_msix_data(u8 vector, u16 delivery_mode = MSIX_DELIVERY_MODE_FIXED) {
         u16 data = vector & 0xFF;  // Bits [7..0] = vector
-        data |= delivery_mode;          // Bits [10..8] = delivery mode
+        data |= delivery_mode;     // Bits [10..8] = delivery mode
         return data;
     }
 
@@ -180,8 +179,8 @@ namespace pci {
 
         MSIX_TABLE_ENTRY result{};
         result.message_address = static_cast<u64>(data[1]) << 32 | data[0];
-        result.message_data    = data[2];
-        result.vector_control  = data[3];
+        result.message_data = data[2];
+        result.vector_control = data[3];
         return result;
     }
 
@@ -195,12 +194,11 @@ namespace pci {
      * @param entry The msix_table_entry to write to the table.
      */
     inline void write_msix_vector_entry(void* base_address, usize vector_index, const MSIX_TABLE_ENTRY& entry) {
-        volatile auto* entry_addr = reinterpret_cast<volatile u32*>(
-            static_cast<u8*>(base_address) + vector_index * sizeof(MSIX_TABLE_ENTRY)
-        );
+        volatile auto* entry_addr =
+            reinterpret_cast<volatile u32*>(static_cast<u8*>(base_address) + vector_index * sizeof(MSIX_TABLE_ENTRY));
 
-        entry_addr[0] = static_cast<u32>(entry.message_address);          // Address Low
-        entry_addr[1] = static_cast<u32>(entry.message_address >> 32);    // Address High
+        entry_addr[0] = static_cast<u32>(entry.message_address);        // Address Low
+        entry_addr[1] = static_cast<u32>(entry.message_address >> 32);  // Address High
         entry_addr[2] = entry.message_data;
         entry_addr[3] = entry.vector_control;
 
@@ -225,6 +223,29 @@ namespace pci {
         *byte_ptr &= ~(1 << bit_offset);
     }
 
+    /**
+     * @brief Enables MSI-X on a Type-0 PCI endpoint (vector 0 only).
+     *
+     * Locates the MSI-X capability, maps the vector table BAR, programs
+     * entry 0 to deliver @p irq_vector to the current CPU, and enables MSI-X.
+     *
+     * @param header      Pointer to the mapped Type-0 config-space header.
+     * @param irq_vector  Interrupt vector to assign to MSI-X entry 0.
+     *
+     * @return true on success, false if the MSI-X capability was not found
+     *         or the BAR could not be decoded.
+     */
+    bool enable_msix(PCI_HEADER0* header, u8 irq_vector);
+
+    /**
+     * @brief Enables MSI-X if available, otherwise falls back to MSI.
+     *
+     * @param header       Pointer to the mapped Type-0 config-space header.
+     * @param base_vector  First interrupt vector to assign.
+     * @param wanted       Number of MSI vectors requested (used only for the MSI fallback).
+     *
+     * @return true if either MSI-X or MSI was successfully enabled.
+     */
     bool try_enable_msi_or_msix(PCI_HEADER0* header, u8 base_vector, u8 wanted = 0);
-}
-#endif //MSIX_H
+}  // namespace pci
+#endif  // MSIX_H

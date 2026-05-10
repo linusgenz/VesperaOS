@@ -38,11 +38,19 @@ namespace pci::bar {
     [[nodiscard]] bool is_64_bit(u32 bar_value);
 
     /**
-     * @brief Reads and decodes the full BarInfo for a given BAR index.
+     * @brief Reads and decodes the full @ref BarInfo for a given BAR index.
+     *
+     * Probes the BAR size by writing all-ones and reading back the mask, then
+     * restores the original value. For 64-bit BARs, consumes two consecutive
+     * BAR slots (@p index and @p index + 1).
      *
      * @param header  Pointer to the Type-0 config-space header (MMIO mapped).
      * @param index   BAR index 0–5.
-     * @return        Decoded BarInfo; is_valid == false on error.
+     *
+     * @return Decoded @ref BarInfo; @c is_valid == false on error or absent BAR.
+     *
+     * @warning Temporarily writes to the BAR register during size probing.
+     *          Do not call while the device is actively using the BAR.
      */
     [[nodiscard]] BarInfo read(PCI_HEADER0* header, u8 index);
 
