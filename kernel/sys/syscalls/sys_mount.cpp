@@ -20,9 +20,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <klib/string.h>
 #include <uapi/vespera/mount.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/filesystem/vfs.h>
 
 #include "../../../filesystem/vfs/fs_registry.h"
 #include "../../units/unit.h"

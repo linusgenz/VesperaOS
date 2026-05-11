@@ -26,6 +26,7 @@
 
 #include "../../../filesystem/vfs/vfs_handle.h"
 #include "../handle_resolution.h"
+#include "../../tty/tty_device.h"
 
 namespace syscalls::internal {
     i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {

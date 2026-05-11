@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <klib/string.h>
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
@@ -28,7 +29,6 @@
 #include "../../realm/address_space.h"
 #include "/mnt/ExternerDatentraeger/VesperaOS/kernel/units/unit.h"
 #include "vespera/realm/realm.h"
-#include "vespera/realm/realm_manager.h"
 
 static constexpr uptr USER_HEAP_MAX = 0x0000'7FFE'0000'0000ULL;
 

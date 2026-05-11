@@ -55,31 +55,31 @@ namespace kernel {
         u64 timestamp;
         u32 cpu_id;
         union {
-            struct {
+            struct UnitEvent {
                 UnitId unit_id;
                 RealmId realm_id;
             } unit_event;
-            struct {
+            struct RealmEvent {
                 RealmId realm_id;
                 char name[32];
             } realm_event;
-            struct {
+            struct DeviceEvent {
                 char device_name[32];
                 u32 device_id;
             } device_event;
-            struct {
+            struct MemoryEvent {
                 u64 available_bytes;
                 u64 threshold_bytes;
             } memory_event;
-            struct {
+            struct CpuEvent {
                 u32 cpu_id;
                 u8 usage_percent;
             } cpu_event;
-            struct {
+            struct LogEvent {
                 char message[128];
                 u32 error_code;
             } log_event;
-            struct {
+            struct FsEvent {
                 char fs_path[256];
                 char fs_type[32];
             } fs_event;

@@ -21,14 +21,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <acpi/acpi.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/log.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
-#include <acpi/acpi.h>
 
+#include "../../filesystem/vfs/fs_detection.h"
 #include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 #include "vespera/scheduling.h"

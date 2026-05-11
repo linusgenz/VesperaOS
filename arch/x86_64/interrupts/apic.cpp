@@ -1,3 +1,5 @@
+#include <acpi/acpi_subsystem.h>
+
 #include "vespera/log.h"
 #include "vespera/time.h"
 #if DEBUG_SPINLOCK

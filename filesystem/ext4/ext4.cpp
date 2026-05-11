@@ -1201,7 +1201,7 @@ namespace ext4 {
         FileEntry* src_entries = src_res.unwrap();
         u32 src_inode = 0;
         bool src_is_dir = false;
-        DirEntryType src_type = DirEntryType::Unknown;
+        auto src_type = DirEntryType::Unknown;
 
         for (usize i = 0; i < src_count; ++i) {
             if (strcmp(src_entries[i].get_name(), old_name) == 0) {

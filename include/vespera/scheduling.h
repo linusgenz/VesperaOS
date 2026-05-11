@@ -4,6 +4,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include <acpi/madt.h>
 #include <vespera/types.h>
 
 #include "../../kernel/scheduling/reaper.h"
@@ -30,7 +31,7 @@ namespace kernel::scheduling::cpu_scheduler
 namespace kernel::scheduling {
 
     struct GlobalScheduler {
-        cpu_scheduler::CpuScheduler cpus[kernel::acpi::madt::MAX_CPU_CORES];
+        cpu_scheduler::CpuScheduler cpus[acpi::madt::MAX_CPU_CORES];
         u32 num_cpus;
         bool initialized;
     };

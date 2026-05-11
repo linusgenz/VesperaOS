@@ -23,6 +23,7 @@
 
 #include "log_device.h"
 
+#include <uapi/vespera/poll.h>
 #include <vespera_errno.h>
 
 int LogDevice::open(CharFile** out_cf) {

@@ -29,6 +29,7 @@
 //
 // This file is part of VesperaOS (GPL-3.0-or-later).
 
+#include <klib/string.h>
 #include <vespera/graphics/colors.h>
 #include <vespera/input/keycode.h>
 #include <vespera/log.h>

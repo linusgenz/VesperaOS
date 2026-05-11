@@ -27,12 +27,14 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/system/system_manager.h>
+#include <vespera/tty/tty.h>
+#include "../tty/tty_device.h"
 
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../paging/page_table_manager.h"
 #include "../units/unit_manager.h"
-#include "vespera/sys/syscall_numbers.h"
 #include "address_space.h"
+#include "vespera/sys/syscall_numbers.h"
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;

@@ -20,15 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <uapi/vespera/fflags.h>
 #include <uapi/vespera/stat.h>
 #include <vespera/filesystem/vfs.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
+#include "../../tty/tty_device.h"
 #include "../../../filesystem/vfs/vfs_node.h"
-#include "vespera/log.h"
 
 namespace syscalls::internal {
 

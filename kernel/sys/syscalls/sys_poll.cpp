@@ -23,12 +23,11 @@
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
 #include <vespera/filesystem/vfs.h>
-#include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
 
+#include "../../tty/tty_device.h"
 #include "../filesystem/vfs/vfs_handle.h"
 
 namespace syscalls::internal {

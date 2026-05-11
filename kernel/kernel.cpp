@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/boot/boot.h>
+#include <vespera/devices/block.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>

@@ -59,7 +59,7 @@ struct SimdFeatures {
     bool popcnt     : 1;  ///< POPCNT instruction
     bool aes        : 1;  ///< AES-NI
     bool pclmulqdq  : 1;  ///< Carry-less multiplication
-    bool f16c       : 1;  ///< 16-bit float ↔ 32-bit float conversion
+    bool f16c       : 1;  ///< 16-bit float <-> 32-bit float conversion
     bool bmi1       : 1;  ///< Bit Manipulation Instructions 1
     bool bmi2       : 1;  ///< Bit Manipulation Instructions 2
 

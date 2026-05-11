@@ -32,7 +32,6 @@
 
 #include "../../filesystem/realmfs/realmfs.h"
 #include "../realm/address_space.h"
-#include "../scheduling/schedule_manager.h"
 #include "vespera/realm/user_stack_allocator.h"
 
 Unit UnitManager::units_[MAX_UNITS];
@@ -234,6 +233,7 @@ bool UnitManager::setup_stacks(Unit* u, Realm* realm, const UnitConfig* cfg) {
     return true;
 }
 
+extern "C" [[noreturn]] void unit_trampoline();
 static void init_kernel_cpu_context(Unit* u) {
     uptr rsp = virt_raw(u->context.stack_top);
     rsp &= ~0xFULL;
@@ -242,7 +242,7 @@ static void init_kernel_cpu_context(Unit* u) {
     auto& ctx = u->context.cpu_ctx;
     memset(&ctx, 0, sizeof(ctx));
 
-    ctx.rip = reinterpret_cast<u64>(kernel::scheduling::manager::unit_trampoline);
+    ctx.rip = reinterpret_cast<u64>(unit_trampoline);
     ctx.cs = KERNEL_CS;
     ctx.rflags = INITIAL_RFLAGS;
     ctx.rsp = rsp;

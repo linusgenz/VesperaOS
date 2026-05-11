@@ -21,7 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/interrupts.h>
-#include <vespera/log.h>
+#include <klib/string.h>
 #include <vespera/scheduling.h>
 #include <vespera/signals.h>
 #include <vespera/types.h>

@@ -22,10 +22,12 @@
 
 #include "unit_termination.h"
 
+#include <vespera/kerrno.h>
 #include <vespera/log.h>
 #include <vespera/realm/exit_code_table.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 
 #include "../../kernel/cpu/cpu_manager.h"
 #include "vespera/time.h"
