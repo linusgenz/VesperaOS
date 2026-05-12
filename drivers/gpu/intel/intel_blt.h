@@ -28,8 +28,8 @@
 #include <vespera/graphics/psf.h>
 #include <vespera/mm/addr.h>
 
-#include "../../../kernel/graphics/IRenderDriver.h"
-#include "../../pci/pci.h"
+#include <kernel/graphics/IRenderDriver.h>
+#include <drivers/pci/pci.h>
 #include "ggtt_allocator.h"
 
 struct KernelDevice;

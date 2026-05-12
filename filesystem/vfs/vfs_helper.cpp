@@ -25,8 +25,9 @@
 #include <klib/string.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include "vfs_node.h"
 
 bool VFS::resolve_parent(const char* path, VfsNode** parent_out, char* name_out)

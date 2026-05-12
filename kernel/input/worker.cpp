@@ -23,6 +23,7 @@
 
 #include <vespera/input/input_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/tty/tty.h>
 
 #include "../units/unit_manager.h"

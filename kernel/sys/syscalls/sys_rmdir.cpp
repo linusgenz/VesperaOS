@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <klib/string.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/log.h>
 
 #include "vespera_errno.h"

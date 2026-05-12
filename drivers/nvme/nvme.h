@@ -10,7 +10,7 @@
 #include <vespera/devices/driver_lifecycle.h>
 #include <vespera/devices/smart_device.h>
 
-#include "../../kernel/io/block_io_queue.h"
+#include <kernel/io/block_io_queue.h>
 #include "../pci/pci.h"
 #include "nvme_defs.h"
 #include "vespera/devices/device_info.h"

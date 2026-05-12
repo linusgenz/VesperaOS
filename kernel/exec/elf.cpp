@@ -24,7 +24,7 @@
 #include "elf.h"
 
 #include <klib/string.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm.h>
 

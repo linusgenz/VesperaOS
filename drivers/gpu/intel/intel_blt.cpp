@@ -31,7 +31,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include "blt_commands.h"
 
 namespace blt {

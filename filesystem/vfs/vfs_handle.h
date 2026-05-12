@@ -25,7 +25,7 @@
 #define VESPERAOS_VFS_HANDLE_H
 
 #include <uapi/vespera/capabilities.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/types.h>
 
 struct VfsHandleContext {

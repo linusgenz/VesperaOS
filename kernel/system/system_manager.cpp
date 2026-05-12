@@ -29,7 +29,7 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
-#include "../../filesystem/vfs/fs_detection.h"
+#include <filesystem/vfs/fs_detection.h>
 #include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 #include "vespera/scheduling.h"

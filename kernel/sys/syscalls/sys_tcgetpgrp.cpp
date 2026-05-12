@@ -24,7 +24,7 @@
 #include <vespera/tty/tty.h>
 #include <vespera_errno.h>
 
-#include "../../tty/tty_device.h"
+#include <kernel/tty/tty_device.h>
 #include "../handle_resolution.h"
 
 namespace syscalls::internal {

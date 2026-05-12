@@ -23,6 +23,7 @@
 #include <arch/x86_64/cpu/msr.h>
 #include <vespera_errno.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
 constexpr u64 ARCH_SET_GS = 0x1001;
 constexpr u64 ARCH_SET_FS = 0x1002;

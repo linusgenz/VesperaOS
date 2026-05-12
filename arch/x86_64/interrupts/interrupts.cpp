@@ -3,17 +3,19 @@
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 
-#include "../../../drivers/ps2/keyboard/ps2_keyboard.h"
-#include "../../../drivers/ps2/mouse/mouse.h"
+#include <drivers/ps2/keyboard/ps2_keyboard.h>
+#include <drivers/ps2/mouse/mouse.h>
 #include <vespera/cpu/io.h>
-#include "../../../kernel/cpu/cpu_manager.h"
-#include "../../../kernel/debug/fault_logger.h"
-#include "../../../kernel/scheduling/cpu_scheduler.h"
-#include "../../../kernel/scheduling/unit_termination.h"
-#include "../../../kernel/utils/panic.h"
+#include <kernel/cpu/cpu_manager.h>
+#include <kernel/debug/fault_logger.h>
+#include <kernel/scheduling/cpu_scheduler.h>
+#include <kernel/scheduling/unit_termination.h>
+#include <kernel/utils/panic.h>
 #include "apic.h"
+#include "idt.h"
 #include "interrupts_internal.h"
 #include "pic.h"
 

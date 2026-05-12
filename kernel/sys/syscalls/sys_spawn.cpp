@@ -25,14 +25,16 @@
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/mount.h>
 #include <uapi/vespera/spawn.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/tty/tty.h>
 #include <vespera_errno.h>
 
-#include "../../exec/elf.h"
-#include "../../units/unit_manager.h"
+#include <kernel/exec/elf.h>
+#include <kernel/units/unit_manager.h>
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
@@ -67,13 +69,13 @@ namespace syscalls::internal {
         if (cfg_ptr && cfg_ptr->bg_realm) {
             new_realm->sid = new_realm->id;
             new_realm->controlling_tty = nullptr;
-            new_realm->handle_table.setup_standard_handles(nullptr);
+            new_realm->handle_table->setup_standard_handles(nullptr);
         } else {
             new_realm->sid = parent_realm ? parent_realm->sid : new_realm->id;
             new_realm->controlling_tty = tty_dev;
 
             if (tty_dev) {
-                new_realm->handle_table.setup_standard_handles(tty_dev);
+                new_realm->handle_table->setup_standard_handles(tty_dev);
             }
         }
 
@@ -94,15 +96,15 @@ namespace syscalls::internal {
                 auto transfer = [&](i64 src_hid, HandleId dst_fixed_id) -> bool {
                     if (src_hid == 0) return true;
 
-                    const HandleEntry* he = parent_realm->handle_table.lookup(static_cast<HandleId>(src_hid));
+                    const HandleEntry* he = parent_realm->handle_table->lookup(static_cast<HandleId>(src_hid));
                     if (!he || !he->transferable) return false;
 
                     if (he->acquire) he->acquire(he->resource);
 
-                    if (HandleEntry* existing = new_realm->handle_table.lookup(dst_fixed_id))
-                        new_realm->handle_table.release(dst_fixed_id);
+                    if (HandleEntry* existing = new_realm->handle_table->lookup(dst_fixed_id))
+                        new_realm->handle_table->release(dst_fixed_id);
 
-                    return new_realm->handle_table.add_at(
+                    return new_realm->handle_table->add_at(
                         dst_fixed_id,
                         he->type,
                         he->resource,

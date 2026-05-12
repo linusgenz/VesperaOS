@@ -27,7 +27,7 @@
 #include <vespera/devices/char_device.h>
 #include <vespera/devices/device_manager.h>
 
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include "../ps2_controller.h"
 
 Ps2KeyboardDevice::Ps2KeyboardDevice(Ps2Controller* controller)

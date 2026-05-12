@@ -3,7 +3,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include "../../include/drivers/pci/pci_driver.h"
+#include <drivers/pci/pci_driver.h>
 #include "pci_device.h"
 
 namespace pci {

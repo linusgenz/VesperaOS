@@ -5,13 +5,13 @@
 #include "nvme.h"
 
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
-#include "../../kernel/io/block_io_queue.h"
-#include "../../kernel/units/unit_manager.h"
+#include <kernel/io/block_io_queue.h>
+#include <kernel/units/unit_manager.h>
 #include "vespera/scheduling.h"
 #include "vespera/unit_config.h"
 #include "vespera_errno.h"

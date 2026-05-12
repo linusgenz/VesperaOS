@@ -23,6 +23,7 @@
 #include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 namespace syscalls::internal {

@@ -20,14 +20,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
-#include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../../filesystem/vfs/vfs_node.h"
-#include "../../security/permission.h"
+#include <filesystem/vfs/vfs_handle.h>
+#include <filesystem/vfs/vfs_node.h>
+#include <kernel/security/permission.h>
 #include "../handle_resolution.h"
 #include "uapi/vespera/handles.h"
 

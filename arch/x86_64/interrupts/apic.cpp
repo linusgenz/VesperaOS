@@ -3,16 +3,17 @@
 #include "vespera/log.h"
 #include "vespera/time.h"
 #if DEBUG_SPINLOCK
-#include "../../../kernel/debug/deadlock_detector.h"
+#include <kernel/debug/deadlock_detector.h>
 #endif
 
 #include <acpi/madt.h>
 #include <vespera/cpu/io.h>
 #include <vespera/kerrno.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 
-#include "../../../kernel/cpu/cpu_manager.h"
+#include <kernel/cpu/cpu_manager.h>
 #include "apic.h"
 #include "interrupts_internal.h"
 

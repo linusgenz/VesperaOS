@@ -24,9 +24,9 @@
 
 #include <vespera_errno.h>
 
-#include "../../filesystem/vfs/vfs_node.h"
+#include <filesystem/vfs/vfs_node.h>
 #include "uapi/vespera/stat.h"
-#include "vespera/filesystem/vfs.h"
+#include "filesystem/vfs.h"
 
 namespace kernel::security {
 

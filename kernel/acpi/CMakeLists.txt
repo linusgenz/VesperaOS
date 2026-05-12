@@ -84,6 +84,7 @@ target_include_directories(acpi_kernel PRIVATE
         "${CMAKE_SOURCE_DIR}/include"
         "${ACPICA_ROOT}/include"
         "${CMAKE_BINARY_DIR}"
+        "${CMAKE_SOURCE_DIR}"
 )
 
 target_link_libraries(acpi_kernel PUBLIC acpica)

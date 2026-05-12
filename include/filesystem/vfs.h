@@ -25,9 +25,8 @@
 #define VFS_H
 
 #include <klib/vector.h>
-
-#include "../../../filesystem/vfs/fs_detection.h"
-#include "../../../filesystem/vfs/vfs_node.h"
+#include <filesystem/vfs/fs_detection.h>
+#include <filesystem/vfs/vfs_node.h>
 #include "vespera/sync/spinlock.h"
 
 struct FilesystemInfo;

@@ -4,10 +4,11 @@
 #include <vespera/interrupts.h>
 #include <vespera/kerrno.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 
-#include "../../arch/x86_64/gdt/gdt.h"
-#include "../../arch/x86_64/syscalls/syscall.h"
+#include <arch/x86_64/gdt/gdt.h>
+#include <arch/x86_64/syscalls/syscall.h>
 #include "../scheduling/per_cpu.h"
 #include "cpu_manager.h"
 #include "vespera/cpu/simd.h"

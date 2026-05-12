@@ -21,12 +21,13 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/stat.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
-#include "../../tty/tty_device.h"
-#include "../../../filesystem/vfs/vfs_node.h"
+#include <kernel/tty/tty_device.h>
+#include <filesystem/vfs/vfs_node.h>
 
 namespace syscalls::internal {
 

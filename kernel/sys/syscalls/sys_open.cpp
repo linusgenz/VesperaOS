@@ -23,14 +23,16 @@
 
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handles.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
-#include "../../../filesystem/vfs/vfs_node.h"
-#include "../../security/permission.h"
+#include <filesystem/vfs/vfs_node.h>
+#include <kernel/security/permission.h>
 #include "../filesystem/vfs/vfs_handle.h"
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_open(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -181,7 +183,7 @@ namespace syscalls::internal {
         if ((flags & O_APPEND) && node->type == VfsNodeType::File) vh->context->position = node->size;
 
         const Result<HandleId> result =
-            realm->handle_table.add(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr);
+            realm->handle_table->add(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr);
 
         if (result.is_err()) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)

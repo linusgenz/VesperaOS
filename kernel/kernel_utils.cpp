@@ -11,13 +11,14 @@
 #endif
 
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include <vespera/input/input_manager.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/types.h>
 
@@ -28,7 +29,7 @@
 #include "../drivers/ps2/ps2_init.h"
 #include "../drivers/usb/usb_manager.h"
 #include "../filesystem/realmfs/realmfs.h"
-#include "../include/vespera/filesystem/vfs.h"
+#include <filesystem/vfs.h>
 #include "cpu/cpu_manager.h"
 #include "devices/init.h"
 #include "graphics/display_manager.h"

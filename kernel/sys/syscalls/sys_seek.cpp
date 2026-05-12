@@ -24,8 +24,8 @@
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handles.h>
 
-#include "../../../filesystem/vfs/vfs_handle.h"
-#include "../../units/unit.h"
+#include <filesystem/vfs/vfs_handle.h>
+#include <kernel/units/unit.h>
 #include "../handle_resolution.h"
 
 namespace syscalls::internal {

@@ -26,7 +26,7 @@
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 
-#include "../../arch/x86_64/interrupts/ioapic.h"
+#include <arch/x86_64/interrupts/ioapic.h>
 #include "acpi/madt.h"
 
 namespace kernel::time {
@@ -59,7 +59,7 @@ namespace kernel::time {
             return -1;
         }
 
-        arch::x86_64::interrupts::idt::allocate_vector(vector, &pit_irq_handler, this);
+        kernel::interrupts::allocate_vector(vector, &pit_irq_handler, this);
         arch::x86_64::interrupts::ioapic::configure_irq(arch::x86_64::interrupts::ioapic::PIT_ISA_IRQ, vector, bsp);
 
         available_ = true;

@@ -27,7 +27,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include "../../include/vespera/types.h"
+#include <vespera/types.h>
 #include "../vfs/fs_registry.h"
 #include "fat32.h"
 #include "fat32_lfn.h"

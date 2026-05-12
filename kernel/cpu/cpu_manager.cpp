@@ -6,8 +6,8 @@
 #include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
-#include "../../arch/x86_64/interrupts/apic.h"
-#include "../../include/acpi/madt.h"
+#include <arch/x86_64/interrupts/apic.h>
+#include <acpi/madt.h>
 #include "cpu.h"
 
 namespace cpu_manager {

@@ -24,7 +24,7 @@
 
 #include "mouse_device.h"
 
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include "../ps2_controller.h"
 
 Ps2MouseDevice::Ps2MouseDevice(Ps2Controller* controller)

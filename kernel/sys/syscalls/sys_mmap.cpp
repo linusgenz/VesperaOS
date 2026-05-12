@@ -24,10 +24,11 @@
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
-#include "../../realm/address_space.h"
+#include <kernel/realm/address_space.h>
 
 static uptr find_free_range(const Unit* u, const usize length) {
     static constexpr uptr MMAP_BASE = 0x0000600000000000ULL;

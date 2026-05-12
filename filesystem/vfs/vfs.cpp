@@ -23,10 +23,11 @@
 #include <klib/path.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 #include "fs_detection.h"

@@ -22,13 +22,15 @@
 
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
 
-#include "../../tty/tty_device.h"
+#include <kernel/tty/tty_device.h>
 #include "../filesystem/vfs/vfs_handle.h"
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_poll(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -52,7 +54,7 @@ namespace syscalls::internal {
             for (usize i = 0; i < nhdls; ++i) {
                 hdls[i].revents = 0;
 
-                const HandleEntry* he = realm->handle_table.lookup(hdls[i].hdl);
+                const HandleEntry* he = realm->handle_table->lookup(hdls[i].hdl);
                 if (!he) {
                     hdls[i].revents = POLLHUP;
                     ready++;

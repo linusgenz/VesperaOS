@@ -29,7 +29,7 @@
 #include <vespera/devices/char_device.h>
 #include <vespera/terminal.h>
 #include <vespera/tty/tty.h>
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 
 #include "vespera/devices/device_manager.h"
 

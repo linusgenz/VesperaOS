@@ -25,9 +25,11 @@
 #include <vespera/log.h>
 #include <vespera/realm/exit_code_table.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 
-#include "../../cpu/cpu_manager.h"
+#include <kernel/scheduling/scheduler_types.h>
+#include <kernel/cpu/cpu_manager.h>
 
 namespace syscalls::internal {
     i64 sys_exit(u64 code, u64, u64, u64, u64, u64) {

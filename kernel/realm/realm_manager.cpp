@@ -30,11 +30,12 @@
 #include <vespera/tty/tty.h>
 #include "../tty/tty_device.h"
 
-#include "../../filesystem/realmfs/realmfs.h"
+#include <filesystem/realmfs/realmfs.h>
 #include "../paging/page_table_manager.h"
 #include "../units/unit_manager.h"
 #include "address_space.h"
 #include "vespera/sys/syscall_numbers.h"
+#include <kernel/realm/handle_table.h>
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
@@ -130,7 +131,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->cred = kernel::security::process_credentials{};
             r->lock.init();
             r->capabilities = cfg->capabilities;
-            r->handle_table.init(r->id);
+            r->handle_table->init(r->id);
             r->exited = false;
 
             if (cfg->is_user) {
@@ -213,7 +214,7 @@ bool RealmManager::destroy(const RealmId id) {
 
         realm.unit_list = nullptr;
         realm.unit_count = 0;
-        realm.handle_table.clear();
+        realm.handle_table->clear();
         realm.active = false;
         realm.id = 0;
 

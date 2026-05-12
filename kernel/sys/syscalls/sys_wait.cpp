@@ -25,7 +25,7 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include "../../units/unit.h"
+#include <kernel/units/unit.h>
 #include "vespera/log.h"
 #include "vespera/time.h"
 

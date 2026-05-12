@@ -4,8 +4,8 @@
 #include <klib/vector.h>
 #include <vespera/sync/atomic.h>
 
-#include "../../../arch/x86_64/interrupts/idt.h"
-#include "../../pci/pci.h"
+#include <arch/x86_64/interrupts/idt.h>
+#include <drivers/pci/pci.h>
 #include "vespera/devices/device_info.h"
 #include "vespera/devices/device_manager.h"
 #include "xhci_device.h"

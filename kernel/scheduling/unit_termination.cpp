@@ -29,7 +29,9 @@
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
 
-#include "../../kernel/cpu/cpu_manager.h"
+#include <kernel/cpu/cpu_manager.h>
+#include <kernel/scheduling/scheduler_types.h>
+#include <kernel/units/unit.h>
 #include "vespera/time.h"
 
 static void do_terminate_unit(Unit* unit, Signal fault_sig) {

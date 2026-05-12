@@ -22,6 +22,7 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/unit_config.h>
 #include <vespera_errno.h>
 

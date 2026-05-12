@@ -23,10 +23,10 @@
 #include <klib/string.h>
 #include <uapi/vespera/mount.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 
-#include "../../../filesystem/vfs/fs_registry.h"
-#include "../../units/unit.h"
+#include <filesystem/vfs/fs_registry.h>
+#include <kernel/units/unit.h>
 
 static KernelDevice* find_block_device_by_name(const char* name) {
     auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });

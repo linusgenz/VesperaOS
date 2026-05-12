@@ -28,7 +28,7 @@
 #include <uapi/vespera/handles.h>
 #include <vespera/types.h>
 
-#include "../realm/handle_table.h"
+#include <kernel/realm/handle_table.h>
 
 class Unit;
 class Realm;

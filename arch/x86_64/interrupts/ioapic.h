@@ -23,7 +23,7 @@
 
 #ifndef IOAPIC_H
 #define IOAPIC_H
-#include "../../../include/acpi/madt.h"
+#include <acpi/madt.h>
 
 namespace arch::x86_64::interrupts::ioapic {
 

@@ -3,9 +3,10 @@
 
 #include <klib/string.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
-#include "../../arch/x86_64/gdt/gdt.h"
-#include "../../arch/x86_64/interrupts/apic.h"
+#include <arch/x86_64/gdt/gdt.h>
+#include <arch/x86_64/interrupts/apic.h>
 #include "../cpu/cpu_manager.h"
 #include "../realm/address_space.h"
 #include "../units/unit_manager.h"

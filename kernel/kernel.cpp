@@ -37,6 +37,7 @@
 #include "scheduling/per_cpu.h"
 #include "units/unit_manager.h"
 #include "vespera/scheduling.h"
+#include <kernel/realm/handle_table.h>
 
 static const char* dev_type_to_str(DeviceType t) {
     switch (t) {
@@ -169,7 +170,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     };
     Realm* shell_realm = RealmManager::create(&realm_config_shell);
     TtyDevice* tty_dev = kernel::tty::tty_devices[0];
-    shell_realm->handle_table.setup_standard_handles(tty_dev);
+    shell_realm->handle_table->setup_standard_handles(tty_dev);
 
     const ElfLoader::LoadResult result = ElfLoader::load("/bin/lua", 0x400000, shell_realm);
     if (!result.success) {

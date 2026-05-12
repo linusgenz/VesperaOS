@@ -24,6 +24,7 @@
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/realm.h>
 
+#include <kernel/realm/handle_table.h>
 #include "klib/string.h"
 
 Realm::Realm()
@@ -42,14 +43,15 @@ Realm::Realm()
     , pgid(0)
     , sid(0)
     , parent_id(0)
-    , controlling_tty(nullptr) {
+    , controlling_tty(nullptr)
+    , handle_table(new HandleTable()) {
     char buf[50];
     snprintf(buf, sizeof(buf), "realm_%s:%u_lock", name, id);
     lock.init(buf);
 }
 
 TtyDevice* Realm::get_tty_device() {
-    const HandleEntry* he = handle_table.lookup(HANDLE_STDIN);
+    const HandleEntry* he = handle_table->lookup(HANDLE_STDIN);
     if (!he || he->type != HANDLE_TYPE_TTY) return nullptr;
     return static_cast<TtyDevice*>(he->resource);
 }

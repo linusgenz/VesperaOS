@@ -26,6 +26,8 @@
 #include <vespera/signals.h>
 #include <vespera/types.h>
 
+#include <kernel/scheduling/scheduler_types.h>
+#include <kernel/units/unit.h>
 #include "../scheduling/unit_termination.h"
 
 enum class DefaultAction : u8 {

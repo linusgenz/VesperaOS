@@ -2,7 +2,7 @@
 
 #include <vespera/cpu/simd.h>
 #include <vespera/cpu/simd_mem.h>
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include <vespera/terminal.h>
 
 #include "vespera/devices/device_manager.h"

@@ -27,6 +27,8 @@
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
 
+#include <kernel/scheduling/scheduler_types.h>
+#include <kernel/units/unit.h>
 #include "../cpu/cpu_manager.h"
 #include "../units/unit_manager.h"
 

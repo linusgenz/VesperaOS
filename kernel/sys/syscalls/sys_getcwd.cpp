@@ -26,7 +26,7 @@
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
-#include "../../units/unit.h"
+#include <kernel/units/unit.h>
 
 namespace syscalls::internal {
     i64 sys_getcwd(u64 arg0, u64 arg1, u64, u64, u64, u64) {

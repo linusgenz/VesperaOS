@@ -23,7 +23,7 @@
 #include <acpi/madt.h>
 #include <vespera/time.h>
 
-#include "../../arch/x86_64/interrupts/apic.h"
+#include <arch/x86_64/interrupts/apic.h>
 
 namespace kernel::time::sleep_timer {
 

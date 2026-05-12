@@ -21,10 +21,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/handles.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/types.h>
+#include <kernel/realm/handle_table.h>
 
 static void ref_void(void* p) {
     Channel::ref(static_cast<Channel*>(p));
@@ -43,7 +45,7 @@ namespace syscalls::internal {
         if (!ch) return -ENOMEM;
 
         const Result<HandleId> read_result =
-            realm->handle_table.add(HANDLE_TYPE_PIPE, ch, CAP_READ, true, Channel::destroy, ref_void);
+            realm->handle_table->add(HANDLE_TYPE_PIPE, ch, CAP_READ, true, Channel::destroy, ref_void);
 
         if (read_result.is_err()) {
             Channel::destroy(ch);
@@ -53,10 +55,10 @@ namespace syscalls::internal {
         Channel::ref(ch);
 
         const Result<HandleId> write_result =
-            realm->handle_table.add(HANDLE_TYPE_PIPE, ch, CAP_WRITE, true, Channel::destroy, ref_void);
+            realm->handle_table->add(HANDLE_TYPE_PIPE, ch, CAP_WRITE, true, Channel::destroy, ref_void);
 
         if (write_result.is_err()) {
-            realm->handle_table.release(read_result.unwrap());
+            realm->handle_table->release(read_result.unwrap());
             return -ENOMEM;
         }
 

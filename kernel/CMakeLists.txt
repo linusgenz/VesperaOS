@@ -203,10 +203,13 @@ if (ENABLE_DEBUG_FAULT)
             LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
     )
 
-    target_include_directories(kernel_stage1 PUBLIC
+    target_include_directories(kernel_stage1
+            PUBLIC
             ${CMAKE_SOURCE_DIR}/include
             ${CMAKE_BINARY_DIR}
             ${CMAKE_SOURCE_DIR}/limine
+            PRIVATE
+            ${CMAKE_SOURCE_DIR}
     )
 
     add_dependencies(kernel_stage1 embedded_font ap_trampoline)
@@ -263,10 +266,13 @@ set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
 )
 
-target_include_directories(kernel.elf PUBLIC
+target_include_directories(kernel.elf
+        PUBLIC
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_SOURCE_DIR}/limine
+        PRIVATE
+        ${CMAKE_SOURCE_DIR}
 )
 
 if (ENABLE_DEBUG_FAULT)

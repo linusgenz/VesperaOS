@@ -4,6 +4,7 @@
 
 #include <vespera/interrupts.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/time.h>
 
 #include "../cpu/cpu_manager.h"

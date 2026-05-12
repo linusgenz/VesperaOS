@@ -31,7 +31,7 @@
 #include "../vfs/vfs_node.h"
 #include "ext4.h"
 #include "uapi/vespera/mount.h"
-#include "vespera/filesystem/vfs.h"
+#include "filesystem/vfs.h"
 #include "vespera_errno.h"
 
 using namespace ext4;

@@ -3,7 +3,7 @@
 #include <klib/string.h>
 
 #include <acpi/madt.h>
-#include "../../../kernel/cpu/cpu_manager.h"
+#include <kernel/cpu/cpu_manager.h>
 #include "vespera/log.h"
 
 GDT_ENTRY gdt[GDT_ENTRIES + (kernel::acpi::madt::MAX_CPU_CORES * 2)];

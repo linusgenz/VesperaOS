@@ -23,7 +23,7 @@
 
 #include "cpuinfo.h"
 
-#include "../../cpu/cpu.h"
+#include <kernel/cpu/cpu.h>
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 

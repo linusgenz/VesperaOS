@@ -5,13 +5,8 @@
 #ifndef IDT_H
 #define IDT_H
 
+#include <vespera/interrupts.h>
 #include <vespera/types.h>
-enum Irqreturn : int {
-    IRQ_HANDLED = 1,
-    IRQ_NONE = 0,
-    IRQ_ERROR = -1
-};
-using irq_handler_t = Irqreturn (*)(void *cookie);
 
 namespace arch::x86_64::interrupts::idt {
     constexpr u8 VECTOR_MIN = 0x24;

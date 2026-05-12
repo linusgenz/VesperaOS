@@ -22,8 +22,8 @@
 
 #include <vespera_errno.h>
 
-#include "../../../filesystem/vfs/fs_detection.h"
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs/fs_detection.h>
+#include <filesystem/vfs.h>
 
 namespace syscalls::internal {
     i64 sys_umount(u64 arg0, u64 arg1, u64, u64, u64, u64) {

@@ -2,13 +2,13 @@
 
 #include <uapi/vespera/dev/ioctl_smart.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
-#include "../../kernel/units/unit_manager.h"
+#include <kernel/units/unit_manager.h>
 #include "../pci/msi.h"
 #include "../pci/msix.h"
 #include "ata.h"

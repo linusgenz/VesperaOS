@@ -24,6 +24,7 @@
 #ifndef VESPERAOS_UNIT_MANAGER_H
 #define VESPERAOS_UNIT_MANAGER_H
 
+#include <klib/result.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 #include <vespera/unit_config.h>

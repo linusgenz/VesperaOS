@@ -23,7 +23,7 @@
 
 #include "pic.h"
 
-#include "../../../include/vespera/cpu/io.h"
+#include <vespera/cpu/io.h>
 
 namespace arch::x86_64::interrupts::pic {
     void initialize() {

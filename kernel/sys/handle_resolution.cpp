@@ -25,8 +25,10 @@
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
 #include "../units/unit.h"
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls {
 
@@ -41,7 +43,7 @@ namespace syscalls {
         Realm* realm = u->parent;
         if (!realm) return Error::Srch;
 
-        HandleEntry* he = realm->handle_table.lookup(hid);
+        HandleEntry* he = realm->handle_table->lookup(hid);
         if (!he) return Error::BadH;
 
         if (required_caps != 0 && !(he->capabilities & required_caps))

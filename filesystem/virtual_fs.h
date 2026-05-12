@@ -29,7 +29,7 @@
 #include <uapi/vespera/dirent.h>
 #include <vespera/sync/spinlock.h>
 
-#include "../include/vespera/filesystem/vfs.h"
+#include <filesystem/vfs.h>
 
 struct DirData {
     Vector<VfsNode*> subdirs;

@@ -8,9 +8,9 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
-#include <vespera/filesystem/devfs.h>
-#include "../../../kernel/cpu/cpu.h"
-#include "../../pci/pci.h"
+#include <filesystem/devfs.h>
+#include <kernel/cpu/cpu.h>
+#include <drivers/pci/pci.h>
 #include "../usb_manager.h"
 #include "vespera/scheduling.h"
 #include "xhci_common.h"

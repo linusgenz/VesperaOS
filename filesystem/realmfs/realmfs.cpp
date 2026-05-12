@@ -29,7 +29,7 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera_errno.h>
 
-#include "../../kernel/units/unit_manager.h"
+#include <kernel/units/unit_manager.h>
 
 void RealmFs::init() {
     VirtualFilesystem::init("/realms", "realms");

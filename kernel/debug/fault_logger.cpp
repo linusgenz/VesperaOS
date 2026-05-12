@@ -13,7 +13,9 @@
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
+#include <kernel/scheduling/scheduler_types.h>
 #include "fault_logger.h"
 #include "trace.h"
 

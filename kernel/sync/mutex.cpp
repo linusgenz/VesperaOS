@@ -6,6 +6,8 @@
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/mutex.h>
 
+#include <kernel/units/unit.h>
+
 namespace kernel {
     inline bool scheduling_started = false;
 

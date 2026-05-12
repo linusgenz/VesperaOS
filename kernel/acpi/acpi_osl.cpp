@@ -1,6 +1,6 @@
 #include <acpi/acpi_subsystem.h>
 
-#include "../../arch/x86_64/interrupts/ioapic.h"
+#include <arch/x86_64/interrupts/ioapic.h>
 #include "../units/unit_manager.h"
 #include "vespera/interrupts.h"
 #include "vespera/scheduling.h"
@@ -225,7 +225,7 @@ ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 irq, ACPI_OSD_HANDLER handler, 
     g_sci.irq = irq;
     g_sci.active = true;
 
-    arch::x86_64::interrupts::idt::allocate_vector(vector, sci_irq_shim, &g_sci);
+    kernel::interrupts::allocate_vector(vector, sci_irq_shim, &g_sci);
 
     const u8 bsp_apic_id = static_cast<u8>(kernel::acpi::madt::bsp_apic_id());
     arch::x86_64::interrupts::ioapic::configure_irq(static_cast<u8>(irq), vector, bsp_apic_id);
@@ -241,7 +241,7 @@ ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 irq, ACPI_OSD_HANDLER handler) {
     const u32 gsi = irq;
     arch::x86_64::interrupts::ioapic::mask_gsi(gsi);  // TODO cache gsi in SciHandlerEntry
 
-    arch::x86_64::interrupts::idt::free_vector(g_sci.vector);
+    kernel::interrupts::free_vector(g_sci.vector);
 
     g_sci = {};
     Log::info("ACPI OSL: SCI IRQ %u handler removed", irq);

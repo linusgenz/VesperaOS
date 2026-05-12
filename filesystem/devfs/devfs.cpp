@@ -27,14 +27,14 @@
 #include <uapi/vespera/poll.h>
 #include <vespera/devices/char_device.h>
 #include <vespera/devices/device_info.h>
-#include <vespera/filesystem/devfs.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/devfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera_errno.h>
 
-#include "../../include/vespera/cpu/io.h"
-#include "../../kernel/graphics/display_manager.h"
+#include <vespera/cpu/io.h>
+#include <kernel/graphics/display_manager.h>
 #include "../drivers/ahci/ahci.h"
 #include "uapi/vespera/dev/ioctl_usb_device.h"
 #include "vespera/devices/usb_device_info.h"

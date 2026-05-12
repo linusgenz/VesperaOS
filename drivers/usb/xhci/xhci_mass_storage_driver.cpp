@@ -23,7 +23,7 @@
 
 #include "xhci_mass_storage_driver.h"
 
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include <vespera/log.h>
 
 #include "vespera/devices/device_manager.h"

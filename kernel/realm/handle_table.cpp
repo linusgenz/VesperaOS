@@ -1,4 +1,4 @@
-// handle_table.cpp
+// handle_table->cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>

@@ -25,7 +25,7 @@
 
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/vfs.h>
+#include <filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/system/system_manager.h>
 #include <vespera_errno.h>

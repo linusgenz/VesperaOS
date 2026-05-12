@@ -26,7 +26,7 @@
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 
-#include "../../kversion.h"
+#include <kernel/kversion.h>
 
 VersionDevice::VersionDevice()
     : CharDevice(BusType::VIRTUAL) {

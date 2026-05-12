@@ -3,7 +3,9 @@
 //
 
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
+#include "scheduler_types.h"
 #include "../cpu/cpu_manager.h"
 #include "../units/unit.h"
 #include "cpu_scheduler.h"

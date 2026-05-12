@@ -22,10 +22,11 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/types.h>
 #include <vespera_errno.h>
 
-#include "../../scheduling/unit_termination.h"
+#include <kernel/scheduling/unit_termination.h>
 
 namespace syscalls::internal {
     i64 sys_kill(u64 arg0, u64 arg1, u64, u64, u64, u64) {

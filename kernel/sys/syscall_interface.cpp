@@ -26,6 +26,7 @@
 #include <arch/x86_64/cpu/msr.h>
 #include <vespera/log.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/signals.h>
 #include <vespera/sys/syscall_numbers.h>
 

@@ -25,6 +25,7 @@
 #include <vespera/ipc/channel.h>
 #include <vespera/ipc/vbus_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 #include "../handle_resolution.h"

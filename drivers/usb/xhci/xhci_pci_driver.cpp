@@ -26,9 +26,9 @@
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 
-#include "../../../drivers/pci/msix.h"
-#include "../../../kernel/units/unit_manager.h"
-#include "../../usb/usb_manager.h"
+#include <drivers/pci/msix.h>
+#include <kernel/units/unit_manager.h>
+#include <drivers/usb/usb_manager.h>
 #include "xhci.h"
 
 namespace usb {

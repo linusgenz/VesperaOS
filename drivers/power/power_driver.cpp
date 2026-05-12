@@ -27,7 +27,7 @@
 #include <uapi/vespera/dev/power.h>
 #include <vespera/devices/char_device.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/filesystem/devfs.h>
+#include <filesystem/devfs.h>
 #include <vespera/ipc/vbus_manager.h>
 #include <vespera/log.h>
 #include <vespera_errno.h>

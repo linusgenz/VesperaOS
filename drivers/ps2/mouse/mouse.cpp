@@ -23,7 +23,7 @@
 
 #include "mouse.h"
 
-#include "../../../include/vespera/cpu/io.h"
+#include <vespera/cpu/io.h>
 #include "vespera/kernel_utils.h"
 
 typedef struct {

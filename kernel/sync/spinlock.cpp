@@ -24,7 +24,7 @@
 #include <vespera/sync/spinlock.h>
 
 #if DEBUG_SPINLOCK
-#include "../../kernel/debug/lock_debug.h"
+#include <kernel/debug/lock_debug.h>
 #endif
 
 void Spinlock::init(const char* name) {

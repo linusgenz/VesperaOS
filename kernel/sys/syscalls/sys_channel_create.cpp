@@ -26,7 +26,8 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include "../../units/unit.h"
+#include <kernel/units/unit.h>
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_channel_create(u64 arg0, u64, u64, u64, u64, u64) {
@@ -44,7 +45,7 @@ namespace syscalls::internal {
         constexpr capability_set caps = CAP_READ | CAP_WRITE;
 
         const Result<HandleId> result =
-            realm->handle_table.add(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, nullptr);
+            realm->handle_table->add(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, nullptr);
 
         if (result.is_err()) {
             Channel::destroy(ch);

@@ -2,7 +2,7 @@
 
 #include <vespera/kernel_utils.h>
 
-#include "../../arch/x86_64/interrupts/apic.h"
+#include <arch/x86_64/interrupts/apic.h>
 #include <klib/string.h>
 #include "../cpu/cpu_manager.h"
 

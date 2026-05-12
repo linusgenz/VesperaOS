@@ -26,8 +26,9 @@
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
-#include "../../units/unit.h"
+#include <kernel/units/unit.h>
 #include "../handle_resolution.h"
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
 
@@ -54,7 +55,7 @@ namespace syscalls::internal {
 
         Channel::ref(ch);
 
-        const Result<HandleId> result = dst_realm->handle_table.add(
+        const Result<HandleId> result = dst_realm->handle_table->add(
             type_tag, ch, CAP_RW, /*transferable=*/true, Channel::destroy, /*acquire=*/nullptr
         );
 

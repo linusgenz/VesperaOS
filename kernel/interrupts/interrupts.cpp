@@ -21,20 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/mm/memory.h>
-
-#include "../../arch/x86_64/interrupts/apic.h"
-#include "../../arch/x86_64/interrupts/idt.h"
-#include "../../arch/x86_64/interrupts/ioapic.h"
-#include "../../arch/x86_64/interrupts/pic.h"
-#include <vespera/cpu/io.h>
+#include <arch/x86_64/interrupts/apic.h>
+#include <arch/x86_64/interrupts/idt.h>
+#include <arch/x86_64/interrupts/ioapic.h>
+#include <arch/x86_64/interrupts/pic.h>
 #include <klib/string.h>
+#include <vespera/cpu/io.h>
+#include <vespera/mm/memory.h>
 
 namespace kernel::interrupts {
     void initialize() {
-        for (int i = 0; i < kernel::acpi::madt::MAX_CPU_CORES; i++) {
-            arch::x86_64::interrupts::apic::apic_ticks[i] = 0;
-        }
+        memset(arch::x86_64::interrupts::apic::apic_ticks, 0, kernel::acpi::madt::MAX_CPU_CORES * sizeof(u64));
         memset(
             arch::x86_64::interrupts::idt::irq_handler_table,
             0,

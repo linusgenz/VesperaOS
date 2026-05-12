@@ -22,7 +22,7 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include "../../units/unit.h"
+#include <kernel/units/unit.h>
 
 namespace syscalls::internal {
     i64 sys_getunid(u64, u64, u64, u64, u64, u64) {

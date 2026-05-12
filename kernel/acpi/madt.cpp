@@ -25,7 +25,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-#include "../../arch/x86_64/interrupts/apic.h"
+#include <arch/x86_64/interrupts/apic.h>
 #include "acpi_tables.h"
 
 namespace kernel::acpi::madt {

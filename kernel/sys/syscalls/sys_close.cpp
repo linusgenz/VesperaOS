@@ -23,9 +23,11 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 
-#include "../../../include/vespera/types.h"
+#include <vespera/types.h>
 #include "../handle_resolution.h"
+#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_close(u64 arg0, u64, u64, u64, u64, u64) {
@@ -35,7 +37,7 @@ namespace syscalls::internal {
             resolve_handle(hid, /*type_mask=*/0, /*required_caps=*/0)
         );
 
-        rh.realm->handle_table.release(hid);
+        rh.realm->handle_table->release(hid);
 
         return SUCCESS_CODE;
     }

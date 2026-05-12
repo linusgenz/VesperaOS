@@ -27,12 +27,14 @@
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/unit_config.h>
 
-#include "../../filesystem/realmfs/realmfs.h"
+#include <filesystem/realmfs/realmfs.h>
 #include "../realm/address_space.h"
 #include "vespera/realm/user_stack_allocator.h"
+#include <kernel/realm/handle_table.h>
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;
@@ -291,9 +293,9 @@ void UnitManager::attach_initial_handles(Unit* u, Realm* realm, const UnitConfig
 
     for (u64 i = 0; i < cfg->initial_handle_count; ++i) {
         const HandleId h = cfg->initial_handles[i];
-        if (!realm->handle_table.lookup(h)) continue;
+        if (!realm->handle_table->lookup(h)) continue;
         u->attach_handle(h);
-        realm->handle_table.acquire(h);
+        realm->handle_table->acquire(h);
     }
 }
 
