@@ -1,41 +1,45 @@
 // vfs.h
 //
 // VesperaOS - operating system for the x86_64 architecture
-// 
+//
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
-// 
+//
 // Created by Linus Genz on 01.08.25.
 //
 // This file is part of VesperaOS.
-// 
+//
 // VesperaOS is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VFS_H
-#define VFS_H
+#ifndef VESPERAOS_FILESYSTEM_VFS_H
+#define VESPERAOS_FILESYSTEM_VFS_H
 
+#include <klib/result.h>
 #include <klib/vector.h>
-#include <filesystem/vfs/fs_detection.h>
-#include <filesystem/vfs/vfs_node.h>
-#include "vespera/sync/spinlock.h"
+#include <uapi/vespera/dirent.h>
+#include <uapi/vespera/stat.h>
+#include <vespera/sync/spinlock.h>
 
+class BlockDevice;
 struct FilesystemInfo;
+struct VfsNode;
+struct BlkDeviceDescriptor;
+enum class VfsNodeType : u8;
 
-struct MountPoint
-{
+struct MountPoint {
     char path[64]{};
     VfsNode* root = nullptr;
-    BlkDeviceDescriptor* device{}; // null when virtual
+    BlkDeviceDescriptor* device{};  // null when virtual
     bool is_virtual = false;
 
     bool is_root_device = false;
@@ -50,33 +54,19 @@ struct MountPoint
     MountPoint& operator=(const MountPoint&) = delete;
 };
 
-struct PendingMount
-{
-    char path[64];
-    BlkDeviceDescriptor desc;
-    bool is_partition;
-    const char* table_type;
-};
-
-
-struct VfsDir
-{
+struct VfsDir {
     VfsNode* node;
     void* handle;
 };
 
-
-struct VfsStats
-{
-    usize total_devices; // Total number of storage devices found
-    usize mounted_devices; // Number of successfully mounted devices
-    usize supported_filesystems; // Number of supported filesystem types
+struct VfsStats {
+    usize total_devices;          // Total number of storage devices found
+    usize mounted_devices;        // Number of successfully mounted devices
+    usize supported_filesystems;  // Number of supported filesystem types
 };
 
-
-class VFS
-{
-public:
+class VFS {
+   public:
     static void init();
 
     static VfsNode* mount_virtual(VfsNode* root, const char* mount_path);
@@ -114,7 +104,7 @@ public:
 
     static void remount_all();
 
-    //static void get_stats(VfsStats* stats);
+    // static void get_stats(VfsStats* stats);
 
     static void add_mount_point(MountPoint* mp);
 
@@ -124,8 +114,7 @@ public:
 
     static bool remove_mount_point(const MountPoint* mp);
 
-    static Vector<MountPoint*> get_mount_points_snapshot()
-    {
+    static Vector<MountPoint*> get_mount_points_snapshot() {
         SpinlockGuard g(mount_points_lock_);
         return mount_points_->copy();
     }
@@ -135,9 +124,15 @@ public:
     static void ensure_path_exists(const char* path);
     static bool resolve_to_absolute(const char* user_path, char* out, usize out_size);
 
+    /**
+     * @brief Forcefully unmounts all mount points backed by @p device or
+     *        any partition thereof. Safe to call from driver detach paths.
+     */
+    static void emergency_detach_device(const BlockDevice* device);
+
    private:
     static Spinlock mount_points_lock_;
     static Vector<MountPoint*>* mount_points_;
 };
 
-#endif //VFS_H
+#endif  // VESPERAOS_FILESYSTEM_VFS_H

@@ -24,6 +24,7 @@
 
 #include "framebuffer_device.h"
 
+#include <vespera/graphics/display_manager.h>
 #include <vespera_errno.h>
 
 int FramebufferDevice::open(CharFile**) {

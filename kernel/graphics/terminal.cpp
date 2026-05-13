@@ -25,7 +25,7 @@
 
 #include <vespera/terminal.h>
 
-#include "IRenderDriver.h"
+#include "vespera/graphics/IRenderDriver.h"
 #include "font/glyph_cache.h"
 #include "font/psf_glyph_provider.h"
 #include "scrollback_buffer.h"

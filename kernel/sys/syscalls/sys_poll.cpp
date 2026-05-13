@@ -20,17 +20,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/handle_table.h>
+#include <tty/tty_device.h>
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
-#include <filesystem/vfs.h>
+#include <units/unit.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
 
-#include <kernel/tty/tty_device.h>
-#include "../filesystem/vfs/vfs_handle.h"
-#include <kernel/realm/handle_table.h>
+#include "../../../include/filesystem/vfs_handle.h"
 
 namespace syscalls::internal {
     i64 sys_poll(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -40,11 +39,8 @@ namespace syscalls::internal {
 
         if (!hdls || nhdls == 0) return -EINVAL;
 
-        const Unit* unit = kernel::scheduling::get_current_unit();
-        if (!unit) return -EINVAL;
-
-        Realm* realm = unit->parent;
-        if (!realm) return -EINVAL;
+        Realm* realm = kernel::scheduling::get_current_realm();
+        if (!realm) return -ESRCH;
 
         const u64 deadline = (timeout_ms >= 0) ? kernel::time::get_uptime_ms() + static_cast<u64>(timeout_ms) : U64_MAX;
 
@@ -88,8 +84,7 @@ namespace syscalls::internal {
                         ready++;
                         continue;
                     }
-                    if (vh->node->ops && vh->node->ops->poll)
-                        mask = vh->node->ops->poll(vh->node);
+                    if (vh->node->ops && vh->node->ops->poll) mask = vh->node->ops->poll(vh->node);
                 }
 
                 hdls[i].revents = static_cast<i16>(mask & hdls[i].events);

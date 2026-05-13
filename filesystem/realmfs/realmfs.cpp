@@ -22,14 +22,13 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "realmfs.h"
+#include "filesystem/realmfs.h"
 
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/unit/unit_manager.h>
 #include <vespera_errno.h>
-
-#include <kernel/units/unit_manager.h>
 
 void RealmFs::init() {
     VirtualFilesystem::init("/realms", "realms");

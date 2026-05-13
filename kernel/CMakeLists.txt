@@ -1,115 +1,71 @@
 # kernel/CMakeLists.txt
+#
+# Builds:
+#   libmath          – freestanding math OBJECT library
+#   kernel_core_lib  – core kernel OBJECT library
+#   kernel.elf       – final linked kernel image
+#                      (consumes all module OBJECT libraries)
+#
+# Include rules for kernel_core_lib
+# ──────────────────────────────────
+#   PRIVATE  → kernel/       (internal headers – never exported)
+#   PUBLIC   → include/      (cross-module public API only)
+#
+# arch/, drivers/, filesystem/ are NOT in the include path here.
+# If kernel code needs something from those modules it must go
+# through a header under include/vespera/.
+# ─────────────────────────────────────────────────────────────────────
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
+# ── ACPI sub-library (has its own CMakeLists.txt) ─────────────────
+add_subdirectory(${CMAKE_SOURCE_DIR}/kernel/acpi acpi_build)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
-
-set(KERNEL_DIR ${CMAKE_SOURCE_DIR})
-set(KERNEL_SRC_DIR ${KERNEL_DIR}/kernel)
-set(ARCH_SRC_DIR ${KERNEL_DIR}/arch)
-set(DRIVERS_SRC_DIR ${KERNEL_DIR}/drivers)
-set(FS_SRC_DIR ${KERNEL_DIR}/filesystem)
-set(LIB_SRC_DIR ${KERNEL_DIR}/lib)
-set(LOG_SRC_DIR ${KERNEL_DIR}/log)
-set(INCLUDE_SRC_DIR ${KERNEL_DIR}/include)
-
-add_subdirectory(${KERNEL_DIR}/kernel/acpi acpi_build)
-
-function(add_debug_option name description default_value)
-    option(${name} ${description} ${default_value})
-
-    if (${name})
-        add_compile_definitions(${name}=1)
-        set(status "ENABLED")
-    else ()
-        add_compile_definitions(${name}=0)
-        set(status "DISABLED")
-    endif ()
-
-    message(STATUS "  ${name}: ${status}")
-endfunction()
-
-message(STATUS "=== Compile Options ===")
-add_debug_option(ENABLE_DEBUG_FAULT "Enable fault/callstack debugger" ON)
-add_debug_option(ENABLE_DEBUG_SPINLOCK "Enable spinlock/deadlock debugger" ON)
-add_debug_option(ENABLE_ELF_LOGGING "Enable logging for ELF module" OFF)
-message(STATUS "=====================")
-
-function(collect_cpp OUT_VAR)
-    set(ALL_CPP_FILES "")
-    foreach (dir ${ARGN})
-        file(GLOB_RECURSE DIR_CPP_FILES
-                "${dir}/*.cpp"
-                "${dir}/*.cc"
-        )
-        list(APPEND ALL_CPP_FILES ${DIR_CPP_FILES})
-    endforeach ()
-    list(FILTER ALL_CPP_FILES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
-    set(${OUT_VAR} ${ALL_CPP_FILES} PARENT_SCOPE)
-endfunction()
-
-function(collect_asm OUT_VAR)
-    set(ALL_ASM_FILES "")
-    foreach (dir ${ARGN})
-        file(GLOB_RECURSE DIR_ASM_FILES
-                "${dir}/*.asm"
-        )
-        list(APPEND ALL_ASM_FILES ${DIR_ASM_FILES})
-    endforeach ()
-    list(FILTER ALL_ASM_FILES EXCLUDE REGEX "${CMAKE_BINARY_DIR}/.*")
-    set(${OUT_VAR} ${ALL_ASM_FILES} PARENT_SCOPE)
-endfunction()
-
-collect_cpp(KERNEL_CPP_SOURCES
-        ${KERNEL_SRC_DIR}
-        ${ARCH_SRC_DIR}
-        ${DRIVERS_SRC_DIR}
-        ${FS_SRC_DIR}
-        ${LIB_SRC_DIR}
-        ${LOG_SRC_DIR}
-)
-
-collect_asm(KERNEL_ASM_SOURCES
-        ${KERNEL_SRC_DIR}
-        ${ARCH_SRC_DIR}
-)
-
-
-file(GLOB_RECURSE LIBMATH_SOURCES "${LIB_SRC_DIR}/math/*.cpp")
+# ── libmath (compiled with -O2, separate from kernel debug flags) ──
+file(GLOB_RECURSE LIBMATH_SOURCES "${CMAKE_SOURCE_DIR}/lib/math/*.cpp")
 
 add_library(libmath OBJECT ${LIBMATH_SOURCES})
 
-target_compile_options(libmath PRIVATE -w -ffreestanding -fno-stack-protector
-        -fno-pic -mno-red-zone -mcmodel=kernel -O2)
+target_compile_options(libmath PRIVATE
+        -w
+        -ffreestanding
+        -fno-stack-protector
+        -fno-pic
+        -mno-red-zone
+        -mcmodel=kernel
+        -O2
+)
 target_include_directories(libmath PRIVATE
-        "${CMAKE_SOURCE_DIR}/include"
-        "${CMAKE_BINARY_DIR}"
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_BINARY_DIR}
 )
 
-list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/lib/math/.*")
-list(FILTER KERNEL_ASM_SOURCES EXCLUDE REGEX ".*/ap_trampoline\\.asm")
-list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/kernel/acpi/.*")
+# ── Collect kernel core sources ───────────────────────────────────
+collect_cpp(KERNEL_CPP_SOURCES
+        ${CMAKE_SOURCE_DIR}/kernel
+        ${CMAKE_SOURCE_DIR}/lib
+        ${CMAKE_SOURCE_DIR}/log
+)
+collect_asm(KERNEL_ASM_SOURCES
+        ${CMAKE_SOURCE_DIR}/kernel
+)
 
-# REMOVE debug source files when disabled
+# Remove sources that belong to separate targets
+list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/lib/math/.*")
+list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/kernel/acpi/.*")
+list(FILTER KERNEL_ASM_SOURCES EXCLUDE REGEX ".*/ap_trampoline\\.asm")
+
+# Remove debug sources that are compiled-out via option
 if (NOT ENABLE_DEBUG_SPINLOCK)
-    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/lock_debug.cpp")
-    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/deadlock_detector.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/lock_debug\\.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/deadlock_detector\\.cpp")
 endif ()
 
 if (NOT ENABLE_DEBUG_FAULT)
-    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/disasm.cpp")
-    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/trace.cpp")
-    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/symbols.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/disasm\\.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/trace\\.cpp")
+    list(FILTER KERNEL_CPP_SOURCES EXCLUDE REGEX ".*/debug/symbols\\.cpp")
 endif ()
 
-set_source_files_properties(
-        ${CMAKE_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
-        PROPERTIES COMPILE_FLAGS "-mno-red-zone -mgeneral-regs-only -ffreestanding"
-)
-
-# version header
+# ── Version header ────────────────────────────────────────────────
 add_custom_command(
         OUTPUT ${CMAKE_SOURCE_DIR}/kernel/kversion.h
         COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/generate_version_header.sh
@@ -117,11 +73,10 @@ add_custom_command(
 )
 add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
 
-
+# ── Embedded PSF font ─────────────────────────────────────────────
 set(FONT_DIR "${CMAKE_SOURCE_DIR}/assets")
 set(FONT_FILE "zap-light24.psf")
 set(FONT_PSF "${FONT_DIR}/${FONT_FILE}")
-
 
 add_custom_command(
         OUTPUT ${CMAKE_BINARY_DIR}/font.o
@@ -139,13 +94,9 @@ add_custom_command(
         WORKING_DIRECTORY ${FONT_DIR}
         COMMENT "Embedding PSF font (${FONT_FILE}) into kernel binary"
 )
-
 add_custom_target(embedded_font DEPENDS ${CMAKE_BINARY_DIR}/font.o)
 
-# ────────────────────────────────────────────────────────────────
-#   AP TRAMPOLINE - separate flat binary
-# ────────────────────────────────────────────────────────────────
-
+# ── AP trampoline (separate flat binary → embedded header) ────────
 find_program(NASM_EXECUTABLE nasm REQUIRED)
 
 set(AP_TRAMPOLINE_ASM ${CMAKE_SOURCE_DIR}/kernel/cpu/ap_trampoline.asm)
@@ -171,25 +122,20 @@ add_custom_command(
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Generating AP trampoline header"
 )
-
 add_custom_target(ap_trampoline DEPENDS ${AP_TRAMPOLINE_HEADER})
 
-#
-# ────────────────────────────────────────────────────────────────
-#   CONDITIONAL KERNEL SYMBOLS GENERATION  (ONLY IF DEBUG_FAULT)
-# ────────────────────────────────────────────────────────────────
-#
-
+# ── Kernel symbol table (only when ENABLE_DEBUG_FAULT) ───────────
 if (ENABLE_DEBUG_FAULT)
 
+    # Bootstrap boilerplate so Stage 1 can compile even before the
+    # real symbol header is generated.
     set(BOILERPLATE_HEADER "${CMAKE_BINARY_DIR}/kernel_symbols.h")
-
     if (NOT EXISTS ${BOILERPLATE_HEADER})
         file(WRITE ${BOILERPLATE_HEADER}
                 "unsigned char kernel_map[] = {};\nunsigned int kernel_map_len = 0;\n")
     endif ()
 
-    # Stage1 kernel
+    # ── Stage 1 kernel (used only to extract symbols) ─────────────
     add_executable(kernel_stage1
             ${KERNEL_CPP_SOURCES}
             ${KERNEL_ASM_SOURCES}
@@ -197,24 +143,21 @@ if (ENABLE_DEBUG_FAULT)
             $<TARGET_OBJECTS:acpica>
             $<TARGET_OBJECTS:acpi_kernel>
             $<TARGET_OBJECTS:libmath>
+            $<TARGET_OBJECTS:arch_lib>
+            $<TARGET_OBJECTS:drivers_lib>
+            $<TARGET_OBJECTS:filesystem_lib>
     )
     set_target_properties(kernel_stage1 PROPERTIES
             OUTPUT_NAME "kernel_stage1"
             LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
     )
-
-    target_include_directories(kernel_stage1
-            PUBLIC
-            ${CMAKE_SOURCE_DIR}/include
-            ${CMAKE_BINARY_DIR}
-            ${CMAKE_SOURCE_DIR}/limine
-            PRIVATE
-            ${CMAKE_SOURCE_DIR}
-    )
+    apply_kernel_compile_options(kernel_stage1)
+    kernel_module_includes(kernel_stage1 ${CMAKE_SOURCE_DIR}/kernel)
+    #target_include_directories(kernel_stage1 PRIVATE ${CMAKE_SOURCE_DIR})
 
     add_dependencies(kernel_stage1 embedded_font ap_trampoline)
 
-    # generate kernel.map
+    # Generate kernel.map from stage-1 symbols
     add_custom_command(
             OUTPUT ${CMAKE_BINARY_DIR}/kernel.map
             COMMAND ${CMAKE_NM} -n $<TARGET_FILE:kernel_stage1> > ${CMAKE_BINARY_DIR}/kernel.map
@@ -223,15 +166,15 @@ if (ENABLE_DEBUG_FAULT)
     )
     add_custom_target(kernel_map DEPENDS ${CMAKE_BINARY_DIR}/kernel.map)
 
-    # embed kernel.map → kernel_symbols.h
+    # Embed kernel.map into kernel_symbols.h
     add_custom_command(
             OUTPUT ${CMAKE_BINARY_DIR}/kernel_symbols.h
-            COMMAND xxd -i ${CMAKE_BINARY_DIR}/kernel.map |
-            sed 's/unsigned char .*\\[/inline unsigned char kernel_map[/' |
-            sed 's/unsigned int .*_len/inline unsigned int kernel_map_len/'
+            COMMAND xxd -i ${CMAKE_BINARY_DIR}/kernel.map
+            | sed 's/unsigned char .*\\[/inline unsigned char kernel_map[/'
+            | sed 's/unsigned int .*_len/inline unsigned int kernel_map_len/'
             > ${CMAKE_BINARY_DIR}/kernel_symbols.h
             DEPENDS ${CMAKE_BINARY_DIR}/kernel.map
-            COMMENT "Embedding kernel.map"
+            COMMENT "Embedding kernel.map → kernel_symbols.h"
     )
     add_custom_target(kernel_symbols_header
             DEPENDS ${CMAKE_BINARY_DIR}/kernel_symbols.h
@@ -239,23 +182,47 @@ if (ENABLE_DEBUG_FAULT)
 
 endif ()
 
-#
-# ────────────────────────────────────────────────────────────────
-#   FINAL KERNEL
-# ────────────────────────────────────────────────────────────────
-#
-
+# ─────────────────────────────────────────────────────────────────
+# kernel_core_lib  –  kernel internals as OBJECT library
+# ─────────────────────────────────────────────────────────────────
 if (ENABLE_DEBUG_FAULT)
     set(KERNEL_EXTRA ${CMAKE_BINARY_DIR}/kernel_symbols.h)
 else ()
     set(KERNEL_EXTRA "")
 endif ()
 
-add_executable(kernel.elf
+add_library(kernel_core_lib OBJECT
         ${KERNEL_CPP_SOURCES}
         ${KERNEL_ASM_SOURCES}
-        ${KERNEL_EXTRA}
+        ${KERNEL_EXTRA}           # empty string is ignored by CMake
+)
+
+apply_kernel_compile_options(kernel_core_lib)
+kernel_module_includes(kernel_core_lib ${CMAKE_SOURCE_DIR}/kernel)
+
+# kernel/ needs access to its own root for intra-kernel includes
+target_include_directories(kernel_core_lib PRIVATE
+        ${CMAKE_SOURCE_DIR}       # e.g. #include "kernel/cpu/cpu.h" within kernel
+)
+
+add_dependencies(kernel_core_lib ap_trampoline embedded_font version)
+if (ENABLE_DEBUG_FAULT)
+    add_dependencies(kernel_core_lib kernel_symbols_header)
+endif ()
+
+# ─────────────────────────────────────────────────────────────────
+# kernel.elf  –  final linked image
+#
+# Links ALL module OBJECT libraries.  No additional source dirs are
+# added to the include path here; everything is inherited transitively
+# via the PUBLIC include dirs of each OBJECT library.
+# ─────────────────────────────────────────────────────────────────
+add_executable(kernel.elf
         ${CMAKE_BINARY_DIR}/font.o
+        $<TARGET_OBJECTS:kernel_core_lib>
+        $<TARGET_OBJECTS:arch_lib>
+        $<TARGET_OBJECTS:drivers_lib>
+        $<TARGET_OBJECTS:filesystem_lib>
         $<TARGET_OBJECTS:acpica>
         $<TARGET_OBJECTS:acpi_kernel>
         $<TARGET_OBJECTS:libmath>
@@ -266,17 +233,11 @@ set_target_properties(kernel.elf PROPERTIES
         LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
 )
 
-target_include_directories(kernel.elf
-        PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_BINARY_DIR}
-        ${CMAKE_SOURCE_DIR}/limine
-        PRIVATE
-        ${CMAKE_SOURCE_DIR}
-)
+# kernel.elf itself needs no include dirs – it has no source files,
+# only OBJECT inputs whose include paths were already resolved.
+# The PUBLIC dirs from each OBJECT lib are not needed at link time.
 
+add_dependencies(kernel.elf embedded_font ap_trampoline version)
 if (ENABLE_DEBUG_FAULT)
-    add_dependencies(kernel.elf kernel_symbols_header embedded_font ap_trampoline version)
-else ()
-    add_dependencies(kernel.elf embedded_font ap_trampoline version)
+    add_dependencies(kernel.elf kernel_symbols_header)
 endif ()

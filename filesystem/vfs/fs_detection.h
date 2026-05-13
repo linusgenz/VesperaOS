@@ -28,7 +28,7 @@
 #include <vespera/devices/block.h>
 #include <vespera/devices/kernel_device.h>
 
-#include "vfs_node.h"
+#include <filesystem/vfs_node.h>
 
 struct MountPoint;
 struct PendingMount;

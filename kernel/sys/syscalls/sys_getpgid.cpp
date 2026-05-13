@@ -20,10 +20,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <units/unit.h>
 #include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 namespace syscalls::internal {

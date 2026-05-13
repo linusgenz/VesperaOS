@@ -24,7 +24,7 @@
 #include <vespera/scheduling.h>
 #include <vespera/sync/reentrant_spinlock.h>
 
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 
 void ReentrantSpinlock::lock() {
     u32 uid = kernel::scheduling::get_current_unit()->id;

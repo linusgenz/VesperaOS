@@ -26,7 +26,7 @@
 
 #include <vespera_errno.h>
 
-#include "../../klib/string.h"
+#include <klib/string.h>
 #include "device_manager.h"
 
 struct CharFile {

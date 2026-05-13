@@ -25,9 +25,7 @@
 
 #include <vespera/security/credentials.h>
 #include <vespera/types.h>
-#include <vespera_errno.h>
-
-#include <filesystem/vfs/vfs_node.h>
+#include <filesystem/vfs_node.h>
 #include "uapi/vespera/stat.h"
 
 namespace kernel::security {

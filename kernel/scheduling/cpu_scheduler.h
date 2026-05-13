@@ -5,10 +5,7 @@
 #define CPU_SCHEDULER_H
 
 #include "scheduler_types.h"
-#include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
-
-#include <arch/x86_64/interrupts/interrupts_internal.h>
+#include <units/unit.h>
 
 #define READY_SCAN_LIMIT 16
 

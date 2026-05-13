@@ -22,10 +22,6 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/ipc/channel.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
-
-#include <kernel/units/unit.h>
 #include "../handle_resolution.h"
 #include "uapi/vespera/handles.h"
 

@@ -23,9 +23,9 @@
 
 #include "fs_detection.h"
 
+#include <filesystem/vfs.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
-#include <filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/system/system_manager.h>
 #include <vespera_errno.h>
@@ -41,6 +41,12 @@ extern FileSystemDriver ext4_driver;
 // TODO: Add other drivers when implemented
 // extern FileSystemDriver ntfs_driver;
 
+struct PendingMount {
+    char path[64];
+    BlkDeviceDescriptor desc;
+    bool is_partition;
+    const char* table_type;
+};
 
 void FilesystemDetector::init() {
     device_count_ = 0;
@@ -271,7 +277,8 @@ void FilesystemDetector::scan_and_mount_all() {
                             is_esp = true;
                         else if (strncmp(label, "VesperaRoot", strlen("VesperaRoot")) == 0)
                             is_root = true;
-                        else continue;
+                        else
+                            continue;
                     }
 
                     char mount_path[64];

@@ -1,7 +1,8 @@
 #include <acpi/acpi_subsystem.h>
-
 #include <arch/x86_64/interrupts/ioapic.h>
-#include "../units/unit_manager.h"
+#include <vespera/realm/realm.h>
+
+#include "vespera/unit/unit_manager.h"
 #include "vespera/interrupts.h"
 #include "vespera/scheduling.h"
 #include "vespera/sync/semaphore.h"
@@ -83,12 +84,7 @@ BOOLEAN AcpiOsWritable(void* pointer, ACPI_SIZE length) {
 // multithreading
 
 ACPI_THREAD_ID AcpiOsGetThreadId() {
-    if (!kernel::scheduling::is_curent_cpu_enabled()) {
-        return 1;
-    }
-    const Unit* u = kernel::scheduling::get_current_unit();
-    if (!u) return 1;
-    return u->id ? u->id : 1;
+    return kernel::scheduling::get_current_unit_id();
 }
 
 struct AcpiTaskNode {

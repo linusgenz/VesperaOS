@@ -26,7 +26,8 @@
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 
-#include <arch/x86_64/interrupts/ioapic.h>
+//#include <arch/x86_64/interrupts/ioapic.h>
+#include "../arch/x86_64/interrupts/ioapic.h" // TODO
 #include "acpi/madt.h"
 
 namespace kernel::time {
@@ -51,9 +52,9 @@ namespace kernel::time {
         outb(PIT_PORT_CHANNEL0, PIT_DIVISOR & 0xFF);
         outb(PIT_PORT_CHANNEL0, PIT_DIVISOR >> 8 & 0xFF);
 
-        const u8 bsp = static_cast<u8>(kernel::acpi::madt::bsp_apic_id());
+        const u8 bsp = static_cast<u8>(acpi::madt::bsp_apic_id());
 
-        const u8 vector = kernel::interrupts::get_free_vector();
+        const u8 vector = interrupts::get_free_vector();
         if (vector == 0xFF) {
             Log::error("[PIT] No free IDT vector for IRQ");
             return -1;

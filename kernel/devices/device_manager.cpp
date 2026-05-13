@@ -26,8 +26,8 @@
 #include <vespera/devices/device_manager.h>
 #include <vespera/devices/driver_lifecycle.h>
 
-#include <filesystem/partition/partition.h>
 #include <filesystem/devfs.h>
+#include <filesystem/partition.h>
 #include "partition_device.h"
 
 Vector<BlockDevice*>* DeviceManager::devices_;
@@ -86,7 +86,7 @@ usize DeviceManager::find_and_register_partitions(KernelDevice* physical_kd) {
     BlockDevice* dev = physical_kd->block;
 
     PartitionEntry parts[16];
-    const usize count = parse_partitions(dev, parts, 16);
+    const usize count = filesystem::parse_partitions(dev, parts, 16);
     if (count == 0) return 0;
 
     for (usize i = 0; i < count; ++i) {

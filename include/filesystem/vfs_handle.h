@@ -26,6 +26,7 @@
 
 #include <uapi/vespera/capabilities.h>
 #include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
 #include <vespera/types.h>
 
 struct VfsHandleContext {

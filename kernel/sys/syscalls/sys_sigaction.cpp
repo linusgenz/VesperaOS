@@ -21,9 +21,8 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <uapi/vespera/signal.h>
-#include <vespera/log.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 #include <vespera/signals.h>
 #include <vespera_errno.h>
 

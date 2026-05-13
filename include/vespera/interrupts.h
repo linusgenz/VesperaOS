@@ -26,7 +26,17 @@
 
 #include <vespera/types.h>
 
-#include "../../arch/x86_64/interrupts/idt.h"
+enum Irqreturn : int {
+    IRQ_HANDLED = 1,
+    IRQ_NONE = 0,
+    IRQ_ERROR = -1
+};
+
+using irq_handler_t = Irqreturn (*)(void* cookie);
+
+namespace arch::x86_64::interrupts::idt {
+    struct IDTR;
+}
 
 struct TrapFrame {
     // Callee-saved + scratch registers
@@ -97,14 +107,7 @@ namespace kernel::interrupts {
      * @return u8 Start vector of the block or 0xFF if no block is available
      */
     u8 get_free_vector_block(usize size);
-    arch::x86_64::interrupts::idt::IDTR* get_idtr_address();
-    void lapic_send_eoi();
-    void lapic_init(u32 cpu_id);
-    void lapic_write(u32 offset, u32 value);
-    u32 lapic_read(u32 offset);
-    void lapic_wait_for_delivery();
-    u64 lapic_get_ticks(u32 cpu_id);
-    u32 lapic_get_id();
+
     void mask_pic();
 }  // namespace kernel::interrupts
 

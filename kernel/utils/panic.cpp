@@ -1,9 +1,9 @@
 #include "panic.h"
 
+#include <arch/x86_64/apic.h>
+#include <klib/string.h>
 #include <vespera/kernel_utils.h>
 
-#include <arch/x86_64/interrupts/apic.h>
-#include <klib/string.h>
 #include "../cpu/cpu_manager.h"
 
 static const u8 SIMPLE_FONT[27][16] = {
@@ -107,10 +107,10 @@ void put_string(const Framebuffer* fb, const char* str, const u32 x, const u32 y
 [[noreturn]] void panic(const char* panic_msg) {
     auto fb = target_framebuffer;
 
-    u32 apic_id = arch::x86_64::interrupts::apic::local_apic_get_id();
+    u32 apic_id = arch::x86_64::interrupts::apic::get_id();
     cpu_manager::halt_cpu(apic_id);
 
-    arch::x86_64::interrupts::apic::broadcast_ipi(IRQ_PANIC);
+    arch::x86_64::interrupts::apic::halt_cpus();
 
     // Bildschirm klar machen mit Blau
     /*  for (u32 y = 0; y < fb->height; y++) {

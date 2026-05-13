@@ -3,7 +3,7 @@
 #include <klib/string.h>
 
 #include <acpi/madt.h>
-#include <kernel/cpu/cpu_manager.h>
+#include <vespera/cpu/cpu_manager.h>
 #include "vespera/log.h"
 
 GDT_ENTRY gdt[GDT_ENTRIES + (kernel::acpi::madt::MAX_CPU_CORES * 2)];
@@ -65,6 +65,10 @@ void tss_set_rsp0(u8 cpu_id, u64 rsp0) {
     }
 
     tss[cpu_id].rsp0 = rsp0;
+}
+
+void load_gdt() {
+    load_gdt(&gdt_ptr);
 }
 
 void gdt_install() {

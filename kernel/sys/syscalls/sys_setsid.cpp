@@ -21,17 +21,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/realm/realm.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 namespace syscalls::internal {
     i64 sys_setsid(u64, u64, u64, u64, u64, u64) {
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -ESRCH;
-
-        Realm* r = caller->parent;
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         if (r->sid == r->id) return -EPERM;

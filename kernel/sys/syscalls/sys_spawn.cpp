@@ -21,20 +21,21 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
+#include <exec/elf.h>
+#include <realm/handle_table.h>
 #include <klib/string.h>
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/mount.h>
 #include <uapi/vespera/spawn.h>
-#include <filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 #include <vespera/tty/tty.h>
+#include <vespera/unit/unit_manager.h>
+#include <vespera/unit_config.h>
 #include <vespera_errno.h>
-
-#include <kernel/exec/elf.h>
-#include <kernel/units/unit_manager.h>
-#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
@@ -45,8 +46,7 @@ namespace syscalls::internal {
 
         if (!user_path) return -EINVAL;
 
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        Realm* parent_realm = caller->parent;
+        Realm* parent_realm = kernel::scheduling::get_current_realm();
         TtyDevice* tty_dev = parent_realm ? parent_realm->get_tty_device() : kernel::tty::tty_devices[0];
 
         const char* base = strrchr(user_path, '/');
@@ -104,15 +104,17 @@ namespace syscalls::internal {
                     if (HandleEntry* existing = new_realm->handle_table->lookup(dst_fixed_id))
                         new_realm->handle_table->release(dst_fixed_id);
 
-                    return new_realm->handle_table->add_at(
-                        dst_fixed_id,
-                        he->type,
-                        he->resource,
-                        he->capabilities,
-                        he->transferable,
-                        he->destroy,
-                        he->acquire
-                    ).is_ok();
+                    return new_realm->handle_table
+                        ->add_at(
+                            dst_fixed_id,
+                            he->type,
+                            he->resource,
+                            he->capabilities,
+                            he->transferable,
+                            he->destroy,
+                            he->acquire
+                        )
+                        .is_ok();
                 };
 
                 if (!transfer(cfg_ptr->stdin_handle, HANDLE_STDIN)) {

@@ -21,23 +21,19 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/handle_table.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/ipc/channel.h>
-#include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
-
-#include <kernel/units/unit.h>
-#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_channel_create(u64 arg0, u64, u64, u64, u64, u64) {
         usize capacity = arg0;
         if (capacity == 0) capacity = 4096;  // default size
 
-        const Unit* current_unit = kernel::scheduling::get_current_unit();
-        if (!current_unit) return -EINVAL;
-        Realm* realm = current_unit->parent;
-        if (!realm) return -EINVAL;
+        Realm* realm = kernel::scheduling::get_current_realm();
+        if (!realm) return -ESRCH;
 
         Channel* ch = Channel::create(capacity);
         if (!ch) return -ENOMEM;

@@ -22,37 +22,26 @@
 
 #include "handle_resolution.h"
 
+#include <realm/handle_table.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
-
-#include "../units/unit.h"
-#include <kernel/realm/handle_table.h>
 
 namespace syscalls {
 
-    Result<ResolvedHandle> resolve_handle(
-        const HandleId       hid,
-        const u64            type_mask,
-        const capability_set required_caps
-    ) {
-        Unit* u = kernel::scheduling::get_current_unit();
-        if (!u || !u->active) return Error::Srch;
-
-        Realm* realm = u->parent;
+    Result<ResolvedHandle> resolve_handle(const HandleId hid, const u64 type_mask, const capability_set required_caps) {
+        Realm* realm = kernel::scheduling::get_current_realm();
         if (!realm) return Error::Srch;
 
         HandleEntry* he = realm->handle_table->lookup(hid);
         if (!he) return Error::BadH;
 
-        if (required_caps != 0 && !(he->capabilities & required_caps))
-            return Error::Acces;
+        if (required_caps != 0 && !(he->capabilities & required_caps)) return Error::Acces;
 
         if (type_mask != 0 && (he->type & HANDLE_TYPE_MASK) != type_mask)
             return Error::NotTty;  // POSIX convention: wrong fd type → ENOTTY
 
-        return Result<ResolvedHandle>::ok({u, realm, he});
+        return Result<ResolvedHandle>::ok({realm, he});
     }
 
-} // namespace syscalls
+}  // namespace syscalls

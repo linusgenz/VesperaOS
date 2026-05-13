@@ -22,13 +22,15 @@
 
 #include "xhci_pci_driver.h"
 
+#include <pci/msix.h>
+#include <drivers/usb/usb_manager.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
+#include <vespera/realm/realm.h>
+#include <vespera/unit/unit_manager.h>
+#include <vespera/unit_config.h>
 
-#include <drivers/pci/msix.h>
-#include <kernel/units/unit_manager.h>
-#include <drivers/usb/usb_manager.h>
 #include "xhci.h"
 
 namespace usb {

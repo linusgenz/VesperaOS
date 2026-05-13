@@ -3,10 +3,10 @@
 
 #include <vespera/devices/block.h>
 #include <vespera/devices/driver_lifecycle.h>
+#include <vespera/interrupts.h>
+#include <vespera/io/block_io_queue.h>
 #include <vespera/sync/mutex.h>
 
-#include <arch/x86_64/interrupts/idt.h>
-#include <kernel/io/block_io_queue.h>
 #include "../pci/pci.h"
 #include "ata.h"
 #include "uapi/vespera/dev/ioctl_smart.h"

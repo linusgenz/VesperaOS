@@ -21,15 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <scheduling/scheduler_types.h>
+#include <vespera/cpu/cpu_manager.h>
 #include <vespera/kerrno.h>
 #include <vespera/log.h>
 #include <vespera/realm/exit_code_table.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
-
-#include <kernel/scheduling/scheduler_types.h>
-#include <kernel/cpu/cpu_manager.h>
 
 namespace syscalls::internal {
     i64 sys_exit(u64 code, u64, u64, u64, u64, u64) {

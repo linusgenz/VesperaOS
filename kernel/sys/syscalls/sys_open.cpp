@@ -21,18 +21,17 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
+#include <security/permission.h>
+#include <units/unit.h>
+#include <realm/handle_table.h>
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handles.h>
-#include <filesystem/vfs.h>
-#include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 
-#include <filesystem/vfs/vfs_node.h>
-#include <kernel/security/permission.h>
-#include "../filesystem/vfs/vfs_handle.h"
-#include <kernel/realm/handle_table.h>
+#include "filesystem/vfs_handle.h"
 
 namespace syscalls::internal {
     i64 sys_open(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -44,8 +43,8 @@ namespace syscalls::internal {
         const Unit* current_unit = kernel::scheduling::get_current_unit();
         if (!current_unit) return -EINVAL;
 
-        Realm* realm = current_unit->parent;
-        if (!realm) return -EINVAL;
+        Realm* realm = kernel::scheduling::get_current_realm();
+        if (!realm) return -ESRCH;
 
         char norm[256];
         if (!VFS::resolve_to_absolute(user_path, norm, sizeof(norm))) {

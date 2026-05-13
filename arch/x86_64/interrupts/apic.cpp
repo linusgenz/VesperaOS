@@ -1,5 +1,7 @@
 #include <acpi/acpi_subsystem.h>
+#include <klib/string.h>
 
+#include "idt.h"
 #include "vespera/log.h"
 #include "vespera/time.h"
 #if DEBUG_SPINLOCK
@@ -7,17 +9,21 @@
 #endif
 
 #include <acpi/madt.h>
+#include <vespera/cpu/cpu_manager.h>
 #include <vespera/cpu/io.h>
 #include <vespera/kerrno.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 
-#include <kernel/cpu/cpu_manager.h>
 #include "apic.h"
 #include "interrupts_internal.h"
 
 namespace arch::x86_64::interrupts::apic {
+
+    static u32 g_apic_cal[kernel::acpi::madt::MAX_CPU_CORES] = {};
+
+    static u64 apic_ticks[kernel::acpi::madt::MAX_CPU_CORES] = {};
+
     u32 read(const u32 offset) {
         volatile auto *reg = reinterpret_cast<volatile u32 *>(g_local_apic_addr + offset);
         return *reg;
@@ -91,7 +97,13 @@ namespace arch::x86_64::interrupts::apic {
         write(LAPIC_ICRLO, 0x0);  // zero this shit
         write(LAPIC_ICRHI, 0x0);
 
-       kernel::time::sleep_timer::start(cpu_id);
+        kernel::time::sleep_timer::start(cpu_id);
+    }
+
+    void init_bsp() {
+        memset(apic_ticks, 0, kernel::acpi::madt::MAX_CPU_CORES * sizeof(u64));
+
+        init(0);
     }
 
     void send_ipi(const u32 apic_id, const u8 vector) {
@@ -105,16 +117,22 @@ namespace arch::x86_64::interrupts::apic {
         wait_for_delivery();
     }
 
+    u32 get_id() {
+        return read(LAPIC_ID) >> 24;
+    }
+
     void broadcast_ipi(const u8 vector) {
-        const u32 self_apic_id = local_apic_get_id();
+        const u32 self_apic_id = get_id();
 
-        for (u32 i = 0; i < cpu_manager::total_cpus && i < kernel::acpi::madt::MAX_CPU_CORES; i++) {
-            const auto &cpu = cpu_manager::cpu_infos[i];
+        cpu_manager::for_each_online_cpu([&](const cpu_manager::CpuInfo &cpu) {
+            if (cpu.apic_id != self_apic_id) {
+                send_ipi(cpu.apic_id, vector);
+            }
+        });
+    }
 
-            if (cpu.apic_id == self_apic_id) continue;
-
-            send_ipi(cpu.apic_id, vector);
-        }
+    void halt_cpus() {
+        broadcast_ipi(IRQ_PANIC);
     }
 
     void pmt_delay(const usize us) {
@@ -133,10 +151,6 @@ namespace arch::x86_64::interrupts::apic {
         }
     }
 
-    u32 local_apic_get_id() {
-        return read(LAPIC_ID) >> 24;
-    }
-
     void timer_accounting() {
         const u32 cpu = cpu_manager::get_current_cpu_id();
         apic_ticks[cpu]++;
@@ -148,16 +162,13 @@ namespace arch::x86_64::interrupts::apic {
 #endif
         if (!kernel::scheduling::is_initialized()) {
             // Scheduler not ready yet – just re-arm and return.
-            arm_oneshot_ns(APIC_QUANTUM_NS);
+            arm_oneshot_ns(QUANTUM_NS);
             return;
         }
 
         const u32 cpu = cpu_manager::get_current_cpu_id();
 
-        const Unit *current = kernel::scheduling::get_current_unit();
-        const bool is_idle = !current || current->is_idle;
-
-        cpu_manager::accounting_tick(cpu, is_idle);
+        cpu_manager::accounting_tick(cpu, kernel::scheduling::is_current_unit_idle());
 
         // 1. Wake any units whose deadline has passed.
         kernel::scheduling::wake_sleeping_units(cpu);
@@ -178,6 +189,26 @@ namespace arch::x86_64::interrupts::apic {
         while (apic_ticks[cpu] < target) {
             asm volatile("hlt");
         }
+    }
+
+    void send_init_ipi(const u32 apic_id) {
+        write(LAPIC_ICRHI, apic_id << 24);
+        write(LAPIC_ICRLO, APIC_ICR_INIT | APIC_ICR_LEVEL_ASSERT);
+        wait_for_delivery();
+
+        kernel::time::sleep_ms(10);
+
+        write(LAPIC_ICRHI, apic_id << 24);
+        write(LAPIC_ICRLO, APIC_ICR_INIT | ICR_DEASSERT);
+        wait_for_delivery();
+
+        kernel::time::sleep_ms(10);
+    }
+
+    void send_sipi(const u32 apic_id, const u8 vector) {
+        write(LAPIC_ICRHI, apic_id << 24);
+        write(LAPIC_ICRLO, vector | APIC_ICR_SIPI);
+        kernel::time::sleep_ms(10);
     }
 
     void send_eoi() {

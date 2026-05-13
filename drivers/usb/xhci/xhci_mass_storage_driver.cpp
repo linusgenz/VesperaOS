@@ -369,7 +369,7 @@ isize XhciMassStorageDriver::write(u64 lba, usize sector_count, const void* buff
 
 void XhciMassStorageDriver::detach() {
     if (kd_) {
-        FilesystemDetector::emergency_detach_device(kd_->block);
+        VFS::emergency_detach_device(kd_->block);
     }
 
     current_transfer_ = nullptr;

@@ -28,11 +28,12 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/sync/wait_queue.h>
 
-#include "../../../kernel/realm/handle_table.h"
 #include "vespera/security/credentials.h"
 #include "vespera/types.h"
 
 class Unit;
+class HandleTable;
+class TtyDevice;
 namespace kernel::realm {
     class AddressSpace;
 }
@@ -43,7 +44,6 @@ constexpr uptr TRAMP_UNIT_OFF = 0x100;
 constexpr uptr SIGNAL_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_SIGNAL_OFF);
 constexpr uptr USER_UNIT_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_UNIT_OFF);
 
-#define MAX_HANDLES_PER_REALM 4096
 #define KERNEL_REALM_SYSTEM 1
 #define KERNEL_REALM_DRIVER 2
 
@@ -67,7 +67,7 @@ class Realm {
 
     WaitQueue wait_queue;
 
-    HandleTable handle_table;
+    HandleTable* handle_table;
 
     Spinlock lock;
     bool active;

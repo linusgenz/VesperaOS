@@ -20,19 +20,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#include <filesystem/vfs.h>
 #include <klib/path.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
-#include <filesystem/vfs.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
-#include <vespera_errno.h>
 
+#include <filesystem/vfs_node.h>
 #include "fs_detection.h"
 #include "uapi/vespera/mount.h"
-#include "vfs_node.h"
 
 Vector<MountPoint*>* VFS::mount_points_ = nullptr;
 Spinlock VFS::mount_points_lock_;
@@ -319,6 +316,11 @@ void VFS::remount_all() {
     FilesystemDetector::scan_and_mount_all();
     // FilesystemDetector::print_detected_filesystems();
 }
+
+void VFS::emergency_detach_device(const BlockDevice* device) {
+    FilesystemDetector::emergency_detach_device(device);
+}
+
 /*
 void VFS::get_stats(VfsStats* stats) {
     if (!stats) return;

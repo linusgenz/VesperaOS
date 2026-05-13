@@ -22,11 +22,10 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/types.h>
 #include <vespera_errno.h>
 
-#include <kernel/scheduling/unit_termination.h>
+#include <scheduling/unit_termination.h>
 
 namespace syscalls::internal {
     i64 sys_kill(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -41,12 +40,12 @@ namespace syscalls::internal {
         const i64 target = static_cast<i64>(arg0);
 
         if (target < 0) {
-            const RealmId pgid = static_cast<RealmId>(-target);
+            const auto pgid = static_cast<RealmId>(-target);
             RealmManager::signal_pgid(pgid, sig);
             return SUCCESS_CODE;
         }
 
-        const RealmId target_rid = static_cast<RealmId>(target);
+        const auto target_rid = static_cast<RealmId>(target);
         if (target_rid == 0) return -EINVAL;
 
         if (sig == Signal::SIGKILL) {

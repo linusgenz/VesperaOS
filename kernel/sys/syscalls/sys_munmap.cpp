@@ -21,8 +21,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 #include <vespera/mm/memory.h>

@@ -5,8 +5,8 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
-#include <kernel/scheduling/reaper.h>
-#include <kernel/units/unit.h>
+#include "reaper.h"
+#include <units/unit.h>
 
 namespace kernel::scheduling::cpu_scheduler {
     struct CpuScheduler {

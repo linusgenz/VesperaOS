@@ -24,10 +24,8 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
+#include <units/unit.h>
 
-#include <kernel/cpu/cpu_manager.h>
-#include <kernel/units/unit.h>
-#include "klib/time.h"
 #include "vespera/scheduling.h"
 
 namespace syscalls::internal {

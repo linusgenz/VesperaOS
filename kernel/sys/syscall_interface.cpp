@@ -25,9 +25,7 @@
 
 #include <arch/x86_64/cpu/msr.h>
 #include <vespera/log.h>
-#include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
-#include <vespera/signals.h>
+#include <vespera/sched/sched_hooks.h>
 #include <vespera/sys/syscall_numbers.h>
 
 constexpr int MAX_SYSCALLS = 512;
@@ -115,13 +113,8 @@ extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, 
         Log::print_ln("[SYSCALL] Invalid syscall number: %u", num);
     }
 
-    Unit* u = kernel::scheduling::get_current_unit();
-    if (u && u->is_user) {
-        TrapFrame* trap = &u->context.current_trap_frame;
-        trap->rax = ret;
-        signal_dispatch(u, trap);
-    }
-
     asm volatile("cli"); // disable interrupts again, as the syscall epilog has to be interrupt free
+    kernel::scheduling::on_syscall_exit(ret);
+
     return ret;
 }

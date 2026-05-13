@@ -24,6 +24,7 @@
 #ifndef VESPERAOS_REALM_MANAGER_H
 #define VESPERAOS_REALM_MANAGER_H
 
+#include <klib/result.h>
 #include <vespera/realm/realm.h>
 #include <vespera/realm/realm_config.h>
 #include <vespera/sync/atomic.h>

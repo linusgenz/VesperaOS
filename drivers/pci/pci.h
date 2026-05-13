@@ -42,7 +42,6 @@ namespace pci {
      *
      * @note The capabilities pointer is valid only when bit 4 of @c status is set.
      */
-
     struct PCI_HEADER0 {
         PCI_DEVICE_HEADER header;
         u32 bar0;

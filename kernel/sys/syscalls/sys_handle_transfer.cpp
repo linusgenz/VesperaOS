@@ -23,12 +23,10 @@
 #include <uapi/vespera/handles.h>
 #include <vespera/ipc/channel.h>
 #include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
-#include <kernel/units/unit.h>
 #include "../handle_resolution.h"
-#include <kernel/realm/handle_table.h>
+#include <realm/handle_table.h>
 
 namespace syscalls::internal {
 

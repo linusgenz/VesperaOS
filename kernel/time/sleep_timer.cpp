@@ -23,7 +23,7 @@
 #include <acpi/madt.h>
 #include <vespera/time.h>
 
-#include <arch/x86_64/interrupts/apic.h>
+#include <arch/x86_64/apic.h>
 
 namespace kernel::time::sleep_timer {
 
@@ -42,9 +42,9 @@ namespace kernel::time::sleep_timer {
 
     void start(const u8 cpu_id) {
         const u64 now = get_uptime_ns();
-        g_state[cpu_id].quantum_deadline_ns = now + arch::x86_64::interrupts::apic::APIC_QUANTUM_NS;
+        g_state[cpu_id].quantum_deadline_ns = now + arch::x86_64::interrupts::apic::QUANTUM_NS;
         g_state[cpu_id].next_sleep_wakeup_ns = 0;
-        arch::x86_64::interrupts::apic::arm_oneshot_ns(arch::x86_64::interrupts::apic::APIC_QUANTUM_NS);
+        arch::x86_64::interrupts::apic::arm_oneshot_ns(arch::x86_64::interrupts::apic::QUANTUM_NS);
     }
 
     void notify_sleep(const u8 cpu_id, const u64 wakeup_ns) {
@@ -67,7 +67,7 @@ namespace kernel::time::sleep_timer {
         const auto& st = g_state[cpu_id];
 
         u64 next_ns = (st.quantum_deadline_ns > now) ? st.quantum_deadline_ns
-                                                     : now + arch::x86_64::interrupts::apic::APIC_QUANTUM_NS;
+                                                     : now + arch::x86_64::interrupts::apic::QUANTUM_NS;
 
         if (st.next_sleep_wakeup_ns != 0 && st.next_sleep_wakeup_ns < next_ns) {
             next_ns = st.next_sleep_wakeup_ns;

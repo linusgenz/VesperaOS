@@ -1,3 +1,5 @@
+#include <arch/x86_64/gdt.h>
+
 #include "../drivers/fb/framebuffer_driver.h"
 #include "../include/acpi/acpi_subsystem.h"
 #include "cpu/cpu.h"
@@ -10,35 +12,36 @@
 #include "debug/lock_debug.h"
 #endif
 
-#include <vespera/devices/device_manager.h>
 #include <filesystem/devfs.h>
+#include <filesystem/vfs.h>
+#include <klib/result.h>
+#include <units/unit.h>
+#include <vespera/devices/device_manager.h>
 #include <vespera/input/input_manager.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/types.h>
 
 #include "../arch/x86_64/gdt/gdt.h"
 #include "../arch/x86_64/smp/prepare_ap_trampoline.h"
-#include "../arch/x86_64/syscalls/syscall.h"
 #include "../drivers/pci/msi.h"
 #include "../drivers/ps2/ps2_init.h"
-#include "../drivers/usb/usb_manager.h"
-#include "../filesystem/realmfs/realmfs.h"
-#include <filesystem/vfs.h>
+#include "../include/arch/x86_64/syscall.h"
+#include "../include/drivers/usb/usb_manager.h"
+#include "../include/filesystem/realmfs.h"
+#include "../include/vespera/graphics/display_manager.h"
+#include "../include/vespera/unit/unit_manager.h"
 #include "cpu/cpu_manager.h"
 #include "devices/init.h"
-#include "graphics/display_manager.h"
 #include "graphics/framebuffer_device.h"
 #include "input/worker.h"
 #include "sys/syscall_interface.h"
 #include "system/log_writer.h"
 #include "tty/init.h"
-#include "units/unit_manager.h"
 #include "vespera/interrupts.h"
 
 Framebuffer* target_framebuffer = nullptr;
@@ -147,7 +150,7 @@ static void initialize_scheduling_and_smp() {
     UnitManager::initialize();
     kernel::scheduling::init(cpu_manager::total_cpus);
 
-    prepare_ap_trampoline();
+    arch::x86_64::smp::prepare_ap_trampoline();
     cpu_manager::smp_init();
 
     Log::init();

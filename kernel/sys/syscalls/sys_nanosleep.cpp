@@ -24,7 +24,6 @@
 #include <uapi/vespera/time.h>
 #include <vespera/time.h>
 
-#include "vespera/log.h"
 #include "vespera_errno.h"
 
 namespace syscalls::internal {

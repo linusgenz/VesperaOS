@@ -22,18 +22,19 @@
 
 #include "ec.h"
 
+#include <vespera/realm/realm.h>
+
 extern "C" {
 #include "acpica/include/acpi.h"
 }
 
+#include <klib/string.h>
 #include <vespera/cpu/io.h>
 #include <vespera/log.h>
 #include <vespera/sync/semaphore.h>
 #include <vespera/time.h>
+#include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
-
-#include "../units/unit_manager.h"
-#include "klib/string.h"
 
 namespace kernel::acpi::ec {
 
@@ -237,7 +238,8 @@ namespace kernel::acpi::ec {
         // GPE-Nummer aus _GPE lesen
         {
             ACPI_BUFFER gpe_buf = {ACPI_ALLOCATE_BUFFER, nullptr};
-            if (ACPI_SUCCESS(AcpiEvaluateObject(object, const_cast<ACPI_STRING>("_GPE"), nullptr, &gpe_buf)) && gpe_buf.Pointer) {
+            if (ACPI_SUCCESS(AcpiEvaluateObject(object, const_cast<ACPI_STRING>("_GPE"), nullptr, &gpe_buf)) &&
+                gpe_buf.Pointer) {
                 const auto* obj = static_cast<ACPI_OBJECT*>(gpe_buf.Pointer);
                 if (obj->Type == ACPI_TYPE_INTEGER) {
                     s_ec_gpe = static_cast<u32>(obj->Integer.Value);
@@ -314,4 +316,4 @@ namespace kernel::acpi::ec {
         }
     }
 
-}  // namespace acpi::ec
+}  // namespace kernel::acpi::ec

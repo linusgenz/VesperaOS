@@ -21,18 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/address_space.h>
+#include <units/unit.h>
 #include <vespera/mm/memory.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>
 
-#include <kernel/realm/address_space.h>
-
 static uptr find_free_range(const Unit* u, const usize length) {
     static constexpr uptr MMAP_BASE = 0x0000600000000000ULL;
-    static constexpr uptr MMAP_END  = 0x00007FFFFFF00000ULL;
+    static constexpr uptr MMAP_END = 0x00007FFFFFF00000ULL;
 
     uptr current = MMAP_BASE;
 
@@ -48,8 +46,7 @@ static uptr find_free_range(const Unit* u, const usize length) {
         }
 
         if (!next) {
-            if (current + length <= MMAP_END)
-                return current;
+            if (current + length <= MMAP_END) return current;
             return 0;
         }
 
@@ -60,8 +57,7 @@ static uptr find_free_range(const Unit* u, const usize length) {
         const uptr end = next->start + next->length;
         current = (end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 
-        if (current >= MMAP_END)
-            return 0;
+        if (current >= MMAP_END) return 0;
     }
 }
 
@@ -70,7 +66,7 @@ namespace syscalls::internal {
     i64 sys_mmap(u64 addr, u64 length, u64 prot, u64 flags, u64 handle, u64 offset) {
         if (length == 0) return -EINVAL;
 
-        addr   = addr & ~(PAGE_SIZE - 1);
+        addr = addr & ~(PAGE_SIZE - 1);
         length = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const usize npages = length / PAGE_SIZE;
 
@@ -95,26 +91,24 @@ namespace syscalls::internal {
         for (usize i = 0; i < npages; i++) {
             const phys_addr_t phys = kernel::memory::request_page_phys();
             if (phys_null(phys)) {
-                for (usize j = 0; j < i; j++)
-                     r_ptm->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
+                for (usize j = 0; j < i; j++) r_ptm->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
                 return -ENOMEM;
             }
-            r_ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper)| (1ULL << ReadWrite));
+            r_ptm->map_memory(virt_from_raw(base + i * PAGE_SIZE), phys, (1ULL << UserSuper) | (1ULL << ReadWrite));
         }
 
         auto* area = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
         if (!area) {
-            for (usize i = 0; i < npages; i++)
-                 r_ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
+            for (usize i = 0; i < npages; i++) r_ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
             return -ENOMEM;
         }
 
-        area->start   = base;
-        area->length  = length;
-        area->prot    = prot;
-        area->flags   = flags;
+        area->start = base;
+        area->length = length;
+        area->prot = prot;
+        area->flags = flags;
         area->file_off = offset;
-        area->handle  = handle;
+        area->handle = handle;
 
         cur->add_vma(area);
         return static_cast<i64>(base);

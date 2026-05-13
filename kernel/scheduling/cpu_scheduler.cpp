@@ -1,21 +1,21 @@
 
 #include "cpu_scheduler.h"
 
+#include <arch/x86_64/cpu/msr.h>
+#include <arch/x86_64/gdt.h>
+#include <arch/x86_64/apic.h>
+#include <cpu/cpu_manager.h>
 #include <klib/string.h>
-#include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <realm/address_space.h>
+#include <units/unit.h>
+#include <vespera/log.h>
+#include <vespera/realm/realm_manager.h>
+#include <vespera/time.h>
+#include <vespera/unit/unit_manager.h>
+#include <vespera/unit_config.h>
 
-#include <arch/x86_64/gdt/gdt.h>
-#include <arch/x86_64/interrupts/apic.h>
-#include "../cpu/cpu_manager.h"
-#include "../realm/address_space.h"
-#include "../units/unit_manager.h"
-#include "arch/x86_64/cpu/msr.h"
 #include "per_cpu.h"
-#include "vespera/log.h"
 #include "vespera/mm/memory.h"
-#include "vespera/realm/realm_manager.h"
-#include "vespera/time.h"
 
 GsData g_per_cpu[kernel::acpi::madt::MAX_CPU_CORES];
 
@@ -233,7 +233,7 @@ namespace kernel::scheduling::cpu_scheduler {
         cpu->ticks_remaining = cpu->quantum_ticks;
 
         time::sleep_timer::set_quantum_deadline(
-            cpu_id, time::get_uptime_ns() + arch::x86_64::interrupts::apic::APIC_QUANTUM_NS
+            cpu_id, time::get_uptime_ns() + arch::x86_64::interrupts::apic::QUANTUM_NS
         );
 
         // Unlock before touching the TrapFrame; IRQs are still off.

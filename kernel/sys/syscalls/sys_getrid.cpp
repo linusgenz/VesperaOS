@@ -22,7 +22,7 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 
 namespace syscalls::internal {
     i64 sys_getrid(u64, u64, u64, u64, u64, u64) {

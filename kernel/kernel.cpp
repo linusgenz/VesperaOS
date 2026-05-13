@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/handle_table.h>
 #include <vespera/boot/boot.h>
 #include <vespera/devices/block.h>
 #include <vespera/devices/device_manager.h>
@@ -30,14 +31,14 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/tty/tty.h>
 #include <vespera/types.h>
+#include <vespera/unit_config.h>
 
+#include "../include/vespera/unit/unit_manager.h"
 #include "./cpu/cpu.h"
 #include "exec/elf.h"
 #include "kversion.h"
 #include "scheduling/per_cpu.h"
-#include "units/unit_manager.h"
 #include "vespera/scheduling.h"
-#include <kernel/realm/handle_table.h>
 
 static const char* dev_type_to_str(DeviceType t) {
     switch (t) {

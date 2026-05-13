@@ -23,15 +23,11 @@
 #include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 namespace syscalls::internal {
     i64 sys_setpgid(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -ESRCH;
-
-        Realm* self = caller->parent;
+        const Realm* self = kernel::scheduling::get_current_realm();
         if (!self) return -ESRCH;
 
         const RealmId target_rid  = arg0 ? arg0 : self->id;

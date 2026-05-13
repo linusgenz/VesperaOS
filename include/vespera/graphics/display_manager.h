@@ -1,10 +1,10 @@
 /**
- * @file IRenderDriver.h
+ * @file display_manager.h
  * VesperaOS - operating system for the x86_64 architecture
  *
  * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
  *
- * Created by Linus Genz on 29.12.25.
+ * Created by Linus Genz on 30.12.25.
  *
  * This file is part of VesperaOS.
  *
@@ -21,9 +21,27 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef VESPERAOS_IRENDERDRIVER_H
-#define VESPERAOS_IRENDERDRIVER_H
+#ifndef VESPERAOS_DISPLAY_MANAGER_H
+#define VESPERAOS_DISPLAY_MANAGER_H
+#include <vespera/sync/spinlock.h>
 
-#include <vespera/graphics/IRenderDriver.h>
+#include "vespera/graphics/IRenderDriver.h"
 
-#endif  // VESPERAOS_IRENDERDRIVER_H
+struct KernelDevice;
+struct DisplayBackend {
+    IRenderDriver* drv;
+    KernelDevice* kd;
+};
+
+class DisplayManager {
+   public:
+    static void init(DisplayBackend initial);
+    static void set_primary(DisplayBackend backend);
+    static DisplayBackend primary();
+
+   private:
+    static inline DisplayBackend primary_;
+    static inline Spinlock lock_{};
+};
+
+#endif  // VESPERAOS_DISPLAY_MANAGER_H

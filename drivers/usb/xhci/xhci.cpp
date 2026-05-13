@@ -1,5 +1,6 @@
 #include "xhci.h"
 
+#include <filesystem/devfs.h>
 #include <klib/encoding.h>
 #include <klib/vector.h>
 #include <vespera/devices/device_manager.h>
@@ -8,11 +9,8 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
-#include <filesystem/devfs.h>
-#include <kernel/cpu/cpu.h>
-#include <drivers/pci/pci.h>
-#include "../usb_manager.h"
-#include "vespera/scheduling.h"
+#include "drivers/usb/usb_manager.h"
+#include "../../../kernel/cpu/cpu.h"
 #include "xhci_common.h"
 #include "xhci_device.h"
 #include "xhci_device_ctx.h"

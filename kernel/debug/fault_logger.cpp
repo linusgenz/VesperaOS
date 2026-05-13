@@ -10,13 +10,12 @@
 #if DEBUG_FAULT
 #include "trace.h"
 #endif
+#include <scheduling/scheduler_types.h>
+#include <vespera/debug/fault_logger.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 
-#include <kernel/scheduling/scheduler_types.h>
-#include "fault_logger.h"
 #include "trace.h"
 
 namespace kernel::debug {
@@ -69,7 +68,17 @@ namespace kernel::debug {
         asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
         Log::error("pml4 kernel: %p", memory::get_pagetable_address());
         Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, ctx->error_code);
-        Log::error("rax: 0x%llx rbx: 0x%llx rcx: 0x%llx, rdx: 0x%llx rsi: 0x%llx, rdi: 0x%llx rbp: 0x%llx r8: 0x%llx", ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx, ctx->rsi, ctx->rdi, ctx->rbp, ctx->r8);
+        Log::error(
+            "rax: 0x%llx rbx: 0x%llx rcx: 0x%llx, rdx: 0x%llx rsi: 0x%llx, rdi: 0x%llx rbp: 0x%llx r8: 0x%llx",
+            ctx->rax,
+            ctx->rbx,
+            ctx->rcx,
+            ctx->rdx,
+            ctx->rsi,
+            ctx->rdi,
+            ctx->rbp,
+            ctx->r8
+        );
         backtrace(ctx->rbp, ctx->rip);
 
         scheduling::cpu_scheduler::CpuScheduler* cpu = scheduling::get_cpu_data(6);
@@ -77,10 +86,7 @@ namespace kernel::debug {
         auto print_unit_backtrace = [](const Unit* u) {
             if (!u || u->state == UnitState::Terminated) return;
             Log::error("=== Unit#%u (%s) state=%u ===", u->id, u->name, (u8)u->state);
-            backtrace(
-                u->context.cpu_ctx.rbp,
-                u->context.cpu_ctx.rip
-            );
+            backtrace(u->context.cpu_ctx.rbp, u->context.cpu_ctx.rip);
         };
 
         cpu->ready_queue.for_each(print_unit_backtrace);
@@ -103,7 +109,9 @@ namespace kernel::debug {
         const Unit* u = scheduling::get_current_unit();
         const Realm* r = u->parent;
 
-        Log::error("pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->address_space->pml4_phys());
+        Log::error(
+            "pml4 kernel: %p current unit pml4: %p", memory::get_pagetable_address(), r->address_space->pml4_phys()
+        );
         Log::error("  CR2=0x%llx ERROR=0x%llx", fault_addr, error_code);
         Log::error(
             "  Present: %s, Write: %s, User: %s, Reserved: %s",

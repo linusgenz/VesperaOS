@@ -24,11 +24,10 @@
 #include "prepare_ap_trampoline.h"
 
 #include <ap_trampoline_blob.h>
-#include <vespera/interrupts.h>
-
-#include "../interrupts/idt.h"
-#include <vespera/mm/memory.h>
 #include <klib/string.h>
+#include <vespera/interrupts.h>
+#include <vespera/mm/memory.h>
+#include <x86_64/interrupts/idt.h>
 
 #define TRAMPOLINE_VIRT 0x8000
 #define IDTR_PHYS 0x1000
@@ -38,26 +37,20 @@
 
 extern "C" void ap_main();
 
-void prepare_ap_trampoline() {
-    for (u64 phys = 0x1000; phys <= 0x9000; phys += 0x1000) {
-        kernel::memory::map_memory(
-            virt_from_raw(phys),
-            make_phys(phys),
-            0
-        );
-        // HHDM map
-        kernel::memory::map_memory(
-            phys_to_virt(make_phys(phys)),
-            make_phys(phys),
-            0
-        );
+namespace arch::x86_64::smp {
+    void prepare_ap_trampoline() {
+        for (u64 phys = 0x1000; phys <= 0x9000; phys += 0x1000) {
+            kernel::memory::map_memory(virt_from_raw(phys), make_phys(phys), 0);
+            // HHDM map
+            kernel::memory::map_memory(phys_to_virt(make_phys(phys)), make_phys(phys), 0);
+        }
+
+        memcpy(reinterpret_cast<void*>(TRAMPOLINE_VIRT), ap_trampoline_bin, ap_trampoline_bin_len);
+
+        *reinterpret_cast<u32*>(PML4_PHYS) = static_cast<u32>(kernel::memory::get_pagetable_address());
+        *reinterpret_cast<arch::x86_64::interrupts::idt::IDTR*>(IDTR_PHYS) = *interrupts::idt::get_idtr_address();
+        *reinterpret_cast<u64*>(ENTRY_PTR_PHYS) = reinterpret_cast<u64>(ap_main);
+
+        asm volatile("wbinvd" ::: "memory");
     }
-
-    memcpy(reinterpret_cast<void*>(TRAMPOLINE_VIRT), ap_trampoline_bin, ap_trampoline_bin_len);
-
-    *reinterpret_cast<u32*>(PML4_PHYS)    = static_cast<u32>(kernel::memory::get_pagetable_address());
-    *reinterpret_cast<arch::x86_64::interrupts::idt::IDTR*>(IDTR_PHYS) = *kernel::interrupts::get_idtr_address();
-    *reinterpret_cast<u64*>(ENTRY_PTR_PHYS) = reinterpret_cast<u64>(ap_main);
-
-    asm volatile("wbinvd" ::: "memory");
-}
+}  // namespace arch::x86_64::smp

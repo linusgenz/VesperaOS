@@ -24,8 +24,8 @@
 #include <uapi/vespera/vbus.h>
 #include <vespera/ipc/channel.h>
 #include <vespera/ipc/vbus_manager.h>
+#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
 #include "../handle_resolution.h"
@@ -41,13 +41,13 @@ namespace syscalls::internal {
         auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
-        return VBusManager::subscribe(rh.unit->rid, ch, args->interface, args->member);
+        return VBusManager::subscribe(rh.realm->id, ch, args->interface, args->member);
     }
 
     i64 sys_vbus_unsubscribe(u64, u64, u64, u64, u64, u64) {
-        const Unit* u = kernel::scheduling::get_current_unit();
-        if (!u) return -EINVAL;
-        VBusManager::unsubscribe_realm(u->rid);
+        const Realm* r = kernel::scheduling::get_current_realm();
+        if (!r) return -EINVAL;
+        VBusManager::unsubscribe_realm(r->id);
         return SUCCESS_CODE;
     }
 

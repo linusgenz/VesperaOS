@@ -19,7 +19,7 @@ static void scalar_fill_rect(
 ) {
     auto* fb = static_cast<u32*>(base);
     for (u32 y = 0; y < h; y++) {
-        u32* row = fb + (py + y) * stride + px;
+        u32* row = fb + static_cast<size_t>((py + y) * stride) + px;
         for (u32 x = 0; x < w; x++) row[x] = colour;
     }
 }
@@ -97,7 +97,7 @@ void FramebufferDriver::put_char(char c, const u32 x, const u32 y, const u32 fg_
     if (!c) return;
 
     const auto pix_ptr = static_cast<u32*>(fb_->base_address);
-    const char* glyph = static_cast<char*>(font_->glyph_buffer) + (c * font_->charsize);
+    const char* glyph = static_cast<char*>(font_->glyph_buffer) + (static_cast<size_t>(c * font_->charsize));
 
     for (u32 row = 0; row < font_->height; row++) {
         for (u32 bx = 0; bx < (font_->width + 7) / 8; bx++) {

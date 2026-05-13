@@ -20,13 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <units/unit.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
 #include <vespera_errno.h>
-
-#include "../kernel/units/unit_manager.h"
 
 namespace syscalls::internal {
     constexpr size_t MIN_STACK_SIZE = static_cast<usize>(16) * 1024;

@@ -14,6 +14,8 @@
 
 #include <vespera/types.h>
 
+struct TrapFrame;
+
 namespace kernel::debug {
 
     enum class FaultType : u8 {

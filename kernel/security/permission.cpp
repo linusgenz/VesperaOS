@@ -22,11 +22,10 @@
 
 #include "permission.h"
 
+#include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
+#include <uapi/vespera/stat.h>
 #include <vespera_errno.h>
-
-#include <filesystem/vfs/vfs_node.h>
-#include "uapi/vespera/stat.h"
-#include "filesystem/vfs.h"
 
 namespace kernel::security {
 

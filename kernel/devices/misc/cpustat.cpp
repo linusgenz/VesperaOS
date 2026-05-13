@@ -22,7 +22,7 @@
 
 #include "cpustat.h"
 #include <uapi/vespera/dev/cpustat.h>
-#include <kernel/cpu/cpu_manager.h>
+#include <cpu/cpu_manager.h>
 
 CpuStatDevice::CpuStatDevice()
     : CharDevice(BusType::VIRTUAL) {}

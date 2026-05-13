@@ -1,10 +1,9 @@
-// partition.h
-//
+// gdt.h
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 30.09.25.
+// Created by Linus Genz on 13.05.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,25 +19,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-
-#ifndef VESPERAOS_PARTITION_H
-#define VESPERAOS_PARTITION_H
-
+#ifndef VESPERAOS_ARCH_X86_64_GDT_H
+#define VESPERAOS_ARCH_X86_64_GDT_H
 
 #include <vespera/types.h>
 
-#include <vespera/devices/block.h>
+void setup_cpu_tss(u32 cpu_id);
+void tss_set_rsp0(u8 cpu_id, u64 rsp0);
 
-#define PARTITION_MAX_ENTRIES 128
+void gdt_install();
 
-struct PartitionEntry {
-    u64 start_lba;
-    u64 length_lba;
-    u64 sector_size;
-    u8 mbr_type;  // for MBR partitions (0 == unused). For GPT may be 0.
-    char name[72];     // GPT name (in utf-8)
-};
+void load_gdt();
 
-usize parse_partitions(BlockDevice *device, PartitionEntry *out, usize max_entries);
-
-#endif  // VESPERAOS_PARTITION_H
+#endif  // VESPERAOS_ARCH_X86_64_GDT_H

@@ -45,7 +45,7 @@
 #define STBTT_acos(x) acos(x)
 #define STBTT_fmod(x, y) fmod((x), (y))
 #define NULL nullptr
-#include <lib/stb/stb_truetype.h>
+#include <klib/stb/stb_truetype.h>
 
 TtfGlyphProvider::TtfGlyphProvider(const u8* font_data, usize, const float size_px)
     : info_(static_cast<stbtt_fontinfo*>(kernel::memory::malloc(sizeof(stbtt_fontinfo)))) {

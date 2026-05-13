@@ -36,11 +36,11 @@ enum class BlockIoOp : u8 {
 struct BlockIoRequest {
     BlockIoRequest* next = nullptr;
 
-    BlockIoOp op;
-    u64 lba;
-    usize sector_count;
-    void* buffer;
-    usize buffer_size;
+    BlockIoOp op{};
+    u64 lba{};
+    usize sector_count{};
+    void* buffer{};
+    usize buffer_size{};
 
     isize result = 0;
 

@@ -30,6 +30,8 @@ namespace arch::x86_64::interrupts::idt {
     }
 
     void init_irq_table() {
+        memset(idt::irq_handler_table, 0, sizeof(idt::irq_handler_table));
+
         for (auto& [handler, cookie, free] : irq_handler_table) {
             handler = nullptr;
             cookie = nullptr;

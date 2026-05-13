@@ -26,8 +26,6 @@
 
 #include <uapi/vespera/dirent.h>
 #include <vespera/types.h>
-
-#include <vespera/types.h>
 #include "klib/result.h"
 #include "uapi/vespera/stat.h"
 

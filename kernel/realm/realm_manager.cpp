@@ -21,21 +21,23 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/realmfs.h>
+#include <realm/handle_table.h>
 #include <uapi/vespera/dev/realm_info.h>
+#include <units/unit.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_config.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/tty/tty.h>
-#include "../tty/tty_device.h"
+#include <vespera/unit_config.h>
 
-#include <filesystem/realmfs/realmfs.h>
+#include "vespera/unit/unit_manager.h"
 #include "../paging/page_table_manager.h"
-#include "../units/unit_manager.h"
+#include "../tty/tty_device.h"
 #include "address_space.h"
 #include "vespera/sys/syscall_numbers.h"
-#include <kernel/realm/handle_table.h>
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
@@ -131,6 +133,8 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->cred = kernel::security::process_credentials{};
             r->lock.init();
             r->capabilities = cfg->capabilities;
+            r->handle_table = new HandleTable();
+            if (!r->handle_table) return nullptr;
             r->handle_table->init(r->id);
             r->exited = false;
 

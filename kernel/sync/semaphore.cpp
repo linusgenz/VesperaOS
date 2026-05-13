@@ -24,10 +24,8 @@
 
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 #include <vespera/time.h>
-
-#include "../units/unit.h"
 
 void Semaphore::push_waiter(Waiter* w) {
     w->next = nullptr;

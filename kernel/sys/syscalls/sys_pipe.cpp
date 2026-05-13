@@ -24,9 +24,8 @@
 #include <filesystem/vfs.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/types.h>
-#include <kernel/realm/handle_table.h>
+#include <realm/handle_table.h>
 
 static void ref_void(void* p) {
     Channel::ref(static_cast<Channel*>(p));
@@ -37,9 +36,8 @@ namespace syscalls::internal {
         auto* hdls = reinterpret_cast<i64*>(arg0);  // fds[0] = read, fds[1] = write
         if (!hdls) return -EINVAL;
 
-        const Unit* u = kernel::scheduling::get_current_unit();
-        Realm* realm = u->parent;
-        if (!realm) return -EINVAL;
+        Realm* realm = kernel::scheduling::get_current_realm();
+        if (!realm) return -ESRCH;
 
         Channel* ch = Channel::create(65536);
         if (!ch) return -ENOMEM;

@@ -21,13 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
-
+#include <realm/handle_table.h>
+#include <vespera/realm/realm.h>
 #include <vespera/types.h>
+
 #include "../handle_resolution.h"
-#include <kernel/realm/handle_table.h>
 
 namespace syscalls::internal {
     i64 sys_close(u64 arg0, u64, u64, u64, u64, u64) {

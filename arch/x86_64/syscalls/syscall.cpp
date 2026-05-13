@@ -21,14 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "syscall.h"
+#include "arch/x86_64/syscall.h"
 
 #include <arch/x86_64/cpu/msr.h>
-
-#include <vespera/log.h>
+#include <vespera/types.h>
 
 extern "C" void syscall_entry();
-
 
 #define EFER_SCE 1
 

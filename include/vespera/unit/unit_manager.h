@@ -21,15 +21,16 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_UNIT_MANAGER_H
-#define VESPERAOS_UNIT_MANAGER_H
+#ifndef VESPERAOS_VESPERA_UNIT_UNIT_MANAGER_H
+#define VESPERAOS_VESPERA_UNIT_UNIT_MANAGER_H
 
 #include <klib/result.h>
-#include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
-#include <vespera/unit_config.h>
 
-#include "unit.h"
+struct UnitConfig;
+class Realm;
+class Unit;
+class Spinlock;
 
 using unit_entry_t = void (*)(void*);
 
@@ -84,4 +85,4 @@ class UnitManager {
 
 uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp);
 
-#endif  // VESPERAOS_UNIT_MANAGER_H
+#endif  // VESPERAOS_VESPERA_UNIT_UNIT_MANAGER_H

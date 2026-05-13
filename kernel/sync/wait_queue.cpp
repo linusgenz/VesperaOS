@@ -24,9 +24,7 @@
 #include <vespera/sync/wait_queue.h>
 
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
-
-#include "../units/unit.h"
+#include <units/unit.h>
 
 WaitQueue::WaitQueue() {
     lock_.init();

@@ -33,11 +33,10 @@
 #include <vespera/graphics/colors.h>
 #include <vespera/input/keycode.h>
 #include <vespera/log.h>
-#include <vespera/mm/memory.h>
 #include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 #include <vespera/signals.h>
 #include <vespera/tty/tty.h>
 

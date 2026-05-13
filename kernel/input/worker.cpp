@@ -22,12 +22,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/input/input_manager.h>
+#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/tty/tty.h>
+#include <vespera/unit_config.h>
 
-#include "../units/unit_manager.h"
-#include "vespera/time.h"
+#include "vespera/unit/unit_manager.h"
 
 [[noreturn]] void input_poll_thread(void *arg) {
     kernel::input::InputEvent ev{};

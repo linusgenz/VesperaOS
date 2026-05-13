@@ -24,8 +24,9 @@
 #include "msi.h"
 
 #include <vespera/interrupts.h>
-
 #include <vespera/log.h>
+
+#include "../../arch/x86_64/interrupts/apic.h"
 #include "pci.h"
 
 namespace pci
@@ -62,7 +63,7 @@ namespace pci
                 while ((1u << mme) < wanted) mme++;
 
                 // Program address
-                msi->message_address = build_msi_address(kernel::interrupts::lapic_get_id());
+                msi->message_address = build_msi_address(arch::x86_64::interrupts::apic::get_id());
                 if (is64)
                     msi->message_address_hi = 0;
 

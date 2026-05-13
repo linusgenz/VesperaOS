@@ -2,19 +2,19 @@
 #define XHCI_H
 
 #include <klib/vector.h>
+#include <pci/pci.h>
+#include <vespera/devices/device_info.h>
+#include <vespera/devices/device_manager.h>
+#include <vespera/interrupts.h>
 #include <vespera/sync/atomic.h>
 
-#include <arch/x86_64/interrupts/idt.h>
-#include <drivers/pci/pci.h>
-#include "vespera/devices/device_info.h"
-#include "vespera/devices/device_manager.h"
 #include "xhci_device.h"
 #include "xhci_ext_cap.h"
 #include "xhci_regs.h"
 #include "xhci_rings.h"
 
 namespace usb {
-    class XhciDriver final : public IDeviceInfo{
+    class XhciDriver final : public IDeviceInfo {
        public:
         explicit XhciDriver(u8 vector_num, const char* name, u8 bus_number);
 
@@ -149,9 +149,7 @@ namespace usb {
 
         bool evaluate_context(const XhciDevice* dev);
 
-        bool get_string_descriptor(
-            XhciDevice* device, u8 descriptor_index, u8 langid, USB_STRING_DESCRIPTOR* desc
-        );
+        bool get_string_descriptor(XhciDevice* device, u8 descriptor_index, u8 langid, USB_STRING_DESCRIPTOR* desc);
 
         bool get_string_language_descriptor(XhciDevice* device, USB_STRING_LANGUAGE_DESCRIPTOR* desc);
 
@@ -160,8 +158,7 @@ namespace usb {
         bool set_device_configuration(const XhciDevice* device, u16 configuration_value);
 
         bool get_hid_report_descriptor(
-            XhciDevice* device, u8 interface_number, u8 descriptor_index, u8* report_buffer,
-            u16 report_length
+            XhciDevice* device, u8 interface_number, u8 descriptor_index, u8* report_buffer, u16 report_length
         );
 
         bool configure_endpoint(const XhciDevice* device);

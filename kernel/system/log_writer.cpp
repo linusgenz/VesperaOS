@@ -24,6 +24,7 @@
 #include "log_writer.h"
 
 #include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
 
 FileLogWriter::FileLogWriter(const char* file_path)
     : file_handle_(nullptr)

@@ -24,11 +24,10 @@
 #include <klib/string.h>
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
+#include <units/unit.h>
 #include <vespera_errno.h>
 
-#include <kernel/realm/address_space.h>
-#include "/mnt/ExternerDatentraeger/VesperaOS/kernel/units/unit.h"
+#include <realm/address_space.h>
 #include "vespera/realm/realm.h"
 
 static constexpr uptr USER_HEAP_MAX = 0x0000'7FFE'0000'0000ULL;

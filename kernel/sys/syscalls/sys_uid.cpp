@@ -21,42 +21,35 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
+#include <security/permission.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
-#include <filesystem/vfs/vfs_handle.h>
-#include <filesystem/vfs/vfs_node.h>
-#include <kernel/security/permission.h>
 #include "../handle_resolution.h"
 #include "uapi/vespera/handles.h"
+#include <filesystem/vfs_handle.h>
 
 using namespace kernel::security;
 
-static Realm* current_realm() {
-    const Unit* u = kernel::scheduling::get_current_unit();
-    if (!u) return nullptr;
-    return u->parent;
-}
-
 namespace syscalls::internal {
     i64 sys_getuid(u64, u64, u64, u64, u64, u64) {
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
-        return static_cast<i64>(r->cred.uid);
+        return r->cred.uid;
     }
 
     i64 sys_geteuid(u64, u64, u64, u64, u64, u64) {
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
-        return static_cast<i64>(r->cred.euid);
+        return r->cred.euid;
     }
 
     i64 sys_setuid(u64 arg0, u64, u64, u64, u64, u64) {
         const u32 new_uid = arg0;
 
-        Realm* r = current_realm();
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         if (is_root(r->cred)) {
@@ -76,7 +69,7 @@ namespace syscalls::internal {
         const u32 ruid = arg0;
         const u32 euid = arg1;
 
-        Realm* r = current_realm();
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         const process_credentials old = r->cred;
@@ -105,7 +98,7 @@ namespace syscalls::internal {
         const u32 euid = arg1;
         const u32 suid = arg2;
 
-        Realm* r = current_realm();
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         const process_credentials old = r->cred;
@@ -132,7 +125,7 @@ namespace syscalls::internal {
 
         if (!out_ruid || !out_euid || !out_suid) return -EINVAL;
 
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         *out_ruid = r->cred.uid;
@@ -142,13 +135,13 @@ namespace syscalls::internal {
     }
 
     i64 sys_getgid(u64, u64, u64, u64, u64, u64) {
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
         return static_cast<i64>(r->cred.gid);
     }
 
     i64 sys_getegid(u64, u64, u64, u64, u64, u64) {
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
         return static_cast<i64>(r->cred.egid);
     }
@@ -156,7 +149,7 @@ namespace syscalls::internal {
     i64 sys_setgid(u64 arg0, u64, u64, u64, u64, u64) {
         const u32 new_gid = arg0;
 
-        Realm* r = current_realm();
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         if (is_root(r->cred)) {
@@ -176,7 +169,7 @@ namespace syscalls::internal {
         const u32 rgid = arg0;
         const u32 egid = arg1;
 
-        Realm* r = current_realm();
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         const process_credentials old = r->cred;
@@ -203,7 +196,7 @@ namespace syscalls::internal {
         const u32 egid = arg1;
         const u32 sgid = arg2;
 
-        Realm* r = current_realm();
+        Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         const process_credentials old = r->cred;
@@ -229,7 +222,7 @@ namespace syscalls::internal {
         const auto out_sgid = reinterpret_cast<u32*>(arg2);
         if (!out_rgid || !out_egid || !out_sgid) return -EINVAL;
 
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         *out_rgid = r->cred.gid;
@@ -245,7 +238,7 @@ namespace syscalls::internal {
 
         if (!path) return -EINVAL;
 
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         char abs_path[256];
@@ -288,7 +281,7 @@ namespace syscalls::internal {
 
         if (!path) return -EINVAL;
 
-        const Realm* r = current_realm();
+        const Realm* r = kernel::scheduling::get_current_realm();
         if (!r) return -ESRCH;
 
         char abs_path[256];

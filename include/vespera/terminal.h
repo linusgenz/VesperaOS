@@ -25,9 +25,9 @@
 #define VESPERAOS_TERMINAL_H
 
 
+#include <vespera/graphics/IRenderDriver.h>
 #include <vespera/types.h>
 
-#include "../../kernel/graphics/IRenderDriver.h"
 #include "graphics/psf.h"
 
 class ScrollbackBuffer;

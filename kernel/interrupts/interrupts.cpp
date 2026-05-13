@@ -21,29 +21,19 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <arch/x86_64/interrupts/apic.h>
-#include <arch/x86_64/interrupts/idt.h>
-#include <arch/x86_64/interrupts/ioapic.h>
-#include <arch/x86_64/interrupts/pic.h>
-#include <klib/string.h>
+#include "../arch/x86_64/interrupts/apic.h"
+#include "../arch/x86_64/interrupts/idt.h"
+#include "../arch/x86_64/interrupts/ioapic.h"
+#include "../arch/x86_64/interrupts/pic.h"
 #include <vespera/cpu/io.h>
-#include <vespera/mm/memory.h>
 
 namespace kernel::interrupts {
     void initialize() {
-        memset(arch::x86_64::interrupts::apic::apic_ticks, 0, kernel::acpi::madt::MAX_CPU_CORES * sizeof(u64));
-        memset(
-            arch::x86_64::interrupts::idt::irq_handler_table,
-            0,
-            sizeof(arch::x86_64::interrupts::idt::irq_handler_table)
-        );
-
         arch::x86_64::interrupts::idt::init_irq_table();
-
         arch::x86_64::interrupts::idt::load_default_idt();
         arch::x86_64::interrupts::pic::remap();
         arch::x86_64::interrupts::ioapic::init();
-        arch::x86_64::interrupts::apic::init(0);  // bsp
+        arch::x86_64::interrupts::apic::init_bsp();
     }
 
     bool allocate_vector(const u8 vector, const irq_handler_t handler, void* cookie) {
@@ -60,38 +50,6 @@ namespace kernel::interrupts {
 
     u8 get_free_vector() {
         return arch::x86_64::interrupts::idt::get_free_vector();
-    }
-
-    arch::x86_64::interrupts::idt::IDTR* get_idtr_address() {
-        return arch::x86_64::interrupts::idt::get_idtr_address();
-    }
-
-    void lapic_init(const u32 cpu_id) {
-        arch::x86_64::interrupts::apic::init(cpu_id);
-    }
-
-    void lapic_write(const u32 offset, const u32 value) {
-        arch::x86_64::interrupts::apic::write(offset, value);
-    }
-
-    u32 lapic_read(const u32 offset) {
-        return arch::x86_64::interrupts::apic::read(offset);
-    }
-
-    void lapic_wait_for_delivery() {
-        arch::x86_64::interrupts::apic::wait_for_delivery();
-    }
-
-    u64 lapic_get_ticks(const u32 cpu_id) {
-        return arch::x86_64::interrupts::apic::apic_ticks[cpu_id];
-    }
-
-    u32 lapic_get_id() {
-        return arch::x86_64::interrupts::apic::local_apic_get_id();
-    }
-
-    void lapic_send_eoi() {
-        arch::x86_64::interrupts::apic::send_eoi();
     }
 
     void mask_pic() {

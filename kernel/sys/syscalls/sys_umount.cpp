@@ -22,7 +22,7 @@
 
 #include <vespera_errno.h>
 
-#include <filesystem/vfs/fs_detection.h>
+#include "../filesystem/vfs/fs_detection.h" // todo
 #include <filesystem/vfs.h>
 
 namespace syscalls::internal {

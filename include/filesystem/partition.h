@@ -1,10 +1,10 @@
-// syscall.h
+// partition.h
 //
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 //
-// Created by Linus Genz on 01.08.25.
+// Created by Linus Genz on 30.09.25.
 //
 // This file is part of VesperaOS.
 //
@@ -21,10 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#ifndef VESPERAOS_PARTITION_H
+#define VESPERAOS_PARTITION_H
+
+#include <vespera/devices/block.h>
 #include <vespera/types.h>
 
-void syscall_init();
+#define PARTITION_MAX_ENTRIES 128
 
-#endif  // SYSCALL_H
+struct PartitionEntry {
+    u64 start_lba;
+    u64 length_lba;
+    u64 sector_size;
+    u8 mbr_type;    // for MBR partitions (0 == unused). For GPT may be 0.
+    char name[72];  // GPT name (in utf-8)
+};
+
+namespace filesystem {
+
+    usize parse_partitions(BlockDevice* device, PartitionEntry* out, usize max_entries);
+
+}  // namespace filesystem
+
+#endif  // VESPERAOS_PARTITION_H

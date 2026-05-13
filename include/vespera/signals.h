@@ -27,7 +27,7 @@
 #include "interrupts.h"
 
 class Unit;
-enum class Signal : i32 {
+enum class Signal : u32 {
     SIGINT = 2,
     SIGILL = 4,
     SIGBUS = 7,

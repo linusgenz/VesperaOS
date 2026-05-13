@@ -28,10 +28,13 @@
 #include <vespera/graphics/psf.h>
 #include <vespera/mm/addr.h>
 
-#include <kernel/graphics/IRenderDriver.h>
-#include <drivers/pci/pci.h>
+#include <vespera/graphics/IRenderDriver.h>
 #include "ggtt_allocator.h"
 
+namespace pci {
+    struct PCI_HEADER0;
+    struct PCI_DEVICE_HEADER;
+}
 struct KernelDevice;
 
 // Force Wake Registers

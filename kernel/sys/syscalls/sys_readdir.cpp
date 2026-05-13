@@ -21,11 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/vfs_handle.h>
+#include <uapi/vespera/dirent.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/types.h>
 
-#include <filesystem/vfs/vfs_handle.h>
-#include <kernel/units/unit.h>
 #include "../handle_resolution.h"
 
 namespace syscalls::internal {

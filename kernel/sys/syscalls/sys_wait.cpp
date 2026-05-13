@@ -25,10 +25,6 @@
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
-#include <kernel/units/unit.h>
-#include "vespera/log.h"
-#include "vespera/time.h"
-
 namespace syscalls::internal {
     i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const RealmId child_rid = arg0;

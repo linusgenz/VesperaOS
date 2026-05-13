@@ -21,20 +21,19 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "unit_manager.h"
-
+#include <filesystem/realmfs.h>
+#include <realm/address_space.h>
+#include <realm/handle_table.h>
 #include <uapi/vespera/dev/unit_info.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/user_stack_allocator.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera/system/system_manager.h>
+#include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
 
-#include <filesystem/realmfs/realmfs.h>
-#include "../realm/address_space.h"
-#include "vespera/realm/user_stack_allocator.h"
-#include <kernel/realm/handle_table.h>
+#include "unit.h"
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;

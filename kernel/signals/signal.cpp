@@ -20,15 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/interrupts.h>
 #include <klib/string.h>
-#include <vespera/scheduling.h>
+#include <scheduling/unit_termination.h>
+#include <units/unit.h>
+#include <vespera/interrupts.h>
 #include <vespera/signals.h>
 #include <vespera/types.h>
-
-#include <kernel/scheduling/scheduler_types.h>
-#include <kernel/units/unit.h>
-#include "../scheduling/unit_termination.h"
 
 enum class DefaultAction : u8 {
     Terminate,

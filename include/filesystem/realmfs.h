@@ -24,7 +24,7 @@
 #ifndef VESPERAOS_REALM_FS_H
 #define VESPERAOS_REALM_FS_H
 
-#include "../virtual_fs.h"
+#include "filesystem/virtual_fs.h"
 
 // System object types
 enum SysObjectType

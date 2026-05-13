@@ -1,9 +1,8 @@
 #include "pci.h"
 
-#include <vespera/log.h>
+#include <drivers/pci/pci_driver.h>
 #include <vespera/mm/memory.h>
 
-#include <drivers/pci/pci_driver.h>
 #include "pci_device.h"
 
 namespace pci {
@@ -39,18 +38,18 @@ namespace pci {
         pci_device dev = make_device(header, id);
 
         if (!driver_registry::bind(dev)) {
-          /*  Log::debug(
-                "pci: no driver for %04x:%02x:%02x.%x (vid=%04x did=%04x class=%02x/%02x/%02x)",
-                id.domain,
-                id.bus,
-                id.device,
-                id.function,
-                dev.vendor_id,
-                dev.device_id,
-                dev.class_code,
-                dev.subclass,
-                dev.prog_if
-            );*/
+            /*  Log::debug(
+                  "pci: no driver for %04x:%02x:%02x.%x (vid=%04x did=%04x class=%02x/%02x/%02x)",
+                  id.domain,
+                  id.bus,
+                  id.device,
+                  id.function,
+                  dev.vendor_id,
+                  dev.device_id,
+                  dev.class_code,
+                  dev.subclass,
+                  dev.prog_if
+              );*/
         }
     }
 

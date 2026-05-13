@@ -22,7 +22,7 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "display_manager.h"
+#include <vespera/graphics/display_manager.h>
 
 void DisplayManager::init(const DisplayBackend initial) {
     lock_.init("display_manager_lock");

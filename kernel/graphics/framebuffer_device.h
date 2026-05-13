@@ -26,8 +26,6 @@
 
 #include <vespera/devices/char_device.h>
 
-#include "display_manager.h"
-
 #define FB_IOCTL_GET_INFO 0x4600
 #define FB_IOCTL_GET_BACKING_DEVID 0x4601
 #define FB_IOCTL_FILL_RECT 0x4602

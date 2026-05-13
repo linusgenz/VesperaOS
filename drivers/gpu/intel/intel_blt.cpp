@@ -30,6 +30,7 @@
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <pci/pci.h>
 
 #include <filesystem/devfs.h>
 #include "blt_commands.h"

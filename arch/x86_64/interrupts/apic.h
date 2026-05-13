@@ -4,25 +4,18 @@
 
 #ifndef APIC_H
 #define APIC_H
-#include <acpi/madt.h>
+#include <arch/x86_64/apic.h>
 #include <vespera/types.h>
 
-#include "interrupts_internal.h"
-
 inline volatile u8* g_local_apic_addr;
+
+struct TrapFrame;
 
 namespace arch::x86_64::interrupts::apic {
     constexpr u64 APIC_TICK_HZ = 100;
 
     // Calibration window used during init() – the longer, the more accurate.
     constexpr usize APIC_CAL_WINDOW_US = 10'000;  // 10 ms
-
-    // Default scheduler quantum expressed as a nanosecond budget.
-    // sleep_timer uses this when there are no sleeping units pending.
-    constexpr u64 APIC_QUANTUM_NS = 10'000'000ULL;  // 10 ms
-
-    // Minimum one-shot delay to avoid re-arming with 0 counts.
-    constexpr u64 APIC_MIN_DELAY_NS = 50'000ULL;  // 50 µs
 
     // ------------------------------------------------------------------------------------------------
     // Local APIC Registers
@@ -66,24 +59,12 @@ namespace arch::x86_64::interrupts::apic {
 #define LAPIC_PERIODIC 0x20000
 #define PMT_TIMER_RATE 3579545  // 3.57 MHz
 
-    void send_eoi();
-    void timer_accounting();
     void timer_tick(TrapFrame* frame);
-    void init(u8 cpu_id);
-    void arm_oneshot_ns(u64 ns);
-    void send_ipi(u32 apic_id, u8 vector);
-    void broadcast_ipi(u8 vector);
-    void wait_for_delivery();
-
-    inline u32 g_apic_cal[kernel::acpi::madt::MAX_CPU_CORES] = {};
-
-    inline u64 apic_ticks[kernel::acpi::madt::MAX_CPU_CORES] = {};
-
-    u32 local_apic_get_id();
-    void write(u32 offset, u32 value);
-    u32 read(u32 offset);
-
+    void timer_accounting();
     void pmt_delay(usize us);
+    void write(u32 offset, u32 value);
+    [[nodiscard]] u32 read(u32 offset);
+    void wait_for_delivery();
 }  // namespace arch::x86_64::interrupts::apic
 
 #endif  // APIC_H

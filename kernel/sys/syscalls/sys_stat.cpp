@@ -23,11 +23,10 @@
 #include <uapi/vespera/stat.h>
 #include <filesystem/vfs.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 #include <vespera_errno.h>
 
-#include <kernel/tty/tty_device.h>
-#include <filesystem/vfs/vfs_node.h>
+#include <tty/tty_device.h>
+#include <filesystem/vfs_node.h>
 
 namespace syscalls::internal {
 

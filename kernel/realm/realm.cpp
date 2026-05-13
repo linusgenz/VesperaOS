@@ -24,7 +24,7 @@
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/realm.h>
 
-#include <kernel/realm/handle_table.h>
+#include <realm/handle_table.h>
 #include "klib/string.h"
 
 Realm::Realm()

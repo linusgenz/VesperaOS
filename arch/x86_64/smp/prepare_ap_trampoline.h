@@ -24,6 +24,8 @@
 #ifndef VESPERAOS_PREPARE_AP_TRAMPOLINE_H
 #define VESPERAOS_PREPARE_AP_TRAMPOLINE_H
 
-void prepare_ap_trampoline();
+namespace arch::x86_64::smp {
+    void prepare_ap_trampoline();
+}
 
 #endif  // VESPERAOS_PREPARE_AP_TRAMPOLINE_H

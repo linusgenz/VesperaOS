@@ -21,30 +21,27 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <klib/string.h>
-#include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
-
-#include <kernel/units/unit.h>
 
 namespace syscalls::internal {
     i64 sys_getcwd(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto buf = reinterpret_cast<char*>(arg0);
         const usize size = arg1;
 
-        if (!buf || size == 0) return -EINVAL;
+        if (!buf || size == 0)
+            return -EINVAL;
 
-        const Unit* cur = kernel::scheduling::get_current_unit();
-        if (!cur) return -EINVAL;
+        const char* cwd = kernel::scheduling::get_current_cwd();
+        if (!cwd)
+            return -EINVAL;
 
-        const Realm* realm = cur->parent;
-        if (!realm) return -EINVAL;
+        const usize len = strlen(cwd);
 
-        const usize len = strlen(realm->cwd_path);
-        if (len + 1 > size) return -ERANGE;
+        if (len + 1 > size)
+            return -ERANGE;
 
-        memcpy(buf, realm->cwd_path, len + 1);
+        memcpy(buf, cwd, len + 1);
 
         return static_cast<i64>(len + 1);
     }

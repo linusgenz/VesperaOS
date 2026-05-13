@@ -24,8 +24,9 @@
 #ifndef VESPERAOS_DEVFS_H
 #define VESPERAOS_DEVFS_H
 
-#include <vespera/devices/device_manager.h>
 #include <filesystem/virtual_fs.h>
+#include <vespera/devices/device_manager.h>
+#include <klib/result.h>
 
 #define DEVFS_NAME_MAX 64
 

@@ -21,12 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "usb_manager.h"
+#include <drivers/usb/usb_manager.h>
 
-#include <vespera/types.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/completion.h>
 #include <vespera/sync/spinlock.h>
+#include <vespera/types.h>
 
 Completion UsbManager::all_controllers_ready_;
 AtomicU8 UsbManager::expected_controllers_;

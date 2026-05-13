@@ -22,7 +22,6 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <kernel/units/unit.h>
 
 namespace syscalls::internal {
     i64 sys_getunid(u64, u64, u64, u64, u64, u64) {
@@ -30,6 +29,6 @@ namespace syscalls::internal {
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current) return -EUNKNOWN;
 
-        return current->id;
+        return kernel::scheduling::get_current_unit_id();
     }
 }  // namespace syscalls::internal
