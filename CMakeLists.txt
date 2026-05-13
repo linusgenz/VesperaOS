@@ -2,21 +2,53 @@ cmake_minimum_required(VERSION 4.0.2)
 project(VesperaOS C CXX ASM_NASM)
 
 enable_language(ASM_NASM)
+
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
+set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+
+set(VESPERA_UAPI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/uapi)
+
+# ── Shared CMake utilities ───────────────────────────────────────
+# Must come before any add_subdirectory so helper functions and
+# debug-option definitions are available to every submodule.
+include(KernelTargetDefaults.cmake)
+
+# ── Feature / debug toggles ──────────────────────────────────────
+message(STATUS "=== Compile Options ===")
+add_debug_option(ENABLE_DEBUG_FAULT "Enable fault/callstack debugger" ON)
+add_debug_option(ENABLE_DEBUG_SPINLOCK "Enable spinlock/deadlock debugger" ON)
+add_debug_option(ENABLE_ELF_LOGGING "Enable logging for ELF module" OFF)
+message(STATUS "=====================")
+
+# ── Test build (early return) ────────────────────────────────────
+option(VESPERA_BUILD_TESTS "Build unit tests" OFF)
+
+if (VESPERA_BUILD_TESTS)
+    enable_testing()
+    set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -fno-rtti -fno-exceptions")
+    set(CMAKE_C_FLAGS "-g -O0 -Wall")
+    add_subdirectory(tests)
+    return()
+endif ()
 
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-set(VESPERA_UAPI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/uapi)
-
-# Subdirectories
-add_subdirectory(kernel)
+# ── Module sub-targets ───────────────────────────────────────────
+# Order matters: arch / drivers / filesystem must be defined before
+# kernel so that kernel.elf can reference their OBJECT libraries.
+add_subdirectory(arch)
+add_subdirectory(drivers)
+add_subdirectory(filesystem)
+add_subdirectory(kernel)       # also defines kernel.elf
 add_subdirectory(userspace)
 
 # ────────────────────────────────────────────────────────────────
 # Limine Bootloader
 # ────────────────────────────────────────────────────────────────
-
 set(LIMINE_DIR ${CMAKE_SOURCE_DIR}/limine)
 
 add_custom_target(bootloader
@@ -27,15 +59,11 @@ add_custom_target(bootloader
 # ────────────────────────────────────────────────────────────────
 # Convenience aliases
 # ────────────────────────────────────────────────────────────────
-
-# Build kernel only (kernel.elf is already defined in kernel/CMakeLists.txt,
-# this target just gives it a short top-level name)
 add_custom_target(build-kernel
         DEPENDS kernel.elf
         COMMENT "Building kernel only"
 )
 
-# Build userspace only
 add_custom_target(build-userspace
         DEPENDS elfs
         COMMENT "Building userspace only"
@@ -44,7 +72,6 @@ add_custom_target(build-userspace
 # ────────────────────────────────────────────────────────────────
 # Disk Image
 # ────────────────────────────────────────────────────────────────
-
 add_custom_target(disk_image
         COMMAND ${CMAKE_COMMAND} -E echo "Creating partitioned disk image..."
         COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/make_disk.sh
@@ -57,33 +84,30 @@ add_custom_target(disk_image
 )
 
 # ────────────────────────────────────────────────────────────────
-# img (write to device)
-#
+# Flash
 # Usage:
-#   make img                        # uses flash.sh — interactive USB picker
-#   make img DEVICE=/dev/sdX        # write directly to the given device
+#   make flash                  – interactive USB picker
+#   make flash DEVICE=/dev/sdX  – write directly to device
 # ────────────────────────────────────────────────────────────────
-
-if(DEFINED DEVICE)
-    add_custom_target(img
+if (DEFINED DEVICE)
+    add_custom_target(flash
             COMMAND ${CMAKE_COMMAND} -E echo "Writing to ${DEVICE}..."
             COMMAND sudo dd if=${CMAKE_BINARY_DIR}/boot.img of=${DEVICE} bs=4M status=progress conv=fsync
             DEPENDS disk_image
             COMMENT "Flashing boot image to ${DEVICE}"
     )
-else()
-    add_custom_target(img
+else ()
+    add_custom_target(flash
             COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/flash.sh ${CMAKE_BINARY_DIR}/boot.img
             DEPENDS disk_image
             COMMENT "Launching interactive USB flash tool"
     )
-endif()
+endif ()
 
 # ────────────────────────────────────────────────────────────────
-# QEMU test target
+# QEMU — rebuild then run
 # ────────────────────────────────────────────────────────────────
-
-add_custom_target(test
+add_custom_target(run-rebuild
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
         ${CMAKE_BINARY_DIR}/OVMF_VARS.fd
@@ -105,8 +129,6 @@ add_custom_target(test
         -device usb-storage,drive=usbstick
         -device nvme,id=nvme0,serial=deadbeef
         -device nvme-ns,drive=fat32drive,bus=nvme0
-        #  -device ahci,id=ahci0
-        # -device ide-hd,drive=usbstick2,bus=ahci0.0
         -device usb-kbd
         -trace *msi*
         -D qemu.log
@@ -116,10 +138,13 @@ add_custom_target(test
 )
 
 # ────────────────────────────────────────────────────────────────
-# QEMU run target (no rebuild — just launch what's already built)
+# QEMU — run without rebuild
 # ────────────────────────────────────────────────────────────────
-
 add_custom_target(run
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/OVMF/OVMF_VARS-pure-efi.fd
+        ${CMAKE_BINARY_DIR}/OVMF_VARS.fd
+
         COMMAND qemu-system-x86_64
         -m 4G
         -smp 8
@@ -127,7 +152,8 @@ add_custom_target(run
         -enable-kvm
         -cpu qemu64
         -vga std
-        -drive if=pflash,format=raw,unit=0,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF.fd
+        -drive if=pflash,format=raw,unit=0,readonly=on,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd
+        -drive if=pflash,format=raw,unit=1,file=${CMAKE_BINARY_DIR}/OVMF_VARS.fd
         -net none
         -monitor stdio
         -device qemu-xhci,id=xhci1
@@ -145,9 +171,8 @@ add_custom_target(run
 )
 
 # ────────────────────────────────────────────────────────────────
-# QEMU debug target
+# QEMU — GDB debug session
 # ────────────────────────────────────────────────────────────────
-
 add_custom_target(debug
         COMMAND qemu-system-x86_64
         -m 4G
@@ -175,17 +200,14 @@ add_custom_target(debug
 # ────────────────────────────────────────────────────────────────
 # Clean
 # ────────────────────────────────────────────────────────────────
-
-file(GLOB USERSPACE_BINS
-        "${CMAKE_SOURCE_DIR}/userspace/bin/*"
-)
+file(GLOB USERSPACE_BINS "${CMAKE_SOURCE_DIR}/userspace/bin/*")
 set(FINAL_BINS "")
-foreach(f ${USERSPACE_BINS})
+foreach (f ${USERSPACE_BINS})
     get_filename_component(ext ${f} EXT)
-    if(NOT ext STREQUAL ".c" AND NOT ext STREQUAL ".h")
+    if (NOT ext STREQUAL ".c" AND NOT ext STREQUAL ".h")
         list(APPEND FINAL_BINS ${f})
-    endif()
-endforeach()
+    endif ()
+endforeach ()
 
 add_custom_target(clean-all
         COMMAND ${CMAKE_COMMAND} -E echo "Cleaning all build artifacts..."

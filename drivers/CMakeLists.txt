@@ -6,7 +6,6 @@
 # ─────────────
 #   PRIVATE  → drivers/      (internal driver headers – never exported)
 #   PUBLIC   → include/      (public API cross-modules depend on)
-# ─────────────────────────────────────────────────────────────────────
 
 collect_cpp(DRIVERS_CPP_SOURCES ${CMAKE_SOURCE_DIR}/drivers)
 

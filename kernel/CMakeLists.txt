@@ -14,9 +14,7 @@
 # arch/, drivers/, filesystem/ are NOT in the include path here.
 # If kernel code needs something from those modules it must go
 # through a header under include/vespera/.
-# ─────────────────────────────────────────────────────────────────────
 
-# ── ACPI sub-library (has its own CMakeLists.txt) ─────────────────
 add_subdirectory(${CMAKE_SOURCE_DIR}/kernel/acpi acpi_build)
 
 # ── libmath (compiled with -O2, separate from kernel debug flags) ──
