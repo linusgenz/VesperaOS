@@ -20,40 +20,23 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/realm/realm.h>
+#include <vespera/jobctl/jobctl.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
 namespace syscalls::internal {
     i64 sys_setpgid(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const Realm* self = kernel::scheduling::get_current_realm();
-        if (!self) return -ESRCH;
+        const RealmId self_id = kernel::scheduling::get_current_realm_id();
+        if (self_id == 0) return -ESRCH;
 
-        const RealmId target_rid  = arg0 ? arg0 : self->id;
+        const RealmId target_rid = arg0 ? arg0 : self_id;
         const RealmId desired_pgid = arg1 ? arg1 : target_rid;
 
-        Realm* target = RealmManager::get(target_rid);
-        if (!target) return -ESRCH;
+        const auto result = kernel::jobctl::set_pgid(self_id, target_rid, desired_pgid);
 
-        // Session leaders may not change pgid.
-        if (target->sid == target->id) return -EPERM;
+        if (result.is_err()) return result.to_errno();
 
-        if (target->sid != self->sid) return -EPERM;
-
-        if (desired_pgid != target->id) {
-            bool found = false;
-            for (usize i = 0; i < RealmManager::MAX_REALMS; i++) {
-                const Realm* r = RealmManager::get(i + 1);
-                if (r && r->active && r->sid == self->sid && r->pgid == desired_pgid) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) return -EPERM;
-        }
-
-        target->pgid = desired_pgid;
         return 0;
     }
 }  // namespace syscalls::internal

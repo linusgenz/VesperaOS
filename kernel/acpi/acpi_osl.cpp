@@ -1,6 +1,6 @@
 #include <acpi/acpi_subsystem.h>
 #include <arch/x86_64/interrupts/ioapic.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_types.h>
 
 #include "vespera/unit/unit_manager.h"
 #include "vespera/interrupts.h"
@@ -148,7 +148,7 @@ void acpi_osl_init_worker() {
         .envp = nullptr,
     };
 
-    UnitManager::create(KERNEL_REALM_SYSTEM, acpi_worker_thread, nullptr, &kWorkerCfg);
+    UnitManager::create(kernel::realm::REALM_SYSTEM, acpi_worker_thread, nullptr, &kWorkerCfg);
 }
 
 ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE type, ACPI_OSD_EXEC_CALLBACK fn, void* context) {

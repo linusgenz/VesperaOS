@@ -23,11 +23,11 @@
 #include "handle_table.h"
 
 #include <klib/string.h>
+#include <vespera/ipc/channel.h>
+#include <vespera/scheduling.h>
 #include <vespera/sync/spinlock.h>
-#include <vespera/kerrno.h>
 
 #include "../tty/tty_device.h"
-#include <vespera/ipc/channel.h>
 
 void HandleTable::init(const RealmId owner) {
     memset(entries_, 0, sizeof(entries_));

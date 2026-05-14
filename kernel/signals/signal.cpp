@@ -25,6 +25,7 @@
 #include <uapi/vespera/signal.h>
 #include <units/unit.h>
 #include <vespera/interrupts.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/signals.h>
 #include <vespera/types.h>
 #include <vespera_errno.h>
@@ -160,7 +161,7 @@ void signal_setup_userframe(Unit* u, Signal sig, void (*handler)(int), TrapFrame
 
     const uptr ret_offset = usp - stack_virt_base;
     auto* ret_dst = reinterpret_cast<uptr*>(stack_hhdm_base + ret_offset);
-    *ret_dst = SIGNAL_TRAMPOLINE_VADDR;
+    *ret_dst = kernel::realm::SIGNAL_TRAMPOLINE_VADDR;
 
     trap->rsp = usp;
     trap->rip = reinterpret_cast<uptr>(handler);

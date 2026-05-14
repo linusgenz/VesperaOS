@@ -142,37 +142,37 @@ namespace nvme {
 
         Vector<NvmeNamespace*> namespaces_;
 
-        __attribute__((always_inline)) void disable() const {
+        void disable() const {
             c_regs_->cc.en = 0;
         }
 
-        __attribute__((always_inline)) void enable() const {
+        void enable() const {
             c_regs_->cc.en = 1;
         }
 
-        __attribute__((always_inline)) u16 allocate_queue_id() {
+        u16 allocate_queue_id() {
             return next_queue_id_++;
         }
 
-        [[nodiscard]] __attribute__((always_inline)) volatile u32* get_submission_doorbell(u16 qid) const {
+        [[nodiscard]] [[gnu::always_inline]] volatile u32* get_submission_doorbell(u16 qid) const {
             usize stride_words = (4 << get_doorbell_stride()) / sizeof(u32);
             return &c_regs_->doorbells[static_cast<usize>(2) * qid * stride_words];
         }
 
-        [[nodiscard]] volatile __attribute__((always_inline)) u32* get_completion_doorbell(u16 qid) const {
+        [[nodiscard]] [[gnu::always_inline]] volatile u32* get_completion_doorbell(u16 qid) const {
             usize stride_words = (4 << get_doorbell_stride()) / sizeof(u32);
             return &c_regs_->doorbells[(2 * qid + 1) * stride_words];
         }
 
-        __attribute__((always_inline)) void set_admin_submission_queue_size(u16 sz) const {
+        void set_admin_submission_queue_size(u16 sz) const {
             c_regs_->aqa.asqs = sz - 1;
         }
 
-        __attribute__((always_inline)) void set_admin_completion_queue_size(u16 sz) const {
+        void set_admin_completion_queue_size(u16 sz) const {
             c_regs_->aqa.acqs = sz - 1;
         }
 
-        [[nodiscard]] __attribute__((always_inline)) u32 get_doorbell_stride() const {
+        [[nodiscard]] u32 get_doorbell_stride() const {
             return static_cast<u32>(c_regs_->cap.dstrd);
         }
 

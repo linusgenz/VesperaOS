@@ -23,6 +23,7 @@
 #ifndef VESPERAOS_SECURITY_CREDENTIALS_H
 #define VESPERAOS_SECURITY_CREDENTIALS_H
 
+#include <klib/result.h>
 #include <vespera/types.h>
 
 namespace kernel::security {
@@ -54,6 +55,23 @@ namespace kernel::security {
         if (is_root(cred)) return true;
         return target_gid == cred.gid || target_gid == cred.egid || target_gid == cred.sgid;
     }
+
+    /**
+     * @brief Returns a copy of the credentials of the currently running realm.
+     */
+    [[nodiscard]]
+    Result<process_credentials> current_credentials();
+
+    /**
+     * @brief Mutates credentials of current realm safely.
+     */
+    VoidResult set_current_uid(u32 uid);
+    VoidResult set_current_euid(u32 euid);
+
+    VoidResult set_current_gid(u32 gid);
+    VoidResult set_current_egid(u32 egid);
+
+    VoidResult set_full_credentials(const process_credentials& cred);
 
 }  // namespace kernel::security
 

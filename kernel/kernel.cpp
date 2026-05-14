@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <realm/handle_table.h>
+#include <realm/realm.h>
 #include <vespera/boot/boot.h>
 #include <vespera/devices/block.h>
 #include <vespera/devices/device_manager.h>

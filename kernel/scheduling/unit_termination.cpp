@@ -23,6 +23,7 @@
 #include "unit_termination.h"
 
 #include <cpu/cpu_manager.h>
+#include <realm/realm.h>
 #include <scheduling/scheduler_types.h>
 #include <units/unit.h>
 #include <vespera/kerrno.h>

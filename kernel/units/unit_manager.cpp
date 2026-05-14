@@ -24,9 +24,11 @@
 #include <filesystem/realmfs.h>
 #include <realm/address_space.h>
 #include <realm/handle_table.h>
+#include <realm/realm.h>
 #include <uapi/vespera/dev/unit_info.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/realm/user_stack_allocator.h>
 #include <vespera/scheduling.h>
 #include <vespera/system/system_manager.h>
@@ -272,7 +274,7 @@ static void init_user_cpu_context(Unit* u) {
     } else {
         // Secondary units start via the per-realm trampoline so that the
         // return value flows into SYSCALL_EXIT automatically.
-        ctx.rip = USER_UNIT_TRAMPOLINE_VADDR;
+        ctx.rip = kernel::realm::USER_UNIT_TRAMPOLINE_VADDR;
         ctx.rdi = reinterpret_cast<u64>(u->context.arg);    // thread argument
         ctx.rsi = reinterpret_cast<u64>(u->context.entry);  // thread entry
     }

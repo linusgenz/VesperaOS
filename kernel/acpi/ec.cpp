@@ -22,7 +22,7 @@
 
 #include "ec.h"
 
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_types.h>
 
 extern "C" {
 #include "acpica/include/acpi.h"
@@ -299,7 +299,7 @@ namespace kernel::acpi::ec {
             .argv = nullptr,
             .envp = nullptr,
         };
-        UnitManager::create(KERNEL_REALM_SYSTEM, ec_worker_thread, nullptr, &kEcWorkerCfg);
+        UnitManager::create(realm::REALM_SYSTEM, ec_worker_thread, nullptr, &kEcWorkerCfg);
 
         ACPI_STATUS st = AcpiInstallGpeRawHandler(nullptr, s_ec_gpe, ACPI_GPE_LEVEL_TRIGGERED, ec_gpe_handler, nullptr);
         if (ACPI_FAILURE(st)) {

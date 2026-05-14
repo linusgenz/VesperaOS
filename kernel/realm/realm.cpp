@@ -21,10 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <uapi/vespera/handles.h>
-#include <vespera/realm/realm.h>
+#include "realm.h"
 
 #include <realm/handle_table.h>
+#include <uapi/vespera/handles.h>
+#include <vespera/scheduling.h>
+
 #include "klib/string.h"
 
 Realm::Realm()
@@ -55,3 +57,22 @@ TtyDevice* Realm::get_tty_device() {
     if (!he || he->type != HANDLE_TYPE_TTY) return nullptr;
     return static_cast<TtyDevice*>(he->resource);
 }
+
+namespace kernel::realm {
+
+    Result<HandleId> add_handle(Realm* realm, const u64 type, void* resource,
+                                 const capability_set caps, const bool transferable,
+                                 void (*destroy)(void*), void (*acquire)(void*)) {
+        if (!realm) return Error::Inval;
+        return realm->handle_table->add(type, resource, caps, transferable, destroy, acquire);
+    }
+
+    Result<HandleId> add_handle_to_current(const u64 type, void* resource,
+                                            const capability_set caps, const bool transferable,
+                                            void (*destroy)(void*), void (*acquire)(void*)) {
+        Realm* realm = scheduling::get_current_realm();
+        if (!realm) return Error::Srch;
+        return add_handle(realm, type, resource, caps, transferable, destroy, acquire);
+    }
+
+} // namespace kernel::realm

@@ -407,7 +407,7 @@ int vformat(fmt_write_fn write, void* ctx, const char* fmt, __builtin_va_list ar
                 int len = fmt_int(val, buf);
 
                 // Vorzeichen-Präfix
-                const char* prefix = "";
+                auto prefix = "";
                 if (val >= 0 && plus_sign)  prefix = "+";
                 if (val >= 0 && space_sign) prefix = " ";
                 int plen = (prefix[0] != '\0') ? 1 : 0;
@@ -448,7 +448,7 @@ int vformat(fmt_write_fn write, void* ctx, const char* fmt, __builtin_va_list ar
                 int len = fmt_uint(val, buf, base, upper);
 
                 // Präfix für %# oder %p
-                const char* prefix = "";
+                auto prefix = "";
                 if (spec == 'p')                      prefix = "0x";
                 else if (alt_form && spec == 'x')     prefix = "0x";
                 else if (alt_form && spec == 'X')     prefix = "0X";

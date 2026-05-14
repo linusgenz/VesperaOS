@@ -30,13 +30,14 @@
 // This file is part of VesperaOS (GPL-3.0-or-later).
 
 #include <klib/string.h>
+#include <realm/realm.h>
+#include <units/unit.h>
 #include <vespera/graphics/colors.h>
 #include <vespera/input/keycode.h>
 #include <vespera/log.h>
-#include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm_ops.h>
 #include <vespera/scheduling.h>
-#include <units/unit.h>
 #include <vespera/signals.h>
 #include <vespera/tty/tty.h>
 
@@ -509,8 +510,7 @@ namespace kernel::tty {
 
     isize tty_read(TTY* tty, char* buf, const usize count) {
         const Unit* u = kernel::scheduling::get_current_unit();
-        Realm* my_realm = u->parent;
-        const RealmId my_pgid = my_realm ? my_realm->pgid : 0;
+        const RealmId my_pgid = kernel::realm::get_pgid(u->rid).value_or(0);
 
         usize bytes_read = 0;
 

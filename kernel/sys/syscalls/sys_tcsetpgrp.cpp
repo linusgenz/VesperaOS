@@ -20,12 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <tty/tty_device.h>
 #include <uapi/vespera/handles.h>
-#include <vespera/realm/realm.h>
+#include <vespera/jobctl/jobctl.h>
+#include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
 #include <vespera_errno.h>
 
-#include <tty/tty_device.h>
 #include "../handle_resolution.h"
 
 namespace syscalls::internal {
@@ -38,9 +39,10 @@ namespace syscalls::internal {
         auto* tty_dev = rh.resource_as<TtyDevice>();
         if (!tty_dev || !tty_dev->tty) return -ENOTTY;
 
-        if (rh.realm->controlling_tty != tty_dev) return -EPERM;
+        SYSCALL_TRY_VOID(
+            kernel::jobctl::set_foreground_pgid(kernel::scheduling::get_current_realm_id(), tty_dev, new_pgid)
+        );
 
-        tty_dev->tty->fg_pgid = new_pgid;
         return 0;
     }
 }  // namespace syscalls::internal

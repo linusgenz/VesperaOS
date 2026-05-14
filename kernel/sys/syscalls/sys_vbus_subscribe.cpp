@@ -24,7 +24,6 @@
 #include <uapi/vespera/vbus.h>
 #include <vespera/ipc/channel.h>
 #include <vespera/ipc/vbus_manager.h>
-#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
@@ -34,6 +33,7 @@ namespace syscalls::internal {
 
     i64 sys_vbus_subscribe(u64 arg0, u64, u64, u64, u64, u64) {
         const auto* args = reinterpret_cast<const vbus_subscribe_args_t*>(arg0);
+
         if (!args) return -EINVAL;
 
         const auto rh = SYSCALL_TRY(resolve_handle(HANDLE_VBUS, HANDLE_TYPE_CHANNEL));
@@ -41,13 +41,20 @@ namespace syscalls::internal {
         auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
-        return VBusManager::subscribe(rh.realm->id, ch, args->interface, args->member);
+        const RealmId caller_id = kernel::scheduling::get_current_realm_id();
+
+        if (caller_id == 0) return -ESRCH;
+
+        return VBusManager::subscribe(caller_id, ch, args->interface, args->member);
     }
 
     i64 sys_vbus_unsubscribe(u64, u64, u64, u64, u64, u64) {
-        const Realm* r = kernel::scheduling::get_current_realm();
-        if (!r) return -EINVAL;
-        VBusManager::unsubscribe_realm(r->id);
+        const RealmId caller_id = kernel::scheduling::get_current_realm_id();
+
+        if (caller_id == 0) return -ESRCH;
+
+        VBusManager::unsubscribe_realm(caller_id);
+
         return SUCCESS_CODE;
     }
 

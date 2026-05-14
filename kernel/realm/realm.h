@@ -38,15 +38,6 @@ namespace kernel::realm {
     class AddressSpace;
 }
 
-constexpr uptr TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
-constexpr uptr TRAMP_SIGNAL_OFF = 0x000;
-constexpr uptr TRAMP_UNIT_OFF = 0x100;
-constexpr uptr SIGNAL_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_SIGNAL_OFF);
-constexpr uptr USER_UNIT_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_UNIT_OFF);
-
-#define KERNEL_REALM_SYSTEM 1
-#define KERNEL_REALM_DRIVER 2
-
 class Realm {
    public:
     RealmId id;

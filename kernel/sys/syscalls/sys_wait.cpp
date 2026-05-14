@@ -22,39 +22,22 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/realm/exit_code_table.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_ops.h>
 
 namespace syscalls::internal {
     i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const RealmId child_rid = arg0;
-        const i64 status_user_ptr = static_cast<i64>(arg1);
 
-        Unit* current = kernel::scheduling::get_current_unit();
-        if (!current) return -EINVAL;
+        auto* status = reinterpret_cast<int*>(arg1);
+        if (!status)
+            return -EINVAL;
 
-        Realm* target = RealmManager::get(child_rid);
-        if (!target) {
-            return -ECHILD;
-        }
+        const auto result = kernel::realm::wait(child_rid);
 
-        {
-            SpinlockGuard g(target->lock);
-            if (target->unit_count == 0 || target->exited) {
-                int exit_code = 0;
-                ExitCodeTable::consume(child_rid, &exit_code);
-                (*reinterpret_cast<int*>(status_user_ptr)) = exit_code;
-                return 0;
-            }
-        }
+        if (result.is_err())
+            return result.to_errno();
 
-        target->wait_queue.add_wait(current);
-        kernel::scheduling::yield();
-
-        int exit_code = 0;
-        ExitCodeTable::consume(child_rid, &exit_code);
-        (*reinterpret_cast<int*>(status_user_ptr)) = exit_code;
+        *status = result.unwrap();
 
         return 0;
     }

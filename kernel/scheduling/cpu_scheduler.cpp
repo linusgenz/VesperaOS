@@ -1,15 +1,17 @@
 
 #include "cpu_scheduler.h"
 
+#include <arch/x86_64/apic.h>
 #include <arch/x86_64/cpu/msr.h>
 #include <arch/x86_64/gdt.h>
-#include <arch/x86_64/apic.h>
 #include <cpu/cpu_manager.h>
 #include <klib/string.h>
 #include <realm/address_space.h>
+#include <realm/realm.h> // TODO
 #include <units/unit.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/time.h>
 #include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
@@ -77,7 +79,7 @@ Unit* setup_idle_unit(const u8 cpu_id) {
         .is_user = false,
         .user_stack_size = 0,
     };
-    return UnitManager::create(KERNEL_REALM_SYSTEM, idle_unit_func, nullptr, &cfg);
+    return UnitManager::create(kernel::realm::REALM_SYSTEM, idle_unit_func, nullptr, &cfg);
 }
 
 namespace kernel::scheduling::cpu_scheduler {
@@ -123,7 +125,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
         if (next->is_user && next->rid) {
             if (!next->parent) return;  // should not happen
-            const u64 cr3 = phys_raw(next->parent->address_space->pml4_phys());
+            const u64 cr3 = phys_raw(next->parent->address_space->pml4_phys()); // TODO ABSTRACT
             asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
         } else {
             asm volatile("mov %0, %%cr3" ::"r"(kernel::memory::get_pagetable_address()) : "memory");
@@ -164,7 +166,7 @@ namespace kernel::scheduling::cpu_scheduler {
             .is_user = false,
             .user_stack_size = 0,
         };
-        UnitManager::create(KERNEL_REALM_SYSTEM, reaper_unit, nullptr, &reaper_cfg);
+        UnitManager::create(kernel::realm::REALM_SYSTEM, reaper_unit, nullptr, &reaper_cfg);
     }
 
     void enable_cpu(const u8 cpu_id) {

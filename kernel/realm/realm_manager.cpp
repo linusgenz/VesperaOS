@@ -28,16 +28,18 @@
 #include <vespera/log.h>
 #include <vespera/realm/realm_config.h>
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/tty/tty.h>
 #include <vespera/unit_config.h>
 
-#include "vespera/unit/unit_manager.h"
 #include "../paging/page_table_manager.h"
 #include "../tty/tty_device.h"
 #include "address_space.h"
+#include "realm.h"
 #include "vespera/sys/syscall_numbers.h"
+#include "vespera/unit/unit_manager.h"
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
@@ -98,9 +100,9 @@ void RealmManager::initialize() {
 
     memset(g_trampoline_virt, 0, 0x1000);
 
-    memcpy(g_trampoline_virt + TRAMP_SIGNAL_OFF, signal_trampoline, sizeof(signal_trampoline));
+    memcpy(g_trampoline_virt + kernel::realm::TRAMP_SIGNAL_OFF, signal_trampoline, sizeof(signal_trampoline));
 
-    memcpy(g_trampoline_virt + TRAMP_UNIT_OFF, unit_trampoline, sizeof(unit_trampoline));
+    memcpy(g_trampoline_virt + kernel::realm::TRAMP_UNIT_OFF, unit_trampoline, sizeof(unit_trampoline));
 }
 
 bool RealmManager::is_initialized() {

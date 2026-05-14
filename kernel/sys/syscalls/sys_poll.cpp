@@ -21,10 +21,10 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <realm/handle_table.h>
+#include <sys/handle_resolution.h>
 #include <tty/tty_device.h>
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
-#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
@@ -49,27 +49,31 @@ namespace syscalls::internal {
 
             for (usize i = 0; i < nhdls; ++i) {
                 hdls[i].revents = 0;
+                const auto rh_result = resolve_handle(hdls[i].hdl);
 
-                const HandleEntry* he = realm->handle_table->lookup(hdls[i].hdl);
-                if (!he) {
+                if (rh_result.is_err()) {
                     hdls[i].revents = POLLHUP;
                     ready++;
                     continue;
                 }
 
+                const auto& rh = rh_result.unwrap();
+
                 int mask = 0;
 
-                if (he->type == HANDLE_TYPE_TTY) {
-                    auto* tty_dev = static_cast<TtyDevice*>(he->resource);
+                if (rh.type() == HANDLE_TYPE_TTY) {
+                    auto* tty_dev = rh.resource_as<TtyDevice>();
+
                     if (!tty_dev) {
                         hdls[i].revents = POLLHUP;
                         ready++;
                         continue;
                     }
-                    mask = tty_dev->poll(nullptr);
 
-                } else if (he->type == HANDLE_TYPE_CHANNEL) {
-                    auto* ch = static_cast<Channel*>(he->resource);
+                    mask = tty_dev->poll(nullptr);
+                } else if (rh.type() == HANDLE_TYPE_CHANNEL) {
+                    auto* ch = rh.resource_as<Channel>();
+
                     if (!ch) {
                         hdls[i].revents = POLLHUP;
                         ready++;
@@ -78,12 +82,14 @@ namespace syscalls::internal {
 
                     mask = ch->poll();
                 } else {
-                    const auto* vh = static_cast<VfsHandle*>(he->resource);
+                    const auto* vh = rh.resource_as<VfsHandle>();
+
                     if (!vh || !vh->node) {
                         hdls[i].revents = POLLHUP;
                         ready++;
                         continue;
                     }
+
                     if (vh->node->ops && vh->node->ops->poll) mask = vh->node->ops->poll(vh->node);
                 }
 

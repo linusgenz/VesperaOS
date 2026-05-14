@@ -20,49 +20,61 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <uapi/vespera/handles.h>
 #include <filesystem/vfs.h>
-#include <vespera/realm/realm_manager.h>
-#include <vespera/scheduling.h>
-#include <vespera/types.h>
 #include <realm/handle_table.h>
-#include <vespera/realm/realm.h>
+#include <uapi/vespera/handles.h>
+#include <vespera/realm/handles.h>
+#include <vespera/types.h>
 
 static void ref_void(void* p) {
     Channel::ref(static_cast<Channel*>(p));
 }
 
 namespace syscalls::internal {
-    i64 sys_pipe(u64 arg0, u64, u64, u64, u64, u64) {
-        auto* hdls = reinterpret_cast<i64*>(arg0);  // fds[0] = read, fds[1] = write
-        if (!hdls) return -EINVAL;
 
-        Realm* realm = kernel::scheduling::get_current_realm();
-        if (!realm) return -ESRCH;
+    i64 sys_pipe(u64 arg0, u64, u64, u64, u64, u64) {
+        auto* hdls = reinterpret_cast<i64*>(arg0);
+        if (!hdls) return -EINVAL;
 
         Channel* ch = Channel::create(65536);
         if (!ch) return -ENOMEM;
 
-        const Result<HandleId> read_result =
-            realm->handle_table->add(HANDLE_TYPE_PIPE, ch, CAP_READ, true, Channel::destroy, ref_void);
+        const Result<HandleId> read_result = kernel::realm::add_handle_to_current(
+            HANDLE_TYPE_PIPE,
+            ch,
+            CAP_READ,
+            /*transferable=*/true,
+            Channel::destroy,
+            ref_void
+        );
 
         if (read_result.is_err()) {
             Channel::destroy(ch);
-            return -ENOMEM;
+            return read_result.to_errno();
         }
 
         Channel::ref(ch);
 
-        const Result<HandleId> write_result =
-            realm->handle_table->add(HANDLE_TYPE_PIPE, ch, CAP_WRITE, true, Channel::destroy, ref_void);
+        const Result<HandleId> write_result = kernel::realm::add_handle_to_current(
+            HANDLE_TYPE_PIPE,
+            ch,
+            CAP_WRITE,
+            /*transferable=*/true,
+            Channel::destroy,
+            ref_void
+        );
 
         if (write_result.is_err()) {
-            realm->handle_table->release(read_result.unwrap());
-            return -ENOMEM;
+            // TODO WE HAVE TO FREE THIS SOMEHOW HERE
+            // kernel::realm::release_handle_from_current(read_result.unwrap());
+
+            return write_result.to_errno();
         }
 
-        hdls[0] = read_result.unwrap();
-        hdls[1] = write_result.unwrap();
+        hdls[0] = static_cast<i64>(read_result.unwrap());
+        hdls[1] = static_cast<i64>(write_result.unwrap());
+
         return 0;
     }
+
 }  // namespace syscalls::internal

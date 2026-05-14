@@ -9,6 +9,7 @@
 struct TrapFrame;
 class Unit;
 class Realm;
+typedef u64 capability_set;
 
 namespace kernel::scheduling::cpu_scheduler {
     struct CpuScheduler;
@@ -34,9 +35,9 @@ namespace kernel::scheduling {
     bool is_curent_cpu_enabled();
 
     /**
- * @brief Sets the FS base of the current unit and applies it to MSR_FS_BASE.
- * @return false if no unit is active.
- */
+     * @brief Sets the FS base of the current unit and applies it to MSR_FS_BASE.
+     * @return false if no unit is active.
+     */
     bool set_fs_base(u64 addr);
 
     /**
@@ -84,6 +85,15 @@ namespace kernel::scheduling {
      * a thread identity but must not depend on Unit internals.
      */
     UnitId get_current_unit_id();
+
+    /**
+     * @brief Returns the RealmId of the currently running unit's realm.
+     *
+     * Returns 0 if no realm is active.
+     */
+    [[nodiscard]] RealmId get_current_realm_id();
+
+    capability_set get_current_capabilities();
 
     bool is_initialized();
     u32 get_num_cpus();

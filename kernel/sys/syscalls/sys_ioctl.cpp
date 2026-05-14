@@ -26,7 +26,8 @@
 #include <uapi/vespera/dev/ioctl_tty.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/devices/char_device.h>
-#include <vespera/realm/realm.h>
+#include <vespera/jobctl/jobctl.h>
+#include <vespera/scheduling.h>
 
 #include "../handle_resolution.h"
 
@@ -38,14 +39,12 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_DEVICE_ACCESS));
 
-        // TIOCSCTTY is special: must be session leader, no controlling TTY yet.
         if (rh.type() == HANDLE_TYPE_TTY && req == TIOCSCTTY) {
-            Realm* realm = rh.realm;
-            if (realm->sid != realm->id) return -EPERM;
-            if (realm->controlling_tty != nullptr) return -EPERM;
             auto* tty_dev = rh.resource_as<TtyDevice>();
             if (!tty_dev) return -ENOTTY;
-            realm->controlling_tty = tty_dev;
+            SYSCALL_TRY_VOID(
+                kernel::jobctl::assign_controlling_tty(kernel::scheduling::get_current_realm_id(), tty_dev)
+            );
             return 0;
         }
 

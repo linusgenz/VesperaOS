@@ -20,22 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <units/unit.h>
-#include <vespera/realm/realm.h>
-#include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm_ops.h>
 #include <vespera/scheduling.h>
-#include <vespera_errno.h>
 
 namespace syscalls::internal {
     i64 sys_getpgid(u64 arg0, u64, u64, u64, u64, u64) {
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -ESRCH;
+        const RealmId target_rid = arg0 ? arg0 : kernel::scheduling::get_current_realm_id();
 
-        const RealmId target_rid = arg0 ? arg0 : caller->rid;
-
-        const Realm* target = RealmManager::get(target_rid);
-        if (!target) return -ESRCH;
-
-        return static_cast<i64>(target->pgid);
+        return SYSCALL_TRY(kernel::realm::get_pgid(target_rid));
     }
 }  // namespace syscalls::internal

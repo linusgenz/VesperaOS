@@ -4,6 +4,7 @@
 
 #include <arch/x86_64/cpu/msr.h>
 #include <klib/string.h>
+#include <realm/realm.h>
 #include <units/unit.h>
 #include <vespera/log.h>
 #include <vespera/scheduling.h>
@@ -106,9 +107,22 @@ namespace kernel::scheduling {
     }
 
     UnitId get_current_unit_id() {
-        if (!is_curent_cpu_enabled()) return 1;
+        if (!is_curent_cpu_enabled()) return 0;
         const Unit *u = get_current_unit();
-        return (u && u->id) ? u->id : 1;
+        return (u && u->id) ? u->id : 0;
+    }
+
+    RealmId get_current_realm_id() {
+        if (!is_curent_cpu_enabled()) return 0;
+        const Unit *u = get_current_unit();
+        return (u && u->rid) ? u->rid : 0;
+    }
+
+    capability_set get_current_capabilities() {
+        Realm *r = get_current_realm();
+        if (!r) return 0;
+
+        return r->capabilities;
     }
 
     const char *get_current_cwd() {

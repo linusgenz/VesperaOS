@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/realm.h> // TODO TEMP
 #include <scheduling/scheduler_types.h>
 #include <vespera/cpu/cpu_manager.h>
 #include <vespera/kerrno.h>

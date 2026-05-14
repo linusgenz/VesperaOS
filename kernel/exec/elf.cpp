@@ -23,10 +23,10 @@
 
 #include "elf.h"
 
-#include <klib/string.h>
 #include <filesystem/vfs.h>
+#include <klib/string.h>
+#include <realm/realm.h> // TODO TEMPORARY REMOVE WHEN REFACTORED
 #include <vespera/mm/memory.h>
-#include <vespera/realm/realm.h>
 
 #include "../paging/page_table_manager.h"
 #include "../realm/address_space.h"

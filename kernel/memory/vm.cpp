@@ -25,6 +25,7 @@
 #include <klib/string.h>
 #include <realm/address_space.h>
 #include <units/unit.h>
+#include <realm/realm.h>
 #include <vespera/mm/memory.h>
 #include <vespera/sys/mman.h>
 #include <vespera_errno.h>

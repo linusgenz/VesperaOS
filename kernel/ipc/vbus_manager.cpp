@@ -40,8 +40,7 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
     SpinlockGuard g(lock_);
 
     // Deduplicate: same realm+interface+member already registered?
-    for (int i = 0; i < VBUS_MAX_SUBSCRIPTIONS; i++) {
-        auto& s = subs_[i];
+    for (auto & s : subs_) {
         if (!s.active) continue;
         if (s.realm_id == realm_id && strcmp(s.interface, interface) == 0 &&
             strcmp(s.member, member ? member : "") == 0) {
@@ -50,15 +49,15 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
     }
 
     // Find a free slot
-    for (int i = 0; i < VBUS_MAX_SUBSCRIPTIONS; i++) {
-        if (!subs_[i].active) {
-            subs_[i].realm_id = realm_id;
-            subs_[i].channel = rx_channel;
-            strncpy(subs_[i].interface, interface, 47);
-            subs_[i].interface[47] = '\0';
-            strncpy(subs_[i].member, member ? member : "", 47);
-            subs_[i].member[47] = '\0';
-            subs_[i].active = true;
+    for (auto & sub : subs_) {
+        if (!sub.active) {
+            sub.realm_id = realm_id;
+            sub.channel = rx_channel;
+            strncpy(sub.interface, interface, 47);
+            sub.interface[47] = '\0';
+            strncpy(sub.member, member ? member : "", 47);
+            sub.member[47] = '\0';
+            sub.active = true;
             sub_count_++;
             /*Log::debug(
                 "[VBus] realm %llu subscribed to %s.%s", realm_id, interface, member && member[0] ? member : "*"
@@ -71,10 +70,10 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
 
 void VBusManager::unsubscribe_realm(u64 realm_id) {
     SpinlockGuard g(lock_);
-    for (int i = 0; i < VBUS_MAX_SUBSCRIPTIONS; i++) {
-        if (subs_[i].active && subs_[i].realm_id == realm_id) {
-            subs_[i].active = false;
-            subs_[i].channel = nullptr;
+    for (auto & sub : subs_) {
+        if (sub.active && sub.realm_id == realm_id) {
+            sub.active = false;
+            sub.channel = nullptr;
             sub_count_--;
         }
     }
@@ -109,8 +108,7 @@ void VBusManager::emit(const char* interface, const char* member, const void* pa
 
     SpinlockGuard g(lock_);
 
-    for (int i = 0; i < VBUS_MAX_SUBSCRIPTIONS; i++) {
-        auto& s = subs_[i];
+    for (auto & s : subs_) {
         if (!s.active || !s.channel) continue;
         if (!matches(s, interface, member)) continue;
 

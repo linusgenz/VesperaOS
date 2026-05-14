@@ -23,7 +23,7 @@
 #include <realm/handle_table.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/ipc/channel.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/handles.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera_errno.h>
 
@@ -34,29 +34,28 @@ namespace syscalls::internal {
     i64 sys_handle_transfer(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
         const RealmId target_realm_id = arg1;
-        const capability_set caps_mask = static_cast<capability_set>(arg2);
+        const capability_set caps_mask = arg2;
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid));
 
-        if (!rh.entry->transferable) return -EACCES;
+        if (!rh.transferable()) return -EACCES;
 
-        const capability_set granted = rh.entry->capabilities & caps_mask;
+        const capability_set granted = rh.capabilities() & caps_mask;
         if (granted == 0) return -EACCES;
 
         const u64 type_tag = rh.type();
         if (type_tag != HANDLE_TYPE_CHANNEL && type_tag != HANDLE_TYPE_PIPE) return -EACCES;
 
-        Realm* dst_realm = RealmManager::get(target_realm_id);
-        if (!dst_realm) return -ECHILD;
+        Realm* dst = RealmManager::get(target_realm_id);
+        if (!dst) return -ECHILD;
 
         auto* ch = rh.resource_as<Channel>();
         if (!ch) return -EINVAL;
 
         Channel::ref(ch);
 
-        const Result<HandleId> result = dst_realm->handle_table->add(
-            type_tag, ch, CAP_RW, /*transferable=*/true, Channel::destroy, /*acquire=*/nullptr
-        );
+        const Result<HandleId> result =
+            kernel::realm::add_handle(dst, type_tag, ch, CAP_RW, /*transferable=*/true, Channel::destroy);
 
         if (result.is_err()) {
             Channel::destroy(ch);

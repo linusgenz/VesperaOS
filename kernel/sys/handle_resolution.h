@@ -24,55 +24,80 @@
 #define VESPERAOS_KERNEL_SYS_HANDLE_RESOLUTION_H
 
 #include <klib/result.h>
+#include <realm/handle_table.h>
 #include <uapi/vespera/capabilities.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/types.h>
 
-#include <realm/handle_table.h>
-
-class Unit;
 class Realm;
 
 namespace syscalls {
 
-struct ResolvedHandle {
-    Realm*        realm;
-    HandleEntry*  entry;
+    /**
+     * @brief Validated, ready-to-use handle resolved from the current realm.
+     *
+     * Syscall handlers receive this from @ref resolve_handle and should access
+     * the underlying resource exclusively through the provided accessors.
+     * Direct field access to the internal HandleEntry is intentionally prevented.
+     */
+    class ResolvedHandle {
+       public:
+        ResolvedHandle() = default;
 
-    [[nodiscard]] u64 type() const;
+        // Realm is intentionally accessible — some syscalls need it for
+        // secondary handle operations (transfer, close, spawn inheritance).
+        Realm* realm{nullptr};
 
-    template<typename T>
-    [[nodiscard]] T* resource_as() const;
-};
+        [[nodiscard]] u64 type() const {
+            return entry_->type & HANDLE_TYPE_MASK;
+        }
 
-// resolve_handle — the single entry point for all syscall handle validation.
-//
-//   hid           — handle ID from userspace
-//   type_mask     — if non-zero, entry->type & HANDLE_TYPE_MASK must equal this;
-//                   pass 0 to skip the type check and dispatch yourself
-//   required_caps — capability bits that must ALL be present; pass 0 for no check
-//
-// Returns:
-//   Result::ok(ResolvedHandle)  — ready to use
-//   Error::Srch   — no current unit / unit not active
-//   Error::BadH   — handle not found
-//   Error::Acces  — capability check failed
-//   Error::NotTty — type_mask given but type does not match
-[[nodiscard]] Result<ResolvedHandle> resolve_handle(
-    HandleId       hid,
-    u64            type_mask     = 0,
-    capability_set required_caps = 0
-);
+        [[nodiscard]] capability_set capabilities() const {
+            return entry_->capabilities;
+        }
 
-inline u64 ResolvedHandle::type() const {
-    return entry->type & HANDLE_TYPE_MASK;
-}
+        [[nodiscard]] bool transferable() const {
+            return entry_->transferable;
+        }
 
-template<typename T>
-inline T* ResolvedHandle::resource_as() const {
-    return static_cast<T*>(entry->resource);
-}
+        [[nodiscard]] HandleId hid() const {
+            return entry_->hid;
+        }
 
-} // namespace syscalls
+        template <typename T>
+        [[nodiscard]] T* resource_as() const {
+            return static_cast<T*>(entry_->resource);
+        }
 
-#endif // VESPERAOS_KERNEL_SYS_HANDLE_RESOLUTION_H
+        void release() const;
+
+       private:
+        friend Result<ResolvedHandle> resolve_handle(HandleId, u64, capability_set);
+        HandleEntry* entry_{nullptr};
+
+        ResolvedHandle(Realm* r, HandleEntry* e)
+            : realm(r)
+            , entry_(e) {
+        }
+    };
+
+    /**
+     * @brief Resolves and validates a handle from the current realm.
+     *
+     * @param hid           Handle ID from userspace.
+     * @param type_mask     Required type; 0 skips the type check.
+     * @param required_caps Capability bits that must ALL be present; 0 skips.
+     *
+     * @return ResolvedHandle on success.
+     * @return Error::Srch   if no realm is active.
+     * @return Error::BadH   if the handle is not found.
+     * @return Error::Acces  if capability check fails.
+     * @return Error::NotTty if type_mask is set but does not match.
+     */
+    [[nodiscard]] Result<ResolvedHandle> resolve_handle(
+        HandleId hid, u64 type_mask = 0, capability_set required_caps = 0
+    );
+
+}  // namespace syscalls
+
+#endif  // VESPERAOS_KERNEL_SYS_HANDLE_RESOLUTION_H

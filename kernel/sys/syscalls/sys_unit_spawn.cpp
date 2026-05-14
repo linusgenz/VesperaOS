@@ -49,7 +49,7 @@ namespace syscalls::internal {
         if (target_rid != caller->rid) return -EACCES;
 
         Realm* realm = RealmManager::get(target_rid);
-        if (!realm || !realm->active) return -ECHILD;
+        if (!realm) return -ECHILD;
 
         const UnitConfig ucfg = {
             .name = "unit",  // generic name, maybe expose later

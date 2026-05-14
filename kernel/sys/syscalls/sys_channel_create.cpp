@@ -21,11 +21,13 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <realm/handle_table.h>
+#include <klib/result.h>
+#include <uapi/vespera/capabilities.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/ipc/channel.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/handles.h>
 #include <vespera/scheduling.h>
+#include <vespera_errno.h>
 
 namespace syscalls::internal {
     i64 sys_channel_create(u64 arg0, u64, u64, u64, u64, u64) {
@@ -40,8 +42,9 @@ namespace syscalls::internal {
 
         constexpr capability_set caps = CAP_READ | CAP_WRITE;
 
-        const Result<HandleId> result =
-            realm->handle_table->add(HANDLE_TYPE_CHANNEL, ch, caps, true, Channel::destroy, nullptr);
+        const Result<HandleId> result = kernel::realm::add_handle_to_current(
+            HANDLE_TYPE_CHANNEL, ch, caps, /*transferable=*/true, Channel::destroy
+        );
 
         if (result.is_err()) {
             Channel::destroy(ch);

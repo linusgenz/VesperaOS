@@ -20,45 +20,34 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/realm.h>
+#include <scheduling/unit_termination.h>
 #include <vespera/realm/realm_manager.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_ops.h>
 #include <vespera/scheduling.h>
 #include <vespera/types.h>
 #include <vespera_errno.h>
-
-#include <scheduling/unit_termination.h>
 
 namespace syscalls::internal {
     i64 sys_kill(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         if (!is_valid_signal(static_cast<i32>(arg1))) return -EINVAL;
 
-        const Unit* caller = kernel::scheduling::get_current_unit();
-        if (!caller) return -EINVAL;
+        if (!kernel::scheduling::get_current_unit()) return -EINVAL;
 
         const auto sig = static_cast<Signal>(static_cast<i32>(arg1));
-
-        // If `target` is negative, it is interpreted as a PGID.
         const i64 target = static_cast<i64>(arg0);
 
         if (target < 0) {
-            const auto pgid = static_cast<RealmId>(-target);
-            RealmManager::signal_pgid(pgid, sig);
+            RealmManager::signal_pgid(static_cast<RealmId>(-target), sig);
             return SUCCESS_CODE;
         }
 
         const auto target_rid = static_cast<RealmId>(target);
         if (target_rid == 0) return -EINVAL;
 
-        if (sig == Signal::SIGKILL) {
-            return kernel::scheduling::kill_realm_by_id(target_rid, sig);
-        }
+        if (sig == Signal::SIGKILL) return kernel::scheduling::kill_realm_by_id(target_rid, sig);
 
-        const Realm* target_realm = RealmManager::get(target_rid);
-        if (!target_realm) return -ESRCH;
-
-        Unit* u = target_realm->unit_list;
-        if (!u) return -ESRCH;
-        signal_send(u, sig);
+        SYSCALL_TRY_VOID(kernel::realm::send_signal(target_rid, sig));
 
         return SUCCESS_CODE;
     }

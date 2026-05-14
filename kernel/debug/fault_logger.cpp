@@ -4,6 +4,8 @@
 // Nutzt das bestehende Log-System, kapselt aber ein konsistentes,
 // auf Faults zugeschnittenes Ausgabeformat.
 //
+#include <realm/realm.h> // TODO TEMP
+
 #include "../cpu/cpu_manager.h"
 #include "../realm/address_space.h"
 #include "../utils/panic.h"

@@ -22,12 +22,12 @@
 
 #include "xhci_pci_driver.h"
 
-#include <pci/msix.h>
 #include <drivers/usb/usb_manager.h>
+#include <pci/msix.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
 
@@ -120,7 +120,7 @@ namespace usb {
             .user_stack_size    = 0,
         };
 
-        const Unit* unit = UnitManager::create(KERNEL_REALM_DRIVER, xhci_unit_entry, args, &cfg);
+        const Unit* unit = UnitManager::create(kernel::realm::REALM_DRIVER, xhci_unit_entry, args, &cfg);
         if (!unit) {
             Log::error("xhci: failed to create unit for bus %u", bus_number);
             UsbManager::notify_controller_ready();

@@ -25,7 +25,6 @@
 #define VESPERAOS_UNIT_H
 
 #include <uapi/vespera/dev/unit_info.h>
-#include <vespera/realm/realm.h>
 #include <vespera/signals.h>
 
 #include "execution_context.h"
@@ -34,6 +33,7 @@
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
+class Realm;
 /**
  * @brief Kernel-internal Unit lifecycle state.
  *
@@ -109,7 +109,6 @@ class Unit {
 
     u64 heap_start{};
     u64 heap_end{};
-
 
     u64 signals_pending{0};
     u64 signals_masked{0};

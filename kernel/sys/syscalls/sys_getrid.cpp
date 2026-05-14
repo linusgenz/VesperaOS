@@ -22,18 +22,12 @@
 
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <units/unit.h>
 
 namespace syscalls::internal {
     i64 sys_getrid(u64, u64, u64, u64, u64, u64) {
+        const RealmId cur_rid = kernel::scheduling::get_current_realm_id();
+        if (cur_rid == 0) return -ESRCH;
 
-        Unit* current = kernel::scheduling::get_current_unit();
-        if (!current) return -EINVAL;
-
-        Realm* target = current->parent;
-        if (!target) {
-            return -ESRCH;
-        }
-        return target->id;
+        return static_cast<i64>(cur_rid);
     }
 }  // namespace syscalls::internal

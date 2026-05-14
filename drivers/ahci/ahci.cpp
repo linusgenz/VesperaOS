@@ -1,14 +1,14 @@
 #include "ahci.h"
 
-#include <pci/msix.h>
 #include <filesystem/devfs.h>
+#include <pci/msix.h>
 #include <uapi/vespera/dev/ioctl_smart.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/io/block_io_queue.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/unit/unit_manager.h>
 #include <vespera_errno.h>
 
@@ -803,7 +803,7 @@ namespace ahci {
             .user_stack_size = 0,
         };
 
-        const Unit* unit = UnitManager::create(KERNEL_REALM_DRIVER, io_worker_entry, this, &cfg);
+        const Unit* unit = UnitManager::create(kernel::realm::REALM_DRIVER, io_worker_entry, this, &cfg);
         if (!unit) {
             Log::error("[ AHCI ] Port %u: failed to spawn I/O worker", port_number);
         }

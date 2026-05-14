@@ -23,11 +23,10 @@
 
 #include <filesystem/vfs.h>
 #include <filesystem/vfs_node.h>
-#include <realm/handle_table.h>
 #include <security/permission.h>
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handles.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/handles.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 
@@ -91,7 +90,10 @@ namespace syscalls::internal {
                 return -EINVAL;
         }
 
-        if (const int err = kernel::security::vfs_check_permission(node, vfs_access, realm->cred); err != 0) {
+        if (const int err = kernel::security::vfs_check_permission(
+                node, vfs_access, SYSCALL_TRY(kernel::security::current_credentials())
+            );
+            err != 0) {
             VFS::close(node);
             return err;
         }
@@ -173,7 +175,8 @@ namespace syscalls::internal {
                 return -EINVAL;
         }
 
-        if ((realm->capabilities & required_caps) != required_caps) {
+        if (const capability_set caps = kernel::scheduling::get_current_capabilities();
+            (caps & required_caps) != required_caps) {
             delete vh;
             VFS::close(node);
             return -EACCES;
@@ -182,7 +185,7 @@ namespace syscalls::internal {
         if ((flags & O_APPEND) && node->type == VfsNodeType::File) vh->context->position = node->size;
 
         const Result<HandleId> result =
-            realm->handle_table->add(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr);
+            kernel::realm::add_handle_to_current(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr);
 
         if (result.is_err()) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)

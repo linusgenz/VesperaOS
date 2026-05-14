@@ -9,7 +9,7 @@
 #include <vespera/io/block_io_queue.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/time.h>
 #include <vespera/unit/unit_manager.h>
 
@@ -637,7 +637,7 @@ namespace nvme {
             .user_stack_size = 0,
         };
 
-        const Unit* unit = UnitManager::create(KERNEL_REALM_DRIVER, io_worker_entry, this, &cfg);
+        const Unit* unit = UnitManager::create(kernel::realm::REALM_DRIVER, io_worker_entry, this, &cfg);
         if (!unit) {
             Log::error("[NVMe] Namespace %u: failed to spawn I/O worker", ns_id_);
         }

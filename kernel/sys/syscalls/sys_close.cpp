@@ -21,22 +21,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <realm/handle_table.h>
-#include <vespera/realm/realm.h>
 #include <vespera/types.h>
 
 #include "../handle_resolution.h"
 
 namespace syscalls::internal {
     i64 sys_close(u64 arg0, u64, u64, u64, u64, u64) {
-        const HandleId hid = arg0;
-
-        const auto rh = SYSCALL_TRY(
-            resolve_handle(hid, /*type_mask=*/0, /*required_caps=*/0)
-        );
-
-        rh.realm->handle_table->release(hid);
-
+        const auto rh = SYSCALL_TRY(resolve_handle(arg0));
+        rh.release();
         return SUCCESS_CODE;
     }
 }  // namespace syscalls::internal

@@ -22,7 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/input/input_manager.h>
-#include <vespera/realm/realm.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/scheduling.h>
 #include <vespera/tty/tty.h>
 #include <vespera/unit_config.h>
@@ -51,5 +51,5 @@ void initialize_input_bus() {
         .is_user = false,
         .user_stack_size = 0
     };
-    UnitManager::create(KERNEL_REALM_SYSTEM, input_poll_thread, nullptr, &uc);
+    UnitManager::create(kernel::realm::REALM_SYSTEM, input_poll_thread, nullptr, &uc);
 }

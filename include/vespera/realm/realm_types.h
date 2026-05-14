@@ -1,9 +1,9 @@
-// sys_setsid.cpp
+// realm_types.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 23.04.26.
+// Created by Linus Genz on 14.05.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,19 +20,26 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/jobctl/jobctl.h>
-#include <vespera/scheduling.h>
-#include <vespera_errno.h>
+#ifndef VESPERAOS_VESPERA_REALM_REALM_TYPES_H
+#define VESPERAOS_VESPERA_REALM_REALM_TYPES_H
 
-namespace syscalls::internal {
-    i64 sys_setsid(u64, u64, u64, u64, u64, u64) {
-        Realm* realm = kernel::scheduling::get_current_realm();
-        if (!realm) return -ESRCH;
+#include <vespera/types.h>
 
-        const auto result = kernel::jobctl::create_session(kernel::scheduling::get_current_realm_id());
+namespace kernel::realm {
 
-        if (result.is_err()) return result.to_errno();
+    /** @brief System realm */
+    constexpr u8 REALM_SYSTEM = 1;
 
-        return static_cast<i64>(result.unwrap());
-    }
-}  // namespace syscalls::internal
+    /** @brief Driver realm */
+    constexpr u8 REALM_DRIVER = 2;
+
+    // Trampoline page - mapped read-only into every user realm.
+    constexpr uptr TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
+    constexpr uptr TRAMP_SIGNAL_OFF = 0x000;
+    constexpr uptr TRAMP_UNIT_OFF = 0x100;
+    constexpr uptr SIGNAL_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_SIGNAL_OFF);
+    constexpr uptr USER_UNIT_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_UNIT_OFF);
+
+}  // namespace kernel::realm
+
+#endif  // VESPERAOS_VESPERA_REALM_REALM_TYPES_H
