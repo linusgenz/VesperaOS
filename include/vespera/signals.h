@@ -26,6 +26,7 @@
 
 #include "interrupts.h"
 
+struct sigaction_t;
 class Unit;
 enum class Signal : u32 {
     SIGINT = 2,
@@ -66,5 +67,28 @@ bool is_valid_signal(i32 signum);
 void signal_send(Unit* u, Signal sig);
 void signal_dispatch(Unit* u, TrapFrame* trap);
 void signal_default(Unit* unit, Signal sig);
+
+/**
+ * @brief Installs a signal action for the given unit.
+ *
+ * Validates @p signum, rejects SIGKILL, and updates the unit's
+ * signal_actions table and signal mask from @p act.
+ *
+ * @return 0 on success, negative errno on failure.
+ */
+[[nodiscard]] i64 signal_set_action(Unit* u, i32 signum, const sigaction_t* act);
+
+/**
+ * @brief Restores the pre-signal register state after a handler returns.
+ *
+ * Reads the @ref SignalFrame pushed by @ref signal_setup_userframe from
+ * the unit's user stack and overwrites the current trap frame with it.
+ *
+ * @return -EINTR always — the restored context resumes via iretq, the
+ *         syscall return value is discarded.
+ * @return -EINVAL if the unit has no current trap frame.
+ * @return -EFAULT if the frame address is outside the unit's stack.
+ */
+[[nodiscard]] i64 signal_restore_frame(Unit* u);
 
 #endif  // VESPERAOS_SIGNALS_H

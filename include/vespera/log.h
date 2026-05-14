@@ -8,20 +8,20 @@
 
 class IScreenRenderer;
 
+#define FORMAT_FN [[jetbrains::format]] [[gnu::format(printf, 1, 2)]]
+
 class Log {
    public:
     static auto set_terminal(Terminal* t) -> void;
 
-    static void info(const char* fmt, ...);
-    static void ok(const char* fmt, ...);
-    static void warning(const char* fmt, ...);
-    static void error(const char* fmt, ...);
-    static void log_msg(const char* fmt, ...);
-
-    static void debug(const char* fmt, ...);
-
-    static void print_ln(const char* fmt, ...);
-    static void print(const char* fmt, ...);
+    FORMAT_FN static void info(const char* fmt, ...);
+    FORMAT_FN static void ok(const char* fmt, ...);
+    FORMAT_FN static void warning(const char* fmt, ...);
+    FORMAT_FN static void error(const char* fmt, ...);
+    FORMAT_FN static void log_msg(const char* fmt, ...);
+    FORMAT_FN static void debug(const char* fmt, ...);
+    FORMAT_FN static void print_ln(const char* fmt, ...);
+    FORMAT_FN static void print(const char* fmt, ...);
 
     static void print(const char* fmt, __builtin_va_list args);
 

@@ -21,26 +21,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera_errno.h>
-
-#include <vespera/mm/memory.h>
+#include <vespera/mm/vm.h>
+#include <vespera/scheduling.h>
 
 namespace syscalls::internal {
+
     i64 sys_munmap(u64 addr, u64 length, u64, u64, u64, u64) {
-        if (length == 0 || addr % PAGE_SIZE != 0) {
-            return -EINVAL;
-        }
-        return 0;
-        // see sysstd reference on error codes for future impl.
-        /*
-                // Page align
-                length = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
-
-                Unit* cur = kernel::scheduling::get_current_unit();
-                if (!cur || !cur->is_user) return -EACCES;
-
-                VmArea* prev = nullptr;
-                VmArea* vma  = cur->vma_list;*/
+        return kernel::vm::munmap(
+            kernel::scheduling::get_current_unit(), addr, length
+        );
     }
 
 }  // namespace syscalls::internal

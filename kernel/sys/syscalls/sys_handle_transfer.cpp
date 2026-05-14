@@ -20,13 +20,14 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <realm/handle_table.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/ipc/channel.h>
+#include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera_errno.h>
 
 #include "../handle_resolution.h"
-#include <realm/handle_table.h>
 
 namespace syscalls::internal {
 

@@ -73,7 +73,7 @@ function(apply_kernel_compile_options target)
             $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
             $<$<COMPILE_LANGUAGE:CXX>:-mno-red-zone>
             $<$<COMPILE_LANGUAGE:CXX>:-mcmodel=kernel>
-            $<$<COMPILE_LANGUAGE:CXX>:-O0> # TODO adjust the kernel so we can compile with O2
+            $<$<COMPILE_LANGUAGE:CXX>:-O0>
             $<$<COMPILE_LANGUAGE:CXX>:-Wall>
             $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
     )

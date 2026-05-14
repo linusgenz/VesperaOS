@@ -11,19 +11,16 @@ set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 
 set(VESPERA_UAPI_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/uapi)
 
-# ── Shared CMake utilities ───────────────────────────────────────
-# Must come before any add_subdirectory so helper functions and
-# debug-option definitions are available to every submodule.
 include(KernelTargetDefaults.cmake)
 
-# ── Feature / debug toggles ──────────────────────────────────────
+# Feature / debug toggles
 message(STATUS "=== Compile Options ===")
 add_debug_option(ENABLE_DEBUG_FAULT "Enable fault/callstack debugger" ON)
 add_debug_option(ENABLE_DEBUG_SPINLOCK "Enable spinlock/deadlock debugger" ON)
 add_debug_option(ENABLE_ELF_LOGGING "Enable logging for ELF module" OFF)
 message(STATUS "=====================")
 
-# ── Test build (early return) ────────────────────────────────────
+# Test build (early return)
 option(VESPERA_BUILD_TESTS "Build unit tests" OFF)
 
 if (VESPERA_BUILD_TESTS)
@@ -37,7 +34,7 @@ endif ()
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-# ── Module sub-targets ───────────────────────────────────────────
+# Module sub-targets
 # Order matters: arch / drivers / filesystem must be defined before
 # kernel so that kernel.elf can reference their OBJECT libraries.
 add_subdirectory(arch)

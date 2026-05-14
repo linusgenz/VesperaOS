@@ -21,13 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 #include <filesystem/vfs.h>
+#include <filesystem/vfs_node.h>
 #include <klib/path.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/log.h>
-#include <vespera/realm/realm_manager.h>
 
-#include <filesystem/vfs_node.h>
 #include "fs_detection.h"
 #include "uapi/vespera/mount.h"
 
@@ -343,6 +342,60 @@ void VFS::get_stats(VfsStats* stats) {
     stats->supported_filesystems = 1;  // FAT32 is always supported
     // TODO: Add count of other registered drivers when implemented
 }*/
+
+namespace {
+
+    KernelDevice* resolve_block_device(const char* source) {
+        if (!source) return nullptr;
+
+        // Normalize: strip leading '/' and optional "dev/"
+        if (source[0] == '/') source++;
+        if (strncmp(source, "dev/", 4) == 0) source += 4;
+
+        auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
+        for (auto* kd : devices) {
+            if (kd && kd->name && strcmp(kd->name, source) == 0) return kd;
+        }
+        return nullptr;
+    }
+
+}  // namespace
+
+i64 VFS::mount(const char* source, const char* target, const char* fstype, const u64 flags) {
+    if (!target || target[0] != '/') return -EINVAL;
+
+    if (flags & MS_REMOUNT) {
+        MountPoint* mp = find_mount_point(target);
+        if (!mp) return -EINVAL;
+        mp->flags = flags & ~MS_REMOUNT;
+        return 0;
+    }
+
+    const KernelDevice* kd = resolve_block_device(source);
+    if (!kd) return -ENODEV;
+
+    for (const auto& mp : get_mount_points_snapshot()) {
+        if (mp->device && mp->device->device == kd->block) return -EBUSY;
+    }
+
+    return FilesystemDetector::mount_manual(kd, target, fstype, flags);
+}
+
+i64 VFS::unmount(const char* target) {
+    if (!target || target[0] != '/') return -EINVAL;
+
+    MountPoint* mp = find_mount_point(target);
+    if (!mp) return -ENOENT;
+    if (mp->is_root_device || mp->is_virtual) return -EACCES;
+
+    if (!FilesystemDetector::unmount(mp)) return -EBUSY;
+
+    return 0;
+}
+
+void VFS::unmount_all() {
+    FilesystemDetector::unmount_all();
+}
 
 void VFS::add_mount_point(MountPoint* mp) {
     SpinlockGuard g(mount_points_lock_);

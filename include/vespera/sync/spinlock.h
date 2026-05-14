@@ -57,7 +57,7 @@ class Spinlock {
     }
 };
 
-struct SpinlockGuard {
+struct [[jetbrains::guard]] SpinlockGuard {
     Spinlock &lock_ref;
 
     explicit SpinlockGuard(Spinlock &lock)
@@ -74,7 +74,7 @@ struct SpinlockGuard {
     SpinlockGuard &operator=(const SpinlockGuard &) = delete;
 };
 
-struct SpinlockGuardIrq {
+struct [[jetbrains::guard]] SpinlockGuardIrq {
     Spinlock &lock_ref;
     u64 flags{};
 

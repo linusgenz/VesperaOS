@@ -97,7 +97,7 @@ namespace kernel::memory {
     // Heap Allocator
     void initialize_heap(virt_addr_t heap_start, usize page_count);
 
-    void* alloc_aligned(usize size, usize alignment, usize boundary = 0);
+    [[nodiscard]] void* alloc_aligned(usize size, usize alignment, usize boundary = 0);
 
     void free_aligned(void* aligned_ptr);
 
@@ -105,7 +105,7 @@ namespace kernel::memory {
 
     void free(void* addr);
 
-    void* realloc(void* old_ptr, usize old_size, usize new_size);
+    [[nodiscard]] void* realloc(void* old_ptr, usize old_size, usize new_size);
 
     void print_heap_stats();
 }  // namespace kernel::memory

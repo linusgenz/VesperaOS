@@ -34,7 +34,7 @@ namespace kernel {
         [[nodiscard]] bool is_locked() const;
     };
 
-    struct MutexGuard {
+    struct [[jetbrains::guard]] MutexGuard {
         Mutex &mtx;
 
         explicit MutexGuard(Mutex &m)

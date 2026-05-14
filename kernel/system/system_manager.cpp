@@ -22,6 +22,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <acpi/acpi.h>
+#include <filesystem/vfs.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/log.h>
@@ -29,7 +30,6 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
-#include "../filesystem/vfs/fs_detection.h"
 #include "../cpu/cpu_manager.h"
 #include "../utils/panic.h"
 
@@ -298,7 +298,7 @@ namespace kernel {
 
         publish_event(shutdown_event);
 
-        FilesystemDetector::unmount_all();
+        VFS::unmount_all();
 
         DeviceManager::shutdown_all();
 

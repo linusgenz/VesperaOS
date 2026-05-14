@@ -106,6 +106,33 @@ class VFS {
 
     // static void get_stats(VfsStats* stats);
 
+    /**
+     * @brief Mounts a block device or virtual filesystem at the given target path.
+     *
+     * Resolves @p source as a /dev/ path to a registered block device, detects or
+     * uses the given @p fstype, and adds a new mount point. On MS_REMOUNT only the
+     * flags are updated.
+     *
+     * @param source  Device path (e.g. "/dev/nvme0n1p1") or nullptr for virtual mounts.
+     * @param target  Absolute path of the mount point.
+     * @param fstype  Filesystem type string or nullptr to auto-detect.
+     * @param flags   MS_* flag bits.
+     *
+     * @return 0 on success, negative errno on failure.
+     */
+    [[nodiscard]] static i64 mount(const char* source, const char* target, const char* fstype, u64 flags);
+
+    /**
+     * @brief Unmounts the filesystem mounted at @p target.
+     *
+     * Refuses to unmount root or virtual mounts.
+     *
+     * @return 0 on success, negative errno on failure.
+     */
+    [[nodiscard]] static i64 unmount(const char* target);
+
+    static void unmount_all();
+
     static void add_mount_point(MountPoint* mp);
 
     static usize mount_points_count();

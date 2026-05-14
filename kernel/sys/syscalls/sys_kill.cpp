@@ -21,6 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <vespera/realm/realm_manager.h>
+#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
 #include <vespera/types.h>
 #include <vespera_errno.h>

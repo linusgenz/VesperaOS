@@ -26,6 +26,7 @@
 #include <vespera/scheduling.h>
 #include <vespera/types.h>
 #include <realm/handle_table.h>
+#include <vespera/realm/realm.h>
 
 static void ref_void(void* p) {
     Channel::ref(static_cast<Channel*>(p));

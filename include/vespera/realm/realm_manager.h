@@ -25,12 +25,13 @@
 #define VESPERAOS_REALM_MANAGER_H
 
 #include <klib/result.h>
-#include <vespera/realm/realm.h>
 #include <vespera/realm/realm_config.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/spinlock.h>
 
 #include "vespera/signals.h"
+
+class Realm;
 
 class RealmManager {
    public:

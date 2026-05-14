@@ -21,15 +21,16 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <filesystem/vfs.h>
+#include <filesystem/vfs_handle.h>
 #include <filesystem/vfs_node.h>
 #include <security/permission.h>
+#include <vespera/realm/realm.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
 #include "../handle_resolution.h"
 #include "uapi/vespera/handles.h"
-#include <filesystem/vfs_handle.h>
 
 using namespace kernel::security;
 

@@ -24,6 +24,7 @@
 #include <vespera/realm/exit_code_table.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <vespera/realm/realm.h>
 
 namespace syscalls::internal {
     i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {

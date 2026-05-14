@@ -24,12 +24,12 @@
 #include <tty/tty_device.h>
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
-#include <units/unit.h>
+#include <vespera/realm/realm.h>
 #include <vespera/scheduling.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
 
-#include "../../../include/filesystem/vfs_handle.h"
+#include "filesystem/vfs_handle.h"
 
 namespace syscalls::internal {
     i64 sys_poll(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -39,7 +39,7 @@ namespace syscalls::internal {
 
         if (!hdls || nhdls == 0) return -EINVAL;
 
-        Realm* realm = kernel::scheduling::get_current_realm();
+        const Realm* realm = kernel::scheduling::get_current_realm();
         if (!realm) return -ESRCH;
 
         const u64 deadline = (timeout_ms >= 0) ? kernel::time::get_uptime_ms() + static_cast<u64>(timeout_ms) : U64_MAX;

@@ -20,31 +20,10 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera_errno.h>
-
-#include "../filesystem/vfs/fs_detection.h" // todo
 #include <filesystem/vfs.h>
 
 namespace syscalls::internal {
-    i64 sys_umount(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const auto target = reinterpret_cast<const char*>(arg0);
-
-        if (!target) return -EINVAL;
-
-        if (target[0] != '/') {
-            return -EINVAL;
-        }
-
-        MountPoint* mp = VFS::find_mount_point(target);
-        if (!mp) return -ENOENT;
-        if (mp->is_root_device || mp->is_virtual) return -EACCES;
-
-        if (!FilesystemDetector::unmount(mp))
-            return -EBUSY;
-
-        VFS::remove_mount_point(mp);
-        delete mp;
-
-        return 0;
+    i64 sys_umount(u64 arg0, u64, u64, u64, u64, u64) {
+        return VFS::unmount(reinterpret_cast<const char*>(arg0));
     }
-}
+}  // namespace syscalls::internal

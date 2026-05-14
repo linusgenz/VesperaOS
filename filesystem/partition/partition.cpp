@@ -21,12 +21,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "../../include/filesystem/partition.h"
+#include "filesystem/partition.h"
 
 #include <klib/encoding.h>
 #include <klib/string.h>
 #include <vespera/devices/block.h>
-#include <vespera/mm/memory.h>
 
 inline u16 rd16(const void *p) {
     return *static_cast<const u16 *>(p);
