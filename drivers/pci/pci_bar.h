@@ -52,7 +52,7 @@ namespace pci::bar {
      * @warning Temporarily writes to the BAR register during size probing.
      *          Do not call while the device is actively using the BAR.
      */
-    [[nodiscard]] BarInfo read(PCI_HEADER0* header, u8 index);
+    [[nodiscard]] BarInfo read(volatile PCI_HEADER0* header, u8 index);
 
 }  // namespace pci::bar
 

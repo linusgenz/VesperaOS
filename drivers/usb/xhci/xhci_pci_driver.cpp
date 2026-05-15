@@ -49,7 +49,7 @@ namespace usb {
     }
 
     struct xhci_probe_args {
-        pci::PCI_DEVICE_HEADER* pci_header;
+        volatile pci::PCI_DEVICE_HEADER* pci_header;
         u8                      vector;
         u8                      bus_number;
     };

@@ -18,8 +18,8 @@
 #include "vespera_errno.h"
 
 namespace nvme {
-    NvmeDriver::NvmeDriver(pci::PCI_DEVICE_HEADER* pci_base_address) {
-        const auto* pci = reinterpret_cast<const pci::PCI_HEADER0*>(pci_base_address);
+    NvmeDriver::NvmeDriver(volatile pci::PCI_DEVICE_HEADER* pci_base_address) {
+        const auto* pci = reinterpret_cast<const volatile pci::PCI_HEADER0*>(pci_base_address);
         phys_addr_t mmio = make_phys(((static_cast<u64>(pci->bar1) << 32) | (pci->bar0 & 0xFFFFFFF0)));
         virt_addr_t addr = kernel::memory::request_pages(4);
         c_regs_ = virt_as<NVME_CONTROLLER_REGISTERS>(addr);

@@ -9,7 +9,7 @@ namespace pci {
 
     namespace {
 
-        pci_device make_device(PCI_HEADER0* header, const pci_id& id) {
+        pci_device make_device(volatile PCI_HEADER0* header, const pci_id& id) {
             pci_device dev;
             dev.id = id;
             dev.header = header;
@@ -30,7 +30,7 @@ namespace pci {
 
         kernel::memory::map_memory(func_virt, func_phys);
 
-        auto* header = virt_as<PCI_HEADER0>(func_virt);
+        auto* header = virt_as<volatile PCI_HEADER0>(func_virt);
 
         if (header->header.device_id == 0 || header->header.device_id == 0xFFFF) return;
         if (header->header.vendor_id == 0 || header->header.vendor_id == 0xFFFF) return;

@@ -51,8 +51,8 @@ namespace usb {
         DevFs::register_device(kd_);
     }
 
-    bool XhciDriver::init_device(pci::PCI_DEVICE_HEADER* pci_base_address) {
-        pci_header_ = reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address);
+    bool XhciDriver::init_device(volatile pci::PCI_DEVICE_HEADER* pci_base_address) {
+        pci_header_ = reinterpret_cast<volatile pci::PCI_HEADER0*>(pci_base_address);
         const u64 bar0 = pci_header_->bar0 & ~0xF;
         const u64 bar1 = pci_header_->bar1;
         const u64 bar = ((bar1 << 32) | bar0);

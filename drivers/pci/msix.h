@@ -235,7 +235,7 @@ namespace pci {
      * @return true on success, false if the MSI-X capability was not found
      *         or the BAR could not be decoded.
      */
-    bool enable_msix(PCI_HEADER0* header, u8 irq_vector);
+    bool enable_msix(volatile PCI_HEADER0* header, u8 irq_vector);
 
     /**
      * @brief Enables MSI-X if available, otherwise falls back to MSI.
@@ -246,6 +246,6 @@ namespace pci {
      *
      * @return true if either MSI-X or MSI was successfully enabled.
      */
-    bool try_enable_msi_or_msix(PCI_HEADER0* header, u8 base_vector, u8 wanted = 0);
+    bool try_enable_msi_or_msix(volatile PCI_HEADER0* header, u8 base_vector, u8 wanted = 0);
 }  // namespace pci
 #endif  // MSIX_H

@@ -34,7 +34,7 @@ namespace pci::bar {
         return type == 0x2u;
     }
 
-    BarInfo read(PCI_HEADER0* header, const u8 index) {
+    BarInfo read(volatile PCI_HEADER0* header, const u8 index) {
         BarInfo info = {};
 
         if (index > 5)

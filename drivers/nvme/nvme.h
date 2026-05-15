@@ -189,7 +189,7 @@ namespace nvme {
        public:
         DRIVER_STATUS d_status = CONTROLLER_NOT_READY;
 
-        explicit NvmeDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
+        explicit NvmeDriver(volatile pci::PCI_DEVICE_HEADER* pci_base_address);
         ~NvmeDriver() override;
 
         void on_shutdown() override {

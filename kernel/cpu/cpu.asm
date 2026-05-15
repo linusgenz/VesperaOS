@@ -9,17 +9,20 @@ section .data
 
 
 get_cpu_vendor:
+    push rbx
     xor rax, rax;
     cpuid
     mov dword [rdi], ebx
     mov dword [rdi+4], edx
     mov dword [rdi+8], ecx
     mov byte  [rdi+12], 0
+    pop rbx
     ret
 
 GLOBAL get_cpu_vendor
 
 check_cpu_features:
+    push rbx
     xor rax, rax
     mov eax, 1
     cpuid
@@ -41,11 +44,13 @@ check_cpu_features:
     adc rax, 0x40       ; SSE4.2
     bt ecx, 28
     adc rax, 0x4        ; AVX
+    pop rbx
     ret
 
 GLOBAL check_cpu_features
 
 get_cpu_brand:
+    push rbx
     mov eax, 0x80000002
     cpuid
     mov [rdi], eax
@@ -68,6 +73,7 @@ get_cpu_brand:
     mov [rdi+44], edx
 
     mov byte [rdi+48], 0
+    pop rbx
     ret
 
 GLOBAL get_cpu_brand

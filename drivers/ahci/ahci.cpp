@@ -836,7 +836,7 @@ namespace ahci {
         }
     }
 
-    AhciDriver::AhciDriver(pci::PCI_DEVICE_HEADER* pci_base_address)
+    AhciDriver::AhciDriver(volatile pci::PCI_DEVICE_HEADER* pci_base_address)
         : pci_base_address(pci_base_address)
         , port_count(0) {
         Log::ok("[ AHCI ] AHCI Driver instance initialized");
@@ -854,7 +854,7 @@ namespace ahci {
                 .with_info(this)
         );
 
-        const phys_addr_t abar_phys = make_phys(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address)->bar5);
+        const phys_addr_t abar_phys = make_phys(reinterpret_cast<volatile pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
         kernel::memory::map_memory(make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough);
 
@@ -862,7 +862,7 @@ namespace ahci {
 
         const u8 vector = kernel::interrupts::get_free_vector();
         kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(global_interrupt_handler), this);
-        if (!pci::try_enable_msi_or_msix(reinterpret_cast<pci::PCI_HEADER0*>(pci_base_address), vector)) {
+        if (!pci::try_enable_msi_or_msix(reinterpret_cast<volatile pci::PCI_HEADER0*>(pci_base_address), vector)) {
             Log::debug("[ AHCI ] AHCI Driver instance failed to enable MSI");
             delete this;
         }

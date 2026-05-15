@@ -20,18 +20,18 @@ namespace pci {
      * Shared by all header types (0, 1, 2). Mapped directly from MMIO config space.
      */
     struct PCI_DEVICE_HEADER {
-        u16 vendor_id;
-        u16 device_id;
+        volatile u16 vendor_id;
+        volatile u16 device_id;
         volatile u16 command;
         volatile u16 status;
-        u8 revision_id;
-        u8 prog_if;
-        u8 subclass;
-        u8 _class;
-        u8 cache_line_size;
-        u8 latency_timer;
-        u8 header_type;
-        u8 bist;
+        volatile u8 revision_id;
+        volatile u8 prog_if;
+        volatile u8 subclass;
+        volatile u8 _class;
+        volatile u8 cache_line_size;
+        volatile u8 latency_timer;
+        volatile u8 header_type;
+        volatile u8 bist;
     };
 
     /**
@@ -43,25 +43,25 @@ namespace pci {
      * @note The capabilities pointer is valid only when bit 4 of @c status is set.
      */
     struct PCI_HEADER0 {
-        PCI_DEVICE_HEADER header;
-        u32 bar0;
-        u32 bar1;
-        u32 bar2;
-        u32 bar3;
-        u32 bar4;
-        u32 bar5;
-        u32 cardbus_cis_ptr;
-        u16 subsystem_vendor_id;
-        u16 subsystem_id;
-        u32 expansion_robase_addr;
-        u8 capabilities_ptr;
-        u8 rsv0;
-        u16 rsv1;
-        u32 rsv2;
-        u8 interrupt_line;
-        u8 interrupt_pin;
-        u8 min_grant;
-        u8 max_latency;
+        volatile PCI_DEVICE_HEADER header;
+        volatile u32 bar0;
+        volatile u32 bar1;
+        volatile u32 bar2;
+        volatile u32 bar3;
+        volatile u32 bar4;
+        volatile u32 bar5;
+        volatile u32 cardbus_cis_ptr;
+        volatile u16 subsystem_vendor_id;
+        volatile u16 subsystem_id;
+        volatile u32 expansion_robase_addr;
+        volatile u8 capabilities_ptr;
+        volatile u8 rsv0;
+        volatile u16 rsv1;
+        volatile u32 rsv2;
+        volatile u8 interrupt_line;
+        volatile u8 interrupt_pin;
+        volatile u8 min_grant;
+        volatile u8 max_latency;
     };
 
     constexpr u32 PCI_BAR_MEMORY_MASK = 0x1u;  ///< Bit 0: 0 = memory BAR, 1 = I/O BAR.
@@ -81,28 +81,28 @@ namespace pci {
         bool is_valid;         ///< False when the BAR is absent or the index is out of range.
     };
 
-    inline u8 pci_read8(PCI_DEVICE_HEADER* hdr, u8 offset) {
-        return *reinterpret_cast<volatile u8*>(reinterpret_cast<u8*>(hdr) + offset);
+    inline u8 pci_read8(volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<volatile u8*>(reinterpret_cast<volatile u8*>(hdr) + offset);
     }
 
-    inline void pci_write8(PCI_DEVICE_HEADER* hdr, u8 offset, u8 value) {
-        *reinterpret_cast<volatile u8*>(reinterpret_cast<u8*>(hdr) + offset) = value;
+    inline void pci_write8(volatile PCI_DEVICE_HEADER* hdr, u8 offset, u8 value) {
+        *reinterpret_cast<volatile u8*>(reinterpret_cast<volatile u8*>(hdr) + offset) = value;
     }
 
-    inline u16 pci_read16(PCI_DEVICE_HEADER* hdr, u8 offset) {
-        return *reinterpret_cast<volatile u16*>(reinterpret_cast<u8*>(hdr) + offset);
+    inline u16 pci_read16(volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<volatile u16*>(reinterpret_cast<volatile u8*>(hdr) + offset);
     }
 
-    inline void pci_write16(PCI_DEVICE_HEADER* hdr, u8 offset, u16 value) {
-        *reinterpret_cast<volatile u16*>(reinterpret_cast<u8*>(hdr) + offset) = value;
+    inline void pci_write16(volatile PCI_DEVICE_HEADER* hdr, u8 offset, u16 value) {
+        *reinterpret_cast<volatile u16*>(reinterpret_cast<volatile u8*>(hdr) + offset) = value;
     }
 
-    inline u32 pci_read32(PCI_DEVICE_HEADER* hdr, u8 offset) {
-        return *reinterpret_cast<volatile u32*>(reinterpret_cast<u8*>(hdr) + offset);
+    inline u32 pci_read32(volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<volatile u32*>(reinterpret_cast<volatile u8*>(hdr) + offset);
     }
 
-    inline void pci_write32(PCI_DEVICE_HEADER* hdr, u8 offset, u32 value) {
-        *reinterpret_cast<volatile u32*>(reinterpret_cast<u8*>(hdr) + offset) = value;
+    inline void pci_write32(volatile PCI_DEVICE_HEADER* hdr, u8 offset, u32 value) {
+        *reinterpret_cast<volatile u32*>(reinterpret_cast<volatile u8*>(hdr) + offset) = value;
     }
 
     /**

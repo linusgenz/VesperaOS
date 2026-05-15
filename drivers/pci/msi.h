@@ -131,6 +131,6 @@ namespace pci {
      *         the capabilities list bit in @c status is not set.
      */
 
-    bool enable_msi(PCI_HEADER0* header, u8 base_vector, u8 wanted = 1);
+    bool enable_msi(volatile PCI_HEADER0* header, u8 base_vector, u8 wanted = 1);
 }  // namespace pci
 #endif  // MSI_H

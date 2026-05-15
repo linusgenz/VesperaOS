@@ -265,12 +265,12 @@ namespace ahci {
 
     class AhciDriver final : public IDriverLifecycle, public IDeviceInfo {
        public:
-        explicit AhciDriver(pci::PCI_DEVICE_HEADER* pci_base_address);
+        explicit AhciDriver(volatile pci::PCI_DEVICE_HEADER* pci_base_address);
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
         ~AhciDriver() override;
         [[nodiscard]] bool has_active_ports() const;
-        pci::PCI_DEVICE_HEADER* pci_base_address;
+        volatile pci::PCI_DEVICE_HEADER* pci_base_address;
         HBA_MEMORY* abar;
         void probe_ports();
         static Irqreturn global_interrupt_handler(const AhciDriver* driver);

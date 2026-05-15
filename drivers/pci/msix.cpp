@@ -34,8 +34,8 @@
 
 namespace pci {
 
-    bool enable_msix(PCI_HEADER0* header, const u8 irq_vector) {
-        auto* config_space = reinterpret_cast<u8*>(&header->header);
+    bool enable_msix(volatile PCI_HEADER0* header, const u8 irq_vector) {
+        auto* config_space = reinterpret_cast<volatile u8*>(&header->header);
 
         if (!(header->header.status & (1u << 4))) {
             Log::error("PCI: No capabilities present");
@@ -94,7 +94,7 @@ namespace pci {
         return false;
     }
 
-    bool try_enable_msi_or_msix(PCI_HEADER0* header, const u8 base_vector, const u8 wanted) {
+    bool try_enable_msi_or_msix(volatile PCI_HEADER0* header, const u8 base_vector, const u8 wanted) {
         if (enable_msix(header, base_vector)) return true;
         return enable_msi(header, base_vector, wanted);
     }

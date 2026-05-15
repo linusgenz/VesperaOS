@@ -24,7 +24,7 @@ namespace usb {
 
         ~XhciDriver() override = default;
 
-        bool init_device(pci::PCI_DEVICE_HEADER* pci_base_address);
+        bool init_device(volatile pci::PCI_DEVICE_HEADER* pci_base_address);
 
         XhciDevice* find_by_slot(u8 slot_id);
 
@@ -44,7 +44,7 @@ namespace usb {
 
         UsbDeviceInfo* controller_info_;
 
-        pci::PCI_HEADER0* pci_header_;
+        volatile pci::PCI_HEADER0* pci_header_;
 
         Spinlock devices_lock_{};
         Spinlock command_lock_{};

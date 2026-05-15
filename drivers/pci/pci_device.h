@@ -46,7 +46,7 @@ namespace pci {
     struct pci_device {
         pci_id id;
 
-        PCI_HEADER0* header = nullptr;
+        volatile PCI_HEADER0* header = nullptr;
 
         // Shortcut fields, values are sourced from the header
         u16 vendor_id = 0;
