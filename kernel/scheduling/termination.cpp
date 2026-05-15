@@ -34,6 +34,8 @@
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
+#include "cpu_scheduler.h"
+
 static void do_terminate_unit(Unit* unit, Signal fault_sig) {
     unit->exit_code = -static_cast<i32>(fault_sig);
     unit->state = UnitState::Terminated;
@@ -44,7 +46,7 @@ static void do_terminate_unit(Unit* unit, Signal fault_sig) {
     }
 
     const u8 cpu_id = unit->cpu_id;
-    auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
+    auto* cpu = kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
     cpu->ready_queue.remove(unit);
     cpu->blocked_queue.remove(unit);
 
@@ -65,7 +67,7 @@ namespace kernel::scheduling {
 
         {
             const u8 cpu_id = cpu_manager::get_current_cpu_id();
-            auto* cpu = get_cpu_data(cpu_id);
+            auto* cpu = cpu_scheduler::get_cpu_data(cpu_id);
             SpinlockGuard guard(cpu->lock);
 
             if (cpu->current_unit && cpu->current_unit->rid == realm->id) {
@@ -91,7 +93,7 @@ namespace kernel::scheduling {
         asm volatile("cli");
 
         u8 cpu_id = cpu_manager::get_current_cpu_id();
-        auto* cpu = get_cpu_data(cpu_id);
+        auto* cpu = cpu_scheduler::get_cpu_data(cpu_id);
 
         Unit* current = cpu->current_unit;
         Realm* realm = current ? current->parent : nullptr;
@@ -109,7 +111,7 @@ namespace kernel::scheduling {
         if (!realm) return -ESRCH;
 
         u8 cpu_id = cpu_manager::get_current_cpu_id();
-        auto* cpu = get_cpu_data(cpu_id);
+        auto* cpu = cpu_scheduler::get_cpu_data(cpu_id);
 
         Unit* current = cpu->current_unit;
 
@@ -135,5 +137,31 @@ namespace kernel::scheduling {
         realm->unit_count = 0;
 
         return SUCCESS_CODE;
+    }
+
+    void exit_current(const int exit_code) {
+        const u8 cpu_id = cpu_manager::get_current_cpu_id();
+        cpu_scheduler::CpuScheduler* cpu = cpu_scheduler::get_cpu_data(cpu_id);
+
+        Unit* current = get_current_unit();
+        if (!current) kernel::SystemManager::system_panic("exit_current: no active unit", -KENOUNIT);
+
+        if (Realm* realm = current->parent) {
+            SpinlockGuard g(realm->lock);
+            if (realm->unit_count == 1) {
+                ExitCodeTable::store(realm->id, exit_code);
+                realm->exit_code = exit_code;
+                realm->exited = true;
+                realm->wait_queue.wake_all();
+            }
+        }
+
+        current->exit_code = exit_code;
+        current->state = UnitState::Terminated;
+        cpu->reaper.enqueue(current);
+        cpu->current_unit = nullptr;
+
+        yield();
+        for (;;) asm volatile("hlt");
     }
 }  // namespace kernel::scheduling

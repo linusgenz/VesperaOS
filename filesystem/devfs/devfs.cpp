@@ -187,14 +187,16 @@ Result<usize> DevFs::read(const VfsNode* node, const usize offset, const usize s
         if (!entry->cf) open(node);
         const isize r = kd->chardev->read(entry->cf, buffer, size, offset);
         if (r < 0) return Error::Io;
-        return Result<usize>::ok(static_cast<usize>(r));    }
+        return Result<usize>::ok(static_cast<usize>(r));
+    }
     if (kd->block) {
         const usize sector_size = kd->block->get_sector_size();
         const u64 lba = offset / sector_size;
         const u32 sectors = (size + sector_size - 1) / sector_size;
         const isize r = kd->block->read(lba, sectors, buffer, size);
         if (r < 0) return Error::Io;
-        return Result<usize>::ok(static_cast<usize>(r));    }
+        return Result<usize>::ok(static_cast<usize>(r));
+    }
 
     return Error::Inval;
 }
@@ -212,7 +214,7 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
     // CharDevice
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const int res = open(node); res < 0) return Error::Inval; // TODO adapt chardevs
+            if (const int res = open(node); res < 0) return Error::Inval;  // TODO adapt chardevs
         }
         const isize r = kd->chardev->write(entry->cf, buffer, size);
         if (r < 0) return Error::Io;
@@ -232,7 +234,6 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
 
     return Error::Inval;
 }
-
 isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     if (!node) return -EINVAL;
 
@@ -243,50 +244,74 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
 
     const KernelDevice* kd = entry->device;
 
-    if (cmd >= IOCTL_DEVINFO_GET_ALL && cmd <= IOCTL_DEVINFO_GET_FW) {
+    if (IOC_GET_TYPE(cmd) == 'D') {
         IDeviceInfo* info = kd->info;
 
         if (!info && kd->dev_class == DeviceClass::Pseudo && strcmp(kd->name, "gpu") == 0) {
             auto primary = DisplayManager::primary();
-            if (primary.kd) info = primary.kd->info;
+            if (primary.kd) {
+                info = primary.kd->info;
+            }
         }
 
-        if (!info && kd->parent) info = kd->parent->info;
+        if (!info && kd->parent) {
+            info = kd->parent->info;
+        }
 
         switch (cmd) {
             case IOCTL_DEVINFO_GET_ALL: {
-                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                if (!info) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 auto* d = static_cast<devinfo_t*>(arg);
+
                 info->get_model(d->model, sizeof(d->model));
                 info->get_serial(d->serial, sizeof(d->serial));
                 info->get_vendor(d->vendor, sizeof(d->vendor));
                 info->get_firmware(d->firmware, sizeof(d->firmware));
+
                 return 0;
             }
+
             case IOCTL_DEVINFO_GET_MODEL: {
-                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                if (!info) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return info->get_model(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
             }
+
             case IOCTL_DEVINFO_GET_SERIAL: {
-                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                if (!info) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return info->get_serial(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
             }
+
             case IOCTL_DEVINFO_GET_VENDOR: {
-                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                if (!info) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return info->get_vendor(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
             }
+
             case IOCTL_DEVINFO_GET_FW: {
-                if (!info || !arg) return info ? -EINVAL : -ENOTTY;
+                if (!info) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return info->get_firmware(static_cast<devinfo_string_t*>(arg)->value, 128) ? 0 : -EIO;
             }
+
             default:
-                return -ENOTTY;
+                break;
         }
     }
 
     if (cmd == IOCTL_USB_GET_DEVICE_INFO) {
         const IUsbDeviceInfo* usb_info = kd->usb_info;
-        if (!usb_info && kd->parent) usb_info = kd->parent->usb_info;
+
+        if (!usb_info && kd->parent) {
+            usb_info = kd->parent->usb_info;
+        }
 
         if (!usb_info) return -ENOTTY;
         if (!arg) return -EINVAL;
@@ -294,16 +319,19 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
         return usb_info->get_usb_device_info(static_cast<usb_device_info_t*>(arg)) ? 0 : -EIO;
     }
 
-    // CharDevice
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const int res = open(node); res < 0) return res;
+            if (const int res = open(node); res < 0) {
+                return res;
+            }
         }
+
         return kd->chardev->ioctl(entry->cf, cmd, arg);
     }
 
     if (kd->block) {
         ISmartDevice* smart = kd->smart;
+
         if (!smart && kd->parent) {
             smart = kd->parent->smart;
         }
@@ -312,19 +340,31 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
             case IOCTL_SMART_GET_RAW: {
                 if (!smart) return -ENOTTY;
                 if (!arg) return -EINVAL;
+
                 return smart->smart_read_data(static_cast<smart_raw*>(arg)->data) ? 0 : -EIO;
             }
-            case IOCTL_SMART_GET_COMMON:
-                if (!smart || !arg) return smart ? -EINVAL : -ENOTTY;
+
+            case IOCTL_SMART_GET_COMMON: {
+                if (!smart) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return smart->smart_get_common(static_cast<smart_common*>(arg)) ? 0 : -EIO;
+            }
 
-            case IOCTL_SMART_GET_NVME:
-                if (!smart || !arg) return smart ? -EINVAL : -ENOTTY;
+            case IOCTL_SMART_GET_NVME: {
+                if (!smart) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return smart->smart_get_nvme(static_cast<smart_nvme*>(arg)) ? 0 : -ENOTTY;
+            }
 
-            case IOCTL_SMART_GET_ATA:
-                if (!smart || !arg) return smart ? -EINVAL : -ENOTTY;
+            case IOCTL_SMART_GET_ATA: {
+                if (!smart) return -ENOTTY;
+                if (!arg) return -EINVAL;
+
                 return smart->smart_get_ata(static_cast<smart_ata*>(arg)) ? 0 : -ENOTTY;
+            }
+
             default:
                 return -ENOTTY;
         }

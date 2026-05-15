@@ -1,9 +1,9 @@
-// unit_termination.h
+// spawn.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 18.03.26.
+// Created by Linus Genz on 15.05.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,14 +19,3 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_UNIT_TERMINATION_H
-#define VESPERAOS_UNIT_TERMINATION_H
-
-#include <vespera/signals.h>
-
-namespace  kernel::scheduling {
-    [[noreturn]] void kill_current_realm(Signal sig, const char* reason);
-    i64 kill_realm_by_id(u64 rid, Signal sig);
-}
-
-#endif  // VESPERAOS_UNIT_TERMINATION_H
