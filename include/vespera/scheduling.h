@@ -54,6 +54,16 @@ namespace kernel::scheduling {
      */
     [[nodiscard]] bool is_current_unit_idle();
 
+    /**
+     * @brief Returns the accumulated CPU time of all units in the given realm.
+     *
+     * Includes the currently running slice of the active unit if applicable.
+     *
+     * @param realm_id  Target realm ID.
+     * @return Total nanoseconds of CPU time, or 0 if the realm is not found.
+     */
+    [[nodiscard]] u64 get_realm_cpu_time_ns(RealmId realm_id);
+
     // Query functions
     Unit* get_current_unit();
 
@@ -97,8 +107,6 @@ namespace kernel::scheduling {
 
     bool is_initialized();
     u32 get_num_cpus();
-
-    cpu_scheduler::CpuScheduler* get_cpu_data(u8 cpu_id);
 
     void wake_sleeping_units(u8 cpu_id);
 

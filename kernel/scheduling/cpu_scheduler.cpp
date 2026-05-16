@@ -7,7 +7,6 @@
 #include <cpu/cpu_manager.h>
 #include <klib/string.h>
 #include <realm/address_space.h>
-#include <realm/realm.h> // TODO
 #include <units/unit.h>
 #include <vespera/log.h>
 #include <vespera/realm/realm_manager.h>
@@ -123,12 +122,11 @@ namespace kernel::scheduling::cpu_scheduler {
             wrmsr(MSR_KERNEL_GS_BASE, 0);
         }
 
-        if (next->is_user && next->rid) {
-            if (!next->parent) return;  // should not happen
-            const u64 cr3 = phys_raw(next->parent->address_space->pml4_phys()); // TODO ABSTRACT
-            asm volatile("mov %0, %%cr3" ::"r"(cr3) : "memory");
+        // only user units get the cr3 field set so we do not have to check for the type of unit
+        if (next->cr3 != 0) {
+            asm volatile("mov %0, %%cr3" :: "r"(next->cr3) : "memory");
         } else {
-            asm volatile("mov %0, %%cr3" ::"r"(kernel::memory::get_pagetable_address()) : "memory");
+            asm volatile("mov %0, %%cr3" ::"r"(memory::get_pagetable_address()) : "memory");
         }
 
         tss_set_rsp0(next->cpu_id, virt_raw(next->context.stack_pointer));

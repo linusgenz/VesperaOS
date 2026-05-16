@@ -7,7 +7,9 @@
 #include <realm/realm.h>
 #include <units/unit.h>
 #include <vespera/log.h>
+#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
+#include <vespera/time.h>
 
 #include "cpu/cpu_manager.h"
 #include "cpu_scheduler.h"
@@ -106,6 +108,21 @@ namespace kernel::scheduling {
         return u->parent;
     }
 
+    u64 get_realm_cpu_time_ns(const RealmId realm_id) {
+        const Realm *realm = RealmManager::get(realm_id);
+        if (!realm) return 0;
+
+        const Unit *current = get_current_unit();
+        u64 total_ns = 0;
+
+        for (const Unit *u = realm->unit_list; u; u = u->next) {
+            total_ns += u->cpu_time_ns;
+            if (u == current && u->run_start_ns != 0) total_ns += time::get_uptime_ns() - u->run_start_ns;
+        }
+
+        return total_ns;
+    }
+
     UnitId get_current_unit_id() {
         if (!is_curent_cpu_enabled()) return 0;
         const Unit *u = get_current_unit();
@@ -151,10 +168,6 @@ namespace kernel::scheduling {
 
     u32 get_num_cpus() {
         return global_scheduler.num_cpus;
-    }
-
-    cpu_scheduler::CpuScheduler *get_cpu_data(u8 cpu_id) {
-        return cpu_scheduler::get_cpu_data(cpu_id);
     }
 
     void wake_sleeping_units(u8 cpu_id) {

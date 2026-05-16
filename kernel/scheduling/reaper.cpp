@@ -26,18 +26,18 @@
 #include <scheduling/scheduler_types.h>
 #include <units/unit.h>
 #include <vespera/log.h>
-#include <vespera/scheduling.h>
 #include <vespera/time.h>
 #include <vespera/unit/unit_manager.h>
 
 #include "../cpu/cpu_manager.h"
+#include "cpu_scheduler.h"
 
 [[noreturn]] void reaper_unit(void* arg) {
     while (true) {
         kernel::time::sleep_ms(1000);
 
         const u8 cpu_id = cpu_manager::get_current_cpu_id();
-        auto* cpu = kernel::scheduling::get_cpu_data(cpu_id);
+        auto* cpu = kernel::scheduling::cpu_scheduler::get_cpu_data(cpu_id);
 
         if (cpu->reaper.empty()) continue;
 

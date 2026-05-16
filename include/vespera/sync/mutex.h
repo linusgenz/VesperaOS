@@ -6,6 +6,7 @@
 #define MUTEX_H
 #include "atomic.h"
 #include <klib/intrusive_queue.h>
+#include <vespera/sync/spinlock.h>
 
 class Unit;
 
@@ -20,7 +21,7 @@ namespace kernel {
     class Mutex {
         atomic_flag_t locked_{};
         Spinlock lock_;
-        IntrusiveQueue<Unit> waiters_{};
+        IntrusiveQueue<Unit> waiters_;
 
        public:
         void init();

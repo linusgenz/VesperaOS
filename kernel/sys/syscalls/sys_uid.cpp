@@ -67,17 +67,17 @@ namespace syscalls::internal {
 
         const auto old = cred;
 
-        if (ruid != (u32)-1) {
+        if (ruid != static_cast<u32>(-1)) {
             if (!is_root(old) && ruid != old.uid && ruid != old.euid) return -EPERM;
             cred.uid = ruid;
         }
 
-        if (euid != (u32)-1) {
+        if (euid != static_cast<u32>(-1)) {
             if (!is_root(old) && euid != old.uid && euid != old.euid && euid != old.suid) return -EPERM;
             cred.euid = euid;
         }
 
-        if (ruid != (u32)-1 || (euid != (u32)-1 && euid != old.uid)) {
+        if (ruid != static_cast<u32>(-1) || (euid != static_cast<u32>(-1) && euid != old.uid)) {
             cred.suid = cred.euid;
         }
 

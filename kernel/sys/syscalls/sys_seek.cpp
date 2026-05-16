@@ -21,11 +21,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/vfs_handle.h>
+#include <filesystem/vfs_node.h>
 #include <uapi/vespera/fflags.h>
 #include <uapi/vespera/handles.h>
 
 #include "../handle_resolution.h"
-#include <filesystem/vfs_handle.h>
 
 namespace syscalls::internal {
     i64 sys_seek(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {

@@ -19,3 +19,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <filesystem/vfs_node.h>
+#include <filesystem/vfs_handle.h>
+
+VfsHandle::~VfsHandle() {
+    if (node) {
+        if (node->type == VfsNodeType::Directory &&
+            context && context->type_specific_data) {
+            VFS::closedir(context->type_specific_data);
+            context->type_specific_data = nullptr;
+            }
+
+        VFS::close(node);
+    }
+    delete context;
+}

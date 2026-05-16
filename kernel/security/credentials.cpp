@@ -26,12 +26,6 @@
 
 namespace kernel::security {
 
-    static process_credentials& current_cred() {
-        Realm* r = kernel::scheduling::get_current_realm();
-        // Kernel guarantee: only called in syscall context
-        return r->cred;
-    }
-
     Result<process_credentials> current_credentials() {
         Realm* r = kernel::scheduling::get_current_realm();
         if (!r)
@@ -113,8 +107,8 @@ namespace kernel::security {
 
         const auto old = r->cred;
 
-        auto valid = [&](u32 v, bool is_uid) {
-            if (v == (u32)-1) return true;
+        auto valid = [&](u32 v, const bool is_uid) {
+            if (v == static_cast<u32>(-1)) return true;
             if (is_root(old)) return true;
             return is_uid
                 ? (v == old.uid || v == old.euid || v == old.suid)

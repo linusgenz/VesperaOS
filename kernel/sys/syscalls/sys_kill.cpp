@@ -20,8 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <realm/realm.h>
-#include <scheduling/unit_termination.h>
+#include <scheduling/termination.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/realm/realm_ops.h>
 #include <vespera/scheduling.h>

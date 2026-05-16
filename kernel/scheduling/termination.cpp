@@ -20,7 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "unit_termination.h"
+#include "termination.h"
 
 #include <cpu/cpu_manager.h>
 #include <realm/realm.h>

@@ -20,9 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <realm/realm.h> // TODO TEMP
 #include <uapi/vespera/time.h>
-#include <units/unit.h> // TODO TEMP
 #include <vespera/realm/realm_manager.h>
 #include <vespera/time.h>
 #include <vespera/types.h>
@@ -33,7 +31,7 @@ namespace syscalls::internal {
 
     static i64 fill_realtime(timespec_t* ts) {
         const u64 realtime_ns = kernel::time::get_realtime_ns();
-        ts->tv_sec  = static_cast<i64>(realtime_ns / 1'000'000'000ULL);
+        ts->tv_sec = static_cast<i64>(realtime_ns / 1'000'000'000ULL);
         ts->tv_nsec = static_cast<i64>(realtime_ns % 1'000'000'000ULL);
         return SUCCESS_CODE;
     }
@@ -46,19 +44,10 @@ namespace syscalls::internal {
     }
 
     static i64 fill_process_cputime(timespec_t* ts) {
-        const Unit* current = kernel::scheduling::get_current_unit();
-        if (!current) return -EINVAL;
+        const RealmId rid = kernel::scheduling::get_current_realm_id();
+        if (rid == 0) return -EINVAL;
 
-        const Realm* realm = current->parent;
-        if (!realm) return -EINVAL;
-
-        u64 total_ns = 0;
-        const Unit* u = realm->unit_list;
-        while (u) {
-            total_ns += u->cpu_time_ns;
-            if (u == current && u->run_start_ns != 0) total_ns += kernel::time::get_uptime_ns() - u->run_start_ns;
-            u = u->next;
-        }
+        const u64 total_ns = kernel::scheduling::get_realm_cpu_time_ns(rid);
 
         ts->tv_sec = static_cast<i64>(total_ns / 1'000'000'000ULL);
         ts->tv_nsec = static_cast<i64>(total_ns % 1'000'000'000ULL);
