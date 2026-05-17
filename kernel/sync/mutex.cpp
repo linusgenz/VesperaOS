@@ -2,11 +2,11 @@
 // Created by Linus on 20.07.25.
 //
 
+#include <klib/intrusive_queue.h>
+#include <units/unit.h>
 #include <vespera/scheduling.h>
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/mutex.h>
-
-#include <units/unit.h>
 
 namespace kernel {
     inline bool scheduling_started = false;

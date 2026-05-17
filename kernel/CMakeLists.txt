@@ -97,31 +97,6 @@ add_custom_target(embedded_font DEPENDS ${CMAKE_BINARY_DIR}/font.o)
 # ── AP trampoline (separate flat binary → embedded header) ────────
 find_program(NASM_EXECUTABLE nasm REQUIRED)
 
-set(AP_TRAMPOLINE_ASM ${CMAKE_SOURCE_DIR}/kernel/cpu/ap_trampoline.asm)
-set(AP_TRAMPOLINE_BIN ${CMAKE_BINARY_DIR}/ap_trampoline.bin)
-set(AP_TRAMPOLINE_HEADER ${CMAKE_BINARY_DIR}/ap_trampoline_blob.h)
-
-add_custom_command(
-        OUTPUT ${AP_TRAMPOLINE_BIN}
-        COMMAND ${NASM_EXECUTABLE} -f bin
-        -o ${AP_TRAMPOLINE_BIN}
-        ${AP_TRAMPOLINE_ASM}
-        DEPENDS ${AP_TRAMPOLINE_ASM}
-        COMMENT "Assembling AP trampoline flat binary"
-)
-
-add_custom_command(
-        OUTPUT ${AP_TRAMPOLINE_HEADER}
-        COMMAND xxd -i ap_trampoline.bin
-        | sed 's/unsigned char ap_trampoline_bin/inline unsigned char ap_trampoline_bin/'
-        | sed 's/unsigned int ap_trampoline_bin_len/inline unsigned int ap_trampoline_bin_len/'
-        > ${AP_TRAMPOLINE_HEADER}
-        DEPENDS ${AP_TRAMPOLINE_BIN}
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMENT "Generating AP trampoline header"
-)
-add_custom_target(ap_trampoline DEPENDS ${AP_TRAMPOLINE_HEADER})
-
 # ── Kernel symbol table (only when ENABLE_DEBUG_FAULT) ───────────
 if (ENABLE_DEBUG_FAULT)
 
@@ -153,7 +128,7 @@ if (ENABLE_DEBUG_FAULT)
     kernel_module_includes(kernel_stage1 ${CMAKE_SOURCE_DIR}/kernel)
     #target_include_directories(kernel_stage1 PRIVATE ${CMAKE_SOURCE_DIR})
 
-    add_dependencies(kernel_stage1 embedded_font ap_trampoline)
+    add_dependencies(kernel_stage1 embedded_font)
 
     # Generate kernel.map from stage-1 symbols
     add_custom_command(

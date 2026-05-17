@@ -34,14 +34,14 @@ namespace kernel::time::clock_manager {
 
         HpetClock g_hpet;
         PitClock g_pit;
-        TscClock  g_tsc;
+      //  TscClock  g_tsc;
 
         IClockSource* g_active = nullptr;
 
         constexpr IClockSource* const G_SOURCES[] = {
             &g_pit,
             &g_hpet,
-            &g_tsc,
+          //  &g_tsc,
         };
     }  // namespace
 

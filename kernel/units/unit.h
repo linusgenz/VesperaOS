@@ -89,6 +89,8 @@ class Unit {
     UnitState state{UnitState::New};
     u64 creation_time{0};
 
+    uptr cr3{0};
+
     u8 priority{0};
     u8 cpu_id{0};
     bool active{false};

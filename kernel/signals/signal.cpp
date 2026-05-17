@@ -21,7 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <klib/string.h>
-#include <scheduling/unit_termination.h>
+#include <scheduling/termination.h>
 #include <uapi/vespera/signal.h>
 #include <units/unit.h>
 #include <vespera/interrupts.h>

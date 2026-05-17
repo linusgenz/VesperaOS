@@ -284,6 +284,10 @@ void UnitManager::setup_context(Unit* u, const UnitConfig* cfg) {
     if (u->is_user) {
         if (cfg->is_main_unit && (cfg->argv || cfg->envp)) setup_user_args_and_env(u, cfg->argv, cfg->envp);
         init_user_cpu_context(u);
+
+        if (u->parent && u->parent->address_space) {
+            u->cr3 = phys_raw(u->parent->address_space->pml4_phys());
+        }
     } else {
         init_kernel_cpu_context(u);
     }
