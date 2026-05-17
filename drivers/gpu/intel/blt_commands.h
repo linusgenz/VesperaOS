@@ -134,11 +134,11 @@ namespace blt {
     struct XY_COLOR_BLT_CMD {
         XY_COLOR_BLT_DW0 dw0;
         XY_COLOR_BLT_DW1 dw1;
-        BLT_BR22 dw2;          // Destination top-left
-        BLT_BR23 dw3;          // Destination bottom-right
+        BLT_BR22 dw2;  // Destination top-left
+        BLT_BR23 dw3;  // Destination bottom-right
         u32 dest_addr_lo;
         u32 dest_addr_hi;
-        u32 solid_color;       // BR16 — ARGB8888
+        u32 solid_color;  // BR16 — ARGB8888
     } __attribute__((packed));
 
     // XY_SRC_COPY_BLT  (opcode 0x53, 10 DWORDs)
@@ -186,11 +186,11 @@ namespace blt {
     struct XY_SRC_COPY_BLT_CMD {
         XY_SRC_COPY_BLT_DW0 dw0;
         XY_SRC_COPY_BLT_DW1 dw1;
-        BLT_BR22 dw2;          // Destination top-left
-        BLT_BR23 dw3;          // Destination bottom-right
+        BLT_BR22 dw2;  // Destination top-left
+        BLT_BR23 dw3;  // Destination bottom-right
         u32 dest_addr_lo;
         u32 dest_addr_hi;
-        BLT_BR26 dw6;          // Source top-left
+        BLT_BR26 dw6;  // Source top-left
         XY_SRC_COPY_BLT_DW7 dw7;
         u32 src_addr_lo;
         u32 src_addr_hi;
@@ -232,15 +232,15 @@ namespace blt {
     struct XY_MONO_SRC_COPY_BLT_CMD {
         XY_MONO_SRC_COPY_BLT_DW0 dw0;
         XY_MONO_SRC_COPY_BLT_DW1 dw1;
-        BLT_BR22 dw2;           // Destination top-left
-        BLT_BR23 dw3;           // Destination bottom-right
+        BLT_BR22 dw2;  // Destination top-left
+        BLT_BR23 dw3;  // Destination bottom-right
         u32 dest_addr_lo;
         u32 dest_addr_hi;
         u32 mono_src_addr_lo;
         u32 mono_src_addr_hi;
-        u32 bg_color;           // BR18
-        u32 fg_color;           // BR19
-        u32 trailing;           // DW10 = 0 (alignment pad)
+        u32 bg_color;  // BR18
+        u32 fg_color;  // BR19
+        u32 trailing;  // DW10 = 0 (alignment pad)
     } __attribute__((packed));
 
     // XY_FAST_COPY_BLT  (opcode 0x42, 10 DWORDs)
@@ -285,11 +285,11 @@ namespace blt {
     struct XY_FAST_COPY_BLT_CMD {
         XY_FAST_COPY_BLT_DW0 dw0;
         XY_FAST_COPY_BLT_DW1 dw1;
-        BLT_BR22 dw2;          // Destination top-left
-        BLT_BR23 dw3;          // Destination bottom-right
+        BLT_BR22 dw2;  // Destination top-left
+        BLT_BR23 dw3;  // Destination bottom-right
         u32 dest_addr_lo;
         u32 dest_addr_hi;
-        BLT_BR26 dw6;          // Source top-left
+        BLT_BR26 dw6;  // Source top-left
         XY_FAST_COPY_BLT_DW7 dw7;
         u32 src_addr_lo;
         u32 src_addr_hi;
@@ -300,14 +300,18 @@ namespace blt {
     /// DW0 for MI_FLUSH_DW.
     union MI_FLUSH_DW_DW0 {
         struct {
-            u32 dword_len : 8;    // [7:0]   = 0x03
-            u32 reserved0 : 6;    // [13:8]  MBZ
-            u32 post_sync : 1;    // [14]    enable write to address_or_offset
-            u32 reserved1 : 6;    // [20:15] MBZ
-            u32 store_index : 1;  // [21]    1 = DW1 is HWSP DWORD index
-            u32 reserved2 : 1;    // [22]    MBZ
-            u32 opcode : 6;       // [28:23] = 0x26
-            u32 client : 3;       // [31:29] = 0x0
+            u32 dword_len : 6;    // [5:0]
+            u32 reserved_a : 2;   // [7:6]   MBZ
+            u32 notify_en : 1;    // [8]
+            u32 flush_llc : 1;    // [9]
+            u32 reserved_b : 4;   // [13:10] MBZ
+            u32 post_sync : 2;    // [15:14] 2-Bit: 0=NoWrite, 1=WriteImmediate, 3=WriteTimestamp
+            u32 reserved_c : 3;   // [18:16] (inkl. TLB Invalidate bit[18])
+            u32 reserved_d : 2;   // [20:19] MBZ
+            u32 store_index : 1;  // [21]
+            u32 reserved_e : 1;   // [22]
+            u32 opcode : 6;       // [28:23]
+            u32 client : 3;       // [31:29]
         } __attribute__((packed));
         u32 d_word;
     };

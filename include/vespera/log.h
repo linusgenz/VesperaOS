@@ -8,7 +8,7 @@
 
 class IScreenRenderer;
 
-#define FORMAT_FN [[jetbrains::format]] [[gnu::format(printf, 1, 2)]]
+#define FORMAT_FN [[gnu::format(printf, 1, 2)]]
 
 class Log {
    public:

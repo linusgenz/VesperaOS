@@ -114,11 +114,9 @@ namespace blt {
                 }
             }
 
-            Log::debug("GgttAllocator: transient alloc %u pages -> index %u", num_pages, alloc_index);
             return alloc_index;
         }
 
-        Log::error("GgttAllocator: transient zone OOM (need %u pages, %u free)", num_pages, transient_free_pages());
         return U32_MAX;
     }
 
@@ -128,19 +126,19 @@ namespace blt {
         const int idx = find_block(start_index);
 
         if (idx < 0) {
-            Log::error("GgttAllocator: free_transient called with unknown index %u", start_index);
+        //    Log::error("GgttAllocator: free_transient called with unknown index %u", start_index);
             return;
         }
 
         GgttBlock& block = free_list_[idx];
 
         if (!block.in_use) {
-            Log::error("GgttAllocator: double-free detected at GTT index %u!", start_index);
+      //      Log::error("GgttAllocator: double-free detected at GTT index %u!", start_index);
             return;
         }
 
         block.in_use = false;
-        Log::debug("GgttAllocator: freed %u pages at index %u", block.num_pages, start_index);
+       // Log::debug("GgttAllocator: freed %u pages at index %u", block.num_pages, start_index);
 
         // Coalesce after every free to keep the freelist compact and prevent
         // fragmentation under high-frequency small allocations.
@@ -176,12 +174,12 @@ namespace blt {
                         // Remove B by swapping it with the last entry.
                         free_list_[j] = free_list_[--free_list_count_];
 
-                        Log::debug(
+                        /*Log::debug(
                             "GgttAllocator: coalesced -> [%u, %u) (%u pages)",
                             merged_start,
                             merged_start + merged_pages,
                             merged_pages
-                        );
+                        );*/
 
                         merged = true;
                     }

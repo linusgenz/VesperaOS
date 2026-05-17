@@ -30,9 +30,20 @@ void DisplayManager::init(const DisplayBackend initial) {
     primary_ = initial;
 }
 
+bool DisplayManager::register_backend_hook(void (*fn)(DisplayBackend, void*), void* ctx) {
+    SpinlockGuard guard(lock_);
+    if (hook_count_ >= MAX_HOOKS) return false;
+    hooks_[hook_count_++] = { fn, ctx };
+    return true;
+}
+
 void DisplayManager::set_primary(const DisplayBackend backend) {
     SpinlockGuard guard(lock_);
     primary_ = backend;
+
+    for (usize i = 0; i < hook_count_; i++) {
+        hooks_[i].fn(backend, hooks_[i].ctx);
+    }
 }
 
 DisplayBackend DisplayManager::primary() {

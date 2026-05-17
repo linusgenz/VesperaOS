@@ -575,3 +575,217 @@ fb_memmove_avx2:
     sfence
     vzeroupper
     ret
+
+
+; ============================================================
+; fb_memcpy_avx512(void* dst, const void* src, usize len)
+;
+; 4xZMM unrolled, 256 bytes/iter
+; prefetchnta 512 bytes ahead
+; vmovdqu64 src, vmovntdq64 dst (64-byte aligned stores)
+; ============================================================
+global fb_memcpy_avx512
+fb_memcpy_avx512:
+    test    rdx, rdx
+    jz      .done
+
+    ; Phase 1: align dst to 64 bytes
+    mov     rcx, rdi
+    and     rcx, 63
+    jz      .main
+
+    neg     rcx
+    and     rcx, 63
+
+    cmp     rcx, rdx
+    cmova   rcx, rdx
+    sub     rdx, rcx
+
+.prefix_loop:
+    mov     al, [rsi]
+    mov     [rdi], al
+    inc     rsi
+    inc     rdi
+    dec     rcx
+    jnz     .prefix_loop
+
+    test    rdx, rdx
+    jz      .flush
+
+.main:
+    cmp     rdx, 256
+    jb      .tail_64
+
+.loop256:
+    prefetchnta [rsi + 512]
+
+    vmovdqu64   zmm0, [rsi +   0]
+    vmovdqu64   zmm1, [rsi +  64]
+    vmovdqu64   zmm2, [rsi + 128]
+    vmovdqu64   zmm3, [rsi + 192]
+
+    vmovntdq    [rdi +   0], zmm0
+    vmovntdq    [rdi +  64], zmm1
+    vmovntdq    [rdi + 128], zmm2
+    vmovntdq    [rdi + 192], zmm3
+
+    add         rsi, 256
+    add         rdi, 256
+    sub         rdx, 256
+    cmp         rdx, 256
+    jae         .loop256
+
+.tail_64:
+    cmp     rdx, 64
+    jb      .tail_byte
+
+.loop64:
+    vmovdqu64   zmm0, [rsi]
+    vmovntdq    [rdi], zmm0
+    add         rsi, 64
+    add         rdi, 64
+    sub         rdx, 64
+    cmp         rdx, 64
+    jae         .loop64
+
+.tail_byte:
+    test    rdx, rdx
+    jz      .flush
+
+.tail_loop:
+    mov     al, [rsi]
+    mov     [rdi], al
+    inc     rsi
+    inc     rdi
+    dec     rdx
+    jnz     .tail_loop
+
+.flush:
+    sfence
+    vzeroupper
+.done:
+    ret
+
+
+; ============================================================
+; fb_memmove_avx512(void* dst, const void* src, usize len)
+; Forward path identical zu fb_memcpy_avx512.
+; Backward path: 1xZMM ohne NT-Stores.
+; ============================================================
+global fb_memmove_avx512
+fb_memmove_avx512:
+    test    rdx, rdx
+    jz      .done
+
+    cmp     rdi, rsi
+    je      .done
+    jb      .forward
+
+    ; Backward path
+    add     rdi, rdx
+    add     rsi, rdx
+
+    cmp     rdx, 64
+    jb      .back_byte
+
+.back_loop:
+    sub     rdi, 64
+    sub     rsi, 64
+    vmovdqu64   zmm0, [rsi]
+    vmovdqu64   [rdi], zmm0
+    sub         rdx, 64
+    cmp         rdx, 64
+    jae         .back_loop
+
+.back_byte:
+    test    rdx, rdx
+    jz      .back_done
+
+.back_byte_loop:
+    dec     rdi
+    dec     rsi
+    mov     al, [rsi]
+    mov     [rdi], al
+    dec     rdx
+    jnz     .back_byte_loop
+
+.back_done:
+    vzeroupper
+.done:
+    ret
+
+.forward:
+    mov     rcx, rdi
+    and     rcx, 63
+    jz      .fwd_main
+
+    neg     rcx
+    and     rcx, 63
+
+    cmp     rcx, rdx
+    cmova   rcx, rdx
+    sub     rdx, rcx
+
+.fwd_prefix:
+    mov     al, [rsi]
+    mov     [rdi], al
+    inc     rsi
+    inc     rdi
+    dec     rcx
+    jnz     .fwd_prefix
+
+    test    rdx, rdx
+    jz      .fwd_flush
+
+.fwd_main:
+    cmp     rdx, 256
+    jb      .fwd_tail_64
+
+.fwd_loop256:
+    prefetchnta [rsi + 512]
+
+    vmovdqu64   zmm0, [rsi +   0]
+    vmovdqu64   zmm1, [rsi +  64]
+    vmovdqu64   zmm2, [rsi + 128]
+    vmovdqu64   zmm3, [rsi + 192]
+
+    vmovntdq    [rdi +   0], zmm0
+    vmovntdq    [rdi +  64], zmm1
+    vmovntdq    [rdi + 128], zmm2
+    vmovntdq    [rdi + 192], zmm3
+
+    add         rsi, 256
+    add         rdi, 256
+    sub         rdx, 256
+    cmp         rdx, 256
+    jae         .fwd_loop256
+
+.fwd_tail_64:
+    cmp     rdx, 64
+    jb      .fwd_tail_byte
+
+.fwd_loop64:
+    vmovdqu64   zmm0, [rsi]
+    vmovntdq    [rdi], zmm0
+    add         rsi, 64
+    add         rdi, 64
+    sub         rdx, 64
+    cmp         rdx, 64
+    jae         .fwd_loop64
+
+.fwd_tail_byte:
+    test    rdx, rdx
+    jz      .fwd_flush
+
+.fwd_tail_loop:
+    mov     al, [rsi]
+    mov     [rdi], al
+    inc     rsi
+    inc     rdi
+    dec     rdx
+    jnz     .fwd_tail_loop
+
+.fwd_flush:
+    sfence
+    vzeroupper
+    ret

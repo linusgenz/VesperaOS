@@ -26,7 +26,6 @@
 
 #include <uapi/vespera/capabilities.h>
 #include <filesystem/vfs.h>
-#include <filesystem/vfs_node.h>
 #include <vespera/types.h>
 
 struct VfsHandleContext {
@@ -47,18 +46,7 @@ struct VfsHandle {
         context->type_specific_data = nullptr;
     }
 
-    ~VfsHandle() {
-        if (node) {
-            if (node->type == VfsNodeType::Directory &&
-                context && context->type_specific_data) {
-                VFS::closedir(context->type_specific_data);
-                context->type_specific_data = nullptr;
-            }
-
-            VFS::close(node);
-        }
-        delete context;
-    }
+    ~VfsHandle();
 };
 
 inline void vfs_handle_destructor(void *resource) {

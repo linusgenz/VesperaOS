@@ -45,7 +45,7 @@ public:
     /// Cell in the current row.
     [[nodiscard]] Cell& write_at(usize col) const;
 
-    void new_line(u32 default_fg, u32 default_bg);
+    [[nodiscard]] bool new_line(u32 default_fg, u32 default_bg);
 
     void mark_viewport_dirty() const;
 
@@ -71,16 +71,18 @@ public:
 
    private:
     Cell*  pool_;
-    usize  cols_;
-    usize  rows_;
-    usize  capacity_;       ///< Depth of the ring buffer in lines
+    usize cols_;
+    usize rows_;
+    usize capacity_;  ///< Depth of the ring buffer in lines
 
-    usize  write_line_;     ///< Absolute line index of the current write line
-    usize  scroll_offset_;  ///< Zeilen über dem Tail (0 = folgt Output)
+    usize write_line_;     ///< Absolute line index of the current write line
+    usize scroll_offset_;  ///< Zeilen über dem Tail (0 = folgt Output)
 
-    [[nodiscard]] usize ring(usize abs) const { return abs % capacity_; }
-    [[nodiscard]] usize viewport_top()  const;
-    void  clear_line(usize abs_line, u32 fg, u32 bg) const;
+    [[nodiscard]] usize ring(usize abs) const {
+        return abs % capacity_;
+    }
+    [[nodiscard]] usize viewport_top() const;
+    void clear_line(usize abs_line, u32 fg, u32 bg) const;
 };
 
 #endif  // VESPERAOS_SCROLLBACK_BUFFER_H

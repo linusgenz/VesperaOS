@@ -33,15 +33,35 @@ struct DisplayBackend {
     KernelDevice* kd;
 };
 
+struct display_backend_hook {
+    void (*fn)(DisplayBackend new_backend, void* ctx);
+    void* ctx;
+};
+
 class DisplayManager {
    public:
     static void init(DisplayBackend initial);
     static void set_primary(DisplayBackend backend);
     static DisplayBackend primary();
 
+    /**
+     * @brief Registers a callback invoked whenever the primary display backend changes.
+     *
+     * Called with the new backend under the display lock. Callbacks must not call
+     * back into DisplayManager (deadlock). Registered slots are never freed —
+     * callers must ensure the ctx pointer outlives the DisplayManager.
+     *
+     * @return true if the hook was registered, false if MAX_HOOKS is exceeded.
+     */
+    static bool register_backend_hook(void (*fn)(DisplayBackend, void*), void* ctx);
+
    private:
-    static inline DisplayBackend primary_;
+    static constexpr usize MAX_HOOKS = 4;
+
+    static inline DisplayBackend primary_{};
     static inline Spinlock lock_{};
+    static inline display_backend_hook hooks_[MAX_HOOKS]{};
+    static inline usize hook_count_{0};
 };
 
 #endif  // VESPERAOS_DISPLAY_MANAGER_H

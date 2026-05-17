@@ -21,6 +21,7 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "scrollback_buffer.h"
+
 #include <vespera/mm/memory.h>
 
 ScrollbackBuffer::ScrollbackBuffer(const usize cols, const usize visible_rows, const usize capacity)
@@ -28,11 +29,9 @@ ScrollbackBuffer::ScrollbackBuffer(const usize cols, const usize visible_rows, c
     , rows_(visible_rows)
     , capacity_(capacity)
     , write_line_(0)
-    , scroll_offset_(0)
-{
+    , scroll_offset_(0) {
     pool_ = static_cast<Cell*>(kernel::memory::malloc(capacity_ * cols_ * sizeof(Cell)));
-    for (usize i = 0; i < capacity_ * cols_; i++)
-        pool_[i] = Cell{};
+    for (usize i = 0; i < capacity_ * cols_; i++) pool_[i] = Cell{};
 }
 
 ScrollbackBuffer::~ScrollbackBuffer() {
@@ -41,7 +40,7 @@ ScrollbackBuffer::~ScrollbackBuffer() {
 
 usize ScrollbackBuffer::viewport_top() const {
     const isize bottom = static_cast<isize>(write_line_);
-    const isize top    = bottom - static_cast<isize>(rows_ - 1) - static_cast<isize>(scroll_offset_);
+    const isize top = bottom - static_cast<isize>(rows_ - 1) - static_cast<isize>(scroll_offset_);
 
     const isize oldest = static_cast<isize>(write_line_) - static_cast<isize>(capacity_) + 1;
     return static_cast<usize>(top < oldest ? oldest : (top < 0 ? 0 : top));
@@ -51,21 +50,23 @@ Cell& ScrollbackBuffer::write_at(const usize col) const {
     return pool_[ring(write_line_) * cols_ + col];
 }
 
-void ScrollbackBuffer::new_line(const u32 default_fg, const u32 default_bg) {
+bool ScrollbackBuffer::new_line(const u32 default_fg, const u32 default_bg) {
     if (scroll_offset_ == 0) {
         const bool viewport_scrolls = (write_line_ >= rows_ - 1);
         write_line_++;
         clear_line(write_line_, default_fg, default_bg);
 
         if (viewport_scrolls) {
-            mark_viewport_dirty();
+            return true;
         }
-    } else {
-        write_line_++;
-        clear_line(write_line_, default_fg, default_bg);
-        if (scroll_offset_ < capacity_ - rows_)
-            scroll_offset_++;
+        return false;
     }
+
+    write_line_++;
+    clear_line(write_line_, default_fg, default_bg);
+    if (scroll_offset_ < capacity_ - rows_) scroll_offset_++;
+    mark_viewport_dirty();
+    return false;
 }
 
 Cell& ScrollbackBuffer::at(const usize col, const usize row) const {
@@ -78,8 +79,7 @@ void ScrollbackBuffer::scroll_up(const usize lines) {
     const usize max_scroll = (max_offset < capacity_ - rows_) ? max_offset : capacity_ - rows_;
 
     scroll_offset_ += lines;
-    if (scroll_offset_ > max_scroll)
-        scroll_offset_ = max_scroll;
+    if (scroll_offset_ > max_scroll) scroll_offset_ = max_scroll;
 
     mark_viewport_dirty();
 }
@@ -112,13 +112,12 @@ void ScrollbackBuffer::mark_viewport_dirty() const {
     const usize top = viewport_top();
     for (usize row = 0; row < rows_; row++) {
         Cell* line = &pool_[ring(top + row) * cols_];
-        for (usize col = 0; col < cols_; col++)
-            line[col].dirty = true;
+        for (usize col = 0; col < cols_; col++) line[col].dirty = true;
     }
 }
 
 void ScrollbackBuffer::clear(const u32 fg, const u32 bg) {
-    write_line_    = 0;
+    write_line_ = 0;
     scroll_offset_ = 0;
     for (usize i = 0; i < capacity_ * cols_; i++) {
         pool_[i] = Cell{' ', fg, bg, true};
@@ -127,6 +126,5 @@ void ScrollbackBuffer::clear(const u32 fg, const u32 bg) {
 
 void ScrollbackBuffer::clear_line(const usize abs_line, const u32 fg, const u32 bg) const {
     Cell* line = &pool_[ring(abs_line) * cols_];
-    for (usize col = 0; col < cols_; col++)
-        line[col] = Cell{' ', fg, bg, true};
+    for (usize col = 0; col < cols_; col++) line[col] = Cell{' ', fg, bg, true};
 }

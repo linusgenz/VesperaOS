@@ -24,22 +24,22 @@
 
 #include "intel_blt.h"
 
+#include <filesystem/devfs.h>
 #include <klib/string.h>
+#include <pci/pci.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/graphics/colors.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
-#include <pci/pci.h>
 
-#include <filesystem/devfs.h>
 #include "blt_commands.h"
 
 namespace blt {
-    IntelBlt::IntelBlt(pci::PCI_DEVICE_HEADER* header)
-        : pci_header_(reinterpret_cast<pci::PCI_HEADER0*>(header)), ring_size_(RING_BUFFER_SIZE)
+    IntelBlt::IntelBlt(volatile pci::PCI_HEADER0* header)
+        : pci_header_(header)
+        , ring_size_(RING_BUFFER_SIZE)
         , sequence_number_(0) {
-
         const phys_addr_t bar0 = make_phys(pci_header_->bar0 & BAR0_ADDR_MASK);
         kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
 
@@ -89,15 +89,15 @@ namespace blt {
         char name[16];
         DeviceManager::alloc_unique_device_name("intel_blt", name, sizeof(name));
         kd_ = DeviceManager::register_device(
-        DeviceDescriptor{}
-            .set_name(name)
-            .set_type(DeviceType::Gpu)
-            .set_class(DeviceClass::Graphics)
-            .set_bus(BusType::Pci)
-            .set_controller(ControllerType::IntelGpu)
-            .with_gpu(this)
-            .with_info(this)
-    );
+            DeviceDescriptor{}
+                .set_name(name)
+                .set_type(DeviceType::Gpu)
+                .set_class(DeviceClass::Graphics)
+                .set_bus(BusType::Pci)
+                .set_controller(ControllerType::IntelGpu)
+                .with_gpu(this)
+                .with_info(this)
+        );
 
         DevFs::register_device(kd_);
     }
@@ -109,9 +109,12 @@ namespace blt {
 
     u32 IntelBlt::tile_mode_to_blt_flag(TileMode mode) {
         switch (mode) {
-            case TileMode::X: return TILING_X;
-            case TileMode::Y: return TILING_Y;
-            default:          return TILING_LINEAR;
+            case TileMode::X:
+                return TILING_X;
+            case TileMode::Y:
+                return TILING_Y;
+            default:
+                return TILING_LINEAR;
         }
     }
 
@@ -131,7 +134,7 @@ namespace blt {
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
         Log::debug(
-            "Allocating text buffer: font=%ux%u, screen=%u, max_chars=%u, buffer=%ux%u, stride=%u, size=%zu",
+            "Allocating text buffer: font=%ux%u, screen=%u, max_chars=%u, buffer=%ux%u, stride=%lu, size=%zu",
             font->width,
             font->height,
             screen_width,
@@ -174,10 +177,12 @@ namespace blt {
 
         // 4 bytes + 64 bytes margin
         if (available_space < 68) {
-            Log::error("Ring buffer full! HEAD=0x%x TAIL=0x%x", head, ring_tail_);
+            // Log::error("Ring buffer full! HEAD=0x%x TAIL=0x%x", head, ring_tail_);
+            error_count_++;
             if (!wait_for_ring_space(68, 100000)) {
                 // 100ms timeout
-                Log::error("Ring buffer deadlock!");
+                // Log::error("Ring buffer deadlock!");
+                error_count_++;
                 return;
             }
         }
@@ -262,20 +267,18 @@ namespace blt {
         return true;
     }
 
-    void IntelBlt::xy_color_blt(
-        gfx_addr_t dest_addr, u32 dest_pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color
-    ) {
+    void IntelBlt::xy_color_blt(gfx_addr_t dest_addr, u32 dest_pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color) {
         XY_COLOR_BLT_CMD cmd{};
 
-        cmd.dw0.client       = CLIENT_2D_PROCESSOR;
-        cmd.dw0.opcode       = OPCODE_XY_COLOR_BLT;
-        cmd.dw0.write_alpha  = 1;
-        cmd.dw0.write_rgb    = 1;
-        cmd.dw0.dword_len    = XY_COLOR_BLT_LEN;
+        cmd.dw0.client = CLIENT_2D_PROCESSOR;
+        cmd.dw0.opcode = OPCODE_XY_COLOR_BLT;
+        cmd.dw0.write_alpha = 1;
+        cmd.dw0.write_rgb = 1;
+        cmd.dw0.dword_len = XY_COLOR_BLT_LEN;
 
-        cmd.dw1.color_depth  = COLOR_DEPTH_32BPP;
-        cmd.dw1.rop          = ROP_PATCOPY;
-        cmd.dw1.dest_pitch   = dest_pitch & COORD_MASK;
+        cmd.dw1.color_depth = COLOR_DEPTH_32BPP;
+        cmd.dw1.rop = ROP_PATCOPY;
+        cmd.dw1.dest_pitch = dest_pitch & COORD_MASK;
 
         cmd.dw2.x1 = x1;
         cmd.dw2.y1 = y1;
@@ -316,7 +319,8 @@ namespace blt {
 
         // Check if ring is still enabled
         if (const u32 ctl = bcs_regs_[BCS_RING_CTL / 4]; !(ctl & RING_CTL_ENABLED)) {
-            Log::error("BCS ring disabled unexpectedly!");
+            // Log::error("BCS ring disabled unexpectedly!");
+            error_count_++;
             emergency_reset_bcs();
             return;
         }
@@ -328,7 +332,8 @@ namespace blt {
         if (head == last_head && head != tail) {
             hang_counter++;
             if (hang_counter > 1000) {
-                Log::error("GPU hang detected! HEAD stuck at 0x%x", head);
+                //  Log::error("GPU hang detected! HEAD stuck at 0x%x", head);
+                error_count_++;
                 emergency_reset_bcs();
                 hang_counter = 0;
             }
@@ -408,21 +413,21 @@ namespace blt {
     void IntelBlt::mi_flush(u32 seqno) {
         MI_FLUSH_DW_CMD cmd{};
 
-        cmd.dw0.client      = CLIENT_MI;
-        cmd.dw0.opcode      = OPCODE_MI_FLUSH_DW;
+        cmd.dw0.client = CLIENT_MI;
+        cmd.dw0.opcode = OPCODE_MI_FLUSH_DW;
         cmd.dw0.store_index = 1;
-        cmd.dw0.post_sync   = 1;
-        cmd.dw0.dword_len   = MI_FLUSH_DW_LEN;
+        cmd.dw0.post_sync = 1;
+        cmd.dw0.dword_len = MI_FLUSH_DW_LEN;
 
         cmd.address_or_offset = HWSP_SEQNO_OFFSET;
-        cmd.address_hi        = 0;
-        cmd.immediate_data    = seqno;
-        cmd.reserved          = 0;
+        cmd.address_hi = 0;
+        cmd.immediate_data = seqno;
+        cmd.reserved = 0;
 
         write_command_struct(cmd);
     }
 
-    bool IntelBlt::wait_for_sequence(u32 target_seqno, u32 timeout_us) const {
+    bool IntelBlt::wait_for_sequence(u32 target_seqno, u32 timeout_us) {
         auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
         u32* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
 
@@ -440,7 +445,9 @@ namespace blt {
 
         asm volatile("lfence" ::: "memory");
         u32 final_seqno = *seqno_ptr;
-        Log::error("Sequence timeout! Expected %u, got %u", target_seqno, final_seqno);
+
+        error_count_++;
+        // Log::error("Sequence timeout! Expected %u, got %u", target_seqno, final_seqno);
 
         return false;
     }
@@ -513,10 +520,10 @@ namespace blt {
 
     void IntelBlt::map_to_ggtt_at(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const {
         for (usize i = 0; i < num_pages; i++) {
-            u64 page_phys  = phys_raw(phys_add(phys_addr, i * PAGE_SIZE));
-            u64 gtt_entry  = page_phys & GTT_PHYS_ADDR_MASK;
-            gtt_entry     |= (static_cast<u64>(pat_index) & GTT_PAT_MASK) << GTT_PAT_SHIFT;
-            gtt_entry     |= GTT_VALID;
+            u64 page_phys = phys_raw(phys_add(phys_addr, i * PAGE_SIZE));
+            u64 gtt_entry = page_phys & GTT_PHYS_ADDR_MASK;
+            gtt_entry |= (static_cast<u64>(pat_index) & GTT_PAT_MASK) << GTT_PAT_SHIFT;
+            gtt_entry |= GTT_VALID;
             gtt_entries_[gtt_index + i] = gtt_entry;
             asm volatile("mfence" ::: "memory");
         }
@@ -531,35 +538,37 @@ namespace blt {
 
     GgttAllocation IntelBlt::alloc_and_map_to_ggtt(usize num_pages, u64 flags, u8 pat_index) {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
-        const virt_addr_t cpu  = phys_to_virt(phys);
+        const virt_addr_t cpu = phys_to_virt(phys);
         kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
 
         const u32 gtt_index = ggtt_alloc_.alloc_persistent(static_cast<u32>(num_pages));
         if (gtt_index == U32_MAX) {
-            Log::error("alloc_and_map_to_ggtt: persistent zone exhausted");
+            // Log::error("alloc_and_map_to_ggtt: persistent zone exhausted");
+            error_count_++;
             // Physical pages are intentionally not freed here: persistent
             // allocations failing is a fatal driver initialisation error.
             return {};
         }
 
         map_to_ggtt_at(gtt_index, phys, num_pages, pat_index);
-        return { cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE) };
+        return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE)};
     }
 
     GgttAllocation IntelBlt::alloc_and_map_to_ggtt_transient(usize num_pages, u64 flags, u8 pat_index) {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
-        const virt_addr_t cpu  = phys_to_virt(phys);
+        const virt_addr_t cpu = phys_to_virt(phys);
         kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
 
         const u32 gtt_index = ggtt_alloc_.alloc_transient(static_cast<u32>(num_pages));
         if (gtt_index == U32_MAX) {
-            Log::error("alloc_and_map_to_ggtt_transient: transient zone exhausted");
+            draw_str("alloc_and_map_to_ggtt_transient: transient zone exhausted", 600, 100, 0xffffffff, 0x00000000);
+            // Log::error("alloc_and_map_to_ggtt_transient: transient zone exhausted");
             kernel::memory::free_pages_phys(phys, num_pages);
             return {};
         }
 
         map_to_ggtt_at(gtt_index, phys, num_pages, pat_index);
-        return { cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE) };
+        return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE)};
     }
 
     // ── free_ggtt_transient() — new ───────────────────────────────────────────────
@@ -576,8 +585,13 @@ namespace blt {
 
         // Invalidate GTT entries before returning the index to the allocator so
         // the GPU cannot access the pages after the physical memory is freed.
+        //   draw_str("before unmap_from_ggtt", 600, 220, 0xffffffff, 0x00000000);
+
         unmap_from_ggtt(gtt_index, num_pages);
+        //    draw_str("before free_transient", 600, 240, 0xffffffff, 0x00000000);
+
         ggtt_alloc_.free_transient(gtt_index);
+        //    draw_str("after free_transient", 600, 260, 0xffffffff, 0x00000000);
 
         // Return physical pages to the physical memory allocator.
         const phys_addr_t phys = virt_to_phys(alloc.cpu_addr);
@@ -586,7 +600,8 @@ namespace blt {
 
     gfx_addr_t IntelBlt::map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index) {
         if (gtt_next_free_ + num_pages > gtt_total_entries_) {
-            Log::error("GGTT out of space!");
+            // Log::error("GGTT out of space!");
+            error_count_++;
             return make_gfx(0);
         }
 
@@ -813,11 +828,12 @@ namespace blt {
         flush_commands();
 
         if (!wait_for_sequence(target_seqno, 1000000)) {
-            Log::error(
-                "Timeout waiting for text! HEAD=0x%x TAIL=0x%x",
-                bcs_regs_[BCS_RING_HEAD / 4],
-                bcs_regs_[BCS_RING_TAIL / 4]
-            );
+            /* Log::error(
+                 "Timeout waiting for text! HEAD=0x%x TAIL=0x%x",
+                 bcs_regs_[BCS_RING_HEAD / 4],
+                 bcs_regs_[BCS_RING_TAIL / 4]
+             );*/
+            error_count_++;
             return false;
         }
 
@@ -861,19 +877,19 @@ namespace blt {
     }
 
     void IntelBlt::xy_fast_copy_blt(
-        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-        gfx_addr_t src_addr,  u32 src_pitch,  u32 src_x1,  u32 src_y1
+        gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t src_addr,
+        u32 src_pitch, u32 src_x1, u32 src_y1
     ) {
         XY_FAST_COPY_BLT_CMD cmd{};
 
-        cmd.dw0.client     = CLIENT_2D_PROCESSOR;
-        cmd.dw0.opcode     = OPCODE_XY_FAST_COPY_BLT;
+        cmd.dw0.client = CLIENT_2D_PROCESSOR;
+        cmd.dw0.opcode = OPCODE_XY_FAST_COPY_BLT;
         cmd.dw0.src_tiling = tile_mode_to_blt_flag(fb_.tile_mode);
         cmd.dw0.dst_tiling = TILING_LINEAR;
-        cmd.dw0.dword_len  = XY_FAST_COPY_BLT_LEN;
+        cmd.dw0.dword_len = XY_FAST_COPY_BLT_LEN;
 
         cmd.dw1.color_depth = FAST_COLOR_DEPTH_32BPP;
-        cmd.dw1.dest_pitch  = dest_pitch & 0x7FFF;  // bit[15] must be 0 (positive)
+        cmd.dw1.dest_pitch = dest_pitch & 0x7FFF;  // bit[15] must be 0 (positive)
 
         cmd.dw2.x1 = dest_x1;
         cmd.dw2.y1 = dest_y1;
@@ -911,9 +927,7 @@ namespace blt {
         const usize buffer_size = src_pitch * max_h;
         const usize num_pages = (buffer_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        const auto temp_buffer = alloc_and_map_to_ggtt_transient(
-            num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED
-        );
+        const auto temp_buffer = alloc_and_map_to_ggtt_transient(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(temp_buffer.cpu_addr)) {
             return false;
         }
@@ -931,18 +945,90 @@ namespace blt {
             return false;
         }
 
-        xy_fast_copy_blt(
+        xy_src_copy_blt(
             fb_.gfx_addr, fb_.pitch, dst_x, dst_y, dst_x + max_w, dst_y + max_h, temp_buffer.gfx_addr, src_pitch, 0, 0
         );
 
         sequence_number_++;
         mi_flush(sequence_number_);
         flush_commands();
+        //    draw_str("flushed", 600, 180, 0xffffffff, 0x00000000);
 
-        const bool success = wait_for_sequence(sequence_number_, 2'000'000);
+        const bool success = wait_for_sequence(sequence_number_, 500'000);
+        //   draw_str("done waiting", 600, 200, 0xffffffff, 0x00000000);
 
         free_ggtt_transient(temp_buffer, num_pages);
 
+        return success;
+    }
+
+    bool IntelBlt::blit_region(
+        const u32* pixels, const u32 src_stride, const u32 src_x, const u32 src_y, const u32 w, const u32 h,
+        const u32 dst_x, const u32 dst_y
+    ) {
+        if (!pixels) return false;
+        if (dst_x >= fb_.width || dst_y >= fb_.height) return false;
+
+        // Clip to framebuffer bounds
+        const u32 max_w = (dst_x + w > fb_.width) ? fb_.width - dst_x : w;
+        const u32 max_h = (dst_y + h > fb_.height) ? fb_.height - dst_y : h;
+        if (max_w == 0 || max_h == 0) return true;
+
+        constexpr usize BYTES_PER_PIXEL = 4;
+        const usize row_bytes = static_cast<usize>(max_w) * BYTES_PER_PIXEL;
+        const usize temp_pitch = ((row_bytes + 63) / 64) * 64;
+        const usize buf_size = temp_pitch * max_h;
+        const usize num_pages = (buf_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+        const auto temp_buffer = alloc_and_map_to_ggtt_transient(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        if (virt_null(temp_buffer.cpu_addr)) return false;
+
+        // Copy the source sub-rectangle into the temp buffer.
+        // src_stride is in pixels; multiply by BYTES_PER_PIXEL for the byte offset.
+        const usize src_row_stride_bytes = static_cast<usize>(src_stride) * BYTES_PER_PIXEL;
+        const usize src_x_offset_bytes = static_cast<usize>(src_x) * BYTES_PER_PIXEL;
+
+        const u8* src_base =
+            reinterpret_cast<const u8*>(pixels) + static_cast<usize>(src_y) * src_row_stride_bytes + src_x_offset_bytes;
+        u8* dst_base = virt_as<u8>(temp_buffer.cpu_addr);
+
+        for (u32 y = 0; y < max_h; y++) {
+            memcpy(
+                dst_base + static_cast<usize>(y) * temp_pitch,
+                src_base + static_cast<usize>(y) * src_row_stride_bytes,
+                row_bytes
+            );
+        }
+
+        asm volatile("mfence" ::: "memory");
+
+        check_gpu_health();
+        if (constexpr u32 REQUIRED_BYTES = 30 * 4 + 64; !wait_for_ring_space(REQUIRED_BYTES, 1'000'000)) {
+            free_ggtt_transient(temp_buffer, num_pages);
+            return false;
+        }
+
+        // Source origin is always (0, 0) in the temp buffer
+        xy_src_copy_blt(
+            fb_.gfx_addr,
+            fb_.pitch,
+            dst_x,
+            dst_y,
+            dst_x + max_w,
+            dst_y + max_h,
+            temp_buffer.gfx_addr,
+            static_cast<u32>(temp_pitch),
+            0,
+            0
+        );
+
+        sequence_number_++;
+        mi_flush(sequence_number_);
+        flush_commands();
+
+        const bool success = wait_for_sequence(sequence_number_, 500'000);
+
+        free_ggtt_transient(temp_buffer, num_pages);
         return success;
     }
 
@@ -969,7 +1055,8 @@ namespace blt {
         flush_commands();
 
         if (!wait_for_sequence(sequence_number_, 2'000'000)) {
-            Log::error("Scroll timeout (combined)");
+            // Log::error("Scroll timeout (combined)");
+            error_count_++;
             return false;
         }
 

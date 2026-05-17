@@ -24,15 +24,16 @@
 #ifndef VESPERAOS_TERMINAL_H
 #define VESPERAOS_TERMINAL_H
 
-
 #include <vespera/graphics/IRenderDriver.h>
 #include <vespera/types.h>
 
 #include "graphics/psf.h"
 
+struct DisplayBackend;
 class ScrollbackBuffer;
 class IGlyphProvider;
 class GlyphCache;
+
 class Terminal {
     IRenderDriver* drv_ = nullptr;
     IGlyphProvider* glyphs_ = nullptr;
@@ -58,6 +59,19 @@ class Terminal {
     u32 blink_pause_ticks_ =
         2; /* this is not based on the apic interval, but on the interval in which tick_cursor gets called*/
 
+    u32 screen_w_ = 0;
+    u32 screen_h_ = 0;
+    u32* screen_buf_ = nullptr;
+
+    mutable bool has_dirty_ = false;
+    mutable u32 dirty_x0_ = 0, dirty_y0_ = 0;
+    mutable u32 dirty_x1_ = 0, dirty_y1_ = 0;
+
+    void fill_buf_rect(u32 x, u32 y, u32 w, u32 h, u32 color);
+    void mark_dirty_px(u32 x, u32 y, u32 w, u32 h);
+    void commit_dirty();
+    void draw_cell(u32 cx, u32 cy);  // war: draw_cell(u32, u32) const
+
     void draw_cursor() const;
     void erase_cursor_under() const;
 
@@ -70,9 +84,11 @@ class Terminal {
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
     ~Terminal();
 
-    void scrollback_up(usize lines = 3) const;
-    void scrollback_down(usize lines = 3) const;
-    void scrollback_to_bottom() const;
+    void on_backend_changed(DisplayBackend backend);
+
+    void scrollback_up(usize lines = 3);
+    void scrollback_down(usize lines = 3);
+    void scrollback_to_bottom();
     [[nodiscard]] bool is_at_bottom() const;
     [[nodiscard]] usize visible_rows() const {
         return rows_;
@@ -83,6 +99,8 @@ class Terminal {
 
     void erase_in_line(int mode, u32 col, u32 row) const;
     void erase_in_display(int mode, u32 col, u32 row);
+    void draw_cursor();
+    void erase_cursor_under();
 
     void set_glyph_provider(IGlyphProvider* provider);
 
@@ -98,7 +116,8 @@ class Terminal {
     void clear();
     void clear_char();
     void new_line();
-    void flush() const;
+    void erase_in_line(int mode, u32 col, u32 row);
+    void flush();
 };
 
 extern PsfFont* system_font;

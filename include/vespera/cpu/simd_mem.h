@@ -36,6 +36,9 @@ extern "C" {
     void* fb_memmove_avx2(void* dst, const void* src, usize len);
     void* fb_memcpy_sse2(void* dst, const void* src, usize len);
     void  fb_fill_rect_sse2(void*, u32, u32, u32, u32, u32, u32);
+
+    void* fb_memcpy_avx512(void* dst, const void* src, usize len);
+    void* fb_memmove_avx512(void* dst, const void* src, usize len);
 }
 
 

@@ -25,16 +25,16 @@
 #define VESPERAOS_INTEL_BLT_H
 
 #include <vespera/devices/device_info.h>
+#include <vespera/graphics/IRenderDriver.h>
 #include <vespera/graphics/psf.h>
 #include <vespera/mm/addr.h>
 
-#include <vespera/graphics/IRenderDriver.h>
 #include "ggtt_allocator.h"
 
 namespace pci {
     struct PCI_HEADER0;
     struct PCI_DEVICE_HEADER;
-}
+}  // namespace pci
 struct KernelDevice;
 
 // Force Wake Registers
@@ -95,11 +95,11 @@ constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;  // 8MB offset from MMIO base
 #define HWSP_SEQNO_OFFSET_DWORDS 4
 #define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
 
-#define XY_SRC_COPY_BLT_LEN 8    // DWord length = 8 (10 DWords total)
-#define XY_COLOR_BLT_LEN 5  // DWord length = 5 (7 DWords total)
-#define XY_MONO_SRC_COPY_LEN 0x08             // DWord Length: 8
-#define XY_FAST_COPY_BLT_LEN 8 // Length: 8 DWORDs *after* DW0/1 → total 10 DWORDs
-#define MI_FLUSH_DW_LEN 0x3             // Length field
+#define XY_SRC_COPY_BLT_LEN 8      // DWord length = 8 (10 DWords total)
+#define XY_COLOR_BLT_LEN 5         // DWord length = 5 (7 DWords total)
+#define XY_MONO_SRC_COPY_LEN 0x08  // DWord Length: 8
+#define XY_FAST_COPY_BLT_LEN 8     // Length: 8 DWORDs *after* DW0/1 → total 10 DWORDs
+#define MI_FLUSH_DW_LEN 0x3        // Length field
 
 // BR13 - Raster Operation
 #define ROP_PATCOPY 0xF0  // Copy solid color to destination
@@ -182,13 +182,17 @@ namespace blt {
 
     class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
-        explicit IntelBlt(pci::PCI_DEVICE_HEADER* header);
+        explicit IntelBlt(volatile pci::PCI_HEADER0* header);
         void start_device(u32 screen_width, u32 screen_height);
         static u32 tile_mode_to_blt_flag(TileMode mode);
 
         bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
 
         bool blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) override;
+
+        bool blit_region(
+            const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
+        ) override;
 
         bool scroll_pixels(int dy) override;
 
@@ -203,10 +207,14 @@ namespace blt {
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
 
+        bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
+
        private:
-        pci::PCI_HEADER0* pci_header_;
+        volatile pci::PCI_HEADER0* pci_header_;
 
         KernelDevice* kd_;
+
+        u64 error_count_;
 
         volatile u8* mmio_base_;
         volatile u32* bcs_regs_;
@@ -236,7 +244,6 @@ namespace blt {
 
         void alloc_framebuffer(u32 width, u32 height, TileMode tile_mode);
         void build_text_scanline(const char* text, usize length, PsfFont* font, u8* buffer, usize buffer_stride);
-        bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
         void xy_src_copy_blt(
             gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
             gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
@@ -249,7 +256,7 @@ namespace blt {
         void write_command(u32 cmd);
         void set_display_framebuffer() const;
         void mi_flush(u32 seqno);
-        [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us) const;
+        [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us);
         void flush_commands() const;
         void setup_ring_buffer();
         void enable_force_wake() const;
