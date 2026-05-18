@@ -69,52 +69,50 @@ namespace pci {
      *
      * Mapped directly from the capability list in config space. The layout
      * varies slightly between 32-bit and 64-bit capable devices; check
-     * @c is_64_bit before accessing @c message_address_hi.
+     * @c is_64_bit to identify wether to use @ref PCI_MSI_CAPABILITY_64 or @refa PCI_MSI_CAPABILITY_32.
      *
      * @warning Write @c message_control last so the device does not observe
      *          a partially programmed address or vector.
      */
-
-    struct PCI_MSI_CAPABILITY {
+    struct PCI_MSI_CAP_HEADER {
+        u8 cap_id;
+        u8 next_cap_ptr;
         union {
             struct {
-                u8 cap_id;
-                u8 next_cap_ptr;
-
-                union {
-                    struct {
-                        u16 enable_bit : 1;
-                        u16 multiple_message_capable : 3;  ///< MMC — log2 of vectors supported (read-only).
-                        u16 multiple_message_enable : 3;   ///< MME — log2 of vectors enabled (write).
-                        u16 is_64_bit : 1;                 ///< 1 if device supports a 64-bit message address.
-                        u16 per_vector_masking : 1;
-                        u16 rsvd0 : 7;
-                    } __attribute__((packed));
-
-                    u16 message_control;
-                };
+                u16 enable_bit : 1;
+                u16 multiple_message_capable : 3;
+                u16 multiple_message_enable : 3;
+                u16 is_64_bit : 1;
+                u16 per_vector_masking : 1;
+                u16 rsvd0 : 7;
             } __attribute__((packed));
-
-            u32 dword0;
+            u16 message_control;
         };
+    } __attribute__((packed));
 
-        // Message Address (32 or 64 bits)
-        union {
-            struct {
-                u32 message_address_lo;  // Message Address Lower 32 bits
-                u32 message_address_hi;  // Message Address Upper 32 bits (if 64-bit capable)
-            } __attribute__((packed));
+    static_assert(sizeof(PCI_MSI_CAP_HEADER) == 4);
 
-            u64 message_address;  // Full 64-bit Message Address
-        };
-
-        u16 message_data;
-        u16 rsvd1;
-        u32 mask;
+    struct PCI_MSI_CAPABILITY_32 {
+        PCI_MSI_CAP_HEADER header;
+        u32 message_address;  ///< Offset 4
+        u16 message_data;     ///< Offset 8
+        u16 rsvd;
+        u32 mask;  ///< Only valid if header.per_vector_masking == 1
         u32 pending;
     } __attribute__((packed));
 
-    static_assert(sizeof(PCI_MSI_CAPABILITY) == 24);
+    static_assert(sizeof(PCI_MSI_CAPABILITY_32) == 20);
+
+    struct PCI_MSI_CAPABILITY_64 {
+        PCI_MSI_CAP_HEADER header;
+        u32 message_address_lo;  ///< Offset 4
+        u32 message_address_hi;  ///< Offset 8
+        u16 message_data;        ///< Offset 12
+        u16 rsvd;
+        u32 mask;  ///< Only valid if header.per_vector_masking == 1
+        u32 pending;
+    } __attribute__((packed));
+    static_assert(sizeof(PCI_MSI_CAPABILITY_64) == 24);
 
     /**
      * @brief Enables MSI on a Type-0 PCI endpoint.

@@ -74,7 +74,7 @@ namespace pci {
 
                 const virt_addr_t table_base = virt_add(phys_to_virt(bar_phys), table_offset);
 
-                MSIX_TABLE_ENTRY entry;
+                MSIX_TABLE_ENTRY entry{};
                 entry.message_address = build_msix_address(arch::x86_64::interrupts::apic::get_id());
                 entry.message_data = build_msix_data(irq_vector);
                 entry.vector_control = 0;

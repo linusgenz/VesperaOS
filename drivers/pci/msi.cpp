@@ -42,9 +42,9 @@ namespace pci {
             const u8 next_ptr = config_space[cap_ptr + 1];
 
             if (cap_id == MSI_CAPABILITY_ID) {
-                volatile auto* msi = reinterpret_cast<volatile PCI_MSI_CAPABILITY*>(&config_space[cap_ptr]);
+                auto* cap = reinterpret_cast<volatile PCI_MSI_CAP_HEADER*>(&config_space[cap_ptr]);
 
-                u16 mc = msi->message_control;
+                u16 mc = cap->message_control;
 
                 const bool is64 = mc & (1 << 7);
                 const u8 mmc = (mc >> 1) & 0b111;
@@ -56,10 +56,20 @@ namespace pci {
                 while ((1u << mme) < wanted) mme++;
 
                 // Program address
-                msi->message_address = build_msi_address(arch::x86_64::interrupts::apic::get_id());
-                if (is64) msi->message_address_hi = 0;
+                const u64 addr = build_msi_address(arch::x86_64::interrupts::apic::get_id());
 
-                msi->message_data = base_vector;
+                if (is64) {
+                    auto* msi = reinterpret_cast<volatile PCI_MSI_CAPABILITY_64*>(cap);
+                    msi->message_address_lo = static_cast<u32>(addr & 0xFFFFFFFF);
+                    msi->message_address_hi = static_cast<u32>(addr >> 32);
+                    msi->message_data = base_vector;
+                    msi->header.message_control |= 1;
+                } else {
+                    auto* msi = reinterpret_cast<volatile PCI_MSI_CAPABILITY_32*>(cap);
+                    msi->message_address = static_cast<u32>(addr & 0xFFFFFFFF);
+                    msi->message_data = base_vector;
+                    msi->header.message_control |= 1;
+                }
 
                 // Write MME (multiple message enable)
                 mc &= ~((0b111 << 1));  // clear MME bits
@@ -68,7 +78,7 @@ namespace pci {
                 // Enable MSI
                 mc |= 1;
 
-                msi->message_control = mc;
+                cap->message_control = mc;
                 return true;
             }
 
