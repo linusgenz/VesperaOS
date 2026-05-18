@@ -26,14 +26,20 @@
 
 #include <filesystem/devfs.h>
 #include <klib/string.h>
+#include <pci/msix.h>
 #include <pci/pci.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/graphics/colors.h>
+#include <vespera/interrupts.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/time.h>
 
 #include "blt_commands.h"
+#include "error_regs.h"
+#include "gt_interrupt_regs.h"
+#include "interrupt_regs.h"
 
 namespace blt {
     IntelBlt::IntelBlt(volatile pci::PCI_HEADER0* header)
@@ -50,6 +56,17 @@ namespace blt {
         init_gtt();
         enable_bcs_power();
         reset_bcs();
+
+        const u8 vector = kernel::interrupts::get_free_vector();
+        kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(bcs_interrupt_handler), this);
+        if (!pci::try_enable_msi_or_msix(pci_header_, vector, 1)) {
+            Log::error("BLT: MSI enable failed");
+        }
+
+        completion_sem_.init(1, 0);
+
+        enable_bcs_interrupts();
+        init_bcs_error_reporting();
 
         auto hwsp = alloc_and_map_to_ggtt(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
         hwsp_cpu_addr_ = hwsp.cpu_addr;
@@ -102,9 +119,82 @@ namespace blt {
         DevFs::register_device(kd_);
     }
 
+    void IntelBlt::init_bcs_error_reporting() const {
+        auto* eir = reinterpret_cast<volatile EIR_REG*>(mmio_base_ + BCS_EIR);
+
+        EIR_REG v{};
+        v.bcs_errors.instruction_error = 0;
+        v.bcs_errors.privilege_violation = 0;
+
+        v.mask = 0xFFFFu;
+
+        eir->raw = v.raw;
+
+        [[maybe_unused]] volatile u32 e = eir->raw;
+
+        auto* emr = reinterpret_cast<volatile EMR_REG*>(mmio_base_ + BCS_EMR);
+
+        EMR_REG emr_reg{};
+        emr_reg.error_mask_bits = 0x00;
+        emr_reg.reserved = 0xFFFFFFu;
+
+        emr->raw = emr_reg.raw;
+
+        MMIO_POST_WRITE(emr);
+    }
+
+    void IntelBlt::enable_bcs_interrupts() const {
+        auto* ring_imr = reinterpret_cast<volatile IMR_REG*>(mmio_base_ + BCS_IMR);
+
+        IMR_REG v{};
+
+        v.bcs.user_interrupt = 0;  // 0 = allowed
+        v.bcs.master_error = 1;
+        v.bcs.mi_flush_dw = 1;
+        v.bcs.timeout_expired = 1;
+        v.bcs.context_switch = 1;
+        v.bcs.wait_on_semaphore = 1;
+
+        ring_imr->raw = v.raw;
+
+        [[maybe_unused]] volatile u32 _ = ring_imr->raw;
+
+
+        auto* master = reinterpret_cast<volatile MASTER_INT_CTL*>(mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
+        auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(mmio_base_ + GEN8_GT0_INTR_BASE);
+
+        // Master deaktivieren während Konfiguration
+        master->raw = 0u;
+        asm volatile("mfence" ::: "memory");
+
+        // IMR: laut BSpec für GT-Interrupts komplett auf 0 setzen
+        gt0->imr = 0u;
+        asm volatile("mfence" ::: "memory");
+
+        // Pending IIR wegräumen bevor IER gesetzt wird
+        GT0_IRQ_BITS clear{};
+        clear.bcs_user_irq = 1;
+        gt0->iir = clear.raw;
+        asm volatile("mfence" ::: "memory");
+
+        // IER: nur bcs_user_irq enablen, direkt schreiben
+        GT0_IRQ_BITS enable{};
+        enable.bcs_user_irq = 1;
+        gt0->ier = enable.raw;
+        asm volatile("mfence" ::: "memory");
+
+        // Master Enable setzen
+        MASTER_INT_CTL arm{};
+        arm.master_enable = 1;
+        master->raw = arm.raw;
+        asm volatile("mfence" ::: "memory");
+
+        Log::debug("BCS interrupts enabled: IER=0x%x IMR=0x%x", gt0->ier, gt0->imr);
+    }
+
     void IntelBlt::start_device(u32 screen_width, u32 screen_height) {
         alloc_framebuffer(screen_width, screen_height, TileMode::Linear);
-        set_display_framebuffer();
+        //  set_display_framebuffer();
     }
 
     u32 IntelBlt::tile_mode_to_blt_flag(TileMode mode) {
@@ -368,10 +458,11 @@ namespace blt {
         mi_flush(target_seqno);
         flush_commands();
 
-        if (!wait_for_sequence(target_seqno, 5'000'000)) {
-            Log::error("Timeout for sequence %u!", target_seqno);
-            return false;
-        }
+        //poll_iir_after_submit(500'000);
+          if (!wait_for_sequence(target_seqno, 5'000'000)) {
+              Log::error("Timeout for sequence %u!", target_seqno);
+              return false;
+          }
 
         return true;
     }
@@ -425,36 +516,79 @@ namespace blt {
         cmd.reserved = 0;
 
         write_command_struct(cmd);
+
+        MI_USER_INTERRUPT_CMD user_int_cmd{};
+        user_int_cmd.opcode = OPCODE_MI_USER_INTERRUPT;
+        user_int_cmd.client = CLIENT_MI;
+        write_command_struct(user_int_cmd);
+    }
+
+    Irqreturn IntelBlt::bcs_interrupt_handler(IntelBlt* self) {
+        Log::log_msg("bcs_interrupt_handler");
+        auto* master = reinterpret_cast<volatile MASTER_INT_CTL*>(self->mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
+        auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->mmio_base_ + GEN8_GT0_INTR_BASE);
+
+        GT0_IRQ_BITS pending{};
+        pending.raw = gt0->iir;
+
+        if (!pending.bcs_user_irq) {
+            return IRQ_NONE;
+        }
+
+        GT0_IRQ_BITS clear{};
+        clear.bcs_user_irq = 1;
+        gt0->iir = clear.raw;
+        asm volatile("mfence" ::: "memory");
+
+        MASTER_INT_CTL arm{};
+        arm.master_enable = 1;
+        master->raw = arm.raw;
+        asm volatile("mfence" ::: "memory");
+        asm volatile("mfence" ::: "memory");
+
+        self->completion_sem_.signal();
+        return IRQ_HANDLED;
     }
 
     bool IntelBlt::wait_for_sequence(u32 target_seqno, u32 timeout_us) {
         auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
         u32* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
 
-        for (u32 i = 0; i < timeout_us; i++) {
-            asm volatile("lfence" ::: "memory");
+        asm volatile("lfence" ::: "memory");
+        if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) {
+            return true;
+        }
 
-            if (u32 current_seqno = *seqno_ptr; static_cast<i32>(current_seqno - target_seqno) >= 0) {
-                asm volatile("lfence" ::: "memory");
+        const u16 timeout_ms = static_cast<u16>((timeout_us + 999) / 1000);
+
+        while (true) {
+            const bool signalled = completion_sem_.wait(timeout_ms);
+
+            asm volatile("lfence" ::: "memory");
+            if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) {
                 return true;
             }
 
-            // 1µs delay
-            for (int j = 0; j < IDLE_CHECK_DELAY; j++);
+            if (!signalled) {
+                Log::debug("error: not signalled");
+                error_count_++;
+                return false;
+            }
         }
-
-        asm volatile("lfence" ::: "memory");
-        u32 final_seqno = *seqno_ptr;
-
-        error_count_++;
-        // Log::error("Sequence timeout! Expected %u, got %u", target_seqno, final_seqno);
-
-        return false;
     }
 
-    void IntelBlt::flush_commands() const {
+    void IntelBlt::flush_commands() {
+        // The TAIL ring must be 8-byte aligned (bits [2:0] = MBZ)
+        while (ring_tail_ & 0x7) {
+            volatile auto* ring = virt_as<u32>(ring_cpu_addr_);
+            ring[ring_tail_ / 4] = MI_NOOP;
+            ring_tail_ += 4;
+            if (ring_tail_ >= ring_size_) ring_tail_ = 0;
+        }
+
         asm volatile("mfence" ::: "memory");
         bcs_regs_[BCS_RING_TAIL / 4] = ring_tail_;
+        Log::debug("flush_commands: ring_tail_=0x%x (aligned)", ring_tail_);
     }
 
     void IntelBlt::setup_ring_buffer() {
@@ -466,6 +600,11 @@ namespace blt {
         for (u32 i = 0; i < ring_size_ / 4; i++) {
             ring[i] = MI_NOOP;
         }
+
+        auto* hwstam = reinterpret_cast<volatile u32*>(mmio_base_ + BCS_HWSTAM);
+        *hwstam = ~0u;
+        asm volatile("" ::: "memory");
+        (void)*hwstam;
 
         Log::debug("Ring Buffer cleared with NOOPs");
     }

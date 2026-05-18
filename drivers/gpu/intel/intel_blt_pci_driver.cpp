@@ -136,14 +136,14 @@ namespace blt {
         intel_blt_drv = blt;
         driver_ = blt;
 
-        const DisplayBackend be{driver_, driver_->get_kd()};
-        DisplayManager::set_primary(be);
+     //   const DisplayBackend be{driver_, driver_->get_kd()};
+     //   DisplayManager::set_primary(be);
 
-        // Blaues Rechteck unten rechts
         driver_->fill_rect(screen_width - 250, screen_height - 250, 200, 200, 0xFF0000FF);
 
+
+      //  driver_->draw_str("TEST LOG LONG TEST LOG HERE", 100, 100, 0xffffffff, 0x00000000);
         Log::info("test log via Log:: api");
-        driver_->draw_str("TEST LOG LONG TEST LOG HERE", 100, 100, 0xffffffff, 0x00000000);
 
         return 0;
     }

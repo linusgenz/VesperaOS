@@ -64,6 +64,7 @@ namespace blt {
     /// Opcode values for BR00. See BLT Commands Reference for field widths per client.
     enum BLT_OPCODE : u32 {
         OPCODE_MI_NOOP = 0x00,
+        OPCODE_MI_USER_INTERRUPT = 0x02,
         OPCODE_MI_FLUSH_DW = 0x26,
         OPCODE_XY_COLOR_BLT = 0x50,
         OPCODE_XY_SRC_COPY_BLT = 0x53,
@@ -324,6 +325,20 @@ namespace blt {
         u32 immediate_data;     // DW3 — value to write (e.g. sequence number)
         u32 reserved;           // DW4 = 0
     } __attribute__((packed));
+
+    /**
+     * @brief MI_USER_INTERRUPT ring command — MI opcode 0x02 in bits [28:23].
+     *
+     */
+    union MI_USER_INTERRUPT_CMD {
+        struct {
+            u32 reserved : 23;   // [22:0] MBZ
+            u32 opcode   : 6;    // [28:23] MI Command Opcode = 0x02
+            u32 client   : 3;    // [31:29] Command Type = MI_COMMAND (0)
+        } __attribute__((packed));
+
+        u32 d_word;
+    };
 
 }  // namespace blt
 

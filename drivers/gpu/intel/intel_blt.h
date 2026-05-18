@@ -27,7 +27,9 @@
 #include <vespera/devices/device_info.h>
 #include <vespera/graphics/IRenderDriver.h>
 #include <vespera/graphics/psf.h>
+#include <vespera/interrupts.h>
 #include <vespera/mm/addr.h>
+#include <vespera/sync/semaphore.h>
 
 #include "ggtt_allocator.h"
 
@@ -36,6 +38,12 @@ namespace pci {
     struct PCI_DEVICE_HEADER;
 }  // namespace pci
 struct KernelDevice;
+
+#define MMIO_POST_WRITE(reg) \
+do { \
+volatile u32 __tmp = (reg)->raw; \
+(void)__tmp; \
+} while (0)
 
 // Force Wake Registers
 #define FORCEWAKE_MT 0xA188          // Multi-threaded force wake control
@@ -65,6 +73,11 @@ constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;  // 8MB offset from MMIO base
 #define BCS_RING_START 0x38  // Ring buffer start address
 #define BCS_RING_CTL 0x3C    // Ring buffer control
 #define BCS_HWSP 0x80        // Hardware status page address
+
+constexpr u32 BCS_HWSTAM = 0x22098u;   // Hardware Status Mask
+constexpr u32 BCS_IMR    = 0x220A8u;   // Interrupt Mask Register (RING_IMR)
+constexpr u32 BCS_EIR    = 0x220B0u;   // Error Identity Register
+constexpr u32 BCS_EMR    = 0x220B4u;   // Error Mask Register
 
 // Ring Buffer Control Bits
 #define RING_CTL_ENABLED 0x01    // Ring buffer enabled bit
@@ -183,6 +196,7 @@ namespace blt {
     class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
         explicit IntelBlt(volatile pci::PCI_HEADER0* header);
+        void init_bcs_error_reporting() const;
         void start_device(u32 screen_width, u32 screen_height);
         static u32 tile_mode_to_blt_flag(TileMode mode);
 
@@ -208,6 +222,7 @@ namespace blt {
         bool get_model(char* out, usize len) override;
 
         bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
+        void test_interrupt_only();
 
        private:
         volatile pci::PCI_HEADER0* pci_header_;
@@ -238,6 +253,20 @@ namespace blt {
         GpuTextBuffer text_buffer_;
         GpuFramebuffer fb_;
 
+        Semaphore completion_sem_;
+        u8 irq_vector_ = 0;
+
+        /**
+         * @brief Unmasks and enables the BCS user interrupt in the Gen8+ GT interrupt registers.
+         *
+         * Must be called after MSI is activated and the ISR is registered.
+         * Enables bit 22 (GT_BCS_USER_IRQ) in GEN8_GT_IER_0, clears it from the mask
+         * register, and sets the GT enable bit in GEN8_MASTER_IRQ.
+         *
+         * @warning Call once from the constructor — not reentrant, not SMP-safe.
+         */
+        void enable_bcs_interrupts() const;
+
         void init_text_buffer(const PsfFont* font, u32 screen_width);
         template <class T>
         void write_command_struct(const T& cmd);
@@ -256,8 +285,22 @@ namespace blt {
         void write_command(u32 cmd);
         void set_display_framebuffer() const;
         void mi_flush(u32 seqno);
+
+        /**
+         * @brief Services a pending BCS user interrupt.
+         *
+         * Reads GEN8_GT_IIR_0, write-1-clears the BCS bit, then signals the
+         * completion semaphore so any thread blocked in @ref wait_for_sequence
+         * can re-check the HWSP seqno.
+         *
+         * @warning Must be called from ISR context with interrupts disabled.
+         *          Do not acquire sleeping locks here.
+         */
+        void handle_bcs_irq();
+        static Irqreturn bcs_interrupt_handler(IntelBlt* self);
+
         [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us);
-        void flush_commands() const;
+        void flush_commands();
         void setup_ring_buffer();
         void enable_force_wake() const;
         void enable_bcs_power() const;
