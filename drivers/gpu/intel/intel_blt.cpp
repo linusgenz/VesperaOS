@@ -63,7 +63,8 @@ namespace blt {
             Log::error("BLT: MSI enable failed");
         }
 
-        completion_sem_.init(1, 0);
+        // completion_sem_.init(1, 0);
+        completion_flag_.init(false);
 
         enable_bcs_interrupts();
         init_bcs_error_reporting();
@@ -119,23 +120,33 @@ namespace blt {
         DevFs::register_device(kd_);
     }
 
+    u32 IntelBlt::next_seqno() {
+        ++sequence_number_;
+        if (sequence_number_ & SEQNO_BIT5_MASK) {
+            // Round up to the next block of 64 where bit 5 is clear.
+            // Example: 0x20–0x3F → 0x40,  0x60–0x7F → 0x80
+            sequence_number_ = (sequence_number_ & ~u32{0x3F}) + 0x40u;
+        }
+        return sequence_number_;
+    }
+
     void IntelBlt::init_bcs_error_reporting() const {
         auto* eir = reinterpret_cast<volatile EIR_REG*>(mmio_base_ + BCS_EIR);
 
         EIR_REG v{};
-        v.bcs_errors.instruction_error = 0;
-        v.bcs_errors.privilege_violation = 0;
+        v.error_bits.instruction_error = 0;
+        v.error_bits.privilege_violation = 0;
 
         v.mask = 0xFFFFu;
 
         eir->raw = v.raw;
 
-        [[maybe_unused]] volatile u32 e = eir->raw;
+        MMIO_POST_WRITE(eir);
 
         auto* emr = reinterpret_cast<volatile EMR_REG*>(mmio_base_ + BCS_EMR);
 
         EMR_REG emr_reg{};
-        emr_reg.error_mask_bits = 0x00;
+        emr_reg.error_mask = 0x00;
         emr_reg.reserved = 0xFFFFFFu;
 
         emr->raw = emr_reg.raw;
@@ -144,57 +155,79 @@ namespace blt {
     }
 
     void IntelBlt::enable_bcs_interrupts() const {
-        auto* ring_imr = reinterpret_cast<volatile IMR_REG*>(mmio_base_ + BCS_IMR);
-
-        IMR_REG v{};
-
-        v.bcs.user_interrupt = 0;  // 0 = allowed
-        v.bcs.master_error = 1;
-        v.bcs.mi_flush_dw = 1;
-        v.bcs.timeout_expired = 1;
-        v.bcs.context_switch = 1;
-        v.bcs.wait_on_semaphore = 1;
-
-        ring_imr->raw = v.raw;
-
-        [[maybe_unused]] volatile u32 _ = ring_imr->raw;
-
+        auto* ring_imr = reinterpret_cast<volatile BCS_IMR_REG*>(mmio_base_ + BCS_IMR);
 
         auto* master = reinterpret_cast<volatile MASTER_INT_CTL*>(mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
+
         auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(mmio_base_ + GEN8_GT0_INTR_BASE);
 
-        // Master deaktivieren während Konfiguration
-        master->raw = 0u;
-        asm volatile("mfence" ::: "memory");
+        //
+        // BCS local interrupt mask
+        //
+        // Allow ONLY MI_USER_INTERRUPT through the BCS engine IMR.
+        BCS_IMR_REG bcs_imr{};
+        bcs_imr.bits.user_irq = 0;  // 0 = allowed
+        bcs_imr.bits.master_error = 1;
+        bcs_imr.bits.mi_flush_dw = 1;
+        bcs_imr.bits.timeout = 1;
+        bcs_imr.bits.ctx_switch = 1;
+        bcs_imr.bits.wait_sem = 1;
 
-        // IMR: laut BSpec für GT-Interrupts komplett auf 0 setzen
-        gt0->imr = 0u;
-        asm volatile("mfence" ::: "memory");
+        ring_imr->raw = bcs_imr.raw;
+        MMIO_POST_WRITE(ring_imr);
 
-        // Pending IIR wegräumen bevor IER gesetzt wird
-        GT0_IRQ_BITS clear{};
-        clear.bcs_user_irq = 1;
-        gt0->iir = clear.raw;
-        asm volatile("mfence" ::: "memory");
+        //
+        // Disable master interrupt routing during setup
+        //
+        MASTER_INT_CTL master_disable{};
+        master_disable.raw = 0;
 
-        // IER: nur bcs_user_irq enablen, direkt schreiben
-        GT0_IRQ_BITS enable{};
-        enable.bcs_user_irq = 1;
-        gt0->ier = enable.raw;
-        asm volatile("mfence" ::: "memory");
+        master->raw = master_disable.raw;
+        MMIO_POST_WRITE(master);
 
-        // Master Enable setzen
+        //
+        // GT0 IMR
+        //
+        GT0_IMR_REG gt_imr{};
+        gt_imr.raw = 0xFFFFFFFFu;
+
+        // Allow ONLY BCS MI_USER_INTERRUPT
+        gt_imr.bits.user_irq = 0;
+
+        gt0->imr.raw = gt_imr.raw;
+        MMIO_POST_WRITE(&gt0->imr);
+
+        //
+        // Clear stale pending interrupt state
+        //
+        GT0_IIR_REG clear{};
+        clear.bits.user_irq = 1;
+
+        gt0->iir.raw = clear.raw;
+        MMIO_POST_WRITE(&gt0->iir);
+
+        //
+        // Enable interrupt generation
+        //
+        GT0_IER_REG enable{};
+        enable.bits.user_irq = 1;
+
+        gt0->ier.raw = enable.raw;
+        MMIO_POST_WRITE(&gt0->ier);
+
+        //
+        // Enable global GT interrupt routing
+        //
         MASTER_INT_CTL arm{};
         arm.master_enable = 1;
-        master->raw = arm.raw;
-        asm volatile("mfence" ::: "memory");
 
-        Log::debug("BCS interrupts enabled: IER=0x%x IMR=0x%x", gt0->ier, gt0->imr);
+        master->raw = arm.raw;
+        MMIO_POST_WRITE(master);
     }
 
     void IntelBlt::start_device(u32 screen_width, u32 screen_height) {
         alloc_framebuffer(screen_width, screen_height, TileMode::Linear);
-        //  set_display_framebuffer();
+        set_display_framebuffer();
     }
 
     u32 IntelBlt::tile_mode_to_blt_flag(TileMode mode) {
@@ -210,7 +243,7 @@ namespace blt {
 
     void IntelBlt::init_text_buffer(const PsfFont* font, const u32 screen_width) {
         if (!font) {
-            Log::error("Invalid font for text buffer initialization");
+            // Log::error("Invalid font for text buffer initialization");
             return;
         }
 
@@ -267,11 +300,11 @@ namespace blt {
 
         // 4 bytes + 64 bytes margin
         if (available_space < 68) {
-            // Log::error("Ring buffer full! HEAD=0x%x TAIL=0x%x", head, ring_tail_);
+            // // Log::error("Ring buffer full! HEAD=0x%x TAIL=0x%x", head, ring_tail_);
             error_count_++;
             if (!wait_for_ring_space(68, 100000)) {
                 // 100ms timeout
-                // Log::error("Ring buffer deadlock!");
+                // // Log::error("Ring buffer deadlock!");
                 error_count_++;
                 return;
             }
@@ -311,24 +344,24 @@ namespace blt {
 
     bool IntelBlt::validate_blt_params(const BltRect& rect) const {
         if (virt_null(fb_.cpu_addr)) {
-            Log::error("Invalid framebuffer");
+            // Log::error("Invalid framebuffer");
             return false;
         }
 
         // Check dimensions
         if (rect.width == 0 || rect.height == 0) {
-            Log::error("Invalid rect dimensions: %dx%d", rect.width, rect.height);
+            // Log::error("Invalid rect dimensions: %dx%d", rect.width, rect.height);
             return false;
         }
 
         if (rect.width > 8192 || rect.height > 4096) {
-            Log::error("Rect too large: %dx%d (max 8192x4096)", rect.width, rect.height);
+            // Log::error("Rect too large: %dx%d (max 8192x4096)", rect.width, rect.height);
             return false;
         }
 
         // Check bounds
         if (rect.x + rect.width > fb_.width || rect.y + rect.height > fb_.height) {
-            Log::error(
+            /* Log::error(
                 "Rect out of bounds: (%d,%d)-(%d,%d) in %dx%d FB",
                 rect.x,
                 rect.y,
@@ -336,21 +369,21 @@ namespace blt {
                 rect.y + rect.height,
                 fb_.width,
                 fb_.height
-            );
+            );*/
             return false;
         }
 
         // Check alignment
         if (gfx_raw(fb_.gfx_addr) & 0x3F) {
             // 64-byte alignment
-            Log::error("Framebuffer not aligned: 0x%llx", gfx_raw(fb_.gfx_addr));
+            // Log::error("Framebuffer not aligned: 0x%llx", gfx_raw(fb_.gfx_addr));
             return false;
         }
 
         // Check pitch
         if (fb_.pitch & 0x3F) {
             // 64-byte alignment
-            Log::error("Pitch not aligned: %d", fb_.pitch);
+            // Log::error("Pitch not aligned: %d", fb_.pitch);
             return false;
         }
 
@@ -385,7 +418,7 @@ namespace blt {
     }
 
     void IntelBlt::emergency_reset_bcs() {
-        Log::error("Emergency BCS reset initiated!");
+        // Log::error("Emergency BCS reset initiated!");
 
         bcs_regs_[BCS_RING_CTL / 4] &= ~RING_CTL_ENABLED;
 
@@ -400,7 +433,9 @@ namespace blt {
         bcs_regs_[BCS_RING_TAIL / 4] = 0;
         ring_tail_ = 0;
 
-        Log::error("Emergency reset complete");
+        sequence_number_ = 0;
+
+        // Log::error("Emergency reset complete");
     }
 
     void IntelBlt::check_gpu_health() {
@@ -409,7 +444,7 @@ namespace blt {
 
         // Check if ring is still enabled
         if (const u32 ctl = bcs_regs_[BCS_RING_CTL / 4]; !(ctl & RING_CTL_ENABLED)) {
-            // Log::error("BCS ring disabled unexpectedly!");
+            // // Log::error("BCS ring disabled unexpectedly!");
             error_count_++;
             emergency_reset_bcs();
             return;
@@ -422,7 +457,7 @@ namespace blt {
         if (head == last_head && head != tail) {
             hang_counter++;
             if (hang_counter > 1000) {
-                //  Log::error("GPU hang detected! HEAD stuck at 0x%x", head);
+                //  // Log::error("GPU hang detected! HEAD stuck at 0x%x", head);
                 error_count_++;
                 emergency_reset_bcs();
                 hang_counter = 0;
@@ -443,7 +478,7 @@ namespace blt {
         check_gpu_health();
 
         if (constexpr u32 required = 12 * 4 + 64; !wait_for_ring_space(required, 1'000'000)) {
-            Log::error("Ring buffer full!");
+            // Log::error("Ring buffer full!");
             return false;
         }
 
@@ -452,17 +487,15 @@ namespace blt {
 
         xy_color_blt(fb_.gfx_addr, fb_.pitch, rect.x, rect.y, x2, y2, colour);
 
-        sequence_number_++;
-        const u32 target_seqno = sequence_number_;
+        const u32 target_seqno = next_seqno();
 
         mi_flush(target_seqno);
         flush_commands();
 
-        //poll_iir_after_submit(500'000);
-          if (!wait_for_sequence(target_seqno, 5'000'000)) {
-              Log::error("Timeout for sequence %u!", target_seqno);
-              return false;
-          }
+        if (!wait_for_sequence(target_seqno, 5'000'000)) {
+            // Log::error("Timeout for sequence %u!", target_seqno);
+            return false;
+        }
 
         return true;
     }
@@ -510,10 +543,14 @@ namespace blt {
         cmd.dw0.post_sync = 1;
         cmd.dw0.dword_len = MI_FLUSH_DW_LEN;
 
-        cmd.address_or_offset = HWSP_SEQNO_OFFSET;
-        cmd.address_hi = 0;
+        cmd.dw1.addr_lo = HWSP_SEQNO_OFFSET >> 2;
+        cmd.dw2.addr_hi = 0;
         cmd.immediate_data = seqno;
-        cmd.reserved = 0;
+
+        // IHD-OS-KBL-Vol 2a (Page 993)
+        if (cmd.immediate_data & (1u << 5)) {
+            return;  // ERR_INVALID_ADDR; TODO add error codes or something like this
+        }
 
         write_command_struct(cmd);
 
@@ -524,56 +561,86 @@ namespace blt {
     }
 
     Irqreturn IntelBlt::bcs_interrupt_handler(IntelBlt* self) {
-        Log::log_msg("bcs_interrupt_handler");
         auto* master = reinterpret_cast<volatile MASTER_INT_CTL*>(self->mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
+
         auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->mmio_base_ + GEN8_GT0_INTR_BASE);
 
-        GT0_IRQ_BITS pending{};
-        pending.raw = gt0->iir;
+        //
+        // Read pending GT0 interrupt sources
+        //
+        GT0_IIR_REG pending{};
+        pending.raw = gt0->iir.raw;
 
-        if (!pending.bcs_user_irq) {
+        //
+        // Not our interrupt.
+        //
+        if (!pending.bits.user_irq) {
+            MASTER_INT_CTL arm{};
+            arm.master_enable = 1;
+
+            master->raw = arm.raw;
+            MMIO_POST_WRITE(master);
             return IRQ_NONE;
         }
+/*
+        Log::log_msg(
+            "BCS MI_USER_INTERRUPT: %p %p %p",
+            __builtin_return_address(3),
+            __builtin_return_address(4),
+            __builtin_return_address(5)
+        );
+*/
+        //
+        // Acknowledge interrupt (W1C)
+        //
+        GT0_IIR_REG clear{};
+        clear.bits.user_irq = 1;
 
-        GT0_IRQ_BITS clear{};
-        clear.bcs_user_irq = 1;
-        gt0->iir = clear.raw;
-        asm volatile("mfence" ::: "memory");
+        gt0->iir.raw = clear.raw;
+        MMIO_POST_WRITE(&gt0->iir);
 
+        //
+        // Re-arm master interrupt delivery
+        //
+        // Pending bits are RO/sticky status indicators.
+        // Only bit31 is writable.
+        //
         MASTER_INT_CTL arm{};
         arm.master_enable = 1;
-        master->raw = arm.raw;
-        asm volatile("mfence" ::: "memory");
-        asm volatile("mfence" ::: "memory");
 
-        self->completion_sem_.signal();
+        master->raw = arm.raw;
+        MMIO_POST_WRITE(master);
+
+        //
+        // Signal completion
+        //
+        // self->completion_sem_.signal();
+        self->completion_flag_.set();
+
         return IRQ_HANDLED;
     }
 
     bool IntelBlt::wait_for_sequence(u32 target_seqno, u32 timeout_us) {
         auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
-        u32* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
+        const u32* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
 
         asm volatile("lfence" ::: "memory");
-        if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) {
-            return true;
-        }
+        if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
 
-        const u16 timeout_ms = static_cast<u16>((timeout_us + 999) / 1000);
+        const u64 deadline_ms = kernel::time::get_uptime_ms() + (timeout_us + 999) / 1000;
 
         while (true) {
-            const bool signalled = completion_sem_.wait(timeout_ms);
-
-            asm volatile("lfence" ::: "memory");
-            if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) {
-                return true;
+            if (completion_flag_.consume()) {
+                asm volatile("lfence" ::: "memory");
+                if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
             }
 
-            if (!signalled) {
-                Log::debug("error: not signalled");
+            if (kernel::time::get_uptime_ms() >= deadline_ms) {
                 error_count_++;
                 return false;
             }
+
+            asm volatile("pause" ::: "memory");
         }
     }
 
@@ -588,7 +655,7 @@ namespace blt {
 
         asm volatile("mfence" ::: "memory");
         bcs_regs_[BCS_RING_TAIL / 4] = ring_tail_;
-        Log::debug("flush_commands: ring_tail_=0x%x (aligned)", ring_tail_);
+        /// Log::debug("flush_commands: ring_tail_=0x%x (aligned)", ring_tail_);
     }
 
     void IntelBlt::setup_ring_buffer() {
@@ -682,7 +749,7 @@ namespace blt {
 
         const u32 gtt_index = ggtt_alloc_.alloc_persistent(static_cast<u32>(num_pages));
         if (gtt_index == U32_MAX) {
-            // Log::error("alloc_and_map_to_ggtt: persistent zone exhausted");
+            // // Log::error("alloc_and_map_to_ggtt: persistent zone exhausted");
             error_count_++;
             // Physical pages are intentionally not freed here: persistent
             // allocations failing is a fatal driver initialisation error.
@@ -701,7 +768,7 @@ namespace blt {
         const u32 gtt_index = ggtt_alloc_.alloc_transient(static_cast<u32>(num_pages));
         if (gtt_index == U32_MAX) {
             draw_str("alloc_and_map_to_ggtt_transient: transient zone exhausted", 600, 100, 0xffffffff, 0x00000000);
-            // Log::error("alloc_and_map_to_ggtt_transient: transient zone exhausted");
+            // // Log::error("alloc_and_map_to_ggtt_transient: transient zone exhausted");
             kernel::memory::free_pages_phys(phys, num_pages);
             return {};
         }
@@ -739,7 +806,7 @@ namespace blt {
 
     gfx_addr_t IntelBlt::map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index) {
         if (gtt_next_free_ + num_pages > gtt_total_entries_) {
-            // Log::error("GGTT out of space!");
+            // // Log::error("GGTT out of space!");
             error_count_++;
             return make_gfx(0);
         }
@@ -792,7 +859,7 @@ namespace blt {
                 break;
 
             default:
-                Log::error("Unsupported tile mode!");
+                // Log::error("Unsupported tile mode!");
                 return;
         }
 
@@ -910,7 +977,7 @@ namespace blt {
 
     bool IntelBlt::draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color) {
         if (!text || !system_font || virt_null(text_buffer_.cpu_addr)) {
-            Log::error("Invalid parameters for draw_string");
+            // Log::error("Invalid parameters for draw_string");
             return false;
         }
 
@@ -927,19 +994,19 @@ namespace blt {
         text_stride = ((text_stride + 1) / 2) * 2;
 
         if (text_stride * text_height > text_buffer_.total_size) {
-            Log::error(
+            /* Log::error(
                 "Text too large for buffer: stride=%u, height=%u (max size=%zu)",
                 text_stride,
                 text_height,
                 text_buffer_.total_size
-            );
+            );*/
             return false;
         }
 
         check_gpu_health();
 
         if (u32 required = 12 * 4 + 64; !wait_for_ring_space(required, 1000000)) {
-            Log::error("Ring buffer full!");
+            // Log::error("Ring buffer full!");
             return false;
         }
 
@@ -961,13 +1028,12 @@ namespace blt {
             fg_color
         );
 
-        sequence_number_++;
-        u32 target_seqno = sequence_number_;
+        u32 target_seqno = next_seqno();
         mi_flush(target_seqno);
         flush_commands();
 
         if (!wait_for_sequence(target_seqno, 1000000)) {
-            /* Log::error(
+            /* // Log::error(
                  "Timeout waiting for text! HEAD=0x%x TAIL=0x%x",
                  bcs_regs_[BCS_RING_HEAD / 4],
                  bcs_regs_[BCS_RING_TAIL / 4]
@@ -1088,12 +1154,12 @@ namespace blt {
             fb_.gfx_addr, fb_.pitch, dst_x, dst_y, dst_x + max_w, dst_y + max_h, temp_buffer.gfx_addr, src_pitch, 0, 0
         );
 
-        sequence_number_++;
-        mi_flush(sequence_number_);
+        const u32 target_seqno = next_seqno();
+        mi_flush(target_seqno);
         flush_commands();
         //    draw_str("flushed", 600, 180, 0xffffffff, 0x00000000);
 
-        const bool success = wait_for_sequence(sequence_number_, 500'000);
+        const bool success = wait_for_sequence(target_seqno, 500'000);
         //   draw_str("done waiting", 600, 200, 0xffffffff, 0x00000000);
 
         free_ggtt_transient(temp_buffer, num_pages);
@@ -1161,11 +1227,11 @@ namespace blt {
             0
         );
 
-        sequence_number_++;
-        mi_flush(sequence_number_);
+        const u32 target_seqno = next_seqno();
+        mi_flush(target_seqno);
         flush_commands();
 
-        const bool success = wait_for_sequence(sequence_number_, 500'000);
+        const bool success = wait_for_sequence(target_seqno, 500'000);
 
         free_ggtt_transient(temp_buffer, num_pages);
         return success;
@@ -1189,12 +1255,11 @@ namespace blt {
 
         xy_color_blt(fb_.gfx_addr, fb_.pitch, 0, copy_height, fb_.width, fb_.height, BLACK);
 
-        sequence_number_++;
-        mi_flush(sequence_number_);
+        const u32 target_seqno = next_seqno();
+        mi_flush(target_seqno);
         flush_commands();
 
-        if (!wait_for_sequence(sequence_number_, 2'000'000)) {
-            // Log::error("Scroll timeout (combined)");
+        if (!wait_for_sequence(target_seqno, 2'000'000)) {
             error_count_++;
             return false;
         }

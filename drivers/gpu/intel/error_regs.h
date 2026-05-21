@@ -14,122 +14,116 @@
 //
 // VesperaOS is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+// along with VesperaOS.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef VESPERAOS_ERROR_REGS_H
 #define VESPERAOS_ERROR_REGS_H
+
+// IHD-OS-KBL-Vol 2c — EMR, ESR, EIR (Error Mask / Status / Identity Registers)
+
+// ============================================================================
+// EMR — Error Mask Register
+// ============================================================================
 
 /**
  * @brief Error Mask Register (EMR).
  *
- * Controls which Engine Status Register (ESR) error bits are propagated
- * into the Engine Interrupt Register (EIR).
+ * Controls which ESR error bits are propagated into EIR and subsequently
+ * into the Master Error condition of ISR.
  *
- * IHD-OS-KBL-Vol 2c — EMR (Error Mask Register)
- *
- * @note Bit value semantics:
- *       0 = unmasked  -> error propagates into EIR
- *       1 = masked    -> error suppressed
- *
- * @note Bits [31:8] are reserved, read-only in HW, and MUST remain '1'.
- *       Software must preserve/set them to 1 on writes.
- *
- * @note Default reset value = 0xFFFFFFFF
- *
- * @note EMR only controls propagation into EIR / master interrupt logic.
- *       It does NOT prevent the underlying ESR status bit from being set.
+ * @note 0 = unmasked — error propagates into EIR.
+ * @note 1 = masked   — error suppressed (default; reset value = 0xFFFFFFFF).
+ * @note Bits [31:8] are reserved, RO in hardware, and MUST be written as 1.
+ * @note EMR only gates EIR propagation; it does NOT prevent the ESR bit
+ *       from being set by hardware.
  */
 union EMR_REG {
     struct {
         /**
-         * @brief Error mask bits.
+         * @brief Error mask bits [7:0].
          *
-         * One bit per ESR error condition.
+         * One bit per ESR error source.
+         * Bit meanings are engine-specific; see the Hardware-Detected Error
+         * Bits table for BCS.
          *
-         * 0 = error is reported into EIR
-         * 1 = error is masked
-         *
-         * Exact bit meanings depend on the engine-specific
-         * Hardware-Detected Error Bits table.
+         * 0 = error reported into EIR
+         * 1 = error masked
          */
-        u32 error_mask_bits : 8;
+        u32 error_mask : 8;  ///< [7:0]
 
         /**
-         * @brief Reserved.
+         * @brief Reserved [31:8].
          *
-         * Not implemented in hardware.
-         * Must always be written as 1.
+         * Not implemented in hardware.  MUST be written as 1.
          */
-        u32 reserved : 24;
+        u32 reserved : 24;  ///< [31:8]  write-as-1
     } __attribute__((packed));
-
     u32 raw;
 };
 
 static_assert(sizeof(EMR_REG) == 4);
 
-struct BCS_EIR_ERROR_BITS {
+// ============================================================================
+// EIR — Error Identity Register
+// ============================================================================
+
+/**
+ * @brief BCS-specific error bits within EIR [15:0].
+ */
+struct BCS_EIR_BITS {
     /**
-     * @brief Instruction Error [0]
+     * @brief Instruction Error [0].
      *
-     * Fatal error:
-     * - unsupported client ID
-     * - invalid instruction decode
-     * - deprecated MI opcodes
+     * Fatal; set on:
+     *   - unsupported client ID
+     *   - invalid instruction decode
+     *   - deprecated MI opcode
      *
-     * NOTE: cannot be cleared except reset
+     * @note Cannot be cleared by software; requires hardware reset.
      */
-    u16 instruction_error : 1;
+    u16 instruction_error : 1;  ///< [0]
 
-    u16 reserved1 : 1;
+    u16 reserved1 : 1;  ///< [1]  MBZ
 
     /**
-     * @brief Command Privilege Violation [2]
+     * @brief Command Privilege Violation [2].
      *
-     * Privileged command in non-privileged batch buffer.
-     * Hardware converts command to NOOP and continues parsing.
+     * A privileged command was issued from a non-privileged batch buffer.
+     * Hardware converts the command to a NOOP and continues parsing.
      */
-    u16 privilege_violation : 1;
+    u16 privilege_violation : 1;  ///< [2]
 
-    u16 reserved3_15 : 13;  ///< bits 15:3 MBZ
+    u16 reserved3_15 : 13;  ///< [15:3] MBZ
 } __attribute__((packed));
 
-static_assert(sizeof(BCS_EIR_ERROR_BITS) == 2);
+static_assert(sizeof(BCS_EIR_BITS) == 2);
 
 /**
  * @brief Error Identity Register (EIR).
  *
- * Holds persistent error status bits that were unmasked via EMR.
- * A set bit indicates a hardware-detected error condition.
+ * Holds persistent error status for conditions unmasked via EMR.
+ * Any set bit in [15:0] drives the Master Error bit in ISR.
  *
- * Any set bit contributes to the Master Error condition in ISR.
+ * Clear sequence:
+ *   1. Write 1 to the relevant bit(s) in [15:0] to clear the error.
+ *   2. If needed, clear master_error in IIR afterward.
  *
- * @note Writing 1 clears the corresponding error bit (W1C behavior).
- * @note Bit 0 (Instruction Error) and Bit 4 (Page Table Error)
- *       are fatal and cannot be cleared by software.
+ * @note Bits [15:0] are W1C.
+ * @note Bit 0 (Instruction Error) and Bit 4 (Page Table Error) are fatal —
+ *       cannot be cleared except by reset.
+ * @note Bits [31:16] are WO mask field; reserved bits are RO.
+ * @note Default reset value = 0x00000000.
+ *
+ * MMIO: 0x220B0 (EIR_BCSUNIT)
  */
 union EIR_REG {
     struct {
-        /**
-         * @brief Error identity bits [15:0]
-         *
-         * Each bit represents a hardware-detected error condition.
-         * 1 = error occurred (persistent until cleared)
-         */
-        BCS_EIR_ERROR_BITS bcs_errors;
-
-        /**
-         * @brief Mask / reserved write-only field [31:16]
-         *
-         * Used for clearing via write-1-to-clear semantics.
-         * Must be written as 0 when not explicitly clearing bits.
-         */
-        u32 mask : 16;
+        BCS_EIR_BITS error_bits;  ///< [15:0]  Hardware-detected error status (W1C)
+        u16 mask;                 ///< [31:16] Mask field (WO)
     } __attribute__((packed));
-
     u32 raw;
 };
 

@@ -4,7 +4,6 @@
 
 #ifndef PCI_H
 #define PCI_H
-#include <acpi/acpi.h>
 #include <vespera/types.h>
 
 namespace kernel::acpi {

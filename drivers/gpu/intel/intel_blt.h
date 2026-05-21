@@ -29,6 +29,7 @@
 #include <vespera/graphics/psf.h>
 #include <vespera/interrupts.h>
 #include <vespera/mm/addr.h>
+#include <vespera/sync/atomic.h>
 #include <vespera/sync/semaphore.h>
 
 #include "ggtt_allocator.h"
@@ -39,11 +40,11 @@ namespace pci {
 }  // namespace pci
 struct KernelDevice;
 
-#define MMIO_POST_WRITE(reg) \
-do { \
-volatile u32 __tmp = (reg)->raw; \
-(void)__tmp; \
-} while (0)
+#define MMIO_POST_WRITE(reg)             \
+    do {                                 \
+        volatile u32 __tmp = (reg)->raw; \
+        (void)__tmp;                     \
+    } while (0)
 
 // Force Wake Registers
 #define FORCEWAKE_MT 0xA188          // Multi-threaded force wake control
@@ -74,10 +75,10 @@ constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;  // 8MB offset from MMIO base
 #define BCS_RING_CTL 0x3C    // Ring buffer control
 #define BCS_HWSP 0x80        // Hardware status page address
 
-constexpr u32 BCS_HWSTAM = 0x22098u;   // Hardware Status Mask
-constexpr u32 BCS_IMR    = 0x220A8u;   // Interrupt Mask Register (RING_IMR)
-constexpr u32 BCS_EIR    = 0x220B0u;   // Error Identity Register
-constexpr u32 BCS_EMR    = 0x220B4u;   // Error Mask Register
+constexpr u32 BCS_HWSTAM = 0x22098u;  // Hardware Status Mask
+constexpr u32 BCS_IMR = 0x220A8u;     // Interrupt Mask Register (RING_IMR)
+constexpr u32 BCS_EIR = 0x220B0u;     // Error Identity Register
+constexpr u32 BCS_EMR = 0x220B4u;     // Error Mask Register
 
 // Ring Buffer Control Bits
 #define RING_CTL_ENABLED 0x01    // Ring buffer enabled bit
@@ -103,7 +104,6 @@ constexpr u32 BCS_EMR    = 0x220B4u;   // Error Mask Register
 #define MOCS_DISPLAY_BUFFER 0x03  // Für Display: LLC cacheable
 #define MOCS_CACHED_WB 0x09       // L3 + LLC Write-Back (default für Texturen)
 
-#define MI_NOOP 0x00000000  // No operation
 
 #define HWSP_SEQNO_OFFSET_DWORDS 4
 #define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
@@ -196,6 +196,8 @@ namespace blt {
     class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
         explicit IntelBlt(volatile pci::PCI_HEADER0* header);
+        static constexpr u32 SEQNO_BIT5_MASK = (1u << 5);
+        u32 next_seqno();
         void init_bcs_error_reporting() const;
         void start_device(u32 screen_width, u32 screen_height);
         static u32 tile_mode_to_blt_flag(TileMode mode);
@@ -253,7 +255,8 @@ namespace blt {
         GpuTextBuffer text_buffer_;
         GpuFramebuffer fb_;
 
-        Semaphore completion_sem_;
+        //Semaphore completion_sem_;
+        AtomicFlag completion_flag_;
         u8 irq_vector_ = 0;
 
         /**

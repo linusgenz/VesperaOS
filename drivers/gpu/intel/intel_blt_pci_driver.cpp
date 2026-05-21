@@ -22,13 +22,13 @@
 
 #include "intel_blt_pci_driver.h"
 
+#include <klib/string.h>
 #include <pci/pci.h>
 #include <vespera/graphics/display_manager.h>
 #include <vespera/log.h>
+#include <vespera/time.h>
 
 #include "intel_blt.h"
-
-blt::IntelBlt* intel_blt_drv = nullptr;
 
 namespace blt {
 
@@ -133,17 +133,10 @@ namespace blt {
         auto* blt = new IntelBlt(dev.header);
         blt->start_device(screen_width, screen_height);
 
-        intel_blt_drv = blt;
         driver_ = blt;
 
-     //   const DisplayBackend be{driver_, driver_->get_kd()};
-     //   DisplayManager::set_primary(be);
-
-        driver_->fill_rect(screen_width - 250, screen_height - 250, 200, 200, 0xFF0000FF);
-
-
-      //  driver_->draw_str("TEST LOG LONG TEST LOG HERE", 100, 100, 0xffffffff, 0x00000000);
-        Log::info("test log via Log:: api");
+        const DisplayBackend be{driver_, driver_->get_kd()};
+        DisplayManager::set_primary(be);
 
         return 0;
     }

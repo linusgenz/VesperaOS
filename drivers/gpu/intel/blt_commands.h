@@ -80,7 +80,7 @@ namespace blt {
             u32 x1 : 16;
             u32 y1 : 16;
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// BR23: bottom-right coordinate — [31:16] Y2, [15:0] X2.
@@ -89,7 +89,7 @@ namespace blt {
             u32 x2 : 16;
             u32 y2 : 16;
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// BR26: source top-left coordinate — [31:16] Y1, [15:0] X1.
@@ -98,7 +98,7 @@ namespace blt {
             u32 src_x1 : 16;
             u32 src_y1 : 16;
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     // XY_COLOR_BLT  (opcode 0x50, 7 DWORDs)
@@ -115,7 +115,7 @@ namespace blt {
             u32 opcode : 7;         // [28:22] = 0x50
             u32 client : 3;         // [31:29] = 0x2
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// DW1 / BR13 for XY_COLOR_BLT.
@@ -128,7 +128,7 @@ namespace blt {
             u32 clipping : 1;     // [30]
             u32 reserved1 : 1;    // [31]    MBZ
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// Full XY_COLOR_BLT command packet (7 DWORDs).
@@ -158,7 +158,7 @@ namespace blt {
             u32 opcode : 7;             // [28:22] = 0x53
             u32 client : 3;             // [31:29] = 0x2
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// DW1 / BR13 for XY_SRC_COPY_BLT. Identical layout to XY_COLOR_BLT_DW1.
@@ -171,7 +171,7 @@ namespace blt {
             u32 clipping : 1;     // [30]
             u32 reserved1 : 1;    // [31]    MBZ
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// DW7 / BR11 for XY_SRC_COPY_BLT — source pitch.
@@ -180,7 +180,7 @@ namespace blt {
             u32 src_pitch : 16;  // [15:0]
             u32 reserved0 : 16;  // [31:16] MBZ
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// Full XY_SRC_COPY_BLT command packet (10 DWORDs).
@@ -212,7 +212,7 @@ namespace blt {
             u32 opcode : 7;            // [28:22] = 0x54
             u32 client : 3;            // [31:29] = 0x2
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// DW1 / BR13 for XY_MONO_SRC_COPY_BLT.
@@ -226,7 +226,7 @@ namespace blt {
             u32 clipping : 1;      // [30]
             u32 reserved1 : 1;     // [31]    MBZ
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// Full XY_MONO_SRC_COPY_BLT command packet (11 DWORDs).
@@ -257,7 +257,7 @@ namespace blt {
             u32 opcode : 7;      // [28:22] = 0x42
             u32 client : 3;      // [31:29] = 0x2
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// DW1 / BR13 for XY_FAST_COPY_BLT.
@@ -270,7 +270,7 @@ namespace blt {
             u32 tile_y_type_dst : 1;  // [30]    0 = Tile-Y, 1 = Tile-YF
             u32 tile_y_type_src : 1;  // [31]    0 = Tile-Y, 1 = Tile-YF
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// DW7 / BR11 for XY_FAST_COPY_BLT — source pitch (same encoding as dest_pitch).
@@ -279,7 +279,7 @@ namespace blt {
             u32 src_pitch : 16;  // [15:0]
             u32 reserved0 : 16;  // [31:16] MBZ
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
     };
 
     /// Full XY_FAST_COPY_BLT command packet (10 DWORDs).
@@ -307,23 +307,44 @@ namespace blt {
             u32 flush_llc : 1;    // [9]
             u32 reserved_b : 4;   // [13:10] MBZ
             u32 post_sync : 2;    // [15:14] 2-Bit: 0=NoWrite, 1=WriteImmediate, 3=WriteTimestamp
-            u32 reserved_c : 3;   // [18:16] (inkl. TLB Invalidate bit[18])
+            u32 reserved_c : 2;   // [18:16]
+            u32 tlb_inv : 1;      // [18]    Invalidate Blitter TLBs (valid if post_sync=1|3)
             u32 reserved_d : 2;   // [20:19] MBZ
             u32 store_index : 1;  // [21]
             u32 reserved_e : 1;   // [22]
             u32 opcode : 6;       // [28:23]
             u32 client : 3;       // [31:29]
         } __attribute__((packed));
-        u32 d_word;
+        u32 raw;
+    };
+
+    /// DW1 — lower 32 bits of the 64-bit address field (DW1..2).
+    /// When Store Data Index=1: [31:2] holds the HWSP/PPHWSP dword index.
+    /// When Store Data Index=0: [31:2] holds GraphicsAddress[31:2].
+    union MI_FLUSH_DW_DW1 {
+        struct {
+            u32 reserved_a : 2;  // [1:0]   MBZ
+            u32 addr_lo : 30;    // [31:2]  GraphicsAddress[31:2] or HWSP index
+        } __attribute__((packed));
+        u32 raw;
+    };
+
+    /// DW2 — upper 32 bits of the 64-bit address field (DW1..2).
+    /// Upper 16 bits of a 48-bit graphics address; zero when using an HWSP index.
+    union MI_FLUSH_DW_DW2 {
+        struct {
+            u32 addr_hi : 16;     // [15:0]  GraphicsAddress[47:32]
+            u32 reserved_a : 16;  // [31:16] MBZ
+        } __attribute__((packed));
+        u32 raw;
     };
 
     /// Full MI_FLUSH_DW command packet (5 DWORDs).
     struct MI_FLUSH_DW_CMD {
         MI_FLUSH_DW_DW0 dw0;
-        u32 address_or_offset;  // DW1 — target address low or HWSP index
-        u32 address_hi;         // DW2 — 0 when using HWSP index
-        u32 immediate_data;     // DW3 — value to write (e.g. sequence number)
-        u32 reserved;           // DW4 = 0
+        MI_FLUSH_DW_DW1 dw1;  // DW1 — target address low or HWSP index
+        MI_FLUSH_DW_DW2 dw2;  // DW2 — 0 when using HWSP index
+        u64 immediate_data;   // DW3 — value to write (e.g. sequence number)
     } __attribute__((packed));
 
     /**
@@ -332,13 +353,15 @@ namespace blt {
      */
     union MI_USER_INTERRUPT_CMD {
         struct {
-            u32 reserved : 23;   // [22:0] MBZ
-            u32 opcode   : 6;    // [28:23] MI Command Opcode = 0x02
-            u32 client   : 3;    // [31:29] Command Type = MI_COMMAND (0)
+            u32 reserved : 23;  // [22:0] MBZ
+            u32 opcode : 6;     // [28:23] MI Command Opcode = 0x02
+            u32 client : 3;     // [31:29] Command Type = MI_COMMAND (0)
         } __attribute__((packed));
 
-        u32 d_word;
+        u32 raw;
     };
+
+    constexpr u32 MI_NOOP = 0x00000000;  // No operation
 
 }  // namespace blt
 
