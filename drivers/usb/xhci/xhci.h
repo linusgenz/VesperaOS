@@ -3,20 +3,23 @@
 
 #include <klib/vector.h>
 #include <pci/pci.h>
+#include <pci/pci_device.h>
 #include <vespera/devices/device_info.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/sync/atomic.h>
 
+#include "xhci_dbc.h"
 #include "xhci_device.h"
 #include "xhci_ext_cap.h"
 #include "xhci_regs.h"
 #include "xhci_rings.h"
 
 namespace usb {
+
     class XhciDriver final : public IDeviceInfo {
        public:
-        explicit XhciDriver(u8 vector_num, const char* name, u8 bus_number);
+        explicit XhciDriver(u8 vector_num, const char* name, u8 bus_number, pci::pci_device dev);
 
         [[nodiscard]] KernelDevice* get_device() const {
             return kd_;
@@ -39,7 +42,9 @@ namespace usb {
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
 
+        XhciDbcPort* dbc_port;
        private:
+        pci::pci_device dev_;
         KernelDevice* kd_;
 
         UsbDeviceInfo* controller_info_;

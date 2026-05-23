@@ -3,14 +3,15 @@
 #include <filesystem/devfs.h>
 #include <klib/encoding.h>
 #include <klib/vector.h>
+#include <pci/pci_device.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
 
-#include "drivers/usb/usb_manager.h"
 #include "../../../kernel/cpu/cpu.h"
+#include "drivers/usb/usb_manager.h"
 #include "xhci_common.h"
 #include "xhci_device.h"
 #include "xhci_device_ctx.h"
@@ -19,11 +20,12 @@
 #include "xhci_mass_storage_driver.h"
 
 namespace usb {
-    XhciDriver::XhciDriver(u8 vector_num, const char* name, u8 bus_number)
+    XhciDriver::XhciDriver(u8 vector_num, const char* name, u8 bus_number, pci::pci_device dev)
         : controller_info_(new UsbDeviceInfo())
         , pci_header_(nullptr)
         , bus_number_(bus_number)
         , vector_num_(vector_num) {
+        dev_ = klib::move(dev);
         controller_info_->usb_info.bus_number = bus_number;
         controller_info_->usb_info.slot_id = 0;  // controller sentinel
         controller_info_->usb_info.port_num = 0;
@@ -282,12 +284,46 @@ namespace usb {
                 const XhciUsbSupportedProtocolCapability cap(node->base());
 
                 const u8 first_port = cap.compatible_port_offset - 1;
-                const u8 last_port  = cap.compatible_port_offset + cap.compatible_port_count - 2;
+                const u8 last_port = cap.compatible_port_offset + cap.compatible_port_count - 2;
 
                 if (cap.major_revision_version == 3) {
                     for (u8 port = first_port; port <= last_port; port++) {
                         usb3_ports_.push_back(port);
                     }
+                }
+            }
+
+            if (node->id() == XHCI_EXTENDED_CAPABILITY_CODE::USB_DEBUG_CAPABILITY_SUPPORT) {
+                Log::debug("DbC found on PCI %02x:%02x.%x", dev_.id.bus, dev_.id.device, dev_.id.function);
+
+                if (dev_.id.bus == 0x3c) {
+                    Log::debug("Using this controller for DbC");
+                    dbc_port = new XhciDbcPort();
+                    dbc_port->init(reinterpret_cast<volatile DBC_REGS*>(node->base()));
+
+                    if (!dbc_port->wait_for_connect(10000 /* ms */)) {
+                        Log::warning("DbC: kein Host innerhalb des Timeouts");
+                        return;
+                    }
+                    Log::debug("DbC: verbunden. warte 4 sekunden..");
+
+                    kernel::time::sleep_ms(4000);
+
+                    Log::debug("dbc: can transfer? %u", dbc_port->can_transfer());
+
+                    // 2. Ab hier: Bulk-Transfers möglich
+                    const u8 hello[] = "VesperaOS DbC ready\n";
+                    if (dbc_port->write(hello, sizeof(hello) - 1) != 0) {
+                        Log::error("DbC write failed");
+                    }
+                  /*  u8 buf[200];
+                    usize written = 0;
+                    if (dbc_port->read(buf, sizeof(buf), &written)) {
+                        Log::error("DbC read failed");
+                    } else {
+                        Log::debug("DbC read: %.*s", static_cast<int>(written), reinterpret_cast<const char*>(buf));
+                    }*/
+                    while (1);
                 }
             }
 
@@ -804,7 +840,8 @@ namespace usb {
 
     bool XhciDriver::create_device_context(const u8 slot_id) const {
         // Allocate a memory block for the device context
-        const u64 device_context_size = _64byte_context_size_ ? sizeof(XHCI_DEVICE_CONTEXT64) : sizeof(XHCI_DEVICE_CONTEXT32);
+        const u64 device_context_size =
+            _64byte_context_size_ ? sizeof(XHCI_DEVICE_CONTEXT64) : sizeof(XHCI_DEVICE_CONTEXT32);
 
         void* ctx = alloc_xhci_memory(device_context_size, XHCI_DEVICE_CONTEXT_ALIGNMENT, XHCI_DEVICE_CONTEXT_BOUNDARY);
         memset(ctx, 0, device_context_size);
@@ -1032,9 +1069,7 @@ namespace usb {
         return true;
     }
 
-    xhci_transfer_completion_trb_t* XhciDriver::start_control_endpoint_transfer(
-        const XhciTransferRing* transfer_ring)
-    {
+    xhci_transfer_completion_trb_t* XhciDriver::start_control_endpoint_transfer(const XhciTransferRing* transfer_ring) {
         doorbell_manager_->ring_control_endpoint_doorbell(transfer_ring->get_doorbell_id());
 
         const u8 target_slot = transfer_ring->get_doorbell_id();
@@ -1057,8 +1092,9 @@ namespace usb {
                         transfer_irq_completed_.clear();
 
                         if (trb->completion_code != XHCI_TRB_COMPLETION_CODE_SUCCESS) {
-                            Log::warning("Transfer TRB failed: %s",
-                                trb_completion_code_to_string(trb->completion_code));
+                            Log::warning(
+                                "Transfer TRB failed: %s", trb_completion_code_to_string(trb->completion_code)
+                            );
                             return nullptr;
                         }
                         return trb;
@@ -1068,8 +1104,8 @@ namespace usb {
             }
         }
 
-        timed_out:
-            Log::warning("Control endpoint transfer timed out for slot %u", target_slot);
+    timed_out:
+        Log::warning("Control endpoint transfer timed out for slot %u", target_slot);
         return nullptr;
     }
 
@@ -1241,7 +1277,8 @@ namespace usb {
     }
 
     bool XhciDriver::get_hid_report_descriptor(
-        XhciDevice* device, const u8 interface_number, const u8 descriptor_index, u8* report_buffer, const u16 report_length
+        XhciDevice* device, const u8 interface_number, const u8 descriptor_index, u8* report_buffer,
+        const u16 report_length
     ) {
         XHCI_DEVICE_REQUEST_PACKET req{};
         memset(&req, 0, sizeof(req));

@@ -52,6 +52,7 @@ namespace usb {
         volatile pci::PCI_DEVICE_HEADER* pci_header;
         u8                      vector;
         u8                      bus_number;
+        pci::pci_device        dev;
     };
 
     static void xhci_unit_entry(void* arg) {
@@ -60,7 +61,7 @@ namespace usb {
         char name[16];
         DeviceManager::alloc_unique_device_name("xhci", name, sizeof(name));
 
-        auto* driver = new XhciDriver(args->vector, name, args->bus_number);
+        auto* driver = new XhciDriver(args->vector, name, args->bus_number, klib::move(args->dev));
         if (!driver->init_device(args->pci_header)) {
             Log::error("xhci: init_device failed for bus %u", args->bus_number);
             UsbManager::notify_controller_ready();
@@ -103,6 +104,7 @@ namespace usb {
             .pci_header = pci_hdr,
             .vector     = vector,
             .bus_number = bus_number,
+            .dev        = (klib::move(dev))
         };
 
         char unit_name[32];
