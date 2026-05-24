@@ -1,5 +1,6 @@
 #include "xhci.h"
 
+#include <drivers/usb/xhci/xhci_dbc_manager.h>
 #include <filesystem/devfs.h>
 #include <klib/encoding.h>
 #include <klib/vector.h>
@@ -299,31 +300,19 @@ namespace usb {
                 if (dev_.id.bus == 0x3c) {
                     Log::debug("Using this controller for DbC");
                     dbc_port = new XhciDbcPort();
-                    dbc_port->init(reinterpret_cast<volatile DBC_REGS*>(node->base()));
-
-                    if (!dbc_port->wait_for_connect(10000 /* ms */)) {
-                        Log::warning("DbC: kein Host innerhalb des Timeouts");
+                    if (!dbc_port->init(reinterpret_cast<volatile DBC_REGS*>(node->base()))) {
+                        Log::warning("DbC initialization failed");
                         return;
                     }
-                    Log::debug("DbC: verbunden. warte 4 sekunden..");
 
-                    kernel::time::sleep_ms(4000);
-
-                    Log::debug("dbc: can transfer? %u", dbc_port->can_transfer());
-
-                    // 2. Ab hier: Bulk-Transfers möglich
-                    const u8 hello[] = "VesperaOS DbC ready\n";
-                    if (dbc_port->write(hello, sizeof(hello) - 1) != 0) {
-                        Log::error("DbC write failed");
-                    }
-                  /*  u8 buf[200];
-                    usize written = 0;
-                    if (dbc_port->read(buf, sizeof(buf), &written)) {
-                        Log::error("DbC read failed");
+                    if (dbc_port->wait_for_connect(10000)) {
+                        XhciDbcManager::init(dbc_port, 4);
+                        XhciDbcManager::writeln("VesperaOS DbC ready");
                     } else {
-                        Log::debug("DbC read: %.*s", static_cast<int>(written), reinterpret_cast<const char*>(buf));
-                    }*/
-                    while (1);
+                        Log::warning("DbC: kein Host innerhalb des Timeouts");
+                    }
+
+                    while (1);  // TODO we get a error when the xhci hc resumes init.
                 }
             }
 

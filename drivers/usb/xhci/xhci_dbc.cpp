@@ -215,13 +215,13 @@ namespace usb {
     //  XhciDbcPort — public interface
     // ============================================================================
 
-    int XhciDbcPort::init(volatile DBC_REGS* const regs) {
+    bool XhciDbcPort::init(volatile DBC_REGS* const regs) {
         regs_ = regs;
 
         dbc_ctx_ = alloc_xhci_memory(sizeof(DBC_CONTEXT), XHCI_DEVICE_CONTEXT_ALIGNMENT, PAGE_SIZE);
         if (!dbc_ctx_) {
             Log::print_ln("xhci_dbc: failed to allocate DBC_CONTEXT\n");
-            return -1;
+            return false;
         }
         memset(dbc_ctx_, 0, sizeof(DBC_CONTEXT));
 
@@ -273,7 +273,7 @@ namespace usb {
 
         if (!out_ring_ || !in_ring_) {
             Log::print_ln("xhci_dbc: failed to allocate transfer rings\n");
-            return -1;
+            return false;
         }
 
         // Fill DbC Endpoint Contexts
@@ -333,7 +333,7 @@ namespace usb {
 
         if (!write_buf_ || !read_buf_) {
             Log::print_ln("xhci_dbc: failed to allocate bounce buffers\n");
-            return -1;
+            return false;
         }
 
         // 7. Allocate and program the DbC event ring
@@ -342,7 +342,7 @@ namespace usb {
         event_ring_ = new XhciDbcEventRing(regs_, DBC_EVENT_RING_TRB_COUNT);
         if (!event_ring_) {
             Log::print_ln("xhci_dbc: failed to allocate DbC event ring\n");
-            return -1;
+            return false;
         }
 
         // Write DCCP — physical address of DBC_CONTEXT
@@ -366,12 +366,11 @@ namespace usb {
         regs_->dcctrl.lse = 1;  // generate Port Status Change Events on link status change
         MMIO_POST_WRITE(&regs_->dcctrl);
 
-        return 0;
+        return true;
     }
 
     bool XhciDbcPort::wait_for_connect(const u32 timeout_ms) const {
         for (u32 elapsed = 0; elapsed < timeout_ms; elapsed += 1) {
-            // drain events. TODO maybe handle port change sts events
             xhci_trb_t evt{};
             while (event_ring_->poll_event(&evt)) { /* discard */
             }
@@ -466,6 +465,62 @@ namespace usb {
         return (regs_ != nullptr) && (regs_->dcctrl.dcr == 1u);
     }
 
+    void XhciDbcPort::clear_run_change() const {
+        if (!regs_) return;
+
+        if (regs_->dcctrl.drc) {
+            DBC_DCCTRL_REGISTER ctrl{};
+            ctrl.raw = regs_->dcctrl.raw;
+            ctrl.drc = 1;  // write-1-to-clear
+            regs_->dcctrl.raw = ctrl.raw;
+            MMIO_POST_WRITE(&regs_->dcctrl);
+        }
+
+        // Clear all RW1C status bits in DCPORTSC so that wait_for_reconnect()
+        // sees a clean edge when the next connection event fires.
+        DBC_DCPORTSC_REGISTER portsc{};
+        portsc.raw = regs_->dcportsc.raw;
+        portsc.csc = 1;
+        portsc.prc = 1;
+        portsc.plc = 1;
+        portsc.cec = 1;
+        regs_->dcportsc.raw = portsc.raw;
+        MMIO_POST_WRITE(&regs_->dcportsc);
+    }
+
+    void XhciDbcPort::wait_for_reconnect() const {
+        // Polls indefinitely — intended for use after a disconnect has been
+        // detected and clear_run_change() has been called.
+        //
+        // We keep draining the event ring so that the hardware's event FIFO
+        // never fills up and stalls the DbC state machine.
+        //
+        // Returns only when DCR=1 (DbC-Configured), identical post-condition
+        // to wait_for_connect() returning true.
+
+        while (true) {
+            xhci_trb_t evt{};
+            while (event_ring_->poll_event(&evt)) { /* drain, discard */
+            }
+
+            if (regs_->dcctrl.dcr) {
+                DBC_DCPORTSC_REGISTER portsc{};
+                portsc.raw = regs_->dcportsc.raw;
+                portsc.csc = 1;
+                portsc.prc = 1;
+                portsc.plc = 1;
+                portsc.cec = 1;
+                regs_->dcportsc.raw = portsc.raw;
+                MMIO_POST_WRITE(&regs_->dcportsc);
+
+                Log::print_ln("xhci_dbc: debug host reconnected\n");
+                return;
+            }
+
+            kernel::time::sleep_ms(10);
+        }
+    }
+
     namespace {
 
         /**
@@ -486,7 +541,6 @@ namespace usb {
 
             while (kernel::time::get_uptime_ns() < deadline) {
                 if (ring->poll_event(out)) {
-                    Log::debug("TRB TYPE: %u", out->trb_type);
                     if (out->trb_type == XHCI_TRB_TYPE_TRANSFER_EVENT) {
                         return true;
                     }

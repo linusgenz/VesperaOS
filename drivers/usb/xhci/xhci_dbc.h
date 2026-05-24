@@ -75,12 +75,12 @@ namespace usb {
          * @param regs  Pointer to the DbC MMIO register block discovered via
          *              xHCI extended capabilities (capability ID 0x0A).
          *
-         * @return 0 on success.
-         * @return -1 if any allocation fails.
+         * @return true on success.
+         * @return false if any allocation fails.
          *
          * @note Must be called once, from a single thread, before any other method.
          */
-        [[nodiscard]] int init(volatile DBC_REGS* regs);
+        [[nodiscard]] bool init(volatile DBC_REGS* regs);
 
         /**
          * @brief Blocks until a Debug Host connects and the DbC reaches
@@ -96,6 +96,35 @@ namespace usb {
         [[nodiscard]] bool wait_for_connect(u32 timeout_ms) const;
 
         bool can_transfer() const;
+
+        /**
+         * @brief Clears DCCTRL.DRC (DbC Run Change) and all RW1C DCPORTSC status bits.
+         *
+         * DRC is set whenever the DbC exits the Configured state (cable pull, host
+         * reset, timeout, ...).  While DRC is asserted the DCDB doorbell is disabled,
+         * so this method must be called before any subsequent write() or read() after
+         * a disconnect/error, and before calling wait_for_reconnect().
+         *
+         * Safe to call even if DRC is not currently set (no-op in that case).
+         *
+         * @note Not ISR-safe. Call from the worker Unit only.
+         */
+        void clear_run_change() const;
+
+        /**
+         * @brief Blocks until the DbC re-enters the Configured state (DCR = 1).
+         *
+         * Intended to be called after a disconnect has been detected and
+         * clear_run_change() has been called.  Unlike wait_for_connect() there is no
+         * timeout — the method polls indefinitely, draining the event ring on each
+         * iteration to prevent the hardware FIFO from stalling.
+         *
+         * On return the port is in the DbC-Configured state and DCR = 1 (identical
+         * post-condition to wait_for_connect() returning true).
+         *
+         * @note Not ISR-safe. Call from the worker Unit only.
+         */
+        void wait_for_reconnect() const;
 
         /**
          * @brief Sends data to the Debug Host over the IN endpoint (target→host).
