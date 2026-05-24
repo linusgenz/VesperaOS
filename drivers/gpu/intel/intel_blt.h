@@ -32,8 +32,9 @@
 #include <vespera/sync/atomic.h>
 #include <vespera/sync/semaphore.h>
 
-#include "ggtt_allocator.h"
 #include "../gpu_blt_queue.h"
+#include "ggtt_allocator.h"
+#include "pci_config_regs.h"
 
 namespace pci {
     struct pci_device;
@@ -106,7 +107,6 @@ constexpr u32 BCS_EMR = 0x220B4u;     // Error Mask Register
 #define MOCS_DISPLAY_BUFFER 0x03  // Für Display: LLC cacheable
 #define MOCS_CACHED_WB 0x09       // L3 + LLC Write-Back (default für Texturen)
 
-
 #define HWSP_SEQNO_OFFSET_DWORDS 4
 #define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
 
@@ -129,7 +129,7 @@ constexpr u32 BCS_EMR = 0x220B4u;     // Error Mask Register
 // BAR0 Configuration
 // ============================================================================
 
-#define BAR0_ADDR_MASK ~0xFULL                    // Mask to extract base address
+constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;       // Mask to extract base address
 constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 
 // ============================================================================
@@ -161,6 +161,8 @@ constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
 #define PLANE_CTL_TILE_Y (0b100 << 10)            // Enables Tile Y for the surface
 
 namespace blt {
+    constexpr usize BYTES_PER_PIXEL = 4;
+
     enum class TileMode : u8 {
         Linear = 0,  // 256 KB alignment
         X = 1,       // 256 KB alignment
@@ -195,6 +197,15 @@ namespace blt {
         u32 width, height;
     };
 
+    struct ScratchBuffer {
+        GgttAllocation alloc;
+        u32            num_pages = 0;
+        u32            max_w     = 0;
+        u32            max_h     = 0;
+        u32            pitch     = 0;
+        bool           valid     = false;
+    };
+
     class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
         explicit IntelBlt(const pci::pci_device& igpu_dev);
@@ -202,7 +213,7 @@ namespace blt {
         static void blt_worker_entry(void* arg);
         static constexpr u32 SEQNO_BIT5_MASK = (1u << 5);
         u32 next_seqno();
-        void init_bcs_error_reporting() const;
+
         void start_device(u32 screen_width, u32 screen_height);
         static u32 tile_mode_to_blt_flag(TileMode mode);
 
@@ -233,7 +244,7 @@ namespace blt {
         void test_interrupt_only();
 
        private:
-        volatile pci::PCI_HEADER0* pci_header_;
+        volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
 
         KernelDevice* kd_;
 
@@ -261,11 +272,16 @@ namespace blt {
         GpuTextBuffer text_buffer_;
         GpuFramebuffer fb_;
 
-        //Semaphore completion_sem_;
+        // Semaphore completion_sem_;
         AtomicFlag completion_flag_;
         u8 irq_vector_ = 0;
 
         GpuBltQueue blt_queue_;
+
+        void init_scratch_buffer();
+        void init_bcs_error_reporting() const;
+
+        ScratchBuffer scratch_;
 
         /**
          * @brief Unmasks and enables the BCS user interrupt in the Gen8+ GT interrupt registers.

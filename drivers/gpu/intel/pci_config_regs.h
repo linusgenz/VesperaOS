@@ -233,4 +233,110 @@ struct GmadrInfo {
     bool valid;        ///< False if BAR2 is absent, I/O-type, or sizing failed.
 };
 
+/**
+ * @brief PCI Configuration Space layout for Intel Gen9/9.5 iGPU (Device 0:2:0).
+ *
+ * Covers the full 256-byte config space as documented in:
+ * "Intel 8th/9th Generation Core Processor Families Datasheet, Volume 2"
+ * Table 4-1: "Summary of Bus 0, Device 2, Function 0 (CFG)"
+ *
+ * @note Never write to this config space at runtime except via the Command
+ *       register (0x04). All other R/W fields are configured by firmware.
+ */
+struct INTEL_IGP_PCI_CONFIG {
+
+    // Standard PCI header fields (0x00–0x0F)
+    u16 vendor_id;              ///< [0x00] VID2   — hardwired 0x8086
+    u16 device_id;              ///< [0x02] DID2   — e.g. 0x5917 (UHD 620)
+    u16 command;                ///< [0x04] PCICMD — Bus Master, Mem Space, INTx
+    u16 status;                 ///< [0x06] PCISTS2
+    u8  revision_id;            ///< [0x08] RID2
+    u8  prog_if;                ///< [0x09] CC[7:0]
+    u8  subclass;               ///< [0x0A] CC[15:8]
+    u8  class_code;             ///< [0x0B] CC[23:16]
+    u8  cache_line_size;        ///< [0x0C] CLS
+    u8  latency_timer;          ///< [0x0D] MLT2
+    u8  header_type;            ///< [0x0E] HDR2
+    u8  bist;                   ///< [0x0F] (not listed, hardwired 0)
+
+    // BARs (0x10–0x27) — named for what they actually contain
+
+    // [0x10–0x17] GTTMMADR — 16 MB: 2 MB MMIO + 6 MB reserved + 8 MB GTT
+    u32 gttmmadr_lo;            ///< [0x10] GTTMMADR low  32 bits (type=64bit, prefetchable=0)
+    u32 gttmmadr_hi;            ///< [0x14] GTTMMADR high 32 bits
+
+    // [0x18–0x1F] GMADR — CPU-visible aperture window into GPU address space
+    u32 gmadr_lo;               ///< [0x18] GMADR low  32 bits (type=64bit, prefetchable=1)
+    u32 gmadr_hi;               ///< [0x1C] GMADR high 32 bits
+
+    // [0x20–0x23] IOBAR — legacy I/O BAR (typically unused by OS drivers)
+    u32 iobar;                  ///< [0x20] I/O Base Address (bit 0 = I/O space indicator)
+
+    // [0x24–0x27] hardwired 0
+    u32 bar5_reserved;          ///< [0x24] Hardwired 0
+
+    // Remaining standard header fields (0x28–0x3F)
+    u32 cardbus_cis_ptr;        ///< [0x28] Hardwired 0
+    u16 subsystem_vendor_id;    ///< [0x2C] SVID2
+    u16 subsystem_id;           ///< [0x2E] SID2
+    u32 expansion_rom_base;     ///< [0x30] ROMADR — Video BIOS ROM base
+    u8  capabilities_ptr;       ///< [0x34] CAPPOINT — hardwired 0x40
+    u8  pad_35[3];              ///< [0x35–0x37] Reserved
+    u32 pad_38;                 ///< [0x38] Reserved
+    u8  interrupt_line;         ///< [0x3C] INTRLINE
+    u8  interrupt_pin;          ///< [0x3D] INTRPIN  — hardwired 0x01
+    u8  min_grant;              ///< [0x3E] MINGNT
+    u8  max_latency;            ///< [0x3F] MAXLAT
+
+    // Device-specific region (0x40–0xFF)
+
+    u8  pad_40[4];              ///< [0x40–0x43] Reserved
+
+    u32 capid0_a;               ///< [0x44] Capabilities A
+    u32 capid0_b;               ///< [0x48] Capabilities B
+
+    u8  pad_4c[8];              ///< [0x4C–0x53] Reserved
+
+    u32 deven0;                 ///< [0x54] Device Enable
+
+    u8  pad_58[4];              ///< [0x58–0x5B] Reserved
+
+    u32 bdsm;                   ///< [0x5C] Base of Data Stolen Memory
+
+    u8  pad_60[2];              ///< [0x60–0x61] Reserved
+
+    MSAC_0_2_0_PCI msac;        ///< [0x62] Multi Size Aperture Control
+
+    u8  pad_63[13];             ///< [0x63–0x6F] Reserved
+
+    u16 pciecaphdr;             ///< [0x70] PCIe Capability Header
+
+    u8  pad_72[58];             ///< [0x72–0xAB] PCIe capability body (out of scope)
+
+    u16 msi_capid;              ///< [0xAC] MSI Capability ID
+    u16 msi_mc;                 ///< [0xAE] MSI Message Control
+    u32 msi_ma;                 ///< [0xB0] MSI Message Address
+    u16 msi_md;                 ///< [0xB4] MSI Message Data
+
+    u8  pad_b6[26];             ///< [0xB6–0xCF] Reserved
+
+    u16 pm_capid;               ///< [0xD0] Power Management Capability ID
+    u16 pm_cap;                 ///< [0xD2] Power Management Capabilities
+    u16 pm_cs;                  ///< [0xD4] Power Management Control/Status
+
+    u8  pad_d6[42];             ///< [0xD6–0xFF] Reserved
+} __attribute__((packed));
+
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, capid0_a)  == 0x44, "CAPID0_A at 0x44");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, capid0_b)  == 0x48, "CAPID0_B at 0x48");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, deven0)    == 0x54, "DEVEN0 at 0x54");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, bdsm)      == 0x5C, "BDSM at 0x5C");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, msac)      == 0x62, "MSAC at 0x62");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, pciecaphdr) == 0x70, "PCIECAPHDR at 0x70");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, msi_capid) == 0xAC, "MSI at 0xAC");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, msi_ma)    == 0xB0, "MSI_MA at 0xB0");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, pm_capid)  == 0xD0, "PMCAPID at 0xD0");
+static_assert(offsetof(INTEL_IGP_PCI_CONFIG, pm_cs)     == 0xD4, "PMCS at 0xD4");
+static_assert(sizeof(INTEL_IGP_PCI_CONFIG)              == 0x100, "IGP config must be 256 bytes");
+
 #endif  // VESPERAOS_PCI_CONFIG_REGS_H

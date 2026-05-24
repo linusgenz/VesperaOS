@@ -29,6 +29,7 @@
 #include <pci/msix.h>
 #include <pci/pci.h>
 #include <pci/pci_device.h>
+#include <pci/pci_host_bridge.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/graphics/colors.h>
 #include <vespera/interrupts.h>
@@ -48,10 +49,12 @@
 
 namespace blt {
     IntelBlt::IntelBlt(const pci::pci_device& igpu_dev)
-        : pci_header_(igpu_dev.header)
+        : igp_cfg_(reinterpret_cast<volatile INTEL_IGP_PCI_CONFIG*>(igpu_dev.header))
         , ring_size_(RING_BUFFER_SIZE)
         , sequence_number_(0) {
-        const phys_addr_t bar0 = make_phys(pci_header_->bar0 & BAR0_ADDR_MASK);
+        const phys_addr_t bar0 =
+            make_phys(static_cast<u64>(igp_cfg_->gttmmadr_hi) << 32 | (igp_cfg_->gttmmadr_lo & GTTMMADR_ADDR_MASK));
+
         kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
 
         mmio_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(bar0)));
@@ -64,7 +67,7 @@ namespace blt {
 
         const u8 vector = kernel::interrupts::get_free_vector();
         kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(bcs_interrupt_handler), this);
-        if (!pci::try_enable_msi_or_msix(pci_header_, vector, 1)) {
+        if (!pci::try_enable_msi_or_msix(reinterpret_cast<volatile pci::PCI_HEADER0*>(igp_cfg_), vector, 1)) {
             Log::log_dbc("BLT: MSI enable failed");
         }
 
@@ -171,6 +174,37 @@ namespace blt {
         return sequence_number_;
     }
 
+    void IntelBlt::init_scratch_buffer() {
+        const usize row_bytes = static_cast<usize>(fb_.width) * BYTES_PER_PIXEL;
+        const usize pitch = ((row_bytes + 63) / 64) * 64;
+        const usize buf_size = pitch * fb_.height;
+        const u32 num_pages = static_cast<u32>((buf_size + PAGE_SIZE - 1) / PAGE_SIZE);
+
+        const GgttAllocation alloc = alloc_and_map_to_ggtt(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        if (virt_null(alloc.cpu_addr)) {
+            Log::error("intel-blt: failed to alloc scratch buffer (%u pages)", num_pages);
+            return;
+        }
+
+        memset(virt_ptr(alloc.cpu_addr), 0, num_pages * PAGE_SIZE);
+
+        scratch_.alloc = alloc;
+        scratch_.num_pages = num_pages;
+        scratch_.max_w = fb_.width;
+        scratch_.max_h = fb_.height;
+        scratch_.pitch = static_cast<u32>(pitch);
+        scratch_.valid = true;
+
+        Log::info(
+            "intel-blt: scratch buffer: %u pages (%lu MB) for %ux%u @ pitch=%u",
+            num_pages,
+            (num_pages * PAGE_SIZE) >> 20,
+            fb_.width,
+            fb_.height,
+            scratch_.pitch
+        );
+    }
+
     void IntelBlt::init_bcs_error_reporting() const {
         auto* eir = reinterpret_cast<volatile EIR_REG*>(mmio_base_ + BCS_EIR);
 
@@ -268,6 +302,7 @@ namespace blt {
 
     void IntelBlt::start_device(u32 screen_width, u32 screen_height) {
         alloc_framebuffer(screen_width, screen_height, TileMode::Linear);
+        init_scratch_buffer();
         start_blt_worker(1);
         set_display_framebuffer();
     }
@@ -722,15 +757,15 @@ namespace blt {
         Log::log_dbc("BCS Reset completed");
     }
 
-    [[nodiscard]] static GmadrInfo read_gmadr(const volatile pci::PCI_HEADER0* hdr) {
+    [[nodiscard]] static GmadrInfo read_gmadr(const volatile INTEL_IGP_PCI_CONFIG* cfg) {
         GMADR_0_2_0_PCI gmadr;
-        gmadr.dwords.lo = hdr->bar2;
-        gmadr.dwords.hi = hdr->bar3;
+        gmadr.dwords.lo = cfg->gmadr_lo;
+        gmadr.dwords.hi = cfg->gmadr_hi;
 
         if (gmadr.mem_io_space != 0 || gmadr.mem_type != 2 || gmadr.prefetchable != 1) {
             Log::error(
                 "intel-blt: GMADR BAR2 flags unexpected "
-                "(mem_io=%u type=%u prefetch=%u) — not a valid 64-bit memory BAR",
+                "(mem_io=%u type=%u prefetch=%u) - not a valid 64-bit memory BAR",
                 gmadr.mem_io_space,
                 gmadr.mem_type,
                 gmadr.prefetchable
@@ -740,12 +775,12 @@ namespace blt {
 
         const u64 base = gmadr.base_address();
         if (base == 0) {
-            Log::error("intel-blt: GMADR base is 0 — firmware did not configure BAR2");
+            Log::error("intel-blt: GMADR base is 0 - firmware did not configure BAR2");
             return {.base = 0, .size = 0, .valid = false};
         }
 
         MSAC_0_2_0_PCI msac;
-        msac.raw = pci::pci_read8(&hdr->header, MSAC_PCI_OFFSET);
+        msac.raw = cfg->msac.raw;
 
         const u64 size = msac.aperture_size_bytes();
 
@@ -755,21 +790,19 @@ namespace blt {
     }
 
     void IntelBlt::init_gtt(const pci::pci_device& igpu_dev) {
-        volatile pci::PCI_DEVICE_HEADER* hb = pci::get_host_bridge(igpu_dev.id.domain);
-
+        const volatile pci::INTEL_HB_PCI_CONFIG* hb = pci::get_host_bridge(igpu_dev.id.domain);
         if (!hb) {
-            Log::error("intel-blt: host bridge not found for domain %u — cannot read GGC", igpu_dev.id.domain);
+            Log::error("intel-blt: host bridge not found for domain %u - cannot read GGC", igpu_dev.id.domain);
             return;
         }
 
-        const u16 hb_vendor = pci::pci_read16(hb, 0x00);
-        if (hb_vendor != 0x8086) {
-            Log::error("intel-blt: unexpected host bridge vendor 0x%04x — expected 0x8086", hb_vendor);
+        if (hb->header.header.vendor_id != 0x8086) {
+            Log::error("intel-blt: unexpected host bridge vendor 0x%04x", hb->header.header.vendor_id);
             return;
         }
 
         GGC_0_0_0_PCI ggc;
-        ggc.raw = pci::pci_read16(hb, GGC_PCI_OFFSET);
+        ggc.raw = hb->ggc;
 
         Log::debug(
             "intel-blt: GGC raw=0x%04x  gms=0x%02x  ggms=0x%x  lock=%u  ivd=%u",
@@ -796,7 +829,7 @@ namespace blt {
             return;
         }
 
-        const GmadrInfo gmadr = read_gmadr(igpu_dev.header);
+        const GmadrInfo gmadr = read_gmadr(igp_cfg_);
 
         if (!gmadr.valid) {
             Log::error("intel-blt: could not determine aperture from GMADR/MSAC - aborting");
@@ -815,29 +848,61 @@ namespace blt {
             "intel-blt: GSM entries=%u  aperture entries=%u  → using %u", gsm_entries, aperture_entries, total_entries
         );
 
-        // Firmware/BIOS typically reserves the first 16 MB of the Aperture
-        // region for the DSM header, WOPCM, and internal GPU structures.
-        // 16 MB / 4 KB = 4096 entries.
-        constexpr u32 GGTT_FIRMWARE_RESERVED = 0x1000;
+        const u32 dsm_pages = static_cast<u32>(ggc.dsm_size_bytes() / PAGE_SIZE);
 
-        if (total_entries <= GGTT_FIRMWARE_RESERVED) {
+        // Cross-check via BDSM/BGSM vom Host Bridge
+        const u32 bdsm  = hb->bdsm.address();
+        const u32 bgsm  = hb->bgsm.address();
+        const u32 tolud = hb->tolud.address();
+
+        u32 firmware_reserved = dsm_pages;
+
+        if (bdsm != 0 && tolud != 0 && tolud > bdsm) {
+            const u32 dsm_from_bars = (tolud - bdsm) / PAGE_SIZE;
+
+            const u32 gsm_from_bars = (bgsm != 0 && bdsm > bgsm) ? (bdsm - bgsm) / PAGE_SIZE : 0;
+
+            if (dsm_from_bars != dsm_pages) {
+                Log::warning(
+                    "intel-blt: DSM mismatch - GGC=%u pages, TOLUD-BDSM=%u pages - using larger",
+                    dsm_pages,
+                    dsm_from_bars
+                );
+                firmware_reserved = (dsm_from_bars > dsm_pages) ? dsm_from_bars : dsm_pages;
+            }
+
+            Log::debug(
+                "intel-blt: TOLUD=0x%08x BDSM=0x%08x BGSM=0x%08x  DSM=%u pages  GSM=%u pages",
+                tolud,
+                bdsm,
+                bgsm,
+                firmware_reserved,
+                gsm_from_bars
+            );
+        } else {
+            Log::warning("intel-blt: BDSM/TOLUD not set - using GGC reservation (%u pages)", firmware_reserved);
+        }
+
+        Log::info(
+            "intel-blt: firmware reserved=%u entries (%lu MB)", firmware_reserved, (firmware_reserved * PAGE_SIZE) >> 20
+        );
+
+        if (total_entries <= firmware_reserved) {
             Log::error(
-                "intel-blt: usable GGTT (%u entries) too small for firmware reservation (%u) - aborting",
-                total_entries,
-                GGTT_FIRMWARE_RESERVED
+                "intel-blt: GGTT too small (%u) for firmware reservation (%u)", total_entries, firmware_reserved
             );
             return;
         }
 
         gtt_entries_ = reinterpret_cast<volatile u64*>(mmio_base_ + GTT_OFFSET);
-        ggtt_alloc_.init(total_entries, GGTT_FIRMWARE_RESERVED);
+        ggtt_alloc_.init(total_entries, firmware_reserved);
 
         Log::info(
-            "intel-blt: GGTT ready — total=%u  reserved=%u  usable=%u entries (%llu MB)",
+            "intel-blt: GGTT ready - total=%u  reserved=%u  usable=%u entries (%lu MB)",
             total_entries,
-            GGTT_FIRMWARE_RESERVED,
-            total_entries - GGTT_FIRMWARE_RESERVED,
-            static_cast<u64>(total_entries - GGTT_FIRMWARE_RESERVED) * 4096ull >> 20
+            firmware_reserved,
+            total_entries - firmware_reserved,
+            ((total_entries - firmware_reserved) * PAGE_SIZE) >> 20
         );
     }
 
@@ -1290,15 +1355,14 @@ namespace blt {
         const u32 max_h = (dst_y + h > fb_.height) ? fb_.height - dst_y : h;
         if (max_w == 0 || max_h == 0) return true;
 
-        // Pixel-Kopie für den Worker — flach, pitch = max_w * 4
-        constexpr usize BPP = 4;
-        const usize row_bytes = static_cast<usize>(max_w) * BPP;
+        // Pixel-Kopie für den Worker - flach, pitch = max_w * 4
+        const usize row_bytes = static_cast<usize>(max_w) * BYTES_PER_PIXEL;
         auto* copy = static_cast<u8*>(kernel::memory::malloc(row_bytes * max_h));
         if (!copy) return false;
 
-        const usize src_stride_bytes = static_cast<usize>(src_stride) * BPP;
+        const usize src_stride_bytes = static_cast<usize>(src_stride) * BYTES_PER_PIXEL;
         const u8* src_base = reinterpret_cast<const u8*>(pixels) + static_cast<usize>(src_y) * src_stride_bytes +
-                             static_cast<usize>(src_x) * BPP;
+                             static_cast<usize>(src_x) * BYTES_PER_PIXEL;
 
         for (u32 y = 0; y < max_h; y++) {
             memcpy(copy + y * row_bytes, src_base + y * src_stride_bytes, row_bytes);
@@ -1339,28 +1403,28 @@ namespace blt {
         const u32 max_h = (req.dst_y + req.h > fb_.height) ? fb_.height - req.dst_y : req.h;
         if (max_w == 0 || max_h == 0) return true;
 
-        constexpr usize BYTES_PER_PIXEL = 4;
+        if (!scratch_.valid) {
+            Log::error("intel-blt: scratch buffer not initialized");
+            return false;
+        }
+        if (max_w > scratch_.max_w || max_h > scratch_.max_h) {
+            Log::error("intel-blt: blit %ux%u exceeds scratch %ux%u", max_w, max_h, scratch_.max_w, scratch_.max_h);
+            return false;
+        }
+
         const usize row_bytes = static_cast<usize>(max_w) * BYTES_PER_PIXEL;
-        const usize temp_pitch = ((row_bytes + 63) / 64) * 64;
-        const usize buf_size = temp_pitch * max_h;
-        const usize num_pages = (buf_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        const auto temp_buffer = alloc_and_map_to_ggtt_transient(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
-        if (virt_null(temp_buffer.cpu_addr)) return false;
-
-        // req.owned_pixels ist bereits eine flache Kopie der dirty-Region (pitch = max_w)
         const u8* src = reinterpret_cast<const u8*>(req.owned_pixels);
-        u8* dst = virt_as<u8>(temp_buffer.cpu_addr);
+        u8* dst = virt_as<u8>(scratch_.alloc.cpu_addr);
 
         for (u32 y = 0; y < max_h; y++) {
-            memcpy(dst + static_cast<usize>(y) * temp_pitch, src + static_cast<usize>(y) * row_bytes, row_bytes);
+            memcpy(dst + static_cast<usize>(y) * scratch_.pitch, src + static_cast<usize>(y) * row_bytes, row_bytes);
         }
 
         asm volatile("mfence" ::: "memory");
 
         check_gpu_health();
         if (constexpr u32 REQUIRED_BYTES = 30 * 4 + 64; !wait_for_ring_space(REQUIRED_BYTES, 1'000'000)) {
-            free_ggtt_transient(temp_buffer, num_pages);
             return false;
         }
 
@@ -1371,8 +1435,8 @@ namespace blt {
             req.dst_y,
             req.dst_x + max_w,
             req.dst_y + max_h,
-            temp_buffer.gfx_addr,
-            static_cast<u32>(temp_pitch),
+            scratch_.alloc.gfx_addr,
+            scratch_.pitch,
             0,
             0
         );
@@ -1381,9 +1445,7 @@ namespace blt {
         mi_flush(target_seqno);
         flush_commands();
 
-        const bool ok = wait_for_sequence(target_seqno, 500'000);
-        free_ggtt_transient(temp_buffer, num_pages);
-        return ok;
+        return wait_for_sequence(target_seqno, 500'000);
     }
 
     bool IntelBlt::execute_fill_rect(const GpuBltRequest& req) {
@@ -1445,13 +1507,13 @@ namespace blt {
     }
 
     bool IntelBlt::get_vendor(char* out, const usize len) {
-        strncpy(out, pci::get_vendor_name(pci_header_->header.vendor_id), len);
+        strncpy(out, pci::get_vendor_name(igp_cfg_->vendor_id), len);
         out[len - 1] = '\0';
         return true;
     }
 
     bool IntelBlt::get_model(char* out, const usize len) {
-        strncpy(out, pci::get_device_name(pci_header_->header.vendor_id, pci_header_->header.device_id), len);
+        strncpy(out, pci::get_device_name(igp_cfg_->vendor_id, igp_cfg_->device_id), len);
         out[len - 1] = '\0';
         return true;
     }
