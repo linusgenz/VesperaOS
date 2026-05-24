@@ -48,8 +48,8 @@ namespace blt {
 
         lock_.init("ggtt_alloc");
 
-        Log::debug(
-            "GgttAllocator: persistent=[%u, %u) (%u pages), transient=[%u, %u) (%u pages)",
+        Log::log_dbc(
+            "GgttAllocator: persistent=[%u, %u] (%u pages), transient=[%u, %u] (%u pages)",
             persistent_base_,
             persistent_limit_,
             persistent_sz,
@@ -64,14 +64,14 @@ namespace blt {
         SpinlockGuardIrq guard(lock_);
 
         if (persistent_next_ + num_pages > persistent_limit_) {
-            Log::error("GgttAllocator: persistent zone exhausted! (need %u pages)", num_pages);
+            Log::log_dbc("GgttAllocator: persistent zone exhausted! (need %u pages)", num_pages);
             return U32_MAX;
         }
 
         const u32 index = persistent_next_;
         persistent_next_ += num_pages;
 
-        Log::debug("GgttAllocator: persistent alloc %u pages -> index %u", num_pages, index);
+        Log::log_dbc("GgttAllocator: persistent alloc %u pages -> index %u", num_pages, index);
         return index;
     }
 
@@ -91,7 +91,7 @@ namespace blt {
                 block.in_use = true;
             } else {
                 if (free_list_count_ >= GGTT_MAX_FREE_BLOCKS) {
-                    Log::error(
+                    Log::log_dbc(
                         "GgttAllocator: freelist full, wasting %u pages after index %u",
                         block.num_pages - num_pages,
                         alloc_index + num_pages
@@ -126,19 +126,19 @@ namespace blt {
         const int idx = find_block(start_index);
 
         if (idx < 0) {
-        //    Log::error("GgttAllocator: free_transient called with unknown index %u", start_index);
+            Log::log_dbc("GgttAllocator: free_transient called with unknown index %u", start_index);
             return;
         }
 
         GgttBlock& block = free_list_[idx];
 
         if (!block.in_use) {
-      //      Log::error("GgttAllocator: double-free detected at GTT index %u!", start_index);
+            Log::log_dbc("GgttAllocator: double-free detected at GTT index %u!", start_index);
             return;
         }
 
         block.in_use = false;
-       // Log::debug("GgttAllocator: freed %u pages at index %u", block.num_pages, start_index);
+        Log::log_dbc("GgttAllocator: freed %u pages at index %u", block.num_pages, start_index);
 
         // Coalesce after every free to keep the freelist compact and prevent
         // fragmentation under high-frequency small allocations.

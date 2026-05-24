@@ -80,24 +80,24 @@ namespace pci {
         bool is_valid;         ///< False when the BAR is absent or the index is out of range.
     };
 
-    inline u8 pci_read8(volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
-        return *reinterpret_cast<volatile u8*>(reinterpret_cast<volatile u8*>(hdr) + offset);
+    inline u8 pci_read8(const volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<const volatile u8*>(reinterpret_cast<const volatile u8*>(hdr) + offset);
     }
 
     inline void pci_write8(volatile PCI_DEVICE_HEADER* hdr, u8 offset, u8 value) {
         *reinterpret_cast<volatile u8*>(reinterpret_cast<volatile u8*>(hdr) + offset) = value;
     }
 
-    inline u16 pci_read16(volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
-        return *reinterpret_cast<volatile u16*>(reinterpret_cast<volatile u8*>(hdr) + offset);
+    inline u16 pci_read16(const volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<const volatile u16*>(reinterpret_cast<const volatile u8*>(hdr) + offset);
     }
 
     inline void pci_write16(volatile PCI_DEVICE_HEADER* hdr, u8 offset, u16 value) {
         *reinterpret_cast<volatile u16*>(reinterpret_cast<volatile u8*>(hdr) + offset) = value;
     }
 
-    inline u32 pci_read32(volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
-        return *reinterpret_cast<volatile u32*>(reinterpret_cast<volatile u8*>(hdr) + offset);
+    inline u32 pci_read32(const volatile PCI_DEVICE_HEADER* hdr, u8 offset) {
+        return *reinterpret_cast<const volatile u32*>(reinterpret_cast<const volatile u8*>(hdr) + offset);
     }
 
     inline void pci_write32(volatile PCI_DEVICE_HEADER* hdr, u8 offset, u32 value) {
@@ -119,6 +119,12 @@ namespace pci {
                | (static_cast<u32>(bus) << 16) | (static_cast<u32>(device) << 11) | (static_cast<u32>(function) << 8) |
                (offset & 0xFC);
     }
+
+    /**
+     * @brief Returns the mapped config space header of the Host Bridge (0:0:0)
+     *        for the given PCI domain, or nullptr if not yet enumerated.
+     */
+    volatile PCI_DEVICE_HEADER* get_host_bridge(u16 domain = 0);
 
     /**
      * @brief Enumerates all PCI devices described by the ACPI MCFG table.

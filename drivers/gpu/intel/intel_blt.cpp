@@ -28,22 +28,27 @@
 #include <klib/string.h>
 #include <pci/msix.h>
 #include <pci/pci.h>
+#include <pci/pci_device.h>
 #include <vespera/devices/device_manager.h>
 #include <vespera/graphics/colors.h>
 #include <vespera/interrupts.h>
 #include <vespera/kernel_utils.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/time.h>
+#include <vespera/unit/unit_manager.h>
+#include <vespera/unit_config.h>
 
 #include "blt_commands.h"
 #include "error_regs.h"
 #include "gt_interrupt_regs.h"
 #include "interrupt_regs.h"
+#include "pci_config_regs.h"
 
 namespace blt {
-    IntelBlt::IntelBlt(volatile pci::PCI_HEADER0* header)
-        : pci_header_(header)
+    IntelBlt::IntelBlt(const pci::pci_device& igpu_dev)
+        : pci_header_(igpu_dev.header)
         , ring_size_(RING_BUFFER_SIZE)
         , sequence_number_(0) {
         const phys_addr_t bar0 = make_phys(pci_header_->bar0 & BAR0_ADDR_MASK);
@@ -53,14 +58,14 @@ namespace blt {
         bcs_regs_ = reinterpret_cast<volatile u32*>(mmio_base_ + BCS_RING_BASE);
 
         enable_force_wake();
-        init_gtt();
+        init_gtt(igpu_dev);
         enable_bcs_power();
         reset_bcs();
 
         const u8 vector = kernel::interrupts::get_free_vector();
         kernel::interrupts::allocate_vector(vector, reinterpret_cast<irq_handler_t>(bcs_interrupt_handler), this);
         if (!pci::try_enable_msi_or_msix(pci_header_, vector, 1)) {
-            Log::error("BLT: MSI enable failed");
+            Log::log_dbc("BLT: MSI enable failed");
         }
 
         // completion_sem_.init(1, 0);
@@ -98,9 +103,9 @@ namespace blt {
         init_text_buffer(system_font, target_framebuffer->width);
 
         if ((ctl & RING_CTL_ENABLED) && (head == tail)) {
-            Log::debug("BCS is READY!");
+            Log::log_dbc("BCS is READY!");
         } else {
-            Log::error("BCS initialization failed!");
+            Log::log_dbc("BCS initialization failed!");
             return;
         }
 
@@ -118,6 +123,42 @@ namespace blt {
         );
 
         DevFs::register_device(kd_);
+    }
+
+    void IntelBlt::start_blt_worker(const u8 cpu_id) {
+        blt_queue_.init();
+
+        const UnitConfig cfg = {
+            .name = "intel-blt",
+            .cpu_id = cpu_id,
+            .priority = 4,
+            .stack_size = 0x10000,
+            .is_user = false,
+        };
+
+        UnitManager::create(kernel::realm::REALM_DRIVER, blt_worker_entry, this, &cfg);
+    }
+
+    void IntelBlt::blt_worker_entry(void* arg) {
+        auto* blt = static_cast<IntelBlt*>(arg);
+
+        while (true) {
+            GpuBltRequest* req = blt->blt_queue_.dequeue_blocking();
+            if (!req) break;
+
+            switch (req->op) {
+                case GpuBltOp::BlitRegion:
+                    req->result = blt->execute_blit_region(*req) ? 0 : -1;
+                    kernel::memory::free(req->owned_pixels);
+                    req->owned_pixels = nullptr;
+                    break;
+                case GpuBltOp::FillRect:
+                    req->result = blt->execute_fill_rect(*req) ? 0 : -1;
+                    break;
+            }
+
+            if (req->done) req->done->set();
+        }
     }
 
     u32 IntelBlt::next_seqno() {
@@ -227,6 +268,7 @@ namespace blt {
 
     void IntelBlt::start_device(u32 screen_width, u32 screen_height) {
         alloc_framebuffer(screen_width, screen_height, TileMode::Linear);
+        start_blt_worker(1);
         set_display_framebuffer();
     }
 
@@ -243,7 +285,7 @@ namespace blt {
 
     void IntelBlt::init_text_buffer(const PsfFont* font, const u32 screen_width) {
         if (!font) {
-            // Log::error("Invalid font for text buffer initialization");
+            // Log::log_dbc("Invalid font for text buffer initialization");
             return;
         }
 
@@ -256,7 +298,7 @@ namespace blt {
         const usize total_size = stride * max_height;
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        Log::debug(
+        Log::log_dbc(
             "Allocating text buffer: font=%ux%u, screen=%u, max_chars=%u, buffer=%ux%u, stride=%lu, size=%zu",
             font->width,
             font->height,
@@ -300,11 +342,11 @@ namespace blt {
 
         // 4 bytes + 64 bytes margin
         if (available_space < 68) {
-            // // Log::error("Ring buffer full! HEAD=0x%x TAIL=0x%x", head, ring_tail_);
+            // // Log::log_dbc("Ring buffer full! HEAD=0x%x TAIL=0x%x", head, ring_tail_);
             error_count_++;
             if (!wait_for_ring_space(68, 100000)) {
                 // 100ms timeout
-                // // Log::error("Ring buffer deadlock!");
+                // // Log::log_dbc("Ring buffer deadlock!");
                 error_count_++;
                 return;
             }
@@ -344,24 +386,24 @@ namespace blt {
 
     bool IntelBlt::validate_blt_params(const BltRect& rect) const {
         if (virt_null(fb_.cpu_addr)) {
-            // Log::error("Invalid framebuffer");
+            // Log::log_dbc("Invalid framebuffer");
             return false;
         }
 
         // Check dimensions
         if (rect.width == 0 || rect.height == 0) {
-            // Log::error("Invalid rect dimensions: %dx%d", rect.width, rect.height);
+            // Log::log_dbc("Invalid rect dimensions: %dx%d", rect.width, rect.height);
             return false;
         }
 
         if (rect.width > 8192 || rect.height > 4096) {
-            // Log::error("Rect too large: %dx%d (max 8192x4096)", rect.width, rect.height);
+            // Log::log_dbc("Rect too large: %dx%d (max 8192x4096)", rect.width, rect.height);
             return false;
         }
 
         // Check bounds
         if (rect.x + rect.width > fb_.width || rect.y + rect.height > fb_.height) {
-            /* Log::error(
+            /* Log::log_dbc(
                 "Rect out of bounds: (%d,%d)-(%d,%d) in %dx%d FB",
                 rect.x,
                 rect.y,
@@ -376,14 +418,14 @@ namespace blt {
         // Check alignment
         if (gfx_raw(fb_.gfx_addr) & 0x3F) {
             // 64-byte alignment
-            // Log::error("Framebuffer not aligned: 0x%llx", gfx_raw(fb_.gfx_addr));
+            // Log::log_dbc("Framebuffer not aligned: 0x%llx", gfx_raw(fb_.gfx_addr));
             return false;
         }
 
         // Check pitch
         if (fb_.pitch & 0x3F) {
             // 64-byte alignment
-            // Log::error("Pitch not aligned: %d", fb_.pitch);
+            // Log::log_dbc("Pitch not aligned: %d", fb_.pitch);
             return false;
         }
 
@@ -418,7 +460,7 @@ namespace blt {
     }
 
     void IntelBlt::emergency_reset_bcs() {
-        // Log::error("Emergency BCS reset initiated!");
+        // Log::log_dbc("Emergency BCS reset initiated!");
 
         bcs_regs_[BCS_RING_CTL / 4] &= ~RING_CTL_ENABLED;
 
@@ -435,7 +477,7 @@ namespace blt {
 
         sequence_number_ = 0;
 
-        // Log::error("Emergency reset complete");
+        // Log::log_dbc("Emergency reset complete");
     }
 
     void IntelBlt::check_gpu_health() {
@@ -444,7 +486,7 @@ namespace blt {
 
         // Check if ring is still enabled
         if (const u32 ctl = bcs_regs_[BCS_RING_CTL / 4]; !(ctl & RING_CTL_ENABLED)) {
-            // // Log::error("BCS ring disabled unexpectedly!");
+            // // Log::log_dbc("BCS ring disabled unexpectedly!");
             error_count_++;
             emergency_reset_bcs();
             return;
@@ -457,7 +499,7 @@ namespace blt {
         if (head == last_head && head != tail) {
             hang_counter++;
             if (hang_counter > 1000) {
-                //  // Log::error("GPU hang detected! HEAD stuck at 0x%x", head);
+                //  // Log::log_dbc("GPU hang detected! HEAD stuck at 0x%x", head);
                 error_count_++;
                 emergency_reset_bcs();
                 hang_counter = 0;
@@ -466,38 +508,6 @@ namespace blt {
             hang_counter = 0;
         }
         last_head = head;
-    }
-
-    bool IntelBlt::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
-        const BltRect rect{.x = px, .y = py, .width = w, .height = h};
-
-        if (!validate_blt_params(rect)) {
-            return false;
-        }
-
-        check_gpu_health();
-
-        if (constexpr u32 required = 12 * 4 + 64; !wait_for_ring_space(required, 1'000'000)) {
-            // Log::error("Ring buffer full!");
-            return false;
-        }
-
-        const u32 x2 = rect.x + rect.width;
-        const u32 y2 = rect.y + rect.height;
-
-        xy_color_blt(fb_.gfx_addr, fb_.pitch, rect.x, rect.y, x2, y2, colour);
-
-        const u32 target_seqno = next_seqno();
-
-        mi_flush(target_seqno);
-        flush_commands();
-
-        if (!wait_for_sequence(target_seqno, 5'000'000)) {
-            // Log::error("Timeout for sequence %u!", target_seqno);
-            return false;
-        }
-
-        return true;
     }
 
     void IntelBlt::alloc_framebuffer(u32 width, u32 height, TileMode tile_mode) {
@@ -516,7 +526,7 @@ namespace blt {
         const usize total_size = static_cast<usize>(fb_.pitch) * height;
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        Log::debug(
+        Log::log_dbc(
             "Allocating framebuffer: %dx%d, pitch=%d, size=%zu bytes, pages=%zu, tile_mode=%u",
             width,
             height,
@@ -582,14 +592,7 @@ namespace blt {
             MMIO_POST_WRITE(master);
             return IRQ_NONE;
         }
-/*
-        Log::log_msg(
-            "BCS MI_USER_INTERRUPT: %p %p %p",
-            __builtin_return_address(3),
-            __builtin_return_address(4),
-            __builtin_return_address(5)
-        );
-*/
+
         //
         // Acknowledge interrupt (W1C)
         //
@@ -655,13 +658,13 @@ namespace blt {
 
         asm volatile("mfence" ::: "memory");
         bcs_regs_[BCS_RING_TAIL / 4] = ring_tail_;
-        /// Log::debug("flush_commands: ring_tail_=0x%x (aligned)", ring_tail_);
+        /// Log::log_dbc("flush_commands: ring_tail_=0x%x (aligned)", ring_tail_);
     }
 
     void IntelBlt::setup_ring_buffer() {
         ring_tail_ = 0;
 
-        Log::debug("Ring Buffer: CPU=%p GFX=0x%llx", virt_ptr(ring_cpu_addr_), gfx_raw(ring_gfx_addr_));
+        Log::log_dbc("Ring Buffer: CPU=%p GFX=0x%llx", virt_ptr(ring_cpu_addr_), gfx_raw(ring_gfx_addr_));
 
         volatile auto* ring = virt_as<u32>(ring_cpu_addr_);
         for (u32 i = 0; i < ring_size_ / 4; i++) {
@@ -673,7 +676,7 @@ namespace blt {
         asm volatile("" ::: "memory");
         (void)*hwstam;
 
-        Log::debug("Ring Buffer cleared with NOOPs");
+        Log::log_dbc("Ring Buffer cleared with NOOPs");
     }
 
     void IntelBlt::enable_force_wake() const {
@@ -686,21 +689,21 @@ namespace blt {
         int timeout = FORCE_WAKE_TIMEOUT;
         while (timeout-- > 0) {
             if (*forcewake_ack & GTT_VALID) {
-                Log::debug("Force Wake ACK received");
+                Log::log_dbc("Force Wake ACK received");
                 break;
             }
             for (int i = 0; i < IDLE_CHECK_DELAY; i++);
         }
 
         if (timeout <= 0) {
-            Log::error("Force Wake timeout!");
+            Log::log_dbc("Force Wake timeout!");
         }
     }
 
     void IntelBlt::enable_bcs_power() const {
         const auto bcs_swctrl = reinterpret_cast<volatile u32*>(mmio_base_ + BCS_SWCTRL);
         *bcs_swctrl |= BCS_SWCTRL_WAKEUP;
-        Log::debug("BCS Power enabled");
+        Log::log_dbc("BCS Power enabled");
     }
 
     void IntelBlt::reset_bcs() const {
@@ -716,12 +719,126 @@ namespace blt {
         for (int i = 0; i < RESET_DELAY; i++) {
         }
 
-        Log::debug("BCS Reset completed");
+        Log::log_dbc("BCS Reset completed");
     }
 
-    void IntelBlt::init_gtt() {
+    [[nodiscard]] static GmadrInfo read_gmadr(const volatile pci::PCI_HEADER0* hdr) {
+        GMADR_0_2_0_PCI gmadr;
+        gmadr.dwords.lo = hdr->bar2;
+        gmadr.dwords.hi = hdr->bar3;
+
+        if (gmadr.mem_io_space != 0 || gmadr.mem_type != 2 || gmadr.prefetchable != 1) {
+            Log::error(
+                "intel-blt: GMADR BAR2 flags unexpected "
+                "(mem_io=%u type=%u prefetch=%u) — not a valid 64-bit memory BAR",
+                gmadr.mem_io_space,
+                gmadr.mem_type,
+                gmadr.prefetchable
+            );
+            return {.base = 0, .size = 0, .valid = false};
+        }
+
+        const u64 base = gmadr.base_address();
+        if (base == 0) {
+            Log::error("intel-blt: GMADR base is 0 — firmware did not configure BAR2");
+            return {.base = 0, .size = 0, .valid = false};
+        }
+
+        MSAC_0_2_0_PCI msac;
+        msac.raw = pci::pci_read8(&hdr->header, MSAC_PCI_OFFSET);
+
+        const u64 size = msac.aperture_size_bytes();
+
+        Log::debug("intel-blt: GMADR base=0x%016llx  MSAC raw=0x%02x  aperture=%llu MB", base, msac.raw, size >> 20);
+
+        return {.base = base, .size = size, .valid = true};
+    }
+
+    void IntelBlt::init_gtt(const pci::pci_device& igpu_dev) {
+        volatile pci::PCI_DEVICE_HEADER* hb = pci::get_host_bridge(igpu_dev.id.domain);
+
+        if (!hb) {
+            Log::error("intel-blt: host bridge not found for domain %u — cannot read GGC", igpu_dev.id.domain);
+            return;
+        }
+
+        const u16 hb_vendor = pci::pci_read16(hb, 0x00);
+        if (hb_vendor != 0x8086) {
+            Log::error("intel-blt: unexpected host bridge vendor 0x%04x — expected 0x8086", hb_vendor);
+            return;
+        }
+
+        GGC_0_0_0_PCI ggc;
+        ggc.raw = pci::pci_read16(hb, GGC_PCI_OFFSET);
+
+        Log::debug(
+            "intel-blt: GGC raw=0x%04x  gms=0x%02x  ggms=0x%x  lock=%u  ivd=%u",
+            ggc.raw,
+            ggc.gms,
+            ggc.ggms,
+            ggc.lock,
+            ggc.ivd
+        );
+
+        const u64 dsm_bytes = ggc.dsm_size_bytes();
+        const u64 gsm_bytes = ggc.gsm_size_bytes();
+        const u32 gsm_entries = ggc.ggtt_entry_count();
+
+        Log::info(
+            "intel-blt: DSM=%llu MB  GSM=%llu MB  GTT capacity=%u entries",
+            dsm_bytes >> 20,
+            gsm_bytes >> 20,
+            gsm_entries
+        );
+
+        if (gsm_entries == 0) {
+            Log::error("intel-blt: GGMS=0, BIOS preallocated no GTT stolen memory - aborting");
+            return;
+        }
+
+        const GmadrInfo gmadr = read_gmadr(igpu_dev.header);
+
+        if (!gmadr.valid) {
+            Log::error("intel-blt: could not determine aperture from GMADR/MSAC - aborting");
+            return;
+        }
+
+        Log::info("intel-blt: GMADR base=0x%016llx  aperture=%llu MB", gmadr.base, gmadr.size >> 20);
+
+        // GSM limits the number of physically available PTEs.
+        // Aperture limits the number of PTEs that the CPU can see per window.
+        // The smaller of the two values applies.
+        const u32 aperture_entries = static_cast<u32>(gmadr.size / 4096u);
+        const u32 total_entries = (gsm_entries < aperture_entries) ? gsm_entries : aperture_entries;
+
+        Log::debug(
+            "intel-blt: GSM entries=%u  aperture entries=%u  → using %u", gsm_entries, aperture_entries, total_entries
+        );
+
+        // Firmware/BIOS typically reserves the first 16 MB of the Aperture
+        // region for the DSM header, WOPCM, and internal GPU structures.
+        // 16 MB / 4 KB = 4096 entries.
+        constexpr u32 GGTT_FIRMWARE_RESERVED = 0x1000;
+
+        if (total_entries <= GGTT_FIRMWARE_RESERVED) {
+            Log::error(
+                "intel-blt: usable GGTT (%u entries) too small for firmware reservation (%u) - aborting",
+                total_entries,
+                GGTT_FIRMWARE_RESERVED
+            );
+            return;
+        }
+
         gtt_entries_ = reinterpret_cast<volatile u64*>(mmio_base_ + GTT_OFFSET);
-        ggtt_alloc_.init(GTT_TOTAL_ENTRIES, GTT_START_INDEX);
+        ggtt_alloc_.init(total_entries, GGTT_FIRMWARE_RESERVED);
+
+        Log::info(
+            "intel-blt: GGTT ready — total=%u  reserved=%u  usable=%u entries (%llu MB)",
+            total_entries,
+            GGTT_FIRMWARE_RESERVED,
+            total_entries - GGTT_FIRMWARE_RESERVED,
+            static_cast<u64>(total_entries - GGTT_FIRMWARE_RESERVED) * 4096ull >> 20
+        );
     }
 
     void IntelBlt::map_to_ggtt_at(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const {
@@ -749,7 +866,7 @@ namespace blt {
 
         const u32 gtt_index = ggtt_alloc_.alloc_persistent(static_cast<u32>(num_pages));
         if (gtt_index == U32_MAX) {
-            // // Log::error("alloc_and_map_to_ggtt: persistent zone exhausted");
+            Log::log_dbc("alloc_and_map_to_ggtt: persistent zone exhausted");
             error_count_++;
             // Physical pages are intentionally not freed here: persistent
             // allocations failing is a fatal driver initialisation error.
@@ -768,7 +885,7 @@ namespace blt {
         const u32 gtt_index = ggtt_alloc_.alloc_transient(static_cast<u32>(num_pages));
         if (gtt_index == U32_MAX) {
             draw_str("alloc_and_map_to_ggtt_transient: transient zone exhausted", 600, 100, 0xffffffff, 0x00000000);
-            // // Log::error("alloc_and_map_to_ggtt_transient: transient zone exhausted");
+            Log::log_dbc("alloc_and_map_to_ggtt_transient: transient zone exhausted");
             kernel::memory::free_pages_phys(phys, num_pages);
             return {};
         }
@@ -777,11 +894,6 @@ namespace blt {
         return {cpu, make_gfx(static_cast<u64>(gtt_index) * PAGE_SIZE)};
     }
 
-    // ── free_ggtt_transient() — new ───────────────────────────────────────────────
-    // Unmaps GTT entries, returns the GTT index range to the allocator, and frees
-    // the underlying physical pages.
-    // @param alloc      The GgttAllocation returned by alloc_and_map_to_ggtt_transient.
-    // @param num_pages  Must match the num_pages passed to the original alloc call.
     void IntelBlt::free_ggtt_transient(const GgttAllocation& alloc, usize num_pages) {
         if (virt_null(alloc.cpu_addr)) {
             return;
@@ -806,7 +918,7 @@ namespace blt {
 
     gfx_addr_t IntelBlt::map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index) {
         if (gtt_next_free_ + num_pages > gtt_total_entries_) {
-            // // Log::error("GGTT out of space!");
+            // // Log::log_dbc("GGTT out of space!");
             error_count_++;
             return make_gfx(0);
         }
@@ -859,7 +971,7 @@ namespace blt {
                 break;
 
             default:
-                // Log::error("Unsupported tile mode!");
+                // Log::log_dbc("Unsupported tile mode!");
                 return;
         }
 
@@ -881,7 +993,7 @@ namespace blt {
 
         asm volatile("mfence" ::: "memory");
 
-        Log::debug(
+        Log::log_dbc(
             "Display framebuffer updated: addr=0x%llx, %dx%d, pitch=%d",
             gfx_raw(fb_.gfx_addr),
             fb_.width,
@@ -977,7 +1089,7 @@ namespace blt {
 
     bool IntelBlt::draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color) {
         if (!text || !system_font || virt_null(text_buffer_.cpu_addr)) {
-            // Log::error("Invalid parameters for draw_string");
+            // Log::log_dbc("Invalid parameters for draw_string");
             return false;
         }
 
@@ -994,7 +1106,7 @@ namespace blt {
         text_stride = ((text_stride + 1) / 2) * 2;
 
         if (text_stride * text_height > text_buffer_.total_size) {
-            /* Log::error(
+            /* Log::log_dbc(
                 "Text too large for buffer: stride=%u, height=%u (max size=%zu)",
                 text_stride,
                 text_height,
@@ -1006,7 +1118,7 @@ namespace blt {
         check_gpu_health();
 
         if (u32 required = 12 * 4 + 64; !wait_for_ring_space(required, 1000000)) {
-            // Log::error("Ring buffer full!");
+            // Log::log_dbc("Ring buffer full!");
             return false;
         }
 
@@ -1033,7 +1145,7 @@ namespace blt {
         flush_commands();
 
         if (!wait_for_sequence(target_seqno, 1000000)) {
-            /* // Log::error(
+            /* // Log::log_dbc(
                  "Timeout waiting for text! HEAD=0x%x TAIL=0x%x",
                  bcs_regs_[BCS_RING_HEAD / 4],
                  bcs_regs_[BCS_RING_TAIL / 4]
@@ -1174,9 +1286,57 @@ namespace blt {
         if (!pixels) return false;
         if (dst_x >= fb_.width || dst_y >= fb_.height) return false;
 
-        // Clip to framebuffer bounds
         const u32 max_w = (dst_x + w > fb_.width) ? fb_.width - dst_x : w;
         const u32 max_h = (dst_y + h > fb_.height) ? fb_.height - dst_y : h;
+        if (max_w == 0 || max_h == 0) return true;
+
+        // Pixel-Kopie für den Worker — flach, pitch = max_w * 4
+        constexpr usize BPP = 4;
+        const usize row_bytes = static_cast<usize>(max_w) * BPP;
+        auto* copy = static_cast<u8*>(kernel::memory::malloc(row_bytes * max_h));
+        if (!copy) return false;
+
+        const usize src_stride_bytes = static_cast<usize>(src_stride) * BPP;
+        const u8* src_base = reinterpret_cast<const u8*>(pixels) + static_cast<usize>(src_y) * src_stride_bytes +
+                             static_cast<usize>(src_x) * BPP;
+
+        for (u32 y = 0; y < max_h; y++) {
+            memcpy(copy + y * row_bytes, src_base + y * src_stride_bytes, row_bytes);
+        }
+
+        auto* req = new GpuBltRequest();
+        req->op = GpuBltOp::BlitRegion;
+        req->owned_pixels = reinterpret_cast<u32*>(copy);
+        req->src_stride = max_w;  // flache Kopie, pitch = max_w
+        req->src_x = 0;
+        req->src_y = 0;
+        req->dst_x = dst_x;
+        req->dst_y = dst_y;
+        req->w = max_w;
+        req->h = max_h;
+        req->done = nullptr;  // fire-and-forget
+
+        blt_queue_.submit(req);
+        return true;
+    }
+
+    bool IntelBlt::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
+        auto* req = new GpuBltRequest();
+        req->op = GpuBltOp::FillRect;
+        req->dst_x = px;
+        req->dst_y = py;
+        req->w = w;
+        req->h = h;
+        req->color = colour;
+        req->done = nullptr;  // fire-and-forget
+
+        blt_queue_.submit(req);
+        return true;
+    }
+
+    bool IntelBlt::execute_blit_region(const GpuBltRequest& req) {
+        const u32 max_w = (req.dst_x + req.w > fb_.width) ? fb_.width - req.dst_x : req.w;
+        const u32 max_h = (req.dst_y + req.h > fb_.height) ? fb_.height - req.dst_y : req.h;
         if (max_w == 0 || max_h == 0) return true;
 
         constexpr usize BYTES_PER_PIXEL = 4;
@@ -1188,21 +1348,12 @@ namespace blt {
         const auto temp_buffer = alloc_and_map_to_ggtt_transient(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(temp_buffer.cpu_addr)) return false;
 
-        // Copy the source sub-rectangle into the temp buffer.
-        // src_stride is in pixels; multiply by BYTES_PER_PIXEL for the byte offset.
-        const usize src_row_stride_bytes = static_cast<usize>(src_stride) * BYTES_PER_PIXEL;
-        const usize src_x_offset_bytes = static_cast<usize>(src_x) * BYTES_PER_PIXEL;
-
-        const u8* src_base =
-            reinterpret_cast<const u8*>(pixels) + static_cast<usize>(src_y) * src_row_stride_bytes + src_x_offset_bytes;
-        u8* dst_base = virt_as<u8>(temp_buffer.cpu_addr);
+        // req.owned_pixels ist bereits eine flache Kopie der dirty-Region (pitch = max_w)
+        const u8* src = reinterpret_cast<const u8*>(req.owned_pixels);
+        u8* dst = virt_as<u8>(temp_buffer.cpu_addr);
 
         for (u32 y = 0; y < max_h; y++) {
-            memcpy(
-                dst_base + static_cast<usize>(y) * temp_pitch,
-                src_base + static_cast<usize>(y) * src_row_stride_bytes,
-                row_bytes
-            );
+            memcpy(dst + static_cast<usize>(y) * temp_pitch, src + static_cast<usize>(y) * row_bytes, row_bytes);
         }
 
         asm volatile("mfence" ::: "memory");
@@ -1213,14 +1364,13 @@ namespace blt {
             return false;
         }
 
-        // Source origin is always (0, 0) in the temp buffer
         xy_src_copy_blt(
             fb_.gfx_addr,
             fb_.pitch,
-            dst_x,
-            dst_y,
-            dst_x + max_w,
-            dst_y + max_h,
+            req.dst_x,
+            req.dst_y,
+            req.dst_x + max_w,
+            req.dst_y + max_h,
             temp_buffer.gfx_addr,
             static_cast<u32>(temp_pitch),
             0,
@@ -1231,10 +1381,25 @@ namespace blt {
         mi_flush(target_seqno);
         flush_commands();
 
-        const bool success = wait_for_sequence(target_seqno, 500'000);
-
+        const bool ok = wait_for_sequence(target_seqno, 500'000);
         free_ggtt_transient(temp_buffer, num_pages);
-        return success;
+        return ok;
+    }
+
+    bool IntelBlt::execute_fill_rect(const GpuBltRequest& req) {
+        const BltRect rect{.x = req.dst_x, .y = req.dst_y, .width = req.w, .height = req.h};
+        if (!validate_blt_params(rect)) return false;
+
+        check_gpu_health();
+        if (constexpr u32 required = 12 * 4 + 64; !wait_for_ring_space(required, 1'000'000)) return false;
+
+        xy_color_blt(fb_.gfx_addr, fb_.pitch, rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, req.color);
+
+        const u32 target_seqno = next_seqno();
+        mi_flush(target_seqno);
+        flush_commands();
+
+        return wait_for_sequence(target_seqno, 5'000'000);
     }
 
     bool IntelBlt::scroll_pixels(const int dy) {

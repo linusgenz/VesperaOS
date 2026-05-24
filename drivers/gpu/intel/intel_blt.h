@@ -33,8 +33,10 @@
 #include <vespera/sync/semaphore.h>
 
 #include "ggtt_allocator.h"
+#include "../gpu_blt_queue.h"
 
 namespace pci {
+    struct pci_device;
     struct PCI_HEADER0;
     struct PCI_DEVICE_HEADER;
 }  // namespace pci
@@ -195,7 +197,9 @@ namespace blt {
 
     class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
-        explicit IntelBlt(volatile pci::PCI_HEADER0* header);
+        explicit IntelBlt(const pci::pci_device& igpu_dev);
+        void start_blt_worker(u8 cpu_id);
+        static void blt_worker_entry(void* arg);
         static constexpr u32 SEQNO_BIT5_MASK = (1u << 5);
         u32 next_seqno();
         void init_bcs_error_reporting() const;
@@ -209,7 +213,9 @@ namespace blt {
         bool blit_region(
             const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
         ) override;
+        bool execute_blit_region(const GpuBltRequest& req);
 
+        bool execute_fill_rect(const GpuBltRequest& req);
         bool scroll_pixels(int dy) override;
 
         [[nodiscard]] KernelDevice* get_kd() const {
@@ -258,6 +264,8 @@ namespace blt {
         //Semaphore completion_sem_;
         AtomicFlag completion_flag_;
         u8 irq_vector_ = 0;
+
+        GpuBltQueue blt_queue_;
 
         /**
          * @brief Unmasks and enables the BCS user interrupt in the Gen8+ GT interrupt registers.
@@ -308,7 +316,7 @@ namespace blt {
         void enable_force_wake() const;
         void enable_bcs_power() const;
         void reset_bcs() const;
-        void init_gtt();
+        void init_gtt(const pci::pci_device& igpu_dev);
         void map_to_ggtt_at(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const;
         void unmap_from_ggtt(u32 gtt_index, usize num_pages) const;
         void emergency_reset_bcs();

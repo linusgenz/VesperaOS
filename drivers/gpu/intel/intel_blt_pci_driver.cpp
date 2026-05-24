@@ -30,6 +30,8 @@
 
 #include "intel_blt.h"
 
+blt::IntelBlt* intel_blt_drv = nullptr;
+
 namespace blt {
 
     /**
@@ -130,7 +132,7 @@ namespace blt {
         u32 screen_width = backend.drv ? backend.drv->screen_width_px() : 1920;
         u32 screen_height = backend.drv ? backend.drv->screen_height_px() : 1080;
 
-        auto* blt = new IntelBlt(dev.header);
+        auto* blt = new IntelBlt(dev);
         blt->start_device(screen_width, screen_height);
 
         driver_ = blt;
