@@ -7,11 +7,15 @@
 #include <vespera/log.h>
 #include <vespera/terminal.h>
 
+#include <../include/drivers/usb/xhci/xhci_dbc_manager.h>
+
 Terminal* Log::t_ = nullptr;
 Spinlock Log::log_spin_ = {};
 kernel::Mutex Log::log_mutex_ = {};
 bool Log::initialized_ = false;
 bool Log::is_debug_ = false;
+
+Log::DbcLineBuf Log::dbc_buf_ = {};
 
 void Log::init() {
     //  initialized = true;
@@ -28,6 +32,10 @@ void Log::log_prefix(const char* tag, const u32 tag_fg) {
 
     t_->set_colour(WHITE, BLACK);
     t_->print(" ] ");
+
+    dbc_append("[ ");
+    dbc_append(tag);
+    dbc_append(" ] ");
 }
 
 void Log::set_terminal(Terminal* t) {
@@ -40,6 +48,21 @@ void Log::enable_debug() {
 
 void Log::disable_debug() {
     is_debug_ = false;
+}
+
+void Log::dbc_sink(void* /*ctx*/, const char c) {
+    DbcLineBuf& b = Log::dbc_buf_;
+    if (b.len < sizeof(b.data) - 1) b.data[b.len++] = static_cast<u8>(c);
+}
+
+void Log::dbc_append(const char* s) {
+    while (*s) dbc_sink(nullptr, *s++);
+}
+
+void Log::dbc_commit_line() {
+    dbc_sink(nullptr, '\n');
+    usb::XhciDbcManager::write(dbc_buf_.data, dbc_buf_.len);
+    dbc_buf_.len = 0;
 }
 
 void u_int_to_str(u64 value, char* buffer, const u8 base = 10, const bool prefix = false) {
@@ -73,13 +96,13 @@ void Log::info(const char* fmt, ...) {
     SpinlockGuard g(log_spin_);
 
     log_prefix("INFO", BLUE);
-
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
 }
 
@@ -87,13 +110,13 @@ void Log::ok(const char* fmt, ...) {
     SpinlockGuard g(log_spin_);
 
     log_prefix("OK", GREEN);
-
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
 }
 
@@ -101,13 +124,13 @@ void Log::warning(const char* fmt, ...) {
     SpinlockGuard g(log_spin_);
 
     log_prefix("WARNING", YELLOW);
-
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
 }
 
@@ -115,13 +138,13 @@ void Log::error(const char* fmt, ...) {
     SpinlockGuard g(log_spin_);
 
     log_prefix("ERROR", RED);
-
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
 }
 
@@ -129,13 +152,13 @@ void Log::log_msg(const char* fmt, ...) {
     SpinlockGuard g(log_spin_);
 
     log_prefix("LOG", GRAY);
-
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
 }
 
@@ -144,10 +167,11 @@ void Log::print_ln(const char* fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
-
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
 }
 
@@ -156,31 +180,45 @@ void Log::print(const char* fmt, ...) {
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
+    // No dbc_commit_line — caller may continue the line
 }
 
 void Log::print(const char* fmt, __builtin_va_list args) {
     SpinlockGuard g(log_spin_);
-
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     t_->flush();
 }
 
 void Log::debug(const char* fmt, ...) {
     if (!is_debug_) return;
-
     SpinlockGuard g(log_spin_);
 
     log_prefix("DEBUG", ORANGE);
 
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 
     t_->print("\n");
+    dbc_commit_line();
     t_->flush();
+}
+
+void Log::log_dbc(const char* fmt, ...) {
+    if (!is_debug_) return;
+
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
+    print_formatted_dbc(fmt, args);
+    __builtin_va_end(args);
+
+    dbc_commit_line();
 }
 
 static void term_write(void* ctx, char c) {
@@ -189,4 +227,11 @@ static void term_write(void* ctx, char c) {
 
 void Log::print_formatted(const char* fmt, __builtin_va_list args) {
     vformat(term_write, t_, fmt, args);
+}
+
+void Log::print_formatted_dbc(const char* fmt, __builtin_va_list args) {
+    __builtin_va_list copy;
+    __builtin_va_copy(copy, args);
+    vformat(dbc_sink, nullptr, fmt, copy);
+    __builtin_va_end(copy);
 }

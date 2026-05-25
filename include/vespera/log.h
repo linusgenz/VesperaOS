@@ -31,6 +31,11 @@ class Log {
     static void enable_debug();
     static void disable_debug();
 
+    /**
+     * @brief Log only via xhci DbC. If DbC is not connected, this is a no-op.
+     */
+    static void log_dbc(const char* fmt, ...);
+
    private:
     static Terminal* t_;
     static void print_formatted(const char* fmt, __builtin_va_list args);
@@ -40,6 +45,35 @@ class Log {
     static kernel::Mutex log_mutex_;
     static bool initialized_;
     static bool is_debug_;
+
+    struct DbcLineBuf {
+        u8 data[512]{};
+        usize len = 0;
+    };
+    static DbcLineBuf dbc_buf_;
+
+    /** @brief Appends a null-terminated string to dbc_buf_. */
+    static void dbc_append(const char* s);
+
+    /**
+     * @brief Appends '\n' to dbc_buf_ and forwards the complete line to
+     *        XhciDbcManager::write, then resets the buffer.
+     *
+     * No-ops gracefully if the DbC manager is not yet available - data is
+     * handed off to the TX ring regardless; the ring drops it silently when
+     * the port is not connected.
+     */
+    static void dbc_commit_line();
+
+    /**
+     * @brief Formats @p fmt into dbc_buf_ via va_copy, leaving @p args intact.
+     *
+     * Must be called *before* print_formatted() because print_formatted()
+     * consumes the va_list.
+     */
+    static void print_formatted_dbc(const char* fmt, __builtin_va_list args);
+
+    static void dbc_sink(void*, char c);
 };
 
 #endif  // LOG_H
