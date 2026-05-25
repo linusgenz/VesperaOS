@@ -43,60 +43,31 @@
  */
 struct BCS_ICR_BITS {
     u32 reserved0_15 : 16;  ///< [15:0]  MBZ
-
-    /**
-     * @brief Blitter Command Parser User Interrupt [16]
-     *
-     * Set when MI_USER_INTERRUPT is executed on the BCS.
-     * Instruction execution is not halted; use MI_STORE_DATA to associate
-     * a specific meaning with the interrupt.
-     */
-    u32 user_irq : 1;  ///< [16]
-
+    u32 user_irq : 1;       ///< [16]    Blitter Command Parser User Interrupt — fired by MI_USER_INTERRUPT
     u32 reserved17_18 : 2;  ///< [18:17] MBZ
 
     /**
      * @brief Blitter Command Parser Master Error [19]
      *
-     * Set when hardware detects an error condition.
-     * Further detail is available via ESR / EIR.
-     * Clear sequence: write 1 to the relevant EIR bit, then write 1 here.
+     * Set when hardware detects an error condition (Page Table Error,
+     * Instruction Parser Error).  Further detail via ESR / EIR.
      *
-     * Sources:
-     *   - Page Table Error
-     *   - Instruction Parser Error
+     * Clear sequence: write 1 to the relevant EIR bit, then write 1 here.
      */
     u32 master_error : 1;  ///< [19]
-
-    /**
-     * @brief MI_FLUSH_DW Notify Interrupt [20]
-     *
-     * Optionally fired by MI_FLUSH_DW.  The associated store QW completes
-     * before the interrupt fires.
-     */
-    u32 mi_flush_dw : 1;  ///< [20]
-
-    u32 reserved21 : 1;  ///< [21]    MBZ
+    u32 mi_flush_dw : 1;   ///< [20]    MI_FLUSH_DW Notify — fires after the associated store QW completes
+    u32 reserved21 : 1;    ///< [21]    MBZ
 
     /**
      * @brief Timeout Counter Expired [22]
      *
-     * Set when the BCS timeout counter reaches the threshold.
+     * Set when the BCS timeout counter reaches its threshold.
      *
-     * @warning NOT POR.  MUST NOT be unmasked (enabled) in IMR / HWSTAM.
+     * @warning NOT POR.  MUST NOT be unmasked in IMR / HWSTAM.
      */
-    u32 timeout : 1;  ///< [22]
-
-    u32 reserved23 : 1;  ///< [23]    MBZ
-
-    /**
-     * @brief Context Switch Interrupt [24]
-     *
-     * Set after a context switch completes.
-     * Requires Exec-List Enable to be set.
-     */
-    u32 ctx_switch : 1;  ///< [24]
-
+    u32 timeout : 1;        ///< [22]
+    u32 reserved23 : 1;     ///< [23]    MBZ
+    u32 ctx_switch : 1;     ///< [24]    Context Switch complete — requires Exec-List Enable
     u32 reserved25_26 : 2;  ///< [26:25] MBZ
 
     /**
@@ -106,11 +77,9 @@ struct BCS_ICR_BITS {
      * "Inhibit Synchronous Context Switch" is active.
      * Ring-Buffer mode: set when MI_SEMAPHORE_WAIT fails.
      */
-    u32 wait_sem : 1;  ///< [27]
-
+    u32 wait_sem : 1;       ///< [27]
     u32 reserved28_31 : 4;  ///< [31:28] MBZ
 } __attribute__((packed));
-
 static_assert(sizeof(BCS_ICR_BITS) == 4);
 
 /**
@@ -210,5 +179,72 @@ constexpr u32 GEN8_MASTER_INT_CTL_OFFSET = 0x44200;
 
 /// MMIO offset of the GT0 interrupt register group (RCS + BCS).
 constexpr u32 GEN8_GT0_INTR_BASE = 0x44300;
+
+union DE_PIPE_INTERRUPT {
+    struct {
+        u32 vblank : 1;            ///< [0]     Vertical Blank — active high for duration of vblank interval
+        u32 vsync : 1;             ///< [1]     Vertical Sync  — active high for duration of vsync interval
+        u32 scanline : 1;          ///< [2]     Scan Line Event — active high pulse on scanline event
+        u32 plane1_flip_done : 1;  ///< [3]     Plane 1 Flip Done
+        u32 plane2_flip_done : 1;  ///< [4]     Plane 2 Flip Done
+        u32 plane3_flip_done : 1;  ///< [5]     Plane 3 Flip Done — not present on all pipes
+        u32 plane4_flip_done : 1;  ///< [6]     Plane 4 Flip Done — not present on all pipes
+        u32 plane1_gtt_fault : 1;  ///< [7]     Plane 1 GTT Fault
+        u32 plane2_gtt_fault : 1;  ///< [8]     Plane 2 GTT Fault
+        u32 plane3_gtt_fault : 1;  ///< [9]     Plane 3 GTT Fault — not present on all pipes
+        u32 plane4_gtt_fault : 1;  ///< [10]    Plane 4 GTT Fault — not present on all pipes
+        u32 cursor_gtt_fault : 1;  ///< [11]    Cursor GTT Fault
+        u32 dpst_histogram : 1;    ///< [12]    DPST Histogram Event
+        u32 unused13_15 : 3;       ///< [15:13] Currently unused interrupt sources
+        u32 reserved16_19 : 4;     ///< [19:16] MBZ
+        u32 unused20_27 : 8;       ///< [27:20] Currently unused interrupt sources
+        u32 reserved28_29 : 2;     ///< [29:28] MBZ
+        u32 unused30 : 1;          ///< [30]    Currently unused interrupt source
+
+        /**
+         * @brief Underrun [31]
+         *
+         * Active high pulse when an underrun occurs on the transcoder attached
+         * to this pipe.
+         */
+        u32 underrun : 1;  ///< [31] Underrun
+    } __attribute__((packed));
+
+    u32 raw;
+};
+
+static_assert(sizeof(DE_PIPE_INTERRUPT) == 4);
+
+using DE_PIPE_ISR = DE_PIPE_INTERRUPT;  ///< RO — raw interrupt line states; do not write
+using DE_PIPE_IMR = DE_PIPE_INTERRUPT;  ///< 1 = masked; 0 = forwarded.  Write full value, no |= on MMIO
+using DE_PIPE_IIR = DE_PIPE_INTERRUPT;  ///< Sticky; write 1 to clear
+using DE_PIPE_IER = DE_PIPE_INTERRUPT;  ///< 1 = enabled; 0 = disabled
+
+// ============================================================================
+// DE Pipe Interrupt register MMIO offsets — Pipe A
+// ============================================================================
+
+constexpr u32 DE_PIPE_A_ISR = 0x44400;
+constexpr u32 DE_PIPE_A_IMR = 0x44404;
+constexpr u32 DE_PIPE_A_IIR = 0x44408;
+constexpr u32 DE_PIPE_A_IER = 0x4440C;
+
+// ============================================================================
+// DE Pipe Interrupt register MMIO offsets — Pipe B
+// ============================================================================
+
+constexpr u32 DE_PIPE_B_ISR = 0x44410;
+constexpr u32 DE_PIPE_B_IMR = 0x44414;
+constexpr u32 DE_PIPE_B_IIR = 0x44418;
+constexpr u32 DE_PIPE_B_IER = 0x4441C;
+
+// ============================================================================
+// DE Pipe Interrupt register MMIO offsets — Pipe C
+// ============================================================================
+
+constexpr u32 DE_PIPE_C_ISR = 0x44420;
+constexpr u32 DE_PIPE_C_IMR = 0x44424;
+constexpr u32 DE_PIPE_C_IIR = 0x44428;
+constexpr u32 DE_PIPE_C_IER = 0x4442C;
 
 #endif  // VESPERAOS_INTERRUPT_REGS_H

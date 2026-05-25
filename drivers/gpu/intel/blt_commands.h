@@ -65,6 +65,7 @@ namespace blt {
     enum BLT_OPCODE : u32 {
         OPCODE_MI_NOOP = 0x00,
         OPCODE_MI_USER_INTERRUPT = 0x02,
+        OPCODE_MI_WAIT_FOR_EVENT = 0x03,
         OPCODE_MI_FLUSH_DW = 0x26,
         OPCODE_XY_COLOR_BLT = 0x50,
         OPCODE_XY_SRC_COPY_BLT = 0x53,
@@ -362,6 +363,38 @@ namespace blt {
     };
 
     constexpr u32 MI_NOOP = 0x00000000;  // No operation
+
+    /**
+     * @brief MI_WAIT_FOR_EVENT ring command — stalls the CS parser until a display event occurs.
+     */
+    union MI_WAIT_FOR_EVENT_CMD {
+        struct {
+            u32 display_plane_1_a_scan_line_wait : 1;       // [0]
+            u32 display_plane_1_a_flip_pending_wait : 1;    // [1]  <- Wichtig für Plane 1 A!
+            u32 display_plane_2_a_flip_pending_wait : 1;    // [2]  (Plane 4)
+            u32 display_plane_1_a_vertical_blank_wait : 1;  // [3]
+            u32 reserved_5_4 : 2;                           // [5:4]   MBZ
+            u32 display_plane_3_a_flip_pending_wait : 1;    // [6]  (Plane 7)
+            u32 display_plane_3_b_flip_pending_wait : 1;    // [7]  (Plane 8)
+            u32 display_plane_1_b_scan_line_wait : 1;       // [8]
+            u32 display_plane_1_b_flip_pending_wait : 1;    // [9]  (Plane 2)
+            u32 display_plane_2_b_flip_pending_wait : 1;    // [10] (Plane 5)
+            u32 display_plane_1_b_vertical_blank_wait : 1;  // [11]
+            u32 reserved_13_12 : 2;                         // [13:12] MBZ
+            u32 display_plane_1_c_scan_line_wait : 1;       // [14]
+            u32 display_plane_1_c_flip_pending_wait : 1;    // [15] (Plane 3)
+            u32 display_plane_3_c_flip_pending_wait : 1;    // [16] (Plane 9)
+            u32 display_plane_4_a_flip_pending_wait : 1;    // [17] (Plane 10)
+            u32 display_plane_4_b_flip_pending_wait : 1;    // [18] (Plane 11)
+            u32 display_plane_4_c_flip_pending_wait : 1;    // [19] (Plane 12)
+            u32 display_plane_2_c_flip_pending_wait : 1;    // [20] (Plane 6)
+            u32 display_plane_1_c_vertical_blank_wait : 1;  // [21]
+            u32 reserved_22 : 1;                            // [22]    MBZ
+            u32 opcode : 6;                                 // [28:23] = 0x03
+            u32 client : 3;                                 // [31:29] = 0x0 (MI_COMMAND)
+        } __attribute__((packed));
+        u32 raw;
+    };
 
 }  // namespace blt
 
