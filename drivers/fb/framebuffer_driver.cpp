@@ -139,16 +139,6 @@ bool FramebufferDriver::blit_region(
     return true;
 }
 
-
-bool FramebufferDriver::scroll_pixels(const int dy) {
-    if (dy <= 0 || static_cast<u32>(dy) >= fb_->height) return false;
-
-    const u32 bps = fb_->pixels_per_scanline * 4;
-    fn_memmove_(fb_->base_address, static_cast<u8*>(fb_->base_address) + bps * dy, bps * (fb_->height - dy));
-    fill_rect(0, fb_->height - dy, fb_->width, dy, 0x00000000);
-    return true;
-}
-
 u32 FramebufferDriver::screen_width_px() const {
     return fb_->width;
 }

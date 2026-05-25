@@ -41,7 +41,7 @@
  *
  * @note Bits [15:0] and all reserved fields are MBZ on writes; RO in hardware.
  */
-struct  BCS_ICR_BITS {
+struct BCS_ICR_BITS {
     u32 reserved0_15 : 16;  ///< [15:0]  MBZ
 
     /**
@@ -122,7 +122,7 @@ static_assert(sizeof(BCS_ICR_BITS) == 4);
  * @note Default reset value = 0xFFFFFFFF (all masked).
  * @note Write the full desired value directly; do NOT use |= on MMIO.
  *
- * MMIO: 0x22304 (BCS_IMR)
+ * MMIO: 0x220A8 (BCS_IMR)
  */
 union BCS_IMR_REG {
     BCS_ICR_BITS bits;
@@ -162,7 +162,6 @@ constexpr u32 BCS_HWSTAM_OFFSET = 0x22098;
 
 /// MMIO offset of the BCS Interrupt Mask Register.
 constexpr u32 BCS_IMR_OFFSET = 0x220A8;
-
 
 // ============================================================================
 // Master Interrupt Control
@@ -211,6 +210,5 @@ constexpr u32 GEN8_MASTER_INT_CTL_OFFSET = 0x44200;
 
 /// MMIO offset of the GT0 interrupt register group (RCS + BCS).
 constexpr u32 GEN8_GT0_INTR_BASE = 0x44300;
-
 
 #endif  // VESPERAOS_INTERRUPT_REGS_H

@@ -133,6 +133,8 @@ namespace blt {
         u32 screen_height = backend.drv ? backend.drv->screen_height_px() : 1080;
 
         auto* blt = new IntelBlt(dev);
+        if (!blt->init_device()) return -1;
+
         blt->start_device(screen_width, screen_height);
 
         driver_ = blt;

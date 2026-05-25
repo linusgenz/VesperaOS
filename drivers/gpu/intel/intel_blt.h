@@ -1,172 +1,162 @@
-/**
- * @file intel_blt.h
- * VesperaOS - operating system for the x86_64 architecture
- *
- * Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
- *
- * Created by Linus Genz on 16.12.25.
- *
- * This file is part of VesperaOS.
- *
- * VesperaOS is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * VesperaOS is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
- */
+// intel_blt.h
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 16.12.25.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 #ifndef VESPERAOS_INTEL_BLT_H
 #define VESPERAOS_INTEL_BLT_H
 
+#include <pci/pci_id.h>
 #include <vespera/devices/device_info.h>
 #include <vespera/graphics/IRenderDriver.h>
-#include <vespera/graphics/psf.h>
 #include <vespera/interrupts.h>
 #include <vespera/mm/addr.h>
 #include <vespera/sync/atomic.h>
-#include <vespera/sync/semaphore.h>
 
 #include "../gpu_blt_queue.h"
+#include "bcs_regs.h"
 #include "ggtt_allocator.h"
 #include "pci_config_regs.h"
 
 namespace pci {
     struct pci_device;
-    struct PCI_HEADER0;
-    struct PCI_DEVICE_HEADER;
-}  // namespace pci
+}
 struct KernelDevice;
 
-#define MMIO_POST_WRITE(reg)             \
+// =========================================================================
+// MMIO post-write barrier — forces a read-back to flush the write buffer.
+// =========================================================================
+
+#define MMIO_POST_WRITE(reg)            \
+    do {                                \
+        volatile u32 __tmp = (reg).raw; \
+        (void)__tmp;                    \
+    } while (0)
+
+#define MMIO_POST_WRITE_PTR(reg)         \
     do {                                 \
         volatile u32 __tmp = (reg)->raw; \
         (void)__tmp;                     \
     } while (0)
 
-// Force Wake Registers
-#define FORCEWAKE_MT 0xA188          // Multi-threaded force wake control
-#define FORCEWAKE_ACK 0x130044       // Force wake acknowledgment
-#define FORCEWAKE_ENABLE 0x00010001  // Magic value to enable force wake
-
-// Reset Control
-#define RESET_CTL 0xD0          // Reset control register
-#define RESET_BCS_BIT (1 << 1)  // BCS reset bit
-
-// BCS Power Control
-#define BCS_SWCTRL 0x22200      // Software control register
-#define BCS_SWCTRL_WAKEUP 0x01  // Force wakeup bit
-
-// GTT (Graphics Translation Table)
-constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;  // 8MB offset from MMIO base
-#define GTT_TOTAL_ENTRIES (256 * 1024)            // 256K entries = 1GB
-#define GTT_START_INDEX 0x1000                    // Start at entry 4096 (16MB)
-
-// ============================================================================
-// BCS Ring Buffer Registers (Base: 0x22000)
-// ============================================================================
-
-#define BCS_RING_BASE 0x22000
-#define BCS_RING_TAIL 0x30   // Tail pointer (write position)
-#define BCS_RING_HEAD 0x34   // Head pointer (read position)
-#define BCS_RING_START 0x38  // Ring buffer start address
-#define BCS_RING_CTL 0x3C    // Ring buffer control
-#define BCS_HWSP 0x80        // Hardware status page address
-
-constexpr u32 BCS_HWSTAM = 0x22098u;  // Hardware Status Mask
-constexpr u32 BCS_IMR = 0x220A8u;     // Interrupt Mask Register (RING_IMR)
-constexpr u32 BCS_EIR = 0x220B0u;     // Error Identity Register
-constexpr u32 BCS_EMR = 0x220B4u;     // Error Mask Register
-
-// Ring Buffer Control Bits
-#define RING_CTL_ENABLED 0x01    // Ring buffer enabled bit
-#define RING_SIZE_MASK 0x1FF000  // Ring size mask (in bytes - 4096)
-
-// ============================================================================
-// GTT Entry Format (64-bit)
-// ============================================================================
-
-#define GTT_VALID 0x01ULL
-#define GTT_PHYS_ADDR_MASK 0x000FFFFFFFFFF000ULL  // Bits [51:12]
-#define GTT_PAT_SHIFT 2
-#define GTT_PAT_MASK 0x3ULL
-
-// PAT Memory Types (für GTT)
-#define GTT_PAT_UC 0x0  // Uncached
-#define GTT_PAT_WC 0x1  // Write-Combining
-#define GTT_PAT_WT 0x2  // Write-Through
-#define GTT_PAT_WB 0x3  // Write-Back (cached in LLC)
-
-#define MOCS_UNCACHED 0x01        // UC für alle Caches
-#define MOCS_LLC_ONLY 0x02        // Nur LLC, WB
-#define MOCS_DISPLAY_BUFFER 0x03  // Für Display: LLC cacheable
-#define MOCS_CACHED_WB 0x09       // L3 + LLC Write-Back (default für Texturen)
-
-#define HWSP_SEQNO_OFFSET_DWORDS 4
-#define HWSP_SEQNO_OFFSET (HWSP_SEQNO_OFFSET_DWORDS + 16)
-
-#define XY_SRC_COPY_BLT_LEN 8      // DWord length = 8 (10 DWords total)
-#define XY_COLOR_BLT_LEN 5         // DWord length = 5 (7 DWords total)
-#define XY_MONO_SRC_COPY_LEN 0x08  // DWord Length: 8
-#define XY_FAST_COPY_BLT_LEN 8     // Length: 8 DWORDs *after* DW0/1 → total 10 DWORDs
-#define MI_FLUSH_DW_LEN 0x3        // Length field
-
-// BR13 - Raster Operation
-#define ROP_PATCOPY 0xF0  // Copy solid color to destination
-
-// Coordinate Masks
-#define COORD_MASK 0xFFFF  // 16-bit coordinate mask
-
-// ROP codes (must involve source, no pattern)
-#define SRCCOPY 0xCC
-
-// ============================================================================
-// BAR0 Configuration
-// ============================================================================
-
-constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;       // Mask to extract base address
-constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;  // 16MB MMIO region
-
-// ============================================================================
-// Timing and Limits
-// ============================================================================
-
-#define RING_BUFFER_SIZE (64 * 1024)  // 64KB ring buffer
-#define FORCE_WAKE_TIMEOUT 1000       // Force wake timeout iterations
-#define RESET_DELAY 10000             // Reset delay iterations
-#define IDLE_CHECK_DELAY 100          // Delay per idle check iteration
-#define STATUS_LOG_INTERVAL 10000     // Status logging interval
-
-// ============================================================================
-// Display Plane Registers (Primary Plane A)
-// ============================================================================
-
-#define PLANE_CTL_1_A 0x70180     // Plane control register
-#define PLANE_STRIDE_1_A 0x70188  // Stride (pitch) in bytes
-#define PLANE_SIZE_1_A 0x70190    // Size register
-#define PLANE_POS_1_A 0x7018C     // Position on screen
-#define PLANE_OFFSET_1_A 0x701A4  // Start offset in surface
-#define PLANE_SURF_1_A 0x7019C    // Surface address (triggers update)
-
-// Plane Control Bits
-#define PLANE_CTL_ENABLE (1 << 31)                // Enable plane
-#define PLANE_CTL_PIPE_A (0 << 8)                 // Pipe A select
-#define PLANE_CTL_FORMAT_XRGB8888 (0b0100 << 24)  // 32-bit XRGB format
-#define PLANE_CTL_RGBX (1u << 20)                 // Sets the Color order to RGB
-#define PLANE_CTL_TILE_Y (0b100 << 10)            // Enables Tile Y for the surface
-
 namespace blt {
+
+    // =========================================================================
+    // ForceWake
+    // =========================================================================
+    constexpr u32 FORCEWAKE_MT = 0xA188;
+    constexpr u32 FORCEWAKE_ACK = 0x130044;
+    constexpr u32 FORCEWAKE_ENABLE = 0x00010001;
+
+    // =========================================================================
+    // Reset / Power
+    // =========================================================================
+    constexpr u32 RESET_BCS_BIT = (1u << 3);
+
+    // =========================================================================
+    // GTT / GGTT
+    // =========================================================================
+    constexpr usize GTT_OFFSET = 8ull * 1024 * 1024;
+    constexpr u32 GTT_TOTAL_ENTRIES = 256u * 1024u;
+
+    constexpr u64 GTT_VALID = 0x01ULL;
+    constexpr u64 GTT_PHYS_ADDR_MASK = 0x000FFFFFFFFFF000ULL;
+    constexpr u32 GTT_PAT_SHIFT = 2;
+    constexpr u64 GTT_PAT_MASK = 0x3ULL;
+
+    // PAT memory types
+    constexpr u8 GTT_PAT_UC = 0x0;
+    constexpr u8 GTT_PAT_WC = 0x1;
+    constexpr u8 GTT_PAT_WT = 0x2;
+    constexpr u8 GTT_PAT_WB = 0x3;
+
+    // MOCS indices
+    constexpr u8 MOCS_UNCACHED = 0x01;
+    constexpr u8 MOCS_LLC_ONLY = 0x02;
+    constexpr u8 MOCS_DISPLAY_BUFFER = 0x03;
+    constexpr u8 MOCS_CACHED_WB = 0x09;
+
+    // =========================================================================
+    // BCS Ring Buffer Registers (byte offsets from BCS_RING_BASE)
+    // =========================================================================
+
+    constexpr u32 RING_CTL_ENABLED = 0x01;
+    constexpr u32 RING_SIZE_MASK = 0x1FF000;
+
+    // =========================================================================
+    // HWSP
+    // =========================================================================
+    constexpr u32 HWSP_SEQNO_OFFSET_DWORDS = 4;
+    constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
+
+    // =========================================================================
+    // BLT Command DWord Lengths
+    // =========================================================================
+    constexpr u32 XY_SRC_COPY_BLT_LEN = 8;
+    constexpr u32 XY_COLOR_BLT_LEN = 5;
+    constexpr u32 XY_MONO_SRC_COPY_LEN = 0x08;
+    constexpr u32 XY_FAST_COPY_BLT_LEN = 8;
+    constexpr u32 MI_FLUSH_DW_LEN = 0x3;
+
+    // =========================================================================
+    // ROP Codes
+    // =========================================================================
+    constexpr u8 ROP_PATCOPY = 0xF0;
+    constexpr u8 SRCCOPY = 0xCC;
+
+    // =========================================================================
+    // BAR0 / MMIO
+    // =========================================================================
+    constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
+    constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;
+
+    // =========================================================================
+    // Timing and Limits
+    // =========================================================================
+    constexpr u32 RING_BUFFER_SIZE = 64u * 1024u;
+    constexpr u32 FORCE_WAKE_TIMEOUT = 1000;
+    constexpr u32 BCS_RESET_TIMEOUT = 1000;
+
+    // =========================================================================
+    // Display Plane A Registers
+    // =========================================================================
+    constexpr u32 PLANE_CTL_1_A = 0x70180;
+    constexpr u32 PLANE_STRIDE_1_A = 0x70188;
+    constexpr u32 PLANE_SIZE_1_A = 0x70190;
+    constexpr u32 PLANE_POS_1_A = 0x7018C;
+    constexpr u32 PLANE_OFFSET_1_A = 0x701A4;
+    constexpr u32 PLANE_SURF_1_A = 0x7019C;
+
+    constexpr u32 PLANE_CTL_ENABLE = 1u << 31;
+    constexpr u32 PLANE_CTL_PIPE_A = 0u << 8;
+    constexpr u32 PLANE_CTL_FORMAT_XRGB8888 = 0b0100u << 24;
+    constexpr u32 PLANE_CTL_TILE_Y = 0b100u << 10;
+    constexpr u32 PLANE_CTL_TILE_X = (0b001u << 10);
+    // =========================================================================
+    // Data Types
+    // =========================================================================
     constexpr usize BYTES_PER_PIXEL = 4;
 
     enum class TileMode : u8 {
-        Linear = 0,  // 256 KB alignment
-        X = 1,       // 256 KB alignment
-        Y = 2        // 1 MB alignment
+        Linear = 0,
+        X = 1,
+        Y = 2,
     };
 
     struct GgttAllocation {
@@ -184,170 +174,180 @@ namespace blt {
         TileMode tile_mode;
     };
 
-    struct GpuTextBuffer {
-        virt_addr_t cpu_addr;
-        gfx_addr_t gfx_addr;
-        u32 width;   // in pixels
-        u32 height;  // in pixels
-        usize total_size;
-    };
-
     struct BltRect {
-        u32 x, y;
-        u32 width, height;
+        u32 x;
+        u32 y;
+        u32 width;
+        u32 height;
     };
 
     struct ScratchBuffer {
-        GgttAllocation alloc;
-        u32            num_pages = 0;
-        u32            max_w     = 0;
-        u32            max_h     = 0;
-        u32            pitch     = 0;
-        bool           valid     = false;
+        GgttAllocation alloc{};
+        u32 num_pages = 0;
+        u32 max_w = 0;
+        u32 max_h = 0;
+        u32 pitch = 0;
+        bool valid = false;
     };
+
+    // =========================================================================
+    // IntelBlt
+    // =========================================================================
 
     class IntelBlt final : public IRenderDriver, public IDeviceInfo {
        public:
         explicit IntelBlt(const pci::pci_device& igpu_dev);
-        void start_blt_worker(u8 cpu_id);
-        static void blt_worker_entry(void* arg);
-        static constexpr u32 SEQNO_BIT5_MASK = (1u << 5);
-        u32 next_seqno();
+
+        IntelBlt(const IntelBlt&) = delete;
+        IntelBlt& operator=(const IntelBlt&) = delete;
+
+        bool init_device();
 
         void start_device(u32 screen_width, u32 screen_height);
-        static u32 tile_mode_to_blt_flag(TileMode mode);
 
+        // IRenderDriver
         bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
-
         bool blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) override;
-
-        bool blit_region(
-            const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
-        ) override;
-        bool execute_blit_region(const GpuBltRequest& req);
-
-        bool execute_fill_rect(const GpuBltRequest& req);
-        bool scroll_pixels(int dy) override;
-
-        [[nodiscard]] KernelDevice* get_kd() const {
-            return kd_;
-        }
+        bool blit_region(const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y)
+            override;
 
         [[nodiscard]] u32 screen_width_px() const override;
         [[nodiscard]] u32 screen_height_px() const override;
         [[nodiscard]] u32 bytes_per_scanline() const override;
 
+        // IDeviceInfo
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
 
-        bool draw_str(const char* text, u32 x, u32 y, u32 fg_color, u32 bg_color);
-        void test_interrupt_only();
+        [[nodiscard]] KernelDevice* get_kd() const {
+            return kd_;
+        }
 
        private:
+        static constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
+        static constexpr u32 RING_SPACE_FOR_FILL = 12 * 4 + 64;
+        static constexpr u32 RING_SPACE_FOR_BLIT = 30 * 4 + 64;
+
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
 
-        KernelDevice* kd_;
+        KernelDevice* kd_ = nullptr;
+        u64 error_count_ = 0;
+        u8 irq_vector_ = 0;
 
-        u64 error_count_;
+        pci::pci_id pci_id_;
 
-        volatile u8* mmio_base_;
-        volatile u32* bcs_regs_;
-        volatile u64* gtt_entries_{};
+        volatile u8* mmio_base_ = nullptr;
+        volatile BCS_REGS* bcs_regs_ = nullptr;
+        volatile u64* gtt_entries_ = nullptr;
 
         GgttAllocator ggtt_alloc_;
 
-        gfx_addr_t ring_gfx_addr_;
-        virt_addr_t ring_cpu_addr_;
-        u32 ring_size_;
-        u32 ring_tail_{};
+        gfx_addr_t ring_gfx_addr_ = {};
+        virt_addr_t ring_cpu_addr_ = {};
+        u32 ring_size_ = RING_BUFFER_SIZE;
+        u32 ring_tail_ = 0;
 
-        gfx_addr_t hwsp_gfx_addr_;
-        virt_addr_t hwsp_cpu_addr_;
+        u32 last_head_ = 0;
+        u32 hang_counter_ = 0;
 
-        u32 gtt_next_free_{};
-        u32 gtt_total_entries_{};
+        gfx_addr_t hwsp_gfx_addr_ = {};
+        virt_addr_t hwsp_cpu_addr_ = {};
 
-        u32 sequence_number_;
+        u32 sequence_number_ = 0;
 
-        GpuTextBuffer text_buffer_;
-        GpuFramebuffer fb_;
+        GpuFramebuffer fb_{};
+        ScratchBuffer scratch_{};
 
-        // Semaphore completion_sem_;
         AtomicFlag completion_flag_;
-        u8 irq_vector_ = 0;
-
         GpuBltQueue blt_queue_;
 
-        void init_scratch_buffer();
-        void init_bcs_error_reporting() const;
+        // Worker
+        void worker_start(u8 cpu_id);
+        static void worker_entry(void* arg);
+        bool execute_blit_region(const GpuBltRequest& req);
+        bool execute_fill_rect(const GpuBltRequest& req);
 
-        ScratchBuffer scratch_;
+        // Sequence numbers
+        u32 seqno_next();
+        bool seqno_wait(u32 target_seqno, u32 timeout_us);
 
-        /**
-         * @brief Unmasks and enables the BCS user interrupt in the Gen8+ GT interrupt registers.
-         *
-         * Must be called after MSI is activated and the ISR is registered.
-         * Enables bit 22 (GT_BCS_USER_IRQ) in GEN8_GT_IER_0, clears it from the mask
-         * register, and sets the GT enable bit in GEN8_MASTER_IRQ.
-         *
-         * @warning Call once from the constructor — not reentrant, not SMP-safe.
-         */
-        void enable_bcs_interrupts() const;
+        // Ring buffer
+        void ring_write(u32 cmd);
+        template <typename T>
+        void ring_write_cmd(const T& cmd);
+        void ring_flush();
+        [[nodiscard]] bool ring_wait_space(u32 required_bytes, u32 timeout_us) const;
+        void ring_init();
 
-        void init_text_buffer(const PsfFont* font, u32 screen_width);
-        template <class T>
-        void write_command_struct(const T& cmd);
-
-        void alloc_framebuffer(u32 width, u32 height, TileMode tile_mode);
-        void build_text_scanline(const char* text, usize length, PsfFont* font, u8* buffer, usize buffer_stride);
-        void xy_src_copy_blt(
-            gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-            gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
+        // BCS command emission
+        void emit_xy_color_blt(gfx_addr_t dest, u32 pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color);
+        void emit_xy_src_copy_blt(
+            gfx_addr_t dest,
+            u32 dest_pitch,
+            u32 dest_x1,
+            u32 dest_y1,
+            u32 dest_x2,
+            u32 dest_y2,
+            gfx_addr_t src,
+            u32 src_pitch,
+            u32 src_x1,
+            u32 src_y1
         );
-        void xy_fast_copy_blt(
-            gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-            gfx_addr_t src_addr, u32 src_pitch, u32 src_x1, u32 src_y1
+        void emit_xy_fast_copy_blt(
+            gfx_addr_t dest,
+            u32 dest_pitch,
+            u32 dest_x1,
+            u32 dest_y1,
+            u32 dest_x2,
+            u32 dest_y2,
+            gfx_addr_t src,
+            u32 src_pitch,
+            u32 src_x1,
+            u32 src_y1
         );
-
-        void write_command(u32 cmd);
-        void set_display_framebuffer() const;
-        void mi_flush(u32 seqno);
-
-        /**
-         * @brief Services a pending BCS user interrupt.
-         *
-         * Reads GEN8_GT_IIR_0, write-1-clears the BCS bit, then signals the
-         * completion semaphore so any thread blocked in @ref wait_for_sequence
-         * can re-check the HWSP seqno.
-         *
-         * @warning Must be called from ISR context with interrupts disabled.
-         *          Do not acquire sleeping locks here.
-         */
-        void handle_bcs_irq();
-        static Irqreturn bcs_interrupt_handler(IntelBlt* self);
-
-        [[nodiscard]] bool wait_for_sequence(u32 target_seqno, u32 timeout_us);
-        void flush_commands();
-        void setup_ring_buffer();
-        void enable_force_wake() const;
-        void enable_bcs_power() const;
-        void reset_bcs() const;
-        void init_gtt(const pci::pci_device& igpu_dev);
-        void map_to_ggtt_at(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const;
-        void unmap_from_ggtt(u32 gtt_index, usize num_pages) const;
-        void emergency_reset_bcs();
-        void check_gpu_health();
-        [[nodiscard]] bool validate_blt_params(const BltRect& rect) const;
-        [[nodiscard]] bool wait_for_ring_space(u32 required_bytes, u32 timeout_us) const;
-        void xy_color_blt(gfx_addr_t dest_addr, u32 dest_pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color);
-        void xy_mono_src_copy_blt(
-            gfx_addr_t dest_addr, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2,
-            gfx_addr_t mono_src_addr, u32 src_bit_position, bool transparency_enabled, u32 bg_color, u32 fg_color
+        void emit_xy_mono_src_copy_blt(
+            gfx_addr_t dest,
+            u32 dest_pitch,
+            u32 dest_x1,
+            u32 dest_y1,
+            u32 dest_x2,
+            u32 dest_y2,
+            gfx_addr_t mono_src,
+            u32 src_bit_pos,
+            bool transparency,
+            u32 bg_color,
+            u32 fg_color
         );
-        GgttAllocation alloc_and_map_to_ggtt(usize num_pages, u64 flags = 0, u8 pat_index = GTT_PAT_UC);
-        GgttAllocation alloc_and_map_to_ggtt_transient(usize num_pages, u64 flags, u8 pat_index);
-        void free_ggtt_transient(const GgttAllocation& alloc, usize num_pages);
-        gfx_addr_t map_to_ggtt(phys_addr_t phys_addr, usize num_pages, u8 pat_index);
+        void emit_mi_flush(u32 seqno);
+
+        // HW init / power
+        bool force_wake_enable() const;
+        void bcs_power_enable() const;
+        bool bcs_reset() const;
+        void bcs_interrupts_enable() const;
+        void bcs_error_reporting_init() const;
+        bool bcs_emergency_reset();
+        void gpu_health_check();
+
+        // Framebuffer / scratch
+        void fb_alloc(u32 width, u32 height, TileMode tile_mode);
+        void fb_set_display() const;
+        void scratch_init();
+
+        [[nodiscard]] bool validate_rect(const BltRect& rect) const;
+
+        static Irqreturn bcs_irq_handler(IntelBlt * self);
+        static u32 tile_mode_to_tiling(TileMode mode);
+
+        // GGTT management, implemented in intel_blt_ggtt.cpp
+        void ggtt_init();
+        void ggtt_write_entries(u32 gtt_index, phys_addr_t phys_addr, usize num_pages, u8 pat_index) const;
+        void ggtt_clear_entries(u32 gtt_index, usize num_pages) const;
+        [[nodiscard]] GgttAllocation ggtt_alloc_persistent(usize num_pages, u64 flags = 0, u8 pat_index = GTT_PAT_UC);
+        [[nodiscard]] GgttAllocation ggtt_alloc_transient(usize num_pages, u64 flags, u8 pat_index);
+        void ggtt_free_transient(const GgttAllocation& alloc, usize num_pages);
     };
+
 }  // namespace blt
+
 #endif  // VESPERAOS_INTEL_BLT_H

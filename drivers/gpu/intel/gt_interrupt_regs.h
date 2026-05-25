@@ -75,7 +75,7 @@ struct GT_INTR_REGS {
     GT0_IMR_REG imr;  ///< +0x4  GT Interrupt Mask    (R/W) (1 = masked)
     GT0_IIR_REG iir;  ///< +0x8  GT Interrupt Identity (R/WC)
     GT0_IER_REG ier;  ///< +0xC  GT Interrupt Enable   (R/W) (1 = enabled)
-} __attribute__((packed));
+};
 
 static_assert(sizeof(GT_INTR_REGS) == 16);
 
