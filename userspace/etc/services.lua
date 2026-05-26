@@ -42,9 +42,21 @@ S.ignis = {
     umbra            = true
 }
 
-S.nox = {
-    name             = "nox",
-    exec             = "/bin/nox",
+--S.nox = {
+--    name             = "nox",
+--    exec             = "/bin/nox",
+--    user             = "vespera",
+--    args             = { "-v" },
+--    restart          = "always",
+--    restart_delay_ms = 2000,
+--    requires         = { "memoria" },
+--    umbra            = false
+--}
+
+
+S.crepusculum = {
+    name             = "crepus",
+    exec             = "/bin/crepus",
     user             = "vespera",
     args             = { "-v" },
     restart          = "always",
@@ -52,5 +64,6 @@ S.nox = {
     requires         = { "memoria" },
     umbra            = false
 }
+
 
 return S

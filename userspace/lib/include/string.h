@@ -32,10 +32,12 @@
  */
 size_t strlen(const char *s);
 
+size_t strnlen(const char* s, size_t maxlen);
+
 /**
  * @brief Copy SRC to DEST.
  */
-void strcpy(char *dest, const char *src);
+char* strcpy(char *dest, const char *src);
 
 /**
  * @brief Copy no more than N characters of SRC to DEST.
@@ -45,7 +47,7 @@ char *strncpy(char *dest, const char *src, size_t n);
 /**
  * @brief Append SRC onto DEST.
  */
-void strcat(char *dest, const char *src);
+char* strcat(char *dest, const char *src);
 
 /**
  * @brief Append no more than N characters from SRC onto DEST.

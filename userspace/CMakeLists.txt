@@ -21,7 +21,7 @@ add_subdirectory(lib)
 
 
 function(vespera_bin name)
-    cmake_parse_arguments(ARG "READLINE" "" "SOURCES;EXTRA_LIBS" ${ARGN})
+    cmake_parse_arguments(ARG "READLINE;LVGL" "" "SOURCES;EXTRA_LIBS" ${ARGN})
 
     if (ARG_SOURCES)
         set(sources ${ARG_SOURCES})
@@ -41,13 +41,24 @@ function(vespera_bin name)
     else ()
         add_dependencies(${name} sysroot_install)
     endif ()
+
+    if (ARG_LVGL)
+        list(APPEND _link_libs ${SYSROOT}/usr/lib/liblvgl.a)
+
+        add_dependencies(${name} sysroot_install_lvgl)
+
+        target_include_directories(${name} PRIVATE
+                ${SYSROOT}/usr/include/lvgl
+        )
+    endif ()
+
     list(APPEND _link_libs ${SYSROOT}/usr/lib/libvesp.a)
 
     target_link_libraries(${name} PRIVATE ${_link_libs})
 
     set_target_properties(${name} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${SYSROOT}/bin
-            LINK_FLAGS               "${USER_LD_FLAGS}"
+            LINK_FLAGS "${USER_LD_FLAGS}"
     )
 
     # Self-register so 'elfs' never needs a manual update
@@ -72,7 +83,7 @@ vespera_bin(nox
         ${CMAKE_CURRENT_SOURCE_DIR}/bin/nox/powermon.c
 )
 
-vespera_bin(env      SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
+vespera_bin(env SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
 vespera_bin(printenv SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin/env.c)
 
 add_executable(lua ${CMAKE_CURRENT_SOURCE_DIR}/bin/lua.c)
@@ -89,27 +100,33 @@ target_link_libraries(lua PRIVATE
 )
 set_target_properties(lua PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${SYSROOT}/bin
-        LINK_FLAGS               "${USER_LD_FLAGS}"
+        LINK_FLAGS "${USER_LD_FLAGS}"
 )
 set_property(GLOBAL APPEND PROPERTY VESPERA_BIN_TARGETS lua)
+
+vespera_bin(crepus
+        LVGL
+        SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/crepus.c
+)
 
 # ---------------------------------------------------------------------------
 # Auto-discovery
 # Every bin/<name>.c that is NOT in the explicit list above becomes a
 # vespera_bin(<name>) automatically.
 # ---------------------------------------------------------------------------
-set(_EXPLICIT_BINS nox env printenv lua)
+set(_EXPLICIT_BINS nox env printenv lua crepus)
 
 file(GLOB _auto_sources CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/bin/*.c
 )
 
-foreach(_src ${_auto_sources})
+foreach (_src ${_auto_sources})
     get_filename_component(_name ${_src} NAME_WE)
     if (NOT _name IN_LIST _EXPLICIT_BINS)
         vespera_bin(${_name})
     endif ()
-endforeach()
+endforeach ()
 
 get_property(_all_bins GLOBAL PROPERTY VESPERA_BIN_TARGETS)
 add_custom_target(elfs DEPENDS ${_all_bins})

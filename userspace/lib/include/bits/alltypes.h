@@ -22,80 +22,95 @@
 #ifndef VESPLIB_ALLTYPES_H
 #define VESPLIB_ALLTYPES_H
 
-#define _Addr             long
-#define _Int64            long
-#define _Reg              long
-#define __BYTE_ORDER      1234
-#define __LITTLE_ENDIAN   1234
-#define __BIG_ENDIAN      4321
-#define __LONG_MAX        0x7fffffffffffffffL
+#define _Addr long
+#define _Int64 long
+#define _Reg long
+#define __BYTE_ORDER 1234
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN 4321
+#define __LONG_MAX 0x7fffffffffffffffL
 
-typedef unsigned long   size_t;
-typedef unsigned long   uintptr_t;
-typedef long            ptrdiff_t;
-typedef long            ssize_t;
-typedef long            intptr_t;
-typedef long            regoff_t;
-typedef long            register_t;
-typedef long            time_t;
-typedef long            suseconds_t;
+typedef unsigned long size_t;
+typedef unsigned long uintptr_t;
+typedef long ptrdiff_t;
+typedef long ssize_t;
+typedef long intptr_t;
+typedef long regoff_t;
+typedef long register_t;
+typedef long time_t;
+typedef long suseconds_t;
 
-typedef unsigned        mode_t;
-typedef unsigned long   nlink_t;
-typedef long            off_t;
-typedef unsigned long   ino_t;
-typedef unsigned long   dev_t;
-typedef long            blksize_t;
-typedef long            blkcnt_t;
-typedef unsigned long   fsblkcnt_t;
-typedef unsigned long   fsfilcnt_t;
+typedef unsigned mode_t;
+typedef unsigned long nlink_t;
+typedef long off_t;
+typedef unsigned long ino_t;
+typedef unsigned long dev_t;
+typedef long blksize_t;
+typedef long blkcnt_t;
+typedef unsigned long fsblkcnt_t;
+typedef unsigned long fsfilcnt_t;
 
-typedef unsigned        wint_t;
-typedef unsigned long   wctype_t;
+typedef __WINT_TYPE__ wint_t;
+typedef unsigned long wctype_t;
 
 #ifndef __cplusplus
-typedef int             wchar_t;
+typedef int wchar_t;
 #endif
 
 #if defined(__FLT_EVAL_METHOD__) && __FLT_EVAL_METHOD__ == 2
-typedef long double     float_t;
-typedef long double     double_t;
+typedef long double float_t;
+typedef long double double_t;
 #else
-typedef float           float_t;
-typedef double          double_t;
+typedef float float_t;
+typedef double double_t;
 #endif
 
-typedef struct { long long __ll; long double __ld; } max_align_t;
+typedef struct {
+    long long __ll;
+    long double __ld;
+} max_align_t;
 
-typedef void *          timer_t;
-typedef int             clockid_t;
-typedef long            clock_t;
+typedef void *timer_t;
+typedef int clockid_t;
+typedef long clock_t;
 
-struct timeval  { time_t tv_sec; suseconds_t tv_usec; };
-struct timespec { time_t tv_sec; long tv_nsec; };
+struct timeval {
+    time_t tv_sec;
+    suseconds_t tv_usec;
+};
+struct timespec {
+    time_t tv_sec;
+    long tv_nsec;
+};
 
-typedef int             pid_t;
-typedef unsigned        id_t;
-typedef unsigned        uid_t;
-typedef unsigned        gid_t;
-typedef int             key_t;
-typedef unsigned        useconds_t;
+typedef int pid_t;
+typedef unsigned id_t;
+typedef unsigned uid_t;
+typedef unsigned gid_t;
+typedef int key_t;
+typedef unsigned useconds_t;
 
 typedef __builtin_va_list va_list;
 typedef __builtin_va_list __isoc_va_list;
 
-typedef struct { unsigned __opaque1, __opaque2; } mbstate_t;
-typedef struct __locale_struct * locale_t;
+typedef struct {
+    unsigned __opaque1, __opaque2;
+} mbstate_t;
+typedef struct __locale_struct *locale_t;
 
-struct iovec   { void *iov_base; size_t iov_len; };
-struct winsize { unsigned short ws_row, ws_col, ws_xpixel, ws_ypixel; };
+struct iovec {
+    void *iov_base;
+    size_t iov_len;
+};
+struct winsize {
+    unsigned short ws_row, ws_col, ws_xpixel, ws_ypixel;
+};
 
-typedef unsigned       socklen_t;
+typedef unsigned socklen_t;
 typedef unsigned short sa_family_t;
 
 #undef _Addr
 #undef _Int64
 #undef _Reg
-
 
 #endif  // VESPLIB_ALLTYPES_H

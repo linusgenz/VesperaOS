@@ -75,6 +75,7 @@ static void combine_segments(heap_seg *seg) {
         seg->length += sizeof(heap_seg) + next->length;
         seg->next = next->next;
         if (seg->next) seg->next->prev = seg;
+      //  next->magic = 0;
     }
 
     heap_seg *prev = seg->prev;
@@ -82,6 +83,7 @@ static void combine_segments(heap_seg *seg) {
         prev->length += sizeof(heap_seg) + seg->length;
         prev->next = seg->next;
         if (prev->next) prev->next->prev = prev;
+   //     seg->magic = 0;
     }
 }
 
@@ -132,6 +134,10 @@ void *malloc(size_t size) {
 
         /* Walk to the last segment */
         heap_seg *last = g_heap_head;
+        /*while (last->next) {
+            if (last->magic != HEAP_MAGIC) return NULL;
+            last = last->next;
+        }*/
         while (last->next) last = last->next;
 
         if (last->free && last->magic == HEAP_MAGIC) {

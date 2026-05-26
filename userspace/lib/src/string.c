@@ -32,12 +32,18 @@ size_t strlen(const char* s) {
     return s - start;
 }
 
-void strcpy(char* dest, const char* src) {
-    if (!dest || !src) return;
-    while (*src) {
-        *dest++ = *src++;
-    }
-    *dest = '\0';
+size_t strnlen(const char* s, size_t maxlen) {
+    const char* start = s;
+    while (maxlen-- && *s) ++s;
+    return s - start;
+}
+
+char* strcpy(char* dest, const char* src) {
+    if (!dest || !src) return dest;
+    char* d = dest;
+    while (*src) *d++ = *src++;
+    *d = '\0';
+    return dest;
 }
 
 char* strncpy(char* dest, const char* src, size_t n) {
@@ -72,10 +78,13 @@ char* strtok(char* s, const char delim) {
     return start;
 }
 
-void strcat(char* dest, const char* src) {
-    if (!dest || !src) return;
-    while (*dest) dest++;
-    strcpy(dest, src);
+char* strcat(char* dest, const char* src) {
+    if (!dest || !src) return dest;
+    char* d = dest;
+    while (*d) d++;
+    while (*src) *d++ = *src++;
+    *d = '\0';
+    return dest;
 }
 
 char* strncat(char* dest, const char* src, size_t max) {

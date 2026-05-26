@@ -806,22 +806,27 @@ int putchar(int c) {
 
 size_t snprintf(char* buffer, size_t size, const char* fmt, ...) {
     if (!buffer || !fmt || size == 0) return (size_t)-1;
+    va_list args;
+    va_start(args, fmt);
+    int ret = vsnprintf(buffer, size, fmt, args);
+    va_end(args);
+    return (size_t)ret;
+}
+
+int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args) {
+    if (!buffer || !fmt || size == 0) return -1;
 
     sink_t s = {
-        .type = SINK_BUFFER,
-        .buf = buffer,
-        .size = size,
-        .pos = 0,
+        .type    = SINK_BUFFER,
+        .buf     = buffer,
+        .size    = size,
+        .pos     = 0,
         .written = 0,
     };
 
-    __builtin_va_list args;
-    __builtin_va_start(args, fmt);
     vformat_write(&s, fmt, args);
-    __builtin_va_end(args);
-
     buffer[s.pos] = '\0';
-    return s.written;  // total chars (same semantics as standard snprintf)
+    return (int)s.written;
 }
 
 char* fgets(char* buf, int n, FILE* f) {

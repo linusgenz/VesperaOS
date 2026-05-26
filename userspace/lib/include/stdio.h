@@ -149,6 +149,8 @@ int vprintf(const char* fmt, va_list args);
  */
 size_t snprintf(char* buffer, size_t size, const char* format, ...);
 
+int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args);
+
 /**
  * @todo add docs
  */

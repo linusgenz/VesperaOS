@@ -29,6 +29,23 @@ add_subdirectory(lua)
 add_subdirectory(readline)
 add_subdirectory(lvespera)
 
+include(ExternalProject)
+
+# Pfade definieren
+set(LVGL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lvgl/")
+set(LVGL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lvgl_external_build")
+
+ExternalProject_Add(lvgl_project
+        SOURCE_DIR          ${LVGL_SOURCE_DIR}
+        BINARY_DIR          ${LVGL_BINARY_DIR}
+
+        # Hier übergeben wir deine funktionierende Vespera-Toolchain-Datei
+        CMAKE_ARGS          -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/lvgl/vespera_toolchain.cmake
+        -DLV_CONF_DIR=${CMAKE_CURRENT_SOURCE_DIR}/userspace/lib/lvgl
+
+        INSTALL_COMMAND     ""
+)
+
 set(MATH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
 
 file(GLOB MATH_GENERIC_C   ${MATH_DIR}/*.c)
@@ -200,6 +217,7 @@ add_library(vesplib STATIC
 
 set_source_files_properties(
         src/crt0.asm
+        src/setjmp.asm
         PROPERTIES
         LANGUAGE ASM_NASM
         COMPILE_FLAGS "-f elf64"
@@ -271,4 +289,23 @@ add_custom_target(sysroot_install
         ${SYSROOT}/usr/lib/libvesp.a
 
         COMMENT "Populating sysroot"
+)
+
+add_custom_target(sysroot_install_lvgl ALL
+        DEPENDS lvgl_project
+
+        # 1. Verzeichnisse im Sysroot anlegen
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${SYSROOT}/usr/lib
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${SYSROOT}/usr/include/lvgl
+
+        # 2. Die frisch gebaute liblvgl.a aus dem externen Build-Verzeichnis kopieren
+        COMMAND ${CMAKE_COMMAND} -E copy ${LVGL_BINARY_DIR}/lib/liblvgl.a ${SYSROOT}/usr/lib/liblvgl.a
+
+        # 3. Die Haupt-Header-Datei kopieren
+        COMMAND ${CMAKE_COMMAND} -E copy ${LVGL_SOURCE_DIR}/lvgl.h ${SYSROOT}/usr/include/lvgl/lvgl.h
+
+        # 4. Den kompletten src-Ordner für die restlichen Header kopieren
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LVGL_SOURCE_DIR}/src ${SYSROOT}/usr/include/lvgl/src
+
+        COMMENT "Automated external build and sysroot install for LVGL"
 )

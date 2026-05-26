@@ -24,6 +24,9 @@
 #ifndef VESPERAOS_MMAN_H
 #define VESPERAOS_MMAN_H
 
+#include <stddef.h>
+
+
 /**
  * @brief Memory protection flags for mmap
  */

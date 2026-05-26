@@ -6,3 +6,6 @@ userspace/lib/libjpeg/**  -diff
 
 userspace/lib/lua/**  linguist-vendored=true
 userspace/lib/lua/**  -diff
+
+userspace/lib/lvgl/**  linguist-vendored=true
+userspace/lib/lvgl/**  -diff

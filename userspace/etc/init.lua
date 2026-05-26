@@ -170,7 +170,7 @@ local function spawn_service(name)
         return nil
     end
 
-    transfer_log_channel_to(name, realm_id)
+    --transfer_log_channel_to(name, realm_id)
     write_rid(name, realm_id)
     track(name, realm_id)
     return realm_id
