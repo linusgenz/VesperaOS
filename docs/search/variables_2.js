@@ -17,7 +17,5 @@ var searchData=
   ['buf_5fpos_14',['buf_pos',['../structFILE.html#a91ee47d34efcc4136d468b8485e1700c',1,'FILE']]],
   ['buf_5fsize_15',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],
   ['buffer_16',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
-  ['buffer_5fheight_17',['buffer_height',['../structfb__blit.html#afde7d9c9c1f4a590643088fab7ff71ee',1,'fb_blit']]],
-  ['buffer_5fwidth_18',['buffer_width',['../structfb__blit.html#a6276662ce4e9e5f3831830d7eeb0a8cd',1,'fb_blit']]],
-  ['bus_5fnumber_19',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]]
+  ['bus_5fnumber_17',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]]
 ];

@@ -97,7 +97,7 @@ $(document).ready(function(){initNavTree('structfb__blit.html',''); initResizabl
 </div><!--header-->
 <div class="contents">
 
-<p>Describes a pixel buffer transfer (blit) operation.  
+<p>Describes a rectangular pixel buffer transfer (blit) operation.  
  <a href="structfb__blit.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="ioctl__framebuffer_8h_source.html">ioctl_framebuffer.h</a>&gt;</code></p>
@@ -105,57 +105,38 @@ $(document).ready(function(){initNavTree('structfb__blit.html',''); initResizabl
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a1865017c8e34ba456777064246b08713" id="r_a1865017c8e34ba456777064246b08713"><td class="memItemLeft" align="right" valign="top">const void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a1865017c8e34ba456777064246b08713">pixels</a></td></tr>
-<tr class="memdesc:a1865017c8e34ba456777064246b08713"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to pixel data in ARGB format (0xAARRGGBB)  <br /></td></tr>
+<tr class="memdesc:a1865017c8e34ba456777064246b08713"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to the top-left pixel of the full source buffer.  <br /></td></tr>
 <tr class="separator:a1865017c8e34ba456777064246b08713"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6276662ce4e9e5f3831830d7eeb0a8cd" id="r_a6276662ce4e9e5f3831830d7eeb0a8cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a6276662ce4e9e5f3831830d7eeb0a8cd">buffer_width</a></td></tr>
-<tr class="memdesc:a6276662ce4e9e5f3831830d7eeb0a8cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Width of the pixel buffer.  <br /></td></tr>
-<tr class="separator:a6276662ce4e9e5f3831830d7eeb0a8cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afde7d9c9c1f4a590643088fab7ff71ee" id="r_afde7d9c9c1f4a590643088fab7ff71ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#afde7d9c9c1f4a590643088fab7ff71ee">buffer_height</a></td></tr>
-<tr class="memdesc:afde7d9c9c1f4a590643088fab7ff71ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Height of the pixel buffer.  <br /></td></tr>
-<tr class="separator:afde7d9c9c1f4a590643088fab7ff71ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a637c24fdcf659c4699db97852d2bdc08" id="r_a637c24fdcf659c4699db97852d2bdc08"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a637c24fdcf659c4699db97852d2bdc08">src_stride</a></td></tr>
+<tr class="memdesc:a637c24fdcf659c4699db97852d2bdc08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Width of the full source buffer in pixels.  <br /></td></tr>
+<tr class="separator:a637c24fdcf659c4699db97852d2bdc08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaaa802bc1d1ed161d3581794e7a4fb86" id="r_aaaa802bc1d1ed161d3581794e7a4fb86"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#aaaa802bc1d1ed161d3581794e7a4fb86">src_height</a></td></tr>
+<tr class="memdesc:aaaa802bc1d1ed161d3581794e7a4fb86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Height of the full source buffer in pixels.  <br /></td></tr>
+<tr class="separator:aaaa802bc1d1ed161d3581794e7a4fb86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2052f521530749bf582c04a63a94fcf6" id="r_a2052f521530749bf582c04a63a94fcf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a2052f521530749bf582c04a63a94fcf6">src_x</a></td></tr>
+<tr class="memdesc:a2052f521530749bf582c04a63a94fcf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">X coordinate of the source rectangle inside the source buffer.  <br /></td></tr>
+<tr class="separator:a2052f521530749bf582c04a63a94fcf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e9d90d33f52e5762caa1ddbe759f2ce" id="r_a7e9d90d33f52e5762caa1ddbe759f2ce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a7e9d90d33f52e5762caa1ddbe759f2ce">src_y</a></td></tr>
+<tr class="memdesc:a7e9d90d33f52e5762caa1ddbe759f2ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y coordinate of the source rectangle inside the source buffer.  <br /></td></tr>
+<tr class="separator:a7e9d90d33f52e5762caa1ddbe759f2ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86d60eec5584d0fb6921c86a6148b339" id="r_a86d60eec5584d0fb6921c86a6148b339"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a86d60eec5584d0fb6921c86a6148b339">width</a></td></tr>
+<tr class="memdesc:a86d60eec5584d0fb6921c86a6148b339"><td class="mdescLeft">&#160;</td><td class="mdescRight">Width of the region to copy in pixels.  <br /></td></tr>
+<tr class="separator:a86d60eec5584d0fb6921c86a6148b339"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a645735a8f685864eeb1e40d860e82324" id="r_a645735a8f685864eeb1e40d860e82324"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a645735a8f685864eeb1e40d860e82324">height</a></td></tr>
+<tr class="memdesc:a645735a8f685864eeb1e40d860e82324"><td class="mdescLeft">&#160;</td><td class="mdescRight">Height of the region to copy in pixels.  <br /></td></tr>
+<tr class="separator:a645735a8f685864eeb1e40d860e82324"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a09a930c6a1b1472a5b6cbf62da428f45" id="r_a09a930c6a1b1472a5b6cbf62da428f45"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a09a930c6a1b1472a5b6cbf62da428f45">dst_x</a></td></tr>
-<tr class="memdesc:a09a930c6a1b1472a5b6cbf62da428f45"><td class="mdescLeft">&#160;</td><td class="mdescRight">X coordinate on screen to render the buffer.  <br /></td></tr>
+<tr class="memdesc:a09a930c6a1b1472a5b6cbf62da428f45"><td class="mdescLeft">&#160;</td><td class="mdescRight">X coordinate on the framebuffer where the region is rendered.  <br /></td></tr>
 <tr class="separator:a09a930c6a1b1472a5b6cbf62da428f45"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a135c2789a60d270e70623765fba4d2c2" id="r_a135c2789a60d270e70623765fba4d2c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structfb__blit.html#a135c2789a60d270e70623765fba4d2c2">dst_y</a></td></tr>
-<tr class="memdesc:a135c2789a60d270e70623765fba4d2c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y coordinate on screen to render the buffer.  <br /></td></tr>
+<tr class="memdesc:a135c2789a60d270e70623765fba4d2c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y coordinate on the framebuffer where the region is rendered.  <br /></td></tr>
 <tr class="separator:a135c2789a60d270e70623765fba4d2c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Describes a pixel buffer transfer (blit) operation. </p>
-<p>Copies a rectangular buffer of pixels from userspace to the framebuffer. The entire buffer is rendered at the specified screen position. </p>
+<div class="textblock"><p>Describes a rectangular pixel buffer transfer (blit) operation. </p>
+<p>Copies a rectangular region from a source pixel buffer in userspace to the framebuffer.</p>
+<p>All pixels are expected to use ARGB format (0xAARRGGBB). </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="afde7d9c9c1f4a590643088fab7ff71ee" name="afde7d9c9c1f4a590643088fab7ff71ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afde7d9c9c1f4a590643088fab7ff71ee">&#9670;&#160;</a></span>buffer_height</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::buffer_height</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Height of the pixel buffer. </p>
-
-</div>
-</div>
-<a id="a6276662ce4e9e5f3831830d7eeb0a8cd" name="a6276662ce4e9e5f3831830d7eeb0a8cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6276662ce4e9e5f3831830d7eeb0a8cd">&#9670;&#160;</a></span>buffer_width</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::buffer_width</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Width of the pixel buffer. </p>
-
-</div>
-</div>
 <a id="a09a930c6a1b1472a5b6cbf62da428f45" name="a09a930c6a1b1472a5b6cbf62da428f45"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a09a930c6a1b1472a5b6cbf62da428f45">&#9670;&#160;</a></span>dst_x</h2>
 
@@ -168,7 +149,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>X coordinate on screen to render the buffer. </p>
+<p>X coordinate on the framebuffer where the region is rendered. </p>
 
 </div>
 </div>
@@ -184,7 +165,23 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Y coordinate on screen to render the buffer. </p>
+<p>Y coordinate on the framebuffer where the region is rendered. </p>
+
+</div>
+</div>
+<a id="a645735a8f685864eeb1e40d860e82324" name="a645735a8f685864eeb1e40d860e82324"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a645735a8f685864eeb1e40d860e82324">&#9670;&#160;</a></span>height</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::height</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Height of the region to copy in pixels. </p>
 
 </div>
 </div>
@@ -200,7 +197,88 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Pointer to pixel data in ARGB format (0xAARRGGBB) </p>
+<p>Pointer to the top-left pixel of the full source buffer. </p>
+
+</div>
+</div>
+<a id="aaaa802bc1d1ed161d3581794e7a4fb86" name="aaaa802bc1d1ed161d3581794e7a4fb86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaaa802bc1d1ed161d3581794e7a4fb86">&#9670;&#160;</a></span>src_height</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::src_height</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Height of the full source buffer in pixels. </p>
+
+</div>
+</div>
+<a id="a637c24fdcf659c4699db97852d2bdc08" name="a637c24fdcf659c4699db97852d2bdc08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a637c24fdcf659c4699db97852d2bdc08">&#9670;&#160;</a></span>src_stride</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::src_stride</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Width of the full source buffer in pixels. </p>
+<p>Also acts as the source stride. </p>
+
+</div>
+</div>
+<a id="a2052f521530749bf582c04a63a94fcf6" name="a2052f521530749bf582c04a63a94fcf6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2052f521530749bf582c04a63a94fcf6">&#9670;&#160;</a></span>src_x</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::src_x</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>X coordinate of the source rectangle inside the source buffer. </p>
+
+</div>
+</div>
+<a id="a7e9d90d33f52e5762caa1ddbe759f2ce" name="a7e9d90d33f52e5762caa1ddbe759f2ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e9d90d33f52e5762caa1ddbe759f2ce">&#9670;&#160;</a></span>src_y</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::src_y</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Y coordinate of the source rectangle inside the source buffer. </p>
+
+</div>
+</div>
+<a id="a86d60eec5584d0fb6921c86a6148b339" name="a86d60eec5584d0fb6921c86a6148b339"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86d60eec5584d0fb6921c86a6148b339">&#9670;&#160;</a></span>width</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="types_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> fb_blit::width</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Width of the region to copy in pixels. </p>
 
 </div>
 </div>

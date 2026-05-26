@@ -49,5 +49,5 @@ var alltypes_8h =
     [ "va_list", "alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1", null ],
     [ "wchar_t", "alltypes_8h.html#a9c277a3fd853029cc853c877bcd32e8e", null ],
     [ "wctype_t", "alltypes_8h.html#ac0eca8c4a8f4f78b194462681286bd85", null ],
-    [ "wint_t", "alltypes_8h.html#ae66a5a4c3f483e5c7705ba6ca94a4455", null ]
+    [ "wint_t", "alltypes_8h.html#abd99e7f4ef6b86204820c995f988403b", null ]
 ];

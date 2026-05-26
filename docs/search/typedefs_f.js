@@ -3,7 +3,7 @@ var searchData=
   ['sa_5ffamily_5ft_0',['sa_family_t',['../alltypes_8h.html#a27a82860cef19f4a53f68516e7b2ee0e',1,'alltypes.h']]],
   ['sig_5fatomic_5ft_1',['sig_atomic_t',['../userspace_2lib_2include_2signal_8h.html#a5d486213aa4f744f497959af6917e2a0',1,'signal.h']]],
   ['sigset_5ft_2',['sigset_t',['../userspace_2lib_2include_2signal_8h.html#ae770e87ab143e8ad7feaf75b78a89718',1,'signal.h']]],
-  ['size_5ft_3',['size_t',['../alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984',1,'size_t:&#160;alltypes.h'],['../stddef_8h.html#acf18a0d6c4b39d531e021702e9a77984',1,'size_t:&#160;stddef.h']]],
+  ['size_5ft_3',['size_t',['../alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984',1,'size_t:&#160;alltypes.h'],['../stddef_8h.html#aa9d55e2f20e580b7445617d0d12fff6e',1,'size_t:&#160;stddef.h']]],
   ['smart_5fata_5ft_4',['smart_ata_t',['../ioctl__smart_8h.html#aeccb85e30c85aa4c214d3d1cb37d1026',1,'ioctl_smart.h']]],
   ['smart_5fcommon_5ft_5',['smart_common_t',['../ioctl__smart_8h.html#a2bc4a17cf8e090254429218d1ec54aec',1,'ioctl_smart.h']]],
   ['smart_5fnvme_5ft_6',['smart_nvme_t',['../ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0',1,'ioctl_smart.h']]],

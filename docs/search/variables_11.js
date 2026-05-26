@@ -11,12 +11,13 @@ var searchData=
   ['reallocated_5fsectors_8',['reallocated_sectors',['../structsmart__ata.html#acc8335c77914733963822848d9278ad2',1,'smart_ata']]],
   ['realm_5fid_9',['realm_id',['../structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3',1,'unit_info']]],
   ['realm_5fname_10',['realm_name',['../structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253',1,'spawn_config']]],
-  ['remaining_5fcapacity_11',['remaining_capacity',['../structbattery__status.html#aefb66d8b7949d0a1610c84f37ff2c3c1',1,'battery_status']]],
-  ['remaining_5fmwh_12',['remaining_mwh',['../structvbus__battery.html#a1908bc97d00a056dca3290a96ffc0aa8',1,'vbus_battery']]],
-  ['reply_5fserial_13',['reply_serial',['../structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54',1,'vbus_header']]],
-  ['reserved_5fram_14',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
-  ['revents_15',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
-  ['rip_16',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
-  ['rows_17',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
-  ['rsp_18',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
+  ['rem_11',['rem',['../structimaxdiv__t.html#a6c9701ad10bff81edae7ff679cae7850',1,'imaxdiv_t']]],
+  ['remaining_5fcapacity_12',['remaining_capacity',['../structbattery__status.html#aefb66d8b7949d0a1610c84f37ff2c3c1',1,'battery_status']]],
+  ['remaining_5fmwh_13',['remaining_mwh',['../structvbus__battery.html#a1908bc97d00a056dca3290a96ffc0aa8',1,'vbus_battery']]],
+  ['reply_5fserial_14',['reply_serial',['../structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54',1,'vbus_header']]],
+  ['reserved_5fram_15',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
+  ['revents_16',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
+  ['rip_17',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rows_18',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
+  ['rsp_19',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

@@ -15,6 +15,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "fflags.h", "userspace_2lib_2include_2fflags_8h.html", "userspace_2lib_2include_2fflags_8h" ],
     [ "file.h", "file_8h.html", "file_8h" ],
     [ "float.h", "float_8h.html", "float_8h" ],
+    [ "inttypes.h", "inttypes_8h.html", "inttypes_8h" ],
     [ "limits.h", "limits_8h.html", "limits_8h" ],
     [ "locale.h", "locale_8h.html", "locale_8h" ],
     [ "log_client.h", "log__client_8h.html", "log__client_8h" ],

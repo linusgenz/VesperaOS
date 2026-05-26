@@ -17,6 +17,7 @@ var annotated_dup =
     [ "FILE", "structFILE.html", "structFILE" ],
     [ "heap_seg", "structheap__seg.html", "structheap__seg" ],
     [ "image_t", "structimage__t.html", "structimage__t" ],
+    [ "imaxdiv_t", "structimaxdiv__t.html", "structimaxdiv__t" ],
     [ "iovec", "structiovec.html", "structiovec" ],
     [ "jmp_buf", "structjmp__buf.html", "structjmp__buf" ],
     [ "jpeg_load_options_t", "structjpeg__load__options__t.html", "structjpeg__load__options__t" ],

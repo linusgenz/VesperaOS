@@ -62,6 +62,7 @@ var stdio_8h =
     [ "unlink", "stdio_8h.html#a28af9471bbdf262321af663e02899a47", null ],
     [ "vfprintf", "stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56", null ],
     [ "vprintf", "stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7", null ],
+    [ "vsnprintf", "stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb", null ],
     [ "write", "stdio_8h.html#ac6f86db0433cd874276007d41ccaae37", null ],
     [ "stderr", "stdio_8h.html#ac9e47c346a25e2e7edd2c9b4ca5d0262", null ],
     [ "stdin", "stdio_8h.html#acab9c1fe2a80b10e01858bda28a04244", null ],

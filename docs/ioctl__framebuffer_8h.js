@@ -11,6 +11,8 @@ var ioctl__framebuffer_8h =
     [ "FB_IOCTL_FILL_RECT", "ioctl__framebuffer_8h.html#adbb883d05fb5ec89b95915f0b53f1827", null ],
     [ "FB_IOCTL_GET_BACKING_DEVID", "ioctl__framebuffer_8h.html#a313add0175936708a5bdbb65b32d44df", null ],
     [ "FB_IOCTL_GET_INFO", "ioctl__framebuffer_8h.html#a9be178b83e5dfe599c703c6a0b9f176e", null ],
+    [ "FB_IOCTL_PRESENT", "ioctl__framebuffer_8h.html#a9b580dcf4436742a9b2ea74088f563db", null ],
+    [ "fb_blit_t", "ioctl__framebuffer_8h.html#ab9143d60ca815a1a22420114f44f9e73", null ],
     [ "fb_clear_t", "ioctl__framebuffer_8h.html#acc934f8223d7254f710f446c2b4c7654", null ],
     [ "fb_info_t", "ioctl__framebuffer_8h.html#a69e8e2e2faa5877637d7a731db7d1269", null ],
     [ "fb_rect_outline_t", "ioctl__framebuffer_8h.html#a2a3236d323f8bdedf6d53513274310b7", null ],

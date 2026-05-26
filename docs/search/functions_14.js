@@ -6,5 +6,6 @@ var searchData=
   ['vbus_5fsubscribe_3',['vbus_subscribe',['../userspace_2lib_2include_2vbus_8h.html#afa22fa8e9f653512906cf8f6f99804c7',1,'vbus.h']]],
   ['vbus_5funsubscribe_4',['vbus_unsubscribe',['../userspace_2lib_2include_2vbus_8h.html#ade0f57a56ed976153562365456a01702',1,'vbus.h']]],
   ['vfprintf_5',['vfprintf',['../stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56',1,'stdio.h']]],
-  ['vprintf_6',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]]
+  ['vprintf_6',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
+  ['vsnprintf_7',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]]
 ];

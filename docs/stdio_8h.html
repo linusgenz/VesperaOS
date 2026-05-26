@@ -185,6 +185,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a304ea6ce0f310fd8ed15648139819680" id="r_a304ea6ce0f310fd8ed15648139819680"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a304ea6ce0f310fd8ed15648139819680">snprintf</a> (char *buffer, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, const char *format,...)</td></tr>
 <tr class="memdesc:a304ea6ce0f310fd8ed15648139819680"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to a buffer with size limit.  <br /></td></tr>
 <tr class="separator:a304ea6ce0f310fd8ed15648139819680"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65926e55e94f64697275e8a0bc3760bb" id="r_a65926e55e94f64697275e8a0bc3760bb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb">vsnprintf</a> (char *buffer, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, const char *fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
+<tr class="separator:a65926e55e94f64697275e8a0bc3760bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2537fcdb9f2f543f6167b296fcffb23f" id="r_a2537fcdb9f2f543f6167b296fcffb23f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen</a> (const char *path, const char *mode)</td></tr>
 <tr class="separator:a2537fcdb9f2f543f6167b296fcffb23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2283c07023f2890feb45d55531852d36" id="r_a2283c07023f2890feb45d55531852d36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2283c07023f2890feb45d55531852d36">freopen</a> (const char *path, const char *mode, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
@@ -1904,6 +1906,46 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">int vprintf </td>
           <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a>&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65926e55e94f64697275e8a0bc3760bb" name="a65926e55e94f64697275e8a0bc3760bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65926e55e94f64697275e8a0bc3760bb">&#9670;&#160;</a></span>vsnprintf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int vsnprintf </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>fmt</em>, </td>
         </tr>
