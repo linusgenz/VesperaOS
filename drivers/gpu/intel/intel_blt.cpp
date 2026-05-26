@@ -28,7 +28,6 @@
 #include <pci/pci.h>
 #include <pci/pci_device.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/graphics/colors.h>
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
@@ -39,6 +38,7 @@
 
 #include "bcs_regs.h"
 #include "blt_commands.h"
+#include "display_regs.h"
 #include "error_regs.h"
 #include "gt_interrupt_regs.h"
 #include "gt_reset_regs.h"
@@ -73,12 +73,14 @@ namespace blt {
 
         kernel::interrupts::allocate_vector(irq_vector_, reinterpret_cast<irq_handler_t>(bcs_irq_handler), this);
         if (!pci::try_enable_msi_or_msix(reinterpret_cast<volatile pci::PCI_HEADER0*>(igp_cfg_), irq_vector_, 1)) {
-            Log::log_dbc("BLT: MSI enable failed");
+            Log::log_dbc("intel-blt: MSI enable failed");
             return false;
         }
 
+        vblank_flag_.init();
         completion_flag_.init(false);
         bcs_interrupts_enable();
+        de_interrupts_enable();
         bcs_error_reporting_init();
 
         auto hwsp = ggtt_alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
@@ -133,8 +135,9 @@ namespace blt {
         return true;
     }
 
-    void IntelBlt::start_device(u32 screen_width, u32 screen_height) {
+    void IntelBlt::start_device(const u32 screen_width, const u32 screen_height) {
         fb_alloc(screen_width, screen_height, TileMode::Linear);
+        fb_alloc_back();
         scratch_init();
         worker_start(1);
         fb_set_display();
@@ -167,18 +170,21 @@ namespace blt {
 
             switch (req->op) {
                 case GpuBltOp::BlitRegion:
-                    req->result = blt->execute_blit_region(*req) ? 0 : -1;
+                    blt->execute_blit_region(req);
                     kernel::memory::free(req->owned_pixels);
                     req->owned_pixels = nullptr;
                     break;
                 case GpuBltOp::FillRect:
-                    req->result = blt->execute_fill_rect(*req) ? 0 : -1;
+                    blt->execute_fill_rect(req);
+                    break;
+                case GpuBltOp::Present:
+                    blt->execute_present();
                     break;
                 default:
                     break;
             }
 
-            if (req->done) req->done->set();
+            delete req;
         }
     }
 
@@ -314,8 +320,8 @@ namespace blt {
         cmd.dw3.x2 = x2;
         cmd.dw3.y2 = y2;
 
-        cmd.dest_addr_lo = static_cast<u32>(gfx_raw(dest) & 0xFFFFFFFF);
-        cmd.dest_addr_hi = static_cast<u32>(gfx_raw(dest) >> 32);
+        cmd.dest_addr_lo = lo32(gfx_raw(dest));
+        cmd.dest_addr_hi = hi32(gfx_raw(dest));
         cmd.solid_color = color;
 
         ring_write_cmd(cmd);
@@ -342,15 +348,15 @@ namespace blt {
         cmd.dw3.x2 = dest_x2;
         cmd.dw3.y2 = dest_y2;
 
-        cmd.dest_addr_lo = static_cast<u32>(gfx_raw(dest) & 0xFFFFFFFF);
-        cmd.dest_addr_hi = static_cast<u32>(gfx_raw(dest) >> 32);
+        cmd.dest_addr_lo = lo32(gfx_raw(dest));
+        cmd.dest_addr_hi = hi32(gfx_raw(dest));
 
         cmd.dw6.src_x1 = src_x1;
         cmd.dw6.src_y1 = src_y1;
         cmd.dw7.src_pitch = src_pitch & 0xFFFF;
 
-        cmd.src_addr_lo = static_cast<u32>(gfx_raw(src) & 0xFFFFFFFF);
-        cmd.src_addr_hi = static_cast<u32>(gfx_raw(src) >> 32);
+        cmd.src_addr_lo = lo32(gfx_raw(src));
+        cmd.src_addr_hi = hi32(gfx_raw(src));
 
         ring_write_cmd(cmd);
     }
@@ -375,15 +381,15 @@ namespace blt {
         cmd.dw3.x2 = dest_x2;
         cmd.dw3.y2 = dest_y2;
 
-        cmd.dest_addr_lo = static_cast<u32>(gfx_raw(dest) & 0xFFFFFFFF);
-        cmd.dest_addr_hi = static_cast<u32>(gfx_raw(dest) >> 32);
+        cmd.dest_addr_lo = lo32(gfx_raw(dest));
+        cmd.dest_addr_hi = hi32(gfx_raw(dest));
 
         cmd.dw6.src_x1 = src_x1;
         cmd.dw6.src_y1 = src_y1;
         cmd.dw7.src_pitch = src_pitch & 0x7FFF;
 
-        cmd.src_addr_lo = static_cast<u32>(gfx_raw(src) & 0xFFFFFFFF);
-        cmd.src_addr_hi = static_cast<u32>(gfx_raw(src) >> 32);
+        cmd.src_addr_lo = lo32(gfx_raw(src));
+        cmd.src_addr_hi = hi32(gfx_raw(src));
 
         ring_write_cmd(cmd);
     }
@@ -453,35 +459,61 @@ namespace blt {
     // =========================================================================
 
     Irqreturn IntelBlt::bcs_irq_handler(IntelBlt* self) {
-        auto* master = reinterpret_cast<volatile MASTER_INT_CTL*>(self->mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
-        auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->mmio_base_ + GEN8_GT0_INTR_BASE);
+        auto master = self->mmio_read<MASTER_INT_CTL>(GEN8_MASTER_INT_CTL_OFFSET);
+        bool handled = false;
 
-        GT0_IIR_REG pending{};
-        pending.raw = gt0->iir.raw;
+        // ---- GT0 / BCS path ----
+        if (master.blitter_pending) {
+            auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->mmio_base_ + GEN8_GT0_INTR_BASE);
 
-        if (!pending.bits.user_irq) {
-            MASTER_INT_CTL arm{};
-            arm.master_enable = 1;
-            master->raw = arm.raw;
-            MMIO_POST_WRITE_PTR(master);
-            return IRQ_NONE;
+            GT0_IIR_REG pending{};
+            pending.raw = gt0->iir.raw;
+
+            if (pending.bits.user_irq) {
+                GT0_IIR_REG clear{};
+                clear.bits.user_irq = 1;
+                gt0->iir.raw = clear.raw;
+                MMIO_POST_WRITE(gt0->iir);
+
+                self->completion_flag_.set();
+                handled = true;
+            }
         }
 
-        // Acknowledge (W1C)
-        GT0_IIR_REG clear{};
-        clear.bits.user_irq = 1;
-        gt0->iir.raw = clear.raw;
-        MMIO_POST_WRITE(gt0->iir);
+        // ---- DE Pipe A path ----
+        if (master.de_pipe_a_pending) {
+            auto iir = self->mmio_read<DE_PIPE_IIR>(DE_PIPE_A_IIR);
 
-        // Re-arm master interrupt delivery
-        MASTER_INT_CTL arm{};
-        arm.master_enable = 1;
-        master->raw = arm.raw;
-        MMIO_POST_WRITE_PTR(master);
+            if (iir.vblank || iir.plane1_flip_done) {
+                DE_PIPE_IIR clr{};
+                clr.vblank = iir.vblank;
+                clr.plane1_flip_done = iir.plane1_flip_done;
+                self->mmio_write(DE_PIPE_A_IIR, clr);
+                MMIO_POST_WRITE(clr);
 
-        self->completion_flag_.set();
+                if (self->flip_pending_) {
+                    self->flip_pending_ = false;
 
-        return IRQ_HANDLED;
+                    auto imr = self->mmio_read<DE_PIPE_IMR>(DE_PIPE_A_IMR);
+                    imr.vblank = 1;  // Mask (1 = OFF)
+                    self->mmio_write(DE_PIPE_A_IMR, imr);
+
+                    auto ier = self->mmio_read<DE_PIPE_IER>(DE_PIPE_A_IER);
+                    ier.vblank = 0;  // Disable (0 = OFF)
+                    self->mmio_write(DE_PIPE_A_IER, ier);
+                    MMIO_POST_WRITE(ier);
+
+                    self->vblank_flag_.set();
+                }
+                handled = true;
+            }
+        }
+
+        master.master_enable = 1;
+        self->mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
+        MMIO_POST_WRITE(master);
+
+        return handled ? IRQ_HANDLED : IRQ_NONE;
     }
 
     // =========================================================================
@@ -504,7 +536,7 @@ namespace blt {
             kernel::time::sleep_us(1);
         }
 
-        Log::log_dbc("BLT: ForceWake timeout");
+        Log::log_dbc("intel-blt: ForceWake timeout");
         return false;
     }
 
@@ -517,14 +549,14 @@ namespace blt {
     }
 
     bool IntelBlt::bcs_reset() const {
-        auto* reg = reinterpret_cast<volatile GDRST*>(mmio_base_ + GDRST_MMIO);
-
-        reg->blitter = 1;
+        auto gdrst = mmio_read<GDRST>(GDRST_MMIO);
+        gdrst.blitter = 1;
+        mmio_write(GDRST_MMIO, gdrst);
 
         u32 timeout = BCS_RESET_TIMEOUT;
 
         while (timeout--) {
-            if (!(reg->raw & RESET_BCS_BIT)) return true;
+            if (!mmio_read<GDRST>(GDRST_MMIO).blitter) return true;
 
             kernel::time::sleep_us(1);
         }
@@ -535,7 +567,6 @@ namespace blt {
 
     void IntelBlt::bcs_interrupts_enable() const {
         volatile BCS_IMR_REG& ring_imr = bcs_regs_->imr;
-        auto* master = reinterpret_cast<volatile MASTER_INT_CTL*>(mmio_base_ + GEN8_MASTER_INT_CTL_OFFSET);
         auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(mmio_base_ + GEN8_GT0_INTR_BASE);
 
         // BCS local IMR — allow only MI_USER_INTERRUPT
@@ -550,8 +581,10 @@ namespace blt {
         MMIO_POST_WRITE(ring_imr);
 
         // Disable master routing during setup
-        master->raw = 0;
-        MMIO_POST_WRITE_PTR(master);
+        MASTER_INT_CTL master{};
+        master.raw = 0;
+        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
+        MMIO_POST_WRITE(master);
 
         // GT0 IMR — allow only BCS MI_USER_INTERRUPT
         GT0_IMR_REG gt_imr{};
@@ -573,10 +606,38 @@ namespace blt {
         MMIO_POST_WRITE(gt0->ier);
 
         // Enable global GT routing
-        MASTER_INT_CTL arm{};
-        arm.master_enable = 1;
-        master->raw = arm.raw;
-        MMIO_POST_WRITE_PTR(master);
+        master.master_enable = 1;
+        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
+        MMIO_POST_WRITE(master);
+    }
+
+    void IntelBlt::de_interrupts_enable() const {
+        MASTER_INT_CTL master{};
+        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
+        MMIO_POST_WRITE(master);
+
+        DE_PIPE_IIR clr{};
+        clr.vblank = 1;
+        clr.plane1_flip_done = 1;
+        mmio_write(DE_PIPE_A_IIR, clr);
+        MMIO_POST_WRITE(clr);
+
+        DE_PIPE_IMR imr{};
+        imr.raw = 0xFFFF'FFFFu;
+        imr.vblank = 1;
+        imr.plane1_flip_done = 0;
+        mmio_write(DE_PIPE_A_IMR, imr);
+        MMIO_POST_WRITE(imr);
+
+        DE_PIPE_IER ier{};
+        ier.vblank = 0;
+        ier.plane1_flip_done = 1;
+        mmio_write(DE_PIPE_A_IER, ier);
+        MMIO_POST_WRITE(ier);
+
+        master.master_enable = 1;
+        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
+        MMIO_POST_WRITE(master);
     }
 
     void IntelBlt::bcs_error_reporting_init() const {
@@ -598,7 +659,8 @@ namespace blt {
 
     bool IntelBlt::bcs_emergency_reset() {
         // disable ring
-        volatile RING_BUFFER_CTL& ctl = bcs_regs_->ring_ctl;
+        RING_BUFFER_CTL ctl{};
+        ctl.raw = bcs_regs_->ring_ctl.raw;
         ctl.ring_enable = 0;
         bcs_regs_->ring_ctl.raw = ctl.raw;
 
@@ -692,6 +754,24 @@ namespace blt {
         memset(fb_.cpu_addr, 0, total_size);
     }
 
+    void IntelBlt::fb_alloc_back() {
+        const usize total_size = static_cast<usize>(fb_.pitch) * fb_.height;
+        const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+        auto alloc = ggtt_alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        fb_back_.width = fb_.width;
+        fb_back_.height = fb_.height;
+        fb_back_.bpp = fb_.bpp;
+        fb_back_.pitch = fb_.pitch;
+        fb_back_.tile_mode = fb_.tile_mode;
+        fb_back_.gfx_addr = alloc.gfx_addr;
+        fb_back_.cpu_addr = alloc.cpu_addr;
+
+        memset(fb_back_.cpu_addr, 0, total_size);
+
+        Log::info("intel-blt: back-buffer gfx=0x%llx (%zu pages)", gfx_raw(fb_back_.gfx_addr), num_pages);
+    }
+
     void IntelBlt::scratch_init() {
         const usize row_bytes = static_cast<usize>(fb_.width) * BYTES_PER_PIXEL;
         const usize pitch = ((row_bytes + 63) / 64) * 64;
@@ -704,7 +784,7 @@ namespace blt {
             return;
         }
 
-        memset(virt_ptr(alloc.cpu_addr), 0, num_pages * PAGE_SIZE);
+        memset(alloc.cpu_addr, 0, num_pages * PAGE_SIZE);
 
         scratch_.alloc = alloc;
         scratch_.num_pages = num_pages;
@@ -726,48 +806,69 @@ namespace blt {
     // https://kiwitree.net/~lina/intel-gfx-docs/prm/kbl/intel-gfx-prm-osrc-kbl-vol02c-commandreference-registers-part2_0.pdf
     // (p. 604)
     void IntelBlt::fb_set_display() const {
-        auto* plane = reinterpret_cast<volatile u32*>(mmio_base_);
-
         // Disable plane before reconfiguring
-        plane[PLANE_CTL_1_A / 4] &= ~PLANE_CTL_ENABLE;
+        auto ctl = mmio_read<PLANE_CTL>(PLANE_CTL_1_A);
+        ctl.plane_enable = 0;
+        mmio_write(PLANE_CTL_1_A, ctl);
         kernel::time::sleep_us(1);
 
-        u32 stride_value = 0;
-        u32 plane_ctl = 0;
+        ctl.raw = 0;
+        ctl.source_pixel_format = PLANE_CTL::FMT_RGB_8_8_8_8;
+        ctl.rgb_color_order = 0;  // BGRX
+
+        PLANE_STRIDE stride{};
 
         switch (fb_.tile_mode) {
             case TileMode::Linear:
-                stride_value = fb_.pitch / 64;
-                plane_ctl = PLANE_CTL_PIPE_A | PLANE_CTL_FORMAT_XRGB8888;
+                ctl.tiled_surface = PLANE_CTL::TILING_LINEAR;
                 break;
             case TileMode::X:
-                stride_value = fb_.pitch / 512;
-                plane_ctl = PLANE_CTL_PIPE_A | PLANE_CTL_FORMAT_XRGB8888 | PLANE_CTL_TILE_X;
+                ctl.tiled_surface = PLANE_CTL::TILING_X;
                 break;
             case TileMode::Y:
-                stride_value = fb_.pitch / 128;
-                plane_ctl = PLANE_CTL_PIPE_A | PLANE_CTL_FORMAT_XRGB8888 | PLANE_CTL_TILE_Y;
+                ctl.tiled_surface = PLANE_CTL::TILING_Y;
                 break;
             default:
                 return;
         }
 
-        plane[PLANE_STRIDE_1_A / 4] = stride_value & 0x3FF;
-        plane[PLANE_SIZE_1_A / 4] = ((fb_.height - 1) << 16) | (fb_.width - 1);
-        plane[PLANE_POS_1_A / 4] = 0;
-        plane[PLANE_OFFSET_1_A / 4] = 0;
-        plane[PLANE_CTL_1_A / 4] = plane_ctl;
-        plane[PLANE_SURF_1_A / 4] = static_cast<u32>(gfx_raw(fb_.gfx_addr));
-        plane[PLANE_CTL_1_A / 4] = plane_ctl | PLANE_CTL_ENABLE;
+        stride.set_stride_bytes(fb_.pitch, ctl.tiled_surface);
+
+        // Program plane registers (SURF must come last to arm the flip)
+        mmio_write(PLANE_STRIDE_1_A, stride);
+
+        PLANE_SIZE size{};
+        size.set(fb_.width, fb_.height);
+        mmio_write(PLANE_SIZE_1_A, size);
+
+        PLANE_POS pos{};
+        pos.set(0, 0);
+        mmio_write(PLANE_POS_1_A, pos);
+
+        PLANE_OFFSET offset{};
+        offset.set(0, 0);
+        mmio_write(PLANE_OFFSET_1_A, offset);
+
+        mmio_write(PLANE_CTL_1_A, ctl);
+
+        // Enable plane, takes effect at next VBlank
+        ctl.plane_enable = 1;
+        mmio_write(PLANE_CTL_1_A, ctl);
+
+        // Write PLANE_SURF last, arms the double-buffer flip
+        PLANE_SURF surf{};
+        surf.set_address(static_cast<u32>(gfx_raw(fb_.gfx_addr)));
+        mmio_write(PLANE_SURF_1_A, surf);
 
         asm volatile("mfence" ::: "memory");
 
         Log::log_dbc(
-            "intel-blt: display surface addr=0x%llx %dx%d pitch=%d",
+            "intel-blt: display surface addr=0x%llx %dx%d pitch=%d tiling=%d",
             gfx_raw(fb_.gfx_addr),
             fb_.width,
             fb_.height,
-            fb_.pitch
+            fb_.pitch,
+            ctl.tiled_surface
         );
     }
 
@@ -798,49 +899,8 @@ namespace blt {
         req->w = w;
         req->h = h;
         req->color = colour;
-        req->done = nullptr;
         blt_queue_.submit(req);
         return true;
-    }
-
-    bool IntelBlt::blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) {
-        if (!pixels) return false;
-        if (dst_x >= fb_.width || dst_y >= fb_.height) return false;
-
-        const u32 max_w = (dst_x + buffer_width > fb_.width) ? fb_.width - dst_x : buffer_width;
-        const u32 max_h = (dst_y + buffer_height > fb_.height) ? fb_.height - dst_y : buffer_height;
-
-        const usize width_bytes = static_cast<usize>(buffer_width) * BYTES_PER_PIXEL;
-        const usize src_pitch = ((width_bytes + 63) / 64) * 64;
-        const usize buffer_size = src_pitch * max_h;
-        const usize num_pages = (buffer_size + PAGE_SIZE - 1) / PAGE_SIZE;
-
-        const auto temp = ggtt_alloc_transient(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
-        if (virt_null(temp.cpu_addr)) return false;
-
-        const auto* src = static_cast<const u8*>(pixels);
-        u8* dst = virt_as<u8>(temp.cpu_addr);
-        for (u32 y = 0; y < max_h; y++) {
-            memcpy(dst + y * src_pitch, src + y * width_bytes, width_bytes);
-        }
-
-        gpu_health_check();
-        if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) {
-            ggtt_free_transient(temp, num_pages);
-            return false;
-        }
-
-        emit_xy_src_copy_blt(
-            fb_.gfx_addr, fb_.pitch, dst_x, dst_y, dst_x + max_w, dst_y + max_h, temp.gfx_addr, src_pitch, 0, 0
-        );
-
-        const u32 target_seqno = seqno_next();
-        emit_mi_flush(target_seqno);
-        ring_flush();
-
-        const bool success = seqno_wait(target_seqno, 500'000);
-        ggtt_free_transient(temp, num_pages);
-        return success;
     }
 
     bool IntelBlt::blit_region(
@@ -876,29 +936,34 @@ namespace blt {
         req->dst_y = dst_y;
         req->w = max_w;
         req->h = max_h;
-        req->done = nullptr;
 
         blt_queue_.submit(req);
         return true;
+    }
+
+    void IntelBlt::present() {
+        auto* req = new GpuBltRequest();
+        req->op = GpuBltOp::Present;
+        blt_queue_.submit(req);
     }
 
     // =========================================================================
     // Worker Execute Paths
     // =========================================================================
 
-    bool IntelBlt::execute_blit_region(const GpuBltRequest& req) {
-        if (req.w == 0 || req.h == 0) return true;
+    bool IntelBlt::execute_blit_region(const GpuBltRequest* req) {
+        if (req->w == 0 || req->h == 0) return true;
 
         if (!scratch_.valid) {
             Log::error("intel-blt: scratch buffer not initialized");
             return false;
         }
 
-        const usize row_bytes = static_cast<usize>(req.w) * BYTES_PER_PIXEL;
-        const u8* src = reinterpret_cast<const u8*>(req.owned_pixels);
+        const usize row_bytes = static_cast<usize>(req->w) * BYTES_PER_PIXEL;
+        auto src = reinterpret_cast<const u8*>(req->owned_pixels);
         u8* dst = virt_as<u8>(scratch_.alloc.cpu_addr);
 
-        for (u32 y = 0; y < req.h; y++) {
+        for (u32 y = 0; y < req->h; y++) {
             memcpy(dst + static_cast<usize>(y) * scratch_.pitch, src + static_cast<usize>(y) * row_bytes, row_bytes);
         }
         asm volatile("mfence" ::: "memory");
@@ -907,12 +972,12 @@ namespace blt {
         if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
 
         emit_xy_src_copy_blt(
-            fb_.gfx_addr,
-            fb_.pitch,
-            req.dst_x,
-            req.dst_y,
-            req.dst_x + req.w,
-            req.dst_y + req.h,
+            fb_back_.gfx_addr,
+            fb_back_.pitch,
+            req->dst_x,
+            req->dst_y,
+            req->dst_x + req->w,
+            req->dst_y + req->h,
             scratch_.alloc.gfx_addr,
             scratch_.pitch,
             0,
@@ -926,15 +991,15 @@ namespace blt {
         return seqno_wait(target_seqno, 500'000);
     }
 
-    bool IntelBlt::execute_fill_rect(const GpuBltRequest& req) {
-        const BltRect rect{.x = req.dst_x, .y = req.dst_y, .width = req.w, .height = req.h};
+    bool IntelBlt::execute_fill_rect(const GpuBltRequest* req) {
+        const BltRect rect{.x = req->dst_x, .y = req->dst_y, .width = req->w, .height = req->h};
         if (!validate_rect(rect)) return false;
 
         gpu_health_check();
         if (!ring_wait_space(RING_SPACE_FOR_FILL, 1'000'000)) return false;
 
         emit_xy_color_blt(
-            fb_.gfx_addr, fb_.pitch, rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, req.color
+            fb_back_.gfx_addr, fb_back_.pitch, rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, req->color
         );
 
         const u32 target_seqno = seqno_next();
@@ -942,6 +1007,50 @@ namespace blt {
         ring_flush();
 
         return seqno_wait(target_seqno, 5'000'000);
+    }
+
+    void IntelBlt::execute_present() {
+        PLANE_SURF surf{};
+        surf.set_address(static_cast<u32>(gfx_raw(fb_back_.gfx_addr)));
+
+        auto imr = mmio_read<DE_PIPE_IMR>(DE_PIPE_A_IMR);
+        imr.vblank = 0;  // Unmask (0 = ON)
+        mmio_write(DE_PIPE_A_IMR, imr);
+
+        auto ier = mmio_read<DE_PIPE_IER>(DE_PIPE_A_IER);
+        ier.vblank = 1;  // Enable (1 = ON)
+        mmio_write(DE_PIPE_A_IER, ier);
+        MMIO_POST_WRITE(ier);
+
+        flip_pending_ = true;
+        asm volatile("mfence" ::: "memory");
+        mmio_write(PLANE_SURF_1_A, surf);
+        asm volatile("mfence" ::: "memory");
+
+        constexpr u32 total_required_bytes = RING_SPACE_FOR_BLIT + sizeof(MI_WAIT_FOR_EVENT_CMD);
+
+        if (!ring_wait_space(total_required_bytes, 1'000'000)) {
+            Log::log_dbc("intel-blt: Timeout waiting for ring space in execute_present");
+            return;
+        }
+
+        MI_WAIT_FOR_EVENT_CMD wait_cmd{};
+        wait_cmd.client = CLIENT_MI;
+        wait_cmd.opcode = OPCODE_MI_WAIT_FOR_EVENT;
+        wait_cmd.display_plane_1_a_flip_pending_wait = 1;
+
+        ring_write(wait_cmd.raw);
+
+        klib::swap(fb_, fb_back_);
+
+        emit_xy_src_copy_blt(
+            fb_back_.gfx_addr, fb_back_.pitch, 0, 0, fb_back_.width, fb_back_.height, fb_.gfx_addr, fb_.pitch, 0, 0
+        );
+
+        const u32 seqno = seqno_next();
+        emit_mi_flush(seqno);
+        ring_flush();
+        seqno_wait(seqno, 500'000);
     }
 
     // =========================================================================
@@ -985,4 +1094,15 @@ namespace blt {
         }
     }
 
+    template <typename T>
+    [[nodiscard]] T IntelBlt::mmio_read(u32 reg) const {
+        T val;
+        val.raw = *reinterpret_cast<volatile u32*>(mmio_base_ + reg);
+        return val;
+    }
+
+    template <typename T>
+    void IntelBlt::mmio_write(u32 reg, T val) const {
+        *reinterpret_cast<volatile u32*>(mmio_base_ + reg) = val.raw;
+    }
 }  // namespace blt

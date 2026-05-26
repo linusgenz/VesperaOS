@@ -24,7 +24,7 @@
 #include <vespera/types.h>
 
 #define PRIORITY_NONE 0
-constexpr size_t DEFAULT_UNIT_STACK_SIZE = 8 * 1024 * 1024; // 8MB
+constexpr size_t DEFAULT_UNIT_STACK_SIZE = 8 * 1024 * 1024;  // 8MB
 
 struct UnitConfig {
     const char *name = "unnamed_unit";
@@ -38,8 +38,8 @@ struct UnitConfig {
     bool is_main_unit = false;
     u64 user_stack_size = 0;
     bool auto_schedule = true;
-    const char **argv;
-    const char **envp;
+    const char **argv = nullptr;
+    const char **envp = nullptr;
 };
 
 #endif  // VESPERAOS_UNIT_CONFIG_H

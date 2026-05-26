@@ -92,24 +92,6 @@ void FramebufferDriver::clear() {
     fill_rect(0, 0, fb_->width, fb_->height, 0x00000000);
 }
 
-bool FramebufferDriver::blit_buffer(
-    const void* pixels, const u32 buffer_width, const u32 buffer_height, const u32 dst_x, const u32 dst_y
-) {
-    if (!pixels) return false;
-    if (dst_x >= fb_->width || dst_y >= fb_->height) return false;
-
-    const u32 max_w = (dst_x + buffer_width > fb_->width) ? fb_->width - dst_x : buffer_width;
-    const u32 max_h = (dst_y + buffer_height > fb_->height) ? fb_->height - dst_y : buffer_height;
-
-    const auto* src = static_cast<const u32*>(pixels);
-    auto* dst = static_cast<u32*>(fb_->base_address);
-
-    for (u32 y = 0; y < max_h; y++) {
-        fn_memcpy_(dst + (dst_y + y) * fb_->pixels_per_scanline + dst_x, src + y * buffer_width, max_w * sizeof(u32));
-    }
-    return true;
-}
-
 bool FramebufferDriver::blit_region(
     const u32* pixels,
     const u32  src_stride,

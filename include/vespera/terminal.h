@@ -70,7 +70,7 @@ class Terminal {
     void fill_buf_rect(u32 x, u32 y, u32 w, u32 h, u32 color);
     void mark_dirty_px(u32 x, u32 y, u32 w, u32 h);
     void commit_dirty();
-    void draw_cell(u32 cx, u32 cy);  // war: draw_cell(u32, u32) const
+    void draw_cell(u32 cx, u32 cy);
 
     void draw_cursor() const;
     void erase_cursor_under() const;

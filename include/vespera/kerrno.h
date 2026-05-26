@@ -67,4 +67,6 @@
 #define KEINVAL         26
 #define KENODEV         27
 
+#define DRVERR          28 // Fatal driver error
+
 #endif //VESPERAOS_KERRNO_H

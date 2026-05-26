@@ -12,6 +12,7 @@ namespace kernel::acpi {
 }  // namespace kernel::acpi
 
 namespace pci {
+    struct INTEL_HB_PCI_CONFIG;
 
     /**
      * @brief Common PCI device/function header (first 16 bytes of config space).
@@ -124,7 +125,7 @@ namespace pci {
      * @brief Returns the mapped config space header of the Host Bridge (0:0:0)
      *        for the given PCI domain, or nullptr if not yet enumerated.
      */
-    volatile PCI_DEVICE_HEADER* get_host_bridge(u16 domain = 0);
+    const volatile INTEL_HB_PCI_CONFIG* get_host_bridge(u16 domain = 0);
 
     /**
      * @brief Enumerates all PCI devices described by the ACPI MCFG table.

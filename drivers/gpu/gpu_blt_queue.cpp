@@ -53,7 +53,7 @@ GpuBltRequest* GpuBltQueue::dequeue_blocking() {
         SpinlockGuard g(lock_);
         GpuBltRequest* req = queue_.pop();
         if (req) {
-            Log::log_dbc("[blt_queue] dequeue: got req=%p", req);
+            Log::log_dbc("[blt_queue] dequeue: got req=%p op=%u", req, req->op);
             return req;
         }
         Log::log_dbc("[blt_queue] dequeue: WARN spurious wakeup, queue empty");

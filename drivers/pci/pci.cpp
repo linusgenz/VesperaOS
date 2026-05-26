@@ -31,12 +31,13 @@ namespace pci {
     };
 
     static constexpr usize MAX_DOMAINS = 4;
-    static volatile PCI_DEVICE_HEADER* s_host_bridges[MAX_DOMAINS] = {};
+    static const volatile INTEL_HB_PCI_CONFIG* s_host_bridges[MAX_DOMAINS] = {};
 
-    volatile PCI_DEVICE_HEADER* get_host_bridge(const u16 domain) {
+    const volatile INTEL_HB_PCI_CONFIG* get_host_bridge(const u16 domain) {
         if (domain >= MAX_DOMAINS) return nullptr;
         return s_host_bridges[domain];
     }
+
 
     static void enumerate_function(const u64 device_address, const pci_id& id, const BindFilter filter) {
         const phys_addr_t func_phys = make_phys(device_address + (static_cast<u64>(id.function) << 12));
@@ -58,7 +59,7 @@ namespace pci {
 
         if (id.bus == 0 && id.device == 0 && id.function == 0) {
             if (id.domain < MAX_DOMAINS) {
-                s_host_bridges[id.domain] = &dev.header->header;
+                s_host_bridges[id.domain] = reinterpret_cast<const volatile INTEL_HB_PCI_CONFIG*>(header);
                 Log::debug("pci: cached host bridge for domain %u", id.domain);
             }
         }

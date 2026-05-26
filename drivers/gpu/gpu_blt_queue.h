@@ -32,6 +32,7 @@
 enum class GpuBltOp : u8 {
     BlitRegion,
     FillRect,
+    Present
 };
 
 struct GpuBltRequest {
@@ -48,9 +49,6 @@ struct GpuBltRequest {
 
     // FillRect
     u32 color = 0;
-
-    isize result = 0;
-    AtomicFlag* done = nullptr;
 };
 
 class GpuBltQueue {

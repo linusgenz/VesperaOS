@@ -49,12 +49,6 @@ struct KernelDevice;
         (void)__tmp;                    \
     } while (0)
 
-#define MMIO_POST_WRITE_PTR(reg)         \
-    do {                                 \
-        volatile u32 __tmp = (reg)->raw; \
-        (void)__tmp;                     \
-    } while (0)
-
 namespace blt {
 
     // =========================================================================
@@ -63,11 +57,6 @@ namespace blt {
     constexpr u32 FORCEWAKE_MT = 0xA188;
     constexpr u32 FORCEWAKE_ACK = 0x130044;
     constexpr u32 FORCEWAKE_ENABLE = 0x00010001;
-
-    // =========================================================================
-    // Reset / Power
-    // =========================================================================
-    constexpr u32 RESET_BCS_BIT = (1u << 3);
 
     // =========================================================================
     // GTT / GGTT
@@ -134,21 +123,6 @@ namespace blt {
     constexpr u32 BCS_RESET_TIMEOUT = 1000;
 
     // =========================================================================
-    // Display Plane A Registers
-    // =========================================================================
-    constexpr u32 PLANE_CTL_1_A = 0x70180;
-    constexpr u32 PLANE_STRIDE_1_A = 0x70188;
-    constexpr u32 PLANE_SIZE_1_A = 0x70190;
-    constexpr u32 PLANE_POS_1_A = 0x7018C;
-    constexpr u32 PLANE_OFFSET_1_A = 0x701A4;
-    constexpr u32 PLANE_SURF_1_A = 0x7019C;
-
-    constexpr u32 PLANE_CTL_ENABLE = 1u << 31;
-    constexpr u32 PLANE_CTL_PIPE_A = 0u << 8;
-    constexpr u32 PLANE_CTL_FORMAT_XRGB8888 = 0b0100u << 24;
-    constexpr u32 PLANE_CTL_TILE_Y = 0b100u << 10;
-    constexpr u32 PLANE_CTL_TILE_X = (0b001u << 10);
-    // =========================================================================
     // Data Types
     // =========================================================================
     constexpr usize BYTES_PER_PIXEL = 4;
@@ -207,9 +181,10 @@ namespace blt {
 
         // IRenderDriver
         bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
-        bool blit_buffer(const void* pixels, u32 buffer_width, u32 buffer_height, u32 dst_x, u32 dst_y) override;
-        bool blit_region(const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y)
-            override;
+        bool blit_region(
+            const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
+        ) override;
+        void present() override;
 
         [[nodiscard]] u32 screen_width_px() const override;
         [[nodiscard]] u32 screen_height_px() const override;
@@ -227,6 +202,13 @@ namespace blt {
         static constexpr u32 SEQNO_BIT5_MASK = 1u << 5;
         static constexpr u32 RING_SPACE_FOR_FILL = 12 * 4 + 64;
         static constexpr u32 RING_SPACE_FOR_BLIT = 30 * 4 + 64;
+
+        static constexpr u32 lo32(u64 v) {
+            return static_cast<u32>(v);
+        }
+        static constexpr u32 hi32(u64 v) {
+            return static_cast<u32>(v >> 32);
+        }
 
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
 
@@ -256,7 +238,11 @@ namespace blt {
         u32 sequence_number_ = 0;
 
         GpuFramebuffer fb_{};
+        GpuFramebuffer fb_back_{};
         ScratchBuffer scratch_{};
+
+        AtomicFlag vblank_flag_;
+        bool flip_pending_ = false;
 
         AtomicFlag completion_flag_;
         GpuBltQueue blt_queue_;
@@ -264,8 +250,9 @@ namespace blt {
         // Worker
         void worker_start(u8 cpu_id);
         static void worker_entry(void* arg);
-        bool execute_blit_region(const GpuBltRequest& req);
-        bool execute_fill_rect(const GpuBltRequest& req);
+        bool execute_blit_region(const GpuBltRequest* req);
+        bool execute_fill_rect(const GpuBltRequest* req);
+        void execute_present();
 
         // Sequence numbers
         u32 seqno_next();
@@ -282,41 +269,16 @@ namespace blt {
         // BCS command emission
         void emit_xy_color_blt(gfx_addr_t dest, u32 pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color);
         void emit_xy_src_copy_blt(
-            gfx_addr_t dest,
-            u32 dest_pitch,
-            u32 dest_x1,
-            u32 dest_y1,
-            u32 dest_x2,
-            u32 dest_y2,
-            gfx_addr_t src,
-            u32 src_pitch,
-            u32 src_x1,
-            u32 src_y1
+            gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t src,
+            u32 src_pitch, u32 src_x1, u32 src_y1
         );
         void emit_xy_fast_copy_blt(
-            gfx_addr_t dest,
-            u32 dest_pitch,
-            u32 dest_x1,
-            u32 dest_y1,
-            u32 dest_x2,
-            u32 dest_y2,
-            gfx_addr_t src,
-            u32 src_pitch,
-            u32 src_x1,
-            u32 src_y1
+            gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t src,
+            u32 src_pitch, u32 src_x1, u32 src_y1
         );
         void emit_xy_mono_src_copy_blt(
-            gfx_addr_t dest,
-            u32 dest_pitch,
-            u32 dest_x1,
-            u32 dest_y1,
-            u32 dest_x2,
-            u32 dest_y2,
-            gfx_addr_t mono_src,
-            u32 src_bit_pos,
-            bool transparency,
-            u32 bg_color,
-            u32 fg_color
+            gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t mono_src,
+            u32 src_bit_pos, bool transparency, u32 bg_color, u32 fg_color
         );
         void emit_mi_flush(u32 seqno);
 
@@ -325,19 +287,25 @@ namespace blt {
         void bcs_power_enable() const;
         bool bcs_reset() const;
         void bcs_interrupts_enable() const;
+        void de_interrupts_enable() const;
         void bcs_error_reporting_init() const;
         bool bcs_emergency_reset();
         void gpu_health_check();
 
         // Framebuffer / scratch
         void fb_alloc(u32 width, u32 height, TileMode tile_mode);
+        void fb_alloc_back();
         void fb_set_display() const;
         void scratch_init();
 
         [[nodiscard]] bool validate_rect(const BltRect& rect) const;
 
-        static Irqreturn bcs_irq_handler(IntelBlt * self);
+        static Irqreturn bcs_irq_handler(IntelBlt* self);
         static u32 tile_mode_to_tiling(TileMode mode);
+        template <class T>
+        T mmio_read(u32 reg) const;
+        template <class T>
+        void mmio_write(u32 reg, T val) const;
 
         // GGTT management, implemented in intel_blt_ggtt.cpp
         void ggtt_init();

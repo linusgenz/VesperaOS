@@ -78,18 +78,62 @@ typedef struct fb_clear
 } fb_clear_t;
 
 /**
- * @brief Describes a pixel buffer transfer (blit) operation.
+ * @brief Describes a rectangular pixel buffer transfer (blit) operation.
  *
- * Copies a rectangular buffer of pixels from userspace to the framebuffer.
- * The entire buffer is rendered at the specified screen position.
+ * Copies a rectangular region from a source pixel buffer in userspace
+ * to the framebuffer.
+ *
+ * All pixels are expected to use ARGB format (0xAARRGGBB).
  */
-typedef struct {
-    const void* pixels;    ///< Pointer to pixel data in ARGB format (0xAARRGGBB)
-    u32 buffer_width;  ///< Width of the pixel buffer
-    u32 buffer_height; ///< Height of the pixel buffer
-    u32 dst_x;        ///< X coordinate on screen to render the buffer
-    u32 dst_y;        ///< Y coordinate on screen to render the buffer
-} fb_blit;
+typedef struct fb_blit {
+    /**
+     * @brief Pointer to the top-left pixel of the full source buffer.
+     */
+    const void* pixels;
+
+    /**
+     * @brief Width of the full source buffer in pixels.
+     *
+     * Also acts as the source stride.
+     */
+    u32 src_stride;
+
+    /**
+     * @brief Height of the full source buffer in pixels.
+     */
+    u32 src_height;
+
+    /**
+     * @brief X coordinate of the source rectangle inside the source buffer.
+     */
+    u32 src_x;
+
+    /**
+     * @brief Y coordinate of the source rectangle inside the source buffer.
+     */
+    u32 src_y;
+
+    /**
+     * @brief Width of the region to copy in pixels.
+     */
+    u32 width;
+
+    /**
+     * @brief Height of the region to copy in pixels.
+     */
+    u32 height;
+
+    /**
+     * @brief X coordinate on the framebuffer where the region is rendered.
+     */
+    u32 dst_x;
+
+    /**
+     * @brief Y coordinate on the framebuffer where the region is rendered.
+     */
+    u32 dst_y;
+
+} fb_blit_t;
 
 /**
  * @brief IOCTL code to retrieve framebuffer information.
@@ -133,4 +177,7 @@ typedef struct {
  * The buffer must contain ARGB pixels (0xAARRGGBB format).
  */
 #define FB_IOCTL_BLIT               IOW('F', 0x05, fb_blit_t)
+
+#define FB_IOCTL_PRESENT               IO('F', 0x06)
+
 #endif //VESPERAOS_IOCTL_FRAMEBUFFER_H
