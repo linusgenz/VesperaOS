@@ -130,6 +130,8 @@ var NAVTREEINDEX7 =
 "userspace_2lib_2include_2vbus_8h.html#ade0f57a56ed976153562365456a01702":[4,0,1,0,0,39,5],
 "userspace_2lib_2include_2vbus_8h.html#afa22fa8e9f653512906cf8f6f99804c7":[4,0,1,0,0,39,4],
 "userspace_2lib_2include_2vbus_8h_source.html":[4,0,1,0,0,39],
+"vgfx_8h.html":[4,0,1,0,0,40],
+"vgfx_8h_source.html":[4,0,1,0,0,40],
 "wait_8h.html":[4,0,1,0,0,2,2],
 "wait_8h.html#ac12790c67befecfcd8cc28bd53be2899":[4,0,1,0,0,2,2,0],
 "wait_8h.html#ae1ee738b884803f9df25133825025528":[4,0,1,0,0,2,2,3],
