@@ -2,10 +2,9 @@
 // Created by Linus on 12.07.25.
 //
 
-#include <vespera/time.h>
-
-#include <vespera/log.h>
 #include <klib/time.h>
+#include <vespera/log.h>
+#include <vespera/time.h>
 
 namespace kernel::time {
     u8 cmos_read(u8 reg) {
@@ -51,13 +50,22 @@ namespace kernel::time {
         u8 sec, min, hour, day, month, year;
         read_rtc(sec, min, hour, day, month, year);
 
-        const u64 unix_sec = klib::time::to_unix(sec, min, hour, day, month, year);
+        const u32 full_year = 2000u + year;
+        const u64 unix_sec = klib::time::to_unix(full_year, month, day, hour, min, sec);
         const u64 epoch_ns = unix_sec * 1'000'000'000ULL;
 
         init_wall_clock(epoch_ns);
 
-        Log::ok("[RTC ] Epoch set: %u-%02u-%02u %02u:%02u:%02u UTC  (%llu s)",
-                2000u + year, month, day, hour, min, sec, unix_sec);
+        Log::ok(
+            "[RTC ] Epoch set: %u-%02u-%02u %02u:%02u:%02u UTC  (%llu s)",
+            full_year,
+            month,
+            day,
+            hour,
+            min,
+            sec,
+            unix_sec
+        );
     }
 
     void print_current_time() {
