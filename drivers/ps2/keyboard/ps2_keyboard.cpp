@@ -96,10 +96,12 @@ namespace ps2::keyboard {
 
             const kernel::input::InputEvent ev{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = ps2_to_keycode(base_scancode, e0_was_set),
-                .modifiers = g_keyboard.modifiers,
-                .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
-                .ascii = 0
+                .key{
+                     .keycode = ps2_to_keycode(base_scancode, e0_was_set),
+                     .modifiers = g_keyboard.modifiers,
+                     .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
+                     .ascii = 0
+                }
             };
             kernel::input::InputManager::push_event(ev);
             return;
@@ -140,10 +142,12 @@ namespace ps2::keyboard {
         if (e0_was_set) {
             const kernel::input::InputEvent ev{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = ps2_to_keycode(base_scancode, true),
-                .modifiers = g_keyboard.modifiers,
-                .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
-                .ascii = 0
+                .key{
+                     .keycode = ps2_to_keycode(base_scancode, true),
+                     .modifiers = g_keyboard.modifiers,
+                     .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
+                     .ascii = 0
+                }
             };
             kernel::input::InputManager::push_event(ev);
             return;
@@ -152,10 +156,12 @@ namespace ps2::keyboard {
         if (ascii != 0) {
             const kernel::input::InputEvent ev{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = ps2_to_keycode(base_scancode, e0_was_set),
-                .modifiers = g_keyboard.modifiers,
-                .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
-                .ascii = ascii
+                .key = {
+                        .keycode = ps2_to_keycode(base_scancode, e0_was_set),
+                        .modifiers = g_keyboard.modifiers,
+                        .action = pressed ? kernel::input::KeyAction::PRESS : kernel::input::KeyAction::RELEASE,
+                        .ascii = ascii
+                }
             };
             kernel::input::InputManager::push_event(ev);
         }

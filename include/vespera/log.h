@@ -12,6 +12,8 @@ class IScreenRenderer;
 
 class Log {
    public:
+    Log() = delete;
+
     static auto set_terminal(Terminal* t) -> void;
 
     FORMAT_FN static void info(const char* fmt, ...);

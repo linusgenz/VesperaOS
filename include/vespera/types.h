@@ -101,4 +101,9 @@ typedef u64 RealmId;
 typedef u64 HandleId;
 typedef u64 UnitId;
 
+typedef struct {
+    u32 x;
+    u32 y;
+} point_t;
+
 #endif  // VESPERAOS_TYPES_H

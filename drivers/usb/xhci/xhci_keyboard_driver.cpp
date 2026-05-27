@@ -111,7 +111,6 @@ static void update_modifiers(const u8 modifier_byte) {
 }
 
 static char translate_hid_usage_to_ascii(const u8 usage_id, const bool shift) {
-
     for (const auto& entry : HID_KEYMAP) {
         if (entry.usage == usage_id) {
             return shift ? entry.shifted : entry.normal;
@@ -168,21 +167,27 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, const u8 m
 
         if (!was_previously_pressed) {
             char ascii = 0;
-            const bool ctrl  = (modifiers & kernel::input::MOD_CTRL)  != 0;
-            const bool alt   = (modifiers & kernel::input::MOD_ALT)   != 0;
+            const bool ctrl = (modifiers & kernel::input::MOD_CTRL) != 0;
+            const bool alt = (modifiers & kernel::input::MOD_ALT) != 0;
             const bool super = (modifiers & kernel::input::MOD_SUPER) != 0;
             const bool shift = (modifiers & kernel::input::MOD_SHIFT) != 0;
 
             if (!alt && !super) {
                 if (ctrl) {
                     char base = translate_hid_usage_to_ascii(key, shift);
-                    if (base >= 'a' && base <= 'z') ascii = base - 'a' + 1;
-                    else if (base >= 'A' && base <= 'Z') ascii = base - 'A' + 1;
+                    if (base >= 'a' && base <= 'z')
+                        ascii = base - 'a' + 1;
+                    else if (base >= 'A' && base <= 'Z')
+                        ascii = base - 'A' + 1;
                     // Ctrl+[ → ESC, Ctrl+\ → FS, Ctrl+] → GS, Ctrl+Space → NUL
-                    else if (base == '[')  ascii = 0x1B;
-                    else if (base == '\\') ascii = 0x1C;
-                    else if (base == ']')  ascii = 0x1D;
-                    else if (base == ' ')  ascii = 0x00;
+                    else if (base == '[')
+                        ascii = 0x1B;
+                    else if (base == '\\')
+                        ascii = 0x1C;
+                    else if (base == ']')
+                        ascii = 0x1D;
+                    else if (base == ' ')
+                        ascii = 0x00;
                 } else {
                     ascii = translate_hid_usage_to_ascii(key, shift);
                 }
@@ -193,10 +198,9 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, const u8 m
             alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
             const auto* ev = new (ev_buffer) kernel::input::InputEvent{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = kc,
-                .modifiers = modifiers,
-                .action = kernel::input::KeyAction::PRESS,
-                .ascii = ascii
+                .key = {
+                        .keycode = kc, .modifiers = modifiers, .action = kernel::input::KeyAction::PRESS, .ascii = ascii
+                }
             };
 
             kernel::input::InputManager::push_event(*ev);
@@ -217,20 +221,25 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, const u8 m
 
         if (!is_still_pressed) {
             char ascii = 0;
-            const bool ctrl  = (modifiers & kernel::input::MOD_CTRL)  != 0;
-            const bool alt   = (modifiers & kernel::input::MOD_ALT)   != 0;
+            const bool ctrl = (modifiers & kernel::input::MOD_CTRL) != 0;
+            const bool alt = (modifiers & kernel::input::MOD_ALT) != 0;
             const bool super = (modifiers & kernel::input::MOD_SUPER) != 0;
             const bool shift = (modifiers & kernel::input::MOD_SHIFT) != 0;
 
             if (!alt && !super) {
                 if (ctrl) {
-                    if (const char base = translate_hid_usage_to_ascii(key, shift);
-                        base >= 'a' && base <= 'z') ascii = base - 'a' + 1;
-                    else if (base >= 'A' && base <= 'Z') ascii = base - 'A' + 1;
-                    else if (base == '[')  ascii = 0x1B;
-                    else if (base == '\\') ascii = 0x1C;
-                    else if (base == ']')  ascii = 0x1D;
-                    else if (base == ' ')  ascii = 0x00;
+                    if (const char base = translate_hid_usage_to_ascii(key, shift); base >= 'a' && base <= 'z')
+                        ascii = base - 'a' + 1;
+                    else if (base >= 'A' && base <= 'Z')
+                        ascii = base - 'A' + 1;
+                    else if (base == '[')
+                        ascii = 0x1B;
+                    else if (base == '\\')
+                        ascii = 0x1C;
+                    else if (base == ']')
+                        ascii = 0x1D;
+                    else if (base == ' ')
+                        ascii = 0x00;
                 } else {
                     ascii = translate_hid_usage_to_ascii(key, shift);
                 }
@@ -240,10 +249,9 @@ void XhciKeyboardDriver::process_input_report(const u8* current_keys, const u8 m
             alignas(16) u8 ev_buffer[sizeof(kernel::input::InputEvent)];
             const auto* ev = new (ev_buffer) kernel::input::InputEvent{
                 .device = kernel::input::InputDeviceType::KEYBOARD,
-                .keycode = kc,
-                .modifiers = modifiers,
-                .action = kernel::input::KeyAction::RELEASE,
-                .ascii = ascii
+                .key = {
+                        .keycode = kc, .modifiers = modifiers, .action = kernel::input::KeyAction::RELEASE, .ascii = ascii
+                }
             };
 
             kernel::input::InputManager::push_event(*ev);

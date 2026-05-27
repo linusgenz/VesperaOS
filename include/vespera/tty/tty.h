@@ -80,7 +80,7 @@ namespace kernel::tty {
 
     void tty_init(TTY *tty, Terminal *term);
 
-    void tty_handle_input(const input::InputEvent &ev);
+    void tty_handle_input(const input::KeyboardEvent &ev);
 
     void tty_process_output(TTY *tty, char c);
 
