@@ -23,16 +23,21 @@
 
 #include <vespera/input/input_event.h>
 #include <vespera/input/input_manager.h>
+#include <vespera/input/mice_device.h>
 #include <vespera/log.h>
 #include <klib/string.h>
 
 namespace kernel::input {
+
+    static MiceDevice* global_mice_dev = nullptr;
 
     void InputManager::init() {
         s_lock_.init();
         s_head_ = 0;
         s_tail_ = 0;
         memset(s_buffer_, 0, sizeof(s_buffer_));
+
+        global_mice_dev = new MiceDevice();
     }
 
     void InputManager::push_event(const InputEvent& ev) {

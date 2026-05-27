@@ -21,19 +21,35 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <vespera/graphics/colors.h>
 #include <vespera/input/input_manager.h>
 #include <vespera/realm/realm_types.h>
 #include <vespera/scheduling.h>
+#include <vespera/system/system_manager.h>
 #include <vespera/tty/tty.h>
 #include <vespera/unit_config.h>
 
 #include "vespera/unit/unit_manager.h"
 
-[[noreturn]] void input_poll_thread(void *arg) {
+constexpr u8 CURSOR_BITMAP[] = {
+    0b10000000, 0b00000000, 0b11000000, 0b00000000, 0b11100000, 0b00000000, 0b11110000, 0b00000000,
+    0b11111000, 0b00000000, 0b11111100, 0b00000000, 0b11111110, 0b00000000, 0b11111111, 0b00000000,
+    0b11111111, 0b10000000, 0b11111111, 0b11000000, 0b11111111, 0b11100000, 0b11111111, 0b10000000,
+    0b11111111, 0b00000000, 0b11000111, 0b00000000, 0b00000011, 0b00000000, 0b00000001, 0b00000000,
+};
+
+[[noreturn]] void input_poll_thread(void* arg) {
     kernel::input::InputEvent ev{};
     while (true) {
         while (kernel::input::InputManager::pop_event(ev)) {
-            kernel::tty::tty_handle_input(ev);
+            switch (ev.device) {
+                case kernel::input::InputDeviceType::KEYBOARD: {
+                    kernel::tty::tty_handle_input(ev.key);
+                    break;
+                }
+                default:
+                    break;
+            }
         }
         kernel::scheduling::yield();
     }

@@ -85,15 +85,6 @@ namespace arch::x86_64::interrupts::apic {
         const u32 calibration = 0xFFFF'FFFFu - read(LAPIC_TCCR);
         g_apic_cal[cpu_id] = calibration;
 
-        Log::ok(
-            "[APIC] CPU %u calibrated: %u counts / %u µs  (~%llu MHz)",
-            cpu_id,
-            calibration,
-            APIC_CAL_WINDOW_US,
-            (static_cast<u64>(calibration) * 16ULL) /  // ×16 for divisor
-                (APIC_CAL_WINDOW_US)
-        );
-
         write(LAPIC_ICRLO, 0x0);  // zero this shit
         write(LAPIC_ICRHI, 0x0);
 

@@ -68,8 +68,8 @@ namespace kernel::tty {
         term->set_colour(tty->fg, tty->bg);
     }
 
-    void tty_handle_input(const input::InputEvent& ev) {
-        if (ev.device != input::InputDeviceType::KEYBOARD) return;
+    void tty_handle_input(const input::KeyboardEvent& ev) {
+
         if (ev.action != input::KeyAction::PRESS) return;
 
         if (ev.modifiers & input::MOD_SHIFT) {

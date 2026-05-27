@@ -55,7 +55,6 @@ int Ps2MouseDevice::release(CharFile*) { return 0; }
 
 isize Ps2MouseDevice::read(CharFile*, void* buf, usize count, usize)
 {
-   // return kernel::input::InputManager::read_mouse(buf, count);
    return 0;
 }
 

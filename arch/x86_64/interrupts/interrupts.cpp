@@ -1,3 +1,5 @@
+#include <drivers/ps2/keyboard.h>
+#include <drivers/ps2/mouse.h>
 #include <vespera/cpu/cpu_manager.h>
 #include <vespera/cpu/io.h>
 #include <vespera/debug/fault_logger.h>
@@ -10,7 +12,6 @@
 #include <vespera/system/system_manager.h>
 
 #include "apic.h"
-#include "drivers/ps2/keyboard.h"
 #include "idt.h"
 #include "interrupts_internal.h"
 #include "pic.h"
@@ -164,13 +165,15 @@ void unhandled_interrupt_handler(const TrapFrame* frame) {
 void keyboard_int_handler(TrapFrame*) {
     const u8 scancode = inb(0x60);
     ps2::keyboard::handle_scancode(scancode);
-    arch::x86_64::interrupts::pic::end_master();
+    // arch::x86_64::interrupts::pic::end_master();
+    arch::x86_64::interrupts::apic::send_eoi();
 }
 
 void mouse_int_handler(TrapFrame*) {
     const u8 data = inb(0x60);
-    //  input::mouse::handle_byte(data);
-    arch::x86_64::interrupts::pic::end_slave();
+    ps2::mouse::Ps2Mouse::handle_byte(data);
+    // arch::x86_64::interrupts::pic::end_slave();
+    arch::x86_64::interrupts::apic::send_eoi();
 }
 
 void apic_timer_int_handler(TrapFrame* frame) {

@@ -58,7 +58,6 @@ static void initialize_early_boot(const BootInfo* boot_info) {
 
     detect_qemu();
 
-    kernel::input::InputManager::init();
     Log::enable_debug();
     gdt_install();
 }
@@ -74,6 +73,7 @@ static void initialize_device_manager_and_vfs() {
     VFS::init();
     DevFs::init();
     RealmFs::init();
+    kernel::input::InputManager::init();
 }
 
 static void initialize_graphics_and_terminal(const BootInfo* boot_info) {

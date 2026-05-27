@@ -26,6 +26,7 @@
 #include <vespera/graphics/colors.h>
 #include <vespera/graphics/display_manager.h>
 #include <vespera/input/input_manager.h>
+#include <vespera/input/mice_device.h>
 #include <vespera/system/system_manager.h>
 
 #include "vespera/kernel_utils.h"
@@ -204,13 +205,7 @@ namespace ps2::mouse {
             }
         };
 
-        kernel::input::InputManager::push_event(ev);
-
-        auto* term = kernel::SystemManager::get_system_terminal();
-        if (term) {
-            term->clear_mouse_cursor(CURSOR_BITMAP, position_old_);
-            term->draw_overlay_mouse_cursor(CURSOR_BITMAP, position_, WHITE);
-        }
+        kernel::input::MiceDevice::share_mouse_event(ev);
 
         position_old_ = position_;
     }
