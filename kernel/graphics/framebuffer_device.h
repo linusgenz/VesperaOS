@@ -26,13 +26,6 @@
 
 #include <vespera/devices/char_device.h>
 
-#define FB_IOCTL_GET_INFO 0x4600
-#define FB_IOCTL_GET_BACKING_DEVID 0x4601
-#define FB_IOCTL_FILL_RECT 0x4602
-#define FB_IOCTL_DRAW_RECT 0x4603
-#define FB_IOCTL_CLEAR 0x4604
-#define FB_IOCTL_BLIT 0x4605
-
 struct FbInfo {
     u32 width;
     u32 height;
@@ -63,9 +56,18 @@ struct FbClear {
 };
 
 struct FbBlit {
-    const void *pixels;
-    u32 buffer_width;
-    u32 buffer_height;
+    const u32 *pixels;
+
+    u32 src_stride;
+    u32 src_height;
+
+    // Source rect
+    u32 src_x;
+    u32 src_y;
+    u32 w;
+    u32 h;
+
+    // Destination position
     u32 dst_x;
     u32 dst_y;
 };

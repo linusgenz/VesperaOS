@@ -23,6 +23,7 @@
  */
 
 #include <vespera/graphics/display_manager.h>
+#include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/terminal.h>
 
@@ -85,6 +86,7 @@ Terminal::~Terminal() {
 void Terminal::on_backend_changed(const DisplayBackend backend) {
     if (!backend.drv) return;
 
+    has_dirty_ = false;
     drv_ = backend.drv;
     screen_w_ = drv_->screen_width_px();
     screen_h_ = drv_->screen_height_px();
@@ -133,9 +135,13 @@ void Terminal::mark_dirty_px(const u32 x, const u32 y, const u32 w, const u32 h)
 void Terminal::commit_dirty() {
     if (!has_dirty_) return;
 
-    drv_->blit_region(
-        screen_buf_, screen_w_, dirty_x0_, dirty_y0_, dirty_x1_ - dirty_x0_, dirty_y1_ - dirty_y0_, dirty_x0_, dirty_y0_
-    );
+    const u32 w = dirty_x1_ - dirty_x0_;
+    const u32 h = dirty_y1_ - dirty_y0_;
+
+    Log::log_dbc("[terminal] commit_dirty: region=(%u,%u)+%ux%u pixels=%u", dirty_x0_, dirty_y0_, w, h, w * h);
+
+    drv_->blit_region(screen_buf_, screen_w_, dirty_x0_, dirty_y0_, w, h, dirty_x0_, dirty_y0_);
+    drv_->present();
 
     has_dirty_ = false;
 }
@@ -461,10 +467,8 @@ void Terminal::set_cursor_visible(const bool v) {
 }
 
 void Terminal::cursor_activity() {
-    /*
     blink_idle_ticks_ = 0;
-    cursor_blink_on_  = true;
-    */
+    cursor_blink_on_ = true;
 }
 
 void Terminal::scrollback_up(const usize lines) {

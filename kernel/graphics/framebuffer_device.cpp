@@ -24,6 +24,7 @@
 
 #include "framebuffer_device.h"
 
+#include <uapi/vespera/dev/ioctl_framebuffer.h>
 #include <vespera/graphics/display_manager.h>
 #include <vespera_errno.h>
 
@@ -44,10 +45,6 @@ isize FramebufferDevice::write(CharFile* /*cf*/, const void* /*buffer*/, usize /
 }
 
 int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
-    if (!arg && cmd != FB_IOCTL_GET_INFO && cmd != FB_IOCTL_GET_BACKING_DEVID) {
-        return -EINVAL;
-    }
-
     auto [drv, kd] = DisplayManager::primary();
     if (!drv) return -ENODEV;
 
@@ -70,16 +67,23 @@ int FramebufferDevice::ioctl(CharFile*, const u32 cmd, void* arg) {
         }
 
         case FB_IOCTL_FILL_RECT:
+            if (!arg) return -EINVAL;
             return fill_rect(static_cast<const FbRect*>(arg));
 
         case FB_IOCTL_DRAW_RECT:
+            if (!arg) return -EINVAL;
             return draw_rect_outline(static_cast<const FbRectOutline*>(arg));
 
         case FB_IOCTL_CLEAR:
+            if (!arg) return -EINVAL;
             return clear_screen(static_cast<const FbClear*>(arg));
 
         case FB_IOCTL_BLIT:
+            if (!arg) return -EINVAL;
             return blit_pixels(static_cast<const FbBlit*>(arg));
+        case FB_IOCTL_PRESENT:
+            drv->present();
+            return 0;
 
         default:
             return -ENOTTY;
@@ -102,10 +106,21 @@ bool FramebufferDevice::validate_rect(const u32 x, const u32 y, const u32 w, con
 }
 
 bool FramebufferDevice::validate_blit(const FbBlit* blit) {
+    if (!blit) return false;
     if (!blit->pixels) return false;
-    if (blit->buffer_width == 0 || blit->buffer_height == 0) return false;
 
-    return validate_rect(blit->dst_x, blit->dst_y, blit->buffer_width, blit->buffer_height);
+    if (blit->src_stride == 0) return false;
+    if (blit->src_height == 0) return false;
+
+    if (blit->w == 0 || blit->h == 0) return false;
+
+    if (blit->src_x >= blit->src_stride) return false;
+    if (blit->src_y >= blit->src_height) return false;
+
+    if (blit->src_x + blit->w > blit->src_stride) return false;
+    if (blit->src_y + blit->h > blit->src_height) return false;
+
+    return validate_rect(blit->dst_x, blit->dst_y, blit->w, blit->h);
 }
 
 int FramebufferDevice::fill_rect(const FbRect* rect) {
@@ -171,7 +186,9 @@ int FramebufferDevice::blit_pixels(const FbBlit* blit) {
 
     auto backend = DisplayManager::primary();
 
-    if (!backend.drv->blit_buffer(blit->pixels, blit->buffer_width, blit->buffer_height, blit->dst_x, blit->dst_y)) {
+    if (!backend.drv->blit_region(
+            blit->pixels, blit->src_stride, blit->src_x, blit->src_y, blit->w, blit->h, blit->dst_x, blit->dst_y
+        )) {
         return -EIO;
     }
 
