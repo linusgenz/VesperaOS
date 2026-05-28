@@ -79,9 +79,9 @@ namespace kernel::input {
             move_ev.type = MICE_EVENT_MOVE;
             move_ev.buttons = current_buttons;
             move_ev.dx = ev.mouse.delta_x;
-            move_ev.dy = ev.mouse.delta_y; // PS/2 Y-Achse wurde idealerweise schon im Treiber korrigiert (positive = down)
+            move_ev.dy = ev.mouse.delta_y;
             move_ev.scroll = 0;
-            move_ev.button_id = (mice_button)0;
+            move_ev.button_id = MICE_BUTTON_NONE;
 
             push_to_queue(s_instance_, move_ev);
         }
@@ -90,7 +90,7 @@ namespace kernel::input {
         if (current_buttons != last_buttons) {
             u32 changed = current_buttons ^ last_buttons;
 
-            // Wir prüfen, welche Bits sich geändert haben und schicken ein Event pro Button
+            // We check which bits have changed and send an event for each button.
             for (int i = 0; i < 5; i++) {
                 u32 mask = (1u << i);
                 if (changed & mask) {
@@ -100,7 +100,7 @@ namespace kernel::input {
                     btn_ev.dx = 0;
                     btn_ev.dy = 0;
                     btn_ev.scroll = 0;
-                    btn_ev.button_id = (mice_button)i; // MICE_BUTTON_LEFT = 0, MICE_BUTTON_RIGHT = 1, etc.
+                    btn_ev.button_id = static_cast<mice_button>(i); // MICE_BUTTON_LEFT = 0, MICE_BUTTON_RIGHT = 1, etc.
 
                     push_to_queue(s_instance_, btn_ev);
                 }
@@ -116,7 +116,7 @@ namespace kernel::input {
             scroll_ev.dx = 0;
             scroll_ev.dy = 0;
             scroll_ev.scroll = ev.mouse.wheel_delta;
-            scroll_ev.button_id = (mice_button)0;
+            scroll_ev.button_id = MICE_BUTTON_NONE;
 
             push_to_queue(s_instance_, scroll_ev);
         }
