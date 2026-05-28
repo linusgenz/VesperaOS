@@ -67,7 +67,7 @@ syscall_entry:
 
     ; arg5 auf Stack
     sub rsp, 8
-    push rax
+    push r11
 
     call syscall_handler
 
