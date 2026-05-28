@@ -1,5 +1,7 @@
 var NAVTREEINDEX2 =
 {
+"include_2uapi_2vespera_2poll_8h.html#a52ac479a805051f59643588b096024ff":[4,0,0,0,0,7,3],
+"include_2uapi_2vespera_2poll_8h.html#a91b3c67129ac7675062f316b840a0d58":[4,0,0,0,0,7,4],
 "include_2uapi_2vespera_2poll_8h.html#ab1c532446408c98559d4aaaeeeb99820":[4,0,0,0,0,7,1],
 "include_2uapi_2vespera_2poll_8h.html#ad608aef500ed73985294365ce94c24b4":[4,0,0,0,0,7,5],
 "include_2uapi_2vespera_2poll_8h_source.html":[4,0,0,0,0,7],
@@ -247,7 +249,5 @@ var NAVTREEINDEX2 =
 "ioctl__smart_8h.html#a5e86ab11dd74d6adb4e9d4b703fd0a1a":[4,0,0,0,0,0,4,13],
 "ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0":[4,0,0,0,0,0,4,11],
 "ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee":[4,0,0,0,0,0,4,17],
-"ioctl__smart_8h.html#aad208c2841c850a17d4907aecc675ebc":[4,0,0,0,0,0,4,16],
-"ioctl__smart_8h.html#ab009bdef85960862907a36fac8c897c5":[4,0,0,0,0,0,4,12],
-"ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44":[4,0,0,0,0,0,4,14]
+"ioctl__smart_8h.html#aad208c2841c850a17d4907aecc675ebc":[4,0,0,0,0,0,4,16]
 };

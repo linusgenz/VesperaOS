@@ -122,27 +122,31 @@ $(document).ready(function(){initNavTree('handles_8h_source.html',''); initResiz
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef VESPERAOS_HANDLES_H</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define VESPERAOS_HANDLES_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// Handle typs (upper 16 bits)</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="handles_8h.html#a5adb7fdca00e5c5f3f1808742a2b8f49">   26</a></span><span class="preprocessor">#define HANDLE_TYPE_MASK 0xFFFF000000000000ULL</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="handles_8h.html#a452c27ff81cc8d963a8b945d0202a9ce">   27</a></span><span class="preprocessor">#define HANDLE_ID_MASK 0x0000FFFFFFFFFFFFULL</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">/* Handle type definitions */</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">   30</a></span><span class="preprocessor">#define HANDLE_TYPE_TTY 0x1000000000000000ULL</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="handles_8h.html#aef864574e77d6a0d5653dfae187c57e4">   31</a></span><span class="preprocessor">#define HANDLE_TYPE_FILE 0x2000000000000000ULL</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="handles_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83">   32</a></span><span class="preprocessor">#define HANDLE_TYPE_DIRECTORY 0x3000000000000000ULL</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="handles_8h.html#a57fb96e74a11842469c4d71f9a38734a">   33</a></span><span class="preprocessor">#define HANDLE_TYPE_CHANNEL 0x4000000000000000ULL</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd">   34</a></span><span class="preprocessor">#define HANDLE_TYPE_UNIT 0x5000000000000000ULL</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="handles_8h.html#a99fc691f8add17b3b3a7834779d7e641">   35</a></span><span class="preprocessor">#define HANDLE_TYPE_REALM 0x6000000000000000ULL</span></div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">   36</a></span><span class="preprocessor">#define HANDLE_TYPE_DEVICE 0x7000000000000000ULL</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="handles_8h.html#a65919b76b3a0374e90b230646cd91c64">   37</a></span><span class="preprocessor">#define HANDLE_TYPE_PIPE 0x8000000000000000ULL</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment">/* Standard stream handles */</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="handles_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">   40</a></span><span class="preprocessor">#define HANDLE_STDIN   (HANDLE_TYPE_TTY | 0x0000000000000000ULL)</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="handles_8h.html#ab713aac387c884999067ab2eb12eb2a3">   41</a></span><span class="preprocessor">#define HANDLE_STDOUT  (HANDLE_TYPE_TTY | 0x0000000000000001ULL)</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">   42</a></span><span class="preprocessor">#define HANDLE_STDERR  (HANDLE_TYPE_TTY | 0x0000000000000002ULL)</span></div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605">   44</a></span><span class="preprocessor">#define HANDLE_VBUS    (HANDLE_TYPE_CHANNEL | 0x0000000000000003ULL)</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_HANDLES_H</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="handles_8h.html#a6bedb180bae32d77457eca11086b6142">   25</a></span><span class="preprocessor">#define INVALID_HANDLE ((HANDLE) - 1ULL)</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="comment">// Handle typs (upper 16 bits)</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="handles_8h.html#a5adb7fdca00e5c5f3f1808742a2b8f49">   28</a></span><span class="preprocessor">#define HANDLE_TYPE_MASK 0xFFFF000000000000ULL</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="handles_8h.html#a452c27ff81cc8d963a8b945d0202a9ce">   29</a></span><span class="preprocessor">#define HANDLE_ID_MASK 0x0000FFFFFFFFFFFFULL</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment">/* Handle type definitions */</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">   32</a></span><span class="preprocessor">#define HANDLE_TYPE_TTY 0x1000000000000000ULL</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="handles_8h.html#aef864574e77d6a0d5653dfae187c57e4">   33</a></span><span class="preprocessor">#define HANDLE_TYPE_FILE 0x2000000000000000ULL</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="handles_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83">   34</a></span><span class="preprocessor">#define HANDLE_TYPE_DIRECTORY 0x3000000000000000ULL</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="handles_8h.html#a57fb96e74a11842469c4d71f9a38734a">   35</a></span><span class="preprocessor">#define HANDLE_TYPE_CHANNEL 0x4000000000000000ULL</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd">   36</a></span><span class="preprocessor">#define HANDLE_TYPE_UNIT 0x5000000000000000ULL</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="handles_8h.html#a99fc691f8add17b3b3a7834779d7e641">   37</a></span><span class="preprocessor">#define HANDLE_TYPE_REALM 0x6000000000000000ULL</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">   38</a></span><span class="preprocessor">#define HANDLE_TYPE_DEVICE 0x7000000000000000ULL</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="handles_8h.html#a65919b76b3a0374e90b230646cd91c64">   39</a></span><span class="preprocessor">#define HANDLE_TYPE_PIPE 0x8000000000000000ULL</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="handles_8h.html#a12742041173a6f02365c3a459fb5bbf6">   40</a></span><span class="preprocessor">#define HANDLE_TYPE_SHM 0x9000000000000000ULL</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="comment">/* Standard stream handles */</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="handles_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">   44</a></span><span class="preprocessor">#define HANDLE_STDIN   (HANDLE_TYPE_TTY | 0x0000000000000000ULL)</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="handles_8h.html#ab713aac387c884999067ab2eb12eb2a3">   45</a></span><span class="preprocessor">#define HANDLE_STDOUT  (HANDLE_TYPE_TTY | 0x0000000000000001ULL)</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">   46</a></span><span class="preprocessor">#define HANDLE_STDERR  (HANDLE_TYPE_TTY | 0x0000000000000002ULL)</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605">   48</a></span><span class="preprocessor">#define HANDLE_VBUS    (HANDLE_TYPE_CHANNEL | 0x0000000000000003ULL)</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="preprocessor">#endif  </span><span class="comment">// VESPERAOS_HANDLES_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -10,6 +10,7 @@ var mice_8h =
     [ "mice_event", "mice_8h.html#a452c642ca78d0dc1b4c833ed7fdd0a21", null ],
     [ "mice_event_type", "mice_8h.html#a3b134cab090c1e1ce9265425707fccaa", null ],
     [ "mice_button", "mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630", [
+      [ "MICE_BUTTON_NONE", "mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a9fb8c6aa5675360f05acbe8102434eba", null ],
       [ "MICE_BUTTON_LEFT", "mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630aa9f06e7ec8c66e5676600afe0158695e", null ],
       [ "MICE_BUTTON_RIGHT", "mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630af78359182cf4ac61cfb9a2c523749d94", null ],
       [ "MICE_BUTTON_MIDDLE", "mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a7b3981c636635ed69d6360d36c1328e7", null ],
