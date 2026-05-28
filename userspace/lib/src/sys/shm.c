@@ -19,3 +19,55 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <sysstd.h>
+#include <vespera/handles.h>
+
+#define MAX_ERRNO 4095
+#define IS_ERR(value) ((uint64_t)(value) >= (uint64_t)-MAX_ERRNO)
+#define GET_ERR(value) ((int)(-(int64_t)(value)))
+
+HANDLE shm_open(const char* name, int oflag, uint32_t mode) {
+    if (name == NULL || name[0] != '/') {
+        errno = EINVAL;
+        return INVALID_HANDLE;
+    }
+
+    int64_t ret = sys_shm_open((uint64_t)name, (uint64_t)oflag, (uint64_t)mode, 0, 0, 0);
+
+    if (IS_ERR(ret)) {
+        errno = GET_ERR(ret);
+        return INVALID_HANDLE;
+    }
+
+    return (HANDLE)ret;
+}
+
+HANDLE shm_unlink(const char* name) {
+    if (name == NULL) {
+        errno = EINVAL;
+        return INVALID_HANDLE;
+    }
+
+    int64_t ret = sys_shm_unlink((uint64_t)name, 0, 0, 0, 0, 0);
+    if (IS_ERR(ret)) {
+        errno = GET_ERR(ret);
+        return INVALID_HANDLE;
+    }
+
+    return 0;
+}
+
+HANDLE ftruncate(HANDLE handle, size_t length) {
+    int64_t ret = sys_handle_truncate((uint64_t)handle, (uint64_t)length, 0, 0, 0, 0);
+    if (IS_ERR(ret)) {
+        errno = GET_ERR(ret);
+        return INVALID_HANDLE;
+    }
+
+    return 0;
+}
