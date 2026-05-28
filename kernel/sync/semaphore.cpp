@@ -20,11 +20,11 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <vespera/sync/semaphore.h>
-
+#include <vespera/log.h>
+#include <units/unit.h>
 #include <vespera/mm/memory.h>
 #include <vespera/scheduling.h>
-#include <units/unit.h>
+#include <vespera/sync/semaphore.h>
 #include <vespera/time.h>
 
 void Semaphore::push_waiter(Waiter* w) {
@@ -68,7 +68,7 @@ bool Semaphore::wait(u16 timeout_ms) {
             if (timeout_ms == 0) return false;
 
             if (timeout_ms != 0xFFFF) {
-                const u64 elapsed_ms = (kernel::time::get_uptime_ms() - start) * 10ULL;
+                const u64 elapsed_ms = (kernel::time::get_uptime_ms() - start);
                 if (elapsed_ms >= timeout_ms) return false;
             }
 
@@ -98,7 +98,7 @@ bool Semaphore::wait(u16 timeout_ms) {
 
         // Timeout already expired before we even try to block.
         if (timeout_ms != 0xFFFF) {
-            const u64 elapsed_ms = (kernel::time::get_uptime_ms() - start_tick) * 10ULL;
+            const u64 elapsed_ms = (kernel::time::get_uptime_ms() - start_tick);
             if (elapsed_ms >= timeout_ms) {
                 lock_.unlock();
                 return false;
