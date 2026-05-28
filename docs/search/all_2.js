@@ -33,5 +33,7 @@ var searchData=
   ['buffer_30',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
   ['bufsiz_31',['BUFSIZ',['../stdio_8h.html#a72a591cf0a96cf23c63df5c78712dabe',1,'stdio.h']]],
   ['bus_5fnumber_32',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]],
-  ['byte_5forder_33',['BYTE_ORDER',['../endian_8h.html#a1771b7fb65ee640524d0052f229768c3',1,'endian.h']]]
+  ['button_5fid_33',['button_id',['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event']]],
+  ['buttons_34',['buttons',['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event']]],
+  ['byte_5forder_35',['BYTE_ORDER',['../endian_8h.html#a1771b7fb65ee640524d0052f229768c3',1,'endian.h']]]
 ];

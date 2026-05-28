@@ -39,5 +39,7 @@ var searchData=
   ['dt_5ffile_36',['DT_FILE',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da2e66401e4f5d2c978ddb6021267c717e',1,'dirent.h']]],
   ['dt_5fsocket_37',['DT_SOCKET',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17dad7bea0362e9c429fabbd3a881f261ea3',1,'dirent.h']]],
   ['dt_5fsymlink_38',['DT_SYMLINK',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daf17ead8c24594dd530d8451c0edc6f16',1,'dirent.h']]],
-  ['dt_5funknown_39',['DT_UNKNOWN',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]]
+  ['dt_5funknown_39',['DT_UNKNOWN',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]],
+  ['dx_40',['dx',['../structmice__event.html#a58602f424806f09442b051eb7a0e7131',1,'mice_event']]],
+  ['dy_41',['dy',['../structmice__event.html#a83272512978fe6f1e8b924401de4eaf7',1,'mice_event']]]
 ];

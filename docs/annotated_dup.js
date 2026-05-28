@@ -27,6 +27,7 @@ var annotated_dup =
     [ "max_align_t", "structmax__align__t.html", "structmax__align__t" ],
     [ "mbstate_t", "structmbstate__t.html", "structmbstate__t" ],
     [ "meminfo", "structmeminfo.html", "structmeminfo" ],
+    [ "mice_event", "structmice__event.html", "structmice__event" ],
     [ "pollhdl", "structpollhdl.html", "structpollhdl" ],
     [ "realm_info", "structrealm__info.html", "structrealm__info" ],
     [ "rtc_data", "structrtc__data.html", "structrtc__data" ],

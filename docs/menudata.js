@@ -161,6 +161,7 @@ var menudata={children:[
 {text:"_",url:"globals_eval.html#index__5F"},
 {text:"d",url:"globals_eval.html#index_d"},
 {text:"j",url:"globals_eval.html#index_j"},
+{text:"m",url:"globals_eval.html#index_m"},
 {text:"p",url:"globals_eval.html#index_p"},
 {text:"r",url:"globals_eval.html#index_r"},
 {text:"s",url:"globals_eval.html#index_s"},

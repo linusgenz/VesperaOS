@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['smart_5fdriver_5fata_0',['SMART_DRIVER_ATA',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44acbf78631e633f01a414fd9b7e3a47730',1,'ioctl_smart.h']]],
-  ['smart_5fdriver_5fnvme_1',['SMART_DRIVER_NVME',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44a407b2fd71f0e9d2ac5a9d3ab40fcd5ac',1,'ioctl_smart.h']]],
-  ['smart_5fdriver_5funknown_2',['SMART_DRIVER_UNKNOWN',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44adcaafb97b9fa32dc4694170896737cd9',1,'ioctl_smart.h']]]
+  ['reboot_5fmode_5fhalt_0',['REBOOT_MODE_HALT',['../userspace_2lib_2include_2power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a548ffb9355c3efa2e92089b2bd6f0db4',1,'power.h']]],
+  ['reboot_5fmode_5fpower_5foff_1',['REBOOT_MODE_POWER_OFF',['../userspace_2lib_2include_2power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38aae9fd96988dabcc286c47bd9a5cfc491',1,'power.h']]],
+  ['reboot_5fmode_5frestart_2',['REBOOT_MODE_RESTART',['../userspace_2lib_2include_2power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38a42be2a98b3e2ffcd206578fa5ca55c50',1,'power.h']]]
 ];

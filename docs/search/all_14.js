@@ -9,7 +9,7 @@ var searchData=
   ['tcgetattr_6',['tcgetattr',['../termios_8h.html#a83ebd0c34137b695538d83ab81d7e5cc',1,'termios.h']]],
   ['tcsetattr_7',['tcsetattr',['../termios_8h.html#a6b3f86aae7149e9c1ad39b75fa412078',1,'termios.h']]],
   ['temp_5fmc_8',['temp_mc',['../structthermal__zone.html#a581e4211d4dd0609f9c7a62b9a13fcd8',1,'thermal_zone']]],
-  ['temperature_5fcelsius_9',['temperature_celsius',['../structsmart__ata.html#aaaf3a05a5dcd3dcfba5ab48f336681c9',1,'smart_ata::temperature_celsius'],['../structsmart__common.html#a74d8f10fada7037e2656ee7bff6ca742',1,'smart_common::temperature_celsius'],['../structsmart__nvme.html#ad99cc10ef321c5fbf71b1716edb257fb',1,'smart_nvme::temperature_celsius']]],
+  ['temperature_5fcelsius_9',['temperature_celsius',['../structsmart__ata.html#aaaf3a05a5dcd3dcfba5ab48f336681c9',1,'smart_ata::temperature_celsius'],['../structsmart__nvme.html#ad99cc10ef321c5fbf71b1716edb257fb',1,'smart_nvme::temperature_celsius'],['../structsmart__common.html#a74d8f10fada7037e2656ee7bff6ca742',1,'smart_common::temperature_celsius']]],
   ['temperature_5fsensor_10',['temperature_sensor',['../structsmart__nvme.html#a1b4a3e973576cd6cfebdfa7204e2a905',1,'smart_nvme']]],
   ['termios_2eh_11',['termios.h',['../termios_8h.html',1,'']]],
   ['tgamma_12',['tgamma',['../math_8h.html#a6da34b1c74aa3cf204f2461a8822cf9d',1,'math.h']]],
@@ -67,6 +67,6 @@ var searchData=
   ['tv_5fnsec_64',['tv_nsec',['../structtimespec.html#ae3c7510dafa8cbcaede866ed13c99683',1,'timespec::tv_nsec'],['../structtimespec__t.html#a482db57da902759dcaa8d59ec569ec96',1,'timespec_t::tv_nsec']]],
   ['tv_5fsec_65',['tv_sec',['../structtimeval.html#aef6ddab1064c430758f9f913b7e4a21e',1,'timeval::tv_sec'],['../structtimespec.html#afc3302668d7cb5952f590da69fdd4955',1,'timespec::tv_sec'],['../structtimespec__t.html#a42f451851a457a31986f34874bf0166a',1,'timespec_t::tv_sec'],['../structtimeval__t.html#ad1d7f5f16ad0874fc3e399bd350f9e50',1,'timeval_t::tv_sec']]],
   ['tv_5fusec_66',['tv_usec',['../structtimeval.html#a810bf8fcd58e255a5c1896d19538b86a',1,'timeval::tv_usec'],['../structtimeval__t.html#ad9f34c7c3395c62191ec4fe0b66d046a',1,'timeval_t::tv_usec']]],
-  ['type_67',['type',['../structbattery__info.html#a5fcec974d20588414ed7a8b044d0e716',1,'battery_info::type'],['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t::type'],['../structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f',1,'vbus_header::type']]],
+  ['type_67',['type',['../structmice__event.html#a5665e776dc2dd593f6e14aa5c30708f0',1,'mice_event::type'],['../structbattery__info.html#a5fcec974d20588414ed7a8b044d0e716',1,'battery_info::type'],['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t::type'],['../structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f',1,'vbus_header::type']]],
   ['types_2eh_68',['types.h',['../types_8h.html',1,'']]]
 ];

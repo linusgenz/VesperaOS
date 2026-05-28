@@ -1,10 +1,11 @@
 var searchData=
 [
-  ['pixel_5fformat_5fbgr_0',['PIXEL_FORMAT_BGR',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aad448e95c42b40b5fde94f855f3c6a444',1,'jpeg.h']]],
-  ['pixel_5fformat_5fbgra_1',['PIXEL_FORMAT_BGRA',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aa0bd3230b8f239364ee0b87353a1158ca',1,'jpeg.h']]],
-  ['pixel_5fformat_5fbgrx_2',['PIXEL_FORMAT_BGRX',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aaae20349763db51cf67da01ae2b7675a8',1,'jpeg.h']]],
-  ['pixel_5fformat_5fgray_3',['PIXEL_FORMAT_GRAY',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aac6de48855b55fcb5c1b69fa0c43f2115',1,'jpeg.h']]],
-  ['pixel_5fformat_5fgray_5falpha_4',['PIXEL_FORMAT_GRAY_ALPHA',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aa816a0f7055f285c7e3491de676bd92e7',1,'jpeg.h']]],
-  ['pixel_5fformat_5frgb_5',['PIXEL_FORMAT_RGB',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aa4cdcf7a8ba122f88f48248718bac1920',1,'jpeg.h']]],
-  ['pixel_5fformat_5frgba_6',['PIXEL_FORMAT_RGBA',['../jpeg_8h.html#a198cda1221b69303955212a59f22677aa1759049c8216a9444dc2509099e8eed4',1,'jpeg.h']]]
+  ['mice_5fbutton_5fleft_0',['MICE_BUTTON_LEFT',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630aa9f06e7ec8c66e5676600afe0158695e',1,'mice.h']]],
+  ['mice_5fbutton_5fmiddle_1',['MICE_BUTTON_MIDDLE',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a7b3981c636635ed69d6360d36c1328e7',1,'mice.h']]],
+  ['mice_5fbutton_5fright_2',['MICE_BUTTON_RIGHT',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630af78359182cf4ac61cfb9a2c523749d94',1,'mice.h']]],
+  ['mice_5fbutton_5fside1_3',['MICE_BUTTON_SIDE1',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a3b49099684b6028d67b50d6f00beb713',1,'mice.h']]],
+  ['mice_5fbutton_5fside2_4',['MICE_BUTTON_SIDE2',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a760eea0700d79406dd9d0fc8df98cc4a',1,'mice.h']]],
+  ['mice_5fevent_5fbutton_5',['MICE_EVENT_BUTTON',['../mice_8h.html#ad0237e45347643d59a208e731bb1c38eaee472741ec52076f6833d0607501e159',1,'mice.h']]],
+  ['mice_5fevent_5fmove_6',['MICE_EVENT_MOVE',['../mice_8h.html#ad0237e45347643d59a208e731bb1c38ead92111af95e4bed9af013d5bebe385dd',1,'mice.h']]],
+  ['mice_5fevent_5fscroll_7',['MICE_EVENT_SCROLL',['../mice_8h.html#ad0237e45347643d59a208e731bb1c38ead63d0cf92f38f53fd272e90c0d6b917e',1,'mice.h']]]
 ];
