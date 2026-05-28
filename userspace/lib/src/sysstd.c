@@ -89,8 +89,13 @@
 #define SYSCALL_TCSETPGRP 143
 #define SYSCALL_TCGETPGRP 144
 
-#define SYSCALL_VBUS_SUBSCRIBE 300
-#define SYSCALL_VBUS_UNSUBSCRIBE 301
+#define SYSCALL_VBUS_SUBSCRIBE     300
+#define SYSCALL_VBUS_UNSUBSCRIBE   301
+#define SYSCALL_VBUS_EMIT   302
+
+#define SYSCALL_SHM_OPEN       303
+#define SYSCALL_SHM_UNLINK       304
+#define SYSCALL_HANDLE_TRUNCATE       305
 
 int64_t syscall(
     uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5
@@ -363,4 +368,20 @@ int64_t sys_chmod(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, ui
 
 int64_t sys_fchmod(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_FCHMOD, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_shm_open(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
+    return syscall(SYSCALL_SHM_OPEN, arg0, arg1, arg2, arg3, arg4, arg5);
+}
+
+int64_t sys_shm_unlink(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
+    return syscall(SYSCALL_SHM_UNLINK, arg0, arg1, arg2, arg3, arg4, arg5);
+}
+
+int64_t sys_handle_truncate(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
+    return syscall(SYSCALL_HANDLE_TRUNCATE, arg0, arg1, arg2, arg3, arg4, arg5);
+}
+
+int64_t sys_vbus_emit(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_VBUS_EMIT, arg0, arg1, arg2, 0, 0, 0);
 }

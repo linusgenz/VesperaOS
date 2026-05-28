@@ -402,7 +402,7 @@ unsigned long strtoul(const char* nptr, char** endptr, int base) {
     return result;
 }
 
-void abort(void) {
+_Noreturn void abort(void) {
     raise(SIGABRT);
     sys_exit(134, 0, 0, 0, 0, 0);
     __builtin_unreachable();

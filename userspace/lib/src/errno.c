@@ -23,7 +23,7 @@
 #include <errno.h>
 
 const char* strerror(const int err) {
-    switch (-err) {
+    switch (err) {
         case SUCCESS_CODE: return "Success";
         case EPERM:        return "Operation not permitted";
         case ENOENT:       return "No such file or directory";

@@ -276,10 +276,14 @@ char* strrchr(const char* s, int c) {
     return memchr(s, c, strlen(s) + 1);
 }
 
-void memset(void* dest, uint8_t c, size_t num) {
-    for (uint64_t i = 0; i < num; i++) {
-        *(uint8_t*)((uint64_t)dest + i) = c;
+void* memset(void* dest, int c, size_t num) {
+    uint8_t* d = (uint8_t*)dest;
+
+    for (size_t i = 0; i < num; i++) {
+        d[i] = (uint8_t)c;
     }
+
+    return dest;
 }
 
 void* memcpy(void* dest, const void* src, size_t len) {
