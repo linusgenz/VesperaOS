@@ -38,6 +38,7 @@ struct VmArea {
     u64      flags;
     uptr     file_off;
     HandleId handle;
+    void* backing_obj;
     VmArea*  next;
 };
 
