@@ -39,5 +39,6 @@ var searchData=
   ['lrintl_36',['lrintl',['../math_8h.html#aa9821b16a986b5683e2efd5f77953af6',1,'math.h']]],
   ['lround_37',['lround',['../math_8h.html#a8dae5db278571472fb894f5b900a2cc5',1,'math.h']]],
   ['lroundf_38',['lroundf',['../math_8h.html#a4e4ebd0523a1eed730cf33fd343f487c',1,'math.h']]],
-  ['lroundl_39',['lroundl',['../math_8h.html#ab69d4a2869a1b4c3ef2ea27aba0c0436',1,'math.h']]]
+  ['lroundl_39',['lroundl',['../math_8h.html#ab69d4a2869a1b4c3ef2ea27aba0c0436',1,'math.h']]],
+  ['lseek_40',['lseek',['../stdio_8h.html#a0f505b889099a08a9a2fc58985298205',1,'stdio.h']]]
 ];

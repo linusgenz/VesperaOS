@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"structmeminfo.html":[3,0,26],
 "structmeminfo.html#a568f1ff0eb141fab01680030ee43e5e4":[3,0,26,2],
 "structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595":[3,0,26,3],
 "structmeminfo.html#acaff872782c28f9f4d227c0af72492d1":[3,0,26,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX6 =
 "sysstd_8h.html#a7195de760b75f180c04c5a41dd5a5960":[4,0,1,0,0,35,61],
 "sysstd_8h.html#a7760fa106444c95639e69e852f60d6f9":[4,0,1,0,0,35,39],
 "sysstd_8h.html#a7bdf86346573234620efca3e72809ede":[4,0,1,0,0,35,35],
-"sysstd_8h.html#a839b84b63c199c0038708b651c914635":[4,0,1,0,0,35,15],
-"sysstd_8h.html#a85ca8e62ca88e5b254e160759e0bd2e1":[4,0,1,0,0,35,16]
+"sysstd_8h.html#a839b84b63c199c0038708b651c914635":[4,0,1,0,0,35,15]
 };

@@ -211,6 +211,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a5e25775bd8597f839a28125b616bd241" id="r_a5e25775bd8597f839a28125b616bd241"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241">fseek</a> (<a class="el" href="structFILE.html">FILE</a> *stream, long offset, int whence)</td></tr>
 <tr class="memdesc:a5e25775bd8597f839a28125b616bd241"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition stream position indicator.  <br /></td></tr>
 <tr class="separator:a5e25775bd8597f839a28125b616bd241"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f505b889099a08a9a2fc58985298205" id="r_a0f505b889099a08a9a2fc58985298205"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0f505b889099a08a9a2fc58985298205">lseek</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> offset, int whence)</td></tr>
+<tr class="separator:a0f505b889099a08a9a2fc58985298205"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e9d737941bb64e471309cd6dc1f6989" id="r_a0e9d737941bb64e471309cd6dc1f6989"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989">ftell</a> (<a class="el" href="structFILE.html">FILE</a> *stream)</td></tr>
 <tr class="memdesc:a0e9d737941bb64e471309cd6dc1f6989"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current position in stream.  <br /></td></tr>
 <tr class="separator:a0e9d737941bb64e471309cd6dc1f6989"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1257,6 +1259,40 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>buf</code> on success, or <code>NULL</code> on failure (errno set): EINVAL : buf is null or size is zero ERANGE : buffer too small to hold the current path</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b" title="Change the current working directory.">chdir()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a0f505b889099a08a9a2fc58985298205" name="a0f505b889099a08a9a2fc58985298205"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f505b889099a08a9a2fc58985298205">&#9670;&#160;</a></span>lseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> lseek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>whence</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
