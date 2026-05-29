@@ -84,10 +84,6 @@ class Terminal {
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
     ~Terminal();
 
-    void draw_overlay_mouse_cursor(const u8* bitmap, const point_t pos, const u32 color);
-
-    void clear_mouse_cursor(const u8* bitmap, const point_t pos);
-
     void on_backend_changed(DisplayBackend backend);
 
     void scrollback_up(usize lines = 3);

@@ -27,6 +27,7 @@
 
 VBusManager::Subscription VBusManager::subs_[VBUS_MAX_SUBSCRIPTIONS] = {};
 int VBusManager::sub_count_ = 0;
+VBusManager::PendingCall VBusManager::pending_[VBUS_MAX_PENDING_CALLS] = {};
 Spinlock VBusManager::lock_;
 u64 VBusManager::serial_ = 0;
 
@@ -40,7 +41,7 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
     SpinlockGuard g(lock_);
 
     // Deduplicate: same realm+interface+member already registered?
-    for (auto & s : subs_) {
+    for (auto& s : subs_) {
         if (!s.active) continue;
         if (s.realm_id == realm_id && strcmp(s.interface, interface) == 0 &&
             strcmp(s.member, member ? member : "") == 0) {
@@ -49,7 +50,7 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
     }
 
     // Find a free slot
-    for (auto & sub : subs_) {
+    for (auto& sub : subs_) {
         if (!sub.active) {
             sub.realm_id = realm_id;
             sub.channel = rx_channel;
@@ -70,7 +71,7 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
 
 void VBusManager::unsubscribe_realm(u64 realm_id) {
     SpinlockGuard g(lock_);
-    for (auto & sub : subs_) {
+    for (auto& sub : subs_) {
         if (sub.active && sub.realm_id == realm_id) {
             sub.active = false;
             sub.channel = nullptr;
@@ -98,8 +99,7 @@ void VBusManager::emit(const char* interface, const char* member, const void* pa
     hdr.interface[47] = '\0';
     strncpy(hdr.member, member, 47);
     hdr.member[47] = '\0';
-    strncpy(hdr.sender, "kernel", 31);
-    hdr.sender[31] = '\0';
+    hdr.sender_id = 0;
 
     // Total message size: header + payload must fit as one atomic write.
     // Channel::send() writes as much as fits, so if the channel is too full
@@ -108,7 +108,7 @@ void VBusManager::emit(const char* interface, const char* member, const void* pa
 
     SpinlockGuard g(lock_);
 
-    for (auto & s : subs_) {
+    for (auto& s : subs_) {
         if (!s.active || !s.channel) continue;
         if (!matches(s, interface, member)) continue;
 
@@ -123,4 +123,136 @@ void VBusManager::emit(const char* interface, const char* member, const void* pa
             s.channel->send(payload, payload_len);
         }
     }
+}
+
+bool VBusManager::deliver(Channel* ch, const vbus_header_t* hdr, const void* payload, usize payload_len) {
+    const usize total = sizeof(vbus_header_t) + payload_len;
+    if (ch->free_space() < total) return false;
+
+    ch->send(hdr, sizeof(vbus_header_t));
+    if (payload && payload_len > 0) ch->send(payload, payload_len);
+
+    return true;
+}
+
+i64 VBusManager::push_pending(u64 serial, Channel* caller_channel, u64 caller_realm_id) {
+    for (PendingCall& p : pending_) {
+        if (p.active) continue;
+        p.serial = serial;
+        p.caller_channel = caller_channel;
+        p.caller_realm_id = caller_realm_id;
+        p.active = true;
+        return SUCCESS_CODE;
+    }
+    return -ENOMEM;
+}
+
+bool VBusManager::pop_pending(u64 reply_serial, PendingCall& out) {
+    for (PendingCall& p : pending_) {
+        if (!p.active || p.serial != reply_serial) continue;
+        out = p;
+        p.active = false;
+        p.caller_channel = nullptr;
+        return true;
+    }
+    return false;
+}
+
+void VBusManager::emit_signal(const char* interface, const char* member, const void* payload, usize payload_len) {
+    vbus_header_t hdr = {};
+    hdr.magic = VBUS_MAGIC;
+    hdr.type = VBUS_MSG_SIGNAL;
+    hdr.header_size = sizeof(vbus_header_t);
+    hdr.payload_size = static_cast<u32>(payload_len);
+    hdr.serial = __sync_add_and_fetch(&serial_, 1);
+    hdr.reply_serial = 0;
+    strncpy(hdr.interface, interface, VBUS_NAME_MAX - 1);
+    hdr.interface[VBUS_NAME_MAX - 1] = '\0';
+    strncpy(hdr.member, member, VBUS_NAME_MAX - 1);
+    hdr.member[VBUS_NAME_MAX - 1] = '\0';
+    hdr.sender_id = 0;
+
+    SpinlockGuard g(lock_);
+
+    for (Subscription& s : subs_) {
+        if (!s.active || !s.channel) continue;
+        if (!matches(s, interface, member)) continue;
+
+        if (!deliver(s.channel, &hdr, payload, payload_len)) {
+            Log::warning("[VBus] channel full for realm %llu, dropping %s.%s", s.realm_id, interface, member);
+        }
+    }
+}
+
+i64 VBusManager::emit_from_realm(
+    u64 caller_realm_id, Channel* caller_channel, vbus_header_t* hdr, const void* payload, usize payload_len
+) {
+    if (!hdr || hdr->magic != VBUS_MAGIC) return -EINVAL;
+
+    SpinlockGuard g(lock_);
+
+    // Set the real sender, in case someone tries to impersonate someone else.
+    hdr->sender_id = caller_realm_id;
+
+    if (hdr->type == VBUS_MSG_RETURN || hdr->type == VBUS_MSG_ERROR) {
+        PendingCall pc{};
+        if (!pop_pending(hdr->reply_serial, pc)) {
+            // No matching CALL in flight — caller may have timed out.
+            return -ENOENT;
+        }
+
+        if (!pc.caller_channel) {
+            // The calling realm already exited; discard silently.
+            return SUCCESS_CODE;
+        }
+
+        if (!deliver(pc.caller_channel, hdr, payload, payload_len)) {
+            return -EWOULDBLOCK;
+        }
+
+        return SUCCESS_CODE;
+    }
+
+    if (hdr->type == VBUS_MSG_CALL) {
+        for (Subscription& s : subs_) {
+            if (!s.active || !s.channel) continue;
+            if (s.realm_id == caller_realm_id) continue;  // no self-delivery
+            if (!matches(s, hdr->interface, hdr->member)) continue;
+
+            if (!deliver(s.channel, hdr, payload, payload_len)) {
+                return -EWOULDBLOCK;
+            }
+
+            // Record the pending call so RETURN can find its way back.
+            i64 rc = push_pending(hdr->serial, caller_channel, caller_realm_id);
+            if (rc < 0) {
+                // Pending table full — the reply will be unroutable.
+                Log::warning("[VBus] pending table full, CALL serial %llu will not get a reply", hdr->serial);
+            }
+
+            return SUCCESS_CODE;
+        }
+
+        return -ENOENT;
+    }
+
+    if (hdr->type == VBUS_MSG_SIGNAL) {
+        for (Subscription& s : subs_) {
+            if (!s.active || !s.channel) continue;
+            if (s.realm_id == caller_realm_id) continue;  // no echo
+
+            if (hdr->dest_realm_id != 0 && s.realm_id != hdr->dest_realm_id) continue;
+
+            if (!matches(s, hdr->interface, hdr->member)) continue;
+
+            if (!deliver(s.channel, hdr, payload, payload_len)) {
+                Log::warning(
+                    "[VBus] channel full for realm %llu, dropping signal %s.%s", s.realm_id, hdr->interface, hdr->member
+                );
+            }
+        }
+        return SUCCESS_CODE;
+    }
+
+    return -EINVAL;
 }

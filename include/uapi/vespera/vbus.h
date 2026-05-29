@@ -28,6 +28,11 @@
 
 #define VBUS_MAGIC 0x56425553UL
 
+#define VBUS_MAX_PAYLOAD_SIZE 4096
+
+/** @brief Maximum length of interface / member strings including NUL. */
+#define VBUS_NAME_MAX 48
+
 // Message types
 #define VBUS_MSG_SIGNAL 0x01  // One-way broadcast, no reply
 #define VBUS_MSG_CALL 0x02    // Method call (reply expected)
@@ -52,15 +57,15 @@ typedef struct vbus_header {
     u32 magic;  // VBUS_MAGIC
     u8 type;    // VBUS_MSG_*
     u8 flags;
-    uint16_t header_size;   // sizeof(vbus_header_t) for forward compat
-    u32 payload_size;  // bytes that follow this header
-    u64 serial;        // monotonic counter, set by emitter
-    u64 reply_serial;  // serial of the CALL being answered; 0 for signals
-    char interface[48];     // e.g. "vespera.power"
-    char member[48];        // e.g. "BatteryChanged"
-    char sender[32];        // "kernel" or realm name
+    uint16_t header_size;  // sizeof(vbus_header_t) for forward compat
+    u32 payload_size;      // bytes that follow this header
+    u64 serial;            // monotonic counter, set by emitter
+    u64 reply_serial;      // serial of the CALL being answered; 0 for signals
+    uint64_t dest_realm_id; // 0 = broadcast, else unicast
+    char interface[48];    // e.g. "vespera.power"
+    char member[48];       // e.g. "BatteryChanged"
+    uint32_t sender_id;       // 0 for kernel or realm id
 } vbus_header_t;
-
 
 typedef struct vbus_battery {
     u8 percent;             // 0–100; 255 = unknown (battery removed)
@@ -87,7 +92,7 @@ typedef struct vbus_lid {
 typedef struct vbus_subscribe_args {
     char interface[48];
     char member[48];  // empty string = subscribe all members
-    u32 flags;   // VBUS_SUB_*
+    u32 flags;        // VBUS_SUB_*
 } vbus_subscribe_args_t;
 
 #endif  // UAPI_VESPERA_VBUS_H

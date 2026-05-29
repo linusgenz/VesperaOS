@@ -39,7 +39,7 @@ namespace syscalls::internal {
         const auto rh = SYSCALL_TRY(resolve_handle(HANDLE_VBUS, HANDLE_TYPE_CHANNEL));
 
         auto* ch = rh.resource_as<Channel>();
-        if (!ch) return -EINVAL;
+        if (!ch) return -ENOENT;
 
         const RealmId caller_id = kernel::scheduling::get_current_realm_id();
 
@@ -56,6 +56,23 @@ namespace syscalls::internal {
         VBusManager::unsubscribe_realm(caller_id);
 
         return SUCCESS_CODE;
+    }
+
+    i64 sys_vbus_emit(u64 hdr_uptr, u64 payload_uptr, u64 payload_len, u64, u64, u64) {
+        if (!hdr_uptr) return -EINVAL;
+        if (payload_len > VBUS_MAX_PAYLOAD_SIZE) return -EINVAL;
+
+        vbus_header_t hdr = *reinterpret_cast<vbus_header_t*>(hdr_uptr);
+
+        if (hdr.magic != VBUS_MAGIC) return -EINVAL;
+
+        const auto rh = SYSCALL_TRY(resolve_handle(HANDLE_VBUS, HANDLE_TYPE_CHANNEL));
+
+        auto* ch = rh.resource_as<Channel>();
+        if (!ch) return -ENOENT;
+
+        RealmId rid = kernel::scheduling::get_current_realm_id();
+        return VBusManager::emit_from_realm(rid, ch, &hdr, reinterpret_cast<void*>(payload_uptr), payload_len);
     }
 
 }  // namespace syscalls::internal

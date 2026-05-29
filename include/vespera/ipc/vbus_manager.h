@@ -27,7 +27,10 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
-#define VBUS_MAX_SUBSCRIPTIONS 256
+constexpr int VBUS_MAX_SUBSCRIPTIONS = 256;
+
+/** @brief Maximum number of in-flight CALL messages awaiting a RETURN. */
+constexpr int VBUS_MAX_PENDING_CALLS = 64;
 
 //  VBusManager
 //
@@ -39,39 +42,88 @@
 //  into each realm's channel. poll(HANDLE_VBUS, POLLIN) then wakes the realm.
 
 class VBusManager {
-public:
+   public:
     static void init();
 
     // interface / member: filter; empty member = wildcard (all members)
-    static i64 subscribe(u64 realm_id, Channel* rx_channel,
-                         const char* interface, const char* member);
-
+    static i64 subscribe(u64 realm_id, Channel* rx_channel, const char* interface, const char* member);
 
     static void unsubscribe_realm(u64 realm_id);
 
-    static void emit(const char* interface, const char* member,
-                     const void* payload, usize payload_len);
+    static void emit(const char* interface, const char* member, const void* payload, usize payload_len);
 
     // emit no payload (pure signal)
-    static void emit_signal(const char* interface, const char* member) {
-        emit(interface, member, nullptr, 0);
-    }
+    static void emit_signal(const char* interface, const char* member, const void* payload, usize payload_len);
 
-private:
+    /**
+     * @brief Routes an userspace-originated message to its destination.
+     *
+     * Dispatches based on @p hdr->type:
+     *
+     *   - VBUS_MSG_SIGNAL: broadcast to all matching subscribers, excluding
+     *     the sender's own realm (no echo).
+     *   - VBUS_MSG_CALL:   delivered to the *first* matching subscriber that
+     *     is not the sender.  The (serial, caller_channel) pair is stored in
+     *     the pending-call table so the reply can be routed back later.
+     *   - VBUS_MSG_RETURN / VBUS_MSG_ERROR: looked up in the pending-call
+     *     table by reply_serial; the reply is written to the original
+     *     caller's channel and the pending entry is freed.
+     */
+    [[nodiscard]] static i64 emit_from_realm(
+        u64 caller_realm_id, Channel* caller_channel, vbus_header_t* hdr, const void* payload, usize payload_len
+    );
+
+   private:
     struct Subscription {
-        u64      realm_id;
+        u64 realm_id;
         Channel* channel;
-        char     interface[48];
-        char     member[48];   // empty = wildcard
-        bool     active;
+        char interface[48];
+        char member[48];  // empty = wildcard
+        bool active;
+    };
+
+    /**
+     * @brief In-flight CALL awaiting a matching RETURN or ERROR.
+     */
+    struct PendingCall {
+        u64 serial;
+        Channel* caller_channel;  ///< where to deliver the RETURN
+        u64 caller_realm_id;      ///< used only for diagnostics / timeout pruning
+        bool active;
     };
 
     static Subscription subs_[VBUS_MAX_SUBSCRIPTIONS];
-    static int          sub_count_;
-    static Spinlock     lock_;
-    static u64          serial_;
+    static int sub_count_;
+
+    static PendingCall pending_[VBUS_MAX_PENDING_CALLS];
+
+    static Spinlock lock_;
+    static u64 serial_;
 
     static bool matches(const Subscription& s, const char* iface, const char* member);
+
+    /**
+     * @brief Writes header + payload to @p ch if enough space is available.
+     *
+     * @return true if the message was written, false if the channel was full.
+     */
+    [[nodiscard]] static bool deliver(Channel* ch, const vbus_header_t* hdr, const void* payload, usize payload_len);
+
+    /**
+     * @brief Records a new pending-call entry.
+     *
+     * @return 0 on success, -ENOMEM if the table is full.
+     */
+    [[nodiscard]] static i64 push_pending(u64 serial, Channel* caller_channel, u64 caller_realm_id);
+
+    /**
+     * @brief Pops the pending-call entry for @p reply_serial.
+     *
+     * Writes the matched entry into @p out and marks the slot inactive.
+     *
+     * @return true if an entry was found, false otherwise.
+     */
+    static bool pop_pending(u64 reply_serial, PendingCall& out);
 };
 
 #endif  // VESPERAOS_VBUS_MANAGER_H
