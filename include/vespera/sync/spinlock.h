@@ -26,6 +26,12 @@ class Spinlock {
         irq_restore(flags);
     }
 
+    Spinlock() = default;
+
+    explicit Spinlock(const char *str) {
+        init(str);
+    }
+
    private:
     u32 xchg(volatile u32 *ptr, u32 val) {
         u32 old = 0;

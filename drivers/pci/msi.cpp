@@ -23,10 +23,9 @@
 
 #include "msi.h"
 
-#include <vespera/interrupts.h>
+#include <arch/x86_64/apic.h>
 #include <vespera/log.h>
 
-#include "../../arch/x86_64/interrupts/apic.h"
 #include "pci.h"
 
 namespace pci {
