@@ -221,6 +221,8 @@ int fflush(FILE* f);
  */
 int fseek(FILE* stream, long offset, int whence);
 
+int64_t lseek(HANDLE handle, int64_t offset, int whence);
+
 /**
  * @brief Get current position in stream.
  *

@@ -817,10 +817,10 @@ int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args) {
     if (!buffer || !fmt || size == 0) return -1;
 
     sink_t s = {
-        .type    = SINK_BUFFER,
-        .buf     = buffer,
-        .size    = size,
-        .pos     = 0,
+        .type = SINK_BUFFER,
+        .buf = buffer,
+        .size = size,
+        .pos = 0,
         .written = 0,
     };
 
@@ -898,7 +898,7 @@ FILE* fopen(const char* path, const char* mode) {
 
     int64_t res = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
     if (res < 0) {
-        errno = res;
+        errno = -(int)res;
         return NULL;
     };
     const FILE_HANDLE handle = res;
@@ -1163,6 +1163,15 @@ int fseek(FILE* f, long offset, int whence) {
     ssize_t ret = sys_seek(f->handle, offset, whence, 0, 0, 0);
     if (ret >= 0) f->eof = 0;
     return (ret < 0) ? -1 : 0;
+}
+
+int64_t lseek(HANDLE handle, int64_t offset, int whence) {
+    int64_t ret = sys_seek(handle, offset, whence, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)-ret;
+        return -1;
+    }
+    return ret;
 }
 
 ssize_t ftell(FILE* f) {
