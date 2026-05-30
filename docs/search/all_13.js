@@ -93,7 +93,7 @@ var searchData=
   ['seek_5fcur_90',['seek_cur',['../stdio_8h.html#a4c8d0b76b470ba65a43ca46a88320f39',1,'SEEK_CUR:&#160;stdio.h'],['../include_2uapi_2vespera_2fflags_8h.html#a4c8d0b76b470ba65a43ca46a88320f39',1,'SEEK_CUR:&#160;fflags.h']]],
   ['seek_5fend_91',['seek_end',['../stdio_8h.html#ad2a2e6c114780c3071efd24f16c7f7d8',1,'SEEK_END:&#160;stdio.h'],['../include_2uapi_2vespera_2fflags_8h.html#ad2a2e6c114780c3071efd24f16c7f7d8',1,'SEEK_END:&#160;fflags.h']]],
   ['seek_5fset_92',['seek_set',['../include_2uapi_2vespera_2fflags_8h.html#a0d112bae8fd35be772185b6ec6bcbe64',1,'SEEK_SET:&#160;fflags.h'],['../stdio_8h.html#a0d112bae8fd35be772185b6ec6bcbe64',1,'SEEK_SET:&#160;stdio.h']]],
-  ['sender_93',['sender',['../structvbus__header.html#a6ed0d6d82c6716c6c61c9942ef93bd37',1,'vbus_header']]],
+  ['sender_5fid_93',['sender_id',['../structvbus__header.html#ae530cb48aa82891c8d241e653c57f9f1',1,'vbus_header']]],
   ['serial_94',['serial',['../structdevinfo__t.html#a29cd773523ce6820568b02f5515e2dca',1,'devinfo_t::serial'],['../structbattery__info.html#a34155cd3ad340753b4dbada0beda39f8',1,'battery_info::serial'],['../structvbus__header.html#aa92b6cde16a410ca60ab129218579cf7',1,'vbus_header::serial']]],
   ['setenv_95',['setenv',['../stdlib_8h.html#a1c8b16a3abcb4dc450a0a62b42c554dd',1,'stdlib.h']]],
   ['setjmp_96',['setjmp',['../setjmp_8h.html#a0ea8f6bdb917bfa1c71ddf65f43730ca',1,'setjmp.h']]],

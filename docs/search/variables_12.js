@@ -8,7 +8,7 @@ var searchData=
   ['sched_5fpriority_5',['sched_priority',['../structrealm__info.html#ac92eff1380891027043eed312a2d791f',1,'realm_info']]],
   ['scroll_6',['scroll',['../structmice__event.html#a2b182ae1e93ec8286b9c8320a25e3574',1,'mice_event']]],
   ['sec_7',['sec',['../structrtc__data.html#ac12598497fbf097555e42113814934c8',1,'rtc_data']]],
-  ['sender_8',['sender',['../structvbus__header.html#a6ed0d6d82c6716c6c61c9942ef93bd37',1,'vbus_header']]],
+  ['sender_5fid_8',['sender_id',['../structvbus__header.html#ae530cb48aa82891c8d241e653c57f9f1',1,'vbus_header']]],
   ['serial_9',['serial',['../structdevinfo__t.html#a29cd773523ce6820568b02f5515e2dca',1,'devinfo_t::serial'],['../structbattery__info.html#a34155cd3ad340753b4dbada0beda39f8',1,'battery_info::serial'],['../structvbus__header.html#aa92b6cde16a410ca60ab129218579cf7',1,'vbus_header::serial']]],
   ['signal_10',['signal',['../userspace_2lib_2include_2signal_8h.html#a19103eb697d9a373dba3b285da607263',1,'signal.h']]],
   ['size_11',['size',['../structimage__t.html#a59f1805a29e1060950754281201301fa',1,'image_t::size'],['../structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710',1,'large_seg::size'],['../structvespera__stat.html#a2f4c2397c85c1e406c419d378c094d11',1,'vespera_stat::size']]],
