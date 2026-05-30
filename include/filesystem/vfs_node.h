@@ -26,6 +26,7 @@
 
 #include <uapi/vespera/dirent.h>
 #include <vespera/types.h>
+
 #include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
@@ -86,6 +87,7 @@ struct VfsNode {
     const VfsNodeOps *ops;
     VfsNodeType type;
     bool permanent;
+    bool seekable = false;
 };
 
 #endif  // VFS_NODE_H

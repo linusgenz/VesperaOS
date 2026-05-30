@@ -36,12 +36,14 @@
 #include "misc/version.h"
 #include "misc/zero.h"
 
+NullDevice* null_dev = nullptr;
+
 void initialize_pseudo_devices() {
     constexpr usize channel_capacity = static_cast<usize>(32) * 1024;
     Channel* kernel_log_channel = Channel::create(channel_capacity);
 
     auto* zero_dev = new ZeroDevice();
-    auto* null_dev = new NullDevice();
+    null_dev = new NullDevice();
     auto* urand_dev = new URandomDevice();
     auto* full_dev = new FullDevice();
     auto* rtc_dev = new RtcDevice();

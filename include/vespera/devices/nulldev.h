@@ -1,4 +1,4 @@
-// serial.h
+// nulldev.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,14 +19,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_SERIAL_H
-#define VESPERAOS_SERIAL_H
+#ifndef VESPERAOS_NULLDEV_H
+#define VESPERAOS_NULLDEV_H
 
-#include <vespera/types.h>
+class NullDevice;
 
-namespace serial {
-    void write_char(char c);
-
-    void write(const void* buf, usize count);
+extern NullDevice* null_dev;
+NullDevice* get_trash_can() {
+    return null_dev;
 }
-#endif  // VESPERAOS_SERIAL_H
+
+#endif  // VESPERAOS_NULLDEV_H

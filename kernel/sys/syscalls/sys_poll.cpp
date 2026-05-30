@@ -61,17 +61,7 @@ namespace syscalls::internal {
 
                 int mask = 0;
 
-                if (rh.type() == HANDLE_TYPE_TTY) {
-                    auto* tty_dev = rh.resource_as<TtyDevice>();
-
-                    if (!tty_dev) {
-                        hdls[i].revents = POLLHUP;
-                        ready++;
-                        continue;
-                    }
-
-                    mask = tty_dev->poll(nullptr);
-                } else if (rh.type() == HANDLE_TYPE_CHANNEL) {
+                if (rh.type() == HANDLE_TYPE_CHANNEL) {
                     auto* ch = rh.resource_as<Channel>();
 
                     if (!ch) {

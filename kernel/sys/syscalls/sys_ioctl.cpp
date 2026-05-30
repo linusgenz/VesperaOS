@@ -23,11 +23,8 @@
 
 #include <filesystem/vfs_handle.h>
 #include <tty/tty_device.h>
-#include <uapi/vespera/dev/ioctl_tty.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/devices/char_device.h>
-#include <vespera/jobctl/jobctl.h>
-#include <vespera/scheduling.h>
 
 #include "../handle_resolution.h"
 
@@ -39,27 +36,11 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_DEVICE_ACCESS));
 
-        if (rh.type() == HANDLE_TYPE_TTY && req == TIOCSCTTY) {
-            auto* tty_dev = rh.resource_as<TtyDevice>();
-            if (!tty_dev) return -ENOTTY;
-            SYSCALL_TRY_VOID(
-                kernel::jobctl::assign_controlling_tty(kernel::scheduling::get_current_realm_id(), tty_dev)
-            );
-            return 0;
-        }
-
         switch (rh.type()) {
             case HANDLE_TYPE_DEVICE: {
                 const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh || !vh->node || !vh->node->ops || !vh->node->ops->ioctl) return -ENOTTY;
                 return vh->node->ops->ioctl(vh->node, req, arg);
-            }
-            case HANDLE_TYPE_TTY: {
-                auto* tty_dev = rh.resource_as<TtyDevice>();
-                if (!tty_dev) return -ENODEV;
-                CharFile cf{};
-                cf.driver_private = tty_dev;
-                return tty_dev->ioctl(&cf, static_cast<u32>(req), arg);
             }
             case HANDLE_TYPE_FILE:
                 return -ENOTTY;

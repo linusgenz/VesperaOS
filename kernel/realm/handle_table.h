@@ -26,10 +26,12 @@
 
 #include <uapi/vespera/capabilities.h>
 #include <uapi/vespera/handles.h>
+#include <vespera/devices/char_device.h>
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
 #include "klib/result.h"
+#include "realm.h"
 
 class TtyDevice;
 class Channel;
@@ -56,6 +58,8 @@ public:
     HandleTable& operator=(const HandleTable&) = delete;
 
     void init(RealmId owner);
+    Result<void> install_stdio_handle(HandleId hid, const char* dev_path, capability_set caps);
+    VoidResult setup_stdio(const char* dev_path);
 
     [[nodiscard]] Result<HandleId> add(
         u64             type,
@@ -68,16 +72,11 @@ public:
 
     [[nodiscard]] VoidResult add_at(
         HandleId        fixed_id,
-        u64             type,
-        void*           resource,
-        capability_set  caps,
-        bool            transferable,
-        void          (*destroy)(void*),
-        void          (*acquire)(void*)
+        u64 type, void* resource, capability_set caps, bool transferable, void (*destroy)(void*),
+        void (*acquire)(void*)
     );
 
-    [[nodiscard]] VoidResult setup_standard_handles(TtyDevice* tty_dev);
-
+    VoidResult setup_vbus();
     [[nodiscard]] HandleEntry* lookup(HandleId hid);
 
     void acquire(HandleId hid);
@@ -85,13 +84,15 @@ public:
 
     void clear();
 
-    [[nodiscard]] RealmId owner() const { return owner_; }
+    [[nodiscard]] RealmId owner() const {
+        return owner_;
+    }
 
-private:
+   private:
     HandleEntry entries_[MAX_HANDLES_PER_REALM]{};
-    u8          bitmap_[MAX_HANDLES_PER_REALM / 8]{};
-    RealmId     owner_{0};
-    Spinlock    lock_;
+    u8 bitmap_[MAX_HANDLES_PER_REALM / 8]{};
+    RealmId owner_{0};
+    Spinlock lock_;
 
     [[nodiscard]] bool test_bit(usize i) const;
     void set_bit(usize i);
@@ -99,5 +100,4 @@ private:
     [[nodiscard]] int find_free_slot() const;
 };
 
-#endif // VESPERAOS_KERNEL_REALM_HANDLE_TABLE_H
-
+#endif  // VESPERAOS_KERNEL_REALM_HANDLE_TABLE_H

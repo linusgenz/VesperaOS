@@ -34,13 +34,13 @@ namespace syscalls::internal {
         const RealmId new_pgid = arg1;
         if (new_pgid == 0) return -EINVAL;
 
-        const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_TTY));
+        const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_DEVICE));
 
-        auto* tty_dev = rh.resource_as<TtyDevice>();
-        if (!tty_dev || !tty_dev->tty) return -ENOTTY;
+        auto* dev = rh.resource_as<CharDevice>();
+        if (!dev || !dev->is_tty()) return -ENOTTY;
 
         SYSCALL_TRY_VOID(
-            kernel::jobctl::set_foreground_pgid(kernel::scheduling::get_current_realm_id(), tty_dev, new_pgid)
+            kernel::jobctl::set_foreground_pgid(kernel::scheduling::get_current_realm_id(), dev->as_tty(), new_pgid)
         );
 
         return 0;

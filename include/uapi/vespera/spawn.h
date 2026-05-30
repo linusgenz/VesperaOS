@@ -31,9 +31,9 @@
  * Use 0 to mean "use default" for each field.
  */
 typedef struct spawn_config {
-    i64 stdin_handle;   ///< Replace HANDLE_STDIN  in child (0 = inherit TTY)
-    i64 stdout_handle;  ///< Replace HANDLE_STDOUT in child (0 = inherit TTY)
-    i64 stderr_handle;  ///< Replace HANDLE_STDERR in child (0 = inherit TTY)
+    u64 stdin_handle;   ///< Replace HANDLE_STDIN  in child (0 = inherit TTY)
+    u64 stdout_handle;  ///< Replace HANDLE_STDOUT in child (0 = inherit TTY)
+    u64 stderr_handle;  ///< Replace HANDLE_STDERR in child (0 = inherit TTY)
     u8  bg_realm;       ///< If set true, detach from controlling tty
     char* realm_name;   ///< Optional explicit name for the new realm
     u32 uid;            ///< Real user ID for the new process (0 = inherit)

@@ -53,9 +53,10 @@ Realm::Realm()
 }
 
 TtyDevice* Realm::get_tty_device() {
-    const HandleEntry* he = handle_table->lookup(HANDLE_STDIN);
-    if (!he || he->type != HANDLE_TYPE_TTY) return nullptr;
-    return static_cast<TtyDevice*>(he->resource);
+    return nullptr; // FIX THIS, HANDLE TYPE TTY GOT REMOVED, WE CAN FIX THIS HERE BUT THIS ISSUE IS BASED ON THE SPAWN TTY ISSUE
+    //const HandleEntry* he = handle_table->lookup(HANDLE_STDIN);
+   // if (!he || he->type != HANDLE_TYPE_DEVICE) return nullptr;
+    //return static_cast<TtyDevice*>(he->resource);
 }
 
 namespace kernel::realm {

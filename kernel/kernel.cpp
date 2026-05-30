@@ -23,6 +23,7 @@
 
 #include <realm/handle_table.h>
 #include <realm/realm.h>
+#include <tty/tty_device.h>
 #include <vespera/boot/boot.h>
 #include <vespera/devices/block.h>
 #include <vespera/devices/device_manager.h>
@@ -164,8 +165,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
         .is_user = true,
     };
     Realm* shell_realm = RealmManager::create(&realm_config_shell);
-    TtyDevice* tty_dev = kernel::tty::tty_devices[0];
-    shell_realm->handle_table->setup_standard_handles(tty_dev);
+    shell_realm->handle_table->setup_stdio("/dev/tty0");
 
     const ElfLoader::LoadResult result = ElfLoader::load("/bin/lua", 0x400000, shell_realm);
     if (!result.success) {

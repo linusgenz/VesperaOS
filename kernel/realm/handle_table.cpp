@@ -22,6 +22,7 @@
 
 #include "handle_table.h"
 
+#include <filesystem/vfs_handle.h>
 #include <klib/string.h>
 #include <vespera/ipc/channel.h>
 #include <vespera/scheduling.h>
@@ -39,29 +40,57 @@ void HandleTable::init(const RealmId owner) {
     lock_.init(buf);
 }
 
-VoidResult HandleTable::setup_standard_handles(TtyDevice* tty_dev) {
-    TRY_VOID(add_at(
-        HANDLE_STDIN,  HANDLE_TYPE_TTY, tty_dev,
-        CAP_READ | CAP_DEVICE_ACCESS, false, nullptr, nullptr
-    ));
-    TRY_VOID(add_at(
-        HANDLE_STDOUT, HANDLE_TYPE_TTY, tty_dev,
-        CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr
-    ));
-    TRY_VOID(add_at(
-        HANDLE_STDERR, HANDLE_TYPE_TTY, tty_dev,
-        CAP_WRITE | CAP_DEVICE_ACCESS, false, nullptr, nullptr
-    ));
+// Opens a device path via VFS and installs it as a stdio handle in dst's handle table.
+// caps controls read/write access on the handle.
+Result<void> HandleTable::install_stdio_handle(HandleId hid, const char* dev_path, capability_set caps) {
+    auto open_res = VFS::open(dev_path);
+    if (open_res.is_err()) return open_res.error();
 
-    Channel* vbus_ch = Channel::create(8192);
-    if (!vbus_ch) return VoidResult::err(Error::NoMem);
+    VfsNode* node = open_res.unwrap();
+    VfsHandle* vh = new VfsHandle(node, 0, caps);
+    if (!vh) {
+        VFS::close(node);
+        return Error::NoMem;
+    }
 
-    TRY_VOID(add_at(
-        HANDLE_VBUS, HANDLE_TYPE_CHANNEL, vbus_ch,
-        CAP_READ, false, Channel::destroy, nullptr
-    ));
+    if (lookup(hid)) release(hid);
 
+    auto add_res = add_at(
+        hid,
+        HANDLE_TYPE_DEVICE,
+        vh,
+        caps | CAP_DEVICE_ACCESS,
+        /*transferable=*/false,
+        vfs_handle_destructor,
+        /*acquire=*/nullptr
+    );
+    if (add_res.is_err()) {
+        delete vh;
+        return add_res.error();
+    }
+
+    return Result<void>::ok();
+}
+
+// Sets up stdin/stdout/stderr for a realm, pointing all three at dev_path.
+VoidResult HandleTable::setup_stdio(const char* dev_path) {
+    TRY_VOID(install_stdio_handle(HANDLE_STDIN, dev_path, CAP_READ));
+    TRY_VOID(install_stdio_handle(HANDLE_STDOUT, dev_path, CAP_WRITE));
+    TRY_VOID(install_stdio_handle(HANDLE_STDERR, dev_path, CAP_WRITE));
     return VoidResult::ok();
+}
+
+VoidResult HandleTable::setup_vbus() {
+    Channel* ch = Channel::create(8192);
+    if (!ch) return VoidResult::err(Error::NoMem);
+
+    return add_at(
+        HANDLE_VBUS, HANDLE_TYPE_CHANNEL, ch,
+        CAP_READ,
+        /*transferable=*/false,
+        Channel::destroy,
+        /*acquire=*/nullptr
+    );
 }
 
 Result<HandleId> HandleTable::add(

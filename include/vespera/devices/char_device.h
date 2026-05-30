@@ -24,11 +24,12 @@
 #ifndef VESPERAOS_CHAR_DEVICE_BASE_H
 #define VESPERAOS_CHAR_DEVICE_BASE_H
 
+#include <klib/string.h>
 #include <vespera_errno.h>
 
-#include <klib/string.h>
 #include "device_manager.h"
 
+class TtyDevice;
 struct CharFile {
     void* driver_private;
 };
@@ -54,6 +55,13 @@ class CharDevice {
 
     virtual int poll(CharFile*) {
         return 0;
+    }
+
+    [[nodiscard]] virtual bool is_tty() const {
+        return false;
+    }
+    virtual TtyDevice* as_tty() {
+        return nullptr;
     }
 
     // Non-copyable

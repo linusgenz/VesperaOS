@@ -114,6 +114,8 @@ int DevFs::register_device(KernelDevice* kd) {
     entry->is_directory = false;
     entry->cf = nullptr;
 
+    node->seekable = (kd->type == DeviceType::Block);
+
     node->internal_data = entry;
     kd->vfs_node_parent = root_;  // root as parent
 

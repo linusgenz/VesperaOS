@@ -38,13 +38,14 @@ namespace syscalls::internal {
 
         switch (rh.type()) {
             case HANDLE_TYPE_DIRECTORY:
-            case HANDLE_TYPE_TTY:
                 return -ESPIPE;
 
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh || !vh->node) return -EBADH;
+
+                if (!VFS::is_seekable(vh->node)) return -ESPIPE;
 
                 i64 new_pos = 0;
 

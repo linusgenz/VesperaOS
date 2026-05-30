@@ -98,6 +98,8 @@ class VFS {
     static VoidResult chown(VfsNode* node, u32 uid, u32 gid);
     static VoidResult chmod(VfsNode* node, u16 mode);
 
+    static bool is_seekable(const VfsNode* node);
+
     // static bool probe_filesystem(BlockDevice* device);
 
     static void list_devices();

@@ -29,10 +29,12 @@
 
 namespace syscalls::internal {
     i64 sys_tcgetpgrp(u64 arg0, u64, u64, u64, u64, u64) {
-        const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_TTY));
+        const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_DEVICE));
 
-        const auto* tty_dev = rh.resource_as<TtyDevice>();
-        if (!tty_dev || !tty_dev->tty) return -ENOTTY;
+        auto* dev = rh.resource_as<CharDevice>();
+        if (!dev || !dev->is_tty()) return -ENOTTY;
+        const TtyDevice* tty_dev = dev->as_tty();
+        if (!tty_dev->tty) return -ENOTTY;
 
         return static_cast<i64>(tty_dev->tty->fg_pgid);
     }

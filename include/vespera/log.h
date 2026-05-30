@@ -40,6 +40,7 @@ class Log {
 
    private:
     static Terminal* t_;
+    static void print_formatted_serial(const char* fmt, __builtin_va_list args);
     static void print_formatted(const char* fmt, __builtin_va_list args);
     static Spinlock log_lock_;
 

@@ -298,6 +298,11 @@ VoidResult VFS::chmod(VfsNode* node, const u16 mode) {
     return node->ops->chmod(node, mode);
 }
 
+bool VFS::is_seekable(const VfsNode* node) {
+    if (!node) return false;
+    return node->seekable;
+}
+
 /*
 bool VFS::probe_filesystem(BlockDevice* device) {
     FilesystemInfo info{};

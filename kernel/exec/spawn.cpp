@@ -22,6 +22,7 @@
 
 #include <exec/spawn.h>
 #include <filesystem/vfs.h>
+#include <filesystem/vfs_handle.h>
 #include <realm/handle_table.h>
 #include <realm/realm.h>
 #include <tty/tty_device.h>
@@ -38,10 +39,10 @@ namespace kernel::exec {
 
     namespace {
 
-        bool transfer_handle(Realm* src, Realm* dst, i64 src_hid, HandleId dst_fixed_id) {
+        bool transfer_handle(Realm* src, Realm* dst, u64 src_hid, HandleId dst_fixed_id) {
             if (src_hid == 0) return true;
 
-            const HandleEntry* he = src->handle_table->lookup(static_cast<HandleId>(src_hid));
+            const HandleEntry* he = src->handle_table->lookup(src_hid);
             if (!he || !he->transferable) return false;
 
             if (he->acquire) he->acquire(he->resource);
@@ -81,13 +82,29 @@ namespace kernel::exec {
         r->pgid = r->id;
 
         if (cfg && cfg->bg_realm) {
+            // Background realm: detached session, no controlling TTY, stdio → /dev/null
             r->sid = r->id;
             r->controlling_tty = nullptr;
-            r->handle_table->setup_standard_handles(nullptr);
+            if (r->handle_table->setup_stdio("/dev/null").is_err()) {
+                RealmManager::destroy(r->id);
+                return Error::NoMem;
+            }
         } else {
+            // Foreground realm: inherit session, stdio → /dev/tty
             r->sid = parent ? parent->sid : r->id;
             r->controlling_tty = tty;
-            if (tty) r->handle_table->setup_standard_handles(tty);
+            if (tty) {
+                if (r->handle_table->setup_stdio("/dev/tty").is_err()) {
+                    RealmManager::destroy(r->id);
+                    return Error::NoMem;
+                }
+            }
+        }
+
+        // VBUS channel
+        if (r->handle_table->setup_vbus().is_err()) {
+            RealmManager::destroy(r->id);
+            return Error::NoMem;
         }
 
         // Credentials

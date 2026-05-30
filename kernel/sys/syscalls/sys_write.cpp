@@ -25,45 +25,9 @@
 #include <tty/tty_device.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/scheduling.h>
-
+#include <drivers/serial/serial.h>
 #include "../handle_resolution.h"
 
-    static constexpr u16 COM1 = 0x3F8;
-
-    inline void outb(u16 port, u8 value) {
-        asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
-    }
-
-    inline u8 inb(u16 port) {
-        u8 ret;
-        asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
-        return ret;
-    }
-
-    inline bool tx_empty() {
-        return inb(COM1 + 5) & 0x20;
-    }
-
-    inline void write_char(char c) {
-        while (!tx_empty()) {
-            asm volatile("pause");
-        }
-
-        outb(COM1, static_cast<u8>(c));
-    }
-
-    void write_serial(const void* buf, usize count) {
-        const char* s = static_cast<const char*>(buf);
-
-        for (usize i = 0; i < count; ++i) {
-            char c = s[i];
-
-            // optional: hübscher terminal output
-            if (c == '\n') write_char('\r');
-
-            write_char(c);
-        }
-    }
 
 namespace syscalls::internal {
     i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -73,22 +37,19 @@ namespace syscalls::internal {
 
         if (!buf || count == 0) return 0;
 
-        write_serial(buf, count);
+        serial::write(buf, count);
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_WRITE));
 
         switch (rh.type()) {
-            case HANDLE_TYPE_TTY: {
-                auto* tty_dev = rh.resource_as<TtyDevice>();
-                if (!tty_dev) return static_cast<i64>(count);
-                return tty_dev->write(nullptr, buf, count);
-            }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh) return -EBADH;
-                const usize bytes = SYSCALL_TRY(VFS::write(vh->node, vh->context->position, count, buf));
-                if (bytes > 0) vh->context->position += bytes;
+
+                const i64 off = VFS::is_seekable(vh->node) ? vh->context->position : -1;
+                const usize bytes = SYSCALL_TRY(VFS::write(vh->node, static_cast<usize>(off < 0 ? 0 : off), count, buf));
+                if (bytes > 0 && off >= 0) vh->context->position += bytes;
                 return static_cast<isize>(bytes);
             }
             case HANDLE_TYPE_PIPE: {

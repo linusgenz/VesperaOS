@@ -41,11 +41,6 @@ namespace syscalls::internal {
         const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_READ));
 
         switch (rh.type()) {
-            case HANDLE_TYPE_TTY: {
-                auto* tty_dev = rh.resource_as<TtyDevice>();
-                if (!tty_dev) return 0;
-                return tty_dev->read(nullptr, buf, count, 0);
-            }
             case HANDLE_TYPE_DEVICE:
             case HANDLE_TYPE_FILE: {
                 const auto* vh = rh.resource_as<VfsHandle>();

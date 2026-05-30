@@ -27,6 +27,7 @@
 #include <klib/vector.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/security/credentials.h>
 
 #include "ext4_time.h"
 #include "klib/result.h"
@@ -303,6 +304,14 @@ namespace ext4 {
         inode.i_mode = mode;
         inode.i_links_count = 1;
         time::set_creation(inode);
+
+        auto cred = kernel::security::current_credentials();
+        if (!cred) return false;
+
+        inode.i_uid = static_cast<u16>(cred->uid);
+        inode.i_gid = static_cast<u16>(cred->gid);
+        inode.i_uid_high = static_cast<u16>(cred->uid >> 16);
+        inode.i_gid_high = static_cast<u16>(cred->gid >> 16);
 
         // Initialize the inline extent tree header so the inode is extent-based
         // from the start.  This must happen before any write_inode call.

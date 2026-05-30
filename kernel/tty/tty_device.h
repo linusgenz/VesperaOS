@@ -24,12 +24,14 @@
 #ifndef VESPERAOS_TTY_DEVICE_H
 #define VESPERAOS_TTY_DEVICE_H
 
+#include <filesystem/devfs.h>
 #include <uapi/vespera/dev/ioctl_tty.h>
 #include <uapi/vespera/poll.h>
 #include <vespera/devices/char_device.h>
+#include <vespera/jobctl/jobctl.h>
+#include <vespera/scheduling.h>
 #include <vespera/terminal.h>
 #include <vespera/tty/tty.h>
-#include <filesystem/devfs.h>
 
 #include "vespera/devices/device_manager.h"
 
@@ -69,10 +71,11 @@ class TtyDevice final : public CharDevice {
 
     int ioctl(CharFile* cf, u32 cmd, void* arg) override {
         if (!tty) return -ENOTTY;
-        if (!arg && cmd != IOCTL_TTY_GET_MODE && cmd != IOCTL_TTY_GET_SIZE)
-            return -EINVAL;
+        if (!arg && cmd != IOCTL_TTY_GET_MODE && cmd != IOCTL_TTY_GET_SIZE) return -EINVAL;
 
         switch (cmd) {
+            case TIOCSCTTY:
+                return kernel::jobctl::assign_controlling_tty(kernel::scheduling::get_current_realm_id(), this).to_errno();
             case IOCTL_TTY_GET_MODE: {
                 auto* m = static_cast<tty_mode_t*>(arg);
                 m->mode = tty->canonical ? TTY_MODE_CANONICAL : TTY_MODE_RAW;
@@ -82,10 +85,10 @@ class TtyDevice final : public CharDevice {
             case IOCTL_TTY_SET_MODE: {
                 const auto* m = static_cast<const tty_mode_t*>(arg);
                 tty->canonical = (m->mode == TTY_MODE_CANONICAL);
-                tty->echo      = (m->echo != 0);
-                tty->canon_len   = 0;
-                tty->line_ready  = false;
-                tty->raw_len     = 0;
+                tty->echo = (m->echo != 0);
+                tty->canon_len = 0;
+                tty->line_ready = false;
+                tty->raw_len = 0;
                 return 0;
             }
             case IOCTL_TTY_GET_SIZE: {
@@ -116,14 +119,21 @@ class TtyDevice final : public CharDevice {
         return static_cast<int>(count);
     }
 
-    int poll(CharFile *) override {
+    int poll(CharFile*) override {
         if (!tty) return -ENODEV;
         int mask = POLLOUT;
 
-        if (tty->canonical && tty->line_ready)  mask |= POLLIN;
+        if (tty->canonical && tty->line_ready) mask |= POLLIN;
         if (!tty->canonical && tty->raw_len > 0) mask |= POLLIN;
 
         return mask;
+    }
+
+    bool is_tty() const override {
+        return true;
+    }
+    TtyDevice* as_tty() override {
+        return this;
     }
 
    private:
