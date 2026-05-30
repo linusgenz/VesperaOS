@@ -22,4 +22,19 @@
 #ifndef VESPERAOS_XCURSOR_LOADER_H
 #define VESPERAOS_XCURSOR_LOADER_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef struct {
+    uint32_t* pixels;
+    uint32_t width;
+    uint32_t height;
+    uint32_t xhot;
+    uint32_t yhot;
+} loaded_cursor_t;
+
+bool xcursor_load_file(const char* filename, uint32_t target_size, loaded_cursor_t* out_cursor);
+
+void xcursor_free(loaded_cursor_t* cursor);
+
 #endif  // VESPERAOS_XCURSOR_LOADER_H
