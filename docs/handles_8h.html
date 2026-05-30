@@ -106,8 +106,6 @@ Macros</h2></td></tr>
 <tr class="separator:a5adb7fdca00e5c5f3f1808742a2b8f49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a452c27ff81cc8d963a8b945d0202a9ce" id="r_a452c27ff81cc8d963a8b945d0202a9ce"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#a452c27ff81cc8d963a8b945d0202a9ce">HANDLE_ID_MASK</a>&#160;&#160;&#160;0x0000FFFFFFFFFFFFULL</td></tr>
 <tr class="separator:a452c27ff81cc8d963a8b945d0202a9ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aabd7399c3d6a12733e2d2ac179716a64" id="r_aabd7399c3d6a12733e2d2ac179716a64"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a>&#160;&#160;&#160;0x1000000000000000ULL</td></tr>
-<tr class="separator:aabd7399c3d6a12733e2d2ac179716a64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef864574e77d6a0d5653dfae187c57e4" id="r_aef864574e77d6a0d5653dfae187c57e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#aef864574e77d6a0d5653dfae187c57e4">HANDLE_TYPE_FILE</a>&#160;&#160;&#160;0x2000000000000000ULL</td></tr>
 <tr class="separator:aef864574e77d6a0d5653dfae187c57e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86b6a1b11bca4c2c1bbcd18d7cdb0b83" id="r_a86b6a1b11bca4c2c1bbcd18d7cdb0b83"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83">HANDLE_TYPE_DIRECTORY</a>&#160;&#160;&#160;0x3000000000000000ULL</td></tr>
@@ -124,11 +122,11 @@ Macros</h2></td></tr>
 <tr class="separator:a65919b76b3a0374e90b230646cd91c64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12742041173a6f02365c3a459fb5bbf6" id="r_a12742041173a6f02365c3a459fb5bbf6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#a12742041173a6f02365c3a459fb5bbf6">HANDLE_TYPE_SHM</a>&#160;&#160;&#160;0x9000000000000000ULL</td></tr>
 <tr class="separator:a12742041173a6f02365c3a459fb5bbf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8bdf33a8a477a7f84782d4075cac16e" id="r_aa8bdf33a8a477a7f84782d4075cac16e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">HANDLE_STDIN</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a> | 0x0000000000000000ULL)</td></tr>
+<tr class="memitem:aa8bdf33a8a477a7f84782d4075cac16e" id="r_aa8bdf33a8a477a7f84782d4075cac16e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#aa8bdf33a8a477a7f84782d4075cac16e">HANDLE_STDIN</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000000ULL)</td></tr>
 <tr class="separator:aa8bdf33a8a477a7f84782d4075cac16e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab713aac387c884999067ab2eb12eb2a3" id="r_ab713aac387c884999067ab2eb12eb2a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#ab713aac387c884999067ab2eb12eb2a3">HANDLE_STDOUT</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a> | 0x0000000000000001ULL)</td></tr>
+<tr class="memitem:ab713aac387c884999067ab2eb12eb2a3" id="r_ab713aac387c884999067ab2eb12eb2a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#ab713aac387c884999067ab2eb12eb2a3">HANDLE_STDOUT</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000001ULL)</td></tr>
 <tr class="separator:ab713aac387c884999067ab2eb12eb2a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20f587d71e5bfe98fd92929ab61bde41" id="r_a20f587d71e5bfe98fd92929ab61bde41"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">HANDLE_STDERR</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a> | 0x0000000000000002ULL)</td></tr>
+<tr class="memitem:a20f587d71e5bfe98fd92929ab61bde41" id="r_a20f587d71e5bfe98fd92929ab61bde41"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#a20f587d71e5bfe98fd92929ab61bde41">HANDLE_STDERR</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000002ULL)</td></tr>
 <tr class="separator:a20f587d71e5bfe98fd92929ab61bde41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a6ab293f8132e3752d29ecb13cb1605" id="r_a9a6ab293f8132e3752d29ecb13cb1605"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605">HANDLE_VBUS</a>&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a57fb96e74a11842469c4d71f9a38734a">HANDLE_TYPE_CHANNEL</a> | 0x0000000000000003ULL)</td></tr>
 <tr class="separator:a9a6ab293f8132e3752d29ecb13cb1605"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -155,7 +153,7 @@ Macros</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define HANDLE_STDERR&#160;&#160;&#160;(<a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a> | 0x0000000000000002ULL)</td>
+          <td class="memname">#define HANDLE_STDERR&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000002ULL)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -169,7 +167,7 @@ Macros</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define HANDLE_STDIN&#160;&#160;&#160;(<a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a> | 0x0000000000000000ULL)</td>
+          <td class="memname">#define HANDLE_STDIN&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000000ULL)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -183,7 +181,7 @@ Macros</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define HANDLE_STDOUT&#160;&#160;&#160;(<a class="el" href="handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64">HANDLE_TYPE_TTY</a> | 0x0000000000000001ULL)</td>
+          <td class="memname">#define HANDLE_STDOUT&#160;&#160;&#160;(<a class="el" href="handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c">HANDLE_TYPE_DEVICE</a> | 0x0000000000000001ULL)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -296,20 +294,6 @@ Macros</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define HANDLE_TYPE_SHM&#160;&#160;&#160;0x9000000000000000ULL</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aabd7399c3d6a12733e2d2ac179716a64" name="aabd7399c3d6a12733e2d2ac179716a64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aabd7399c3d6a12733e2d2ac179716a64">&#9670;&#160;</a></span>HANDLE_TYPE_TTY</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define HANDLE_TYPE_TTY&#160;&#160;&#160;0x1000000000000000ULL</td>
         </tr>
       </table>
 </div><div class="memdoc">

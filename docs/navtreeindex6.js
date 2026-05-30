@@ -1,6 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"structmax__align__t.html#aa50a49a1d328e20b203d4c6015689090":[3,0,24,0],
 "structmbstate__t.html":[3,0,25],
 "structmbstate__t.html#a3acca26a682f17474a85c606da637168":[3,0,25,1],
 "structmbstate__t.html#a521db2400c3b452b35e268a3bffc3e29":[3,0,25,0],
@@ -92,12 +91,12 @@ var NAVTREEINDEX6 =
 "structsmart__raw.html":[3,0,37],
 "structsmart__raw.html#a45d7f490e7671654de97677beaadcc88":[3,0,37,0],
 "structspawn__config.html":[3,0,38],
-"structspawn__config.html#a09fb2863c15fdcda17932e0896168faf":[3,0,38,6],
-"structspawn__config.html#a2affb9c994b7522808b99af8e9138514":[3,0,38,4],
+"structspawn__config.html#a0d906d3f2d76462dbd246effb1da77bb":[3,0,38,4],
 "structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d":[3,0,38,7],
+"structspawn__config.html#a6817aea8d966b929bbaa98c5c2446ffd":[3,0,38,5],
 "structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253":[3,0,38,3],
 "structspawn__config.html#a7e84f6c44fff46d194ba1da496949b81":[3,0,38,2],
-"structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42":[3,0,38,5],
+"structspawn__config.html#ac8e9737e99fec8e2734c93b72a9a9ded":[3,0,38,6],
 "structspawn__config.html#aea54dcebbf797298e07b5140f070124c":[3,0,38,0],
 "structspawn__config.html#af54a60971d2d85fa034ed059d086b20f":[3,0,38,1],
 "structthermal__info.html":[3,0,39],
@@ -249,5 +248,6 @@ var NAVTREEINDEX6 =
 "sysstd_8h.html#a5754412df56fd063be365e53d2dcbca1":[4,0,1,0,0,36,25],
 "sysstd_8h.html#a5929be7b4c4b04dbdb75dbe441befcd0":[4,0,1,0,0,36,7],
 "sysstd_8h.html#a5ae7ad8f83c25086b7f012cda63f43be":[4,0,1,0,0,36,29],
-"sysstd_8h.html#a5bcad888a21381e749fdbf1d75592472":[4,0,1,0,0,36,17]
+"sysstd_8h.html#a5bcad888a21381e749fdbf1d75592472":[4,0,1,0,0,36,17],
+"sysstd_8h.html#a7166a7249135d5c8db774be86fc02286":[4,0,1,0,0,36,37]
 };

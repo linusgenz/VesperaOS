@@ -22,10 +22,10 @@ var searchData=
   ['src_5fy_19',['src_y',['../structfb__blit.html#a7e9d90d33f52e5762caa1ddbe759f2ce',1,'fb_blit']]],
   ['state_20',['state',['../structbattery__status.html#a67e6b34d20307e8052e01ff23c477301',1,'battery_status::state'],['../structunit__info.html#a050c9494c34c55115841a0b4f952f233',1,'unit_info::state']]],
   ['stderr_21',['stderr',['../stdio_8h.html#ac9e47c346a25e2e7edd2c9b4ca5d0262',1,'stdio.h']]],
-  ['stderr_5fhandle_22',['stderr_handle',['../structspawn__config.html#a2affb9c994b7522808b99af8e9138514',1,'spawn_config']]],
+  ['stderr_5fhandle_22',['stderr_handle',['../structspawn__config.html#a0d906d3f2d76462dbd246effb1da77bb',1,'spawn_config']]],
   ['stdin_23',['stdin',['../stdio_8h.html#acab9c1fe2a80b10e01858bda28a04244',1,'stdio.h']]],
-  ['stdin_5fhandle_24',['stdin_handle',['../structspawn__config.html#ac5c0285b740b317d43649c65c2a40e42',1,'spawn_config']]],
+  ['stdin_5fhandle_24',['stdin_handle',['../structspawn__config.html#a6817aea8d966b929bbaa98c5c2446ffd',1,'spawn_config']]],
   ['stdout_25',['stdout',['../stdio_8h.html#ac80f4484175bf6c48d7b7ca4e9897ae6',1,'stdio.h']]],
-  ['stdout_5fhandle_26',['stdout_handle',['../structspawn__config.html#a09fb2863c15fdcda17932e0896168faf',1,'spawn_config']]],
+  ['stdout_5fhandle_26',['stdout_handle',['../structspawn__config.html#ac8e9737e99fec8e2734c93b72a9a9ded',1,'spawn_config']]],
   ['stride_27',['stride',['../structimage__t.html#a6eeb20227a04718347b735ea8eee9c53',1,'image_t']]]
 ];

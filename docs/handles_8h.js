@@ -12,7 +12,6 @@ var handles_8h =
     [ "HANDLE_TYPE_PIPE", "handles_8h.html#a65919b76b3a0374e90b230646cd91c64", null ],
     [ "HANDLE_TYPE_REALM", "handles_8h.html#a99fc691f8add17b3b3a7834779d7e641", null ],
     [ "HANDLE_TYPE_SHM", "handles_8h.html#a12742041173a6f02365c3a459fb5bbf6", null ],
-    [ "HANDLE_TYPE_TTY", "handles_8h.html#aabd7399c3d6a12733e2d2ac179716a64", null ],
     [ "HANDLE_TYPE_UNIT", "handles_8h.html#a9dec1a6d452fc4aa25863f4f48db44dd", null ],
     [ "HANDLE_VBUS", "handles_8h.html#a9a6ab293f8132e3752d29ecb13cb1605", null ],
     [ "INVALID_HANDLE", "handles_8h.html#a6bedb180bae32d77457eca11086b6142", null ]
