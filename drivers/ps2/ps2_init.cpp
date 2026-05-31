@@ -22,9 +22,9 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <arch/x86_64/ioapic.h>
 #include <drivers/ps2/mouse.h>
 
-#include "../../arch/x86_64/interrupts/ioapic.h"
 #include "keyboard/keyboard_device.h"
 #include "keyboard/ps2_keyboard.h"
 #include "mouse/mouse_device.h"

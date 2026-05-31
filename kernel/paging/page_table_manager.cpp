@@ -7,6 +7,7 @@
 
 PageTableManager::PageTableManager(PageTable* pml4_address)
     : pml4(pml4_address) {
+    spinlock_.init("page_table_manager");
 }
 
 void PageTableManager::map_range(
@@ -22,6 +23,7 @@ static void invlpg(virt_addr_t addr) {
 }
 
 void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, u64 flags) const {
+    SpinlockGuard guard(spinlock_);
     const PageMapIndexer indexer(virt_addr);
 
     auto ensure_table = [&](PageTable* parent, const u16 index) -> PageTable* {
@@ -82,6 +84,7 @@ void PageTableManager::unmap_range(const virt_addr_t virt_start, const usize siz
 }
 
 void PageTableManager::unmap_memory(const virt_addr_t virt_addr) const {
+    SpinlockGuard guard(spinlock_);
     const PageMapIndexer indexer(virt_addr);
 
     const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
@@ -124,6 +127,7 @@ void PageTableManager::unmap_memory(const virt_addr_t virt_addr) const {
 }
 
 bool PageTableManager::is_mapped(const virt_addr_t virt_addr) const {
+    SpinlockGuard guard(spinlock_);
     const PageMapIndexer indexer(virt_addr);
 
     const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
@@ -146,6 +150,7 @@ bool PageTableManager::is_mapped(const virt_addr_t virt_addr) const {
 }
 
 phys_addr_t PageTableManager::get_physical_address(const virt_addr_t virt_addr) const {
+    SpinlockGuard guard(spinlock_);
     const PageMapIndexer indexer(virt_addr);
 
     const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));

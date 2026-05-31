@@ -77,6 +77,7 @@ static Result<VfsNode*> ext4_find(VfsNode* node, const char* name) {
         child_node->internal_data = child_data;
         child_node->ops = node->ops;
         child_node->size = entries[i].get_size();
+        child_node->seekable = !(child_data->is_dir);
 
         kernel::memory::free(entries);
         return Result<VfsNode*>::ok(child_node);

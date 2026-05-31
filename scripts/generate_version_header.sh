@@ -1,10 +1,10 @@
 #!/bin/bash
 
 VERSION_MAJOR=0
-VERSION_MINOR=30
+VERSION_MINOR=31
 VERSION_PATCH=0
 VERSION_STAGE="dev"
-VERSION_NAME="empty moon"
+VERSION_NAME="lunar eclipse"
 VERSION_BUILD=$(date +%Y%m%d)-g$(git rev-parse --short HEAD)
 
 

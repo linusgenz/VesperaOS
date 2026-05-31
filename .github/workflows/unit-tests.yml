@@ -17,6 +17,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Include hygiene check
+        run: python3 scripts/check_include_hygiene.py
+
+      - name: Include boundary check
+        run: python3 scripts/check_include_boundaries.py
+
       - name: Install build deps
         run: |
           sudo apt-get update
@@ -28,10 +34,10 @@ jobs:
           mkfs.fat -F 32 -S 512 tests/test.img
 
       - name: Configure
-        run: cmake -S tests -B tests/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S . -B cmake-build-tests -G Ninja -DCMAKE_BUILD_TYPE=Debug -DVESPERA_BUILD_TESTS=ON
 
       - name: Build
-        run: cmake --build tests/build
+        run: cmake --build cmake-build-tests
 
       - name: Run tests (ctest)
-        run: ctest --test-dir tests/build --output-on-failure
+        run: ctest --test-dir cmake-build-tests --output-on-failure

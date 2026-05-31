@@ -1,7 +1,5 @@
-cmake_minimum_required(VERSION 4.0.2)
-project(VesperaOS C CXX ASM_NASM)
-
-enable_language(ASM_NASM)
+cmake_minimum_required(VERSION 3.24)
+project(VesperaOS C CXX)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 20)
@@ -29,6 +27,8 @@ if (VESPERA_BUILD_TESTS)
     set(CMAKE_C_FLAGS "-g -O0 -Wall")
     add_subdirectory(tests)
     return()
+else ()
+    enable_language(ASM_NASM)
 endif ()
 
 set(CMAKE_C_COMPILER_WORKS 1)
@@ -147,7 +147,7 @@ add_custom_target(run
         -smp 8
         -machine q35
         -enable-kvm
-        -cpu qemu64
+        -cpu host
         -vga std
         -drive if=pflash,format=raw,unit=0,readonly=on,file=${CMAKE_SOURCE_DIR}/OVMF/OVMF_CODE-pure-efi.fd
         -drive if=pflash,format=raw,unit=1,file=${CMAKE_BINARY_DIR}/OVMF_VARS.fd

@@ -1,11 +1,12 @@
 #include <acpi/acpi_subsystem.h>
-#include <arch/x86_64/interrupts/ioapic.h>
+#include <acpi/madt.h>
+#include <arch/x86_64/ioapic.h>
 #include <vespera/realm/realm_types.h>
 
-#include "vespera/unit/unit_manager.h"
 #include "vespera/interrupts.h"
 #include "vespera/scheduling.h"
 #include "vespera/sync/semaphore.h"
+#include "vespera/unit/unit_manager.h"
 #include "vespera/unit_config.h"
 
 extern "C" {

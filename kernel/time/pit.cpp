@@ -26,8 +26,7 @@
 #include <vespera/interrupts.h>
 #include <vespera/log.h>
 
-//#include <arch/x86_64/interrupts/ioapic.h>
-#include "../arch/x86_64/interrupts/ioapic.h" // TODO
+#include <arch/x86_64/ioapic.h>
 #include "acpi/madt.h"
 
 namespace kernel::time {

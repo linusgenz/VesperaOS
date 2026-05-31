@@ -10,8 +10,8 @@
 #include <vespera/log.h>
 #include <vespera/system/system_manager.h>
 #include <vespera/time.h>
+#include <vespera/cpu/cpu.h>
 
-#include "../../../kernel/cpu/cpu.h"
 #include "drivers/usb/usb_manager.h"
 #include "xhci_common.h"
 #include "xhci_device.h"

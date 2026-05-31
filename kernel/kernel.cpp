@@ -166,6 +166,7 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     };
     Realm* shell_realm = RealmManager::create(&realm_config_shell);
     shell_realm->handle_table->setup_stdio("/dev/tty0");
+    shell_realm->handle_table->setup_vbus();
 
     const ElfLoader::LoadResult result = ElfLoader::load("/bin/lua", 0x400000, shell_realm);
     if (!result.success) {

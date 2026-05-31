@@ -4,10 +4,8 @@
 
 #ifndef CPU_H
 #define CPU_H
-#include <vespera/types.h>
 
-void detect_qemu();
-bool in_qemu();
+#include <vespera/types.h>
 
 u64 rdtsc();
 

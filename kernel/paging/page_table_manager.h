@@ -5,6 +5,7 @@
 #define PAGE_TABLE_MANAGER_H
 
 #include <vespera/mm/addr.h>
+#include <vespera/sync/spinlock.h>
 
 #include "paging.h"
 
@@ -29,6 +30,8 @@ class PageTableManager {
 
    private:
     void destroy_level(PageTable* table, int level) const;
+
+    mutable Spinlock spinlock_;
 };
 
 #endif  // PAGE_TABLE_MANAGER_H
