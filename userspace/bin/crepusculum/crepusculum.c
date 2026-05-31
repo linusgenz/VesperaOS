@@ -1,4 +1,5 @@
 #include <crepusculum_protocol.h>
+#include <math.h>
 #include <realm.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,6 +22,9 @@
 #include "luautil.h"
 #include "monteserrat_12.c"
 #include "vespera/handles.h"
+#include "window_close_symbolic_16px.h"
+#include "window_maximize_symbolic_16px.h"
+#include "window_minimize_symbolic_16px.h"
 #include "xcursor_loader.h"
 
 #define MAX_WINDOWS 16
@@ -76,6 +80,14 @@ typedef struct crep_window {
     uint32_t flags;
     bool fullscreen;
 
+    char title[64];
+
+    RealmID owner_realm_id;
+
+    bool dirty;
+
+    // Titlebar button bounding boxes (absolute screen coords).
+    // Set every frame by ssd_draw_decorations(); read by process_mouse().
     struct {
         uint32_t x, y, w, h;
     } btn_close;
@@ -85,12 +97,6 @@ typedef struct crep_window {
     struct {
         uint32_t x, y, w, h;
     } btn_minimize;
-
-    char title[64];
-
-    RealmID owner_realm_id;
-
-    bool dirty;
 } crep_window_t;
 
 typedef struct {
@@ -102,17 +108,19 @@ typedef struct {
     uint32_t ssd_color_titlebar;
     uint32_t ssd_color_border;
     uint32_t ssd_color_title_fg;
-    uint32_t ssd_color_btn_close;      // 0xFFED8796  (Adwaita-rot)
-    uint32_t ssd_color_btn_maximize;   // 0xFF8EC994  (Adwaita-grün)
-    uint32_t ssd_color_btn_minimize;   // 0xFFF8D080  (Adwaita-gelb)
-    uint32_t ssd_color_btn_hover;      // leicht aufgehellt
-    int      ssd_btn_size;             // 16
-    int      ssd_btn_margin;           // 4
-    int      ssd_btn_right_pad;        // 8
 
     char cursor_xcursor_path[256];
-    int cursor_xcursor_target_size;
+    uint32_t cursor_xcursor_target_size;
 
+    // [ssd.buttons]
+    uint32_t ssd_color_btn_close;     // filled circle color (close)
+    uint32_t ssd_color_btn_maximize;  // filled circle color (maximize)
+    uint32_t ssd_color_btn_minimize;  // filled circle color (minimize)
+    int ssd_btn_size;                 // diameter in pixels
+    int ssd_btn_margin;               // gap between buttons
+    int ssd_btn_right_pad;            // distance from right edge of titlebar
+
+    // [compositor]
     char compositor_desktop_binary[256];
 } display_config_t;
 
@@ -135,10 +143,15 @@ typedef struct compositor_state {
     int32_t drag_grab_y;         // my - w->y when clicked
     uint8_t last_buttons;        // Previous button state for edge detection
 
-    crep_window_t* hover_btn_window;
-    int hover_btn_idx;
-
     bool needs_present;
+
+    // Button hover state — updated in process_mouse(), consumed by ssd_draw_decorations().
+    crep_window_t* hover_btn_window;  // NULL = no button hovered
+    int hover_btn_idx;                // 0=close, 1=maximize, 2=minimize, -1=none
+
+    // Action fires only when release lands on the same button as press.
+    crep_window_t* pressed_btn_window;  // NULL = no button currently held
+    int pressed_btn_idx;                // 0=close, 1=maximize, 2=minimize, -1=none
 
     // Software backbuffer: width * height * 4 bytes.
     // All compositing happens here; a single blit pushes it to the screen.
@@ -368,6 +381,18 @@ static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_d
 
     printf("Crepusculum: destroying window %u (owner='%s')\n", w->id, w->owner);
     window_free_shm(w);
+
+    // Clear any compositor state that holds a pointer to this window.
+    if (g_comp.drag_window == w) g_comp.drag_window = NULL;
+    if (g_comp.hover_btn_window == w) {
+        g_comp.hover_btn_window = NULL;
+        g_comp.hover_btn_idx = -1;
+    }
+    if (g_comp.pressed_btn_window == w) {
+        g_comp.pressed_btn_window = NULL;
+        g_comp.pressed_btn_idx = -1;
+    }
+
     w->active = false;
     g_comp.window_count--;
     g_comp.needs_present = true;
@@ -577,14 +602,86 @@ static uint32_t ssd_text_width(const char* s) {
     uint32_t total_width = 0;
 
     while (*s) {
-        uint32_t code = (uint8_t)*s;  // Für UTF-8/Umlaute später ggf. anpassen
+        uint32_t code = (uint8_t)*s;  // Adjust for UTF-8/umlauts later if necessary
         int idx = get_glyph_index(code);
 
-        // glyph_dsc ist das Array aus deiner Font-Datei
-        total_width += (glyph_dsc[idx].adv_w + 8) / 16;  // +8 zum Runden vor dem Teilen
+        total_width += (glyph_dsc[idx].adv_w + 8) / 16;
         s++;
     }
     return total_width;
+}
+
+static void ssd_fill_circle_aa(uint32_t cx, uint32_t cy, uint32_t r, uint32_t color) {
+    const uint32_t sw = g_comp.info.width;
+    const uint32_t sh = g_comp.info.height;
+
+    const uint8_t cr = (color >> 16) & 0xFF;
+    const uint8_t cg = (color >> 8) & 0xFF;
+    const uint8_t cb = color & 0xFF;
+    const uint8_t ca = (color >> 24) & 0xFF;
+
+    const float rf = (float)r;
+    const int32_t ri = (int32_t)r + 1;
+
+    for (int32_t dy = -ri; dy <= ri; dy++) {
+        int32_t py = (int32_t)cy + dy;
+        if (py < 0 || (uint32_t)py >= sh) continue;
+
+        for (int32_t dx = -ri; dx <= ri; dx++) {
+            int32_t px = (int32_t)cx + dx;
+            if (px < 0 || (uint32_t)px >= sw) continue;
+
+            float dist = sqrtf((float)(dx * dx + dy * dy));
+            float cover = rf + 0.5f - dist;
+            if (cover <= 0.0f) continue;
+            if (cover > 1.0f) cover = 1.0f;
+
+            uint32_t a = (uint32_t)(cover * (float)ca + 0.5f);
+            uint32_t inv = 255u - a;
+
+            uint32_t bg = g_comp.backbuf[(uint32_t)py * sw + (uint32_t)px];
+            uint8_t out_r = (uint8_t)((cr * a + ((bg >> 16) & 0xFF) * inv + 127u) / 255u);
+            uint8_t out_g = (uint8_t)((cg * a + ((bg >> 8) & 0xFF) * inv + 127u) / 255u);
+            uint8_t out_b = (uint8_t)((cb * a + (bg & 0xFF) * inv + 127u) / 255u);
+
+            g_comp.backbuf[(uint32_t)py * sw + (uint32_t)px] =
+                0xFF000000u | ((uint32_t)out_r << 16) | ((uint32_t)out_g << 8) | out_b;
+        }
+    }
+}
+
+// Blit a 16×16 ARGB icon array centred at (cx, cy) into the backbuffer.
+// Reuses backbuf_blit_cursor_pixels() which already handles clipping + alpha blending.
+static void ssd_blit_icon_16(uint32_t cx, uint32_t cy, const uint32_t* icon) {
+    int32_t origin_x = (int32_t)cx - 8;
+    int32_t origin_y = (int32_t)cy - 8;
+    backbuf_blit_cursor_pixels(icon, 16, 16, origin_x, origin_y);
+}
+
+// Lighten a color by blending it toward white by `amount` (0–255).
+static uint32_t color_lighten(uint32_t c, uint8_t amount) {
+    uint8_t r = (uint8_t)((c >> 16) & 0xFF);
+    uint8_t g = (uint8_t)((c >> 8) & 0xFF);
+    uint8_t b = (uint8_t)(c & 0xFF);
+    r = (uint8_t)(r + (uint32_t)(255 - r) * amount / 255);
+    g = (uint8_t)(g + (uint32_t)(255 - g) * amount / 255);
+    b = (uint8_t)(b + (uint32_t)(255 - b) * amount / 255);
+    return (c & 0xFF000000u) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
+
+// Returns which titlebar button (x,y) hits: 0=close, 1=maximize, 2=minimize, -1=none.
+// w's btn_* bounding boxes must already be populated (done by ssd_draw_decorations).
+static int hit_test_titlebar_buttons(const crep_window_t* w, int32_t x, int32_t y) {
+    if (x >= (int32_t)w->btn_close.x && x < (int32_t)(w->btn_close.x + w->btn_close.w) &&
+        y >= (int32_t)w->btn_close.y && y < (int32_t)(w->btn_close.y + w->btn_close.h))
+        return 0;
+    if (x >= (int32_t)w->btn_maximize.x && x < (int32_t)(w->btn_maximize.x + w->btn_maximize.w) &&
+        y >= (int32_t)w->btn_maximize.y && y < (int32_t)(w->btn_maximize.y + w->btn_maximize.h))
+        return 1;
+    if (x >= (int32_t)w->btn_minimize.x && x < (int32_t)(w->btn_minimize.x + w->btn_minimize.w) &&
+        y >= (int32_t)w->btn_minimize.y && y < (int32_t)(w->btn_minimize.y + w->btn_minimize.h))
+        return 2;
+    return -1;
 }
 
 // Draw a horizontal line in the backbuffer, clipped to screen.
@@ -625,43 +722,97 @@ static void ssd_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32
 }
 
 // Render the complete SSD chrome for one windowed (non-fullscreen) window.
-// Called after the window's content has been blitted so the decorations sit on
-// top of any content that may bleed into the decoration area.
-static void ssd_draw_decorations(const crep_window_t* w) {
+// Also writes the btn_close/btn_maximize/btn_minimize bounding boxes so that
+// process_mouse() can hit-test without re-computing the layout.
+// Called after the window's content has been blitted.
+static void ssd_draw_decorations(crep_window_t* w) {
+    const display_config_t* cfg = &g_comp.display_cfg;
+
     // Outer rectangle of the entire decorated window (content + decorations).
     const uint32_t ox = w->x;
     const uint32_t oy = w->y;
     const uint32_t ow = w->w;
     const uint32_t oh = w->h;
+    const uint32_t tb = (uint32_t)cfg->ssd_titlebar_h;
 
-    ssd_fill_rect(ox, oy, ow, g_comp.display_cfg.ssd_titlebar_h, g_comp.display_cfg.ssd_color_titlebar);
+    ssd_fill_rect(ox, oy, ow, tb, cfg->ssd_color_titlebar);
 
-    // Title text: centered horizontally in the title bar.
-    // Glyph height is 7 px; center vertically in the bar.
-    uint32_t text_w = ssd_text_width(w->title);
+    // --- Titlebar buttons (right side: close → max → min) ---
+    const uint32_t btn_d = (uint32_t)cfg->ssd_btn_size;    // button diameter
+    const uint32_t btn_r = btn_d / 2;                      // radius
+    const uint32_t btn_m = (uint32_t)cfg->ssd_btn_margin;  // gap between buttons
+    const uint32_t btn_rp = (uint32_t)cfg->ssd_btn_right_pad;
+
+    // Vertical center of button in titlebar
+    const uint32_t btn_cy = oy + tb / 2;
+
+    // Right-to-left: close is rightmost
+    const uint32_t close_cx = ox + ow - btn_rp - btn_r;
+    const uint32_t max_cx = close_cx - btn_d - btn_m;
+    const uint32_t min_cx = max_cx - btn_d - btn_m;
+
+    // Determine hover colors
+    bool hover_this = (g_comp.hover_btn_window == w);
+    bool pressed_this = (g_comp.pressed_btn_window == w);
+    uint32_t col_close = cfg->ssd_color_btn_close;
+    uint32_t col_max = cfg->ssd_color_btn_maximize;
+    uint32_t col_min = cfg->ssd_color_btn_minimize;
+    if (pressed_this && g_comp.pressed_btn_idx == 0) col_close = color_lighten(col_close, 160);
+    if (pressed_this && g_comp.pressed_btn_idx == 1) col_max = color_lighten(col_max, 160);
+    if (pressed_this && g_comp.pressed_btn_idx == 2) col_min = color_lighten(col_min, 160);
+    if (!pressed_this && hover_this && g_comp.hover_btn_idx == 0) col_close = color_lighten(col_close, 60);
+    if (!pressed_this && hover_this && g_comp.hover_btn_idx == 1) col_max = color_lighten(col_max, 60);
+    if (!pressed_this && hover_this && g_comp.hover_btn_idx == 2) col_min = color_lighten(col_min, 60);
+
+    // Draw circles
+    ssd_fill_circle_aa(close_cx, btn_cy, btn_r, col_close);
+    ssd_fill_circle_aa(max_cx, btn_cy, btn_r, col_max);
+    ssd_fill_circle_aa(min_cx, btn_cy, btn_r, col_min);
+
+    // Draw icons inside circles (arm/half ~= radius * 0.4, minimum 2)
+    ssd_blit_icon_16(close_cx, btn_cy, window_close_symbolic_16px);
+    ssd_blit_icon_16(max_cx, btn_cy, window_maximize_symbolic_16px);
+    ssd_blit_icon_16(min_cx, btn_cy, window_minimize_symbolic_16px);
+
+    // Store hit-boxes (square bounding box around each circle)
+    w->btn_close.x = close_cx - btn_r;
+    w->btn_close.y = btn_cy - btn_r;
+    w->btn_close.w = btn_d;
+    w->btn_close.h = btn_d;
+    w->btn_maximize.x = max_cx - btn_r;
+    w->btn_maximize.y = btn_cy - btn_r;
+    w->btn_maximize.w = btn_d;
+    w->btn_maximize.h = btn_d;
+    w->btn_minimize.x = min_cx - btn_r;
+    w->btn_minimize.y = btn_cy - btn_r;
+    w->btn_minimize.w = btn_d;
+    w->btn_minimize.h = btn_d;
+
+    // --- Title text: centered horizontally, avoiding the button area ---
+    const uint32_t text_w = ssd_text_width(w->title);
+    // Clamp the center-point so it doesn't overlap the buttons on the right.
     int32_t title_x = (int32_t)ox + ((int32_t)ow - (int32_t)text_w) / 2;
-    uint32_t title_y = oy + (g_comp.display_cfg.ssd_titlebar_h - 15) / 2;
+    const uint32_t title_y = oy + (tb - 15) / 2;
     if (title_x < (int32_t)ox) title_x = (int32_t)ox;
 
     const char* p = w->title;
     uint32_t gx = (uint32_t)title_x;
     while (*p) {
-        int idx = get_glyph_index((uint8_t)*p);
-        ssd_draw_glyph(gx, title_y, *p, SSD_COLOR_TITLE_FG);
-
-        // Jetzt springen wir dynamisch so weit, wie das Zeichen lang ist!
+        const int idx = get_glyph_index((uint8_t)*p);
+        ssd_draw_glyph(gx, title_y, *p, cfg->ssd_color_title_fg);
         gx += (glyph_dsc[idx].adv_w + 8) / 16;
         p++;
     }
 
-    // Top border is the bottom edge of the title bar.
-    ssd_hline(ox, oy + g_comp.display_cfg.ssd_titlebar_h - 1, ow, g_comp.display_cfg.ssd_color_border);
-    // Left border (full window height).
-    ssd_vline(ox, oy, oh, g_comp.display_cfg.ssd_color_border);
-    // Right border.
-    if (ow >= 1) ssd_vline(ox + ow - 1, oy, oh, g_comp.display_cfg.ssd_color_border);
-    // Bottom border.
-    if (oh >= 1) ssd_hline(ox, oy + oh - 1, ow, g_comp.display_cfg.ssd_color_border);
+    // --- Borders ---
+    // Bottom edge of titlebar
+    ssd_hline(ox, oy + tb - 1, ow, cfg->ssd_color_border);
+    // Left border (full window height)
+    ssd_vline(ox, oy, oh, cfg->ssd_color_border);
+    // Right border
+    if (ow >= 1) ssd_vline(ox + ow - 1, oy, oh, cfg->ssd_color_border);
+    // Bottom border
+    if (oh >= 1) ssd_hline(ox, oy + oh - 1, ow, cfg->ssd_color_border);
 }
 
 static void composite_frame(void) {
@@ -724,6 +875,9 @@ static bool process_mouse(void) {
     const uint32_t sw = g_comp.info.width;
     const uint32_t sh = g_comp.info.height;
 
+    crep_window_t* coalesced_win = NULL;
+    vbus_display_input_event_t coalesced_payload = {0};
+
     for (size_t i = 0; i < count; i++) {
         mice_event* ev = &events[i];
 
@@ -735,7 +889,72 @@ static bool process_mouse(void) {
             if (g_comp.my < 0) g_comp.my = 0;
             if (g_comp.my > (int32_t)g_comp.info.height - 1) g_comp.my = (int32_t)g_comp.info.height - 1;
             moved = true;
+
+            // Hover-State aktualisieren
+            crep_window_t* prev_hover_win = g_comp.hover_btn_window;
+            int prev_hover_idx = g_comp.hover_btn_idx;
+            g_comp.hover_btn_window = NULL;
+            g_comp.hover_btn_idx = -1;
+
+            for (int wi = MAX_WINDOWS - 1; wi >= 0; wi--) {
+                crep_window_t* w = &g_comp.windows[wi];
+                if (!w->active || !w->pixels || w->fullscreen) continue;
+                if (!is_titlebar_hit(w, g_comp.mx, g_comp.my)) continue;
+                int btn = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
+                if (btn >= 0) {
+                    g_comp.hover_btn_window = w;
+                    g_comp.hover_btn_idx = btn;
+                }
+                break;
+            }
+
+            if (g_comp.hover_btn_window != prev_hover_win || g_comp.hover_btn_idx != prev_hover_idx)
+                g_comp.needs_present = true;
+
+            // Drag während Move direkt aktualisieren
+            if (g_comp.drag_window) {
+                crep_window_t* w = g_comp.drag_window;
+
+                int32_t new_x = g_comp.mx - g_comp.drag_grab_x;
+                int32_t new_y = g_comp.my - g_comp.drag_grab_y;
+
+                if (new_x < 0) new_x = 0;
+                if (new_y < 0) new_y = 0;
+                if ((uint32_t)new_x + w->w > sw) new_x = (int32_t)(sw - w->w);
+                if ((uint32_t)new_y + w->h > sh) new_y = (int32_t)(sh - w->h);
+
+                w->x = (uint32_t)new_x;
+                w->y = (uint32_t)new_y;
+                g_comp.needs_present = true;
+
+                g_comp.last_buttons = ev->buttons;
+                continue;  // kein Client-Event während Drag
+            }
+
+            // Coalescing: letztes Move-Event im Batch merken
+            crep_window_t* target_win = find_window_at(g_comp.mx, g_comp.my);
+            if (target_win) {
+                int32_t local_x = g_comp.mx - (int32_t)(target_win->x + target_win->content_x);
+                int32_t local_y = g_comp.my - (int32_t)(target_win->y + target_win->content_y);
+
+                if (local_x >= 0 && local_y >= 0 && (uint32_t)local_x < target_win->content_w &&
+                    (uint32_t)local_y < target_win->content_h) {
+                    coalesced_win = target_win;
+                    coalesced_payload = (vbus_display_input_event_t){
+                        .window_id = target_win->id,
+                        .local_x = local_x,
+                        .local_y = local_y,
+                        .buttons = ev->buttons,
+                        .type = (uint32_t)ev->type,
+                    };
+                }
+            }
+
+            g_comp.last_buttons = ev->buttons;
+            continue;
         }
+
+        // Button-Events (Press/Release)
 
         uint8_t pressed = (uint8_t)(ev->buttons & ~g_comp.last_buttons);
         uint8_t released = (uint8_t)(~ev->buttons & g_comp.last_buttons);
@@ -744,11 +963,46 @@ static bool process_mouse(void) {
         if ((pressed & 1) && !g_comp.drag_window) {
             crep_window_t* w = find_window_at(g_comp.mx, g_comp.my);
             if (w && is_titlebar_hit(w, g_comp.mx, g_comp.my)) {
+                int btn = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
+                if (btn >= 0) {
+                    // Merken — erst beim Release auslösen
+                    g_comp.pressed_btn_window = w;
+                    g_comp.pressed_btn_idx = btn;
+                    g_comp.needs_present = true;
+                    continue;
+                }
+                // Kein Button getroffen → Drag starten
                 g_comp.drag_window = w;
                 g_comp.drag_grab_x = g_comp.mx - (int32_t)w->x;
                 g_comp.drag_grab_y = g_comp.my - (int32_t)w->y;
-                continue;  // kein Input-Event an den Client
+                continue;
             }
+        }
+
+        // Button-Release: Aktion nur auslösen wenn Maus noch über demselben Button
+        if ((released & 1) && g_comp.pressed_btn_window) {
+            crep_window_t* w = g_comp.pressed_btn_window;
+            int btn = g_comp.pressed_btn_idx;
+
+            g_comp.pressed_btn_window = NULL;
+            g_comp.pressed_btn_idx = -1;
+            g_comp.needs_present = true;
+
+            crep_window_t* w_under = find_window_at(g_comp.mx, g_comp.my);
+            if (w_under == w && is_titlebar_hit(w, g_comp.mx, g_comp.my)) {
+                int btn_under = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
+                if (btn_under == btn) {
+                    if (btn == 0) {
+                        vbus_display_window_id_t req = {.window_id = w->id, ._pad = 0};
+                        handle_destroy_window(NULL, (vbus_display_destroy_window_t*)&req);
+                    }
+                    if (btn == 1) { /* Maximize placeholder */
+                    }
+                    if (btn == 2) { /* Minimize placeholder */
+                    }
+                }
+            }
+            continue;
         }
 
         if (g_comp.drag_window) {
@@ -757,7 +1011,6 @@ static bool process_mouse(void) {
             int32_t new_x = g_comp.mx - g_comp.drag_grab_x;
             int32_t new_y = g_comp.my - g_comp.drag_grab_y;
 
-            // Fenster vollständig auf dem Screen halten
             if (new_x < 0) new_x = 0;
             if (new_y < 0) new_y = 0;
             if ((uint32_t)new_x + w->w > sw) new_x = (int32_t)(sw - w->w);
@@ -768,15 +1021,15 @@ static bool process_mouse(void) {
             g_comp.needs_present = true;
 
             if (released & 1) g_comp.drag_window = NULL;
-            continue;  // während Drag keine Client-Events
+            continue;
         }
 
+        // Button-Event an Client weiterleiten
         crep_window_t* target_win = find_window_at(g_comp.mx, g_comp.my);
         if (target_win) {
             int32_t local_x = g_comp.mx - (int32_t)(target_win->x + target_win->content_x);
             int32_t local_y = g_comp.my - (int32_t)(target_win->y + target_win->content_y);
 
-            // Klick auf SSD-Bereich (Border etc.) → nicht weiterleiten
             if (local_x < 0 || local_y < 0 || (uint32_t)local_x >= target_win->content_w ||
                 (uint32_t)local_y >= target_win->content_h) {
                 continue;
@@ -800,18 +1053,31 @@ static bool process_mouse(void) {
             );
         }
     }
+
+    // Einmal pro Batch das gecoalescte Move-Event senden
+    if (coalesced_win) {
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY,
+            VBUS_DISP_INPUT_EVENT,
+            get_realm_id(),
+            coalesced_win->owner_realm_id,
+            &coalesced_payload,
+            sizeof(coalesced_payload)
+        );
+    }
+
     return moved;
 }
 
-static inline long long now_ns(void) {
+static inline int64_t now_ns(void) {
     timespec_t ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+    return ts.tv_sec * 1000000000LL + ts.tv_nsec;
 }
 
-static void sleep_ns(long long ns) {
+static void sleep_ns(int64_t ns) {
     if (ns <= 0) return;
-    timespec_t ts = {
+    const timespec_t ts = {
         .tv_sec = ns / 1000000000LL,
         .tv_nsec = ns % 1000000000LL,
     };
@@ -825,11 +1091,17 @@ bool load_display_config(lua_State* L, const char* path, display_config_t* cfg) 
 
         cfg->target_fps = 120;
         cfg->bg_color = 0xFF1A1A24;
-        cfg->ssd_titlebar_h = 22;
+        cfg->ssd_titlebar_h = 34;
         cfg->ssd_border_w = 1;
         cfg->ssd_color_titlebar = 0xFF252535;
         cfg->ssd_color_border = 0xFF3A3A52;
         cfg->ssd_color_title_fg = 0xFFD0D0E8;
+        cfg->ssd_color_btn_close = 0xFFED8796;
+        cfg->ssd_color_btn_maximize = 0xFF8EC994;
+        cfg->ssd_color_btn_minimize = 0xFFF8D080;
+        cfg->ssd_btn_size = 16;
+        cfg->ssd_btn_margin = 4;
+        cfg->ssd_btn_right_pad = 8;
         cfg->cursor_xcursor_target_size = 24;
         strncpy(
             cfg->cursor_xcursor_path,
@@ -843,13 +1115,25 @@ bool load_display_config(lua_State* L, const char* path, display_config_t* cfg) 
     cfg->target_fps = lua_get_table_int(L, "display", "target_fps", 120);
     cfg->bg_color = (uint32_t)lua_get_table_int(L, "display", "bg_color", 0xFF1A1A24);
 
-    cfg->ssd_titlebar_h = lua_get_table_int(L, "ssd", "titlebar_h", 22);
+    cfg->ssd_titlebar_h = lua_get_table_int(L, "ssd", "titlebar_h", 34);
     cfg->ssd_border_w = lua_get_table_int(L, "ssd", "border_w", 1);
     cfg->ssd_color_titlebar = (uint32_t)lua_get_table_int(L, "ssd", "color_titlebar", 0xFF252535);
     cfg->ssd_color_border = (uint32_t)lua_get_table_int(L, "ssd", "color_border", 0xFF3A3A52);
     cfg->ssd_color_title_fg = (uint32_t)lua_get_table_int(L, "ssd", "color_title_fg", 0xFFD0D0E8);
+    cfg->ssd_color_btn_close = (uint32_t)lua_get_table_int(L, "ssd", "color_btn_close", 0xFFED8796);
+    cfg->ssd_color_btn_maximize = (uint32_t)lua_get_table_int(L, "ssd", "color_btn_maximize", 0xFF8EC994);
+    cfg->ssd_color_btn_minimize = (uint32_t)lua_get_table_int(L, "ssd", "color_btn_minimize", 0xFFF8D080);
+    cfg->ssd_btn_size = (int)lua_get_table_int(L, "ssd", "btn_size", 16);
+    cfg->ssd_btn_margin = (int)lua_get_table_int(L, "ssd", "btn_margin", 4);
+    cfg->ssd_btn_right_pad = (int)lua_get_table_int(L, "ssd", "btn_right_pad", 8);
 
-    cfg->cursor_xcursor_target_size = lua_get_table_int(L, "cursor", "xcursor_target_size", 24);
+    int64_t target_cursor_size = lua_get_table_int(L, "cursor", "xcursor_target_size", 24);
+    if (target_cursor_size <= 0) {
+        cfg->cursor_xcursor_target_size = 24;
+    } else {
+        cfg->cursor_xcursor_target_size = target_cursor_size;
+    }
+
     lua_get_table_string(
         L,
         "cursor",
@@ -883,6 +1167,10 @@ int main(int argc, char* argv[]) {
 
     memset(&g_comp, 0, sizeof(g_comp));
     g_comp.next_window_id = 1;
+    g_comp.hover_btn_window = NULL;
+    g_comp.hover_btn_idx = -1;
+    g_comp.pressed_btn_window = NULL;
+    g_comp.pressed_btn_idx = -1;
 
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -906,7 +1194,7 @@ int main(int argc, char* argv[]) {
 
     printf("Crepusculum: framebuffer %ux%u\n", g_comp.info.width, g_comp.info.height);
 
-    uint32_t backbuf_size = g_comp.info.width * g_comp.info.height * sizeof(uint32_t);
+    uint32_t backbuf_size = (size_t)g_comp.info.width * g_comp.info.height * sizeof(uint32_t);
     g_comp.backbuf = (uint32_t*)mmap(NULL, backbuf_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (g_comp.backbuf == MAP_FAILED) {
         printf("Crepusculum: backbuffer allocation failed\n");
@@ -943,18 +1231,18 @@ int main(int argc, char* argv[]) {
     int64_t rid =
         spawn_realm(g_comp.display_cfg.compositor_desktop_binary, (char**)desktop_argv, (char**)desktop_envp, &cfg);
     if (rid < 0)
-        printf("Crepusculum: desktop spawn failed (%lld), running without desktop\n", (long long)rid);
+        printf("Crepusculum: desktop spawn failed (%lld), running without desktop\n", (int64_t)rid);
     else
-        printf("Crepusculum: desktop spawned (realm %lld)\n", (long long)rid);
+        printf("Crepusculum: desktop spawned (realm %lld)\n", (int64_t)rid);
 
     composite_frame();
     printf("Crepusculum: entering compositor loop (%d fps cap)\n", g_comp.display_cfg.target_fps);
-    uint32_t frame_ns = (1000000000LL / g_comp.display_cfg.target_fps);
+    const uint32_t frame_ns = (1000000000LL / g_comp.display_cfg.target_fps);
 
-    long long next_frame = now_ns() + frame_ns;
+    int64_t next_frame = now_ns() + frame_ns;
 
     while (true) {
-        bool mouse_moved = process_mouse();
+        const bool mouse_moved = process_mouse();
         drain_vbus();
 
         if (mouse_moved) g_comp.needs_present = true;
@@ -963,7 +1251,7 @@ int main(int argc, char* argv[]) {
             composite_frame();
         }
 
-        long long remaining = next_frame - now_ns();
+        const int64_t remaining = next_frame - now_ns();
         sleep_ns(remaining);
         next_frame += frame_ns;
     }
