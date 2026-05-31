@@ -17,15 +17,9 @@ add_library(kernel_stubs STATIC
         stub_kernel/systemmanager.cpp
 )
 target_include_directories(kernel_stubs PUBLIC
+        ${CMAKE_SOURCE_DIR}/tests/include
         ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/../include
 )
-
-# =============================================================================
-# CTest
-# =============================================================================
-
-enable_testing()
 
 # =============================================================================
 # Test Modules
@@ -35,3 +29,8 @@ add_subdirectory(fat32)
 add_subdirectory(ext4)
 add_subdirectory(heap)
 add_subdirectory(vector)
+
+add_custom_target(all_tests
+        DEPENDS fat32_tests ext4_tests heap_tests vector_tests
+        COMMENT "Building all test binaries"
+)

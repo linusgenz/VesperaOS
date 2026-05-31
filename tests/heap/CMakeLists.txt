@@ -11,12 +11,6 @@ target_compile_options(heap_tests PRIVATE
         -g
         # -fsanitize=address
 )
-target_include_directories(heap_tests PRIVATE
-        ${CMAKE_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/
-        ${CMAKE_SOURCE_DIR}/include
-        .
-)
 
 function(add_heap_test SUITE NAME)
     add_test(
