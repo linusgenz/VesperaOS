@@ -6,5 +6,6 @@ var searchData=
   ['clockid_5ft_3',['clockid_t',['../alltypes_8h.html#a6dcac6a5cea7d9c842145e1444d91e22',1,'clockid_t:&#160;alltypes.h'],['../include_2uapi_2vespera_2time_8h.html#a3a9a21353df3a31724626a63ddb0b236',1,'clockid_t:&#160;time.h']]],
   ['cpu_5finfo_5ft_4',['cpu_info_t',['../cpuinfo_8h.html#aef20e3ec2c8e5b968374b68aeab40953',1,'cpuinfo.h']]],
   ['cpu_5fusage_5finfo_5ft_5',['cpu_usage_info_t',['../cpustat_8h.html#a28b26ca6af8805a1cfd7c474f956681b',1,'cpustat.h']]],
-  ['cpu_5fusage_5fstat_5ft_6',['cpu_usage_stat_t',['../cpustat_8h.html#a6186b2a46eec53e11e8873b4fe133fb3',1,'cpustat.h']]]
+  ['cpu_5fusage_5fstat_5ft_6',['cpu_usage_stat_t',['../cpustat_8h.html#a6186b2a46eec53e11e8873b4fe133fb3',1,'cpustat.h']]],
+  ['crep_5fsync_5ft_7',['crep_sync_t',['../crepusculum__protocol_8h.html#adbee56fba671f4f2ea15d4e3d335e025',1,'crepusculum_protocol.h']]]
 ];

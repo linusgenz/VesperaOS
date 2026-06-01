@@ -26,7 +26,7 @@ var searchData=
   ['blocks_23',['blocks',['../structvespera__stat.html#a4c7c5d6700ad7cc735acca72c2bcf1af',1,'vespera_stat']]],
   ['bm_5fattributes_24',['bm_attributes',['../structusb__device__info.html#a7243aa5862b20c1255cf8fd945c7cda9',1,'usb_device_info']]],
   ['bool_25',['bool',['../stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9',1,'stdbool.h']]],
-  ['bpp_26',['bpp',['../structfb__info.html#a92ce894e1f0a7e27ec85f6838881a39e',1,'fb_info']]],
+  ['bpp_26',['bpp',['../structfb__info.html#a92ce894e1f0a7e27ec85f6838881a39e',1,'fb_info::bpp'],['../structcrep__sync.html#ad53d3d30b5b0da355282bdf45d9eb680',1,'crep_sync::bpp']]],
   ['brand_27',['brand',['../structcpu__info.html#a261213bcaadbe50b5ac85a91021a0cff',1,'cpu_info']]],
   ['buf_5fpos_28',['buf_pos',['../structFILE.html#a91ee47d34efcc4136d468b8485e1700c',1,'FILE']]],
   ['buf_5fsize_29',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],

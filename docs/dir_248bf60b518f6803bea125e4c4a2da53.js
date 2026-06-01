@@ -5,6 +5,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "sys", "dir_699c0620a471c520d0efc35d8d04f138.html", "dir_699c0620a471c520d0efc35d8d04f138" ],
     [ "assert.h", "assert_8h.html", "assert_8h" ],
     [ "channel.h", "channel_8h.html", "channel_8h" ],
+    [ "crepusculum_protocol.h", "crepusculum__protocol_8h.html", "crepusculum__protocol_8h" ],
     [ "ctype.h", "ctype_8h.html", "ctype_8h" ],
     [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", null ],
     [ "endian.h", "endian_8h.html", "endian_8h" ],

@@ -19,5 +19,9 @@ var searchData=
   ['clock_5fmonotonic_5fraw_16',['CLOCK_MONOTONIC_RAW',['../include_2uapi_2vespera_2time_8h.html#abc28c2ee4e33ae055ef2f737110a7020',1,'time.h']]],
   ['clock_5fprocess_5fcputime_5fid_17',['CLOCK_PROCESS_CPUTIME_ID',['../include_2uapi_2vespera_2time_8h.html#ae1c3939a1e7b7cd1e5a4a7fa601cc4e9',1,'time.h']]],
   ['clock_5frealtime_18',['CLOCK_REALTIME',['../include_2uapi_2vespera_2time_8h.html#a922ce1ae64374c9410c8a999e25e82af',1,'time.h']]],
-  ['clocks_5fper_5fsec_19',['CLOCKS_PER_SEC',['../userspace_2lib_2include_2time_8h.html#a3d9fc3c745d0880902fe3ea3d5d5f71e',1,'time.h']]]
+  ['clocks_5fper_5fsec_19',['CLOCKS_PER_SEC',['../userspace_2lib_2include_2time_8h.html#a3d9fc3c745d0880902fe3ea3d5d5f71e',1,'time.h']]],
+  ['crep_5fbpp_20',['CREP_BPP',['../crepusculum__protocol_8h.html#a112724bab5da63b44005eab7dc6980b8',1,'crepusculum_protocol.h']]],
+  ['crep_5ffb_5fshm_5fname_21',['CREP_FB_SHM_NAME',['../crepusculum__protocol_8h.html#a73260b8ae7bc25612e87823473319638',1,'crepusculum_protocol.h']]],
+  ['crep_5fmagic_22',['CREP_MAGIC',['../crepusculum__protocol_8h.html#a03e70271918f9287b77bd0b2ebf734fb',1,'crepusculum_protocol.h']]],
+  ['crep_5fsync_5fshm_5fname_23',['CREP_SYNC_SHM_NAME',['../crepusculum__protocol_8h.html#afddcda33bf97d4e86a73c9b9e7a390c2',1,'crepusculum_protocol.h']]]
 ];

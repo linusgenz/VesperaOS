@@ -159,6 +159,7 @@ var menudata={children:[
 {text:"Enumerations",url:"globals_enum.html"},
 {text:"Enumerator",url:"globals_eval.html",children:[
 {text:"_",url:"globals_eval.html#index__5F"},
+{text:"c",url:"globals_eval.html#index_c"},
 {text:"d",url:"globals_eval.html#index_d"},
 {text:"j",url:"globals_eval.html#index_j"},
 {text:"m",url:"globals_eval.html#index_m"},

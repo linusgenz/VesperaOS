@@ -1,12 +1,7 @@
 var searchData=
 [
-  ['dt_5fblockdev_0',['DT_BLOCKDEV',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da3412353c2a426673a0825c38381a6dc5',1,'dirent.h']]],
-  ['dt_5fchardev_1',['DT_CHARDEV',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da45c2663804c110f37496697c8e1122e8',1,'dirent.h']]],
-  ['dt_5fdir_2',['DT_DIR',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da40b944f75d390136b9f74124dc23ef94',1,'dirent.h']]],
-  ['dt_5fexec_3',['DT_EXEC',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da433674f41e1ea22c4079d028475141d8',1,'dirent.h']]],
-  ['dt_5ffifo_4',['DT_FIFO',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da5488f793b1e97263b3b7ffea7d8ca820',1,'dirent.h']]],
-  ['dt_5ffile_5',['DT_FILE',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da2e66401e4f5d2c978ddb6021267c717e',1,'dirent.h']]],
-  ['dt_5fsocket_6',['DT_SOCKET',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17dad7bea0362e9c429fabbd3a881f261ea3',1,'dirent.h']]],
-  ['dt_5fsymlink_7',['DT_SYMLINK',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daf17ead8c24594dd530d8451c0edc6f16',1,'dirent.h']]],
-  ['dt_5funknown_8',['DT_UNKNOWN',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]]
+  ['crep_5fstrut_5fbottom_0',['CREP_STRUT_BOTTOM',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fa44b99dd39603278b59731ac779fb0f19',1,'crepusculum_protocol.h']]],
+  ['crep_5fstrut_5fleft_1',['CREP_STRUT_LEFT',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fafade63e71e1cd58ca034c09fb1b4998d',1,'crepusculum_protocol.h']]],
+  ['crep_5fstrut_5fright_2',['CREP_STRUT_RIGHT',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fac8b515bb25ca1a4decf5ce194539f029',1,'crepusculum_protocol.h']]],
+  ['crep_5fstrut_5ftop_3',['CREP_STRUT_TOP',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fa4cce5842a83e72de8a0d52621b44ab1e',1,'crepusculum_protocol.h']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['thermal_5fsource_0',['thermal_source',['../thermal_8h.html#a6294bb55ef57e7cffee910167521311c',1,'thermal.h']]]
+  ['smartdrivertype_0',['SmartDriverType',['../ioctl__smart_8h.html#abcc9e6bcf7ee2d9a509faf60a5087a44',1,'ioctl_smart.h']]]
 ];
