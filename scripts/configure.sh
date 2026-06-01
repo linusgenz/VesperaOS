@@ -28,7 +28,7 @@ fi
 rm -rf cmake-build-debug
 mkdir cmake-build-debug
 cd cmake-build-debug
-cmake -G Ninja .. \
+cmake .. \
     -DCMAKE_CXX_COMPILER_WORKS=TRUE \
     -DCMAKE_C_COMPILER_WORKS=TRUE \
     $CMAKE_COMPILER_FLAGS \
@@ -38,4 +38,4 @@ cmake -G Ninja .. \
 cd ..
 
 rm -rf cmake-build-tests
-cmake -S . -B cmake-build-tests -G Ninja -DCMAKE_BUILD_TYPE=Debug -DVESPERA_BUILD_TESTS=ON
+cmake -S . -B cmake-build-tests -DCMAKE_BUILD_TYPE=Debug -DVESPERA_BUILD_TESTS=ON

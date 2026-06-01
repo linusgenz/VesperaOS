@@ -97,6 +97,10 @@ typedef struct crep_window {
     struct {
         uint32_t x, y, w, h;
     } btn_minimize;
+
+    bool maximized;
+    uint32_t saved_x, saved_y, saved_w, saved_h;
+    uint32_t saved_content_w, saved_content_h;
 } crep_window_t;
 
 typedef struct {
@@ -153,6 +157,13 @@ typedef struct compositor_state {
     crep_window_t* pressed_btn_window;  // NULL = no button currently held
     int pressed_btn_idx;                // 0=close, 1=maximize, 2=minimize, -1=none
 
+    struct {
+        uint32_t top;
+        uint32_t bottom;
+        uint32_t left;
+        uint32_t right;
+    } struts;
+
     // Software backbuffer: width * height * 4 bytes.
     // All compositing happens here; a single blit pushes it to the screen.
     uint32_t* backbuf;
@@ -198,6 +209,13 @@ static void init_cursor_pixels(void) {
     } else {
         printf("Crepusculum: xcursor load failed, using built-in fallback cursor\n");
     }
+}
+
+static void crep_get_work_area(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h) {
+    *x = g_comp.struts.left;
+    *y = g_comp.struts.top;
+    *w = g_comp.info.width - g_comp.struts.left - g_comp.struts.right;
+    *h = g_comp.info.height - g_comp.struts.top - g_comp.struts.bottom;
 }
 
 static crep_window_t* find_window_by_id(uint32_t id) {
@@ -401,6 +419,88 @@ static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_d
     vbus_signal(VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CLOSED, w->owner_realm_id, &closed, sizeof(closed));
 }
 
+static int window_resize_shm(crep_window_t* w) {
+    if (w->pixels && w->pixels != MAP_FAILED) {
+        munmap(w->pixels, w->content_w * w->content_h * CREP_BPP);
+        w->pixels = NULL;
+    }
+
+    const uint32_t new_fb_size = w->content_w * w->content_h * CREP_BPP;
+
+    if (ftruncate(w->fb_shm, new_fb_size) < 0) return -1;
+
+    w->pixels = (uint32_t*)mmap(NULL, new_fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, w->fb_shm, 0);
+    if (w->pixels == MAP_FAILED) return -1;
+
+    w->sync->width = w->content_w;
+    w->sync->height = w->content_h;
+    w->sync->pitch = w->content_w * CREP_BPP;
+
+    return 0;
+}
+
+static void window_apply_maximize(crep_window_t* w) {
+    const display_config_t* cfg = &g_comp.display_cfg;
+    uint32_t wa_x, wa_y, wa_w, wa_h;
+    crep_get_work_area(&wa_x, &wa_y, &wa_w, &wa_h);
+
+    w->x = wa_x;
+    w->y = wa_y;
+    w->w = wa_w;
+    w->h = wa_h;
+    w->content_x = (uint32_t)cfg->ssd_border_w;
+    w->content_y = (uint32_t)cfg->ssd_titlebar_h;
+    w->content_w = wa_w - (uint32_t)(cfg->ssd_border_w * 2);
+    w->content_h = wa_h - (uint32_t)(cfg->ssd_titlebar_h + cfg->ssd_border_w);
+
+    window_resize_shm(w);
+
+    vbus_display_configure_t conf = {
+        .window_id = w->id,
+        .width = w->content_w,
+        .height = w->content_h,
+    };
+    vbus_signal_to(
+        VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE, get_realm_id(), w->owner_realm_id, &conf, sizeof(conf)
+    );
+}
+
+static void window_toggle_maximize(crep_window_t* w) {
+    if (g_comp.drag_window == w) g_comp.drag_window = NULL;
+
+    if (!w->maximized) {
+        w->saved_x = w->x;
+        w->saved_y = w->y;
+        w->saved_w = w->w;
+        w->saved_h = w->h;
+        w->saved_content_w = w->content_w;
+        w->saved_content_h = w->content_h;
+        w->maximized = true;
+        window_apply_maximize(w);
+    } else {
+        w->maximized = false;
+        w->x = w->saved_x;
+        w->y = w->saved_y;
+        w->w = w->saved_w;
+        w->h = w->saved_h;
+
+        w->content_w = w->saved_content_w;
+        w->content_h = w->saved_content_h;
+
+        window_resize_shm(w);
+
+        const vbus_display_configure_t conf = {
+            .window_id = w->id,
+            .width = w->content_w,
+            .height = w->content_h,
+        };
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE, get_realm_id(), w->owner_realm_id, &conf, sizeof(conf)
+        );
+    }
+    g_comp.needs_present = true;
+}
+
 static int drain_vbus(void) {
     int processed = 0;
     for (;;) {
@@ -409,6 +509,7 @@ static int drain_vbus(void) {
             vbus_display_create_window_t create;
             vbus_display_commit_t commit;
             vbus_display_destroy_window_t destroy;
+            vbus_display_set_strut_t strut;
         } payload;
 
         int r = vbus_recv(&hdr, &payload, sizeof(payload));
@@ -422,6 +523,29 @@ static int drain_vbus(void) {
             handle_window_commit(&hdr, &payload.commit);
         } else if (hdr.type == VBUS_MSG_CALL && strncmp(hdr.member, VBUS_DISP_DESTROY_WINDOW, 48) == 0) {
             handle_destroy_window(&hdr, &payload.destroy);
+        } else if (hdr.type == VBUS_MSG_SIGNAL && strncmp(hdr.member, VBUS_DISP_SET_STRUT, 48) == 0) {
+            vbus_display_set_strut_t* s = &payload.strut;
+            switch (s->edge) {
+                case CREP_STRUT_TOP:
+                    g_comp.struts.top = s->size;
+                    break;
+                case CREP_STRUT_BOTTOM:
+                    g_comp.struts.bottom = s->size;
+                    break;
+                case CREP_STRUT_LEFT:
+                    g_comp.struts.left = s->size;
+                    break;
+                case CREP_STRUT_RIGHT:
+                    g_comp.struts.right = s->size;
+                    break;
+            }
+
+            for (int i = 0; i < MAX_WINDOWS; i++) {
+                if (g_comp.windows[i].active && g_comp.windows[i].maximized) {
+                    window_apply_maximize(&g_comp.windows[i]);
+                }
+            }
+            g_comp.needs_present = true;
         }
         processed++;
     }
@@ -972,9 +1096,11 @@ static bool process_mouse(void) {
                     continue;
                 }
                 // Kein Button getroffen → Drag starten
-                g_comp.drag_window = w;
-                g_comp.drag_grab_x = g_comp.mx - (int32_t)w->x;
-                g_comp.drag_grab_y = g_comp.my - (int32_t)w->y;
+                if (!w->maximized) {
+                    g_comp.drag_window = w;
+                    g_comp.drag_grab_x = g_comp.mx - (int32_t)w->x;
+                    g_comp.drag_grab_y = g_comp.my - (int32_t)w->y;
+                }
                 continue;
             }
         }
@@ -996,7 +1122,8 @@ static bool process_mouse(void) {
                         vbus_display_window_id_t req = {.window_id = w->id, ._pad = 0};
                         handle_destroy_window(NULL, (vbus_display_destroy_window_t*)&req);
                     }
-                    if (btn == 1) { /* Maximize placeholder */
+                    if (btn == 1) {
+                        window_toggle_maximize(w);
                     }
                     if (btn == 2) { /* Minimize placeholder */
                     }
