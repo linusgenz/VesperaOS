@@ -4,10 +4,11 @@
 #ifndef PAGE_FRAME_ALLOCATOR_H
 #define PAGE_FRAME_ALLOCATOR_H
 
-#include <vespera/types.h>
 #include <vespera/mm/efi_memory.h>
+#include <vespera/types.h>
 
 #include "bitmap.h"
+#include "vespera/sync/spinlock.h"
 
 class PageFrameAllocator {
    public:
@@ -48,11 +49,21 @@ class PageFrameAllocator {
 
     void unreserve_pages(u64 address, usize page_count);
 
+    void free_page_nolock(u64 phys_addr);
+    void reserve_page_nolock(void *address);
+    void unreserve_page_nolock(u64 address);
+    u64 request_page_nolock();
+    void lock_page_nolock(void *address);
+
     u64 free_memory_{0};
     u64 reserved_memory_{0};
     u64 used_memory_{0};
     u64 total_memory_{0};
     bool initialized_{false};
+
+    u64 page_bitmap_index_{0};
+
+    Spinlock lock_;
 };
 
 #endif  // PAGE_FRAME_ALLOCATOR_H

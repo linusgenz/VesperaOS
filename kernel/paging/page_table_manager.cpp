@@ -27,22 +27,28 @@ void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, 
     const PageMapIndexer indexer(virt_addr);
 
     auto ensure_table = [&](PageTable* parent, const u16 index) -> PageTable* {
-        PageDirectoryEntry& entry = parent->entries[index];
+        PageDirectoryEntry snap{};
+        snap.value = __atomic_load_n(&parent->entries[index].value, __ATOMIC_ACQUIRE);
 
-        if (!entry.get_flag(PtFlag::Present)) {
+        if (!snap.get_flag(PtFlag::Present)) {
             const phys_addr_t new_phys = kernel::memory::request_page_phys();
             if (phys_null(new_phys)) return nullptr;
 
             auto* new_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(new_phys)));
             memset(new_virt, 0, 0x1000);
 
-            entry.set_address(new_phys);
-        }
-        entry.set_flag(PtFlag::Present, true);
-        entry.set_flag(PtFlag::ReadWrite, true);
-        entry.set_flag(PtFlag::UserSuper, true);
+            PageDirectoryEntry new_e;
+            new_e.value = 0;
+            new_e.set_address(new_phys);
+            new_e.set_flag(PtFlag::Present,   true);
+            new_e.set_flag(PtFlag::ReadWrite,  true);
+            new_e.set_flag(PtFlag::UserSuper,  true);
 
-        return static_cast<PageTable*>(virt_ptr(phys_to_virt(entry.get_address())));
+            __atomic_store_n(&parent->entries[index].value, new_e.value, __ATOMIC_RELEASE);
+            return new_virt;
+        }
+
+        return static_cast<PageTable*>(virt_ptr(phys_to_virt(snap.get_address())));
     };
 
     const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
@@ -57,15 +63,16 @@ void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, 
     PageTable* pt = ensure_table(pd, indexer.pt_i);
     if (!pt) return;
 
-    PageDirectoryEntry& final_entry = pt->entries[indexer.p_i];
-    final_entry.set_address(phys_addr);
-
     flags |= (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite);
-    for (int bit = 0; bit < 64; ++bit) {
-        if (flags & (1ULL << bit)) final_entry.set_flag(static_cast<PtFlag>(bit), true);
-    }
-    pt->entries[indexer.p_i] = final_entry;
 
+    PageDirectoryEntry new_pte{};
+    new_pte.set_address(phys_addr);
+    for (int bit = 0; bit < 64; ++bit) {
+        if (flags & (1ULL << bit))
+            new_pte.set_flag(static_cast<PtFlag>(bit), true);
+    }
+
+    __atomic_store_n(&pt->entries[indexer.p_i].value, new_pte.value, __ATOMIC_RELEASE);
     invlpg(virt_addr);
 }
 
@@ -105,24 +112,25 @@ void PageTableManager::unmap_memory(const virt_addr_t virt_addr) const {
     PageDirectoryEntry& page_entry = pt->entries[indexer.p_i];
     if (!page_entry.get_flag(PtFlag::Present)) return;
 
-    page_entry.value = 0;
+    // Clear the leaf PTE atomically before the TLB shootdown.
+    __atomic_store_n(&page_entry.value, 0ULL, __ATOMIC_RELEASE);
     invlpg(virt_addr);
 
     if (is_table_empty(pt)) {
         kernel::memory::free_page_phys(pd_entry.get_address());
-        pd_entry.value = 0;
+        __atomic_store_n(&pd_entry.value, 0ULL, __ATOMIC_RELEASE);
     } else
         return;
 
     if (is_table_empty(pd)) {
         kernel::memory::free_page_phys(pdp_entry.get_address());
-        pdp_entry.value = 0;
+        __atomic_store_n(&pdp_entry.value, 0ULL, __ATOMIC_RELEASE);
     } else
         return;
 
     if (is_table_empty(pdp)) {
         kernel::memory::free_page_phys(pml4_entry.get_address());
-        pml4_entry.value = 0;
+        __atomic_store_n(&pml4_entry.value, 0ULL, __ATOMIC_RELEASE);
     }
 }
 
@@ -176,6 +184,7 @@ phys_addr_t PageTableManager::get_physical_address(const virt_addr_t virt_addr) 
 }
 
 void PageTableManager::destroy_userspace() const {
+    SpinlockGuard guard(spinlock_);
     const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
     const auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
 
