@@ -1,9 +1,9 @@
-// vgfx.c
+// taskbar.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 26.05.26.
+// Created by Linus Genz on 03.06.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,3 +19,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_TASKBAR_H
+#define VESPERAOS_TASKBAR_H
+
+#endif  // VESPERAOS_TASKBAR_H

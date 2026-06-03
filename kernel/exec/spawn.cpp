@@ -180,6 +180,8 @@ namespace kernel::exec {
         const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
         u->heap_start = u->heap_end = heap_begin;
 
+        asm volatile("mfence" ::: "memory");
+
         kernel::scheduling::add_unit(u);
         return Result<RealmId>::ok(r->id);
     }

@@ -314,6 +314,8 @@ void UnitManager::register_unit(Unit* u, Realm* realm, const UnitConfig* cfg) {
         realm->unit_count++;
     }
 
+    asm volatile("mfence" ::: "memory");
+
     SYS_EVENT_UNIT_CREATED(u->id, u->rid);
     RealmFs::register_unit(u->id, u->name, u, realm->name);
 }
