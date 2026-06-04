@@ -17,8 +17,9 @@ var searchData=
   ['remaining_5fmwh_14',['remaining_mwh',['../structvbus__battery.html#a1908bc97d00a056dca3290a96ffc0aa8',1,'vbus_battery']]],
   ['reply_5fserial_15',['reply_serial',['../structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54',1,'vbus_header']]],
   ['reserved_5fram_16',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
-  ['revents_17',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
-  ['rip_18',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
-  ['rows_19',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
-  ['rsp_20',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
+  ['restored_17',['restored',['../unionvbus__payload__t.html#a4942ff1e8bd0824001e6bf8e2d92d345',1,'vbus_payload_t']]],
+  ['revents_18',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
+  ['rip_19',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rows_20',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
+  ['rsp_21',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

@@ -2,10 +2,18 @@ var searchData=
 [
   ['vbus_5fac_0',['vbus_ac',['../structvbus__ac.html',1,'']]],
   ['vbus_5fbattery_1',['vbus_battery',['../structvbus__battery.html',1,'']]],
-  ['vbus_5fdisplay_5fconfigure_5ft_2',['vbus_display_configure_t',['../structvbus__display__configure__t.html',1,'']]],
-  ['vbus_5fdisplay_5fset_5fstrut_5ft_3',['vbus_display_set_strut_t',['../structvbus__display__set__strut__t.html',1,'']]],
-  ['vbus_5fheader_4',['vbus_header',['../structvbus__header.html',1,'']]],
-  ['vbus_5flid_5',['vbus_lid',['../structvbus__lid.html',1,'']]],
-  ['vbus_5fsubscribe_5fargs_6',['vbus_subscribe_args',['../structvbus__subscribe__args.html',1,'']]],
-  ['vespera_5fstat_7',['vespera_stat',['../structvespera__stat.html',1,'']]]
+  ['vbus_5fdisplay_5fcommit_5ft_2',['vbus_display_commit_t',['../structvbus__display__commit__t.html',1,'']]],
+  ['vbus_5fdisplay_5fconfigure_5ft_3',['vbus_display_configure_t',['../structvbus__display__configure__t.html',1,'']]],
+  ['vbus_5fdisplay_5fcreate_5fwindow_5ft_4',['vbus_display_create_window_t',['../structvbus__display__create__window__t.html',1,'']]],
+  ['vbus_5fdisplay_5fdestroy_5fwindow_5ft_5',['vbus_display_destroy_window_t',['../structvbus__display__destroy__window__t.html',1,'']]],
+  ['vbus_5fdisplay_5finput_5fevent_5ft_6',['vbus_display_input_event_t',['../structvbus__display__input__event__t.html',1,'']]],
+  ['vbus_5fdisplay_5fset_5fstrut_5ft_7',['vbus_display_set_strut_t',['../structvbus__display__set__strut__t.html',1,'']]],
+  ['vbus_5fdisplay_5fwindow_5fid_5ft_8',['vbus_display_window_id_t',['../structvbus__display__window__id__t.html',1,'']]],
+  ['vbus_5fdisplay_5fwindow_5finfo_5ft_9',['vbus_display_window_info_t',['../structvbus__display__window__info__t.html',1,'']]],
+  ['vbus_5fdisplay_5fwindow_5fopened_5ft_10',['vbus_display_window_opened_t',['../structvbus__display__window__opened__t.html',1,'']]],
+  ['vbus_5fheader_11',['vbus_header',['../structvbus__header.html',1,'']]],
+  ['vbus_5flid_12',['vbus_lid',['../structvbus__lid.html',1,'']]],
+  ['vbus_5fpayload_5ft_13',['vbus_payload_t',['../unionvbus__payload__t.html',1,'']]],
+  ['vbus_5fsubscribe_5fargs_14',['vbus_subscribe_args',['../structvbus__subscribe__args.html',1,'']]],
+  ['vespera_5fstat_15',['vespera_stat',['../structvespera__stat.html',1,'']]]
 ];

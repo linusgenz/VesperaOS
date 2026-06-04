@@ -18,6 +18,6 @@ var searchData=
   ['buf_5fsize_15',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],
   ['buffer_16',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
   ['bus_5fnumber_17',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]],
-  ['button_5fid_18',['button_id',['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event']]],
-  ['buttons_19',['buttons',['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event']]]
+  ['button_5fid_18',['button_id',['../structvbus__display__input__event__t.html#a9bb544c015d25a3336aae7e40bf0f107',1,'vbus_display_input_event_t::button_id'],['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event::button_id']]],
+  ['buttons_19',['buttons',['../structvbus__display__input__event__t.html#a49b0790fa3effadf9313c9b93758db5e',1,'vbus_display_input_event_t::buttons'],['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event::buttons']]]
 ];

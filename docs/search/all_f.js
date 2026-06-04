@@ -14,6 +14,7 @@ var searchData=
   ['online_11',['online',['../structvbus__ac.html#ad7f67a5b287c6ce94e5d5aaffa45885d',1,'vbus_ac']]],
   ['open_12',['open',['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open'],['../stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851',1,'open(const char *path, int flags):&#160;stdio.h']]],
   ['opendir_13',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]],
-  ['optimize_5fcoding_14',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
-  ['output_5fformat_15',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]]
+  ['opened_14',['opened',['../unionvbus__payload__t.html#a38bbc4cc2ef9a576bf73844c128b9462',1,'vbus_payload_t']]],
+  ['optimize_5fcoding_15',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
+  ['output_5fformat_16',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]]
 ];
