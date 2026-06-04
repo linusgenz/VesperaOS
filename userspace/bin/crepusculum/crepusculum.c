@@ -11,7 +11,6 @@
 #include <sys/shm.h>
 #include <time.h>
 #include <vbus.h>
-#include <vbus_display.h>
 #include <vespera/dev/ioctl_framebuffer.h>
 #include <vespera/dev/mice.h>
 #include <vespera/fflags.h>
@@ -29,8 +28,6 @@
 
 #define MAX_WINDOWS 16
 #define MICE_BATCH 32
-
-#define FRAME_NS (1000000000LL / TARGET_FPS)
 
 #define SSD_COLOR_TITLE_FG 0xFFD0D0E8  // title text foreground
 
@@ -99,6 +96,7 @@ typedef struct crep_window {
     } btn_minimize;
 
     bool maximized;
+    bool minimized;
     uint32_t saved_x, saved_y, saved_w, saved_h;
     uint32_t saved_content_w, saved_content_h;
 } crep_window_t;
@@ -163,6 +161,9 @@ typedef struct compositor_state {
         uint32_t left;
         uint32_t right;
     } struts;
+
+    RealmID desktop_realm_id;
+    bool desktop_spawned;
 
     // Software backbuffer: width * height * 4 bytes.
     // All compositing happens here; a single blit pushes it to the screen.
@@ -361,6 +362,14 @@ static void handle_create_window(const vbus_header_t* hdr, const vbus_display_cr
     w->active = true;
     g_comp.window_count++;
 
+    if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
+        vbus_display_window_opened_t notif = {.window_id = w->id};
+        strncpy(notif.title, w->title, sizeof(notif.title) - 1);
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_OPENED, get_realm_id(), g_comp.desktop_realm_id, &notif, sizeof(notif)
+        );
+    }
+
     resp.window_id = w->id;
     resp.status = 0;
     resp.width = w->content_w;
@@ -415,8 +424,21 @@ static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_d
     g_comp.window_count--;
     g_comp.needs_present = true;
 
+    RealmID crep_id = get_realm_id();
+
     vbus_display_window_id_t closed = {.window_id = req->window_id, ._pad = 0};
-    vbus_signal(VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CLOSED, w->owner_realm_id, &closed, sizeof(closed));
+    vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CLOSED, crep_id, w->owner_realm_id, &closed, sizeof(closed));
+
+    if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY,
+            VBUS_DISP_WINDOW_CLOSED,
+            get_realm_id(),
+            g_comp.desktop_realm_id,
+            &closed,
+            sizeof(closed)
+        );
+    }
 }
 
 static int window_resize_shm(crep_window_t* w) {
@@ -501,16 +523,84 @@ static void window_toggle_maximize(crep_window_t* w) {
     g_comp.needs_present = true;
 }
 
+// Hide the window from the compositor and notify the desktop shell.
+// The window's client is still running; it just isn't composited anymore.
+// If the window is already minimized this is a no-op.
+static void window_minimize(crep_window_t* w) {
+    if (w->minimized) return;
+
+    // Clear any compositor state that references this window.
+    if (g_comp.drag_window == w) g_comp.drag_window = NULL;
+    if (g_comp.hover_btn_window == w) {
+        g_comp.hover_btn_window = NULL;
+        g_comp.hover_btn_idx = -1;
+    }
+    if (g_comp.pressed_btn_window == w) {
+        g_comp.pressed_btn_window = NULL;
+        g_comp.pressed_btn_idx = -1;
+    }
+
+    w->minimized = true;
+    g_comp.needs_present = true;
+
+    // Tell the desktop shell so it can update the taskbar button.
+    if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
+        vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY,
+            VBUS_DISP_WINDOW_MINIMIZED,
+            get_realm_id(),
+            g_comp.desktop_realm_id,
+            &notif,
+            sizeof(notif)
+        );
+    }
+}
+
+// Make a previously minimized window visible again and notify the desktop shell.
+// If the window was maximized before minimizing it comes back maximized.
+// If the window is not minimized this is a no-op.
+static void window_restore(crep_window_t* w) {
+    if (!w->minimized) return;
+
+    w->minimized = false;
+    g_comp.needs_present = true;
+
+    // Tell the desktop shell so it can update the taskbar button.
+    if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
+        vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY,
+            VBUS_DISP_WINDOW_RESTORED,
+            get_realm_id(),
+            g_comp.desktop_realm_id,
+            &notif,
+            sizeof(notif)
+        );
+    }
+}
+
+// Toggles the minimized state of a window based on its current state and focus.
+static void window_toggle_minimize(crep_window_t* w) {
+    if (w->minimized) {
+        // Fall 1: Fenster ist minimiert -> Zeigen!
+        window_restore(w);
+        // window_bring_to_front
+    } else {
+        //  if (is_focused) {
+        // Fall 3: Es ist bereits offen UND fokussiert -> Minimieren!
+        window_minimize(w);
+        // } else {
+        // window_bring_to_front
+        //  }
+    }
+}
+
 static int drain_vbus(void) {
     int processed = 0;
     for (;;) {
         vbus_header_t hdr;
-        union {
-            vbus_display_create_window_t create;
-            vbus_display_commit_t commit;
-            vbus_display_destroy_window_t destroy;
-            vbus_display_set_strut_t strut;
-        } payload;
+        vbus_payload_t payload;
 
         int r = vbus_recv(&hdr, &payload, sizeof(payload));
         if (r <= 0) break;
@@ -518,13 +608,22 @@ static int drain_vbus(void) {
         if (strncmp(hdr.interface, VBUS_IFACE_DISPLAY, 48) != 0) continue;
 
         if (hdr.type == VBUS_MSG_CALL && strncmp(hdr.member, VBUS_DISP_CREATE_WINDOW, 48) == 0) {
-            handle_create_window(&hdr, &payload.create);
+            handle_create_window(&hdr, &payload.create_window);
         } else if (hdr.type == VBUS_MSG_SIGNAL && strncmp(hdr.member, VBUS_DISP_WINDOW_COMMIT, 48) == 0) {
             handle_window_commit(&hdr, &payload.commit);
         } else if (hdr.type == VBUS_MSG_CALL && strncmp(hdr.member, VBUS_DISP_DESTROY_WINDOW, 48) == 0) {
-            handle_destroy_window(&hdr, &payload.destroy);
+            handle_destroy_window(&hdr, &payload.destroy_window);
+        } else if (hdr.type == VBUS_MSG_SIGNAL && strncmp(hdr.member, VBUS_DISP_WINDOW_ACTIVATE, 48) == 0) {
+            const vbus_display_window_id_t msg = payload.activate;
+
+            for (int i = 0; i < MAX_WINDOWS; i++) {
+                if (g_comp.windows[i].active && g_comp.windows[i].id == msg.window_id) {
+                    window_toggle_minimize(&g_comp.windows[i]);
+                    break;
+                }
+            }
         } else if (hdr.type == VBUS_MSG_SIGNAL && strncmp(hdr.member, VBUS_DISP_SET_STRUT, 48) == 0) {
-            vbus_display_set_strut_t* s = &payload.strut;
+            vbus_display_set_strut_t* s = &payload.set_strut;
             switch (s->edge) {
                 case CREP_STRUT_TOP:
                     g_comp.struts.top = s->size;
@@ -944,7 +1043,7 @@ static void composite_frame(void) {
 
     for (int i = 0; i < MAX_WINDOWS; i++) {
         crep_window_t* w = &g_comp.windows[i];
-        if (!w->active || !w->pixels) continue;
+        if (!w->active || !w->pixels || w->minimized) continue;
         backbuf_blit_window(w);
         if (!w->fullscreen) ssd_draw_decorations(w);
         w->dirty = false;
@@ -1125,7 +1224,8 @@ static bool process_mouse(void) {
                     if (btn == 1) {
                         window_toggle_maximize(w);
                     }
-                    if (btn == 2) { /* Minimize placeholder */
+                    if (btn == 2) {
+                        window_minimize(w);
                     }
                 }
             }
@@ -1359,8 +1459,11 @@ int main(int argc, char* argv[]) {
         spawn_realm(g_comp.display_cfg.compositor_desktop_binary, (char**)desktop_argv, (char**)desktop_envp, &cfg);
     if (rid < 0)
         printf("Crepusculum: desktop spawn failed (%lld), running without desktop\n", (int64_t)rid);
-    else
+    else {
         printf("Crepusculum: desktop spawned (realm %lld)\n", (int64_t)rid);
+        g_comp.desktop_realm_id = (RealmID)rid;
+        g_comp.desktop_spawned = true;
+    }
 
     composite_frame();
     printf("Crepusculum: entering compositor loop (%d fps cap)\n", g_comp.display_cfg.target_fps);
