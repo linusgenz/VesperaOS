@@ -90,11 +90,159 @@ $(document).ready(function(){initNavTree('luautil_8h.html',''); initResizable();
 </div>
 
 <div class="header">
+  <div class="summary">
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">luautil.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &quot;lua.h&quot;</code><br />
+<code>#include &lt;<a class="el" href="stdbool_8h_source.html">stdbool.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+</div>
 <p><a href="luautil_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ad95574c52e25d88bb6c4a4c0277fc78c" id="r_ad95574c52e25d88bb6c4a4c0277fc78c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="luautil_8h.html#ad95574c52e25d88bb6c4a4c0277fc78c">lua_get_table_int</a> (lua_State *L, const char *table, const char *key, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> default_val)</td></tr>
+<tr class="separator:ad95574c52e25d88bb6c4a4c0277fc78c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8201cb04fc4ea3b4441478c3b46ceaa" id="r_af8201cb04fc4ea3b4441478c3b46ceaa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="luautil_8h.html#af8201cb04fc4ea3b4441478c3b46ceaa">lua_get_table_string</a> (lua_State *L, const char *table, const char *key, char *dest, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> dest_len, const char *default_val)</td></tr>
+<tr class="separator:af8201cb04fc4ea3b4441478c3b46ceaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae279728b842721214bb327cdd0ed4ce8" id="r_ae279728b842721214bb327cdd0ed4ce8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="luautil_8h.html#ae279728b842721214bb327cdd0ed4ce8">lua_get_table_bool</a> (lua_State *L, const char *table, const char *key, <a class="el" href="stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9">bool</a> default_val)</td></tr>
+<tr class="separator:ae279728b842721214bb327cdd0ed4ce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ae279728b842721214bb327cdd0ed4ce8" name="ae279728b842721214bb327cdd0ed4ce8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae279728b842721214bb327cdd0ed4ce8">&#9670;&#160;</a></span>lua_get_table_bool()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9">bool</a> lua_get_table_bool </td>
+          <td>(</td>
+          <td class="paramtype">lua_State *&#160;</td>
+          <td class="paramname"><em>L</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9">bool</a>&#160;</td>
+          <td class="paramname"><em>default_val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad95574c52e25d88bb6c4a4c0277fc78c" name="ad95574c52e25d88bb6c4a4c0277fc78c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad95574c52e25d88bb6c4a4c0277fc78c">&#9670;&#160;</a></span>lua_get_table_int()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> lua_get_table_int </td>
+          <td>(</td>
+          <td class="paramtype">lua_State *&#160;</td>
+          <td class="paramname"><em>L</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td>
+          <td class="paramname"><em>default_val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af8201cb04fc4ea3b4441478c3b46ceaa" name="af8201cb04fc4ea3b4441478c3b46ceaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8201cb04fc4ea3b4441478c3b46ceaa">&#9670;&#160;</a></span>lua_get_table_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdbool_8h.html#afaa87723b8417d40fcf45b7330261ef9">bool</a> lua_get_table_string </td>
+          <td>(</td>
+          <td class="paramtype">lua_State *&#160;</td>
+          <td class="paramname"><em>L</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>table</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>dest_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>default_val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

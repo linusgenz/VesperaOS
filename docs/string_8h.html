@@ -148,6 +148,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a4522f53cff2fef09001e4d34227463a9" id="r_a4522f53cff2fef09001e4d34227463a9"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a4522f53cff2fef09001e4d34227463a9">memmove</a> (void *dest, const void *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> len)</td></tr>
 <tr class="memdesc:a4522f53cff2fef09001e4d34227463a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy N bytes of SRC to DEST, guaranteeing correct behavior for overlapping strings.  <br /></td></tr>
 <tr class="separator:a4522f53cff2fef09001e4d34227463a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae3fd70ee98fbfce37ac3b991b7395fd" id="r_aae3fd70ee98fbfce37ac3b991b7395fd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#aae3fd70ee98fbfce37ac3b991b7395fd">memmove_safe</a> (void *dest, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> dest_len, const void *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
+<tr class="separator:aae3fd70ee98fbfce37ac3b991b7395fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a493c478d061f31856b22410b0c1b7b8d" id="r_a493c478d061f31856b22410b0c1b7b8d"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a493c478d061f31856b22410b0c1b7b8d">strtok</a> (char *s, char delim)</td></tr>
 <tr class="memdesc:a493c478d061f31856b22410b0c1b7b8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split a string into tokens using a delimiter.  <br /></td></tr>
 <tr class="separator:a493c478d061f31856b22410b0c1b7b8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -162,6 +164,8 @@ Functions</h2></td></tr>
 <tr class="separator:a5b03665d9d996518692af71c3dceb971"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02d89f48610ff69547e936f7ed4fd2f2" id="r_a02d89f48610ff69547e936f7ed4fd2f2"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#a02d89f48610ff69547e936f7ed4fd2f2">memchr</a> (const void *src, int c, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> n)</td></tr>
 <tr class="separator:a02d89f48610ff69547e936f7ed4fd2f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acee9691164f481ba669f8656b1a47e49" id="r_acee9691164f481ba669f8656b1a47e49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="string_8h.html#acee9691164f481ba669f8656b1a47e49">strlcpy</a> (char *dest, const char *src, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
+<tr class="separator:acee9691164f481ba669f8656b1a47e49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a02d89f48610ff69547e936f7ed4fd2f2" name="a02d89f48610ff69547e936f7ed4fd2f2"></a>
@@ -303,6 +307,46 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Copy N bytes of SRC to DEST, guaranteeing correct behavior for overlapping strings. </p>
+
+</div>
+</div>
+<a id="aae3fd70ee98fbfce37ac3b991b7395fd" name="aae3fd70ee98fbfce37ac3b991b7395fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae3fd70ee98fbfce37ac3b991b7395fd">&#9670;&#160;</a></span>memmove_safe()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int memmove_safe </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>dest_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -519,6 +563,40 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Return the length of the initial segment of S which consists entirely of characters not in REJECT. </p>
+
+</div>
+</div>
+<a id="acee9691164f481ba669f8656b1a47e49" name="acee9691164f481ba669f8656b1a47e49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acee9691164f481ba669f8656b1a47e49">&#9670;&#160;</a></span>strlcpy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> strlcpy </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

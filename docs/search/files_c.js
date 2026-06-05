@@ -11,6 +11,8 @@ var searchData=
   ['stdint_2eh_8',['stdint.h',['../stdint_8h.html',1,'']]],
   ['stdio_2eh_9',['stdio.h',['../stdio_8h.html',1,'']]],
   ['stdlib_2eh_10',['stdlib.h',['../stdlib_8h.html',1,'']]],
-  ['string_2eh_11',['string.h',['../string_8h.html',1,'']]],
-  ['sysstd_2eh_12',['sysstd.h',['../sysstd_8h.html',1,'']]]
+  ['stella_2eh_11',['stella.h',['../stella_8h.html',1,'']]],
+  ['stella_5ficons_2eh_12',['stella_icons.h',['../stella__icons_8h.html',1,'']]],
+  ['string_2eh_13',['string.h',['../string_8h.html',1,'']]],
+  ['sysstd_2eh_14',['sysstd.h',['../sysstd_8h.html',1,'']]]
 ];

@@ -20,7 +20,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "limits.h", "limits_8h.html", "limits_8h" ],
     [ "locale.h", "locale_8h.html", "locale_8h" ],
     [ "log_client.h", "log__client_8h.html", "log__client_8h" ],
-    [ "luautil.h", "luautil_8h.html", null ],
+    [ "luautil.h", "luautil_8h.html", "luautil_8h" ],
     [ "math.h", "math_8h.html", "math_8h" ],
     [ "memory.h", "memory_8h.html", "memory_8h" ],
     [ "mount.h", "userspace_2lib_2include_2mount_8h.html", "userspace_2lib_2include_2mount_8h" ],
@@ -36,11 +36,12 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "stdint.h", "stdint_8h.html", "stdint_8h" ],
     [ "stdio.h", "stdio_8h.html", "stdio_8h" ],
     [ "stdlib.h", "stdlib_8h.html", "stdlib_8h" ],
+    [ "stella.h", "stella_8h.html", "stella_8h" ],
+    [ "stella_icons.h", "stella__icons_8h.html", "stella__icons_8h" ],
     [ "string.h", "string_8h.html", "string_8h" ],
     [ "sysstd.h", "sysstd_8h.html", "sysstd_8h" ],
     [ "termios.h", "termios_8h.html", "termios_8h" ],
     [ "time.h", "userspace_2lib_2include_2time_8h.html", "userspace_2lib_2include_2time_8h" ],
     [ "urandom.h", "urandom_8h.html", "urandom_8h" ],
-    [ "vbus.h", "userspace_2lib_2include_2vbus_8h.html", "userspace_2lib_2include_2vbus_8h" ],
-    [ "vgfx.h", "vgfx_8h.html", null ]
+    [ "vbus.h", "userspace_2lib_2include_2vbus_8h.html", "userspace_2lib_2include_2vbus_8h" ]
 ];

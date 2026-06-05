@@ -56,7 +56,7 @@ var searchData=
   ['fetestexcept_53',['fetestexcept',['../fenv_8h.html#aa6b4da774e480be4ff6bdfe1690e5256',1,'fenv.h']]],
   ['feupdateenv_54',['feupdateenv',['../fenv_8h.html#a4199778a80af87636d1b8daa9166f3c0',1,'fenv.h']]],
   ['fexcept_5ft_55',['fexcept_t',['../bits_2fenv_8h.html#a1c6f49e4cae101ca932bad5fb97fb641',1,'fenv.h']]],
-  ['fflags_2eh_56',['fflags.h',['../userspace_2lib_2include_2fflags_8h.html',1,'(Global Namespace)'],['../include_2uapi_2vespera_2fflags_8h.html',1,'(Global Namespace)']]],
+  ['fflags_2eh_56',['fflags.h',['../include_2uapi_2vespera_2fflags_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2fflags_8h.html',1,'(Global Namespace)']]],
   ['fflush_57',['fflush',['../stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf',1,'stdio.h']]],
   ['fgetc_58',['fgetc',['../stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5',1,'stdio.h']]],
   ['fgets_59',['fgets',['../stdio_8h.html#a8b88f4911f10f44c32ebe30082bb53d7',1,'stdio.h']]],
@@ -66,7 +66,7 @@ var searchData=
   ['file_5fhandle_63',['file_handle',['../stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11',1,'FILE_HANDLE:&#160;stdlib.h'],['../stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8',1,'FILE_HANDLE:&#160;stdio.h']]],
   ['find_5fexecutable_64',['find_executable',['../exec_8h.html#adab2f82d2226eff562aa7c3c00396c3b',1,'exec.h']]],
   ['firmware_65',['firmware',['../structdevinfo__t.html#a85eb7f4607f25d0b27a4ccbebfa4ad06',1,'devinfo_t']]],
-  ['flags_66',['flags',['../structvbus__display__create__window__t.html#a8b619190756708330bbe8728f5edebfe',1,'vbus_display_create_window_t::flags'],['../structsmart__attribute.html#af25b0275b338deacef8047af07ee396b',1,'smart_attribute::flags'],['../structvespera__stat.html#aefa00e27ef7dfd7c327c2686ef458eba',1,'vespera_stat::flags'],['../structvbus__header.html#af31869158653206e74bd39e1cf3dc759',1,'vbus_header::flags'],['../structvbus__subscribe__args.html#ab893fe90435673dc691d9009385cdeb3',1,'vbus_subscribe_args::flags'],['../ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee',1,'flags:&#160;ioctl_smart.h']]],
+  ['flags_66',['flags',['../structvbus__display__create__window__t.html#a8b619190756708330bbe8728f5edebfe',1,'vbus_display_create_window_t::flags'],['../structstella__config.html#a13316e9068abea0c917cb511d375e636',1,'stella_config::flags'],['../structstella__img__dsc__t.html#afa91e0d47055ef1eb7cc5645bb28114e',1,'stella_img_dsc_t::flags'],['../structsmart__attribute.html#af25b0275b338deacef8047af07ee396b',1,'smart_attribute::flags'],['../structvespera__stat.html#aefa00e27ef7dfd7c327c2686ef458eba',1,'vespera_stat::flags'],['../structvbus__header.html#af31869158653206e74bd39e1cf3dc759',1,'vbus_header::flags'],['../structvbus__subscribe__args.html#ab893fe90435673dc691d9009385cdeb3',1,'vbus_subscribe_args::flags'],['../ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee',1,'flags:&#160;ioctl_smart.h']]],
   ['float_2eh_67',['float.h',['../float_8h.html',1,'']]],
   ['float_5ft_68',['float_t',['../alltypes_8h.html#a3ded656bbe9849ad9fa2b28530390f0a',1,'alltypes.h']]],
   ['floor_69',['floor',['../math_8h.html#aa295ac062a36cb3cba146db6dcb7efa4',1,'math.h']]],
@@ -125,6 +125,7 @@ var searchData=
   ['fseek_122',['fseek',['../stdio_8h.html#a5e25775bd8597f839a28125b616bd241',1,'stdio.h']]],
   ['fsfilcnt_5ft_123',['fsfilcnt_t',['../alltypes_8h.html#aa9a75fadf2e9c77fca3fb1fda8975c27',1,'alltypes.h']]],
   ['ftell_124',['ftell',['../stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989',1,'stdio.h']]],
-  ['full_5fcapacity_5fmwh_125',['full_capacity_mwh',['../structvbus__battery.html#a0a94efd86d4f38580cfdc1a8b6b9d37c',1,'vbus_battery']]],
-  ['fwrite_126',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
+  ['ftruncate_125',['ftruncate',['../shm_8h.html#a4829002420a948f980ad4186938d27ae',1,'shm.h']]],
+  ['full_5fcapacity_5fmwh_126',['full_capacity_mwh',['../structvbus__battery.html#a0a94efd86d4f38580cfdc1a8b6b9d37c',1,'vbus_battery']]],
+  ['fwrite_127',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
 ];

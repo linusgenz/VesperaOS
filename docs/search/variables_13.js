@@ -6,7 +6,7 @@ var searchData=
   ['thickness_3',['thickness',['../structfb__rect__outline.html#ab45c6f42741b060c2fec8bfd81645649',1,'fb_rect_outline']]],
   ['thousands_5fsep_4',['thousands_sep',['../structlconv.html#aede8dfaac91d7b4e6b7fb0d96184d74d',1,'lconv']]],
   ['threshold_5',['threshold',['../ioctl__smart_8h.html#adf2aa66759fbad0b6b6a1f6d355bbbfa',1,'threshold:&#160;ioctl_smart.h'],['../structsmart__attribute.html#acf4bd1545e9d6b383020b1d9760efbe7',1,'smart_attribute::threshold']]],
-  ['title_6',['title',['../structvbus__display__window__opened__t.html#a362908b53e11697a32efd48e449f16bd',1,'vbus_display_window_opened_t::title'],['../structvbus__display__create__window__t.html#aad7a2b3bfc775dd92b50b529904534b5',1,'vbus_display_create_window_t::title']]],
+  ['title_6',['title',['../structvbus__display__window__opened__t.html#a362908b53e11697a32efd48e449f16bd',1,'vbus_display_window_opened_t::title'],['../structstella__config.html#ada22607b423fd7d29905602380b661b9',1,'stella_config::title'],['../structvbus__display__create__window__t.html#aad7a2b3bfc775dd92b50b529904534b5',1,'vbus_display_create_window_t::title']]],
   ['tm_5fhour_7',['tm_hour',['../structtm.html#a3e7ca4e37f1abcaf56b8a916c38eb9fe',1,'tm']]],
   ['tm_5fisdst_8',['tm_isdst',['../structtm.html#a5645ca0580c8ab2c24f6c2965d9c9f9c',1,'tm']]],
   ['tm_5fmday_9',['tm_mday',['../structtm.html#ab8d8904bad43b0c8b96e61941c5b5310',1,'tm']]],

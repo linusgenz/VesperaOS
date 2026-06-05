@@ -96,8 +96,11 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2vbus_8h.html'
   <div class="headertitle"><div class="title">vbus.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="errno_8h_source.html">errno.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="realm_8h_source.html">realm.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="string_8h_source.html">string.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="sysstd_8h_source.html">sysstd.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="include_2uapi_2vespera_2vbus_8h_source.html">vespera/vbus.h</a>&gt;</code><br />
 </div>
@@ -110,19 +113,37 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:afa22fa8e9f653512906cf8f6f99804c7" id="r_afa22fa8e9f653512906cf8f6f99804c7"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#afa22fa8e9f653512906cf8f6f99804c7">vbus_subscribe</a> (const char *interface, const char *member)</td></tr>
-<tr class="memdesc:afa22fa8e9f653512906cf8f6f99804c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subscribe to a vbus signal.  <br /></td></tr>
-<tr class="separator:afa22fa8e9f653512906cf8f6f99804c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade0f57a56ed976153562365456a01702" id="r_ade0f57a56ed976153562365456a01702"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#ade0f57a56ed976153562365456a01702">vbus_unsubscribe</a> (void)</td></tr>
-<tr class="memdesc:ade0f57a56ed976153562365456a01702"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unsubscribe from all vbus signals.  <br /></td></tr>
-<tr class="separator:ade0f57a56ed976153562365456a01702"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad61429d795f173935e44094c6e6d0eb0" id="r_ad61429d795f173935e44094c6e6d0eb0"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#ad61429d795f173935e44094c6e6d0eb0">vbus_recv</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, void *payload_buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> payload_cap)</td></tr>
-<tr class="memdesc:ad61429d795f173935e44094c6e6d0eb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read one complete vbus message (header + payload) from HANDLE_VBUS.  <br /></td></tr>
-<tr class="separator:ad61429d795f173935e44094c6e6d0eb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48ce13a947c919ec0ec70654eb8b66c5" id="r_a48ce13a947c919ec0ec70654eb8b66c5"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a48ce13a947c919ec0ec70654eb8b66c5">vbus_recv_battery</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#ade5fbf641f4242f7da44b3aba1ae9f2d">vbus_battery_t</a> *out)</td></tr>
-<tr class="separator:a48ce13a947c919ec0ec70654eb8b66c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa421a78779b3364f4649db198021fca1" id="r_aa421a78779b3364f4649db198021fca1"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#aa421a78779b3364f4649db198021fca1">vbus_recv_ac</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a608293cf5245bbd10f314ef9f0552d35">vbus_ac_t</a> *out)</td></tr>
-<tr class="separator:aa421a78779b3364f4649db198021fca1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf1944637ee97cb9eb21a8e04ce4d18c" id="r_abf1944637ee97cb9eb21a8e04ce4d18c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#abf1944637ee97cb9eb21a8e04ce4d18c">vbus_next_serial</a> (void)</td></tr>
+<tr class="memdesc:abf1944637ee97cb9eb21a8e04ce4d18c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the next monotonically increasing message serial.  <br /></td></tr>
+<tr class="separator:abf1944637ee97cb9eb21a8e04ce4d18c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a622ccd414da8b8408ef095b7128c7b6c" id="r_a622ccd414da8b8408ef095b7128c7b6c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a622ccd414da8b8408ef095b7128c7b6c">vbus_subscribe</a> (const char *interface, const char *member)</td></tr>
+<tr class="memdesc:a622ccd414da8b8408ef095b7128c7b6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subscribes the calling process to messages matching (interface, member).  <br /></td></tr>
+<tr class="separator:a622ccd414da8b8408ef095b7128c7b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a502abcdf733eaf6baa3a4a5e51613b14" id="r_a502abcdf733eaf6baa3a4a5e51613b14"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a502abcdf733eaf6baa3a4a5e51613b14">vbus_unsubscribe</a> (void)</td></tr>
+<tr class="memdesc:a502abcdf733eaf6baa3a4a5e51613b14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes all VBus subscriptions for the calling process.  <br /></td></tr>
+<tr class="separator:a502abcdf733eaf6baa3a4a5e51613b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61e5c7e14ab74b3c95d851b9a16f650d" id="r_a61e5c7e14ab74b3c95d851b9a16f650d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a61e5c7e14ab74b3c95d851b9a16f650d">vbus_emit_raw</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, const void *payload, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> payload_size)</td></tr>
+<tr class="memdesc:a61e5c7e14ab74b3c95d851b9a16f650d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a VBus message (header + payload) atomically in a single write operation.  <br /></td></tr>
+<tr class="separator:a61e5c7e14ab74b3c95d851b9a16f650d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7355e5f54982c2e0e30fb1ac48b1bbfe" id="r_a7355e5f54982c2e0e30fb1ac48b1bbfe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a7355e5f54982c2e0e30fb1ac48b1bbfe">vbus_signal</a> (const char *interface, const char *member, <a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> sender_id, const void *payload, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> payload_len)</td></tr>
+<tr class="separator:a7355e5f54982c2e0e30fb1ac48b1bbfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a168136de4ccfd9cca79abc98cb80bc1f" id="r_a168136de4ccfd9cca79abc98cb80bc1f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a168136de4ccfd9cca79abc98cb80bc1f">vbus_call</a> (const char *interface, const char *member, <a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> sender_id, const void *payload, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> payload_size, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> *out_serial)</td></tr>
+<tr class="memdesc:a168136de4ccfd9cca79abc98cb80bc1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a VBUS_MSG_CALL and records its serial in out_serial.  <br /></td></tr>
+<tr class="separator:a168136de4ccfd9cca79abc98cb80bc1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2185f6f181e610d6bb2b87973d59f9d" id="r_ad2185f6f181e610d6bb2b87973d59f9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#ad2185f6f181e610d6bb2b87973d59f9d">vbus_reply</a> (const <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *req, <a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> sender_id, const void *payload, <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> payload_size)</td></tr>
+<tr class="memdesc:ad2185f6f181e610d6bb2b87973d59f9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a VBUS_MSG_RETURN in reply to a received VBUS_MSG_CALL.  <br /></td></tr>
+<tr class="separator:ad2185f6f181e610d6bb2b87973d59f9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa67f37c9e7b88c9f22f2e5d3090adb7b" id="r_aa67f37c9e7b88c9f22f2e5d3090adb7b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#aa67f37c9e7b88c9f22f2e5d3090adb7b">vbus_signal_to</a> (const char *interface, const char *member, <a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> sender_id, <a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a> dest_realm_id, const void *payload, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> payload_len)</td></tr>
+<tr class="separator:aa67f37c9e7b88c9f22f2e5d3090adb7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f395c1bd20d63a86b6e4147ff4b6f0b" id="r_a3f395c1bd20d63a86b6e4147ff4b6f0b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#a3f395c1bd20d63a86b6e4147ff4b6f0b">vbus_recv</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, void *payload_buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> payload_cap)</td></tr>
+<tr class="memdesc:a3f395c1bd20d63a86b6e4147ff4b6f0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read one complete vbus message (header + payload) from HANDLE_VBUS.  <br /></td></tr>
+<tr class="separator:a3f395c1bd20d63a86b6e4147ff4b6f0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7386e8e30c75eb0a7197f0b5a1b7f83" id="r_af7386e8e30c75eb0a7197f0b5a1b7f83"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#af7386e8e30c75eb0a7197f0b5a1b7f83">vbus_recv_battery</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#ade5fbf641f4242f7da44b3aba1ae9f2d">vbus_battery_t</a> *out)</td></tr>
+<tr class="memdesc:af7386e8e30c75eb0a7197f0b5a1b7f83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience wrapper: reads a vbus_battery_t payload.  <br /></td></tr>
+<tr class="separator:af7386e8e30c75eb0a7197f0b5a1b7f83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea256d9bb135a047fc8173e12678c8e5" id="r_aea256d9bb135a047fc8173e12678c8e5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2vbus_8h.html#aea256d9bb135a047fc8173e12678c8e5">vbus_recv_ac</a> (<a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *hdr, <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a608293cf5245bbd10f314ef9f0552d35">vbus_ac_t</a> *out)</td></tr>
+<tr class="memdesc:aea256d9bb135a047fc8173e12678c8e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience wrapper: reads a vbus_ac_t payload.  <br /></td></tr>
+<tr class="separator:aea256d9bb135a047fc8173e12678c8e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a9a6ab293f8132e3752d29ecb13cb1605" name="a9a6ab293f8132e3752d29ecb13cb1605"></a>
@@ -140,17 +161,152 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ad61429d795f173935e44094c6e6d0eb0" name="ad61429d795f173935e44094c6e6d0eb0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad61429d795f173935e44094c6e6d0eb0">&#9670;&#160;</a></span>vbus_recv()</h2>
+<a id="a168136de4ccfd9cca79abc98cb80bc1f" name="a168136de4ccfd9cca79abc98cb80bc1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a168136de4ccfd9cca79abc98cb80bc1f">&#9670;&#160;</a></span>vbus_call()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int vbus_recv </td>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> vbus_call </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>interface</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>member</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
+          <td class="paramname"><em>sender_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td>
+          <td class="paramname"><em>payload_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> *&#160;</td>
+          <td class="paramname"><em>out_serial</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sends a VBUS_MSG_CALL and records its serial in out_serial. </p>
+<p>The caller must save *out_serial and match it against reply_serial in incoming VBUS_MSG_RETURN messages to identify the response.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">interface</td><td>Target interface name; must be non-NULL. </td></tr>
+    <tr><td class="paramname">member</td><td>Target method name; must be non-NULL. </td></tr>
+    <tr><td class="paramname">sender_id</td><td>RealmID of the sender </td></tr>
+    <tr><td class="paramname">payload</td><td>Call arguments; may be NULL. </td></tr>
+    <tr><td class="paramname">payload_size</td><td>Byte length of payload. </td></tr>
+    <tr><td class="paramname">out_serial</td><td>Output: serial of the emitted CALL; must be non-NULL.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success. </dd>
+<dd>
+-EINVAL if interface, member, or out_serial is NULL. </dd>
+<dd>
+Negative errno from vbus_emit_raw on failure. </dd></dl>
+
+</div>
+</div>
+<a id="a61e5c7e14ab74b3c95d851b9a16f650d" name="a61e5c7e14ab74b3c95d851b9a16f650d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a61e5c7e14ab74b3c95d851b9a16f650d">&#9670;&#160;</a></span>vbus_emit_raw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int vbus_emit_raw </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *&#160;</td>
+          <td class="paramname"><em>hdr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td>
+          <td class="paramname"><em>payload_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sends a VBus message (header + payload) atomically in a single write operation. </p>
+<p>The caller must pre-populate the ‘interface’, ‘member’, and ‘type’ fields in the header object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hdr</td><td>Pointer to the partially initialized VBus header. </td></tr>
+    <tr><td class="paramname">payload</td><td>Pointer to the payload data (or NULL if none is available). </td></tr>
+    <tr><td class="paramname">payload_size</td><td>Size of the payload in bytes (0 if NULL). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, or a negative errno code on error. </dd></dl>
+
+</div>
+</div>
+<a id="abf1944637ee97cb9eb21a8e04ce4d18c" name="abf1944637ee97cb9eb21a8e04ce4d18c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf1944637ee97cb9eb21a8e04ce4d18c">&#9670;&#160;</a></span>vbus_next_serial()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> vbus_next_serial </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the next monotonically increasing message serial. </p>
+<p>The counter is process-local and starts at 1. It is not guaranteed to be unique across processes. </p>
+
+</div>
+</div>
+<a id="a3f395c1bd20d63a86b6e4147ff4b6f0b" name="a3f395c1bd20d63a86b6e4147ff4b6f0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f395c1bd20d63a86b6e4147ff4b6f0b">&#9670;&#160;</a></span>vbus_recv()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int vbus_recv </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *&#160;</td>
           <td class="paramname"><em>hdr</em>, </td>
@@ -173,11 +329,6 @@ Functions</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Read one complete vbus message (header + payload) from HANDLE_VBUS. </p>
@@ -194,17 +345,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aa421a78779b3364f4649db198021fca1" name="aa421a78779b3364f4649db198021fca1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa421a78779b3364f4649db198021fca1">&#9670;&#160;</a></span>vbus_recv_ac()</h2>
+<a id="aea256d9bb135a047fc8173e12678c8e5" name="aea256d9bb135a047fc8173e12678c8e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea256d9bb135a047fc8173e12678c8e5">&#9670;&#160;</a></span>vbus_recv_ac()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int vbus_recv_ac </td>
+          <td class="memname">int vbus_recv_ac </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *&#160;</td>
           <td class="paramname"><em>hdr</em>, </td>
@@ -221,26 +369,20 @@ Functions</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+
+<p>Convenience wrapper: reads a vbus_ac_t payload. </p>
 
 </div>
 </div>
-<a id="a48ce13a947c919ec0ec70654eb8b66c5" name="a48ce13a947c919ec0ec70654eb8b66c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48ce13a947c919ec0ec70654eb8b66c5">&#9670;&#160;</a></span>vbus_recv_battery()</h2>
+<a id="af7386e8e30c75eb0a7197f0b5a1b7f83" name="af7386e8e30c75eb0a7197f0b5a1b7f83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7386e8e30c75eb0a7197f0b5a1b7f83">&#9670;&#160;</a></span>vbus_recv_battery()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int vbus_recv_battery </td>
+          <td class="memname">int vbus_recv_battery </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *&#160;</td>
           <td class="paramname"><em>hdr</em>, </td>
@@ -257,26 +399,175 @@ Functions</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
+</div><div class="memdoc">
+
+<p>Convenience wrapper: reads a vbus_battery_t payload. </p>
+
+</div>
+</div>
+<a id="ad2185f6f181e610d6bb2b87973d59f9d" name="ad2185f6f181e610d6bb2b87973d59f9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2185f6f181e610d6bb2b87973d59f9d">&#9670;&#160;</a></span>vbus_reply()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> vbus_reply </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178">vbus_header_t</a> *&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
+          <td class="paramname"><em>sender_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td>
+          <td class="paramname"><em>payload_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sends a VBUS_MSG_RETURN in reply to a received VBUS_MSG_CALL. </p>
+<p>Sets reply_serial = req-&gt;serial so the kernel routes the response back to the original caller via the pending-call table.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>Header of the CALL being replied to; must be non-NULL. </td></tr>
+    <tr><td class="paramname">sender_id</td><td>RealmID of the sender </td></tr>
+    <tr><td class="paramname">payload</td><td>Reply data; may be NULL. </td></tr>
+    <tr><td class="paramname">payload_size</td><td>Byte length of payload.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success. </dd>
+<dd>
+-EINVAL if req is NULL. </dd>
+<dd>
+Negative errno from vbus_emit_raw on failure. </dd></dl>
+
+</div>
+</div>
+<a id="a7355e5f54982c2e0e30fb1ac48b1bbfe" name="a7355e5f54982c2e0e30fb1ac48b1bbfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7355e5f54982c2e0e30fb1ac48b1bbfe">&#9670;&#160;</a></span>vbus_signal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> vbus_signal </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>interface</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>member</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
+          <td class="paramname"><em>sender_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>payload_len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="afa22fa8e9f653512906cf8f6f99804c7" name="afa22fa8e9f653512906cf8f6f99804c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa22fa8e9f653512906cf8f6f99804c7">&#9670;&#160;</a></span>vbus_subscribe()</h2>
+<a id="aa67f37c9e7b88c9f22f2e5d3090adb7b" name="aa67f37c9e7b88c9f22f2e5d3090adb7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa67f37c9e7b88c9f22f2e5d3090adb7b">&#9670;&#160;</a></span>vbus_signal_to()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int vbus_subscribe </td>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> vbus_signal_to </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>interface</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>member</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
+          <td class="paramname"><em>sender_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="realm_8h.html#ab0585566306fc83efde7a4789d0869eb">RealmID</a>&#160;</td>
+          <td class="paramname"><em>dest_realm_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>payload_len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a622ccd414da8b8408ef095b7128c7b6c" name="a622ccd414da8b8408ef095b7128c7b6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a622ccd414da8b8408ef095b7128c7b6c">&#9670;&#160;</a></span>vbus_subscribe()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int vbus_subscribe </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>interface</em>, </td>
@@ -293,51 +584,33 @@ Functions</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Subscribe to a vbus signal. </p>
-<p>After this call, matching signals emitted by the kernel (or other senders) are written into HANDLE_VBUS. Use poll(HANDLE_VBUS, POLLIN) to wait.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">interface</td><td>e.g. VBUS_IFACE_POWER </td></tr>
-    <tr><td class="paramname">member</td><td>e.g. VBUS_SIG_BATTERY_CHANGED, or "" for all members </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success, negative errno on failure </dd></dl>
+<p>Subscribes the calling process to messages matching (interface, member). </p>
+<p>After this call, matching messages are queued into HANDLE_VBUS. Use poll(HANDLE_VBUS, POLLIN) to wait for incoming messages.</p>
+<p>Pass member as NULL or "" to receive every member on interface (wildcard).</p>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, negative errno on failure. </dd></dl>
 
 </div>
 </div>
-<a id="ade0f57a56ed976153562365456a01702" name="ade0f57a56ed976153562365456a01702"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ade0f57a56ed976153562365456a01702">&#9670;&#160;</a></span>vbus_unsubscribe()</h2>
+<a id="a502abcdf733eaf6baa3a4a5e51613b14" name="a502abcdf733eaf6baa3a4a5e51613b14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a502abcdf733eaf6baa3a4a5e51613b14">&#9670;&#160;</a></span>vbus_unsubscribe()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int vbus_unsubscribe </td>
+          <td class="memname">int vbus_unsubscribe </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Unsubscribe from all vbus signals. </p>
+<p>Removes all VBus subscriptions for the calling process. </p>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, negative errno on failure. </dd></dl>
 
 </div>
 </div>

@@ -14,5 +14,6 @@ var userspace_2lib_2include_2time_8h =
     [ "nanosleep", "userspace_2lib_2include_2time_8h.html#a8cd8e52a299d81cb4ab074de1e300f85", null ],
     [ "strftime", "userspace_2lib_2include_2time_8h.html#a49a1866c7618fef74c0cc900be1f1c45", null ],
     [ "strftime_unix", "userspace_2lib_2include_2time_8h.html#a12f4f72041531ca95837d525961dc777", null ],
-    [ "time", "userspace_2lib_2include_2time_8h.html#a99ef1cb2c789827dd5db3886dccf9067", null ]
+    [ "time", "userspace_2lib_2include_2time_8h.html#a99ef1cb2c789827dd5db3886dccf9067", null ],
+    [ "usleep", "userspace_2lib_2include_2time_8h.html#a256986714323ce15d6c80ae1fcd5495b", null ]
 ];

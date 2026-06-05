@@ -16,10 +16,12 @@ var searchData=
   ['remaining_5fcapacity_13',['remaining_capacity',['../structbattery__status.html#aefb66d8b7949d0a1610c84f37ff2c3c1',1,'battery_status']]],
   ['remaining_5fmwh_14',['remaining_mwh',['../structvbus__battery.html#a1908bc97d00a056dca3290a96ffc0aa8',1,'vbus_battery']]],
   ['reply_5fserial_15',['reply_serial',['../structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54',1,'vbus_header']]],
-  ['reserved_5fram_16',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
-  ['restored_17',['restored',['../unionvbus__payload__t.html#a4942ff1e8bd0824001e6bf8e2d92d345',1,'vbus_payload_t']]],
-  ['revents_18',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
-  ['rip_19',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
-  ['rows_20',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
-  ['rsp_21',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
+  ['reserved_16',['reserved',['../structstella__img__dsc__t.html#a483cc08bd7cfb3e7b5c066c593e12ce9',1,'stella_img_dsc_t']]],
+  ['reserved_5f2_17',['reserved_2',['../structstella__img__dsc__t.html#a2ea11e6798d0b61fc73d4527657cbaaa',1,'stella_img_dsc_t::reserved_2'],['../structstella__img__dsc__t.html#adc7b51f14be69f0f62dcf165a4c11865',1,'stella_img_dsc_t::reserved_2']]],
+  ['reserved_5fram_18',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
+  ['restored_19',['restored',['../unionvbus__payload__t.html#a4942ff1e8bd0824001e6bf8e2d92d345',1,'vbus_payload_t']]],
+  ['revents_20',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
+  ['rip_21',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rows_22',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
+  ['rsp_23',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

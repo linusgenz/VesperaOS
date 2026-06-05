@@ -53,5 +53,6 @@ var searchData=
   ['fscanf_50',['fscanf',['../stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0',1,'stdio.h']]],
   ['fseek_51',['fseek',['../stdio_8h.html#a5e25775bd8597f839a28125b616bd241',1,'stdio.h']]],
   ['ftell_52',['ftell',['../stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989',1,'stdio.h']]],
-  ['fwrite_53',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
+  ['ftruncate_53',['ftruncate',['../shm_8h.html#a4829002420a948f980ad4186938d27ae',1,'shm.h']]],
+  ['fwrite_54',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
 ];

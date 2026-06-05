@@ -73,7 +73,7 @@ var searchData=
   ['logb_70',['logb',['../math_8h.html#a9bc7815b951864dd0d20a5b0d07c37c6',1,'math.h']]],
   ['logbf_71',['logbf',['../math_8h.html#a7ec1bed5ddcf0d2b1413a27860a43548',1,'math.h']]],
   ['logbl_72',['logbl',['../math_8h.html#afac4f4e3251f4119c6691e3f3360c731',1,'math.h']]],
-  ['logf_73',['logf',['../math_8h.html#a87c1524bd1a5e838de0f40bd26a28e8c',1,'logf(float):&#160;math.h'],['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'LOGF:&#160;log_client.h']]],
+  ['logf_73',['logf',['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'LOGF:&#160;log_client.h'],['../math_8h.html#a87c1524bd1a5e838de0f40bd26a28e8c',1,'logf(float):&#160;math.h']]],
   ['logl_74',['logl',['../math_8h.html#af835cf6f401edb67986b2b83bcefe16e',1,'math.h']]],
   ['long_5fmax_75',['LONG_MAX',['../limits_8h.html#a50fece4db74f09568b2938db583c5655',1,'limits.h']]],
   ['long_5fmin_76',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]],
@@ -85,5 +85,8 @@ var searchData=
   ['lroundf_82',['lroundf',['../math_8h.html#a4e4ebd0523a1eed730cf33fd343f487c',1,'math.h']]],
   ['lroundl_83',['lroundl',['../math_8h.html#ab69d4a2869a1b4c3ef2ea27aba0c0436',1,'math.h']]],
   ['lseek_84',['lseek',['../stdio_8h.html#a0f505b889099a08a9a2fc58985298205',1,'stdio.h']]],
-  ['luautil_2eh_85',['luautil.h',['../luautil_8h.html',1,'']]]
+  ['lua_5fget_5ftable_5fbool_85',['lua_get_table_bool',['../luautil_8h.html#ae279728b842721214bb327cdd0ed4ce8',1,'luautil.h']]],
+  ['lua_5fget_5ftable_5fint_86',['lua_get_table_int',['../luautil_8h.html#ad95574c52e25d88bb6c4a4c0277fc78c',1,'luautil.h']]],
+  ['lua_5fget_5ftable_5fstring_87',['lua_get_table_string',['../luautil_8h.html#af8201cb04fc4ea3b4441478c3b46ceaa',1,'luautil.h']]],
+  ['luautil_2eh_88',['luautil.h',['../luautil_8h.html',1,'']]]
 ];
