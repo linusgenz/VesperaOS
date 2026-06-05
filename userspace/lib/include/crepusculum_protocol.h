@@ -39,6 +39,10 @@
 #define VBUS_DISP_WINDOW_OPENED "WindowOpened"   /* SIGNAL */
 #define VBUS_DISP_WINDOW_CLOSED "WindowClosed"   /* SIGNAL */
 
+#define VBUS_DISP_FOCUS_LOST "FocusLost" /* SIGNAL */
+#define VBUS_DISP_FOCUS_GAINED "FocusGained" /* SIGNAL */
+#define VBUS_DISP_WINDOW_FOCUSED "WindowFocused" /* SIGNAL */
+
 /* Window Management & Topology Messages */
 #define VBUS_DISP_WINDOW_CONFIGURE "WindowConfigure" /* SIGNAL */
 #define VBUS_DISP_SET_STRUT "SetStrut"               /* SIGNAL */
@@ -139,11 +143,6 @@ typedef struct {
 
 typedef struct {
     uint32_t window_id;
-    uint32_t _pad;
-} vbus_display_destroy_window_t;
-
-typedef struct {
-    uint32_t window_id;
     uint32_t seq;
 } vbus_display_commit_t;
 
@@ -158,6 +157,12 @@ typedef struct {
     uint32_t _pad;
 } vbus_display_input_event_t;
 
+
+typedef struct {
+    uint32_t window_id;
+    uint32_t prev_window_id;
+} vbus_display_window_focused_t;
+
 /* =========================================================================
  * Global Message Payload Union
  * ========================================================================= */
@@ -169,10 +174,11 @@ typedef union {
     vbus_display_configure_t configure;
     vbus_display_set_strut_t set_strut;
     vbus_display_commit_t commit;
-    vbus_display_destroy_window_t destroy_window;
     vbus_display_input_event_t input;
+    vbus_display_window_focused_t focused;
 
     /* Messages sharing the standard window ID layout */
+    vbus_display_window_id_t destroy_window;
     vbus_display_window_id_t closed;
     vbus_display_window_id_t minimized;
     vbus_display_window_id_t restored;

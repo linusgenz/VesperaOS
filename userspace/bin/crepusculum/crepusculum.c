@@ -14,13 +14,13 @@
 #include <vespera/dev/ioctl_framebuffer.h>
 #include <vespera/dev/mice.h>
 #include <vespera/fflags.h>
+#include <vespera/handles.h>
 
 #include "lauxlib.h"
 #include "lua.h"
 #include "lualib.h"
 #include "luautil.h"
 #include "monteserrat_12.c"
-#include "vespera/handles.h"
 #include "window_close_symbolic_16px.h"
 #include "window_maximize_symbolic_16px.h"
 #include "window_minimize_symbolic_16px.h"
@@ -31,7 +31,7 @@
 
 #define SSD_COLOR_TITLE_FG 0xFFD0D0E8  // title text foreground
 
-static const uint8_t g_cursor_map[16][16] = {
+static const uint8_t G_CURSOR_MAP[16][16] = {
     {2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {2, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -108,6 +108,7 @@ typedef struct {
     int ssd_titlebar_h;
     int ssd_border_w;
     uint32_t ssd_color_titlebar;
+    uint32_t ssd_color_titlebar_inactive; /* Tinted down for unfocused windows */
     uint32_t ssd_color_border;
     uint32_t ssd_color_title_fg;
 
@@ -168,8 +169,23 @@ typedef struct compositor_state {
     // Software backbuffer: width * height * 4 bytes.
     // All compositing happens here; a single blit pushes it to the screen.
     uint32_t* backbuf;
+
+    /* --- Focus & Z-Order -------------------------------------------------- */
+
+    // Currently keyboard-focused window. NULL means no application has focus
+    // (e.g. directly after startup before any window is created, or after all
+    // windows are minimized). The desktop window never holds this focus.
+    crep_window_t* focused_window;
+
+    // Z-order stack: each entry is an index into windows[].
+    // z_order[0]           = bottommost window (desktop, always pinned here).
+    // z_order[z_count - 1] = topmost window (receives input first).
+    // Invariant: every active window appears exactly once in z_order[0..z_count-1].
+    int z_order[MAX_WINDOWS];
+    int z_count;
 } compositor_state_t;
 
+static RealmID realm_id = 0;
 static compositor_state_t g_comp;
 
 static loaded_cursor_t g_xcursor;
@@ -178,8 +194,8 @@ static bool g_xcursor_ok = false;
 static void init_cursor_pixels(void) {
     for (int row = 0; row < 16; row++) {
         for (int col = 0; col < 16; col++) {
-            uint8_t t = g_cursor_map[row][col];
-            uint32_t px;
+            uint8_t t = G_CURSOR_MAP[row][col];
+            uint32_t px = 0;
             switch (t) {
                 case 1:
                     px = 0xFFFFFFFF;
@@ -245,6 +261,79 @@ static void make_shm_names(uint32_t id, char* sync_out, char* fb_out) {
     snprintf(fb_out, 64, "/crep_fb_%u", id);
 }
 
+/* =========================================================================
+ * Z-Order Management
+ *
+ * The Z-order array is the single source of truth for compositing order and
+ * hit-testing. Rules:
+ *
+ *  - The desktop window occupies z_order[0] and is never moved from there.
+ *  - TOPMOST windows (VBUS_DISP_FLAG_TOPMOST) always sit above regular windows.
+ *  - All other windows stack between the desktop and the topmost tier.
+ *  - z_raise() places a window at the top of the regular tier, just below any
+ *    TOPMOST windows that may already be there.
+ * ========================================================================= */
+
+/** Slot index of a window pointer into g_comp.windows[]. */
+static inline int w_slot(const crep_window_t* w) {
+    return (int)(w - g_comp.windows);
+}
+
+/** Append a slot to the top of the Z-order stack (used on window creation). */
+static void z_add(int slot) {
+    if (g_comp.z_count >= MAX_WINDOWS) return;
+    g_comp.z_order[g_comp.z_count++] = slot;
+}
+
+/** Remove a slot from the Z-order stack (used on window destruction). */
+static void z_remove(int slot) {
+    for (int i = 0; i < g_comp.z_count; i++) {
+        if (g_comp.z_order[i] != slot) continue;
+        memmove(&g_comp.z_order[i], &g_comp.z_order[i + 1], (size_t)(g_comp.z_count - i - 1) * sizeof(int));
+        g_comp.z_count--;
+        return;
+    }
+}
+
+/** Raise a window to the top of the regular tier (below TOPMOST windows).
+ *  The desktop window is never raised; calling this on it is a no-op. */
+static void z_raise(int slot) {
+    crep_window_t* w = &g_comp.windows[slot];
+
+    // Desktop is permanently pinned at the bottom.
+    if (g_comp.desktop_spawned && w->owner_realm_id == g_comp.desktop_realm_id) return;
+
+    // Find the current position of this slot.
+    int pos = -1;
+    for (int i = 0; i < g_comp.z_count; i++) {
+        if (g_comp.z_order[i] == slot) {
+            pos = i;
+            break;
+        }
+    }
+    if (pos < 0) return;
+
+    // Find the highest position that is NOT a topmost window, scanning from the top.
+    int top = g_comp.z_count - 1;
+    while (top > pos) {
+        const crep_window_t* tw = &g_comp.windows[g_comp.z_order[top]];
+        if (tw->active && (tw->flags & VBUS_DISP_FLAG_TOPMOST)) {
+            top--;
+        } else {
+            break;
+        }
+    }
+
+    if (pos == top) return;  // Already in the correct position.
+
+    memmove(&g_comp.z_order[pos], &g_comp.z_order[pos + 1], (size_t)(top - pos) * sizeof(int));
+    g_comp.z_order[top] = slot;
+}
+
+/* =========================================================================
+ * SHM Window Buffers
+ * ========================================================================= */
+
 static int window_alloc_shm(crep_window_t* w) {
     const uint32_t sync_size = sizeof(crep_sync_t);
     const uint32_t fb_size = w->content_w * w->content_h * CREP_BPP;
@@ -281,12 +370,21 @@ static int window_alloc_shm(crep_window_t* w) {
 
 static void window_free_shm(crep_window_t* w) {
     if (w->sync && w->sync != MAP_FAILED) munmap(w->sync, sizeof(crep_sync_t));
-    if (w->pixels && w->pixels != (void*)MAP_FAILED) munmap(w->pixels, (w->content_w * w->content_h * CREP_BPP));
+    if (w->pixels && w->pixels != (void*)MAP_FAILED) munmap(w->pixels, w->content_w * w->content_h * CREP_BPP);
     shm_unlink(w->sync_shm_name);
     shm_unlink(w->fb_shm_name);
     w->sync = NULL;
     w->pixels = NULL;
 }
+
+/* =========================================================================
+ * VBUS Message Handlers
+ * ========================================================================= */
+
+// Forward declarations needed because handle_destroy_window calls window_focus_next,
+// which is defined later alongside window_set_focus.
+static void window_set_focus(crep_window_t* w);
+static void window_focus_next(void);
 
 static void handle_create_window(const vbus_header_t* hdr, const vbus_display_create_window_t* req) {
     printf(
@@ -322,10 +420,9 @@ static void handle_create_window(const vbus_header_t* hdr, const vbus_display_cr
     const int tb = cfg->ssd_titlebar_h;
     const int bw = cfg->ssd_border_w;
 
-    bool fullscreen = (req->flags & VBUS_DISP_FLAG_FULLSCREEN) || (!req->width || !req->height);
+    const bool fullscreen = (req->flags & VBUS_DISP_FLAG_FULLSCREEN) || (!req->width || !req->height);
     w->fullscreen = fullscreen;
     if (fullscreen) {
-        // Fullscreen: kein SSD, content == outer
         w->content_w = g_comp.info.width;
         w->content_h = g_comp.info.height;
         w->content_x = 0;
@@ -337,7 +434,6 @@ static void handle_create_window(const vbus_header_t* hdr, const vbus_display_cr
     } else {
         w->content_w = req->width;
         w->content_h = req->height;
-        // Outer frame = content + SSD-Ränder
         w->w = req->width + bw * 2;
         w->h = req->height + tb + bw;
         w->content_x = bw;
@@ -362,12 +458,47 @@ static void handle_create_window(const vbus_header_t* hdr, const vbus_display_cr
     w->active = true;
     g_comp.window_count++;
 
+    /* --- Z-Order Registration -------------------------------------------
+     * The desktop window is pinned at the very bottom (z_order[0]).
+     * Every other window is pushed to the top of the stack and immediately
+     * receives focus so that new windows always open in front. */
+    {
+        int slot = w_slot(w);
+        if (g_comp.desktop_spawned && w->owner_realm_id == g_comp.desktop_realm_id) {
+            // Desktop: insert at position 0, shifting everything else up.
+            memmove(&g_comp.z_order[1], &g_comp.z_order[0], (size_t)g_comp.z_count * sizeof(int));
+            g_comp.z_order[0] = slot;
+            g_comp.z_count++;
+        } else {
+            z_add(slot);  // New application window → top of the stack.
+        }
+    }
+
     if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
         vbus_display_window_opened_t notif = {.window_id = w->id};
         strncpy(notif.title, w->title, sizeof(notif.title) - 1);
         vbus_signal_to(
-            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_OPENED, get_realm_id(), g_comp.desktop_realm_id, &notif, sizeof(notif)
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_OPENED, realm_id, g_comp.desktop_realm_id, &notif, sizeof(notif)
         );
+    }
+
+    if (w->owner_realm_id != g_comp.desktop_realm_id) {
+        window_set_focus(w);
+
+        if (g_comp.desktop_spawned) {
+            crep_window_t* prev = g_comp.focused_window;
+            const uint32_t prev_id = prev ? prev->id : 0;
+
+            const vbus_display_window_focused_t focus_notif = {.window_id = w->id, .prev_window_id = prev_id};
+            vbus_signal_to(
+                VBUS_IFACE_DISPLAY,
+                VBUS_DISP_WINDOW_FOCUSED,
+                realm_id,
+                g_comp.desktop_realm_id,
+                &focus_notif,
+                sizeof(focus_notif)
+            );
+        }
     }
 
     resp.window_id = w->id;
@@ -401,7 +532,7 @@ static void handle_window_commit(const vbus_header_t* hdr, const vbus_display_co
     g_comp.needs_present = true;
 }
 
-static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_destroy_window_t* req) {
+static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_window_id_t* req) {
     (void)hdr;
     crep_window_t* w = find_window_by_id(req->window_id);
     if (!w) return;
@@ -420,30 +551,33 @@ static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_d
         g_comp.pressed_btn_idx = -1;
     }
 
+    // Remember whether this window held focus before we remove it.
+    const bool was_focused = (g_comp.focused_window == w);
+    if (was_focused) g_comp.focused_window = NULL;
+
+    // Remove from Z-order before the slot is recycled.
+    z_remove(w_slot(w));
+
     w->active = false;
     g_comp.window_count--;
     g_comp.needs_present = true;
 
-    RealmID crep_id = get_realm_id();
-
-    vbus_display_window_id_t closed = {.window_id = req->window_id, ._pad = 0};
-    vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CLOSED, crep_id, w->owner_realm_id, &closed, sizeof(closed));
+    const vbus_display_window_id_t closed = {.window_id = req->window_id, ._pad = 0};
+    vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CLOSED, realm_id, w->owner_realm_id, &closed, sizeof(closed));
 
     if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
         vbus_signal_to(
-            VBUS_IFACE_DISPLAY,
-            VBUS_DISP_WINDOW_CLOSED,
-            get_realm_id(),
-            g_comp.desktop_realm_id,
-            &closed,
-            sizeof(closed)
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CLOSED, realm_id, g_comp.desktop_realm_id, &closed, sizeof(closed)
         );
     }
+
+    // If the destroyed window held focus, pass it to the next eligible window.
+    if (was_focused) window_focus_next();
 }
 
 static int window_resize_shm(crep_window_t* w) {
     if (w->pixels && w->pixels != MAP_FAILED) {
-        munmap(w->pixels, w->content_w * w->content_h * CREP_BPP);
+        munmap(w->pixels, (size_t)w->content_w * w->content_h * CREP_BPP);
         w->pixels = NULL;
     }
 
@@ -477,14 +611,12 @@ static void window_apply_maximize(crep_window_t* w) {
 
     window_resize_shm(w);
 
-    vbus_display_configure_t conf = {
+    const vbus_display_configure_t conf = {
         .window_id = w->id,
         .width = w->content_w,
         .height = w->content_h,
     };
-    vbus_signal_to(
-        VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE, get_realm_id(), w->owner_realm_id, &conf, sizeof(conf)
-    );
+    vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE, realm_id, w->owner_realm_id, &conf, sizeof(conf));
 }
 
 static void window_toggle_maximize(crep_window_t* w) {
@@ -505,7 +637,6 @@ static void window_toggle_maximize(crep_window_t* w) {
         w->y = w->saved_y;
         w->w = w->saved_w;
         w->h = w->saved_h;
-
         w->content_w = w->saved_content_w;
         w->content_h = w->saved_content_h;
 
@@ -517,7 +648,7 @@ static void window_toggle_maximize(crep_window_t* w) {
             .height = w->content_h,
         };
         vbus_signal_to(
-            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE, get_realm_id(), w->owner_realm_id, &conf, sizeof(conf)
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE, realm_id, w->owner_realm_id, &conf, sizeof(conf)
         );
     }
     g_comp.needs_present = true;
@@ -543,16 +674,19 @@ static void window_minimize(crep_window_t* w) {
     w->minimized = true;
     g_comp.needs_present = true;
 
+    // If this window held focus, explicitly notify it and pass focus onward.
+    if (g_comp.focused_window == w) {
+        const vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
+        vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_FOCUS_LOST, realm_id, w->owner_realm_id, &notif, sizeof(notif));
+        g_comp.focused_window = NULL;
+        window_focus_next();
+    }
+
     // Tell the desktop shell so it can update the taskbar button.
     if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
-        vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
+        const vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
         vbus_signal_to(
-            VBUS_IFACE_DISPLAY,
-            VBUS_DISP_WINDOW_MINIMIZED,
-            get_realm_id(),
-            g_comp.desktop_realm_id,
-            &notif,
-            sizeof(notif)
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_MINIMIZED, realm_id, g_comp.desktop_realm_id, &notif, sizeof(notif)
         );
     }
 }
@@ -561,40 +695,116 @@ static void window_minimize(crep_window_t* w) {
 // If the window was maximized before minimizing it comes back maximized.
 // If the window is not minimized this is a no-op.
 static void window_restore(crep_window_t* w) {
-    if (!w->minimized) return;
-
     w->minimized = false;
     g_comp.needs_present = true;
 
     // Tell the desktop shell so it can update the taskbar button.
     if (g_comp.desktop_spawned && w->owner_realm_id != g_comp.desktop_realm_id) {
-        vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
+        const vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
         vbus_signal_to(
-            VBUS_IFACE_DISPLAY,
-            VBUS_DISP_WINDOW_RESTORED,
-            get_realm_id(),
-            g_comp.desktop_realm_id,
-            &notif,
-            sizeof(notif)
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_RESTORED, realm_id, g_comp.desktop_realm_id, &notif, sizeof(notif)
         );
     }
 }
 
-// Toggles the minimized state of a window based on its current state and focus.
-static void window_toggle_minimize(crep_window_t* w) {
-    if (w->minimized) {
-        // Fall 1: Fenster ist minimiert -> Zeigen!
-        window_restore(w);
-        // window_bring_to_front
-    } else {
-        //  if (is_focused) {
-        // Fall 3: Es ist bereits offen UND fokussiert -> Minimieren!
-        window_minimize(w);
-        // } else {
-        // window_bring_to_front
-        //  }
+/* =========================================================================
+ * Focus Management
+ * ========================================================================= */
+
+/** Set keyboard focus to w, raise it in Z-order, and broadcast focus signals.
+ *
+ * Desktop windows never receive application focus. Calling this with the
+ * already-focused window still re-raises it (useful after restore).
+ */
+static void window_set_focus(crep_window_t* w) {
+    if (!w || !w->active) return;
+
+    // Desktop window never holds application focus.
+    if (g_comp.desktop_spawned && w->owner_realm_id == g_comp.desktop_realm_id) return;
+
+    crep_window_t* prev = g_comp.focused_window;
+    const uint32_t prev_id = prev ? prev->id : 0;
+
+    // Always raise, even if already focused.
+    z_raise(w_slot(w));
+
+    if (w == prev) {
+        // Already focused — just raised and repainted.
+        g_comp.needs_present = true;
+        return;
+    }
+
+    // Notify the old focus holder that it lost focus.
+    if (prev) {
+        const vbus_display_window_id_t notif = {.window_id = prev->id, ._pad = 0};
+        vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_FOCUS_LOST, realm_id, prev->owner_realm_id, &notif, sizeof(notif));
+    }
+
+    g_comp.focused_window = w;
+
+    // Notify the new focus holder that it gained focus.
+    {
+        const vbus_display_window_id_t notif = {.window_id = w->id, ._pad = 0};
+        vbus_signal_to(VBUS_IFACE_DISPLAY, VBUS_DISP_FOCUS_GAINED, realm_id, w->owner_realm_id, &notif, sizeof(notif));
+    }
+
+    // Notify the desktop shell so the taskbar can highlight the correct button.
+    if (g_comp.desktop_spawned) {
+        const vbus_display_window_focused_t notif = {
+            .window_id = w->id,
+            .prev_window_id = prev_id,
+        };
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_FOCUSED, realm_id, g_comp.desktop_realm_id, &notif, sizeof(notif)
+        );
+    }
+
+    g_comp.needs_present = true;
+}
+
+/** Transfer focus to the topmost eligible (non-desktop, non-minimized) window.
+ *  If no eligible window exists, clears focus and notifies the desktop that
+ *  window_id=0 is now active (so the taskbar can deselect all buttons). */
+static void window_focus_next(void) {
+    if (g_comp.z_count < 0 || g_comp.z_count > MAX_WINDOWS) return;
+    for (int zi = g_comp.z_count - 1; zi >= 0; zi--) {
+        crep_window_t* w = &g_comp.windows[g_comp.z_order[zi]];
+        if (!w->active || !w->pixels || w->minimized) continue;
+        if (g_comp.desktop_spawned && w->owner_realm_id == g_comp.desktop_realm_id) continue;
+        window_set_focus(w);
+        return;
+    }
+
+    // No eligible window — tell the desktop that nothing is focused.
+    g_comp.focused_window = NULL;
+    if (g_comp.desktop_spawned) {
+        const vbus_display_window_focused_t notif = {.window_id = 0, .prev_window_id = 0};
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_FOCUSED, realm_id, g_comp.desktop_realm_id, &notif, sizeof(notif)
+        );
     }
 }
+
+// Toggle the minimized state of a window, driven by a taskbar click from the desktop.
+//
+// Behaviour:
+//   Minimized                       → restore + focus
+//   Visible, not focused            → focus (bring to front), do NOT minimize
+//   Visible, focused                → minimize (focus transferred by window_minimize)
+static void window_toggle_minimize(crep_window_t* w) {
+    if (w->minimized) {
+        window_restore(w);
+        window_set_focus(w);
+    } else if (w != g_comp.focused_window) {
+        window_set_focus(w);
+    } else {
+        window_minimize(w);  // window_minimize handles focus transfer internally
+    }
+}
+
+/* =========================================================================
+ * VBUS Drain
+ * ========================================================================= */
 
 static int drain_vbus(void) {
     int processed = 0;
@@ -615,7 +825,6 @@ static int drain_vbus(void) {
             handle_destroy_window(&hdr, &payload.destroy_window);
         } else if (hdr.type == VBUS_MSG_SIGNAL && strncmp(hdr.member, VBUS_DISP_WINDOW_ACTIVATE, 48) == 0) {
             const vbus_display_window_id_t msg = payload.activate;
-
             for (int i = 0; i < MAX_WINDOWS; i++) {
                 if (g_comp.windows[i].active && g_comp.windows[i].id == msg.window_id) {
                     window_toggle_minimize(&g_comp.windows[i]);
@@ -623,7 +832,7 @@ static int drain_vbus(void) {
                 }
             }
         } else if (hdr.type == VBUS_MSG_SIGNAL && strncmp(hdr.member, VBUS_DISP_SET_STRUT, 48) == 0) {
-            vbus_display_set_strut_t* s = &payload.set_strut;
+            const vbus_display_set_strut_t* s = &payload.set_strut;
             switch (s->edge) {
                 case CREP_STRUT_TOP:
                     g_comp.struts.top = s->size;
@@ -638,11 +847,8 @@ static int drain_vbus(void) {
                     g_comp.struts.right = s->size;
                     break;
             }
-
             for (int i = 0; i < MAX_WINDOWS; i++) {
-                if (g_comp.windows[i].active && g_comp.windows[i].maximized) {
-                    window_apply_maximize(&g_comp.windows[i]);
-                }
+                if (g_comp.windows[i].active && g_comp.windows[i].maximized) window_apply_maximize(&g_comp.windows[i]);
             }
             g_comp.needs_present = true;
         }
@@ -650,6 +856,10 @@ static int drain_vbus(void) {
     }
     return processed;
 }
+
+/* =========================================================================
+ * Backbuffer Compositing
+ * ========================================================================= */
 
 // Fill the entire backbuffer with BG_COLOR.
 static void backbuf_clear(void) {
@@ -663,9 +873,8 @@ static void backbuf_blit_window(const crep_window_t* w) {
     const uint32_t sw = g_comp.info.width;
     const uint32_t sh = g_comp.info.height;
 
-    // Determine the visible intersection of the window with the screen.
-    uint32_t dst_x0 = w->x + w->content_x;
-    uint32_t dst_y0 = w->y + w->content_y;
+    const uint32_t dst_x0 = w->x + w->content_x;
+    const uint32_t dst_y0 = w->y + w->content_y;
     uint32_t dst_x1 = dst_x0 + w->content_w;
     uint32_t dst_y1 = dst_y0 + w->content_h;
 
@@ -684,8 +893,6 @@ static void backbuf_blit_window(const crep_window_t* w) {
 }
 
 // Alpha-blend a cursor pixel array into the backbuffer.
-// src_pixels: ARGB pixel array, w*h entries.
-// origin_x/y: top-left corner of the cursor on screen (already hotspot-adjusted).
 static void backbuf_blit_cursor_pixels(
     const uint32_t* src_pixels, uint32_t w, uint32_t h, int32_t origin_x, int32_t origin_y
 ) {
@@ -693,27 +900,25 @@ static void backbuf_blit_cursor_pixels(
     const uint32_t sh = g_comp.info.height;
 
     for (uint32_t row = 0; row < h; row++) {
-        int32_t py = origin_y + (int32_t)row;
+        const int32_t py = origin_y + (int32_t)row;
         if (py < 0 || (uint32_t)py >= sh) continue;
 
         for (uint32_t col = 0; col < w; col++) {
-            int32_t px = origin_x + (int32_t)col;
+            const int32_t px = origin_x + (int32_t)col;
             if (px < 0 || (uint32_t)px >= sw) continue;
 
-            uint32_t c = src_pixels[row * w + col];
-            uint8_t a = (uint8_t)(c >> 24);
-            if (a == 0) continue;  // fully transparent — skip
+            const uint32_t c = src_pixels[row * w + col];
+            const uint8_t a = (uint8_t)(c >> 24);
+            if (a == 0) continue;
 
             if (a == 0xFF) {
-                // Fully opaque — direct write, no blending needed.
                 g_comp.backbuf[(uint32_t)py * sw + (uint32_t)px] = c;
             } else {
-                // Semi-transparent — blend over background.
-                uint32_t bg = g_comp.backbuf[(uint32_t)py * sw + (uint32_t)px];
-                uint32_t inv = 255u - a;
-                uint8_t r = (uint8_t)(((c >> 16 & 0xFF) * a + (bg >> 16 & 0xFF) * inv) / 255);
-                uint8_t g = (uint8_t)(((c >> 8 & 0xFF) * a + (bg >> 8 & 0xFF) * inv) / 255);
-                uint8_t b = (uint8_t)(((c & 0xFF) * a + (bg & 0xFF) * inv) / 255);
+                const uint32_t bg = g_comp.backbuf[(uint32_t)py * sw + (uint32_t)px];
+                const uint32_t inv = 255u - a;
+                const uint8_t r = (uint8_t)(((c >> 16 & 0xFF) * a + (bg >> 16 & 0xFF) * inv) / 255);
+                const uint8_t g = (uint8_t)(((c >> 8 & 0xFF) * a + (bg >> 8 & 0xFF) * inv) / 255);
+                const uint8_t b = (uint8_t)(((c & 0xFF) * a + (bg & 0xFF) * inv) / 255);
                 g_comp.backbuf[(uint32_t)py * sw + (uint32_t)px] =
                     0xFF000000u | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
             }
@@ -722,21 +927,21 @@ static void backbuf_blit_cursor_pixels(
 }
 
 // Draw the cursor into the backbuffer.
-// Uses the XCursor image when available; falls back to the built-in 16x16 bitmap.
-// The hotspot (xhot/yhot) is subtracted so that the logical pointer position
-// matches the visual tip of the cursor.
 static void backbuf_draw_cursor(void) {
     if (g_xcursor_ok) {
-        int32_t origin_x = g_comp.mx - (int32_t)g_xcursor.xhot;
-        int32_t origin_y = g_comp.my - (int32_t)g_xcursor.yhot;
+        const int32_t origin_x = g_comp.mx - (int32_t)g_xcursor.xhot;
+        const int32_t origin_y = g_comp.my - (int32_t)g_xcursor.yhot;
         backbuf_blit_cursor_pixels(g_xcursor.pixels, g_xcursor.width, g_xcursor.height, origin_x, origin_y);
     } else {
-        // Fallback: built-in 16x16 bitmap, hotspot is implicitly (0,0).
         backbuf_blit_cursor_pixels(g_cursor_pixels, 16, 16, g_comp.mx, g_comp.my);
     }
 }
 
-static int get_glyph_index(uint32_t unicode) {
+/* =========================================================================
+ * Glyph Rendering
+ * ========================================================================= */
+
+static uint32_t get_glyph_index(uint32_t unicode) {
     for (int i = 0; i < 4; i++) {
         const lv_font_fmt_txt_cmap_t* cmap = &cmaps[i];
         if (unicode >= cmap->range_start && unicode < (cmap->range_start + cmap->range_length)) {
@@ -746,9 +951,9 @@ static int get_glyph_index(uint32_t unicode) {
     return 0;
 }
 
-static void ssd_draw_glyph(uint32_t px, uint32_t py, char ch, uint32_t color) {
-    uint32_t code = (uint8_t)ch;
-    int idx = get_glyph_index(code);
+static void ssd_draw_glyph(const uint32_t px, const uint32_t py, const char ch, const uint32_t color) {
+    const uint32_t code = (uint8_t)ch;
+    const uint32_t idx = get_glyph_index(code);
     const lv_font_fmt_txt_glyph_dsc_t* dsc = &glyph_dsc[idx];
 
     if (dsc->box_w == 0 || dsc->box_h == 0) return;
@@ -756,62 +961,49 @@ static void ssd_draw_glyph(uint32_t px, uint32_t py, char ch, uint32_t color) {
     const uint32_t sw = g_comp.info.width;
     const uint32_t sh = g_comp.info.height;
 
-    // Montserrat 12px Annahme (Passe line_height und base_line an deine Datei an!)
     const int32_t font_line_height = 15;
     const int32_t font_base_line = 3;
 
-    int32_t start_y = (int32_t)py + (font_line_height - font_base_line) - dsc->box_h - dsc->ofs_y;
-    int32_t start_x = (int32_t)px + dsc->ofs_x;
+    const int32_t start_y = (int32_t)py + (font_line_height - font_base_line) - dsc->box_h - dsc->ofs_y;
+    const int32_t start_x = (int32_t)px + dsc->ofs_x;
 
-    // Textfarbe in ihre ARGB-Bestandteile zerlegen
-    uint8_t fg_r = (color >> 16) & 0xFF;
-    uint8_t fg_g = (color >> 8) & 0xFF;
-    uint8_t fg_b = color & 0xFF;
+    const uint8_t fg_r = (color >> 16) & 0xFF;
+    const uint8_t fg_g = (color >> 8) & 0xFF;
+    const uint8_t fg_b = color & 0xFF;
 
-    // Bei 4 bpp repräsentiert jeder Index 4 Bits (0.5 Bytes)
     uint32_t bit_ptr = dsc->bitmap_index * 8;
 
     for (uint16_t row = 0; row < dsc->box_h; row++) {
-        int32_t current_y = start_y + row;
+        const int32_t current_y = start_y + row;
 
         for (uint16_t col = 0; col < dsc->box_w; col++) {
-            int32_t current_x = start_x + col;
-
-            // 4-Bit Wert (0 bis 15) aus dem Byte-Stream extrahieren
-            uint8_t byte_val = glyph_bitmap[bit_ptr / 8];
+            const int32_t current_x = start_x + col;
+            const uint8_t byte_val = glyph_bitmap[bit_ptr / 8];
             uint8_t alpha4;
-            if ((bit_ptr % 8) == 0) {
-                alpha4 = (byte_val >> 4) & 0x0F;  // Obere 4 Bits (erstes Pixel)
-            } else {
-                alpha4 = byte_val & 0x0F;  // Untere 4 Bits (zweites Pixel)
-            }
-            bit_ptr += 4;  // 4 Bits weitergehen für das nächste Pixel
 
-            // Wenn das Pixel eine Sichtbarkeit hat und im sichtbaren Bereich liegt
+            if ((bit_ptr % 8) == 0) {
+                alpha4 = (byte_val >> 4) & 0x0F;
+            } else {
+                alpha4 = byte_val & 0x0F;
+            }
+            bit_ptr += 4;
+
             if (alpha4 > 0 && current_y >= 0 && (uint32_t)current_y < sh && current_x >= 0 &&
                 (uint32_t)current_x < sw) {
-                uint32_t buf_idx = (uint32_t)current_y * sw + (uint32_t)current_x;
+                const uint32_t buf_idx = (uint32_t)current_y * sw + (uint32_t)current_x;
 
                 if (alpha4 == 15) {
-                    // Voll deckendes Pixel -> Einfach überschreiben (optimiert)
                     g_comp.backbuf[buf_idx] = color;
                 } else {
-                    // Alpha-Blending: Skaliere 0-15 auf den Bereich 0-255
-                    uint32_t alpha = (alpha4 * 255) / 15;
-                    uint32_t inv_alpha = 255 - alpha;
-
-                    // Hintergrundfarbe aus dem Backbuffer lesen
-                    uint32_t bg_color = g_comp.backbuf[buf_idx];
-                    uint8_t bg_r = (bg_color >> 16) & 0xFF;
-                    uint8_t bg_g = (bg_color >> 8) & 0xFF;
-                    uint8_t bg_b = bg_color & 0xFF;
-
-                    // Lineare Interpolation (Mischung)
-                    uint8_t out_r = (fg_r * alpha + bg_r * inv_alpha) / 255;
-                    uint8_t out_g = (fg_g * alpha + bg_g * inv_alpha) / 255;
-                    uint8_t out_b = (fg_b * alpha + bg_b * inv_alpha) / 255;
-
-                    // Pixel zurückschreiben
+                    const uint32_t alpha = (alpha4 * 255) / 15;
+                    const uint32_t inv_alpha = 255 - alpha;
+                    const uint32_t bg_color = g_comp.backbuf[buf_idx];
+                    const uint8_t bg_r = (bg_color >> 16) & 0xFF;
+                    const uint8_t bg_g = (bg_color >> 8) & 0xFF;
+                    const uint8_t bg_b = bg_color & 0xFF;
+                    const uint8_t out_r = (fg_r * alpha + bg_r * inv_alpha) / 255;
+                    const uint8_t out_g = (fg_g * alpha + bg_g * inv_alpha) / 255;
+                    const uint8_t out_b = (fg_b * alpha + bg_b * inv_alpha) / 255;
                     g_comp.backbuf[buf_idx] = (0xFF000000) | (out_r << 16) | (out_g << 8) | out_b;
                 }
             }
@@ -819,20 +1011,20 @@ static void ssd_draw_glyph(uint32_t px, uint32_t py, char ch, uint32_t color) {
     }
 }
 
-// Measure the pixel width of a string using the 5×7 font (5 px per glyph + 1 px gap).
 static uint32_t ssd_text_width(const char* s) {
     if (!s || !*s) return 0;
     uint32_t total_width = 0;
-
     while (*s) {
-        uint32_t code = (uint8_t)*s;  // Adjust for UTF-8/umlauts later if necessary
-        int idx = get_glyph_index(code);
-
+        const uint32_t idx = get_glyph_index((uint8_t)*s);
         total_width += (glyph_dsc[idx].adv_w + 8) / 16;
         s++;
     }
     return total_width;
 }
+
+/* =========================================================================
+ * SSD Drawing Helpers
+ * ========================================================================= */
 
 static void ssd_fill_circle_aa(uint32_t cx, uint32_t cy, uint32_t r, uint32_t color) {
     const uint32_t sw = g_comp.info.width;
@@ -873,8 +1065,6 @@ static void ssd_fill_circle_aa(uint32_t cx, uint32_t cy, uint32_t r, uint32_t co
     }
 }
 
-// Blit a 16×16 ARGB icon array centred at (cx, cy) into the backbuffer.
-// Reuses backbuf_blit_cursor_pixels() which already handles clipping + alpha blending.
 static void ssd_blit_icon_16(uint32_t cx, uint32_t cy, const uint32_t* icon) {
     int32_t origin_x = (int32_t)cx - 8;
     int32_t origin_y = (int32_t)cy - 8;
@@ -892,8 +1082,15 @@ static uint32_t color_lighten(uint32_t c, uint8_t amount) {
     return (c & 0xFF000000u) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 }
 
+// Darken a color by scaling its RGB channels toward black by `amount` (0–255).
+static uint32_t color_darken(uint32_t c, uint8_t amount) {
+    const uint8_t r = (uint8_t)(((c >> 16) & 0xFF) * (255u - amount) / 255u);
+    const uint8_t g = (uint8_t)(((c >> 8) & 0xFF) * (255u - amount) / 255u);
+    const uint8_t b = (uint8_t)((c & 0xFF) * (255u - amount) / 255u);
+    return (c & 0xFF000000u) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
+
 // Returns which titlebar button (x,y) hits: 0=close, 1=maximize, 2=minimize, -1=none.
-// w's btn_* bounding boxes must already be populated (done by ssd_draw_decorations).
 static int hit_test_titlebar_buttons(const crep_window_t* w, int32_t x, int32_t y) {
     if (x >= (int32_t)w->btn_close.x && x < (int32_t)(w->btn_close.x + w->btn_close.w) &&
         y >= (int32_t)w->btn_close.y && y < (int32_t)(w->btn_close.y + w->btn_close.h))
@@ -907,7 +1104,6 @@ static int hit_test_titlebar_buttons(const crep_window_t* w, int32_t x, int32_t 
     return -1;
 }
 
-// Draw a horizontal line in the backbuffer, clipped to screen.
 static void ssd_hline(uint32_t x0, uint32_t y, uint32_t len, uint32_t color) {
     const uint32_t sw = g_comp.info.width;
     const uint32_t sh = g_comp.info.height;
@@ -919,7 +1115,6 @@ static void ssd_hline(uint32_t x0, uint32_t y, uint32_t len, uint32_t color) {
     for (uint32_t i = 0; i < x1 - x0; i++) row[i] = color;
 }
 
-// Draw a vertical line in the backbuffer, clipped to screen.
 static void ssd_vline(uint32_t x, uint32_t y0, uint32_t len, uint32_t color) {
     const uint32_t sw = g_comp.info.width;
     const uint32_t sh = g_comp.info.height;
@@ -929,7 +1124,6 @@ static void ssd_vline(uint32_t x, uint32_t y0, uint32_t len, uint32_t color) {
     for (uint32_t y = y0; y < y1; y++) g_comp.backbuf[y * sw + x] = color;
 }
 
-// Fill a rectangle in the backbuffer, clipped to screen.
 static void ssd_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color) {
     const uint32_t sw = g_comp.info.width;
     const uint32_t sh = g_comp.info.height;
@@ -951,35 +1145,38 @@ static void ssd_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32
 static void ssd_draw_decorations(crep_window_t* w) {
     const display_config_t* cfg = &g_comp.display_cfg;
 
-    // Outer rectangle of the entire decorated window (content + decorations).
     const uint32_t ox = w->x;
     const uint32_t oy = w->y;
     const uint32_t ow = w->w;
     const uint32_t oh = w->h;
     const uint32_t tb = (uint32_t)cfg->ssd_titlebar_h;
 
-    ssd_fill_rect(ox, oy, ow, tb, cfg->ssd_color_titlebar);
+    // Focused windows get the full titlebar color; inactive ones are dimmed.
+    const bool win_focused = (g_comp.focused_window == w);
+    const uint32_t tb_color = win_focused ? cfg->ssd_color_titlebar : cfg->ssd_color_titlebar_inactive;
+    const uint32_t title_fg = win_focused ? cfg->ssd_color_title_fg : color_darken(cfg->ssd_color_title_fg, 90);
+
+    ssd_fill_rect(ox, oy, ow, tb, tb_color);
 
     // --- Titlebar buttons (right side: close → max → min) ---
-    const uint32_t btn_d = (uint32_t)cfg->ssd_btn_size;    // button diameter
-    const uint32_t btn_r = btn_d / 2;                      // radius
-    const uint32_t btn_m = (uint32_t)cfg->ssd_btn_margin;  // gap between buttons
+    const uint32_t btn_d = (uint32_t)cfg->ssd_btn_size;
+    const uint32_t btn_r = btn_d / 2;
+    const uint32_t btn_m = (uint32_t)cfg->ssd_btn_margin;
     const uint32_t btn_rp = (uint32_t)cfg->ssd_btn_right_pad;
-
-    // Vertical center of button in titlebar
     const uint32_t btn_cy = oy + tb / 2;
 
-    // Right-to-left: close is rightmost
     const uint32_t close_cx = ox + ow - btn_rp - btn_r;
     const uint32_t max_cx = close_cx - btn_d - btn_m;
     const uint32_t min_cx = max_cx - btn_d - btn_m;
 
-    // Determine hover colors
-    bool hover_this = (g_comp.hover_btn_window == w);
-    bool pressed_this = (g_comp.pressed_btn_window == w);
-    uint32_t col_close = cfg->ssd_color_btn_close;
-    uint32_t col_max = cfg->ssd_color_btn_maximize;
-    uint32_t col_min = cfg->ssd_color_btn_minimize;
+    // Derive button colors; dim them when the window is not focused.
+    uint32_t col_close = win_focused ? cfg->ssd_color_btn_close : color_darken(cfg->ssd_color_btn_close, 80);
+    uint32_t col_max = win_focused ? cfg->ssd_color_btn_maximize : color_darken(cfg->ssd_color_btn_maximize, 80);
+    uint32_t col_min = win_focused ? cfg->ssd_color_btn_minimize : color_darken(cfg->ssd_color_btn_minimize, 80);
+
+    const bool hover_this = (g_comp.hover_btn_window == w);
+    const bool pressed_this = (g_comp.pressed_btn_window == w);
+
     if (pressed_this && g_comp.pressed_btn_idx == 0) col_close = color_lighten(col_close, 160);
     if (pressed_this && g_comp.pressed_btn_idx == 1) col_max = color_lighten(col_max, 160);
     if (pressed_this && g_comp.pressed_btn_idx == 2) col_min = color_lighten(col_min, 160);
@@ -987,17 +1184,15 @@ static void ssd_draw_decorations(crep_window_t* w) {
     if (!pressed_this && hover_this && g_comp.hover_btn_idx == 1) col_max = color_lighten(col_max, 60);
     if (!pressed_this && hover_this && g_comp.hover_btn_idx == 2) col_min = color_lighten(col_min, 60);
 
-    // Draw circles
     ssd_fill_circle_aa(close_cx, btn_cy, btn_r, col_close);
     ssd_fill_circle_aa(max_cx, btn_cy, btn_r, col_max);
     ssd_fill_circle_aa(min_cx, btn_cy, btn_r, col_min);
 
-    // Draw icons inside circles (arm/half ~= radius * 0.4, minimum 2)
     ssd_blit_icon_16(close_cx, btn_cy, window_close_symbolic_16px);
     ssd_blit_icon_16(max_cx, btn_cy, window_maximize_symbolic_16px);
     ssd_blit_icon_16(min_cx, btn_cy, window_minimize_symbolic_16px);
 
-    // Store hit-boxes (square bounding box around each circle)
+    // Store hit-boxes (square bounding box around each circle).
     w->btn_close.x = close_cx - btn_r;
     w->btn_close.y = btn_cy - btn_r;
     w->btn_close.w = btn_d;
@@ -1013,7 +1208,6 @@ static void ssd_draw_decorations(crep_window_t* w) {
 
     // --- Title text: centered horizontally, avoiding the button area ---
     const uint32_t text_w = ssd_text_width(w->title);
-    // Clamp the center-point so it doesn't overlap the buttons on the right.
     int32_t title_x = (int32_t)ox + ((int32_t)ow - (int32_t)text_w) / 2;
     const uint32_t title_y = oy + (tb - 15) / 2;
     if (title_x < (int32_t)ox) title_x = (int32_t)ox;
@@ -1022,27 +1216,30 @@ static void ssd_draw_decorations(crep_window_t* w) {
     uint32_t gx = (uint32_t)title_x;
     while (*p) {
         const int idx = get_glyph_index((uint8_t)*p);
-        ssd_draw_glyph(gx, title_y, *p, cfg->ssd_color_title_fg);
+        ssd_draw_glyph(gx, title_y, *p, title_fg);
         gx += (glyph_dsc[idx].adv_w + 8) / 16;
         p++;
     }
 
     // --- Borders ---
-    // Bottom edge of titlebar
     ssd_hline(ox, oy + tb - 1, ow, cfg->ssd_color_border);
-    // Left border (full window height)
     ssd_vline(ox, oy, oh, cfg->ssd_color_border);
-    // Right border
     if (ow >= 1) ssd_vline(ox + ow - 1, oy, oh, cfg->ssd_color_border);
-    // Bottom border
     if (oh >= 1) ssd_hline(ox, oy + oh - 1, ow, cfg->ssd_color_border);
 }
 
+/* =========================================================================
+ * Compositor Loop
+ * ========================================================================= */
+
+// Composite all visible windows in Z-order (bottom to top), draw the cursor,
+// and present the finished backbuffer to the framebuffer.
 static void composite_frame(void) {
     backbuf_clear();
 
-    for (int i = 0; i < MAX_WINDOWS; i++) {
-        crep_window_t* w = &g_comp.windows[i];
+    // Walk Z-order from bottom to top so each window is drawn over the previous.
+    for (int zi = 0; zi < g_comp.z_count; zi++) {
+        crep_window_t* w = &g_comp.windows[g_comp.z_order[zi]];
         if (!w->active || !w->pixels || w->minimized) continue;
         backbuf_blit_window(w);
         if (!w->fullscreen) ssd_draw_decorations(w);
@@ -1068,12 +1265,12 @@ static void composite_frame(void) {
     g_comp.needs_present = false;
 }
 
+// Return the topmost window under (x, y), or NULL if only the desktop / nothing is there.
+// Iterates Z-order from top to bottom so that the foreground window is found first.
 static crep_window_t* find_window_at(int32_t x, int32_t y) {
-    // MAX_WINDOWS-1 downwards, to hit the topmost window in the Z-index first
-    for (int i = MAX_WINDOWS - 1; i >= 0; i--) {
-        crep_window_t* w = &g_comp.windows[i];
-        if (!w->active || !w->pixels) continue;
-
+    for (int zi = g_comp.z_count - 1; zi >= 0; zi--) {
+        crep_window_t* w = &g_comp.windows[g_comp.z_order[zi]];
+        if (!w->active || !w->pixels || w->minimized) continue;
         if (x >= (int32_t)w->x && x < (int32_t)(w->x + w->w) && y >= (int32_t)w->y && y < (int32_t)(w->y + w->h)) {
             return w;
         }
@@ -1083,9 +1280,12 @@ static crep_window_t* find_window_at(int32_t x, int32_t y) {
 
 static bool is_titlebar_hit(const crep_window_t* w, int32_t x, int32_t y) {
     if (w->fullscreen) return false;
-    return x >= (int32_t)w->x && x < (int32_t)(w->x + w->w) && y >= (int32_t)w->y &&
-           y < (int32_t)(w->y + w->content_y);  // content_y == titlebar_h
+    return x >= (int32_t)w->x && x < (int32_t)(w->x + w->w) && y >= (int32_t)w->y && y < (int32_t)(w->y + w->content_y);
 }
+
+/* =========================================================================
+ * Mouse Input Processing
+ * ========================================================================= */
 
 static bool process_mouse(void) {
     mice_event events[MICE_BATCH];
@@ -1113,15 +1313,15 @@ static bool process_mouse(void) {
             if (g_comp.my > (int32_t)g_comp.info.height - 1) g_comp.my = (int32_t)g_comp.info.height - 1;
             moved = true;
 
-            // Hover-State aktualisieren
+            // Update hover state for titlebar button highlighting.
             crep_window_t* prev_hover_win = g_comp.hover_btn_window;
             int prev_hover_idx = g_comp.hover_btn_idx;
             g_comp.hover_btn_window = NULL;
             g_comp.hover_btn_idx = -1;
 
-            for (int wi = MAX_WINDOWS - 1; wi >= 0; wi--) {
-                crep_window_t* w = &g_comp.windows[wi];
-                if (!w->active || !w->pixels || w->fullscreen) continue;
+            for (int wi = g_comp.z_count - 1; wi >= 0; wi--) {
+                crep_window_t* w = &g_comp.windows[g_comp.z_order[wi]];
+                if (!w->active || !w->pixels || w->fullscreen || w->minimized) continue;
                 if (!is_titlebar_hit(w, g_comp.mx, g_comp.my)) continue;
                 int btn = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
                 if (btn >= 0) {
@@ -1134,7 +1334,7 @@ static bool process_mouse(void) {
             if (g_comp.hover_btn_window != prev_hover_win || g_comp.hover_btn_idx != prev_hover_idx)
                 g_comp.needs_present = true;
 
-            // Drag während Move direkt aktualisieren
+            // Update drag position.
             if (g_comp.drag_window) {
                 crep_window_t* w = g_comp.drag_window;
 
@@ -1151,10 +1351,10 @@ static bool process_mouse(void) {
                 g_comp.needs_present = true;
 
                 g_comp.last_buttons = ev->buttons;
-                continue;  // kein Client-Event während Drag
+                continue;
             }
 
-            // Coalescing: letztes Move-Event im Batch merken
+            // Coalesce: remember the last move event for the window under the cursor.
             crep_window_t* target_win = find_window_at(g_comp.mx, g_comp.my);
             if (target_win) {
                 int32_t local_x = g_comp.mx - (int32_t)(target_win->x + target_win->content_x);
@@ -1177,7 +1377,7 @@ static bool process_mouse(void) {
             continue;
         }
 
-        // Button-Events (Press/Release)
+        // --- Button Events (Press / Release) ---
 
         uint8_t pressed = (uint8_t)(ev->buttons & ~g_comp.last_buttons);
         uint8_t released = (uint8_t)(~ev->buttons & g_comp.last_buttons);
@@ -1185,26 +1385,35 @@ static bool process_mouse(void) {
 
         if ((pressed & 1) && !g_comp.drag_window) {
             crep_window_t* w = find_window_at(g_comp.mx, g_comp.my);
-            if (w && is_titlebar_hit(w, g_comp.mx, g_comp.my)) {
-                int btn = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
-                if (btn >= 0) {
-                    // Merken — erst beim Release auslösen
-                    g_comp.pressed_btn_window = w;
-                    g_comp.pressed_btn_idx = btn;
-                    g_comp.needs_present = true;
+            if (w) {
+                /* Any left-click on a non-desktop window focuses and raises it.
+                 * This happens unconditionally — whether the click lands on the
+                 * titlebar, the buttons, or the window content. */
+                if (!g_comp.desktop_spawned || w->owner_realm_id != g_comp.desktop_realm_id) {
+                    window_set_focus(w);
+                }
+
+                if (is_titlebar_hit(w, g_comp.mx, g_comp.my)) {
+                    int btn = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
+                    if (btn >= 0) {
+                        // Remember the button; fire the action only on release.
+                        g_comp.pressed_btn_window = w;
+                        g_comp.pressed_btn_idx = btn;
+                        g_comp.needs_present = true;
+                        continue;
+                    }
+                    // No button hit → start dragging (only if not maximized).
+                    if (!w->maximized) {
+                        g_comp.drag_window = w;
+                        g_comp.drag_grab_x = g_comp.mx - (int32_t)w->x;
+                        g_comp.drag_grab_y = g_comp.my - (int32_t)w->y;
+                    }
                     continue;
                 }
-                // Kein Button getroffen → Drag starten
-                if (!w->maximized) {
-                    g_comp.drag_window = w;
-                    g_comp.drag_grab_x = g_comp.mx - (int32_t)w->x;
-                    g_comp.drag_grab_y = g_comp.my - (int32_t)w->y;
-                }
-                continue;
             }
         }
 
-        // Button-Release: Aktion nur auslösen wenn Maus noch über demselben Button
+        // Button-Release: fire action only when the cursor is still over the same button.
         if ((released & 1) && g_comp.pressed_btn_window) {
             crep_window_t* w = g_comp.pressed_btn_window;
             int btn = g_comp.pressed_btn_idx;
@@ -1219,14 +1428,10 @@ static bool process_mouse(void) {
                 if (btn_under == btn) {
                     if (btn == 0) {
                         vbus_display_window_id_t req = {.window_id = w->id, ._pad = 0};
-                        handle_destroy_window(NULL, (vbus_display_destroy_window_t*)&req);
+                        handle_destroy_window(NULL, &req);
                     }
-                    if (btn == 1) {
-                        window_toggle_maximize(w);
-                    }
-                    if (btn == 2) {
-                        window_minimize(w);
-                    }
+                    if (btn == 1) window_toggle_maximize(w);
+                    if (btn == 2) window_minimize(w);
                 }
             }
             continue;
@@ -1251,11 +1456,11 @@ static bool process_mouse(void) {
             continue;
         }
 
-        // Button-Event an Client weiterleiten
-        crep_window_t* target_win = find_window_at(g_comp.mx, g_comp.my);
+        // Forward button events to the client under the cursor.
+        const crep_window_t* target_win = find_window_at(g_comp.mx, g_comp.my);
         if (target_win) {
-            int32_t local_x = g_comp.mx - (int32_t)(target_win->x + target_win->content_x);
-            int32_t local_y = g_comp.my - (int32_t)(target_win->y + target_win->content_y);
+            const int32_t local_x = g_comp.mx - (int32_t)(target_win->x + target_win->content_x);
+            const int32_t local_y = g_comp.my - (int32_t)(target_win->y + target_win->content_y);
 
             if (local_x < 0 || local_y < 0 || (uint32_t)local_x >= target_win->content_w ||
                 (uint32_t)local_y >= target_win->content_h) {
@@ -1273,7 +1478,7 @@ static bool process_mouse(void) {
             vbus_signal_to(
                 VBUS_IFACE_DISPLAY,
                 VBUS_DISP_INPUT_EVENT,
-                get_realm_id(),
+                realm_id,
                 target_win->owner_realm_id,
                 &input_payload,
                 sizeof(input_payload)
@@ -1281,12 +1486,12 @@ static bool process_mouse(void) {
         }
     }
 
-    // Einmal pro Batch das gecoalescte Move-Event senden
+    // Send the single coalesced move event for this batch.
     if (coalesced_win) {
         vbus_signal_to(
             VBUS_IFACE_DISPLAY,
             VBUS_DISP_INPUT_EVENT,
-            get_realm_id(),
+            realm_id,
             coalesced_win->owner_realm_id,
             &coalesced_payload,
             sizeof(coalesced_payload)
@@ -1321,6 +1526,7 @@ bool load_display_config(lua_State* L, const char* path, display_config_t* cfg) 
         cfg->ssd_titlebar_h = 34;
         cfg->ssd_border_w = 1;
         cfg->ssd_color_titlebar = 0xFF252535;
+        cfg->ssd_color_titlebar_inactive = 0xFF1C1C29;
         cfg->ssd_color_border = 0xFF3A3A52;
         cfg->ssd_color_title_fg = 0xFFD0D0E8;
         cfg->ssd_color_btn_close = 0xFFED8796;
@@ -1345,6 +1551,7 @@ bool load_display_config(lua_State* L, const char* path, display_config_t* cfg) 
     cfg->ssd_titlebar_h = lua_get_table_int(L, "ssd", "titlebar_h", 34);
     cfg->ssd_border_w = lua_get_table_int(L, "ssd", "border_w", 1);
     cfg->ssd_color_titlebar = (uint32_t)lua_get_table_int(L, "ssd", "color_titlebar", 0xFF252535);
+    cfg->ssd_color_titlebar_inactive = (uint32_t)lua_get_table_int(L, "ssd", "color_titlebar_inactive", 0xFF1C1C29);
     cfg->ssd_color_border = (uint32_t)lua_get_table_int(L, "ssd", "color_border", 0xFF3A3A52);
     cfg->ssd_color_title_fg = (uint32_t)lua_get_table_int(L, "ssd", "color_title_fg", 0xFFD0D0E8);
     cfg->ssd_color_btn_close = (uint32_t)lua_get_table_int(L, "ssd", "color_btn_close", 0xFFED8796);
@@ -1355,18 +1562,14 @@ bool load_display_config(lua_State* L, const char* path, display_config_t* cfg) 
     cfg->ssd_btn_right_pad = (int)lua_get_table_int(L, "ssd", "btn_right_pad", 8);
 
     int64_t target_cursor_size = lua_get_table_int(L, "cursor", "xcursor_target_size", 24);
-    if (target_cursor_size <= 0) {
-        cfg->cursor_xcursor_target_size = 24;
-    } else {
-        cfg->cursor_xcursor_target_size = target_cursor_size;
-    }
+    cfg->cursor_xcursor_target_size = (target_cursor_size > 0) ? (uint32_t)target_cursor_size : 24;
 
     lua_get_table_string(
         L,
         "cursor",
         "xcursor_path",
         cfg->cursor_xcursor_path,
-        sizeof(cfg->cursor_xcursor_path),
+        sizeof(cfg->cursor_xcursor_path) - 1,
         "/usr/share/icons/Bibata-Modern-Ice/cursors/left_ptr"
     );
 
@@ -1375,7 +1578,7 @@ bool load_display_config(lua_State* L, const char* path, display_config_t* cfg) 
         "compositor",
         "desktop_binary",
         cfg->compositor_desktop_binary,
-        sizeof(cfg->compositor_desktop_binary),
+        sizeof(cfg->compositor_desktop_binary) - 1,
         "/bin/firmament"
     );
 
@@ -1398,6 +1601,10 @@ int main(int argc, char* argv[]) {
     g_comp.hover_btn_idx = -1;
     g_comp.pressed_btn_window = NULL;
     g_comp.pressed_btn_idx = -1;
+    g_comp.focused_window = NULL;
+    g_comp.z_count = 0;
+
+    realm_id = get_realm_id();
 
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -1460,7 +1667,7 @@ int main(int argc, char* argv[]) {
     if (rid < 0)
         printf("Crepusculum: desktop spawn failed (%lld), running without desktop\n", (int64_t)rid);
     else {
-        printf("Crepusculum: desktop spawned (realm %lld)\n", (int64_t)rid);
+        printf("Crepusculum: desktop spawned (realm %lld)\n", (RealmID)rid);
         g_comp.desktop_realm_id = (RealmID)rid;
         g_comp.desktop_spawned = true;
     }
@@ -1477,9 +1684,7 @@ int main(int argc, char* argv[]) {
 
         if (mouse_moved) g_comp.needs_present = true;
 
-        if (g_comp.needs_present) {
-            composite_frame();
-        }
+        if (g_comp.needs_present) composite_frame();
 
         const int64_t remaining = next_frame - now_ns();
         sleep_ns(remaining);
