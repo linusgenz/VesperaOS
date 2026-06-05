@@ -18,7 +18,7 @@ var searchData=
   ['design_5fcapacity_15',['design_capacity',['../structbattery__info.html#a21cf45f34203412a6a34e3f6d2bc5f56',1,'battery_info']]],
   ['design_5fvoltage_16',['design_voltage',['../structbattery__info.html#ae9331285f301331d820c0207bf8fb55a',1,'battery_info']]],
   ['dest_5frealm_5fid_17',['dest_realm_id',['../structvbus__header.html#a6e0bdf60a10d10d8e1f9def9cc720101',1,'vbus_header']]],
-  ['destroy_5fwindow_18',['destroy_window',['../unionvbus__payload__t.html#ae3127efc1416aac7555901afc3ede7f2',1,'vbus_payload_t']]],
+  ['destroy_5fwindow_18',['destroy_window',['../unionvbus__payload__t.html#a267697da095b556754b0a3209af49e0f',1,'vbus_payload_t']]],
   ['dev_5fid_19',['dev_id',['../structvespera__stat.html#a17170e725358514c4c818e3c049fa6ec',1,'vespera_stat']]],
   ['dev_5ft_20',['dev_t',['../alltypes_8h.html#ad9d17dd60718ebfa0a30a5a7c94d7113',1,'alltypes.h']]],
   ['devinfo_5fstring_5ft_21',['devinfo_string_t',['../structdevinfo__string__t.html',1,'']]],

@@ -1,5 +1,8 @@
 var NAVTREEINDEX5 =
 {
+"stdio_8h.html#a075d232bb3b702ea469e28b42338fecb":[4,0,1,0,0,34,6],
+"stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a":[4,0,1,0,0,34,32],
+"stdio_8h.html#a0aff7311d684a0e0ef33125616a73385":[4,0,1,0,0,34,46],
 "stdio_8h.html#a0c0ef221f95f64e8632451312fd18cc8":[4,0,1,0,0,34,12],
 "stdio_8h.html#a0d112bae8fd35be772185b6ec6bcbe64":[4,0,1,0,0,34,9],
 "stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989":[4,0,1,0,0,34,38],
@@ -246,8 +249,5 @@ var NAVTREEINDEX5 =
 "structjmp__buf.html#a632222b0d179babc66afef2d9686ea6c":[3,0,20,1],
 "structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9":[3,0,20,7],
 "structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8":[3,0,20,5],
-"structjmp__buf.html#ab844c9a6e0f401e1c1d65712928dd233":[3,0,20,3],
-"structjmp__buf.html#adc2aef99200faee28a4cf1348257d4b4":[3,0,20,2],
-"structjmp__buf.html#afd0a0949461f475b1a182710324f5238":[3,0,20,0],
-"structjpeg__load__options__t.html":[3,0,21]
+"structjmp__buf.html#ab844c9a6e0f401e1c1d65712928dd233":[3,0,20,3]
 };

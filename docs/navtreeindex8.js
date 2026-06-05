@@ -1,5 +1,9 @@
 var NAVTREEINDEX8 =
 {
+"userspace_2lib_2include_2time_8h.html#a49a1866c7618fef74c0cc900be1f1c45":[4,0,1,0,0,39,12],
+"userspace_2lib_2include_2time_8h.html#a4bc4ff58d4ac838a36ba939747e5833e":[4,0,1,0,0,39,8],
+"userspace_2lib_2include_2time_8h.html#a4facc4ca231f1105f76b09518e86349d":[4,0,1,0,0,39,4],
+"userspace_2lib_2include_2time_8h.html#a5665e505f386d06abb1c304068c2836e":[4,0,1,0,0,39,7],
 "userspace_2lib_2include_2time_8h.html#a780ca0a18ad4b4e6501eca77626dd2a1":[4,0,1,0,0,39,6],
 "userspace_2lib_2include_2time_8h.html#a8cd8e52a299d81cb4ab074de1e300f85":[4,0,1,0,0,39,11],
 "userspace_2lib_2include_2time_8h.html#a99ef1cb2c789827dd5db3886dccf9067":[4,0,1,0,0,39,14],

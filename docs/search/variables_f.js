@@ -11,14 +11,15 @@ var searchData=
   ['pixels_8',['pixels',['../structfb__blit.html#a1865017c8e34ba456777064246b08713',1,'fb_blit']]],
   ['port_5fnum_9',['port_num',['../structusb__device__info.html#a464d8f07ed895adebff3f3be1c19845d',1,'usb_device_info']]],
   ['positive_5fsign_10',['positive_sign',['../structlconv.html#a74bf5f6f32624be629f7de0dabd58a96',1,'lconv']]],
-  ['power_5fcycles_11',['power_cycles',['../structsmart__nvme.html#a71a9609a2c6d6885c89a19c3f060ca05',1,'smart_nvme::power_cycles'],['../structsmart__ata.html#a8a7bd48eccbd02628d9dbeeac69b3524',1,'smart_ata::power_cycles']]],
+  ['power_5fcycles_11',['power_cycles',['../structsmart__ata.html#a8a7bd48eccbd02628d9dbeeac69b3524',1,'smart_ata::power_cycles'],['../structsmart__nvme.html#a71a9609a2c6d6885c89a19c3f060ca05',1,'smart_nvme::power_cycles']]],
   ['power_5fon_5fhours_12',['power_on_hours',['../structsmart__common.html#a2ba0661d31bd4fe8204a1b8ea2abd792',1,'smart_common::power_on_hours'],['../structsmart__nvme.html#a03bfeaafc8747fc6298fe8cd8b3190d3',1,'smart_nvme::power_on_hours'],['../structsmart__ata.html#a894e5930ac34e9e182ffc27047bbb065',1,'smart_ata::power_on_hours']]],
   ['precision_13',['precision',['../structimage__t.html#ad13fa2b67f6b9e0dd76983345b627df7',1,'image_t']]],
   ['present_14',['present',['../structbattery__status.html#ad8a6f6af19ce72822c03fc99300dfcb5',1,'battery_status::present'],['../structvbus__battery.html#a52b532af60ee185b7e6d0b6ac2e08628',1,'vbus_battery::present']]],
   ['present_5frate_15',['present_rate',['../structbattery__status.html#a24c6f945928e73006ef7182bb5c7b9df',1,'battery_status']]],
   ['present_5fvoltage_16',['present_voltage',['../structbattery__status.html#a44e1bb0ca8bb55308969d3314e4f2ca3',1,'battery_status']]],
   ['prev_17',['prev',['../structheap__seg.html#a8d83b31262ae8bd341ccf688d498eb31',1,'heap_seg']]],
-  ['priority_18',['priority',['../structunit__info.html#af243e2b0e86ac66d98d0ce468020d907',1,'unit_info']]],
-  ['product_5fid_19',['product_id',['../structusb__device__info.html#a542f8985c766c27a08dccb4dc4cf23e1',1,'usb_device_info']]],
-  ['progressive_20',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]]
+  ['prev_5fwindow_5fid_18',['prev_window_id',['../structvbus__display__window__focused__t.html#ac1b39ff1bddecdaa8dd1eeadbaae667f',1,'vbus_display_window_focused_t']]],
+  ['priority_19',['priority',['../structunit__info.html#af243e2b0e86ac66d98d0ce468020d907',1,'unit_info']]],
+  ['product_5fid_20',['product_id',['../structusb__device__info.html#a542f8985c766c27a08dccb4dc4cf23e1',1,'usb_device_info']]],
+  ['progressive_21',['progressive',['../structjpeg__save__options__t.html#a38dc64a3bf241407ff4f79da14650e36',1,'jpeg_save_options_t']]]
 ];
