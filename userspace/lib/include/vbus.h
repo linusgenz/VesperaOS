@@ -22,8 +22,11 @@
 #ifndef VESPLIB_VBUS_H
 #define VESPLIB_VBUS_H
 
+#include <errno.h>
+#include <realm.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <sysstd.h>
 #include <vespera/vbus.h>
 
@@ -34,39 +37,91 @@ extern "C" {
 #endif
 
 /**
- * @brief Subscribe to a vbus signal.
+ * @brief Returns the next monotonically increasing message serial.
  *
- * After this call, matching signals emitted by the kernel (or other senders)
- * are written into HANDLE_VBUS.  Use poll(HANDLE_VBUS, POLLIN) to wait.
- *
- * @param interface  e.g. VBUS_IFACE_POWER
- * @param member     e.g. VBUS_SIG_BATTERY_CHANGED, or "" for all members
- * @return 0 on success, negative errno on failure
+ * The counter is process-local and starts at 1.  It is not guaranteed to be
+ * unique across processes.
  */
-static inline int vbus_subscribe(const char* interface, const char* member) {
-    vbus_subscribe_args_t args = {};
-    // safe string copy
-    int i = 0;
-    while (interface[i] && i < 47) {
-        args.interface[i] = interface[i];
-        i++;
-    }
-    i = 0;
-    if (member) {
-        while (member[i] && i < 47) {
-            args.member[i] = member[i];
-            i++;
-        }
-    }
-    return (int)sys_vbus_subscribe((uint64_t)&args, 0, 0, 0, 0, 0);
-}
+uint64_t vbus_next_serial(void);
 
 /**
- * @brief Unsubscribe from all vbus signals.
+ * @brief Subscribes the calling process to messages matching (interface, member).
+ *
+ * After this call, matching messages are queued into HANDLE_VBUS.
+ * Use poll(HANDLE_VBUS, POLLIN) to wait for incoming messages.
+ *
+ * Pass member as NULL or "" to receive every member on interface (wildcard).
+ *
+ * @return 0 on success, negative errno on failure.
  */
-static inline int vbus_unsubscribe(void) {
-    return (int)sys_vbus_unsubscribe(0, 0, 0, 0, 0, 0);
-}
+int vbus_subscribe(const char* interface, const char* member);
+
+/**
+ * @brief Removes all VBus subscriptions for the calling process.
+ *
+ * @return 0 on success, negative errno on failure.
+ */
+int vbus_unsubscribe(void);
+
+/**
+ * @brief Sends a VBus message (header + payload) atomically in a single write operation.
+ *
+ * The caller must pre-populate the ‘interface’, ‘member’, and ‘type’ fields in the header object.
+ *
+ * @param hdr          Pointer to the partially initialized VBus header.
+ * @param payload      Pointer to the payload data (or NULL if none is available).
+ * @param payload_size Size of the payload in bytes (0 if NULL).
+ * @return 0 on success, or a negative errno code on error.
+ */
+int vbus_emit_raw(vbus_header_t* hdr, const void* payload, uint32_t payload_size);
+
+int64_t vbus_signal(
+    const char* interface, const char* member, RealmID sender_id, const void* payload, uint64_t payload_len
+);
+
+/**
+ * @brief Sends a VBUS_MSG_CALL and records its serial in out_serial.
+ *
+ * The caller must save *out_serial and match it against reply_serial in
+ * incoming VBUS_MSG_RETURN messages to identify the response.
+ *
+ * @param interface    Target interface name; must be non-NULL.
+ * @param member       Target method name; must be non-NULL.
+ * @param sender_id    RealmID of the sender
+ * @param payload      Call arguments; may be NULL.
+ * @param payload_size Byte length of payload.
+ * @param out_serial   Output: serial of the emitted CALL; must be non-NULL.
+ *
+ * @return 0 on success.
+ * @return -EINVAL if interface, member, or out_serial is NULL.
+ * @return Negative errno from vbus_emit_raw on failure.
+ */
+int64_t vbus_call(
+    const char* interface, const char* member, RealmID sender_id, const void* payload, uint32_t payload_size,
+    uint64_t* out_serial
+);
+
+/**
+ * @brief Sends a VBUS_MSG_RETURN in reply to a received VBUS_MSG_CALL.
+ *
+ * Sets reply_serial = req->serial so the kernel routes the response back to
+ * the original caller via the pending-call table.
+ *
+ * @param req          Header of the CALL being replied to; must be non-NULL.
+ * @param sender_id    RealmID of the sender
+ * @param payload      Reply data; may be NULL.
+ * @param payload_size Byte length of payload.
+ *
+ * @return 0 on success.
+ * @return -EINVAL if req is NULL.
+ * @return Negative errno from vbus_emit_raw on failure.
+ */
+int64_t vbus_reply(const vbus_header_t* req, RealmID sender_id, const void* payload, uint32_t payload_size);
+
+int64_t vbus_signal_to(
+    const char* interface, const char* member, RealmID sender_id, RealmID dest_realm_id, const void* payload,
+    uint64_t payload_len
+);
 
 /**
  * @brief Read one complete vbus message (header + payload) from HANDLE_VBUS.
@@ -79,43 +134,13 @@ static inline int vbus_unsubscribe(void) {
  * @param payload_cap Capacity of payload_buf in bytes.
  * @return 1 on success, 0 if channel empty (EAGAIN), <0 on error.
  */
-static inline int vbus_recv(vbus_header_t* hdr, void* payload_buf, size_t payload_cap) {
-    if (!hdr) return -22;  // EINVAL
+int vbus_recv(vbus_header_t* hdr, void* payload_buf, size_t payload_cap);
 
-    // Read header
-    int r = (int)sys_channel_recv(HANDLE_VBUS, (uint64_t)hdr, sizeof(vbus_header_t), 0, 0, 0);
-    if (r < 0) return r;                                 // -EAGAIN if empty
-    if ((uint32_t)r < sizeof(vbus_header_t)) return -5;  // EIO, truncated
+/** @brief Convenience wrapper: reads a vbus_battery_t payload. */
+int vbus_recv_battery(vbus_header_t* hdr, vbus_battery_t* out);
 
-    // Validate magic
-    if (hdr->magic != VBUS_MAGIC) return -5;
-
-    // Read payload
-    if (hdr->payload_size > 0) {
-        if (payload_buf && payload_cap >= hdr->payload_size) {
-            sys_channel_recv(HANDLE_VBUS, (uint64_t)payload_buf, hdr->payload_size, 0, 0, 0);
-        } else {
-            // Drain payload into a small scratch buffer to keep the channel in sync
-            uint8_t scratch[64];
-            uint32_t remaining = hdr->payload_size;
-            while (remaining > 0) {
-                uint32_t chunk = remaining < sizeof(scratch) ? remaining : sizeof(scratch);
-                int dr = (int)sys_channel_recv(HANDLE_VBUS, (uint64_t)scratch, chunk, 0, 0, 0);
-                if (dr <= 0) break;
-                remaining -= (uint32_t)dr;
-            }
-        }
-    }
-    return 1;
-}
-
-static inline int vbus_recv_battery(vbus_header_t* hdr, vbus_battery_t* out) {
-    return vbus_recv(hdr, out, sizeof(vbus_battery_t));
-}
-
-static inline int vbus_recv_ac(vbus_header_t* hdr, vbus_ac_t* out) {
-    return vbus_recv(hdr, out, sizeof(vbus_ac_t));
-}
+/** @brief Convenience wrapper: reads a vbus_ac_t payload. */
+int vbus_recv_ac(vbus_header_t* hdr, vbus_ac_t* out);
 
 #ifdef __cplusplus
 }

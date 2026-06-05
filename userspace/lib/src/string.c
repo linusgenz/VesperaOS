@@ -303,6 +303,8 @@ int memcmp(const void* s1, const void* s2, size_t n) {
 }
 
 void* memmove(void* dest, const void* src, size_t len) {
+    if (len == 0 || dest == src) return dest;
+
     char* d = (char*)(dest);
     const char* s = src;
     if (d < s) {
@@ -313,4 +315,35 @@ void* memmove(void* dest, const void* src, size_t len) {
         while (len--) *lastd-- = *lasts--;
     }
     return dest;
+}
+
+int memmove_safe(void *dest, size_t dest_len,
+                 const void *src,  size_t count)
+{
+    if (!dest || !src)             return -1;
+    if (count > dest_len)          return -2;
+    if (count == 0 || dest == src) return  0;
+
+    char       *d = (char *)dest;
+    const char *s = (const char *)src;
+
+    if (d < s) {
+        while (count--) *d++ = *s++;
+    } else {
+        d += count;
+        s += count;
+        while (count--) *--d = *--s;
+    }
+
+    return 0;
+}
+
+size_t strlcpy(char* dest, const char* src, size_t size) {
+    size_t src_len = strlen(src);
+    if (size) {
+        size_t min_len = (src_len >= size) ? size - 1 : src_len;
+        memcpy(dest, src, min_len);
+        dest[min_len] = '\0';
+    }
+    return src_len;
 }

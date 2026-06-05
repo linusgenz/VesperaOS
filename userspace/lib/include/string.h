@@ -32,12 +32,12 @@
  */
 size_t strlen(const char *s);
 
-size_t strnlen(const char* s, size_t maxlen);
+size_t strnlen(const char *s, size_t maxlen);
 
 /**
  * @brief Copy SRC to DEST.
  */
-char* strcpy(char *dest, const char *src);
+char *strcpy(char *dest, const char *src);
 
 /**
  * @brief Copy no more than N characters of SRC to DEST.
@@ -47,7 +47,7 @@ char *strncpy(char *dest, const char *src, size_t n);
 /**
  * @brief Append SRC onto DEST.
  */
-char* strcat(char *dest, const char *src);
+char *strcat(char *dest, const char *src);
 
 /**
  * @brief Append no more than N characters from SRC onto DEST.
@@ -83,7 +83,7 @@ char *strstr(const char *haystack, const char *needle);
 /**
  * @brief Set N bytes of DEST to C.
  */
-void* memset(void *dest, uint8_t c, size_t n);
+void *memset(void *dest, uint8_t c, size_t n);
 
 /**
  * @brief Copy N bytes of SRC to DEST.
@@ -100,6 +100,8 @@ int memcmp(const void *s1, const void *s2, size_t n);
  * correct behavior for overlapping strings.
  */
 void *memmove(void *dest, const void *src, size_t len);
+
+int memmove_safe(void *dest, size_t dest_len, const void *src, size_t count);
 
 /**
  * @brief Split a string into tokens using a delimiter.
@@ -125,4 +127,6 @@ char *strpbrk(const char *s, const char *accept);
 
 void *memchr(const void *src, int c, size_t n);
 
-#endif  // VESPERAOS_STRING_H
+size_t strlcpy(char *dest, const char *src, size_t size);
+
+#endif // VESPERAOS_STRING_H

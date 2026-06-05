@@ -22,4 +22,17 @@
 #ifndef VESPERAOS_LUAUTIL_H
 #define VESPERAOS_LUAUTIL_H
 
+#include "lua.h"
+#include <stdbool.h>
+#include <stdint.h>
+
+// Get an integer from a global table
+int64_t lua_get_table_int(lua_State *L, const char *table, const char *key, int64_t default_val);
+
+// Get a string from a global table and copy it safely into 'dest'
+bool lua_get_table_string(lua_State *L, const char *table, const char *key, char *dest, size_t dest_len, const char *default_val);
+
+// Get a Boolean from a global table
+bool lua_get_table_bool(lua_State *L, const char *table, const char *key, bool default_val);
+
 #endif  // VESPERAOS_LUAUTIL_H

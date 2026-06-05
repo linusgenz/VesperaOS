@@ -74,6 +74,6 @@ int64_t exit_realm(RealmID realm_id, uint64_t code);
  */
 int wait_realm(RealmID realm_id, int* status);
 
-int64_t get_realm_id();
+RealmID get_realm_id();
 
 #endif  // VESPERAOS_REALM_H

@@ -24,6 +24,8 @@
 #ifndef VESPLIB_IOCTL_H
 #define VESPLIB_IOCTL_H
 
+#include <stdint.h>
+
 typedef uint64_t ioctl_request_t;
 
 /**

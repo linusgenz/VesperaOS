@@ -4,10 +4,10 @@ extern init_environ
 extern __stdio_init
 extern exit
 
-%define HANDLE_TYPE_TTY 0x1000000000000000
-%define HANDLE_STDIN        (HANDLE_TYPE_TTY | 0)
-%define HANDLE_STDOUT       (HANDLE_TYPE_TTY | 1)
-%define HANDLE_STDERR       (HANDLE_TYPE_TTY | 2)
+%define HANDLE_TYPE_DEVICE 0x7000000000000000
+%define HANDLE_STDIN        (HANDLE_TYPE_DEVICE | 0)
+%define HANDLE_STDOUT       (HANDLE_TYPE_DEVICE | 1)
+%define HANDLE_STDERR       (HANDLE_TYPE_DEVICE | 2)
 
 section .text
 

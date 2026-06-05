@@ -1159,10 +1159,14 @@ int rmdir(const char* path) {
 
 int fseek(FILE* f, long offset, int whence) {
     if (!f) return -1;
-    f->unget_char = -1;  // ← neu
+    f->unget_char = -1;
     ssize_t ret = sys_seek(f->handle, offset, whence, 0, 0, 0);
     if (ret >= 0) f->eof = 0;
-    return (ret < 0) ? -1 : 0;
+    if (ret < 0) {
+        errno = (int)-ret;
+        return -1;
+    }
+    return 0;
 }
 
 int64_t lseek(HANDLE handle, int64_t offset, int whence) {

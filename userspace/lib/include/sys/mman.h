@@ -25,6 +25,7 @@
 #define VESPERAOS_MMAN_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 
 /**

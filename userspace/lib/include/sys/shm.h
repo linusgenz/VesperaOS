@@ -22,4 +22,37 @@
 #ifndef VESPERAOS_SHM_H
 #define VESPERAOS_SHM_H
 
+#include <sys/mman.h>
+
+/**
+ * @brief Open or create a POSIX shared memory object.
+ *
+ * @param name Name of the shared memory object (should start with '/').
+ * @param oflag Bitwise-OR of O_RDONLY, O_RDWR, O_CREAT, O_EXCL, O_TRUNC.
+ * @param mode Permissions mask (optional future use, e.g., 0666).
+ *
+ * @return On success: A non-negative integer representing the SHM handle.
+ * On error: -1 with errno set.
+ */
+HANDLE shm_open(const char* name, int oflag, uint32_t mode);
+
+/**
+ * @brief Remove a POSIX shared memory object name.
+ *
+ * @param name Name of the shared memory object.
+ *
+ * @return 0 on success, -1 on error (errno set).
+ */
+HANDLE shm_unlink(const char* name);
+
+/**
+ * @brief Truncate / resize a handle-backed object (required to size SHM).
+ *
+ * @param handle The SHM handle returned by shm_open.
+ * @param length The target size of the shared memory region in bytes.
+ *
+ * @return 0 on success, -1 on error (errno set).
+ */
+HANDLE ftruncate(HANDLE handle, size_t length);
+
 #endif  // VESPERAOS_SHM_H

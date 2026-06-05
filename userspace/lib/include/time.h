@@ -82,6 +82,8 @@ int nanosleep(const timespec_t* req, timespec_t* rem);
  */
 int clock_nanosleep(clockid_t clk_id, int flags, const timespec_t* req, timespec_t* rem);
 
+int usleep(uint64_t usec);
+
 /**
  * @brief Return current Unix time in seconds.
  *

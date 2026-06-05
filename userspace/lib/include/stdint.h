@@ -100,4 +100,6 @@ typedef uint64_t uintmax_t;
 # define UINT_LEAST32_MAX	(4294967295U)
 # define UINT_LEAST64_MAX	(__UINT64_C(18446744073709551615))
 
+#define UINT32_C(value) value ## U
+
 #endif //VESPERAOS_STDINT_H
