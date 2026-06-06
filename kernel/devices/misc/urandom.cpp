@@ -39,7 +39,8 @@ int URandomDevice::release(CharFile*) {
 }
 
 isize URandomDevice::read(CharFile*, void* buffer, const usize count, usize) {
-    if (count < sizeof(u8) || !buffer) return -EINVAL;
+    if (count < sizeof(u8)) return 0;
+    if (!buffer) return -EINVAL;
 
     auto* out = static_cast<u8*>(buffer);
     for (usize i = 0; i < count; i++) {

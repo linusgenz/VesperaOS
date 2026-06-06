@@ -28,6 +28,8 @@
 #include <vespera_errno.h>
 
 #include "../handle_resolution.h"
+#include "filesystem/vfs_handle.h"
+#include "vespera/log.h"
 
 namespace syscalls::internal {
     i64 sys_tcsetpgrp(u64 arg0, u64 arg1, u64, u64, u64, u64) {
@@ -36,13 +38,32 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(arg0, HANDLE_TYPE_DEVICE));
 
-        auto* dev = rh.resource_as<CharDevice>();
-        if (!dev || !dev->is_tty()) return -ENOTTY;
+        auto* vh = rh.resource_as<VfsHandle>();
+        if (!vh)
+            return -ENOTTY;
+
+        auto* node = vh->node;
+        if (!node || node->type != VfsNodeType::CharDevice)
+            return -ENOTTY;
+
+        auto* entry =
+            static_cast<DevfsEntry*>(node->internal_data);
+
+        if (!entry ||
+            !entry->device ||
+            !entry->device->chardev)
+            return -ENOTTY;
+
+        auto* tty =
+            entry->device->chardev->as_tty();
+
+        if (!tty)
+            return -ENOTTY;
 
         SYSCALL_TRY_VOID(
-            kernel::jobctl::set_foreground_pgid(kernel::scheduling::get_current_realm_id(), dev->as_tty(), new_pgid)
+            kernel::jobctl::set_foreground_pgid(kernel::scheduling::get_current_realm_id(), tty, new_pgid)
         );
 
         return 0;
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

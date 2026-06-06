@@ -33,6 +33,7 @@
 #include <vespera/terminal.h>
 #include <vespera/tty/tty.h>
 
+#include "vespera/log.h"
 #include "vespera/devices/device_manager.h"
 
 class TtyDevice final : public CharDevice {
@@ -71,10 +72,10 @@ class TtyDevice final : public CharDevice {
 
     int ioctl(CharFile* cf, u32 cmd, void* arg) override {
         if (!tty) return -ENOTTY;
-        if (!arg && cmd != IOCTL_TTY_GET_MODE && cmd != IOCTL_TTY_GET_SIZE) return -EINVAL;
+        if (!arg && cmd != IOCTL_TTY_GET_MODE && cmd != IOCTL_TTY_GET_SIZE && cmd != TIOCSCTTY) return -EINVAL;
 
         switch (cmd) {
-            case TIOCSCTTY:
+        case TIOCSCTTY:
                 return kernel::jobctl::assign_controlling_tty(kernel::scheduling::get_current_realm_id(), this).to_errno();
             case IOCTL_TTY_GET_MODE: {
                 auto* m = static_cast<tty_mode_t*>(arg);

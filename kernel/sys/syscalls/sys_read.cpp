@@ -29,6 +29,7 @@
 
 #include "filesystem/vfs_handle.h"
 #include "../handle_resolution.h"
+#include "vespera/log.h"
 
 namespace syscalls::internal {
     i64 sys_read(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
@@ -41,24 +42,26 @@ namespace syscalls::internal {
         const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_READ));
 
         switch (rh.type()) {
-            case HANDLE_TYPE_DEVICE:
-            case HANDLE_TYPE_FILE: {
-                const auto* vh = rh.resource_as<VfsHandle>();
-                if (!vh) return -EBADH;
-                const usize bytes = SYSCALL_TRY(VFS::read(vh->node, vh->context->position, count, buf));
-                if (bytes > 0) vh->context->position += bytes;
-                return static_cast<isize>(bytes);
+        case HANDLE_TYPE_DEVICE:
+        case HANDLE_TYPE_FILE: {
+            const auto* vh = rh.resource_as<VfsHandle>();
+            if (!vh) return -EBADH;
+
+            const i64 off = VFS::is_seekable(vh->node) ? vh->context->position : -1;
+            const usize bytes = SYSCALL_TRY(VFS::read(vh->node, static_cast<usize>(off < 0 ? 0 : off), count, buf));
+            if (bytes > 0 && off >= 0) vh->context->position += bytes;
+            return static_cast<isize>(bytes);
+        }
+        case HANDLE_TYPE_PIPE: {
+            auto* ch = rh.resource_as<Channel>();
+            isize r = 0;
+            while ((r = ch->recv(buf, count)) == -EAGAIN) {
+                kernel::scheduling::yield();
             }
-            case HANDLE_TYPE_PIPE: {
-                auto* ch = rh.resource_as<Channel>();
-                isize r = 0;
-                while ((r = ch->recv(buf, count)) == -EAGAIN) {
-                    kernel::scheduling::yield();
-                }
-                return r;
-            }
-            default:
-                return -EBADH;
+            return r;
+        }
+        default:
+            return -EBADH;
         }
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

@@ -34,6 +34,7 @@
 #include <vespera/unit_config.h>
 
 #include "elf.h"
+#include "vespera/log.h"
 
 namespace kernel::exec {
 
@@ -63,6 +64,7 @@ namespace kernel::exec {
 
         Realm* parent = kernel::scheduling::get_current_realm();
         TtyDevice* tty = parent ? parent->get_tty_device() : tty::tty_devices[0];
+        if (!tty) tty = tty::tty_devices[0]; // TODO TEMP, USE THIS UNTIL get_tty_device is fixed
 
         const char* base = strrchr(path, '/');
         base = base ? base + 1 : path;
@@ -94,7 +96,7 @@ namespace kernel::exec {
             r->sid = parent ? parent->sid : r->id;
             r->controlling_tty = tty;
             if (tty) {
-                if (r->handle_table->setup_stdio("/dev/tty").is_err()) {
+                if (r->handle_table->setup_stdio("/dev/tty0").is_err()) {
                     RealmManager::destroy(r->id);
                     return Error::NoMem;
                 }
