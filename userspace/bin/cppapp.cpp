@@ -1,9 +1,9 @@
-// topbar.h
+// testapp.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 27.05.26.
+// Created by Linus Genz on 31.05.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,7 +19,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_TOPBAR_H
-#define VESPERAOS_TOPBAR_H
 
-#endif  // VESPERAOS_TOPBAR_H
+#include <stdio.h>
+
+extern "C" int main() {
+    printf("test_app: Beende sauber.\n");
+    int* t = new int();
+    printf("test_app: we have been created. %p\n", t);
+    return 0;
+}

@@ -578,8 +578,8 @@ void build_prompt(char* prompt_buf, size_t buf_size) {
 
 void shell_main(int argc, char** argv) {
     sys_setsid(0, 0, 0, 0, 0, 0);
-    ioctl(HANDLE_STDOUT, TIOCSCTTY, 0);
-
+    int n = ioctl(HANDLE_STDOUT, TIOCSCTTY, 0);
+    printf("result TIOCSCTTY: %u", n);
     int64_t my_id = get_realm_id();
     sys_setpgid(0, my_id, 0, 0, 0, 0);
 
@@ -609,6 +609,9 @@ void shell_main(int argc, char** argv) {
         "    running on x86_64  \ue0b1 \033[38;2;180;180;180m type \033[38;2;66;245;81mhelp\033[38;2;180;180;180m for "
         "commands\033[0m\n\n"
     );
+
+  //  void* ptr = malloc(200);
+ //   printf("ptr from malloc: %p", ptr);
 
     /*int64_t unitid = spawn_unit(0, (uint64_t)power_monitor_unit, 0);
     if (unitid < 0) {

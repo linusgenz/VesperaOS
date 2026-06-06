@@ -1,4 +1,4 @@
-// theme.c
+// battery_widget.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,3 +19,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_BATTERY_WIDGET_H
+#define VESPERAOS_BATTERY_WIDGET_H
+
+#include <stella.h>
+
+typedef struct battery_ctx battery_ctx_t;
+
+stella_widget_t battery_widget_create(stella_widget_t parent, int battery_index);
+
+void battery_widget_destroy(battery_ctx_t *ctx);
+
+#endif  // VESPERAOS_BATTERY_WIDGET_H

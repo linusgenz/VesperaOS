@@ -1,4 +1,4 @@
-// topbar.c
+// clock_widget.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,3 +19,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_CLOCK_WIDGET_H
+#define VESPERAOS_CLOCK_WIDGET_H
+
+#include <stella.h>
+
+stella_widget_t clock_widget_create(stella_widget_t parent);
+
+void clock_widget_destroy(void);
+
+#endif  // VESPERAOS_CLOCK_WIDGET_H

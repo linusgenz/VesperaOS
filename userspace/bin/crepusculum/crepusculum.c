@@ -50,6 +50,18 @@
 #define BTN_MINIMIZE_IDX 2
 #define BTN_NONE_IDX (-1)
 
+/* Resize handle geometry */
+#define RESIZE_ZONE    6   /* px vom Rand (innen) = Resize-Trefferzone */
+#define RESIZE_CORNER  20  /* px von der Ecke für diagonalen Handle  */
+#define MIN_CONTENT_W  160 /* minimale Content-Breite beim Resize     */
+#define MIN_CONTENT_H  80  /* minimale Content-Höhe beim Resize       */
+
+typedef enum {
+    RESIZE_NONE = 0,
+    RESIZE_S, RESIZE_E, RESIZE_W,
+    RESIZE_SE, RESIZE_SW,
+} resize_edge_t;
+
 static const uint8_t G_CURSOR_MAP[16][16] = {
     {2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {2, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -151,6 +163,12 @@ typedef struct compositor_state {
 
     crep_window_t* drag_window;
     int32_t drag_grab_x, drag_grab_y;
+
+    crep_window_t* resize_window;
+    resize_edge_t resize_edge;
+    int32_t resize_grab_x, resize_grab_y;
+    uint32_t resize_orig_x, resize_orig_y;
+    uint32_t resize_orig_w, resize_orig_h;
 
     crep_window_t* hover_btn_window;
     int hover_btn_idx;
@@ -446,6 +464,7 @@ static void window_toggle_maximize(crep_window_t* w) {
 static void window_minimize(crep_window_t* w) {
     if (w->minimized) return;
 
+    if (g_comp.resize_window == w) g_comp.resize_window = NULL;
     if (g_comp.drag_window == w) g_comp.drag_window = NULL;
     if (g_comp.hover_btn_window == w) {
         g_comp.hover_btn_window = NULL;
@@ -657,6 +676,7 @@ static void handle_destroy_window(const vbus_header_t* hdr, const vbus_display_w
 
     window_free_shm(w);
 
+    if (g_comp.resize_window == w) g_comp.resize_window = NULL;
     if (g_comp.drag_window == w) g_comp.drag_window = NULL;
     if (g_comp.hover_btn_window == w) {
         g_comp.hover_btn_window = NULL;
@@ -1013,6 +1033,116 @@ static bool is_titlebar_hit(const crep_window_t* w, int32_t x, int32_t y) {
         y < (int32_t)(w->y + w->content_y);
 }
 
+static resize_edge_t hit_test_resize_edge(const crep_window_t* w, int32_t mx, int32_t my) {
+    if (w->fullscreen || w->maximized) return RESIZE_NONE;
+
+    const int32_t wx = (int32_t)w->x;
+    const int32_t wy = (int32_t)w->y;
+    const int32_t ww = (int32_t)w->w;
+    const int32_t wh = (int32_t)w->h;
+
+    if (mx < wx || mx >= wx + ww || my < wy || my >= wy + wh) return RESIZE_NONE;
+
+    const bool on_left = (mx - wx) < RESIZE_ZONE;
+    const bool on_right = (wx + ww - mx) <= RESIZE_ZONE;
+    const bool on_bottom = (wy + wh - my) <= RESIZE_ZONE;
+
+    if (!on_left && !on_right && !on_bottom) return RESIZE_NONE;
+
+    const bool near_left = (mx - wx) < RESIZE_CORNER;
+    const bool near_right = (wx + ww - mx) <= RESIZE_CORNER;
+
+    if (on_bottom && near_left) return RESIZE_SW;
+    if (on_bottom && near_right) return RESIZE_SE;
+    if (on_bottom) return RESIZE_S;
+    if (on_left) return RESIZE_W;
+    if (on_right) return RESIZE_E;
+
+    return RESIZE_NONE;
+}
+
+static void window_apply_resize(crep_window_t* w,
+                                int32_t new_x, int32_t new_y,
+                                int32_t new_w, int32_t new_h) {
+    const display_config_t* cfg = &g_comp.display_cfg;
+    const int32_t frame_h = cfg->ssd_titlebar_h + cfg->ssd_border_w;
+    const int32_t frame_lr = cfg->ssd_border_w * 2;
+
+    const uint32_t new_cw = (uint32_t)(new_w - frame_lr);
+    const uint32_t new_ch = (uint32_t)(new_h - frame_h);
+
+    const bool size_changed = (new_cw != w->content_w || new_ch != w->content_h);
+
+    w->x = (uint32_t)new_x;
+    w->y = (uint32_t)new_y;
+    w->w = (uint32_t)new_w;
+    w->h = (uint32_t)new_h;
+
+    if (size_changed) {
+        w->content_w = new_cw;
+        w->content_h = new_ch;
+        window_resize_shm(w);
+
+        const vbus_display_configure_t conf = {
+            .window_id = w->id,
+            .width = w->content_w,
+            .height = w->content_h,
+        };
+        vbus_signal_to(
+            VBUS_IFACE_DISPLAY, VBUS_DISP_WINDOW_CONFIGURE,
+            realm_id, w->owner_realm_id, &conf, sizeof(conf)
+        );
+    }
+
+    g_comp.needs_present = true;
+}
+
+static void handle_resize_move(int32_t mx, int32_t my) {
+    crep_window_t* w = g_comp.resize_window;
+    const display_config_t* cfg = &g_comp.display_cfg;
+
+    const int32_t dx = mx - g_comp.resize_grab_x;
+    const int32_t dy = my - g_comp.resize_grab_y;
+
+    const int32_t frame_h = cfg->ssd_titlebar_h + cfg->ssd_border_w;
+    const int32_t frame_lr = cfg->ssd_border_w * 2;
+    const int32_t min_w = (int32_t)MIN_CONTENT_W + frame_lr;
+    const int32_t min_h = (int32_t)MIN_CONTENT_H + frame_h;
+
+    int32_t new_x = (int32_t)g_comp.resize_orig_x;
+    int32_t new_y = (int32_t)g_comp.resize_orig_y;
+    int32_t new_w = (int32_t)g_comp.resize_orig_w;
+    int32_t new_h = (int32_t)g_comp.resize_orig_h;
+
+    const resize_edge_t e = g_comp.resize_edge;
+
+    if (e == RESIZE_E || e == RESIZE_SE) {
+        new_w += dx;
+        if (new_w < min_w) new_w = min_w;
+        if (new_x + new_w > (int32_t)g_comp.info.width)
+            new_w = (int32_t)g_comp.info.width - new_x;
+    }
+    else if (e == RESIZE_W || e == RESIZE_SW) {
+        const int32_t fixed_right = (int32_t)g_comp.resize_orig_x + (int32_t)g_comp.resize_orig_w;
+        new_x += dx;
+        if (new_x < 0) new_x = 0;
+        new_w = fixed_right - new_x;
+        if (new_w < min_w) {
+            new_x = fixed_right - min_w;
+            new_w = min_w;
+        }
+    }
+
+    if (e == RESIZE_S || e == RESIZE_SE || e == RESIZE_SW) {
+        new_h += dy;
+        if (new_h < min_h) new_h = min_h;
+        if (new_y + new_h > (int32_t)g_comp.info.height)
+            new_h = (int32_t)g_comp.info.height - new_y;
+    }
+
+    window_apply_resize(w, new_x, new_y, new_w, new_h);
+}
+
 static void handle_mouse_move(
     const mice_event* ev, crep_window_t** out_coalesced_win, vbus_display_input_event_t* out_payload
 ) {
@@ -1056,6 +1186,11 @@ static void handle_mouse_move(
         return;
     }
 
+    if (g_comp.resize_window) {
+        handle_resize_move(g_comp.mx, g_comp.my);
+        return;
+    }
+
     crep_window_t* target = find_window_at(g_comp.mx, g_comp.my);
     if (target) {
         const int32_t lx = g_comp.mx - (int32_t)(target->x + target->content_x);
@@ -1091,10 +1226,24 @@ static bool process_mouse(void) {
         const uint8_t released = (uint8_t)(~ev->buttons & g_comp.last_buttons);
         g_comp.last_buttons = ev->buttons;
 
-        if ((pressed & 1) && !g_comp.drag_window) {
+        if ((pressed & 1) && !g_comp.drag_window && !g_comp.resize_window) {
             crep_window_t* w = find_window_at(g_comp.mx, g_comp.my);
             if (w) {
                 if (!g_comp.desktop_spawned || w->owner_realm_id != g_comp.desktop_realm_id) window_set_focus(w);
+
+                resize_edge_t edge = hit_test_resize_edge(w, g_comp.mx, g_comp.my);
+                if (edge != RESIZE_NONE) {
+                    g_comp.resize_window = w;
+                    g_comp.resize_edge = edge;
+                    g_comp.resize_grab_x = g_comp.mx;
+                    g_comp.resize_grab_y = g_comp.my;
+                    g_comp.resize_orig_x = w->x;
+                    g_comp.resize_orig_y = w->y;
+                    g_comp.resize_orig_w = w->w;
+                    g_comp.resize_orig_h = w->h;
+                    g_comp.needs_present = true;
+                    continue;
+                }
 
                 if (is_titlebar_hit(w, g_comp.mx, g_comp.my)) {
                     int btn = hit_test_titlebar_buttons(w, g_comp.mx, g_comp.my);
@@ -1132,6 +1281,11 @@ static bool process_mouse(void) {
                 else if (btn == BTN_MINIMIZE_IDX)
                     window_minimize(w);
             }
+            continue;
+        }
+
+        if (g_comp.resize_window && (released & 1)) {
+            g_comp.resize_window = NULL;
             continue;
         }
 
@@ -1267,7 +1421,7 @@ int main(int argc, char* argv[]) {
 
     if (ioctl(g_comp.fb, FB_IOCTL_GET_INFO, &g_comp.info) < 0) return 1;
 
-    const uint32_t backbuf_size = g_comp.info.width * g_comp.info.height * sizeof(uint32_t);
+    const uint32_t backbuf_size = g_comp.info.width * g_comp.info.height * (uint32_t)sizeof(uint32_t);
     g_comp.backbuf = (uint32_t*)mmap(NULL, backbuf_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (g_comp.backbuf == MAP_FAILED) return 1;
 

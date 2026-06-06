@@ -1,4 +1,4 @@
-// theme.h
+// topbar.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,7 +19,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_THEME_H
-#define VESPERAOS_THEME_H
 
-#endif  // VESPERAOS_THEME_H
+#ifndef VESPERAOS_TOPBAR_H
+#define VESPERAOS_TOPBAR_H
+
+#include <stella.h>
+
+#define TOPBAR_H 28
+
+stella_widget_t topbar_create(stella_widget_t screen);
+
+#endif  // VESPERAOS_TOPBAR_H

@@ -1,4 +1,4 @@
-// main.c
+// theme.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,3 +19,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include "theme.h"
+
+#include <stella.h>
+
+void vespera_theme_init(stella_window_t *win) {
+    stella_widget_t screen = stella_window_get_screen(win);
+    stella_widget_set_bg(screen, VESPERA_COL(VESPERA_BG), STELLA_OPA_COVER);
+}
