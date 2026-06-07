@@ -1,0 +1,235 @@
+// new
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+//
+// Provides:
+//   std::nothrow_t / std::nothrow
+//   std::align_val_t                        (C++17)
+//   std::destroying_delete_t                (C++20)
+//   std::launder                            (C++17)
+//   std::hardware_{destructive,constructive}_interference_size  (C++17)
+//   Placement new / delete                  (non-replaceable, defined here)
+//   Global operator new / delete            (replaceable, implemented via malloc/free)
+
+#ifndef VESPERAOS_NEW_H
+#define VESPERAOS_NEW_H
+
+#include <stddef.h>     // size_t
+#include <stdint.h>     // uintptr_t (needed for aligned allocation)
+#include <stdlib.h>     // malloc, free
+
+// ═════════════════════════════════════════════════════════════════════════════
+// std:: types and constants
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace std {
+
+// ── nothrow_t / nothrow ───────────────────────────────────────────────────────
+// Tag type used to select the non-throwing overloads of operator new.
+
+struct nothrow_t { explicit nothrow_t() = default; };
+inline constexpr nothrow_t nothrow{};
+
+// ── align_val_t (C++17) ───────────────────────────────────────────────────────
+// Passed to over-aligned operator new / delete.
+
+enum class align_val_t : size_t {};
+
+// ── destroying_delete_t (C++20) ───────────────────────────────────────────────
+// Tag for destroying-delete: destructor is called inside operator delete.
+
+struct destroying_delete_t { explicit destroying_delete_t() = default; };
+inline constexpr destroying_delete_t destroying_delete{};
+
+// ── Hardware interference sizes (C++17) ───────────────────────────────────────
+// x86_64 cache line = 64 bytes.
+
+inline constexpr size_t hardware_destructive_interference_size  = 64;
+inline constexpr size_t hardware_constructive_interference_size = 64;
+
+// ── std::launder (C++17) ──────────────────────────────────────────────────────
+// Pointer barrier: tells the optimiser that the pointed-to object may have
+// changed, preventing it from reusing values cached through the old pointer.
+// Required when doing placement-new over an existing object (e.g. in a union).
+
+template<typename T>
+[[nodiscard]] constexpr T* launder(T* p) noexcept {
+    return __builtin_launder(p);
+}
+
+// Function pointers and cv-void may not be laundered (ill-formed per standard).
+void launder(void*)                = delete;
+void launder(const void*)          = delete;
+void launder(volatile void*)       = delete;
+void launder(const volatile void*) = delete;
+
+} // namespace std
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Placement new / delete  — non-replaceable, defined inline
+//
+// Guarded so that <memory> (which also declares these) can be included in
+// either order without a redefinition error.
+// ═════════════════════════════════════════════════════════════════════════════
+
+[[nodiscard]] inline void* operator new  (size_t, void* p) noexcept { return p; }
+[[nodiscard]] inline void* operator new[](size_t, void* p) noexcept { return p; }
+inline void operator delete  (void*, void*) noexcept {}
+inline void operator delete[](void*, void*) noexcept {}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Global operator new / delete  — replaceable, implemented via malloc/free
+//
+// The C++ standard marks these as "replaceable": a program may provide its
+// own definitions to override them.  We implement them as inline functions
+// here using malloc/free.  To override, define the same signatures in a .cpp
+// file (the non-inline definition takes precedence at link time with LTO off,
+// or mark yours [[clang::optnone]] / use -fno-inline-functions if needed).
+//
+// Over-aligned forms (align_val_t) use a manual alignment trick since
+// VesperaOS vesplib does not yet expose aligned_alloc / posix_memalign:
+//   - Allocate (size + alignment + sizeof(void*)) bytes from malloc.
+//   - Round up the returned pointer to the required alignment boundary.
+//   - Stash the original malloc pointer one slot behind the aligned pointer.
+//   - The matching delete reads it back and calls free() on the original.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ── Scalar new ────────────────────────────────────────────────────────────────
+
+[[nodiscard]] inline void* operator new(size_t size) {
+    if (size == 0) size = 1;
+    return ::malloc(size);
+}
+
+[[nodiscard]] inline void* operator new(size_t size,
+                                        const std::nothrow_t&) noexcept {
+    if (size == 0) size = 1;
+    return ::malloc(size);
+}
+
+[[nodiscard]] inline void* operator new(size_t size,
+                                        std::align_val_t al) {
+    size_t alignment = static_cast<size_t>(al);
+    if (size == 0) size = 1;
+
+    // Allocate raw block large enough to hide the original pointer before
+    // the aligned region.
+    void* raw = ::malloc(size + alignment + sizeof(void*));
+    if (!raw) return nullptr;
+
+    auto raw_addr  = reinterpret_cast<uintptr_t>(raw);
+    auto hdr_addr  = raw_addr + sizeof(void*);
+    auto aligned   = (hdr_addr + alignment - 1u) & ~(alignment - 1u);
+    auto* slot     = reinterpret_cast<void**>(aligned) - 1;
+    *slot = raw;
+    return reinterpret_cast<void*>(aligned);
+}
+
+[[nodiscard]] inline void* operator new(size_t size, std::align_val_t al,
+                                        const std::nothrow_t&) noexcept {
+    return ::operator new(size, al);
+}
+
+// ── Array new ─────────────────────────────────────────────────────────────────
+
+[[nodiscard]] inline void* operator new[](size_t size) {
+    return ::operator new(size);
+}
+
+[[nodiscard]] inline void* operator new[](size_t size,
+                                          const std::nothrow_t&) noexcept {
+    return ::operator new(size);
+}
+
+[[nodiscard]] inline void* operator new[](size_t size,
+                                          std::align_val_t al) {
+    return ::operator new(size, al);
+}
+
+[[nodiscard]] inline void* operator new[](size_t size, std::align_val_t al,
+                                          const std::nothrow_t&) noexcept {
+    return ::operator new(size, al);
+}
+
+// ── Scalar delete ─────────────────────────────────────────────────────────────
+
+inline void operator delete(void* ptr) noexcept {
+    ::free(ptr);
+}
+
+inline void operator delete(void* ptr, size_t /* size */) noexcept {
+    ::free(ptr);
+}
+
+inline void operator delete(void* ptr,
+                             std::align_val_t /* al */) noexcept {
+    if (!ptr) return;
+    // Recover original malloc pointer from the slot stashed by aligned new.
+    void* raw = *(reinterpret_cast<void**>(ptr) - 1);
+    ::free(raw);
+}
+
+inline void operator delete(void* ptr, size_t /* size */,
+                             std::align_val_t al) noexcept {
+    ::operator delete(ptr, al);
+}
+
+inline void operator delete(void* ptr,
+                             const std::nothrow_t&) noexcept {
+    ::free(ptr);
+}
+
+inline void operator delete(void* ptr, std::align_val_t al,
+                             const std::nothrow_t&) noexcept {
+    ::operator delete(ptr, al);
+}
+
+// ── Array delete ──────────────────────────────────────────────────────────────
+
+inline void operator delete[](void* ptr) noexcept {
+    ::free(ptr);
+}
+
+inline void operator delete[](void* ptr, size_t /* size */) noexcept {
+    ::free(ptr);
+}
+
+inline void operator delete[](void* ptr,
+                               std::align_val_t al) noexcept {
+    ::operator delete(ptr, al);
+}
+
+inline void operator delete[](void* ptr, size_t /* size */,
+                               std::align_val_t al) noexcept {
+    ::operator delete(ptr, al);
+}
+
+inline void operator delete[](void* ptr,
+                               const std::nothrow_t&) noexcept {
+    ::free(ptr);
+}
+
+inline void operator delete[](void* ptr, std::align_val_t al,
+                               const std::nothrow_t&) noexcept {
+    ::operator delete(ptr, al);
+}
+
+#endif // VESPERAOS_NEW_H

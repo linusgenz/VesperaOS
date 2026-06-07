@@ -1,0 +1,228 @@
+// istream
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <string>
+#include <iosfwd>
+#include <ios>
+#include <streambuf>
+
+namespace std {
+
+// ---------------------------------------------------------------------------
+// basic_istream<charT>
+//
+// Implements the subset ThorVG uses:
+//   read(buf, n)    — bulk read
+//   get()           — single char read
+//   peek()          — non-consuming lookahead
+//   ignore(n, delim)
+//   seekg(off, dir) — reposition
+//   seekg(pos)
+//   tellg()         — current position
+//   gcount()        — characters extracted by last unformatted read
+//   good/eof/fail/bad/operator bool  (via basic_ios)
+// ---------------------------------------------------------------------------
+
+template<typename CharT, typename Traits>
+class basic_istream : virtual public basic_ios<CharT, Traits> {
+public:
+    using char_type   = CharT;
+    using int_type    = typename Traits::int_type; // Nutze den Typ aus den Traits
+    using pos_type    = streampos;
+    using off_type    = streamoff;
+
+    class sentry {
+        public:
+            explicit sentry(basic_istream<CharT, Traits>& is, bool noskipws = false)
+                : ok_(is.good())
+            {
+                // Minimalistischer Sentry: Prüft nur, ob der Stream bereit ist.
+                // Im echten C++ würden hier führende Whitespaces übersprungen,
+                // falls !noskipws aktiv ist, was bei getline aber ignoriert wird (noskipws = true).
+            }
+
+            ~sentry() = default;
+
+            // Erlaubt Abfragen wie: if (!se) return input;
+            explicit operator bool() const noexcept { return ok_; }
+
+            sentry(const sentry&) = delete;
+            sentry& operator=(const sentry&) = delete;
+
+        private:
+            bool ok_;
+    };
+
+    explicit basic_istream(basic_streambuf<CharT, Traits>* sb)
+        : buf_(sb), gcount_(0) {}
+
+    basic_istream(const basic_istream&)            = delete;
+    basic_istream& operator=(const basic_istream&) = delete;
+
+    virtual ~basic_istream() = default;
+
+    // --- unformatted input ---
+    streampos gcount() const noexcept { return gcount_; }
+
+    basic_istream& read(char_type* s, streampos n) {
+        gcount_ = 0;
+        if (!this->good() || !buf_) { this->setstate(ios_base::failbit); return *this; }
+        streampos got = buf_->xsgetn(s, n);
+        gcount_ = got;
+        if (got < n) this->setstate(ios_base::eofbit | ios_base::failbit);
+        return *this;
+    }
+
+    basic_istream& read(char_type* s, streampos n, char_type delim) {
+        gcount_ = 0;
+        if (!this->good() || !buf_) { this->setstate(ios_base::failbit); return *this; }
+        streampos i = 0;
+        while (i < n) {
+            int_type c = buf_->underflow();
+            if (c == -1) { this->setstate(ios_base::eofbit); break; }
+            if (static_cast<char_type>(c) == delim) break;
+            s[i++] = static_cast<char_type>(c);
+        }
+        gcount_ = i;
+        return *this;
+    }
+
+    int_type get() {
+        gcount_ = 0;
+        if (!this->good() || !buf_) { this->setstate(ios_base::failbit); return -1; }
+        int_type c = buf_->underflow();
+        if (c == -1) { this->setstate(ios_base::eofbit); return -1; }
+        gcount_ = 1;
+        return c;
+    }
+
+    basic_istream& get(char_type& c) {
+        int_type val = get();
+        if (val != -1) c = static_cast<char_type>(val);
+        return *this;
+    }
+
+    int_type peek() {
+        if (!this->good() || !buf_) return -1;
+        streampos pos = buf_->pubseekoff(0, ios_base::cur);
+        int_type c = buf_->underflow();
+        if (c == -1) { this->setstate(ios_base::eofbit); return -1; }
+        buf_->pubseekpos(pos);
+        return c;
+    }
+
+    basic_istream& ignore(streampos n = 1, int_type delim = -1) {
+        if (!this->good() || !buf_) return *this;
+        for (streampos i = 0; i < n; ++i) {
+            int_type c = buf_->underflow();
+            if (c == -1) { this->setstate(ios_base::eofbit); break; }
+            if (c == delim) break;
+        }
+        return *this;
+    }
+
+    // --- positioning ---
+    basic_istream& seekg(off_type off, ios_base::seekdir dir) {
+        if (!buf_) { this->setstate(ios_base::failbit); return *this; }
+        streampos res = buf_->pubseekoff(off, dir, ios_base::in);
+        if (res == streampos(-1)) this->setstate(ios_base::failbit);
+        else this->clear(this->rdstate() & ~ios_base::eofbit);
+        return *this;
+    }
+
+    basic_istream& seekg(pos_type pos) {
+        if (!buf_) { this->setstate(ios_base::failbit); return *this; }
+        streampos res = buf_->pubseekpos(pos, ios_base::in);
+        if (res == streampos(-1)) this->setstate(ios_base::failbit);
+        else this->clear(this->rdstate() & ~ios_base::eofbit);
+        return *this;
+    }
+
+    pos_type tellg() {
+        if (!this->good() || !buf_) return pos_type(-1);
+        return buf_->pubseekoff(0, ios_base::cur, ios_base::in);
+    }
+
+    // Hier liefert rdbuf() den Buffer für getline
+    basic_streambuf<CharT, Traits>* rdbuf() const noexcept { return buf_; }
+
+protected:
+    basic_streambuf<CharT, Traits>* buf_;
+    streampos               gcount_;
+};
+
+using istream = basic_istream<char, char_traits<char>>;
+
+template<typename CharT, typename Traits, typename Allocator>
+    basic_istream<CharT, Traits>& getline(
+        basic_istream<CharT, Traits>& input,
+        basic_string<CharT, Traits, Allocator>& str,
+        CharT delim)
+    {
+        using int_type = typename Traits::int_type;
+
+        str.clear();
+
+        typename basic_istream<CharT, Traits>::sentry se(input, true);
+        if (!se) {
+            return input;
+        }
+
+        auto* buf = input.rdbuf();
+        while (true) {
+            int_type meta_ch = buf->sbumpc();
+
+            if (Traits::eq_int_type(meta_ch, Traits::eof())) {
+                if (str.empty()) {
+                    input.setstate(ios_base::eofbit | ios_base::failbit);
+                } else {
+                    input.setstate(ios_base::eofbit);
+                }
+                break;
+            }
+
+            CharT ch = Traits::to_char_type(meta_ch);
+
+            if (Traits::eq(ch, delim)) {
+                break;
+            }
+
+            str.push_back(ch);
+
+            if (str.size() == str.max_size()) {
+                input.setstate(ios_base::failbit);
+                break;
+            }
+        }
+
+        return input;
+    }
+
+    template<typename CharT, typename Traits, typename Allocator>
+    basic_istream<CharT, Traits>& getline(
+        basic_istream<CharT, Traits>& input,
+        basic_string<CharT, Traits, Allocator>& str)
+    {
+        return std::getline(input, str, input.widen('\n'));
+    }
+
+} // namespace std

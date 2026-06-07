@@ -1,0 +1,113 @@
+// algorithm
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <initializer_list>
+
+namespace std {
+
+    template <typename T>
+    [[nodiscard]] constexpr const T& min(const T& a, const T& b) {
+        return (b < a) ? b : a;
+    }
+
+    template <typename T, typename Compare>
+    [[nodiscard]] constexpr const T& min(const T& a, const T& b, Compare comp) {
+        return comp(b, a) ? b : a;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr T min(std::initializer_list<T> ilist) {
+        auto first = ilist.begin();
+        auto last = ilist.end();
+
+        const T* result = first;
+        if (first == last) return *result;
+
+        while (++first != last) {
+            if (*first < *result) {
+                result = first;
+            }
+        }
+        return *result;
+    }
+
+    template <typename T, typename Compare>
+    [[nodiscard]] constexpr T min(std::initializer_list<T> ilist, Compare comp) {
+        auto first = ilist.begin();
+        auto last = ilist.end();
+
+        const T* result = first;
+        if (first == last) return *result;
+
+        while (++first != last) {
+            if (comp(*first, *result)) {
+                result = first;
+            }
+        }
+        return *result;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr const T& max(const T& a, const T& b) {
+        return (a < b) ? b : a;
+    }
+
+    template <typename T, typename Compare>
+    [[nodiscard]] constexpr const T& max(const T& a, const T& b, Compare comp) {
+        return comp(a, b) ? b : a;
+    }
+
+    template <typename T>
+    [[nodiscard]] constexpr T max(std::initializer_list<T> ilist) {
+        auto first = ilist.begin();
+        auto last = ilist.end();
+
+        const T* result = first;
+        if (first == last) return *result;
+
+        while (++first != last) {
+            if (*result < *first) {
+                result = first;
+            }
+        }
+        return *result;
+    }
+
+    template <typename T, typename Compare>
+    [[nodiscard]] constexpr T max(std::initializer_list<T> ilist, Compare comp) {
+        auto first = ilist.begin();
+        auto last = ilist.end();
+
+        const T* result = first;
+        if (first == last) return *result;
+
+        while (++first != last) {
+            if (comp(*result, *first)) {
+                result = first;
+            }
+        }
+        return *result;
+    }
+
+} // namespace std

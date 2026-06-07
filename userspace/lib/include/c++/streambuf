@@ -1,0 +1,173 @@
+// streambuf
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <ios>
+#include <cstdio>
+
+namespace std {
+
+// ---------------------------------------------------------------------------
+// basic_filebuf<char> — minimal FILE*-backed streambuf
+//
+// Only implements what basic_ifstream needs:
+//   open / close / is_open
+//   underflow (single-char refill)
+//   xsgetn    (bulk read)
+//   seekoff   (seekg / tellg)
+//
+// No put-area, no locale, no wide-char support.
+// ---------------------------------------------------------------------------
+
+template<typename CharT, typename Traits>
+class basic_streambuf {
+public:
+    using char_type = CharT;
+    using int_type  = int;
+    using pos_type  = streampos;
+    using off_type  = streamoff;
+
+    virtual ~basic_streambuf() = default;
+
+    int_type sbumpc() {
+        return underflow();
+    }
+
+    // Read up to n characters into s; returns number actually read.
+    virtual streampos pubseekoff(off_type off, ios_base::seekdir dir,
+                                 ios_base::openmode which = ios_base::in) {
+        return seekoff(off, dir, which);
+    }
+
+    virtual streampos pubseekpos(pos_type pos,
+                                 ios_base::openmode which = ios_base::in) {
+        return seekpos(pos, which);
+    }
+
+protected:
+    basic_streambuf() = default;
+
+    virtual int_type  underflow()                              { return -1; }
+    virtual streampos xsgetn(char_type* s, streampos n)       { return 0; }
+    virtual streampos seekoff(off_type, ios_base::seekdir,
+                              ios_base::openmode)              { return -1; }
+    virtual streampos seekpos(pos_type,
+                              ios_base::openmode)              { return -1; }
+};
+
+// ---------------------------------------------------------------------------
+// basic_filebuf<char> — FILE*-backed implementation
+// ---------------------------------------------------------------------------
+
+template<typename CharT, typename Traits>
+class basic_filebuf : public basic_streambuf<CharT, Traits> {
+public:
+    using char_type = CharT;
+    using int_type  = int;
+    using pos_type  = streampos;
+    using off_type  = streamoff;
+
+    basic_filebuf() : file_(nullptr) {}
+
+    ~basic_filebuf() override { close(); }
+
+    basic_filebuf(const basic_filebuf&)            = delete;
+    basic_filebuf& operator=(const basic_filebuf&) = delete;
+
+    bool is_open() const noexcept { return file_ != nullptr; }
+
+    basic_filebuf* open(const char* path, ios_base::openmode mode) {
+        if (file_) return nullptr;   // already open
+
+        const char* cmode = mode_string(mode);
+        if (!cmode) return nullptr;
+
+        file_ = ::fopen(path, cmode);
+        return file_ ? this : nullptr;
+    }
+
+    basic_filebuf* close() {
+        if (!file_) return nullptr;
+        ::fclose(file_);
+        file_ = nullptr;
+        return this;
+    }
+
+protected:
+    int_type underflow() override {
+        if (!file_) return -1;
+        int c = ::fgetc(file_);
+        if (c == EOF) return -1;
+        return c;
+    }
+
+    streampos xsgetn(char_type* s, streampos n) override {
+        if (!file_ || n <= 0) return 0;
+        return static_cast<streampos>(
+            ::fread(s, sizeof(char_type), static_cast<size_t>(n), file_));
+    }
+
+    streampos seekoff(off_type off, ios_base::seekdir dir,
+                      ios_base::openmode) override {
+        if (!file_) return -1;
+        int whence = SEEK_SET;
+        if (dir == ios_base::cur) whence = SEEK_CUR;
+        else if (dir == ios_base::end) whence = SEEK_END;
+
+        if (::fseek(file_, static_cast<long>(off), whence) != 0)
+            return -1;
+        return static_cast<streampos>(::ftell(file_));
+    }
+
+    streampos seekpos(pos_type pos, ios_base::openmode which) override {
+        return seekoff(static_cast<off_type>(pos), ios_base::beg, which);
+    }
+
+private:
+    FILE* file_;
+
+    static const char* mode_string(ios_base::openmode mode) {
+        // in only
+        if ((mode & ios_base::in) && !(mode & ios_base::out)) {
+            return (mode & ios_base::binary) ? "rb" : "r";
+        }
+        // out only
+        if ((mode & ios_base::out) && !(mode & ios_base::in)) {
+            if (mode & ios_base::app)   return (mode & ios_base::binary) ? "ab" : "a";
+            if (mode & ios_base::trunc) return (mode & ios_base::binary) ? "wb" : "w";
+            return (mode & ios_base::binary) ? "wb" : "w";
+        }
+        // in+out
+        if ((mode & ios_base::in) && (mode & ios_base::out)) {
+            if (mode & ios_base::trunc) return (mode & ios_base::binary) ? "w+b" : "w+";
+            if (mode & ios_base::app)   return (mode & ios_base::binary) ? "a+b" : "a+";
+            return (mode & ios_base::binary) ? "r+b" : "r+";
+        }
+        return nullptr;
+    }
+};
+
+using streambuf = basic_streambuf<char, char_traits<char>>;
+using filebuf  = basic_filebuf<char, char_traits<char>>;
+
+} // namespace std

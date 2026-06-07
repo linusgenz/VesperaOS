@@ -1,0 +1,104 @@
+// cctype
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+extern "C" {
+#include <ctype.h>
+}
+
+#ifdef isalnum
+#undef isalnum
+#endif
+#ifdef isalpha
+#undef isalpha
+#endif
+#ifdef isblank
+#undef isblank
+#endif
+#ifdef iscntrl
+#undef iscntrl
+#endif
+#ifdef isdigit
+#undef isdigit
+#endif
+#ifdef isgraph
+#undef isgraph
+#endif
+#ifdef islower
+#undef islower
+#endif
+#ifdef isprint
+#undef isprint
+#endif
+#ifdef ispunct
+#undef ispunct
+#endif
+#ifdef isspace
+#undef isspace
+#endif
+#ifdef isupper
+#undef isupper
+#endif
+#ifdef isxdigit
+#undef isxdigit
+#endif
+#ifdef tolower
+#undef tolower
+#endif
+#ifdef toupper
+#undef toupper
+#endif
+
+inline int isalnum(int c)  { return __isctype(c, _ISalnum); }
+inline int isalpha(int c)  { return __isctype(c, _ISalpha); }
+inline int isblank(int c)  { return __isctype(c, _ISblank); }
+inline int iscntrl(int c)  { return __isctype(c, _IScntrl); }
+inline int isdigit(int c)  { return __isctype(c, _ISdigit); }
+inline int isgraph(int c)  { return __isctype(c, _ISgraph); }
+inline int islower(int c)  { return __isctype(c, _ISlower); }
+inline int isprint(int c)  { return __isctype(c, _ISprint); }
+inline int ispunct(int c)  { return __isctype(c, _ISpunct); }
+inline int isspace(int c)  { return __isctype(c, _ISspace); }
+inline int isupper(int c)  { return __isctype(c, _ISupper); }
+inline int isxdigit(int c) { return __isctype(c, _ISxdigit); }
+
+inline int tolower(int c)  { return ((c) >= -128 && (c) < 256 ? __ctype_tolower_loc()[(c)] : (c)); }
+inline int toupper(int c)  { return ((c) >= -128 && (c) < 256 ? __ctype_toupper_loc()[(c)] : (c)); }
+
+namespace std {
+    inline int isalnum(int c)  { return ::isalnum(c); }
+    inline int isalpha(int c)  { return ::isalpha(c); }
+    inline int isblank(int c)  { return ::isblank(c); }
+    inline int iscntrl(int c)  { return ::iscntrl(c); }
+    inline int isdigit(int c)  { return ::isdigit(c); }
+    inline int isgraph(int c)  { return ::isgraph(c); }
+    inline int islower(int c)  { return ::islower(c); }
+    inline int isprint(int c)  { return ::isprint(c); }
+    inline int ispunct(int c)  { return ::ispunct(c); }
+    inline int isspace(int c)  { return ::isspace(c); }
+    inline int isupper(int c)  { return ::isupper(c); }
+    inline int isxdigit(int c) { return ::isxdigit(c); }
+
+    inline int tolower(int c)  { return ::tolower(c); }
+    inline int toupper(int c)  { return ::toupper(c); }
+}

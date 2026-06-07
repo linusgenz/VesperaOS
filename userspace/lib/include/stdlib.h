@@ -35,6 +35,8 @@ extern int errno;
 #ifdef __cplusplus
 extern "C" {
 
+
+
 #endif
 
 /**
@@ -182,16 +184,26 @@ double strtod(const char* str, char** endptr);
 float strtof(const char* str, char** endptr);
 long double strtold(const char* str, char** endptr);
 unsigned long strtoul(const char* nptr, char** endptr, int base);
+long strtol(const char* nptr, char** endptr, int base);
+double atof(const char* nptr);
 
 static inline int abs(int x) {
     return x < 0 ? -x : x;
 }
+
 static inline long labs(long x) {
     return x < 0 ? -x : x;
 }
+
 static inline long long llabs(long long x) {
     return x < 0 ? -x : x;
 }
+
+int rand(void);
+
+void srand(unsigned int seed);
+
+#define RAND_MAX 2147483647
 
 _Noreturn void abort(void);
 

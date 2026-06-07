@@ -117,6 +117,7 @@ extern const stella_font_t *STELLA_FONT_12;
 extern const stella_font_t *STELLA_FONT_14;
 extern const stella_font_t *STELLA_FONT_16;
 extern const stella_font_t *STELLA_FONT_20;
+extern const stella_font_t *STELLA_FONT_20_MATH;
 extern const stella_font_t *STELLA_FONT_24;
 
 /* -------------------------------------------------------------------------

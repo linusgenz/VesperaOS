@@ -1,0 +1,1046 @@
+// string
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+// Provides:
+//   basic_string<CharT, Traits, Allocator>
+//   string    (= basic_string<char>)
+//   wstring   (= basic_string<wchar_t>)
+//   u16string (= basic_string<char16_t>)
+//   u32string (= basic_string<char32_t>)
+//   hash<string>
+//   Comparison operators (==, !=, <, <=, >, >=)
+//   operator+ overloads
+//   Literal operator ""s
+
+#pragma once
+
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <iterator>
+#include <type_traits>
+#include <utility>
+#include <functional>
+#include <string_view>
+#include <algorithm>
+#include <cctype>
+#include <iosfwd>
+
+namespace std {
+
+
+// ============================================================
+// basic_string<CharT, Traits, Allocator>
+// ============================================================
+
+template<
+    typename CharT,
+    typename Traits    = char_traits<CharT>,
+    typename Allocator = allocator<CharT>
+>
+class basic_string {
+public:
+    // ── Member types ─────────────────────────────────────────────────────────
+
+    using traits_type            = Traits;
+    using value_type             = CharT;
+    using allocator_type         = Allocator;
+    using size_type              = typename allocator_traits<Allocator>::size_type;
+    using difference_type        = typename allocator_traits<Allocator>::difference_type;
+    using reference              = CharT&;
+    using const_reference        = const CharT&;
+    using pointer                = typename allocator_traits<Allocator>::pointer;
+    using const_pointer          = typename allocator_traits<Allocator>::const_pointer;
+    using iterator               = CharT*;
+    using const_iterator         = const CharT*;
+    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    static constexpr size_type npos = static_cast<size_type>(-1);
+
+private:
+    // ── SSO layout ───────────────────────────────────────────────────────────
+    //
+    //  We store either:
+    //    a) A heap allocation (pointer + capacity + size)  — _heap mode
+    //    b) An inline buffer of _SSO_CAP chars             — _sso mode
+    //
+    //  For char (1-byte CharT) the SSO buffer holds 15 chars + NUL.
+    //  For wider chars we still keep a proportionally-sized buffer.
+
+    static constexpr size_type _SSO_CAP =
+        (sizeof(void*) * 3 - 1) / sizeof(CharT);   // typically 23 for char
+
+    // All fields are in union to allow zero-cost switching between modes.
+    // The "mode" bit is the last byte of the inline buffer: 0 = SSO, 1 = heap.
+
+    struct _Heap {
+        CharT*    ptr;
+        size_type size;
+        size_type cap;   // allocated capacity, NOT including NUL
+    };
+
+    static constexpr size_type _SSO_BUF = _SSO_CAP + 1; // +1 for NUL
+
+    union _Rep {
+        _Heap heap;
+        CharT sso[_SSO_BUF];
+    };
+
+    _Rep      _rep;
+    Allocator _alloc;
+
+    // ── Mode helpers ─────────────────────────────────────────────────────────
+
+    // We use a flag stored in the last element of the sso buffer.
+    // When in SSO mode _rep.sso[_SSO_CAP] == 0 (also serves as NUL guard).
+    // When in heap mode _rep.sso[_SSO_CAP] != 0 (we set it to 1).
+
+    bool _is_heap() const noexcept {
+        return reinterpret_cast<const unsigned char*>(_rep.sso)[_SSO_BUF - 1] != 0;
+    }
+
+    void _set_sso_size(size_type n) noexcept {
+        // SSO size is stored in the last byte, as (SSO_CAP - n) to let NUL
+        // propagate naturally when n == SSO_CAP.
+        reinterpret_cast<unsigned char*>(_rep.sso)[_SSO_BUF - 1] =
+            static_cast<unsigned char>(_SSO_CAP - n);
+    }
+
+    size_type _sso_size() const noexcept {
+        return _SSO_CAP -
+               reinterpret_cast<const unsigned char*>(_rep.sso)[_SSO_BUF - 1];
+    }
+
+    void _mark_heap() noexcept {
+        reinterpret_cast<unsigned char*>(_rep.sso)[_SSO_BUF - 1] = 0xFF;
+    }
+
+    // ── Accessors ────────────────────────────────────────────────────────────
+
+    CharT* _buf() noexcept {
+        return _is_heap() ? _rep.heap.ptr : _rep.sso;
+    }
+    const CharT* _buf() const noexcept {
+        return _is_heap() ? _rep.heap.ptr : _rep.sso;
+    }
+
+    size_type _cap() const noexcept {
+        return _is_heap() ? _rep.heap.cap : _SSO_CAP;
+    }
+
+    // ── Internal helpers ─────────────────────────────────────────────────────
+
+    // Allocate (capacity does NOT include NUL).
+    CharT* _alloc_buf(size_type cap) {
+        CharT* p = allocator_traits<Allocator>::allocate(_alloc, cap + 1);
+        if (!p) __builtin_trap();
+        return p;
+    }
+
+    void _free_heap() noexcept {
+        if (_is_heap() && _rep.heap.ptr)
+            allocator_traits<Allocator>::deallocate(
+                _alloc, _rep.heap.ptr, _rep.heap.cap + 1);
+    }
+
+    // Grow (or establish) the heap buffer to at least new_cap chars.
+    // If already on heap, tries realloc via allocate+copy+free.
+    void _reallocate(size_type new_cap) {
+        new_cap = (new_cap < _SSO_CAP * 2) ? _SSO_CAP * 2 : new_cap;
+        CharT* np = _alloc_buf(new_cap);
+        size_type sz = size();
+        Traits::copy(np, _buf(), sz + 1);   // include NUL
+        _free_heap();
+        _rep.heap.ptr  = np;
+        _rep.heap.size = sz;
+        _rep.heap.cap  = new_cap;
+        _mark_heap();
+    }
+
+    void _set_size(size_type n) noexcept {
+        if (_is_heap())
+            _rep.heap.size = n;
+        else
+            _set_sso_size(n);
+    }
+
+    // Ensure there is room for at least `n` chars (not counting NUL).
+    void _reserve(size_type n) {
+        if (n > _cap()) _reallocate(n);
+    }
+
+    // Initialise from [s, s+n) — used by constructors.
+    void _init(const CharT* s, size_type n) {
+        if (n <= _SSO_CAP) {
+            Traits::copy(_rep.sso, s, n);
+            _rep.sso[n] = CharT{};
+            _set_sso_size(n);
+        } else {
+            _rep.heap.ptr  = _alloc_buf(n);
+            _rep.heap.cap  = n;
+            _rep.heap.size = n;
+            Traits::copy(_rep.heap.ptr, s, n);
+            _rep.heap.ptr[n] = CharT{};
+            _mark_heap();
+        }
+    }
+
+    // Initialise as n copies of c.
+    void _init_fill(size_type n, CharT c) {
+        if (n <= _SSO_CAP) {
+            Traits::assign(_rep.sso, n, c);
+            _rep.sso[n] = CharT{};
+            _set_sso_size(n);
+        } else {
+            _rep.heap.ptr  = _alloc_buf(n);
+            _rep.heap.cap  = n;
+            _rep.heap.size = n;
+            Traits::assign(_rep.heap.ptr, n, c);
+            _rep.heap.ptr[n] = CharT{};
+            _mark_heap();
+        }
+    }
+
+    // Zero-out the whole union so _sso_size() == 0.
+    void _init_empty() noexcept {
+        for (size_type i = 0; i < _SSO_BUF; ++i)
+            _rep.sso[i] = CharT{};
+        // _SSO_BUF - 1 is already 0 → SSO mode, size 0.
+    }
+
+public:
+    // ── Constructors ─────────────────────────────────────────────────────────
+
+    basic_string() noexcept(noexcept(Allocator()))
+        : _alloc() { _init_empty(); }
+
+    explicit basic_string(const Allocator& a) noexcept
+        : _alloc(a) { _init_empty(); }
+
+    basic_string(size_type count, CharT c, const Allocator& a = Allocator())
+        : _alloc(a) { _init_fill(count, c); }
+
+    basic_string(const CharT* s, size_type count,
+                 const Allocator& a = Allocator())
+        : _alloc(a) { _init(s, count); }
+
+    basic_string(const CharT* s, const Allocator& a = Allocator())
+        : _alloc(a) { _init(s, Traits::length(s)); }
+
+    basic_string(const basic_string& other)
+        : _alloc(allocator_traits<Allocator>
+                     ::select_on_container_copy_construction(other._alloc)) {
+        _init(other._buf(), other.size());
+    }
+
+    basic_string(const basic_string& other, size_type pos,
+                 size_type count = npos,
+                 const Allocator& a = Allocator())
+        : _alloc(a) {
+        size_type sz = other.size();
+        if (pos > sz) __builtin_trap();
+        size_type rlen = (count < sz - pos) ? count : (sz - pos);
+        _init(other._buf() + pos, rlen);
+    }
+
+    basic_string(basic_string&& other) noexcept
+        : _alloc(std::move(other._alloc)), _rep(other._rep) {
+        other._init_empty();
+    }
+
+    basic_string(basic_string&& other, const Allocator& a)
+        : _alloc(a) {
+        if (_alloc == other._alloc) {
+            _rep = other._rep;
+            other._init_empty();
+        } else {
+            _init(other._buf(), other.size());
+        }
+    }
+
+    // Construct from basic_string_view
+    template<typename T,
+             enable_if_t<is_same_v<T, basic_string_view<CharT, Traits>>, int> = 0>
+    explicit basic_string(T sv, const Allocator& a = Allocator())
+        : _alloc(a) { _init(sv.data(), sv.size()); }
+
+    // Construct from iterator range
+    template<typename InputIt,
+             enable_if_t<!is_same_v<decay_t<InputIt>, CharT*>, int> = 0>
+    basic_string(InputIt first, InputIt last,
+                 const Allocator& a = Allocator())
+        : _alloc(a) {
+        _init_empty();
+        for (; first != last; ++first)
+            push_back(*first);
+    }
+
+    ~basic_string() noexcept { _free_heap(); }
+
+    // ── Assignment ───────────────────────────────────────────────────────────
+
+    basic_string& operator=(const basic_string& other) {
+        if (this == &other) return *this;
+        assign(other._buf(), other.size());
+        return *this;
+    }
+
+    basic_string& operator=(basic_string&& other)
+        noexcept(allocator_traits<Allocator>::propagate_on_container_move_assignment::value)
+    {
+        if (this == &other) return *this;
+        _free_heap();
+        _alloc = std::move(other._alloc);
+        _rep   = other._rep;
+        other._init_empty();
+        return *this;
+    }
+
+    basic_string& operator=(const CharT* s) {
+        return assign(s);
+    }
+
+    basic_string& operator=(CharT c) {
+        return assign(1, c);
+    }
+
+    basic_string& operator=(basic_string_view<CharT, Traits> sv) {
+        return assign(sv.data(), sv.size());
+    }
+
+    // ── Iterators ────────────────────────────────────────────────────────────
+
+    iterator       begin()  noexcept { return _buf(); }
+    const_iterator begin()  const noexcept { return _buf(); }
+    iterator       end()    noexcept { return _buf() + size(); }
+    const_iterator end()    const noexcept { return _buf() + size(); }
+    const_iterator cbegin() const noexcept { return begin(); }
+    const_iterator cend()   const noexcept { return end(); }
+
+    reverse_iterator       rbegin()  noexcept { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin()  const noexcept { return const_reverse_iterator(end()); }
+    reverse_iterator       rend()    noexcept { return reverse_iterator(begin()); }
+    const_reverse_iterator rend()    const noexcept { return const_reverse_iterator(begin()); }
+    const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+    const_reverse_iterator crend()   const noexcept { return rend(); }
+
+    // ── Capacity ─────────────────────────────────────────────────────────────
+
+    [[nodiscard]] size_type size()     const noexcept {
+        return _is_heap() ? _rep.heap.size : _sso_size();
+    }
+    [[nodiscard]] size_type length()   const noexcept { return size(); }
+    [[nodiscard]] bool      empty()    const noexcept { return size() == 0; }
+    [[nodiscard]] size_type capacity() const noexcept { return _cap(); }
+
+    [[nodiscard]] size_type max_size() const noexcept {
+        return allocator_traits<Allocator>::max_size(_alloc) - 1;
+    }
+
+    void reserve(size_type new_cap = 0) {
+        if (new_cap > _cap()) _reallocate(new_cap);
+    }
+
+    void shrink_to_fit() {
+        if (!_is_heap()) return;
+        size_type sz = _rep.heap.size;
+        if (sz <= _SSO_CAP) {
+            // Move back to SSO
+            CharT tmp[_SSO_BUF];
+            Traits::copy(tmp, _rep.heap.ptr, sz + 1);
+            _free_heap();
+            Traits::copy(_rep.sso, tmp, sz + 1);
+            _set_sso_size(sz);
+        } else if (_rep.heap.cap > sz) {
+            CharT* np = _alloc_buf(sz);
+            Traits::copy(np, _rep.heap.ptr, sz + 1);
+            allocator_traits<Allocator>::deallocate(
+                _alloc, _rep.heap.ptr, _rep.heap.cap + 1);
+            _rep.heap.ptr = np;
+            _rep.heap.cap = sz;
+        }
+    }
+
+    // ── Element access ───────────────────────────────────────────────────────
+
+    reference       operator[](size_type pos)       noexcept { return _buf()[pos]; }
+    const_reference operator[](size_type pos) const noexcept { return _buf()[pos]; }
+
+    reference at(size_type pos) {
+        if (pos >= size()) __builtin_trap();
+        return _buf()[pos];
+    }
+    const_reference at(size_type pos) const {
+        if (pos >= size()) __builtin_trap();
+        return _buf()[pos];
+    }
+
+    reference       front()       noexcept { return _buf()[0]; }
+    const_reference front() const noexcept { return _buf()[0]; }
+    reference       back()        noexcept { return _buf()[size() - 1]; }
+    const_reference back()  const noexcept { return _buf()[size() - 1]; }
+
+    [[nodiscard]] CharT*       data()  noexcept { return _buf(); }
+    [[nodiscard]] const CharT* data()  const noexcept { return _buf(); }
+    [[nodiscard]] const CharT* c_str() const noexcept { return _buf(); }
+
+    // ── Implicit conversion to string_view ───────────────────────────────────
+
+    operator basic_string_view<CharT, Traits>() const noexcept {
+        return { _buf(), size() };
+    }
+
+    // ── Modifiers — assign ───────────────────────────────────────────────────
+
+    basic_string& assign(size_type count, CharT c) {
+        if (count > _cap()) _reallocate(count);
+        Traits::assign(_buf(), count, c);
+        _buf()[count] = CharT{};
+        _set_size(count);
+        return *this;
+    }
+
+    basic_string& assign(const basic_string& other) {
+        return assign(other._buf(), other.size());
+    }
+
+    basic_string& assign(basic_string&& other) noexcept {
+        return *this = std::move(other);
+    }
+
+    basic_string& assign(const CharT* s, size_type count) {
+        if (count > _cap()) _reallocate(count);
+        Traits::move(_buf(), s, count);   // move handles overlap
+        _buf()[count] = CharT{};
+        _set_size(count);
+        return *this;
+    }
+
+    basic_string& assign(const CharT* s) {
+        return assign(s, Traits::length(s));
+    }
+
+    basic_string& assign(basic_string_view<CharT, Traits> sv) {
+        return assign(sv.data(), sv.size());
+    }
+
+    template<typename InputIt>
+    basic_string& assign(InputIt first, InputIt last) {
+        clear();
+        for (; first != last; ++first) push_back(*first);
+        return *this;
+    }
+
+    // ── Modifiers — append ───────────────────────────────────────────────────
+
+    basic_string& append(size_type count, CharT c) {
+        size_type sz = size();
+        _reserve(sz + count);
+        Traits::assign(_buf() + sz, count, c);
+        sz += count;
+        _buf()[sz] = CharT{};
+        _set_size(sz);
+        return *this;
+    }
+
+    basic_string& append(const basic_string& other) {
+        return append(other._buf(), other.size());
+    }
+
+    basic_string& append(const basic_string& other,
+                          size_type pos, size_type count = npos) {
+        size_type osz = other.size();
+        if (pos > osz) __builtin_trap();
+        size_type rlen = (count < osz - pos) ? count : (osz - pos);
+        return append(other._buf() + pos, rlen);
+    }
+
+    basic_string& append(const CharT* s, size_type count) {
+        size_type sz = size();
+        _reserve(sz + count);
+        Traits::copy(_buf() + sz, s, count);
+        sz += count;
+        _buf()[sz] = CharT{};
+        _set_size(sz);
+        return *this;
+    }
+
+    basic_string& append(const CharT* s) {
+        return append(s, Traits::length(s));
+    }
+
+    basic_string& append(basic_string_view<CharT, Traits> sv) {
+        return append(sv.data(), sv.size());
+    }
+
+    basic_string& operator+=(const basic_string& other)  { return append(other); }
+    basic_string& operator+=(CharT c)                     { return append(1, c); }
+    basic_string& operator+=(const CharT* s)              { return append(s); }
+    basic_string& operator+=(basic_string_view<CharT, Traits> sv) { return append(sv); }
+
+    // ── Modifiers — insert ───────────────────────────────────────────────────
+
+    basic_string& insert(size_type pos, size_type count, CharT c) {
+        size_type sz = size();
+        if (pos > sz) __builtin_trap();
+        _reserve(sz + count);
+        CharT* p = _buf();
+        Traits::move(p + pos + count, p + pos, sz - pos + 1); // +1 for NUL
+        Traits::assign(p + pos, count, c);
+        _set_size(sz + count);
+        return *this;
+    }
+
+    basic_string& insert(size_type pos, const CharT* s, size_type count) {
+        size_type sz = size();
+        if (pos > sz) __builtin_trap();
+        _reserve(sz + count);
+        CharT* p = _buf();
+        Traits::move(p + pos + count, p + pos, sz - pos + 1);
+        Traits::copy(p + pos, s, count);
+        _set_size(sz + count);
+        return *this;
+    }
+
+    basic_string& insert(size_type pos, const CharT* s) {
+        return insert(pos, s, Traits::length(s));
+    }
+
+    basic_string& insert(size_type pos, const basic_string& str) {
+        return insert(pos, str._buf(), str.size());
+    }
+
+    iterator insert(const_iterator it, CharT c) {
+        size_type pos = static_cast<size_type>(it - _buf());
+        insert(pos, 1, c);
+        return _buf() + pos;
+    }
+
+    iterator insert(const_iterator it, size_type count, CharT c) {
+        size_type pos = static_cast<size_type>(it - _buf());
+        insert(pos, count, c);
+        return _buf() + pos;
+    }
+
+    // ── Modifiers — erase ────────────────────────────────────────────────────
+
+    basic_string& erase(size_type pos = 0, size_type count = npos) {
+        size_type sz = size();
+        if (pos > sz) __builtin_trap();
+        size_type rlen = (count < sz - pos) ? count : (sz - pos);
+        CharT* p = _buf();
+        Traits::move(p + pos, p + pos + rlen, sz - pos - rlen + 1);
+        _set_size(sz - rlen);
+        return *this;
+    }
+
+    iterator erase(const_iterator it) {
+        size_type pos = static_cast<size_type>(it - _buf());
+        erase(pos, 1);
+        return _buf() + pos;
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        size_type pos  = static_cast<size_type>(first - _buf());
+        size_type rlen = static_cast<size_type>(last - first);
+        erase(pos, rlen);
+        return _buf() + pos;
+    }
+
+    // ── Modifiers — push/pop ─────────────────────────────────────────────────
+
+    void push_back(CharT c) {
+        size_type sz = size();
+        _reserve(sz + 1);
+        _buf()[sz]     = c;
+        _buf()[sz + 1] = CharT{};
+        _set_size(sz + 1);
+    }
+
+    void pop_back() noexcept {
+        size_type sz = size();
+        if (sz == 0) return;
+        _buf()[sz - 1] = CharT{};
+        _set_size(sz - 1);
+    }
+
+    void clear() noexcept {
+        _buf()[0] = CharT{};
+        _set_size(0);
+    }
+
+    // ── Modifiers — replace ──────────────────────────────────────────────────
+
+    basic_string& replace(size_type pos, size_type count,
+                           const CharT* s, size_type count2) {
+        erase(pos, count);
+        insert(pos, s, count2);
+        return *this;
+    }
+
+    basic_string& replace(size_type pos, size_type count,
+                           const basic_string& str) {
+        return replace(pos, count, str._buf(), str.size());
+    }
+
+    basic_string& replace(size_type pos, size_type count,
+                           const CharT* s) {
+        return replace(pos, count, s, Traits::length(s));
+    }
+
+    basic_string& replace(size_type pos, size_type count1,
+                           size_type count2, CharT c) {
+        erase(pos, count1);
+        insert(pos, count2, c);
+        return *this;
+    }
+
+    // ── Modifiers — resize ───────────────────────────────────────────────────
+
+    void resize(size_type new_size, CharT c = CharT{}) {
+        size_type sz = size();
+        if (new_size > sz) {
+            append(new_size - sz, c);
+        } else {
+            erase(new_size);
+        }
+    }
+
+    // ── Modifiers — swap ─────────────────────────────────────────────────────
+
+    void swap(basic_string& other) noexcept {
+        using std::swap;
+        swap(_rep,   other._rep);
+        swap(_alloc, other._alloc);
+    }
+
+    // ── substr ───────────────────────────────────────────────────────────────
+
+    [[nodiscard]] basic_string
+    substr(size_type pos = 0, size_type count = npos) const {
+        size_type sz = size();
+        if (pos > sz) __builtin_trap();
+        size_type rlen = (count < sz - pos) ? count : (sz - pos);
+        return basic_string(_buf() + pos, rlen, _alloc);
+    }
+
+    // ── compare ──────────────────────────────────────────────────────────────
+
+    [[nodiscard]] int compare(const basic_string& other) const noexcept {
+        return basic_string_view<CharT, Traits>(*this)
+               .compare(basic_string_view<CharT, Traits>(other));
+    }
+
+    [[nodiscard]] int compare(size_type pos, size_type count,
+                               const basic_string& other) const noexcept {
+        return substr(pos, count).compare(other);
+    }
+
+    [[nodiscard]] int compare(const CharT* s) const noexcept {
+        return basic_string_view<CharT, Traits>(*this)
+               .compare(basic_string_view<CharT, Traits>(s));
+    }
+
+    [[nodiscard]] int compare(basic_string_view<CharT, Traits> sv) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).compare(sv);
+    }
+
+    // ── starts_with / ends_with / contains ───────────────────────────────────
+
+    [[nodiscard]] bool starts_with(basic_string_view<CharT, Traits> sv) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).starts_with(sv);
+    }
+    [[nodiscard]] bool starts_with(CharT c) const noexcept {
+        return !empty() && Traits::eq(front(), c);
+    }
+    [[nodiscard]] bool starts_with(const CharT* s) const noexcept {
+        return starts_with(basic_string_view<CharT, Traits>(s));
+    }
+
+    [[nodiscard]] bool ends_with(basic_string_view<CharT, Traits> sv) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).ends_with(sv);
+    }
+    [[nodiscard]] bool ends_with(CharT c) const noexcept {
+        return !empty() && Traits::eq(back(), c);
+    }
+    [[nodiscard]] bool ends_with(const CharT* s) const noexcept {
+        return ends_with(basic_string_view<CharT, Traits>(s));
+    }
+
+    [[nodiscard]] bool contains(basic_string_view<CharT, Traits> sv) const noexcept {
+        return find(sv) != npos;
+    }
+    [[nodiscard]] bool contains(CharT c) const noexcept {
+        return find(c) != npos;
+    }
+    [[nodiscard]] bool contains(const CharT* s) const noexcept {
+        return find(s) != npos;
+    }
+
+    // ── find / rfind / find_*_of — delegate to string_view ──────────────────
+
+    // Converts *this and the argument to string_view and forwards.
+    // This avoids duplicating all the search logic.
+
+    [[nodiscard]] size_type find(basic_string_view<CharT, Traits> sv,
+                                  size_type pos = 0) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).find(sv, pos);
+    }
+    [[nodiscard]] size_type find(const basic_string& s,
+                                  size_type pos = 0) const noexcept {
+        return find(basic_string_view<CharT, Traits>(s), pos);
+    }
+    [[nodiscard]] size_type find(const CharT* s, size_type pos = 0) const noexcept {
+        return find(basic_string_view<CharT, Traits>(s), pos);
+    }
+    [[nodiscard]] size_type find(CharT c, size_type pos = 0) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).find(c, pos);
+    }
+
+    [[nodiscard]] size_type rfind(basic_string_view<CharT, Traits> sv,
+                                   size_type pos = npos) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).rfind(sv, pos);
+    }
+    [[nodiscard]] size_type rfind(const CharT* s,
+                                   size_type pos = npos) const noexcept {
+        return rfind(basic_string_view<CharT, Traits>(s), pos);
+    }
+    [[nodiscard]] size_type rfind(CharT c, size_type pos = npos) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).rfind(c, pos);
+    }
+
+    [[nodiscard]] size_type find_first_of(basic_string_view<CharT, Traits> sv,
+                                           size_type pos = 0) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).find_first_of(sv, pos);
+    }
+    [[nodiscard]] size_type find_first_of(CharT c,
+                                           size_type pos = 0) const noexcept {
+        return find(c, pos);
+    }
+    [[nodiscard]] size_type find_first_of(const CharT* s,
+                                           size_type pos = 0) const noexcept {
+        return find_first_of(basic_string_view<CharT, Traits>(s), pos);
+    }
+
+    [[nodiscard]] size_type find_last_of(basic_string_view<CharT, Traits> sv,
+                                          size_type pos = npos) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).find_last_of(sv, pos);
+    }
+    [[nodiscard]] size_type find_last_of(CharT c,
+                                          size_type pos = npos) const noexcept {
+        return rfind(c, pos);
+    }
+    [[nodiscard]] size_type find_last_of(const CharT* s,
+                                          size_type pos = npos) const noexcept {
+        return find_last_of(basic_string_view<CharT, Traits>(s), pos);
+    }
+
+    [[nodiscard]] size_type find_first_not_of(basic_string_view<CharT, Traits> sv,
+                                               size_type pos = 0) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).find_first_not_of(sv, pos);
+    }
+    [[nodiscard]] size_type find_first_not_of(CharT c,
+                                               size_type pos = 0) const noexcept {
+        return find_first_not_of(basic_string_view<CharT, Traits>(&c, 1), pos);
+    }
+    [[nodiscard]] size_type find_first_not_of(const CharT* s,
+                                               size_type pos = 0) const noexcept {
+        return find_first_not_of(basic_string_view<CharT, Traits>(s), pos);
+    }
+
+    [[nodiscard]] size_type find_last_not_of(basic_string_view<CharT, Traits> sv,
+                                              size_type pos = npos) const noexcept {
+        return basic_string_view<CharT, Traits>(*this).find_last_not_of(sv, pos);
+    }
+    [[nodiscard]] size_type find_last_not_of(CharT c,
+                                              size_type pos = npos) const noexcept {
+        return find_last_not_of(basic_string_view<CharT, Traits>(&c, 1), pos);
+    }
+    [[nodiscard]] size_type find_last_not_of(const CharT* s,
+                                              size_type pos = npos) const noexcept {
+        return find_last_not_of(basic_string_view<CharT, Traits>(s), pos);
+    }
+
+    // ── Allocator ─────────────────────────────────────────────────────────────
+
+    [[nodiscard]] allocator_type get_allocator() const noexcept { return _alloc; }
+};
+
+// ============================================================
+// Non-member comparison operators
+// ============================================================
+
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator==(const basic_string<C,T,A>& a,
+                               const basic_string<C,T,A>& b) noexcept {
+    return a.size() == b.size() && a.compare(b) == 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator!=(const basic_string<C,T,A>& a,
+                               const basic_string<C,T,A>& b) noexcept {
+    return !(a == b);
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator<(const basic_string<C,T,A>& a,
+                              const basic_string<C,T,A>& b) noexcept {
+    return a.compare(b) < 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator<=(const basic_string<C,T,A>& a,
+                               const basic_string<C,T,A>& b) noexcept {
+    return a.compare(b) <= 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator>(const basic_string<C,T,A>& a,
+                              const basic_string<C,T,A>& b) noexcept {
+    return a.compare(b) > 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator>=(const basic_string<C,T,A>& a,
+                               const basic_string<C,T,A>& b) noexcept {
+    return a.compare(b) >= 0;
+}
+
+// Comparisons with const CharT* (implicit string_view conversion handles
+// string_view comparisons via the non-member operators above).
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator==(const basic_string<C,T,A>& a,
+                               const C* b) noexcept {
+    return a.compare(b) == 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator==(const C* a,
+                               const basic_string<C,T,A>& b) noexcept {
+    return b.compare(a) == 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator!=(const basic_string<C,T,A>& a, const C* b) noexcept { return !(a == b); }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator!=(const C* a, const basic_string<C,T,A>& b) noexcept { return !(a == b); }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator< (const basic_string<C,T,A>& a, const C* b) noexcept { return a.compare(b) <  0; }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator< (const C* a, const basic_string<C,T,A>& b) noexcept { return b.compare(a) >  0; }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator<=(const basic_string<C,T,A>& a, const C* b) noexcept { return a.compare(b) <= 0; }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator>=(const basic_string<C,T,A>& a, const C* b) noexcept { return a.compare(b) >= 0; }
+
+// Comparisons with basic_string_view on either side
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator==(const basic_string<C,T,A>& a,
+                               basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a) == b;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator==(basic_string_view<C,T> a,
+                               const basic_string<C,T,A>& b) noexcept {
+    return a == basic_string_view<C,T>(b);
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator!=(const basic_string<C,T,A>& a,
+                               basic_string_view<C,T> b) noexcept { return !(a == b); }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator!=(basic_string_view<C,T> a,
+                               const basic_string<C,T,A>& b) noexcept { return !(a == b); }
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator<(const basic_string<C,T,A>& a,
+                              basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) < 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator<=(const basic_string<C,T,A>& a,
+                               basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) <= 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator>(const basic_string<C,T,A>& a,
+                              basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) > 0;
+}
+template<typename C, typename T, typename A>
+[[nodiscard]] bool operator>=(const basic_string<C,T,A>& a,
+                               basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) >= 0;
+}
+
+// ============================================================
+// Non-member operator+
+// ============================================================
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(const basic_string<C,T,A>& a, const basic_string<C,T,A>& b) {
+    basic_string<C,T,A> r;
+    r.reserve(a.size() + b.size());
+    r.append(a);
+    r.append(b);
+    return r;
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(basic_string<C,T,A>&& a, const basic_string<C,T,A>& b) {
+    a.append(b);
+    return std::move(a);
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(const basic_string<C,T,A>& a, basic_string<C,T,A>&& b) {
+    b.insert(0, a);
+    return std::move(b);
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(basic_string<C,T,A>&& a, basic_string<C,T,A>&& b) {
+    a.append(b);
+    return std::move(a);
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(const C* a, const basic_string<C,T,A>& b) {
+    basic_string<C,T,A> r(a);
+    r.append(b);
+    return r;
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(const basic_string<C,T,A>& a, const C* b) {
+    basic_string<C,T,A> r(a);
+    r.append(b);
+    return r;
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(C c, const basic_string<C,T,A>& b) {
+    basic_string<C,T,A> r(1, c);
+    r.append(b);
+    return r;
+}
+
+template<typename C, typename T, typename A>
+[[nodiscard]] basic_string<C,T,A>
+operator+(const basic_string<C,T,A>& a, C c) {
+    basic_string<C,T,A> r(a);
+    r.push_back(c);
+    return r;
+}
+
+// ── Non-member swap ───────────────────────────────────────────────────────────
+
+template<typename C, typename T, typename A>
+void swap(basic_string<C,T,A>& a, basic_string<C,T,A>& b) noexcept {
+    a.swap(b);
+}
+
+// ============================================================
+// Type aliases
+// ============================================================
+
+using string    = basic_string<char>;
+using wstring   = basic_string<wchar_t>;
+using u16string = basic_string<char16_t>;
+using u32string = basic_string<char32_t>;
+
+// ============================================================
+// hash<string>
+// ============================================================
+
+template<>
+struct hash<string> {
+    size_t operator()(const string& s) const noexcept {
+        return _hash_detail::_fnv1a(s.data(), s.size());
+    }
+};
+
+template<>
+struct hash<wstring> {
+    size_t operator()(const wstring& s) const noexcept {
+        return _hash_detail::_fnv1a(s.data(), s.size() * sizeof(wchar_t));
+    }
+};
+
+template<>
+struct hash<u16string> {
+    size_t operator()(const u16string& s) const noexcept {
+        return _hash_detail::_fnv1a(s.data(), s.size() * sizeof(char16_t));
+    }
+};
+
+template<>
+struct hash<u32string> {
+    size_t operator()(const u32string& s) const noexcept {
+        return _hash_detail::_fnv1a(s.data(), s.size() * sizeof(char32_t));
+    }
+};
+
+// ============================================================
+// User-defined literal ""s (C++14)
+// ============================================================
+
+inline namespace literals {
+inline namespace string_literals {
+
+[[nodiscard]] inline string
+operator""s(const char* s, size_t len) {
+    return string(s, len);
+}
+
+[[nodiscard]] inline wstring
+operator""s(const wchar_t* s, size_t len) {
+    return wstring(s, len);
+}
+
+[[nodiscard]] inline u16string
+operator""s(const char16_t* s, size_t len) {
+    return u16string(s, len);
+}
+
+[[nodiscard]] inline u32string
+operator""s(const char32_t* s, size_t len) {
+    return u32string(s, len);
+}
+
+} // namespace string_literals
+} // namespace literals
+
+template<typename CharT, typename Traits, typename Allocator>
+    basic_istream<CharT, Traits>& getline(
+        basic_istream<CharT, Traits>& input,
+        basic_string<CharT, Traits, Allocator>& str,
+        CharT delim);
+
+    template<typename CharT, typename Traits, typename Allocator>
+    basic_istream<CharT, Traits>& getline(
+        basic_istream<CharT, Traits>& input,
+        basic_string<CharT, Traits, Allocator>& str);
+
+} // namespace std
+
+#include <c++/fstream>

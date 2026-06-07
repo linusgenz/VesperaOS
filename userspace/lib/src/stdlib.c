@@ -29,6 +29,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vespera/fflags.h>
+
+#include "stdbool.h"
 
 int errno = 0;
 char** environ = NULL;
@@ -325,6 +328,10 @@ double strtod(const char* str, char** endptr) {
     return sign * result;
 }
 
+double atof(const char* nptr) {
+    return strtod(nptr, NULL);
+}
+
 float strtof(const char* str, char** endptr) {
     return (float)strtod(str, endptr);
 }
@@ -400,6 +407,116 @@ unsigned long strtoul(const char* nptr, char** endptr, int base) {
     if (neg) return (unsigned long)(-(long)result);
 
     return result;
+}
+
+long strtol(const char* nptr, char** endptr, int base) {
+    const char* s = nptr;
+    unsigned long result = 0;
+    int neg = 0;
+    int any = 0;
+
+    while (isspace((unsigned char)*s)) s++;
+
+    if (*s == '+' || *s == '-') {
+        if (*s == '-') neg = 1;
+        s++;
+    }
+
+    if (base == 0) {
+        if (*s == '0') {
+            if ((s[1] == 'x' || s[1] == 'X') && isxdigit((unsigned char)s[2])) {
+                base = 16;
+                s += 2;
+            } else {
+                base = 8;
+                s++;
+            }
+        } else {
+            base = 10;
+        }
+    } else if (base == 16) {
+        if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+            s += 2;
+        }
+    }
+
+    if (base < 2 || base > 36) {
+        errno = EINVAL;
+        if (endptr) *endptr = (char*)nptr;
+        return 0;
+    }
+
+    unsigned long cutoff = neg ? (unsigned long)-(LONG_MIN) : LONG_MAX;
+    int cutlim = cutoff % base;
+    cutoff /= base;
+
+    while (*s) {
+        int digit;
+
+        if (*s >= '0' && *s <= '9')
+            digit = *s - '0';
+        else if (*s >= 'a' && *s <= 'z')
+            digit = *s - 'a' + 10;
+        else if (*s >= 'A' && *s <= 'Z')
+            digit = *s - 'A' + 10;
+        else
+            break;
+
+        if (digit >= base) break;
+
+        if (any >= 0) {
+            if (result > cutoff || (result == cutoff && digit > cutlim)) {
+                any = -1;
+                errno = ERANGE;
+                result = neg ? (unsigned long)LONG_MIN : (unsigned long)LONG_MAX;
+            } else {
+                any = 1;
+                result = result * base + digit;
+            }
+        }
+        s++;
+    }
+
+    if (any == 0) {
+        errno = EINVAL;
+        if (endptr) *endptr = (char*)nptr;
+        return 0;
+    }
+
+    if (endptr) {
+        *endptr = (char*)s;
+    }
+
+    if (any < 0) {
+        return (long)result;
+    }
+
+    return neg ? -(long)result : (long)result;
+}
+
+static unsigned long next = 1;
+static bool seeded = false;
+
+void srand(unsigned int seed) {
+    next = seed;
+    seeded = true;
+}
+
+int rand(void) {
+    if (!seeded) {
+        HANDLE hdl = open("/dev/urandom", O_RDONLY);
+        if ((int64_t)hdl >= 0) {
+            unsigned int kernel_seed = 0;
+            if (read(hdl, &kernel_seed, sizeof(kernel_seed)) == sizeof(kernel_seed)) {
+                next = kernel_seed;
+            }
+            close(hdl);
+        }
+        seeded = true;
+    }
+
+    next = next * 1103515245 + 12345;
+    return (unsigned int)(next / 65536) % 2147483648;
 }
 
 _Noreturn void abort(void) {

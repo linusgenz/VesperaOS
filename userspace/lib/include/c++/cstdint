@@ -1,4 +1,4 @@
-// entry.c
+// cstdint
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -20,10 +20,46 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-extern int main(int argc, char **argv, char **envp);
+#pragma once
 
-int start_main(int argc, char **argv, char **envp) {
-    int exit_code = main(argc, argv, envp);
-    // cleanup
-    return exit_code;
+extern "C" {
+#include <stdint.h>
+}
+
+namespace std {
+    using ::int8_t;
+    using ::int16_t;
+    using ::int32_t;
+    using ::int64_t;
+
+    using ::uint8_t;
+    using ::uint16_t;
+    using ::uint32_t;
+    using ::uint64_t;
+
+    using ::int_fast8_t;
+    using ::int_fast16_t;
+    using ::int_fast32_t;
+    using ::int_fast64_t;
+
+    using ::uint_fast8_t;
+    using ::uint_fast16_t;
+    using ::uint_fast32_t;
+    using ::uint_fast64_t;
+
+    using ::int_least8_t;
+    using ::int_least16_t;
+    using ::int_least32_t;
+    using ::int_least64_t;
+
+    using ::uint_least8_t;
+    using ::uint_least16_t;
+    using ::uint_least32_t;
+    using ::uint_least64_t;
+
+    using ::intptr_t;
+    using ::uintptr_t;
+
+    using ::intmax_t;
+    using ::uintmax_t;
 }

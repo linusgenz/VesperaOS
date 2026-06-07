@@ -1,0 +1,628 @@
+// string_view
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+// Provides:
+//   basic_string_view<CharT, Traits>
+//   string_view    (= basic_string_view<char>)
+//   u16string_view (= basic_string_view<char16_t>)
+//   u32string_view (= basic_string_view<char32_t>)
+//   wstring_view   (= basic_string_view<wchar_t>)
+//   hash<string_view>
+//   Comparison operators (==, !=, <, <=, >, >=)
+//   Literal operator ""sv
+
+#pragma once
+
+#include <cstddef>      // size_t, ptrdiff_t
+#include <cstring>      // memcmp, strlen
+#include <iterator>     // reverse_iterator, contiguous_iterator_tag
+#include <type_traits>  // is_same_v, remove_cv_t
+#include <functional>   // hash, _hash_detail::_fnv1a
+
+namespace std {
+
+// ============================================================
+// char_traits<CharT> — minimal, no locale
+// ============================================================
+
+template<typename CharT>
+struct char_traits {
+    using char_type  = CharT;
+    using int_type   = int;
+    using pos_type   = size_t;
+    using off_type   = ptrdiff_t;
+
+    static constexpr void assign(char_type& c, const char_type& a) noexcept {
+        c = a;
+    }
+
+    static constexpr bool eq(char_type a, char_type b) noexcept { return a == b; }
+    static constexpr bool lt(char_type a, char_type b) noexcept { return a <  b; }
+
+    static constexpr int compare(const char_type* s1, const char_type* s2,
+                                  size_t n) noexcept {
+        for (size_t i = 0; i < n; ++i) {
+            if (lt(s1[i], s2[i])) return -1;
+            if (lt(s2[i], s1[i])) return  1;
+        }
+        return 0;
+    }
+
+    static constexpr size_t length(const char_type* s) noexcept {
+        size_t n = 0;
+        while (!eq(s[n], char_type{})) ++n;
+        return n;
+    }
+
+    static constexpr const char_type* find(const char_type* s, size_t n,
+                                            const char_type& a) noexcept {
+        for (size_t i = 0; i < n; ++i)
+            if (eq(s[i], a)) return s + i;
+        return nullptr;
+    }
+
+    static constexpr char_type* move(char_type* dest, const char_type* src,
+                                      size_t n) noexcept {
+        if (dest == src || n == 0) return dest;
+        if (dest < src || dest >= src + n) {
+            for (size_t i = 0; i < n; ++i) assign(dest[i], src[i]);
+        } else {
+            for (size_t i = n; i-- > 0; ) assign(dest[i], src[i]);
+        }
+        return dest;
+    }
+
+    static constexpr char_type* copy(char_type* dest, const char_type* src,
+                                      size_t n) noexcept {
+        for (size_t i = 0; i < n; ++i) assign(dest[i], src[i]);
+        return dest;
+    }
+
+    static constexpr char_type* assign(char_type* s, size_t n,
+                                        char_type a) noexcept {
+        for (size_t i = 0; i < n; ++i) assign(s[i], a);
+        return s;
+    }
+
+    static constexpr int_type to_int_type(char_type c) noexcept {
+        return static_cast<int_type>(c);
+    }
+    static constexpr char_type to_char_type(int_type c) noexcept {
+        return static_cast<char_type>(c);
+    }
+    static constexpr bool eq_int_type(int_type a, int_type b) noexcept {
+        return a == b;
+    }
+    static constexpr int_type eof() noexcept { return int_type(-1); }
+    static constexpr int_type not_eof(int_type c) noexcept {
+        return eq_int_type(c, eof()) ? int_type(0) : c;
+    }
+};
+
+// Optimised specialisation for char — delegates to memcmp / strlen
+template<>
+struct char_traits<char> {
+    using char_type  = char;
+    using int_type   = int;
+    using pos_type   = size_t;
+    using off_type   = ptrdiff_t;
+
+    static constexpr void assign(char& c, const char& a) noexcept { c = a; }
+    static constexpr bool eq(char a, char b) noexcept { return a == b; }
+    static constexpr bool lt(char a, char b) noexcept {
+        return static_cast<unsigned char>(a) < static_cast<unsigned char>(b);
+    }
+
+    static constexpr int compare(const char* s1, const char* s2, size_t n) noexcept {
+        if (n == 0) return 0;
+        return __builtin_memcmp(s1, s2, n);
+    }
+
+    static constexpr size_t length(const char* s) noexcept {
+        return __builtin_strlen(s);
+    }
+
+    static constexpr const char* find(const char* s, size_t n, const char& a) noexcept {
+        // __builtin_memchr is not constexpr before C++2c — use manual loop so
+        // that find() is usable in constant expressions (e.g. static_assert).
+        for (size_t i = 0; i < n; ++i)
+            if (static_cast<unsigned char>(s[i]) == static_cast<unsigned char>(a))
+                return s + i;
+        return nullptr;
+    }
+
+    static char* move(char* dest, const char* src, size_t n) noexcept {
+        return static_cast<char*>(__builtin_memmove(dest, src, n));
+    }
+
+    static char* copy(char* dest, const char* src, size_t n) noexcept {
+        return static_cast<char*>(__builtin_memcpy(dest, src, n));
+    }
+
+    static char* assign(char* s, size_t n, char a) noexcept {
+        return static_cast<char*>(__builtin_memset(s, (unsigned char)a, n));
+    }
+
+    static constexpr int_type to_int_type(char c) noexcept {
+        return static_cast<int_type>(static_cast<unsigned char>(c));
+    }
+    static constexpr char to_char_type(int_type c) noexcept {
+        return static_cast<char>(c);
+    }
+    static constexpr bool eq_int_type(int_type a, int_type b) noexcept {
+        return a == b;
+    }
+    static constexpr int_type eof()     noexcept { return -1; }
+    static constexpr int_type not_eof(int_type c) noexcept {
+        return (c == -1) ? 0 : c;
+    }
+};
+
+// ============================================================
+// basic_string_view<CharT, Traits>
+// ============================================================
+
+inline constexpr size_t _sv_npos = static_cast<size_t>(-1);
+
+template<typename CharT, typename Traits = char_traits<CharT>>
+class basic_string_view {
+public:
+    // ── Member types ─────────────────────────────────────────────────────────
+
+    using traits_type            = Traits;
+    using value_type             = CharT;
+    using pointer                = CharT*;
+    using const_pointer          = const CharT*;
+    using reference              = CharT&;
+    using const_reference        = const CharT&;
+    using const_iterator         = const CharT*;
+    using iterator               = const_iterator;    // views are read-only
+    using const_reverse_iterator = reverse_iterator<const_iterator>;
+    using reverse_iterator       = const_reverse_iterator;
+    using size_type              = size_t;
+    using difference_type        = ptrdiff_t;
+
+    static constexpr size_type npos = _sv_npos;
+
+private:
+    const CharT* _data;
+    size_type    _size;
+
+public:
+    // ── Constructors ─────────────────────────────────────────────────────────
+
+    constexpr basic_string_view() noexcept : _data(nullptr), _size(0) {}
+
+    constexpr basic_string_view(const basic_string_view&) noexcept = default;
+    constexpr basic_string_view& operator=(const basic_string_view&) noexcept = default;
+
+    // From null-terminated C-string
+    constexpr basic_string_view(const CharT* s) noexcept
+        : _data(s), _size(Traits::length(s)) {}
+
+    // From pointer + length
+    constexpr basic_string_view(const CharT* s, size_type count) noexcept
+        : _data(s), _size(count) {}
+
+    // ── Iterators ────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr const_iterator begin()  const noexcept { return _data; }
+    [[nodiscard]] constexpr const_iterator end()    const noexcept { return _data + _size; }
+    [[nodiscard]] constexpr const_iterator cbegin() const noexcept { return _data; }
+    [[nodiscard]] constexpr const_iterator cend()   const noexcept { return _data + _size; }
+
+    [[nodiscard]] constexpr const_reverse_iterator rbegin()  const noexcept {
+        return const_reverse_iterator(end());
+    }
+    [[nodiscard]] constexpr const_reverse_iterator rend()    const noexcept {
+        return const_reverse_iterator(begin());
+    }
+    [[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept {
+        return rbegin();
+    }
+    [[nodiscard]] constexpr const_reverse_iterator crend()   const noexcept {
+        return rend();
+    }
+
+    // ── Capacity ─────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type size()   const noexcept { return _size; }
+    [[nodiscard]] constexpr size_type length() const noexcept { return _size; }
+    [[nodiscard]] constexpr bool      empty()  const noexcept { return _size == 0; }
+
+    // Per the standard there is no max_size obligation for a freestanding
+    // implementation; we return a conservative constant.
+    [[nodiscard]] constexpr size_type max_size() const noexcept {
+        return static_cast<size_type>(-1) / sizeof(CharT);
+    }
+
+    // ── Element access ───────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr const_reference operator[](size_type pos) const noexcept {
+        return _data[pos];
+    }
+
+    // at() — bounds-checked; no exceptions, so we return a reference to
+    // a static "poison" value and trap via __builtin_trap on out-of-range.
+    [[nodiscard]] constexpr const_reference at(size_type pos) const noexcept {
+        if (pos >= _size) __builtin_trap();
+        return _data[pos];
+    }
+
+    [[nodiscard]] constexpr const_reference front() const noexcept { return _data[0]; }
+    [[nodiscard]] constexpr const_reference back()  const noexcept { return _data[_size - 1]; }
+    [[nodiscard]] constexpr const_pointer   data()  const noexcept { return _data; }
+
+    // ── Modifiers ────────────────────────────────────────────────────────────
+
+    constexpr void remove_prefix(size_type n) noexcept {
+        _data += n;
+        _size -= n;
+    }
+
+    constexpr void remove_suffix(size_type n) noexcept {
+        _size -= n;
+    }
+
+    constexpr void swap(basic_string_view& other) noexcept {
+        auto td = _data; auto ts = _size;
+        _data = other._data; _size = other._size;
+        other._data = td;    other._size = ts;
+    }
+
+    // ── copy ─────────────────────────────────────────────────────────────────
+
+    size_type copy(CharT* dest, size_type count,
+                   size_type pos = 0) const noexcept {
+        if (pos > _size) __builtin_trap();
+        size_type rlen = (count < _size - pos) ? count : (_size - pos);
+        Traits::copy(dest, _data + pos, rlen);
+        return rlen;
+    }
+
+    // ── substr ───────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr basic_string_view
+    substr(size_type pos = 0, size_type count = npos) const noexcept {
+        if (pos > _size) __builtin_trap();
+        size_type rlen = (count < _size - pos) ? count : (_size - pos);
+        return { _data + pos, rlen };
+    }
+
+    // ── compare ──────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr int
+    compare(basic_string_view sv) const noexcept {
+        size_type rlen = (_size < sv._size) ? _size : sv._size;
+        int r = Traits::compare(_data, sv._data, rlen);
+        if (r != 0) return r;
+        if (_size < sv._size) return -1;
+        if (_size > sv._size) return  1;
+        return 0;
+    }
+
+    [[nodiscard]] constexpr int
+    compare(size_type pos, size_type count, basic_string_view sv) const noexcept {
+        return substr(pos, count).compare(sv);
+    }
+
+    [[nodiscard]] constexpr int
+    compare(size_type pos1, size_type count1,
+            basic_string_view sv,
+            size_type pos2, size_type count2) const noexcept {
+        return substr(pos1, count1).compare(sv.substr(pos2, count2));
+    }
+
+    [[nodiscard]] constexpr int compare(const CharT* s) const noexcept {
+        return compare(basic_string_view(s));
+    }
+
+    // ── starts_with / ends_with (C++20) ──────────────────────────────────────
+
+    [[nodiscard]] constexpr bool starts_with(basic_string_view sv) const noexcept {
+        return _size >= sv._size &&
+               Traits::compare(_data, sv._data, sv._size) == 0;
+    }
+    [[nodiscard]] constexpr bool starts_with(CharT c) const noexcept {
+        return !empty() && Traits::eq(front(), c);
+    }
+    [[nodiscard]] constexpr bool starts_with(const CharT* s) const noexcept {
+        return starts_with(basic_string_view(s));
+    }
+
+    [[nodiscard]] constexpr bool ends_with(basic_string_view sv) const noexcept {
+        return _size >= sv._size &&
+               Traits::compare(_data + _size - sv._size, sv._data, sv._size) == 0;
+    }
+    [[nodiscard]] constexpr bool ends_with(CharT c) const noexcept {
+        return !empty() && Traits::eq(back(), c);
+    }
+    [[nodiscard]] constexpr bool ends_with(const CharT* s) const noexcept {
+        return ends_with(basic_string_view(s));
+    }
+
+    // ── contains (C++23) ─────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr bool contains(basic_string_view sv) const noexcept {
+        return find(sv) != npos;
+    }
+    [[nodiscard]] constexpr bool contains(CharT c) const noexcept {
+        return find(c) != npos;
+    }
+    [[nodiscard]] constexpr bool contains(const CharT* s) const noexcept {
+        return find(s) != npos;
+    }
+
+    // ── find ─────────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type
+    find(basic_string_view sv, size_type pos = 0) const noexcept {
+        if (sv._size == 0) return pos <= _size ? pos : npos;
+        if (sv._size > _size) return npos;
+        for (size_type i = pos; i <= _size - sv._size; ++i) {
+            if (Traits::compare(_data + i, sv._data, sv._size) == 0)
+                return i;
+        }
+        return npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    find(CharT c, size_type pos = 0) const noexcept {
+        const CharT* p = Traits::find(_data + pos,
+                                       pos < _size ? _size - pos : 0, c);
+        return p ? static_cast<size_type>(p - _data) : npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    find(const CharT* s, size_type pos = 0) const noexcept {
+        return find(basic_string_view(s), pos);
+    }
+
+    [[nodiscard]] constexpr size_type
+    find(const CharT* s, size_type pos, size_type count) const noexcept {
+        return find(basic_string_view(s, count), pos);
+    }
+
+    // ── rfind ────────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type
+    rfind(basic_string_view sv, size_type pos = npos) const noexcept {
+        if (sv._size > _size) return npos;
+        size_type last = _size - sv._size;
+        if (pos < last) last = pos;
+        // iterate backwards
+        for (size_type i = last + 1; i-- > 0; ) {
+            if (Traits::compare(_data + i, sv._data, sv._size) == 0)
+                return i;
+        }
+        return npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    rfind(CharT c, size_type pos = npos) const noexcept {
+        return rfind(basic_string_view(&c, 1), pos);
+    }
+
+    [[nodiscard]] constexpr size_type
+    rfind(const CharT* s, size_type pos = npos) const noexcept {
+        return rfind(basic_string_view(s), pos);
+    }
+
+    // ── find_first_of ────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type
+    find_first_of(basic_string_view sv, size_type pos = 0) const noexcept {
+        for (size_type i = pos; i < _size; ++i)
+            if (Traits::find(sv._data, sv._size, _data[i]))
+                return i;
+        return npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_first_of(CharT c, size_type pos = 0) const noexcept {
+        return find(c, pos);
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_first_of(const CharT* s, size_type pos = 0) const noexcept {
+        return find_first_of(basic_string_view(s), pos);
+    }
+
+    // ── find_last_of ─────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type
+    find_last_of(basic_string_view sv, size_type pos = npos) const noexcept {
+        size_type i = (_size == 0) ? 0 : (pos < _size ? pos + 1 : _size);
+        while (i-- > 0) {
+            if (Traits::find(sv._data, sv._size, _data[i]))
+                return i;
+        }
+        return npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_last_of(CharT c, size_type pos = npos) const noexcept {
+        return rfind(c, pos);
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_last_of(const CharT* s, size_type pos = npos) const noexcept {
+        return find_last_of(basic_string_view(s), pos);
+    }
+
+    // ── find_first_not_of ────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type
+    find_first_not_of(basic_string_view sv, size_type pos = 0) const noexcept {
+        for (size_type i = pos; i < _size; ++i)
+            if (!Traits::find(sv._data, sv._size, _data[i]))
+                return i;
+        return npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_first_not_of(CharT c, size_type pos = 0) const noexcept {
+        return find_first_not_of(basic_string_view(&c, 1), pos);
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_first_not_of(const CharT* s, size_type pos = 0) const noexcept {
+        return find_first_not_of(basic_string_view(s), pos);
+    }
+
+    // ── find_last_not_of ─────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr size_type
+    find_last_not_of(basic_string_view sv, size_type pos = npos) const noexcept {
+        size_type i = (_size == 0) ? 0 : (pos < _size ? pos + 1 : _size);
+        while (i-- > 0)
+            if (!Traits::find(sv._data, sv._size, _data[i]))
+                return i;
+        return npos;
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_last_not_of(CharT c, size_type pos = npos) const noexcept {
+        return find_last_not_of(basic_string_view(&c, 1), pos);
+    }
+
+    [[nodiscard]] constexpr size_type
+    find_last_not_of(const CharT* s, size_type pos = npos) const noexcept {
+        return find_last_not_of(basic_string_view(s), pos);
+    }
+};
+
+// ============================================================
+// Non-member comparison operators
+// ============================================================
+
+template<typename C, typename T>
+[[nodiscard]] constexpr bool
+operator==(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+    return a.size() == b.size() && a.compare(b) == 0;
+}
+
+template<typename C, typename T>
+[[nodiscard]] constexpr bool
+operator!=(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+    return !(a == b);
+}
+
+template<typename C, typename T>
+[[nodiscard]] constexpr bool
+operator<(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+    return a.compare(b) < 0;
+}
+
+template<typename C, typename T>
+[[nodiscard]] constexpr bool
+operator<=(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+    return a.compare(b) <= 0;
+}
+
+template<typename C, typename T>
+[[nodiscard]] constexpr bool
+operator>(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+    return a.compare(b) > 0;
+}
+
+template<typename C, typename T>
+[[nodiscard]] constexpr bool
+operator>=(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+    return a.compare(b) >= 0;
+}
+
+// Allow comparisons with const CharT* on either side
+// via implicit conversion to basic_string_view.
+
+// ============================================================
+// Type aliases
+// ============================================================
+
+using string_view    = basic_string_view<char>;
+using u16string_view = basic_string_view<char16_t>;
+using u32string_view = basic_string_view<char32_t>;
+using wstring_view   = basic_string_view<wchar_t>;
+
+// ============================================================
+// hash<string_view> — delegates to FNV-1a from <functional>
+// ============================================================
+
+template<>
+struct hash<string_view> {
+    size_t operator()(string_view sv) const noexcept {
+        return _hash_detail::_fnv1a(sv.data(), sv.size());
+    }
+};
+
+template<>
+struct hash<u16string_view> {
+    size_t operator()(u16string_view sv) const noexcept {
+        return _hash_detail::_fnv1a(sv.data(), sv.size() * sizeof(char16_t));
+    }
+};
+
+template<>
+struct hash<u32string_view> {
+    size_t operator()(u32string_view sv) const noexcept {
+        return _hash_detail::_fnv1a(sv.data(), sv.size() * sizeof(char32_t));
+    }
+};
+
+template<>
+struct hash<wstring_view> {
+    size_t operator()(wstring_view sv) const noexcept {
+        return _hash_detail::_fnv1a(sv.data(), sv.size() * sizeof(wchar_t));
+    }
+};
+
+// ============================================================
+// User-defined literal ""sv (C++17, inline namespace std::literals)
+// ============================================================
+
+inline namespace literals {
+inline namespace string_view_literals {
+
+[[nodiscard]] constexpr string_view
+operator""sv(const char* s, size_t len) noexcept {
+    return { s, len };
+}
+
+[[nodiscard]] constexpr u16string_view
+operator""sv(const char16_t* s, size_t len) noexcept {
+    return { s, len };
+}
+
+[[nodiscard]] constexpr u32string_view
+operator""sv(const char32_t* s, size_t len) noexcept {
+    return { s, len };
+}
+
+[[nodiscard]] constexpr wstring_view
+operator""sv(const wchar_t* s, size_t len) noexcept {
+    return { s, len };
+}
+
+} // namespace string_view_literals
+} // namespace literals
+
+} // namespace std

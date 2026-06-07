@@ -1,0 +1,242 @@
+// limits
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <limits.h>
+
+namespace std {
+
+    enum float_round_style {
+        round_indeterminable = -1,
+        round_toward_zero = 0,
+        round_to_nearest = 1,
+        round_toward_infinity = 2,
+        round_toward_neg_infinity = 3
+    };
+
+    template <typename T>
+    struct numeric_limits {
+        static constexpr bool is_specialized = false;
+        static constexpr T min() noexcept { return T(); }
+        static constexpr T max() noexcept { return T(); }
+        static constexpr T lowest() noexcept { return T(); }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = false;
+        static constexpr bool is_exact = false;
+        static constexpr int digits = 0;
+        static constexpr int digits10 = 0;
+    };
+
+    // 1. char
+    template <>
+    struct numeric_limits<char> {
+        static constexpr bool is_specialized = true;
+        static constexpr char min() noexcept { return CHAR_MIN; }
+        static constexpr char max() noexcept { return CHAR_MAX; }
+        static constexpr char lowest() noexcept { return CHAR_MIN; }
+        static constexpr bool is_signed = (CHAR_MIN < 0);
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = CHAR_BIT - (is_signed ? 1 : 0);
+    };
+
+    // 2. signed char
+    template <>
+    struct numeric_limits<signed char> {
+        static constexpr bool is_specialized = true;
+        static constexpr signed char min() noexcept { return SCHAR_MIN; }
+        static constexpr signed char max() noexcept { return SCHAR_MAX; }
+        static constexpr signed char lowest() noexcept { return SCHAR_MIN; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = CHAR_BIT - 1;
+    };
+
+    // 3. unsigned char
+    template <>
+    struct numeric_limits<unsigned char> {
+        static constexpr bool is_specialized = true;
+        static constexpr unsigned char min() noexcept { return 0; }
+        static constexpr unsigned char max() noexcept { return UCHAR_MAX; }
+        static constexpr unsigned char lowest() noexcept { return 0; }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = CHAR_BIT;
+    };
+
+    // 4. short
+    template <>
+    struct numeric_limits<short> {
+        static constexpr bool is_specialized = true;
+        static constexpr short min() noexcept { return SHRT_MIN; }
+        static constexpr short max() noexcept { return SHRT_MAX; }
+        static constexpr short lowest() noexcept { return SHRT_MIN; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 15;
+    };
+
+    // 5. unsigned short
+    template <>
+    struct numeric_limits<unsigned short> {
+        static constexpr bool is_specialized = true;
+        static constexpr unsigned short min() noexcept { return 0; }
+        static constexpr unsigned short max() noexcept { return USHRT_MAX; }
+        static constexpr unsigned short lowest() noexcept { return 0; }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 16;
+    };
+
+    // 6. int
+    template <>
+    struct numeric_limits<int> {
+        static constexpr bool is_specialized = true;
+        static constexpr int min() noexcept { return INT_MIN; }
+        static constexpr int max() noexcept { return INT_MAX; }
+        static constexpr int lowest() noexcept { return INT_MIN; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 31;
+    };
+
+    // 7. unsigned int
+    template <>
+    struct numeric_limits<unsigned int> {
+        static constexpr bool is_specialized = true;
+        static constexpr unsigned int min() noexcept { return 0U; }
+        static constexpr unsigned int max() noexcept { return UINT_MAX; }
+        static constexpr unsigned int lowest() noexcept { return 0U; }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 32;
+    };
+
+    // 8. long (Berücksichtigt dein 64-Bit __LP64__ Modell)
+    template <>
+    struct numeric_limits<long> {
+        static constexpr bool is_specialized = true;
+        static constexpr long min() noexcept { return LONG_MIN; }
+        static constexpr long max() noexcept { return LONG_MAX; }
+        static constexpr long lowest() noexcept { return LONG_MIN; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = sizeof(long) * 8 - 1;
+    };
+
+    // 9. unsigned long
+    template <>
+    struct numeric_limits<unsigned long> {
+        static constexpr bool is_specialized = true;
+        static constexpr unsigned long min() noexcept { return 0UL; }
+        static constexpr unsigned long max() noexcept { return ULONG_MAX; }
+        static constexpr unsigned long lowest() noexcept { return 0UL; }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = sizeof(unsigned long) * 8;
+    };
+
+    // 10. long long
+    template <>
+    struct numeric_limits<long long> {
+        static constexpr bool is_specialized = true;
+        static constexpr long long min() noexcept { return LLONG_MIN; }
+        static constexpr long long max() noexcept { return LLONG_MAX; }
+        static constexpr long long lowest() noexcept { return LLONG_MIN; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 63;
+    };
+
+    // 11. unsigned long long
+    template <>
+    struct numeric_limits<unsigned long long> {
+        static constexpr bool is_specialized = true;
+        static constexpr unsigned long long min() noexcept { return 0ULL; }
+        static constexpr unsigned long long max() noexcept { return ULLONG_MAX; }
+        static constexpr unsigned long long lowest() noexcept { return 0ULL; }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 64;
+    };
+
+    // 12. bool
+    template <>
+    struct numeric_limits<bool> {
+        static constexpr bool is_specialized = true;
+        static constexpr bool min() noexcept { return false; }
+        static constexpr bool max() noexcept { return true; }
+        static constexpr bool lowest() noexcept { return false; }
+        static constexpr bool is_signed = false;
+        static constexpr bool is_integer = true;
+        static constexpr bool is_exact = true;
+        static constexpr int digits = 1;
+    };
+
+    // 13. float
+    template <>
+    struct numeric_limits<float> {
+        static constexpr bool is_specialized = true;
+        static constexpr float min() noexcept { return __FLT_MIN__; }
+        static constexpr float max() noexcept { return __FLT_MAX__; }
+        static constexpr float lowest() noexcept { return -__FLT_MAX__; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = false;
+        static constexpr bool is_exact = false;
+        static constexpr int digits = __FLT_MANT_DIG__;
+
+        static constexpr bool has_infinity = true;
+        static constexpr bool has_quiet_NaN = true;
+        static constexpr float infinity() noexcept { return __builtin_inff(); }
+        static constexpr float quiet_NaN() noexcept { return __builtin_nanf(""); }
+    };
+
+    // 14. double
+    template <>
+    struct numeric_limits<double> {
+        static constexpr bool is_specialized = true;
+        static constexpr double min() noexcept { return __DBL_MIN__; }
+        static constexpr double max() noexcept { return __DBL_MAX__; }
+        static constexpr double lowest() noexcept { return -__DBL_MAX__; }
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = false;
+        static constexpr bool is_exact = false;
+        static constexpr int digits = __DBL_MANT_DIG__;
+
+        static constexpr bool has_infinity = true;
+        static constexpr bool has_quiet_NaN = true;
+        static constexpr double infinity() noexcept { return __builtin_inf(); }
+        static constexpr double quiet_NaN() noexcept { return __builtin_nan(""); }
+    };
+
+} // namespace std

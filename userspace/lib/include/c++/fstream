@@ -1,0 +1,110 @@
+// fstream
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <string>
+#include <istream>
+#include <streambuf>
+
+namespace std {
+
+// ---------------------------------------------------------------------------
+// basic_ifstream<charT>
+//
+// Read-only file stream backed by basic_filebuf.
+// Implements the interface ThorVG uses:
+//   constructors: default, path+mode
+//   open(path, mode), close(), is_open()
+//   read, get, peek, ignore, seekg, tellg, gcount
+//   good, eof, fail, bad, operator bool, operator!
+// ---------------------------------------------------------------------------
+
+template<typename CharT, typename Traits>
+class basic_ifstream : public basic_istream<CharT, Traits> {
+public:
+    using char_type = CharT;
+    using traits_type = Traits; // Standard-Konformität
+    using pos_type  = streampos;
+    using streamoff = typename Traits::off_type; // Sicherer Typ-Lookup
+
+    // --- constructors ---
+
+    basic_ifstream()
+        : basic_istream<CharT, Traits>(&buf_) {}
+
+    explicit basic_ifstream(const char* path,
+                             ios_base::openmode mode = ios_base::in)
+        : basic_istream<CharT, Traits>(&buf_) {
+        open(path, mode);
+    }
+
+    explicit basic_ifstream(const string& path,
+                             ios_base::openmode mode = ios_base::in)
+        : basic_istream<CharT, Traits>(&buf_) {
+        open(path.c_str(), mode);
+    }
+
+    // Move constructor
+    basic_ifstream(basic_ifstream&& other) noexcept
+        : basic_istream<CharT, Traits>(&buf_),
+          buf_(static_cast<basic_filebuf<CharT, Traits>&&>(other.buf_)) { // HIER: Zwei Parameter!
+        this->buf_ = &buf_;
+    }
+
+    basic_ifstream(const basic_ifstream&)            = delete;
+    basic_ifstream& operator=(const basic_ifstream&) = delete;
+
+    ~basic_ifstream() override = default;
+
+    // --- file operations ---
+
+    basic_filebuf<CharT, Traits>* rdbuf() const noexcept {
+        return const_cast<basic_filebuf<CharT, Traits>*>(&buf_);
+    }
+
+    bool is_open() const noexcept { return buf_.is_open(); }
+
+    void open(const char* path, ios_base::openmode mode = ios_base::in) {
+        if (!buf_.open(path, mode)) {
+            this->setstate(ios_base::failbit);
+        } else {
+            this->clear();
+        }
+    }
+
+    void open(const string& path, ios_base::openmode mode = ios_base::in) {
+        open(path.c_str(), mode);
+    }
+
+    void close() {
+        if (!buf_.close())
+            this->setstate(ios_base::failbit);
+    }
+
+private:
+    basic_filebuf<CharT, Traits> buf_;
+};
+
+using ifstream = basic_ifstream<char, char_traits<char>>;
+
+} // namespace std

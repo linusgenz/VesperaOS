@@ -1,0 +1,220 @@
+// mutex
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <type_traits>
+#include <utility>
+
+namespace std {
+
+// ---------------------------------------------------------------------------
+// Lock policy tags  (ISO C++11 §30.4.2)
+// ---------------------------------------------------------------------------
+
+/// Tag: assume the calling thread already owns the mutex.
+struct adopt_lock_t  { explicit adopt_lock_t()  = default; };
+
+/// Tag: defer locking to an explicit lock() call.
+struct defer_lock_t  { explicit defer_lock_t()  = default; };
+
+/// Tag: attempt a non-blocking try_lock() on construction.
+struct try_to_lock_t { explicit try_to_lock_t() = default; };
+
+inline constexpr adopt_lock_t  adopt_lock  {};
+inline constexpr defer_lock_t  defer_lock  {};
+inline constexpr try_to_lock_t try_to_lock {};
+
+// ---------------------------------------------------------------------------
+// std::mutex
+//
+// Implemented as a userspace spinlock using GCC/Clang __atomic builtins.
+// No syscall overhead — suitable for the short critical sections ThorVG uses.
+// Not recursive: locking twice from the same thread is undefined behaviour,
+// matching the C++ standard's guarantee for std::mutex.
+// ---------------------------------------------------------------------------
+
+class mutex {
+public:
+    constexpr mutex() noexcept : locked_(0) {}
+
+    mutex(const mutex&)            = delete;
+    mutex& operator=(const mutex&) = delete;
+
+    void lock() noexcept {
+        // Spin until we CAS 0 → 1.
+        // __atomic_exchange returns the old value; loop while it was already 1.
+        int expected = 0;
+        while (!__atomic_compare_exchange_n(
+                    &locked_,
+                    &expected,
+                    1,
+                    /*weak=*/false,
+                    __ATOMIC_ACQUIRE,
+                    __ATOMIC_RELAXED)) {
+            expected = 0;
+            // Emit PAUSE to reduce pipeline pressure on x86.
+            __builtin_ia32_pause();
+        }
+    }
+
+    [[nodiscard]] bool try_lock() noexcept {
+        int expected = 0;
+        return __atomic_compare_exchange_n(
+            &locked_, &expected, 1,
+            /*weak=*/false,
+            __ATOMIC_ACQUIRE,
+            __ATOMIC_RELAXED);
+    }
+
+    void unlock() noexcept {
+        __atomic_store_n(&locked_, 0, __ATOMIC_RELEASE);
+    }
+
+private:
+    int locked_;
+};
+
+// ---------------------------------------------------------------------------
+// std::lock_guard  (ISO C++11 §30.4.2.2)
+//
+// RAII wrapper: locks on construction, unlocks on destruction.
+// Non-movable, non-copyable. No deferred or try variants.
+// ---------------------------------------------------------------------------
+
+template<typename Mutex>
+class lock_guard {
+public:
+    using mutex_type = Mutex;
+
+    explicit lock_guard(Mutex& m) : mutex_(m) { mutex_.lock(); }
+
+    // adopt_lock: calling thread already holds the lock.
+    lock_guard(Mutex& m, adopt_lock_t) noexcept : mutex_(m) {}
+
+    ~lock_guard() { mutex_.unlock(); }
+
+    lock_guard(const lock_guard&)            = delete;
+    lock_guard& operator=(const lock_guard&) = delete;
+
+private:
+    Mutex& mutex_;
+};
+
+// ---------------------------------------------------------------------------
+// std::unique_lock  (ISO C++11 §30.4.2.3)
+//
+// Movable RAII wrapper with deferred, try, and adopt construction.
+// Supports manual lock()/unlock()/try_lock() and ownership query.
+// No timed variants — ThorVG does not use them.
+// ---------------------------------------------------------------------------
+
+template<typename Mutex>
+class unique_lock {
+public:
+    using mutex_type = Mutex;
+
+    // (1) default — no mutex, no ownership
+    unique_lock() noexcept : mutex_(nullptr), owns_(false) {}
+
+    // (2) immediate lock
+    explicit unique_lock(Mutex& m) : mutex_(&m), owns_(false) {
+        mutex_->lock();
+        owns_ = true;
+    }
+
+    // (3) defer_lock — associate but do not lock
+    unique_lock(Mutex& m, defer_lock_t) noexcept : mutex_(&m), owns_(false) {}
+
+    // (4) try_to_lock — attempt non-blocking acquire
+    unique_lock(Mutex& m, try_to_lock_t) noexcept
+        : mutex_(&m), owns_(m.try_lock()) {}
+
+    // (5) adopt_lock — calling thread already holds the lock
+    unique_lock(Mutex& m, adopt_lock_t) noexcept : mutex_(&m), owns_(true) {}
+
+    ~unique_lock() {
+        if (owns_)
+            mutex_->unlock();
+    }
+
+    unique_lock(const unique_lock&)            = delete;
+    unique_lock& operator=(const unique_lock&) = delete;
+
+    unique_lock(unique_lock&& other) noexcept
+        : mutex_(other.mutex_), owns_(other.owns_) {
+        other.mutex_ = nullptr;
+        other.owns_  = false;
+    }
+
+    unique_lock& operator=(unique_lock&& other) noexcept {
+        if (owns_)
+            mutex_->unlock();
+        mutex_       = other.mutex_;
+        owns_        = other.owns_;
+        other.mutex_ = nullptr;
+        other.owns_  = false;
+        return *this;
+    }
+
+    void lock() {
+        mutex_->lock();
+        owns_ = true;
+    }
+
+    [[nodiscard]] bool try_lock() {
+        owns_ = mutex_->try_lock();
+        return owns_;
+    }
+
+    void unlock() {
+        mutex_->unlock();
+        owns_ = false;
+    }
+
+    void swap(unique_lock& other) noexcept {
+        Mutex* tmp_m = mutex_;  mutex_       = other.mutex_;  other.mutex_ = tmp_m;
+        bool   tmp_o = owns_;   owns_        = other.owns_;   other.owns_  = tmp_o;
+    }
+
+    Mutex*  release() noexcept {
+        Mutex* m = mutex_;
+        mutex_   = nullptr;
+        owns_    = false;
+        return m;
+    }
+
+    [[nodiscard]] bool     owns_lock() const noexcept { return owns_;   }
+    [[nodiscard]] Mutex*   mutex()     const noexcept { return mutex_;  }
+    explicit operator bool()           const noexcept { return owns_;   }
+
+private:
+    Mutex* mutex_;
+    bool   owns_;
+};
+
+template<typename Mutex>
+void swap(unique_lock<Mutex>& lhs, unique_lock<Mutex>& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
+} // namespace std

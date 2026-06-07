@@ -21,6 +21,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -71,7 +72,8 @@ char* strtok(char* s, const char delim) {
     if (*next == delim) {
         *next = '\0';
         ++next;
-    } else {
+    }
+    else {
         next = NULL;
     }
 
@@ -309,7 +311,8 @@ void* memmove(void* dest, const void* src, size_t len) {
     const char* s = src;
     if (d < s) {
         while (len--) *d++ = *s++;
-    } else {
+    }
+    else {
         char* lasts = (char*)(s + (len - 1));
         char* lastd = d + (len - 1);
         while (len--) *lastd-- = *lasts--;
@@ -317,19 +320,19 @@ void* memmove(void* dest, const void* src, size_t len) {
     return dest;
 }
 
-int memmove_safe(void *dest, size_t dest_len,
-                 const void *src,  size_t count)
-{
-    if (!dest || !src)             return -1;
-    if (count > dest_len)          return -2;
-    if (count == 0 || dest == src) return  0;
+int memmove_safe(void* dest, size_t dest_len,
+                 const void* src, size_t count) {
+    if (!dest || !src) return -1;
+    if (count > dest_len) return -2;
+    if (count == 0 || dest == src) return 0;
 
-    char       *d = (char *)dest;
-    const char *s = (const char *)src;
+    char* d = (char*)dest;
+    const char* s = (const char*)src;
 
     if (d < s) {
         while (count--) *d++ = *s++;
-    } else {
+    }
+    else {
         d += count;
         s += count;
         while (count--) *--d = *--s;
@@ -346,4 +349,23 @@ size_t strlcpy(char* dest, const char* src, size_t size) {
         dest[min_len] = '\0';
     }
     return src_len;
+}
+
+int strcasecmp(const char *s1, const char *s2) {
+    while (*s1 && *s2) {
+        unsigned char c1 = (unsigned char)*s1;
+        unsigned char c2 = (unsigned char)*s2;
+
+        c1 = (unsigned char)tolower(c1);
+        c2 = (unsigned char)tolower(c2);
+
+        if (c1 != c2)
+            return (int)c1 - (int)c2;
+
+        s1++;
+        s2++;
+    }
+
+    return (int)(unsigned char)tolower((unsigned char)*s1)
+         - (int)(unsigned char)tolower((unsigned char)*s2);
 }

@@ -26,11 +26,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stella.h>
-#include <stella_icons.h>
 #include <string.h>
 
 #include "../theme/theme.h"
-#include "icon_transparent_16px.h"
 
 /* -------------------------------------------------------------------------
  * Internal constants

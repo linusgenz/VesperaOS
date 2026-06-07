@@ -1,5 +1,5 @@
 global _start
-extern main
+extern start_main
 extern init_environ
 extern __stdio_init
 extern exit
@@ -26,7 +26,7 @@ _start:
     pop rsi
     pop rdi
 
-    call main
+    call start_main
 
     mov  rdi, rax            ; return code
     call exit

@@ -1,4 +1,4 @@
-// entry.c
+// fenv.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -20,10 +20,19 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-extern int main(int argc, char **argv, char **envp);
+#include <stdint.h>
+#include <bits/fenv.h>
 
-int start_main(int argc, char **argv, char **envp) {
-    int exit_code = main(argc, argv, envp);
-    // cleanup
-    return exit_code;
+int feclearexcept(int excepts) {
+    uint32_t mxcsr;
+    __asm__ __volatile__("stmxcsr %0" : "=m"(mxcsr));
+    mxcsr &= ~(excepts & FE_ALL_EXCEPT);
+    __asm__ __volatile__("ldmxcsr %0" : : "m"(mxcsr));
+    return 0;
+}
+
+int fetestexcept(int excepts) {
+    uint32_t mxcsr;
+    __asm__ __volatile__("stmxcsr %0" : "=m"(mxcsr));
+    return mxcsr & excepts & FE_ALL_EXCEPT;
 }

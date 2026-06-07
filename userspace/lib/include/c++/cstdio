@@ -1,7 +1,7 @@
-// entry.c
+// cstdio
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
 //
 // Created by Linus Genz on 06.06.26.
 //
@@ -20,10 +20,51 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-extern int main(int argc, char **argv, char **envp);
+#pragma once
 
-int start_main(int argc, char **argv, char **envp) {
-    int exit_code = main(argc, argv, envp);
-    // cleanup
-    return exit_code;
+extern "C" {
+#include <stdio.h>
 }
+
+#undef getc
+
+namespace std {
+
+using ::FILE;
+
+inline int getc(FILE* f) { return ::fgetc(f); }
+
+using ::fclose;
+using ::feof;
+using ::ferror;
+using ::fflush;
+using ::fgetc;
+using ::fgets;
+using ::fopen;
+using ::fprintf;
+using ::fputc;
+using ::fputs;
+using ::fread;
+using ::freopen;
+using ::fscanf;
+using ::fseek;
+using ::ftell;
+using ::fwrite;
+using ::getchar;
+using ::printf;
+using ::putchar;
+using ::puts;
+using ::remove;
+using ::rename;
+using ::rewind;
+using ::setvbuf;
+using ::snprintf;
+//using ::sprintf;
+using ::sscanf;
+using ::tmpfile;
+using ::ungetc;
+using ::vfprintf;
+using ::vprintf;
+using ::vsnprintf;
+
+} // namespace std

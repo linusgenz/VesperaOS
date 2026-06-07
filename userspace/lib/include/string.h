@@ -27,6 +27,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Return the length of S.
  */
@@ -128,5 +132,11 @@ char *strpbrk(const char *s, const char *accept);
 void *memchr(const void *src, int c, size_t n);
 
 size_t strlcpy(char *dest, const char *src, size_t size);
+
+int strcasecmp(const char *s1, const char *s2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // VESPERAOS_STRING_H

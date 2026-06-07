@@ -1447,6 +1447,8 @@ int main(int argc, char* argv[]) {
     if (rid > 0) {
         g_comp.desktop_realm_id = (RealmID)rid;
         g_comp.desktop_spawned = true;
+    } else {
+        printf("Spawning desktop failed");
     }
 
     composite_frame();

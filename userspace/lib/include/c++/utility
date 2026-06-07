@@ -1,0 +1,308 @@
+// utility
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cstddef>
+#include <type_traits>
+
+namespace std {
+
+// ============================================================
+// move / forward / move_if_noexcept
+// ============================================================
+
+template<typename T>
+[[nodiscard]] constexpr remove_reference_t<T>&&
+move(T&& t) noexcept {
+    return static_cast<remove_reference_t<T>&&>(t);
+}
+
+template<typename T>
+[[nodiscard]] constexpr T&&
+forward(remove_reference_t<T>& t) noexcept {
+    return static_cast<T&&>(t);
+}
+
+template<typename T>
+[[nodiscard]] constexpr T&&
+forward(remove_reference_t<T>&& t) noexcept {
+    static_assert(!is_lvalue_reference_v<T>,
+        "std::forward: cannot forward rvalue as lvalue");
+    return static_cast<T&&>(t);
+}
+
+template<typename T>
+[[nodiscard]] constexpr conditional_t<
+    !is_nothrow_move_constructible_v<T> && is_copy_constructible_v<T>,
+    const T&, T&&>
+move_if_noexcept(T& x) noexcept {
+    return move(x);
+}
+
+// ============================================================
+// swap
+// ============================================================
+
+template<typename T>
+constexpr void swap(T& a, T& b)
+    noexcept(is_nothrow_move_constructible_v<T> &&
+             is_nothrow_move_assignable_v<T>)
+{
+    T tmp = move(a);
+    a = move(b);
+    b = move(tmp);
+}
+
+template<typename T, size_t N>
+constexpr void swap(T (&a)[N], T (&b)[N])
+    noexcept(noexcept(swap(a[0], b[0])))
+{
+    for (size_t i = 0; i < N; ++i)
+        swap(a[i], b[i]);
+}
+
+// ============================================================
+// exchange (C++14)
+// ============================================================
+
+template<typename T, typename U = T>
+constexpr T exchange(T& obj, U&& new_val)
+    noexcept(is_nothrow_move_constructible_v<T> &&
+             is_nothrow_assignable_v<T&, U>)
+{
+    T old = move(obj);
+    obj = forward<U>(new_val);
+    return old;
+}
+
+// ============================================================
+// as_const (C++17)
+// ============================================================
+
+template<typename T>
+[[nodiscard]] constexpr add_const_t<T>&
+as_const(T& t) noexcept { return t; }
+
+template<typename T>
+void as_const(const T&&) = delete;
+
+// ============================================================
+// pair
+// ============================================================
+
+template<typename T1, typename T2>
+struct pair {
+    using first_type  = T1;
+    using second_type = T2;
+
+    T1 first;
+    T2 second;
+
+    // Default constructor
+    constexpr pair() : first(), second() {}
+
+    // Value constructor
+    constexpr pair(const T1& a, const T2& b) : first(a), second(b) {}
+
+    // Converting constructor
+    template<typename U1, typename U2>
+    constexpr pair(U1&& a, U2&& b)
+        : first(forward<U1>(a)), second(forward<U2>(b)) {}
+
+    // Copy / move from compatible pair
+    template<typename U1, typename U2>
+    constexpr pair(const pair<U1, U2>& o) : first(o.first), second(o.second) {}
+
+    template<typename U1, typename U2>
+    constexpr pair(pair<U1, U2>&& o)
+        : first(move(o.first)), second(move(o.second)) {}
+
+    pair(const pair&) = default;
+    pair(pair&&)      = default;
+
+    pair& operator=(const pair& o) {
+        first  = o.first;
+        second = o.second;
+        return *this;
+    }
+
+    pair& operator=(pair&& o)
+        noexcept(is_nothrow_move_assignable_v<T1> &&
+                 is_nothrow_move_assignable_v<T2>)
+    {
+        first  = move(o.first);
+        second = move(o.second);
+        return *this;
+    }
+
+    template<typename U1, typename U2>
+    pair& operator=(const pair<U1, U2>& o) {
+        first  = o.first;
+        second = o.second;
+        return *this;
+    }
+
+    void swap(pair& o)
+        noexcept(noexcept(std::swap(first,  o.first)) &&
+                 noexcept(std::swap(second, o.second)))
+    {
+        std::swap(first,  o.first);
+        std::swap(second, o.second);
+    }
+};
+
+// Comparison operators
+template<typename T1, typename T2>
+constexpr bool operator==(const pair<T1,T2>& a, const pair<T1,T2>& b) {
+    return a.first == b.first && a.second == b.second;
+}
+template<typename T1, typename T2>
+constexpr bool operator!=(const pair<T1,T2>& a, const pair<T1,T2>& b) {
+    return !(a == b);
+}
+template<typename T1, typename T2>
+constexpr bool operator<(const pair<T1,T2>& a, const pair<T1,T2>& b) {
+    return a.first < b.first || (!(b.first < a.first) && a.second < b.second);
+}
+template<typename T1, typename T2>
+constexpr bool operator<=(const pair<T1,T2>& a, const pair<T1,T2>& b) { return !(b < a); }
+template<typename T1, typename T2>
+constexpr bool operator>(const pair<T1,T2>& a, const pair<T1,T2>& b)  { return b < a; }
+template<typename T1, typename T2>
+constexpr bool operator>=(const pair<T1,T2>& a, const pair<T1,T2>& b) { return !(a < b); }
+
+// make_pair
+template<typename T1, typename T2>
+constexpr pair<decay_t<T1>, decay_t<T2>>
+make_pair(T1&& a, T2&& b) {
+    return { forward<T1>(a), forward<T2>(b) };
+}
+
+// swap specialization
+template<typename T1, typename T2>
+constexpr void swap(pair<T1,T2>& a, pair<T1,T2>& b)
+    noexcept(noexcept(a.swap(b)))
+{
+    a.swap(b);
+}
+
+// get<0> / get<1> for pair
+template<size_t I, typename T1, typename T2>
+constexpr auto& get(pair<T1,T2>& p) noexcept {
+    if constexpr (I == 0) return p.first;
+    else                  return p.second;
+}
+template<size_t I, typename T1, typename T2>
+constexpr const auto& get(const pair<T1,T2>& p) noexcept {
+    if constexpr (I == 0) return p.first;
+    else                  return p.second;
+}
+template<size_t I, typename T1, typename T2>
+constexpr auto&& get(pair<T1,T2>&& p) noexcept {
+    if constexpr (I == 0) return move(p.first);
+    else                  return move(p.second);
+}
+
+// ============================================================
+// integer_sequence / index_sequence (C++14)
+// ============================================================
+
+template<typename T, T... Ints>
+struct integer_sequence {
+    using value_type = T;
+    static constexpr size_t size() noexcept { return sizeof...(Ints); }
+};
+
+template<size_t... Ints>
+using index_sequence = integer_sequence<size_t, Ints...>;
+
+#if defined(__clang__)
+    template<typename T, T N>
+    using make_integer_sequence = __make_integer_seq<integer_sequence, T, N>;
+
+#elif defined(__GNUC__)
+    template<typename T, T N>
+    using make_integer_sequence = integer_sequence<T, static_cast<T>(__integer_pack(N))...>;
+
+#else
+    namespace _detail {
+        template<typename T, T N, typename = void, T... Acc>
+        struct _make_iseq : _make_iseq<T, N-1, void, N-1, Acc...> {};
+
+        template<typename T, T... Acc>
+        struct _make_iseq<T, static_cast<T>(0), void, Acc...> {
+            using type = integer_sequence<T, Acc...>;
+        };
+    } // namespace _detail
+
+    template<typename T, T N>
+    using make_integer_sequence = typename _detail::_make_iseq<T, N>::type;
+#endif
+
+template<size_t N>
+using make_index_sequence = make_integer_sequence<size_t, N>;
+
+template<typename... Ts>
+using index_sequence_for = make_index_sequence<sizeof...(Ts)>;
+
+// ============================================================
+// in_place tags (C++17) — used by optional, variant, any
+// ============================================================
+
+struct in_place_t { explicit in_place_t() = default; };
+inline constexpr in_place_t in_place{};
+
+template<typename T>
+struct in_place_type_t { explicit in_place_type_t() = default; };
+template<typename T>
+inline constexpr in_place_type_t<T> in_place_type{};
+
+template<size_t I>
+struct in_place_index_t { explicit in_place_index_t() = default; };
+template<size_t I>
+inline constexpr in_place_index_t<I> in_place_index{};
+
+// ============================================================
+// piecewise_construct (for pair/map emplace)
+// ============================================================
+
+struct piecewise_construct_t { explicit piecewise_construct_t() = default; };
+inline constexpr piecewise_construct_t piecewise_construct{};
+
+// ============================================================
+// rel_ops — fallback comparison operators (deprecated in C++20
+// but some older thorvg code may need them)
+// ============================================================
+
+namespace rel_ops {
+    template<typename T>
+    inline bool operator!=(const T& a, const T& b) { return !(a == b); }
+    template<typename T>
+    inline bool operator>(const T& a, const T& b)  { return b < a; }
+    template<typename T>
+    inline bool operator<=(const T& a, const T& b) { return !(b < a); }
+    template<typename T>
+    inline bool operator>=(const T& a, const T& b) { return !(a < b); }
+} // namespace rel_ops
+
+} // namespace std

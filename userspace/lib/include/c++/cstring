@@ -1,0 +1,65 @@
+// cstring
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <string.h>
+
+// Bring every symbol into std:: as required by the C++ standard
+// (ISO C++17 §D.5 — "C standard library headers").
+// We also keep the global-namespace declarations visible (they come
+// from the extern "C" include above), which matches the behaviour of
+// every major stdlib implementation.
+namespace std {
+
+using ::strlen;
+using ::strnlen;
+
+using ::strcpy;
+using ::strncpy;
+using ::strlcpy;
+
+using ::strcat;
+using ::strncat;
+
+using ::strcmp;
+using ::strncmp;
+using ::strcasecmp;
+using ::strcoll;
+
+using ::strchr;
+using ::strrchr;
+using ::strstr;
+using ::strpbrk;
+using ::strspn;
+using ::strcspn;
+
+using ::strtok;
+
+using ::memset;
+using ::memcpy;
+using ::memmove;
+using ::memmove_safe;
+using ::memcmp;
+using ::memchr;
+
+} // namespace std

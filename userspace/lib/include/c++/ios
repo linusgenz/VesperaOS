@@ -1,0 +1,142 @@
+// ios
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cstddef>
+
+namespace std {
+
+// ---------------------------------------------------------------------------
+// ios_base — flags and types shared by all stream classes.
+//
+// openmode, iostate and seekdir are proper enum types so that:
+//   (a) operator| / operator& can be overloaded (requires class/enum type)
+//   (b) their names do not collide with std::trunc(), std::end(), etc.
+//       which live at namespace scope in <cmath> / <iterator>.
+// ---------------------------------------------------------------------------
+
+class ios_base {
+public:
+    // --- iostate ---
+    enum iostate : unsigned int {
+        goodbit = 0u,
+        badbit  = 1u,
+        failbit = 2u,
+        eofbit  = 4u,
+    };
+
+    // --- openmode ---
+    enum openmode : unsigned int {
+        in     = 1u,
+        out    = 2u,
+        ate    = 4u,
+        app    = 8u,
+        trunc  = 16u,
+        binary = 32u,
+    };
+
+    // --- seekdir ---
+    enum seekdir : unsigned int {
+        beg = 0u,
+        cur = 1u,
+        end = 2u,
+    };
+
+    // streamoff / streampos — 64-bit file positions
+    using streamoff = long long;
+    using streampos = long long;
+
+    ios_base(const ios_base&)            = delete;
+    ios_base& operator=(const ios_base&) = delete;
+
+protected:
+    ios_base() : state_(goodbit) {}
+    ~ios_base() = default;
+
+    iostate state_;
+};
+
+// Bitwise operators on openmode — legal now that openmode is an enum type.
+inline ios_base::openmode operator|(ios_base::openmode a, ios_base::openmode b) {
+    return static_cast<ios_base::openmode>(
+        static_cast<unsigned>(a) | static_cast<unsigned>(b));
+}
+inline ios_base::openmode operator&(ios_base::openmode a, ios_base::openmode b) {
+    return static_cast<ios_base::openmode>(
+        static_cast<unsigned>(a) & static_cast<unsigned>(b));
+}
+inline ios_base::openmode operator~(ios_base::openmode a) {
+    return static_cast<ios_base::openmode>(~static_cast<unsigned>(a));
+}
+
+// Bitwise operators on iostate
+inline ios_base::iostate operator|(ios_base::iostate a, ios_base::iostate b) {
+    return static_cast<ios_base::iostate>(
+        static_cast<unsigned>(a) | static_cast<unsigned>(b));
+}
+inline ios_base::iostate operator&(ios_base::iostate a, ios_base::iostate b) {
+    return static_cast<ios_base::iostate>(
+        static_cast<unsigned>(a) & static_cast<unsigned>(b));
+}
+inline ios_base::iostate operator~(ios_base::iostate a) {
+    return static_cast<ios_base::iostate>(~static_cast<unsigned>(a));
+}
+
+// ---------------------------------------------------------------------------
+// basic_ios<charT> — state management on top of ios_base
+// ---------------------------------------------------------------------------
+
+template<typename CharT, typename Traits>
+class basic_ios : public ios_base {
+public:
+    using char_type = CharT;
+    using int_type  = int;
+    using pos_type  = streampos;
+    using off_type  = streamoff;
+
+    bool good()  const noexcept { return state_ == goodbit; }
+    bool eof()   const noexcept { return (state_ & eofbit)  != goodbit; }
+    bool fail()  const noexcept { return (state_ & (failbit | badbit)) != goodbit; }
+    bool bad()   const noexcept { return (state_ & badbit)  != goodbit; }
+
+    explicit operator bool() const noexcept { return !fail(); }
+    bool operator!()         const noexcept { return  fail(); }
+
+    iostate rdstate() const noexcept { return state_; }
+
+    void setstate(iostate s) noexcept { state_ = state_ | s; }
+
+    void clear(iostate s = goodbit) noexcept { state_ = s; }
+
+protected:
+    basic_ios() : ios_base() {}
+    ~basic_ios() = default;
+};
+
+using ios = basic_ios<char, char_traits<char>>;
+
+// streamoff / streampos at namespace scope for convenience
+using streamoff = ios_base::streamoff;
+using streampos = ios_base::streampos;
+
+} // namespace std

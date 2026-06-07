@@ -1,0 +1,532 @@
+// functional
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <type_traits>
+#include <utility>
+
+namespace std {
+
+// ============================================================
+// Comparison functors
+// ============================================================
+
+template<typename T = void>
+struct less {
+    constexpr bool operator()(const T& a, const T& b) const { return a < b; }
+    using is_transparent = void;
+};
+
+template<>
+struct less<void> {
+    template<typename T, typename U>
+    constexpr auto operator()(T&& a, U&& b) const
+        -> decltype(static_cast<T&&>(a) < static_cast<U&&>(b))
+    { return static_cast<T&&>(a) < static_cast<U&&>(b); }
+    using is_transparent = void;
+};
+
+template<typename T = void>
+struct greater {
+    constexpr bool operator()(const T& a, const T& b) const { return a > b; }
+    using is_transparent = void;
+};
+
+template<>
+struct greater<void> {
+    template<typename T, typename U>
+    constexpr auto operator()(T&& a, U&& b) const
+        -> decltype(static_cast<T&&>(a) > static_cast<U&&>(b))
+    { return static_cast<T&&>(a) > static_cast<U&&>(b); }
+    using is_transparent = void;
+};
+
+template<typename T = void>
+struct less_equal {
+    constexpr bool operator()(const T& a, const T& b) const { return a <= b; }
+    using is_transparent = void;
+};
+
+template<typename T = void>
+struct greater_equal {
+    constexpr bool operator()(const T& a, const T& b) const { return a >= b; }
+    using is_transparent = void;
+};
+
+template<typename T = void>
+struct equal_to {
+    constexpr bool operator()(const T& a, const T& b) const { return a == b; }
+    using is_transparent = void;
+};
+
+template<>
+struct equal_to<void> {
+    template<typename T, typename U>
+    constexpr auto operator()(T&& a, U&& b) const
+        -> decltype(static_cast<T&&>(a) == static_cast<U&&>(b))
+    { return static_cast<T&&>(a) == static_cast<U&&>(b); }
+    using is_transparent = void;
+};
+
+template<typename T = void>
+struct not_equal_to {
+    constexpr bool operator()(const T& a, const T& b) const { return a != b; }
+    using is_transparent = void;
+};
+
+// Logical functors
+template<typename T = void>
+struct logical_and {
+    constexpr bool operator()(const T& a, const T& b) const { return a && b; }
+};
+
+template<typename T = void>
+struct logical_or {
+    constexpr bool operator()(const T& a, const T& b) const { return a || b; }
+};
+
+template<typename T = void>
+struct logical_not {
+    constexpr bool operator()(const T& a) const { return !a; }
+};
+
+// Arithmetic functors
+template<typename T = void>
+struct plus {
+    constexpr T operator()(const T& a, const T& b) const { return a + b; }
+};
+
+template<typename T = void>
+struct minus {
+    constexpr T operator()(const T& a, const T& b) const { return a - b; }
+};
+
+template<typename T = void>
+struct multiplies {
+    constexpr T operator()(const T& a, const T& b) const { return a * b; }
+};
+
+template<typename T = void>
+struct negate {
+    constexpr T operator()(const T& a) const { return -a; }
+};
+
+// ============================================================
+// std::hash — base + specializations for primitive types
+// ============================================================
+
+template<typename T>
+struct hash;  // undefined for unknown types — linker error is intentional
+
+namespace _hash_detail {
+    // FNV-1a 64-bit
+    inline size_t _fnv1a(const void* data, size_t len) noexcept {
+        const unsigned char* p = static_cast<const unsigned char*>(data);
+        size_t h = 14695981039346656037ULL;
+        for (size_t i = 0; i < len; ++i) {
+            h ^= p[i];
+            h *= 1099511628211ULL;
+        }
+        return h;
+    }
+}
+
+// Macro to define hash for integral/float types
+#define _VESP_HASH_INTEGRAL(T) \
+    template<> struct hash<T> { \
+        size_t operator()(T v) const noexcept { \
+            return _hash_detail::_fnv1a(&v, sizeof(v)); \
+        } \
+    };
+
+_VESP_HASH_INTEGRAL(bool)
+_VESP_HASH_INTEGRAL(char)
+_VESP_HASH_INTEGRAL(signed char)
+_VESP_HASH_INTEGRAL(unsigned char)
+_VESP_HASH_INTEGRAL(short)
+_VESP_HASH_INTEGRAL(unsigned short)
+_VESP_HASH_INTEGRAL(int)
+_VESP_HASH_INTEGRAL(unsigned int)
+_VESP_HASH_INTEGRAL(long)
+_VESP_HASH_INTEGRAL(unsigned long)
+_VESP_HASH_INTEGRAL(long long)
+_VESP_HASH_INTEGRAL(unsigned long long)
+_VESP_HASH_INTEGRAL(float)
+_VESP_HASH_INTEGRAL(double)
+_VESP_HASH_INTEGRAL(long double)
+_VESP_HASH_INTEGRAL(char16_t)
+_VESP_HASH_INTEGRAL(char32_t)
+_VESP_HASH_INTEGRAL(wchar_t)
+
+#undef _VESP_HASH_INTEGRAL
+
+// Pointer hash
+template<typename T>
+struct hash<T*> {
+    size_t operator()(T* p) const noexcept {
+        return _hash_detail::_fnv1a(&p, sizeof(p));
+    }
+};
+
+// nullptr_t
+template<>
+struct hash<nullptr_t> {
+    size_t operator()(nullptr_t) const noexcept { return 0; }
+};
+
+// ============================================================
+// std::invoke — C++17
+// Supports: plain callables, member function pointers,
+//           member data pointers
+// ============================================================
+
+namespace _invoke_detail {
+
+    // Plain callable
+    template<typename F, typename... Args>
+    auto _invoke_impl(F&& f, Args&&... args)
+        -> decltype(static_cast<F&&>(f)(static_cast<Args&&>(args)...))
+    {
+        return static_cast<F&&>(f)(static_cast<Args&&>(args)...);
+    }
+
+    // Member function pointer — called on reference
+    template<typename Ret, typename Class, typename Obj, typename... Args>
+    auto _invoke_impl(Ret Class::* pmf, Obj&& obj, Args&&... args)
+        -> decltype((static_cast<Obj&&>(obj).*pmf)(static_cast<Args&&>(args)...))
+    {
+        return (static_cast<Obj&&>(obj).*pmf)(static_cast<Args&&>(args)...);
+    }
+
+    // Member function pointer — called via pointer
+    template<typename Ret, typename Class, typename Obj, typename... Args>
+    auto _invoke_impl(Ret Class::* pmf, Obj* obj, Args&&... args)
+        -> decltype((obj->*pmf)(static_cast<Args&&>(args)...))
+    {
+        return (obj->*pmf)(static_cast<Args&&>(args)...);
+    }
+
+    // Member data pointer — reference
+    template<typename Ret, typename Class, typename Obj>
+    auto _invoke_impl(Ret Class::* pmd, Obj&& obj)
+        -> decltype(static_cast<Obj&&>(obj).*pmd)
+    {
+        return static_cast<Obj&&>(obj).*pmd;
+    }
+
+    // Member data pointer — pointer
+    template<typename Ret, typename Class, typename Obj>
+    auto _invoke_impl(Ret Class::* pmd, Obj* obj)
+        -> decltype(obj->*pmd)
+    {
+        return obj->*pmd;
+    }
+
+} // namespace _invoke_detail
+
+template<typename F, typename... Args>
+constexpr auto invoke(F&& f, Args&&... args)
+    noexcept(noexcept(_invoke_detail::_invoke_impl(
+        static_cast<F&&>(f), static_cast<Args&&>(args)...)))
+    -> decltype(_invoke_detail::_invoke_impl(
+        static_cast<F&&>(f), static_cast<Args&&>(args)...))
+{
+    return _invoke_detail::_invoke_impl(
+        static_cast<F&&>(f), static_cast<Args&&>(args)...);
+}
+
+// invoke_result
+template<typename F, typename... Args>
+struct invoke_result {
+    using type = decltype(_invoke_detail::_invoke_impl(
+        declval<F>(), declval<Args>()...));
+};
+
+template<typename F, typename... Args>
+using invoke_result_t = typename invoke_result<F, Args...>::type;
+
+// ============================================================
+// std::reference_wrapper
+// ============================================================
+
+template<typename T>
+class reference_wrapper {
+    T* _ptr;
+public:
+    using type = T;
+
+    // Konstruktor — nur von lvalue
+    reference_wrapper(T& ref) noexcept : _ptr(&ref) {}
+    reference_wrapper(T&&) = delete;
+
+    reference_wrapper(const reference_wrapper&) noexcept = default;
+    reference_wrapper& operator=(const reference_wrapper&) noexcept = default;
+
+    T& get() const noexcept { return *_ptr; }
+    operator T&() const noexcept { return *_ptr; }
+
+    template<typename... Args>
+    auto operator()(Args&&... args) const
+        -> decltype(invoke(get(), static_cast<Args&&>(args)...))
+    {
+        return invoke(get(), static_cast<Args&&>(args)...);
+    }
+};
+
+template<typename T>
+reference_wrapper<T> ref(T& val) noexcept {
+    return reference_wrapper<T>(val);
+}
+
+template<typename T>
+reference_wrapper<const T> cref(const T& val) noexcept {
+    return reference_wrapper<const T>(val);
+}
+
+template<typename T>
+void ref(const T&&) = delete;
+
+template<typename T>
+void cref(const T&&) = delete;
+
+// ============================================================
+// std::function<Ret(Args...)>
+// Minimal type-erasure implementation
+// Requires: new/delete (malloc/free in your libc)
+// ============================================================
+
+template<typename>
+class function;
+
+template<typename Ret, typename... Args>
+class function<Ret(Args...)> {
+
+    // Abstract base for type-erased callable
+    struct _Base {
+        virtual Ret     call(Args&&...) = 0;
+        virtual _Base*  clone() const = 0;
+        virtual        ~_Base() = default;
+    };
+
+    // Concrete wrapper for any callable F
+    template<typename F>
+    struct _Wrapper : _Base {
+        F _f;
+
+        explicit _Wrapper(const F& f) : _f(f) {}
+        explicit _Wrapper(F&& f) : _f(static_cast<F&&>(f)) {}
+
+        Ret call(Args&&... args) override {
+            return _f(static_cast<Args&&>(args)...);
+        }
+        _Base* clone() const override {
+            return new _Wrapper<F>(_f);
+        }
+    };
+
+    _Base* _ptr = nullptr;
+
+    // Trait: don't wrap function<> in itself
+    template<typename F>
+    using _NotSelf = typename enable_if<
+        !is_same<typename decay<F>::type, function>::value
+    >::type;
+
+public:
+    // Default — empty function
+    function() noexcept = default;
+    function(nullptr_t) noexcept : _ptr(nullptr) {}
+
+    // From any callable
+    template<typename F, typename = _NotSelf<F>>
+    function(F&& f) : _ptr(new _Wrapper<typename decay<F>::type>(
+                                static_cast<F&&>(f))) {}
+
+    // Copy
+    function(const function& o) : _ptr(o._ptr ? o._ptr->clone() : nullptr) {}
+
+    // Move
+    function(function&& o) noexcept : _ptr(o._ptr) { o._ptr = nullptr; }
+
+    ~function() { delete _ptr; }
+
+    // Copy assign
+    function& operator=(const function& o) {
+        if (this != &o) {
+            delete _ptr;
+            _ptr = o._ptr ? o._ptr->clone() : nullptr;
+        }
+        return *this;
+    }
+
+    // Move assign
+    function& operator=(function&& o) noexcept {
+        if (this != &o) {
+            delete _ptr;
+            _ptr = o._ptr;
+            o._ptr = nullptr;
+        }
+        return *this;
+    }
+
+    function& operator=(nullptr_t) noexcept {
+        delete _ptr;
+        _ptr = nullptr;
+        return *this;
+    }
+
+    template<typename F, typename = _NotSelf<F>>
+    function& operator=(F&& f) {
+        function tmp(static_cast<F&&>(f));
+        swap(tmp);
+        return *this;
+    }
+
+    // Swap
+    void swap(function& o) noexcept {
+        _Base* tmp = _ptr;
+        _ptr = o._ptr;
+        o._ptr = tmp;
+    }
+
+    // Check if non-empty
+    explicit operator bool() const noexcept { return _ptr != nullptr; }
+
+    // Call — undefined behavior if empty (matches std spec)
+    Ret operator()(Args... args) const {
+        return _ptr->call(static_cast<Args&&>(args)...);
+    }
+};
+
+template<typename Ret, typename... Args>
+bool operator==(const function<Ret(Args...)>& f, nullptr_t) noexcept {
+    return !f;
+}
+
+template<typename Ret, typename... Args>
+bool operator==(nullptr_t, const function<Ret(Args...)>& f) noexcept {
+    return !f;
+}
+
+template<typename Ret, typename... Args>
+bool operator!=(const function<Ret(Args...)>& f, nullptr_t) noexcept {
+    return static_cast<bool>(f);
+}
+
+template<typename Ret, typename... Args>
+bool operator!=(nullptr_t, const function<Ret(Args...)>& f) noexcept {
+    return static_cast<bool>(f);
+}
+
+// swap specialization
+template<typename Ret, typename... Args>
+void swap(function<Ret(Args...)>& a, function<Ret(Args...)>& b) noexcept {
+    a.swap(b);
+}
+
+// ============================================================
+// std::mem_fn
+// ============================================================
+
+namespace _memfn_detail {
+    template<typename MFP>
+    struct _Mem_fn {
+        MFP _pmf;
+        explicit _Mem_fn(MFP pmf) : _pmf(pmf) {}
+
+        template<typename Obj, typename... Args>
+        auto operator()(Obj&& obj, Args&&... args) const
+            -> decltype(invoke(_pmf,
+                static_cast<Obj&&>(obj), static_cast<Args&&>(args)...))
+        {
+            return invoke(_pmf,
+                static_cast<Obj&&>(obj), static_cast<Args&&>(args)...);
+        }
+    };
+}
+
+template<typename Ret, typename Class>
+_memfn_detail::_Mem_fn<Ret Class::*>
+mem_fn(Ret Class::* pm) noexcept {
+    return _memfn_detail::_Mem_fn<Ret Class::*>(pm);
+}
+
+// ============================================================
+// std::not_fn (C++17)
+// ============================================================
+
+template<typename F>
+struct _Not_fn {
+    F _f;
+    explicit _Not_fn(F&& f) : _f(static_cast<F&&>(f)) {}
+
+    template<typename... Args>
+    auto operator()(Args&&... args)
+        -> decltype(!invoke(_f, static_cast<Args&&>(args)...))
+    {
+        return !invoke(_f, static_cast<Args&&>(args)...);
+    }
+
+    template<typename... Args>
+    auto operator()(Args&&... args) const
+        -> decltype(!invoke(_f, static_cast<Args&&>(args)...))
+    {
+        return !invoke(_f, static_cast<Args&&>(args)...);
+    }
+};
+
+template<typename F>
+_Not_fn<typename decay<F>::type> not_fn(F&& f) {
+    return _Not_fn<typename decay<F>::type>(static_cast<F&&>(f));
+}
+
+// ============================================================
+// std::bind_front (C++20) — minimal stub used by some libs
+// ============================================================
+
+template<typename F, typename... BoundArgs>
+struct _Bind_front {
+    F _f;
+    // Store bound args as tuple would require <tuple> — use a simple struct
+    // for single-arg case which is the common thorvg usage
+    // Full tuple support would require <tuple> header
+
+    // Note: for full bind_front support you'd need <tuple>
+    // This covers the common F(bound_arg, ...) pattern
+};
+
+// ============================================================
+// identity (C++20)
+// ============================================================
+
+struct identity {
+    template<typename T>
+    constexpr T&& operator()(T&& t) const noexcept {
+        return static_cast<T&&>(t);
+    }
+    using is_transparent = void;
+};
+
+} // namespace std

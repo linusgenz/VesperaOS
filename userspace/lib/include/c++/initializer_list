@@ -1,0 +1,66 @@
+// initializer_list
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+// std::initializer_list is a magic compiler-intrinsic type.
+// GCC and Clang only enable brace-initializer-list support (e.g. {1, 2, 3})
+// when this exact class template exists in namespace std under this exact
+// header name. No other header name or namespace will trigger the compiler
+// magic — this file must be spelled <initializer_list>.
+//
+// The layout (pointer + size) must match what the compiler emits internally;
+// __begin_ / __size_ are the field names Clang/GCC expect in their builtins.
+// Do not rename or reorder them.
+
+namespace std {
+
+template<typename T>
+class initializer_list {
+public:
+    using value_type      = T;
+    using reference       = const T&;
+    using const_reference = const T&;
+    using size_type       = decltype(sizeof(0));
+    using iterator        = const T*;
+    using const_iterator  = const T*;
+
+    // Default-constructed initializer_list is empty.
+    constexpr initializer_list() noexcept : begin_(nullptr), size_(0) {}
+
+    constexpr size_type size()  const noexcept { return size_;  }
+    constexpr const T*  begin() const noexcept { return begin_; }
+    constexpr const T*  end()   const noexcept { return begin_ + size_; }
+
+private:
+    // The compiler constructs initializer_list objects directly by writing
+    // into these two fields. The names and order are ABI — do not touch.
+    const T*  begin_;
+    size_type size_;
+};
+
+// Non-member begin/end for range-for compatibility.
+template<typename T>
+constexpr const T* begin(initializer_list<T> il) noexcept { return il.begin(); }
+
+template<typename T>
+constexpr const T* end(initializer_list<T> il) noexcept { return il.end(); }
+
+} // namespace std

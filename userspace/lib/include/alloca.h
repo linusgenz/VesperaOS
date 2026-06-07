@@ -1,4 +1,4 @@
-// entry.c
+// alloca.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,11 +19,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_ALLOCA_H
+#define VESPERAOS_ALLOCA_H
 
-extern int main(int argc, char **argv, char **envp);
+#include <features.h>
+#include <stddef.h>
 
-int start_main(int argc, char **argv, char **envp) {
-    int exit_code = main(argc, argv, envp);
-    // cleanup
-    return exit_code;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define alloca(size) __builtin_alloca(size)
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif //VESPERAOS_ALLOCA_H

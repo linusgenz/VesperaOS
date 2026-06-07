@@ -1,4 +1,4 @@
-// entry.c
+// wchar.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -20,10 +20,34 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-extern int main(int argc, char **argv, char **envp);
+#include <stdlib.h>
 
-int start_main(int argc, char **argv, char **envp) {
-    int exit_code = main(argc, argv, envp);
-    // cleanup
-    return exit_code;
+size_t wcslen(const wchar_t* str) {
+    size_t len = 0;
+    while (str[len] != 0) {
+        len++;
+    }
+    return len;
+}
+
+int wmemcmp(const wchar_t* ptr1, const wchar_t* ptr2, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        if (ptr1[i] < ptr2[i]) return -1;
+        if (ptr1[i] > ptr2[i]) return 1;
+    }
+    return 0;
+}
+
+wchar_t* wmemcpy(wchar_t* dest, const wchar_t* src, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        dest[i] = src[i];
+    }
+    return dest;
+}
+
+wchar_t* wmemset(wchar_t* dest, wchar_t ch, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        dest[i] = ch;
+    }
+    return dest;
 }

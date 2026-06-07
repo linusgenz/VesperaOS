@@ -1,0 +1,94 @@
+// cstdlib
+//
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+//
+// Created by Linus Genz on 06.06.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#ifndef VESPERAOS_CSTDLIB_H
+#define VESPERAOS_CSTDLIB_H
+
+#include <stdlib.h>
+#include <cstdio>
+
+namespace std {
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+using ::size_t;
+using ::ssize_t;          // POSIX extension, defined in VesperaOS stdlib.h
+
+// ── Memory allocation ─────────────────────────────────────────────────────────
+
+using ::malloc;
+using ::free;
+using ::realloc;
+using ::calloc;
+
+// ── Environment ───────────────────────────────────────────────────────────────
+
+using ::getenv;
+using ::setenv;
+using ::unsetenv;
+
+// ── Process control ───────────────────────────────────────────────────────────
+
+using ::exit;
+using ::abort;
+
+// ── String → number conversions ───────────────────────────────────────────────
+
+using ::atoi;
+using ::atol;
+using ::strtod;
+using ::strtof;
+using ::strtold;
+using ::strtoul;
+using ::strtol;
+
+// ── Absolute value ────────────────────────────────────────────────────────────
+//
+// std::abs is overloaded for all integer widths.
+// The C functions abs/labs/llabs only cover their exact type; the C++ overload
+// set covers them all through a single name.
+
+using ::abs;
+using ::labs;
+using ::llabs;
+
+// Additional overloads so std::abs(long) / std::abs(long long) are found by
+// overload resolution without ADL falling back to the C versions.
+inline long      abs(long      x) noexcept { return ::labs(x);  }
+inline long long abs(long long x) noexcept { return ::llabs(x); }
+
+// ── Misc ──────────────────────────────────────────────────────────────────────
+
+using ::system;
+using ::tmpnam;
+
+using ::srand;
+using ::rand;
+
+} // namespace std
+
+// ── Macros (stay global — not wrapped in std::) ───────────────────────────────
+//
+// EXIT_SUCCESS, EXIT_FAILURE, NULL, L_tmpnam are already defined by <stdlib.h>.
+
+#endif // VESPERAOS_CSTDLIB_H
