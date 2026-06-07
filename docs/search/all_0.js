@@ -98,5 +98,6 @@ var searchData=
   ['_5fpad0_95',['_pad0',['../structvespera__stat.html#acd07bed3ac6ae269e697accb906daff1',1,'vespera_stat']]],
   ['_5fraw_96',['_raw',['../structstella__color__t.html#a281c61701912d3307dfd5d0397f0b6da',1,'stella_color_t']]],
   ['_5freg_97',['_Reg',['../alltypes_8h.html#a3c1fcb7d5d764d85ea6cd5fc18e4fbfe',1,'alltypes.h']]],
-  ['_5fxopen_5fsource_98',['_XOPEN_SOURCE',['../features_8h.html#a78c99ffd76a7bb3c8c74db76207e9ab4',1,'features.h']]]
+  ['_5fwint_5ft_98',['_WINT_T',['../wchar_8h.html#a551670863eb3c1db08e4b28b7fc30cc1',1,'wchar.h']]],
+  ['_5fxopen_5fsource_99',['_XOPEN_SOURCE',['../features_8h.html#a78c99ffd76a7bb3c8c74db76207e9ab4',1,'features.h']]]
 ];

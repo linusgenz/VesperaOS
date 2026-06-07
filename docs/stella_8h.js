@@ -129,5 +129,6 @@ var stella_8h =
     [ "STELLA_FONT_14", "stella_8h.html#ab028f4ba61d21b1985cd1f10bc4370ff", null ],
     [ "STELLA_FONT_16", "stella_8h.html#a659c250c930591d5887e3585363a82cf", null ],
     [ "STELLA_FONT_20", "stella_8h.html#aa6a434e1bee1f0f3fa5c77017e7ffe96", null ],
+    [ "STELLA_FONT_20_MATH", "stella_8h.html#a723bbbbc37f369a38cf51b3a4ae08380", null ],
     [ "STELLA_FONT_24", "stella_8h.html#a0501d747273fefb8510f185971a5eadc", null ]
 ];

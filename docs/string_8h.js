@@ -6,6 +6,7 @@ var string_8h =
     [ "memmove", "string_8h.html#a4522f53cff2fef09001e4d34227463a9", null ],
     [ "memmove_safe", "string_8h.html#aae3fd70ee98fbfce37ac3b991b7395fd", null ],
     [ "memset", "string_8h.html#a828c0050e15127314e9fabe1c5b9fc8b", null ],
+    [ "strcasecmp", "string_8h.html#a706b36f3a672f84685576723c3928baa", null ],
     [ "strcat", "string_8h.html#a19546e43db31c3095991b04023b422b2", null ],
     [ "strchr", "string_8h.html#ad7c16a2447154107d5ecd28434993443", null ],
     [ "strcmp", "string_8h.html#a14e6581584b7433c4440fdc7ecf86aea", null ],

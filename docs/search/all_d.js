@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['magic_0',['magic',['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structstella__img__dsc__t.html#a414185c24ddb6c834a1e1ebc18b4a628',1,'stella_img_dsc_t::magic'],['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
+  ['magic_0',['magic',['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
   ['mainpage_2edox_1',['mainpage.dox',['../mainpage_8dox.html',1,'']]],
   ['malloc_2',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
   ['map_5fanonymous_3',['MAP_ANONYMOUS',['../mman_8h.html#ae4f86bff73414c5fc08c058f957212f0',1,'mman.h']]],

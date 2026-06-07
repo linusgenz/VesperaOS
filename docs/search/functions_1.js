@@ -23,6 +23,7 @@ var searchData=
   ['atanhf_20',['atanhf',['../math_8h.html#a0bdec76f8a7cbd0125ede4a9beaafc35',1,'math.h']]],
   ['atanhl_21',['atanhl',['../math_8h.html#a1f3a69f685963ac78914b8368d1324f1',1,'math.h']]],
   ['atanl_22',['atanl',['../math_8h.html#a83520e816f94a7f7880c0346aacd8397',1,'math.h']]],
-  ['atoi_23',['atoi',['../stdlib_8h.html#a30670a60464f77af17dfb353353d6df8',1,'stdlib.h']]],
-  ['atol_24',['atol',['../stdlib_8h.html#a825c37450147a643edbcb1a435518307',1,'stdlib.h']]]
+  ['atof_23',['atof',['../stdlib_8h.html#ac03da055b7752247b034fb582cb4372f',1,'stdlib.h']]],
+  ['atoi_24',['atoi',['../stdlib_8h.html#a30670a60464f77af17dfb353353d6df8',1,'stdlib.h']]],
+  ['atol_25',['atol',['../stdlib_8h.html#a825c37450147a643edbcb1a435518307',1,'stdlib.h']]]
 ];

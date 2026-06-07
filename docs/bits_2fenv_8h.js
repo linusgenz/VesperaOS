@@ -13,5 +13,7 @@ var bits_2fenv_8h =
     [ "FE_TOWARDZERO", "bits_2fenv_8h.html#ac171099e006285a9e8be5683be71591c", null ],
     [ "FE_UNDERFLOW", "bits_2fenv_8h.html#a57b80dfe7d5ce60c3c76e517fce89ffe", null ],
     [ "FE_UPWARD", "bits_2fenv_8h.html#a5aa71a164a4b4d7780570d97058890f1", null ],
-    [ "fexcept_t", "bits_2fenv_8h.html#a1c6f49e4cae101ca932bad5fb97fb641", null ]
+    [ "fexcept_t", "bits_2fenv_8h.html#a1c6f49e4cae101ca932bad5fb97fb641", null ],
+    [ "feclearexcept", "bits_2fenv_8h.html#ac85b548794b2e0c90e147ab5e0f285e5", null ],
+    [ "fetestexcept", "bits_2fenv_8h.html#a1fd22f10456d303ba12c28e394b1da90", null ]
 ];

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structstella__img__dsc__t.html#a414185c24ddb6c834a1e1ebc18b4a628',1,'stella_img_dsc_t::magic'],['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
+  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
   ['max_5funits_1',['max_units',['../structrealm__info.html#a8a8d62f8ea58d74dc11ed43488bbf62b',1,'realm_info']]],
   ['media_5ferrors_2',['media_errors',['../structsmart__nvme.html#a74a1876b49df6ce7a4e6c7d52b306346',1,'smart_nvme']]],
   ['member_3',['member',['../structvbus__header.html#a89053f79a2760a62a1a265de2b307213',1,'vbus_header::member'],['../structvbus__subscribe__args.html#a28bdf0d1fab52f54aa6649ffba78b270',1,'vbus_subscribe_args::member']]],

@@ -35,7 +35,8 @@ var searchData=
   ['stella_5ffont_5f14_32',['STELLA_FONT_14',['../stella_8h.html#ab028f4ba61d21b1985cd1f10bc4370ff',1,'stella.h']]],
   ['stella_5ffont_5f16_33',['STELLA_FONT_16',['../stella_8h.html#a659c250c930591d5887e3585363a82cf',1,'stella.h']]],
   ['stella_5ffont_5f20_34',['STELLA_FONT_20',['../stella_8h.html#aa6a434e1bee1f0f3fa5c77017e7ffe96',1,'stella.h']]],
-  ['stella_5ffont_5f24_35',['STELLA_FONT_24',['../stella_8h.html#a0501d747273fefb8510f185971a5eadc',1,'stella.h']]],
-  ['stride_36',['stride',['../structstella__img__dsc__t.html#af49067b6c25ed337598e712bf48dd68c',1,'stella_img_dsc_t::stride'],['../structimage__t.html#a6eeb20227a04718347b735ea8eee9c53',1,'image_t::stride']]],
-  ['sync_5fshm_37',['sync_shm',['../structvbus__display__window__info__t.html#a2c8101c695fc387287b8e0a45b62cd4b',1,'vbus_display_window_info_t']]]
+  ['stella_5ffont_5f20_5fmath_35',['STELLA_FONT_20_MATH',['../stella_8h.html#a723bbbbc37f369a38cf51b3a4ae08380',1,'stella.h']]],
+  ['stella_5ffont_5f24_36',['STELLA_FONT_24',['../stella_8h.html#a0501d747273fefb8510f185971a5eadc',1,'stella.h']]],
+  ['stride_37',['stride',['../structimage__t.html#a6eeb20227a04718347b735ea8eee9c53',1,'image_t']]],
+  ['sync_5fshm_38',['sync_shm',['../structvbus__display__window__info__t.html#a2c8101c695fc387287b8e0a45b62cd4b',1,'vbus_display_window_info_t']]]
 ];

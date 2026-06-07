@@ -3,6 +3,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "bits", "dir_5243f7c5a7248a6160dbd9c77ae73972.html", "dir_5243f7c5a7248a6160dbd9c77ae73972" ],
     [ "jpeg", "dir_360327f5f81a46906102c67b7d80d0bd.html", "dir_360327f5f81a46906102c67b7d80d0bd" ],
     [ "sys", "dir_699c0620a471c520d0efc35d8d04f138.html", "dir_699c0620a471c520d0efc35d8d04f138" ],
+    [ "alloca.h", "alloca_8h.html", "alloca_8h" ],
     [ "assert.h", "assert_8h.html", "assert_8h" ],
     [ "channel.h", "channel_8h.html", "channel_8h" ],
     [ "crepusculum_protocol.h", "crepusculum__protocol_8h.html", "crepusculum__protocol_8h" ],
@@ -37,11 +38,11 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "stdio.h", "stdio_8h.html", "stdio_8h" ],
     [ "stdlib.h", "stdlib_8h.html", "stdlib_8h" ],
     [ "stella.h", "stella_8h.html", "stella_8h" ],
-    [ "stella_icons.h", "stella__icons_8h.html", "stella__icons_8h" ],
     [ "string.h", "string_8h.html", "string_8h" ],
     [ "sysstd.h", "sysstd_8h.html", "sysstd_8h" ],
     [ "termios.h", "termios_8h.html", "termios_8h" ],
     [ "time.h", "userspace_2lib_2include_2time_8h.html", "userspace_2lib_2include_2time_8h" ],
     [ "urandom.h", "urandom_8h.html", "urandom_8h" ],
-    [ "vbus.h", "userspace_2lib_2include_2vbus_8h.html", "userspace_2lib_2include_2vbus_8h" ]
+    [ "vbus.h", "userspace_2lib_2include_2vbus_8h.html", "userspace_2lib_2include_2vbus_8h" ],
+    [ "wchar.h", "wchar_8h.html", "wchar_8h" ]
 ];
