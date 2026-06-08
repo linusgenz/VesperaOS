@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['thermal_5fsource_0',['thermal_source',['../thermal_8h.html#a6294bb55ef57e7cffee910167521311c',1,'thermal.h']]]
+  ['pixel_5fformat_5ft_0',['pixel_format_t',['../jpeg_8h.html#a198cda1221b69303955212a59f22677a',1,'jpeg.h']]]
 ];

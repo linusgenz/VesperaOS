@@ -10,5 +10,6 @@ var searchData=
   ['gid_7',['gid',['../structspawn__config.html#af54a60971d2d85fa034ed059d086b20f',1,'spawn_config::gid'],['../structvespera__stat.html#a3eca9a6216a713ae1b7a79943a362869',1,'vespera_stat::gid']]],
   ['gid_5ft_8',['gid_t',['../alltypes_8h.html#aede84ed751975947052f282ae1d2e235',1,'alltypes.h']]],
   ['gmtime_9',['gmtime',['../userspace_2lib_2include_2time_8h.html#a4bc4ff58d4ac838a36ba939747e5833e',1,'time.h']]],
-  ['grouping_10',['grouping',['../structlconv.html#a46e468755a823be50de20f36be5ff2be',1,'lconv']]]
+  ['gradient_10',['gradient',['../classstella_1_1Widget.html#a9dda935b850ec010c100780e4229b7ac',1,'stella::Widget']]],
+  ['grouping_11',['grouping',['../structlconv.html#a46e468755a823be50de20f36be5ff2be',1,'lconv']]]
 ];

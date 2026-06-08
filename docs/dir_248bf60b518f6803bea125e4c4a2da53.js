@@ -37,6 +37,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "stdint.h", "stdint_8h.html", "stdint_8h" ],
     [ "stdio.h", "stdio_8h.html", "stdio_8h" ],
     [ "stdlib.h", "stdlib_8h.html", "stdlib_8h" ],
+    [ "stella++.h", "stella_09_09_8h.html", "stella_09_09_8h" ],
     [ "stella.h", "stella_8h.html", "stella_8h" ],
     [ "string.h", "string_8h.html", "string_8h" ],
     [ "sysstd.h", "sysstd_8h.html", "sysstd_8h" ],

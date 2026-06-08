@@ -1,16 +1,18 @@
 var searchData=
 [
-  ['nan_0',['nan',['../math_8h.html#a8c39d09394a142a95cb76dad859fa28b',1,'math.h']]],
-  ['nanf_1',['nanf',['../math_8h.html#aaf22b2f3b2d404adba0ec99f7745c300',1,'math.h']]],
-  ['nanl_2',['nanl',['../math_8h.html#a074781ea12df1552c3e8827bd20a5b90',1,'math.h']]],
-  ['nanosleep_3',['nanosleep',['../userspace_2lib_2include_2time_8h.html#a8cd8e52a299d81cb4ab074de1e300f85',1,'time.h']]],
-  ['nearbyint_4',['nearbyint',['../math_8h.html#a3ac009c5d56d5e1cf7fc70d5c6ee5bb8',1,'math.h']]],
-  ['nearbyintf_5',['nearbyintf',['../math_8h.html#a0282e671be9361501692522e092a13e9',1,'math.h']]],
-  ['nearbyintl_6',['nearbyintl',['../math_8h.html#ab9dd52bc46f4bcdb6e23688c1c12d8d6',1,'math.h']]],
-  ['nextafter_7',['nextafter',['../math_8h.html#a010511ae77affec35838a6923a53a5c9',1,'math.h']]],
-  ['nextafterf_8',['nextafterf',['../math_8h.html#a2bcb1b39c4b1c9ccbd47d68c2f3ddf4e',1,'math.h']]],
-  ['nextafterl_9',['nextafterl',['../math_8h.html#a272efe09471faf7a3a40967247c7b670',1,'math.h']]],
-  ['nexttoward_10',['nexttoward',['../math_8h.html#a88c2886f457a141b96e2091b2c6a558e',1,'math.h']]],
-  ['nexttowardf_11',['nexttowardf',['../math_8h.html#adf2bc5dcd6490d93f56d56b100d81286',1,'math.h']]],
-  ['nexttowardl_12',['nexttowardl',['../math_8h.html#a4d36c9cff098c7211e9743d8bb237a37',1,'math.h']]]
+  ['malloc_0',['malloc',['../stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399',1,'stdlib.h']]],
+  ['memchr_1',['memchr',['../string_8h.html#a02d89f48610ff69547e936f7ed4fd2f2',1,'string.h']]],
+  ['memcmp_2',['memcmp',['../string_8h.html#a9e6df54ee04e18a3772335580e2ed872',1,'string.h']]],
+  ['memcpy_3',['memcpy',['../string_8h.html#aee2cb14f63e73acc45996f71718121b1',1,'string.h']]],
+  ['memmove_4',['memmove',['../string_8h.html#a4522f53cff2fef09001e4d34227463a9',1,'string.h']]],
+  ['memmove_5fsafe_5',['memmove_safe',['../string_8h.html#aae3fd70ee98fbfce37ac3b991b7395fd',1,'string.h']]],
+  ['memset_6',['memset',['../string_8h.html#a828c0050e15127314e9fabe1c5b9fc8b',1,'string.h']]],
+  ['mkdir_7',['mkdir',['../stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e',1,'stdio.h']]],
+  ['mktime_8',['mktime',['../userspace_2lib_2include_2time_8h.html#afc0e3f373a3ea00b37714f1b621ae0b1',1,'time.h']]],
+  ['mmap_9',['mmap',['../mman_8h.html#a943cf73b816880433935f7055d4fe72f',1,'mman.h']]],
+  ['modf_10',['modf',['../math_8h.html#a660dd661ca1336737739215f835447f8',1,'math.h']]],
+  ['modff_11',['modff',['../math_8h.html#a7a6da394f9bb299615662c0ea45d7eea',1,'math.h']]],
+  ['modfl_12',['modfl',['../math_8h.html#adb02d773d43f38b33a82d962adc3a6f6',1,'math.h']]],
+  ['mount_13',['mount',['../userspace_2lib_2include_2mount_8h.html#a5768534c4fe10ec7968b7cbc3ea57121',1,'mount.h']]],
+  ['munmap_14',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

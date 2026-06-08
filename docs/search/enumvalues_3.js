@@ -1,13 +1,9 @@
 var searchData=
 [
-  ['jpeg_5ferror_5fdecode_0',['JPEG_ERROR_DECODE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a1a13fb88352b2ef4588c7d1d47803b1f',1,'jpeg.h']]],
-  ['jpeg_5ferror_5fencode_1',['JPEG_ERROR_ENCODE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aa662efb7898866961313278f2a2f7f4a',1,'jpeg.h']]],
-  ['jpeg_5ferror_5ffile_5fopen_2',['JPEG_ERROR_FILE_OPEN',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992afe866cb21c555563f6327642d20c3be9',1,'jpeg.h']]],
-  ['jpeg_5ferror_5ffile_5fread_3',['JPEG_ERROR_FILE_READ',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992ab5044720b6d70b3e8b05df32c3e1d146',1,'jpeg.h']]],
-  ['jpeg_5ferror_5ffile_5fwrite_4',['JPEG_ERROR_FILE_WRITE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aa540009e2cd5acfc6cd4fdd87d3ac6be',1,'jpeg.h']]],
-  ['jpeg_5ferror_5finvalid_5fformat_5',['JPEG_ERROR_INVALID_FORMAT',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992ada72ecd2a44535911bd4bb6afe38405b',1,'jpeg.h']]],
-  ['jpeg_5ferror_5finvalid_5fparam_6',['JPEG_ERROR_INVALID_PARAM',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a514a76ab8f943f41306340a375442316',1,'jpeg.h']]],
-  ['jpeg_5ferror_5fmemory_7',['JPEG_ERROR_MEMORY',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a7209fe7a2316ff08ebf27dabfe4886ea',1,'jpeg.h']]],
-  ['jpeg_5ferror_5funsupported_8',['JPEG_ERROR_UNSUPPORTED',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a5ad90a06f4770aff755e506d67062b75',1,'jpeg.h']]],
-  ['jpeg_5fok_9',['JPEG_OK',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aea890bdcbd1a3851a32ca4c1165e4c29',1,'jpeg.h']]]
+  ['center_0',['center',['../namespacestella.html#afccac33b6508265b2f0406931e73c463a4f1f6016fc9f3f2353c0cc7c67b292bd',1,'stella::Center'],['../namespacestella.html#a47bf161a6fbfce41ba38d27a87fad9d1a4f1f6016fc9f3f2353c0cc7c67b292bd',1,'stella::Center'],['../namespacestella.html#ab15a6e2406c9b23286c6d7b2b8233ea6a4f1f6016fc9f3f2353c0cc7c67b292bd',1,'stella::Center']]],
+  ['cover_1',['Cover',['../namespacestella.html#ac98bce39648f27dd6443ad0814cc6968ac795dfff10a7c952f4c5438951e9ece9',1,'stella']]],
+  ['crep_5fstrut_5fbottom_2',['CREP_STRUT_BOTTOM',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fa44b99dd39603278b59731ac779fb0f19',1,'crepusculum_protocol.h']]],
+  ['crep_5fstrut_5fleft_3',['CREP_STRUT_LEFT',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fafade63e71e1cd58ca034c09fb1b4998d',1,'crepusculum_protocol.h']]],
+  ['crep_5fstrut_5fright_4',['CREP_STRUT_RIGHT',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fac8b515bb25ca1a4decf5ce194539f029',1,'crepusculum_protocol.h']]],
+  ['crep_5fstrut_5ftop_5',['CREP_STRUT_TOP',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fa4cce5842a83e72de8a0d52621b44ab1e',1,'crepusculum_protocol.h']]]
 ];

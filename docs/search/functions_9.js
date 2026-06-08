@@ -1,11 +1,17 @@
 var searchData=
 [
-  ['jpeg_5ferror_5fstring_0',['jpeg_error_string',['../jpeg_8h.html#a6f89c2e22b7dce292f5718375e748565',1,'jpeg.h']]],
-  ['jpeg_5fget_5finfo_1',['jpeg_get_info',['../jpeg_8h.html#ac154607724eda2453cd10b2bc390dff0',1,'jpeg.h']]],
-  ['jpeg_5fload_5ffrom_5ffile_2',['jpeg_load_from_file',['../jpeg_8h.html#a3dc8cff806e9b64a67bda74452cb0db5',1,'jpeg.h']]],
-  ['jpeg_5fload_5ffrom_5fmemory_3',['jpeg_load_from_memory',['../jpeg_8h.html#a0539c9bc0649cf3a7f67b762184125da',1,'jpeg.h']]],
-  ['jpeg_5fload_5foptions_5finit_4',['jpeg_load_options_init',['../jpeg_8h.html#ac3c8272ca37d3e7c4c27d3a597bffd9c',1,'jpeg.h']]],
-  ['jpeg_5fsave_5foptions_5finit_5',['jpeg_save_options_init',['../jpeg_8h.html#a88358088e98874ddc24652a86cbfb7e9',1,'jpeg.h']]],
-  ['jpeg_5fsave_5fto_5ffile_6',['jpeg_save_to_file',['../jpeg_8h.html#ab83ae34da05179179b7ff1586224dd0b',1,'jpeg.h']]],
-  ['jpeg_5fsave_5fto_5fmemory_7',['jpeg_save_to_memory',['../jpeg_8h.html#a3424c9c116baeba406d0cd2c3f7b841d',1,'jpeg.h']]]
+  ['ilogb_0',['ilogb',['../math_8h.html#a3b083bde1c170f04db7bb9a754becee3',1,'math.h']]],
+  ['ilogbf_1',['ilogbf',['../math_8h.html#a6476e7433075a6b5a7e9168895c9dfb5',1,'math.h']]],
+  ['ilogbl_2',['ilogbl',['../math_8h.html#a39f382de6e150469726a9be25395a410',1,'math.h']]],
+  ['image_3',['image',['../classstella_1_1Image.html#a635dc4a9bcf4e46d5a8d88fcc3acc8ff',1,'stella::Image::Image(stella_widget_t parent, const void *src, int32_t w=STELLA_SIZE_CONTENT, int32_t h=STELLA_SIZE_CONTENT)'],['../classstella_1_1Image.html#a3df478cf50b6d8f5c00719f7cd485c38',1,'stella::Image::Image(stella_widget_t parent, const char *path, int32_t w=STELLA_SIZE_CONTENT, int32_t h=STELLA_SIZE_CONTENT)']]],
+  ['image_5fclone_4',['image_clone',['../jpeg_8h.html#a79b116bf2a05d5aaf3449090e1204ce1',1,'jpeg.h']]],
+  ['image_5fcreate_5',['image_create',['../jpeg_8h.html#a414d0ba4f58839459360face34efa221',1,'jpeg.h']]],
+  ['image_5ffree_6',['image_free',['../jpeg_8h.html#a657f63ec3ef02976913b3c84af2059e8',1,'jpeg.h']]],
+  ['imaxabs_7',['imaxabs',['../inttypes_8h.html#ad9e8a565a34b6981f500d88773ec7bcd',1,'inttypes.h']]],
+  ['imaxdiv_8',['imaxdiv',['../inttypes_8h.html#abdaff0aa6f40596b90b84a7ad63d2299',1,'inttypes.h']]],
+  ['indicatorcolor_9',['indicatorColor',['../classstella_1_1Bar.html#a69de167a5557c15f51fa5b19b3c0cee5',1,'stella::Bar']]],
+  ['indicatorradius_10',['indicatorRadius',['../classstella_1_1Bar.html#ae465239760924e6ebcc8a98b1fa03ff4',1,'stella::Bar']]],
+  ['ioctl_11',['ioctl',['../userspace_2lib_2include_2sys_2ioctl_8h.html#a9405d8d3763a7eaefe4eae694b9f8ea0',1,'ioctl.h']]],
+  ['is_5fdirectory_12',['is_directory',['../userspace_2lib_2include_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade',1,'stat.h']]],
+  ['is_5ffile_13',['is_file',['../userspace_2lib_2include_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81',1,'stat.h']]]
 ];

@@ -1,5 +1,16 @@
 var annotated_dup =
 [
+    [ "stella", "namespacestella.html", [
+      [ "Bar", "classstella_1_1Bar.html", "classstella_1_1Bar" ],
+      [ "Button", "classstella_1_1Button.html", "classstella_1_1Button" ],
+      [ "Color", "classstella_1_1Color.html", "classstella_1_1Color" ],
+      [ "Container", "classstella_1_1Container.html", "classstella_1_1Container" ],
+      [ "Image", "classstella_1_1Image.html", "classstella_1_1Image" ],
+      [ "Label", "classstella_1_1Label.html", "classstella_1_1Label" ],
+      [ "Timer", "classstella_1_1Timer.html", "classstella_1_1Timer" ],
+      [ "Widget", "classstella_1_1Widget.html", "classstella_1_1Widget" ],
+      [ "Window", "classstella_1_1Window.html", "classstella_1_1Window" ]
+    ] ],
     [ "battery_info", "structbattery__info.html", "structbattery__info" ],
     [ "battery_status", "structbattery__status.html", "structbattery__status" ],
     [ "cpu_info", "structcpu__info.html", "structcpu__info" ],

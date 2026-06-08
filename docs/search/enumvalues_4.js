@@ -1,12 +1,13 @@
 var searchData=
 [
-  ['mice_5fbutton_5fleft_0',['MICE_BUTTON_LEFT',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630aa9f06e7ec8c66e5676600afe0158695e',1,'mice.h']]],
-  ['mice_5fbutton_5fmiddle_1',['MICE_BUTTON_MIDDLE',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a7b3981c636635ed69d6360d36c1328e7',1,'mice.h']]],
-  ['mice_5fbutton_5fnone_2',['MICE_BUTTON_NONE',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a9fb8c6aa5675360f05acbe8102434eba',1,'mice.h']]],
-  ['mice_5fbutton_5fright_3',['MICE_BUTTON_RIGHT',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630af78359182cf4ac61cfb9a2c523749d94',1,'mice.h']]],
-  ['mice_5fbutton_5fside1_4',['MICE_BUTTON_SIDE1',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a3b49099684b6028d67b50d6f00beb713',1,'mice.h']]],
-  ['mice_5fbutton_5fside2_5',['MICE_BUTTON_SIDE2',['../mice_8h.html#a50fd48dba135ac55dbd5f6f986ae6630a760eea0700d79406dd9d0fc8df98cc4a',1,'mice.h']]],
-  ['mice_5fevent_5fbutton_6',['MICE_EVENT_BUTTON',['../mice_8h.html#ad0237e45347643d59a208e731bb1c38eaee472741ec52076f6833d0607501e159',1,'mice.h']]],
-  ['mice_5fevent_5fmove_7',['MICE_EVENT_MOVE',['../mice_8h.html#ad0237e45347643d59a208e731bb1c38ead92111af95e4bed9af013d5bebe385dd',1,'mice.h']]],
-  ['mice_5fevent_5fscroll_8',['MICE_EVENT_SCROLL',['../mice_8h.html#ad0237e45347643d59a208e731bb1c38ead63d0cf92f38f53fd272e90c0d6b917e',1,'mice.h']]]
+  ['default_0',['Default',['../namespacestella.html#afccac33b6508265b2f0406931e73c463a7a1920d61156abc05a60135aefe8bc67',1,'stella']]],
+  ['dt_5fblockdev_1',['DT_BLOCKDEV',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da3412353c2a426673a0825c38381a6dc5',1,'dirent.h']]],
+  ['dt_5fchardev_2',['DT_CHARDEV',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da45c2663804c110f37496697c8e1122e8',1,'dirent.h']]],
+  ['dt_5fdir_3',['DT_DIR',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da40b944f75d390136b9f74124dc23ef94',1,'dirent.h']]],
+  ['dt_5fexec_4',['DT_EXEC',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da433674f41e1ea22c4079d028475141d8',1,'dirent.h']]],
+  ['dt_5ffifo_5',['DT_FIFO',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da5488f793b1e97263b3b7ffea7d8ca820',1,'dirent.h']]],
+  ['dt_5ffile_6',['DT_FILE',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da2e66401e4f5d2c978ddb6021267c717e',1,'dirent.h']]],
+  ['dt_5fsocket_7',['DT_SOCKET',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17dad7bea0362e9c429fabbd3a881f261ea3',1,'dirent.h']]],
+  ['dt_5fsymlink_8',['DT_SYMLINK',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daf17ead8c24594dd530d8451c0edc6f16',1,'dirent.h']]],
+  ['dt_5funknown_9',['DT_UNKNOWN',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['crep_5fstrut_5fedge_5ft_0',['crep_strut_edge_t',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57f',1,'crepusculum_protocol.h']]]
+  ['align_0',['Align',['../namespacestella.html#afccac33b6508265b2f0406931e73c463',1,'stella']]]
 ];

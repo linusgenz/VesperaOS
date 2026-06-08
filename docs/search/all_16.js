@@ -6,7 +6,7 @@ var searchData=
   ['va_5fend_3',['va_end',['../stdarg_8h.html#acd9b3b9085ec072324c5fdac2b40304e',1,'stdarg.h']]],
   ['va_5flist_4',['va_list',['../stdarg_8h.html#af53f622e3b6c080daeb167c1955d7ec1',1,'va_list:&#160;stdarg.h'],['../alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1',1,'va_list:&#160;alltypes.h']]],
   ['va_5fstart_5',['va_start',['../stdarg_8h.html#ade24ac546ea93fde2353ed2db8e89c66',1,'stdarg.h']]],
-  ['value_6',['value',['../structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319',1,'devinfo_string_t']]],
+  ['value_6',['value',['../classstella_1_1Bar.html#adb8a2ad70cba93aa3b7b7e1a224a544b',1,'stella::Bar::value()'],['../structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319',1,'devinfo_string_t::value']]],
   ['vbus_2eh_7',['vbus.h',['../userspace_2lib_2include_2vbus_8h.html',1,'(Global Namespace)'],['../include_2uapi_2vespera_2vbus_8h.html',1,'(Global Namespace)']]],
   ['vbus_5fac_8',['vbus_ac',['../structvbus__ac.html',1,'']]],
   ['vbus_5fac_5ft_9',['vbus_ac_t',['../include_2uapi_2vespera_2vbus_8h.html#a608293cf5245bbd10f314ef9f0552d35',1,'vbus.h']]],

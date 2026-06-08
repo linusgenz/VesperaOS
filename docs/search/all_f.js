@@ -11,10 +11,16 @@ var searchData=
   ['oem_8',['oem',['../structbattery__info.html#a4656736fb802340b1f5189a7d22dfa3c',1,'battery_info']]],
   ['off_5ft_9',['off_t',['../alltypes_8h.html#af83497edef361523a95b06deda0b4c2d',1,'alltypes.h']]],
   ['offsetof_10',['offsetof',['../stddef_8h.html#a276e8a32e0bbf024aadd9420b8f2d3b3',1,'stddef.h']]],
-  ['online_11',['online',['../structvbus__ac.html#ad7f67a5b287c6ce94e5d5aaffa45885d',1,'vbus_ac']]],
-  ['open_12',['open',['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open'],['../stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851',1,'open(const char *path, int flags):&#160;stdio.h']]],
-  ['opendir_13',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]],
-  ['opened_14',['opened',['../unionvbus__payload__t.html#a38bbc4cc2ef9a576bf73844c128b9462',1,'vbus_payload_t']]],
-  ['optimize_5fcoding_15',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
-  ['output_5fformat_16',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]]
+  ['onclick_11',['onClick',['../classstella_1_1Widget.html#ae9ddcb1e422d36d670a7ede251b45027',1,'stella::Widget']]],
+  ['onclose_12',['onClose',['../classstella_1_1Window.html#a21abc504bdaa7b8659e018d8b548494a',1,'stella::Window']]],
+  ['online_13',['online',['../structvbus__ac.html#ad7f67a5b287c6ce94e5d5aaffa45885d',1,'vbus_ac']]],
+  ['opa_14',['Opa',['../namespacestella.html#ac98bce39648f27dd6443ad0814cc6968',1,'stella']]],
+  ['open_15',['open',['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open'],['../stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851',1,'open(const char *path, int flags):&#160;stdio.h']]],
+  ['opendir_16',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]],
+  ['opened_17',['opened',['../unionvbus__payload__t.html#a38bbc4cc2ef9a576bf73844c128b9462',1,'vbus_payload_t']]],
+  ['operator_20stella_5fcolor_5ft_18',['operator stella_color_t',['../classstella_1_1Color.html#a402434f7f2a618e7ae66b0a9e27c3d59',1,'stella::Color']]],
+  ['operator_20stella_5fwidget_5ft_19',['operator stella_widget_t',['../classstella_1_1Widget.html#ac8a1f45cbedec9a3f882dc6fa4e88ef8',1,'stella::Widget']]],
+  ['operator_3d_20',['operator=',['../classstella_1_1Window.html#a5740245c473787e5c6cca0bef3199298',1,'stella::Window::operator=()'],['../classstella_1_1Timer.html#a17343e142cb021e8227e3c44cb267377',1,'stella::Timer::operator=()']]],
+  ['optimize_5fcoding_21',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
+  ['output_5fformat_22',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pixel_5fformat_5ft_0',['pixel_format_t',['../jpeg_8h.html#a198cda1221b69303955212a59f22677a',1,'jpeg.h']]]
+  ['jpeg_5ferror_5ft_0',['jpeg_error_t',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992',1,'jpeg.h']]]
 ];

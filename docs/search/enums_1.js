@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['dirent_5ftype_5ft_0',['dirent_type_t',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d',1,'dirent.h']]]
+  ['crep_5fstrut_5fedge_5ft_0',['crep_strut_edge_t',['../crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57f',1,'crepusculum_protocol.h']]]
 ];

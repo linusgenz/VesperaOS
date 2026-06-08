@@ -1,14 +1,9 @@
 var searchData=
 [
-  ['ilogb_0',['ilogb',['../math_8h.html#a3b083bde1c170f04db7bb9a754becee3',1,'math.h']]],
-  ['ilogbf_1',['ilogbf',['../math_8h.html#a6476e7433075a6b5a7e9168895c9dfb5',1,'math.h']]],
-  ['ilogbl_2',['ilogbl',['../math_8h.html#a39f382de6e150469726a9be25395a410',1,'math.h']]],
-  ['image_5fclone_3',['image_clone',['../jpeg_8h.html#a79b116bf2a05d5aaf3449090e1204ce1',1,'jpeg.h']]],
-  ['image_5fcreate_4',['image_create',['../jpeg_8h.html#a414d0ba4f58839459360face34efa221',1,'jpeg.h']]],
-  ['image_5ffree_5',['image_free',['../jpeg_8h.html#a657f63ec3ef02976913b3c84af2059e8',1,'jpeg.h']]],
-  ['imaxabs_6',['imaxabs',['../inttypes_8h.html#ad9e8a565a34b6981f500d88773ec7bcd',1,'inttypes.h']]],
-  ['imaxdiv_7',['imaxdiv',['../inttypes_8h.html#abdaff0aa6f40596b90b84a7ad63d2299',1,'inttypes.h']]],
-  ['ioctl_8',['ioctl',['../userspace_2lib_2include_2sys_2ioctl_8h.html#a9405d8d3763a7eaefe4eae694b9f8ea0',1,'ioctl.h']]],
-  ['is_5fdirectory_9',['is_directory',['../userspace_2lib_2include_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade',1,'stat.h']]],
-  ['is_5ffile_10',['is_file',['../userspace_2lib_2include_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81',1,'stat.h']]]
+  ['handle_0',['handle',['../classstella_1_1Widget.html#a2ca39e2614c1d1bb0b073061bb5abf48',1,'stella::Widget']]],
+  ['height_1',['height',['../classstella_1_1Widget.html#a7be90798c7d4b5697216be33cc23be4a',1,'stella::Widget']]],
+  ['hoverbg_2',['hoverBg',['../classstella_1_1Widget.html#a5a916240f5389bd2359852a4b353b885',1,'stella::Widget']]],
+  ['hypot_3',['hypot',['../math_8h.html#a0cdb0b447bb2bd586b5a58bc9b61e285',1,'math.h']]],
+  ['hypotf_4',['hypotf',['../math_8h.html#a7fe3c55715d009b5241104514f2123bc',1,'math.h']]],
+  ['hypotl_5',['hypotl',['../math_8h.html#a3cfe33ff660410f54b4d20e6ea37f156',1,'math.h']]]
 ];

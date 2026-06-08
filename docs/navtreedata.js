@@ -28,11 +28,21 @@ var NAVTREE =
     [ "VesperaOS Standard Library (vesplib)", "index.html", "index" ],
     [ "Todo List", "todo.html", null ],
     [ "Topics", "topics.html", "topics" ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", null ],
+        [ "Variables", "namespacemembers_vars.html", null ],
+        [ "Enumerations", "namespacemembers_enum.html", null ]
+      ] ]
+    ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", "functions_dup" ],
+        [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", "functions_vars" ]
       ] ]
     ] ],
@@ -54,14 +64,15 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "alloca_8h.html",
-"exec_8h_source.html",
-"include_2uapi_2vespera_2fflags_8h.html#ae036f789407d21f07b211552d67b3214",
-"inttypes_8h.html#af085b9f73207a4b3b4a133ab05fd7eef",
-"math_8h.html#a73919caa22d736ca943417fc2be4d827",
-"stdint_8h.html#ac58f2c111cc9989c86db2a7dc4fd84ca",
-"string_8h.html#a828c0050e15127314e9fabe1c5b9fc8b",
-"structsmart__attribute.html#aa967d2d34ee80c4db35d78b6fdde94a4",
-"sysstd_8h.html#a9b44c312453927c07afe69dcc7b1f191"
+"crepusculum__protocol_8h.html#a0bd05fe153def971ae1eea1be42229b8",
+"functions_vars_i.html",
+"index.html#intro_sec",
+"jpeg_8h.html#a88358088e98874ddc24652a86cbfb7e9",
+"math_8h.html#ae5499f4883aac6b9be5774a8cd4d57bc",
+"stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf",
+"string_8h.html#af87bb1cdc3d71abcd9aa0bd6d36e50a8",
+"structsmart__nvme.html#a2b0e86418c4af2f2261d03ccbec2b0ca",
+"sysstd_8h.html#acc4f74cede646049b3f943ca642770fc"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
