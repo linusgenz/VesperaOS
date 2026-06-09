@@ -14,5 +14,6 @@ var searchData=
   ['nexttowardf_11',['nexttowardf',['../math_8h.html#adf2bc5dcd6490d93f56d56b100d81286',1,'math.h']]],
   ['nexttowardl_12',['nexttowardl',['../math_8h.html#a4d36c9cff098c7211e9743d8bb237a37',1,'math.h']]],
   ['noborder_13',['noBorder',['../classstella_1_1Widget.html#ad6991b1f04d505928c2aaa3914b5dd19',1,'stella::Widget']]],
-  ['noscroll_14',['noScroll',['../classstella_1_1Widget.html#a9e6949deb72f972dc533054a3f6a5bc2',1,'stella::Widget']]]
+  ['noscroll_14',['noScroll',['../classstella_1_1Widget.html#a9e6949deb72f972dc533054a3f6a5bc2',1,'stella::Widget']]],
+  ['now_5fms_15',['now_ms',['../stella_8h.html#a3a4e8ad96a6a4ba6ab131d66d843543f',1,'stella.h']]]
 ];

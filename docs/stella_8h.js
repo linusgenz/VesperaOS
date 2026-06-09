@@ -62,6 +62,8 @@ var stella_8h =
       [ "STELLA_TEXT_ALIGN_CENTER", "stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdeafd18c6634c207dadba241e8e7fbeb4ee", null ],
       [ "STELLA_TEXT_ALIGN_RIGHT", "stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdea981abdd0f551a0a5dd022cc94fb437b0", null ]
     ] ],
+    [ "now_ms", "stella_8h.html#a3a4e8ad96a6a4ba6ab131d66d843543f", null ],
+    [ "sleep_ms", "stella_8h.html#a3a62a52157982df7016ebe6768dfb21c", null ],
     [ "stella_bar_create", "stella_8h.html#acfbf7622ab6a52910533269182acad3a", null ],
     [ "stella_bar_set_indicator_color", "stella_8h.html#a13566dc6982f49a39873ca59fab458de", null ],
     [ "stella_bar_set_indicator_radius", "stella_8h.html#a8d6031e8e7d6fc90752cf42b1bf7de65", null ],
