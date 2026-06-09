@@ -42,9 +42,21 @@ S.ignis = {
     umbra            = true
 }
 
---S.nox = {
---    name             = "nox",
---    exec             = "/bin/nox",
+nox = {
+    name             = "nox",
+    exec             = "/bin/nox",
+    user             = "vespera",
+    args             = { "-v" },
+    restart          = "always",
+    restart_delay_ms = 2000,
+    requires         = { "memoria" },
+    umbra            = false
+}
+
+
+--S.vesperadesktop = {
+--    name             = "vesperadesktop",
+--    exec             = "/bin/vesperadesktop",
 --    user             = "vespera",
 --    args             = { "-v" },
 --    restart          = "always",
@@ -53,16 +65,15 @@ S.ignis = {
 --    umbra            = false
 --}
 
-
 S.crepusculum = {
-    name             = "crepus",
-    exec             = "/bin/crepus",
+    name             = "crepusculum",
+    exec             = "/bin/crepusculum",
     user             = "vespera",
     args             = { "-v" },
     restart          = "always",
     restart_delay_ms = 2000,
     requires         = { "memoria" },
-    umbra            = false
+    umbra            = true
 }
 
 

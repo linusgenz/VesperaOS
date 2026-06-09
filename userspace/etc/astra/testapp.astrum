@@ -1,0 +1,4 @@
+name=Astrum Test
+bin=/bin/testapp
+color=0xFF4A3B5C
+icon=testapp

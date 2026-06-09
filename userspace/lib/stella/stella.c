@@ -22,7 +22,7 @@
 
 #include <crepusculum_protocol.h>
 #include <fflags.h>
-#include <lvgl/lvgl.h>
+#include <lvgl.h>
 #include <poll.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -32,8 +32,10 @@
 #include <sys/mman.h>
 #include <sys/shm.h>
 #include <vbus.h>
-#include <vbus_display.h>
 #include <vespera/handles.h>
+
+#include "monteserrat_20_math.c"
+#include "time.h"
 
 static inline lv_color_t _col(stella_color_t c) {
     uint8_t r = (c._raw >> 16) & 0xFF;
@@ -71,6 +73,7 @@ static const stella_font_t _f12 = {&lv_font_montserrat_12};
 static const stella_font_t _f14 = {&lv_font_montserrat_14};
 static const stella_font_t _f16 = {&lv_font_montserrat_16};
 static const stella_font_t _f20 = {&lv_font_montserrat_20};
+static const stella_font_t _f20_m = {&monteserrat_20_math};
 static const stella_font_t _f24 = {&lv_font_montserrat_24};
 
 const stella_font_t *STELLA_FONT_10 = &_f10;
@@ -78,6 +81,7 @@ const stella_font_t *STELLA_FONT_12 = &_f12;
 const stella_font_t *STELLA_FONT_14 = &_f14;
 const stella_font_t *STELLA_FONT_16 = &_f16;
 const stella_font_t *STELLA_FONT_20 = &_f20;
+const stella_font_t *STELLA_FONT_20_MATH = &_f20_m;
 const stella_font_t *STELLA_FONT_24 = &_f24;
 
 /* =========================================================================
@@ -284,6 +288,17 @@ void stella_process_events(stella_window_t *win) {
     }
 }
 
+void stella_handle_event(stella_window_t *win, const vbus_header_t *hdr, const vbus_payload_t *payload) {
+    if (strcmp(hdr->member, VBUS_DISP_INPUT_EVENT) == 0 && payload->input.window_id == (uint32_t)win->window_id) {
+        win->last_mouse_x = payload->input.local_x;
+        win->last_mouse_y = payload->input.local_y;
+        win->last_buttons = payload->input.buttons;
+    } else if (strcmp(hdr->member, VBUS_DISP_WINDOW_CONFIGURE) == 0 &&
+               payload->configure.window_id == (uint32_t)win->window_id) {
+        stella_window_resize(win, payload->configure.width, payload->configure.height);
+               }
+}
+
 stella_widget_t stella_window_get_screen(stella_window_t *win) {
     if (!win || !win->lv_disp) return NULL;
     return (stella_widget_t)lv_display_get_screen_active(win->lv_disp);
@@ -405,6 +420,12 @@ void stella_widget_set_border(stella_widget_t w, stella_color_t color, int32_t w
 
 void stella_widget_set_border_bottom(stella_widget_t w, stella_color_t color, int32_t width) {
     lv_obj_set_style_border_side((lv_obj_t *)w, LV_BORDER_SIDE_BOTTOM, 0);
+    lv_obj_set_style_border_color((lv_obj_t *)w, _col(color), 0);
+    lv_obj_set_style_border_width((lv_obj_t *)w, width, 0);
+}
+
+void stella_widget_set_border_top(stella_widget_t w, stella_color_t color, int32_t width) {
+    lv_obj_set_style_border_side((lv_obj_t *)w, LV_BORDER_SIDE_TOP, 0);
     lv_obj_set_style_border_color((lv_obj_t *)w, _col(color), 0);
     lv_obj_set_style_border_width((lv_obj_t *)w, width, 0);
 }
@@ -539,6 +560,11 @@ static void _stella_click_trampoline(lv_event_t *e) {
     }
 }
 
+static void _stella_widget_delete_cb(lv_event_t *e) {
+    _stella_click_ctx_t *ctx = lv_event_get_user_data(e);
+    if (ctx) free(ctx);
+}
+
 void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void *user_data) {
     lv_obj_t *obj = (lv_obj_t *)w;
     lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
@@ -548,6 +574,7 @@ void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void *user_
     ctx->cb = cb;
     ctx->user_data = user_data;
     lv_obj_add_event_cb(obj, _stella_click_trampoline, LV_EVENT_CLICKED, ctx);
+    lv_obj_add_event_cb(obj, _stella_widget_delete_cb, LV_EVENT_DELETE, ctx);
 }
 
 /* =========================================================================
@@ -863,6 +890,10 @@ stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char
     return (stella_widget_t)img;
 }
 
+void stella_widget_delete(stella_widget_t w) {
+    lv_obj_delete((lv_obj_t *)w);
+}
+
 /* =========================================================================
  * Lifecycle
  * ========================================================================= */
@@ -891,4 +922,21 @@ void stella_window_on_close(stella_window_t *win, stella_close_cb_t cb, void *us
 
 bool stella_window_should_close(stella_window_t *win) {
     return win && win->should_close;
+}
+
+// Utility
+
+long long now_ms(void) {
+    timespec_t ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000LL + ts.tv_nsec / 1000000LL;
+}
+
+void sleep_ms(long long ms) {
+    if (ms <= 0) return;
+    timespec_t ts = {
+        .tv_sec  = ms / 1000LL,
+        .tv_nsec = (ms % 1000LL) * 1000000LL,
+    };
+    nanosleep(&ts, NULL);
 }

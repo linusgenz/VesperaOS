@@ -1,0 +1,4 @@
+name=Settings
+bin=/bin/settings
+color=0xFF4A3B5C
+icon=gnome-settings

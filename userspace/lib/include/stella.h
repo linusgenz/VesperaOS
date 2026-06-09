@@ -40,14 +40,20 @@
 #include <crepusculum_protocol.h>
 #include <vbus.h>
 
+#ifdef __cplusplus
+extern "C" {
+
+
+#endif
+
 /* -------------------------------------------------------------------------
  * Opaque handle types
  * ------------------------------------------------------------------------- */
 
 typedef struct stella_window stella_window_t;
-typedef void *stella_widget_t;
+typedef void* stella_widget_t;
 
-typedef void (*stella_close_cb_t)(stella_window_t *win, void *user_data);
+typedef void (*stella_close_cb_t)(stella_window_t* win, void* user_data);
 
 /* -------------------------------------------------------------------------
  * Window configuration
@@ -57,7 +63,7 @@ typedef struct stella_config {
     uint32_t width;
     uint32_t height;
     uint32_t flags;
-    const char *title;
+    const char* title;
 } stella_config_t;
 
 /* -------------------------------------------------------------------------
@@ -112,13 +118,13 @@ typedef uint8_t stella_opa_t;
 
 typedef struct stella_font stella_font_t;
 
-extern const stella_font_t *STELLA_FONT_10;
-extern const stella_font_t *STELLA_FONT_12;
-extern const stella_font_t *STELLA_FONT_14;
-extern const stella_font_t *STELLA_FONT_16;
-extern const stella_font_t *STELLA_FONT_20;
-extern const stella_font_t *STELLA_FONT_20_MATH;
-extern const stella_font_t *STELLA_FONT_24;
+extern const stella_font_t* STELLA_FONT_10;
+extern const stella_font_t* STELLA_FONT_12;
+extern const stella_font_t* STELLA_FONT_14;
+extern const stella_font_t* STELLA_FONT_16;
+extern const stella_font_t* STELLA_FONT_20;
+extern const stella_font_t* STELLA_FONT_20_MATH;
+extern const stella_font_t* STELLA_FONT_24;
 
 /* -------------------------------------------------------------------------
  * Size helpers
@@ -193,7 +199,7 @@ typedef enum {
  * Event callback
  * ------------------------------------------------------------------------- */
 
-typedef void (*stella_event_cb_t)(stella_widget_t widget, void *user_data);
+typedef void (*stella_event_cb_t)(stella_widget_t widget, void* user_data);
 
 /* =========================================================================
  * Lifecycle
@@ -216,17 +222,17 @@ void stella_tick(uint32_t ms);
  * Window management
  * ========================================================================= */
 
-stella_window_t *stella_window_create(const stella_config_t *config);
-void stella_window_destroy(stella_window_t *win);
-void stella_process_events(stella_window_t *win);
+stella_window_t* stella_window_create(const stella_config_t* config);
+void stella_window_destroy(stella_window_t* win);
+void stella_process_events(stella_window_t* win);
 
-void stella_handle_event(stella_window_t *win, const vbus_header_t *hdr, const vbus_payload_t *payload);
+void stella_handle_event(stella_window_t* win, const vbus_header_t* hdr, const vbus_payload_t* payload);
 
-void stella_window_on_close(stella_window_t *win, stella_close_cb_t cb, void *user_data);
-bool stella_window_should_close(stella_window_t *win);
+void stella_window_on_close(stella_window_t* win, stella_close_cb_t cb, void* user_data);
+bool stella_window_should_close(stella_window_t* win);
 
 /** Returns the root LVGL screen object for this window. */
-stella_widget_t stella_window_get_screen(stella_window_t *win);
+stella_widget_t stella_window_get_screen(stella_window_t* win);
 
 /* =========================================================================
  * Display information
@@ -243,10 +249,10 @@ int32_t stella_display_height(void);
 stella_widget_t stella_container_create(stella_widget_t parent);
 
 /** Label with initial text (NULL → empty). */
-stella_widget_t stella_label_create(stella_widget_t parent, const char *text);
+stella_widget_t stella_label_create(stella_widget_t parent, const char* text);
 
 /** Image widget scaled to w×h pixels. */
-stella_widget_t stella_image_create(stella_widget_t parent, const void *src, int32_t w, int32_t h);
+stella_widget_t stella_image_create(stella_widget_t parent, const void* src, int32_t w, int32_t h);
 
 /**
  * Image widget loaded from a filesystem path at runtime.
@@ -257,10 +263,10 @@ stella_widget_t stella_image_create(stella_widget_t parent, const void *src, int
  * @param h     Display height in pixels (STELLA_SIZE_CONTENT = natural size)
  * @return Widget handle, or NULL if the path could not be resolved.
  */
-stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char *path, int32_t w, int32_t h);
+stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char* path, int32_t w, int32_t h);
 
 /** Button with a centred text label. */
-stella_widget_t stella_button_create(stella_widget_t parent, const char *text, int32_t w, int32_t h);
+stella_widget_t stella_button_create(stella_widget_t parent, const char* text, int32_t w, int32_t h);
 
 /* =========================================================================
  * Size / position / alignment
@@ -340,11 +346,11 @@ void stella_widget_flex_col(
  * ========================================================================= */
 
 void stella_text_set_color(stella_widget_t w, stella_color_t color);
-void stella_text_set_font(stella_widget_t w, const stella_font_t *font);
+void stella_text_set_font(stella_widget_t w, const stella_font_t* font);
 void stella_text_set_align(stella_widget_t w, stella_text_align_t align);
 void stella_text_set_pad_top(stella_widget_t w, int32_t p);
 
-void stella_label_update(stella_widget_t lbl, const char *text);
+void stella_label_update(stella_widget_t lbl, const char* text);
 void stella_label_set_long_dot(stella_widget_t lbl);
 
 /* =========================================================================
@@ -368,7 +374,7 @@ void stella_widget_clean(stella_widget_t w);
  * ========================================================================= */
 
 /** Attach a click handler; user_data is forwarded verbatim. */
-void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void *user_data);
+void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void* user_data);
 
 /* =========================================================================
  * Timers
@@ -377,7 +383,7 @@ void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void *user_
 typedef struct stella_timer stella_timer_t;
 
 /** Callback signature: user_data is whatever was passed to stella_timer_create(). */
-typedef void (*stella_timer_cb_t)(stella_timer_t *timer, void *user_data);
+typedef void (*stella_timer_cb_t)(stella_timer_t* timer, void* user_data);
 
 /**
  * Create a repeating timer.
@@ -385,13 +391,13 @@ typedef void (*stella_timer_cb_t)(stella_timer_t *timer, void *user_data);
  * @param period_ms   Interval in milliseconds.
  * @param user_data   Forwarded verbatim to cb.
  */
-stella_timer_t *stella_timer_create(stella_timer_cb_t cb, uint32_t period_ms, void *user_data);
+stella_timer_t* stella_timer_create(stella_timer_cb_t cb, uint32_t period_ms, void* user_data);
 
 /** Delete a timer.  Safe to call with NULL. */
-void stella_timer_delete(stella_timer_t *timer);
+void stella_timer_delete(stella_timer_t* timer);
 
 /** Mark the timer as ready so it fires on the very next stella_tick() call. */
-void stella_timer_fire_now(stella_timer_t *timer);
+void stella_timer_fire_now(stella_timer_t* timer);
 
 /**
  * Create a bar widget.
@@ -414,5 +420,14 @@ void stella_bar_set_indicator_color(stella_widget_t bar, stella_color_t color);
 void stella_bar_set_indicator_radius(stella_widget_t bar, int32_t r);
 
 void stella_widget_delete(stella_widget_t w);
+
+// Utility
+
+long long now_ms(void);
+void sleep_ms(long long ms);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // VESPERAOS_STELLA_LIB_H

@@ -1,0 +1,4 @@
+name=Calculator
+bin=/bin/calculator
+color=0xFF4A3B5C
+icon=gnome-calculator

@@ -1,14 +1,14 @@
 # lvespera - VesperaOS system module for Lua
-add_library(liblvespera STATIC lvespera.c)
+add_library(lvespera STATIC lvespera.c luautil.c)
 
-target_include_directories(liblvespera PRIVATE
+target_include_directories(lvespera PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../lua/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
-    ${SYSROOT}/usr/include
+    ${VESPERA_SYSROOT}/usr/include
     ${CMAKE_SOURCE_DIR}/include/uapi
 )
 
-target_compile_options(liblvespera PRIVATE
+target_compile_options(lvespera PRIVATE
     -DLUA_USE_VESPERA
     -ffreestanding
     -nostdinc
@@ -16,6 +16,8 @@ target_compile_options(liblvespera PRIVATE
     -fPIE
     -O0
     -g
-    --sysroot=${SYSROOT}
-    -isystem ${SYSROOT}/usr/include
+    --sysroot=${VESPERA_SYSROOT}
+    -isystem ${VESPERA_SYSROOT}/usr/include
 )
+
+install(TARGETS lvespera ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib)

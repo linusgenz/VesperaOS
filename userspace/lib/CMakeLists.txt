@@ -10,24 +10,90 @@ enable_language(ASM_NASM)
 set(CPU_TYPE "x86_64")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
 
-if(NOT DEFINED CMAKE_ASM_NASM_COMPILER AND DEFINED ENV{ASM_NASM})
+if (NOT DEFINED CMAKE_ASM_NASM_COMPILER AND DEFINED ENV{ASM_NASM})
     set(CMAKE_ASM_NASM_COMPILER $ENV{ASM_NASM})
-endif()
-if(NOT CMAKE_ASM_NASM_COMPILER)
+endif ()
+if (NOT CMAKE_ASM_NASM_COMPILER)
     find_program(CMAKE_ASM_NASM_COMPILER nasm)
-endif()
+endif ()
 message(STATUS "CMAKE_ASM_NASM_COMPILER = ${CMAKE_ASM_NASM_COMPILER}")
 
 set(LIBJPEG_SRC "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/src")
 set(NASM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/nasm")
-set(SIMD_X86_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/x86_64")
+set(SIMD_X86_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/x86_64")
 
 string(TIMESTAMP BUILD_DATE "%Y%m%d")
 add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
 
-add_subdirectory(lua)
+if (NOT DEFINED VESPERA_SYSROOT)
+    if (DEFINED ENV{VESPERA_SYSROOT})
+        set(VESPERA_SYSROOT "$ENV{VESPERA_SYSROOT}")
+    else ()
+        set(VESPERA_SYSROOT "${CMAKE_SOURCE_DIR}/../VesperaSysroot")
+    endif ()
+endif ()
+
+get_filename_component(VESPERA_SYSROOT "${VESPERA_SYSROOT}" ABSOLUTE)
+message(STATUS "Using VESPERA_SYSROOT: ${VESPERA_SYSROOT}")
+
+add_custom_target(prepare_sysroot
+
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${VESPERA_SYSROOT}/usr/include
+        ${VESPERA_SYSROOT}/usr/include/vespera/dev
+        ${VESPERA_SYSROOT}/usr/include/sys
+        ${VESPERA_SYSROOT}/usr/lib
+        ${VESPERA_SYSROOT}/bin
+        ${VESPERA_SYSROOT}/lib
+        ${VESPERA_SYSROOT}/etc
+        ${VESPERA_SYSROOT}/etc/fonts
+        ${VESPERA_SYSROOT}/tmp
+        ${VESPERA_SYSROOT}/mnt
+        ${VESPERA_SYSROOT}/var/log
+        ${VESPERA_SYSROOT}/home
+        ${VESPERA_SYSROOT}/home/vespera
+        ${VESPERA_SYSROOT}/root
+
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${VESPERA_SYSROOT}/usr/include
+        ${VESPERA_SYSROOT}/usr/include/vespera/dev
+        ${VESPERA_SYSROOT}/usr/include/sys
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/include/uapi/vespera
+        ${VESPERA_SYSROOT}/usr/include/vespera
+
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/userspace/lib/include
+        ${VESPERA_SYSROOT}/usr/include
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/luaconf.h
+        ${VESPERA_SYSROOT}/usr/include/lua/luaconf.h
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lauxlib.h
+        ${VESPERA_SYSROOT}/usr/include/lua/lauxlib.h
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lualib.h
+        ${VESPERA_SYSROOT}/usr/include/lua/lualib.h
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lualib.h
+        ${VESPERA_SYSROOT}/usr/include/lua/lualib.h
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lua.h
+        ${VESPERA_SYSROOT}/usr/include/lua/lua.h
+
+        COMMENT "Copying headers to sysroot"
+)
+
+add_subdirectory(lua lua_build)
 add_subdirectory(readline)
 add_subdirectory(lvespera)
+add_subdirectory(stella)
 
 include(ExternalProject)
 
@@ -36,31 +102,30 @@ set(LVGL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lvgl/")
 set(LVGL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lvgl_external_build")
 
 ExternalProject_Add(lvgl_project
-        SOURCE_DIR          ${LVGL_SOURCE_DIR}
-        BINARY_DIR          ${LVGL_BINARY_DIR}
+        SOURCE_DIR ${LVGL_SOURCE_DIR}
+        BINARY_DIR ${LVGL_BINARY_DIR}
 
-        # Hier übergeben wir deine funktionierende Vespera-Toolchain-Datei
-        CMAKE_ARGS          -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/lvgl/vespera_toolchain.cmake
-        -DLV_CONF_DIR=${CMAKE_CURRENT_SOURCE_DIR}/userspace/lib/lvgl
+        CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/lvgl/vespera_toolchain.cmake
+        -DLV_BUILD_CONF_DIR=${CMAKE_CURRENT_SOURCE_DIR}/lvgl
 
-        INSTALL_COMMAND     ""
+        INSTALL_COMMAND ""
 )
 
 set(MATH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
 
-file(GLOB MATH_GENERIC_C   ${MATH_DIR}/*.c)
-file(GLOB MATH_X86_64_C    ${MATH_DIR}/x86_64/*.c)
-file(GLOB MATH_X86_64_S    ${MATH_DIR}/x86_64/*.s)
+file(GLOB MATH_GENERIC_C ${MATH_DIR}/*.c)
+file(GLOB MATH_X86_64_C ${MATH_DIR}/x86_64/*.c)
+file(GLOB MATH_X86_64_S ${MATH_DIR}/x86_64/*.s)
 
-foreach(_override ${MATH_X86_64_C} ${MATH_X86_64_S})
+foreach (_override ${MATH_X86_64_C} ${MATH_X86_64_S})
     get_filename_component(_name ${_override} NAME_WE)  # z.B. "sqrt"
-    foreach(_generic ${MATH_GENERIC_C})
+    foreach (_generic ${MATH_GENERIC_C})
         get_filename_component(_gname ${_generic} NAME_WE)
-        if(_gname STREQUAL _name)
+        if (_gname STREQUAL _name)
             list(REMOVE_ITEM MATH_GENERIC_C ${_generic})
-        endif()
-    endforeach()
-endforeach()
+        endif ()
+    endforeach ()
+endforeach ()
 
 set(MATH_SOURCES
         ${MATH_GENERIC_C}
@@ -68,22 +133,22 @@ set(MATH_SOURCES
         ${MATH_X86_64_S}
 )
 
-foreach(_src ${MATH_SOURCES})
+foreach (_src ${MATH_SOURCES})
     get_filename_component(_ext ${_src} EXT)
-    if(_ext STREQUAL ".s")
+    if (_ext STREQUAL ".s")
         set_source_files_properties(${_src} PROPERTIES
-                COMPILE_FLAGS "-ffreestanding"
+                COMPILE_FLAGS ""
         )
-    else()
+    else ()
         set_source_files_properties(${_src} PROPERTIES
-                COMPILE_FLAGS "-ffreestanding -nostdinc -fno-stack-protector -O2 \
+                COMPILE_FLAGS " -nostdinc -fno-stack-protector -O2 \
                            -I${MATH_DIR} \
                            -include ${MATH_DIR}/features.h \
-                           --sysroot=${SYSROOT} \
-                           -isystem ${SYSROOT}/usr/include"
+                           --sysroot=${VESPERA_SYSROOT} \
+                           -isystem ${VESPERA_SYSROOT}/usr/include"
         )
-    endif()
-endforeach()
+    endif ()
+endforeach ()
 
 # --- C Sources ---
 set(LIB_SOURCES
@@ -104,7 +169,13 @@ set(LIB_SOURCES
         src/time.c
         src/signal.c
         src/locale.c
+        src/vbus.c
+        src/wchar.c
+        src/stat.c
 
+        src/bits/fenv.c
+
+        src/sys/shm.c
         src/sys/ioctl.c
         src/sys/mman.c
 
@@ -192,19 +263,18 @@ set(SIMD_ASM_SOURCES
         ${SIMD_X86_DIR}/jquanti-avx2.asm
 )
 
-foreach(_asm IN LISTS SIMD_ASM_SOURCES)
+foreach (_asm IN LISTS SIMD_ASM_SOURCES)
     set_source_files_properties(${_asm}
             PROPERTIES
             LANGUAGE ASM_NASM
             COMPILE_FLAGS "-f elf64 -I${NASM_INCLUDE_DIR} -I${SIMD_X86_DIR} -D__x86_64__"
             OBJECT_DEPENDS "${NASM_INCLUDE_DIR}/jsimdcfg.inc;${NASM_INCLUDE_DIR}/jsimdext.inc"
     )
-endforeach()
+endforeach ()
 
 
 # --- ASM Sources ---
 set(ASM_SOURCES
-        src/crt0.asm
         src/setjmp.asm
 )
 
@@ -214,6 +284,7 @@ add_library(vesplib STATIC
         ${ASM_SOURCES}
         ${MATH_SOURCES}
 )
+add_dependencies(vesplib prepare_sysroot)
 
 set_source_files_properties(
         src/crt0.asm
@@ -239,7 +310,6 @@ target_include_directories(vesplib PUBLIC
 )
 
 target_compile_options(vesplib PRIVATE
-        $<$<COMPILE_LANGUAGE:C>:-ffreestanding>
         $<$<COMPILE_LANGUAGE:C>:-fno-stack-protector>
         $<$<COMPILE_LANGUAGE:C>:-fno-builtin>
         $<$<COMPILE_LANGUAGE:C>:-nostdinc>
@@ -249,63 +319,149 @@ target_compile_options(vesplib PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-fPIC>
 )
 
+add_library(crt0_obj OBJECT
+        src/crt0.asm
+        src/entry.c
+)
+add_dependencies(crt0_obj prepare_sysroot)
 
+set_source_files_properties(src/crt0.asm
+        PROPERTIES
+        LANGUAGE ASM_NASM
+        COMPILE_FLAGS "-f elf64"
+)
 
-set(SYSROOT ${CMAKE_SOURCE_DIR}/sysroot)
+target_include_directories(crt0_obj PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${VESPERA_UAPI_INCLUDE_DIR}
+)
+
+target_compile_options(crt0_obj PRIVATE
+        $<$<COMPILE_LANGUAGE:C>:-fno-stack-protector>
+        $<$<COMPILE_LANGUAGE:C>:-fno-builtin>
+        $<$<COMPILE_LANGUAGE:C>:-nostdinc>
+        $<$<COMPILE_LANGUAGE:C>:-O0>
+        $<$<COMPILE_LANGUAGE:C>:-fPIC>
+)
+
+set(CXX_LIB_SOURCES
+        src/c++/cxx_runtime.cpp
+)
+
+# Erstelle die statische C++ Library
+add_library(vesplib_cpp STATIC
+        ${CXX_LIB_SOURCES}
+)
+add_dependencies(vesplib_cpp prepare_sysroot)
+
+target_compile_options(vesplib_cpp PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-stack-protector>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-builtin>
+        $<$<COMPILE_LANGUAGE:CXX>:-nostdinc++>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
+        $<$<COMPILE_LANGUAGE:CXX>:-O2>
+        $<$<COMPILE_LANGUAGE:CXX>:-fPIC>
+)
+
+target_include_directories(vesplib_cpp PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/c++
+)
+
+target_link_libraries(vesplib_cpp PUBLIC vesplib)
+
+set_target_properties(vesplib_cpp PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        OUTPUT_NAME "vesp++"
+)
+
+set(COMMON_C_FLAGS
+        -target
+        x86_64-unknown-linux-gnu
+        -nostdlib
+        -nostdinc
+        -fno-stack-protector
+        -fPIE
+        -g
+        -O0
+        -Wall
+        --sysroot=${VESPERA_SYSROOT}
+        "-isystem${VESPERA_SYSROOT}/usr/include"
+)
+
+add_executable(lua_bin
+        $<TARGET_OBJECTS:crt0_obj>
+        ${CMAKE_SOURCE_DIR}/userspace/bin/lua.c
+)
+
+target_compile_options(lua_bin PRIVATE $<$<COMPILE_LANGUAGE:C>:${COMMON_C_FLAGS}>)
+
+target_include_directories(lua_bin PRIVATE
+        ${CMAKE_SOURCE_DIR}/userspace/lua/include
+        "${VESPERA_SYSROOT}/usr/include"
+)
+
+target_link_libraries(lua_bin PRIVATE
+        lvespera
+        lua
+        readline
+        vesplib
+)
+
+set(USER_LD_FLAGS "-nostdlib -target x86_64-unknown-linux-gnu -fno-stack-protector -pie --sysroot=${VESPERA_SYSROOT} -L${VESPERA_SYSROOT}/usr/lib")
+
+set_target_properties(lua_bin PROPERTIES
+        OUTPUT_NAME "lua"
+        LINK_FLAGS "${USER_LD_FLAGS}"
+)
+
+install(TARGETS lua_bin RUNTIME DESTINATION "${VESPERA_SYSROOT}/bin")
+
+add_dependencies(stella lvgl_project)
 
 add_custom_target(sysroot_install
-        DEPENDS vesplib sysroot_install_readline
-
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-        ${SYSROOT}/usr/include
-        ${SYSROOT}/usr/include/vespera/dev
-        ${SYSROOT}/usr/include/sys
-        ${SYSROOT}/usr/lib
-        ${SYSROOT}/bin
-        ${SYSROOT}/lib
-        ${SYSROOT}/etc
-        ${SYSROOT}/etc/fonts
-        ${SYSROOT}/tmp
-        ${SYSROOT}/mnt
-        ${SYSROOT}/var/log
-        ${SYSROOT}/home
-        ${SYSROOT}/home/vespera
-        ${SYSROOT}/root
-
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/userspace/lib/include
-        ${SYSROOT}/usr/include
+        DEPENDS vesplib vesplib_cpp crt0_obj lua lua_bin lvespera stella sysroot_install_readline prepare_sysroot sysroot_install_lvgl
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/userspace/etc/
-        ${SYSROOT}/etc/
+        ${VESPERA_SYSROOT}/etc/
 
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/include/uapi/vespera
-        ${SYSROOT}/usr/include/vespera
+        ${CMAKE_SOURCE_DIR}/userspace/usr/
+        ${VESPERA_SYSROOT}/usr/
 
         COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:vesplib>
-        ${SYSROOT}/usr/lib/libvesp.a
+        ${VESPERA_SYSROOT}/usr/lib/libvesp.a
 
-        COMMENT "Populating sysroot"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_BINARY_DIR}/userspace/lib/libvesp++.a
+        ${VESPERA_SYSROOT}/usr/lib/libvesp++.a
+
+        COMMAND ld -r
+        ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/crt0_obj.dir/src/crt0.asm.o
+        ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/crt0_obj.dir/src/entry.c.o
+        -o ${VESPERA_SYSROOT}/usr/lib/crt0.o
+
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_install.cmake
+
+        COMMENT "Populating sysroot and deploying applications"
 )
 
 add_custom_target(sysroot_install_lvgl ALL
         DEPENDS lvgl_project
 
-        # 1. Verzeichnisse im Sysroot anlegen
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${SYSROOT}/usr/lib
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${SYSROOT}/usr/include/lvgl
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${VESPERA_SYSROOT}/usr/lib
+        #COMMAND ${CMAKE_COMMAND} -E make_directory ${VESPERA_SYSROOT}/usr/include/lvgl
 
-        # 2. Die frisch gebaute liblvgl.a aus dem externen Build-Verzeichnis kopieren
-        COMMAND ${CMAKE_COMMAND} -E copy ${LVGL_BINARY_DIR}/lib/liblvgl.a ${SYSROOT}/usr/lib/liblvgl.a
+        COMMAND ${CMAKE_COMMAND} -E copy ${LVGL_BINARY_DIR}/lib/liblvgl.a ${VESPERA_SYSROOT}/usr/lib/liblvgl.a
 
-        # 3. Die Haupt-Header-Datei kopieren
-        COMMAND ${CMAKE_COMMAND} -E copy ${LVGL_SOURCE_DIR}/lvgl.h ${SYSROOT}/usr/include/lvgl/lvgl.h
+        # COMMAND ${CMAKE_COMMAND} -E copy ${LVGL_SOURCE_DIR}/lvgl.h ${VESPERA_SYSROOT}/usr/include/lvgl/lvgl.h
 
-        # 4. Den kompletten src-Ordner für die restlichen Header kopieren
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LVGL_SOURCE_DIR}/src ${SYSROOT}/usr/include/lvgl/src
+        # COMMAND ${CMAKE_COMMAND} -E copy_directory ${LVGL_SOURCE_DIR}/src ${VESPERA_SYSROOT}/usr/include/lvgl/src
 
         COMMENT "Automated external build and sysroot install for LVGL"
 )

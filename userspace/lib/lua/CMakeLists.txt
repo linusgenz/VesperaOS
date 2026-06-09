@@ -1,13 +1,13 @@
 file(GLOB LUA_SOURCES src/*.c)
 
-add_library(liblua STATIC ${LUA_SOURCES})
+add_library(lua STATIC ${LUA_SOURCES})
 
-target_include_directories(liblua
+target_include_directories(lua
         PUBLIC  include
-        PRIVATE ${SYSROOT}/usr/include
+        PRIVATE ${VESPERA_SYSROOT}/usr/include
 )
 
-target_compile_options(liblua PRIVATE
+target_compile_options(lua PRIVATE
         -DLUA_USE_VESPERA
         -ffreestanding
         -nostdinc
@@ -15,6 +15,8 @@ target_compile_options(liblua PRIVATE
         -fPIE
         -O0
         -g
-        --sysroot=${SYSROOT}
-        -isystem ${SYSROOT}/usr/include
+        --sysroot=${VESPERA_SYSROOT}
+        -isystem ${VESPERA_SYSROOT}/usr/include
 )
+
+install(TARGETS lua ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib)

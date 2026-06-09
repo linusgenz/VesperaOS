@@ -26,6 +26,10 @@
 
 #include <vespera/dev/power.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Possible reboot operation modes.
  *
@@ -84,5 +88,8 @@ int reboot(reboot_mode_t mode);
  */
 #define reboot_halt()      reboot(REBOOT_MODE_HALT)
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif //VESPLIB_POWER_H

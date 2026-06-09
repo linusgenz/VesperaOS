@@ -26,6 +26,11 @@
 #include <stdint.h>
 #include <vespera/dev/mice.h>
 
+#ifdef __cplusplus
+extern "C" {
+
+#endif
+
 /* =========================================================================
  * VBUS Interface & Message Identifiers
  * ========================================================================= */
@@ -81,7 +86,7 @@ typedef struct crep_sync {
 
     /* Written by client, read by server */
     volatile uint32_t dirty; /* Set to 1 when a new frame is ready */
-    volatile uint32_t seq;   /* Incremented on every completed frame */
+    volatile uint32_t seq; /* Incremented on every completed frame */
 
     uint32_t _pad[8]; /* Reserved structural alignment padding */
 } crep_sync_t;
@@ -108,16 +113,16 @@ typedef struct {
 } vbus_display_set_strut_t;
 
 typedef struct {
-    uint32_t width;  /* 0 = full screen width */
+    uint32_t width; /* 0 = full screen width */
     uint32_t height; /* 0 = full screen height */
-    uint32_t flags;  /* VBUS_DISP_FLAG_* */
+    uint32_t flags; /* VBUS_DISP_FLAG_* */
     uint32_t _pad;
     char title[64];
 } vbus_display_create_window_t;
 
 typedef struct {
     uint32_t window_id; /* >0 on success */
-    int32_t status;     /* 0 = success, negative errno on failure */
+    int32_t status; /* 0 = success, negative errno on failure */
     uint32_t width;
     uint32_t height;
     char sync_shm[64];
@@ -151,9 +156,9 @@ typedef struct {
     mice_event_type type;
     int32_t local_x;
     int32_t local_y;
-    uint32_t buttons;      /* Bitmask of mouse button state */
+    uint32_t buttons; /* Bitmask of mouse button state */
     mice_button button_id; /* Triggering button for click events */
-    int32_t scroll;        /* Wheel delta (positive = away from user) */
+    int32_t scroll; /* Wheel delta (positive = away from user) */
     uint32_t _pad;
 } vbus_display_input_event_t;
 
@@ -184,5 +189,9 @@ typedef union {
     vbus_display_window_id_t restored;
     vbus_display_window_id_t activate;
 } vbus_payload_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CREPUSCULUM_PROTOCOL_H */

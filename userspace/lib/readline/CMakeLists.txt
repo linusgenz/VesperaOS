@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(SYSROOT ${CMAKE_SOURCE_DIR}/sysroot)
-
 add_library(libreadline STATIC
         src/readline.c
 )
@@ -26,27 +24,27 @@ target_compile_options(libreadline PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-Wextra>
         $<$<COMPILE_LANGUAGE:C>:-O2>
         $<$<COMPILE_LANGUAGE:C>:-fPIC>
-        $<$<COMPILE_LANGUAGE:C>:--sysroot=${SYSROOT}>
-        $<$<COMPILE_LANGUAGE:C>:-isystem${SYSROOT}/usr/include>
+        $<$<COMPILE_LANGUAGE:C>:--sysroot=${VESPERA_SYSROOT}>
+        $<$<COMPILE_LANGUAGE:C>:-isystem${VESPERA_SYSROOT}/usr/include>
 )
 
 add_custom_target(sysroot_install_readline
         DEPENDS libreadline
 
         COMMAND ${CMAKE_COMMAND} -E make_directory
-        ${SYSROOT}/usr/include/readline
+        ${VESPERA_SYSROOT}/usr/include/readline
 
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/include/readline.h
-        ${SYSROOT}/usr/include/readline/readline.h
+        ${VESPERA_SYSROOT}/usr/include/readline/readline.h
 
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/include/history.h
-        ${SYSROOT}/usr/include/readline/history.h
+        ${VESPERA_SYSROOT}/usr/include/readline/history.h
 
         COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:libreadline>
-        ${SYSROOT}/usr/lib/libreadline.a
+        ${VESPERA_SYSROOT}/usr/lib/libreadline.a
 
         COMMENT "Installing libreadline into sysroot"
 )
