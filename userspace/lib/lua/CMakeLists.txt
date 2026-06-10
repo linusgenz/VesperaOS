@@ -16,7 +16,6 @@ target_compile_options(lua PRIVATE
         -O0
         -g
         --sysroot=${VESPERA_SYSROOT}
-        -isystem ${VESPERA_SYSROOT}/usr/include
 )
 
 install(TARGETS lua ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib)

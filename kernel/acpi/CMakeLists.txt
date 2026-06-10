@@ -57,7 +57,7 @@ target_include_directories(acpica PRIVATE
 
 
 set(ACPI_KERNEL_SOURCES
-        "acpi_osl.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/acpi_osl.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/acpi.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/acpi_subsystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/ec.cpp"
