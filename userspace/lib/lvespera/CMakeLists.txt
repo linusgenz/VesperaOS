@@ -20,4 +20,4 @@ target_compile_options(lvespera PRIVATE
     -isystem ${VESPERA_SYSROOT}/usr/include
 )
 
-install(TARGETS lvespera ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib)
+install(TARGETS lvespera ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib COMPONENT runtime)

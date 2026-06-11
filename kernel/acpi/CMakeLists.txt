@@ -71,6 +71,8 @@ target_compile_options(acpi_kernel PRIVATE
         -fno-stack-protector
         -fno-pic
         -mno-red-zone
+        -fno-exceptions
+        -fno-rtti
         -mcmodel=kernel
         -O2
 )

@@ -18,4 +18,4 @@ target_compile_options(lua PRIVATE
         --sysroot=${VESPERA_SYSROOT}
 )
 
-install(TARGETS lua ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib)
+install(TARGETS lua ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib COMPONENT runtime)

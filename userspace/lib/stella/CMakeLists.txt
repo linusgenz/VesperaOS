@@ -33,4 +33,4 @@ target_compile_options(stella PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
         -nostdinc++
         >)
 
-install(TARGETS stella ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib)
+install(TARGETS stella ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib COMPONENT runtime)

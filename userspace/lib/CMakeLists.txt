@@ -39,51 +39,45 @@ endif()
 get_filename_component(VESPERA_SYSROOT "${VESPERA_SYSROOT}" ABSOLUTE)
 message(STATUS "vesplib – sysroot: ${VESPERA_SYSROOT}")
 
-# ────────────────────────────────────────────────────────────────
-# prepare_sysroot — create directory structure and copy headers
-# ────────────────────────────────────────────────────────────────
-add_custom_target(prepare_sysroot
-        COMMAND ${CMAKE_COMMAND} -E make_directory
+file(MAKE_DIRECTORY
         ${VESPERA_SYSROOT}/usr/include
         ${VESPERA_SYSROOT}/usr/include/vespera/dev
         ${VESPERA_SYSROOT}/usr/include/sys
         ${VESPERA_SYSROOT}/usr/lib
         ${VESPERA_SYSROOT}/bin
         ${VESPERA_SYSROOT}/lib
-        ${VESPERA_SYSROOT}/etc
         ${VESPERA_SYSROOT}/etc/fonts
         ${VESPERA_SYSROOT}/tmp
         ${VESPERA_SYSROOT}/mnt
         ${VESPERA_SYSROOT}/var/log
-        ${VESPERA_SYSROOT}/home
         ${VESPERA_SYSROOT}/home/vespera
         ${VESPERA_SYSROOT}/root
+)
 
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/include/uapi/vespera
-        ${VESPERA_SYSROOT}/usr/include/vespera
+install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/include/uapi/vespera/
+        DESTINATION ${VESPERA_SYSROOT}/usr/include/vespera
+        COMPONENT headers
+)
 
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/userspace/lib/include
-        ${VESPERA_SYSROOT}/usr/include
+install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/userspace/lib/include/
+        DESTINATION ${VESPERA_SYSROOT}/usr/include
+        COMPONENT headers
+)
 
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/luaconf.h
-        ${VESPERA_SYSROOT}/usr/include/lua/luaconf.h
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lauxlib.h
-        ${VESPERA_SYSROOT}/usr/include/lua/lauxlib.h
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lualib.h
-        ${VESPERA_SYSROOT}/usr/include/lua/lualib.h
-
-        COMMAND ${CMAKE_COMMAND} -E copy
+install(FILES
         ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lua.h
-        ${VESPERA_SYSROOT}/usr/include/lua/lua.h
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lauxlib.h
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lualib.h
+        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/luaconf.h
+        DESTINATION ${VESPERA_SYSROOT}/usr/include/lua
+        COMPONENT headers
+)
 
-        COMMENT "Preparing sysroot directory structure and headers"
+add_custom_target(sysroot_headers
+        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --component headers
+        COMMENT "Installing headers into sysroot"
 )
 
 add_subdirectory(lua lua_build)
@@ -398,7 +392,28 @@ set_target_properties(lua_bin PROPERTIES
         LINK_FLAGS  "${USER_LD_FLAGS}"
 )
 
-install(TARGETS lua_bin RUNTIME DESTINATION "${VESPERA_SYSROOT}/bin")
+install(TARGETS lua_bin RUNTIME DESTINATION "${VESPERA_SYSROOT}/bin" COMPONENT runtime)
+
+# Libraries — copy-if-different semantics via cmake --install
+install(FILES       $<TARGET_FILE:vesplib>
+        DESTINATION "${VESPERA_SYSROOT}/usr/lib"
+        RENAME      "libvesp.a"
+        COMPONENT   runtime
+)
+install(FILES       $<TARGET_FILE:vesplib_cpp>
+        DESTINATION "${VESPERA_SYSROOT}/usr/lib"
+        COMPONENT   runtime
+)
+
+# Static sysroot data directories
+install(DIRECTORY   ${CMAKE_SOURCE_DIR}/userspace/etc/
+        DESTINATION "${VESPERA_SYSROOT}/etc"
+        COMPONENT   runtime
+)
+install(DIRECTORY   ${CMAKE_SOURCE_DIR}/userspace/usr/
+        DESTINATION "${VESPERA_SYSROOT}/usr"
+        COMPONENT   runtime
+)
 
 # ────────────────────────────────────────────────────────────────
 # LVGL sysroot install
@@ -406,20 +421,19 @@ install(TARGETS lua_bin RUNTIME DESTINATION "${VESPERA_SYSROOT}/bin")
 add_custom_target(sysroot_install_lvgl ALL
         DEPENDS lvgl_project
         COMMAND ${CMAKE_COMMAND} -E make_directory ${VESPERA_SYSROOT}/usr/lib
-        COMMAND ${CMAKE_COMMAND} -E copy
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${LVGL_BINARY_DIR}/lib/liblvgl.a
         ${VESPERA_SYSROOT}/usr/lib/liblvgl.a
         COMMENT "Installing LVGL into sysroot"
 )
 
-add_dependencies(stella prepare_sysroot lvgl_project)
-add_dependencies(lua prepare_sysroot)
-add_dependencies(libreadline prepare_sysroot)
-add_dependencies(lvespera prepare_sysroot)
-add_dependencies(stella prepare_sysroot)
-add_dependencies(vesplib prepare_sysroot)
-add_dependencies(vesplib_cpp prepare_sysroot)
-add_dependencies(crt0_obj prepare_sysroot)
+add_dependencies(stella lvgl_project sysroot_headers)
+add_dependencies(lua sysroot_headers)
+add_dependencies(lua_bin sysroot_headers)
+add_dependencies(libreadline sysroot_headers)
+add_dependencies(lvespera sysroot_headers)
+add_dependencies(vesplib sysroot_headers)
+add_dependencies(lvgl_project sysroot_headers)
 
 # ────────────────────────────────────────────────────────────────
 # sysroot_install — build all libs and populate the sysroot.
@@ -430,30 +444,22 @@ add_custom_target(sysroot_install
         DEPENDS
         vesplib vesplib_cpp crt0_obj
         lua lua_bin lvespera stella
-        sysroot_install_readline prepare_sysroot sysroot_install_lvgl
+        sysroot_install_readline  sysroot_install_lvgl
 
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/userspace/etc/
-        ${VESPERA_SYSROOT}/etc/
-
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/userspace/usr/
-        ${VESPERA_SYSROOT}/usr/
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:vesplib>
-        ${VESPERA_SYSROOT}/usr/lib/libvesp.a
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_BINARY_DIR}/userspace/lib/libvesp++.a
-        ${VESPERA_SYSROOT}/usr/lib/libvesp++.a
-
+        # Link crt0 into a staging file first, then copy_if_different so downstream
+        # targets are not invalidated when the content has not actually changed.
         COMMAND ld -r
         ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/crt0_obj.dir/src/crt0.asm.o
         ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/crt0_obj.dir/src/entry.c.o
-        -o ${VESPERA_SYSROOT}/usr/lib/crt0.o
+        -o ${CMAKE_CURRENT_BINARY_DIR}/crt0_linked.o
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_BINARY_DIR}/crt0_linked.o
+        ${VESPERA_SYSROOT}/usr/lib/crt0.o
 
-        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_install.cmake
+        # Libraries (vesplib, vesp++), lua_bin, and static data dirs (etc/, usr/)
+        # are all declared as install() rules above and handled here with
+        # copy-if-different semantics by the CMake install machinery.
+        COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --component runtime
 
         COMMENT "Populating sysroot with libraries and headers"
 )
