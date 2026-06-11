@@ -178,7 +178,7 @@ var searchData=
   ['spawn_5fconfig_175',['spawn_config',['../structspawn__config.html',1,'']]],
   ['spawn_5fconfig_5ft_176',['spawn_config_t',['../spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b',1,'spawn.h']]],
   ['spawn_5frealm_177',['spawn_realm',['../realm_8h.html#a89fad10c690cfbd1034c577a546fd3a1',1,'realm.h']]],
-  ['spawn_5funit_178',['spawn_unit',['../realm_8h.html#aa709d08cf793b0c97ec0c870bf2ea314',1,'realm.h']]],
+  ['spawn_5funit_178',['spawn_unit',['../unit_8h.html#aa709d08cf793b0c97ec0c870bf2ea314',1,'unit.h']]],
   ['speed_179',['speed',['../structusb__device__info.html#ada38a8a1426b57d88576db9be4cfb975',1,'usb_device_info']]],
   ['sqrt_180',['sqrt',['../math_8h.html#acdb55c1010a6c379a49db0201bf55d89',1,'math.h']]],
   ['sqrtf_181',['sqrtf',['../math_8h.html#a37bde043e94a6f074c78f10518fb5d99',1,'math.h']]],

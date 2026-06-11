@@ -24,7 +24,7 @@ var searchData=
   ['sleep_5fms_21',['sleep_ms',['../stella_8h.html#a3a62a52157982df7016ebe6768dfb21c',1,'stella.h']]],
   ['snprintf_22',['snprintf',['../stdio_8h.html#a304ea6ce0f310fd8ed15648139819680',1,'stdio.h']]],
   ['spawn_5frealm_23',['spawn_realm',['../realm_8h.html#a89fad10c690cfbd1034c577a546fd3a1',1,'realm.h']]],
-  ['spawn_5funit_24',['spawn_unit',['../realm_8h.html#aa709d08cf793b0c97ec0c870bf2ea314',1,'realm.h']]],
+  ['spawn_5funit_24',['spawn_unit',['../unit_8h.html#aa709d08cf793b0c97ec0c870bf2ea314',1,'unit.h']]],
   ['sqrt_25',['sqrt',['../math_8h.html#acdb55c1010a6c379a49db0201bf55d89',1,'math.h']]],
   ['sqrtf_26',['sqrtf',['../math_8h.html#a37bde043e94a6f074c78f10518fb5d99',1,'math.h']]],
   ['sqrtl_27',['sqrtl',['../math_8h.html#a36afc77dc4704cf6ef6ddd06a7d08758',1,'math.h']]],

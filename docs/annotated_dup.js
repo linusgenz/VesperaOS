@@ -79,6 +79,7 @@ var annotated_dup =
     [ "vbus_lid", "structvbus__lid.html", "structvbus__lid" ],
     [ "vbus_payload_t", "unionvbus__payload__t.html", "unionvbus__payload__t" ],
     [ "vbus_subscribe_args", "structvbus__subscribe__args.html", "structvbus__subscribe__args" ],
+    [ "ves_mutex", "structves__mutex.html", "structves__mutex" ],
     [ "vespera_stat", "structvespera__stat.html", "structvespera__stat" ],
     [ "winsize", "structwinsize.html", "structwinsize" ]
 ];

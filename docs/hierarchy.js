@@ -70,6 +70,7 @@ var hierarchy =
     [ "vbus_lid", "structvbus__lid.html", null ],
     [ "vbus_payload_t", "unionvbus__payload__t.html", null ],
     [ "vbus_subscribe_args", "structvbus__subscribe__args.html", null ],
+    [ "ves_mutex", "structves__mutex.html", null ],
     [ "vespera_stat", "structvespera__stat.html", null ],
     [ "stella::Widget", "classstella_1_1Widget.html", [
       [ "stella::Bar", "classstella_1_1Bar.html", null ],

@@ -12,7 +12,13 @@ var searchData=
   ['vbus_5fsignal_5fto_9',['vbus_signal_to',['../userspace_2lib_2include_2vbus_8h.html#aa67f37c9e7b88c9f22f2e5d3090adb7b',1,'vbus.h']]],
   ['vbus_5fsubscribe_10',['vbus_subscribe',['../userspace_2lib_2include_2vbus_8h.html#a622ccd414da8b8408ef095b7128c7b6c',1,'vbus.h']]],
   ['vbus_5funsubscribe_11',['vbus_unsubscribe',['../userspace_2lib_2include_2vbus_8h.html#a502abcdf733eaf6baa3a4a5e51613b14',1,'vbus.h']]],
-  ['vfprintf_12',['vfprintf',['../stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56',1,'stdio.h']]],
-  ['vprintf_13',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
-  ['vsnprintf_14',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]]
+  ['ves_5fmutex_5fcreate_12',['ves_mutex_create',['../unit_8h.html#a6453e037e9adde454ea4449061ce64aa',1,'unit.h']]],
+  ['ves_5fmutex_5fdestroy_13',['ves_mutex_destroy',['../unit_8h.html#ae8451f73078290e333fc6ee7cb22fc20',1,'unit.h']]],
+  ['ves_5fmutex_5finit_14',['ves_mutex_init',['../unit_8h.html#afecab78778509debd576bbcea4f1c0d0',1,'unit.h']]],
+  ['ves_5fmutex_5flock_15',['ves_mutex_lock',['../unit_8h.html#a1a65d148b5cf9c73505c9b2d4477a211',1,'unit.h']]],
+  ['ves_5fmutex_5ftrylock_16',['ves_mutex_trylock',['../unit_8h.html#a85cb8093e7e871a8b86c10762333707e',1,'unit.h']]],
+  ['ves_5fmutex_5funlock_17',['ves_mutex_unlock',['../unit_8h.html#a3a1fa63ec06a88cfabf1aa8024ff3c05',1,'unit.h']]],
+  ['vfprintf_18',['vfprintf',['../stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56',1,'stdio.h']]],
+  ['vprintf_19',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
+  ['vsnprintf_20',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]]
 ];
