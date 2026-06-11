@@ -28,6 +28,8 @@
 #include <vespera/devices/device_manager.h>
 #include <vespera/input/input_event.h>
 #include <vespera/sync/spinlock.h>
+#include <vespera/sync/wait_queue.h>
+
 namespace kernel::input {
 
     class MiceDevice final : public CharDevice {
@@ -39,6 +41,7 @@ namespace kernel::input {
         int release(CharFile*) override;
         isize read(CharFile*, void* buf, usize count, usize offset) override;
         isize write(CharFile*, const void* buf, usize count) override;
+        int poll(CharFile*) override;
 
         static void share_mouse_event(const InputEvent& ev);
 
@@ -52,6 +55,8 @@ namespace kernel::input {
         Spinlock lock_{};
 
         KernelDevice* devnode;
+
+        WaitQueue wait_queue_;
 
         static MiceDevice* s_instance_;
     };

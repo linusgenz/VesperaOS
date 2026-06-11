@@ -33,14 +33,6 @@ RealmID spawn_realm(const char* path_ptr, char* const argv[], char* const envp[]
     return sys_spawn((uint64_t)path_ptr, (uint64_t)argv, (uint64_t)envp, (uint64_t)cfg, 0, 0);
 }
 
-UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr) {
-    return sys_unit_spawn(realm_id, entry_point, arg_ptr, 0, 0, 0);
-}
-
-UnitID spawn_unit_ex(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr, uint64_t stack_size) {
-    return sys_unit_spawn(realm_id, entry_point, arg_ptr, stack_size, 0, 0);
-}
-
 _Noreturn void exit(uint64_t code) {
     fflush(NULL);
     sys_exit(code, 0, 0, 0, 0, 0);

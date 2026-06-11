@@ -77,6 +77,11 @@ class Log {
     static void print_formatted_dbc(const char* fmt, __builtin_va_list args);
 
     static void dbc_sink(void*, char c);
+
+    static void serial_commit_line();
+
+    static void serial_append(const char* s);
+
 };
 
 #endif  // LOG_H

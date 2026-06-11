@@ -45,16 +45,6 @@ typedef uint64_t UnitID;   ///< type representing a unit (thread) identifier
 RealmID spawn_realm(const char* path_ptr, char* const argv[], char* const envp[], spawn_config_t* cfg);
 
 /**
- * @brief Spawn a new unit (thread) inside an existing realm.
- *
- * @param realm_id The ID of the target realm.
- * @param entry_point Pointer to the function or code where the unit should start.
- * @param arg_ptr Pointer to argument data for the unit.
- * @return Unit ID on success, negative error code on failure.
- */
-UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr);
-
-/**
  * @brief Terminate an entire realm and all its units.
  *
  * @param realm_id The ID of the realm to terminate.
