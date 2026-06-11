@@ -12,8 +12,8 @@
 
 find_program(NASM_EXECUTABLE nasm REQUIRED)
 
-collect_cpp(ARCH_CPP_SOURCES ${CMAKE_SOURCE_DIR}/arch)
-collect_asm(ARCH_ASM_SOURCES ${CMAKE_SOURCE_DIR}/arch)
+collect_cpp(ARCH_CPP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR})
+collect_asm(ARCH_ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(AP_TRAMPOLINE_ASM ${CMAKE_SOURCE_DIR}/kernel/cpu/ap_trampoline.asm)
 set(AP_TRAMPOLINE_BIN ${CMAKE_BINARY_DIR}/ap_trampoline.bin)
@@ -43,7 +43,7 @@ add_custom_target(ap_trampoline DEPENDS ${AP_TRAMPOLINE_HEADER})
 
 # Must be declared before add_library so the property takes effect.
 set_source_files_properties(
-        ${CMAKE_SOURCE_DIR}/arch/x86_64/interrupts/interrupts.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/interrupts/interrupts.cpp
         PROPERTIES COMPILE_FLAGS
         "-mno-red-zone -mgeneral-regs-only -ffreestanding"
 )
@@ -56,4 +56,4 @@ add_library(arch_lib OBJECT
 add_dependencies(arch_lib ap_trampoline)
 
 apply_kernel_compile_options(arch_lib)
-kernel_module_includes(arch_lib ${CMAKE_SOURCE_DIR}/arch)
+kernel_module_includes(arch_lib ${CMAKE_CURRENT_SOURCE_DIR})

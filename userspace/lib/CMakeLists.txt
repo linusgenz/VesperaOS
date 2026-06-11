@@ -160,6 +160,7 @@ set(LIB_SOURCES
         src/vbus.c
         src/wchar.c
         src/stat.c
+        src/unit.c
 
         src/bits/fenv.c
 
@@ -297,7 +298,7 @@ target_compile_options(vesplib PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-nostdinc>
         $<$<COMPILE_LANGUAGE:C>:-Wall>
         $<$<COMPILE_LANGUAGE:C>:-Wextra>
-        $<$<COMPILE_LANGUAGE:C>:-O0>
+        $<$<COMPILE_LANGUAGE:C>:-O2>
         $<$<COMPILE_LANGUAGE:C>:-fPIC>
 )
 
@@ -363,14 +364,14 @@ set_target_properties(vesplib_cpp PROPERTIES
 set(COMMON_C_FLAGS
         -target x86_64-unknown-linux-gnu
         -nostdlib -nostdinc
-        -fno-stack-protector -fPIE -g -O0 -Wall
+        -fno-stack-protector -fPIE -g -O2 -Wall
         --sysroot=${VESPERA_SYSROOT}
         "-isystem${VESPERA_SYSROOT}/usr/include"
 )
 
 add_executable(lua_bin
         $<TARGET_OBJECTS:crt0_obj>
-        ${CMAKE_SOURCE_DIR}/userspace/bin/lua.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../bin/lua.c
 )
 
 target_compile_options(lua_bin PRIVATE $<$<COMPILE_LANGUAGE:C>:${COMMON_C_FLAGS}>)

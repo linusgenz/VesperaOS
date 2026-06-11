@@ -23,9 +23,10 @@
 #include <vespera/input/mice_device.h>
 #include <filesystem/devfs.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/scheduling.h>
+#include <uapi/vespera/poll.h>
 
 namespace kernel::input {
-
     MiceDevice* MiceDevice::s_instance_ = nullptr;
 
     MiceDevice::MiceDevice() : CharDevice(BusType::VIRTUAL) {
@@ -34,11 +35,11 @@ namespace kernel::input {
 
         devnode = DeviceManager::register_device(
             DeviceDescriptor{}
-                .set_name("mice")
-                .set_type(DeviceType::Char)
-                .set_class(DeviceClass::Input)
-                .with_char(this)
-                .set_bus(BusType::VIRTUAL)
+            .set_name("mice")
+            .set_type(DeviceType::Char)
+            .set_class(DeviceClass::Input)
+            .with_char(this)
+            .set_bus(BusType::VIRTUAL)
         );
         DevFs::register_device(devnode);
     }
@@ -64,61 +65,63 @@ namespace kernel::input {
     void MiceDevice::share_mouse_event(const InputEvent& ev) {
         if (!s_instance_ || ev.device != InputDeviceType::MOUSE) return;
 
-        SpinlockGuardIrq g(s_instance_->lock_);
+        bool pushed_any = false;
 
-        u32 current_buttons = 0;
-        if (ev.mouse.buttons_pressed & 0x01) current_buttons |= MICE_BTN_LEFT;
-        if (ev.mouse.buttons_pressed & 0x02) current_buttons |= MICE_BTN_RIGHT;
-        if (ev.mouse.buttons_pressed & 0x04) current_buttons |= MICE_BTN_MIDDLE;
+        {
+            SpinlockGuardIrq g(s_instance_->lock_);
 
-        static u32 last_buttons = 0;
+            u32 current_buttons = 0;
+            if (ev.mouse.buttons_pressed & 0x01) current_buttons |= MICE_BTN_LEFT;
+            if (ev.mouse.buttons_pressed & 0x02) current_buttons |= MICE_BTN_RIGHT;
+            if (ev.mouse.buttons_pressed & 0x04) current_buttons |= MICE_BTN_MIDDLE;
 
-        // MOVE
-        if (ev.mouse.delta_x != 0 || ev.mouse.delta_y != 0) {
-            mice_event move_ev;
-            move_ev.type = MICE_EVENT_MOVE;
-            move_ev.buttons = current_buttons;
-            move_ev.dx = ev.mouse.delta_x;
-            move_ev.dy = ev.mouse.delta_y;
-            move_ev.scroll = 0;
-            move_ev.button_id = MICE_BUTTON_NONE;
+            static u32 last_buttons = 0;
 
-            push_to_queue(s_instance_, move_ev);
-        }
-
-        // BUTTON
-        if (current_buttons != last_buttons) {
-            u32 changed = current_buttons ^ last_buttons;
-
-            // We check which bits have changed and send an event for each button.
-            for (int i = 0; i < 5; i++) {
-                u32 mask = (1u << i);
-                if (changed & mask) {
-                    mice_event btn_ev;
-                    btn_ev.type = MICE_EVENT_BUTTON;
-                    btn_ev.buttons = current_buttons;
-                    btn_ev.dx = 0;
-                    btn_ev.dy = 0;
-                    btn_ev.scroll = 0;
-                    btn_ev.button_id = static_cast<mice_button>(i); // MICE_BUTTON_LEFT = 0, MICE_BUTTON_RIGHT = 1, etc.
-
-                    push_to_queue(s_instance_, btn_ev);
-                }
+            if (ev.mouse.delta_x != 0 || ev.mouse.delta_y != 0) {
+                mice_event move_ev;
+                move_ev.type = MICE_EVENT_MOVE;
+                move_ev.buttons = current_buttons;
+                move_ev.dx = ev.mouse.delta_x;
+                move_ev.dy = ev.mouse.delta_y;
+                move_ev.scroll = 0;
+                move_ev.button_id = MICE_BUTTON_NONE;
+                push_to_queue(s_instance_, move_ev);
+                pushed_any = true;
             }
-            last_buttons = current_buttons;
+
+            if (current_buttons != last_buttons) {
+                u32 changed = current_buttons ^ last_buttons;
+                for (int i = 0; i < 5; i++) {
+                    if (changed & (1u << i)) {
+                        mice_event btn_ev;
+                        btn_ev.type = MICE_EVENT_BUTTON;
+                        btn_ev.buttons = current_buttons;
+                        btn_ev.dx = 0;
+                        btn_ev.dy = 0;
+                        btn_ev.scroll = 0;
+                        btn_ev.button_id = static_cast<mice_button>(i);
+                        push_to_queue(s_instance_, btn_ev);
+                        pushed_any = true;
+                    }
+                }
+                last_buttons = current_buttons;
+            }
+
+            if (ev.mouse.wheel_delta != 0) {
+                mice_event scroll_ev;
+                scroll_ev.type = MICE_EVENT_SCROLL;
+                scroll_ev.buttons = current_buttons;
+                scroll_ev.dx = 0;
+                scroll_ev.dy = 0;
+                scroll_ev.scroll = ev.mouse.wheel_delta;
+                scroll_ev.button_id = MICE_BUTTON_NONE;
+                push_to_queue(s_instance_, scroll_ev);
+                pushed_any = true;
+            }
         }
 
-        // SCROLL
-        if (ev.mouse.wheel_delta != 0) {
-            mice_event scroll_ev;
-            scroll_ev.type = MICE_EVENT_SCROLL;
-            scroll_ev.buttons = current_buttons;
-            scroll_ev.dx = 0;
-            scroll_ev.dy = 0;
-            scroll_ev.scroll = ev.mouse.wheel_delta;
-            scroll_ev.button_id = MICE_BUTTON_NONE;
-
-            push_to_queue(s_instance_, scroll_ev);
+        if (pushed_any) {
+            s_instance_->wait_queue_.wake_one();
         }
     }
 
@@ -126,26 +129,46 @@ namespace kernel::input {
         if (!buf || count < sizeof(mice_event)) return -EINVAL;
 
         mice_event* user_buf = static_cast<mice_event*>(buf);
-        usize events_to_read = count / sizeof(mice_event);
+        const usize events_to_read = count / sizeof(mice_event);
         usize events_read = 0;
 
-        SpinlockGuardIrq g(lock_);
-
         while (events_read < events_to_read) {
-            if (head_ == tail_) {
-                break;
+            bool should_block = false;
+
+            {
+                SpinlockGuardIrq g(lock_);
+
+                if (head_ != tail_) {
+                    user_buf[events_read] = buffer_[tail_];
+                    tail_ = (tail_ + 1) % BUFFER_SIZE;
+                    events_read++;
+                } else if (events_read == 0) {
+                    wait_queue_.add_wait(kernel::scheduling::get_current_unit());
+                    should_block = true;
+                } else {
+                    break;
+                }
             }
 
-            user_buf[events_read] = buffer_[tail_];
-            tail_ = (tail_ + 1) % BUFFER_SIZE;
-            events_read++;
+            if (should_block) {
+                kernel::scheduling::yield();
+            }
         }
 
-        if (events_read == 0) {
-            return 0;
-        }
-
+        if (events_read == 0) return 0;
         return static_cast<isize>(events_read * sizeof(mice_event));
+    }
+
+    int MiceDevice::poll(CharFile*) {
+        while (true) {
+            {
+                SpinlockGuardIrq g(lock_);
+                if (head_ != tail_) return POLLIN;
+                wait_queue_.add_wait(kernel::scheduling::get_current_unit());
+            }
+
+            kernel::scheduling::yield();
+        }
     }
 
 } // namespace kernel::input

@@ -97,7 +97,7 @@ function(kernel_module_includes target module_src_dir)
             ${module_src_dir}               # internal headers – never exported
             ${CMAKE_BINARY_DIR}             # generated headers (e.g. ap_trampoline_blob.h)
             PUBLIC
-            ${CMAKE_SOURCE_DIR}/include     # cross-module public API only
-            ${CMAKE_SOURCE_DIR}/limine      # limine protocol headers
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include     # cross-module public API only
+            ${CMAKE_CURRENT_SOURCE_DIR}/../limine      # limine protocol headers
     )
 endfunction()

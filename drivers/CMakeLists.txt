@@ -7,11 +7,11 @@
 #   PRIVATE  → drivers/      (internal driver headers – never exported)
 #   PUBLIC   → include/      (public API cross-modules depend on)
 
-collect_cpp(DRIVERS_CPP_SOURCES ${CMAKE_SOURCE_DIR}/drivers)
+collect_cpp(DRIVERS_CPP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(drivers_lib OBJECT
         ${DRIVERS_CPP_SOURCES}
 )
 
 apply_kernel_compile_options(drivers_lib)
-kernel_module_includes(drivers_lib ${CMAKE_SOURCE_DIR}/drivers)
+kernel_module_includes(drivers_lib ${CMAKE_CURRENT_SOURCE_DIR})

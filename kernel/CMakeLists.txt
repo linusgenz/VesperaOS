@@ -15,10 +15,10 @@
 # If kernel code needs something from those modules it must go
 # through a header under include/vespera/.
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/kernel/acpi acpi_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/acpi acpi_build)
 
 # ── libmath (compiled with -O2, separate from kernel debug flags) ──
-file(GLOB_RECURSE LIBMATH_SOURCES "${CMAKE_SOURCE_DIR}/lib/math/*.cpp")
+file(GLOB_RECURSE LIBMATH_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../lib/math/*.cpp")
 
 add_library(libmath OBJECT ${LIBMATH_SOURCES})
 
@@ -38,12 +38,12 @@ target_include_directories(libmath PRIVATE
 
 # ── Collect kernel core sources ───────────────────────────────────
 collect_cpp(KERNEL_CPP_SOURCES
-        ${CMAKE_SOURCE_DIR}/kernel
-        ${CMAKE_SOURCE_DIR}/lib
-        ${CMAKE_SOURCE_DIR}/log
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/../log
 )
 collect_asm(KERNEL_ASM_SOURCES
-        ${CMAKE_SOURCE_DIR}/kernel
+        ${CMAKE_SOURCE_DIR}
 )
 
 # Remove sources that belong to separate targets
@@ -65,14 +65,14 @@ endif ()
 
 # ── Version header ────────────────────────────────────────────────
 add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/kernel/kversion.h
-        COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/generate_version_header.sh
-        DEPENDS ${CMAKE_SOURCE_DIR}/scripts/generate_version_header.sh
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/kversion.h
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_version_header.sh
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_version_header.sh
 )
-add_custom_target(version DEPENDS ${CMAKE_SOURCE_DIR}/kernel/kversion.h)
+add_custom_target(version DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/kversion.h)
 
 # ── Embedded PSF font ─────────────────────────────────────────────
-set(FONT_DIR "${CMAKE_SOURCE_DIR}/assets")
+set(FONT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../assets")
 set(FONT_FILE "zap-light24.psf")
 set(FONT_PSF "${FONT_DIR}/${FONT_FILE}")
 
@@ -122,10 +122,10 @@ if (ENABLE_DEBUG_FAULT)
     )
     set_target_properties(kernel_stage1 PROPERTIES
             OUTPUT_NAME "kernel_stage1"
-            LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
+            LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/../linker.ld -nostdlib -static -mcmodel=kernel"
     )
     apply_kernel_compile_options(kernel_stage1)
-    kernel_module_includes(kernel_stage1 ${CMAKE_SOURCE_DIR}/kernel)
+    kernel_module_includes(kernel_stage1 ${CMAKE_CURRENT_SOURCE_DIR})
     #target_include_directories(kernel_stage1 PRIVATE ${CMAKE_SOURCE_DIR})
 
     add_dependencies(kernel_stage1 embedded_font)
@@ -171,11 +171,11 @@ add_library(kernel_core_lib OBJECT
 )
 
 apply_kernel_compile_options(kernel_core_lib)
-kernel_module_includes(kernel_core_lib ${CMAKE_SOURCE_DIR}/kernel)
+kernel_module_includes(kernel_core_lib ${CMAKE_SOURCE_DIR})
 
 # kernel/ needs access to its own root for intra-kernel includes
 target_include_directories(kernel_core_lib PRIVATE
-        ${CMAKE_SOURCE_DIR}       # e.g. #include "kernel/cpu/cpu.h" within kernel
+        ${CMAKE_CURRENT_SOURCE_DIR}       # e.g. #include "kernel/cpu/cpu.h" within kernel
 )
 
 add_dependencies(kernel_core_lib ap_trampoline embedded_font version)

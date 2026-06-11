@@ -27,6 +27,7 @@
 #include <vespera/mm/addr.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm_config.h>
+#include <vespera/realm/realm_types.h>
 #include <vespera/types.h>
 #include <vespera_errno.h>
 
@@ -34,8 +35,6 @@
 #include "../paging/paging.h"
 
 namespace kernel::realm {
-
-static constexpr uptr TRAMPOLINE_VADDR = 0x0000'0000'0001'0000ULL;
 
 i64 AddressSpace::init(phys_addr_t trampoline_page, usize stack_slot_size) {
     pml4_phys_ = kernel::memory::request_page_phys();
@@ -80,7 +79,7 @@ void AddressSpace::destroy() {
 
 void AddressSpace::map_trampoline(phys_addr_t trampoline_page) {
     page_table_->map_range(
-        virt_from_raw(TRAMPOLINE_VADDR),
+        virt_from_raw(kernel::realm::TRAMPOLINE_VADDR),
         trampoline_page,
         PAGE_SIZE,
         (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper)

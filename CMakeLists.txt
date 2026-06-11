@@ -63,24 +63,24 @@ add_custom_target(bootloader
 )
 
 # Kernel ELF only.
-add_custom_target(build-kernel
+add_custom_target(os-build-kernel
         DEPENDS kernel.elf
         COMMENT "Building kernel only"
 )
 
 # Userspace libraries → sysroot.
-add_custom_target(build-libs
+add_custom_target(os-build-libs
         DEPENDS sysroot_install
         COMMENT "Building userspace libraries → sysroot"
 )
 
 # Kernel + libs (no disk, no apps).
-add_custom_target(build
+add_custom_target(os-build
         DEPENDS kernel.elf sysroot_install
         COMMENT "Building kernel + userspace libs"
 )
 
-add_custom_target(clean-all
+add_custom_target(os-clean-all
         COMMAND ${CMAKE_COMMAND} -E echo "Cleaning VesperaOS build artifacts..."
         COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/*"
         COMMAND ${CMAKE_COMMAND} -E rm -f  "${CMAKE_SOURCE_DIR}/splash.h"
