@@ -34,7 +34,7 @@ var searchData=
   ['char_5fmin_31',['CHAR_MIN',['../limits_8h.html#a5d707bd32338557ced18c6ac76ca1b3a',1,'limits.h']]],
   ['charging_32',['charging',['../structvbus__battery.html#aeeef5e3629b6f4143880cc0dfab930a9',1,'vbus_battery']]],
   ['chdir_33',['chdir',['../stdio_8h.html#a03af571dfb595681bfa203c83385c07b',1,'stdio.h']]],
-  ['clean_34',['clean',['../classstella_1_1Container.html#ae7b4d8e29c449e3fa6986ffccf201a23',1,'stella::Container']]],
+  ['clean_34',['clean',['../classstella_1_1Container.html#a42a1d39e56f3a0edb72822a8c4956e73',1,'stella::Container']]],
   ['clearerr_35',['clearerr',['../stdio_8h.html#a86b8bec1783636991d09c6eb714fd5da',1,'stdio.h']]],
   ['clock_36',['clock',['../userspace_2lib_2include_2time_8h.html#ade863cfcca9ee19f20ca95796f8ddc1e',1,'time.h']]],
   ['clock_5fboottime_37',['CLOCK_BOOTTIME',['../include_2uapi_2vespera_2time_8h.html#a178a9965a4481e583b0b4a559c950567',1,'time.h']]],

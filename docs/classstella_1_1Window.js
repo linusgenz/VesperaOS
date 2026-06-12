@@ -6,6 +6,6 @@ var classstella_1_1Window =
     [ "bg", "classstella_1_1Window.html#a8f4cefe25020463e58310833418f2617", null ],
     [ "onClose", "classstella_1_1Window.html#a21abc504bdaa7b8659e018d8b548494a", null ],
     [ "operator=", "classstella_1_1Window.html#a5740245c473787e5c6cca0bef3199298", null ],
-    [ "run", "classstella_1_1Window.html#a1508312c5d6b969c0dcb2586edac8778", null ],
+    [ "run", "classstella_1_1Window.html#a028672e86180f23834bceeb89907b7d9", null ],
     [ "screen", "classstella_1_1Window.html#aa9416a550050198bfae5608b89a71a64", null ]
 ];

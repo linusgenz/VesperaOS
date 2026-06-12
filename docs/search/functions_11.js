@@ -24,5 +24,5 @@ var searchData=
   ['round_21',['round',['../math_8h.html#a002ab605b795c95e31c67b037f8c0e30',1,'math.h']]],
   ['roundf_22',['roundf',['../math_8h.html#a4f48da4925df1ba027b5f96eb9bd2878',1,'math.h']]],
   ['roundl_23',['roundl',['../math_8h.html#a7f1c285e73fe63752bb20236af82cd44',1,'math.h']]],
-  ['run_24',['run',['../classstella_1_1Window.html#a1508312c5d6b969c0dcb2586edac8778',1,'stella::Window']]]
+  ['run_24',['run',['../classstella_1_1Window.html#a028672e86180f23834bceeb89907b7d9',1,'stella::Window']]]
 ];

@@ -12,7 +12,7 @@ var searchData=
   ['channel_5frecv_9',['channel_recv',['../channel_8h.html#a27367d39e205bf5664047cf9f2575d12',1,'channel.h']]],
   ['channel_5fsend_10',['channel_send',['../channel_8h.html#ab2b9bb58c6dab6a292168791513911d6',1,'channel.h']]],
   ['chdir_11',['chdir',['../stdio_8h.html#a03af571dfb595681bfa203c83385c07b',1,'stdio.h']]],
-  ['clean_12',['clean',['../classstella_1_1Container.html#ae7b4d8e29c449e3fa6986ffccf201a23',1,'stella::Container']]],
+  ['clean_12',['clean',['../classstella_1_1Container.html#a42a1d39e56f3a0edb72822a8c4956e73',1,'stella::Container']]],
   ['clearerr_13',['clearerr',['../stdio_8h.html#a86b8bec1783636991d09c6eb714fd5da',1,'stdio.h']]],
   ['clock_14',['clock',['../userspace_2lib_2include_2time_8h.html#ade863cfcca9ee19f20ca95796f8ddc1e',1,'time.h']]],
   ['clock_5fgettime_15',['clock_gettime',['../userspace_2lib_2include_2time_8h.html#acc55008fab3654d2d0c9d4b69e732e7c',1,'time.h']]],

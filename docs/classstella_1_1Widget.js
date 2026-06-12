@@ -8,7 +8,7 @@ var classstella_1_1Widget =
     [ "borderBottom", "classstella_1_1Widget.html#af7ea42a9f37ecd9b17ebfc07602ed7ff", null ],
     [ "borderTop", "classstella_1_1Widget.html#aea8ad7b8bd6fd6d57fc242f9117b616e", null ],
     [ "center", "classstella_1_1Widget.html#ac35110225d4ffff045c30d6c1b2a59e6", null ],
-    [ "destroy", "classstella_1_1Widget.html#af72c4a77fa2081c4fa6669b478d2bc80", null ],
+    [ "destroy", "classstella_1_1Widget.html#a59b763ada2b3f2a8e84b4a59e56a8f1d", null ],
     [ "flexCol", "classstella_1_1Widget.html#a25dbb4e223c142a4323ebb3c86afb6e0", null ],
     [ "flexRow", "classstella_1_1Widget.html#a4419f9a93e6d15b7883a34a556fb57b1", null ],
     [ "gradient", "classstella_1_1Widget.html#a9dda935b850ec010c100780e4229b7ac", null ],
