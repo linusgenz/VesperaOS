@@ -25,6 +25,9 @@
 #include <vespera/log.h>
 #include <vespera_errno.h>
 
+#include "realm/realm.h"
+#include "vespera/realm/realm_manager.h"
+
 VBusManager::Subscription VBusManager::subs_[VBUS_MAX_SUBSCRIPTIONS] = {};
 int VBusManager::sub_count_ = 0;
 VBusManager::PendingCall VBusManager::pending_[VBUS_MAX_PENDING_CALLS] = {};
@@ -124,7 +127,7 @@ void VBusManager::emit(const char* interface, const char* member, const void* pa
 
         // Check space before writing so we never write a partial message
         if (s.channel->free_space() < total) {
-            Log::warning("[VBus] channel full for realm %llu, dropping %s.%s", s.realm_id, interface, member);
+            Log::warning("[VBus] channel full for realm %llu (%s), dropping %s.%s", s.realm_id, RealmManager::get(s.realm_id)->name, interface, member);
             continue;
         }
 
@@ -189,7 +192,7 @@ void VBusManager::emit_signal(const char* interface, const char* member, const v
         if (!matches(s, interface, member)) continue;
 
         if (!deliver(s.channel, &hdr, payload, payload_len)) {
-            Log::warning("[VBus] channel full for realm %llu, dropping %s.%s", s.realm_id, interface, member);
+            Log::warning("[VBus] channel full for realm %llu (%s), dropping %s.%s", s.realm_id, RealmManager::get(s.realm_id)->name, interface, member);
         }
     }
 }
@@ -256,9 +259,7 @@ i64 VBusManager::emit_from_realm(
             if (!matches(s, hdr->interface, hdr->member)) continue;
 
             if (!deliver(s.channel, hdr, payload, payload_len)) {
-                Log::warning(
-                    "[VBus] channel full for realm %llu, dropping signal %s.%s", s.realm_id, hdr->interface, hdr->member
-                );
+                Log::warning("[VBus] channel full for realm %llu (%s), dropping %s.%s", s.realm_id, RealmManager::get(s.realm_id)->name, hdr->interface, hdr->member);
             }
         }
         return SUCCESS_CODE;

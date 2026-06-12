@@ -26,6 +26,8 @@
 #include <vespera/scheduling.h>
 #include <uapi/vespera/poll.h>
 
+#include "vespera/log.h"
+
 namespace kernel::input {
     MiceDevice* MiceDevice::s_instance_ = nullptr;
 
@@ -87,6 +89,8 @@ namespace kernel::input {
                 move_ev.button_id = MICE_BUTTON_NONE;
                 push_to_queue(s_instance_, move_ev);
                 pushed_any = true;
+
+                Log::log_dbc("mouse move event: %d %d %d\n", move_ev.dx, move_ev.dy, move_ev.button_id);
             }
 
             if (current_buttons != last_buttons) {

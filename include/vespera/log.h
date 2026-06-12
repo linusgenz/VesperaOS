@@ -36,7 +36,7 @@ class Log {
     /**
      * @brief Log only via xhci DbC. If DbC is not connected, this is a no-op.
      */
-    static void log_dbc(const char* fmt, ...);
+    FORMAT_FN static void log_dbc(const char* fmt, ...);
 
    private:
     static Terminal* t_;

@@ -40,6 +40,7 @@ namespace ps2::mouse {
         static point_t position_old_;
         static u8 packet_[4];
         static u8 cycle_;
+        static u8   packet_size_;
         static bool packet_ready_;
         static bool first_byte_skipped_;
 
