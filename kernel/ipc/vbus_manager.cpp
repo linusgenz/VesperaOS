@@ -80,6 +80,16 @@ void VBusManager::unsubscribe_realm(u64 realm_id) {
     }
 }
 
+void VBusManager::cancel_pending_for_realm(u64 realm_id) {
+    SpinlockGuard g(lock_);
+    for (PendingCall& p : pending_) {
+        if (p.active && p.caller_realm_id == realm_id) {
+            p.active = false;
+            p.caller_channel = nullptr;
+        }
+    }
+}
+
 bool VBusManager::matches(const Subscription& s, const char* iface, const char* member) {
     if (strcmp(s.interface, iface) != 0) return false;
     if (s.member[0] == '\0') return true;  // wildcard

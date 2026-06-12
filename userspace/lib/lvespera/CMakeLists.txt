@@ -5,7 +5,7 @@ target_include_directories(lvespera PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../lua/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
     ${VESPERA_SYSROOT}/usr/include
-    ${CMAKE_SOURCE_DIR}/include/uapi
+    ${VESPERA_UAPI_INCLUDE_DIR}
 )
 
 target_compile_options(lvespera PRIVATE

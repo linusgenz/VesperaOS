@@ -50,6 +50,8 @@ class VBusManager {
 
     static void unsubscribe_realm(u64 realm_id);
 
+    static void cancel_pending_for_realm(u64 realm_id);
+
     static void emit(const char* interface, const char* member, const void* payload, usize payload_len);
 
     // emit no payload (pure signal)

@@ -146,7 +146,7 @@ namespace stella {
 
         // Misc
         Widget& noScroll();
-        void destroy();
+        void destroy() const;
 
     protected:
         stella_widget_t _w;
@@ -175,7 +175,7 @@ namespace stella {
     public:
         explicit Container(stella_widget_t parent);
 
-        void clean();
+        void clean() const;
     };
 
     class Bar : public Widget {
@@ -244,7 +244,7 @@ namespace stella {
         Window& onClose(std::function<void()> cb);
 
         // Blocking ~60 fps loop. Returns when the window is closed.
-        void run();
+        void run() const;
 
     private:
         stella_window_t* _win = nullptr;

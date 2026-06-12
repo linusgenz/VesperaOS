@@ -21,6 +21,7 @@ message(STATUS "CMAKE_ASM_NASM_COMPILER = ${CMAKE_ASM_NASM_COMPILER}")
 set(LIBJPEG_SRC "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/src")
 set(NASM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/nasm")
 set(SIMD_X86_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libjpeg/simd/x86_64")
+set(VESPERA_UAPI_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../include/uapi/")
 
 string(TIMESTAMP BUILD_DATE "%Y%m%d")
 add_compile_definitions(BUILD_DEF="${BUILD_DATE}")
@@ -55,22 +56,22 @@ file(MAKE_DIRECTORY
 )
 
 install(DIRECTORY
-        ${CMAKE_SOURCE_DIR}/include/uapi/vespera/
-        DESTINATION ${VESPERA_SYSROOT}/usr/include/vespera
+        ${VESPERA_UAPI_INCLUDE_DIR}
+        DESTINATION ${VESPERA_SYSROOT}/usr/include/
         COMPONENT headers
 )
 
 install(DIRECTORY
-        ${CMAKE_SOURCE_DIR}/userspace/lib/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
         DESTINATION ${VESPERA_SYSROOT}/usr/include
         COMPONENT headers
 )
 
 install(FILES
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lua.h
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lauxlib.h
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/lualib.h
-        ${CMAKE_SOURCE_DIR}/userspace/lib/lua/include/luaconf.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/lua/include/lua.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/lua/include/lauxlib.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/lua/include/lualib.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/lua/include/luaconf.h
         DESTINATION ${VESPERA_SYSROOT}/usr/include/lua
         COMPONENT headers
 )
@@ -377,11 +378,11 @@ add_executable(lua_bin
 target_compile_options(lua_bin PRIVATE $<$<COMPILE_LANGUAGE:C>:${COMMON_C_FLAGS}>)
 
 target_include_directories(lua_bin PRIVATE
-        ${CMAKE_SOURCE_DIR}/userspace/lua/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/lua/include
         "${VESPERA_SYSROOT}/usr/include"
 )
 
-target_link_libraries(lua_bin PRIVATE lvespera lua readline vesplib)
+target_link_libraries(lua_bin PRIVATE lua lvespera readline vesplib)
 
 set(USER_LD_FLAGS
         "-nostdlib -target x86_64-unknown-linux-gnu -fno-stack-protector -pie \
@@ -407,11 +408,11 @@ install(FILES       $<TARGET_FILE:vesplib_cpp>
 )
 
 # Static sysroot data directories
-install(DIRECTORY   ${CMAKE_SOURCE_DIR}/userspace/etc/
+install(DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/../etc/
         DESTINATION "${VESPERA_SYSROOT}/etc"
         COMPONENT   runtime
 )
-install(DIRECTORY   ${CMAKE_SOURCE_DIR}/userspace/usr/
+install(DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/../usr/
         DESTINATION "${VESPERA_SYSROOT}/usr"
         COMPONENT   runtime
 )
@@ -436,11 +437,7 @@ add_dependencies(lvespera sysroot_headers)
 add_dependencies(vesplib sysroot_headers)
 add_dependencies(lvgl_project sysroot_headers)
 
-# ────────────────────────────────────────────────────────────────
 # sysroot_install — build all libs and populate the sysroot.
-# This is the primary target consumed by VesperaOS's build target
-# and by VesperaWorkspace/Makefile's build-libs step.
-# ────────────────────────────────────────────────────────────────
 add_custom_target(sysroot_install
         DEPENDS
         vesplib vesplib_cpp crt0_obj
@@ -457,9 +454,7 @@ add_custom_target(sysroot_install
         ${CMAKE_CURRENT_BINARY_DIR}/crt0_linked.o
         ${VESPERA_SYSROOT}/usr/lib/crt0.o
 
-        # Libraries (vesplib, vesp++), lua_bin, and static data dirs (etc/, usr/)
-        # are all declared as install() rules above and handled here with
-        # copy-if-different semantics by the CMake install machinery.
+
         COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --component runtime
 
         COMMENT "Populating sysroot with libraries and headers"

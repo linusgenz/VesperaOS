@@ -32,7 +32,7 @@ target_compile_options(libmath PRIVATE
         -O2
 )
 target_include_directories(libmath PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
         ${CMAKE_BINARY_DIR}
 )
 
@@ -43,7 +43,7 @@ collect_cpp(KERNEL_CPP_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/../log
 )
 collect_asm(KERNEL_ASM_SOURCES
-        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Remove sources that belong to separate targets
@@ -203,7 +203,7 @@ add_executable(kernel.elf
 
 set_target_properties(kernel.elf PROPERTIES
         OUTPUT_NAME "kernel.elf"
-        LINK_FLAGS "-T ${CMAKE_SOURCE_DIR}/linker.ld -nostdlib -static -mcmodel=kernel"
+        LINK_FLAGS "-T ${CMAKE_CURRENT_SOURCE_DIR}/../linker.ld -nostdlib -static -mcmodel=kernel"
 )
 
 # kernel.elf itself needs no include dirs – it has no source files,

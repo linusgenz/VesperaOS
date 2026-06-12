@@ -15,7 +15,7 @@ find_program(NASM_EXECUTABLE nasm REQUIRED)
 collect_cpp(ARCH_CPP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR})
 collect_asm(ARCH_ASM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(AP_TRAMPOLINE_ASM ${CMAKE_SOURCE_DIR}/kernel/cpu/ap_trampoline.asm)
+set(AP_TRAMPOLINE_ASM ${CMAKE_CURRENT_SOURCE_DIR}/../kernel/cpu/ap_trampoline.asm)
 set(AP_TRAMPOLINE_BIN ${CMAKE_BINARY_DIR}/ap_trampoline.bin)
 set(AP_TRAMPOLINE_HEADER ${CMAKE_BINARY_DIR}/ap_trampoline_blob.h)
 

@@ -38,6 +38,7 @@
 #include "../tty/tty_device.h"
 #include "address_space.h"
 #include "realm.h"
+#include "vespera/ipc/vbus_manager.h"
 #include "vespera/sys/syscall_numbers.h"
 #include "vespera/unit/unit_manager.h"
 
@@ -201,6 +202,9 @@ bool RealmManager::destroy(const RealmId id) {
                 tty->fg_pgid = 0;
             }
         }
+
+        VBusManager::unsubscribe_realm(realm.id);
+        VBusManager::cancel_pending_for_realm(realm.id);
 
         SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
         RealmFs::unregister_realm(realm.id);

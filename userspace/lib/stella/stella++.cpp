@@ -164,7 +164,7 @@ Widget& Widget::onClick(std::function<void()> cb) {
 // Misc
 
 Widget& Widget::noScroll() { stella_widget_no_scroll(_w); return *this; }
-void    Widget::destroy()  { stella_widget_delete(_w); }
+void    Widget::destroy() const { stella_widget_delete(_w); }
 
 // ─── Label ────────────────────────────────────────────────────────────────────
 
@@ -188,7 +188,7 @@ Button::Button(stella_widget_t parent, const char* text, int32_t w, int32_t h)
 Container::Container(stella_widget_t parent)
     : Widget(stella_container_create(parent)) {}
 
-void Container::clean() { stella_widget_clean(_w); }
+void Container::clean() const { stella_widget_clean(_w); }
 
 // ─── Bar ──────────────────────────────────────────────────────────────────────
 
@@ -253,7 +253,7 @@ Window& Window::onClose(std::function<void()> cb) {
     return *this;
 }
 
-void Window::run() {
+void Window::run() const {
     constexpr long long kFrameMs = 16LL;
     long long last = now_ms();
 

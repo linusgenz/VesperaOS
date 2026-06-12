@@ -54,7 +54,7 @@ add_subdirectory(userspace/lib) # defines sysroot_install
 # ────────────────────────────────────────────────────────────────
 # Limine Bootloader
 # ────────────────────────────────────────────────────────────────
-set(LIMINE_DIR ${CMAKE_SOURCE_DIR}/limine)
+set(LIMINE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/limine)
 
 add_custom_target(bootloader
         DEPENDS kernel.elf
@@ -78,6 +78,10 @@ add_custom_target(os-build-libs
 add_custom_target(os-build
         DEPENDS kernel.elf sysroot_install
         COMMENT "Building kernel + userspace libs"
+)
+
+add_custom_target(os-sysroot-install
+        DEPENDS sysroot_install
 )
 
 add_custom_target(os-clean-all

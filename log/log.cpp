@@ -6,7 +6,7 @@
 #include <vespera/graphics/colors.h>
 #include <vespera/log.h>
 #include <vespera/terminal.h>
-
+#include <drivers/serial/serial.h>
 #include <../include/drivers/usb/xhci/xhci_dbc_manager.h>
 
 Terminal* Log::t_ = nullptr;
@@ -36,6 +36,10 @@ void Log::log_prefix(const char* tag, const u32 tag_fg) {
     dbc_append("[ ");
     dbc_append(tag);
     dbc_append(" ] ");
+
+    serial_append("[ ");
+    serial_append(tag);
+    serial_append(" ] ");
 }
 
 void Log::set_terminal(Terminal* t) {
@@ -96,13 +100,20 @@ void Log::info(const char* fmt, ...) {
     SpinlockGuard g(log_spin_);
 
     log_prefix("INFO", BLUE);
+
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
+
     print_formatted_dbc(fmt, args);
+    print_formatted_serial(fmt, args);
     print_formatted(fmt, args);
+
     __builtin_va_end(args);
+
     t_->print("\n");
     dbc_commit_line();
+    serial_commit_line();
+
     t_->flush();
 }
 
@@ -141,10 +152,13 @@ void Log::error(const char* fmt, ...) {
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted_dbc(fmt, args);
+    print_formatted_serial(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
     t_->print("\n");
     dbc_commit_line();
+    serial_commit_line();
+
     t_->flush();
 }
 
@@ -234,4 +248,24 @@ void Log::print_formatted_dbc(const char* fmt, __builtin_va_list args) {
     __builtin_va_copy(copy, args);
     vformat(dbc_sink, nullptr, fmt, copy);
     __builtin_va_end(copy);
+}
+
+static void serial_write(void* /*ctx*/, char c) {
+    serial::write_char(c);
+}
+
+void Log::serial_append(const char* s) {
+    serial::write(s, strlen(s));
+}
+
+void Log::print_formatted_serial(const char* fmt, __builtin_va_list args) {
+    __builtin_va_list copy;
+    __builtin_va_copy(copy, args);
+    vformat(serial_write, nullptr, fmt, copy);
+    __builtin_va_end(copy);
+}
+
+void Log::serial_commit_line() {
+    static constexpr char nl = '\n';
+    serial::write(&nl, 1);
 }

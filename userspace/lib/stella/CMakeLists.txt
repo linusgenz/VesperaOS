@@ -30,6 +30,8 @@ target_compile_options(stella PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
         "-isystem${VESPERA_SYSROOT}/usr/include/c++"
         "-isystem${VESPERA_SYSROOT}/usr/include"
         ${STELLA_COMMON_FLAGS}
+        -fno-exceptions
+        -fno-rtti
         -nostdinc++
         >)
 
