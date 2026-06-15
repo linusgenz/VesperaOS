@@ -49,32 +49,44 @@ namespace ps2::synaptics {
     constexpr u8 SYN_MODE_ABSOLUTE = 0x80; // Absolute coordinates reporting
     constexpr u8 SYN_MODE_HIGH_RATE = 0x40; // 80 reports/s rate
     constexpr u8 SYN_MODE_SLEEP = 0x08; // Low-power sleep
+    constexpr u8 SYN_MODE_EWMODE = 0x04;
     constexpr u8 SYN_MODE_WMODE = 0x01; // Report width and pressure
 
-    // Default mode for TrackPoint passthrough + absolute touchpad data
-    constexpr u8 SYN_MODE_DEFAULT = SYN_MODE_ABSOLUTE | SYN_MODE_HIGH_RATE | SYN_MODE_WMODE;
+    // Default mode: Absolute + High-Rate + Wmode.
+    // EWmode is OR'd in at runtime only if capEWmode is set.
+    constexpr u8 SYN_MODE_BASE = SYN_MODE_ABSOLUTE | SYN_MODE_HIGH_RATE | SYN_MODE_WMODE;
 
     // Synaptics sliced query codes
     constexpr u8 SYN_QUE_IDENTIFY = 0x00;
     constexpr u8 SYN_QUE_CAPABILITIES = 0x02;
     constexpr u8 SYN_QUE_MODEL_ID = 0x03;
+    constexpr u8 SYN_QUE_EXTENDED_MODEL = 0x09;
 
     // Magic constant for Synaptics identification
     constexpr u8 SYN_IDENTITY_MAGIC = 0x47;
 
-    constexpr u32 SYN_CAP_PASS_THROUGH = (1u << 19); // TrackPoint presence bit
+    constexpr u8 SYN_W_TWO_FINGERS = 0; // capMultiFinger: two fingers
+    constexpr u8 SYN_W_THREE_FINGERS = 1; // capMultiFinger: three or more fingers
+    constexpr u8 SYN_W_EW_PACKET = 2; // capEWmode: encapsulated EW packet
+    constexpr u8 SYN_W_PASSTHROUGH = 3; // capPassThru: TrackPoint encapsulation
 
-    // Passthrough packet signatures (TrackPoint)
-    constexpr u8 SYN_PT_BYTE0_MASK = 0xFC;
-    constexpr u8 SYN_PT_BYTE0_VAL = 0x84;
-    constexpr u8 SYN_PT_BYTE3_MASK = 0xCC;
-    constexpr u8 SYN_PT_BYTE3_VAL = 0xC4;
+    constexpr u8 SYN_W_FINGER_MIN = 4; // Minimum W for a single finger
+    constexpr u8 SYN_W_PALM_THRESHOLD = 10; // Heuristic: W >= this → likely palm
+
+    constexpr u8 SYN_EW_CODE_SCROLL = 0; // Wheel encoder deltas
+    constexpr u8 SYN_EW_CODE_SECOND_FINGER = 1; // Secondary finger X/Y/Z
+    constexpr u8 SYN_EW_CODE_FINGER_STATE = 2; // Finger count / index
 
     // Absolute packet synchronization guards
     // For layout see Synaptics PS/2 TouchPad Interfacing Guide page 23
     constexpr u8 SYN_SYNC_MASK = 0xC8; // check bits 7, 6, 3
     constexpr u8 SYN_BYTE0_SYNC = 0x80; // buf[0]: bit7=1, bit6=0, bit3=0
     constexpr u8 SYN_BYTE3_SYNC = 0xC0; // buf[3]: bit7=1, bit6=1, bit3=0
+
+    // Pressure (Z) thresholds
+    constexpr u8 SYN_Z_FINGER_DOWN = 25; // Minimum Z to count as finger contact
+    constexpr u8 SYN_Z_PALM_MIN = 200; // Z above this → probable palm
+
 
     enum class SYNAPTICS_GEOMETRY : u8 {
         UNKNOWN = 0,
@@ -162,13 +174,46 @@ namespace ps2::synaptics {
         SYNAPTICS_MODEL_ID_FIELDS fields;
     } __attribute__((packed));
 
+    struct SYNAPTICS_EXT_MODEL_BYTE0 {
+        u8 vertical_scroll : 1; // bit 16
+        u8 horizontal_scroll : 1; // bit 17
+        u8 ext_w_mode : 1; // bit 18
+        u8 vertical_wheel : 1; // bit 19
+        u8 glass_pass : 1; // bit 20
+        u8 peak_detect : 1; // bit 21
+        u8 light_control : 1; // bit 22
+        u8 reserved : 1; // bit 23
+    } __attribute__((packed));
+
+    struct SYNAPTICS_EXT_MODEL_BYTE1 {
+        u8 reserved : 2; // bits 9..8
+        u8 info_sensor_ext : 2; // bits 11..10
+        u8 n_extended_buttons : 4; // bits 15..12
+    } __attribute__((packed));
+
+    union SYNAPTICS_EXT_MODEL_RESPONSE {
+        u8 raw[3];
+
+        struct {
+            SYNAPTICS_EXT_MODEL_BYTE0 byte0;
+            SYNAPTICS_EXT_MODEL_BYTE1 byte1;
+            u8 product_id;
+        } __attribute__((packed)) fields;
+    } __attribute__((packed));
+
+
     struct SynapticsInfo {
         SYNAPTICS_IDENTIFY_RESPONSE identity;
         SYNAPTICS_CAPABILITIES_RESPONSE capabilities;
         SYNAPTICS_MODEL_ID_RESPONSE model_id;
+        SYNAPTICS_EXT_MODEL_RESPONSE ext_model;
         u8 firmware_major;
         u8 firmware_minor;
+
         bool has_passthrough;
+        bool has_multi_finger;
+        bool has_palm_detect;
+        bool has_ew_mode;
     };
 
     /**
@@ -177,6 +222,10 @@ namespace ps2::synaptics {
      */
     [[nodiscard]] bool probe(SynapticsInfo* out_info);
 
+    /**
+     * Forwards a single command byte to the TrackPoint via the Synaptics
+     * pass-through tunnel (sliced SET_SAMPLE_RATE / 0x28 commit sequence).
+     */
     bool tunnel_cmd(u8 cmd);
 
     /**
@@ -184,6 +233,13 @@ namespace ps2::synaptics {
      * Uses sliced command sequence committed by sample rate 20.
      */
     [[nodiscard]] bool set_mode(u8 mode_byte);
+
+    /**
+     * Caches capability flags from a completed probe() result.
+     * Must be called once after set_mode() succeeds so that handle_byte()
+     * can dispatch W=0/1/2/3 packets correctly without re-querying hardware.
+     */
+    void set_caps(const SynapticsInfo& info);
 
     /**
      * Returns true if the Synaptics driver is active.

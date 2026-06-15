@@ -27,44 +27,15 @@
 #include <vespera/input/mice_device.h>
 #include "../synaptics/synaptics_ps2.h"
 #include "ps2/i8042.h"
+#include "ps2/ps2_defs.h"
 #include "vespera/log.h"
 
 namespace {
-    constexpr u8 PS2_LEFT_BUTTON = 0b00000001;
-    constexpr u8 PS2_RIGHT_BUTTON = 0b00000010;
-    constexpr u8 PS2_MIDDLE_BUTTON = 0b00000100;
-    constexpr u8 PS2_ALWAYS_ONE = 0b00001000;
-    constexpr u8 PS2_X_SIGN = 0b00010000;
-    constexpr u8 PS2_Y_SIGN = 0b00100000;
-    constexpr u8 PS2_X_OVERFLOW = 0b01000000;
-    constexpr u8 PS2_Y_OVERFLOW = 0b10000000;
-
-    constexpr u16 PS2_DATA_PORT = 0x60;
-    constexpr u16 PS2_CMD_PORT = 0x64;
-
-    // Mouse device ID returned after successful IntelliMouse activation
-    constexpr u8 PS2_MOUSE_ID_STANDARD = 0x00;
-    constexpr u8 PS2_MOUSE_ID_INTELLIMOUSE = 0x03;
-
-    constexpr u8 PS2_CMD_ENABLE_AUX_PORT = 0xA8;
-    constexpr u8 PS2_CMD_READ_CONFIG_BYTE = 0x20;
-    constexpr u8 PS2_CMD_WRITE_CONFIG_BYTE = 0x60;
-
-    constexpr u8 PS2_MOUSE_SET_DEFAULTS = 0xF6;
-    constexpr u8 PS2_MOUSE_ENABLE_REPORTING = 0xF4;
-    constexpr u8 PS2_MOUSE_GET_DEVICE_ID = 0xF2;
-    constexpr u8 PS2_MOUSE_SET_SAMPLE_RATE = 0xF3;
-
-    constexpr u8 PS2_SAMPLE_RATE_200 = 200;
-    constexpr u8 PS2_SAMPLE_RATE_100 = 100;
-    constexpr u8 PS2_SAMPLE_RATE_80 = 80;
-
-
     // Query the mouse device ID.  Returns the ID byte, or 0xFF on timeout.
     u8 query_device_id() {
-        ps2::i8042::aux_send(PS2_MOUSE_GET_DEVICE_ID);
+        ps2::i8042::aux_send(ps2::CMD_GET_DEVICE_ID);
         ps2::i8042::wait_read();
-        return inb(PS2_DATA_PORT);
+        return inb(ps2::DATA_PORT);
     }
 } // namespace
 
@@ -82,64 +53,70 @@ namespace ps2::mouse {
     }
 
     void Ps2Mouse::init() {
-        outb(PS2_CMD_PORT, PS2_CMD_ENABLE_AUX_PORT);
+        outb(CMD_PORT, CMD_ENABLE_AUX_PORT);
 
         i8042::wait_write();
-        outb(PS2_CMD_PORT, PS2_CMD_READ_CONFIG_BYTE);
+        outb(CMD_PORT, CMD_READ_CONFIG_BYTE);
         i8042::wait_read();
 
-        u8 status = inb(PS2_DATA_PORT);
+        u8 status = inb(DATA_PORT);
         status |= 0b10;
 
         i8042::wait_write();
-        outb(PS2_CMD_PORT, PS2_CMD_WRITE_CONFIG_BYTE);
+        outb(CMD_PORT, CMD_WRITE_CONFIG_BYTE);
 
         i8042::wait_write();
-        outb(PS2_DATA_PORT, status);
+        outb(DATA_PORT, status);
 
-        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
-        i8042::aux_send(PS2_SAMPLE_RATE_200);
+        // IntelliMouse activation sequence: 200 → 100 → 80
+        i8042::aux_send(CMD_SET_SAMPLE_RATE);
+        i8042::aux_send(SAMPLE_RATE_200);
+        i8042::aux_send(CMD_SET_SAMPLE_RATE);
+        i8042::aux_send(SAMPLE_RATE_100);
+        i8042::aux_send(CMD_SET_SAMPLE_RATE);
+        i8042::aux_send(SAMPLE_RATE_80);
 
-        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
-        i8042::aux_send(PS2_SAMPLE_RATE_100);
-
-        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
-        i8042::aux_send(PS2_SAMPLE_RATE_80);
-
-        i8042::aux_send(PS2_MOUSE_SET_DEFAULTS);
-        i8042::aux_send(PS2_MOUSE_ENABLE_REPORTING);
+        i8042::aux_send(CMD_SET_DEFAULTS);
+        i8042::aux_send(CMD_ENABLE);
 
         const u8 device_id = query_device_id();
+        packet_size_ = (device_id == DEVICE_ID_INTELLIMOUSE) ? 4 : 3;
 
-        if (device_id == PS2_MOUSE_ID_INTELLIMOUSE) {
-            packet_size_ = 4;
-        }
-        else {
-            packet_size_ = 3;
-        }
-
-        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
-        i8042::aux_send(PS2_SAMPLE_RATE_100);
+        i8042::aux_send(CMD_SET_SAMPLE_RATE);
+        i8042::aux_send(SAMPLE_RATE_100);
 
         i8042::drain();
 
         synaptics::SynapticsInfo syn_info{};
         if (synaptics::probe(&syn_info)) {
-            // Synaptics pad found.  Switch to absolute + high-rate mode.
-            // Once set_mode() returns, every IRQ12 byte goes to
-            // synaptics::handle_byte() and Ps2Mouse::handle_byte() is bypassed.
-            if (synaptics::set_mode(synaptics::SYN_MODE_DEFAULT)) {
-                Log::ok("ps2: Synaptics touchpad initialized (firmware v%u.%u, absolute mode enabled)",
-                        syn_info.firmware_major, syn_info.firmware_minor);
+            u8 mode = synaptics::SYN_MODE_BASE;
+            if (syn_info.has_ew_mode) {
+                mode |= synaptics::SYN_MODE_EWMODE;
+                Log::info("ps2: Synaptics capEWmode detected - enabling Extended W mode");
+            }
+
+            if (synaptics::set_mode(mode)) {
+
+                synaptics::set_caps(syn_info);
+
+                Log::ok("ps2: Synaptics touchpad initialized (firmware v%u.%u, mode=0x%02x)",
+                        syn_info.firmware_major, syn_info.firmware_minor, mode);
+                Log::info("ps2:   capMultiFinger=%d  capPalmDetect=%d  capEWmode=%d  capPassThru=%d",
+                          static_cast<int>(syn_info.has_multi_finger), static_cast<int>(syn_info.has_palm_detect),
+                          static_cast<int>(syn_info.has_ew_mode), static_cast<int>(syn_info.has_passthrough));
 
                 if (syn_info.has_passthrough) {
                     Log::info("ps2: Enabling TrackPoint via tunnel...");
-                    if (synaptics::tunnel_cmd(0xF4)) {
+                    if (synaptics::tunnel_cmd(CMD_ENABLE)) {
                         Log::ok("ps2: TrackPoint enabled");
-                    } else {
+                    }
+                    else {
                         Log::error("ps2: Failed to enable TrackPoint");
                     }
                 }
+            }
+            else {
+                Log::error("ps2: Synaptics set_mode() failed - falling back to relative mode");
             }
         }
     }
@@ -150,7 +127,6 @@ namespace ps2::mouse {
             return;
         }
 
-
         if (!first_byte_skipped_) {
             first_byte_skipped_ = true;
             return;
@@ -160,7 +136,7 @@ namespace ps2::mouse {
         case 0:
             // Bit 3 of the status byte is always set in a well-formed packet.
             // Ignore any byte that does not have it set so we stay aligned.
-            if ((data & PS2_ALWAYS_ONE) == 0) return;
+            if ((data & PKT_ALWAYS_ONE) == 0) return;
             packet_[0] = data;
             cycle_ = 1;
             break;
@@ -196,10 +172,10 @@ namespace ps2::mouse {
 
     void Ps2Mouse::process_packet() {
         // If either overflow flag is set the delta values are garbage, discard.
-        if ((packet_[0] & PS2_X_OVERFLOW) || (packet_[0] & PS2_Y_OVERFLOW)) return;
+        if ((packet_[0] & PKT_X_OVERFLOW) || (packet_[0] & PKT_Y_OVERFLOW)) return;
 
-        const bool x_negative = packet_[0] & PS2_X_SIGN;
-        const bool y_negative = packet_[0] & PS2_Y_SIGN;
+        const bool x_negative = packet_[0] & PKT_X_SIGN;
+        const bool y_negative = packet_[0] & PKT_Y_SIGN;
 
         // Sign-extend the 9-bit deltas to i32
         const i32 dx = x_negative ? (static_cast<i32>(packet_[1]) - 256) : static_cast<i32>(packet_[1]);
@@ -222,9 +198,9 @@ namespace ps2::mouse {
         position_.y = static_cast<u32>(new_y);
 
         kernel::input::MouseButtonMask buttons = 0;
-        if (packet_[0] & PS2_LEFT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::LEFT);
-        if (packet_[0] & PS2_RIGHT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
-        if (packet_[0] & PS2_MIDDLE_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::MIDDLE);
+        if (packet_[0] & PKT_LEFT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::LEFT);
+        if (packet_[0] & PKT_RIGHT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
+        if (packet_[0] & PKT_MIDDLE_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::MIDDLE);
 
         // packet_[3] is the wheel byte; zero when running in 3-byte mode
         const i8 wheel = (packet_size_ == 4) ? static_cast<i8>(packet_[3]) : 0;
