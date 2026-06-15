@@ -96,18 +96,19 @@ namespace ps2::mouse {
             }
 
             if (synaptics::set_mode(mode)) {
-
                 synaptics::set_caps(syn_info);
 
                 Log::ok("ps2: Synaptics touchpad initialized (firmware v%u.%u, mode=0x%02x)",
                         syn_info.firmware_major, syn_info.firmware_minor, mode);
-                Log::info("ps2:   capMultiFinger=%d  capPalmDetect=%d  capEWmode=%d  capPassThru=%d",
-                          static_cast<int>(syn_info.has_multi_finger), static_cast<int>(syn_info.has_palm_detect),
-                          static_cast<int>(syn_info.has_ew_mode), static_cast<int>(syn_info.has_passthrough));
+                Log::info(
+                    "ps2:   capMultiFinger=%d  capPalmDetect=%d  capEWmode=%d  capPassThru=%d capCoordBounds=%d",
+                    static_cast<int>(syn_info.has_multi_finger), static_cast<int>(syn_info.has_palm_detect),
+                    static_cast<int>(syn_info.has_ew_mode), static_cast<int>(syn_info.has_passthrough),
+                    syn_info.has_coord_bounds);
 
                 if (syn_info.has_passthrough) {
                     Log::info("ps2: Enabling TrackPoint via tunnel...");
-                    if (synaptics::tunnel_cmd(CMD_ENABLE)) {
+                    if (synaptics::initialize_guest()) {
                         Log::ok("ps2: TrackPoint enabled");
                     }
                     else {

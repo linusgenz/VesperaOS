@@ -61,6 +61,9 @@ namespace ps2::synaptics {
     constexpr u8 SYN_QUE_CAPABILITIES = 0x02;
     constexpr u8 SYN_QUE_MODEL_ID = 0x03;
     constexpr u8 SYN_QUE_EXTENDED_MODEL = 0x09;
+    constexpr u8 SYN_QUE_CONTINUED_CAPS = 0x0C;
+    constexpr u8 SYN_QUE_MAX_COORDS = 0x0D;
+    constexpr u8 SYN_QUE_MIN_COORDS = 0x0F;
 
     // Magic constant for Synaptics identification
     constexpr u8 SYN_IDENTITY_MAGIC = 0x47;
@@ -73,9 +76,15 @@ namespace ps2::synaptics {
     constexpr u8 SYN_W_FINGER_MIN = 4; // Minimum W for a single finger
     constexpr u8 SYN_W_PALM_THRESHOLD = 10; // Heuristic: W >= this → likely palm
 
-    constexpr u8 SYN_EW_CODE_SCROLL = 0; // Wheel encoder deltas
-    constexpr u8 SYN_EW_CODE_SECOND_FINGER = 1; // Secondary finger X/Y/Z
-    constexpr u8 SYN_EW_CODE_FINGER_STATE = 2; // Finger count / index
+    // ============================================================================
+    // EXTENDED W PACKETS
+    // ============================================================================
+
+    enum SYNAPTICS_EW_PACKET_TYPE : u8 {
+        SYNAPTICS_EW_PACKET_SCROLL = 0,
+        SYNAPTICS_EW_PACKET_SECOND_FINGER = 1,
+        SYNAPTICS_EW_PACKET_FINGER_STATE = 2,
+    };
 
     // Absolute packet synchronization guards
     // For layout see Synaptics PS/2 TouchPad Interfacing Guide page 23
@@ -85,8 +94,7 @@ namespace ps2::synaptics {
 
     // Pressure (Z) thresholds
     constexpr u8 SYN_Z_FINGER_DOWN = 25; // Minimum Z to count as finger contact
-    constexpr u8 SYN_Z_PALM_MIN = 200; // Z above this → probable palm
-
+    constexpr u8 SYN_Z_PALM_MIN = 180; // Z above this → probable palm
 
     enum class SYNAPTICS_GEOMETRY : u8 {
         UNKNOWN = 0,
@@ -97,10 +105,11 @@ namespace ps2::synaptics {
     };
 
     struct SYNAPTICS_IDENTIFY_FIELDS {
-        u8 info_minor;
-        u8 magic; // Byte 2 (sollte 0x47 sein)
-        u8 info_major : 4; // Bits 0-3
-        u8 info_model_code : 4; // Bits 4-7
+        u8 minor_version;
+        u8 magic; // Expected: 0x47
+
+        u8 major_version : 4;
+        u8 model_code : 4;
     } __attribute__((packed));
 
     union SYNAPTICS_IDENTIFY_RESPONSE {
@@ -108,65 +117,76 @@ namespace ps2::synaptics {
         SYNAPTICS_IDENTIFY_FIELDS fields;
     } __attribute__((packed));
 
-    struct SYNAPTICS_CAPABILITIES_BYTE1 {
-        u8 reserved1 : 2; // bits 1:0  (Reserved)
-        u8 cap_middle_button : 1; // bit 2     (capMiddleButton)
-        u8 reserved2 : 1; // bit 3     (Reserved)
-        u8 n_extended_queries : 3; // bits 6:4  (nExtendedQueries)
-        u8 cap_extended : 1; // bit 7     (capExtended)
-    } __attribute__((packed));
 
-    struct SYNAPTICS_CAPABILITIES_BYTE3 {
-        u8 cap_palm_detect : 1; // Bit 0
-        u8 cap_multi_finger : 1; // Bit 1
-        u8 cap_ballistics : 1; // Bit 2
-        u8 cap_four_buttons : 1; // Bit 3
-        u8 cap_sleep : 1; // Bit 4
-        u8 cap_multi_finger_report : 1; // Bit 5
-        u8 cap_low_power : 1; // Bit 6
-        u8 cap_pass_through : 1; // Bit 7
-    } __attribute__((packed));
+    // ============================================================================
+    // CAPABILITIES
+    // ============================================================================
 
-    // Layout for FW >= 7.5 (Fig 4-7)
-    struct SYNAPTICS_CAPABILITIES_NEW {
-        SYNAPTICS_CAPABILITIES_BYTE1 byte1;
-        u8 model_sub_number;
-        SYNAPTICS_CAPABILITIES_BYTE3 byte3;
-    } __attribute__((packed));
-
-    // Layout for FW < 7.5 (Fig 4-8)
-    struct SYNAPTICS_CAPABILITIES_OLD {
+    struct SYNAPTICS_CAPABILITIES_BYTE0_NEW {
+        u8 reserved0 : 2;
+        u8 has_middle_button : 1;
         u8 reserved1 : 1;
-        u8 n_extended_queries : 3;
-        u8 cap_extended : 1;
-        u8 cap_middle_button : 1;
-        u8 reserved2 : 2;
-        u8 magic; // Fixer Wert 0x47
-        SYNAPTICS_CAPABILITIES_BYTE3 byte3;
+        u8 num_ext_queries : 3;
+        u8 has_extended_caps : 1;
+    } __attribute__((packed));
+
+    struct SYNAPTICS_CAPABILITIES_BYTE2 {
+        u8 has_palm_detect : 1;
+        u8 has_multi_finger : 1;
+        u8 has_ballistics : 1;
+        u8 has_four_buttons : 1;
+        u8 has_sleep_mode : 1;
+        u8 has_multi_finger_report : 1;
+        u8 has_low_power_mode : 1;
+        u8 has_pass_through : 1;
+    } __attribute__((packed));
+
+    struct SYNAPTICS_CAPABILITIES_NEW {
+        SYNAPTICS_CAPABILITIES_BYTE0_NEW byte0;
+        u8 model_sub_number;
+        SYNAPTICS_CAPABILITIES_BYTE2 byte2;
+    } __attribute__((packed));
+
+    struct SYNAPTICS_CAPABILITIES_OLD {
+        u8 reserved0 : 1;
+        u8 num_ext_queries : 3;
+        u8 has_extended_caps : 1;
+        u8 has_middle_button : 1;
+        u8 reserved1 : 2;
+
+        u8 magic; // Expected: 0x47
+
+        SYNAPTICS_CAPABILITIES_BYTE2 byte2;
     } __attribute__((packed));
 
     union SYNAPTICS_CAPABILITIES_RESPONSE {
         u8 raw[3];
-        SYNAPTICS_CAPABILITIES_NEW c_new;
-        SYNAPTICS_CAPABILITIES_OLD c_old;
+
+        SYNAPTICS_CAPABILITIES_NEW modern;
+        SYNAPTICS_CAPABILITIES_OLD legacy;
     } __attribute__((packed));
 
+
+    // ============================================================================
+    // MODEL ID
+    // ============================================================================
+
     struct SYNAPTICS_MODEL_ID_FIELDS {
+        // Byte 0
+        u8 sensor_type : 6;
+        u8 supports_portrait : 1;
+        u8 supports_rot180 : 1;
+
         // Byte 1
-        u8 info_sensor : 6; // Bits 16-21
-        u8 info_portrait : 1; // Bit 22
-        u8 info_rot180 : 1; // Bit 23
+        u8 reserved0 : 1;
+        u8 hardware_revision : 7;
 
         // Byte 2
-        u8 reserved3 : 1; // Bit 8
-        u8 info_hardware : 7; // Bits 9-15
-
-        // Byte 3
-        SYNAPTICS_GEOMETRY info_geometry : 4; // Bits 0-3
-        u8 reserved1 : 1; // Bit 4
-        u8 info_simple_cmd : 1; // Bit 5
-        u8 reserved2 : 1; // Bit 6
-        u8 info_new_abs : 1; // Bit 7
+        SYNAPTICS_GEOMETRY geometry : 4;
+        u8 reserved1 : 1;
+        u8 supports_simple_cmd : 1;
+        u8 reserved2 : 1;
+        u8 supports_new_abs : 1;
     } __attribute__((packed));
 
     union SYNAPTICS_MODEL_ID_RESPONSE {
@@ -174,32 +194,256 @@ namespace ps2::synaptics {
         SYNAPTICS_MODEL_ID_FIELDS fields;
     } __attribute__((packed));
 
+
+    // ============================================================================
+    // EXTENDED MODEL
+    // ============================================================================
+
     struct SYNAPTICS_EXT_MODEL_BYTE0 {
-        u8 vertical_scroll : 1; // bit 16
-        u8 horizontal_scroll : 1; // bit 17
-        u8 ext_w_mode : 1; // bit 18
-        u8 vertical_wheel : 1; // bit 19
-        u8 glass_pass : 1; // bit 20
-        u8 peak_detect : 1; // bit 21
-        u8 light_control : 1; // bit 22
-        u8 reserved : 1; // bit 23
+        u8 has_vertical_scroll : 1;
+        u8 has_horizontal_scroll : 1;
+        u8 supports_ext_w_mode : 1;
+        u8 has_vertical_wheel : 1;
+        u8 has_glass_pass : 1;
+        u8 has_peak_detect : 1;
+        u8 has_light_control : 1;
+        u8 reserved : 1;
     } __attribute__((packed));
 
     struct SYNAPTICS_EXT_MODEL_BYTE1 {
-        u8 reserved : 2; // bits 9..8
-        u8 info_sensor_ext : 2; // bits 11..10
-        u8 n_extended_buttons : 4; // bits 15..12
+        u8 reserved : 2;
+        u8 ext_sensor_type : 2;
+        u8 num_ext_buttons : 4;
+    } __attribute__((packed));
+
+    struct SYNAPTICS_EXT_MODEL_FIELDS {
+        SYNAPTICS_EXT_MODEL_BYTE0 byte0;
+        SYNAPTICS_EXT_MODEL_BYTE1 byte1;
+        u8 product_id;
     } __attribute__((packed));
 
     union SYNAPTICS_EXT_MODEL_RESPONSE {
         u8 raw[3];
-
-        struct {
-            SYNAPTICS_EXT_MODEL_BYTE0 byte0;
-            SYNAPTICS_EXT_MODEL_BYTE1 byte1;
-            u8 product_id;
-        } __attribute__((packed)) fields;
+        SYNAPTICS_EXT_MODEL_FIELDS fields;
     } __attribute__((packed));
+
+    // ============================================================================
+    // CONTINUED CAPS
+    // ============================================================================
+
+    struct SYNAPTICS_CONTINUED_CAPS_BYTE0 {
+        u8 tb_adj_thresh : 1; // Bit 0
+        u8 reports_max : 1; // Bit 1
+        u8 clear_pad : 1; // Bit 2
+        u8 advanced_gestures : 1; // Bit 3
+        u8 clk_pad_bit0 : 1; // Bit 4
+        u8 multi_finger_mode : 2; // Bits 6:5
+        u8 covered_pad_gest : 1; // Bit 7
+    } __attribute__((packed));
+
+    struct SYNAPTICS_CONTINUED_CAPS_BYTE1 {
+        u8 clk_pad_bit1 : 1; // Bit 0
+        u8 deluxe_leds : 1; // Bit 1
+        u8 no_abs_pos_filt : 1; // Bit 2
+        u8 reports_v : 1; // Bit 3
+        u8 uniform_clk_pad : 1; // Bit 4
+        u8 reports_min : 1; // Bit 5
+        u8 inter_touch : 1; // Bit 6
+        u8 reserved : 1; // Bit 7
+    } __attribute__((packed));
+
+    union SYNAPTICS_CONTINUED_CAPS_RESPONSE {
+        struct {
+            SYNAPTICS_CONTINUED_CAPS_BYTE0 byte0;
+            SYNAPTICS_CONTINUED_CAPS_BYTE1 byte1;
+            u8 inter_touch_i2c_addr; // Byte 2: InterTouch I²C address
+        } __attribute__((packed));
+
+        u8 raw[3];
+    } __attribute__((packed));
+
+    // ============================================================================
+    // COORDINATE RANGE (Queries $0D / $0F)
+    // ============================================================================
+
+    struct SYNAPTICS_COORD_RESPONSE_FIELDS {
+    } __attribute__((packed));
+
+    union SYNAPTICS_COORD_RESPONSE {
+        struct {
+            u8 x_hi; // X coordinate bits [12:5]
+
+            u8 y_lo : 4; // Y[4:1]
+            u8 x_lo : 4; // X[4:1]
+
+            u8 y_hi; // Y coordinate bits [12:5]
+        }__attribute__((packed));;
+
+        u8 raw[3];
+
+        [[nodiscard]] constexpr u16 x() const {
+            return (static_cast<u16>(x_hi) << 4) | static_cast<u16>(x_lo);
+        }
+
+        [[nodiscard]] constexpr u16 y() const {
+            return (static_cast<u16>(y_hi) << 4) | static_cast<u16>(y_lo);
+        }
+    } __attribute__((packed));
+
+
+    // ============================================================================
+    // STANDARD MOTION PACKET
+    // ============================================================================
+
+    struct SYNAPTICS_PACKET_BYTE0 {
+        u8 left_button : 1;
+        u8 right_button : 1;
+        u8 w_bit1 : 1;
+        u8 sync0 : 1; // Always 0
+        u8 w_bits3_2 : 2;
+        u8 sync1 : 2; // Always 01
+    } __attribute__((packed));
+
+    struct SYNAPTICS_MOTION_BYTE1 {
+        u8 x_pos_11_8 : 4;
+        u8 y_pos_11_8 : 4;
+    } __attribute__((packed));
+
+    struct SYNAPTICS_MOTION_BYTE3 {
+        u8 ext_left_up : 1;
+        u8 ext_right_down : 1;
+        u8 w_bit0 : 1;
+        u8 sync0 : 1; // Always 0
+        u8 x_pos_12 : 1;
+        u8 y_pos_12 : 1;
+        u8 sync1 : 2; // Always 11
+    } __attribute__((packed));
+
+    union SYNAPTICS_MOTION_PACKET {
+        struct {
+            SYNAPTICS_PACKET_BYTE0 byte0;
+            SYNAPTICS_MOTION_BYTE1 byte1;
+
+            u8 pressure_z;
+
+            SYNAPTICS_MOTION_BYTE3 byte3;
+
+            u8 x_pos_7_0;
+            u8 y_pos_7_0;
+        }__attribute__((packed));
+
+        u8 raw[6];
+    } __attribute__((packed));
+
+    // ----------------------------------------------------------------------------
+    // EW TYPE 0 - Scroll Packet
+    // ----------------------------------------------------------------------------
+
+    union SYNAPTICS_EW_SCROLL_PACKET {
+        struct {
+            SYNAPTICS_PACKET_BYTE0 byte0;
+
+            i8 wheel1_delta;
+            i8 wheel2_delta;
+
+            u8 ext_left_button : 1;
+            u8 ext_right_button : 1;
+            u8 sync0 : 2;
+            u8 wheel4_hi : 2;
+            u8 sync1 : 2;
+
+            i8 wheel3_delta;
+
+            u8 wheel4_lo : 4;
+            SYNAPTICS_EW_PACKET_TYPE type : 4; // 0
+        }__attribute__((packed));
+
+        u8 raw[6];
+    } __attribute__((packed));
+
+
+    // ----------------------------------------------------------------------------
+    // EW TYPE 1 - Secondary Finger Packet
+    // ----------------------------------------------------------------------------
+
+    union SYNAPTICS_EW_SECOND_FINGER_PACKET {
+        struct {
+            SYNAPTICS_PACKET_BYTE0 byte0;
+
+            u8 x_pos_lo;
+            u8 y_pos_lo;
+
+            u8 ext_left_button : 1;
+            u8 ext_right_button : 1;
+            u8 sync0 : 2;
+            u8 z_hi : 2;
+            u8 sync1 : 2;
+
+            u8 x_pos_hi : 4;
+            u8 y_pos_hi : 4;
+
+            u8 z_lo : 4;
+            SYNAPTICS_EW_PACKET_TYPE type : 4; // 1
+        }__attribute__((packed));
+
+        u8 raw[6];
+    } __attribute__((packed));
+
+
+    // ----------------------------------------------------------------------------
+    // EW TYPE 2 - Finger State Packet
+    // ----------------------------------------------------------------------------
+
+    union SYNAPTICS_EW_FINGER_STATE_PACKET {
+        struct {
+            ;
+            SYNAPTICS_PACKET_BYTE0 byte0;
+
+            u8 finger_count : 4;
+            u8 reserved0 : 4;
+
+            u8 primary_finger_index;
+
+            u8 middle_left_button : 1;
+            u8 down_right_button : 1;
+            u8 sync0 : 2;
+            u8 reserved1 : 2;
+            u8 sync1 : 2;
+
+            u8 secondary_finger_index;
+
+            u8 reserved2 : 4;
+            SYNAPTICS_EW_PACKET_TYPE type : 4; // 2
+        }__attribute__((packed));
+
+        u8 raw[6];
+    } __attribute__((packed));
+
+
+    // ----------------------------------------------------------------------------
+    // Generic EW Packet View
+    // ----------------------------------------------------------------------------
+
+    union SYNAPTICS_EW_PACKET {
+        SYNAPTICS_EW_SCROLL_PACKET scroll;
+        SYNAPTICS_EW_SECOND_FINGER_PACKET second_finger;
+        SYNAPTICS_EW_FINGER_STATE_PACKET finger_state;
+        u8 raw[6];
+    } __attribute__((packed));
+
+
+    // ============================================================================
+    // TOP-LEVEL MOTION PACKET
+    // ============================================================================
+
+    union SYNAPTICS_PACKET {
+        u8 raw[6];
+
+        SYNAPTICS_MOTION_PACKET motion;
+        SYNAPTICS_EW_PACKET extended_w;
+    } __attribute__((packed));
+
+    static_assert(sizeof(SYNAPTICS_PACKET) == 6);
 
 
     struct SynapticsInfo {
@@ -209,6 +453,11 @@ namespace ps2::synaptics {
         SYNAPTICS_EXT_MODEL_RESPONSE ext_model;
         u8 firmware_major;
         u8 firmware_minor;
+
+        bool has_coord_bounds;
+        u16 x_min, x_max;
+        u16 y_min, y_max;
+        u16 soft_button_split_x; // x_min + (x_max - x_min) / 2
 
         bool has_passthrough;
         bool has_multi_finger;
@@ -222,11 +471,7 @@ namespace ps2::synaptics {
      */
     [[nodiscard]] bool probe(SynapticsInfo* out_info);
 
-    /**
-     * Forwards a single command byte to the TrackPoint via the Synaptics
-     * pass-through tunnel (sliced SET_SAMPLE_RATE / 0x28 commit sequence).
-     */
-    bool tunnel_cmd(u8 cmd);
+    bool initialize_guest();
 
     /**
      * Switches the touchpad to the specified reporting mode.

@@ -37,9 +37,16 @@ namespace ps2::synaptics {
     static bool g_has_ew_mode = false; // Cached from SynapticsInfo at set_mode time
     static bool g_has_multi = false;
     static bool g_has_palm = false;
+    static bool g_has_passthrough = false; // Whether a guest device was found
 
-    static u8 g_buf[6]{};
+    static u16 g_x_min = 1472, g_x_max = 5472;
+    static u16 g_y_min = 1408, g_y_max = 4448;
+    static u16 g_soft_split_x = 1472 + (5472 - 1472) / 2;
+    static bool g_soft_button_down = false;
+
+    static SYNAPTICS_PACKET g_pkt{};
     static u8 g_cycle = 0;
+    static u8 g_sync_fail_count = 0; // Consecutive byte-0 sync failures
 
     // Cursor position shared by touchpad and TrackPoint dispatchers
     static u32 g_cursor_x = 0;
@@ -52,6 +59,34 @@ namespace ps2::synaptics {
     static bool g_tp_first_packet = true;
 
     namespace {
+        // ── read_encapsulation_packet ─────────────────────────────────────────
+        // Reads a single 6-byte W=3 encapsulation packet from the AUX port
+        // (spec §5.1.5, Figure 5-3) and extracts the four guest payload bytes.
+        //
+        // Encapsulation layout:
+        //   enc[0]  host status  (bits: 1,0,0,0,0,1,R,L)
+        //   enc[1]  Guest packet byte 1   ← primary response byte (usually $FA)
+        //   enc[2]  Guest packet byte 4   (= $00 for 3-byte guests)
+        //   enc[3]  host status  (bits: 1,1,rsvd,0,1,rsvd,R,L)
+        //   enc[4]  Guest packet byte 2
+        //   enc[5]  Guest packet byte 3
+        //
+        // Returns false if any byte times out.
+        // ─────────────────────────────────────────────────────────────────────
+        bool read_encapsulation_packet(u8 out_guest[4]) {
+            u8 enc[6];
+            for (unsigned char & i : enc) {
+                i8042::wait_read();
+                i = inb(DATA_PORT);
+            }
+            // Reconstruct the original guest packet bytes in canonical order
+            out_guest[0] = enc[1]; // byte 1 of guest packet
+            out_guest[1] = enc[4]; // byte 2
+            out_guest[2] = enc[5]; // byte 3
+            out_guest[3] = enc[2]; // byte 4 ($00 for 3-byte guests)
+            return true;
+        }
+
         bool synaptics_query(const u8 query, u8 out[3]) {
             if (!i8042::aux_sliced_cmd(query)) return false;
             if (!i8042::aux_send(CMD_STATUS_REQUEST)) return false;
@@ -83,13 +118,10 @@ namespace ps2::synaptics {
             return major > req_major || (major == req_major && minor >= req_minor);
         }
 
-        // ── W-field extraction (spec §3.2.6, New-Absolute packet layout) ────
-        //
-        //   buf[0] bits [4:3] → W[2:1]
-        //   buf[3] bit  [2]   → W[0]
-        //
-        u8 extract_w(const u8* buf) {
-            return (((buf[0] >> 2) & 0x06) | ((buf[3] >> 2) & 0x01));
+        u8 extract_w(const SYNAPTICS_PACKET* pkt) {
+            return (pkt->motion.byte0.w_bits3_2 << 2) |
+                (pkt->motion.byte0.w_bit1 << 1) |
+                pkt->motion.byte3.w_bit0;
         }
 
         void emit_mouse_event(const i32 dx, const i32 dy,
@@ -110,17 +142,40 @@ namespace ps2::synaptics {
         }
 
         // ── Button mask from buf[0] (applies to all absolute packet types) ────
-        kernel::input::MouseButtonMask buttons_from_byte0(const u8 b) {
+        kernel::input::MouseButtonMask buttons_from_byte0(const SYNAPTICS_PACKET_BYTE0 b) {
             kernel::input::MouseButtonMask m = 0;
-            if (b & 0x01) m |= static_cast<u8>(kernel::input::MouseButton::LEFT);
-            if (b & 0x02) m |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
+            if (b.left_button) m |= static_cast<u8>(kernel::input::MouseButton::LEFT);
+            if (b.right_button) m |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
             return m;
         }
 
-        void dispatch_trackpoint(const u8* buf) {
-            const u8 status = buf[1];
-            const u8 raw_dx = buf[4];
-            const u8 raw_dy = buf[5];
+        kernel::input::MouseButtonMask buttons_with_soft_click
+        (
+            const SYNAPTICS_PACKET_BYTE0 byte0,
+            const SYNAPTICS_MOTION_BYTE3 byte3,
+            const u32 x
+        ) {
+            kernel::input::MouseButtonMask buttons = buttons_from_byte0(byte0);
+            if (byte3.ext_left_up) {
+                g_soft_button_down = true;
+
+                if (x < g_soft_split_x)
+                    buttons |= static_cast<u8>(kernel::input::MouseButton::LEFT);
+                else
+                    buttons |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
+            }
+            else if (g_soft_button_down) {
+                g_soft_button_down = false;
+                emit_mouse_event(0, 0, 0, 0);
+            }
+
+            return buttons;
+        }
+
+        void dispatch_trackpoint(const SYNAPTICS_PACKET* pkt) {
+            const u8 status = pkt->raw[1];
+            const u8 raw_dx = pkt->raw[4];
+            const u8 raw_dy = pkt->raw[5];
 
             // Discard if either overflow flag is set
             if ((status & 0x40) || (status & 0x80)) return;
@@ -145,17 +200,17 @@ namespace ps2::synaptics {
             emit_mouse_event(dx, dy, 0, buttons);
         }
 
-        void dispatch_two_finger_scroll(const u8* buf) {
+        void dispatch_two_finger_scroll(const SYNAPTICS_MOTION_PACKET* pkt) {
             // Re-use the same X/Y coordinate extraction as the single-finger path.
-            const u32 x = (static_cast<u32>(buf[3] & 0x10) << 8)
-                | (static_cast<u32>(buf[1] & 0x0F) << 8)
-                | static_cast<u32>(buf[4]);
+            const u32 x = (static_cast<u32>(pkt->byte3.x_pos_12) << 12)
+                | (static_cast<u32>(pkt->byte1.x_pos_11_8) << 8)
+                | static_cast<u32>(pkt->x_pos_7_0);
 
-            const u32 y = (static_cast<u32>(buf[3] & 0x20) << 7)
-                | (static_cast<u32>(buf[1] & 0xF0) << 4)
-                | static_cast<u32>(buf[5]);
+            const u32 y = (static_cast<u32>(pkt->byte3.y_pos_12) << 12)
+                | (static_cast<u32>(pkt->byte1.y_pos_11_8) << 8)
+                | static_cast<u32>(pkt->y_pos_7_0);
 
-            const u8 pressure = buf[2];
+            const u8 pressure = pkt->pressure_z;
 
             if (pressure < SYN_Z_FINGER_DOWN) {
                 g_tp_first_packet = true;
@@ -185,41 +240,44 @@ namespace ps2::synaptics {
             if (wheel == 0) return;
 
             ensure_cursor_init();
-            const auto buttons = buttons_from_byte0(buf[0]);
+            const auto buttons = buttons_with_soft_click(pkt->byte0, pkt->byte3, x);
             emit_mouse_event(0, 0, wheel, buttons);
         }
 
-        void dispatch_ew_scroll(const u8* buf) {
-            const i8 wheel = static_cast<i8>(buf[1]);
+        void dispatch_ew_scroll(const SYNAPTICS_EW_SCROLL_PACKET* pkt) {
+            const i8 wheel = pkt->wheel1_delta;
             if (wheel == 0) return;
 
             ensure_cursor_init();
-            const auto buttons = buttons_from_byte0(buf[0]);
+            const auto buttons = buttons_from_byte0(pkt->byte0);
             emit_mouse_event(0, 0, wheel, buttons);
         }
 
+        void dispatch_touchpad_abs(const SYNAPTICS_MOTION_PACKET* pkt, const u8 w) {
+            const u32 x = (static_cast<u32>(pkt->byte3.x_pos_12) << 12)
+                | (static_cast<u32>(pkt->byte1.x_pos_11_8) << 8)
+                | static_cast<u32>(pkt->x_pos_7_0);
 
-        void dispatch_touchpad_abs(const u8* buf, const u8 w) {
-            const u32 x = (static_cast<u32>(buf[3] & 0x10) << 8)
-                | (static_cast<u32>(buf[1] & 0x0F) << 8)
-                | static_cast<u32>(buf[4]);
+            const u32 y = (static_cast<u32>(pkt->byte3.y_pos_12) << 12)
+                | (static_cast<u32>(pkt->byte1.y_pos_11_8) << 8)
+                | static_cast<u32>(pkt->y_pos_7_0);
 
-            const u32 y = (static_cast<u32>(buf[3] & 0x20) << 7)
-                | (static_cast<u32>(buf[1] & 0xF0) << 4)
-                | static_cast<u32>(buf[5]);
+            const u8 pressure = pkt->pressure_z;
 
-            const u8 pressure = buf[2];
 
             // Lift detection
             if (pressure < SYN_Z_FINGER_DOWN) {
+                if (g_soft_button_down) {
+                    g_soft_button_down = false;
+                    emit_mouse_event(0, 0, 0, 0);
+                }
                 g_tp_first_packet = true;
                 return;
             }
 
             // Palm rejection: wide contact + high pressure → ignore.
             // Only meaningful when capPalmDetect is set (W carries width).
-            if (g_has_palm && w >= SYN_W_PALM_THRESHOLD && pressure > SYN_Z_PALM_MIN)
-                return;
+            if (g_has_palm && w >= SYN_W_PALM_THRESHOLD && pressure > SYN_Z_PALM_MIN) return;
 
             // Anchor first contact; do not emit a delta yet.
             if (g_tp_first_packet) {
@@ -241,7 +299,7 @@ namespace ps2::synaptics {
             const i32 cdx = dx / TOUCHPAD_DIVISOR;
             const i32 cdy = dy / TOUCHPAD_DIVISOR;
 
-            const auto buttons = buttons_from_byte0(buf[0]);
+            const auto buttons = buttons_with_soft_click(pkt->byte0, pkt->byte3, x);
 
             if (cdx == 0 && cdy == 0 && !buttons) return;
 
@@ -254,44 +312,40 @@ namespace ps2::synaptics {
             emit_mouse_event(cdx, cdy, 0, buttons);
         }
 
-        void dispatch_packet(const u8* buf) {
-            const u8 w = extract_w(buf);
+        void dispatch_packet(const SYNAPTICS_PACKET* pkt) {
+            const u8 w = extract_w(pkt);
 
             switch (w) {
             case SYN_W_PASSTHROUGH:
-                // W=3 → TrackPoint encapsulation (spec §5.1)
-                dispatch_trackpoint(buf);
+                dispatch_trackpoint(pkt);
                 return;
 
             case SYN_W_EW_PACKET:
                 // W=2 → Extended W encapsulation (spec §3.2.9), only if capEWmode
                 if (g_has_ew_mode) {
-                    const u8 ew_code = (buf[5] >> 4) & 0x0F;
-                    if (ew_code == SYN_EW_CODE_SCROLL) {
-                        dispatch_ew_scroll(buf);
+                    if (pkt->extended_w.scroll.type == SYNAPTICS_EW_PACKET_SCROLL) {
+                        dispatch_ew_scroll(&pkt->extended_w.scroll);
                     }
                     // SYN_EW_CODE_SECOND_FINGER and SYN_EW_CODE_FINGER_STATE are
                     // not handled; we silently drop them.
                 }
                 return;
 
-            case SYN_W_TWO_FINGERS: // fall-through
+            case SYN_W_TWO_FINGERS:
             case SYN_W_THREE_FINGERS:
                 // W=0/1 → multi-finger; treat as two-finger scroll when capMultiFinger
                 if (g_has_multi) {
-                    dispatch_two_finger_scroll(buf);
+                    dispatch_two_finger_scroll(&pkt->motion);
                 }
                 else {
                     // Pad without capMultiFinger still sends W=0/1 but means nothing
                     // useful – fall back to single-finger cursor movement.
-                    dispatch_touchpad_abs(buf, w);
+                    dispatch_touchpad_abs(&pkt->motion, w);
                 }
                 return;
 
             default:
-                // W=4..15 → single finger (width field when capPalmDetect)
-                dispatch_touchpad_abs(buf, w);
-                return;
+                dispatch_touchpad_abs(&pkt->motion, w);
             }
         }
     } // anonymous namespace
@@ -302,46 +356,104 @@ namespace ps2::synaptics {
         if (!synaptics_query(SYN_QUE_IDENTIFY, out_info->identity.raw)) return false;
         if (out_info->identity.fields.magic != SYN_IDENTITY_MAGIC) return false;
 
-        out_info->firmware_major = out_info->identity.fields.info_major;
-        out_info->firmware_minor = out_info->identity.fields.info_minor;
+        out_info->firmware_major = out_info->identity.fields.major_version;
+        out_info->firmware_minor = out_info->identity.fields.minor_version;
 
         if (!synaptics_query(SYN_QUE_CAPABILITIES, out_info->capabilities.raw)) return false;
 
         // Capability byte layout differs between firmware versions (spec §4.4)
         const bool new_caps = firmware_at_least(out_info->firmware_major,
                                                 out_info->firmware_minor, 7, 5);
-        const auto& b3 = new_caps
-                             ? out_info->capabilities.c_new.byte3
-                             : out_info->capabilities.c_old.byte3;
 
-        out_info->has_passthrough = b3.cap_pass_through;
-        out_info->has_multi_finger = b3.cap_multi_finger;
-        out_info->has_palm_detect = b3.cap_palm_detect;
+        const auto& b3 = new_caps
+                             ? out_info->capabilities.modern.byte2
+                             : out_info->capabilities.legacy.byte2;
+
+        out_info->has_passthrough = b3.has_pass_through;
+        out_info->has_multi_finger = b3.has_multi_finger;
+        out_info->has_palm_detect = b3.has_palm_detect;
 
         if (!synaptics_query(SYN_QUE_MODEL_ID, out_info->model_id.raw)) return false;
 
         // Extended Model ID query is available when nExtendedQueries >= 1 (query 0x09)
         const u8 n_ext = new_caps
-                             ? out_info->capabilities.c_new.byte1.n_extended_queries
-                             : out_info->capabilities.c_old.n_extended_queries;
+                             ? out_info->capabilities.modern.byte0.num_ext_queries
+                             : out_info->capabilities.legacy.num_ext_queries;
 
         out_info->has_ew_mode = false;
         if (n_ext >= 1) {
             if (synaptics_query(SYN_QUE_EXTENDED_MODEL, out_info->ext_model.raw)) {
-                out_info->has_ew_mode = (out_info->ext_model.fields.byte0.ext_w_mode != 0);
+                out_info->has_ew_mode = (out_info->ext_model.fields.byte0.supports_ext_w_mode != 0);
             }
         }
+
+        bool reports_max = false;
+        bool reports_min = false;
+        if (n_ext >= 4) {
+            SYNAPTICS_CONTINUED_CAPS_RESPONSE cont_caps{};
+            if (synaptics_query(SYN_QUE_CONTINUED_CAPS, cont_caps.raw)) {
+                reports_max = cont_caps.byte0.reports_max != 0;
+                reports_min = cont_caps.byte1.reports_min != 0;
+            }
+        }
+
+        out_info->has_coord_bounds = false;
+        out_info->x_min = 0;
+        out_info->x_max = 6143;
+        out_info->y_min = 0;
+        out_info->y_max = 4767;
+
+        if (reports_max) {
+            SYNAPTICS_COORD_RESPONSE resp{};
+            if (synaptics_query(SYN_QUE_MAX_COORDS, resp.raw)) {
+                out_info->x_max = resp.x();
+                out_info->y_max = resp.y();
+                out_info->has_coord_bounds = true;
+            }
+        }
+        if (reports_min) {
+            SYNAPTICS_COORD_RESPONSE resp{};
+            if (synaptics_query(SYN_QUE_MIN_COORDS, resp.raw)) {
+                out_info->x_min = resp.x();
+                out_info->y_min = resp.y();
+                out_info->has_coord_bounds = true;
+            }
+        }
+
+        out_info->soft_button_split_x = out_info->x_min + (out_info->x_max - out_info->x_min) / 2;
 
         return true;
     }
 
-    bool tunnel_cmd(const u8 cmd) {
-        if (!i8042::aux_send(CMD_DISABLE)) return false;
-        if (!i8042::aux_sliced_cmd(cmd)) return false;
-        if (!i8042::aux_send(CMD_SET_SAMPLE_RATE)) return false;
-        if (!i8042::aux_send(SYN_SAMPLE_RATE_TUNNEL_COMMIT)) return false;
-        i8042::drain();
-        if (!i8042::aux_send(CMD_ENABLE)) return false;
+    i32 tunnel_cmd_ex(const u8 cmd) {
+        if (!i8042::aux_send(CMD_DISABLE)) return -1;
+        if (!i8042::aux_sliced_cmd(cmd)) return -1;
+        if (!i8042::aux_send(CMD_SET_SAMPLE_RATE)) return -1;
+        if (!i8042::aux_send(SYN_SAMPLE_RATE_TUNNEL_COMMIT)) return -1;
+
+        u8 guest_payload[4]{};
+        if (!read_encapsulation_packet(guest_payload)) {
+            return -1;
+        }
+
+        if (!i8042::aux_send(CMD_ENABLE)) return -1;
+
+        return guest_payload[0];
+    }
+
+    bool initialize_guest() {
+        i32 device_id = tunnel_cmd_ex(CMD_GET_DEVICE_ID);
+        if (device_id < 0) {
+            return false;
+        }
+
+        // 2. Guest-Gerät (TrackPoint) über den $F4-Tunnel (CMD_ENABLE) aktivieren
+        i32 ack = tunnel_cmd_ex(CMD_ENABLE);
+        if (ack < 0) {
+            return false;
+        }
+
+        g_has_passthrough = true;
         return true;
     }
 
@@ -365,6 +477,11 @@ namespace ps2::synaptics {
         g_has_ew_mode = info.has_ew_mode;
         g_has_multi = info.has_multi_finger;
         g_has_palm = info.has_palm_detect;
+        g_x_min = info.x_min;
+        g_x_max = info.x_max;
+        g_y_min = info.y_min;
+        g_y_max = info.y_max;
+        g_soft_split_x = info.soft_button_split_x;
     }
 
     void handle_byte(const u8 data) {
@@ -378,16 +495,19 @@ namespace ps2::synaptics {
             if ((data & SYN_SYNC_MASK) != SYN_BYTE3_SYNC) {
                 // De-sync: reset and try to recover from this byte
                 g_cycle = 0;
-                if ((data & SYN_SYNC_MASK) == SYN_BYTE0_SYNC)
-                    g_buf[g_cycle++] = data;
+
+                if ((data & SYN_SYNC_MASK) == SYN_BYTE0_SYNC) {
+                    g_pkt.raw[g_cycle++] = data;
+                }
                 return;
             }
         }
 
-        g_buf[g_cycle++] = data;
+        g_pkt.raw[g_cycle++] = data;
         if (g_cycle < 6) return;
 
         g_cycle = 0;
-        dispatch_packet(g_buf);
+
+        dispatch_packet(&g_pkt);
     }
 } // namespace ps2::synaptics
