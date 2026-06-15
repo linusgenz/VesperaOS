@@ -25,7 +25,9 @@
 #include <vespera/cpu/io.h>
 #include <vespera/graphics/display_manager.h>
 #include <vespera/input/mice_device.h>
-#include <vespera/system/system_manager.h>
+#include "../synaptics/synaptics_ps2.h"
+#include "ps2/i8042.h"
+#include "vespera/log.h"
 
 namespace {
     constexpr u8 PS2_LEFT_BUTTON = 0b00000001;
@@ -44,10 +46,6 @@ namespace {
     constexpr u8 PS2_MOUSE_ID_STANDARD = 0x00;
     constexpr u8 PS2_MOUSE_ID_INTELLIMOUSE = 0x03;
 
-    constexpr u8 PS2_ACK = 0xFA;
-    constexpr u8 PS2_RESEND = 0xFE;
-
-    constexpr u8 PS2_CMD_WRITE_MOUSE = 0xD4;
     constexpr u8 PS2_CMD_ENABLE_AUX_PORT = 0xA8;
     constexpr u8 PS2_CMD_READ_CONFIG_BYTE = 0x20;
     constexpr u8 PS2_CMD_WRITE_CONFIG_BYTE = 0x60;
@@ -61,51 +59,11 @@ namespace {
     constexpr u8 PS2_SAMPLE_RATE_100 = 100;
     constexpr u8 PS2_SAMPLE_RATE_80 = 80;
 
-    void wait_write() {
-        for (int i = 0; i < 100000; ++i) {
-            if ((inb(PS2_CMD_PORT) & 0x2) == 0) return;
-        }
-    }
-
-    void wait_read() {
-        for (int i = 0; i < 100000; ++i) {
-            if ((inb(PS2_CMD_PORT) & 0x1) == 1) return;
-        }
-    }
-
-    // Send a single byte to the mouse (via 0xD4 write-to-aux routing).
-    // Returns true if the mouse ACKed (0xFA). Discards the ACK so the
-    // caller does not have to.
-    bool send_mouse_cmd(const u8 byte) {
-        for (int retry = 0; retry < 3; ++retry) {
-            wait_write();
-            outb(PS2_CMD_PORT, 0xD4);
-            wait_write();
-            outb(PS2_DATA_PORT, byte);
-
-            wait_read();
-            u8 resp = inb(PS2_DATA_PORT);
-
-            if (resp == PS2_ACK)
-                return true;
-
-            if (resp != PS2_RESEND)
-                break;
-        }
-        return false;
-    }
-
-    void drain_output_buffer() {
-        for (int i = 0; i < 16; ++i) {
-            if ((inb(PS2_CMD_PORT) & 0x1) == 0) break;
-            inb(PS2_DATA_PORT);
-        }
-    }
 
     // Query the mouse device ID.  Returns the ID byte, or 0xFF on timeout.
     u8 query_device_id() {
-        send_mouse_cmd(PS2_MOUSE_GET_DEVICE_ID);
-        wait_read();
+        ps2::i8042::aux_send(PS2_MOUSE_GET_DEVICE_ID);
+        ps2::i8042::wait_read();
         return inb(PS2_DATA_PORT);
     }
 } // namespace
@@ -126,30 +84,30 @@ namespace ps2::mouse {
     void Ps2Mouse::init() {
         outb(PS2_CMD_PORT, PS2_CMD_ENABLE_AUX_PORT);
 
-        wait_write();
+        i8042::wait_write();
         outb(PS2_CMD_PORT, PS2_CMD_READ_CONFIG_BYTE);
-        wait_read();
+        i8042::wait_read();
 
         u8 status = inb(PS2_DATA_PORT);
         status |= 0b10;
 
-        wait_write();
+        i8042::wait_write();
         outb(PS2_CMD_PORT, PS2_CMD_WRITE_CONFIG_BYTE);
 
-        wait_write();
+        i8042::wait_write();
         outb(PS2_DATA_PORT, status);
 
-        send_mouse_cmd(PS2_MOUSE_SET_SAMPLE_RATE);
-        send_mouse_cmd(PS2_SAMPLE_RATE_200);
+        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
+        i8042::aux_send(PS2_SAMPLE_RATE_200);
 
-        send_mouse_cmd(PS2_MOUSE_SET_SAMPLE_RATE);
-        send_mouse_cmd(PS2_SAMPLE_RATE_100);
+        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
+        i8042::aux_send(PS2_SAMPLE_RATE_100);
 
-        send_mouse_cmd(PS2_MOUSE_SET_SAMPLE_RATE);
-        send_mouse_cmd(PS2_SAMPLE_RATE_80);
+        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
+        i8042::aux_send(PS2_SAMPLE_RATE_80);
 
-        send_mouse_cmd(PS2_MOUSE_SET_DEFAULTS);
-        send_mouse_cmd(PS2_MOUSE_ENABLE_REPORTING);
+        i8042::aux_send(PS2_MOUSE_SET_DEFAULTS);
+        i8042::aux_send(PS2_MOUSE_ENABLE_REPORTING);
 
         const u8 device_id = query_device_id();
 
@@ -160,13 +118,39 @@ namespace ps2::mouse {
             packet_size_ = 3;
         }
 
-        send_mouse_cmd(PS2_MOUSE_SET_SAMPLE_RATE);
-        send_mouse_cmd(PS2_SAMPLE_RATE_100);
+        i8042::aux_send(PS2_MOUSE_SET_SAMPLE_RATE);
+        i8042::aux_send(PS2_SAMPLE_RATE_100);
 
-        drain_output_buffer();
+        i8042::drain();
+
+        synaptics::SynapticsInfo syn_info{};
+        if (synaptics::probe(&syn_info)) {
+            // Synaptics pad found.  Switch to absolute + high-rate mode.
+            // Once set_mode() returns, every IRQ12 byte goes to
+            // synaptics::handle_byte() and Ps2Mouse::handle_byte() is bypassed.
+            if (synaptics::set_mode(synaptics::SYN_MODE_DEFAULT)) {
+                Log::ok("ps2: Synaptics touchpad initialized (firmware v%u.%u, absolute mode enabled)",
+                        syn_info.firmware_major, syn_info.firmware_minor);
+
+                if (syn_info.has_passthrough) {
+                    Log::info("ps2: Enabling TrackPoint via tunnel...");
+                    if (synaptics::tunnel_cmd(0xF4)) {
+                        Log::ok("ps2: TrackPoint enabled");
+                    } else {
+                        Log::error("ps2: Failed to enable TrackPoint");
+                    }
+                }
+            }
+        }
     }
 
     void Ps2Mouse::handle_byte(const u8 data) {
+        if (synaptics::is_active()) {
+            synaptics::handle_byte(data);
+            return;
+        }
+
+
         if (!first_byte_skipped_) {
             first_byte_skipped_ = true;
             return;
