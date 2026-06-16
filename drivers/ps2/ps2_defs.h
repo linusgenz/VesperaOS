@@ -45,6 +45,9 @@ namespace ps2 {
     constexpr u8 CMD_GET_DEVICE_ID      = 0xF2;
     constexpr u8 CMD_SET_SAMPLE_RATE    = 0xF3;
     constexpr u8 CMD_STATUS_REQUEST     = 0xE9; // Used in Synaptics sliced queries
+    constexpr u8 CMD_RESET              = 0xFF;
+
+    constexpr u8 PS2_RESP_SELF_TEST_PASS = 0xAA;
 
     // Sample rates
     constexpr u8 SAMPLE_RATE_200 = 200;

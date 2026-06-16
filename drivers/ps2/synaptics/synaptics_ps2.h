@@ -52,9 +52,9 @@ namespace ps2::synaptics {
     constexpr u8 SYN_MODE_EWMODE = 0x04;
     constexpr u8 SYN_MODE_WMODE = 0x01; // Report width and pressure
 
-    // Default mode: Absolute + High-Rate + Wmode.
-    // EWmode is OR'd in at runtime only if capEWmode is set.
-    constexpr u8 SYN_MODE_BASE = SYN_MODE_ABSOLUTE | SYN_MODE_HIGH_RATE | SYN_MODE_WMODE;
+    // Default mode: Absolute + High-Rate.
+    // EWmode and Wmode are OR'd in at runtime.
+    constexpr u8 SYN_MODE_BASE = SYN_MODE_ABSOLUTE | SYN_MODE_HIGH_RATE;
 
     // Synaptics sliced query codes
     constexpr u8 SYN_QUE_IDENTIFY = 0x00;
@@ -557,6 +557,30 @@ namespace ps2::synaptics {
      * Returns true if the Synaptics driver is active.
      */
     bool is_active();
+
+    /**
+     * Returns true if a spurious reset has been detected and the touchpad
+     * must be re-initialized.
+     *
+     * After a spurious reset (caused by a power brownout or ESD, per spec
+     * §2.4) the TouchPad silently reverts from Absolute to Relative mode,
+     * losing all mode-byte settings. This is detected in handle_byte() by
+     * accumulating consecutive Absolute-packet sync failures: Relative-mode
+     * byte 0 always has bit 3 = 1, which never matches SYN_BYTE0_SYNC.
+     */
+    [[nodiscard]] bool needs_recovery();
+
+    /**
+     * Re-initializes the TouchPad after a spurious reset (spec §2.4).
+     *
+     * Restores Absolute mode via the previously programmed mode byte, and
+     * re-enables the guest device (TrackPoint) if the pass-through port was
+     * active. Clears the needs_recovery() flag on success.
+     *
+     * Must NOT be called from IRQ context.
+     * Returns true on success.
+     */
+    bool recover();
 
     /**
      * Handles an incoming byte from the AUX port.

@@ -63,11 +63,19 @@ namespace ps2::synaptics {
 
         SYNAPTICS_PACKET pkt{};
         u8 cycle = 0;
+
+        u8 sync_fail_count = 0;
+        bool needs_reinit = false;
+
+        u8 current_mode = SYN_MODE_BASE;
     };
 
     static SynapticsState g;
 
     namespace {
+
+        constexpr u8 SPURIOUS_RESET_THRESHOLD = 5;
+
         static bool is_valid_encapsulation(const SYNAPTICS_PASSTHROUGH_PACKET& enc) {
             const auto& b0 = enc.byte0;
             const auto& b3 = enc.byte3;
@@ -510,6 +518,7 @@ namespace ps2::synaptics {
 
         if (!i8042::aux_send(SYN_SAMPLE_RATE_MODE_COMMIT)) return false;
 
+        g.current_mode = mode_byte;
         g.active = true;
         g.cycle = 0;
         g.tp_first_packet = true;
@@ -535,16 +544,61 @@ namespace ps2::synaptics {
         g.soft_split_x = info.soft_button_split_x;
     }
 
+    bool needs_recovery() {
+        return g.needs_reinit;
+    }
+
+    bool recover() {
+        if (!g.driver_initialised) return false;
+
+        // Step 1: Send software Reset ($FF) — spec §2.4.
+        if (!i8042::aux_send(CMD_RESET)) return false;
+
+        // Timeout: 1500 ms total (generous upper bound per spec §2.4, covering
+        // the worst-case 1000 ms calibration plus margin).
+        constexpr u64 RESET_TIMEOUT_US = 1500000;
+
+        u8 aa_byte = 0;
+        if (!i8042::wait_read(RESET_TIMEOUT_US)) return false;
+        aa_byte = inb(i8042::DATA_PORT);
+        if (aa_byte != PS2_RESP_SELF_TEST_PASS) return false;
+
+        u8 id_byte = 0;
+        if (!i8042::wait_read()) return false;
+        id_byte = inb(i8042::DATA_PORT);
+        // The Synaptics spec §2.4 guarantees $AA $00 - $FC is never sent by
+        // Synaptics pads, but we tolerate any id_byte here for robustness.
+        (void)id_byte;
+
+        if (!set_mode(g.current_mode)) return false;
+
+        if (g.has_passthrough) {
+            if (!initialize_guest()) return false;
+        }
+        g.sync_fail_count = 0;
+        g.needs_reinit = false;
+
+        return true;
+    }
+
     void handle_byte(const u8 data) {
         if (!g.driver_initialised) return;
         if (!g.active) return;
 
-        // Packet boundary verification using New-Absolute sync bits
+        // Packet boundary verification using New-Absolute sync bits.
         if (g.cycle == 0) {
-            if ((data & SYN_SYNC_MASK) != SYN_BYTE0_SYNC) return;
+            if ((data & SYN_SYNC_MASK) != SYN_BYTE0_SYNC) {
+                // Spurious-reset detection (spec §2.4).
+                if (++g.sync_fail_count >= SPURIOUS_RESET_THRESHOLD) {
+                    g.needs_reinit = true;
+                }
+                return;
+            }
+            // Valid packet start: reset the failure counter.
+            g.sync_fail_count = 0;
         } else if (g.cycle == 3) {
             if ((data & SYN_SYNC_MASK) != SYN_BYTE3_SYNC) {
-                // De-sync: reset and try to recover from this byte
+                // De-sync: reset and try to recover from this byte.
                 g.cycle = 0;
 
                 if ((data & SYN_SYNC_MASK) == SYN_BYTE0_SYNC) {
