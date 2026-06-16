@@ -66,13 +66,13 @@ var NAVTREEINDEX =
 "alloca_8h.html",
 "crepusculum__protocol_8h.html#a0bd05fe153def971ae1eea1be42229b8",
 "functions_vars_i.html",
-"index.html#intro_sec",
-"jpeg_8h.html#a88358088e98874ddc24652a86cbfb7e9",
-"math_8h.html#ae5499f4883aac6b9be5774a8cd4d57bc",
-"stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22",
-"string_8h.html#af4eafd6e1198841f898f0aa61ef86e2a",
-"structsmart__nvme.html#a2627560527dbe5dcf4c631d235779da7",
-"sysstd_8h.html#ac0d25831cf3cd6d29e7ea92633d26dfa"
+"index.html",
+"jpeg_8h.html#a6f89c2e22b7dce292f5718375e748565",
+"math_8h.html#ae37ce4924a4be38a9de85fc81ba79e58",
+"stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819",
+"string_8h.html#aeb6c449e5d77477c057abf00eaaf88fe",
+"structsmart__nvme.html#a1b4a3e973576cd6cfebdfa7204e2a905",
+"sysstd_8h.html#abcef91f070ba25d57c74fc1695184270"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

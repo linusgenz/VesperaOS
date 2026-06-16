@@ -6,6 +6,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "alloca.h", "alloca_8h.html", "alloca_8h" ],
     [ "assert.h", "assert_8h.html", "assert_8h" ],
     [ "channel.h", "channel_8h.html", "channel_8h" ],
+    [ "chronos.h", "userspace_2lib_2include_2chronos_8h.html", null ],
     [ "crepusculum_protocol.h", "crepusculum__protocol_8h.html", "crepusculum__protocol_8h" ],
     [ "ctype.h", "ctype_8h.html", "ctype_8h" ],
     [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", null ],
