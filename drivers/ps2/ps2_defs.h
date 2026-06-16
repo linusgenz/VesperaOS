@@ -53,14 +53,14 @@ namespace ps2 {
     constexpr u8 SAMPLE_RATE_20  = 20;  // Synaptics mode-commit sentinel
 
     //Standard mouse packet flags (byte 0)
-    constexpr u8 PKT_LEFT_BUTTON  = 0b00000001;
-    constexpr u8 PKT_RIGHT_BUTTON = 0b00000010;
-    constexpr u8 PKT_MIDDLE_BUTTON= 0b00000100;
-    constexpr u8 PKT_ALWAYS_ONE   = 0b00001000;
-    constexpr u8 PKT_X_SIGN       = 0b00010000;
-    constexpr u8 PKT_Y_SIGN       = 0b00100000;
-    constexpr u8 PKT_X_OVERFLOW   = 0b01000000;
-    constexpr u8 PKT_Y_OVERFLOW   = 0b10000000;
+    constexpr u8 PKT_REL_LEFT_BUTTON  = 0b00000001;
+    constexpr u8 PKT_REL_RIGHT_BUTTON = 0b00000010;
+    constexpr u8 PKT_REL_MIDDLE_BUTTON= 0b00000100;
+    constexpr u8 PKT_REL_ALWAYS_ONE   = 0b00001000;
+    constexpr u8 PKT_REL_X_SIGN       = 0b00010000;
+    constexpr u8 PKT_REL_Y_SIGN       = 0b00100000;
+    constexpr u8 PKT_REL_X_OVERFLOW   = 0b01000000;
+    constexpr u8 PKT_REL_Y_OVERFLOW   = 0b10000000;
 
     // Device IDs returned by CMD_GET_DEVICE_ID
     constexpr u8 DEVICE_ID_STANDARD    = 0x00;

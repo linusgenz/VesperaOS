@@ -29,7 +29,7 @@
 
 #include "graphics/psf.h"
 
-struct DisplayBackend;
+struct DisplayInfo;
 class ScrollbackBuffer;
 class IGlyphProvider;
 class GlyphCache;
@@ -84,7 +84,7 @@ class Terminal {
     Terminal(IRenderDriver* d, u32 char_width, u32 char_height);
     ~Terminal();
 
-    void on_backend_changed(DisplayBackend backend);
+    void on_backend_changed(const DisplayInfo& info);
 
     void scrollback_up(usize lines = 3);
     void scrollback_down(usize lines = 3);

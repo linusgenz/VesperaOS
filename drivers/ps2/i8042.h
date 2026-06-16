@@ -64,12 +64,12 @@ namespace ps2::i8042 {
     /**
      * Poll until the i8042 has data available in the output buffer.
      */
-    void wait_read();
+    bool wait_read(u64 timeout_us = 1000);
 
     /**
      * Poll until the i8042 input buffer is empty and ready for writes.
      */
-    void wait_write();
+    bool wait_write(u64 timeout_us = 1000);
 
     /**
      * Clear out any stale bytes from the output buffer.

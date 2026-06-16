@@ -24,17 +24,23 @@
 
 #include <vespera/cpu/io.h>
 
+#include <vespera/time.h>
+
 namespace ps2::i8042 {
-    void wait_read() {
-        for (int i = 0; i < 100000; ++i) {
-            if (inb(STATUS_PORT) & STATUS_OUTPUT_FULL) return;
+    [[nodiscard]] bool wait_read(u64 timeout_us) {
+        const u64 deadline = kernel::time::get_uptime_us() + timeout_us;
+        while (kernel::time::get_uptime_us() < deadline) {
+            if (inb(STATUS_PORT) & STATUS_OUTPUT_FULL) return true;
         }
+        return false;
     }
 
-    void wait_write() {
-        for (int i = 0; i < 100000; ++i) {
-            if ((inb(STATUS_PORT) & STATUS_INPUT_FULL) == 0) return;
+    [[nodiscard]] bool wait_write(u64 timeout_us) {
+        const u64 deadline = kernel::time::get_uptime_us() + timeout_us;
+        while (kernel::time::get_uptime_us() < deadline) {
+            if ((inb(STATUS_PORT) & STATUS_INPUT_FULL) == 0) return true;
         }
+        return false;
     }
 
     void drain() {

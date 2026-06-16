@@ -266,9 +266,6 @@ namespace ps2::synaptics {
     // COORDINATE RANGE (Queries $0D / $0F)
     // ============================================================================
 
-    struct SYNAPTICS_COORD_RESPONSE_FIELDS {
-    } __attribute__((packed));
-
     union SYNAPTICS_COORD_RESPONSE {
         struct {
             u8 x_hi; // X coordinate bits [12:5]
@@ -277,19 +274,18 @@ namespace ps2::synaptics {
             u8 x_lo : 4; // X[4:1]
 
             u8 y_hi; // Y coordinate bits [12:5]
-        }__attribute__((packed));;
+        }__attribute__((packed));
 
         u8 raw[3];
 
         [[nodiscard]] constexpr u16 x() const {
-            return (static_cast<u16>(x_hi) << 4) | static_cast<u16>(x_lo);
+            return (static_cast<u16>(raw[0]) << 4) | static_cast<u16>(raw[1] & 0x0F);
         }
 
         [[nodiscard]] constexpr u16 y() const {
-            return (static_cast<u16>(y_hi) << 4) | static_cast<u16>(y_lo);
+            return (static_cast<u16>(raw[2]) << 4) | static_cast<u16>((raw[1] >> 4) & 0x0F);
         }
     } __attribute__((packed));
-
 
     // ============================================================================
     // STANDARD MOTION PACKET
@@ -396,7 +392,6 @@ namespace ps2::synaptics {
 
     union SYNAPTICS_EW_FINGER_STATE_PACKET {
         struct {
-            ;
             SYNAPTICS_PACKET_BYTE0 byte0;
 
             u8 finger_count : 4;
@@ -431,6 +426,65 @@ namespace ps2::synaptics {
         u8 raw[6];
     } __attribute__((packed));
 
+    // ============================================================================
+    // STANDARD RELATIVE PACKET
+    // ============================================================================
+
+    struct SYNAPTICS_RELATIVE_BYTE0 {
+        u8 left_button : 1;
+        u8 right_button : 1;
+        u8 middle_button : 1;
+        u8 always_one : 1;
+        u8 x_sign : 1;
+        u8 y_sign : 1;
+        u8 x_overflow : 1;
+        u8 y_overflow : 1;
+    };
+
+    union SYNAPTICS_RELATIVE_PACKET {
+        struct {
+            SYNAPTICS_RELATIVE_BYTE0 byte0;
+            u8 x_delta;
+            u8 y_delta;
+        } __attribute__((packed));
+
+        u8 raw[3];
+    } __attribute__((packed));
+
+    // ============================================================================
+    // STANDARD PASSTHROUGH PACKET
+    // ============================================================================
+
+    struct SYNAPTICS_PASSTHROUGH_BYTE3 {
+        u8 left_button : 1;
+        u8 right_button : 1;
+        u8 w_bit1 : 1; // Always 1
+        u8 sync0 : 1; // Always 0
+        u8 reserved : 2;
+        u8 sync1 : 2; // Always 11
+    } __attribute__((packed));
+
+    union SYNAPTICS_PASSTHROUGH_PACKET {
+        struct {
+            SYNAPTICS_PACKET_BYTE0 byte0;
+            u8 packet_byte_1;
+            u8 packet_byte_4;
+            SYNAPTICS_PASSTHROUGH_BYTE3 byte3;
+            u8 packet_byte_2;
+            u8 packet_byte_3;
+        }__attribute__((packed));
+
+        u8 raw[6];
+
+        [[nodiscard]] SYNAPTICS_RELATIVE_PACKET passthrough_to_relative() const {
+            SYNAPTICS_RELATIVE_PACKET r{};
+
+            r.raw[0] = packet_byte_1;
+            r.raw[1] = packet_byte_2;
+            r.raw[2] = packet_byte_3;
+            return r;
+        };
+    };
 
     // ============================================================================
     // TOP-LEVEL MOTION PACKET
@@ -440,6 +494,7 @@ namespace ps2::synaptics {
         u8 raw[6];
 
         SYNAPTICS_MOTION_PACKET motion;
+        SYNAPTICS_PASSTHROUGH_PACKET passthrough;
         SYNAPTICS_EW_PACKET extended_w;
     } __attribute__((packed));
 
@@ -464,6 +519,11 @@ namespace ps2::synaptics {
         bool has_palm_detect;
         bool has_ew_mode;
     };
+
+    /**
+     * Initialize the driver. Call this function before any other functions of the driver.
+     */
+    void init();
 
     /**
      * Probes the PS/2 AUX port for a Synaptics touchpad.

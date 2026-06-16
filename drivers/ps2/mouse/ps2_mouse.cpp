@@ -87,6 +87,8 @@ namespace ps2::mouse {
 
         i8042::drain();
 
+        synaptics::init();
+
         synaptics::SynapticsInfo syn_info{};
         if (synaptics::probe(&syn_info)) {
             u8 mode = synaptics::SYN_MODE_BASE;
@@ -137,7 +139,7 @@ namespace ps2::mouse {
         case 0:
             // Bit 3 of the status byte is always set in a well-formed packet.
             // Ignore any byte that does not have it set so we stay aligned.
-            if ((data & PKT_ALWAYS_ONE) == 0) return;
+            if ((data & PKT_REL_ALWAYS_ONE) == 0) return;
             packet_[0] = data;
             cycle_ = 1;
             break;
@@ -173,10 +175,10 @@ namespace ps2::mouse {
 
     void Ps2Mouse::process_packet() {
         // If either overflow flag is set the delta values are garbage, discard.
-        if ((packet_[0] & PKT_X_OVERFLOW) || (packet_[0] & PKT_Y_OVERFLOW)) return;
+        if ((packet_[0] & PKT_REL_X_OVERFLOW) || (packet_[0] & PKT_REL_Y_OVERFLOW)) return;
 
-        const bool x_negative = packet_[0] & PKT_X_SIGN;
-        const bool y_negative = packet_[0] & PKT_Y_SIGN;
+        const bool x_negative = packet_[0] & PKT_REL_X_SIGN;
+        const bool y_negative = packet_[0] & PKT_REL_Y_SIGN;
 
         // Sign-extend the 9-bit deltas to i32
         const i32 dx = x_negative ? (static_cast<i32>(packet_[1]) - 256) : static_cast<i32>(packet_[1]);
@@ -199,9 +201,9 @@ namespace ps2::mouse {
         position_.y = static_cast<u32>(new_y);
 
         kernel::input::MouseButtonMask buttons = 0;
-        if (packet_[0] & PKT_LEFT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::LEFT);
-        if (packet_[0] & PKT_RIGHT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
-        if (packet_[0] & PKT_MIDDLE_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::MIDDLE);
+        if (packet_[0] & PKT_REL_LEFT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::LEFT);
+        if (packet_[0] & PKT_REL_RIGHT_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::RIGHT);
+        if (packet_[0] & PKT_REL_MIDDLE_BUTTON) buttons |= static_cast<u8>(kernel::input::MouseButton::MIDDLE);
 
         // packet_[3] is the wheel byte; zero when running in 3-byte mode
         const i8 wheel = (packet_size_ == 4) ? static_cast<i8>(packet_[3]) : 0;

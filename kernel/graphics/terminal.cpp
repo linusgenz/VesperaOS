@@ -51,9 +51,9 @@ namespace {
         return (rb & 0x00FF00FFu) | (g & 0x0000FF00u) | 0xFF000000u;
     }
 
-    void backend_hook(const DisplayBackend backend, void* ctx) {
+    void backend_hook(const DisplayInfo& info, void* ctx) {
         auto* term = static_cast<Terminal*>(ctx);
-        term->on_backend_changed(backend);
+        term->on_backend_changed(info);
     }
 
 }  // anonymous namespace
@@ -83,13 +83,13 @@ Terminal::~Terminal() {
     kernel::memory::free(screen_buf_);
 }
 
-void Terminal::on_backend_changed(const DisplayBackend backend) {
-    if (!backend.drv) return;
+void Terminal::on_backend_changed(const DisplayInfo& info) {
+    if (!info.backend.drv) return;
 
     has_dirty_ = false;
-    drv_ = backend.drv;
-    screen_w_ = drv_->screen_width_px();
-    screen_h_ = drv_->screen_height_px();
+    drv_ = info.backend.drv;
+    screen_w_ = info.width;
+    screen_h_ = info.height;
     cols_ = screen_w_ / char_w_;
     rows_ = screen_h_ / char_h_;
 
@@ -138,7 +138,7 @@ void Terminal::commit_dirty() {
     const u32 w = dirty_x1_ - dirty_x0_;
     const u32 h = dirty_y1_ - dirty_y0_;
 
-    Log::log_dbc("[terminal] commit_dirty: region=(%u,%u)+%ux%u pixels=%u", dirty_x0_, dirty_y0_, w, h, w * h);
+    //Log::log_dbc("[terminal] commit_dirty: region=(%u,%u)+%ux%u pixels=%u", dirty_x0_, dirty_y0_, w, h, w * h);
 
     drv_->blit_region(screen_buf_, screen_w_, dirty_x0_, dirty_y0_, w, h, dirty_x0_, dirty_y0_);
     drv_->present();

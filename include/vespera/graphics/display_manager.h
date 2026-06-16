@@ -28,18 +28,35 @@
 #include "vespera/graphics/IRenderDriver.h"
 
 struct KernelDevice;
+
 struct DisplayBackend {
     IRenderDriver* drv;
     KernelDevice* kd;
 };
 
+struct DisplayInfo {
+    u32 width;
+    u32 height;
+    DisplayBackend backend;
+};
+
+enum class HookFlags : u32 {
+    NONE = 0,
+
+    /**
+     * Immediately invoke the callback with the current primary display state
+     * right after registration succeeds.
+     */
+    FIRE_IMMEDIATELY = 1 << 0,
+};
+
 struct display_backend_hook {
-    void (*fn)(DisplayBackend new_backend, void* ctx);
+    void (*fn)(const DisplayInfo& display_info, void* ctx);
     void* ctx;
 };
 
 class DisplayManager {
-   public:
+public:
     static void init(DisplayBackend initial);
     static void set_primary(DisplayBackend backend);
     static DisplayBackend primary();
@@ -51,11 +68,16 @@ class DisplayManager {
      * back into DisplayManager (deadlock). Registered slots are never freed —
      * callers must ensure the ctx pointer outlives the DisplayManager.
      *
+     * @param fn    Callback function invoked on display backend changes.
+     * @param ctx   User-provided context pointer passed back to the callback.
+     * @param flags Optional behavior flags controlling hook behavior.
+     *
      * @return true if the hook was registered, false if MAX_HOOKS is exceeded.
      */
-    static bool register_backend_hook(void (*fn)(DisplayBackend, void*), void* ctx);
+    static bool register_backend_hook(void (*fn)(const DisplayInfo&, void*), void* ctx,
+                                      HookFlags flags = HookFlags::NONE);
 
-   private:
+private:
     static constexpr usize MAX_HOOKS = 4;
 
     static inline DisplayBackend primary_{};
