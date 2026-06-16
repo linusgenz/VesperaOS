@@ -68,6 +68,25 @@ namespace ps2::synaptics {
     static SynapticsState g;
 
     namespace {
+        static bool is_valid_encapsulation(const SYNAPTICS_PASSTHROUGH_PACKET& enc) {
+            const auto& b0 = enc.byte0;
+            const auto& b3 = enc.byte3;
+
+            // Byte 0: encap sync pattern laut spec
+            if (!b0.sync0) return false;
+            if (!b0.w_bit1) return false; // falls das dein W-Teil ist
+            if (!b0.left_button && !b0.right_button) {
+                // kein harter fail, nur sanity check optional
+            }
+
+            // Byte 3: sync pattern 11xx (bitfield direkt)
+            if (b3.sync1 != 0b11) return false;
+            if (b3.sync0 != 0) return false;
+            if (b3.sync0 != 0) return false;
+
+            return true;
+        }
+
         // ── read_encapsulation_packet ─────────────────────────────────────────
         // Reads a single 6-byte W=3 encapsulation packet from the AUX port
         // (spec §5.1.5, Figure 5-3) and extracts the four guest payload bytes.
@@ -82,17 +101,18 @@ namespace ps2::synaptics {
         //
         // Returns false if any byte times out.
         // ─────────────────────────────────────────────────────────────────────
-        bool read_encapsulation_packet(u8 out_guest[4]) {
-            u8 enc[6];
-            for (auto& b : enc) {
+        bool read_encapsulation_packet(SYNAPTICS_RELATIVE_PACKET& out_guest) {
+            SYNAPTICS_PASSTHROUGH_PACKET enc{};
+
+            for (auto& b : enc.raw) {
                 if (!i8042::wait_read()) return false;
                 b = inb(DATA_PORT);
             }
-            // Reconstruct the original guest packet bytes in canonical order
-            out_guest[0] = enc[1]; // byte 1 of guest packet
-            out_guest[1] = enc[4]; // byte 2
-            out_guest[2] = enc[5]; // byte 3
-            out_guest[3] = enc[2]; // byte 4 ($00 for 3-byte guests)
+
+            if (!is_valid_encapsulation(enc))
+                return false;
+
+            out_guest = enc.passthrough_to_relative();
             return true;
         }
 
@@ -364,14 +384,14 @@ namespace ps2::synaptics {
                 return -1;
             }
 
-            u8 guest_payload[4]{};
+            SYNAPTICS_RELATIVE_PACKET guest_payload{};
             if (!read_encapsulation_packet(guest_payload)) {
                 i8042::aux_send(CMD_ENABLE);
                 return -1;
             }
 
             if (!i8042::aux_send(CMD_ENABLE)) return -1;
-            return guest_payload[0];
+            return guest_payload.raw[0];
         }
     } // anonymous namespace
 
@@ -395,6 +415,8 @@ namespace ps2::synaptics {
 
         if (!synaptics_query(SYN_QUE_CAPABILITIES, out_info->capabilities.raw)) return false;
 
+        out_info->has_extended_caps = out_info->capabilities.modern.byte0.has_extended_caps;
+
         // Capability byte layout differs between firmware versions (spec §4.4)
         const bool new_caps = firmware_at_least(out_info->firmware_major,
                                                 out_info->firmware_minor, 7, 5);
@@ -410,9 +432,7 @@ namespace ps2::synaptics {
         if (!synaptics_query(SYN_QUE_MODEL_ID, out_info->model_id.raw)) return false;
 
         // Extended Model ID query is available when nExtendedQueries >= 1 (query 0x09)
-        const u8 n_ext = new_caps
-                             ? out_info->capabilities.modern.byte0.num_ext_queries
-                             : out_info->capabilities.legacy.num_ext_queries;
+        const u8 n_ext = out_info->capabilities.modern.byte0.num_ext_queries;
 
         out_info->has_ew_mode = false;
         if (n_ext >= 1) {
@@ -478,26 +498,24 @@ namespace ps2::synaptics {
         if (!i8042::aux_send(CMD_DISABLE))
             return false;
 
-        bool ok = false;
+        struct Cleanup {
+            ~Cleanup() {
+                i8042::aux_send(CMD_ENABLE);
+            }
+        } cleanup;
 
-        if (!i8042::aux_sliced_cmd(mode_byte)) goto cleanup;
-        if (!i8042::aux_send(CMD_SET_SAMPLE_RATE)) goto cleanup;
-        if (!i8042::aux_send(SYN_SAMPLE_RATE_MODE_COMMIT)) goto cleanup;
+        if (!i8042::aux_sliced_cmd(mode_byte)) return false;
 
-        ok = true;
+        if (!i8042::aux_send(CMD_SET_SAMPLE_RATE)) return false;
 
-    cleanup:
-        i8042::aux_send(CMD_ENABLE);
+        if (!i8042::aux_send(SYN_SAMPLE_RATE_MODE_COMMIT)) return false;
 
-        if (ok) {
-            g.active = true;
-            g.cycle = 0;
+        g.active = true;
+        g.cycle = 0;
+        g.tp_first_packet = true;
+        g.scroll_first_packet = true;
 
-            g.tp_first_packet = true;
-            g.scroll_first_packet = true;
-        }
-
-        return ok;
+        return true;
     }
 
     bool is_active() {

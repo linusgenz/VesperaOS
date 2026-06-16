@@ -122,7 +122,7 @@ namespace ps2::synaptics {
     // CAPABILITIES
     // ============================================================================
 
-    struct SYNAPTICS_CAPABILITIES_BYTE0_NEW {
+    struct SYNAPTICS_CAPABILITIES_BYTE0 {
         u8 reserved0 : 2;
         u8 has_middle_button : 1;
         u8 reserved1 : 1;
@@ -142,17 +142,13 @@ namespace ps2::synaptics {
     } __attribute__((packed));
 
     struct SYNAPTICS_CAPABILITIES_NEW {
-        SYNAPTICS_CAPABILITIES_BYTE0_NEW byte0;
+        SYNAPTICS_CAPABILITIES_BYTE0 byte0;
         u8 model_sub_number;
         SYNAPTICS_CAPABILITIES_BYTE2 byte2;
     } __attribute__((packed));
 
     struct SYNAPTICS_CAPABILITIES_OLD {
-        u8 reserved0 : 1;
-        u8 num_ext_queries : 3;
-        u8 has_extended_caps : 1;
-        u8 has_middle_button : 1;
-        u8 reserved1 : 2;
+        SYNAPTICS_CAPABILITIES_BYTE0 byte0;
 
         u8 magic; // Expected: 0x47
 
@@ -297,7 +293,7 @@ namespace ps2::synaptics {
         u8 w_bit1 : 1;
         u8 sync0 : 1; // Always 0
         u8 w_bits3_2 : 2;
-        u8 sync1 : 2; // Always 01
+        u8 sync1 : 2; // Always 0b10
     } __attribute__((packed));
 
     struct SYNAPTICS_MOTION_BYTE1 {
@@ -344,9 +340,10 @@ namespace ps2::synaptics {
 
             u8 ext_left_button : 1;
             u8 ext_right_button : 1;
-            u8 sync0 : 2;
+            u8 w_bit0 : 1; // 0
+            u8 sync0 : 1; // 0
             u8 wheel4_hi : 2;
-            u8 sync1 : 2;
+            u8 sync1 : 2; // 0b11
 
             i8 wheel3_delta;
 
@@ -371,9 +368,10 @@ namespace ps2::synaptics {
 
             u8 ext_left_button : 1;
             u8 ext_right_button : 1;
-            u8 sync0 : 2;
+            u8 w_bit0 : 1; // 0
+            u8 sync0 : 1; // 0
             u8 z_hi : 2;
-            u8 sync1 : 2;
+            u8 sync1 : 2; // 0b11
 
             u8 x_pos_hi : 4;
             u8 y_pos_hi : 4;
@@ -401,9 +399,10 @@ namespace ps2::synaptics {
 
             u8 middle_left_button : 1;
             u8 down_right_button : 1;
-            u8 sync0 : 2;
+            u8 w_bit0 : 1; // 0
+            u8 sync0 : 1; // 0
             u8 reserved1 : 2;
-            u8 sync1 : 2;
+            u8 sync1 : 2; // 0b11
 
             u8 secondary_finger_index;
 
@@ -434,21 +433,27 @@ namespace ps2::synaptics {
         u8 left_button : 1;
         u8 right_button : 1;
         u8 middle_button : 1;
-        u8 always_one : 1;
+        u8 sync0 : 1;
         u8 x_sign : 1;
         u8 y_sign : 1;
         u8 x_overflow : 1;
         u8 y_overflow : 1;
     };
 
+    struct SYNAPTICS_RELATIVE_BYTE3 {
+        i8 scroll_delta : 4;
+        u8 always_zero  : 4;
+    } __attribute__((packed));
+
     union SYNAPTICS_RELATIVE_PACKET {
         struct {
             SYNAPTICS_RELATIVE_BYTE0 byte0;
             u8 x_delta;
             u8 y_delta;
+            SYNAPTICS_RELATIVE_BYTE3 byte3;
         } __attribute__((packed));
 
-        u8 raw[3];
+        u8 raw[4];
     } __attribute__((packed));
 
     // ============================================================================
@@ -482,6 +487,7 @@ namespace ps2::synaptics {
             r.raw[0] = packet_byte_1;
             r.raw[1] = packet_byte_2;
             r.raw[2] = packet_byte_3;
+            r.raw[3] = packet_byte_4;
             return r;
         };
     };
@@ -517,6 +523,7 @@ namespace ps2::synaptics {
         bool has_passthrough;
         bool has_multi_finger;
         bool has_palm_detect;
+        bool has_extended_caps;
         bool has_ew_mode;
     };
 

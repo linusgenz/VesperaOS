@@ -92,6 +92,9 @@ namespace ps2::mouse {
         synaptics::SynapticsInfo syn_info{};
         if (synaptics::probe(&syn_info)) {
             u8 mode = synaptics::SYN_MODE_BASE;
+            if (syn_info.has_extended_caps) {
+                mode |= synaptics::SYN_MODE_WMODE;
+            }
             if (syn_info.has_ew_mode) {
                 mode |= synaptics::SYN_MODE_EWMODE;
                 Log::info("ps2: Synaptics capEWmode detected - enabling Extended W mode");
@@ -112,13 +115,11 @@ namespace ps2::mouse {
                     Log::info("ps2: Enabling TrackPoint via tunnel...");
                     if (synaptics::initialize_guest()) {
                         Log::ok("ps2: TrackPoint enabled");
-                    }
-                    else {
+                    } else {
                         Log::error("ps2: Failed to enable TrackPoint");
                     }
                 }
-            }
-            else {
+            } else {
                 Log::error("ps2: Synaptics set_mode() failed - falling back to relative mode");
             }
         }
@@ -152,8 +153,7 @@ namespace ps2::mouse {
             if (packet_size_ == 3) {
                 packet_ready_ = true;
                 cycle_ = 0;
-            }
-            else {
+            } else {
                 cycle_ = 3;
             }
             break;
