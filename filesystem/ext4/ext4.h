@@ -31,8 +31,14 @@
 #include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
-namespace ext4 {
+#ifndef EXT4_INODE_CACHE_SIZE
+#define EXT4_INODE_CACHE_SIZE 32768
+#endif
+#ifndef EXT4_BLOCK_CACHE_SIZE
+#define EXT4_BLOCK_CACHE_SIZE 16384
+#endif
 
+namespace ext4 {
     constexpr u16 EXT4_MAGIC = 0xEF53;
     constexpr u16 EXT4_EXTENT_MAGIC = 0xF30A;
     constexpr u32 EXT4_ROOT_INODE = 2;
@@ -135,7 +141,7 @@ namespace ext4 {
         u32 i_blocks_lo;
         u32 i_flags;
         u32 i_osd1;
-        u32 i_block[15];  // extent tree root or direct block pointers
+        u32 i_block[15]; // extent tree root or direct block pointers
         u32 i_generation;
         u32 i_file_acl_lo;
         u32 i_size_high;
@@ -161,12 +167,12 @@ namespace ext4 {
         u32 inode;
         u16 rec_len;
         u8 name_len;
-        u8 file_type;  // DirEntryType
+        u8 file_type; // DirEntryType
         char name[];
     } __attribute__((packed));
 
     struct ExtentHeader {
-        u16 eh_magic;  // EXT4_EXTENT_MAGIC
+        u16 eh_magic; // EXT4_EXTENT_MAGIC
         u16 eh_entries;
         u16 eh_max;
         u16 eh_depth;
@@ -174,8 +180,8 @@ namespace ext4 {
     } __attribute__((packed));
 
     struct Extent {
-        u32 ee_block;  // first logical block this extent covers
-        u16 ee_len;    // number of blocks (high bit set => unwritten)
+        u32 ee_block; // first logical block this extent covers
+        u16 ee_len; // number of blocks (high bit set => unwritten)
         u16 ee_start_hi;
         u32 ee_start_lo;
     } __attribute__((packed));
@@ -188,13 +194,13 @@ namespace ext4 {
     } __attribute__((packed));
 
     struct ExtentMap {
-        u32 logical_start;  // first logical block
-        u32 length;         // number of logical blocks
-        u64 phys_start;     // first physical block
+        u32 logical_start; // first logical block
+        u32 length; // number of logical blocks
+        u64 phys_start; // first physical block
     };
 
     class FileEntry {
-       public:
+    public:
         FileEntry() = default;
 
         void set_name(const char* name, usize len) {
@@ -218,12 +224,15 @@ namespace ext4 {
         [[nodiscard]] const char* get_name() const {
             return name_;
         }
+
         [[nodiscard]] u32 get_inode() const {
             return inode_;
         }
+
         [[nodiscard]] DirEntryType get_type() const {
             return type_;
         }
+
         [[nodiscard]] bool is_dir() const {
             return type_ == DirEntryType::Directory;
         }
@@ -231,6 +240,7 @@ namespace ext4 {
         void set_size(u64 sz) {
             size_ = sz;
         }
+
         [[nodiscard]] u64 get_size() const {
             return size_;
         }
@@ -238,11 +248,12 @@ namespace ext4 {
         void set_executable(bool exec) {
             executable_ = exec;
         }
+
         [[nodiscard]] bool is_executable() const {
             return executable_;
         }
 
-       private:
+    private:
         char name_[256] = {};
         usize size_ = 0;
         u32 inode_ = 0;
@@ -250,10 +261,30 @@ namespace ext4 {
         bool executable_ = false;
     };
 
+    struct InodeCacheEntry {
+        u32 inode_no = 0; // 0 → slot is empty
+        bool valid = false;
+        bool dirty = false;
+        u32 lru_seq = 0; // lower = older
+        Inode inode = {};
+        Vector<ExtentMap> extents;
+    };
+
+    struct BlockCacheEntry {
+        u64 block_no = 0; // physical block number; 0 → empty (block 0 never cached)
+        bool valid = false;
+        bool dirty = false;
+        u32 lru_seq = 0;
+        u8* data = nullptr; // heap-allocated, get_block_size() bytes
+    };
+
+
     class FileSystem {
-       public:
+    public:
         explicit FileSystem(BlockDevice* device);
         ~FileSystem();
+        VoidResult sync() const;
+        void flush_inode_cache() const;
 
         [[nodiscard]] bool is_valid() const {
             return valid_;
@@ -282,11 +313,16 @@ namespace ext4 {
         VoidResult chown(u32 inode_no, u32 uid, u32 gid) const;
         VoidResult chmod(u32 inode_no, u16 new_mode) const;
 
-       private:
+    private:
         BlockDevice* device_;
         Ext4Superblock superblock_{};
         u32 sector_size_;
         bool valid_;
+
+        mutable InodeCacheEntry* inode_cache_{nullptr};
+        mutable BlockCacheEntry* block_cache_{nullptr};
+        u8* block_data_slab_{nullptr};
+        mutable u32 lru_counter_;
 
         [[nodiscard]] static u64 inode_get_size(const Inode& inode) {
             return (static_cast<u64>(inode.i_size_high) << 32) | inode.i_size_lo;
@@ -301,22 +337,28 @@ namespace ext4 {
             return static_cast<InodeType>(inode.i_mode & static_cast<u16>(InodeType::Mask));
         }
 
+        void flush_block_cache() const;
         bool read_superblock();
         [[nodiscard]] bool write_superblock() const;
+        bool read_block_raw(u64 block, void* buf, u32 buf_size) const;
+        bool write_block_raw(u64 block, const void* buf, u32 buf_size) const;
         bool read_block(u64 block, void* out_buf, u32 buf_size) const;
         bool write_block(u64 block, const void* buf, u32 buf_size) const;
         bool read_group_desc(u32 group, GroupDesc& out_gd) const;
         [[nodiscard]] bool write_group_desc(u32 group, const GroupDesc& gd) const;
         u64 inode_disk_offset(u32 inode_no, u32& out_inode_size) const;
+        bool read_inode_raw(u32 inode_no, Inode& out_inode) const;
+        bool write_inode_raw(u32 inode_no, const Inode& inode) const;
         bool read_inode(u32 inode_no, Inode& out_inode) const;
         [[nodiscard]] bool write_inode(u32 inode_no, const Inode& inode) const;
         u32 alloc_inode(u32 preferred_group);
-        bool init_inode(u32 inode_no, u16 mode);
+        bool init_inode(u32 inode_no, u16 mode) const;
         bool free_inode(u32 inode_no);
         bool dir_add_entry(u32 dir_inode_no, const char* name, u32 child_inode, DirEntryType type);
         bool dir_remove_entry(u32 dir_inode_no, const char* name) const;
         u32 dir_find_entry(u32 dir_inode_no, const char* name) const;
         [[nodiscard]] bool dir_is_empty(u32 inode_no) const;
+        static bool parse_extents_raw(const Inode& inode, Vector<ExtentMap>& out_extents);
 
         static bool parse_extents(const Inode& inode, Vector<ExtentMap>& out_extents);
         bool map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const;
@@ -325,6 +367,6 @@ namespace ext4 {
         bool free_blocks_for_inode(const Inode& inode);
         bool extent_tree_append(Inode& inode, u32 logical_block, u64 phys_block);
     };
-}  // namespace ext4
+} // namespace ext4
 
 #endif  // VESPERAOS_EXT4_H
