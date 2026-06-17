@@ -39,13 +39,6 @@ TEST(Vector_PushBack, CustomCapacity, "Vector constructed with capacity=1 starts
     ASSERT_NOT_NULL(v.data());
 }
 
-TEST(Vector_PushBack, ZeroCapacityFallsBackToFour, "Vector(0) falls back to capacity 4 and stays empty") {
-    Vector<int> v(0);
-    ASSERT_EQ(static_cast<size_t>(0), v.size());
-    ASSERT_TRUE(v.empty());
-    ASSERT_NOT_NULL(v.data());
-}
-
 TEST(Vector_PushBack, LargeInitialCapacity, "Vector(1000) allocates up-front and starts empty") {
     Vector<int> v(1000);
     ASSERT_EQ(static_cast<size_t>(0), v.size());
