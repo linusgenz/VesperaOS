@@ -2,7 +2,7 @@ var dir_e2b52b92f5077a849e2a3072fb331546 =
 [
     [ "dev", "dir_9231d380b3b1b890f7cb1d03615c52d2.html", "dir_9231d380b3b1b890f7cb1d03615c52d2" ],
     [ "capabilities.h", "capabilities_8h.html", "capabilities_8h" ],
-    [ "chronos.h", "include_2uapi_2vespera_2chronos_8h.html", null ],
+    [ "chronos.h", "include_2uapi_2vespera_2chronos_8h.html", "include_2uapi_2vespera_2chronos_8h" ],
     [ "dirent.h", "include_2uapi_2vespera_2dirent_8h.html", "include_2uapi_2vespera_2dirent_8h" ],
     [ "fflags.h", "include_2uapi_2vespera_2fflags_8h.html", "include_2uapi_2vespera_2fflags_8h" ],
     [ "handles.h", "handles_8h.html", "handles_8h" ],

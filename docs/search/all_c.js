@@ -1,7 +1,7 @@
 var searchData=
 [
   ['l_5ftmpnam_0',['L_tmpnam',['../stdlib_8h.html#ad2560a07a7528c4975660f391320faca',1,'stdlib.h']]],
-  ['label_1',['label',['../classstella_1_1Label.html',1,'stella::Label'],['../classstella_1_1Label.html#a4ad3a32791e1a0d1b15eac33079ab2ac',1,'stella::Label::Label()']]],
+  ['label_1',['label',['../classstella_1_1Label.html',1,'stella::Label'],['../classstella_1_1Label.html#a4ad3a32791e1a0d1b15eac33079ab2ac',1,'stella::Label::Label()'],['../structchronos__event.html#afd17f4b358972d4512f22145e2ab9814',1,'chronos_event::label'],['../structchronos__user__checkpoint.html#aa00dd9c5d39f333a0efc196ec7e18459',1,'chronos_user_checkpoint::label']]],
   ['labs_2',['labs',['../stdlib_8h.html#a3102965969578ae09e43dfc53996e90e',1,'stdlib.h']]],
   ['large_5fseg_3',['large_seg',['../structlarge__seg.html',1,'large_seg'],['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'large_seg:&#160;memory.h']]],
   ['last_5ffull_5fcapacity_4',['last_full_capacity',['../structbattery__info.html#a3b049fbc1a102f12bbd9f7bb8dbfa18c',1,'battery_info']]],

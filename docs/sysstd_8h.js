@@ -7,6 +7,8 @@ var sysstd_8h =
     [ "sys_chdir", "sysstd_8h.html#a08adbc74eb703f7d4eb0bf62a21e0fcd", null ],
     [ "sys_chmod", "sysstd_8h.html#a233246cf673562bba0f097f5524dd5bd", null ],
     [ "sys_chown", "sysstd_8h.html#a3380caebb2a7547733e9357d8858d4b7", null ],
+    [ "sys_chronos_checkpoint", "sysstd_8h.html#a6699ce8241cd8cc4d033ee484406e2dd", null ],
+    [ "sys_chronos_summary", "sysstd_8h.html#ae708e64d96936b33e5de3ebd07fbd0ad", null ],
     [ "sys_clock_gettime", "sysstd_8h.html#a5929be7b4c4b04dbdb75dbe441befcd0", null ],
     [ "sys_clock_nanosleep", "sysstd_8h.html#a4882f781f8ba6413024661846aff39aa", null ],
     [ "sys_close", "sysstd_8h.html#aba1a18094b538aa055e144f694578315", null ],

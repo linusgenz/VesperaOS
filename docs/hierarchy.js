@@ -2,6 +2,8 @@ var hierarchy =
 [
     [ "battery_info", "structbattery__info.html", null ],
     [ "battery_status", "structbattery__status.html", null ],
+    [ "chronos_event", "structchronos__event.html", null ],
+    [ "chronos_user_checkpoint", "structchronos__user__checkpoint.html", null ],
     [ "stella::Color", "classstella_1_1Color.html", null ],
     [ "cpu_info", "structcpu__info.html", null ],
     [ "cpu_usage_info", "structcpu__usage__info.html", null ],

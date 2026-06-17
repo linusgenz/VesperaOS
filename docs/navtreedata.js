@@ -66,13 +66,13 @@ var NAVTREEINDEX =
 "alloca_8h.html",
 "crepusculum__protocol_8h.html#a0bd05fe153def971ae1eea1be42229b8",
 "functions_vars_i.html",
-"index.html",
-"jpeg_8h.html#a6f89c2e22b7dce292f5718375e748565",
-"math_8h.html#ae37ce4924a4be38a9de85fc81ba79e58",
-"stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819",
-"string_8h.html#aeb6c449e5d77477c057abf00eaaf88fe",
-"structsmart__nvme.html#a1b4a3e973576cd6cfebdfa7204e2a905",
-"sysstd_8h.html#abcef91f070ba25d57c74fc1695184270"
+"include_2uapi_2vespera_2vbus_8h.html#ac55cff48c5401fbfe02b63a0ac059943",
+"jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aea890bdcbd1a3851a32ca4c1165e4c29",
+"math_8h.html#adbc0a13ec75c05d238ca12ef1f8c6b2b",
+"stdio_8h.html#a72a591cf0a96cf23c63df5c78712dabe",
+"string_8h.html#aa383452fe445bfae989358c9d7d96f4f",
+"structsmart__ata.html#aaaf3a05a5dcd3dcfba5ab48f336681c9",
+"sysstd_8h.html#a7166a7249135d5c8db774be86fc02286"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

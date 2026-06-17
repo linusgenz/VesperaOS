@@ -13,6 +13,8 @@ var annotated_dup =
     ] ],
     [ "battery_info", "structbattery__info.html", "structbattery__info" ],
     [ "battery_status", "structbattery__status.html", "structbattery__status" ],
+    [ "chronos_event", "structchronos__event.html", "structchronos__event" ],
+    [ "chronos_user_checkpoint", "structchronos__user__checkpoint.html", "structchronos__user__checkpoint" ],
     [ "cpu_info", "structcpu__info.html", "structcpu__info" ],
     [ "cpu_usage_info", "structcpu__usage__info.html", "structcpu__usage__info" ],
     [ "cpu_usage_stat", "structcpu__usage__stat.html", "structcpu__usage__stat" ],

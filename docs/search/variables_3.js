@@ -12,7 +12,7 @@ var searchData=
   ['content_9',['Content',['../namespacestella.html#acd28050701dae78ee0c4a818fc0fb2fe',1,'stella']]],
   ['controller_5fbusy_5ftime_5fmin_10',['controller_busy_time_min',['../structsmart__nvme.html#a2b0e86418c4af2f2261d03ccbec2b0ca',1,'smart_nvme']]],
   ['cpu_5fcount_11',['cpu_count',['../structcpu__usage__info.html#a77efef4f9c11db9aad0002f23d6f88b7',1,'cpu_usage_info']]],
-  ['cpu_5fid_12',['cpu_id',['../structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720',1,'cpu_usage_stat::cpu_id'],['../structunit__info.html#ab13c4e1a7bd339b357051c9a1631138f',1,'unit_info::cpu_id']]],
+  ['cpu_5fid_12',['cpu_id',['../structunit__info.html#ab13c4e1a7bd339b357051c9a1631138f',1,'unit_info::cpu_id'],['../structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720',1,'cpu_usage_stat::cpu_id'],['../structchronos__event.html#a199b1f2835c7746e69572f4b6ad38bb5',1,'chronos_event::cpu_id']]],
   ['cpu_5ftime_5faccumulated_13',['cpu_time_accumulated',['../structrealm__info.html#ab47c88a2fd9054cca9c6609a39eee226',1,'realm_info']]],
   ['cpus_14',['cpus',['../structcpu__usage__info.html#ae6dae227e3dccf969c3215a4e7923d72',1,'cpu_usage_info']]],
   ['create_5fwindow_15',['create_window',['../unionvbus__payload__t.html#a8b0fe5fb2f5875a9377b9f4bcfbf418c',1,'vbus_payload_t']]],

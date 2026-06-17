@@ -10,7 +10,7 @@ var searchData=
   ['rbx_7',['rbx',['../structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8',1,'jmp_buf']]],
   ['ready_8',['ready',['../structcrep__sync.html#aa92d94c432a37d181162b5b455344a3d',1,'crep_sync']]],
   ['reallocated_5fsectors_9',['reallocated_sectors',['../structsmart__ata.html#acc8335c77914733963822848d9278ad2',1,'smart_ata']]],
-  ['realm_5fid_10',['realm_id',['../structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3',1,'unit_info']]],
+  ['realm_5fid_10',['realm_id',['../structchronos__event.html#a570b84ac070a03a91427f09b229c0586',1,'chronos_event::realm_id'],['../structunit__info.html#a3282c7e730c0ae8d57faf2ff304c99d3',1,'unit_info::realm_id']]],
   ['realm_5fname_11',['realm_name',['../structspawn__config.html#a6bde2da8147fd7605b9423f7eba58253',1,'spawn_config']]],
   ['rem_12',['rem',['../structimaxdiv__t.html#a6c9701ad10bff81edae7ff679cae7850',1,'imaxdiv_t']]],
   ['remaining_5fcapacity_13',['remaining_capacity',['../structbattery__status.html#aefb66d8b7949d0a1610c84f37ff2c3c1',1,'battery_status']]],
