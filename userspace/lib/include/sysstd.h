@@ -705,4 +705,8 @@ int64_t sys_handle_truncate(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_
 
 int64_t sys_vbus_emit(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
 
+int64_t sys_chronos_summary(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_chronos_checkpoint(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
 #endif  // SYSSTD_H

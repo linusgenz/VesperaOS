@@ -105,6 +105,8 @@ void install_syscalls() {
     syscall_table[SYSCALL_SHM_UNLINK] = syscalls::internal::sys_shm_unlink;
     syscall_table[SYSCALL_HANDLE_TRUNCATE] = syscalls::internal::sys_handle_truncate;
     syscall_table[SYSCALL_VBUS_EMIT] = syscalls::internal::sys_vbus_emit;
+    syscall_table[SYSCALL_CHRONOS_CHECKPOINT] = syscalls::internal::sys_chronos_checkpoint;
+    syscall_table[SYSCALL_CHRONOS_SUMMARY] = syscalls::internal::sys_chronos_summary;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

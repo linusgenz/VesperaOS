@@ -35,14 +35,14 @@ namespace syscalls::internal {
         if (!user_ptr)
             return -EFAULT;
 
-        ::chronos::UserCheckpoint kcp{};
-        if (!syscalls::copy_from_user(&kcp, user_ptr, sizeof(kcp)))
+        chronos::UserCheckpoint kcp{};
+        if (!copy_from_user(&kcp, user_ptr, sizeof(kcp)))
             return -EFAULT;
 
         kcp.phase[::chronos::PHASE_MAX - 1] = '\0';
         kcp.label[::chronos::LABEL_MAX - 1] = '\0';
 
-        u32 realm_id = static_cast<u32>(kernel::scheduling::get_current_realm_id());
+        const u32 realm_id = static_cast<u32>(kernel::scheduling::get_current_realm_id());
         kernel::chronos::checkpoint_from_user(realm_id, kcp);
         return 0;
 #else
@@ -54,6 +54,7 @@ namespace syscalls::internal {
     i64 sys_chronos_summary(u64, u64, u64, u64, u64, u64) {
 #if VESPERA_CHRONOS
         kernel::chronos::dump_dbc();
+        return 0;
 #else
         (void)user_ptr;
         return -ENOSYS;

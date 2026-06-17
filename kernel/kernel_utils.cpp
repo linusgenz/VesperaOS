@@ -2,11 +2,12 @@
 #include <vespera/cpu/cpu.h>
 
 #include "../drivers/fb/framebuffer_driver.h"
-#include "../include/acpi/acpi_subsystem.h"
+#include "acpi/acpi_subsystem.h"
 #include "drivers/pci/pci_driver.h"
 #include "graphics/font/ttf_glyph_provider.h"
 #include "vespera/ipc/vbus_manager.h"
 #include "vespera/time.h"
+#include "vespera/debug/chronos.h"
 #if DEBUG_SPINLOCK
 #include "debug/deadlock_detector.h"
 #include "debug/lock_debug.h"
@@ -85,22 +86,22 @@ static void initialize_graphics_and_terminal(const BootInfo* boot_info) {
     auto* fbdev = new FramebufferDevice("fb0", BusType::VIRTUAL);
     auto* fb_kd = DeviceManager::register_device(
         DeviceDescriptor{}
-            .set_name("fb0")
-            .set_type(DeviceType::Char)
-            .set_class(DeviceClass::Graphics)
-            .with_char(fbdev)
-            .set_bus(BusType::VIRTUAL)
-            .set_controller(ControllerType::None)
+        .set_name("fb0")
+        .set_type(DeviceType::Char)
+        .set_class(DeviceClass::Graphics)
+        .with_char(fbdev)
+        .set_bus(BusType::VIRTUAL)
+        .set_controller(ControllerType::None)
     );
 
     DevFs::register_device(fb_kd);
 
     auto* gpu_kd = DeviceManager::register_device(
         DeviceDescriptor{}
-            .set_name("gpu")
-            .set_class(DeviceClass::Pseudo)
-            .set_bus(BusType::VIRTUAL)
-            .set_controller(ControllerType::None)
+        .set_name("gpu")
+        .set_class(DeviceClass::Pseudo)
+        .set_bus(BusType::VIRTUAL)
+        .set_controller(ControllerType::None)
     );
     DevFs::register_device(gpu_kd);
 
@@ -121,6 +122,7 @@ static void initialize_acpi_and_interrupts(BootInfo* boot_info) {
 
     kernel::time::init_clock();
     kernel::time::epoch_init();
+    kernel::chronos::init();
 }
 
 static void initialize_cpu_and_realms() {
@@ -164,7 +166,7 @@ static void initialize_hardware_buses() {
     pci::driver_registry::init_drivers();
     pci::enumerate_pci(kernel::acpi::get_mcfg());
 
-    if (UsbManager::wait_for_all_controllers(10000))  // TODO
+    if (UsbManager::wait_for_all_controllers(10000))
     {
         Log::info("All USB controllers ready");
     } else {

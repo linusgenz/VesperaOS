@@ -166,6 +166,9 @@ namespace syscalls::internal {
     i64 sys_shm_unlink(u64 arg0, u64, u64, u64, u64, u64);
 
     i64 sys_vbus_emit(u64 hdr_uptr, u64 payload_uptr, u64 payload_len, u64, u64, u64);
+
+    i64 sys_chronos_checkpoint(u64 cp, u64, u64, u64, u64, u64);
+    i64 sys_chronos_summary(u64, u64, u64, u64, u64, u64);
 }  // namespace syscalls::internal
 
 void install_syscalls();

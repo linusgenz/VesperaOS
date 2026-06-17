@@ -12,19 +12,16 @@
 #include <vespera/system/system_manager.h>
 
 template <typename T>
-class Vector
-{
+class Vector {
 public:
-    explicit Vector(usize initial_capacity = 4)
+    explicit Vector(usize initial_capacity = 0)
         : data_(nullptr)
-    {
-        if (initial_capacity == 0) initial_capacity = 4;
-        capacity_ = initial_capacity;
-        data_ = static_cast<T*>(kernel::memory::malloc(sizeof(T) * capacity_));
-
-        if (!data_)
-        {
-            kernel::SystemManager::system_panic("Vector malloc failed", -KEVECALLOC);
+          , capacity_(0)
+          , length_(0) {
+        if (initial_capacity > 0) {
+            data_ = static_cast<T*>(kernel::memory::malloc(sizeof(T) * initial_capacity));
+            if (!data_) kernel::SystemManager::system_panic("Vector malloc failed", -KEVECALLOC);
+            capacity_ = initial_capacity;
         }
     }
 
@@ -32,17 +29,14 @@ public:
     Vector& operator=(const Vector&) = delete;
 
     Vector(Vector&& other) noexcept
-        : data_(other.data_), capacity_(other.capacity_), length_(other.length_)
-    {
+        : data_(other.data_), capacity_(other.capacity_), length_(other.length_) {
         other.data_ = nullptr;
         other.capacity_ = 0;
         other.length_ = 0;
     }
 
-    Vector& operator=(Vector&& other) noexcept
-    {
-        if (this != &other)
-        {
+    Vector& operator=(Vector&& other) noexcept {
+        if (this != &other) {
             destroy();
             data_ = other.data_;
             capacity_ = other.capacity_;
@@ -54,17 +48,12 @@ public:
         return *this;
     }
 
-    Vector copy() const
-    {
+    Vector copy() const {
         Vector result(length_);
-        for (usize i = 0; i < length_; ++i)
-        {
-            if constexpr (klib::is_trivially_copyable_v<T>)
-            {
+        for (usize i = 0; i < length_; ++i) {
+            if constexpr (klib::is_trivially_copyable_v<T>) {
                 result.data_[i] = data_[i];
-            }
-            else
-            {
+            } else {
                 new(&result.data_[i]) T(data_[i]);
             }
         }
@@ -72,36 +61,27 @@ public:
         return result;
     }
 
-    ~Vector()
-    {
+    ~Vector() {
         destroy();
     }
 
-    void clear()
-    {
-        if constexpr (!klib::is_trivially_destructible_v<T>)
-        {
-            for (usize i = 0; i < length_; ++i)
-            {
+    void clear() {
+        if constexpr (!klib::is_trivially_destructible_v<T>) {
+            for (usize i = 0; i < length_; ++i) {
                 data_[i].~T();
             }
         }
         length_ = 0;
     }
 
-    void push_back(const T& value)
-    {
-        if (length_ >= capacity_)
-        {
+    void push_back(const T& value) {
+        if (length_ >= capacity_) {
             resize(capacity_ ? capacity_ * 2 : 4);
         }
 
-        if constexpr (klib::is_trivially_copyable_v<T>)
-        {
+        if constexpr (klib::is_trivially_copyable_v<T>) {
             data_[length_] = value;
-        }
-        else
-        {
+        } else {
             new(&data_[length_]) T(value);
         }
         ++length_;
@@ -110,36 +90,27 @@ public:
     T* data() { return data_; }
     const T* data() const { return data_; }
 
-    T& operator[](usize index)
-    {
+    T& operator[](usize index) {
         return data_[index];
     }
 
-    const T& operator[](usize index) const
-    {
+    const T& operator[](usize index) const {
         return data_[index];
     }
 
-    void erase(usize index)
-    {
-        if (index >= length_)
-        {
+    void erase(usize index) {
+        if (index >= length_) {
             kernel::SystemManager::system_panic("Vector::erase() index out of range", -KERANGE);
         }
 
-        if constexpr (!klib::is_trivially_destructible_v<T>)
-        {
+        if constexpr (!klib::is_trivially_destructible_v<T>) {
             data_[index].~T();
         }
 
-        for (usize i = index; i < length_ - 1; ++i)
-        {
-            if constexpr (klib::is_trivially_copyable_v<T>)
-            {
+        for (usize i = index; i < length_ - 1; ++i) {
+            if constexpr (klib::is_trivially_copyable_v<T>) {
                 data_[i] = data_[i + 1];
-            }
-            else
-            {
+            } else {
                 new(&data_[i]) T(data_[i + 1]);
                 data_[i + 1].~T();
             }
@@ -148,12 +119,9 @@ public:
         --length_;
     }
 
-    bool erase_value(const T& value)
-    {
-        for (usize i = 0; i < length_; ++i)
-        {
-            if (data_[i] == value)
-            {
+    bool erase_value(const T& value) {
+        for (usize i = 0; i < length_; ++i) {
+            if (data_[i] == value) {
                 erase(i);
                 return true;
             }
@@ -161,46 +129,36 @@ public:
         return false;
     }
 
-    void pop()
-    {
-        if (length_ == 0)
-        {
+    void pop() {
+        if (length_ == 0) {
             kernel::SystemManager::system_panic("Vector::pop() called on empty vector", -KEEMPTY);
         }
         --length_;
-        if constexpr (!klib::is_trivially_destructible_v<T>)
-        {
+        if constexpr (!klib::is_trivially_destructible_v<T>) {
             data_[length_].~T();
         }
     }
 
-    T pop_back()
-    {
-        if (length_ == 0)
-        {
+    T pop_back() {
+        if (length_ == 0) {
             kernel::SystemManager::system_panic("Vector::pop_back() called on empty vector", -KEEMPTY);
         }
         --length_;
-        if constexpr (!klib::is_trivially_destructible_v<T>)
-        {
+        if constexpr (!klib::is_trivially_destructible_v<T>) {
             T value = data_[length_];
             data_[length_].~T();
             return value;
-        }
-        else
-        {
+        } else {
             return data_[length_];
         }
     }
 
-    T& back()
-    {
+    T& back() {
         if (length_ == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -KEEMPTY);
         return data_[length_ - 1];
     }
 
-    const T& back() const
-    {
+    const T& back() const {
         if (length_ == 0) kernel::SystemManager::system_panic("Vector::back() called on empty vector", -KEEMPTY);
         return data_[length_ - 1];
     }
@@ -221,28 +179,21 @@ private:
     usize capacity_{0};
     usize length_{0};
 
-    void resize(usize new_capacity)
-    {
+    void resize(usize new_capacity) {
         if (new_capacity <= capacity_) return;
         T* newdata = static_cast<T*>(kernel::memory::malloc(sizeof(T) * new_capacity));
         if (!newdata) kernel::SystemManager::system_panic("Vector resize malloc failed", -KEVECRESIZE);
 
-        if constexpr (klib::is_trivially_copyable_v<T>)
-        {
+        if constexpr (klib::is_trivially_copyable_v<T>) {
             // triviale Typen
-            for (usize i = 0; i < length_; ++i)
-            {
+            for (usize i = 0; i < length_; ++i) {
                 newdata[i] = data_[i];
             }
-        }
-        else
-        {
-            for (usize i = 0; i < length_; ++i)
-            {
+        } else {
+            for (usize i = 0; i < length_; ++i) {
                 new(&newdata[i]) T(data_[i]); // copy-construct
             }
-            for (usize i = 0; i < length_; ++i)
-            {
+            for (usize i = 0; i < length_; ++i) {
                 data_[i].~T();
             }
         }
@@ -252,13 +203,10 @@ private:
         capacity_ = new_capacity;
     }
 
-    void destroy()
-    {
+    void destroy() {
         if (!data_) return;
-        if constexpr (!klib::is_trivially_destructible_v<T>)
-        {
-            for (usize i = 0; i < length_; ++i)
-            {
+        if constexpr (!klib::is_trivially_destructible_v<T>) {
+            for (usize i = 0; i < length_; ++i) {
                 data_[i].~T();
             }
         }

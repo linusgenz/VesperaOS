@@ -50,10 +50,10 @@ static inline lv_opa_t _opa(stella_opa_t o) {
 
 /* stella_font_t is just a thin wrapper so callers stay opaque. */
 struct stella_font {
-    const lv_font_t *lv;
+    const lv_font_t* lv;
 };
 
-static inline const lv_font_t *_font(const stella_font_t *f) {
+static inline const lv_font_t* _font(const stella_font_t* f) {
     return f ? f->lv : &lv_font_montserrat_12;
 }
 
@@ -76,13 +76,13 @@ static const stella_font_t _f20 = {&lv_font_montserrat_20};
 static const stella_font_t _f20_m = {&monteserrat_20_math};
 static const stella_font_t _f24 = {&lv_font_montserrat_24};
 
-const stella_font_t *STELLA_FONT_10 = &_f10;
-const stella_font_t *STELLA_FONT_12 = &_f12;
-const stella_font_t *STELLA_FONT_14 = &_f14;
-const stella_font_t *STELLA_FONT_16 = &_f16;
-const stella_font_t *STELLA_FONT_20 = &_f20;
-const stella_font_t *STELLA_FONT_20_MATH = &_f20_m;
-const stella_font_t *STELLA_FONT_24 = &_f24;
+const stella_font_t* STELLA_FONT_10 = &_f10;
+const stella_font_t* STELLA_FONT_12 = &_f12;
+const stella_font_t* STELLA_FONT_14 = &_f14;
+const stella_font_t* STELLA_FONT_16 = &_f16;
+const stella_font_t* STELLA_FONT_20 = &_f20;
+const stella_font_t* STELLA_FONT_20_MATH = &_f20_m;
+const stella_font_t* STELLA_FONT_24 = &_f24;
 
 /* =========================================================================
  * Window struct (private)
@@ -95,11 +95,11 @@ struct stella_window {
 
     HANDLE sync_shm_fd;
     HANDLE fb_shm_fd;
-    crep_sync_t *win_sync;
-    uint32_t *win_pixels;
+    crep_sync_t* win_sync;
+    uint32_t* win_pixels;
 
-    lv_display_t *lv_disp;
-    uint32_t *lv_fb_buffer;
+    lv_display_t* lv_disp;
+    uint32_t* lv_fb_buffer;
 
     int32_t last_mouse_x;
     int32_t last_mouse_y;
@@ -107,22 +107,22 @@ struct stella_window {
 
     bool should_close;
     stella_close_cb_t close_cb;
-    void *close_user_data;
+    void* close_user_data;
 
-    lv_indev_t *lv_indev;
+    lv_indev_t* lv_indev;
 };
 
 /* =========================================================================
  * Internal LVGL callbacks
  * ========================================================================= */
 
-static void stella_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
-    stella_window_t *win = lv_display_get_user_data(disp);
+static void stella_flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map) {
+    stella_window_t* win = lv_display_get_user_data(disp);
     if (!win) return;
 
     uint32_t rect_w = (uint32_t)(area->x2 - area->x1 + 1);
     uint32_t rect_h = (uint32_t)(area->y2 - area->y1 + 1);
-    uint32_t *src = (uint32_t *)px_map;
+    uint32_t* src = (uint32_t*)px_map;
 
     for (uint32_t y = 0; y < rect_h; y++) {
         uint32_t dst_y = (uint32_t)area->y1 + y;
@@ -143,8 +143,8 @@ static void stella_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *
     lv_display_flush_ready(disp);
 }
 
-static void stella_mouse_read_cb(lv_indev_t *indev, lv_indev_data_t *data) {
-    stella_window_t *win = lv_indev_get_user_data(indev);
+static void stella_mouse_read_cb(lv_indev_t* indev, lv_indev_data_t* data) {
+    stella_window_t* win = lv_indev_get_user_data(indev);
     if (!win) return;
 
     data->point.x = win->last_mouse_x;
@@ -156,8 +156,8 @@ static void stella_mouse_read_cb(lv_indev_t *indev, lv_indev_data_t *data) {
  * Window management
  * ========================================================================= */
 
-stella_window_t *stella_window_create(const stella_config_t *config) {
-    stella_window_t *win = malloc(sizeof(stella_window_t));
+stella_window_t* stella_window_create(const stella_config_t* config) {
+    stella_window_t* win = malloc(sizeof(stella_window_t));
     if (!win) return NULL;
     memset(win, 0, sizeof(stella_window_t));
 
@@ -192,11 +192,11 @@ stella_window_t *stella_window_create(const stella_config_t *config) {
     /* SHM mapping */
     win->sync_shm_fd = shm_open(resp.sync_shm, O_RDWR, 0666);
     win->win_sync =
-        (crep_sync_t *)mmap(NULL, sizeof(crep_sync_t), PROT_READ | PROT_WRITE, MAP_SHARED, win->sync_shm_fd, 0);
+        (crep_sync_t*)mmap(NULL, sizeof(crep_sync_t), PROT_READ | PROT_WRITE, MAP_SHARED, win->sync_shm_fd, 0);
 
     win->fb_shm_fd = shm_open(resp.fb_shm, O_RDWR, 0666);
     const size_t fb_size = (size_t)(resp.width * resp.height) * sizeof(uint32_t);
-    win->win_pixels = (uint32_t *)mmap(NULL, fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, win->fb_shm_fd, 0);
+    win->win_pixels = (uint32_t*)mmap(NULL, fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, win->fb_shm_fd, 0);
 
     win->window_id = (int32_t)resp.window_id;
     win->width = resp.width;
@@ -223,7 +223,7 @@ stella_window_t *stella_window_create(const stella_config_t *config) {
     return win;
 }
 
-void stella_window_destroy(stella_window_t *win) {
+void stella_window_destroy(stella_window_t* win) {
     if (!win) return;
     if (win->win_pixels) munmap(win->win_pixels, (size_t)(win->width * win->height) * sizeof(uint32_t));
     if (win->win_sync) munmap(win->win_sync, sizeof(crep_sync_t));
@@ -233,7 +233,7 @@ void stella_window_destroy(stella_window_t *win) {
     free(win);
 }
 
-void stella_window_resize(stella_window_t *win, uint32_t new_w, uint32_t new_h) {
+void stella_window_resize(stella_window_t* win, uint32_t new_w, uint32_t new_h) {
     if (!win) return;
     if (win->width == new_w && win->height == new_h) return;
 
@@ -251,7 +251,7 @@ void stella_window_resize(stella_window_t *win, uint32_t new_w, uint32_t new_h) 
     win->height = new_h;
 
     const size_t fb_size = (size_t)(new_w * new_h) * sizeof(uint32_t);
-    win->win_pixels = (uint32_t *)mmap(NULL, fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, win->fb_shm_fd, 0);
+    win->win_pixels = (uint32_t*)mmap(NULL, fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, win->fb_shm_fd, 0);
     if (win->win_pixels == MAP_FAILED) {
         printf("stella: window_resize mmap failed (%ux%u) errno: %u\n", new_w, new_h, errno);
         win->win_pixels = NULL;
@@ -269,7 +269,7 @@ void stella_window_resize(stella_window_t *win, uint32_t new_w, uint32_t new_h) 
     lv_obj_invalidate(lv_display_get_screen_active(win->lv_disp));
 }
 
-void stella_process_events(stella_window_t *win) {
+void stella_process_events(stella_window_t* win) {
     vbus_header_t hdr;
     union {
         vbus_display_input_event_t input;
@@ -281,25 +281,27 @@ void stella_process_events(stella_window_t *win) {
             win->last_mouse_x = payload.input.local_x;
             win->last_mouse_y = payload.input.local_y;
             win->last_buttons = payload.input.buttons;
-        } else if (strcmp(hdr.member, VBUS_DISP_WINDOW_CONFIGURE) == 0 &&
-                   payload.configure.window_id == (uint32_t)win->window_id) {
+        }
+        else if (strcmp(hdr.member, VBUS_DISP_WINDOW_CONFIGURE) == 0 &&
+            payload.configure.window_id == (uint32_t)win->window_id) {
             stella_window_resize(win, payload.configure.width, payload.configure.height);
         }
     }
 }
 
-void stella_handle_event(stella_window_t *win, const vbus_header_t *hdr, const vbus_payload_t *payload) {
+void stella_handle_event(stella_window_t* win, const vbus_header_t* hdr, const vbus_payload_t* payload) {
     if (strcmp(hdr->member, VBUS_DISP_INPUT_EVENT) == 0 && payload->input.window_id == (uint32_t)win->window_id) {
         win->last_mouse_x = payload->input.local_x;
         win->last_mouse_y = payload->input.local_y;
         win->last_buttons = payload->input.buttons;
-    } else if (strcmp(hdr->member, VBUS_DISP_WINDOW_CONFIGURE) == 0 &&
-               payload->configure.window_id == (uint32_t)win->window_id) {
+    }
+    else if (strcmp(hdr->member, VBUS_DISP_WINDOW_CONFIGURE) == 0 &&
+        payload->configure.window_id == (uint32_t)win->window_id) {
         stella_window_resize(win, payload->configure.width, payload->configure.height);
-               }
+    }
 }
 
-stella_widget_t stella_window_get_screen(stella_window_t *win) {
+stella_widget_t stella_window_get_screen(stella_window_t* win) {
     if (!win || !win->lv_disp) return NULL;
     return (stella_widget_t)lv_display_get_screen_active(win->lv_disp);
 }
@@ -321,29 +323,29 @@ int32_t stella_display_height(void) {
  * ========================================================================= */
 
 stella_widget_t stella_container_create(stella_widget_t parent) {
-    lv_obj_t *obj = lv_obj_create((lv_obj_t *)parent);
+    lv_obj_t* obj = lv_obj_create((lv_obj_t*)parent);
     lv_obj_remove_style_all(obj);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     return (stella_widget_t)obj;
 }
 
-stella_widget_t stella_label_create(stella_widget_t parent, const char *text) {
-    lv_obj_t *lbl = lv_label_create((lv_obj_t *)parent);
+stella_widget_t stella_label_create(stella_widget_t parent, const char* text) {
+    lv_obj_t* lbl = lv_label_create((lv_obj_t*)parent);
     lv_label_set_text(lbl, text ? text : "");
     return (stella_widget_t)lbl;
 }
 
-stella_widget_t stella_image_create(stella_widget_t parent, const void *src, int32_t w, int32_t h) {
-    lv_obj_t *img = lv_image_create((lv_obj_t *)parent);
+stella_widget_t stella_image_create(stella_widget_t parent, const void* src, int32_t w, int32_t h) {
+    lv_obj_t* img = lv_image_create((lv_obj_t*)parent);
     lv_image_set_src(img, src);
     lv_obj_set_size(img, w, h);
     return (stella_widget_t)img;
 }
 
-stella_widget_t stella_button_create(stella_widget_t parent, const char *text, int32_t w, int32_t h) {
-    lv_obj_t *btn = lv_button_create((lv_obj_t *)parent);
+stella_widget_t stella_button_create(stella_widget_t parent, const char* text, int32_t w, int32_t h) {
+    lv_obj_t* btn = lv_button_create((lv_obj_t*)parent);
     lv_obj_set_size(btn, w, h);
-    lv_obj_t *lbl = lv_label_create(btn);
+    lv_obj_t* lbl = lv_label_create(btn);
     lv_label_set_text(lbl, text ? text : "");
     lv_obj_center(lbl);
     return (stella_widget_t)btn;
@@ -354,28 +356,28 @@ stella_widget_t stella_button_create(stella_widget_t parent, const char *text, i
  * ========================================================================= */
 
 void stella_widget_set_size(stella_widget_t w, int32_t width, int32_t height) {
-    lv_obj_set_size((lv_obj_t *)w, _sz(width), _sz(height));
+    lv_obj_set_size((lv_obj_t*)w, _sz(width), _sz(height));
 }
 
 void stella_widget_set_width(stella_widget_t w, int32_t width) {
-    lv_obj_set_width((lv_obj_t *)w, _sz(width));
+    lv_obj_set_width((lv_obj_t*)w, _sz(width));
 }
 
 void stella_widget_set_height(stella_widget_t w, int32_t height) {
-    lv_obj_set_height((lv_obj_t *)w, _sz(height));
+    lv_obj_set_height((lv_obj_t*)w, _sz(height));
 }
 
 void stella_widget_set_pos(stella_widget_t w, int32_t x, int32_t y) {
-    lv_obj_set_pos((lv_obj_t *)w, x, y);
+    lv_obj_set_pos((lv_obj_t*)w, x, y);
 }
 
 void stella_widget_align(stella_widget_t w, stella_align_t align, int32_t dx, int32_t dy) {
     /* stella_align_t values are defined to match lv_align_t ordinals. */
-    lv_obj_align((lv_obj_t *)w, (lv_align_t)align, dx, dy);
+    lv_obj_align((lv_obj_t*)w, (lv_align_t)align, dx, dy);
 }
 
 void stella_widget_center(stella_widget_t w) {
-    lv_obj_center((lv_obj_t *)w);
+    lv_obj_center((lv_obj_t*)w);
 }
 
 /* =========================================================================
@@ -383,19 +385,19 @@ void stella_widget_center(stella_widget_t w) {
  * ========================================================================= */
 
 void stella_widget_set_bg(stella_widget_t w, stella_color_t color, stella_opa_t opa) {
-    lv_obj_set_style_bg_color((lv_obj_t *)w, _col(color), 0);
-    lv_obj_set_style_bg_opa((lv_obj_t *)w, _opa(opa), 0);
+    lv_obj_set_style_bg_color((lv_obj_t*)w, _col(color), 0);
+    lv_obj_set_style_bg_opa((lv_obj_t*)w, _opa(opa), 0);
 }
 
 void stella_widget_set_bg_transp(stella_widget_t w) {
-    lv_obj_set_style_bg_opa((lv_obj_t *)w, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_bg_opa((lv_obj_t*)w, LV_OPA_TRANSP, 0);
 }
 
 void stella_widget_set_vertical_gradient(
     stella_widget_t w, stella_color_t col_top, stella_color_t col_bot, uint8_t main_stop, uint8_t grad_stop,
     stella_opa_t opa
 ) {
-    lv_obj_t *obj = (lv_obj_t *)w;
+    lv_obj_t* obj = (lv_obj_t*)w;
     lv_obj_set_style_bg_color(obj, _col(col_top), 0);
     lv_obj_set_style_bg_grad_color(obj, _col(col_bot), 0);
     lv_obj_set_style_bg_grad_dir(obj, LV_GRAD_DIR_VER, 0);
@@ -409,25 +411,25 @@ void stella_widget_set_vertical_gradient(
  * ========================================================================= */
 
 void stella_widget_no_border(stella_widget_t w) {
-    lv_obj_set_style_border_width((lv_obj_t *)w, 0, 0);
+    lv_obj_set_style_border_width((lv_obj_t*)w, 0, 0);
 }
 
 void stella_widget_set_border(stella_widget_t w, stella_color_t color, int32_t width, stella_opa_t opa) {
-    lv_obj_set_style_border_color((lv_obj_t *)w, _col(color), 0);
-    lv_obj_set_style_border_width((lv_obj_t *)w, width, 0);
-    lv_obj_set_style_border_opa((lv_obj_t *)w, _opa(opa), 0);
+    lv_obj_set_style_border_color((lv_obj_t*)w, _col(color), 0);
+    lv_obj_set_style_border_width((lv_obj_t*)w, width, 0);
+    lv_obj_set_style_border_opa((lv_obj_t*)w, _opa(opa), 0);
 }
 
 void stella_widget_set_border_bottom(stella_widget_t w, stella_color_t color, int32_t width) {
-    lv_obj_set_style_border_side((lv_obj_t *)w, LV_BORDER_SIDE_BOTTOM, 0);
-    lv_obj_set_style_border_color((lv_obj_t *)w, _col(color), 0);
-    lv_obj_set_style_border_width((lv_obj_t *)w, width, 0);
+    lv_obj_set_style_border_side((lv_obj_t*)w, LV_BORDER_SIDE_BOTTOM, 0);
+    lv_obj_set_style_border_color((lv_obj_t*)w, _col(color), 0);
+    lv_obj_set_style_border_width((lv_obj_t*)w, width, 0);
 }
 
 void stella_widget_set_border_top(stella_widget_t w, stella_color_t color, int32_t width) {
-    lv_obj_set_style_border_side((lv_obj_t *)w, LV_BORDER_SIDE_TOP, 0);
-    lv_obj_set_style_border_color((lv_obj_t *)w, _col(color), 0);
-    lv_obj_set_style_border_width((lv_obj_t *)w, width, 0);
+    lv_obj_set_style_border_side((lv_obj_t*)w, LV_BORDER_SIDE_TOP, 0);
+    lv_obj_set_style_border_color((lv_obj_t*)w, _col(color), 0);
+    lv_obj_set_style_border_width((lv_obj_t*)w, width, 0);
 }
 
 /* =========================================================================
@@ -435,7 +437,7 @@ void stella_widget_set_border_top(stella_widget_t w, stella_color_t color, int32
  * ========================================================================= */
 
 void stella_widget_set_radius(stella_widget_t w, int32_t r) {
-    lv_obj_set_style_radius((lv_obj_t *)w, r, 0);
+    lv_obj_set_style_radius((lv_obj_t*)w, r, 0);
 }
 
 /* =========================================================================
@@ -443,31 +445,31 @@ void stella_widget_set_radius(stella_widget_t w, int32_t r) {
  * ========================================================================= */
 
 void stella_widget_set_pad_all(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_all((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_all((lv_obj_t*)w, p, 0);
 }
 
 void stella_widget_set_pad_hor(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_hor((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_hor((lv_obj_t*)w, p, 0);
 }
 
 void stella_widget_set_pad_ver(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_ver((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_ver((lv_obj_t*)w, p, 0);
 }
 
 void stella_widget_set_pad_top(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_top((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_top((lv_obj_t*)w, p, 0);
 }
 
 void stella_widget_set_pad_left(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_left((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_left((lv_obj_t*)w, p, 0);
 }
 
 void stella_widget_set_pad_row(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_row((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_row((lv_obj_t*)w, p, 0);
 }
 
 void stella_widget_set_pad_col(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_column((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_column((lv_obj_t*)w, p, 0);
 }
 
 /* =========================================================================
@@ -479,18 +481,18 @@ void stella_widget_set_pad_col(stella_widget_t w, int32_t p) {
 void stella_widget_flex_row(
     stella_widget_t w, stella_flex_align_t main_place, stella_flex_align_t cross_place, stella_flex_align_t track_place
 ) {
-    lv_obj_set_flex_flow((lv_obj_t *)w, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_flow((lv_obj_t*)w, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
-        (lv_obj_t *)w, (lv_flex_align_t)main_place, (lv_flex_align_t)cross_place, (lv_flex_align_t)track_place
+        (lv_obj_t*)w, (lv_flex_align_t)main_place, (lv_flex_align_t)cross_place, (lv_flex_align_t)track_place
     );
 }
 
 void stella_widget_flex_col(
     stella_widget_t w, stella_flex_align_t main_place, stella_flex_align_t cross_place, stella_flex_align_t track_place
 ) {
-    lv_obj_set_flex_flow((lv_obj_t *)w, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_flow((lv_obj_t*)w, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(
-        (lv_obj_t *)w, (lv_flex_align_t)main_place, (lv_flex_align_t)cross_place, (lv_flex_align_t)track_place
+        (lv_obj_t*)w, (lv_flex_align_t)main_place, (lv_flex_align_t)cross_place, (lv_flex_align_t)track_place
     );
 }
 
@@ -499,28 +501,28 @@ void stella_widget_flex_col(
  * ========================================================================= */
 
 void stella_text_set_color(stella_widget_t w, stella_color_t color) {
-    lv_obj_set_style_text_color((lv_obj_t *)w, _col(color), 0);
+    lv_obj_set_style_text_color((lv_obj_t*)w, _col(color), 0);
 }
 
-void stella_text_set_font(stella_widget_t w, const stella_font_t *font) {
-    lv_obj_set_style_text_font((lv_obj_t *)w, _font(font), 0);
+void stella_text_set_font(stella_widget_t w, const stella_font_t* font) {
+    lv_obj_set_style_text_font((lv_obj_t*)w, _font(font), 0);
 }
 
 void stella_text_set_align(stella_widget_t w, stella_text_align_t align) {
     /* stella_text_align_t ordinals match lv_text_align_t — safe to cast. */
-    lv_obj_set_style_text_align((lv_obj_t *)w, (lv_text_align_t)align, 0);
+    lv_obj_set_style_text_align((lv_obj_t*)w, (lv_text_align_t)align, 0);
 }
 
 void stella_text_set_pad_top(stella_widget_t w, int32_t p) {
-    lv_obj_set_style_pad_top((lv_obj_t *)w, p, 0);
+    lv_obj_set_style_pad_top((lv_obj_t*)w, p, 0);
 }
 
-void stella_label_update(stella_widget_t lbl, const char *text) {
-    lv_label_set_text((lv_obj_t *)lbl, text ? text : "");
+void stella_label_update(stella_widget_t lbl, const char* text) {
+    lv_label_set_text((lv_obj_t*)lbl, text ? text : "");
 }
 
 void stella_label_set_long_dot(stella_widget_t lbl) {
-    lv_label_set_long_mode((lv_obj_t *)lbl, LV_LABEL_LONG_DOT);
+    lv_label_set_long_mode((lv_obj_t*)lbl, LV_LABEL_LONG_DOT);
 }
 
 /* =========================================================================
@@ -528,8 +530,8 @@ void stella_label_set_long_dot(stella_widget_t lbl) {
  * ========================================================================= */
 
 void stella_widget_set_hover_bg(stella_widget_t w, stella_color_t color, stella_opa_t opa) {
-    lv_obj_set_style_bg_color((lv_obj_t *)w, _col(color), LV_STATE_FOCUSED);
-    lv_obj_set_style_bg_opa((lv_obj_t *)w, _opa(opa), LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color((lv_obj_t*)w, _col(color), LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_opa((lv_obj_t*)w, _opa(opa), LV_STATE_FOCUSED);
 }
 
 /* =========================================================================
@@ -537,11 +539,11 @@ void stella_widget_set_hover_bg(stella_widget_t w, stella_color_t color, stella_
  * ========================================================================= */
 
 void stella_widget_no_scroll(stella_widget_t w) {
-    lv_obj_clear_flag((lv_obj_t *)w, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag((lv_obj_t*)w, LV_OBJ_FLAG_SCROLLABLE);
 }
 
 void stella_widget_clean(stella_widget_t w) {
-    lv_obj_clean((lv_obj_t *)w);
+    lv_obj_clean((lv_obj_t*)w);
 }
 
 /* =========================================================================
@@ -550,26 +552,26 @@ void stella_widget_clean(stella_widget_t w) {
 
 typedef struct {
     stella_event_cb_t cb;
-    void *user_data;
+    void* user_data;
 } _stella_click_ctx_t;
 
-static void _stella_click_trampoline(lv_event_t *e) {
-    _stella_click_ctx_t *ctx = lv_event_get_user_data(e);
+static void _stella_click_trampoline(lv_event_t* e) {
+    _stella_click_ctx_t* ctx = lv_event_get_user_data(e);
     if (ctx && ctx->cb) {
         ctx->cb((stella_widget_t)lv_event_get_target(e), ctx->user_data);
     }
 }
 
-static void _stella_widget_delete_cb(lv_event_t *e) {
-    _stella_click_ctx_t *ctx = lv_event_get_user_data(e);
+static void _stella_widget_delete_cb(lv_event_t* e) {
+    _stella_click_ctx_t* ctx = lv_event_get_user_data(e);
     if (ctx) free(ctx);
 }
 
-void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void *user_data) {
-    lv_obj_t *obj = (lv_obj_t *)w;
+void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void* user_data) {
+    lv_obj_t* obj = (lv_obj_t*)w;
     lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
 
-    _stella_click_ctx_t *ctx = malloc(sizeof(_stella_click_ctx_t));
+    _stella_click_ctx_t* ctx = malloc(sizeof(_stella_click_ctx_t));
     if (!ctx) return;
     ctx->cb = cb;
     ctx->user_data = user_data;
@@ -586,18 +588,18 @@ void stella_widget_on_click(stella_widget_t w, stella_event_cb_t cb, void *user_
  * the LVGL callback can forward them without the caller ever seeing lv_timer_t.
  */
 struct stella_timer {
-    lv_timer_t *lv_timer;
+    lv_timer_t* lv_timer;
     stella_timer_cb_t cb;
-    void *user_data;
+    void* user_data;
 };
 
-static void _timer_trampoline(lv_timer_t *t) {
-    stella_timer_t *st = lv_timer_get_user_data(t);
+static void _timer_trampoline(lv_timer_t* t) {
+    stella_timer_t* st = lv_timer_get_user_data(t);
     if (st && st->cb) st->cb(st, st->user_data);
 }
 
-stella_timer_t *stella_timer_create(stella_timer_cb_t cb, uint32_t period_ms, void *user_data) {
-    stella_timer_t *st = malloc(sizeof(stella_timer_t));
+stella_timer_t* stella_timer_create(stella_timer_cb_t cb, uint32_t period_ms, void* user_data) {
+    stella_timer_t* st = malloc(sizeof(stella_timer_t));
     if (!st) return NULL;
     st->cb = cb;
     st->user_data = user_data;
@@ -609,13 +611,13 @@ stella_timer_t *stella_timer_create(stella_timer_cb_t cb, uint32_t period_ms, vo
     return st;
 }
 
-void stella_timer_delete(stella_timer_t *st) {
+void stella_timer_delete(stella_timer_t* st) {
     if (!st) return;
     lv_timer_delete(st->lv_timer);
     free(st);
 }
 
-void stella_timer_fire_now(stella_timer_t *st) {
+void stella_timer_fire_now(stella_timer_t* st) {
     if (st) lv_timer_ready(st->lv_timer);
 }
 
@@ -624,33 +626,33 @@ void stella_timer_fire_now(stella_timer_t *st) {
  * ========================================================================= */
 
 stella_widget_t stella_bar_create(stella_widget_t parent, int32_t w, int32_t h) {
-    lv_obj_t *bar = lv_bar_create((lv_obj_t *)parent);
+    lv_obj_t* bar = lv_bar_create((lv_obj_t*)parent);
     lv_obj_set_size(bar, w, h);
     return (stella_widget_t)bar;
 }
 
 void stella_bar_set_range(stella_widget_t bar, int32_t min, int32_t max) {
-    lv_bar_set_range((lv_obj_t *)bar, min, max);
+    lv_bar_set_range((lv_obj_t*)bar, min, max);
 }
 
 void stella_bar_set_value(stella_widget_t bar, int32_t value) {
-    lv_bar_set_value((lv_obj_t *)bar, value, LV_ANIM_OFF);
+    lv_bar_set_value((lv_obj_t*)bar, value, LV_ANIM_OFF);
 }
 
 void stella_bar_set_track_color(stella_widget_t bar, stella_color_t color) {
-    lv_obj_set_style_bg_color((lv_obj_t *)bar, _col(color), LV_PART_MAIN);
+    lv_obj_set_style_bg_color((lv_obj_t*)bar, _col(color), LV_PART_MAIN);
 }
 
 void stella_bar_set_track_radius(stella_widget_t bar, int32_t r) {
-    lv_obj_set_style_radius((lv_obj_t *)bar, r, LV_PART_MAIN);
+    lv_obj_set_style_radius((lv_obj_t*)bar, r, LV_PART_MAIN);
 }
 
 void stella_bar_set_indicator_color(stella_widget_t bar, stella_color_t color) {
-    lv_obj_set_style_bg_color((lv_obj_t *)bar, _col(color), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color((lv_obj_t*)bar, _col(color), LV_PART_INDICATOR);
 }
 
 void stella_bar_set_indicator_radius(stella_widget_t bar, int32_t r) {
-    lv_obj_set_style_radius((lv_obj_t *)bar, r, LV_PART_INDICATOR);
+    lv_obj_set_style_radius((lv_obj_t*)bar, r, LV_PART_INDICATOR);
 }
 
 /* =========================================================================
@@ -674,21 +676,21 @@ void stella_bar_set_indicator_radius(stella_widget_t bar, int32_t r) {
 
 static lv_fs_res_t _errno_to_lv(void) {
     switch (errno) {
-        case ENOENT:
-            return LV_FS_RES_NOT_EX;
-        case EACCES:
-        case EPERM:
-            return LV_FS_RES_DENIED;
-        case ENOSPC:
-            return LV_FS_RES_FULL;
-        case ENOMEM:
-            return LV_FS_RES_OUT_OF_MEM;
-        case EBUSY:
-            return LV_FS_RES_BUSY;
-        case EINVAL:
-            return LV_FS_RES_INV_PARAM;
-        default:
-            return LV_FS_RES_UNKNOWN;
+    case ENOENT:
+        return LV_FS_RES_NOT_EX;
+    case EACCES:
+    case EPERM:
+        return LV_FS_RES_DENIED;
+    case ENOSPC:
+        return LV_FS_RES_FULL;
+    case ENOMEM:
+        return LV_FS_RES_OUT_OF_MEM;
+    case EBUSY:
+        return LV_FS_RES_BUSY;
+    case EINVAL:
+        return LV_FS_RES_INV_PARAM;
+    default:
+        return LV_FS_RES_UNKNOWN;
     }
 }
 
@@ -697,7 +699,7 @@ typedef struct {
     uint64_t pos; /* updated by read / write / seek */
 } fs_file_ctx_t;
 
-static void *_fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode) {
+static void* _fs_open(lv_fs_drv_t* drv, const char* path, lv_fs_mode_t mode) {
     (void)drv;
 
     int flags;
@@ -714,7 +716,7 @@ static void *_fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode) {
         return NULL;
     }
 
-    fs_file_ctx_t *ctx = malloc(sizeof *ctx);
+    fs_file_ctx_t* ctx = malloc(sizeof *ctx);
     if (!ctx) {
         close(h);
         return NULL;
@@ -724,18 +726,18 @@ static void *_fs_open(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode) {
     return ctx;
 }
 
-static lv_fs_res_t _fs_close(lv_fs_drv_t *drv, void *file_p) {
+static lv_fs_res_t _fs_close(lv_fs_drv_t* drv, void* file_p) {
     (void)drv;
-    fs_file_ctx_t *ctx = (fs_file_ctx_t *)file_p;
+    fs_file_ctx_t* ctx = (fs_file_ctx_t*)file_p;
 
     lv_fs_res_t res = (close(ctx->handle) == 0) ? LV_FS_RES_OK : _errno_to_lv();
     free(ctx);
     return res;
 }
 
-static lv_fs_res_t _fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t btr, uint32_t *br) {
+static lv_fs_res_t _fs_read(lv_fs_drv_t* drv, void* file_p, void* buf, uint32_t btr, uint32_t* br) {
     (void)drv;
-    fs_file_ctx_t *ctx = (fs_file_ctx_t *)file_p;
+    fs_file_ctx_t* ctx = (fs_file_ctx_t*)file_p;
 
     ssize_t n = read(ctx->handle, buf, (size_t)btr);
     if (n < 0) {
@@ -747,9 +749,9 @@ static lv_fs_res_t _fs_read(lv_fs_drv_t *drv, void *file_p, void *buf, uint32_t 
     return LV_FS_RES_OK;
 }
 
-static lv_fs_res_t _fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, uint32_t btw, uint32_t *bw) {
+static lv_fs_res_t _fs_write(lv_fs_drv_t* drv, void* file_p, const void* buf, uint32_t btw, uint32_t* bw) {
     (void)drv;
-    fs_file_ctx_t *ctx = (fs_file_ctx_t *)file_p;
+    fs_file_ctx_t* ctx = (fs_file_ctx_t*)file_p;
 
     ssize_t n = write(ctx->handle, buf, (size_t)btw);
     if (n < 0) {
@@ -761,9 +763,9 @@ static lv_fs_res_t _fs_write(lv_fs_drv_t *drv, void *file_p, const void *buf, ui
     return LV_FS_RES_OK;
 }
 
-static lv_fs_res_t _fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_whence_t whence) {
+static lv_fs_res_t _fs_seek(lv_fs_drv_t* drv, void* file_p, uint32_t pos, lv_fs_whence_t whence) {
     (void)drv;
-    fs_file_ctx_t *ctx = (fs_file_ctx_t *)file_p;
+    fs_file_ctx_t* ctx = (fs_file_ctx_t*)file_p;
 
     int w = (whence == LV_FS_SEEK_SET) ? SEEK_SET : (whence == LV_FS_SEEK_CUR) ? SEEK_CUR : SEEK_END;
 
@@ -774,9 +776,9 @@ static lv_fs_res_t _fs_seek(lv_fs_drv_t *drv, void *file_p, uint32_t pos, lv_fs_
     return LV_FS_RES_OK;
 }
 
-static lv_fs_res_t _fs_tell(lv_fs_drv_t *drv, void *file_p, uint32_t *pos_p) {
+static lv_fs_res_t _fs_tell(lv_fs_drv_t* drv, void* file_p, uint32_t* pos_p) {
     (void)drv;
-    const fs_file_ctx_t *ctx = (const fs_file_ctx_t *)file_p;
+    const fs_file_ctx_t* ctx = (const fs_file_ctx_t*)file_p;
     *pos_p = (uint32_t)ctx->pos; /* safe for files < 4 GiB */
     return LV_FS_RES_OK;
 }
@@ -785,7 +787,7 @@ typedef struct {
     DIR_HANDLE handle;
 } fs_dir_ctx_t;
 
-static void *_dir_open(lv_fs_drv_t *drv, const char *path) {
+static void* _dir_open(lv_fs_drv_t* drv, const char* path) {
     (void)drv;
 
     DIR_HANDLE dh = opendir(path);
@@ -794,7 +796,7 @@ static void *_dir_open(lv_fs_drv_t *drv, const char *path) {
         return NULL;
     }
 
-    fs_dir_ctx_t *ctx = malloc(sizeof *ctx);
+    fs_dir_ctx_t* ctx = malloc(sizeof *ctx);
     if (!ctx) {
         closedir(dh);
         return NULL;
@@ -803,9 +805,9 @@ static void *_dir_open(lv_fs_drv_t *drv, const char *path) {
     return ctx;
 }
 
-static lv_fs_res_t _dir_read(lv_fs_drv_t *drv, void *rddir_p, char *fn, uint32_t fn_len) {
+static lv_fs_res_t _dir_read(lv_fs_drv_t* drv, void* rddir_p, char* fn, uint32_t fn_len) {
     (void)drv;
-    fs_dir_ctx_t *ctx = (fs_dir_ctx_t *)rddir_p;
+    fs_dir_ctx_t* ctx = (fs_dir_ctx_t*)rddir_p;
 
     dirent_t entry;
     ssize_t r = readdir(ctx->handle, &entry);
@@ -822,9 +824,9 @@ static lv_fs_res_t _dir_read(lv_fs_drv_t *drv, void *rddir_p, char *fn, uint32_t
     return LV_FS_RES_OK;
 }
 
-static lv_fs_res_t _dir_close(lv_fs_drv_t *drv, void *rddir_p) {
+static lv_fs_res_t _dir_close(lv_fs_drv_t* drv, void* rddir_p) {
     (void)drv;
-    fs_dir_ctx_t *ctx = (fs_dir_ctx_t *)rddir_p;
+    fs_dir_ctx_t* ctx = (fs_dir_ctx_t*)rddir_p;
 
     lv_fs_res_t res = (closedir(ctx->handle) == 0) ? LV_FS_RES_OK : _errno_to_lv();
     free(ctx);
@@ -867,20 +869,20 @@ void stella_fs_init(void) {
  * The string is intentionally leaked — desktop icons live forever.
  * If you ever need cleanup, store the pointer and free on widget deletion.
  */
-stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char *path, int32_t w, int32_t h) {
+stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char* path, int32_t w, int32_t h) {
     if (!path) return NULL;
 
     /* Build "V:<path>\0" — LVGL requires the drive-letter prefix to
      * recognise the source as a filesystem path rather than a raw
      * lv_image_dsc_t pointer. */
     size_t len = strlen(path);
-    char *lvpath = malloc(len + 3); /* 'V' + ':' + path + '\0' */
+    char* lvpath = malloc(len + 3); /* 'V' + ':' + path + '\0' */
     if (!lvpath) return NULL;
     lvpath[0] = STELLA_FS_DRIVE;
     lvpath[1] = ':';
     memcpy(lvpath + 2, path, len + 1);
 
-    lv_obj_t *img = lv_image_create((lv_obj_t *)parent);
+    lv_obj_t* img = lv_image_create((lv_obj_t*)parent);
     if (w != STELLA_SIZE_CONTENT || h != STELLA_SIZE_CONTENT) {
         lv_obj_set_size(img, _sz(w), _sz(h));
         lv_image_set_inner_align(img, LV_IMAGE_ALIGN_CONTAIN);
@@ -891,7 +893,7 @@ stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char
 }
 
 void stella_widget_delete(stella_widget_t w) {
-    lv_obj_delete((lv_obj_t *)w);
+    lv_obj_delete((lv_obj_t*)w);
 }
 
 /* =========================================================================
@@ -914,13 +916,13 @@ void stella_tick(uint32_t ms) {
     lv_timer_handler();
 }
 
-void stella_window_on_close(stella_window_t *win, stella_close_cb_t cb, void *user_data) {
+void stella_window_on_close(stella_window_t* win, stella_close_cb_t cb, void* user_data) {
     if (!win) return;
     win->close_cb = cb;
     win->close_user_data = user_data;
 }
 
-bool stella_window_should_close(stella_window_t *win) {
+bool stella_window_should_close(stella_window_t* win) {
     return win && win->should_close;
 }
 
@@ -935,7 +937,7 @@ long long now_ms(void) {
 void sleep_ms(long long ms) {
     if (ms <= 0) return;
     timespec_t ts = {
-        .tv_sec  = ms / 1000LL,
+        .tv_sec = ms / 1000LL,
         .tv_nsec = (ms % 1000LL) * 1000000LL,
     };
     nanosleep(&ts, NULL);

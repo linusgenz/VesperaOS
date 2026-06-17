@@ -26,7 +26,6 @@
 #include <vespera/types.h>
 
 namespace kernel::acpi {
-
     struct acpi_handle_t {
         void* ptr = nullptr;
 
@@ -47,8 +46,8 @@ namespace kernel::acpi {
     void enumerate_devices(const char* hid, acpi_device_fn cb, void* context);
 
     enum class notify_type : u8 {
-        device  = 0,  // ACPI_DEVICE_NOTIFY  (0x00–0x7F)
-        all     = 1,  // ACPI_ALL_NOTIFY     (both ranges)
+        device = 0, // ACPI_DEVICE_NOTIFY  (0x00–0x7F)
+        all = 1, // ACPI_ALL_NOTIFY     (both ranges)
     };
 
     // Install a notify handler on a device handle.
@@ -66,6 +65,7 @@ namespace kernel::acpi {
     // Result type for evaluate_integer / evaluate_string.
     struct eval_result {
         bool ok = false;
+
         union {
             u64 integer;
             // For strings, see evaluate_string() below.
@@ -98,10 +98,10 @@ namespace kernel::acpi {
     // Rather than exposing ACPI_OBJECT to drivers, we provide typed structs.
 
     struct bst_data {
-        u32 state;               // Battery State    (bit 0=discharging, 1=charging, 2=critical)
-        u32 present_rate;        // mW or mA (depending on power_unit)
-        u32 remaining_capacity;  // mWh or mAh
-        u32 present_voltage;     // mV
+        u32 state; // Battery State    (bit 0=discharging, 1=charging, 2=critical)
+        u32 present_rate; // mW or mA (depending on power_unit)
+        u32 remaining_capacity; // mWh or mAh
+        u32 present_voltage; // mV
     };
 
     struct bif_data {
@@ -125,8 +125,8 @@ namespace kernel::acpi {
     [[nodiscard]] bool battery_present(acpi_handle_t battery);
 
     enum class acpi_object_type : u8 {
-        thermal = 0,  // ACPI_TYPE_THERMAL
-        device  = 1,  // ACPI_TYPE_DEVICE
+        thermal = 0, // ACPI_TYPE_THERMAL
+        device = 1, // ACPI_TYPE_DEVICE
         // extend as needed
     };
 
@@ -141,8 +141,8 @@ namespace kernel::acpi {
     [[nodiscard]] bool get_object_name(acpi_handle_t object, char* dst, usize dst_size);
 
     struct io_port_pair {
-        u16 data;  // first IO port from _CRS
-        u16 cmd;   // second IO port from _CRS
+        u16 data; // first IO port from _CRS
+        u16 cmd; // second IO port from _CRS
         bool valid = false;
     };
 
@@ -151,7 +151,6 @@ namespace kernel::acpi {
 
     [[noreturn]] void power_off();
     [[noreturn]] void reboot();
-
 } // namespace kernel::acpi
 
 #endif // VESPERAOS_INCLUDE_ACPI_ACPI_H

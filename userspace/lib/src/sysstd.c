@@ -97,6 +97,9 @@
 #define SYSCALL_SHM_UNLINK       304
 #define SYSCALL_HANDLE_TRUNCATE       305
 
+#define SYSCALL_CHRONOS_CHECKPOINT 321
+#define SYSCALL_CHRONOS_SUMMARY 322
+
 int64_t syscall(
     uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5
 ) {
@@ -384,4 +387,12 @@ int64_t sys_handle_truncate(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_
 
 int64_t sys_vbus_emit(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_VBUS_EMIT, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_chronos_checkpoint(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHRONOS_CHECKPOINT, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_chronos_summary(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHRONOS_SUMMARY, 0, 0, 0, 0, 0, 0);
 }

@@ -29,7 +29,7 @@ namespace serial {
         return inb(COM1 + 5) & 0x20;
     }
 
-    inline void write_char(char c) {
+    void write_char(char c) {
         while (!tx_empty()) {
             asm volatile("pause");
         }
@@ -37,11 +37,11 @@ namespace serial {
         outb(COM1, static_cast<u8>(c));
     }
 
-    void write(const void* buf, usize count) {
-        const char* s = static_cast<const char*>(buf);
+    void write(const void* buf, const usize count) {
+        const auto s = static_cast<const char*>(buf);
 
         for (usize i = 0; i < count; ++i) {
-            char c = s[i];
+            const char c = s[i];
 
             if (c == '\n') write_char('\r');
 
