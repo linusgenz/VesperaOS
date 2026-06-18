@@ -117,7 +117,7 @@ int DevFs::register_device(KernelDevice* kd) {
     node->seekable = (kd->type == DeviceType::Block);
 
     node->internal_data = entry;
-    kd->vfs_node_parent = root_;  // root as parent
+    kd->vfs_node_parent = root_; // root as parent
 
     auto* root_data = static_cast<DirData*>(root_->internal_data);
     if (!root_data) {
@@ -137,24 +137,39 @@ int DevFs::unregister_device(KernelDevice* kd) {
 
     SpinlockGuard guard(lock_);
 
-    VfsNode* node = kd->vfs_node_parent;
-    if (!node) return -ENOENT;
+    if (!root_) return -ENOENT;
 
-    auto* entry = static_cast<DevfsEntry*>(node->internal_data);
-    if (!entry) return -ENOENT;
+    auto* root_data = static_cast<DirData*>(root_->internal_data);
+    if (!root_data) return -ENOENT;
 
-    auto* root_data = static_cast<DirData*>(node->internal_data);
-    auto& devices = root_data->files;
-    for (usize i = 0; i < devices.size(); ++i) {
-        if (devices[i] == node) {
-            devices.erase(i);
+    VfsNode* target_node = nullptr;
+    usize target_idx = 0;
+
+    for (usize i = 0; i < root_data->files.size(); ++i) {
+        VfsNode* file_node = root_data->files[i];
+        if (!file_node) continue;
+
+        auto* e = static_cast<DevfsEntry*>(file_node->internal_data);
+        if (e && e->device == kd) {
+            target_node = file_node;
+            target_idx = i;
             break;
         }
     }
 
-    kernel::memory::free(entry);
-    kernel::memory::free(node);
+    if (!target_node) return -ENOENT;
 
+    root_data->files.erase(target_idx);
+
+    if (auto* entry = static_cast<DevfsEntry*>(target_node->internal_data)) {
+        if (entry->cf && kd->chardev) {
+            kd->chardev->release(entry->cf);
+            entry->cf = nullptr;
+        }
+        kernel::memory::free(entry);
+    }
+
+    kernel::memory::free(target_node);
     kd->vfs_node_parent = nullptr;
 
     return SUCCESS_CODE;
@@ -216,7 +231,7 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
     // CharDevice
     if (kd->chardev) {
         if (!entry->cf) {
-            if (const int res = open(node); res < 0) return Error::Inval;  // TODO adapt chardevs
+            if (const int res = open(node); res < 0) return Error::Inval; // TODO adapt chardevs
         }
         const isize r = kd->chardev->write(entry->cf, buffer, size);
         if (r < 0) return Error::Io;
@@ -236,6 +251,7 @@ Result<usize> DevFs::write(VfsNode* node, const usize offset, const usize size, 
 
     return Error::Inval;
 }
+
 isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
     if (!node) return -EINVAL;
 
