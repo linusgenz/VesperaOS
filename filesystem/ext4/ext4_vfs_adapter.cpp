@@ -42,7 +42,7 @@ static Result<VfsNode*> ext4_find(VfsNode* node, const char* name) {
     if (!dir || !dir->is_dir) return Error::NotDir;
 
     usize entry_count = 0;
-    FileEntry* entries = TRY(dir->fs->read_directory(dir->inode, entry_count));
+    FileEntry* entries = TRY(dir->fs->read_directory(dir->inode, entry_count, name));
 
     for (usize i = 0; i < entry_count; ++i) {
         if (strcmp(entries[i].get_name(), name) != 0) continue;
@@ -78,6 +78,7 @@ static Result<VfsNode*> ext4_find(VfsNode* node, const char* name) {
         child_node->ops = node->ops;
         child_node->size = entries[i].get_size();
         child_node->seekable = !(child_data->is_dir);
+        child_node->ref_count = 1;
 
         kernel::memory::free(entries);
         return Result<VfsNode*>::ok(child_node);

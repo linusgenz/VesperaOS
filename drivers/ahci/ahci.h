@@ -237,7 +237,9 @@ namespace ahci {
         void stop_cmd() const;
         void start_cmd() const;
 
-        bool flush();
+        int flush() override;
+        int do_flush();
+
         [[nodiscard]] bool write_cache_enabled() const;
 
         isize read(u64 lba, usize sector_count, void* buffer, usize buffer_size) override;

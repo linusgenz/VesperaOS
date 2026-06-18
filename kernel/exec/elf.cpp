@@ -31,6 +31,7 @@
 #include "../paging/page_table_manager.h"
 #include "../realm/address_space.h"
 #include "../security/setuid_exec.h"
+#include "vespera/debug/chronos.h"
 
 #if ENABLE_ELF_LOGGING
 #include <vespera/log.h>
@@ -347,7 +348,9 @@ ElfLoader::FileData ElfLoader::load_file_from_vfs(const char* path, Realm* realm
 
     kernel::security::apply_exec_credentials(realm->cred, file);
 
+    CHRONOS_CP_PHASE("elf", "read_start");
     VFS::read(file, 0, size, data);
+    CHRONOS_CP_PHASE("elf", "read_end");
     VFS::close(file);
 
     return {data, size, nullptr};

@@ -1080,7 +1080,9 @@ namespace ext4 {
 
     // fs ops
 
-    Result<FileEntry*> FileSystem::read_directory(const u32 inode_number, usize& out_count) const {
+    Result<FileEntry*> FileSystem::read_directory(
+        const u32 inode_number, usize& out_count, const char* find_name
+    ) const {
         out_count = 0;
 
         Inode dir_inode{};
@@ -1120,13 +1122,14 @@ namespace ext4 {
                 fe.set_inode(de->inode);
                 fe.set_type(de->file_type);
                 fe.set_name(de->name, de->name_len);
+                fe.set_size(0);
 
-                if (Inode file_inode{}; read_inode(de->inode, file_inode)) {
-                    fe.set_size(inode_get_size(file_inode));
-                    if (inode_get_type(file_inode) == InodeType::RegularFile)
-                        fe.set_executable((file_inode.i_mode & 0x0040u) != 0);
-                } else {
-                    fe.set_size(0);
+                if (find_name && strcmp(fe.get_name(), find_name) == 0) {
+                    if (Inode file_inode{}; read_inode(de->inode, file_inode))
+                        fe.set_size(inode_get_size(file_inode));
+
+                    kernel::memory::free(block_buf);
+                    return Result<FileEntry*>::ok(entries);
                 }
 
                 offset += de->rec_len;
@@ -1238,22 +1241,21 @@ namespace ext4 {
             // Aligned middle section: directly via device_->read() in chunks
             {
                 const u64 aligned_end = overlap_end & ~static_cast<u64>(bsize - 1);
-                const usize full_run_bytes = (aligned_end > cur) ? static_cast<usize>(aligned_end - cur) : 0;
+                const usize full_run_bytes = (aligned_end > cur)
+                                                 ? static_cast<usize>(aligned_end - cur)
+                                                 : 0;
 
                 if (full_run_bytes > 0) {
                     const u64 phys_block = em.phys_start + (cur / bsize - em.logical_start);
                     const u64 start_sect = phys_block * bsize / sector_size_;
-                    usize rem = full_run_bytes;
-                    u64 cur_sect = start_sect;
-                    u8* cur_dst = dst;
+                    const u32 total_sectors = static_cast<u32>(full_run_bytes / sector_size_);
 
-                    // flush dirty
-                    const u64 run_phys_first = phys_block;
+                    // flush dirty cache blocks
                     const u64 run_phys_last = phys_block + (full_run_bytes / bsize) - 1;
                     for (u32 ci = 0; ci < EXT4_BLOCK_CACHE_SIZE; ++ci) {
                         if (!block_cache_[ci].valid) continue;
                         const u64 cb = block_cache_[ci].block_no;
-                        if (cb < run_phys_first || cb > run_phys_last) continue;
+                        if (cb < phys_block || cb > run_phys_last) continue;
                         if (block_cache_[ci].dirty) {
                             write_block_raw(cb, block_cache_[ci].data, bsize);
                             block_cache_[ci].dirty = false;
@@ -1261,16 +1263,9 @@ namespace ext4 {
                         block_cache_[ci].valid = false;
                     }
 
-                    while (rem > 0) {
-                        const usize chunk_bytes = (rem > MAX_TRANSFER) ? MAX_TRANSFER : rem;
-                        const u32 chunk_sectors = static_cast<u32>(chunk_bytes / sector_size_);
-                        if (!device_->read(cur_sect, chunk_sectors, cur_dst, chunk_bytes)) {
-                            kernel::memory::free(tmp);
-                            return Result<usize>::err(Error::Io);
-                        }
-                        cur_sect += chunk_sectors;
-                        cur_dst += chunk_bytes;
-                        rem -= chunk_bytes;
+                    if (!device_->read(start_sect, total_sectors, dst, full_run_bytes)) {
+                        kernel::memory::free(tmp);
+                        return Result<usize>::err(Error::Io);
                     }
 
                     dst += full_run_bytes;

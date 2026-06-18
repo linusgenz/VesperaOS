@@ -138,6 +138,7 @@ void Log::warning(const char* fmt, ...) {
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted_dbc(fmt, args);
+    print_formatted_serial(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
     t_->print("\n");
@@ -216,6 +217,7 @@ void Log::debug(const char* fmt, ...) {
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     print_formatted_dbc(fmt, args);
+    print_formatted_serial(fmt, args);
     print_formatted(fmt, args);
     __builtin_va_end(args);
 

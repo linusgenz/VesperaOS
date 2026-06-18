@@ -457,8 +457,8 @@ namespace ahci {
         return true;
     }
 
-    bool Port::flush() {
-        if (!has_write_cache_) return true;
+    int Port::do_flush() {
+        if (!has_write_cache_) return 0;
 
         kernel::MutexGuard guard(port_mutex_);
 
@@ -494,11 +494,11 @@ namespace ahci {
 
         if (last_error) {
             Log::error("[ AHCI ] Port %u: FLUSH CACHE failed", port_number);
-            return false;
+            return -EIO;
         }
 
         Log::debug("[ AHCI ] Port %u: FLUSH CACHE ok", port_number);
-        return true;
+        return 0;
     }
 
     bool Port::write_cache_enabled() const {
@@ -650,6 +650,15 @@ namespace ahci {
         io_queue_.submit(&req);
         req.done.wait();
         return req.result;
+    }
+
+    int Port::flush() {
+        BlockIoRequest req;
+        req.op   = BlockIoOp::Flush;
+        req.done.init(1, 0);
+        io_queue_.submit(&req);
+        req.done.wait();
+        return static_cast<int>(req.result);
     }
 
     isize Port::do_read(const u64 lba, const usize sector_count, void* buffer, const usize buffer_size) {
@@ -828,7 +837,7 @@ namespace ahci {
                     req->result = port->do_write(req->lba, req->sector_count, req->buffer, req->buffer_size);
                     break;
                 case BlockIoOp::Flush:
-                    req->result = port->flush() ? 0 : -EIO;
+                    req->result = port->do_flush();
                     break;
             }
 

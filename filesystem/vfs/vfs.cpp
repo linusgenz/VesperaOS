@@ -27,6 +27,7 @@
 #include <vespera/devices/device_manager.h>
 #include <vespera/log.h>
 
+#include "dentry_cache.h"
 #include "fs_detection.h"
 #include "uapi/vespera/mount.h"
 
@@ -36,6 +37,8 @@ Spinlock VFS::mount_points_lock_;
 void VFS::init() {
     mount_points_ = new Vector<MountPoint*>();
     mount_points_lock_.init("mount_points_lock");
+
+    filesystem::g_dentry_cache.init();
 
     FilesystemDetector::init();
 
@@ -72,6 +75,9 @@ static bool is_read_only(const VfsNode* node) {
 Result<VfsNode*> VFS::open(const char* path) {
     if (!path || !*path) return Error::Inval;
 
+    // Look in cache first
+    if (VfsNode* cached = filesystem::g_dentry_cache.lookup(path)) return Result<VfsNode*>::ok(cached);
+
     const MountPoint* best_match = nullptr;
     usize best_len = 0;
 
@@ -100,9 +106,25 @@ Result<VfsNode*> VFS::open(const char* path) {
     char components[16][32];
     const usize count = split_path(sub_path, components, 16);
 
+    filesystem::dentry* current_dentry = nullptr;
+
     for (usize i = 0; i < count; i++) {
-        current = TRY(current->ops->find(current, components[i]));
+        filesystem::dentry* next_dentry = nullptr;
+
+        VfsNode* cached_node = filesystem::g_dentry_cache.lookup_component(current_dentry, components[i], &next_dentry);
+
+        if (cached_node) {
+            current = cached_node;
+            current_dentry = next_dentry;
+        } else {
+            VfsNode* parent_node = current;
+            current = TRY(parent_node->ops->find(parent_node, components[i]));
+
+            current_dentry = filesystem::g_dentry_cache.insert_component(current_dentry, components[i], current);
+        }
     }
+
+    filesystem::g_dentry_cache.insert(path, current);
 
     return Result<VfsNode*>::ok(current);
 }
@@ -129,7 +151,10 @@ Result<bool> VFS::readdir(const VfsDir* dir, dirent_t* out) {
 
 void VFS::close(VfsNode* node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;
-    node->ops->close(node);
+
+    if ((__atomic_sub_fetch(&node->ref_count, 1, __ATOMIC_ACQ_REL) == 0)) {
+        node->ops->close(node);
+    }
 }
 
 void VFS::closedir(VfsDir* dir) {
@@ -167,6 +192,10 @@ VoidResult VFS::create(const char* path) {
 
     const auto result = parent->ops->create(parent, name);
     close(parent);
+
+    if (result.is_ok())
+        filesystem::g_dentry_cache.invalidate(path);
+
     return result;
 }
 
@@ -203,6 +232,12 @@ VoidResult VFS::rename(const char* old_path, const char* new_path) {
     const auto result = old_parent->ops->rename(old_parent, old_name, new_parent, new_name);
     close(old_parent);
     close(new_parent);
+
+    if (result.is_ok()) {
+        filesystem::g_dentry_cache.invalidate_prefix(old_path);
+        filesystem::g_dentry_cache.invalidate(new_path);
+    }
+
     return result;
 }
 
@@ -224,6 +259,10 @@ VoidResult VFS::mkdir(const char* path) {
 
     const auto result = parent->ops->mkdir(parent, name);
     close(parent);
+
+    if (result.is_ok())
+        filesystem::g_dentry_cache.invalidate(path);
+
     return result;
 }
 
@@ -251,6 +290,10 @@ VoidResult VFS::rmdir(const char* path) {
 
     const auto result = parent->ops->rmdir(parent, name);
     close(parent);
+
+    if (result.is_ok())
+        filesystem::g_dentry_cache.invalidate_prefix(path);
+
     return result;
 }
 
@@ -272,6 +315,10 @@ VoidResult VFS::unlink(const char* path) {
 
     const auto result = parent->ops->unlink(parent, name);
     close(parent);
+
+    if (result.is_ok())
+        filesystem::g_dentry_cache.invalidate(path);
+
     return result;
 }
 
@@ -315,6 +362,9 @@ void VFS::list_devices() {
 
 void VFS::remount_all() {
     Log::info("[VFS] Remounting all detected devices...");
+
+    filesystem::g_dentry_cache.flush();
+
     FilesystemDetector::init();
     FilesystemDetector::register_all_drivers();
     FilesystemDetector::scan_and_mount_all();
@@ -322,34 +372,15 @@ void VFS::remount_all() {
 }
 
 void VFS::emergency_detach_device(const BlockDevice* device) {
+    filesystem::g_dentry_cache.flush();
     FilesystemDetector::emergency_detach_device(device);
 }
 
 /*
-void VFS::get_stats(VfsStats* stats) {
-    if (!stats) return;
-
-    auto devices = DeviceManager::query([](const KernelDevice* kd) { return kd->block != nullptr; });
-
-    stats->total_devices = devices.size();
-    stats->mounted_devices = 0;
-    stats->supported_filesystems = 0;
-
-    for (const KernelDevice* dev : devices) {
-        FilesystemInfo info;
-        if (FilesystemDetector::detect_filesystem(dev->block, &info) && info.mounted) {
-            stats->mounted_devices++;
-        }
-    }
-
-    // Count supported filesystem types
-    // For now, just count the registered drivers
-    stats->supported_filesystems = 1;  // FAT32 is always supported
-    // TODO: Add count of other registered drivers when implemented
-}*/
+void VFS::get_stats(VfsStats* stats) { ... }
+*/
 
 namespace {
-
     KernelDevice* resolve_block_device(const char* source) {
         if (!source) return nullptr;
 
@@ -363,8 +394,7 @@ namespace {
         }
         return nullptr;
     }
-
-}  // namespace
+} // namespace
 
 i64 VFS::mount(const char* source, const char* target, const char* fstype, const u64 flags) {
     if (!target || target[0] != '/') return -EINVAL;
@@ -395,10 +425,13 @@ i64 VFS::unmount(const char* target) {
 
     if (!FilesystemDetector::unmount(mp)) return -EBUSY;
 
+    filesystem::g_dentry_cache.invalidate_prefix(target);
+
     return 0;
 }
 
 void VFS::unmount_all() {
+    filesystem::g_dentry_cache.flush();
     FilesystemDetector::unmount_all();
 }
 
@@ -448,5 +481,5 @@ bool VFS::remove_mount_point(const MountPoint* mp) {
             return true;
         }
     }
-    return false;  // Not found
+    return false; // Not found
 }

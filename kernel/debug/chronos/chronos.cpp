@@ -26,6 +26,7 @@
 #include <vespera/log.h>
 #include <klib/string.h>
 #include "vespera/cpu/cpu_manager.h"
+#include "../../../filesystem/vfs/dentry_cache.h"
 
 bool flag = false;
 namespace kernel::chronos {
@@ -111,7 +112,6 @@ namespace kernel::chronos {
     }
 
     void checkpoint(const char* phase, const char* label) {
-        if (!flag) return;
         u32 slot = alloc_slot();
         if (slot >= ::chronos::MAX_EVENTS) return;
 
@@ -171,6 +171,13 @@ namespace kernel::chronos {
             }
         }
         Log::log_dbc("[CHRONOS] ─────────────────────────────────────────────\n");
+
+        Log::log_dbc("────── DENTRY CACHE ──────");
+        Log::log_dbc("Cache hits: %ld", filesystem::g_dentry_cache.hit_count());
+        Log::log_dbc("Cache misses: %ld", filesystem::g_dentry_cache.miss_count());
+        Log::log_dbc("Cache entries: %ld", filesystem::g_dentry_cache.entry_count());
+        Log::log_dbc("──────────────────────────");
+
     }
 
     void dump_summary_dbc() {

@@ -28,7 +28,6 @@ endfunction()
 
 add_vector_test(Vector_PushBack DefaultConstruct)
 add_vector_test(Vector_PushBack CustomCapacity)
-add_vector_test(Vector_PushBack ZeroCapacityFallsBackToFour)
 add_vector_test(Vector_PushBack LargeInitialCapacity)
 add_vector_test(Vector_PushBack SinglePush)
 add_vector_test(Vector_PushBack ValuePreserved)

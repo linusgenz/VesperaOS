@@ -298,9 +298,14 @@ namespace ext4 {
             return 1024u << superblock_.s_log_block_size;
         }
 
-        // Returns a heap-allocated array of up to EXT4_MAX_DIR_ENTRIES entries.
-        // The caller is responsible for freeing the array with kernel::memory::free().
-        Result<FileEntry*> read_directory(u32 inode_number, usize& out_count) const;
+        /**
+         * Returns a heap-allocated array of up to EXT4_MAX_DIR_ENTRIES entries.
+         * The caller is responsible for freeing the array with kernel::memory::free().
+         *If the `find_name` parameter is set, the function returns as soon as a matching entry is found.
+         *
+         * @warning the size field of all entries is 0, except the entry which matches find_name, if found and specified
+         */
+        Result<FileEntry*> read_directory(u32 inode_number, usize& out_count, const char* find_name = nullptr) const;
         Result<usize> read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const;
         Result<usize> write_file(u32 inode_number, u64 offset, usize size, const void* buf);
         Result<u32> create_file(u32 dir_inode_no, const char* name);

@@ -89,8 +89,6 @@ namespace kernel::input {
                 move_ev.button_id = MICE_BUTTON_NONE;
                 push_to_queue(s_instance_, move_ev);
                 pushed_any = true;
-
-                Log::log_dbc("mouse move event: %d %d %d\n", move_ev.dx, move_ev.dy, move_ev.button_id);
             }
 
             if (current_buttons != last_buttons) {
@@ -174,5 +172,4 @@ namespace kernel::input {
             kernel::scheduling::yield();
         }
     }
-
 } // namespace kernel::input
