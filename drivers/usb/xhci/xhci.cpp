@@ -312,6 +312,8 @@ namespace usb {
                         Log::warning("DbC: kein Host innerhalb des Timeouts");
                     }
 
+                    UsbManager::notify_controller_ready();
+
                     while (1);  // TODO we get a error when the xhci hc resumes init.
                 }
             }

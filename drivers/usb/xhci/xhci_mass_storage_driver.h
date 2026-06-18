@@ -105,27 +105,37 @@ class XhciMassStorageDriver final : public XhciUsbDeviceDriver, public BlockDevi
     };
 
     MassStorageTransfer* current_transfer_{};
+
+    void* init_dma_buffer_{};
+    static constexpr usize INIT_DMA_PAGES = 1;
+
     u8 inquiry_buffer_[36]{};
     u8 capacity_buffer_[8]{};
 
     MassStorageTransfer transfer_test_unit_ready_;
     MassStorageTransfer transfer_inquiry_;
+    MassStorageTransfer transfer_block_limits_;
     MassStorageTransfer transfer_capacity_;
     MassStorageTransfer transfer_rw_;
 
-    enum class InitPhase { TestUnitReady, Inquiry, ReadCapacity, Completed };
+    enum class InitPhase { TestUnitReady, Inquiry, BlockLimits, ReadCapacity, Completed };
 
     Semaphore init_semaphore_;
-    int init_status_ = -1;
+    volatile int init_status_ = -1;
     InitPhase init_phase_ = InitPhase::TestUnitReady;
+
+    u8 block_limits_buffer_[64]{};
+    u32 max_transfer_sectors_{0u};
 
     u32 current_tag_{1};
 
     void scsi_inquiry();
 
     void scsi_read_capacity();
+    void scsi_read_block_limits();
 
     void start_bulk_transfer(MassStorageTransfer* transfer);
+    isize do_rw_transfer(u64 lba, usize sector_count, void* dma_buf, bool is_input, u8 scsi_cmd);
 
     void scsi_test_unit_ready();
 
