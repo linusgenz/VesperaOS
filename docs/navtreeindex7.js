@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"string_8h.html#a9e6df54ee04e18a3772335580e2ed872":[5,0,1,0,0,40,1],
 "string_8h.html#aa383452fe445bfae989358c9d7d96f4f":[5,0,1,0,0,40,14],
 "string_8h.html#aa4718e50ed45c2275c5d85a121d68097":[5,0,1,0,0,40,10],
 "string_8h.html#aae3fd70ee98fbfce37ac3b991b7395fd":[5,0,1,0,0,40,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "structsmart__ata.html#a19859ef7c106c2dd5779538823bd862e":[4,0,37,9],
 "structsmart__ata.html#a25e1a5678be60b315e9598baa0ac4aea":[4,0,37,3],
 "structsmart__ata.html#a3696dd2012f0a202ce4254e3a547afaf":[4,0,37,8],
-"structsmart__ata.html#a894e5930ac34e9e182ffc27047bbb065":[4,0,37,5],
-"structsmart__ata.html#a8a7bd48eccbd02628d9dbeeac69b3524":[4,0,37,4]
+"structsmart__ata.html#a894e5930ac34e9e182ffc27047bbb065":[4,0,37,5]
 };

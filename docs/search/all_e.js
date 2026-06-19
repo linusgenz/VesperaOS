@@ -22,10 +22,11 @@ var searchData=
   ['nlink_5ft_19',['nlink_t',['../alltypes_8h.html#af2739176220b526afc2936e1c5f6f16a',1,'alltypes.h']]],
   ['noborder_20',['noBorder',['../classstella_1_1Widget.html#ad6991b1f04d505928c2aaa3914b5dd19',1,'stella::Widget']]],
   ['node_5ftype_21',['node_type',['../structvespera__stat.html#a02b928b0e429df7ce23d4516b670a6ca',1,'vespera_stat']]],
-  ['noscroll_22',['noScroll',['../classstella_1_1Widget.html#a9e6949deb72f972dc533054a3f6a5bc2',1,'stella::Widget']]],
-  ['now_5fms_23',['now_ms',['../stella_8h.html#a3a4e8ad96a6a4ba6ab131d66d843543f',1,'stella.h']]],
-  ['nsig_24',['NSIG',['../userspace_2lib_2include_2signal_8h.html#ab83b88daaecc469d1edb90a527ab4a39',1,'signal.h']]],
-  ['null_25',['NULL',['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'stddef.h']]],
-  ['num_5fconfigurations_26',['num_configurations',['../structusb__device__info.html#a18e5d2888c081b12a42ee813fcdc8010',1,'usb_device_info']]],
-  ['num_5finterfaces_27',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]]
+  ['noreturn_22',['NORETURN',['../stdlib_8h.html#aa1728270d73c5d1598de1fd691762eb1',1,'stdlib.h']]],
+  ['noscroll_23',['noScroll',['../classstella_1_1Widget.html#a9e6949deb72f972dc533054a3f6a5bc2',1,'stella::Widget']]],
+  ['now_5fms_24',['now_ms',['../stella_8h.html#a3a4e8ad96a6a4ba6ab131d66d843543f',1,'stella.h']]],
+  ['nsig_25',['NSIG',['../userspace_2lib_2include_2signal_8h.html#ab83b88daaecc469d1edb90a527ab4a39',1,'signal.h']]],
+  ['null_26',['NULL',['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'stddef.h']]],
+  ['num_5fconfigurations_27',['num_configurations',['../structusb__device__info.html#a18e5d2888c081b12a42ee813fcdc8010',1,'usb_device_info']]],
+  ['num_5finterfaces_28',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]]
 ];

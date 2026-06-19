@@ -1,5 +1,6 @@
 var NAVTREEINDEX8 =
 {
+"structsmart__ata.html#a8a7bd48eccbd02628d9dbeeac69b3524":[4,0,37,4],
 "structsmart__ata.html#aaaf3a05a5dcd3dcfba5ab48f336681c9":[4,0,37,7],
 "structsmart__ata.html#abcd1109f5d344a99baaecb8aa73d9e7c":[4,0,37,2],
 "structsmart__ata.html#acc8335c77914733963822848d9278ad2":[4,0,37,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX8 =
 "sysstd_8h.html#a5754412df56fd063be365e53d2dcbca1":[5,0,1,0,0,41,27],
 "sysstd_8h.html#a5929be7b4c4b04dbdb75dbe441befcd0":[5,0,1,0,0,41,9],
 "sysstd_8h.html#a5ae7ad8f83c25086b7f012cda63f43be":[5,0,1,0,0,41,31],
-"sysstd_8h.html#a5bcad888a21381e749fdbf1d75592472":[5,0,1,0,0,41,19],
-"sysstd_8h.html#a6699ce8241cd8cc4d033ee484406e2dd":[5,0,1,0,0,41,7]
+"sysstd_8h.html#a5bcad888a21381e749fdbf1d75592472":[5,0,1,0,0,41,19]
 };

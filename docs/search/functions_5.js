@@ -6,7 +6,7 @@ var searchData=
   ['erfcl_3',['erfcl',['../math_8h.html#af432cd8d27313b913e5da54d61d10c0f',1,'math.h']]],
   ['erff_4',['erff',['../math_8h.html#a09594490d567539daf9ce963111f0e58',1,'math.h']]],
   ['erfl_5',['erfl',['../math_8h.html#aa168639a79557b5d07daaad62a65bb18',1,'math.h']]],
-  ['exit_6',['exit',['../stdlib_8h.html#a23f2855efce14b5fc2e29c0d1b4762e0',1,'stdlib.h']]],
+  ['exit_6',['exit',['../stdlib_8h.html#a42b03b3134cfb4f3fa2b6545f0a24e1c',1,'stdlib.h']]],
   ['exit_5frealm_7',['exit_realm',['../realm_8h.html#a9b8dc6ae1b2916b40057461c81ccf686',1,'realm.h']]],
   ['exp_8',['exp',['../math_8h.html#ae87cffe9d4bba63937ab959bda26aa0c',1,'math.h']]],
   ['exp2_9',['exp2',['../math_8h.html#aa660756da5670f25da0c4bfdd7f7902d',1,'math.h']]],
