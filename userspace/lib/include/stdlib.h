@@ -33,10 +33,13 @@ extern int errno;
 #define EXIT_FAILURE 1
 
 #ifdef __cplusplus
+#define NORETURN [[noreturn]]
+#else
+#define NORETURN _Noreturn
+#endif
+
+#ifdef __cplusplus
 extern "C" {
-
-
-
 #endif
 
 /**
@@ -153,7 +156,7 @@ void* calloc(size_t nmemb, size_t size);
  * @param code Exit code for the unit.
  * @return Does not return; halts the unit.
  */
-_Noreturn void exit(uint64_t code);
+NORETURN void exit(uint64_t code);
 
 /**
  * @brief Convert a string to an integer.
@@ -205,7 +208,7 @@ void srand(unsigned int seed);
 
 #define RAND_MAX 2147483647
 
-_Noreturn void abort(void);
+NORETURN void abort(void);
 
 int system(const char* cmd);
 char* tmpnam(char* buf);

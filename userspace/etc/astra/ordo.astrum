@@ -1,0 +1,4 @@
+name=Vespera Control: Ordo
+bin=/bin/ordo
+color=0xFF4287f5
+icon=gnome-settings

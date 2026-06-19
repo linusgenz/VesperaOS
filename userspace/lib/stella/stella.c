@@ -872,11 +872,8 @@ void stella_fs_init(void) {
 stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char* path, int32_t w, int32_t h) {
     if (!path) return NULL;
 
-    /* Build "V:<path>\0" — LVGL requires the drive-letter prefix to
-     * recognise the source as a filesystem path rather than a raw
-     * lv_image_dsc_t pointer. */
     size_t len = strlen(path);
-    char* lvpath = malloc(len + 3); /* 'V' + ':' + path + '\0' */
+    char* lvpath = malloc(len + 3);
     if (!lvpath) return NULL;
     lvpath[0] = STELLA_FS_DRIVE;
     lvpath[1] = ':';
@@ -885,7 +882,7 @@ stella_widget_t stella_image_create_from_path(stella_widget_t parent, const char
     lv_obj_t* img = lv_image_create((lv_obj_t*)parent);
     if (w != STELLA_SIZE_CONTENT || h != STELLA_SIZE_CONTENT) {
         lv_obj_set_size(img, _sz(w), _sz(h));
-        lv_image_set_inner_align(img, LV_IMAGE_ALIGN_CONTAIN);
+        lv_image_set_inner_align(img, LV_IMAGE_ALIGN_COVER);
     }
     lv_image_set_src(img, lvpath);
 

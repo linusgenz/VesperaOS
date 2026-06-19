@@ -27,6 +27,11 @@
 #include <vespera/time.h>
 #include <bits/alltypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define CLOCKS_PER_SEC  ((clock_t)1000000)
 
 struct tm {
@@ -208,5 +213,10 @@ size_t strftime(char* s, size_t max, const char* fmt, const struct tm* tm);
  * @return       Same as strftime().
  */
 size_t strftime_unix(char* s, size_t max, const char* fmt, time_t t);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif  // VESPERAOS_TIME_H
