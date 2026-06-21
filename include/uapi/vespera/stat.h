@@ -30,9 +30,9 @@
 #define VSTAT_TYPE_UNKNOWN   0
 #define VSTAT_TYPE_FILE      1
 #define VSTAT_TYPE_DIR       2
-#define VSTAT_TYPE_CHARDEV   3
-#define VSTAT_TYPE_BLOCKDEV  4
-#define VSTAT_TYPE_SYMLINK   5
+#define VSTAT_TYPE_CHARDEV   4
+#define VSTAT_TYPE_BLOCKDEV  5
+#define VSTAT_TYPE_SYMLINK   3
 
 /**
  * @brief Flags for vespera_stat::flags

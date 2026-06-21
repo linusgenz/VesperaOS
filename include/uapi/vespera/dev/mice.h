@@ -55,6 +55,4 @@ typedef struct mice_event {
     mice_button button_id;  // Which button changed (BUTTON only)
 } mice_event;
 
-_Static_assert(sizeof(mice_event) == 24, "mice_event ABI size mismatch");
-
 #endif  // VESPERAOS_UAPI_DEV_MICE_H

@@ -27,6 +27,7 @@
 #include <klib/vector.h>
 #include <vespera/mm/memory.h>
 #include <vespera/security/credentials.h>
+#include <vespera/log.h>
 
 #include "ext4_time.h"
 #include "klib/result.h"
@@ -1092,6 +1093,9 @@ namespace ext4 {
 
         auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * EXT4_MAX_DIR_ENTRIES));
         if (!entries) return Result<FileEntry*>::err(Error::NoMem);
+        for (usize i = 0; i < EXT4_MAX_DIR_ENTRIES; i++) {
+            new (&entries[i]) FileEntry();
+        }
 
         const u32 bsize = get_block_size();
         const u64 dir_size = inode_get_size(dir_inode);
