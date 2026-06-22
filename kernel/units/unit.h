@@ -30,6 +30,7 @@
 #include "execution_context.h"
 #include "unit_handle_set.h"
 #include "vm_area_list.h"
+#include "vespera/sync/wait_queue.h"
 
 #define MAX_UNIT_HANDLE_SLOTS 64
 
@@ -111,6 +112,9 @@ class Unit {
 
     u64 heap_start{};
     u64 heap_end{};
+
+    UnitId joiner_id{0};
+    WaitQueue wait_queue;
 
     u64 signals_pending{0};
     u64 signals_masked{0};

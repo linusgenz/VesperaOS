@@ -35,6 +35,10 @@ class BlockDevice {
         return false;
     }
 
+    // Flushes the device's write cache (SYNCHRONIZE CACHE for SCSI, Flush for NVMe, etc.)
+    // Returns 0 if not supported (device has no write cache)
+    [[nodiscard]] virtual int flush() { return 0; }
+
     virtual ~BlockDevice() = default;
 };
 

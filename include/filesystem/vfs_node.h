@@ -88,6 +88,7 @@ struct VfsNode {
     VfsNodeType type;
     bool permanent;
     bool seekable = false;
+    usize ref_count = 1;
 };
 
 #endif  // VFS_NODE_H

@@ -46,8 +46,8 @@ bool UnitManager::initialized_ = false;
 
 static constexpr u16 KERNEL_CS = 0x08;
 static constexpr u16 KERNEL_DS = 0x10;
-static constexpr u16 USER_CS = 0x23;  // ring-3 code segment
-static constexpr u16 USER_SS = 0x1B;  // ring-3 data segment
+static constexpr u16 USER_CS = 0x23; // ring-3 code segment
+static constexpr u16 USER_SS = 0x1B; // ring-3 data segment
 static constexpr u64 INITIAL_RFLAGS = 0x202ULL;
 
 void UnitManager::initialize() {
@@ -141,11 +141,11 @@ Unit* UnitManager::alloc_slot(
 
         Unit* u = &slot;
         memset(u, 0, sizeof(*u));
-        new (u) Unit();
+        new(u) Unit();
 
         u->id = allocate_id();
         u->rid = realm->id;
-        u->parent = realm;  // already validated by caller
+        u->parent = realm; // already validated by caller
         u->name = strdup(name ? name : "");
         u->active = true;
         u->priority = cfg->priority;
@@ -237,6 +237,7 @@ bool UnitManager::setup_stacks(Unit* u, Realm* realm, const UnitConfig* cfg) {
 }
 
 extern "C" [[noreturn]] void unit_trampoline();
+
 static void init_kernel_cpu_context(Unit* u) {
     uptr rsp = virt_raw(u->context.stack_top);
     rsp &= ~0xFULL;
@@ -275,8 +276,8 @@ static void init_user_cpu_context(Unit* u) {
         // Secondary units start via the per-realm trampoline so that the
         // return value flows into SYSCALL_EXIT automatically.
         ctx.rip = kernel::realm::USER_UNIT_TRAMPOLINE_VADDR;
-        ctx.rdi = reinterpret_cast<u64>(u->context.arg);    // thread argument
-        ctx.rsi = reinterpret_cast<u64>(u->context.entry);  // thread entry
+        ctx.rdi = reinterpret_cast<u64>(u->context.arg);   // thread argument
+        ctx.rsi = reinterpret_cast<u64>(u->context.entry); // thread entry
     }
 }
 
@@ -327,52 +328,16 @@ bool UnitManager::destroy(const UnitId id) {
         if (!slot.active || slot.id != id) continue;
 
         Unit* u = &slot;
-        Realm* r = u->parent;
 
         kernel::scheduling::remove_unit(u);
 
-        if (r) {
-            SpinlockGuard rg(r->lock);
-            Unit** prev = &r->unit_list;
-            while (*prev) {
-                if (*prev == u) {
-                    *prev = u->realm_next;
-                    r->unit_count--;
-                    break;
-                }
-                prev = &(*prev)->realm_next;
-            }
+        if (u->joiner_id != 0) {
+            u->state = UnitState::Zombie;
+            u->wait_queue.wake_all();
+            return true;
         }
 
-        if (u->name) kernel::memory::free(u->name);
-
-        u->detach_all_handles();
-
-        u->free_vma_list();
-
-        if (!virt_null(u->context.stack)) {
-            const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;
-            kernel::memory::free_pages(u->context.stack, pages);
-        }
-
-        if (u->is_user && !virt_null(u->context.user_stack)) {
-            const usize pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
-            kernel::memory::unmap_range(u->context.user_stack_virt_base, u->context.user_stack_size);
-            kernel::memory::free_pages_phys(u->context.user_stack_phys, pages);
-
-            if (r) r->address_space->stack_alloc().free(u->user_stack_slot);
-        }
-
-        SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
-        RealmFs::unregister_unit(id);
-
-        const bool realm_empty = r && r->unit_count == 0;
-        const RealmId realm_id = r ? r->id : 0;
-
-        memset(u, 0, sizeof(*u));
-
-        if (realm_empty) RealmManager::destroy(realm_id);
-
+        reap(u);
         return true;
     }
 
@@ -455,4 +420,95 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
     u->context.user_stack_pointer = virt_from_raw(sp);
 
     return sp;
+}
+
+void UnitManager::reap(Unit* u) {
+    Realm* r = u->parent;
+
+    if (r) {
+        SpinlockGuard rg(r->lock);
+        Unit** prev = &r->unit_list;
+        while (*prev) {
+            if (*prev == u) {
+                *prev = u->realm_next;
+                r->unit_count--;
+                break;
+            }
+            prev = &(*prev)->realm_next;
+        }
+    }
+
+    if (u->name) kernel::memory::free(u->name);
+
+    u->detach_all_handles();
+    u->free_vma_list();
+
+    if (!virt_null(u->context.stack)) {
+        const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;
+        kernel::memory::free_pages(u->context.stack, pages);
+    }
+
+    if (u->is_user && !virt_null(u->context.user_stack)) {
+        const usize pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
+        kernel::memory::unmap_range(u->context.user_stack_virt_base, u->context.user_stack_size);
+        kernel::memory::free_pages_phys(u->context.user_stack_phys, pages);
+        if (r) r->address_space->stack_alloc().free(u->user_stack_slot);
+    }
+
+    SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
+    RealmFs::unregister_unit(u->id);
+
+    const bool realm_empty = r && r->unit_count == 0;
+    const RealmId realm_id = r ? r->id : 0;
+
+    memset(u, 0, sizeof(*u));
+
+    if (realm_empty) RealmManager::destroy(realm_id);
+}
+
+Result<int> UnitManager::join(const UnitId id) {
+    Unit* current = kernel::scheduling::get_current_unit();
+    if (!current)
+        return Error::Inval;
+
+    {
+        SpinlockGuard g(global_lock_);
+
+        Unit* target = nullptr;
+        for (auto& slot : units_) {
+            if (slot.active && slot.id == id) {
+                target = &slot;
+                break;
+            }
+        }
+
+        if (!target)
+            return Error::Srch;
+
+        if (target->joiner_id != 0)
+            return Error::Inval;
+
+        if (target->state == UnitState::Zombie) {
+            const int exit_code = target->exit_code;
+            reap(target);
+            return Result<int>::ok(exit_code);
+        }
+
+        target->joiner_id = current->id;
+        target->wait_queue.add_wait(current);
+    }
+
+    kernel::scheduling::yield();
+
+    SpinlockGuard g(global_lock_);
+
+    for (auto& slot : units_) {
+        if (slot.active && slot.id == id && slot.state == UnitState::Zombie) {
+            const int exit_code = slot.exit_code;
+            reap(&slot);
+            return Result<int>::ok(exit_code);
+        }
+    }
+
+    return Error::Srch;
 }

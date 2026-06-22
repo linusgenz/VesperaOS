@@ -46,6 +46,8 @@ class UnitManager {
 
     static Unit* get(UnitId id);
     static bool destroy(UnitId id);
+    static void reap(Unit* u);
+    static Result<int> join(UnitId id);
     static void list();
 
     static Result<usize> get_status(void* manager_ref, void* buffer, usize size, usize offset);

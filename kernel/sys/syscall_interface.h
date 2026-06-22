@@ -26,7 +26,8 @@
 
 #include <vespera/types.h>
 
-namespace syscalls::internal {
+namespace syscalls::internal
+{
     using syscall_fn_t = i64 (*)(u64, u64, u64, u64, u64, u64);
 
     i64 sys_write(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
@@ -169,7 +170,9 @@ namespace syscalls::internal {
 
     i64 sys_chronos_checkpoint(u64 cp, u64, u64, u64, u64, u64);
     i64 sys_chronos_summary(u64, u64, u64, u64, u64, u64);
-}  // namespace syscalls::internal
+
+    i64 sys_join_unit(u64 arg0, u64 arg1, u64, u64, u64, u64);
+} // namespace syscalls::internal
 
 void install_syscalls();
 
