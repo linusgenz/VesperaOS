@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_CPUINFO_H
-#define VESPERAOS_CPUINFO_H
+#ifndef VESPERAOS_UAPI_CPUINFO_H
+#define VESPERAOS_UAPI_CPUINFO_H
 
 #include <vespera/types.h>
 
@@ -34,9 +34,11 @@
  * representing CPU features.
  */
 typedef struct cpu_info {
-    char vendor[13];   ///< CPU vendor string (null-terminated)
-    char brand[49];    ///< CPU brand string (null-terminated)
-    u64 features; ///< CPU features bitfield
+    char vendor[13]; ///< CPU vendor string (null-terminated)
+    char brand[49];  ///< CPU brand string (null-terminated)
+    u64 features;    ///< CPU features bitfield
+    u8 cores;        ///< usable cores (should be equal to total_cores)
+    u8 total_cores;  ///< total cores
 } cpu_info_t;
 
-#endif //VESPERAOS_CPUINFO_H
+#endif //VESPERAOS_UAPI_CPUINFO_H

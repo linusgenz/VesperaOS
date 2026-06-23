@@ -22,9 +22,12 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "cpuinfo.h"
+#include "uapi/vespera/dev/cpuinfo.h"
 
 #include <cpu/cpu.h>
 #include <klib/string.h>
+
+#include "cpu/cpu_manager.h"
 
 CpuInfoDevice::CpuInfoDevice()
     : CharDevice(BusType::VIRTUAL) {
@@ -39,12 +42,14 @@ int CpuInfoDevice::release(CharFile*) {
 }
 
 isize CpuInfoDevice::read(CharFile*, void* buffer, const usize count, usize) {
-    if (!buffer || count < sizeof(CpuInfo)) return -EINVAL;
+    if (!buffer || count < sizeof(cpu_info)) return -EINVAL;
 
-    CpuInfo info{};
+    cpu_info info{};
     get_cpu_vendor(info.vendor);
     get_cpu_brand(info.brand);
     info.features = check_cpu_features();
+    info.cores = cpu_manager::get_online_cpu_count();
+    info.total_cores = cpu_manager::get_total_cpu_count();
 
     // trim white space
     usize len = strlen(info.brand);
@@ -53,8 +58,8 @@ isize CpuInfoDevice::read(CharFile*, void* buffer, const usize count, usize) {
         len--;
     }
 
-    memcpy(buffer, &info, sizeof(CpuInfo));
-    return sizeof(CpuInfo);
+    memcpy(buffer, &info, sizeof(cpu_info));
+    return sizeof(cpu_info);
 }
 
 isize CpuInfoDevice::write(CharFile*, const void*, const usize /*count*/) {

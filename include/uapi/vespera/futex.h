@@ -1,10 +1,9 @@
-// cpuinfo.h
-//
+// futex.h
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 26.09.25.
+// Created by Linus Genz on 23.06.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,20 +19,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_UAPI_FUTEX_H
+#define VESPERAOS_UAPI_FUTEX_H
 
-#ifndef VESPERAOS_CPUINFO_H
-#define VESPERAOS_CPUINFO_H
+#define FUTEX_WAIT        0   // Wait until *uaddr != val
+#define FUTEX_WAKE        1   // Wake up to val threads
+#define FUTEX_WAKE_ALL    2   // Wake up all waiting threads
 
-#include <vespera/devices/char_device.h>
+// Timeout flag: if set, `timeout` is an absolute CLOCK_MONOTONIC time
+#define FUTEX_ABSTIME     (1 << 8)
 
-class CpuInfoDevice final : public CharDevice {
-   public:
-    explicit CpuInfoDevice();
-
-    int open(CharFile** out_cf) override;
-    int release(CharFile* cf) override;
-    isize read(CharFile* cf, void* buffer, usize count, usize offset) override;
-    isize write(CharFile* cf, const void* buffer, usize count) override;
-};
-
-#endif  // VESPERAOS_CPUINFO_H
+#endif //VESPERAOS_UAPI_FUTEX_H
