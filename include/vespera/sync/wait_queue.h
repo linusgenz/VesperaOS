@@ -44,6 +44,7 @@ class WaitQueue {
     void wake_all();
     void wake_one();
     bool remove(const Unit *u);
+    u32 wake_matching(u32 max_wake, bool (*predicate)(const Unit*));
 };
 
 #endif  // VESPERAOS_WAIT_QUEUE_H

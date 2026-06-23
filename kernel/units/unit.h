@@ -119,6 +119,11 @@ class Unit {
     u64 signals_pending{0};
     u64 signals_masked{0};
     SignalAction signal_actions[32]{};
+    phys_addr_t tls_phys;
+    uptr tls_vaddr;
+    usize tls_pages;
+
+    uptr futex_uaddr{0};
 
     Unit() {
         handle_set_.init();

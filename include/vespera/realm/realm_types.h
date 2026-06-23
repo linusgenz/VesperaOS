@@ -34,7 +34,7 @@ namespace kernel::realm {
     constexpr u8 REALM_DRIVER = 2;
 
     // Trampoline page - mapped read-only into every user realm.
-    constexpr uptr TRAMPOLINE_VADDR = 0x00007FFFFE000000ULL;
+    constexpr uptr TRAMPOLINE_VADDR = 0x00007FFF80000000ULL;
     constexpr uptr TRAMP_SIGNAL_OFF = 0x000;
     constexpr uptr TRAMP_UNIT_OFF = 0x100;
     constexpr uptr SIGNAL_TRAMPOLINE_VADDR = (TRAMPOLINE_VADDR + TRAMP_SIGNAL_OFF);

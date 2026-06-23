@@ -72,6 +72,8 @@ class UnitManager {
     // Returns false and marks the unit inactive on failure.
     static bool setup_stacks(Unit* u, Realm* realm, const UnitConfig* cfg);
 
+    static bool setup_tls_block(Unit* u, Realm* realm);
+
     // Push argv/envp onto the user stack (main unit only), then
     // initialize the cpu_ctx (kernel or user segment selectors, rip, rsp).
     static void setup_context(Unit* u, const UnitConfig* cfg);

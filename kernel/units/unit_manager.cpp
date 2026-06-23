@@ -124,6 +124,8 @@ Unit* UnitManager::create(const RealmId realm_id, const unit_entry_t entry, void
         return nullptr;
     }
 
+    setup_tls_block(u, realm);
+
     setup_context(u, cfg);
 
     attach_initial_handles(u, realm, cfg);
@@ -214,8 +216,8 @@ bool UnitManager::setup_stacks(Unit* u, Realm* realm, const UnitConfig* cfg) {
         u->context.user_stack_phys = phys;
         u->context.user_stack_size = user_stack_size;
         u->context.user_stack_virt_base = slot.virt_base;
-        u->context.user_stack_top = slot.virt_top;
-        u->context.user_stack_pointer = slot.virt_top;
+        u->context.user_stack_top = virt_from_raw(virt_raw(slot.virt_base) + user_stack_size);
+        u->context.user_stack_pointer = u->context.user_stack_top;
     }
 
     u->context.stack = kernel::memory::request_pages((stack_size + 0xFFF) / 0x1000);
@@ -233,6 +235,56 @@ bool UnitManager::setup_stacks(Unit* u, Realm* realm, const UnitConfig* cfg) {
     u->context.stack_pointer = u->context.stack_top;
 
     fpu_init_state(&u->context.fpu_ctx);
+    return true;
+}
+
+uptr align_up(const uptr v, const usize align) {
+    return (v + align - 1) & ~(align - 1);
+}
+
+bool UnitManager::setup_tls_block(Unit* u, Realm* realm) {
+    const TlsTemplate& tmpl = realm->tls_template;
+    if (!tmpl.present) return true;  // kein PT_TLS → nichts zu tun
+
+    // TLS Variant II: [tls_data | tcb]
+    const usize block_size = align_up(tmpl.mem_size, tmpl.align);
+    constexpr usize TCB_SIZE = 16;
+    const usize total = block_size + TCB_SIZE;
+    const usize pages = align_up(total, PAGE_SIZE) / PAGE_SIZE;
+
+    const phys_addr_t phys = kernel::memory::request_pages_phys(pages);
+    if (phys_null(phys)) return false;
+
+    const virt_addr_t hhdm = phys_to_virt(phys);
+    memset(virt_ptr(hhdm), 0, pages * PAGE_SIZE);
+
+    // .tdata initialisieren
+    if (tmpl.file_size > 0)
+        memcpy(virt_ptr(hhdm), tmpl.init_data, tmpl.file_size);
+    // .tbss ist schon null durch memset
+
+    // vaddr im Realm-Adressraum vergeben (bump-allocator reicht)
+    const uptr tls_vaddr = __atomic_fetch_add(&realm->tls_region_next,
+                                               align_up(total, PAGE_SIZE),
+                                               __ATOMIC_ACQ_REL);
+
+    constexpr u64 pt_flags = (1ULL << PtFlag::Present)
+                            | (1ULL << PtFlag::UserSuper)
+                            | (1ULL << PtFlag::ReadWrite);
+    realm->address_space->page_table()->map_range(
+        virt_from_raw(tls_vaddr), phys, pages * PAGE_SIZE, pt_flags
+    );
+
+    const uptr tcb_uaddr = tls_vaddr + block_size;
+    auto* tcb = reinterpret_cast<u64*>(virt_raw(virt_add(hhdm, block_size)));
+    tcb[0] = tcb_uaddr;  // self-pointer (x86_64 TLS ABI)
+    tcb[1] = 0;
+
+    u->context.fs_base = tcb_uaddr;
+    u->tls_phys        = phys;
+    u->tls_vaddr       = tls_vaddr;
+    u->tls_pages       = pages;
+
     return true;
 }
 
@@ -446,6 +498,11 @@ void UnitManager::reap(Unit* u) {
     if (!virt_null(u->context.stack)) {
         const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;
         kernel::memory::free_pages(u->context.stack, pages);
+    }
+
+    if (u->is_user && u->tls_pages > 0) {
+        kernel::memory::unmap_range(virt_from_raw(u->tls_vaddr), u->tls_pages * PAGE_SIZE);
+        kernel::memory::free_pages_phys(u->tls_phys, u->tls_pages);
     }
 
     if (u->is_user && !virt_null(u->context.user_stack)) {

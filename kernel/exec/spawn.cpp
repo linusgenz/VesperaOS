@@ -161,6 +161,8 @@ namespace kernel::exec {
             return Error::NoExec;
         }
 
+        r->tls_region_next = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
+
         const UnitConfig ucfg = {
             .name = "main_unit",
             .cpu_id = 6,
@@ -178,9 +180,7 @@ namespace kernel::exec {
             return Error::Fault;
         }
 
-        u->context.fs_base = elf.tls_base;
-        const uptr heap_begin = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
-        u->heap_start = u->heap_end = heap_begin;
+        u->heap_start = u->heap_end = r->tls_region_next + TLS_REGION_SIZE;
 
         asm volatile("mfence" ::: "memory");
 

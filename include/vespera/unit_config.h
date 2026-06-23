@@ -25,6 +25,7 @@
 
 #define PRIORITY_NONE 0
 constexpr size_t DEFAULT_UNIT_STACK_SIZE = 8 * 1024 * 1024;  // 8MB
+static constexpr usize TLS_REGION_SIZE = 4 * 1024 * 1024;
 
 struct UnitConfig {
     const char *name = "unnamed_unit";

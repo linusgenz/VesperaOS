@@ -38,7 +38,7 @@
 
 class UserStackAllocator {
    public:
-    static constexpr uptr REGION_TOP = 0x00007FFFFFFF0000ULL;
+    static constexpr uptr REGION_TOP = 0x00007FFF30000000ULL;
     static constexpr uptr REGION_BASE = 0x00007FFF00000000ULL;
 
     static constexpr usize GUARD_SIZE = 0x1000;  // 4 KiB

@@ -70,6 +70,8 @@ inline constexpr int ENOMSG    = 42;
 inline constexpr int EOVERFLOW = 75;
 inline constexpr int EILSEQ    = 84;
 
+inline constexpr int ETIMEDOUT = 116; /* Connection timed out */
+
 inline constexpr int EUNKNOWN     = 1000;
 inline constexpr int EUNSUPPORTED = 1001;
 inline constexpr int EDEADLOCK    = 1002;
