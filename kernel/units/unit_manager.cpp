@@ -383,13 +383,29 @@ bool UnitManager::destroy(const UnitId id) {
 
         kernel::scheduling::remove_unit(u);
 
-        if (u->joiner_id != 0) {
+        // Den schweren Speicher-Footprint (Stack, TLS, Handles, VMAs) geben
+        // wir SOFORT frei, nicht erst beim finalen Slot-Teardown: der
+        // Realm/Prozess kann beliebig lange weiterlaufen, bevor jemand
+        // join()t, und eine Zombie-Unit soll währenddessen nur noch ihren
+        // exit_code vorhalten. release_resources() ist idempotent, falls sie
+        // (z.B. durch exit_current()) schon vorher gelaufen ist.
+        release_resources(u);
+
+        if (u->joined_no_wait) {
+            // join() ist bereits zurückgekehrt (state war Terminated, exit_code
+            // wurde dort schon ausgeliefert) — niemand wartet mehr auf diese
+            // Unit. Jetzt, wo die Ressourcen frei sind, kann der Slot final
+            // geräumt werden, statt sie als Zombie liegen zu lassen.
+            finalize_slot(u);
+        } else {
+            // Eine Unit wird IMMER zum Zombie, unabhängig davon, ob bereits
+            // ein Joiner registriert ist. join() kann jederzeit nach dem Exit
+            // kommen (Race) — der finale Slot-Teardown wird erst durch
+            // join() oder einen erneuten destroy()-Aufruf (z.B. Realm-
+            // Teardown) ausgelöst, niemals automatisch hier.
             u->state = UnitState::Zombie;
             u->wait_queue.wake_all();
-            return true;
         }
-
-        reap(u);
         return true;
     }
 
@@ -474,7 +490,49 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
     return sp;
 }
 
-void UnitManager::reap(Unit* u) {
+
+void UnitManager::release_resources(Unit* u) {
+    u->detach_all_handles();
+    u->free_vma_list();
+
+    if (!virt_null(u->context.stack)) {
+        const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;
+        kernel::memory::free_pages(u->context.stack, pages);
+        u->context.stack = {};
+    }
+
+    if (u->is_user && u->tls_pages > 0) {
+        kernel::memory::unmap_range(virt_from_raw(u->tls_vaddr), u->tls_pages * PAGE_SIZE);
+        kernel::memory::free_pages_phys(u->tls_phys, u->tls_pages);
+        u->tls_pages = 0;
+    }
+
+    if (u->is_user && !virt_null(u->context.user_stack)) {
+        const usize pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
+        kernel::memory::unmap_range(u->context.user_stack_virt_base, u->context.user_stack_size);
+        kernel::memory::free_pages_phys(u->context.user_stack_phys, pages);
+        if (Realm* r = u->parent) r->address_space->stack_alloc().free(u->user_stack_slot);
+        u->context.user_stack = {};
+    }
+}
+
+void UnitManager::complete_termination(Unit* u) {
+    release_resources(u);
+
+    SpinlockGuard g(global_lock_);
+
+    if (u->joined_no_wait) {
+
+        finalize_slot(u);
+    } else {
+
+        u->state = UnitState::Zombie;
+        u->wait_queue.wake_all();
+    }
+}
+
+
+void UnitManager::finalize_slot(Unit* u) {
     Realm* r = u->parent;
 
     if (r) {
@@ -492,26 +550,6 @@ void UnitManager::reap(Unit* u) {
 
     if (u->name) kernel::memory::free(u->name);
 
-    u->detach_all_handles();
-    u->free_vma_list();
-
-    if (!virt_null(u->context.stack)) {
-        const usize pages = (u->context.stack_size + 0xFFF) / 0x1000;
-        kernel::memory::free_pages(u->context.stack, pages);
-    }
-
-    if (u->is_user && u->tls_pages > 0) {
-        kernel::memory::unmap_range(virt_from_raw(u->tls_vaddr), u->tls_pages * PAGE_SIZE);
-        kernel::memory::free_pages_phys(u->tls_phys, u->tls_pages);
-    }
-
-    if (u->is_user && !virt_null(u->context.user_stack)) {
-        const usize pages = (u->context.user_stack_size + 0xFFF) / 0x1000;
-        kernel::memory::unmap_range(u->context.user_stack_virt_base, u->context.user_stack_size);
-        kernel::memory::free_pages_phys(u->context.user_stack_phys, pages);
-        if (r) r->address_space->stack_alloc().free(u->user_stack_slot);
-    }
-
     SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
     RealmFs::unregister_unit(u->id);
 
@@ -521,6 +559,11 @@ void UnitManager::reap(Unit* u) {
     memset(u, 0, sizeof(*u));
 
     if (realm_empty) RealmManager::destroy(realm_id);
+}
+
+void UnitManager::reap(Unit* u) {
+    release_resources(u);
+    finalize_slot(u);
 }
 
 Result<int> UnitManager::join(const UnitId id) {
@@ -551,21 +594,28 @@ Result<int> UnitManager::join(const UnitId id) {
             return Result<int>::ok(exit_code);
         }
 
+        if (target->state == UnitState::Terminated) {
+            const int exit_code = target->exit_code;
+            target->joiner_id = current->id;
+            target->joined_no_wait = true;
+            return Result<int>::ok(exit_code);
+        }
+
         target->joiner_id = current->id;
         target->wait_queue.add_wait(current);
     }
 
-    kernel::scheduling::yield();
+    while (true) {
+        kernel::scheduling::yield();
 
-    SpinlockGuard g(global_lock_);
+        SpinlockGuard g(global_lock_);
 
-    for (auto& slot : units_) {
-        if (slot.active && slot.id == id && slot.state == UnitState::Zombie) {
-            const int exit_code = slot.exit_code;
-            reap(&slot);
-            return Result<int>::ok(exit_code);
+        for (auto& slot : units_) {
+            if (slot.active && slot.id == id && slot.state == UnitState::Zombie) {
+                const int exit_code = slot.exit_code;
+                reap(&slot);
+                return Result<int>::ok(exit_code);
+            }
         }
     }
-
-    return Error::Srch;
 }

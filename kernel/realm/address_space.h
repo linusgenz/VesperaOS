@@ -55,7 +55,7 @@ namespace kernel::realm {
         [[nodiscard]] UserStackAllocator& stack_alloc() { return stack_alloc_; }
 
     private:
-        void map_trampoline(phys_addr_t trampoline_page);
+        void map_trampoline(phys_addr_t trampoline_page) const;
 
         phys_addr_t pml4_phys_{};
         PageTableManager* page_table_{nullptr};

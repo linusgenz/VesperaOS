@@ -114,6 +114,7 @@ class Unit {
     u64 heap_end{};
 
     UnitId joiner_id{0};
+    bool joined_no_wait;
     WaitQueue wait_queue;
 
     u64 signals_pending{0};

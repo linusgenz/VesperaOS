@@ -77,9 +77,9 @@ void AddressSpace::destroy() {
     pml4_phys_  = {};
 }
 
-void AddressSpace::map_trampoline(phys_addr_t trampoline_page) {
+void AddressSpace::map_trampoline(phys_addr_t trampoline_page) const {
     page_table_->map_range(
-        virt_from_raw(kernel::realm::TRAMPOLINE_VADDR),
+        virt_from_raw(TRAMPOLINE_VADDR),
         trampoline_page,
         PAGE_SIZE,
         (1ULL << PtFlag::Present) | (1ULL << PtFlag::UserSuper)

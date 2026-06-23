@@ -38,6 +38,14 @@ namespace kernel::realm {
     class AddressSpace;
 }
 
+struct TlsTemplate {
+    const void* init_data;
+    usize       file_size;
+    usize       mem_size;
+    usize       align;
+    bool        present;
+};
+
 class Realm {
    public:
     RealmId id;
@@ -48,6 +56,10 @@ class Realm {
     u64 unit_count;
 
     kernel::realm::AddressSpace* address_space{nullptr};
+
+    TlsTemplate tls_template{};
+    uptr        tls_region_start{};
+    uptr        tls_region_next;
 
     char cwd_path[256];
 

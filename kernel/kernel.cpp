@@ -98,7 +98,7 @@ static const char* bus_to_str(BusType b) {
 // Pretty-print indentation tree
 static void print_indent(int depth) {
     for (int i = 0; i < depth; i++) {
-        Log::print("  ");  // 2 spaces per level
+        Log::print("  "); // 2 spaces per level
     }
 }
 
@@ -158,11 +158,11 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     Log::info("Kernel version: %s", get_kernel_version());
 
     constexpr RealmConfig realm_config_shell = {
-        .name = "initium",
+        .name         = "initium",
         .memory_limit = 0,
         .capabilities = CAP_DEVICE_ACCESS | CAP_RW,
-        .max_units = 16,
-        .is_user = true,
+        .max_units    = 16,
+        .is_user      = true,
     };
     Realm* shell_realm = RealmManager::create(&realm_config_shell);
     shell_realm->handle_table->setup_stdio("/dev/tty0");
@@ -177,26 +177,25 @@ extern "C" [[noreturn]] void kernel_main(BootInfo* boot_info) {
     const char* envp_init[] = {"PATH=/bin", "LUA_PATH=/etc/lib/?.lua", nullptr};
 
     const UnitConfig uc = {
-        .name = "init",
-        .cpu_id = 0,
-        .priority = 10,
-        .stack_size = DEFAULT_UNIT_STACK_SIZE,
-        .initial_handles = nullptr,
+        .name                 = "init",
+        .cpu_id               = 0,
+        .priority             = 10,
+        .stack_size           = DEFAULT_UNIT_STACK_SIZE,
+        .initial_handles      = nullptr,
         .initial_handle_count = 0,
-        .is_idle = false,
-        .is_user = true,
-        .is_main_unit = true,
-        .user_stack_size = 0,
-        .argv = argv_init,
-        .envp = envp_init
+        .is_idle              = false,
+        .is_user              = true,
+        .is_main_unit         = true,
+        .user_stack_size      = 0,
+        .argv                 = argv_init,
+        .envp                 = envp_init
     };
 
+    shell_realm->tls_region_next = (result.load_end + 0xFFFULL) & ~0xFFFULL;
+
     if (Unit* shell_unit =
-            UnitManager::create(shell_realm->id, reinterpret_cast<unit_entry_t>(result.entry_point), nullptr, &uc)) {
-        const uptr heap_begin = (result.load_end + 0xFFFULL) & ~0xFFFULL;
-        shell_unit->heap_start = heap_begin;
-        shell_unit->heap_end = heap_begin;
-        shell_unit->context.fs_base = result.tls_base;
+        UnitManager::create(shell_realm->id, reinterpret_cast<unit_entry_t>(result.entry_point), nullptr, &uc)) {
+        shell_unit->heap_start = shell_unit->heap_end = shell_realm->tls_region_next + TLS_REGION_SIZE;
     }
 
     kernel::SystemManager::set_system_initialized();

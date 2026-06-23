@@ -37,10 +37,13 @@ struct Reaper {
 
     void reap();
 
+    void wait_for_work();
+
     [[nodiscard]] bool empty();
 
    private:
     IntrusiveQueue<Unit> pending_;
+    WaitQueue wake_queue_;
     Spinlock lock_;
 };
 

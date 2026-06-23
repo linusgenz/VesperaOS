@@ -46,6 +46,9 @@ class UnitManager {
 
     static Unit* get(UnitId id);
     static bool destroy(UnitId id);
+    static void release_resources(Unit* u);
+    static void complete_termination(Unit* u);
+    static void finalize_slot(Unit* u);
     static void reap(Unit* u);
     static Result<int> join(UnitId id);
     static void list();

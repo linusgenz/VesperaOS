@@ -116,3 +116,35 @@ bool WaitQueue::remove(const Unit *u) {
 
     return false;
 }
+
+u32 WaitQueue::wake_matching(u32 max_wake, bool (*predicate)(const Unit*)) {
+    SpinlockGuard guard(lock_);
+    u32 woken = 0;
+    WaitQueueEntry* prev = nullptr;
+    WaitQueueEntry* cur = head_;
+
+    while (cur && woken < max_wake) {
+        if (predicate(cur->unit)) {
+            WaitQueueEntry* next = cur->next;
+            if (prev) {
+                prev->next = next;
+            } else {
+                head_ = next;
+            }
+            if (cur == tail_) tail_ = prev;
+
+            if (cur->unit) {
+                cur->unit->state = UnitState::Ready;
+                kernel::scheduling::add_unit(cur->unit);
+            }
+            delete cur;
+            cur = next;
+            ++woken;
+        } else {
+            prev = cur;
+            cur = cur->next;
+        }
+    }
+
+    return woken;
+}
