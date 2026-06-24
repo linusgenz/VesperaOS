@@ -127,6 +127,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
                 strncpy(realm.name, cfg->name, sizeof(realm.name) - 1);
                 realm.name[sizeof(realm.name) - 1] = '\0';
             }
+            strcpy(r->root_path, "/");
             strcpy(r->cwd_path, "/");
             r->memory_limit = cfg->memory_limit;
             r->max_units = cfg->max_units;
@@ -140,6 +141,8 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             if (!r->handle_table) return nullptr;
             r->handle_table->init(r->id);
             r->exited = false;
+            r->waiter_present = false;
+            r->wait_consumed = false;
 
             if (cfg->is_user) {
                 auto* as = new kernel::realm::AddressSpace();
@@ -190,11 +193,13 @@ Realm* RealmManager::find_realm_locked(const RealmId id) {
 bool RealmManager::destroy(const RealmId id) {
     SpinlockGuard g(global_lock_);
 
-    seq_.fetch_add(1);  // writer begin
-
-    bool ok = false;
     for (auto& realm : realms_) {
         if (!realm.active || realm.id != id) continue;
+
+        // --- Phase 1: Ressourcen immer sofort freigeben -------------------
+        // Das passiert unabhängig davon, ob noch jemand auf diesen Realm
+        // wartet. Ein potenziell langlebiger Zombie-Realm soll nicht den
+        // vollen Speicher-Footprint (Units, AddressSpace, Handles) halten.
 
         if (realm.controlling_tty) {
             kernel::tty::TTY* tty = realm.controlling_tty->tty;
@@ -206,7 +211,6 @@ bool RealmManager::destroy(const RealmId id) {
         VBusManager::unsubscribe_realm(realm.id);
         VBusManager::cancel_pending_for_realm(realm.id);
 
-        SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
         RealmFs::unregister_realm(realm.id);
 
         const Unit* u = realm.unit_list;
@@ -225,16 +229,51 @@ bool RealmManager::destroy(const RealmId id) {
         realm.unit_list = nullptr;
         realm.unit_count = 0;
         realm.handle_table->clear();
-        realm.active = false;
-        realm.id = 0;
 
-        ok = true;
-        break;
+        // --- Phase 2: Slot nur final freigeben, wenn niemand mehr wartet --
+        // Analog zu joined_no_wait bei Unit: wenn wait() bereits zurückkam
+        // (wait_consumed) oder nie jemand registriert war (!waiter_present),
+        // kann der Slot sofort recycelt werden. Andernfalls bleibt der Realm
+        // als Zombie bestehen — RealmManager::get(id) liefert ihn weiterhin,
+        // sein exit_code/exited-Status ist bereits final — bis wait() ihn
+        // über finalize() final räumt.
+        if (!realm.waiter_present || realm.wait_consumed) {
+            finalize_locked(realm);
+        }
+        // sonst: realm.active bleibt true, realm.exited wurde bereits von
+        // exit_current() bzw. hier oben implizit als "fertig" markiert.
+
+        SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
+
+        return true;
     }
 
-    seq_.fetch_add(1);  // writer end
+    return false;
+}
 
-    return ok;
+void RealmManager::finalize_locked(Realm& realm) {
+    seq_.fetch_add(1);
+
+    realm.active = false;
+    realm.id = 0;
+
+    seq_.fetch_add(1);
+}
+
+void RealmManager::reap(const RealmId id) {
+    SpinlockGuard g(global_lock_);
+
+    for (auto& realm : realms_) {
+        if (!realm.active || realm.id != id) continue;
+
+        realm.wait_consumed = true;
+
+        if (realm.exited) {
+            finalize_locked(realm);
+        }
+        return;
+    }
+
 }
 
 void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {

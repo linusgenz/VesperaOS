@@ -26,10 +26,11 @@
 #include <klib/result.h>
 #include <vespera/types.h>
 
+#include "uapi/vespera/wait.h"
+
 enum class Signal : u32;
 
 namespace kernel::realm {
-
     [[nodiscard]] Result<RealmId> get_pgid(RealmId id);
     [[nodiscard]] Result<RealmId> get_sid(RealmId id);
     VoidResult set_pgid(RealmId id, RealmId pgid);
@@ -39,14 +40,18 @@ namespace kernel::realm {
      */
     VoidResult send_signal(RealmId id, Signal sig);
 
+    struct WaitResult {
+        bool ready;
+        int exit_code;
+    };
+
     /**
      * @brief Waits until the given realm exits and returns its exit code.
      *
      * @return Error::Child if the realm does not exist.
      */
     [[nodiscard]]
-    Result<int> wait(RealmId id);
-
-}  // namespace kernel::realm
+    Result<WaitResult> wait(RealmId id, u32 flags = WAIT_FLAG_NONE);
+} // namespace kernel::realm
 
 #endif  // VESPERAOS_VESPERA_REALM_REALM_OPS_H

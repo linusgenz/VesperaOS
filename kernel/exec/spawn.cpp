@@ -128,14 +128,14 @@ namespace kernel::exec {
 
         // CWD
         char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
+        if (!VFS::resolve_path(path, norm, sizeof(norm))) {
             RealmManager::destroy(r->id);
             return Error::Inval;
         }
 
         if (cfg && cfg->home) {
             char resolved[256];
-            if (VFS::resolve_to_absolute(cfg->home, resolved, sizeof(resolved)))
+            if (VFS::resolve_path(cfg->home, resolved, sizeof(resolved)))
                 strncpy(r->cwd_path, resolved, sizeof(r->cwd_path));
         } else if (parent) {
             strncpy(r->cwd_path, parent->cwd_path, sizeof(r->cwd_path));

@@ -30,13 +30,9 @@ namespace syscalls::internal {
         const auto new_path = reinterpret_cast<const char*>(arg1);
 
         char norm_old[256];
-        if (!VFS::resolve_to_absolute(old_path, norm_old, sizeof(norm_old))) {
-            return -EINVAL;
-        }
+        SYSCALL_TRY_VOID(VFS::resolve_path(old_path, norm_old, sizeof(norm_old)));
         char norm_new[256];
-        if (!VFS::resolve_to_absolute(new_path, norm_new, sizeof(norm_new))) {
-            return -EINVAL;
-        }
+        SYSCALL_TRY_VOID(VFS::resolve_path(new_path, norm_new, sizeof(norm_new)));
 
         SYSCALL_TRY_VOID(VFS::rename(norm_old, norm_new));
         return SUCCESS_CODE;

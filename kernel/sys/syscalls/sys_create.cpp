@@ -32,9 +32,7 @@ namespace syscalls::internal {
         if (!path) return -EINVAL;
 
         char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) {
-            return -EINVAL;
-        }
+        SYSCALL_TRY_VOID(VFS::resolve_path(path, norm, sizeof(norm)));
 
         if (auto res = VFS::open(norm); res.is_ok()) {
             VFS::close(res.unwrap());

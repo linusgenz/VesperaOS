@@ -151,7 +151,7 @@ class VFS {
     static bool resolve_parent(const char* path, VfsNode** parent_out, char* name_out);
     static dirent_type_t node_type_to_dirent_type(VfsNodeType type);
     static void ensure_path_exists(const char* path);
-    static bool resolve_to_absolute(const char* user_path, char* out, usize out_size);
+    static VoidResult resolve_path(const char* user_path, char* out, usize out_size);
 
     /**
      * @brief Forcefully unmounts all mount points backed by @p device or

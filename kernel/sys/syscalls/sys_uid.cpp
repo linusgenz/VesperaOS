@@ -228,7 +228,7 @@ namespace syscalls::internal {
         const auto cred = SYSCALL_TRY(kernel::security::current_credentials());
 
         char abs_path[256];
-        if (!VFS::resolve_to_absolute(path, abs_path, sizeof(abs_path))) return -EINVAL;
+        SYSCALL_TRY_VOID(VFS::resolve_path(path, abs_path, sizeof(abs_path)));
 
         VfsNode* node = SYSCALL_TRY(VFS::open(abs_path));
 
@@ -272,7 +272,7 @@ namespace syscalls::internal {
         const auto cred = SYSCALL_TRY(kernel::security::current_credentials());
 
         char abs_path[256];
-        if (!VFS::resolve_to_absolute(path, abs_path, sizeof(abs_path))) return -EINVAL;
+        SYSCALL_TRY_VOID(VFS::resolve_path(path, abs_path, sizeof(abs_path)));
 
         VfsNode* node = SYSCALL_TRY(VFS::open(abs_path));
 

@@ -26,6 +26,7 @@
 #include <vespera/signals.h>
 #include <vespera/scheduling.h>
 #include "realm.h"
+#include "uapi/vespera/wait.h"
 
 namespace kernel::realm {
 
@@ -57,32 +58,48 @@ namespace kernel::realm {
         return VoidResult::ok();
     }
 
-    Result<int> wait(const RealmId id) {
+
+    Result<WaitResult> wait(const RealmId id, const u32 flags) {
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current)
             return Error::Inval;
 
-        Realm* target = RealmManager::get(id);
-        if (!target)
-            return Error::Child;
-
         {
+            Realm* target = RealmManager::get(id);
+            if (!target)
+                return Error::Child;
+
             SpinlockGuard g(target->lock);
 
-            if (target->unit_count == 0 || target->exited) {
+            if (target->exited) {
                 int exit_code = 0;
                 ExitCodeTable::consume(id, &exit_code);
-                return Result<int>::ok(exit_code);
+                RealmManager::reap(id);
+                return Result<WaitResult>::ok({true, exit_code});
             }
 
+            if (flags & WAIT_FLAG_NOHANG)
+                return Result<WaitResult>::ok({false, 0});
+
+            target->waiter_present = true;
             target->wait_queue.add_wait(current);
         }
 
-        kernel::scheduling::yield();
+        while (true) {
+            scheduling::yield();
 
-        int exit_code = 0;
-        ExitCodeTable::consume(id, &exit_code);
+            Realm* target = RealmManager::get(id);
+            if (!target) {
+                return Error::Child;
+            }
 
-        return Result<int>::ok(exit_code);
+            SpinlockGuard g(target->lock);
+            if (!target->exited) continue;
+
+            int exit_code = 0;
+            ExitCodeTable::consume(id, &exit_code);
+            RealmManager::reap(id);
+            return Result<WaitResult>::ok({true, exit_code});
+        }
     }
 } // namespace kernel::realm

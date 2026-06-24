@@ -25,20 +25,25 @@
 #include <vespera/realm/realm_ops.h>
 
 namespace syscalls::internal {
-    i64 sys_wait(u64 arg0, u64 arg1, u64, u64, u64, u64) {
+    i64 sys_wait(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const RealmId child_rid = arg0;
-
         auto* status = reinterpret_cast<int*>(arg1);
+        const u32 flags = static_cast<u32>(arg2);
+
         if (!status)
             return -EINVAL;
 
-        const auto result = kernel::realm::wait(child_rid);
-
+        const auto result = kernel::realm::wait(child_rid, flags);
         if (result.is_err())
             return result.to_errno();
 
-        *status = result.unwrap();
+        const auto [ready, exit_code] = result.unwrap();
 
-        return 0;
+        if (!ready) {
+            return 0;
+        }
+
+        *status = exit_code;
+        return static_cast<i64>(child_rid);
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

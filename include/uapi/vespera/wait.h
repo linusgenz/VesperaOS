@@ -1,10 +1,9 @@
-// sys_unlink.cpp
-//
+// wait.h
 // VesperaOS - operating system for the x86_64 architecture
 //
-// Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 02.08.25.
+// Created by Linus Genz on 24.06.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,20 +19,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPERAOS_UAPI_WAIT_H
+#define VESPERAOS_UAPI_WAIT_H
 
-#include <filesystem/vfs.h>
-#include "vespera_errno.h"
+#define WAIT_FLAG_NONE    0x0   // Standard: waiting, blocking
+#define WAIT_FLAG_NOHANG  0x1   // return immediately if you're not finished yet
 
-namespace syscalls::internal {
-    i64 sys_unlink(u64 path_ptr, u64, u64, u64, u64, u64) {
-        const auto path = reinterpret_cast<const char*>(path_ptr);
-        if (!path) return -EINVAL;
-
-        char norm[256];
-        SYSCALL_TRY_VOID(VFS::resolve_path(path, norm, sizeof(norm)));
-
-        SYSCALL_TRY_VOID(VFS::unlink(norm));
-        return SUCCESS_CODE;
-    }
-
-}  // namespace syscalls::internal
+#endif //VESPERAOS_UAPI_WAIT_H

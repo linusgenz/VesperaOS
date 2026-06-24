@@ -29,7 +29,7 @@
 #include <vespera/realm/handles.h>
 #include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-
+#include <klib/string.h>
 #include "filesystem/vfs_handle.h"
 
 namespace syscalls::internal {
@@ -45,10 +45,12 @@ namespace syscalls::internal {
         Realm* realm = kernel::scheduling::get_current_realm();
         if (!realm) return -ESRCH;
 
-        char norm[256];
-        if (!VFS::resolve_to_absolute(user_path, norm, sizeof(norm))) {
-            return -EINVAL;
+        if (strcmp("/etc/init.lua", user_path) != 0) {
+
         }
+
+        char norm[256];
+        SYSCALL_TRY_VOID(VFS::resolve_path(user_path, norm, sizeof(norm)));
 
         auto node_res = VFS::open(norm);
 

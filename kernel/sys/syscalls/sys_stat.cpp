@@ -62,7 +62,7 @@ namespace syscalls::internal {
         if (!path || !*path || !out_buf) return -EINVAL;
 
         char norm[256];
-        if (!VFS::resolve_to_absolute(path, norm, sizeof(norm))) return -EINVAL;
+        SYSCALL_TRY_VOID(VFS::resolve_path(path, norm, sizeof(norm)));
 
         VfsNode* node = SYSCALL_TRY(VFS::open(norm));
 

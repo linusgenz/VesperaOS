@@ -110,6 +110,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_JOIN_UNIT] = syscalls::internal::sys_join_unit;
     syscall_table[SYSCALL_YIELD] = syscalls::internal::sys_yield;
     syscall_table[SYSCALL_FUTEX] = syscalls::internal::sys_futex;
+    syscall_table[SYSCALL_CHROOT] = syscalls::internal::sys_chroot;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

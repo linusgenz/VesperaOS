@@ -61,10 +61,15 @@ class Realm {
     uptr        tls_region_start{};
     uptr        tls_region_next;
 
+    char root_path[256];
     char cwd_path[256];
 
     int exit_code;
     bool exited;
+
+    bool waiter_present = false;
+    bool wait_consumed  = false;
+
 
     Unit* unit_list;
 
