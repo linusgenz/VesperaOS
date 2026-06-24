@@ -153,6 +153,7 @@ void VFS::close(VfsNode* node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;
 
     if ((__atomic_sub_fetch(&node->ref_count, 1, __ATOMIC_ACQ_REL) == 0)) {
+        //filesystem::g_dentry_cache.evict(node);
         node->ops->close(node);
     }
 }

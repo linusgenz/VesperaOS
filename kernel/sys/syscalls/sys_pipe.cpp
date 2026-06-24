@@ -26,10 +26,6 @@
 #include <vespera/realm/handles.h>
 #include <vespera/types.h>
 
-static void ref_void(void* p) {
-    Channel::ref(static_cast<Channel*>(p));
-}
-
 namespace syscalls::internal {
 
     i64 sys_pipe(u64 arg0, u64, u64, u64, u64, u64) {
@@ -45,7 +41,7 @@ namespace syscalls::internal {
             CAP_READ,
             /*transferable=*/true,
             Channel::destroy,
-            ref_void
+            Channel::ref
         );
 
         if (read_result.is_err()) {
@@ -61,7 +57,7 @@ namespace syscalls::internal {
             CAP_WRITE,
             /*transferable=*/true,
             Channel::destroy,
-            ref_void
+            Channel::ref
         );
 
         if (write_result.is_err()) {

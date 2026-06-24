@@ -40,7 +40,9 @@ Channel::Channel(const usize cap)
     lock_.init("channel_lock");
 }
 
-void Channel::ref(Channel *c) {
+void Channel::ref(void* res) {
+    if (!res) return;
+    auto *c = static_cast<Channel *>(res);
     __sync_add_and_fetch(&c->refcount, 1);
 }
 

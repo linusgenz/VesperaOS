@@ -234,6 +234,7 @@ namespace filesystem {
 
         dentry* parent = nullptr; // nullptr == root, matches find_child()'s convention
         VfsNode* result = nullptr;
+        VfsNode* prev_result = nullptr;
 
         const char* p = path;
         if (*p == '/')
@@ -258,7 +259,13 @@ namespace filesystem {
             component[len] = '\0';
 
             dentry* matched = nullptr;
+            prev_result = result;
             result = lookup_component(parent, component, &matched);
+
+            if (prev_result && prev_result != result) {
+                __atomic_fetch_sub(&prev_result->ref_count, 1, __ATOMIC_RELAXED);
+            }
+
             if (!matched)
                 return nullptr; // lookup_component() already bumped miss_count_.
 

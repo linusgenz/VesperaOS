@@ -45,10 +45,6 @@ namespace syscalls::internal {
         Realm* realm = kernel::scheduling::get_current_realm();
         if (!realm) return -ESRCH;
 
-        if (strcmp("/etc/init.lua", user_path) != 0) {
-
-        }
-
         char norm[256];
         SYSCALL_TRY_VOID(VFS::resolve_path(user_path, norm, sizeof(norm)));
 
@@ -187,7 +183,7 @@ namespace syscalls::internal {
         if ((flags & O_APPEND) && node->type == VfsNodeType::File) vh->context->position = node->size;
 
         const Result<HandleId> result =
-            kernel::realm::add_handle_to_current(handle_type, vh, required_caps, true, vfs_handle_destructor, nullptr);
+            kernel::realm::add_handle_to_current(handle_type, vh, required_caps, true, VfsHandle::destroy, VfsHandle::acquire);
 
         if (result.is_err()) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)
