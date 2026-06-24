@@ -30,7 +30,6 @@
 #include "../handle_resolution.h"
 
 namespace syscalls::internal {
-
     i64 sys_handle_transfer(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const HandleId hid = arg0;
         const RealmId target_realm_id = arg1;
@@ -49,19 +48,26 @@ namespace syscalls::internal {
         Realm* dst = RealmManager::get(target_realm_id);
         if (!dst) return -ECHILD;
 
-        auto* ch = rh.resource_as<Channel>();
-        if (!ch) return -EINVAL;
+        auto* ep = rh.resource_as<ChannelEndpoint>(); // we have to adjust, either we make one endpoint or we change semantics here
+        if (!ep) return -EINVAL;
 
-        Channel::ref(ch);
+        ChannelEndpoint::ref(ep);
 
-        const Result<HandleId> result =
-            kernel::realm::add_handle(dst, type_tag, ch, CAP_RW, /*transferable=*/true, Channel::destroy);
+        const Result<HandleId> result = kernel::realm::add_handle(
+            dst,
+            type_tag,
+            ep,
+            granted,
+            /*transferable=*/true,
+            ChannelEndpoint::destroy,
+            ChannelEndpoint::ref
+        );
 
         if (result.is_err()) {
-            Channel::destroy(ch);
+            ChannelEndpoint::destroy(ep);
             return result.to_errno();
         }
 
         return static_cast<i64>(result.unwrap());
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

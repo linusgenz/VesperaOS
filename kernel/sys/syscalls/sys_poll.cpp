@@ -61,8 +61,11 @@ namespace syscalls::internal {
 
                 int mask = 0;
 
-                if (rh.type() == HANDLE_TYPE_CHANNEL) {
-                    auto* ch = rh.resource_as<Channel>();
+                if (rh.type() == HANDLE_TYPE_CHANNEL || rh.type() == HANDLE_TYPE_PIPE) {
+                    auto* ep = rh.resource_as<ChannelEndpoint>();
+                    if (!ep) return -EINVAL;
+
+                    Channel* ch = ep->channel;
 
                     if (!ch) {
                         hdls[i].revents = POLLHUP;
@@ -70,7 +73,7 @@ namespace syscalls::internal {
                         continue;
                     }
 
-                    mask = ch->poll();
+                    mask = ch->poll(ep->is_reader, ep->is_writer); // TODO add PIPE sup here. pipe will likely throw an fault
                 } else {
                     const auto* vh = rh.resource_as<VfsHandle>();
 
@@ -94,4 +97,4 @@ namespace syscalls::internal {
             kernel::scheduling::yield();
         }
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

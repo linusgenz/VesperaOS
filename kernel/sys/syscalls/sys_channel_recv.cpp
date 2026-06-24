@@ -33,7 +33,10 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_CHANNEL, CAP_READ));
 
-        auto* ch = rh.resource_as<Channel>();
+        auto* ep = rh.resource_as<ChannelEndpoint>();
+        if (!ep) return -EINVAL;
+
+        Channel* ch = ep->channel;
         if (!ch) return -EINVAL;
 
         const int res = ch->recv(buf, len);
@@ -41,4 +44,4 @@ namespace syscalls::internal {
 
         return res;
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

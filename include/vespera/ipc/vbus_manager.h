@@ -46,7 +46,7 @@ class VBusManager {
     static void init();
 
     // interface / member: filter; empty member = wildcard (all members)
-    static i64 subscribe(u64 realm_id, Channel* rx_channel, const char* interface, const char* member);
+    static i64 subscribe(u64 realm_id, ChannelEndpoint* rx_ep, const char* interface, const char* member);
 
     static void unsubscribe_realm(u64 realm_id);
 
@@ -72,13 +72,13 @@ class VBusManager {
      *     caller's channel and the pending entry is freed.
      */
     [[nodiscard]] static i64 emit_from_realm(
-        u64 caller_realm_id, Channel* caller_channel, vbus_header_t* hdr, const void* payload, usize payload_len
+        u64 caller_realm_id, ChannelEndpoint* caller_ep, vbus_header_t* hdr, const void* payload, usize payload_len
     );
 
    private:
     struct Subscription {
         u64 realm_id;
-        Channel* channel;
+        ChannelEndpoint* ep;
         char interface[48];
         char member[48];  // empty = wildcard
         bool active;

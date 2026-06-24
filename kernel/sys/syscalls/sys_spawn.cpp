@@ -24,9 +24,10 @@
 #include "../user_copy.h"
 #include <exec/spawn.h>
 
-namespace syscalls::internal {
+#include "vespera/log.h"
 
-    static constexpr usize MAX_ARGS    = 16;
+namespace syscalls::internal {
+    static constexpr usize MAX_ARGS = 16;
     static constexpr usize MAX_ARG_LEN = 256;
 
     i64 sys_spawn(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
@@ -34,23 +35,32 @@ namespace syscalls::internal {
         if (!copy_str_from_user(path, reinterpret_cast<const char*>(arg0), sizeof(path)))
             return -EFAULT;
 
-        char         argv_storage[MAX_ARGS][MAX_ARG_LEN];
-        const char*  kernel_argv[MAX_ARGS + 1]{};
+        char argv_storage[MAX_ARGS][MAX_ARG_LEN];
+        const char* kernel_argv[MAX_ARGS + 1]{};
 
-        const i64 argc = copy_argv_from_user(
-            kernel_argv, argv_storage, MAX_ARGS,
-            reinterpret_cast<const char**>(arg1)
-        );
-        if (argc < 0) return -EFAULT;
+        if (arg1) {
+            const i64 argc = copy_argv_from_user(
+                kernel_argv, argv_storage, MAX_ARGS,
+                reinterpret_cast<const char**>(arg1)
+            );
+            if (argc < 0) return -EFAULT;
+        } else {
+            kernel_argv[0] = path;
+            kernel_argv[1] = nullptr;
+        }
 
-        char         envp_storage[MAX_ARGS][MAX_ARG_LEN];
-        const char*  kernel_envp[MAX_ARGS + 1]{};
+        char envp_storage[MAX_ARGS][MAX_ARG_LEN];
+        const char* kernel_envp[MAX_ARGS + 1]{};
 
-        const i64 envc = copy_argv_from_user(
-            kernel_envp, envp_storage, MAX_ARGS,
-            reinterpret_cast<const char**>(arg2)
-        );
-        if (envc < 0) return -EFAULT;
+        if (arg2) {
+            const i64 envc = copy_argv_from_user(
+                kernel_envp, envp_storage, MAX_ARGS,
+                reinterpret_cast<const char**>(arg2)
+            );
+            if (envc < 0) return -EFAULT;
+        }else {
+            kernel_envp[0] = nullptr;
+        }
 
         spawn_config_t cfg{};
         const spawn_config_t* cfg_ptr = nullptr;
@@ -62,5 +72,4 @@ namespace syscalls::internal {
 
         return SYSCALL_TRY(kernel::exec::spawn(path, kernel_argv, kernel_envp, cfg_ptr));
     }
-
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

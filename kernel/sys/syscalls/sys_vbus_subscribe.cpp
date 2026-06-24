@@ -38,14 +38,14 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(HANDLE_VBUS, HANDLE_TYPE_CHANNEL));
 
-        auto* ch = rh.resource_as<Channel>();
-        if (!ch) return -ENOENT;
+        auto* ep = rh.resource_as<ChannelEndpoint>();
+        if (!ep) return -ENOENT;
 
         const RealmId caller_id = kernel::scheduling::get_current_realm_id();
 
         if (caller_id == 0) return -ESRCH;
 
-        return VBusManager::subscribe(caller_id, ch, args->interface, args->member);
+        return VBusManager::subscribe(caller_id, ep, args->interface, args->member);
     }
 
     i64 sys_vbus_unsubscribe(u64, u64, u64, u64, u64, u64) {
@@ -68,11 +68,11 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(HANDLE_VBUS, HANDLE_TYPE_CHANNEL));
 
-        auto* ch = rh.resource_as<Channel>();
-        if (!ch) return -ENOENT;
+        auto* ep = rh.resource_as<ChannelEndpoint>();
+        if (!ep) return -ENOENT;
 
-        RealmId rid = kernel::scheduling::get_current_realm_id();
-        return VBusManager::emit_from_realm(rid, ch, &hdr, reinterpret_cast<void*>(payload_uptr), payload_len);
+        const RealmId rid = kernel::scheduling::get_current_realm_id();
+        return VBusManager::emit_from_realm(rid, ep, &hdr, reinterpret_cast<void*>(payload_uptr), payload_len);
     }
 
 }  // namespace syscalls::internal

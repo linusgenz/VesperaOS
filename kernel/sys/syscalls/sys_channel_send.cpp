@@ -35,7 +35,10 @@ namespace syscalls::internal {
 
         const auto rh = SYSCALL_TRY(resolve_handle(hid, HANDLE_TYPE_CHANNEL, CAP_WRITE));
 
-        auto* ch = rh.resource_as<Channel>();
+        auto* ep = rh.resource_as<ChannelEndpoint>();
+        if (!ep) return -EINVAL;
+
+        Channel* ch = ep->channel;
         if (!ch) return -EINVAL;
 
         const int res = ch->send(data, len);

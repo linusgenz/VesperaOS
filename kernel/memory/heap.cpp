@@ -327,6 +327,7 @@ void* kalloc_aligned(usize size, usize alignment, const usize boundary) {
     return reinterpret_cast<void*>(aligned_addr);
 }
 
+constexpr u64 poison = 0xDEADC0DE;
 void kfree(void* ptr) {
     if (!ptr || !heap_initialized) [[unlikely]] {
         return;
@@ -343,6 +344,11 @@ void kfree(void* ptr) {
       //  Log::error("Buffer overflow detected at %p", ptr);
         return;
     }
+
+    if (seg->length > 0) {
+        memset(ptr, poison, seg->length);
+    }
+    ptr = (void*)poison;
 
     seg->free = true;
     seg->magic = HEAP_MAGIC_FREE;

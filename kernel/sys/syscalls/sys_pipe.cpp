@@ -32,45 +32,45 @@ namespace syscalls::internal {
         auto* hdls = reinterpret_cast<i64*>(arg0);
         if (!hdls) return -EINVAL;
 
-        Channel* ch = Channel::create(65536);
-        if (!ch) return -ENOMEM;
+
+        const Result<PipePair> pair_result = Channel::create_pipe(65536);
+        if (pair_result.is_err()) return pair_result.to_errno();
+
+        const PipePair pair = pair_result.unwrap();
 
         const Result<HandleId> read_result = kernel::realm::add_handle_to_current(
             HANDLE_TYPE_PIPE,
-            ch,
+            pair.read_end,
             CAP_READ,
             /*transferable=*/true,
-            Channel::destroy,
-            Channel::ref
+            ChannelEndpoint::destroy,
+            ChannelEndpoint::ref
         );
 
         if (read_result.is_err()) {
-            Channel::destroy(ch);
+            ChannelEndpoint::destroy(pair.read_end);
+            ChannelEndpoint::destroy(pair.write_end);
             return read_result.to_errno();
         }
 
-        Channel::ref(ch);
-
         const Result<HandleId> write_result = kernel::realm::add_handle_to_current(
             HANDLE_TYPE_PIPE,
-            ch,
+            pair.write_end,
             CAP_WRITE,
             /*transferable=*/true,
-            Channel::destroy,
-            Channel::ref
+            ChannelEndpoint::destroy,
+            ChannelEndpoint::ref
         );
 
         if (write_result.is_err()) {
-            // TODO WE HAVE TO FREE THIS SOMEHOW HERE
-            // kernel::realm::release_handle_from_current(read_result.unwrap());
-
+            //  kernel::realm::release_handle_from_current(read_result.unwrap());
+            ChannelEndpoint::destroy(pair.write_end);
             return write_result.to_errno();
         }
 
-        hdls[0] = static_cast<i64>(read_result.unwrap());
-        hdls[1] = static_cast<i64>(write_result.unwrap());
+        hdls[0] = static_cast<i64>(read_result.unwrap());  // read fd
+        hdls[1] = static_cast<i64>(write_result.unwrap()); // write fd
 
         return 0;
     }
-
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

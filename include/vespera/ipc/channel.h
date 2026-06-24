@@ -27,31 +27,63 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
+#include "klib/result.h"
+
+class Channel;
+
+struct ChannelEndpoint {
+    Channel* channel;
+    bool is_reader;
+    bool is_writer;
+    int refcount;
+
+    static ChannelEndpoint* create(const usize capacity, bool r, bool w);
+    static ChannelEndpoint* create_with_channel(Channel* ch, bool r, bool w);
+    static void ref(void* res);
+    static void destroy(void* res);
+};
+
+struct PipePair {
+    ChannelEndpoint* read_end;
+    ChannelEndpoint* write_end;
+};
+
+
 class Channel {
-    Spinlock lock_{};
-    u8* buf_;     // ring buffer
-    usize head_;  // write index
-    usize tail_;  // read index
+    Spinlock lock_;
+    u8* buf_;    // ring buffer
+    usize head_; // write index
+    usize tail_; // read index
+
+    int reader_count_;
+    int writer_count_;
+
     explicit Channel(usize cap);
     ~Channel();
 
-   public:
-    int refcount;
-    usize used;      // wieviel bytes verfügbar sind
-    usize capacity;  // totale Kapazität in bytes
+public:
+    usize used;     // wieviel bytes verfügbar sind
+    usize capacity; // totale Kapazität in bytes
 
     static Channel* create(usize cap);
+    void add_reader();
+    void add_writer();
+    void remove_reader();
+    void remove_writer();
+    [[nodiscard]] bool has_writers() const;
+    [[nodiscard]] bool has_readers() const;
     static void destroy(void* res);
-    static void ref(Channel* c);
+    //static void ref(void* res);
 
     usize free_space();
-    int poll();
+    int poll(bool is_reader, bool is_writer);
 
     // return: bytes written (>=0) or negative errno
     isize send(const void* data, usize len);
 
     // return: bytes read (>=0) or negative errno, 0 if empty
     isize recv(void* out, usize len);
+    static Result<::PipePair> create_pipe(usize capacity);
 };
 
 #endif  // VESPERAOS_CHANNEL_H

@@ -32,25 +32,30 @@
 namespace syscalls::internal {
     i64 sys_channel_create(u64 arg0, u64, u64, u64, u64, u64) {
         usize capacity = arg0;
-        if (capacity == 0) capacity = 4096;  // default size
+        if (capacity == 0) capacity = 4096; // default size
 
         Realm* realm = kernel::scheduling::get_current_realm();
         if (!realm) return -ESRCH;
 
-        Channel* ch = Channel::create(capacity);
-        if (!ch) return -ENOMEM;
+        ChannelEndpoint* ep = ChannelEndpoint::create(capacity, /*r=*/true, /*w=*/true);
+        if (!ep) return -ENOMEM;
 
         constexpr capability_set caps = CAP_READ | CAP_WRITE;
 
         const Result<HandleId> result = kernel::realm::add_handle_to_current(
-            HANDLE_TYPE_CHANNEL, ch, caps, /*transferable=*/true, Channel::destroy
+            HANDLE_TYPE_CHANNEL,
+            ep,
+            caps,
+            /*transferable=*/true,
+            ChannelEndpoint::destroy,
+            ChannelEndpoint::ref
         );
 
         if (result.is_err()) {
-            Channel::destroy(ch);
+            ChannelEndpoint::destroy(ep);
             return result.to_errno();
         }
 
-        return result.unwrap();
+        return static_cast<i64>(result.unwrap());
     }
-}  // namespace syscalls::internal
+} // namespace syscalls::internal

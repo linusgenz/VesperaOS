@@ -27,6 +27,7 @@
 #include <uapi/vespera/capabilities.h>
 #include <filesystem/vfs.h>
 #include <vespera/types.h>
+#include <filesystem/vfs_node.h>
 
 struct VfsHandleContext {
     u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR
@@ -46,12 +47,28 @@ struct VfsHandle {
         context->type_specific_data = nullptr;
     }
 
-    ~VfsHandle();
-};
+    static void destroy(void* ptr) {
+        const auto* vh = static_cast<VfsHandle*>(ptr);
+        delete vh;
+    }
 
-inline void vfs_handle_destructor(void *resource) {
-    const auto *vh = static_cast<VfsHandle *>(resource);
-    delete vh;
-}
+    static void acquire(void* ptr) {
+        auto* vh = static_cast<VfsHandle*>(ptr);
+        __atomic_add_fetch(&vh->node->ref_count, 1, __ATOMIC_ACQ_REL);
+    }
+
+    ~VfsHandle() {
+        if (node) {
+            if (node->type == VfsNodeType::Directory &&
+                context && context->type_specific_data) {
+                VFS::closedir(context->type_specific_data);
+                context->type_specific_data = nullptr;
+                }
+
+            VFS::close(node);
+        }
+        delete context;
+    }
+};
 
 #endif //VESPERAOS_VFS_HANDLE_H

@@ -61,8 +61,8 @@ Result<void> HandleTable::install_stdio_handle(HandleId hid, const char* dev_pat
         vh,
         caps | CAP_DEVICE_ACCESS,
         /*transferable=*/false,
-        vfs_handle_destructor,
-        /*acquire=*/nullptr
+        VfsHandle::destroy,
+        VfsHandle::acquire
     );
     if (add_res.is_err()) {
         delete vh;
@@ -81,15 +81,17 @@ VoidResult HandleTable::setup_stdio(const char* dev_path) {
 }
 
 VoidResult HandleTable::setup_vbus() {
-    Channel* ch = Channel::create(8192);
-    if (!ch) return VoidResult::err(Error::NoMem);
+    ChannelEndpoint* ep = ChannelEndpoint::create(8192, /*read=*/true, /*write=*/true);
+    if (!ep) {
+        return VoidResult::err(Error::NoMem);
+    }
 
     return add_at(
-        HANDLE_VBUS, HANDLE_TYPE_CHANNEL, ch,
-        CAP_READ,
+        HANDLE_VBUS, HANDLE_TYPE_CHANNEL, ep,
+        CAP_READ | CAP_WRITE,
         /*transferable=*/false,
-        Channel::destroy,
-        /*acquire=*/nullptr
+        ChannelEndpoint::destroy,
+        ChannelEndpoint::ref
     );
 }
 

@@ -38,8 +38,8 @@ void VBusManager::init() {
     lock_.init("vbus_lock");
 }
 
-i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interface, const char* member) {
-    if (!rx_channel || !interface) return -EINVAL;
+i64 VBusManager::subscribe(u64 realm_id, ChannelEndpoint* rx_ep, const char* interface, const char* member) {
+    if (!rx_ep || !interface) return -EINVAL;
 
     SpinlockGuard g(lock_);
 
@@ -56,7 +56,7 @@ i64 VBusManager::subscribe(u64 realm_id, Channel* rx_channel, const char* interf
     for (auto& sub : subs_) {
         if (!sub.active) {
             sub.realm_id = realm_id;
-            sub.channel = rx_channel;
+            sub.ep = rx_ep;
             strncpy(sub.interface, interface, 47);
             sub.interface[47] = '\0';
             strncpy(sub.member, member ? member : "", 47);
@@ -77,7 +77,7 @@ void VBusManager::unsubscribe_realm(u64 realm_id) {
     for (auto& sub : subs_) {
         if (sub.active && sub.realm_id == realm_id) {
             sub.active = false;
-            sub.channel = nullptr;
+            sub.ep = nullptr;
             sub_count_--;
         }
     }
@@ -122,18 +122,18 @@ void VBusManager::emit(const char* interface, const char* member, const void* pa
     SpinlockGuard g(lock_);
 
     for (auto& s : subs_) {
-        if (!s.active || !s.channel) continue;
+        if (!s.active || !s.ep) continue;
         if (!matches(s, interface, member)) continue;
 
         // Check space before writing so we never write a partial message
-        if (s.channel->free_space() < total) {
+        if (s.ep->channel->free_space() < total) {
             Log::warning("[VBus] channel full for realm %llu (%s), dropping %s.%s", s.realm_id, RealmManager::get(s.realm_id)->name, interface, member);
             continue;
         }
 
-        s.channel->send(&hdr, sizeof(hdr));
+        s.ep->channel->send(&hdr, sizeof(hdr));
         if (payload && payload_len > 0) {
-            s.channel->send(payload, payload_len);
+            s.ep->channel->send(payload, payload_len);
         }
     }
 }
@@ -188,17 +188,17 @@ void VBusManager::emit_signal(const char* interface, const char* member, const v
     SpinlockGuard g(lock_);
 
     for (Subscription& s : subs_) {
-        if (!s.active || !s.channel) continue;
+        if (!s.active || !s.ep) continue;
         if (!matches(s, interface, member)) continue;
 
-        if (!deliver(s.channel, &hdr, payload, payload_len)) {
+        if (!deliver(s.ep->channel, &hdr, payload, payload_len)) {
             Log::warning("[VBus] channel full for realm %llu (%s), dropping %s.%s", s.realm_id, RealmManager::get(s.realm_id)->name, interface, member);
         }
     }
 }
 
 i64 VBusManager::emit_from_realm(
-    u64 caller_realm_id, Channel* caller_channel, vbus_header_t* hdr, const void* payload, usize payload_len
+    u64 caller_realm_id, ChannelEndpoint* caller_ep, vbus_header_t* hdr, const void* payload, usize payload_len
 ) {
     if (!hdr || hdr->magic != VBUS_MAGIC) return -EINVAL;
 
@@ -228,16 +228,16 @@ i64 VBusManager::emit_from_realm(
 
     if (hdr->type == VBUS_MSG_CALL) {
         for (Subscription& s : subs_) {
-            if (!s.active || !s.channel) continue;
+            if (!s.active || !s.ep->channel) continue;
             if (s.realm_id == caller_realm_id) continue;  // no self-delivery
             if (!matches(s, hdr->interface, hdr->member)) continue;
 
-            if (!deliver(s.channel, hdr, payload, payload_len)) {
+            if (!deliver(s.ep->channel, hdr, payload, payload_len)) {
                 return -EWOULDBLOCK;
             }
 
             // Record the pending call so RETURN can find its way back.
-            i64 rc = push_pending(hdr->serial, caller_channel, caller_realm_id);
+            i64 rc = push_pending(hdr->serial, caller_ep->channel, caller_realm_id);
             if (rc < 0) {
                 // Pending table full — the reply will be unroutable.
                 Log::warning("[VBus] pending table full, CALL serial %llu will not get a reply", hdr->serial);
@@ -251,14 +251,14 @@ i64 VBusManager::emit_from_realm(
 
     if (hdr->type == VBUS_MSG_SIGNAL) {
         for (Subscription& s : subs_) {
-            if (!s.active || !s.channel) continue;
+            if (!s.active || !s.ep->channel) continue;
             if (s.realm_id == caller_realm_id) continue;  // no echo
 
             if (hdr->dest_realm_id != 0 && s.realm_id != hdr->dest_realm_id) continue;
 
             if (!matches(s, hdr->interface, hdr->member)) continue;
 
-            if (!deliver(s.channel, hdr, payload, payload_len)) {
+            if (!deliver(s.ep->channel, hdr, payload, payload_len)) {
                 Log::warning("[VBus] channel full for realm %llu (%s), dropping %s.%s", s.realm_id, RealmManager::get(s.realm_id)->name, hdr->interface, hdr->member);
             }
         }
