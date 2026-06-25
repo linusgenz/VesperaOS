@@ -39,12 +39,13 @@ class RealmManager {
     static bool is_initialized();
     static Realm* create(const RealmConfig* cfg);
     static Realm* get(RealmId id);
-    static bool destroy(RealmId id);
+    static bool destroy(RealmId id, int exit_code);
     static void finalize_locked(Realm& realm);
     static void reap(RealmId id);
     static void signal_pgid(RealmId pgid, Signal sig);
     static Result<usize> get_status(void* manager_ref, void* buffer, usize size, usize offset);
     static void list();
+    static void abort(RealmId id);
     static constexpr usize MAX_REALMS = 64;
 
    private:

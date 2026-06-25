@@ -43,7 +43,9 @@
 #define VBUS_IFACE_DISPLAY "vespera.display"
 #define VBUS_IFACE_INPUT "vespera.input"
 #define VBUS_IFACE_STORAGE "vespera.storage"
+#define VBUS_IFACE_PROC "vespera.proc"
 
+#define VBUS_SIG_PROC_ORPHANED "Orphaned"
 #define VBUS_SIG_BATTERY_CHANGED "BatteryChanged"  // payload: vbus_battery_t
 #define VBUS_SIG_AC_CHANGED "AcChanged"            // payload: vbus_ac_t
 #define VBUS_SIG_SLEEP_REQUEST "SleepRequest"      // payload: none
@@ -66,6 +68,11 @@ typedef struct vbus_header {
     char member[48];       // e.g. "BatteryChanged"
     uint32_t sender_id;       // 0 for kernel or realm id
 } vbus_header_t;
+
+typedef struct vbus_orphaned {
+    u64 realm_id;
+    u64 old_parent_id;
+} vbus_orphaned_t;
 
 typedef struct vbus_battery {
     u8 percent;             // 0–100; 255 = unknown (battery removed)

@@ -39,8 +39,10 @@ struct VfsHandleContext {
 struct VfsHandle {
     VfsNode *node;
     VfsHandleContext *context;
+    int refcount;
 
-    VfsHandle(VfsNode *n, u32 flags, capability_set caps) : node(n), context(new VfsHandleContext()) {
+    VfsHandle(VfsNode *n, u32 flags, capability_set caps)
+        : node(n), context(new VfsHandleContext()), refcount(1) {
         context->open_flags = flags;
         context->position = 0;
         context->required_caps = caps;
@@ -48,15 +50,19 @@ struct VfsHandle {
     }
 
     static void destroy(void* ptr) {
-        const auto* vh = static_cast<VfsHandle*>(ptr);
+        auto* vh = static_cast<VfsHandle*>(ptr);
+        if (!vh) return;
+        if (__sync_sub_and_fetch(&vh->refcount, 1) != 0) return;
         delete vh;
     }
 
     static void acquire(void* ptr) {
         auto* vh = static_cast<VfsHandle*>(ptr);
-        __atomic_add_fetch(&vh->node->ref_count, 1, __ATOMIC_ACQ_REL);
+        if (!vh) return;
+        __sync_add_and_fetch(&vh->refcount, 1);
     }
 
+private:
     ~VfsHandle() {
         if (node) {
             if (node->type == VfsNodeType::Directory &&
