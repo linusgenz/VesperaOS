@@ -521,19 +521,9 @@ void UnitManager::complete_termination(Unit* u) {
 
     SpinlockGuard g(global_lock_);
 
-    if (u->joined_no_wait) {
-
-        finalize_slot(u);
-    } else {
-
-        u->state = UnitState::Zombie;
-        u->wait_queue.wake_all();
-    }
-}
-
-
-void UnitManager::finalize_slot(Unit* u) {
     Realm* r = u->parent;
+    bool realm_empty = false;
+    RealmId realm_id = 0;
 
     if (r) {
         SpinlockGuard rg(r->lock);
@@ -546,19 +536,27 @@ void UnitManager::finalize_slot(Unit* u) {
             }
             prev = &(*prev)->realm_next;
         }
+        realm_empty = r->unit_count == 0;
+        realm_id = r->id;
     }
 
+    if (u->joined_no_wait) {
+        finalize_slot(u);
+    } else {
+        u->state = UnitState::Zombie;
+        u->wait_queue.wake_all();
+    }
+
+    if (realm_empty) RealmManager::destroy(realm_id, u->exit_code);
+}
+
+void UnitManager::finalize_slot(Unit* u) {
     if (u->name) kernel::memory::free(u->name);
 
     SYS_EVENT_UNIT_DESTROYED(u->id, u->rid);
     RealmFs::unregister_unit(u->id);
 
-    const bool realm_empty = r && r->unit_count == 0;
-    const RealmId realm_id = r ? r->id : 0;
-
     memset(u, 0, sizeof(*u));
-
-    if (realm_empty) RealmManager::destroy(realm_id);
 }
 
 void UnitManager::reap(Unit* u) {

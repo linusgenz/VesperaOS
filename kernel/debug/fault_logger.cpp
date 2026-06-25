@@ -53,11 +53,12 @@ namespace kernel::debug {
         if (extra_msg && *extra_msg) {
             auto u = scheduling::get_current_unit();
             Log::error(
-                "%s: %s on CPU#%u on Unit#%u (%s) (%s)",
+                "%s: %s on CPU#%u on Unit#%u in Realm#%u (%s) (%s)",
                 type_str,
                 extra_msg,
                 cpu_manager::get_current_cpu_id(),
                 u->id,
+                u->rid,
                 u->name,
                 u->parent->name
             );

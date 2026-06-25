@@ -41,6 +41,7 @@
 #include "vespera/ipc/vbus_manager.h"
 #include "vespera/sys/syscall_numbers.h"
 #include "vespera/unit/unit_manager.h"
+#include <uapi/vespera/vbus.h>
 
 Realm RealmManager::realms_[MAX_REALMS];
 Spinlock RealmManager::global_lock_;
@@ -58,28 +59,28 @@ static u8 signal_trampoline[] = {
     15,
     0x00,
     0x00,
-    0x00,  // mov rax, 36
+    0x00, // mov rax, 36
     0x0F,
-    0x05,  // syscall
-    0xF4   // hlt
+    0x05, // syscall
+    0xF4  // hlt
 };
 
 static u8 unit_trampoline[] = {
     0xFF,
-    0xD6,  // call rsi
+    0xD6, // call rsi
     0x48,
     0x89,
-    0xC7,  // mov rdi, rax
+    0xC7, // mov rdi, rax
     0x48,
     0xC7,
     0xC0,
     SYSCALL_EXIT,
     0x00,
     0x00,
-    0x00,  // mov rax, SYSCALL_EXIT
+    0x00, // mov rax, SYSCALL_EXIT
     0x0F,
-    0x05,  // syscall
-    0xF4   // hlt
+    0x05, // syscall
+    0xF4  // hlt
 };
 
 void RealmManager::initialize() {
@@ -115,7 +116,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
 
     SpinlockGuard g(global_lock_);
 
-    seq_.fetch_add(1);  // begin write section (odd)
+    seq_.fetch_add(1); // begin write section (odd)
 
     Realm* result = nullptr;
 
@@ -163,14 +164,14 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
         }
     }
 
-    seq_.fetch_add(1);  // end write section (even)
+    seq_.fetch_add(1); // end write section (even)
     return result;
 }
 
 Realm* RealmManager::get(const RealmId id) {
     while (true) {
         const u8 begin = seq_.load();
-        if (begin & 1)  // Writer aktiv → retry
+        if (begin & 1) // Writer aktiv → retry
             continue;
 
         Realm* result = nullptr;
@@ -190,16 +191,29 @@ Realm* RealmManager::find_realm_locked(const RealmId id) {
     return nullptr;
 }
 
-bool RealmManager::destroy(const RealmId id) {
+void RealmManager::abort(const RealmId id) {
     SpinlockGuard g(global_lock_);
+    for (auto& realm : realms_) {
+        if (!realm.active || realm.id != id) continue;
+        if (realm.address_space) {
+            realm.address_space->destroy();
+            delete realm.address_space;
+            realm.address_space = nullptr;
+        }
+        realm.handle_table->clear();
+        VBusManager::unsubscribe_realm(realm.id);
+        RealmFs::unregister_realm(realm.id);
+        finalize_locked(realm);
+        return;
+    }
+}
+
+bool RealmManager::destroy(const RealmId id, int exit_code) {
+    SpinlockGuard g(global_lock_);
+    Log::debug("destroy for %u called", id);
 
     for (auto& realm : realms_) {
         if (!realm.active || realm.id != id) continue;
-
-        // --- Phase 1: Ressourcen immer sofort freigeben -------------------
-        // Das passiert unabhängig davon, ob noch jemand auf diesen Realm
-        // wartet. Ein potenziell langlebiger Zombie-Realm soll nicht den
-        // vollen Speicher-Footprint (Units, AddressSpace, Handles) halten.
 
         if (realm.controlling_tty) {
             kernel::tty::TTY* tty = realm.controlling_tty->tty;
@@ -213,9 +227,35 @@ bool RealmManager::destroy(const RealmId id) {
 
         RealmFs::unregister_realm(realm.id);
 
+        if (id != kernel::realm::INIT_REALM_ID) {
+            for (auto& child : realms_) {
+                if (!child.active || child.parent_id != id) continue;
+
+                Log::debug("destroy for %u called %u", child.id, child.parent_id);
+
+                if (child.exited) {
+                    Log::debug("killing child");
+                    RealmFs::unregister_realm(child.id);
+                    finalize_locked(child);
+                    continue;
+                }
+
+                child.parent_id = kernel::realm::INIT_REALM_ID;
+
+                vbus_orphaned_t payload{};
+                payload.realm_id = child.id;
+                payload.old_parent_id = id;
+                VBusManager::emit_signal(
+                    VBUS_IFACE_PROC, VBUS_SIG_PROC_ORPHANED, &payload, sizeof(payload)
+                );
+            }
+        } else {
+            kernel::SystemManager::system_panic("init realm exited", -KENOUNIT);
+        }
+
         const Unit* u = realm.unit_list;
         while (u) {
-            const Unit* next = u->next;
+            const Unit* next = u->realm_next;
             UnitManager::destroy(u->id);
             u = next;
         }
@@ -230,18 +270,12 @@ bool RealmManager::destroy(const RealmId id) {
         realm.unit_count = 0;
         realm.handle_table->clear();
 
-        // --- Phase 2: Slot nur final freigeben, wenn niemand mehr wartet --
-        // Analog zu joined_no_wait bei Unit: wenn wait() bereits zurückkam
-        // (wait_consumed) oder nie jemand registriert war (!waiter_present),
-        // kann der Slot sofort recycelt werden. Andernfalls bleibt der Realm
-        // als Zombie bestehen — RealmManager::get(id) liefert ihn weiterhin,
-        // sein exit_code/exited-Status ist bereits final — bis wait() ihn
-        // über finalize() final räumt.
-        if (!realm.waiter_present || realm.wait_consumed) {
+        realm.exited    = true;
+        realm.exit_code = exit_code;
+
+        if (realm.wait_consumed) {
             finalize_locked(realm);
         }
-        // sonst: realm.active bleibt true, realm.exited wurde bereits von
-        // exit_current() bzw. hier oben implizit als "fertig" markiert.
 
         SYS_EVENT_REALM_DESTROYED(realm.id, realm.name);
 
@@ -252,6 +286,7 @@ bool RealmManager::destroy(const RealmId id) {
 }
 
 void RealmManager::finalize_locked(Realm& realm) {
+    Log::debug("finalize_locked realm %d", realm.id);
     seq_.fetch_add(1);
 
     realm.active = false;
@@ -267,13 +302,13 @@ void RealmManager::reap(const RealmId id) {
         if (!realm.active || realm.id != id) continue;
 
         realm.wait_consumed = true;
+        Log::debug("reap realm %d", id);
 
         if (realm.exited) {
             finalize_locked(realm);
         }
         return;
     }
-
 }
 
 void RealmManager::signal_pgid(const RealmId pgid, const Signal sig) {
@@ -321,7 +356,7 @@ Result<usize> RealmManager::get_status(void* manager_ref, void* buffer, usize si
 void RealmManager::list() {
     while (true) {
         const u8 begin = seq_.load();
-        if (begin & 1)  // Writer aktiv
+        if (begin & 1) // Writer aktiv
             continue;
 
         for (const auto& realm : realms_) {

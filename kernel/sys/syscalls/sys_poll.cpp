@@ -73,7 +73,7 @@ namespace syscalls::internal {
                         continue;
                     }
 
-                    mask = ch->poll(ep->is_reader, ep->is_writer); // TODO add PIPE sup here. pipe will likely throw an fault
+                    mask = ch->poll(ep->is_reader, ep->is_writer);
                 } else {
                     const auto* vh = rh.resource_as<VfsHandle>();
 

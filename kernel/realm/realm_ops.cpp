@@ -59,6 +59,7 @@ namespace kernel::realm {
     }
 
 
+    // TODO, when blocking we have race conditions. realm could get deleted between RM::get and the targets spinlock, in the while (true) block
     Result<WaitResult> wait(const RealmId id, const u32 flags) {
         Unit* current = kernel::scheduling::get_current_unit();
         if (!current)

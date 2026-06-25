@@ -88,7 +88,7 @@ namespace kernel::exec {
             r->sid = r->id;
             r->controlling_tty = nullptr;
             if (r->handle_table->setup_stdio("/dev/null").is_err()) {
-                RealmManager::destroy(r->id);
+                RealmManager::abort(r->id);
                 return Error::NoMem;
             }
         } else {
@@ -97,7 +97,7 @@ namespace kernel::exec {
             r->controlling_tty = tty;
             if (tty) {
                 if (r->handle_table->setup_stdio("/dev/tty0").is_err()) {
-                    RealmManager::destroy(r->id);
+                    RealmManager::abort(r->id);
                     return Error::NoMem;
                 }
             }
@@ -105,7 +105,7 @@ namespace kernel::exec {
 
         // VBUS channel
         if (r->handle_table->setup_vbus().is_err()) {
-            RealmManager::destroy(r->id);
+            RealmManager::abort(r->id);
             return Error::NoMem;
         }
 
@@ -118,7 +118,7 @@ namespace kernel::exec {
                 if (!transfer_handle(parent, r, cfg->stdin_handle, HANDLE_STDIN) ||
                     !transfer_handle(parent, r, cfg->stdout_handle, HANDLE_STDOUT) ||
                     !transfer_handle(parent, r, cfg->stderr_handle, HANDLE_STDERR)) {
-                    RealmManager::destroy(r->id);
+                    RealmManager::abort(r->id);
                     return Error::BadH;
                 }
             }
@@ -129,7 +129,7 @@ namespace kernel::exec {
         // CWD
         char norm[256];
         if (!VFS::resolve_path(path, norm, sizeof(norm))) {
-            RealmManager::destroy(r->id);
+            RealmManager::abort(r->id);
             return Error::Inval;
         }
 
@@ -144,20 +144,20 @@ namespace kernel::exec {
         // Exec check + ELF load
         auto exec_res = VFS::open(norm);
         if (exec_res.is_err()) {
-            RealmManager::destroy(r->id);
+            RealmManager::abort(r->id);
             return exec_res.error();
         }
         VfsNode* node = exec_res.unwrap();
         const bool noexec = node->mount && (node->mount->flags & MS_NOEXEC);
         VFS::close(node);
         if (noexec) {
-            RealmManager::destroy(r->id);
+            RealmManager::abort(r->id);
             return Error::Acces;
         }
 
         const ElfLoader::LoadResult elf = ElfLoader::load(norm, 0x500000, r);
         if (!elf.success) {
-            RealmManager::destroy(r->id);
+            RealmManager::abort(r->id);
             return Error::NoExec;
         }
 
@@ -176,7 +176,7 @@ namespace kernel::exec {
 
         Unit* u = UnitManager::create(r->id, reinterpret_cast<unit_entry_t>(elf.entry_point), nullptr, &ucfg);
         if (!u) {
-            RealmManager::destroy(r->id);
+            RealmManager::abort(r->id);
             return Error::Fault;
         }
 
