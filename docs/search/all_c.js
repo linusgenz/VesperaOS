@@ -53,7 +53,7 @@ var searchData=
   ['locale_5ft_50',['locale_t',['../alltypes_8h.html#a2f6b92d5be3056babe7009d3b7e49a9f',1,'alltypes.h']]],
   ['localeconv_51',['localeconv',['../locale_8h.html#ac1dde34b0bd88caea4eedfbb153f501c',1,'locale.h']]],
   ['localtime_52',['localtime',['../userspace_2lib_2include_2time_8h.html#a2d4076dc90ad030f7d4dad295a01357a',1,'time.h']]],
-  ['log_53',['log',['../log__client_8h.html#a158a8c64f24645c7478298399825737f',1,'LOG:&#160;log_client.h'],['../math_8h.html#afa752f47ff073d8639c631f079670788',1,'log(double):&#160;math.h']]],
+  ['log_53',['log',['../math_8h.html#afa752f47ff073d8639c631f079670788',1,'log(double):&#160;math.h'],['../log__client_8h.html#a158a8c64f24645c7478298399825737f',1,'LOG:&#160;log_client.h']]],
   ['log10_54',['log10',['../math_8h.html#a9dc77c64d7b6f9cd8b78e2fd74d63a16',1,'math.h']]],
   ['log10f_55',['log10f',['../math_8h.html#aad1d008724a9c4e6745e874dcb4e952c',1,'math.h']]],
   ['log10l_56',['log10l',['../math_8h.html#ac0fcbb770753c771ff2616b6c315601e',1,'math.h']]],

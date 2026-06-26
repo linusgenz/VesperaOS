@@ -70,6 +70,7 @@ var hierarchy =
     [ "vbus_display_window_opened_t", "structvbus__display__window__opened__t.html", null ],
     [ "vbus_header", "structvbus__header.html", null ],
     [ "vbus_lid", "structvbus__lid.html", null ],
+    [ "vbus_orphaned", "structvbus__orphaned.html", null ],
     [ "vbus_payload_t", "unionvbus__payload__t.html", null ],
     [ "vbus_subscribe_args", "structvbus__subscribe__args.html", null ],
     [ "ves_mutex", "structves__mutex.html", null ],

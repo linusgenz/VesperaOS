@@ -13,7 +13,7 @@ var stdlib_8h =
     [ "atoi", "stdlib_8h.html#a30670a60464f77af17dfb353353d6df8", null ],
     [ "atol", "stdlib_8h.html#a825c37450147a643edbcb1a435518307", null ],
     [ "calloc", "stdlib_8h.html#a2807e26a012717736641384f91ab2563", null ],
-    [ "exit", "stdlib_8h.html#a42b03b3134cfb4f3fa2b6545f0a24e1c", null ],
+    [ "exit", "stdlib_8h.html#a9df46a21c34d7b6ce91542a4dabadb1e", null ],
     [ "free", "stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711", null ],
     [ "getenv", "stdlib_8h.html#ab1ec8cf93b9478de49bb3e77465ab4af", null ],
     [ "labs", "stdlib_8h.html#a3102965969578ae09e43dfc53996e90e", null ],
@@ -32,5 +32,5 @@ var stdlib_8h =
     [ "tmpnam", "stdlib_8h.html#aaff28d1d411bc932ad8120940f0d0c96", null ],
     [ "unsetenv", "stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c", null ],
     [ "environ", "stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b", null ],
-    [ "errno", "stdlib_8h.html#ad65a8842cc674e3ddf69355898c0ecbf", null ]
+    [ "errno", "stdlib_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d", null ]
 ];

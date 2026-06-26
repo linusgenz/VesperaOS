@@ -110,9 +110,15 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a261213bcaadbe50b5ac85a91021a0cff" id="r_a261213bcaadbe50b5ac85a91021a0cff"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcpu__info.html#a261213bcaadbe50b5ac85a91021a0cff">brand</a> [49]</td></tr>
 <tr class="memdesc:a261213bcaadbe50b5ac85a91021a0cff"><td class="mdescLeft">&#160;</td><td class="mdescRight">CPU brand string (null-terminated)  <br /></td></tr>
 <tr class="separator:a261213bcaadbe50b5ac85a91021a0cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07bea1218e56bc623767fa103b9c1da5" id="r_a07bea1218e56bc623767fa103b9c1da5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="types_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcpu__info.html#a07bea1218e56bc623767fa103b9c1da5">features</a></td></tr>
+<tr class="memitem:a07bea1218e56bc623767fa103b9c1da5" id="r_a07bea1218e56bc623767fa103b9c1da5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcpu__info.html#a07bea1218e56bc623767fa103b9c1da5">features</a></td></tr>
 <tr class="memdesc:a07bea1218e56bc623767fa103b9c1da5"><td class="mdescLeft">&#160;</td><td class="mdescRight">CPU features bitfield.  <br /></td></tr>
 <tr class="separator:a07bea1218e56bc623767fa103b9c1da5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c54b8c625779bdb55ab47d0b827a31c" id="r_a4c54b8c625779bdb55ab47d0b827a31c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#aed742c436da53c1080638ce6ef7d13de">u8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcpu__info.html#a4c54b8c625779bdb55ab47d0b827a31c">cores</a></td></tr>
+<tr class="memdesc:a4c54b8c625779bdb55ab47d0b827a31c"><td class="mdescLeft">&#160;</td><td class="mdescRight">usable cores (should be equal to total_cores)  <br /></td></tr>
+<tr class="separator:a4c54b8c625779bdb55ab47d0b827a31c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14e708eb4db7e380f8a3310a0de25909" id="r_a14e708eb4db7e380f8a3310a0de25909"><td class="memItemLeft" align="right" valign="top"><a class="el" href="tmp_8h.html#aed742c436da53c1080638ce6ef7d13de">u8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcpu__info.html#a14e708eb4db7e380f8a3310a0de25909">total_cores</a></td></tr>
+<tr class="memdesc:a14e708eb4db7e380f8a3310a0de25909"><td class="mdescLeft">&#160;</td><td class="mdescRight">total cores  <br /></td></tr>
+<tr class="separator:a14e708eb4db7e380f8a3310a0de25909"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Struct representing CPU information in user-space. </p>
@@ -134,6 +140,22 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a4c54b8c625779bdb55ab47d0b827a31c" name="a4c54b8c625779bdb55ab47d0b827a31c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c54b8c625779bdb55ab47d0b827a31c">&#9670;&#160;</a></span>cores</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="tmp_8h.html#aed742c436da53c1080638ce6ef7d13de">u8</a> cpu_info::cores</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>usable cores (should be equal to total_cores) </p>
+
+</div>
+</div>
 <a id="a07bea1218e56bc623767fa103b9c1da5" name="a07bea1218e56bc623767fa103b9c1da5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a07bea1218e56bc623767fa103b9c1da5">&#9670;&#160;</a></span>features</h2>
 
@@ -141,12 +163,28 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="types_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> cpu_info::features</td>
+          <td class="memname"><a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> cpu_info::features</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>CPU features bitfield. </p>
+
+</div>
+</div>
+<a id="a14e708eb4db7e380f8a3310a0de25909" name="a14e708eb4db7e380f8a3310a0de25909"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14e708eb4db7e380f8a3310a0de25909">&#9670;&#160;</a></span>total_cores</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="tmp_8h.html#aed742c436da53c1080638ce6ef7d13de">u8</a> cpu_info::total_cores</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>total cores </p>
 
 </div>
 </div>

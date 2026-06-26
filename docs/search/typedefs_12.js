@@ -5,7 +5,8 @@ var searchData=
   ['vbus_5fbattery_5ft_2',['vbus_battery_t',['../include_2uapi_2vespera_2vbus_8h.html#ade5fbf641f4242f7da44b3aba1ae9f2d',1,'vbus.h']]],
   ['vbus_5fheader_5ft_3',['vbus_header_t',['../include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178',1,'vbus.h']]],
   ['vbus_5flid_5ft_4',['vbus_lid_t',['../include_2uapi_2vespera_2vbus_8h.html#a37285d58ed95879f964254559c46e81f',1,'vbus.h']]],
-  ['vbus_5fsubscribe_5fargs_5ft_5',['vbus_subscribe_args_t',['../include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6',1,'vbus.h']]],
-  ['ves_5fmutex_5ft_6',['ves_mutex_t',['../unit_8h.html#a6ad1cd295a1af3641bbb9af3ca0b1f63',1,'unit.h']]],
-  ['vespera_5fstat_5ft_7',['vespera_stat_t',['../include_2uapi_2vespera_2stat_8h.html#a41eb14a51dcbebfb8143dbde0a227440',1,'stat.h']]]
+  ['vbus_5forphaned_5ft_5',['vbus_orphaned_t',['../include_2uapi_2vespera_2vbus_8h.html#ad4ad922428e520375c45221ecae27c1a',1,'vbus.h']]],
+  ['vbus_5fsubscribe_5fargs_5ft_6',['vbus_subscribe_args_t',['../include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6',1,'vbus.h']]],
+  ['ves_5fmutex_5ft_7',['ves_mutex_t',['../unit_8h.html#a6ad1cd295a1af3641bbb9af3ca0b1f63',1,'unit.h']]],
+  ['vespera_5fstat_5ft_8',['vespera_stat_t',['../include_2uapi_2vespera_2stat_8h.html#a41eb14a51dcbebfb8143dbde0a227440',1,'stat.h']]]
 ];

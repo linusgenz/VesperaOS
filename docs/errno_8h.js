@@ -40,6 +40,7 @@ var errno_8h =
     [ "EROFS", "errno_8h.html#acb02bb67dddd7ca8cf82634a0781d58d", null ],
     [ "ESPIPE", "errno_8h.html#a0e42d4f9fecdcf5fcca2b333252173c3", null ],
     [ "ESRCH", "errno_8h.html#a462e47a8af6288232a5df548221ada4c", null ],
+    [ "ETIMEDOUT", "errno_8h.html#a597718e59a8fc9c4d4ab63f5a34e28b1", null ],
     [ "ETXTBSY", "errno_8h.html#aaed12e82224923d599b6f1939c8e0971", null ],
     [ "EUNKNOWN", "errno_8h.html#aad18b90ecda2b87a7736ec120f46fd58", null ],
     [ "EUNSUPPORTED", "errno_8h.html#a6512098135b57dfc1ba40525ded08bca", null ],

@@ -13,8 +13,9 @@ var searchData=
   ['vbus_5fdisplay_5fwindow_5fopened_5ft_10',['vbus_display_window_opened_t',['../structvbus__display__window__opened__t.html',1,'']]],
   ['vbus_5fheader_11',['vbus_header',['../structvbus__header.html',1,'']]],
   ['vbus_5flid_12',['vbus_lid',['../structvbus__lid.html',1,'']]],
-  ['vbus_5fpayload_5ft_13',['vbus_payload_t',['../unionvbus__payload__t.html',1,'']]],
-  ['vbus_5fsubscribe_5fargs_14',['vbus_subscribe_args',['../structvbus__subscribe__args.html',1,'']]],
-  ['ves_5fmutex_15',['ves_mutex',['../structves__mutex.html',1,'']]],
-  ['vespera_5fstat_16',['vespera_stat',['../structvespera__stat.html',1,'']]]
+  ['vbus_5forphaned_13',['vbus_orphaned',['../structvbus__orphaned.html',1,'']]],
+  ['vbus_5fpayload_5ft_14',['vbus_payload_t',['../unionvbus__payload__t.html',1,'']]],
+  ['vbus_5fsubscribe_5fargs_15',['vbus_subscribe_args',['../structvbus__subscribe__args.html',1,'']]],
+  ['ves_5fmutex_16',['ves_mutex',['../structves__mutex.html',1,'']]],
+  ['vespera_5fstat_17',['vespera_stat',['../structvespera__stat.html',1,'']]]
 ];

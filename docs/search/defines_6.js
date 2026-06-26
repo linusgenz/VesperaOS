@@ -40,5 +40,9 @@ var searchData=
   ['fp_5fnormal_37',['FP_NORMAL',['../math_8h.html#ab9e29bb9e853934c4ba647c840b7e5de',1,'math.h']]],
   ['fp_5fsubnormal_38',['FP_SUBNORMAL',['../math_8h.html#adbc0a13ec75c05d238ca12ef1f8c6b2b',1,'math.h']]],
   ['fp_5fzero_39',['FP_ZERO',['../math_8h.html#a32eba50da417c9f303ba49583d5b9f40',1,'math.h']]],
-  ['fpclassify_40',['fpclassify',['../math_8h.html#a6dad1ca35286e31c328c2b1f51f330c2',1,'math.h']]]
+  ['fpclassify_40',['fpclassify',['../math_8h.html#a6dad1ca35286e31c328c2b1f51f330c2',1,'math.h']]],
+  ['futex_5fabstime_41',['FUTEX_ABSTIME',['../include_2uapi_2vespera_2futex_8h.html#acf944a9bcc87f67ade56404ee9c1ae78',1,'futex.h']]],
+  ['futex_5fwait_42',['FUTEX_WAIT',['../include_2uapi_2vespera_2futex_8h.html#a4d9dd0962be215fe1d3e861c8bb4815b',1,'futex.h']]],
+  ['futex_5fwake_43',['FUTEX_WAKE',['../include_2uapi_2vespera_2futex_8h.html#a1830ac17170b47e0585aafbf58c079fd',1,'futex.h']]],
+  ['futex_5fwake_5fall_44',['FUTEX_WAKE_ALL',['../include_2uapi_2vespera_2futex_8h.html#a12bc5aff1e84d8d82ece23caf40d7bf2',1,'futex.h']]]
 ];

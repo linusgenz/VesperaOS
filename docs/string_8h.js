@@ -23,5 +23,5 @@ var string_8h =
     [ "strrchr", "string_8h.html#af87bb1cdc3d71abcd9aa0bd6d36e50a8", null ],
     [ "strspn", "string_8h.html#a900a0edfa51f601d479244f7451cedd1", null ],
     [ "strstr", "string_8h.html#ab57319b670052e4c93c1f6822c28d5ce", null ],
-    [ "strtok", "string_8h.html#a493c478d061f31856b22410b0c1b7b8d", null ]
+    [ "strtok", "string_8h.html#aae31fe06f71db8f18c36217994842ab9", null ]
 ];

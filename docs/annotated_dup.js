@@ -79,6 +79,7 @@ var annotated_dup =
     [ "vbus_display_window_opened_t", "structvbus__display__window__opened__t.html", "structvbus__display__window__opened__t" ],
     [ "vbus_header", "structvbus__header.html", "structvbus__header" ],
     [ "vbus_lid", "structvbus__lid.html", "structvbus__lid" ],
+    [ "vbus_orphaned", "structvbus__orphaned.html", "structvbus__orphaned" ],
     [ "vbus_payload_t", "unionvbus__payload__t.html", "unionvbus__payload__t" ],
     [ "vbus_subscribe_args", "structvbus__subscribe__args.html", "structvbus__subscribe__args" ],
     [ "ves_mutex", "structves__mutex.html", "structves__mutex" ],

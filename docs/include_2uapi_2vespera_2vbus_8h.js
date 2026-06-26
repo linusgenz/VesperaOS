@@ -1,6 +1,7 @@
 var include_2uapi_2vespera_2vbus_8h =
 [
     [ "vbus_header", "structvbus__header.html", "structvbus__header" ],
+    [ "vbus_orphaned", "structvbus__orphaned.html", "structvbus__orphaned" ],
     [ "vbus_battery", "structvbus__battery.html", "structvbus__battery" ],
     [ "vbus_ac", "structvbus__ac.html", "structvbus__ac" ],
     [ "vbus_lid", "structvbus__lid.html", "structvbus__lid" ],
@@ -8,6 +9,7 @@ var include_2uapi_2vespera_2vbus_8h =
     [ "VBUS_IFACE_DISPLAY", "include_2uapi_2vespera_2vbus_8h.html#ab5e956ee8027cdd663f3b24fde0c1ed3", null ],
     [ "VBUS_IFACE_INPUT", "include_2uapi_2vespera_2vbus_8h.html#a819a4cf35182dec580482d41e832cb16", null ],
     [ "VBUS_IFACE_POWER", "include_2uapi_2vespera_2vbus_8h.html#acbef063eceed3bed40ad7cf6ce80cee5", null ],
+    [ "VBUS_IFACE_PROC", "include_2uapi_2vespera_2vbus_8h.html#a854f32c48bad461a3306c4a27a1a0655", null ],
     [ "VBUS_IFACE_STORAGE", "include_2uapi_2vespera_2vbus_8h.html#a04a4c8a15b8ab5090d84133ba5244ad8", null ],
     [ "VBUS_MAGIC", "include_2uapi_2vespera_2vbus_8h.html#a1c51fb40e2da74224fd6d2cf1cc90337", null ],
     [ "VBUS_MAX_PAYLOAD_SIZE", "include_2uapi_2vespera_2vbus_8h.html#a1417f8877c581166a5fdc4b11d792834", null ],
@@ -19,6 +21,7 @@ var include_2uapi_2vespera_2vbus_8h =
     [ "VBUS_SIG_AC_CHANGED", "include_2uapi_2vespera_2vbus_8h.html#ad1f2b997a4b140f8509042a0a0bb60db", null ],
     [ "VBUS_SIG_BATTERY_CHANGED", "include_2uapi_2vespera_2vbus_8h.html#a6c21d3ce1465b0e5211217e85515c9a2", null ],
     [ "VBUS_SIG_LID_CHANGED", "include_2uapi_2vespera_2vbus_8h.html#a2d874ba208c351b9abce18b07ecef9b8", null ],
+    [ "VBUS_SIG_PROC_ORPHANED", "include_2uapi_2vespera_2vbus_8h.html#a61aabe5e52be12f51137160fd7ea7917", null ],
     [ "VBUS_SIG_SLEEP_REQUEST", "include_2uapi_2vespera_2vbus_8h.html#a74045c8b08fb33f0fa93f36feb61aa27", null ],
     [ "VBUS_SIG_WAKE", "include_2uapi_2vespera_2vbus_8h.html#a9e2e2f557356ed8e954489657e5515a7", null ],
     [ "VBUS_SUB_WILDCARD", "include_2uapi_2vespera_2vbus_8h.html#af654039c4dca7fdb355104de569880e7", null ],
@@ -26,5 +29,6 @@ var include_2uapi_2vespera_2vbus_8h =
     [ "vbus_battery_t", "include_2uapi_2vespera_2vbus_8h.html#ade5fbf641f4242f7da44b3aba1ae9f2d", null ],
     [ "vbus_header_t", "include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178", null ],
     [ "vbus_lid_t", "include_2uapi_2vespera_2vbus_8h.html#a37285d58ed95879f964254559c46e81f", null ],
+    [ "vbus_orphaned_t", "include_2uapi_2vespera_2vbus_8h.html#ad4ad922428e520375c45221ecae27c1a", null ],
     [ "vbus_subscribe_args_t", "include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6", null ]
 ];

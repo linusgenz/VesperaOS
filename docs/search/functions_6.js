@@ -58,5 +58,9 @@ var searchData=
   ['fseek_55',['fseek',['../stdio_8h.html#a5e25775bd8597f839a28125b616bd241',1,'stdio.h']]],
   ['ftell_56',['ftell',['../stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989',1,'stdio.h']]],
   ['ftruncate_57',['ftruncate',['../shm_8h.html#a4829002420a948f980ad4186938d27ae',1,'shm.h']]],
-  ['fwrite_58',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
+  ['futex_5fwait_58',['futex_wait',['../userspace_2lib_2include_2futex_8h.html#a69bc8e42d4062dd5772f5300d0c98275',1,'futex.h']]],
+  ['futex_5fwait_5funtil_59',['futex_wait_until',['../userspace_2lib_2include_2futex_8h.html#aa2c80e604897d4d649b3f73f1eafefaa',1,'futex.h']]],
+  ['futex_5fwake_60',['futex_wake',['../userspace_2lib_2include_2futex_8h.html#a88546b1e4d0c3dda1fcbdcd72f8d65d1',1,'futex.h']]],
+  ['futex_5fwake_5fall_61',['futex_wake_all',['../userspace_2lib_2include_2futex_8h.html#a366d9e7088fd12c094aea01ade6fc767',1,'futex.h']]],
+  ['fwrite_62',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
 ];
