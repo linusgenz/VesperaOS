@@ -162,6 +162,7 @@ set(LIB_SOURCES
         src/wchar.c
         src/stat.c
         src/unit.c
+        src/futex.c
 
         src/bits/fenv.c
 

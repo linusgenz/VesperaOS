@@ -804,17 +804,28 @@ int putchar(int c) {
     return c;
 }
 
-size_t snprintf(char* buffer, size_t size, const char* fmt, ...) {
-    if (!buffer || !fmt || size == 0) return (size_t)-1;
+int snprintf(char* buffer, size_t size, const char* fmt, ...) {
+    if (!fmt) return -1;
+
+    if (size == 0) {
+        va_list args;
+        va_start(args, fmt);
+        int ret = vsnprintf(NULL, 0, fmt, args);
+        va_end(args);
+        return ret;
+    }
+
+    if (!buffer) return -1;
+
     va_list args;
     va_start(args, fmt);
     int ret = vsnprintf(buffer, size, fmt, args);
     va_end(args);
-    return (size_t)ret;
+    return ret;
 }
 
 int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args) {
-    if (!buffer || !fmt || size == 0) return -1;
+    if (!fmt) return -1;
 
     sink_t s = {
         .type = SINK_BUFFER,
@@ -825,7 +836,14 @@ int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args) {
     };
 
     vformat_write(&s, fmt, args);
-    buffer[s.pos] = '\0';
+
+    if (buffer && size > 0) {
+        if (s.pos >= size)
+            buffer[size - 1] = '\0';
+        else
+            buffer[s.pos] = '\0';
+    }
+
     return (int)s.written;
 }
 
@@ -866,11 +884,12 @@ int vprintf(const char* fmt, va_list args) {
     return (int)s.written;
 }
 
-void printf(const char* fmt, ...) {
+int printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    vprintf(fmt, args);
+    int ret = vprintf(fmt, args);
     va_end(args);
+    return ret;
 }
 
 FILE* fopen(const char* path, const char* mode) {
@@ -1119,11 +1138,21 @@ int fflush(FILE* f) {
 }
 
 HANDLE open(const char* path, int flags) {
-    return sys_open((uint64_t)path, flags, 0, 0, 0, 0);
+    int64_t ret = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return (HANDLE)-1;  // u64::MAX
+    }
+    return (HANDLE)ret;
 }
 
 int close(HANDLE handle) {
-    return sys_close(handle, 0, 0, 0, 0, 0);
+    int64_t ret = sys_close(handle, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
 
 ssize_t read(HANDLE handle, void* buf, size_t count) {
@@ -1135,27 +1164,54 @@ ssize_t write(HANDLE handle, const void* buf, size_t count) {
 }
 
 int create(const char* path, int type) {
+    int64_t ret;
     if (type == C_DIR) {
-        return (int)sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
+        ret = sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
+    } else {
+        ret = sys_create((uint64_t)path, 0, 0, 0, 0, 0);
     }
-    return (int)sys_create((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
-
 int creat(const char* path) {
-    return (int)sys_create((uint64_t)path, 0, 0, 0, 0, 0);
+    int64_t ret = sys_create((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
 
 int unlink(const char* path) {
-    return (int)sys_unlink((uint64_t)path, 0, 0, 0, 0, 0);
+    int64_t ret = sys_unlink((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
 
 int mkdir(const char* path) {
-    return (int)sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
+    int64_t ret = sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
 
 int rmdir(const char* path) {
-    return (int)sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
+    int64_t ret = sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
+
 
 int fseek(FILE* f, long offset, int whence) {
     if (!f) return -1;
@@ -1192,11 +1248,21 @@ void rewind(FILE* f) {
 }
 
 DIR_HANDLE opendir(const char* path) {
-    return sys_open((uint64_t)path, O_DIRECTORY, 0, 0, 0, 0);
+    int64_t ret = sys_open((uint64_t)path, O_DIRECTORY, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return (DIR_HANDLE)-1; // u64::MAX
+    }
+    return (DIR_HANDLE)ret;
 }
 
 int closedir(DIR_HANDLE handle) {
-    return sys_close(handle, 0, 0, 0, 0, 0);
+    int64_t ret = sys_close(handle, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
 }
 
 ssize_t readdir(DIR_HANDLE handle, dirent_t* entry) {
@@ -1205,20 +1271,53 @@ ssize_t readdir(DIR_HANDLE handle, dirent_t* entry) {
 }
 
 int chdir(const char* path) {
-    return (int)sys_chdir((uint64_t)path, 0, 0, 0, 0, 0);
+    if (!path) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    int64_t ret = sys_chdir((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+
+    return 0;
+}
+int chroot(const char* path) {
+    if (!path) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    int64_t ret = sys_chroot((uint64_t)path, 0, 0, 0, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+
+    return 0;
 }
 
-int getcwd(char* buf, size_t size) {
-    if (!buf || size == 0) {
+char* getcwd(char* buf, size_t size) {
+    if (size == 0 && buf != NULL) {
         errno = EINVAL;
-        return -EINVAL;
+        return NULL;
     }
+
+    if (!buf) {
+        errno = EINVAL;
+        return NULL;
+    }
+
     int64_t ret = sys_getcwd((uint64_t)buf, size, 0, 0, 0, 0);
+
     if (ret < 0) {
-        errno = ret;
-        return ret;
+        errno = (int)(-ret);
+        return NULL;
     }
-    return 0;
+
+    return buf;
 }
 
 FILE* tmpfile(void) {

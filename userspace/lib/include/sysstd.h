@@ -709,4 +709,19 @@ int64_t sys_chronos_summary(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, ui
 
 int64_t sys_chronos_checkpoint(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
+int64_t sys_join_unit(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_yield(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_get_unid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_futex(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5);
+
+int64_t sys_chroot(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+
+int64_t sys_dup(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
+int64_t sys_dup2(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t);
+int64_t sys_dup3(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t);
+
+
 #endif  // SYSSTD_H

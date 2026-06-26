@@ -73,6 +73,8 @@
 #define EOVERFLOW      75   // Value too large
 #define EILSEQ         84   // Invalid multibyte sequence
 
+#define ETIMEDOUT 116       /* Connection timed out */
+
 // Nonstandard / OS-specific
 #define EUNKNOWN      1000  // Unknown error
 #define EUNSUPPORTED  1001  // Operation not supported

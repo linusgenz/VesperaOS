@@ -53,18 +53,6 @@ nox = {
     umbra            = false
 }
 
-
---S.vesperadesktop = {
---    name             = "vesperadesktop",
---    exec             = "/bin/vesperadesktop",
---    user             = "vespera",
---    args             = { "-v" },
---    restart          = "always",
---    restart_delay_ms = 2000,
---    requires         = { "memoria" },
---    umbra            = false
---}
-
 S.crepusculum = {
     name             = "crepusculum",
     exec             = "/bin/crepusculum",

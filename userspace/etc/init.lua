@@ -202,18 +202,16 @@ local function should_restart(name, exit_code)
 end
 
 local function reap_one()
-    local specs = {}
     for rid in pairs(realm_to_name) do
-        specs[#specs + 1] = { hdl = rid, events = vespera.POLLHUP }
+        local exit_code, err = vespera.proc.wait(rid, true)
+        if exit_code then
+            return untrack(rid), exit_code
+        elseif err ~= "pending" then
+            U.warn(string.format("proc.wait(%d) failed: %s", rid, tostring(err)))
+            return untrack(rid), -1
+        end
     end
-    if #specs == 0 then return nil end
-
-    local ready = vespera.ipc.poll(specs, 0)
-    if not ready or #ready == 0 then return nil end
-
-    local hdl = ready[1].hdl
-    local exit_code = vespera.proc.wait(hdl) or -1
-    return untrack(hdl), exit_code
+    return nil
 end
 
 local function on_vbus(iface, member, fn)
@@ -245,6 +243,15 @@ local function setup_vbus_handlers()
 
     on_vbus("hotplug", "add", function(msg)
         U.info("vbus hotplug add: " .. tostring(msg.payload or ""))
+    end)
+
+    on_vbus(vespera.VBUS_IFACE_PROC, vespera.VBUS_SIG_PROC_ORPHANED, function(msg)
+        local realm_id, old_parent_id = string.unpack("<I8I8", msg.payload)
+        local name = "orphan-" .. tostring(realm_id)
+        vespera.log.info(string.format(
+                "adopted orphaned realm=%d (was child of %d)", realm_id, old_parent_id))
+        track(name, realm_id)
+        write_rid(name, realm_id)
     end)
 
     on_vbus("hotplug", "remove", function(msg)
@@ -367,6 +374,8 @@ local function main()
     setup_signals()
     setup_vbus_handlers()
     start_all()
+
+    vespera.log.info("STARTING SUPERVISOR LOOP")
 
     local ok3, lerr = pcall(supervisor_loop)
     if not ok3 then

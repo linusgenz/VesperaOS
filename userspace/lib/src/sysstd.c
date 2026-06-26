@@ -37,6 +37,9 @@
 #define SYSCALL_SIGRETURN 15
 #define SYSCALL_IOCTL 16
 #define SYSCALL_PIPE 22
+#define SYSCALL_YIELD     24
+#define SYSCALL_DUP       32
+#define SYSCALL_DUP2       33
 #define SYSCALL_NANOSLEEP 35
 #define SYSCALL_GETRID 39
 #define SYSCALL_UNIT_SPAWN 59
@@ -52,15 +55,17 @@
 #define SYSCALL_CREATE 85
 #define SYSCALL_UNLINK 87
 #define SYSCALL_GETTIMEOFDAY 96
+#define SYSCALL_CHROOT 161
 #define SYSCALL_MOUNT 165
 #define SYSCALL_UMOUNT 166
 #define SYSCALL_REBOOT 169
 #define SYSCALL_GETUNID 186
 #define SYSCALL_TIME 201
+#define SYSCALL_FUTEX    202
 #define SYSCALL_READDIR 217
 #define SYSCALL_CLOCK_GETTIME 228
 #define SYSCALL_CLOCK_NANOSLEEP 230
-
+#define SYSCALL_DUP3 292
 #define SYSCALL_GETUID 102
 #define SYSCALL_GETEUID 107
 #define SYSCALL_SETUID 105
@@ -99,6 +104,9 @@
 
 #define SYSCALL_CHRONOS_CHECKPOINT 321
 #define SYSCALL_CHRONOS_SUMMARY 322
+
+#define SYSCALL_JOIN_UNIT 323
+
 
 int64_t syscall(
     uint64_t num, uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5
@@ -177,8 +185,8 @@ int64_t sys_readdir(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, 
     return syscall(SYSCALL_READDIR, arg0, arg1, 0, 0, 0, 0);
 }
 
-int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_WAIT, arg0, arg1, 0, 0, 0, 0);
+int64_t sys_wait(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_WAIT, arg0, arg1, arg2, 0, 0, 0);
 }
 
 int64_t sys_mmap(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
@@ -395,4 +403,36 @@ int64_t sys_chronos_checkpoint(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint
 
 int64_t sys_chronos_summary(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_CHRONOS_SUMMARY, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_join_unit(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_JOIN_UNIT, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_yield(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_YIELD, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_get_unid(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_GETUNID, 0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_futex(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5) {
+    return syscall(SYSCALL_FUTEX, arg0, arg1, arg2, arg3, arg4, arg5);
+}
+
+int64_t sys_chroot(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_CHROOT, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_dup(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_DUP, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_dup2(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_DUP2, arg0, arg1, 0, 0, 0, 0);
+}
+
+int64_t sys_dup3(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_DUP3, arg0, arg1, arg2, 0, 0, 0);
 }

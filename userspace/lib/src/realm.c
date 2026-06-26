@@ -33,7 +33,7 @@ RealmID spawn_realm(const char* path_ptr, char* const argv[], char* const envp[]
     return sys_spawn((uint64_t)path_ptr, (uint64_t)argv, (uint64_t)envp, (uint64_t)cfg, 0, 0);
 }
 
-_Noreturn void exit(uint64_t code) {
+_Noreturn void exit(int code) {
     fflush(NULL);
     sys_exit(code, 0, 0, 0, 0, 0);
     __builtin_unreachable();
@@ -44,8 +44,8 @@ int64_t exit_realm(RealmID realm_id, uint64_t code) {
     //  return syscall(SYSCALL_REALM_EXIT, realm_id, code, 0, 0, 0, 0);
 }
 
-int wait_realm(RealmID realm_id, int* status) {
-    return (int)sys_wait(realm_id, (uintptr_t)status, 0, 0, 0, 0);
+int wait_realm(RealmID realm_id, int* status, uint32_t flags) {
+    return (int)sys_wait(realm_id, (uintptr_t)status, flags, 0, 0, 0);
 }
 
 RealmID get_realm_id() {

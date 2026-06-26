@@ -110,7 +110,7 @@ int memmove_safe(void *dest, size_t dest_len, const void *src, size_t count);
 /**
  * @brief Split a string into tokens using a delimiter.
  */
-char *strtok(char *s, char delim);
+char* strtok(char* s, const char* delim);
 
 /**
  * @brief Return the length of the maximum initial segment

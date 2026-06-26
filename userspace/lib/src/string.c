@@ -58,28 +58,6 @@ char* strncpy(char* dest, const char* src, size_t n) {
     return dest;
 }
 
-char* strtok(char* s, const char delim) {
-    static char* next = NULL;
-
-    if (s != NULL) next = s;
-
-    if (next == NULL) return NULL;
-
-    char* start = next;
-
-    while (*next != '\0' && *next != delim) ++next;
-
-    if (*next == delim) {
-        *next = '\0';
-        ++next;
-    }
-    else {
-        next = NULL;
-    }
-
-    return start;
-}
-
 char* strcat(char* dest, const char* src) {
     if (!dest || !src) return dest;
     char* d = dest;
@@ -276,6 +254,29 @@ char* strchr(const char* s, int c) {
 
 char* strrchr(const char* s, int c) {
     return memchr(s, c, strlen(s) + 1);
+}
+
+
+char* strtok(char* s, const char* delim) {
+    _Thread_local static char* next = NULL;
+
+    if (s != NULL) next = s;
+    if (next == NULL) return NULL;
+
+    while (*next != '\0' && strchr(delim, *next)) ++next;
+    if (*next == '\0') { next = NULL; return NULL; }
+
+    char* start = next;
+    while (*next != '\0' && !strchr(delim, *next)) ++next;
+
+    if (*next != '\0') {
+        *next = '\0';
+        ++next;
+    } else {
+        next = NULL;
+    }
+
+    return start;
 }
 
 void* memset(void* dest, int c, size_t num) {

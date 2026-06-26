@@ -33,16 +33,20 @@
 
 #include "stdbool.h"
 
-int errno = 0;
+_Thread_local int errno = 0;
 char** environ = NULL;
 size_t env_count = 0;
 size_t env_capacity = 0;
+
+int* __errno_location(void) {
+    return &errno;
+}
 
 void init_environ(char** envp) {
     size_t count = 0;
     while (envp[count]) count++;
 
-    env_capacity = count + 16;  // more space for variables by default
+    env_capacity = count + 16; // more space for variables by default
     environ = malloc(env_capacity * sizeof(char*));
     if (!environ) return;
 
@@ -104,7 +108,7 @@ int setenv(const char* name, const char* value, int overwrite) {
 
     environ[env_count] = new_entry;
     env_count++;
-    environ[env_count] = NULL;  // environ must be null-terminated
+    environ[env_count] = NULL; // environ must be null-terminated
 
     return 0;
 }
@@ -335,6 +339,7 @@ double atof(const char* nptr) {
 float strtof(const char* str, char** endptr) {
     return (float)strtod(str, endptr);
 }
+
 long double strtold(const char* str, char** endptr) {
     return (long double)strtod(str, endptr);
 }
@@ -494,25 +499,22 @@ long strtol(const char* nptr, char** endptr, int base) {
     return neg ? -(long)result : (long)result;
 }
 
-static unsigned long next = 1;
-static bool seeded = false;
+_Thread_local static unsigned long next = 0;
 
-void srand(unsigned int seed) {
-    next = seed;
-    seeded = true;
+void srand(const unsigned int seed) {
+    next = seed ? seed : 1;
 }
 
 int rand(void) {
-    if (!seeded) {
-        HANDLE hdl = open("/dev/urandom", O_RDONLY);
+    if (next == 0) {
+        const HANDLE hdl = open("/dev/urandom", O_RDONLY);
         if ((int64_t)hdl >= 0) {
             unsigned int kernel_seed = 0;
-            if (read(hdl, &kernel_seed, sizeof(kernel_seed)) == sizeof(kernel_seed)) {
-                next = kernel_seed;
-            }
+            if (read(hdl, &kernel_seed, sizeof(kernel_seed)) == sizeof(kernel_seed))
+                next = kernel_seed ? kernel_seed : 1;
             close(hdl);
         }
-        seeded = true;
+        if (next == 0) next = 1;
     }
 
     next = next * 1103515245 + 12345;

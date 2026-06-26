@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <vespera/spawn.h>
+#include <vespera/wait.h>
 
 typedef uint64_t RealmID;  ///< type representing a realm identifier
 typedef uint64_t UnitID;   ///< type representing a unit (thread) identifier
@@ -62,7 +63,7 @@ int64_t exit_realm(RealmID realm_id, uint64_t code);
  * @param status Pointer to an int to store the exit status, or @c NULL if unused.
  * @return 0 on success, or a negative error code on failure (e.g., -ECHILD).
  */
-int wait_realm(RealmID realm_id, int* status);
+int wait_realm(RealmID realm_id, int* status, uint32_t flags);
 
 RealmID get_realm_id();
 

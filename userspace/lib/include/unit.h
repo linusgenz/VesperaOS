@@ -35,7 +35,18 @@ typedef uint64_t RealmID;
  * @param arg_ptr Pointer to argument data for the unit.
  * @return Unit ID on success, negative error code on failure.
  */
-UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr);
+UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr, uint64_t stack_size);
+
+/**
+ * @brief Wait for a unit within the current realm to finish.
+ *
+ * Blocks until the unit with the given ID has terminated.
+ *
+ * @param unit_id The ID of the unit to wait for.
+ * @param exit_code_out Pointer to store the unit's exit/return code, or NULL if unused.
+ * @return 0 on success, negative error code on failure (e.g. -ESRCH if unit_id invalid/already reaped).
+ */
+int64_t join_unit(UnitID unit_id, int64_t* exit_code_out);
 
 /* =========================
    MUTEX
@@ -58,5 +69,9 @@ void ves_mutex_unlock(ves_mutex_t* mtx);
 int ves_mutex_trylock(ves_mutex_t* mtx);
 
 void ves_mutex_init(ves_mutex_t* mtx);
+
+void sched_yield(void);
+
+UnitID get_unit_id(void);
 
 #endif //VESPLIB_UNIT_H

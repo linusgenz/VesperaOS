@@ -58,14 +58,14 @@
 ** ============================================================================ */
 
 /* Push nil + negative error code and return 2. */
-static int push_errno(lua_State *L, int64_t err) {
+static int push_errno(lua_State* L, int64_t err) {
     lua_pushnil(L);
     lua_pushinteger(L, (lua_Integer)err);
     return 2;
 }
 
 /* Push true and return 1. */
-static int push_ok(lua_State *L) {
+static int push_ok(lua_State* L) {
     lua_pushboolean(L, 1);
     return 1;
 }
@@ -74,7 +74,7 @@ static int push_ok(lua_State *L) {
 ** push_result: If result >= 0 push it and return 1.
 **              If result <  0 push nil + result and return 2.
 */
-static int push_result(lua_State *L, int64_t result) {
+static int push_result(lua_State* L, int64_t result) {
     if (result < 0) return push_errno(L, result);
     lua_pushinteger(L, (lua_Integer)result);
     return 1;
@@ -104,12 +104,12 @@ static int push_result(lua_State *L, int64_t result) {
 **
 ** Returns realm_id on success, or nil + error_code.
 */
-static int lproc_spawn(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lproc_spawn(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
 
     /* Build argv */
-    const char *argv_static[64];
-    const char **argv = argv_static;
+    const char* argv_static[64];
+    const char** argv = argv_static;
     int argc = 0;
     argv[argc++] = path; /* argv[0] is always the path */
 
@@ -124,8 +124,8 @@ static int lproc_spawn(lua_State *L) {
     argv[argc] = NULL;
 
     /* Build envp */
-    const char *envp_static[64];
-    const char **envp = envp_static;
+    const char* envp_static[64];
+    const char** envp = envp_static;
     int envc = 0;
 
     if (lua_type(L, 3) == LUA_TTABLE) {
@@ -139,8 +139,8 @@ static int lproc_spawn(lua_State *L) {
         } else {
             lua_pushnil(L);
             while (lua_next(L, 3) != 0 && envc < 63) {
-                const char *key = lua_tostring(L, -2);
-                const char *val = lua_tostring(L, -1);
+                const char* key = lua_tostring(L, -2);
+                const char* val = lua_tostring(L, -1);
 
                 if (key && val) {
                     static char buf[64][256];
@@ -183,10 +183,10 @@ static int lproc_spawn(lua_State *L) {
         lua_pop(L, 1);
 
         lua_getfield(L, 4, "name");
-        if (lua_isstring(L, -1)) cfg.realm_name = (char *)lua_tostring(L, -1);
+        if (lua_isstring(L, -1)) cfg.realm_name = (char*)lua_tostring(L, -1);
 
         lua_getfield(L, 4, "home");
-        if (lua_isstring(L, -1)) cfg.home = (char *)lua_tostring(L, -1);
+        if (lua_isstring(L, -1)) cfg.home = (char*)lua_tostring(L, -1);
 
         lua_getfield(L, 4, "uid");
         if (lua_isnumber(L, -1)) cfg.uid = lua_tointeger(L, -1);
@@ -213,7 +213,7 @@ static int lproc_spawn(lua_State *L) {
 **
 ** Returns unit_id on success, or nil + error_code.
 */
-static int lproc_spawn_unit(lua_State *L) {
+static int lproc_spawn_unit(lua_State* L) {
     uint64_t realm_id = (uint64_t)luaL_checkinteger(L, 1);
     uint64_t entry = (uint64_t)luaL_checkinteger(L, 2);
     uint64_t arg = (uint64_t)luaL_optinteger(L, 3, 0);
@@ -228,7 +228,7 @@ static int lproc_spawn_unit(lua_State *L) {
 **
 ** Terminate the current unit. Does not return.
 */
-static int lproc_exit(lua_State *L) {
+static int lproc_exit(lua_State* L) {
     uint64_t code = (uint64_t)luaL_optinteger(L, 1, 0);
     sys_exit(code, 0, 0, 0, 0, 0);
     return 0; /* unreachable */
@@ -240,11 +240,24 @@ static int lproc_exit(lua_State *L) {
 ** Block until realm_id terminates.
 ** Returns exit_code on success, or nil + error_code.
 */
-static int lproc_wait(lua_State *L) {
+static int lproc_wait(lua_State* L) {
     uint64_t realm = (uint64_t)luaL_checkinteger(L, 1);
+    int nohang = lua_toboolean(L, 2); /* defaults to false/0 if absent */
+    uint32_t flags = nohang ? WAIT_FLAG_NOHANG : WAIT_FLAG_NONE;
+
     int exit_code = 0;
-    int64_t result = sys_wait(realm, (uint64_t)&exit_code, 0, 0, 0, 0);
-    if (result < 0) return push_errno(L, result);
+    int64_t result = sys_wait(realm, (uint64_t)&exit_code, (uint64_t)flags, 0, 0, 0);
+
+    if (result < 0) {
+        return push_errno(L, result);
+    }
+
+    if (result == 0) {
+        lua_pushnil(L);
+        lua_pushliteral(L, "pending");
+        return 2;
+    }
+
     lua_pushinteger(L, (lua_Integer)exit_code);
     return 1;
 }
@@ -255,7 +268,7 @@ static int lproc_wait(lua_State *L) {
 ** Send a signal to a realm. signum defaults to SIGKILL (9).
 ** Returns true on success, or nil + error_code.
 */
-static int lproc_kill(lua_State *L) {
+static int lproc_kill(lua_State* L) {
     uint64_t realm = (uint64_t)luaL_checkinteger(L, 1);
     int sig = (int)luaL_optinteger(L, 2, SIGKILL);
     int64_t result = sys_kill(realm, (uint64_t)sig, 0, 0, 0, 0);
@@ -268,7 +281,7 @@ static int lproc_kill(lua_State *L) {
 **
 ** Returns realm_id, unit_id of the calling process.
 */
-static int lproc_getrid(lua_State *L) {
+static int lproc_getrid(lua_State* L) {
     uint64_t realm_id = 0, unit_id = 0;
     sys_getrid((uint64_t)&realm_id, (uint64_t)&unit_id, 0, 0, 0, 0);
     lua_pushinteger(L, (lua_Integer)realm_id);
@@ -281,7 +294,7 @@ static int lproc_getrid(lua_State *L) {
 **
 ** Returns the numeric UID of the calling process.
 */
-static int lproc_getuid(lua_State *L) {
+static int lproc_getuid(lua_State* L) {
     int64_t result = sys_getuid(0, 0, 0, 0, 0, 0);
     return push_result(L, result);
 }
@@ -307,7 +320,7 @@ static int lproc_getuid(lua_State *L) {
 ** Since VesperaOS delivers signals synchronously (on next syscall return),
 ** this is safe.
 */
-static lua_State *g_signal_L = NULL;
+static lua_State* g_signal_L = NULL;
 static int g_signal_handlers[NSIG]; /* LUA_NOREF or registry ref */
 
 static void signal_trampoline(int signum) {
@@ -321,7 +334,7 @@ static void signal_trampoline(int signum) {
     lua_pcall(g_signal_L, 1, 0, 0);
 }
 
-static int lproc_sigaction(lua_State *L) {
+static int lproc_sigaction(lua_State* L) {
     int signum = (int)luaL_checkinteger(L, 1);
     if (signum < 0 || signum >= NSIG) return luaL_error(L, "invalid signal number %d", signum);
 
@@ -366,7 +379,7 @@ static int lproc_sigaction(lua_State *L) {
 ** Returns the new handle_id in the target realm on success,
 ** or nil + error_code on failure.
 */
-static int lproc_handle_transfer(lua_State *L) {
+static int lproc_handle_transfer(lua_State* L) {
     uint64_t hid = (uint64_t)luaL_checkinteger(L, 1);
     uint64_t target_realm_id = (uint64_t)luaL_checkinteger(L, 2);
     uint64_t caps_mask = (uint64_t)luaL_optinteger(L, 3, (lua_Integer)CAP_ALL);
@@ -376,16 +389,16 @@ static int lproc_handle_transfer(lua_State *L) {
 }
 
 static const luaL_Reg proc_lib[] = {
-    {"spawn",           lproc_spawn          },
-    {"spawn_unit",      lproc_spawn_unit     },
-    {"exit",            lproc_exit           },
-    {"wait",            lproc_wait           },
-    {"kill",            lproc_kill           },
-    {"getrid",          lproc_getrid         },
-    {"getuid",          lproc_getuid         },
-    {"sigaction",       lproc_sigaction      },
+    {"spawn", lproc_spawn},
+    {"spawn_unit", lproc_spawn_unit},
+    {"exit", lproc_exit},
+    {"wait", lproc_wait},
+    {"kill", lproc_kill},
+    {"getrid", lproc_getrid},
+    {"getuid", lproc_getuid},
+    {"sigaction", lproc_sigaction},
     {"handle_transfer", lproc_handle_transfer},
-    {NULL,              NULL                 }
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -402,12 +415,12 @@ static const luaL_Reg proc_lib[] = {
 **
 ** Returns handle on success, or nil + error_code.
 */
-static int lio_open(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lio_open(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int flags;
 
     if (lua_type(L, 2) == LUA_TSTRING) {
-        const char *mode = lua_tostring(L, 2);
+        const char* mode = lua_tostring(L, 2);
         if (strcmp(mode, "r") == 0)
             flags = O_RDONLY;
         else if (strcmp(mode, "w") == 0)
@@ -436,7 +449,7 @@ static int lio_open(lua_State *L) {
 ** Close a file or device handle.
 ** Returns true on success, or nil + error_code.
 */
-static int lio_close(lua_State *L) {
+static int lio_close(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     int64_t result = sys_close(handle, 0, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
@@ -451,11 +464,11 @@ static int lio_close(lua_State *L) {
 ** or nil + error_code on failure.
 ** Returns empty string "" at EOF.
 */
-static int lio_read(lua_State *L) {
+static int lio_read(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     size_t count = (size_t)luaL_checkinteger(L, 2);
 
-    char *buf = (char *)malloc(count);
+    char* buf = (char*)malloc(count);
     if (!buf) return luaL_error(L, "out of memory");
 
     int64_t result = sys_read(handle, (uint64_t)buf, count, 0, 0, 0);
@@ -476,7 +489,7 @@ static int lio_read(lua_State *L) {
 **
 ** Returns data string on success, or nil + error_code.
 */
-static int lio_read_all(lua_State *L) {
+static int lio_read_all(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     luaL_Buffer B;
     luaL_buffinit(L, &B);
@@ -506,10 +519,10 @@ static int lio_read_all(lua_State *L) {
 ** Write data string to handle.
 ** Returns bytes_written on success, or nil + error_code.
 */
-static int lio_write(lua_State *L) {
+static int lio_write(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     size_t len;
-    const char *data = luaL_checklstring(L, 2, &len);
+    const char* data = luaL_checklstring(L, 2, &len);
     int64_t result = sys_write(handle, (uint64_t)data, len, 0, 0, 0);
     return push_result(L, result);
 }
@@ -521,7 +534,7 @@ static int lio_write(lua_State *L) {
 ** whence defaults to SEEK_SET.
 ** Returns new absolute offset on success, or nil + error_code.
 */
-static int lio_seek(lua_State *L) {
+static int lio_seek(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     int64_t offset = (int64_t)luaL_checkinteger(L, 2);
     int64_t whence = (int64_t)luaL_optinteger(L, 3, SEEK_SET);
@@ -538,7 +551,7 @@ static int lio_seek(lua_State *L) {
 **
 ** Returns the ioctl result (device-dependent) on success, or nil + error_code.
 */
-static int lio_ioctl(lua_State *L) {
+static int lio_ioctl(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     uint64_t request = (uint64_t)luaL_checkinteger(L, 2);
     uint64_t arg = 0;
@@ -555,14 +568,14 @@ static int lio_ioctl(lua_State *L) {
 }
 
 static const luaL_Reg io_lib[] = {
-    {"open",     lio_open    },
-    {"close",    lio_close   },
-    {"read",     lio_read    },
+    {"open", lio_open},
+    {"close", lio_close},
+    {"read", lio_read},
     {"read_all", lio_read_all},
-    {"write",    lio_write   },
-    {"seek",     lio_seek    },
-    {"ioctl",    lio_ioctl   },
-    {NULL,       NULL        }
+    {"write", lio_write},
+    {"seek", lio_seek},
+    {"ioctl", lio_ioctl},
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -584,43 +597,43 @@ static const luaL_Reg io_lib[] = {
 ** fs.create(path [, flags]) — create file or directory
 */
 
-static int lfs_mkdir(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_mkdir(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int64_t result = sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
     return push_ok(L);
 }
 
-static int lfs_rmdir(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_rmdir(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int64_t result = sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
     return push_ok(L);
 }
 
-static int lfs_unlink(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_unlink(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int64_t result = sys_unlink((uint64_t)path, 0, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
     return push_ok(L);
 }
 
-static int lfs_rename(lua_State *L) {
-    const char *oldpath = luaL_checkstring(L, 1);
-    const char *newpath = luaL_checkstring(L, 2);
+static int lfs_rename(lua_State* L) {
+    const char* oldpath = luaL_checkstring(L, 1);
+    const char* newpath = luaL_checkstring(L, 2);
     int64_t result = sys_rename((uint64_t)oldpath, (uint64_t)newpath, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
     return push_ok(L);
 }
 
-static int lfs_chdir(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_chdir(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int64_t result = sys_chdir((uint64_t)path, 0, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
     return push_ok(L);
 }
 
-static int lfs_getcwd(lua_State *L) {
+static int lfs_getcwd(lua_State* L) {
     char buf[1024];
     int64_t result = sys_getcwd((uint64_t)buf, sizeof(buf), 0, 0, 0, 0);
     if (result <= 0) return push_errno(L, result);
@@ -646,8 +659,8 @@ static int lfs_getcwd(lua_State *L) {
 **   is_file    : boolean
 **   is_dir     : boolean
 */
-static int lfs_stat(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_stat(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     vespera_stat_t st;
     int64_t result = sys_stat((uint64_t)path, (uint64_t)&st, 0, 0, 0, 0);
     if (result != 0) return push_errno(L, result);
@@ -680,8 +693,8 @@ static int lfs_stat(lua_State *L) {
 /*
 ** fs.exists(path) — returns true/false (never errors)
 */
-static int lfs_exists(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_exists(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     vespera_stat_t st;
     int64_t result = sys_stat((uint64_t)path, (uint64_t)&st, 0, 0, 0, 0);
     lua_pushboolean(L, result == 0);
@@ -700,8 +713,8 @@ typedef struct {
 
 #define VESPERA_DIR_META "vespera.dir_iter"
 
-static int dir_iter_gc(lua_State *L) {
-    dir_iter_t *iter = (dir_iter_t *)lua_touserdata(L, 1);
+static int dir_iter_gc(lua_State* L) {
+    dir_iter_t* iter = (dir_iter_t*)lua_touserdata(L, 1);
     if (iter && iter->dir != (DIR_HANDLE)-1) {
         sys_close((uint64_t)iter->dir, 0, 0, 0, 0, 0);
         iter->dir = (DIR_HANDLE)-1;
@@ -709,8 +722,8 @@ static int dir_iter_gc(lua_State *L) {
     return 0;
 }
 
-static int dir_iter_next(lua_State *L) {
-    dir_iter_t *iter = (dir_iter_t *)lua_touserdata(L, lua_upvalueindex(1));
+static int dir_iter_next(lua_State* L) {
+    dir_iter_t* iter = (dir_iter_t*)lua_touserdata(L, lua_upvalueindex(1));
     if (!iter || iter->dir == (DIR_HANDLE)-1) return 0;
 
     int64_t result = sys_readdir((uint64_t)iter->dir, (uint64_t)&iter->entry, 0, 0, 0, 0);
@@ -723,12 +736,12 @@ static int dir_iter_next(lua_State *L) {
     return 1;
 }
 
-static int lfs_readdir(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_readdir(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int64_t dir_h = sys_open((uint64_t)path, O_DIRECTORY, 0, 0, 0, 0);
     if (dir_h < 0) return push_errno(L, dir_h);
 
-    dir_iter_t *iter = (dir_iter_t *)lua_newuserdata(L, sizeof(dir_iter_t));
+    dir_iter_t* iter = (dir_iter_t*)lua_newuserdata(L, sizeof(dir_iter_t));
     iter->dir = (DIR_HANDLE)dir_h;
 
     if (luaL_newmetatable(L, VESPERA_DIR_META)) {
@@ -743,8 +756,8 @@ static int lfs_readdir(lua_State *L) {
 /*
 ** fs.readdir_table(path) — convenience: returns an array table of all entry names
 */
-static int lfs_readdir_table(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_readdir_table(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int64_t dir_h = sys_open((uint64_t)path, O_DIRECTORY, 0, 0, 0, 0);
     if (dir_h < 0) return push_errno(L, dir_h);
 
@@ -763,18 +776,18 @@ static int lfs_readdir_table(lua_State *L) {
 ** fs.mount(source, target, fstype [, flags])
 ** fs.umount(target [, flags])
 */
-static int lfs_mount(lua_State *L) {
-    const char *source = luaL_checkstring(L, 1);
-    const char *target = luaL_checkstring(L, 2);
-    const char *fstype = luaL_checkstring(L, 3);
+static int lfs_mount(lua_State* L) {
+    const char* source = luaL_checkstring(L, 1);
+    const char* target = luaL_checkstring(L, 2);
+    const char* fstype = luaL_checkstring(L, 3);
     int64_t flags = luaL_optinteger(L, 4, 0);
     int64_t result = sys_mount((uint64_t)source, (uint64_t)target, (uint64_t)fstype, (uint64_t)flags, 0, 0);
     if (result < 0) return push_errno(L, result);
     return push_ok(L);
 }
 
-static int lfs_umount(lua_State *L) {
-    const char *target = luaL_checkstring(L, 1);
+static int lfs_umount(lua_State* L) {
+    const char* target = luaL_checkstring(L, 1);
     int64_t flags = luaL_optinteger(L, 2, 0);
     int64_t result = sys_umount((uint64_t)target, (uint64_t)flags, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
@@ -785,8 +798,8 @@ static int lfs_umount(lua_State *L) {
 ** fs.create(path [, flags])
 ** Creates a file (C_FILE) by default, or a directory if flags == C_DIR.
 */
-static int lfs_create(lua_State *L) {
-    const char *path = luaL_checkstring(L, 1);
+static int lfs_create(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
     int flags = (int)luaL_optinteger(L, 2, C_FILE);
     int64_t result;
     if (flags == C_DIR)
@@ -798,20 +811,20 @@ static int lfs_create(lua_State *L) {
 }
 
 static const luaL_Reg fs_lib[] = {
-    {"mkdir",         lfs_mkdir        },
-    {"rmdir",         lfs_rmdir        },
-    {"unlink",        lfs_unlink       },
-    {"rename",        lfs_rename       },
-    {"chdir",         lfs_chdir        },
-    {"getcwd",        lfs_getcwd       },
-    {"stat",          lfs_stat         },
-    {"exists",        lfs_exists       },
-    {"readdir",       lfs_readdir      },
+    {"mkdir", lfs_mkdir},
+    {"rmdir", lfs_rmdir},
+    {"unlink", lfs_unlink},
+    {"rename", lfs_rename},
+    {"chdir", lfs_chdir},
+    {"getcwd", lfs_getcwd},
+    {"stat", lfs_stat},
+    {"exists", lfs_exists},
+    {"readdir", lfs_readdir},
     {"readdir_table", lfs_readdir_table},
-    {"mount",         lfs_mount        },
-    {"umount",        lfs_umount       },
-    {"create",        lfs_create       },
-    {NULL,            NULL             }
+    {"mount", lfs_mount},
+    {"umount", lfs_umount},
+    {"create", lfs_create},
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -824,7 +837,7 @@ static const luaL_Reg fs_lib[] = {
 ** Create a new IPC channel. capacity defaults to 4096 bytes.
 ** Returns channel_handle on success, or nil + error_code.
 */
-static int lipc_channel_create(lua_State *L) {
+static int lipc_channel_create(lua_State* L) {
     uint64_t cap = (uint64_t)luaL_optinteger(L, 1, 4096);
     int64_t result = sys_channel_create(cap, 0, 0, 0, 0, 0);
     return push_result(L, result);
@@ -837,10 +850,10 @@ static int lipc_channel_create(lua_State *L) {
 ** Returns bytes_sent on success, or nil + error_code.
 ** -EAGAIN means the channel is full (non-blocking).
 */
-static int lipc_channel_send(lua_State *L) {
+static int lipc_channel_send(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     size_t len;
-    const char *data = luaL_checklstring(L, 2, &len);
+    const char* data = luaL_checklstring(L, 2, &len);
     int64_t result = sys_channel_send(handle, (uint64_t)data, (uint64_t)len, 0, 0, 0);
     return push_result(L, result);
 }
@@ -852,10 +865,10 @@ static int lipc_channel_send(lua_State *L) {
 ** Returns data_string on success, or nil + error_code.
 ** -EAGAIN means the channel is empty.
 */
-static int lipc_channel_recv(lua_State *L) {
+static int lipc_channel_recv(lua_State* L) {
     uint64_t handle = (uint64_t)luaL_checkinteger(L, 1);
     size_t size = (size_t)luaL_checkinteger(L, 2);
-    char *buf = (char *)malloc(size);
+    char* buf = (char*)malloc(size);
     if (!buf) return luaL_error(L, "out of memory");
     int64_t result = sys_channel_recv(handle, (uint64_t)buf, (uint64_t)size, 0, 0, 0);
     if (result < 0) {
@@ -873,7 +886,7 @@ static int lipc_channel_recv(lua_State *L) {
 ** Create a unidirectional pipe.
 ** Returns read_handle, write_handle on success, or nil + error_code.
 */
-static int lipc_pipe(lua_State *L) {
+static int lipc_pipe(lua_State* L) {
     uint64_t fds[2];
     int64_t result = sys_pipe((uint64_t)fds, 0, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
@@ -904,7 +917,7 @@ static int lipc_pipe(lua_State *L) {
 ** Returns empty table if the timeout expired.
 ** Returns nil + error_code on failure.
 */
-static int lipc_poll(lua_State *L) {
+static int lipc_poll(lua_State* L) {
     luaL_checktype(L, 1, LUA_TTABLE);
     int64_t timeout = luaL_optinteger(L, 2, -1);
 
@@ -914,7 +927,7 @@ static int lipc_poll(lua_State *L) {
         return 1;
     }
 
-    struct pollhdl *pfds = (struct pollhdl *)malloc((size_t)n * sizeof(struct pollhdl));
+    struct pollhdl* pfds = (struct pollhdl*)malloc((size_t)n * sizeof(struct pollhdl));
     if (!pfds) return luaL_error(L, "out of memory");
 
     for (int i = 0; i < n; i++) {
@@ -960,11 +973,11 @@ static int lipc_poll(lua_State *L) {
 
 static const luaL_Reg ipc_lib[] = {
     {"channel_create", lipc_channel_create},
-    {"channel_send",   lipc_channel_send  },
-    {"channel_recv",   lipc_channel_recv  },
-    {"pipe",           lipc_pipe          },
-    {"poll",           lipc_poll          },
-    {NULL,             NULL               }
+    {"channel_send", lipc_channel_send},
+    {"channel_recv", lipc_channel_recv},
+    {"pipe", lipc_pipe},
+    {"poll", lipc_poll},
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -977,7 +990,7 @@ static const luaL_Reg ipc_lib[] = {
 ** Sleep for the specified duration. Accepts fractions (e.g. 0.25).
 ** Returns true on success, or nil + error_code if interrupted.
 */
-static int lsys_sleep(lua_State *L) {
+static int lsys_sleep(lua_State* L) {
     lua_Number secs = luaL_checknumber(L, 1);
     struct timespec ts;
     ts.tv_sec = (time_t)secs;
@@ -990,7 +1003,7 @@ static int lsys_sleep(lua_State *L) {
 /*
 ** sys.sleep_ms(milliseconds) — convenience wrapper
 */
-static int lsys_sleep_ms(lua_State *L) {
+static int lsys_sleep_ms(lua_State* L) {
     lua_Integer ms = luaL_checkinteger(L, 1);
     struct timespec ts;
     ts.tv_sec = (time_t)(ms / 1000);
@@ -1006,7 +1019,7 @@ static int lsys_sleep_ms(lua_State *L) {
 ** Returns the current wall-clock time as a floating-point Unix timestamp
 ** (seconds since 1970-01-01 00:00:00 UTC, with sub-second precision).
 */
-static int lsys_time(lua_State *L) {
+static int lsys_time(lua_State* L) {
     struct timespec ts;
     int64_t result = sys_clock_gettime(CLOCK_REALTIME, (uint64_t)&ts, 0, 0, 0, 0);
     if (result < 0) return push_errno(L, result);
@@ -1020,7 +1033,7 @@ static int lsys_time(lua_State *L) {
 ** Returns the monotonic time since boot in seconds (float).
 ** Use this for measuring elapsed durations — it cannot jump backwards.
 */
-static int lsys_uptime(lua_State *L) {
+static int lsys_uptime(lua_State* L) {
     struct timespec ts;
     sys_clock_gettime(CLOCK_MONOTONIC, (uint64_t)&ts, 0, 0, 0, 0);
     lua_pushnumber(L, (lua_Number)ts.tv_sec + (lua_Number)ts.tv_nsec / 1000000000.0);
@@ -1036,7 +1049,7 @@ static int lsys_uptime(lua_State *L) {
 ** clk_id values are exposed as constants:
 **   vespera.CLOCK_REALTIME, vespera.CLOCK_MONOTONIC, vespera.CLOCK_PROCESS_CPUTIME_ID
 */
-static int lsys_clock_gettime(lua_State *L) {
+static int lsys_clock_gettime(lua_State* L) {
     int clk = (int)luaL_checkinteger(L, 1);
     struct timespec ts;
     int64_t result = sys_clock_gettime((uint64_t)clk, (uint64_t)&ts, 0, 0, 0, 0);
@@ -1052,7 +1065,7 @@ static int lsys_clock_gettime(lua_State *L) {
 ** Reboot or power off the system. Does not return on success.
 ** mode: 0=restart (default), 1=power_off, 2=halt
 */
-static int lsys_reboot(lua_State *L) {
+static int lsys_reboot(lua_State* L) {
     int mode = (int)luaL_optinteger(L, 1, 0);
 
     uint64_t cmd;
@@ -1079,9 +1092,9 @@ static int lsys_reboot(lua_State *L) {
 ** sys.unsetenv(name)
 ** sys.environ()     — return copy of the environment as a table
 */
-static int lsys_getenv(lua_State *L) {
-    const char *name = luaL_checkstring(L, 1);
-    char *val = getenv(name);
+static int lsys_getenv(lua_State* L) {
+    const char* name = luaL_checkstring(L, 1);
+    char* val = getenv(name);
     if (val)
         lua_pushstring(L, val);
     else
@@ -1089,23 +1102,23 @@ static int lsys_getenv(lua_State *L) {
     return 1;
 }
 
-static int lsys_setenv(lua_State *L) {
-    const char *name = luaL_checkstring(L, 1);
-    const char *value = luaL_checkstring(L, 2);
+static int lsys_setenv(lua_State* L) {
+    const char* name = luaL_checkstring(L, 1);
+    const char* value = luaL_checkstring(L, 2);
     int overwrite = (int)luaL_optinteger(L, 3, 1);
     int result = setenv(name, value, overwrite);
     if (result < 0) return push_errno(L, (int64_t)result);
     return push_ok(L);
 }
 
-static int lsys_unsetenv(lua_State *L) {
-    const char *name = luaL_checkstring(L, 1);
+static int lsys_unsetenv(lua_State* L) {
+    const char* name = luaL_checkstring(L, 1);
     int result = unsetenv(name);
     if (result < 0) return push_errno(L, (int64_t)result);
     return push_ok(L);
 }
 
-static int lsys_environ(lua_State *L) {
+static int lsys_environ(lua_State* L) {
     lua_newtable(L);
     if (!environ) return 1;
     for (int i = 0; environ[i]; i++) {
@@ -1116,17 +1129,17 @@ static int lsys_environ(lua_State *L) {
 }
 
 static const luaL_Reg sys_lib[] = {
-    {"sleep",         lsys_sleep        },
-    {"sleep_ms",      lsys_sleep_ms     },
-    {"time",          lsys_time         },
-    {"uptime",        lsys_uptime       },
+    {"sleep", lsys_sleep},
+    {"sleep_ms", lsys_sleep_ms},
+    {"time", lsys_time},
+    {"uptime", lsys_uptime},
     {"clock_gettime", lsys_clock_gettime},
-    {"reboot",        lsys_reboot       },
-    {"getenv",        lsys_getenv       },
-    {"setenv",        lsys_setenv       },
-    {"unsetenv",      lsys_unsetenv     },
-    {"environ",       lsys_environ      },
-    {NULL,            NULL              }
+    {"reboot", lsys_reboot},
+    {"getenv", lsys_getenv},
+    {"setenv", lsys_setenv},
+    {"unsetenv", lsys_unsetenv},
+    {"environ", lsys_environ},
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -1146,9 +1159,9 @@ static const luaL_Reg sys_lib[] = {
 **
 ** Returns true on success, or nil + error_code.
 */
-static int lvbus_subscribe(lua_State *L) {
-    const char *iface = luaL_checkstring(L, 1);
-    const char *member = luaL_optstring(L, 2, "");
+static int lvbus_subscribe(lua_State* L) {
+    const char* iface = luaL_checkstring(L, 1);
+    const char* member = luaL_optstring(L, 2, "");
     int result = vbus_subscribe(iface, member);
     if (result < 0) return push_errno(L, (int64_t)result);
     return push_ok(L);
@@ -1159,7 +1172,7 @@ static int lvbus_subscribe(lua_State *L) {
 **
 ** Remove all subscriptions for the calling realm.
 */
-static int lvbus_unsubscribe(lua_State *L) {
+static int lvbus_unsubscribe(lua_State* L) {
     int result = vbus_unsubscribe();
     if (result < 0) return push_errno(L, (int64_t)result);
     return push_ok(L);
@@ -1178,7 +1191,7 @@ static int lvbus_unsubscribe(lua_State *L) {
 ** Returns nil, -EAGAIN if no message is waiting.
 ** Returns nil, error_code on failure.
 */
-static int lvbus_recv(lua_State *L) {
+static int lvbus_recv(lua_State* L) {
     vbus_header_t hdr;
     char payload[256];
     int result = vbus_recv(&hdr, payload, sizeof(payload));
@@ -1212,7 +1225,7 @@ static int lvbus_recv(lua_State *L) {
 **   { percent, charging, present, critical,
 **     remaining_mwh, rate_mw, full_capacity_mwh, index }
 */
-static int lvbus_recv_battery(lua_State *L) {
+static int lvbus_recv_battery(lua_State* L) {
     vbus_header_t hdr;
     vbus_battery_t bat;
 
@@ -1279,7 +1292,7 @@ static int lvbus_recv_battery(lua_State *L) {
 ** Convenience: receive an AC adapter status update.
 ** Returns { online = bool } or nil + error.
 */
-static int lvbus_recv_ac(lua_State *L) {
+static int lvbus_recv_ac(lua_State* L) {
     vbus_header_t hdr;
     vbus_ac_t ac;
     int result = vbus_recv_ac(&hdr, &ac);
@@ -1295,12 +1308,12 @@ static int lvbus_recv_ac(lua_State *L) {
 }
 
 static const luaL_Reg vbus_lib[] = {
-    {"subscribe",    lvbus_subscribe   },
-    {"unsubscribe",  lvbus_unsubscribe },
-    {"recv",         lvbus_recv        },
+    {"subscribe", lvbus_subscribe},
+    {"unsubscribe", lvbus_unsubscribe},
+    {"recv", lvbus_recv},
     {"recv_battery", lvbus_recv_battery},
-    {"recv_ac",      lvbus_recv_ac     },
-    {NULL,           NULL              }
+    {"recv_ac", lvbus_recv_ac},
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -1313,9 +1326,9 @@ static const luaL_Reg vbus_lib[] = {
 ** Write a message to the kernel log (via HANDLE_STDERR), with newline.
 ** Returns bytes_written on success, or nil + error_code.
 */
-static int llog_write(lua_State *L) {
+static int llog_write(lua_State* L) {
     size_t len;
-    const char *msg = luaL_checklstring(L, 1, &len);
+    const char* msg = luaL_checklstring(L, 1, &len);
     sys_write(HANDLE_STDERR, (uint64_t)msg, len, 0, 0, 0);
     int64_t r = sys_write(HANDLE_STDERR, (uint64_t)"\n", 1, 0, 0, 0);
     if (r < 0) return push_errno(L, r);
@@ -1328,7 +1341,7 @@ static int llog_write(lua_State *L) {
 **
 ** Formatted variant — delegates to string.format, then calls log.write.
 */
-static int llog_writef(lua_State *L) {
+static int llog_writef(lua_State* L) {
     int nargs = lua_gettop(L);
     lua_getglobal(L, "string");
     lua_getfield(L, -1, "format");
@@ -1345,12 +1358,12 @@ static int llog_writef(lua_State *L) {
 ** Convenience prefixed variants.
 **   log.info("msg")  →  "[INFO]  msg\n"
 */
-static int llog_prefixed(lua_State *L, const char *prefix) {
+static int llog_prefixed(lua_State* L, const char* prefix) {
     size_t len;
-    const char *msg = luaL_checklstring(L, 1, &len);
+    const char* msg = luaL_checklstring(L, 1, &len);
     size_t plen = strlen(prefix);
 
-    char *buf = (char *)malloc(plen + len + 2);
+    char* buf = (char*)malloc(plen + len + 2);
     if (!buf) return luaL_error(L, "out of memory");
     memcpy(buf, prefix, plen);
     memcpy(buf + plen, msg, len);
@@ -1362,27 +1375,30 @@ static int llog_prefixed(lua_State *L, const char *prefix) {
     return push_ok(L);
 }
 
-static int llog_info(lua_State *L) {
+static int llog_info(lua_State* L) {
     return llog_prefixed(L, "[INFO]  ");
 }
-static int llog_warn(lua_State *L) {
+
+static int llog_warn(lua_State* L) {
     return llog_prefixed(L, "[WARN]  ");
 }
-static int llog_error(lua_State *L) {
+
+static int llog_error(lua_State* L) {
     return llog_prefixed(L, "[ERROR] ");
 }
-static int llog_debug(lua_State *L) {
+
+static int llog_debug(lua_State* L) {
     return llog_prefixed(L, "[DEBUG] ");
 }
 
 static const luaL_Reg log_lib[] = {
-    {"write",  llog_write },
+    {"write", llog_write},
     {"writef", llog_writef},
-    {"info",   llog_info  },
-    {"warn",   llog_warn  },
-    {"error",  llog_error },
-    {"debug",  llog_debug },
-    {NULL,     NULL       }
+    {"info", llog_info},
+    {"warn", llog_warn},
+    {"error", llog_error},
+    {"debug", llog_debug},
+    {NULL, NULL}
 };
 
 /* ============================================================================
@@ -1390,167 +1406,167 @@ static const luaL_Reg log_lib[] = {
 ** ============================================================================ */
 
 typedef struct {
-    const char *name;
+    const char* name;
     lua_Integer value;
 } int_const_t;
 
 static const int_const_t vesp_constants[] = {
     /* ── Seek modes ─────────────────────────────────────────────────────── */
-    {"SEEK_SET",                 SEEK_SET                      },
-    {"SEEK_CUR",                 SEEK_CUR                      },
-    {"SEEK_END",                 SEEK_END                      },
+    {"SEEK_SET", SEEK_SET},
+    {"SEEK_CUR", SEEK_CUR},
+    {"SEEK_END", SEEK_END},
 
     /* ── Standard handles ───────────────────────────────────────────────── */
-    {"HANDLE_STDIN",             (lua_Integer)HANDLE_STDIN     },
-    {"HANDLE_STDOUT",            (lua_Integer)HANDLE_STDOUT    },
-    {"HANDLE_STDERR",            (lua_Integer)HANDLE_STDERR    },
-    {"HANDLE_VBUS",              (lua_Integer)HANDLE_VBUS      },
+    {"HANDLE_STDIN", (lua_Integer)HANDLE_STDIN},
+    {"HANDLE_STDOUT", (lua_Integer)HANDLE_STDOUT},
+    {"HANDLE_STDERR", (lua_Integer)HANDLE_STDERR},
+    {"HANDLE_VBUS", (lua_Integer)HANDLE_VBUS},
 
     /* ── Open flags ─────────────────────────────────────────────────────── */
-    {"O_RDONLY",                 O_RDONLY                      },
-    {"O_WRONLY",                 O_WRONLY                      },
-    {"O_RDWR",                   O_RDWR                        },
-    {"O_CREAT",                  O_CREAT                       },
-    {"O_TRUNC",                  O_TRUNC                       },
-    {"O_APPEND",                 O_APPEND                      },
-    {"O_DIRECTORY",              O_DIRECTORY                   },
+    {"O_RDONLY", O_RDONLY},
+    {"O_WRONLY", O_WRONLY},
+    {"O_RDWR", O_RDWR},
+    {"O_CREAT", O_CREAT},
+    {"O_TRUNC", O_TRUNC},
+    {"O_APPEND", O_APPEND},
+    {"O_DIRECTORY", O_DIRECTORY},
 
     /* ── Create flags ───────────────────────────────────────────────────── */
-    {"C_FILE",                   C_FILE                        },
-    {"C_DIR",                    C_DIR                         },
+    {"C_FILE", C_FILE},
+    {"C_DIR", C_DIR},
 
     /* ── Poll event flags ───────────────────────────────────────────────── */
-    {"POLLIN",                   POLLIN                        },
-    {"POLLOUT",                  POLLOUT                       },
-    {"POLLERR",                  POLLERR                       },
-    {"POLLHUP",                  POLLHUP                       },
+    {"POLLIN", POLLIN},
+    {"POLLOUT", POLLOUT},
+    {"POLLERR", POLLERR},
+    {"POLLHUP", POLLHUP},
 
     /* ── Signals ─────────────────────────────────────────────────────────── */
-    {"SIGHUP",                   SIGHUP                        },
-    {"SIGINT",                   SIGINT                        },
-    {"SIGQUIT",                  SIGQUIT                       },
-    {"SIGILL",                   SIGILL                        },
-    {"SIGTRAP",                  SIGTRAP                       },
-    {"SIGABRT",                  SIGABRT                       },
-    {"SIGBUS",                   SIGBUS                        },
-    {"SIGFPE",                   SIGFPE                        },
-    {"SIGKILL",                  SIGKILL                       },
-    {"SIGSEGV",                  SIGSEGV                       },
-    {"SIGUSR1",                  SIGUSR1                       },
-    {"SIGUSR2",                  SIGUSR2                       },
-    {"SIGPIPE",                  SIGPIPE                       },
-    {"SIGALRM",                  SIGALRM                       },
-    {"SIGTERM",                  SIGTERM                       },
-    {"SIGCHLD",                  SIGCHLD                       },
+    {"SIGHUP", SIGHUP},
+    {"SIGINT", SIGINT},
+    {"SIGQUIT", SIGQUIT},
+    {"SIGILL", SIGILL},
+    {"SIGTRAP", SIGTRAP},
+    {"SIGABRT", SIGABRT},
+    {"SIGBUS", SIGBUS},
+    {"SIGFPE", SIGFPE},
+    {"SIGKILL", SIGKILL},
+    {"SIGSEGV", SIGSEGV},
+    {"SIGUSR1", SIGUSR1},
+    {"SIGUSR2", SIGUSR2},
+    {"SIGPIPE", SIGPIPE},
+    {"SIGALRM", SIGALRM},
+    {"SIGTERM", SIGTERM},
+    {"SIGCHLD", SIGCHLD},
 
     /* ── sigaction flags ────────────────────────────────────────────────── */
-    {"SA_RESTART",               SA_RESTART                    },
-    {"SA_NODEFER",               SA_NODEFER                    },
-    {"SA_RESETHAND",             SA_RESETHAND                  },
+    {"SA_RESTART", SA_RESTART},
+    {"SA_NODEFER", SA_NODEFER},
+    {"SA_RESETHAND", SA_RESETHAND},
 
     /* ── Clock IDs ──────────────────────────────────────────────────────── */
-    {"CLOCK_REALTIME",           CLOCK_REALTIME                },
-    {"CLOCK_MONOTONIC",          CLOCK_MONOTONIC               },
-    {"CLOCK_PROCESS_CPUTIME_ID", CLOCK_PROCESS_CPUTIME_ID      },
+    {"CLOCK_REALTIME", CLOCK_REALTIME},
+    {"CLOCK_MONOTONIC", CLOCK_MONOTONIC},
+    {"CLOCK_PROCESS_CPUTIME_ID", CLOCK_PROCESS_CPUTIME_ID},
 
     /* ── Reboot modes ───────────────────────────────────────────────────── */
-    {"REBOOT_RESTART",           0                             },
-    {"REBOOT_POWEROFF",          1                             },
-    {"REBOOT_HALT",              2                             },
+    {"REBOOT_RESTART", 0},
+    {"REBOOT_POWEROFF", 1},
+    {"REBOOT_HALT", 2},
 
     /* ── Errno codes ─────────────────────────────────────────────────────── */
-    {"EPERM",                    EPERM                         },
-    {"ENOENT",                   ENOENT                        },
-    {"ESRCH",                    ESRCH                         },
-    {"EINTR",                    EINTR                         },
-    {"EIO",                      EIO                           },
-    {"ENXIO",                    ENXIO                         },
-    {"ENOEXEC",                  ENOEXEC                       },
-    {"EBADH",                    EBADH                         },
-    {"EAGAIN",                   EAGAIN                        },
-    {"ENOMEM",                   ENOMEM                        },
-    {"EACCES",                   EACCES                        },
-    {"EFAULT",                   EFAULT                        },
-    {"EBUSY",                    EBUSY                         },
-    {"EEXIST",                   EEXIST                        },
-    {"ENODEV",                   ENODEV                        },
-    {"ENOTDIR",                  ENOTDIR                       },
-    {"EISDIR",                   EISDIR                        },
-    {"EINVAL",                   EINVAL                        },
-    {"ENFILE",                   ENFILE                        },
-    {"EMFILE",                   EMFILE                        },
-    {"ENOSPC",                   ENOSPC                        },
-    {"ESPIPE",                   ESPIPE                        },
-    {"EROFS",                    EROFS                         },
-    {"EPIPE",                    EPIPE                         },
-    {"ERANGE",                   ERANGE                        },
-    {"ENAMETOOLONG",             ENAMETOOLONG                  },
-    {"ENOSYS",                   ENOSYS                        },
-    {"ENOTEMPTY",                ENOTEMPTY                     },
-    {"ELOOP",                    ELOOP                         },
-    {"EOVERFLOW",                EOVERFLOW                     },
-    {"EUNKNOWN",                 EUNKNOWN                      },
-    {"EUNSUPPORTED",             EUNSUPPORTED                  },
-    {"EWOULDBLOCK",              EWOULDBLOCK                   },
+    {"EPERM", EPERM},
+    {"ENOENT", ENOENT},
+    {"ESRCH", ESRCH},
+    {"EINTR", EINTR},
+    {"EIO", EIO},
+    {"ENXIO", ENXIO},
+    {"ENOEXEC", ENOEXEC},
+    {"EBADH", EBADH},
+    {"EAGAIN", EAGAIN},
+    {"ENOMEM", ENOMEM},
+    {"EACCES", EACCES},
+    {"EFAULT", EFAULT},
+    {"EBUSY", EBUSY},
+    {"EEXIST", EEXIST},
+    {"ENODEV", ENODEV},
+    {"ENOTDIR", ENOTDIR},
+    {"EISDIR", EISDIR},
+    {"EINVAL", EINVAL},
+    {"ENFILE", ENFILE},
+    {"EMFILE", EMFILE},
+    {"ENOSPC", ENOSPC},
+    {"ESPIPE", ESPIPE},
+    {"EROFS", EROFS},
+    {"EPIPE", EPIPE},
+    {"ERANGE", ERANGE},
+    {"ENAMETOOLONG", ENAMETOOLONG},
+    {"ENOSYS", ENOSYS},
+    {"ENOTEMPTY", ENOTEMPTY},
+    {"ELOOP", ELOOP},
+    {"EOVERFLOW", EOVERFLOW},
+    {"EUNKNOWN", EUNKNOWN},
+    {"EUNSUPPORTED", EUNSUPPORTED},
+    {"EWOULDBLOCK", EWOULDBLOCK},
 
     /* ── vstat node types (stat.h) ─────────────────────────────────────────── */
-    {"VSTAT_TYPE_UNKNOWN",       VSTAT_TYPE_UNKNOWN            },
-    {"VSTAT_TYPE_FILE",          VSTAT_TYPE_FILE               },
-    {"VSTAT_TYPE_DIR",           VSTAT_TYPE_DIR                },
-    {"VSTAT_TYPE_CHARDEV",       VSTAT_TYPE_CHARDEV            },
-    {"VSTAT_TYPE_BLOCKDEV",      VSTAT_TYPE_BLOCKDEV           },
-    {"VSTAT_TYPE_SYMLINK",       VSTAT_TYPE_SYMLINK            },
+    {"VSTAT_TYPE_UNKNOWN", VSTAT_TYPE_UNKNOWN},
+    {"VSTAT_TYPE_FILE", VSTAT_TYPE_FILE},
+    {"VSTAT_TYPE_DIR", VSTAT_TYPE_DIR},
+    {"VSTAT_TYPE_CHARDEV", VSTAT_TYPE_CHARDEV},
+    {"VSTAT_TYPE_BLOCKDEV", VSTAT_TYPE_BLOCKDEV},
+    {"VSTAT_TYPE_SYMLINK", VSTAT_TYPE_SYMLINK},
 
     /* ── vstat flags (stat.h) ──────────────────────────────────────────────── */
-    {"VSTAT_FLAG_READABLE",      VSTAT_FLAG_READABLE           },
-    {"VSTAT_FLAG_WRITABLE",      VSTAT_FLAG_WRITABLE           },
-    {"VSTAT_FLAG_EXEC",          VSTAT_FLAG_EXEC               },
-    {"VSTAT_FLAG_VIRTUAL",       VSTAT_FLAG_VIRTUAL            },
-    {"VSTAT_FLAG_PERMANENT",     VSTAT_FLAG_PERMANENT          },
+    {"VSTAT_FLAG_READABLE", VSTAT_FLAG_READABLE},
+    {"VSTAT_FLAG_WRITABLE", VSTAT_FLAG_WRITABLE},
+    {"VSTAT_FLAG_EXEC", VSTAT_FLAG_EXEC},
+    {"VSTAT_FLAG_VIRTUAL", VSTAT_FLAG_VIRTUAL},
+    {"VSTAT_FLAG_PERMANENT", VSTAT_FLAG_PERMANENT},
 
     /* ── dirent types (dirent.h) ───────────────────────────────────────────── */
-    {"DT_UNKNOWN",               DT_UNKNOWN                    },
-    {"DT_FILE",                  DT_FILE                       },
-    {"DT_DIR",                   DT_DIR                        },
-    {"DT_SYMLINK",               DT_SYMLINK                    },
-    {"DT_CHARDEV",               DT_CHARDEV                    },
-    {"DT_BLOCKDEV",              DT_BLOCKDEV                   },
-    {"DT_FIFO",                  DT_FIFO                       },
-    {"DT_SOCKET",                DT_SOCKET                     },
-    {"DT_EXEC",                  DT_EXEC                       },
+    {"DT_UNKNOWN", DT_UNKNOWN},
+    {"DT_FILE", DT_FILE},
+    {"DT_DIR", DT_DIR},
+    {"DT_SYMLINK", DT_SYMLINK},
+    {"DT_CHARDEV", DT_CHARDEV},
+    {"DT_BLOCKDEV", DT_BLOCKDEV},
+    {"DT_FIFO", DT_FIFO},
+    {"DT_SOCKET", DT_SOCKET},
+    {"DT_EXEC", DT_EXEC},
 
     /* ── mount flags (mount.h) ─────────────────────────────────────────────── */
-    {"MS_RDONLY",                MS_RDONLY                     },
-    {"MS_NOATIME",               MS_NOATIME                    },
-    {"MS_NOEXEC",                MS_NOEXEC                     },
-    {"MS_REMOUNT",               MS_REMOUNT                    },
+    {"MS_RDONLY", MS_RDONLY},
+    {"MS_NOATIME", MS_NOATIME},
+    {"MS_NOEXEC", MS_NOEXEC},
+    {"MS_REMOUNT", MS_REMOUNT},
 
     /* ── capabilities (capabilities.h) ────────────────────────────────────── */
-    {"CAP_NONE",                 (lua_Integer)CAP_NONE         },
-    {"CAP_READ",                 (lua_Integer)CAP_READ         },
-    {"CAP_WRITE",                (lua_Integer)CAP_WRITE        },
-    {"CAP_RW",                   (lua_Integer)CAP_RW           },
-    {"CAP_EXECUTE",              (lua_Integer)CAP_EXECUTE      },
-    {"CAP_NETWORK_BIND",         (lua_Integer)CAP_NETWORK_BIND },
-    {"CAP_UNIT_SPAWN",           (lua_Integer)CAP_UNIT_SPAWN   },
-    {"CAP_DEVICE_ACCESS",        (lua_Integer)CAP_DEVICE_ACCESS},
-    {"CAP_ALL",                  (lua_Integer)CAP_ALL          },
+    {"CAP_NONE", (lua_Integer)CAP_NONE},
+    {"CAP_READ", (lua_Integer)CAP_READ},
+    {"CAP_WRITE", (lua_Integer)CAP_WRITE},
+    {"CAP_RW", (lua_Integer)CAP_RW},
+    {"CAP_EXECUTE", (lua_Integer)CAP_EXECUTE},
+    {"CAP_NETWORK_BIND", (lua_Integer)CAP_NETWORK_BIND},
+    {"CAP_UNIT_SPAWN", (lua_Integer)CAP_UNIT_SPAWN},
+    {"CAP_DEVICE_ACCESS", (lua_Integer)CAP_DEVICE_ACCESS},
+    {"CAP_ALL", (lua_Integer)CAP_ALL},
 
     /* ── vbus message types (vbus.h) ───────────────────────────────────────── */
-    {"VBUS_MSG_SIGNAL",          VBUS_MSG_SIGNAL               },
-    {"VBUS_MSG_CALL",            VBUS_MSG_CALL                 },
-    {"VBUS_MSG_RETURN",          VBUS_MSG_RETURN               },
-    {"VBUS_MSG_ERROR",           VBUS_MSG_ERROR                },
+    {"VBUS_MSG_SIGNAL", VBUS_MSG_SIGNAL},
+    {"VBUS_MSG_CALL", VBUS_MSG_CALL},
+    {"VBUS_MSG_RETURN", VBUS_MSG_RETURN},
+    {"VBUS_MSG_ERROR", VBUS_MSG_ERROR},
 
     /* ── vbus subscribe flags (vbus.h) ─────────────────────────────────────── */
-    {"VBUS_SUB_WILDCARD",        VBUS_SUB_WILDCARD             },
+    {"VBUS_SUB_WILDCARD", VBUS_SUB_WILDCARD},
 
-    {NULL,                       0                             }
+    {NULL, 0}
 };
 
 /* Helper: register a submodule table.
 ** Leaves the top-level vespera table on top of the stack. */
-static void register_submodule(lua_State *L, const char *name, const luaL_Reg *lib) {
+static void register_submodule(lua_State* L, const char* name, const luaL_Reg* lib) {
     luaL_newlib(L, lib);
     lua_setfield(L, -2, name);
 }
@@ -1559,7 +1575,7 @@ static const luaL_Reg vesp_lib_root[] = {
     {NULL, NULL}
 };
 
-LUAMOD_API int luaopen_vespera(lua_State *L) {
+LUAMOD_API int luaopen_vespera(lua_State* L) {
     luaL_newlib(L, vesp_lib_root);
 
     /* Register submodules */
@@ -1586,7 +1602,9 @@ LUAMOD_API int luaopen_vespera(lua_State *L) {
     SET_STR("VBUS_IFACE_DISPLAY", VBUS_IFACE_DISPLAY);
     SET_STR("VBUS_IFACE_INPUT", VBUS_IFACE_INPUT);
     SET_STR("VBUS_IFACE_STORAGE", VBUS_IFACE_STORAGE);
+    SET_STR("VBUS_IFACE_PROC",        VBUS_IFACE_PROC);
 
+    SET_STR("VBUS_SIG_PROC_ORPHANED", VBUS_SIG_PROC_ORPHANED);
     SET_STR("VBUS_SIG_BATTERY_CHANGED", VBUS_SIG_BATTERY_CHANGED);
     SET_STR("VBUS_SIG_AC_CHANGED", VBUS_SIG_AC_CHANGED);
     SET_STR("VBUS_SIG_SLEEP_REQUEST", VBUS_SIG_SLEEP_REQUEST);

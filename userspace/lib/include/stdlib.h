@@ -27,7 +27,7 @@
 #include <sysstd.h>
 
 typedef uint64_t FILE_HANDLE;
-extern int errno;
+extern _Thread_local int errno;
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -156,7 +156,7 @@ void* calloc(size_t nmemb, size_t size);
  * @param code Exit code for the unit.
  * @return Does not return; halts the unit.
  */
-NORETURN void exit(uint64_t code);
+NORETURN void exit(int code);
 
 /**
  * @brief Convert a string to an integer.

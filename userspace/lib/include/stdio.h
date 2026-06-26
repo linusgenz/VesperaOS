@@ -126,7 +126,7 @@ char* fgets(char* buf, int n, FILE* f);
  *
  * @see snprintf()
  */
-void printf(const char* fmt, ...);
+int printf(const char* fmt, ...);
 
 int vfprintf(FILE* f, const char* fmt, va_list args);
 int fprintf(FILE* f, const char* fmt, ...);
@@ -147,7 +147,7 @@ int vprintf(const char* fmt, va_list args);
  *
  * @see printf()
  */
-size_t snprintf(char* buffer, size_t size, const char* format, ...);
+int snprintf(char* buffer, size_t size, const char* format, ...);
 
 int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args);
 
@@ -432,6 +432,8 @@ int create(const char* path, int flags);
  */
 int chdir(const char* path);
 
+int chroot(const char* path);
+
 /**
  * @brief Get the current working directory.
  *
@@ -447,7 +449,7 @@ int chdir(const char* path);
  *
  * @see chdir()
  */
-int getcwd(char* buf, size_t size);
+char* getcwd(char* buf, size_t size);
 
 FILE* tmpfile(void);
 

@@ -1,0 +1,4 @@
+name=RUST-hello
+bin=/bin/hello-vespera
+color=0xFF4A3B5C
+icon=testapp
