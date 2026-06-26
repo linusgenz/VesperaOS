@@ -39,10 +39,10 @@ struct VfsHandleContext {
 struct VfsHandle {
     VfsNode *node;
     VfsHandleContext *context;
-    int refcount;
+    int refcount{1};
 
     VfsHandle(VfsNode *n, u32 flags, capability_set caps)
-        : node(n), context(new VfsHandleContext()), refcount(1) {
+        : node(n), context(new VfsHandleContext()) {
         context->open_flags = flags;
         context->position = 0;
         context->required_caps = caps;

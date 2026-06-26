@@ -144,6 +144,7 @@ Realm* RealmManager::create(const RealmConfig* cfg) {
             r->exited = false;
             r->waiter_present = false;
             r->wait_consumed = false;
+            r->teardown_complete = false;
 
             if (cfg->is_user) {
                 auto* as = new kernel::realm::AddressSpace();
@@ -198,11 +199,12 @@ void RealmManager::abort(const RealmId id) {
         if (realm.address_space) {
             realm.address_space->destroy();
             delete realm.address_space;
-            realm.address_space = nullptr;
+            realm.address_space =  (kernel::realm::AddressSpace*)(void*)0xDEADC0FE; //nullptr;
         }
         realm.handle_table->clear();
         VBusManager::unsubscribe_realm(realm.id);
         RealmFs::unregister_realm(realm.id);
+        Log::debug("finalize_locked 4 realm %d", realm.id);
         finalize_locked(realm);
         return;
     }
@@ -210,7 +212,6 @@ void RealmManager::abort(const RealmId id) {
 
 bool RealmManager::destroy(const RealmId id, int exit_code) {
     SpinlockGuard g(global_lock_);
-    Log::debug("destroy for %u called", id);
 
     for (auto& realm : realms_) {
         if (!realm.active || realm.id != id) continue;
@@ -231,11 +232,9 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
             for (auto& child : realms_) {
                 if (!child.active || child.parent_id != id) continue;
 
-                Log::debug("destroy for %u called %u", child.id, child.parent_id);
-
                 if (child.exited) {
-                    Log::debug("killing child");
                     RealmFs::unregister_realm(child.id);
+                    Log::debug("finalize_locked 51 realm %d", realm.id);
                     finalize_locked(child);
                     continue;
                 }
@@ -263,7 +262,9 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
         if (realm.address_space) {
             realm.address_space->destroy();
             delete realm.address_space;
-            realm.address_space = nullptr;
+            auto t = realm.address_space;
+            realm.address_space =  (kernel::realm::AddressSpace*)(void*)0xDEADBEEF; //nullptr;
+            Log::debug("destroy: &realm=%p realm.id=%u realm.as=%p", &realm, realm.id, t);
         }
 
         realm.unit_list = nullptr;
@@ -274,6 +275,7 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
         realm.exit_code = exit_code;
 
         if (realm.wait_consumed) {
+            Log::debug("finalize_locked 1 realm %d", realm.id);
             finalize_locked(realm);
         }
 
@@ -285,8 +287,19 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
     return false;
 }
 
+void RealmManager::mark_teardown_complete(const RealmId id) {
+    SpinlockGuard g(global_lock_);
+    for (auto& realm : realms_) {
+        if (!realm.active || realm.id != id) continue;
+        realm.teardown_complete = true;
+        if (realm.wait_consumed) {
+            finalize_locked(realm);
+        }
+        return;
+    }
+}
+
 void RealmManager::finalize_locked(Realm& realm) {
-    Log::debug("finalize_locked realm %d", realm.id);
     seq_.fetch_add(1);
 
     realm.active = false;
@@ -302,9 +315,8 @@ void RealmManager::reap(const RealmId id) {
         if (!realm.active || realm.id != id) continue;
 
         realm.wait_consumed = true;
-        Log::debug("reap realm %d", id);
 
-        if (realm.exited) {
+        if (realm.exited && realm.teardown_complete) {
             finalize_locked(realm);
         }
         return;

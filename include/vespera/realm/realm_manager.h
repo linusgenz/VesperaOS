@@ -40,6 +40,7 @@ class RealmManager {
     static Realm* create(const RealmConfig* cfg);
     static Realm* get(RealmId id);
     static bool destroy(RealmId id, int exit_code);
+    static void mark_teardown_complete(RealmId id);
     static void finalize_locked(Realm& realm);
     static void reap(RealmId id);
     static void signal_pgid(RealmId pgid, Signal sig);

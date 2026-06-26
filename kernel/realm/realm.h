@@ -69,7 +69,7 @@ class Realm {
 
     bool waiter_present = false;
     bool wait_consumed  = false;
-
+    bool teardown_complete = false;
 
     Unit* unit_list;
 

@@ -36,7 +36,7 @@ void HandleTable::init(const RealmId owner) {
     owner_ = owner;
 
     char buf[64];
-    snprintf(buf, sizeof(buf), "htable_%u_lock", owner);
+    snprintf(buf, sizeof(buf), "htable_%llu_lock", owner);
     lock_.init(buf);
 }
 
@@ -65,7 +65,7 @@ Result<void> HandleTable::install_stdio_handle(HandleId hid, const char* dev_pat
         VfsHandle::acquire
     );
     if (add_res.is_err()) {
-        delete vh;
+        VfsHandle::destroy(vh);
         return add_res.error();
     }
 

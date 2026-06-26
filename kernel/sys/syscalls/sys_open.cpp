@@ -175,7 +175,7 @@ namespace syscalls::internal {
 
         if (const capability_set caps = kernel::scheduling::get_current_capabilities();
             (caps & required_caps) != required_caps) {
-            delete vh;
+            VfsHandle::destroy(vh);
             VFS::close(node);
             return -EACCES;
         }
@@ -188,7 +188,7 @@ namespace syscalls::internal {
         if (result.is_err()) {
             if (node->type == VfsNodeType::Directory && vh->node->internal_data && node->ops && node->ops->closedir)
                 VFS::closedir(static_cast<VfsDir*>(vh->node->internal_data));
-            delete vh;
+            VfsHandle::destroy(vh);
             return result.to_errno();
         }
 

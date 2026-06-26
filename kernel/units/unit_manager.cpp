@@ -547,7 +547,10 @@ void UnitManager::complete_termination(Unit* u) {
         u->wait_queue.wake_all();
     }
 
-    if (realm_empty) RealmManager::destroy(realm_id, u->exit_code);
+    if (realm_empty) {
+        RealmManager::destroy(realm_id, u->exit_code);
+        RealmManager::mark_teardown_complete(realm_id);
+    }
 }
 
 void UnitManager::finalize_slot(Unit* u) {
