@@ -59,6 +59,8 @@ void WaitQueue::wake_all() {
         if (entry->unit) {
             entry->unit->state = UnitState::Ready;
 
+            if (entry->unit->sleep_context.wakeup_ns != 0)
+                kernel::scheduling::remove_blocked_unit(entry->unit);
             kernel::scheduling::add_unit(entry->unit);
         }
 
@@ -81,6 +83,8 @@ void WaitQueue::wake_one() {
 
     if (entry->unit) {
         entry->unit->state = UnitState::Ready;
+        if (entry->unit->sleep_context.wakeup_ns != 0)
+            kernel::scheduling::remove_blocked_unit(entry->unit);
         kernel::scheduling::add_unit(entry->unit);
     }
 
@@ -135,6 +139,7 @@ u32 WaitQueue::wake_matching(u32 max_wake, bool (*predicate)(const Unit*)) {
 
             if (cur->unit) {
                 cur->unit->state = UnitState::Ready;
+                kernel::scheduling::remove_blocked_unit(cur->unit);
                 kernel::scheduling::add_unit(cur->unit);
             }
             delete cur;

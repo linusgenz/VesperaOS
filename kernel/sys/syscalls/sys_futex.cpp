@@ -31,6 +31,7 @@
 #include "vespera_errno.h"
 #include "units/unit.h"
 #include "vespera/log.h"
+#include "vespera/cpu/cpu_manager.h"
 
 namespace syscalls::internal {
 
@@ -91,7 +92,7 @@ namespace syscalls::internal {
             Unit* self = kernel::scheduling::get_current_unit();
             self->futex_uaddr = reinterpret_cast<uptr>(uaddr);
 
-            if (arg3 != 0) {
+            if (arg3) {
                 const auto* ts = reinterpret_cast<const timespec_t*>(arg3);
                 u64 timeout_ns;
                 if (abstime) {
@@ -101,6 +102,7 @@ namespace syscalls::internal {
                     timeout_ns = now + static_cast<u64>(ts->tv_sec) * 1'000'000'000ULL + ts->tv_nsec;
                 }
                 self->sleep_context.wakeup_ns = timeout_ns;
+                kernel::scheduling::add_blocked_unit(self, cpu_manager::get_current_cpu_id());
             } else {
                 self->sleep_context.wakeup_ns = 0;
             }

@@ -27,6 +27,7 @@ namespace kernel::scheduling {
     void add_unit(Unit* unit);
     void remove_unit(Unit* unit);
     void add_blocked_unit(Unit* unit, u8 cpu_id);
+    void remove_blocked_unit(Unit* unit);
 
     // CPU management
     void enable_on_cpu(u8 cpu_id);

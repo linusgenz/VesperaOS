@@ -1,4 +1,3 @@
-
 #include "cpu_scheduler.h"
 
 #include <arch/x86_64/apic.h>
@@ -68,21 +67,20 @@ extern "C" [[noreturn]] void unit_trampoline() {
 /// Called once per CPU during scheduler initialization.
 Unit* setup_idle_unit(const u8 cpu_id) {
     const UnitConfig cfg = {
-        .name = "idle_thread",
-        .cpu_id = cpu_id,
-        .priority = PRIORITY_NONE,
-        .stack_size = 0x1000,
-        .initial_handles = nullptr,
+        .name                 = "idle_thread",
+        .cpu_id               = cpu_id,
+        .priority             = PRIORITY_NONE,
+        .stack_size           = 0x1000,
+        .initial_handles      = nullptr,
         .initial_handle_count = 0,
-        .is_idle = true,
-        .is_user = false,
-        .user_stack_size = 0,
+        .is_idle              = true,
+        .is_user              = false,
+        .user_stack_size      = 0,
     };
     return UnitManager::create(kernel::realm::REALM_SYSTEM, idle_unit_func, nullptr, &cfg);
 }
 
 namespace kernel::scheduling::cpu_scheduler {
-
     /// Saves prev's register state / FPU, loads next's state, updates CR3 and
     /// the MSRs that govern GS/FS and the kernel stack pointer in the TSS.
     ///
@@ -154,15 +152,15 @@ namespace kernel::scheduling::cpu_scheduler {
 
         // Each CPU gets a reaper unit that periodically frees terminated units.
         const UnitConfig reaper_cfg = {
-            .name = "reaper_unit",
-            .cpu_id = cpu_id,
-            .priority = 5,
-            .stack_size = DEFAULT_UNIT_STACK_SIZE,
-            .initial_handles = nullptr,
+            .name                 = "reaper_unit",
+            .cpu_id               = cpu_id,
+            .priority             = 5,
+            .stack_size           = DEFAULT_UNIT_STACK_SIZE,
+            .initial_handles      = nullptr,
             .initial_handle_count = 0,
-            .is_idle = false,
-            .is_user = false,
-            .user_stack_size = 0,
+            .is_idle              = false,
+            .is_user              = false,
+            .user_stack_size      = 0,
         };
         UnitManager::create(kernel::realm::REALM_SYSTEM, reaper_unit, nullptr, &reaper_cfg);
     }
@@ -191,8 +189,9 @@ namespace kernel::scheduling::cpu_scheduler {
 
     void remove_unit_from_cpu(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
-        cpu->ready_queue.remove(unit);
-        unit->next = nullptr;
+        if (cpu->ready_queue.remove(unit)) {
+            unit->next = nullptr;
+        }
     }
 
     static Unit* pick_next(CpuScheduler* cpu) {
@@ -286,6 +285,12 @@ namespace kernel::scheduling::cpu_scheduler {
         }
     }
 
+    void remove_blocked_unit(Unit* unit) {
+        CpuScheduler* cpu = get_cpu_data(unit->cpu_id);
+        cpu->blocked_queue.remove(unit);
+        unit->next = nullptr;
+    }
+
     void wake_sleeping_units(const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
@@ -297,6 +302,7 @@ namespace kernel::scheduling::cpu_scheduler {
 
         while (woken) {
             Unit* next = woken->next;
+            woken->sleep_context.wakeup_ns = 0;
             add_unit_to_cpu(woken, cpu_id);
             woken = next;
         }
@@ -311,5 +317,4 @@ namespace kernel::scheduling::cpu_scheduler {
         });
         time::sleep_timer::update_min_wakeup(cpu_id, new_min);
     }
-
-}  // namespace kernel::scheduling::cpu_scheduler
+} // namespace kernel::scheduling::cpu_scheduler

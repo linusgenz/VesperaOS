@@ -40,6 +40,7 @@ class WaitQueue {
 
    public:
     WaitQueue();
+    // We set wakeup_ns, make sure to set the wakeup_ns after adding into waitqueue
     void add_wait(Unit *u);
     void wake_all();
     void wake_one();

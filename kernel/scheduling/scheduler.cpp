@@ -71,6 +71,10 @@ namespace kernel::scheduling {
         cpu_scheduler::add_blocked_unit(unit, cpu_id);
     }
 
+    void remove_blocked_unit(Unit* unit) {
+        cpu_scheduler::remove_blocked_unit(unit);
+    }
+
     bool is_curent_cpu_enabled() {
         const u8 cpu_id = cpu_manager::get_current_cpu_id();
         return cpu_scheduler::is_cpu_enabled(cpu_id);
