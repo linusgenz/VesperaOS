@@ -84,21 +84,6 @@ add_custom_target(sysroot_headers
 add_subdirectory(lua lua_build)
 add_subdirectory(readline)
 add_subdirectory(lvespera)
-add_subdirectory(stella)
-
-include(ExternalProject)
-
-set(LVGL_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lvgl/")
-set(LVGL_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lvgl_external_build")
-
-ExternalProject_Add(lvgl_project
-        SOURCE_DIR ${LVGL_SOURCE_DIR}
-        BINARY_DIR ${LVGL_BINARY_DIR}
-        CMAKE_ARGS
-        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/lvgl/vespera_toolchain.cmake
-        -DLV_BUILD_CONF_DIR=${CMAKE_CURRENT_SOURCE_DIR}/lvgl
-        INSTALL_COMMAND ""
-)
 
 # ────────────────────────────────────────────────────────────────
 # Math library (generic + x86_64 SIMD overrides)
@@ -430,20 +415,18 @@ add_custom_target(sysroot_install_lvgl ALL
         COMMENT "Installing LVGL into sysroot"
 )
 
-add_dependencies(stella lvgl_project sysroot_headers)
 add_dependencies(lua sysroot_headers)
 add_dependencies(lua_bin sysroot_headers)
 add_dependencies(libreadline sysroot_headers)
 add_dependencies(lvespera sysroot_headers)
 add_dependencies(vesplib sysroot_headers)
-add_dependencies(lvgl_project sysroot_headers)
 
 # sysroot_install — build all libs and populate the sysroot.
 add_custom_target(sysroot_install
         DEPENDS
         vesplib vesplib_cpp crt0_obj
-        lua lua_bin lvespera stella
-        sysroot_install_readline  sysroot_install_lvgl
+        lua lua_bin lvespera
+        sysroot_install_readline
 
         # Link crt0 into a staging file first, then copy_if_different so downstream
         # targets are not invalidated when the content has not actually changed.

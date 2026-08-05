@@ -375,8 +375,6 @@ local function main()
     setup_vbus_handlers()
     start_all()
 
-    vespera.log.info("STARTING SUPERVISOR LOOP")
-
     local ok3, lerr = pcall(supervisor_loop)
     if not ok3 then
         vespera.log.error("FATAL: supervisor: " .. tostring(lerr))

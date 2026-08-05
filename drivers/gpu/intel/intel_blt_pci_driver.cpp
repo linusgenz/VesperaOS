@@ -30,8 +30,6 @@
 
 #include "intel_blt.h"
 
-blt::IntelBlt* intel_blt_drv = nullptr;
-
 namespace blt {
 
     /**
@@ -155,6 +153,6 @@ namespace blt {
     }
 
     static IntelBltPciDriver g_intel_blt_pci_driver;
-    PCI_DRIVER_REGISTER(g_intel_blt_pci_driver);
+   // PCI_DRIVER_REGISTER(g_intel_blt_pci_driver);
 
 }  // namespace blt

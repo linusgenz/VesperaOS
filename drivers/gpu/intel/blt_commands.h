@@ -308,7 +308,7 @@ namespace blt {
             u32 flush_llc : 1;    // [9]
             u32 reserved_b : 4;   // [13:10] MBZ
             u32 post_sync : 2;    // [15:14] 2-Bit: 0=NoWrite, 1=WriteImmediate, 3=WriteTimestamp
-            u32 reserved_c : 2;   // [18:16]
+            u32 reserved_c : 2;   // [17:16]
             u32 tlb_inv : 1;      // [18]    Invalidate Blitter TLBs (valid if post_sync=1|3)
             u32 reserved_d : 2;   // [20:19] MBZ
             u32 store_index : 1;  // [21]

@@ -177,16 +177,15 @@ namespace blt {
             gtt_entry |= GTT_VALID;
 
             gtt_entries_[gtt_index + i] = gtt_entry;
-
-            asm volatile("mfence" ::: "memory");
         }
+        asm volatile("mfence" ::: "memory");
     }
 
     void IntelBlt::ggtt_clear_entries(u32 gtt_index, usize num_pages) const {
         for (usize i = 0; i < num_pages; i++) {
             gtt_entries_[gtt_index + i] = 0;
-            asm volatile("mfence" ::: "memory");
         }
+        asm volatile("mfence" ::: "memory");
     }
 
     GgttAllocation IntelBlt::ggtt_alloc_persistent(usize num_pages, u64 flags, u8 pat_index) {

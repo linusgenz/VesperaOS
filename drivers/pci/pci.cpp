@@ -52,6 +52,12 @@ namespace pci {
 
         pci_device dev = make_device(header, id);
 
+        /*Log::log_msg("[ PCI ] %s (%llx) %s (%llx) %s %s", get_vendor_name(header->header.vendor_id), header->header.vendor_id,
+                    get_device_name(header->header.vendor_id, header->header.device_id), header->header.device_id,
+                    get_subclass_name(header->header._class, header->header.subclass),
+                    get_prog_if_name(header->header._class, header->header.subclass,
+                                     header->header.prog_if));*/
+
         const bool is_xhci = (dev.class_code == 0x0C && dev.subclass == 0x03 && dev.prog_if == 0x30);
 
         if (filter == BindFilter::XHCI_ONLY && !is_xhci) return;

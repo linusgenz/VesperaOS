@@ -34,10 +34,10 @@
 #define VBUS_NAME_MAX 48
 
 // Message types
-#define VBUS_MSG_SIGNAL 0x01  // One-way broadcast, no reply
-#define VBUS_MSG_CALL 0x02    // Method call (reply expected)
-#define VBUS_MSG_RETURN 0x03  // Reply to a CALL
-#define VBUS_MSG_ERROR 0x04
+static const uint8_t VBUS_MSG_SIGNAL = 0x01; // One-way broadcast, no reply
+static const uint8_t VBUS_MSG_CALL   = 0x02; // Method call (reply expected)
+static const uint8_t VBUS_MSG_RETURN = 0x03; // Reply to a CALL
+static const uint8_t VBUS_MSG_ERROR  = 0x04;
 
 #define VBUS_IFACE_POWER "vespera.power"
 #define VBUS_IFACE_DISPLAY "vespera.display"

@@ -23,6 +23,7 @@
 #define VESPERAOS_SHM_H
 
 #include <sys/mman.h>
+typedef uint64_t HANDLE;
 
 /**
  * @brief Open or create a POSIX shared memory object.

@@ -199,12 +199,11 @@ void RealmManager::abort(const RealmId id) {
         if (realm.address_space) {
             realm.address_space->destroy();
             delete realm.address_space;
-            realm.address_space =  (kernel::realm::AddressSpace*)(void*)0xDEADC0FE; //nullptr;
+            realm.address_space = nullptr;
         }
         realm.handle_table->clear();
         VBusManager::unsubscribe_realm(realm.id);
         RealmFs::unregister_realm(realm.id);
-        Log::debug("finalize_locked 4 realm %d", realm.id);
         finalize_locked(realm);
         return;
     }
@@ -234,7 +233,6 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
 
                 if (child.exited) {
                     RealmFs::unregister_realm(child.id);
-                    Log::debug("finalize_locked 51 realm %d", realm.id);
                     finalize_locked(child);
                     continue;
                 }
@@ -262,9 +260,7 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
         if (realm.address_space) {
             realm.address_space->destroy();
             delete realm.address_space;
-            auto t = realm.address_space;
-            realm.address_space =  (kernel::realm::AddressSpace*)(void*)0xDEADBEEF; //nullptr;
-            Log::debug("destroy: &realm=%p realm.id=%u realm.as=%p", &realm, realm.id, t);
+            realm.address_space = nullptr;
         }
 
         realm.unit_list = nullptr;
@@ -275,7 +271,6 @@ bool RealmManager::destroy(const RealmId id, int exit_code) {
         realm.exit_code = exit_code;
 
         if (realm.wait_consumed) {
-            Log::debug("finalize_locked 1 realm %d", realm.id);
             finalize_locked(realm);
         }
 
