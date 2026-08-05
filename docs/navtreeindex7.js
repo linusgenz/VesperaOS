@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"stella_8h.html#afcadbca5ba32332e3517ecb9fcba54a0":[5,0,1,0,0,40,14],
 "stella_8h.html#afe567f2c765bbefec9f0e3c50f32d61a":[5,0,1,0,0,40,36],
 "stella_8h.html#aff572d02ab151078d769afc6d5a4c662":[5,0,1,0,0,40,57],
 "stella_8h_source.html":[5,0,1,0,0,40],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "structrealm__info.html#ac9e79797488506468ab2014c548146d1":[4,0,33,2],
 "structrtc__data.html":[4,0,34],
 "structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac":[4,0,34,3],
-"structrtc__data.html#a49faf5ebdd956fe002b0a8f9f09a7c0d":[4,0,34,0],
-"structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860":[4,0,34,2]
+"structrtc__data.html#a49faf5ebdd956fe002b0a8f9f09a7c0d":[4,0,34,0]
 };

@@ -93,7 +93,8 @@ $(document).ready(function(){initNavTree('include_2uapi_2vespera_2vbus_8h.html',
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">vbus.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -125,14 +126,6 @@ Macros</h2></td></tr>
 <tr class="memitem:a4a5394b9fd56618bf906181f6c6c0143" id="r_a4a5394b9fd56618bf906181f6c6c0143"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a4a5394b9fd56618bf906181f6c6c0143">VBUS_NAME_MAX</a>&#160;&#160;&#160;48</td></tr>
 <tr class="memdesc:a4a5394b9fd56618bf906181f6c6c0143"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum length of interface / member strings including NUL.  <br /></td></tr>
 <tr class="separator:a4a5394b9fd56618bf906181f6c6c0143"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab189c6e347fc89bf688b4d10c6bf80cd" id="r_ab189c6e347fc89bf688b4d10c6bf80cd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#ab189c6e347fc89bf688b4d10c6bf80cd">VBUS_MSG_SIGNAL</a>&#160;&#160;&#160;0x01</td></tr>
-<tr class="separator:ab189c6e347fc89bf688b4d10c6bf80cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99f050920a7e3b7f88ec200a90f31f69" id="r_a99f050920a7e3b7f88ec200a90f31f69"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a99f050920a7e3b7f88ec200a90f31f69">VBUS_MSG_CALL</a>&#160;&#160;&#160;0x02</td></tr>
-<tr class="separator:a99f050920a7e3b7f88ec200a90f31f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac55cff48c5401fbfe02b63a0ac059943" id="r_ac55cff48c5401fbfe02b63a0ac059943"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#ac55cff48c5401fbfe02b63a0ac059943">VBUS_MSG_RETURN</a>&#160;&#160;&#160;0x03</td></tr>
-<tr class="separator:ac55cff48c5401fbfe02b63a0ac059943"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77b5f42c3ea092e95f7bf09eb0026387" id="r_a77b5f42c3ea092e95f7bf09eb0026387"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a77b5f42c3ea092e95f7bf09eb0026387">VBUS_MSG_ERROR</a>&#160;&#160;&#160;0x04</td></tr>
-<tr class="separator:a77b5f42c3ea092e95f7bf09eb0026387"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbef063eceed3bed40ad7cf6ce80cee5" id="r_acbef063eceed3bed40ad7cf6ce80cee5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#acbef063eceed3bed40ad7cf6ce80cee5">VBUS_IFACE_POWER</a>&#160;&#160;&#160;&quot;vespera.power&quot;</td></tr>
 <tr class="separator:acbef063eceed3bed40ad7cf6ce80cee5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5e956ee8027cdd663f3b24fde0c1ed3" id="r_ab5e956ee8027cdd663f3b24fde0c1ed3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#ab5e956ee8027cdd663f3b24fde0c1ed3">VBUS_IFACE_DISPLAY</a>&#160;&#160;&#160;&quot;vespera.display&quot;</td></tr>
@@ -172,6 +165,17 @@ Typedefs</h2></td></tr>
 <tr class="separator:a37285d58ed95879f964254559c46e81f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5802eb43f914f7236421d7acb1e9cbd6" id="r_a5802eb43f914f7236421d7acb1e9cbd6"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structvbus__subscribe__args.html">vbus_subscribe_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6">vbus_subscribe_args_t</a></td></tr>
 <tr class="separator:a5802eb43f914f7236421d7acb1e9cbd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a04f0ca75be155f25ee0f896e1cdda5d7" id="r_a04f0ca75be155f25ee0f896e1cdda5d7"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a04f0ca75be155f25ee0f896e1cdda5d7">VBUS_MSG_SIGNAL</a> = 0x01</td></tr>
+<tr class="separator:a04f0ca75be155f25ee0f896e1cdda5d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7aec337bb340a020a7c8fd5fc87dcaa4" id="r_a7aec337bb340a020a7c8fd5fc87dcaa4"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a7aec337bb340a020a7c8fd5fc87dcaa4">VBUS_MSG_CALL</a> = 0x02</td></tr>
+<tr class="separator:a7aec337bb340a020a7c8fd5fc87dcaa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84a95e9a993b96693b2aa24a860a0962" id="r_a84a95e9a993b96693b2aa24a860a0962"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a84a95e9a993b96693b2aa24a860a0962">VBUS_MSG_RETURN</a> = 0x03</td></tr>
+<tr class="separator:a84a95e9a993b96693b2aa24a860a0962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06388f38a83b3017a7f72e1a68c00022" id="r_a06388f38a83b3017a7f72e1a68c00022"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a06388f38a83b3017a7f72e1a68c00022">VBUS_MSG_ERROR</a> = 0x04</td></tr>
+<tr class="separator:a06388f38a83b3017a7f72e1a68c00022"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ab5e956ee8027cdd663f3b24fde0c1ed3" name="ab5e956ee8027cdd663f3b24fde0c1ed3"></a>
@@ -266,62 +270,6 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define VBUS_MAX_PAYLOAD_SIZE&#160;&#160;&#160;4096</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a99f050920a7e3b7f88ec200a90f31f69" name="a99f050920a7e3b7f88ec200a90f31f69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99f050920a7e3b7f88ec200a90f31f69">&#9670;&#160;</a></span>VBUS_MSG_CALL</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define VBUS_MSG_CALL&#160;&#160;&#160;0x02</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a77b5f42c3ea092e95f7bf09eb0026387" name="a77b5f42c3ea092e95f7bf09eb0026387"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a77b5f42c3ea092e95f7bf09eb0026387">&#9670;&#160;</a></span>VBUS_MSG_ERROR</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define VBUS_MSG_ERROR&#160;&#160;&#160;0x04</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac55cff48c5401fbfe02b63a0ac059943" name="ac55cff48c5401fbfe02b63a0ac059943"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac55cff48c5401fbfe02b63a0ac059943">&#9670;&#160;</a></span>VBUS_MSG_RETURN</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define VBUS_MSG_RETURN&#160;&#160;&#160;0x03</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab189c6e347fc89bf688b4d10c6bf80cd" name="ab189c6e347fc89bf688b4d10c6bf80cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab189c6e347fc89bf688b4d10c6bf80cd">&#9670;&#160;</a></span>VBUS_MSG_SIGNAL</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define VBUS_MSG_SIGNAL&#160;&#160;&#160;0x01</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -523,6 +471,95 @@ Typedefs</h2></td></tr>
           <td class="memname">typedef struct <a class="el" href="structvbus__subscribe__args.html">vbus_subscribe_args</a> <a class="el" href="include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6">vbus_subscribe_args_t</a></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="a7aec337bb340a020a7c8fd5fc87dcaa4" name="a7aec337bb340a020a7c8fd5fc87dcaa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7aec337bb340a020a7c8fd5fc87dcaa4">&#9670;&#160;</a></span>VBUS_MSG_CALL</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> VBUS_MSG_CALL = 0x02</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a06388f38a83b3017a7f72e1a68c00022" name="a06388f38a83b3017a7f72e1a68c00022"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06388f38a83b3017a7f72e1a68c00022">&#9670;&#160;</a></span>VBUS_MSG_ERROR</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> VBUS_MSG_ERROR = 0x04</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a84a95e9a993b96693b2aa24a860a0962" name="a84a95e9a993b96693b2aa24a860a0962"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84a95e9a993b96693b2aa24a860a0962">&#9670;&#160;</a></span>VBUS_MSG_RETURN</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> VBUS_MSG_RETURN = 0x03</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a04f0ca75be155f25ee0f896e1cdda5d7" name="a04f0ca75be155f25ee0f896e1cdda5d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04f0ca75be155f25ee0f896e1cdda5d7">&#9670;&#160;</a></span>VBUS_MSG_SIGNAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="stdint_8h.html#aba7bc1797add20fe3efdf37ced1182c5">uint8_t</a> VBUS_MSG_SIGNAL = 0x01</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

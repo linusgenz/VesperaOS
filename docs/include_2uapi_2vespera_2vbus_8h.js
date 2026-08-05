@@ -13,10 +13,6 @@ var include_2uapi_2vespera_2vbus_8h =
     [ "VBUS_IFACE_STORAGE", "include_2uapi_2vespera_2vbus_8h.html#a04a4c8a15b8ab5090d84133ba5244ad8", null ],
     [ "VBUS_MAGIC", "include_2uapi_2vespera_2vbus_8h.html#a1c51fb40e2da74224fd6d2cf1cc90337", null ],
     [ "VBUS_MAX_PAYLOAD_SIZE", "include_2uapi_2vespera_2vbus_8h.html#a1417f8877c581166a5fdc4b11d792834", null ],
-    [ "VBUS_MSG_CALL", "include_2uapi_2vespera_2vbus_8h.html#a99f050920a7e3b7f88ec200a90f31f69", null ],
-    [ "VBUS_MSG_ERROR", "include_2uapi_2vespera_2vbus_8h.html#a77b5f42c3ea092e95f7bf09eb0026387", null ],
-    [ "VBUS_MSG_RETURN", "include_2uapi_2vespera_2vbus_8h.html#ac55cff48c5401fbfe02b63a0ac059943", null ],
-    [ "VBUS_MSG_SIGNAL", "include_2uapi_2vespera_2vbus_8h.html#ab189c6e347fc89bf688b4d10c6bf80cd", null ],
     [ "VBUS_NAME_MAX", "include_2uapi_2vespera_2vbus_8h.html#a4a5394b9fd56618bf906181f6c6c0143", null ],
     [ "VBUS_SIG_AC_CHANGED", "include_2uapi_2vespera_2vbus_8h.html#ad1f2b997a4b140f8509042a0a0bb60db", null ],
     [ "VBUS_SIG_BATTERY_CHANGED", "include_2uapi_2vespera_2vbus_8h.html#a6c21d3ce1465b0e5211217e85515c9a2", null ],
@@ -30,5 +26,9 @@ var include_2uapi_2vespera_2vbus_8h =
     [ "vbus_header_t", "include_2uapi_2vespera_2vbus_8h.html#a463577f0d0326140acc109fafcf0e178", null ],
     [ "vbus_lid_t", "include_2uapi_2vespera_2vbus_8h.html#a37285d58ed95879f964254559c46e81f", null ],
     [ "vbus_orphaned_t", "include_2uapi_2vespera_2vbus_8h.html#ad4ad922428e520375c45221ecae27c1a", null ],
-    [ "vbus_subscribe_args_t", "include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6", null ]
+    [ "vbus_subscribe_args_t", "include_2uapi_2vespera_2vbus_8h.html#a5802eb43f914f7236421d7acb1e9cbd6", null ],
+    [ "VBUS_MSG_CALL", "include_2uapi_2vespera_2vbus_8h.html#a7aec337bb340a020a7c8fd5fc87dcaa4", null ],
+    [ "VBUS_MSG_ERROR", "include_2uapi_2vespera_2vbus_8h.html#a06388f38a83b3017a7f72e1a68c00022", null ],
+    [ "VBUS_MSG_RETURN", "include_2uapi_2vespera_2vbus_8h.html#a84a95e9a993b96693b2aa24a860a0962", null ],
+    [ "VBUS_MSG_SIGNAL", "include_2uapi_2vespera_2vbus_8h.html#a04f0ca75be155f25ee0f896e1cdda5d7", null ]
 ];
