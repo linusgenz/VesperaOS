@@ -142,11 +142,6 @@ union HWS_PGA {
 };
 static_assert(sizeof(HWS_PGA) == 4);
 
-union HWSTAM {
-    BCS_ICR_BITS bits;
-    u32 raw;
-};
-static_assert(sizeof(HWSTAM) == 4);
 
 /**
  * @brief BCS MMIO register window - base = MMIO_BAR + 0x22000.
@@ -189,7 +184,7 @@ struct BCS_REGS {
     u8 _pad084[0x14];
 
     /* 0x098 */
-    HWSTAM hwstam;
+    HWSTAM_REG hwstam;
 
     /* 0x09C -> 0x0A8 */
     u8 _pad09C[0x0C];

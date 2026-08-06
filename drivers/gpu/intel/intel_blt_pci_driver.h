@@ -26,19 +26,25 @@
 #include <drivers/pci/pci_driver.h>
 
 namespace blt {
-    class IntelBlt;
+    class IntelGpuDevice;
+    class IntelBcs;
+    class IntelRcs;
 
     /**
-     * @brief PCI driver that probes and starts the Intel BLT render engine.
+     * @brief PCI driver that probes the Intel iGPU and constructs one
+     *        IntelGpuDevice plus its two engines (IntelBcs, IntelRcs).
      *
      * Registered at link time via @ref PCI_DRIVER_REGISTER. When the PCI
-     * subsystem finds a matching Intel display controller, @ref probe allocates
-     * an @ref IntelBlt instance, calls @ref IntelBlt::start_device, and stores
-     * a pointer to it in the device's driver-data slot.
+     * subsystem finds a matching Intel display controller, @ref probe
+     * constructs a single @ref IntelGpuDevice (BAR0 mapping + GGTT), then
+     * constructs @ref IntelBcs and @ref IntelRcs on top of it — both engines
+     * are peers borrowing the same device, neither owns the other.
      *
-     * @note Only one Intel GPU is expected per system. A second probe call logs
-     *       a warning and returns -1.
-     * @see blt::IntelBlt
+     * @note Only one Intel GPU is expected per system. A second probe call
+     *       logs a warning and returns -1.
+     * @see blt::IntelGpuDevice
+     * @see blt::IntelBcs
+     * @see blt::IntelRcs
      */
     class IntelBltPciDriver final : public pci::PciDriver {
        public:
@@ -53,16 +59,20 @@ namespace blt {
         }
 
         /**
-         * @brief Probes an Intel display controller and starts the BLT engine.
+         * @brief Probes an Intel display controller and constructs the
+         *        device + both engines.
          *
          * Enables Bus Master and Memory Space in the PCI command register,
-         * allocates an @ref IntelBlt instance, and calls
-         * @ref IntelBlt::start_device with the current screen resolution.
-         * Returns 0 on success so the PCI core marks the device as claimed.
+         * constructs an @ref IntelGpuDevice (which maps BAR0 and sets up the
+         * GGTT), then constructs @ref IntelBcs and @ref IntelRcs on top of
+         * it. BCS failure aborts the whole probe (BCS currently owns display
+         * output); RCS failure only logs a warning so the system still boots
+         * with BCS-only 2D acceleration.
          *
          * @return 0   on success.
          * @return -1  if the device function is not 0, if a second GPU is
-         *             detected, or if @ref IntelBlt::start_device fails.
+         *             detected, if the device (BAR0/GGTT) fails to init, or
+         *             if IntelBcs::init_device() fails.
          *
          * @warning @p dev must have a valid BAR5 (MMIO) mapping before probe
          *          is called — the PCI core is expected to have assigned BARs.
@@ -72,9 +82,9 @@ namespace blt {
         /**
          * @brief Releases resources acquired during @ref probe.
          *
-         * Destroys the @ref IntelBlt instance. Hot-unplug of an integrated GPU
-         * is not a realistic scenario, but the method is provided for
-         * completeness.
+         * Destroys engines before the device they borrow from, then the
+         * device itself. Hot-unplug of an integrated GPU is not a realistic
+         * scenario, but the method is provided for completeness.
          */
         void remove(pci::pci_device& dev) override;
 
@@ -82,7 +92,9 @@ namespace blt {
         [[nodiscard]] const pci::pci_device_match* id_match() const override;
 
        private:
-        IntelBlt* driver_{nullptr};  ///< Owning pointer; null until a device is successfully probed.
+        IntelGpuDevice* device_{nullptr};  ///< Owns BAR0 mapping + GGTT; constructed first, destroyed last.
+        IntelBcs* bcs_{nullptr};           ///< Peer engine; owns display output.
+        IntelRcs* rcs_{nullptr};           ///< Peer engine; best-effort, may be null if init fails.
     };
 
 }  // namespace blt

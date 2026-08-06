@@ -43,7 +43,7 @@ union GDRST {
     struct {
         u32 full_reset : 1;     ///< [0]  Full GT reset (all domains)
         u32 render     : 1;     ///< [1]  Render (RCS) reset
-        u32 media      : 1;     ///< [2]  Media0 reset
+        u32 media0      : 1;     ///< [2]  Media0 reset
         u32 blitter    : 1;     ///< [3]  Blitter (BCS) reset
         u32 vebox      : 1;     ///< [4]  VEBox reset
         u32 reserved5  : 1;     ///< [5]  MBZ

@@ -23,6 +23,27 @@
 #ifndef VESPERAOS_INTERRUPT_REGS_H
 #define VESPERAOS_INTERRUPT_REGS_H
 
+#include <vespera/types.h>
+
+struct RCS_ICR_BITS {
+    u32 user_irq : 1;        ///< [0]  MI_USER_INTERRUPT
+    u32 reserved1 : 1;       ///< [1]  MBZ
+    u32 reserved2 : 1;       ///< [2]  MBZ
+    u32 master_error : 1;    ///< [3]  Render Master Error
+    u32 pipe_control_notify : 1; ///< [4] PIPE_CONTROL Notify
+    u32 reserved5 : 1;       ///< [5]  MBZ
+    u32 timeout : 1;         ///< [6]  Timeout Counter Expired
+    u32 page_fault : 1;      ///< [7]  Page Fault
+    u32 ctx_switch : 1;      ///< [8]  Context Switch Interrupt
+    u32 invalid_tile : 1;    ///< [9]  TR Invalid Tile Detection
+    u32 l3_counter : 1;      ///< [10] L3 Counter Save Interrupt
+    u32 wait_sem : 1;        ///< [11] Wait on Semaphore
+    u32 reserved12_15 : 4;   ///< [15:12] MBZ
+    u32 reserved16_31 : 16;  ///< [31:16] MBZ (Must Be Zero)
+} __attribute__((packed));
+static_assert(sizeof(RCS_ICR_BITS) == 4);
+
+
 // IHD-OS-KBL-Vol 2c p.1080  — Interrupt Control Registers (BCS)
 // IHD-OS-KBL-Vol 2d p.38    — Bit Definition for Interrupt Control Registers - Blitter
 
@@ -82,6 +103,13 @@ struct BCS_ICR_BITS {
 } __attribute__((packed));
 static_assert(sizeof(BCS_ICR_BITS) == 4);
 
+
+union HWSTAM_REG {
+    u32 raw;
+    RCS_ICR_BITS rcs_bits;
+    BCS_ICR_BITS bcs_bits;
+};
+
 /**
  * @brief BCS Interrupt Mask Register (IMR).
  *
@@ -98,39 +126,6 @@ union BCS_IMR_REG {
     u32 raw;
 };
 
-// ============================================================================
-// HWSTAM — Hardware Status Mask Register
-// IHD-OS-KBL-Vol 2c — HWSTAM (0x22098)
-// ============================================================================
-
-/**
- * @brief Hardware Status Mask Register (HWSTAM).
- *
- * Controls which ISR bits trigger a Hardware Status Write (PCI write cycle
- * into the Hardware Status Page).  Shares the same bit layout as the other
- * BCS Interrupt Control Registers (BCS_ICR_BITS).
- *
- * @note 0 = unmasked — ISR bit change writes to HWSP.
- * @note 1 = masked   — ISR bit change suppressed (default).
- * @note To write an interrupt to HWSP the corresponding IMR bit must also
- *       be clear (unmasked).
- * @note At most 1 bit should be unmasked at any given time.
- * @note Default reset value = 0xFFFFFFFF.
- * @note Reserved bits are RO; must be preserved (written as 1).
- *
- */
-union HWSTAM_REG {
-    BCS_ICR_BITS bits;
-    u32 raw;
-};
-
-static_assert(sizeof(HWSTAM_REG) == 4);
-
-/// MMIO offset of the BCS Hardware Status Mask Register.
-constexpr u32 BCS_HWSTAM_OFFSET = 0x22098;
-
-/// MMIO offset of the BCS Interrupt Mask Register.
-constexpr u32 BCS_IMR_OFFSET = 0x220A8;
 
 // ============================================================================
 // Master Interrupt Control

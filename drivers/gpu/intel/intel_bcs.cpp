@@ -1,9 +1,11 @@
-// intel_blt.cpp
+// intel_bcs.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2025 Linus Genz <mail@linusgenz.dev>
 //
 // Created by Linus Genz on 16.12.25.
+// Renamed from intel_blt.cpp / IntelBlt on 06.08.26 when RCS was introduced
+// as a peer engine.
 //
 // This file is part of VesperaOS.
 //
@@ -20,7 +22,7 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "intel_blt.h"
+#include "intel_bcs.h"
 
 #include <filesystem/devfs.h>
 #include <klib/string.h>
@@ -36,7 +38,6 @@
 #include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
 
-#include "bcs_regs.h"
 #include "blt_commands.h"
 #include "display_regs.h"
 #include "error_regs.h"
@@ -46,34 +47,30 @@
 #include "pci_config_regs.h"
 
 namespace blt {
-
     // =========================================================================
     // Constructor / Init
     // =========================================================================
 
-    IntelBlt::IntelBlt(const pci::pci_device& igpu_dev)
-        : igp_cfg_(reinterpret_cast<volatile INTEL_IGP_PCI_CONFIG*>(igpu_dev.header))
-        , pci_id_(igpu_dev.id) {
-        const phys_addr_t bar0 =
-            make_phys(static_cast<u64>(igp_cfg_->gttmmadr_hi) << 32 | (igp_cfg_->gttmmadr_lo & GTTMMADR_ADDR_MASK));
-
-        kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
-
-        mmio_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(bar0)));
-        bcs_regs_ = reinterpret_cast<volatile BCS_REGS*>(mmio_base_ + BCS_RING_BASE);
-
-        irq_vector_ = kernel::interrupts::get_free_vector();
+    IntelBcs::IntelBcs(IntelGpuDevice& device)
+        : IntelEngine(EngineType::BCS,
+                      device, BCS_RING_BASE,
+                      ForceWakeDomain{
+                          FORCEWAKE_BLITTER, FORCEWAKE_ACK_BLITTER, FORCEWAKE_BLITTER_ENABLE, FORCEWAKE_ACK_BIT,
+                          FORCEWAKE_BLITTER_TIMEOUT
+                      }
+          )
+          , bcs_regs_(reinterpret_cast<volatile BCS_REGS*>(engine_regs())) {
     }
 
-    bool IntelBlt::init_device() {
-        if (!force_wake_enable()) return false;
-        ggtt_init();
-        bcs_power_enable();
-        if (!bcs_reset()) return false;
+    bool IntelBcs::init_device() {
+        if (!engine_force_wake_enable()) return false;
 
-        kernel::interrupts::allocate_vector(irq_vector_, reinterpret_cast<irq_handler_t>(bcs_irq_handler), this);
-        if (!pci::try_enable_msi_or_msix(reinterpret_cast<volatile pci::PCI_HEADER0*>(igp_cfg_), irq_vector_, 1)) {
-            Log::log_dbc("intel-blt: MSI enable failed");
+        bcs_power_enable();
+        if (!engine_reset()) return false;
+
+        irq_vector_ = device().allocate_irq_vector(reinterpret_cast<irq_handler_t>(bcs_irq_handler), this);
+        if (irq_vector_ == IntelGpuDevice::INVALID_VECTOR) {
+            Log::log_dbc("intel-bcs: MSI enable failed");
             return false;
         }
 
@@ -83,51 +80,20 @@ namespace blt {
         de_interrupts_enable();
         bcs_error_reporting_init();
 
-        auto hwsp = ggtt_alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
-        hwsp_cpu_addr_ = hwsp.cpu_addr;
-        hwsp_gfx_addr_ = hwsp.gfx_addr;
-        memset(hwsp_cpu_addr_, 0, PAGE_SIZE);
-
-        HWS_PGA reg{};
-        reg.set_address_bytes(gfx_raw(hwsp_gfx_addr_));
-        bcs_regs_->hwsp.raw = reg.raw;
-
-        const u32 ring_pages = ring_size_ / PAGE_SIZE;
-        auto [cpu_addr, gfx_addr] = ggtt_alloc_persistent(ring_pages);
-        ring_cpu_addr_ = cpu_addr;
-        ring_gfx_addr_ = gfx_addr;
-        memset(ring_cpu_addr_, 0, ring_size_);
-        ring_init();
-
-        RING_BUFFER_START start{};
-        start.set_start_addr_bytes(gfx_raw(ring_gfx_addr_));
-
-        RING_BUFFER_CTL ctl{};
-        ctl.ring_enable = 1;
-        ctl.set_ring_size_bytes(ring_size_);
-
-        RING_BUFFER_HEAD head{};
-        head.set_head_offset_bytes(0);
-
-        RING_BUFFER_TAIL tail{};
-        tail.set_tail_offset_bytes(0);
-
-        bcs_regs_->ring_start.raw = start.raw;
-        bcs_regs_->ring_ctl.raw = ctl.raw;
-        bcs_regs_->ring_head.raw = head.raw;
-        bcs_regs_->ring_tail.raw = tail.raw;
+        hwsp_alloc();
+        ring_alloc_and_init(RING_BUFFER_SIZE);
 
         char name[16];
-        DeviceManager::alloc_unique_device_name("intel_blt", name, sizeof(name));
+        DeviceManager::alloc_unique_device_name("intel_bcs", name, sizeof(name));
         kd_ = DeviceManager::register_device(
             DeviceDescriptor{}
-                .set_name(name)
-                .set_type(DeviceType::Gpu)
-                .set_class(DeviceClass::Graphics)
-                .set_bus(BusType::Pci)
-                .set_controller(ControllerType::IntelGpu)
-                .with_gpu(this)
-                .with_info(this)
+            .set_name(name)
+            .set_type(DeviceType::Gpu)
+            .set_class(DeviceClass::Graphics)
+            .set_bus(BusType::Pci)
+            .set_controller(ControllerType::IntelGpu)
+            .with_gpu(this)
+            .with_info(this)
         );
 
         DevFs::register_device(kd_);
@@ -135,7 +101,7 @@ namespace blt {
         return true;
     }
 
-    void IntelBlt::start_device(const u32 screen_width, const u32 screen_height) {
+    void IntelBcs::start_device(const u32 screen_width, const u32 screen_height) {
         fb_alloc(screen_width, screen_height, TileMode::Linear);
         fb_alloc_back();
         scratch_init();
@@ -147,38 +113,38 @@ namespace blt {
     // Worker
     // =========================================================================
 
-    void IntelBlt::worker_start(const u8 cpu_id) {
+    void IntelBcs::worker_start(const u8 cpu_id) {
         blt_queue_.init();
 
         const UnitConfig cfg = {
-            .name = "intel-blt",
-            .cpu_id = cpu_id,
-            .priority = 4,
+            .name       = "intel-bcs",
+            .cpu_id     = cpu_id,
+            .priority   = 4,
             .stack_size = 0x10000,
-            .is_user = false,
+            .is_user    = false,
         };
 
         UnitManager::create(kernel::realm::REALM_DRIVER, worker_entry, this, &cfg);
     }
 
-    void IntelBlt::worker_entry(void* arg) {
-        auto* blt = static_cast<IntelBlt*>(arg);
+    void IntelBcs::worker_entry(void* arg) {
+        auto* bcs = static_cast<IntelBcs*>(arg);
 
         while (true) {
-            GpuBltRequest* req = blt->blt_queue_.dequeue_blocking();
+            GpuBltRequest* req = bcs->blt_queue_.dequeue_blocking();
             if (!req) break;
 
             switch (req->op) {
                 case GpuBltOp::BlitRegion:
-                    blt->execute_blit_region(req);
+                    bcs->execute_blit_region(req);
                     kernel::memory::free(req->owned_pixels);
                     req->owned_pixels = nullptr;
                     break;
                 case GpuBltOp::FillRect:
-                    blt->execute_fill_rect(req);
+                    bcs->execute_fill_rect(req);
                     break;
                 case GpuBltOp::Present:
-                    blt->execute_present();
+                    bcs->execute_present();
                     break;
                 default:
                     break;
@@ -189,120 +155,10 @@ namespace blt {
     }
 
     // =========================================================================
-    // Sequence Numbers
-    // =========================================================================
-
-    u32 IntelBlt::seqno_next() {
-        ++sequence_number_;
-        if (sequence_number_ & SEQNO_BIT5_MASK) {
-            // Round up past the bit-5 block: 0x20–0x3F → 0x40, 0x60–0x7F → 0x80, etc.
-            sequence_number_ = (sequence_number_ & ~u32{0x3F}) + 0x40u;
-        }
-        return sequence_number_;
-    }
-
-    bool IntelBlt::seqno_wait(u32 target_seqno, u32 timeout_us) {
-        auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
-        const u32* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
-
-        asm volatile("lfence" ::: "memory");
-        if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
-
-        const u64 deadline_ms = kernel::time::get_uptime_ms() + (timeout_us + 999) / 1000;
-
-        while (true) {
-            if (completion_flag_.consume()) {
-                asm volatile("lfence" ::: "memory");
-                if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) return true;
-            }
-
-            if (kernel::time::get_uptime_ms() >= deadline_ms) {
-                error_count_++;
-                return false;
-            }
-
-            asm volatile("pause" ::: "memory");
-        }
-    }
-
-    // =========================================================================
-    // Ring Buffer
-    // =========================================================================
-
-    void IntelBlt::ring_init() {
-        ring_tail_ = 0;
-
-        Log::log_dbc("Ring Buffer: CPU=%p GFX=0x%llx", virt_ptr(ring_cpu_addr_), gfx_raw(ring_gfx_addr_));
-
-        volatile auto* ring = virt_as<u32>(ring_cpu_addr_);
-        for (u32 i = 0; i < ring_size_ / 4; i++) {
-            ring[i] = MI_NOOP;
-        }
-
-        HWSTAM reg{};
-        reg.raw = 0xFFFFFFFF;
-        bcs_regs_->hwstam.raw = reg.raw;
-    }
-
-    void IntelBlt::ring_write(u32 cmd) {
-        volatile auto* ring = virt_as<u32>(ring_cpu_addr_);
-        ring[ring_tail_ / 4] = cmd;
-        asm volatile("sfence" ::: "memory");
-
-        ring_tail_ += 4;
-        if (ring_tail_ >= ring_size_) ring_tail_ = 0;
-    }
-
-    template <typename T>
-    void IntelBlt::ring_write_cmd(const T& cmd) {
-        static_assert(sizeof(T) % sizeof(u32) == 0, "Command size must be DWORD-aligned");
-
-        const auto* dwords = reinterpret_cast<const u32*>(&cmd);
-        const usize count = sizeof(T) / sizeof(u32);
-        for (usize i = 0; i < count; i++) {
-            ring_write(dwords[i]);
-        }
-    }
-
-    void IntelBlt::ring_flush() {
-        // TAIL must be 8-byte aligned (bits [2:0] = MBZ)
-        while (ring_tail_ & 0x7) {
-            volatile auto* ring = virt_as<u32>(ring_cpu_addr_);
-            ring[ring_tail_ / 4] = MI_NOOP;
-            ring_tail_ += 4;
-            if (ring_tail_ >= ring_size_) ring_tail_ = 0;
-        }
-
-        asm volatile("mfence" ::: "memory");
-
-        RING_BUFFER_TAIL tail{};
-        tail.set_tail_offset_bytes(ring_tail_);
-        bcs_regs_->ring_tail.raw = tail.raw;
-    }
-
-    bool IntelBlt::ring_wait_space(u32 required_bytes, u32 timeout_us) const {
-        const u64 start = kernel::time::get_uptime_us();
-
-        while ((kernel::time::get_uptime_us() - start) < timeout_us) {
-            const u32 head = bcs_regs_->ring_head.head_offset_bytes();
-
-            const u32 avail = (ring_tail_ >= head) ? (ring_size_ - ring_tail_) + head : head - ring_tail_;
-
-            if (avail >= required_bytes) {
-                return true;
-            }
-
-            kernel::time::sleep_us(1);
-        }
-
-        return false;
-    }
-
-    // =========================================================================
     // BCS Command Emission
     // =========================================================================
 
-    void IntelBlt::emit_xy_color_blt(gfx_addr_t dest, u32 pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color) {
+    void IntelBcs::emit_xy_color_blt(gfx_addr_t dest, u32 pitch, u32 x1, u32 y1, u32 x2, u32 y2, u32 color) {
         XY_COLOR_BLT_CMD cmd{};
 
         cmd.dw0.client = CLIENT_2D_PROCESSOR;
@@ -327,7 +183,7 @@ namespace blt {
         ring_write_cmd(cmd);
     }
 
-    void IntelBlt::emit_xy_src_copy_blt(
+    void IntelBcs::emit_xy_src_copy_blt(
         gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t src,
         u32 src_pitch, u32 src_x1, u32 src_y1
     ) {
@@ -361,7 +217,7 @@ namespace blt {
         ring_write_cmd(cmd);
     }
 
-    void IntelBlt::emit_xy_fast_copy_blt(
+    void IntelBcs::emit_xy_fast_copy_blt(
         gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t src,
         u32 src_pitch, u32 src_x1, u32 src_y1
     ) {
@@ -374,7 +230,7 @@ namespace blt {
         cmd.dw0.dword_len = XY_FAST_COPY_BLT_LEN;
 
         cmd.dw1.color_depth = FAST_COLOR_DEPTH_32BPP;
-        cmd.dw1.dest_pitch = dest_pitch & 0x7FFF;  // bit[15] MBZ
+        cmd.dw1.dest_pitch = dest_pitch & 0x7FFF; // bit[15] MBZ
 
         cmd.dw2.x1 = dest_x1;
         cmd.dw2.y1 = dest_y1;
@@ -394,7 +250,7 @@ namespace blt {
         ring_write_cmd(cmd);
     }
 
-    void IntelBlt::emit_xy_mono_src_copy_blt(
+    void IntelBcs::emit_xy_mono_src_copy_blt(
         gfx_addr_t dest, u32 dest_pitch, u32 dest_x1, u32 dest_y1, u32 dest_x2, u32 dest_y2, gfx_addr_t mono_src,
         u32 src_bit_pos, bool transparency, u32 bg_color, u32 fg_color
     ) {
@@ -428,7 +284,7 @@ namespace blt {
         ring_write_cmd(cmd);
     }
 
-    void IntelBlt::emit_mi_flush(u32 seqno) {
+    void IntelBcs::emit_mi_flush(u32 seqno) {
         MI_FLUSH_DW_CMD cmd{};
 
         cmd.dw0.client = CLIENT_MI;
@@ -443,7 +299,7 @@ namespace blt {
 
         // IHD-OS-KBL-Vol 2a (p. 993): bit 5 of the write data must be clear.
         if (cmd.immediate_data & (1u << 5)) {
-            kernel::SystemManager::system_panic("intel-blt: MI_FLUSH_DW seqno has bit 5 set", DRVERR);
+            kernel::SystemManager::system_panic("intel-bcs: MI_FLUSH_DW seqno has bit 5 set", DRVERR);
         };
 
         ring_write_cmd(cmd);
@@ -458,13 +314,13 @@ namespace blt {
     // IRQ
     // =========================================================================
 
-    Irqreturn IntelBlt::bcs_irq_handler(IntelBlt* self) {
+    Irqreturn IntelBcs::bcs_irq_handler(IntelBcs* self) {
         auto master = self->mmio_read<MASTER_INT_CTL>(GEN8_MASTER_INT_CTL_OFFSET);
         bool handled = false;
 
         // ---- GT0 / BCS path ----
         if (master.blitter_pending) {
-            auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->mmio_base_ + GEN8_GT0_INTR_BASE);
+            auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->device().mmio_base() + GEN8_GT0_INTR_BASE);
 
             GT0_IIR_REG pending{};
             pending.raw = gt0->iir.raw;
@@ -495,11 +351,11 @@ namespace blt {
                     self->flip_pending_ = false;
 
                     auto imr = self->mmio_read<DE_PIPE_IMR>(DE_PIPE_A_IMR);
-                    imr.vblank = 1;  // Mask (1 = OFF)
+                    imr.vblank = 1; // Mask (1 = OFF)
                     self->mmio_write(DE_PIPE_A_IMR, imr);
 
                     auto ier = self->mmio_read<DE_PIPE_IER>(DE_PIPE_A_IER);
-                    ier.vblank = 0;  // Disable (0 = OFF)
+                    ier.vblank = 0; // Disable (0 = OFF)
                     self->mmio_write(DE_PIPE_A_IER, ier);
                     MMIO_POST_WRITE(ier);
 
@@ -520,27 +376,7 @@ namespace blt {
     // HW Init / Power
     // =========================================================================
 
-    bool IntelBlt::force_wake_enable() const {
-        volatile auto* fw_mt = reinterpret_cast<volatile u32*>(mmio_base_ + FORCEWAKE_MT);
-        const volatile auto* fw_ack = reinterpret_cast<volatile u32*>(mmio_base_ + FORCEWAKE_ACK);
-
-        *fw_mt = FORCEWAKE_ENABLE;
-
-        u32 timeout = FORCE_WAKE_TIMEOUT;
-
-        while (timeout--) {
-            if (*fw_ack & GTT_VALID) {
-                return true;
-            }
-
-            kernel::time::sleep_us(1);
-        }
-
-        Log::log_dbc("intel-blt: ForceWake timeout");
-        return false;
-    }
-
-    void IntelBlt::bcs_power_enable() const {
+    void IntelBcs::bcs_power_enable() const {
         BCS_SWCTRL swctrl;
         swctrl.raw = bcs_regs_->swctrl.raw;
         swctrl.tile_y_src = 1;
@@ -548,26 +384,9 @@ namespace blt {
         MMIO_POST_WRITE(bcs_regs_->swctrl);
     }
 
-    bool IntelBlt::bcs_reset() const {
-        auto gdrst = mmio_read<GDRST>(GDRST_MMIO);
-        gdrst.blitter = 1;
-        mmio_write(GDRST_MMIO, gdrst);
-
-        u32 timeout = BCS_RESET_TIMEOUT;
-
-        while (timeout--) {
-            if (!mmio_read<GDRST>(GDRST_MMIO).blitter) return true;
-
-            kernel::time::sleep_us(1);
-        }
-
-        Log::error("intel-blt: BCS reset timed out, aborting driver initialization");
-        return false;
-    }
-
-    void IntelBlt::bcs_interrupts_enable() const {
+    void IntelBcs::bcs_interrupts_enable() const {
         volatile BCS_IMR_REG& ring_imr = bcs_regs_->imr;
-        auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(mmio_base_ + GEN8_GT0_INTR_BASE);
+        auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(device().mmio_base() + GEN8_GT0_INTR_BASE);
 
         // BCS local IMR — allow only MI_USER_INTERRUPT
         BCS_IMR_REG bcs_imr{};
@@ -611,7 +430,7 @@ namespace blt {
         MMIO_POST_WRITE(master);
     }
 
-    void IntelBlt::de_interrupts_enable() const {
+    void IntelBcs::de_interrupts_enable() const {
         MASTER_INT_CTL master{};
         mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
         MMIO_POST_WRITE(master);
@@ -640,7 +459,7 @@ namespace blt {
         MMIO_POST_WRITE(master);
     }
 
-    void IntelBlt::bcs_error_reporting_init() const {
+    void IntelBcs::bcs_error_reporting_init() const {
         volatile EIR_REG& eir = bcs_regs_->eir;
         EIR_REG v{};
         v.error_bits.instruction_error = 0;
@@ -657,33 +476,17 @@ namespace blt {
         MMIO_POST_WRITE(emr);
     }
 
-    bool IntelBlt::bcs_emergency_reset() {
+    bool IntelBcs::bcs_emergency_reset() {
         // disable ring
         RING_BUFFER_CTL ctl{};
         ctl.raw = bcs_regs_->ring_ctl.raw;
         ctl.ring_enable = 0;
         bcs_regs_->ring_ctl.raw = ctl.raw;
 
-        if (!bcs_reset()) return false;
+        if (!engine_reset()) return false;
 
-        memset(ring_cpu_addr_, 0, ring_size_);
-        ring_init();
-
-        // re-enable ring with fresh config
-        RING_BUFFER_CTL new_ctl{};
-        new_ctl.set_ring_size_bytes(ring_size_);
-        new_ctl.ring_enable = 1;
-
-        bcs_regs_->ring_ctl.raw = new_ctl.raw;
-
-        // reset head/tail
-        RING_BUFFER_HEAD head{};
-        head.set_head_offset_bytes(0);
-        bcs_regs_->ring_head.raw = head.raw;
-
-        RING_BUFFER_TAIL tail{};
-        tail.set_tail_offset_bytes(0);
-        bcs_regs_->ring_tail.raw = tail.raw;
+        memset(virt_ptr(ring_cpu_addr_), 0, ring_size_);
+        ring_alloc_and_init(ring_size_);
 
         ring_tail_ = 0;
         sequence_number_ = 0;
@@ -691,7 +494,7 @@ namespace blt {
         return true;
     }
 
-    void IntelBlt::gpu_health_check() {
+    void IntelBcs::gpu_health_check() {
         const u32 head = bcs_regs_->ring_head.head_offset_bytes();
         const u32 tail = bcs_regs_->ring_tail.tail_offset_bytes();
         const u32 ctl = bcs_regs_->ring_ctl.raw;
@@ -699,7 +502,7 @@ namespace blt {
         if (!(ctl & RING_CTL_ENABLED)) {
             error_count_++;
             if (!bcs_emergency_reset()) {
-                Log::error("intel-blt: emergency reset failed - GPU unresponsive");
+                Log::error("intel-bcs: emergency reset failed - GPU unresponsive");
             }
             return;
         }
@@ -708,7 +511,7 @@ namespace blt {
             if (++hang_counter_ > 1000) {
                 error_count_++;
                 if (!bcs_emergency_reset()) {
-                    Log::error("intel-blt: emergency reset failed - GPU unresponsive");
+                    Log::error("intel-bcs: emergency reset failed - GPU unresponsive");
                 }
                 hang_counter_ = 0;
             }
@@ -722,7 +525,7 @@ namespace blt {
     // Framebuffer / Scratch
     // =========================================================================
 
-    void IntelBlt::fb_alloc(u32 width, u32 height, TileMode tile_mode) {
+    void IntelBcs::fb_alloc(u32 width, u32 height, TileMode tile_mode) {
         fb_.width = width;
         fb_.height = height;
         fb_.bpp = BYTES_PER_PIXEL;
@@ -738,7 +541,7 @@ namespace blt {
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
         Log::log_dbc(
-            "intel-blt: FB %dx%d pitch=%d size=%zu pages=%zu tiling=%u",
+            "intel-bcs: FB %dx%d pitch=%d size=%zu pages=%zu tiling=%u",
             width,
             height,
             fb_.pitch,
@@ -747,18 +550,18 @@ namespace blt {
             static_cast<u32>(tile_mode)
         );
 
-        auto alloc = ggtt_alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
         fb_.gfx_addr = alloc.gfx_addr;
         fb_.cpu_addr = alloc.cpu_addr;
 
-        memset(fb_.cpu_addr, 0, total_size);
+        memset(virt_ptr(fb_.cpu_addr), 0, total_size);
     }
 
-    void IntelBlt::fb_alloc_back() {
+    void IntelBcs::fb_alloc_back() {
         const usize total_size = static_cast<usize>(fb_.pitch) * fb_.height;
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        auto alloc = ggtt_alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
         fb_back_.width = fb_.width;
         fb_back_.height = fb_.height;
         fb_back_.bpp = fb_.bpp;
@@ -767,24 +570,24 @@ namespace blt {
         fb_back_.gfx_addr = alloc.gfx_addr;
         fb_back_.cpu_addr = alloc.cpu_addr;
 
-        memset(fb_back_.cpu_addr, 0, total_size);
+        memset(virt_ptr(fb_back_.cpu_addr), 0, total_size);
 
-        Log::info("intel-blt: back-buffer gfx=0x%llx (%zu pages)", gfx_raw(fb_back_.gfx_addr), num_pages);
+        Log::info("intel-bcs: back-buffer gfx=0x%llx (%zu pages)", gfx_raw(fb_back_.gfx_addr), num_pages);
     }
 
-    void IntelBlt::scratch_init() {
+    void IntelBcs::scratch_init() {
         const usize row_bytes = static_cast<usize>(fb_.width) * BYTES_PER_PIXEL;
         const usize pitch = ((row_bytes + 63) / 64) * 64;
         const usize buf_size = pitch * fb_.height;
         const u32 num_pages = static_cast<u32>((buf_size + PAGE_SIZE - 1) / PAGE_SIZE);
 
-        const GgttAllocation alloc = ggtt_alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        const GgttAllocation alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
         if (virt_null(alloc.cpu_addr)) {
-            Log::error("intel-blt: failed to alloc scratch buffer (%u pages)", num_pages);
+            Log::error("intel-bcs: failed to alloc scratch buffer (%u pages)", num_pages);
             return;
         }
 
-        memset(alloc.cpu_addr, 0, num_pages * PAGE_SIZE);
+        memset(virt_ptr(alloc.cpu_addr), 0, num_pages * PAGE_SIZE);
 
         scratch_.alloc = alloc;
         scratch_.num_pages = num_pages;
@@ -794,7 +597,7 @@ namespace blt {
         scratch_.valid = true;
 
         Log::info(
-            "intel-blt: scratch %u pages (%lu MB) for %ux%u @ pitch=%u",
+            "intel-bcs: scratch %u pages (%lu MB) for %ux%u @ pitch=%u",
             num_pages,
             (num_pages * PAGE_SIZE) >> 20,
             fb_.width,
@@ -805,7 +608,7 @@ namespace blt {
 
     // https://kiwitree.net/~lina/intel-gfx-docs/prm/kbl/intel-gfx-prm-osrc-kbl-vol02c-commandreference-registers-part2_0.pdf
     // (p. 604)
-    void IntelBlt::fb_set_display() const {
+    void IntelBcs::fb_set_display() const {
         // Disable plane before reconfiguring
         auto ctl = mmio_read<PLANE_CTL>(PLANE_CTL_1_A);
         ctl.plane_enable = 0;
@@ -814,7 +617,7 @@ namespace blt {
 
         ctl.raw = 0;
         ctl.source_pixel_format = PLANE_CTL::FMT_RGB_8_8_8_8;
-        ctl.rgb_color_order = 0;  // BGRX
+        ctl.rgb_color_order = 0; // BGRX
 
         PLANE_STRIDE stride{};
 
@@ -863,7 +666,7 @@ namespace blt {
         asm volatile("mfence" ::: "memory");
 
         Log::log_dbc(
-            "intel-blt: display surface addr=0x%llx %dx%d pitch=%d tiling=%d",
+            "intel-bcs: display surface addr=0x%llx %dx%d pitch=%d tiling=%d",
             gfx_raw(fb_.gfx_addr),
             fb_.width,
             fb_.height,
@@ -876,7 +679,7 @@ namespace blt {
     // Validation / Health
     // =========================================================================
 
-    bool IntelBlt::validate_rect(const BltRect& rect) const {
+    bool IntelBcs::validate_rect(const BltRect& rect) const {
         if (virt_null(fb_.cpu_addr)) return false;
         if (rect.width == 0 || rect.height == 0) return false;
         if (rect.width > 8192 || rect.height > 4096) return false;
@@ -891,7 +694,7 @@ namespace blt {
     // Public API — IRenderDriver
     // =========================================================================
 
-    bool IntelBlt::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
+    bool IntelBcs::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
         auto* req = new GpuBltRequest();
         req->op = GpuBltOp::FillRect;
         req->dst_x = px;
@@ -903,7 +706,7 @@ namespace blt {
         return true;
     }
 
-    bool IntelBlt::blit_region(
+    bool IntelBcs::blit_region(
         const u32* pixels, const u32 src_stride, const u32 src_x, const u32 src_y, const u32 w, const u32 h,
         const u32 dst_x, const u32 dst_y
     ) {
@@ -920,7 +723,7 @@ namespace blt {
 
         const usize src_stride_bytes = static_cast<usize>(src_stride) * BYTES_PER_PIXEL;
         const u8* src_base = reinterpret_cast<const u8*>(pixels) + static_cast<usize>(src_y) * src_stride_bytes +
-                             static_cast<usize>(src_x) * BYTES_PER_PIXEL;
+            static_cast<usize>(src_x) * BYTES_PER_PIXEL;
 
         for (u32 y = 0; y < max_h; y++) {
             memcpy(copy + y * row_bytes, src_base + y * src_stride_bytes, row_bytes);
@@ -941,7 +744,7 @@ namespace blt {
         return true;
     }
 
-    void IntelBlt::present() {
+    void IntelBcs::present() {
         auto* req = new GpuBltRequest();
         req->op = GpuBltOp::Present;
         blt_queue_.submit(req);
@@ -951,11 +754,11 @@ namespace blt {
     // Worker Execute Paths
     // =========================================================================
 
-    bool IntelBlt::execute_blit_region(const GpuBltRequest* req) {
+    bool IntelBcs::execute_blit_region(const GpuBltRequest* req) {
         if (req->w == 0 || req->h == 0) return true;
 
         if (!scratch_.valid) {
-            Log::error("intel-blt: scratch buffer not initialized");
+            Log::error("intel-bcs: scratch buffer not initialized");
             return false;
         }
 
@@ -988,10 +791,10 @@ namespace blt {
         emit_mi_flush(target_seqno);
         ring_flush();
 
-        return seqno_wait(target_seqno, 500'000);
+        return seqno_wait(target_seqno, 500'000, completion_flag_);
     }
 
-    bool IntelBlt::execute_fill_rect(const GpuBltRequest* req) {
+    bool IntelBcs::execute_fill_rect(const GpuBltRequest* req) {
         const BltRect rect{.x = req->dst_x, .y = req->dst_y, .width = req->w, .height = req->h};
         if (!validate_rect(rect)) return false;
 
@@ -1006,19 +809,19 @@ namespace blt {
         emit_mi_flush(target_seqno);
         ring_flush();
 
-        return seqno_wait(target_seqno, 5'000'000);
+        return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }
 
-    void IntelBlt::execute_present() {
+    void IntelBcs::execute_present() {
         PLANE_SURF surf{};
         surf.set_address(static_cast<u32>(gfx_raw(fb_back_.gfx_addr)));
 
         auto imr = mmio_read<DE_PIPE_IMR>(DE_PIPE_A_IMR);
-        imr.vblank = 0;  // Unmask (0 = ON)
+        imr.vblank = 0; // Unmask (0 = ON)
         mmio_write(DE_PIPE_A_IMR, imr);
 
         auto ier = mmio_read<DE_PIPE_IER>(DE_PIPE_A_IER);
-        ier.vblank = 1;  // Enable (1 = ON)
+        ier.vblank = 1; // Enable (1 = ON)
         mmio_write(DE_PIPE_A_IER, ier);
         MMIO_POST_WRITE(ier);
 
@@ -1030,7 +833,7 @@ namespace blt {
         constexpr u32 total_required_bytes = RING_SPACE_FOR_BLIT + sizeof(MI_WAIT_FOR_EVENT_CMD);
 
         if (!ring_wait_space(total_required_bytes, 1'000'000)) {
-            Log::log_dbc("intel-blt: Timeout waiting for ring space in execute_present");
+            Log::log_dbc("intel-bcs: Timeout waiting for ring space in execute_present");
             return;
         }
 
@@ -1050,31 +853,33 @@ namespace blt {
         const u32 seqno = seqno_next();
         emit_mi_flush(seqno);
         ring_flush();
-        seqno_wait(seqno, 500'000);
+        seqno_wait(seqno, 500'000, completion_flag_);
     }
 
     // =========================================================================
     // IRenderDriver Accessors
     // =========================================================================
 
-    u32 IntelBlt::screen_width_px() const {
+    u32 IntelBcs::screen_width_px() const {
         return fb_.width;
     }
-    u32 IntelBlt::screen_height_px() const {
+
+    u32 IntelBcs::screen_height_px() const {
         return fb_.height;
     }
-    u32 IntelBlt::bytes_per_scanline() const {
+
+    u32 IntelBcs::bytes_per_scanline() const {
         return fb_.pitch;
     }
 
-    bool IntelBlt::get_vendor(char* out, const usize len) {
-        strncpy(out, pci::get_vendor_name(igp_cfg_->vendor_id), len);
+    bool IntelBcs::get_vendor(char* out, const usize len) {
+        strncpy(out, pci::get_vendor_name(device().pci_cfg()->vendor_id), len);
         out[len - 1] = '\0';
         return true;
     }
 
-    bool IntelBlt::get_model(char* out, const usize len) {
-        strncpy(out, pci::get_device_name(igp_cfg_->vendor_id, igp_cfg_->device_id), len);
+    bool IntelBcs::get_model(char* out, const usize len) {
+        strncpy(out, pci::get_device_name(device().pci_cfg()->vendor_id, device().pci_cfg()->device_id), len);
         out[len - 1] = '\0';
         return true;
     }
@@ -1083,7 +888,7 @@ namespace blt {
     // Utility
     // =========================================================================
 
-    u32 IntelBlt::tile_mode_to_tiling(TileMode mode) {
+    u32 IntelBcs::tile_mode_to_tiling(TileMode mode) {
         switch (mode) {
             case TileMode::X:
                 return TILING_X;
@@ -1093,16 +898,4 @@ namespace blt {
                 return TILING_LINEAR;
         }
     }
-
-    template <typename T>
-    [[nodiscard]] T IntelBlt::mmio_read(u32 reg) const {
-        T val;
-        val.raw = *reinterpret_cast<volatile u32*>(mmio_base_ + reg);
-        return val;
-    }
-
-    template <typename T>
-    void IntelBlt::mmio_write(u32 reg, T val) const {
-        *reinterpret_cast<volatile u32*>(mmio_base_ + reg) = val.raw;
-    }
-}  // namespace blt
+} // namespace blt

@@ -28,21 +28,23 @@
 #include <vespera/log.h>
 #include <vespera/time.h>
 
-#include "intel_blt.h"
+#include "intel_bcs.h"
+#include "intel_gpu_device.h"
+#include "rcs/intel_rcs.h"
 
 namespace blt {
 
     /**
-     * @brief Device-ID match table for Intel integrated GPU blitter engines.
+     * @brief Device-ID match table for Intel integrated GPUs (Gen9.5).
      *
-     * Covers Gen9.5 integrated GPUs (Kaby Lake, Kaby Lake-R, Coffee Lake,
-     * Whiskey Lake, Amber Lake) whose blitter engine shares the same
-     * programming model as documented in the Kaby Lake PRM Vol. 11 (Blitter).
+     * Covers Kaby Lake, Kaby Lake-R, Coffee Lake, Whiskey Lake, and Amber
+     * Lake, whose Blitter and Render engines share the same programming
+     * model as documented in the Kaby Lake PRM.
      *
-     * Generations outside this range (Gen9.0 Skylake and earlier, Gen11 Ice Lake
-     * and later) differ in MMIO layout, command-stream submission, or render
-     * compression and are intentionally excluded until a per-generation
-     * abstraction layer is in place.
+     * Generations outside this range (Gen9.0 Skylake and earlier, Gen11 Ice
+     * Lake and later) differ in MMIO layout, command-stream submission, or
+     * render compression and are intentionally excluded until a
+     * per-generation abstraction layer is in place.
      *
      * @note Intel integrated GPUs may appear as PCI class 0x03 subclass 0x00
      *       (VGA-compatible) or subclass 0x02 (3D controller) depending on
@@ -95,7 +97,7 @@ namespace blt {
         }
 
         // Guard against a second GPU being probed (integrated + discrete mixed).
-        if (driver_ != nullptr) {
+        if (device_ != nullptr) {
             Log::warning(
                 "intel-blt: second Intel display controller detected on "
                 "%04x:%02x:%02x.%u — skipping",
@@ -127,17 +129,39 @@ namespace blt {
         );
 
         const DisplayBackend backend = DisplayManager::primary();
-        u32 screen_width = backend.drv ? backend.drv->screen_width_px() : 1920;
-        u32 screen_height = backend.drv ? backend.drv->screen_height_px() : 1080;
+        const u32 screen_width = backend.drv ? backend.drv->screen_width_px() : 1920;
+        const u32 screen_height = backend.drv ? backend.drv->screen_height_px() : 1080;
 
-        auto* blt = new IntelBlt(dev);
-        if (!blt->init_device()) return -1;
+        // One device: owns BAR0 mapping and the single GGTT. Every engine
+        // constructed below borrows this same instance — neither owns it,
+        // neither owns the other.
+        device_ = new IntelGpuDevice(dev);
+        if (!device_->init()) {
+            Log::error("intel-blt: device init (BAR0/GGTT) failed");
+            delete device_;
+            device_ = nullptr;
+            return -1;
+        }
 
-        blt->start_device(screen_width, screen_height);
+        bcs_ = new IntelBcs(*device_);
+        if (!bcs_->init_device()) {
+            Log::error("intel-blt: BCS init failed");
+            delete bcs_;
+            bcs_ = nullptr;
+            delete device_;
+            device_ = nullptr;
+            return -1;
+        }
+       // bcs_->start_device(screen_width, screen_height);
 
-        driver_ = blt;
+        rcs_ = new IntelRcs(*device_);
+        if (!rcs_->init_device()) {
+            Log::warning("intel-blt: RCS init failed, continuing with BCS only");
+            delete rcs_;
+            rcs_ = nullptr;
+        }
 
-        const DisplayBackend be{driver_, driver_->get_kd()};
+        const DisplayBackend be{bcs_, bcs_->get_kd()};
         DisplayManager::set_primary(be);
 
         return 0;
@@ -146,13 +170,22 @@ namespace blt {
     void IntelBltPciDriver::remove(pci::pci_device& /*dev*/) {
         // IDK how this should happen, when you remove the iGPU you remove the processor, so how should this code even
         // be executed lol
-        if (driver_ != nullptr) {
-            delete driver_;
-            driver_ = nullptr;
+
+        if (rcs_ != nullptr) {
+            delete rcs_;
+            rcs_ = nullptr;
+        }
+        if (bcs_ != nullptr) {
+            delete bcs_;
+            bcs_ = nullptr;
+        }
+        if (device_ != nullptr) {
+            delete device_;
+            device_ = nullptr;
         }
     }
 
     static IntelBltPciDriver g_intel_blt_pci_driver;
-   // PCI_DRIVER_REGISTER(g_intel_blt_pci_driver);
+    PCI_DRIVER_REGISTER(g_intel_blt_pci_driver);
 
 }  // namespace blt
