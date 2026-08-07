@@ -37,6 +37,7 @@
 #include <vespera/time.h>
 #include <vespera/unit/unit_manager.h>
 #include <vespera/unit_config.h>
+#include <drivers/mmio_post_write.h>
 
 #include "blt_commands.h"
 #include "display_regs.h"
@@ -68,16 +69,21 @@ namespace blt {
         bcs_power_enable();
         if (!engine_reset()) return false;
 
-        irq_vector_ = device().allocate_irq_vector(reinterpret_cast<irq_handler_t>(bcs_irq_handler), this);
-        if (irq_vector_ == IntelGpuDevice::INVALID_VECTOR) {
-            Log::log_dbc("intel-bcs: MSI enable failed");
+        vblank_flag_.init();
+        completion_flag_.init(false);
+
+        if (!device().register_engine_for_irq(this)) {
+            Log::log_dbc("intel-bcs: failed to register for GT interrupts");
             return false;
         }
 
-        vblank_flag_.init();
-        completion_flag_.init(false);
         bcs_interrupts_enable();
-        de_interrupts_enable();
+
+        if (!device().register_de_pipe_a_handler(&IntelBcs::on_de_pipe_a_interrupt, this)) {
+            Log::log_dbc("intel-bcs: failed to register DE Pipe A handler");
+            return false;
+        }
+
         bcs_error_reporting_init();
 
         hwsp_alloc();
@@ -314,62 +320,18 @@ namespace blt {
     // IRQ
     // =========================================================================
 
-    Irqreturn IntelBcs::bcs_irq_handler(IntelBcs* self) {
-        auto master = self->mmio_read<MASTER_INT_CTL>(GEN8_MASTER_INT_CTL_OFFSET);
-        bool handled = false;
+    // GT0/BCS user-interrupt handling moved to IntelBcs::on_gt_user_interrupt()
+    // (called from IntelGpuDevice's shared GT0 dispatcher — see
+    // intel_engine.h / intel_gpu_device.cpp). Only the DE Pipe A half
+    // (vblank / flip-done, BCS-specific flip_pending_ state) remains here.
+    void IntelBcs::on_de_pipe_a_interrupt(void* ctx, bool vblank, bool plane1_flip_done) {
+        auto* self = static_cast<IntelBcs*>(ctx);
 
-        // ---- GT0 / BCS path ----
-        if (master.blitter_pending) {
-            auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(self->device().mmio_base() + GEN8_GT0_INTR_BASE);
-
-            GT0_IIR_REG pending{};
-            pending.raw = gt0->iir.raw;
-
-            if (pending.bits.user_irq) {
-                GT0_IIR_REG clear{};
-                clear.bits.user_irq = 1;
-                gt0->iir.raw = clear.raw;
-                MMIO_POST_WRITE(gt0->iir);
-
-                self->completion_flag_.set();
-                handled = true;
-            }
+        if ((vblank || plane1_flip_done) && self->flip_pending_) {
+            self->flip_pending_ = false;
+            self->device().de_pipe_a_disarm_vblank();
+            self->vblank_flag_.set();
         }
-
-        // ---- DE Pipe A path ----
-        if (master.de_pipe_a_pending) {
-            auto iir = self->mmio_read<DE_PIPE_IIR>(DE_PIPE_A_IIR);
-
-            if (iir.vblank || iir.plane1_flip_done) {
-                DE_PIPE_IIR clr{};
-                clr.vblank = iir.vblank;
-                clr.plane1_flip_done = iir.plane1_flip_done;
-                self->mmio_write(DE_PIPE_A_IIR, clr);
-                MMIO_POST_WRITE(clr);
-
-                if (self->flip_pending_) {
-                    self->flip_pending_ = false;
-
-                    auto imr = self->mmio_read<DE_PIPE_IMR>(DE_PIPE_A_IMR);
-                    imr.vblank = 1; // Mask (1 = OFF)
-                    self->mmio_write(DE_PIPE_A_IMR, imr);
-
-                    auto ier = self->mmio_read<DE_PIPE_IER>(DE_PIPE_A_IER);
-                    ier.vblank = 0; // Disable (0 = OFF)
-                    self->mmio_write(DE_PIPE_A_IER, ier);
-                    MMIO_POST_WRITE(ier);
-
-                    self->vblank_flag_.set();
-                }
-                handled = true;
-            }
-        }
-
-        master.master_enable = 1;
-        self->mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
-        MMIO_POST_WRITE(master);
-
-        return handled ? IRQ_HANDLED : IRQ_NONE;
     }
 
     // =========================================================================
@@ -386,9 +348,7 @@ namespace blt {
 
     void IntelBcs::bcs_interrupts_enable() const {
         volatile BCS_IMR_REG& ring_imr = bcs_regs_->imr;
-        auto* gt0 = reinterpret_cast<volatile GT_INTR_REGS*>(device().mmio_base() + GEN8_GT0_INTR_BASE);
 
-        // BCS local IMR — allow only MI_USER_INTERRUPT
         BCS_IMR_REG bcs_imr{};
         bcs_imr.bits.user_irq = 0;
         bcs_imr.bits.master_error = 1;
@@ -398,65 +358,6 @@ namespace blt {
         bcs_imr.bits.wait_sem = 1;
         ring_imr.raw = bcs_imr.raw;
         MMIO_POST_WRITE(ring_imr);
-
-        // Disable master routing during setup
-        MASTER_INT_CTL master{};
-        master.raw = 0;
-        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
-        MMIO_POST_WRITE(master);
-
-        // GT0 IMR — allow only BCS MI_USER_INTERRUPT
-        GT0_IMR_REG gt_imr{};
-        gt_imr.raw = 0xFFFFFFFFu;
-        gt_imr.bits.user_irq = 0;
-        gt0->imr.raw = gt_imr.raw;
-        MMIO_POST_WRITE(gt0->imr);
-
-        // Clear stale pending state
-        GT0_IIR_REG clear{};
-        clear.bits.user_irq = 1;
-        gt0->iir.raw = clear.raw;
-        MMIO_POST_WRITE(gt0->iir);
-
-        // Enable interrupt generation
-        GT0_IER_REG enable{};
-        enable.bits.user_irq = 1;
-        gt0->ier.raw = enable.raw;
-        MMIO_POST_WRITE(gt0->ier);
-
-        // Enable global GT routing
-        master.master_enable = 1;
-        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
-        MMIO_POST_WRITE(master);
-    }
-
-    void IntelBcs::de_interrupts_enable() const {
-        MASTER_INT_CTL master{};
-        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
-        MMIO_POST_WRITE(master);
-
-        DE_PIPE_IIR clr{};
-        clr.vblank = 1;
-        clr.plane1_flip_done = 1;
-        mmio_write(DE_PIPE_A_IIR, clr);
-        MMIO_POST_WRITE(clr);
-
-        DE_PIPE_IMR imr{};
-        imr.raw = 0xFFFF'FFFFu;
-        imr.vblank = 1;
-        imr.plane1_flip_done = 0;
-        mmio_write(DE_PIPE_A_IMR, imr);
-        MMIO_POST_WRITE(imr);
-
-        DE_PIPE_IER ier{};
-        ier.vblank = 0;
-        ier.plane1_flip_done = 1;
-        mmio_write(DE_PIPE_A_IER, ier);
-        MMIO_POST_WRITE(ier);
-
-        master.master_enable = 1;
-        mmio_write(GEN8_MASTER_INT_CTL_OFFSET, master);
-        MMIO_POST_WRITE(master);
     }
 
     void IntelBcs::bcs_error_reporting_init() const {
@@ -816,14 +717,7 @@ namespace blt {
         PLANE_SURF surf{};
         surf.set_address(static_cast<u32>(gfx_raw(fb_back_.gfx_addr)));
 
-        auto imr = mmio_read<DE_PIPE_IMR>(DE_PIPE_A_IMR);
-        imr.vblank = 0; // Unmask (0 = ON)
-        mmio_write(DE_PIPE_A_IMR, imr);
-
-        auto ier = mmio_read<DE_PIPE_IER>(DE_PIPE_A_IER);
-        ier.vblank = 1; // Enable (1 = ON)
-        mmio_write(DE_PIPE_A_IER, ier);
-        MMIO_POST_WRITE(ier);
+        device().de_pipe_a_arm_vblank_oneshot();
 
         flip_pending_ = true;
         asm volatile("mfence" ::: "memory");

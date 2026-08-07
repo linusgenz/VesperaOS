@@ -199,31 +199,4 @@ namespace blt {
         }
     }
 
-    bool IntelEngine::seqno_wait_poll(u32 target_seqno, u32 timeout_us) {
-        auto* hwsp = virt_as<volatile u32>(hwsp_cpu_addr_);
-        const volatile u32* seqno_ptr = &hwsp[HWSP_SEQNO_OFFSET_DWORDS];
-
-        asm volatile("lfence" ::: "memory");
-        if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) {
-            return true;
-        }
-
-        const u64 deadline_ms = kernel::time::get_uptime_ms() + (timeout_us + 999) / 1000;
-
-        while (true) {
-            asm volatile("lfence" ::: "memory");
-            if (static_cast<i32>(*seqno_ptr - target_seqno) >= 0) {
-                return true;
-            }
-
-            // Timeout Check
-            if (kernel::time::get_uptime_ms() >= deadline_ms) {
-                error_count_++;
-                return false;
-            }
-
-            asm volatile("pause" ::: "memory");
-        }
-    }
-
 }  // namespace blt

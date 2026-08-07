@@ -29,18 +29,6 @@ class XhciTransferRing;
 
 namespace usb {
 
-#define MMIO_POST_WRITE(reg)             \
-    do {                                 \
-        volatile u32 __tmp = (reg)->raw; \
-        (void)__tmp;                     \
-    } while (0)
-
-#define MMIO_POST_WRITE64(reg)           \
-    do {                                 \
-        volatile u64 __tmp = (reg)->raw; \
-        (void)__tmp;                     \
-    } while (0)
-
     class XhciDbcEventRing;
 
     /**

@@ -33,6 +33,7 @@
 #include "xhci_mem.h"
 #include "xhci_rings.h"
 #include "xhci_trb.h"
+#include "drivers/mmio_post_write.h"
 
 namespace usb {
 
@@ -208,7 +209,7 @@ namespace usb {
         reg.deq_ptr = phys >> 4;
 
         regs_->dcerdp.raw = reg.raw;
-        MMIO_POST_WRITE64(&regs_->dcerdp);
+        MMIO_POST_WRITE64_PTR(&regs_->dcerdp);
     }
 
     // ============================================================================
@@ -353,18 +354,18 @@ namespace usb {
 
         regs_->dcddi1.dbc_protocol = static_cast<u32>(dbc_protocol::VENDOR_DEFINED);
         regs_->dcddi1.vendor_id = DBC_VENDOR_ID;
-        MMIO_POST_WRITE(&regs_->dcddi1);
+        MMIO_POST_WRITE_PTR(&regs_->dcddi1);
 
         regs_->dcddi2.product_id = DBC_PRODUCT_ID;
         regs_->dcddi2.device_revision = DBC_DEVICE_REVISION;
-        MMIO_POST_WRITE(&regs_->dcddi2);
+        MMIO_POST_WRITE_PTR(&regs_->dcddi2);
 
         // Enable DbC
         // Per spec §7.6.4: set DCE after all other registers are programmed.
 
         regs_->dcctrl.dce = 1;
         regs_->dcctrl.lse = 1;  // generate Port Status Change Events on link status change
-        MMIO_POST_WRITE(&regs_->dcctrl);
+        MMIO_POST_WRITE_PTR(&regs_->dcctrl);
 
         return true;
     }
@@ -385,7 +386,7 @@ namespace usb {
                 portsc.plc = 1;
                 portsc.cec = 1;
                 regs_->dcportsc.raw = portsc.raw;
-                MMIO_POST_WRITE(&regs_->dcportsc);
+                MMIO_POST_WRITE_PTR(&regs_->dcportsc);
 
                 Log::debug("Port num: %u", regs_->dcst.port_num);
 
@@ -473,7 +474,7 @@ namespace usb {
             ctrl.raw = regs_->dcctrl.raw;
             ctrl.drc = 1;  // write-1-to-clear
             regs_->dcctrl.raw = ctrl.raw;
-            MMIO_POST_WRITE(&regs_->dcctrl);
+            MMIO_POST_WRITE_PTR(&regs_->dcctrl);
         }
 
         // Clear all RW1C status bits in DCPORTSC so that wait_for_reconnect()
@@ -485,7 +486,7 @@ namespace usb {
         portsc.plc = 1;
         portsc.cec = 1;
         regs_->dcportsc.raw = portsc.raw;
-        MMIO_POST_WRITE(&regs_->dcportsc);
+        MMIO_POST_WRITE_PTR(&regs_->dcportsc);
     }
 
     void XhciDbcPort::wait_for_reconnect() const {
@@ -511,7 +512,7 @@ namespace usb {
                 portsc.plc = 1;
                 portsc.cec = 1;
                 regs_->dcportsc.raw = portsc.raw;
-                MMIO_POST_WRITE(&regs_->dcportsc);
+                MMIO_POST_WRITE_PTR(&regs_->dcportsc);
 
                 Log::print_ln("xhci_dbc: debug host reconnected\n");
                 return;
@@ -575,7 +576,7 @@ namespace usb {
                 ctrl.drc = 1;
 
                 regs->dcctrl.raw = ctrl.raw;
-                MMIO_POST_WRITE(&regs->dcctrl);
+                MMIO_POST_WRITE_PTR(&regs->dcctrl);
             }
         }
 
@@ -614,7 +615,7 @@ namespace usb {
 
             // Ring IN doorbell — ep_in_target = 1 (target stream ID 1 for no-streams bulk).
             regs_->dcdb.db_target = DBC_DB_TARGET_OUT;
-            MMIO_POST_WRITE(&regs_->dcdb);
+            MMIO_POST_WRITE_PTR(&regs_->dcdb);
 
             // Poll event ring for a Transfer Event.
             xhci_trb_t event{};
@@ -665,7 +666,7 @@ namespace usb {
 
         // Ring OUT doorbell — ep_out_target = 0 (no streams).
         regs_->dcdb.db_target = DBC_DB_TARGET_IN;
-        MMIO_POST_WRITE(&regs_->dcdb);
+        MMIO_POST_WRITE_PTR(&regs_->dcdb);
 
         // Poll for a Transfer Event.
         xhci_trb_t event{};

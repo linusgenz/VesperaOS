@@ -33,8 +33,16 @@ namespace pci {
 
 namespace blt {
 
+    class IntelEngine;
+
     constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
     constexpr usize BAR0_SIZE = 16ull * 1024 * 1024;
+
+    /// Number of GT0-registered engines this device can dispatch interrupts
+    /// to. Fixed-size array rather than a dynamic container — the engine set
+    /// is known at compile time (RCS, BCS today; VCS/VECS later) and this
+    /// path runs from interrupt context, where allocation is off-limits.
+    constexpr usize MAX_GT_IRQ_ENGINES = 4;
 
     /**
      * @brief Descriptor for one Gen9 ForceWake power domain.
@@ -63,6 +71,15 @@ namespace blt {
      * constructed — every engine's constructor takes a reference to this and
      * borrows its MMIO base / GGTT via IntelEngine's protected accessors.
      * Neither engine owns this device, and neither engine owns the other.
+     *
+     * GT0 interrupt ownership: GT0_ISR/IMR/IIR/IER (MMIO 0x44300) is a
+     * SINGLE register group shared between RCS (bits [15:0]) and BCS (bits
+     * [31:16]) — see gt_interrupt_regs.h. Because it's one physical register
+     * two engines legitimately share, GT0 IMR/IER programming and the single
+     * MSI/MSI-X handler both live here rather than in either engine class:
+     * an engine-owned handler would either need to know about its sibling
+     * engine's bits (breaking the "neither engine owns the other" invariant
+     * above) or risk clobbering them via a naive full-register write.
      */
     class IntelGpuDevice {
        public:
@@ -98,15 +115,72 @@ namespace blt {
         [[nodiscard]] bool force_wake_enable(const ForceWakeDomain& domain) const;
 
         /// Lazily allocates one shared MSI/MSI-X vector for this device and
-        /// wires it up via try_enable_msi_or_msix().
+        /// wires it up via try_enable_msi_or_msix(). Exposed publicly for
+        /// non-GT0 interrupt sources (e.g. DE pipe / display); GT0-routed
+        /// engines should go through register_engine_for_irq() instead,
+        /// which calls this internally.
         [[nodiscard]] u8 allocate_irq_vector(irq_handler_t handler, void* ctx);
 
+        /// Registers `engine` to receive on_gt_user_interrupt() callbacks
+        /// whenever its gt_user_irq_bit() fires in GT0_IIR. Lazily installs
+        /// the shared device-level MSI vector and GT0 dispatcher on first
+        /// call (from any engine) — safe to call from every engine's
+        /// init_device(), regardless of order. Also unmasks/enables this
+        /// engine's own bit in GT0_IMR/IER via read-modify-write, leaving
+        /// any other already-registered engine's bit untouched, and ensures
+        /// MASTER_INT_CTL's global enable + GT routing bits are set without
+        /// disturbing any other subsystem's pending/enable bits (Display,
+        /// Audio, PCU, ...) that may already be live.
+        [[nodiscard]] bool register_engine_for_irq(IntelEngine* engine);
+
+        /// Registers a callback for DE Pipe A's vblank + plane-1-flip-done
+        /// interrupts (used by IntelBcs for present()/page-flip completion).
+        /// Lives here for the same reason GT0 does: MASTER_INT_CTL is a
+        /// single device-wide register, so whoever owns display flip timing
+        /// must not be the same code path that owns MASTER_INT_CTL's global
+        /// enable bit in isolation. `ctx` is passed back on every callback
+        /// invocation unchanged.
+        using DePipeAHandler = void (*)(void* ctx, bool vblank, bool plane1_flip_done);
+        [[nodiscard]] bool register_de_pipe_a_handler(DePipeAHandler handler, void* ctx);
+
+        /// Arms (unmasks + enables) DE Pipe A's vblank interrupt for exactly
+        /// one firing — mirrors the one-shot mask/disable IntelBcs already
+        /// does today when a flip completes. Call this right before issuing
+        /// a flip that needs a vblank wakeup.
+        void de_pipe_a_arm_vblank_oneshot() const;
+
+        /// Re-masks + disables DE Pipe A's vblank interrupt. Call this from
+        /// the DE Pipe A callback once the flip being waited on completes —
+        /// undoes de_pipe_a_arm_vblank_oneshot() so vblank stops firing
+        /// until the next flip explicitly re-arms it.
+        void de_pipe_a_disarm_vblank() const;
+
        private:
+        /// The single MSI/MSI-X handler installed for this device's GT0 +
+        /// DE Pipe A interrupts. Reads MASTER_INT_CTL once to see which
+        /// subsystem is pending, dispatches to the GT0 engine registry
+        /// and/or the DE Pipe A callback as appropriate, then re-arms
+        /// MASTER_INT_CTL's global enable bit without touching any other
+        /// subsystem's pending bits (those are RO and self-clear anyway).
+        static Irqreturn device_irq_handler(IntelGpuDevice* self);
+
+        /// Sets MASTER_INT_CTL.master_enable=1 via read-modify-write,
+        /// preserving whatever else is currently there. Safe to call
+        /// multiple times / from multiple subsystems — never zeroes the
+        /// register first the way the old per-engine init paths did.
+        void master_int_ctl_enable() const;
+
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
         pci::pci_id pci_id_;
         volatile u8* mmio_base_ = nullptr;
         GgttAllocator ggtt_alloc_;
         u8 irq_vector_ = INVALID_VECTOR;
+
+        IntelEngine* gt_irq_engines_[MAX_GT_IRQ_ENGINES] = {};
+        usize gt_irq_engine_count_ = 0;
+
+        DePipeAHandler de_pipe_a_handler_ = nullptr;
+        void* de_pipe_a_handler_ctx_ = nullptr;
     };
 
 }  // namespace blt

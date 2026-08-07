@@ -32,19 +32,11 @@
 
 #include "../gpu_blt_queue.h"
 #include "bcs_regs.h"
+#include "gt_interrupt_regs.h"
 #include "intel_engine.h"
 #include "intel_forcewake.h"
 
 struct KernelDevice;
-
-// =========================================================================
-// MMIO post-write barrier — forces a read-back to flush the write buffer.
-// =========================================================================
-#define MMIO_POST_WRITE(reg)            \
-    do {                                \
-        volatile u32 __tmp = (reg).raw; \
-        (void)__tmp;                    \
-    } while (0)
 
 namespace blt {
 
@@ -66,9 +58,6 @@ namespace blt {
     // =========================================================================
     // HWSP
     // =========================================================================
-    // NOTE: flagged during review — verify this against PPHWSP_LAYOUT (PRM
-    // Vol 2d, p.445) before relying on it for anything beyond the existing
-    // BCS MI_FLUSH_DW fence mechanism it was written for.
     constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
 
     // =========================================================================
@@ -168,6 +157,16 @@ namespace blt {
             return kd_;
         }
 
+        // IntelEngine hooks — see intel_engine.h. Registered with
+        // IntelGpuDevice's shared GT0 dispatcher in init_device() via
+        // device().register_engine_for_irq(this).
+        [[nodiscard]] u32 gt_user_irq_bit() const override {
+            return GT0_BCS_USER_IRQ_BIT;
+        }
+        void on_gt_user_interrupt() override {
+            completion_flag_.set();
+        }
+
        private:
         static constexpr u32 RING_SPACE_FOR_FILL = 12 * 4 + 64;
         static constexpr u32 RING_SPACE_FOR_BLIT = 30 * 4 + 64;
@@ -186,7 +185,6 @@ namespace blt {
         volatile BCS_REGS* bcs_regs_ = nullptr;
 
         KernelDevice* kd_ = nullptr;
-        u8 irq_vector_ = IntelGpuDevice::INVALID_VECTOR;
 
         u32 last_head_ = 0;
         u32 hang_counter_ = 0;
@@ -227,7 +225,6 @@ namespace blt {
         // HW init / power
         void bcs_power_enable() const;
         void bcs_interrupts_enable() const;
-        void de_interrupts_enable() const;
         void bcs_error_reporting_init() const;
         bool bcs_emergency_reset();
         void gpu_health_check();
@@ -240,7 +237,13 @@ namespace blt {
 
         [[nodiscard]] bool validate_rect(const BltRect& rect) const;
 
-        static Irqreturn bcs_irq_handler(IntelBcs* self);
+        /// Callback registered with device().register_de_pipe_a_handler().
+        /// Replaces the DE-Pipe-A half of the old bcs_irq_handler — vblank
+        /// and plane-1-flip-done are still IntelBcs' business (flip_pending_
+        /// state, vblank_flag_), just invoked from IntelGpuDevice's shared
+        /// dispatcher now instead of from a BCS-owned MSI handler.
+        static void on_de_pipe_a_interrupt(void* ctx, bool vblank, bool plane1_flip_done);
+
         static u32 tile_mode_to_tiling(TileMode mode);
     };
 

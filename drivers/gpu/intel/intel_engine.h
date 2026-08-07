@@ -28,16 +28,8 @@
 #include "intel_engine_types.h"
 #include "intel_gpu_device.h"
 
-namespace blt {
-    // =========================================================================
-    // Ring-buffer / HWSP register layout — identical across all command
-    // streamers (RCS/BCS/VCS/VECS) relative to *their own* engine MMIO base.
-    // Confirmed in PRM Vol 6 "Scheduling / RINGBUF": every engine exposes
-    // RING_BUFFER_TAIL/HEAD/START/CTL and HWS_PGA/HWSTAM at the same relative
-    // offsets. The struct definitions themselves live in bcs_regs.h (kept
-    // there for now to avoid a churn-only rename) but are engine-generic.
-    // =========================================================================
 
+namespace blt {
     constexpr u32 ENGINE_RING_TAIL_OFF = 0x30;
     constexpr u32 ENGINE_RING_HEAD_OFF = 0x34;
     constexpr u32 ENGINE_RING_START_OFF = 0x38;
@@ -52,9 +44,7 @@ namespace blt {
      *        command-streamer engine.
      *
      * Does NOT own the device — every engine borrows the same
-     * IntelGpuDevice for MMIO base and GGTT. Nither engineowns
-     * the other's resources, both reference the same
-     * device instance handed in by the PCI driver.
+     * IntelGpuDevice for MMIO base and GGTT.
      */
     class IntelEngine {
     public:
@@ -69,6 +59,15 @@ namespace blt {
         /// MMIO registers.
         [[nodiscard]] bool engine_force_wake_enable() const {
             return device_.force_wake_enable(fw_domain_);
+        }
+
+        /// This engine's bit position within the shared GT0 interrupt
+        /// register group (GT0_ISR/IMR/IIR/IER, MMIO 0x44300).
+        [[nodiscard]] virtual u32 gt_user_irq_bit() const = 0;
+
+        /// Called by IntelGpuDevice's shared IRQ dispatcher when this
+        /// engine's bit is set in GT0_IIR.
+        virtual void on_gt_user_interrupt() {
         }
 
     protected:
@@ -135,7 +134,6 @@ namespace blt {
         void hwsp_alloc();
         u32 seqno_next();
         bool seqno_wait(u32 target_seqno, u32 timeout_us, AtomicFlag& completion_flag);
-        bool seqno_wait_poll(u32 target_seqno, u32 timeout_us);
 
         gfx_addr_t ring_gfx_addr_{};
         virt_addr_t ring_cpu_addr_{};

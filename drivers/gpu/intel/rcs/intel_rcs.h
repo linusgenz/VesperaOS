@@ -70,11 +70,15 @@ namespace blt {
     private:
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
+        u32 gt_user_irq_bit() const override;
+        void on_gt_user_interrupt() override;
+        void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno);
-        void debug_dump_hwsp_changes(u32 target_seqno, u32 duration_ms);
 
         virt_addr_t state_base_cpu_addr_{};
         gfx_addr_t state_base_gfx_addr_{};
+
+        AtomicFlag completion_flag_{};
 
         static constexpr u32 STATE_BASE_PAGES = 4;
     };

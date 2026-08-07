@@ -138,6 +138,6 @@ namespace usb {
     }
 
     static XhciPciDriver g_xhci_pci_driver;
-    PCI_DRIVER_REGISTER(g_xhci_pci_driver);
+   // PCI_DRIVER_REGISTER(g_xhci_pci_driver);
 
 } // namespace usb

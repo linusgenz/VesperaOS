@@ -29,35 +29,75 @@
 
 // ============================================================================
 // Gen8+ / KBL GT Interrupt Registers
-// IHD-OS-KBL-Vol 2c — GT Interrupt 0 (0x44300)
+// Reference: IHD-OS-KBL-Vol 2c — GT Interrupt 0 (0x44300)
 //
-// The GT0 register group covers RCS (bits [15:0]) and BCS (bits [31:16]).
-// Bit positions [31:16] map 1:1 to BCS_ICR_BITS — the lower 16 bits carry
-// the RCS half which is unused by this driver (MBZ / ignored on reads).
+// The GT0 interrupt register set manages hardware interrupt signals for both
+// the Render Command Streamer (RCS) and Blitter Command Streamer (BCS) within
+// a single 32-bit register word:
+//   - Bits [15:0]  : RCS Interrupt Control/Status flags (RCS_ICR_BITS)
+//   - Bits [31:16] : BCS Interrupt Control/Status flags (BCS_ICR_BITS)
 //
-// Layout per group:  +0 = ISR,  +4 = IMR,  +8 = IIR,  +C = IER
-// Base addresses:    GT0 = 0x44300,  GT1 = 0x44310,  GT2 = 0x44320,  GT3 = 0x44330
+// Register Layout per Group (16 bytes):
+//   +0x0 : ISR (Interrupt Status Register)
+//   +0x4 : IMR (Interrupt Mask Register)
+//   +0x8 : IIR (Interrupt Identity Register)
+//   +0xC : IER (Interrupt Enable Register)
+//
+// MMIO Base Addresses:
+//   GT0 = 0x44300 | GT1 = 0x44310 | GT2 = 0x44320 | GT3 = 0x44330
 // ============================================================================
 
+/// RCS' MI_USER_INTERRUPT bit (RCS_ICR_BITS.user_irq, bit 0). NOT what this
+/// driver uses for RCS completion — RCS signals via PIPE_CONTROL's Notify
+/// Enable, which fires bit 4 instead (see GT0_RCS_PIPE_CONTROL_NOTIFY_BIT).
+/// Only relevant if RCS ever emits an explicit MI_USER_INTERRUPT.
+constexpr u32 GT0_RCS_USER_IRQ_BIT = 0;
+
+/// RCS' PIPE_CONTROL Notify Interrupt bit (RCS_ICR_BITS.pipe_control_notify,
+/// bit 4). This is what this driver actually unmasks/enables for RCS
+/// completion — triggered by PIPE_CONTROL.notify_enable (PRM Vol 2a DWord 1
+/// bit 8, a different bit-numbering space — same GT0 register, unrelated
+/// bit index).
+constexpr u32 GT0_RCS_PIPE_CONTROL_NOTIFY_BIT = 4;
+
+/// BCS' MI_USER_INTERRUPT bit (BCS_ICR_BITS.user_irq, bit 16). This IS what
+/// this driver uses for BCS completion — BCS emits MI_USER_INTERRUPT
+/// directly (see IntelBcs::emit_mi_flush).
+constexpr u32 GT0_BCS_USER_IRQ_BIT = 16;
+/**
+ * @brief Combined 32-bit layout for GT0 Interrupt Registers containing both RCS and BCS.
+ */
+union GT0_ICR_BITS {
+    RCS_ICR_BITS rcs; ///< Bits [15:0]  : Render CS interrupts
+    BCS_ICR_BITS bcs; ///< Bits [31:16] : Blitter CS interrupts
+} __attribute__((packed));
+
+static_assert(sizeof(GT0_ICR_BITS) == 4, "GT0_ICR_BITS must be exactly 32 bits");
+
 union GT0_ISR_REG {
-    BCS_ICR_BITS bits;
+    GT0_ICR_BITS bits;
     u32 raw;
 };
 
 union GT0_IMR_REG {
-    BCS_ICR_BITS bits;
+    GT0_ICR_BITS bits;
     u32 raw;
 };
 
 union GT0_IIR_REG {
-    BCS_ICR_BITS bits;
+    GT0_ICR_BITS bits;
     u32 raw;
 };
 
 union GT0_IER_REG {
-    BCS_ICR_BITS bits;
+    GT0_ICR_BITS bits;
     u32 raw;
 };
+
+static_assert(sizeof(GT0_ISR_REG) == 4);
+static_assert(sizeof(GT0_IMR_REG) == 4);
+static_assert(sizeof(GT0_IIR_REG) == 4);
+static_assert(sizeof(GT0_IER_REG) == 4);
 
 /**
  * @brief One GT interrupt register group mapped directly onto MMIO.

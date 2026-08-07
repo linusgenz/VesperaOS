@@ -26,9 +26,9 @@
 #include "cmd_pipe_control.h"
 
 #include <vespera/log.h>
-#include <vespera/time.h>
 
-#include "gpu/intel/gt_reset_regs.h"
+#include "drivers/mmio_post_write.h"
+#include "gpu/intel/gt_interrupt_regs.h"
 #include "gpu/intel/intel_bcs.h"
 #include "klib/string.h"
 #include "vespera/mm/memory.h"
@@ -46,7 +46,7 @@ namespace blt {
 
     bool IntelRcs::init_device() {
         if (!engine_force_wake_enable()) {
-            Log::log_dbc("intel-rcs: ForceWake timeout");
+            Log::info("intel-rcs: ForceWake timeout");
             return false;
         }
 
@@ -59,6 +59,15 @@ namespace blt {
         HWSTAM_REG stam{};
         stam.raw = 0xFFFFFFFFu;
         engine_reg_write(ENGINE_HWSTAM_OFF, stam);
+
+        completion_flag_.init(false);
+
+        rcs_interrupts_enable();
+
+        if (!device().register_engine_for_irq(this)) {
+            Log::info("intel-rcs: failed to register for GT interrupts");
+            return false;
+        }
 
         Log::info("intel-rcs: ring + HWSP initialized (legacy ring-buffer mode, Milestone 1)");
 
@@ -73,12 +82,12 @@ namespace blt {
         // STATE_BASE_ADDRESS (Milestone 2, steps 1-2) — still no drawing yet.
 
         if (!select_pipeline(PIPELINE_SELECT::PIPELINE_3D)) {
-            Log::log_dbc("intel-rcs: pipeline select failed");
+            Log::info("intel-rcs: pipeline select failed");
             return false;
         }
 
         if (!state_base_address_setup()) {
-            Log::log_dbc("intel-rcs: STATE_BASE_ADDRESS setup failed");
+            Log::info("intel-rcs: STATE_BASE_ADDRESS setup failed");
             return false;
         }
 
@@ -87,13 +96,25 @@ namespace blt {
         return true;
     }
 
+    void IntelRcs::rcs_interrupts_enable() const {
+        volatile RCS_IMR_REG& imr = *reinterpret_cast<volatile RCS_IMR_REG*>(engine_regs() + RCS_IMR_OFF);
+
+        RCS_IMR_REG rcs_imr{};
+        rcs_imr.bits.user_irq = 1;
+        rcs_imr.bits.pipe_control_notify = 0;
+        rcs_imr.bits.master_error = 0;
+        rcs_imr.bits.timeout = 1;
+        rcs_imr.bits.page_fault = 0;
+        rcs_imr.bits.ctx_switch = 1;
+        rcs_imr.bits.invalid_tile = 1;
+        rcs_imr.bits.l3_counter = 1;
+        rcs_imr.bits.wait_sem = 1;
+        imr.raw = rcs_imr.raw;
+        MMIO_POST_WRITE(rcs_imr);
+    }
+
+
     bool IntelRcs::select_pipeline(PIPELINE_SELECT::PipelineSelection mode) {
-        // Per Vol 2a spec: before PIPELINE_SELECT can change modes, all write
-        // caches must be flushed via a stalling PIPE_CONTROL, followed by a
-        // second PIPE_CONTROL to invalidate read-only caches. On this very
-        // first pipeline select (device fresh out of ForceWake) there is no
-        // prior pipeline state to flush, so we skip the PIPE_CONTROL pair
-        // here. Any future re-selection (3D <-> Media/GPGPU) MUST NOT skip it.
         const PIPELINE_SELECT cmd = PIPELINE_SELECT::create(mode);
         ring_write_cmd(cmd);
         const u32 target_seqno = seqno_next();
@@ -101,13 +122,9 @@ namespace blt {
 
         ring_flush();
 
-        // bool res = seqno_wait_poll(target_seqno, 5'000'000);
-        debug_dump_hwsp_changes(target_seqno, 5'000);
-        Log::debug("select_pipeline debug");
-        //Log::debug("polling status: %s", res ? "success" : "timeouted");
-
-        return true;
+        return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }
+
 
     bool IntelRcs::state_base_address_setup() {
         // Legacy ring-buffer bring-up (no PPGTT): every base address below
@@ -139,12 +156,19 @@ namespace blt {
 
         ring_flush();
 
-        debug_dump_hwsp_changes(target_seqno, 5'000);
-        //Log::debug("polling status: %s", res ? "success" : "timeouted");
+        const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
 
         Log::info("intel-rcs: STATE_BASE_ADDRESS base GFX=0x%llx (%u pages)", base, STATE_BASE_PAGES);
 
-        return true;
+        return ok;
+    }
+
+    u32 IntelRcs::gt_user_irq_bit() const {
+        return GT0_RCS_PIPE_CONTROL_NOTIFY_BIT;
+    }
+
+    void IntelRcs::on_gt_user_interrupt() {
+        completion_flag_.set();
     }
 
     void IntelRcs::emit_flush(u32 seqno) {
@@ -167,13 +191,11 @@ namespace blt {
         // inv_cmd.vf_cache_invalidation_enable = 1;        // Vertex Fetch Cache
         inv_cmd.tlb_invalidate = 1; // Render Engine TLBs
 
-        // Seqno in den HWSP (Hardware Status Page) schreiben als Post-Sync Operation
-        // HWSP_SEQNO_OFFSET ist 4-Byte aligned, Destination Address muss 8-Byte aligned (Shift >> 3) sein,
-        // sofern store_data_index=1 genutzt wird, steuert es den Offset in die HWSP.
-        inv_cmd.store_data_index = 1;
-        inv_cmd.set_write_immediate(HWSP_SEQNO_OFFSET, seqno, /* use_ggtt */ true);
+        const u64 hwsp_seqno_addr = gfx_raw(hwsp_gfx_addr_) + HWSP_SEQNO_OFFSET;
+        inv_cmd.store_data_index = 0; // Wir übergeben jetzt eine volle Adresse, kein Page-Index mehr
+        inv_cmd.set_write_immediate(hwsp_seqno_addr, seqno, /* use_ggtt */ true);
 
-        //inv_cmd.notify_enable = 1;
+        inv_cmd.notify_enable = 1;
 
         ring_write_cmd(inv_cmd);
 
@@ -181,65 +203,5 @@ namespace blt {
         ui.opcode = OPCODE_MI_USER_INTERRUPT;
         ui.client = CLIENT_MI;
         ring_write_cmd(ui);*/
-    }
-
-    void IntelRcs::debug_dump_hwsp_changes(u32 target_seqno, u32 duration_ms) {
-        Log::debug("debug_dump_hwsp_changes");
-        constexpr size_t HWSP_DWORDS = PAGE_SIZE / sizeof(u32); // 1024 DWords (4KB)
-        Log::debug("HWSP_DWORDS: %ld", HWSP_DWORDS);
-        Log::debug("hwsp cpu addr: %p", hwsp_cpu_addr_.ptr);
-        auto* hwsp = virt_as<u32>(hwsp_cpu_addr_);
-        Log::debug("hwsp: %p", hwsp);
-
-        if (!hwsp) {
-            Log::info("intel-rcs: HWSP cpu_addr is nullptr!");
-            return;
-        }
-
-        // 1. Snapshot der gesamten Page vor dem Flush/Wait anlegen
-        u32 snapshot[HWSP_DWORDS];
-        for (size_t i = 0; i < HWSP_DWORDS; ++i) {
-            snapshot[i] = (hwsp[i]);
-        }
-
-        Log::info("=== HWSP DEBUG MONITOR START (Target Seqno: %u) ===", target_seqno);
-        Log::info("HWSP CPU Addr: %p | Expected Offset DW[%u] (Byte 0x%x)",
-                  hwsp, HWSP_SEQNO_OFFSET_DWORDS, HWSP_SEQNO_OFFSET);
-
-        // 2. Zeitfenster beobachten und Veränderungen in Echtzeit protokollieren
-        const u64 start_time = kernel::time::get_uptime_ms();
-        u32 detected_changes = 0;
-
-        while (kernel::time::get_uptime_ms() - start_time < duration_ms) {
-            asm volatile("lfence" ::: "memory");
-
-            for (size_t i = 0; i < HWSP_DWORDS; ++i) {
-                u32 current_val = hwsp[i];
-                if (current_val != snapshot[i]) {
-                    Log::info("-> [HWSP CHANGE] Index DW[%4zu] (Offset 0x%03zx): 0x%08x -> 0x%08x",
-                              i, i * sizeof(u32), snapshot[i], current_val);
-                    snapshot[i] = current_val; // Snapshot aktualisieren
-                    detected_changes++;
-                }
-            }
-            asm volatile("pause" ::: "memory");
-        }
-
-        Log::info("=== HWSP MONITOR END: %u change(s) detected ===", detected_changes);
-
-        // 3. Wenn gar nichts geschrieben wurde: Vollständigen Dump aller Nicht-Null-Werte ausgeben
-        if (detected_changes == 0) {
-            Log::warning("=== FULL HWSP NON-ZERO DUMP ===");
-            bool header_printed = false;
-            for (size_t i = 0; i < HWSP_DWORDS; ++i) {
-                if (hwsp[i] != 0) {
-                    Log::warning("  DW[%4zu] (Offset 0x%03zx): 0x%08x", i, i * sizeof(u32), hwsp[i]);
-                    header_printed = true;
-                }
-            }
-            if (!header_printed) {
-                Log::warning("  (Entire HWSP page is completely ZERO)");
-            }
-        }
     }
 } // namespace blt

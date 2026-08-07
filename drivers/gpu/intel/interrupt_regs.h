@@ -126,6 +126,23 @@ union BCS_IMR_REG {
     u32 raw;
 };
 
+/**
+ * @brief RCS Interrupt Mask Register (IMR).
+ *
+ * Controls which interrupt sources are forwarded to the GT interrupt path.
+ *
+ * @note 1 = masked (suppressed); 0 = unmasked (forwarded).
+ * @note Default reset value = 0xFFFFFFFF (all masked).
+ * @note Write the full desired value directly; do NOT use |= on MMIO.
+ *
+ * MMIO: 0x20A8 (RCS_IMR)
+ */
+union RCS_IMR_REG {
+    RCS_ICR_BITS bits;
+    u32 raw;
+};
+
+constexpr u32 RCS_IMR_OFF = 0xA8;
 
 // ============================================================================
 // Master Interrupt Control
