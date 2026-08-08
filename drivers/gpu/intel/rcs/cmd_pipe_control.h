@@ -25,6 +25,8 @@
 
 #include <vespera/types.h>
 
+#include "cmd_common.h"
+
 /**
  * @brief PIPE_CONTROL Command.
  *
@@ -106,7 +108,7 @@ union PIPE_CONTROL {
         PIPE_CONTROL cmd{};
         cmd.dword_length = 0x4; // 6 DWords total - 2 = 4
         cmd.sub_opcode   = 0x00; // PIPE_CONTROL
-        cmd.opcode       = 0x2;  // 3D_CONTROL
+        cmd.opcode       = OPCODE_3DCONTROL;
         cmd.sub_type     = 0x3;  // GFXPIPE_3D
         cmd.type         = 0x3;  // GFXPIPE
         return cmd;

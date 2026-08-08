@@ -25,6 +25,8 @@
 
 #include <vespera/types.h>
 
+#include "cmd_scissor.h"
+
 /**
  * @brief Pipeline Select Instruction (PIPELINE_SELECT).
  *
@@ -46,18 +48,6 @@ union PIPELINE_SELECT {
         PIPELINE_3D = 0b00,      ///< 3D pipeline selected
         PIPELINE_MEDIA = 0b01,   ///< Media pipeline selected
         PIPELINE_GPGPU = 0b10,   ///< GPGPU pipeline selected
-    };
-
-    enum CommandType : u32 {
-        CMD_GFXPIPE = 0x3,
-    };
-
-    enum CommandSubType : u32 {
-        GFXPIPE_SINGLE_DW = 0x1,
-    };
-
-    enum CommandOpcode : u32 {
-        GFXPIPE_NONPIPELINED = 0x1,
     };
 
     enum CommandSubOpcode : u32 {
@@ -97,7 +87,7 @@ union PIPELINE_SELECT {
         PIPELINE_SELECT cmd{};
         cmd.command_type = CMD_GFXPIPE;
         cmd.sub_type = GFXPIPE_SINGLE_DW;
-        cmd.opcode = GFXPIPE_NONPIPELINED;
+        cmd.opcode = OPCODE_SINGLE_DW_NONPIPELINED;
         cmd.sub_opcode = SUBOP_PIPELINE_SELECT;
         cmd.pipeline_selection = select;
         cmd.mask_bits = MASK_PIPELINE_SELECT;
