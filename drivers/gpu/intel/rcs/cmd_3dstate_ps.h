@@ -220,6 +220,91 @@ union STATE_PS {
 
 static_assert(sizeof(STATE_PS) == 48, "STATE_PS must be 12 DWords (48 bytes)");
 
+
+/**
+ * @brief 3DSTATE_PS_EXTRA command (2 DWords).
+ *
+ * Configures additional Pixel Shader pipeline state including UAV binding,
+ * input coverage mask state, barycentric pull, depth computation mode, and
+ * alpha-to-coverage settings.
+ * Lives directly in the command stream.
+ *
+ * IMPORTANT — C++ bitfield declaration order determines actual bit
+ * placement, NOT the doc comments. Every field below is declared
+ * LSB-first within its DWord to match the PRM's bit numbering.
+ *
+ * @see IHD-OS-KBL-Vol 2a-1.17, pp. 155-157 (3DSTATE_PS_EXTRA)
+ */
+union STATE_PS_EXTRA {
+    enum CommandSubOpcode : u32 { SUBOP_3DSTATE_PS_EXTRA = 0x4F };
+
+    enum InputCoverageMaskState : u32 {
+        INPUT_COVERAGE_NONE               = 0x0,
+        INPUT_COVERAGE_NORMAL             = 0x1,
+        INPUT_COVERAGE_INNER_CONSERVATIVE = 0x2,
+        INPUT_COVERAGE_DEPTH_COVERAGE     = 0x3,
+    };
+
+    enum ComputedDepthMode : u32 {
+        PSCDEPTH_OFF   = 0x0,  ///< Pixel shader does not compute depth
+        PSCDEPTH_ON    = 0x1,  ///< Pixel shader computes depth (no value guarantee)
+        PSCDEPTH_ON_GE = 0x2,  ///< Pixel shader computes depth and guarantees oDepth >= SourceDepth
+        PSCDEPTH_ON_LE = 0x3,  ///< Pixel shader computes depth and guarantees oDepth <= SourceDepth
+    };
+
+    struct {
+        // ====================================================================
+        // DWord 0
+        // ====================================================================
+        u32 dword_length : 8;    ///< [7:0]   Default: 0x0, Total Length - 2
+        u32 reserved0_8 : 8;     ///< [15:8]  MBZ
+        u32 sub_opcode : 8;      ///< [23:16] Default: 0x4F (3DSTATE_PS_EXTRA)
+        u32 opcode : 3;          ///< [26:24] Default: 0x0 (3DSTATE_PIPELINED)
+        u32 sub_type : 2;        ///< [28:27] Default: 0x3 (GFXPIPE_3D)
+        u32 command_type : 3;    ///< [31:29] Default: 0x3 (GFXPIPE)
+
+        // ====================================================================
+        // DWord 1
+        // ====================================================================
+        u32 input_coverage_mask_state : 2;               ///< [1:0]   InputCoverageMaskState enum
+        u32 pixel_shader_has_uav : 1;                    ///< [2]     1 = UAV attached
+        u32 pixel_shader_pulls_bary : 1;                 ///< [3]     1 = Pull Bary (PI message) enabled
+        u32 reserved1_4 : 1;                             ///< [4]     MBZ
+        u32 pixel_shader_computes_stencil : 1;           ///< [5]     1 = Computes stencil reference value
+        u32 pixel_shader_is_per_sample : 1;              ///< [6]     1 = Dispatched at per-sample rate
+        u32 pixel_shader_disables_alpha_to_coverage : 1; ///< [7]     1 = Disable AlphaToCoverage due to oMask
+        u32 attribute_enable : 1;                        ///< [8]     Must match non-zero SBE attributes
+        u32 reserved1_9 : 14;                            ///< [22:9]  MBZ (PRM bits 9, 10, 11:16, 17, 18:21, 22)
+        u32 pixel_shader_uses_source_w : 1;              ///< [23]    1 = Requires vPos.w payload
+        u32 pixel_shader_uses_source_depth : 1;          ///< [24]    1 = Requires vPos.z payload
+        u32 force_computed_depth : 1;                    ///< [25]    Leave disabled
+        u32 pixel_shader_computed_depth_mode : 2;        ///< [27:26] ComputedDepthMode enum
+        u32 pixel_shader_kills_pixel : 1;                ///< [28]    1 = Has killpix/discard capability
+        u32 omask_present_to_render_target : 1;          ///< [29]    1 = oMask included in RT Write
+        u32 pixel_shader_does_not_write_to_rt : 1;       ///< [30]    1 = Does not write to render target
+        u32 pixel_shader_valid : 1;                      ///< [31]    1 = Valid pixel shader present
+    } __attribute__((packed));
+
+    u32 raw[2];
+
+    /**
+     * @brief Creates a default-initialized 3DSTATE_PS_EXTRA command.
+     * The Pixel Shader Valid field also gets setup to 1.
+     */
+    [[nodiscard]] static constexpr STATE_PS_EXTRA create() {
+        STATE_PS_EXTRA cmd{};
+        cmd.dword_length = 0x0; // 2 DWords total - 2 = 0
+        cmd.sub_opcode   = SUBOP_3DSTATE_PS_EXTRA;
+        cmd.opcode       = OPCODE_3DSTATE_PIPELINED;
+        cmd.sub_type     = GFXPIPE_3D;
+        cmd.command_type = CMD_GFXPIPE;
+        cmd.pixel_shader_valid = 1;
+        return cmd;
+    }
+};
+
+static_assert(sizeof(STATE_PS_EXTRA) == 8, "STATE_PS_EXTRA must be 2 DWords (8 bytes)");
+
 #endif  // VESPERAOS_CMD_3DSTATE_PS_H
 
 

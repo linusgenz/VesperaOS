@@ -116,8 +116,6 @@ union STATE_BINDING_TABLE_POINTERS {
         return cmd;
     }
 
-    // --- Convenience constructors for all programmable stages ---
-
     [[nodiscard]] static constexpr STATE_BINDING_TABLE_POINTERS create_vs() {
         return create_generic(SUBOP_3DSTATE_BINDING_TABLE_POINTERS_VS);
     }

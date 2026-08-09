@@ -1,0 +1,101 @@
+// gen9_kernels.h
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Auto-extracted from INTEL_DEBUG=vs,fs,nocompact on real Gen9 hardware
+// via red_triangle.c (Mesa Iris backend, Kaby Lake / Gen9.5).
+//
+// DO NOT HAND-EDIT. Regenerate by running:
+//   INTEL_DEBUG=vs,fs,nocompact,hex ./red_triangle 2> kernel_dump.txt
+// and re-running the extraction script.
+//
+// Kernels:
+//   VS  SIMD8  10 instr — passthrough pos (xyz) from vertex buffer, w = 1.0
+//   FS  SIMD8   5 instr — constant output: R=1.0 G=0.0 B=0.0 A=1.0 (red)
+//   FS  SIMD16  5 instr — same shader, wider SIMD dispatch
+
+#ifndef VESPERAOS_GEN9_KERNELS_H
+#define VESPERAOS_GEN9_KERNELS_H
+
+#include <vespera/types.h>
+
+// ============================================================
+// Vertex Shader — SIMD8, 10 instructions, 160 bytes
+//
+// Input:  g2/g3/g4 = vec3 pos from vertex fetch (x, y, z)
+// Output: URB slots 0..1 (PointSize=0, gl_Position=vec4(x,y,z,1))
+// Sends:  URB write, offset=0, SIMD8, mlen=1 ex_mlen=8, EOT
+// ============================================================
+// 160 bytes, 40 DWords, 20 instructions (each instr = 2 DWords on Gen9)
+static const u32 gen9_vs_kernel[] = {
+    // mov(8)  g126 = g1        (header: copy r0 descriptor)
+    0x00600001u, 0x2fc0020cu, 0x008d0020u, 0x00000000u,
+    // mov(8)  g118 = 0D        (URB output slot 0: PointSize = 0)
+    0x00600001u, 0x2ec00e28u, 0x08000000u, 0x00000000u,
+    // mov(8)  g119 = 0D
+    0x00600001u, 0x2ee00e28u, 0x08000000u, 0x00000000u,
+    // mov(8)  g120 = 0D
+    0x00600001u, 0x2f000e28u, 0x08000000u, 0x00000000u,
+    // mov(8)  g121 = 0D
+    0x00600001u, 0x2f200e28u, 0x08000000u, 0x00000000u,
+    // mov(8)  g122 = g2        (gl_Position.x from vertex fetch)
+    0x00600001u, 0x2f400a28u, 0x008d0040u, 0x00000000u,
+    // mov(8)  g123 = g3        (gl_Position.y)
+    0x00600001u, 0x2f600a28u, 0x008d0060u, 0x00000000u,
+    // mov(8)  g124 = g4        (gl_Position.z)
+    0x00600001u, 0x2f800a28u, 0x008d0080u, 0x00000000u,
+    // mov(8)  g125 = 1.0f      (gl_Position.w = 1.0)
+    0x00600001u, 0x2fa00e28u, 0x08000000u, 0x3f800000u,
+    // sends(8) null g126 g118  URB write offset=0 SIMD8 mlen=1 ex_mlen=8 EOT
+    0x06600033u, 0x00076010u, 0x00000fc8u, 0x82080007u,
+};
+static const usize gen9_vs_kernel_size = sizeof(gen9_vs_kernel);
+
+// ============================================================
+// Fragment Shader — SIMD8, 5 instructions, 80 bytes
+//
+// Output: RGBA = (1.0, 0.0, 0.0, 1.0) — solid red
+//   g126 = R = 1.0   (render target channel 0)
+//   g123 = G = 0.0
+//   g124 = B = 0.0
+//   g125 = A = 1.0
+// Sends:  RT write SIMD8, LastRT, Surface=0, mlen=1 ex_mlen=3, EOT
+//
+// Use this when 3DSTATE_PS dispatches SIMD8 (KernelStartPointer0).
+// ============================================================
+// 80 bytes, 20 DWords, 10 instructions (each instr = 2 DWords on Gen9)
+static const u32 gen9_ps_kernel_simd8[] = {
+    // mov(8)  g126 = 1.0f      (R)
+    0x00600001u, 0x2fc03ee8u, 0x38000000u, 0x3f800000u,
+    // mov(8)  g123 = 0.0f      (G)
+    0x00600001u, 0x2f603ee8u, 0x38000000u, 0x00000000u,
+    // mov(8)  g124 = 0.0f      (B)
+    0x00600001u, 0x2f803ee8u, 0x38000000u, 0x00000000u,
+    // mov(8)  g125 = 1.0f      (A)
+    0x00600001u, 0x2fa03ee8u, 0x38000000u, 0x3f800000u,
+    // sendsc(8) null g126 g123  RT write SIMD8 LastRT Surface=0 mlen=1 ex_mlen=3 EOT
+    0x05600034u, 0x0007b010u, 0x00000fc3u, 0x82031400u,
+};
+static const usize gen9_ps_kernel_simd8_size = sizeof(gen9_ps_kernel_simd8);
+
+// ============================================================
+// Fragment Shader — SIMD16, 5 instructions, 80 bytes
+//
+// Same output as SIMD8 variant (solid red), wider dispatch.
+// Use this when 3DSTATE_PS dispatches SIMD16 (KernelStartPointer2).
+// ============================================================
+// 80 bytes, 20 DWords, 10 instructions (each instr = 2 DWords on Gen9)
+static const u32 gen9_ps_kernel_simd16[] = {
+    // mov(16) g125 = 1.0f      (R, two GRFs)
+    0x00800001u, 0x2fa03ee8u, 0x38000000u, 0x3f800000u,
+    // mov(16) g119 = 0.0f      (G)
+    0x00800001u, 0x2ee03ee8u, 0x38000000u, 0x00000000u,
+    // mov(16) g121 = 0.0f      (B)
+    0x00800001u, 0x2f203ee8u, 0x38000000u, 0x00000000u,
+    // mov(16) g123 = 1.0f      (A)
+    0x00800001u, 0x2f603ee8u, 0x38000000u, 0x3f800000u,
+    // sendsc(16) null g125 g119 RT write SIMD16 LastRT Surface=0 mlen=2 ex_mlen=6 EOT
+    0x05800034u, 0x00077010u, 0x00000fa6u, 0x84031000u,
+};
+static const usize gen9_ps_kernel_simd16_size = sizeof(gen9_ps_kernel_simd16);
+
+#endif // VESPERAOS_GEN9_KERNELS_H

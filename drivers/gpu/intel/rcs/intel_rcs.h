@@ -25,9 +25,11 @@
 #include "gfx_pipeline_regs.h"
 #include "../intel_engine.h"
 #include "../intel_forcewake.h"
+#include "../intel_bcs.h"
+
+struct ShaderOffsets;
 
 namespace blt {
-
     // RCS MMIO range: 0x2000-0x27FF (PRM Vol 6, "Render Engine Command
     // Streamer (RCS)"). Passed as this engine's MMIO offset to IntelEngine.
     constexpr u32 RCS_ENGINE_OFFSET = 0x2000;
@@ -59,7 +61,7 @@ namespace blt {
      * Kaby Lake hardware.
      */
     class IntelRcs final : public IntelEngine {
-       public:
+    public:
         explicit IntelRcs(IntelGpuDevice& device);
 
         IntelRcs(const IntelRcs&) = delete;
@@ -67,22 +69,48 @@ namespace blt {
 
         bool init_device();
 
+        void set_bcs(IntelBcs* bcs) { bcs_ = bcs; }
+        bool present_to_screen(u32 width, u32 height);
+
     private:
+        void debug_dump_error_regs(const char* label) const;
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
+        bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);
         u32 gt_user_irq_bit() const override;
+        u32 gt_debug_irq_bitmask() const override;
         void on_gt_user_interrupt() override;
         void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno);
 
+        bool vertex_buffer_setup();
+
+        /**
+     * @brief Sends 3DSTATE_DRAWING_RECTANGLE and dispatches a 3-vertex 3DPRIMITIVE.
+     * @param width Framebuffer width in pixels (e.g. 1920)
+     * @param height Framebuffer height in pixels (e.g. 1080)
+     */
+        bool draw_triangle(u32 width = 1920, u32 height = 1080);
+        bool setup_scissor_state(u32 dynamic_offset, u32 width, u32 height);
+        bool setup_viewport_state(float x, float y, float width, float height, u32 sf_clip_offset, u32 cc_offset);
+        bool render_target_setup(u32 width, u32 height);
+        void debug_dump_render_target(u32 width, u32 height, u32 pitch) const;
+        void rcs_error_reporting_init() const;
+        virt_addr_t render_target_cpu_addr_{};
+        gfx_addr_t render_target_gfx_addr_{};
+
         virt_addr_t state_base_cpu_addr_{};
         gfx_addr_t state_base_gfx_addr_{};
 
+        virt_addr_t vertex_buffer_cpu_addr_{};
+        gfx_addr_t vertex_buffer_gfx_addr_{};
+
         AtomicFlag completion_flag_{};
+
+        IntelBcs* bcs_ = nullptr;
 
         static constexpr u32 STATE_BASE_PAGES = 4;
     };
-
-}  // namespace blt
+} // namespace blt
 
 #endif  // VESPERAOS_INTEL_RCS_H
