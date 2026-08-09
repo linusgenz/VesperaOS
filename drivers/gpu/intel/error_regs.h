@@ -278,4 +278,17 @@ union ESR_REG {
 
 static_assert(sizeof(ESR_REG) == 4);
 
+// EIR — Error Identity Register Base Offset
+inline constexpr u32 EIR_OFFSET  = 0xB0;
+
+// EMR — Error Mask Register Base Offset
+inline constexpr u32 EMR_OFFSET  = 0xB4;
+
+// ESR — Error Status Register Base Offset
+inline constexpr u32 ESR_OFFSET  = 0xB8;
+
+// Standalone Registers
+inline constexpr u32 ERR_OFFSET          = 0x0B42C;
+inline constexpr u32 EU_GRF_CLEAR_OFFSET = 0x0E550;
+
 #endif  // VESPERAOS_ERROR_REGS_H

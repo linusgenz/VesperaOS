@@ -363,8 +363,8 @@ namespace blt {
     void IntelBcs::bcs_error_reporting_init() const {
         volatile EIR_REG& eir = bcs_regs_->eir;
         EIR_REG v{};
-        v.error_bits.instruction_error = 0;
-        v.error_bits.privilege_violation = 0;
+        v.bcs_error_bits.instruction_error = 0;
+        v.bcs_error_bits.privilege_violation = 0;
         v.mask = 0xFFFFu;
         eir.raw = v.raw;
         MMIO_POST_WRITE(eir);
@@ -649,6 +649,24 @@ namespace blt {
         auto* req = new GpuBltRequest();
         req->op = GpuBltOp::Present;
         blt_queue_.submit(req);
+    }
+
+    bool IntelBcs::blit_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height) {
+        gpu_health_check();
+        if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
+
+        emit_xy_src_copy_blt(
+            fb_back_.gfx_addr, fb_back_.pitch,
+            0, 0, width, height,
+            src_gfx, src_pitch,
+            0, 0
+        );
+
+        const u32 target_seqno = seqno_next();
+        emit_mi_flush(target_seqno);
+        ring_flush();
+
+        return seqno_wait(target_seqno, 500'000, completion_flag_);
     }
 
     // =========================================================================

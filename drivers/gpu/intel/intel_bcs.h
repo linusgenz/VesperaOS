@@ -167,6 +167,8 @@ namespace blt {
             completion_flag_.set();
         }
 
+        bool blit_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height);
+
        private:
         static constexpr u32 RING_SPACE_FOR_FILL = 12 * 4 + 64;
         static constexpr u32 RING_SPACE_FOR_BLIT = 30 * 4 + 64;

@@ -70,6 +70,11 @@ namespace blt {
         virtual void on_gt_user_interrupt() {
         }
 
+        [[nodiscard]] virtual u32 gt_debug_irq_bitmask() const {
+            return 0;
+        }
+
+
     protected:
         EngineType type_;
 

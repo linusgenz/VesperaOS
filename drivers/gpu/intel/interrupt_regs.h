@@ -44,7 +44,7 @@ struct RCS_ICR_BITS {
 static_assert(sizeof(RCS_ICR_BITS) == 4);
 
 
-// IHD-OS-KBL-Vol 2c p.1080  — Interrupt Control Registers (BCS)
+// IHD-OS-KBL-Vol 2c p.1080  — Interrupt Mask Registers
 // IHD-OS-KBL-Vol 2d p.38    — Bit Definition for Interrupt Control Registers - Blitter
 
 // ============================================================================
@@ -142,7 +142,7 @@ union RCS_IMR_REG {
     u32 raw;
 };
 
-constexpr u32 RCS_IMR_OFF = 0xA8;
+constexpr u32 ENGINE_IMR_OFF = 0xA8;
 
 // ============================================================================
 // Master Interrupt Control
