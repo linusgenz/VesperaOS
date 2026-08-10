@@ -71,6 +71,7 @@ namespace blt {
 
         void set_bcs(IntelBcs* bcs) { bcs_ = bcs; }
         bool present_to_screen(u32 width, u32 height);
+        void dump_pipeline_stats(const char* label) const;
 
     private:
         void debug_dump_error_regs(const char* label) const;

@@ -57,13 +57,14 @@ union STATE_VF_TOPOLOGY {
     /**
      * @brief Creates a default-initialized 3DSTATE_VF_TOPOLOGY command.
      */
-    [[nodiscard]] static constexpr STATE_VF_TOPOLOGY create() {
+    [[nodiscard]] static constexpr STATE_VF_TOPOLOGY create(PrimTopoType topo) {
         STATE_VF_TOPOLOGY cmd{};
         cmd.dword_length = 0x0; // 2 DWords total - 2 = 0
         cmd.sub_opcode   = SUBOP_3DSTATE_VF_TOPOLOGY;
         cmd.opcode       = OPCODE_3DSTATE_PIPELINED;
         cmd.sub_type     = GFXPIPE_3D;
         cmd.command_type = CMD_GFXPIPE;
+        cmd.primitive_topology_type = topo;
         return cmd;
     }
 };

@@ -119,6 +119,7 @@ union STATE_VS {
         cmd.opcode       = OPCODE_3DSTATE_PIPELINED;
         cmd.sub_type     = GFXPIPE_3D;
         cmd.command_type = CMD_GFXPIPE;
+        cmd.statistics_enable = 1;
         return cmd;
     }
 };
