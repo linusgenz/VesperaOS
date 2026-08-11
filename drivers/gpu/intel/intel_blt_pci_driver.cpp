@@ -33,7 +33,6 @@
 #include "rcs/intel_rcs.h"
 
 namespace blt {
-
     /**
      * @brief Device-ID match table for Intel integrated GPUs (Gen9.5).
      *
@@ -52,27 +51,27 @@ namespace blt {
      */
     static constexpr pci::pci_device_match INTEL_BLT_ID_MATCH[] = {
         // --- Kaby Lake (Gen9.5) ---
-        {0x8086,          0x5902         }, // HD 610
-        {0x8086,          0x5906         }, // HD 610
-        {0x8086,          0x590B         }, // HD 620
-        {0x8086,          0x5912         }, // HD 630
-        {0x8086,          0x5916         }, // HD 620
-        {0x8086,          0x5917         }, // UHD 620
-        {0x8086,          0x591B         }, // HD P630
-        {0x8086,          0x591D         }, // Xeon E3 P630
+        {0x8086, 0x5902}, // HD 610
+        {0x8086, 0x5906}, // HD 610
+        {0x8086, 0x590B}, // HD 620
+        {0x8086, 0x5912}, // HD 630
+        {0x8086, 0x5916}, // HD 620
+        {0x8086, 0x5917}, // UHD 620
+        {0x8086, 0x591B}, // HD P630
+        {0x8086, 0x591D}, // Xeon E3 P630
 
         // --- Coffee Lake (Gen9.5 - same PRM-Familie) ---
-        {0x8086,          0x3E90         }, // UHD 610
-        {0x8086,          0x3E91         }, // UHD 630
-        {0x8086,          0x3E92         }, // UHD 630
-        {0x8086,          0x3E96         }, // P630
-        {0x8086,          0x3E98         }, // UHD 630
-        {0x8086,          0x3E9B         }, // UHD 630
+        {0x8086, 0x3E90}, // UHD 610
+        {0x8086, 0x3E91}, // UHD 630
+        {0x8086, 0x3E92}, // UHD 630
+        {0x8086, 0x3E96}, // P630
+        {0x8086, 0x3E98}, // UHD 630
+        {0x8086, 0x3E9B}, // UHD 630
 
         // --- Whiskey Lake / Amber Lake (Gen9.5) ---
-        {0x8086,          0x3EA0         }, // UHD 620 (Whiskey Lake-U)
-        {0x8086,          0x3EA5         }, // UHD 620
-        {0x8086,          0x87CA         }, // UHD 617 (Amber Lake-Y / Kaby Lake-G)
+        {0x8086, 0x3EA0}, // UHD 620 (Whiskey Lake-U)
+        {0x8086, 0x3EA5}, // UHD 620
+        {0x8086, 0x87CA}, // UHD 617 (Amber Lake-Y / Kaby Lake-G)
 
         // Sentinel
         {pci::PCI_ID_ANY, pci::PCI_ID_ANY},
@@ -113,8 +112,8 @@ namespace blt {
 
         // Enable Bus Master + Memory Space; disable legacy INTx.
         u16 command = pci::pci_read16(pci_hdr, 0x04);
-        command |= (1u << 2) | (1u << 1);  // Bus Master + Memory Space
-        command |= (1u << 10);             // Disable INTx
+        command |= (1u << 2) | (1u << 1); // Bus Master + Memory Space
+        command |= (1u << 10);            // Disable INTx
         pci::pci_write16(pci_hdr, 0x04, command);
 
         Log::info(
@@ -128,9 +127,11 @@ namespace blt {
             dev.device_id
         );
 
-        const DisplayBackend backend = DisplayManager::primary();
-        const u32 screen_width = backend.drv ? backend.drv->screen_width_px() : 1920;
-        const u32 screen_height = backend.drv ? backend.drv->screen_height_px() : 1080;
+        const auto [drv, kd] = DisplayManager::primary();
+        Resolution resolution = {
+            drv ? drv->screen_width_px() : 1920,
+            drv ? drv->screen_height_px() : 1080
+        };
 
         // One device: owns BAR0 mapping and the single GGTT. Every engine
         // constructed below borrows this same instance — neither owns it,
@@ -154,7 +155,7 @@ namespace blt {
         }
 
         rcs_ = new IntelRcs(*device_);
-        if (!rcs_->init_device()) {
+        if (!rcs_->init_device(resolution)) {
             Log::warning("intel-blt: RCS init failed, continuing with BCS only");
             delete rcs_;
             rcs_ = nullptr;
@@ -163,12 +164,12 @@ namespace blt {
             rcs_->set_bcs(bcs_);
         }
 
-        bcs_->start_device(screen_width, screen_height);
+        bcs_->start_device(resolution);
 
         const DisplayBackend be{bcs_, bcs_->get_kd()};
         DisplayManager::set_primary(be);
 
-        rcs_->present_to_screen(screen_width, screen_height);
+        rcs_->present_to_screen(resolution);
 
         while (1); // as long as we develop rcs
 
@@ -195,5 +196,4 @@ namespace blt {
 
     static IntelBltPciDriver g_intel_blt_pci_driver;
     PCI_DRIVER_REGISTER(g_intel_blt_pci_driver);
-
-}  // namespace blt
+} // namespace blt

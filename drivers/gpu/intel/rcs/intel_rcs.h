@@ -26,6 +26,7 @@
 #include "../intel_engine.h"
 #include "../intel_forcewake.h"
 #include "../intel_bcs.h"
+#include <vespera/graphics/display_types.h>
 
 struct ShaderOffsets;
 
@@ -67,10 +68,10 @@ namespace blt {
         IntelRcs(const IntelRcs&) = delete;
         IntelRcs& operator=(const IntelRcs&) = delete;
 
-        bool init_device();
+        bool init_device(Resolution res);
 
         void set_bcs(IntelBcs* bcs) { bcs_ = bcs; }
-        bool present_to_screen(u32 width, u32 height) const;
+        bool present_to_screen(Resolution res) const;
         void dump_pipeline_stats(const char* label) const;
 
     private:
@@ -92,7 +93,7 @@ namespace blt {
      * @param height Framebuffer height in pixels (e.g. 1080)
      */
         bool draw_triangle(u32 width = 1920, u32 height = 1080);
-        bool setup_scissor_state(u32 dynamic_offset, u32 width, u32 height);
+        void setup_scissor_state(u32 dynamic_offset, u32 width, u32 height);
         bool setup_viewport_state(float x, float y, float width, float height, u32 sf_clip_offset, u32 cc_offset);
         bool setup_blend_state(u32 dynamic_offset);
         bool render_target_setup(u32 width, u32 height);

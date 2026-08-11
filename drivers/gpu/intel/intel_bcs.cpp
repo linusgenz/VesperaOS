@@ -26,11 +26,8 @@
 
 #include <filesystem/devfs.h>
 #include <klib/string.h>
-#include <pci/msix.h>
 #include <pci/pci.h>
-#include <pci/pci_device.h>
 #include <vespera/devices/device_manager.h>
-#include <vespera/interrupts.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 #include <vespera/realm/realm_types.h>
@@ -42,10 +39,9 @@
 #include "blt_commands.h"
 #include "display_regs.h"
 #include "error_regs.h"
-#include "gt_interrupt_regs.h"
-#include "gt_reset_regs.h"
 #include "interrupt_regs.h"
 #include "pci_config_regs.h"
+#include "vespera/graphics/display_types.h"
 
 namespace blt {
     // =========================================================================
@@ -107,8 +103,8 @@ namespace blt {
         return true;
     }
 
-    void IntelBcs::start_device(const u32 screen_width, const u32 screen_height) {
-        fb_alloc(screen_width, screen_height, TileMode::Linear);
+    void IntelBcs::start_device(Resolution res) {
+        fb_alloc(res, TileMode::Linear);
         fb_alloc_back();
         scratch_init();
         worker_start(1);
@@ -429,7 +425,10 @@ namespace blt {
     // Framebuffer / Scratch
     // =========================================================================
 
-    void IntelBcs::fb_alloc(u32 width, u32 height, TileMode tile_mode) {
+    void IntelBcs::fb_alloc(const Resolution res, TileMode tile_mode) {
+        const u32 width = res.width;
+        const u32 height = res.height;
+
         fb_.width = width;
         fb_.height = height;
         fb_.bpp = BYTES_PER_PIXEL;

@@ -62,6 +62,7 @@
 #include "gpu/intel/gt_interrupt_regs.h"
 #include "gpu/intel/intel_bcs.h"
 #include "klib/string.h"
+#include "vespera/graphics/display_types.h"
 #include "vespera/mm/memory.h"
 
 struct ShaderOffsets {
@@ -97,7 +98,7 @@ namespace blt {
         ) {
     }
 
-    bool IntelRcs::init_device() {
+    bool IntelRcs::init_device(Resolution res) {
         if (!engine_force_wake_enable()) {
             Log::info("intel-rcs: ForceWake timeout");
             return false;
@@ -124,16 +125,6 @@ namespace blt {
 
         Log::info("intel-rcs: ring + HWSP initialized (legacy ring-buffer mode, Milestone 1)");
 
-        // NEXT STEPS (not yet implemented, in order):
-        //   3. Vertex buffer alloc + 3DSTATE_VERTEX_BUFFERS/ELEMENTS
-        //   4. Minimal VS/PS kernel upload (Instruction State) + 3DSTATE_VS/PS
-        //   5. 3DSTATE_VIEWPORT / SCISSOR / DEPTH_BUFFER / DRAWING_RECTANGLE
-        //   6. 3DPRIMITIVE (TRILIST, 3 vertices)
-        //   7. PIPE_CONTROL w/ Post-Sync seqno write + ring_flush() + seqno_wait()
-        // Milestone 1 only proved ForceWake + ring/HWSP allocation. This
-        // function now additionally selects the 3D pipeline and programs
-        // STATE_BASE_ADDRESS (Milestone 2, steps 1-2) — still no drawing yet.
-
         rcs_error_reporting_init();
 
         if (!select_pipeline(PIPELINE_SELECT::PIPELINE_3D)) {
@@ -151,12 +142,9 @@ namespace blt {
         constexpr u32 CC_OFFSET = 0x280;      // 32-Byte aligned
         constexpr u32 BLEND_STATE_OFFSET = 0x2C0;
 
-        if (!setup_scissor_state(1920, 1080, SCISSOR_OFFSET)) {
-            Log::info("intel-rcs: setup scissor state failed");
-            return false;
-        }
+        setup_scissor_state(res.width, res.height, SCISSOR_OFFSET);
 
-        if (!setup_viewport_state(0.0f, 0.0f, 1920.0f, 1080.0f, SF_CLIP_OFFSET, CC_OFFSET)) {
+        if (!setup_viewport_state(0.0f, 0.0f, static_cast<float>(res.width), static_cast<float>(res.height), SF_CLIP_OFFSET, CC_OFFSET)) {
             Log::info("intel-rcs: setup viewport state failed");
             return false;
         }
@@ -180,13 +168,13 @@ namespace blt {
             return false;
         }
 
-        if (!render_target_setup(1920, 1080)) {
+        if (!render_target_setup(res.width, res.height)) {
             Log::info("intel-rcs: render target setup failed");
             return false;
         }
 
         debug_dump_error_regs("baseline, before draw");
-        debug_dump_render_target(1920, 1080, 1920 * 4);
+        debug_dump_render_target(res.width, res.height, res.width * 4);
 
         if (!draw_triangle()) {
             Log::info("intel-rcs: draw triangle failed");
@@ -196,19 +184,11 @@ namespace blt {
         }
 
         debug_dump_error_regs("after draw_triangle");
-        debug_dump_render_target(1920, 1080, 1920 * 4);
+        debug_dump_render_target(res.width, res.height, res.width * 4);
 
         dump_pipeline_stats("after draw");
 
         debug_dump_sf_clip_viewport_and_scissor(SF_CLIP_OFFSET, SCISSOR_OFFSET);
-
-        struct RawReg { u32 raw; };
-        RawReg reg_head = engine_reg_read<RawReg>(ENGINE_RING_HEAD_OFF);
-        RawReg reg_tail = engine_reg_read<RawReg>(ENGINE_RING_TAIL_OFF);
-
-        Log::debug("RING HEAD: 0x%llx RING TAIL: 0x%llx", reg_head.raw, reg_tail.raw);
-
-        Log::info("intel-rcs: Milestone 2 COMPLETE! Triangle Primitive dispatched to RCS Engine.");
         return true;
     }
 
@@ -233,10 +213,6 @@ namespace blt {
         volatile auto* eir = reinterpret_cast<volatile EIR_REG*>(engine_regs() + EIR_OFFSET);
         volatile auto* emr = reinterpret_cast<volatile EMR_REG*>(engine_regs() + EMR_OFFSET);
 
-        // Unmask (0 = unmasked) both hardware-detected error sources so
-        // they propagate from ESR into EIR: Instruction Error (fatal,
-        // requires reset — but we want to SEE it, not have it silently
-        // masked) and Command Privilege Violation.
         EIR_REG eir_val{};
         eir_val.rcs_error_bits.instruction_error = 0;
         eir_val.rcs_error_bits.privilege_violation = 0;
@@ -286,12 +262,6 @@ namespace blt {
 
 
     bool IntelRcs::state_base_address_setup() {
-        // Legacy ring-buffer bring-up (no PPGTT): every base address below
-        // points into the same GGTT-backed page range. This is intentionally
-        // coarse for Milestone 2 — General/Surface/Dynamic/Instruction state
-        // don't yet exist as separate allocations. Once real state objects
-        // (surface state, binding tables, shader kernels) are introduced,
-        // split this into dedicated per-purpose allocations sized to need.
         auto alloc = ggtt().alloc_persistent(STATE_BASE_PAGES, (1ULL << CacheDisabled), MOCS_UNCACHED);
         state_base_cpu_addr_ = alloc.cpu_addr;
         state_base_gfx_addr_ = alloc.gfx_addr;
@@ -305,9 +275,6 @@ namespace blt {
         cmd.set_surface_state(base, MOCS_UNCACHED);
         cmd.set_dynamic_state(base, STATE_BASE_PAGES, MOCS_UNCACHED);
         cmd.set_instruction_state(base, STATE_BASE_PAGES, MOCS_UNCACHED);
-        // Indirect Object Base and Bindless Surface State intentionally left
-        // with modify_enable=0 — not needed until indirect draws / bindless
-        // resources are used.
 
         ring_write_cmd(cmd);
         const u32 target_seqno = seqno_next();
@@ -323,26 +290,6 @@ namespace blt {
     }
 
     bool IntelRcs::setup_shaders_and_pipeline(const ShaderOffsets& offsets) {
-        // --- 0. 3DSTATE_URB_VS/HS/DS/GS ---
-        // Per PRM programming note (repeated identically on all four URB
-        // commands): "When programming <STAGE> URB state for the RCS 3D
-        // pipe, the other three 3DSTATE_URB_* commands must also be
-        // programmed in order for the programming of this state to be
-        // valid." All four are REQUIRED together even though this driver
-        // only uses VS — HS/DS/GS stay Function-Enable=0 elsewhere
-        // (3DSTATE_HS/DS/GS, not sent here since Gen9 defaults those
-        // disabled), but their URB allocation fields are "always used
-        // (even if <STAGE> Function Enable is DISABLED)" per PRM. Without
-        // this, VS URB output (gl_Position) may have nowhere valid to
-        // land — the VS kernel runs, but its URB write target was never
-        // actually allocated.
-        //
-        // Total on-chip URB is small (Gen9.5 GT2: ~64KB = 8 rows of 8KB);
-        // HS/DS/GS get the PRM-mandated minimum (0 entries, since none of
-        // them are enabled — "Only if <STAGE> is disabled can this field
-        // be programmed to 0"), VS gets the rest. Addresses are in 8KB
-        // units (urb_starting_address), sizes in 512-bit units
-        // (urb_entry_allocation_size).
         STATE_URB_HS urb_hs = STATE_URB_HS::create();
         urb_hs.urb_starting_address = 0;
         urb_hs.urb_entry_allocation_size = 0; // 1 512-bit row (0 = 1-1=0 encoding)
@@ -361,15 +308,6 @@ namespace blt {
         urb_gs.number_of_urb_entries = 0; // GS disabled — 0 is the mandated value
         ring_write_cmd(urb_gs);
 
-        // VS is the only stage actually producing URB output here
-        // (gl_Position, 2x 256-bit units per vertex per
-        // vertex_urb_entry_output_length below). Starting address 0,
-        // entry size matches vertex_urb_entry_output_length (2 = 2 512-bit-
-        // equivalent... actually PRM units for URB_VS allocation size are
-        // 512-bit rows, distinct from the 256-bit units used by
-        // vertex_urb_entry_output_length in 3DSTATE_VS — sized generously
-        // here at 1 row (0-encoded) per entry, well within a single 512-bit
-        // row for a 2x256-bit (= 1x512-bit) output.
         STATE_URB_VS urb_vs = STATE_URB_VS::create();
         urb_vs.urb_starting_address = 0;
         urb_vs.urb_entry_allocation_size = 3; // 1 512-bit row per entry (0 = 1-1 encoding)
@@ -396,21 +334,10 @@ namespace blt {
         vs_cmd.vertex_urb_entry_read_length = 1;             // 1x 256-Bit Unit aus VF (Positions-Vector)
         vs_cmd.vertex_urb_entry_output_length = 8;           // 8× 256-bit = 2048 bits = 256 bytes, matches actual GRF output (g118-g125)
         vs_cmd.dispatch_grf_start_register_for_urb_data = 2;
-        vs_cmd.maximum_number_of_threads = 64 - 1;           // Gen9 Thread Limit Limitierung
+        vs_cmd.maximum_number_of_threads = 64 - 1;
 
         ring_write_cmd(vs_cmd);
 
-        // --- 1b. 3DSTATE_CLIP / 3DSTATE_SF ---
-        // Fixed-function Clipper and Setup/Strip-Fan stages, sitting
-        // between the geometry stages (VS/GS/HS/DS/TE, all above) and the
-        // Windower/PS below. Both stages come up in an unknown/possibly
-        // hostile reset state — in particular STATE_CLIP's reset default
-        // is NOT guaranteed to be a harmless pass-through, and
-        // STATE_SF::viewport_transform_enable defaults to 0, meaning clip-
-        // space coordinates are never mapped into screen space at all.
-        // Without these two, the clipper/setup stage can silently drop
-        // every primitive before it ever reaches the Windower/PS — exactly
-        // matching VS Invocations > 0 but PS Invocations == 0.
         STATE_CLIP clip_cmd = STATE_CLIP::create_default();
         clip_cmd.clipper_statistics_enable = 1;
         ring_write_cmd(clip_cmd);
@@ -431,13 +358,6 @@ namespace blt {
         // ps_cmd.attribute_enable            = 0;
         ring_write_cmd(ps_cmd);
 
-        // --- 2c. 3DSTATE_PS_EXTRA ---
-        // Per PRM: "When [Pixel Shader Valid] is clear the rest of this
-        // command should also be clear" — i.e. without pixel_shader_valid=1
-        // the pipeline treats the PS stage as absent, REGARDLESS of what
-        // 3DSTATE_PS/3DSTATE_WM say. This was almost certainly why nothing
-        // rendered despite a correctly-configured 3DSTATE_PS: the PS stage
-        // itself was never marked present.
         STATE_PS_EXTRA ps_extra_cmd = STATE_PS_EXTRA::create();
         ps_extra_cmd.pixel_shader_valid = 1;
         ps_extra_cmd.pixel_shader_does_not_write_to_rt = 0; // our kernel DOES write to RT
@@ -448,27 +368,9 @@ namespace blt {
         ps_extra_cmd.input_coverage_mask_state = STATE_PS_EXTRA::INPUT_COVERAGE_NONE;
         ring_write_cmd(ps_extra_cmd);
 
-        // --- 2d. 3DSTATE_PS_BLEND ---
-        // Per IHD-OS-ICLLP-Vol 9 (WM_INT::ThreadDispatchEnable formula):
-        // dispatch requires PixelShaderValid AND (!PixelShaderDoesNotWriteRT
-        // && HasWriteableRT). The reset default for HasWriteableRT is 0 —
-        // without this command, the PS stage would never dispatch even
-        // with pixel_shader_valid=1 set above. No blending/alpha-test
-        // needed for a simple constant-color kernel.
         STATE_PS_BLEND ps_blend_cmd = STATE_PS_BLEND::create_simple_writeable_rt();
         ring_write_cmd(ps_blend_cmd);
 
-        // --- 2b. 3DSTATE_WM ---
-        // Windower/IZ fixed-function stage. Without this, the pipeline's
-        // early-depth/dispatch-enable logic and barycentric interpolation
-        // wiring are left in an undefined/reset state — 3DSTATE_PS alone
-        // only configures the PS thread dispatcher itself, not whether the
-        // Windower actually feeds it. Defaults here are the simplest valid
-        // configuration for a depth-test-free, non-interpolating constant-
-        // color kernel: normal (not forced) dispatch, no early depth/
-        // stencil special-casing, perspective-pixel barycentric (the one
-        // mode that always needs to be present even if the kernel ignores
-        // it), Z/W evaluated at pixel center.
         STATE_WM wm_cmd = STATE_WM::create();
         wm_cmd.force_kill_pixel_enable = STATE_WM::KILL_NORMAL;
         wm_cmd.force_thread_dispatch_enable = STATE_WM::DISPATCH_FORCE_ON;
@@ -478,57 +380,20 @@ namespace blt {
         wm_cmd.statistics_enable = 1;
         ring_write_cmd(wm_cmd);
 
-        // --- 2e. 3DSTATE_SBE ---
-        // Routes attributes from SF/URB to the WM/PS threads. Our PS kernel
-        // (gen9_ps_kernel_simd8) is a pure constant-color kernel — it reads
-        // no interpolated attributes at all, so num_attributes=0 here.
-        // However, per PRM: "It is UNDEFINED to set [Vertex URB Entry Read
-        // Length] to 0 indicating no Vertex URB data to be read" — valid
-        // range is [1,16], so urb_read_length must stay at the minimum (1)
-        // even though nothing is actually consumed downstream.
         STATE_SBE sbe_cmd = STATE_SBE::create_default(/* num_attributes */ 0, /* urb_read_length */ 2);
         ring_write_cmd(sbe_cmd);
 
-        // --- 2e-pre. 3DSTATE_MULTISAMPLE ---
-        // Required Gen9 pipeline state — was previously never programmed
-        // (undefined/reset value). Single-sample rendering, pixel center
-        // sampling: the standard non-MSAA configuration. Windower dispatch
-        // logic derives its behavior partly from this state; leaving it
-        // unprogrammed can leave WM in a state where it never dispatches
-        // pixels even for a primitive that already cleared CLIP/SF —
-        // matching CL Primitives:1 / PS Invocations:0.
         STATE_MULTISAMPLE ms_cmd = STATE_MULTISAMPLE::create_default(
             STATE_MULTISAMPLE::NUMSAMPLES_1, STATE_MULTISAMPLE::CENTER
         );
         ring_write_cmd(ms_cmd);
 
-        // --- 2e-pre2. 3DSTATE_WM_DEPTH_STENCIL ---
-        // No depth buffer is bound (no 3DSTATE_DEPTH_BUFFER anywhere in
-        // this driver yet) — per PRM, enabling Depth Buffer Write with no
-        // depth buffer defined is explicitly UNDEFINED behavior, and an
-        // enabled depth test against a nonexistent buffer is equally
-        // unspecified. Both depth test and depth write must stay disabled
-        // until 3DSTATE_DEPTH_BUFFER is added. This was previously left at
-        // its (likely enabled) reset default — a plausible reason WM was
-        // silently dropping the primitive before dispatching to PS.
         STATE_WM_DEPTH_STENCIL wm_ds_cmd = STATE_WM_DEPTH_STENCIL::create_default(
             false,
             false
         );
         ring_write_cmd(wm_ds_cmd);
 
-
-        // --- 2f. 3DSTATE_RASTER ---
-        // CULL_NONE is the hardware reset default per PRM, so this alone
-        // shouldn't explain "CL Invocations > 0, CL Primitives: 0" — but we
-        // program it explicitly rather than relying on reset state, and
-        // more importantly: create_default() also enables both viewport Z
-        // near/far clip tests. Our triangle sits at Z=0.0 on all three
-        // vertices; if that lands exactly on (or outside, due to rounding)
-        // the near-plane boundary given our CC_VIEWPORT min/max depth
-        // range, the clip test would silently reject the primitive here —
-        // matching our symptom exactly. Disabling both Z clip tests
-        // isolates that as a variable; re-enable once confirmed working.
         STATE_RASTER raster_cmd = STATE_RASTER::create_default(STATE_RASTER::CULL_NONE, STATE_RASTER::FRONTWINDING_CCW);
         raster_cmd.viewport_z_near_clip_test_enable = 0;
         raster_cmd.viewport_z_far_clip_test_enable = 0;
@@ -557,11 +422,9 @@ namespace blt {
         constexpr STATE_VF_TOPOLOGY topo = STATE_VF_TOPOLOGY::create(PRIM_3D_TRILIST);
         ring_write_cmd(topo);
 
-        // 1. Set 3DSTATE_DRAWING_RECTANGLE (Klipp-Rechteck auf Bildschirmgröße setzen)
-        const DRAWING_RECTANGLE rect = DRAWING_RECTANGLE::create_full(width - 5, height - 5);
+        const DRAWING_RECTANGLE rect = DRAWING_RECTANGLE::create_full(width , height);
         ring_write_cmd(rect);
 
-        // 2. Set 3DPRIMITIVE (3 Vertices, sequentieller Speicherzugriff, 1 Instanz)
         CMD_3DPRIMITIVE prim = CMD_3DPRIMITIVE::create();
         prim.indirect_parameter_enable = 0;
         prim.primitive_topology_type = PRIM_3D_TRILIST;
@@ -574,7 +437,6 @@ namespace blt {
 
         ring_write_cmd(prim);
 
-        // 3. Flush Cache & Wait for Completion via HWSP Seqno
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
 
@@ -587,24 +449,18 @@ namespace blt {
         return ok;
     }
 
-    // Offset im Dynamic State Speicher (32-Byte aligniert)
-    bool IntelRcs::setup_scissor_state(u32 width, u32 height, u32 dynamic_offset) {
-        // 1. CPU-Zeiger auf den gemeinsamen State-Memory holen
-        u8* base_ptr = reinterpret_cast<u8*>(virt_ptr(state_base_cpu_addr_));
+    void IntelRcs::setup_scissor_state(u32 width, u32 height, u32 dynamic_offset) {
+        auto base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
 
-        // 2. SCISSOR_RECT an die gewünschte Stelle im Speicher schreiben
         SCISSOR_RECT rect = SCISSOR_RECT::create_full(width, height);
         memcpy(base_ptr + dynamic_offset, &rect, sizeof(SCISSOR_RECT));
 
-        // 3. Cache flushen (falls der Speicher gecacht ist)
         asm volatile("clflush (%0)" :: "r"(base_ptr + dynamic_offset) : "memory");
 
-        // 4. Command mit relativer Adresse erstellen und in den Ring-Buffer schreiben
         SCISSOR_STATE_POINTERS cmd = SCISSOR_STATE_POINTERS::create(dynamic_offset);
         ring_write_cmd(cmd);
 
         Log::info("intel-rcs: Scissor state applied at offset 0x%x (%ux%u)", dynamic_offset, width, height);
-        return true;
     }
 
     bool IntelRcs::setup_viewport_state(
@@ -612,7 +468,6 @@ namespace blt {
     ) {
         u8* base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
 
-        // 1. SF_CLIP_VIEWPORT (64-byte aligned offset)
         if (sf_clip_offset % 64 != 0) {
             Log::info("intel-rcs: sf_clip_offset (0x%x) is not 64-byte aligned!", sf_clip_offset);
             return false;
@@ -625,7 +480,6 @@ namespace blt {
         VIEWPORT_POINTERS_SF_CLIP sf_cmd = VIEWPORT_POINTERS_SF_CLIP::create(sf_clip_offset);
         ring_write_cmd(sf_cmd);
 
-        // 2. CC_VIEWPORT (32-byte aligned offset)
         if (cc_offset % 32 != 0) {
             Log::info("intel-rcs: cc_offset (0x%x) is not 32-byte aligned!", cc_offset);
             return false;
@@ -669,14 +523,6 @@ namespace blt {
     }
 
     u32 IntelRcs::gt_debug_irq_bitmask() const {
-        // Unmask page_fault (bit 7) and master_error (bit 3) purely for
-        // visibility in device_irq_handler()'s diagnostic logging — see
-        // interrupt_regs.h RCS_ICR_BITS. Neither drives
-        // on_gt_user_interrupt(); completion still only comes from
-        // pipe_control_notify (gt_user_irq_bit()). Without this, a silent
-        // page fault on a bad surface/binding-table/kernel address would
-        // never surface anywhere: seqno_wait() would just time out with no
-        // explanation, because it only watches for pipe_control_notify.
         constexpr u32 RCS_PAGE_FAULT_BIT = 7;
         constexpr u32 RCS_MASTER_ERROR_BIT = 3;
         return (1u << RCS_PAGE_FAULT_BIT) | (1u << RCS_MASTER_ERROR_BIT);
@@ -729,11 +575,12 @@ namespace blt {
         // wired up (step 4), keeping this vertex layout minimal for now.
         struct Vertex {
             float x, y, z;
+            float r, g, b;
         };
         static constexpr Vertex triangle[3] = {
-            {0.0f, 0.5f, 0.0f},
-            {-0.5f, -0.5f, 0.0f},
-            {0.5f, -0.5f, 0.0f},
+            { 0.0f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f}, // Oben: Rot
+            {-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f}, // Links: Grün
+            { 0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f}  // Rechts: Blau
         };
         constexpr u32 vertex_stride = sizeof(Vertex);
         constexpr u32 vertex_buffer_size = sizeof(triangle);
@@ -764,9 +611,12 @@ namespace blt {
         constexpr VERTEX_ELEMENTS_HEADER el_header = VERTEX_ELEMENTS_HEADER::create(1);
         constexpr VERTEX_ELEMENT_STATE el_state =
             VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 0, SURFACE_FORMAT_R32G32B32_FLOAT);
+        constexpr VERTEX_ELEMENT_STATE el_state_col =
+        VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 12, SURFACE_FORMAT_R32G32B32_FLOAT);
 
         ring_write_cmd(el_header);
         ring_write_cmd(el_state);
+        ring_write_cmd(el_state_col);
 
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
@@ -784,12 +634,6 @@ namespace blt {
     }
 
     bool IntelRcs::render_target_setup(u32 width, u32 height) {
-        // --- 1. Separate offscreen render target buffer (NOT state_base_*
-        //        — that's pipeline state; this is actual pixel data). BCS
-        //        will blit this to the visible framebuffer afterwards,
-        //        entirely independent of RCS. B8G8R8A8_UNORM: 4 bytes/pixel,
-        //        matches the common display/render-target format from
-        //        surface_format.h.
         constexpr u32 bytes_per_pixel = 4;
         const u32 pitch = width * bytes_per_pixel;
         const u32 rt_size = pitch * height;
@@ -803,13 +647,6 @@ namespace blt {
 
         const u64 rt_addr = gfx_raw(render_target_gfx_addr_);
 
-        // --- 2. RENDER_SURFACE_STATE + BINDING_TABLE_STATE, both Surface
-        //        State Base Address-relative (same physical base as
-        //        Dynamic/Instruction State in this driver's coarse
-        //        single-buffer STATE_BASE_ADDRESS setup — see
-        //        state_base_address_setup()). Placed at fixed offsets that
-        //        don't collide with the shader kernels (0x0-0x100) or
-        //        scissor/viewport (0x200-0x288).
         static constexpr u32 SURFACE_STATE_OFFSET = 0x300; // 64-byte aligned
         static constexpr u32 BINDING_TABLE_OFFSET = 0x340; // 64-byte aligned
 
@@ -821,25 +658,15 @@ namespace blt {
         memcpy(base_ptr + SURFACE_STATE_OFFSET, &surface, sizeof(RENDER_SURFACE_STATE));
         asm volatile("clflush (%0)" ::"r"(base_ptr + SURFACE_STATE_OFFSET) : "memory");
 
-        // Binding table index 0 -> our one render target surface, above.
         BINDING_TABLE_STATE bt_entry = BINDING_TABLE_STATE::create();
         bt_entry.surface_state_pointer = SURFACE_STATE_OFFSET >> 6;
         memcpy(base_ptr + BINDING_TABLE_OFFSET, &bt_entry, sizeof(BINDING_TABLE_STATE));
         asm volatile("clflush (%0)" ::"r"(base_ptr + BINDING_TABLE_OFFSET) : "memory");
 
-        // --- 3. 3DSTATE_BINDING_TABLE_POINTERS_PS: tells the PS stage
-        //        where binding table index 0 (used above) lives.
         STATE_BINDING_TABLE_POINTERS bt_ptr_cmd = STATE_BINDING_TABLE_POINTERS::create_ps();
         bt_ptr_cmd.pointer_to_binding_table = BINDING_TABLE_OFFSET >> 5;
         ring_write_cmd(bt_ptr_cmd);
 
-        // --- 4. 3DSTATE_DEPTH_BUFFER (SURFTYPE_NULL) ---
-        // We have no depth buffer and depth test/write are disabled in
-        // 3DSTATE_WM_DEPTH_STENCIL. Without this command, HiZ/Early-Z
-        // state is left at whatever GPU reset left it in — PRM explicitly
-        // requires HiZ disabled for SURFTYPE_NULL, so this is the
-        // documented way to declare "no depth surface" rather than
-        // silently omitting the command and hoping reset state is benign.
         DEPTH_BUFFER depth_cmd = DEPTH_BUFFER::create_null();
         ring_write_cmd(depth_cmd);
 
@@ -877,13 +704,6 @@ namespace blt {
         sample("bottom-left", 0, height - 1);
         sample("bottom-right", width - 1, height - 1);
 
-        // Full-screen scan: track a bounding box of every non-zero pixel plus a
-        // handful of example values, instead of logging each hit individually
-        // (which would be hundreds of thousands of lines at 1920x1080). This
-        // tells us not just "did the PS write anything" but "where exactly,
-        // and does that region roughly match the expected triangle" — useful
-        // for catching viewport/NDC mapping bugs that put the triangle
-        // somewhere other than screen-center.
         u32 min_x = width, max_x = 0;
         u32 min_y = height, max_y = 0;
         u64 nonzero_count = 0;
@@ -929,11 +749,6 @@ namespace blt {
             );
         }
 
-        // Sanity check: our triangle in vertex_buffer_setup spans clip-space
-        // roughly x:-0.5..0.5, y:-0.5..0.5, which a full-screen viewport maps to
-        // a bounding box centered on-screen. Flag it if the actual bounding box
-        // is way off-center — that points at a viewport/scissor/NDC bug even
-        // though pixels *were* written.
         const u32 bbox_cx = (min_x + max_x) / 2;
         const u32 bbox_cy = (min_y + max_y) / 2;
         const u32 dx = bbox_cx > cx ? bbox_cx - cx : cx - bbox_cx;
@@ -978,12 +793,12 @@ namespace blt {
         );
     }
 
-    bool IntelRcs::present_to_screen(u32 width, u32 height) const {
+    bool IntelRcs::present_to_screen(Resolution res) const {
         if (!bcs_) return false;
         Log::log_dbc("presenting to screen");
 
-        const u32 pitch = width * 4;
-        bcs_->composite_gpu_surface(render_target_gfx_addr_, pitch, width, height);
+        const u32 pitch = res.width * 4;
+        bcs_->composite_gpu_surface(render_target_gfx_addr_, pitch, res.width, res.height);
         bcs_->present();
         return true;
     }

@@ -5,6 +5,7 @@
 #include <vespera/mm/memory.h>
 
 #include "pci_device.h"
+#include "vespera/time.h"
 
 namespace pci {
 
@@ -133,6 +134,8 @@ namespace pci {
                 enumerate_bus(cfg->base_address, bus, domain, BindFilter::XHCI_ONLY);
             }
         }
+
+        kernel::time::sleep_ms(4000);
 
         for (usize t = 0; t < entries; ++t) {
             const auto* cfg = reinterpret_cast<kernel::acpi::DEVICE_CONFIG*>(

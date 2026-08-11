@@ -35,6 +35,7 @@
 #include "gt_interrupt_regs.h"
 #include "intel_engine.h"
 #include "intel_forcewake.h"
+#include <vespera/graphics/display_types.h>
 
 struct KernelDevice;
 
@@ -136,7 +137,7 @@ namespace blt {
 
         bool init_device();
 
-        void start_device(u32 screen_width, u32 screen_height);
+        void start_device(Resolution res);
 
         // IRenderDriver
         bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
@@ -233,7 +234,7 @@ namespace blt {
         void gpu_health_check();
 
         // Framebuffer / scratch
-        void fb_alloc(u32 width, u32 height, TileMode tile_mode);
+        void fb_alloc(Resolution res, TileMode tile_mode);
         void fb_alloc_back();
         void fb_set_display() const;
         void scratch_init();
