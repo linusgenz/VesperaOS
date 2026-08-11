@@ -26,6 +26,7 @@
 #include <gpu/intel/core/intel_engine.h>
 #include <gpu/intel/bcs/intel_bcs.h>
 #include <vespera/graphics/display_types.h>
+#include <gpu/intel/core/state_allocator.h>
 
 struct ShaderOffsets;
 
@@ -74,6 +75,8 @@ namespace gpu::intel::rcs {
         void dump_pipeline_stats(const char* label) const;
 
     private:
+        core::StateAllocator state_allocator_;
+
         void debug_dump_error_regs(const char* label) const;
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
@@ -83,6 +86,7 @@ namespace gpu::intel::rcs {
         void on_gt_user_interrupt() override;
         void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno);
+        ShaderOffsets upload_shaders(u8* inst_base_cpu);
 
         bool vertex_buffer_setup();
 
@@ -92,12 +96,11 @@ namespace gpu::intel::rcs {
      * @param height Framebuffer height in pixels (e.g. 1080)
      */
         bool draw_triangle(u32 width = 1920, u32 height = 1080);
-        void setup_scissor_state(u32 dynamic_offset, u32 width, u32 height);
-        bool setup_viewport_state(float x, float y, float width, float height, u32 sf_clip_offset, u32 cc_offset);
-        bool setup_blend_state(u32 dynamic_offset);
-        bool render_target_setup(u32 width, u32 height);
+        void setup_scissor_state(Resolution res);
+        bool setup_viewport_state(float x, float y, Resolution res);
+        void setup_blend_state();
+        bool render_target_setup(Resolution res);
         void debug_dump_render_target(u32 width, u32 height, u32 pitch) const;
-        void debug_dump_sf_clip_viewport_and_scissor(u32 sf_clip_offset, u32 scissor_offset) const;
         void rcs_error_reporting_init() const;
         virt_addr_t render_target_cpu_addr_{};
         gfx_addr_t render_target_gfx_addr_{};
@@ -111,8 +114,6 @@ namespace gpu::intel::rcs {
         AtomicFlag completion_flag_{};
 
         bcs::IntelBcs* bcs_ = nullptr;
-
-        static constexpr u32 STATE_BASE_PAGES = 4;
     };
 } // namespace blt
 

@@ -69,22 +69,6 @@ struct ShaderOffsets {
     u32 ps_offset;
 };
 
-ShaderOffsets upload_shaders(u8* inst_base_cpu) {
-    ShaderOffsets offsets{};
-    offsets.vs_offset = 0x000; // 64-Byte aligned
-    offsets.ps_offset = 0x0C0; // 64-Byte aligned
-
-    memcpy(inst_base_cpu + offsets.vs_offset, gen9_vs_kernel, gen9_vs_kernel_size);
-    memcpy(inst_base_cpu + offsets.ps_offset, gen9_ps_kernel_simd8, gen9_ps_kernel_simd8_size);
-
-    // Cache-Line-Flush für CPU-Cache (64 Bytes pro Line)
-    for (size_t i = 0; i < 0x200; i += 64) {
-        asm volatile("clflush (%0)" :: "r"(inst_base_cpu + i) : "memory");
-    }
-    asm volatile("mfence" ::: "memory");
-
-    return offsets;
-}
 
 namespace gpu::intel::rcs {
     IntelRcs::IntelRcs(core::IntelGpuDevice& device)
@@ -136,23 +120,14 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-        constexpr u32 SCISSOR_OFFSET = 0x200; // 32-Byte aligned
-        constexpr u32 SF_CLIP_OFFSET = 0x240; // 64-Byte aligned (0x240 % 64 == 0)
-        constexpr u32 CC_OFFSET = 0x280;      // 32-Byte aligned
-        constexpr u32 BLEND_STATE_OFFSET = 0x2C0;
+        setup_scissor_state(res);
 
-        setup_scissor_state(res.width, res.height, SCISSOR_OFFSET);
-
-        if (!setup_viewport_state(0.0f, 0.0f, static_cast<float>(res.width), static_cast<float>(res.height),
-                                  SF_CLIP_OFFSET, CC_OFFSET)) {
+        if (!setup_viewport_state(0.0f, 0.0f, res)) {
             Log::info("intel-rcs: setup viewport state failed");
             return false;
         }
 
-        if (!setup_blend_state(BLEND_STATE_OFFSET)) {
-            Log::info("intel-rcs: setup blend state failed");
-            return false;
-        }
+        setup_blend_state();
 
         if (!vertex_buffer_setup()) {
             Log::log_dbc("intel-rcs: vertex buffer setup failed");
@@ -168,7 +143,7 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-        if (!render_target_setup(res.width, res.height)) {
+        if (!render_target_setup(res)) {
             Log::info("intel-rcs: render target setup failed");
             return false;
         }
@@ -188,7 +163,6 @@ namespace gpu::intel::rcs {
 
         dump_pipeline_stats("after draw");
 
-        debug_dump_sf_clip_viewport_and_scissor(SF_CLIP_OFFSET, SCISSOR_OFFSET);
         return true;
     }
 
@@ -262,19 +236,24 @@ namespace gpu::intel::rcs {
 
 
     bool IntelRcs::state_base_address_setup() {
-        auto alloc = ggtt().alloc_persistent(STATE_BASE_PAGES, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
-        state_base_cpu_addr_ = alloc.cpu_addr;
-        state_base_gfx_addr_ = alloc.gfx_addr;
+        // 64 KB persistent zone, 16 KB frame zone, 3 ring slots
+        constexpr u32 PERSISTENT_BYTES = 64 * 1024;
+        constexpr u32 FRAME_BYTES = 16 * 1024;
+        constexpr u32 FRAME_SLOTS = 3;
 
-        memset(virt_ptr(state_base_cpu_addr_), 0, STATE_BASE_PAGES * PAGE_SIZE);
+        if (!state_allocator_.init(ggtt(), PERSISTENT_BYTES, FRAME_BYTES, FRAME_SLOTS, core::MOCS_UNCACHED)) {
+            Log::error("intel-rcs: StateAllocator init failed");
+            return false;
+        }
 
-        const u64 base = gfx_raw(state_base_gfx_addr_);
+        const u64 base = state_allocator_.base_gfx_addr();
+        const u32 pages = state_allocator_.total_pages();
 
         STATE_BASE_ADDRESS cmd = STATE_BASE_ADDRESS::create();
-        cmd.set_general_state(base, STATE_BASE_PAGES, core::MOCS_UNCACHED);
+        cmd.set_general_state(base, pages, core::MOCS_UNCACHED);
         cmd.set_surface_state(base, core::MOCS_UNCACHED);
-        cmd.set_dynamic_state(base, STATE_BASE_PAGES, core::MOCS_UNCACHED);
-        cmd.set_instruction_state(base, STATE_BASE_PAGES, core::MOCS_UNCACHED);
+        cmd.set_dynamic_state(base, pages, core::MOCS_UNCACHED);
+        cmd.set_instruction_state(base, pages, core::MOCS_UNCACHED);
 
         ring_write_cmd(cmd);
         const u32 target_seqno = seqno_next();
@@ -284,7 +263,7 @@ namespace gpu::intel::rcs {
 
         const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
 
-        Log::info("intel-rcs: STATE_BASE_ADDRESS base GFX=0x%llx (%u pages)", base, STATE_BASE_PAGES);
+        Log::info("intel-rcs: STATE_BASE_ADDRESS base GFX=0x%llx (%u pages)", base, pages);
 
         return ok;
     }
@@ -450,74 +429,45 @@ namespace gpu::intel::rcs {
         return ok;
     }
 
-    void IntelRcs::setup_scissor_state(u32 width, u32 height, u32 dynamic_offset) {
-        auto base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
+    void IntelRcs::setup_scissor_state(Resolution res) {
+        const SCISSOR_RECT rect = SCISSOR_RECT::create_full(res.width, res.height);
 
-        SCISSOR_RECT rect = SCISSOR_RECT::create_full(width, height);
-        memcpy(base_ptr + dynamic_offset, &rect, sizeof(SCISSOR_RECT));
+        auto alloc = state_allocator_.write_persistent(rect, 32);
 
-        asm volatile("clflush (%0)" :: "r"(base_ptr + dynamic_offset) : "memory");
-
-        SCISSOR_STATE_POINTERS cmd = SCISSOR_STATE_POINTERS::create(dynamic_offset);
+        const SCISSOR_STATE_POINTERS cmd = SCISSOR_STATE_POINTERS::create(alloc.offset);
         ring_write_cmd(cmd);
 
-        Log::info("intel-rcs: Scissor state applied at offset 0x%x (%ux%u)", dynamic_offset, width, height);
+        Log::info("intel-rcs: Scissor state applied at offset 0x%x (%ux%u)", alloc.offset, res.width, res.height);
     }
 
     bool IntelRcs::setup_viewport_state(
-        float x, float y, float width, float height, u32 sf_clip_offset, u32 cc_offset
+        const float x, const float y, const Resolution res
     ) {
-        u8* base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
+        const SF_CLIP_VIEWPORT sf_vp = SF_CLIP_VIEWPORT::create_full_screen(x, y, res.width, res.height);
+        auto sf_alloc = state_allocator_.write_persistent(sf_vp, 64);
 
-        if (sf_clip_offset % 64 != 0) {
-            Log::info("intel-rcs: sf_clip_offset (0x%x) is not 64-byte aligned!", sf_clip_offset);
-            return false;
-        }
-
-        SF_CLIP_VIEWPORT sf_vp = SF_CLIP_VIEWPORT::create_full_screen(x, y, width, height);
-        memcpy(base_ptr + sf_clip_offset, &sf_vp, sizeof(SF_CLIP_VIEWPORT));
-        asm volatile("clflush (%0)" :: "r"(base_ptr + sf_clip_offset) : "memory");
-
-        VIEWPORT_POINTERS_SF_CLIP sf_cmd = VIEWPORT_POINTERS_SF_CLIP::create(sf_clip_offset);
+        const VIEWPORT_POINTERS_SF_CLIP sf_cmd = VIEWPORT_POINTERS_SF_CLIP::create(sf_alloc.offset);
         ring_write_cmd(sf_cmd);
 
-        if (cc_offset % 32 != 0) {
-            Log::info("intel-rcs: cc_offset (0x%x) is not 32-byte aligned!", cc_offset);
-            return false;
-        }
+        const CC_VIEWPORT cc_vp = CC_VIEWPORT::create();
+        auto cc_alloc = state_allocator_.write_persistent(cc_vp, 32);
 
-        CC_VIEWPORT cc_vp = CC_VIEWPORT::create();
-        memcpy(base_ptr + cc_offset, &cc_vp, sizeof(CC_VIEWPORT));
-        asm volatile("clflush (%0)" :: "r"(base_ptr + cc_offset) : "memory");
-
-        VIEWPORT_POINTERS_CC cc_cmd = VIEWPORT_POINTERS_CC::create(cc_offset);
+        const VIEWPORT_POINTERS_CC cc_cmd = VIEWPORT_POINTERS_CC::create(cc_alloc.offset);
         ring_write_cmd(cc_cmd);
 
-        Log::info("intel-rcs: Viewport states applied (SF at 0x%x, CC at 0x%x)", sf_clip_offset, cc_offset);
+        Log::info("intel-rcs: Viewport states applied (SF at 0x%x, CC at 0x%x)", sf_alloc.offset, cc_alloc.offset);
         return true;
     }
 
-    bool IntelRcs::setup_blend_state(u32 dynamic_offset) {
-        if (dynamic_offset % 64 != 0) {
-            Log::info("intel-rcs: blend_state offset (0x%x) is not 64-byte aligned!", dynamic_offset);
-            return false;
-        }
+    void IntelRcs::setup_blend_state() {
+        const BLEND_STATE blend = BLEND_STATE::create_single_rt_opaque();
+        auto alloc = state_allocator_.write_persistent(blend, 64);
 
-        u8* base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
-
-        // Single RT, opaque, no blending — matches our PS output (solid
-        // red, no alpha blending needed)
-        BLEND_STATE blend = BLEND_STATE::create_single_rt_opaque();
-        memcpy(base_ptr + dynamic_offset, &blend, sizeof(BLEND_STATE));
-        asm volatile("clflush (%0)" :: "r"(base_ptr + dynamic_offset) : "memory");
-
-        STATE_BLEND_STATE_POINTERS cmd = STATE_BLEND_STATE_POINTERS::create_pointer(dynamic_offset);
+        const STATE_BLEND_STATE_POINTERS cmd = STATE_BLEND_STATE_POINTERS::create_pointer(alloc.offset);
         ring_write_cmd(cmd);
 
-        Log::info("intel-rcs: Blend state applied at offset 0x%x (single RT, opaque)", dynamic_offset);
-        return true;
+        Log::info("intel-rcs: Blend state applied at offset 0x%x (single RT, opaque)", alloc.offset);
     }
-
 
     u32 IntelRcs::gt_user_irq_bit() const {
         return GT0_RCS_PIPE_CONTROL_NOTIFY_BIT;
@@ -566,6 +516,25 @@ namespace gpu::intel::rcs {
         ui.client = CLIENT_MI;
         ring_write_cmd(ui);*/
     }
+
+    ShaderOffsets IntelRcs::upload_shaders(u8* inst_base_cpu) {
+        ShaderOffsets offsets{};
+
+        // Vertex shader
+        auto vs_alloc = state_allocator_.alloc_persistent(gen9_vs_kernel_size, 64);
+        memcpy(vs_alloc.cpu_ptr, gen9_vs_kernel, gen9_vs_kernel_size);
+        gpu::intel::core::StateAllocator::flush_range(vs_alloc.cpu_ptr, gen9_vs_kernel_size);
+        offsets.vs_offset = vs_alloc.offset;
+
+        // Pixel shader
+        auto ps_alloc = state_allocator_.alloc_persistent(gen9_ps_kernel_simd8_size, 64);
+        memcpy(ps_alloc.cpu_ptr, gen9_ps_kernel_simd8, gen9_ps_kernel_simd8_size);
+        gpu::intel::core::StateAllocator::flush_range(ps_alloc.cpu_ptr, gen9_ps_kernel_simd8_size);
+        offsets.ps_offset = ps_alloc.offset;
+
+        return offsets;
+    }
+
 
     bool IntelRcs::vertex_buffer_setup() {
         // Three vertices, float3 position only (12 bytes/vertex). Clip-space
@@ -634,38 +603,30 @@ namespace gpu::intel::rcs {
         return ok;
     }
 
-    bool IntelRcs::render_target_setup(u32 width, u32 height) {
+    bool IntelRcs::render_target_setup(Resolution res) {
         constexpr u32 bytes_per_pixel = 4;
-        const u32 pitch = width * bytes_per_pixel;
-        const u32 rt_size = pitch * height;
+        const u32 pitch = res.width * bytes_per_pixel;
+        const u32 rt_size = pitch * res.height;
         const u32 rt_pages = (rt_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
         auto rt_alloc = ggtt().alloc_persistent(rt_pages, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         render_target_cpu_addr_ = rt_alloc.cpu_addr;
         render_target_gfx_addr_ = rt_alloc.gfx_addr;
-
         memset(virt_ptr(render_target_cpu_addr_), 0, rt_pages * PAGE_SIZE);
 
         const u64 rt_addr = gfx_raw(render_target_gfx_addr_);
 
-        static constexpr u32 SURFACE_STATE_OFFSET = 0x300; // 64-byte aligned
-        static constexpr u32 BINDING_TABLE_OFFSET = 0x340; // 64-byte aligned
-
-        u8* base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
-
         const RENDER_SURFACE_STATE surface = RENDER_SURFACE_STATE::create_simple_2d(
-            rt_addr, width, height, pitch, SURFACE_FORMAT_B8G8R8A8_UNORM, core::MOCS_UNCACHED
+            rt_addr, res.width, res.height, pitch, SURFACE_FORMAT_B8G8R8A8_UNORM, core::MOCS_UNCACHED
         );
-        memcpy(base_ptr + SURFACE_STATE_OFFSET, &surface, sizeof(RENDER_SURFACE_STATE));
-        asm volatile("clflush (%0)" ::"r"(base_ptr + SURFACE_STATE_OFFSET) : "memory");
+        auto surf_alloc = state_allocator_.write_persistent(surface, 64);
 
         BINDING_TABLE_STATE bt_entry = BINDING_TABLE_STATE::create();
-        bt_entry.surface_state_pointer = SURFACE_STATE_OFFSET >> 6;
-        memcpy(base_ptr + BINDING_TABLE_OFFSET, &bt_entry, sizeof(BINDING_TABLE_STATE));
-        asm volatile("clflush (%0)" ::"r"(base_ptr + BINDING_TABLE_OFFSET) : "memory");
+        bt_entry.surface_state_pointer = surf_alloc.offset >> 6;
+        auto bt_alloc = state_allocator_.write_persistent(bt_entry, 32);
 
         STATE_BINDING_TABLE_POINTERS bt_ptr_cmd = STATE_BINDING_TABLE_POINTERS::create_ps();
-        bt_ptr_cmd.pointer_to_binding_table = BINDING_TABLE_OFFSET >> 5;
+        bt_ptr_cmd.pointer_to_binding_table = bt_alloc.offset >> 5;
         ring_write_cmd(bt_ptr_cmd);
 
         DEPTH_BUFFER depth_cmd = DEPTH_BUFFER::create_null();
@@ -673,17 +634,9 @@ namespace gpu::intel::rcs {
 
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
-
         ring_flush();
 
-        const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
-
-        Log::info(
-            "intel-rcs: render target GFX=0x%llx (%ux%u, pitch %u) bound at binding table index 0",
-            rt_addr, width, height, pitch
-        );
-
-        return ok;
+        return seqno_wait(target_seqno, 5'000'000, completion_flag_);
     }
 
     void IntelRcs::debug_dump_render_target(u32 width, u32 height, u32 pitch) const {
@@ -762,36 +715,6 @@ namespace gpu::intel::rcs {
                 bbox_cx, bbox_cy, cx, cy
             );
         }
-    }
-
-    void IntelRcs::debug_dump_sf_clip_viewport_and_scissor(u32 sf_clip_offset, u32 scissor_offset) const {
-        const u8* base_ptr = static_cast<const u8*>(virt_ptr(state_base_cpu_addr_));
-
-        SF_CLIP_VIEWPORT sf_vp{};
-        memcpy(&sf_vp, base_ptr + sf_clip_offset, sizeof(SF_CLIP_VIEWPORT));
-
-        SCISSOR_RECT scissor{};
-        memcpy(&scissor, base_ptr + scissor_offset, sizeof(SCISSOR_RECT));
-
-        Log::info("=== SF_CLIP_VIEWPORT @ DYNAMIC_STATE_BASE_ADDRESS+0x%x ===", sf_clip_offset);
-        Log::info("  m00=%f m11=%f m22=%f", sf_vp.m00, sf_vp.m11, sf_vp.m22);
-        Log::info("  m30=%f m31=%f m32=%f", sf_vp.m30, sf_vp.m31, sf_vp.m32);
-        Log::info(
-            "  guardband: x[%f,%f] y[%f,%f]",
-            sf_vp.x_min_clip_guardband, sf_vp.x_max_clip_guardband,
-            sf_vp.y_min_clip_guardband, sf_vp.y_max_clip_guardband
-        );
-        Log::info(
-            "  viewport (screen-space): x[%f,%f] y[%f,%f]",
-            sf_vp.x_min_viewport, sf_vp.x_max_viewport,
-            sf_vp.y_min_viewport, sf_vp.y_max_viewport
-        );
-
-        Log::info("=== SCISSOR_RECT @ DYNAMIC_STATE_BASE_ADDRESS+0x%x ===", scissor_offset);
-        Log::info(
-            "  x[%u,%u] y[%u,%u]",
-            scissor.x_min, scissor.x_max, scissor.y_min, scissor.y_max
-        );
     }
 
     bool IntelRcs::present_to_screen(Resolution res) const {
