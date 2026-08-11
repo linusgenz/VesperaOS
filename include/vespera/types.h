@@ -42,6 +42,17 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long u64;
 
+typedef float       f32;   // IEEE-754 binary32 (32-bit)
+typedef double      f64;   // IEEE-754 binary64 (64-bit)
+typedef long double f80;
+
+static_assert(sizeof(f32) == 4, "f32 must be 32-bit");
+static_assert(sizeof(f64) == 8, "f64 must be 64-bit");
+
+static_assert(__FLT_RADIX__ == 2, "Binary floating point required");
+static_assert(__FLT_MANT_DIG__ == 24, "f32 must be IEEE-754 binary32");
+static_assert(__DBL_MANT_DIG__ == 53, "f64 must be IEEE-754 binary64");
+
 typedef __UINTPTR_TYPE__ uptr;
 typedef __INTPTR_TYPE__ iptr;
 

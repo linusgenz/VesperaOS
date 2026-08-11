@@ -1,0 +1,162 @@
+NIR (SSA form) for vertex shader:
+shader: MESA_SHADER_VERTEX
+source_blake3: {0x8aba138f, 0x7256ed7c, 0x31c1afb4, 0xc0b5aaa6, 0xb622835c, 0x194f7386, 0x7e600553, 0x0a7bff22}
+name: GLSL3
+next_stage: MESA_SHADER_FRAGMENT
+inputs_read: 15
+outputs_written: 0
+max_subgroup_size: 8
+min_subgroup_size: 8
+api_subgroup_size_draw_uniform: true
+bit_sizes_int: 0x20
+first_ubo_is_default_ubo: true
+known_interpolation_qualifiers: true
+flrp_lowered: true
+inputs: 1
+outputs: 1
+decl_var shader_in INTERP_MODE_NONE none highp vec4 pos (VERT_ATTRIB_GENERIC0.xyzw, 15, 0)
+decl_var shader_out INTERP_MODE_NONE none highp vec4 gl_Position (VARYING_SLOT_POS.xyzw, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:      // preds:
+    con 32    %0 = load_const (0x00000000)
+    div 32x4  %1 = @load_input (%0 (0x0)) (base=0, range=1, component=0, dest_type=float32, io location=VERT_ATTRIB_GENERIC0 slots=1)  // pos
+    con 32    %2 = load_const (0x3f800000 = 1.000000)
+    div 32x4  %3 = vec4 %1.x, %1.y, %1.z, %2 (0x3f800000)
+                   @store_output (%3, %0 (0x0)) (base=0, range=1, wrmask=xyzw, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb())  // gl_Position
+                   // succs: b1
+    block b1:
+}
+
+NIR (final form) for vertex shader:
+shader: MESA_SHADER_VERTEX
+source_blake3: {0x8aba138f, 0x7256ed7c, 0x31c1afb4, 0xc0b5aaa6, 0xb622835c, 0x194f7386, 0x7e600553, 0x0a7bff22}
+name: GLSL3
+next_stage: MESA_SHADER_FRAGMENT
+inputs_read: 15
+outputs_written: 0
+max_subgroup_size: 8
+min_subgroup_size: 8
+api_subgroup_size_draw_uniform: true
+bit_sizes_int: 0x20
+first_ubo_is_default_ubo: true
+known_interpolation_qualifiers: true
+flrp_lowered: true
+inputs: 1
+outputs: 1
+decl_var shader_in INTERP_MODE_NONE none highp vec4 pos (VERT_ATTRIB_GENERIC0.xyzw, 15, 0)
+decl_var shader_out INTERP_MODE_NONE none highp vec4 gl_Position (VARYING_SLOT_POS.xyzw, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:      // preds:
+    con 32    %0 = load_const (0x00000000)
+    div 32x4  %1 = @load_input (%0 (0x0)) (base=0, range=1, component=0, dest_type=float32, io location=VERT_ATTRIB_GENERIC0 slots=1)  // pos
+    con 32    %2 = load_const (0x3f800000 = 1.000000)
+    div 32x4  %3 = vec4 %1.x, %1.y, %1.z, %2 (0x3f800000)
+                   @store_output (%3, %0 (0x0)) (base=0, range=1, wrmask=xyzw, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb())  // gl_Position
+                   // succs: b1
+    block b1:
+}
+
+VS Output MESA_SHADER_VERTEX VUE map (2 slots, fixed)
+  [00] VARYING_SLOT_PSIZ
+  [01] VARYING_SLOT_POS
+
+Native code for unnamed vertex shader GLSL3 (src_hash 0x8aba138f) (blake3 51eaf05c4935eb9b8685179adc01c9a49ba64acea4c341b6a68305f5548f4e6b)
+SIMD8 shader: 10 instructions. 0 loops. 28 cycles. 0:0 spills:fills, 1 sends, scheduled with mode top-down. Promoted 0 constants. GRF registers: 127. Non-SSA regs (after NIR): 4. Compacted 160 to 160 bytes (0%)
+   START B0 (28 cycles)
+01 00 60 00 0c 02 c0 2f 20 00 8d 00 00 00 00 00 mov(8)          g126<1>UD       g1<8,8,1>UD                     { align1 WE_all 1Q };
+01 00 60 00 28 0e c0 2e 00 00 00 08 00 00 00 00 mov(8)          g118<1>D        0D                              { align1 1Q };
+01 00 60 00 28 0e e0 2e 00 00 00 08 00 00 00 00 mov(8)          g119<1>D        0D                              { align1 1Q };
+01 00 60 00 28 0e 00 2f 00 00 00 08 00 00 00 00 mov(8)          g120<1>D        0D                              { align1 1Q };
+01 00 60 00 28 0e 20 2f 00 00 00 08 00 00 00 00 mov(8)          g121<1>D        0D                              { align1 1Q };
+01 00 60 00 28 0a 40 2f 40 00 8d 00 00 00 00 00 mov(8)          g122<1>D        g2<8,8,1>D                      { align1 1Q };
+01 00 60 00 28 0a 60 2f 60 00 8d 00 00 00 00 00 mov(8)          g123<1>D        g3<8,8,1>D                      { align1 1Q };
+01 00 60 00 28 0a 80 2f 80 00 8d 00 00 00 00 00 mov(8)          g124<1>D        g4<8,8,1>D                      { align1 1Q };
+01 00 60 00 28 0e a0 2f 00 00 00 08 00 00 80 3f mov(8)          g125<1>D        1065353216D                     { align1 1Q };
+33 00 60 06 10 60 07 00 c8 0f 00 00 07 00 08 82 sends(8)        nullUD          g126UD          g118UD          0x02080007                0x00000200
+                urb MsgDesc: offset 0 SIMD8 write  mlen 1 ex_mlen 8 rlen 0 { align1 1Q EOT };
+   END B0
+
+NIR (SSA form) for fragment shader:
+shader: MESA_SHADER_FRAGMENT
+source_blake3: {0xe25e9432, 0x724d9d50, 0x8540862f, 0xf796e25f, 0xc816a250, 0x1006a208, 0xf121713b, 0x33f212d2}
+name: GLSL3
+prev_stage: MESA_SHADER_VERTEX
+outputs_written: 4
+max_subgroup_size: 128
+min_subgroup_size: 1
+api_subgroup_size_draw_uniform: true
+first_ubo_is_default_ubo: true
+known_interpolation_qualifiers: true
+flrp_lowered: true
+outputs: 1
+decl_var shader_out INTERP_MODE_NONE none highp vec4 fragColor (FRAG_RESULT_DATA0.xyzw, 8, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:      // preds:
+    con 32    %0 = load_const (0x00000000)
+    con 32x4  %1 = load_const (0x3f800000, 0x00000000, 0x00000000, 0x3f800000) = (1.000000, 0.000000, 0.000000, 1.000000)
+                   @store_output (%1 (1.000000, 0.000000, 0.000000, 1.000000), %0 (0x0)) (base=8, range=1, wrmask=xyzw, component=0, src_type=float32, io location=FRAG_RESULT_DATA0 slots=1, xfb())  // fragColor
+                   // succs: b1
+    block b1:
+}
+
+NIR (final form) for fragment shader:
+shader: MESA_SHADER_FRAGMENT
+source_blake3: {0xe25e9432, 0x724d9d50, 0x8540862f, 0xf796e25f, 0xc816a250, 0x1006a208, 0xf121713b, 0x33f212d2}
+name: GLSL3
+prev_stage: MESA_SHADER_VERTEX
+outputs_written: 4
+max_subgroup_size: 128
+min_subgroup_size: 1
+api_subgroup_size_draw_uniform: true
+first_ubo_is_default_ubo: true
+known_interpolation_qualifiers: true
+flrp_lowered: true
+outputs: 1
+decl_var shader_out INTERP_MODE_NONE none highp vec4 fragColor (FRAG_RESULT_DATA0.xyzw, 8, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:      // preds:
+    con 32    %0 = load_const (0x00000000)
+    con 32x4  %1 = load_const (0x3f800000, 0x00000000, 0x00000000, 0x3f800000) = (1.000000, 0.000000, 0.000000, 1.000000)
+                   @store_output (%1 (1.000000, 0.000000, 0.000000, 1.000000), %0 (0x0)) (base=8, range=1, wrmask=xyzw, component=0, src_type=float32, io location=FRAG_RESULT_DATA0 slots=1, xfb())  // fragColor
+                   // succs: b1
+    block b1:
+}
+
+FS URB (inputs=0x0000000000000000, flat_inputs=0x00000000):
+  URB setup:
+  URB setup attributes:
+  Per Primitive URB setup:
+Native code for unnamed fragment shader GLSL3 (src_hash 0xe25e9432) (blake3 50090430b2a51f48b7572c221c9b4b4af5f04b0d217c13d2fde0477b7858b194)
+SIMD8 shader: 5 instructions. 0 loops. 18 cycles. 0:0 spills:fills, 1 sends, scheduled with mode top-down. Promoted 0 constants. GRF registers: 127. Non-SSA regs (after NIR): 1. Compacted 80 to 80 bytes (0%)
+   START B0 (18 cycles)
+01 00 60 00 e8 3e c0 2f 00 00 00 38 00 00 80 3f mov(8)          g126<1>F        0x3f800000F      /* 1F */       { align1 1Q };
+01 00 60 00 e8 3e 60 2f 00 00 00 38 00 00 00 00 mov(8)          g123<1>F        0x0F             /* 0F */       { align1 1Q };
+01 00 60 00 e8 3e 80 2f 00 00 00 38 00 00 00 00 mov(8)          g124<1>F        0x0F             /* 0F */       { align1 1Q };
+01 00 60 00 e8 3e a0 2f 00 00 00 38 00 00 80 3f mov(8)          g125<1>F        0x3f800000F      /* 1F */       { align1 1Q };
+34 00 60 05 10 b0 07 00 c3 0f 00 00 00 14 03 82 sendsc(8)       nullUD          g126UD          g123UD          0x02031400                0x000000c0
+                render MsgDesc: RT write SIMD8 LastRT Surface = 0  mlen 1 ex_mlen 3 rlen 0 { align1 1Q EOT };
+   END B0
+
+Native code for unnamed fragment shader GLSL3 (src_hash 0xe25e9432) (blake3 fb15a39ca7645f2fb17b2f75ff9b5a49798060383ce302683d6346fe92dc0d81)
+SIMD16 shader: 5 instructions. 0 loops. 26 cycles. 0:0 spills:fills, 1 sends, scheduled with mode top-down. Promoted 0 constants. GRF registers: 127. Non-SSA regs (after NIR): 1. Compacted 80 to 80 bytes (0%)
+   START B0 (26 cycles)
+01 00 80 00 e8 3e a0 2f 00 00 00 38 00 00 80 3f mov(16)         g125<1>F        0x3f800000F      /* 1F */       { align1 1H };
+01 00 80 00 e8 3e e0 2e 00 00 00 38 00 00 00 00 mov(16)         g119<1>F        0x0F             /* 0F */       { align1 1H };
+01 00 80 00 e8 3e 20 2f 00 00 00 38 00 00 00 00 mov(16)         g121<1>F        0x0F             /* 0F */       { align1 1H };
+01 00 80 00 e8 3e 60 2f 00 00 00 38 00 00 80 3f mov(16)         g123<1>F        0x3f800000F      /* 1F */       { align1 1H };
+34 00 80 05 10 70 07 00 a6 0f 00 00 00 10 03 84 sendsc(16)      nullUD          g125UD          g119UD          0x04031000                0x00000180
+                render MsgDesc: RT write SIMD16 LastRT Surface = 0  mlen 2 ex_mlen 6 rlen 0 { align1 1H EOT };
+   END B0
+
+
+=== DONE: check stderr above for VS/FS hex dump ===
+You can now close the window.
+

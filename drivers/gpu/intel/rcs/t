@@ -1,0 +1,103 @@
+Table of Contents
+Render Engine  1
+Workload Submission  1
+Context Submission Overview  1
+Render-3D-GPGPU Command Streamer  3
+Render Engine Command Streamer (RCS)  3
+Position Only Shader Command Streamer (POCS)  6
+Software Interface 20
+Engine State 33
+Memory Access Indirection 33
+Context Image 34
+3D Pipeline Stages 59
+3D Pipeline-Level State 60
+3D Pipeline Geometry 61
+Block Diagram 61
+POSH Pipeline Overview 62
+General Programming of Thread-Generating Stages (VS, HS, DS, GS) 63
+3D Primitives Overview 85
+Thread Request Generation 92
+Vertex Data Overview 98
+Vertex Fetch (VF) Stage  103
+Vertex Shader (VS) Stage  117
+Hull Shader (HS) Stage  122
+Tessellation Engine (TE) Stage  134
+Domain Shader (DS) Stage 139
+Geometry Shader (GS) Stage 147
+Stream Output Logic (SOL) Stage  164
+3D Pipeline Rasterization 172
+Common Rasterization State 172
+3D Pipeline – CLIP Stage Overview  172
+3D Pipeline - Strips and Fans (SF) Stage  184
+Object Setup  197
+iv Doc Ref # IHD-OS-ICLLP-Vol 9-120
+Attribute Interpolation Setup  218
+Depth Offset  221
+Other SF Functions  221
+Windower (WM) Stage  221
+Pixel  245
+Pixel Hashing  246
+Coarse Pixel Shading  248
+Early Depth/Stencil Processing  250
+Pixel Shader Thread Generation  259
+Pixel Backend  289
+GPGPU Compute Pipeline  302
+General Purpose Compute Model  302
+GPGPU Context in GPU Hardware  305
+GPGPU PIPE Overview  306
+Programming the GPGPU Pipeline  306
+Thread Lifecycle  307
+Command Sequence  309
+GPGPU Pipeline Notes  311
+CURBE/Indirect Payload Dispatch  311
+Media GPGPU Payload Limitations  312
+Media State Model  313
+Commands for GPGPU Pipe  314
+MEDIA_VFE_STATE  314
+MEDIA_STATE_FLUSH  315
+MEDIA_CURBE_LOAD  315
+MEDIA_INTERFACE_DESCRIPTOR_LOAD  316
+MEDIA_OBJECT  316
+MEDIA_OBJECT_GRPID  316
+MEDIA_OBJECT_WALKER  317
+GPGPU_WALKER  318
+Synchronization of the Media-GPGPU Pipeline  318
+Supporting Commands for MEDIA-GPGPU Pipe  319
+Thread Spawner (TS)  319
+Doc Ref # IHD-OS-ICLLP-Vol 9-120 v
+Memory Resources for Threads  320
+GPGPU Walker 321
+Parameterized Media Walker  326
+Thread Dispatch  336
+Thread Dispatch Format  336
+INTERFACE_DESCRIPTOR_DATA  337
+R0 Headers  338
+Thread Tracking and Synchronization  342
+Thread Synchronization Monitors  342
+Barriers and Shared Local Memory  343
+Media-GPGPU Thread EOT Message  344
+Context Switch for GPGPU and Media  345
+3D and GPGPU Programs  346
+EU Overview  347
+Primary Usage Models  348
+Messages  352
+Registers and Register Regions 357
+SIMD Execution Control  410
+End of Thread  413
+Assigning Conditional Flags  413
+Destination Hazard  416
+Non-present Operands  417
+Instruction Prefetch  417
+ISA Introduction  417
+Shared Functions  573
+Binding Table  573
+Fused Send Message Handling  575
+3D Sampler  575
+Data Port  655
+Pixel Data Port  734
+Shared Functions Pixel Interpolater  759
+Message Gateway  781
+Media Sampler  786
+vi Doc Ref # IHD-OS-ICLLP-Vol 9-120
+
+

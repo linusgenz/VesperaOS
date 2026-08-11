@@ -29,16 +29,21 @@
 #include <vespera/sync/atomic.h>
 #include <vespera/types.h>
 
+#include "vespera/mm/addr.h"
+
 enum class GpuBltOp : u8 {
     BlitRegion,
     FillRect,
-    Present
+    Present,
+    CompositeGpuSurface
 };
 
 struct GpuBltRequest {
     GpuBltRequest* next = nullptr;
 
     GpuBltOp op{};
+
+    gfx_addr_t src_gfx_addr{};
 
     u32* owned_pixels = nullptr;
     u32 src_stride = 0;
@@ -52,16 +57,17 @@ struct GpuBltRequest {
 };
 
 class GpuBltQueue {
-   public:
+public:
     void init();
     void shutdown();
     void submit(GpuBltRequest* req);
     GpuBltRequest* dequeue_blocking();
+
     [[nodiscard]] bool is_running() const {
         return running_;
     }
 
-   private:
+private:
     Spinlock lock_;
     IntrusiveQueue<GpuBltRequest> queue_;
     Semaphore pending_;

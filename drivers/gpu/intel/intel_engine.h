@@ -99,6 +99,14 @@ namespace blt {
             return val;
         }
 
+        [[nodiscard]] u64 engine_reg_read64(u32 offset) const {
+            struct RawReg { u32 raw; };
+            const u32 low  = engine_reg_read<RawReg>(offset).raw;
+            const u32 high = engine_reg_read<RawReg>(offset + 4).raw;
+
+            return (static_cast<u64>(high) << 32) | low;
+        }
+
         template <class T>
         void engine_reg_write(u32 offset, T val) const {
             *reinterpret_cast<volatile u32*>(engine_regs() + offset) = val.raw;

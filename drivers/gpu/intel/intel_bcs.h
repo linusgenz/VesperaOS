@@ -144,6 +144,7 @@ namespace blt {
             const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
         ) override;
         void present() override;
+        void composite_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height);
 
         [[nodiscard]] u32 screen_width_px() const override;
         [[nodiscard]] u32 screen_height_px() const override;
@@ -167,9 +168,9 @@ namespace blt {
             completion_flag_.set();
         }
 
-        bool blit_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height);
+        bool execute_composite_gpu_surface(const GpuBltRequest* req);
 
-       private:
+    private:
         static constexpr u32 RING_SPACE_FOR_FILL = 12 * 4 + 64;
         static constexpr u32 RING_SPACE_FOR_BLIT = 30 * 4 + 64;
 

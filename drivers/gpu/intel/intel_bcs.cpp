@@ -152,6 +152,9 @@ namespace blt {
                 case GpuBltOp::Present:
                     bcs->execute_present();
                     break;
+                case GpuBltOp::CompositeGpuSurface:
+                    bcs->execute_composite_gpu_surface(req);
+                    break;
                 default:
                     break;
             }
@@ -651,14 +654,28 @@ namespace blt {
         blt_queue_.submit(req);
     }
 
-    bool IntelBcs::blit_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height) {
+    void IntelBcs::composite_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height) {
+        auto* req = new GpuBltRequest();
+        req->op = GpuBltOp::CompositeGpuSurface;
+        req->src_gfx_addr = src_gfx;
+        req->src_stride = src_pitch;
+        req->w = width;
+        req->h = height;
+        blt_queue_.submit(req);
+    }
+
+    // =========================================================================
+    // Worker Execute Paths
+    // =========================================================================
+
+    bool IntelBcs::execute_composite_gpu_surface(const GpuBltRequest* req) {
         gpu_health_check();
         if (!ring_wait_space(RING_SPACE_FOR_BLIT, 1'000'000)) return false;
 
         emit_xy_src_copy_blt(
             fb_back_.gfx_addr, fb_back_.pitch,
-            0, 0, width, height,
-            src_gfx, src_pitch,
+            0, 0, req->w, req->h,
+            req->src_gfx_addr, req->src_stride,
             0, 0
         );
 
@@ -668,10 +685,6 @@ namespace blt {
 
         return seqno_wait(target_seqno, 500'000, completion_flag_);
     }
-
-    // =========================================================================
-    // Worker Execute Paths
-    // =========================================================================
 
     bool IntelBcs::execute_blit_region(const GpuBltRequest* req) {
         if (req->w == 0 || req->h == 0) return true;

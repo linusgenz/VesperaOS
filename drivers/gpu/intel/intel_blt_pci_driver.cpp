@@ -150,19 +150,27 @@ namespace blt {
             bcs_ = nullptr;
             delete device_;
             device_ = nullptr;
-            return -1;
+            return -2;
         }
-       // bcs_->start_device(screen_width, screen_height);
 
         rcs_ = new IntelRcs(*device_);
         if (!rcs_->init_device()) {
             Log::warning("intel-blt: RCS init failed, continuing with BCS only");
             delete rcs_;
             rcs_ = nullptr;
+            return -3;
+        } else {
+            rcs_->set_bcs(bcs_);
         }
+
+        bcs_->start_device(screen_width, screen_height);
 
         const DisplayBackend be{bcs_, bcs_->get_kd()};
         DisplayManager::set_primary(be);
+
+        rcs_->present_to_screen(screen_width, screen_height);
+
+        while (1); // as long as we develop rcs
 
         return 0;
     }

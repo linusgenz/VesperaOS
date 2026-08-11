@@ -23,6 +23,9 @@
 #include "intel_rcs.h"
 #include "gen9_kernels.h"
 #include "gfx_pipeline_regs.h"
+#include "gfx_pipeline_stats_regs.h"
+#include "blend_state.h"
+#include "cmd_3dstate_blend_state_pointers.h"
 #include "cmd_state_base_address.h"
 #include "cmd_pipe_control.h"
 #include "cmd_vertex_elements.h"
@@ -30,6 +33,7 @@
 #include "cmd_3dstate_ps.h"
 #include "cmd_3dstate_ps_blend.h"
 #include "cmd_3dstate_vf_topology.h"
+#include "cmd_3dstate_vf_statistics.h"
 #include "cmd_3dstate_urb.h"
 #include "cmd_3dstate_vs.h"
 #include "cmd_3dstate_wm.h"
@@ -43,6 +47,17 @@
 #include <vespera/log.h>
 
 #include "cmd_3dprimitive.h"
+#include "cmd_3dstate_clip.h"
+#include "cmd_3dstate_ds.h"
+#include "cmd_3dstate_gs.h"
+#include "cmd_3dstate_hs.h"
+#include "cmd_3dstate_sbe.h"
+#include "cmd_3dstate_sf.h"
+#include "cmd_3dstate_raster.h"
+#include "cmd_3dstate_multisample.h"
+#include "cmd_3dstate_sample_mask.h"
+#include "cmd_3dstate_te.h"
+#include "cmd_3dstate_wm_depth_stencil.h"
 #include "drivers/mmio_post_write.h"
 #include "gpu/intel/gt_interrupt_regs.h"
 #include "gpu/intel/intel_bcs.h"
@@ -56,11 +71,11 @@ struct ShaderOffsets {
 
 ShaderOffsets upload_shaders(u8* inst_base_cpu) {
     ShaderOffsets offsets{};
-    offsets.vs_offset = 0x000;  // 64-Byte aligned
+    offsets.vs_offset = 0x000; // 64-Byte aligned
     offsets.ps_offset = 0x0C0; // 64-Byte aligned
 
-    memcpy(inst_base_cpu + offsets.vs_offset, gen9_vs_kernel,         gen9_vs_kernel_size);
-    memcpy(inst_base_cpu + offsets.ps_offset, gen9_ps_kernel_simd8,   gen9_ps_kernel_simd8_size);
+    memcpy(inst_base_cpu + offsets.vs_offset, gen9_vs_kernel, gen9_vs_kernel_size);
+    memcpy(inst_base_cpu + offsets.ps_offset, gen9_ps_kernel_simd8, gen9_ps_kernel_simd8_size);
 
     // Cache-Line-Flush für CPU-Cache (64 Bytes pro Line)
     for (size_t i = 0; i < 0x200; i += 64) {
@@ -134,6 +149,7 @@ namespace blt {
         constexpr u32 SCISSOR_OFFSET = 0x200; // 32-Byte aligned
         constexpr u32 SF_CLIP_OFFSET = 0x240; // 64-Byte aligned (0x240 % 64 == 0)
         constexpr u32 CC_OFFSET = 0x280;      // 32-Byte aligned
+        constexpr u32 BLEND_STATE_OFFSET = 0x2C0;
 
         if (!setup_scissor_state(1920, 1080, SCISSOR_OFFSET)) {
             Log::info("intel-rcs: setup scissor state failed");
@@ -142,6 +158,11 @@ namespace blt {
 
         if (!setup_viewport_state(0.0f, 0.0f, 1920.0f, 1080.0f, SF_CLIP_OFFSET, CC_OFFSET)) {
             Log::info("intel-rcs: setup viewport state failed");
+            return false;
+        }
+
+        if (!setup_blend_state(BLEND_STATE_OFFSET)) {
+            Log::info("intel-rcs: setup blend state failed");
             return false;
         }
 
@@ -170,11 +191,22 @@ namespace blt {
         if (!draw_triangle()) {
             Log::info("intel-rcs: draw triangle failed");
             debug_dump_error_regs("after failed draw_triangle");
+            dump_pipeline_stats("after draw fail");
             return false;
         }
 
         debug_dump_error_regs("after draw_triangle");
         debug_dump_render_target(1920, 1080, 1920 * 4);
+
+        dump_pipeline_stats("after draw");
+
+        debug_dump_sf_clip_viewport_and_scissor(SF_CLIP_OFFSET, SCISSOR_OFFSET);
+
+        struct RawReg { u32 raw; };
+        RawReg reg_head = engine_reg_read<RawReg>(ENGINE_RING_HEAD_OFF);
+        RawReg reg_tail = engine_reg_read<RawReg>(ENGINE_RING_TAIL_OFF);
+
+        Log::debug("RING HEAD: 0x%llx RING TAIL: 0x%llx", reg_head.raw, reg_tail.raw);
 
         Log::info("intel-rcs: Milestone 2 COMPLETE! Triangle Primitive dispatched to RCS Engine.");
         return true;
@@ -239,7 +271,8 @@ namespace blt {
             Log::warning("intel-rcs: HARDWARE ERROR DETECTED (EIR or ESR non-zero) — see values above");
         }
     }
-//
+
+    //
     bool IntelRcs::select_pipeline(PIPELINE_SELECT::PipelineSelection mode) {
         const PIPELINE_SELECT cmd = PIPELINE_SELECT::create(mode);
         ring_write_cmd(cmd);
@@ -290,49 +323,113 @@ namespace blt {
     }
 
     bool IntelRcs::setup_shaders_and_pipeline(const ShaderOffsets& offsets) {
+        // --- 0. 3DSTATE_URB_VS/HS/DS/GS ---
+        // Per PRM programming note (repeated identically on all four URB
+        // commands): "When programming <STAGE> URB state for the RCS 3D
+        // pipe, the other three 3DSTATE_URB_* commands must also be
+        // programmed in order for the programming of this state to be
+        // valid." All four are REQUIRED together even though this driver
+        // only uses VS — HS/DS/GS stay Function-Enable=0 elsewhere
+        // (3DSTATE_HS/DS/GS, not sent here since Gen9 defaults those
+        // disabled), but their URB allocation fields are "always used
+        // (even if <STAGE> Function Enable is DISABLED)" per PRM. Without
+        // this, VS URB output (gl_Position) may have nowhere valid to
+        // land — the VS kernel runs, but its URB write target was never
+        // actually allocated.
+        //
+        // Total on-chip URB is small (Gen9.5 GT2: ~64KB = 8 rows of 8KB);
+        // HS/DS/GS get the PRM-mandated minimum (0 entries, since none of
+        // them are enabled — "Only if <STAGE> is disabled can this field
+        // be programmed to 0"), VS gets the rest. Addresses are in 8KB
+        // units (urb_starting_address), sizes in 512-bit units
+        // (urb_entry_allocation_size).
+        STATE_URB_HS urb_hs = STATE_URB_HS::create();
+        urb_hs.urb_starting_address = 0;
+        urb_hs.urb_entry_allocation_size = 0; // 1 512-bit row (0 = 1-1=0 encoding)
+        urb_hs.number_of_urb_entries = 0;     // HS disabled — 0 is the mandated value
+        ring_write_cmd(urb_hs);
+
+        STATE_URB_DS urb_ds = STATE_URB_DS::create();
+        urb_ds.urb_starting_address = 0;
+        urb_ds.urb_entry_allocation_size = 0;
+        urb_ds.number_of_urb_entries = 0; // DS disabled — 0 is the mandated value
+        ring_write_cmd(urb_ds);
+
+        STATE_URB_GS urb_gs = STATE_URB_GS::create();
+        urb_gs.urb_starting_address = 0;
+        urb_gs.urb_entry_allocation_size = 0;
+        urb_gs.number_of_urb_entries = 0; // GS disabled — 0 is the mandated value
+        ring_write_cmd(urb_gs);
+
+        // VS is the only stage actually producing URB output here
+        // (gl_Position, 2x 256-bit units per vertex per
+        // vertex_urb_entry_output_length below). Starting address 0,
+        // entry size matches vertex_urb_entry_output_length (2 = 2 512-bit-
+        // equivalent... actually PRM units for URB_VS allocation size are
+        // 512-bit rows, distinct from the 256-bit units used by
+        // vertex_urb_entry_output_length in 3DSTATE_VS — sized generously
+        // here at 1 row (0-encoded) per entry, well within a single 512-bit
+        // row for a 2x256-bit (= 1x512-bit) output.
+        STATE_URB_VS urb_vs = STATE_URB_VS::create();
+        urb_vs.urb_starting_address = 0;
+        urb_vs.urb_entry_allocation_size = 3; // 1 512-bit row per entry (0 = 1-1 encoding)
+        urb_vs.number_of_urb_entries = 64;    // within [64,1856] legal range, minimum valid value
+        ring_write_cmd(urb_vs);
+
+        STATE_GS gs_cmd = STATE_GS::create_disabled();
+        ring_write_cmd(gs_cmd);
+
+        STATE_HS hs_cmd = STATE_HS::create_disabled();
+        ring_write_cmd(hs_cmd);
+
+        STATE_TE te_cmd = STATE_TE::create_disabled();
+        ring_write_cmd(te_cmd);
+
+        STATE_DS ds_cmd = STATE_DS::create_disabled();
+        ring_write_cmd(ds_cmd);
+
         // --- 1. 3DSTATE_VS ---
         STATE_VS vs_cmd = STATE_VS::create();
         vs_cmd.kernel_start_pointer = (offsets.vs_offset >> 6); // Bitfield [63:6]
         vs_cmd.function_enable = 1;
         vs_cmd.simd8_dispatch_enable = 1;
         vs_cmd.vertex_urb_entry_read_length = 1;             // 1x 256-Bit Unit aus VF (Positions-Vector)
-        vs_cmd.vertex_urb_entry_output_length = 2;           // 1x 256-Bit Unit in URB schreiben
-        vs_cmd.dispatch_grf_start_register_for_urb_data = 1; // Vertices landen ab Register g1
+        vs_cmd.vertex_urb_entry_output_length = 8;           // 8× 256-bit = 2048 bits = 256 bytes, matches actual GRF output (g118-g125)
+        vs_cmd.dispatch_grf_start_register_for_urb_data = 2;
         vs_cmd.maximum_number_of_threads = 64 - 1;           // Gen9 Thread Limit Limitierung
 
         ring_write_cmd(vs_cmd);
 
+        // --- 1b. 3DSTATE_CLIP / 3DSTATE_SF ---
+        // Fixed-function Clipper and Setup/Strip-Fan stages, sitting
+        // between the geometry stages (VS/GS/HS/DS/TE, all above) and the
+        // Windower/PS below. Both stages come up in an unknown/possibly
+        // hostile reset state — in particular STATE_CLIP's reset default
+        // is NOT guaranteed to be a harmless pass-through, and
+        // STATE_SF::viewport_transform_enable defaults to 0, meaning clip-
+        // space coordinates are never mapped into screen space at all.
+        // Without these two, the clipper/setup stage can silently drop
+        // every primitive before it ever reaches the Windower/PS — exactly
+        // matching VS Invocations > 0 but PS Invocations == 0.
+        STATE_CLIP clip_cmd = STATE_CLIP::create_default();
+        clip_cmd.clipper_statistics_enable = 1;
+        ring_write_cmd(clip_cmd);
+
+        STATE_SF sf_cmd = STATE_SF::create_default();
+        sf_cmd.viewport_transform_enable = 1;
+        sf_cmd.statistics_enable = 1;
+        ring_write_cmd(sf_cmd);
+
         // --- 2. 3DSTATE_PS ---
         STATE_PS ps_cmd = STATE_PS::create();
-        ps_cmd.kernel_start_pointer_0      = offsets.ps_offset >> 6; // FIX: war ohne >> 6
-        ps_cmd.dispatch_8_pixel_enable     = 1;
-        ps_cmd.dispatch_16_pixel_enable    = 0; // kein SIMD16-Kernel im Ring
-        ps_cmd.vector_mask_enable          = 0; // FIX: war 1, darf 0 sein ohne SIMD16
-        ps_cmd.dispatch_grf_start_0        = 2; // Mesa setzt 2 (g0/g1 = header, g2+ = payload)
-        ps_cmd.maximum_number_of_threads   = 64 - 1;
-       // ps_cmd.attribute_enable            = 0;
-
+        ps_cmd.kernel_start_pointer_0 = offsets.ps_offset >> 6; // FIX: war ohne >> 6
+        ps_cmd.dispatch_8_pixel_enable = 1;
+        ps_cmd.dispatch_16_pixel_enable = 0; // kein SIMD16-Kernel im Ring
+        ps_cmd.vector_mask_enable = 0;       // FIX: war 1, darf 0 sein ohne SIMD16
+        ps_cmd.dispatch_grf_start_0 = 2;     // Mesa setzt 2 (g0/g1 = header, g2+ = payload)
+        ps_cmd.maximum_number_of_threads = 64 - 1;
+        // ps_cmd.attribute_enable            = 0;
         ring_write_cmd(ps_cmd);
-
-        // --- 2b. 3DSTATE_WM ---
-        // Windower/IZ fixed-function stage. Without this, the pipeline's
-        // early-depth/dispatch-enable logic and barycentric interpolation
-        // wiring are left in an undefined/reset state — 3DSTATE_PS alone
-        // only configures the PS thread dispatcher itself, not whether the
-        // Windower actually feeds it. Defaults here are the simplest valid
-        // configuration for a depth-test-free, non-interpolating constant-
-        // color kernel: normal (not forced) dispatch, no early depth/
-        // stencil special-casing, perspective-pixel barycentric (the one
-        // mode that always needs to be present even if the kernel ignores
-        // it), Z/W evaluated at pixel center.
-        STATE_WM wm_cmd = STATE_WM::create();
-        wm_cmd.force_kill_pixel_enable = STATE_WM::KILL_NORMAL;
-        wm_cmd.force_thread_dispatch_enable = STATE_WM::DISPATCH_NORMAL;
-        wm_cmd.early_depth_stencil_control = STATE_WM::EARLY_DS_NORMAL;
-        wm_cmd.position_zw_interpolation_mode = STATE_WM::INTERP_PIXEL;
-        wm_cmd.barycentric_interpolation_mode = STATE_WM::BARY_PERSPECTIVE_PIXEL;
-        wm_cmd.statistics_enable = 0;
-        ring_write_cmd(wm_cmd);
 
         // --- 2c. 3DSTATE_PS_EXTRA ---
         // Per PRM: "When [Pixel Shader Valid] is clear the rest of this
@@ -361,10 +458,93 @@ namespace blt {
         STATE_PS_BLEND ps_blend_cmd = STATE_PS_BLEND::create_simple_writeable_rt();
         ring_write_cmd(ps_blend_cmd);
 
+        // --- 2b. 3DSTATE_WM ---
+        // Windower/IZ fixed-function stage. Without this, the pipeline's
+        // early-depth/dispatch-enable logic and barycentric interpolation
+        // wiring are left in an undefined/reset state — 3DSTATE_PS alone
+        // only configures the PS thread dispatcher itself, not whether the
+        // Windower actually feeds it. Defaults here are the simplest valid
+        // configuration for a depth-test-free, non-interpolating constant-
+        // color kernel: normal (not forced) dispatch, no early depth/
+        // stencil special-casing, perspective-pixel barycentric (the one
+        // mode that always needs to be present even if the kernel ignores
+        // it), Z/W evaluated at pixel center.
+        STATE_WM wm_cmd = STATE_WM::create();
+        wm_cmd.force_kill_pixel_enable = STATE_WM::KILL_NORMAL;
+        wm_cmd.force_thread_dispatch_enable = STATE_WM::DISPATCH_FORCE_ON;
+        wm_cmd.early_depth_stencil_control = STATE_WM::EARLY_DS_NORMAL;
+        wm_cmd.position_zw_interpolation_mode = STATE_WM::INTERP_PIXEL;
+        wm_cmd.barycentric_interpolation_mode = STATE_WM::BARY_PERSPECTIVE_PIXEL;
+        wm_cmd.statistics_enable = 1;
+        ring_write_cmd(wm_cmd);
+
+        // --- 2e. 3DSTATE_SBE ---
+        // Routes attributes from SF/URB to the WM/PS threads. Our PS kernel
+        // (gen9_ps_kernel_simd8) is a pure constant-color kernel — it reads
+        // no interpolated attributes at all, so num_attributes=0 here.
+        // However, per PRM: "It is UNDEFINED to set [Vertex URB Entry Read
+        // Length] to 0 indicating no Vertex URB data to be read" — valid
+        // range is [1,16], so urb_read_length must stay at the minimum (1)
+        // even though nothing is actually consumed downstream.
+        STATE_SBE sbe_cmd = STATE_SBE::create_default(/* num_attributes */ 0, /* urb_read_length */ 2);
+        ring_write_cmd(sbe_cmd);
+
+        // --- 2e-pre. 3DSTATE_MULTISAMPLE ---
+        // Required Gen9 pipeline state — was previously never programmed
+        // (undefined/reset value). Single-sample rendering, pixel center
+        // sampling: the standard non-MSAA configuration. Windower dispatch
+        // logic derives its behavior partly from this state; leaving it
+        // unprogrammed can leave WM in a state where it never dispatches
+        // pixels even for a primitive that already cleared CLIP/SF —
+        // matching CL Primitives:1 / PS Invocations:0.
+        STATE_MULTISAMPLE ms_cmd = STATE_MULTISAMPLE::create_default(
+            STATE_MULTISAMPLE::NUMSAMPLES_1, STATE_MULTISAMPLE::CENTER
+        );
+        ring_write_cmd(ms_cmd);
+
+        // --- 2e-pre2. 3DSTATE_WM_DEPTH_STENCIL ---
+        // No depth buffer is bound (no 3DSTATE_DEPTH_BUFFER anywhere in
+        // this driver yet) — per PRM, enabling Depth Buffer Write with no
+        // depth buffer defined is explicitly UNDEFINED behavior, and an
+        // enabled depth test against a nonexistent buffer is equally
+        // unspecified. Both depth test and depth write must stay disabled
+        // until 3DSTATE_DEPTH_BUFFER is added. This was previously left at
+        // its (likely enabled) reset default — a plausible reason WM was
+        // silently dropping the primitive before dispatching to PS.
+        STATE_WM_DEPTH_STENCIL wm_ds_cmd = STATE_WM_DEPTH_STENCIL::create_default(
+            false,
+            false
+        );
+        ring_write_cmd(wm_ds_cmd);
+
+
+        // --- 2f. 3DSTATE_RASTER ---
+        // CULL_NONE is the hardware reset default per PRM, so this alone
+        // shouldn't explain "CL Invocations > 0, CL Primitives: 0" — but we
+        // program it explicitly rather than relying on reset state, and
+        // more importantly: create_default() also enables both viewport Z
+        // near/far clip tests. Our triangle sits at Z=0.0 on all three
+        // vertices; if that lands exactly on (or outside, due to rounding)
+        // the near-plane boundary given our CC_VIEWPORT min/max depth
+        // range, the clip test would silently reject the primitive here —
+        // matching our symptom exactly. Disabling both Z clip tests
+        // isolates that as a variable; re-enable once confirmed working.
+        STATE_RASTER raster_cmd = STATE_RASTER::create_default(STATE_RASTER::CULL_NONE, STATE_RASTER::FRONTWINDING_CCW);
+        raster_cmd.viewport_z_near_clip_test_enable = 0;
+        raster_cmd.viewport_z_far_clip_test_enable = 0;
+        ring_write_cmd(raster_cmd);
+
+        // 3DSTATE_SAMPLE_MASK
+        STATE_SAMPLE_MASK sample_mask_cmd = STATE_SAMPLE_MASK::create();
+        ring_write_cmd(sample_mask_cmd);
+
+        STATE_VF_STATISTICS vf_stats = STATE_VF_STATISTICS::create_enabled();
+        ring_write_cmd(vf_stats);
+
         PIPE_CONTROL pc = PIPE_CONTROL::create();
-        pc.command_streamer_stall_enable      = 1;
+        pc.command_streamer_stall_enable = 1;
         pc.instruction_cache_invalidate_enable = 1;
-        pc.state_cache_invalidation_enable    = 1;
+        pc.state_cache_invalidation_enable = 1;
         ring_write_cmd(pc);
 
         const u32 seqno = seqno_next();
@@ -374,12 +554,17 @@ namespace blt {
     }
 
     bool IntelRcs::draw_triangle(u32 width, u32 height) {
+        constexpr STATE_VF_TOPOLOGY topo = STATE_VF_TOPOLOGY::create(PRIM_3D_TRILIST);
+        ring_write_cmd(topo);
+
         // 1. Set 3DSTATE_DRAWING_RECTANGLE (Klipp-Rechteck auf Bildschirmgröße setzen)
-        const DRAWING_RECTANGLE rect = DRAWING_RECTANGLE::create_full(width, height);
+        const DRAWING_RECTANGLE rect = DRAWING_RECTANGLE::create_full(width - 5, height - 5);
         ring_write_cmd(rect);
 
         // 2. Set 3DPRIMITIVE (3 Vertices, sequentieller Speicherzugriff, 1 Instanz)
         CMD_3DPRIMITIVE prim = CMD_3DPRIMITIVE::create();
+        prim.indirect_parameter_enable = 0;
+        prim.primitive_topology_type = PRIM_3D_TRILIST;
         prim.vertex_access_type = CMD_3DPRIMITIVE::ACCESS_SEQUENTIAL;
         prim.vertex_count_per_instance = 3;
         prim.start_vertex_location = 0;
@@ -456,6 +641,28 @@ namespace blt {
         Log::info("intel-rcs: Viewport states applied (SF at 0x%x, CC at 0x%x)", sf_clip_offset, cc_offset);
         return true;
     }
+
+    bool IntelRcs::setup_blend_state(u32 dynamic_offset) {
+        if (dynamic_offset % 64 != 0) {
+            Log::info("intel-rcs: blend_state offset (0x%x) is not 64-byte aligned!", dynamic_offset);
+            return false;
+        }
+
+        u8* base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
+
+        // Single RT, opaque, no blending — matches our PS output (solid
+        // red, no alpha blending needed)
+        BLEND_STATE blend = BLEND_STATE::create_single_rt_opaque();
+        memcpy(base_ptr + dynamic_offset, &blend, sizeof(BLEND_STATE));
+        asm volatile("clflush (%0)" :: "r"(base_ptr + dynamic_offset) : "memory");
+
+        STATE_BLEND_STATE_POINTERS cmd = STATE_BLEND_STATE_POINTERS::create_pointer(dynamic_offset);
+        ring_write_cmd(cmd);
+
+        Log::info("intel-rcs: Blend state applied at offset 0x%x (single RT, opaque)", dynamic_offset);
+        return true;
+    }
+
 
     u32 IntelRcs::gt_user_irq_bit() const {
         return GT0_RCS_PIPE_CONTROL_NOTIFY_BIT;
@@ -626,6 +833,16 @@ namespace blt {
         bt_ptr_cmd.pointer_to_binding_table = BINDING_TABLE_OFFSET >> 5;
         ring_write_cmd(bt_ptr_cmd);
 
+        // --- 4. 3DSTATE_DEPTH_BUFFER (SURFTYPE_NULL) ---
+        // We have no depth buffer and depth test/write are disabled in
+        // 3DSTATE_WM_DEPTH_STENCIL. Without this command, HiZ/Early-Z
+        // state is left at whatever GPU reset left it in — PRM explicitly
+        // requires HiZ disabled for SURFTYPE_NULL, so this is the
+        // documented way to declare "no depth surface" rather than
+        // silently omitting the command and hoping reset state is benign.
+        DEPTH_BUFFER depth_cmd = DEPTH_BUFFER::create_null();
+        ring_write_cmd(depth_cmd);
+
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);
 
@@ -731,22 +948,62 @@ namespace blt {
         }
     }
 
-    bool IntelRcs::present_to_screen(u32 width, u32 height) {
-        if (!bcs_) {
-            Log::warning("intel-rcs: present_to_screen called without BCS set");
-            return false;
-        }
+    void IntelRcs::debug_dump_sf_clip_viewport_and_scissor(u32 sf_clip_offset, u32 scissor_offset) const {
+        const u8* base_ptr = static_cast<const u8*>(virt_ptr(state_base_cpu_addr_));
 
-        const u64 rt_addr_raw = gfx_raw(render_target_gfx_addr_);
-        constexpr u32 bytes_per_pixel = 4;
-        const u32 pitch = width * bytes_per_pixel;
+        SF_CLIP_VIEWPORT sf_vp{};
+        memcpy(&sf_vp, base_ptr + sf_clip_offset, sizeof(SF_CLIP_VIEWPORT));
 
-        if (!bcs_->blit_gpu_surface(render_target_gfx_addr_, pitch, width, height)) {
-            Log::warning("intel-rcs: blit_gpu_surface failed");
-            return false;
-        }
+        SCISSOR_RECT scissor{};
+        memcpy(&scissor, base_ptr + scissor_offset, sizeof(SCISSOR_RECT));
 
+        Log::info("=== SF_CLIP_VIEWPORT @ DYNAMIC_STATE_BASE_ADDRESS+0x%x ===", sf_clip_offset);
+        Log::info("  m00=%f m11=%f m22=%f", sf_vp.m00, sf_vp.m11, sf_vp.m22);
+        Log::info("  m30=%f m31=%f m32=%f", sf_vp.m30, sf_vp.m31, sf_vp.m32);
+        Log::info(
+            "  guardband: x[%f,%f] y[%f,%f]",
+            sf_vp.x_min_clip_guardband, sf_vp.x_max_clip_guardband,
+            sf_vp.y_min_clip_guardband, sf_vp.y_max_clip_guardband
+        );
+        Log::info(
+            "  viewport (screen-space): x[%f,%f] y[%f,%f]",
+            sf_vp.x_min_viewport, sf_vp.x_max_viewport,
+            sf_vp.y_min_viewport, sf_vp.y_max_viewport
+        );
+
+        Log::info("=== SCISSOR_RECT @ DYNAMIC_STATE_BASE_ADDRESS+0x%x ===", scissor_offset);
+        Log::info(
+            "  x[%u,%u] y[%u,%u]",
+            scissor.x_min, scissor.x_max, scissor.y_min, scissor.y_max
+        );
+    }
+
+    bool IntelRcs::present_to_screen(u32 width, u32 height) const {
+        if (!bcs_) return false;
+        Log::log_dbc("presenting to screen");
+
+        const u32 pitch = width * 4;
+        bcs_->composite_gpu_surface(render_target_gfx_addr_, pitch, width, height);
         bcs_->present();
         return true;
+    }
+
+    void IntelRcs::dump_pipeline_stats(const char* label) const {
+        const u64 ia_vertices = engine_reg_read64(IA_VERTICES_COUNT_OFFSET);
+        const u64 ia_primitives = engine_reg_read64(IA_PRIMITIVES_COUNT_OFFSET);
+        const u64 vs_invocations = engine_reg_read64(VS_INVOCATION_COUNT_OFFSET);
+        const u64 cl_invocations = engine_reg_read64(CL_INVOCATION_COUNT_OFFSET);
+        const u64 cl_primitives = engine_reg_read64(CL_PRIMITIVES_COUNT_OFFSET);
+        const u64 ps_invocations = engine_reg_read64(PS_INVOCATION_COUNT_OFFSET);
+        const u64 ps_depth_pass = engine_reg_read64(PS_DEPTH_COUNT_OFFSET);
+
+        Log::info("=== RCS PIPELINE STATS [%s] ===", label);
+        Log::info("  IA Vertices:    %llu", ia_vertices);
+        Log::info("  IA Primitives:  %llu", ia_primitives);
+        Log::info("  VS Invocations: %llu", vs_invocations);
+        Log::info("  CL Invocations: %llu", cl_invocations);
+        Log::info("  CL Primitives:  %llu", cl_primitives);
+        Log::info("  PS Invocations: %llu", ps_invocations);
+        Log::info("  PS Depth Pass:  %llu", ps_depth_pass);
     }
 } // namespace blt
