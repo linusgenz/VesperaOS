@@ -21,48 +21,47 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include "intel_rcs.h"
-#include "gen9_kernels.h"
-#include "gfx_pipeline_regs.h"
-#include "gfx_pipeline_stats_regs.h"
-#include "blend_state.h"
-#include "cmd_3dstate_blend_state_pointers.h"
-#include "cmd_state_base_address.h"
-#include "cmd_pipe_control.h"
-#include "cmd_vertex_elements.h"
-#include "cmd_vertex_buffers.h"
-#include "cmd_3dstate_ps.h"
-#include "cmd_3dstate_ps_blend.h"
-#include "cmd_3dstate_vf_topology.h"
-#include "cmd_3dstate_vf_statistics.h"
-#include "cmd_3dstate_urb.h"
-#include "cmd_3dstate_vs.h"
-#include "cmd_3dstate_wm.h"
-#include "cmd_viewport.h"
-#include "cmd_scissor.h"
-#include "cmd_render_surface_state.h"
-#include "cmd_3dstate_binding_table.h"
-#include "cmd_3dstate_depth_buffer.h"
-#include "cmd_3dstate_drawing_rectangle.h"
-#include "surface_format.h"
+#include <gpu/intel/regs/gt_interrupt_regs.h>
 #include <vespera/log.h>
-
-#include "cmd_3dprimitive.h"
-#include "cmd_3dstate_clip.h"
-#include "cmd_3dstate_ds.h"
-#include "cmd_3dstate_gs.h"
-#include "cmd_3dstate_hs.h"
-#include "cmd_3dstate_sbe.h"
-#include "cmd_3dstate_sf.h"
-#include "cmd_3dstate_raster.h"
-#include "cmd_3dstate_multisample.h"
-#include "cmd_3dstate_sample_mask.h"
-#include "cmd_3dstate_te.h"
-#include "cmd_3dstate_wm_depth_stencil.h"
+#include <vespera/graphics/display_types.h>
+#include "gen9_kernels.h"
+#include "gfx_pipeline_stats_regs.h"
+#include "commands/cmd_3dprimitive.h"
+#include "commands/cmd_3dstate_binding_table.h"
+#include "commands/cmd_3dstate_blend_state_pointers.h"
+#include "commands/cmd_3dstate_clip.h"
+#include "commands/cmd_3dstate_depth_buffer.h"
+#include "commands/cmd_3dstate_drawing_rectangle.h"
+#include "commands/cmd_3dstate_ds.h"
+#include "commands/cmd_3dstate_gs.h"
+#include "commands/cmd_3dstate_hs.h"
+#include "commands/cmd_3dstate_multisample.h"
+#include "commands/cmd_3dstate_ps.h"
+#include "commands/cmd_3dstate_ps_blend.h"
+#include "commands/cmd_3dstate_raster.h"
+#include "commands/cmd_3dstate_sample_mask.h"
+#include "commands/cmd_3dstate_sbe.h"
+#include "commands/cmd_3dstate_sf.h"
+#include "commands/cmd_3dstate_te.h"
+#include "commands/cmd_3dstate_urb.h"
+#include "commands/cmd_3dstate_vf_statistics.h"
+#include "commands/cmd_3dstate_vf_topology.h"
+#include "commands/cmd_3dstate_vs.h"
+#include "commands/cmd_3dstate_wm.h"
+#include "commands/cmd_3dstate_wm_depth_stencil.h"
+#include "commands/cmd_pipeline_select.h"
+#include "commands/cmd_pipe_control.h"
+#include "commands/cmd_render_surface_state.h"
+#include "commands/cmd_scissor.h"
+#include "commands/cmd_state_base_address.h"
+#include "commands/cmd_vertex_buffers.h"
+#include "commands/cmd_vertex_elements.h"
+#include "commands/cmd_viewport.h"
 #include "drivers/mmio_post_write.h"
-#include "gpu/intel/gt_interrupt_regs.h"
-#include "gpu/intel/intel_bcs.h"
 #include "klib/string.h"
-#include "vespera/graphics/display_types.h"
+#include "state/blend_state.h"
+#include "state/primitive_topology.h"
+#include "state/surface_format.h"
 #include "vespera/mm/memory.h"
 
 struct ShaderOffsets {
@@ -87,12 +86,12 @@ ShaderOffsets upload_shaders(u8* inst_base_cpu) {
     return offsets;
 }
 
-namespace blt {
-    IntelRcs::IntelRcs(IntelGpuDevice& device)
+namespace gpu::intel::rcs {
+    IntelRcs::IntelRcs(core::IntelGpuDevice& device)
         : IntelEngine(
             EngineType::RCS, device, RCS_ENGINE_OFFSET,
-            ForceWakeDomain{
-                FORCEWAKE_RENDER, FORCEWAKE_ACK_RENDER, FORCEWAKE_RENDER_ENABLE, FORCEWAKE_ACK_BIT,
+            core::ForceWakeDomain{
+                FORCEWAKE_RENDER, FORCEWAKE_ACK_RENDER, FORCEWAKE_RENDER_ENABLE, core::FORCEWAKE_ACK_BIT,
                 FORCEWAKE_RENDER_TIMEOUT
             }
         ) {
@@ -112,7 +111,7 @@ namespace blt {
 
         HWSTAM_REG stam{};
         stam.raw = 0xFFFFFFFFu;
-        engine_reg_write(ENGINE_HWSTAM_OFF, stam);
+        engine_reg_write(core::ENGINE_HWSTAM_OFF, stam);
 
         completion_flag_.init(false);
 
@@ -144,7 +143,8 @@ namespace blt {
 
         setup_scissor_state(res.width, res.height, SCISSOR_OFFSET);
 
-        if (!setup_viewport_state(0.0f, 0.0f, static_cast<float>(res.width), static_cast<float>(res.height), SF_CLIP_OFFSET, CC_OFFSET)) {
+        if (!setup_viewport_state(0.0f, 0.0f, static_cast<float>(res.width), static_cast<float>(res.height),
+                                  SF_CLIP_OFFSET, CC_OFFSET)) {
             Log::info("intel-rcs: setup viewport state failed");
             return false;
         }
@@ -262,7 +262,7 @@ namespace blt {
 
 
     bool IntelRcs::state_base_address_setup() {
-        auto alloc = ggtt().alloc_persistent(STATE_BASE_PAGES, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(STATE_BASE_PAGES, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         state_base_cpu_addr_ = alloc.cpu_addr;
         state_base_gfx_addr_ = alloc.gfx_addr;
 
@@ -271,10 +271,10 @@ namespace blt {
         const u64 base = gfx_raw(state_base_gfx_addr_);
 
         STATE_BASE_ADDRESS cmd = STATE_BASE_ADDRESS::create();
-        cmd.set_general_state(base, STATE_BASE_PAGES, MOCS_UNCACHED);
-        cmd.set_surface_state(base, MOCS_UNCACHED);
-        cmd.set_dynamic_state(base, STATE_BASE_PAGES, MOCS_UNCACHED);
-        cmd.set_instruction_state(base, STATE_BASE_PAGES, MOCS_UNCACHED);
+        cmd.set_general_state(base, STATE_BASE_PAGES, core::MOCS_UNCACHED);
+        cmd.set_surface_state(base, core::MOCS_UNCACHED);
+        cmd.set_dynamic_state(base, STATE_BASE_PAGES, core::MOCS_UNCACHED);
+        cmd.set_instruction_state(base, STATE_BASE_PAGES, core::MOCS_UNCACHED);
 
         ring_write_cmd(cmd);
         const u32 target_seqno = seqno_next();
@@ -331,8 +331,9 @@ namespace blt {
         vs_cmd.kernel_start_pointer = (offsets.vs_offset >> 6); // Bitfield [63:6]
         vs_cmd.function_enable = 1;
         vs_cmd.simd8_dispatch_enable = 1;
-        vs_cmd.vertex_urb_entry_read_length = 1;             // 1x 256-Bit Unit aus VF (Positions-Vector)
-        vs_cmd.vertex_urb_entry_output_length = 8;           // 8× 256-bit = 2048 bits = 256 bytes, matches actual GRF output (g118-g125)
+        vs_cmd.vertex_urb_entry_read_length = 1; // 1x 256-Bit Unit aus VF (Positions-Vector)
+        vs_cmd.vertex_urb_entry_output_length = 8;
+        // 8× 256-bit = 2048 bits = 256 bytes, matches actual GRF output (g118-g125)
         vs_cmd.dispatch_grf_start_register_for_urb_data = 2;
         vs_cmd.maximum_number_of_threads = 64 - 1;
 
@@ -422,7 +423,7 @@ namespace blt {
         constexpr STATE_VF_TOPOLOGY topo = STATE_VF_TOPOLOGY::create(PRIM_3D_TRILIST);
         ring_write_cmd(topo);
 
-        const DRAWING_RECTANGLE rect = DRAWING_RECTANGLE::create_full(width , height);
+        const DRAWING_RECTANGLE rect = DRAWING_RECTANGLE::create_full(width, height);
         ring_write_cmd(rect);
 
         CMD_3DPRIMITIVE prim = CMD_3DPRIMITIVE::create();
@@ -528,7 +529,6 @@ namespace blt {
         return (1u << RCS_PAGE_FAULT_BIT) | (1u << RCS_MASTER_ERROR_BIT);
     }
 
-
     void IntelRcs::on_gt_user_interrupt() {
         completion_flag_.set();
     }
@@ -553,7 +553,7 @@ namespace blt {
         // inv_cmd.vf_cache_invalidation_enable = 1;        // Vertex Fetch Cache
         inv_cmd.tlb_invalidate = 1; // Render Engine TLBs
 
-        const u64 hwsp_seqno_addr = gfx_raw(hwsp_gfx_addr_) + HWSP_SEQNO_OFFSET;
+        const u64 hwsp_seqno_addr = gfx_raw(hwsp_gfx_addr_) + core::HWSP_SEQNO_OFFSET;
         inv_cmd.store_data_index = 0; // Wir übergeben jetzt eine volle Adresse, kein Page-Index mehr
         inv_cmd.set_write_immediate(hwsp_seqno_addr, seqno, /* use_ggtt */ true);
 
@@ -578,9 +578,9 @@ namespace blt {
             float r, g, b;
         };
         static constexpr Vertex triangle[3] = {
-            { 0.0f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f}, // Oben: Rot
-            {-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f}, // Links: Grün
-            { 0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f}  // Rechts: Blau
+            {0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f},   // Oben: Rot
+            {-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f}, // Links: Grün
+            {0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f}   // Rechts: Blau
         };
         constexpr u32 vertex_stride = sizeof(Vertex);
         constexpr u32 vertex_buffer_size = sizeof(triangle);
@@ -590,7 +590,7 @@ namespace blt {
         // tiny, one-shot CPU-written buffer, not a texture — no benefit from
         // caching, and uncached sidesteps any manual cache-flush-before-GPU-
         // read concerns during bring-up.
-        auto alloc = ggtt().alloc_persistent(1, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(1, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         vertex_buffer_cpu_addr_ = alloc.cpu_addr;
         vertex_buffer_gfx_addr_ = alloc.gfx_addr;
 
@@ -602,7 +602,8 @@ namespace blt {
         // --- 3DSTATE_VERTEX_BUFFERS: one VB, slot 0 ---
         const VERTEX_BUFFERS_HEADER vb_header = VERTEX_BUFFERS_HEADER::create(1);
         const VERTEX_BUFFER_STATE vb_state =
-            VERTEX_BUFFER_STATE::create(/* vb_index */ 0, vb_addr, vertex_stride, vertex_buffer_size, MOCS_UNCACHED);
+            VERTEX_BUFFER_STATE::create(/* vb_index */ 0, vb_addr, vertex_stride, vertex_buffer_size,
+                                                       core::MOCS_UNCACHED);
 
         ring_write_cmd(vb_header);
         ring_write_cmd(vb_state);
@@ -612,7 +613,7 @@ namespace blt {
         constexpr VERTEX_ELEMENT_STATE el_state =
             VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 0, SURFACE_FORMAT_R32G32B32_FLOAT);
         constexpr VERTEX_ELEMENT_STATE el_state_col =
-        VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 12, SURFACE_FORMAT_R32G32B32_FLOAT);
+            VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 12, SURFACE_FORMAT_R32G32B32_FLOAT);
 
         ring_write_cmd(el_header);
         ring_write_cmd(el_state);
@@ -639,7 +640,7 @@ namespace blt {
         const u32 rt_size = pitch * height;
         const u32 rt_pages = (rt_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        auto rt_alloc = ggtt().alloc_persistent(rt_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto rt_alloc = ggtt().alloc_persistent(rt_pages, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         render_target_cpu_addr_ = rt_alloc.cpu_addr;
         render_target_gfx_addr_ = rt_alloc.gfx_addr;
 
@@ -653,7 +654,7 @@ namespace blt {
         u8* base_ptr = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
 
         const RENDER_SURFACE_STATE surface = RENDER_SURFACE_STATE::create_simple_2d(
-            rt_addr, width, height, pitch, SURFACE_FORMAT_B8G8R8A8_UNORM, MOCS_UNCACHED
+            rt_addr, width, height, pitch, SURFACE_FORMAT_B8G8R8A8_UNORM, core::MOCS_UNCACHED
         );
         memcpy(base_ptr + SURFACE_STATE_OFFSET, &surface, sizeof(RENDER_SURFACE_STATE));
         asm volatile("clflush (%0)" ::"r"(base_ptr + SURFACE_STATE_OFFSET) : "memory");

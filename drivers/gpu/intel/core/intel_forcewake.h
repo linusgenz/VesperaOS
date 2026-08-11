@@ -1,9 +1,7 @@
-// intel_rcs_regs.h
+// intel_forcewake.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
-//
-// Created by Linus Genz on 05.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,7 +17,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAWORKSPACE_INTEL_RCS_REGS_H
-#define VESPERAWORKSPACE_INTEL_RCS_REGS_H
+#ifndef VESPERAOS_INTEL_FORCEWAKE_H
+#define VESPERAOS_INTEL_FORCEWAKE_H
 
-#endif //VESPERAWORKSPACE_INTEL_RCS_REGS_H
+#include <vespera/types.h>
+
+namespace gpu::intel::core {
+
+    /// ACK bit shared by every Gen9 ForceWake domain's ack register
+    constexpr u32 FORCEWAKE_ACK_BIT = 0x1;
+
+}  // namespace blt
+
+#endif  // VESPERAOS_INTEL_FORCEWAKE_H

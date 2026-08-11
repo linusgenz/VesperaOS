@@ -27,9 +27,9 @@
 #include <vespera/sync/spinlock.h>
 #include <vespera/types.h>
 
-#include "pci_config_regs.h"
+#include <gpu/intel/regs/pci_config_regs.h>
 
-namespace blt {
+namespace gpu::intel::core {
 
     // GTT / GGTT — PTE format, shared by every engine that allocates GGTT-backed
     // memory (BCS, RCS, ...). There is exactly one GGTT per physical GPU, owned by

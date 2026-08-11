@@ -26,20 +26,18 @@
 
 #include <vespera/devices/device_info.h>
 #include <vespera/graphics/IRenderDriver.h>
-#include <vespera/interrupts.h>
 #include <vespera/mm/addr.h>
 #include <vespera/sync/atomic.h>
-
-#include "../gpu_blt_queue.h"
+#include "../../gpu_blt_queue.h"
 #include "bcs_regs.h"
-#include "gt_interrupt_regs.h"
-#include "intel_engine.h"
-#include "intel_forcewake.h"
+#include <gpu/intel/regs/gt_interrupt_regs.h>
+#include "../core/intel_forcewake.h"
 #include <vespera/graphics/display_types.h>
+#include <gpu/intel/core/intel_engine.h>
 
 struct KernelDevice;
 
-namespace blt {
+namespace gpu::intel::bcs {
 
     // =========================================================================
     // ForceWake — Blitter domain (RCS has its own FORCEWAKE_RENDER pair, see
@@ -55,11 +53,6 @@ namespace blt {
     // =========================================================================
     constexpr u32 RING_CTL_ENABLED = 0x01;
     constexpr u32 RING_SIZE_MASK = 0x1FF000;
-
-    // =========================================================================
-    // HWSP
-    // =========================================================================
-    constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
 
     // =========================================================================
     // BLT Command DWord Lengths
@@ -111,7 +104,7 @@ namespace blt {
     };
 
     struct ScratchBuffer {
-        GgttAllocation alloc{};
+        core::GgttAllocation alloc{};
         u32 num_pages = 0;
         u32 max_w = 0;
         u32 max_h = 0;
@@ -128,9 +121,9 @@ namespace blt {
     // path — none of which RCS needs or shares.
     // =========================================================================
 
-    class IntelBcs final : public IntelEngine, public IRenderDriver, public IDeviceInfo {
+    class IntelBcs final : public core::IntelEngine, public IRenderDriver, public IDeviceInfo {
        public:
-        explicit IntelBcs(IntelGpuDevice& device);
+        explicit IntelBcs(core::IntelGpuDevice& device);
 
         IntelBcs(const IntelBcs&) = delete;
         IntelBcs& operator=(const IntelBcs&) = delete;

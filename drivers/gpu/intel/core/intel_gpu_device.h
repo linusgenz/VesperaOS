@@ -25,13 +25,14 @@
 #include <vespera/mm/addr.h>
 
 #include "ggtt_allocator.h"
-#include "pci_config_regs.h"
+#include <gpu/intel/regs/pci_config_regs.h>
+
 
 namespace pci {
     struct pci_device;
 }
 
-namespace blt {
+namespace gpu::intel::core {
 
     class IntelEngine;
 

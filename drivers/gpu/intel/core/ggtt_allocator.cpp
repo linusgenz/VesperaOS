@@ -27,7 +27,7 @@
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
 
-namespace blt {
+namespace gpu::intel::core {
 
     namespace {
 

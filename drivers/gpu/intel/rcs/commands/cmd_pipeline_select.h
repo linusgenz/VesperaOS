@@ -20,12 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_GFX_PIPELINE_REGS_H
-#define VESPERAOS_GFX_PIPELINE_REGS_H
+#ifndef VESPERAOS_CMD_PIPELINE_SELECT_H
+#define VESPERAOS_CMD_PIPELINE_SELECT_H
 
 #include <vespera/types.h>
 
-#include "cmd_scissor.h"
+#include "cmd_common.h"
 
 /**
  * @brief Pipeline Select Instruction (PIPELINE_SELECT).
@@ -97,4 +97,4 @@ union PIPELINE_SELECT {
 
 static_assert(sizeof(PIPELINE_SELECT) == 4, "PIPELINE_SELECT command must be 32 bits");
 
-#endif  // VESPERAOS_GFX_PIPELINE_REGS_H
+#endif  // VESPERAOS_CMD_PIPELINE_SELECT_H

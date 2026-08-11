@@ -28,11 +28,11 @@
 #include <vespera/log.h>
 #include <vespera/time.h>
 
-#include "intel_bcs.h"
-#include "intel_gpu_device.h"
+#include "bcs/intel_bcs.h"
+#include "core/intel_gpu_device.h"
 #include "rcs/intel_rcs.h"
 
-namespace blt {
+namespace gpu::intel {
     /**
      * @brief Device-ID match table for Intel integrated GPUs (Gen9.5).
      *
@@ -136,7 +136,7 @@ namespace blt {
         // One device: owns BAR0 mapping and the single GGTT. Every engine
         // constructed below borrows this same instance — neither owns it,
         // neither owns the other.
-        device_ = new IntelGpuDevice(dev);
+        device_ = new core::IntelGpuDevice(dev);
         if (!device_->init()) {
             Log::error("intel-blt: device init (BAR0/GGTT) failed");
             delete device_;
@@ -144,7 +144,7 @@ namespace blt {
             return -1;
         }
 
-        bcs_ = new IntelBcs(*device_);
+        bcs_ = new bcs::IntelBcs(*device_);
         if (!bcs_->init_device()) {
             Log::error("intel-blt: BCS init failed");
             delete bcs_;
@@ -154,7 +154,7 @@ namespace blt {
             return -2;
         }
 
-        rcs_ = new IntelRcs(*device_);
+        rcs_ = new rcs::IntelRcs(*device_);
         if (!rcs_->init_device(resolution)) {
             Log::warning("intel-blt: RCS init failed, continuing with BCS only");
             delete rcs_;

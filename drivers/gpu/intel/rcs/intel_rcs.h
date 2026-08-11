@@ -22,15 +22,14 @@
 #ifndef VESPERAOS_INTEL_RCS_H
 #define VESPERAOS_INTEL_RCS_H
 
-#include "gfx_pipeline_regs.h"
-#include "../intel_engine.h"
-#include "../intel_forcewake.h"
-#include "../intel_bcs.h"
+#include "commands/cmd_pipeline_select.h"
+#include <gpu/intel/core/intel_engine.h>
+#include <gpu/intel/bcs/intel_bcs.h>
 #include <vespera/graphics/display_types.h>
 
 struct ShaderOffsets;
 
-namespace blt {
+namespace gpu::intel::rcs {
     // RCS MMIO range: 0x2000-0x27FF (PRM Vol 6, "Render Engine Command
     // Streamer (RCS)"). Passed as this engine's MMIO offset to IntelEngine.
     constexpr u32 RCS_ENGINE_OFFSET = 0x2000;
@@ -61,16 +60,16 @@ namespace blt {
      * those are the next steps once this is confirmed working on real
      * Kaby Lake hardware.
      */
-    class IntelRcs final : public IntelEngine {
+    class IntelRcs final : public core::IntelEngine {
     public:
-        explicit IntelRcs(IntelGpuDevice& device);
+        explicit IntelRcs(core::IntelGpuDevice& device);
 
         IntelRcs(const IntelRcs&) = delete;
         IntelRcs& operator=(const IntelRcs&) = delete;
 
         bool init_device(Resolution res);
 
-        void set_bcs(IntelBcs* bcs) { bcs_ = bcs; }
+        void set_bcs(bcs::IntelBcs* bcs) { bcs_ = bcs; }
         bool present_to_screen(Resolution res) const;
         void dump_pipeline_stats(const char* label) const;
 
@@ -111,7 +110,7 @@ namespace blt {
 
         AtomicFlag completion_flag_{};
 
-        IntelBcs* bcs_ = nullptr;
+        bcs::IntelBcs* bcs_ = nullptr;
 
         static constexpr u32 STATE_BASE_PAGES = 4;
     };

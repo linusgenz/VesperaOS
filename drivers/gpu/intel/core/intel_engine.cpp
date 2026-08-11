@@ -25,10 +25,13 @@
 #include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
-#include "blt_commands.h"
-#include "gt_reset_regs.h"
+#include <gpu/intel/bcs/blt_commands.h>
+#include <gpu/intel/regs/gt_reset_regs.h>
+#include <gpu/intel/regs/ring_regs.h>
 
-namespace blt {
+#include "mi_commands.h"
+
+namespace gpu::intel::core {
 
     IntelEngine::IntelEngine(EngineType type, IntelGpuDevice& device, u32 engine_mmio_offset, ForceWakeDomain fw_domain)
         :  type_(type), device_(device), engine_mmio_offset_(engine_mmio_offset), fw_domain_(fw_domain) {

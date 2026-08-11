@@ -26,7 +26,7 @@
 
 // ReSharper disable CppInconsistentNaming
 
-namespace blt {
+namespace gpu::intel::bcs {
 
     // Shared enumerations
 
@@ -63,9 +63,6 @@ namespace blt {
 
     /// Opcode values for BR00. See BLT Commands Reference for field widths per client.
     enum BLT_OPCODE : u32 {
-        OPCODE_MI_NOOP = 0x00,
-        OPCODE_MI_USER_INTERRUPT = 0x02,
-        OPCODE_MI_WAIT_FOR_EVENT = 0x03,
         OPCODE_MI_FLUSH_DW = 0x26,
         OPCODE_XY_COLOR_BLT = 0x50,
         OPCODE_XY_SRC_COPY_BLT = 0x53,
@@ -296,106 +293,6 @@ namespace blt {
         u32 src_addr_lo;
         u32 src_addr_hi;
     } __attribute__((packed));
-
-    // MI_FLUSH_DW  (opcode 0x26, 5 DWORDs)
-
-    /// DW0 for MI_FLUSH_DW.
-    union MI_FLUSH_DW_DW0 {
-        struct {
-            u32 dword_len : 6;    // [5:0]
-            u32 reserved_a : 2;   // [7:6]   MBZ
-            u32 notify_en : 1;    // [8]
-            u32 flush_llc : 1;    // [9]
-            u32 reserved_b : 4;   // [13:10] MBZ
-            u32 post_sync : 2;    // [15:14] 2-Bit: 0=NoWrite, 1=WriteImmediate, 3=WriteTimestamp
-            u32 reserved_c : 2;   // [17:16]
-            u32 tlb_inv : 1;      // [18]    Invalidate Blitter TLBs (valid if post_sync=1|3)
-            u32 reserved_d : 2;   // [20:19] MBZ
-            u32 store_index : 1;  // [21]
-            u32 reserved_e : 1;   // [22]
-            u32 opcode : 6;       // [28:23]
-            u32 client : 3;       // [31:29]
-        } __attribute__((packed));
-        u32 raw;
-    };
-
-    /// DW1 — lower 32 bits of the 64-bit address field (DW1..2).
-    /// When Store Data Index=1: [31:2] holds the HWSP/PPHWSP dword index.
-    /// When Store Data Index=0: [31:2] holds GraphicsAddress[31:2].
-    union MI_FLUSH_DW_DW1 {
-        struct {
-            u32 reserved_a : 2;  // [1:0]   MBZ
-            u32 addr_lo : 30;    // [31:2]  GraphicsAddress[31:2] or HWSP index
-        } __attribute__((packed));
-        u32 raw;
-    };
-
-    /// DW2 — upper 32 bits of the 64-bit address field (DW1..2).
-    /// Upper 16 bits of a 48-bit graphics address; zero when using an HWSP index.
-    union MI_FLUSH_DW_DW2 {
-        struct {
-            u32 addr_hi : 16;     // [15:0]  GraphicsAddress[47:32]
-            u32 reserved_a : 16;  // [31:16] MBZ
-        } __attribute__((packed));
-        u32 raw;
-    };
-
-    /// Full MI_FLUSH_DW command packet (5 DWORDs).
-    struct MI_FLUSH_DW_CMD {
-        MI_FLUSH_DW_DW0 dw0;
-        MI_FLUSH_DW_DW1 dw1;  // DW1 — target address low or HWSP index
-        MI_FLUSH_DW_DW2 dw2;  // DW2 — 0 when using HWSP index
-        u64 immediate_data;   // DW3 — value to write (e.g. sequence number)
-    } __attribute__((packed));
-
-    /**
-     * @brief MI_USER_INTERRUPT ring command — MI opcode 0x02 in bits [28:23].
-     *
-     */
-    union MI_USER_INTERRUPT_CMD {
-        struct {
-            u32 reserved : 23;  // [22:0] MBZ
-            u32 opcode : 6;     // [28:23] MI Command Opcode = 0x02
-            u32 client : 3;     // [31:29] Command Type = MI_COMMAND (0)
-        } __attribute__((packed));
-
-        u32 raw;
-    };
-
-    constexpr u32 MI_NOOP = 0x00000000;  // No operation
-
-    /**
-     * @brief MI_WAIT_FOR_EVENT ring command — stalls the CS parser until a display event occurs.
-     */
-    union MI_WAIT_FOR_EVENT_CMD {
-        struct {
-            u32 display_plane_1_a_scan_line_wait : 1;       // [0]
-            u32 display_plane_1_a_flip_pending_wait : 1;    // [1]  <- Wichtig für Plane 1 A!
-            u32 display_plane_2_a_flip_pending_wait : 1;    // [2]  (Plane 4)
-            u32 display_plane_1_a_vertical_blank_wait : 1;  // [3]
-            u32 reserved_5_4 : 2;                           // [5:4]   MBZ
-            u32 display_plane_3_a_flip_pending_wait : 1;    // [6]  (Plane 7)
-            u32 display_plane_3_b_flip_pending_wait : 1;    // [7]  (Plane 8)
-            u32 display_plane_1_b_scan_line_wait : 1;       // [8]
-            u32 display_plane_1_b_flip_pending_wait : 1;    // [9]  (Plane 2)
-            u32 display_plane_2_b_flip_pending_wait : 1;    // [10] (Plane 5)
-            u32 display_plane_1_b_vertical_blank_wait : 1;  // [11]
-            u32 reserved_13_12 : 2;                         // [13:12] MBZ
-            u32 display_plane_1_c_scan_line_wait : 1;       // [14]
-            u32 display_plane_1_c_flip_pending_wait : 1;    // [15] (Plane 3)
-            u32 display_plane_3_c_flip_pending_wait : 1;    // [16] (Plane 9)
-            u32 display_plane_4_a_flip_pending_wait : 1;    // [17] (Plane 10)
-            u32 display_plane_4_b_flip_pending_wait : 1;    // [18] (Plane 11)
-            u32 display_plane_4_c_flip_pending_wait : 1;    // [19] (Plane 12)
-            u32 display_plane_2_c_flip_pending_wait : 1;    // [20] (Plane 6)
-            u32 display_plane_1_c_vertical_blank_wait : 1;  // [21]
-            u32 reserved_22 : 1;                            // [22]    MBZ
-            u32 opcode : 6;                                 // [28:23] = 0x03
-            u32 client : 3;                                 // [31:29] = 0x0 (MI_COMMAND)
-        } __attribute__((packed));
-        u32 raw;
-    };
-
-}  // namespace blt
+}  // namespace gpu::intel_bcs
 
 #endif  // VESPERAOS_BLT_COMMANDS_H

@@ -25,10 +25,16 @@
 
 #include <drivers/pci/pci_driver.h>
 
-namespace blt {
-    class IntelGpuDevice;
-    class IntelBcs;
-    class IntelRcs;
+namespace gpu::intel {
+    namespace core {
+        class IntelGpuDevice;
+    }
+    namespace bcs {
+        class IntelBcs;
+    }
+    namespace rcs {
+        class IntelRcs;
+    }
 
     /**
      * @brief PCI driver that probes the Intel iGPU and constructs one
@@ -42,9 +48,9 @@ namespace blt {
      *
      * @note Only one Intel GPU is expected per system. A second probe call
      *       logs a warning and returns -1.
-     * @see blt::IntelGpuDevice
-     * @see blt::IntelBcs
-     * @see blt::IntelRcs
+     * @see bcs::IntelGpuDevice
+     * @see bcs::IntelBcs
+     * @see bcs::IntelRcs
      */
     class IntelBltPciDriver final : public pci::PciDriver {
        public:
@@ -92,9 +98,9 @@ namespace blt {
         [[nodiscard]] const pci::pci_device_match* id_match() const override;
 
        private:
-        IntelGpuDevice* device_{nullptr};  ///< Owns BAR0 mapping + GGTT; constructed first, destroyed last.
-        IntelBcs* bcs_{nullptr};           ///< Peer engine; owns display output.
-        IntelRcs* rcs_{nullptr};           ///< Peer engine; best-effort, may be null if init fails.
+        core::IntelGpuDevice* device_{nullptr};  ///< Owns BAR0 mapping + GGTT; constructed first, destroyed last.
+        bcs::IntelBcs* bcs_{nullptr};           ///< Peer engine; owns display output.
+        rcs::IntelRcs* rcs_{nullptr};           ///< Peer engine; best-effort, may be null if init fails.
     };
 
 }  // namespace blt

@@ -37,22 +37,19 @@
 #include <drivers/mmio_post_write.h>
 
 #include "blt_commands.h"
-#include "display_regs.h"
-#include "error_regs.h"
-#include "interrupt_regs.h"
-#include "pci_config_regs.h"
-#include "vespera/graphics/display_types.h"
+#include <gpu/intel/core/mi_commands.h>
+#include <gpu/intel/regs/display_regs.h>
+#include <gpu/intel/regs/error_regs.h>
+#include <gpu/intel/regs/interrupt_regs.h>
+#include <gpu/intel/regs/pci_config_regs.h>
+#include <vespera/graphics/display_types.h>
 
-namespace blt {
-    // =========================================================================
-    // Constructor / Init
-    // =========================================================================
-
-    IntelBcs::IntelBcs(IntelGpuDevice& device)
+namespace gpu::intel::bcs {
+    IntelBcs::IntelBcs(core::IntelGpuDevice& device)
         : IntelEngine(EngineType::BCS,
                       device, BCS_RING_BASE,
-                      ForceWakeDomain{
-                          FORCEWAKE_BLITTER, FORCEWAKE_ACK_BLITTER, FORCEWAKE_BLITTER_ENABLE, FORCEWAKE_ACK_BIT,
+                      core::ForceWakeDomain{
+                          FORCEWAKE_BLITTER, FORCEWAKE_ACK_BLITTER, FORCEWAKE_BLITTER_ENABLE, core::FORCEWAKE_ACK_BIT,
                           FORCEWAKE_BLITTER_TIMEOUT
                       }
           )
@@ -290,7 +287,7 @@ namespace blt {
     }
 
     void IntelBcs::emit_mi_flush(u32 seqno) {
-        MI_FLUSH_DW_CMD cmd{};
+        core::MI_FLUSH_DW_CMD cmd{};
 
         cmd.dw0.client = CLIENT_MI;
         cmd.dw0.opcode = OPCODE_MI_FLUSH_DW;
@@ -298,7 +295,7 @@ namespace blt {
         cmd.dw0.post_sync = 1;
         cmd.dw0.dword_len = MI_FLUSH_DW_LEN;
 
-        cmd.dw1.addr_lo = HWSP_SEQNO_OFFSET >> 2;
+        cmd.dw1.addr_lo = core::HWSP_SEQNO_OFFSET >> 2;
         cmd.dw2.addr_hi = 0;
         cmd.immediate_data = seqno;
 
@@ -309,8 +306,8 @@ namespace blt {
 
         ring_write_cmd(cmd);
 
-        MI_USER_INTERRUPT_CMD ui{};
-        ui.opcode = OPCODE_MI_USER_INTERRUPT;
+        core::MI_USER_INTERRUPT_CMD ui{};
+        ui.opcode = core::OPCODE_MI_USER_INTERRUPT;
         ui.client = CLIENT_MI;
         ring_write_cmd(ui);
     }
@@ -453,7 +450,7 @@ namespace blt {
             static_cast<u32>(tile_mode)
         );
 
-        auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         fb_.gfx_addr = alloc.gfx_addr;
         fb_.cpu_addr = alloc.cpu_addr;
 
@@ -464,7 +461,7 @@ namespace blt {
         const usize total_size = static_cast<usize>(fb_.pitch) * fb_.height;
         const usize num_pages = (total_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-        auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        auto alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         fb_back_.width = fb_.width;
         fb_back_.height = fb_.height;
         fb_back_.bpp = fb_.bpp;
@@ -484,7 +481,7 @@ namespace blt {
         const usize buf_size = pitch * fb_.height;
         const u32 num_pages = static_cast<u32>((buf_size + PAGE_SIZE - 1) / PAGE_SIZE);
 
-        const GgttAllocation alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), MOCS_UNCACHED);
+        const core::GgttAllocation alloc = ggtt().alloc_persistent(num_pages, (1ULL << CacheDisabled), core::MOCS_UNCACHED);
         if (virt_null(alloc.cpu_addr)) {
             Log::error("intel-bcs: failed to alloc scratch buffer (%u pages)", num_pages);
             return;
@@ -754,16 +751,16 @@ namespace blt {
         mmio_write(PLANE_SURF_1_A, surf);
         asm volatile("mfence" ::: "memory");
 
-        constexpr u32 total_required_bytes = RING_SPACE_FOR_BLIT + sizeof(MI_WAIT_FOR_EVENT_CMD);
+        constexpr u32 total_required_bytes = RING_SPACE_FOR_BLIT + sizeof(core::MI_WAIT_FOR_EVENT_CMD);
 
         if (!ring_wait_space(total_required_bytes, 1'000'000)) {
             Log::log_dbc("intel-bcs: Timeout waiting for ring space in execute_present");
             return;
         }
 
-        MI_WAIT_FOR_EVENT_CMD wait_cmd{};
+        core::MI_WAIT_FOR_EVENT_CMD wait_cmd{};
         wait_cmd.client = CLIENT_MI;
-        wait_cmd.opcode = OPCODE_MI_WAIT_FOR_EVENT;
+        wait_cmd.opcode = core::OPCODE_MI_WAIT_FOR_EVENT;
         wait_cmd.display_plane_1_a_flip_pending_wait = 1;
 
         ring_write(wait_cmd.raw);

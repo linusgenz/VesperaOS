@@ -26,7 +26,7 @@
 #include <vespera/types.h>
 
 #include "cmd_common.h"
-#include "primitive_topology.h"
+#include "../state/primitive_topology.h"
 
 /**
  * @brief 3DSTATE_VF_TOPOLOGY command (2 DWords).

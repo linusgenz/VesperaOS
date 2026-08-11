@@ -25,8 +25,6 @@
 
 #include <vespera/types.h>
 
-#include "cmd_common.h"
-
 /**
  * @brief BLEND_STATE_ENTRY structure (2 DWords / 64 bits).
  *

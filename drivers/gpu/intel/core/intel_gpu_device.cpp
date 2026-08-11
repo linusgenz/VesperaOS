@@ -27,12 +27,12 @@
 #include <vespera/mm/memory.h>
 #include <vespera/time.h>
 
-#include "gt_interrupt_regs.h"
+#include <gpu/intel/regs/gt_interrupt_regs.h>
+#include <gpu/intel/regs/interrupt_regs.h>
 #include "intel_engine.h"
-#include "interrupt_regs.h"
 #include "drivers/mmio_post_write.h"
 
-namespace blt {
+namespace gpu::intel::core {
     IntelGpuDevice::IntelGpuDevice(const pci::pci_device& igpu_dev)
         : igp_cfg_(reinterpret_cast<volatile INTEL_IGP_PCI_CONFIG*>(igpu_dev.header)), pci_id_(igpu_dev.id) {
         const phys_addr_t bar0 =

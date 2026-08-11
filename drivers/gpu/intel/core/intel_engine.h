@@ -24,12 +24,10 @@
 #include <vespera/sync/atomic.h>
 #include <vespera/types.h>
 
-#include "bcs_regs.h"
 #include "intel_engine_types.h"
 #include "intel_gpu_device.h"
 
-
-namespace blt {
+namespace gpu::intel::core {
     constexpr u32 ENGINE_RING_TAIL_OFF = 0x30;
     constexpr u32 ENGINE_RING_HEAD_OFF = 0x34;
     constexpr u32 ENGINE_RING_START_OFF = 0x38;
@@ -38,6 +36,7 @@ namespace blt {
     constexpr u32 ENGINE_HWSTAM_OFF = 0x98;
 
     constexpr u32 HWSP_SEQNO_OFFSET_DWORDS = 4;
+    constexpr u32 HWSP_SEQNO_OFFSET = HWSP_SEQNO_OFFSET_DWORDS + 16;
 
     /**
      * @brief Common ring-buffer/HWSP/seqno machinery shared by every Intel
