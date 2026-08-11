@@ -36,14 +36,6 @@
  * CC_VIEWPORT, which are Dynamic State Base Address-relative structures
  * only pointed at from the stream.
  *
- * IMPORTANT — C++ bitfield declaration order determines actual bit
- * placement, NOT the doc comments. Every field below is declared
- * LSB-first within its DWord to match the PRM's bit numbering; a previous
- * revision of this file declared DWord 7 MSB-first (by PRM bit number),
- * which put every field at the wrong physical bit position despite
- * correct-looking comments — verified by compiling and inspecting the raw
- * value. Keep new fields in ascending bit order when editing this struct.
- *
  * @note Kernel Start Pointer 0 is only meaningful if PS Function Enable
  *       (elsewhere in pipeline state) is ENABLED; Kernel Start Pointer 1
  *       and 2 are only fetched if the corresponding dispatch-width enable
@@ -158,7 +150,7 @@ union STATE_PS {
         u32 reserved7_9 : 2;                     ///< [10:9] MBZ
         u32 push_constant_enable : 1;            ///< [11]   Must match nonzero PS Constant Buffer
                                                   ///<        Read Length sum in 3DSTATE_CONSTANT_PS
-        u32 reserved7_12 : 10;                   ///< [21:12] MBZ (includes bit 22 per PRM 22:12 reserved span)
+        u32 reserved7_12 : 11;                   ///< [21:12] MBZ (includes bit 22 per PRM 22:12 reserved span)
         u32 maximum_number_of_threads : 9;       ///< [31:23] U8-1, [2,64] threads/PSD
 
         // ====================================================================

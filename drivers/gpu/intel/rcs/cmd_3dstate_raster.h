@@ -147,6 +147,7 @@ union STATE_RASTER {
     [[nodiscard]] static constexpr STATE_RASTER create_default(CullMode cull = CULL_NONE,
                                                               FrontWinding winding = FRONTWINDING_CCW) {
         STATE_RASTER cmd = create();
+        cmd.scissor_rectangle_enable = 1;
         cmd.viewport_z_near_clip_test_enable = 1;
         cmd.viewport_z_far_clip_test_enable = 1;
         cmd.front_face_fill_mode = FILL_SOLID;

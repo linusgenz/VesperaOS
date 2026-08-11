@@ -164,6 +164,50 @@ union DEPTH_BUFFER {
 
         return cmd;
     }
+
+    /**
+     * @brief Creates a 3DSTATE_DEPTH_BUFFER command declaring "no depth
+     *        buffer bound" (SURFTYPE_NULL).
+     *
+     * Per PRM, HiZ must be disabled when Surface Type is SURFTYPE_NULL —
+     * this is the explicit, documented way to tell the hardware there is
+     * no depth surface, as opposed to simply never issuing this command
+     * and leaving HiZ/Early-Z state undefined/inherited from GPU reset.
+     * Use this whenever depth test/write are disabled and no depth
+     * buffer has been allocated.
+     */
+    [[nodiscard]] static constexpr DEPTH_BUFFER create_null() {
+        DEPTH_BUFFER cmd{};
+        cmd.command_type = CMD_GFXPIPE;
+        cmd.sub_type = GFXPIPE_3D;
+        cmd.opcode = OPCODE_3DSTATE_PIPELINED;
+        cmd.sub_opcode = SUBOP_3DSTATE_DEPTH_BUFFER;
+        cmd.dword_length = 0x6;
+
+        cmd.surface_type = SURFTYPE_NULL;
+        cmd.hiz_enable = 0;
+        cmd.stencil_write_enable = 0;
+        cmd.depth_write_enable = 0;
+        cmd.surface_format = DEPTH_D32_FLOAT; // ignored for SURFTYPE_NULL, set for determinism
+
+        cmd.surface_base_address = 0;
+
+        cmd.width = 0;
+        cmd.height = 0;
+        cmd.lod = 0;
+
+        cmd.depth = 0;
+        cmd.min_array_element = 0;
+        cmd.depth_buffer_ocs = 0;
+
+        cmd.tiled_resource_mode = TRMODE_NONE;
+        cmd.mip_tail_start_lod = 0;
+
+        cmd.render_target_view_extent = 0;
+        cmd.surface_qpitch = 0;
+
+        return cmd;
+    }
 };
 
 static_assert(sizeof(DEPTH_BUFFER) == 32, "DEPTH_BUFFER must be 8 DWords (32 bytes)");

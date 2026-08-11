@@ -70,7 +70,7 @@ namespace blt {
         bool init_device();
 
         void set_bcs(IntelBcs* bcs) { bcs_ = bcs; }
-        bool present_to_screen(u32 width, u32 height);
+        bool present_to_screen(u32 width, u32 height) const;
         void dump_pipeline_stats(const char* label) const;
 
     private:
@@ -94,8 +94,10 @@ namespace blt {
         bool draw_triangle(u32 width = 1920, u32 height = 1080);
         bool setup_scissor_state(u32 dynamic_offset, u32 width, u32 height);
         bool setup_viewport_state(float x, float y, float width, float height, u32 sf_clip_offset, u32 cc_offset);
+        bool setup_blend_state(u32 dynamic_offset);
         bool render_target_setup(u32 width, u32 height);
         void debug_dump_render_target(u32 width, u32 height, u32 pitch) const;
+        void debug_dump_sf_clip_viewport_and_scissor(u32 sf_clip_offset, u32 scissor_offset) const;
         void rcs_error_reporting_init() const;
         virt_addr_t render_target_cpu_addr_{};
         gfx_addr_t render_target_gfx_addr_{};

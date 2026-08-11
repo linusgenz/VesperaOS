@@ -41,13 +41,13 @@
  * @see IHD-OS-KBL-Vol 2b-1.17 (3D_Vertex_Component_Control)
  */
 enum VertexComponentControl : u32 {
-    VFCOMP_NOSTORE = 0,       ///< Don't store this component (not valid for Component 0)
-    VFCOMP_STORE_SRC = 1,     ///< Store the corresponding format-converted source component
-    VFCOMP_STORE_0 = 2,       ///< Store 0 (0.0f if read as float)
-    VFCOMP_STORE_1_FP = 3,    ///< Store 1.0f
-    VFCOMP_STORE_1_INT = 4,   ///< Store 0x1
+    VFCOMP_NOSTORE     = 0, ///< Don't store this component (not valid for Component 0)
+    VFCOMP_STORE_SRC   = 1, ///< Store the corresponding format-converted source component
+    VFCOMP_STORE_0     = 2, ///< Store 0 (0.0f if read as float)
+    VFCOMP_STORE_1_FP  = 3, ///< Store 1.0f
+    VFCOMP_STORE_1_INT = 4, ///< Store 0x1
     // 5-6 reserved
-    VFCOMP_STORE_PID = 7,     ///< Store Primitive ID (legacy — avoid in new code, see PRM note)
+    VFCOMP_STORE_PID = 7, ///< Store Primitive ID (legacy — avoid in new code, see PRM note)
 };
 
 /**
@@ -70,26 +70,27 @@ enum VertexComponentControl : u32 {
 union VERTEX_ELEMENT_STATE {
     struct {
         // ====================================================================
-        // DWord 0
+        // DWord 0 (Bits 31:0)
         // ====================================================================
-        u32 source_element_offset : 12;   ///< [11:0]  Byte offset of this element within the vertex structure
-        u32 reserved0_12 : 3;             ///< [14:12] MBZ
-        u32 edge_flag_enable : 1;         ///< [15]    Interpret source as EdgeFlag (last valid element only)
-        u32 source_element_format : 9;    ///< [24:16] SURFACE_FORMAT — format of the memory-resident source data
-        u32 valid : 1;                    ///< [25]    1 = this element is used in vertex assembly
-        u32 vertex_buffer_index : 6;      ///< [31:26] U6, which VB slot (from 3DSTATE_VERTEX_BUFFERS) this reads
+        u32 source_element_offset : 12; ///< [11:0]  Byte offset
+        u32 reserved0_12          : 3;  ///< [14:12] MBZ
+        u32 edge_flag_enable      : 1;  ///< [15]    EdgeFlag
+        u32 source_element_format : 9;  ///< [24:16] SURFACE_FORMAT
+        u32 valid                 : 1;  ///< [25]    Valid bit
+        u32 vertex_buffer_index   : 6;  ///< [31:26] VB slot
 
         // ====================================================================
-        // DWord 1
+        // DWord 1 (Bits 31:0)
         // ====================================================================
-        u32 component_3_control : 3;      ///< [18:16] 3D_Vertex_Component_Control
-        u32 reserved1_19 : 1;             ///< [19]    MBZ
-        u32 component_2_control : 3;      ///< [22:20] 3D_Vertex_Component_Control
-        u32 reserved1_23 : 1;             ///< [23]    MBZ
-        u32 component_1_control : 3;      ///< [26:24] 3D_Vertex_Component_Control
-        u32 reserved1_27 : 1;             ///< [27]    MBZ
-        u32 component_0_control : 3;      ///< [30:28] 3D_Vertex_Component_Control
-        u32 reserved1_31 : 1;             ///< [31]    MBZ
+        u32 reserved1_0         : 16; ///< [15:0]  MBZ (Gefehlt!)
+        u32 component_3_control : 3;  ///< [18:16] Component 3 Control
+        u32 reserved1_19        : 1;  ///< [19]    MBZ
+        u32 component_2_control : 3;  ///< [22:20] Component 2 Control
+        u32 reserved1_23        : 1;  ///< [23]    MBZ
+        u32 component_1_control : 3;  ///< [26:24] Component 1 Control
+        u32 reserved1_27        : 1;  ///< [27]    MBZ
+        u32 component_0_control : 3;  ///< [30:28] Component 0 Control
+        u32 reserved1_31        : 1;  ///< [31]    MBZ
     } __attribute__((packed));
 
     u32 raw[2];
@@ -165,12 +166,12 @@ union VERTEX_ELEMENTS_HEADER {
     };
 
     struct {
-        u32 dword_length : 8;   ///< [7:0]   = 2*n - 1 (n = number of elements included)
-        u32 reserved0_8 : 8;    ///< [15:8]  MBZ
-        u32 sub_opcode : 8;     ///< [23:16] Default: 0x09 (3DSTATE_VERTEX_ELEMENTS)
-        u32 opcode : 3;         ///< [26:24] Default: 0x0  (3DSTATE_PIPELINED)
-        u32 sub_type : 2;       ///< [28:27] Default: 0x3  (GFXPIPE_3D)
-        u32 command_type : 3;   ///< [31:29] Default: 0x3  (GFXPIPE)
+        u32 dword_length : 8; ///< [7:0]   = 2*n - 1 (n = number of elements included)
+        u32 reserved0_8  : 8; ///< [15:8]  MBZ
+        u32 sub_opcode   : 8; ///< [23:16] Default: 0x09 (3DSTATE_VERTEX_ELEMENTS)
+        u32 opcode       : 3; ///< [26:24] Default: 0x0  (3DSTATE_PIPELINED)
+        u32 sub_type     : 2; ///< [28:27] Default: 0x3  (GFXPIPE_3D)
+        u32 command_type : 3; ///< [31:29] Default: 0x3  (GFXPIPE)
     } __attribute__((packed));
 
     u32 raw;
