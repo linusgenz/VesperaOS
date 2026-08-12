@@ -72,6 +72,17 @@ static bool is_read_only(const VfsNode* node) {
     return (node->mount->flags & MS_RDONLY);
 }
 
+VfsNode* ref_node(VfsNode* node) {
+    if (!node) return nullptr;
+
+    __atomic_fetch_add(&node->ref_count, 1, __ATOMIC_RELAXED);
+    return node;
+}
+
+void unref_node(VfsNode* node) {
+    VFS::close(node);
+}
+
 Result<VfsNode*> VFS::open(const char* path) {
     if (!path || !*path) return Error::Inval;
 
@@ -153,7 +164,6 @@ void VFS::close(VfsNode* node) {
     if (!node || !node->ops || !node->ops->close || node->permanent) return;
 
     if ((__atomic_sub_fetch(&node->ref_count, 1, __ATOMIC_ACQ_REL) == 0)) {
-        //filesystem::g_dentry_cache.evict(node);
         node->ops->close(node);
     }
 }

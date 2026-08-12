@@ -114,6 +114,7 @@ static Result<VfsNode*> fat32_find(VfsNode* node, const char* name) {
             child->ops = node->ops;
             child->size = entries[i].get_file_size();
             child->seekable = !(child_data->is_dir);
+            child->inode_id = entries[i].get_first_cluster();
 
             kernel::memory::free(entries);
             return Result<VfsNode*>::ok(child);
@@ -267,6 +268,7 @@ VfsNode* wrap_fat32_root(FileSystem* fs) {
     node->permanent = true;
     node->ops = &fat32_ops;
     node->size = total_fs_size;
+    node->inode_id = root->cluster;
 
     return node;
 }
