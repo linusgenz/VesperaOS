@@ -1,9 +1,9 @@
-// shm.h
+// file_backing.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 27.05.26.
+// Created by Linus Genz on 12.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,18 +19,27 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_SHM_H
-#define VESPERAOS_SHM_H
+#ifndef VESPERAOS_VFS_BACKING_H
+#define VESPERAOS_VFS_BACKING_H
 
-#include <vespera/types.h>
-#include <vespera/mm/addr.h>
+#include <filesystem/vfs_node.h>
 #include <vespera/mm/vm_backing.h>
 #include <vespera/sync/spinlock.h>
-class Realm;
+#include <vespera/types.h>
 
-class ShmObject final : public kernel::vm::VmBackingObject {
+class FileBackingObject final : public kernel::vm::VmBackingObject {
 public:
-    static ShmObject* create(const char* name, usize initial_size);
+    explicit FileBackingObject(VfsNode* node);
+    ~FileBackingObject() override;
+
+    /**
+     * @brief Returns the FileBackingObject shared by all mmap()s of @p node, creating it
+     *        if this is the first mapping.
+     *
+     * @return Existing or newly-created backing object, or nullptr on allocation failure
+     *         or if @p node is null.
+     */
+    static FileBackingObject* get_or_create(VfsNode* node);
 
     phys_addr_t get_page(usize offset_in_bytes) override;
     void sync_page(usize offset_in_bytes, phys_addr_t phys, bool is_dirty) override;
@@ -38,36 +47,22 @@ public:
     void remove_mapping() override;
     usize get_size() const override;
 
-    void acquire_handle();
-    void release_handle();
-    void release_mapping();
-    void mark_unlinked();
-    i64 resize(usize new_size);
-    const char* get_name() const { return name_; }
-
-    ~ShmObject() override = default;
-
 private:
-    char name_[64]{};
-    phys_addr_t* pages_{nullptr};
-    usize page_count_{0u};
+    VfsNode* node_{nullptr};
     usize size_{0u};
 
-    u32 handle_count_{0u};
+    const MountPoint* mount_{nullptr};
+    u64 inode_id_{0u};
+
+
+    // Page Caching
+    phys_addr_t* pages_{nullptr};
+    usize page_count_{0u};
+
     u32 mapping_count_{0u};
-    bool unlinked_{false};
-    mutable Spinlock lock_{"shm_obj_lock"};
+    mutable Spinlock lock_{"file_backing_lock"};
 
     void check_and_destroy() const;
-    explicit ShmObject(const char* name);
 };
 
-
-namespace kernel::shm {
-    // Syscall Backends
-    i64 shm_open(const char* name, int oflag, u32 mode, Realm* current_realm);
-    i64 shm_unlink(const char* name);
-    i64 shm_truncate(HandleId hid, usize length, Realm* current_realm);
-}
-
-#endif  // VESPERAOS_SHM_H
+#endif //VESPERAOS_VFS_BACKING_H

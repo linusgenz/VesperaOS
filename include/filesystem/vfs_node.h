@@ -89,6 +89,12 @@ struct VfsNode {
     bool permanent;
     bool seekable = false;
     usize ref_count = 1;
+
+    u64 inode_id = 0;
+
 };
+
+VfsNode* ref_node(VfsNode* node);
+void unref_node(VfsNode* node);
 
 #endif  // VFS_NODE_H

@@ -24,8 +24,9 @@
 #ifndef VESPERAOS_KERNEL_UNITS_VM_AREA_LIST_H
 #define VESPERAOS_KERNEL_UNITS_VM_AREA_LIST_H
 
-#include <uapi/vespera/handles.h>
 #include <vespera/types.h>
+
+#include "vespera/mm/vm_backing.h"
 
 namespace kernel::units {
 
@@ -38,7 +39,7 @@ struct VmArea {
     u64      flags;
     uptr     file_off;
     HandleId handle;
-    void* backing_obj;
+    vm::VmBackingObject* backing_obj;
     VmArea*  next;
 };
 

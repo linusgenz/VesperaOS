@@ -32,12 +32,11 @@
 namespace {
     ShmObject* global_shm_objects[128] = {nullptr};
     Spinlock global_shm_lock{"global_shm_lock"};
-}  // namespace
+} // namespace
 
 void shm_handle_acquire(void* res) {
     auto* shm = static_cast<ShmObject*>(res);
-    SpinlockGuard g(shm->lock);
-    shm->handle_count++;
+    shm->acquire_handle();
 }
 
 void shm_handle_destroy(void* res) {
@@ -45,56 +44,187 @@ void shm_handle_destroy(void* res) {
     shm->release_handle();
 }
 
-void ShmObject::release_handle() {
+ShmObject::ShmObject(const char* name)
+    : handle_count_(1) {
+    if (name) {
+        strncpy(name_, name, sizeof(name_) - 1);
+        name_[sizeof(name_) - 1] = '\0';
+    }
+    lock_.init("shm_obj_lock");
+}
+
+ShmObject* ShmObject::create(const char* name, usize initial_size) {
+    auto* shm = new ShmObject(name);
+    if (!shm) return nullptr;
+
+    if (initial_size > 0) {
+        if (shm->resize(initial_size) != 0) {
+            delete shm;
+            return nullptr;
+        }
+    }
+
+    return shm;
+}
+
+void ShmObject::acquire_handle() {
+    SpinlockGuard g(lock_);
+    handle_count_++;
+}
+
+phys_addr_t ShmObject::get_page(usize offset_in_bytes) {
+    SpinlockGuard sg(lock_);
+
+    usize page_idx = offset_in_bytes / PAGE_SIZE;
+    if (page_idx >= page_count_) return make_phys(0);
+
+    phys_addr_t phys = pages_[page_idx];
+
+    if (phys_null(phys)) {
+        phys = kernel::memory::request_page_phys();
+        if (!phys_null(phys)) {
+            memset(phys_to_virt(phys), 0, PAGE_SIZE);
+            pages_[page_idx] = phys;
+        }
+    }
+
+    return phys;
+}
+
+void ShmObject::sync_page(usize offset_in_bytes, phys_addr_t phys, bool is_dirty) {
+    (void)offset_in_bytes;
+    (void)phys;
+    (void)is_dirty;
+}
+
+void ShmObject::add_mapping() {
+    SpinlockGuard sg(lock_);
+    mapping_count_++;
+}
+
+void ShmObject::remove_mapping() {
+    release_mapping();
+}
+
+usize ShmObject::get_size() const {
+    SpinlockGuard sg(lock_);
+    return size_;
+}
+
+i64 ShmObject::resize(usize new_size) {
+    SpinlockGuard g(lock_);
+
+    usize new_page_count = (new_size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    if (new_page_count == page_count_) {
+        size_ = new_size;
+        return 0;
+    }
+
+    if (new_page_count == 0) {
+        if (pages_) {
+            for (usize i = 0; i < page_count_; i++) {
+                if (!phys_null(pages_[i])) {
+                    kernel::memory::free_page_phys(pages_[i]);
+                }
+            }
+            kernel::memory::free(pages_);
+            pages_ = nullptr;
+        }
+        page_count_ = 0;
+        size_ = 0;
+        return 0;
+    }
+
+    auto* new_pages = static_cast<phys_addr_t*>(
+        kernel::memory::malloc(new_page_count * sizeof(phys_addr_t))
+    );
+    if (!new_pages) return -ENOMEM;
+    memset(new_pages, 0, new_page_count * sizeof(phys_addr_t));
+
+    usize copy_count = (new_page_count < page_count_) ? new_page_count : page_count_;
+    if (pages_ && copy_count > 0) {
+        memcpy(new_pages, pages_, copy_count * sizeof(phys_addr_t));
+    }
+
+    if (new_page_count < page_count_) {
+        for (usize i = new_page_count; i < page_count_; i++) {
+            if (!phys_null(pages_[i])) {
+                kernel::memory::free_page_phys(pages_[i]);
+            }
+        }
+    }
+
+    if (pages_) {
+        kernel::memory::free(pages_);
+    }
+
+    pages_ = new_pages;
+    page_count_ = new_page_count;
+    size_ = new_size;
+
+    return 0;
+}
+
+void ShmObject::mark_unlinked() {
+    SpinlockGuard g(lock_);
+    unlinked_ = true;
+}
+
+void ShmObject::check_and_destroy() const {
     bool dest = false;
     {
-        SpinlockGuard g(lock);
-        handle_count--;
-        if (handle_count == 0 && mapping_count == 0 && unlinked) dest = true;
-    }
-    if (dest) {
-        for (usize i = 0; i < page_count; i++) {
-            if (!phys_null(pages[i])) kernel::memory::free_page_phys(pages[i]);
+        SpinlockGuard g(lock_);
+        if (handle_count_ == 0 && mapping_count_ == 0 && unlinked_) {
+            dest = true;
         }
-        kernel::memory::free(pages);
-        kernel::memory::free(this);
     }
+
+    if (dest) {
+        if (pages_) {
+            for (usize i = 0; i < page_count_; i++) {
+                if (!phys_null(pages_[i])) {
+                    kernel::memory::free_page_phys(pages_[i]);
+                }
+            }
+            kernel::memory::free(pages_);
+        }
+        delete this;
+    }
+}
+
+void ShmObject::release_handle() {
+    {
+        SpinlockGuard g(lock_);
+        handle_count_--;
+    }
+    check_and_destroy();
 }
 
 void ShmObject::release_mapping() {
-    bool dest = false;
     {
-        SpinlockGuard g(lock);
-        mapping_count--;
-        if (handle_count == 0 && mapping_count == 0 && unlinked) dest = true;
+        SpinlockGuard g(lock_);
+        mapping_count_--;
     }
-    if (dest) {
-        for (usize i = 0; i < page_count; i++) {
-            if (!phys_null(pages[i])) kernel::memory::free_page_phys(pages[i]);
-        }
-        kernel::memory::free(pages);
-        kernel::memory::free(this);
-    }
+    check_and_destroy();
 }
 
 i64 kernel::shm::shm_open(const char* name, int oflag, u32 mode, Realm* current_realm) {
+    (void)mode;
     SpinlockGuard g(global_shm_lock);
 
     ShmObject* shm = nullptr;
-    int slot = -1;
 
-    for (int i = 0; i < 128; i++) {
-        if (global_shm_objects[i] && strcmp(global_shm_objects[i]->name, name) == 0) {
-            shm = global_shm_objects[i];
-            slot = i;
+    for (auto & global_shm_object : global_shm_objects) {
+        if (global_shm_object && strcmp(global_shm_object->get_name(), name) == 0) {
+            shm = global_shm_object;
             break;
         }
     }
 
     if (shm) {
         if ((oflag & O_CREAT) && (oflag & O_EXCL)) return -EEXIST;
-        SpinlockGuard sg(shm->lock);
-        shm->handle_count++;
+        shm->acquire_handle();
     } else {
         if (!(oflag & O_CREAT)) return -ENOENT;
 
@@ -107,11 +237,8 @@ i64 kernel::shm::shm_open(const char* name, int oflag, u32 mode, Realm* current_
         }
         if (free_slot == -1) return -ENOMEM;
 
-        shm = static_cast<ShmObject*>(kernel::memory::malloc(sizeof(ShmObject)));
-        memset(shm, 0, sizeof(ShmObject));
-        strncpy(shm->name, name, 63);
-        shm->lock.init("shm_obj_lock");
-        shm->handle_count = 1;
+        shm = ShmObject::create(name, 0);
+        if (!shm) return -ENOMEM;
 
         global_shm_objects[free_slot] = shm;
     }
@@ -121,7 +248,7 @@ i64 kernel::shm::shm_open(const char* name, int oflag, u32 mode, Realm* current_
     );
 
     if (!res.is_ok()) {
-        shm->release_handle();  // Rollback
+        shm->release_handle(); // Rollback
         return -ENOMEM;
     }
 
@@ -130,13 +257,11 @@ i64 kernel::shm::shm_open(const char* name, int oflag, u32 mode, Realm* current_
 
 i64 kernel::shm::shm_unlink(const char* name) {
     SpinlockGuard g(global_shm_lock);
-    for (int i = 0; i < 128; i++) {
-        if (global_shm_objects[i] && strcmp(global_shm_objects[i]->name, name) == 0) {
-            ShmObject* shm = global_shm_objects[i];
-            shm->lock.lock();
-            shm->unlinked = true;
-            shm->lock.unlock();
-            global_shm_objects[i] = nullptr;  // Aus globaler Sicht gelöscht
+    for (auto & global_shm_object : global_shm_objects) {
+        if (global_shm_object && strcmp(global_shm_object->get_name(), name) == 0) {
+            ShmObject* shm = global_shm_object;
+            shm->mark_unlinked();
+            global_shm_object = nullptr;
             return 0;
         }
     }
@@ -146,8 +271,6 @@ i64 kernel::shm::shm_unlink(const char* name) {
 i64 kernel::shm::shm_truncate(unsigned long long handle_id, unsigned long length, Realm* current_realm) {
     if (!current_realm || !current_realm->handle_table) return -EINVAL;
 
-    // 1. Handle aus der Tabelle des aktuellen Realms holen
-    // Hinweis: Passe 'lookup' oder 'get' an die echte API deiner HandleTable an
     auto entry = current_realm->handle_table->lookup(handle_id);
     if (!entry) {
         return -EBADH;
@@ -162,67 +285,5 @@ i64 kernel::shm::shm_truncate(unsigned long long handle_id, unsigned long length
         return -EINVAL;
     }
 
-    // 2. Objekt sperren, um Race Conditions bei parallelen Trucates/Mmaps zu verhindern
-    SpinlockGuard g(shm->lock);
-
-    // Berechne die Anzahl der benötigten Pages (aufgerundet)
-    usize new_page_count = (length + PAGE_SIZE - 1) / PAGE_SIZE;
-
-    // Wenn sich die Page-Anzahl nicht ändert, müssen wir nur die logische Größe updaten
-    if (new_page_count == shm->page_count) {
-        shm->size = length;  // Falls dein ShmObject ein 'size'-Feld (in Bytes) besitzt
-        return 0;
-    }
-
-    // Fall: Shared Memory wird komplett auf 0 gesetzt
-    if (new_page_count == 0) {
-        for (usize i = 0; i < shm->page_count; i++) {
-            if (!phys_null(shm->pages[i])) {
-                kernel::memory::free_page_phys(shm->pages[i]);
-            }
-        }
-        if (shm->pages) {
-            kernel::memory::free(shm->pages);
-            shm->pages = nullptr;
-        }
-        shm->page_count = 0;
-        shm->size = 0;
-        return 0;
-    }
-
-    // 3. Neues Array für die physischen Seiteneinträge allokieren
-    auto* new_pages = static_cast<phys_addr_t*>(kernel::memory::malloc(new_page_count * sizeof(phys_addr_t)));
-    if (!new_pages) {
-        return -ENOMEM;
-    }
-
-    for (usize i = 0; i < new_page_count; i++) {
-        new_pages[i] = kernel::memory::request_page_phys();  // TODO lazy allocate later
-    }
-
-    // Bestehende physische Adressen in das neue Array übernehmen
-    usize copy_count = (new_page_count < shm->page_count) ? new_page_count : shm->page_count;
-    if (shm->pages && copy_count > 0) {
-        memcpy(new_pages, shm->pages, copy_count * sizeof(phys_addr_t));
-    }
-
-    // 4. Wenn das Objekt verkleinert wird: Überschüssige physische Seiten freigeben
-    if (new_page_count < shm->page_count) {
-        for (usize i = new_page_count; i < shm->page_count; i++) {
-            if (!phys_null(shm->pages[i])) {
-                kernel::memory::free_page_phys(shm->pages[i]);
-            }
-        }
-    }
-
-    // Altes Array freigeben und durch das neue ersetzen
-    if (shm->pages) {
-        kernel::memory::free(shm->pages);
-    }
-
-    shm->pages = new_pages;
-    shm->page_count = new_page_count;
-    shm->size = length;  // Optionale Abspeicherung der exakten Byte-Größe
-
-    return 0;
+    return shm->resize(length);
 }

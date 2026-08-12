@@ -99,6 +99,12 @@ float roundf(float x);
 long lround(double x);
 
 long lroundf(float x);
+
+float sinf(float x);
+
+float cosf(float x);
+
+float tanf(float x);
 }
 
 #endif  // VESPERAOS_MATH_H

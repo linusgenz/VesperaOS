@@ -20,12 +20,15 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
+#include <filesystem/vfs_handle.h>
+#include <filesystem/vfs_node.h>
 #include <klib/string.h>
 #include <realm/address_space.h>
 #include <realm/handle_table.h>
 #include <realm/realm.h>
 #include <units/unit.h>
 #include <vespera/log.h>
+#include <vespera/mm/file_backing.h>
 #include <vespera/mm/memory.h>
 #include <vespera/mm/shm.h>
 #include <vespera/mm/vm.h>
@@ -85,18 +88,32 @@ namespace kernel::vm {
         if (base == 0) return -ENOMEM;
 
         PageTableManager* ptm = ptm_for(u);
-        ShmObject* shm_obj = nullptr;
+        kernel::vm::VmBackingObject* backing_obj = nullptr;
 
         if (!(flags & MAP_ANONYMOUS)) {
             HandleEntry* he = u->parent->handle_table->lookup(handle);
-            if (!he || he->type != HANDLE_TYPE_SHM) return -EBADH;
+            if (!he) {
+                return -EBADH;
+            }
 
-            shm_obj = static_cast<ShmObject*>(he->resource);
-            SpinlockGuard sg(shm_obj->lock);
+            if (he->type == HANDLE_TYPE_SHM) {
+                backing_obj = static_cast<ShmObject*>(he->resource);
+            } else if (he->type == HANDLE_TYPE_FILE) {
+                const auto* vfs_handle = static_cast<VfsHandle*>(he->resource);
+                if (!vfs_handle || !vfs_handle->node) return -EBADH;
+                backing_obj = FileBackingObject::get_or_create(vfs_handle->node);
+            } else {
+                return -EBADH;
+            }
 
-            const usize shm_page_aligned_size = (shm_obj->size + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
-            if (offset + length > shm_page_aligned_size) return -EINVAL;  // Out of bounds
-            shm_obj->mapping_count++;
+            if (!backing_obj) return -EBADH;
+
+            const usize backing_size = backing_obj->get_size();
+            const usize backing_page_aligned_size = (backing_size + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
+            if (offset + length > backing_page_aligned_size) {
+                return -EINVAL;
+            }
+            backing_obj->add_mapping();
         }
 
         for (usize i = 0; i < npages; i++) {
@@ -104,25 +121,15 @@ namespace kernel::vm {
             if (flags & MAP_ANONYMOUS) {
                 phys = kernel::memory::request_page_phys();
             } else {
-                usize page_idx = (offset / PAGE_SIZE) + i;
-                phys = shm_obj->pages[page_idx];
-
-                if (phys_null(phys)) {
-                    phys = kernel::memory::request_page_phys();
-                    if (!phys_null(phys)) {
-                        memset(phys_to_virt(phys), 0, PAGE_SIZE);
-                        shm_obj->pages[page_idx] = phys;
-                    }
-                }
+                phys = backing_obj->get_page(offset + i * PAGE_SIZE);
             }
 
             if (phys_null(phys)) {
                 for (usize j = 0; j < i; j++) {
                     ptm->unmap_memory(virt_from_raw(base + j * PAGE_SIZE));
                 }
-                if (shm_obj) {
-                    SpinlockGuard sg(shm_obj->lock);
-                    shm_obj->mapping_count--;
+                if (backing_obj) {
+                    backing_obj->remove_mapping();
                 }
                 return -ENOMEM;
             }
@@ -135,9 +142,8 @@ namespace kernel::vm {
         auto* area = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
         if (!area) {
             for (usize i = 0; i < npages; i++) ptm->unmap_memory(virt_from_raw(base + i * PAGE_SIZE));
-            if (shm_obj) {
-                SpinlockGuard sg(shm_obj->lock);
-                shm_obj->mapping_count--;
+            if (backing_obj) {
+                backing_obj->remove_mapping();
             }
             return -ENOMEM;
         }
@@ -148,7 +154,7 @@ namespace kernel::vm {
         area->flags = flags;
         area->file_off = offset;
         area->handle = handle;
-        area->backing_obj = shm_obj;
+        area->backing_obj = backing_obj;
         u->add_vma(area);
 
         return static_cast<i64>(base);
@@ -267,8 +273,7 @@ namespace kernel::vm {
 
             if (vma->start >= base && vma_end <= end) {
                 if (!(vma->flags & MAP_ANONYMOUS) && vma->backing_obj) {
-                    auto* shm = static_cast<ShmObject*>(vma->backing_obj);
-                    shm->release_mapping();  // Benachrichtige SHM-Subsystem
+                    vma->backing_obj->remove_mapping();  // Benachrichtige Backing-Subsystem (SHM/File)
                 }
                 u->remove_vma(vma->start, vma->length);
             } else if (vma == vma_to_split) {
@@ -281,9 +286,7 @@ namespace kernel::vm {
                 split_tail->backing_obj = vma->backing_obj;
 
                 if (!(vma->flags & MAP_ANONYMOUS) && vma->backing_obj) {
-                    auto* shm = static_cast<ShmObject*>(vma->backing_obj);
-                    SpinlockGuard sg(shm->lock);
-                    shm->mapping_count++;
+                    vma->backing_obj->add_mapping();
                 }
 
                 u->add_vma(split_tail);
