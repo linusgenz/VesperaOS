@@ -875,6 +875,18 @@ namespace ext4 {
     }
 
     bool FileSystem::map_logical_to_physical(const Inode& inode, u32 lblock, u64& out_pblock) const {
+        // An inode using the extent format stores an ExtentHeader in the first
+        // 12 bytes of i_block[], not direct block pointers. If we fall through to
+        // treating i_block[lblock] as a raw block number for such an inode (e.g.
+        // because its extent list happens to be empty for this lblock), we'd be
+        // reinterpreting extent-header/entry bytes as a physical block number —
+        // silently corrupting the read/write instead of correctly reporting "no
+        // mapping yet". The i_block[] fallback below is only valid for inodes
+        // that never used the extent format to begin with.
+        ExtentHeader eh_probe{};
+        memcpy(&eh_probe, &inode.i_block[0], sizeof(ExtentHeader));
+        const bool uses_extents = (eh_probe.eh_magic == EXT4_EXTENT_MAGIC);
+
         // 1. Versuche die Extents aus dem Inode-Cache direkt abzugreifen
         for (u32 i = 0; i < EXT4_INODE_CACHE_SIZE; ++i) {
             if (inode_cache_[i].valid && memcmp(&inode_cache_[i].inode, &inode, sizeof(Inode)) == 0) {
@@ -885,7 +897,7 @@ namespace ext4 {
                         return true;
                     }
                 }
-                if (lblock < 12) {
+                if (!uses_extents && lblock < 12) {
                     const u32 p = inode_cache_[i].inode.i_block[lblock];
                     if (p == 0) return false;
                     out_pblock = p;
@@ -907,7 +919,7 @@ namespace ext4 {
             return false;
         }
 
-        if (lblock < 12) {
+        if (!uses_extents && lblock < 12) {
             const u32 p = inode.i_block[lblock];
             if (p == 0) return false;
             out_pblock = p;
