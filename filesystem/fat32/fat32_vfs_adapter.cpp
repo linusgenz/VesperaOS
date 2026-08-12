@@ -114,7 +114,6 @@ static Result<VfsNode*> fat32_find(VfsNode* node, const char* name) {
             child->ops = node->ops;
             child->size = entries[i].get_file_size();
             child->seekable = !(child_data->is_dir);
-            __atomic_fetch_add(&child->ref_count, 1, __ATOMIC_RELAXED);
 
             kernel::memory::free(entries);
             return Result<VfsNode*>::ok(child);
