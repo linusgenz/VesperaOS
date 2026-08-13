@@ -44,7 +44,7 @@ namespace pci {
         const phys_addr_t func_phys = make_phys(device_address + (static_cast<u64>(id.function) << 12));
         const virt_addr_t func_virt = phys_to_virt(func_phys);
 
-        kernel::memory::map_memory(func_virt, func_phys);
+        kernel::memory::map_memory(func_virt, func_phys, (1ULL << PtFlag::ReadWrite));
 
         auto* header = virt_as<volatile PCI_HEADER0>(func_virt);
 
@@ -93,7 +93,7 @@ namespace pci {
         const virt_addr_t dev_virt = virt_from_raw(bus_address + (static_cast<u64>(device) << 15));
         const phys_addr_t dev_phys = make_phys(virt_raw(dev_virt));
 
-        kernel::memory::map_memory(dev_virt, dev_phys, 0);
+        kernel::memory::map_memory(dev_virt, dev_phys, (1ULL << PtFlag::ReadWrite));
 
         const auto* hdr = virt_as<PCI_DEVICE_HEADER>(dev_virt);
         if (hdr->device_id == 0 || hdr->device_id == 0xFFFF) return;
@@ -108,7 +108,7 @@ namespace pci {
         const virt_addr_t bus_virt = virt_from_raw(base_address + (static_cast<u64>(bus) << 20));
         const phys_addr_t bus_phys = make_phys(virt_raw(bus_virt));
 
-        kernel::memory::map_memory(bus_virt, bus_phys, 0);
+        kernel::memory::map_memory(bus_virt, bus_phys, (1ULL << PtFlag::ReadWrite));
 
         const auto* hdr = virt_as<PCI_DEVICE_HEADER>(bus_virt);
         if (hdr->device_id == 0 || hdr->device_id == 0xFFFF) return;
@@ -135,7 +135,7 @@ namespace pci {
             }
         }
 
-        kernel::time::sleep_ms(4000);
+     //   kernel::time::sleep_ms(4000);
 
         for (usize t = 0; t < entries; ++t) {
             const auto* cfg = reinterpret_cast<kernel::acpi::DEVICE_CONFIG*>(

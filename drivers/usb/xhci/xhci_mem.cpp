@@ -28,7 +28,7 @@
 uptr xhci_map_mmio(const u64 pci_bar_address, const u32 bar_size) {
     const phys_addr_t mmio_phys = make_phys(pci_bar_address);
     const virt_addr_t mmio_virt = phys_to_virt(mmio_phys);
-    kernel::memory::map_range(mmio_virt, mmio_phys, bar_size, (1ULL << CacheDisabled));
+    kernel::memory::map_range(mmio_virt, mmio_phys, bar_size, (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
 
     return virt_raw(mmio_virt);
 }

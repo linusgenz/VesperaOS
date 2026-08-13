@@ -69,7 +69,7 @@ namespace pci {
                 const u64 bar_size = bar_info.size;
 
                 kernel::memory::map_range(
-                    phys_to_virt(bar_phys), bar_phys, bar_size, (1ULL << WriteThrough) | (1ULL << CacheDisabled)
+                    phys_to_virt(bar_phys), bar_phys, bar_size, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite)
                 );
 
                 const virt_addr_t table_base = virt_add(phys_to_virt(bar_phys), table_offset);

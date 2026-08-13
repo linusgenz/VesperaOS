@@ -64,6 +64,8 @@ namespace kernel::vm {
      */
     [[nodiscard]] i64 brk(Unit* u, uptr addr);
 
+    i64 mprotect(Unit* u, const uptr addr, usize length, const u64 prot);
+
 } // namespace kernel::vm
 
 #endif // VESPERAOS_VESPERA_MM_VM_H

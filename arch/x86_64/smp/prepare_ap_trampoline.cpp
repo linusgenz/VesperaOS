@@ -40,9 +40,9 @@ extern "C" void ap_main();
 namespace arch::x86_64::smp {
     void prepare_ap_trampoline() {
         for (u64 phys = 0x1000; phys <= 0x9000; phys += 0x1000) {
-            kernel::memory::map_memory(virt_from_raw(phys), make_phys(phys), 0);
+            kernel::memory::map_memory(virt_from_raw(phys), make_phys(phys), (1ULL << PtFlag::ReadWrite));
             // HHDM map
-            kernel::memory::map_memory(phys_to_virt(make_phys(phys)), make_phys(phys), 0);
+            kernel::memory::map_memory(phys_to_virt(make_phys(phys)), make_phys(phys), (1ULL << PtFlag::ReadWrite));
         }
 
         memcpy(reinterpret_cast<void*>(TRAMPOLINE_VIRT), ap_trampoline_bin, ap_trampoline_bin_len);

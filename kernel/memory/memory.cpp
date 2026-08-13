@@ -75,14 +75,14 @@ namespace kernel::memory {
         max_phys = (max_phys + 0x1FFFFF) & ~0x1FFFFFULL;
 
         for (u64 phys = 0; phys < max_phys; phys += 0x1000) {
-            page_table_manager.map_memory(virt_from_raw(boot_info->hhdm_offset + phys), make_phys(phys), 0);
+            page_table_manager.map_memory(virt_from_raw(boot_info->hhdm_offset + phys), make_phys(phys), (1ULL << PtFlag::ReadWrite));
         }
 
         const u64 k_virt_start = reinterpret_cast<u64>(&kernel_start);
         const u64 k_virt_end = reinterpret_cast<u64>(&kernel_end);
         for (u64 virt = k_virt_start; virt < k_virt_end; virt += 0x1000) {
             const u64 phys = virt - g_kernel_virt_base + g_kernel_phys_base;
-            page_table_manager.map_memory(virt_from_raw(virt), make_phys(phys), 0);
+            page_table_manager.map_memory(virt_from_raw(virt), make_phys(phys), (1ULL << PtFlag::ReadWrite));
         }
     }
 

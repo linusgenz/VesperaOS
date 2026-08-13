@@ -32,6 +32,7 @@
 #define SYSCALL_POLL      7
 #define SYSCALL_SEEK      8
 #define SYSCALL_MMAP      9
+#define SYSCALL_MPROTECT  10
 #define SYSCALL_MUNMAP    11
 #define SYSCALL_BRK       12
 #define SYSCALL_SIGACTION 13

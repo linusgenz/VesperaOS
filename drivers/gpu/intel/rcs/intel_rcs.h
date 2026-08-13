@@ -28,6 +28,7 @@
 #include <vespera/graphics/display_types.h>
 #include <gpu/intel/core/state_allocator.h>
 
+struct Mat4;
 struct ShaderOffsets;
 
 namespace gpu::intel::rcs {
@@ -81,12 +82,14 @@ namespace gpu::intel::rcs {
         bool select_pipeline(PIPELINE_SELECT::PipelineSelection mode);
         bool state_base_address_setup();
         bool setup_shaders_and_pipeline(const ShaderOffsets& offsets);
+        bool setup_constant_buffer_allocations();
+        bool setup_constant_buffer(const Mat4& mvp);
         u32 gt_user_irq_bit() const override;
         u32 gt_debug_irq_bitmask() const override;
         void on_gt_user_interrupt() override;
         void rcs_interrupts_enable() const;
         void emit_flush(u32 seqno);
-        ShaderOffsets upload_shaders(u8* inst_base_cpu);
+        ShaderOffsets upload_shaders();
 
         bool vertex_buffer_setup();
 

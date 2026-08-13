@@ -379,7 +379,7 @@ namespace gpu::intel::core {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
         const virt_addr_t cpu = phys_to_virt(phys);
 
-        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
+        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags | (1ULL << PtFlag::ReadWrite));
 
         const u32 gtt_index = index_alloc_persistent(static_cast<u32>(num_pages));
 
@@ -397,7 +397,7 @@ namespace gpu::intel::core {
         const phys_addr_t phys = kernel::memory::request_pages_phys(num_pages);
         const virt_addr_t cpu = phys_to_virt(phys);
 
-        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags);
+        kernel::memory::map_range(cpu, phys, num_pages * PAGE_SIZE, flags | (1ULL << PtFlag::ReadWrite));
 
         const u32 gtt_index = index_alloc_transient(static_cast<u32>(num_pages));
 

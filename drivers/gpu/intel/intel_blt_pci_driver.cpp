@@ -159,7 +159,6 @@ namespace gpu::intel {
             Log::warning("intel-blt: RCS init failed, continuing with BCS only");
             delete rcs_;
             rcs_ = nullptr;
-            return -3;
         } else {
             rcs_->set_bcs(bcs_);
         }
@@ -169,7 +168,9 @@ namespace gpu::intel {
         const DisplayBackend be{bcs_, bcs_->get_kd()};
         DisplayManager::set_primary(be);
 
-        rcs_->present_to_screen(resolution);
+        if (rcs_) {
+            rcs_->present_to_screen(resolution);
+        }
 
         while (1); // as long as we develop rcs
 

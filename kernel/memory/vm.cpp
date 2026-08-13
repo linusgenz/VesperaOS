@@ -273,7 +273,7 @@ namespace kernel::vm {
 
             if (vma->start >= base && vma_end <= end) {
                 if (!(vma->flags & MAP_ANONYMOUS) && vma->backing_obj) {
-                    vma->backing_obj->remove_mapping();  // Benachrichtige Backing-Subsystem (SHM/File)
+                    vma->backing_obj->remove_mapping();
                 }
                 u->remove_vma(vma->start, vma->length);
             } else if (vma == vma_to_split) {
@@ -298,6 +298,110 @@ namespace kernel::vm {
                 vma->file_off += diff;
             } else {
                 vma->length = base - vma->start;
+            }
+
+            vma = next_vma;
+        }
+
+        return 0;
+    }
+
+i64 mprotect(Unit* u, const uptr addr, usize length, const u64 prot) {
+        if (!u || !u->is_user) return -EACCES;
+        if (length == 0) return -EINVAL;
+
+        const uptr base = addr & ~uptr(PAGE_SIZE - 1);
+        const usize len = (length + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
+        const uptr end = base + len;
+
+        PageTableManager* ptm = ptm_for(u);
+
+        // Pass 1: Ensure full VMA coverage (holes return -ENOMEM)
+        {
+            uptr covered = base;
+            while (covered < end) {
+                kernel::units::VmArea* hit = nullptr;
+                for (kernel::units::VmArea* it = u->get_vma_list(); it; it = it->next) {
+                    if (it->start <= covered && it->start + it->length > covered) {
+                        hit = it;
+                        break;
+                    }
+                }
+                if (!hit) return -ENOMEM;
+                covered = hit->start + hit->length;
+            }
+        }
+
+        kernel::units::VmArea* vma = u->get_vma_list();
+        while (vma) {
+            kernel::units::VmArea* const next_vma = vma->next;
+            const uptr vma_start = vma->start;
+            const uptr vma_end = vma->start + vma->length;
+
+            if (vma_start >= end || vma_end <= base) {
+                vma = next_vma;
+                continue;
+            }
+
+            const uptr change_start = (vma_start > base) ? vma_start : base;
+            const uptr change_end = (vma_end < end) ? vma_end : end;
+
+            // Remap mapped pages. PROT_NONE clears Present bit to keep phys mapping without access.
+            // ignore_present lookup is required to locate existing PROT_NONE pages.
+            const bool make_present = (prot != PROT_NONE);
+            for (uptr a = change_start; a < change_end; a += PAGE_SIZE) {
+                const virt_addr_t va = virt_from_raw(a);
+                if (const phys_addr_t phys = ptm->get_physical_address_ignore_present(va); !phys_null(phys)) {
+                    u64 pt_flags = (1ULL << UserSuper);
+                    if (prot & PROT_WRITE) pt_flags |= (1ULL << ReadWrite);
+                    ptm->map_memory(va, phys, pt_flags, make_present);
+                }
+            }
+
+            // Create tail VMA [change_end, vma_end) with old prot if needed
+            if (change_end < vma_end) {
+                auto* tail = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
+                if (!tail) return -ENOMEM;
+
+                tail->start = change_end;
+                tail->length = vma_end - change_end;
+                tail->prot = vma->prot;
+                tail->flags = vma->flags;
+                tail->file_off = vma->file_off + (change_end - vma_start);
+                tail->handle = vma->handle;
+                tail->backing_obj = vma->backing_obj;
+
+                if (!(vma->flags & MAP_ANONYMOUS) && vma->backing_obj) {
+                    vma->backing_obj->add_mapping();
+                }
+
+                u->add_vma(tail);
+            }
+
+            // Split head: insert middle VMA for new prot and shrink original VMA to leading remainder
+            if (change_start > vma_start) {
+                auto* mid = static_cast<kernel::units::VmArea*>(kernel::memory::malloc(sizeof(kernel::units::VmArea)));
+                if (!mid) return -ENOMEM;
+
+                mid->start = change_start;
+                mid->length = change_end - change_start;
+                mid->prot = prot;
+                mid->flags = vma->flags;
+                mid->file_off = vma->file_off + (change_start - vma_start);
+                mid->handle = vma->handle;
+                mid->backing_obj = vma->backing_obj;
+
+                if (!(vma->flags & MAP_ANONYMOUS) && vma->backing_obj) {
+                    vma->backing_obj->add_mapping();
+                }
+
+                u->add_vma(mid);
+
+                vma->length = change_start - vma_start;
+            } else {
+                // Update VMA in place if no leading split is required
+                vma->length = change_end - vma_start;
+                vma->prot = prot;
             }
 
             vma = next_vma;

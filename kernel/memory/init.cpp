@@ -63,7 +63,7 @@ namespace kernel::memory {
             map_memory(
                 virt_from_raw(fb_virt + offset),
                 make_phys(fb_phys + offset),
-                (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::Global)
+                (1ULL << PtFlag::ReadWrite) | (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::Global)
             );
         }
 

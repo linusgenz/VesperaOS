@@ -13,7 +13,14 @@ class PageTableManager {
    public:
     PageTableManager(PageTable* pml4_address);
     PageTable* pml4;
-    void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, u64 flags) const;
+    /**
+     * @brief Maps a single 4K page.
+     *
+     * @param present When false, the leaf PTE is written with the Present bit
+     *        cleared while still recording the given physical_memory address
+     *        in the entry.
+     */
+    void map_memory(virt_addr_t virtual_memory, phys_addr_t physical_memory, u64 flags, bool present = true) const;
     //  void map_kernel_page(void* phys_addr, u64 flags) const;
 
     void destroy_userspace() const;
@@ -27,6 +34,12 @@ class PageTableManager {
     void unmap_memory(virt_addr_t virt_addr) const;
     [[nodiscard]] bool is_mapped(virt_addr_t virt_addr) const;
     phys_addr_t get_physical_address(virt_addr_t virt_addr) const;
+
+    /**
+     * @brief Like get_physical_address(), but also returns the mapped address
+     *        for a leaf PTE whose Present bit is clear.
+     */
+    phys_addr_t get_physical_address_ignore_present(virt_addr_t virt_addr) const;
 
    private:
     void destroy_level(PageTable* table, int level) const;

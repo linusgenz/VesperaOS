@@ -15,6 +15,10 @@
 #include "idt.h"
 #include "interrupts_internal.h"
 #include "pic.h"
+#include "vespera/mm/addr.h"
+#include "vespera/mm/memory.h"
+#include "../kernel/units/unit.h"
+#include "../kernel/realm/realm.h"
 
 using kernel::debug::FaultContext;
 using kernel::debug::FaultType;
@@ -40,7 +44,7 @@ void page_fault_handler(TrapFrame* frame) {
     u64 fault_addr = 0;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-    /*  if (frame->cs & 0x3) {
+      if (frame->cs & 0x3) {
           Unit* u = kernel::scheduling::get_current_unit();
           Realm* realm = RealmManager::get(u->rid);
 
@@ -66,7 +70,7 @@ void page_fault_handler(TrapFrame* frame) {
           signal_send(u, Signal::SIGSEGV);
           signal_dispatch(u, frame);
           __builtin_unreachable();
-      }*/
+      }
 
     // Kernel-seitiger Page Fault
     FaultContext ctx = make_fault_context(frame);

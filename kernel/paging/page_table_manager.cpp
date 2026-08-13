@@ -22,7 +22,7 @@ static void invlpg(virt_addr_t addr) {
     asm volatile("invlpg (%0)" : : "r"(virt_raw(addr)) : "memory");
 }
 
-void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, u64 flags) const {
+void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, u64 flags, bool present) const {
     SpinlockGuard guard(spinlock_);
     const PageMapIndexer indexer(virt_addr);
 
@@ -63,7 +63,7 @@ void PageTableManager::map_memory(virt_addr_t virt_addr, phys_addr_t phys_addr, 
     PageTable* pt = ensure_table(pd, indexer.pt_i);
     if (!pt) return;
 
-    flags |= (1ULL << PtFlag::Present) | (1ULL << PtFlag::ReadWrite);
+    if (present) flags |= (1ULL << PtFlag::Present);
 
     PageDirectoryEntry new_pte{};
     new_pte.set_address(phys_addr);
@@ -178,6 +178,39 @@ phys_addr_t PageTableManager::get_physical_address(const virt_addr_t virt_addr) 
     const auto* pt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pde.get_address())));
     pde = pt->entries[indexer.p_i];
     if (!pde.get_flag(PtFlag::Present)) return make_phys(0);
+
+    const u64 offset = virt_raw(virt_addr) & 0xFFF;
+    return phys_add(pde.get_address(), offset);
+}
+
+phys_addr_t PageTableManager::get_physical_address_ignore_present(const virt_addr_t virt_addr) const {
+    SpinlockGuard guard(spinlock_);
+    const PageMapIndexer indexer(virt_addr);
+
+    const phys_addr_t pml4_phys = make_phys(reinterpret_cast<u64>(pml4));
+    const auto* pml4_virt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pml4_phys)));
+
+    // Intermediate levels must still be present — if the PDP/PD/PT itself
+    // doesn't exist, there is no PTE to read at all, ignore_present or not.
+    PageDirectoryEntry pde = pml4_virt->entries[indexer.pdp_i];
+    if (!pde.get_flag(PtFlag::Present)) return make_phys(0);
+
+    const auto* pdp = static_cast<PageTable*>(virt_ptr(phys_to_virt(pde.get_address())));
+    pde = pdp->entries[indexer.pd_i];
+    if (!pde.get_flag(PtFlag::Present)) return make_phys(0);
+
+    const auto* pd = static_cast<PageTable*>(virt_ptr(phys_to_virt(pde.get_address())));
+    pde = pd->entries[indexer.pt_i];
+    if (!pde.get_flag(PtFlag::Present)) return make_phys(0);
+
+    const auto* pt = static_cast<PageTable*>(virt_ptr(phys_to_virt(pde.get_address())));
+    pde = pt->entries[indexer.p_i];
+    // Leaf level: deliberately NOT checking Present here. A PTE written by
+    // map_memory(..., present=false) (see PROT_NONE in mprotect()) still has
+    // its address field populated — only the Present bit is clear. If the
+    // leaf address is zero, treat it the same as "not mapped" regardless of
+    // the Present bit, since a zero address was never a valid mapping.
+    if (phys_null(pde.get_address())) return make_phys(0);
 
     const u64 offset = virt_raw(virt_addr) & 0xFFF;
     return phys_add(pde.get_address(), offset);

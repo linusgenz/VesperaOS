@@ -49,7 +49,7 @@ namespace kernel::acpi::madt {
         }
 
         const virt_addr_t virt_lapic = phys_to_virt(make_phys(madt->lapic_address));
-        kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled));
+        kernel::memory::map_memory(virt_lapic, make_phys(madt->lapic_address), (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
         g_local_apic_addr = static_cast<volatile u8*>(virt_ptr(virt_lapic));
 
         auto* entry_ptr = reinterpret_cast<u8*>(madt) + sizeof(MADT_HEADER);

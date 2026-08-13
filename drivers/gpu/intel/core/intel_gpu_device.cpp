@@ -38,7 +38,7 @@ namespace gpu::intel::core {
         const phys_addr_t bar0 =
             make_phys(static_cast<u64>(igp_cfg_->gttmmadr_hi) << 32 | (igp_cfg_->gttmmadr_lo & GTTMMADR_ADDR_MASK));
 
-        kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled));
+        kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
 
         mmio_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(bar0)));
     }

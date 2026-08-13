@@ -865,7 +865,7 @@ namespace ahci {
 
         const phys_addr_t abar_phys = make_phys(reinterpret_cast<volatile pci::PCI_HEADER0*>(pci_base_address)->bar5);
         abar = static_cast<HBA_MEMORY*>(virt_ptr(phys_to_virt(abar_phys)));
-        kernel::memory::map_memory(make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough);
+        kernel::memory::map_memory(make_virt(abar), abar_phys, 1ULL << CacheDisabled | 1ULL << PtFlag::WriteThrough | (1ULL << PtFlag::ReadWrite));
 
         probe_ports();
 

@@ -148,7 +148,7 @@ bool initialize_heap(const virt_addr_t heap_address, const usize page_count) {
     virt_addr_t pos = heap_address;
     for (usize i = 0; i < page_count; i++) {
         const phys_addr_t phys = kernel::memory::request_page_phys();
-        kernel::memory::map_memory(pos, phys, 0);
+        kernel::memory::map_memory(pos, phys, (1ULL << PtFlag::ReadWrite));
         memset(pos, 0, PAGE_SIZE);
         pos = virt_add(pos, 0x1000);
     }
@@ -435,7 +435,7 @@ void expand_heap(usize length) {
             length = i * 0x1000;
             break;
         }
-        kernel::memory::map_memory(heap_end, phys, 0);
+        kernel::memory::map_memory(heap_end, phys, (1ULL << PtFlag::ReadWrite));
         memset(heap_end, 0, PAGE_SIZE);
         heap_end = virt_add(heap_end, 0x1000);
     }

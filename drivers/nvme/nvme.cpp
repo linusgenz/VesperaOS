@@ -23,7 +23,7 @@ namespace nvme {
         phys_addr_t mmio = make_phys(((static_cast<u64>(pci->bar1) << 32) | (pci->bar0 & 0xFFFFFFF0)));
         virt_addr_t addr = kernel::memory::request_pages(4);
         c_regs_ = virt_as<NVME_CONTROLLER_REGISTERS>(addr);
-        kernel::memory::map_range(addr, mmio, PAGE_SIZE * 4, (1ULL << WriteThrough) | (1ULL << CacheDisabled));
+        kernel::memory::map_range(addr, mmio, PAGE_SIZE * 4, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
 
         Log::info("[NVMe] Initializing Controller...");
 
@@ -54,10 +54,10 @@ namespace nvme {
         virt_addr_t adm_sq_virt_page = phys_to_virt(adm_sq_phys_page);
 
         kernel::memory::map_memory(
-            adm_cq_virt_page, adm_cq_phys_page, (1ULL << WriteThrough) | (1ULL << CacheDisabled)
+            adm_cq_virt_page, adm_cq_phys_page, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite)
         );
         kernel::memory::map_memory(
-            adm_sq_virt_page, adm_sq_phys_page, (1ULL << WriteThrough) | (1ULL << CacheDisabled)
+            adm_sq_virt_page, adm_sq_phys_page, (1ULL << WriteThrough) | (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite)
         );
 
         memset(virt_ptr(adm_cq_virt_page), 0, PAGE_SIZE);
@@ -353,8 +353,8 @@ namespace nvme {
             return -1;
         }
 
-        kernel::memory::map_memory(sq_virt, sq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled));
-        kernel::memory::map_memory(cq_virt, cq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled));
+        kernel::memory::map_memory(sq_virt, sq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_memory(cq_virt, cq_phys, (1ULL << PtFlag::WriteThrough) | (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
 
         u16 queue_id = allocate_queue_id();
 

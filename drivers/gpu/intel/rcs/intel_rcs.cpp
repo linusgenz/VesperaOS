@@ -25,11 +25,14 @@
 #include <vespera/log.h>
 #include <vespera/graphics/display_types.h>
 #include "gen9_kernels.h"
+#include "gen9_vs_kernel_mvp.h"
 #include "gfx_pipeline_stats_regs.h"
+#include "mat4.h"
 #include "commands/cmd_3dprimitive.h"
 #include "commands/cmd_3dstate_binding_table.h"
 #include "commands/cmd_3dstate_blend_state_pointers.h"
 #include "commands/cmd_3dstate_clip.h"
+#include "commands/cmd_3dstate_constant_vs.h"
 #include "commands/cmd_3dstate_depth_buffer.h"
 #include "commands/cmd_3dstate_drawing_rectangle.h"
 #include "commands/cmd_3dstate_ds.h"
@@ -51,6 +54,7 @@
 #include "commands/cmd_3dstate_wm_depth_stencil.h"
 #include "commands/cmd_pipeline_select.h"
 #include "commands/cmd_pipe_control.h"
+#include "commands/cmd_push_constant_alloc.h"
 #include "commands/cmd_render_surface_state.h"
 #include "commands/cmd_scissor.h"
 #include "commands/cmd_state_base_address.h"
@@ -134,12 +138,23 @@ namespace gpu::intel::rcs {
             return false;
         }
 
-        u8* inst_base_cpu = static_cast<u8*>(virt_ptr(state_base_cpu_addr_));
-        ShaderOffsets offsets = upload_shaders(inst_base_cpu);
+        ShaderOffsets offsets = upload_shaders();
         Log::debug("offsets: %u %u", offsets.ps_offset, offsets.vs_offset);
 
         if (!setup_shaders_and_pipeline(offsets)) {
             Log::info("intel-rcs: VS/PS setup failed");
+            return false;
+        }
+
+        if (!setup_constant_buffer_allocations()) {
+            Log::info("intel-rcs: constant buffer allocations failed");
+            return false;
+        }
+
+        auto matrix = Mat4::identity();
+
+        if (!setup_constant_buffer(matrix)) {
+            Log::log_dbc("intel-rcs: constant buffer setup failed");
             return false;
         }
 
@@ -310,8 +325,11 @@ namespace gpu::intel::rcs {
         vs_cmd.kernel_start_pointer = (offsets.vs_offset >> 6); // Bitfield [63:6]
         vs_cmd.function_enable = 1;
         vs_cmd.simd8_dispatch_enable = 1;
+        // vertex_urb_entry_read_length counts PAIRS of 128-bit (vec4) vertex elements,
+        // not bytes and not individual elements. With SIMD8 dispatch, each unit
+        // of this field occupies 8 GRFs of payload (2 elements/pair × 4 GRFs/element for SIMD8).
         vs_cmd.vertex_urb_entry_read_length = 1; // 1x 256-Bit Unit aus VF (Positions-Vector)
-        vs_cmd.vertex_urb_entry_output_length = 8;
+        vs_cmd.vertex_urb_entry_output_length = 0;
         // 8× 256-bit = 2048 bits = 256 bytes, matches actual GRF output (g118-g125)
         vs_cmd.dispatch_grf_start_register_for_urb_data = 2;
         vs_cmd.maximum_number_of_threads = 64 - 1;
@@ -360,7 +378,8 @@ namespace gpu::intel::rcs {
         wm_cmd.statistics_enable = 1;
         ring_write_cmd(wm_cmd);
 
-        STATE_SBE sbe_cmd = STATE_SBE::create_default(/* num_attributes */ 0, /* urb_read_length */ 2);
+        STATE_SBE sbe_cmd = STATE_SBE::create_default(/* num_attributes */ 1, /* urb_read_length */ 1);
+        sbe_cmd.vertex_urb_entry_read_offset = 1;
         ring_write_cmd(sbe_cmd);
 
         STATE_MULTISAMPLE ms_cmd = STATE_MULTISAMPLE::create_default(
@@ -396,6 +415,46 @@ namespace gpu::intel::rcs {
         emit_flush(seqno);
         ring_flush();
         return seqno_wait(seqno, 5'000'000, completion_flag_);
+    }
+
+    bool IntelRcs::setup_constant_buffer_allocations() {
+        auto vs = PUSH_CONSTANT_ALLOC::create_vs(/* offset_2kb */ 0, /* size_2kb */ 6);
+        auto hs = PUSH_CONSTANT_ALLOC::create_hs(/* offset_2kb */ 6, /* size_2kb */ 6);
+        auto ds = PUSH_CONSTANT_ALLOC::create_ds(/* offset_2kb */ 12, /* size_2kb */ 6);
+        auto gs = PUSH_CONSTANT_ALLOC::create_gs(/* offset_2kb */ 18, /* size_2kb */ 6);
+        auto ps = PUSH_CONSTANT_ALLOC::create_ps(/* offset_2kb */ 24, /* size_2kb */ 8);
+
+        ring_write_cmd(vs);
+        ring_write_cmd(hs);
+        ring_write_cmd(ds);
+        ring_write_cmd(gs);
+        ring_write_cmd(ps);
+
+        const u32 target_seqno = seqno_next();
+        emit_flush(target_seqno);
+        ring_flush();
+
+        return seqno_wait(target_seqno, 5'000'000, completion_flag_);
+    }
+
+    bool IntelRcs::setup_constant_buffer(const Mat4& mvp) {
+        auto alloc = state_allocator_.write_persistent(mvp, 32);
+
+        const CMD_3DSTATE_CONSTANT_VS const_vs_cmd = CMD_3DSTATE_CONSTANT_VS::create_buffer0(
+            alloc.offset, /* read_length_32b */ 2, core::MOCS_UNCACHED
+        );
+        ring_write_cmd(const_vs_cmd);
+
+        STATE_BINDING_TABLE_POINTERS bt_ptr_vs_cmd = STATE_BINDING_TABLE_POINTERS::create_vs();
+        ring_write_cmd(bt_ptr_vs_cmd);
+
+        const u32 target_seqno = seqno_next();
+        emit_flush(target_seqno);
+        ring_flush();
+        const bool ok = seqno_wait(target_seqno, 5'000'000, completion_flag_);
+
+        Log::info("intel-rcs: VS constant buffer (MVP) at GFX=0x%llx", alloc.offset);
+        return ok;
     }
 
     bool IntelRcs::draw_triangle(u32 width, u32 height) {
@@ -517,13 +576,13 @@ namespace gpu::intel::rcs {
         ring_write_cmd(ui);*/
     }
 
-    ShaderOffsets IntelRcs::upload_shaders(u8* inst_base_cpu) {
+    ShaderOffsets IntelRcs::upload_shaders() {
         ShaderOffsets offsets{};
 
         // Vertex shader
-        auto vs_alloc = state_allocator_.alloc_persistent(gen9_vs_kernel_size, 64);
-        memcpy(vs_alloc.cpu_ptr, gen9_vs_kernel, gen9_vs_kernel_size);
-        gpu::intel::core::StateAllocator::flush_range(vs_alloc.cpu_ptr, gen9_vs_kernel_size);
+        auto vs_alloc = state_allocator_.alloc_persistent(gen9_vs_kernel_mvp_size, 64);
+        memcpy(vs_alloc.cpu_ptr, gen9_vs_kernel_mvp, gen9_vs_kernel_mvp_size);
+        gpu::intel::core::StateAllocator::flush_range(vs_alloc.cpu_ptr, gen9_vs_kernel_mvp_size);
         offsets.vs_offset = vs_alloc.offset;
 
         // Pixel shader
@@ -546,11 +605,31 @@ namespace gpu::intel::rcs {
             float x, y, z;
             float r, g, b;
         };
-        static constexpr Vertex triangle[3] = {
-            {0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f},   // Oben: Rot
-            {-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f}, // Links: Grün
-            {0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f}   // Rechts: Blau
+        Vertex triangle[3] = {
+            {}, {}, {}
         };
+
+        triangle[0].x = 0.0f;
+        triangle[0].y = 0.5f;
+        triangle[0].z = 0.0f;
+        triangle[0].r = 1.0f;
+        triangle[0].g = 0.0f;
+        triangle[0].b = 0.0f;
+
+        triangle[1].x = -0.5f;
+        triangle[1].y = -0.5f;
+        triangle[1].z = 0.0f;
+        triangle[1].r = 0.0f;
+        triangle[1].g = 1.0f;
+        triangle[1].b = 0.0f;
+
+        triangle[2].x = 0.5f;
+        triangle[2].y = -0.5f;
+        triangle[2].z = 0.0f;
+        triangle[2].r = 0.0f;
+        triangle[2].g = 0.0f;
+        triangle[2].b = 1.0f;
+
         constexpr u32 vertex_stride = sizeof(Vertex);
         constexpr u32 vertex_buffer_size = sizeof(triangle);
 
@@ -578,15 +657,15 @@ namespace gpu::intel::rcs {
         ring_write_cmd(vb_state);
 
         // --- 3DSTATE_VERTEX_ELEMENTS: one element, XYZ from VB0 + W=1.0 ---
-        constexpr VERTEX_ELEMENTS_HEADER el_header = VERTEX_ELEMENTS_HEADER::create(1);
-        constexpr VERTEX_ELEMENT_STATE el_state =
-            VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 0, SURFACE_FORMAT_R32G32B32_FLOAT);
-        constexpr VERTEX_ELEMENT_STATE el_state_col =
-            VERTEX_ELEMENT_STATE::create_xyz_w1(/* vb_index */ 0, /* offset */ 12, SURFACE_FORMAT_R32G32B32_FLOAT);
+        constexpr VERTEX_ELEMENTS_HEADER el_header = VERTEX_ELEMENTS_HEADER::create(2);
+        constexpr VERTEX_ELEMENT_STATE el_pos =
+            VERTEX_ELEMENT_STATE::create_xyz_w1(0, 0, SURFACE_FORMAT_R32G32B32_FLOAT);
+        constexpr VERTEX_ELEMENT_STATE el_color =
+            VERTEX_ELEMENT_STATE::create_xyz_w1(0, 12, SURFACE_FORMAT_R32G32B32_FLOAT);
 
         ring_write_cmd(el_header);
-        ring_write_cmd(el_state);
-        ring_write_cmd(el_state_col);
+        ring_write_cmd(el_pos);
+        ring_write_cmd(el_color);
 
         const u32 target_seqno = seqno_next();
         emit_flush(target_seqno);

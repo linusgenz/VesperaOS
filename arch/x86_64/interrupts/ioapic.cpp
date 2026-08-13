@@ -31,7 +31,7 @@ namespace arch::x86_64::interrupts::ioapic {
     static volatile u32* map_ioapic(const uptr phys_address) {
         const phys_addr_t phys = make_phys(phys_address);
         const virt_addr_t virt = phys_to_virt(phys);
-        kernel::memory::map_memory(virt, phys, (1ULL << PtFlag::CacheDisabled));
+        kernel::memory::map_memory(virt, phys, (1ULL << PtFlag::CacheDisabled) | (1ULL << PtFlag::ReadWrite));
         return reinterpret_cast<volatile u32*>(virt_raw(virt));
     }
 
