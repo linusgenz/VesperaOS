@@ -335,7 +335,10 @@ static void init_user_cpu_context(Unit* u) {
 
 void UnitManager::setup_context(Unit* u, const UnitConfig* cfg) {
     if (u->is_user) {
-        if (cfg->is_main_unit && (cfg->argv || cfg->envp)) setup_user_args_and_env(u, cfg->argv, cfg->envp);
+        if (cfg->is_main_unit) {
+            const AuxVectorInfo* aux = cfg->has_aux_info ? &cfg->aux_info : nullptr;
+            if (cfg->argv || cfg->envp || aux) setup_user_args_and_env(u, cfg->argv, cfg->envp, aux);
+        }
         init_user_cpu_context(u);
 
         if (u->parent && u->parent->address_space) {
@@ -412,24 +415,86 @@ bool UnitManager::destroy(const UnitId id) {
     return false;
 }
 
-// setup_user_args_and_env — writes argc/argv/envp onto the user stack.
-//
-// Stack layout after this function (grows downward, addresses decreasing):
-//
-//   [string data for envp strings]
-//   null terminator (uptr)
-//   envp[envc-1] ... envp[0]   (uptr pointers into string data above)
-//   [string data for argv strings]
-//   null terminator (uptr)
-//   argv[argc-1] ... argv[0]   (uptr pointers into string data above)
-//   argc                        (uptr)
-//   <- new RSP (16-byte aligned)
-//
+/**
+ * @brief One `Elf64_auxv_t`-style (tag, value) pair written into the aux vector.
+ *
+ * Mirrors the SysV ABI `Elf64_auxv_t` layout (`a_type` / `a_un.a_val`) so it can be written to
+ * the user stack as a flat array of two `uptr`s per entry, terminated by an `AT_NULL` pair.
+ */
+struct aux_entry {
+    uptr type;
+    uptr value;
+};
+
+// --- ELF auxiliary vector tags (SysV ABI) consumed by the dynamic linker ---
+
+constexpr uptr AT_NULL = 0;    ///< Terminates the aux vector.
+constexpr uptr AT_PHDR = 3;    ///< Address of the main program's ELF program headers.
+constexpr uptr AT_PHENT = 4;   ///< Size of one program header entry (`sizeof(Elf64_Phdr)`).
+constexpr uptr AT_PHNUM = 5;   ///< Number of program headers.
+constexpr uptr AT_PAGESZ = 6;  ///< System page size.
+constexpr uptr AT_BASE = 7;    ///< Load base of the interpreter (0 if none).
+constexpr uptr AT_ENTRY = 9;   ///< Entry point of the main program (not the interpreter).
+constexpr uptr AT_UID = 11;    ///< Real UID.
+constexpr uptr AT_EUID = 12;   ///< Effective UID.
+constexpr uptr AT_GID = 13;    ///< Real GID.
+constexpr uptr AT_EGID = 14;   ///< Effective GID.
+constexpr uptr AT_SECURE = 23; ///< Non-zero if credentials changed across exec (setuid/setgid).
+
+// AuxVectorInfo now lives in <vespera/unit_config.h> (alongside UnitConfig) so both
+// unit_manager.cpp and spawn.cpp can share the same definition without a circular include.
+
+/**
+ * @brief Writes the AT_NULL-terminated auxiliary vector below the current stack pointer.
+ *
+ * @param u     Target unit; credentials are read from its parent realm.
+ * @param sp    Current (already 16-byte-unaligned-safe) user stack pointer, growing down.
+ * @param aux   ELF image parameters used to populate `AT_PHDR`/`AT_PHENT`/`AT_PHNUM`/`AT_BASE`/`AT_ENTRY`.
+ *
+ * @return The updated stack pointer, positioned just below the `AT_NULL` terminator.
+ *
+ * @note Must be called after argv/envp have been written and before the final 16-byte stack
+ *       alignment, since the dynamic linker walks the aux vector starting right after `envp`'s
+ *       null terminator.
+ */
+static uptr write_aux_vector(const Unit* u, uptr sp, const AuxVectorInfo& aux) {
+    const aux_entry entries[] = {
+        {AT_PHDR, aux.phdr_vaddr},
+        {AT_PHENT, aux.phent},
+        {AT_PHNUM, aux.phnum},
+        {AT_PAGESZ, PAGE_SIZE},
+        {AT_BASE, aux.has_interp ? aux.interp_base : 0},
+        {AT_ENTRY, aux.entry_point},
+        {AT_UID, u->parent ? u->parent->cred.uid : 0},
+        {AT_EUID, u->parent ? u->parent->cred.euid : 0},
+        {AT_GID, u->parent ? u->parent->cred.gid : 0},
+        {AT_EGID, u->parent ? u->parent->cred.egid : 0},
+        {AT_SECURE, 0},
+    };
+    constexpr usize entry_count = sizeof(entries) / sizeof(entries[0]);
+
+    sp -= sizeof(aux_entry);
+    write_user_ptr(u, sp, AT_NULL);
+    write_user_ptr(u, sp + sizeof(uptr), AT_NULL);
+
+    for (usize i = entry_count; i > 0; --i) {
+        sp -= sizeof(aux_entry);
+        write_user_ptr(u, sp, entries[i - 1].type);
+        write_user_ptr(u, sp + sizeof(uptr), entries[i - 1].value);
+    }
+
+    return sp;
+}
+
 // The three SysV argument registers are set accordingly:
 //   rdi = argc
 //   rsi = argv (pointer to argv[0])
 //   rdx = envp (pointer to envp[0])
-uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
+//
+// @param aux  Optional aux vector info. Pass nullptr to skip writing an aux vector entirely
+//             (e.g. for non-main units, where no auxv is expected). The dynamic linker, when
+//             present, requires this to be non-null for the main unit.
+uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp, const AuxVectorInfo* aux) {
     static constexpr usize MAX_ARGV = 16;
     static constexpr usize MAX_ENVP = 16;
 
@@ -447,15 +512,6 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
         envp_user[i - 1] = reinterpret_cast<const char*>(sp);
     }
 
-    sp -= sizeof(uptr);
-    write_user_ptr(u, sp, 0);
-
-    for (usize i = envc; i > 0; --i) {
-        sp -= sizeof(uptr);
-        write_user_ptr(u, sp, reinterpret_cast<uptr>(envp_user[i - 1]));
-    }
-    const uptr envp_ptr = sp;
-
     const char* argv_user[MAX_ARGV]{};
     usize argc = 0;
     while (argv && argv[argc] && argc < MAX_ARGV) argc++;
@@ -467,6 +523,17 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp) {
         memcpy_to_user(u, reinterpret_cast<void*>(sp), argv[i - 1], len);
         argv_user[i - 1] = reinterpret_cast<const char*>(sp);
     }
+
+    if (aux) sp = write_aux_vector(u, sp, *aux);
+
+    sp -= sizeof(uptr);
+    write_user_ptr(u, sp, 0);
+
+    for (usize i = envc; i > 0; --i) {
+        sp -= sizeof(uptr);
+        write_user_ptr(u, sp, reinterpret_cast<uptr>(envp_user[i - 1]));
+    }
+    const uptr envp_ptr = sp;
 
     sp -= sizeof(uptr);
     write_user_ptr(u, sp, 0);

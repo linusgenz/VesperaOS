@@ -163,6 +163,17 @@ namespace kernel::exec {
 
         r->tls_region_next = (elf.load_end + 0xFFFULL) & ~0xFFFULL;
 
+        void* start_entry = elf.has_interp ? elf.interp_entry : elf.entry_point;
+
+        const AuxVectorInfo aux_info = {
+            .phdr_vaddr = elf.phdr_vaddr,
+            .phent = elf.phent,
+            .phnum = elf.phnum,
+            .entry_point = reinterpret_cast<uptr>(elf.entry_point),
+            .has_interp = elf.has_interp,
+            .interp_base = elf.interp_base,
+        };
+
         const UnitConfig ucfg = {
             .name = "main_unit",
             .cpu_id = 6,
@@ -172,9 +183,11 @@ namespace kernel::exec {
             .auto_schedule = false,
             .argv = argv,
             .envp = envp,
+            .has_aux_info = true,
+            .aux_info = aux_info,
         };
 
-        Unit* u = UnitManager::create(r->id, reinterpret_cast<unit_entry_t>(elf.entry_point), nullptr, &ucfg);
+        Unit* u = UnitManager::create(r->id, reinterpret_cast<unit_entry_t>(start_entry), nullptr, &ucfg);
         if (!u) {
             RealmManager::abort(r->id);
             return Error::Fault;

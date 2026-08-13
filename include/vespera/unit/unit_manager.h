@@ -27,6 +27,7 @@
 #include <klib/result.h>
 #include <vespera/types.h>
 
+struct AuxVectorInfo;
 struct UnitConfig;
 class Realm;
 class Unit;
@@ -90,6 +91,6 @@ class UnitManager {
     static void register_unit(Unit* u, Realm* realm, const UnitConfig* cfg);
 };
 
-uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp);
+uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp, const AuxVectorInfo* aux);
 
 #endif  // VESPERAOS_VESPERA_UNIT_UNIT_MANAGER_H

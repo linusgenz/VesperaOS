@@ -40,6 +40,9 @@
 #define ELF_LOG(fmt, ...)
 #endif
 
+/** @brief Fixed load base for the dynamic linker (PT_INTERP), well clear of any PIE main image. */
+static constexpr uptr INTERP_LOAD_BASE = 0x40000000ULL;
+
 static phys_addr_t realm_get_phys(const Realm* realm, const uptr vaddr) {
     const uptr page_vaddr = vaddr & ~0xFFFULL;
     const uptr offset = vaddr & 0xFFFULL;
@@ -50,96 +53,90 @@ static phys_addr_t realm_get_phys(const Realm* realm, const uptr vaddr) {
     return phys_add(phys_page, offset);
 }
 
+static bool find_interp_path(const Elf64_Ehdr* header, const void* file_data, char* out_path, const usize out_size) {
+    auto* phdrs = reinterpret_cast<const Elf64_Phdr*>(static_cast<const u8*>(file_data) + header->e_phoff);
+
+    for (int i = 0; i < header->e_phnum; ++i) {
+        const Elf64_Phdr& ph = phdrs[i];
+        if (ph.p_type != PT_INTERP) continue;
+
+        if (ph.p_filesz == 0 || ph.p_filesz >= out_size) return false;
+
+        memcpy(out_path, static_cast<const u8*>(file_data) + ph.p_offset, ph.p_filesz);
+        out_path[ph.p_filesz] = '\0';
+        return true;
+    }
+
+    return false;
+}
+
+/** @brief Builds a failed @ref ElfLoader::LoadResult, defaulting all interpreter fields to empty. */
+static ElfLoader::LoadResult make_load_error(const char* message, const bool is_pie = false) {
+    return {
+        .entry_point = nullptr,
+        .load_base = 0,
+        .load_end = 0,
+        .vaddr_base = 0,
+        .load_bias = 0,
+        .success = false,
+        .error_message = message,
+        .is_pie = is_pie,
+        .has_interp = false,
+        .interp_entry = nullptr,
+        .interp_base = 0,
+        .phdr_vaddr = 0,
+        .phent = 0,
+        .phnum = 0
+    };
+}
+
 ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_base, Realm* realm) {
+    return load_internal(path, preferred_base, realm, true);
+}
+
+ElfLoader::LoadResult ElfLoader::load_internal(
+    const char* path, const uptr preferred_base, Realm* realm, const bool resolve_interp
+) {
     if (!path || !realm) {
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = "Invalid parameters: path or realm is null",
-            .is_pie = false
-        };
+        return make_load_error("Invalid parameters: path or realm is null");
     }
 
     ELF_LOG("[ELF] Loading binary from: %s", path);
 
     const FileData file_data = load_file_from_vfs(path, realm);
     if (!file_data.data) {
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = file_data.error_message,
-            .is_pie = false
-        };
+        return make_load_error(file_data.error_message);
     }
 
     const auto* header = static_cast<Elf64_Ehdr*>(file_data.data);
 
     if (!validate_magic(header)) {
         kernel::memory::free(file_data.data);
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = "Invalid ELF magic bytes",
-            .is_pie = false
-        };
+        return make_load_error("Invalid ELF magic bytes");
     }
 
     if (!validate_type(header)) {
         kernel::memory::free(file_data.data);
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = "Invalid ELF type (must be ET_EXEC or ET_DYN)",
-            .is_pie = false
-        };
+        return make_load_error("Invalid ELF type (must be ET_EXEC or ET_DYN)");
     }
 
     if (!validate_architecture(header)) {
         kernel::memory::free(file_data.data);
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = "Invalid architecture (must be x86_64)",
-            .is_pie = false
-        };
+        return make_load_error("Invalid architecture (must be x86_64)");
     }
 
     const bool is_pie = (header->e_type == ET_DYN);
     ELF_LOG("[ELF] Type: %s, Entry: 0x%lx", is_pie ? "ET_DYN (PIE)" : "ET_EXEC", header->e_entry);
 
+    // PT_INTERP must be resolved before segments are loaded, since the interpreter is loaded
+    // as a fully separate image (own address range, own bias) via a recursive load_internal call.
+    char interp_path[256];
+    const bool has_interp = resolve_interp && find_interp_path(header, file_data.data, interp_path, sizeof(interp_path));
+
     AddressRange range{};
     if (!calculate_address_range(header, file_data.data, range)) {
         kernel::memory::free(file_data.data);
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = "No PT_LOAD segments found",
-            .is_pie = false
-        };
+        return make_load_error("No PT_LOAD segments found");
     }
 
     ELF_LOG("[ELF] Virtual range: 0x%lx - 0x%lx (size: %lu)", range.vaddr_min, range.vaddr_max, range.total_size);
@@ -151,16 +148,7 @@ ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_bas
 
     if (!process_all_segments(header, file_data.data, load_bias, realm)) {
         kernel::memory::free(file_data.data);
-        return {
-            .entry_point = nullptr,
-            .load_base = 0,
-            .load_end = 0,
-            .vaddr_base = 0,
-            .load_bias = 0,
-            .success = false,
-            .error_message = "Failed to load segments",
-            .is_pie = is_pie
-        };
+        return make_load_error("Failed to load segments", is_pie);
     }
 
     const TlsInfo tls = find_tls_segment(header, file_data.data);
@@ -181,27 +169,47 @@ ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_bas
     if (is_pie) {
         if (!apply_relocations(header, file_data.data, load_bias, realm)) {
             kernel::memory::free(file_data.data);
-            return {
-                .entry_point = nullptr,
-                .load_base = 0,
-                .load_end = 0,
-                .vaddr_base = 0,
-                .load_bias = 0,
-                .success = false,
-                .error_message = "Failed to apply relocations",
-                .is_pie = is_pie
-            };
+            return make_load_error("Failed to apply relocations", is_pie);
         }
     }
 
     const uptr entry_point = header->e_entry + load_bias;
 
-    uptr load_end = align_up(range.vaddr_max + load_bias, PAGE_SIZE);
+    const uptr phdr_vaddr = header->e_phoff + load_bias;
+
+    const uptr load_end = align_up(range.vaddr_max + load_bias, PAGE_SIZE);
 
     ELF_LOG("[ELF] Entry point: 0x%lx -> 0x%lx (relocated)", header->e_entry, entry_point);
     ELF_LOG("[ELF] Loaded range: 0x%lx - 0x%lx", load_base, load_end);
 
+    const u16 phent = header->e_phentsize;
+    const u16 phnum = header->e_phnum;
+
     kernel::memory::free(file_data.data);
+
+    if (has_interp) {
+        const LoadResult interp = load_internal(interp_path, INTERP_LOAD_BASE, realm, false);
+        if (!interp.success) {
+            return make_load_error("Failed to load PT_INTERP", is_pie);
+        }
+
+        return {
+            .entry_point = reinterpret_cast<void*>(entry_point),
+            .load_base = load_base,
+            .load_end = load_end,
+            .vaddr_base = range.vaddr_min,
+            .load_bias = load_bias,
+            .success = true,
+            .error_message = nullptr,
+            .is_pie = is_pie,
+            .has_interp = true,
+            .interp_entry = interp.entry_point,
+            .interp_base = interp.load_base,
+            .phdr_vaddr = phdr_vaddr,
+            .phent = phent,
+            .phnum = phnum
+        };
+    }
 
     return {
         .entry_point = reinterpret_cast<void*>(entry_point),
@@ -211,7 +219,13 @@ ElfLoader::LoadResult ElfLoader::load(const char* path, const uptr preferred_bas
         .load_bias = load_bias,
         .success = true,
         .error_message = nullptr,
-        .is_pie = is_pie
+        .is_pie = is_pie,
+        .has_interp = false,
+        .interp_entry = nullptr,
+        .interp_base = 0,
+        .phdr_vaddr = phdr_vaddr,
+        .phent = phent,
+        .phnum = phnum
     };
 }
 

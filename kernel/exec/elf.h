@@ -384,7 +384,7 @@ relaxable.  */
 class Realm;
 
 class ElfLoader {
-   public:
+public:
     struct LoadResult {
         void* entry_point;
         uptr load_base;
@@ -393,14 +393,22 @@ class ElfLoader {
         uptr load_bias;
         bool success;
         const char* error_message;
-
         bool is_pie;
+
+        // dynamic linker
+
+        bool has_interp;
+        void* interp_entry;
+        uptr interp_base;
+        uptr phdr_vaddr;
+        u16 phent;
+        u16 phnum;
     };
 
     static LoadResult load(const char* path, uptr preferred_base, Realm* realm);
     static bool apply_relocations(const Elf64_Ehdr* header, const void* file_data, uptr load_bias, const Realm* realm);
 
-   private:
+private:
     struct ElfSegment {
         void* vaddr;
         void* data_ptr;
@@ -436,6 +444,13 @@ class ElfLoader {
         usize align;
         bool present;
     };
+
+    /**
+     * @brief Internal implementation of @ref load, with interpreter recursion control.
+     *
+     * @param resolve_interp  If false, PT_INTERP is ignored even if present.
+     */
+    static LoadResult load_internal(const char* path, uptr preferred_base, Realm* realm, bool resolve_interp);
 
     static bool validate_magic(const Elf64_Ehdr* header);
     static bool validate_type(const Elf64_Ehdr* header);
