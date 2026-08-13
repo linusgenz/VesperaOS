@@ -29,6 +29,8 @@
 
 #include <gpu/intel/regs/pci_config_regs.h>
 
+#include "vespera/mm/memory.h"
+
 namespace gpu::intel::core {
 
     // GTT / GGTT — PTE format, shared by every engine that allocates GGTT-backed
@@ -109,6 +111,14 @@ namespace gpu::intel::core {
         [[nodiscard]] u32 transient_free_pages() const;
         [[nodiscard]] u32 transient_used_pages() const {
             return transient_total_pages() - transient_free_pages();
+        }
+
+        [[nodiscard]] u32 usable_pages() const {
+            return transient_end_ - persistent_base_;
+        }
+
+        [[nodiscard]] u64 usable_size_bytes() const {
+            return static_cast<u64>(usable_pages()) * PAGE_SIZE;
         }
 
        private:

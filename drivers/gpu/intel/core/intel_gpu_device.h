@@ -27,6 +27,8 @@
 #include "ggtt_allocator.h"
 #include <gpu/intel/regs/pci_config_regs.h>
 
+#include "uapi/vespera/dev/gpu.h"
+
 
 namespace pci {
     struct pci_device;
@@ -155,6 +157,8 @@ namespace gpu::intel::core {
         /// undoes de_pipe_a_arm_vblank_oneshot() so vblank stops firing
         /// until the next flip explicitly re-arms it.
         void de_pipe_a_disarm_vblank() const;
+
+        void query_info(gpu_device_info_t* out_info) const;
 
        private:
         /// The single MSI/MSI-X handler installed for this device's GT0 +

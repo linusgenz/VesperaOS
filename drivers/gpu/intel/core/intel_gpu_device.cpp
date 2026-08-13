@@ -31,6 +31,8 @@
 #include <gpu/intel/regs/interrupt_regs.h>
 #include "intel_engine.h"
 #include "drivers/mmio_post_write.h"
+#include "gpu/intel/rcs/intel_rcs.h"
+#include "gpu/intel/regs/fuse_regs.h"
 
 namespace gpu::intel::core {
     IntelGpuDevice::IntelGpuDevice(const pci::pci_device& igpu_dev)
@@ -38,7 +40,8 @@ namespace gpu::intel::core {
         const phys_addr_t bar0 =
             make_phys(static_cast<u64>(igp_cfg_->gttmmadr_hi) << 32 | (igp_cfg_->gttmmadr_lo & GTTMMADR_ADDR_MASK));
 
-        kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE, (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
+        kernel::memory::map_range(phys_to_virt(bar0), bar0, BAR0_SIZE,
+                                  (1ULL << CacheDisabled) | (1ULL << PtFlag::ReadWrite));
 
         mmio_base_ = static_cast<volatile u8*>(virt_ptr(phys_to_virt(bar0)));
     }
@@ -69,6 +72,67 @@ namespace gpu::intel::core {
         return false;
     }
 
+    void IntelGpuDevice::query_info(gpu_device_info_t* out_info) const {
+        if (!out_info) {
+            return;
+        }
+
+        const ForceWakeDomain render_fw{
+            rcs::FORCEWAKE_RENDER,
+            rcs::FORCEWAKE_ACK_RENDER,
+            rcs::FORCEWAKE_RENDER_ENABLE,
+            FORCEWAKE_ACK_BIT,
+            rcs::FORCEWAKE_RENDER_TIMEOUT
+        };
+
+        if (const bool fw_ok = force_wake_enable(render_fw); !fw_ok) {
+            Log::warning("intel-gpu: ForceWake failed before reading FUSE2 registers, using default values!");
+        }
+
+        out_info->pci_device_id = igp_cfg_->device_id;
+        out_info->gen_major = 9;
+        out_info->gen_minor = 0;
+
+        u32 slice_count = 1;
+        u32 subslice_count = 3;
+        u32 eu_count = 24;
+
+        FUSE2 fuse2{};
+        fuse2.raw = *reinterpret_cast<volatile u32*>(mmio_base_ + FUSE2_MMIO);
+
+        if (fuse2.raw != 0x00000000u && fuse2.raw != 0xFFFFFFFFu) {
+            u32 active_slices = __builtin_popcount(fuse2.slice_enable);
+            if (active_slices > 0) {
+                slice_count = active_slices;
+            }
+
+            u32 disabled_subslices_per_slice = __builtin_popcount(fuse2.subslice_disable);
+            u32 active_subslices_per_slice = (disabled_subslices_per_slice < 4)
+                                                 ? (4 - disabled_subslices_per_slice)
+                                                 : 0;
+
+            subslice_count = slice_count * active_subslices_per_slice;
+
+            // Gen9 standard: max 8 EUs per subslice
+            constexpr u32 EUS_PER_SUBSLICE = 8;
+            eu_count = subslice_count * EUS_PER_SUBSLICE;
+        }
+
+        out_info->slice_count = slice_count;
+        out_info->subslice_count = subslice_count;
+        out_info->eu_count = eu_count;
+
+        out_info->gtt_size_bytes = ggtt_alloc_.usable_size_bytes();
+        out_info->min_buffer_align = 4096;
+
+
+        uint32_t ts_freq = 12000000; // Default Gen9 (12 MHz)
+
+        // Add switch for diffrent generations for the frequence
+
+        out_info->timestamp_freq_hz = ts_freq;
+    }
+
     u8 IntelGpuDevice::allocate_irq_vector(irq_handler_t handler, void* ctx) {
         if (irq_vector_ != INVALID_VECTOR) {
             return irq_vector_;
@@ -96,7 +160,7 @@ namespace gpu::intel::core {
         (void)post;
     }
 
-        bool IntelGpuDevice::register_engine_for_irq(IntelEngine* engine) {
+    bool IntelGpuDevice::register_engine_for_irq(IntelEngine* engine) {
         if (gt_irq_engine_count_ >= MAX_GT_IRQ_ENGINES) {
             Log::log_dbc("intel-gpu: GT IRQ engine registry full");
             return false;
@@ -129,7 +193,7 @@ namespace gpu::intel::core {
         const u32 bit = (1u << engine->gt_user_irq_bit()) | engine->gt_debug_irq_bitmask();
 
         u32 imr = gt0->imr.raw;
-        imr &= ~bit;  // 0 = unmasked
+        imr &= ~bit; // 0 = unmasked
         gt0->imr.raw = imr;
         MMIO_POST_WRITE(gt0->imr);
 
@@ -141,7 +205,7 @@ namespace gpu::intel::core {
         MMIO_POST_WRITE(gt0->iir);
 
         u32 ier = gt0->ier.raw;
-        ier |= bit;  // 1 = enabled
+        ier |= bit; // 1 = enabled
         gt0->ier.raw = ier;
         MMIO_POST_WRITE(gt0->ier);
 
