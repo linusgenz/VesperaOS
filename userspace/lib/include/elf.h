@@ -22,33 +22,40 @@
 #ifndef VESPLIB_ELF_H
 #define VESPLIB_ELF_H
 
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* Type for a 16-bit quantity.  */
-typedef u16 Elf32_Half;
-typedef u16 Elf64_Half;
+typedef uint16_t Elf32_Half;
+typedef uint16_t Elf64_Half;
 
 /* Types for signed and unsigned 32-bit quantities.  */
-typedef u32 Elf32_Word;
-typedef i32 Elf32_Sword;
-typedef u32 Elf64_Word;
-typedef i32 Elf64_Sword;
+typedef uint32_t Elf32_Word;
+typedef int32_t Elf32_Sword;
+typedef uint32_t Elf64_Word;
+typedef int32_t Elf64_Sword;
 
 /* Types for signed and unsigned 64-bit quantities.  */
-typedef u64 Elf32_Xword;
-typedef i64 Elf32_Sxword;
-typedef u64 Elf64_Xword;
-typedef i64 Elf64_Sxword;
+typedef uint64_t Elf32_Xword;
+typedef int64_t Elf32_Sxword;
+typedef uint64_t Elf64_Xword;
+typedef int64_t Elf64_Sxword;
 
 /* Type of addresses.  */
-typedef u32 Elf32_Addr;
-typedef u64 Elf64_Addr;
+typedef uint32_t Elf32_Addr;
+typedef uint64_t Elf64_Addr;
 
 /* Type of file offsets.  */
-typedef u32 Elf32_Off;
-typedef u64 Elf64_Off;
+typedef uint32_t Elf32_Off;
+typedef uint64_t Elf64_Off;
 
 /* Type for section indices, which are 16-bit quantities.  */
-typedef u16 Elf32_Section;
-typedef u16 Elf64_Section;
+typedef uint16_t Elf32_Section;
+typedef uint16_t Elf64_Section;
 
 /* Type for version symbol information.  */
 typedef Elf32_Half Elf32_Versym;
@@ -89,6 +96,28 @@ typedef struct {
     Elf64_Half e_shnum;               /* Section header table entry count */
     Elf64_Half e_shstrndx;            /* Section header string table index */
 } Elf64_Ehdr;
+
+/* Symbol table entry.  */
+
+typedef struct
+{
+    Elf32_Word	st_name;		/* Symbol name (string tbl index) */
+    Elf32_Addr	st_value;		/* Symbol value */
+    Elf32_Word	st_size;		/* Symbol size */
+    unsigned char	st_info;		/* Symbol type and binding */
+    unsigned char	st_other;		/* Symbol visibility */
+    Elf32_Section	st_shndx;		/* Section index */
+} Elf32_Sym;
+
+typedef struct
+{
+    Elf64_Word	st_name;		/* Symbol name (string tbl index) */
+    unsigned char	st_info;		/* Symbol type and binding */
+    unsigned char st_other;		/* Symbol visibility */
+    Elf64_Section	st_shndx;		/* Section index */
+    Elf64_Addr	st_value;		/* Symbol value */
+    Elf64_Xword	st_size;		/* Symbol size */
+} Elf64_Sym;
 
 /* These constants define the various ELF target machines */
 #define EM_NONE 0
@@ -144,6 +173,75 @@ typedef struct {
 
 /* Conglomeration of the identification bytes, for easy testing as a word.  */
 #define ELFMAG "\177ELF"
+
+#define EI_CLASS	4		/* File class byte index */
+#define ELFCLASSNONE	0		/* Invalid class */
+#define ELFCLASS32	1		/* 32-bit objects */
+#define ELFCLASS64	2		/* 64-bit objects */
+#define ELFCLASSNUM	3
+
+#define EI_DATA		5		/* Data encoding byte index */
+#define ELFDATANONE	0		/* Invalid data encoding */
+#define ELFDATA2LSB	1		/* 2's complement, little endian */
+#define ELFDATA2MSB	2		/* 2's complement, big endian */
+#define ELFDATANUM	3
+
+/* Auxiliary vector.  */
+
+/* This vector is normally only used by the program interpreter.  The
+   usual definition in an ABI supplement uses the name auxv_t.  The
+   vector is not usually defined in a standard <elf.h> file, but it
+   can't hurt.  We rename it to avoid conflicts.  The sizes of these
+   types are an arrangement between the exec server and the program
+   interpreter, so we don't fully specify them here.  */
+
+typedef struct
+{
+    uint32_t a_type;		/* Entry type */
+    union
+    {
+        uint32_t a_val;		/* Integer value */
+        /* We use to have pointer elements added here.  We cannot do that,
+       though, since it does not work when using 32-bit definitions
+       on 64-bit platforms and vice versa.  */
+    } a_un;
+} Elf32_auxv_t;
+
+typedef struct
+{
+    uint64_t a_type;		/* Entry type */
+    union
+    {
+        uint64_t a_val;		/* Integer value */
+        /* We use to have pointer elements added here.  We cannot do that,
+       though, since it does not work when using 32-bit definitions
+       on 64-bit platforms and vice versa.  */
+    } a_un;
+} Elf64_auxv_t;
+
+/* Legal values for a_type (entry type).  */
+
+#define AT_NULL		0		/* End of vector */
+#define AT_IGNORE	1		/* Entry should be ignored */
+#define AT_EXECFD	2		/* File descriptor of program */
+#define AT_PHDR		3		/* Program headers for program */
+#define AT_PHENT	4		/* Size of program header entry */
+#define AT_PHNUM	5		/* Number of program headers */
+#define AT_PAGESZ	6		/* System page size */
+#define AT_BASE		7		/* Base address of interpreter */
+#define AT_FLAGS	8		/* Flags */
+#define AT_ENTRY	9		/* Entry point of program */
+#define AT_NOTELF	10		/* Program is not ELF */
+#define AT_UID		11		/* Real uid */
+#define AT_EUID		12		/* Effective uid */
+#define AT_GID		13		/* Real gid */
+#define AT_EGID		14		/* Effective gid */
+#define AT_CLKTCK	17		/* Frequency of times() */
+
+/* Some more special a_type values describing the hardware.  */
+#define AT_PLATFORM	15		/* String identifying platform.  */
+#define AT_HWCAP	16		/* Machine-dependent hints about
+processor capabilities.  */
 
 /* Legal values for e_type (object file type).  */
 
@@ -307,6 +405,27 @@ typedef struct {
 #define DT_HIPROC 0x7fffffff   /* End of processor-specific */
 #define DT_PROCNUM DT_MIPS_NUM /* Most used by any processor */
 
+/* DT_* entries which fall between DT_ADDRRNGHI & DT_ADDRRNGLO use the
+   Dyn.d_un.d_ptr field of the Elf*_Dyn structure.
+
+   If any adjustment is made to the ELF object after it has been
+   built these entries will need to be adjusted.  */
+#define DT_ADDRRNGLO	0x6ffffe00
+#define DT_GNU_HASH	0x6ffffef5	/* GNU-style hash table.  */
+#define DT_TLSDESC_PLT	0x6ffffef6
+#define DT_TLSDESC_GOT	0x6ffffef7
+#define DT_GNU_CONFLICT	0x6ffffef8	/* Start of conflict section */
+#define DT_GNU_LIBLIST	0x6ffffef9	/* Library list */
+#define DT_CONFIG	0x6ffffefa	/* Configuration information.  */
+#define DT_DEPAUDIT	0x6ffffefb	/* Dependency auditing.  */
+#define DT_AUDIT	0x6ffffefc	/* Object auditing.  */
+#define	DT_PLTPAD	0x6ffffefd	/* PLT padding.  */
+#define	DT_MOVETAB	0x6ffffefe	/* Move table.  */
+#define DT_SYMINFO	0x6ffffeff	/* Syminfo table.  */
+#define DT_ADDRRNGHI	0x6ffffeff
+#define DT_ADDRTAGIDX(tag)	(DT_ADDRRNGHI - (tag))	/* Reverse order! */
+#define DT_ADDRNUM 11
+
 /* AMD x86-64 relocations.  */
 #define R_X86_64_NONE 0      /* No reloc */
 #define R_X86_64_64 1        /* Direct 64 bit  */
@@ -374,5 +493,57 @@ prefix, relaxable.  */
 offset to GOT entry with REX prefix,          \
 relaxable.  */
 #define R_X86_64_NUM 43
+
+
+/* Legal values for ST_BIND subfield of st_info (symbol binding).  */
+
+#define STB_LOCAL	0		/* Local symbol */
+#define STB_GLOBAL	1		/* Global symbol */
+#define STB_WEAK	2		/* Weak symbol */
+#define	STB_NUM		3		/* Number of defined types.  */
+#define STB_LOOS	10		/* Start of OS-specific */
+#define STB_GNU_UNIQUE	10		/* Unique symbol.  */
+#define STB_HIOS	12		/* End of OS-specific */
+#define STB_LOPROC	13		/* Start of processor-specific */
+#define STB_HIPROC	15		/* End of processor-specific */
+
+/* Legal values for ST_TYPE subfield of st_info (symbol type).  */
+
+#define STT_NOTYPE	0		/* Symbol type is unspecified */
+#define STT_OBJECT	1		/* Symbol is a data object */
+#define STT_FUNC	2		/* Symbol is a code object */
+#define STT_SECTION	3		/* Symbol associated with a section */
+#define STT_FILE	4		/* Symbol's name is file name */
+#define STT_COMMON	5		/* Symbol is a common data object */
+#define STT_TLS		6		/* Symbol is thread-local data object*/
+#define	STT_NUM		7		/* Number of defined types.  */
+#define STT_LOOS	10		/* Start of OS-specific */
+#define STT_GNU_IFUNC	10		/* Symbol is indirect code object */
+#define STT_HIOS	12		/* End of OS-specific */
+#define STT_LOPROC	13		/* Start of processor-specific */
+#define STT_HIPROC	15		/* End of processor-specific */
+
+/* Special section indices.  */
+
+#define SHN_UNDEF	0		/* Undefined section */
+#define SHN_LORESERVE	0xff00		/* Start of reserved indices */
+#define SHN_LOPROC	0xff00		/* Start of processor-specific */
+#define SHN_BEFORE	0xff00		/* Order section before all others
+(Solaris).  */
+#define SHN_AFTER	0xff01		/* Order section after all others
+(Solaris).  */
+#define SHN_HIPROC	0xff1f		/* End of processor-specific */
+#define SHN_LOOS	0xff20		/* Start of OS-specific */
+#define SHN_HIOS	0xff3f		/* End of OS-specific */
+#define SHN_ABS		0xfff1		/* Associated symbol is absolute */
+#define SHN_COMMON	0xfff2		/* Associated symbol is common */
+#define SHN_XINDEX	0xffff		/* Index is in extra table.  */
+#define SHN_HIRESERVE	0xffff		/* End of reserved indices */
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif //VESPLIB_ELF_H
