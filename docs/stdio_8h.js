@@ -24,7 +24,7 @@ var stdio_8h =
     [ "close", "stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676", null ],
     [ "closedir", "stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0", null ],
     [ "creat", "stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc", null ],
-    [ "create", "stdio_8h.html#a887a2f711e90813cae7a78d79e3748bf", null ],
+    [ "create", "stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896", null ],
     [ "fclose", "stdio_8h.html#a16899976ac8e865813485db3d5f5186f", null ],
     [ "feof", "stdio_8h.html#a2f7feada471a178fa9b019e70b54bf4b", null ],
     [ "ferror", "stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c", null ],
@@ -65,7 +65,7 @@ var stdio_8h =
     [ "vfprintf", "stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56", null ],
     [ "vprintf", "stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7", null ],
     [ "vsnprintf", "stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb", null ],
-    [ "write", "stdio_8h.html#ac6f86db0433cd874276007d41ccaae37", null ],
+    [ "write", "stdio_8h.html#a03197afb64c23b38bc6da5c886f6ad96", null ],
     [ "stderr", "stdio_8h.html#ac9e47c346a25e2e7edd2c9b4ca5d0262", null ],
     [ "stdin", "stdio_8h.html#acab9c1fe2a80b10e01858bda28a04244", null ],
     [ "stdout", "stdio_8h.html#ac80f4484175bf6c48d7b7ca4e9897ae6", null ]

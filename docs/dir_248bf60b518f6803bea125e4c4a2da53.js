@@ -1,6 +1,7 @@
 var dir_248bf60b518f6803bea125e4c4a2da53 =
 [
     [ "bits", "dir_5243f7c5a7248a6160dbd9c77ae73972.html", "dir_5243f7c5a7248a6160dbd9c77ae73972" ],
+    [ "gpu", "dir_449a6334fdb4a10f500bdf5dfaa38b7b.html", "dir_449a6334fdb4a10f500bdf5dfaa38b7b" ],
     [ "jpeg", "dir_360327f5f81a46906102c67b7d80d0bd.html", "dir_360327f5f81a46906102c67b7d80d0bd" ],
     [ "sys", "dir_699c0620a471c520d0efc35d8d04f138.html", "dir_699c0620a471c520d0efc35d8d04f138" ],
     [ "alloca.h", "alloca_8h.html", "alloca_8h" ],
@@ -12,6 +13,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", null ],
     [ "dlfcn.h", "dlfcn_8h.html", "dlfcn_8h" ],
     [ "elf.h", "elf_8h.html", "elf_8h" ],
+    [ "elf_loader.h", "elf__loader_8h.html", "elf__loader_8h" ],
     [ "endian.h", "endian_8h.html", "endian_8h" ],
     [ "errno.h", "errno_8h.html", "errno_8h" ],
     [ "exec.h", "exec_8h.html", "exec_8h" ],

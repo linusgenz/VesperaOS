@@ -155,8 +155,10 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aec1e54556dca3bd701d44395d34818dd" id="r_aec1e54556dca3bd701d44395d34818dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aec1e54556dca3bd701d44395d34818dd">sscanf</a> (const char *str, const char *format,...)</td></tr>
+<tr class="memdesc:aec1e54556dca3bd701d44395d34818dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read formatted input from a null-terminated string.  <br /></td></tr>
 <tr class="separator:aec1e54556dca3bd701d44395d34818dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcbffe326e16df540ec298ab884c8dd0" id="r_afcbffe326e16df540ec298ab884c8dd0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0">fscanf</a> (<a class="el" href="structFILE.html">FILE</a> *f, const char *format,...)</td></tr>
+<tr class="memdesc:afcbffe326e16df540ec298ab884c8dd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read formatted input from a file stream.  <br /></td></tr>
 <tr class="separator:afcbffe326e16df540ec298ab884c8dd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4de2514b7778805db3815e8dd6cf09a" id="r_af4de2514b7778805db3815e8dd6cf09a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a">putchar</a> (int c)</td></tr>
 <tr class="memdesc:af4de2514b7778805db3815e8dd6cf09a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a single character to stdout.  <br /></td></tr>
@@ -168,50 +170,67 @@ Functions</h2></td></tr>
 <tr class="memdesc:a3e29caa20f7cffe18f410f01278905a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a single character from stdin.  <br /></td></tr>
 <tr class="separator:a3e29caa20f7cffe18f410f01278905a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c4fad5f95f4c5242c3ea25d791df6e5" id="r_a2c4fad5f95f4c5242c3ea25d791df6e5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5">fgetc</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a2c4fad5f95f4c5242c3ea25d791df6e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a single character from a file stream.  <br /></td></tr>
 <tr class="separator:a2c4fad5f95f4c5242c3ea25d791df6e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab634a645f168154ab18a6496db140eb2" id="r_ab634a645f168154ab18a6496db140eb2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab634a645f168154ab18a6496db140eb2">ungetc</a> (int c, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:ab634a645f168154ab18a6496db140eb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push a character back onto a file stream.  <br /></td></tr>
 <tr class="separator:ab634a645f168154ab18a6496db140eb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b88f4911f10f44c32ebe30082bb53d7" id="r_a8b88f4911f10f44c32ebe30082bb53d7"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a8b88f4911f10f44c32ebe30082bb53d7">fgets</a> (char *buf, int n, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a8b88f4911f10f44c32ebe30082bb53d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a line or string from a file stream.  <br /></td></tr>
 <tr class="separator:a8b88f4911f10f44c32ebe30082bb53d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55f3d956bb2ba20b5059e9e25484a47f" id="r_a55f3d956bb2ba20b5059e9e25484a47f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f">printf</a> (const char *fmt,...)</td></tr>
 <tr class="memdesc:a55f3d956bb2ba20b5059e9e25484a47f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to stdout.  <br /></td></tr>
 <tr class="separator:a55f3d956bb2ba20b5059e9e25484a47f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb7ccae12e79b28a1e32fa599038fd56" id="r_adb7ccae12e79b28a1e32fa599038fd56"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56">vfprintf</a> (<a class="el" href="structFILE.html">FILE</a> *f, const char *fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
+<tr class="memdesc:adb7ccae12e79b28a1e32fa599038fd56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write formatted output to a file stream using a va_list.  <br /></td></tr>
 <tr class="separator:adb7ccae12e79b28a1e32fa599038fd56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7468e36e869d5cbd48cd074c3747ce6" id="r_ab7468e36e869d5cbd48cd074c3747ce6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab7468e36e869d5cbd48cd074c3747ce6">fprintf</a> (<a class="el" href="structFILE.html">FILE</a> *f, const char *fmt,...)</td></tr>
+<tr class="memdesc:ab7468e36e869d5cbd48cd074c3747ce6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write formatted output to a file stream.  <br /></td></tr>
 <tr class="separator:ab7468e36e869d5cbd48cd074c3747ce6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc23aaaff6fcb9a669853efe712ba4b7" id="r_acc23aaaff6fcb9a669853efe712ba4b7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7">vprintf</a> (const char *fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
+<tr class="memdesc:acc23aaaff6fcb9a669853efe712ba4b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to stdout using a va_list.  <br /></td></tr>
 <tr class="separator:acc23aaaff6fcb9a669853efe712ba4b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e15ddc3a521362ccb1ed9c6a431b7f2" id="r_a9e15ddc3a521362ccb1ed9c6a431b7f2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a9e15ddc3a521362ccb1ed9c6a431b7f2">snprintf</a> (char *buffer, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, const char *format,...)</td></tr>
 <tr class="memdesc:a9e15ddc3a521362ccb1ed9c6a431b7f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to a buffer with size limit.  <br /></td></tr>
 <tr class="separator:a9e15ddc3a521362ccb1ed9c6a431b7f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65926e55e94f64697275e8a0bc3760bb" id="r_a65926e55e94f64697275e8a0bc3760bb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb">vsnprintf</a> (char *buffer, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, const char *fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
+<tr class="memdesc:a65926e55e94f64697275e8a0bc3760bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to a buffer with size limit using a va_list.  <br /></td></tr>
 <tr class="separator:a65926e55e94f64697275e8a0bc3760bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2537fcdb9f2f543f6167b296fcffb23f" id="r_a2537fcdb9f2f543f6167b296fcffb23f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen</a> (const char *path, const char *mode)</td></tr>
+<tr class="memdesc:a2537fcdb9f2f543f6167b296fcffb23f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a file stream.  <br /></td></tr>
 <tr class="separator:a2537fcdb9f2f543f6167b296fcffb23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2283c07023f2890feb45d55531852d36" id="r_a2283c07023f2890feb45d55531852d36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2283c07023f2890feb45d55531852d36">freopen</a> (const char *path, const char *mode, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a2283c07023f2890feb45d55531852d36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reopen an existing file stream with a new path and mode.  <br /></td></tr>
 <tr class="separator:a2283c07023f2890feb45d55531852d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16899976ac8e865813485db3d5f5186f" id="r_a16899976ac8e865813485db3d5f5186f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a16899976ac8e865813485db3d5f5186f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a file stream.  <br /></td></tr>
 <tr class="separator:a16899976ac8e865813485db3d5f5186f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58171c5b12ceca32c28fd878fe8a5450" id="r_a58171c5b12ceca32c28fd878fe8a5450"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450">fread</a> (void *ptr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a58171c5b12ceca32c28fd878fe8a5450"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read data from a file stream.  <br /></td></tr>
 <tr class="separator:a58171c5b12ceca32c28fd878fe8a5450"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a152a43e71b495278570e5790af9b5043" id="r_a152a43e71b495278570e5790af9b5043"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a152a43e71b495278570e5790af9b5043">fwrite</a> (const void *ptr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a152a43e71b495278570e5790af9b5043"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to a file stream.  <br /></td></tr>
 <tr class="separator:a152a43e71b495278570e5790af9b5043"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37f8a04ff44af73c18cb3e43e7a1f752" id="r_a37f8a04ff44af73c18cb3e43e7a1f752"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752">fputs</a> (const char *s, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a37f8a04ff44af73c18cb3e43e7a1f752"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a string to a file stream.  <br /></td></tr>
 <tr class="separator:a37f8a04ff44af73c18cb3e43e7a1f752"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a260faecc8c64f08f4f3d3801c3f71a" id="r_a0a260faecc8c64f08f4f3d3801c3f71a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a">fputc</a> (int c, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a0a260faecc8c64f08f4f3d3801c3f71a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a character to a file stream.  <br /></td></tr>
 <tr class="separator:a0a260faecc8c64f08f4f3d3801c3f71a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f7feada471a178fa9b019e70b54bf4b" id="r_a2f7feada471a178fa9b019e70b54bf4b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2f7feada471a178fa9b019e70b54bf4b">feof</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
 <tr class="memdesc:a2f7feada471a178fa9b019e70b54bf4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test the end-of-file indicator.  <br /></td></tr>
 <tr class="separator:a2f7feada471a178fa9b019e70b54bf4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d3d2b0c891c340cfaf0921aacfe392c" id="r_a7d3d2b0c891c340cfaf0921aacfe392c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c">ferror</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a7d3d2b0c891c340cfaf0921aacfe392c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test the error indicator for a file stream.  <br /></td></tr>
 <tr class="separator:a7d3d2b0c891c340cfaf0921aacfe392c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0ed35dbaf8a840c92daef7aa52b40bf" id="r_aa0ed35dbaf8a840c92daef7aa52b40bf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf">fflush</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:aa0ed35dbaf8a840c92daef7aa52b40bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flush buffered output on a file stream.  <br /></td></tr>
 <tr class="separator:aa0ed35dbaf8a840c92daef7aa52b40bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e25775bd8597f839a28125b616bd241" id="r_a5e25775bd8597f839a28125b616bd241"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241">fseek</a> (<a class="el" href="structFILE.html">FILE</a> *stream, long offset, int whence)</td></tr>
 <tr class="memdesc:a5e25775bd8597f839a28125b616bd241"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition stream position indicator.  <br /></td></tr>
 <tr class="separator:a5e25775bd8597f839a28125b616bd241"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f505b889099a08a9a2fc58985298205" id="r_a0f505b889099a08a9a2fc58985298205"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0f505b889099a08a9a2fc58985298205">lseek</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> offset, int whence)</td></tr>
+<tr class="memdesc:a0f505b889099a08a9a2fc58985298205"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition file offset for a generic handle.  <br /></td></tr>
 <tr class="separator:a0f505b889099a08a9a2fc58985298205"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e9d737941bb64e471309cd6dc1f6989" id="r_a0e9d737941bb64e471309cd6dc1f6989"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989">ftell</a> (<a class="el" href="structFILE.html">FILE</a> *stream)</td></tr>
 <tr class="memdesc:a0e9d737941bb64e471309cd6dc1f6989"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current position in stream.  <br /></td></tr>
@@ -223,7 +242,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:af604d9770890b1a3d36fb133ed3d6346"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a directory.  <br /></td></tr>
 <tr class="separator:af604d9770890b1a3d36fb133ed3d6346"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6cfb473a0f84c34b91c072e50e71af0" id="r_af6cfb473a0f84c34b91c072e50e71af0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0">closedir</a> (<a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a> handle)</td></tr>
-<tr class="memdesc:af6cfb473a0f84c34b91c072e50e71af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a directory.  <br /></td></tr>
+<tr class="memdesc:af6cfb473a0f84c34b91c072e50e71af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a directory handle.  <br /></td></tr>
 <tr class="separator:af6cfb473a0f84c34b91c072e50e71af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a644846453a50f8941bb85d96a9c8d887" id="r_a644846453a50f8941bb85d96a9c8d887"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a644846453a50f8941bb85d96a9c8d887">readdir</a> (<a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a> handle, <a class="el" href="structdirent__t.html">dirent_t</a> *entry)</td></tr>
 <tr class="memdesc:a644846453a50f8941bb85d96a9c8d887"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a directory entry.  <br /></td></tr>
@@ -237,11 +256,11 @@ Functions</h2></td></tr>
 <tr class="memitem:ac01dfe00c38b79b1f2ab3d1cd870dd0b" id="r_ac01dfe00c38b79b1f2ab3d1cd870dd0b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ac01dfe00c38b79b1f2ab3d1cd870dd0b">read</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
 <tr class="memdesc:ac01dfe00c38b79b1f2ab3d1cd870dd0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read data from a generic handle.  <br /></td></tr>
 <tr class="separator:ac01dfe00c38b79b1f2ab3d1cd870dd0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac6f86db0433cd874276007d41ccaae37" id="r_ac6f86db0433cd874276007d41ccaae37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ac6f86db0433cd874276007d41ccaae37">write</a> (<a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a> handle, const void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
-<tr class="memdesc:ac6f86db0433cd874276007d41ccaae37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to a generic handle.  <br /></td></tr>
-<tr class="separator:ac6f86db0433cd874276007d41ccaae37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03197afb64c23b38bc6da5c886f6ad96" id="r_a03197afb64c23b38bc6da5c886f6ad96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a03197afb64c23b38bc6da5c886f6ad96">write</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, const void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
+<tr class="memdesc:a03197afb64c23b38bc6da5c886f6ad96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to a generic handle.  <br /></td></tr>
+<tr class="separator:a03197afb64c23b38bc6da5c886f6ad96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a6f985cc61227f641f7cc75927b06fc" id="r_a6a6f985cc61227f641f7cc75927b06fc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc">creat</a> (const char *path)</td></tr>
-<tr class="memdesc:a6a6f985cc61227f641f7cc75927b06fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file.  <br /></td></tr>
+<tr class="memdesc:a6a6f985cc61227f641f7cc75927b06fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new empty file.  <br /></td></tr>
 <tr class="separator:a6a6f985cc61227f641f7cc75927b06fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afeb6cbc06f4dc89199e2c33561b2f77e" id="r_afeb6cbc06f4dc89199e2c33561b2f77e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e">mkdir</a> (const char *path)</td></tr>
 <tr class="memdesc:afeb6cbc06f4dc89199e2c33561b2f77e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new directory.  <br /></td></tr>
@@ -252,26 +271,32 @@ Functions</h2></td></tr>
 <tr class="memitem:ab2df76f2c62ae012c2e417813b5fe8ce" id="r_ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce">rmdir</a> (const char *path)</td></tr>
 <tr class="memdesc:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a directory.  <br /></td></tr>
 <tr class="separator:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a887a2f711e90813cae7a78d79e3748bf" id="r_a887a2f711e90813cae7a78d79e3748bf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a887a2f711e90813cae7a78d79e3748bf">create</a> (const char *path, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>)</td></tr>
-<tr class="memdesc:a887a2f711e90813cae7a78d79e3748bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file or directory.  <br /></td></tr>
-<tr class="separator:a887a2f711e90813cae7a78d79e3748bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ca90f87a0b0045c83be0a7d9b252896" id="r_a0ca90f87a0b0045c83be0a7d9b252896"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896">create</a> (const char *path, int type)</td></tr>
+<tr class="memdesc:a0ca90f87a0b0045c83be0a7d9b252896"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file or directory.  <br /></td></tr>
+<tr class="separator:a0ca90f87a0b0045c83be0a7d9b252896"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03af571dfb595681bfa203c83385c07b" id="r_a03af571dfb595681bfa203c83385c07b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b">chdir</a> (const char *path)</td></tr>
 <tr class="memdesc:a03af571dfb595681bfa203c83385c07b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the current working directory.  <br /></td></tr>
 <tr class="separator:a03af571dfb595681bfa203c83385c07b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb5a028bb4a392db1cb0815a0d909f8f" id="r_afb5a028bb4a392db1cb0815a0d909f8f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f">chroot</a> (const char *path)</td></tr>
+<tr class="memdesc:afb5a028bb4a392db1cb0815a0d909f8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change root directory.  <br /></td></tr>
 <tr class="separator:afb5a028bb4a392db1cb0815a0d909f8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accd163a8f517941cc628473b4812e0a1" id="r_accd163a8f517941cc628473b4812e0a1"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#accd163a8f517941cc628473b4812e0a1">getcwd</a> (char *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
 <tr class="memdesc:accd163a8f517941cc628473b4812e0a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current working directory.  <br /></td></tr>
 <tr class="separator:accd163a8f517941cc628473b4812e0a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23bda9b63cbe1f3d86aaff779b2b9f10" id="r_a23bda9b63cbe1f3d86aaff779b2b9f10"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a23bda9b63cbe1f3d86aaff779b2b9f10">tmpfile</a> (void)</td></tr>
+<tr class="memdesc:a23bda9b63cbe1f3d86aaff779b2b9f10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a temporary binary file.  <br /></td></tr>
 <tr class="separator:a23bda9b63cbe1f3d86aaff779b2b9f10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86b8bec1783636991d09c6eb714fd5da" id="r_a86b8bec1783636991d09c6eb714fd5da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a86b8bec1783636991d09c6eb714fd5da">clearerr</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
+<tr class="memdesc:a86b8bec1783636991d09c6eb714fd5da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear error and EOF indicators for a stream.  <br /></td></tr>
 <tr class="separator:a86b8bec1783636991d09c6eb714fd5da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b98887be482361fc5704cd98aabd094" id="r_a3b98887be482361fc5704cd98aabd094"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a3b98887be482361fc5704cd98aabd094">setvbuf</a> (<a class="el" href="structFILE.html">FILE</a> *f, char *buf, int mode, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
+<tr class="memdesc:a3b98887be482361fc5704cd98aabd094"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set stream buffering mode.  <br /></td></tr>
 <tr class="separator:a3b98887be482361fc5704cd98aabd094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32e4cef9beb0262cea4bdafb5b998276" id="r_a32e4cef9beb0262cea4bdafb5b998276"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276">remove</a> (const char *path)</td></tr>
+<tr class="memdesc:a32e4cef9beb0262cea4bdafb5b998276"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a file or directory.  <br /></td></tr>
 <tr class="separator:a32e4cef9beb0262cea4bdafb5b998276"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d4709508ed7604103d77c3fdc5ea4a2" id="r_a4d4709508ed7604103d77c3fdc5ea4a2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a4d4709508ed7604103d77c3fdc5ea4a2">rename</a> (const char *oldpath, const char *newpath)</td></tr>
+<tr class="memdesc:a4d4709508ed7604103d77c3fdc5ea4a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rename or move a file or directory.  <br /></td></tr>
 <tr class="separator:a4d4709508ed7604103d77c3fdc5ea4a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -548,15 +573,17 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Change the current working directory. </p>
-<p>Resolves the given path (relative or absolute) and updates the calling realm's working directory if the target exists and is a directory.</p>
+<p>Updates the calling realm's current working directory to <code>path</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">path</td><td>Null-terminated path string (absolute or relative). </td></tr>
+    <tr><td class="paramname">path</td><td>Null-terminated path string. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success, or negative errno: -EINVAL : path is null or empty -ENOENT : path does not exist -ENOTDIR : path exists but is not a directory</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#accd163a8f517941cc628473b4812e0a1" title="Get the current working directory.">getcwd()</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set to EINVAL, ENOENT, ENOTDIR, etc.).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#accd163a8f517941cc628473b4812e0a1" title="Get the current working directory.">getcwd()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f" title="Change root directory.">chroot()</a> </dd></dl>
 
 </div>
 </div>
@@ -576,6 +603,17 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Change root directory. </p>
+<p>Changes the root directory of the calling realm to <code>path</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to the new root directory. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b" title="Change the current working directory.">chdir()</a> </dd></dl>
+
 </div>
 </div>
 <a id="a86b8bec1783636991d09c6eb714fd5da" name="a86b8bec1783636991d09c6eb714fd5da"></a>
@@ -593,6 +631,18 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Clear error and EOF indicators for a stream. </p>
+<p>Resets the error flag, EOF flag, and ungetc buffer for <code>f</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Source file stream.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c" title="Test the error indicator for a file stream.">ferror()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a2f7feada471a178fa9b019e70b54bf4b" title="Test the end-of-file indicator.">feof()</a> </dd></dl>
 
 </div>
 </div>
@@ -613,17 +663,17 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Close a generic handle. </p>
-<p>Lower-level version of <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose()</a> for generic handles.</p>
+<p>Lower-level version of <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> for generic handles.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">handle</td><td>Handle returned by <a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a>. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> </dd></dl>
 
 </div>
 </div>
@@ -643,7 +693,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Close a directory. </p>
+<p>Close a directory handle. </p>
 <p>Closes the directory handle returned by <a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -651,10 +701,8 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
-<dd>
-<a class="el" href="stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676" title="Close a generic handle.">close()</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd></dl>
 
 </div>
 </div>
@@ -674,23 +722,25 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Create a new file. </p>
-<p>Creates a new empty file at <code>path</code>.</p>
+<p>Create a new empty file. </p>
+<p>Creates a new file at <code>path</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path where the file should be created. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a> </dd>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896" title="Create a new file or directory.">create()</a> </dd></dl>
 
 </div>
 </div>
-<a id="a887a2f711e90813cae7a78d79e3748bf" name="a887a2f711e90813cae7a78d79e3748bf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a887a2f711e90813cae7a78d79e3748bf">&#9670;&#160;</a></span>create()</h2>
+<a id="a0ca90f87a0b0045c83be0a7d9b252896" name="a0ca90f87a0b0045c83be0a7d9b252896"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ca90f87a0b0045c83be0a7d9b252896">&#9670;&#160;</a></span>create()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -705,7 +755,7 @@ Variables</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>flags</em>&#160;</td>
+          <td class="paramname"><em>type</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -716,18 +766,18 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Create a new file or directory. </p>
-<p>Creates a new file or directory at <code>path</code>. The type is determined by flags.</p>
+<p>Creates a new resource at <code>path</code> based on <code>type</code> (e.g. C_DIR).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path where the file/directory should be created. </td></tr>
-    <tr><td class="paramname">flags</td><td>Creation flags . </td></tr>
+    <tr><td class="paramname">type</td><td>Resource type flag. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a> </dd>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -746,7 +796,19 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000002">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+<p>Close a file stream. </p>
+<p>Flushes buffered data, closes the underlying handle, and frees stream resources.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>File stream to close. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676" title="Close a generic handle.">close()</a> </dd></dl>
 
 </div>
 </div>
@@ -767,15 +829,15 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Test the end-of-file indicator. </p>
-<p>Returns non-zero if the EOF indicator is set on <code>f</code>, i.e. the last read operation reached the end of the file. The indicator is cleared by a successful seek (fseek / rewind).</p>
+<p>Returns non-zero if the EOF indicator is set on <code>f</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">f</td><td>File pointer returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a>. </td></tr>
+    <tr><td class="paramname">f</td><td>File pointer returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a>. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Non-zero if EOF has been reached, <code>0</code> otherwise.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c">ferror()</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c" title="Test the error indicator for a file stream.">ferror()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> </dd></dl>
 
@@ -797,6 +859,18 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Test the error indicator for a file stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>File stream pointer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Non-zero if error flag is set, <code>0</code> otherwise.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2f7feada471a178fa9b019e70b54bf4b" title="Test the end-of-file indicator.">feof()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a86b8bec1783636991d09c6eb714fd5da" title="Clear error and EOF indicators for a stream.">clearerr()</a> </dd></dl>
+
 </div>
 </div>
 <a id="aa0ed35dbaf8a840c92daef7aa52b40bf" name="aa0ed35dbaf8a840c92daef7aa52b40bf"></a>
@@ -815,6 +889,17 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Flush buffered output on a file stream. </p>
+<p>Flushes buffered output for stream <code>f</code>. If <code>f</code> is NULL or stdout, flushes the stdout buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>File stream pointer, or NULL for stdout. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>EOF</code> (-1) on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> </dd></dl>
+
 </div>
 </div>
 <a id="a2c4fad5f95f4c5242c3ea25d791df6e5" name="a2c4fad5f95f4c5242c3ea25d791df6e5"></a>
@@ -832,6 +917,20 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Read a single character from a file stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Source file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Character read (as unsigned char cast to int), or <code>EOF</code> (-1) on error/EOF.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a" title="Write a character to a file stream.">fputc()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a8b88f4911f10f44c32ebe30082bb53d7" title="Read a line or string from a file stream.">fgets()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a3e29caa20f7cffe18f410f01278905a8" title="Read a single character from stdin.">getchar()</a> </dd></dl>
 
 </div>
 </div>
@@ -867,6 +966,21 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Read a line or string from a file stream. </p>
+<p>Reads at most <code>n</code> - 1 characters from <code>f</code> and stores them in <code>buf</code>. Reading stops after an EOF or newline character is read.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buf</td><td>Destination buffer. </td></tr>
+    <tr><td class="paramname">n</td><td>Maximum number of characters to read (including null terminator). </td></tr>
+    <tr><td class="paramname">f</td><td>Source file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>buf</code> on success, or <code>NULL</code> on error or EOF before any character was read.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5" title="Read a single character from a file stream.">fgetc()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752" title="Write a string to a file stream.">fputs()</a> </dd></dl>
+
 </div>
 </div>
 <a id="a2537fcdb9f2f543f6167b296fcffb23f" name="a2537fcdb9f2f543f6167b296fcffb23f"></a>
@@ -894,7 +1008,22 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+<p>Open a file stream. </p>
+<p>Opens the file specified by <code>path</code> with the given <code>mode</code> ("r", "w", "a", "r+", etc.).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to the file. </td></tr>
+    <tr><td class="paramname">mode</td><td>Mode string. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to allocated <a class="el" href="structFILE.html">FILE</a> structure on success, or <code>NULL</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a2283c07023f2890feb45d55531852d36" title="Reopen an existing file stream with a new path and mode.">freopen()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a> </dd></dl>
 
 </div>
 </div>
@@ -930,6 +1059,20 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Write formatted output to a file stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Destination file stream. </td></tr>
+    <tr><td class="paramname">fmt</td><td>Format string. </td></tr>
+    <tr><td class="paramname">...</td><td>Variable arguments matching format specifiers. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of characters written on success, or <code>-1</code> on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56" title="Write formatted output to a file stream using a va_list.">vfprintf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f" title="Formatted output to stdout.">printf()</a> </dd></dl>
+
 </div>
 </div>
 <a id="a0a260faecc8c64f08f4f3d3801c3f71a" name="a0a260faecc8c64f08f4f3d3801c3f71a"></a>
@@ -957,7 +1100,20 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000006">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+<p>Write a character to a file stream. </p>
+<p>Writes character <code>c</code> (converted to unsigned char) to stream <code>f</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>Character to write. </td></tr>
+    <tr><td class="paramname">f</td><td>Destination file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Written character on success, or <code>EOF</code> (-1) on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5" title="Read a single character from a file stream.">fgetc()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a" title="Write a single character to stdout.">putchar()</a> </dd></dl>
 
 </div>
 </div>
@@ -986,7 +1142,20 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000005">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+<p>Write a string to a file stream. </p>
+<p>Writes the null-terminated string <code>s</code> to stream <code>f</code> without appending a newline.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>Null-terminated string to write. </td></tr>
+    <tr><td class="paramname">f</td><td>Destination file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>EOF</code> (-1) on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f" title="Write a null-terminated string to stdout.">puts()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a" title="Write a character to a file stream.">fputc()</a> </dd></dl>
 
 </div>
 </div>
@@ -1027,7 +1196,22 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000003">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+<p>Read data from a file stream. </p>
+<p>Reads up to <code>nmemb</code> elements, each of size <code>size</code>, from stream <code>f</code> into <code>ptr</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ptr</td><td>Memory buffer to store read data. </td></tr>
+    <tr><td class="paramname">size</td><td>Size of each element in bytes. </td></tr>
+    <tr><td class="paramname">nmemb</td><td>Number of elements to read. </td></tr>
+    <tr><td class="paramname">f</td><td>Source file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of elements successfully read.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a152a43e71b495278570e5790af9b5043" title="Write data to a file stream.">fwrite()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#ac01dfe00c38b79b1f2ab3d1cd870dd0b" title="Read data from a generic handle.">read()</a> </dd></dl>
 
 </div>
 </div>
@@ -1063,6 +1247,21 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Reopen an existing file stream with a new path and mode. </p>
+<p>Flushes and closes the existing file handle in <code>f</code> and opens the file at <code>path</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to the new file. </td></tr>
+    <tr><td class="paramname">mode</td><td>Mode string. </td></tr>
+    <tr><td class="paramname">f</td><td>Existing <a class="el" href="structFILE.html">FILE</a> stream to reuse. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to <code>f</code> on success, or <code>NULL</code> on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> </dd></dl>
+
 </div>
 </div>
 <a id="afcbffe326e16df540ec298ab884c8dd0" name="afcbffe326e16df540ec298ab884c8dd0"></a>
@@ -1096,6 +1295,20 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Read formatted input from a file stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Source file stream. </td></tr>
+    <tr><td class="paramname">format</td><td>Format string specifying format specifiers. </td></tr>
+    <tr><td class="paramname">...</td><td>Pointer arguments where parsed values are stored. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of input items successfully matched and assigned, or <code>-1</code> on failure/EOF.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#aec1e54556dca3bd701d44395d34818dd" title="Read formatted input from a null-terminated string.">sscanf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5" title="Read a single character from a file stream.">fgetc()</a> </dd></dl>
 
 </div>
 </div>
@@ -1135,16 +1348,18 @@ Variables</h2></td></tr>
 <p>Sets the file position indicator for <code>stream</code> to <code>offset</code> bytes relative to <code>whence</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">stream</td><td>File handle returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a>. </td></tr>
+    <tr><td class="paramname">stream</td><td>File stream returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a>. </td></tr>
     <tr><td class="paramname">offset</td><td>Number of bytes to offset. </td></tr>
     <tr><td class="paramname">whence</td><td>Seek mode (SEEK_SET, SEEK_CUR, or SEEK_END). </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, returns the new absolute position from the beginning On error, returns negative errno: -EINVAL : invalid handle, negative position, or invalid whence -EBADH : handle not found or invalid resource -ESPIPE : handle refers to a TTY or directory -EUNKNOWN: realm not found </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989" title="Get current position in stream.">ftell()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819" title="Reset file position to the beginning.">rewind()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819" title="Reset file position to the beginning.">rewind()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a0f505b889099a08a9a2fc58985298205" title="Reposition file offset for a generic handle.">lseek()</a> </dd></dl>
 
 </div>
 </div>
@@ -1165,14 +1380,14 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get current position in stream. </p>
-<p>Returns the current file position indicator for <code>stream</code>.</p>
+<p>Returns the current file position indicator for <code>stream</code> in bytes from the start.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">stream</td><td>File handle returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a>. </td></tr>
+    <tr><td class="paramname">stream</td><td>File stream returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a>. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, returns the new absolute position from the beginning On error, returns negative errno: -EINVAL : invalid handle -EBADH : handle not found or invalid resource -ESPIPE : handle refers to a TTY or directory -EUNKNOWN: realm not found </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Current absolute position on success, or negative value / <code>-1</code> on error.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819" title="Reset file position to the beginning.">rewind()</a> </dd></dl>
@@ -1216,7 +1431,22 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000004">Todo:</a></b></dt><dd>add docs </dd></dl>
+
+<p>Write data to a file stream. </p>
+<p>Writes up to <code>nmemb</code> elements, each of size <code>size</code>, from <code>ptr</code> to stream <code>f</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ptr</td><td>Memory buffer containing data to write. </td></tr>
+    <tr><td class="paramname">size</td><td>Size of each element in bytes. </td></tr>
+    <tr><td class="paramname">nmemb</td><td>Number of elements to write. </td></tr>
+    <tr><td class="paramname">f</td><td>Destination file stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of elements successfully written.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450" title="Read data from a file stream.">fread()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a03197afb64c23b38bc6da5c886f6ad96" title="Write data to a generic handle.">write()</a> </dd></dl>
 
 </div>
 </div>
@@ -1238,7 +1468,9 @@ Variables</h2></td></tr>
 
 <p>Read a single character from stdin. </p>
 <dl class="section return"><dt>Returns</dt><dd>Character read (as unsigned char cast to int), or <code>-1</code> on error/EOF.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a" title="Write a single character to stdout.">putchar()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a" title="Write a single character to stdout.">putchar()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5" title="Read a single character from a file stream.">fgetc()</a> </dd></dl>
 
 </div>
 </div>
@@ -1269,7 +1501,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the current working directory. </p>
-<p>Copies the absolute path of the calling realm's current working directory into <code>buf</code>. The buffer must be large enough to hold the full path including the null terminator.</p>
+<p>Copies the absolute path of the calling realm's current working directory into <code>buf</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buf</td><td>Buffer to store the path string. </td></tr>
@@ -1277,7 +1509,7 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>buf</code> on success, or <code>NULL</code> on failure (errno set): EINVAL : buf is null or size is zero ERANGE : buffer too small to hold the current path</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>buf</code> on success, or <code>NULL</code> on failure (errno set to EINVAL, ERANGE, etc.).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b" title="Change the current working directory.">chdir()</a> </dd></dl>
 
 </div>
@@ -1314,6 +1546,19 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Reposition file offset for a generic handle. </p>
+<p>Lower-level version of <a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> operating on raw handles.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">handle</td><td>File handle returned by <a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a>. </td></tr>
+    <tr><td class="paramname">offset</td><td>Offset in bytes. </td></tr>
+    <tr><td class="paramname">whence</td><td>Seek mode (SEEK_SET, SEEK_CUR, or SEEK_END). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>New absolute position from beginning of file on success, or <code>-1</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> </dd></dl>
+
 </div>
 </div>
 <a id="afeb6cbc06f4dc89199e2c33561b2f77e" name="afeb6cbc06f4dc89199e2c33561b2f77e"></a>
@@ -1340,10 +1585,12 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new file.">creat()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1374,7 +1621,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Open a resource (generic handle). </p>
-<p>Lower-level version of <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a> that returns a generic handle.</p>
+<p>Lower-level version of <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> that returns a generic handle.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path to the resource (null-terminated string). </td></tr>
@@ -1382,10 +1629,10 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Handle on success, or negative error code on failure.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Handle on success, or <code></code>(HANDLE)-1 on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676" title="Close a generic handle.">close()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd></dl>
 
 </div>
 </div>
@@ -1413,8 +1660,10 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Directory handle on success, or negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676" title="Close a generic handle.">close()</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Directory handle on success, or <code></code>(DIR_HANDLE)-1 on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0" title="Close a directory handle.">closedir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a644846453a50f8941bb85d96a9c8d887" title="Read a directory entry.">readdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1445,15 +1694,18 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Formatted output to stdout. </p>
-<p>Supports format specifiers: s (string), c (char), d (int), u (unsigned), x (hex), p (pointer), f (float), lld (long long), llu (unsigned long long). Width and padding modifiers are supported (e.g., %02x, %8d).</p>
+<p>Supports format specifiers: s, c, d, i, u, x, X, o, p, f, e, g. Width, padding, and length modifiers (e.g. llu, %02x) are supported.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">fmt</td><td>Format string. </td></tr>
-    <tr><td class="paramname">...</td><td>Variable arguments matching format specifiers.</td></tr>
+    <tr><td class="paramname">...</td><td>Variable arguments matching format specifiers. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a9e15ddc3a521362ccb1ed9c6a431b7f2" title="Formatted output to a buffer with size limit.">snprintf()</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Total number of characters written.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7" title="Formatted output to stdout using a va_list.">vprintf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a9e15ddc3a521362ccb1ed9c6a431b7f2" title="Formatted output to a buffer with size limit.">snprintf()</a> </dd></dl>
 
 </div>
 </div>
@@ -1504,15 +1756,17 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Write a null-terminated string to stdout. </p>
-<p>Writes the string <code>s</code> to stdout without appending a newline.</p>
+<p>Writes the string <code>s</code> followed by a newline character to stdout.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">s</td><td>String to write (null-terminated). </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Number of characters written, or <code>-1</code> on error.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a" title="Write a single character to stdout.">putchar()</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (e.g., <code>s</code> is NULL).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a" title="Write a single character to stdout.">putchar()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752" title="Write a string to a file stream.">fputs()</a> </dd></dl>
 
 </div>
 </div>
@@ -1549,7 +1803,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Read data from a generic handle. </p>
-<p>Lower-level version of <a class="el" href="stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450">fread()</a> for generic handles.</p>
+<p>Lower-level version of <a class="el" href="stdio_8h.html#a58171c5b12ceca32c28fd878fe8a5450" title="Read data from a file stream.">fread()</a> for generic handles.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">handle</td><td>File handle returned by <a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a>. </td></tr>
@@ -1559,7 +1813,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Number of bytes read on success, or negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#ac6f86db0433cd874276007d41ccaae37" title="Write data to a generic handle.">write()</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03197afb64c23b38bc6da5c886f6ad96" title="Write data to a generic handle.">write()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a> </dd></dl>
 
@@ -1592,7 +1846,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Read a directory entry. </p>
-<p>Reads the next directory entry from <code>handle</code> into <code>entry</code>. Returns <code>0</code> when no more entries are available.</p>
+<p>Reads the next directory entry from <code>handle</code> into <code>entry</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">handle</td><td>Directory handle returned by <a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a>. </td></tr>
@@ -1600,10 +1854,10 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Positive value on success, <code>0</code> at end of directory, or negative error code on failure.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes read on success, <code>0</code> at end of directory, or negative error code on failure.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0" title="Close a directory.">closedir()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0" title="Close a directory handle.">closedir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1622,6 +1876,19 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Remove a file or directory. </p>
+<p>Attempts to remove the file via unlink, or if that fails, removes the directory via rmdir.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to file or directory. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1651,6 +1918,17 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Rename or move a file or directory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">oldpath</td><td>Current path. </td></tr>
+    <tr><td class="paramname">newpath</td><td>New path. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
+
 </div>
 </div>
 <a id="aa0cd401f198d33d9d01a9e8aa4026819" name="aa0cd401f198d33d9d01a9e8aa4026819"></a>
@@ -1670,10 +1948,10 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reset file position to the beginning. </p>
-<p>Equivalent to fseek(stream, 0, SEEK_SET).</p>
+<p>Resets position indicator, ungetc buffer, EOF flag, and error flag.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">stream</td><td>File handle returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen()</a>. </td></tr>
+    <tr><td class="paramname">stream</td><td>File stream returned by <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1700,17 +1978,19 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Remove a directory. </p>
-<p>Removes (deletes) the directory at <code>path</code>. The directory must be empty.</p>
+<p>Removes (deletes) the empty directory at <code>path</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path to the directory to remove. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
 
 </div>
 </div>
@@ -1751,6 +2031,18 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Set stream buffering mode. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>File stream pointer. </td></tr>
+    <tr><td class="paramname">buf</td><td>User-provided buffer (optional). </td></tr>
+    <tr><td class="paramname">mode</td><td>Buffering mode (_IOFBF, _IOLBF, _IONBF). </td></tr>
+    <tr><td class="paramname">size</td><td>Size of buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> if <code>f</code> is NULL. </dd></dl>
 
 </div>
 </div>
@@ -1793,7 +2085,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Formatted output to a buffer with size limit. </p>
-<p>Writes at most <code>size</code> - 1 characters to <code>buffer</code>, always null-terminating. Supports format specifiers: s, c, d, x, llu, %%.</p>
+<p>Writes at most <code>size</code> - 1 characters to <code>buffer</code>, always null-terminating.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buffer</td><td>Destination buffer. </td></tr>
@@ -1803,8 +2095,10 @@ Variables</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Total number of characters that would have been written (excluding null), or <code>-1</code> on error.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f" title="Formatted output to stdout.">printf()</a> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Total number of characters written/formatted, or <code>-1</code> on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb" title="Formatted output to a buffer with size limit using a va_list.">vsnprintf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f" title="Formatted output to stdout.">printf()</a> </dd></dl>
 
 </div>
 </div>
@@ -1840,6 +2134,20 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Read formatted input from a null-terminated string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>Input string to parse. </td></tr>
+    <tr><td class="paramname">format</td><td>Format string specifying format specifiers. </td></tr>
+    <tr><td class="paramname">...</td><td>Pointer arguments where parsed values are stored. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of input items successfully matched and assigned, or <code>-1</code> on failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0" title="Read formatted input from a file stream.">fscanf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f" title="Formatted output to stdout.">printf()</a> </dd></dl>
+
 </div>
 </div>
 <a id="a23bda9b63cbe1f3d86aaff779b2b9f10" name="a23bda9b63cbe1f3d86aaff779b2b9f10"></a>
@@ -1857,6 +2165,10 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Create a temporary binary file. </p>
+<p>Creates a unique temporary file in "/tmp" opened in update mode ("w+"). The file is unlinked immediately so it will be automatically removed when closed.</p>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="structFILE.html">FILE</a> stream pointer on success, or <code>NULL</code> on error. </dd></dl>
 
 </div>
 </div>
@@ -1886,6 +2198,18 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Push a character back onto a file stream. </p>
+<p>Pushes <code>c</code> back to <code>f</code> so that it will be returned by the next read operation. Clears the EOF indicator for the stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>Character to push back. </td></tr>
+    <tr><td class="paramname">f</td><td>File stream pointer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The character pushed back as <code>unsigned</code> <code>char</code> cast to <code>int</code>, or <code>-1</code> on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5" title="Read a single character from a file stream.">fgetc()</a> </dd></dl>
+
 </div>
 </div>
 <a id="a28af9471bbdf262321af663e02899a47" name="a28af9471bbdf262321af663e02899a47"></a>
@@ -1905,17 +2229,19 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Remove a file. </p>
-<p>Removes (deletes) the file at <code>path</code>. The file must not be open.</p>
+<p>Removes (deletes) the file at <code>path</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Path to the file to remove. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or negative error code on failure.</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new file.">creat()</a> </dd>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
+<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
 
 </div>
 </div>
@@ -1951,6 +2277,20 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Write formatted output to a file stream using a va_list. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Destination file stream. </td></tr>
+    <tr><td class="paramname">fmt</td><td>Format string. </td></tr>
+    <tr><td class="paramname">args</td><td>Variable argument list. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of characters written on success, or <code>-1</code> on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#ab7468e36e869d5cbd48cd074c3747ce6" title="Write formatted output to a file stream.">fprintf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7" title="Formatted output to stdout using a va_list.">vprintf()</a> </dd></dl>
+
 </div>
 </div>
 <a id="acc23aaaff6fcb9a669853efe712ba4b7" name="acc23aaaff6fcb9a669853efe712ba4b7"></a>
@@ -1978,6 +2318,19 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Formatted output to stdout using a va_list. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fmt</td><td>Format string. </td></tr>
+    <tr><td class="paramname">args</td><td>Variable argument list. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Total number of characters written.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a55f3d956bb2ba20b5059e9e25484a47f" title="Formatted output to stdout.">printf()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56" title="Write formatted output to a file stream using a va_list.">vfprintf()</a> </dd></dl>
 
 </div>
 </div>
@@ -2019,10 +2372,23 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Formatted output to a buffer with size limit using a va_list. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buffer</td><td>Destination buffer. </td></tr>
+    <tr><td class="paramname">size</td><td>Size of buffer (including null terminator). </td></tr>
+    <tr><td class="paramname">fmt</td><td>Format string. </td></tr>
+    <tr><td class="paramname">args</td><td>Variable argument list. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Total number of characters written/formatted, or <code>-1</code> on error.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a9e15ddc3a521362ccb1ed9c6a431b7f2" title="Formatted output to a buffer with size limit.">snprintf()</a> </dd></dl>
+
 </div>
 </div>
-<a id="ac6f86db0433cd874276007d41ccaae37" name="ac6f86db0433cd874276007d41ccaae37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac6f86db0433cd874276007d41ccaae37">&#9670;&#160;</a></span>write()</h2>
+<a id="a03197afb64c23b38bc6da5c886f6ad96" name="a03197afb64c23b38bc6da5c886f6ad96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03197afb64c23b38bc6da5c886f6ad96">&#9670;&#160;</a></span>write()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2030,7 +2396,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a> write </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8">FILE_HANDLE</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td>
           <td class="paramname"><em>handle</em>, </td>
         </tr>
         <tr>
@@ -2054,7 +2420,7 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Write data to a generic handle. </p>
-<p>Lower-level version of <a class="el" href="stdio_8h.html#a152a43e71b495278570e5790af9b5043">fwrite()</a> for generic handles.</p>
+<p>Lower-level version of <a class="el" href="stdio_8h.html#a152a43e71b495278570e5790af9b5043" title="Write data to a file stream.">fwrite()</a> for generic handles.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">handle</td><td>File handle returned by <a class="el" href="stdio_8h.html#a22cac4eaaca7225f353d66e6357ca851" title="Open a resource (generic handle).">open()</a>. </td></tr>

@@ -2,6 +2,7 @@ var dir_9231d380b3b1b890f7cb1d03615c52d2 =
 [
     [ "cpuinfo.h", "cpuinfo_8h.html", "cpuinfo_8h" ],
     [ "cpustat.h", "cpustat_8h.html", "cpustat_8h" ],
+    [ "gpu.h", "gpu_8h.html", "gpu_8h" ],
     [ "ioctl_devinfo.h", "ioctl__devinfo_8h.html", "ioctl__devinfo_8h" ],
     [ "ioctl_framebuffer.h", "ioctl__framebuffer_8h.html", "ioctl__framebuffer_8h" ],
     [ "ioctl_smart.h", "ioctl__smart_8h.html", "ioctl__smart_8h" ],

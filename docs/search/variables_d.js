@@ -1,12 +1,21 @@
 var searchData=
 [
-  ['n_5fcs_5fprecedes_0',['n_cs_precedes',['../structlconv.html#ad118b68a229527f7e96538ac875169ad',1,'lconv']]],
-  ['n_5fsep_5fby_5fspace_1',['n_sep_by_space',['../structlconv.html#ab7ac20ce034900155183b32fc3c6d9a3',1,'lconv']]],
-  ['n_5fsign_5fposn_2',['n_sign_posn',['../structlconv.html#ae0bbe6f545952daef5a8cbdd054a184e',1,'lconv']]],
-  ['name_3',['name',['../structrealm__info.html#a94ffed55ca8f366d704a95c4fbff30ab',1,'realm_info::name'],['../structthermal__zone.html#adde4de744bcb1bc959658b75f318436e',1,'thermal_zone::name'],['../structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10',1,'dirent_t::name']]],
-  ['negative_5fsign_4',['negative_sign',['../structlconv.html#a40dbb1b1d7fdf4926145138f5d8f6f5f',1,'lconv']]],
-  ['next_5',['next',['../structheap__seg.html#a628682b06341bbbd876a6e42656815c5',1,'heap_seg::next'],['../structlarge__seg.html#aedc3113af2d8caa0195a871a5cb0aa89',1,'large_seg::next']]],
-  ['node_5ftype_6',['node_type',['../structvespera__stat.html#a02b928b0e429df7ce23d4516b670a6ca',1,'vespera_stat']]],
-  ['num_5fconfigurations_7',['num_configurations',['../structusb__device__info.html#a18e5d2888c081b12a42ee813fcdc8010',1,'usb_device_info']]],
-  ['num_5finterfaces_8',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]]
+  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
+  ['map_5fbase_1',['map_base',['../structelf__loaded__object.html#aae41b8b85751d9b35e2765f92094d5a5',1,'elf_loaded_object']]],
+  ['map_5fsize_2',['map_size',['../structelf__loaded__object.html#ab284def43ce26bfbf7ee21b3d15c15c7',1,'elf_loaded_object']]],
+  ['max_5funits_3',['max_units',['../structrealm__info.html#a8a8d62f8ea58d74dc11ed43488bbf62b',1,'realm_info']]],
+  ['media_5ferrors_4',['media_errors',['../structsmart__nvme.html#a74a1876b49df6ce7a4e6c7d52b306346',1,'smart_nvme']]],
+  ['mem_5fflags_5',['mem_flags',['../structgpu__buffer__desc__t.html#a511eacf70a0ee22b7cc036f7be5c78b6',1,'gpu_buffer_desc_t']]],
+  ['member_6',['member',['../structvbus__header.html#a89053f79a2760a62a1a265de2b307213',1,'vbus_header::member'],['../structvbus__subscribe__args.html#a28bdf0d1fab52f54aa6649ffba78b270',1,'vbus_subscribe_args::member']]],
+  ['memory_5flimit_7',['memory_limit',['../structrealm__info.html#a7028b33fa1fb99d4e4788c02b15ed667',1,'realm_info']]],
+  ['min_8',['min',['../structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860',1,'rtc_data']]],
+  ['min_5fbuffer_5falign_9',['min_buffer_align',['../structgpu__device__info__t.html#a8c1c4a7137d3425318c14b6afbe95e70',1,'gpu_device_info_t']]],
+  ['minimized_10',['minimized',['../unionvbus__payload__t.html#a677b71de8336247efecf5acb2158768f',1,'vbus_payload_t']]],
+  ['mode_11',['mode',['../structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336',1,'tty_mode_t::mode'],['../structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51',1,'vespera_stat::mode']]],
+  ['model_12',['model',['../structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44',1,'devinfo_t::model'],['../structbattery__info.html#a35d5da5a6100a14598601f292b2956b4',1,'battery_info::model']]],
+  ['mon_5fdecimal_5fpoint_13',['mon_decimal_point',['../structlconv.html#a1aa08afe707c1d5d40b4d01369176480',1,'lconv']]],
+  ['mon_5fgrouping_14',['mon_grouping',['../structlconv.html#a12ecf5d2f7ceb0cfe0f66fd3200eef54',1,'lconv']]],
+  ['mon_5fthousands_5fsep_15',['mon_thousands_sep',['../structlconv.html#a4f04f4fd9ea670d21fc76fb5c77c032d',1,'lconv']]],
+  ['month_16',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]],
+  ['mtime_17',['mtime',['../structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea',1,'vespera_stat']]]
 ];

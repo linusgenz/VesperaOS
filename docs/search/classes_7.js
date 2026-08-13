@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['jmp_5fbuf_0',['jmp_buf',['../structjmp__buf.html',1,'']]],
-  ['jpeg_5fload_5foptions_5ft_1',['jpeg_load_options_t',['../structjpeg__load__options__t.html',1,'']]],
-  ['jpeg_5fsave_5foptions_5ft_2',['jpeg_save_options_t',['../structjpeg__save__options__t.html',1,'']]]
+  ['image_0',['Image',['../classstella_1_1Image.html',1,'stella']]],
+  ['image_5ft_1',['image_t',['../structimage__t.html',1,'']]],
+  ['imaxdiv_5ft_2',['imaxdiv_t',['../structimaxdiv__t.html',1,'']]],
+  ['iovec_3',['iovec',['../structiovec.html',1,'']]]
 ];

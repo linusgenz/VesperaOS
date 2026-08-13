@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['warning_5ftemp_5ftime_5fmin_0',['warning_temp_time_min',['../structsmart__nvme.html#a2627560527dbe5dcf4c631d235779da7',1,'smart_nvme']]],
-  ['width_1',['width',['../structcrep__sync.html#af0e322deff34ad4cb85cad855487bd57',1,'crep_sync::width'],['../structvbus__display__create__window__t.html#a03979995b86b496c0e60ad13985afea3',1,'vbus_display_create_window_t::width'],['../structvbus__display__window__info__t.html#a8b5b666e2b120304a25ec4cb5dd9329f',1,'vbus_display_window_info_t::width'],['../structvbus__display__configure__t.html#a8a5f77b5a6fe0fbb6f19173cdeb6022e',1,'vbus_display_configure_t::width'],['../structimage__t.html#a0c9099a8c2e05a0cd35be6de837c8b9a',1,'image_t::width'],['../structstella__config.html#a337f2308dbb9428746343d1ec4d6af8e',1,'stella_config::width'],['../structfb__info.html#a6af69c9c6d737cb22583b57297e1f677',1,'fb_info::width'],['../structfb__rect.html#af384250f540139dec4f1fd952f1b5da8',1,'fb_rect::width'],['../structfb__rect__outline.html#a4e15bf38995174c0d89c05641df4707c',1,'fb_rect_outline::width'],['../structfb__blit.html#a86d60eec5584d0fb6921c86a6148b339',1,'fb_blit::width']]],
-  ['window_5fid_2',['window_id',['../structvbus__display__window__opened__t.html#ab0554d676052b638f61482e252618756',1,'vbus_display_window_opened_t::window_id'],['../structvbus__display__window__focused__t.html#ac247f826f8f48aedea825487f437409b',1,'vbus_display_window_focused_t::window_id'],['../structvbus__display__input__event__t.html#abbf00068daa1e9ff9d01d27339a4e9d5',1,'vbus_display_input_event_t::window_id'],['../structvbus__display__commit__t.html#aebe3eb9dee9b7e603e9b53c94bf53cdc',1,'vbus_display_commit_t::window_id'],['../structvbus__display__window__id__t.html#ac18689388bc046d1f4265d706813e4b3',1,'vbus_display_window_id_t::window_id'],['../structvbus__display__configure__t.html#a05d57cfb1fe41ad8b820268dddbbbc4d',1,'vbus_display_configure_t::window_id'],['../structvbus__display__window__info__t.html#ad7096e1f43ffcfb40ce4abec3240b315',1,'vbus_display_window_info_t::window_id']]],
-  ['window_5finfo_3',['window_info',['../unionvbus__payload__t.html#ae68d9e69777072511283169a7da75db6',1,'vbus_payload_t']]],
-  ['worst_4',['worst',['../structsmart__attribute.html#a90f89089075e72c5ddd901236c0c192a',1,'smart_attribute::worst'],['../ioctl__smart_8h.html#a08037e0ec1e487b545f67c117edb390f',1,'worst:&#160;ioctl_smart.h']]],
-  ['ws_5fcol_5',['ws_col',['../structwinsize.html#a80bedf71a49fd324e0d92d0702cc7005',1,'winsize']]],
-  ['ws_5frow_6',['ws_row',['../structwinsize.html#a73698fa1d966374b0701e4bf225f0141',1,'winsize']]],
-  ['ws_5fxpixel_7',['ws_xpixel',['../structwinsize.html#a98b55f3411b646eca1e13cb52c5795e4',1,'winsize']]],
-  ['ws_5fypixel_8',['ws_ypixel',['../structwinsize.html#aca568563970602b60eb32fc17bd5a630',1,'winsize']]]
+  ['v_5fsamp_5ffactor_0',['v_samp_factor',['../structjpeg__save__options__t.html#a06445193fca1fa42950df1536bf0a470',1,'jpeg_save_options_t']]],
+  ['value_1',['value',['../structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319',1,'devinfo_string_t']]],
+  ['vbus_5fmsg_5fcall_2',['VBUS_MSG_CALL',['../include_2uapi_2vespera_2vbus_8h.html#a7aec337bb340a020a7c8fd5fc87dcaa4',1,'vbus.h']]],
+  ['vbus_5fmsg_5ferror_3',['VBUS_MSG_ERROR',['../include_2uapi_2vespera_2vbus_8h.html#a06388f38a83b3017a7f72e1a68c00022',1,'vbus.h']]],
+  ['vbus_5fmsg_5freturn_4',['VBUS_MSG_RETURN',['../include_2uapi_2vespera_2vbus_8h.html#a84a95e9a993b96693b2aa24a860a0962',1,'vbus.h']]],
+  ['vbus_5fmsg_5fsignal_5',['VBUS_MSG_SIGNAL',['../include_2uapi_2vespera_2vbus_8h.html#a04f0ca75be155f25ee0f896e1cdda5d7',1,'vbus.h']]],
+  ['vendor_6',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info::vendor'],['../structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee',1,'devinfo_t::vendor']]],
+  ['vendor_5fid_7',['vendor_id',['../structusb__device__info.html#ad6ac117b3b090a41c045fc1dc28bb411',1,'usb_device_info']]],
+  ['version_8',['version',['../structsmart__ata.html#a19859ef7c106c2dd5779538823bd862e',1,'smart_ata']]]
 ];

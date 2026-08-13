@@ -97,7 +97,8 @@ $(document).ready(function(){initNavTree('elf_8h.html',''); initResizable(); });
   <div class="headertitle"><div class="title">elf.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+</div>
 <p><a href="elf_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -105,6 +106,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf32__Ehdr.html">Elf32_Ehdr</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf64__Ehdr.html">Elf64_Ehdr</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf32__Sym.html">Elf32_Sym</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf64__Sym.html">Elf64_Sym</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf32__auxv__t.html">Elf32_auxv_t</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf64__auxv__t.html">Elf64_auxv_t</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structElf32__Rela.html">Elf32_Rela</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -207,6 +216,62 @@ Macros</h2></td></tr>
 <tr class="separator:a2beeae5974769f72da5f63dcbcc325fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea846861578445a1e832cd6613cc049d" id="r_aea846861578445a1e832cd6613cc049d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aea846861578445a1e832cd6613cc049d">ELFMAG</a>&#160;&#160;&#160;&quot;\177ELF&quot;</td></tr>
 <tr class="separator:aea846861578445a1e832cd6613cc049d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b508cacf6662e4bc0e98ffe1eb61636" id="r_a5b508cacf6662e4bc0e98ffe1eb61636"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5b508cacf6662e4bc0e98ffe1eb61636">EI_CLASS</a>&#160;&#160;&#160;4		/* File class byte index */</td></tr>
+<tr class="separator:a5b508cacf6662e4bc0e98ffe1eb61636"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab8a7e71c15cccd3f1d721420cd3c2ee" id="r_aab8a7e71c15cccd3f1d721420cd3c2ee"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aab8a7e71c15cccd3f1d721420cd3c2ee">ELFCLASSNONE</a>&#160;&#160;&#160;0		/* Invalid class */</td></tr>
+<tr class="separator:aab8a7e71c15cccd3f1d721420cd3c2ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f84b1bf6e07374d6289eab3d8c57f1c" id="r_a5f84b1bf6e07374d6289eab3d8c57f1c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5f84b1bf6e07374d6289eab3d8c57f1c">ELFCLASS32</a>&#160;&#160;&#160;1		/* 32-bit objects */</td></tr>
+<tr class="separator:a5f84b1bf6e07374d6289eab3d8c57f1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ee66b59be5c78ea1f1eea8a36f2c291" id="r_a9ee66b59be5c78ea1f1eea8a36f2c291"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9ee66b59be5c78ea1f1eea8a36f2c291">ELFCLASS64</a>&#160;&#160;&#160;2		/* 64-bit objects */</td></tr>
+<tr class="separator:a9ee66b59be5c78ea1f1eea8a36f2c291"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ebe21a4565dbf62ac6ac0b9b26afaa2" id="r_a4ebe21a4565dbf62ac6ac0b9b26afaa2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a4ebe21a4565dbf62ac6ac0b9b26afaa2">ELFCLASSNUM</a>&#160;&#160;&#160;3</td></tr>
+<tr class="separator:a4ebe21a4565dbf62ac6ac0b9b26afaa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79c714b4bf89638ff576e163d7d2144f" id="r_a79c714b4bf89638ff576e163d7d2144f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a79c714b4bf89638ff576e163d7d2144f">EI_DATA</a>&#160;&#160;&#160;5		/* Data encoding byte index */</td></tr>
+<tr class="separator:a79c714b4bf89638ff576e163d7d2144f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad25f21c9d99ad7f440811610bfc57ff6" id="r_ad25f21c9d99ad7f440811610bfc57ff6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ad25f21c9d99ad7f440811610bfc57ff6">ELFDATANONE</a>&#160;&#160;&#160;0		/* Invalid data encoding */</td></tr>
+<tr class="separator:ad25f21c9d99ad7f440811610bfc57ff6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af66303c799da18c8aec282ea8592e7e7" id="r_af66303c799da18c8aec282ea8592e7e7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#af66303c799da18c8aec282ea8592e7e7">ELFDATA2LSB</a>&#160;&#160;&#160;1		/* 2's complement, little endian */</td></tr>
+<tr class="separator:af66303c799da18c8aec282ea8592e7e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06385c3e5f0a3b62fae7f5e224e10f89" id="r_a06385c3e5f0a3b62fae7f5e224e10f89"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a06385c3e5f0a3b62fae7f5e224e10f89">ELFDATA2MSB</a>&#160;&#160;&#160;2		/* 2's complement, big endian */</td></tr>
+<tr class="separator:a06385c3e5f0a3b62fae7f5e224e10f89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d016d26d92115537252e6ec3bfc2298" id="r_a7d016d26d92115537252e6ec3bfc2298"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7d016d26d92115537252e6ec3bfc2298">ELFDATANUM</a>&#160;&#160;&#160;3</td></tr>
+<tr class="separator:a7d016d26d92115537252e6ec3bfc2298"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa893f7231479240d49c660c5649cac5b" id="r_aa893f7231479240d49c660c5649cac5b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aa893f7231479240d49c660c5649cac5b">AT_NULL</a>&#160;&#160;&#160;0		/* End of vector */</td></tr>
+<tr class="separator:aa893f7231479240d49c660c5649cac5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab11dfd4fb71c15a128c3f70a310b53d1" id="r_ab11dfd4fb71c15a128c3f70a310b53d1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ab11dfd4fb71c15a128c3f70a310b53d1">AT_IGNORE</a>&#160;&#160;&#160;1		/* Entry should be ignored */</td></tr>
+<tr class="separator:ab11dfd4fb71c15a128c3f70a310b53d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a3070773d3f9231c9390172ae3fd2e7" id="r_a8a3070773d3f9231c9390172ae3fd2e7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a8a3070773d3f9231c9390172ae3fd2e7">AT_EXECFD</a>&#160;&#160;&#160;2		/* File descriptor of program */</td></tr>
+<tr class="separator:a8a3070773d3f9231c9390172ae3fd2e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3de7ec7b5cee2d34208387ab97dc0642" id="r_a3de7ec7b5cee2d34208387ab97dc0642"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a3de7ec7b5cee2d34208387ab97dc0642">AT_PHDR</a>&#160;&#160;&#160;3		/* Program headers for program */</td></tr>
+<tr class="separator:a3de7ec7b5cee2d34208387ab97dc0642"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56f1f9975d88f768d7928b0ed587ef38" id="r_a56f1f9975d88f768d7928b0ed587ef38"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a56f1f9975d88f768d7928b0ed587ef38">AT_PHENT</a>&#160;&#160;&#160;4		/* Size of program header entry */</td></tr>
+<tr class="separator:a56f1f9975d88f768d7928b0ed587ef38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc712c67bee059574b4e3c096538d5bd" id="r_abc712c67bee059574b4e3c096538d5bd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#abc712c67bee059574b4e3c096538d5bd">AT_PHNUM</a>&#160;&#160;&#160;5		/* Number of program headers */</td></tr>
+<tr class="separator:abc712c67bee059574b4e3c096538d5bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7269f0c135d4bd3f9bc074d18fb30f9d" id="r_a7269f0c135d4bd3f9bc074d18fb30f9d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7269f0c135d4bd3f9bc074d18fb30f9d">AT_PAGESZ</a>&#160;&#160;&#160;6		/* System page size */</td></tr>
+<tr class="separator:a7269f0c135d4bd3f9bc074d18fb30f9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b8e51a44a47d7ea827c570ffdca14e5" id="r_a9b8e51a44a47d7ea827c570ffdca14e5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9b8e51a44a47d7ea827c570ffdca14e5">AT_BASE</a>&#160;&#160;&#160;7		/* Base address of interpreter */</td></tr>
+<tr class="separator:a9b8e51a44a47d7ea827c570ffdca14e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08c6bdc11224c9d17fbde19666c332cc" id="r_a08c6bdc11224c9d17fbde19666c332cc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a08c6bdc11224c9d17fbde19666c332cc">AT_FLAGS</a>&#160;&#160;&#160;8		/* Flags */</td></tr>
+<tr class="separator:a08c6bdc11224c9d17fbde19666c332cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80f2ea99241a6afdc4718d3c4318c871" id="r_a80f2ea99241a6afdc4718d3c4318c871"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a80f2ea99241a6afdc4718d3c4318c871">AT_ENTRY</a>&#160;&#160;&#160;9		/* Entry point of program */</td></tr>
+<tr class="separator:a80f2ea99241a6afdc4718d3c4318c871"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c46c7e4fc9e72e4c1041296ce2e805b" id="r_a9c46c7e4fc9e72e4c1041296ce2e805b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9c46c7e4fc9e72e4c1041296ce2e805b">AT_NOTELF</a>&#160;&#160;&#160;10		/* Program is not ELF */</td></tr>
+<tr class="separator:a9c46c7e4fc9e72e4c1041296ce2e805b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bc508a179d0a308a8e4b47b97bcf2a3" id="r_a7bc508a179d0a308a8e4b47b97bcf2a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7bc508a179d0a308a8e4b47b97bcf2a3">AT_UID</a>&#160;&#160;&#160;11		/* Real uid */</td></tr>
+<tr class="separator:a7bc508a179d0a308a8e4b47b97bcf2a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22b81b71265e55a9e11e0b95d4118050" id="r_a22b81b71265e55a9e11e0b95d4118050"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a22b81b71265e55a9e11e0b95d4118050">AT_EUID</a>&#160;&#160;&#160;12		/* Effective uid */</td></tr>
+<tr class="separator:a22b81b71265e55a9e11e0b95d4118050"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38d3d729013f2b2c5f51f90b0005e85d" id="r_a38d3d729013f2b2c5f51f90b0005e85d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a38d3d729013f2b2c5f51f90b0005e85d">AT_GID</a>&#160;&#160;&#160;13		/* Real gid */</td></tr>
+<tr class="separator:a38d3d729013f2b2c5f51f90b0005e85d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a687680c9f0b9bbabf6619f0aa5116580" id="r_a687680c9f0b9bbabf6619f0aa5116580"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a687680c9f0b9bbabf6619f0aa5116580">AT_EGID</a>&#160;&#160;&#160;14		/* Effective gid */</td></tr>
+<tr class="separator:a687680c9f0b9bbabf6619f0aa5116580"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d7a26de4b48e4f0c99a48bf3cd3aa42" id="r_a4d7a26de4b48e4f0c99a48bf3cd3aa42"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a4d7a26de4b48e4f0c99a48bf3cd3aa42">AT_CLKTCK</a>&#160;&#160;&#160;17		/* Frequency of times() */</td></tr>
+<tr class="separator:a4d7a26de4b48e4f0c99a48bf3cd3aa42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e8e819c6a3e1d1353cf8ad994c8f125" id="r_a9e8e819c6a3e1d1353cf8ad994c8f125"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9e8e819c6a3e1d1353cf8ad994c8f125">AT_PLATFORM</a>&#160;&#160;&#160;15		/* String identifying platform.  */</td></tr>
+<tr class="separator:a9e8e819c6a3e1d1353cf8ad994c8f125"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9765fa7aea5ad0e782d28c45630cce27" id="r_a9765fa7aea5ad0e782d28c45630cce27"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9765fa7aea5ad0e782d28c45630cce27">AT_HWCAP</a></td></tr>
+<tr class="separator:a9765fa7aea5ad0e782d28c45630cce27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a343a36d721130c5017a5669537e96822" id="r_a343a36d721130c5017a5669537e96822"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a343a36d721130c5017a5669537e96822">ET_NONE</a>&#160;&#160;&#160;0        /* No file type */</td></tr>
 <tr class="separator:a343a36d721130c5017a5669537e96822"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a91046a80fd753ce3dbfb109212761d" id="r_a2a91046a80fd753ce3dbfb109212761d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a2a91046a80fd753ce3dbfb109212761d">ET_REL</a>&#160;&#160;&#160;1         /* Relocatable file */</td></tr>
@@ -237,7 +302,7 @@ Macros</h2></td></tr>
 <tr class="separator:ab8a1253bfcc928f9aa9d4177d84f6830"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51aeadee885873fec9a218c058fe9e09" id="r_a51aeadee885873fec9a218c058fe9e09"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a51aeadee885873fec9a218c058fe9e09">ELF64_R_TYPE</a>(i)&#160;&#160;&#160;((i) &amp; 0xffffffff)</td></tr>
 <tr class="separator:a51aeadee885873fec9a218c058fe9e09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a8d04995d4d2211c875981bcff7f540" id="r_a9a8d04995d4d2211c875981bcff7f540"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9a8d04995d4d2211c875981bcff7f540">ELF64_R_INFO</a>(sym,  type)&#160;&#160;&#160;((((<a class="el" href="elf_8h.html#ad23e75512150d9a195453793f8078c95">Elf64_Xword</a>)(sym)) &lt;&lt; 32) + (type))</td></tr>
+<tr class="memitem:a9a8d04995d4d2211c875981bcff7f540" id="r_a9a8d04995d4d2211c875981bcff7f540"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9a8d04995d4d2211c875981bcff7f540">ELF64_R_INFO</a>(sym,  type)&#160;&#160;&#160;((((<a class="el" href="elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4">Elf64_Xword</a>)(sym)) &lt;&lt; 32) + (type))</td></tr>
 <tr class="separator:a9a8d04995d4d2211c875981bcff7f540"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a854729c1dc4623abeaeb765a1b745012" id="r_a854729c1dc4623abeaeb765a1b745012"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a854729c1dc4623abeaeb765a1b745012">PT_NULL</a>&#160;&#160;&#160;0                  /* Program header table entry unused */</td></tr>
 <tr class="separator:a854729c1dc4623abeaeb765a1b745012"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -381,6 +446,36 @@ Macros</h2></td></tr>
 <tr class="separator:a7377382bbab2251f41e913733978817e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a034c637255309ebfd0c87acc2e4bcb85" id="r_a034c637255309ebfd0c87acc2e4bcb85"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a034c637255309ebfd0c87acc2e4bcb85">DT_PROCNUM</a>&#160;&#160;&#160;DT_MIPS_NUM /* Most used by any processor */</td></tr>
 <tr class="separator:a034c637255309ebfd0c87acc2e4bcb85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71de5f30a43c996a79ff10df6cab3e9d" id="r_a71de5f30a43c996a79ff10df6cab3e9d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a71de5f30a43c996a79ff10df6cab3e9d">DT_ADDRRNGLO</a>&#160;&#160;&#160;0x6ffffe00</td></tr>
+<tr class="separator:a71de5f30a43c996a79ff10df6cab3e9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63655e20865a6f3c5740d36237b5b6d1" id="r_a63655e20865a6f3c5740d36237b5b6d1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a63655e20865a6f3c5740d36237b5b6d1">DT_GNU_HASH</a>&#160;&#160;&#160;0x6ffffef5	/* GNU-style hash table.  */</td></tr>
+<tr class="separator:a63655e20865a6f3c5740d36237b5b6d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e5b93587d8ce529fff232e0a865194d" id="r_a4e5b93587d8ce529fff232e0a865194d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a4e5b93587d8ce529fff232e0a865194d">DT_TLSDESC_PLT</a>&#160;&#160;&#160;0x6ffffef6</td></tr>
+<tr class="separator:a4e5b93587d8ce529fff232e0a865194d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7711c3ca0990ae02733ef532fb182194" id="r_a7711c3ca0990ae02733ef532fb182194"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7711c3ca0990ae02733ef532fb182194">DT_TLSDESC_GOT</a>&#160;&#160;&#160;0x6ffffef7</td></tr>
+<tr class="separator:a7711c3ca0990ae02733ef532fb182194"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d9caa28250c79c3b6a1e1f101f7f9ce" id="r_a5d9caa28250c79c3b6a1e1f101f7f9ce"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5d9caa28250c79c3b6a1e1f101f7f9ce">DT_GNU_CONFLICT</a>&#160;&#160;&#160;0x6ffffef8	/* Start of conflict section */</td></tr>
+<tr class="separator:a5d9caa28250c79c3b6a1e1f101f7f9ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac4f0c8fd6f435aa8fa4afb00a53f921" id="r_aac4f0c8fd6f435aa8fa4afb00a53f921"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aac4f0c8fd6f435aa8fa4afb00a53f921">DT_GNU_LIBLIST</a>&#160;&#160;&#160;0x6ffffef9	/* Library list */</td></tr>
+<tr class="separator:aac4f0c8fd6f435aa8fa4afb00a53f921"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a229e46bb31cbc0f15c19048384df44a6" id="r_a229e46bb31cbc0f15c19048384df44a6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a229e46bb31cbc0f15c19048384df44a6">DT_CONFIG</a>&#160;&#160;&#160;0x6ffffefa	/* Configuration information.  */</td></tr>
+<tr class="separator:a229e46bb31cbc0f15c19048384df44a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fcf5c426fb5f84ec30eb89b97b91469" id="r_a5fcf5c426fb5f84ec30eb89b97b91469"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5fcf5c426fb5f84ec30eb89b97b91469">DT_DEPAUDIT</a>&#160;&#160;&#160;0x6ffffefb	/* Dependency auditing.  */</td></tr>
+<tr class="separator:a5fcf5c426fb5f84ec30eb89b97b91469"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8156005395932d0564b47c244b93801f" id="r_a8156005395932d0564b47c244b93801f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a8156005395932d0564b47c244b93801f">DT_AUDIT</a>&#160;&#160;&#160;0x6ffffefc	/* Object auditing.  */</td></tr>
+<tr class="separator:a8156005395932d0564b47c244b93801f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71d32da076d5ec4dcb55c1a36e510e3f" id="r_a71d32da076d5ec4dcb55c1a36e510e3f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a71d32da076d5ec4dcb55c1a36e510e3f">DT_PLTPAD</a>&#160;&#160;&#160;0x6ffffefd	/* PLT padding.  */</td></tr>
+<tr class="separator:a71d32da076d5ec4dcb55c1a36e510e3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf3acbdcd252a7316fdd0b542d2d7f1b" id="r_aaf3acbdcd252a7316fdd0b542d2d7f1b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aaf3acbdcd252a7316fdd0b542d2d7f1b">DT_MOVETAB</a>&#160;&#160;&#160;0x6ffffefe	/* Move table.  */</td></tr>
+<tr class="separator:aaf3acbdcd252a7316fdd0b542d2d7f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7450e5ef14476f6eaec7440bb8bf0d52" id="r_a7450e5ef14476f6eaec7440bb8bf0d52"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7450e5ef14476f6eaec7440bb8bf0d52">DT_SYMINFO</a>&#160;&#160;&#160;0x6ffffeff	/* Syminfo table.  */</td></tr>
+<tr class="separator:a7450e5ef14476f6eaec7440bb8bf0d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a280cb54c0f85be9800cfbdc9b9f5699a" id="r_a280cb54c0f85be9800cfbdc9b9f5699a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a280cb54c0f85be9800cfbdc9b9f5699a">DT_ADDRRNGHI</a>&#160;&#160;&#160;0x6ffffeff</td></tr>
+<tr class="separator:a280cb54c0f85be9800cfbdc9b9f5699a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a065e8bbdf8cfc58c1e1652f868f9e582" id="r_a065e8bbdf8cfc58c1e1652f868f9e582"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a065e8bbdf8cfc58c1e1652f868f9e582">DT_ADDRTAGIDX</a>(tag)&#160;&#160;&#160;(<a class="el" href="elf_8h.html#a280cb54c0f85be9800cfbdc9b9f5699a">DT_ADDRRNGHI</a> - (tag))	/* Reverse order! */</td></tr>
+<tr class="separator:a065e8bbdf8cfc58c1e1652f868f9e582"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3358cdb8df628edf022b9541f04b315e" id="r_a3358cdb8df628edf022b9541f04b315e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a3358cdb8df628edf022b9541f04b315e">DT_ADDRNUM</a>&#160;&#160;&#160;11</td></tr>
+<tr class="separator:a3358cdb8df628edf022b9541f04b315e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe818855f9b5fedf3e6a2b70f8b0c209" id="r_abe818855f9b5fedf3e6a2b70f8b0c209"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#abe818855f9b5fedf3e6a2b70f8b0c209">R_X86_64_NONE</a>&#160;&#160;&#160;0      /* No reloc */</td></tr>
 <tr class="separator:abe818855f9b5fedf3e6a2b70f8b0c209"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14c39da8e2667c3dffe6d4a8367df892" id="r_a14c39da8e2667c3dffe6d4a8367df892"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a14c39da8e2667c3dffe6d4a8367df892">R_X86_64_64</a>&#160;&#160;&#160;1        /* Direct 64 bit  */</td></tr>
@@ -465,51 +560,447 @@ Macros</h2></td></tr>
 <tr class="separator:a6a0fbd8a41caa677752537a396a1c8d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5e4de24d06f2a466922821be96d7bab" id="r_ac5e4de24d06f2a466922821be96d7bab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ac5e4de24d06f2a466922821be96d7bab">R_X86_64_NUM</a>&#160;&#160;&#160;43</td></tr>
 <tr class="separator:ac5e4de24d06f2a466922821be96d7bab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72c40de459931e6f1d041201dc7398b1" id="r_a72c40de459931e6f1d041201dc7398b1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a72c40de459931e6f1d041201dc7398b1">STB_LOCAL</a>&#160;&#160;&#160;0		/* Local symbol */</td></tr>
+<tr class="separator:a72c40de459931e6f1d041201dc7398b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8091960a6799bf71a7494551dac1a2e8" id="r_a8091960a6799bf71a7494551dac1a2e8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a8091960a6799bf71a7494551dac1a2e8">STB_GLOBAL</a>&#160;&#160;&#160;1		/* Global symbol */</td></tr>
+<tr class="separator:a8091960a6799bf71a7494551dac1a2e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4247ded90f9371e3c4d2f7dda260c93" id="r_ad4247ded90f9371e3c4d2f7dda260c93"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ad4247ded90f9371e3c4d2f7dda260c93">STB_WEAK</a>&#160;&#160;&#160;2		/* Weak symbol */</td></tr>
+<tr class="separator:ad4247ded90f9371e3c4d2f7dda260c93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e188275d0a1f46da96e9906e4b478e7" id="r_a2e188275d0a1f46da96e9906e4b478e7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a2e188275d0a1f46da96e9906e4b478e7">STB_NUM</a>&#160;&#160;&#160;3		/* Number of defined types.  */</td></tr>
+<tr class="separator:a2e188275d0a1f46da96e9906e4b478e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab764e4fb4280d76967bf382a17d5b1d1" id="r_ab764e4fb4280d76967bf382a17d5b1d1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ab764e4fb4280d76967bf382a17d5b1d1">STB_LOOS</a>&#160;&#160;&#160;10		/* Start of OS-specific */</td></tr>
+<tr class="separator:ab764e4fb4280d76967bf382a17d5b1d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad98b7497a1cf5b212369c34e5159296e" id="r_ad98b7497a1cf5b212369c34e5159296e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ad98b7497a1cf5b212369c34e5159296e">STB_GNU_UNIQUE</a>&#160;&#160;&#160;10		/* Unique symbol.  */</td></tr>
+<tr class="separator:ad98b7497a1cf5b212369c34e5159296e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a934c6e5a5405f46e343d8493a4f8f6d7" id="r_a934c6e5a5405f46e343d8493a4f8f6d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a934c6e5a5405f46e343d8493a4f8f6d7">STB_HIOS</a>&#160;&#160;&#160;12		/* End of OS-specific */</td></tr>
+<tr class="separator:a934c6e5a5405f46e343d8493a4f8f6d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f4d0360fcb960e31e119973a472010e" id="r_a4f4d0360fcb960e31e119973a472010e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a4f4d0360fcb960e31e119973a472010e">STB_LOPROC</a>&#160;&#160;&#160;13		/* Start of processor-specific */</td></tr>
+<tr class="separator:a4f4d0360fcb960e31e119973a472010e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fa61266452365ab0e2d2ad32b87043e" id="r_a5fa61266452365ab0e2d2ad32b87043e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5fa61266452365ab0e2d2ad32b87043e">STB_HIPROC</a>&#160;&#160;&#160;15		/* End of processor-specific */</td></tr>
+<tr class="separator:a5fa61266452365ab0e2d2ad32b87043e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa15a54cc9c881e4d54daedc9d984c2fc" id="r_aa15a54cc9c881e4d54daedc9d984c2fc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aa15a54cc9c881e4d54daedc9d984c2fc">STT_NOTYPE</a>&#160;&#160;&#160;0		/* Symbol type is unspecified */</td></tr>
+<tr class="separator:aa15a54cc9c881e4d54daedc9d984c2fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac236cc313291ed38ecb346a8b4bde6b2" id="r_ac236cc313291ed38ecb346a8b4bde6b2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ac236cc313291ed38ecb346a8b4bde6b2">STT_OBJECT</a>&#160;&#160;&#160;1		/* Symbol is a data object */</td></tr>
+<tr class="separator:ac236cc313291ed38ecb346a8b4bde6b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cdfedf900935f23f6e409ce378dc1d2" id="r_a9cdfedf900935f23f6e409ce378dc1d2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9cdfedf900935f23f6e409ce378dc1d2">STT_FUNC</a>&#160;&#160;&#160;2		/* Symbol is a code object */</td></tr>
+<tr class="separator:a9cdfedf900935f23f6e409ce378dc1d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e9a3c0fa59c3fc896f8e4c1872c6af1" id="r_a9e9a3c0fa59c3fc896f8e4c1872c6af1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a9e9a3c0fa59c3fc896f8e4c1872c6af1">STT_SECTION</a>&#160;&#160;&#160;3		/* Symbol associated with a section */</td></tr>
+<tr class="separator:a9e9a3c0fa59c3fc896f8e4c1872c6af1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a983395f99446fa4d398c4e902bec34c6" id="r_a983395f99446fa4d398c4e902bec34c6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a983395f99446fa4d398c4e902bec34c6">STT_FILE</a>&#160;&#160;&#160;4		/* Symbol's name is file name */</td></tr>
+<tr class="separator:a983395f99446fa4d398c4e902bec34c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0067af965ad01b11be77380eed14efb8" id="r_a0067af965ad01b11be77380eed14efb8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a0067af965ad01b11be77380eed14efb8">STT_COMMON</a>&#160;&#160;&#160;5		/* Symbol is a common data object */</td></tr>
+<tr class="separator:a0067af965ad01b11be77380eed14efb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2d45eab9a7d620e24df1b6c9fd43d55" id="r_ae2d45eab9a7d620e24df1b6c9fd43d55"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ae2d45eab9a7d620e24df1b6c9fd43d55">STT_TLS</a>&#160;&#160;&#160;6		/* Symbol is thread-local data object*/</td></tr>
+<tr class="separator:ae2d45eab9a7d620e24df1b6c9fd43d55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0ce5374d0c27b03eb219bbfe7681593" id="r_ac0ce5374d0c27b03eb219bbfe7681593"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ac0ce5374d0c27b03eb219bbfe7681593">STT_NUM</a>&#160;&#160;&#160;7		/* Number of defined types.  */</td></tr>
+<tr class="separator:ac0ce5374d0c27b03eb219bbfe7681593"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebb605da5285a99f7475cb17214955a2" id="r_aebb605da5285a99f7475cb17214955a2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aebb605da5285a99f7475cb17214955a2">STT_LOOS</a>&#160;&#160;&#160;10		/* Start of OS-specific */</td></tr>
+<tr class="separator:aebb605da5285a99f7475cb17214955a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fc0a79a2c08a0860bdf4fa00ad706d6" id="r_a5fc0a79a2c08a0860bdf4fa00ad706d6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5fc0a79a2c08a0860bdf4fa00ad706d6">STT_GNU_IFUNC</a>&#160;&#160;&#160;10		/* Symbol is indirect code object */</td></tr>
+<tr class="separator:a5fc0a79a2c08a0860bdf4fa00ad706d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6de042ae014d95d7b9e0649e0ecfff8e" id="r_a6de042ae014d95d7b9e0649e0ecfff8e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a6de042ae014d95d7b9e0649e0ecfff8e">STT_HIOS</a>&#160;&#160;&#160;12		/* End of OS-specific */</td></tr>
+<tr class="separator:a6de042ae014d95d7b9e0649e0ecfff8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb49b6a738078d32e5979885e26c4ddf" id="r_aeb49b6a738078d32e5979885e26c4ddf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aeb49b6a738078d32e5979885e26c4ddf">STT_LOPROC</a>&#160;&#160;&#160;13		/* Start of processor-specific */</td></tr>
+<tr class="separator:aeb49b6a738078d32e5979885e26c4ddf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bf951d9b37f10dfe17a1bd6b4489599" id="r_a5bf951d9b37f10dfe17a1bd6b4489599"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5bf951d9b37f10dfe17a1bd6b4489599">STT_HIPROC</a>&#160;&#160;&#160;15		/* End of processor-specific */</td></tr>
+<tr class="separator:a5bf951d9b37f10dfe17a1bd6b4489599"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2f25695673c5f1c4ec723e595288411" id="r_ab2f25695673c5f1c4ec723e595288411"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ab2f25695673c5f1c4ec723e595288411">SHN_UNDEF</a>&#160;&#160;&#160;0		/* Undefined section */</td></tr>
+<tr class="separator:ab2f25695673c5f1c4ec723e595288411"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac663b490fedc8aeab91bf941772ba306" id="r_ac663b490fedc8aeab91bf941772ba306"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ac663b490fedc8aeab91bf941772ba306">SHN_LORESERVE</a>&#160;&#160;&#160;0xff00		/* Start of reserved indices */</td></tr>
+<tr class="separator:ac663b490fedc8aeab91bf941772ba306"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9efa7bd7617e554f6158699401d4e10" id="r_ab9efa7bd7617e554f6158699401d4e10"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ab9efa7bd7617e554f6158699401d4e10">SHN_LOPROC</a>&#160;&#160;&#160;0xff00		/* Start of processor-specific */</td></tr>
+<tr class="separator:ab9efa7bd7617e554f6158699401d4e10"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a7a3d24905f5b5d4fc020f4a5d830f0" id="r_a1a7a3d24905f5b5d4fc020f4a5d830f0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a1a7a3d24905f5b5d4fc020f4a5d830f0">SHN_BEFORE</a></td></tr>
+<tr class="separator:a1a7a3d24905f5b5d4fc020f4a5d830f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac159fcc2e97ab3f1550e35c595a60898" id="r_ac159fcc2e97ab3f1550e35c595a60898"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ac159fcc2e97ab3f1550e35c595a60898">SHN_AFTER</a></td></tr>
+<tr class="separator:ac159fcc2e97ab3f1550e35c595a60898"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e94b5a4fc1e90cfc5d08af79025171b" id="r_a5e94b5a4fc1e90cfc5d08af79025171b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5e94b5a4fc1e90cfc5d08af79025171b">SHN_HIPROC</a>&#160;&#160;&#160;0xff1f		/* End of processor-specific */</td></tr>
+<tr class="separator:a5e94b5a4fc1e90cfc5d08af79025171b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef4c5d1b1a6892ee91776dc11ad1db04" id="r_aef4c5d1b1a6892ee91776dc11ad1db04"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aef4c5d1b1a6892ee91776dc11ad1db04">SHN_LOOS</a>&#160;&#160;&#160;0xff20		/* Start of OS-specific */</td></tr>
+<tr class="separator:aef4c5d1b1a6892ee91776dc11ad1db04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a037dd86124f62b506010eff464cafb62" id="r_a037dd86124f62b506010eff464cafb62"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a037dd86124f62b506010eff464cafb62">SHN_HIOS</a>&#160;&#160;&#160;0xff3f		/* End of OS-specific */</td></tr>
+<tr class="separator:a037dd86124f62b506010eff464cafb62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a322030426afae1a37a8ba1ab86a39066" id="r_a322030426afae1a37a8ba1ab86a39066"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a322030426afae1a37a8ba1ab86a39066">SHN_ABS</a>&#160;&#160;&#160;0xfff1		/* Associated symbol is absolute */</td></tr>
+<tr class="separator:a322030426afae1a37a8ba1ab86a39066"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d62721d3fe66370be9ec0ca0764ec7b" id="r_a3d62721d3fe66370be9ec0ca0764ec7b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a3d62721d3fe66370be9ec0ca0764ec7b">SHN_COMMON</a>&#160;&#160;&#160;0xfff2		/* Associated symbol is common */</td></tr>
+<tr class="separator:a3d62721d3fe66370be9ec0ca0764ec7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcbb4b7e1c4ec5add7328be2c8de8ab2" id="r_adcbb4b7e1c4ec5add7328be2c8de8ab2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#adcbb4b7e1c4ec5add7328be2c8de8ab2">SHN_XINDEX</a>&#160;&#160;&#160;0xffff		/* Index is in extra table.  */</td></tr>
+<tr class="separator:adcbb4b7e1c4ec5add7328be2c8de8ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaac4804ef07b9da1d840d951469692f0" id="r_aaac4804ef07b9da1d840d951469692f0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aaac4804ef07b9da1d840d951469692f0">SHN_HIRESERVE</a>&#160;&#160;&#160;0xffff		/* End of reserved indices */</td></tr>
+<tr class="separator:aaac4804ef07b9da1d840d951469692f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:aabd1afed30230462c0c8bfce21849d0b" id="r_aabd1afed30230462c0c8bfce21849d0b"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aabd1afed30230462c0c8bfce21849d0b">Elf32_Half</a></td></tr>
-<tr class="separator:aabd1afed30230462c0c8bfce21849d0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28c29e3e9f559135dc8cc725c2a52b86" id="r_a28c29e3e9f559135dc8cc725c2a52b86"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a28c29e3e9f559135dc8cc725c2a52b86">Elf64_Half</a></td></tr>
-<tr class="separator:a28c29e3e9f559135dc8cc725c2a52b86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa363a7fa5d0f9695fe3fec8af43c6748" id="r_aa363a7fa5d0f9695fe3fec8af43c6748"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aa363a7fa5d0f9695fe3fec8af43c6748">Elf32_Word</a></td></tr>
-<tr class="separator:aa363a7fa5d0f9695fe3fec8af43c6748"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b48cd2a6ad5064f51a485b1db6fae8d" id="r_a7b48cd2a6ad5064f51a485b1db6fae8d"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a9e3ad5f8e752f01d926ce122d5a5285e">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7b48cd2a6ad5064f51a485b1db6fae8d">Elf32_Sword</a></td></tr>
-<tr class="separator:a7b48cd2a6ad5064f51a485b1db6fae8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab35f5ca68f69001a44607e7094f834fe" id="r_ab35f5ca68f69001a44607e7094f834fe"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ab35f5ca68f69001a44607e7094f834fe">Elf64_Word</a></td></tr>
-<tr class="separator:ab35f5ca68f69001a44607e7094f834fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6de564f106d5cc3ef7141ba67dab2ac" id="r_ad6de564f106d5cc3ef7141ba67dab2ac"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a9e3ad5f8e752f01d926ce122d5a5285e">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ad6de564f106d5cc3ef7141ba67dab2ac">Elf64_Sword</a></td></tr>
-<tr class="separator:ad6de564f106d5cc3ef7141ba67dab2ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5817cb2ff9178664f38cb27773b6b5b" id="r_aa5817cb2ff9178664f38cb27773b6b5b"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aa5817cb2ff9178664f38cb27773b6b5b">Elf32_Xword</a></td></tr>
-<tr class="separator:aa5817cb2ff9178664f38cb27773b6b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a289ff910b981929f9691d8a6f000c27e" id="r_a289ff910b981929f9691d8a6f000c27e"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a289ff910b981929f9691d8a6f000c27e">Elf32_Sxword</a></td></tr>
-<tr class="separator:a289ff910b981929f9691d8a6f000c27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad23e75512150d9a195453793f8078c95" id="r_ad23e75512150d9a195453793f8078c95"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ad23e75512150d9a195453793f8078c95">Elf64_Xword</a></td></tr>
-<tr class="separator:ad23e75512150d9a195453793f8078c95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74620bffe9c155b43dde0b67a269545b" id="r_a74620bffe9c155b43dde0b67a269545b"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a74620bffe9c155b43dde0b67a269545b">Elf64_Sxword</a></td></tr>
-<tr class="separator:a74620bffe9c155b43dde0b67a269545b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeafb57189333c55fc04663de069a6ce2" id="r_aeafb57189333c55fc04663de069a6ce2"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aeafb57189333c55fc04663de069a6ce2">Elf32_Addr</a></td></tr>
-<tr class="separator:aeafb57189333c55fc04663de069a6ce2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d7c9d60865716a6057a274ec1ff7903" id="r_a1d7c9d60865716a6057a274ec1ff7903"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a1d7c9d60865716a6057a274ec1ff7903">Elf64_Addr</a></td></tr>
-<tr class="separator:a1d7c9d60865716a6057a274ec1ff7903"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a75ac6d12b6cc28ea46d202dd5cd4b695" id="r_a75ac6d12b6cc28ea46d202dd5cd4b695"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a75ac6d12b6cc28ea46d202dd5cd4b695">Elf32_Off</a></td></tr>
-<tr class="separator:a75ac6d12b6cc28ea46d202dd5cd4b695"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac901922ddeae2ab46daaeabbf01b7182" id="r_ac901922ddeae2ab46daaeabbf01b7182"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#ac901922ddeae2ab46daaeabbf01b7182">Elf64_Off</a></td></tr>
-<tr class="separator:ac901922ddeae2ab46daaeabbf01b7182"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a74bd724debb22b7ec169e329784c15" id="r_a4a74bd724debb22b7ec169e329784c15"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a4a74bd724debb22b7ec169e329784c15">Elf32_Section</a></td></tr>
-<tr class="separator:a4a74bd724debb22b7ec169e329784c15"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f97115187a8e822b311a6dae9290fa1" id="r_a7f97115187a8e822b311a6dae9290fa1"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a7f97115187a8e822b311a6dae9290fa1">Elf64_Section</a></td></tr>
-<tr class="separator:a7f97115187a8e822b311a6dae9290fa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8acefd6aa26497ad5a3fe579b0c47004" id="r_a8acefd6aa26497ad5a3fe579b0c47004"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#aabd1afed30230462c0c8bfce21849d0b">Elf32_Half</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a8acefd6aa26497ad5a3fe579b0c47004">Elf32_Versym</a></td></tr>
+<tr class="memitem:a2ff0787d7d1bae0f251192806a2974ca" id="r_a2ff0787d7d1bae0f251192806a2974ca"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a2ff0787d7d1bae0f251192806a2974ca">Elf32_Half</a></td></tr>
+<tr class="separator:a2ff0787d7d1bae0f251192806a2974ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb6a5584018b431da3472e7c6a7fd731" id="r_adb6a5584018b431da3472e7c6a7fd731"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#adb6a5584018b431da3472e7c6a7fd731">Elf64_Half</a></td></tr>
+<tr class="separator:adb6a5584018b431da3472e7c6a7fd731"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5924ece606c732e86f8263a19408e45" id="r_af5924ece606c732e86f8263a19408e45"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#af5924ece606c732e86f8263a19408e45">Elf32_Word</a></td></tr>
+<tr class="separator:af5924ece606c732e86f8263a19408e45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30ce6352cf03c667272698ada477da95" id="r_a30ce6352cf03c667272698ada477da95"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a32f2e37ee053cf2ce8ca28d1f74630e5">int32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a30ce6352cf03c667272698ada477da95">Elf32_Sword</a></td></tr>
+<tr class="separator:a30ce6352cf03c667272698ada477da95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3aa1920ed115b7ef7e99716fece4401" id="r_aa3aa1920ed115b7ef7e99716fece4401"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aa3aa1920ed115b7ef7e99716fece4401">Elf64_Word</a></td></tr>
+<tr class="separator:aa3aa1920ed115b7ef7e99716fece4401"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a354f1cae9fad774a486444c12a861da5" id="r_a354f1cae9fad774a486444c12a861da5"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a32f2e37ee053cf2ce8ca28d1f74630e5">int32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a354f1cae9fad774a486444c12a861da5">Elf64_Sword</a></td></tr>
+<tr class="separator:a354f1cae9fad774a486444c12a861da5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06e429ed15bc1257d859cca67c4dddd9" id="r_a06e429ed15bc1257d859cca67c4dddd9"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a06e429ed15bc1257d859cca67c4dddd9">Elf32_Xword</a></td></tr>
+<tr class="separator:a06e429ed15bc1257d859cca67c4dddd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c466fc4bdce93c75fa4f9740b1ce6c1" id="r_a8c466fc4bdce93c75fa4f9740b1ce6c1"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a8c466fc4bdce93c75fa4f9740b1ce6c1">Elf32_Sxword</a></td></tr>
+<tr class="separator:a8c466fc4bdce93c75fa4f9740b1ce6c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5447a48a3dae0bd24f606415268c6fe4" id="r_a5447a48a3dae0bd24f606415268c6fe4"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4">Elf64_Xword</a></td></tr>
+<tr class="separator:a5447a48a3dae0bd24f606415268c6fe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b450442210b3d21567662fb96ac9a02" id="r_a5b450442210b3d21567662fb96ac9a02"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a5b450442210b3d21567662fb96ac9a02">Elf64_Sxword</a></td></tr>
+<tr class="separator:a5b450442210b3d21567662fb96ac9a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40c6d4571e6001f443cc6a6474620158" id="r_a40c6d4571e6001f443cc6a6474620158"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a40c6d4571e6001f443cc6a6474620158">Elf32_Addr</a></td></tr>
+<tr class="separator:a40c6d4571e6001f443cc6a6474620158"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeed51d08e3a950d637f8ec1f0cd4ef65" id="r_aeed51d08e3a950d637f8ec1f0cd4ef65"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#aeed51d08e3a950d637f8ec1f0cd4ef65">Elf64_Addr</a></td></tr>
+<tr class="separator:aeed51d08e3a950d637f8ec1f0cd4ef65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a655751f9b317369b93c581ea8ed84516" id="r_a655751f9b317369b93c581ea8ed84516"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a655751f9b317369b93c581ea8ed84516">Elf32_Off</a></td></tr>
+<tr class="separator:a655751f9b317369b93c581ea8ed84516"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f7837bc80df7a68291fce54ff088849" id="r_a6f7837bc80df7a68291fce54ff088849"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a6f7837bc80df7a68291fce54ff088849">Elf64_Off</a></td></tr>
+<tr class="separator:a6f7837bc80df7a68291fce54ff088849"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abaffe34cd8a7e31c8f57ebf85c17ca34" id="r_abaffe34cd8a7e31c8f57ebf85c17ca34"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#abaffe34cd8a7e31c8f57ebf85c17ca34">Elf32_Section</a></td></tr>
+<tr class="separator:abaffe34cd8a7e31c8f57ebf85c17ca34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc3d34d4258f3cf91184ff97a6f8dda1" id="r_acc3d34d4258f3cf91184ff97a6f8dda1"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#acc3d34d4258f3cf91184ff97a6f8dda1">Elf64_Section</a></td></tr>
+<tr class="separator:acc3d34d4258f3cf91184ff97a6f8dda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8acefd6aa26497ad5a3fe579b0c47004" id="r_a8acefd6aa26497ad5a3fe579b0c47004"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#a2ff0787d7d1bae0f251192806a2974ca">Elf32_Half</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a8acefd6aa26497ad5a3fe579b0c47004">Elf32_Versym</a></td></tr>
 <tr class="separator:a8acefd6aa26497ad5a3fe579b0c47004"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acdc5f76ef4cf0f090a3fe0b1b958667c" id="r_acdc5f76ef4cf0f090a3fe0b1b958667c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#a28c29e3e9f559135dc8cc725c2a52b86">Elf64_Half</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#acdc5f76ef4cf0f090a3fe0b1b958667c">Elf64_Versym</a></td></tr>
+<tr class="memitem:acdc5f76ef4cf0f090a3fe0b1b958667c" id="r_acdc5f76ef4cf0f090a3fe0b1b958667c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#adb6a5584018b431da3472e7c6a7fd731">Elf64_Half</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#acdc5f76ef4cf0f090a3fe0b1b958667c">Elf64_Versym</a></td></tr>
 <tr class="separator:acdc5f76ef4cf0f090a3fe0b1b958667c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adaf5a54883fa26e4bd68c852c7931d6c" id="r_adaf5a54883fa26e4bd68c852c7931d6c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#aa363a7fa5d0f9695fe3fec8af43c6748">Elf32_Word</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#adaf5a54883fa26e4bd68c852c7931d6c">Elf32_Relr</a></td></tr>
+<tr class="memitem:adaf5a54883fa26e4bd68c852c7931d6c" id="r_adaf5a54883fa26e4bd68c852c7931d6c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#af5924ece606c732e86f8263a19408e45">Elf32_Word</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#adaf5a54883fa26e4bd68c852c7931d6c">Elf32_Relr</a></td></tr>
 <tr class="separator:adaf5a54883fa26e4bd68c852c7931d6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74c374136cf9a969dde2585536c808ac" id="r_a74c374136cf9a969dde2585536c808ac"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#ad23e75512150d9a195453793f8078c95">Elf64_Xword</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a74c374136cf9a969dde2585536c808ac">Elf64_Relr</a></td></tr>
+<tr class="memitem:a74c374136cf9a969dde2585536c808ac" id="r_a74c374136cf9a969dde2585536c808ac"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4">Elf64_Xword</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="elf_8h.html#a74c374136cf9a969dde2585536c808ac">Elf64_Relr</a></td></tr>
 <tr class="separator:a74c374136cf9a969dde2585536c808ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a9b8e51a44a47d7ea827c570ffdca14e5" name="a9b8e51a44a47d7ea827c570ffdca14e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b8e51a44a47d7ea827c570ffdca14e5">&#9670;&#160;</a></span>AT_BASE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_BASE&#160;&#160;&#160;7		/* Base address of interpreter */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4d7a26de4b48e4f0c99a48bf3cd3aa42" name="a4d7a26de4b48e4f0c99a48bf3cd3aa42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d7a26de4b48e4f0c99a48bf3cd3aa42">&#9670;&#160;</a></span>AT_CLKTCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_CLKTCK&#160;&#160;&#160;17		/* Frequency of times() */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a687680c9f0b9bbabf6619f0aa5116580" name="a687680c9f0b9bbabf6619f0aa5116580"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a687680c9f0b9bbabf6619f0aa5116580">&#9670;&#160;</a></span>AT_EGID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_EGID&#160;&#160;&#160;14		/* Effective gid */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a80f2ea99241a6afdc4718d3c4318c871" name="a80f2ea99241a6afdc4718d3c4318c871"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80f2ea99241a6afdc4718d3c4318c871">&#9670;&#160;</a></span>AT_ENTRY</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_ENTRY&#160;&#160;&#160;9		/* Entry point of program */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a22b81b71265e55a9e11e0b95d4118050" name="a22b81b71265e55a9e11e0b95d4118050"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22b81b71265e55a9e11e0b95d4118050">&#9670;&#160;</a></span>AT_EUID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_EUID&#160;&#160;&#160;12		/* Effective uid */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8a3070773d3f9231c9390172ae3fd2e7" name="a8a3070773d3f9231c9390172ae3fd2e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a3070773d3f9231c9390172ae3fd2e7">&#9670;&#160;</a></span>AT_EXECFD</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_EXECFD&#160;&#160;&#160;2		/* File descriptor of program */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a08c6bdc11224c9d17fbde19666c332cc" name="a08c6bdc11224c9d17fbde19666c332cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08c6bdc11224c9d17fbde19666c332cc">&#9670;&#160;</a></span>AT_FLAGS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_FLAGS&#160;&#160;&#160;8		/* Flags */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a38d3d729013f2b2c5f51f90b0005e85d" name="a38d3d729013f2b2c5f51f90b0005e85d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38d3d729013f2b2c5f51f90b0005e85d">&#9670;&#160;</a></span>AT_GID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_GID&#160;&#160;&#160;13		/* Real gid */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9765fa7aea5ad0e782d28c45630cce27" name="a9765fa7aea5ad0e782d28c45630cce27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9765fa7aea5ad0e782d28c45630cce27">&#9670;&#160;</a></span>AT_HWCAP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_HWCAP</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">16      <span class="comment">/* Machine-dependent hints about</span></div>
+<div class="line"><span class="comment">processor capabilities.  */</span></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="ab11dfd4fb71c15a128c3f70a310b53d1" name="ab11dfd4fb71c15a128c3f70a310b53d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab11dfd4fb71c15a128c3f70a310b53d1">&#9670;&#160;</a></span>AT_IGNORE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_IGNORE&#160;&#160;&#160;1		/* Entry should be ignored */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9c46c7e4fc9e72e4c1041296ce2e805b" name="a9c46c7e4fc9e72e4c1041296ce2e805b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c46c7e4fc9e72e4c1041296ce2e805b">&#9670;&#160;</a></span>AT_NOTELF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_NOTELF&#160;&#160;&#160;10		/* Program is not ELF */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa893f7231479240d49c660c5649cac5b" name="aa893f7231479240d49c660c5649cac5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa893f7231479240d49c660c5649cac5b">&#9670;&#160;</a></span>AT_NULL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_NULL&#160;&#160;&#160;0		/* End of vector */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7269f0c135d4bd3f9bc074d18fb30f9d" name="a7269f0c135d4bd3f9bc074d18fb30f9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7269f0c135d4bd3f9bc074d18fb30f9d">&#9670;&#160;</a></span>AT_PAGESZ</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_PAGESZ&#160;&#160;&#160;6		/* System page size */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3de7ec7b5cee2d34208387ab97dc0642" name="a3de7ec7b5cee2d34208387ab97dc0642"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3de7ec7b5cee2d34208387ab97dc0642">&#9670;&#160;</a></span>AT_PHDR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_PHDR&#160;&#160;&#160;3		/* Program headers for program */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a56f1f9975d88f768d7928b0ed587ef38" name="a56f1f9975d88f768d7928b0ed587ef38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56f1f9975d88f768d7928b0ed587ef38">&#9670;&#160;</a></span>AT_PHENT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_PHENT&#160;&#160;&#160;4		/* Size of program header entry */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abc712c67bee059574b4e3c096538d5bd" name="abc712c67bee059574b4e3c096538d5bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc712c67bee059574b4e3c096538d5bd">&#9670;&#160;</a></span>AT_PHNUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_PHNUM&#160;&#160;&#160;5		/* Number of program headers */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9e8e819c6a3e1d1353cf8ad994c8f125" name="a9e8e819c6a3e1d1353cf8ad994c8f125"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e8e819c6a3e1d1353cf8ad994c8f125">&#9670;&#160;</a></span>AT_PLATFORM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_PLATFORM&#160;&#160;&#160;15		/* String identifying platform.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7bc508a179d0a308a8e4b47b97bcf2a3" name="a7bc508a179d0a308a8e4b47b97bcf2a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bc508a179d0a308a8e4b47b97bcf2a3">&#9670;&#160;</a></span>AT_UID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define AT_UID&#160;&#160;&#160;11		/* Real uid */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3358cdb8df628edf022b9541f04b315e" name="a3358cdb8df628edf022b9541f04b315e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3358cdb8df628edf022b9541f04b315e">&#9670;&#160;</a></span>DT_ADDRNUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_ADDRNUM&#160;&#160;&#160;11</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a280cb54c0f85be9800cfbdc9b9f5699a" name="a280cb54c0f85be9800cfbdc9b9f5699a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a280cb54c0f85be9800cfbdc9b9f5699a">&#9670;&#160;</a></span>DT_ADDRRNGHI</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_ADDRRNGHI&#160;&#160;&#160;0x6ffffeff</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a71de5f30a43c996a79ff10df6cab3e9d" name="a71de5f30a43c996a79ff10df6cab3e9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71de5f30a43c996a79ff10df6cab3e9d">&#9670;&#160;</a></span>DT_ADDRRNGLO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_ADDRRNGLO&#160;&#160;&#160;0x6ffffe00</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a065e8bbdf8cfc58c1e1652f868f9e582" name="a065e8bbdf8cfc58c1e1652f868f9e582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a065e8bbdf8cfc58c1e1652f868f9e582">&#9670;&#160;</a></span>DT_ADDRTAGIDX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_ADDRTAGIDX</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">tag</td><td>)</td>
+          <td>&#160;&#160;&#160;(<a class="el" href="elf_8h.html#a280cb54c0f85be9800cfbdc9b9f5699a">DT_ADDRRNGHI</a> - (tag))	/* Reverse order! */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8156005395932d0564b47c244b93801f" name="a8156005395932d0564b47c244b93801f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8156005395932d0564b47c244b93801f">&#9670;&#160;</a></span>DT_AUDIT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_AUDIT&#160;&#160;&#160;0x6ffffefc	/* Object auditing.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a4fa692a7df628fcc38639a78b1ec1c1f" name="a4fa692a7df628fcc38639a78b1ec1c1f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4fa692a7df628fcc38639a78b1ec1c1f">&#9670;&#160;</a></span>DT_BIND_NOW</h2>
 
@@ -524,6 +1015,20 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
+<a id="a229e46bb31cbc0f15c19048384df44a6" name="a229e46bb31cbc0f15c19048384df44a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a229e46bb31cbc0f15c19048384df44a6">&#9670;&#160;</a></span>DT_CONFIG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_CONFIG&#160;&#160;&#160;0x6ffffefa	/* Configuration information.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="af561e146ca63f6aba12f7d6304859047" name="af561e146ca63f6aba12f7d6304859047"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af561e146ca63f6aba12f7d6304859047">&#9670;&#160;</a></span>DT_DEBUG</h2>
 
@@ -532,6 +1037,20 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define DT_DEBUG&#160;&#160;&#160;21            /* For debugging; unspecified */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5fcf5c426fb5f84ec30eb89b97b91469" name="a5fcf5c426fb5f84ec30eb89b97b91469"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fcf5c426fb5f84ec30eb89b97b91469">&#9670;&#160;</a></span>DT_DEPAUDIT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_DEPAUDIT&#160;&#160;&#160;0x6ffffefb	/* Dependency auditing.  */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -602,6 +1121,48 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define DT_FLAGS&#160;&#160;&#160;30            /* Flags for the object being loaded */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5d9caa28250c79c3b6a1e1f101f7f9ce" name="a5d9caa28250c79c3b6a1e1f101f7f9ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d9caa28250c79c3b6a1e1f101f7f9ce">&#9670;&#160;</a></span>DT_GNU_CONFLICT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_GNU_CONFLICT&#160;&#160;&#160;0x6ffffef8	/* Start of conflict section */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a63655e20865a6f3c5740d36237b5b6d1" name="a63655e20865a6f3c5740d36237b5b6d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63655e20865a6f3c5740d36237b5b6d1">&#9670;&#160;</a></span>DT_GNU_HASH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_GNU_HASH&#160;&#160;&#160;0x6ffffef5	/* GNU-style hash table.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aac4f0c8fd6f435aa8fa4afb00a53f921" name="aac4f0c8fd6f435aa8fa4afb00a53f921"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac4f0c8fd6f435aa8fa4afb00a53f921">&#9670;&#160;</a></span>DT_GNU_LIBLIST</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_GNU_LIBLIST&#160;&#160;&#160;0x6ffffef9	/* Library list */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -734,6 +1295,20 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
+<a id="aaf3acbdcd252a7316fdd0b542d2d7f1b" name="aaf3acbdcd252a7316fdd0b542d2d7f1b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf3acbdcd252a7316fdd0b542d2d7f1b">&#9670;&#160;</a></span>DT_MOVETAB</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_MOVETAB&#160;&#160;&#160;0x6ffffefe	/* Move table.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a4451778c7253623b413bb160d47ee1e6" name="a4451778c7253623b413bb160d47ee1e6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4451778c7253623b413bb160d47ee1e6">&#9670;&#160;</a></span>DT_NEEDED</h2>
 
@@ -784,6 +1359,20 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define DT_PLTGOT&#160;&#160;&#160;3            /* Processor defined value */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a71d32da076d5ec4dcb55c1a36e510e3f" name="a71d32da076d5ec4dcb55c1a36e510e3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71d32da076d5ec4dcb55c1a36e510e3f">&#9670;&#160;</a></span>DT_PLTPAD</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_PLTPAD&#160;&#160;&#160;0x6ffffefd	/* PLT padding.  */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1084,6 +1673,20 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
+<a id="a7450e5ef14476f6eaec7440bb8bf0d52" name="a7450e5ef14476f6eaec7440bb8bf0d52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7450e5ef14476f6eaec7440bb8bf0d52">&#9670;&#160;</a></span>DT_SYMINFO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_SYMINFO&#160;&#160;&#160;0x6ffffeff	/* Syminfo table.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a3a4f3eea0cdef015deb56d85476118d1" name="a3a4f3eea0cdef015deb56d85476118d1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3a4f3eea0cdef015deb56d85476118d1">&#9670;&#160;</a></span>DT_SYMTAB</h2>
 
@@ -1120,6 +1723,62 @@ Typedefs</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define DT_TEXTREL&#160;&#160;&#160;22          /* Reloc might modify .text */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7711c3ca0990ae02733ef532fb182194" name="a7711c3ca0990ae02733ef532fb182194"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7711c3ca0990ae02733ef532fb182194">&#9670;&#160;</a></span>DT_TLSDESC_GOT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_TLSDESC_GOT&#160;&#160;&#160;0x6ffffef7</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4e5b93587d8ce529fff232e0a865194d" name="a4e5b93587d8ce529fff232e0a865194d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e5b93587d8ce529fff232e0a865194d">&#9670;&#160;</a></span>DT_TLSDESC_PLT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DT_TLSDESC_PLT&#160;&#160;&#160;0x6ffffef6</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5b508cacf6662e4bc0e98ffe1eb61636" name="a5b508cacf6662e4bc0e98ffe1eb61636"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b508cacf6662e4bc0e98ffe1eb61636">&#9670;&#160;</a></span>EI_CLASS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define EI_CLASS&#160;&#160;&#160;4		/* File class byte index */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a79c714b4bf89638ff576e163d7d2144f" name="a79c714b4bf89638ff576e163d7d2144f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79c714b4bf89638ff576e163d7d2144f">&#9670;&#160;</a></span>EI_DATA</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define EI_DATA&#160;&#160;&#160;5		/* Data encoding byte index */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1281,7 +1940,7 @@ Typedefs</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;((((<a class="el" href="elf_8h.html#ad23e75512150d9a195453793f8078c95">Elf64_Xword</a>)(sym)) &lt;&lt; 32) + (type))</td>
+          <td></td><td>&#160;&#160;&#160;((((<a class="el" href="elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4">Elf64_Xword</a>)(sym)) &lt;&lt; 32) + (type))</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1318,6 +1977,118 @@ Typedefs</h2></td></tr>
           <td class="paramtype">&#160;</td>
           <td class="paramname">i</td><td>)</td>
           <td>&#160;&#160;&#160;((i) &amp; 0xffffffff)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5f84b1bf6e07374d6289eab3d8c57f1c" name="a5f84b1bf6e07374d6289eab3d8c57f1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f84b1bf6e07374d6289eab3d8c57f1c">&#9670;&#160;</a></span>ELFCLASS32</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFCLASS32&#160;&#160;&#160;1		/* 32-bit objects */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9ee66b59be5c78ea1f1eea8a36f2c291" name="a9ee66b59be5c78ea1f1eea8a36f2c291"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ee66b59be5c78ea1f1eea8a36f2c291">&#9670;&#160;</a></span>ELFCLASS64</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFCLASS64&#160;&#160;&#160;2		/* 64-bit objects */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aab8a7e71c15cccd3f1d721420cd3c2ee" name="aab8a7e71c15cccd3f1d721420cd3c2ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab8a7e71c15cccd3f1d721420cd3c2ee">&#9670;&#160;</a></span>ELFCLASSNONE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFCLASSNONE&#160;&#160;&#160;0		/* Invalid class */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4ebe21a4565dbf62ac6ac0b9b26afaa2" name="a4ebe21a4565dbf62ac6ac0b9b26afaa2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ebe21a4565dbf62ac6ac0b9b26afaa2">&#9670;&#160;</a></span>ELFCLASSNUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFCLASSNUM&#160;&#160;&#160;3</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af66303c799da18c8aec282ea8592e7e7" name="af66303c799da18c8aec282ea8592e7e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af66303c799da18c8aec282ea8592e7e7">&#9670;&#160;</a></span>ELFDATA2LSB</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFDATA2LSB&#160;&#160;&#160;1		/* 2's complement, little endian */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a06385c3e5f0a3b62fae7f5e224e10f89" name="a06385c3e5f0a3b62fae7f5e224e10f89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06385c3e5f0a3b62fae7f5e224e10f89">&#9670;&#160;</a></span>ELFDATA2MSB</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFDATA2MSB&#160;&#160;&#160;2		/* 2's complement, big endian */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad25f21c9d99ad7f440811610bfc57ff6" name="ad25f21c9d99ad7f440811610bfc57ff6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad25f21c9d99ad7f440811610bfc57ff6">&#9670;&#160;</a></span>ELFDATANONE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFDATANONE&#160;&#160;&#160;0		/* Invalid data encoding */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7d016d26d92115537252e6ec3bfc2298" name="a7d016d26d92115537252e6ec3bfc2298"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d016d26d92115537252e6ec3bfc2298">&#9670;&#160;</a></span>ELFDATANUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ELFDATANUM&#160;&#160;&#160;3</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2984,43 +3755,523 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
+<a id="a322030426afae1a37a8ba1ab86a39066" name="a322030426afae1a37a8ba1ab86a39066"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a322030426afae1a37a8ba1ab86a39066">&#9670;&#160;</a></span>SHN_ABS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_ABS&#160;&#160;&#160;0xfff1		/* Associated symbol is absolute */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac159fcc2e97ab3f1550e35c595a60898" name="ac159fcc2e97ab3f1550e35c595a60898"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac159fcc2e97ab3f1550e35c595a60898">&#9670;&#160;</a></span>SHN_AFTER</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_AFTER</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">0xff01      <span class="comment">/* Order section after all others</span></div>
+<div class="line"><span class="comment">(Solaris).  */</span></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a1a7a3d24905f5b5d4fc020f4a5d830f0" name="a1a7a3d24905f5b5d4fc020f4a5d830f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a7a3d24905f5b5d4fc020f4a5d830f0">&#9670;&#160;</a></span>SHN_BEFORE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_BEFORE</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">0xff00      <span class="comment">/* Order section before all others</span></div>
+<div class="line"><span class="comment">(Solaris).  */</span></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a3d62721d3fe66370be9ec0ca0764ec7b" name="a3d62721d3fe66370be9ec0ca0764ec7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d62721d3fe66370be9ec0ca0764ec7b">&#9670;&#160;</a></span>SHN_COMMON</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_COMMON&#160;&#160;&#160;0xfff2		/* Associated symbol is common */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a037dd86124f62b506010eff464cafb62" name="a037dd86124f62b506010eff464cafb62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a037dd86124f62b506010eff464cafb62">&#9670;&#160;</a></span>SHN_HIOS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_HIOS&#160;&#160;&#160;0xff3f		/* End of OS-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5e94b5a4fc1e90cfc5d08af79025171b" name="a5e94b5a4fc1e90cfc5d08af79025171b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e94b5a4fc1e90cfc5d08af79025171b">&#9670;&#160;</a></span>SHN_HIPROC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_HIPROC&#160;&#160;&#160;0xff1f		/* End of processor-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaac4804ef07b9da1d840d951469692f0" name="aaac4804ef07b9da1d840d951469692f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaac4804ef07b9da1d840d951469692f0">&#9670;&#160;</a></span>SHN_HIRESERVE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_HIRESERVE&#160;&#160;&#160;0xffff		/* End of reserved indices */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aef4c5d1b1a6892ee91776dc11ad1db04" name="aef4c5d1b1a6892ee91776dc11ad1db04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef4c5d1b1a6892ee91776dc11ad1db04">&#9670;&#160;</a></span>SHN_LOOS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_LOOS&#160;&#160;&#160;0xff20		/* Start of OS-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab9efa7bd7617e554f6158699401d4e10" name="ab9efa7bd7617e554f6158699401d4e10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9efa7bd7617e554f6158699401d4e10">&#9670;&#160;</a></span>SHN_LOPROC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_LOPROC&#160;&#160;&#160;0xff00		/* Start of processor-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac663b490fedc8aeab91bf941772ba306" name="ac663b490fedc8aeab91bf941772ba306"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac663b490fedc8aeab91bf941772ba306">&#9670;&#160;</a></span>SHN_LORESERVE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_LORESERVE&#160;&#160;&#160;0xff00		/* Start of reserved indices */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab2f25695673c5f1c4ec723e595288411" name="ab2f25695673c5f1c4ec723e595288411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2f25695673c5f1c4ec723e595288411">&#9670;&#160;</a></span>SHN_UNDEF</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_UNDEF&#160;&#160;&#160;0		/* Undefined section */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adcbb4b7e1c4ec5add7328be2c8de8ab2" name="adcbb4b7e1c4ec5add7328be2c8de8ab2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcbb4b7e1c4ec5add7328be2c8de8ab2">&#9670;&#160;</a></span>SHN_XINDEX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SHN_XINDEX&#160;&#160;&#160;0xffff		/* Index is in extra table.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8091960a6799bf71a7494551dac1a2e8" name="a8091960a6799bf71a7494551dac1a2e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8091960a6799bf71a7494551dac1a2e8">&#9670;&#160;</a></span>STB_GLOBAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_GLOBAL&#160;&#160;&#160;1		/* Global symbol */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad98b7497a1cf5b212369c34e5159296e" name="ad98b7497a1cf5b212369c34e5159296e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad98b7497a1cf5b212369c34e5159296e">&#9670;&#160;</a></span>STB_GNU_UNIQUE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_GNU_UNIQUE&#160;&#160;&#160;10		/* Unique symbol.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a934c6e5a5405f46e343d8493a4f8f6d7" name="a934c6e5a5405f46e343d8493a4f8f6d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a934c6e5a5405f46e343d8493a4f8f6d7">&#9670;&#160;</a></span>STB_HIOS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_HIOS&#160;&#160;&#160;12		/* End of OS-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5fa61266452365ab0e2d2ad32b87043e" name="a5fa61266452365ab0e2d2ad32b87043e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fa61266452365ab0e2d2ad32b87043e">&#9670;&#160;</a></span>STB_HIPROC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_HIPROC&#160;&#160;&#160;15		/* End of processor-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a72c40de459931e6f1d041201dc7398b1" name="a72c40de459931e6f1d041201dc7398b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72c40de459931e6f1d041201dc7398b1">&#9670;&#160;</a></span>STB_LOCAL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_LOCAL&#160;&#160;&#160;0		/* Local symbol */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab764e4fb4280d76967bf382a17d5b1d1" name="ab764e4fb4280d76967bf382a17d5b1d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab764e4fb4280d76967bf382a17d5b1d1">&#9670;&#160;</a></span>STB_LOOS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_LOOS&#160;&#160;&#160;10		/* Start of OS-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4f4d0360fcb960e31e119973a472010e" name="a4f4d0360fcb960e31e119973a472010e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f4d0360fcb960e31e119973a472010e">&#9670;&#160;</a></span>STB_LOPROC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_LOPROC&#160;&#160;&#160;13		/* Start of processor-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2e188275d0a1f46da96e9906e4b478e7" name="a2e188275d0a1f46da96e9906e4b478e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e188275d0a1f46da96e9906e4b478e7">&#9670;&#160;</a></span>STB_NUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_NUM&#160;&#160;&#160;3		/* Number of defined types.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad4247ded90f9371e3c4d2f7dda260c93" name="ad4247ded90f9371e3c4d2f7dda260c93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4247ded90f9371e3c4d2f7dda260c93">&#9670;&#160;</a></span>STB_WEAK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STB_WEAK&#160;&#160;&#160;2		/* Weak symbol */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0067af965ad01b11be77380eed14efb8" name="a0067af965ad01b11be77380eed14efb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0067af965ad01b11be77380eed14efb8">&#9670;&#160;</a></span>STT_COMMON</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_COMMON&#160;&#160;&#160;5		/* Symbol is a common data object */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a983395f99446fa4d398c4e902bec34c6" name="a983395f99446fa4d398c4e902bec34c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a983395f99446fa4d398c4e902bec34c6">&#9670;&#160;</a></span>STT_FILE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_FILE&#160;&#160;&#160;4		/* Symbol's name is file name */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9cdfedf900935f23f6e409ce378dc1d2" name="a9cdfedf900935f23f6e409ce378dc1d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cdfedf900935f23f6e409ce378dc1d2">&#9670;&#160;</a></span>STT_FUNC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_FUNC&#160;&#160;&#160;2		/* Symbol is a code object */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5fc0a79a2c08a0860bdf4fa00ad706d6" name="a5fc0a79a2c08a0860bdf4fa00ad706d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fc0a79a2c08a0860bdf4fa00ad706d6">&#9670;&#160;</a></span>STT_GNU_IFUNC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_GNU_IFUNC&#160;&#160;&#160;10		/* Symbol is indirect code object */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6de042ae014d95d7b9e0649e0ecfff8e" name="a6de042ae014d95d7b9e0649e0ecfff8e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6de042ae014d95d7b9e0649e0ecfff8e">&#9670;&#160;</a></span>STT_HIOS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_HIOS&#160;&#160;&#160;12		/* End of OS-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5bf951d9b37f10dfe17a1bd6b4489599" name="a5bf951d9b37f10dfe17a1bd6b4489599"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5bf951d9b37f10dfe17a1bd6b4489599">&#9670;&#160;</a></span>STT_HIPROC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_HIPROC&#160;&#160;&#160;15		/* End of processor-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aebb605da5285a99f7475cb17214955a2" name="aebb605da5285a99f7475cb17214955a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebb605da5285a99f7475cb17214955a2">&#9670;&#160;</a></span>STT_LOOS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_LOOS&#160;&#160;&#160;10		/* Start of OS-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeb49b6a738078d32e5979885e26c4ddf" name="aeb49b6a738078d32e5979885e26c4ddf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb49b6a738078d32e5979885e26c4ddf">&#9670;&#160;</a></span>STT_LOPROC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_LOPROC&#160;&#160;&#160;13		/* Start of processor-specific */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa15a54cc9c881e4d54daedc9d984c2fc" name="aa15a54cc9c881e4d54daedc9d984c2fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa15a54cc9c881e4d54daedc9d984c2fc">&#9670;&#160;</a></span>STT_NOTYPE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_NOTYPE&#160;&#160;&#160;0		/* Symbol type is unspecified */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac0ce5374d0c27b03eb219bbfe7681593" name="ac0ce5374d0c27b03eb219bbfe7681593"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0ce5374d0c27b03eb219bbfe7681593">&#9670;&#160;</a></span>STT_NUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_NUM&#160;&#160;&#160;7		/* Number of defined types.  */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac236cc313291ed38ecb346a8b4bde6b2" name="ac236cc313291ed38ecb346a8b4bde6b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac236cc313291ed38ecb346a8b4bde6b2">&#9670;&#160;</a></span>STT_OBJECT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_OBJECT&#160;&#160;&#160;1		/* Symbol is a data object */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9e9a3c0fa59c3fc896f8e4c1872c6af1" name="a9e9a3c0fa59c3fc896f8e4c1872c6af1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e9a3c0fa59c3fc896f8e4c1872c6af1">&#9670;&#160;</a></span>STT_SECTION</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_SECTION&#160;&#160;&#160;3		/* Symbol associated with a section */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae2d45eab9a7d620e24df1b6c9fd43d55" name="ae2d45eab9a7d620e24df1b6c9fd43d55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2d45eab9a7d620e24df1b6c9fd43d55">&#9670;&#160;</a></span>STT_TLS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define STT_TLS&#160;&#160;&#160;6		/* Symbol is thread-local data object*/</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="aeafb57189333c55fc04663de069a6ce2" name="aeafb57189333c55fc04663de069a6ce2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeafb57189333c55fc04663de069a6ce2">&#9670;&#160;</a></span>Elf32_Addr</h2>
+<a id="a40c6d4571e6001f443cc6a6474620158" name="a40c6d4571e6001f443cc6a6474620158"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40c6d4571e6001f443cc6a6474620158">&#9670;&#160;</a></span>Elf32_Addr</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> <a class="el" href="elf_8h.html#aeafb57189333c55fc04663de069a6ce2">Elf32_Addr</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> <a class="el" href="elf_8h.html#a40c6d4571e6001f443cc6a6474620158">Elf32_Addr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aabd1afed30230462c0c8bfce21849d0b" name="aabd1afed30230462c0c8bfce21849d0b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aabd1afed30230462c0c8bfce21849d0b">&#9670;&#160;</a></span>Elf32_Half</h2>
+<a id="a2ff0787d7d1bae0f251192806a2974ca" name="a2ff0787d7d1bae0f251192806a2974ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ff0787d7d1bae0f251192806a2974ca">&#9670;&#160;</a></span>Elf32_Half</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a> <a class="el" href="elf_8h.html#aabd1afed30230462c0c8bfce21849d0b">Elf32_Half</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a> <a class="el" href="elf_8h.html#a2ff0787d7d1bae0f251192806a2974ca">Elf32_Half</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a75ac6d12b6cc28ea46d202dd5cd4b695" name="a75ac6d12b6cc28ea46d202dd5cd4b695"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a75ac6d12b6cc28ea46d202dd5cd4b695">&#9670;&#160;</a></span>Elf32_Off</h2>
+<a id="a655751f9b317369b93c581ea8ed84516" name="a655751f9b317369b93c581ea8ed84516"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a655751f9b317369b93c581ea8ed84516">&#9670;&#160;</a></span>Elf32_Off</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> <a class="el" href="elf_8h.html#a75ac6d12b6cc28ea46d202dd5cd4b695">Elf32_Off</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> <a class="el" href="elf_8h.html#a655751f9b317369b93c581ea8ed84516">Elf32_Off</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3034,49 +4285,49 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="elf_8h.html#aa363a7fa5d0f9695fe3fec8af43c6748">Elf32_Word</a> <a class="el" href="elf_8h.html#adaf5a54883fa26e4bd68c852c7931d6c">Elf32_Relr</a></td>
+          <td class="memname">typedef <a class="el" href="elf_8h.html#af5924ece606c732e86f8263a19408e45">Elf32_Word</a> <a class="el" href="elf_8h.html#adaf5a54883fa26e4bd68c852c7931d6c">Elf32_Relr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a4a74bd724debb22b7ec169e329784c15" name="a4a74bd724debb22b7ec169e329784c15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a74bd724debb22b7ec169e329784c15">&#9670;&#160;</a></span>Elf32_Section</h2>
+<a id="abaffe34cd8a7e31c8f57ebf85c17ca34" name="abaffe34cd8a7e31c8f57ebf85c17ca34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abaffe34cd8a7e31c8f57ebf85c17ca34">&#9670;&#160;</a></span>Elf32_Section</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a> <a class="el" href="elf_8h.html#a4a74bd724debb22b7ec169e329784c15">Elf32_Section</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a> <a class="el" href="elf_8h.html#abaffe34cd8a7e31c8f57ebf85c17ca34">Elf32_Section</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a7b48cd2a6ad5064f51a485b1db6fae8d" name="a7b48cd2a6ad5064f51a485b1db6fae8d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7b48cd2a6ad5064f51a485b1db6fae8d">&#9670;&#160;</a></span>Elf32_Sword</h2>
+<a id="a30ce6352cf03c667272698ada477da95" name="a30ce6352cf03c667272698ada477da95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30ce6352cf03c667272698ada477da95">&#9670;&#160;</a></span>Elf32_Sword</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a9e3ad5f8e752f01d926ce122d5a5285e">i32</a> <a class="el" href="elf_8h.html#a7b48cd2a6ad5064f51a485b1db6fae8d">Elf32_Sword</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a32f2e37ee053cf2ce8ca28d1f74630e5">int32_t</a> <a class="el" href="elf_8h.html#a30ce6352cf03c667272698ada477da95">Elf32_Sword</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a289ff910b981929f9691d8a6f000c27e" name="a289ff910b981929f9691d8a6f000c27e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a289ff910b981929f9691d8a6f000c27e">&#9670;&#160;</a></span>Elf32_Sxword</h2>
+<a id="a8c466fc4bdce93c75fa4f9740b1ce6c1" name="a8c466fc4bdce93c75fa4f9740b1ce6c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c466fc4bdce93c75fa4f9740b1ce6c1">&#9670;&#160;</a></span>Elf32_Sxword</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a> <a class="el" href="elf_8h.html#a289ff910b981929f9691d8a6f000c27e">Elf32_Sxword</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> <a class="el" href="elf_8h.html#a8c466fc4bdce93c75fa4f9740b1ce6c1">Elf32_Sxword</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3090,77 +4341,77 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="elf_8h.html#aabd1afed30230462c0c8bfce21849d0b">Elf32_Half</a> <a class="el" href="elf_8h.html#a8acefd6aa26497ad5a3fe579b0c47004">Elf32_Versym</a></td>
+          <td class="memname">typedef <a class="el" href="elf_8h.html#a2ff0787d7d1bae0f251192806a2974ca">Elf32_Half</a> <a class="el" href="elf_8h.html#a8acefd6aa26497ad5a3fe579b0c47004">Elf32_Versym</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aa363a7fa5d0f9695fe3fec8af43c6748" name="aa363a7fa5d0f9695fe3fec8af43c6748"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa363a7fa5d0f9695fe3fec8af43c6748">&#9670;&#160;</a></span>Elf32_Word</h2>
+<a id="af5924ece606c732e86f8263a19408e45" name="af5924ece606c732e86f8263a19408e45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5924ece606c732e86f8263a19408e45">&#9670;&#160;</a></span>Elf32_Word</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> <a class="el" href="elf_8h.html#aa363a7fa5d0f9695fe3fec8af43c6748">Elf32_Word</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> <a class="el" href="elf_8h.html#af5924ece606c732e86f8263a19408e45">Elf32_Word</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aa5817cb2ff9178664f38cb27773b6b5b" name="aa5817cb2ff9178664f38cb27773b6b5b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa5817cb2ff9178664f38cb27773b6b5b">&#9670;&#160;</a></span>Elf32_Xword</h2>
+<a id="a06e429ed15bc1257d859cca67c4dddd9" name="a06e429ed15bc1257d859cca67c4dddd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06e429ed15bc1257d859cca67c4dddd9">&#9670;&#160;</a></span>Elf32_Xword</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> <a class="el" href="elf_8h.html#aa5817cb2ff9178664f38cb27773b6b5b">Elf32_Xword</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="elf_8h.html#a06e429ed15bc1257d859cca67c4dddd9">Elf32_Xword</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a1d7c9d60865716a6057a274ec1ff7903" name="a1d7c9d60865716a6057a274ec1ff7903"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1d7c9d60865716a6057a274ec1ff7903">&#9670;&#160;</a></span>Elf64_Addr</h2>
+<a id="aeed51d08e3a950d637f8ec1f0cd4ef65" name="aeed51d08e3a950d637f8ec1f0cd4ef65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeed51d08e3a950d637f8ec1f0cd4ef65">&#9670;&#160;</a></span>Elf64_Addr</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> <a class="el" href="elf_8h.html#a1d7c9d60865716a6057a274ec1ff7903">Elf64_Addr</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="elf_8h.html#aeed51d08e3a950d637f8ec1f0cd4ef65">Elf64_Addr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a28c29e3e9f559135dc8cc725c2a52b86" name="a28c29e3e9f559135dc8cc725c2a52b86"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28c29e3e9f559135dc8cc725c2a52b86">&#9670;&#160;</a></span>Elf64_Half</h2>
+<a id="adb6a5584018b431da3472e7c6a7fd731" name="adb6a5584018b431da3472e7c6a7fd731"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb6a5584018b431da3472e7c6a7fd731">&#9670;&#160;</a></span>Elf64_Half</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a> <a class="el" href="elf_8h.html#a28c29e3e9f559135dc8cc725c2a52b86">Elf64_Half</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a> <a class="el" href="elf_8h.html#adb6a5584018b431da3472e7c6a7fd731">Elf64_Half</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ac901922ddeae2ab46daaeabbf01b7182" name="ac901922ddeae2ab46daaeabbf01b7182"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac901922ddeae2ab46daaeabbf01b7182">&#9670;&#160;</a></span>Elf64_Off</h2>
+<a id="a6f7837bc80df7a68291fce54ff088849" name="a6f7837bc80df7a68291fce54ff088849"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f7837bc80df7a68291fce54ff088849">&#9670;&#160;</a></span>Elf64_Off</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> <a class="el" href="elf_8h.html#ac901922ddeae2ab46daaeabbf01b7182">Elf64_Off</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="elf_8h.html#a6f7837bc80df7a68291fce54ff088849">Elf64_Off</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3174,49 +4425,49 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="elf_8h.html#ad23e75512150d9a195453793f8078c95">Elf64_Xword</a> <a class="el" href="elf_8h.html#a74c374136cf9a969dde2585536c808ac">Elf64_Relr</a></td>
+          <td class="memname">typedef <a class="el" href="elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4">Elf64_Xword</a> <a class="el" href="elf_8h.html#a74c374136cf9a969dde2585536c808ac">Elf64_Relr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a7f97115187a8e822b311a6dae9290fa1" name="a7f97115187a8e822b311a6dae9290fa1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f97115187a8e822b311a6dae9290fa1">&#9670;&#160;</a></span>Elf64_Section</h2>
+<a id="acc3d34d4258f3cf91184ff97a6f8dda1" name="acc3d34d4258f3cf91184ff97a6f8dda1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc3d34d4258f3cf91184ff97a6f8dda1">&#9670;&#160;</a></span>Elf64_Section</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a9e6c91d77e24643b888dbd1a1a590054">u16</a> <a class="el" href="elf_8h.html#a7f97115187a8e822b311a6dae9290fa1">Elf64_Section</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a273cf69d639a59973b6019625df33e30">uint16_t</a> <a class="el" href="elf_8h.html#acc3d34d4258f3cf91184ff97a6f8dda1">Elf64_Section</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ad6de564f106d5cc3ef7141ba67dab2ac" name="ad6de564f106d5cc3ef7141ba67dab2ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad6de564f106d5cc3ef7141ba67dab2ac">&#9670;&#160;</a></span>Elf64_Sword</h2>
+<a id="a354f1cae9fad774a486444c12a861da5" name="a354f1cae9fad774a486444c12a861da5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a354f1cae9fad774a486444c12a861da5">&#9670;&#160;</a></span>Elf64_Sword</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a9e3ad5f8e752f01d926ce122d5a5285e">i32</a> <a class="el" href="elf_8h.html#ad6de564f106d5cc3ef7141ba67dab2ac">Elf64_Sword</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a32f2e37ee053cf2ce8ca28d1f74630e5">int32_t</a> <a class="el" href="elf_8h.html#a354f1cae9fad774a486444c12a861da5">Elf64_Sword</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a74620bffe9c155b43dde0b67a269545b" name="a74620bffe9c155b43dde0b67a269545b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a74620bffe9c155b43dde0b67a269545b">&#9670;&#160;</a></span>Elf64_Sxword</h2>
+<a id="a5b450442210b3d21567662fb96ac9a02" name="a5b450442210b3d21567662fb96ac9a02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b450442210b3d21567662fb96ac9a02">&#9670;&#160;</a></span>Elf64_Sxword</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#ada59a0de67c44384c6faa924ca63c2aa">i64</a> <a class="el" href="elf_8h.html#a74620bffe9c155b43dde0b67a269545b">Elf64_Sxword</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> <a class="el" href="elf_8h.html#a5b450442210b3d21567662fb96ac9a02">Elf64_Sxword</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3230,35 +4481,35 @@ Typedefs</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="elf_8h.html#a28c29e3e9f559135dc8cc725c2a52b86">Elf64_Half</a> <a class="el" href="elf_8h.html#acdc5f76ef4cf0f090a3fe0b1b958667c">Elf64_Versym</a></td>
+          <td class="memname">typedef <a class="el" href="elf_8h.html#adb6a5584018b431da3472e7c6a7fd731">Elf64_Half</a> <a class="el" href="elf_8h.html#acdc5f76ef4cf0f090a3fe0b1b958667c">Elf64_Versym</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ab35f5ca68f69001a44607e7094f834fe" name="ab35f5ca68f69001a44607e7094f834fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab35f5ca68f69001a44607e7094f834fe">&#9670;&#160;</a></span>Elf64_Word</h2>
+<a id="aa3aa1920ed115b7ef7e99716fece4401" name="aa3aa1920ed115b7ef7e99716fece4401"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3aa1920ed115b7ef7e99716fece4401">&#9670;&#160;</a></span>Elf64_Word</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#a10e94b422ef0c20dcdec20d31a1f5049">u32</a> <a class="el" href="elf_8h.html#ab35f5ca68f69001a44607e7094f834fe">Elf64_Word</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#a435d1572bf3f880d55459d9805097f62">uint32_t</a> <a class="el" href="elf_8h.html#aa3aa1920ed115b7ef7e99716fece4401">Elf64_Word</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ad23e75512150d9a195453793f8078c95" name="ad23e75512150d9a195453793f8078c95"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad23e75512150d9a195453793f8078c95">&#9670;&#160;</a></span>Elf64_Xword</h2>
+<a id="a5447a48a3dae0bd24f606415268c6fe4" name="a5447a48a3dae0bd24f606415268c6fe4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5447a48a3dae0bd24f606415268c6fe4">&#9670;&#160;</a></span>Elf64_Xword</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="tmp_8h.html#ad758b7a5c3f18ed79d2fcd23d9f16357">u64</a> <a class="el" href="elf_8h.html#ad23e75512150d9a195453793f8078c95">Elf64_Xword</a></td>
+          <td class="memname">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> <a class="el" href="elf_8h.html#a5447a48a3dae0bd24f606415268c6fe4">Elf64_Xword</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

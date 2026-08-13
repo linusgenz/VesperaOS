@@ -1,17 +1,10 @@
 var searchData=
 [
-  ['magic_0',['magic',['../structheap__seg.html#a8f0fdfc26ae4de4f7040cc76cdf1811b',1,'heap_seg::magic'],['../structvbus__header.html#a3e5c07fb5b2735e6d3256aaee956cdd8',1,'vbus_header::magic'],['../structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5',1,'crep_sync::magic']]],
-  ['max_5funits_1',['max_units',['../structrealm__info.html#a8a8d62f8ea58d74dc11ed43488bbf62b',1,'realm_info']]],
-  ['media_5ferrors_2',['media_errors',['../structsmart__nvme.html#a74a1876b49df6ce7a4e6c7d52b306346',1,'smart_nvme']]],
-  ['member_3',['member',['../structvbus__header.html#a89053f79a2760a62a1a265de2b307213',1,'vbus_header::member'],['../structvbus__subscribe__args.html#a28bdf0d1fab52f54aa6649ffba78b270',1,'vbus_subscribe_args::member']]],
-  ['memory_5flimit_4',['memory_limit',['../structrealm__info.html#a7028b33fa1fb99d4e4788c02b15ed667',1,'realm_info']]],
-  ['min_5',['min',['../structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860',1,'rtc_data']]],
-  ['minimized_6',['minimized',['../unionvbus__payload__t.html#a677b71de8336247efecf5acb2158768f',1,'vbus_payload_t']]],
-  ['mode_7',['mode',['../structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336',1,'tty_mode_t::mode'],['../structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51',1,'vespera_stat::mode']]],
-  ['model_8',['model',['../structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44',1,'devinfo_t::model'],['../structbattery__info.html#a35d5da5a6100a14598601f292b2956b4',1,'battery_info::model']]],
-  ['mon_5fdecimal_5fpoint_9',['mon_decimal_point',['../structlconv.html#a1aa08afe707c1d5d40b4d01369176480',1,'lconv']]],
-  ['mon_5fgrouping_10',['mon_grouping',['../structlconv.html#a12ecf5d2f7ceb0cfe0f66fd3200eef54',1,'lconv']]],
-  ['mon_5fthousands_5fsep_11',['mon_thousands_sep',['../structlconv.html#a4f04f4fd9ea670d21fc76fb5c77c032d',1,'lconv']]],
-  ['month_12',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]],
-  ['mtime_13',['mtime',['../structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea',1,'vespera_stat']]]
+  ['label_0',['label',['../structchronos__event.html#afd17f4b358972d4512f22145e2ab9814',1,'chronos_event::label'],['../structchronos__user__checkpoint.html#aa00dd9c5d39f333a0efc196ec7e18459',1,'chronos_user_checkpoint::label']]],
+  ['last_5ffull_5fcapacity_1',['last_full_capacity',['../structbattery__info.html#a3b049fbc1a102f12bbd9f7bb8dbfa18c',1,'battery_info']]],
+  ['length_2',['length',['../structheap__seg.html#a0e65284fbc1c0e7c7a8f0a0037ed0a7f',1,'heap_seg']]],
+  ['links_5fcount_3',['links_count',['../structvespera__stat.html#aa04896d3128812aac9fc25cefd927254',1,'vespera_stat']]],
+  ['load_5fbias_4',['load_bias',['../structelf__loaded__object.html#adf8c45fed7e6ff2a21a8c7b7ee3a2fd0',1,'elf_loaded_object']]],
+  ['local_5fx_5',['local_x',['../structvbus__display__input__event__t.html#a455ae939666d21810eedc81823df7f95',1,'vbus_display_input_event_t']]],
+  ['local_5fy_6',['local_y',['../structvbus__display__input__event__t.html#a7f56bd3b9f6d4f975b6321450524560a',1,'vbus_display_input_event_t']]]
 ];

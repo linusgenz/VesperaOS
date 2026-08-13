@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['v_5fsamp_5ffactor_0',['v_samp_factor',['../structjpeg__save__options__t.html#a06445193fca1fa42950df1536bf0a470',1,'jpeg_save_options_t']]],
-  ['value_1',['value',['../structdevinfo__string__t.html#a0ff0f44ce7fcec1a683ce16229c5a319',1,'devinfo_string_t']]],
-  ['vbus_5fmsg_5fcall_2',['VBUS_MSG_CALL',['../include_2uapi_2vespera_2vbus_8h.html#a7aec337bb340a020a7c8fd5fc87dcaa4',1,'vbus.h']]],
-  ['vbus_5fmsg_5ferror_3',['VBUS_MSG_ERROR',['../include_2uapi_2vespera_2vbus_8h.html#a06388f38a83b3017a7f72e1a68c00022',1,'vbus.h']]],
-  ['vbus_5fmsg_5freturn_4',['VBUS_MSG_RETURN',['../include_2uapi_2vespera_2vbus_8h.html#a84a95e9a993b96693b2aa24a860a0962',1,'vbus.h']]],
-  ['vbus_5fmsg_5fsignal_5',['VBUS_MSG_SIGNAL',['../include_2uapi_2vespera_2vbus_8h.html#a04f0ca75be155f25ee0f896e1cdda5d7',1,'vbus.h']]],
-  ['vendor_6',['vendor',['../structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b',1,'cpu_info::vendor'],['../structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee',1,'devinfo_t::vendor']]],
-  ['vendor_5fid_7',['vendor_id',['../structusb__device__info.html#ad6ac117b3b090a41c045fc1dc28bb411',1,'usb_device_info']]],
-  ['version_8',['version',['../structsmart__ata.html#a19859ef7c106c2dd5779538823bd862e',1,'smart_ata']]]
+  ['uid_0',['uid',['../structspawn__config.html#a2e6c0763c8a87bd13cbb5617de66e97d',1,'spawn_config::uid'],['../structvespera__stat.html#a6485057420b7585f8c8c42499859fb9c',1,'vespera_stat::uid']]],
+  ['uncorrectable_5fsectors_1',['uncorrectable_sectors',['../structsmart__ata.html#a3696dd2012f0a202ce4254e3a547afaf',1,'smart_ata']]],
+  ['unget_5fchar_2',['unget_char',['../structFILE.html#a2e89f8ab8f1bb17b57f9b3158963eeb4',1,'FILE']]],
+  ['unit_5fcount_3',['unit_count',['../structrealm__info.html#a5451f0261ccff72ef8bb0003bf1ce41d',1,'realm_info']]],
+  ['unsafe_5fshutdowns_4',['unsafe_shutdowns',['../structsmart__nvme.html#ac1d939ac361cf064973c310533eca1be',1,'smart_nvme']]],
+  ['usage_5fpercent_5',['usage_percent',['../structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb',1,'cpu_usage_stat']]],
+  ['used_5fram_6',['used_ram',['../structmeminfo.html#aa9591f759ce9c89e1924871b3a92d595',1,'meminfo']]],
+  ['user_5fstack_5fend_7',['user_stack_end',['../structunit__info.html#abee8ab3ec0124ed0fbfc51ed109becd4',1,'unit_info']]],
+  ['user_5fstack_5fstart_8',['user_stack_start',['../structunit__info.html#a7b19e43c35fcd0763b1f8397774c1892',1,'unit_info']]]
 ];

@@ -8,5 +8,20 @@ var searchData=
   ['getrandom_5',['getrandom',['../urandom_8h.html#ac3ee34b29e34805718dfa1b127cf3250',1,'urandom.h']]],
   ['gettimeofday_6',['gettimeofday',['../userspace_2lib_2include_2time_8h.html#a5665e505f386d06abb1c304068c2836e',1,'time.h']]],
   ['gmtime_7',['gmtime',['../userspace_2lib_2include_2time_8h.html#a4bc4ff58d4ac838a36ba939747e5833e',1,'time.h']]],
-  ['gradient_8',['gradient',['../classstella_1_1Widget.html#a9dda935b850ec010c100780e4229b7ac',1,'stella::Widget']]]
+  ['gpu_5fbuffer_5fcreate_8',['gpu_buffer_create',['../gpu__api_8h.html#ac1d91a4c3f11debba1a9dcdef980b55c',1,'gpu_api.h']]],
+  ['gpu_5fbuffer_5fdestroy_9',['gpu_buffer_destroy',['../gpu__api_8h.html#a7c544c9357006ae0ed5fd15f80962d6e',1,'gpu_api.h']]],
+  ['gpu_5fbuffer_5fflush_5fcpu_5fwrites_10',['gpu_buffer_flush_cpu_writes',['../gpu__api_8h.html#aaa8079a16aba59ac7adcb0bf15abb3fc',1,'gpu_api.h']]],
+  ['gpu_5fbuffer_5fgpu_5faddr_11',['gpu_buffer_gpu_addr',['../gpu__api_8h.html#a0c3624d3e692569c0fa32aac2dbb7a53',1,'gpu_api.h']]],
+  ['gpu_5fbuffer_5fmap_12',['gpu_buffer_map',['../gpu__api_8h.html#a4f61eeed14a7f21eee82cf422cf98671',1,'gpu_api.h']]],
+  ['gpu_5fbuffer_5funmap_13',['gpu_buffer_unmap',['../gpu__api_8h.html#a0d1ee456eedd3c39a8dd6fc7a70a442e',1,'gpu_api.h']]],
+  ['gpu_5fclose_14',['gpu_close',['../gpu__api_8h.html#a5303b89674a8bfce467df62b430560cc',1,'gpu_api.h']]],
+  ['gpu_5fcontext_5fcreate_15',['gpu_context_create',['../gpu__api_8h.html#a67e281f70ff95280da40925f51b0b5a7',1,'gpu_api.h']]],
+  ['gpu_5fcontext_5fdestroy_16',['gpu_context_destroy',['../gpu__api_8h.html#a6a887c3929d42cce056d54a7b455b798',1,'gpu_api.h']]],
+  ['gpu_5ffence_5fis_5fsignaled_17',['gpu_fence_is_signaled',['../gpu__api_8h.html#a309acd5013ba0f027b080b53889347a4',1,'gpu_api.h']]],
+  ['gpu_5ffence_5fwait_18',['gpu_fence_wait',['../gpu__api_8h.html#a18d07c9bb4b2947bb7666abda8e85838',1,'gpu_api.h']]],
+  ['gpu_5fopen_19',['gpu_open',['../gpu__api_8h.html#a5760b90ba4552da043ab544d2ca5a2b2',1,'gpu_api.h']]],
+  ['gpu_5fpresent_20',['gpu_present',['../gpu__api_8h.html#a9b410b28eafe0c754c2c606efb141d7a',1,'gpu_api.h']]],
+  ['gpu_5fquery_5finfo_21',['gpu_query_info',['../gpu__api_8h.html#a909cf55af7eadb0d4099a6517509589e',1,'gpu_api.h']]],
+  ['gpu_5fsubmit_22',['gpu_submit',['../gpu__api_8h.html#aa7a9053e6a4989b7249d7a018e8b8b24',1,'gpu_api.h']]],
+  ['gradient_23',['gradient',['../classstella_1_1Widget.html#a9dda935b850ec010c100780e4229b7ac',1,'stella::Widget']]]
 ];

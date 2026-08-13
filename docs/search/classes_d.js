@@ -1,13 +1,13 @@
 var searchData=
 [
-  ['thermal_5finfo_0',['thermal_info',['../structthermal__info.html',1,'']]],
-  ['thermal_5fzone_1',['thermal_zone',['../structthermal__zone.html',1,'']]],
-  ['timer_2',['Timer',['../classstella_1_1Timer.html',1,'stella']]],
-  ['timespec_3',['timespec',['../structtimespec.html',1,'']]],
-  ['timespec_5ft_4',['timespec_t',['../structtimespec__t.html',1,'']]],
-  ['timeval_5',['timeval',['../structtimeval.html',1,'']]],
-  ['timeval_5ft_6',['timeval_t',['../structtimeval__t.html',1,'']]],
-  ['tm_7',['tm',['../structtm.html',1,'']]],
-  ['tty_5fmode_5ft_8',['tty_mode_t',['../structtty__mode__t.html',1,'']]],
-  ['tty_5fsize_5ft_9',['tty_size_t',['../structtty__size__t.html',1,'']]]
+  ['sigaction_0',['sigaction',['../structsigaction.html',1,'']]],
+  ['sigaction_5ft_1',['sigaction_t',['../structsigaction__t.html',1,'']]],
+  ['smart_5fata_2',['smart_ata',['../structsmart__ata.html',1,'']]],
+  ['smart_5fattribute_3',['smart_attribute',['../structsmart__attribute.html',1,'']]],
+  ['smart_5fcommon_4',['smart_common',['../structsmart__common.html',1,'']]],
+  ['smart_5fnvme_5',['smart_nvme',['../structsmart__nvme.html',1,'']]],
+  ['smart_5fraw_6',['smart_raw',['../structsmart__raw.html',1,'']]],
+  ['spawn_5fconfig_7',['spawn_config',['../structspawn__config.html',1,'']]],
+  ['stella_5fcolor_5ft_8',['stella_color_t',['../structstella__color__t.html',1,'']]],
+  ['stella_5fconfig_9',['stella_config',['../structstella__config.html',1,'']]]
 ];

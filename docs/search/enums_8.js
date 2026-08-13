@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reboot_5fmode_5ft_0',['reboot_mode_t',['../userspace_2lib_2include_2power_8h.html#a942f6ccb83747ae83ff3037d4e9c3e38',1,'power.h']]]
+  ['pixel_5fformat_5ft_0',['pixel_format_t',['../jpeg_8h.html#a198cda1221b69303955212a59f22677a',1,'jpeg.h']]]
 ];

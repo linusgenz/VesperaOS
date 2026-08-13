@@ -1,13 +1,9 @@
 var searchData=
 [
-  ['jpeg_5ferror_5fdecode_0',['JPEG_ERROR_DECODE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a1a13fb88352b2ef4588c7d1d47803b1f',1,'jpeg.h']]],
-  ['jpeg_5ferror_5fencode_1',['JPEG_ERROR_ENCODE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aa662efb7898866961313278f2a2f7f4a',1,'jpeg.h']]],
-  ['jpeg_5ferror_5ffile_5fopen_2',['JPEG_ERROR_FILE_OPEN',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992afe866cb21c555563f6327642d20c3be9',1,'jpeg.h']]],
-  ['jpeg_5ferror_5ffile_5fread_3',['JPEG_ERROR_FILE_READ',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992ab5044720b6d70b3e8b05df32c3e1d146',1,'jpeg.h']]],
-  ['jpeg_5ferror_5ffile_5fwrite_4',['JPEG_ERROR_FILE_WRITE',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aa540009e2cd5acfc6cd4fdd87d3ac6be',1,'jpeg.h']]],
-  ['jpeg_5ferror_5finvalid_5fformat_5',['JPEG_ERROR_INVALID_FORMAT',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992ada72ecd2a44535911bd4bb6afe38405b',1,'jpeg.h']]],
-  ['jpeg_5ferror_5finvalid_5fparam_6',['JPEG_ERROR_INVALID_PARAM',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a514a76ab8f943f41306340a375442316',1,'jpeg.h']]],
-  ['jpeg_5ferror_5fmemory_7',['JPEG_ERROR_MEMORY',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a7209fe7a2316ff08ebf27dabfe4886ea',1,'jpeg.h']]],
-  ['jpeg_5ferror_5funsupported_8',['JPEG_ERROR_UNSUPPORTED',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992a5ad90a06f4770aff755e506d67062b75',1,'jpeg.h']]],
-  ['jpeg_5fok_9',['JPEG_OK',['../jpeg_8h.html#a202329ecc20fb330676eca4fc96da992aea890bdcbd1a3851a32ca4c1165e4c29',1,'jpeg.h']]]
+  ['gpu_5fmem_5fcached_0',['GPU_MEM_CACHED',['../gpu__api_8h.html#a8b24f33950feb3b57aa244f26692d4ffabad98cff9b6f058d39501a0f62c79d45',1,'gpu_api.h']]],
+  ['gpu_5fmem_5funcached_1',['GPU_MEM_UNCACHED',['../gpu__api_8h.html#a8b24f33950feb3b57aa244f26692d4ffaf6afc9fb87f227e5aa9124ee3c3469fa',1,'gpu_api.h']]],
+  ['gpu_5fmem_5fwrite_5fcombine_2',['GPU_MEM_WRITE_COMBINE',['../gpu__api_8h.html#a8b24f33950feb3b57aa244f26692d4ffa338893f7c2a25e058a3f30d19c7a80fb',1,'gpu_api.h']]],
+  ['gpu_5ftiling_5fnone_3',['GPU_TILING_NONE',['../gpu__api_8h.html#a4123bd8525805497c940ccc50bc563c4a758ca09d604a5a235c2dcfc427380a03',1,'gpu_api.h']]],
+  ['gpu_5ftiling_5fx_4',['GPU_TILING_X',['../gpu__api_8h.html#a4123bd8525805497c940ccc50bc563c4a814b8dfb0d946ccd53ea5278587bae29',1,'gpu_api.h']]],
+  ['gpu_5ftiling_5fy_5',['GPU_TILING_Y',['../gpu__api_8h.html#a4123bd8525805497c940ccc50bc563c4a8e48de3b2dac5c454b8b4cefda4a3f78',1,'gpu_api.h']]]
 ];
