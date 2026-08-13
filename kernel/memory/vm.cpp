@@ -27,7 +27,6 @@
 #include <realm/handle_table.h>
 #include <realm/realm.h>
 #include <units/unit.h>
-#include <vespera/log.h>
 #include <vespera/mm/file_backing.h>
 #include <vespera/mm/memory.h>
 #include <vespera/mm/shm.h>
@@ -310,8 +309,8 @@ i64 mprotect(Unit* u, const uptr addr, usize length, const u64 prot) {
         if (!u || !u->is_user) return -EACCES;
         if (length == 0) return -EINVAL;
 
-        const uptr base = addr & ~uptr(PAGE_SIZE - 1);
-        const usize len = (length + PAGE_SIZE - 1) & ~usize(PAGE_SIZE - 1);
+        const uptr base = addr & ~(PAGE_SIZE - 1);
+        const usize len = (length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
         const uptr end = base + len;
 
         PageTableManager* ptm = ptm_for(u);

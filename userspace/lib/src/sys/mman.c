@@ -37,5 +37,19 @@ void* mmap(void* addr, size_t length, uint64_t prot, uint64_t flags, uint64_t ha
 }
 
 int munmap(void* addr, size_t length) {
-    return sys_munmap((uint64_t)addr, length, 0, 0, 0);
+    const int64_t ret = sys_munmap((uint64_t)addr, length, 0, 0, 0);
+    if (ret < 0) {
+        errno = -(ret);
+        return -1;
+    }
+    return 0;
+}
+
+int mprotect(void* addr, size_t length, int prot) {
+    const int64_t ret = sys_mprotect((uint64_t)addr, length, prot, 0, 0, 0);
+    if (ret < 0) {
+        errno = -(ret);
+        return -1;
+    }
+    return 0;
 }

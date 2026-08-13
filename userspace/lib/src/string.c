@@ -305,6 +305,11 @@ int memcmp(const void* s1, const void* s2, size_t n) {
     return 0;
 }
 
+int bcmp(const void* s1, const void* s2, size_t n) {
+    return memcmp(s1, s2, n);
+}
+
+
 void* memmove(void* dest, const void* src, size_t len) {
     if (len == 0 || dest == src) return dest;
 

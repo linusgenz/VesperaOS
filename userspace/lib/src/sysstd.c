@@ -31,6 +31,7 @@
 #define SYSCALL_SEEK 8
 #define SYSCALL_POLL 7
 #define SYSCALL_MMAP 9
+#define SYSCALL_MPROTECT 10
 #define SYSCALL_MUNMAP 11
 #define SYSCALL_BRK 12
 #define SYSCALL_SIGACTION 13
@@ -435,4 +436,8 @@ int64_t sys_dup2(uint64_t arg0, uint64_t arg1, uint64_t, uint64_t, uint64_t, uin
 
 int64_t sys_dup3(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_DUP3, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_mprotect(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MPROTECT, arg0, arg1, arg2, 0, 0, 0);
 }

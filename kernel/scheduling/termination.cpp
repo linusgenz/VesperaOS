@@ -60,8 +60,12 @@ namespace kernel::scheduling {
             SystemManager::system_panic("Null realm", -KENOCTXFLT);
         }
 
-        realm->exit_code = static_cast<i32>(sig) & 0x7f;
-        ExitCodeTable::store(realm->id, realm->exit_code);
+        {
+            SpinlockGuard g(realm->lock);
+            realm->exit_code = static_cast<i32>(sig) & 0x7f;
+            ExitCodeTable::store(realm->id, realm->exit_code);
+            realm->exited = true;
+        }
 
         // TODO: core dump
 
@@ -130,8 +134,12 @@ namespace kernel::scheduling {
             }
         }
 
-        realm->exit_code = static_cast<i32>(sig) & 0x7f;
-        ExitCodeTable::store(realm->id, realm->exit_code);
+        {
+            SpinlockGuard g(realm->lock);
+            realm->exit_code = static_cast<i32>(sig) & 0x7f;
+            ExitCodeTable::store(realm->id, realm->exit_code);
+            realm->exited = true;
+        }
 
         realm->wait_queue.wake_all();
         realm->unit_count = 0;
