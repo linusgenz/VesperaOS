@@ -14,5 +14,6 @@ var searchData=
   ['modff_11',['modff',['../math_8h.html#a7a6da394f9bb299615662c0ea45d7eea',1,'math.h']]],
   ['modfl_12',['modfl',['../math_8h.html#adb02d773d43f38b33a82d962adc3a6f6',1,'math.h']]],
   ['mount_13',['mount',['../userspace_2lib_2include_2mount_8h.html#a5768534c4fe10ec7968b7cbc3ea57121',1,'mount.h']]],
-  ['munmap_14',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
+  ['mprotect_14',['mprotect',['../mman_8h.html#a1beae3f774b7e4798cbe4f5c75d127d3',1,'mman.h']]],
+  ['munmap_15',['munmap',['../mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08',1,'mman.h']]]
 ];

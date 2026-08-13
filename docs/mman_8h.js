@@ -10,5 +10,6 @@ var mman_8h =
     [ "PROT_READ", "mman_8h.html#a15bf68ce8b590838b3a5c0b639d8d519", null ],
     [ "PROT_WRITE", "mman_8h.html#a2a79c8ceefb8fc25a940ae07a3d94429", null ],
     [ "mmap", "mman_8h.html#a943cf73b816880433935f7055d4fe72f", null ],
+    [ "mprotect", "mman_8h.html#a1beae3f774b7e4798cbe4f5c75d127d3", null ],
     [ "munmap", "mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08", null ]
 ];

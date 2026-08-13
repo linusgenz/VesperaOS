@@ -1,5 +1,6 @@
 var string_8h =
 [
+    [ "bcmp", "string_8h.html#a840ecc6fc750bf00e99015d2817b0e12", null ],
     [ "memchr", "string_8h.html#a02d89f48610ff69547e936f7ed4fd2f2", null ],
     [ "memcmp", "string_8h.html#a9e6df54ee04e18a3772335580e2ed872", null ],
     [ "memcpy", "string_8h.html#aee2cb14f63e73acc45996f71718121b1", null ],

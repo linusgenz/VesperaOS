@@ -41,6 +41,7 @@ var sysstd_8h =
     [ "sys_mkdir", "sysstd_8h.html#a5ae7ad8f83c25086b7f012cda63f43be", null ],
     [ "sys_mmap", "sysstd_8h.html#a90df8bbe76fb71b09d4f11a26d731aa4", null ],
     [ "sys_mount", "sysstd_8h.html#af98678151bf028b0e8b7c374ade59df1", null ],
+    [ "sys_mprotect", "sysstd_8h.html#a3a1273ea43c8c5dddcbc67d331c2ec55", null ],
     [ "sys_munmap", "sysstd_8h.html#a0b4571041296a4972a34098c18b802fc", null ],
     [ "sys_nanosleep", "sysstd_8h.html#a484528041a9ee34ec89471aa5aed5397", null ],
     [ "sys_open", "sysstd_8h.html#aec8842c92992b9470ba675d7109b419c", null ],

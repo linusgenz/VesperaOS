@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['max_5falign_5ft_0',['max_align_t',['../structmax__align__t.html',1,'']]],
-  ['mbstate_5ft_1',['mbstate_t',['../structmbstate__t.html',1,'']]],
-  ['meminfo_2',['meminfo',['../structmeminfo.html',1,'']]],
-  ['mice_5fevent_3',['mice_event',['../structmice__event.html',1,'']]]
+  ['label_0',['Label',['../classstella_1_1Label.html',1,'stella']]],
+  ['large_5fseg_1',['large_seg',['../structlarge__seg.html',1,'']]],
+  ['lconv_2',['lconv',['../structlconv.html',1,'']]]
 ];

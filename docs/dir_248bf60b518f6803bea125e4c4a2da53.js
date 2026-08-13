@@ -10,6 +10,8 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "crepusculum_protocol.h", "crepusculum__protocol_8h.html", "crepusculum__protocol_8h" ],
     [ "ctype.h", "ctype_8h.html", "ctype_8h" ],
     [ "dirent.h", "userspace_2lib_2include_2dirent_8h.html", null ],
+    [ "dlfcn.h", "dlfcn_8h.html", "dlfcn_8h" ],
+    [ "elf.h", "elf_8h.html", "elf_8h" ],
     [ "endian.h", "endian_8h.html", "endian_8h" ],
     [ "errno.h", "errno_8h.html", "errno_8h" ],
     [ "exec.h", "exec_8h.html", "exec_8h" ],

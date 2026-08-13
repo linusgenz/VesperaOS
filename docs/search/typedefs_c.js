@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['off_5ft_0',['off_t',['../alltypes_8h.html#af83497edef361523a95b06deda0b4c2d',1,'alltypes.h']]]
+  ['nlink_5ft_0',['nlink_t',['../alltypes_8h.html#af2739176220b526afc2936e1c5f6f16a',1,'alltypes.h']]]
 ];

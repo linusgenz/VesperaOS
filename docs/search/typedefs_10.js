@@ -1,8 +1,25 @@
 var searchData=
 [
-  ['thermal_5finfo_5ft_0',['thermal_info_t',['../thermal_8h.html#a314238df95008a1a525a2147904ea46e',1,'thermal.h']]],
-  ['thermal_5fsource_5ft_1',['thermal_source_t',['../thermal_8h.html#a1ee151a54fcd5ab44fe912194b833723',1,'thermal.h']]],
-  ['thermal_5fzone_5ft_2',['thermal_zone_t',['../thermal_8h.html#ab389f41640d21eb67ed701325a6ace89',1,'thermal.h']]],
-  ['time_5ft_3',['time_t',['../alltypes_8h.html#a824afaa48b313f905546cf45822800fc',1,'alltypes.h']]],
-  ['timer_5ft_4',['timer_t',['../alltypes_8h.html#a42d19b4a060a7f7058784ac181aafe05',1,'alltypes.h']]]
+  ['sa_5ffamily_5ft_0',['sa_family_t',['../alltypes_8h.html#a27a82860cef19f4a53f68516e7b2ee0e',1,'alltypes.h']]],
+  ['sig_5fatomic_5ft_1',['sig_atomic_t',['../userspace_2lib_2include_2signal_8h.html#a5d486213aa4f744f497959af6917e2a0',1,'signal.h']]],
+  ['sigset_5ft_2',['sigset_t',['../userspace_2lib_2include_2signal_8h.html#ae770e87ab143e8ad7feaf75b78a89718',1,'signal.h']]],
+  ['size_5ft_3',['size_t',['../alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984',1,'size_t:&#160;alltypes.h'],['../stddef_8h.html#aa9d55e2f20e580b7445617d0d12fff6e',1,'size_t:&#160;stddef.h']]],
+  ['smart_5fata_5ft_4',['smart_ata_t',['../ioctl__smart_8h.html#aeccb85e30c85aa4c214d3d1cb37d1026',1,'ioctl_smart.h']]],
+  ['smart_5fcommon_5ft_5',['smart_common_t',['../ioctl__smart_8h.html#a2bc4a17cf8e090254429218d1ec54aec',1,'ioctl_smart.h']]],
+  ['smart_5fnvme_5ft_6',['smart_nvme_t',['../ioctl__smart_8h.html#a65c29b3f8495d4428278928929d240a0',1,'ioctl_smart.h']]],
+  ['smart_5fraw_5ft_7',['smart_raw_t',['../ioctl__smart_8h.html#ab009bdef85960862907a36fac8c897c5',1,'ioctl_smart.h']]],
+  ['smartdrivertype_8',['SmartDriverType',['../ioctl__smart_8h.html#a5e86ab11dd74d6adb4e9d4b703fd0a1a',1,'ioctl_smart.h']]],
+  ['socklen_5ft_9',['socklen_t',['../alltypes_8h.html#afb1a61946c13fc19c32b18be7c506d65',1,'alltypes.h']]],
+  ['spawn_5fconfig_5ft_10',['spawn_config_t',['../spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b',1,'spawn_config_t:&#160;spawn.h'],['../tmp_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b',1,'spawn_config_t:&#160;tmp.h']]],
+  ['ssize_5ft_11',['ssize_t',['../alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd',1,'ssize_t:&#160;alltypes.h'],['../stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1',1,'ssize_t:&#160;stdlib.h']]],
+  ['stella_5fclose_5fcb_5ft_12',['stella_close_cb_t',['../stella_8h.html#aa9844976d95a0520d39ec1895b3167e5',1,'stella.h']]],
+  ['stella_5fconfig_5ft_13',['stella_config_t',['../stella_8h.html#aafdb6b973fe2b69778bd302062920a10',1,'stella.h']]],
+  ['stella_5fevent_5fcb_5ft_14',['stella_event_cb_t',['../stella_8h.html#a85ed253ccc4b2ad9df8a6034a42a4161',1,'stella.h']]],
+  ['stella_5ffont_5ft_15',['stella_font_t',['../stella_8h.html#a23552e492471b30b46f07f8d87369208',1,'stella.h']]],
+  ['stella_5fopa_5ft_16',['stella_opa_t',['../stella_8h.html#a7e3227bac43e76f7f8136232c2a3f09f',1,'stella.h']]],
+  ['stella_5ftimer_5fcb_5ft_17',['stella_timer_cb_t',['../stella_8h.html#a370cf98d355a16b8c059a5e7fe5103ac',1,'stella.h']]],
+  ['stella_5ftimer_5ft_18',['stella_timer_t',['../stella_8h.html#a45aa97bf26a346aec3e7b98233a3605d',1,'stella.h']]],
+  ['stella_5fwidget_5ft_19',['stella_widget_t',['../stella_8h.html#a98e467c3d4e28e22492ed46bd47b1721',1,'stella.h']]],
+  ['stella_5fwindow_5ft_20',['stella_window_t',['../stella_8h.html#a9dce11f67f30d7ec56d65bc0b9673716',1,'stella.h']]],
+  ['suseconds_5ft_21',['suseconds_t',['../alltypes_8h.html#ae32f449456d5f1877a9e630e92422c01',1,'alltypes.h']]]
 ];

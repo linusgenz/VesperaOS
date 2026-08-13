@@ -139,6 +139,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a1343e4aa663c9e8bb7d1b16d367f0b08" id="r_a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mman_8h.html#a1343e4aa663c9e8bb7d1b16d367f0b08">munmap</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length)</td></tr>
 <tr class="memdesc:a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unmap a previously mapped memory region.  <br /></td></tr>
 <tr class="separator:a1343e4aa663c9e8bb7d1b16d367f0b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1beae3f774b7e4798cbe4f5c75d127d3" id="r_a1beae3f774b7e4798cbe4f5c75d127d3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mman_8h.html#a1beae3f774b7e4798cbe4f5c75d127d3">mprotect</a> (void *addr, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> length, int prot)</td></tr>
+<tr class="separator:a1beae3f774b7e4798cbe4f5c75d127d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ae4f86bff73414c5fc08c058f957212f0" name="ae4f86bff73414c5fc08c058f957212f0"></a>
@@ -351,6 +353,40 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>On success: pointer to mapped memory. On error: (void*) -1 with errno set. </dd></dl>
+
+</div>
+</div>
+<a id="a1beae3f774b7e4798cbe4f5c75d127d3" name="a1beae3f774b7e4798cbe4f5c75d127d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1beae3f774b7e4798cbe4f5c75d127d3">&#9670;&#160;</a></span>mprotect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mprotect </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>addr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>length</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>prot</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
