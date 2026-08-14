@@ -32,7 +32,7 @@ var searchData=
   ['memmove_5fsafe_29',['memmove_safe',['../string_8h.html#aae3fd70ee98fbfce37ac3b991b7395fd',1,'string.h']]],
   ['memory_2eh_30',['memory.h',['../memory_8h.html',1,'']]],
   ['memory_5flimit_31',['memory_limit',['../structrealm__info.html#a7028b33fa1fb99d4e4788c02b15ed667',1,'realm_info']]],
-  ['memset_32',['memset',['../string_8h.html#a828c0050e15127314e9fabe1c5b9fc8b',1,'memset(void *dest, uint8_t c, size_t n):&#160;string.h'],['../elf__loader_8h.html#a6bae2ff76931929ad21887b22cca959f',1,'memset(void *dst, uint8_t c, size_t n):&#160;elf_loader.h']]],
+  ['memset_32',['memset',['../string_8h.html#a1dfdc55c5334154353963674598faf1b',1,'memset(void *dest, int c, size_t n):&#160;string.h'],['../elf__loader_8h.html#aa4f2203d403812c7f96a45b75a238c1d',1,'memset(void *dst, int c, size_t n):&#160;elf_loader.h']]],
   ['mice_2eh_33',['mice.h',['../mice_8h.html',1,'']]],
   ['mice_5fbtn_5fleft_34',['MICE_BTN_LEFT',['../mice_8h.html#a7135f9606b2fef63d92b4cca366525e5',1,'mice.h']]],
   ['mice_5fbtn_5fmiddle_35',['MICE_BTN_MIDDLE',['../mice_8h.html#a08203d7fc3a22fa27cea5525b8d4ab57',1,'mice.h']]],

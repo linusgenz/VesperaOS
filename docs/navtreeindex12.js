@@ -1,10 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"userspace_2lib_2include_2time_8h_source.html":[5,0,1,0,0,48],
-"userspace_2lib_2include_2vbus_8h.html":[5,0,1,0,0,52],
-"userspace_2lib_2include_2vbus_8h.html#a168136de4ccfd9cca79abc98cb80bc1f":[5,0,1,0,0,52,1],
-"userspace_2lib_2include_2vbus_8h.html#a3f395c1bd20d63a86b6e4147ff4b6f0b":[5,0,1,0,0,52,4],
-"userspace_2lib_2include_2vbus_8h.html#a502abcdf733eaf6baa3a4a5e51613b14":[5,0,1,0,0,52,11],
 "userspace_2lib_2include_2vbus_8h.html#a61e5c7e14ab74b3c95d851b9a16f650d":[5,0,1,0,0,52,2],
 "userspace_2lib_2include_2vbus_8h.html#a622ccd414da8b8408ef095b7128c7b6c":[5,0,1,0,0,52,10],
 "userspace_2lib_2include_2vbus_8h.html#a7355e5f54982c2e0e30fb1ac48b1bbfe":[5,0,1,0,0,52,8],

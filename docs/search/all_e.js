@@ -4,7 +4,7 @@ var searchData=
   ['n_5fsep_5fby_5fspace_1',['n_sep_by_space',['../structlconv.html#ab7ac20ce034900155183b32fc3c6d9a3',1,'lconv']]],
   ['n_5fsign_5fposn_2',['n_sign_posn',['../structlconv.html#ae0bbe6f545952daef5a8cbdd054a184e',1,'lconv']]],
   ['name_3',['name',['../structrealm__info.html#a94ffed55ca8f366d704a95c4fbff30ab',1,'realm_info::name'],['../structthermal__zone.html#adde4de744bcb1bc959658b75f318436e',1,'thermal_zone::name'],['../structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10',1,'dirent_t::name']]],
-  ['nan_4',['nan',['../math_8h.html#a8c39d09394a142a95cb76dad859fa28b',1,'nan(const char *):&#160;math.h'],['../math_8h.html#a8abfcc76130f3f991d124dd22d7e69bc',1,'NAN:&#160;math.h']]],
+  ['nan_4',['nan',['../math_8h.html#a8abfcc76130f3f991d124dd22d7e69bc',1,'NAN:&#160;math.h'],['../math_8h.html#a8c39d09394a142a95cb76dad859fa28b',1,'nan(const char *):&#160;math.h']]],
   ['nanf_5',['nanf',['../math_8h.html#aaf22b2f3b2d404adba0ec99f7745c300',1,'math.h']]],
   ['nanl_6',['nanl',['../math_8h.html#a074781ea12df1552c3e8827bd20a5b90',1,'math.h']]],
   ['nanosleep_7',['nanosleep',['../userspace_2lib_2include_2time_8h.html#a8cd8e52a299d81cb4ab074de1e300f85',1,'time.h']]],
@@ -29,7 +29,7 @@ var searchData=
   ['noscroll_26',['noScroll',['../classstella_1_1Widget.html#a9e6949deb72f972dc533054a3f6a5bc2',1,'stella::Widget']]],
   ['now_5fms_27',['now_ms',['../stella_8h.html#a3a4e8ad96a6a4ba6ab131d66d843543f',1,'stella.h']]],
   ['nsig_28',['NSIG',['../userspace_2lib_2include_2signal_8h.html#ab83b88daaecc469d1edb90a527ab4a39',1,'signal.h']]],
-  ['null_29',['null',['../elf__loader_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'NULL:&#160;elf_loader.h'],['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'NULL:&#160;stddef.h']]],
+  ['null_29',['NULL',['../stddef_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'stddef.h']]],
   ['num_5fconfigurations_30',['num_configurations',['../structusb__device__info.html#a18e5d2888c081b12a42ee813fcdc8010',1,'usb_device_info']]],
   ['num_5finterfaces_31',['num_interfaces',['../structusb__device__info.html#aadaa4148b1fdfa0996764ae3149e2233',1,'usb_device_info']]]
 ];

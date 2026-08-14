@@ -1,10 +1,5 @@
 var NAVTREEINDEX8 =
 {
-"stella_8h.html#a5a8d97a7c81930fc330f1fc7c32d881a":[5,0,1,0,0,44,73],
-"stella_8h.html#a5c41caa748a9eadb96eb60874f7dbe4b":[5,0,1,0,0,44,7],
-"stella_8h.html#a62e49909231c415e00974969acd16663":[5,0,1,0,0,44,44],
-"stella_8h.html#a646164be0442eb6ecfa670e597e61466":[5,0,1,0,0,44,8],
-"stella_8h.html#a659c250c930591d5887e3585363a82cf":[5,0,1,0,0,44,94],
 "stella_8h.html#a66b9c5f98c780ae24e6480067ea3e47f":[5,0,1,0,0,44,38],
 "stella_8h.html#a699331c2f7345790b1625e7544b65280":[5,0,1,0,0,44,92],
 "stella_8h.html#a723bbbbc37f369a38cf51b3a4ae08380":[5,0,1,0,0,44,96],
@@ -101,11 +96,11 @@ var NAVTREEINDEX8 =
 "string_8h.html#a02d89f48610ff69547e936f7ed4fd2f2":[5,0,1,0,0,45,1],
 "string_8h.html#a14e6581584b7433c4440fdc7ecf86aea":[5,0,1,0,0,45,10],
 "string_8h.html#a19546e43db31c3095991b04023b422b2":[5,0,1,0,0,45,8],
+"string_8h.html#a1dfdc55c5334154353963674598faf1b":[5,0,1,0,0,45,6],
 "string_8h.html#a4522f53cff2fef09001e4d34227463a9":[5,0,1,0,0,45,4],
 "string_8h.html#a5b03665d9d996518692af71c3dceb971":[5,0,1,0,0,45,20],
 "string_8h.html#a617eed2430471abc2c2ac192bd280869":[5,0,1,0,0,45,17],
 "string_8h.html#a706b36f3a672f84685576723c3928baa":[5,0,1,0,0,45,7],
-"string_8h.html#a828c0050e15127314e9fabe1c5b9fc8b":[5,0,1,0,0,45,6],
 "string_8h.html#a840ecc6fc750bf00e99015d2817b0e12":[5,0,1,0,0,45,0],
 "string_8h.html#a900a0edfa51f601d479244f7451cedd1":[5,0,1,0,0,45,22],
 "string_8h.html#a9380f4a95b2c4e3d979b1634d3a8bcc9":[5,0,1,0,0,45,18],
@@ -249,5 +244,10 @@ var NAVTREEINDEX8 =
 "structchronos__user__checkpoint.html":[4,0,4],
 "structchronos__user__checkpoint.html#aa00dd9c5d39f333a0efc196ec7e18459":[4,0,4,0],
 "structchronos__user__checkpoint.html#ac91615b9e9e769bfd6ed35b2dbbae810":[4,0,4,1],
-"structcpu__info.html":[4,0,5]
+"structcpu__info.html":[4,0,5],
+"structcpu__info.html#a07bea1218e56bc623767fa103b9c1da5":[4,0,5,2],
+"structcpu__info.html#a14e708eb4db7e380f8a3310a0de25909":[4,0,5,3],
+"structcpu__info.html#a261213bcaadbe50b5ac85a91021a0cff":[4,0,5,0],
+"structcpu__info.html#a2d4a49a68fd2deca48ad8d82ee9cbb4b":[4,0,5,4],
+"structcpu__info.html#a4c54b8c625779bdb55ab47d0b827a31c":[4,0,5,1]
 };

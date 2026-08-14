@@ -3,11 +3,6 @@ var elf__loader_8h =
     [ "elf_loaded_object", "structelf__loaded__object.html", "structelf__loaded__object" ],
     [ "elf_dyn_scan_result_t", "structelf__dyn__scan__result__t.html", "structelf__dyn__scan__result__t" ],
     [ "ELF_LOADER_MAX_NEEDED", "elf__loader_8h.html#adcac1ad9519a1477db899967009ffba6", null ],
-    [ "ELF_LOADER_PROT_EXEC", "elf__loader_8h.html#aaeeaa50246d504583cc593890b6f1e00", null ],
-    [ "ELF_LOADER_PROT_NONE", "elf__loader_8h.html#a02334bfe2fa291098e91a386c82ee083", null ],
-    [ "ELF_LOADER_PROT_READ", "elf__loader_8h.html#a6c134b8399249109e46002587e2481b3", null ],
-    [ "ELF_LOADER_PROT_WRITE", "elf__loader_8h.html#ae724c6f8bad9ddceda39b38198f53756", null ],
-    [ "NULL", "elf__loader_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4", null ],
     [ "elf_loaded_object_t", "elf__loader_8h.html#a1858b8e372b399d1da9647159c93ab12", null ],
     [ "elf_loader_align_down", "elf__loader_8h.html#a552dc6e9d8b5015e7c24c419ba3add4d", null ],
     [ "elf_loader_align_up", "elf__loader_8h.html#ad023197a9db6943b1a13a09901fec190", null ],
@@ -25,5 +20,5 @@ var elf__loader_8h =
     [ "elf_loader_sys_munmap", "elf__loader_8h.html#a09b17b65881ff8a55aca8c19837cb8e2", null ],
     [ "elf_loader_validate_ehdr", "elf__loader_8h.html#a6c9ff4fed5d2cc2d54bf05c9020ed26d", null ],
     [ "memcpy", "elf__loader_8h.html#ab15dd0a01835f878ce6d2420374f9914", null ],
-    [ "memset", "elf__loader_8h.html#a6bae2ff76931929ad21887b22cca959f", null ]
+    [ "memset", "elf__loader_8h.html#aa4f2203d403812c7f96a45b75a238c1d", null ]
 ];
