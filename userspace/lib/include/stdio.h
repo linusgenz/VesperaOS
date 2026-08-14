@@ -262,6 +262,12 @@ int snprintf(char* buffer, size_t size, const char* format, ...);
  */
 int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args);
 
+/* Write formatted output to a string dynamically allocated with `malloc'.
+   Store the address of the string in *PTR.  */
+int vasprintf(char** __restrict__ strp, const char* __restrict__ fmt, va_list args);
+
+int asprintf(char** __restrict__ ptr, const char* __restrict__ fmt, ...);
+
 /**
  * @brief Open a file stream.
  *

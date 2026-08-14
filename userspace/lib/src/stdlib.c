@@ -29,9 +29,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vespera/fcntl.h>
 
-#include "stdbool.h"
+#include <stdbool.h>
+#include <fcntl.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 char** environ = NULL;
 size_t env_count = 0;
@@ -41,7 +44,29 @@ int* __errno_location(void) {
     return &errno;
 }
 
+static unsigned int gather_seed(void) {
+    unsigned int seed = 0;
+
+    const HANDLE hdl = vopen("/dev/urandom", O_RDONLY);
+    if ((int64_t)hdl >= 0) {
+        const bool ok = vread(hdl, &seed, sizeof(seed)) == sizeof(seed);
+        vclose(hdl);
+        if (ok && seed != 0) return seed;
+    }
+
+    seed ^= (unsigned int)getpid();
+    seed ^= (unsigned int)(uintptr_t)&seed;
+    seed ^= (unsigned int)(uintptr_t)gather_seed;
+
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == 0) seed ^= ts.tv_sec;
+
+    return seed ? seed : 1;
+}
+
 void init_environ(char** envp) {
+    srand(gather_seed());
+
     size_t count = 0;
     while (envp[count]) count++;
 
@@ -545,4 +570,36 @@ char* tmpnam(char* buf) {
     char* dst = buf ? buf : internal;
     snprintf(dst, L_tmpnam, "/tmp/tmp%d", counter++);
     return dst;
+}
+
+#define MKSTEMP_RETRIES 100
+
+static const char mkstemp_chars[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+int mkstemp(char* tmpl) {
+    const size_t len = strlen(tmpl);
+
+    // Last 6 chars must be XXXXXX;
+    if (len < 6 || strcmp(tmpl + len - 6, "XXXXXX") != 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    char* const suffix = tmpl + len - 6;
+
+    for (int attempt = 0; attempt < MKSTEMP_RETRIES; attempt++) {
+        for (int i = 0; i < 6; i++) {
+            const int r = rand() % (int)(sizeof(mkstemp_chars) - 1);
+            suffix[i] = mkstemp_chars[r];
+        }
+
+        const int fd = open(tmpl, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+        if (fd >= 0) return fd;
+
+        if (errno != EEXIST) return -1;
+    }
+
+    errno = EEXIST;
+    return -1;
 }

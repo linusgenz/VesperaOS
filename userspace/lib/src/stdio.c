@@ -548,7 +548,7 @@ static void sink_putc(sink_t* s, char c) {
             flush_printf_buffer();
         }
     } else {
-        if (s->pos < s->size - 1) s->buf[s->pos++] = c;
+        if (s->size > 0 && s->pos < s->size - 1) s->buf[s->pos++] = c;
     }
 }
 
@@ -846,6 +846,41 @@ int vsnprintf(char* buffer, size_t size, const char* fmt, va_list args) {
     }
 
     return (int)s.written;
+}
+
+int vasprintf(char** __restrict__ strp, const char* __restrict__ fmt, va_list args) {
+    if (!strp) return -1;
+    *strp = NULL;
+    if (!fmt) return -1;
+
+    /* First pass: args is consumed by vformat_write, so we need our own copy
+     * for the length probe and another for the real write. */
+    va_list probe_args;
+    va_copy(probe_args, args);
+    int len = vsnprintf(NULL, 0, fmt, probe_args);
+    va_end(probe_args);
+
+    if (len < 0) return -1;
+
+    char* buf = malloc((size_t)len + 1);
+    if (!buf) return -1;
+
+    int written = vsnprintf(buf, (size_t)len + 1, fmt, args);
+    if (written < 0) {
+        free(buf);
+        return -1;
+    }
+
+    *strp = buf;
+    return written;
+}
+
+int asprintf(char** __restrict__ ptr, const char* __restrict__ fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int ret = vasprintf(ptr, fmt, args);
+    va_end(args);
+    return ret;
 }
 
 char* fgets(char* buf, int n, FILE* f) {
