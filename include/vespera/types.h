@@ -56,21 +56,21 @@ static_assert(__DBL_MANT_DIG__ == 53, "f64 must be IEEE-754 binary64");
 typedef __UINTPTR_TYPE__ uptr;
 typedef __INTPTR_TYPE__ iptr;
 
-typedef i8 int8_t;
-typedef i16 int16_t;
-typedef i32 int32_t;
-typedef i64 int64_t;
+typedef signed char int8_t;
+typedef short int16_t;
+typedef int int32_t;
+typedef long long int64_t;
 
-typedef u8 uint8_t;
-typedef u16 uint16_t;
-typedef u32 uint32_t;
-typedef u64 uint64_t;
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
 
 typedef long int isize;
 typedef __SIZE_TYPE__ usize;
 
-typedef isize ssize_t;
-typedef usize size_t;
+typedef long int ssize_t;
+typedef __SIZE_TYPE__ size_t;
 typedef i64     ptrdiff_t;
 
 typedef __attribute__((__aligned__(__BIGGEST_ALIGNMENT__))) struct {
@@ -117,17 +117,16 @@ typedef struct {
     u32 y;
 } point_t;
 
-typedef u64 dev_t;      ///< Device IDs (major/minor combined)
-typedef u64 ino_t;      ///< Inode numbers
-typedef u32 mode_t;     ///< File modes and permission bits
-typedef u32 nlink_t;    ///< Number of hard links
-typedef u32 uid_t;      ///< User ID
-typedef u32 gid_t;      ///< Group ID
-typedef i64  off_t;      ///< File offsets / sizes (signed)
-typedef i64  blksize_t;  ///< Block size for I/O
-typedef i64  blkcnt_t;   ///< Number of allocated 512-byte blocks
-typedef i64  time_t;     ///< Seconds since the epoch
-typedef i32  pid_t;      ///< Process ID
-typedef long ssize_t;    ///< Signed size (for read/write returns)
+typedef uint64_t dev_t;      ///< Device IDs (major/minor combined)
+typedef uint64_t ino_t;      ///< Inode numbers
+typedef uint32_t mode_t;     ///< File modes and permission bits
+typedef uint32_t nlink_t;    ///< Number of hard links
+typedef uint32_t uid_t;      ///< User ID
+typedef uint32_t gid_t;      ///< Group ID
+typedef int64_t  off_t;      ///< File offsets / sizes (signed)
+typedef int64_t  blksize_t;  ///< Block size for I/O
+typedef int64_t  blkcnt_t;   ///< Number of allocated 512-byte blocks
+typedef int64_t  time_t;     ///< Seconds since the epoch
+typedef int  pid_t;      ///< Process ID
 
 #endif  // VESPERAOS_TYPES_H

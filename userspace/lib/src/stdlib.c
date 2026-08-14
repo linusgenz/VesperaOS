@@ -29,11 +29,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vespera/fflags.h>
+#include <vespera/fcntl.h>
 
 #include "stdbool.h"
 
-_Thread_local int errno = 0;
 char** environ = NULL;
 size_t env_count = 0;
 size_t env_capacity = 0;
@@ -507,12 +506,12 @@ void srand(const unsigned int seed) {
 
 int rand(void) {
     if (next == 0) {
-        const HANDLE hdl = open("/dev/urandom", O_RDONLY);
+        const HANDLE hdl = vopen("/dev/urandom", O_RDONLY);
         if ((int64_t)hdl >= 0) {
             unsigned int kernel_seed = 0;
-            if (read(hdl, &kernel_seed, sizeof(kernel_seed)) == sizeof(kernel_seed))
+            if (vread(hdl, &kernel_seed, sizeof(kernel_seed)) == sizeof(kernel_seed))
                 next = kernel_seed ? kernel_seed : 1;
-            close(hdl);
+            vclose(hdl);
         }
         if (next == 0) next = 1;
     }

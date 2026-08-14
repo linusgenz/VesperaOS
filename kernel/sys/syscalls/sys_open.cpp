@@ -24,7 +24,7 @@
 #include <filesystem/vfs.h>
 #include <filesystem/vfs_node.h>
 #include <security/permission.h>
-#include <uapi/vespera/fflags.h>
+#include <uapi/vespera/fcntl.h>
 #include <uapi/vespera/handles.h>
 #include <vespera/realm/handles.h>
 #include <vespera/realm/realm_manager.h>
@@ -33,9 +33,10 @@
 #include "filesystem/vfs_handle.h"
 
 namespace syscalls::internal {
-    i64 sys_open(u64 arg0, u64 arg1, u64, u64, u64, u64) {
+    i64 sys_open(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const auto user_path = reinterpret_cast<const char*>(arg0);
         const auto flags = static_cast<u32>(arg1);
+        const auto mode = static_cast<mode_t>(arg2);
 
         if (!user_path || user_path[0] == '\0') return -EINVAL;
 

@@ -47,13 +47,37 @@ typedef uint64_t dev_t;      ///< Device IDs (major/minor combined)
 typedef uint64_t ino_t;      ///< Inode numbers
 typedef uint32_t mode_t;     ///< File modes and permission bits
 typedef uint32_t nlink_t;    ///< Number of hard links
-typedef uint32_t uid_t;      ///< User ID
-typedef uint32_t gid_t;      ///< Group ID
-typedef int64_t  off_t;      ///< File offsets / sizes (signed)
 typedef int64_t  blksize_t;  ///< Block size for I/O
 typedef int64_t  blkcnt_t;   ///< Number of allocated 512-byte blocks
 typedef int64_t  time_t;     ///< Seconds since the epoch
-typedef int32_t  pid_t;      ///< Process ID
-typedef long ssize_t;    ///< Signed size (for read/write returns)
+
+#ifndef _SSIZE_T_DEFINED
+#define _SSIZE_T_DEFINED
+typedef long int ssize_t;
+#endif
+
+#ifndef _PID_T_DEFINED
+#define _PID_T_DEFINED
+typedef int pid_t;
+#endif
+
+#ifndef _OFF_T_DEFINED
+#define _OFF_T_DEFINED
+typedef int64_t off_t;
+#endif
+
+#ifndef _UID_T_DEFINED
+#define _UID_T_DEFINED
+typedef uint32_t uid_t;
+#endif
+
+#ifndef _GID_T_DEFINED
+#define _GID_T_DEFINED
+typedef uint32_t gid_t;
+#endif
+
+#ifndef _INTPTR_T_DEFINED
+#define _INTPTR_T_DEFINED
+#endif
 
 #endif

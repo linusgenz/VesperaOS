@@ -134,8 +134,8 @@ int64_t sys_write(uint64_t hid, uint64_t buf_ptr, uint64_t count, uint64_t, uint
     return syscall(SYSCALL_WRITE, hid, buf_ptr, count, 0, 0, 0);
 }
 
-int64_t sys_open(uint64_t path_ptr, uint64_t flags, uint64_t, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_OPEN, path_ptr, flags, 0, 0, 0, 0);
+int64_t sys_open(uint64_t path_ptr, uint64_t flags, uint64_t mode, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_OPEN, path_ptr, flags, mode, 0, 0, 0);
 }
 
 int64_t sys_close(uint64_t hid, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {

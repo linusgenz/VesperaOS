@@ -23,7 +23,7 @@
 
 #include <filesystem/vfs_handle.h>
 #include <filesystem/vfs_node.h>
-#include <uapi/vespera/fflags.h>
+#include <uapi/vespera/fcntl.h>
 #include <uapi/vespera/handles.h>
 
 #include "../handle_resolution.h"

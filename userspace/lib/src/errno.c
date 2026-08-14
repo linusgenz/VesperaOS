@@ -22,6 +22,8 @@
 
 #include <errno.h>
 
+_Thread_local int errno = 0;
+
 const char* strerror(const int err) {
     switch (err) {
         case SUCCESS_CODE: return "Success";

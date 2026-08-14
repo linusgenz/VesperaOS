@@ -27,7 +27,6 @@
 #include <sysstd.h>
 
 typedef uint64_t FILE_HANDLE;
-extern _Thread_local int errno;
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1

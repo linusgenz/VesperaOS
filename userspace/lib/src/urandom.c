@@ -24,7 +24,7 @@
 #include "urandom.h"
 
 #include <errno.h>
-#include <fflags.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +36,7 @@ ssize_t getrandom(void *buf, size_t buflen) {
         return -EINVAL;
     }
 
-    FILE_HANDLE fd = open(UDEV_PATH, O_RDONLY);
+    FILE_HANDLE fd = vopen(UDEV_PATH, O_RDONLY);
     if (fd < 0) {
         return -ENOENT;
     }
@@ -46,16 +46,16 @@ ssize_t getrandom(void *buf, size_t buflen) {
 
     // to tolarate partial reads fread in a loop
     while ((size_t)total < buflen) {
-        ssize_t n = read(fd, out + total, buflen - (size_t)total);
+        ssize_t n = vread(fd, out + total, buflen - (size_t)total);
         if (n < 0) {
-            close(fd);
+            vclose(fd);
             return -EIO;
         }
         if (n == 0) break; // EOF
         total += n;
     }
 
-    close(fd);
+    vclose(fd);
     return total;
 }
 

@@ -24,7 +24,7 @@
 #include <realm/handle_table.h>
 #include <realm/realm.h>
 #include <vespera/log.h>
-#include <uapi/vespera/fflags.h>
+#include <uapi/vespera/fcntl.h>
 #include <vespera/mm/memory.h>
 #include <vespera/mm/shm.h>
 #include <vespera_errno.h>

@@ -507,7 +507,7 @@ ssize_t readdir(DIR_HANDLE handle, dirent_t* entry);
  * @see close()
  * @see fopen()
  */
-HANDLE open(const char* path, int flags);
+HANDLE vopen(const char* path, int flags);
 
 /**
  * @brief Close a generic handle.
@@ -520,7 +520,7 @@ HANDLE open(const char* path, int flags);
  * @see open()
  * @see fclose()
  */
-int close(HANDLE handle);
+int vclose(HANDLE handle);
 
 /**
  * @brief Read data from a generic handle.
@@ -535,7 +535,7 @@ int close(HANDLE handle);
  * @see write()
  * @see open()
  */
-ssize_t read(HANDLE handle, void* buf, size_t count);
+ssize_t vread(HANDLE handle, void* buf, size_t count);
 
 /**
  * @brief Write data to a generic handle.
@@ -550,7 +550,7 @@ ssize_t read(HANDLE handle, void* buf, size_t count);
  * @see read()
  * @see open()
  */
-ssize_t write(HANDLE handle, const void* buf, size_t count);
+ssize_t vwrite(HANDLE handle, const void* buf, size_t count);
 
 /**
  * @brief Create a new empty file.

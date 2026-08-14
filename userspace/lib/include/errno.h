@@ -24,8 +24,9 @@
 #ifndef ERROR_CODES_H
 #define ERROR_CODES_H
 
-#define SUCCESS_CODE 0
+extern _Thread_local int errno;
 
+#define SUCCESS_CODE 0
 
 #define EPERM           1   // Operation not permitted
 #define ENOENT          2   // No such file or directory

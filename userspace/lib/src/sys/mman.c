@@ -22,10 +22,10 @@
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/mman.h>
 #include <sysstd.h>
+
+#include "errno.h"
 
 void* mmap(void* addr, size_t length, uint64_t prot, uint64_t flags, uint64_t handle, size_t offset) {
     int64_t ret = sys_mmap((uint64_t)addr, length, prot, flags, handle, offset);

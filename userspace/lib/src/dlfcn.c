@@ -22,7 +22,7 @@
 
 #include "dlfcn.h"
 
-#include <fflags.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <stdint.h>
 #include <stdio.h>
