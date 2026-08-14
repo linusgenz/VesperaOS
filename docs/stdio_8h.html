@@ -197,6 +197,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a65926e55e94f64697275e8a0bc3760bb" id="r_a65926e55e94f64697275e8a0bc3760bb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb">vsnprintf</a> (char *buffer, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, const char *fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
 <tr class="memdesc:a65926e55e94f64697275e8a0bc3760bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted output to a buffer with size limit using a va_list.  <br /></td></tr>
 <tr class="separator:a65926e55e94f64697275e8a0bc3760bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1f06a83ce0ad6dc3e12afc0613efd7c" id="r_aa1f06a83ce0ad6dc3e12afc0613efd7c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa1f06a83ce0ad6dc3e12afc0613efd7c">vasprintf</a> (char **__restrict__ strp, const char *__restrict__ fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
+<tr class="separator:aa1f06a83ce0ad6dc3e12afc0613efd7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64dd2668b61c150c7d22a7e73f699f3d" id="r_a64dd2668b61c150c7d22a7e73f699f3d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a64dd2668b61c150c7d22a7e73f699f3d">asprintf</a> (char **__restrict__ ptr, const char *__restrict__ fmt,...)</td></tr>
+<tr class="separator:a64dd2668b61c150c7d22a7e73f699f3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2537fcdb9f2f543f6167b296fcffb23f" id="r_a2537fcdb9f2f543f6167b296fcffb23f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen</a> (const char *path, const char *mode)</td></tr>
 <tr class="memdesc:a2537fcdb9f2f543f6167b296fcffb23f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a file stream.  <br /></td></tr>
 <tr class="separator:a2537fcdb9f2f543f6167b296fcffb23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -551,6 +555,40 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a64dd2668b61c150c7d22a7e73f699f3d" name="a64dd2668b61c150c7d22a7e73f699f3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64dd2668b61c150c7d22a7e73f699f3d">&#9670;&#160;</a></span>asprintf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int asprintf </td>
+          <td>(</td>
+          <td class="paramtype">char **__restrict__&#160;</td>
+          <td class="paramname"><em>ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *__restrict__&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a03af571dfb595681bfa203c83385c07b" name="a03af571dfb595681bfa203c83385c07b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a03af571dfb595681bfa203c83385c07b">&#9670;&#160;</a></span>chdir()</h2>
 
@@ -2002,6 +2040,40 @@ Variables</h2></td></tr>
 <a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
+
+</div>
+</div>
+<a id="aa1f06a83ce0ad6dc3e12afc0613efd7c" name="aa1f06a83ce0ad6dc3e12afc0613efd7c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1f06a83ce0ad6dc3e12afc0613efd7c">&#9670;&#160;</a></span>vasprintf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int vasprintf </td>
+          <td>(</td>
+          <td class="paramtype">char **__restrict__&#160;</td>
+          <td class="paramname"><em>strp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *__restrict__&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a>&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
