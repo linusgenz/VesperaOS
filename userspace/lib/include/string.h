@@ -87,7 +87,7 @@ char *strstr(const char *haystack, const char *needle);
 /**
  * @brief Set N bytes of DEST to C.
  */
-void *memset(void *dest, uint8_t c, size_t n);
+void *memset(void *dest, int c, size_t n);
 
 /**
  * @brief Copy N bytes of SRC to DEST.

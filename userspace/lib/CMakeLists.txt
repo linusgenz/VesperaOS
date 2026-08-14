@@ -84,6 +84,7 @@ add_custom_target(sysroot_headers
 add_subdirectory(lua lua_build)
 add_subdirectory(readline)
 add_subdirectory(lvespera)
+add_subdirectory(ld)
 
 # ────────────────────────────────────────────────────────────────
 # Math library (generic + x86_64 SIMD overrides)
@@ -148,6 +149,7 @@ set(LIB_SOURCES
         src/stat.c
         src/unit.c
         src/futex.c
+        src/dlfcn.c
 
         src/bits/fenv.c
 
@@ -371,7 +373,7 @@ target_include_directories(lua_bin PRIVATE
 target_link_libraries(lua_bin PRIVATE lua lvespera readline vesplib)
 
 set(USER_LD_FLAGS
-        "-nostdlib -target x86_64-unknown-linux-gnu -fno-stack-protector -pie \
+        "-nostdlib -target x86_64-unknown-linux-gnu -fno-stack-protector -pie -Wl,--no-dynamic-linker \
      --sysroot=${VESPERA_SYSROOT} -L${VESPERA_SYSROOT}/usr/lib"
 )
 
@@ -425,7 +427,7 @@ add_dependencies(vesplib sysroot_headers)
 add_custom_target(sysroot_install
         DEPENDS
         vesplib vesplib_cpp crt0_obj
-        lua lua_bin lvespera
+        lua lua_bin lvespera ld_vespera
         sysroot_install_readline
 
         # Link crt0 into a staging file first, then copy_if_different so downstream
