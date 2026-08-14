@@ -32,20 +32,6 @@ int64_t clock_settime(clockid_t clk_id, const timespec_t* ts) {
     return -1;
 }
 
-int usleep(uint64_t usec) {
-    timespec_t req;
-    timespec_t rem;
-
-    req.tv_sec  = usec / 1000000ULL;
-    req.tv_nsec = (usec % 1000000ULL) * 1000ULL;
-
-    while (nanosleep(&req, &rem) != 0) {
-        req = rem;
-    }
-
-    return 0;
-}
-
 int nanosleep(const timespec_t* req, timespec_t* rem) {
     return (int)sys_nanosleep((uint64_t)req, (uint64_t)rem, 0, 0, 0, 0);
 }

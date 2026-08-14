@@ -35,11 +35,15 @@
 typedef unsigned long size_t;
 typedef unsigned long uintptr_t;
 typedef long ptrdiff_t;
-typedef long ssize_t;
 typedef long intptr_t;
 typedef long regoff_t;
 typedef long register_t;
 typedef long suseconds_t;
+
+#ifndef _SSIZE_T_DEFINED
+#define _SSIZE_T_DEFINED
+typedef int64_t ssize_t;
+#endif
 
 typedef unsigned mode_t;
 typedef unsigned long fsblkcnt_t;

@@ -39,7 +39,7 @@ namespace syscalls::internal {
             return -EEXIST;
         }
 
-        SYSCALL_TRY_VOID(VFS::create(norm));
+        SYSCALL_TRY_VOID(VFS::create(norm, 0755));
         return SUCCESS_CODE;
     }
 

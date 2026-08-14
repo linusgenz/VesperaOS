@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sysstd.h>
+#include <sys/types.h>
 #include <vespera/handles.h>
 
 #include "errno.h"
@@ -1137,7 +1138,7 @@ int fflush(FILE* f) {
     return 0;
 }
 
-HANDLE open(const char* path, int flags) {
+HANDLE vopen(const char* path, int flags) {
     int64_t ret = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
@@ -1146,7 +1147,7 @@ HANDLE open(const char* path, int flags) {
     return (HANDLE)ret;
 }
 
-int close(HANDLE handle) {
+int vclose(HANDLE handle) {
     int64_t ret = sys_close(handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
@@ -1155,63 +1156,13 @@ int close(HANDLE handle) {
     return 0;
 }
 
-ssize_t read(HANDLE handle, void* buf, size_t count) {
+ssize_t vread(HANDLE handle, void* buf, size_t count) {
     return sys_read(handle, (uint64_t)buf, count, 0, 0, 0);
 }
 
-ssize_t write(HANDLE handle, const void* buf, size_t count) {
+ssize_t vwrite(HANDLE handle, const void* buf, size_t count) {
     return sys_write(handle, (uint64_t)buf, count, 0, 0, 0);
 }
-
-int create(const char* path, int type) {
-    int64_t ret;
-    if (type == C_DIR) {
-        ret = sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
-    } else {
-        ret = sys_create((uint64_t)path, 0, 0, 0, 0, 0);
-    }
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return -1;
-    }
-    return 0;
-}
-int creat(const char* path) {
-    int64_t ret = sys_create((uint64_t)path, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return -1;
-    }
-    return 0;
-}
-
-int unlink(const char* path) {
-    int64_t ret = sys_unlink((uint64_t)path, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return -1;
-    }
-    return 0;
-}
-
-int mkdir(const char* path) {
-    int64_t ret = sys_mkdir((uint64_t)path, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return -1;
-    }
-    return 0;
-}
-
-int rmdir(const char* path) {
-    int64_t ret = sys_rmdir((uint64_t)path, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return -1;
-    }
-    return 0;
-}
-
 
 int fseek(FILE* f, long offset, int whence) {
     if (!f) return -1;
@@ -1225,7 +1176,7 @@ int fseek(FILE* f, long offset, int whence) {
     return 0;
 }
 
-int64_t lseek(HANDLE handle, int64_t offset, int whence) {
+int64_t vlseek(HANDLE handle, int64_t offset, int whence) {
     int64_t ret = sys_seek(handle, offset, whence, 0, 0, 0);
     if (ret < 0) {
         errno = (int)-ret;
@@ -1297,27 +1248,6 @@ int chroot(const char* path) {
     }
 
     return 0;
-}
-
-char* getcwd(char* buf, size_t size) {
-    if (size == 0 && buf != NULL) {
-        errno = EINVAL;
-        return NULL;
-    }
-
-    if (!buf) {
-        errno = EINVAL;
-        return NULL;
-    }
-
-    int64_t ret = sys_getcwd((uint64_t)buf, size, 0, 0, 0, 0);
-
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return NULL;
-    }
-
-    return buf;
 }
 
 FILE* tmpfile(void) {

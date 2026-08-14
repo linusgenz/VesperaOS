@@ -24,6 +24,7 @@
 #ifndef VESPERAOS_STDIO_H
 #define VESPERAOS_STDIO_H
 
+#include <sys/types.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -429,7 +430,7 @@ int fseek(FILE* stream, long offset, int whence);
  *
  * @see fseek()
  */
-int64_t lseek(HANDLE handle, int64_t offset, int whence);
+int64_t vlseek(HANDLE handle, int64_t offset, int whence);
 
 /**
  * @brief Get current position in stream.
@@ -566,19 +567,6 @@ ssize_t vwrite(HANDLE handle, const void* buf, size_t count);
  */
 int creat(const char* path);
 
-/**
- * @brief Create a new directory.
- *
- * Creates a new directory at @p path.
- *
- * @param path Path where the directory should be created.
- * @return @c 0 on success, or @c -1 on failure (errno set).
- *
- * @see opendir()
- * @see creat()
- * @see rmdir()
- */
-int mkdir(const char* path);
 
 /**
  * @brief Remove a file.
@@ -593,20 +581,6 @@ int mkdir(const char* path);
  * @see remove()
  */
 int unlink(const char* path);
-
-/**
- * @brief Remove a directory.
- *
- * Removes (deletes) the empty directory at @p path.
- *
- * @param path Path to the directory to remove.
- * @return @c 0 on success, or @c -1 on failure (errno set).
- *
- * @see mkdir()
- * @see unlink()
- * @see remove()
- */
-int rmdir(const char* path);
 
 /**
  * @brief Create a new file or directory.

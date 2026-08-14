@@ -31,7 +31,7 @@ FileLogWriter::FileLogWriter(const char* file_path)
     , path_(file_path) {
     auto res = VFS::open(path_);
     if (res.is_err()) {
-        VFS::create(path_);
+        VFS::create(path_, 0755);
         res = VFS::open(path_);
     }
     if (res.is_ok()) file_handle_ = res.unwrap();

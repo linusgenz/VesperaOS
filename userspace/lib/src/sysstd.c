@@ -166,8 +166,8 @@ int64_t sys_rename(uint64_t oldPath_ptr, uint64_t newPath_ptr, uint64_t, uint64_
     return syscall(SYSCALL_RENAME, oldPath_ptr, newPath_ptr, 0, 0, 0, 0);
 }
 
-int64_t sys_mkdir(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
-    return syscall(SYSCALL_MKDIR, path_ptr, 0, 0, 0, 0, 0);
+int64_t sys_mkdir(uint64_t path_ptr, uint64_t arg1, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MKDIR, path_ptr, arg1, 0, 0, 0, 0);
 }
 
 int64_t sys_rmdir(uint64_t path_ptr, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {

@@ -41,6 +41,9 @@
 extern "C" {
 #endif
 
+#define C_FILE 0x00 /**< The target should be a file */
+#define C_DIR 0x01  /**< The target should be a directory */
+
 // ---------------------------------------------------------------------
 // Open flags
 // ---------------------------------------------------------------------

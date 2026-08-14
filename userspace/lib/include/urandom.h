@@ -26,7 +26,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <sys/types.h>
 
 /**
  * @brief Read random bytes from /dev/urandom into the provided buffer.

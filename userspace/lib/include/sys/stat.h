@@ -30,6 +30,34 @@ static inline int stat(const char* path, struct stat* out) {
     return (int)sys_stat((uint64_t)path, (uint64_t)out, 0, 0, 0, 0);
 }
 
+/**
+ * @brief Create a new directory.
+ *
+ * Creates a new directory at @p path.
+ *
+ * @param path Path where the directory should be created.
+ * @return @c 0 on success, or @c -1 on failure (errno set).
+ *
+ * @see opendir()
+ * @see creat()
+ * @see rmdir()
+ */
+int mkdir(const char *pathname, mode_t mode);
+
+/**
+ * @brief Remove a directory.
+ *
+ * Removes (deletes) the empty directory at @p path.
+ *
+ * @param path Path to the directory to remove.
+ * @return @c 0 on success, or @c -1 on failure (errno set).
+ *
+ * @see mkdir()
+ * @see unlink()
+ * @see remove()
+ */
+int rmdir(const char* path);
+
 int is_directory(const char* path);
 
 int is_file(const char* path);

@@ -23,9 +23,30 @@
 #include <vespera/stat.h>
 #include <sysstd.h>
 
+#include <errno.h>
+
 int stat(const char* path, struct stat* out) {
     return (int)sys_stat((uint64_t)path, (uint64_t)out, 0, 0, 0, 0);
 }
+
+int mkdir(const char* path, mode_t mode) {
+    long ret = (int)sys_mkdir((uint64_t)path, (uint64_t)mode,0,0,0,0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+}
+
+int rmdir(const char* path) {
+    int ret = (int)sys_rmdir((uint64_t)path, 0,0,0,0,0);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return 0;
+}
+
 
 int is_directory(const char* path) {
     struct stat st;

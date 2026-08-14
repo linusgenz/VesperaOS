@@ -328,7 +328,7 @@ void FilesystemDetector::scan_and_mount_all() {
         pending_mounts.clear();
 
         for (const MountPoint* mp : VFS::get_mount_points_snapshot()) {
-            if (mp->is_virtual) VFS::mkdir(mp->path);
+            if (mp->is_virtual) VFS::mkdir(mp->path, 0755);
         }
     }
 

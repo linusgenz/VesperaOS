@@ -53,8 +53,6 @@ extern "C" {
  */
 extern char** environ;
 
-typedef long int ssize_t;
-
 /**
  * @brief Get the value of an environment variable.
  *
