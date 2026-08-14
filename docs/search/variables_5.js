@@ -19,7 +19,7 @@ var searchData=
   ['ehdr_16',['ehdr',['../structelf__loaded__object.html#a93baed95d1d1e40962902ee4b1bdeeb7',1,'elf_loaded_object']]],
   ['environ_17',['environ',['../stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b',1,'stdlib.h']]],
   ['eof_18',['eof',['../structFILE.html#ae4ad838bac83365bd7165ffb2000d027',1,'FILE']]],
-  ['errno_19',['errno',['../stdlib_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d',1,'stdlib.h']]],
+  ['errno_19',['errno',['../errno_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d',1,'errno.h']]],
   ['error_20',['error',['../structFILE.html#a53285086088ad9f3c1e4f59accf8e1c4',1,'FILE']]],
   ['error_5flog_5fentries_21',['error_log_entries',['../structsmart__nvme.html#a52cd2b03488f7d23a22b0a0082754abe',1,'smart_nvme']]],
   ['eu_5fcount_22',['eu_count',['../structgpu__device__info__t.html#a4b6dded0162e3eebb20573c883b5a22f',1,'gpu_device_info_t']]],

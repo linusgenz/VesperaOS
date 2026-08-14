@@ -4,7 +4,7 @@ var dir_e2b52b92f5077a849e2a3072fb331546 =
     [ "capabilities.h", "capabilities_8h.html", "capabilities_8h" ],
     [ "chronos.h", "include_2uapi_2vespera_2chronos_8h.html", "include_2uapi_2vespera_2chronos_8h" ],
     [ "dirent.h", "include_2uapi_2vespera_2dirent_8h.html", "include_2uapi_2vespera_2dirent_8h" ],
-    [ "fflags.h", "include_2uapi_2vespera_2fflags_8h.html", "include_2uapi_2vespera_2fflags_8h" ],
+    [ "fcntl.h", "include_2uapi_2vespera_2fcntl_8h.html", "include_2uapi_2vespera_2fcntl_8h" ],
     [ "futex.h", "include_2uapi_2vespera_2futex_8h.html", "include_2uapi_2vespera_2futex_8h" ],
     [ "handles.h", "handles_8h.html", "handles_8h" ],
     [ "ioctl.h", "include_2uapi_2vespera_2ioctl_8h.html", "include_2uapi_2vespera_2ioctl_8h" ],

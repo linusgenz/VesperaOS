@@ -13,5 +13,6 @@ var searchData=
   ['indicatorradius_10',['indicatorRadius',['../classstella_1_1Bar.html#ae465239760924e6ebcc8a98b1fa03ff4',1,'stella::Bar']]],
   ['ioctl_11',['ioctl',['../userspace_2lib_2include_2sys_2ioctl_8h.html#a9405d8d3763a7eaefe4eae694b9f8ea0',1,'ioctl.h']]],
   ['is_5fdirectory_12',['is_directory',['../userspace_2lib_2include_2sys_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade',1,'stat.h']]],
-  ['is_5ffile_13',['is_file',['../userspace_2lib_2include_2sys_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81',1,'stat.h']]]
+  ['is_5ffile_13',['is_file',['../userspace_2lib_2include_2sys_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81',1,'stat.h']]],
+  ['isatty_14',['isatty',['../unistd_8h.html#a49bb0c485f30ab14364721c9ce433bab',1,'unistd.h']]]
 ];

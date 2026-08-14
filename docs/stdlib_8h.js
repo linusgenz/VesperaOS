@@ -31,6 +31,5 @@ var stdlib_8h =
     [ "system", "stdlib_8h.html#a5e43287e1dd4097af9094206a00d8806", null ],
     [ "tmpnam", "stdlib_8h.html#aaff28d1d411bc932ad8120940f0d0c96", null ],
     [ "unsetenv", "stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c", null ],
-    [ "environ", "stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b", null ],
-    [ "errno", "stdlib_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d", null ]
+    [ "environ", "stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b", null ]
 ];

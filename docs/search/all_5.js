@@ -177,7 +177,7 @@ var searchData=
   ['erff_174',['erff',['../math_8h.html#a09594490d567539daf9ce963111f0e58',1,'math.h']]],
   ['erfl_175',['erfl',['../math_8h.html#aa168639a79557b5d07daaad62a65bb18',1,'math.h']]],
   ['erofs_176',['EROFS',['../errno_8h.html#acb02bb67dddd7ca8cf82634a0781d58d',1,'errno.h']]],
-  ['errno_177',['errno',['../stdlib_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d',1,'stdlib.h']]],
+  ['errno_177',['errno',['../errno_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d',1,'errno.h']]],
   ['errno_2eh_178',['errno.h',['../errno_8h.html',1,'']]],
   ['error_179',['error',['../structFILE.html#a53285086088ad9f3c1e4f59accf8e1c4',1,'FILE']]],
   ['error_5flog_5fentries_180',['error_log_entries',['../structsmart__nvme.html#a52cd2b03488f7d23a22b0a0082754abe',1,'smart_nvme']]],

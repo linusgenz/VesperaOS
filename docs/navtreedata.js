@@ -52,7 +52,7 @@ var NAVTREE =
         [ "All", "globals.html", "globals_dup" ],
         [ "Functions", "globals_func.html", "globals_func" ],
         [ "Variables", "globals_vars.html", null ],
-        [ "Typedefs", "globals_type.html", null ],
+        [ "Typedefs", "globals_type.html", "globals_type" ],
         [ "Enumerations", "globals_enum.html", null ],
         [ "Enumerator", "globals_eval.html", null ],
         [ "Macros", "globals_defs.html", "globals_defs" ]
@@ -66,16 +66,16 @@ var NAVTREEINDEX =
 "alloca_8h.html",
 "crepusculum__protocol_8h.html#a29b0435b32b2e740ed69c9bfbf948b5c",
 "elf_8h.html#a9e5d691d362627655a9bbfb9ded5e7ed",
-"float_8h.html#ab51e57479919fd1978d19ccbb3e5b167",
-"include_2uapi_2vespera_2futex_8h.html#a4d9dd0962be215fe1d3e861c8bb4815b",
-"inttypes_8h.html#a7cf58abc57bb03d809e6fc41c2a40c33",
-"math_8h.html#a1843725b3ee331c39ae10349940875db",
-"namespacestella.html#ac98bce39648f27dd6443ad0814cc6968a90de44acffc0744bf81ec57e459affd3",
-"stella_09_09_8h.html#ac98bce39648f27dd6443ad0814cc6968a91bd5a8010ae732a90a2295c310a91d9",
-"structElf64__Rela.html",
-"structmeminfo.html#a568f1ff0eb141fab01680030ee43e5e4",
-"structvbus__lid.html",
-"userspace_2lib_2include_2signal_8h.html#abec4abd80d73397fc2f78f57f178565f"
+"float_8h.html#aafe5d2c4dc0edd9840f20e885dcae6ad",
+"include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17da40b944f75d390136b9f74124dc23ef94",
+"inttypes_8h.html#a535485ea35661ff75a8d2bc0d2ebe807",
+"luautil_8h.html#ad95574c52e25d88bb6c4a4c0277fc78c",
+"mman_8h.html#a398ef47a991a44389aa9818c98a28d24",
+"stdlib_8h.html#aa006daaf11f1e2e45a6ababaf463212b",
+"structElf64__Dyn.html",
+"structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710",
+"structvbus__display__set__strut__t.html#ae069e8ca14380caae7031d63efa0bb45",
+"unit_8h.html#ad4a7e3111654c8366cd31c6c5580883c"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

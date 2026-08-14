@@ -114,9 +114,11 @@ var searchData=
   ['dt_5ftlsdesc_5fgot_111',['DT_TLSDESC_GOT',['../elf_8h.html#a7711c3ca0990ae02733ef532fb182194',1,'elf.h']]],
   ['dt_5ftlsdesc_5fplt_112',['DT_TLSDESC_PLT',['../elf_8h.html#a4e5b93587d8ce529fff232e0a865194d',1,'elf.h']]],
   ['dt_5funknown_113',['DT_UNKNOWN',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17daeed6ea354e53d7846af370fa5ac314f9',1,'dirent.h']]],
-  ['dx_114',['dx',['../structmice__event.html#a58602f424806f09442b051eb7a0e7131',1,'mice_event']]],
-  ['dy_115',['dy',['../structmice__event.html#a83272512978fe6f1e8b924401de4eaf7',1,'mice_event']]],
-  ['dynstr_116',['dynstr',['../structelf__loaded__object.html#a7f7c95b0955394d5ff34faf6c2067748',1,'elf_loaded_object']]],
-  ['dynsym_117',['dynsym',['../structelf__loaded__object.html#a0cc3e6b20b6118c9aeabffa8f05220b0',1,'elf_loaded_object']]],
-  ['dynsym_5fcount_118',['dynsym_count',['../structelf__loaded__object.html#a89803aa005dab6dd89c4d9cada1c5f79',1,'elf_loaded_object']]]
+  ['dup_114',['dup',['../unistd_8h.html#a4c16b3e0f35d0e104aa87db705451f2f',1,'unistd.h']]],
+  ['dup2_115',['dup2',['../unistd_8h.html#a324659434edc336235d789274e95fb5c',1,'unistd.h']]],
+  ['dx_116',['dx',['../structmice__event.html#a58602f424806f09442b051eb7a0e7131',1,'mice_event']]],
+  ['dy_117',['dy',['../structmice__event.html#a83272512978fe6f1e8b924401de4eaf7',1,'mice_event']]],
+  ['dynstr_118',['dynstr',['../structelf__loaded__object.html#a7f7c95b0955394d5ff34faf6c2067748',1,'elf_loaded_object']]],
+  ['dynsym_119',['dynsym',['../structelf__loaded__object.html#a0cc3e6b20b6118c9aeabffa8f05220b0',1,'elf_loaded_object']]],
+  ['dynsym_5fcount_120',['dynsym_count',['../structelf__loaded__object.html#a89803aa005dab6dd89c4d9cada1c5f79',1,'elf_loaded_object']]]
 ];

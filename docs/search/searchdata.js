@@ -9,7 +9,7 @@ var indexSectionsWithContent =
   6: "_bcdefghiklmnoprstuvw",
   7: "acdfgjmoprst",
   8: "_abcdegjlmprst",
-  9: "_abcdefghilmnoprstuvw",
+  9: "_abcdefghilmnoprstuvwx",
   10: "csu",
   11: "lstv"
 };

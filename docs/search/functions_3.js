@@ -11,7 +11,7 @@ var searchData=
   ['channel_5fcreate_8',['channel_create',['../channel_8h.html#a1c2bb722aefc71e77414183049de2922',1,'channel.h']]],
   ['channel_5frecv_9',['channel_recv',['../channel_8h.html#a27367d39e205bf5664047cf9f2575d12',1,'channel.h']]],
   ['channel_5fsend_10',['channel_send',['../channel_8h.html#ab2b9bb58c6dab6a292168791513911d6',1,'channel.h']]],
-  ['chdir_11',['chdir',['../tmp_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;tmp.h'],['../stdio_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;stdio.h']]],
+  ['chdir_11',['chdir',['../unistd_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;unistd.h'],['../stdio_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;stdio.h'],['../tmp_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;tmp.h']]],
   ['chronos_5fcheckpoint_12',['chronos_checkpoint',['../userspace_2lib_2include_2chronos_8h.html#ab837e63fe7fe31c66ac1289b92486ffa',1,'chronos.h']]],
   ['chronos_5fsummary_13',['chronos_summary',['../userspace_2lib_2include_2chronos_8h.html#a67df01c010b3fa2efde6ec59655a413e',1,'chronos.h']]],
   ['chroot_14',['chroot',['../stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f',1,'chroot(const char *path):&#160;stdio.h'],['../tmp_8h.html#afb5a028bb4a392db1cb0815a0d909f8f',1,'chroot(const char *path):&#160;tmp.h']]],
@@ -21,7 +21,7 @@ var searchData=
   ['clock_5fgettime_18',['clock_gettime',['../userspace_2lib_2include_2time_8h.html#acc55008fab3654d2d0c9d4b69e732e7c',1,'time.h']]],
   ['clock_5fnanosleep_19',['clock_nanosleep',['../userspace_2lib_2include_2time_8h.html#a4facc4ca231f1105f76b09518e86349d',1,'time.h']]],
   ['clock_5fsettime_20',['clock_settime',['../userspace_2lib_2include_2time_8h.html#af887d9123c9066c821f5ad8014dab534',1,'time.h']]],
-  ['close_21',['close',['../stdio_8h.html#a4c6a8ad3019f699bee39ff127c4f3676',1,'stdio.h']]],
+  ['close_21',['close',['../unistd_8h.html#aafbcde67669a1b96577e735ddebd8634',1,'unistd.h']]],
   ['closedir_22',['closedir',['../stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0',1,'stdio.h']]],
   ['color_23',['color',['../classstella_1_1Label.html#a3a0698143d3203babdc9cba72c118ab1',1,'stella::Label::color()'],['../classstella_1_1Color.html#ab70dab2f129f5cffd72b32b9d174aedf',1,'stella::Color::Color(stella_color_t c) noexcept'],['../classstella_1_1Color.html#a92fbc175640ce6f6080a0f87bb7b28ec',1,'stella::Color::Color(uint8_t r, uint8_t g, uint8_t b) noexcept'],['../classstella_1_1Color.html#aac233196f401ddb64a3d6179f58bbce9',1,'stella::Color::Color(uint32_t hex) noexcept']]],
   ['container_24',['Container',['../classstella_1_1Container.html#aadeb01685bc3661c7933681866d304c9',1,'stella::Container']]],
@@ -34,7 +34,7 @@ var searchData=
   ['coshf_31',['coshf',['../math_8h.html#ae37ce4924a4be38a9de85fc81ba79e58',1,'math.h']]],
   ['coshl_32',['coshl',['../math_8h.html#a8f744c6f52766f6a0e9fbabd192f2360',1,'math.h']]],
   ['cosl_33',['cosl',['../math_8h.html#aa36f72ba7da5167b4784b442c1d2fd97',1,'math.h']]],
-  ['creat_34',['creat',['../stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc',1,'stdio.h']]],
+  ['creat_34',['creat',['../userspace_2lib_2include_2fcntl_8h.html#a6a6f985cc61227f641f7cc75927b06fc',1,'creat(const char *path):&#160;fcntl.h'],['../stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc',1,'creat(const char *path):&#160;stdio.h']]],
   ['create_35',['create',['../stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896',1,'stdio.h']]],
   ['crep_5ffb_5fsize_36',['crep_fb_size',['../crepusculum__protocol_8h.html#ad9ec03cfa631f635869beb717396fb49',1,'crepusculum_protocol.h']]]
 ];
