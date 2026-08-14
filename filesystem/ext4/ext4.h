@@ -308,8 +308,8 @@ namespace ext4 {
         Result<FileEntry*> read_directory(u32 inode_number, usize& out_count, const char* find_name = nullptr) const;
         Result<usize> read_file(u32 inode_number, u64 offset, usize size, void* buf, bool update_atime) const;
         Result<usize> write_file(u32 inode_number, u64 offset, usize size, const void* buf);
-        Result<u32> create_file(u32 dir_inode_no, const char* name);
-        Result<u32> create_dir(u32 dir_inode_no, const char* name);
+        Result<u32> create_file(u32 dir_inode_no, const char* name, mode_t mode);
+        Result<u32> create_dir(u32 dir_inode_no, const char* name, mode_t mode);
         VoidResult unlink(u32 dir_inode_no, const char* name);
         VoidResult rmdir(u32 dir_inode_no, const char* name);
         VoidResult rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);

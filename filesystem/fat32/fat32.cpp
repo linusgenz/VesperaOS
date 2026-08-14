@@ -12,7 +12,17 @@
 #include "fat32_lfn.h"
 #include "fat32_time.h"
 #include "fat32_vfs_adapter.h"
+#include <uapi/vespera/stat.h>
 #include <uapi/vespera/time.h>
+
+// TODO(linus): update fat32.h declarations to match:
+//   VoidResult create_file(const Fat32Node* parent_dir, const char* name, mode_t mode);
+//   VoidResult create_directory(const Fat32Node* parent_dir, const char* name, mode_t mode);
+// and update fat32_vfs_adapter.h's ops->create / ops->mkdir wrappers (and
+// ext4_vfs_adapter.h's, and any other VfsNodeOps implementer, e.g. devfs) to accept
+// and forward mode_t through to here / to ext4::FileSystem::create_file / create_dir.
+// Also still pending: VfsNodeOps::mkdir itself and VFS::mkdir() in vfs.cpp need a
+// mode_t parameter — sys_mkdir's mode argument doesn't reach this file yet.
 
 namespace fat32 {
     // ============================================================================
@@ -1093,7 +1103,7 @@ namespace fat32 {
     // Create/Delete Operations
     // ============================================================================
 
-    VoidResult FileSystem::create_directory(const Fat32Node* parent_dir, const char* name) {
+    VoidResult FileSystem::create_directory(const Fat32Node* parent_dir, const char* name, mode_t mode) {
         if (!parent_dir || !name || name[0] == '\0') return Error::Inval;
 
         const u32 parent_cluster = parent_dir->cluster;
@@ -1136,6 +1146,7 @@ namespace fat32 {
         DirectoryEntry new_entry = {};
         memcpy(new_entry.name, short_name, 11);
         new_entry.attr = ATTR_DIRECTORY;
+        if (!(mode & S_IWUSR)) new_entry.attr |= ATTR_READ_ONLY;
         new_entry.first_cluster_low = new_cluster & 0xFFFF;
         new_entry.first_cluster_high = (new_cluster >> 16) & 0xFFFF;
         new_entry.file_size = 0;
@@ -1148,7 +1159,7 @@ namespace fat32 {
         return VoidResult::ok();
     }
 
-    VoidResult FileSystem::create_file(const Fat32Node* parent_dir, const char* name) {
+    VoidResult FileSystem::create_file(const Fat32Node* parent_dir, const char* name, mode_t mode) {
         if (!parent_dir || !name || name[0] == '\0') return Error::Inval;
 
         const u32 parent_cluster = parent_dir->cluster;
@@ -1173,6 +1184,7 @@ namespace fat32 {
         DirectoryEntry new_entry = {};
         memcpy(new_entry.name, short_name, 11);
         new_entry.attr = ATTR_ARCHIVE;
+        if (!(mode & S_IWUSR)) new_entry.attr |= ATTR_READ_ONLY;
         new_entry.first_cluster_low = new_cluster & 0xFFFF;
         new_entry.first_cluster_high = (new_cluster >> 16) & 0xFFFF;
         new_entry.file_size = 0;

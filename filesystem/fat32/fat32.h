@@ -201,14 +201,14 @@ namespace fat32 {
 
         Result<FileEntry*> read_directory(u32 cluster, usize& out_count) const;
 
-        VoidResult create_file(const Fat32Node* parent_dir, const char* name);
+        VoidResult create_file(const Fat32Node* parent_dir, const char* name, mode_t mode);
 
         bool write_directory_entry_with_lfn(
             u32 dir_cluster, const char* long_name, const char* short_name, const DirectoryEntry* short_entry
         );
         bool delete_directory_entry_in_directory(u32 dir_cluster, const char* name) const;
 
-        VoidResult create_directory(const Fat32Node* parent_dir, const char* name);
+        VoidResult create_directory(const Fat32Node* parent_dir, const char* name, mode_t mode);
 
         VoidResult remove_directory(const Fat32Node* parent_dir, const char* name);
 

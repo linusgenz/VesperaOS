@@ -56,11 +56,11 @@ struct VfsNodeOps {
 
     void (*closedir)(void *dir_handle);
 
-    VoidResult (*create)(const VfsNode *node, const char *name);
+    VoidResult (*create)(const VfsNode *node, const char *name, mode_t mode);
 
     VoidResult (*rename)(const VfsNode *, const char *old_name, const VfsNode *new_parent, const char *new_name);
 
-    VoidResult (*mkdir)(const VfsNode *node, const char *name);
+    VoidResult (*mkdir)(const VfsNode *node, const char *name, mode_t mode);
 
     VoidResult (*rmdir)(const VfsNode *node, const char *name);
 

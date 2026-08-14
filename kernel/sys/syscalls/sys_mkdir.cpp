@@ -25,14 +25,15 @@
 #include "vespera_errno.h"
 
 namespace syscalls::internal {
-    i64 sys_mkdir(u64 arg0, u64, u64, u64, u64, u64) {
+    i64 sys_mkdir(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto path = reinterpret_cast<const char*>(arg0);
+        const auto mode = static_cast<mode_t>(arg1);
         if (!path) return -EINVAL;
 
         char norm[256];
         SYSCALL_TRY_VOID(VFS::resolve_path(path, norm, sizeof(norm)));
 
-        SYSCALL_TRY_VOID(VFS::mkdir(norm));
+        SYSCALL_TRY_VOID(VFS::mkdir(norm, mode));
         return SUCCESS_CODE;
     }
 

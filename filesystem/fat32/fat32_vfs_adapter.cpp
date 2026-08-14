@@ -176,9 +176,9 @@ static void fat32_close(VfsNode* node) {
     delete node;
 }
 
-static VoidResult fat32_create(const VfsNode* node, const char* name) {
+static VoidResult fat32_create(const VfsNode* node, const char* name, mode_t mode) {
     auto* dir = static_cast<const Fat32Node*>(node->internal_data);
-    return dir->fs->create_file(dir, name);
+    return dir->fs->create_file(dir, name, mode);
 }
 
 static VoidResult fat32_rename(
@@ -190,9 +190,9 @@ static VoidResult fat32_rename(
     return dir->fs->rename(dir, old_name, new_name);
 }
 
-static VoidResult fat32_mkdir(const VfsNode* node, const char* name) {
+static VoidResult fat32_mkdir(const VfsNode* node, const char* name, mode_t mode) {
     auto* dir = static_cast<const Fat32Node*>(node->internal_data);
-    return dir->fs->create_directory(dir, name);
+    return dir->fs->create_directory(dir, name, mode);
 }
 
 static VoidResult fat32_rmdir(const VfsNode* node, const char* name) {

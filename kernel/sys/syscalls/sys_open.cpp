@@ -53,7 +53,9 @@ namespace syscalls::internal {
 
         if (node_res.is_err()) {
             if (flags & O_CREAT) {
-                SYSCALL_TRY_VOID(VFS::create(norm));
+                // TODO add umask for realm
+                const auto create_mode = mode & 07777;
+                SYSCALL_TRY_VOID(VFS::create(norm, create_mode));
                 node_res = VFS::open(norm);
                 if (node_res.is_err()) return -ENOENT;
             } else {

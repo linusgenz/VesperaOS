@@ -84,11 +84,11 @@ class VFS {
 
     static void closedir(VfsDir* dir);
 
-    static VoidResult create(const char* path);
+    static VoidResult create(const char* path, mode_t mode);
 
     static VoidResult rename(const char* old_path, const char* new_path);
 
-    static VoidResult mkdir(const char* path);
+    static VoidResult mkdir(const char* path, mode_t mode);
 
     static VoidResult rmdir(const char* path);
 

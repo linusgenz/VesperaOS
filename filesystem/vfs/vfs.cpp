@@ -185,7 +185,7 @@ Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, co
     return node->ops->write(node, offset, size, buffer);
 }
 
-VoidResult VFS::create(const char* path) {
+VoidResult VFS::create(const char* path, const mode_t mode) {
     if (!path) return Error::Inval;
 
     VfsNode* parent = nullptr;
@@ -201,7 +201,7 @@ VoidResult VFS::create(const char* path) {
         return Error::NoSys;
     }
 
-    const auto result = parent->ops->create(parent, name);
+    const auto result = parent->ops->create(parent, name, mode);
     close(parent);
 
     if (result.is_ok())
@@ -252,7 +252,7 @@ VoidResult VFS::rename(const char* old_path, const char* new_path) {
     return result;
 }
 
-VoidResult VFS::mkdir(const char* path) {
+VoidResult VFS::mkdir(const char* path, mode_t mode) {
     if (!path) return Error::Inval;
 
     VfsNode* parent = nullptr;
@@ -268,7 +268,7 @@ VoidResult VFS::mkdir(const char* path) {
         return Error::NoSys;
     }
 
-    const auto result = parent->ops->mkdir(parent, name);
+    const auto result = parent->ops->mkdir(parent, name, mode);
     close(parent);
 
     if (result.is_ok())

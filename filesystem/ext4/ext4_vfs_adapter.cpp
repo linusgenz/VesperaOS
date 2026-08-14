@@ -181,21 +181,21 @@ static void ext4_close(VfsNode* node) {
     delete node;
 }
 
-static VoidResult ext4_create(const VfsNode* parent, const char* name) {
+static VoidResult ext4_create(const VfsNode* parent, const char* name, mode_t mode) {
     if (!parent || !name) return Error::Inval;
     const auto* dir = static_cast<const Ext4Node*>(parent->internal_data);
     if (!dir || !dir->is_dir) return Error::NotDir;
 
-    TRY(dir->fs->create_file(dir->inode, name));
+    TRY(dir->fs->create_file(dir->inode, name, mode));
     return VoidResult::ok();
 }
 
-static VoidResult ext4_mkdir(const VfsNode* parent, const char* name) {
+static VoidResult ext4_mkdir(const VfsNode* parent, const char* name, mode_t mode) {
     if (!parent || !name) return Error::Inval;
     const auto* dir = static_cast<const Ext4Node*>(parent->internal_data);
     if (!dir || !dir->is_dir) return Error::NotDir;
 
-    TRY(dir->fs->create_dir(dir->inode, name));
+    TRY(dir->fs->create_dir(dir->inode, name, mode));
     return VoidResult::ok();
 }
 
