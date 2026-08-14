@@ -36,6 +36,7 @@
 #include <vespera/unit_config.h>
 
 #include "unit.h"
+#include "exec/elf.h"
 
 Unit UnitManager::units_[MAX_UNITS];
 Spinlock UnitManager::global_lock_;
@@ -426,24 +427,6 @@ struct aux_entry {
     uptr value;
 };
 
-// --- ELF auxiliary vector tags (SysV ABI) consumed by the dynamic linker ---
-
-constexpr uptr AT_NULL = 0;    ///< Terminates the aux vector.
-constexpr uptr AT_PHDR = 3;    ///< Address of the main program's ELF program headers.
-constexpr uptr AT_PHENT = 4;   ///< Size of one program header entry (`sizeof(Elf64_Phdr)`).
-constexpr uptr AT_PHNUM = 5;   ///< Number of program headers.
-constexpr uptr AT_PAGESZ = 6;  ///< System page size.
-constexpr uptr AT_BASE = 7;    ///< Load base of the interpreter (0 if none).
-constexpr uptr AT_ENTRY = 9;   ///< Entry point of the main program (not the interpreter).
-constexpr uptr AT_UID = 11;    ///< Real UID.
-constexpr uptr AT_EUID = 12;   ///< Effective UID.
-constexpr uptr AT_GID = 13;    ///< Real GID.
-constexpr uptr AT_EGID = 14;   ///< Effective GID.
-constexpr uptr AT_SECURE = 23; ///< Non-zero if credentials changed across exec (setuid/setgid).
-
-// AuxVectorInfo now lives in <vespera/unit_config.h> (alongside UnitConfig) so both
-// unit_manager.cpp and spawn.cpp can share the same definition without a circular include.
-
 /**
  * @brief Writes the AT_NULL-terminated auxiliary vector below the current stack pointer.
  *
@@ -524,6 +507,11 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp, cons
         argv_user[i - 1] = reinterpret_cast<const char*>(sp);
     }
 
+    const usize non_aux_words = argc + envc + 3;
+    if (non_aux_words % 2 != 0) {
+        sp -= sizeof(uptr);
+    }
+
     if (aux) sp = write_aux_vector(u, sp, *aux);
 
     sp -= sizeof(uptr);
@@ -546,8 +534,6 @@ uptr setup_user_args_and_env(Unit* u, const char** argv, const char** envp, cons
 
     sp -= sizeof(uptr);
     write_user_ptr(u, sp, argc);
-
-    sp &= ~0xFULL;
 
     u->context.regs.rdi = argc;
     u->context.regs.rsi = argv_ptr;
