@@ -70,14 +70,13 @@ var annotated_dup =
     [ "smart_nvme", "structsmart__nvme.html", "structsmart__nvme" ],
     [ "smart_raw", "structsmart__raw.html", "structsmart__raw" ],
     [ "spawn_config", "structspawn__config.html", "structspawn__config" ],
+    [ "stat", "structstat.html", "structstat" ],
     [ "stella_color_t", "structstella__color__t.html", "structstella__color__t" ],
     [ "stella_config", "structstella__config.html", "structstella__config" ],
     [ "thermal_info", "structthermal__info.html", "structthermal__info" ],
     [ "thermal_zone", "structthermal__zone.html", "structthermal__zone" ],
     [ "timespec", "structtimespec.html", "structtimespec" ],
-    [ "timespec_t", "structtimespec__t.html", "structtimespec__t" ],
     [ "timeval", "structtimeval.html", "structtimeval" ],
-    [ "timeval_t", "structtimeval__t.html", "structtimeval__t" ],
     [ "tm", "structtm.html", "structtm" ],
     [ "tty_mode_t", "structtty__mode__t.html", "structtty__mode__t" ],
     [ "tty_size_t", "structtty__size__t.html", "structtty__size__t" ],
@@ -100,6 +99,5 @@ var annotated_dup =
     [ "vbus_payload_t", "unionvbus__payload__t.html", "unionvbus__payload__t" ],
     [ "vbus_subscribe_args", "structvbus__subscribe__args.html", "structvbus__subscribe__args" ],
     [ "ves_mutex", "structves__mutex.html", "structves__mutex" ],
-    [ "vespera_stat", "structvespera__stat.html", "structvespera__stat" ],
     [ "winsize", "structwinsize.html", "structwinsize" ]
 ];

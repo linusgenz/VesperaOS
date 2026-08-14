@@ -93,11 +93,13 @@ $(document).ready(function(){initNavTree('inttypes_8h.html',''); initResizable()
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">inttypes.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 </div>
 <p><a href="inttypes_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -108,6 +110,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:a6171e467aa571bcff475ecf0402330e3" id="r_a6171e467aa571bcff475ecf0402330e3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#a6171e467aa571bcff475ecf0402330e3">__need_wchar_t</a></td></tr>
+<tr class="separator:a6171e467aa571bcff475ecf0402330e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed380607ee64d2a20c39daa3a8f58302" id="r_aed380607ee64d2a20c39daa3a8f58302"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#aed380607ee64d2a20c39daa3a8f58302">____gwchar_t_defined</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:aed380607ee64d2a20c39daa3a8f58302"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae53c45f590033ad1f2f517faf3ab2f1b" id="r_ae53c45f590033ad1f2f517faf3ab2f1b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#ae53c45f590033ad1f2f517faf3ab2f1b">PRId8</a>&#160;&#160;&#160;__INT8_FMTd__</td></tr>
 <tr class="separator:ae53c45f590033ad1f2f517faf3ab2f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a087e50fe0283aacc71d7138d13e91939" id="r_a087e50fe0283aacc71d7138d13e91939"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#a087e50fe0283aacc71d7138d13e91939">PRId16</a>&#160;&#160;&#160;__INT16_FMTd__</td></tr>
@@ -417,6 +423,11 @@ Macros</h2></td></tr>
 <tr class="memitem:aa58d290d968643862aec7a8a56e1c8e9" id="r_aa58d290d968643862aec7a8a56e1c8e9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#aa58d290d968643862aec7a8a56e1c8e9">SCNxPTR</a>&#160;&#160;&#160;__UINTPTR_FMTx__</td></tr>
 <tr class="separator:aa58d290d968643862aec7a8a56e1c8e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a09afa078a6d6cd8eb66488e9e1f72b01" id="r_a09afa078a6d6cd8eb66488e9e1f72b01"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="alltypes_8h.html#a9c277a3fd853029cc853c877bcd32e8e">wchar_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#a09afa078a6d6cd8eb66488e9e1f72b01">__gwchar_t</a></td></tr>
+<tr class="separator:a09afa078a6d6cd8eb66488e9e1f72b01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad9e8a565a34b6981f500d88773ec7bcd" id="r_ad9e8a565a34b6981f500d88773ec7bcd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a036cd61bb4b30bb510b9538af4cebd1d">intmax_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="inttypes_8h.html#ad9e8a565a34b6981f500d88773ec7bcd">imaxabs</a> (<a class="el" href="stdint_8h.html#a036cd61bb4b30bb510b9538af4cebd1d">intmax_t</a> j)</td></tr>
@@ -433,6 +444,34 @@ Functions</h2></td></tr>
 <tr class="separator:a8d577fc5c3b07d16cb1e6bd16ec0bbb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="aed380607ee64d2a20c39daa3a8f58302" name="aed380607ee64d2a20c39daa3a8f58302"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed380607ee64d2a20c39daa3a8f58302">&#9670;&#160;</a></span>____gwchar_t_defined</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define ____gwchar_t_defined&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6171e467aa571bcff475ecf0402330e3" name="a6171e467aa571bcff475ecf0402330e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6171e467aa571bcff475ecf0402330e3">&#9670;&#160;</a></span>__need_wchar_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __need_wchar_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a087e50fe0283aacc71d7138d13e91939" name="a087e50fe0283aacc71d7138d13e91939"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a087e50fe0283aacc71d7138d13e91939">&#9670;&#160;</a></span>PRId16</h2>
 
@@ -2583,6 +2622,21 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define SCNxPTR&#160;&#160;&#160;__UINTPTR_FMTx__</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="a09afa078a6d6cd8eb66488e9e1f72b01" name="a09afa078a6d6cd8eb66488e9e1f72b01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09afa078a6d6cd8eb66488e9e1f72b01">&#9670;&#160;</a></span>__gwchar_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="alltypes_8h.html#a9c277a3fd853029cc853c877bcd32e8e">wchar_t</a> <a class="el" href="inttypes_8h.html#a09afa078a6d6cd8eb66488e9e1f72b01">__gwchar_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

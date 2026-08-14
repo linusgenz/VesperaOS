@@ -92,25 +92,25 @@ $(document).ready(function(){initNavTree('include_2uapi_2vespera_2stat_8h.html',
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#define-members">Macros</a>  </div>
   <div class="headertitle"><div class="title">stat.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="types_8h_source.html">vespera/types.h</a>&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="include_2uapi_2vespera_2types_8h_source.html">vespera/types.h</a>&gt;</code><br />
+<code>#include &quot;<a class="el" href="include_2uapi_2vespera_2time_8h_source.html">time.h</a>&quot;</code><br />
 </div>
 <p><a href="include_2uapi_2vespera_2stat_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvespera__stat.html">vespera_stat</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">File/node metadata returned by <a class="el" href="sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757" title="Query metadata about a file or node.">sys_stat()</a>.  <a href="structvespera__stat.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structstat.html">stat</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">File/node metadata returned by <a class="el" href="sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757" title="Query metadata about a file or node.">sys_stat()</a>.  <a href="structstat.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a1133193f6979ae136184d7048c4d4e36" id="r_a1133193f6979ae136184d7048c4d4e36"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a1133193f6979ae136184d7048c4d4e36">VSTAT_TYPE_UNKNOWN</a>&#160;&#160;&#160;0</td></tr>
-<tr class="memdesc:a1133193f6979ae136184d7048c4d4e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node type constants for <a class="el" href="structvespera__stat.html#a02b928b0e429df7ce23d4516b670a6ca" title="VSTAT_TYPE_*.">vespera_stat::node_type</a>.  <br /></td></tr>
+<tr class="memdesc:a1133193f6979ae136184d7048c4d4e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node type constants for vespera_stat::node_type.  <br /></td></tr>
 <tr class="separator:a1133193f6979ae136184d7048c4d4e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7bb81fe5da918b70a96a86b19daa5ab1" id="r_a7bb81fe5da918b70a96a86b19daa5ab1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a7bb81fe5da918b70a96a86b19daa5ab1">VSTAT_TYPE_FILE</a>&#160;&#160;&#160;1</td></tr>
 <tr class="separator:a7bb81fe5da918b70a96a86b19daa5ab1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -123,7 +123,7 @@ Macros</h2></td></tr>
 <tr class="memitem:a8e59402442efbb0abf9da8eabdd3bbd9" id="r_a8e59402442efbb0abf9da8eabdd3bbd9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a8e59402442efbb0abf9da8eabdd3bbd9">VSTAT_TYPE_SYMLINK</a>&#160;&#160;&#160;3</td></tr>
 <tr class="separator:a8e59402442efbb0abf9da8eabdd3bbd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9b07bda86ed34ffc8460ff82282fd80" id="r_ad9b07bda86ed34ffc8460ff82282fd80"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#ad9b07bda86ed34ffc8460ff82282fd80">VSTAT_FLAG_READABLE</a>&#160;&#160;&#160;0x01</td></tr>
-<tr class="memdesc:ad9b07bda86ed34ffc8460ff82282fd80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flags for <a class="el" href="structvespera__stat.html#aefa00e27ef7dfd7c327c2686ef458eba" title="VSTAT_FLAG_* bitmask.">vespera_stat::flags</a>.  <br /></td></tr>
+<tr class="memdesc:ad9b07bda86ed34ffc8460ff82282fd80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flags for vespera_stat::flags.  <br /></td></tr>
 <tr class="separator:ad9b07bda86ed34ffc8460ff82282fd80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e7ac15ec3949032329983166e82cd9f" id="r_a7e7ac15ec3949032329983166e82cd9f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a7e7ac15ec3949032329983166e82cd9f">VSTAT_FLAG_WRITABLE</a>&#160;&#160;&#160;0x02</td></tr>
 <tr class="separator:a7e7ac15ec3949032329983166e82cd9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,14 +135,516 @@ Macros</h2></td></tr>
 <tr class="memitem:a6a0ba79309c7e8a89b8d254d0d601873" id="r_a6a0ba79309c7e8a89b8d254d0d601873"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a6a0ba79309c7e8a89b8d254d0d601873">VSTAT_FLAG_PERMANENT</a>&#160;&#160;&#160;0x10</td></tr>
 <tr class="memdesc:a6a0ba79309c7e8a89b8d254d0d601873"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node is permanent (cannot be unlinked)  <br /></td></tr>
 <tr class="separator:a6a0ba79309c7e8a89b8d254d0d601873"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a41eb14a51dcbebfb8143dbde0a227440" id="r_a41eb14a51dcbebfb8143dbde0a227440"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structvespera__stat.html">vespera_stat</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a41eb14a51dcbebfb8143dbde0a227440">vespera_stat_t</a></td></tr>
-<tr class="memdesc:a41eb14a51dcbebfb8143dbde0a227440"><td class="mdescLeft">&#160;</td><td class="mdescRight">File/node metadata returned by <a class="el" href="sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757" title="Query metadata about a file or node.">sys_stat()</a>.  <br /></td></tr>
-<tr class="separator:a41eb14a51dcbebfb8143dbde0a227440"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5bee51e9ee68b83ab11d4b340f7200b" id="r_ab5bee51e9ee68b83ab11d4b340f7200b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>&#160;&#160;&#160;0170000</td></tr>
+<tr class="separator:ab5bee51e9ee68b83ab11d4b340f7200b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28e80cd43106882904be148b2a397d42" id="r_a28e80cd43106882904be148b2a397d42"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a28e80cd43106882904be148b2a397d42">S_IFSOCK</a>&#160;&#160;&#160;0140000</td></tr>
+<tr class="separator:a28e80cd43106882904be148b2a397d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afef163ce62372757e84bd9fc88c07aad" id="r_afef163ce62372757e84bd9fc88c07aad"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#afef163ce62372757e84bd9fc88c07aad">S_IFLNK</a>&#160;&#160;&#160;0120000</td></tr>
+<tr class="separator:afef163ce62372757e84bd9fc88c07aad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1aaa48b192a5dd3b6d7ee91fc98cd17d" id="r_a1aaa48b192a5dd3b6d7ee91fc98cd17d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a1aaa48b192a5dd3b6d7ee91fc98cd17d">S_IFREG</a>&#160;&#160;&#160;0100000</td></tr>
+<tr class="separator:a1aaa48b192a5dd3b6d7ee91fc98cd17d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c5b74a1cb1a1ae83572500b94e1938f" id="r_a5c5b74a1cb1a1ae83572500b94e1938f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a5c5b74a1cb1a1ae83572500b94e1938f">S_IFBLK</a>&#160;&#160;&#160;0060000</td></tr>
+<tr class="separator:a5c5b74a1cb1a1ae83572500b94e1938f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11fb0652b963a735f3377eb1c9239f2d" id="r_a11fb0652b963a735f3377eb1c9239f2d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a11fb0652b963a735f3377eb1c9239f2d">S_IFDIR</a>&#160;&#160;&#160;0040000</td></tr>
+<tr class="separator:a11fb0652b963a735f3377eb1c9239f2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef3a1d1ba22c83e30b5c834dd343b2a8" id="r_aef3a1d1ba22c83e30b5c834dd343b2a8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#aef3a1d1ba22c83e30b5c834dd343b2a8">S_IFCHR</a>&#160;&#160;&#160;0020000</td></tr>
+<tr class="separator:aef3a1d1ba22c83e30b5c834dd343b2a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4966f25d9f03a7a06bc47ac729fd86cf" id="r_a4966f25d9f03a7a06bc47ac729fd86cf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a4966f25d9f03a7a06bc47ac729fd86cf">S_IFIFO</a>&#160;&#160;&#160;0010000</td></tr>
+<tr class="separator:a4966f25d9f03a7a06bc47ac729fd86cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a835359614ec43fbd96f53993cde84ef2" id="r_a835359614ec43fbd96f53993cde84ef2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a835359614ec43fbd96f53993cde84ef2">S_ISLNK</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#afef163ce62372757e84bd9fc88c07aad">S_IFLNK</a>)</td></tr>
+<tr class="separator:a835359614ec43fbd96f53993cde84ef2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf68371159fa46b5cc47d0f3ac9ab723" id="r_abf68371159fa46b5cc47d0f3ac9ab723"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#abf68371159fa46b5cc47d0f3ac9ab723">S_ISREG</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a1aaa48b192a5dd3b6d7ee91fc98cd17d">S_IFREG</a>)</td></tr>
+<tr class="separator:abf68371159fa46b5cc47d0f3ac9ab723"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70b64ed67c0ab484b4ba09487da34e91" id="r_a70b64ed67c0ab484b4ba09487da34e91"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a70b64ed67c0ab484b4ba09487da34e91">S_ISDIR</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a11fb0652b963a735f3377eb1c9239f2d">S_IFDIR</a>)</td></tr>
+<tr class="separator:a70b64ed67c0ab484b4ba09487da34e91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a767b5d0691f435f8a9b7f5e0fa97a645" id="r_a767b5d0691f435f8a9b7f5e0fa97a645"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a767b5d0691f435f8a9b7f5e0fa97a645">S_ISCHR</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#aef3a1d1ba22c83e30b5c834dd343b2a8">S_IFCHR</a>)</td></tr>
+<tr class="separator:a767b5d0691f435f8a9b7f5e0fa97a645"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a722eba7370eb3b0aafb3272182e08520" id="r_a722eba7370eb3b0aafb3272182e08520"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a722eba7370eb3b0aafb3272182e08520">S_ISBLK</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a5c5b74a1cb1a1ae83572500b94e1938f">S_IFBLK</a>)</td></tr>
+<tr class="separator:a722eba7370eb3b0aafb3272182e08520"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a777b706bbe9e7920c091aaa2b547b093" id="r_a777b706bbe9e7920c091aaa2b547b093"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a777b706bbe9e7920c091aaa2b547b093">S_ISFIFO</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a4966f25d9f03a7a06bc47ac729fd86cf">S_IFIFO</a>)</td></tr>
+<tr class="separator:a777b706bbe9e7920c091aaa2b547b093"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a765304585be8c05f7fa72495e6d5881f" id="r_a765304585be8c05f7fa72495e6d5881f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a765304585be8c05f7fa72495e6d5881f">S_ISSOCK</a>(m)&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a28e80cd43106882904be148b2a397d42">S_IFSOCK</a>)</td></tr>
+<tr class="separator:a765304585be8c05f7fa72495e6d5881f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a30384a8cd2feb1615efd5eadc243684b" id="r_a30384a8cd2feb1615efd5eadc243684b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a30384a8cd2feb1615efd5eadc243684b">S_ISUID</a>&#160;&#160;&#160;04000</td></tr>
+<tr class="separator:a30384a8cd2feb1615efd5eadc243684b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c9e4cc0a8acc43c99ae6c3d972ae2d8" id="r_a9c9e4cc0a8acc43c99ae6c3d972ae2d8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a9c9e4cc0a8acc43c99ae6c3d972ae2d8">S_ISGID</a>&#160;&#160;&#160;02000</td></tr>
+<tr class="separator:a9c9e4cc0a8acc43c99ae6c3d972ae2d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97b5e445a72c99b37dc5b8d620fbd14e" id="r_a97b5e445a72c99b37dc5b8d620fbd14e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a97b5e445a72c99b37dc5b8d620fbd14e">S_ISVTX</a>&#160;&#160;&#160;01000</td></tr>
+<tr class="separator:a97b5e445a72c99b37dc5b8d620fbd14e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe3da42e762f6362c93454682fad5eb5" id="r_afe3da42e762f6362c93454682fad5eb5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#afe3da42e762f6362c93454682fad5eb5">S_IRWXU</a>&#160;&#160;&#160;00700</td></tr>
+<tr class="separator:afe3da42e762f6362c93454682fad5eb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84c7dbf5cf2fdfb690f76348b60a8cb7" id="r_a84c7dbf5cf2fdfb690f76348b60a8cb7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a84c7dbf5cf2fdfb690f76348b60a8cb7">S_IRUSR</a>&#160;&#160;&#160;00400</td></tr>
+<tr class="separator:a84c7dbf5cf2fdfb690f76348b60a8cb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad70001754261c15a1bdc8e876c6d09d7" id="r_ad70001754261c15a1bdc8e876c6d09d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#ad70001754261c15a1bdc8e876c6d09d7">S_IWUSR</a>&#160;&#160;&#160;00200</td></tr>
+<tr class="separator:ad70001754261c15a1bdc8e876c6d09d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af10a35e3950795d6ee4e07157d000131" id="r_af10a35e3950795d6ee4e07157d000131"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#af10a35e3950795d6ee4e07157d000131">S_IXUSR</a>&#160;&#160;&#160;00100</td></tr>
+<tr class="separator:af10a35e3950795d6ee4e07157d000131"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a230c642d2bb81f15f85c122b1883de5c" id="r_a230c642d2bb81f15f85c122b1883de5c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a230c642d2bb81f15f85c122b1883de5c">S_IRWXG</a>&#160;&#160;&#160;00070</td></tr>
+<tr class="separator:a230c642d2bb81f15f85c122b1883de5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f5f280b929768113739fb34d6f7be8a" id="r_a4f5f280b929768113739fb34d6f7be8a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a4f5f280b929768113739fb34d6f7be8a">S_IRGRP</a>&#160;&#160;&#160;00040</td></tr>
+<tr class="separator:a4f5f280b929768113739fb34d6f7be8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6774871a90d9442f00abe18b87fee6e" id="r_ae6774871a90d9442f00abe18b87fee6e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#ae6774871a90d9442f00abe18b87fee6e">S_IWGRP</a>&#160;&#160;&#160;00020</td></tr>
+<tr class="separator:ae6774871a90d9442f00abe18b87fee6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a042e69ac0e7dd56e5cfcd9e97d010323" id="r_a042e69ac0e7dd56e5cfcd9e97d010323"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a042e69ac0e7dd56e5cfcd9e97d010323">S_IXGRP</a>&#160;&#160;&#160;00010</td></tr>
+<tr class="separator:a042e69ac0e7dd56e5cfcd9e97d010323"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b93e0da7fe32bbd4926626bffad96b1" id="r_a5b93e0da7fe32bbd4926626bffad96b1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a5b93e0da7fe32bbd4926626bffad96b1">S_IRWXO</a>&#160;&#160;&#160;00007</td></tr>
+<tr class="separator:a5b93e0da7fe32bbd4926626bffad96b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a071147a0cb995036967c80f64b1f74b9" id="r_a071147a0cb995036967c80f64b1f74b9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a071147a0cb995036967c80f64b1f74b9">S_IROTH</a>&#160;&#160;&#160;00004</td></tr>
+<tr class="separator:a071147a0cb995036967c80f64b1f74b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5303f49f26293acdb9533756c78322fb" id="r_a5303f49f26293acdb9533756c78322fb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a5303f49f26293acdb9533756c78322fb">S_IWOTH</a>&#160;&#160;&#160;00002</td></tr>
+<tr class="separator:a5303f49f26293acdb9533756c78322fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40223db1b95a04f5b28cceb3c34cfebd" id="r_a40223db1b95a04f5b28cceb3c34cfebd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2stat_8h.html#a40223db1b95a04f5b28cceb3c34cfebd">S_IXOTH</a>&#160;&#160;&#160;00001</td></tr>
+<tr class="separator:a40223db1b95a04f5b28cceb3c34cfebd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a5c5b74a1cb1a1ae83572500b94e1938f" name="a5c5b74a1cb1a1ae83572500b94e1938f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c5b74a1cb1a1ae83572500b94e1938f">&#9670;&#160;</a></span>S_IFBLK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFBLK&#160;&#160;&#160;0060000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aef3a1d1ba22c83e30b5c834dd343b2a8" name="aef3a1d1ba22c83e30b5c834dd343b2a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef3a1d1ba22c83e30b5c834dd343b2a8">&#9670;&#160;</a></span>S_IFCHR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFCHR&#160;&#160;&#160;0020000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a11fb0652b963a735f3377eb1c9239f2d" name="a11fb0652b963a735f3377eb1c9239f2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11fb0652b963a735f3377eb1c9239f2d">&#9670;&#160;</a></span>S_IFDIR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFDIR&#160;&#160;&#160;0040000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4966f25d9f03a7a06bc47ac729fd86cf" name="a4966f25d9f03a7a06bc47ac729fd86cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4966f25d9f03a7a06bc47ac729fd86cf">&#9670;&#160;</a></span>S_IFIFO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFIFO&#160;&#160;&#160;0010000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afef163ce62372757e84bd9fc88c07aad" name="afef163ce62372757e84bd9fc88c07aad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afef163ce62372757e84bd9fc88c07aad">&#9670;&#160;</a></span>S_IFLNK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFLNK&#160;&#160;&#160;0120000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab5bee51e9ee68b83ab11d4b340f7200b" name="ab5bee51e9ee68b83ab11d4b340f7200b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5bee51e9ee68b83ab11d4b340f7200b">&#9670;&#160;</a></span>S_IFMT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFMT&#160;&#160;&#160;0170000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1aaa48b192a5dd3b6d7ee91fc98cd17d" name="a1aaa48b192a5dd3b6d7ee91fc98cd17d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1aaa48b192a5dd3b6d7ee91fc98cd17d">&#9670;&#160;</a></span>S_IFREG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFREG&#160;&#160;&#160;0100000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a28e80cd43106882904be148b2a397d42" name="a28e80cd43106882904be148b2a397d42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28e80cd43106882904be148b2a397d42">&#9670;&#160;</a></span>S_IFSOCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IFSOCK&#160;&#160;&#160;0140000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4f5f280b929768113739fb34d6f7be8a" name="a4f5f280b929768113739fb34d6f7be8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f5f280b929768113739fb34d6f7be8a">&#9670;&#160;</a></span>S_IRGRP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IRGRP&#160;&#160;&#160;00040</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a071147a0cb995036967c80f64b1f74b9" name="a071147a0cb995036967c80f64b1f74b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a071147a0cb995036967c80f64b1f74b9">&#9670;&#160;</a></span>S_IROTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IROTH&#160;&#160;&#160;00004</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a84c7dbf5cf2fdfb690f76348b60a8cb7" name="a84c7dbf5cf2fdfb690f76348b60a8cb7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84c7dbf5cf2fdfb690f76348b60a8cb7">&#9670;&#160;</a></span>S_IRUSR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IRUSR&#160;&#160;&#160;00400</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a230c642d2bb81f15f85c122b1883de5c" name="a230c642d2bb81f15f85c122b1883de5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a230c642d2bb81f15f85c122b1883de5c">&#9670;&#160;</a></span>S_IRWXG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IRWXG&#160;&#160;&#160;00070</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5b93e0da7fe32bbd4926626bffad96b1" name="a5b93e0da7fe32bbd4926626bffad96b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b93e0da7fe32bbd4926626bffad96b1">&#9670;&#160;</a></span>S_IRWXO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IRWXO&#160;&#160;&#160;00007</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afe3da42e762f6362c93454682fad5eb5" name="afe3da42e762f6362c93454682fad5eb5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe3da42e762f6362c93454682fad5eb5">&#9670;&#160;</a></span>S_IRWXU</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IRWXU&#160;&#160;&#160;00700</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a722eba7370eb3b0aafb3272182e08520" name="a722eba7370eb3b0aafb3272182e08520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a722eba7370eb3b0aafb3272182e08520">&#9670;&#160;</a></span>S_ISBLK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISBLK</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a5c5b74a1cb1a1ae83572500b94e1938f">S_IFBLK</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a767b5d0691f435f8a9b7f5e0fa97a645" name="a767b5d0691f435f8a9b7f5e0fa97a645"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a767b5d0691f435f8a9b7f5e0fa97a645">&#9670;&#160;</a></span>S_ISCHR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISCHR</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#aef3a1d1ba22c83e30b5c834dd343b2a8">S_IFCHR</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a70b64ed67c0ab484b4ba09487da34e91" name="a70b64ed67c0ab484b4ba09487da34e91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a70b64ed67c0ab484b4ba09487da34e91">&#9670;&#160;</a></span>S_ISDIR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISDIR</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a11fb0652b963a735f3377eb1c9239f2d">S_IFDIR</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a777b706bbe9e7920c091aaa2b547b093" name="a777b706bbe9e7920c091aaa2b547b093"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a777b706bbe9e7920c091aaa2b547b093">&#9670;&#160;</a></span>S_ISFIFO</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISFIFO</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a4966f25d9f03a7a06bc47ac729fd86cf">S_IFIFO</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9c9e4cc0a8acc43c99ae6c3d972ae2d8" name="a9c9e4cc0a8acc43c99ae6c3d972ae2d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c9e4cc0a8acc43c99ae6c3d972ae2d8">&#9670;&#160;</a></span>S_ISGID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISGID&#160;&#160;&#160;02000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a835359614ec43fbd96f53993cde84ef2" name="a835359614ec43fbd96f53993cde84ef2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a835359614ec43fbd96f53993cde84ef2">&#9670;&#160;</a></span>S_ISLNK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISLNK</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#afef163ce62372757e84bd9fc88c07aad">S_IFLNK</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abf68371159fa46b5cc47d0f3ac9ab723" name="abf68371159fa46b5cc47d0f3ac9ab723"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf68371159fa46b5cc47d0f3ac9ab723">&#9670;&#160;</a></span>S_ISREG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISREG</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a1aaa48b192a5dd3b6d7ee91fc98cd17d">S_IFREG</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a765304585be8c05f7fa72495e6d5881f" name="a765304585be8c05f7fa72495e6d5881f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a765304585be8c05f7fa72495e6d5881f">&#9670;&#160;</a></span>S_ISSOCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISSOCK</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">m</td><td>)</td>
+          <td>&#160;&#160;&#160;(((m) &amp; <a class="el" href="include_2uapi_2vespera_2stat_8h.html#ab5bee51e9ee68b83ab11d4b340f7200b">S_IFMT</a>) == <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a28e80cd43106882904be148b2a397d42">S_IFSOCK</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a30384a8cd2feb1615efd5eadc243684b" name="a30384a8cd2feb1615efd5eadc243684b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a30384a8cd2feb1615efd5eadc243684b">&#9670;&#160;</a></span>S_ISUID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISUID&#160;&#160;&#160;04000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a97b5e445a72c99b37dc5b8d620fbd14e" name="a97b5e445a72c99b37dc5b8d620fbd14e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97b5e445a72c99b37dc5b8d620fbd14e">&#9670;&#160;</a></span>S_ISVTX</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_ISVTX&#160;&#160;&#160;01000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae6774871a90d9442f00abe18b87fee6e" name="ae6774871a90d9442f00abe18b87fee6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6774871a90d9442f00abe18b87fee6e">&#9670;&#160;</a></span>S_IWGRP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IWGRP&#160;&#160;&#160;00020</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5303f49f26293acdb9533756c78322fb" name="a5303f49f26293acdb9533756c78322fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5303f49f26293acdb9533756c78322fb">&#9670;&#160;</a></span>S_IWOTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IWOTH&#160;&#160;&#160;00002</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad70001754261c15a1bdc8e876c6d09d7" name="ad70001754261c15a1bdc8e876c6d09d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad70001754261c15a1bdc8e876c6d09d7">&#9670;&#160;</a></span>S_IWUSR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IWUSR&#160;&#160;&#160;00200</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a042e69ac0e7dd56e5cfcd9e97d010323" name="a042e69ac0e7dd56e5cfcd9e97d010323"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a042e69ac0e7dd56e5cfcd9e97d010323">&#9670;&#160;</a></span>S_IXGRP</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IXGRP&#160;&#160;&#160;00010</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a40223db1b95a04f5b28cceb3c34cfebd" name="a40223db1b95a04f5b28cceb3c34cfebd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40223db1b95a04f5b28cceb3c34cfebd">&#9670;&#160;</a></span>S_IXOTH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IXOTH&#160;&#160;&#160;00001</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af10a35e3950795d6ee4e07157d000131" name="af10a35e3950795d6ee4e07157d000131"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af10a35e3950795d6ee4e07157d000131">&#9670;&#160;</a></span>S_IXUSR</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define S_IXUSR&#160;&#160;&#160;00100</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7194859a8aba349d4c3988f054686019" name="a7194859a8aba349d4c3988f054686019"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7194859a8aba349d4c3988f054686019">&#9670;&#160;</a></span>VSTAT_FLAG_EXEC</h2>
 
@@ -185,7 +687,7 @@ Typedefs</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Flags for <a class="el" href="structvespera__stat.html#aefa00e27ef7dfd7c327c2686ef458eba" title="VSTAT_FLAG_* bitmask.">vespera_stat::flags</a>. </p>
+<p>Flags for vespera_stat::flags. </p>
 
 </div>
 </div>
@@ -301,25 +803,7 @@ Typedefs</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Node type constants for <a class="el" href="structvespera__stat.html#a02b928b0e429df7ce23d4516b670a6ca" title="VSTAT_TYPE_*.">vespera_stat::node_type</a>. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a41eb14a51dcbebfb8143dbde0a227440" name="a41eb14a51dcbebfb8143dbde0a227440"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a41eb14a51dcbebfb8143dbde0a227440">&#9670;&#160;</a></span>vespera_stat_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct <a class="el" href="structvespera__stat.html">vespera_stat</a> <a class="el" href="include_2uapi_2vespera_2stat_8h.html#a41eb14a51dcbebfb8143dbde0a227440">vespera_stat_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>File/node metadata returned by <a class="el" href="sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757" title="Query metadata about a file or node.">sys_stat()</a>. </p>
-<p>VesperaOS uses capabilities, not permission bits. </p>
+<p>Node type constants for vespera_stat::node_type. </p>
 
 </div>
 </div>

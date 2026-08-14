@@ -14,7 +14,7 @@ var dir_e2b52b92f5077a849e2a3072fb331546 =
     [ "spawn.h", "spawn_8h.html", "spawn_8h" ],
     [ "stat.h", "include_2uapi_2vespera_2stat_8h.html", "include_2uapi_2vespera_2stat_8h" ],
     [ "time.h", "include_2uapi_2vespera_2time_8h.html", "include_2uapi_2vespera_2time_8h" ],
-    [ "types.h", "types_8h.html", "types_8h" ],
+    [ "types.h", "include_2uapi_2vespera_2types_8h.html", "include_2uapi_2vespera_2types_8h" ],
     [ "vbus.h", "include_2uapi_2vespera_2vbus_8h.html", "include_2uapi_2vespera_2vbus_8h" ],
     [ "wait.h", "include_2uapi_2vespera_2wait_8h.html", "include_2uapi_2vespera_2wait_8h" ]
 ];

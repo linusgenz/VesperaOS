@@ -31,7 +31,7 @@ var searchData=
   ['sqrtl_28',['sqrtl',['../math_8h.html#a36afc77dc4704cf6ef6ddd06a7d08758',1,'math.h']]],
   ['srand_29',['srand',['../stdlib_8h.html#a83a727cc697aea22e24cad5f39198dd2',1,'stdlib.h']]],
   ['sscanf_30',['sscanf',['../stdio_8h.html#aec1e54556dca3bd701d44395d34818dd',1,'stdio.h']]],
-  ['stat_31',['stat',['../userspace_2lib_2include_2stat_8h.html#acece949d9d865e98e9c23c1f95b8066e',1,'stat.h']]],
+  ['stat_31',['stat',['../userspace_2lib_2include_2sys_2stat_8h.html#a677bde372ac108b6747c80e9ddea2cde',1,'stat.h']]],
   ['stella_5fbar_5fcreate_32',['stella_bar_create',['../stella_8h.html#acfbf7622ab6a52910533269182acad3a',1,'stella.h']]],
   ['stella_5fbar_5fset_5findicator_5fcolor_33',['stella_bar_set_indicator_color',['../stella_8h.html#a13566dc6982f49a39873ca59fab458de',1,'stella.h']]],
   ['stella_5fbar_5fset_5findicator_5fradius_34',['stella_bar_set_indicator_radius',['../stella_8h.html#a8d6031e8e7d6fc90752cf42b1bf7de65',1,'stella.h']]],

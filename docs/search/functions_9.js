@@ -12,6 +12,6 @@ var searchData=
   ['indicatorcolor_9',['indicatorColor',['../classstella_1_1Bar.html#a69de167a5557c15f51fa5b19b3c0cee5',1,'stella::Bar']]],
   ['indicatorradius_10',['indicatorRadius',['../classstella_1_1Bar.html#ae465239760924e6ebcc8a98b1fa03ff4',1,'stella::Bar']]],
   ['ioctl_11',['ioctl',['../userspace_2lib_2include_2sys_2ioctl_8h.html#a9405d8d3763a7eaefe4eae694b9f8ea0',1,'ioctl.h']]],
-  ['is_5fdirectory_12',['is_directory',['../userspace_2lib_2include_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade',1,'stat.h']]],
-  ['is_5ffile_13',['is_file',['../userspace_2lib_2include_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81',1,'stat.h']]]
+  ['is_5fdirectory_12',['is_directory',['../userspace_2lib_2include_2sys_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade',1,'stat.h']]],
+  ['is_5ffile_13',['is_file',['../userspace_2lib_2include_2sys_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81',1,'stat.h']]]
 ];

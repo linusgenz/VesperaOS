@@ -1,6 +1,8 @@
 var inttypes_8h =
 [
     [ "imaxdiv_t", "structimaxdiv__t.html", "structimaxdiv__t" ],
+    [ "____gwchar_t_defined", "inttypes_8h.html#aed380607ee64d2a20c39daa3a8f58302", null ],
+    [ "__need_wchar_t", "inttypes_8h.html#a6171e467aa571bcff475ecf0402330e3", null ],
     [ "PRId16", "inttypes_8h.html#a087e50fe0283aacc71d7138d13e91939", null ],
     [ "PRId32", "inttypes_8h.html#a6d94d1417e1b35c53aee6306590de72b", null ],
     [ "PRId64", "inttypes_8h.html#ae372e90b62c1e8b51dc5d95bf7f5ba48", null ],
@@ -155,6 +157,7 @@ var inttypes_8h =
     [ "SCNxLEAST8", "inttypes_8h.html#a5cac5341d60e594c818c0f9d25377928", null ],
     [ "SCNxMAX", "inttypes_8h.html#acdb85fa86d6d76bc7a2e16ec0cc3ae58", null ],
     [ "SCNxPTR", "inttypes_8h.html#aa58d290d968643862aec7a8a56e1c8e9", null ],
+    [ "__gwchar_t", "inttypes_8h.html#a09afa078a6d6cd8eb66488e9e1f72b01", null ],
     [ "imaxabs", "inttypes_8h.html#ad9e8a565a34b6981f500d88773ec7bcd", null ],
     [ "imaxdiv", "inttypes_8h.html#abdaff0aa6f40596b90b84a7ad63d2299", null ],
     [ "strtoimax", "inttypes_8h.html#a671f7e83997899224853017e1846de6b", null ],

@@ -11,11 +11,10 @@ var searchData=
   ['min_8',['min',['../structrtc__data.html#a85077ff28bcdc4662a088d4dc39a5860',1,'rtc_data']]],
   ['min_5fbuffer_5falign_9',['min_buffer_align',['../structgpu__device__info__t.html#a8c1c4a7137d3425318c14b6afbe95e70',1,'gpu_device_info_t']]],
   ['minimized_10',['minimized',['../unionvbus__payload__t.html#a677b71de8336247efecf5acb2158768f',1,'vbus_payload_t']]],
-  ['mode_11',['mode',['../structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336',1,'tty_mode_t::mode'],['../structvespera__stat.html#ad8ffbb76242c2737114a3bb6e4654b51',1,'vespera_stat::mode']]],
+  ['mode_11',['mode',['../structtty__mode__t.html#ad313a33d80336ecd38d1c8cb03883336',1,'tty_mode_t']]],
   ['model_12',['model',['../structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44',1,'devinfo_t::model'],['../structbattery__info.html#a35d5da5a6100a14598601f292b2956b4',1,'battery_info::model']]],
   ['mon_5fdecimal_5fpoint_13',['mon_decimal_point',['../structlconv.html#a1aa08afe707c1d5d40b4d01369176480',1,'lconv']]],
   ['mon_5fgrouping_14',['mon_grouping',['../structlconv.html#a12ecf5d2f7ceb0cfe0f66fd3200eef54',1,'lconv']]],
   ['mon_5fthousands_5fsep_15',['mon_thousands_sep',['../structlconv.html#a4f04f4fd9ea670d21fc76fb5c77c032d',1,'lconv']]],
-  ['month_16',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]],
-  ['mtime_17',['mtime',['../structvespera__stat.html#a9d76990beddd300702cb96c9b8bd6fea',1,'vespera_stat']]]
+  ['month_16',['month',['../structrtc__data.html#a0b70edcc2238ee700f4be46ca92883ac',1,'rtc_data']]]
 ];

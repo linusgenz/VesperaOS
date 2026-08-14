@@ -8,6 +8,7 @@ var searchData=
   ['smart_5fnvme_5',['smart_nvme',['../structsmart__nvme.html',1,'']]],
   ['smart_5fraw_6',['smart_raw',['../structsmart__raw.html',1,'']]],
   ['spawn_5fconfig_7',['spawn_config',['../structspawn__config.html',1,'']]],
-  ['stella_5fcolor_5ft_8',['stella_color_t',['../structstella__color__t.html',1,'']]],
-  ['stella_5fconfig_9',['stella_config',['../structstella__config.html',1,'']]]
+  ['stat_8',['stat',['../structstat.html',1,'']]],
+  ['stella_5fcolor_5ft_9',['stella_color_t',['../structstella__color__t.html',1,'']]],
+  ['stella_5fconfig_10',['stella_config',['../structstella__config.html',1,'']]]
 ];

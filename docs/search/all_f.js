@@ -9,7 +9,7 @@ var searchData=
   ['o_5ftrunc_6',['O_TRUNC',['../include_2uapi_2vespera_2fflags_8h.html#ad1d67e453fb3031f40f8cd3403773813',1,'fflags.h']]],
   ['o_5fwronly_7',['O_WRONLY',['../include_2uapi_2vespera_2fflags_8h.html#a11b644a8526139c4cc1850dac1271ced',1,'fflags.h']]],
   ['oem_8',['oem',['../structbattery__info.html#a4656736fb802340b1f5189a7d22dfa3c',1,'battery_info']]],
-  ['off_5ft_9',['off_t',['../alltypes_8h.html#af83497edef361523a95b06deda0b4c2d',1,'alltypes.h']]],
+  ['off_5ft_9',['off_t',['../include_2uapi_2vespera_2types_8h.html#a053c614b69adbac710bb132a6eb9ccf6',1,'types.h']]],
   ['offsetof_10',['offsetof',['../stddef_8h.html#a276e8a32e0bbf024aadd9420b8f2d3b3',1,'stddef.h']]],
   ['old_5fparent_5fid_11',['old_parent_id',['../structvbus__orphaned.html#a375997700f797b1e45a802ca342cff8a',1,'vbus_orphaned']]],
   ['onclick_12',['onClick',['../classstella_1_1Widget.html#ae9ddcb1e422d36d670a7ede251b45027',1,'stella::Widget']]],

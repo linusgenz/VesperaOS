@@ -20,6 +20,7 @@ var stdint_8h =
     [ "UINT16_MAX", "stdint_8h.html#a3ea490c9b3617d4479bd80ef93cd5602", null ],
     [ "UINT32_C", "stdint_8h.html#ad76f76a71e9ffc13963ee895d1828b2c", null ],
     [ "UINT32_MAX", "stdint_8h.html#ab5eb23180f7cc12b7d6c04a8ec067fdd", null ],
+    [ "UINT64_C", "stdint_8h.html#ae770776c04e6d959364d2612ddfce99d", null ],
     [ "UINT64_MAX", "stdint_8h.html#a30654b4b67d97c42ca3f9b6052dda916", null ],
     [ "UINT8_MAX", "stdint_8h.html#aeb4e270a084ee26fe73e799861bd0252", null ],
     [ "UINT_LEAST16_MAX", "stdint_8h.html#a6ef6a1a518bbf516ca8b0180b11c358f", null ],

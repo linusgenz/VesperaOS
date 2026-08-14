@@ -4,7 +4,7 @@ var searchData=
   ['shm_2eh_1',['shm.h',['../shm_8h.html',1,'']]],
   ['signal_2eh_2',['signal.h',['../include_2uapi_2vespera_2signal_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2signal_8h.html',1,'(Global Namespace)']]],
   ['spawn_2eh_3',['spawn.h',['../spawn_8h.html',1,'']]],
-  ['stat_2eh_4',['stat.h',['../include_2uapi_2vespera_2stat_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2stat_8h.html',1,'(Global Namespace)']]],
+  ['stat_2eh_4',['stat.h',['../userspace_2lib_2include_2sys_2stat_8h.html',1,'(Global Namespace)'],['../include_2uapi_2vespera_2stat_8h.html',1,'(Global Namespace)']]],
   ['stdarg_2eh_5',['stdarg.h',['../stdarg_8h.html',1,'']]],
   ['stdbool_2eh_6',['stdbool.h',['../stdbool_8h.html',1,'']]],
   ['stddef_2eh_7',['stddef.h',['../stddef_8h.html',1,'']]],
