@@ -27,7 +27,7 @@
 #include <klib/vector.h>
 #include <vespera/mm/memory.h>
 #include <vespera/security/credentials.h>
-#include <vespera/log.h>
+#include <uapi/vespera/time.h>
 
 #include "ext4_time.h"
 #include "klib/result.h"
@@ -1106,7 +1106,7 @@ namespace ext4 {
         auto* entries = static_cast<FileEntry*>(kernel::memory::malloc(sizeof(FileEntry) * EXT4_MAX_DIR_ENTRIES));
         if (!entries) return Result<FileEntry*>::err(Error::NoMem);
         for (usize i = 0; i < EXT4_MAX_DIR_ENTRIES; i++) {
-            new (&entries[i]) FileEntry();
+            new(&entries[i]) FileEntry();
         }
 
         const u32 bsize = get_block_size();
@@ -1715,49 +1715,74 @@ namespace ext4 {
         return VoidResult::ok();
     }
 
-    VoidResult FileSystem::stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const {
+    VoidResult FileSystem::stat(u32 inode_no, struct stat* out, u32 dev_id) const {
         if (!out || inode_no == 0) return VoidResult::err(Error::Inval);
 
         Inode inode{};
         if (!read_inode(inode_no, inode)) return VoidResult::err(Error::Io);
 
-        out->inode_id = inode_no;
-        out->size = inode_get_size(inode);
-        out->blocks = static_cast<u64>(inode.i_blocks_lo) | (static_cast<u64>(inode.i_blocks_high) << 32);
-        out->block_size = get_block_size();
-        out->dev_id = dev_id;
-        out->atime = inode.i_atime;
-        out->mtime = inode.i_mtime;
-        out->ctime = inode.i_ctime;
-        out->crtime = inode.i_crtime;
-        out->mode = inode.i_mode;
-        out->links_count = inode.i_links_count;
-        out->uid = static_cast<u32>(inode.i_uid) | (static_cast<u32>(inode.i_uid_high) << 16);
-        out->gid = static_cast<u32>(inode.i_gid) | (static_cast<u32>(inode.i_gid_high) << 16);
+        memset(out, 0, sizeof(struct stat));
 
-        out->flags = VSTAT_FLAG_READABLE;
-        if (inode.i_mode & 0x0080u) out->flags |= VSTAT_FLAG_WRITABLE;
+        out->st_ino = inode_no;
+        out->st_dev = dev_id;
+        out->st_mode = inode.i_mode;
+        out->st_nlink = inode.i_links_count;
+        out->st_uid = static_cast<u32>(inode.i_uid) | (static_cast<u32>(inode.i_uid_high) << 16);
+        out->st_gid = static_cast<u32>(inode.i_gid) | (static_cast<u32>(inode.i_gid_high) << 16);
 
-        switch (inode_get_type(inode)) {
-        case InodeType::RegularFile:
-            if (inode.i_mode & 0x0040u) out->flags |= VSTAT_FLAG_EXEC;
-            out->node_type = VSTAT_TYPE_FILE;
-            break;
-        case InodeType::Directory:
-            out->node_type = VSTAT_TYPE_DIR;
-            break;
-        case InodeType::SymbolicLink:
-            out->node_type = VSTAT_TYPE_SYMLINK;
-            break;
-        case InodeType::CharDevice:
-            out->node_type = VSTAT_TYPE_CHARDEV;
-            break;
-        case InodeType::BlockDevice:
-            out->node_type = VSTAT_TYPE_BLOCKDEV;
-            break;
-        default:
-            out->node_type = VSTAT_TYPE_UNKNOWN;
-            break;
+        out->st_size = inode_get_size(inode);
+        out->st_blksize = get_block_size();
+
+        out->st_blocks = static_cast<u64>(inode.i_blocks_lo) | (static_cast<u64>(inode.i_blocks_high) << 32);
+
+        const auto node_type = inode_get_type(inode);
+        if (node_type == InodeType::CharDevice || node_type == InodeType::BlockDevice) {
+            out->st_rdev = inode.i_block[0];
+        } else {
+            out->st_rdev = 0;
+        }
+
+        out->st_atim.tv_sec = inode.i_atime;
+        out->st_mtim.tv_sec = inode.i_mtime;
+        out->st_ctim.tv_sec = inode.i_ctime;
+        out->v_crtime = inode.i_crtime;
+
+        if (inode_get_size(inode) > 128) {
+            out->st_atim.tv_nsec = (inode.i_atime_extra & 0x3FFFFFFFu) >> 2;
+            out->st_mtim.tv_nsec = (inode.i_mtime_extra & 0x3FFFFFFFu) >> 2;
+            out->st_ctim.tv_nsec = (inode.i_ctime_extra & 0x3FFFFFFFu) >> 2;
+        } else {
+            out->st_atim.tv_nsec = 0;
+            out->st_mtim.tv_nsec = 0;
+            out->st_ctim.tv_nsec = 0;
+        }
+
+        out->v_flags = VSTAT_FLAG_READABLE;
+        if (inode.i_mode & 0x0080u) {
+            // S_IWUSR
+            out->v_flags |= VSTAT_FLAG_WRITABLE;
+        }
+
+        switch (node_type) {
+            case InodeType::RegularFile:
+                if (inode.i_mode & 0x0040u) out->v_flags |= VSTAT_FLAG_EXEC; // S_IXUSR
+                out->v_node_type = VSTAT_TYPE_FILE;
+                break;
+            case InodeType::Directory:
+                out->v_node_type = VSTAT_TYPE_DIR;
+                break;
+            case InodeType::SymbolicLink:
+                out->v_node_type = VSTAT_TYPE_SYMLINK;
+                break;
+            case InodeType::CharDevice:
+                out->v_node_type = VSTAT_TYPE_CHARDEV;
+                break;
+            case InodeType::BlockDevice:
+                out->v_node_type = VSTAT_TYPE_BLOCKDEV;
+                break;
+            default:
+                out->v_node_type = VSTAT_TYPE_UNKNOWN;
+                break;
         }
 
         return VoidResult::ok();

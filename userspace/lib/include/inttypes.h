@@ -25,6 +25,20 @@
 
 #include <stdint.h>   /* provides intN_t / uintN_t, intmax_t, etc. */
 
+#ifndef ____gwchar_t_defined
+# ifdef __cplusplus
+#  define __gwchar_t wchar_t
+# elif defined __WCHAR_TYPE__
+typedef __WCHAR_TYPE__ __gwchar_t;
+# else
+#  define __need_wchar_t
+#  include <stddef.h>
+typedef wchar_t __gwchar_t;
+# endif
+# define ____gwchar_t_defined	1
+#endif
+
+
 /* =========================================================================
  * We rely on Clang's predefined __INTn_FMTd__ / __UINTn_FMTu__ family so
  * the correct length modifier (hh / h / <none> / l / ll) is supplied by the
@@ -313,12 +327,12 @@ uintmax_t strtoumax(const char * __restrict nptr,
  */
 #ifdef __WCHAR_TYPE__
 
-intmax_t  wcstoimax(const wchar_t * __restrict nptr,
-                    wchar_t **      __restrict endptr,
+intmax_t  wcstoimax(const __gwchar_t * __restrict nptr,
+                    __gwchar_t **      __restrict endptr,
                     int base);
 
-uintmax_t wcstoumax(const wchar_t * __restrict nptr,
-                    wchar_t **      __restrict endptr,
+uintmax_t wcstoumax(const __gwchar_t * __restrict nptr,
+                    __gwchar_t **      __restrict endptr,
                     int base);
 #endif /* __WCHAR_TYPE__ */
 

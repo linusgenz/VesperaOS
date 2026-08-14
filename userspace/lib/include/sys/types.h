@@ -1,9 +1,9 @@
-// stat.cpp
+// types.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 15.03.26.
+// Created by Linus Genz on 14.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,22 +19,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+#ifndef VESPLIB_TYPES_H
+#define VESPLIB_TYPES_H
 
-#include <vespera/stat.h>
-#include <sysstd.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <vespera/types.h>
 
-int stat(const char* path, struct stat* out) {
-    return (int)sys_stat((uint64_t)path, (uint64_t)out, 0, 0, 0, 0);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef __cplusplus
 }
+#endif
 
-int is_directory(const char* path) {
-    struct stat st;
-    if (stat(path, &st) != 0) return 0;
-    return st.v_node_type == VSTAT_TYPE_DIR;
-}
-
-int is_file(const char* path) {
-    struct stat st;
-    if (stat(path, &st) != 0) return 0;
-    return st.v_node_type == VSTAT_TYPE_FILE;
-}
+#endif //VESPLIB_TYPES_H

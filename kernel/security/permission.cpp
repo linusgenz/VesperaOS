@@ -35,21 +35,21 @@ namespace kernel::security {
         // Root is omnipotent.
         if (is_root(cred)) return 0;
 
-        vespera_stat_t st{};
+        stat st{};
         if (VFS::stat(node, &st).is_err()) return 0;
 
         // Determine which 3-bit permission field applies.
         u8 perm_bits = 0;
 
-        if (cred.euid == st.uid) {
+        if (cred.euid == st.st_uid) {
             // Owner permissions: bits 8-6 of mode (rwx------).
-            perm_bits = static_cast<u8>((st.mode >> 6) & 0x7u);
-        } else if (cred.egid == st.gid) {
+            perm_bits = static_cast<u8>((st.st_mode >> 6) & 0x7u);
+        } else if (cred.egid == st.st_gid) {
             // Group permissions: bits 5-3 of mode (---rwx---).
-            perm_bits = static_cast<u8>((st.mode >> 3) & 0x7u);
+            perm_bits = static_cast<u8>((st.st_mode >> 3) & 0x7u);
         } else {
             // Other permissions: bits 2-0 of mode (------rwx).
-            perm_bits = static_cast<u8>(st.mode & 0x7u);
+            perm_bits = static_cast<u8>(st.st_mode & 0x7u);
         }
 
         if ((access & VFS_ACCESS_READ) && !(perm_bits & 0x4u)) return -EACCES;
@@ -65,12 +65,12 @@ namespace kernel::security {
         // Root may always chown.
         if (is_root(cred)) return 0;
 
-        vespera_stat_t st{};
+        stat st{};
         if (VFS::stat(node, &st).is_err()) return 0;
 
-        if (new_uid != st.uid) return -EPERM;
+        if (new_uid != st.st_uid) return -EPERM;
 
-        if (cred.euid != st.uid) return -EPERM;
+        if (cred.euid != st.st_uid) return -EPERM;
         if (new_gid != cred.egid && new_gid != cred.gid) return -EPERM;
 
         return 0;
@@ -80,10 +80,10 @@ namespace kernel::security {
         if (!node) return -EINVAL;
         if (is_root(cred)) return 0;
 
-        vespera_stat_t st{};
+        stat st{};
         if (VFS::stat(node, &st).is_err()) return 0;
 
-        if (cred.euid != st.uid) return -EPERM;
+        if (cred.euid != st.st_uid) return -EPERM;
 
         return 0;
     }

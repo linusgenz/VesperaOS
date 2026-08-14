@@ -94,7 +94,7 @@ class VFS {
 
     static VoidResult unlink(const char* path);
     static VoidResult truncate(VfsNode* node, usize new_size);
-    static VoidResult stat(const VfsNode* node, vespera_stat_t* out);
+    static VoidResult stat(const VfsNode* node, stat* out);
     static VoidResult chown(VfsNode* node, u32 uid, u32 gid);
     static VoidResult chmod(VfsNode* node, u16 mode);
 

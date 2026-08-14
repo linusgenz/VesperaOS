@@ -245,7 +245,7 @@ uptr align_up(const uptr v, const usize align) {
 
 bool UnitManager::setup_tls_block(Unit* u, Realm* realm) {
     const TlsTemplate& tmpl = realm->tls_template;
-    if (!tmpl.present) return true;  // kein PT_TLS → nichts zu tun
+    if (!tmpl.present) return true; // kein PT_TLS → nichts zu tun
 
     // TLS Variant II: [tls_data | tcb]
     const usize block_size = align_up(tmpl.mem_size, tmpl.align);
@@ -266,25 +266,25 @@ bool UnitManager::setup_tls_block(Unit* u, Realm* realm) {
 
     // vaddr im Realm-Adressraum vergeben (bump-allocator reicht)
     const uptr tls_vaddr = __atomic_fetch_add(&realm->tls_region_next,
-                                               align_up(total, PAGE_SIZE),
-                                               __ATOMIC_ACQ_REL);
+                                              align_up(total, PAGE_SIZE),
+                                              __ATOMIC_ACQ_REL);
 
     constexpr u64 pt_flags = (1ULL << PtFlag::Present)
-                            | (1ULL << PtFlag::UserSuper)
-                            | (1ULL << PtFlag::ReadWrite);
+        | (1ULL << PtFlag::UserSuper)
+        | (1ULL << PtFlag::ReadWrite);
     realm->address_space->page_table()->map_range(
         virt_from_raw(tls_vaddr), phys, pages * PAGE_SIZE, pt_flags
     );
 
     const uptr tcb_uaddr = tls_vaddr + block_size;
     auto* tcb = reinterpret_cast<u64*>(virt_raw(virt_add(hhdm, block_size)));
-    tcb[0] = tcb_uaddr;  // self-pointer (x86_64 TLS ABI)
+    tcb[0] = tcb_uaddr; // self-pointer (x86_64 TLS ABI)
     tcb[1] = 0;
 
     u->context.fs_base = tcb_uaddr;
-    u->tls_phys        = phys;
-    u->tls_vaddr       = tls_vaddr;
-    u->tls_pages       = pages;
+    u->tls_phys = phys;
+    u->tls_vaddr = tls_vaddr;
+    u->tls_pages = pages;
 
     return true;
 }

@@ -12,7 +12,7 @@
 #include "fat32_lfn.h"
 #include "fat32_time.h"
 #include "fat32_vfs_adapter.h"
-#include "vespera_errno.h"
+#include <uapi/vespera/time.h>
 
 namespace fat32 {
     // ============================================================================
@@ -36,9 +36,9 @@ namespace fat32 {
 
     FileSystem::FileSystem(BlockDevice* device)
         : device(device)
-        , fs_valid(false)
-        , next_free_cluster(2)
-        , cache_access_counter(0) {
+          , fs_valid(false)
+          , next_free_cluster(2)
+          , cache_access_counter(0) {
         u8 sector[512];
         if (!device->read(0, 1, sector, 512)) {
             Log::error("[FAT32] Failed to read first sector");
@@ -86,9 +86,11 @@ namespace fat32 {
     bool FileSystem::is_valid() const {
         return fs_valid;
     }
+
     u32 FileSystem::get_root_cluster() const {
         return bpb.root_cluster;
     }
+
     u32 FileSystem::bytes_per_cluster() const {
         return bpb.bytes_per_sector * bpb.sectors_per_cluster;
     }
@@ -266,9 +268,9 @@ namespace fat32 {
     bool FileSystem::is_valid_fat_entry(u32 value) const {
         value &= 0x0FFFFFFF;
 
-        if (value == 0) return true;            // free
-        if (value >= 0x0FFFFFF8) return true;   // EOF
-        if (value == 0x0FFFFFF7) return false;  // bad
+        if (value == 0) return true;           // free
+        if (value >= 0x0FFFFFF8) return true;  // EOF
+        if (value == 0x0FFFFFF7) return false; // bad
         if (value < 2) return false;
         if (value >= cluster_count + 2) return false;
 
@@ -276,7 +278,7 @@ namespace fat32 {
     }
 
     u32 FileSystem::read_fat_entry_raw(const u32 fat_sector, const u32 offset) const {
-        u8 buf[1024];  // max 2 sectors
+        u8 buf[1024]; // max 2 sectors
 
         // one sector
         if (offset <= sector_size - 4) {
@@ -382,13 +384,13 @@ namespace fat32 {
 
         const u32 next = get_fat_entry(c);
 
-        if (next >= 0x0FFFFFF8)  // EOF
+        if (next >= 0x0FFFFFF8) // EOF
             return 0;
 
-        if (next == 0 || next == 1)  // free / invalid
+        if (next == 0 || next == 1) // free / invalid
             return 0;
 
-        if (next == 0x0FFFFFF7)  // bad
+        if (next == 0x0FFFFFF7) // bad
             return 0;
 
         return next;
@@ -409,7 +411,7 @@ namespace fat32 {
             hare = next_cluster(hare);
             if (hare == 0) return false;
 
-            if (tortoise == hare) return true;  // Loop detected
+            if (tortoise == hare) return true; // Loop detected
         }
     }
 
@@ -445,7 +447,7 @@ namespace fat32 {
 
         // Phase 1: Cluster zählen mit Batch-Reads
         const u32 entries_per_sector = bpb.bytes_per_sector / 4;
-        constexpr u32 sectors_per_read = 128;  // 64 KiB @ 512 B sectors
+        constexpr u32 sectors_per_read = 128; // 64 KiB @ 512 B sectors
         const u32 bytes_needed = sectors_per_read * bpb.bytes_per_sector;
         const u32 pages = (bytes_needed + 0xFFF) / 0x1000;
 
@@ -540,7 +542,7 @@ namespace fat32 {
         klib::sort(chain, chain + count);
 
         const u32 entries_per_sector = bpb.bytes_per_sector / 4;
-        constexpr u32 sectors_per_batch = 128;  // 64KB Batches
+        constexpr u32 sectors_per_batch = 128; // 64KB Batches
         const u32 bytes_needed = sectors_per_batch * bpb.bytes_per_sector;
         const u32 pages = (bytes_needed + 0xFFF) / 0x1000;
 
@@ -585,8 +587,8 @@ namespace fat32 {
                     current_batch_end = (batch_end > fat_base + bpb.fat_size32) ? fat_base + bpb.fat_size32 : batch_end;
 
                     if (const usize sectors_to_read = current_batch_end - current_batch_start; !device->read(
-                            current_batch_start, sectors_to_read, batch_buffer, sectors_to_read * bpb.bytes_per_sector
-                        )) {
+                        current_batch_start, sectors_to_read, batch_buffer, sectors_to_read * bpb.bytes_per_sector
+                    )) {
                         kernel::memory::free_pages(batch_virt, pages);
                         kernel::memory::free(chain);
                         return false;
@@ -1387,7 +1389,7 @@ namespace fat32 {
         if (sub_res.is_err()) return VoidResult::err(sub_res.error());
         kernel::memory::free(sub_res.unwrap());
 
-        if (dir_entry_count > 2) return Error::NotEmpty;  // more than "." and ".."
+        if (dir_entry_count > 2) return Error::NotEmpty; // more than "." and ".."
 
         trim_cluster_chain(target_cluster);
         free_cluster_chain(target_cluster);
@@ -1589,36 +1591,50 @@ namespace fat32 {
         return result;
     }
 
-    VoidResult FileSystem::stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const {
-        if (!node || !out) return Error::Inval;
+    VoidResult FileSystem::stat(const Fat32Node* node, struct stat* out, u32 dev_id) const {
+        if (!node || !out) return VoidResult::err(Error::Inval);
 
-        out->inode_id = node->cluster;
-        out->block_size = bytes_per_cluster();
-        out->dev_id = dev_id;
-        out->size = node->file_size;
+        memset(out, 0, sizeof(struct stat));
 
-        if (node->file_size > 0 && out->block_size > 0) {
-            const u64 clusters_used = (node->file_size + out->block_size - 1) / out->block_size;
-            out->blocks = clusters_used * bpb.sectors_per_cluster;
+        out->st_ino = node->cluster;
+        out->st_blksize = bytes_per_cluster();
+        out->st_dev = dev_id;
+        out->st_size = node->file_size;
+
+        if (node->file_size > 0 && out->st_blksize > 0) {
+            const u64 clusters_used = (node->file_size + out->st_blksize - 1) / out->st_blksize;
+            out->st_blocks = clusters_used * bpb.sectors_per_cluster;
         }
 
-        out->atime = fat32_time_to_unix(node->dir_entry.last_access_date, 0);
-        out->mtime = fat32_time_to_unix(node->dir_entry.write_date, node->dir_entry.write_time);
-        out->ctime = out->mtime;
-        out->crtime = fat32_time_to_unix(node->dir_entry.creation_date, node->dir_entry.creation_time);
+        out->st_atim.tv_sec = fat32_time_to_unix(node->dir_entry.last_access_date, 0);
+        out->st_atim.tv_nsec = 0;
 
-        constexpr u32 mode_dir = 0x4000;
-        constexpr u32 mode_reg = 0x8000;
-        const u16 type = (node->dir_entry.attr & ATTR_DIRECTORY) ? mode_dir : mode_reg;
-        const u16 perm = (node->dir_entry.attr & ATTR_DIRECTORY) ? 0755u : 0644u;
-        out->mode = type | perm;
+        out->st_mtim.tv_sec = fat32_time_to_unix(node->dir_entry.write_date, node->dir_entry.write_time);
+        out->st_mtim.tv_nsec = 0;
 
-        out->links_count = 1;
-        out->uid = 0;
-        out->gid = 0;
-        out->flags = VSTAT_FLAG_READABLE;
-        if (!(node->dir_entry.attr & ATTR_READ_ONLY)) out->flags |= VSTAT_FLAG_WRITABLE;
-        out->node_type = (node->dir_entry.attr & ATTR_DIRECTORY) ? VSTAT_TYPE_DIR : VSTAT_TYPE_FILE;
+        out->st_ctim.tv_sec = out->st_mtim.tv_sec;
+        out->st_ctim.tv_nsec = 0;
+
+        /* Mode & Permissions mit POSIX-Standard-Makros */
+        const bool is_dir = (node->dir_entry.attr & ATTR_DIRECTORY) != 0;
+        const mode_t type_mask = is_dir ? S_IFDIR : S_IFREG;
+        const mode_t perm_mask = is_dir
+                                     ? (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) // 0755
+                                     : (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);          // 0644
+
+        out->st_mode = type_mask | perm_mask;
+        out->st_nlink = 1;
+        out->st_uid = 0;
+        out->st_gid = 0;
+
+        out->v_crtime = fat32_time_to_unix(node->dir_entry.creation_date, node->dir_entry.creation_time);
+        out->v_flags = VSTAT_FLAG_READABLE;
+
+        if (!(node->dir_entry.attr & ATTR_READ_ONLY)) {
+            out->v_flags |= VSTAT_FLAG_WRITABLE;
+        }
+
+        out->v_node_type = is_dir ? VSTAT_TYPE_DIR : VSTAT_TYPE_FILE;
 
         return VoidResult::ok();
     }
@@ -1696,4 +1712,4 @@ namespace fat32 {
     bool FileSystem::is_protected(const DirectoryEntry& e) {
         return e.attr & (ATTR_READ_ONLY | ATTR_SYSTEM);
     }
-}  // namespace fat32
+} // namespace fat32

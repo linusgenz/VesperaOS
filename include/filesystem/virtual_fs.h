@@ -256,13 +256,22 @@ class VirtualFilesystem {
         kernel::memory::free(dir_handle);
     }
 
-    static VoidResult stat(const VfsNode*, vespera_stat_t* out) {
-        out->dev_id = 0;
-        out->inode_id = 0;
-        out->block_size = 0;
-        out->blocks = 0;
-        out->size = 0;
-        out->mode = 0x41ED;  // 0100755 octal — dir + rwxr-xr-x
+    static VoidResult stat(const VfsNode*, struct stat* out) {
+        if (!out) return VoidResult::err(Error::Inval);
+
+        memset(out, 0, sizeof(struct stat));
+
+        out->st_dev = 0;
+        out->st_ino = 0;
+        out->st_blksize = 0;
+        out->st_blocks = 0;
+        out->st_size = 0;
+
+        out->st_mode = S_IFDIR | S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+
+        out->v_node_type = VSTAT_TYPE_DIR;
+        out->v_flags = VSTAT_FLAG_READABLE | VSTAT_FLAG_EXEC;
+
         return VoidResult::ok();
     }
 };

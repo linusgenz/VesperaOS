@@ -27,6 +27,6 @@
 #include "stdint.h"
 
 bool file_exists(const char* path) {
-    vespera_stat_t st;
+    struct stat st;
     return sys_stat((uint64_t)path, (uint64_t)&st, 0, 0, 0, 0) == 0;
 }

@@ -33,4 +33,27 @@ typedef signed short       i16;
 typedef signed int         i32;
 typedef signed long long   i64;
 
+typedef signed char int8_t;
+typedef short int16_t;
+typedef int int32_t;
+typedef long long int64_t;
+
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
+
+typedef uint64_t dev_t;      ///< Device IDs (major/minor combined)
+typedef uint64_t ino_t;      ///< Inode numbers
+typedef uint32_t mode_t;     ///< File modes and permission bits
+typedef uint32_t nlink_t;    ///< Number of hard links
+typedef uint32_t uid_t;      ///< User ID
+typedef uint32_t gid_t;      ///< Group ID
+typedef int64_t  off_t;      ///< File offsets / sizes (signed)
+typedef int64_t  blksize_t;  ///< Block size for I/O
+typedef int64_t  blkcnt_t;   ///< Number of allocated 512-byte blocks
+typedef int64_t  time_t;     ///< Seconds since the epoch
+typedef int32_t  pid_t;      ///< Process ID
+typedef long ssize_t;    ///< Signed size (for read/write returns)
+
 #endif

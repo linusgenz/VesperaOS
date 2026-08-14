@@ -190,7 +190,7 @@ ElfLoader::LoadResult ElfLoader::load_internal(
     if (has_interp) {
         const LoadResult interp = load_internal(interp_path, INTERP_LOAD_BASE, realm, false);
         if (!interp.success) {
-            return make_load_error("Failed to load PT_INTERP", is_pie);
+            return make_load_error("Failed to load PT_INTERP. Is the specified linker present?", is_pie);
         }
 
         return {

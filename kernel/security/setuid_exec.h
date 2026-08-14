@@ -30,35 +30,32 @@
 
 namespace kernel::security {
 
-    constexpr u16 S_ISUID = 0x0800u;  // set-user-ID on exec
-    constexpr u16 S_ISGID = 0x0400u;  // set-group-ID on exec
-
     /// Update @p cred for an exec() of @p exec_node.
     inline void apply_exec_credentials(process_credentials& cred, const VfsNode* exec_node) {
         if (!exec_node || !exec_node->ops || !exec_node->ops->stat) {
             return;
         }
 
-        vespera_stat_t st{};
+        stat st{};
         if (VFS::stat(exec_node, &st).is_err()) {
             return;
         }
 
-        if (st.mode & S_ISUID) {
-            cred.euid = st.uid;
-            cred.suid = st.uid;
+        if (st.st_mode & S_ISUID) {
+            cred.euid = st.st_uid;
+            cred.suid = st.st_uid;
         } else {
             cred.suid = cred.euid;
         }
 
-        if (st.mode & S_ISGID) {
-            cred.egid = st.gid;
-            cred.sgid = st.gid;
+        if (st.st_mode & S_ISGID) {
+            cred.egid = st.st_gid;
+            cred.sgid = st.st_gid;
         } else {
             cred.sgid = cred.egid;
         }
     }
 
-}  // namespace kernel::security
+} // namespace kernel::security
 
 #endif  // VESPERAOS_SECURITY_SETUID_EXEC_H

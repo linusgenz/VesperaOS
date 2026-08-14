@@ -205,7 +205,7 @@ static VoidResult fat32_unlink(const VfsNode* node, const char* name) {
     return dir->fs->delete_file(dir, name);
 }
 
-static VoidResult fat32_stat(const VfsNode* node, vespera_stat_t* out) {
+static VoidResult fat32_stat(const VfsNode* node, stat* out) {
     if (!node || !out) return Error::Inval;
 
     auto* fnode = static_cast<const Fat32Node*>(node->internal_data);

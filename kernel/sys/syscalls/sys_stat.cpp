@@ -57,7 +57,7 @@ namespace syscalls::internal {
 
     i64 sys_stat(u64 arg0, u64 arg1, u64, u64, u64, u64) {
         const auto path = reinterpret_cast<const char*>(arg0);
-        auto* out_buf = reinterpret_cast<vespera_stat_t*>(arg1);
+        auto* out_buf = reinterpret_cast<stat*>(arg1);
 
         if (!path || !*path || !out_buf) return -EINVAL;
 
@@ -66,10 +66,10 @@ namespace syscalls::internal {
 
         VfsNode* node = SYSCALL_TRY(VFS::open(norm));
 
-        vespera_stat_t st{};
-        st.node_type = vfs_type_to_stat_type(node->type);
-        st.flags = node_flags_from_vfs(node);
-        st.size = node->size;
+        stat st{};
+        st.v_node_type = vfs_type_to_stat_type(node->type);
+        st.v_flags = node_flags_from_vfs(node);
+        st.st_size = node->size;
 
         auto stat_res = VFS::stat(node, &st);
         VFS::close(node);

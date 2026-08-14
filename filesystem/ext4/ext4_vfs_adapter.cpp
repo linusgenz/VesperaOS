@@ -215,7 +215,7 @@ static VoidResult ext4_unlink(const VfsNode* parent, const char* name) {
     return dir->fs->unlink(dir->inode, name);
 }
 
-static VoidResult ext4_stat(const VfsNode* node, vespera_stat_t* out) {
+static VoidResult ext4_stat(const VfsNode* node, stat* out) {
     if (!node || !out) return Error::Inval;
     const auto* en = static_cast<const Ext4Node*>(node->internal_data);
     if (!en) return Error::Inval;

@@ -313,7 +313,7 @@ namespace ext4 {
         VoidResult unlink(u32 dir_inode_no, const char* name);
         VoidResult rmdir(u32 dir_inode_no, const char* name);
         VoidResult rename(u32 old_dir_inode, const char* old_name, u32 new_dir_inode, const char* new_name);
-        VoidResult stat(u32 inode_no, vespera_stat_t* out, u32 dev_id) const;
+        VoidResult stat(u32 inode_no, stat* out, u32 dev_id) const;
         VoidResult truncate(u32 inode_no, u64 new_size);
         VoidResult chown(u32 inode_no, u32 uid, u32 gid) const;
         VoidResult chmod(u32 inode_no, u16 new_mode) const;

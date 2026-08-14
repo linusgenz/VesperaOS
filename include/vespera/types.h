@@ -117,4 +117,17 @@ typedef struct {
     u32 y;
 } point_t;
 
+typedef u64 dev_t;      ///< Device IDs (major/minor combined)
+typedef u64 ino_t;      ///< Inode numbers
+typedef u32 mode_t;     ///< File modes and permission bits
+typedef u32 nlink_t;    ///< Number of hard links
+typedef u32 uid_t;      ///< User ID
+typedef u32 gid_t;      ///< Group ID
+typedef i64  off_t;      ///< File offsets / sizes (signed)
+typedef i64  blksize_t;  ///< Block size for I/O
+typedef i64  blkcnt_t;   ///< Number of allocated 512-byte blocks
+typedef i64  time_t;     ///< Seconds since the epoch
+typedef i32  pid_t;      ///< Process ID
+typedef long ssize_t;    ///< Signed size (for read/write returns)
+
 #endif  // VESPERAOS_TYPES_H

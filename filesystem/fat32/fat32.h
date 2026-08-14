@@ -301,7 +301,7 @@ namespace fat32 {
         bool overwrite_directory_entry(u32 parent_cluster, usize entry_index, const DirectoryEntry* new_entry) const;
 
         u32 find_entry_cluster(u32 dir_cluster, const char* given_name) const;
-        VoidResult stat(const Fat32Node* node, vespera_stat_t* out, u32 dev_id) const;
+        VoidResult stat(const Fat32Node* node, stat* out, u32 dev_id) const;
         VoidResult truncate(Fat32Node* node, usize new_size);
         static bool is_protected(const DirectoryEntry& e);
     };

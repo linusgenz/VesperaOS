@@ -339,7 +339,7 @@ VoidResult VFS::truncate(VfsNode* node, const usize new_size) {
     return node->ops->truncate(node, new_size);
 }
 
-VoidResult VFS::stat(const VfsNode* node, vespera_stat_t* out) {
+VoidResult VFS::stat(const VfsNode* node, struct stat* out) {
     if (!node || !node->ops || !node->ops->stat) return Error::NoSys;
     return node->ops->stat(node, out);
 }

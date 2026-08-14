@@ -26,7 +26,7 @@
 #include <sysstd.h>
 #include <vespera/stat.h>
 
-static inline int stat(const char* path, vespera_stat_t* out) {
+static inline int stat(const char* path, struct stat* out) {
     return (int)sys_stat((uint64_t)path, (uint64_t)out, 0, 0, 0, 0);
 }
 

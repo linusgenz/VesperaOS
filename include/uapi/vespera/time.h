@@ -27,12 +27,12 @@
 /**
  * @brief Represents a point in time with nanosecond precision.
  */
-typedef struct {
+typedef struct timespec {
     i64 tv_sec;   ///< Seconds
     i64 tv_nsec;  ///< Nanoseconds (0–999999999)
 } timespec_t;
 
-typedef struct {
+typedef struct timeval {
     i64 tv_sec;   ///< seconds
     i64 tv_usec;  ///< microseconds [0, 999'999]
 } timeval_t;
