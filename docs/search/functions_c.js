@@ -42,7 +42,7 @@ var searchData=
   ['lround_39',['lround',['../math_8h.html#a8dae5db278571472fb894f5b900a2cc5',1,'math.h']]],
   ['lroundf_40',['lroundf',['../math_8h.html#a4e4ebd0523a1eed730cf33fd343f487c',1,'math.h']]],
   ['lroundl_41',['lroundl',['../math_8h.html#ab69d4a2869a1b4c3ef2ea27aba0c0436',1,'math.h']]],
-  ['lseek_42',['lseek',['../stdio_8h.html#a0f505b889099a08a9a2fc58985298205',1,'lseek(HANDLE handle, int64_t offset, int whence):&#160;stdio.h'],['../unistd_8h.html#a8bd74caed008a66808d92d57fa74d9f6',1,'lseek(int fd, off_t offset, int whence):&#160;unistd.h']]],
+  ['lseek_42',['lseek',['../unistd_8h.html#a8bd74caed008a66808d92d57fa74d9f6',1,'unistd.h']]],
   ['lua_5fget_5ftable_5fbool_43',['lua_get_table_bool',['../luautil_8h.html#ae279728b842721214bb327cdd0ed4ce8',1,'luautil.h']]],
   ['lua_5fget_5ftable_5fint_44',['lua_get_table_int',['../luautil_8h.html#ad95574c52e25d88bb6c4a4c0277fc78c',1,'luautil.h']]],
   ['lua_5fget_5ftable_5fstring_45',['lua_get_table_string',['../luautil_8h.html#af8201cb04fc4ea3b4441478c3b46ceaa',1,'luautil.h']]]

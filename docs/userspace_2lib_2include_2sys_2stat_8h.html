@@ -105,6 +105,12 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2sys_2stat_8h.
 Functions</h2></td></tr>
 <tr class="memitem:a677bde372ac108b6747c80e9ddea2cde" id="r_a677bde372ac108b6747c80e9ddea2cde"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#a677bde372ac108b6747c80e9ddea2cde">stat</a> (const char *path, struct <a class="el" href="structstat.html">stat</a> *out)</td></tr>
 <tr class="separator:a677bde372ac108b6747c80e9ddea2cde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee98bbe743c2d14dbaa67f01c3fb9ed5" id="r_aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#aee98bbe743c2d14dbaa67f01c3fb9ed5">mkdir</a> (const char *pathname, <a class="el" href="alltypes_8h.html#a4509add91f8e7bf695ce1c157da37527">mode_t</a> mode)</td></tr>
+<tr class="memdesc:aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new directory.  <br /></td></tr>
+<tr class="separator:aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2df76f2c62ae012c2e417813b5fe8ce" id="r_ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce">rmdir</a> (const char *path)</td></tr>
+<tr class="memdesc:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a directory.  <br /></td></tr>
+<tr class="separator:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac249fdf8ca8987f71eb6cb3c60e88ade" id="r_ac249fdf8ca8987f71eb6cb3c60e88ade"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ac249fdf8ca8987f71eb6cb3c60e88ade">is_directory</a> (const char *path)</td></tr>
 <tr class="separator:ac249fdf8ca8987f71eb6cb3c60e88ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ade74c674de705ba000d89b8b814a1f81" id="r_ade74c674de705ba000d89b8b814a1f81"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ade74c674de705ba000d89b8b814a1f81">is_file</a> (const char *path)</td></tr>
@@ -144,6 +150,82 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="aee98bbe743c2d14dbaa67f01c3fb9ed5" name="aee98bbe743c2d14dbaa67f01c3fb9ed5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee98bbe743c2d14dbaa67f01c3fb9ed5">&#9670;&#160;</a></span>mkdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mkdir </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>pathname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#a4509add91f8e7bf695ce1c157da37527">mode_t</a>&#160;</td>
+          <td class="paramname"><em>mode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a new directory. </p>
+<p>Creates a new directory at <code>path</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path where the directory should be created. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
+<dd>
+<a class="el" href="userspace_2lib_2include_2fcntl_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new file, equivalent to open(path, O_CREAT | O_WRONLY | O_TRUNC).">creat()</a> </dd>
+<dd>
+<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
+
+</div>
+</div>
+<a id="ab2df76f2c62ae012c2e417813b5fe8ce" name="ab2df76f2c62ae012c2e417813b5fe8ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2df76f2c62ae012c2e417813b5fe8ce">&#9670;&#160;</a></span>rmdir()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int rmdir </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Remove a directory. </p>
+<p>Removes (deletes) the empty directory at <code>path</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>Path to the directory to remove. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#aee98bbe743c2d14dbaa67f01c3fb9ed5" title="Create a new directory.">mkdir()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
 
 </div>
 </div>

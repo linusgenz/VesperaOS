@@ -1,7 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"structlarge__seg.html#aa24e2fa1fc593067300186b8b0d9c710":[4,0,43,2],
-"structlarge__seg.html#aaa681d5c790748892a94f9125f3d0335":[4,0,43,0],
 "structlarge__seg.html#aedc3113af2d8caa0195a871a5cb0aa89":[4,0,43,1],
 "structlconv.html":[4,0,44],
 "structlconv.html#a12ecf5d2f7ceb0cfe0f66fd3200eef54":[4,0,44,7],
@@ -249,5 +247,7 @@ var NAVTREEINDEX10 =
 "structvbus__display__input__event__t.html#ac64ec03cf82fa6d730fd3b15a7c05c7e":[4,0,77,0],
 "structvbus__display__set__strut__t.html":[4,0,78],
 "structvbus__display__set__strut__t.html#ac85da162acd6f65c1de5d9466140f818":[4,0,78,2],
-"structvbus__display__set__strut__t.html#ad14a2a4ce2fb6bf9aba504c3bf3e601a":[4,0,78,1]
+"structvbus__display__set__strut__t.html#ad14a2a4ce2fb6bf9aba504c3bf3e601a":[4,0,78,1],
+"structvbus__display__set__strut__t.html#ae069e8ca14380caae7031d63efa0bb45":[4,0,78,0],
+"structvbus__display__window__focused__t.html":[4,0,79]
 };

@@ -99,7 +99,8 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
   <div class="headertitle"><div class="title">stdio.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;<a class="el" href="stdarg_8h_source.html">stdarg.h</a>&gt;</code><br />
+<div class="textblock"><code>#include &lt;<a class="el" href="userspace_2lib_2include_2sys_2types_8h_source.html">sys/types.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="stdarg_8h_source.html">stdarg.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stddef_8h_source.html">stddef.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="stdlib_8h_source.html">stdlib.h</a>&gt;</code><br />
@@ -229,10 +230,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a5e25775bd8597f839a28125b616bd241" id="r_a5e25775bd8597f839a28125b616bd241"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241">fseek</a> (<a class="el" href="structFILE.html">FILE</a> *stream, long offset, int whence)</td></tr>
 <tr class="memdesc:a5e25775bd8597f839a28125b616bd241"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition stream position indicator.  <br /></td></tr>
 <tr class="separator:a5e25775bd8597f839a28125b616bd241"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f505b889099a08a9a2fc58985298205" id="r_a0f505b889099a08a9a2fc58985298205"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0f505b889099a08a9a2fc58985298205">lseek</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> offset, int whence)</td></tr>
-<tr class="memdesc:a0f505b889099a08a9a2fc58985298205"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition file offset for a generic handle.  <br /></td></tr>
-<tr class="separator:a0f505b889099a08a9a2fc58985298205"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e9d737941bb64e471309cd6dc1f6989" id="r_a0e9d737941bb64e471309cd6dc1f6989"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989">ftell</a> (<a class="el" href="structFILE.html">FILE</a> *stream)</td></tr>
+<tr class="memitem:a6aca1708950a3fdb6f256e6e05c033a2" id="r_a6aca1708950a3fdb6f256e6e05c033a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a6aca1708950a3fdb6f256e6e05c033a2">vlseek</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> offset, int whence)</td></tr>
+<tr class="memdesc:a6aca1708950a3fdb6f256e6e05c033a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reposition file offset for a generic handle.  <br /></td></tr>
+<tr class="separator:a6aca1708950a3fdb6f256e6e05c033a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e9d737941bb64e471309cd6dc1f6989" id="r_a0e9d737941bb64e471309cd6dc1f6989"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989">ftell</a> (<a class="el" href="structFILE.html">FILE</a> *stream)</td></tr>
 <tr class="memdesc:a0e9d737941bb64e471309cd6dc1f6989"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current position in stream.  <br /></td></tr>
 <tr class="separator:a0e9d737941bb64e471309cd6dc1f6989"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0cd401f198d33d9d01a9e8aa4026819" id="r_aa0cd401f198d33d9d01a9e8aa4026819"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819">rewind</a> (<a class="el" href="structFILE.html">FILE</a> *stream)</td></tr>
@@ -244,7 +245,7 @@ Functions</h2></td></tr>
 <tr class="memitem:af6cfb473a0f84c34b91c072e50e71af0" id="r_af6cfb473a0f84c34b91c072e50e71af0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af6cfb473a0f84c34b91c072e50e71af0">closedir</a> (<a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a> handle)</td></tr>
 <tr class="memdesc:af6cfb473a0f84c34b91c072e50e71af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a directory handle.  <br /></td></tr>
 <tr class="separator:af6cfb473a0f84c34b91c072e50e71af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a644846453a50f8941bb85d96a9c8d887" id="r_a644846453a50f8941bb85d96a9c8d887"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a644846453a50f8941bb85d96a9c8d887">readdir</a> (<a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a> handle, <a class="el" href="structdirent__t.html">dirent_t</a> *entry)</td></tr>
+<tr class="memitem:a644846453a50f8941bb85d96a9c8d887" id="r_a644846453a50f8941bb85d96a9c8d887"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a644846453a50f8941bb85d96a9c8d887">readdir</a> (<a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a> handle, <a class="el" href="structdirent__t.html">dirent_t</a> *entry)</td></tr>
 <tr class="memdesc:a644846453a50f8941bb85d96a9c8d887"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a directory entry.  <br /></td></tr>
 <tr class="separator:a644846453a50f8941bb85d96a9c8d887"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ffe3988729dfd0e40a6e1cecb88d638" id="r_a6ffe3988729dfd0e40a6e1cecb88d638"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a6ffe3988729dfd0e40a6e1cecb88d638">vopen</a> (const char *path, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>)</td></tr>
@@ -253,24 +254,18 @@ Functions</h2></td></tr>
 <tr class="memitem:a0bd3f0342044ccd4161488a53b4ad575" id="r_a0bd3f0342044ccd4161488a53b4ad575"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0bd3f0342044ccd4161488a53b4ad575">vclose</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle)</td></tr>
 <tr class="memdesc:a0bd3f0342044ccd4161488a53b4ad575"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a generic handle.  <br /></td></tr>
 <tr class="separator:a0bd3f0342044ccd4161488a53b4ad575"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1531f910d620aeb04d22d897ea07c1d0" id="r_a1531f910d620aeb04d22d897ea07c1d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a1531f910d620aeb04d22d897ea07c1d0">vread</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
+<tr class="memitem:a1531f910d620aeb04d22d897ea07c1d0" id="r_a1531f910d620aeb04d22d897ea07c1d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a1531f910d620aeb04d22d897ea07c1d0">vread</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
 <tr class="memdesc:a1531f910d620aeb04d22d897ea07c1d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read data from a generic handle.  <br /></td></tr>
 <tr class="separator:a1531f910d620aeb04d22d897ea07c1d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3a0b0fa746145cc9821f37ec3d54610" id="r_aa3a0b0fa746145cc9821f37ec3d54610"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610">vwrite</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, const void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
+<tr class="memitem:aa3a0b0fa746145cc9821f37ec3d54610" id="r_aa3a0b0fa746145cc9821f37ec3d54610"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610">vwrite</a> (<a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> handle, const void *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> count)</td></tr>
 <tr class="memdesc:aa3a0b0fa746145cc9821f37ec3d54610"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write data to a generic handle.  <br /></td></tr>
 <tr class="separator:aa3a0b0fa746145cc9821f37ec3d54610"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a6f985cc61227f641f7cc75927b06fc" id="r_a6a6f985cc61227f641f7cc75927b06fc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc">creat</a> (const char *path)</td></tr>
 <tr class="memdesc:a6a6f985cc61227f641f7cc75927b06fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new empty file.  <br /></td></tr>
 <tr class="separator:a6a6f985cc61227f641f7cc75927b06fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afeb6cbc06f4dc89199e2c33561b2f77e" id="r_afeb6cbc06f4dc89199e2c33561b2f77e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e">mkdir</a> (const char *path)</td></tr>
-<tr class="memdesc:afeb6cbc06f4dc89199e2c33561b2f77e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new directory.  <br /></td></tr>
-<tr class="separator:afeb6cbc06f4dc89199e2c33561b2f77e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28af9471bbdf262321af663e02899a47" id="r_a28af9471bbdf262321af663e02899a47"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47">unlink</a> (const char *path)</td></tr>
 <tr class="memdesc:a28af9471bbdf262321af663e02899a47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a file.  <br /></td></tr>
 <tr class="separator:a28af9471bbdf262321af663e02899a47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2df76f2c62ae012c2e417813b5fe8ce" id="r_ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce">rmdir</a> (const char *path)</td></tr>
-<tr class="memdesc:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a directory.  <br /></td></tr>
-<tr class="separator:ab2df76f2c62ae012c2e417813b5fe8ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ca90f87a0b0045c83be0a7d9b252896" id="r_a0ca90f87a0b0045c83be0a7d9b252896"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896">create</a> (const char *path, int type)</td></tr>
 <tr class="memdesc:a0ca90f87a0b0045c83be0a7d9b252896"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file or directory.  <br /></td></tr>
 <tr class="separator:a0ca90f87a0b0045c83be0a7d9b252896"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -702,7 +697,7 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd>
+<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#aee98bbe743c2d14dbaa67f01c3fb9ed5" title="Create a new directory.">mkdir()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896" title="Create a new file or directory.">create()</a> </dd></dl>
 
@@ -746,7 +741,7 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd></dl>
+<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#aee98bbe743c2d14dbaa67f01c3fb9ed5" title="Create a new directory.">mkdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1328,7 +1323,7 @@ Variables</h2></td></tr>
 <dd>
 <a class="el" href="stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819" title="Reset file position to the beginning.">rewind()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#a0f505b889099a08a9a2fc58985298205" title="Reposition file offset for a generic handle.">lseek()</a> </dd></dl>
+<a class="el" href="unistd_8h.html#a8bd74caed008a66808d92d57fa74d9f6" title="Reposition the file offset of fd.">lseek()</a> </dd></dl>
 
 </div>
 </div>
@@ -1339,7 +1334,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a> ftell </td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a> ftell </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structFILE.html">FILE</a> *&#160;</td>
           <td class="paramname"><em>stream</em></td><td>)</td>
@@ -1480,86 +1475,6 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>buf</code> on success, or <code>NULL</code> on failure (errno set to EINVAL, ERANGE, etc.).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b" title="Change the current working directory.">chdir()</a> </dd></dl>
-
-</div>
-</div>
-<a id="a0f505b889099a08a9a2fc58985298205" name="a0f505b889099a08a9a2fc58985298205"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f505b889099a08a9a2fc58985298205">&#9670;&#160;</a></span>lseek()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> lseek </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td>
-          <td class="paramname"><em>handle</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td>
-          <td class="paramname"><em>offset</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>whence</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Reposition file offset for a generic handle. </p>
-<p>Lower-level version of <a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> operating on raw handles.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">handle</td><td>File handle returned by <a class="el" href="userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543" title="Open (or create) a file, returning a raw handle.">open()</a>. </td></tr>
-    <tr><td class="paramname">offset</td><td>Offset in bytes. </td></tr>
-    <tr><td class="paramname">whence</td><td>Seek mode (SEEK_SET, SEEK_CUR, or SEEK_END). </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>New absolute position from beginning of file on success, or <code>-1</code> on error (errno set).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> </dd></dl>
-
-</div>
-</div>
-<a id="afeb6cbc06f4dc89199e2c33561b2f77e" name="afeb6cbc06f4dc89199e2c33561b2f77e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afeb6cbc06f4dc89199e2c33561b2f77e">&#9670;&#160;</a></span>mkdir()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int mkdir </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>path</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Create a new directory. </p>
-<p>Creates a new directory at <code>path</code>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">path</td><td>Path where the directory should be created. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346" title="Open a directory.">opendir()</a> </dd>
-<dd>
-<a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
-<dd>
-<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1704,7 +1619,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a> readdir </td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a> readdir </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a>&#160;</td>
           <td class="paramname"><em>handle</em>, </td>
@@ -1766,7 +1681,7 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
+<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1836,39 +1751,6 @@ Variables</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989" title="Get current position in stream.">ftell()</a> </dd></dl>
-
-</div>
-</div>
-<a id="ab2df76f2c62ae012c2e417813b5fe8ce" name="ab2df76f2c62ae012c2e417813b5fe8ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2df76f2c62ae012c2e417813b5fe8ce">&#9670;&#160;</a></span>rmdir()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int rmdir </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>path</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Remove a directory. </p>
-<p>Removes (deletes) the empty directory at <code>path</code>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">path</td><td>Path to the directory to remove. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#afeb6cbc06f4dc89199e2c33561b2f77e" title="Create a new directory.">mkdir()</a> </dd>
-<dd>
-<a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd>
-<dd>
-<a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
 
 </div>
 </div>
@@ -2117,7 +1999,7 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
 <dd>
-<a class="el" href="stdio_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd>
+<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
 
@@ -2199,6 +2081,53 @@ Variables</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#ab7468e36e869d5cbd48cd074c3747ce6" title="Write formatted output to a file stream.">fprintf()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7" title="Formatted output to stdout using a va_list.">vprintf()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a6aca1708950a3fdb6f256e6e05c033a2" name="a6aca1708950a3fdb6f256e6e05c033a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6aca1708950a3fdb6f256e6e05c033a2">&#9670;&#160;</a></span>vlseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> vlseek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td>
+          <td class="paramname"><em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>whence</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reposition file offset for a generic handle. </p>
+<p>Lower-level version of <a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> operating on raw handles.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">handle</td><td>File handle returned by <a class="el" href="userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543" title="Open (or create) a file, returning a raw handle.">open()</a>. </td></tr>
+    <tr><td class="paramname">offset</td><td>Offset in bytes. </td></tr>
+    <tr><td class="paramname">whence</td><td>Seek mode (SEEK_SET, SEEK_CUR, or SEEK_END). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>New absolute position from beginning of file on success, or <code>-1</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a5e25775bd8597f839a28125b616bd241" title="Reposition stream position indicator.">fseek()</a> </dd></dl>
 
 </div>
 </div>
@@ -2292,7 +2221,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a> vread </td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a> vread </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td>
           <td class="paramname"><em>handle</em>, </td>
@@ -2394,7 +2323,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="alltypes_8h.html#a831c6b6852c6d34448e30a88c34539fd">ssize_t</a> vwrite </td>
+          <td class="memname"><a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a> vwrite </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td>
           <td class="paramname"><em>handle</em>, </td>

@@ -6,7 +6,6 @@ var stdlib_8h =
     [ "NORETURN", "stdlib_8h.html#aa1728270d73c5d1598de1fd691762eb1", null ],
     [ "RAND_MAX", "stdlib_8h.html#a690f251553b39fd4f31894826141b61a", null ],
     [ "FILE_HANDLE", "stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11", null ],
-    [ "ssize_t", "stdlib_8h.html#a725ad8f32fd52878db75ae0efa60c3a1", null ],
     [ "abort", "stdlib_8h.html#a44ecd701acbb30c8fd00a40c5d353a5e", null ],
     [ "abs", "stdlib_8h.html#a182ab0d37b2885d8da8f6364fb6d37ec", null ],
     [ "atof", "stdlib_8h.html#ac03da055b7752247b034fb582cb4372f", null ],

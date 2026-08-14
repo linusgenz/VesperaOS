@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fafade63e71e1cd58ca034c09fb1b4998d":[5,0,1,0,0,8,35,2],
 "crepusculum__protocol_8h.html#a29b0435b32b2e740ed69c9bfbf948b5c":[5,0,1,0,0,8,19],
 "crepusculum__protocol_8h.html#a2bebe35363e8c6b81c610e7f2c926e58":[5,0,1,0,0,8,31],
 "crepusculum__protocol_8h.html#a38a39cc81319a931de4d8ed0fa407ee1":[5,0,1,0,0,8,28],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "elf_8h.html#a9a8d04995d4d2211c875981bcff7f540":[5,0,1,0,0,12,99],
 "elf_8h.html#a9b8e51a44a47d7ea827c570ffdca14e5":[5,0,1,0,0,12,12],
 "elf_8h.html#a9c46c7e4fc9e72e4c1041296ce2e805b":[5,0,1,0,0,12,22],
-"elf_8h.html#a9cd9ec2a5c2d1d93aba76e4d2701945e":[5,0,1,0,0,12,146],
-"elf_8h.html#a9cdfedf900935f23f6e409ce378dc1d2":[5,0,1,0,0,12,250]
+"elf_8h.html#a9cd9ec2a5c2d1d93aba76e4d2701945e":[5,0,1,0,0,12,146]
 };

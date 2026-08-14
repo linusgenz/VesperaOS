@@ -1,5 +1,7 @@
 var userspace_2lib_2include_2fcntl_8h =
 [
+    [ "C_DIR", "userspace_2lib_2include_2fcntl_8h.html#a25f6c486bbaf73d1927017276f6038a3", null ],
+    [ "C_FILE", "userspace_2lib_2include_2fcntl_8h.html#a06df2208247096abdd71b9d673d05198", null ],
     [ "F_DUPFD", "userspace_2lib_2include_2fcntl_8h.html#ab93a8621587aba90181efd7d3aeea67e", null ],
     [ "F_GETFD", "userspace_2lib_2include_2fcntl_8h.html#abc11141031604fb22b8e3a201155cbb3", null ],
     [ "F_GETFL", "userspace_2lib_2include_2fcntl_8h.html#a025fad21a889c79f02ec53abe3526c32", null ],
