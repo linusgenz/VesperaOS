@@ -31,6 +31,7 @@ var stdio_8h =
     [ "creat", "stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc", null ],
     [ "create", "stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896", null ],
     [ "fclose", "stdio_8h.html#a16899976ac8e865813485db3d5f5186f", null ],
+    [ "fdopen", "stdio_8h.html#afb28a293649a3afa0a3ef57b2743b3bd", null ],
     [ "feof", "stdio_8h.html#a2f7feada471a178fa9b019e70b54bf4b", null ],
     [ "ferror", "stdio_8h.html#a7d3d2b0c891c340cfaf0921aacfe392c", null ],
     [ "fflush", "stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf", null ],

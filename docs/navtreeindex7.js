@@ -245,8 +245,8 @@ var NAVTREEINDEX7 =
 "stdint_8h_source.html":[5,0,1,0,0,42],
 "stdio_8h.html":[5,0,1,0,0,43],
 "stdio_8h.html#a075d232bb3b702ea469e28b42338fecb":[5,0,1,0,0,43,7],
-"stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a":[5,0,1,0,0,43,39],
-"stdio_8h.html#a0bd3f0342044ccd4161488a53b4ad575":[5,0,1,0,0,43,65],
+"stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a":[5,0,1,0,0,43,40],
+"stdio_8h.html#a0bd3f0342044ccd4161488a53b4ad575":[5,0,1,0,0,43,66],
 "stdio_8h.html#a0c0ef221f95f64e8632451312fd18cc8":[5,0,1,0,0,43,13],
 "stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896":[5,0,1,0,0,43,29],
 "stdio_8h.html#a0d112bae8fd35be772185b6ec6bcbe64":[5,0,1,0,0,43,10]

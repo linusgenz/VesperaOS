@@ -106,5 +106,6 @@ var searchData=
   ['vstat_5ftype_5ffile_103',['VSTAT_TYPE_FILE',['../include_2uapi_2vespera_2stat_8h.html#a7bb81fe5da918b70a96a86b19daa5ab1',1,'stat.h']]],
   ['vstat_5ftype_5fsymlink_104',['VSTAT_TYPE_SYMLINK',['../include_2uapi_2vespera_2stat_8h.html#a8e59402442efbb0abf9da8eabdd3bbd9',1,'stat.h']]],
   ['vstat_5ftype_5funknown_105',['VSTAT_TYPE_UNKNOWN',['../include_2uapi_2vespera_2stat_8h.html#a1133193f6979ae136184d7048c4d4e36',1,'stat.h']]],
-  ['vwrite_106',['vwrite',['../stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610',1,'stdio.h']]]
+  ['vsyslog_106',['vsyslog',['../sys_2syslog_8h.html#a65daf5cc086584fab7e8babac474f325',1,'syslog.h']]],
+  ['vwrite_107',['vwrite',['../stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610',1,'stdio.h']]]
 ];

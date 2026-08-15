@@ -20,5 +20,6 @@ var searchData=
   ['vprintf_17',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
   ['vread_18',['vread',['../stdio_8h.html#a1531f910d620aeb04d22d897ea07c1d0',1,'stdio.h']]],
   ['vsnprintf_19',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]],
-  ['vwrite_20',['vwrite',['../stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610',1,'stdio.h']]]
+  ['vsyslog_20',['vsyslog',['../sys_2syslog_8h.html#a65daf5cc086584fab7e8babac474f325',1,'syslog.h']]],
+  ['vwrite_21',['vwrite',['../stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610',1,'stdio.h']]]
 ];

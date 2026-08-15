@@ -1,5 +1,8 @@
 var NAVTREEINDEX9 =
 {
+"stella_8h.html#af021760a7f70b3bf8977fc1ac8fb5715":[5,0,1,0,0,46,12],
+"stella_8h.html#af2d9585acce75f57b923febc51a5334f":[5,0,1,0,0,46,75],
+"stella_8h.html#af8d597a981ee96270dd02fd5ed2224a4":[5,0,1,0,0,46,24],
 "stella_8h.html#af8d597a981ee96270dd02fd5ed2224a4a07f7d2e60019b00f249ebfe2ad22569d":[5,0,1,0,0,46,24,5],
 "stella_8h.html#af8d597a981ee96270dd02fd5ed2224a4a1085dd459bb591a03a7c379e2b537176":[5,0,1,0,0,46,24,7],
 "stella_8h.html#af8d597a981ee96270dd02fd5ed2224a4a18d5da61e5b191bf4f45aac1cc2076fb":[5,0,1,0,0,46,24,1],
@@ -246,8 +249,5 @@ var NAVTREEINDEX9 =
 "structelf__loaded__object.html#af8206b275e2d7a52c9aed9408bebd303":[4,0,26,13],
 "structelf__loaded__object.html#afad852493538e204c0bbb268ea0d6be1":[4,0,26,8],
 "structfb__blit.html":[4,0,27],
-"structfb__blit.html#a09a930c6a1b1472a5b6cbf62da428f45":[4,0,27,0],
-"structfb__blit.html#a135c2789a60d270e70623765fba4d2c2":[4,0,27,1],
-"structfb__blit.html#a1865017c8e34ba456777064246b08713":[4,0,27,3],
-"structfb__blit.html#a2052f521530749bf582c04a63a94fcf6":[4,0,27,6]
+"structfb__blit.html#a09a930c6a1b1472a5b6cbf62da428f45":[4,0,27,0]
 };

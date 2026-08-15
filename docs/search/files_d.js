@@ -16,5 +16,6 @@ var searchData=
   ['stella_2b_2b_2eh_13',['stella++.h',['../stella_09_09_8h.html',1,'']]],
   ['stella_2eh_14',['stella.h',['../stella_8h.html',1,'']]],
   ['string_2eh_15',['string.h',['../string_8h.html',1,'']]],
-  ['sysstd_2eh_16',['sysstd.h',['../sysstd_8h.html',1,'']]]
+  ['syslog_2eh_16',['syslog.h',['../sys_2syslog_8h.html',1,'(Global Namespace)'],['../syslog_8h.html',1,'(Global Namespace)']]],
+  ['sysstd_2eh_17',['sysstd.h',['../sysstd_8h.html',1,'']]]
 ];

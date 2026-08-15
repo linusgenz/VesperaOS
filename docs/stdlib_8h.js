@@ -1,5 +1,6 @@
 var stdlib_8h =
 [
+    [ "max_align_t", "structmax__align__t.html", "structmax__align__t" ],
     [ "__COMPAR_FN_T", "stdlib_8h.html#a5b01b59ed3d085062320df3589722d37", null ],
     [ "EXIT_FAILURE", "stdlib_8h.html#a73efe787c131b385070f25d18b7c9aa4", null ],
     [ "EXIT_SUCCESS", "stdlib_8h.html#a687984f47d8cce148d1b914d2b79612a", null ],
@@ -23,6 +24,7 @@ var stdlib_8h =
     [ "llabs", "stdlib_8h.html#a79e098ceca824091ed146f1c25c89dd9", null ],
     [ "malloc", "stdlib_8h.html#a9c36d0fe3ec4675cbffdc9b52f5fb399", null ],
     [ "mkstemp", "stdlib_8h.html#a166d1f9c85394d1086977e2ced6f357b", null ],
+    [ "mkstemps", "stdlib_8h.html#ae54b702477b37bfc027b768c2cfb64b0", null ],
     [ "qsort", "stdlib_8h.html#a9a3f08ab3e633d7ba74925aeb907ba53", null ],
     [ "rand", "stdlib_8h.html#ae23144bcbb8e3742b00eb687c36654d1", null ],
     [ "realloc", "stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4", null ],
@@ -33,6 +35,7 @@ var stdlib_8h =
     [ "strtol", "stdlib_8h.html#a311071298c2fe3e5d7057f396a6acfdc", null ],
     [ "strtold", "stdlib_8h.html#a2fb0bb1a4be5c0865b119ce0d89145a7", null ],
     [ "strtoul", "stdlib_8h.html#a6d257fc3f00865d0556ed7327c312b55", null ],
+    [ "strtoull", "stdlib_8h.html#a656899e8c53a427f5dd4c72415569b37", null ],
     [ "system", "stdlib_8h.html#a5e43287e1dd4097af9094206a00d8806", null ],
     [ "tmpnam", "stdlib_8h.html#aaff28d1d411bc932ad8120940f0d0c96", null ],
     [ "unsetenv", "stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c", null ],

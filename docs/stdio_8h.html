@@ -219,6 +219,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a2283c07023f2890feb45d55531852d36" id="r_a2283c07023f2890feb45d55531852d36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2283c07023f2890feb45d55531852d36">freopen</a> (const char *path, const char *mode, <a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
 <tr class="memdesc:a2283c07023f2890feb45d55531852d36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reopen an existing file stream with a new path and mode.  <br /></td></tr>
 <tr class="separator:a2283c07023f2890feb45d55531852d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb28a293649a3afa0a3ef57b2743b3bd" id="r_afb28a293649a3afa0a3ef57b2743b3bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afb28a293649a3afa0a3ef57b2743b3bd">fdopen</a> (int fd, const char *mode)</td></tr>
+<tr class="memdesc:afb28a293649a3afa0a3ef57b2743b3bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associate a stream with an already-open file descriptor.  <br /></td></tr>
+<tr class="separator:afb28a293649a3afa0a3ef57b2743b3bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16899976ac8e865813485db3d5f5186f" id="r_a16899976ac8e865813485db3d5f5186f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f">fclose</a> (<a class="el" href="structFILE.html">FILE</a> *f)</td></tr>
 <tr class="memdesc:a16899976ac8e865813485db3d5f5186f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a file stream.  <br /></td></tr>
 <tr class="separator:a16899976ac8e865813485db3d5f5186f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -865,6 +868,47 @@ Variables</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd>
 <dd>
 <a class="el" href="unistd_8h.html#aafbcde67669a1b96577e735ddebd8634" title="Close a file descriptor / handle.">close()</a> </dd></dl>
+
+</div>
+</div>
+<a id="afb28a293649a3afa0a3ef57b2743b3bd" name="afb28a293649a3afa0a3ef57b2743b3bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb28a293649a3afa0a3ef57b2743b3bd">&#9670;&#160;</a></span>fdopen()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structFILE.html">FILE</a> * fdopen </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>mode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Associate a stream with an already-open file descriptor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fd</td><td>Already-open file descriptor. </td></tr>
+    <tr><td class="paramname">mode</td><td>Mode string ("r", "w", "a", "r+", etc.). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to allocated <a class="el" href="structFILE.html">FILE</a> structure on success, or <code>NULL</code> on error (errno set to EINVAL for a malformed mode, or ENOMEM on allocation failure).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> </dd></dl>
 
 </div>
 </div>
@@ -1645,8 +1689,6 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Open a dynamically-growing in-memory stream for writing. </p>
-<p>Writes to the returned stream go into a buffer allocated and grown with <a class="el" href="stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4" title="Reallocates a memory block to a new size.">realloc()</a> as needed. After every <a class="el" href="stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf" title="Flush buffered output on a file stream.">fflush()</a> (and on <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a>), <code>*bufp</code> is updated to point at the current buffer and <code>*sizep</code> to the number of bytes written so far (not the buffer's capacity). The buffer is always kept null-terminated (the terminator does not count toward <code>*sizep</code>), so *bufp can be used as a C string immediately after a flush.</p>
-<p>Writing at an offset seeked past the current end zero-fills the gap, matching POSIX <a class="el" href="stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1" title="Open a dynamically-growing in-memory stream for writing.">open_memstream()</a> semantics.</p>
 <p>Ownership: <code>*bufp</code> is owned by the caller after <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> and must be freed with <a class="el" href="stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711" title="Releases a block of memory previously allocated by malloc().">free()</a>. Before <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a>, the pointer may be invalidated by any further write (realloc may move it) — re-read <code>*bufp</code> after each <a class="el" href="stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf" title="Flush buffered output on a file stream.">fflush()</a> rather than caching it.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">

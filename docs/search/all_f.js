@@ -19,14 +19,15 @@ var searchData=
   ['onclose_16',['onClose',['../classstella_1_1Window.html#a21abc504bdaa7b8659e018d8b548494a',1,'stella::Window']]],
   ['online_17',['online',['../structvbus__ac.html#ad7f67a5b287c6ce94e5d5aaffa45885d',1,'vbus_ac']]],
   ['opa_18',['Opa',['../namespacestella.html#ac98bce39648f27dd6443ad0814cc6968',1,'stella']]],
-  ['open_19',['open',['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open'],['../userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543',1,'open(const char *path, int flags,...):&#160;fcntl.h']]],
+  ['open_19',['open',['../userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543',1,'open():&#160;fcntl.h'],['../structvbus__lid.html#aaa1791405f167208b6f634ba31966b6b',1,'vbus_lid::open']]],
   ['open_5fmemstream_20',['open_memstream',['../stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1',1,'stdio.h']]],
   ['opendir_21',['opendir',['../stdio_8h.html#af604d9770890b1a3d36fb133ed3d6346',1,'stdio.h']]],
   ['opened_22',['opened',['../unionvbus__payload__t.html#a38bbc4cc2ef9a576bf73844c128b9462',1,'vbus_payload_t']]],
-  ['operator_20stella_5fcolor_5ft_23',['operator stella_color_t',['../classstella_1_1Color.html#a402434f7f2a618e7ae66b0a9e27c3d59',1,'stella::Color']]],
-  ['operator_20stella_5fwidget_5ft_24',['operator stella_widget_t',['../classstella_1_1Widget.html#ac8a1f45cbedec9a3f882dc6fa4e88ef8',1,'stella::Widget']]],
-  ['operator_3d_25',['operator=',['../classstella_1_1Window.html#a5740245c473787e5c6cca0bef3199298',1,'stella::Window::operator=()'],['../classstella_1_1Timer.html#a17343e142cb021e8227e3c44cb267377',1,'stella::Timer::operator=()']]],
-  ['optimize_5fcoding_26',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
-  ['output_5fformat_27',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]],
-  ['owner_28',['owner',['../structpthread__mutex__t.html#abb954059f8fa5ea4eacf57dd0bcf5330',1,'pthread_mutex_t']]]
+  ['openlog_23',['openlog',['../sys_2syslog_8h.html#a6f1f3704c08cc51ad17680056d67bdf4',1,'syslog.h']]],
+  ['operator_20stella_5fcolor_5ft_24',['operator stella_color_t',['../classstella_1_1Color.html#a402434f7f2a618e7ae66b0a9e27c3d59',1,'stella::Color']]],
+  ['operator_20stella_5fwidget_5ft_25',['operator stella_widget_t',['../classstella_1_1Widget.html#ac8a1f45cbedec9a3f882dc6fa4e88ef8',1,'stella::Widget']]],
+  ['operator_3d_26',['operator=',['../classstella_1_1Timer.html#a17343e142cb021e8227e3c44cb267377',1,'stella::Timer::operator=()'],['../classstella_1_1Window.html#a5740245c473787e5c6cca0bef3199298',1,'stella::Window::operator=()']]],
+  ['optimize_5fcoding_27',['optimize_coding',['../structjpeg__save__options__t.html#ad2b0c13b97e9ebd7cf4939078068f3a6',1,'jpeg_save_options_t']]],
+  ['output_5fformat_28',['output_format',['../structjpeg__load__options__t.html#ad0eea45bcf9a3ee56591140097860aea',1,'jpeg_load_options_t']]],
+  ['owner_29',['owner',['../structpthread__mutex__t.html#abb954059f8fa5ea4eacf57dd0bcf5330',1,'pthread_mutex_t']]]
 ];

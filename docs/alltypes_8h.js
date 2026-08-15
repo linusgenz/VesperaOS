@@ -1,6 +1,5 @@
 var alltypes_8h =
 [
-    [ "max_align_t", "structmax__align__t.html", "structmax__align__t" ],
     [ "mbstate_t", "structmbstate__t.html", "structmbstate__t" ],
     [ "iovec", "structiovec.html", "structiovec" ],
     [ "winsize", "structwinsize.html", "structwinsize" ],
