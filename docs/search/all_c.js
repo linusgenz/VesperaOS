@@ -1,7 +1,7 @@
 var searchData=
 [
   ['l_5ftmpnam_0',['L_tmpnam',['../stdlib_8h.html#ad2560a07a7528c4975660f391320faca',1,'stdlib.h']]],
-  ['label_1',['label',['../classstella_1_1Label.html',1,'stella::Label'],['../structchronos__user__checkpoint.html#aa00dd9c5d39f333a0efc196ec7e18459',1,'chronos_user_checkpoint::label'],['../structchronos__event.html#afd17f4b358972d4512f22145e2ab9814',1,'chronos_event::label'],['../classstella_1_1Label.html#a4ad3a32791e1a0d1b15eac33079ab2ac',1,'stella::Label::Label()']]],
+  ['label_1',['label',['../classstella_1_1Label.html',1,'stella::Label'],['../classstella_1_1Label.html#a4ad3a32791e1a0d1b15eac33079ab2ac',1,'stella::Label::Label()'],['../structchronos__user__checkpoint.html#aa00dd9c5d39f333a0efc196ec7e18459',1,'chronos_user_checkpoint::label'],['../structchronos__event.html#afd17f4b358972d4512f22145e2ab9814',1,'chronos_event::label']]],
   ['labs_2',['labs',['../stdlib_8h.html#a3102965969578ae09e43dfc53996e90e',1,'stdlib.h']]],
   ['large_5fseg_3',['large_seg',['../structlarge__seg.html',1,'large_seg'],['../memory_8h.html#a8f2bb8405419add9d451303cea43d127',1,'large_seg:&#160;memory.h']]],
   ['last_5ffull_5fcapacity_4',['last_full_capacity',['../structbattery__info.html#a3b049fbc1a102f12bbd9f7bb8dbfa18c',1,'battery_info']]],
@@ -55,7 +55,7 @@ var searchData=
   ['localtime_52',['localtime',['../userspace_2lib_2include_2time_8h.html#a2d4076dc90ad030f7d4dad295a01357a',1,'time.h']]],
   ['localtime_5fr_53',['localtime_r',['../userspace_2lib_2include_2time_8h.html#af621fade89a49e103f7bd547f1b5ff14',1,'time.h']]],
   ['lock_54',['lock',['../structpthread__rwlock__t.html#a431904cb11010127d4ab8592332067dc',1,'pthread_rwlock_t::lock'],['../structpthread__barrier__t.html#aba777ba280fe0241118801a432082aba',1,'pthread_barrier_t::lock']]],
-  ['log_55',['log',['../log__client_8h.html#a158a8c64f24645c7478298399825737f',1,'LOG:&#160;log_client.h'],['../math_8h.html#afa752f47ff073d8639c631f079670788',1,'log(double):&#160;math.h']]],
+  ['log_55',['log',['../math_8h.html#afa752f47ff073d8639c631f079670788',1,'log(double):&#160;math.h'],['../log__client_8h.html#a158a8c64f24645c7478298399825737f',1,'LOG:&#160;log_client.h']]],
   ['log10_56',['log10',['../math_8h.html#a9dc77c64d7b6f9cd8b78e2fd74d63a16',1,'math.h']]],
   ['log10f_57',['log10f',['../math_8h.html#aad1d008724a9c4e6745e874dcb4e952c',1,'math.h']]],
   ['log10l_58',['log10l',['../math_8h.html#ac0fcbb770753c771ff2616b6c315601e',1,'math.h']]],
@@ -78,7 +78,7 @@ var searchData=
   ['logb_75',['logb',['../math_8h.html#a9bc7815b951864dd0d20a5b0d07c37c6',1,'math.h']]],
   ['logbf_76',['logbf',['../math_8h.html#a7ec1bed5ddcf0d2b1413a27860a43548',1,'math.h']]],
   ['logbl_77',['logbl',['../math_8h.html#afac4f4e3251f4119c6691e3f3360c731',1,'math.h']]],
-  ['logf_78',['logf',['../math_8h.html#a87c1524bd1a5e838de0f40bd26a28e8c',1,'logf(float):&#160;math.h'],['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'LOGF:&#160;log_client.h']]],
+  ['logf_78',['logf',['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'LOGF:&#160;log_client.h'],['../math_8h.html#a87c1524bd1a5e838de0f40bd26a28e8c',1,'logf(float):&#160;math.h']]],
   ['logl_79',['logl',['../math_8h.html#af835cf6f401edb67986b2b83bcefe16e',1,'math.h']]],
   ['long_5fmax_80',['LONG_MAX',['../limits_8h.html#a50fece4db74f09568b2938db583c5655',1,'limits.h']]],
   ['long_5fmin_81',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]],

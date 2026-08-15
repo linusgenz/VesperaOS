@@ -1,5 +1,6 @@
 var stdio_8h =
 [
+    [ "cookie_io_functions", "structcookie__io__functions.html", "structcookie__io__functions" ],
     [ "FILE", "structFILE.html", "structFILE" ],
     [ "_IOFBF", "stdio_8h.html#af7475971eb93ce0184379e71fe7626e9", null ],
     [ "_IOLBF", "stdio_8h.html#aca9e52813bd224e4519e0b1289abbce9", null ],
@@ -14,6 +15,11 @@ var stdio_8h =
     [ "stdin", "stdio_8h.html#aaca70138f0cb63ddb026921afc635179", null ],
     [ "stdout", "stdio_8h.html#a0c0ef221f95f64e8632451312fd18cc8", null ],
     [ "CHANNEL_HANDLE", "stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6", null ],
+    [ "cookie_close_fn", "stdio_8h.html#a7cee5929e78c794c3adedc19d21bcc43", null ],
+    [ "cookie_io_functions_t", "stdio_8h.html#a1146d1004a1a0deec59e7173a172ff1c", null ],
+    [ "cookie_read_fn", "stdio_8h.html#a4094341eed3152aaa34c60dd470fcd13", null ],
+    [ "cookie_seek_fn", "stdio_8h.html#a3e6692cc11172840cad5ef8472aa5759", null ],
+    [ "cookie_write_fn", "stdio_8h.html#aa6a1e1d1e33be498a71a759825fff489", null ],
     [ "DIR_HANDLE", "stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22", null ],
     [ "FILE", "stdio_8h.html#a17cf47cf19fcb9c0c94ec3743efb3972", null ],
     [ "FILE_HANDLE", "stdio_8h.html#ad1b834449ae641c3c8648146bf8694c8", null ],
@@ -31,6 +37,7 @@ var stdio_8h =
     [ "fgetc", "stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5", null ],
     [ "fgets", "stdio_8h.html#a8b88f4911f10f44c32ebe30082bb53d7", null ],
     [ "fopen", "stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f", null ],
+    [ "fopencookie", "stdio_8h.html#a444e97d3a1e0cd1764569fd75a57b24e", null ],
     [ "fprintf", "stdio_8h.html#ab7468e36e869d5cbd48cd074c3747ce6", null ],
     [ "fputc", "stdio_8h.html#a0a260faecc8c64f08f4f3d3801c3f71a", null ],
     [ "fputs", "stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752", null ],

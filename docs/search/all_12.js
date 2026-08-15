@@ -59,7 +59,7 @@ var searchData=
   ['raw_56',['raw',['../ioctl__smart_8h.html#abe325f0467b3b798739b62c4246019cc',1,'raw:&#160;ioctl_smart.h'],['../structsmart__attribute.html#a587a078e95aa5f9d73a70bdc5b821387',1,'smart_attribute::raw']]],
   ['rbp_57',['rbp',['../structjmp__buf.html#a031491ebc6ea3dabfdbe5506e11a75c8',1,'jmp_buf']]],
   ['rbx_58',['rbx',['../structjmp__buf.html#aa418bd4ba99475b20d982f07b5ac6ff8',1,'jmp_buf']]],
-  ['read_59',['read',['../unistd_8h.html#af32a16ad2dd9e48482f8f790db7dbbd2',1,'unistd.h']]],
+  ['read_59',['read',['../unistd_8h.html#af32a16ad2dd9e48482f8f790db7dbbd2',1,'read():&#160;unistd.h'],['../structcookie__io__functions.html#acb7be655ff95350d029644b9aab3a5df',1,'cookie_io_functions::read']]],
   ['readdir_60',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
   ['readers_5fok_61',['readers_ok',['../structpthread__rwlock__t.html#af50e201a4d6da31939f3c52376781f90',1,'pthread_rwlock_t']]],
   ['ready_62',['ready',['../structcrep__sync.html#aa92d94c432a37d181162b5b455344a3d',1,'crep_sync']]],

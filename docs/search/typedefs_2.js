@@ -6,8 +6,13 @@ var searchData=
   ['chronos_5fuser_5fcheckpoint_5ft_3',['chronos_user_checkpoint_t',['../include_2uapi_2vespera_2chronos_8h.html#a8b8da9fd9cbad6be667a5f96dfbb018f',1,'chronos.h']]],
   ['clock_5ft_4',['clock_t',['../alltypes_8h.html#a56d31f5d6d90595c821854a129b3e33a',1,'alltypes.h']]],
   ['clockid_5ft_5',['clockid_t',['../alltypes_8h.html#a6dcac6a5cea7d9c842145e1444d91e22',1,'clockid_t:&#160;alltypes.h'],['../include_2uapi_2vespera_2time_8h.html#a3a9a21353df3a31724626a63ddb0b236',1,'clockid_t:&#160;time.h']]],
-  ['cpu_5finfo_5ft_6',['cpu_info_t',['../cpuinfo_8h.html#aef20e3ec2c8e5b968374b68aeab40953',1,'cpuinfo.h']]],
-  ['cpu_5fusage_5finfo_5ft_7',['cpu_usage_info_t',['../cpustat_8h.html#a28b26ca6af8805a1cfd7c474f956681b',1,'cpustat.h']]],
-  ['cpu_5fusage_5fstat_5ft_8',['cpu_usage_stat_t',['../cpustat_8h.html#a6186b2a46eec53e11e8873b4fe133fb3',1,'cpustat.h']]],
-  ['crep_5fsync_5ft_9',['crep_sync_t',['../crepusculum__protocol_8h.html#adbee56fba671f4f2ea15d4e3d335e025',1,'crepusculum_protocol.h']]]
+  ['cookie_5fclose_5ffn_6',['cookie_close_fn',['../stdio_8h.html#a7cee5929e78c794c3adedc19d21bcc43',1,'stdio.h']]],
+  ['cookie_5fio_5ffunctions_5ft_7',['cookie_io_functions_t',['../stdio_8h.html#a1146d1004a1a0deec59e7173a172ff1c',1,'stdio.h']]],
+  ['cookie_5fread_5ffn_8',['cookie_read_fn',['../stdio_8h.html#a4094341eed3152aaa34c60dd470fcd13',1,'stdio.h']]],
+  ['cookie_5fseek_5ffn_9',['cookie_seek_fn',['../stdio_8h.html#a3e6692cc11172840cad5ef8472aa5759',1,'stdio.h']]],
+  ['cookie_5fwrite_5ffn_10',['cookie_write_fn',['../stdio_8h.html#aa6a1e1d1e33be498a71a759825fff489',1,'stdio.h']]],
+  ['cpu_5finfo_5ft_11',['cpu_info_t',['../cpuinfo_8h.html#aef20e3ec2c8e5b968374b68aeab40953',1,'cpuinfo.h']]],
+  ['cpu_5fusage_5finfo_5ft_12',['cpu_usage_info_t',['../cpustat_8h.html#a28b26ca6af8805a1cfd7c474f956681b',1,'cpustat.h']]],
+  ['cpu_5fusage_5fstat_5ft_13',['cpu_usage_stat_t',['../cpustat_8h.html#a6186b2a46eec53e11e8873b4fe133fb3',1,'cpustat.h']]],
+  ['crep_5fsync_5ft_14',['crep_sync_t',['../crepusculum__protocol_8h.html#adbee56fba671f4f2ea15d4e3d335e025',1,'crepusculum_protocol.h']]]
 ];

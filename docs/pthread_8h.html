@@ -149,7 +149,7 @@ Macros</h2></td></tr>
 <tr class="separator:a84e55100366a6a8338a2af3b3f279686"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93186a549e7d7aace381171097da1823" id="r_a93186a549e7d7aace381171097da1823"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#a93186a549e7d7aace381171097da1823">PTHREAD_RECURSIVE_MUTEX_INITIALIZER</a>&#160;&#160;&#160;{ .state = 0, .type = <a class="el" href="pthread_8h.html#a715e9644a7183d98cb2c9dd41cb89645">PTHREAD_MUTEX_RECURSIVE</a>, .owner = 0, .rec_count = 0 }</td></tr>
 <tr class="separator:a93186a549e7d7aace381171097da1823"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7b867fe46f3660283fcb356c4fcbbf0" id="r_aa7b867fe46f3660283fcb356c4fcbbf0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#aa7b867fe46f3660283fcb356c4fcbbf0">PTHREAD_COND_INITIALIZER</a>&#160;&#160;&#160;{ .seq = 0 }</td></tr>
+<tr class="memitem:aa7b867fe46f3660283fcb356c4fcbbf0" id="r_aa7b867fe46f3660283fcb356c4fcbbf0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#aa7b867fe46f3660283fcb356c4fcbbf0">PTHREAD_COND_INITIALIZER</a>&#160;&#160;&#160;{ .seq = 0, .<a class="el" href="userspace_2lib_2include_2time_8h.html#ade863cfcca9ee19f20ca95796f8ddc1e">clock</a> = <a class="el" href="include_2uapi_2vespera_2time_8h.html#a922ce1ae64374c9410c8a999e25e82af">CLOCK_REALTIME</a> }</td></tr>
 <tr class="separator:aa7b867fe46f3660283fcb356c4fcbbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59e22497b65fc305ddb5cea8b4990b51" id="r_a59e22497b65fc305ddb5cea8b4990b51"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#a59e22497b65fc305ddb5cea8b4990b51">PTHREAD_ONCE_INIT</a>&#160;&#160;&#160;{ .state = 0 }</td></tr>
 <tr class="separator:a59e22497b65fc305ddb5cea8b4990b51"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -235,6 +235,10 @@ Functions</h2></td></tr>
 <tr class="separator:a34083fe1cd54d5d67599b4cca593ffa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a066f082e4a085641043714e3bc4d70d7" id="r_a066f082e4a085641043714e3bc4d70d7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#a066f082e4a085641043714e3bc4d70d7">pthread_condattr_destroy</a> (<a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *attr)</td></tr>
 <tr class="separator:a066f082e4a085641043714e3bc4d70d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf272981aeb86b072f847ce354795ec7" id="r_abf272981aeb86b072f847ce354795ec7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#abf272981aeb86b072f847ce354795ec7">pthread_condattr_setclock</a> (<a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *attr, <a class="el" href="alltypes_8h.html#a6dcac6a5cea7d9c842145e1444d91e22">clockid_t</a> clock_id)</td></tr>
+<tr class="separator:abf272981aeb86b072f847ce354795ec7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cca7a9d5a754d87cdbfde331c1d8d2d" id="r_a0cca7a9d5a754d87cdbfde331c1d8d2d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#a0cca7a9d5a754d87cdbfde331c1d8d2d">pthread_condattr_getclock</a> (const <a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *attr, <a class="el" href="alltypes_8h.html#a6dcac6a5cea7d9c842145e1444d91e22">clockid_t</a> *clock_id)</td></tr>
+<tr class="separator:a0cca7a9d5a754d87cdbfde331c1d8d2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5b6c558bcd5260289981207b9ca9687" id="r_ad5b6c558bcd5260289981207b9ca9687"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#ad5b6c558bcd5260289981207b9ca9687">pthread_cond_init</a> (<a class="el" href="structpthread__cond__t.html">pthread_cond_t</a> *cond, const <a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *attr)</td></tr>
 <tr class="separator:ad5b6c558bcd5260289981207b9ca9687"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1587e01856a579b78effd0a1a284a47" id="r_aa1587e01856a579b78effd0a1a284a47"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="pthread_8h.html#aa1587e01856a579b78effd0a1a284a47">pthread_cond_destroy</a> (<a class="el" href="structpthread__cond__t.html">pthread_cond_t</a> *cond)</td></tr>
@@ -300,7 +304,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define PTHREAD_COND_INITIALIZER&#160;&#160;&#160;{ .seq = 0 }</td>
+          <td class="memname">#define PTHREAD_COND_INITIALIZER&#160;&#160;&#160;{ .seq = 0, .<a class="el" href="userspace_2lib_2include_2time_8h.html#ade863cfcca9ee19f20ca95796f8ddc1e">clock</a> = <a class="el" href="include_2uapi_2vespera_2time_8h.html#a922ce1ae64374c9410c8a999e25e82af">CLOCK_REALTIME</a> }</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -983,6 +987,34 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a0cca7a9d5a754d87cdbfde331c1d8d2d" name="a0cca7a9d5a754d87cdbfde331c1d8d2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cca7a9d5a754d87cdbfde331c1d8d2d">&#9670;&#160;</a></span>pthread_condattr_getclock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pthread_condattr_getclock </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *&#160;</td>
+          <td class="paramname"><em>attr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#a6dcac6a5cea7d9c842145e1444d91e22">clockid_t</a> *&#160;</td>
+          <td class="paramname"><em>clock_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a34083fe1cd54d5d67599b4cca593ffa4" name="a34083fe1cd54d5d67599b4cca593ffa4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a34083fe1cd54d5d67599b4cca593ffa4">&#9670;&#160;</a></span>pthread_condattr_init()</h2>
 
@@ -995,6 +1027,34 @@ Functions</h2></td></tr>
           <td class="paramtype"><a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *&#160;</td>
           <td class="paramname"><em>attr</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abf272981aeb86b072f847ce354795ec7" name="abf272981aeb86b072f847ce354795ec7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf272981aeb86b072f847ce354795ec7">&#9670;&#160;</a></span>pthread_condattr_setclock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int pthread_condattr_setclock </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structpthread__condattr__t.html">pthread_condattr_t</a> *&#160;</td>
+          <td class="paramname"><em>attr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#a6dcac6a5cea7d9c842145e1444d91e22">clockid_t</a>&#160;</td>
+          <td class="paramname"><em>clock_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

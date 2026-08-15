@@ -7,7 +7,6 @@ var userspace_2lib_2include_2time_8h =
     [ "clock_nanosleep", "userspace_2lib_2include_2time_8h.html#a4facc4ca231f1105f76b09518e86349d", null ],
     [ "clock_settime", "userspace_2lib_2include_2time_8h.html#af887d9123c9066c821f5ad8014dab534", null ],
     [ "difftime", "userspace_2lib_2include_2time_8h.html#a780ca0a18ad4b4e6501eca77626dd2a1", null ],
-    [ "gettimeofday", "userspace_2lib_2include_2time_8h.html#a5665e505f386d06abb1c304068c2836e", null ],
     [ "gmtime", "userspace_2lib_2include_2time_8h.html#a4bc4ff58d4ac838a36ba939747e5833e", null ],
     [ "localtime", "userspace_2lib_2include_2time_8h.html#a2d4076dc90ad030f7d4dad295a01357a", null ],
     [ "localtime_r", "userspace_2lib_2include_2time_8h.html#af621fade89a49e103f7bd547f1b5ff14", null ],

@@ -7,9 +7,10 @@ var searchData=
   ['window_5fid_4',['window_id',['../structvbus__display__window__opened__t.html#ab0554d676052b638f61482e252618756',1,'vbus_display_window_opened_t::window_id'],['../structvbus__display__window__focused__t.html#ac247f826f8f48aedea825487f437409b',1,'vbus_display_window_focused_t::window_id'],['../structvbus__display__input__event__t.html#abbf00068daa1e9ff9d01d27339a4e9d5',1,'vbus_display_input_event_t::window_id'],['../structvbus__display__commit__t.html#aebe3eb9dee9b7e603e9b53c94bf53cdc',1,'vbus_display_commit_t::window_id'],['../structvbus__display__window__id__t.html#ac18689388bc046d1f4265d706813e4b3',1,'vbus_display_window_id_t::window_id'],['../structvbus__display__configure__t.html#a05d57cfb1fe41ad8b820268dddbbbc4d',1,'vbus_display_configure_t::window_id'],['../structvbus__display__window__info__t.html#ad7096e1f43ffcfb40ce4abec3240b315',1,'vbus_display_window_info_t::window_id']]],
   ['window_5finfo_5',['window_info',['../unionvbus__payload__t.html#ae68d9e69777072511283169a7da75db6',1,'vbus_payload_t']]],
   ['worst_6',['worst',['../structsmart__attribute.html#a90f89089075e72c5ddd901236c0c192a',1,'smart_attribute::worst'],['../ioctl__smart_8h.html#a08037e0ec1e487b545f67c117edb390f',1,'worst:&#160;ioctl_smart.h']]],
-  ['writer_5fok_7',['writer_ok',['../structpthread__rwlock__t.html#a46cd7a3e882fc2c41f97f722cba6feb7',1,'pthread_rwlock_t']]],
-  ['ws_5fcol_8',['ws_col',['../structwinsize.html#a80bedf71a49fd324e0d92d0702cc7005',1,'winsize']]],
-  ['ws_5frow_9',['ws_row',['../structwinsize.html#a73698fa1d966374b0701e4bf225f0141',1,'winsize']]],
-  ['ws_5fxpixel_10',['ws_xpixel',['../structwinsize.html#a98b55f3411b646eca1e13cb52c5795e4',1,'winsize']]],
-  ['ws_5fypixel_11',['ws_ypixel',['../structwinsize.html#aca568563970602b60eb32fc17bd5a630',1,'winsize']]]
+  ['write_7',['write',['../structcookie__io__functions.html#a8889eff57f392c7e59ab600038ac4a74',1,'cookie_io_functions']]],
+  ['writer_5fok_8',['writer_ok',['../structpthread__rwlock__t.html#a46cd7a3e882fc2c41f97f722cba6feb7',1,'pthread_rwlock_t']]],
+  ['ws_5fcol_9',['ws_col',['../structwinsize.html#a80bedf71a49fd324e0d92d0702cc7005',1,'winsize']]],
+  ['ws_5frow_10',['ws_row',['../structwinsize.html#a73698fa1d966374b0701e4bf225f0141',1,'winsize']]],
+  ['ws_5fxpixel_11',['ws_xpixel',['../structwinsize.html#a98b55f3411b646eca1e13cb52c5795e4',1,'winsize']]],
+  ['ws_5fypixel_12',['ws_ypixel',['../structwinsize.html#aca568563970602b60eb32fc17bd5a630',1,'winsize']]]
 ];

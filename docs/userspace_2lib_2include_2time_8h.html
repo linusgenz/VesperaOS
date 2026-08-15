@@ -133,9 +133,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a99ef1cb2c789827dd5db3886dccf9067" id="r_a99ef1cb2c789827dd5db3886dccf9067"><td class="memItemLeft" align="right" valign="top"><a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2time_8h.html#a99ef1cb2c789827dd5db3886dccf9067">time</a> (<a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a> *tloc)</td></tr>
 <tr class="memdesc:a99ef1cb2c789827dd5db3886dccf9067"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return current Unix time in seconds.  <br /></td></tr>
 <tr class="separator:a99ef1cb2c789827dd5db3886dccf9067"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5665e505f386d06abb1c304068c2836e" id="r_a5665e505f386d06abb1c304068c2836e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2time_8h.html#a5665e505f386d06abb1c304068c2836e">gettimeofday</a> (<a class="el" href="include_2uapi_2vespera_2time_8h.html#aeba0d8f51eb0a83c2b01ecf27e0b3260">timeval_t</a> *tv, void *tz)</td></tr>
-<tr class="memdesc:a5665e505f386d06abb1c304068c2836e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get time of day (microsecond resolution).  <br /></td></tr>
-<tr class="separator:a5665e505f386d06abb1c304068c2836e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a780ca0a18ad4b4e6501eca77626dd2a1" id="r_a780ca0a18ad4b4e6501eca77626dd2a1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2time_8h.html#a780ca0a18ad4b4e6501eca77626dd2a1">difftime</a> (<a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a> t1, <a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a> t0)</td></tr>
 <tr class="memdesc:a780ca0a18ad4b4e6501eca77626dd2a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Difference between two time_t values in seconds.  <br /></td></tr>
 <tr class="separator:a780ca0a18ad4b4e6501eca77626dd2a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -354,45 +351,6 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Difference between two time_t values in seconds. </p>
-
-</div>
-</div>
-<a id="a5665e505f386d06abb1c304068c2836e" name="a5665e505f386d06abb1c304068c2836e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5665e505f386d06abb1c304068c2836e">&#9670;&#160;</a></span>gettimeofday()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int gettimeofday </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="include_2uapi_2vespera_2time_8h.html#aeba0d8f51eb0a83c2b01ecf27e0b3260">timeval_t</a> *&#160;</td>
-          <td class="paramname"><em>tv</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>tz</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get time of day (microsecond resolution). </p>
-<p>tz is ignored (VesperaOS always returns UTC).</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">tv</td><td>Output: seconds + microseconds since epoch. </td></tr>
-    <tr><td class="paramname">tz</td><td>Ignored; pass NULL. has to be implemented </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 always. </dd></dl>
 
 </div>
 </div>

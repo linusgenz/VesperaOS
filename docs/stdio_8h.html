@@ -110,6 +110,8 @@ $(document).ready(function(){initNavTree('stdio_8h.html',''); initResizable(); }
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcookie__io__functions.html">cookie_io_functions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structFILE.html">FILE</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -150,6 +152,16 @@ Typedefs</h2></td></tr>
 <tr class="separator:a7c05f3f8b572c8bc1a699461d29fcea6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa97abb6a0d40cc04ff108822ca886a22" id="r_aa97abb6a0d40cc04ff108822ca886a22"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22">DIR_HANDLE</a></td></tr>
 <tr class="separator:aa97abb6a0d40cc04ff108822ca886a22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4094341eed3152aaa34c60dd470fcd13" id="r_a4094341eed3152aaa34c60dd470fcd13"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a4094341eed3152aaa34c60dd470fcd13">cookie_read_fn</a>) (void *cookie, char *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
+<tr class="separator:a4094341eed3152aaa34c60dd470fcd13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6a1e1d1e33be498a71a759825fff489" id="r_aa6a1e1d1e33be498a71a759825fff489"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#aa6a1e1d1e33be498a71a759825fff489">cookie_write_fn</a>) (void *cookie, const char *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td></tr>
+<tr class="separator:aa6a1e1d1e33be498a71a759825fff489"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e6692cc11172840cad5ef8472aa5759" id="r_a3e6692cc11172840cad5ef8472aa5759"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a3e6692cc11172840cad5ef8472aa5759">cookie_seek_fn</a>) (void *cookie, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> *offset, int whence)</td></tr>
+<tr class="separator:a3e6692cc11172840cad5ef8472aa5759"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cee5929e78c794c3adedc19d21bcc43" id="r_a7cee5929e78c794c3adedc19d21bcc43"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a7cee5929e78c794c3adedc19d21bcc43">cookie_close_fn</a>) (void *cookie)</td></tr>
+<tr class="separator:a7cee5929e78c794c3adedc19d21bcc43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1146d1004a1a0deec59e7173a172ff1c" id="r_a1146d1004a1a0deec59e7173a172ff1c"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structcookie__io__functions.html">cookie_io_functions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a1146d1004a1a0deec59e7173a172ff1c">cookie_io_functions_t</a></td></tr>
+<tr class="separator:a1146d1004a1a0deec59e7173a172ff1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17cf47cf19fcb9c0c94ec3743efb3972" id="r_a17cf47cf19fcb9c0c94ec3743efb3972"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structFILE.html">FILE</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a17cf47cf19fcb9c0c94ec3743efb3972">FILE</a></td></tr>
 <tr class="separator:a17cf47cf19fcb9c0c94ec3743efb3972"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -294,7 +306,11 @@ Functions</h2></td></tr>
 <tr class="memitem:a4d4709508ed7604103d77c3fdc5ea4a2" id="r_a4d4709508ed7604103d77c3fdc5ea4a2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a4d4709508ed7604103d77c3fdc5ea4a2">rename</a> (const char *oldpath, const char *newpath)</td></tr>
 <tr class="memdesc:a4d4709508ed7604103d77c3fdc5ea4a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rename or move a file or directory.  <br /></td></tr>
 <tr class="separator:a4d4709508ed7604103d77c3fdc5ea4a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a444e97d3a1e0cd1764569fd75a57b24e" id="r_a444e97d3a1e0cd1764569fd75a57b24e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a444e97d3a1e0cd1764569fd75a57b24e">fopencookie</a> (void *cookie, const char *mode, <a class="el" href="stdio_8h.html#a1146d1004a1a0deec59e7173a172ff1c">cookie_io_functions_t</a> io_funcs)</td></tr>
+<tr class="memdesc:a444e97d3a1e0cd1764569fd75a57b24e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a stream backed by a custom set of I/O callbacks.  <br /></td></tr>
+<tr class="separator:a444e97d3a1e0cd1764569fd75a57b24e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab47b5eafe8b07200760d16307980ecc1" id="r_ab47b5eafe8b07200760d16307980ecc1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1">open_memstream</a> (char **bufp, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> *sizep)</td></tr>
+<tr class="memdesc:ab47b5eafe8b07200760d16307980ecc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a dynamically-growing in-memory stream for writing.  <br /></td></tr>
 <tr class="separator:ab47b5eafe8b07200760d16307980ecc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -491,6 +507,76 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef <a class="el" href="stdio_8h.html#a6c5c9667427d602a4e4152b6a4f56a72">HANDLE</a> <a class="el" href="stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6">CHANNEL_HANDLE</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7cee5929e78c794c3adedc19d21bcc43" name="a7cee5929e78c794c3adedc19d21bcc43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cee5929e78c794c3adedc19d21bcc43">&#9670;&#160;</a></span>cookie_close_fn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* cookie_close_fn) (void *cookie)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1146d1004a1a0deec59e7173a172ff1c" name="a1146d1004a1a0deec59e7173a172ff1c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1146d1004a1a0deec59e7173a172ff1c">&#9670;&#160;</a></span>cookie_io_functions_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structcookie__io__functions.html">cookie_io_functions</a> <a class="el" href="stdio_8h.html#a1146d1004a1a0deec59e7173a172ff1c">cookie_io_functions_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4094341eed3152aaa34c60dd470fcd13" name="a4094341eed3152aaa34c60dd470fcd13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4094341eed3152aaa34c60dd470fcd13">&#9670;&#160;</a></span>cookie_read_fn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>(* cookie_read_fn) (void *cookie, char *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3e6692cc11172840cad5ef8472aa5759" name="a3e6692cc11172840cad5ef8472aa5759"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e6692cc11172840cad5ef8472aa5759">&#9670;&#160;</a></span>cookie_seek_fn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* cookie_seek_fn) (void *cookie, <a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> *offset, int whence)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa6a1e1d1e33be498a71a759825fff489" name="aa6a1e1d1e33be498a71a759825fff489"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6a1e1d1e33be498a71a759825fff489">&#9670;&#160;</a></span>cookie_write_fn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="alltypes_8h.html#aa9e017f700fef59e03bf6d5bc2e59a7e">ssize_t</a>(* cookie_write_fn) (void *cookie, const char *buf, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -994,6 +1080,54 @@ Variables</h2></td></tr>
 <a class="el" href="stdio_8h.html#a2283c07023f2890feb45d55531852d36" title="Reopen an existing file stream with a new path and mode.">freopen()</a> </dd>
 <dd>
 <a class="el" href="userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543" title="Open (or create) a file, returning a raw handle.">open()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a444e97d3a1e0cd1764569fd75a57b24e" name="a444e97d3a1e0cd1764569fd75a57b24e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a444e97d3a1e0cd1764569fd75a57b24e">&#9670;&#160;</a></span>fopencookie()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structFILE.html">FILE</a> * fopencookie </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>cookie</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdio_8h.html#a1146d1004a1a0deec59e7173a172ff1c">cookie_io_functions_t</a>&#160;</td>
+          <td class="paramname"><em>io_funcs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Open a stream backed by a custom set of I/O callbacks. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cookie</td><td>Opaque pointer passed back to each callback in <code>io_funcs</code>. </td></tr>
+    <tr><td class="paramname">mode</td><td>Mode string ("r", "w", "r+", ...) — same semantics as <a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a>, used only to decide default buffering, not to validate cookie. </td></tr>
+    <tr><td class="paramname">io_funcs</td><td>Callback table; write/seek/close may be NULL if unsupported. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Newly allocated FILE* on success, or <code>NULL</code> on allocation failure.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1" title="Open a dynamically-growing in-memory stream for writing.">open_memstream()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f" title="Open a file stream.">fopen()</a> </dd></dl>
 
 </div>
 </div>
@@ -1509,6 +1643,22 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Open a dynamically-growing in-memory stream for writing. </p>
+<p>Writes to the returned stream go into a buffer allocated and grown with <a class="el" href="stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4" title="Reallocates a memory block to a new size.">realloc()</a> as needed. After every <a class="el" href="stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf" title="Flush buffered output on a file stream.">fflush()</a> (and on <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a>), <code>*bufp</code> is updated to point at the current buffer and <code>*sizep</code> to the number of bytes written so far (not the buffer's capacity). The buffer is always kept null-terminated (the terminator does not count toward <code>*sizep</code>), so *bufp can be used as a C string immediately after a flush.</p>
+<p>Writing at an offset seeked past the current end zero-fills the gap, matching POSIX <a class="el" href="stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1" title="Open a dynamically-growing in-memory stream for writing.">open_memstream()</a> semantics.</p>
+<p>Ownership: <code>*bufp</code> is owned by the caller after <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> and must be freed with <a class="el" href="stdlib_8h.html#afbedc913aa4651b3c3b4b3aecd9b4711" title="Releases a block of memory previously allocated by malloc().">free()</a>. Before <a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a>, the pointer may be invalidated by any further write (realloc may move it) — re-read <code>*bufp</code> after each <a class="el" href="stdio_8h.html#aa0ed35dbaf8a840c92daef7aa52b40bf" title="Flush buffered output on a file stream.">fflush()</a> rather than caching it.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bufp</td><td>Out param: receives the current buffer pointer on each flush. </td></tr>
+    <tr><td class="paramname">sizep</td><td>Out param: receives the current data length on each flush. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Newly allocated FILE* on success, or <code>NULL</code> on error (errno set).</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a444e97d3a1e0cd1764569fd75a57b24e" title="Open a stream backed by a custom set of I/O callbacks.">fopencookie()</a> </dd>
+<dd>
+<a class="el" href="stdio_8h.html#a16899976ac8e865813485db3d5f5186f" title="Close a file stream.">fclose()</a> </dd></dl>
 
 </div>
 </div>

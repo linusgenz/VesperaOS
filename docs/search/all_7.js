@@ -14,7 +14,7 @@ var searchData=
   ['getgid_11',['getgid',['../unistd_8h.html#a58ca281cc6931c62e6a85e2edb5b4b49',1,'unistd.h']]],
   ['getpid_12',['getpid',['../unistd_8h.html#ac61b207337ca21b3b309593fd1a0cb82',1,'unistd.h']]],
   ['getrandom_13',['getrandom',['../urandom_8h.html#ac3ee34b29e34805718dfa1b127cf3250',1,'urandom.h']]],
-  ['gettimeofday_14',['gettimeofday',['../userspace_2lib_2include_2time_8h.html#a5665e505f386d06abb1c304068c2836e',1,'time.h']]],
+  ['gettimeofday_14',['gettimeofday',['../userspace_2lib_2include_2sys_2time_8h.html#a84c652dfb868d97bb0aeeff3aeb95bdf',1,'time.h']]],
   ['getuid_15',['getuid',['../unistd_8h.html#a2f517436c22ef73337d3de4920908c6c',1,'unistd.h']]],
   ['gid_16',['gid',['../structspawn__config.html#af54a60971d2d85fa034ed059d086b20f',1,'spawn_config']]],
   ['gid_5ft_17',['gid_t',['../alltypes_8h.html#aede84ed751975947052f282ae1d2e235',1,'gid_t:&#160;alltypes.h'],['../unistd_8h.html#aa7352f1065fe606194d792e2b292cf83',1,'gid_t:&#160;unistd.h'],['../include_2uapi_2vespera_2types_8h.html#aa7352f1065fe606194d792e2b292cf83',1,'gid_t:&#160;types.h']]],

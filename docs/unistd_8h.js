@@ -7,6 +7,7 @@ var unistd_8h =
     [ "_SC_CLK_TCK", "unistd_8h.html#a129b8a9d335ba00162af6827e7345c44", null ],
     [ "_SC_NPROCESSORS_ONLN", "unistd_8h.html#a7693a1777dc1d08342c41999df282f13", null ],
     [ "_SC_OPEN_MAX", "unistd_8h.html#a62158756e8d115896b3a9e18e5de62e3", null ],
+    [ "_SC_PAGE_SIZE", "unistd_8h.html#ad92269766355c5d56e54b40d33d38fbc", null ],
     [ "_SC_PAGESIZE", "unistd_8h.html#af8524bbbaf09850389a58789b72caf52", null ],
     [ "_SSIZE_T_DEFINED", "unistd_8h.html#a6316ec18194f4e2a68517d800a32d855", null ],
     [ "_UID_T_DEFINED", "unistd_8h.html#a81888b107160423076d7817062dbe642", null ],

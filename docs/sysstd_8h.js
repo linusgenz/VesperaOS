@@ -21,6 +21,7 @@ var sysstd_8h =
     [ "sys_exit_group", "sysstd_8h.html#a3574d197808ef27a30e3291ca6643883", null ],
     [ "sys_fchmod", "sysstd_8h.html#a36d226622ee83cc412af7f32d383895e", null ],
     [ "sys_fchown", "sysstd_8h.html#a3f72621d7be1ff4745f12e6f83c8142a", null ],
+    [ "sys_fstat", "sysstd_8h.html#a58a0c07b34726d40a52dd246721140e4", null ],
     [ "sys_futex", "sysstd_8h.html#ad1c8c7293607d47f54f230f7cae9d8bd", null ],
     [ "sys_get_unid", "sysstd_8h.html#aff98481c79cc1908ff9bc54fff2c94c0", null ],
     [ "sys_getcwd", "sysstd_8h.html#aa7d2c6121d4b4651e1a312e1de49bb0c", null ],

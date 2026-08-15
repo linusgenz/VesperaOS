@@ -21,5 +21,5 @@ var searchData=
   ['stella_5ftimer_5ft_18',['stella_timer_t',['../stella_8h.html#a45aa97bf26a346aec3e7b98233a3605d',1,'stella.h']]],
   ['stella_5fwidget_5ft_19',['stella_widget_t',['../stella_8h.html#a98e467c3d4e28e22492ed46bd47b1721',1,'stella.h']]],
   ['stella_5fwindow_5ft_20',['stella_window_t',['../stella_8h.html#a9dce11f67f30d7ec56d65bc0b9673716',1,'stella.h']]],
-  ['suseconds_5ft_21',['suseconds_t',['../alltypes_8h.html#ae32f449456d5f1877a9e630e92422c01',1,'alltypes.h']]]
+  ['suseconds_5ft_21',['suseconds_t',['../alltypes_8h.html#ae32f449456d5f1877a9e630e92422c01',1,'suseconds_t:&#160;alltypes.h'],['../userspace_2lib_2include_2sys_2time_8h.html#ae32f449456d5f1877a9e630e92422c01',1,'suseconds_t:&#160;time.h']]]
 ];

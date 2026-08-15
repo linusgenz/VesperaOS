@@ -1,4 +1,4 @@
 var structpthread__condattr__t =
 [
-    [ "unused", "structpthread__condattr__t.html#a6fa1a7fae06d3f5101edf2635f6375a9", null ]
+    [ "clock", "structpthread__condattr__t.html#a35e91f2e77fcc8ebf4e586bb05567f09", null ]
 ];
