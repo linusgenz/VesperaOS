@@ -10,6 +10,7 @@ var userspace_2lib_2include_2time_8h =
     [ "gettimeofday", "userspace_2lib_2include_2time_8h.html#a5665e505f386d06abb1c304068c2836e", null ],
     [ "gmtime", "userspace_2lib_2include_2time_8h.html#a4bc4ff58d4ac838a36ba939747e5833e", null ],
     [ "localtime", "userspace_2lib_2include_2time_8h.html#a2d4076dc90ad030f7d4dad295a01357a", null ],
+    [ "localtime_r", "userspace_2lib_2include_2time_8h.html#af621fade89a49e103f7bd547f1b5ff14", null ],
     [ "mktime", "userspace_2lib_2include_2time_8h.html#afc0e3f373a3ea00b37714f1b621ae0b1", null ],
     [ "nanosleep", "userspace_2lib_2include_2time_8h.html#a8cd8e52a299d81cb4ab074de1e300f85", null ],
     [ "strftime", "userspace_2lib_2include_2time_8h.html#a49a1866c7618fef74c0cc900be1f1c45", null ],

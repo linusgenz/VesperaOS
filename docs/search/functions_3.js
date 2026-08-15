@@ -11,7 +11,7 @@ var searchData=
   ['channel_5fcreate_8',['channel_create',['../channel_8h.html#a1c2bb722aefc71e77414183049de2922',1,'channel.h']]],
   ['channel_5frecv_9',['channel_recv',['../channel_8h.html#a27367d39e205bf5664047cf9f2575d12',1,'channel.h']]],
   ['channel_5fsend_10',['channel_send',['../channel_8h.html#ab2b9bb58c6dab6a292168791513911d6',1,'channel.h']]],
-  ['chdir_11',['chdir',['../unistd_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;unistd.h'],['../stdio_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;stdio.h'],['../tmp_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;tmp.h']]],
+  ['chdir_11',['chdir',['../unistd_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;unistd.h'],['../tmp_8h.html#a03af571dfb595681bfa203c83385c07b',1,'chdir(const char *path):&#160;tmp.h']]],
   ['chronos_5fcheckpoint_12',['chronos_checkpoint',['../userspace_2lib_2include_2chronos_8h.html#ab837e63fe7fe31c66ac1289b92486ffa',1,'chronos.h']]],
   ['chronos_5fsummary_13',['chronos_summary',['../userspace_2lib_2include_2chronos_8h.html#a67df01c010b3fa2efde6ec59655a413e',1,'chronos.h']]],
   ['chroot_14',['chroot',['../stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f',1,'chroot(const char *path):&#160;stdio.h'],['../tmp_8h.html#afb5a028bb4a392db1cb0815a0d909f8f',1,'chroot(const char *path):&#160;tmp.h']]],

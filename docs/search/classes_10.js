@@ -15,6 +15,5 @@ var searchData=
   ['vbus_5flid_12',['vbus_lid',['../structvbus__lid.html',1,'']]],
   ['vbus_5forphaned_13',['vbus_orphaned',['../structvbus__orphaned.html',1,'']]],
   ['vbus_5fpayload_5ft_14',['vbus_payload_t',['../unionvbus__payload__t.html',1,'']]],
-  ['vbus_5fsubscribe_5fargs_15',['vbus_subscribe_args',['../structvbus__subscribe__args.html',1,'']]],
-  ['ves_5fmutex_16',['ves_mutex',['../structves__mutex.html',1,'']]]
+  ['vbus_5fsubscribe_5fargs_15',['vbus_subscribe_args',['../structvbus__subscribe__args.html',1,'']]]
 ];

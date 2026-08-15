@@ -18,6 +18,7 @@ var sysstd_8h =
     [ "sys_dup2", "sysstd_8h.html#ab739d5409b3de19f8bc24a79377fb4f3", null ],
     [ "sys_dup3", "sysstd_8h.html#a43851cdb22a45576b440fc3ed4874656", null ],
     [ "sys_exit", "sysstd_8h.html#a974b07ccc1d324a15ba8805c156a6695", null ],
+    [ "sys_exit_group", "sysstd_8h.html#a3574d197808ef27a30e3291ca6643883", null ],
     [ "sys_fchmod", "sysstd_8h.html#a36d226622ee83cc412af7f32d383895e", null ],
     [ "sys_fchown", "sysstd_8h.html#a3f72621d7be1ff4745f12e6f83c8142a", null ],
     [ "sys_futex", "sysstd_8h.html#ad1c8c7293607d47f54f230f7cae9d8bd", null ],

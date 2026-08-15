@@ -273,9 +273,6 @@ Functions</h2></td></tr>
 <tr class="memitem:a0ca90f87a0b0045c83be0a7d9b252896" id="r_a0ca90f87a0b0045c83be0a7d9b252896"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a0ca90f87a0b0045c83be0a7d9b252896">create</a> (const char *path, int type)</td></tr>
 <tr class="memdesc:a0ca90f87a0b0045c83be0a7d9b252896"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new file or directory.  <br /></td></tr>
 <tr class="separator:a0ca90f87a0b0045c83be0a7d9b252896"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a03af571dfb595681bfa203c83385c07b" id="r_a03af571dfb595681bfa203c83385c07b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b">chdir</a> (const char *path)</td></tr>
-<tr class="memdesc:a03af571dfb595681bfa203c83385c07b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the current working directory.  <br /></td></tr>
-<tr class="separator:a03af571dfb595681bfa203c83385c07b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb5a028bb4a392db1cb0815a0d909f8f" id="r_afb5a028bb4a392db1cb0815a0d909f8f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f">chroot</a> (const char *path)</td></tr>
 <tr class="memdesc:afb5a028bb4a392db1cb0815a0d909f8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change root directory.  <br /></td></tr>
 <tr class="separator:afb5a028bb4a392db1cb0815a0d909f8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -297,6 +294,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a4d4709508ed7604103d77c3fdc5ea4a2" id="r_a4d4709508ed7604103d77c3fdc5ea4a2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a4d4709508ed7604103d77c3fdc5ea4a2">rename</a> (const char *oldpath, const char *newpath)</td></tr>
 <tr class="memdesc:a4d4709508ed7604103d77c3fdc5ea4a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rename or move a file or directory.  <br /></td></tr>
 <tr class="separator:a4d4709508ed7604103d77c3fdc5ea4a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab47b5eafe8b07200760d16307980ecc1" id="r_ab47b5eafe8b07200760d16307980ecc1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1">open_memstream</a> (char **bufp, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> *sizep)</td></tr>
+<tr class="separator:ab47b5eafe8b07200760d16307980ecc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -589,37 +588,6 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a03af571dfb595681bfa203c83385c07b" name="a03af571dfb595681bfa203c83385c07b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a03af571dfb595681bfa203c83385c07b">&#9670;&#160;</a></span>chdir()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int chdir </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>path</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Change the current working directory. </p>
-<p>Updates the calling realm's current working directory to <code>path</code>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">path</td><td>Null-terminated path string. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set to EINVAL, ENOENT, ENOTDIR, etc.).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#accd163a8f517941cc628473b4812e0a1" title="Get the current working directory.">getcwd()</a> </dd>
-<dd>
-<a class="el" href="stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f" title="Change root directory.">chroot()</a> </dd></dl>
-
-</div>
-</div>
 <a id="afb5a028bb4a392db1cb0815a0d909f8f" name="afb5a028bb4a392db1cb0815a0d909f8f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afb5a028bb4a392db1cb0815a0d909f8f">&#9670;&#160;</a></span>chroot()</h2>
 
@@ -645,7 +613,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b" title="Change the current working directory.">chdir()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="tmp_8h.html#a03af571dfb595681bfa203c83385c07b">chdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -1512,7 +1480,35 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>buf</code> on success, or <code>NULL</code> on failure (errno set to EINVAL, ERANGE, etc.).</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a03af571dfb595681bfa203c83385c07b" title="Change the current working directory.">chdir()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="tmp_8h.html#a03af571dfb595681bfa203c83385c07b">chdir()</a> </dd></dl>
+
+</div>
+</div>
+<a id="ab47b5eafe8b07200760d16307980ecc1" name="ab47b5eafe8b07200760d16307980ecc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab47b5eafe8b07200760d16307980ecc1">&#9670;&#160;</a></span>open_memstream()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structFILE.html">FILE</a> * open_memstream </td>
+          <td>(</td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>bufp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> *&#160;</td>
+          <td class="paramname"><em>sizep</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

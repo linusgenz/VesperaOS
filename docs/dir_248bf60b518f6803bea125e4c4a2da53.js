@@ -33,6 +33,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "mount.h", "userspace_2lib_2include_2mount_8h.html", "userspace_2lib_2include_2mount_8h" ],
     [ "poll.h", "userspace_2lib_2include_2poll_8h.html", "userspace_2lib_2include_2poll_8h" ],
     [ "power.h", "userspace_2lib_2include_2power_8h.html", "userspace_2lib_2include_2power_8h" ],
+    [ "pthread.h", "pthread_8h.html", "pthread_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],
     [ "setjmp.h", "setjmp_8h.html", "setjmp_8h" ],
     [ "signal.h", "userspace_2lib_2include_2signal_8h.html", "userspace_2lib_2include_2signal_8h" ],

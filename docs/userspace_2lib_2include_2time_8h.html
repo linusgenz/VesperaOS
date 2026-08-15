@@ -151,6 +151,8 @@ Functions</h2></td></tr>
 <tr class="memitem:afc0e3f373a3ea00b37714f1b621ae0b1" id="r_afc0e3f373a3ea00b37714f1b621ae0b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2time_8h.html#afc0e3f373a3ea00b37714f1b621ae0b1">mktime</a> (struct <a class="el" href="structtm.html">tm</a> *<a class="el" href="structtm.html">tm</a>)</td></tr>
 <tr class="memdesc:afc0e3f373a3ea00b37714f1b621ae0b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a broken-down UTC time back to a Unix timestamp.  <br /></td></tr>
 <tr class="separator:afc0e3f373a3ea00b37714f1b621ae0b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af621fade89a49e103f7bd547f1b5ff14" id="r_af621fade89a49e103f7bd547f1b5ff14"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtm.html">tm</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2time_8h.html#af621fade89a49e103f7bd547f1b5ff14">localtime_r</a> (const <a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a> *__restrict__ timer, struct <a class="el" href="structtm.html">tm</a> *__restrict__ result)</td></tr>
+<tr class="separator:af621fade89a49e103f7bd547f1b5ff14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49a1866c7618fef74c0cc900be1f1c45" id="r_a49a1866c7618fef74c0cc900be1f1c45"><td class="memItemLeft" align="right" valign="top"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2time_8h.html#a49a1866c7618fef74c0cc900be1f1c45">strftime</a> (char *s, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> max, const char *fmt, const struct <a class="el" href="structtm.html">tm</a> *<a class="el" href="structtm.html">tm</a>)</td></tr>
 <tr class="memdesc:a49a1866c7618fef74c0cc900be1f1c45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Format a broken-down time into a string.  <br /></td></tr>
 <tr class="separator:a49a1866c7618fef74c0cc900be1f1c45"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -446,6 +448,34 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to a statically allocated struct tm, or NULL on error. </dd></dl>
+
+</div>
+</div>
+<a id="af621fade89a49e103f7bd547f1b5ff14" name="af621fade89a49e103f7bd547f1b5ff14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af621fade89a49e103f7bd547f1b5ff14">&#9670;&#160;</a></span>localtime_r()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtm.html">tm</a> * localtime_r </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="include_2uapi_2vespera_2types_8h.html#a7f5991675a84025dc7c24754a9b257c0">time_t</a> *__restrict__&#160;</td>
+          <td class="paramname"><em>timer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structtm.html">tm</a> *__restrict__&#160;</td>
+          <td class="paramname"><em>result</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

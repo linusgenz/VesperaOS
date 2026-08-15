@@ -12,7 +12,7 @@ var searchData=
   ['temperature_5fcelsius_9',['temperature_celsius',['../structsmart__ata.html#aaaf3a05a5dcd3dcfba5ab48f336681c9',1,'smart_ata::temperature_celsius'],['../structsmart__nvme.html#ad99cc10ef321c5fbf71b1716edb257fb',1,'smart_nvme::temperature_celsius'],['../structsmart__common.html#a74d8f10fada7037e2656ee7bff6ca742',1,'smart_common::temperature_celsius']]],
   ['temperature_5fsensor_10',['temperature_sensor',['../structsmart__nvme.html#a1b4a3e973576cd6cfebdfa7204e2a905',1,'smart_nvme']]],
   ['termios_2eh_11',['termios.h',['../termios_8h.html',1,'']]],
-  ['text_12',['text',['../classstella_1_1Label.html#a1864086bdb975fc741454da878dd30b4',1,'stella::Label::text()'],['../namespacestella.html#ab15a6e2406c9b23286c6d7b2b8233ea6',1,'stella::Text']]],
+  ['text_12',['text',['../namespacestella.html#ab15a6e2406c9b23286c6d7b2b8233ea6',1,'stella::Text'],['../classstella_1_1Label.html#a1864086bdb975fc741454da878dd30b4',1,'stella::Label::text(const char *t)']]],
   ['textalign_13',['textAlign',['../classstella_1_1Label.html#a7f2facfb6ca474b6dc2adf7e1d1cfeb0',1,'stella::Label']]],
   ['textpadtop_14',['textPadTop',['../classstella_1_1Label.html#aa0b59605dab397f167c166f3dd765b59',1,'stella::Label']]],
   ['tgamma_15',['tgamma',['../math_8h.html#a6da34b1c74aa3cf204f2461a8822cf9d',1,'math.h']]],
@@ -83,6 +83,6 @@ var searchData=
   ['tv_5fnsec_80',['tv_nsec',['../structtimespec.html#a6d9d14e9cdae880583f79d3b4a7fd42a',1,'timespec']]],
   ['tv_5fsec_81',['tv_sec',['../structtimespec.html#aeee94728b745f1726486b7e2eab1eb78',1,'timespec::tv_sec'],['../structtimeval.html#aa679f0a4b2124961c188b377a220853c',1,'timeval::tv_sec']]],
   ['tv_5fusec_82',['tv_usec',['../structtimeval.html#a7135c021b25897e971ab4b5be1c7d6ed',1,'timeval']]],
-  ['type_83',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t::type'],['../structvbus__display__input__event__t.html#ab9e55f5b923fbfcba20157c77c591699',1,'vbus_display_input_event_t::type'],['../structmice__event.html#a5665e776dc2dd593f6e14aa5c30708f0',1,'mice_event::type'],['../structbattery__info.html#a5fcec974d20588414ed7a8b044d0e716',1,'battery_info::type'],['../structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f',1,'vbus_header::type']]],
+  ['type_83',['type',['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t::type'],['../structvbus__display__input__event__t.html#ab9e55f5b923fbfcba20157c77c591699',1,'vbus_display_input_event_t::type'],['../structpthread__mutex__t.html#a2b17b8d2f23361d22e71cdca7f3fc3ce',1,'pthread_mutex_t::type'],['../structpthread__mutexattr__t.html#a68e969a13bae46b5b3ef8fbd6a68831a',1,'pthread_mutexattr_t::type'],['../structmice__event.html#a5665e776dc2dd593f6e14aa5c30708f0',1,'mice_event::type'],['../structbattery__info.html#a5fcec974d20588414ed7a8b044d0e716',1,'battery_info::type'],['../structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f',1,'vbus_header::type']]],
   ['types_2eh_84',['types.h',['../include_2uapi_2vespera_2types_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2sys_2types_8h.html',1,'(Global Namespace)']]]
 ];
