@@ -24,6 +24,7 @@
 
 #include <stddef.h>   // size_t, nullptr_t, max_align_t
 #include <stdint.h>   // uintN_t
+#include <stdlib.h>   // max_align_t
 
 namespace std {
 

@@ -523,6 +523,85 @@ long strtol(const char* nptr, char** endptr, int base) {
     return neg ? -(long)result : (long)result;
 }
 
+unsigned long long strtoull(const char* __restrict__ nptr, char** __restrict__ endptr, int base) {
+    const char* s = nptr;
+    unsigned long long result = 0;
+    int neg = 0;
+    int overflowed = 0;
+
+    while (isspace((unsigned char)*s)) s++;
+
+    if (*s == '+' || *s == '-') {
+        if (*s == '-') neg = 1;
+        s++;
+    }
+
+    if (base == 0) {
+        if (*s == '0') {
+            if ((s[1] == 'x' || s[1] == 'X') && isxdigit((unsigned char)s[2])) {
+                base = 16;
+                s += 2;
+            } else {
+                base = 8;
+                s++;
+            }
+        } else {
+            base = 10;
+        }
+    } else if (base == 16) {
+        if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+            s += 2;
+        }
+    }
+
+    int any = 0;
+    while (*s) {
+        int digit;
+
+        if (*s >= '0' && *s <= '9')
+            digit = *s - '0';
+        else if (*s >= 'a' && *s <= 'z')
+            digit = *s - 'a' + 10;
+        else if (*s >= 'A' && *s <= 'Z')
+            digit = *s - 'A' + 10;
+        else
+            break;
+
+        if (digit >= base) break;
+
+        if (!overflowed && result > (ULLONG_MAX - (unsigned long long)digit) / (unsigned long long)base) {
+            overflowed = 1;
+        }
+
+        if (overflowed) {
+            result = ULLONG_MAX;
+        } else {
+            result = result * (unsigned long long)base + (unsigned long long)digit;
+        }
+
+        any = 1;
+        s++;
+    }
+
+    if (!any) {
+        errno = EINVAL;
+        if (endptr) *endptr = (char*)nptr;
+        return 0;
+    }
+
+    if (endptr) *endptr = (char*)s;
+
+    if (overflowed) {
+        errno = ERANGE;
+        return ULLONG_MAX;
+    }
+
+    if (neg) return (unsigned long long)(-(long long)result);
+
+    return result;
+}
+
+
 _Thread_local static unsigned long next = 0;
 
 void srand(const unsigned int seed) {
@@ -577,16 +656,25 @@ char* tmpnam(char* buf) {
 static const char mkstemp_chars[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-int mkstemp(char* tmpl) {
-    const size_t len = strlen(tmpl);
-
-    // Last 6 chars must be XXXXXX;
-    if (len < 6 || strcmp(tmpl + len - 6, "XXXXXX") != 0) {
+static int mkstemps_impl(char* tmpl, int suffixlen) {
+    if (!tmpl || suffixlen < 0) {
         errno = EINVAL;
         return -1;
     }
 
-    char* const suffix = tmpl + len - 6;
+    const size_t len = strlen(tmpl);
+
+    if (len < (size_t)suffixlen + 6) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    // Last 6 chars must be XXXXXX;
+    char* const suffix = tmpl + len - (size_t)suffixlen - 6;
+    if (strncmp(suffix, "XXXXXX", 6) != 0) {
+        errno = EINVAL;
+        return -1;
+    }
 
     for (int attempt = 0; attempt < MKSTEMP_RETRIES; attempt++) {
         for (int i = 0; i < 6; i++) {
@@ -602,6 +690,14 @@ int mkstemp(char* tmpl) {
 
     errno = EEXIST;
     return -1;
+}
+
+int mkstemp(char* tmpl) {
+    return mkstemps_impl(tmpl, 0);
+}
+
+int mkstemps(char* tmpl, int suffixlen) {
+    return mkstemps_impl(tmpl, suffixlen);
 }
 
 #define ATEXIT_MAX 48

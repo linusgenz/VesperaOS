@@ -64,11 +64,6 @@ typedef float float_t;
 typedef double double_t;
 #endif
 
-typedef struct {
-    long long __ll;
-    long double __ld;
-} max_align_t;
-
 typedef void *timer_t;
 typedef int clockid_t;
 typedef long clock_t;

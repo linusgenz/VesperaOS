@@ -189,6 +189,7 @@ float strtof(const char* str, char** endptr);
 long double strtold(const char* str, char** endptr);
 unsigned long strtoul(const char* nptr, char** endptr, int base);
 long strtol(const char* nptr, char** endptr, int base);
+unsigned long long strtoull(const char* __restrict__ nptr, char** __restrict__ endptr, int base);
 double atof(const char* nptr);
 
 static inline int abs(int x) {
@@ -224,6 +225,10 @@ char* tmpnam(char* buf);
    or -1 if it cannot create a uniquely-named file. */
 int mkstemp(char *tmpl);
 
+/* Similar to mkstemp, but the template can have a suffix after the
+   XXXXXX.  The length of the suffix is specified in the second
+   parameter. */
+int mkstemps(char *tmpl, int suffixlen);
 
 #ifndef __COMPAR_FN_T
 # define __COMPAR_FN_T
@@ -234,6 +239,11 @@ typedef int (*__compar_fn_t) (const void *, const void *);
    using COMPAR to perform the comparisons.  */
 void qsort(void *base, size_t nmemb, size_t size,
            __compar_fn_t __compar);
+
+typedef struct {
+   long long __max_align_ll __attribute__((__aligned__(__alignof__(long long))));
+   long double __max_align_ld __attribute__((__aligned__(__alignof__(long double))));
+} max_align_t;
 
 #ifdef __cplusplus
 }

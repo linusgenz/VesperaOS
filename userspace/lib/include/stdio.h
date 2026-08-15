@@ -314,6 +314,20 @@ FILE* fopen(const char* path, const char* mode);
 FILE* freopen(const char* path, const char* mode, FILE* f);
 
 /**
+ * @brief Associate a stream with an already-open file descriptor.
+ *
+ * @param fd Already-open file descriptor.
+ * @param mode Mode string ("r", "w", "a", "r+", etc.).
+ * @return Pointer to allocated FILE structure on success, or @c NULL
+ *         on error (errno set to EINVAL for a malformed mode, or
+ *         ENOMEM on allocation failure).
+ *
+ * @see fopen()
+ * @see fclose()
+ */
+FILE* fdopen(int fd, const char* mode);
+
+/**
  * @brief Close a file stream.
  *
  * Flushes buffered data, closes the underlying handle, and frees stream resources.
@@ -717,17 +731,6 @@ FILE* fopencookie(void* cookie, const char* mode, cookie_io_functions_t io_funcs
 
 /**
  * @brief Open a dynamically-growing in-memory stream for writing.
- *
- * Writes to the returned stream go into a buffer allocated and grown
- * with realloc() as needed. After every fflush() (and on fclose()),
- * @p *bufp is updated to point at the current buffer and @p *sizep
- * to the number of bytes written so far (not the buffer's capacity).
- * The buffer is always kept null-terminated (the terminator does not
- * count toward @p *sizep), so *bufp can be used as a C string
- * immediately after a flush.
- *
- * Writing at an offset seeked past the current end zero-fills the
- * gap, matching POSIX open_memstream() semantics.
  *
  * Ownership: @p *bufp is owned by the caller after fclose() and must
  * be freed with free(). Before fclose(), the pointer may be

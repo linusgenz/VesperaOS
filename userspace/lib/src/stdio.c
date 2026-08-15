@@ -970,11 +970,13 @@ int printf(const char* fmt, ...) {
     return ret;
 }
 
-FILE* fopen(const char* path, const char* mode) {
-    if (!path || !mode) return NULL;
+static int parse_fopen_mode(const char* mode, int* out_flags) {
+    if (!mode) {
+        errno = EINVAL;
+        return -1;
+    }
 
-    int flags = 0;
-
+    int flags;
     switch (mode[0]) {
         case 'r':
             flags = O_RDONLY;
@@ -986,12 +988,23 @@ FILE* fopen(const char* path, const char* mode) {
             flags = O_WRONLY | O_CREAT | O_APPEND;
             break;
         default:
-            return NULL;
+            errno = EINVAL;
+            return -1;
     }
 
     if (mode[1] == '+') {
         flags = O_RDWR | (flags & (O_CREAT | O_TRUNC | O_APPEND));
     }
+
+    *out_flags = flags;
+    return 0;
+}
+
+FILE* fopen(const char* path, const char* mode) {
+    if (!path) return NULL;
+
+    int flags;
+    if (parse_fopen_mode(mode, &flags) < 0) return NULL;
 
     int64_t res = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
     if (res < 0) {
@@ -1020,24 +1033,11 @@ FILE* fopen(const char* path, const char* mode) {
 FILE* freopen(const char* path, const char* mode, FILE* f) {
     if (!f) return NULL;
 
+    int flags;
+    if (parse_fopen_mode(mode, &flags) < 0) return NULL;
+
     fflush(f);
     if (f->io_funcs.close) f->io_funcs.close(f->cookie);
-
-    int flags = 0;
-    switch (mode[0]) {
-        case 'r':
-            flags = O_RDONLY;
-            break;
-        case 'w':
-            flags = O_WRONLY | O_CREAT | O_TRUNC;
-            break;
-        case 'a':
-            flags = O_WRONLY | O_CREAT | O_APPEND;
-            break;
-        default:
-            return NULL;
-    }
-    if (mode[1] == '+') flags = O_RDWR | (flags & (O_CREAT | O_TRUNC | O_APPEND));
 
     FILE_HANDLE handle = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
     if (handle < 0) return NULL;
@@ -1046,6 +1046,38 @@ FILE* freopen(const char* path, const char* mode, FILE* f) {
     f->eof = 0;
     f->buf_pos = 0;
     install_handle_backend(f, handle);
+
+    return f;
+}
+
+FILE* fdopen(int fd, const char* mode) {
+    if (fd < 0) {
+        errno = EBADH;
+        return NULL;
+    }
+
+    /* fd is already open; we only need parse_fopen_mode() for its
+     * POSIX-mandated EINVAL check. The resulting flags aren't applied
+     * to fd — per POSIX, fdopen() doesn't verify mode against fd's
+     * actual access mode, so a caller-supplied mismatch is not our
+     * problem to solve here. */
+    int flags;
+    if (parse_fopen_mode(mode, &flags) < 0) return NULL;
+    (void)flags;
+
+    FILE* f = malloc(sizeof(FILE));
+    if (!f) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    f->error = 0;
+    f->eof = 0;
+    f->unget_char = -1;
+    f->buffer = NULL;
+    f->buf_size = 0;
+    f->buf_pos = 0;
+    install_handle_backend(f, (FILE_HANDLE)fd);
 
     return f;
 }
