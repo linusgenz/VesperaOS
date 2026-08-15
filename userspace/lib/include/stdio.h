@@ -603,19 +603,6 @@ int unlink(const char* path);
 int create(const char* path, int type);
 
 /**
- * @brief Change the current working directory.
- *
- * Updates the calling realm's current working directory to @p path.
- *
- * @param path Null-terminated path string.
- * @return @c 0 on success, or @c -1 on failure (errno set to EINVAL, ENOENT, ENOTDIR, etc.).
- *
- * @see getcwd()
- * @see chroot()
- */
-int chdir(const char* path);
-
-/**
  * @brief Change root directory.
  *
  * Changes the root directory of the calling realm to @p path.
@@ -697,6 +684,9 @@ int remove(const char* path);
  * @see remove()
  */
 int rename(const char* oldpath, const char* newpath);
+
+
+FILE *open_memstream(char **bufp, size_t *sizep);
 
 #ifdef __cplusplus
 }

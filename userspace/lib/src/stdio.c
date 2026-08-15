@@ -1256,20 +1256,6 @@ ssize_t readdir(DIR_HANDLE handle, dirent_t* entry) {
     return sys_readdir(handle, (uint64_t)entry, sizeof(dirent_t), 0, 0, 0);
 }
 
-int chdir(const char* path) {
-    if (!path) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    int64_t ret = sys_chdir((uint64_t)path, 0, 0, 0, 0, 0);
-    if (ret < 0) {
-        errno = (int)(-ret);
-        return -1;
-    }
-
-    return 0;
-}
 int chroot(const char* path) {
     if (!path) {
         errno = EINVAL;

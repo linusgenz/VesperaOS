@@ -31,44 +31,6 @@ int64_t join_unit(UnitID unit_id, int64_t* exit_code_out) {
     return sys_join_unit(unit_id, (uint64_t)exit_code_out, 0, 0, 0, 0);
 }
 
-ves_mutex_t* ves_mutex_create(void) {
-    ves_mutex_t* m = (ves_mutex_t*)malloc(sizeof(ves_mutex_t));
-    if (!m) return NULL;
-
-    m->_state = 0;
-    return m;
-}
-
-void ves_mutex_destroy(ves_mutex_t* mtx) {
-    free(mtx);
-}
-
-void ves_mutex_init(ves_mutex_t* mtx) {
-    mtx->_state = 0;
-}
-
-void ves_mutex_lock(ves_mutex_t* mtx) {
-    while (1) {
-        // fast path: try acquire
-        if (__sync_bool_compare_and_swap(&mtx->_state, 0, 1)) {
-            return;
-        }
-
-        // contention → spin
-        while (mtx->_state != 0) {
-            __asm__ volatile("pause");
-        }
-    }
-}
-
-void ves_mutex_unlock(ves_mutex_t* mtx) {
-    __sync_lock_release(&mtx->_state);
-}
-
-int ves_mutex_trylock(ves_mutex_t* mtx) {
-    return __sync_bool_compare_and_swap(&mtx->_state, 0, 1) ? 0 : -1;
-}
-
 void sched_yield(void) {
     sys_yield(0, 0, 0, 0, 0, 0);
 }

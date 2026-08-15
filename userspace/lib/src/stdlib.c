@@ -603,3 +603,9 @@ int mkstemp(char* tmpl) {
     errno = EEXIST;
     return -1;
 }
+
+_Noreturn void exit(int code) {
+    fflush(NULL);
+    sys_exit_group(code, 0, 0, 0, 0, 0);
+    __builtin_unreachable();
+}

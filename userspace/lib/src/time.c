@@ -77,54 +77,62 @@ static int days_in_month(int mon, int year) {
     return DAYS_PER_MONTH[mon];
 }
 
-struct tm* gmtime(const time_t* timep) {
-    static struct tm result;
+struct tm* gmtime_r(const time_t* __restrict__ timep, struct tm* __restrict__ result) {
+    if (!timep || !result) return NULL;
 
-    if (!timep) return 0;
+    uint64_t t = (uint64_t)*timep;
 
-    uint32_t t = *timep;
-
-    result.tm_sec = (int)(t % 60);
+    result->tm_sec = (int)(t % 60);
     t /= 60;
-    result.tm_min = (int)(t % 60);
+    result->tm_min = (int)(t % 60);
     t /= 60;
-    result.tm_hour = (int)(t % 24);
+    result->tm_hour = (int)(t % 24);
     t /= 24;
 
     // t is now days since 1970-01-01
     // Calculate weekday (1970-01-01 was a Thursday = 4)
-    result.tm_wday = (int)((t + 4) % 7);
+    result->tm_wday = (int)((t + 4) % 7);
 
     // Walk through years
     int year = 1970;
     while (1) {
         int days_this_year = is_leap(year) ? 366 : 365;
-        if (t < (uint32_t)days_this_year) break;
+        if (t < (uint64_t)days_this_year) break;
         t -= days_this_year;
         year++;
     }
 
-    result.tm_year = year - 1900;
-    result.tm_yday = (int)t;
+    result->tm_year = year - 1900;
+    result->tm_yday = (int)t;
 
     // Walk through months
     int mon = 0;
     while (mon < 12) {
         int dim = days_in_month(mon, year);
-        if (t < (uint32_t)dim) break;
+        if (t < (uint64_t)dim) break;
         t -= dim;
         mon++;
     }
 
-    result.tm_mon = mon;
-    result.tm_mday = (int)t + 1;
-    result.tm_isdst = 0;
+    result->tm_mon = mon;
+    result->tm_mday = (int)t + 1;
+    result->tm_isdst = 0;
 
-    return &result;
+    return result;
+}
+
+struct tm* localtime_r(const time_t* __restrict__ timer, struct tm* __restrict__ result) {
+    return gmtime_r(timer, result);
+}
+
+struct tm* gmtime(const time_t* timep) {
+    static struct tm result;
+    return gmtime_r(timep, &result);
 }
 
 struct tm* localtime(const time_t* timep) {
-    return gmtime(timep);
+    static struct tm result;
+    return localtime_r(timep, &result);
 }
 
 time_t mktime(struct tm* tm) {

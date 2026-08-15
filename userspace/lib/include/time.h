@@ -159,6 +159,10 @@ struct tm* localtime(const time_t* timep);
  */
 time_t mktime(struct tm* tm);
 
+/* Return the `struct tm' representation of *TIMER in local time,
+   using *TP to store the result.  */
+struct tm *localtime_r(const time_t *__restrict__ timer, struct tm *__restrict__ result);
+
 /**
  * @brief Format a broken-down time into a string.
  *

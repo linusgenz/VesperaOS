@@ -95,6 +95,8 @@
 #define SYSCALL_TCSETPGRP 143
 #define SYSCALL_TCGETPGRP 144
 
+#define SYSCALL_EXIT_GROUP 231
+
 #define SYSCALL_VBUS_SUBSCRIBE     300
 #define SYSCALL_VBUS_UNSUBSCRIBE   301
 #define SYSCALL_VBUS_EMIT   302
@@ -440,4 +442,8 @@ int64_t sys_dup3(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t
 
 int64_t sys_mprotect(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_MPROTECT, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_exit_group(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_EXIT_GROUP, arg0, 0, 0, 0, 0, 0);
 }
