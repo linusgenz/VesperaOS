@@ -58,12 +58,13 @@ var searchData=
   ['atanhf_55',['atanhf',['../math_8h.html#a0bdec76f8a7cbd0125ede4a9beaafc35',1,'math.h']]],
   ['atanhl_56',['atanhl',['../math_8h.html#a1f3a69f685963ac78914b8368d1324f1',1,'math.h']]],
   ['atanl_57',['atanl',['../math_8h.html#a83520e816f94a7f7880c0346aacd8397',1,'math.h']]],
-  ['atof_58',['atof',['../stdlib_8h.html#ac03da055b7752247b034fb582cb4372f',1,'stdlib.h']]],
-  ['atoi_59',['atoi',['../stdlib_8h.html#a30670a60464f77af17dfb353353d6df8',1,'stdlib.h']]],
-  ['atol_60',['atol',['../stdlib_8h.html#a825c37450147a643edbcb1a435518307',1,'stdlib.h']]],
-  ['attr_5fcount_61',['attr_count',['../structsmart__ata.html#add2ad18f79f2f777097e3f580c64164a',1,'smart_ata']]],
-  ['attrs_62',['attrs',['../structsmart__ata.html#a0b5c5aa270acd92e6491d20aedb439cb',1,'smart_ata']]],
-  ['auto_63',['Auto',['../namespacestella.html#ab15a6e2406c9b23286c6d7b2b8233ea6a06b9281e396db002010bde1de57262eb',1,'stella']]],
-  ['available_5fspare_64',['available_spare',['../structsmart__nvme.html#aaa6691381633f8db518e47bf1b44fbcb',1,'smart_nvme']]],
-  ['available_5fspare_5fthreshold_65',['available_spare_threshold',['../structsmart__nvme.html#a222462382dd213257b76d76446f3f645',1,'smart_nvme']]]
+  ['atexit_58',['atexit',['../stdlib_8h.html#a7fd89c82095df80e5e12d6b2834a2acc',1,'stdlib.h']]],
+  ['atof_59',['atof',['../stdlib_8h.html#ac03da055b7752247b034fb582cb4372f',1,'stdlib.h']]],
+  ['atoi_60',['atoi',['../stdlib_8h.html#a30670a60464f77af17dfb353353d6df8',1,'stdlib.h']]],
+  ['atol_61',['atol',['../stdlib_8h.html#a825c37450147a643edbcb1a435518307',1,'stdlib.h']]],
+  ['attr_5fcount_62',['attr_count',['../structsmart__ata.html#add2ad18f79f2f777097e3f580c64164a',1,'smart_ata']]],
+  ['attrs_63',['attrs',['../structsmart__ata.html#a0b5c5aa270acd92e6491d20aedb439cb',1,'smart_ata']]],
+  ['auto_64',['Auto',['../namespacestella.html#ab15a6e2406c9b23286c6d7b2b8233ea6a06b9281e396db002010bde1de57262eb',1,'stella']]],
+  ['available_5fspare_65',['available_spare',['../structsmart__nvme.html#aaa6691381633f8db518e47bf1b44fbcb',1,'smart_nvme']]],
+  ['available_5fspare_5fthreshold_66',['available_spare_threshold',['../structsmart__nvme.html#a222462382dd213257b76d76446f3f645',1,'smart_nvme']]]
 ];

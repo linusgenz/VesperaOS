@@ -58,12 +58,13 @@ var searchData=
   ['frexpl_55',['frexpl',['../math_8h.html#a551e42972cf5cc9296c025ccacac7569',1,'math.h']]],
   ['fscanf_56',['fscanf',['../stdio_8h.html#afcbffe326e16df540ec298ab884c8dd0',1,'stdio.h']]],
   ['fseek_57',['fseek',['../stdio_8h.html#a5e25775bd8597f839a28125b616bd241',1,'stdio.h']]],
-  ['fsync_58',['fsync',['../unistd_8h.html#a9ba34c4ff72e21db486eedf77c2a18d0',1,'unistd.h']]],
-  ['ftell_59',['ftell',['../stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989',1,'stdio.h']]],
-  ['ftruncate_60',['ftruncate',['../shm_8h.html#a4829002420a948f980ad4186938d27ae',1,'ftruncate(HANDLE handle, size_t length):&#160;shm.h'],['../unistd_8h.html#a0fb7c60877eacbfbd66eff04533ab0fe',1,'ftruncate(int fd, off_t length):&#160;unistd.h']]],
-  ['futex_5fwait_61',['futex_wait',['../userspace_2lib_2include_2futex_8h.html#a69bc8e42d4062dd5772f5300d0c98275',1,'futex.h']]],
-  ['futex_5fwait_5funtil_62',['futex_wait_until',['../userspace_2lib_2include_2futex_8h.html#aa2c80e604897d4d649b3f73f1eafefaa',1,'futex.h']]],
-  ['futex_5fwake_63',['futex_wake',['../userspace_2lib_2include_2futex_8h.html#a88546b1e4d0c3dda1fcbdcd72f8d65d1',1,'futex.h']]],
-  ['futex_5fwake_5fall_64',['futex_wake_all',['../userspace_2lib_2include_2futex_8h.html#a366d9e7088fd12c094aea01ade6fc767',1,'futex.h']]],
-  ['fwrite_65',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
+  ['fstat_58',['fstat',['../userspace_2lib_2include_2sys_2stat_8h.html#a198a57e185e8a036ad06345623b84521',1,'stat.h']]],
+  ['fsync_59',['fsync',['../unistd_8h.html#a9ba34c4ff72e21db486eedf77c2a18d0',1,'unistd.h']]],
+  ['ftell_60',['ftell',['../stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989',1,'stdio.h']]],
+  ['ftruncate_61',['ftruncate',['../shm_8h.html#a4829002420a948f980ad4186938d27ae',1,'ftruncate(HANDLE handle, size_t length):&#160;shm.h'],['../unistd_8h.html#a0fb7c60877eacbfbd66eff04533ab0fe',1,'ftruncate(int fd, off_t length):&#160;unistd.h']]],
+  ['futex_5fwait_62',['futex_wait',['../userspace_2lib_2include_2futex_8h.html#a69bc8e42d4062dd5772f5300d0c98275',1,'futex.h']]],
+  ['futex_5fwait_5funtil_63',['futex_wait_until',['../userspace_2lib_2include_2futex_8h.html#aa2c80e604897d4d649b3f73f1eafefaa',1,'futex.h']]],
+  ['futex_5fwake_64',['futex_wake',['../userspace_2lib_2include_2futex_8h.html#a88546b1e4d0c3dda1fcbdcd72f8d65d1',1,'futex.h']]],
+  ['futex_5fwake_5fall_65',['futex_wake_all',['../userspace_2lib_2include_2futex_8h.html#a366d9e7088fd12c094aea01ade6fc767',1,'futex.h']]],
+  ['fwrite_66',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
 ];

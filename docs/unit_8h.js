@@ -4,6 +4,5 @@ var unit_8h =
     [ "UnitID", "unit_8h.html#ad4a7e3111654c8366cd31c6c5580883c", null ],
     [ "get_unit_id", "unit_8h.html#a9854b68736af3d488ff81cb5855e833a", null ],
     [ "join_unit", "unit_8h.html#ac81814241b73399c47e39042e9c1b31e", null ],
-    [ "sched_yield", "unit_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c", null ],
     [ "spawn_unit", "unit_8h.html#a8f9aa9dc4a88b0e0ec3eebe7f9c7a4a4", null ]
 ];

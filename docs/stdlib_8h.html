@@ -115,11 +115,15 @@ Macros</h2></td></tr>
 <tr class="separator:a690f251553b39fd4f31894826141b61a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2560a07a7528c4975660f391320faca" id="r_ad2560a07a7528c4975660f391320faca"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#ad2560a07a7528c4975660f391320faca">L_tmpnam</a>&#160;&#160;&#160;32</td></tr>
 <tr class="separator:ad2560a07a7528c4975660f391320faca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b01b59ed3d085062320df3589722d37" id="r_a5b01b59ed3d085062320df3589722d37"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a5b01b59ed3d085062320df3589722d37">__COMPAR_FN_T</a></td></tr>
+<tr class="separator:a5b01b59ed3d085062320df3589722d37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a2dbf9050303df6c7facc0c5faed80d11" id="r_a2dbf9050303df6c7facc0c5faed80d11"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a2dbf9050303df6c7facc0c5faed80d11">FILE_HANDLE</a></td></tr>
 <tr class="separator:a2dbf9050303df6c7facc0c5faed80d11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35e28bfcc8d641e0eebd66f4dc559a3f" id="r_a35e28bfcc8d641e0eebd66f4dc559a3f"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a35e28bfcc8d641e0eebd66f4dc559a3f">__compar_fn_t</a>) (const void *, const void *)</td></tr>
+<tr class="separator:a35e28bfcc8d641e0eebd66f4dc559a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -145,8 +149,11 @@ Functions</h2></td></tr>
 <tr class="memdesc:a2807e26a012717736641384f91ab2563"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates zero-initialized memory for an array.  <br /></td></tr>
 <tr class="separator:a2807e26a012717736641384f91ab2563"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9df46a21c34d7b6ce91542a4dabadb1e" id="r_a9df46a21c34d7b6ce91542a4dabadb1e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#aa1728270d73c5d1598de1fd691762eb1">NORETURN</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a9df46a21c34d7b6ce91542a4dabadb1e">exit</a> (int code)</td></tr>
-<tr class="memdesc:a9df46a21c34d7b6ce91542a4dabadb1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the current unit.  <br /></td></tr>
 <tr class="separator:a9df46a21c34d7b6ce91542a4dabadb1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1964abca2fa8601fcc112f68ede27c63" id="r_a1964abca2fa8601fcc112f68ede27c63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdlib_8h.html#aa1728270d73c5d1598de1fd691762eb1">NORETURN</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63">_Exit</a> (int status)</td></tr>
+<tr class="separator:a1964abca2fa8601fcc112f68ede27c63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fd89c82095df80e5e12d6b2834a2acc" id="r_a7fd89c82095df80e5e12d6b2834a2acc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a7fd89c82095df80e5e12d6b2834a2acc">atexit</a> (void(*func)(void))</td></tr>
+<tr class="separator:a7fd89c82095df80e5e12d6b2834a2acc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30670a60464f77af17dfb353353d6df8" id="r_a30670a60464f77af17dfb353353d6df8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a30670a60464f77af17dfb353353d6df8">atoi</a> (const char *s)</td></tr>
 <tr class="memdesc:a30670a60464f77af17dfb353353d6df8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a string to an integer.  <br /></td></tr>
 <tr class="separator:a30670a60464f77af17dfb353353d6df8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -183,6 +190,8 @@ Functions</h2></td></tr>
 <tr class="separator:aaff28d1d411bc932ad8120940f0d0c96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a166d1f9c85394d1086977e2ced6f357b" id="r_a166d1f9c85394d1086977e2ced6f357b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a166d1f9c85394d1086977e2ced6f357b">mkstemp</a> (char *tmpl)</td></tr>
 <tr class="separator:a166d1f9c85394d1086977e2ced6f357b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a3f08ab3e633d7ba74925aeb907ba53" id="r_a9a3f08ab3e633d7ba74925aeb907ba53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdlib_8h.html#a9a3f08ab3e633d7ba74925aeb907ba53">qsort</a> (void *base, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> nmemb, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> size, <a class="el" href="stdlib_8h.html#a35e28bfcc8d641e0eebd66f4dc559a3f">__compar_fn_t</a> __compar)</td></tr>
+<tr class="separator:a9a3f08ab3e633d7ba74925aeb907ba53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -191,6 +200,20 @@ Variables</h2></td></tr>
 <tr class="separator:aa006daaf11f1e2e45a6ababaf463212b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a5b01b59ed3d085062320df3589722d37" name="a5b01b59ed3d085062320df3589722d37"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b01b59ed3d085062320df3589722d37">&#9670;&#160;</a></span>__COMPAR_FN_T</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define __COMPAR_FN_T</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a73efe787c131b385070f25d18b7c9aa4" name="a73efe787c131b385070f25d18b7c9aa4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a73efe787c131b385070f25d18b7c9aa4">&#9670;&#160;</a></span>EXIT_FAILURE</h2>
 
@@ -262,6 +285,20 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="a35e28bfcc8d641e0eebd66f4dc559a3f" name="a35e28bfcc8d641e0eebd66f4dc559a3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35e28bfcc8d641e0eebd66f4dc559a3f">&#9670;&#160;</a></span>__compar_fn_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* __compar_fn_t) (const void *, const void *)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2dbf9050303df6c7facc0c5faed80d11" name="a2dbf9050303df6c7facc0c5faed80d11"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2dbf9050303df6c7facc0c5faed80d11">&#9670;&#160;</a></span>FILE_HANDLE</h2>
 
@@ -277,6 +314,24 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a1964abca2fa8601fcc112f68ede27c63" name="a1964abca2fa8601fcc112f68ede27c63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1964abca2fa8601fcc112f68ede27c63">&#9670;&#160;</a></span>_Exit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdlib_8h.html#aa1728270d73c5d1598de1fd691762eb1">NORETURN</a> void _Exit </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>status</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a44ecd701acbb30c8fd00a40c5d353a5e" name="a44ecd701acbb30c8fd00a40c5d353a5e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a44ecd701acbb30c8fd00a40c5d353a5e">&#9670;&#160;</a></span>abort()</h2>
 
@@ -317,6 +372,24 @@ Variables</h2></td></tr>
 <span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7fd89c82095df80e5e12d6b2834a2acc" name="a7fd89c82095df80e5e12d6b2834a2acc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7fd89c82095df80e5e12d6b2834a2acc">&#9670;&#160;</a></span>atexit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int atexit </td>
+          <td>(</td>
+          <td class="paramtype">void(*)(void)&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -452,16 +525,6 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-<p>Terminate the current unit. </p>
-<p>This will stop the unit and remove it from its realm.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">code</td><td>Exit code for the unit. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Does not return; halts the unit. </dd></dl>
 
 </div>
 </div>
@@ -615,6 +678,46 @@ Variables</h2></td></tr>
           <td class="paramtype">char *&#160;</td>
           <td class="paramname"><em>tmpl</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a3f08ab3e633d7ba74925aeb907ba53" name="a9a3f08ab3e633d7ba74925aeb907ba53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a3f08ab3e633d7ba74925aeb907ba53">&#9670;&#160;</a></span>qsort()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void qsort </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>base</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>nmemb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdlib_8h.html#a35e28bfcc8d641e0eebd66f4dc559a3f">__compar_fn_t</a>&#160;</td>
+          <td class="paramname"><em>__compar</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

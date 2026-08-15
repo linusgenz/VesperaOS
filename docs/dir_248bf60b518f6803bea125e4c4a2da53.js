@@ -35,6 +35,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "power.h", "userspace_2lib_2include_2power_8h.html", "userspace_2lib_2include_2power_8h" ],
     [ "pthread.h", "pthread_8h.html", "pthread_8h" ],
     [ "realm.h", "realm_8h.html", "realm_8h" ],
+    [ "sched.h", "sched_8h.html", "sched_8h" ],
     [ "setjmp.h", "setjmp_8h.html", "setjmp_8h" ],
     [ "signal.h", "userspace_2lib_2include_2signal_8h.html", "userspace_2lib_2include_2signal_8h" ],
     [ "stdalign.h", "stdalign_8h.html", "stdalign_8h" ],

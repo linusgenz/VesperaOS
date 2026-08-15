@@ -2,8 +2,10 @@ var stdint_8h =
 [
     [ "INT16_MAX", "stdint_8h.html#ac58f2c111cc9989c86db2a7dc4fd84ca", null ],
     [ "INT16_MIN", "stdint_8h.html#ad4e9955955b27624963643eac448118a", null ],
+    [ "INT32_C", "stdint_8h.html#a1ddf83530d986214005d1e766f036b28", null ],
     [ "INT32_MAX", "stdint_8h.html#a181807730d4a375f848ba139813ce04f", null ],
     [ "INT32_MIN", "stdint_8h.html#a688eb21a22db27c2b2bd5836943cdcbe", null ],
+    [ "INT64_C", "stdint_8h.html#aab7df05e4698e14dbef512294ff39203", null ],
     [ "INT64_MAX", "stdint_8h.html#ad0d744f05898e32d01f73f8af3cd2071", null ],
     [ "INT64_MIN", "stdint_8h.html#ab21f12f372f67b8ff0aa3432336ede67", null ],
     [ "INT8_MAX", "stdint_8h.html#aaf7f29f45f1a513b4748a4e5014ddf6a", null ],

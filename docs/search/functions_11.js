@@ -1,28 +1,4 @@
 var searchData=
 [
-  ['radius_0',['radius',['../classstella_1_1Widget.html#a2835ebbd0842ec00463f7403cfdcf82d',1,'stella::Widget']]],
-  ['raise_1',['raise',['../userspace_2lib_2include_2signal_8h.html#a350675984ca13ce9b056e69098bda5c6',1,'signal.h']]],
-  ['rand_2',['rand',['../stdlib_8h.html#ae23144bcbb8e3742b00eb687c36654d1',1,'stdlib.h']]],
-  ['range_3',['range',['../classstella_1_1Bar.html#ac059bda60e5ecada25434d5304c77e61',1,'stella::Bar']]],
-  ['read_4',['read',['../unistd_8h.html#af32a16ad2dd9e48482f8f790db7dbbd2',1,'unistd.h']]],
-  ['readdir_5',['readdir',['../stdio_8h.html#a644846453a50f8941bb85d96a9c8d887',1,'stdio.h']]],
-  ['realloc_6',['realloc',['../stdlib_8h.html#a0f723f009d0b6f246530cbbac3ec1dd4',1,'stdlib.h']]],
-  ['reboot_7',['reboot',['../userspace_2lib_2include_2power_8h.html#a525043be9f01d8ddd2cd7988c271e8d5',1,'power.h']]],
-  ['remainder_8',['remainder',['../math_8h.html#a26f64146ba639b4a470e879fd85014ef',1,'math.h']]],
-  ['remainderf_9',['remainderf',['../math_8h.html#aae76e6106300326523a83eae1e14b118',1,'math.h']]],
-  ['remainderl_10',['remainderl',['../math_8h.html#a5e6f0106ff5f8b6d02b4e2e2d352b968',1,'math.h']]],
-  ['remove_11',['remove',['../stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276',1,'stdio.h']]],
-  ['remquo_12',['remquo',['../math_8h.html#a73919caa22d736ca943417fc2be4d827',1,'math.h']]],
-  ['remquof_13',['remquof',['../math_8h.html#a3c043da18e33ea6d976f0669abc488a8',1,'math.h']]],
-  ['remquol_14',['remquol',['../math_8h.html#a182f6e3d64183e5f9e90a44445bd2dc4',1,'math.h']]],
-  ['rename_15',['rename',['../stdio_8h.html#a4d4709508ed7604103d77c3fdc5ea4a2',1,'stdio.h']]],
-  ['rewind_16',['rewind',['../stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819',1,'stdio.h']]],
-  ['rint_17',['rint',['../math_8h.html#a0364527e19933b0d20e969ee6191c320',1,'math.h']]],
-  ['rintf_18',['rintf',['../math_8h.html#a97cfd342ec93dc89a64349dbe312c01d',1,'math.h']]],
-  ['rintl_19',['rintl',['../math_8h.html#a6c5315869cdd2c0812af4ffcb2dc3e48',1,'math.h']]],
-  ['rmdir_20',['rmdir',['../userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'rmdir(const char *path):&#160;stat.h'],['../unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'rmdir(const char *path):&#160;unistd.h']]],
-  ['round_21',['round',['../math_8h.html#a002ab605b795c95e31c67b037f8c0e30',1,'math.h']]],
-  ['roundf_22',['roundf',['../math_8h.html#a4f48da4925df1ba027b5f96eb9bd2878',1,'math.h']]],
-  ['roundl_23',['roundl',['../math_8h.html#a7f1c285e73fe63752bb20236af82cd44',1,'math.h']]],
-  ['run_24',['run',['../classstella_1_1Window.html#a028672e86180f23834bceeb89907b7d9',1,'stella::Window']]]
+  ['qsort_0',['qsort',['../stdlib_8h.html#a9a3f08ab3e633d7ba74925aeb907ba53',1,'stdlib.h']]]
 ];

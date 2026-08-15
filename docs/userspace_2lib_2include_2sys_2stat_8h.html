@@ -103,8 +103,10 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2sys_2stat_8h.
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a677bde372ac108b6747c80e9ddea2cde" id="r_a677bde372ac108b6747c80e9ddea2cde"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#a677bde372ac108b6747c80e9ddea2cde">stat</a> (const char *path, struct <a class="el" href="structstat.html">stat</a> *out)</td></tr>
-<tr class="separator:a677bde372ac108b6747c80e9ddea2cde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af33f7e02d6b1207d62997105df0d9b32" id="r_af33f7e02d6b1207d62997105df0d9b32"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#af33f7e02d6b1207d62997105df0d9b32">stat</a> (const char *__restrict__ path, struct <a class="el" href="structstat.html">stat</a> *__restrict__ buf)</td></tr>
+<tr class="separator:af33f7e02d6b1207d62997105df0d9b32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a198a57e185e8a036ad06345623b84521" id="r_a198a57e185e8a036ad06345623b84521"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#a198a57e185e8a036ad06345623b84521">fstat</a> (int fd, struct <a class="el" href="structstat.html">stat</a> *buf)</td></tr>
+<tr class="separator:a198a57e185e8a036ad06345623b84521"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee98bbe743c2d14dbaa67f01c3fb9ed5" id="r_aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#aee98bbe743c2d14dbaa67f01c3fb9ed5">mkdir</a> (const char *pathname, <a class="el" href="alltypes_8h.html#a4509add91f8e7bf695ce1c157da37527">mode_t</a> mode)</td></tr>
 <tr class="memdesc:aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new directory.  <br /></td></tr>
 <tr class="separator:aee98bbe743c2d14dbaa67f01c3fb9ed5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -117,6 +119,34 @@ Functions</h2></td></tr>
 <tr class="separator:ade74c674de705ba000d89b8b814a1f81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a198a57e185e8a036ad06345623b84521" name="a198a57e185e8a036ad06345623b84521"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a198a57e185e8a036ad06345623b84521">&#9670;&#160;</a></span>fstat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fstat </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structstat.html">stat</a> *&#160;</td>
+          <td class="paramname"><em>buf</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ac249fdf8ca8987f71eb6cb3c60e88ade" name="ac249fdf8ca8987f71eb6cb3c60e88ade"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac249fdf8ca8987f71eb6cb3c60e88ade">&#9670;&#160;</a></span>is_directory()</h2>
 
@@ -229,26 +259,23 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a677bde372ac108b6747c80e9ddea2cde" name="a677bde372ac108b6747c80e9ddea2cde"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a677bde372ac108b6747c80e9ddea2cde">&#9670;&#160;</a></span>stat()</h2>
+<a id="af33f7e02d6b1207d62997105df0d9b32" name="af33f7e02d6b1207d62997105df0d9b32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af33f7e02d6b1207d62997105df0d9b32">&#9670;&#160;</a></span>stat()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static int <a class="el" href="structstat.html">stat</a> </td>
+          <td class="memname">int <a class="el" href="structstat.html">stat</a> </td>
           <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
+          <td class="paramtype">const char *__restrict__&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">struct <a class="el" href="structstat.html">stat</a> *&#160;</td>
-          <td class="paramname"><em>out</em>&#160;</td>
+          <td class="paramtype">struct <a class="el" href="structstat.html">stat</a> *__restrict__&#160;</td>
+          <td class="paramname"><em>buf</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -256,11 +283,6 @@ Functions</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>

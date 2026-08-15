@@ -1,24 +1,10 @@
 var searchData=
 [
-  ['value_0',['value',['../classstella_1_1Bar.html#adb8a2ad70cba93aa3b7b7e1a224a544b',1,'stella::Bar']]],
-  ['vasprintf_1',['vasprintf',['../stdio_8h.html#aa1f06a83ce0ad6dc3e12afc0613efd7c',1,'stdio.h']]],
-  ['vbus_5fcall_2',['vbus_call',['../userspace_2lib_2include_2vbus_8h.html#a168136de4ccfd9cca79abc98cb80bc1f',1,'vbus.h']]],
-  ['vbus_5femit_5fraw_3',['vbus_emit_raw',['../userspace_2lib_2include_2vbus_8h.html#a61e5c7e14ab74b3c95d851b9a16f650d',1,'vbus.h']]],
-  ['vbus_5fnext_5fserial_4',['vbus_next_serial',['../userspace_2lib_2include_2vbus_8h.html#abf1944637ee97cb9eb21a8e04ce4d18c',1,'vbus.h']]],
-  ['vbus_5frecv_5',['vbus_recv',['../userspace_2lib_2include_2vbus_8h.html#a3f395c1bd20d63a86b6e4147ff4b6f0b',1,'vbus.h']]],
-  ['vbus_5frecv_5fac_6',['vbus_recv_ac',['../userspace_2lib_2include_2vbus_8h.html#aea256d9bb135a047fc8173e12678c8e5',1,'vbus.h']]],
-  ['vbus_5frecv_5fbattery_7',['vbus_recv_battery',['../userspace_2lib_2include_2vbus_8h.html#af7386e8e30c75eb0a7197f0b5a1b7f83',1,'vbus.h']]],
-  ['vbus_5freply_8',['vbus_reply',['../userspace_2lib_2include_2vbus_8h.html#ad2185f6f181e610d6bb2b87973d59f9d',1,'vbus.h']]],
-  ['vbus_5fsignal_9',['vbus_signal',['../userspace_2lib_2include_2vbus_8h.html#a7355e5f54982c2e0e30fb1ac48b1bbfe',1,'vbus.h']]],
-  ['vbus_5fsignal_5fto_10',['vbus_signal_to',['../userspace_2lib_2include_2vbus_8h.html#aa67f37c9e7b88c9f22f2e5d3090adb7b',1,'vbus.h']]],
-  ['vbus_5fsubscribe_11',['vbus_subscribe',['../userspace_2lib_2include_2vbus_8h.html#a622ccd414da8b8408ef095b7128c7b6c',1,'vbus.h']]],
-  ['vbus_5funsubscribe_12',['vbus_unsubscribe',['../userspace_2lib_2include_2vbus_8h.html#a502abcdf733eaf6baa3a4a5e51613b14',1,'vbus.h']]],
-  ['vclose_13',['vclose',['../stdio_8h.html#a0bd3f0342044ccd4161488a53b4ad575',1,'stdio.h']]],
-  ['vfprintf_14',['vfprintf',['../stdio_8h.html#adb7ccae12e79b28a1e32fa599038fd56',1,'stdio.h']]],
-  ['vlseek_15',['vlseek',['../stdio_8h.html#a6aca1708950a3fdb6f256e6e05c033a2',1,'stdio.h']]],
-  ['vopen_16',['vopen',['../stdio_8h.html#a6ffe3988729dfd0e40a6e1cecb88d638',1,'stdio.h']]],
-  ['vprintf_17',['vprintf',['../stdio_8h.html#acc23aaaff6fcb9a669853efe712ba4b7',1,'stdio.h']]],
-  ['vread_18',['vread',['../stdio_8h.html#a1531f910d620aeb04d22d897ea07c1d0',1,'stdio.h']]],
-  ['vsnprintf_19',['vsnprintf',['../stdio_8h.html#a65926e55e94f64697275e8a0bc3760bb',1,'stdio.h']]],
-  ['vwrite_20',['vwrite',['../stdio_8h.html#aa3a0b0fa746145cc9821f37ec3d54610',1,'stdio.h']]]
+  ['umount_0',['umount',['../userspace_2lib_2include_2mount_8h.html#addc8952edc6a174d7877b2a60fc1946e',1,'mount.h']]],
+  ['ungetc_1',['ungetc',['../stdio_8h.html#ab634a645f168154ab18a6496db140eb2',1,'stdio.h']]],
+  ['unlink_2',['unlink',['../stdio_8h.html#a28af9471bbdf262321af663e02899a47',1,'unlink(const char *path):&#160;stdio.h'],['../unistd_8h.html#a28af9471bbdf262321af663e02899a47',1,'unlink(const char *path):&#160;unistd.h']]],
+  ['unsetenv_3',['unsetenv',['../stdlib_8h.html#a17a3a11d20a551951a4acbc3872b280c',1,'stdlib.h']]],
+  ['urandom_5fu32_4',['urandom_u32',['../urandom_8h.html#a90caf0e9b86196efaca3f7f772742ef5',1,'urandom.h']]],
+  ['urandom_5fu64_5',['urandom_u64',['../urandom_8h.html#a862ac4e9c7b6c7ca04dc9fc2796b5821',1,'urandom.h']]],
+  ['usleep_6',['usleep',['../userspace_2lib_2include_2time_8h.html#a256986714323ce15d6c80ae1fcd5495b',1,'usleep(uint64_t usec):&#160;time.h'],['../unistd_8h.html#a256986714323ce15d6c80ae1fcd5495b',1,'usleep(uint64_t usec):&#160;unistd.h']]]
 ];
