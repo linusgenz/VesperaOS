@@ -269,9 +269,6 @@ class VirtualFilesystem {
 
         out->st_mode = S_IFDIR | S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 
-        out->v_node_type = VSTAT_TYPE_DIR;
-        out->v_flags = VSTAT_FLAG_READABLE | VSTAT_FLAG_EXEC;
-
         return VoidResult::ok();
     }
 };

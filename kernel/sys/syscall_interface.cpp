@@ -115,6 +115,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_DUP2] = syscalls::internal::sys_dup2;
     syscall_table[SYSCALL_DUP3] = syscalls::internal::sys_dup3;
     syscall_table[SYSCALL_MPROTECT] = syscalls::internal::sys_mprotect;
+    syscall_table[SYSCALL_FSTAT] = syscalls::internal::sys_fstat;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

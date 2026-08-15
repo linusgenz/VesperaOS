@@ -63,10 +63,14 @@ typedef struct pthread_mutexattr_t {
 
 typedef struct pthread_cond_t {
     uint32_t seq;
+    clockid_t clock;   /* clock used for pthread_cond_timedwait's abstime; set at
+                         * init time from the condattr (or CLOCK_REALTIME by default,
+                         * per POSIX). Only CLOCK_REALTIME and CLOCK_MONOTONIC are
+                         * meaningful here. */
 } pthread_cond_t;
 
 typedef struct pthread_condattr_t {
-    int unused;
+    clockid_t clock;
 } pthread_condattr_t;
 
 typedef struct pthread_barrier_t {
@@ -116,7 +120,9 @@ typedef struct pthread_rwlockattr_t {
 
 #define PTHREAD_MUTEX_INITIALIZER      { .state = 0, .type = PTHREAD_MUTEX_NORMAL, .owner = 0, .rec_count = 0 }
 #define PTHREAD_RECURSIVE_MUTEX_INITIALIZER { .state = 0, .type = PTHREAD_MUTEX_RECURSIVE, .owner = 0, .rec_count = 0 }
-#define PTHREAD_COND_INITIALIZER       { .seq = 0 }
+/* CLOCK_REALTIME is the POSIX default for a condvar created without an
+ * explicit condattr (or with a condattr that never called setclock). */
+#define PTHREAD_COND_INITIALIZER       { .seq = 0, .clock = CLOCK_REALTIME }
 #define PTHREAD_ONCE_INIT              { .state = 0 }
 
 #define PTHREAD_BARRIER_SERIAL_THREAD (-1)
@@ -163,6 +169,8 @@ int pthread_mutex_unlock(pthread_mutex_t* mutex);
 
 int pthread_condattr_init(pthread_condattr_t* attr);
 int pthread_condattr_destroy(pthread_condattr_t* attr);
+int pthread_condattr_setclock(pthread_condattr_t* attr, clockid_t clock_id);
+int pthread_condattr_getclock(const pthread_condattr_t* attr, clockid_t* clock_id);
 
 int pthread_cond_init(pthread_cond_t* cond, const pthread_condattr_t* attr);
 int pthread_cond_destroy(pthread_cond_t* cond);

@@ -218,7 +218,7 @@ char* tmpnam(char* buf);
    they are replaced with a string that makes the filename unique.
    Returns a file descriptor open on the file for reading and writing,
    or -1 if it cannot create a uniquely-named file. */
-int mkstemp(char *template);
+int mkstemp(char *tmpl);
 
 #ifdef __cplusplus
 }

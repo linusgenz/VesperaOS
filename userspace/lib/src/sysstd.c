@@ -28,6 +28,7 @@
 #define SYSCALL_OPEN 2
 #define SYSCALL_CLOSE 3
 #define SYSCALL_STAT 4
+#define SYSCALL_FSTAT 5
 #define SYSCALL_SEEK 8
 #define SYSCALL_POLL 7
 #define SYSCALL_MMAP 9
@@ -446,4 +447,8 @@ int64_t sys_mprotect(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint
 
 int64_t sys_exit_group(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_EXIT_GROUP, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_fstat(uint64_t fd, uint64_t buf, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6) {
+    return syscall(SYSCALL_FSTAT, fd, buf, 0, 0, 0, 0);
 }

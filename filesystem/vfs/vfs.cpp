@@ -339,8 +339,34 @@ VoidResult VFS::truncate(VfsNode* node, const usize new_size) {
     return node->ops->truncate(node, new_size);
 }
 
+static u32 node_flags_from_vfs(const VfsNode* n) {
+    u32 f = VSTAT_FLAG_READABLE;
+    if (n->ops && n->ops->write) f |= VSTAT_FLAG_WRITABLE;
+    if (n->type == VfsNodeType::CharDevice || n->type == VfsNodeType::BlockDevice ||
+        n->type == VfsNodeType::OtherDevice)
+        f |= VSTAT_FLAG_VIRTUAL;
+    if (n->permanent) f |= VSTAT_FLAG_PERMANENT;
+    return f;
+}
+
+static u8 vfs_type_to_stat_type(VfsNodeType t) {
+    switch (t) {
+        case VfsNodeType::File:        return VSTAT_TYPE_FILE;
+        case VfsNodeType::Directory:   return VSTAT_TYPE_DIR;
+        case VfsNodeType::CharDevice:  return VSTAT_TYPE_CHARDEV;
+        case VfsNodeType::BlockDevice: return VSTAT_TYPE_BLOCKDEV;
+        default:                       return VSTAT_TYPE_UNKNOWN;
+    }
+}
+
 VoidResult VFS::stat(const VfsNode* node, struct stat* out) {
     if (!node || !node->ops || !node->ops->stat) return Error::NoSys;
+
+    *out = {};
+    out->v_node_type = vfs_type_to_stat_type(node->type);
+    out->v_flags = node_flags_from_vfs(node);
+    out->st_size = node->size;
+
     return node->ops->stat(node, out);
 }
 

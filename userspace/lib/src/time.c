@@ -44,10 +44,6 @@ time_t time(time_t* tloc) {
     return (time_t)sys_time((uint64_t)tloc, 0, 0, 0, 0, 0);
 }
 
-int gettimeofday(timeval_t* tv, void* tz) {
-    return (int)sys_gettimeofday((uint64_t)tv, (uint64_t)tz, 0, 0, 0, 0);
-}
-
 double difftime(time_t t1, time_t t0) {
     return (double)(t1 - t0);
 }

@@ -46,6 +46,18 @@ typedef HANDLE FILE_HANDLE;
 typedef HANDLE CHANNEL_HANDLE;
 typedef HANDLE DIR_HANDLE;
 
+typedef ssize_t (*cookie_read_fn)(void* cookie, char* buf, size_t size);
+typedef ssize_t (*cookie_write_fn)(void* cookie, const char* buf, size_t size);
+typedef int (*cookie_seek_fn)(void* cookie, int64_t* offset, int whence);
+typedef int (*cookie_close_fn)(void* cookie);
+
+typedef struct cookie_io_functions {
+    cookie_read_fn read;
+    cookie_write_fn write;
+    cookie_seek_fn seek;
+    cookie_close_fn close;
+} cookie_io_functions_t;
+
 typedef struct FILE {
     FILE_HANDLE handle;
     int error;
@@ -54,6 +66,9 @@ typedef struct FILE {
     uint8_t* buffer;
     size_t buf_size;
     size_t buf_pos;
+
+    void* cookie;                    /* opaque backend state, passed to io_funcs.* */
+    cookie_io_functions_t io_funcs;  /* backend vtable, see fopencookie() */
 } FILE;
 
 extern FILE* stdin;  /* Standard input stream.  */
@@ -685,7 +700,47 @@ int remove(const char* path);
  */
 int rename(const char* oldpath, const char* newpath);
 
+/**
+ * @brief Open a stream backed by a custom set of I/O callbacks.
+ *
+ *
+ * @param cookie Opaque pointer passed back to each callback in @p io_funcs.
+ * @param mode Mode string ("r", "w", "r+", ...) — same semantics as fopen(),
+ *             used only to decide default buffering, not to validate cookie.
+ * @param io_funcs Callback table; write/seek/close may be NULL if unsupported.
+ * @return Newly allocated FILE* on success, or @c NULL on allocation failure.
+ *
+ * @see open_memstream()
+ * @see fopen()
+ */
+FILE* fopencookie(void* cookie, const char* mode, cookie_io_functions_t io_funcs);
 
+/**
+ * @brief Open a dynamically-growing in-memory stream for writing.
+ *
+ * Writes to the returned stream go into a buffer allocated and grown
+ * with realloc() as needed. After every fflush() (and on fclose()),
+ * @p *bufp is updated to point at the current buffer and @p *sizep
+ * to the number of bytes written so far (not the buffer's capacity).
+ * The buffer is always kept null-terminated (the terminator does not
+ * count toward @p *sizep), so *bufp can be used as a C string
+ * immediately after a flush.
+ *
+ * Writing at an offset seeked past the current end zero-fills the
+ * gap, matching POSIX open_memstream() semantics.
+ *
+ * Ownership: @p *bufp is owned by the caller after fclose() and must
+ * be freed with free(). Before fclose(), the pointer may be
+ * invalidated by any further write (realloc may move it) — re-read
+ * @p *bufp after each fflush() rather than caching it.
+ *
+ * @param bufp Out param: receives the current buffer pointer on each flush.
+ * @param sizep Out param: receives the current data length on each flush.
+ * @return Newly allocated FILE* on success, or @c NULL on error (errno set).
+ *
+ * @see fopencookie()
+ * @see fclose()
+ */
 FILE *open_memstream(char **bufp, size_t *sizep);
 
 #ifdef __cplusplus

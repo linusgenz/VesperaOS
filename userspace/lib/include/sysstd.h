@@ -727,4 +727,6 @@ int64_t sys_mprotect(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint
 
 int64_t sys_exit_group(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
+int64_t sys_fstat(uint64_t fd, uint64_t buf, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6);
+
 #endif  // SYSSTD_H

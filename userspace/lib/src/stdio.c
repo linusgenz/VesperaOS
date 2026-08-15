@@ -42,10 +42,49 @@ FILE* stdin = &__stdin_file;
 FILE* stdout = &__stdout_file;
 FILE* stderr = &__stderr_file;
 
+static ssize_t handle_cookie_read(void* cookie, char* buf, size_t size) {
+    FILE_HANDLE h = (FILE_HANDLE)(uintptr_t)cookie;
+    return sys_read(h, (uint64_t)buf, size, 0, 0, 0);
+}
+
+static ssize_t handle_cookie_write(void* cookie, const char* buf, size_t size) {
+    FILE_HANDLE h = (FILE_HANDLE)(uintptr_t)cookie;
+    return sys_write(h, (uint64_t)buf, size, 0, 0, 0);
+}
+
+static int handle_cookie_seek(void* cookie, int64_t* offset, int whence) {
+    FILE_HANDLE h = (FILE_HANDLE)(uintptr_t)cookie;
+    int64_t ret = sys_seek(h, *offset, whence, 0, 0, 0);
+    if (ret < 0) return -1;
+    *offset = ret;
+    return 0;
+}
+
+static int handle_cookie_close(void* cookie) {
+    FILE_HANDLE h = (FILE_HANDLE)(uintptr_t)cookie;
+    return (int)sys_close(h, 0, 0, 0, 0, 0);
+}
+
+static const cookie_io_functions_t handle_io_funcs = {
+    .read = handle_cookie_read,
+    .write = handle_cookie_write,
+    .seek = handle_cookie_seek,
+    .close = handle_cookie_close,
+};
+
+static void install_handle_backend(FILE* f, FILE_HANDLE handle) {
+    f->handle = handle;
+    f->cookie = (void*)(uintptr_t)handle;
+    f->io_funcs = handle_io_funcs;
+}
+
 void __stdio_init(FILE_HANDLE in, FILE_HANDLE out, FILE_HANDLE err) {
-    __stdin_file = (FILE){.handle = in, .error = 0, .eof = 0, .unget_char = -1};
-    __stdout_file = (FILE){.handle = out, .error = 0, .eof = 0, .unget_char = -1};
-    __stderr_file = (FILE){.handle = err, .error = 0, .eof = 0, .unget_char = -1};
+    __stdin_file = (FILE){.error = 0, .eof = 0, .unget_char = -1};
+    __stdout_file = (FILE){.error = 0, .eof = 0, .unget_char = -1};
+    __stderr_file = (FILE){.error = 0, .eof = 0, .unget_char = -1};
+    install_handle_backend(&__stdin_file, in);
+    install_handle_backend(&__stdout_file, out);
+    install_handle_backend(&__stderr_file, err);
 }
 
 static size_t uint_to_str(uint64_t value, char* buffer, uint8_t base, bool prefix) {
@@ -498,8 +537,12 @@ int fgetc(FILE* f) {
         return c;
     }
     if (f->eof) return -1;
+    if (!f->io_funcs.read) {
+        f->error = 1;
+        return -1;
+    }
     unsigned char c;
-    ssize_t r = sys_read(f->handle, (uint64_t)&c, 1, 0, 0, 0);
+    ssize_t r = f->io_funcs.read(f->cookie, (char*)&c, 1);
     if (r == 0) {
         f->eof = 1;
         return -1;
@@ -781,7 +824,11 @@ int vfprintf(FILE* f, const char* fmt, va_list args) {
     vformat_write(&s, fmt, args);
     buf[s.pos] = '\0';
 
-    ssize_t written = sys_write(f->handle, (uint64_t)buf, s.pos, 0, 0, 0);
+    if (!f->io_funcs.write) {
+        f->error = 1;
+        return -1;
+    }
+    ssize_t written = f->io_funcs.write(f->cookie, buf, s.pos);
     if (written < 0) {
         f->error = 1;
         return -1;
@@ -885,19 +932,14 @@ int asprintf(char** __restrict__ ptr, const char* __restrict__ fmt, ...) {
 
 char* fgets(char* buf, int n, FILE* f) {
     if (!buf || n <= 0 || !f) return NULL;
+    /* fgetc() already handles unget_char + the vtable, so route
+     * through it instead of duplicating the read-one-byte logic
+     * against f->io_funcs directly. */
     int i = 0;
     while (i < n - 1) {
-        char c;
-        ssize_t r = sys_read(f->handle, (uint64_t)&c, 1, 0, 0, 0);
-        if (r == 0) {
-            f->eof = 1;
-            break;
-        }
-        if (r < 0) {
-            f->error = 1;
-            return NULL;
-        }
-        buf[i++] = c;
+        int c = fgetc(f);
+        if (c == -1) break;
+        buf[i++] = (char)c;
         if (c == '\n') break;
     }
     if (i == 0) return NULL;
@@ -964,13 +1006,13 @@ FILE* fopen(const char* path, const char* mode) {
         return NULL;
     }
 
-    f->handle = handle;
     f->error = 0;
     f->eof = 0;
     f->unget_char = -1;
     f->buffer = NULL;
     f->buf_size = 0;
     f->buf_pos = 0;
+    install_handle_backend(f, handle);
 
     return f;
 }
@@ -979,7 +1021,7 @@ FILE* freopen(const char* path, const char* mode, FILE* f) {
     if (!f) return NULL;
 
     fflush(f);
-    sys_close(f->handle, 0, 0, 0, 0, 0);
+    if (f->io_funcs.close) f->io_funcs.close(f->cookie);
 
     int flags = 0;
     switch (mode[0]) {
@@ -1000,10 +1042,10 @@ FILE* freopen(const char* path, const char* mode, FILE* f) {
     FILE_HANDLE handle = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
     if (handle < 0) return NULL;
 
-    f->handle = handle;
     f->error = 0;
     f->eof = 0;
     f->buf_pos = 0;
+    install_handle_backend(f, handle);
 
     return f;
 }
@@ -1011,7 +1053,7 @@ FILE* freopen(const char* path, const char* mode, FILE* f) {
 int fclose(FILE* f) {
     if (!f) return -1;
     fflush(f);
-    int res = (int)sys_close(f->handle, 0, 0, 0, 0, 0);
+    int res = f->io_funcs.close ? f->io_funcs.close(f->cookie) : 0;
     free(f);
 
     if (res < 0) {
@@ -1023,8 +1065,12 @@ int fclose(FILE* f) {
 
 size_t fread(void* ptr, size_t size, size_t nmemb, FILE* f) {
     if (!f || !ptr) return 0;
+    if (!f->io_funcs.read) {
+        f->error = 1;
+        return 0;
+    }
     size_t total = size * nmemb;
-    ssize_t read_bytes = sys_read(f->handle, (uint64_t)ptr, total, 0, 0, 0);
+    ssize_t read_bytes = f->io_funcs.read(f->cookie, (char*)ptr, total);
     if (read_bytes == 0) {
         f->eof = 1;
         return 0;
@@ -1054,7 +1100,11 @@ static int ensure_buffer(FILE* f) {
 static int flush_file_buffer(FILE* f) {
     if (!f || !f->buffer || f->buf_pos == 0) return 0;
 
-    ssize_t written = sys_write(f->handle, (uint64_t)f->buffer, f->buf_pos, 0, 0, 0);
+    if (!f->io_funcs.write) {
+        f->error = 1;
+        return -1;
+    }
+    ssize_t written = f->io_funcs.write(f->cookie, (const char*)f->buffer, f->buf_pos);
 
     if (written < 0) {
         f->error = 1;
@@ -1074,7 +1124,11 @@ size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* f) {
     if (total >= f->buf_size) {
         if (flush_file_buffer(f) < 0) return 0;
 
-        ssize_t written = sys_write(f->handle, (uint64_t)ptr, total, 0, 0, 0);
+        if (!f->io_funcs.write) {
+            f->error = 1;
+            return 0;
+        }
+        ssize_t written = f->io_funcs.write(f->cookie, (const char*)ptr, total);
         if (written < 0) {
             f->error = 1;
             return 0;
@@ -1133,7 +1187,11 @@ int fputs(const char* s, FILE* f) {
     if (len >= f->buf_size) {
         if (flush_file_buffer(f) < 0) return EOF;
 
-        ssize_t written = sys_write(f->handle, (uint64_t)s, len, 0, 0, 0);
+        if (!f->io_funcs.write) {
+            f->error = 1;
+            return EOF;
+        }
+        ssize_t written = f->io_funcs.write(f->cookie, s, len);
         if (written < 0) {
             f->error = 1;
             return EOF;
@@ -1202,10 +1260,20 @@ ssize_t vwrite(HANDLE handle, const void* buf, size_t count) {
 int fseek(FILE* f, long offset, int whence) {
     if (!f) return -1;
     f->unget_char = -1;
-    ssize_t ret = sys_seek(f->handle, offset, whence, 0, 0, 0);
-    if (ret >= 0) f->eof = 0;
-    if (ret < 0) {
-        errno = (int)-ret;
+    if (!f->io_funcs.seek) {
+        errno = EINVAL;
+        return -1;
+    }
+    /* Any buffered write must be flushed before repositioning, or
+     * the pending bytes would land at the new offset. Buffered
+     * *read* data is intentionally dropped by design here, same as
+     * the previous handle-only implementation did. */
+    flush_file_buffer(f);
+    int64_t off = offset;
+    int ret = f->io_funcs.seek(f->cookie, &off, whence);
+    if (ret == 0) f->eof = 0;
+    if (ret != 0) {
+        errno = EINVAL;
         return -1;
     }
     return 0;
@@ -1222,13 +1290,21 @@ int64_t vlseek(HANDLE handle, int64_t offset, int whence) {
 
 ssize_t ftell(FILE* f) {
     if (!f) return -1;
-    return sys_seek(f->handle, 0, SEEK_CUR, 0, 0, 0);
+    if (!f->io_funcs.seek) return -1;
+    int64_t off = 0;
+    int ret = f->io_funcs.seek(f->cookie, &off, SEEK_CUR);
+    if (ret != 0) return -1;
+    return (ssize_t)off;
 }
 
 void rewind(FILE* f) {
     if (!f) return;
     f->unget_char = -1;
-    sys_seek(f->handle, 0, SEEK_SET, 0, 0, 0);
+    flush_file_buffer(f);
+    if (f->io_funcs.seek) {
+        int64_t off = 0;
+        f->io_funcs.seek(f->cookie, &off, SEEK_SET);
+    }
     f->eof = 0;
     f->error = 0;
 }
@@ -1319,4 +1395,156 @@ int rename(const char* oldpath, const char* newpath) {
         return -1;
     }
     return 0;
+}
+
+FILE* fopencookie(void* cookie, const char* mode, cookie_io_functions_t io_funcs) {
+    (void)mode; /* buffering mode is fixed (default 4K, see ensure_buffer) regardless of "r"/"w"/"r+" here */
+
+    FILE* f = malloc(sizeof(FILE));
+    if (!f) return NULL;
+
+    f->handle = 0; /* unused by a custom backend; never dereferenced outside install_handle_backend's callers */
+    f->error = 0;
+    f->eof = 0;
+    f->unget_char = -1;
+    f->buffer = NULL;
+    f->buf_size = 0;
+    f->buf_pos = 0;
+    f->cookie = cookie;
+    f->io_funcs = io_funcs;
+
+    return f;
+}
+
+/* ── open_memstream backend ──────────────────────────────────────────────
+ *
+ * Cookie holds the growable buffer plus the caller's *bufp/*sizep out
+ * params, which are refreshed on every flush (see memstream_flush_ptrs,
+ * called from memstream_write/memstream_seek/memstream_close — every
+ * path that can change size or contents).
+ *
+ * Growth strategy: double capacity (starting at 128 bytes), same as a
+ * typical realloc-based dynamic buffer; capacity is tracked separately
+ * from `len` (the POSIX-visible size) and from the +1 always reserved
+ * for the NUL terminator.
+ */
+
+typedef struct {
+    char* buf;        /* malloc'd backing storage, always NUL-terminated at buf[len] */
+    size_t len;        /* bytes written so far — what *sizep reports */
+    size_t cap;        /* allocated capacity, always >= len + 1 */
+    size_t pos;        /* current write position (may be < len after a seek) */
+    char** bufp;       /* caller's out param, refreshed on every flush */
+    size_t* sizep;      /* caller's out param, refreshed on every flush */
+} memstream_cookie_t;
+
+/* Ensures cap >= needed + 1 (room for NUL), growing geometrically. */
+static int memstream_reserve(memstream_cookie_t* mc, size_t needed) {
+    if (needed + 1 <= mc->cap) return 0;
+
+    size_t new_cap = mc->cap ? mc->cap : 128;
+    while (new_cap < needed + 1) new_cap *= 2;
+
+    char* new_buf = realloc(mc->buf, new_cap);
+    if (!new_buf) return -1;
+
+    mc->buf = new_buf;
+    mc->cap = new_cap;
+    return 0;
+}
+
+/* Publishes the current buffer pointer + length to the caller's
+ * *bufp/*sizep, per open_memstream()'s "updated on flush" contract. */
+static void memstream_flush_ptrs(memstream_cookie_t* mc) {
+    if (mc->bufp) *mc->bufp = mc->buf;
+    if (mc->sizep) *mc->sizep = mc->len;
+}
+
+static ssize_t memstream_write(void* cookie, const char* buf, size_t size) {
+    memstream_cookie_t* mc = (memstream_cookie_t*)cookie;
+
+    size_t end = mc->pos + size;
+    if (memstream_reserve(mc, end) < 0) return -1;
+
+    /* Writing past the current end (after a seek beyond len) must
+     * zero-fill the gap — POSIX open_memstream() semantics. */
+    if (mc->pos > mc->len) {
+        memset(mc->buf + mc->len, 0, mc->pos - mc->len);
+    }
+
+    memcpy(mc->buf + mc->pos, buf, size);
+    mc->pos = end;
+    if (mc->pos > mc->len) mc->len = mc->pos;
+    mc->buf[mc->len] = '\0';
+
+    memstream_flush_ptrs(mc);
+    return (ssize_t)size;
+}
+
+static int memstream_seek(void* cookie, int64_t* offset, int whence) {
+    memstream_cookie_t* mc = (memstream_cookie_t*)cookie;
+
+    int64_t base;
+    switch (whence) {
+        case SEEK_SET: base = 0; break;
+        case SEEK_CUR: base = (int64_t)mc->pos; break;
+        case SEEK_END: base = (int64_t)mc->len; break;
+        default: return -1;
+    }
+
+    int64_t new_pos = base + *offset;
+    if (new_pos < 0) return -1;
+
+    mc->pos = (size_t)new_pos;
+    *offset = new_pos;
+    return 0;
+}
+
+static int memstream_close(void* cookie) {
+    memstream_cookie_t* mc = (memstream_cookie_t*)cookie;
+    memstream_flush_ptrs(mc);
+    free(mc);
+    return 0;
+}
+
+FILE *open_memstream(char **bufp, size_t *sizep) {
+    if (!bufp || !sizep) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    memstream_cookie_t* mc = malloc(sizeof(memstream_cookie_t));
+    if (!mc) return NULL;
+
+    mc->buf = malloc(1);
+    if (!mc->buf) {
+        free(mc);
+        return NULL;
+    }
+    mc->buf[0] = '\0';
+    mc->len = 0;
+    mc->cap = 1;
+    mc->pos = 0;
+    mc->bufp = bufp;
+    mc->sizep = sizep;
+
+    cookie_io_functions_t io_funcs = {
+        .read = NULL, /* write-only stream, see comment above memstream_seek */
+        .write = memstream_write,
+        .seek = memstream_seek,
+        .close = memstream_close,
+    };
+
+    FILE* f = fopencookie(mc, "w", io_funcs);
+    if (!f) {
+        free(mc->buf);
+        free(mc);
+        return NULL;
+    }
+
+    /* Publish the initial empty buffer immediately, matching glibc:
+     * *bufp/*sizep are valid even before the first write or flush. */
+    memstream_flush_ptrs(mc);
+
+    return f;
 }

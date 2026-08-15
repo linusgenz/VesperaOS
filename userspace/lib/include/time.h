@@ -98,17 +98,6 @@ int usleep(uint64_t usec);
 time_t time(time_t* tloc);
 
 /**
- * @brief Get time of day (microsecond resolution).
- *
- * tz is ignored (VesperaOS always returns UTC).
- *
- * @param tv   Output: seconds + microseconds since epoch.
- * @param tz   Ignored; pass NULL. has to be implemented
- * @return     0 always.
- */
-int gettimeofday(timeval_t* tv, void* tz);
-
-/**
  * @brief Difference between two time_t values in seconds.
  */
 double difftime(time_t t1, time_t t0);

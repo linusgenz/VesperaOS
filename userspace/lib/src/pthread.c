@@ -412,7 +412,7 @@ int pthread_mutex_unlock(pthread_mutex_t* mutex) {
 
 int pthread_condattr_init(pthread_condattr_t* attr) {
     if (!attr) return EINVAL;
-    attr->unused = 0;
+    attr->clock = CLOCK_REALTIME; /* POSIX default */
     return 0;
 }
 
@@ -421,10 +421,25 @@ int pthread_condattr_destroy(pthread_condattr_t* attr) {
     return 0;
 }
 
+int pthread_condattr_setclock(pthread_condattr_t* attr, clockid_t clock_id) {
+    if (!attr) return EINVAL;
+    if (clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC) {
+        return EINVAL;
+    }
+    attr->clock = clock_id;
+    return 0;
+}
+
+int pthread_condattr_getclock(const pthread_condattr_t* attr, clockid_t* clock_id) {
+    if (!attr || !clock_id) return EINVAL;
+    *clock_id = attr->clock;
+    return 0;
+}
+
 int pthread_cond_init(pthread_cond_t* cond, const pthread_condattr_t* attr) {
-    (void)attr;
     if (!cond) return EINVAL;
     cond->seq = 0;
+    cond->clock = attr ? attr->clock : CLOCK_REALTIME;
     return 0;
 }
 
@@ -443,12 +458,54 @@ int pthread_cond_wait(pthread_cond_t* cond, pthread_mutex_t* mutex) {
     return 0;
 }
 
+/* futex_wait_until()/sys_futex() only ever compare an absolute deadline
+ * against the kernel's uptime clock (see sys_futex's FUTEX_WAIT handling) —
+ * there is no realtime-vs-monotonic notion at the syscall layer. So when the
+ * condvar's clock is CLOCK_REALTIME (the POSIX default), the caller-supplied
+ * abstime has to be translated into the equivalent uptime deadline before it
+ * reaches futex_wait_until. Because VesperaOS derives realtime as a fixed
+ * offset from uptime (get_realtime_ns() == get_uptime_ns() + rtc epoch), this
+ * translation is exact: we just read both clocks "at the same instant" via
+ * back-to-back clock_gettime calls and subtract. */
+static int translate_realtime_to_uptime_deadline(const struct timespec* abstime,
+                                                   struct timespec* out_uptime_deadline) {
+    struct timespec now_real;
+    struct timespec now_mono;
+
+    if (clock_gettime(CLOCK_REALTIME, &now_real) != 0) return -1;
+    if (clock_gettime(CLOCK_MONOTONIC, &now_mono) != 0) return -1;
+
+    /* offset = realtime_now - uptime_now (both as nanosecond counts) */
+    const int64_t real_ns = (int64_t)now_real.tv_sec * 1000000000LL + now_real.tv_nsec;
+    const int64_t mono_ns = (int64_t)now_mono.tv_sec * 1000000000LL + now_mono.tv_nsec;
+    const int64_t offset_ns = real_ns - mono_ns;
+
+    const int64_t deadline_real_ns = (int64_t)abstime->tv_sec * 1000000000LL + abstime->tv_nsec;
+    int64_t deadline_uptime_ns = deadline_real_ns - offset_ns;
+    if (deadline_uptime_ns < 0) deadline_uptime_ns = 0; /* already in the past */
+
+    out_uptime_deadline->tv_sec  = (time_t)(deadline_uptime_ns / 1000000000LL);
+    out_uptime_deadline->tv_nsec = (long)(deadline_uptime_ns % 1000000000LL);
+    return 0;
+}
+
 int pthread_cond_timedwait(pthread_cond_t* cond, pthread_mutex_t* mutex, const struct timespec* abstime) {
-    if (!cond || !mutex) return EINVAL;
+    if (!cond || !mutex || !abstime) return EINVAL;
+
+    const struct timespec* wait_deadline = abstime;
+    struct timespec converted;
+
+    if (cond->clock == CLOCK_REALTIME) {
+        if (translate_realtime_to_uptime_deadline(abstime, &converted) != 0) {
+            return EINVAL;
+        }
+        wait_deadline = &converted;
+    }
+    /* else CLOCK_MONOTONIC: abstime is already uptime-compatible, pass through. */
 
     const uint32_t seq = __atomic_load_n(&cond->seq, __ATOMIC_ACQUIRE);
     pthread_mutex_unlock(mutex);
-    const int wait_ret = futex_wait_until(&cond->seq, seq, abstime);
+    const int wait_ret = futex_wait_until(&cond->seq, seq, wait_deadline);
     pthread_mutex_lock(mutex);
 
     return (wait_ret != 0) ? ETIMEDOUT : 0;

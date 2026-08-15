@@ -1,9 +1,9 @@
-// sys_stat.cpp
+// sys_fstat.cpp
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 15.03.26.
+// Created by Linus Genz on 15.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -24,31 +24,41 @@
 #include <filesystem/vfs.h>
 #include <vespera/scheduling.h>
 #include <vespera_errno.h>
-
-#include <tty/tty_device.h>
 #include <filesystem/vfs_node.h>
+#include "filesystem/vfs_handle.h"
+#include "sys/handle_resolution.h"
 
 namespace syscalls::internal {
-
-    i64 sys_stat(u64 arg0, u64 arg1, u64, u64, u64, u64) {
-        const auto path = reinterpret_cast<const char*>(arg0);
+    i64 sys_fstat(u64 arg0, u64 arg1, u64, u64, u64, u64) {
+        const auto hid = static_cast<HandleId>(arg0);
         auto* out_buf = reinterpret_cast<stat*>(arg1);
 
-        if (!path || !*path || !out_buf) return -EINVAL;
+        if (!out_buf) return -EINVAL;
 
-        char norm[256];
-        SYSCALL_TRY_VOID(VFS::resolve_path(path, norm, sizeof(norm)));
+        const auto rh = SYSCALL_TRY(resolve_handle(hid, /*type_mask=*/0, CAP_READ));
 
-        VfsNode* node = SYSCALL_TRY(VFS::open(norm));
+        VfsNode* node = nullptr;
+
+        switch (rh.type()) {
+            case HANDLE_TYPE_DEVICE:
+            case HANDLE_TYPE_FILE: {
+                const auto* vh = rh.resource_as<VfsHandle>();
+                if (!vh || !vh->node) return -EBADH;
+                node = vh->node;
+                break;
+            }
+            case HANDLE_TYPE_PIPE: {
+                // TODO not implemented yet
+                return -ENOSYS;
+            }
+            default:
+                return -EBADH;
+        }
 
         stat st{};
-        auto res = VFS::stat(node, &st);
-        VFS::close(node);
-
-        if (res.is_err()) return res.to_errno();
+        SYSCALL_TRY_VOID(VFS::stat(node, &st));
 
         memcpy(out_buf, &st, sizeof(st));
         return SUCCESS_CODE;
     }
-
-}  // namespace syscalls::internal
+}
