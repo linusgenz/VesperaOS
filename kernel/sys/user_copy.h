@@ -37,6 +37,8 @@ namespace syscalls {
     // or if the range is otherwise inaccessible.
     [[nodiscard]] bool copy_from_user(void* dst, const void* src, usize len);
 
+    bool copy_to_user(void* dst, const void* src, usize len);
+
     // Reads a single pointer-sized value from user space.
     // Convenience wrapper around copy_from_user.
     [[nodiscard]] bool copy_ptr_from_user(uptr* dst, const void* src);

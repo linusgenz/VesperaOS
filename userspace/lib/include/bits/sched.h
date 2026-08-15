@@ -3,7 +3,7 @@
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 15.08.26.
+// Created by Linus Genz on 16.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,15 +19,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef _SCHED_H
-#define _SCHED_H
+#ifndef _BITS_SCHED_H
+#define _BITS_SCHED_H
 
-#include <bits/sched.h>
+#ifndef _PID_T_DEFINED
+#define _PID_T_DEFINED
+typedef int pid_t;
+#endif
 
-void sched_yield(void);
 
-/* Get the CPU affinity for a task */
-extern int sched_getaffinity (pid_t pid, size_t cpusetsize,
-                  cpu_set_t *cpuset);
-
-#endif //_SCHED_H
+#endif //_BITS_SCHED_H

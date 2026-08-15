@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <sysstd.h>
+#include <sys/sysinfo.h>
 
 // ---------------------------------------------------------------------
 // File I/O
@@ -265,6 +266,8 @@ int usleep(uint64_t usec) {
 // ---------------------------------------------------------------------
 
 int64_t sysconf(int name) {
+    struct sysinfo info;
+
     switch (name) {
         case _SC_PAGESIZE:
             return 4096;
@@ -278,6 +281,12 @@ int64_t sysconf(int name) {
             // TODO: no syscall exposes the per-realm handle table limit.
             // Using a conservative placeholder.
             return 256;
+        case _SC_PHYS_PAGES:
+            if (sysinfo(&info) < 0) {
+                return -1;
+            }
+
+            return (long)((info.totalram * info.mem_unit) / 4096);
         default:
             errno = EINVAL;
             return -1;

@@ -57,6 +57,7 @@
 #define SYSCALL_CREATE 85
 #define SYSCALL_UNLINK 87
 #define SYSCALL_GETTIMEOFDAY 96
+#define SYSCALL_SYSINFO 99
 #define SYSCALL_CHROOT 161
 #define SYSCALL_MOUNT 165
 #define SYSCALL_UMOUNT 166
@@ -449,6 +450,10 @@ int64_t sys_exit_group(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, ui
     return syscall(SYSCALL_EXIT_GROUP, arg0, 0, 0, 0, 0, 0);
 }
 
-int64_t sys_fstat(uint64_t fd, uint64_t buf, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6) {
+int64_t sys_fstat(uint64_t fd, uint64_t buf, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_FSTAT, fd, buf, 0, 0, 0, 0);
+}
+
+int64_t sys_sysinfo(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SYSINFO, arg0, 0, 0, 0, 0, 0);
 }

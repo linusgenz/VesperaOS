@@ -51,12 +51,14 @@ extern "C" {
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-// sysconf() names. Only the subset needed by ported code is defined.
+// sysconf() names
 #define _SC_PAGESIZE     1
 #define _SC_PAGE_SIZE _SC_PAGESIZE
 #define _SC_NPROCESSORS_ONLN 2
+#define _SC_NPROCESSORS_CONF _SC_NPROCESSORS_ONLN
 #define _SC_CLK_TCK      3
 #define _SC_OPEN_MAX     4
+#define _SC_PHYS_PAGES   85
 
 // access() mode bits
 #define F_OK 0

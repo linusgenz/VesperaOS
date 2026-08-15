@@ -103,4 +103,8 @@ namespace kernel::realm {
             return Result<WaitResult>::ok({true, exit_code});
         }
     }
+
+    usize get_realm_count() {
+        return RealmManager::get_active_count();
+    }
 } // namespace kernel::realm

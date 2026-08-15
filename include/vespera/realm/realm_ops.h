@@ -52,6 +52,11 @@ namespace kernel::realm {
      */
     [[nodiscard]]
     Result<WaitResult> wait(RealmId id, u32 flags = WAIT_FLAG_NONE);
+
+    /**
+     * @brief Get total active realm count
+     */
+    usize get_realm_count();
 } // namespace kernel::realm
 
 #endif  // VESPERAOS_VESPERA_REALM_REALM_OPS_H

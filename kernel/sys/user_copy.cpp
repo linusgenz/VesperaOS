@@ -26,12 +26,19 @@
 #include <vespera/types.h>
 
 namespace syscalls {
-
     bool is_user_range(const uptr addr, const usize len) {
         if (addr == 0) return false;
         if (len == 0) return true;
         if (addr > USER_ADDR_MAX) return false;
         if (len > USER_ADDR_MAX - addr) return false;
+        return true;
+    }
+
+    bool copy_to_user(void* dst, const void* src, const usize len) {
+        if (!dst || !src) return false;
+        if (!is_user_range(reinterpret_cast<uptr>(dst), len)) return false;
+
+        memcpy(dst, src, len);
         return true;
     }
 
@@ -89,5 +96,4 @@ namespace syscalls {
         out_ptrs[count] = nullptr;
         return static_cast<i64>(count);
     }
-
-}  // namespace syscalls
+} // namespace syscalls

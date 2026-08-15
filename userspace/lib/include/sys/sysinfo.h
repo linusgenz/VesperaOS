@@ -1,4 +1,4 @@
-// sched.h
+// sysinfo.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
@@ -19,15 +19,21 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef _SCHED_H
-#define _SCHED_H
 
-#include <bits/sched.h>
+#ifndef _SYS_SYSINFO_H
+#define _SYS_SYSINFO_H
 
-void sched_yield(void);
+#include <stdint.h>
+#include <vespera/sysinfo.h>
 
-/* Get the CPU affinity for a task */
-extern int sched_getaffinity (pid_t pid, size_t cpusetsize,
-                  cpu_set_t *cpuset);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif //_SCHED_H
+int sysinfo(struct sysinfo *info);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _SYS_SYSINFO_H */

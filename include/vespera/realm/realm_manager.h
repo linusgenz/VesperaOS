@@ -46,6 +46,7 @@ class RealmManager {
     static void signal_pgid(RealmId pgid, Signal sig);
     static Result<usize> get_status(void* manager_ref, void* buffer, usize size, usize offset);
     static void list();
+    static usize get_active_count();
     static void abort(RealmId id);
     static constexpr usize MAX_REALMS = 64;
 

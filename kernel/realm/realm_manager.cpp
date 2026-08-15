@@ -381,3 +381,22 @@ void RealmManager::list() {
         if (const u8 end = seq_.load(); begin == end) return;
     }
 }
+
+usize RealmManager::get_active_count() {
+    while (true) {
+        const u8 begin = seq_.load();
+        if (begin & 1)
+            continue;
+
+        usize count = 0;
+        for (const auto& realm : realms_) {
+            if (realm.active) {
+                count++;
+            }
+        }
+
+        if (const u8 end = seq_.load(); begin == end) {
+            return count;
+        }
+    }
+}
