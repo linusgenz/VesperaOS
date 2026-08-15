@@ -36,6 +36,11 @@ namespace kernel::scheduling {
      * the reaper and yields. Never returns.
      */
     [[noreturn]] void exit_current(int exit_code);
-}  // namespace kernel::scheduling
+
+    /**
+    * @brief Terminates the current realm with the given exit code.
+    */
+    [[noreturn]] void exit_current_realm(int exit_code);
+} // namespace kernel::scheduling
 
 #endif  // VESPERAOS_UNIT_TERMINATION_H

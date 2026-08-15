@@ -1,9 +1,9 @@
-// unit.c
+// stat.c
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 11.06.26.
+// Created by Linus Genz on 15.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,17 +20,34 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include "unit.h"
-#include "stdlib.h"
+#include <sys/stat.h>
+#include <errno.h>
+#include <stdint.h>
 
-UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr, uint64_t stack_size) {
-    return sys_unit_spawn(realm_id, entry_point, arg_ptr, stack_size, 0, 0);
+int stat(const char *restrict path, struct stat *restrict buf) {
+    if (!path || !buf) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    int64_t res = sys_stat((uint64_t)path, (uint64_t)buf, 0, 0, 0, 0);
+    if (res < 0) {
+        errno = (int)(-res);
+        return -1;
+    }
+    return 0;
 }
 
-int64_t join_unit(UnitID unit_id, int64_t* exit_code_out) {
-    return sys_join_unit(unit_id, (uint64_t)exit_code_out, 0, 0, 0, 0);
-}
+int fstat(int fd, struct stat *buf) {
+    if (fd < 0 || !buf) {
+        errno = EINVAL;
+        return -1;
+    }
 
-UnitID get_unit_id(void) {
-    return sys_get_unid(0,0,0,0,0,0);
+    int64_t res = sys_fstat((uint64_t)fd, (uint64_t)buf, 0, 0, 0, 0);
+    if (res < 0) {
+        errno = (int)(-res);
+        return -1;
+    }
+    return 0;
 }

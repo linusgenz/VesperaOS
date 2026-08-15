@@ -26,9 +26,8 @@
 #include <sysstd.h>
 #include <vespera/stat.h>
 
-static inline int stat(const char* path, struct stat* out) {
-    return (int)sys_stat((uint64_t)path, (uint64_t)out, 0, 0, 0, 0);
-}
+int stat(const char *__restrict__ path, struct stat *__restrict__ buf);
+int fstat(int fd, struct stat *buf);
 
 /**
  * @brief Create a new directory.

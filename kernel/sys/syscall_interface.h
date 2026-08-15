@@ -189,6 +189,8 @@ namespace syscalls::internal {
     i64 sys_mprotect(u64 addr, u64 length, u64 prot, u64, u64, u64);
 
     i64 sys_fstat(u64 arg0, u64 arg1, u64, u64, u64, u64);
+
+    i64 sys_exit_group(u64 code, u64, u64, u64, u64, u64);
 } // namespace syscalls::internal
 
 void install_syscalls();

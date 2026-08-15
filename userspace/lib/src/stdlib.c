@@ -604,8 +604,74 @@ int mkstemp(char* tmpl) {
     return -1;
 }
 
-_Noreturn void exit(int code) {
-    fflush(NULL);
-    sys_exit_group(code, 0, 0, 0, 0, 0);
-    __builtin_unreachable();
+#define ATEXIT_MAX 48
+
+static void (*atexit_funcs[ATEXIT_MAX])(void);
+static size_t atexit_count = 0;
+static bool atexit_lock = false;
+
+static void lock_atexit(void) {
+    while (__atomic_test_and_set(&atexit_lock, __ATOMIC_ACQUIRE)) {
+        __asm__ __volatile__("pause");
+    }
 }
+
+static void unlock_atexit(void) {
+    __atomic_clear(&atexit_lock, __ATOMIC_RELEASE);
+}
+
+int atexit(void (*func)(void)) {
+    if (!func) {
+        return -1;
+    }
+
+    lock_atexit();
+
+    if (atexit_count >= ATEXIT_MAX) {
+        unlock_atexit();
+        return -1;
+    }
+
+    atexit_funcs[atexit_count++] = func;
+
+    unlock_atexit();
+    return 0;
+}
+
+NORETURN void _Exit(int status) {
+    sys_exit_group((uint64_t)status, 0, 0, 0, 0, 0);
+
+    for (;;) {
+        __asm__ __volatile__("ud2");
+    }
+}
+
+NORETURN void exit(int status) {
+    while (1) {
+        void (*func)(void) = NULL;
+
+        lock_atexit();
+        if (atexit_count > 0) {
+            func = atexit_funcs[--atexit_count];
+        }
+        unlock_atexit();
+
+        if (!func) {
+            break;
+        }
+
+        func();
+    }
+
+
+    fflush(NULL);
+
+    _Exit(status);
+}
+
+/*
+void qsort(void *base, size_t nmemb, size_t size,
+           __compar_fn_t __compar) {
+
+}
+*/

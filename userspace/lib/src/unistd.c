@@ -231,7 +231,7 @@ int setgid(gid_t gid) {
 }
 
 _Noreturn void _exit(int status) {
-    sys_exit((uint64_t)status, 0, 0, 0, 0, 0);
+    sys_exit_group((uint64_t)status, 0, 0, 0, 0, 0);
     __builtin_unreachable();
 }
 

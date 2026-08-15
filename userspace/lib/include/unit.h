@@ -49,8 +49,6 @@ UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr, uint
 int64_t join_unit(UnitID unit_id, int64_t* exit_code_out);
 
 
-void sched_yield(void);
-
 UnitID get_unit_id(void);
 
 #endif //VESPLIB_UNIT_H

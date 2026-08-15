@@ -145,15 +145,19 @@ void* realloc(void* ptr, size_t new_size);
  */
 void* calloc(size_t nmemb, size_t size);
 
-/**
- * @brief Terminate the current unit.
- *
- * This will stop the unit and remove it from its realm.
- *
- * @param code Exit code for the unit.
- * @return Does not return; halts the unit.
- */
+
+/* Call all functions registered with `atexit' and `on_exit',
+   in the reverse of the order in which they were registered,
+   perform stdio cleanup, and terminate program execution with STATUS.  */
 NORETURN void exit(int code);
+
+/* Terminate the program with STATUS without calling any of the
+   functions registered with `atexit' or `on_exit'.  */
+NORETURN void _Exit (int status);
+
+/* Register a function to be called with the status
+   given to `exit' and the given argument.  */
+int atexit(void (*func)(void));
 
 /**
  * @brief Convert a string to an integer.
@@ -219,6 +223,17 @@ char* tmpnam(char* buf);
    Returns a file descriptor open on the file for reading and writing,
    or -1 if it cannot create a uniquely-named file. */
 int mkstemp(char *tmpl);
+
+
+#ifndef __COMPAR_FN_T
+# define __COMPAR_FN_T
+typedef int (*__compar_fn_t) (const void *, const void *);
+# endif
+
+/* Sort NMEMB elements of BASE, of SIZE bytes each,
+   using COMPAR to perform the comparisons.  */
+void qsort(void *base, size_t nmemb, size_t size,
+           __compar_fn_t __compar);
 
 #ifdef __cplusplus
 }

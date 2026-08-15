@@ -137,6 +137,14 @@ size_t strlcpy(char *dest, const char *src, size_t size);
 
 int strcasecmp(const char *s1, const char *s2);
 
+/* Duplicate S, returning an identical malloc'd string.  */
+char *strdup (const char *s);
+
+/* Return a malloc'd copy of at most N bytes of STRING.  The
+   resultant string is terminated even if no null terminator
+   appears before STRING[N].  */
+char *strndup(const char *s, size_t n);
+
 #ifdef __cplusplus
 }
 #endif

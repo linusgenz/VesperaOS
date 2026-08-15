@@ -36,8 +36,8 @@
 
 #include "cpu_scheduler.h"
 
-static void do_terminate_unit(Unit* unit, Signal fault_sig) {
-    unit->exit_code = -static_cast<i32>(fault_sig);
+static void finish_terminate_unit(Unit* unit, i32 exit_code) {
+    unit->exit_code = exit_code;
     unit->state = UnitState::Terminated;
 
     if (unit->run_start_ns != 0) {
@@ -53,19 +53,29 @@ static void do_terminate_unit(Unit* unit, Signal fault_sig) {
     cpu->reaper.enqueue(unit);
 }
 
+static void do_terminate_unit(Unit* unit, Signal fault_sig) {
+    finish_terminate_unit(unit, -static_cast<i32>(fault_sig));
+}
+
+static void do_terminate_unit(Unit* unit, i32 exit_code) {
+    finish_terminate_unit(unit, exit_code);
+}
+
 namespace kernel::scheduling {
+    static void finalize_realm_exit(Realm* realm, i32 exit_code) {
+        SpinlockGuard g(realm->lock);
+        realm->exit_code = exit_code;
+        ExitCodeTable::store(realm->id, exit_code);
+        realm->exited = true;
+    }
+
     [[noreturn]] static void kill_realm_internal(Realm* realm, Signal sig, const char* reason) {
         if (!realm) {
             Log::error("kill_realm_internal: null realm (%s)", reason);
             SystemManager::system_panic("Null realm", -KENOCTXFLT);
         }
 
-        {
-            SpinlockGuard g(realm->lock);
-            realm->exit_code = static_cast<i32>(sig) & 0x7f;
-            ExitCodeTable::store(realm->id, realm->exit_code);
-            realm->exited = true;
-        }
+        finalize_realm_exit(realm, static_cast<i32>(sig) & 0x7f);
 
         // TODO: core dump
 
@@ -110,6 +120,43 @@ namespace kernel::scheduling {
         kill_realm_internal(realm, sig, reason);
     }
 
+    [[noreturn]] void exit_current_realm(i32 status) {
+        asm volatile("cli");
+
+        u8 cpu_id = cpu_manager::get_current_cpu_id();
+        auto* cpu = cpu_scheduler::get_cpu_data(cpu_id);
+
+        Unit* current = cpu->current_unit;
+        Realm* realm = current ? current->parent : nullptr;
+
+        if (!realm) {
+            SystemManager::system_panic("exit_realm: no realm context", -KENOCTXFLT);
+        }
+
+        finalize_realm_exit(realm, status);
+
+        {
+            SpinlockGuard guard(cpu->lock);
+
+            if (cpu->current_unit && cpu->current_unit->rid == realm->id) {
+                cpu->current_unit = nullptr;
+            }
+
+            Unit* u = realm->unit_list;
+            while (u) {
+                Unit* next = u->next;
+                do_terminate_unit(u, status);
+                u = next;
+            }
+        }
+
+        realm->wait_queue.wake_all();
+        realm->unit_count = 0;
+
+        yield();
+        __builtin_unreachable();
+    }
+
     i64 kill_realm_by_id(u64 rid, Signal sig) {
         Realm* realm = RealmManager::get(rid);
         if (!realm) return -ESRCH;
@@ -134,12 +181,7 @@ namespace kernel::scheduling {
             }
         }
 
-        {
-            SpinlockGuard g(realm->lock);
-            realm->exit_code = static_cast<i32>(sig) & 0x7f;
-            ExitCodeTable::store(realm->id, realm->exit_code);
-            realm->exited = true;
-        }
+        finalize_realm_exit(realm, static_cast<i32>(sig) & 0x7f);
 
         realm->wait_queue.wake_all();
         realm->unit_count = 0;

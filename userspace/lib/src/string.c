@@ -23,6 +23,7 @@
 
 #include <ctype.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <stdint.h>
 
 size_t strlen(const char* s) {
@@ -374,4 +375,24 @@ int strcasecmp(const char *s1, const char *s2) {
 
     return (int)(unsigned char)tolower((unsigned char)*s1)
          - (int)(unsigned char)tolower((unsigned char)*s2);
+}
+
+char *strndup(const char *s, size_t n) {
+    if (!s) return NULL;
+
+    size_t len = strnlen(s, n);
+    char *dst = malloc(len + 1);
+
+    if (dst == NULL) {
+        return NULL;
+    }
+
+    memcpy(dst, s, len);
+    dst[len] = '\0';
+
+    return dst;
+}
+
+char *strdup(const char *s) {
+    return strndup(s, (size_t)-1);
 }

@@ -28,6 +28,7 @@
 
 #include <realm.h>
 #include <unit.h>
+#include <sched.h>
 
 #include "futex.h"
 #include "stdbool.h"
