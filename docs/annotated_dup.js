@@ -86,6 +86,7 @@ var annotated_dup =
     [ "stat", "structstat.html", "structstat" ],
     [ "stella_color_t", "structstella__color__t.html", "structstella__color__t" ],
     [ "stella_config", "structstella__config.html", "structstella__config" ],
+    [ "sysinfo", "structsysinfo.html", "structsysinfo" ],
     [ "thermal_info", "structthermal__info.html", "structthermal__info" ],
     [ "thermal_zone", "structthermal__zone.html", "structthermal__zone" ],
     [ "timespec", "structtimespec.html", "structtimespec" ],

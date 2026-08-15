@@ -76,6 +76,7 @@ var hierarchy =
     [ "stat", "structstat.html", null ],
     [ "stella_color_t", "structstella__color__t.html", null ],
     [ "stella_config", "structstella__config.html", null ],
+    [ "sysinfo", "structsysinfo.html", null ],
     [ "thermal_info", "structthermal__info.html", null ],
     [ "thermal_zone", "structthermal__zone.html", null ],
     [ "stella::Timer", "classstella_1_1Timer.html", null ],

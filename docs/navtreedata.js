@@ -64,19 +64,19 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "alloca_8h.html",
-"crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57fafade63e71e1cd58ca034c09fb1b4998d",
-"elf_8h.html#a9cdfedf900935f23f6e409ce378dc1d2",
-"float_8h.html#aae38a34e50eb45aca66a037454d9a555",
-"include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d",
-"inttypes_8h.html#a5231235fbdc84d556db88609b469982b",
-"log__client_8h.html#aeaf09e51c5a1f84078e5c6aa59dc48de",
-"mman_8h.html#a1beae3f774b7e4798cbe4f5c75d127d3",
-"stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989",
-"stella_8h.html#af021760a7f70b3bf8977fc1ac8fb5715",
-"structfb__blit.html#a135c2789a60d270e70623765fba4d2c2",
-"structsmart__nvme.html#a5bf161de7deb9832bf42a2a1cd7046c3",
-"sysstd_8h.html#a091f01c4efcb294d26fbe4acd67ccb1e",
-"userspace_2lib_2include_2power_8h.html"
+"crepusculum__protocol_8h.html#a266333671c6faaee3a55431bd624f57f",
+"elf_8h.html#a9a8d04995d4d2211c875981bcff7f540",
+"float_8h.html#a86b561ae1011c3624b21b05fb83f61b8",
+"include_2uapi_2vespera_2dev_2power_8h.html#aee5b86658eaafaffc997edb7a8b3d751",
+"inttypes_8h.html#a4c88287eaf08ffa705c32f41eb174f77",
+"log__client_8h.html#a808ed84a263b3c9279afd2cac13a0e71",
+"mice_8h.html#ad0237e45347643d59a208e731bb1c38eaee472741ec52076f6833d0607501e159",
+"stdio_8h.html",
+"stella_8h.html#ae1030569b6bcd0151724988cb7fce2ee",
+"structelf__loaded__object.html#ab284def43ce26bfbf7ee21b3d15c15c7",
+"structsmart__nvme.html",
+"sys_2syslog_8h.html#ac19bfe79880b74eb63d406c218c89350",
+"userspace_2lib_2include_2fcntl_8h.html#a6a6f985cc61227f641f7cc75927b06fc"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

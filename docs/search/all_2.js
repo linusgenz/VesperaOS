@@ -39,10 +39,11 @@ var searchData=
   ['buf_5fpos_36',['buf_pos',['../structFILE.html#a91ee47d34efcc4136d468b8485e1700c',1,'FILE']]],
   ['buf_5fsize_37',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],
   ['buffer_38',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
-  ['bufsiz_39',['BUFSIZ',['../stdio_8h.html#a72a591cf0a96cf23c63df5c78712dabe',1,'stdio.h']]],
-  ['bus_5fnumber_40',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]],
-  ['button_41',['button',['../classstella_1_1Button.html#abb3c733b1ffd45edcb98ab069cd40f93',1,'stella::Button::Button()'],['../classstella_1_1Button.html',1,'stella::Button']]],
-  ['button_5fid_42',['button_id',['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event::button_id'],['../structvbus__display__input__event__t.html#a9bb544c015d25a3336aae7e40bf0f107',1,'vbus_display_input_event_t::button_id']]],
-  ['buttons_43',['buttons',['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event::buttons'],['../structvbus__display__input__event__t.html#a49b0790fa3effadf9313c9b93758db5e',1,'vbus_display_input_event_t::buttons']]],
-  ['byte_5forder_44',['BYTE_ORDER',['../endian_8h.html#a1771b7fb65ee640524d0052f229768c3',1,'endian.h']]]
+  ['bufferram_39',['bufferram',['../structsysinfo.html#a2302054f4587ac2c5f6a6a2fb53509d1',1,'sysinfo']]],
+  ['bufsiz_40',['BUFSIZ',['../stdio_8h.html#a72a591cf0a96cf23c63df5c78712dabe',1,'stdio.h']]],
+  ['bus_5fnumber_41',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]],
+  ['button_42',['button',['../classstella_1_1Button.html#abb3c733b1ffd45edcb98ab069cd40f93',1,'stella::Button::Button()'],['../classstella_1_1Button.html',1,'stella::Button']]],
+  ['button_5fid_43',['button_id',['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event::button_id'],['../structvbus__display__input__event__t.html#a9bb544c015d25a3336aae7e40bf0f107',1,'vbus_display_input_event_t::button_id']]],
+  ['buttons_44',['buttons',['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event::buttons'],['../structvbus__display__input__event__t.html#a49b0790fa3effadf9313c9b93758db5e',1,'vbus_display_input_event_t::buttons']]],
+  ['byte_5forder_45',['BYTE_ORDER',['../endian_8h.html#a1771b7fb65ee640524d0052f229768c3',1,'endian.h']]]
 ];

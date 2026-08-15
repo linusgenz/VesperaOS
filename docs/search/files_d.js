@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['sched_2eh_0',['sched.h',['../sched_8h.html',1,'']]],
+  ['sched_2eh_0',['sched.h',['../bits_2sched_8h.html',1,'(Global Namespace)'],['../sched_8h.html',1,'(Global Namespace)']]],
   ['setjmp_2eh_1',['setjmp.h',['../setjmp_8h.html',1,'']]],
   ['shm_2eh_2',['shm.h',['../shm_8h.html',1,'']]],
   ['signal_2eh_3',['signal.h',['../include_2uapi_2vespera_2signal_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2signal_8h.html',1,'(Global Namespace)']]],
@@ -16,6 +16,7 @@ var searchData=
   ['stella_2b_2b_2eh_13',['stella++.h',['../stella_09_09_8h.html',1,'']]],
   ['stella_2eh_14',['stella.h',['../stella_8h.html',1,'']]],
   ['string_2eh_15',['string.h',['../string_8h.html',1,'']]],
-  ['syslog_2eh_16',['syslog.h',['../sys_2syslog_8h.html',1,'(Global Namespace)'],['../syslog_8h.html',1,'(Global Namespace)']]],
-  ['sysstd_2eh_17',['sysstd.h',['../sysstd_8h.html',1,'']]]
+  ['sysinfo_2eh_16',['sysinfo.h',['../include_2uapi_2vespera_2sysinfo_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2sys_2sysinfo_8h.html',1,'(Global Namespace)']]],
+  ['syslog_2eh_17',['syslog.h',['../sys_2syslog_8h.html',1,'(Global Namespace)'],['../syslog_8h.html',1,'(Global Namespace)']]],
+  ['sysstd_2eh_18',['sysstd.h',['../sysstd_8h.html',1,'']]]
 ];

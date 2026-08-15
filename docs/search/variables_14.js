@@ -21,11 +21,14 @@ var searchData=
   ['total_5fcores_18',['total_cores',['../structcpu__info.html#a14e708eb4db7e380f8a3310a0de25909',1,'cpu_info']]],
   ['total_5fcycles_19',['total_cycles',['../structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a',1,'cpu_usage_stat']]],
   ['total_5fram_20',['total_ram',['../structmeminfo.html#a568f1ff0eb141fab01680030ee43e5e4',1,'meminfo']]],
-  ['ts_5fns_21',['ts_ns',['../structchronos__event.html#a64912b6761d34a3cbbd8bf89b2d98224',1,'chronos_event']]],
-  ['tv_5fnsec_22',['tv_nsec',['../structtimespec.html#a6d9d14e9cdae880583f79d3b4a7fd42a',1,'timespec']]],
-  ['tv_5fsec_23',['tv_sec',['../structtimespec.html#aeee94728b745f1726486b7e2eab1eb78',1,'timespec::tv_sec'],['../structtimeval.html#aa679f0a4b2124961c188b377a220853c',1,'timeval::tv_sec']]],
-  ['tv_5fusec_24',['tv_usec',['../structtimeval.html#a7135c021b25897e971ab4b5be1c7d6ed',1,'timeval']]],
-  ['type_25',['type',['../structvbus__display__input__event__t.html#ab9e55f5b923fbfcba20157c77c591699',1,'vbus_display_input_event_t::type'],['../structpthread__mutex__t.html#a2b17b8d2f23361d22e71cdca7f3fc3ce',1,'pthread_mutex_t::type'],['../structpthread__mutexattr__t.html#a68e969a13bae46b5b3ef8fbd6a68831a',1,'pthread_mutexattr_t::type'],['../structmice__event.html#a5665e776dc2dd593f6e14aa5c30708f0',1,'mice_event::type'],['../structbattery__info.html#a5fcec974d20588414ed7a8b044d0e716',1,'battery_info::type'],['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t::type'],['../structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f',1,'vbus_header::type']]],
-  ['tz_5fdsttime_26',['tz_dsttime',['../structtimezone.html#a85259977aeb63b17e6ce94f19afdfd99',1,'timezone']]],
-  ['tz_5fminuteswest_27',['tz_minuteswest',['../structtimezone.html#a3042f7eff6e1b980728def76b1fa0eb7',1,'timezone']]]
+  ['totalhigh_21',['totalhigh',['../structsysinfo.html#aa185842d6792ed3f72405b5788c535c5',1,'sysinfo']]],
+  ['totalram_22',['totalram',['../structsysinfo.html#a361f502a768f2441a9bca63cef66b97b',1,'sysinfo']]],
+  ['totalswap_23',['totalswap',['../structsysinfo.html#a120cfb1e6259328fd54282225d9419be',1,'sysinfo']]],
+  ['ts_5fns_24',['ts_ns',['../structchronos__event.html#a64912b6761d34a3cbbd8bf89b2d98224',1,'chronos_event']]],
+  ['tv_5fnsec_25',['tv_nsec',['../structtimespec.html#a6d9d14e9cdae880583f79d3b4a7fd42a',1,'timespec']]],
+  ['tv_5fsec_26',['tv_sec',['../structtimespec.html#aeee94728b745f1726486b7e2eab1eb78',1,'timespec::tv_sec'],['../structtimeval.html#aa679f0a4b2124961c188b377a220853c',1,'timeval::tv_sec']]],
+  ['tv_5fusec_27',['tv_usec',['../structtimeval.html#a7135c021b25897e971ab4b5be1c7d6ed',1,'timeval']]],
+  ['type_28',['type',['../structvbus__display__input__event__t.html#ab9e55f5b923fbfcba20157c77c591699',1,'vbus_display_input_event_t::type'],['../structpthread__mutex__t.html#a2b17b8d2f23361d22e71cdca7f3fc3ce',1,'pthread_mutex_t::type'],['../structpthread__mutexattr__t.html#a68e969a13bae46b5b3ef8fbd6a68831a',1,'pthread_mutexattr_t::type'],['../structmice__event.html#a5665e776dc2dd593f6e14aa5c30708f0',1,'mice_event::type'],['../structbattery__info.html#a5fcec974d20588414ed7a8b044d0e716',1,'battery_info::type'],['../structdirent__t.html#adde7d31507055deec94a7173c966eb6f',1,'dirent_t::type'],['../structvbus__header.html#a9e259dd7a1bb31b691868f55ee950c6f',1,'vbus_header::type']]],
+  ['tz_5fdsttime_29',['tz_dsttime',['../structtimezone.html#a85259977aeb63b17e6ce94f19afdfd99',1,'timezone']]],
+  ['tz_5fminuteswest_30',['tz_minuteswest',['../structtimezone.html#a3042f7eff6e1b980728def76b1fa0eb7',1,'timezone']]]
 ];

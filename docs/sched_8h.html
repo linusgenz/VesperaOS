@@ -95,15 +95,60 @@ $(document).ready(function(){initNavTree('sched_8h.html',''); initResizable(); }
   <div class="headertitle"><div class="title">sched.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
+<div class="textblock"><code>#include &lt;<a class="el" href="bits_2sched_8h_source.html">bits/sched.h</a>&gt;</code><br />
+</div>
 <p><a href="sched_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a689c40cc7cb9bd81dde2ba6d6a237e6c" id="r_a689c40cc7cb9bd81dde2ba6d6a237e6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">sched_yield</a> (void)</td></tr>
 <tr class="separator:a689c40cc7cb9bd81dde2ba6d6a237e6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d04c7d15906191d442376defad61bc0" id="r_a1d04c7d15906191d442376defad61bc0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sched_8h.html#a1d04c7d15906191d442376defad61bc0">sched_getaffinity</a> (<a class="el" href="alltypes_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a> pid, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> cpusetsize, cpu_set_t *cpuset)</td></tr>
+<tr class="separator:a1d04c7d15906191d442376defad61bc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a1d04c7d15906191d442376defad61bc0" name="a1d04c7d15906191d442376defad61bc0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d04c7d15906191d442376defad61bc0">&#9670;&#160;</a></span>sched_getaffinity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int sched_getaffinity </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a>&#160;</td>
+          <td class="paramname"><em>pid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a>&#160;</td>
+          <td class="paramname"><em>cpusetsize</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">cpu_set_t *&#160;</td>
+          <td class="paramname"><em>cpuset</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">extern</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a689c40cc7cb9bd81dde2ba6d6a237e6c" name="a689c40cc7cb9bd81dde2ba6d6a237e6c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a689c40cc7cb9bd81dde2ba6d6a237e6c">&#9670;&#160;</a></span>sched_yield()</h2>
 

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['pid_5ft_0',['pid_t',['../unistd_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;unistd.h'],['../include_2uapi_2vespera_2types_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;types.h'],['../alltypes_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;alltypes.h']]],
+  ['pid_5ft_0',['pid_t',['../bits_2sched_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;sched.h'],['../unistd_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;unistd.h'],['../include_2uapi_2vespera_2types_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;types.h'],['../alltypes_8h.html#a288e13e815d43b06e75819f8939524df',1,'pid_t:&#160;alltypes.h']]],
   ['pollhdl_5ft_1',['pollhdl_t',['../include_2uapi_2vespera_2poll_8h.html#ad608aef500ed73985294365ce94c24b4',1,'poll.h']]],
   ['pthread_5fattr_5ft_2',['pthread_attr_t',['../pthread_8h.html#ac91b61e242024389af37f642e5b6ffa5',1,'pthread.h']]],
   ['pthread_5fbarrier_5ft_3',['pthread_barrier_t',['../pthread_8h.html#af934567049ed9319a17997a6f7835d02',1,'pthread.h']]],

@@ -10,12 +10,13 @@ var searchData=
   ['bcd_5fusb_7',['bcd_usb',['../structusb__device__info.html#ac326db8808dd694f18effb634f6afc49',1,'usb_device_info']]],
   ['bg_5frealm_8',['bg_realm',['../structspawn__config.html#aea54dcebbf797298e07b5140f070124c',1,'spawn_config']]],
   ['bm_5fattributes_9',['bm_attributes',['../structusb__device__info.html#a7243aa5862b20c1255cf8fd945c7cda9',1,'usb_device_info']]],
-  ['bpp_10',['bpp',['../structcrep__sync.html#ad53d3d30b5b0da355282bdf45d9eb680',1,'crep_sync::bpp'],['../structfb__info.html#a92ce894e1f0a7e27ec85f6838881a39e',1,'fb_info::bpp']]],
+  ['bpp_10',['bpp',['../structfb__info.html#a92ce894e1f0a7e27ec85f6838881a39e',1,'fb_info::bpp'],['../structcrep__sync.html#ad53d3d30b5b0da355282bdf45d9eb680',1,'crep_sync::bpp']]],
   ['brand_11',['brand',['../structcpu__info.html#a261213bcaadbe50b5ac85a91021a0cff',1,'cpu_info']]],
   ['buf_5fpos_12',['buf_pos',['../structFILE.html#a91ee47d34efcc4136d468b8485e1700c',1,'FILE']]],
   ['buf_5fsize_13',['buf_size',['../structFILE.html#a135eed1c7b66e33c8454cc442765ef27',1,'FILE']]],
   ['buffer_14',['buffer',['../structFILE.html#a50a30e9c79c5614b5175bd3f58ce8590',1,'FILE']]],
-  ['bus_5fnumber_15',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]],
-  ['button_5fid_16',['button_id',['../structvbus__display__input__event__t.html#a9bb544c015d25a3336aae7e40bf0f107',1,'vbus_display_input_event_t::button_id'],['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event::button_id']]],
-  ['buttons_17',['buttons',['../structvbus__display__input__event__t.html#a49b0790fa3effadf9313c9b93758db5e',1,'vbus_display_input_event_t::buttons'],['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event::buttons']]]
+  ['bufferram_15',['bufferram',['../structsysinfo.html#a2302054f4587ac2c5f6a6a2fb53509d1',1,'sysinfo']]],
+  ['bus_5fnumber_16',['bus_number',['../structusb__device__info.html#a805b127d2f276adc3895a080b6c7c59d',1,'usb_device_info']]],
+  ['button_5fid_17',['button_id',['../structvbus__display__input__event__t.html#a9bb544c015d25a3336aae7e40bf0f107',1,'vbus_display_input_event_t::button_id'],['../structmice__event.html#a9fa6583700ddad470038e5f88c49f3cf',1,'mice_event::button_id']]],
+  ['buttons_18',['buttons',['../structvbus__display__input__event__t.html#a49b0790fa3effadf9313c9b93758db5e',1,'vbus_display_input_event_t::buttons'],['../structmice__event.html#a60a3a9bb93c8f881df51fa639877f2b2',1,'mice_event::buttons']]]
 ];

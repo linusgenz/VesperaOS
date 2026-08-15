@@ -10,5 +10,6 @@ var searchData=
   ['spawn_5fconfig_7',['spawn_config',['../structspawn__config.html',1,'']]],
   ['stat_8',['stat',['../structstat.html',1,'']]],
   ['stella_5fcolor_5ft_9',['stella_color_t',['../structstella__color__t.html',1,'']]],
-  ['stella_5fconfig_10',['stella_config',['../structstella__config.html',1,'']]]
+  ['stella_5fconfig_10',['stella_config',['../structstella__config.html',1,'']]],
+  ['sysinfo_11',['sysinfo',['../structsysinfo.html',1,'']]]
 ];
