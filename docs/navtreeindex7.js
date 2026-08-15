@@ -1,5 +1,8 @@
 var NAVTREEINDEX7 =
 {
+"mice_8h.html#ad0237e45347643d59a208e731bb1c38e":[5,0,0,0,0,0,9,10],
+"mice_8h.html#ad0237e45347643d59a208e731bb1c38ead63d0cf92f38f53fd272e90c0d6b917e":[5,0,0,0,0,0,9,10,2],
+"mice_8h.html#ad0237e45347643d59a208e731bb1c38ead92111af95e4bed9af013d5bebe385dd":[5,0,0,0,0,0,9,10,0],
 "mice_8h.html#ad0237e45347643d59a208e731bb1c38eaee472741ec52076f6833d0607501e159":[5,0,0,0,0,0,9,10,1],
 "mice_8h.html#ad842d5529c9cd49c18727d162936c736":[5,0,0,0,0,0,9,6],
 "mice_8h_source.html":[5,0,0,0,0,0,9],
@@ -147,10 +150,6 @@ var NAVTREEINDEX7 =
 "rtc_8h.html":[5,0,0,0,0,0,12],
 "rtc_8h.html#a363a8726c6dfd911f706633f7ccd31c6":[5,0,0,0,0,0,12,1],
 "rtc_8h_source.html":[5,0,0,0,0,0,12],
-"sched_8h.html":[5,0,1,0,0,35],
-"sched_8h.html#a1d04c7d15906191d442376defad61bc0":[5,0,1,0,0,35,0],
-"sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c":[5,0,1,0,0,35,1],
-"sched_8h_source.html":[5,0,1,0,0,35],
 "setjmp_8h.html":[5,0,1,0,0,36],
 "setjmp_8h.html#a0ea8f6bdb917bfa1c71ddf65f43730ca":[5,0,1,0,0,36,2],
 "setjmp_8h.html#a21e91fb62d130184fbd837bd49332517":[5,0,1,0,0,36,1],
@@ -161,9 +160,9 @@ var NAVTREEINDEX7 =
 "shm_8h.html#a6c5c9667427d602a4e4152b6a4f56a72":[5,0,1,0,0,3,2,0],
 "shm_8h.html#aa65a4ad2104c626efda1ee1ce2fcde20":[5,0,1,0,0,3,2,3],
 "shm_8h_source.html":[5,0,1,0,0,3,2],
-"spawn_8h.html":[5,0,0,0,0,11],
-"spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b":[5,0,0,0,0,11,1],
-"spawn_8h_source.html":[5,0,0,0,0,11],
+"spawn_8h.html":[5,0,0,0,0,12],
+"spawn_8h.html#a4aa52f5ab4b04a4abcfb683294b68d6b":[5,0,0,0,0,12,1],
+"spawn_8h_source.html":[5,0,0,0,0,12],
 "stdalign_8h.html":[5,0,1,0,0,38],
 "stdalign_8h.html#a9003163b6523df016f78fe734f53f014":[5,0,1,0,0,38,0],
 "stdalign_8h.html#abb241e4f00c28465643e1010172aef04":[5,0,1,0,0,38,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX7 =
 "stdint_8h.html#aeb4e270a084ee26fe73e799861bd0252":[5,0,1,0,0,42,24],
 "stdint_8h.html#aef44329758059c91c76d334e8fc09700":[5,0,1,0,0,42,32],
 "stdint_8h.html#afd072b9a94c14417246175f6442422ae":[5,0,1,0,0,42,35],
-"stdint_8h_source.html":[5,0,1,0,0,42]
+"stdint_8h_source.html":[5,0,1,0,0,42],
+"stdio_8h.html":[5,0,1,0,0,43]
 };

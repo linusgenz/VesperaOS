@@ -2,5 +2,5 @@ var dir_5243f7c5a7248a6160dbd9c77ae73972 =
 [
     [ "alltypes.h", "alltypes_8h.html", "alltypes_8h" ],
     [ "fenv.h", "bits_2fenv_8h.html", "bits_2fenv_8h" ],
-    [ "sched.h", "bits_2sched_8h.html", "bits_2sched_8h" ]
+    [ "sched.h", "userspace_2lib_2include_2bits_2sched_8h.html", "userspace_2lib_2include_2bits_2sched_8h" ]
 ];

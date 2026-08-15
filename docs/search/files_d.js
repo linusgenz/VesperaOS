@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['sched_2eh_0',['sched.h',['../bits_2sched_8h.html',1,'(Global Namespace)'],['../sched_8h.html',1,'(Global Namespace)']]],
+  ['sched_2eh_0',['sched.h',['../include_2uapi_2vespera_2sched_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2bits_2sched_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2sched_8h.html',1,'(Global Namespace)']]],
   ['setjmp_2eh_1',['setjmp.h',['../setjmp_8h.html',1,'']]],
   ['shm_2eh_2',['shm.h',['../shm_8h.html',1,'']]],
   ['signal_2eh_3',['signal.h',['../include_2uapi_2vespera_2signal_8h.html',1,'(Global Namespace)'],['../userspace_2lib_2include_2signal_8h.html',1,'(Global Namespace)']]],

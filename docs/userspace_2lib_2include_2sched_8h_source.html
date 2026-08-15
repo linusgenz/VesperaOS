@@ -69,7 +69,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('sched_8h_source.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('userspace_2lib_2include_2sched_8h_source.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -98,7 +98,7 @@ $(document).ready(function(){initNavTree('sched_8h_source.html',''); initResizab
   <div class="headertitle"><div class="title">sched.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="sched_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// sched.h</span></div>
+<a href="userspace_2lib_2include_2sched_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// sched.h</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// VesperaOS - operating system for the x86_64 architecture</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment">//</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// Copyright (c) 2026 Linus Genz &lt;linuslinuxgenz@gmail.com&gt;</span></div>
@@ -122,25 +122,28 @@ $(document).ready(function(){initNavTree('sched_8h_source.html',''); initResizab
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef _SCHED_H</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define _SCHED_H</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="bits_2sched_8h.html">bits/sched.h</a>&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;<a class="code" href="userspace_2lib_2include_2bits_2sched_8h.html">bits/sched.h</a>&gt;</span></div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">   27</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">sched_yield</a>(<span class="keywordtype">void</span>);</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="userspace_2lib_2include_2sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">   27</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="userspace_2lib_2include_2sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">sched_yield</a>(<span class="keywordtype">void</span>);</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">/* Get the CPU affinity for a task */</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="sched_8h.html#a1d04c7d15906191d442376defad61bc0">   30</a></span><span class="keyword">extern</span> <span class="keywordtype">int</span> <a class="code hl_function" href="sched_8h.html#a1d04c7d15906191d442376defad61bc0">sched_getaffinity</a> (<a class="code hl_typedef" href="alltypes_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a> pid, <span class="keywordtype">size_t</span> cpusetsize,</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>                  cpu_set_t *cpuset);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#endif </span><span class="comment">//_SCHED_H</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">/* Set the CPU affinity for a task */</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="comment">// int sched_setaffinity(pid_t pid, size_t cpusetsize, const cpu_set_t* cpuset);</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="comment">/* Get the CPU affinity for a task */</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="userspace_2lib_2include_2sched_8h.html#a1d04c7d15906191d442376defad61bc0">   33</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="userspace_2lib_2include_2sched_8h.html#a1d04c7d15906191d442376defad61bc0">sched_getaffinity</a>(<a class="code hl_typedef" href="alltypes_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a> pid, <span class="keywordtype">size_t</span> cpusetsize, <a class="code hl_struct" href="structcpu__set__t.html">cpu_set_t</a>* cpuset);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#endif </span><span class="comment">//_SCHED_H</span></div>
 <div class="ttc" id="aalltypes_8h_html_a288e13e815d43b06e75819f8939524df"><div class="ttname"><a href="alltypes_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a></div><div class="ttdeci">int pid_t</div><div class="ttdef"><b>Definition</b> alltypes.h:71</div></div>
-<div class="ttc" id="abits_2sched_8h_html"><div class="ttname"><a href="bits_2sched_8h.html">sched.h</a></div></div>
-<div class="ttc" id="asched_8h_html_a1d04c7d15906191d442376defad61bc0"><div class="ttname"><a href="sched_8h.html#a1d04c7d15906191d442376defad61bc0">sched_getaffinity</a></div><div class="ttdeci">int sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t *cpuset)</div></div>
-<div class="ttc" id="asched_8h_html_a689c40cc7cb9bd81dde2ba6d6a237e6c"><div class="ttname"><a href="sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">sched_yield</a></div><div class="ttdeci">void sched_yield(void)</div></div>
+<div class="ttc" id="astructcpu__set__t_html"><div class="ttname"><a href="structcpu__set__t.html">cpu_set_t</a></div><div class="ttdef"><b>Definition</b> sched.h:37</div></div>
+<div class="ttc" id="auserspace_2lib_2include_2bits_2sched_8h_html"><div class="ttname"><a href="userspace_2lib_2include_2bits_2sched_8h.html">sched.h</a></div></div>
+<div class="ttc" id="auserspace_2lib_2include_2sched_8h_html_a1d04c7d15906191d442376defad61bc0"><div class="ttname"><a href="userspace_2lib_2include_2sched_8h.html#a1d04c7d15906191d442376defad61bc0">sched_getaffinity</a></div><div class="ttdeci">int sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t *cpuset)</div></div>
+<div class="ttc" id="auserspace_2lib_2include_2sched_8h_html_a689c40cc7cb9bd81dde2ba6d6a237e6c"><div class="ttname"><a href="userspace_2lib_2include_2sched_8h.html#a689c40cc7cb9bd81dde2ba6d6a237e6c">sched_yield</a></div><div class="ttdeci">void sched_yield(void)</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_e97933879fd7fd8a82ba7d3e7b04caa6.html">userspace</a></li><li class="navelem"><a class="el" href="dir_caca541db38907716bcacd7a4b5a3aa5.html">lib</a></li><li class="navelem"><a class="el" href="dir_248bf60b518f6803bea125e4c4a2da53.html">include</a></li><li class="navelem"><a class="el" href="sched_8h.html">sched.h</a></li>
+    <li class="navelem"><a class="el" href="dir_e97933879fd7fd8a82ba7d3e7b04caa6.html">userspace</a></li><li class="navelem"><a class="el" href="dir_caca541db38907716bcacd7a4b5a3aa5.html">lib</a></li><li class="navelem"><a class="el" href="dir_248bf60b518f6803bea125e4c4a2da53.html">include</a></li><li class="navelem"><a class="el" href="userspace_2lib_2include_2sched_8h.html">sched.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

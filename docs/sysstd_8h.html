@@ -311,6 +311,8 @@ Functions</h2></td></tr>
 <tr class="separator:a4399e96a4513ad43de16a1172eae532e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a878f6d1c71f6f6da10425cd120af0748" id="r_a878f6d1c71f6f6da10425cd120af0748"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a878f6d1c71f6f6da10425cd120af0748">sys_sysinfo</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg2, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg3, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg4, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg5)</td></tr>
 <tr class="separator:a878f6d1c71f6f6da10425cd120af0748"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4eedfe3cd9c39a57f9c961e374affa09" id="r_a4eedfe3cd9c39a57f9c961e374affa09"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sysstd_8h.html#a4eedfe3cd9c39a57f9c961e374affa09">sys_sched_getaffinity</a> (<a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg0, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg1, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a> arg2, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>, <a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>)</td></tr>
+<tr class="separator:a4eedfe3cd9c39a57f9c961e374affa09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ae3cf90fbca8a7077eff9721ab4f93630" name="ae3cf90fbca8a7077eff9721ab4f93630"></a>
@@ -3433,6 +3435,58 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success, or negative error code (e.g., -ENOTEMPTY). </dd></dl>
+
+</div>
+</div>
+<a id="a4eedfe3cd9c39a57f9c961e374affa09" name="a4eedfe3cd9c39a57f9c961e374affa09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4eedfe3cd9c39a57f9c961e374affa09">&#9670;&#160;</a></span>sys_sched_getaffinity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a> sys_sched_getaffinity </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>arg2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad">uint64_t</a>&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

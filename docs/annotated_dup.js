@@ -17,6 +17,7 @@ var annotated_dup =
     [ "chronos_user_checkpoint", "structchronos__user__checkpoint.html", "structchronos__user__checkpoint" ],
     [ "cookie_io_functions", "structcookie__io__functions.html", "structcookie__io__functions" ],
     [ "cpu_info", "structcpu__info.html", "structcpu__info" ],
+    [ "cpu_set_t", "structcpu__set__t.html", "structcpu__set__t" ],
     [ "cpu_usage_info", "structcpu__usage__info.html", "structcpu__usage__info" ],
     [ "cpu_usage_stat", "structcpu__usage__stat.html", "structcpu__usage__stat" ],
     [ "crep_sync", "structcrep__sync.html", "structcrep__sync" ],

@@ -7,6 +7,7 @@ var hierarchy =
     [ "stella::Color", "classstella_1_1Color.html", null ],
     [ "cookie_io_functions", "structcookie__io__functions.html", null ],
     [ "cpu_info", "structcpu__info.html", null ],
+    [ "cpu_set_t", "structcpu__set__t.html", null ],
     [ "cpu_usage_info", "structcpu__usage__info.html", null ],
     [ "cpu_usage_stat", "structcpu__usage__stat.html", null ],
     [ "crep_sync", "structcrep__sync.html", null ],

@@ -54,6 +54,7 @@ var sysstd_8h =
     [ "sys_reboot", "sysstd_8h.html#a7760fa106444c95639e69e852f60d6f9", null ],
     [ "sys_rename", "sysstd_8h.html#addf800dce49c6303609ee01d5b277c7a", null ],
     [ "sys_rmdir", "sysstd_8h.html#a98a4a38800fb99619b72783c1ed307a5", null ],
+    [ "sys_sched_getaffinity", "sysstd_8h.html#a4eedfe3cd9c39a57f9c961e374affa09", null ],
     [ "sys_seek", "sysstd_8h.html#abcef91f070ba25d57c74fc1695184270", null ],
     [ "sys_setgid", "sysstd_8h.html#a020e7b8748ff8c427b33eb906b66b18b", null ],
     [ "sys_setpgid", "sysstd_8h.html#a2aa42fb64b3c48d300fbb273d1e0d64f", null ],

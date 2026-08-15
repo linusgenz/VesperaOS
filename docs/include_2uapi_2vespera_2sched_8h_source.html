@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>vesplib: userspace/lib/include/bits/sched.h Source File</title>
+<title>vesplib: include/uapi/vespera/sched.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -69,7 +69,7 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('bits_2sched_8h_source.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('include_2uapi_2vespera_2sched_8h_source.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -98,7 +98,7 @@ $(document).ready(function(){initNavTree('bits_2sched_8h_source.html',''); initR
   <div class="headertitle"><div class="title">sched.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="bits_2sched_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// sched.h</span></div>
+<a href="include_2uapi_2vespera_2sched_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// sched.h</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment">// VesperaOS - operating system for the x86_64 architecture</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment">//</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">// Copyright (c) 2026 Linus Genz &lt;linuslinuxgenz@gmail.com&gt;</span></div>
@@ -119,23 +119,38 @@ $(document).ready(function(){initNavTree('bits_2sched_8h_source.html',''); initR
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// You should have received a copy of the GNU General Public License</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// along with VesperaOS. If not, see &lt;https://www.gnu.org/licenses/&gt;.</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#ifndef _BITS_SCHED_H</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#define _BITS_SCHED_H</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#ifndef _PID_T_DEFINED</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="bits_2sched_8h.html#ab5211a1ede20ce7d58f2e763a4ead657">   26</a></span><span class="preprocessor">#define _PID_T_DEFINED</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="bits_2sched_8h.html#a288e13e815d43b06e75819f8939524df">   27</a></span><span class="keyword">typedef</span> <span class="keywordtype">int</span> <a class="code hl_typedef" href="bits_2sched_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a>;</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif </span><span class="comment">//_BITS_SCHED_H</span></div>
-<div class="ttc" id="abits_2sched_8h_html_a288e13e815d43b06e75819f8939524df"><div class="ttname"><a href="bits_2sched_8h.html#a288e13e815d43b06e75819f8939524df">pid_t</a></div><div class="ttdeci">int pid_t</div><div class="ttdef"><b>Definition</b> sched.h:27</div></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifndef _UAPI_VESPERA_SCHED_H</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#define _UAPI_VESPERA_SCHED_H</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;<a class="code" href="include_2uapi_2vespera_2types_8h.html">vespera/types.h</a>&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#ifndef CPU_SETSIZE</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2sched_8h.html#aff88229c6c87cc01a06b3f6124733835">   29</a></span><span class="preprocessor">#define CPU_SETSIZE 1024</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2sched_8h.html#a2988a0e0f1b6d71827a30ad687032748">   32</a></span><span class="preprocessor">#define __CPU_BITS_PER_WORD (8 * (size_t)sizeof(unsigned long))</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2sched_8h.html#a5a1bcbed3765442bda923218acdee5d0">   33</a></span><span class="preprocessor">#define __CPU_WORDS(setsize) (((setsize) + __CPU_BITS_PER_WORD - 1) / __CPU_BITS_PER_WORD)</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2sched_8h.html#a02032111ff544127b07d1d2b696d62b4">   34</a></span><span class="preprocessor">#define __CPU_WORD(cpu)      ((size_t)(cpu) / __CPU_BITS_PER_WORD)</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="include_2uapi_2vespera_2sched_8h.html#a576fb80ca5a3c8293b2a0477d54839a4">   35</a></span><span class="preprocessor">#define __CPU_MASK(cpu)      (1UL &lt;&lt; ((size_t)(cpu) % __CPU_BITS_PER_WORD))</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="foldopen" id="foldopen00037" data-start="{" data-end="};">
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="structcpu__set__t.html">   37</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>{</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="structcpu__set__t.html#ad2f8c5718dfc87ef9b250508646fe7a6">   38</a></span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> __bits[<a class="code hl_define" href="include_2uapi_2vespera_2sched_8h.html#a5a1bcbed3765442bda923218acdee5d0">__CPU_WORDS</a>(<a class="code hl_define" href="include_2uapi_2vespera_2sched_8h.html#aff88229c6c87cc01a06b3f6124733835">CPU_SETSIZE</a>)];</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>} <a class="code hl_struct" href="structcpu__set__t.html">cpu_set_t</a>;</div>
+</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="preprocessor">#endif </span><span class="comment">/* _UAPI_VESPERA_SCHED_H */</span><span class="preprocessor"></span></div>
+<div class="ttc" id="ainclude_2uapi_2vespera_2sched_8h_html_a5a1bcbed3765442bda923218acdee5d0"><div class="ttname"><a href="include_2uapi_2vespera_2sched_8h.html#a5a1bcbed3765442bda923218acdee5d0">__CPU_WORDS</a></div><div class="ttdeci">#define __CPU_WORDS(setsize)</div><div class="ttdef"><b>Definition</b> sched.h:33</div></div>
+<div class="ttc" id="ainclude_2uapi_2vespera_2sched_8h_html_aff88229c6c87cc01a06b3f6124733835"><div class="ttname"><a href="include_2uapi_2vespera_2sched_8h.html#aff88229c6c87cc01a06b3f6124733835">CPU_SETSIZE</a></div><div class="ttdeci">#define CPU_SETSIZE</div><div class="ttdef"><b>Definition</b> sched.h:29</div></div>
+<div class="ttc" id="ainclude_2uapi_2vespera_2types_8h_html"><div class="ttname"><a href="include_2uapi_2vespera_2types_8h.html">types.h</a></div></div>
+<div class="ttc" id="astructcpu__set__t_html"><div class="ttname"><a href="structcpu__set__t.html">cpu_set_t</a></div><div class="ttdef"><b>Definition</b> sched.h:37</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_e97933879fd7fd8a82ba7d3e7b04caa6.html">userspace</a></li><li class="navelem"><a class="el" href="dir_caca541db38907716bcacd7a4b5a3aa5.html">lib</a></li><li class="navelem"><a class="el" href="dir_248bf60b518f6803bea125e4c4a2da53.html">include</a></li><li class="navelem"><a class="el" href="dir_5243f7c5a7248a6160dbd9c77ae73972.html">bits</a></li><li class="navelem"><a class="el" href="bits_2sched_8h.html">sched.h</a></li>
+    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_fb42a3b80b368a2ced97e36eea6bf3da.html">uapi</a></li><li class="navelem"><a class="el" href="dir_e2b52b92f5077a849e2a3072fb331546.html">vespera</a></li><li class="navelem"><a class="el" href="include_2uapi_2vespera_2sched_8h.html">sched.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

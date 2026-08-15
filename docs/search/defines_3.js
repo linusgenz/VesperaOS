@@ -28,8 +28,19 @@ var searchData=
   ['clock_5fprocess_5fcputime_5fid_25',['CLOCK_PROCESS_CPUTIME_ID',['../include_2uapi_2vespera_2time_8h.html#ae1c3939a1e7b7cd1e5a4a7fa601cc4e9',1,'time.h']]],
   ['clock_5frealtime_26',['CLOCK_REALTIME',['../include_2uapi_2vespera_2time_8h.html#a922ce1ae64374c9410c8a999e25e82af',1,'time.h']]],
   ['clocks_5fper_5fsec_27',['CLOCKS_PER_SEC',['../userspace_2lib_2include_2time_8h.html#a3d9fc3c745d0880902fe3ea3d5d5f71e',1,'time.h']]],
-  ['crep_5fbpp_28',['CREP_BPP',['../crepusculum__protocol_8h.html#a112724bab5da63b44005eab7dc6980b8',1,'crepusculum_protocol.h']]],
-  ['crep_5ffb_5fshm_5fname_29',['CREP_FB_SHM_NAME',['../crepusculum__protocol_8h.html#a73260b8ae7bc25612e87823473319638',1,'crepusculum_protocol.h']]],
-  ['crep_5fmagic_30',['CREP_MAGIC',['../crepusculum__protocol_8h.html#a03e70271918f9287b77bd0b2ebf734fb',1,'crepusculum_protocol.h']]],
-  ['crep_5fsync_5fshm_5fname_31',['CREP_SYNC_SHM_NAME',['../crepusculum__protocol_8h.html#afddcda33bf97d4e86a73c9b9e7a390c2',1,'crepusculum_protocol.h']]]
+  ['cpu_5fclr_28',['CPU_CLR',['../userspace_2lib_2include_2bits_2sched_8h.html#a5edcaa980b0f11b1a5494e1cf0750565',1,'sched.h']]],
+  ['cpu_5fclr_5fs_29',['CPU_CLR_S',['../userspace_2lib_2include_2bits_2sched_8h.html#aaefa05d667f86e870c62d1c64dedb3e2',1,'sched.h']]],
+  ['cpu_5fcount_30',['CPU_COUNT',['../userspace_2lib_2include_2bits_2sched_8h.html#a1bc2bf9b181546798f8d318e0f8e4d00',1,'sched.h']]],
+  ['cpu_5fcount_5fs_31',['CPU_COUNT_S',['../userspace_2lib_2include_2bits_2sched_8h.html#a896ea0d09207bee2673e61465818438d',1,'sched.h']]],
+  ['cpu_5fisset_32',['CPU_ISSET',['../userspace_2lib_2include_2bits_2sched_8h.html#a529ad1174757fe0e371cbe5ad6dbf5ff',1,'sched.h']]],
+  ['cpu_5fisset_5fs_33',['CPU_ISSET_S',['../userspace_2lib_2include_2bits_2sched_8h.html#afdc6785a752df0dc8948bba8cc0073d9',1,'sched.h']]],
+  ['cpu_5fset_34',['CPU_SET',['../userspace_2lib_2include_2bits_2sched_8h.html#a71a56437b99e4b0bc5afdeba3d4ca2a9',1,'sched.h']]],
+  ['cpu_5fset_5fs_35',['CPU_SET_S',['../userspace_2lib_2include_2bits_2sched_8h.html#aa749c5570fae6ed77503c9a092933f48',1,'sched.h']]],
+  ['cpu_5fsetsize_36',['CPU_SETSIZE',['../include_2uapi_2vespera_2sched_8h.html#aff88229c6c87cc01a06b3f6124733835',1,'sched.h']]],
+  ['cpu_5fzero_37',['CPU_ZERO',['../userspace_2lib_2include_2bits_2sched_8h.html#a98badb98d1f5623c998f4c529d803a8f',1,'sched.h']]],
+  ['cpu_5fzero_5fs_38',['CPU_ZERO_S',['../userspace_2lib_2include_2bits_2sched_8h.html#a1a5a460b08b8c07e48b78862827acf15',1,'sched.h']]],
+  ['crep_5fbpp_39',['CREP_BPP',['../crepusculum__protocol_8h.html#a112724bab5da63b44005eab7dc6980b8',1,'crepusculum_protocol.h']]],
+  ['crep_5ffb_5fshm_5fname_40',['CREP_FB_SHM_NAME',['../crepusculum__protocol_8h.html#a73260b8ae7bc25612e87823473319638',1,'crepusculum_protocol.h']]],
+  ['crep_5fmagic_41',['CREP_MAGIC',['../crepusculum__protocol_8h.html#a03e70271918f9287b77bd0b2ebf734fb',1,'crepusculum_protocol.h']]],
+  ['crep_5fsync_5fshm_5fname_42',['CREP_SYNC_SHM_NAME',['../crepusculum__protocol_8h.html#afddcda33bf97d4e86a73c9b9e7a390c2',1,'crepusculum_protocol.h']]]
 ];
