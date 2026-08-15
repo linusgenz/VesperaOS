@@ -26,8 +26,10 @@
 
 void sched_yield(void);
 
+/* Set the CPU affinity for a task */
+// int sched_setaffinity(pid_t pid, size_t cpusetsize, const cpu_set_t* cpuset);
+
 /* Get the CPU affinity for a task */
-extern int sched_getaffinity (pid_t pid, size_t cpusetsize,
-                  cpu_set_t *cpuset);
+int sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* cpuset);
 
 #endif //_SCHED_H

@@ -65,6 +65,8 @@
 #define SYSCALL_GETUNID 186
 #define SYSCALL_TIME 201
 #define SYSCALL_FUTEX    202
+#define SYSCALL_SCHED_SETAFFINITY 203
+#define SYSCALL_SCHED_GETAFFINITY 204
 #define SYSCALL_READDIR 217
 #define SYSCALL_CLOCK_GETTIME 228
 #define SYSCALL_CLOCK_NANOSLEEP 230
@@ -456,4 +458,8 @@ int64_t sys_fstat(uint64_t fd, uint64_t buf, uint64_t, uint64_t, uint64_t, uint6
 
 int64_t sys_sysinfo(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_SYSINFO, arg0, 0, 0, 0, 0, 0);
+}
+
+int64_t sys_sched_getaffinity(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SCHED_GETAFFINITY, arg0, arg1, arg2, 0, 0, 0);
 }

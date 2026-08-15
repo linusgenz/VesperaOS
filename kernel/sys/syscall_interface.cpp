@@ -117,6 +117,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_MPROTECT] = syscalls::internal::sys_mprotect;
     syscall_table[SYSCALL_FSTAT] = syscalls::internal::sys_fstat;
     syscall_table[SYSCALL_EXIT_GROUP] = syscalls::internal::sys_exit_group;
+    syscall_table[SYSCALL_SCHED_GETAFFINITY] = syscalls::internal::sys_sched_getaffinity;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {

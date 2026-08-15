@@ -1,9 +1,9 @@
-// sched.c
+// sched.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 15.08.26.
+// Created by Linus Genz on 16.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -20,14 +20,22 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <sysstd.h>
-#include <stddef.h>
-#include <sched.h>
+#ifndef _UAPI_VESPERA_SCHED_H
+#define _UAPI_VESPERA_SCHED_H
 
-void sched_yield(void) {
-    sys_yield(0, 0, 0, 0, 0, 0);
-}
+#include <vespera/types.h>
 
-int sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t* cpuset) {
-    return sys_sched_getaffinity(pid, cpusetsize, (uint64_t)cpuset, 0, 0, 0);
-}
+#ifndef CPU_SETSIZE
+#define CPU_SETSIZE 1024
+#endif
+
+#define __CPU_BITS_PER_WORD (8 * (size_t)sizeof(unsigned long))
+#define __CPU_WORDS(setsize) (((setsize) + __CPU_BITS_PER_WORD - 1) / __CPU_BITS_PER_WORD)
+#define __CPU_WORD(cpu)      ((size_t)(cpu) / __CPU_BITS_PER_WORD)
+#define __CPU_MASK(cpu)      (1UL << ((size_t)(cpu) % __CPU_BITS_PER_WORD))
+
+typedef struct {
+    unsigned long __bits[__CPU_WORDS(CPU_SETSIZE)];
+} cpu_set_t;
+
+#endif /* _UAPI_VESPERA_SCHED_H */

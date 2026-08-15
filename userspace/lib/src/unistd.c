@@ -27,6 +27,8 @@
 #include <sysstd.h>
 #include <sys/sysinfo.h>
 
+#include "sched.h"
+
 // ---------------------------------------------------------------------
 // File I/O
 // ---------------------------------------------------------------------
@@ -271,10 +273,19 @@ int64_t sysconf(int name) {
     switch (name) {
         case _SC_PAGESIZE:
             return 4096;
-        case _SC_NPROCESSORS_ONLN:
-            // TODO: no syscall currently exposes CPU topology/count to
-            // userspace. Hardcoded to 1 until that exists.
+        case _SC_NPROCESSORS_ONLN: {
+            cpu_set_t set;
+            CPU_ZERO(&set);
+
+            if (sched_getaffinity(0, sizeof(cpu_set_t), &set) == 0) {
+                int count = CPU_COUNT(&set);
+                if (count > 0) {
+                    return count;
+                }
+            }
+
             return 1;
+        }
         case _SC_CLK_TCK:
             return 100;
         case _SC_OPEN_MAX:
