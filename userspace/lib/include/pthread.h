@@ -147,6 +147,9 @@ int pthread_detach(pthread_t thread);
 [[noreturn]] void pthread_exit(void* retval);
 pthread_t pthread_self(void);
 int pthread_equal(pthread_t a, pthread_t b);
+
+int pthread_getcpuclockid(pthread_t thread, clockid_t* clock_id);
+
 void pthread_yield_np(void); /* not POSIX-standard-named but Mesa's c11 shim wants sched_yield semantics */
 
 /* -----------------------------------------------------------------------

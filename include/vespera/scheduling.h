@@ -65,6 +65,14 @@ namespace kernel::scheduling {
      */
     [[nodiscard]] u64 get_realm_cpu_time_ns(RealmId realm_id);
 
+    /**
+     * @brief Returns the accumulated CPU time of the given unit.
+     *
+     * @param unit_id Target unit ID.
+     * @return Total nanoseconds of CPU time, or 0 if the unit is not found.
+     */
+    [[nodiscard]] u64 get_unit_cpu_time_ns(UnitId unit_id);
+
     // Query functions
     Unit* get_current_unit();
 

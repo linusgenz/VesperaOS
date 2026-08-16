@@ -1,0 +1,478 @@
+// vector
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cstddef>          // size_t, ptrdiff_t
+#include <initializer_list>
+#include <iterator>         // iterator_traits, reverse_iterator, tags
+#include <memory>           // allocator, allocator_traits, construct_at, destroy
+#include <type_traits>
+#include <utility>          // move, forward, swap
+
+namespace std {
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  vector<T, Allocator>
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T, typename Allocator = allocator<T>>
+class vector {
+public:
+    using value_type      = T;
+    using allocator_type  = Allocator;
+    using size_type       = size_t;
+    using difference_type = ptrdiff_t;
+
+    using reference       = T&;
+    using const_reference = const T&;
+    using pointer         = typename allocator_traits<Allocator>::pointer;
+    using const_pointer   = typename allocator_traits<Allocator>::const_pointer;
+
+    using iterator               = T*;
+    using const_iterator         = const T*;
+    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+private:
+    using alloc_traits = allocator_traits<Allocator>;
+
+    T* data_ = nullptr;
+    size_type size_ = 0;
+    size_type capacity_ = 0;
+    [[no_unique_address]] Allocator alloc_{};
+
+    // ── internal helpers ─────────────────────────────────────────────────────
+
+    [[nodiscard]] static size_type grown_capacity(size_type current, size_type at_least) {
+        size_type next = current + current / 2; // 1.5x growth
+        return next > at_least ? next : at_least;
+    }
+
+    // Allocates a new block of `new_capacity`, move-or-copy-constructs the
+    // existing elements into it, destroys and frees the old block, and
+    // repoints data_/capacity_. Leaves size_ unchanged.
+    void reallocate(size_type new_capacity) {
+        T* new_data = alloc_traits::allocate(alloc_, new_capacity);
+        if (new_data == nullptr) {
+            // No exceptions available. Callers that care about OOM should
+            // check capacity() after reserve()/push_back(); we refuse to
+            // silently corrupt state by proceeding with a null buffer.
+            return;
+        }
+
+        size_type constructed = 0;
+        for (; constructed < size_; ++constructed) {
+            if constexpr (is_nothrow_move_constructible_v<T> || !is_copy_constructible_v<T>)
+                alloc_traits::construct(alloc_, new_data + constructed, move(data_[constructed]));
+            else
+                alloc_traits::construct(alloc_, new_data + constructed, data_[constructed]);
+        }
+
+        for (size_type i = 0; i < size_; ++i)
+            alloc_traits::destroy(alloc_, data_ + i);
+        if (data_ != nullptr)
+            alloc_traits::deallocate(alloc_, data_, capacity_);
+
+        data_ = new_data;
+        capacity_ = new_capacity;
+    }
+
+    void ensure_capacity_for_one_more() {
+        if (size_ < capacity_)
+            return;
+        reallocate(grown_capacity(capacity_, capacity_ + 1));
+    }
+
+    void destroy_all() {
+        for (size_type i = 0; i < size_; ++i)
+            alloc_traits::destroy(alloc_, data_ + i);
+        size_ = 0;
+    }
+
+    void release_storage() {
+        if (data_ != nullptr) {
+            destroy_all();
+            alloc_traits::deallocate(alloc_, data_, capacity_);
+            data_ = nullptr;
+            capacity_ = 0;
+        }
+    }
+
+public:
+    // ── construct / destroy / copy ───────────────────────────────────────────
+
+    vector() noexcept(noexcept(Allocator())) = default;
+
+    explicit vector(const Allocator& alloc) noexcept : alloc_(alloc) {}
+
+    explicit vector(size_type count, const Allocator& alloc = Allocator()) : alloc_(alloc) {
+        if (count == 0)
+            return;
+        data_ = alloc_traits::allocate(alloc_, count);
+        if (data_ == nullptr)
+            return;
+        capacity_ = count;
+        for (; size_ < count; ++size_)
+            alloc_traits::construct(alloc_, data_ + size_);
+    }
+
+    vector(size_type count, const T& value, const Allocator& alloc = Allocator()) : alloc_(alloc) {
+        if (count == 0)
+            return;
+        data_ = alloc_traits::allocate(alloc_, count);
+        if (data_ == nullptr)
+            return;
+        capacity_ = count;
+        for (; size_ < count; ++size_)
+            alloc_traits::construct(alloc_, data_ + size_, value);
+    }
+
+    template<typename InputIt,
+             typename = enable_if_t<!is_integral_v<InputIt>>>
+    vector(InputIt first, InputIt last, const Allocator& alloc = Allocator()) : alloc_(alloc) {
+        for (; first != last; ++first)
+            push_back(*first);
+    }
+
+    vector(const vector& other) : alloc_(alloc_traits::select_on_container_copy_construction(other.alloc_)) {
+        if (other.size_ == 0)
+            return;
+        data_ = alloc_traits::allocate(alloc_, other.size_);
+        if (data_ == nullptr)
+            return;
+        capacity_ = other.size_;
+        for (; size_ < other.size_; ++size_)
+            alloc_traits::construct(alloc_, data_ + size_, other.data_[size_]);
+    }
+
+    vector(const vector& other, const Allocator& alloc) : alloc_(alloc) {
+        if (other.size_ == 0)
+            return;
+        data_ = alloc_traits::allocate(alloc_, other.size_);
+        if (data_ == nullptr)
+            return;
+        capacity_ = other.size_;
+        for (; size_ < other.size_; ++size_)
+            alloc_traits::construct(alloc_, data_ + size_, other.data_[size_]);
+    }
+
+    vector(vector&& other) noexcept
+        : data_(other.data_)
+        , size_(other.size_)
+        , capacity_(other.capacity_)
+        , alloc_(move(other.alloc_)) {
+        other.data_ = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
+    }
+
+    vector(vector&& other, const Allocator& alloc) : alloc_(alloc) {
+        if (alloc == other.alloc_) {
+            data_ = other.data_;
+            size_ = other.size_;
+            capacity_ = other.capacity_;
+            other.data_ = nullptr;
+            other.size_ = 0;
+            other.capacity_ = 0;
+        } else {
+            for (size_type i = 0; i < other.size_; ++i)
+                push_back(move(other.data_[i]));
+            other.destroy_all();
+        }
+    }
+
+    vector(initializer_list<T> init, const Allocator& alloc = Allocator()) : alloc_(alloc) {
+        if (init.size() == 0)
+            return;
+        data_ = alloc_traits::allocate(alloc_, init.size());
+        if (data_ == nullptr)
+            return;
+        capacity_ = init.size();
+        for (const T& v : init)
+            alloc_traits::construct(alloc_, data_ + size_++, v);
+    }
+
+    ~vector() { release_storage(); }
+
+    vector& operator=(const vector& other) {
+        if (this == &other)
+            return *this;
+
+        clear();
+        if (other.size_ > capacity_)
+            reallocate(other.size_);
+
+        for (size_type i = 0; i < other.size_; ++i)
+            alloc_traits::construct(alloc_, data_ + i, other.data_[i]);
+        size_ = other.size_;
+        return *this;
+    }
+
+    vector& operator=(vector&& other) noexcept {
+        if (this == &other)
+            return *this;
+
+        release_storage();
+        data_ = other.data_;
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+        alloc_ = move(other.alloc_);
+        other.data_ = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
+        return *this;
+    }
+
+    vector& operator=(initializer_list<T> init) {
+        clear();
+        if (init.size() > capacity_)
+            reallocate(init.size());
+        for (const T& v : init)
+            alloc_traits::construct(alloc_, data_ + size_++, v);
+        return *this;
+    }
+
+    void assign(size_type count, const T& value) {
+        clear();
+        if (count > capacity_)
+            reallocate(count);
+        for (; size_ < count; ++size_)
+            alloc_traits::construct(alloc_, data_ + size_, value);
+    }
+
+    template<typename InputIt,
+             typename = enable_if_t<!is_integral_v<InputIt>>>
+    void assign(InputIt first, InputIt last) {
+        clear();
+        for (; first != last; ++first)
+            push_back(*first);
+    }
+
+    void assign(initializer_list<T> init) { *this = init; }
+
+    [[nodiscard]] allocator_type get_allocator() const noexcept { return alloc_; }
+
+    // ── element access ───────────────────────────────────────────────────────
+
+    [[nodiscard]] reference at(size_type pos) { return data_[pos]; }
+    [[nodiscard]] const_reference at(size_type pos) const { return data_[pos]; }
+
+    [[nodiscard]] reference operator[](size_type pos) { return data_[pos]; }
+    [[nodiscard]] const_reference operator[](size_type pos) const { return data_[pos]; }
+
+    [[nodiscard]] reference front() { return data_[0]; }
+    [[nodiscard]] const_reference front() const { return data_[0]; }
+
+    [[nodiscard]] reference back() { return data_[size_ - 1]; }
+    [[nodiscard]] const_reference back() const { return data_[size_ - 1]; }
+
+    [[nodiscard]] T* data() noexcept { return data_; }
+    [[nodiscard]] const T* data() const noexcept { return data_; }
+
+    // ── iterators ─────────────────────────────────────────────────────────────
+
+    [[nodiscard]] iterator begin() noexcept { return data_; }
+    [[nodiscard]] const_iterator begin() const noexcept { return data_; }
+    [[nodiscard]] const_iterator cbegin() const noexcept { return data_; }
+
+    [[nodiscard]] iterator end() noexcept { return data_ + size_; }
+    [[nodiscard]] const_iterator end() const noexcept { return data_ + size_; }
+    [[nodiscard]] const_iterator cend() const noexcept { return data_ + size_; }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
+
+    [[nodiscard]] reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    [[nodiscard]] const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+    [[nodiscard]] const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+
+    // ── capacity ──────────────────────────────────────────────────────────────
+
+    [[nodiscard]] bool empty() const noexcept { return size_ == 0; }
+    [[nodiscard]] size_type size() const noexcept { return size_; }
+    [[nodiscard]] size_type max_size() const noexcept { return alloc_traits::max_size(alloc_); }
+    [[nodiscard]] size_type capacity() const noexcept { return capacity_; }
+
+    void reserve(size_type new_cap) {
+        if (new_cap > capacity_)
+            reallocate(new_cap);
+    }
+
+    void shrink_to_fit() {
+        if (size_ < capacity_)
+            reallocate(size_);
+    }
+
+    // ── modifiers ─────────────────────────────────────────────────────────────
+
+    void clear() noexcept { destroy_all(); }
+
+    iterator insert(const_iterator pos, const T& value) {
+        size_type idx = static_cast<size_type>(pos - data_);
+        ensure_capacity_for_one_more();
+        T* insert_pos = data_ + idx;
+        if (size_ > 0)
+            alloc_traits::construct(alloc_, data_ + size_, move(data_[size_ - 1]));
+        for (T* p = data_ + size_ - (size_ > 0 ? 1 : 0); p > insert_pos; --p)
+            *p = move(*(p - 1));
+        *insert_pos = value;
+        ++size_;
+        return insert_pos;
+    }
+
+    iterator insert(const_iterator pos, T&& value) {
+        size_type idx = static_cast<size_type>(pos - data_);
+        ensure_capacity_for_one_more();
+        T* insert_pos = data_ + idx;
+        if (size_ > 0)
+            alloc_traits::construct(alloc_, data_ + size_, move(data_[size_ - 1]));
+        for (T* p = data_ + size_ - (size_ > 0 ? 1 : 0); p > insert_pos; --p)
+            *p = move(*(p - 1));
+        *insert_pos = move(value);
+        ++size_;
+        return insert_pos;
+    }
+
+    template<typename... Args>
+    iterator emplace(const_iterator pos, Args&&... args) {
+        size_type idx = static_cast<size_type>(pos - data_);
+        ensure_capacity_for_one_more();
+        T* insert_pos = data_ + idx;
+        if (size_ > 0)
+            alloc_traits::construct(alloc_, data_ + size_, move(data_[size_ - 1]));
+        for (T* p = data_ + size_ - (size_ > 0 ? 1 : 0); p > insert_pos; --p)
+            *p = move(*(p - 1));
+        *insert_pos = T(forward<Args>(args)...);
+        ++size_;
+        return insert_pos;
+    }
+
+    iterator erase(const_iterator pos) {
+        T* erase_pos = const_cast<T*>(pos);
+        for (T* p = erase_pos; p + 1 < data_ + size_; ++p)
+            *p = move(*(p + 1));
+        alloc_traits::destroy(alloc_, data_ + size_ - 1);
+        --size_;
+        return erase_pos;
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        T* erase_first = const_cast<T*>(first);
+        T* erase_last = const_cast<T*>(last);
+        size_type count = static_cast<size_type>(erase_last - erase_first);
+        if (count == 0)
+            return erase_first;
+
+        T* p = erase_first;
+        for (T* q = erase_last; q < data_ + size_; ++p, ++q)
+            *p = move(*q);
+        for (size_type i = 0; i < count; ++i)
+            alloc_traits::destroy(alloc_, data_ + size_ - 1 - i);
+        size_ -= count;
+        return erase_first;
+    }
+
+    void push_back(const T& value) {
+        ensure_capacity_for_one_more();
+        alloc_traits::construct(alloc_, data_ + size_, value);
+        ++size_;
+    }
+
+    void push_back(T&& value) {
+        ensure_capacity_for_one_more();
+        alloc_traits::construct(alloc_, data_ + size_, move(value));
+        ++size_;
+    }
+
+    template<typename... Args>
+    reference emplace_back(Args&&... args) {
+        ensure_capacity_for_one_more();
+        alloc_traits::construct(alloc_, data_ + size_, forward<Args>(args)...);
+        ++size_;
+        return data_[size_ - 1];
+    }
+
+    void pop_back() {
+        alloc_traits::destroy(alloc_, data_ + size_ - 1);
+        --size_;
+    }
+
+    void resize(size_type count) {
+        if (count < size_) {
+            for (size_type i = count; i < size_; ++i)
+                alloc_traits::destroy(alloc_, data_ + i);
+            size_ = count;
+        } else if (count > size_) {
+            if (count > capacity_)
+                reallocate(grown_capacity(capacity_, count));
+            for (; size_ < count; ++size_)
+                alloc_traits::construct(alloc_, data_ + size_);
+        }
+    }
+
+    void resize(size_type count, const T& value) {
+        if (count < size_) {
+            for (size_type i = count; i < size_; ++i)
+                alloc_traits::destroy(alloc_, data_ + i);
+            size_ = count;
+        } else if (count > size_) {
+            if (count > capacity_)
+                reallocate(grown_capacity(capacity_, count));
+            for (; size_ < count; ++size_)
+                alloc_traits::construct(alloc_, data_ + size_, value);
+        }
+    }
+
+    void swap(vector& other) noexcept {
+        using std::swap;
+        swap(data_, other.data_);
+        swap(size_, other.size_);
+        swap(capacity_, other.capacity_);
+        swap(alloc_, other.alloc_);
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Non-member functions
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T, typename Allocator>
+void swap(vector<T, Allocator>& a, vector<T, Allocator>& b) noexcept(noexcept(a.swap(b))) {
+    a.swap(b);
+}
+
+template<typename T, typename Allocator>
+[[nodiscard]] bool operator==(const vector<T, Allocator>& a, const vector<T, Allocator>& b) {
+    if (a.size() != b.size())
+        return false;
+    for (size_t i = 0; i < a.size(); ++i)
+        if (!(a[i] == b[i]))
+            return false;
+    return true;
+}
+
+template<typename T, typename Allocator>
+[[nodiscard]] bool operator!=(const vector<T, Allocator>& a, const vector<T, Allocator>& b) {
+    return !(a == b);
+}
+
+} // namespace std

@@ -47,7 +47,10 @@ typedef i32 clockid_t;
 #define CLOCK_REALTIME 0       ///< Wall-clock time (from RTC)
 #define CLOCK_MONOTONIC 1      ///< Monotonic uptime; never jumps backwards
 #define CLOCK_PROCESS_CPUTIME_ID 2
+#define CLOCK_THREAD_CPUTIME_ID 3
 #define CLOCK_MONOTONIC_RAW 4  ///< Like CLOCK_MONOTONIC, not adjusted
 #define CLOCK_BOOTTIME 7
+
+#define CPUCLOCK_PERTHREAD_MASK 4
 
 #endif  // VESPERAOS_UAPI_TIME_H

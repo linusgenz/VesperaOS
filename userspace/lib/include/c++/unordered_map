@@ -1,0 +1,621 @@
+// unordered_map
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <mail@linusgenz.dev>
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <initializer_list>
+#include <iterator>
+#include <memory>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+namespace std {
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  _detail: node type + bucket-count growth policy
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace _detail {
+
+template<typename Value>
+struct umap_node {
+    Value value;
+    umap_node* next;
+
+    template<typename... Args>
+    explicit umap_node(umap_node* next_node, Args&&... args)
+        : value(forward<Args>(args)...)
+        , next(next_node) {}
+};
+
+// Small prime table for bucket-count growth. Deliberately short — this
+// targets hobby-OS-scale maps, not datasets in the billions.
+[[nodiscard]] inline size_t umap_next_bucket_count(size_t n) {
+    static constexpr size_t primes[] = {
+        5ull,        11ull,        23ull,         47ull,         97ull,
+        199ull,      409ull,       823ull,        1741ull,       3469ull,
+        6949ull,     14033ull,     28411ull,      57557ull,      116731ull,
+        236897ull,   480881ull,    976369ull,     1982627ull,    4026031ull,
+        8175383ull,  16601593ull,  33712729ull,   68460391ull,   139022417ull,
+        282312799ull, 573292817ull, 1164186217ull, 2364114217ull,
+    };
+    for (size_t p : primes)
+        if (p >= n)
+            return p;
+    return n | 1ull;
+}
+
+} // namespace _detail
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  umap_iterator
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename Value, bool Const>
+class umap_iterator {
+public:
+    using value_type        = Value;
+    using difference_type   = ptrdiff_t;
+    using iterator_category = forward_iterator_tag;
+    using pointer           = conditional_t<Const, const Value*, Value*>;
+    using reference          = conditional_t<Const, const Value&, Value&>;
+
+private:
+    using node_type = _detail::umap_node<Value>;
+
+    node_type* const* bucket_ = nullptr;
+    node_type* const* bucket_end_ = nullptr;
+    node_type* node_ = nullptr;
+
+    void skip_empty_buckets() {
+        while (node_ == nullptr && bucket_ != bucket_end_) {
+            ++bucket_;
+            if (bucket_ != bucket_end_)
+                node_ = *bucket_;
+        }
+    }
+
+public:
+    umap_iterator() noexcept = default;
+
+    umap_iterator(node_type* const* bucket, node_type* const* bucket_end, node_type* node) noexcept
+        : bucket_(bucket)
+        , bucket_end_(bucket_end)
+        , node_(node) {
+        skip_empty_buckets();
+    }
+
+    // iterator -> const_iterator conversion
+    template<bool OtherConst, typename = enable_if_t<Const && !OtherConst>>
+    umap_iterator(const umap_iterator<Value, OtherConst>& other) noexcept
+        : bucket_(other.bucket_raw())
+        , bucket_end_(other.bucket_end_raw())
+        , node_(other.node_raw()) {}
+
+    [[nodiscard]] reference operator*() const { return node_->value; }
+    [[nodiscard]] pointer operator->() const { return &node_->value; }
+
+    umap_iterator& operator++() {
+        node_ = node_->next;
+        skip_empty_buckets();
+        return *this;
+    }
+
+    umap_iterator operator++(int) {
+        umap_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    template<bool OtherConst>
+    [[nodiscard]] bool operator==(const umap_iterator<Value, OtherConst>& other) const {
+        return node_ == other.node_raw();
+    }
+
+    template<bool OtherConst>
+    [[nodiscard]] bool operator!=(const umap_iterator<Value, OtherConst>& other) const {
+        return node_ != other.node_raw();
+    }
+
+    [[nodiscard]] node_type* const* bucket_raw() const { return bucket_; }
+    [[nodiscard]] node_type* const* bucket_end_raw() const { return bucket_end_; }
+    [[nodiscard]] node_type* node_raw() const { return node_; }
+
+    template<typename, typename, typename, typename, typename>
+    friend class unordered_map;
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  unordered_map<Key, T, Hash, KeyEqual, Allocator>
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename Key,
+         typename T,
+         typename Hash = hash<Key>,
+         typename KeyEqual = equal_to<Key>,
+         typename Allocator = allocator<pair<const Key, T>>>
+class unordered_map {
+public:
+    using key_type       = Key;
+    using mapped_type     = T;
+    using value_type      = pair<const Key, T>;
+    using hasher          = Hash;
+    using key_equal        = KeyEqual;
+    using allocator_type   = Allocator;
+
+    using reference       = value_type&;
+    using const_reference  = const value_type&;
+    using pointer          = typename allocator_traits<Allocator>::pointer;
+    using const_pointer    = typename allocator_traits<Allocator>::const_pointer;
+    using size_type        = size_t;
+    using difference_type  = ptrdiff_t;
+
+    using iterator       = umap_iterator<value_type, false>;
+    using const_iterator = umap_iterator<value_type, true>;
+
+private:
+    using node_type = _detail::umap_node<value_type>;
+
+    // Allocator::rebind is the mechanism this project's <memory> exposes
+    // (there is no free rebind_alloc<T> alias independent of a concrete A).
+    using node_allocator_type   = typename Allocator::template rebind<node_type>::other;
+    using node_alloc_traits     = allocator_traits<node_allocator_type>;
+    using bucket_allocator_type = typename Allocator::template rebind<node_type*>::other;
+
+    vector<node_type*, bucket_allocator_type> buckets_;
+    size_type element_count_ = 0;
+    float max_load_factor_ = 1.0f;
+    [[no_unique_address]] Hash hash_{};
+    [[no_unique_address]] KeyEqual equal_{};
+    [[no_unique_address]] node_allocator_type node_alloc_{};
+
+    // ── helpers ───────────────────────────────────────────────────────────────
+
+    [[nodiscard]] size_type bucket_index(const key_type& k) const { return hash_(k) % buckets_.size(); }
+
+    template<typename... Args>
+    [[nodiscard]] node_type* allocate_node(node_type* next, Args&&... args) {
+        node_type* n = node_alloc_traits::allocate(node_alloc_, 1);
+        if (n == nullptr)
+            return nullptr;
+        node_alloc_traits::construct(node_alloc_, n, next, forward<Args>(args)...);
+        return n;
+    }
+
+    void deallocate_node(node_type* n) {
+        node_alloc_traits::destroy(node_alloc_, n);
+        node_alloc_traits::deallocate(node_alloc_, n, 1);
+    }
+
+    void deallocate_all() {
+        for (size_type i = 0; i < buckets_.size(); ++i) {
+            node_type* n = buckets_[i];
+            while (n != nullptr) {
+                node_type* next = n->next;
+                deallocate_node(n);
+                n = next;
+            }
+            buckets_[i] = nullptr;
+        }
+        element_count_ = 0;
+    }
+
+    void rehash_to(size_type new_bucket_count) {
+        if (new_bucket_count == buckets_.size())
+            return;
+
+        vector<node_type*, bucket_allocator_type> new_buckets(new_bucket_count, nullptr, bucket_allocator_type(node_alloc_));
+
+        for (size_type i = 0; i < buckets_.size(); ++i) {
+            node_type* n = buckets_[i];
+            while (n != nullptr) {
+                node_type* next = n->next;
+                size_type idx = hash_(n->value.first) % new_bucket_count;
+                n->next = new_buckets[idx];
+                new_buckets[idx] = n;
+                n = next;
+            }
+        }
+
+        buckets_ = move(new_buckets);
+    }
+
+    void maybe_rehash_for_insert() {
+        float load = float(element_count_ + 1) / float(buckets_.size());
+        if (load > max_load_factor_) {
+            size_type target = size_type(float(element_count_ + 1) / max_load_factor_) + 1;
+            rehash_to(_detail::umap_next_bucket_count(target));
+        }
+    }
+
+    [[nodiscard]] node_type* find_node(const key_type& k, size_type& idx_out) const {
+        size_type idx = bucket_index(k);
+        idx_out = idx;
+        for (node_type* n = buckets_[idx]; n != nullptr; n = n->next)
+            if (equal_(n->value.first, k))
+                return n;
+        return nullptr;
+    }
+
+public:
+    // ── construct / destroy / copy ───────────────────────────────────────────
+
+    unordered_map() : unordered_map(11) {}
+
+    explicit unordered_map(size_type bucket_hint,
+                            const Hash& hf = Hash(),
+                            const KeyEqual& eq = KeyEqual(),
+                            const Allocator& alloc = Allocator())
+        : buckets_(_detail::umap_next_bucket_count(bucket_hint ? bucket_hint : 1), nullptr,
+                   bucket_allocator_type(alloc))
+        , hash_(hf)
+        , equal_(eq)
+        , node_alloc_(alloc) {}
+
+    explicit unordered_map(const Allocator& alloc) : unordered_map(11, Hash(), KeyEqual(), alloc) {}
+
+    template<typename InputIt>
+    unordered_map(InputIt first, InputIt last,
+                   size_type bucket_hint = 0,
+                   const Hash& hf = Hash(),
+                   const KeyEqual& eq = KeyEqual(),
+                   const Allocator& alloc = Allocator())
+        : unordered_map(bucket_hint ? bucket_hint : 11, hf, eq, alloc) {
+        insert(first, last);
+    }
+
+    unordered_map(const unordered_map& other)
+        : unordered_map(other.buckets_.size(), other.hash_, other.equal_,
+                         node_alloc_traits::select_on_container_copy_construction(other.node_alloc_)) {
+        max_load_factor_ = other.max_load_factor_;
+        for (const value_type& kv : other)
+            insert(kv);
+    }
+
+    unordered_map(unordered_map&& other) noexcept
+        : buckets_(move(other.buckets_))
+        , element_count_(other.element_count_)
+        , max_load_factor_(other.max_load_factor_)
+        , hash_(move(other.hash_))
+        , equal_(move(other.equal_))
+        , node_alloc_(move(other.node_alloc_)) {
+        other.element_count_ = 0;
+    }
+
+    unordered_map(initializer_list<value_type> init,
+                   size_type bucket_hint = 0,
+                   const Hash& hf = Hash(),
+                   const KeyEqual& eq = KeyEqual(),
+                   const Allocator& alloc = Allocator())
+        : unordered_map(bucket_hint ? bucket_hint : 11, hf, eq, alloc) {
+        insert(init.begin(), init.end());
+    }
+
+    ~unordered_map() { deallocate_all(); }
+
+    unordered_map& operator=(const unordered_map& other) {
+        if (this != &other) {
+            unordered_map tmp(other);
+            swap(tmp);
+        }
+        return *this;
+    }
+
+    unordered_map& operator=(unordered_map&& other) noexcept {
+        if (this != &other) {
+            deallocate_all();
+            buckets_ = move(other.buckets_);
+            element_count_ = other.element_count_;
+            max_load_factor_ = other.max_load_factor_;
+            hash_ = move(other.hash_);
+            equal_ = move(other.equal_);
+            node_alloc_ = move(other.node_alloc_);
+            other.element_count_ = 0;
+        }
+        return *this;
+    }
+
+    unordered_map& operator=(initializer_list<value_type> init) {
+        clear();
+        insert(init.begin(), init.end());
+        return *this;
+    }
+
+    [[nodiscard]] allocator_type get_allocator() const noexcept { return allocator_type(node_alloc_); }
+
+    // ── size / capacity ───────────────────────────────────────────────────────
+
+    [[nodiscard]] bool empty() const noexcept { return element_count_ == 0; }
+    [[nodiscard]] size_type size() const noexcept { return element_count_; }
+    [[nodiscard]] size_type max_size() const noexcept { return size_type(-1) / sizeof(node_type); }
+
+    // ── iterators ─────────────────────────────────────────────────────────────
+
+    [[nodiscard]] iterator begin() noexcept {
+        return iterator(buckets_.data(), buckets_.data() + buckets_.size(),
+                         buckets_.empty() ? nullptr : buckets_[0]);
+    }
+
+    [[nodiscard]] const_iterator begin() const noexcept {
+        return const_iterator(buckets_.data(), buckets_.data() + buckets_.size(),
+                               buckets_.empty() ? nullptr : buckets_[0]);
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept { return begin(); }
+
+    [[nodiscard]] iterator end() noexcept {
+        node_type** past_end = buckets_.data() + buckets_.size();
+        return iterator(past_end, past_end, nullptr);
+    }
+
+    [[nodiscard]] const_iterator end() const noexcept {
+        node_type* const* past_end = buckets_.data() + buckets_.size();
+        return const_iterator(past_end, past_end, nullptr);
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept { return end(); }
+
+    // ── lookup ────────────────────────────────────────────────────────────────
+
+    [[nodiscard]] iterator find(const key_type& k) {
+        size_type idx;
+        node_type* n = find_node(k, idx);
+        if (n == nullptr)
+            return end();
+        return iterator(buckets_.data() + idx, buckets_.data() + buckets_.size(), n);
+    }
+
+    [[nodiscard]] const_iterator find(const key_type& k) const {
+        size_type idx;
+        node_type* n = find_node(k, idx);
+        if (n == nullptr)
+            return end();
+        return const_iterator(buckets_.data() + idx, buckets_.data() + buckets_.size(), n);
+    }
+
+    [[nodiscard]] size_type count(const key_type& k) const {
+        size_type idx;
+        return find_node(k, idx) != nullptr ? 1 : 0;
+    }
+
+    [[nodiscard]] bool contains(const key_type& k) const { return count(k) != 0; }
+
+    [[nodiscard]] mapped_type& at(const key_type& k) {
+        size_type idx;
+        node_type* n = find_node(k, idx);
+        assert(n != nullptr && "unordered_map::at: key not found");
+        return n->value.second;
+    }
+
+    [[nodiscard]] const mapped_type& at(const key_type& k) const {
+        size_type idx;
+        node_type* n = find_node(k, idx);
+        assert(n != nullptr && "unordered_map::at: key not found");
+        return n->value.second;
+    }
+
+    [[nodiscard]] mapped_type& operator[](const key_type& k) {
+        size_type idx;
+        node_type* n = find_node(k, idx);
+        if (n != nullptr)
+            return n->value.second;
+
+        maybe_rehash_for_insert();
+        idx = bucket_index(k);
+        node_type* new_node = allocate_node(buckets_[idx], value_type(k, mapped_type()));
+        buckets_[idx] = new_node;
+        ++element_count_;
+        return new_node->value.second;
+    }
+
+    [[nodiscard]] mapped_type& operator[](key_type&& k) {
+        size_type idx;
+        node_type* n = find_node(k, idx);
+        if (n != nullptr)
+            return n->value.second;
+
+        maybe_rehash_for_insert();
+        idx = bucket_index(k);
+        node_type* new_node = allocate_node(buckets_[idx], value_type(move(k), mapped_type()));
+        buckets_[idx] = new_node;
+        ++element_count_;
+        return new_node->value.second;
+    }
+
+    // ── modifiers ─────────────────────────────────────────────────────────────
+
+    pair<iterator, bool> insert(const value_type& v) { return emplace(v); }
+
+    pair<iterator, bool> insert(value_type&& v) { return emplace(move(v)); }
+
+    template<typename P, typename = enable_if_t<is_constructible_v<value_type, P&&>>>
+    pair<iterator, bool> insert(P&& v) {
+        return emplace(forward<P>(v));
+    }
+
+    template<typename InputIt>
+    void insert(InputIt first, InputIt last) {
+        for (; first != last; ++first)
+            emplace(*first);
+    }
+
+    void insert(initializer_list<value_type> init) { insert(init.begin(), init.end()); }
+
+    // Builds the full value_type up front rather than the classic
+    // "allocate the node speculatively, discard on duplicate" trick —
+    // costs one extra move on a duplicate key, but avoids needing a
+    // piecewise/tuple-based pair constructor this project's <utility>
+    // does not provide. Simpler to read and to keep correct without
+    // exceptions to unwind through.
+    template<typename... Args>
+    pair<iterator, bool> emplace(Args&&... args) {
+        value_type tmp(forward<Args>(args)...);
+
+        size_type idx;
+        node_type* existing = find_node(tmp.first, idx);
+        if (existing != nullptr)
+            return {iterator(buckets_.data() + idx, buckets_.data() + buckets_.size(), existing), false};
+
+        maybe_rehash_for_insert();
+        idx = bucket_index(tmp.first);
+        node_type* new_node = allocate_node(buckets_[idx], move(tmp));
+        buckets_[idx] = new_node;
+        ++element_count_;
+        return {iterator(buckets_.data() + idx, buckets_.data() + buckets_.size(), new_node), true};
+    }
+
+    iterator erase(const_iterator pos) {
+        node_type* const* bucket_slot = pos.bucket_raw();
+        size_type idx = static_cast<size_type>(bucket_slot - buckets_.data());
+        node_type* target = pos.node_raw();
+        iterator next(buckets_.data() + idx, buckets_.data() + buckets_.size(), target->next);
+
+        node_type** link = &buckets_[idx];
+        node_type* cur = *link;
+        if (cur == target) {
+            *link = target->next;
+        } else {
+            while (cur->next != target)
+                cur = cur->next;
+            cur->next = target->next;
+        }
+
+        deallocate_node(target);
+        --element_count_;
+        return next;
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        while (first != last)
+            first = erase(first);
+        return iterator(first.bucket_raw(), first.bucket_end_raw(), first.node_raw());
+    }
+
+    size_type erase(const key_type& k) {
+        size_type idx;
+        node_type* target = find_node(k, idx);
+        if (target == nullptr)
+            return 0;
+
+        node_type** link = &buckets_[idx];
+        node_type* cur = *link;
+        if (cur == target) {
+            *link = target->next;
+        } else {
+            while (cur->next != target)
+                cur = cur->next;
+            cur->next = target->next;
+        }
+
+        deallocate_node(target);
+        --element_count_;
+        return 1;
+    }
+
+    void clear() noexcept { deallocate_all(); }
+
+    void swap(unordered_map& other) noexcept {
+        using std::swap;
+        buckets_.swap(other.buckets_);
+        swap(element_count_, other.element_count_);
+        swap(max_load_factor_, other.max_load_factor_);
+        swap(hash_, other.hash_);
+        swap(equal_, other.equal_);
+        swap(node_alloc_, other.node_alloc_);
+    }
+
+    // ── bucket interface ─────────────────────────────────────────────────────
+
+    [[nodiscard]] size_type bucket_count() const noexcept { return buckets_.size(); }
+    [[nodiscard]] size_type max_bucket_count() const noexcept { return size_type(-1); }
+
+    [[nodiscard]] size_type bucket_size(size_type n) const {
+        size_type count = 0;
+        for (node_type* x = buckets_[n]; x != nullptr; x = x->next)
+            ++count;
+        return count;
+    }
+
+    [[nodiscard]] size_type bucket(const key_type& k) const { return bucket_index(k); }
+
+    [[nodiscard]] float load_factor() const noexcept {
+        return buckets_.empty() ? 0.0f : float(element_count_) / float(buckets_.size());
+    }
+
+    [[nodiscard]] float max_load_factor() const noexcept { return max_load_factor_; }
+
+    void max_load_factor(float ml) {
+        assert(ml > 0.0f);
+        max_load_factor_ = ml;
+        if (load_factor() > max_load_factor_) {
+            size_type target = size_type(float(element_count_) / max_load_factor_) + 1;
+            rehash_to(_detail::umap_next_bucket_count(target));
+        }
+    }
+
+    void rehash(size_type n) {
+        size_type min_for_load = size_type(float(element_count_) / max_load_factor_) + 1;
+        rehash_to(_detail::umap_next_bucket_count(n > min_for_load ? n : min_for_load));
+    }
+
+    void reserve(size_type n) { rehash(size_type(float(n) / max_load_factor_) + 1); }
+
+    [[nodiscard]] hasher hash_function() const { return hash_; }
+    [[nodiscard]] key_equal key_eq() const { return equal_; }
+
+    template<typename K, typename V, typename H, typename E, typename A>
+    friend bool operator==(const unordered_map<K, V, H, E, A>&, const unordered_map<K, V, H, E, A>&);
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Non-member functions
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator>
+void swap(unordered_map<Key, T, Hash, KeyEqual, Allocator>& a,
+          unordered_map<Key, T, Hash, KeyEqual, Allocator>& b) noexcept {
+    a.swap(b);
+}
+
+template<typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator>
+[[nodiscard]] bool operator==(const unordered_map<Key, T, Hash, KeyEqual, Allocator>& a,
+                               const unordered_map<Key, T, Hash, KeyEqual, Allocator>& b) {
+    if (a.size() != b.size())
+        return false;
+    for (const auto& kv : a) {
+        auto it = b.find(kv.first);
+        if (it == b.end() || !(it->second == kv.second))
+            return false;
+    }
+    return true;
+}
+
+template<typename Key, typename T, typename Hash, typename KeyEqual, typename Allocator>
+[[nodiscard]] bool operator!=(const unordered_map<Key, T, Hash, KeyEqual, Allocator>& a,
+                               const unordered_map<Key, T, Hash, KeyEqual, Allocator>& b) {
+    return !(a == b);
+}
+
+} // namespace std

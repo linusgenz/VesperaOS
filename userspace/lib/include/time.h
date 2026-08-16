@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_TIME_H
-#define VESPERAOS_TIME_H
+#ifndef _TIME_H
+#define _TIME_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -212,4 +212,4 @@ size_t strftime_unix(char* s, size_t max, const char* fmt, time_t t);
 #endif
 
 
-#endif  // VESPERAOS_TIME_H
+#endif  // _TIME_H

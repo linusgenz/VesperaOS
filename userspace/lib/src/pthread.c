@@ -249,6 +249,18 @@ int pthread_equal(pthread_t a, pthread_t b) {
     return a == b;
 }
 
+#define MAKE_THREAD_CPUCLOCK(unit_id, clock_type) \
+((clockid_t)(~(((unit_id) << 3) | CPUCLOCK_PERTHREAD_MASK | (clock_type))))
+
+int pthread_getcpuclockid(pthread_t thread, clockid_t* clock_id) {
+  if (!thread || !clock_id) return EINVAL;
+  struct __pthread_cb* cb = thread;
+
+  *clock_id = MAKE_THREAD_CPUCLOCK(cb->unit, 0);
+  return 0;
+}
+
+
 void pthread_yield_np(void) {
     sched_yield();
 }

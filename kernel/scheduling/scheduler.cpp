@@ -14,9 +14,9 @@
 #include "cpu/cpu_manager.h"
 #include "cpu_scheduler.h"
 #include "scheduler_types.h"
+#include "vespera/unit/unit_manager.h"
 
 namespace kernel::scheduling {
-
     GlobalScheduler global_scheduler = {{}};
 
     void init(u32 num_cpus) {
@@ -28,7 +28,7 @@ namespace kernel::scheduling {
         }
     }
 
-    void add_unit(Unit *unit) {
+    void add_unit(Unit* unit) {
         if (!unit || !global_scheduler.initialized) return;
 
         const u8 cpu_id = unit->cpu_id;
@@ -37,7 +37,7 @@ namespace kernel::scheduling {
         cpu_scheduler::add_unit_to_cpu(unit, cpu_id);
     }
 
-    void remove_unit(Unit *unit) {
+    void remove_unit(Unit* unit) {
         if (!unit || !global_scheduler.initialized) return;
 
         const u8 cpu_id = unit->cpu_id;
@@ -50,7 +50,7 @@ namespace kernel::scheduling {
         asm volatile("int $0x23");
     }
 
-    void yield_cpu(u8 cpu_id, TrapFrame *frame) {
+    void yield_cpu(u8 cpu_id, TrapFrame* frame) {
         cpu_scheduler::yield_cpu(cpu_id, frame);
     }
 
@@ -67,7 +67,7 @@ namespace kernel::scheduling {
         cpu_scheduler::disable_cpu(cpu_id);
     }
 
-    void add_blocked_unit(Unit *unit, u8 cpu_id) {
+    void add_blocked_unit(Unit* unit, u8 cpu_id) {
         cpu_scheduler::add_blocked_unit(unit, cpu_id);
     }
 
@@ -81,45 +81,45 @@ namespace kernel::scheduling {
     }
 
     bool set_fs_base(u64 addr) {
-        Unit *u = get_current_unit();
+        Unit* u = get_current_unit();
         if (!u) return false;
         u->context.fs_base = addr;
         wrmsr(MSR_FS_BASE, addr);
         return true;
     }
 
-    bool get_fs_base(u64 *out) {
-        const Unit *u = get_current_unit();
+    bool get_fs_base(u64* out) {
+        const Unit* u = get_current_unit();
         if (!u || !out) return false;
         *out = u->context.fs_base;
         return true;
     }
 
     bool is_current_unit_idle() {
-        const Unit *u = get_current_unit();
+        const Unit* u = get_current_unit();
         return !u || u->is_idle;
     }
 
-    Unit *get_current_unit() {
+    Unit* get_current_unit() {
         const u32 cpu_id = cpu_manager::get_current_cpu_id();
         if (!global_scheduler.cpus[cpu_id].scheduler_enabled) return nullptr;
         return cpu_scheduler::get_current_unit_on_cpu(cpu_id);
     }
 
-    Realm *get_current_realm() {
-        const Unit *u = get_current_unit();
+    Realm* get_current_realm() {
+        const Unit* u = get_current_unit();
         if (!u) return nullptr;
         return u->parent;
     }
 
     u64 get_realm_cpu_time_ns(const RealmId realm_id) {
-        const Realm *realm = RealmManager::get(realm_id);
+        const Realm* realm = RealmManager::get(realm_id);
         if (!realm) return 0;
 
-        const Unit *current = get_current_unit();
+        const Unit* current = get_current_unit();
         u64 total_ns = 0;
 
-        for (const Unit *u = realm->unit_list; u; u = u->next) {
+        for (const Unit* u = realm->unit_list; u; u = u->next) {
             total_ns += u->cpu_time_ns;
             if (u == current && u->run_start_ns != 0) total_ns += time::get_uptime_ns() - u->run_start_ns;
         }
@@ -127,37 +127,44 @@ namespace kernel::scheduling {
         return total_ns;
     }
 
+    u64 get_unit_cpu_time_ns(const UnitId unit_id) {
+        const Unit* u = UnitManager::get(unit_id);
+        if (!u) return 0;
+
+        return u->cpu_time_ns;
+    }
+
     UnitId get_current_unit_id() {
         if (!is_curent_cpu_enabled()) return 0;
-        const Unit *u = get_current_unit();
+        const Unit* u = get_current_unit();
         return (u && u->id) ? u->id : 0;
     }
 
     RealmId get_current_realm_id() {
         if (!is_curent_cpu_enabled()) return 0;
-        const Unit *u = get_current_unit();
+        const Unit* u = get_current_unit();
         return (u && u->rid) ? u->rid : 0;
     }
 
     capability_set get_current_capabilities() {
-        Realm *r = get_current_realm();
+        Realm* r = get_current_realm();
         if (!r) return 0;
 
         return r->capabilities;
     }
 
-    const char *get_current_cwd() {
-        const Unit *u = get_current_unit();
+    const char* get_current_cwd() {
+        const Unit* u = get_current_unit();
         if (!u) return "/";
-        const Realm *realm = u->parent;
+        const Realm* realm = u->parent;
         if (!realm) return "/";
         return realm->cwd_path;
     }
 
-    bool set_current_cwd(const char *abs_path) {
-        Unit *u = get_current_unit();
+    bool set_current_cwd(const char* abs_path) {
+        Unit* u = get_current_unit();
         if (!u) return false;
-        Realm *realm = u->parent;
+        Realm* realm = u->parent;
         if (!realm) return false;
 
         SpinlockGuard g(realm->lock);
@@ -178,18 +185,18 @@ namespace kernel::scheduling {
         cpu_scheduler::wake_sleeping_units(cpu_id);
     }
 
-    void tick_cpu(u8 cpu_id, TrapFrame *frame) {
+    void tick_cpu(u8 cpu_id, TrapFrame* frame) {
         cpu_scheduler::tick_cpu(cpu_id, frame);
     }
 
-    bool on_user_fault(TrapFrame *frame, Signal sig, const char *fault_name) {
+    bool on_user_fault(TrapFrame* frame, Signal sig, const char* fault_name) {
         if (!(frame->cs & 0x3)) {
             return false;
         }
 
-        Unit *u = get_current_unit();
+        Unit* u = get_current_unit();
 
-        if (Realm *realm = u->parent) {
+        if (Realm* realm = u->parent) {
             Log::print_ln("[%llu]  %s (core dumped)  %s", static_cast<u64>(realm->id), fault_name, realm->name);
         }
 
@@ -198,21 +205,21 @@ namespace kernel::scheduling {
         __builtin_unreachable();
     }
 
-    void on_timer_tick(TrapFrame *frame) {
+    void on_timer_tick(TrapFrame* frame) {
         if (!(frame->cs & 0x3)) return;
 
-        Unit *u = get_current_unit();
+        Unit* u = get_current_unit();
         if (u && u->is_user && u->state == UnitState::Running) {
             signal_dispatch(u, frame);
         }
     }
 
     void on_syscall_exit(u64 ret) {
-        Unit *u = get_current_unit();
+        Unit* u = get_current_unit();
         if (!u || !u->is_user) return;
 
-        TrapFrame *trap = &u->context.current_trap_frame;
+        TrapFrame* trap = &u->context.current_trap_frame;
         trap->rax = ret;
         signal_dispatch(u, trap);
     }
-}  // namespace kernel::scheduling
+} // namespace kernel::scheduling
