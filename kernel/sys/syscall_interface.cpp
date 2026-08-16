@@ -23,8 +23,11 @@
 
 #include "syscall_interface.h"
 
+#include <vespera_errno.h>
 #include <arch/x86_64/cpu/msr.h>
 #include <vespera/log.h>
+#include <vespera/scheduling.h>
+#include <vespera/signals.h>
 #include <vespera/sched/sched_hooks.h>
 #include <vespera/sys/syscall_numbers.h>
 
@@ -118,6 +121,7 @@ void install_syscalls() {
     syscall_table[SYSCALL_FSTAT] = syscalls::internal::sys_fstat;
     syscall_table[SYSCALL_EXIT_GROUP] = syscalls::internal::sys_exit_group;
     syscall_table[SYSCALL_SCHED_GETAFFINITY] = syscalls::internal::sys_sched_getaffinity;
+    syscall_table[SYSCALL_SIGPROCMASK] = syscalls::internal::sys_sigprocmask;
 }
 
 extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5) {
@@ -128,6 +132,12 @@ extern "C" i64 syscall_handler(u64 num, u64 arg0, u64 arg1, u64 arg2, u64 arg3, 
         ret = syscall_table[num](arg0, arg1, arg2, arg3, arg4, arg5);
     } else {
         Log::print_ln("[SYSCALL] Invalid syscall number: %u", num);
+
+        if (Unit* current = kernel::scheduling::get_current_unit()) {
+            signal_send(current, Signal::SIGSYS);
+        }
+
+        ret = -ENOSYS;
     }
 
     asm volatile("cli"); // disable interrupts again, as the syscall epilog has to be interrupt free

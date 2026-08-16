@@ -24,6 +24,8 @@
 
 #include <stdint.h>
 
+#include <vespera/signal.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,6 +53,8 @@ typedef uint64_t        sigset_t;
 #define SIGTSTP   20  /* Stop from terminal (Ctrl-Z, can be caught)        */
 #define SIGTTIN   21  /* Background read from terminal (reserved)          */
 #define SIGTTOU   22  /* Background write to terminal (reserved)           */
+
+#define SIGSYS   31  /* Signal System Call                                */
 
 #define NSIG      32  /* Number of supported signals                       */
 
@@ -116,6 +120,8 @@ int raise(int signum);
  * @return 0 on success, -1 on error (errno is set).
  */
 int kill(int pid, int signum);
+
+int sigprocmask(int how, const sigset_t *__restrict__ set, sigset_t *__restrict__ oset);
 
 #ifdef __cplusplus
 }

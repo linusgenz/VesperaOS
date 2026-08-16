@@ -31,6 +31,7 @@
 #include <sched.h>
 
 #include "futex.h"
+#include "signal.h"
 #include "stdbool.h"
 
 /* -----------------------------------------------------------------------
@@ -796,5 +797,12 @@ int pthread_rwlock_unlock(pthread_rwlock_t* rwlock) {
         pthread_cond_broadcast(&rwlock->readers_ok);
     }
     pthread_mutex_unlock(&rwlock->lock);
+    return 0;
+}
+
+int pthread_sigmask(int how, const sigset_t* set, sigset_t* oset) {
+    if (sigprocmask(how, set, oset) != 0) {
+        return errno;
+    }
     return 0;
 }

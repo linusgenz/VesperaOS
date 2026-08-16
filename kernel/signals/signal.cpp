@@ -43,6 +43,7 @@ static DefaultAction default_action_for(Signal sig) {
         case Signal::SIGILL:
         case Signal::SIGSEGV:
         case Signal::SIGBUS:
+        case Signal::SIGSYS:
             return DefaultAction::TerminateCore;
         case Signal::SIGINT:
         case Signal::SIGKILL:
@@ -80,6 +81,8 @@ static const char* signal_name(Signal sig) {
             return "user 1";
         case Signal::SIGUSR2:
             return "user 2";
+        case Signal::SIGSYS:
+            return "bad system call";
         default:
             return "signal";
     }
@@ -99,6 +102,7 @@ bool is_valid_signal(i32 signum) {
         case Signal::SIGPIPE:
         case Signal::SIGUSR1:
         case Signal::SIGUSR2:
+        case Signal::SIGSYS:
             return true;
         default:
             return false;
@@ -268,4 +272,32 @@ i64 signal_restore_frame(Unit* u) {
     trap->rflags = frame->rflags;
 
     return -EINTR;
+}
+
+i64 signal_update_mask(Unit* u, int how, const u64* new_set, u64* old_set) {
+    if (!u) return -EINVAL;
+
+    if (old_set) {
+        *old_set = u->signals_masked;
+    }
+
+    if (new_set) {
+        u64 mask = *new_set & ~(1ULL << static_cast<u32>(Signal::SIGKILL));
+
+        switch (how) {
+            case SIG_BLOCK:
+                u->signals_masked |= mask;
+                break;
+            case SIG_UNBLOCK:
+                u->signals_masked &= ~mask;
+                break;
+            case SIG_SETMASK:
+                u->signals_masked = mask;
+                break;
+            default:
+                return -EINVAL;
+        }
+    }
+
+    return 0;
 }

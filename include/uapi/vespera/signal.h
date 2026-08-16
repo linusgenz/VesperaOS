@@ -33,4 +33,9 @@ struct sigaction_t {
      int sa_flags;
 };
 
+// How arguments for sigprocmask
+#define SIG_BLOCK   0   /* Union: mask = mask | set */
+#define SIG_UNBLOCK 1   /* Remove intersection: mask = mask & ~set */
+#define SIG_SETMASK 2   /* Overwrite: mask = set */
+
 #endif  // VESPERAOS_SIGNAL_H

@@ -30,6 +30,8 @@
 #include <unit.h>
 #include <futex.h>
 
+#include "signal.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -213,6 +215,8 @@ int pthread_rwlock_tryrdlock(pthread_rwlock_t* rwlock);
 int pthread_rwlock_wrlock(pthread_rwlock_t* rwlock);
 int pthread_rwlock_trywrlock(pthread_rwlock_t* rwlock);
 int pthread_rwlock_unlock(pthread_rwlock_t* rwlock);
+
+int pthread_sigmask(int how, const sigset_t* set, sigset_t* oset);
 
 #ifdef __cplusplus
 }

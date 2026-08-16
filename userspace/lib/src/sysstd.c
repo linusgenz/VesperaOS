@@ -36,6 +36,7 @@
 #define SYSCALL_MUNMAP 11
 #define SYSCALL_BRK 12
 #define SYSCALL_SIGACTION 13
+#define SYSCALL_SIGPROCMASK 14
 #define SYSCALL_SIGRETURN 15
 #define SYSCALL_IOCTL 16
 #define SYSCALL_PIPE 22
@@ -462,4 +463,8 @@ int64_t sys_sysinfo(uint64_t arg0, uint64_t, uint64_t, uint64_t, uint64_t, uint6
 
 int64_t sys_sched_getaffinity(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_SCHED_GETAFFINITY, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_sigprocmask(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_SIGPROCMASK, arg0, arg1, arg2, 0, 0, 0);
 }

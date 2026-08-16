@@ -601,6 +601,89 @@ unsigned long long strtoull(const char* __restrict__ nptr, char** __restrict__ e
     return result;
 }
 
+long long int strtoll(const char* __restrict__ nptr, char** __restrict__ endptr, int base) {
+    const char* s = nptr;
+    unsigned long long result = 0;
+    int neg = 0;
+    int overflowed = 0;
+    int any = 0;
+
+    while (isspace((unsigned char)*s)) s++;
+
+    if (*s == '+' || *s == '-') {
+        if (*s == '-') neg = 1;
+        s++;
+    }
+
+    if (base == 0) {
+        if (*s == '0') {
+            if ((s[1] == 'x' || s[1] == 'X') && isxdigit((unsigned char)s[2])) {
+                base = 16;
+                s += 2;
+            } else {
+                base = 8;
+                s++;
+            }
+        } else {
+            base = 10;
+        }
+    } else if (base == 16) {
+        if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+            s += 2;
+        }
+    }
+
+    if (base < 2 || base > 36) {
+        errno = EINVAL;
+        if (endptr) *endptr = (char*)nptr;
+        return 0;
+    }
+
+    const unsigned long long cutoff = neg ? (unsigned long long)LLONG_MAX + 1ULL : (unsigned long long)LLONG_MAX;
+    const int cutlim = (int)(cutoff % (unsigned long long)base);
+    const unsigned long long cutoff_div = cutoff / (unsigned long long)base;
+
+    while (*s) {
+        int digit;
+
+        if (*s >= '0' && *s <= '9')
+            digit = *s - '0';
+        else if (*s >= 'a' && *s <= 'z')
+            digit = *s - 'a' + 10;
+        else if (*s >= 'A' && *s <= 'Z')
+            digit = *s - 'A' + 10;
+        else
+            break;
+
+        if (digit >= base) break;
+
+        if (!overflowed) {
+            if (result > cutoff_div || (result == cutoff_div && digit > cutlim)) {
+                overflowed = 1;
+            } else {
+                result = result * (unsigned long long)base + (unsigned long long)digit;
+            }
+        }
+
+        any = 1;
+        s++;
+    }
+
+    if (!any) {
+        errno = EINVAL;
+        if (endptr) *endptr = (char*)nptr;
+        return 0;
+    }
+
+    if (endptr) *endptr = (char*)s;
+
+    if (overflowed) {
+        errno = ERANGE;
+        return neg ? LLONG_MIN : LLONG_MAX;
+    }
+
+    return neg ? -(long long)result : (long long)result;
+}
 
 _Thread_local static unsigned long next = 0;
 

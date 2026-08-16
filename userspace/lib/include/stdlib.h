@@ -190,6 +190,7 @@ long double strtold(const char* str, char** endptr);
 unsigned long strtoul(const char* nptr, char** endptr, int base);
 long strtol(const char* nptr, char** endptr, int base);
 unsigned long long strtoull(const char* __restrict__ nptr, char** __restrict__ endptr, int base);
+long long int strtoll (const char *__restrict__ nptr, char **__restrict__ endptr, int base);
 double atof(const char* nptr);
 
 static inline int abs(int x) {

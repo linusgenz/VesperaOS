@@ -45,6 +45,7 @@ enum class Signal : u32 {
     SIGCONT = 18,
     SIGTTOU = 22,
     SIGTTIN = 21,
+    SIGSYS  = 31,
 };
 
 struct SignalFrame {
@@ -67,6 +68,8 @@ bool is_valid_signal(i32 signum);
 void signal_send(Unit* u, Signal sig);
 void signal_dispatch(Unit* u, TrapFrame* trap);
 void signal_default(Unit* unit, Signal sig);
+
+i64 signal_update_mask(Unit* u, int how, const u64* new_set, u64* old_set);
 
 /**
  * @brief Installs a signal action for the given unit.

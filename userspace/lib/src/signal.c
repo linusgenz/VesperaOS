@@ -72,3 +72,14 @@ int kill(int pid, int signum) {
     }
     return 0;
 }
+
+int sigprocmask(int how, const sigset_t *set, sigset_t *oset) {
+    const int ret = sys_sigprocmask(how, (uint64_t)set, (uint64_t)oset,0,0,0);
+
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+
+    return 0;
+}
