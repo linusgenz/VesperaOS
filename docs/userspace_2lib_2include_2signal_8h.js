@@ -26,6 +26,7 @@ var userspace_2lib_2include_2signal_8h =
     [ "SIGPIPE", "userspace_2lib_2include_2signal_8h.html#a57e9c8c5fa13bf86bc779a9f6f408b7c", null ],
     [ "SIGQUIT", "userspace_2lib_2include_2signal_8h.html#a62045b465be11891160d53c10861b16c", null ],
     [ "SIGSEGV", "userspace_2lib_2include_2signal_8h.html#ae20b4f7171a09516ea73c9d2745bd596", null ],
+    [ "SIGSYS", "userspace_2lib_2include_2signal_8h.html#a8bacf9eb18fd539099c1bb4666c45d60", null ],
     [ "SIGTERM", "userspace_2lib_2include_2signal_8h.html#a682182a5e5f38fd61f4311501e9dac5d", null ],
     [ "SIGTRAP", "userspace_2lib_2include_2signal_8h.html#aa2beb906ab1b46676e63823f4e773c38", null ],
     [ "SIGTSTP", "userspace_2lib_2include_2signal_8h.html#abe65c086e01f0d286b7a785a7e3cdd1a", null ],
@@ -38,5 +39,6 @@ var userspace_2lib_2include_2signal_8h =
     [ "kill", "userspace_2lib_2include_2signal_8h.html#a954ebc1cfd4a2abafd8cc846afc0ab3a", null ],
     [ "raise", "userspace_2lib_2include_2signal_8h.html#a350675984ca13ce9b056e69098bda5c6", null ],
     [ "sigaction", "userspace_2lib_2include_2signal_8h.html#a48bea74f6d051a781511dffc7eb929ac", null ],
+    [ "sigprocmask", "userspace_2lib_2include_2signal_8h.html#a4dd5b9fcd37738ca43f64d773e3e9775", null ],
     [ "signal", "userspace_2lib_2include_2signal_8h.html#a19103eb697d9a373dba3b285da607263", null ]
 ];

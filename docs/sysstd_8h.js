@@ -67,6 +67,7 @@ var sysstd_8h =
     [ "sys_shm_open", "sysstd_8h.html#afd9bf09a8a296aa6620129e8fb933f73", null ],
     [ "sys_shm_unlink", "sysstd_8h.html#a46ab5b6f3534e9d48c81bccac81aa203", null ],
     [ "sys_sigaction", "sysstd_8h.html#ab5a722a31e12f3768b2a35379f240a07", null ],
+    [ "sys_sigprocmask", "sysstd_8h.html#a3bd14532ce46b05749a2eae9a91bf93b", null ],
     [ "sys_spawn", "sysstd_8h.html#abdb47a830bbecf03b06e7f70be326bc1", null ],
     [ "sys_stat", "sysstd_8h.html#a3f21dc15ed3796200d4f350aede19757", null ],
     [ "sys_sysinfo", "sysstd_8h.html#a878f6d1c71f6f6da10425cd120af0748", null ],

@@ -81,5 +81,6 @@ var pthread_8h =
     [ "pthread_rwlock_wrlock", "pthread_8h.html#a5ddd4cc028257f9baa9e23c2337abe3b", null ],
     [ "pthread_self", "pthread_8h.html#a4c4f5f3b4f8f45d9d897847d53b11aaa", null ],
     [ "pthread_setspecific", "pthread_8h.html#a2187333dd46ce08d9d2e044f79fad705", null ],
+    [ "pthread_sigmask", "pthread_8h.html#ac2530d4faf68aaab3605c92ea8e78a03", null ],
     [ "pthread_yield_np", "pthread_8h.html#ad1aa3ab5d62e477f24f15610d0516f25", null ]
 ];

@@ -1,5 +1,10 @@
 var NAVTREEINDEX9 =
 {
+"stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdeafca7a4e9e1f8121aa74038654c660750":[5,0,1,0,0,46,26,1],
+"stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdeafd18c6634c207dadba241e8e7fbeb4ee":[5,0,1,0,0,46,26,2],
+"stella_8h.html#adfc1df69132ae3646908eb3b0dd731b4":[5,0,1,0,0,46,37],
+"stella_8h.html#ae02764c088ecb3e0f07a66561042eb3e":[5,0,1,0,0,46,32],
+"stella_8h.html#ae1030569b6bcd0151724988cb7fce2ee":[5,0,1,0,0,46,2],
 "stella_8h.html#ae4b1d40bd6b326469136ab02d8f26c56":[5,0,1,0,0,46,47],
 "stella_8h.html#ae7fa6d63eef1f55dd6ad61c9827ec3fd":[5,0,1,0,0,46,79],
 "stella_8h.html#ae86941a61940a0590bb99bc1e017d6d9":[5,0,1,0,0,46,46],
@@ -244,10 +249,5 @@ var NAVTREEINDEX9 =
 "structelf__loaded__object.html":[4,0,27],
 "structelf__loaded__object.html#a0cc3e6b20b6118c9aeabffa8f05220b0":[4,0,27,1],
 "structelf__loaded__object.html#a40c017dd6e36659ab802cf691299ad88":[4,0,27,7],
-"structelf__loaded__object.html#a60d6233a87bfc3c7d84d359e01fb7bc8":[4,0,27,4],
-"structelf__loaded__object.html#a7f7c95b0955394d5ff34faf6c2067748":[4,0,27,0],
-"structelf__loaded__object.html#a859554aca413a57f4a67c5b5d7f3c4f3":[4,0,27,12],
-"structelf__loaded__object.html#a859bf664c9b6e50be332367a60a62666":[4,0,27,6],
-"structelf__loaded__object.html#a89803aa005dab6dd89c4d9cada1c5f79":[4,0,27,2],
-"structelf__loaded__object.html#a93baed95d1d1e40962902ee4b1bdeeb7":[4,0,27,3]
+"structelf__loaded__object.html#a60d6233a87bfc3c7d84d359e01fb7bc8":[4,0,27,4]
 };

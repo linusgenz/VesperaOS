@@ -100,6 +100,7 @@ $(document).ready(function(){initNavTree('userspace_2lib_2include_2signal_8h.htm
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="stdint_8h_source.html">stdint.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="include_2uapi_2vespera_2signal_8h_source.html">vespera/signal.h</a>&gt;</code><br />
 </div>
 <p><a href="userspace_2lib_2include_2signal_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -150,6 +151,8 @@ Macros</h2></td></tr>
 <tr class="separator:a2c146e34a6b5a78dfba41cded3331181"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a782864287613e2c5c030411fa9c5e9b1" id="r_a782864287613e2c5c030411fa9c5e9b1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2signal_8h.html#a782864287613e2c5c030411fa9c5e9b1">SIGTTOU</a>&#160;&#160;&#160;22  /* Background <a class="el" href="unistd_8h.html#abb39b21888372e95ad3e5c59b166f5c8">write</a> to terminal (reserved)           */</td></tr>
 <tr class="separator:a782864287613e2c5c030411fa9c5e9b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bacf9eb18fd539099c1bb4666c45d60" id="r_a8bacf9eb18fd539099c1bb4666c45d60"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2signal_8h.html#a8bacf9eb18fd539099c1bb4666c45d60">SIGSYS</a>&#160;&#160;&#160;31  /* Signal System Call                                */</td></tr>
+<tr class="separator:a8bacf9eb18fd539099c1bb4666c45d60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab83b88daaecc469d1edb90a527ab4a39" id="r_ab83b88daaecc469d1edb90a527ab4a39"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2signal_8h.html#ab83b88daaecc469d1edb90a527ab4a39">NSIG</a>&#160;&#160;&#160;32  /* Number of supported signals                       */</td></tr>
 <tr class="separator:ab83b88daaecc469d1edb90a527ab4a39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27d5dc561093d6243542e6a2465bc0f8" id="r_a27d5dc561093d6243542e6a2465bc0f8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2signal_8h.html#a27d5dc561093d6243542e6a2465bc0f8">SIG_DFL</a>&#160;&#160;&#160;((void (*)(int))0)   /* Default <a class="el" href="userspace_2lib_2include_2signal_8h.html#a19103eb697d9a373dba3b285da607263">signal</a> handling           */</td></tr>
@@ -193,6 +196,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a954ebc1cfd4a2abafd8cc846afc0ab3a" id="r_a954ebc1cfd4a2abafd8cc846afc0ab3a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2signal_8h.html#a954ebc1cfd4a2abafd8cc846afc0ab3a">kill</a> (int pid, int signum)</td></tr>
 <tr class="memdesc:a954ebc1cfd4a2abafd8cc846afc0ab3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a signal to another process.  <br /></td></tr>
 <tr class="separator:a954ebc1cfd4a2abafd8cc846afc0ab3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4dd5b9fcd37738ca43f64d773e3e9775" id="r_a4dd5b9fcd37738ca43f64d773e3e9775"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2signal_8h.html#a4dd5b9fcd37738ca43f64d773e3e9775">sigprocmask</a> (int how, const <a class="el" href="userspace_2lib_2include_2signal_8h.html#ae770e87ab143e8ad7feaf75b78a89718">sigset_t</a> *__restrict__ set, <a class="el" href="userspace_2lib_2include_2signal_8h.html#ae770e87ab143e8ad7feaf75b78a89718">sigset_t</a> *__restrict__ oset)</td></tr>
+<tr class="separator:a4dd5b9fcd37738ca43f64d773e3e9775"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -601,6 +606,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a8bacf9eb18fd539099c1bb4666c45d60" name="a8bacf9eb18fd539099c1bb4666c45d60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8bacf9eb18fd539099c1bb4666c45d60">&#9670;&#160;</a></span>SIGSYS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SIGSYS&#160;&#160;&#160;31  /* Signal System Call                                */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a682182a5e5f38fd61f4311501e9dac5d" name="a682182a5e5f38fd61f4311501e9dac5d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a682182a5e5f38fd61f4311501e9dac5d">&#9670;&#160;</a></span>SIGTERM</h2>
 
@@ -836,6 +855,40 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success, -1 on error (errno is set). </dd></dl>
+
+</div>
+</div>
+<a id="a4dd5b9fcd37738ca43f64d773e3e9775" name="a4dd5b9fcd37738ca43f64d773e3e9775"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dd5b9fcd37738ca43f64d773e3e9775">&#9670;&#160;</a></span>sigprocmask()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int sigprocmask </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>how</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="userspace_2lib_2include_2signal_8h.html#ae770e87ab143e8ad7feaf75b78a89718">sigset_t</a> *__restrict__&#160;</td>
+          <td class="paramname"><em>set</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="userspace_2lib_2include_2signal_8h.html#ae770e87ab143e8ad7feaf75b78a89718">sigset_t</a> *__restrict__&#160;</td>
+          <td class="paramname"><em>oset</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

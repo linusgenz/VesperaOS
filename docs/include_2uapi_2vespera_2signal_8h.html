@@ -111,8 +111,28 @@ Macros</h2></td></tr>
 <tr class="separator:a27d5dc561093d6243542e6a2465bc0f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf0e499b0ac946b366b4f47a3b3e8b9e" id="r_acf0e499b0ac946b366b4f47a3b3e8b9e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2signal_8h.html#acf0e499b0ac946b366b4f47a3b3e8b9e">SIG_IGN</a>&#160;&#160;&#160;((void(*)(int))1)</td></tr>
 <tr class="separator:acf0e499b0ac946b366b4f47a3b3e8b9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a927f6ae16379576d638006c7498ac5d7" id="r_a927f6ae16379576d638006c7498ac5d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2signal_8h.html#a927f6ae16379576d638006c7498ac5d7">SIG_BLOCK</a>&#160;&#160;&#160;0   /* Union: mask = mask | set */</td></tr>
+<tr class="separator:a927f6ae16379576d638006c7498ac5d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fcd73313a63dac2cc7eb3b654215250" id="r_a5fcd73313a63dac2cc7eb3b654215250"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2signal_8h.html#a5fcd73313a63dac2cc7eb3b654215250">SIG_UNBLOCK</a>&#160;&#160;&#160;1   /* Remove intersection: mask = mask &amp; ~set */</td></tr>
+<tr class="separator:a5fcd73313a63dac2cc7eb3b654215250"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37750b78b7ae75fe02ad26e70f6cc845" id="r_a37750b78b7ae75fe02ad26e70f6cc845"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="include_2uapi_2vespera_2signal_8h.html#a37750b78b7ae75fe02ad26e70f6cc845">SIG_SETMASK</a>&#160;&#160;&#160;2   /* Overwrite: mask = set */</td></tr>
+<tr class="separator:a37750b78b7ae75fe02ad26e70f6cc845"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a927f6ae16379576d638006c7498ac5d7" name="a927f6ae16379576d638006c7498ac5d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a927f6ae16379576d638006c7498ac5d7">&#9670;&#160;</a></span>SIG_BLOCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SIG_BLOCK&#160;&#160;&#160;0   /* Union: mask = mask | set */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a27d5dc561093d6243542e6a2465bc0f8" name="a27d5dc561093d6243542e6a2465bc0f8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a27d5dc561093d6243542e6a2465bc0f8">&#9670;&#160;</a></span>SIG_DFL</h2>
 
@@ -135,6 +155,34 @@ Macros</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define SIG_IGN&#160;&#160;&#160;((void(*)(int))1)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a37750b78b7ae75fe02ad26e70f6cc845" name="a37750b78b7ae75fe02ad26e70f6cc845"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37750b78b7ae75fe02ad26e70f6cc845">&#9670;&#160;</a></span>SIG_SETMASK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SIG_SETMASK&#160;&#160;&#160;2   /* Overwrite: mask = set */</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5fcd73313a63dac2cc7eb3b654215250" name="a5fcd73313a63dac2cc7eb3b654215250"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fcd73313a63dac2cc7eb3b654215250">&#9670;&#160;</a></span>SIG_UNBLOCK</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SIG_UNBLOCK&#160;&#160;&#160;1   /* Remove intersection: mask = mask &amp; ~set */</td>
         </tr>
       </table>
 </div><div class="memdoc">

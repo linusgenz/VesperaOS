@@ -63,7 +63,8 @@ var searchData=
   ['pthread_5frwlock_5fwrlock_60',['pthread_rwlock_wrlock',['../pthread_8h.html#a5ddd4cc028257f9baa9e23c2337abe3b',1,'pthread.h']]],
   ['pthread_5fself_61',['pthread_self',['../pthread_8h.html#a4c4f5f3b4f8f45d9d897847d53b11aaa',1,'pthread.h']]],
   ['pthread_5fsetspecific_62',['pthread_setspecific',['../pthread_8h.html#a2187333dd46ce08d9d2e044f79fad705',1,'pthread.h']]],
-  ['pthread_5fyield_5fnp_63',['pthread_yield_np',['../pthread_8h.html#ad1aa3ab5d62e477f24f15610d0516f25',1,'pthread.h']]],
-  ['putchar_64',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
-  ['puts_65',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
+  ['pthread_5fsigmask_63',['pthread_sigmask',['../pthread_8h.html#ac2530d4faf68aaab3605c92ea8e78a03',1,'pthread.h']]],
+  ['pthread_5fyield_5fnp_64',['pthread_yield_np',['../pthread_8h.html#ad1aa3ab5d62e477f24f15610d0516f25',1,'pthread.h']]],
+  ['putchar_65',['putchar',['../stdio_8h.html#af4de2514b7778805db3815e8dd6cf09a',1,'stdio.h']]],
+  ['puts_66',['puts',['../stdio_8h.html#ad41876f99f190c7488e64ef39c50a23f',1,'stdio.h']]]
 ];

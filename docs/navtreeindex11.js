@@ -1,5 +1,10 @@
 var NAVTREEINDEX11 =
 {
+"structsmart__common.html":[4,0,70],
+"structsmart__common.html#a2ba0661d31bd4fe8204a1b8ea2abd792":[4,0,70,3],
+"structsmart__common.html#a3ee80f4d67c8c127ae7a8d7fb46c18dc":[4,0,70,2],
+"structsmart__common.html#a69be251f4a6a74ed0ce2ea85a12e4c0f":[4,0,70,0],
+"structsmart__common.html#a74d8f10fada7037e2656ee7bff6ca742":[4,0,70,4],
 "structsmart__common.html#aaa87e058459baf66fd98407e9f743e6e":[4,0,70,1],
 "structsmart__nvme.html":[4,0,71],
 "structsmart__nvme.html#a03bfeaafc8747fc6298fe8cd8b3190d3":[4,0,71,13],
@@ -244,10 +249,5 @@ var NAVTREEINDEX11 =
 "sys_2syslog_8h.html#a7c96c20eb0501c681dea19b78c36e475":[5,0,1,0,0,3,5,19],
 "sys_2syslog_8h.html#a96fad55b3f5adf08c39e4c877cf185e3":[5,0,1,0,0,3,5,9],
 "sys_2syslog_8h.html#a9961fc94ec213d970dc7c8d9608e1d42":[5,0,1,0,0,3,5,6],
-"sys_2syslog_8h.html#a9dff0ca45769bfa276ce3f0080acc397":[5,0,1,0,0,3,5,31],
-"sys_2syslog_8h.html#aa6996a065648a99f5dfbd7c704a11ec8":[5,0,1,0,0,3,5,10],
-"sys_2syslog_8h.html#aa7951aa517ee754827c26f823564efa3":[5,0,1,0,0,3,5,45],
-"sys_2syslog_8h.html#aaa731313f5c63e855fefb5f6519c3283":[5,0,1,0,0,3,5,4],
-"sys_2syslog_8h.html#aaa76273872f6d8e1a2626b76d417209d":[5,0,1,0,0,3,5,35],
-"sys_2syslog_8h.html#aac5b42b45757c49927892523f0367356":[5,0,1,0,0,3,5,37]
+"sys_2syslog_8h.html#a9dff0ca45769bfa276ce3f0080acc397":[5,0,1,0,0,3,5,31]
 };

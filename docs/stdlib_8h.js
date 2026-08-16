@@ -34,6 +34,7 @@ var stdlib_8h =
     [ "strtof", "stdlib_8h.html#a8cf9a69dd4ef0e36fb08425fff9cc59d", null ],
     [ "strtol", "stdlib_8h.html#a311071298c2fe3e5d7057f396a6acfdc", null ],
     [ "strtold", "stdlib_8h.html#a2fb0bb1a4be5c0865b119ce0d89145a7", null ],
+    [ "strtoll", "stdlib_8h.html#ac1fa8bdb73a5017102a4ae55b5325e8e", null ],
     [ "strtoul", "stdlib_8h.html#a6d257fc3f00865d0556ed7327c312b55", null ],
     [ "strtoull", "stdlib_8h.html#a656899e8c53a427f5dd4c72415569b37", null ],
     [ "system", "stdlib_8h.html#a5e43287e1dd4097af9094206a00d8806", null ],
