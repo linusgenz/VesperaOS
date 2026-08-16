@@ -1,5 +1,8 @@
 var NAVTREEINDEX11 =
 {
+"structsmart__attribute.html#aa967d2d34ee80c4db35d78b6fdde94a4":[4,0,69,2],
+"structsmart__attribute.html#acf4bd1545e9d6b383020b1d9760efbe7":[4,0,69,4],
+"structsmart__attribute.html#af25b0275b338deacef8047af07ee396b":[4,0,69,1],
 "structsmart__common.html":[4,0,70],
 "structsmart__common.html#a2ba0661d31bd4fe8204a1b8ea2abd792":[4,0,70,3],
 "structsmart__common.html#a3ee80f4d67c8c127ae7a8d7fb46c18dc":[4,0,70,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX11 =
 "sys_2syslog_8h.html#a71d48fd009db4d4e57019903d372347a":[5,0,1,0,0,3,5,21],
 "sys_2syslog_8h.html#a79f76e80518dce884dab21fa3f18a1f4":[5,0,1,0,0,3,5,44],
 "sys_2syslog_8h.html#a7b264572ee428bb73548226ba5bbe88a":[5,0,1,0,0,3,5,34],
-"sys_2syslog_8h.html#a7c96c20eb0501c681dea19b78c36e475":[5,0,1,0,0,3,5,19],
-"sys_2syslog_8h.html#a96fad55b3f5adf08c39e4c877cf185e3":[5,0,1,0,0,3,5,9],
-"sys_2syslog_8h.html#a9961fc94ec213d970dc7c8d9608e1d42":[5,0,1,0,0,3,5,6],
-"sys_2syslog_8h.html#a9dff0ca45769bfa276ce3f0080acc397":[5,0,1,0,0,3,5,31]
+"sys_2syslog_8h.html#a7c96c20eb0501c681dea19b78c36e475":[5,0,1,0,0,3,5,19]
 };

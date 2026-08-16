@@ -155,7 +155,7 @@ var searchData=
   ['futex_5fabstime_152',['FUTEX_ABSTIME',['../include_2uapi_2vespera_2futex_8h.html#acf944a9bcc87f67ade56404ee9c1ae78',1,'futex.h']]],
   ['futex_5fwait_153',['futex_wait',['../include_2uapi_2vespera_2futex_8h.html#a4d9dd0962be215fe1d3e861c8bb4815b',1,'FUTEX_WAIT:&#160;futex.h'],['../userspace_2lib_2include_2futex_8h.html#a69bc8e42d4062dd5772f5300d0c98275',1,'futex_wait(const uint32_t *addr, uint32_t expected, const struct timespec *timeout):&#160;futex.h']]],
   ['futex_5fwait_5funtil_154',['futex_wait_until',['../userspace_2lib_2include_2futex_8h.html#aa2c80e604897d4d649b3f73f1eafefaa',1,'futex.h']]],
-  ['futex_5fwake_155',['futex_wake',['../include_2uapi_2vespera_2futex_8h.html#a1830ac17170b47e0585aafbf58c079fd',1,'FUTEX_WAKE:&#160;futex.h'],['../userspace_2lib_2include_2futex_8h.html#a88546b1e4d0c3dda1fcbdcd72f8d65d1',1,'futex_wake(uint32_t *addr, uint32_t n):&#160;futex.h']]],
+  ['futex_5fwake_155',['futex_wake',['../userspace_2lib_2include_2futex_8h.html#a88546b1e4d0c3dda1fcbdcd72f8d65d1',1,'futex_wake(uint32_t *addr, uint32_t n):&#160;futex.h'],['../include_2uapi_2vespera_2futex_8h.html#a1830ac17170b47e0585aafbf58c079fd',1,'FUTEX_WAKE:&#160;futex.h']]],
   ['futex_5fwake_5fall_156',['futex_wake_all',['../include_2uapi_2vespera_2futex_8h.html#a12bc5aff1e84d8d82ece23caf40d7bf2',1,'FUTEX_WAKE_ALL:&#160;futex.h'],['../userspace_2lib_2include_2futex_8h.html#a366d9e7088fd12c094aea01ade6fc767',1,'futex_wake_all(uint32_t *addr):&#160;futex.h']]],
   ['fwrite_157',['fwrite',['../stdio_8h.html#a152a43e71b495278570e5790af9b5043',1,'stdio.h']]]
 ];

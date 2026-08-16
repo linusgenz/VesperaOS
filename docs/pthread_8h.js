@@ -57,6 +57,7 @@ var pthread_8h =
     [ "pthread_detach", "pthread_8h.html#a7c275c509c26566b6dd95a2de1668a2f", null ],
     [ "pthread_equal", "pthread_8h.html#aab4403e9e7e0d3ac2fd0cdf3c073d7db", null ],
     [ "pthread_exit", "pthread_8h.html#a23b28e0f8ac5af2b46a33cdab3a80e44", null ],
+    [ "pthread_getcpuclockid", "pthread_8h.html#a18a880f2bb16ff3a804f436e8d671e9e", null ],
     [ "pthread_getspecific", "pthread_8h.html#acdf9f73a16ea40eba1bc174d38e76ca5", null ],
     [ "pthread_join", "pthread_8h.html#a28a15bba47cab57cbc9f5dac9af99c8b", null ],
     [ "pthread_key_create", "pthread_8h.html#af4b7ced8ecff505380fe8216244a3764", null ],

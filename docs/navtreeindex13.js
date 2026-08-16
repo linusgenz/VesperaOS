@@ -1,5 +1,8 @@
 var NAVTREEINDEX13 =
 {
+"userspace_2lib_2include_2bits_2sched_8h.html#a71a56437b99e4b0bc5afdeba3d4ca2a9":[5,0,1,0,0,0,2,7],
+"userspace_2lib_2include_2bits_2sched_8h.html#a896ea0d09207bee2673e61465818438d":[5,0,1,0,0,0,2,4],
+"userspace_2lib_2include_2bits_2sched_8h.html#a98badb98d1f5623c998f4c529d803a8f":[5,0,1,0,0,0,2,9],
 "userspace_2lib_2include_2bits_2sched_8h.html#aa749c5570fae6ed77503c9a092933f48":[5,0,1,0,0,0,2,8],
 "userspace_2lib_2include_2bits_2sched_8h.html#aaefa05d667f86e870c62d1c64dedb3e2":[5,0,1,0,0,0,2,2],
 "userspace_2lib_2include_2bits_2sched_8h.html#ab5211a1ede20ce7d58f2e763a4ead657":[5,0,1,0,0,0,2,0],

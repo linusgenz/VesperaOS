@@ -119,7 +119,7 @@ var searchData=
   ['logb_116',['logb',['../math_8h.html#a9bc7815b951864dd0d20a5b0d07c37c6',1,'math.h']]],
   ['logbf_117',['logbf',['../math_8h.html#a7ec1bed5ddcf0d2b1413a27860a43548',1,'math.h']]],
   ['logbl_118',['logbl',['../math_8h.html#afac4f4e3251f4119c6691e3f3360c731',1,'math.h']]],
-  ['logf_119',['logf',['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'LOGF:&#160;log_client.h'],['../math_8h.html#a87c1524bd1a5e838de0f40bd26a28e8c',1,'logf(float):&#160;math.h']]],
+  ['logf_119',['logf',['../math_8h.html#a87c1524bd1a5e838de0f40bd26a28e8c',1,'logf(float):&#160;math.h'],['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'LOGF:&#160;log_client.h']]],
   ['logl_120',['logl',['../math_8h.html#af835cf6f401edb67986b2b83bcefe16e',1,'math.h']]],
   ['long_5fmax_121',['LONG_MAX',['../limits_8h.html#a50fece4db74f09568b2938db583c5655',1,'limits.h']]],
   ['long_5fmin_122',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]],
