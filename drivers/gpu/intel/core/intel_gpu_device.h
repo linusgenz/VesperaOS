@@ -27,7 +27,10 @@
 #include "ggtt_allocator.h"
 #include <gpu/intel/regs/pci_config_regs.h>
 
+#include "gpu/intel/bcs/intel_bcs.h"
 #include "uapi/vespera/dev/gpu.h"
+#include "vespera/devices/device_info.h"
+#include "vespera/devices/kernel_device.h"
 
 
 namespace pci {
@@ -35,7 +38,6 @@ namespace pci {
 }
 
 namespace gpu::intel::core {
-
     class IntelEngine;
 
     constexpr u64 GTTMMADR_ADDR_MASK = ~0xFULL;
@@ -58,9 +60,9 @@ namespace gpu::intel::core {
      */
     struct ForceWakeDomain {
         u32 request_reg;  ///< MMIO offset of the request register
-        u32 ack_reg;       ///< MMIO offset of the ack register
-        u32 enable_value;  ///< value to write to the request register
-        u32 ack_bit;       ///< bit to poll for in the ack register
+        u32 ack_reg;      ///< MMIO offset of the ack register
+        u32 enable_value; ///< value to write to the request register
+        u32 ack_bit;      ///< bit to poll for in the ack register
         u32 timeout_us;
     };
 
@@ -84,8 +86,8 @@ namespace gpu::intel::core {
      * engine's bits (breaking the "neither engine owns the other" invariant
      * above) or risk clobbering them via a naive full-register write.
      */
-    class IntelGpuDevice {
-       public:
+    class IntelGpuDevice final : public IDeviceInfo, public IRenderDriver {
+    public:
         /// Sentinel returned by allocate_irq_vector() on failure.
         static constexpr u8 INVALID_VECTOR = 0xFF;
 
@@ -102,14 +104,54 @@ namespace gpu::intel::core {
         [[nodiscard]] volatile u8* mmio_base() const {
             return mmio_base_;
         }
+
         [[nodiscard]] GgttAllocator& ggtt() {
             return ggtt_alloc_;
         }
+
         [[nodiscard]] volatile INTEL_IGP_PCI_CONFIG* pci_cfg() const {
             return igp_cfg_;
         }
+
         [[nodiscard]] const pci::pci_id& pci_id() const {
             return pci_id_;
+        }
+
+        [[nodiscard]] KernelDevice* get_kd() const {
+            return kd_;
+        }
+
+        bool get_vendor(char* out, usize len) override;
+        bool get_model(char* out, usize len) override;
+
+        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override {
+            return bcs_->fill_rect(px, py, w, h, colour);
+        }
+
+        bool blit_region(
+            const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
+        ) override {
+            return bcs_->blit_region(pixels, src_stride, src_x, src_y, w, h, dst_x, dst_y);
+        }
+
+        void present() override {
+            return bcs_->present();
+        }
+
+        [[nodiscard]] u32 screen_width_px() const override {
+            return bcs_->screen_width_px();
+        }
+
+        [[nodiscard]] u32 screen_height_px() const override {
+            return bcs_->screen_height_px();
+        }
+
+        [[nodiscard]] u32 bytes_per_scanline() const override {
+            return bcs_->bytes_per_scanline();
+        }
+
+        void add_bcs(bcs::IntelBcs* bcs) {
+            bcs_ = bcs;
         }
 
         /// Drives one ForceWake domain: write request, poll ack, timeout.
@@ -160,7 +202,7 @@ namespace gpu::intel::core {
 
         void query_info(gpu_device_info_t* out_info) const;
 
-       private:
+    private:
         /// The single MSI/MSI-X handler installed for this device's GT0 +
         /// DE Pipe A interrupts. Reads MASTER_INT_CTL once to see which
         /// subsystem is pending, dispatches to the GT0 engine registry
@@ -186,8 +228,11 @@ namespace gpu::intel::core {
 
         DePipeAHandler de_pipe_a_handler_ = nullptr;
         void* de_pipe_a_handler_ctx_ = nullptr;
-    };
 
-}  // namespace blt
+        bcs::IntelBcs* bcs_ = nullptr;
+
+        KernelDevice* kd_ = nullptr;
+    };
+} // namespace blt
 
 #endif  // VESPERAOS_INTEL_GPU_DEVICE_H

@@ -165,7 +165,9 @@ namespace gpu::intel {
 
         bcs_->start_device(resolution);
 
-        const DisplayBackend be{bcs_, bcs_->get_kd()};
+        device_->add_bcs(bcs_);
+
+        const DisplayBackend be{device_, device_->get_kd()};
         DisplayManager::set_primary(be);
 
         if (rcs_) {

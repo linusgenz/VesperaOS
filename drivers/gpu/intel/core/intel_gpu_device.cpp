@@ -31,6 +31,7 @@
 #include <gpu/intel/regs/interrupt_regs.h>
 #include "intel_engine.h"
 #include "drivers/mmio_post_write.h"
+#include "filesystem/devfs.h"
 #include "gpu/intel/rcs/intel_rcs.h"
 #include "gpu/intel/regs/fuse_regs.h"
 
@@ -47,6 +48,21 @@ namespace gpu::intel::core {
     }
 
     bool IntelGpuDevice::init() {
+        char name[16];
+        DeviceManager::alloc_unique_device_name("intel_bcs", name, sizeof(name));
+        kd_ = DeviceManager::register_device(
+            DeviceDescriptor{}
+            .set_name(name)
+            .set_type(DeviceType::Gpu)
+            .set_class(DeviceClass::Graphics)
+            .set_bus(BusType::Pci)
+            .set_controller(ControllerType::IntelGpu)
+            .with_gpu(this)
+            .with_info(this)
+        );
+
+        DevFs::register_device(kd_);
+
         return ggtt_alloc_.init_from_device(mmio_base_, igp_cfg_, pci_id_);
     }
 
@@ -377,5 +393,17 @@ namespace gpu::intel::core {
         (void)post;
 
         return handled ? IRQ_HANDLED : IRQ_NONE;
+    }
+
+    bool IntelGpuDevice::get_vendor(char* out, const usize len) {
+        strncpy(out, pci::get_vendor_name(igp_cfg_->vendor_id), len);
+        out[len - 1] = '\0';
+        return true;
+    }
+
+    bool IntelGpuDevice::get_model(char* out, const usize len) {
+        strncpy(out, pci::get_device_name(igp_cfg_->vendor_id, igp_cfg_->device_id), len);
+        out[len - 1] = '\0';
+        return true;
     }
 } // namespace blt

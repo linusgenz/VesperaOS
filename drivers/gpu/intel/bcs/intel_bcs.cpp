@@ -82,21 +82,6 @@ namespace gpu::intel::bcs {
         hwsp_alloc();
         ring_alloc_and_init(RING_BUFFER_SIZE);
 
-        char name[16];
-        DeviceManager::alloc_unique_device_name("intel_bcs", name, sizeof(name));
-        kd_ = DeviceManager::register_device(
-            DeviceDescriptor{}
-            .set_name(name)
-            .set_type(DeviceType::Gpu)
-            .set_class(DeviceClass::Graphics)
-            .set_bus(BusType::Pci)
-            .set_controller(ControllerType::IntelGpu)
-            .with_gpu(this)
-            .with_info(this)
-        );
-
-        DevFs::register_device(kd_);
-
         return true;
     }
 
@@ -791,18 +776,6 @@ namespace gpu::intel::bcs {
 
     u32 IntelBcs::bytes_per_scanline() const {
         return fb_.pitch;
-    }
-
-    bool IntelBcs::get_vendor(char* out, const usize len) {
-        strncpy(out, pci::get_vendor_name(device().pci_cfg()->vendor_id), len);
-        out[len - 1] = '\0';
-        return true;
-    }
-
-    bool IntelBcs::get_model(char* out, const usize len) {
-        strncpy(out, pci::get_device_name(device().pci_cfg()->vendor_id, device().pci_cfg()->device_id), len);
-        out[len - 1] = '\0';
-        return true;
     }
 
     // =========================================================================

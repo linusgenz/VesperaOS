@@ -121,7 +121,7 @@ namespace gpu::intel::bcs {
     // path — none of which RCS needs or shares.
     // =========================================================================
 
-    class IntelBcs final : public core::IntelEngine, public IRenderDriver, public IDeviceInfo {
+    class IntelBcs final : public core::IntelEngine {
        public:
         explicit IntelBcs(core::IntelGpuDevice& device);
 
@@ -133,24 +133,16 @@ namespace gpu::intel::bcs {
         void start_device(Resolution res);
 
         // IRenderDriver
-        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
+        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour);
         bool blit_region(
             const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
-        ) override;
-        void present() override;
+        );
+        void present();
         void composite_gpu_surface(gfx_addr_t src_gfx, u32 src_pitch, u32 width, u32 height);
 
-        [[nodiscard]] u32 screen_width_px() const override;
-        [[nodiscard]] u32 screen_height_px() const override;
-        [[nodiscard]] u32 bytes_per_scanline() const override;
-
-        // IDeviceInfo
-        bool get_vendor(char* out, usize len) override;
-        bool get_model(char* out, usize len) override;
-
-        [[nodiscard]] KernelDevice* get_kd() const {
-            return kd_;
-        }
+        [[nodiscard]] u32 screen_width_px() const;
+        [[nodiscard]] u32 screen_height_px() const;
+        [[nodiscard]] u32 bytes_per_scanline() const;
 
         // IntelEngine hooks — see intel_engine.h. Registered with
         // IntelGpuDevice's shared GT0 dispatcher in init_device() via
@@ -180,8 +172,6 @@ namespace gpu::intel::bcs {
         // as the full BCS register block for BCS-specific registers
         // (SWCTRL, EIR/EMR, ...) that IntelEngine doesn't know about.
         volatile BCS_REGS* bcs_regs_ = nullptr;
-
-        KernelDevice* kd_ = nullptr;
 
         u32 last_head_ = 0;
         u32 hang_counter_ = 0;
