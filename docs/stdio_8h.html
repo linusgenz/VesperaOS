@@ -213,6 +213,10 @@ Functions</h2></td></tr>
 <tr class="separator:aa1f06a83ce0ad6dc3e12afc0613efd7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64dd2668b61c150c7d22a7e73f699f3d" id="r_a64dd2668b61c150c7d22a7e73f699f3d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a64dd2668b61c150c7d22a7e73f699f3d">asprintf</a> (char **__restrict__ ptr, const char *__restrict__ fmt,...)</td></tr>
 <tr class="separator:a64dd2668b61c150c7d22a7e73f699f3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a052b02458bce3533596938a9d8dd876e" id="r_a052b02458bce3533596938a9d8dd876e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a052b02458bce3533596938a9d8dd876e">sprintf</a> (char *__restrict__ buffer, const char *__restrict__ fmt,...)</td></tr>
+<tr class="separator:a052b02458bce3533596938a9d8dd876e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e5ac5784918cb9274d9feceae032ee6" id="r_a2e5ac5784918cb9274d9feceae032ee6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2e5ac5784918cb9274d9feceae032ee6">vsprintf</a> (char *__restrict__ buffer, const char *__restrict__ fmt, <a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a> args)</td></tr>
+<tr class="separator:a2e5ac5784918cb9274d9feceae032ee6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2537fcdb9f2f543f6167b296fcffb23f" id="r_a2537fcdb9f2f543f6167b296fcffb23f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#a2537fcdb9f2f543f6167b296fcffb23f">fopen</a> (const char *path, const char *mode)</td></tr>
 <tr class="memdesc:a2537fcdb9f2f543f6167b296fcffb23f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a file stream.  <br /></td></tr>
 <tr class="separator:a2537fcdb9f2f543f6167b296fcffb23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -315,6 +319,8 @@ Functions</h2></td></tr>
 <tr class="memitem:ab47b5eafe8b07200760d16307980ecc1" id="r_ab47b5eafe8b07200760d16307980ecc1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structFILE.html">FILE</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#ab47b5eafe8b07200760d16307980ecc1">open_memstream</a> (char **bufp, <a class="el" href="alltypes_8h.html#acf18a0d6c4b39d531e021702e9a77984">size_t</a> *sizep)</td></tr>
 <tr class="memdesc:ab47b5eafe8b07200760d16307980ecc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a dynamically-growing in-memory stream for writing.  <br /></td></tr>
 <tr class="separator:ab47b5eafe8b07200760d16307980ecc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af86fa14728c9bad5418a6d29cad9f9ff" id="r_af86fa14728c9bad5418a6d29cad9f9ff"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stdio_8h.html#af86fa14728c9bad5418a6d29cad9f9ff">fileno</a> (<a class="el" href="structFILE.html">FILE</a> *stream)</td></tr>
+<tr class="separator:af86fa14728c9bad5418a6d29cad9f9ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -1080,6 +1086,24 @@ Variables</h2></td></tr>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a2c4fad5f95f4c5242c3ea25d791df6e5" title="Read a single character from a file stream.">fgetc()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a37f8a04ff44af73c18cb3e43e7a1f752" title="Write a string to a file stream.">fputs()</a> </dd></dl>
+
+</div>
+</div>
+<a id="af86fa14728c9bad5418a6d29cad9f9ff" name="af86fa14728c9bad5418a6d29cad9f9ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af86fa14728c9bad5418a6d29cad9f9ff">&#9670;&#160;</a></span>fileno()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fileno </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structFILE.html">FILE</a> *&#160;</td>
+          <td class="paramname"><em>stream</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -1907,7 +1931,7 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on error (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a28af9471bbdf262321af663e02899a47" title="Remove a file.">unlink()</a> </dd>
 <dd>
-<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd></dl>
+<a class="el" href="unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove an empty directory.">rmdir()</a> </dd></dl>
 
 </div>
 </div>
@@ -2088,6 +2112,40 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a052b02458bce3533596938a9d8dd876e" name="a052b02458bce3533596938a9d8dd876e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a052b02458bce3533596938a9d8dd876e">&#9670;&#160;</a></span>sprintf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int sprintf </td>
+          <td>(</td>
+          <td class="paramtype">char *__restrict__&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *__restrict__&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aec1e54556dca3bd701d44395d34818dd" name="aec1e54556dca3bd701d44395d34818dd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aec1e54556dca3bd701d44395d34818dd">&#9670;&#160;</a></span>sscanf()</h2>
 
@@ -2225,7 +2283,7 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, or <code>-1</code> on failure (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a6a6f985cc61227f641f7cc75927b06fc" title="Create a new empty file.">creat()</a> </dd>
 <dd>
-<a class="el" href="userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove a directory.">rmdir()</a> </dd>
+<a class="el" href="unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce" title="Remove an empty directory.">rmdir()</a> </dd>
 <dd>
 <a class="el" href="stdio_8h.html#a32e4cef9beb0262cea4bdafb5b998276" title="Remove a file or directory.">remove()</a> </dd></dl>
 
@@ -2573,6 +2631,40 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Total number of characters written/formatted, or <code>-1</code> on error.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="stdio_8h.html#a9e15ddc3a521362ccb1ed9c6a431b7f2" title="Formatted output to a buffer with size limit.">snprintf()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a2e5ac5784918cb9274d9feceae032ee6" name="a2e5ac5784918cb9274d9feceae032ee6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e5ac5784918cb9274d9feceae032ee6">&#9670;&#160;</a></span>vsprintf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int vsprintf </td>
+          <td>(</td>
+          <td class="paramtype">char *__restrict__&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *__restrict__&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="alltypes_8h.html#af53f622e3b6c080daeb167c1955d7ec1">va_list</a>&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

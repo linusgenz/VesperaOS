@@ -36,7 +36,6 @@ var hierarchy =
     [ "fenv_t", "structfenv__t.html", null ],
     [ "FILE", "structFILE.html", null ],
     [ "gpu_buffer_desc_t", "structgpu__buffer__desc__t.html", null ],
-    [ "gpu_device_info_t", "structgpu__device__info__t.html", null ],
     [ "gpu_submit_desc_t", "structgpu__submit__desc__t.html", null ],
     [ "heap_seg", "structheap__seg.html", null ],
     [ "image_t", "structimage__t.html", null ],

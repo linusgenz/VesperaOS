@@ -1,5 +1,7 @@
 var dir_699c0620a471c520d0efc35d8d04f138 =
 [
+    [ "file.h", "file_8h.html", "file_8h" ],
+    [ "ioccom.h", "ioccom_8h.html", null ],
     [ "ioctl.h", "userspace_2lib_2include_2sys_2ioctl_8h.html", "userspace_2lib_2include_2sys_2ioctl_8h" ],
     [ "mman.h", "mman_8h.html", "mman_8h" ],
     [ "shm.h", "shm_8h.html", "shm_8h" ],

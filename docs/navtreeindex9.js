@@ -1,5 +1,16 @@
 var NAVTREEINDEX9 =
 {
+"stella_8h.html#ac1aedfb7a52cfc7d76f37c0e6274ee4d":[5,0,1,0,0,45,83],
+"stella_8h.html#acfbf7622ab6a52910533269182acad3a":[5,0,1,0,0,45,29],
+"stella_8h.html#ad13cd9f821113f09c337c55c6ddb8330":[5,0,1,0,0,45,71],
+"stella_8h.html#ad40481c6486b2820504b805b6e9102cc":[5,0,1,0,0,45,67],
+"stella_8h.html#ad6d1b7bbf17b2792d11044cd6c8c5c8e":[5,0,1,0,0,45,87],
+"stella_8h.html#ada2272138375d8fc07c82352a34e0477":[5,0,1,0,0,45,66],
+"stella_8h.html#adb49206a6ea655b2bea1f234e82e3513":[5,0,1,0,0,45,58],
+"stella_8h.html#adbeead9b4a4a84a8dc51d89840951445":[5,0,1,0,0,45,56],
+"stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccde":[5,0,1,0,0,45,26],
+"stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdea6ec0f8f32699eb8993b55a766915145f":[5,0,1,0,0,45,26,0],
+"stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdea981abdd0f551a0a5dd022cc94fb437b0":[5,0,1,0,0,45,26,3],
 "stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdeafca7a4e9e1f8121aa74038654c660750":[5,0,1,0,0,45,26,1],
 "stella_8h.html#adf6bbbf614e93591f0c7832dd6f2ccdeafd18c6634c207dadba241e8e7fbeb4ee":[5,0,1,0,0,45,26,2],
 "stella_8h.html#adfc1df69132ae3646908eb3b0dd731b4":[5,0,1,0,0,45,37],
@@ -238,16 +249,5 @@ var NAVTREEINDEX9 =
 "structdirent__t.html":[4,0,13],
 "structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10":[4,0,13,0],
 "structdirent__t.html#adde7d31507055deec94a7173c966eb6f":[4,0,13,1],
-"structelf__dyn__scan__result__t.html":[4,0,26],
-"structelf__dyn__scan__result__t.html#a39fea36c3ddf9b4d78971eb60376cbf5":[4,0,26,6],
-"structelf__dyn__scan__result__t.html#a597bd6b2c5aa70062a9370df2cf84608":[4,0,26,5],
-"structelf__dyn__scan__result__t.html#a6006a1c8f28907cde9eaf2a5c7b9c875":[4,0,26,3],
-"structelf__dyn__scan__result__t.html#a72cc9f7da342933f094fbc9926bf5cf2":[4,0,26,2],
-"structelf__dyn__scan__result__t.html#a8651e2e8f87b53cfdf7431cfcfd825da":[4,0,26,1],
-"structelf__dyn__scan__result__t.html#a9174285a27f29e52724466fce6330843":[4,0,26,0],
-"structelf__dyn__scan__result__t.html#aa876b92b715bce2d57c53d59a4dab2d5":[4,0,26,4],
-"structelf__loaded__object.html":[4,0,27],
-"structelf__loaded__object.html#a0cc3e6b20b6118c9aeabffa8f05220b0":[4,0,27,1],
-"structelf__loaded__object.html#a40c017dd6e36659ab802cf691299ad88":[4,0,27,7],
-"structelf__loaded__object.html#a60d6233a87bfc3c7d84d359e01fb7bc8":[4,0,27,4]
+"structelf__dyn__scan__result__t.html":[4,0,26]
 };

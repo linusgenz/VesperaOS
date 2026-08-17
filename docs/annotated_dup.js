@@ -46,7 +46,6 @@ var annotated_dup =
     [ "fenv_t", "structfenv__t.html", "structfenv__t" ],
     [ "FILE", "structFILE.html", "structFILE" ],
     [ "gpu_buffer_desc_t", "structgpu__buffer__desc__t.html", "structgpu__buffer__desc__t" ],
-    [ "gpu_device_info_t", "structgpu__device__info__t.html", "structgpu__device__info__t" ],
     [ "gpu_submit_desc_t", "structgpu__submit__desc__t.html", "structgpu__submit__desc__t" ],
     [ "heap_seg", "structheap__seg.html", "structheap__seg" ],
     [ "image_t", "structimage__t.html", "structimage__t" ],

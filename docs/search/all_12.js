@@ -110,7 +110,7 @@ var searchData=
   ['rintf_107',['rintf',['../math_8h.html#a97cfd342ec93dc89a64349dbe312c01d',1,'math.h']]],
   ['rintl_108',['rintl',['../math_8h.html#a6c5315869cdd2c0812af4ffcb2dc3e48',1,'math.h']]],
   ['rip_109',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
-  ['rmdir_110',['rmdir',['../userspace_2lib_2include_2sys_2stat_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'rmdir(const char *path):&#160;stat.h'],['../unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'rmdir(const char *path):&#160;unistd.h']]],
+  ['rmdir_110',['rmdir',['../unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'unistd.h']]],
   ['round_111',['round',['../math_8h.html#a002ab605b795c95e31c67b037f8c0e30',1,'math.h']]],
   ['roundf_112',['roundf',['../math_8h.html#a4f48da4925df1ba027b5f96eb9bd2878',1,'math.h']]],
   ['roundl_113',['roundl',['../math_8h.html#a7f1c285e73fe63752bb20236af82cd44',1,'math.h']]],
