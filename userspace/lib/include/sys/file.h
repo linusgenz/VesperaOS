@@ -1,9 +1,9 @@
-// stat.h
+// file.h
 // VesperaOS - operating system for the x86_64 architecture
 //
 // Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
 //
-// Created by Linus Genz on 15.03.26.
+// Created by Linus Genz on 16.08.26.
 //
 // This file is part of VesperaOS.
 //
@@ -19,32 +19,29 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPLIB_STAT_H
-#define VESPLIB_STAT_H
+#ifndef VESPERAWORKSPACE_FILE_H
+#define VESPERAWORKSPACE_FILE_H
 
-#include <stdint.h>
-#include <sysstd.h>
-#include <vespera/stat.h>
-
-int stat(const char *__restrict__ path, struct stat *__restrict__ buf);
-int fstat(int fd, struct stat *buf);
+#include <stdbool.h>
 
 /**
- * @brief Create a new directory.
+ * @brief Check if a file exists at the given path.
  *
- * Creates a new directory at @p path.
- *
- * @param path Path where the directory should be created.
- * @return @c 0 on success, or @c -1 on failure (errno set).
- *
- * @see opendir()
- * @see creat()
- * @see rmdir()
+ * @param path Path to check.
+ * @return true if the file exists, false otherwise.
  */
-int mkdir(const char *pathname, mode_t mode);
+bool file_exists(const char* path);
 
-int is_directory(const char* path);
+/* Operations for the `flock` call.  */
+#define LOCK_SH 1   /* Shared lock.  */
+#define LOCK_EX 2   /* Exclusive lock.  */
+#define LOCK_UN 8   /* Unlock.  */
 
-int is_file(const char* path);
+/* Can be OR'd in to one of the above.  */
+#define LOCK_NB 4   /* Don't block when locking.  */
 
-#endif  // VESPLIB_STAT_H
+/* Apply or remove an advisory lock, according to OPERATION,
+   on the file FD refers to.  */
+int flock(int fd, int operation);
+
+#endif //VESPERAWORKSPACE_FILE_H

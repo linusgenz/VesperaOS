@@ -61,13 +61,3 @@ HANDLE shm_unlink(const char* name) {
 
     return 0;
 }
-
-HANDLE ftruncate(HANDLE handle, size_t length) {
-    int64_t ret = sys_handle_truncate((uint64_t)handle, (uint64_t)length, 0, 0, 0, 0);
-    if (IS_ERR(ret)) {
-        errno = GET_ERR(ret);
-        return INVALID_HANDLE;
-    }
-
-    return 0;
-}

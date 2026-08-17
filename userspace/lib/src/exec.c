@@ -23,7 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <file.h>
+#include <sys/file.h>
 #include <stdio.h>
 
 static char path_buf[256];

@@ -25,6 +25,7 @@
 #define VESPERAOS_STDLIB_H
 #include <stddef.h>
 #include <sysstd.h>
+#include <alloca.h>
 
 typedef uint64_t FILE_HANDLE;
 

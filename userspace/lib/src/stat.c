@@ -38,16 +38,6 @@ int mkdir(const char* path, mode_t mode) {
     return 0;
 }
 
-int rmdir(const char* path) {
-    int ret = (int)sys_rmdir((uint64_t)path, 0,0,0,0,0);
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    }
-    return 0;
-}
-
-
 int is_directory(const char* path) {
     struct stat st;
     if (stat(path, &st) != 0) return 0;

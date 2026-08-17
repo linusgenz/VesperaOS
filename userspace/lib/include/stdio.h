@@ -283,6 +283,10 @@ int vasprintf(char** __restrict__ strp, const char* __restrict__ fmt, va_list ar
 
 int asprintf(char** __restrict__ ptr, const char* __restrict__ fmt, ...);
 
+int sprintf(char* __restrict__ buffer, const char* __restrict__ fmt, ...);
+
+int vsprintf(char* __restrict__ buffer, const char* __restrict__ fmt, va_list args);
+
 /**
  * @brief Open a file stream.
  *
@@ -745,6 +749,8 @@ FILE* fopencookie(void* cookie, const char* mode, cookie_io_functions_t io_funcs
  * @see fclose()
  */
 FILE *open_memstream(char **bufp, size_t *sizep);
+
+int fileno(FILE *stream);
 
 #ifdef __cplusplus
 }

@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <sysstd.h>
@@ -852,6 +853,22 @@ int putchar(int c) {
     return c;
 }
 
+int vsprintf(char* __restrict__ buffer, const char* __restrict__ fmt, va_list args) {
+    if (!buffer || !fmt) return -1;
+
+    return vsnprintf(buffer, SIZE_MAX, fmt, args);
+}
+
+int sprintf(char* __restrict__ buffer, const char* __restrict__ fmt, ...) {
+    if (!buffer || !fmt) return -1;
+
+    va_list args;
+    va_start(args, fmt);
+    int ret = vsprintf(buffer, fmt, args);
+    va_end(args);
+    return ret;
+}
+
 int snprintf(char* buffer, size_t size, const char* fmt, ...) {
     if (!fmt) return -1;
 
@@ -1579,4 +1596,18 @@ FILE *open_memstream(char **bufp, size_t *sizep) {
     memstream_flush_ptrs(mc);
 
     return f;
+}
+
+int fileno(FILE *stream) {
+    if (!stream) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if (stream->handle < 0) {
+        errno = EBADH;
+        return -1;
+    }
+
+    return stream->handle;
 }
