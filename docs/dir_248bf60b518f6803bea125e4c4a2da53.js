@@ -20,7 +20,6 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "fcntl.h", "userspace_2lib_2include_2fcntl_8h.html", "userspace_2lib_2include_2fcntl_8h" ],
     [ "features.h", "features_8h.html", "features_8h" ],
     [ "fenv.h", "fenv_8h.html", "fenv_8h" ],
-    [ "file.h", "file_8h.html", "file_8h" ],
     [ "float.h", "float_8h.html", "float_8h" ],
     [ "futex.h", "userspace_2lib_2include_2futex_8h.html", "userspace_2lib_2include_2futex_8h" ],
     [ "inttypes.h", "inttypes_8h.html", "inttypes_8h" ],
