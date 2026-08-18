@@ -42,7 +42,7 @@ var searchData=
   ['log_5ffac_39',['LOG_FAC',['../sys_2syslog_8h.html#aa6996a065648a99f5dfbd7c704a11ec8',1,'syslog.h']]],
   ['log_5ffacmask_40',['LOG_FACMASK',['../sys_2syslog_8h.html#a0e487f6cabd1b68612374a0a1dce72f0',1,'syslog.h']]],
   ['log_5fftp_41',['LOG_FTP',['../sys_2syslog_8h.html#acf5d4c2811adb735aaf5b32f62cc3cea',1,'syslog.h']]],
-  ['log_5finfo_42',['log_info',['../log__client_8h.html#ac8e803773221119947b55f6ae85a9c63',1,'LOG_INFO:&#160;log_client.h'],['../sys_2syslog_8h.html#aeb4f36db01bd128c7afeac5889dac311',1,'LOG_INFO:&#160;syslog.h']]],
+  ['log_5finfo_42',['log_info',['../sys_2syslog_8h.html#aeb4f36db01bd128c7afeac5889dac311',1,'LOG_INFO:&#160;syslog.h'],['../log__client_8h.html#ac8e803773221119947b55f6ae85a9c63',1,'LOG_INFO:&#160;log_client.h']]],
   ['log_5finfof_43',['LOG_INFOF',['../log__client_8h.html#ac428fb4fc0fb5a883f6a5d21323a4e70',1,'log_client.h']]],
   ['log_5fkern_44',['LOG_KERN',['../sys_2syslog_8h.html#a3782c789d7d0eeab593758f80e436da4',1,'syslog.h']]],
   ['log_5flocal0_45',['LOG_LOCAL0',['../sys_2syslog_8h.html#a25eab08bcadd790ad09db8ab1391d7b4',1,'syslog.h']]],
@@ -76,5 +76,6 @@ var searchData=
   ['log_5fwarning_73',['LOG_WARNING',['../sys_2syslog_8h.html#adf4476a6a4ea6c74231c826e899d7189',1,'syslog.h']]],
   ['logf_74',['LOGF',['../log__client_8h.html#abf90b9a1dd511a996bcba0a746281601',1,'log_client.h']]],
   ['long_5fmax_75',['LONG_MAX',['../limits_8h.html#a50fece4db74f09568b2938db583c5655',1,'limits.h']]],
-  ['long_5fmin_76',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]]
+  ['long_5fmin_76',['LONG_MIN',['../limits_8h.html#ae8a44c5a7436466221e0f3859d02420f',1,'limits.h']]],
+  ['lucifer_5fioctl_5fquery_77',['LUCIFER_IOCTL_QUERY',['../lucifer__drm_8h.html#a735cf9ac6402825a4ca8ad06d7250702',1,'lucifer_drm.h']]]
 ];

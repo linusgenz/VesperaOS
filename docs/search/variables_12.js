@@ -30,7 +30,8 @@ var searchData=
   ['reserved_5fram_27',['reserved_ram',['../structmeminfo.html#adb57cb508483ff38c0fef17d826f4657',1,'meminfo']]],
   ['restored_28',['restored',['../unionvbus__payload__t.html#a4942ff1e8bd0824001e6bf8e2d92d345',1,'vbus_payload_t']]],
   ['revents_29',['revents',['../structpollhdl.html#a7e1e11d9654dfc6110a492c45fa63be7',1,'pollhdl']]],
-  ['rip_30',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
-  ['rows_31',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
-  ['rsp_32',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
+  ['revision_30',['revision',['../structlucifer__query__config.html#a3cd87ff7e4962f1be723bf8d9c31b84b',1,'lucifer_query_config']]],
+  ['rip_31',['rip',['../structjmp__buf.html#a54255cc587381da7a4bf746e8ebb2e1b',1,'jmp_buf']]],
+  ['rows_32',['rows',['../structtty__size__t.html#ad639278e7517a2858e9e566cce057cab',1,'tty_size_t']]],
+  ['rsp_33',['rsp',['../structjmp__buf.html#a7dda7cdd2b1cf323e70b55ad28bd5eb9',1,'jmp_buf']]]
 ];

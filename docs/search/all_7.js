@@ -49,5 +49,7 @@ var searchData=
   ['gpu_5ftiling_5fx_46',['GPU_TILING_X',['../gpu__api_8h.html#a4123bd8525805497c940ccc50bc563c4a814b8dfb0d946ccd53ea5278587bae29',1,'gpu_api.h']]],
   ['gpu_5ftiling_5fy_47',['GPU_TILING_Y',['../gpu__api_8h.html#a4123bd8525805497c940ccc50bc563c4a8e48de3b2dac5c454b8b4cefda4a3f78',1,'gpu_api.h']]],
   ['gradient_48',['gradient',['../classstella_1_1Widget.html#a9dda935b850ec010c100780e4229b7ac',1,'stella::Widget']]],
-  ['grouping_49',['grouping',['../structlconv.html#a46e468755a823be50de20f36be5ff2be',1,'lconv']]]
+  ['grouping_49',['grouping',['../structlconv.html#a46e468755a823be50de20f36be5ff2be',1,'lconv']]],
+  ['gt_5flevel_50',['gt_level',['../structlucifer__query__config.html#a7e8ba79cd68d8d6c849bab5b919266a6',1,'lucifer_query_config']]],
+  ['gtt_5fsize_51',['gtt_size',['../structlucifer__query__config.html#a386271ac6e3d45e30158e4c0e9950918',1,'lucifer_query_config']]]
 ];

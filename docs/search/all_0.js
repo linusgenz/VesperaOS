@@ -80,7 +80,7 @@ var searchData=
   ['_5fctype_5ftoupper_77',['_ctype_toupper',['../ctype_8h.html#a8d65ee3751b3f6c40b042683663efd9b',1,'ctype.h']]],
   ['_5fdbl_5fradix_78',['_DBL_RADIX',['../float_8h.html#a250e0efebc6401f84245dcd6594d5d1e',1,'float.h']]],
   ['_5fdbl_5frounds_79',['_DBL_ROUNDS',['../float_8h.html#abb8af2f9223d4421c07b7ead2c704312',1,'float.h']]],
-  ['_5fexit_80',['_exit',['../stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63',1,'_Exit(int status):&#160;stdlib.h'],['../unistd_8h.html#aee2ffcdf92b92a337c592a7ef9174769',1,'_exit(int status):&#160;unistd.h']]],
+  ['_5fexit_80',['_exit',['../unistd_8h.html#aee2ffcdf92b92a337c592a7ef9174769',1,'_exit(int status):&#160;unistd.h'],['../stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63',1,'_Exit(int status):&#160;stdlib.h']]],
   ['_5ff_81',['_f',['../structsysinfo.html#add88186334905e19a2429dc2348e3cb8',1,'sysinfo']]],
   ['_5fgid_5ft_5fdefined_82',['_gid_t_defined',['../unistd_8h.html#a92b65db0e1c5bbe9b19b15719564e0bc',1,'_GID_T_DEFINED:&#160;unistd.h'],['../include_2uapi_2vespera_2types_8h.html#a92b65db0e1c5bbe9b19b15719564e0bc',1,'_GID_T_DEFINED:&#160;types.h']]],
   ['_5fint64_83',['_Int64',['../alltypes_8h.html#a08f17002fb0082ba6615d5b55528c171',1,'alltypes.h']]],

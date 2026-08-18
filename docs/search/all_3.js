@@ -45,7 +45,7 @@ var searchData=
   ['chronos_5fphase_5fmax_42',['CHRONOS_PHASE_MAX',['../include_2uapi_2vespera_2chronos_8h.html#a7a517d3e8cdc17e7d9ea8f9e8a5a6540',1,'chronos.h']]],
   ['chronos_5fsource_5fkernel_43',['CHRONOS_SOURCE_KERNEL',['../include_2uapi_2vespera_2chronos_8h.html#a541eb55cc68c06b717294fd9130218a7',1,'chronos.h']]],
   ['chronos_5fsource_5fuser_44',['CHRONOS_SOURCE_USER',['../include_2uapi_2vespera_2chronos_8h.html#ae0ce0449b94482d6e354a2d19da5b7cf',1,'chronos.h']]],
-  ['chronos_5fsummary_45',['chronos_summary',['../userspace_2lib_2include_2chronos_8h.html#a67df01c010b3fa2efde6ec59655a413e',1,'chronos_summary():&#160;chronos.h'],['../userspace_2lib_2include_2chronos_8h.html#a21dec1ef45d9a407b300043482b3f0ba',1,'CHRONOS_SUMMARY:&#160;chronos.h']]],
+  ['chronos_5fsummary_45',['chronos_summary',['../userspace_2lib_2include_2chronos_8h.html#a21dec1ef45d9a407b300043482b3f0ba',1,'CHRONOS_SUMMARY:&#160;chronos.h'],['../userspace_2lib_2include_2chronos_8h.html#a67df01c010b3fa2efde6ec59655a413e',1,'chronos_summary():&#160;chronos.h']]],
   ['chronos_5fuser_5fcheckpoint_46',['chronos_user_checkpoint',['../structchronos__user__checkpoint.html',1,'']]],
   ['chronos_5fuser_5fcheckpoint_5ft_47',['chronos_user_checkpoint_t',['../include_2uapi_2vespera_2chronos_8h.html#a8b8da9fd9cbad6be667a5f96dfbb018f',1,'chronos.h']]],
   ['chroot_48',['chroot',['../stdio_8h.html#afb5a028bb4a392db1cb0815a0d909f8f',1,'chroot(const char *path):&#160;stdio.h'],['../tmp_8h.html#afb5a028bb4a392db1cb0815a0d909f8f',1,'chroot(const char *path):&#160;tmp.h']]],

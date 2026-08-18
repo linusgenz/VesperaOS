@@ -47,6 +47,7 @@ var dir_248bf60b518f6803bea125e4c4a2da53 =
     [ "stella++.h", "stella_09_09_8h.html", "stella_09_09_8h" ],
     [ "stella.h", "stella_8h.html", "stella_8h" ],
     [ "string.h", "string_8h.html", "string_8h" ],
+    [ "strings.h", "strings_8h.html", "strings_8h" ],
     [ "syslog.h", "syslog_8h.html", null ],
     [ "sysstd.h", "sysstd_8h.html", "sysstd_8h" ],
     [ "termios.h", "termios_8h.html", "termios_8h" ],

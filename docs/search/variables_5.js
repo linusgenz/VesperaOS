@@ -22,6 +22,7 @@ var searchData=
   ['errno_19',['errno',['../errno_8h.html#ab7b51b34b19a7c8c7d6e23d66888640d',1,'errno.h']]],
   ['error_20',['error',['../structFILE.html#a53285086088ad9f3c1e4f59accf8e1c4',1,'FILE']]],
   ['error_5flog_5fentries_21',['error_log_entries',['../structsmart__nvme.html#a52cd2b03488f7d23a22b0a0082754abe',1,'smart_nvme']]],
-  ['events_22',['events',['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl']]],
-  ['exit_5fcode_23',['exit_code',['../structunit__info.html#a07779b2699d71da869a714d920acee65',1,'unit_info']]]
+  ['eu_5fmask_22',['eu_mask',['../structlucifer__query__topology.html#ae7635264d1d367d3181c5135a91c44f8',1,'lucifer_query_topology']]],
+  ['events_23',['events',['../structpollhdl.html#a3d431e3cce00196507242f04753c583d',1,'pollhdl']]],
+  ['exit_5fcode_24',['exit_code',['../structunit__info.html#a07779b2699d71da869a714d920acee65',1,'unit_info']]]
 ];

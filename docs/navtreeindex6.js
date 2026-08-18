@@ -1,5 +1,6 @@
 var NAVTREEINDEX6 =
 {
+"locale_8h.html#a158abb82c565096465ade138c98970d0":[5,0,1,0,0,24,5],
 "locale_8h.html#a6d033a83772ef6e6c10dbf13a6a58fb7":[5,0,1,0,0,24,4],
 "locale_8h.html#a828ca2e0ed14b263335c75e061d9209b":[5,0,1,0,0,24,8],
 "locale_8h.html#a9cc5213b5dca4f8e48e64586ee444c33":[5,0,1,0,0,24,1],
@@ -28,6 +29,13 @@ var NAVTREEINDEX6 =
 "luautil_8h.html#ae279728b842721214bb327cdd0ed4ce8":[5,0,1,0,0,26,0],
 "luautil_8h.html#af8201cb04fc4ea3b4441478c3b46ceaa":[5,0,1,0,0,26,2],
 "luautil_8h_source.html":[5,0,1,0,0,26],
+"lucifer__drm_8h.html":[5,0,0,0,0,0,7],
+"lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17":[5,0,0,0,0,0,7,5],
+"lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17a33a12cbcb37b7df8b595217eeb37ecd0":[5,0,0,0,0,0,7,5,0],
+"lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17a94997f5cf27060db4d3059eab8359c85":[5,0,0,0,0,0,7,5,2],
+"lucifer__drm_8h.html#a52eb02f85faa136a734a99f45ed4ee17af36134778a410cb33bbbc83c1637142a":[5,0,0,0,0,0,7,5,1],
+"lucifer__drm_8h.html#a735cf9ac6402825a4ca8ad06d7250702":[5,0,0,0,0,0,7,4],
+"lucifer__drm_8h_source.html":[5,0,0,0,0,0,7],
 "math_8h.html":[5,0,1,0,0,27],
 "math_8h.html#a0003d647b1182eafd145bac98768d27e":[5,0,1,0,0,27,85],
 "math_8h.html#a002ab605b795c95e31c67b037f8c0e30":[5,0,1,0,0,27,180],
@@ -240,14 +248,6 @@ var NAVTREEINDEX6 =
 "math_8h.html#afd69c67aac4138a2945f72b5d1439123":[5,0,1,0,0,27,35],
 "math_8h.html#afe5f60a22e2ce7f766ddb7e691fbff4b":[5,0,1,0,0,27,206],
 "math_8h_source.html":[5,0,1,0,0,27],
-"meminfo_8h.html":[5,0,0,0,0,0,7],
-"meminfo_8h.html#a4edfacecd0025bf026c1714770b337d4":[5,0,0,0,0,0,7,1],
-"meminfo_8h_source.html":[5,0,0,0,0,0,7],
-"memory_8h.html":[5,0,1,0,0,28],
-"memory_8h.html#a444ebafa5217af6818dc3027ff06f945":[5,0,1,0,0,28,2],
-"memory_8h.html#a8f2bb8405419add9d451303cea43d127":[5,0,1,0,0,28,3],
-"memory_8h_source.html":[5,0,1,0,0,28],
-"mice_8h.html":[5,0,0,0,0,0,8],
-"mice_8h.html#a08203d7fc3a22fa27cea5525b8d4ab57":[5,0,0,0,0,0,8,2],
-"mice_8h.html#a38915e3d345325bd1096d543e97ec505":[5,0,0,0,0,0,8,4]
+"meminfo_8h.html":[5,0,0,0,0,0,8],
+"meminfo_8h.html#a4edfacecd0025bf026c1714770b337d4":[5,0,0,0,0,0,8,1]
 };

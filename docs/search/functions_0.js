@@ -12,6 +12,6 @@ var searchData=
   ['_5f_5fsignbit_9',['__signbit',['../math_8h.html#ad34eed62f675963a192a602c6636a7d4',1,'math.h']]],
   ['_5f_5fsignbitf_10',['__signbitf',['../math_8h.html#a0d0c3e4682e810c49d83321f3193863e',1,'math.h']]],
   ['_5f_5fsignbitl_11',['__signbitl',['../math_8h.html#a5ddf2574bcff4d67031253625b113bb0',1,'math.h']]],
-  ['_5fexit_12',['_exit',['../stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63',1,'_Exit(int status):&#160;stdlib.h'],['../unistd_8h.html#aee2ffcdf92b92a337c592a7ef9174769',1,'_exit(int status):&#160;unistd.h']]],
+  ['_5fexit_12',['_exit',['../unistd_8h.html#aee2ffcdf92b92a337c592a7ef9174769',1,'_exit(int status):&#160;unistd.h'],['../stdlib_8h.html#a1964abca2fa8601fcc112f68ede27c63',1,'_Exit(int status):&#160;stdlib.h']]],
   ['_5flc_5fread_5fchan_5ffile_13',['_lc_read_chan_file',['../log__client_8h.html#a67503fcd69fd9b53f771e54ce85c3458',1,'log_client.h']]]
 ];

@@ -17,12 +17,13 @@ var searchData=
   ['remquol_14',['remquol',['../math_8h.html#a182f6e3d64183e5f9e90a44445bd2dc4',1,'math.h']]],
   ['rename_15',['rename',['../stdio_8h.html#a4d4709508ed7604103d77c3fdc5ea4a2',1,'stdio.h']]],
   ['rewind_16',['rewind',['../stdio_8h.html#aa0cd401f198d33d9d01a9e8aa4026819',1,'stdio.h']]],
-  ['rint_17',['rint',['../math_8h.html#a0364527e19933b0d20e969ee6191c320',1,'math.h']]],
-  ['rintf_18',['rintf',['../math_8h.html#a97cfd342ec93dc89a64349dbe312c01d',1,'math.h']]],
-  ['rintl_19',['rintl',['../math_8h.html#a6c5315869cdd2c0812af4ffcb2dc3e48',1,'math.h']]],
-  ['rmdir_20',['rmdir',['../unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'unistd.h']]],
-  ['round_21',['round',['../math_8h.html#a002ab605b795c95e31c67b037f8c0e30',1,'math.h']]],
-  ['roundf_22',['roundf',['../math_8h.html#a4f48da4925df1ba027b5f96eb9bd2878',1,'math.h']]],
-  ['roundl_23',['roundl',['../math_8h.html#a7f1c285e73fe63752bb20236af82cd44',1,'math.h']]],
-  ['run_24',['run',['../classstella_1_1Window.html#a028672e86180f23834bceeb89907b7d9',1,'stella::Window']]]
+  ['rindex_17',['rindex',['../strings_8h.html#a63a8201d6dffde1a760889ef66a7a13c',1,'strings.h']]],
+  ['rint_18',['rint',['../math_8h.html#a0364527e19933b0d20e969ee6191c320',1,'math.h']]],
+  ['rintf_19',['rintf',['../math_8h.html#a97cfd342ec93dc89a64349dbe312c01d',1,'math.h']]],
+  ['rintl_20',['rintl',['../math_8h.html#a6c5315869cdd2c0812af4ffcb2dc3e48',1,'math.h']]],
+  ['rmdir_21',['rmdir',['../unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce',1,'unistd.h']]],
+  ['round_22',['round',['../math_8h.html#a002ab605b795c95e31c67b037f8c0e30',1,'math.h']]],
+  ['roundf_23',['roundf',['../math_8h.html#a4f48da4925df1ba027b5f96eb9bd2878',1,'math.h']]],
+  ['roundl_24',['roundl',['../math_8h.html#a7f1c285e73fe63752bb20236af82cd44',1,'math.h']]],
+  ['run_25',['run',['../classstella_1_1Window.html#a028672e86180f23834bceeb89907b7d9',1,'stella::Window']]]
 ];
