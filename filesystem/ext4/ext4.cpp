@@ -33,16 +33,6 @@
 #include "klib/result.h"
 #include "uapi/vespera/stat.h"
 
-// TODO(linus): update ext4.h declarations to match:
-//   Result<u32> create_file(u32 dir_inode_no, const char* name, mode_t mode);
-//   Result<u32> create_dir(u32 dir_inode_no, const char* name, mode_t mode);
-// Both already take and use mode_t here. What's still missing is threading mode_t
-// through ext4_vfs_adapter.h's ops->create / ops->mkdir wrappers, and through
-// VfsNodeOps::mkdir + VFS::mkdir() in vfs.cpp (sys_mkdir's mode never reaches this
-// file yet — same gap sys_open/O_CREAT had before).
-// mode_t comes from uapi/vespera/stat.h (or wherever it's typedef'd) — make sure
-// it's visible in the header, not just here.
-
 constexpr usize bytes_to_pages(usize bytes) {
     return (bytes + 4095) / 4096;
 }
@@ -1406,6 +1396,22 @@ namespace ext4 {
         return Result<usize>::ok(static_cast<i64>(size));
     }
 
+    namespace {
+        struct Ext4NodeKind {
+            InodeType inode_type;
+            DirEntryType dirent_type;
+        };
+
+        Ext4NodeKind classify_create_mode(mode_t mode) {
+            switch (mode & 0xF000u) {
+                case static_cast<u32>(InodeType::Fifo):
+                    return {InodeType::Fifo, DirEntryType::Fifo};
+                default:
+                    return {InodeType::RegularFile, DirEntryType::RegularFile};
+            }
+        }
+    } // namespace
+
     Result<u32> FileSystem::create_file(u32 dir_inode_no, const char* name, mode_t mode) {
         if (!name || name[0] == '\0') return Result<u32>::err(Error::Inval);
         if (strlen(name) > EXT4_NAME_LEN) return Result<u32>::err(Error::NameTooLong);
@@ -1417,11 +1423,13 @@ namespace ext4 {
         const u32 new_inode = alloc_inode(parent_group);
         if (new_inode == 0) return Result<u32>::err(Error::NoSpc);
 
+        const Ext4NodeKind kind = classify_create_mode(mode);
+
         const u16 perm_bits = static_cast<u16>(mode & 07777u);
-        const u16 inode_mode = static_cast<u16>(InodeType::RegularFile) | perm_bits;
+        const u16 inode_mode = static_cast<u16>(kind.inode_type) | perm_bits;
         if (!init_inode(new_inode, inode_mode)) return Result<u32>::err(Error::Io);
 
-        if (!dir_add_entry(dir_inode_no, name, new_inode, DirEntryType::RegularFile)) {
+        if (!dir_add_entry(dir_inode_no, name, new_inode, kind.dirent_type)) {
             free_inode(new_inode);
             return Result<u32>::err(Error::Io);
         }

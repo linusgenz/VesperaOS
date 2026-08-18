@@ -25,11 +25,15 @@
 #include <klib/path.h>
 #include <klib/string.h>
 #include <vespera/devices/device_manager.h>
+#include <vespera/ipc/channel.h>
 #include <vespera/log.h>
 
 #include "dentry_cache.h"
 #include "fs_detection.h"
 #include "uapi/vespera/mount.h"
+
+// Hardcoded; TODO add F_SETPIPE_SZ
+static constexpr usize VFS_FIFO_DEFAULT_CAPACITY = 64 * 1024;
 
 Vector<MountPoint*>* VFS::mount_points_ = nullptr;
 Spinlock VFS::mount_points_lock_;
@@ -136,6 +140,17 @@ Result<VfsNode*> VFS::open(const char* path) {
     }
 
     filesystem::g_dentry_cache.insert(path, current);
+
+    if (current->type == VfsNodeType::Fifo && !current->fifo_channel) {
+        // Lazily create the runtime pipe object the first time anyone opens
+        // this path. Subsequent opens of the same path hit the dentry cache
+        // above and reuse the same VfsNode*, hence the same fifo_channel.
+        // Torn down by Channel itself once both reader_count and
+        // writer_count drop back to zero (see Channel::remove_reader /
+        // remove_writer).
+        current->fifo_channel = Channel::create(VFS_FIFO_DEFAULT_CAPACITY);
+        if (!current->fifo_channel) return Error::NoMem;
+    }
 
     return Result<VfsNode*>::ok(current);
 }

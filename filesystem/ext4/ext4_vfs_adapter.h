@@ -28,7 +28,7 @@
 struct Ext4Node {
     ext4::FileSystem* fs;
     u32         inode;
-    bool        is_dir;
+    ext4::DirEntryType type;
     u64         file_size;
     char        path[512];
 

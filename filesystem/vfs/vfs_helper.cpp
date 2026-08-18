@@ -142,3 +142,46 @@ VoidResult VFS::resolve_path(const char* user_path, char* out, usize out_size) {
     out[out_size - 1] = '\0';
     return VoidResult::ok();
 }
+
+VoidResult VFS::resolve_path_at(const char* base_path, const char* user_path, char* out, usize out_size) {
+    if (!user_path || user_path[0] == '\0' || !out || out_size == 0)
+        return VoidResult::err(Error::Inval);
+    Realm* realm = kernel::scheduling::get_current_realm();
+    if (!realm) return VoidResult::err(Error::Srch);
+    const char* root = (realm->root_path[0] != '\0') ? realm->root_path : "/";
+
+    // base_path stands in for cwd_path here.
+    const char* base = (base_path && base_path[0] != '\0') ? base_path : root;
+
+    char abs[256];
+    if (user_path[0] != '/') {
+        if (strcmp(base, "/") == 0)
+            snprintf(abs, sizeof(abs), "/%s", user_path);
+        else
+            snprintf(abs, sizeof(abs), "%s/%s", base, user_path);
+    } else {
+        if (strcmp(root, "/") == 0) {
+            strncpy(abs, user_path, sizeof(abs) - 1);
+            abs[sizeof(abs) - 1] = '\0';
+        } else {
+            snprintf(abs, sizeof(abs), "%s%s", root, user_path);
+        }
+    }
+    char normalized[256];
+    normalize_path(abs, normalized, sizeof(normalized));
+    usize root_len = strlen(root);
+    char root_cmp[256];
+    strncpy(root_cmp, root, sizeof(root_cmp) - 1);
+    root_cmp[sizeof(root_cmp) - 1] = '\0';
+    if (root_len > 1 && root_cmp[root_len - 1] == '/')
+        root_cmp[--root_len] = '\0';
+    if (strcmp(root_cmp, "/") != 0) {
+        if (strncmp(normalized, root_cmp, root_len) != 0 ||
+            (normalized[root_len] != '/' && normalized[root_len] != '\0')) {
+            return VoidResult::err(Error::Acces);
+            }
+    }
+    strncpy(out, normalized, out_size - 1);
+    out[out_size - 1] = '\0';
+    return VoidResult::ok();
+}

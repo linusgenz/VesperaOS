@@ -237,6 +237,14 @@ namespace ext4 {
             return type_ == DirEntryType::Directory;
         }
 
+        [[nodiscard]] bool is_fifo() const {
+            return type_ == DirEntryType::Fifo;
+        }
+
+        [[nodiscard]] bool is_regular_file() const {
+            return type_ == DirEntryType::RegularFile;
+        }
+
         void set_size(u64 sz) {
             size_ = sz;
         }
