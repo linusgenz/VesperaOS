@@ -1,5 +1,7 @@
 var NAVTREEINDEX10 =
 {
+"structdirent__t.html#adde7d31507055deec94a7173c966eb6f":[4,0,13,1],
+"structelf__dyn__scan__result__t.html":[4,0,26],
 "structelf__dyn__scan__result__t.html#a39fea36c3ddf9b4d78971eb60376cbf5":[4,0,26,6],
 "structelf__dyn__scan__result__t.html#a597bd6b2c5aa70062a9370df2cf84608":[4,0,26,5],
 "structelf__dyn__scan__result__t.html#a6006a1c8f28907cde9eaf2a5c7b9c875":[4,0,26,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX10 =
 "structsmart__attribute.html":[4,0,68],
 "structsmart__attribute.html#a12c027ca5635e77dea8d83b617902f17":[4,0,68,0],
 "structsmart__attribute.html#a587a078e95aa5f9d73a70bdc5b821387":[4,0,68,3],
-"structsmart__attribute.html#a90f89089075e72c5ddd901236c0c192a":[4,0,68,5],
-"structsmart__attribute.html#aa967d2d34ee80c4db35d78b6fdde94a4":[4,0,68,2],
-"structsmart__attribute.html#acf4bd1545e9d6b383020b1d9760efbe7":[4,0,68,4]
+"structsmart__attribute.html#a90f89089075e72c5ddd901236c0c192a":[4,0,68,5]
 };

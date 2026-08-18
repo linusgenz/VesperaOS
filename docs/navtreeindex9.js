@@ -1,5 +1,7 @@
 var NAVTREEINDEX9 =
 {
+"stella_8h.html#abc10db31a2b1580ff9a024c144ae5824":[5,0,1,0,0,45,42],
+"stella_8h.html#ac1973428161bf6306c9bbeee326993df":[5,0,1,0,0,45,41],
 "stella_8h.html#ac1aedfb7a52cfc7d76f37c0e6274ee4d":[5,0,1,0,0,45,83],
 "stella_8h.html#acfbf7622ab6a52910533269182acad3a":[5,0,1,0,0,45,29],
 "stella_8h.html#ad13cd9f821113f09c337c55c6ddb8330":[5,0,1,0,0,45,71],
@@ -247,7 +249,5 @@ var NAVTREEINDEX9 =
 "structdevinfo__t.html#a86a2af7798113146f1af914e8d70eeee":[4,0,12,3],
 "structdevinfo__t.html#ae1be79acc37dd4116c23e592fd0c5b44":[4,0,12,1],
 "structdirent__t.html":[4,0,13],
-"structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10":[4,0,13,0],
-"structdirent__t.html#adde7d31507055deec94a7173c966eb6f":[4,0,13,1],
-"structelf__dyn__scan__result__t.html":[4,0,26]
+"structdirent__t.html#a3c03f5a5b8f1135af15668b8a969be10":[4,0,13,0]
 };

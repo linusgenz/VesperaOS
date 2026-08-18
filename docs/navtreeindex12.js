@@ -1,5 +1,7 @@
 var NAVTREEINDEX12 =
 {
+"sys_2syslog_8h.html#a96fad55b3f5adf08c39e4c877cf185e3":[5,0,1,0,0,3,7,9],
+"sys_2syslog_8h.html#a9961fc94ec213d970dc7c8d9608e1d42":[5,0,1,0,0,3,7,6],
 "sys_2syslog_8h.html#a9dff0ca45769bfa276ce3f0080acc397":[5,0,1,0,0,3,7,31],
 "sys_2syslog_8h.html#aa6996a065648a99f5dfbd7c704a11ec8":[5,0,1,0,0,3,7,10],
 "sys_2syslog_8h.html#aa7951aa517ee754827c26f823564efa3":[5,0,1,0,0,3,7,45],
@@ -247,7 +249,5 @@ var NAVTREEINDEX12 =
 "userspace_2lib_2include_2bits_2sched_8h.html#a1bc2bf9b181546798f8d318e0f8e4d00":[5,0,1,0,0,0,2,3],
 "userspace_2lib_2include_2bits_2sched_8h.html#a288e13e815d43b06e75819f8939524df":[5,0,1,0,0,0,2,11],
 "userspace_2lib_2include_2bits_2sched_8h.html#a529ad1174757fe0e371cbe5ad6dbf5ff":[5,0,1,0,0,0,2,5],
-"userspace_2lib_2include_2bits_2sched_8h.html#a5edcaa980b0f11b1a5494e1cf0750565":[5,0,1,0,0,0,2,1],
-"userspace_2lib_2include_2bits_2sched_8h.html#a71a56437b99e4b0bc5afdeba3d4ca2a9":[5,0,1,0,0,0,2,7],
-"userspace_2lib_2include_2bits_2sched_8h.html#a896ea0d09207bee2673e61465818438d":[5,0,1,0,0,0,2,4]
+"userspace_2lib_2include_2bits_2sched_8h.html#a5edcaa980b0f11b1a5494e1cf0750565":[5,0,1,0,0,0,2,1]
 };
