@@ -1,0 +1,583 @@
+// optional.h
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 17.08.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cassert>
+#include <cstddef>
+#include <initializer_list>
+#include <new>
+#include <type_traits>
+#include <utility>
+
+namespace std {
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  nullopt_t / nullopt
+// ═════════════════════════════════════════════════════════════════════════════
+
+struct nullopt_t {
+    struct _tag {};
+    explicit constexpr nullopt_t(_tag) noexcept {}
+};
+inline constexpr nullopt_t nullopt{nullopt_t::_tag{}};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  optional<T>
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace _detail {
+
+    template<typename T, bool = is_trivially_destructible_v<T>>
+    struct _optional_storage {
+        union {
+            char _empty;
+            T    _value;
+        };
+        bool _engaged;
+
+        constexpr _optional_storage() noexcept : _empty(), _engaged(false) {}
+
+        template<typename... Args>
+        constexpr _optional_storage(in_place_t, Args&&... args)
+            : _value(forward<Args>(args)...), _engaged(true) {}
+
+        // Trivially destructible T: nothing to do explicitly.
+        ~_optional_storage() = default;
+
+        constexpr void _reset() noexcept {
+            _engaged = false;
+        }
+    };
+
+    template<typename T>
+    struct _optional_storage<T, false> {
+        union {
+            char _empty;
+            T    _value;
+        };
+        bool _engaged;
+
+        constexpr _optional_storage() noexcept : _empty(), _engaged(false) {}
+
+        template<typename... Args>
+        constexpr _optional_storage(in_place_t, Args&&... args)
+            : _value(forward<Args>(args)...), _engaged(true) {}
+
+        // Non-trivially destructible T: destroy manually.
+        ~_optional_storage() {
+            if (_engaged)
+                _value.~T();
+        }
+
+        constexpr void _reset() noexcept {
+            if (_engaged) {
+                _value.~T();
+                _engaged = false;
+            }
+        }
+    };
+
+} // namespace _detail
+
+// Forward declaration for the trait specialization below.
+template<typename T> class optional;
+
+namespace _detail {
+    template<typename T>
+    struct _is_optional : false_type {};
+    template<typename T>
+    struct _is_optional<optional<T>> : true_type {};
+} // namespace _detail
+
+template<typename T>
+class optional {
+    static_assert(!is_reference_v<T>, "std::optional: T must not be a reference type");
+    static_assert(!is_same_v<remove_cv_t<T>, nullopt_t>, "std::optional: T must not be nullopt_t");
+    static_assert(!is_same_v<remove_cv_t<T>, in_place_t>, "std::optional: T must not be in_place_t");
+    static_assert(is_object_v<T>, "std::optional: T must be an object type");
+
+public:
+    using value_type = T;
+
+private:
+    _detail::_optional_storage<T> _storage;
+
+    template<typename... Args>
+    constexpr T& _construct(Args&&... args) {
+        ::new (static_cast<void*>(addressof_helper())) T(forward<Args>(args)...);
+        _storage._engaged = true;
+        return _storage._value;
+    }
+
+    constexpr T* addressof_helper() noexcept {
+        return __builtin_addressof(_storage._value);
+    }
+
+public:
+    // ── Constructors ──────────────────────────────────────────────────────────
+
+    constexpr optional() noexcept : _storage() {}
+    constexpr optional(nullopt_t) noexcept : _storage() {}
+
+    constexpr optional(const optional& other)
+        requires is_copy_constructible_v<T>
+        : _storage()
+    {
+        if (other._storage._engaged)
+            _construct(other._storage._value);
+    }
+
+    constexpr optional(optional&& other)
+        noexcept(is_nothrow_move_constructible_v<T>)
+        requires is_move_constructible_v<T>
+        : _storage()
+    {
+        if (other._storage._engaged)
+            _construct(move(other._storage._value));
+    }
+
+    template<typename U = T>
+        requires (is_constructible_v<T, U&&> &&
+                  !is_same_v<remove_cvref_t<U>, in_place_t> &&
+                  !is_same_v<remove_cvref_t<U>, optional> &&
+                  !(is_same_v<remove_cvref_t<T>, bool> && _detail::_is_optional<remove_cvref_t<U>>::value))
+    constexpr explicit(!is_convertible_v<U&&, T>)
+    optional(U&& value) : _storage() {
+        _construct(forward<U>(value));
+    }
+
+    template<typename... Args>
+        requires is_constructible_v<T, Args&&...>
+    constexpr explicit optional(in_place_t, Args&&... args) : _storage() {
+        _construct(forward<Args>(args)...);
+    }
+
+    template<typename U, typename... Args>
+        requires is_constructible_v<T, initializer_list<U>&, Args&&...>
+    constexpr explicit optional(in_place_t, initializer_list<U> il, Args&&... args) : _storage() {
+        _construct(il, forward<Args>(args)...);
+    }
+
+    // ── Destructor ────────────────────────────────────────────────────────────
+
+    ~optional() = default;
+
+    // ── Assignment ────────────────────────────────────────────────────────────
+
+    constexpr optional& operator=(nullopt_t) noexcept {
+        reset();
+        return *this;
+    }
+
+    constexpr optional& operator=(const optional& other)
+        requires (is_copy_constructible_v<T> && is_copy_assignable_v<T>)
+    {
+        if (this == &other) return *this;
+        if (other._storage._engaged) {
+            if (_storage._engaged)
+                _storage._value = other._storage._value;
+            else
+                _construct(other._storage._value);
+        } else {
+            reset();
+        }
+        return *this;
+    }
+
+    constexpr optional& operator=(optional&& other)
+        noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_move_assignable_v<T>)
+        requires (is_move_constructible_v<T> && is_move_assignable_v<T>)
+    {
+        if (this == &other) return *this;
+        if (other._storage._engaged) {
+            if (_storage._engaged)
+                _storage._value = move(other._storage._value);
+            else
+                _construct(move(other._storage._value));
+        } else {
+            reset();
+        }
+        return *this;
+    }
+
+    template<typename U = T>
+        requires (is_constructible_v<T, U&&> && is_assignable_v<T&, U&&> &&
+                  !is_same_v<remove_cvref_t<U>, optional>)
+    constexpr optional& operator=(U&& value) {
+        if (_storage._engaged)
+            _storage._value = forward<U>(value);
+        else
+            _construct(forward<U>(value));
+        return *this;
+    }
+
+    // ── Observers ─────────────────────────────────────────────────────────────
+
+    [[nodiscard]] constexpr const T* operator->() const noexcept {
+        assert(_storage._engaged && "std::optional::operator->: disengaged optional");
+        return __builtin_addressof(_storage._value);
+    }
+    [[nodiscard]] constexpr T* operator->() noexcept {
+        assert(_storage._engaged && "std::optional::operator->: disengaged optional");
+        return __builtin_addressof(_storage._value);
+    }
+
+    [[nodiscard]] constexpr const T& operator*() const& noexcept {
+        assert(_storage._engaged && "std::optional::operator*: disengaged optional");
+        return _storage._value;
+    }
+    [[nodiscard]] constexpr T& operator*() & noexcept {
+        assert(_storage._engaged && "std::optional::operator*: disengaged optional");
+        return _storage._value;
+    }
+    [[nodiscard]] constexpr const T&& operator*() const&& noexcept {
+        assert(_storage._engaged && "std::optional::operator*: disengaged optional");
+        return move(_storage._value);
+    }
+    [[nodiscard]] constexpr T&& operator*() && noexcept {
+        assert(_storage._engaged && "std::optional::operator*: disengaged optional");
+        return move(_storage._value);
+    }
+
+    [[nodiscard]] constexpr explicit operator bool() const noexcept { return _storage._engaged; }
+    [[nodiscard]] constexpr bool has_value() const noexcept { return _storage._engaged; }
+
+    [[nodiscard]] constexpr T& value() & {
+        assert(_storage._engaged && "std::optional::value: disengaged optional");
+        return _storage._value;
+    }
+    [[nodiscard]] constexpr const T& value() const& {
+        assert(_storage._engaged && "std::optional::value: disengaged optional");
+        return _storage._value;
+    }
+    [[nodiscard]] constexpr T&& value() && {
+        assert(_storage._engaged && "std::optional::value: disengaged optional");
+        return move(_storage._value);
+    }
+    [[nodiscard]] constexpr const T&& value() const&& {
+        assert(_storage._engaged && "std::optional::value: disengaged optional");
+        return move(_storage._value);
+    }
+
+    template<typename U>
+    [[nodiscard]] constexpr T value_or(U&& default_value) const& {
+        static_assert(is_copy_constructible_v<T>, "std::optional::value_or: T must be copy-constructible");
+        static_assert(is_convertible_v<U&&, T>, "std::optional::value_or: U must be convertible to T");
+        return _storage._engaged ? _storage._value : static_cast<T>(forward<U>(default_value));
+    }
+
+    template<typename U>
+    [[nodiscard]] constexpr T value_or(U&& default_value) && {
+        static_assert(is_move_constructible_v<T>, "std::optional::value_or: T must be move-constructible");
+        static_assert(is_convertible_v<U&&, T>, "std::optional::value_or: U must be convertible to T");
+        return _storage._engaged ? move(_storage._value) : static_cast<T>(forward<U>(default_value));
+    }
+
+    // ── Modifiers ─────────────────────────────────────────────────────────────
+
+    constexpr void reset() noexcept {
+        _storage._reset();
+    }
+
+    template<typename... Args>
+        requires is_constructible_v<T, Args&&...>
+    constexpr T& emplace(Args&&... args) {
+        reset();
+        return _construct(forward<Args>(args)...);
+    }
+
+    template<typename U, typename... Args>
+        requires is_constructible_v<T, initializer_list<U>&, Args&&...>
+    constexpr T& emplace(initializer_list<U> il, Args&&... args) {
+        reset();
+        return _construct(il, forward<Args>(args)...);
+    }
+
+    constexpr void swap(optional& other)
+        noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_swappable_v<T>)
+        requires (is_move_constructible_v<T>)
+    {
+        if (_storage._engaged && other._storage._engaged) {
+            using std::swap;
+            swap(_storage._value, other._storage._value);
+        } else if (_storage._engaged) {
+            other._construct(move(_storage._value));
+            reset();
+        } else if (other._storage._engaged) {
+            _construct(move(other._storage._value));
+            other.reset();
+        }
+    }
+
+    // ── Monadic operations (C++23) ───────────────────────────────────────────
+
+    template<typename F>
+    constexpr auto and_then(F&& f) & {
+        using U = decltype(f(_storage._value));
+        static_assert(_detail::_is_optional<remove_cvref_t<U>>::value,
+            "std::optional::and_then: F must return a std::optional");
+        return _storage._engaged ? forward<F>(f)(_storage._value) : remove_cvref_t<U>{};
+    }
+
+    template<typename F>
+    constexpr auto and_then(F&& f) const& {
+        using U = decltype(f(_storage._value));
+        static_assert(_detail::_is_optional<remove_cvref_t<U>>::value,
+            "std::optional::and_then: F must return a std::optional");
+        return _storage._engaged ? forward<F>(f)(_storage._value) : remove_cvref_t<U>{};
+    }
+
+    template<typename F>
+    constexpr auto and_then(F&& f) && {
+        using U = decltype(f(move(_storage._value)));
+        static_assert(_detail::_is_optional<remove_cvref_t<U>>::value,
+            "std::optional::and_then: F must return a std::optional");
+        return _storage._engaged ? forward<F>(f)(move(_storage._value)) : remove_cvref_t<U>{};
+    }
+
+    template<typename F>
+    constexpr auto transform(F&& f) & {
+        using U = remove_cv_t<decltype(f(_storage._value))>;
+        if (_storage._engaged)
+            return optional<U>(forward<F>(f)(_storage._value));
+        return optional<U>();
+    }
+
+    template<typename F>
+    constexpr auto transform(F&& f) const& {
+        using U = remove_cv_t<decltype(f(_storage._value))>;
+        if (_storage._engaged)
+            return optional<U>(forward<F>(f)(_storage._value));
+        return optional<U>();
+    }
+
+    template<typename F>
+    constexpr auto transform(F&& f) && {
+        using U = remove_cv_t<decltype(f(move(_storage._value)))>;
+        if (_storage._engaged)
+            return optional<U>(forward<F>(f)(move(_storage._value)));
+        return optional<U>();
+    }
+
+    template<typename F>
+        requires is_copy_constructible_v<T>
+    constexpr optional or_else(F&& f) const& {
+        static_assert(is_same_v<remove_cvref_t<decltype(f())>, optional>,
+            "std::optional::or_else: F must return std::optional<T>");
+        return _storage._engaged ? *this : forward<F>(f)();
+    }
+
+    template<typename F>
+        requires is_move_constructible_v<T>
+    constexpr optional or_else(F&& f) && {
+        static_assert(is_same_v<remove_cvref_t<decltype(f())>, optional>,
+            "std::optional::or_else: F must return std::optional<T>");
+        return _storage._engaged ? move(*this) : forward<F>(f)();
+    }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  make_optional
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T>
+[[nodiscard]] constexpr optional<decay_t<T>> make_optional(T&& value) {
+    return optional<decay_t<T>>(forward<T>(value));
+}
+
+template<typename T, typename... Args>
+[[nodiscard]] constexpr optional<T> make_optional(Args&&... args) {
+    return optional<T>(in_place, forward<Args>(args)...);
+}
+
+template<typename T, typename U, typename... Args>
+[[nodiscard]] constexpr optional<T> make_optional(initializer_list<U> il, Args&&... args) {
+    return optional<T>(in_place, il, forward<Args>(args)...);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Comparison operators — optional<T> vs optional<U>
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T, typename U>
+[[nodiscard]] constexpr bool operator==(const optional<T>& a, const optional<U>& b) {
+    if (a.has_value() != b.has_value()) return false;
+    if (!a.has_value()) return true;
+    return *a == *b;
+}
+template<typename T, typename U>
+[[nodiscard]] constexpr bool operator!=(const optional<T>& a, const optional<U>& b) {
+    return !(a == b);
+}
+template<typename T, typename U>
+[[nodiscard]] constexpr bool operator<(const optional<T>& a, const optional<U>& b) {
+    if (!b.has_value()) return false;
+    if (!a.has_value()) return true;
+    return *a < *b;
+}
+template<typename T, typename U>
+[[nodiscard]] constexpr bool operator<=(const optional<T>& a, const optional<U>& b) {
+    if (!a.has_value()) return true;
+    if (!b.has_value()) return false;
+    return *a <= *b;
+}
+template<typename T, typename U>
+[[nodiscard]] constexpr bool operator>(const optional<T>& a, const optional<U>& b) {
+    return b < a;
+}
+template<typename T, typename U>
+[[nodiscard]] constexpr bool operator>=(const optional<T>& a, const optional<U>& b) {
+    return b <= a;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Comparison operators — optional<T> vs nullopt_t
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T>
+[[nodiscard]] constexpr bool operator==(const optional<T>& a, nullopt_t) noexcept {
+    return !a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator==(nullopt_t, const optional<T>& a) noexcept {
+    return !a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator!=(const optional<T>& a, nullopt_t) noexcept {
+    return a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator!=(nullopt_t, const optional<T>& a) noexcept {
+    return a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator<(const optional<T>&, nullopt_t) noexcept {
+    return false;
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator<(nullopt_t, const optional<T>& a) noexcept {
+    return a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator<=(const optional<T>& a, nullopt_t) noexcept {
+    return !a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator<=(nullopt_t, const optional<T>&) noexcept {
+    return true;
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator>(const optional<T>& a, nullopt_t) noexcept {
+    return a.has_value();
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator>(nullopt_t, const optional<T>&) noexcept {
+    return false;
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator>=(const optional<T>&, nullopt_t) noexcept {
+    return true;
+}
+template<typename T>
+[[nodiscard]] constexpr bool operator>=(nullopt_t, const optional<T>& a) noexcept {
+    return !a.has_value();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Comparison operators — optional<T> vs T (value)
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator==(const optional<T>& a, const U& v) {
+    return a.has_value() ? (*a == v) : false;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator==(const U& v, const optional<T>& a) {
+    return a.has_value() ? (v == *a) : false;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator!=(const optional<T>& a, const U& v) {
+    return a.has_value() ? (*a != v) : true;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator!=(const U& v, const optional<T>& a) {
+    return a.has_value() ? (v != *a) : true;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator<(const optional<T>& a, const U& v) {
+    return a.has_value() ? (*a < v) : true;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator<(const U& v, const optional<T>& a) {
+    return a.has_value() ? (v < *a) : false;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator<=(const optional<T>& a, const U& v) {
+    return a.has_value() ? (*a <= v) : true;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator<=(const U& v, const optional<T>& a) {
+    return a.has_value() ? (v <= *a) : false;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator>(const optional<T>& a, const U& v) {
+    return a.has_value() ? (*a > v) : false;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator>(const U& v, const optional<T>& a) {
+    return a.has_value() ? (v > *a) : true;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator>=(const optional<T>& a, const U& v) {
+    return a.has_value() ? (*a >= v) : false;
+}
+template<typename T, typename U>
+    requires (!_detail::_is_optional<U>::value)
+[[nodiscard]] constexpr bool operator>=(const U& v, const optional<T>& a) {
+    return a.has_value() ? (v >= *a) : true;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Non-member swap
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename T>
+constexpr void swap(optional<T>& a, optional<T>& b)
+    noexcept(noexcept(a.swap(b)))
+    requires (is_move_constructible_v<T>)
+{
+    a.swap(b);
+}
+
+} // namespace std

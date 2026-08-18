@@ -40,6 +40,7 @@
 #define DBL_MIN_EXP     (-1021)                 /* min binary exponent */
 #define _DBL_RADIX      2                       /* exponent radix */
 #define _DBL_ROUNDS     1                       /* addition rounding: near */
+#define DBL_DECIMAL_DIG 17
 
 #define FLT_DIG         6                       /* # of decimal digits of precision */
 #define FLT_EPSILON     1.192092896e-07F        /* smallest such that 1.0+FLT_EPSILON != 1.0 */
@@ -54,6 +55,7 @@
 #define FLT_NORMALIZE   0
 #define FLT_RADIX       2                       /* exponent radix */
 #define FLT_ROUNDS      1                       /* addition rounding: near */
+#define FLT_DECIMAL_DIG 9
 
 #define LDBL_DIG        DBL_DIG                 /* # of decimal digits of precision */
 #define LDBL_EPSILON    DBL_EPSILON             /* smallest such that 1.0+LDBL_EPSILON != 1.0 */

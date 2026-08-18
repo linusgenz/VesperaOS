@@ -1,0 +1,251 @@
+// charconv
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 17.08.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cstddef>
+#include <type_traits>
+
+namespace std {
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  errc  (minimal subset needed by <charconv>)
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// A full <system_error> is out of scope here; VesperaOS's own errc, if/when
+// it exists elsewhere, should be made to match these enumerator values and
+// names so the two headers stay interchangeable.
+
+enum class errc {
+    invalid_argument = 22, // EINVAL
+    result_out_of_range = 34, // ERANGE
+};
+
+namespace _detail {
+    // errc{} (value 0) denotes "no error", matching the standard's use of a
+    // value-initialised errc as the success state.
+    inline constexpr errc _errc_success{};
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  to_chars_result / from_chars_result
+// ═════════════════════════════════════════════════════════════════════════════
+
+struct to_chars_result {
+    char* ptr;
+    errc ec;
+
+    [[nodiscard]] friend constexpr bool operator==(const to_chars_result&, const to_chars_result&) = default;
+    [[nodiscard]] constexpr explicit operator bool() const noexcept { return ec == _detail::_errc_success; }
+};
+
+struct from_chars_result {
+    const char* ptr;
+    errc ec;
+
+    [[nodiscard]] friend constexpr bool operator==(const from_chars_result&, const from_chars_result&) = default;
+    [[nodiscard]] constexpr explicit operator bool() const noexcept { return ec == _detail::_errc_success; }
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  _detail: shared digit tables and helpers
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace _detail {
+
+inline constexpr char _digits_lower[36] = {
+    '0','1','2','3','4','5','6','7','8','9',
+    'a','b','c','d','e','f','g','h','i','j',
+    'k','l','m','n','o','p','q','r','s','t',
+    'u','v','w','x','y','z'
+};
+
+inline constexpr char _digits_upper[36] = {
+    '0','1','2','3','4','5','6','7','8','9',
+    'A','B','C','D','E','F','G','H','I','J',
+    'K','L','M','N','O','P','Q','R','S','T',
+    'U','V','W','X','Y','Z'
+};
+
+// Number of digits `value` needs in the given base, not counting a sign.
+// value must already be non-negative (callers pass the absolute magnitude).
+template<typename UInt>
+[[nodiscard]] constexpr int _digit_count(UInt value, int base) noexcept {
+    int count = 1; // value == 0 still prints one digit: "0"
+    UInt b = static_cast<UInt>(base);
+    while (value >= b) {
+        value /= b;
+        ++count;
+    }
+    return count;
+}
+
+// Converts the unsigned magnitude `value` into `base`, writing digits into
+// [first, last) least-significant-digit-last (i.e. in the usual reading
+// order). Returns the number of digits written, or -1 if the buffer was too
+// small. A simple repeated-division loop, per project preference — no
+// two-digit lookup-table optimisation.
+template<typename UInt>
+[[nodiscard]] constexpr int _write_digits(char* first, char* last, UInt value, int base, bool uppercase) noexcept {
+    const char* digits = uppercase ? _digits_upper : _digits_lower;
+    const int n = _digit_count(value, base);
+    if (last - first < n)
+        return -1;
+
+    const UInt b = static_cast<UInt>(base);
+    char* pos = first + n;
+    do {
+        --pos;
+        *pos = digits[static_cast<size_t>(value % b)];
+        value /= b;
+    } while (pos != first);
+
+    return n;
+}
+
+// Parses the ASCII value of a single digit character in the given base.
+// Returns -1 if `c` is not a valid digit in that base.
+[[nodiscard]] constexpr int _digit_value(char c, int base) noexcept {
+    int v;
+    if (c >= '0' && c <= '9')
+        v = c - '0';
+    else if (c >= 'a' && c <= 'z')
+        v = c - 'a' + 10;
+    else if (c >= 'A' && c <= 'Z')
+        v = c - 'A' + 10;
+    else
+        return -1;
+    return v < base ? v : -1;
+}
+
+} // namespace _detail
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  to_chars  (integer overloads)
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Unsigned overload: no sign handling needed.
+template<typename UInt>
+[[nodiscard]] constexpr enable_if_t<is_integral_v<UInt> && is_unsigned_v<UInt> && !is_same_v<UInt, bool>,
+                                     to_chars_result>
+to_chars(char* first, char* last, UInt value, int base = 10) {
+    const int n = _detail::_write_digits(first, last, value, base, /*uppercase=*/false);
+    if (n < 0)
+        return { last, errc::result_out_of_range };
+    return { first + n, _detail::_errc_success };
+}
+
+// Signed overload: writes a leading '-' for negative values, then delegates
+// magnitude formatting to the unsigned path. Uses make_unsigned so that
+// negating the minimum representable value (e.g. INT_MIN) never overflows.
+template<typename SInt>
+[[nodiscard]] constexpr enable_if_t<is_integral_v<SInt> && is_signed_v<SInt> && !is_same_v<SInt, bool>,
+                                     to_chars_result>
+to_chars(char* first, char* last, SInt value, int base = 10) {
+    using UInt = make_unsigned_t<SInt>;
+
+    if (value < 0) {
+        if (first == last)
+            return { last, errc::result_out_of_range };
+        *first = '-';
+        // Two's-complement negation via unsigned wraparound avoids UB on
+        // signed overflow for SInt's most negative value.
+        const UInt magnitude = static_cast<UInt>(~static_cast<UInt>(value) + 1);
+        const int n = _detail::_write_digits(first + 1, last, magnitude, base, false);
+        if (n < 0)
+            return { last, errc::result_out_of_range };
+        return { first + 1 + n, _detail::_errc_success };
+    }
+
+    const int n = _detail::_write_digits(first, last, static_cast<UInt>(value), base, false);
+    if (n < 0)
+        return { last, errc::result_out_of_range };
+    return { first + n, _detail::_errc_success };
+}
+
+// bool is excluded from the generic overloads above (as in the standard,
+// where to_chars is not defined for bool); no overload is provided here
+// either, so calling to_chars with a bool fails to compile rather than
+// silently formatting 0/1.
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  from_chars  (integer overloads)
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename Int>
+[[nodiscard]] constexpr enable_if_t<is_integral_v<Int> && !is_same_v<Int, bool>, from_chars_result>
+from_chars(const char* first, const char* last, Int& value, int base = 10) {
+    const char* p = first;
+    bool negative = false;
+
+    if constexpr (is_signed_v<Int>) {
+        if (p != last && *p == '-') {
+            negative = true;
+            ++p;
+        }
+    }
+
+    if (p == last || _detail::_digit_value(*p, base) < 0)
+        return { first, errc::invalid_argument };
+
+    using UInt = make_unsigned_t<Int>;
+    constexpr UInt uint_max = static_cast<UInt>(-1);
+    // Largest magnitude representable by Int, as an unsigned value: for
+    // signed types the negative range is one larger than the positive range
+    // (e.g. int8_t: -128..127), so track the two limits separately.
+    constexpr UInt max_magnitude_positive = is_signed_v<Int>
+        ? static_cast<UInt>(uint_max >> 1)
+        : uint_max;
+    constexpr UInt max_magnitude_negative = is_signed_v<Int>
+        ? static_cast<UInt>(max_magnitude_positive + 1)
+        : uint_max;
+
+    UInt result = 0;
+    bool overflowed = false;
+    const UInt b = static_cast<UInt>(base);
+    const UInt limit = negative ? max_magnitude_negative : max_magnitude_positive;
+
+    for (; p != last; ++p) {
+        const int d = _detail::_digit_value(*p, base);
+        if (d < 0)
+            break;
+
+        // Overflow check performed before the multiply/add so we never rely
+        // on wraparound behaviour to detect it.
+        if (result > (limit - static_cast<UInt>(d)) / b)
+            overflowed = true;
+
+        if (!overflowed)
+            result = static_cast<UInt>(result * b + static_cast<UInt>(d));
+    }
+
+    if (p == first || (negative && p == first + 1))
+        return { first, errc::invalid_argument };
+
+    if (overflowed)
+        return { p, errc::result_out_of_range };
+
+    value = negative ? static_cast<Int>(~result + 1) : static_cast<Int>(result);
+    return { p, _detail::_errc_success };
+}
+
+} // namespace std

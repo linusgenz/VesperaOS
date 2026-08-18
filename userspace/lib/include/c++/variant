@@ -1,0 +1,609 @@
+// variant
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 18.08.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cassert>
+#include <cstddef>
+#include <initializer_list>
+#include <new>
+#include <type_traits>
+#include <utility>
+
+namespace std {
+
+    // Sentinel returned by index() / valueless_by_exception() bookkeeping.
+    // We never actually go "valueless" (no exceptions to leave us mid-swap),
+    // but the constant is kept for API compatibility with code that checks it.
+    inline constexpr size_t variant_npos = static_cast<size_t>(-1);
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §1  monostate — empty alternative for variants that need a "no value" state
+    // ═════════════════════════════════════════════════════════════════════════
+
+    struct monostate {};
+
+    [[nodiscard]] constexpr bool operator==(monostate, monostate) noexcept { return true; }
+    [[nodiscard]] constexpr bool operator!=(monostate, monostate) noexcept { return false; }
+    [[nodiscard]] constexpr bool operator<(monostate, monostate) noexcept { return false; }
+    [[nodiscard]] constexpr bool operator>(monostate, monostate) noexcept { return false; }
+    [[nodiscard]] constexpr bool operator<=(monostate, monostate) noexcept { return true; }
+    [[nodiscard]] constexpr bool operator>=(monostate, monostate) noexcept { return true; }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §2  Forward declaration
+    // ═════════════════════════════════════════════════════════════════════════
+
+    template <typename... Types>
+    class variant;
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §3  Internal metaprogramming helpers
+    //     (defined before variant_size/variant_alternative, which depend on them)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    namespace _detail {
+
+        // -- type pack indexing: _type_pack_element<I, Types...>::type ----------
+        template <size_t I, typename... Types>
+        struct _type_pack_element;
+
+        template <size_t I, typename Head, typename... Tail>
+        struct _type_pack_element<I, Head, Tail...> {
+            using type = typename _type_pack_element<I - 1, Tail...>::type;
+        };
+
+        template <typename Head, typename... Tail>
+        struct _type_pack_element<0, Head, Tail...> {
+            using type = Head;
+        };
+
+        // -- "is T one of Types...?" ---------------------------------------------
+        template <typename T, typename... Types>
+        struct _contains : false_type {};
+
+        template <typename T, typename Head, typename... Tail>
+        struct _contains<T, Head, Tail...>
+            : conditional_t<is_same_v<T, Head>, true_type, _contains<T, Tail...>> {};
+
+        template <typename T, typename... Types>
+        inline constexpr bool _contains_v = _contains<T, Types...>::value;
+
+        // -- index of first occurrence of T in Types... --------------------------
+        template <typename T, typename... Types>
+        struct _index_of; // undefined -> hard error if T not found (matches std behaviour)
+
+        template <typename T, typename... Tail>
+        struct _index_of<T, T, Tail...> : integral_constant<size_t, 0> {};
+
+        template <typename T, typename Head, typename... Tail>
+        struct _index_of<T, Head, Tail...>
+            : integral_constant<size_t, 1 + _index_of<T, Tail...>::value> {};
+
+        // -- count occurrences of T in Types... (variant<T> requires exactly 1) -
+        template <typename T, typename... Types>
+        struct _count_occurrences : integral_constant<size_t, 0> {};
+
+        template <typename T, typename Head, typename... Tail>
+        struct _count_occurrences<T, Head, Tail...>
+            : integral_constant<size_t, (is_same_v<T, Head> ? 1 : 0) + _count_occurrences<T, Tail...>::value> {};
+
+        // -- max of a size_t pack, used to size the raw storage buffer -----------
+        template <size_t... Vals>
+        struct _max_size_t;
+
+        template <size_t V>
+        struct _max_size_t<V> : integral_constant<size_t, V> {};
+
+        template <size_t V, size_t... Rest>
+        struct _max_size_t<V, Rest...>
+            : integral_constant<size_t, (V > _max_size_t<Rest...>::value) ? V : _max_size_t<Rest...>::value> {};
+
+        // -- trivially-{copy,move,destroy}-able across the whole pack -------------
+        template <typename... Types>
+        inline constexpr bool _all_trivially_destructible_v = (is_trivially_destructible_v<Types> && ...);
+
+        template <typename... Types>
+        inline constexpr bool _all_trivially_copy_constructible_v = (is_trivially_copy_constructible_v<Types> && ...);
+
+        template <typename... Types>
+        inline constexpr bool _all_trivially_move_constructible_v = (is_trivially_move_constructible_v<Types> && ...);
+
+        // -- raw uninitialized storage, sized/aligned for the whole pack ---------
+        template <typename... Types>
+        struct _variant_storage {
+            alignas(Types...) unsigned char bytes[_max_size_t<sizeof(Types)...>::value];
+        };
+
+        // -- per-alternative vtable-free ops, indexed by variant index at runtime -
+        // We dispatch via an index-sequence-driven jump table built at compile
+        // time (an array of function pointers), rather than RTTI or exceptions.
+
+        template <typename T>
+        void _destroy_at(void* storage) {
+            reinterpret_cast<T*>(storage)->~T();
+        }
+
+        template <typename T>
+        void _copy_construct_at(void* dest, const void* src) {
+            ::new (dest) T(*reinterpret_cast<const T*>(src));
+        }
+
+        template <typename T>
+        void _move_construct_at(void* dest, void* src) {
+            ::new (dest) T(std::move(*reinterpret_cast<T*>(src)));
+        }
+
+        template <typename T>
+        void _copy_assign_at(void* dest, const void* src) {
+            *reinterpret_cast<T*>(dest) = *reinterpret_cast<const T*>(src);
+        }
+
+        template <typename T>
+        void _move_assign_at(void* dest, void* src) {
+            *reinterpret_cast<T*>(dest) = std::move(*reinterpret_cast<T*>(src));
+        }
+
+        template <typename... Types>
+        struct _ops_table {
+            using destroy_fn = void (*)(void*);
+            using copy_ctor_fn = void (*)(void*, const void*);
+            using move_ctor_fn = void (*)(void*, void*);
+            using copy_assign_fn = void (*)(void*, const void*);
+            using move_assign_fn = void (*)(void*, void*);
+
+            static constexpr destroy_fn destroy[sizeof...(Types)] = { &_destroy_at<Types>... };
+            static constexpr copy_ctor_fn copy_ctor[sizeof...(Types)] = { &_copy_construct_at<Types>... };
+            static constexpr move_ctor_fn move_ctor[sizeof...(Types)] = { &_move_construct_at<Types>... };
+            static constexpr copy_assign_fn copy_assign[sizeof...(Types)] = { &_copy_assign_at<Types>... };
+            static constexpr move_assign_fn move_assign[sizeof...(Types)] = { &_move_assign_at<Types>... };
+        };
+
+        // std::declval is not provided by this project's <utility> — defined
+        // locally here since variant's converting-constructor resolution needs
+        // it purely at compile time (never actually called).
+        template <typename T>
+        add_rvalue_reference_t<T> _declval() noexcept;
+
+        // -- best-match overload resolution for variant(T&&) converting ctor -----
+        // Builds an "overload set" of fake functions Fn(Ti) for each alternative
+        // and lets the compiler's overload resolution pick the best Ti for a
+        // given argument, exactly like the real standard mandates.
+        template <typename T, typename... Types>
+        struct _best_match_selector {
+            static void _resolve(...); // fallback: no match
+        };
+
+        template <typename T, typename Head, typename... Tail>
+        struct _fmatch_one {
+            static Head _fn(Head);
+        };
+
+        template <typename T, typename... Types>
+        struct _overload_set;
+
+        template <typename T>
+        struct _overload_set<T> {
+            static void _fn(...);
+        };
+
+        template <typename T, typename Head, typename... Tail>
+        struct _overload_set<T, Head, Tail...> : _overload_set<T, Tail...> {
+            using _overload_set<T, Tail...>::_fn;
+            static Head _fn(Head);
+        };
+
+        template <typename T, typename... Types>
+        using _best_match_t = decltype(_overload_set<T, Types...>::_fn(_declval<T>()));
+
+    } // namespace _detail
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §3b  variant_size / variant_alternative
+    // ═════════════════════════════════════════════════════════════════════════
+
+    template <typename T>
+    struct variant_size; // intentionally undefined for non-variant T
+
+    template <typename T>
+    struct variant_size<const T> : variant_size<T> {};
+
+    template <typename... Types>
+    struct variant_size<variant<Types...>> : integral_constant<size_t, sizeof...(Types)> {};
+
+    template <typename T>
+    inline constexpr size_t variant_size_v = variant_size<T>::value;
+
+    template <size_t I, typename T>
+    struct variant_alternative; // intentionally undefined
+
+    template <size_t I, typename T>
+    struct variant_alternative<I, const T> {
+        using type = add_const_t<typename variant_alternative<I, T>::type>;
+    };
+
+    template <size_t I, typename... Types>
+    struct variant_alternative<I, variant<Types...>> {
+        static_assert(I < sizeof...(Types), "variant_alternative index out of range");
+        using type = typename _detail::_type_pack_element<I, Types...>::type;
+    };
+
+    template <size_t I, typename T>
+    using variant_alternative_t = typename variant_alternative<I, T>::type;
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §4  bad_variant_access — kept for API shape, never thrown (no exceptions)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    // No throw path exists in this build. get<T>/get<I> on the wrong
+    // alternative asserts instead. This type exists only so code written
+    // against the standard signature (catch (bad_variant_access&)) still
+    // compiles if it never actually triggers.
+    class bad_variant_access {
+    public:
+        [[nodiscard]] constexpr const char* what() const noexcept {
+            return "bad_variant_access";
+        }
+    };
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §5  variant
+    // ═════════════════════════════════════════════════════════════════════════
+
+    template <typename... Types>
+    class variant {
+        static_assert(sizeof...(Types) > 0, "variant must have at least one alternative");
+        static_assert(!(is_reference_v<Types> || ...), "variant does not support reference alternatives");
+        static_assert(!(is_void_v<Types> || ...), "variant does not support void alternatives");
+
+        using _storage_t = _detail::_variant_storage<Types...>;
+        using _ops = _detail::_ops_table<Types...>;
+
+        _storage_t _storage{};
+        size_t _index = 0;
+
+        template <typename T>
+        static constexpr size_t _index_of_v = _detail::_index_of<T, Types...>::value;
+
+        void _destroy_active() noexcept {
+            _ops::destroy[_index](&_storage);
+        }
+
+    public:
+        // -- default constructor: value-initializes the first alternative -------
+        constexpr variant() noexcept(is_nothrow_default_constructible_v<
+                                      typename _detail::_type_pack_element<0, Types...>::type>) {
+            using T0 = typename _detail::_type_pack_element<0, Types...>::type;
+            static_assert(is_default_constructible_v<T0>,
+                          "first variant alternative must be default-constructible");
+            ::new (&_storage) T0();
+            _index = 0;
+        }
+
+        // -- converting constructor: picks the best-matching alternative ---------
+        template <typename T,
+                  typename Matched = _detail::_best_match_t<T&&, Types...>,
+                  typename = enable_if_t<_detail::_contains_v<Matched, Types...> &&
+                                          !is_same_v<decay_t<T>, variant>>>
+        constexpr variant(T&& value) {
+            ::new (&_storage) Matched(std::forward<T>(value));
+            _index = _index_of_v<Matched>;
+        }
+
+        // -- in_place_type_t<T> constructor --------------------------------------
+        template <typename T, typename... Args>
+        explicit constexpr variant(in_place_type_t<T>, Args&&... args) {
+            static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                          "in_place_type_t<T> requires T to appear exactly once in the variant");
+            ::new (&_storage) T(std::forward<Args>(args)...);
+            _index = _index_of_v<T>;
+        }
+
+        // -- in_place_index_t<I> constructor --------------------------------------
+        template <size_t I, typename... Args>
+        explicit constexpr variant(in_place_index_t<I>, Args&&... args) {
+            using T = typename _detail::_type_pack_element<I, Types...>::type;
+            static_assert(I < sizeof...(Types), "in_place_index_t<I> out of range");
+            ::new (&_storage) T(std::forward<Args>(args)...);
+            _index = I;
+        }
+
+        // -- copy / move construction ---------------------------------------------
+        variant(const variant& other) : _index(other._index) {
+            _ops::copy_ctor[_index](&_storage, &other._storage);
+        }
+
+        variant(variant&& other) noexcept((is_nothrow_move_constructible_v<Types> && ...))
+            : _index(other._index) {
+            _ops::move_ctor[_index](&_storage, &other._storage);
+        }
+
+        // -- destructor -------------------------------------------------------------
+        ~variant() { _destroy_active(); }
+
+        // -- copy / move assignment ---------------------------------------------
+        variant& operator=(const variant& other) {
+            if (this == &other) return *this;
+
+            if (_index == other._index) {
+                _ops::copy_assign[_index](&_storage, &other._storage);
+            } else {
+                _destroy_active();
+                _ops::copy_ctor[other._index](&_storage, &other._storage);
+                _index = other._index;
+            }
+            return *this;
+        }
+
+        variant& operator=(variant&& other) noexcept(((is_nothrow_move_constructible_v<Types> &&
+                                                         is_nothrow_move_assignable_v<Types>) && ...)) {
+            if (this == &other) return *this;
+
+            if (_index == other._index) {
+                _ops::move_assign[_index](&_storage, &other._storage);
+            } else {
+                _destroy_active();
+                _ops::move_ctor[other._index](&_storage, &other._storage);
+                _index = other._index;
+            }
+            return *this;
+        }
+
+        template <typename T,
+                  typename Matched = _detail::_best_match_t<T&&, Types...>,
+                  typename = enable_if_t<_detail::_contains_v<Matched, Types...> &&
+                                          !is_same_v<decay_t<T>, variant>>>
+        variant& operator=(T&& value) {
+            if (_index == _index_of_v<Matched>) {
+                *reinterpret_cast<Matched*>(&_storage) = std::forward<T>(value);
+            } else {
+                _destroy_active();
+                ::new (&_storage) Matched(std::forward<T>(value));
+                _index = _index_of_v<Matched>;
+            }
+            return *this;
+        }
+
+        // -- observers ----------------------------------------------------------
+        [[nodiscard]] constexpr size_t index() const noexcept { return _index; }
+
+        // Always false: we never enter a valueless state (no exception path
+        // exists that could interrupt a variant assignment mid-flight).
+        [[nodiscard]] constexpr bool valueless_by_exception() const noexcept { return false; }
+
+        template <typename T, typename... Args>
+        T& emplace(Args&&... args) {
+            static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                          "emplace<T> requires T to appear exactly once in the variant");
+            _destroy_active();
+            T* p = ::new (&_storage) T(std::forward<Args>(args)...);
+            _index = _index_of_v<T>;
+            return *p;
+        }
+
+        template <size_t I, typename... Args>
+        variant_alternative_t<I, variant>& emplace(Args&&... args) {
+            using T = variant_alternative_t<I, variant>;
+            _destroy_active();
+            T* p = ::new (&_storage) T(std::forward<Args>(args)...);
+            _index = I;
+            return *p;
+        }
+
+        void swap(variant& other) noexcept(((is_nothrow_move_constructible_v<Types> &&
+                                              is_nothrow_swappable_v<Types>) && ...)) {
+            if (_index == other._index) {
+                // Same active alternative: swap in place via a temporary move.
+                variant tmp(std::move(other));
+                other = std::move(*this);
+                *this = std::move(tmp);
+            } else {
+                variant tmp(std::move(*this));
+                *this = std::move(other);
+                other = std::move(tmp);
+            }
+        }
+
+        // -- raw storage access for get<>/get_if<>/visit (package-private-ish) --
+        void* _data() noexcept { return &_storage; }
+        const void* _data() const noexcept { return &_storage; }
+    };
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §6  holds_alternative / get / get_if
+    // ═════════════════════════════════════════════════════════════════════════
+
+    template <typename T, typename... Types>
+    [[nodiscard]] constexpr bool holds_alternative(const variant<Types...>& v) noexcept {
+        static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                      "holds_alternative<T> requires T to appear exactly once in the variant");
+        return v.index() == _detail::_index_of<T, Types...>::value;
+    }
+
+    template <size_t I, typename... Types>
+    [[nodiscard]] constexpr variant_alternative_t<I, variant<Types...>>&
+    get(variant<Types...>& v) noexcept {
+        static_assert(I < sizeof...(Types), "get<I>: index out of range");
+        assert(v.index() == I && "std::get<I>: variant does not hold this alternative");
+        using T = variant_alternative_t<I, variant<Types...>>;
+        return *reinterpret_cast<T*>(v._data());
+    }
+
+    template <size_t I, typename... Types>
+    [[nodiscard]] constexpr const variant_alternative_t<I, variant<Types...>>&
+    get(const variant<Types...>& v) noexcept {
+        static_assert(I < sizeof...(Types), "get<I>: index out of range");
+        assert(v.index() == I && "std::get<I>: variant does not hold this alternative");
+        using T = variant_alternative_t<I, variant<Types...>>;
+        return *reinterpret_cast<const T*>(v._data());
+    }
+
+    template <size_t I, typename... Types>
+    [[nodiscard]] constexpr variant_alternative_t<I, variant<Types...>>&&
+    get(variant<Types...>&& v) noexcept {
+        static_assert(I < sizeof...(Types), "get<I>: index out of range");
+        assert(v.index() == I && "std::get<I>: variant does not hold this alternative");
+        using T = variant_alternative_t<I, variant<Types...>>;
+        return std::move(*reinterpret_cast<T*>(v._data()));
+    }
+
+    template <typename T, typename... Types>
+    [[nodiscard]] constexpr T& get(variant<Types...>& v) noexcept {
+        static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                      "get<T> requires T to appear exactly once in the variant");
+        return get<_detail::_index_of<T, Types...>::value>(v);
+    }
+
+    template <typename T, typename... Types>
+    [[nodiscard]] constexpr const T& get(const variant<Types...>& v) noexcept {
+        static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                      "get<T> requires T to appear exactly once in the variant");
+        return get<_detail::_index_of<T, Types...>::value>(v);
+    }
+
+    template <typename T, typename... Types>
+    [[nodiscard]] constexpr T&& get(variant<Types...>&& v) noexcept {
+        static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                      "get<T> requires T to appear exactly once in the variant");
+        return get<_detail::_index_of<T, Types...>::value>(std::move(v));
+    }
+
+    template <size_t I, typename... Types>
+    [[nodiscard]] constexpr add_pointer_t<variant_alternative_t<I, variant<Types...>>>
+    get_if(variant<Types...>* v) noexcept {
+        static_assert(I < sizeof...(Types), "get_if<I>: index out of range");
+        if (v && v->index() == I) {
+            using T = variant_alternative_t<I, variant<Types...>>;
+            return reinterpret_cast<T*>(v->_data());
+        }
+        return nullptr;
+    }
+
+    template <size_t I, typename... Types>
+    [[nodiscard]] constexpr add_pointer_t<const variant_alternative_t<I, variant<Types...>>>
+    get_if(const variant<Types...>* v) noexcept {
+        static_assert(I < sizeof...(Types), "get_if<I>: index out of range");
+        if (v && v->index() == I) {
+            using T = variant_alternative_t<I, variant<Types...>>;
+            return reinterpret_cast<const T*>(v->_data());
+        }
+        return nullptr;
+    }
+
+    template <typename T, typename... Types>
+    [[nodiscard]] constexpr add_pointer_t<T> get_if(variant<Types...>* v) noexcept {
+        static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                      "get_if<T> requires T to appear exactly once in the variant");
+        return get_if<_detail::_index_of<T, Types...>::value>(v);
+    }
+
+    template <typename T, typename... Types>
+    [[nodiscard]] constexpr add_pointer_t<const T> get_if(const variant<Types...>* v) noexcept {
+        static_assert(_detail::_count_occurrences<T, Types...>::value == 1,
+                      "get_if<T> requires T to appear exactly once in the variant");
+        return get_if<_detail::_index_of<T, Types...>::value>(v);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §7  visit — index-sequence-driven dispatch, single-variant fast path plus
+    //     general N-ary fold for multi-variant visitation
+    // ═════════════════════════════════════════════════════════════════════════
+
+    namespace _detail {
+
+        template <typename Visitor, typename Variant, size_t... Is>
+        auto _visit_dispatch(Visitor&& vis, Variant&& v, index_sequence<Is...>) {
+            using ResultT = decltype(std::forward<Visitor>(vis)(get<0>(std::forward<Variant>(v))));
+            using FnPtr = ResultT (*)(Visitor&&, Variant&&);
+
+            static const FnPtr table[] = {
+                +[](Visitor&& vis2, Variant&& v2) -> ResultT {
+                    return std::forward<Visitor>(vis2)(get<Is>(std::forward<Variant>(v2)));
+                }...
+            };
+
+            return table[v.index()](std::forward<Visitor>(vis), std::forward<Variant>(v));
+        }
+
+    } // namespace _detail
+
+    template <typename Visitor, typename... Types>
+    auto visit(Visitor&& vis, variant<Types...>& v) {
+        return _detail::_visit_dispatch(std::forward<Visitor>(vis), v,
+                                         make_index_sequence<sizeof...(Types)>{});
+    }
+
+    template <typename Visitor, typename... Types>
+    auto visit(Visitor&& vis, const variant<Types...>& v) {
+        return _detail::_visit_dispatch(std::forward<Visitor>(vis), v,
+                                         make_index_sequence<sizeof...(Types)>{});
+    }
+
+    template <typename Visitor, typename... Types>
+    auto visit(Visitor&& vis, variant<Types...>&& v) {
+        return _detail::_visit_dispatch(std::forward<Visitor>(vis), std::move(v),
+                                         make_index_sequence<sizeof...(Types)>{});
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §8  Comparisons
+    // ═════════════════════════════════════════════════════════════════════════
+
+    // Note: not constexpr. Dispatch goes through a runtime jump table (a local
+    // static array of function pointers indexed by the variant's runtime
+    // index()), which C++17 does not allow inside a constexpr function body.
+    namespace _detail {
+        template <size_t I, typename... Types>
+        [[nodiscard]] bool _eq_at(const variant<Types...>& a, const variant<Types...>& b) {
+            return get<I>(a) == get<I>(b);
+        }
+
+        template <typename... Types, size_t... Is>
+        [[nodiscard]] bool _variant_eq(const variant<Types...>& a, const variant<Types...>& b,
+                                        index_sequence<Is...>) {
+            using Fn = bool (*)(const variant<Types...>&, const variant<Types...>&);
+            static const Fn table[] = { &_eq_at<Is, Types...>... };
+            return table[a.index()](a, b);
+        }
+    } // namespace _detail
+
+    template <typename... Types>
+    [[nodiscard]] bool operator==(const variant<Types...>& a, const variant<Types...>& b) {
+        if (a.index() != b.index()) return false;
+        return _detail::_variant_eq(a, b, make_index_sequence<sizeof...(Types)>{});
+    }
+
+    template <typename... Types>
+    [[nodiscard]] bool operator!=(const variant<Types...>& a, const variant<Types...>& b) {
+        return !(a == b);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // §9  swap (non-member, ADL-friendly)
+    // ═════════════════════════════════════════════════════════════════════════
+
+    template <typename... Types>
+    void swap(variant<Types...>& a, variant<Types...>& b) noexcept(noexcept(a.swap(b))) {
+        a.swap(b);
+    }
+
+} // namespace std

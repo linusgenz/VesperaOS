@@ -29,6 +29,30 @@
 
 namespace std {
 
+namespace _detail {
+
+template<typename Iter, typename = void>
+struct _is_forward_iterator : false_type {};
+
+template<typename Iter>
+struct _is_forward_iterator<Iter, void_t<typename iterator_traits<Iter>::iterator_category>>
+    : bool_constant<is_base_of_v<forward_iterator_tag,
+                                  typename iterator_traits<Iter>::iterator_category>> {};
+
+template<typename Iter>
+inline constexpr bool _is_forward_iterator_v = _is_forward_iterator<Iter>::value;
+
+template<typename Iter>
+[[nodiscard]] constexpr typename iterator_traits<Iter>::difference_type
+_distance_fallback(Iter first, Iter last) {
+    typename iterator_traits<Iter>::difference_type n = 0;
+    for (; first != last; ++first)
+        ++n;
+    return n;
+}
+
+} // namespace _detail
+
 // ═════════════════════════════════════════════════════════════════════════════
 //  vector<T, Allocator>
 // ═════════════════════════════════════════════════════════════════════════════
@@ -99,6 +123,33 @@ private:
         if (size_ < capacity_)
             return;
         reallocate(grown_capacity(capacity_, capacity_ + 1));
+    }
+
+    void make_room(size_type idx, size_type count) {
+        size_type old_size = size_;
+        size_type new_size = old_size + count;
+        if (new_size > capacity_)
+            reallocate(grown_capacity(capacity_, new_size));
+
+        // src walks backwards over the live range [idx, old_size);
+        // dst is always src's new home, `count` slots further right.
+        size_type src = old_size;
+        while (src > idx) {
+            --src;
+            size_type dst = src + count;
+            if (dst >= old_size)
+                alloc_traits::construct(alloc_, data_ + dst, move(data_[src]));
+            else
+                data_[dst] = move(data_[src]);
+        }
+
+        size_type tail_len = old_size - idx;
+        if (count > tail_len) {
+            for (size_type i = tail_len; i < count; ++i)
+                alloc_traits::construct(alloc_, data_ + idx + i);
+        }
+
+        size_ = new_size;
     }
 
     void destroy_all() {
@@ -350,6 +401,47 @@ public:
         *insert_pos = move(value);
         ++size_;
         return insert_pos;
+    }
+
+    iterator insert(const_iterator pos, size_type count, const T& value) {
+        size_type idx = static_cast<size_type>(pos - data_);
+        if (count == 0)
+            return data_ + idx;
+
+        make_room(idx, count);
+        for (size_type i = 0; i < count; ++i)
+            data_[idx + i] = value;
+        return data_ + idx;
+    }
+
+    template<typename InputIt,
+             typename = enable_if_t<!is_integral_v<InputIt>>>
+    iterator insert(const_iterator pos, InputIt first, InputIt last) {
+        if constexpr (_detail::_is_forward_iterator_v<InputIt>) {
+            size_type idx = static_cast<size_type>(pos - data_);
+            size_type count = static_cast<size_type>(_detail::_distance_fallback(first, last));
+            if (count == 0)
+                return data_ + idx;
+
+            make_room(idx, count);
+            size_type i = 0;
+            for (InputIt it = first; it != last; ++it, ++i)
+                data_[idx + i] = *it;
+            return data_ + idx;
+        } else {
+            // Single-pass fallback: insert one at a time, each call
+            // returning the position of the just-inserted element, so the
+            // next insertion point is one past it.
+            size_type idx = static_cast<size_type>(pos - data_);
+            size_type i = 0;
+            for (InputIt it = first; it != last; ++it, ++i)
+                insert(data_ + idx + i, *it);
+            return data_ + idx;
+        }
+    }
+
+    iterator insert(const_iterator pos, initializer_list<T> ilist) {
+        return insert(pos, ilist.begin(), ilist.end());
     }
 
     template<typename... Args>

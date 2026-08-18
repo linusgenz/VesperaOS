@@ -1,0 +1,467 @@
+// tuple.h
+// VesperaOS - operating system for the x86_64 architecture
+//
+// Copyright (c) 2026 Linus Genz <linuslinuxgenz@gmail.com>
+//
+// Created by Linus Genz on 18.08.26.
+//
+// This file is part of VesperaOS.
+//
+// VesperaOS is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// VesperaOS is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma once
+
+#include <cstddef>
+#include <type_traits>
+#include <utility>
+
+namespace std {
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  tuple_size / tuple_element  (primary templates)
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// Declared here so that other containers (e.g. array<T,N> in <array.h>) can
+// provide their own specialisations without re-declaring the primaries.
+
+template<typename T> struct tuple_size;
+
+template<typename T>
+struct tuple_size<const T> : integral_constant<size_t, tuple_size<T>::value> {};
+
+template<size_t I, typename T> struct tuple_element;
+
+template<size_t I, typename T>
+struct tuple_element<I, const T> {
+    using type = add_const_t<typename tuple_element<I, T>::type>;
+};
+
+template<typename T>
+inline constexpr size_t tuple_size_v = tuple_size<T>::value;
+
+template<size_t I, typename T>
+using tuple_element_t = typename tuple_element<I, T>::type;
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  _detail: tuple storage
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace _detail {
+
+// One leaf per element, indexed by position I. Deriving from many leaves
+// (one per Types...) gives O(1) EBO-friendly storage and avoids recursive
+// nesting, which keeps compile times and debug-info depth down.
+template<size_t I, typename T, bool = is_empty_v<T> && !is_final_v<T>>
+struct _tuple_leaf {
+    T _value;
+
+    constexpr _tuple_leaf() = default;
+
+    template<typename U>
+    constexpr explicit _tuple_leaf(U&& value) : _value(std::forward<U>(value)) {}
+
+    [[nodiscard]] constexpr T&       _get()       noexcept { return _value; }
+    [[nodiscard]] constexpr const T& _get() const noexcept { return _value; }
+};
+
+// Empty-base-optimised leaf for empty, non-final element types.
+template<size_t I, typename T>
+struct _tuple_leaf<I, T, true> : T {
+    constexpr _tuple_leaf() = default;
+
+    template<typename U>
+    constexpr explicit _tuple_leaf(U&& value) : T(std::forward<U>(value)) {}
+
+    [[nodiscard]] constexpr T&       _get()       noexcept { return *this; }
+    [[nodiscard]] constexpr const T& _get() const noexcept { return *this; }
+};
+
+template<typename Seq, typename... Types>
+struct _tuple_impl;
+
+template<size_t... I, typename... Types>
+struct _tuple_impl<index_sequence<I...>, Types...> : _tuple_leaf<I, Types>... {
+    constexpr _tuple_impl() = default;
+
+    template<typename... UTypes>
+    constexpr explicit _tuple_impl(UTypes&&... values)
+        : _tuple_leaf<I, Types>(std::forward<UTypes>(values))... {}
+
+    template<typename... UTypes>
+    constexpr _tuple_impl(const _tuple_impl<index_sequence<I...>, UTypes...>& other)
+        : _tuple_leaf<I, Types>(static_cast<const _tuple_leaf<I, UTypes>&>(other)._get())... {}
+
+    template<typename... UTypes>
+    constexpr _tuple_impl(_tuple_impl<index_sequence<I...>, UTypes...>&& other)
+        : _tuple_leaf<I, Types>(std::move(static_cast<_tuple_leaf<I, UTypes>&>(other)._get()))... {}
+
+    constexpr void _swap(_tuple_impl& other)
+        noexcept((is_nothrow_swappable_v<Types> && ...))
+    {
+        using std::swap;
+        (swap(_tuple_leaf<I, Types>::_get(), other._tuple_leaf<I, Types>::_get()), ...);
+    }
+};
+
+} // namespace _detail
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  tuple<Types...>
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename... Types>
+class tuple {
+    using _impl_t = _detail::_tuple_impl<make_index_sequence<sizeof...(Types)>, Types...>;
+    _impl_t _impl;
+
+    template<size_t I, typename... UTypes>
+    friend constexpr tuple_element_t<I, tuple<UTypes...>>& get(tuple<UTypes...>&) noexcept;
+    template<size_t I, typename... UTypes>
+    friend constexpr const tuple_element_t<I, tuple<UTypes...>>& get(const tuple<UTypes...>&) noexcept;
+    template<size_t I, typename... UTypes>
+    friend constexpr tuple_element_t<I, tuple<UTypes...>>&& get(tuple<UTypes...>&&) noexcept;
+    template<size_t I, typename... UTypes>
+    friend constexpr const tuple_element_t<I, tuple<UTypes...>>&& get(const tuple<UTypes...>&&) noexcept;
+
+public:
+    // ── Constructors ─────────────────────────────────────────────────────────
+
+    constexpr tuple() = default;
+
+    constexpr explicit tuple(const Types&... args) : _impl(args...) {}
+
+    template<typename... UTypes,
+             typename = enable_if_t<sizeof...(UTypes) == sizeof...(Types) &&
+                                     (is_constructible_v<Types, UTypes&&> && ...)>>
+    constexpr explicit tuple(UTypes&&... args) : _impl(std::forward<UTypes>(args)...) {}
+
+    tuple(const tuple&)            = default;
+    tuple(tuple&&)                 = default;
+
+    template<typename... UTypes,
+             typename = enable_if_t<sizeof...(UTypes) == sizeof...(Types) &&
+                                     (is_constructible_v<Types, const UTypes&> && ...)>>
+    constexpr tuple(const tuple<UTypes...>& other) : _impl(other._impl) {}
+
+    template<typename... UTypes,
+             typename = enable_if_t<sizeof...(UTypes) == sizeof...(Types) &&
+                                     (is_constructible_v<Types, UTypes&&> && ...)>>
+    constexpr tuple(tuple<UTypes...>&& other) : _impl(std::move(other._impl)) {}
+
+    // ── Assignment ───────────────────────────────────────────────────────────
+
+    tuple& operator=(const tuple&) = default;
+    tuple& operator=(tuple&&)      = default;
+
+    template<typename... UTypes,
+             typename = enable_if_t<sizeof...(UTypes) == sizeof...(Types)>>
+    constexpr tuple& operator=(const tuple<UTypes...>& other) {
+        _assign(other, make_index_sequence<sizeof...(Types)>{});
+        return *this;
+    }
+
+    template<typename... UTypes,
+             typename = enable_if_t<sizeof...(UTypes) == sizeof...(Types)>>
+    constexpr tuple& operator=(tuple<UTypes...>&& other) {
+        _assign(std::move(other), make_index_sequence<sizeof...(Types)>{});
+        return *this;
+    }
+
+    // ── Operations ───────────────────────────────────────────────────────────
+
+    constexpr void swap(tuple& other) noexcept(noexcept(_impl._swap(other._impl))) {
+        _impl._swap(other._impl);
+    }
+
+private:
+    template<typename UTuple, size_t... I>
+    constexpr void _assign(UTuple&& other, index_sequence<I...>) {
+        ((get<I>(*this) = get<I>(std::forward<UTuple>(other))), ...);
+    }
+};
+
+// Zero-element specialisation (aggregate-friendly, no storage).
+template<>
+class tuple<> {
+public:
+    constexpr tuple() = default;
+    constexpr void swap(tuple&) noexcept {}
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  tuple_size / tuple_element specialisations for tuple<Types...>
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename... Types>
+struct tuple_size<tuple<Types...>> : integral_constant<size_t, sizeof...(Types)> {};
+
+template<size_t I, typename Head, typename... Tail>
+struct tuple_element<I, tuple<Head, Tail...>> {
+    static_assert(I < sizeof...(Tail) + 1, "std::tuple_element<I, tuple>: index out of range");
+    using type = typename tuple_element<I - 1, tuple<Tail...>>::type;
+};
+
+template<typename Head, typename... Tail>
+struct tuple_element<0, tuple<Head, Tail...>> {
+    using type = Head;
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  get<I>(tuple)
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<size_t I, typename... Types>
+[[nodiscard]] constexpr tuple_element_t<I, tuple<Types...>>&
+get(tuple<Types...>& t) noexcept {
+    static_assert(I < sizeof...(Types), "std::get<I>(tuple&): index out of range");
+    using leaf_t = _detail::_tuple_leaf<I, tuple_element_t<I, tuple<Types...>>>;
+    return static_cast<leaf_t&>(t._impl)._get();
+}
+
+template<size_t I, typename... Types>
+[[nodiscard]] constexpr const tuple_element_t<I, tuple<Types...>>&
+get(const tuple<Types...>& t) noexcept {
+    static_assert(I < sizeof...(Types), "std::get<I>(const tuple&): index out of range");
+    using leaf_t = _detail::_tuple_leaf<I, tuple_element_t<I, tuple<Types...>>>;
+    return static_cast<const leaf_t&>(t._impl)._get();
+}
+
+template<size_t I, typename... Types>
+[[nodiscard]] constexpr tuple_element_t<I, tuple<Types...>>&&
+get(tuple<Types...>&& t) noexcept {
+    static_assert(I < sizeof...(Types), "std::get<I>(tuple&&): index out of range");
+    using U = tuple_element_t<I, tuple<Types...>>;
+    return std::forward<U&&>(get<I>(t));
+}
+
+template<size_t I, typename... Types>
+[[nodiscard]] constexpr const tuple_element_t<I, tuple<Types...>>&&
+get(const tuple<Types...>&& t) noexcept {
+    static_assert(I < sizeof...(Types), "std::get<I>(const tuple&&): index out of range");
+    using U = tuple_element_t<I, tuple<Types...>>;
+    return std::forward<const U&&>(get<I>(t));
+}
+
+// get<T>(tuple) — by unique type, not index.
+namespace _detail {
+
+template<typename T, typename Tuple>
+struct _tuple_type_index;
+
+template<typename T, typename... Types>
+struct _tuple_type_index<T, tuple<T, Types...>> : integral_constant<size_t, 0> {
+    static_assert((!is_same_v<T, Types> && ...),
+                  "std::get<T>(tuple): type T occurs more than once in the tuple");
+};
+
+template<typename T, typename Head, typename... Types>
+struct _tuple_type_index<T, tuple<Head, Types...>>
+    : integral_constant<size_t, 1 + _tuple_type_index<T, tuple<Types...>>::value> {};
+
+} // namespace _detail
+
+template<typename T, typename... Types>
+[[nodiscard]] constexpr T& get(tuple<Types...>& t) noexcept {
+    return get<_detail::_tuple_type_index<T, tuple<Types...>>::value>(t);
+}
+
+template<typename T, typename... Types>
+[[nodiscard]] constexpr const T& get(const tuple<Types...>& t) noexcept {
+    return get<_detail::_tuple_type_index<T, tuple<Types...>>::value>(t);
+}
+
+template<typename T, typename... Types>
+[[nodiscard]] constexpr T&& get(tuple<Types...>&& t) noexcept {
+    return get<_detail::_tuple_type_index<T, tuple<Types...>>::value>(std::move(t));
+}
+
+template<typename T, typename... Types>
+[[nodiscard]] constexpr const T&& get(const tuple<Types...>&& t) noexcept {
+    return get<_detail::_tuple_type_index<T, tuple<Types...>>::value>(std::move(t));
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  make_tuple / tie / forward_as_tuple
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Reference-wrapper unwrapping helper for make_tuple, mirroring the standard
+// requirement that reference_wrapper<T> decays to T&.
+template<typename T> struct reference_wrapper; // fwd-declared; full type lives in <functional.h>
+
+namespace _detail {
+    template<typename T> struct _unwrap_ref_decay { using type = decay_t<T>; };
+    template<typename T> struct _unwrap_ref_decay<reference_wrapper<T>> { using type = T&; };
+    template<typename T> using _unwrap_ref_decay_t = typename _unwrap_ref_decay<T>::type;
+}
+
+template<typename... Types>
+[[nodiscard]] constexpr tuple<_detail::_unwrap_ref_decay_t<Types>...>
+make_tuple(Types&&... args) {
+    return tuple<_detail::_unwrap_ref_decay_t<Types>...>(std::forward<Types>(args)...);
+}
+
+template<typename... Types>
+[[nodiscard]] constexpr tuple<Types&...> tie(Types&... args) noexcept {
+    return tuple<Types&...>(args...);
+}
+
+template<typename... Types>
+[[nodiscard]] constexpr tuple<Types&&...> forward_as_tuple(Types&&... args) noexcept {
+    return tuple<Types&&...>(std::forward<Types>(args)...);
+}
+
+// Sentinel usable with tie() to discard a given element in structured
+// unpacking, e.g.  tie(a, ignore, c) = some_tuple;
+namespace _detail {
+    struct _ignore_t {
+        template<typename T>
+        constexpr const _ignore_t& operator=(const T&) const noexcept { return *this; }
+    };
+}
+inline constexpr _detail::_ignore_t ignore{};
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  tuple_cat
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace _detail {
+
+// Result type of concatenating a pack of tuple<...> types, computed by
+// repeatedly merging the element-type packs of two tuples at a time.
+template<typename...> struct _tuple_cat_type;
+
+template<>
+struct _tuple_cat_type<> { using type = tuple<>; };
+
+template<typename... T1>
+struct _tuple_cat_type<tuple<T1...>> { using type = tuple<T1...>; };
+
+template<typename... T1, typename... T2, typename... Rest>
+struct _tuple_cat_type<tuple<T1...>, tuple<T2...>, Rest...>
+    : _tuple_cat_type<tuple<T1..., T2...>, Rest...> {};
+
+template<typename... Tuples>
+using _tuple_cat_type_t = typename _tuple_cat_type<decay_t<Tuples>...>::type;
+
+// Concatenates exactly two (possibly cv/ref-qualified) tuples into a
+// tuple<T1..., T2...>, forwarding each element by value/rvalue as given.
+template<typename Tuple1, typename Tuple2, size_t... I1, size_t... I2>
+[[nodiscard]] constexpr auto _tuple_cat_two(Tuple1&& t1, Tuple2&& t2,
+                                             index_sequence<I1...>, index_sequence<I2...>) {
+    return tuple<tuple_element_t<I1, decay_t<Tuple1>>...,
+                  tuple_element_t<I2, decay_t<Tuple2>>...>(
+        get<I1>(std::forward<Tuple1>(t1))...,
+        get<I2>(std::forward<Tuple2>(t2))...);
+}
+
+template<typename Tuple1, typename Tuple2>
+[[nodiscard]] constexpr auto _tuple_cat_two(Tuple1&& t1, Tuple2&& t2) {
+    return _tuple_cat_two(std::forward<Tuple1>(t1), std::forward<Tuple2>(t2),
+                           make_index_sequence<tuple_size_v<decay_t<Tuple1>>>{},
+                           make_index_sequence<tuple_size_v<decay_t<Tuple2>>>{});
+}
+
+// Recursively folds tuple_cat's argument pack two at a time (left to right).
+template<typename Tuple1>
+[[nodiscard]] constexpr decay_t<Tuple1> _tuple_cat_fold(Tuple1&& t1) {
+    return std::forward<Tuple1>(t1);
+}
+
+template<typename Tuple1, typename Tuple2, typename... Rest>
+[[nodiscard]] constexpr auto _tuple_cat_fold(Tuple1&& t1, Tuple2&& t2, Rest&&... rest) {
+    return _tuple_cat_fold(_tuple_cat_two(std::forward<Tuple1>(t1), std::forward<Tuple2>(t2)),
+                            std::forward<Rest>(rest)...);
+}
+
+} // namespace _detail
+
+template<typename... Tuples>
+[[nodiscard]] constexpr _detail::_tuple_cat_type_t<Tuples...>
+tuple_cat(Tuples&&... tuples) {
+    if constexpr (sizeof...(Tuples) == 0)
+        return tuple<>{};
+    else
+        return _detail::_tuple_cat_fold(std::forward<Tuples>(tuples)...);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Comparison operators
+// ═════════════════════════════════════════════════════════════════════════════
+
+namespace _detail {
+
+template<typename Tuple1, typename Tuple2, size_t... I>
+[[nodiscard]] constexpr bool _tuple_eq(const Tuple1& a, const Tuple2& b, index_sequence<I...>) {
+    return ((get<I>(a) == get<I>(b)) && ...);
+}
+
+template<typename Tuple1, typename Tuple2>
+[[nodiscard]] constexpr bool _tuple_less(const Tuple1& a, const Tuple2& b) {
+    // Lexicographical compare, element by element, short-circuiting on the
+    // first differing pair.
+    return [&]<size_t... I>(index_sequence<I...>) {
+        bool result = false;
+        bool done = false;
+        (void)((!done && (get<I>(a) < get<I>(b) ? (result = true, done = true)
+                          : get<I>(b) < get<I>(a) ? (done = true) : false), true) && ...);
+        return result;
+    }(make_index_sequence<tuple_size_v<Tuple1>>{});
+}
+
+} // namespace _detail
+
+template<typename... TTypes, typename... UTypes>
+[[nodiscard]] constexpr bool operator==(const tuple<TTypes...>& a, const tuple<UTypes...>& b) {
+    static_assert(sizeof...(TTypes) == sizeof...(UTypes),
+                  "std::tuple: cannot compare tuples of different size");
+    return _detail::_tuple_eq(a, b, make_index_sequence<sizeof...(TTypes)>{});
+}
+
+template<typename... TTypes, typename... UTypes>
+[[nodiscard]] constexpr bool operator!=(const tuple<TTypes...>& a, const tuple<UTypes...>& b) {
+    return !(a == b);
+}
+
+template<typename... TTypes, typename... UTypes>
+[[nodiscard]] constexpr bool operator<(const tuple<TTypes...>& a, const tuple<UTypes...>& b) {
+    static_assert(sizeof...(TTypes) == sizeof...(UTypes),
+                  "std::tuple: cannot compare tuples of different size");
+    return _detail::_tuple_less(a, b);
+}
+
+template<typename... TTypes, typename... UTypes>
+[[nodiscard]] constexpr bool operator>(const tuple<TTypes...>& a, const tuple<UTypes...>& b) {
+    return b < a;
+}
+
+template<typename... TTypes, typename... UTypes>
+[[nodiscard]] constexpr bool operator<=(const tuple<TTypes...>& a, const tuple<UTypes...>& b) {
+    return !(b < a);
+}
+
+template<typename... TTypes, typename... UTypes>
+[[nodiscard]] constexpr bool operator>=(const tuple<TTypes...>& a, const tuple<UTypes...>& b) {
+    return !(a < b);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Non-member swap
+// ═════════════════════════════════════════════════════════════════════════════
+
+template<typename... Types>
+constexpr void swap(tuple<Types...>& a, tuple<Types...>& b) noexcept(noexcept(a.swap(b))) {
+    a.swap(b);
+}
+
+} // namespace std

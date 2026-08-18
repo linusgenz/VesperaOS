@@ -431,4 +431,88 @@ namespace std {
         return std::is_sorted_until(first, last) == last;
     }
 
+    // ═════════════════════════════════════════════════════════════════════════
+    // §3  Binary search operations
+    // ═════════════════════════════════════════════════════════════════════════
+
+    namespace _detail {
+
+        // Forward-iterator path: linear advance, but still O(log n) comparisons —
+        // matches the standard's complexity guarantee for lower_bound even though
+        // pointer arithmetic isn't available.
+        template <typename ForwardIt, typename T, typename Compare>
+        [[nodiscard]] constexpr ForwardIt lower_bound_impl(
+            ForwardIt first, ForwardIt last, const T& value, Compare comp, forward_iterator_tag)
+        {
+            typename iterator_traits<ForwardIt>::difference_type count =
+                std::distance(first, last);
+
+            while (count > 0) {
+                auto step = count / 2;
+                ForwardIt it = first;
+                std::advance(it, step);
+
+                if (comp(*it, value)) {
+                    first = ++it;
+                    count -= step + 1;
+                } else {
+                    count = step;
+                }
+            }
+            return first;
+        }
+
+        // Random-access path: direct index arithmetic, no std::distance/advance needed.
+        template <typename RandomIt, typename T, typename Compare>
+        [[nodiscard]] constexpr RandomIt lower_bound_impl(
+            RandomIt first, RandomIt last, const T& value, Compare comp, random_access_iterator_tag)
+        {
+            typename iterator_traits<RandomIt>::difference_type count = last - first;
+
+            while (count > 0) {
+                auto step = count / 2;
+                RandomIt it = first + step;
+
+                if (comp(*it, value)) {
+                    first = it + 1;
+                    count -= step + 1;
+                } else {
+                    count = step;
+                }
+            }
+            return first;
+        }
+
+    } // namespace _detail
+
+    template <typename ForwardIt, typename T, typename Compare>
+    [[nodiscard]] constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp) {
+        return _detail::lower_bound_impl(
+            first, last, value, comp,
+            typename iterator_traits<ForwardIt>::iterator_category{});
+    }
+
+    template <typename ForwardIt, typename T>
+    [[nodiscard]] constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value) {
+        return std::lower_bound(first, last, value,
+            [](const auto& elem, const auto& val) { return elem < val; });
+    }
+
+    template <typename ForwardIt>
+    constexpr ForwardIt max_element(ForwardIt first, ForwardIt last) {
+        if (first == last) {
+            return last;
+        }
+
+        ForwardIt largest = first;
+        ++first;
+
+        for (; first != last; ++first) {
+            if (*largest < *first) {
+                largest = first;
+            }
+        }
+
+        return largest;
+    }
 } // namespace std

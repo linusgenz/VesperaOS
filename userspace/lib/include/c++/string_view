@@ -20,16 +20,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-// Provides:
-//   basic_string_view<CharT, Traits>
-//   string_view    (= basic_string_view<char>)
-//   u16string_view (= basic_string_view<char16_t>)
-//   u32string_view (= basic_string_view<char32_t>)
-//   wstring_view   (= basic_string_view<wchar_t>)
-//   hash<string_view>
-//   Comparison operators (==, !=, <, <=, >, >=)
-//   Literal operator ""sv
-
 #pragma once
 
 #include <cstddef>      // size_t, ptrdiff_t
@@ -514,45 +504,109 @@ public:
 // ============================================================
 // Non-member comparison operators
 // ============================================================
+//
+// Only the LEFT-hand parameter participates in template argument deduction
+// for C and T. The right-hand parameter is wrapped in type_identity_t, a
+// non-deduced context: it is not used to deduce C/T, but is still implicitly
+// converted to basic_string_view<C,T> once C and T are known from the left
+// operand (e.g. from a const char* or a char array literal). Without this,
+// a call like `some_string_view == "literal"` fails outright: the compiler
+// cannot deduce C/T from a `const char[N]` argument, and implicit
+// conversions are never considered when deducing a template parameter's own
+// type — so the candidate is rejected before conversion is even attempted.
+//
+// A single deducing overload per operator would cover `sv == sv` and
+// `sv == "lit"`, but not `"lit" == sv` (the left operand there is a
+// `const char[N]`, which cannot deduce C/T at all). A second, mirrored
+// overload with the non-deduced parameter on the left fixes that — but
+// naively adding it makes plain `sv == sv` calls ambiguous, since both
+// overloads then match equally well. is_string_view_v<...> plus enable_if
+// excludes the mirrored overload whenever the left operand is *itself* a
+// basic_string_view, so exactly one candidate remains in every case.
+
+namespace _detail {
+    template<typename T> struct _is_string_view : false_type {};
+    template<typename C, typename T> struct _is_string_view<basic_string_view<C,T>> : true_type {};
+    template<typename T> inline constexpr bool _is_string_view_v = _is_string_view<T>::value;
+}
+
+template<typename T>
+struct _type_identity { using type = T; };
+template<typename T>
+using _type_identity_t = typename _type_identity<T>::type;
 
 template<typename C, typename T>
 [[nodiscard]] constexpr bool
-operator==(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+operator==(basic_string_view<C,T> a, _type_identity_t<basic_string_view<C,T>> b) noexcept {
     return a.size() == b.size() && a.compare(b) == 0;
 }
 
 template<typename C, typename T>
 [[nodiscard]] constexpr bool
-operator!=(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+operator!=(basic_string_view<C,T> a, _type_identity_t<basic_string_view<C,T>> b) noexcept {
     return !(a == b);
 }
 
 template<typename C, typename T>
 [[nodiscard]] constexpr bool
-operator<(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+operator<(basic_string_view<C,T> a, _type_identity_t<basic_string_view<C,T>> b) noexcept {
     return a.compare(b) < 0;
 }
 
 template<typename C, typename T>
 [[nodiscard]] constexpr bool
-operator<=(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+operator<=(basic_string_view<C,T> a, _type_identity_t<basic_string_view<C,T>> b) noexcept {
     return a.compare(b) <= 0;
 }
 
 template<typename C, typename T>
 [[nodiscard]] constexpr bool
-operator>(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+operator>(basic_string_view<C,T> a, _type_identity_t<basic_string_view<C,T>> b) noexcept {
     return a.compare(b) > 0;
 }
 
 template<typename C, typename T>
 [[nodiscard]] constexpr bool
-operator>=(basic_string_view<C,T> a, basic_string_view<C,T> b) noexcept {
+operator>=(basic_string_view<C,T> a, _type_identity_t<basic_string_view<C,T>> b) noexcept {
     return a.compare(b) >= 0;
 }
 
-// Allow comparisons with const CharT* on either side
-// via implicit conversion to basic_string_view.
+template<typename Lhs, typename C, typename T>
+[[nodiscard]] constexpr enable_if_t<!_detail::_is_string_view_v<Lhs>, bool>
+operator==(const Lhs& a, basic_string_view<C,T> b) noexcept {
+    basic_string_view<C,T> sa(a);
+    return sa.size() == b.size() && sa.compare(b) == 0;
+}
+
+template<typename Lhs, typename C, typename T>
+[[nodiscard]] constexpr enable_if_t<!_detail::_is_string_view_v<Lhs>, bool>
+operator!=(const Lhs& a, basic_string_view<C,T> b) noexcept {
+    return !(basic_string_view<C,T>(a) == b);
+}
+
+template<typename Lhs, typename C, typename T>
+[[nodiscard]] constexpr enable_if_t<!_detail::_is_string_view_v<Lhs>, bool>
+operator<(const Lhs& a, basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) < 0;
+}
+
+template<typename Lhs, typename C, typename T>
+[[nodiscard]] constexpr enable_if_t<!_detail::_is_string_view_v<Lhs>, bool>
+operator<=(const Lhs& a, basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) <= 0;
+}
+
+template<typename Lhs, typename C, typename T>
+[[nodiscard]] constexpr enable_if_t<!_detail::_is_string_view_v<Lhs>, bool>
+operator>(const Lhs& a, basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) > 0;
+}
+
+template<typename Lhs, typename C, typename T>
+[[nodiscard]] constexpr enable_if_t<!_detail::_is_string_view_v<Lhs>, bool>
+operator>=(const Lhs& a, basic_string_view<C,T> b) noexcept {
+    return basic_string_view<C,T>(a).compare(b) >= 0;
+}
 
 // ============================================================
 // Type aliases
