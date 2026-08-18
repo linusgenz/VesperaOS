@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"meminfo_8h.html#a4edfacecd0025bf026c1714770b337d4":[5,0,0,0,0,0,8,1],
 "meminfo_8h_source.html":[5,0,0,0,0,0,8],
 "memory_8h.html":[5,0,1,0,0,28],
 "memory_8h.html#a444ebafa5217af6818dc3027ff06f945":[5,0,1,0,0,28,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "stdint_8h.html#aa05109908fb2770f632d2b646b9f85bf":[5,0,1,0,0,41,16],
 "stdint_8h.html#aa343fa3b3d06292b959ffdd4c4703b06":[5,0,1,0,0,41,29],
 "stdint_8h.html#aa9e7b0ed8f34f9c482a7a32d7f18c054":[5,0,1,0,0,41,42],
-"stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad":[5,0,1,0,0,41,45],
-"stdint_8h.html#aab530113fa96e280e49c3c138b0f917d":[5,0,1,0,0,41,27]
+"stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad":[5,0,1,0,0,41,45]
 };

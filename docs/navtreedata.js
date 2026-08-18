@@ -68,15 +68,15 @@ var NAVTREEINDEX =
 "elf_8h.html#a9cdfedf900935f23f6e409ce378dc1d2",
 "float_8h.html#a7fbf1534f9e0f0bfdb86fb928902474c",
 "include_2uapi_2vespera_2dev_2power_8h.html#ad3effe09a752feb93d93d19174caf53b",
-"inttypes_8h.html#a32b0c8a04aae5d4454d15e6cbe109f64",
-"locale_8h.html#a158abb82c565096465ade138c98970d0",
-"meminfo_8h_source.html",
-"stdint_8h.html#aab7df05e4698e14dbef512294ff39203",
-"stella_8h.html#aa6a434e1bee1f0f3fa5c77017e7ffe96",
-"structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5",
-"structrealm__info.html",
-"structvbus__header.html#ae530cb48aa82891c8d241e653c57f9f1",
-"unistd_8h.html#ab2df76f2c62ae012c2e417813b5fe8ce"
+"inttypes_8h.html#a2f7190d383e2382085b27ffc8ac5a089",
+"locale_8h.html#a07c66689961056725d7f50231d740ba9",
+"meminfo_8h.html#a4edfacecd0025bf026c1714770b337d4",
+"stdint_8h.html#aab530113fa96e280e49c3c138b0f917d",
+"stella_8h.html#aa6584c8f435d479fb82bfd167aeee892",
+"structcrep__sync.html",
+"structpthread__rwlockattr__t.html#af62f339fa4701b914838cf887f688a85",
+"structvbus__header.html#adcc939dbf3f561e292565b0d4992ff4d",
+"unistd_8h.html#aa7352f1065fe606194d792e2b292cf83"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

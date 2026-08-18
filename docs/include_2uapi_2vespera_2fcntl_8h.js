@@ -5,6 +5,7 @@ var include_2uapi_2vespera_2fcntl_8h =
     [ "O_CREAT", "include_2uapi_2vespera_2fcntl_8h.html#a1cf6b1de1fffedaa1d26b189e9a8d2cc", null ],
     [ "O_DIRECTORY", "include_2uapi_2vespera_2fcntl_8h.html#a6afd3dd2f570069804b40e6aa24fc966", null ],
     [ "O_EXCL", "include_2uapi_2vespera_2fcntl_8h.html#a9f5acfe79fafe14b6694447bd0e9f10b", null ],
+    [ "O_NONBLOCK", "include_2uapi_2vespera_2fcntl_8h.html#a39d33ce33804efd4d52606d59071c6d8", null ],
     [ "O_RDONLY", "include_2uapi_2vespera_2fcntl_8h.html#a7a68c9ffaac7dbcd652225dd7c06a54b", null ],
     [ "O_RDWR", "include_2uapi_2vespera_2fcntl_8h.html#abb0586253488ee61072b73557eeb873b", null ],
     [ "O_TRUNC", "include_2uapi_2vespera_2fcntl_8h.html#ad1d67e453fb3031f40f8cd3403773813", null ],

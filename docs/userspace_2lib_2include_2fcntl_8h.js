@@ -13,8 +13,8 @@ var userspace_2lib_2include_2fcntl_8h =
     [ "FD_CLOEXEC", "userspace_2lib_2include_2fcntl_8h.html#a7e7a00c884ea124bb9f687b16cb5db9b", null ],
     [ "O_CLOEXEC", "userspace_2lib_2include_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757", null ],
     [ "O_NOFOLLOW", "userspace_2lib_2include_2fcntl_8h.html#a82d4d551b214905742c9e045185d352a", null ],
-    [ "O_NONBLOCK", "userspace_2lib_2include_2fcntl_8h.html#a39d33ce33804efd4d52606d59071c6d8", null ],
     [ "creat", "userspace_2lib_2include_2fcntl_8h.html#a6a6f985cc61227f641f7cc75927b06fc", null ],
     [ "fcntl", "userspace_2lib_2include_2fcntl_8h.html#ad39ebe4c4767eaa9a680777400cfaafe", null ],
-    [ "open", "userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543", null ]
+    [ "open", "userspace_2lib_2include_2fcntl_8h.html#ad586f56cb2d7d849a4cb20dbd792b543", null ],
+    [ "openat", "userspace_2lib_2include_2fcntl_8h.html#a17d44d955aa2afafbfd74e2537101109", null ]
 ];

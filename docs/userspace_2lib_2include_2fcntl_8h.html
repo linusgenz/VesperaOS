@@ -109,8 +109,6 @@ Macros</h2></td></tr>
 <tr class="separator:a06df2208247096abdd71b9d673d05198"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25f6c486bbaf73d1927017276f6038a3" id="r_a25f6c486bbaf73d1927017276f6038a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2fcntl_8h.html#a25f6c486bbaf73d1927017276f6038a3">C_DIR</a>&#160;&#160;&#160;0x01</td></tr>
 <tr class="separator:a25f6c486bbaf73d1927017276f6038a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39d33ce33804efd4d52606d59071c6d8" id="r_a39d33ce33804efd4d52606d59071c6d8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2fcntl_8h.html#a39d33ce33804efd4d52606d59071c6d8">O_NONBLOCK</a>&#160;&#160;&#160;0x0800</td></tr>
-<tr class="separator:a39d33ce33804efd4d52606d59071c6d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6d8fbe4e494b4dbe051612572d3f757" id="r_ad6d8fbe4e494b4dbe051612572d3f757"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2fcntl_8h.html#ad6d8fbe4e494b4dbe051612572d3f757">O_CLOEXEC</a>&#160;&#160;&#160;0x80000</td></tr>
 <tr class="separator:ad6d8fbe4e494b4dbe051612572d3f757"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82d4d551b214905742c9e045185d352a" id="r_a82d4d551b214905742c9e045185d352a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2fcntl_8h.html#a82d4d551b214905742c9e045185d352a">O_NOFOLLOW</a>&#160;&#160;&#160;0x20000</td></tr>
@@ -145,6 +143,8 @@ Functions</h2></td></tr>
 <tr class="memitem:ad39ebe4c4767eaa9a680777400cfaafe" id="r_ad39ebe4c4767eaa9a680777400cfaafe"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2fcntl_8h.html#ad39ebe4c4767eaa9a680777400cfaafe">fcntl</a> (int fd, int cmd,...)</td></tr>
 <tr class="memdesc:ad39ebe4c4767eaa9a680777400cfaafe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a control operation on an open file handle.  <br /></td></tr>
 <tr class="separator:ad39ebe4c4767eaa9a680777400cfaafe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17d44d955aa2afafbfd74e2537101109" id="r_a17d44d955aa2afafbfd74e2537101109"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="userspace_2lib_2include_2fcntl_8h.html#a17d44d955aa2afafbfd74e2537101109">openat</a> (int dirfd, const char *pathname, int <a class="el" href="ioctl__smart_8h.html#a687c73b55452210faa467db4d365a3ee">flags</a>,...)</td></tr>
+<tr class="separator:a17d44d955aa2afafbfd74e2537101109"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a25f6c486bbaf73d1927017276f6038a3" name="a25f6c486bbaf73d1927017276f6038a3"></a>
@@ -341,21 +341,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a39d33ce33804efd4d52606d59071c6d8" name="a39d33ce33804efd4d52606d59071c6d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39d33ce33804efd4d52606d59071c6d8">&#9670;&#160;</a></span>O_NONBLOCK</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define O_NONBLOCK&#160;&#160;&#160;0x0800</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>No syscall-level support yet; accepted, currently a no-op. </p>
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a6a6f985cc61227f641f7cc75927b06fc" name="a6a6f985cc61227f641f7cc75927b06fc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6a6f985cc61227f641f7cc75927b06fc">&#9670;&#160;</a></span>creat()</h2>
@@ -480,6 +465,46 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Non-negative handle ID on success, or -1 on error (errno set).</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="unistd_8h.html#aafbcde67669a1b96577e735ddebd8634" title="Close a file descriptor / handle.">close()</a> </dd></dl>
+
+</div>
+</div>
+<a id="a17d44d955aa2afafbfd74e2537101109" name="a17d44d955aa2afafbfd74e2537101109"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17d44d955aa2afafbfd74e2537101109">&#9670;&#160;</a></span>openat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int openat </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dirfd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>pathname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

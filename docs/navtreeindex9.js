@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"stella_8h.html#aa6584c8f435d479fb82bfd167aeee892":[5,0,1,0,0,45,5],
 "stella_8h.html#aa6a434e1bee1f0f3fa5c77017e7ffe96":[5,0,1,0,0,45,95],
 "stella_8h.html#aa9844976d95a0520d39ec1895b3167e5":[5,0,1,0,0,45,15],
 "stella_8h.html#aafdb6b973fe2b69778bd302062920a10":[5,0,1,0,0,45,16],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "structcpu__usage__stat.html#a93cbceecc8a138b99525c48988b88db0":[4,0,9,1],
 "structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720":[4,0,9,0],
 "structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb":[4,0,9,3],
-"structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a":[4,0,9,2],
-"structcrep__sync.html":[4,0,10]
+"structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a":[4,0,9,2]
 };
