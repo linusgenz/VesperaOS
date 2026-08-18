@@ -24,6 +24,8 @@
 #include <errno.h>
 #include <stdint.h>
 
+#include <fcntl.h>
+
 int stat(const char *restrict path, struct stat *restrict buf) {
     if (!path || !buf) {
         errno = EINVAL;
@@ -50,4 +52,31 @@ int fstat(int fd, struct stat *buf) {
         return -1;
     }
     return 0;
+}
+
+int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev) {
+    if (!pathname) {
+        errno = EFAULT;
+        return -1;
+    }
+
+    int64_t ret = sys_mknodat((uint64_t)dirfd, (uint64_t)pathname, (uint64_t)mode, (uint64_t)dev, 0, 0);
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+
+    return 0;
+}
+
+int mknod(const char *pathname, mode_t mode, dev_t dev) {
+    return mknodat(AT_FDCWD, pathname, mode, dev);
+}
+
+int mkfifoat(int dirfd, const char *pathname, mode_t mode) {
+    return mknodat(dirfd, pathname, mode | S_IFIFO, 0);
+}
+
+int mkfifo(const char *pathname, mode_t mode) {
+    return mkfifoat(AT_FDCWD, pathname, mode);
 }

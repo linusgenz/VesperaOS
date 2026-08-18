@@ -71,6 +71,7 @@
 #define SYSCALL_READDIR 217
 #define SYSCALL_CLOCK_GETTIME 228
 #define SYSCALL_CLOCK_NANOSLEEP 230
+#define SYSCALL_OPENAT 257
 #define SYSCALL_DUP3 292
 #define SYSCALL_GETUID 102
 #define SYSCALL_GETEUID 107
@@ -92,7 +93,9 @@
 #define SYSCALL_CHANNEL_CREATE 130
 #define SYSCALL_CHANNEL_SEND 131
 #define SYSCALL_CHANNEL_RECEIVE 132
-#define SYSCALL_HANDLE_TRANSFER 133
+#define SYSCALL_MKNOD  133
+#define SYSCALL_MKNODAT  259
+#define SYSCALL_HANDLE_TRANSFER 135
 
 #define SYSCALL_SETSID 140
 #define SYSCALL_SETPGID 141
@@ -467,4 +470,16 @@ int64_t sys_sched_getaffinity(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint6
 
 int64_t sys_sigprocmask(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
     return syscall(SYSCALL_SIGPROCMASK, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_openat(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_OPENAT, arg0, arg1, arg2, arg3, 0, 0);
+}
+
+int64_t sys_mknod(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MKNOD, arg0, arg1, arg2, 0, 0, 0);
+}
+
+int64_t sys_mknodat(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
+    return syscall(SYSCALL_MKNOD, arg0, arg1, arg2, arg3, 0, 0);
 }

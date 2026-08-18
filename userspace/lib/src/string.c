@@ -21,7 +21,6 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#include <ctype.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -306,11 +305,6 @@ int memcmp(const void* s1, const void* s2, size_t n) {
     return 0;
 }
 
-int bcmp(const void* s1, const void* s2, size_t n) {
-    return memcmp(s1, s2, n);
-}
-
-
 void* memmove(void* dest, const void* src, size_t len) {
     if (len == 0 || dest == src) return dest;
 
@@ -356,25 +350,6 @@ size_t strlcpy(char* dest, const char* src, size_t size) {
         dest[min_len] = '\0';
     }
     return src_len;
-}
-
-int strcasecmp(const char *s1, const char *s2) {
-    while (*s1 && *s2) {
-        unsigned char c1 = (unsigned char)*s1;
-        unsigned char c2 = (unsigned char)*s2;
-
-        c1 = (unsigned char)tolower(c1);
-        c2 = (unsigned char)tolower(c2);
-
-        if (c1 != c2)
-            return (int)c1 - (int)c2;
-
-        s1++;
-        s2++;
-    }
-
-    return (int)(unsigned char)tolower((unsigned char)*s1)
-         - (int)(unsigned char)tolower((unsigned char)*s2);
 }
 
 char *strndup(const char *s, size_t n) {

@@ -55,9 +55,6 @@ extern "C" {
 // Flags with no VesperaOS syscall-level backing yet. Defined so ported
 // code compiles; passing them to open() is accepted but currently has
 // no effect (see open() note below).
-#ifndef O_NONBLOCK
-#define O_NONBLOCK 0x0800 /**< No syscall-level support yet; accepted, currently a no-op. */
-#endif
 #ifndef O_CLOEXEC
 #define O_CLOEXEC 0x80000 /**< No exec-time handle table semantics yet; accepted, currently a no-op. */
 #endif
@@ -132,6 +129,8 @@ int creat(const char* path);
  * @return Command-specific result on success, or -1 on error (errno set).
  */
 int fcntl(int fd, int cmd, ...);
+
+int openat(int dirfd, const char *pathname, int flags, ...);
 
 #ifdef __cplusplus
 }
