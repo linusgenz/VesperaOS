@@ -98,3 +98,23 @@ int fcntl(int fd, int cmd, ...) {
             return -1;
     }
 }
+
+int openat(int dirfd, const char *pathname, int flags, ...) {
+    mode_t mode = 0;
+
+    if (flags & O_CREAT) {
+        va_list args;
+        va_start(args, flags);
+        mode = va_arg(args, mode_t);
+        va_end(args);
+    }
+
+    int64_t ret = sys_openat((uint64_t)dirfd, (uint64_t)pathname, (uint64_t)flags, (uint64_t)mode, 0, 0);
+
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+
+    return (int)ret;
+}

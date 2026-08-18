@@ -135,8 +135,6 @@ void *memchr(const void *src, int c, size_t n);
 
 size_t strlcpy(char *dest, const char *src, size_t size);
 
-int strcasecmp(const char *s1, const char *s2);
-
 /* Duplicate S, returning an identical malloc'd string.  */
 char *strdup (const char *s);
 
@@ -144,6 +142,9 @@ char *strdup (const char *s);
    resultant string is terminated even if no null terminator
    appears before STRING[N].  */
 char *strndup(const char *s, size_t n);
+
+// From strings.h
+int strcasecmp(const char *s1, const char *s2);
 
 #ifdef __cplusplus
 }

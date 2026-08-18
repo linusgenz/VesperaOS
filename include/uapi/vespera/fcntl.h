@@ -37,4 +37,6 @@
 #define SEEK_CUR    1       /**< Seek relative to current position */
 #define SEEK_END    2       /**< Seek relative to end of file */
 
+#define AT_FDCWD        (-100)
+
 #endif  // VESPLIB_FFLAGS_H
