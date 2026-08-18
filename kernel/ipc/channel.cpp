@@ -26,6 +26,7 @@
 #include <vespera/ipc/channel.h>
 #include <vespera/log.h>
 #include <vespera/mm/memory.h>
+#include <vespera/scheduling.h>
 #include <vespera_errno.h>
 
 #include "klib/result.h"
@@ -63,28 +64,49 @@ void Channel::destroy(void* res) {
 
 void Channel::add_reader() {
     __sync_add_and_fetch(&reader_count_, 1);
+    // A writer may be blocked in open() waiting for the first reader.
+    open_wait_.wake_all();
 }
 
 void Channel::add_writer() {
     __sync_add_and_fetch(&writer_count_, 1);
+    // A reader may be blocked in open() waiting for the first writer.
+    open_wait_.wake_all();
 }
 
 void Channel::remove_reader() {
     const int r = __sync_sub_and_fetch(&reader_count_, 1);
     const int w = __atomic_load_n(&writer_count_, __ATOMIC_ACQUIRE);
+
+    if (r == 0) {
+        // Last reader gone: any writer blocked in send() (buffer full) or in
+        // open() (waiting for a reader to show up) must wake up and observe
+        // has_readers() == false, i.e. get EPIPE.
+        write_wait_.wake_all();
+        open_wait_.wake_all();
+    }
+
     if (r == 0 && w == 0) {
         delete this;
     }
-    // TODO: Hier Event/Waitqueue für blockierte Writer aufwecken -> erzeugt EPIPE
 }
 
 void Channel::remove_writer() {
     const int w = __sync_sub_and_fetch(&writer_count_, 1);
     const int r = __atomic_load_n(&reader_count_, __ATOMIC_ACQUIRE);
+
+    if (w == 0) {
+        // Last writer gone: any reader blocked in recv() (buffer empty) must
+        // wake up and observe has_writers() == false, i.e. get EOF (0). Any
+        // opener still waiting for a writer must also be woken so it can
+        // re-check (it stays blocked if it wanted a writer and none showed).
+        read_wait_.wake_all();
+        open_wait_.wake_all();
+    }
+
     if (w == 0 && r == 0) {
         delete this;
     }
-    // TODO: Hier Event/Waitqueue für blockierte Reader aufwecken -> erzeugt EOF (0)
 }
 
 bool Channel::has_writers() const {
@@ -120,50 +142,98 @@ int Channel::poll(bool is_reader, bool is_writer) {
     return mask;
 }
 
-isize Channel::send(const void* data, const usize len) {
+isize Channel::send(const void* data, const usize len, const bool blocking) {
     if (!data || len == 0) return 0;
 
-    SpinlockGuard g(lock_);
+    while (true) {
+        Unit* cur = blocking ? kernel::scheduling::get_current_unit() : nullptr;
 
-    if (!has_readers()) return -EPIPE;
+        lock_.lock();
 
-    const usize space = capacity - used;
-    if (space == 0) return -EAGAIN;
+        if (!has_readers()) {
+            lock_.unlock();
+            return -EPIPE;
+        }
 
-    const usize to_write = (len < space) ? len : space;
+        const usize space = capacity - used;
+        if (space == 0) {
+            if (!blocking || !cur) {
+                lock_.unlock();
+                return -EAGAIN;
+            }
 
-    const usize first = min(to_write, capacity - head_);
-    memcpy(buf_ + head_, data, first);
-    if (first < to_write)
-        memcpy(buf_, static_cast<const u8*>(data) + first, to_write - first);
+            // Block until a reader drains the buffer, a reader disappears
+            // (checked again on wake -> EPIPE above), or a signal arrives.
+            write_wait_.add_wait(cur);
+            lock_.unlock();
+            kernel::scheduling::yield();
+            continue; // re-check state after waking
+        }
 
-    head_ = (head_ + to_write) % capacity;
-    used += to_write;
+        const usize to_write = (len < space) ? len : space;
 
-    return static_cast<isize>(to_write);
+        const usize first = min(to_write, capacity - head_);
+        memcpy(buf_ + head_, data, first);
+        if (first < to_write)
+            memcpy(buf_, static_cast<const u8*>(data) + first, to_write - first);
+
+        head_ = (head_ + to_write) % capacity;
+        used += to_write;
+
+        lock_.unlock();
+
+        // Data became available: wake a blocked reader, if any.
+        read_wait_.wake_one();
+
+        return static_cast<isize>(to_write);
+    }
 }
 
-isize Channel::recv(void* out, const usize len) {
+isize Channel::recv(void* out, const usize len, const bool blocking) {
     if (!out || len == 0) return 0;
 
-    SpinlockGuard g(lock_);
+    while (true) {
+        Unit* cur = blocking ? kernel::scheduling::get_current_unit() : nullptr;
 
-    if (used == 0) {
-        if (!has_writers()) return 0; // EOF
-        return -EAGAIN;
+        lock_.lock();
+
+        if (used == 0) {
+            if (!has_writers()) {
+                lock_.unlock();
+                return 0; // EOF
+            }
+
+            if (!blocking || !cur) {
+                lock_.unlock();
+                return -EAGAIN;
+            }
+
+            // Block until a writer fills the buffer, the last writer
+            // disappears (checked again on wake -> EOF above), or a signal
+            // arrives.
+            read_wait_.add_wait(cur);
+            lock_.unlock();
+            kernel::scheduling::yield();
+            continue; // re-check state after waking
+        }
+
+        const usize to_read = (len < used) ? len : used;
+
+        const usize first = min(to_read, capacity - tail_);
+        memcpy(out, buf_ + tail_, first);
+        if (first < to_read)
+            memcpy(static_cast<u8*>(out) + first, buf_, to_read - first);
+
+        tail_ = (tail_ + to_read) % capacity;
+        used -= to_read;
+
+        lock_.unlock();
+
+        // Space freed up: wake a blocked writer, if any.
+        write_wait_.wake_one();
+
+        return static_cast<isize>(to_read);
     }
-
-    const usize to_read = (len < used) ? len : used;
-
-    const usize first = min(to_read, capacity - tail_);
-    memcpy(out, buf_ + tail_, first);
-    if (first < to_read)
-        memcpy(static_cast<u8*>(out) + first, buf_, to_read - first);
-
-    tail_ = (tail_ + to_read) % capacity;
-    used -= to_read;
-
-    return static_cast<isize>(to_read);
 }
 
 // --- AB HIER: Die saubere Endpoint-Einheit ---

@@ -197,6 +197,10 @@ namespace syscalls::internal {
     i64 sys_sigprocmask(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 
     i64 sys_openat(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
+
+    i64 sys_mknodat(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64);
+
+    i64 sys_mknod(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64);
 } // namespace syscalls::internal
 
 void install_syscalls();

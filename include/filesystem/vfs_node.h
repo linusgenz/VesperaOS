@@ -36,10 +36,14 @@ enum class VfsNodeType : u8 {
     Directory,
     CharDevice,
     BlockDevice,
+    Fifo,
+    Symlink,
+    Socket,
     OtherDevice,
 };
 
 struct VfsNode;
+class Channel;
 
 struct VfsNodeOps {
     Result<usize> (*read)(const VfsNode *node, usize offset, usize size, void *buffer);
@@ -91,6 +95,10 @@ struct VfsNode {
     usize ref_count = 1;
 
     u64 inode_id = 0;
+
+    // Only valid when type == VfsNodeType::Fifo. Lazily created by the first
+    // open() (reader or writer) on this node and torn down by Channel itself
+    Channel *fifo_channel = nullptr;
 
 };
 

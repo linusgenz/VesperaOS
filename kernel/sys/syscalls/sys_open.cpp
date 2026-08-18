@@ -26,10 +26,10 @@
 #include <security/permission.h>
 #include <uapi/vespera/fcntl.h>
 #include <uapi/vespera/handles.h>
+#include <vespera/ipc/channel.h>
 #include <vespera/realm/handles.h>
-#include <vespera/realm/realm_manager.h>
 #include <vespera/scheduling.h>
-#include <klib/string.h>
+#include <units/unit.h>
 #include "filesystem/vfs_handle.h"
 #include "sys/handle_resolution.h"
 
@@ -113,10 +113,62 @@ namespace syscalls::internal {
                 }
             }
 
+            if (node->type == VfsNodeType::Fifo) {
+                Channel* ch = node->fifo_channel;
+                if (!ch) {
+                    VFS::close(node);
+                    return -EIO;
+                }
+
+                const bool want_read = (flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR;
+                const bool want_write = (flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR;
+                const bool is_rdwr = (flags & 0x3) == O_RDWR;
+                const bool nonblock = flags & O_NONBLOCK;
+
+                if (want_read && !is_rdwr && !ch->has_writers()) {
+                    if (nonblock) {
+                        // Linux: open(O_RDONLY | O_NONBLOCK) on a FIFO with no
+                        // writer succeeds immediately rather than failing.
+                    } else {
+                        while (!ch->has_writers()) {
+                            Unit* cur = kernel::scheduling::get_current_unit();
+                            ch->open_wait().add_wait(cur);
+                            kernel::scheduling::yield();
+                        }
+                    }
+                }
+
+                if (want_write && !is_rdwr && !ch->has_readers()) {
+                    if (nonblock) {
+                        VFS::close(node);
+                        return -ENXIO;
+                    }
+                    while (!ch->has_readers()) {
+                        Unit* cur = kernel::scheduling::get_current_unit();
+                        ch->open_wait().add_wait(cur);
+                        kernel::scheduling::yield();
+                    }
+                }
+
+                if (want_read) ch->add_reader();
+                if (want_write) ch->add_writer();
+            }
+
             VfsHandle* vh = nullptr;
             u64 handle_type = 0;
 
             switch (node->type) {
+                case VfsNodeType::Fifo:
+                    vh = new VfsHandle(node, flags, required_caps, norm);
+                    if (!vh) {
+                        if ((flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR) node->fifo_channel->remove_reader();
+                        if ((flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR) node->fifo_channel->remove_writer();
+                        VFS::close(node);
+                        return -ENOMEM;
+                    }
+                    handle_type = HANDLE_TYPE_DEVICE;
+                    break;
+
                 case VfsNodeType::CharDevice:
                 case VfsNodeType::BlockDevice:
                     required_caps |= CAP_DEVICE_ACCESS;

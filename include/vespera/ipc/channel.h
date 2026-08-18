@@ -28,6 +28,7 @@
 #include <vespera/types.h>
 
 #include "klib/result.h"
+#include "vespera/sync/wait_queue.h"
 
 class Channel;
 
@@ -58,6 +59,10 @@ class Channel {
     int reader_count_;
     int writer_count_;
 
+    WaitQueue open_wait_;
+    WaitQueue read_wait_;
+    WaitQueue write_wait_;
+
     explicit Channel(usize cap);
     ~Channel();
 
@@ -75,14 +80,17 @@ public:
     static void destroy(void* res);
     //static void ref(void* res);
 
+    WaitQueue& open_wait() { return open_wait_; }
+
     usize free_space();
     int poll(bool is_reader, bool is_writer);
 
     // return: bytes written (>=0) or negative errno
-    isize send(const void* data, usize len);
+    isize send(const void* data, usize len, bool blocking = false);
 
     // return: bytes read (>=0) or negative errno, 0 if empty
-    isize recv(void* out, usize len);
+    isize recv(void* out, usize len, bool blocking = false);
+
     static Result<::PipePair> create_pipe(usize capacity);
 };
 

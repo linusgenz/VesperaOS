@@ -33,6 +33,10 @@
 
 #define O_DIRECTORY 0x2000  /**< The target should be a directory */
 
+#ifndef O_NONBLOCK
+#define O_NONBLOCK 0x0800 /**< No syscall-level support yet; accepted, currently a no-op. */
+#endif
+
 #define SEEK_SET    0       /**< Seek relative to start of file */
 #define SEEK_CUR    1       /**< Seek relative to current position */
 #define SEEK_END    2       /**< Seek relative to end of file */
