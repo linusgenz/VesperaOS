@@ -119,7 +119,7 @@ namespace kernel::scheduling {
         const Unit* current = get_current_unit();
         u64 total_ns = 0;
 
-        for (const Unit* u = realm->unit_list; u; u = u->next) {
+        for (const Unit* u = realm->unit_list; u; u = u->realm_next) {
             total_ns += u->cpu_time_ns;
             if (u == current && u->run_start_ns != 0) total_ns += time::get_uptime_ns() - u->run_start_ns;
         }

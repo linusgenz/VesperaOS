@@ -24,6 +24,8 @@
 #include <vespera/realm/exit_code_table.h>
 #include <vespera/realm/realm_ops.h>
 
+#include "vespera/log.h"
+
 namespace syscalls::internal {
     i64 sys_wait(u64 arg0, u64 arg1, u64 arg2, u64, u64, u64) {
         const RealmId child_rid = arg0;

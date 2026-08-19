@@ -23,6 +23,8 @@
 
 #include <scheduling/termination.h>
 
+#include "vespera/log.h"
+
 namespace syscalls::internal {
     i64 sys_exit(u64 code, u64, u64, u64, u64, u64) {
         kernel::scheduling::exit_current(static_cast<int>(code));
