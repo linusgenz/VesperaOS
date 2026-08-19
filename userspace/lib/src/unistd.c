@@ -28,13 +28,24 @@
 #include <sys/sysinfo.h>
 
 #include "sched.h"
+#include "internal/fd_table.h"
+#include <vespera/handles.h>
+
+#include "sys/time.h"
+
 
 // ---------------------------------------------------------------------
 // File I/O
 // ---------------------------------------------------------------------
 
 ssize_t read(int fd, void* buf, size_t count) {
-    int64_t ret = sys_read((uint64_t)fd, (uint64_t)(uintptr_t)buf, (uint64_t)count, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+
+    int64_t ret = sys_read((uint64_t)handle, (uint64_t)(uintptr_t)buf, (uint64_t)count, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
@@ -43,7 +54,13 @@ ssize_t read(int fd, void* buf, size_t count) {
 }
 
 ssize_t write(int fd, const void* buf, size_t count) {
-    int64_t ret = sys_write((uint64_t)fd, (uint64_t)(uintptr_t)buf, (uint64_t)count, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+
+    int64_t ret = sys_write((uint64_t)handle, (uint64_t)(uintptr_t)buf, (uint64_t)count, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
@@ -52,16 +69,34 @@ ssize_t write(int fd, const void* buf, size_t count) {
 }
 
 int close(int fd) {
-    int64_t ret = sys_close((uint64_t)fd, 0, 0, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+
+    int64_t ret = sys_close((uint64_t)handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
     }
+
+    // Only drop the fd slot once the underlying handle is actually
+    // closed — if sys_close() fails, leave the mapping intact so the
+    // caller can inspect/retry rather than leaking a dangling fd that
+    // silently resolves to nothing.
+    fd_table_remove(fd);
     return 0;
 }
 
 off_t lseek(int fd, off_t offset, int whence) {
-    int64_t ret = sys_seek((uint64_t)fd, (uint64_t)offset, (uint64_t)whence, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return (off_t)-1;
+    }
+
+    int64_t ret = sys_seek((uint64_t)handle, (uint64_t)offset, (uint64_t)whence, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return (off_t)-1;
@@ -104,7 +139,13 @@ int access(const char* path, int mode) {
 }
 
 int ftruncate(int fd, off_t length) {
-    int64_t ret = sys_handle_truncate((uint64_t)fd, (uint64_t)length, 0, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+
+    int64_t ret = sys_handle_truncate((uint64_t)handle, (uint64_t)length, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
@@ -116,36 +157,100 @@ int fsync(int fd) {
     // No-op: VesperaOS has no explicit flush/sync syscall exposed to
     // userspace yet. Writes go through sys_write(); there is currently
     // nothing to flush from here. See header note.
-    (void)fd;
+    //
+    // Still validated against the fd table so callers get EBADH on a
+    // bogus fd rather than a silent success.
+    if (!fd_table_valid(fd)) {
+        errno = EBADH;
+        return -1;
+    }
     return 0;
 }
 
 int dup(int fd) {
-    int64_t ret = sys_dup((uint64_t)fd, 0, 0, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+
+    int64_t ret = sys_dup((uint64_t)handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
     }
-    return (int)ret;
+
+    int new_fd = fd_table_insert((HANDLE)ret);
+    if (new_fd < 0) {
+        sys_close((uint64_t)ret, 0, 0, 0, 0, 0);
+        return -1;
+    }
+    return new_fd;
 }
 
 int dup2(int fd, int new_fd) {
-    int64_t ret = sys_dup2((uint64_t)fd, (uint64_t)new_fd, 0, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+
+    if (new_fd < 0 || new_fd >= FD_TABLE_MAX) {
+        errno = EBADH;
+        return -1;
+    }
+
+    if (fd == new_fd) {
+        return new_fd;
+    }
+
+    HANDLE dup_handle;
+    int64_t ret = sys_dup((uint64_t)handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
     }
-    return (int)ret;
+    dup_handle = (HANDLE)ret;
+
+    HANDLE old_handle = fd_table_get(new_fd);
+    if (old_handle != INVALID_HANDLE) {
+        sys_close((uint64_t)old_handle, 0, 0, 0, 0, 0);
+    }
+
+    if (fd_table_insert_at(new_fd, dup_handle) < 0) {
+        sys_close((uint64_t)dup_handle, 0, 0, 0, 0, 0);
+        return -1;
+    }
+    return new_fd;
 }
 
 int pipe(int fds[2]) {
-    // sys_pipe() takes a pointer to a 2-element handle buffer, matching
-    // POSIX pipe(int[2]) layout directly.
-    int64_t ret = sys_pipe((uint64_t)(uintptr_t)fds, 0, 0, 0, 0, 0);
+    HANDLE native_fds[2];
+    int64_t ret = sys_pipe((uint64_t)(uintptr_t)native_fds, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
     }
+
+    int read_fd = fd_table_insert(native_fds[0]);
+    if (read_fd < 0) {
+        sys_close((uint64_t)native_fds[0], 0, 0, 0, 0, 0);
+        sys_close((uint64_t)native_fds[1], 0, 0, 0, 0, 0);
+        return -1;
+    }
+
+    int write_fd = fd_table_insert(native_fds[1]);
+    if (write_fd < 0) {
+        // Roll back the read end too so we don't leak a half-open pipe
+        // into the caller's fd space.
+        fd_table_remove(read_fd);
+        sys_close((uint64_t)native_fds[0], 0, 0, 0, 0, 0);
+        sys_close((uint64_t)native_fds[1], 0, 0, 0, 0, 0);
+        return -1;
+    }
+
+    fds[0] = read_fd;
+    fds[1] = write_fd;
     return 0;
 }
 
@@ -154,7 +259,13 @@ int isatty(int fd) {
     // sysstd yet. sys_tcgetpgrp() only succeeds on TTY-backed handles, so
     // it's used here as an indirect probe. Revisit if/when a dedicated
     // TCGETS-style ioctl is added.
-    int64_t ret = sys_tcgetpgrp((uint64_t)fd, 0, 0, 0, 0, 0);
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return 0;
+    }
+
+    int64_t ret = sys_tcgetpgrp((uint64_t)handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = ENOTTY;
         return 0;
@@ -255,7 +366,11 @@ unsigned int sleep(unsigned int seconds) {
 }
 
 int usleep(uint64_t usec) {
-    int64_t ret = sys_nanosleep(usec / 1000ULL, 0, 0, 0, 0, 0);
+    timespec_t req;
+    req.tv_sec  = (int64_t)(usec / 1000000ULL);
+    req.tv_nsec = (int64_t)((usec % 1000000ULL) * 1000ULL);
+
+    int64_t ret = sys_nanosleep((uint64_t)&req, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
@@ -289,9 +404,10 @@ int64_t sysconf(int name) {
         case _SC_CLK_TCK:
             return 100;
         case _SC_OPEN_MAX:
-            // TODO: no syscall exposes the per-realm handle table limit.
-            // Using a conservative placeholder.
-            return 256;
+            // Matches FD_TABLE_MAX in internal/fd_table.h — the fd
+            // table is the actual limiting resource now, not a
+            // per-realm handle table cap.
+            return FD_TABLE_MAX;
         case _SC_PHYS_PAGES:
             if (sysinfo(&info) < 0) {
                 return -1;

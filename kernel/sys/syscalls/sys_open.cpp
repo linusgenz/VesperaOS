@@ -32,6 +32,7 @@
 #include <units/unit.h>
 #include "filesystem/vfs_handle.h"
 #include "sys/handle_resolution.h"
+#include "vespera/log.h"
 
 namespace syscalls::internal {
     namespace {
@@ -114,44 +115,34 @@ namespace syscalls::internal {
             }
 
             if (node->type == VfsNodeType::Fifo) {
+                if (!node->fifo_channel) {
+                    node->fifo_channel = Channel::create(4096);
+                    if (!node->fifo_channel) return -ENOMEM;
+                }
                 Channel* ch = node->fifo_channel;
-                if (!ch) {
-                    VFS::close(node);
-                    return -EIO;
+
+                const int acc_mode   = flags & 0x3; // O_ACCMODE
+                const bool want_read  = (acc_mode == O_RDONLY || acc_mode == O_RDWR);
+                const bool want_write = (acc_mode == O_WRONLY || acc_mode == O_RDWR);
+                const bool is_rdwr    = (acc_mode == O_RDWR);
+                const bool nonblock   = (flags & O_NONBLOCK) != 0;
+
+                if (want_write && !is_rdwr && nonblock && !ch->has_readers()) {
+                    return -ENXIO;
                 }
 
-                const bool want_read = (flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR;
-                const bool want_write = (flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR;
-                const bool is_rdwr = (flags & 0x3) == O_RDWR;
-                const bool nonblock = flags & O_NONBLOCK;
-
-                if (want_read && !is_rdwr && !ch->has_writers()) {
-                    if (nonblock) {
-                        // Linux: open(O_RDONLY | O_NONBLOCK) on a FIFO with no
-                        // writer succeeds immediately rather than failing.
-                    } else {
-                        while (!ch->has_writers()) {
-                            Unit* cur = kernel::scheduling::get_current_unit();
-                            ch->open_wait().add_wait(cur);
-                            kernel::scheduling::yield();
-                        }
-                    }
-                }
-
-                if (want_write && !is_rdwr && !ch->has_readers()) {
-                    if (nonblock) {
-                        VFS::close(node);
-                        return -ENXIO;
-                    }
-                    while (!ch->has_readers()) {
-                        Unit* cur = kernel::scheduling::get_current_unit();
-                        ch->open_wait().add_wait(cur);
-                        kernel::scheduling::yield();
-                    }
-                }
-
-                if (want_read) ch->add_reader();
+                if (want_read)  ch->add_reader();
                 if (want_write) ch->add_writer();
+
+                if (want_read && !is_rdwr && !nonblock && !ch->has_writers()) {
+                    Log::debug("waiting for writer");
+                    ch->wait_for_writer(kernel::scheduling::get_current_unit());
+                }
+
+                if (want_write && !is_rdwr && !nonblock && !ch->has_readers()) {
+                    Log::debug("waiting for reader");
+                    ch->wait_for_reader(kernel::scheduling::get_current_unit());
+                }
             }
 
             VfsHandle* vh = nullptr;
@@ -161,12 +152,14 @@ namespace syscalls::internal {
                 case VfsNodeType::Fifo:
                     vh = new VfsHandle(node, flags, required_caps, norm);
                     if (!vh) {
-                        if ((flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR) node->fifo_channel->remove_reader();
-                        if ((flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR) node->fifo_channel->remove_writer();
+                        bool destroyed = false;
+                        if ((flags & 0x3) == O_RDONLY || (flags & 0x3) == O_RDWR) destroyed = node->fifo_channel->remove_reader();
+                        if (!destroyed && ((flags & 0x3) == O_WRONLY || (flags & 0x3) == O_RDWR)) destroyed = node->fifo_channel->remove_writer();
+                        if (destroyed) node->fifo_channel = nullptr;
                         VFS::close(node);
                         return -ENOMEM;
                     }
-                    handle_type = HANDLE_TYPE_DEVICE;
+                    handle_type = HANDLE_TYPE_FIFO;
                     break;
 
                 case VfsNodeType::CharDevice:

@@ -837,7 +837,7 @@ namespace ext4 {
 
         bool empty = true;
         for (usize i = 0; i < count; ++i) {
-            const char* n = entries[i].get_name();
+            const char* n = entries[i].name;
             if (strcmp(n, ".") != 0 && strcmp(n, "..") != 0) {
                 empty = false;
                 break;
@@ -1135,14 +1135,14 @@ namespace ext4 {
                 }
 
                 FileEntry& fe = entries[out_count++];
-                fe.set_inode(de->inode);
-                fe.set_type(de->file_type);
+                fe.inode = de->inode;
+                fe.type = static_cast<DirEntryType>(de->file_type);
                 fe.set_name(de->name, de->name_len);
-                fe.set_size(0);
+                fe.size = 0;
 
-                if (find_name && strcmp(fe.get_name(), find_name) == 0) {
+                if (find_name && strcmp(fe.name, find_name) == 0) {
                     if (Inode file_inode{}; read_inode(de->inode, file_inode))
-                        fe.set_size(inode_get_size(file_inode));
+                        fe.size = inode_get_size(file_inode);
 
                     kernel::memory::free(block_buf);
                     return Result<FileEntry*>::ok(entries);
@@ -1524,12 +1524,12 @@ namespace ext4 {
         u32 target_inode = 0;
 
         for (usize i = 0; i < count; ++i) {
-            if (strcmp(entries[i].get_name(), name) == 0) {
+            if (strcmp(entries[i].name, name) == 0) {
                 if (entries[i].is_dir()) {
                     kernel::memory::free(entries);
                     return VoidResult::err(Error::IsDir);
                 }
-                target_inode = entries[i].get_inode();
+                target_inode = entries[i].inode;
                 break;
             }
         }
@@ -1565,12 +1565,12 @@ namespace ext4 {
         u32 target_inode = 0;
 
         for (usize i = 0; i < count; ++i) {
-            if (strcmp(entries[i].get_name(), name) == 0) {
+            if (strcmp(entries[i].name, name) == 0) {
                 if (!entries[i].is_dir()) {
                     kernel::memory::free(entries);
                     return VoidResult::err(Error::NotDir);
                 }
-                target_inode = entries[i].get_inode();
+                target_inode = entries[i].inode;
                 break;
             }
         }
@@ -1615,10 +1615,10 @@ namespace ext4 {
         auto src_type = DirEntryType::Unknown;
 
         for (usize i = 0; i < src_count; ++i) {
-            if (strcmp(src_entries[i].get_name(), old_name) == 0) {
-                src_inode = src_entries[i].get_inode();
+            if (strcmp(src_entries[i].name, old_name) == 0) {
+                src_inode = src_entries[i].inode;
                 src_is_dir = src_entries[i].is_dir();
-                src_type = src_entries[i].get_type();
+                src_type = src_entries[i].type;
                 break;
             }
         }
@@ -1635,8 +1635,8 @@ namespace ext4 {
         if (dst_res.is_ok()) {
             FileEntry* dst_entries = dst_res.unwrap();
             for (usize i = 0; i < dst_count; ++i) {
-                if (strcmp(dst_entries[i].get_name(), new_name) == 0) {
-                    dst_inode = dst_entries[i].get_inode();
+                if (strcmp(dst_entries[i].name, new_name) == 0) {
+                    dst_inode = dst_entries[i].inode;
                     dst_is_dir = dst_entries[i].is_dir();
                     break;
                 }

@@ -31,6 +31,7 @@
 #include "vespera/sync/wait_queue.h"
 
 class Channel;
+class Unit;
 
 struct ChannelEndpoint {
     Channel* channel;
@@ -59,6 +60,9 @@ class Channel {
     int reader_count_;
     int writer_count_;
 
+    u32 reader_generation_;
+    u32 writer_generation_;
+
     WaitQueue open_wait_;
     WaitQueue read_wait_;
     WaitQueue write_wait_;
@@ -73,14 +77,23 @@ public:
     static Channel* create(usize cap);
     void add_reader();
     void add_writer();
-    void remove_reader();
-    void remove_writer();
+    [[nodiscard]] bool remove_reader();
+    [[nodiscard]] bool remove_writer();
     [[nodiscard]] bool has_writers() const;
     [[nodiscard]] bool has_readers() const;
     static void destroy(void* res);
     //static void ref(void* res);
 
     WaitQueue& open_wait() { return open_wait_; }
+
+    // Blocks until a writer appears (or has appeared since this call started).
+    // Uses a generation counter so even a short-lived writer that opens and
+    // closes before re-checking unblocks the call (POSIX fifo open semantics).
+    // One-shot per call, takes a new snapshot on each invocation.
+    void wait_for_writer(Unit* cur);
+
+    // Same semantics as wait_for_writer(), mirrored for readers via reader_generation_.
+    void wait_for_reader(Unit* cur);
 
     usize free_space();
     int poll(bool is_reader, bool is_writer);

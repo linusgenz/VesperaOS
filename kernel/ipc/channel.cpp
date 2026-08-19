@@ -39,7 +39,9 @@ Channel::Channel(const usize cap)
       , used(0)
       , capacity(cap)
       , reader_count_(0)
-      , writer_count_(0) {
+      , writer_count_(0)
+      , reader_generation_(0)
+      , writer_generation_(0) {
     lock_.init("channel_lock");
 }
 
@@ -63,18 +65,49 @@ void Channel::destroy(void* res) {
 }
 
 void Channel::add_reader() {
+    lock_.lock();
     __sync_add_and_fetch(&reader_count_, 1);
-    // A writer may be blocked in open() waiting for the first reader.
+    ++reader_generation_;
     open_wait_.wake_all();
+    lock_.unlock();
 }
 
 void Channel::add_writer() {
+    lock_.lock();
     __sync_add_and_fetch(&writer_count_, 1);
-    // A reader may be blocked in open() waiting for the first writer.
+    ++writer_generation_;
     open_wait_.wake_all();
+    lock_.unlock();
 }
 
-void Channel::remove_reader() {
+void Channel::wait_for_writer(Unit* cur) {
+    lock_.lock();
+
+    const u32 start_gen = writer_generation_;
+    while (!has_writers() && writer_generation_ == start_gen) {
+        open_wait_.add_wait(cur);
+        lock_.unlock();
+        kernel::scheduling::yield();
+        lock_.lock();
+    }
+    lock_.unlock();
+}
+
+void Channel::wait_for_reader(Unit* cur) {
+    lock_.lock();
+
+    const u32 start_gen = reader_generation_;
+    while (!has_readers() && reader_generation_ == start_gen) {
+        open_wait_.add_wait(cur);
+        lock_.unlock();
+        kernel::scheduling::yield();
+        lock_.lock();
+    }
+    lock_.unlock();
+}
+
+bool Channel::remove_reader() {
+    lock_.lock();
     const int r = __sync_sub_and_fetch(&reader_count_, 1);
     const int w = __atomic_load_n(&writer_count_, __ATOMIC_ACQUIRE);
 
@@ -85,13 +118,17 @@ void Channel::remove_reader() {
         write_wait_.wake_all();
         open_wait_.wake_all();
     }
+    lock_.unlock();
 
     if (r == 0 && w == 0) {
         delete this;
+        return true;
     }
+    return false;
 }
 
-void Channel::remove_writer() {
+bool Channel::remove_writer() {
+    lock_.lock();
     const int w = __sync_sub_and_fetch(&writer_count_, 1);
     const int r = __atomic_load_n(&reader_count_, __ATOMIC_ACQUIRE);
 
@@ -103,10 +140,13 @@ void Channel::remove_writer() {
         read_wait_.wake_all();
         open_wait_.wake_all();
     }
+    lock_.unlock();
 
     if (w == 0 && r == 0) {
         delete this;
+        return true;
     }
+    return false;
 }
 
 bool Channel::has_writers() const {
@@ -198,23 +238,35 @@ isize Channel::recv(void* out, const usize len, const bool blocking) {
         lock_.lock();
 
         if (used == 0) {
-            if (!has_writers()) {
-                lock_.unlock();
-                return 0; // EOF
+            // There is currently a writer, but the buffer is empty.
+            if (has_writers()) {
+                if (!blocking || !cur) {
+                    lock_.unlock();
+                    return -EAGAIN;
+                }
+            }
+            else {
+                // Has there ever been a writer since the channel's creation?
+                const bool writer_ever_existed = (writer_generation_ > 0);
+
+                if (!writer_ever_existed) {
+                    // never been a writer -> Non-blocking must return EAGAIN!
+                    if (!blocking || !cur) {
+                        lock_.unlock();
+                        return -EAGAIN;
+                    }
+                    // if blocking: Wait until the FIRST writer appears or data arrives.
+                } else {
+                    // There WAS a writer, but it has closed -> EOF
+                    lock_.unlock();
+                    return 0;
+                }
             }
 
-            if (!blocking || !cur) {
-                lock_.unlock();
-                return -EAGAIN;
-            }
-
-            // Block until a writer fills the buffer, the last writer
-            // disappears (checked again on wake -> EOF above), or a signal
-            // arrives.
             read_wait_.add_wait(cur);
             lock_.unlock();
             kernel::scheduling::yield();
-            continue; // re-check state after waking
+            continue;
         }
 
         const usize to_read = (len < used) ? len : used;

@@ -69,4 +69,6 @@
 
 #define DRVERR          28 // Fatal driver error
 
+#define KEINVARIANT     30   // System invariant check failed
+
 #endif //VESPERAOS_KERRNO_H

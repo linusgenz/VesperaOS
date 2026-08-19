@@ -176,7 +176,7 @@ int pthread_join(pthread_t thread, void** retval) {
         futex_wait(&cb->join_futex, 0, NULL);
     }
 
-    int64_t exit_code = 0;
+    int exit_code = 0;
     join_unit(cb->unit, &exit_code);
 
 

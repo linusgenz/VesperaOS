@@ -29,21 +29,22 @@
 #include <filesystem/vfs.h>
 #include <filesystem/vfs_node.h>
 #include <uapi/vespera/capabilities.h>
+#include <uapi/vespera/fcntl.h>
 
 struct VfsHandleContext {
     u32 open_flags; // O_RDONLY, O_WRONLY, O_RDWR
     usize position; // used for offset
     capability_set required_caps;
-    VfsDir *type_specific_data;
+    VfsDir* type_specific_data;
     char path[256]{}; // fully resolved path this handle was opened with; required for openat()
 };
 
 struct VfsHandle {
-    VfsNode *node;
-    VfsHandleContext *context;
+    VfsNode* node;
+    VfsHandleContext* context;
     int refcount{1};
 
-    VfsHandle(VfsNode *n, u32 flags, capability_set caps, const char *resolved_path = nullptr)
+    VfsHandle(VfsNode* n, u32 flags, capability_set caps, const char* resolved_path = nullptr)
         : node(n), context(new VfsHandleContext()) {
         context->open_flags = flags;
         context->position = 0;
@@ -71,11 +72,23 @@ struct VfsHandle {
 private:
     ~VfsHandle() {
         if (node) {
+            if (node->type == VfsNodeType::Fifo && node->fifo_channel && context) {
+                Channel* ch = node->fifo_channel;
+                const u32 acc = context->open_flags & 0x3;
+                bool destroyed = false;
+
+                if (acc == O_RDONLY || acc == O_RDWR) destroyed = ch->remove_reader();
+                if (!destroyed && (acc == O_WRONLY || acc == O_RDWR)) destroyed = ch->remove_writer();
+
+                if (destroyed) node->fifo_channel = nullptr;
+            }
+
+
             if (node->type == VfsNodeType::Directory &&
                 context && context->type_specific_data) {
                 VFS::closedir(context->type_specific_data);
                 context->type_specific_data = nullptr;
-                }
+            }
 
             VFS::close(node);
         }

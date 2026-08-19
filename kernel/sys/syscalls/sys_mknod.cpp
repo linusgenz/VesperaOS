@@ -94,15 +94,15 @@ namespace syscalls::internal {
     }
 
     i64 sys_mknodat(u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64, u64) {
-        const auto dirfd = static_cast<int>(arg0);
+        const HandleId dirhid = arg0;
         const auto user_path = reinterpret_cast<const char*>(arg1);
         const auto mode = static_cast<mode_t>(arg2);
         const auto dev = arg3;
 
-        if (dirfd == AT_FDCWD) return mknod_impl(user_path, mode, dev, nullptr);
+        if (dirhid == static_cast<u64>(AT_FDCWD)) return mknod_impl(user_path, mode, dev, nullptr);
         if (user_path && user_path[0] == '/') return mknod_impl(user_path, mode, dev, nullptr);
 
-        const auto rh = SYSCALL_TRY(resolve_handle(static_cast<HandleId>(dirfd), HANDLE_TYPE_DIRECTORY, CAP_WRITE));
+        const auto rh = SYSCALL_TRY(resolve_handle(dirhid, HANDLE_TYPE_DIRECTORY, CAP_WRITE));
 
         const auto* dir_handle = rh.resource_as<VfsHandle>();
         if (!dir_handle || !dir_handle->node || !dir_handle->context) return -EBADH;

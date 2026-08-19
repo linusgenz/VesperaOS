@@ -481,5 +481,5 @@ int64_t sys_mknod(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t, uint64_
 }
 
 int64_t sys_mknodat(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t, uint64_t) {
-    return syscall(SYSCALL_MKNOD, arg0, arg1, arg2, arg3, 0, 0);
+    return syscall(SYSCALL_MKNODAT, arg0, arg1, arg2, arg3, 0, 0);
 }

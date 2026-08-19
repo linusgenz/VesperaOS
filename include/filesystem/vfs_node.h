@@ -99,7 +99,6 @@ struct VfsNode {
     // Only valid when type == VfsNodeType::Fifo. Lazily created by the first
     // open() (reader or writer) on this node and torn down by Channel itself
     Channel *fifo_channel = nullptr;
-
 };
 
 VfsNode* ref_node(VfsNode* node);

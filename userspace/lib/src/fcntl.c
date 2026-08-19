@@ -25,6 +25,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <sysstd.h>
+#include <vespera/handles.h>
+
+#include "internal/fd_table.h"
 
 int open(const char* path, int flags, ...) {
     mode_t mode = 0;
@@ -45,7 +48,14 @@ int open(const char* path, int flags, ...) {
         errno = (int)(-ret);
         return -1;
     }
-    return (int)ret;
+
+    HANDLE handle = (HANDLE)ret;
+    int fd = fd_table_insert(handle);
+    if (fd < 0) {
+        sys_close((uint64_t)handle, 0, 0, 0, 0, 0);
+        return -1;
+    }
+    return fd;
 }
 
 int creat(const char* path) {
@@ -62,16 +72,32 @@ int fcntl(int fd, int cmd, ...) {
             (void)va_arg(args, int);
             va_end(args);
 
-            int64_t ret = sys_dup((uint64_t)fd, 0, 0, 0, 0, 0);
+            HANDLE handle = fd_table_get(fd);
+            if (handle == INVALID_HANDLE) {
+                errno = EBADH;
+                return -1;
+            }
+
+            int64_t ret = sys_dup((uint64_t)handle, 0, 0, 0, 0, 0);
             if (ret < 0) {
                 errno = (int)(-ret);
                 return -1;
             }
-            return (int)ret;
+
+            int new_fd = fd_table_insert((HANDLE)ret);
+            if (new_fd < 0) {
+                sys_close((uint64_t)ret, 0, 0, 0, 0, 0);
+                return -1;
+            }
+            return new_fd;
         }
 
         case F_GETFD:
             // No handle-flag tracking (e.g. close-on-exec) exists yet.
+            if (!fd_table_valid(fd)) {
+                errno = EBADH;
+                return -1;
+            }
             return 0;
 
         case F_SETFD: {
@@ -81,6 +107,11 @@ int fcntl(int fd, int cmd, ...) {
             va_start(args, cmd);
             (void)va_arg(args, int);
             va_end(args);
+
+            if (!fd_table_valid(fd)) {
+                errno = EBADH;
+                return -1;
+            }
             return 0;
         }
 
@@ -90,6 +121,10 @@ int fcntl(int fd, int cmd, ...) {
         case F_SETLK:
         case F_SETLKW:
             // Not backed by any current syscall. See header note.
+            if (!fd_table_valid(fd)) {
+                errno = EBADH;
+                return -1;
+            }
             errno = ENOSYS;
             return -1;
 
@@ -99,7 +134,7 @@ int fcntl(int fd, int cmd, ...) {
     }
 }
 
-int openat(int dirfd, const char *pathname, int flags, ...) {
+int openat(int dirfd, const char* pathname, int flags, ...) {
     mode_t mode = 0;
 
     if (flags & O_CREAT) {

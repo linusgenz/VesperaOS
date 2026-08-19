@@ -23,6 +23,7 @@
 #include <realm/handle_table.h>
 #include <sys/handle_resolution.h>
 #include <tty/tty_device.h>
+#include <uapi/vespera/fcntl.h>
 #include <uapi/vespera/handles.h>
 #include <uapi/vespera/poll.h>
 #include <vespera/scheduling.h>
@@ -74,6 +75,20 @@ namespace syscalls::internal {
                     }
 
                     mask = ch->poll(ep->is_reader, ep->is_writer);
+                } else if (rh.type() == HANDLE_TYPE_FIFO) {
+                    const auto* vh = rh.resource_as<VfsHandle>();
+
+                    if (!vh || !vh->node || !vh->node->fifo_channel) {
+                        hdls[i].revents = POLLHUP;
+                        ready++;
+                        continue;
+                    }
+
+                    const u32 acc = vh->context->open_flags & 0x3;
+                    const bool is_reader = acc == O_RDONLY || acc == O_RDWR;
+                    const bool is_writer = acc == O_WRONLY || acc == O_RDWR;
+
+                    mask = vh->node->fifo_channel->poll(is_reader, is_writer);
                 } else {
                     const auto* vh = rh.resource_as<VfsHandle>();
 

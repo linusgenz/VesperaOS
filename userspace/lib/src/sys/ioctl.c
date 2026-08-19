@@ -23,7 +23,16 @@
 
 #include <sysstd.h>
 #include <sys/ioctl.h>
+#include <vespera/handles.h>
+#include <sys/types.h>
+#include <errno.h>
+#include "../internal/fd_table.h"
 
-int64_t ioctl(uint64_t hid, ioctl_request_t request, void *arg) {
-    return sys_ioctl(hid, request, (uint64_t) arg, 0, 0, 0);
+int64_t ioctl(int fd, ioctl_request_t request, void *arg) {
+    HANDLE handle = fd_table_get(fd);
+    if (handle == INVALID_HANDLE) {
+        errno = EBADH;
+        return -1;
+    }
+    return sys_ioctl((uint64_t)handle, request, (uint64_t)arg, 0, 0, 0);
 }

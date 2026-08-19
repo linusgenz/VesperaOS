@@ -75,8 +75,8 @@ class VFS {
 
     static Result<VfsDir*> opendir(VfsNode* node);
 
-    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer);
-    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer);
+    static Result<usize> read(const VfsNode* node, usize offset, usize size, void* buffer, u32 flags = 0);
+    static Result<usize> write(VfsNode* node, usize offset, usize size, const void* buffer, u32 flags = 0);
 
     static Result<bool> readdir(const VfsDir* dir, dirent_t* out);
 

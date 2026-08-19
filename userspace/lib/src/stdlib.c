@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include "internal/fd_table.h"
+
 char** environ = NULL;
 size_t env_count = 0;
 size_t env_capacity = 0;
@@ -66,6 +68,7 @@ static unsigned int gather_seed(void) {
 
 void init_environ(char** envp) {
     srand(gather_seed());
+    fd_table_init();
 
     size_t count = 0;
     while (envp[count]) count++;

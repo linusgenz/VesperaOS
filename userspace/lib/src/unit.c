@@ -27,7 +27,7 @@ UnitID spawn_unit(RealmID realm_id, uint64_t entry_point, uint64_t arg_ptr, uint
     return sys_unit_spawn(realm_id, entry_point, arg_ptr, stack_size, 0, 0);
 }
 
-int64_t join_unit(UnitID unit_id, int64_t* exit_code_out) {
+int64_t join_unit(UnitID unit_id, int* exit_code_out) {
     return sys_join_unit(unit_id, (uint64_t)exit_code_out, 0, 0, 0, 0);
 }
 

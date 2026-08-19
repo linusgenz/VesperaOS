@@ -30,11 +30,11 @@ typedef uint64_t ioctl_request_t;
 
 /**
  *
- * @param hid Handle ID of the device.
+ * @param fd File descriptor of the device.
  * @param request Request code.
  * @param arg Pointer to request-specific argument.
  * @return 0 on success, negative error code on failure.
  */
-int64_t ioctl(uint64_t hid, ioctl_request_t request, void* arg);
+int64_t ioctl(int fd, ioctl_request_t request, void* arg);
 
 #endif //VESPLIB_IOCTL_H

@@ -43,13 +43,14 @@ namespace syscalls::internal {
 
         switch (rh.type()) {
             case HANDLE_TYPE_DEVICE:
+            case HANDLE_TYPE_FIFO:
             case HANDLE_TYPE_FILE: {
                 const auto* vh = rh.resource_as<VfsHandle>();
                 if (!vh) return -EBADH;
 
                 const i64 off = VFS::is_seekable(vh->node) ? vh->context->position : -1;
                 const usize bytes =
-                    SYSCALL_TRY(VFS::write(vh->node, static_cast<usize>(off < 0 ? 0 : off), count, buf));
+                    SYSCALL_TRY(VFS::write(vh->node, static_cast<usize>(off < 0 ? 0 : off), count, buf, vh->context->open_flags));
                 if (bytes > 0 && off >= 0) vh->context->position += bytes;
                 return static_cast<isize>(bytes);
             }

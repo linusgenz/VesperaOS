@@ -178,21 +178,32 @@ namespace kernel::scheduling::cpu_scheduler {
     void add_unit_to_cpu(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
 
+        u64 flags = 0;
+        cpu->lock.lock_irqsave(flags);
+
         unit->state = UnitState::Ready;
         unit->next = nullptr;
         cpu->ready_queue.push(unit);
-
         if (cpu->scheduler_enabled && cpu->current_unit == cpu->idle_unit) {
             cpu->need_resched = true;
         }
+
+        cpu->lock.unlock_irqrestore(flags);
     }
 
     void remove_unit_from_cpu(Unit* unit, const u8 cpu_id) {
         CpuScheduler* cpu = get_cpu_data(cpu_id);
+
+        u64 flags = 0;
+        cpu->lock.lock_irqsave(flags);
+
         if (cpu->ready_queue.remove(unit)) {
             unit->next = nullptr;
         }
+
+        cpu->lock.unlock_irqrestore(flags);
     }
+
 
     static Unit* pick_next(CpuScheduler* cpu) {
         Unit* next = cpu->ready_queue.pop();
@@ -275,20 +286,26 @@ namespace kernel::scheduling::cpu_scheduler {
 
         // Remove from ready queue first – current unit shouldn't be there,
         // but be defensive.
-        cpu->ready_queue.remove(unit);
-        unit->next = nullptr;
-        unit->state = UnitState::Blocked;
-        cpu->blocked_queue.push(unit);
+        {
+            SpinlockGuardIrq guard(cpu->lock);
+            cpu->ready_queue.remove(unit);
+            unit->next = nullptr;
+            unit->state = UnitState::Blocked;
+            cpu->blocked_queue.push(unit);
 
-        if (unit == cpu->current_unit) {
-            cpu->need_resched = true;
+            if (unit == cpu->current_unit) {
+                cpu->need_resched = true;
+            }
         }
     }
 
     void remove_blocked_unit(Unit* unit) {
         CpuScheduler* cpu = get_cpu_data(unit->cpu_id);
-        cpu->blocked_queue.remove(unit);
-        unit->next = nullptr;
+        {
+            SpinlockGuardIrq guard(cpu->lock);
+            cpu->blocked_queue.remove(unit);
+            unit->next = nullptr;
+        }
     }
 
     void wake_sleeping_units(const u8 cpu_id) {

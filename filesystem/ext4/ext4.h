@@ -199,74 +199,23 @@ namespace ext4 {
         u64 phys_start; // first physical block
     };
 
-    class FileEntry {
-    public:
-        FileEntry() = default;
+    struct FileEntry {
+        char name[256]{};
+        u64 size = 0;
+        u32 inode = 0;
+        DirEntryType type = DirEntryType::Unknown;
+        bool executable = false;
 
-        void set_name(const char* name, usize len) {
-            if (len >= sizeof(name_)) len = sizeof(name_) - 1;
-            memcpy(name_, name, len);
-            name_[len] = '\0';
+        [[nodiscard]] bool is_dir() const { return type == DirEntryType::Directory; }
+        [[nodiscard]] bool is_fifo() const { return type == DirEntryType::Fifo; }
+        [[nodiscard]] bool is_regular_file() const { return type == DirEntryType::RegularFile; }
+        [[nodiscard]] bool is_executable() const { return executable; }
+
+        void set_name(const char* src, usize len) {
+            if (len >= sizeof(name)) len = sizeof(name) - 1;
+            memcpy(name, src, len);
+            name[len] = '\0';
         }
-
-        void set_inode(const u32 inode) {
-            inode_ = inode;
-        }
-
-        void set_type(const DirEntryType type) {
-            type_ = type;
-        }
-
-        void set_type(u8 raw) {
-            set_type(static_cast<DirEntryType>(raw));
-        }
-
-        [[nodiscard]] const char* get_name() const {
-            return name_;
-        }
-
-        [[nodiscard]] u32 get_inode() const {
-            return inode_;
-        }
-
-        [[nodiscard]] DirEntryType get_type() const {
-            return type_;
-        }
-
-        [[nodiscard]] bool is_dir() const {
-            return type_ == DirEntryType::Directory;
-        }
-
-        [[nodiscard]] bool is_fifo() const {
-            return type_ == DirEntryType::Fifo;
-        }
-
-        [[nodiscard]] bool is_regular_file() const {
-            return type_ == DirEntryType::RegularFile;
-        }
-
-        void set_size(u64 sz) {
-            size_ = sz;
-        }
-
-        [[nodiscard]] u64 get_size() const {
-            return size_;
-        }
-
-        void set_executable(bool exec) {
-            executable_ = exec;
-        }
-
-        [[nodiscard]] bool is_executable() const {
-            return executable_;
-        }
-
-    private:
-        char name_[256] = {};
-        usize size_ = 0;
-        u32 inode_ = 0;
-        DirEntryType type_ = DirEntryType::Unknown;
-        bool executable_ = false;
     };
 
     struct InodeCacheEntry {

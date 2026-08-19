@@ -30,6 +30,7 @@
 
 #include "dentry_cache.h"
 #include "fs_detection.h"
+#include "uapi/vespera/fcntl.h"
 #include "uapi/vespera/mount.h"
 
 // Hardcoded; TODO add F_SETPIPE_SZ
@@ -91,7 +92,14 @@ Result<VfsNode*> VFS::open(const char* path) {
     if (!path || !*path) return Error::Inval;
 
     // Look in cache first
-    if (VfsNode* cached = filesystem::g_dentry_cache.lookup(path)) return Result<VfsNode*>::ok(cached);
+    if (VfsNode* cached = filesystem::g_dentry_cache.lookup(path)) {
+        if (cached->type == VfsNodeType::Fifo && !cached->fifo_channel) {
+            cached->fifo_channel = Channel::create(VFS_FIFO_DEFAULT_CAPACITY);
+            if (!cached->fifo_channel) return Error::NoMem;
+        }
+        return Result<VfsNode*>::ok(cached);
+    }
+
 
     const MountPoint* best_match = nullptr;
     usize best_len = 0;
@@ -189,14 +197,45 @@ void VFS::closedir(VfsDir* dir) {
     delete dir;
 }
 
-Result<usize> VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer) {
-    if (!node || !node->ops || !node->ops->read) return Error::NoSys;
+Result<usize> VFS::read(const VfsNode* node, const usize offset, const usize size, void* buffer, u32 flags) {
+    if (!node) return Error::Inval;
+
+    if (node->type == VfsNodeType::Fifo) {
+        if (!node->fifo_channel) {
+            Log::error("FIFO CHANNEL NULL WHILE READING ON PIPE");
+            // should never happen
+            return Error::Io;
+        }
+
+        const bool blocking = (flags & O_NONBLOCK) == 0;
+        const isize r = node->fifo_channel->recv(static_cast<u8*>(buffer), size, blocking);
+        if (r < 0) return Result<usize>::err(static_cast<Error>(-r));
+        return Result<usize>::ok(static_cast<usize>(r)); // r == 0 is EOF, a valid ok() result
+    }
+
+    if (!node->ops || !node->ops->read) return Error::NoSys;
+
     return node->ops->read(node, offset, size, buffer);
 }
 
-Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer) {
-    if (!node || !node->ops || !node->ops->write) return Error::NoSys;
+Result<usize> VFS::write(VfsNode* node, const usize offset, const usize size, const void* buffer, u32 flags) {
+    if (!node) return Error::Inval;
+
+    if (node->type == VfsNodeType::Fifo) {
+        if (!node->fifo_channel) {
+            Log::error("FIFO CHANNEL NULL WHILE WRITTING ON PIPE");
+            return Error::Io;
+        }
+
+        const bool blocking = (flags & O_NONBLOCK) == 0;
+        const isize r = node->fifo_channel->send(static_cast<const u8*>(buffer), size, blocking);
+        if (r < 0) return Result<usize>::err(static_cast<Error>(-r));
+        return Result<usize>::ok(static_cast<usize>(r));
+    }
+
+    if (!node->ops || !node->ops->write) return Error::NoSys;
     if (is_read_only(node)) return Error::RoFs;
+
     return node->ops->write(node, offset, size, buffer);
 }
 

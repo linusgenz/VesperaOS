@@ -19,7 +19,34 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAWORKSPACE_FD_TABLE_H
-#define VESPERAWORKSPACE_FD_TABLE_H
 
-#endif //VESPERAWORKSPACE_FD_TABLE_H
+#ifndef VESPLIB_INTERNAL_FD_TABLE_H
+#define VESPLIB_INTERNAL_FD_TABLE_H
+
+#include <stdint.h>
+#include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Matches _SC_OPEN_MAX's current placeholder value in unistd.c. TODO expose max open handles
+#define FD_TABLE_MAX 256
+
+void fd_table_init(void);
+
+int fd_table_insert(HANDLE handle);
+
+int fd_table_insert_at(int fd, HANDLE handle);
+
+HANDLE fd_table_get(int fd);
+
+void fd_table_remove(int fd);
+
+int fd_table_valid(int fd);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // VESPLIB_INTERNAL_FD_TABLE_H

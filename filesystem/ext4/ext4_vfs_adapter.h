@@ -35,6 +35,8 @@ struct Ext4Node {
     ext4::FileEntry*  entries;
     usize       entry_count;
     usize       current_index;
+
+    [[nodiscard]] bool is_dir() const { return type == ext4::DirEntryType::Directory; }
 };
 
 struct Ext4DirHandle {

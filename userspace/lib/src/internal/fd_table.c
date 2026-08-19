@@ -19,3 +19,79 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
+
+#include "fd_table.h"
+
+#include <errno.h>
+#include <string.h>
+#include <vespera/handles.h>
+
+// TODO: not thread-safe. VesperaOS userspace threading (once units share
+// an fd table across the same realm) will need a lock here — a simple
+// spinlock/futex is enough since the critical sections are tiny. Tracked
+// alongside the errno TLS TODO in unistd.c/sysstd.
+typedef struct {
+    HANDLE handle;
+    int in_use;
+} fd_entry_t;
+
+static fd_entry_t g_fd_table[FD_TABLE_MAX];
+static int g_fd_table_initialized = 0;
+
+void fd_table_init(void) {
+    if (g_fd_table_initialized) return;
+
+    memset(g_fd_table, 0, sizeof(g_fd_table));
+
+    g_fd_table[0].handle = HANDLE_STDIN;
+    g_fd_table[0].in_use = 1;
+    g_fd_table[1].handle = HANDLE_STDOUT;
+    g_fd_table[1].in_use = 1;
+    g_fd_table[2].handle = HANDLE_STDERR;
+    g_fd_table[2].in_use = 1;
+
+    g_fd_table_initialized = 1;
+}
+
+int fd_table_insert(HANDLE handle) {
+    // Start scanning past the standard streams; not required for
+    // correctness but avoids re-checking slots 0-2 on every open().
+    for (int fd = 3; fd < FD_TABLE_MAX; fd++) {
+        if (!g_fd_table[fd].in_use) {
+            g_fd_table[fd].handle = handle;
+            g_fd_table[fd].in_use = 1;
+            return fd;
+        }
+    }
+    errno = EMFILE;
+    return -1;
+}
+
+int fd_table_insert_at(int fd, HANDLE handle) {
+    if (fd < 0 || fd >= FD_TABLE_MAX) {
+        errno = EBADH;
+        return -1;
+    }
+
+    g_fd_table[fd].handle = handle;
+    g_fd_table[fd].in_use = 1;
+    return 0;
+}
+
+HANDLE fd_table_get(int fd) {
+    if (fd < 0 || fd >= FD_TABLE_MAX || !g_fd_table[fd].in_use) {
+        return INVALID_HANDLE;
+    }
+    return g_fd_table[fd].handle;
+}
+
+void fd_table_remove(int fd) {
+    if (fd < 0 || fd >= FD_TABLE_MAX) return;
+    g_fd_table[fd].in_use = 0;
+    g_fd_table[fd].handle = 0;
+}
+
+int fd_table_valid(int fd) {
+    if (fd < 0 || fd >= FD_TABLE_MAX) return 0;
+    return g_fd_table[fd].in_use;
+}
