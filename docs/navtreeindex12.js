@@ -1,5 +1,6 @@
 var NAVTREEINDEX12 =
 {
+"structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54":[4,0,102,7],
 "structvbus__header.html#adcc939dbf3f561e292565b0d4992ff4d":[4,0,102,2],
 "structvbus__header.html#ae530cb48aa82891c8d241e653c57f9f1":[4,0,102,8],
 "structvbus__header.html#af31869158653206e74bd39e1cf3dc759":[4,0,102,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX12 =
 "unistd_8h.html#a8bd74caed008a66808d92d57fa74d9f6":[5,0,1,0,0,53,43],
 "unistd_8h.html#a92b65db0e1c5bbe9b19b15719564e0bc":[5,0,1,0,0,53,0],
 "unistd_8h.html#a9ba34c4ff72e21db486eedf77c2a18d0":[5,0,1,0,0,53,34],
-"unistd_8h.html#a9d1d603f7ed1930ecb7ab1a85d1e2250":[5,0,1,0,0,53,10],
-"unistd_8h.html#aa426fc963bb0a4f469eef61d9f0c4a26":[5,0,1,0,0,53,48]
+"unistd_8h.html#a9d1d603f7ed1930ecb7ab1a85d1e2250":[5,0,1,0,0,53,10]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX10 =
 {
+"structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a":[4,0,9,2],
 "structcrep__sync.html":[4,0,10],
 "structcrep__sync.html#a8677d466bb1db59ecc2703c960efd0b5":[4,0,10,4],
 "structcrep__sync.html#aa92d94c432a37d181162b5b455344a3d":[4,0,10,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX10 =
 "structpthread__rwlock__t.html#a431904cb11010127d4ab8592332067dc":[4,0,65,2],
 "structpthread__rwlock__t.html#a46cd7a3e882fc2c41f97f722cba6feb7":[4,0,65,5],
 "structpthread__rwlock__t.html#af0c7828222e7584c81f86e6de6bf6942":[4,0,65,4],
-"structpthread__rwlock__t.html#af50e201a4d6da31939f3c52376781f90":[4,0,65,3],
-"structpthread__rwlockattr__t.html":[4,0,66]
+"structpthread__rwlock__t.html#af50e201a4d6da31939f3c52376781f90":[4,0,65,3]
 };

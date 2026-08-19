@@ -7,6 +7,7 @@ var handles_8h =
     [ "HANDLE_TYPE_CHANNEL", "handles_8h.html#a57fb96e74a11842469c4d71f9a38734a", null ],
     [ "HANDLE_TYPE_DEVICE", "handles_8h.html#a7320acad67c37ee34fa6f28cab733f7c", null ],
     [ "HANDLE_TYPE_DIRECTORY", "handles_8h.html#a86b6a1b11bca4c2c1bbcd18d7cdb0b83", null ],
+    [ "HANDLE_TYPE_FIFO", "handles_8h.html#a7f4e53272105521456e06d5f7a3ca876", null ],
     [ "HANDLE_TYPE_FILE", "handles_8h.html#aef864574e77d6a0d5653dfae187c57e4", null ],
     [ "HANDLE_TYPE_MASK", "handles_8h.html#a5adb7fdca00e5c5f3f1808742a2b8f49", null ],
     [ "HANDLE_TYPE_PIPE", "handles_8h.html#a65919b76b3a0374e90b230646cd91c64", null ],
