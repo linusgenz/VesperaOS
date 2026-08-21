@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_USERSPACE_LIB_LOG_CLIENT_H
-#define VESPERAOS_USERSPACE_LIB_LOG_CLIENT_H
+#ifndef _USERSPACE_LIB_LOG_CLIENT_H
+#define _USERSPACE_LIB_LOG_CLIENT_H
 
 #include <channel.h>
 #include <stddef.h>

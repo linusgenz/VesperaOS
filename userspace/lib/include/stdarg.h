@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_STDARG_H
-#define VESPERAOS_STDARG_H
+#ifndef _STDARG_H
+#define _STDARG_H
 
 typedef __builtin_va_list va_list;
 

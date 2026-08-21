@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_EXEC_H
-#define VESPERAOS_EXEC_H
+#ifndef _EXEC_H
+#define _EXEC_H
 
 /**
  * @brief Find the absolute path of an executable using PATH.

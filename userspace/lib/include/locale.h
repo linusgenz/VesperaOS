@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_LOCALE_H
-#define VESPERAOS_LOCALE_H
+#ifndef _LOCALE_H
+#define _LOCALE_H
 
 #define LC_ALL      0
 #define LC_COLLATE  1

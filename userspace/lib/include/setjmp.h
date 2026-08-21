@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_SETJMP_H
-#define VESPERAOS_SETJMP_H
+#ifndef _SETJMP_H
+#define _SETJMP_H
 
 #ifdef __cplusplus
 extern "C" {

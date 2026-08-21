@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_WAIT_H
-#define VESPERAOS_WAIT_H
+#ifndef _WAIT_H
+#define _WAIT_H
 
 #define WIFEXITED(s)    (((s) & 0x7f) == 0)
 #define WEXITSTATUS(s)  (((s) >> 8) & 0xff)

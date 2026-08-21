@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_CHANNEL_H
-#define VESPERAOS_CHANNEL_H
+#ifndef _CHANNEL_H
+#define _CHANNEL_H
 
 #include <stdio.h>
 

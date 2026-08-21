@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_FUTEX_H
-#define VESPERAOS_FUTEX_H
+#ifndef _FUTEX_H
+#define _FUTEX_H
 
 #include <stdint.h>
 #include <sysstd.h>

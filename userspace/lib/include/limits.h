@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_LIMITS_H
-#define VESPERAOS_LIMITS_H
+#ifndef _LIMITS_H
+#define _LIMITS_H
 
 #define CHAR_BIT 8
 

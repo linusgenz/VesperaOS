@@ -29,8 +29,8 @@
 //   Placement new / delete                  (non-replaceable, defined here)
 //   Global operator new / delete            (replaceable, implemented via malloc/free)
 
-#ifndef VESPERAOS_NEW_H
-#define VESPERAOS_NEW_H
+#ifndef _NEW_H
+#define _NEW_H
 
 #include <stddef.h>     // size_t
 #include <stdint.h>     // uintptr_t (needed for aligned allocation)

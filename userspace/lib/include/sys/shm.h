@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_SHM_H
-#define VESPERAOS_SHM_H
+#ifndef _SHM_H
+#define _SHM_H
 
 #include <sys/mman.h>
 typedef uint64_t HANDLE;

@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_STDIO_H
-#define VESPERAOS_STDIO_H
+#ifndef _STDIO_H
+#define _STDIO_H
 
 #include <sys/types.h>
 #include <stdarg.h>
@@ -756,4 +756,4 @@ int fileno(FILE *stream);
 }
 #endif
 
-#endif  // VESPERAOS_STDIO_H
+#endif  // _STDIO_H

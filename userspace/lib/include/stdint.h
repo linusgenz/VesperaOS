@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_STDINT_H
-#define VESPERAOS_STDINT_H
+#ifndef _STDINT_H
+#define _STDINT_H
 
 #define SIZE_MAX		(18446744073709551615UL)
 

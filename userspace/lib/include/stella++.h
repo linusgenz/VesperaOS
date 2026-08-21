@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_STELLA_PLUS_PLUS_LIB_H
-#define VESPERAOS_STELLA_PLUS_PLUS_LIB_H
+#ifndef _STELLA_PLUS_PLUS_LIB_H
+#define _STELLA_PLUS_PLUS_LIB_H
 
 #include <stella.h>
 #include <cstdint>

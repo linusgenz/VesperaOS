@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_ALLOCA_H
-#define VESPERAOS_ALLOCA_H
+#ifndef _ALLOCA_H
+#define _ALLOCA_H
 
 #include <features.h>
 #include <stddef.h>

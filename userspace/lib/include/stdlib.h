@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_STDLIB_H
-#define VESPERAOS_STDLIB_H
+#ifndef _STDLIB_H
+#define _STDLIB_H
 #include <stddef.h>
 #include <sysstd.h>
 #include <alloca.h>
@@ -251,4 +251,4 @@ typedef struct {
 }
 #endif
 
-#endif  // VESPERAOS_STDLIB_H
+#endif  // _STDLIB_H

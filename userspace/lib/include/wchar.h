@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_WCHAR_H
-#define VESPERAOS_WCHAR_H
+#ifndef _WCHAR_H
+#define _WCHAR_H
 
 #include <bits/alltypes.h>
 

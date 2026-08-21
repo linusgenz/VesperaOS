@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_DLFCN_H
-#define VESPERAOS_DLFCN_H
+#ifndef _DLFCN_H
+#define _DLFCN_H
 
 #include <stddef.h>
 

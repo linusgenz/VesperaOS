@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_CSTDLIB_H
-#define VESPERAOS_CSTDLIB_H
+#ifndef _CSTDLIB_H
+#define _CSTDLIB_H
 
 #include <stdlib.h>
 #include <cstdio>

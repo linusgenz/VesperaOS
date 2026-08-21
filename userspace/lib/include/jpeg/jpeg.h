@@ -21,8 +21,8 @@
  * You should have received a copy of the GNU General Public License
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef VESPERAOS_JPEG_H
-#define VESPERAOS_JPEG_H
+#ifndef _JPEG_H
+#define _JPEG_H
 
 #include <stdbool.h>
 #include <stdint.h>

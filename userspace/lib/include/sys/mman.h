@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_MMAN_H
-#define VESPERAOS_MMAN_H
+#ifndef _MMAN_H
+#define _MMAN_H
 
 #include <stddef.h>
 #include <stdint.h>

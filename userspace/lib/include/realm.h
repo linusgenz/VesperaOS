@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_REALM_H
-#define VESPERAOS_REALM_H
+#ifndef _REALM_H
+#define _REALM_H
 
 #include <stddef.h>
 #include <stdint.h>

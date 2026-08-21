@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_TERMIOS_H
-#define VESPERAOS_TERMIOS_H
+#ifndef _TERMIOS_H
+#define _TERMIOS_H
 
 #include <stdint.h>
 #include <stdio.h>

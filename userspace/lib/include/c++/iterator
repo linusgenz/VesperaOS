@@ -34,8 +34,8 @@
 //   front_insert_iterator + front_inserter
 //   insert_iterator       + inserter
 
-#ifndef VESPERAOS_ITERATOR_H
-#define VESPERAOS_ITERATOR_H
+#ifndef _ITERATOR_H
+#define _ITERATOR_H
 
 #include <cstddef>
 #include <type_traits>

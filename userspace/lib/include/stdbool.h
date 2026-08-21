@@ -19,10 +19,10 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.#ifndef VESPERAOS_STDBOOL_H
+// along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.#ifndef _STDBOOL_H
 
-#ifndef VESPERAOS_STDBOOL_H
-#define VESPERAOS_STDBOOL_H
+#ifndef _STDBOOL_H
+#define _STDBOOL_H
 
 /* Only for C, not C++ */
 #ifndef __cplusplus

@@ -32,8 +32,8 @@
  * are Stella-owned; the LVGL dependency is an implementation detail.
  */
 
-#ifndef VESPERAOS_STELLA_LIB_H
-#define VESPERAOS_STELLA_LIB_H
+#ifndef _STELLA_LIB_H
+#define _STELLA_LIB_H
 
 #include <stdbool.h>
 #include <stdint.h>

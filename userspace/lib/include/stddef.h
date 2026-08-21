@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_STDDEF_H
-#define VESPERAOS_STDDEF_H
+#ifndef _STDDEF_H
+#define _STDDEF_H
 
 /* ptrdiff_t */
 typedef __PTRDIFF_TYPE__ ptrdiff_t;

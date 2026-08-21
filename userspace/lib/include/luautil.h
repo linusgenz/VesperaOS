@@ -19,8 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-#ifndef VESPERAOS_LUAUTIL_H
-#define VESPERAOS_LUAUTIL_H
+#ifndef _LUAUTIL_H
+#define _LUAUTIL_H
 
 #include "lua.h"
 #include <stdbool.h>

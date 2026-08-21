@@ -21,8 +21,8 @@
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef VESPERAOS_MEMORY_H
-#define VESPERAOS_MEMORY_H
+#ifndef _MEMORY_H
+#define _MEMORY_H
 #include <stddef.h>
 #include <stdint.h>
 
