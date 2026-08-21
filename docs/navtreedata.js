@@ -73,10 +73,10 @@ var NAVTREEINDEX =
 "meminfo_8h.html",
 "stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad",
 "stella_8h.html#aa0184b9e432e66df90e22bff2e4cb073",
-"structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a",
-"structpthread__rwlockattr__t.html",
-"structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54",
-"unistd_8h.html#aa426fc963bb0a4f469eef61d9f0c4a26"
+"structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb",
+"structpthread__rwlock__t.html#af50e201a4d6da31939f3c52376781f90",
+"structvbus__header.html#aa92b6cde16a410ca60ab129218579cf7",
+"unistd_8h.html#a6316ec18194f4e2a68517d800a32d855"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

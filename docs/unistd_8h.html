@@ -193,6 +193,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a9ba34c4ff72e21db486eedf77c2a18d0" id="r_a9ba34c4ff72e21db486eedf77c2a18d0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a9ba34c4ff72e21db486eedf77c2a18d0">fsync</a> (int fd)</td></tr>
 <tr class="memdesc:a9ba34c4ff72e21db486eedf77c2a18d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flush a handle to backing storage.  <br /></td></tr>
 <tr class="separator:a9ba34c4ff72e21db486eedf77c2a18d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4fa2e6d36e97983d62b9377cc4f6c73" id="r_ac4fa2e6d36e97983d62b9377cc4f6c73"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#ac4fa2e6d36e97983d62b9377cc4f6c73">sync</a> (void)</td></tr>
+<tr class="separator:ac4fa2e6d36e97983d62b9377cc4f6c73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c16b3e0f35d0e104aa87db705451f2f" id="r_a4c16b3e0f35d0e104aa87db705451f2f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a4c16b3e0f35d0e104aa87db705451f2f">dup</a> (int fd)</td></tr>
 <tr class="memdesc:a4c16b3e0f35d0e104aa87db705451f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Duplicate a file descriptor.  <br /></td></tr>
 <tr class="separator:a4c16b3e0f35d0e104aa87db705451f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -238,6 +240,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a5bb4b84798a2a55b3cfcb3f6475c69ed" id="r_a5bb4b84798a2a55b3cfcb3f6475c69ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="stdint_8h.html#a996e72f71b11a5bb8b3b7b6936b1516d">int64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a5bb4b84798a2a55b3cfcb3f6475c69ed">sysconf</a> (int name)</td></tr>
 <tr class="memdesc:a5bb4b84798a2a55b3cfcb3f6475c69ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query a runtime system limit or option (see <em>SC</em>* above).  <br /></td></tr>
 <tr class="separator:a5bb4b84798a2a55b3cfcb3f6475c69ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a638757347bd9bf886b3d442b98033cf1" id="r_a638757347bd9bf886b3d442b98033cf1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unistd_8h.html#a638757347bd9bf886b3d442b98033cf1">getpagesize</a> (void)</td></tr>
+<tr class="separator:a638757347bd9bf886b3d442b98033cf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a92b65db0e1c5bbe9b19b15719564e0bc" name="a92b65db0e1c5bbe9b19b15719564e0bc"></a>
@@ -924,6 +928,24 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a638757347bd9bf886b3d442b98033cf1" name="a638757347bd9bf886b3d442b98033cf1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a638757347bd9bf886b3d442b98033cf1">&#9670;&#160;</a></span>getpagesize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int getpagesize </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ac61b207337ca21b3b309593fd1a0cb82" name="ac61b207337ca21b3b309593fd1a0cb82"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac61b207337ca21b3b309593fd1a0cb82">&#9670;&#160;</a></span>getpid()</h2>
 
@@ -1160,6 +1182,24 @@ Functions</h2></td></tr>
 
 <p>Sleep for (at least) <code>seconds</code> seconds. </p>
 <dl class="section return"><dt>Returns</dt><dd>0 if the full duration elapsed, or the number of unslept seconds if interrupted early. </dd></dl>
+
+</div>
+</div>
+<a id="ac4fa2e6d36e97983d62b9377cc4f6c73" name="ac4fa2e6d36e97983d62b9377cc4f6c73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4fa2e6d36e97983d62b9377cc4f6c73">&#9670;&#160;</a></span>sync()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void sync </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
