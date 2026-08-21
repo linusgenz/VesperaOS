@@ -22,7 +22,7 @@
  * along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <fflags.h>
+#include <fcntl.h>
 #include <jerror.h>
 #include <jpeg/jpeg.h>
 #include <jpeglib.h>
@@ -700,7 +700,7 @@ int jpeg_save_to_file(const image_t* image, const char* filename,
     int result = jpeg_save_to_memory(image, &buffer, &size, opts);
     if (result != JPEG_OK) return result;
 
-    HANDLE hdl = open(filename, O_WRONLY | O_CREAT);
+    HANDLE hdl = vopen(filename, O_WRONLY | O_CREAT);
     if (hdl < 0)
     {
         free(buffer);
@@ -708,16 +708,16 @@ int jpeg_save_to_file(const image_t* image, const char* filename,
     }
 
     printf("writing to file %ld", size);
-    size_t res = (size_t)write(hdl, buffer, size);
+    size_t res = (size_t)vwrite(hdl, buffer, size);
     if ( res != size)
     {
         printf("%ld %ld", res, size);
         free(buffer);
-        close(hdl);
+        vclose(hdl);
         return JPEG_ERROR_FILE_WRITE;
     }
 
-    close(hdl);
+    vclose(hdl);
     free(buffer);
 
     return JPEG_OK;

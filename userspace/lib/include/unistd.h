@@ -163,6 +163,8 @@ int ftruncate(int fd, off_t length);
  */
 int fsync(int fd);
 
+void sync(void);
+
 /**
  * @brief Duplicate a file descriptor.
  * @return New descriptor on success, -1 on error (errno set).
@@ -264,6 +266,8 @@ int usleep(uint64_t usec);
  *       return -1/EINVAL rather than a guessed value.
  */
 int64_t sysconf(int name);
+
+int getpagesize(void);
 
 #ifdef __cplusplus
 }

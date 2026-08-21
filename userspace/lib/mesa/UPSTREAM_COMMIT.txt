@@ -1,0 +1,5 @@
+Imported from https://gitlab.freedesktop.org/mesa/mesa.git
+Commit: 8cafe2c1a7db42c2972eb44e83becd14a9c532bb
+Date imported: 2026-08-14
+
+Included subsets: util, compiler/nir, compiler/glsl, compiler/spirv, intel/*, gallium/drivers/iris, gallium/winsys/iris, gallium/auxiliary, gallium/frontends/mesa, mesa/main, mapi

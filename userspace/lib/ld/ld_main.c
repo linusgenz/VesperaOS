@@ -308,7 +308,6 @@ static char** ld_parse_stack(uint64_t* stack_ptr, ld_auxv_info_t* auxv_out,
             case AT_ENTRY: auxv_out->entry = auxv[j].a_un.a_val; break;
             case AT_BASE:  auxv_out->base = auxv[j].a_un.a_val; break;
             case AT_PAGESZ: auxv_out->pagesz = auxv[j].a_un.a_val; break;
-            case AT_VESPERA_MAIN_BASE: auxv_out->main_base = auxv[j].a_un.a_val; break;
             default: break;
         }
     }

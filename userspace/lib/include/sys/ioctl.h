@@ -26,6 +26,8 @@
 
 #include <stdint.h>
 
+#include <vespera/ioctl.h>
+
 typedef uint64_t ioctl_request_t;
 
 /**

@@ -167,6 +167,10 @@ int fsync(int fd) {
     return 0;
 }
 
+void sync(void) {
+    // todo
+}
+
 int dup(int fd) {
     HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
@@ -354,14 +358,17 @@ _Noreturn void _exit(int status) {
 // ---------------------------------------------------------------------
 
 unsigned int sleep(unsigned int seconds) {
-    // sys_nanosleep() takes a millisecond count per sysstd.h's current
-    // usage pattern. Interruption isn't distinguished from full
-    // completion in the current syscall's return value, so this always
-    // reports 0 unslept seconds unless the syscall itself errors.
-    int64_t ret = sys_nanosleep((uint64_t)seconds * 1000ULL, 0, 0, 0, 0, 0);
+    timespec_t req;
+    req.tv_sec  = (int64_t)seconds;
+    req.tv_nsec = 0;
+
+    int64_t ret = sys_nanosleep((uint64_t)&req, 0, 0, 0, 0, 0);
+
     if (ret < 0) {
+        errno = (int)(-ret);
         return seconds;
     }
+
     return 0;
 }
 
@@ -418,4 +425,8 @@ int64_t sysconf(int name) {
             errno = EINVAL;
             return -1;
     }
+}
+
+int getpagesize(void) {
+    return sysconf(_SC_PAGESIZE);
 }

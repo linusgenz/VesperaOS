@@ -40,6 +40,23 @@ endif()
 get_filename_component(VESPERA_SYSROOT "${VESPERA_SYSROOT}" ABSOLUTE)
 message(STATUS "vesplib – sysroot: ${VESPERA_SYSROOT}")
 
+if(VESPERA_COMPILER STREQUAL "clang")
+    execute_process(
+            COMMAND ${CMAKE_C_COMPILER} -print-resource-dir
+            OUTPUT_VARIABLE COMPILER_RESOURCE_DIR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(COMPILER_BUILTIN_INCLUDE "${COMPILER_RESOURCE_DIR}/include")
+elseif(VESPERA_COMPILER STREQUAL "gcc")
+    execute_process(
+            COMMAND ${CMAKE_C_COMPILER} -print-file-name=include
+            OUTPUT_VARIABLE COMPILER_BUILTIN_INCLUDE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+endif()
+
+message(STATUS "Compiler Builtin Include Dir: ${COMPILER_BUILTIN_INCLUDE}")
+
 file(MAKE_DIRECTORY
         ${VESPERA_SYSROOT}/usr/include
         ${VESPERA_SYSROOT}/usr/include/vespera/dev
@@ -85,6 +102,7 @@ add_subdirectory(lua lua_build)
 add_subdirectory(readline)
 add_subdirectory(lvespera)
 add_subdirectory(ld)
+add_subdirectory(mesa mesa_build)
 
 # ────────────────────────────────────────────────────────────────
 # Math library (generic + x86_64 SIMD overrides)
@@ -118,7 +136,8 @@ foreach(_src ${MATH_SOURCES})
                  -I${MATH_DIR} \
                  -include ${MATH_DIR}/features.h \
                  --sysroot=${VESPERA_SYSROOT} \
-                 -isystem ${VESPERA_SYSROOT}/usr/include"
+                 -isystem ${VESPERA_SYSROOT}/usr/include \
+                 -idirafter ${COMPILER_BUILTIN_INCLUDE}"
         )
     endif()
 endforeach()
@@ -130,7 +149,6 @@ set(LIB_SOURCES
         src/errno.c
         src/channel.c
         src/exec.c
-        src/file.c
         src/malloc.c
         src/realm.c
         src/reboot.c
@@ -146,16 +164,27 @@ set(LIB_SOURCES
         src/locale.c
         src/vbus.c
         src/wchar.c
-        src/stat.c
         src/unit.c
         src/futex.c
         src/dlfcn.c
+        src/unistd.c
+        src/fcntl.c
+        src/pthread.c
+        src/sched.c
+        src/strings.c
 
         src/bits/fenv.c
 
         src/sys/shm.c
         src/sys/ioctl.c
         src/sys/mman.c
+        src/sys/time.c
+        src/sys/stat.c
+        src/sys/syslog.c
+        src/sys/sysinfo.c
+        src/sys/file.c
+
+        src/internal/fd_table.c
 
         ${LIBJPEG_SRC}/jcapimin.c
         ${LIBJPEG_SRC}/jdapimin.c
@@ -351,11 +380,12 @@ set_target_properties(vesplib_cpp PROPERTIES
 #   interpreter binary (system-level; higher-level apps in VesperaApps)
 # ────────────────────────────────────────────────────────────────
 set(COMMON_C_FLAGS
-        -target x86_64-unknown-linux-gnu
+        -target x86_64-unknown-none-elf
         -nostdlib -nostdinc
         -fno-stack-protector -fPIE -g -O2 -Wall
         --sysroot=${VESPERA_SYSROOT}
         "-isystem${VESPERA_SYSROOT}/usr/include"
+        "-idirafter ${COMPILER_BUILTIN_INCLUDE}"
 )
 
 add_executable(lua_bin
@@ -417,6 +447,7 @@ add_custom_target(sysroot_install_lvgl ALL
         COMMENT "Installing LVGL into sysroot"
 )
 
+add_dependencies(mesa_root sysroot_headers)
 add_dependencies(lua sysroot_headers)
 add_dependencies(lua_bin sysroot_headers)
 add_dependencies(libreadline sysroot_headers)
@@ -427,7 +458,7 @@ add_dependencies(vesplib sysroot_headers)
 add_custom_target(sysroot_install
         DEPENDS
         vesplib vesplib_cpp crt0_obj
-        lua lua_bin lvespera ld_vespera
+        lua lua_bin lvespera ld_vespera mesa_root
         sysroot_install_readline
 
         # Link crt0 into a staging file first, then copy_if_different so downstream

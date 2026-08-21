@@ -32,6 +32,7 @@ void bcopy(const void* src, void* dst, size_t n);
 int bcmp(const void* s1, const void* s2, size_t n);
 
 int ffs(int i);
+int ffsll(long long int val);
 char* index(const char* s, int c);
 char* rindex(const char* s, int c);
 

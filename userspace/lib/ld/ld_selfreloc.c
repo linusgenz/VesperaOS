@@ -19,42 +19,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with VesperaOS. If not, see <https://www.gnu.org/licenses/>.
-//
-// ---------------------------------------------------------------------------
-// Reloziert ld-vespera.so selbst, BEVOR irgendein anderer Teil des
-// Interpreters laeuft. Der Kernel laedt ld-vespera.so wie jedes andere
-// ET_DYN-Objekt (Segmente 1:1 aus der Datei kopiert), wendet dabei aber
-// KEINE Relokationen an - das muss der Interpreter zwingend selbst tun,
-// sonst zeigen z.B. seine eigenen GOT-Eintraege noch auf
-// Datei-relative (nicht Lade-relative) Adressen.
-//
-// Regeln fuer diese Datei, striktER als fuer den Rest des Linkers:
-//   - Ausschliesslich R_X86_64_RELATIVE wird verarbeitet. Das ist die
-//     EINZIGE Relokationsart, die ohne Symbolaufloesung auskommt (reines
-//     "load_bias + addend"). GLOB_DAT/JUMP_SLOT/64 brauchen dynsym/dynstr,
-//     die selbst erst durch genau diese RELATIVE-Relokationen korrekt
-//     adressierbar werden koennten - klassisches Henne-Ei-Problem, das
-//     man umgeht, indem man kompilerseitig dafuer sorgt, dass
-//     ld-vespera.so selbst KEINE externen Symbolabhaengigkeiten hat
-//     (kein dlopen der eigenen Symbole, keine PLT-Sprungziele auf sich
-//     selbst) - siehe Build-Hinweis am Dateiende.
-//   - Kein Aufruf von memcpy/memset/irgendeiner Funktion, die selbst erst
-//     durch eine Relokation aufgeloest werden muesste. Alles hier ist
-//     entweder inline oder ruft ausschliesslich andere `static`-Funktionen
-//     in DERSELBEN Uebersetzungseinheit auf, die der Compiler direkt
-//     (PC-relativ, ohne GOT-Indirektion) adressieren kann.
-//   - Keine globalen/statischen Variablen mit Adressnahme (kein
-//     "static int x; foo(&x)") - deren Adressen liegen ebenfalls hinter
-//     GOT-Eintraegen, solange nicht reloziert wurde. Alles bleibt auf dem
-//     Stack (Parameter, lokale Variablen).
-//
-// Build-Hinweis: ld-vespera.so MUSS mit -fno-plt (oder aequivalent) und
-// ohne jegliche externen/undefinierten Symbolreferenzen in diesem
-// Uebersetzungsschritt gelinkt werden. `readelf -r ld-vespera.so` sollte
-// ausschliesslich R_X86_64_RELATIVE-Eintraege zeigen (ggf. RELATIVE
-// Eintraege im .got fuer interne Funktionspointer sind normal - genau die
-// werden hier korrigiert).
-// ---------------------------------------------------------------------------
 
 #include <stdint.h>
 

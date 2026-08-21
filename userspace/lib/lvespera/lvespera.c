@@ -39,7 +39,7 @@
 /* VesperaOS headers */
 #include <dirent.h>
 #include <errno.h>
-#include <fflags.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -661,7 +661,7 @@ static int lfs_getcwd(lua_State* L) {
 */
 static int lfs_stat(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
-    vespera_stat_t st;
+    struct stat st;
     int64_t result = sys_stat((uint64_t)path, (uint64_t)&st, 0, 0, 0, 0);
     if (result != 0) return push_errno(L, result);
 
@@ -670,22 +670,22 @@ static int lfs_stat(lua_State* L) {
 #define SET_INT(field)                         \
     lua_pushinteger(L, (lua_Integer)st.field); \
     lua_setfield(L, -2, #field)
-    SET_INT(node_type);
-    SET_INT(flags);
-    SET_INT(size);
-    SET_INT(blocks);
-    SET_INT(inode_id);
-    SET_INT(mtime);
-    SET_INT(atime);
-    SET_INT(ctime);
-    SET_INT(uid);
-    SET_INT(gid);
-    SET_INT(mode);
+    SET_INT(v_node_type);
+    SET_INT(v_flags);
+    SET_INT(st_size);
+    SET_INT(st_blocks);
+    SET_INT(st_ino);
+    SET_INT(st_mtim.tv_nsec);
+    SET_INT(st_atim.tv_nsec);
+    SET_INT(st_ctim.tv_nsec);
+    SET_INT(st_uid);
+    SET_INT(st_gid);
+    SET_INT(st_mode);
 #undef SET_INT
 
-    lua_pushboolean(L, st.node_type == VSTAT_TYPE_FILE);
+    lua_pushboolean(L, st.v_node_type == VSTAT_TYPE_FILE);
     lua_setfield(L, -2, "is_file");
-    lua_pushboolean(L, st.node_type == VSTAT_TYPE_DIR);
+    lua_pushboolean(L, st.v_node_type == VSTAT_TYPE_DIR);
     lua_setfield(L, -2, "is_dir");
     return 1;
 }
@@ -695,7 +695,7 @@ static int lfs_stat(lua_State* L) {
 */
 static int lfs_exists(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
-    vespera_stat_t st;
+    struct stat st;
     int64_t result = sys_stat((uint64_t)path, (uint64_t)&st, 0, 0, 0, 0);
     lua_pushboolean(L, result == 0);
     return 1;
