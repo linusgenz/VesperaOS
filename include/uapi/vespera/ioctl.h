@@ -62,6 +62,12 @@ IOC(IOC_WRITE, (type), (nr), sizeof(data_type))
 IOC(IOC_READ | IOC_WRITE, (type), (nr), sizeof(data_type))
 
 
+#define _IO(type, nr)                   IO(type, nr)
+#define _IOR(type, nr, data_type)       IOR(type, nr, data_type)
+#define _IOW(type, nr, data_type)       IOW(type, nr, data_type)
+#define _IOWR(type, nr, data_type)      IOWR(type, nr, data_type)
+
+
 /* Decoder */
 #define IOC_GET_DIR(cmd)  ((uint32_t)((cmd >> IOC_DIR_SHIFT) & IOC_DIR_MASK))
 #define IOC_GET_SIZE(cmd) ((uint32_t)((cmd >> IOC_SIZE_SHIFT) & IOC_SIZE_MASK))

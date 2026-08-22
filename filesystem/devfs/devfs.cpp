@@ -36,6 +36,7 @@
 
 #include "../drivers/ahci/ahci.h"
 #include "uapi/vespera/dev/ioctl_usb_device.h"
+#include "vespera/log.h"
 #include "vespera/devices/usb_device_info.h"
 
 const char* DevFs::bus_to_str(const BusType bus) {
@@ -98,36 +99,71 @@ int DevFs::register_device(KernelDevice* kd) {
 
     if (!root_) return -ENOMEM;
 
-    if (lookup_device(root_, kd->name)) return -EEXIST;
+    // Buffer für Pfadmanipulation erstellen
+    char path_buf[256];
+    strncpy(path_buf, kd->name, sizeof(path_buf) - 1);
+    path_buf[sizeof(path_buf) - 1] = '\0';
+
+    VfsNode* current_dir = root_;
+    const char* dev_basename = kd->name;
+
+    char* last_slash = strrchr(path_buf, '/');
+    if (last_slash) {
+        *last_slash = '\0';
+        dev_basename = last_slash + 1;
+
+        char* saveptr = nullptr;
+        char* token = strtok(path_buf, '/');
+        while (token) {
+            current_dir = ensure_subdirectory(strdup(token), current_dir);
+            if (!current_dir) return -ENOMEM;
+            token = strtok(nullptr, '/');
+        }
+
+        dev_basename = strdup(dev_basename);
+    }
+
+    if (lookup_device(current_dir, dev_basename)) return -EEXIST;
 
     auto* node = static_cast<VfsNode*>(kernel::memory::malloc(sizeof(VfsNode)));
-    node->name = kd->name;
+    if (!node) return -ENOMEM;
+
+    node->name = dev_basename;
     node->type = map_device_type(kd->type);
     node->mount = nullptr;
-
     node->ops = &ops_;
     node->permanent = false;
+    node->seekable = (kd->type == DeviceType::Block);
 
     auto* entry = static_cast<DevfsEntry*>(kernel::memory::malloc(sizeof(DevfsEntry)));
+    if (!entry) {
+        kernel::memory::free(node);
+        return -ENOMEM;
+    }
+
     entry->device = kd;
     entry->node = node;
     entry->is_directory = false;
     entry->cf = nullptr;
-
-    node->seekable = (kd->type == DeviceType::Block);
+    entry->parent = current_dir;
 
     node->internal_data = entry;
-    kd->vfs_node_parent = root_; // root as parent
+    kd->vfs_node_parent = current_dir;
 
-    auto* root_data = static_cast<DirData*>(root_->internal_data);
-    if (!root_data) {
-        root_data = static_cast<DirData*>(kernel::memory::malloc(sizeof(DirData)));
-        root_data->subdirs = Vector<VfsNode*>();
-        root_data->files = Vector<VfsNode*>();
-        root_->internal_data = root_data;
+    auto* dir_data = static_cast<DirData*>(current_dir->internal_data);
+    if (!dir_data) {
+        dir_data = static_cast<DirData*>(kernel::memory::malloc(sizeof(DirData)));
+        if (!dir_data) {
+            kernel::memory::free(entry);
+            kernel::memory::free(node);
+            return -ENOMEM;
+        }
+        dir_data->subdirs = Vector<VfsNode*>();
+        dir_data->files = Vector<VfsNode*>();
+        current_dir->internal_data = dir_data;
     }
 
-    root_data->files.push_back(node);
+    dir_data->files.push_back(node);
 
     return SUCCESS_CODE;
 }
@@ -137,16 +173,17 @@ int DevFs::unregister_device(KernelDevice* kd) {
 
     SpinlockGuard guard(lock_);
 
-    if (!root_) return -ENOENT;
+    VfsNode* parent_dir = kd->vfs_node_parent ? kd->vfs_node_parent : root_;
+    if (!parent_dir) return -ENOENT;
 
-    auto* root_data = static_cast<DirData*>(root_->internal_data);
-    if (!root_data) return -ENOENT;
+    auto* dir_data = static_cast<DirData*>(parent_dir->internal_data);
+    if (!dir_data) return -ENOENT;
 
     VfsNode* target_node = nullptr;
     usize target_idx = 0;
 
-    for (usize i = 0; i < root_data->files.size(); ++i) {
-        VfsNode* file_node = root_data->files[i];
+    for (usize i = 0; i < dir_data->files.size(); ++i) {
+        VfsNode* file_node = dir_data->files[i];
         if (!file_node) continue;
 
         auto* e = static_cast<DevfsEntry*>(file_node->internal_data);
@@ -159,7 +196,7 @@ int DevFs::unregister_device(KernelDevice* kd) {
 
     if (!target_node) return -ENOENT;
 
-    root_data->files.erase(target_idx);
+    dir_data->files.erase(target_idx);
 
     if (auto* entry = static_cast<DevfsEntry*>(target_node->internal_data)) {
         if (entry->cf && kd->chardev) {
@@ -388,6 +425,7 @@ isize DevFs::ioctl(const VfsNode* node, const u32 cmd, void* arg) {
         }
     }
 
+    Log::debug("invalid ioctl: %d", cmd);
     return -EINVAL;
 }
 

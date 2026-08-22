@@ -28,7 +28,7 @@
  * This enumeration defines the type of an entry returned by `sys_readdir()`
  * or higher-level wrappers (e.g. `readdir()`).
  */
-typedef enum {
+typedef enum dirent_type {
     DT_UNKNOWN = 0, ///< Unknown entry type (not determined)
     DT_FILE,        ///< Regular file
     DT_DIR,         ///< Directory
@@ -45,7 +45,7 @@ typedef enum {
  *
  * Contains information about a single directory entry.
  */
-typedef struct {
+typedef struct dirent {
     char name[128];      ///< Null-terminated entry name (up to 127 characters)
     dirent_type_t type;  ///< Type of the directory entry (see ::dirent_type_t)
 } dirent_t;
