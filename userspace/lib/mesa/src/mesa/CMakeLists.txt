@@ -447,13 +447,7 @@ endif()
 
 # --- Haupt-Bibliothek: libmesa ----------------------------------------------
 add_library(mesa STATIC
-        ${FILES_LIBMESA}
-        ${FORMAT_FALLBACK_C}
-        ${GET_HASH_H}
-        ${FORMAT_INFO_H}
-        $<$<BOOL:${SHADER_REPLACEMENT_DIR}>:${SHADER_REPLACEMENT_H}>
-
-        # Aus Subdirectories / Parent Scope geerbte/generierte Quellcodes
+        # generated
         ${MESA_LEX}
         ${PROGRAM_PARSE_TAB}
         ${MAIN_API_EXEC_C}
@@ -470,6 +464,12 @@ add_library(mesa STATIC
         ${SHA1_H}
         ${MAIN_UNMARSHAL_TABLE_C}
         ${MAIN_MARSHAL_GENERATED_C}
+
+        ${FILES_LIBMESA}
+        ${FORMAT_FALLBACK_C}
+        ${GET_HASH_H}
+        ${FORMAT_INFO_H}
+        $<$<BOOL:${SHADER_REPLACEMENT_DIR}>:${SHADER_REPLACEMENT_H}>
 )
 
 set_target_properties(mesa PROPERTIES
@@ -479,11 +479,26 @@ set_target_properties(mesa PROPERTIES
         VISIBILITY_INLINES_HIDDEN ON
 )
 
+add_dependencies(mesa glapi_gen)
+
+
+target_compile_options(mesa PRIVATE
+        $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_C_FLAGS}>
+)
 
 target_include_directories(mesa PRIVATE
         ${MESA_ROOT}/include
         ${MESA_ROOT}/src
+        ${MESA_ROOT}/src/gallium/include
+        ${MESA_ROOT}/src/gallium/auxiliary
+        ${MESA_GEN_DIR}/../
+        ${MESA_GEN_DIR}/../util/gen/
+        ${MESA_GEN_DIR}/glapi/glapi/gen
+        ${MESA_GEN_DIR}/../compiler
+        ${MESA_GEN_DIR}/../compiler/nir
         ${MESA_SRC_DIR}/main
+        ${MESA_SRC_DIR}
         ${MESA_GEN_DIR}
 )
 
@@ -491,5 +506,6 @@ target_link_libraries(mesa PRIVATE
         ${LIBMESA_SSE41}
         glsl
         nir
+        mesa_vtn
         mesa_util_c11
 )

@@ -50,7 +50,7 @@ int fstat(int fd, struct stat *buf) {
         return -1;
     }
 
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -75,7 +75,7 @@ int mknodat(int dirfd, const char *pathname, mode_t mode, dev_t dev) {
     if (dirfd == AT_FDCWD || (pathname[0] == '/')) {
         native_dirfd = (uint64_t)(int64_t)AT_FDCWD;
     } else {
-        HANDLE handle = fd_table_get(dirfd);
+        FILE_HANDLE handle = fd_table_get(dirfd);
         if (handle == INVALID_HANDLE) {
             errno = EBADH;
             return -1;

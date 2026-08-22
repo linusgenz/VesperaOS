@@ -19,7 +19,14 @@
 set(MESA_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" MESA_VERSION)
-add_compile_definitions(PACKAGE_VERSION="${MESA_VERSION}")
+add_compile_definitions(PACKAGE_VERSION="${MESA_VERSION}"
+        HAVE_ENDIAN_H=1
+        HAVE_PTHREAD
+        HAVE_STRUCT_TIMESPEC
+        HAVE_OPENGL=1
+        HAVE_OPENGL_ES_1=0
+        HAVE_OPENGL_ES_2=1
+)
 
 set(MESA_COMMON_C_FLAGS
         -target x86_64-vespera-elf
@@ -74,6 +81,7 @@ add_subdirectory(src/intel/ds)
 add_subdirectory(src/gallium/auxiliary)
 add_subdirectory(src/gallium/drivers/iris)
 add_subdirectory(src/mesa)
+add_subdirectory(src/mesa/glapi/es2api)
 # add_subdirectory(src/gallium/frontends/mesa)
 # add_subdirectory(src/mesa/main)
 
@@ -84,6 +92,9 @@ add_custom_target(mesa_root
         mesa_genxml
         mesa_compiler
         mesa_nir
+        mesa_vtn
+        mesa_glsl_util
+        mesa_glsl
         mesa_intel_dev
         mesa_intel_compiler
         mesa_intel_blorp

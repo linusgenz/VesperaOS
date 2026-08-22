@@ -28,6 +28,8 @@
 #include <alloca.h>
 
 typedef uint64_t FILE_HANDLE;
+typedef uint64_t CHANNEL_HANDLE;
+typedef uint64_t DIR_HANDLE;
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -246,6 +248,13 @@ typedef struct {
    long long __max_align_ll __attribute__((__aligned__(__alignof__(long long))));
    long double __max_align_ld __attribute__((__aligned__(__alignof__(long double))));
 } max_align_t;
+
+
+void* bsearch(const void* key,
+              const void* base,
+              size_t num,
+              size_t size,
+              __compar_fn_t __compar);
 
 #ifdef __cplusplus
 }

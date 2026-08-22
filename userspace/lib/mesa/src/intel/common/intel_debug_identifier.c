@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "git_sha1.h"
+#include "../../git_sha1.h"
 
 #include "common/intel_debug_identifier.h"
 #include "dev/intel_debug.h"

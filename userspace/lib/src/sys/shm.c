@@ -31,7 +31,7 @@
 #define IS_ERR(value) ((uint64_t)(value) >= (uint64_t)-MAX_ERRNO)
 #define GET_ERR(value) ((int)(-(int64_t)(value)))
 
-HANDLE shm_open(const char* name, int oflag, uint32_t mode) {
+FILE_HANDLE shm_open(const char* name, int oflag, uint32_t mode) {
     if (name == NULL || name[0] != '/') {
         errno = EINVAL;
         return INVALID_HANDLE;
@@ -44,10 +44,10 @@ HANDLE shm_open(const char* name, int oflag, uint32_t mode) {
         return INVALID_HANDLE;
     }
 
-    return (HANDLE)ret;
+    return (FILE_HANDLE)ret;
 }
 
-HANDLE shm_unlink(const char* name) {
+FILE_HANDLE shm_unlink(const char* name) {
     if (name == NULL) {
         errno = EINVAL;
         return INVALID_HANDLE;

@@ -41,11 +41,6 @@
 
 #define getc(f) fgetc(f)
 
-typedef uint64_t HANDLE;
-typedef HANDLE FILE_HANDLE;
-typedef HANDLE CHANNEL_HANDLE;
-typedef HANDLE DIR_HANDLE;
-
 typedef ssize_t (*cookie_read_fn)(void* cookie, char* buf, size_t size);
 typedef ssize_t (*cookie_write_fn)(void* cookie, const char* buf, size_t size);
 typedef int (*cookie_seek_fn)(void* cookie, int64_t* offset, int whence);
@@ -469,7 +464,7 @@ int fseek(FILE* stream, long offset, int whence);
  *
  * @see fseek()
  */
-int64_t vlseek(HANDLE handle, int64_t offset, int whence);
+//int64_t vlseek(HANDLE handle, int64_t offset, int whence);
 
 /**
  * @brief Get current position in stream.
@@ -547,7 +542,7 @@ ssize_t readdir(DIR_HANDLE handle, dirent_t* entry);
  * @see close()
  * @see fopen()
  */
-HANDLE vopen(const char* path, int flags);
+FILE_HANDLE vopen(const char* path, int flags);
 
 /**
  * @brief Close a generic handle.
@@ -560,7 +555,7 @@ HANDLE vopen(const char* path, int flags);
  * @see open()
  * @see fclose()
  */
-int vclose(HANDLE handle);
+int vclose(FILE_HANDLE handle);
 
 /**
  * @brief Read data from a generic handle.
@@ -575,7 +570,7 @@ int vclose(HANDLE handle);
  * @see write()
  * @see open()
  */
-ssize_t vread(HANDLE handle, void* buf, size_t count);
+ssize_t vread(FILE_HANDLE handle, void* buf, size_t count);
 
 /**
  * @brief Write data to a generic handle.
@@ -590,7 +585,7 @@ ssize_t vread(HANDLE handle, void* buf, size_t count);
  * @see read()
  * @see open()
  */
-ssize_t vwrite(HANDLE handle, const void* buf, size_t count);
+ssize_t vwrite(FILE_HANDLE handle, const void* buf, size_t count);
 
 /**
  * @brief Create a new empty file.

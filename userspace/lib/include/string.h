@@ -114,6 +114,8 @@ int memmove_safe(void *dest, size_t dest_len, const void *src, size_t count);
  */
 char* strtok(char* s, const char* delim);
 
+char* strtok_r(char* str, const char* delim, char** saveptr);
+
 /**
  * @brief Return the length of the maximum initial segment
    of S which contains only characters in ACCEPT.

@@ -22,7 +22,7 @@
  */
 
 #include "intel_uuid.h"
-#include "git_sha1.h"
+#include "../../git_sha1.h"
 #include "util/mesa-blake3.h"
 
 void

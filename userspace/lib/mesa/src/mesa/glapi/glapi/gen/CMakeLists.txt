@@ -263,6 +263,8 @@ set(ALL_GLAPI_GEN_FILES
 )
 set_source_files_properties(${ALL_GLAPI_GEN_FILES} PROPERTIES GENERATED TRUE)
 
+add_custom_target(glapi_gen DEPENDS ${ALL_GLAPI_GEN_FILES})
+
 # --- Alles an src/mesa/glapi/glapi/CMakeLists.txt (Parent-Scope) reichen ---
 set(GLAPI_MAPI_TMP_H ${GLAPI_MAPI_TMP_H} PARENT_SCOPE)
 set(GLAPI_GENTABLE_C ${GLAPI_GENTABLE_C} PARENT_SCOPE)

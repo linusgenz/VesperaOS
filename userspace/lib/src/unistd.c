@@ -39,7 +39,7 @@
 // ---------------------------------------------------------------------
 
 ssize_t read(int fd, void* buf, size_t count) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -54,7 +54,7 @@ ssize_t read(int fd, void* buf, size_t count) {
 }
 
 ssize_t write(int fd, const void* buf, size_t count) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -69,7 +69,7 @@ ssize_t write(int fd, const void* buf, size_t count) {
 }
 
 int close(int fd) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -90,7 +90,7 @@ int close(int fd) {
 }
 
 off_t lseek(int fd, off_t offset, int whence) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return (off_t)-1;
@@ -139,7 +139,7 @@ int access(const char* path, int mode) {
 }
 
 int ftruncate(int fd, off_t length) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -172,7 +172,7 @@ void sync(void) {
 }
 
 int dup(int fd) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -184,7 +184,7 @@ int dup(int fd) {
         return -1;
     }
 
-    int new_fd = fd_table_insert((HANDLE)ret);
+    int new_fd = fd_table_insert((FILE_HANDLE)ret);
     if (new_fd < 0) {
         sys_close((uint64_t)ret, 0, 0, 0, 0, 0);
         return -1;
@@ -193,7 +193,7 @@ int dup(int fd) {
 }
 
 int dup2(int fd, int new_fd) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;
@@ -208,15 +208,15 @@ int dup2(int fd, int new_fd) {
         return new_fd;
     }
 
-    HANDLE dup_handle;
+    FILE_HANDLE dup_handle;
     int64_t ret = sys_dup((uint64_t)handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
         return -1;
     }
-    dup_handle = (HANDLE)ret;
+    dup_handle = (FILE_HANDLE)ret;
 
-    HANDLE old_handle = fd_table_get(new_fd);
+    FILE_HANDLE old_handle = fd_table_get(new_fd);
     if (old_handle != INVALID_HANDLE) {
         sys_close((uint64_t)old_handle, 0, 0, 0, 0, 0);
     }
@@ -229,7 +229,7 @@ int dup2(int fd, int new_fd) {
 }
 
 int pipe(int fds[2]) {
-    HANDLE native_fds[2];
+    FILE_HANDLE native_fds[2];
     int64_t ret = sys_pipe((uint64_t)(uintptr_t)native_fds, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
@@ -263,7 +263,7 @@ int isatty(int fd) {
     // sysstd yet. sys_tcgetpgrp() only succeeds on TTY-backed handles, so
     // it's used here as an indirect probe. Revisit if/when a dedicated
     // TCGETS-style ioctl is added.
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return 0;

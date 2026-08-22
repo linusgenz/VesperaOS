@@ -152,19 +152,14 @@ set(GLAPI_XML_PY_DEPS
         ${GLAPI_ROOT}/glapi/gen/marshal_XML.py
         ${GLAPI_ROOT}/glapi/gen/static_data.py
         ${GLAPI_ROOT}/glapi/gen/typeexpr.py
-        ${GLAPI_ROOT}/glapi/new/genCommon.py
+        ${GLAPI_ROOT}/new/genCommon.py
 
         # Symbols
         ${GLAPI_ROOT}/../../glx/libgl-symbols.txt
 )
 
 add_subdirectory(glapi)
-
-# shared-glapi war nicht Teil des Uploads. Meson bindet es hier ueber
-# subdir('shared-glapi') ein (analog zur unveraenderten Mesa-Quellstruktur,
-# die dieser CMake-Baum nachfahren soll). Sobald ihr src/mesa/glapi/shared-glapi/
-# im Baum habt, hier den add_subdirectory()-Aufruf entkommentieren.
-# add_subdirectory(shared-glapi)
+add_subdirectory(shared-glapi)
 
 # --- Weiterreichen an src/mesa/CMakeLists.txt (Parent-Scope) ---------------
 set(MAIN_ENUMS_C ${MAIN_ENUMS_C} PARENT_SCOPE)

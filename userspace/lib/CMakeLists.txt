@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0118 NEW)
 project(vesplib C ASM_NASM)
 
 set(CMAKE_C_STANDARD 17)

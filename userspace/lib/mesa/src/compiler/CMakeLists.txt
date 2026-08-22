@@ -112,7 +112,7 @@ target_include_directories(mesa_compiler
 
 target_compile_options(mesa_compiler PRIVATE
         $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
-        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_CXX_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_C_FLAGS}>
 )
 
 target_link_libraries(mesa_compiler PUBLIC mesa_util)
@@ -126,3 +126,5 @@ add_dependencies(mesa_compiler sysroot_headers mesa_util)
 # which only exists once this CMakeLists has run.
 # ────────────────────────────────────────────────────────────────
 add_subdirectory(nir)
+add_subdirectory(spirv)
+add_subdirectory(glsl)

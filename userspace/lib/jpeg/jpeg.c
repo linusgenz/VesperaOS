@@ -700,7 +700,7 @@ int jpeg_save_to_file(const image_t* image, const char* filename,
     int result = jpeg_save_to_memory(image, &buffer, &size, opts);
     if (result != JPEG_OK) return result;
 
-    HANDLE hdl = vopen(filename, O_WRONLY | O_CREAT);
+    FILE_HANDLE hdl = vopen(filename, O_WRONLY | O_CREAT);
     if (hdl < 0)
     {
         free(buffer);

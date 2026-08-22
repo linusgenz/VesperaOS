@@ -29,7 +29,7 @@
 #include "../internal/fd_table.h"
 
 int64_t ioctl(int fd, ioctl_request_t request, void *arg) {
-    HANDLE handle = fd_table_get(fd);
+    FILE_HANDLE handle = fd_table_get(fd);
     if (handle == INVALID_HANDLE) {
         errno = EBADH;
         return -1;

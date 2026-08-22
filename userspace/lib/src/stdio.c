@@ -1280,16 +1280,16 @@ int fflush(FILE* f) {
     return 0;
 }
 
-HANDLE vopen(const char* path, int flags) {
+FILE_HANDLE vopen(const char* path, int flags) {
     int64_t ret = sys_open((uint64_t)path, flags, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
-        return (HANDLE)-1;  // u64::MAX
+        return (FILE_HANDLE)-1;  // u64::MAX
     }
-    return (HANDLE)ret;
+    return (FILE_HANDLE)ret;
 }
 
-int vclose(HANDLE handle) {
+int vclose(FILE_HANDLE handle) {
     int64_t ret = sys_close(handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
@@ -1298,11 +1298,11 @@ int vclose(HANDLE handle) {
     return 0;
 }
 
-ssize_t vread(HANDLE handle, void* buf, size_t count) {
+ssize_t vread(FILE_HANDLE handle, void* buf, size_t count) {
     return sys_read(handle, (uint64_t)buf, count, 0, 0, 0);
 }
 
-ssize_t vwrite(HANDLE handle, const void* buf, size_t count) {
+ssize_t vwrite(FILE_HANDLE handle, const void* buf, size_t count) {
     return sys_write(handle, (uint64_t)buf, count, 0, 0, 0);
 }
 
@@ -1327,7 +1327,7 @@ int fseek(FILE* f, long offset, int whence) {
     }
     return 0;
 }
-
+/*
 int64_t vlseek(HANDLE handle, int64_t offset, int whence) {
     int64_t ret = sys_seek(handle, offset, whence, 0, 0, 0);
     if (ret < 0) {
@@ -1336,7 +1336,7 @@ int64_t vlseek(HANDLE handle, int64_t offset, int whence) {
     }
     return ret;
 }
-
+*/
 ssize_t ftell(FILE* f) {
     if (!f) return -1;
     if (!f->io_funcs.seek) return -1;

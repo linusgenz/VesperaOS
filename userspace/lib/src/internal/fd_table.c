@@ -31,7 +31,7 @@
 // spinlock/futex is enough since the critical sections are tiny. Tracked
 // alongside the errno TLS TODO in unistd.c/sysstd.
 typedef struct {
-    HANDLE handle;
+    FILE_HANDLE handle;
     int in_use;
 } fd_entry_t;
 
@@ -53,7 +53,7 @@ void fd_table_init(void) {
     g_fd_table_initialized = 1;
 }
 
-int fd_table_insert(HANDLE handle) {
+int fd_table_insert(FILE_HANDLE handle) {
     // Start scanning past the standard streams; not required for
     // correctness but avoids re-checking slots 0-2 on every open().
     for (int fd = 3; fd < FD_TABLE_MAX; fd++) {
@@ -67,7 +67,7 @@ int fd_table_insert(HANDLE handle) {
     return -1;
 }
 
-int fd_table_insert_at(int fd, HANDLE handle) {
+int fd_table_insert_at(int fd, FILE_HANDLE handle) {
     if (fd < 0 || fd >= FD_TABLE_MAX) {
         errno = EBADH;
         return -1;
@@ -78,7 +78,7 @@ int fd_table_insert_at(int fd, HANDLE handle) {
     return 0;
 }
 
-HANDLE fd_table_get(int fd) {
+FILE_HANDLE fd_table_get(int fd) {
     if (fd < 0 || fd >= FD_TABLE_MAX || !g_fd_table[fd].in_use) {
         return INVALID_HANDLE;
     }

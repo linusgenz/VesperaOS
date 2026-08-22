@@ -42,7 +42,7 @@ S.ignis = {
     umbra            = true
 }
 
-nox = {
+S.nox = {
     name             = "nox",
     exec             = "/bin/nox",
     user             = "vespera",
@@ -53,7 +53,7 @@ nox = {
     umbra            = false
 }
 
-S.crepusculum = {
+crepusculum = {
     name             = "crepusculum",
     exec             = "/bin/crepusculum",
     user             = "vespera",

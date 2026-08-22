@@ -49,7 +49,7 @@ int* __errno_location(void) {
 static unsigned int gather_seed(void) {
     unsigned int seed = 0;
 
-    const HANDLE hdl = vopen("/dev/urandom", O_RDONLY);
+    const FILE_HANDLE hdl = vopen("/dev/urandom", O_RDONLY);
     if ((int64_t)hdl >= 0) {
         const bool ok = vread(hdl, &seed, sizeof(seed)) == sizeof(seed);
         vclose(hdl);
@@ -696,7 +696,7 @@ void srand(const unsigned int seed) {
 
 int rand(void) {
     if (next == 0) {
-        const HANDLE hdl = vopen("/dev/urandom", O_RDONLY);
+        const FILE_HANDLE hdl = vopen("/dev/urandom", O_RDONLY);
         if ((int64_t)hdl >= 0) {
             unsigned int kernel_seed = 0;
             if (vread(hdl, &kernel_seed, sizeof(kernel_seed)) == sizeof(kernel_seed))
@@ -851,9 +851,152 @@ NORETURN void exit(int status) {
     _Exit(status);
 }
 
-/*
-void qsort(void *base, size_t nmemb, size_t size,
-           __compar_fn_t __compar) {
+#define MAX_THRESH 8
+#define STACK_SIZE (8 * sizeof(size_t))
 
+static void swap_bytes(char *a, char *b, size_t size) {
+    if ((uintptr_t)a % sizeof(size_t) == 0 &&
+        (uintptr_t)b % sizeof(size_t) == 0 &&
+        size % sizeof(size_t) == 0)
+    {
+        size_t *wa = (size_t *)a;
+        size_t *wb = (size_t *)b;
+        size_t wsize = size / sizeof(size_t);
+        while (wsize--) {
+            size_t tmp = *wa;
+            *wa++ = *wb;
+            *wb++ = tmp;
+        }
+        return;
+    }
+
+    while (size--) {
+        char tmp = *a;
+        *a++ = *b;
+        *b++ = tmp;
+    }
 }
-*/
+
+typedef struct {
+    char *lo;
+    char *hi;
+} stack_node;
+
+void qsort(void *base, size_t nmemb, size_t size,
+           int (*compar)(const void *, const void *))
+{
+    if (nmemb < 2 || size == 0) return;
+
+    char *base_ptr = (char *)base;
+    char *max_ptr = base_ptr + size * (nmemb - 1);
+
+    if (nmemb > MAX_THRESH) {
+        stack_node stack[STACK_SIZE];
+        stack_node *top = stack;
+
+        top->lo = base_ptr;
+        top->hi = max_ptr;
+        top++;
+
+        while (top > stack) {
+            top--;
+            char *lo = top->lo;
+            char *hi = top->hi;
+
+            char *mid = lo + size * (((hi - lo) / size) >> 1);
+
+            if (compar(mid, lo) < 0)  swap_bytes(mid, lo, size);
+            if (compar(hi, mid) < 0)  swap_bytes(hi, mid, size);
+            else goto pivot_ok;
+            if (compar(mid, lo) < 0)  swap_bytes(mid, lo, size);
+
+        pivot_ok:;
+            char *left_ptr = lo + size;
+            char *right_ptr = hi - size;
+
+            while (1) {
+                while (compar(left_ptr, mid) < 0)  left_ptr += size;
+                while (compar(mid, right_ptr) < 0) right_ptr -= size;
+
+                if (left_ptr < right_ptr) {
+                    swap_bytes(left_ptr, right_ptr, size);
+                    if (mid == left_ptr)       mid = right_ptr;
+                    else if (mid == right_ptr) mid = left_ptr;
+                    left_ptr += size;
+                    right_ptr -= size;
+                } else {
+                    break;
+                }
+            }
+
+            size_t left_len = (right_ptr - lo) / size;
+            size_t right_len = (hi - left_ptr) / size;
+
+            if (left_len <= MAX_THRESH) {
+                if (right_len > MAX_THRESH) {
+                    top->lo = left_ptr;
+                    top->hi = hi;
+                    top++;
+                }
+            } else if (right_len <= MAX_THRESH) {
+                top->lo = lo;
+                top->hi = right_ptr;
+                top++;
+            } else if (left_len > right_len) {
+                top->lo = lo;
+                top->hi = right_ptr;
+                top++;
+                top->lo = left_ptr;
+                top->hi = hi;
+                top++;
+            } else {
+                top->lo = left_ptr;
+                top->hi = hi;
+                top++;
+                top->lo = lo;
+                top->hi = right_ptr;
+                top++;
+            }
+        }
+    }
+
+    for (char* run_ptr = base_ptr + size; run_ptr <= max_ptr; run_ptr += size) {
+        char *tmp_ptr = run_ptr;
+        while (tmp_ptr > base_ptr && compar(tmp_ptr - size, tmp_ptr) > 0) {
+            swap_bytes(tmp_ptr - size, tmp_ptr, size);
+            tmp_ptr -= size;
+        }
+    }
+}
+
+
+void* bsearch(
+    const void* key,
+    const void* base,
+    size_t num,
+    size_t size,
+    __compar_fn_t __compar
+) {
+    const char* p = (const char*)base;
+    size_t half;
+    int cmp;
+
+    while (num > 0) {
+        half = num >> 1;
+
+        const char* mid = p + (half * size);
+
+        cmp = __compar(key, mid);
+
+        if (cmp == 0) {
+            return (void*)mid;
+        } else if (cmp > 0) {
+            p = mid + size;
+            num = num - half - 1;
+        } else {
+            num = half;
+        }
+    }
+
+    return NULL;
+}

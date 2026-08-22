@@ -23,7 +23,6 @@
 #define _SHM_H
 
 #include <sys/mman.h>
-typedef uint64_t HANDLE;
 
 /**
  * @brief Open or create a POSIX shared memory object.
@@ -35,7 +34,7 @@ typedef uint64_t HANDLE;
  * @return On success: A non-negative integer representing the SHM handle.
  * On error: -1 with errno set.
  */
-HANDLE shm_open(const char* name, int oflag, uint32_t mode);
+FILE_HANDLE shm_open(const char* name, int oflag, uint32_t mode);
 
 /**
  * @brief Remove a POSIX shared memory object name.
@@ -44,7 +43,7 @@ HANDLE shm_open(const char* name, int oflag, uint32_t mode);
  *
  * @return 0 on success, -1 on error (errno set).
  */
-HANDLE shm_unlink(const char* name);
+FILE_HANDLE shm_unlink(const char* name);
 
 /**
  * @brief Truncate / resize a handle-backed object (required to size SHM).
@@ -54,6 +53,6 @@ HANDLE shm_unlink(const char* name);
  *
  * @return 0 on success, -1 on error (errno set).
  */
-HANDLE ftruncate(HANDLE handle, size_t length);
+FILE_HANDLE ftruncate(FILE_HANDLE handle, size_t length);
 
 #endif  // VESPERAOS_SHM_H

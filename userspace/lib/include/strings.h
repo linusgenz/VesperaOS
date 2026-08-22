@@ -22,6 +22,10 @@
 #ifndef _STRINGS_H
 #define _STRINGS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 int strcasecmp(const char* s1, const char* s2);

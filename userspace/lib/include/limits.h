@@ -66,6 +66,11 @@
 #define LLONG_MAX 9223372036854775807LL
 #define ULLONG_MAX 18446744073709551615ULL
 
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__LP64__)
+#define UINTPTR_MAX ULONG_MAX
+#else
+#define UINTPTR_MAX UINT_MAX
+#endif
 
 #define MB_LEN_MAX 16
 

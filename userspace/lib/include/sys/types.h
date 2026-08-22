@@ -30,10 +30,9 @@
 extern "C" {
 #endif
 
-typedef uint64_t HANDLE;
-typedef HANDLE FILE_HANDLE;
-typedef HANDLE CHANNEL_HANDLE;
-typedef HANDLE DIR_HANDLE;
+typedef uint64_t FILE_HANDLE;
+typedef uint64_t CHANNEL_HANDLE;
+typedef uint64_t DIR_HANDLE;
 
 #ifdef __cplusplus
 }

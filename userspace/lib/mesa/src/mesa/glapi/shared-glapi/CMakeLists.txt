@@ -43,6 +43,11 @@ target_compile_definitions(glapi PRIVATE
         MAPI_MODE_SHARED_GLAPI
 )
 
+target_compile_options(glapi PRIVATE
+        ${MESA_COMMON_C_FLAGS}
+        -ftls-model=global-dynamic
+)
+
 # gnu_symbol_visibility : 'hidden'
 set_target_properties(glapi PROPERTIES
         C_VISIBILITY_PRESET hidden
@@ -52,9 +57,9 @@ set_target_properties(glapi PROPERTIES
 target_include_directories(glapi PRIVATE
         ${SHARED_GLAPI_ROOT}
         ${SHARED_GLAPI_OUT_DIR}
-        ${INC_MESA}
-        ${INC_SRC}
-        ${INC_INCLUDE}
+        ${MESA_ROOT}/include
+        ${MESA_ROOT}/src
+        ${MESA_ROOT}/src/mesa
 )
 
 if(C_MSVC_COMPAT_ARGS OR GCC_LTO_QUIRK)

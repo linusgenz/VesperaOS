@@ -257,26 +257,47 @@ char* strrchr(const char* s, int c) {
 }
 
 
-char* strtok(char* s, const char* delim) {
-    _Thread_local static char* next = NULL;
+char* strtok_r(char* str, const char* delim, char** saveptr) {
+    char* next = NULL;
 
-    if (s != NULL) next = s;
-    if (next == NULL) return NULL;
+    if (str == NULL) {
+        next = *saveptr;
+    } else {
+        next = str;
+    }
 
-    while (*next != '\0' && strchr(delim, *next)) ++next;
-    if (*next == '\0') { next = NULL; return NULL; }
+    if (next == NULL) {
+        return NULL;
+    }
+
+    while (*next != '\0' && strchr(delim, *next)) {
+        ++next;
+    }
+
+    if (*next == '\0') {
+        *saveptr = NULL;
+        return NULL;
+    }
 
     char* start = next;
-    while (*next != '\0' && !strchr(delim, *next)) ++next;
+
+    while (*next != '\0' && !strchr(delim, *next)) {
+        ++next;
+    }
 
     if (*next != '\0') {
         *next = '\0';
-        ++next;
+        *saveptr = next + 1;
     } else {
-        next = NULL;
+        *saveptr = NULL;
     }
 
     return start;
+}
+
+char* strtok(char* s, const char* delim) {
+    _Thread_local static char* saveptr = NULL;
+    return strtok_r(s, delim, &saveptr);
 }
 
 void* memset(void* dest, int c, size_t num) {

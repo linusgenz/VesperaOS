@@ -35,11 +35,11 @@ extern "C" {
 
 void fd_table_init(void);
 
-int fd_table_insert(HANDLE handle);
+int fd_table_insert(FILE_HANDLE handle);
 
-int fd_table_insert_at(int fd, HANDLE handle);
+int fd_table_insert_at(int fd, FILE_HANDLE handle);
 
-HANDLE fd_table_get(int fd);
+FILE_HANDLE fd_table_get(int fd);
 
 void fd_table_remove(int fd);
 

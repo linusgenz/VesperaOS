@@ -49,7 +49,7 @@ int open(const char* path, int flags, ...) {
         return -1;
     }
 
-    HANDLE handle = (HANDLE)ret;
+    FILE_HANDLE handle = (FILE_HANDLE)ret;
     int fd = fd_table_insert(handle);
     if (fd < 0) {
         sys_close((uint64_t)handle, 0, 0, 0, 0, 0);
@@ -72,7 +72,7 @@ int fcntl(int fd, int cmd, ...) {
             (void)va_arg(args, int);
             va_end(args);
 
-            HANDLE handle = fd_table_get(fd);
+            FILE_HANDLE handle = fd_table_get(fd);
             if (handle == INVALID_HANDLE) {
                 errno = EBADH;
                 return -1;
@@ -84,7 +84,7 @@ int fcntl(int fd, int cmd, ...) {
                 return -1;
             }
 
-            int new_fd = fd_table_insert((HANDLE)ret);
+            int new_fd = fd_table_insert((FILE_HANDLE)ret);
             if (new_fd < 0) {
                 sys_close((uint64_t)ret, 0, 0, 0, 0, 0);
                 return -1;

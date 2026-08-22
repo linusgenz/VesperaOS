@@ -28,7 +28,6 @@ add_custom_command(
 add_library(GLESv2 SHARED
         ${ES2API_ROOT}/libgles2_public.c
         ${ES2_GLAPI_MAPI_TMP_H}
-        $<$<BOOL:${WIN32}>:${GLES2_DEF}>
 )
 
 # Properties: SOVERSION, VERSION, Output-Name & Symbol-Visibility
@@ -45,9 +44,9 @@ target_include_directories(GLESv2 PRIVATE
         ${ES2API_OUT_DIR}
         ${MESA_ROOT}/include
         ${MESA_ROOT}/src
+        ${MESA_ROOT}/src/mesa
 )
 
-# Linking mit shared-glapi und System-Abhaengigkeiten
 target_link_libraries(GLESv2 PRIVATE
         glapi                   # Das Target aus shared-glapi/CMakeLists.txt
         ${DEP_THREAD}
