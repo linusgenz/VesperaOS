@@ -34,7 +34,7 @@ var searchData=
   ['devinfo_5fstring_5ft_31',['devinfo_string_t',['../structdevinfo__string__t.html',1,'']]],
   ['devinfo_5ft_32',['devinfo_t',['../structdevinfo__t.html',1,'']]],
   ['difftime_33',['difftime',['../userspace_2lib_2include_2time_8h.html#a780ca0a18ad4b4e6501eca77626dd2a1',1,'time.h']]],
-  ['dir_5fhandle_34',['dir_handle',['../stdio_8h.html#aa97abb6a0d40cc04ff108822ca886a22',1,'DIR_HANDLE:&#160;stdio.h'],['../userspace_2lib_2include_2sys_2types_8h.html#aa97abb6a0d40cc04ff108822ca886a22',1,'DIR_HANDLE:&#160;types.h']]],
+  ['dir_5fhandle_34',['dir_handle',['../stdlib_8h.html#a05c816d0e8245ff3a980866c04470d0d',1,'DIR_HANDLE:&#160;stdlib.h'],['../userspace_2lib_2include_2sys_2types_8h.html#a05c816d0e8245ff3a980866c04470d0d',1,'DIR_HANDLE:&#160;types.h']]],
   ['dirent_2eh_35',['dirent.h',['../userspace_2lib_2include_2dirent_8h.html',1,'(Global Namespace)'],['../include_2uapi_2vespera_2dirent_8h.html',1,'(Global Namespace)']]],
   ['dirent_5ft_36',['dirent_t',['../structdirent__t.html',1,'']]],
   ['dirent_5ftype_5ft_37',['dirent_type_t',['../include_2uapi_2vespera_2dirent_8h.html#ac6cf708d272e657bd000919c42d4c17d',1,'dirent.h']]],

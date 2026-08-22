@@ -69,14 +69,14 @@ var NAVTREEINDEX =
 "float_8h.html#a7fbf1534f9e0f0bfdb86fb928902474c",
 "include_2uapi_2vespera_2dev_2power_8h.html#ace57049e57cee188e0557f8da6bfa15c",
 "inttypes_8h.html#a2b7ab77ff6ede9c3c285b714496f77e2",
-"locale_8h.html",
-"meminfo_8h.html",
+"limits_8h_source.html",
+"math_8h_source.html",
 "stdint_8h.html#aaa5d1cd013383c889537491c3cfd9aad",
-"stella_8h.html#aa0184b9e432e66df90e22bff2e4cb073",
-"structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb",
-"structpthread__rwlock__t.html#af50e201a4d6da31939f3c52376781f90",
-"structvbus__header.html#aa92b6cde16a410ca60ab129218579cf7",
-"unistd_8h.html#a6316ec18194f4e2a68517d800a32d855"
+"stella_8h.html#aa6a434e1bee1f0f3fa5c77017e7ffe96",
+"structcpu__usage__stat.html#ac670c44a2835318aaac2025e8702165a",
+"structpthread__rwlockattr__t.html",
+"structvbus__header.html#ab17ec0fbd7b0e9fdf9d68bd1f94b4f54",
+"unistd_8h.html#a638757347bd9bf886b3d442b98033cf1"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -1,7 +1,6 @@
 var userspace_2lib_2include_2sys_2types_8h =
 [
-    [ "CHANNEL_HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6", null ],
-    [ "DIR_HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#aa97abb6a0d40cc04ff108822ca886a22", null ],
-    [ "FILE_HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#ad1b834449ae641c3c8648146bf8694c8", null ],
-    [ "HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#a6c5c9667427d602a4e4152b6a4f56a72", null ]
+    [ "CHANNEL_HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#a22b623254fce41b3721b04fab8805cde", null ],
+    [ "DIR_HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#a05c816d0e8245ff3a980866c04470d0d", null ],
+    [ "FILE_HANDLE", "userspace_2lib_2include_2sys_2types_8h.html#a2dbf9050303df6c7facc0c5faed80d11", null ]
 ];

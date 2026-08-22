@@ -1,7 +1,7 @@
 var searchData=
 [
   ['capability_5fset_0',['capability_set',['../capabilities_8h.html#a815887e087d487f64e0e9fdaf860af5b',1,'capabilities.h']]],
-  ['channel_5fhandle_1',['channel_handle',['../stdio_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6',1,'CHANNEL_HANDLE:&#160;stdio.h'],['../userspace_2lib_2include_2sys_2types_8h.html#a7c05f3f8b572c8bc1a699461d29fcea6',1,'CHANNEL_HANDLE:&#160;types.h']]],
+  ['channel_5fhandle_1',['channel_handle',['../stdlib_8h.html#a22b623254fce41b3721b04fab8805cde',1,'CHANNEL_HANDLE:&#160;stdlib.h'],['../userspace_2lib_2include_2sys_2types_8h.html#a22b623254fce41b3721b04fab8805cde',1,'CHANNEL_HANDLE:&#160;types.h']]],
   ['chronos_5fevent_5ft_2',['chronos_event_t',['../include_2uapi_2vespera_2chronos_8h.html#a47842c773459044e004a5596145d4586',1,'chronos.h']]],
   ['chronos_5fuser_5fcheckpoint_5ft_3',['chronos_user_checkpoint_t',['../include_2uapi_2vespera_2chronos_8h.html#a8b8da9fd9cbad6be667a5f96dfbb018f',1,'chronos.h']]],
   ['clock_5ft_4',['clock_t',['../alltypes_8h.html#a56d31f5d6d90595c821854a129b3e33a',1,'alltypes.h']]],

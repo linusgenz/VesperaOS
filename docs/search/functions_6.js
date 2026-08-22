@@ -66,7 +66,7 @@ var searchData=
   ['fstat_63',['fstat',['../userspace_2lib_2include_2sys_2stat_8h.html#a198a57e185e8a036ad06345623b84521',1,'stat.h']]],
   ['fsync_64',['fsync',['../unistd_8h.html#a9ba34c4ff72e21db486eedf77c2a18d0',1,'unistd.h']]],
   ['ftell_65',['ftell',['../stdio_8h.html#a0e9d737941bb64e471309cd6dc1f6989',1,'stdio.h']]],
-  ['ftruncate_66',['ftruncate',['../shm_8h.html#a4829002420a948f980ad4186938d27ae',1,'ftruncate(HANDLE handle, size_t length):&#160;shm.h'],['../unistd_8h.html#a0fb7c60877eacbfbd66eff04533ab0fe',1,'ftruncate(int fd, off_t length):&#160;unistd.h']]],
+  ['ftruncate_66',['ftruncate',['../shm_8h.html#a17bf165121f8e1b11831a4edde0be474',1,'ftruncate(FILE_HANDLE handle, size_t length):&#160;shm.h'],['../unistd_8h.html#a0fb7c60877eacbfbd66eff04533ab0fe',1,'ftruncate(int fd, off_t length):&#160;unistd.h']]],
   ['futex_5fwait_67',['futex_wait',['../userspace_2lib_2include_2futex_8h.html#a69bc8e42d4062dd5772f5300d0c98275',1,'futex.h']]],
   ['futex_5fwait_5funtil_68',['futex_wait_until',['../userspace_2lib_2include_2futex_8h.html#aa2c80e604897d4d649b3f73f1eafefaa',1,'futex.h']]],
   ['futex_5fwake_69',['futex_wake',['../userspace_2lib_2include_2futex_8h.html#a88546b1e4d0c3dda1fcbdcd72f8d65d1',1,'futex.h']]],

@@ -1,7 +1,5 @@
 var NAVTREEINDEX9 =
 {
-"stella_8h.html#aa0184b9e432e66df90e22bff2e4cb073":[5,0,1,0,0,45,63],
-"stella_8h.html#aa6584c8f435d479fb82bfd167aeee892":[5,0,1,0,0,45,5],
 "stella_8h.html#aa6a434e1bee1f0f3fa5c77017e7ffe96":[5,0,1,0,0,45,95],
 "stella_8h.html#aa9844976d95a0520d39ec1895b3167e5":[5,0,1,0,0,45,15],
 "stella_8h.html#aafdb6b973fe2b69778bd302062920a10":[5,0,1,0,0,45,16],
@@ -69,6 +67,7 @@ var NAVTREEINDEX9 =
 "string_8h.html#a14e6581584b7433c4440fdc7ecf86aea":[5,0,1,0,0,46,10],
 "string_8h.html#a19546e43db31c3095991b04023b422b2":[5,0,1,0,0,46,8],
 "string_8h.html#a1dfdc55c5334154353963674598faf1b":[5,0,1,0,0,46,6],
+"string_8h.html#a3a94cced5881b5d080b7e14305a5b38a":[5,0,1,0,0,46,27],
 "string_8h.html#a4522f53cff2fef09001e4d34227463a9":[5,0,1,0,0,46,4],
 "string_8h.html#a5b03665d9d996518692af71c3dceb971":[5,0,1,0,0,46,22],
 "string_8h.html#a5ffaef3fc3f7ddb9856ccd4bcb79e9bc":[5,0,1,0,0,46,14],
@@ -249,5 +248,6 @@ var NAVTREEINDEX9 =
 "structcpu__usage__info.html#ae6dae227e3dccf969c3215a4e7923d72":[4,0,8,1],
 "structcpu__usage__stat.html":[4,0,9],
 "structcpu__usage__stat.html#a93cbceecc8a138b99525c48988b88db0":[4,0,9,1],
-"structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720":[4,0,9,0]
+"structcpu__usage__stat.html#aa6c2624fa06ce58cc9efc5e7358e7720":[4,0,9,0],
+"structcpu__usage__stat.html#aafb9ce588b00be8978b707ce164728eb":[4,0,9,3]
 };

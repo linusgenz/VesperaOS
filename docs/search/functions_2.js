@@ -8,6 +8,7 @@ var searchData=
   ['border_5',['border',['../classstella_1_1Widget.html#a3b2135ddbf21d436223de3a64798a28b',1,'stella::Widget']]],
   ['borderbottom_6',['borderBottom',['../classstella_1_1Widget.html#af7ea42a9f37ecd9b17ebfc07602ed7ff',1,'stella::Widget']]],
   ['bordertop_7',['borderTop',['../classstella_1_1Widget.html#aea8ad7b8bd6fd6d57fc242f9117b616e',1,'stella::Widget']]],
-  ['button_8',['Button',['../classstella_1_1Button.html#abb3c733b1ffd45edcb98ab069cd40f93',1,'stella::Button']]],
-  ['bzero_9',['bzero',['../strings_8h.html#a59505af7f1c47ff01fdb944801642033',1,'strings.h']]]
+  ['bsearch_8',['bsearch',['../stdlib_8h.html#ae447b9b80b4bff022d1e0f1fa7a36984',1,'stdlib.h']]],
+  ['button_9',['Button',['../classstella_1_1Button.html#abb3c733b1ffd45edcb98ab069cd40f93',1,'stella::Button']]],
+  ['bzero_10',['bzero',['../strings_8h.html#a59505af7f1c47ff01fdb944801642033',1,'strings.h']]]
 ];

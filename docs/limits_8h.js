@@ -16,6 +16,7 @@ var limits_8h =
     [ "SHRT_MIN", "limits_8h.html#ae59de266aceffa1c258ac13f45fe0d18", null ],
     [ "UCHAR_MAX", "limits_8h.html#a4066e640ee269d5d8f83ff6643b7af5f", null ],
     [ "UINT_MAX", "limits_8h.html#ac998ea02fbd821fc123d60445ce76f38", null ],
+    [ "UINTPTR_MAX", "limits_8h.html#ab2355300ea19395357e62d780f4dd073", null ],
     [ "ULLONG_MAX", "limits_8h.html#aa1dd7166a75b73ad62b111ae6fc17c59", null ],
     [ "ULONG_MAX", "limits_8h.html#a41c51926a1997aab3503f9083935e06c", null ],
     [ "USHRT_MAX", "limits_8h.html#a689b119da994dece91d44b5aeac643ed", null ]

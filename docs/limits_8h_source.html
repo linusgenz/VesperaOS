@@ -144,10 +144,15 @@ $(document).ready(function(){initNavTree('limits_8h_source.html',''); initResiza
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="limits_8h.html#a23ec2cf7fc07ea8f817bbac758402baf">   66</a></span><span class="preprocessor">#define LLONG_MAX 9223372036854775807LL</span></div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="limits_8h.html#aa1dd7166a75b73ad62b111ae6fc17c59">   67</a></span><span class="preprocessor">#define ULLONG_MAX 18446744073709551615ULL</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="limits_8h.html#a88a1b2d6ac46174ac7b571dca5b1f274">   70</a></span><span class="preprocessor">#define MB_LEN_MAX 16</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#endif </span><span class="comment">//VESPERAOS_LIMITS_H</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="preprocessor">#if defined(__x86_64__) || defined(__aarch64__) || defined(__LP64__)</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#define UINTPTR_MAX ULONG_MAX</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="limits_8h.html#ab2355300ea19395357e62d780f4dd073">   72</a></span><span class="preprocessor">#define UINTPTR_MAX UINT_MAX</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="limits_8h.html#a88a1b2d6ac46174ac7b571dca5b1f274">   75</a></span><span class="preprocessor">#define MB_LEN_MAX 16</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#endif </span><span class="comment">//VESPERAOS_LIMITS_H</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
