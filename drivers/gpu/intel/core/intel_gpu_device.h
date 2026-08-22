@@ -23,18 +23,22 @@
 #include <pci/pci_id.h>
 #include <vespera/interrupts.h>
 #include <vespera/mm/addr.h>
+#include <vespera_errno.h>
 
 #include "ggtt_allocator.h"
 #include <gpu/intel/regs/pci_config_regs.h>
 
-#include "gpu/intel/bcs/intel_bcs.h"
-#include "uapi/vespera/dev/gpu.h"
+#include "vespera/devices/char_device.h"
 #include "vespera/devices/device_info.h"
 #include "vespera/devices/kernel_device.h"
 
 
 namespace pci {
     struct pci_device;
+}
+
+namespace gpu::intel::bcs {
+    class IntelBcs;
 }
 
 namespace gpu::intel::core {
@@ -86,7 +90,8 @@ namespace gpu::intel::core {
      * engine's bits (breaking the "neither engine owns the other" invariant
      * above) or risk clobbering them via a naive full-register write.
      */
-    class IntelGpuDevice final : public IDeviceInfo, public IRenderDriver {
+    class IntelGpuDevice final : public IDeviceInfo, public IRenderDriver, public CharDevice {
+        // TODO shouldnt be CharDevice, implement IoctlHandler or similar later.
     public:
         /// Sentinel returned by allocate_irq_vector() on failure.
         static constexpr u8 INVALID_VECTOR = 0xFF;
@@ -124,35 +129,30 @@ namespace gpu::intel::core {
         bool get_vendor(char* out, usize len) override;
         bool get_model(char* out, usize len) override;
 
-        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override {
-            return bcs_->fill_rect(px, py, w, h, colour);
-        }
-
+        bool fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) override;
         bool blit_region(
             const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
-        ) override {
-            return bcs_->blit_region(pixels, src_stride, src_x, src_y, w, h, dst_x, dst_y);
+        ) override;
+
+        void present() override;
+
+        [[nodiscard]] u32 screen_width_px() const override;
+
+        [[nodiscard]] u32 screen_height_px() const override;
+
+        [[nodiscard]] u32 bytes_per_scanline() const override;
+
+        void add_bcs(bcs::IntelBcs* engine) {
+            bcs_ = engine;
         }
 
-        void present() override {
-            return bcs_->present();
-        }
+        int open(CharFile** out_cf) override { return 0; }
+        int release(CharFile* cf) override { return 0; }
 
-        [[nodiscard]] u32 screen_width_px() const override {
-            return bcs_->screen_width_px();
-        }
+        isize read(CharFile* cf, void* buffer, usize count, usize offset) override { return -ENOTTY; };
+        isize write(CharFile* cf, const void* buffer, usize count) override { return -ENOTTY; };
 
-        [[nodiscard]] u32 screen_height_px() const override {
-            return bcs_->screen_height_px();
-        }
-
-        [[nodiscard]] u32 bytes_per_scanline() const override {
-            return bcs_->bytes_per_scanline();
-        }
-
-        void add_bcs(bcs::IntelBcs* bcs) {
-            bcs_ = bcs;
-        }
+        int ioctl(CharFile*, u32, void*) override;
 
         /// Drives one ForceWake domain: write request, poll ack, timeout.
         /// Stateless with respect to which domain is being woken — the
@@ -200,8 +200,6 @@ namespace gpu::intel::core {
         /// until the next flip explicitly re-arms it.
         void de_pipe_a_disarm_vblank() const;
 
-        void query_info(gpu_device_info_t* out_info) const;
-
     private:
         /// The single MSI/MSI-X handler installed for this device's GT0 +
         /// DE Pipe A interrupts. Reads MASTER_INT_CTL once to see which
@@ -216,6 +214,14 @@ namespace gpu::intel::core {
         /// multiple times / from multiple subsystems — never zeroes the
         /// register first the way the old per-engine init paths did.
         void master_int_ctl_enable() const;
+
+        struct FuseTopology {
+            u32 slice_count;
+            u32 subslice_count;
+            u32 eu_count;
+        };
+
+        [[nodiscard]] FuseTopology query_fuse_topology() const;
 
         volatile INTEL_IGP_PCI_CONFIG* igp_cfg_;
         pci::pci_id pci_id_;

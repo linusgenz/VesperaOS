@@ -135,8 +135,6 @@ namespace pci {
             }
         }
 
-     //   kernel::time::sleep_ms(4000);
-
         for (usize t = 0; t < entries; ++t) {
             const auto* cfg = reinterpret_cast<kernel::acpi::DEVICE_CONFIG*>(
                 reinterpret_cast<u64>(mcfg) + sizeof(kernel::acpi::MCFG_HEADER) +

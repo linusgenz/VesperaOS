@@ -34,10 +34,12 @@
 #include "filesystem/devfs.h"
 #include "gpu/intel/rcs/intel_rcs.h"
 #include "gpu/intel/regs/fuse_regs.h"
+#include "uapi/vespera/dev/lucifer_drm.h"
 
 namespace gpu::intel::core {
     IntelGpuDevice::IntelGpuDevice(const pci::pci_device& igpu_dev)
-        : igp_cfg_(reinterpret_cast<volatile INTEL_IGP_PCI_CONFIG*>(igpu_dev.header)), pci_id_(igpu_dev.id) {
+        : CharDevice(BusType::Pci), igp_cfg_(reinterpret_cast<volatile INTEL_IGP_PCI_CONFIG*>(igpu_dev.header)),
+          pci_id_(igpu_dev.id) {
         const phys_addr_t bar0 =
             make_phys(static_cast<u64>(igp_cfg_->gttmmadr_hi) << 32 | (igp_cfg_->gttmmadr_lo & GTTMMADR_ADDR_MASK));
 
@@ -49,7 +51,7 @@ namespace gpu::intel::core {
 
     bool IntelGpuDevice::init() {
         char name[16];
-        DeviceManager::alloc_unique_device_name("intel_bcs", name, sizeof(name));
+        DeviceManager::alloc_unique_device_name("dri/card", name, sizeof(name));
         kd_ = DeviceManager::register_device(
             DeviceDescriptor{}
             .set_name(name)
@@ -59,6 +61,7 @@ namespace gpu::intel::core {
             .set_controller(ControllerType::IntelGpu)
             .with_gpu(this)
             .with_info(this)
+            .with_char(this)
         );
 
         DevFs::register_device(kd_);
@@ -88,10 +91,12 @@ namespace gpu::intel::core {
         return false;
     }
 
-    void IntelGpuDevice::query_info(gpu_device_info_t* out_info) const {
-        if (!out_info) {
-            return;
-        }
+    IntelGpuDevice::FuseTopology IntelGpuDevice::query_fuse_topology() const {
+        FuseTopology topo = {
+            .slice_count    = 1,
+            .subslice_count = 3,
+            .eu_count       = 24
+        };
 
         const ForceWakeDomain render_fw{
             rcs::FORCEWAKE_RENDER,
@@ -103,15 +108,8 @@ namespace gpu::intel::core {
 
         if (const bool fw_ok = force_wake_enable(render_fw); !fw_ok) {
             Log::warning("intel-gpu: ForceWake failed before reading FUSE2 registers, using default values!");
+            return topo;
         }
-
-        out_info->pci_device_id = igp_cfg_->device_id;
-        out_info->gen_major = 9;
-        out_info->gen_minor = 0;
-
-        u32 slice_count = 1;
-        u32 subslice_count = 3;
-        u32 eu_count = 24;
 
         FUSE2 fuse2{};
         fuse2.raw = *reinterpret_cast<volatile u32*>(mmio_base_ + FUSE2_MMIO);
@@ -119,7 +117,7 @@ namespace gpu::intel::core {
         if (fuse2.raw != 0x00000000u && fuse2.raw != 0xFFFFFFFFu) {
             u32 active_slices = __builtin_popcount(fuse2.slice_enable);
             if (active_slices > 0) {
-                slice_count = active_slices;
+                topo.slice_count = active_slices;
             }
 
             u32 disabled_subslices_per_slice = __builtin_popcount(fuse2.subslice_disable);
@@ -127,26 +125,14 @@ namespace gpu::intel::core {
                                                  ? (4 - disabled_subslices_per_slice)
                                                  : 0;
 
-            subslice_count = slice_count * active_subslices_per_slice;
+            topo.subslice_count = topo.slice_count * active_subslices_per_slice;
 
             // Gen9 standard: max 8 EUs per subslice
             constexpr u32 EUS_PER_SUBSLICE = 8;
-            eu_count = subslice_count * EUS_PER_SUBSLICE;
+            topo.eu_count = topo.subslice_count * EUS_PER_SUBSLICE;
         }
 
-        out_info->slice_count = slice_count;
-        out_info->subslice_count = subslice_count;
-        out_info->eu_count = eu_count;
-
-        out_info->gtt_size_bytes = ggtt_alloc_.usable_size_bytes();
-        out_info->min_buffer_align = 4096;
-
-
-        uint32_t ts_freq = 12000000; // Default Gen9 (12 MHz)
-
-        // Add switch for diffrent generations for the frequence
-
-        out_info->timestamp_freq_hz = ts_freq;
+        return topo;
     }
 
     u8 IntelGpuDevice::allocate_irq_vector(irq_handler_t handler, void* ctx) {
@@ -405,5 +391,132 @@ namespace gpu::intel::core {
         strncpy(out, pci::get_device_name(igp_cfg_->vendor_id, igp_cfg_->device_id), len);
         out[len - 1] = '\0';
         return true;
+    }
+
+    int IntelGpuDevice::ioctl(CharFile*, const u32 request, void* arg) {
+        if (request != LUCIFER_IOCTL_QUERY) {
+            return -1;
+        }
+
+        auto* query = static_cast<lucifer_query*>(arg);
+        if (!query) {
+            return -1;
+        }
+
+        u32 expected_size = 0;
+
+        switch (query->query) {
+            case LUCIFER_QUERY_CONFIG:
+                expected_size = sizeof(lucifer_query_config);
+                break;
+            case LUCIFER_QUERY_TOPOLOGY:
+                expected_size = sizeof(lucifer_query_topology);
+                break;
+            case LUCIFER_QUERY_MEM_REGIONS:
+                expected_size = sizeof(lucifer_query_mem_regions);
+                break;
+            default:
+                return -1;
+        }
+
+        if (query->data == 0) {
+            query->size = expected_size;
+            return 0;
+        }
+
+        if (query->size < expected_size) {
+            return -1;
+        }
+
+        switch (query->query) {
+            case LUCIFER_QUERY_CONFIG: {
+                auto* out = reinterpret_cast<lucifer_query_config*>(query->data);
+
+                out->device_id = igp_cfg_->device_id;
+                out->revision = igp_cfg_->revision_id;
+
+                FuseTopology topo = query_fuse_topology();
+                if (topo.subslice_count >= 6) {
+                    out->gt_level = 3; // GT3 / GT4
+                } else if (topo.subslice_count >= 3) {
+                    out->gt_level = 2; // GT2
+                } else {
+                    out->gt_level = 1; // GT1
+                }
+
+                out->gtt_size = ggtt_alloc_.usable_size_bytes();
+                out->mem_alignment = 4096;
+                out->timestamp_frequency = 12000000;
+
+                out->pad0 = 0;
+                out->pad1 = 0;
+                out->pad2 = 0;
+                break;
+            }
+            case LUCIFER_QUERY_TOPOLOGY: {
+                auto* out = reinterpret_cast<lucifer_query_topology*>(query->data);
+
+                FuseTopology topo = query_fuse_topology();
+
+                out->slice_mask = (1u << topo.slice_count) - 1;
+
+                u32 subs_per_slice = (topo.slice_count > 0) ? (topo.subslice_count / topo.slice_count) : 0;
+                out->subslice_mask = (1u << subs_per_slice) - 1;
+
+                u32 eus_per_sub = (topo.subslice_count > 0) ? (topo.eu_count / topo.subslice_count) : 0;
+                out->eu_mask = (1u << eus_per_sub) - 1;
+
+                if (topo.subslice_count >= 6) {
+                    out->l3_banks = 4; // GT3 / GT4
+                } else if (topo.subslice_count >= 2) {
+                    out->l3_banks = 2; // GT2
+                } else {
+                    out->l3_banks = 1; // GT1
+                }
+                break;
+            }
+            case LUCIFER_QUERY_MEM_REGIONS: {
+                auto* out = reinterpret_cast<lucifer_query_mem_regions*>(query->data);
+
+                out->total_size = ggtt_alloc_.usable_size_bytes();
+
+                const u64 used_pages = static_cast<u64>(ggtt_alloc_.persistent_used_pages()) +
+                                       static_cast<u64>(ggtt_alloc_.transient_used_pages());
+
+                out->used = used_pages * PAGE_SIZE;
+                break;
+            }
+            default: ;
+        }
+
+        query->size = expected_size;
+
+        return 0;
+    }
+
+    bool IntelGpuDevice::fill_rect(u32 px, u32 py, u32 w, u32 h, u32 colour) {
+        return bcs_->fill_rect(px, py, w, h, colour);
+    }
+
+    bool IntelGpuDevice::blit_region(
+        const u32* pixels, u32 src_stride, u32 src_x, u32 src_y, u32 w, u32 h, u32 dst_x, u32 dst_y
+    ) {
+        return bcs_->blit_region(pixels, src_stride, src_x, src_y, w, h, dst_x, dst_y);
+    }
+
+    void IntelGpuDevice::present() {
+        return bcs_->present();
+    }
+
+    [[nodiscard]] u32 IntelGpuDevice::screen_width_px() const {
+        return bcs_->screen_width_px();
+    }
+
+    [[nodiscard]] u32 IntelGpuDevice::screen_height_px() const {
+        return bcs_->screen_height_px();
+    }
+
+    [[nodiscard]] u32 IntelGpuDevice::bytes_per_scanline() const {
+        return bcs_->bytes_per_scanline();
     }
 } // namespace blt

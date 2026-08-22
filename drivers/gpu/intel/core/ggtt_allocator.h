@@ -150,6 +150,6 @@ namespace gpu::intel::core {
         mutable Spinlock lock_;
     };
 
-}  // namespace blt
+}  // namespace gpu::intel::core
 
 #endif  // VESPERAOS_GGTT_ALLOCATOR_H
