@@ -68,6 +68,7 @@ extern _Thread_local int errno;
 #define ENOSYS         38   // Function not implemented
 #define ENOTEMPTY      39   // Directory not empty
 #define ELOOP          40   // Too many symbolic links
+#define ETIME          62
 
 // Custom or Extended Kernel/Internal Errors
 #define ENOMSG         42   // No message of desired type
@@ -75,6 +76,7 @@ extern _Thread_local int errno;
 #define EILSEQ         84   // Invalid multibyte sequence
 
 #define ETIMEDOUT 116       /* Connection timed out */
+#define ECANCELED 125       // Operation canceled
 
 // Nonstandard / OS-specific
 #define EUNKNOWN      1000  // Unknown error

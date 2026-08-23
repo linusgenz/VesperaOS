@@ -84,6 +84,7 @@ add_dependencies(mesa_intel_compiler_nir sysroot_headers mesa_intel_mda)
 # brw -- der eigentliche Gen9-Backend-Compiler (NIR -> Intel-ISA)
 # ---------------------------------------------------------------------------
 add_subdirectory(brw)
+add_subdirectory(jay)
 
 add_custom_target(mesa_intel_compiler
         DEPENDS
@@ -92,5 +93,6 @@ add_custom_target(mesa_intel_compiler
         mesa_intel_compiler_gen
         mesa_intel_compiler_nir
         mesa_intel_compiler_brw
+        mesa_intel_compiler_jay
         COMMENT "All active intel/compiler layers (mda, gen, nir, brw)"
 )

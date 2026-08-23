@@ -23,6 +23,7 @@ set(INTEL_SHADERS_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 # blorp konfiguriert wird), aber nicht doppelt mit WARNING beschwert,
 # wenn schon anderswo gesetzt.
 # ────────────────────────────────────────────────────────────────
+
 if(NOT DEFINED MESA_CLC_EXECUTABLE)
     set(MESA_CLC_EXECUTABLE "MESA_CLC_EXECUTABLE-NOT-SET")
 endif()
@@ -30,23 +31,14 @@ if(NOT DEFINED VTN_BINDGEN2_EXECUTABLE)
     set(VTN_BINDGEN2_EXECUTABLE "VTN_BINDGEN2_EXECUTABLE-NOT-SET")
 endif()
 
-# ────────────────────────────────────────────────────────────────
-# TODO(vespera): genxml-Generierung. In meson.build ist
-# gen_cl_xml_pack eine `depends`-Abhängigkeit des CL→SPV-Schritts
-# (generiert die genxml-Header, die die .cl-Dateien via -I...genxml
-# includieren). Bei uns liefert dafür das Target `mesa_genxml`
-# (Verzeichnis src/intel/genxml). Als Build-Order-Dependency unten
-# über add_dependencies eingehängt — falls mesa_genxml kein reines
-# Custom-Target ist, ggf. anpassen.
-# ────────────────────────────────────────────────────────────────
-
-# ────────────────────────────────────────────────────────────────
-# TODO(vespera): device-workaround-Quellen. In meson.build ist
-# intel_dev_wa_src eine `depends`-Abhängigkeit des CL→SPV-Schritts.
-# Bei uns liefert dafür das Target `mesa_intel_dev`
-# (Verzeichnis src/intel/dev). Ebenfalls unten als Build-Order-
-# Dependency eingehängt.
-# ────────────────────────────────────────────────────────────────
+if(NOT DEFINED GENXML_INCLUDE_DIRS)
+    message(FATAL_ERROR
+            "intel/shaders: GENXML_INCLUDE_DIRS ist nicht gesetzt -- "
+            "src/intel/genxml muss vor src/intel/shaders konfiguriert "
+            "werden (add_subdirectory-Reihenfolge in der uebergeordneten "
+            "CMakeLists.txt pruefen)."
+    )
+endif()
 
 # ────────────────────────────────────────────────────────────────
 # Quelldateien — meson.build kompiliert NICHT eine .cl-Datei pro Gen,
@@ -77,6 +69,11 @@ set(INTEL_SHADER_GFX_VERX10_LIST
         80 90 110 120 125 200 300 350
 )
 
+set(GENXML_INCLUDE_FLAGS "")
+foreach(_genxml_dir ${GENXML_INCLUDE_DIRS})
+    list(APPEND GENXML_INCLUDE_FLAGS -I${_genxml_dir})
+endforeach()
+
 set(INTEL_SHADERS_ALL_CPP "")
 set(INTEL_SHADERS_ALL_H "")
 
@@ -100,10 +97,11 @@ foreach(gfx_verx10 ${INTEL_SHADER_GFX_VERX10_LIST})
             -I${MESA_ROOT}/src/compiler/libcl
             -I${MESA_ROOT}/src
             -I${MESA_ROOT}/src/intel
-            -I${CMAKE_CURRENT_BINARY_DIR}/.. # we want to get the source intel dir for the non generated headers from genxml
+            -I${CMAKE_CURRENT_BINARY_DIR}/..
             -I${MESA_ROOT}/src/intel/genxml
+            ${GENXML_INCLUDE_FLAGS}
 
-            DEPENDS ${INTEL_SHADER_SOURCES} ${MESA_CLC_EXECUTABLE}
+            DEPENDS ${INTEL_SHADER_SOURCES} ${MESA_CLC_EXECUTABLE} mesa_genxml mesa_intel_dev
             COMMENT "Generating intel/shaders/intel_gfx${gfx_verx10}_shaders.spv (mesa_clc)"
             VERBATIM
     )

@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 cmake_policy(SET CMP0118 NEW)
-project(vesplib C ASM_NASM)
+project(vesplib C ASM_NASM ASM)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
-
-enable_language(ASM_NASM)
 
 set(CPU_TYPE "x86_64")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
@@ -104,6 +102,9 @@ add_subdirectory(readline)
 add_subdirectory(lvespera)
 add_subdirectory(ld)
 add_subdirectory(mesa mesa_build)
+add_subdirectory(vespera-gl-offscreen)
+add_subdirectory(gl_offscreen_test)
+add_subdirectory(libdrm)
 
 # ────────────────────────────────────────────────────────────────
 # Math library (generic + x86_64 SIMD overrides)
@@ -173,6 +174,10 @@ set(LIB_SOURCES
         src/pthread.c
         src/sched.c
         src/strings.c
+        src/dirent.c
+        src/libgen.c
+        src/iswctype.c
+        src/poll.c
 
         src/bits/fenv.c
 
@@ -186,6 +191,15 @@ set(LIB_SOURCES
         src/sys/file.c
 
         src/internal/fd_table.c
+        src/internal/internal.c
+
+        src/elf_loader/elf_loader.c
+
+        src/regex/regcomp.c
+        src/regex/regerror.c
+        src/regex/regexec.c
+        src/regex/tre-mem.c
+        src/regex/fnmatch.c
 
         ${LIBJPEG_SRC}/jcapimin.c
         ${LIBJPEG_SRC}/jdapimin.c
@@ -459,8 +473,8 @@ add_dependencies(vesplib sysroot_headers)
 add_custom_target(sysroot_install
         DEPENDS
         vesplib vesplib_cpp crt0_obj
-        lua lua_bin lvespera ld_vespera mesa_root
-        sysroot_install_readline
+        lua lua_bin lvespera ld_vespera drm::drm mesa_root
+        sysroot_install_readline vespera_gl_offscreen_test
 
         # Link crt0 into a staging file first, then copy_if_different so downstream
         # targets are not invalidated when the content has not actually changed.

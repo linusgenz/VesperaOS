@@ -58,8 +58,6 @@ typedef uint64_t        sigset_t;
 
 #define NSIG      32  /* Number of supported signals                       */
 
-#define SIG_DFL  ((void (*)(int))0)   /* Default signal handling           */
-#define SIG_IGN  ((void (*)(int))1)   /* Ignore signal                     */
 #define SIG_ERR  ((void (*)(int))-1)  /* Error return from signal()        */
 
 /* ── SA_* flags (sa_flags in struct sigaction) ─────────────────────────── */

@@ -501,7 +501,7 @@ void rewind(FILE* stream);
  * @see closedir()
  * @see readdir()
  */
-DIR_HANDLE opendir(const char* path);
+DIR_HANDLE vopendir(const char* path);
 
 /**
  * @brief Close a directory handle.
@@ -513,7 +513,7 @@ DIR_HANDLE opendir(const char* path);
  *
  * @see opendir()
  */
-int closedir(DIR_HANDLE handle);
+int vclosedir(DIR_HANDLE handle);
 
 /**
  * @brief Read a directory entry.
@@ -528,7 +528,7 @@ int closedir(DIR_HANDLE handle);
  * @see opendir()
  * @see closedir()
  */
-ssize_t readdir(DIR_HANDLE handle, dirent_t* entry);
+ssize_t vreaddir(DIR_HANDLE handle, dirent_t* entry);
 
 /**
  * @brief Open a resource (generic handle).

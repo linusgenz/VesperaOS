@@ -1358,7 +1358,7 @@ void rewind(FILE* f) {
     f->error = 0;
 }
 
-DIR_HANDLE opendir(const char* path) {
+DIR_HANDLE vopendir(const char* path) {
     int64_t ret = sys_open((uint64_t)path, O_DIRECTORY, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
@@ -1367,7 +1367,7 @@ DIR_HANDLE opendir(const char* path) {
     return (DIR_HANDLE)ret;
 }
 
-int closedir(DIR_HANDLE handle) {
+int vclosedir(DIR_HANDLE handle) {
     int64_t ret = sys_close(handle, 0, 0, 0, 0, 0);
     if (ret < 0) {
         errno = (int)(-ret);
@@ -1376,7 +1376,7 @@ int closedir(DIR_HANDLE handle) {
     return 0;
 }
 
-ssize_t readdir(DIR_HANDLE handle, dirent_t* entry) {
+ssize_t vreaddir(DIR_HANDLE handle, dirent_t* entry) {
     if (!entry) return -1;
     return sys_readdir(handle, (uint64_t)entry, sizeof(dirent_t), 0, 0, 0);
 }

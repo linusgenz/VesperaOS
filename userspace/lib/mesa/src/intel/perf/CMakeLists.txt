@@ -65,6 +65,9 @@ set(INTEL_PERF_CORE_SOURCES
         intel_perf_query.c
         intel_perf_mdapi.c
         intel_perf_metrics_library.cpp
+
+        i915/intel_perf.c
+        xe/intel_perf.c
 )
 list(TRANSFORM INTEL_PERF_CORE_SOURCES PREPEND "${INTEL_PERF_ROOT}/")
 
@@ -87,15 +90,11 @@ target_include_directories(mesa_intel_perf
 
 target_compile_options(mesa_intel_perf PRIVATE
         $<$<COMPILE_LANGUAGE:C>:${MESA_COMMON_C_FLAGS}>
-        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_CXX_FLAGS}>
+        $<$<COMPILE_LANGUAGE:CXX>:${MESA_COMMON_C_FLAGS}>
 )
 
-target_compile_options(mesa_intel_perf PRIVATE ${MESA_SSE2_ARGS})
+target_compile_options(mesa_intel_perf PRIVATE -fvisibility=hidden ${MESA_SSE2_ARGS})
 
-target_compile_options(mesa_intel_perf PRIVATE -fvisibility=hidden)
+target_link_libraries(mesa_intel_perf PUBLIC mesa_util mesa_intel_dev mesa_intel_common mesa_intel_ds)
 
-target_link_libraries(mesa_intel_perf PUBLIC mesa_util mesa_intel_dev mesa_intel_common)
-
-add_dependencies(mesa_intel_perf
-        # sysroot_headers
-        mesa_util mesa_intel_dev mesa_intel_common)
+add_dependencies(mesa_intel_perf sysroot_headers mesa_util mesa_intel_dev mesa_intel_common)

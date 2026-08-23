@@ -34,7 +34,7 @@
  * @return On success: A non-negative integer representing the SHM handle.
  * On error: -1 with errno set.
  */
-FILE_HANDLE shm_open(const char* name, int oflag, uint32_t mode);
+int shm_open(const char* name, int oflag, uint32_t mode);
 
 /**
  * @brief Remove a POSIX shared memory object name.
@@ -43,16 +43,6 @@ FILE_HANDLE shm_open(const char* name, int oflag, uint32_t mode);
  *
  * @return 0 on success, -1 on error (errno set).
  */
-FILE_HANDLE shm_unlink(const char* name);
-
-/**
- * @brief Truncate / resize a handle-backed object (required to size SHM).
- *
- * @param handle The SHM handle returned by shm_open.
- * @param length The target size of the shared memory region in bytes.
- *
- * @return 0 on success, -1 on error (errno set).
- */
-FILE_HANDLE ftruncate(FILE_HANDLE handle, size_t length);
+int shm_unlink(const char* name);
 
 #endif  // VESPERAOS_SHM_H

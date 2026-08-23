@@ -208,7 +208,7 @@ add_custom_command(
 # ---- git_sha1.h ----
 set(GIT_SHA1_H ${CMAKE_CURRENT_BINARY_DIR}/git_sha1.h)
 if(NOT EXISTS ${GIT_SHA1_H})
-    file(COPY ${UTIL_SRC}/git_sha1.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(COPY ${MESA_SRC}/git_sha1.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
 # ---- shader_stats.h ----

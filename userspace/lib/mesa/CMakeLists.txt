@@ -22,7 +22,10 @@ file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" MESA_VERSION)
 add_compile_definitions(PACKAGE_VERSION="${MESA_VERSION}"
         HAVE_ENDIAN_H=1
         HAVE_PTHREAD
+        MAJOR_IN_SYSMACROS
+        HAVE_DIRENT_D_TYPE
         HAVE_STRUCT_TIMESPEC
+        WITH_XMLCONFIG=0
         HAVE_OPENGL=1
         HAVE_OPENGL_ES_1=0
         HAVE_OPENGL_ES_2=1
@@ -74,7 +77,7 @@ add_subdirectory(src/intel/isl)
 add_subdirectory(src/intel/common)
 add_subdirectory(src/intel/compiler)
 add_subdirectory(src/intel/shaders)
-# add_subdirectory(src/intel/perf)
+add_subdirectory(src/intel/perf)
 add_subdirectory(src/intel/tools)
 add_subdirectory(src/intel/blorp)
 add_subdirectory(src/intel/ds)
@@ -100,7 +103,7 @@ add_custom_target(mesa_root
         mesa_intel_blorp
         mesa_intel_decoder
         mesa_intel_ds
-#        mesa_intel_perf
+        mesa_intel_perf
         mesa_intel_shaders
         mesa_gallium_aux
         mesa_iris_driver

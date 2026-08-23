@@ -1,22 +1,4 @@
 # lib/mesa/src/intel/compiler/brw/CMakeLists.txt
-#
-# Entspricht Mesa upstream src/intel/compiler/brw/meson.build.
-# Der eigentliche Gen9-Backend-Compiler: NIR -> Intel EU-Instruktionen.
-#
-# Bewusst ausgelassen: Tests (idep_gtest-Suite).
-#
-# WICHTIG -- eine offene Abhaengigkeit, die noch nicht eingehaengt ist:
-#   idep_libintel_common / idep_genxml: kommen aus intel/common und
-#   intel/isl (genxml-generierte Register-Definitionen). Diese Layer
-#   sind laut eurer Root-CMake noch nicht aktiv (auskommentiert). brw
-#   wird vermutlich beim Linken nach Symbolen aus intel/common/isl
-#   verlangen -- das ist erwartet und der naechste Layer nach diesem hier.
-#
-# idep_mda ist aufgeloest (src/intel/mda/meson.build) und unten eingehaengt.
-#
-# libisl wird in upstream direkt mit in idep_intel_compiler_brw verlinkt
-# (link_with : [libintel_compiler_brw, libisl]) -- das bilden wir ab,
-# sobald mesa_isl als Target existiert.
 
 set(BRW_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(BRW_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -155,7 +137,7 @@ target_link_libraries(mesa_intel_compiler_brw
         mesa_intel_compiler_gen
         mesa_intel_mda
         mesa_nir
-        mesa_isl
+        mesa_intel_isl
         mesa_intel_common
 )
 

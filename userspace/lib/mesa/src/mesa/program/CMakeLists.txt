@@ -9,8 +9,10 @@
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-set(PROGRAM_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-set(PROGRAM_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(PROGRAM_ROOT ${CMAKE_CURRENT_LIST_DIR})
+set(PROGRAM_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/program)
+
+file(MAKE_DIRECTORY ${PROGRAM_GEN_DIR})
 
 # --- mesa_lex : program_lexer.l -> lex.yy.c -------------------------------
 set(MESA_LEX_C ${PROGRAM_GEN_DIR}/lex.yy.c)
@@ -33,10 +35,3 @@ add_custom_command(
         COMMENT "Generating mesa/program/program_parse.tab.[ch] (bison)"
         VERBATIM
 )
-
-# An src/mesa/CMakeLists.txt zurueckreichen (entspricht mesa_lex / program_parse_tab
-# als Meson-Objekte, die in files_libmesa einfliessen).
-set(MESA_LEX_C ${MESA_LEX_C} PARENT_SCOPE)
-set(PROGRAM_PARSE_TAB_C ${PROGRAM_PARSE_TAB_C} PARENT_SCOPE)
-set(PROGRAM_PARSE_TAB_H ${PROGRAM_PARSE_TAB_H} PARENT_SCOPE)
-set(PROGRAM_GEN_DIR ${PROGRAM_GEN_DIR} PARENT_SCOPE)

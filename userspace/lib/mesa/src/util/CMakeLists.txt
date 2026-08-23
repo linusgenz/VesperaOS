@@ -27,7 +27,7 @@ add_custom_command(
 
 set(GIT_SHA1_H ${CMAKE_CURRENT_BINARY_DIR}/git_sha1.h)
 if(NOT EXISTS ${GIT_SHA1_H})
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/git_sha1.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../git_sha1.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
 set(SHADER_STATS_H ${CMAKE_CURRENT_BINARY_DIR}/shader_stats.h)
@@ -40,6 +40,21 @@ add_custom_command(
         COMMAND ${MESA_PYTHON3_EXECUTABLE} ${PROCESS_SHADER_STATS_PY} ${SHADER_STATS_RNC} ${SHADER_STATS_XML} > ${SHADER_STATS_H}
         DEPENDS ${PROCESS_SHADER_STATS_PY} ${SHADER_STATS_RNC} ${SHADER_STATS_XML}
         COMMENT "Generating shader_stats.h"
+        VERBATIM
+)
+
+set(DRICONF_STATIC_PY ${CMAKE_CURRENT_SOURCE_DIR}/driconf_static.py)
+set(FILES_DRIRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/00-mesa-defaults.conf
+        ${MESA_ROOT}/src/gallium/drivers/iris/00-iris-defaults.conf
+)
+set(DRICONF_STATIC_H ${CMAKE_CURRENT_BINARY_DIR}/driconf_static.h)
+
+add_custom_command(
+        OUTPUT ${DRICONF_STATIC_H}
+        COMMAND ${MESA_PYTHON3_EXECUTABLE} ${DRICONF_STATIC_PY} ${FILES_DRIRC} ${DRICONF_STATIC_H}
+        DEPENDS ${DRICONF_STATIC_PY} ${FILES_DRIRC}
+        COMMENT "Generating driconf_static.h"
         VERBATIM
 )
 
@@ -192,9 +207,13 @@ set(MESA_UTIL_SOURCES
         mesa_cache_db.c
         mesa_cache_db_multipart.c
 
+        streaming-load-memcpy.c
+        xmlconfig.c
+
         ${MESA_UTIL_FORMAT_SOURCES}
         ${FORMAT_SRGB_C}
         ${SHADER_STATS_H}
+        ${DRICONF_STATIC_H}
 )
 
 # cache_ops -- Depends on the CPU architecture. We build for x86_64, similar to the

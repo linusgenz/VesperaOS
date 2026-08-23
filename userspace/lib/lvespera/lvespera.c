@@ -732,7 +732,7 @@ static int dir_iter_next(lua_State* L) {
         iter->dir = (DIR_HANDLE)-1;
         return 0;
     }
-    lua_pushstring(L, iter->entry.name);
+    lua_pushstring(L, iter->entry.d_name);
     return 1;
 }
 
@@ -765,7 +765,7 @@ static int lfs_readdir_table(lua_State* L) {
     int idx = 1;
     dirent_t entry;
     while (sys_readdir((uint64_t)dir_h, (uint64_t)&entry, 0, 0, 0, 0) > 0) {
-        lua_pushstring(L, entry.name);
+        lua_pushstring(L, entry.d_name);
         lua_rawseti(L, -2, idx++);
     }
     sys_close((uint64_t)dir_h, 0, 0, 0, 0, 0);
@@ -1526,13 +1526,13 @@ static const int_const_t vesp_constants[] = {
 
     /* ── dirent types (dirent.h) ───────────────────────────────────────────── */
     {"DT_UNKNOWN", DT_UNKNOWN},
-    {"DT_FILE", DT_FILE},
+    {"DT_REG", DT_REG},
     {"DT_DIR", DT_DIR},
-    {"DT_SYMLINK", DT_SYMLINK},
-    {"DT_CHARDEV", DT_CHARDEV},
-    {"DT_BLOCKDEV", DT_BLOCKDEV},
+    {"DT_SYMLINK", DT_LNK},
+    {"DT_CHARDEV", DT_CHR},
+    {"DT_BLOCKDEV", DT_BLK},
     {"DT_FIFO", DT_FIFO},
-    {"DT_SOCKET", DT_SOCKET},
+    {"DT_SOCKET", DT_SOCK},
     {"DT_EXEC", DT_EXEC},
 
     /* ── mount flags (mount.h) ─────────────────────────────────────────────── */

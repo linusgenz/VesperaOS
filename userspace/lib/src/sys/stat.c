@@ -112,6 +112,16 @@ int mkdir(const char* path, mode_t mode) {
     return 0;
 }
 
+int chmod(const char *path, mode_t mode) {
+    int64_t ret = sys_chmod((uint64_t)path, (uint64_t)mode, 0, 0, 0, 0);
+
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
+}
+
 int is_directory(const char* path) {
     struct stat st;
     if (stat(path, &st) != 0) return 0;

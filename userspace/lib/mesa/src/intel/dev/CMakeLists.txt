@@ -125,6 +125,9 @@ add_custom_command(
 # those two source files anymore.
 # ────────────────────────────────────────────────────────────────
 set(INTEL_DEV_CORE_SOURCES
+        i915/intel_device_info.c
+        xe/intel_device_info.c
+
         lucifer/intel_device_info.c
         intel_debug.c
         intel_device_info.c

@@ -22,5 +22,6 @@ target_include_directories(mesa_iris_winsys PRIVATE
 
 target_link_libraries(mesa_iris_winsys PRIVATE
         mesa_intel_dev
+        mesa_iris
         mesa_util
 )

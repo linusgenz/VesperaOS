@@ -49,6 +49,8 @@ void fd_table_init(void) {
     g_fd_table[1].in_use = 1;
     g_fd_table[2].handle = HANDLE_STDERR;
     g_fd_table[2].in_use = 1;
+    g_fd_table[3].handle = HANDLE_VBUS;
+    g_fd_table[3].in_use = 1;
 
     g_fd_table_initialized = 1;
 }

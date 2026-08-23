@@ -25,39 +25,42 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <sysstd.h>
-#include <vespera/handles.h>
+#include "../internal/fd_table.h"
 
 #define MAX_ERRNO 4095
 #define IS_ERR(value) ((uint64_t)(value) >= (uint64_t)-MAX_ERRNO)
 #define GET_ERR(value) ((int)(-(int64_t)(value)))
 
-FILE_HANDLE shm_open(const char* name, int oflag, uint32_t mode) {
+int shm_open(const char* name, int oflag, uint32_t mode) {
     if (name == NULL || name[0] != '/') {
         errno = EINVAL;
-        return INVALID_HANDLE;
+        return -1;
     }
 
     int64_t ret = sys_shm_open((uint64_t)name, (uint64_t)oflag, (uint64_t)mode, 0, 0, 0);
-
     if (IS_ERR(ret)) {
         errno = GET_ERR(ret);
-        return INVALID_HANDLE;
+        return -1;
     }
 
-    return (FILE_HANDLE)ret;
+    int fd = fd_table_insert((FILE_HANDLE)ret);
+    if (fd < 0) {
+        sys_close((uint64_t)ret, 0, 0, 0, 0, 0);
+        return -1;
+    }
+    return fd;
 }
 
-FILE_HANDLE shm_unlink(const char* name) {
+int shm_unlink(const char* name) {
     if (name == NULL) {
         errno = EINVAL;
-        return INVALID_HANDLE;
+        return -1;
     }
 
     int64_t ret = sys_shm_unlink((uint64_t)name, 0, 0, 0, 0, 0);
     if (IS_ERR(ret)) {
         errno = GET_ERR(ret);
-        return INVALID_HANDLE;
+        return -1;
     }
-
     return 0;
 }

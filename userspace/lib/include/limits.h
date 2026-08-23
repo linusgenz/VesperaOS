@@ -24,6 +24,12 @@
 #ifndef _LIMITS_H
 #define _LIMITS_H
 
+#define PATH_MAX 4096
+
+#define RE_DUP_MAX 255
+
+#define CHARCLASS_NAME_MAX 14
+
 #define CHAR_BIT 8
 
 /* signed char */

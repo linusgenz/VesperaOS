@@ -385,6 +385,16 @@ int usleep(uint64_t usec) {
     return 0;
 }
 
+int chown(const char *path, uid_t owner, gid_t group) {
+    int64_t ret = sys_chown((uint64_t)path, (uint64_t)owner, (uint64_t)group, 0, 0, 0);
+
+    if (ret < 0) {
+        errno = (int)(-ret);
+        return -1;
+    }
+    return 0;
+}
+
 // ---------------------------------------------------------------------
 // System configuration
 // ---------------------------------------------------------------------

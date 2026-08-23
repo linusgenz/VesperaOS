@@ -256,6 +256,8 @@ void* bsearch(const void* key,
               size_t size,
               __compar_fn_t __compar);
 
+int mbtowc(wchar_t *__restrict__ wc, const char *__restrict__ src, size_t n);
+
 #ifdef __cplusplus
 }
 #endif

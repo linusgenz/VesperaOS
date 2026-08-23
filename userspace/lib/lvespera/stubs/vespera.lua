@@ -192,7 +192,7 @@ vespera.VSTAT_FLAG_PERMANENT = VSTAT_FLAG_PERMANENT
 ---@type number
 vespera.DT_UNKNOWN = DT_UNKNOWN
 ---@type number
-vespera.DT_FILE = DT_FILE
+vespera.DT_REG = DT_REG
 ---@type number
 vespera.DT_DIR = DT_DIR
 ---@type number

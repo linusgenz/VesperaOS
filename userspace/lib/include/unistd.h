@@ -254,6 +254,8 @@ unsigned int sleep(unsigned int seconds);
  */
 int usleep(uint64_t usec);
 
+int chown(const char *path, uid_t owner, gid_t group);
+
 // ---------------------------------------------------------------------
 // System configuration
 // ---------------------------------------------------------------------

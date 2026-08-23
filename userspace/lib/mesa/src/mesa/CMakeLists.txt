@@ -7,7 +7,7 @@ set(MESA_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # --- Unterverzeichnisse einbinden -------------------------------------------
 add_subdirectory(glapi)
-add_subdirectory(program)
+include(program/CMakeLists.txt)
 
 # --- Python Code-Generatoren -----------------------------------------------
 
@@ -448,8 +448,9 @@ endif()
 # --- Haupt-Bibliothek: libmesa ----------------------------------------------
 add_library(mesa STATIC
         # generated
-        ${MESA_LEX}
-        ${PROGRAM_PARSE_TAB}
+        ${MESA_LEX_C}
+        ${PROGRAM_PARSE_TAB_C}
+        ${PROGRAM_PARSE_TAB_H}
         ${MAIN_API_EXEC_C}
         ${MAIN_API_TRACE_C}
         ${MAIN_API_EXEC_DECL_H}
@@ -500,12 +501,18 @@ target_include_directories(mesa PRIVATE
         ${MESA_SRC_DIR}/main
         ${MESA_SRC_DIR}
         ${MESA_GEN_DIR}
+        ${PROGRAM_GEN_DIR}
 )
 
 target_link_libraries(mesa PRIVATE
         ${LIBMESA_SSE41}
-        glsl
-        nir
+        mesa_glsl
+        mesa_nir
         mesa_vtn
         mesa_util_c11
+        mesa_iris_driver
+        mesa_gallium_aux
+        glapi
 )
+
+add_dependencies(mesa mesa_iris_driver mesa_gallium_aux)

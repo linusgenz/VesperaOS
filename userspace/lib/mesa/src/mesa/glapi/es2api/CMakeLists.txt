@@ -49,11 +49,11 @@ target_include_directories(GLESv2 PRIVATE
 
 target_link_libraries(GLESv2 PRIVATE
         glapi                   # Das Target aus shared-glapi/CMakeLists.txt
-        ${DEP_THREAD}
-        ${DEP_LIBDRM}
+        # ${DEP_LIBDRM}
         ${CMAKE_DL_LIBS}        # Entspricht dep_dl
         m                       # Entspricht dep_m
         mesa_util_c11
+        mesa
 )
 
 if(LD_ARGS_GC_SECTIONS)

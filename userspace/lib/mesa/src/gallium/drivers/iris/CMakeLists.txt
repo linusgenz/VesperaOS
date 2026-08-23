@@ -16,10 +16,66 @@
 # linkt gegen die schon fertigen Layer). Fehlende .c-Dateien werden
 # ergaenzt, sobald Batch/Bufmgr/Per-Hw-Ver angegangen werden.
 
+set(IRIS_PER_HW_VER_SOURCES
+        iris_blorp.c
+        iris_query.c
+        iris_state.c
+        iris_indirect_gen.c
+)
+
+set(IRIS_PER_HW_VER_LIBS "")
+foreach(GFX_VER 90 110 120 125 200 300 350)
+    set(IRIS_HW_VER_TARGET mesa_iris_per_hw_ver${GFX_VER})
+
+    add_library(${IRIS_HW_VER_TARGET} STATIC ${IRIS_PER_HW_VER_SOURCES})
+
+    target_compile_definitions(${IRIS_HW_VER_TARGET} PRIVATE
+            GFX_VERx10=${GFX_VER}
+    )
+
+    target_compile_options(${IRIS_HW_VER_TARGET} PRIVATE
+            ${MESA_COMMON_C_FLAGS}
+    )
+
+    target_include_directories(${IRIS_HW_VER_TARGET} PRIVATE
+            ${MESA_ROOT}/src
+            ${MESA_ROOT}/src/mapi
+            ${MESA_ROOT}/src/mesa
+            ${MESA_ROOT}/src/gallium/include
+            ${MESA_ROOT}/src/gallium/auxiliary
+            ${MESA_ROOT}/src/gallium/drivers
+            ${MESA_ROOT}/src/intel
+            ${MESA_ROOT}/src/intel/shaders
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${CMAKE_CURRENT_BINARY_DIR}/../../../intel/shaders
+    )
+
+    target_link_libraries(${IRIS_HW_VER_TARGET} PRIVATE
+            mesa_intel_shaders
+            mesa_util
+            mesa_gallium_aux
+            mesa_intel_perf
+            mesa_intel_dev
+            mesa_intel_common
+            mesa_intel_compiler_gen
+            mesa_intel_compiler_nir
+            mesa_intel_compiler_brw
+            mesa_intel_compiler_jay
+            mesa_intel_blorp
+            mesa_intel_decoder
+            mesa_intel_isl
+            drm::drm
+    )
+
+    list(APPEND IRIS_PER_HW_VER_LIBS ${IRIS_HW_VER_TARGET})
+endforeach()
+
 set(IRIS_SOURCES
         driinfo_iris.h
         iris_binder.c
         iris_binder.h
+        iris_bufmgr.c
+        iris_batch.c
         iris_blit.c
         iris_border_color.c
         iris_clear.c
@@ -50,16 +106,27 @@ set(IRIS_SOURCES
         iris_resource.c
         iris_resource.h
         iris_screen.c
-        iris_screen.h
         iris_disk_cache.c
         iris_utrace.c
 
         # Eigenes KMD-Backend statt i915/iris_kmd_backend.c bzw.
         # xe/iris_kmd_backend.c
         lucifer/iris_kmd_backend.c
+
+        i915/iris_batch.c
+        i915/iris_bufmgr.c
+        i915/i915_iris_kmd_backend.c
+
+        xe/iris_batch.c
+        xe/iris_bufmgr.c
+        xe/xe_iris_kmd_backend.c
 )
 
 add_library(mesa_iris STATIC ${IRIS_SOURCES})
+
+foreach(_iris_hw_ver_lib ${IRIS_PER_HW_VER_LIBS})
+    target_link_libraries(${_iris_hw_ver_lib} PRIVATE mesa_iris)
+endforeach()
 
 target_compile_options(mesa_iris PRIVATE ${MESA_COMMON_C_FLAGS})
 
@@ -77,24 +144,27 @@ target_include_directories(mesa_iris PRIVATE
 )
 
 target_link_libraries(mesa_iris PRIVATE
+        ${IRIS_PER_HW_VER_LIBS}
         mesa_util
         mesa_gallium_aux
+        mesa_intel_perf
         mesa_intel_dev
         mesa_intel_common
         mesa_intel_compiler_gen
         mesa_intel_compiler_nir
         mesa_intel_compiler_brw
+        mesa_intel_compiler_jay
         mesa_intel_blorp
         mesa_intel_decoder
         mesa_intel_isl
+        drm::drm
 )
 
 add_subdirectory(${MESA_ROOT}/src/gallium/winsys/iris/drm
         ${CMAKE_CURRENT_BINARY_DIR}/winsys-iris-drm)
 
-add_custom_target(mesa_iris_driver
-        DEPENDS
+add_library(mesa_iris_driver INTERFACE)
+target_link_libraries(mesa_iris_driver INTERFACE
         mesa_iris
         mesa_iris_winsys
-        COMMENT "Building iris gallium driver (lucifer backend, no batch/bufmgr/per-hw-ver yet)"
 )

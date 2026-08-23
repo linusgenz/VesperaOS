@@ -25,7 +25,7 @@ set(INTEL_COMMON_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(MESA_INTEL_COMMON_SOURCES
         intel_aux_map.c
-        # intel_bind_timeline.c specific for XE, requires DRM, so we exclude it here
+        intel_bind_timeline.c
         intel_common.c
         intel_compute_slm.c
         intel_debug_identifier.c
@@ -37,6 +37,13 @@ set(MESA_INTEL_COMMON_SOURCES
         intel_uuid.c
         intel_measure.c
         intel_pagefault.c
+
+        xe/intel_device_query.c
+        xe/intel_gem.c
+        xe/intel_queue.c
+        xe/intel_engine.c
+
+        i915/intel_engine.c
 )
 
 add_library(mesa_intel_common STATIC ${MESA_INTEL_COMMON_SOURCES})
@@ -56,13 +63,13 @@ target_link_libraries(mesa_intel_common
         PUBLIC
         mesa_util
         mesa_intel_dev
-        mesa_isl
+        mesa_intel_isl
         PRIVATE
         pthread
 )
 
 target_compile_options(mesa_intel_common PRIVATE ${MESA_COMMON_C_FLAGS})
 
-add_dependencies(mesa_intel_common sysroot_headers mesa_genxml mesa_isl)
+add_dependencies(mesa_intel_common sysroot_headers mesa_genxml mesa_intel_isl)
 
 install(TARGETS mesa_intel_common ARCHIVE DESTINATION ${VESPERA_SYSROOT}/usr/lib COMPONENT runtime)
